@@ -1291,9 +1291,19 @@ def does_branch_exist(
     # Check on GitHub.
     if mode == "github":
         txt = _get_gh_pr_list()
+        # ```
         # > gh pr list -s all --limit 10000 | grep AmpTask2163
         # 347     AmpTask2163_Implement_tiled_backtesting_1  AmpTask2163 ... MERGED
+        # ```
         # The text is separated by tabs.
+        #
+        # If there are no issues, just return.
+        # ```
+        # > gh pr list -s all --limit 1000
+        # no pull requests match your search in kaizen-ai/sports_analytics
+        # ```
+        if txt == "":
+            return False
         for line in txt.split("\n"):
             # number, GH branch name, Git branch name, status.
             fields = line.split("\t")

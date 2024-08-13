@@ -225,7 +225,7 @@ def _docker_pull(
     #
     image = get_image(base_image, stage, version)
     _LOG.info("image='%s'", image)
-    _dassert_is_image_name_valid(image)
+    dassert_is_image_name_valid(image)
     cmd = f"docker pull {image}"
     hlitauti.run(ctx, cmd, pty=True)
 
@@ -813,7 +813,7 @@ def _dassert_is_version_valid(version: str) -> None:
 _IMAGE_VERSION_FROM_CHANGELOG = "FROM_CHANGELOG"
 
 
-def _resolve_version_value(
+def resolve_version_value(
     version: str,
     *,
     container_dir_name: str = ".",
@@ -832,7 +832,7 @@ def _resolve_version_value(
     return prod_version
 
 
-def _to_dev_version(prod_version: str) -> str:
+def to_dev_version(prod_version: str) -> str:
     """
     Pass a prod version (e.g., 1.1.1) and strip the patch value.
 
@@ -846,13 +846,13 @@ def _to_dev_version(prod_version: str) -> str:
     return dev_version
 
 
-def _dassert_is_subsequent_version(
+def dassert_is_subsequent_version(
     version: str,
     *,
     container_dir_name: str = ".",
 ) -> None:
     """
-    Check that version is bigger than the current one as specified in the
+    Check that `version` is bigger than the current one as specified in the
     changelog.
     """
     if version != _IMAGE_VERSION_FROM_CHANGELOG:
@@ -881,7 +881,7 @@ _IMAGE_STAGE_RE = rf"(local(?:-{_IMAGE_USER_RE})?|dev|prod|prod(?:-{_IMAGE_USER_
 
 # TODO(Grisha): call `_dassert_is_base_image_name_valid()` and a separate
 # function that validates an image tag.
-def _dassert_is_image_name_valid(image: str) -> None:
+def dassert_is_image_name_valid(image: str) -> None:
     """
     Check whether an image name is valid.
 
@@ -1003,7 +1003,7 @@ def get_image(
         image.append(f"-{version}")
     #
     image = "".join(image)
-    _dassert_is_image_name_valid(image)
+    dassert_is_image_name_valid(image)
     return image
 
 
@@ -1095,7 +1095,7 @@ def _get_docker_base_cmd(
     # - Handle the image.
     image = get_image(base_image, stage, version)
     _LOG.debug("base_image=%s stage=%s -> image=%s", base_image, stage, image)
-    _dassert_is_image_name_valid(image)
+    dassert_is_image_name_valid(image)
     docker_cmd_.append(f"IMAGE={image}")
     # - Handle extra env vars.
     if extra_env_vars:
@@ -1105,7 +1105,7 @@ def _get_docker_base_cmd(
     #
     docker_cmd_.append(
         r"""
-        docker-compose"""
+        docker compose"""
     )
     docker_compose_files = _get_docker_compose_files(
         stage,
