@@ -274,10 +274,35 @@ def _get_aws_cli_version() -> int:
     return major_version
 
 
+def _check_docker_login(repo_name: str) -> bool:
+    # Check if we are already logged in to the target registry.
+    file_name = os.path.join(os.environ["HOME"], '.docker/config.json')
+    json_data = hio.from_json(file_name)
+    # > more ~/.docker/config.json
+    # ```
+    # {
+    #         "auths": {
+    #                 "623860924167.dkr.ecr.eu-north-1.amazonaws.com": {},
+    #                 "665840871993.dkr.ecr.us-east-1.amazonaws.com": {},
+    #                 "https://index.docker.io/v1/": {}
+    #         },
+    # ```
+    _LOG.debug("json_data=%s", json_data)
+    is_logged = [repo_name in val for val in json_data[ "auths"].keys()]
+    return is_logged
+
+
 def _docker_login_dockerhub() -> None:
     """
     Log into the Docker Hub which is a public Docker image registry.
     """
+    # Check if we are already logged in to the target registry.
+    assert 0, "Find name of the repo"
+    is_logged = _check_docker_login("623860924167.dkr.ecr")
+    if is_logged:
+        _LOG.info("Already logged in to the target registry")
+        return
+    _LOG.info("Logging in to the target registry")
     # TODO(gp): Why here?
     import helpers.hsecrets as hsecret
 
@@ -297,6 +322,13 @@ def _docker_login_ecr() -> None:
     if hserver.is_inside_ci():
         _LOG.warning("Running inside GitHub Action: skipping `docker_login`")
         return
+    # Check if we are already logged in to the target registry.
+    is_logged = _check_docker_login("623860924167.dkr.ecr")
+    if is_logged:
+        _LOG.info("Already logged in to the target registry")
+        return
+    _LOG.info("Logging in to the target registry")
+    # Log in the target registry.
     major_version = _get_aws_cli_version()
     # docker login \
     #   -u AWS \
@@ -334,19 +366,20 @@ def docker_login(ctx, target_registry="aws_ecr.ck"):  # type: ignore
     """
     Log in the target registry and skip if we are in kaizenflow.
 
+    :param ctx: invoke context
     :param target_registry: target Docker image registry to log in to
         - "dockerhub.sorrentum": public Kaizenflow Docker image registry
         - "aws_ecr.ck": private AWS CK ECR
     """
+    _ = ctx
+    hlitauti.report_task()
     # No login required as kaizenflow container is accessible on the public
     # DockerHub registry.
     if henv.execute_repo_config_code("get_name()") == "//kaizen":
         _LOG.warning("Skipping logging in for Kaizenflow")
         return
-    hlitauti.report_task()
     # We run everything using `hsystem.system(...)` but `ctx` is needed
     # to make the function work as an invoke target.
-    _ = ctx
     if target_registry == "aws_ecr.ck":
         _docker_login_ecr()
     elif target_registry == "dockerhub.sorrentum":

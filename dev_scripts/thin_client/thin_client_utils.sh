@@ -1,3 +1,7 @@
+# #############################################################################
+# Docker
+# #############################################################################
+
 # Define strings with colors.
 RED='\033[0;31m'
 YELLOW='\033[1;33m'
@@ -110,6 +114,26 @@ print_python_ver() {
 }
 
 
+print_env_signature() {
+    echo "# PATH="
+    echo_on_different_lines $PATH
+    #
+    echo "# PYTHONPATH="
+    echo_on_different_lines $PYTHONPATH
+    #
+    echo "# printenv="
+    printenv
+    #
+    echo "# alias="
+    alias
+}
+
+
+# #############################################################################
+# Host
+# #############################################################################
+
+
 print_pip_package_ver() {
     # Print package versions.
     INVOKE_VER=$(invoke --version)
@@ -208,16 +232,99 @@ configure_specific_project() {
 }
 
 
-print_env_signature() {
-    echo "# PATH="
-    echo_on_different_lines $PATH
-    #
-    echo "# PYTHONPATH="
-    echo_on_different_lines $PYTHONPATH
-    #
-    echo "# printenv="
-    printenv
-    #
-    echo "# alias="
-    alias
+# #############################################################################
+# Docker
+# #############################################################################
+
+
+activate_docker_venv() {
+    echo "# Activate environment ..."
+    SOURCE_PATH="/${ENV_NAME}/bin/activate"
+    check_file_exists $SOURCE_PATH
+    source $SOURCE_PATH
+    echo "# Activate environment ... done"
+}
+
+
+set_up_docker_in_docker() {
+    echo "# Set up Docker-in-docker"
+    if [[ ! -d /etc/docker ]]; then
+        sudo mkdir /etc/docker
+    fi;
+    # This is needed to run the database in dind mode (see CmTask309).
+    # TODO(gp): For some reason appending to file directly `>>` doesn't work.
+    sudo echo '{ "storage-driver": "vfs" }' | sudo tee -a /etc/docker/daemon.json
+    # Start Docker Engine.
+    # TODO(Vlad): Fix ulimit error: https://github.com/docker/cli/issues/4807.
+    # Need to remove after the issue is fixed.
+    sudo sed -i 's/ulimit -Hn/# ulimit -Hn/g' /etc/init.d/docker
+    sudo /etc/init.d/docker start
+    sudo /etc/init.d/docker status
+    # Wait for Docker Engine to be started, otherwise `docker.sock` file is
+    # not created so fast. This is needed to change `docker.sock` permissions.
+    DOCKER_SOCK_FILE=/var/run/docker.sock
+    COUNTER=0
+    # Set sleep interval.
+    SLEEP_SEC=0.1
+    # Which is 10 seconds, i.e. `100 = 10 seconds (limit) / 0.1 seconds (sleep)`.
+    COUNTER_LIMIT=100
+    while true; do
+        if [ -e "$DOCKER_SOCK_FILE" ]; then
+            # Change permissions for Docker socket. See more on S/O:
+            # `https://stackoverflow.com/questions/48957195`.
+            # We do it after the Docker engine is started because `docker.sock` is
+            # created only after the engine start.
+            # TODO(Grisha): give permissions to the `docker` group only and not to
+            # everyone, i.e. `666`.
+            sudo chmod 666 $DOCKER_SOCK_FILE
+            echo "Permissions for "$DOCKER_SOCK_FILE" have been changed."
+            break
+        elif [[ "$COUNTER" -gt "$COUNTER_LIMIT" ]]; then
+            echo "Timeout limit is reached, exit script."
+            exit 1
+        else
+            COUNTER=$((counter+1))
+            sleep $SLEEP_SEC
+            echo "Waiting for $DOCKER_SOCK_FILE to be created."
+        fi
+    done
+}
+
+
+set_up_docker_git() {
+    VAL=$(git --version)
+    echo "git --version: $VAL"
+    # TODO(gp): Check https://github.com/alphamatic/amp/issues/2200#issuecomment-1101756708
+    git config --global --add safe.directory /app
+    if [[ -d /app/amp ]]; then
+        git config --global --add safe.directory /app/amp
+    fi;
+    if [[ -d /src/amp ]]; then
+        git config --global --add safe.directory /src/amp
+    fi;
+    git config --global --add safe.directory /src
+    git rev-parse --show-toplevel
+}
+
+
+set_up_docker_aws() {
+    echo "# Check AWS authentication setup"
+    if [[ $AM_AWS_ACCESS_KEY_ID == "" ]]; then
+        unset AM_AWS_ACCESS_KEY_ID
+    else
+        echo "AM_AWS_ACCESS_KEY_ID='$AM_AWS_ACCESS_KEY_ID'"
+    fi;
+
+    if [[ $AM_AWS_SECRET_ACCESS_KEY == "" ]]; then
+        unset AM_AWS_SECRET_ACCESS_KEY
+    else
+        echo "AM_AWS_SECRET_ACCESS_KEY='***'"
+    fi;
+
+    if [[ $AM_AWS_DEFAULT_REGION == "" ]]; then
+        unset AM_AWS_DEFAULT_REGION
+    else
+        echo "AM_AWS_DEFAULT_REGION='$AM_AWS_DEFAULT_REGION'"
+    fi;
+    aws configure --profile am list || true
 }
