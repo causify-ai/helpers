@@ -120,10 +120,10 @@ Each repo relies on several concept:
 - Keep files in sync
   ```bash
   > vimdiff dev_scripts_sports_analytics/thin_client/setenv.sports_analytics.sh helpers_root/dev_scripts/thin_client/setenv.helpers.sh
-  > vimdiff dev_scripts_sports_analytics/thin_client/setenv.sports_analytics.sh helpers_root/dev_scripts/thin_client/setenv.template.sh
+  > vimdiff dev_scripts_sports_analytics/thin_client/setenv.sports_analytics.sh helpers_root/dev_scripts/thin_client/templates/setenv.template.sh
   ```
 
-## Install
+## Tmux links
 
 - Create the global link
   ```bash
@@ -135,18 +135,30 @@ Each repo relies on several concept:
   > dev_scripts_sports_analytics/thin_client/tmux.sports_analytics.py --index 1 --force_restart
   ```
 
-## 
+## Create files
 
+- Some files need to be copied from `helpers` to the root of the super-repo
+  - `changelog.txt`: this is copied from the repo that builds the used container or
+    started from scratch for a new container
+  - `conftest.py`: configure `pytest`
+  - `invoke.yaml`: configure `invoke`
+  - `pytest.ini`: configure `pytest` preferences
+  - `repo_config.py`: stores information about this specific repo (e.g., name, used
+    container)
+    - This needs to be modified
+  - `tasks.py`: the `invoke` tasks available in this container
+    - This needs to be modified
+  - TODO(gp): Some should be links to `helpers`
 
+## Build a container for a super-repo
 
-changelog.txt
-conftest.py
-invoke.yaml
-pytest.ini
-repo_config.py
-tasks.py
-
-Some files need to be modified
-
-repo_config.py
-tasks.py
+- Copy the `devops` template dir
+  ```bash
+  > (cd helpers_root; git pull)
+  > cp -r helpers_root/devops/templates/devops_with_build_stage devops
+  ```
+- If we don't need to build a container, but just reuse one we can delete
+  the corresponding directory
+  ```bash
+  > rm -rf devops/docker_build
+  ```
