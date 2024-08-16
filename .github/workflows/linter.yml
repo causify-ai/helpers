@@ -1,0 +1,98 @@
+name: Check if the Linter was run
+on:
+  pull_request:
+    types: [ opened, synchronize, reopened, ready_for_review ]
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+
+  Run_linter:
+    runs-on: ubuntu-latest
+
+    steps:
+      # To optimize costs, the image is fetched from GHCR registry by default. If you prefer
+      # pulling the image from ECR, enable this.
+      # # Pass AWS credentials via GH secrets. This is needed to pull the Docker image
+      # # that will be used to run the action.
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.CK_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.CK_AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.CK_AWS_DEFAULT_REGION }}
+
+      # # This is needed to pull the Docker image.
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      #- name: Perform docker login
+      #  if: github.event.pull_request.draft == false
+      #  run: docker login ghcr.io -u gpsaggese -p ${{ secrets.GITHUB_TOKEN }}
+
+      # Make everything accessible by any user to avoid permission errors.
+      - name: Cleanup
+        if: github.event.pull_request.draft == false
+        run: sudo chmod 777 -R .
+
+      # Check out the code from GitHub so that we can run the action inside
+      # the Docker container.
+      - name: Checkout code
+        if: github.event.pull_request.draft == false
+        uses: actions/checkout@v2
+        with:
+          # The `lint` invoke target needs to have the full history of commits
+          # in order to compare the current branch with the master branch.
+          # The `0` means unlimited depth.
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Install packages that are required to run the job via GH.
+      - name: Install dependencies
+        if: github.event.pull_request.draft == false
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r .github/gh_requirements.txt
+
+      # Run the linter, then check if any file was changed after that. If so,
+      # fail the job.
+      - name: Check if the Linter was run
+        # https://github.community/t/dont-run-actions-on-draft-pull-requests/16817/19
+        # Do not run on draft pull requests.
+        if: github.event.pull_request.draft == false
+        env:
+          AM_AWS_ACCESS_KEY_ID: ${{ secrets.AM_AWS_ACCESS_KEY_ID }}
+          AM_AWS_SECRET_ACCESS_KEY: ${{ secrets.AM_AWS_SECRET_ACCESS_KEY }}
+          AM_AWS_DEFAULT_REGION: ${{ secrets.AM_AWS_DEFAULT_REGION }}
+          AM_ECR_BASE_PATH: ${{ secrets.AM_ECR_BASE_PATH }}
+          AM_AWS_S3_BUCKET: ${{ secrets.AM_AWS_S3_BUCKET }}
+          AM_TELEGRAM_TOKEN: ${{ secrets.AM_TELEGRAM_TOKEN }}
+          CK_AWS_ACCESS_KEY_ID: ${{ secrets.CK_AWS_ACCESS_KEY_ID }}
+          CK_AWS_SECRET_ACCESS_KEY: ${{ secrets.CK_AWS_SECRET_ACCESS_KEY }}
+          CK_AWS_DEFAULT_REGION: ${{ secrets.CK_AWS_DEFAULT_REGION }}
+          # CK_ECR_BASE_PATH: ${{ secrets.CK_ECR_BASE_PATH }}
+          # If you prefer pulling the image from ECR, comment out the following line and uncomment the one above.
+          # Base path for GHCR registry.
+          CK_ECR_BASE_PATH: ghcr.io/cryptokaizen
+          CK_AWS_S3_BUCKET: ${{ secrets.CK_AWS_S3_BUCKET }}
+          CK_TELEGRAM_TOKEN: ${{ secrets.CK_TELEGRAM_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # To run the linter, fetch the master branch for comparison with the
+        # current branch.
+        run: |
+          invoke git_fetch_master
+          invoke lint --branch
+          invoke lint_check_if_it_was_run
+
+      - name: Post status if was triggered manually
+        if: ${{ always() && github.event_name == 'workflow_dispatch' }}
+        uses: Sibz/github-status-action@v1
+        with:
+          authToken: ${{ secrets.GITHUB_TOKEN }}
+          context: "Run_linter"
+          description: 'Job is done (manual run)'
+          state: ${{ job.status }}
+          sha: ${{ github.sha }}
+          target_url: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
