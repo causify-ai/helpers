@@ -215,6 +215,11 @@ def docker_kill(  # type: ignore
 # For now we pass the customizable part through the default params.
 
 
+# ////////////////////////////////////////////////////////////////////////////
+# Docker pull.
+# ////////////////////////////////////////////////////////////////////////////
+
+
 def _docker_pull(
     ctx: Any, base_image: str, stage: str, version: Optional[str]
 ) -> None:
@@ -237,6 +242,7 @@ def docker_pull(ctx, stage="dev", version=None, skip_pull=False):  # type: ignor
 
     :param skip_pull: if True skip pulling the docker image
     """
+    _LOG.info("Pulling the latest version of Docker")
     hlitauti.report_task()
     if skip_pull:
         _LOG.warning("Skipping pulling docker image as per user request")
@@ -254,6 +260,11 @@ def docker_pull_dev_tools(ctx, stage="prod", version=None):  # type: ignore
     hlitauti.report_task()
     base_image = hlitauti.get_default_param("CK_ECR_BASE_PATH") + "/dev_tools"
     _docker_pull(ctx, base_image, stage, version)
+
+
+# ////////////////////////////////////////////////////////////////////////////
+# Docker login
+# ////////////////////////////////////////////////////////////////////////////
 
 
 @functools.lru_cache()
@@ -427,7 +438,7 @@ def _get_linter_service(stage: str) -> str:
         - {repo_root}:/src"""
     if stage != "prod":
         # When we run a development Linter container, we need to mount the
-        # the Linter repo under `/app`. For prod container instead we copy / freeze
+        # Linter repo under `/app`. For prod container instead we copy / freeze
         # the repo code in `/app`, so we should not mount it.
         if superproject_path:
             # When running in a Git submodule we need to go one extra level up.
@@ -495,11 +506,13 @@ def _generate_docker_compose_file(
         am_enable_dind = 1
     else:
         am_enable_dind = 0
+    # ```
     # sysname='Linux'
     # nodename='cf-spm-dev4'
     # release='3.10.0-1160.53.1.el7.x86_64'
     # version='#1 SMP Fri Jan 14 13:59:45 UTC 2022'
     # machine='x86_64'
+    # ```
     am_host_os_name = os.uname()[0]
     am_host_name = os.uname()[1]
     am_host_version = os.uname()[2]
@@ -921,13 +934,13 @@ def dassert_is_image_name_valid(image: str) -> None:
     Check whether an image name is valid.
 
     Invariants:
-    - Local images contain a user name and a version
+    - Local images contain a username and a version
       - E.g., `*****.dkr.ecr.us-east-1.amazonaws.com/amp:local-saggese-1.0.0`
-    - `dev` and `prod` images have an instance with the a version and one without
+    - `dev` and `prod` images have an instance with a version and one without
       to indicate the latest
       - E.g., `*****.dkr.ecr.us-east-1.amazonaws.com/amp:dev-1.0.0`
         and `*****.dkr.ecr.us-east-1.amazonaws.com/amp:dev`
-    - `prod` candidate image has an optional tag (e.g., a user name) and
+    - `prod` candidate image has an optional tag (e.g., a username) and
         a 9 character hash identifier corresponding Git commit
         - E.g., `*****.dkr.ecr.us-east-1.amazonaws.com/amp:prod-1.0.0-4rf74b83a`
         - and `*****.dkr.ecr.us-east-1.amazonaws.com/amp:prod-1.0.0-saggese-4rf74b83a`
@@ -1011,7 +1024,7 @@ def get_image(
     """
     Return the fully qualified image name.
 
-    For local stage, it also appends the user name to the image name.
+    For local stage, it also appends the username to the image name.
 
     :param base_image: e.g., *****.dkr.ecr.us-east-1.amazonaws.com/amp
     :param stage: e.g., `local`, `dev`, `prod`
@@ -1063,11 +1076,12 @@ def _run_docker_as_user(as_user_from_cmd_line: bool) -> bool:
 
 def _get_container_name(service_name: str) -> str:
     """
-    Create a container name based on various information (e.g.,
-    `grisha.cmamp.app.cmamp1.20220317_232120`).
+    Create a container name based on various information
+
+    E.g., `grisha.cmamp.app.cmamp1.20220317_232120`
 
     The information used to build a container is:
-       - Linux user name
+       - Linux username
        - Base Docker image name
        - Service name
        - Project directory that was used to start a container
@@ -1077,7 +1091,7 @@ def _get_container_name(service_name: str) -> str:
     :return: container name
     """
     hdbg.dassert_ne(service_name, "", "You need to specify a service name")
-    # Get linux user name.
+    # Get linux username.
     linux_user = hsystem.get_user_name()
     # Get dir name.
     project_dir = hgit.get_project_dirname()
@@ -1106,15 +1120,16 @@ def _get_docker_base_cmd(
     r"""
     Get base `docker-compose` command encoded as a list of strings.
 
-    It can be used as a base to build more complex commands, e.g., `run`, `up`, `down`.
+    It can be used as a base to build more complex commands, e.g., `run`, `up`,
+    `down`.
 
     E.g.,
     ```
-        ['IMAGE=*****.dkr.ecr.us-east-1.amazonaws.com/amp:dev',
-            '\n        docker-compose',
-            '\n        --file amp/devops/compose/docker-compose.yml',
-            '\n        --file amp/devops/compose/docker-compose_as_submodule.yml',
-            '\n        --env-file devops/env/default.env']
+    ['IMAGE=*****.dkr.ecr.us-east-1.amazonaws.com/amp:dev',
+        '\n        docker-compose',
+        '\n        --file amp/devops/compose/docker-compose.yml',
+        '\n        --file amp/devops/compose/docker-compose_as_submodule.yml',
+        '\n        --env-file devops/env/default.env']
     ```
     :param generate_docker_compose_file: whether to generate or reuse the existing
         Docker compose file
@@ -1175,7 +1190,7 @@ def _get_docker_compose_cmd(
     extra_docker_compose_files: Optional[List[str]] = None,
     extra_docker_run_opts: Optional[List[str]] = None,
     service_name: str = "app",
-    entrypoint: bool = True,
+    use_entrypoint: bool = True,
     generate_docker_compose_file: bool = True,
     as_user: bool = True,
     print_docker_config: bool = False,
@@ -1200,7 +1215,7 @@ def _get_docker_compose_cmd(
     :param cmd: command to run inside Docker container
     :param extra_docker_run_opts: additional `docker-compose` run options
     :param service_name: service to use to run a command
-    :param entrypoint: whether to use the `entrypoint` or not
+    :param use_entrypoint: whether to use the `entrypoint.sh` or not
     :param generate_docker_compose_file: generate the Docker compose file or not
     :param as_user: pass the user / group id or not
     :param print_docker_config: print the docker config for debugging purposes
@@ -1210,7 +1225,7 @@ def _get_docker_compose_cmd(
         _LOG,
         logging.DEBUG,
         "cmd extra_docker_run_opts service_name "
-        "entrypoint as_user print_docker_config use_bash",
+        "use_entrypoint as_user print_docker_config use_bash",
     )
     # - Get the base Docker command.
     docker_cmd_ = _get_docker_base_cmd(
@@ -1256,7 +1271,7 @@ def _get_docker_compose_cmd(
         {extra_opts}"""
         )
     # - Handle entrypoint.
-    if entrypoint:
+    if use_entrypoint:
         docker_cmd_.append(
             rf"""
         {service_name}"""
@@ -1293,7 +1308,7 @@ def _get_lint_docker_cmd(
     stage: str,
     version: str,
     *,
-    entrypoint: bool = True,
+    use_entrypoint: bool = True,
 ) -> str:
     """
     Create a command to run in the Linter service.
@@ -1313,7 +1328,7 @@ def _get_lint_docker_cmd(
         stage,
         version,
         docker_cmd_,
-        entrypoint=entrypoint,
+        use_entrypoint=use_entrypoint,
         service_name="linter",
     )
     return cmd
@@ -1332,9 +1347,9 @@ def _docker_cmd(
     **ctx_run_kwargs: Any,
 ) -> Optional[int]:
     """
-    Execute a docker command printing the command.
+    Print and execute a Docker command.
 
-    :param kwargs: kwargs for `ctx.run`
+    :param kwargs: kwargs for `ctx.run()`
     """
     if hserver.is_inside_ci():
         import helpers.hs3 as hs3
@@ -1342,7 +1357,6 @@ def _docker_cmd(
         # Generate files with the AWS settings that are missing when running
         # inside CI.
         hs3.generate_aws_files()
-    _LOG.info("Pulling the latest version of Docker")
     docker_pull(ctx, skip_pull=skip_pull)
     _LOG.debug("cmd=%s", docker_cmd_)
     rc: Optional[int] = hlitauti.run(ctx, docker_cmd_, pty=True, **ctx_run_kwargs)
@@ -1355,7 +1369,7 @@ def docker_bash(  # type: ignore
     base_image="",
     stage="dev",
     version="",
-    entrypoint=True,
+    use_entrypoint=True,
     as_user=True,
     generate_docker_compose_file=True,
     container_dir_name=".",
@@ -1364,12 +1378,13 @@ def docker_bash(  # type: ignore
     """
     Start a bash shell inside the container corresponding to a stage.
 
-    :param entrypoint: whether to use the `entrypoint` or not
+    :param use_entrypoint: whether to use the `entrypoint.sh` or not
     :param as_user: pass the user / group id or not
     :param generate_docker_compose_file: generate the Docker compose file or not
     :param skip_pull: if True skip pulling the docker image
     """
     hlitauti.report_task(container_dir_name=container_dir_name)
+    #
     cmd = "bash"
     docker_cmd_ = _get_docker_compose_cmd(
         base_image,
@@ -1377,9 +1392,10 @@ def docker_bash(  # type: ignore
         version,
         cmd,
         generate_docker_compose_file=generate_docker_compose_file,
-        entrypoint=entrypoint,
+        use_entrypoint=use_entrypoint,
         as_user=as_user,
     )
+    _LOG.debug("docker_cmd_=%s", docker_cmd_)
     _docker_cmd(ctx, docker_cmd_, skip_pull=skip_pull)
 
 
@@ -1463,7 +1479,7 @@ def docker_jupyter(  # type: ignore
     skip_pull=False,
 ):
     """
-    Run jupyter notebook server.
+    Run Jupyter notebook server.
 
     :param auto_assign_port: use the UID of the user and the inferred
         number of the repo (e.g., 4 for `~/src/amp4`) to get a unique
@@ -1484,8 +1500,8 @@ def docker_jupyter(  # type: ignore
             port = (uid * max_idx_per_user) + git_repo_idx
         else:
             port = 9999
-    #
     _LOG.info("Assigned port is %s", port)
+    #
     print_docker_config = False
     docker_cmd_ = _get_docker_jupyter_cmd(
         base_image,
