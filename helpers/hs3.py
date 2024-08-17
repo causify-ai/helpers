@@ -497,6 +497,11 @@ def add_s3_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     return parser
 
 
+# #############################################################################
+# AWS.
+# #############################################################################
+
+
 def get_aws_profile(aws_profile: str) -> str:
     """
     Return the AWS profile to access S3, based on:
@@ -514,7 +519,7 @@ def get_aws_profile(aws_profile: str) -> str:
 
 def _get_aws_config(file_name: str) -> configparser.RawConfigParser:
     """
-    Return a parser to the config in `~/.aws/{file_name]}`.
+    Return a parser to the config in `~/.aws/{file_name}`.
     """
     file_name = os.path.join(os.path.expanduser("~"), ".aws", file_name)
     hdbg.dassert_file_exists(file_name)
@@ -597,13 +602,15 @@ def generate_aws_files(
 ) -> None:
     """
     Generate AWS configuration files.
+
+    This is needed to use the AWS CLI and the `boto3` library when we are in CI.
     """
     if home_dir == "~":
         home_dir = os.path.expanduser(home_dir)
     config_file_name = os.path.join(home_dir, ".aws", "config")
     credentials_file_name = os.path.join(home_dir, ".aws", "credentials")
+    # Check if the files already exist.
     if os.path.exists(credentials_file_name) and os.path.exists(config_file_name):
-        # Ensure that both files exist.
         _LOG.info(
             "Both files exist: %s and %s; exiting",
             credentials_file_name,
@@ -629,10 +636,6 @@ def generate_aws_files(
     hio.to_file(credentials_file_name, credentials_file_text)
     _LOG.debug("Saved AWS credentials to %s", credentials_file_name)
 
-
-# #############################################################################
-# Authentication.
-# #############################################################################
 
 # Architecture of the AWS authentication
 #
