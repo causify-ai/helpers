@@ -1297,7 +1297,7 @@ def does_branch_exist(
         # ```
         # The text is separated by tabs.
         #
-        # If there are no issues, just return.
+        # If there are no issues on the GitHub repo, just return.
         # ```
         # > gh pr list -s all --limit 1000
         # no pull requests match your search in kaizen-ai/sports_analytics

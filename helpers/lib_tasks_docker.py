@@ -275,7 +275,9 @@ def _get_aws_cli_version() -> int:
 
 
 def _check_docker_login(repo_name: str) -> bool:
-    # Check if we are already logged in to the target registry.
+    """
+    Check if we are already logged in to the Docker registry `repo_name`.
+    """
     file_name = os.path.join(os.environ["HOME"], '.docker/config.json')
     json_data = hio.from_json(file_name)
     # > more ~/.docker/config.json
