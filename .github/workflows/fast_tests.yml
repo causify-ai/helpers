@@ -71,7 +71,7 @@ jobs:
       - name: Pull image
         if: github.event.pull_request.draft == false
         env:
-          CK_ECR_BASE_PATH: ${{ secrets.CK_ECR_BASE_PATH }}
+          CK_ECR_BASE_PATH: ${{ vars.CK_ECR_BASE_PATH }}
         run: invoke docker_pull
 
       # Pull the latest Docker image from GHCR registry instead of ECR for cost saving purposes to run the regressions on.
@@ -90,7 +90,7 @@ jobs:
           CK_AWS_ACCESS_KEY_ID: ${{ secrets.CK_AWS_ACCESS_KEY_ID }}
           CK_AWS_SECRET_ACCESS_KEY: ${{ secrets.CK_AWS_SECRET_ACCESS_KEY }}
           CK_AWS_DEFAULT_REGION: ${{ vars.CK_AWS_DEFAULT_REGION }}
-          # CK_ECR_BASE_PATH: ${{ secrets.CK_ECR_BASE_PATH }}
+          # CK_ECR_BASE_PATH: ${{ vars.CK_ECR_BASE_PATH }}
           # If you prefer pulling the image from ECR, comment out the following line and uncomment the one above.
           # Base path for GHCR registry.
           CK_ECR_BASE_PATH: ghcr.io/cryptokaizen
