@@ -122,7 +122,7 @@
 ## Devops to run an already existing container
 
 - To reuse a Docker container from a different dir / repo, `devops` doesn't need
-  `docker_build` dir
+  the `docker_build` dir
   ```bash
   > tree.sh -p devops
   devops/
@@ -144,8 +144,6 @@
 # Docker invoke flow
 
 ## `docker_bash`
-
-- Currently the options for 
 
 - When `invoke docker_bash` is called, it generates a Docker compose command line like:
   ```
@@ -249,18 +247,8 @@
       name: main_network
   ```
 
-
-
 ## `docker_jupyter`
 
-`sys_prefix` level settings are read-only, using `user` level for migration to `lockedExtensions`
-JupyterLab v4.2.4
-/venv/share/jupyter/labextensions
-        jupyterlab_pygments v0.3.0 enabled OK (python, jupyterlab_pygments)
-        @jupyter-widgets/jupyterlab-manager v5.0.11 enabled OK (python, jupyterlab_widgets)
-        @jupyter-notebook/lab-extension v7.2.1 enabled OK
-        @axlair/jupyterlab_vim v4.1.3 enabled OK (python, jupyterlab_vim)
-
-To disable vim go to Settings -> Enable Vim Mode
-
-We use the percent format for jupytext
+- This invokes a different service
+- To disable vim go to Settings -> Enable Vim Mode
+- We use the percent format for Jupytext
