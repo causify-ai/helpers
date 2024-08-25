@@ -1,6 +1,5 @@
 # syntax = docker/dockerfile:experimental
 
-# TODO(*): Switch to 24
 FROM ubuntu:24.04 AS builder
 #FROM ubuntu:20.04 AS builder
 
