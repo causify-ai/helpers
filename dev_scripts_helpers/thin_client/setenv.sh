@@ -16,8 +16,8 @@ echo "##> $SCRIPT_PATH"
 IS_SUPER_REPO=0
 echo "IS_SUPER_REPO=$IS_SUPER_REPO"
 
-# We can reuse the thin environment of `helpers` or create a new one.
 if [[ $IS_SUPER_REPO == 1 ]]; then
+    # We can reuse the thin environment of `helpers` or create a new one.
     VENV_TAG="xyz"
 else
     VENV_TAG="helpers"
@@ -37,7 +37,7 @@ if [[ $IS_SUPER_REPO == 1 ]]; then
 else
     HELPERS_ROOT_DIR="${GIT_ROOT_DIR}"
 fi;
-SOURCE_PATH="${HELPERS_ROOT_DIR}/dev_scripts_${DIR_TAG}/thin_client/thin_client_utils.sh"
+SOURCE_PATH="${HELPERS_ROOT_DIR}/dev_scripts_helpers/thin_client/thin_client_utils.sh"
 echo "> source $SOURCE_PATH ..."
 if [[ ! -f $SOURCE_PATH ]]; then
     echo -e "ERROR: Can't find $SOURCE_PATH"
@@ -47,7 +47,6 @@ source $SOURCE_PATH
 
 # - Activate environment
 activate_venv $VENV_TAG
-
 
 if [[ $IS_SUPER_REPO == 1 ]]; then
     HELPERS_ROOT_DIR="${GIT_ROOT_DIR}/helpers_root"
@@ -67,7 +66,7 @@ set_path $DEV_SCRIPT_DIR
 
 if [[ $IS_SUPER_REPO == 1 ]]; then
     # Set vars for helpers_root.
-    set_path "${HELPERS_ROOT_DIR}/dev_scripts"
+    set_path "${HELPERS_ROOT_DIR}/dev_scripts_helpers"
 #    # Add more vars specific of the super-repo.
 #    export PATH=.:$PATH
 #    export PATH=$GIT_ROOT_DIR:$PATH

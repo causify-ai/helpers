@@ -42,7 +42,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         _LOG.info(f"# aws={aws_version}")
     except subprocess.CalledProcessError:
         raise RuntimeError(
-            "AWS CLI is not installed. Please install it and " "try again."
+            "AWS CLI is not installed. Please install it and try again."
         )
     # Create the virtual environment.
     venv_dir = tcu.get_venv_dir(DIR_PREFIX)
