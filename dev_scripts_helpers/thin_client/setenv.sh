@@ -9,7 +9,6 @@ DIR_TAG="helpers"
 
 # NOTE: We can't use $0 to find out in which file we are in, since this file is
 # sourced and not executed.
-# TODO(gp): For symmetry consider calling the dir `dev_scripts_${DIR_TAG}`.
 SCRIPT_PATH="dev_scripts_${DIR_TAG}/thin_client/setenv.sh"
 echo "##> $SCRIPT_PATH"
 
@@ -27,7 +26,7 @@ fi;
 # Give permissions to read / write to user and group.
 umask 002
 
-# Source `utils.sh`.
+# - Source `utils.sh`.
 # NOTE: we can't use $0 to find the path since we are sourcing this file.
 GIT_ROOT_DIR=$(pwd)
 echo "GIT_ROOT_DIR=$GIT_ROOT_DIR"
@@ -46,9 +45,19 @@ if [[ ! -f $SOURCE_PATH ]]; then
 fi
 source $SOURCE_PATH
 
+# - Activate environment
 activate_venv $VENV_TAG
 
-# PATH
+
+if [[ $IS_SUPER_REPO == 1 ]]; then
+    HELPERS_ROOT_DIR="${GIT_ROOT_DIR}/helpers_root"
+    echo "HELPERS_ROOT_DIR=$HELPERS_ROOT_DIR"
+    dassert_dir_exists $HELPERS_ROOT_DIR
+fi;
+
+# - PATH
+
+# Set vars for this dir.
 DEV_SCRIPT_DIR="${GIT_ROOT_DIR}/dev_scripts_${DIR_TAG}"
 echo "DEV_SCRIPT_DIR=$DEV_SCRIPT_DIR"
 dassert_dir_exists $DEV_SCRIPT_DIR
@@ -57,34 +66,39 @@ dassert_dir_exists $DEV_SCRIPT_DIR
 set_path $DEV_SCRIPT_DIR
 
 if [[ $IS_SUPER_REPO == 1 ]]; then
-    # Add more vars specific of the super-repo.
-    export PATH=.:$PATH
-    export PATH=$GIT_ROOT_DIR:$PATH
-    # Add to the PATH all the first level directory under `dev_scripts`.
-    export PATH="$(find $DEV_SCRIPT_DIR -maxdepth 1 -type d -not -path "$(pwd)" | tr '\n' ':' | sed 's/:$//'):$PATH"
-    # Remove duplicates.
-    export PATH=$(remove_dups $PATH)
-    # Print.
-    echo "PATH=$PATH"
+    # Set vars for helpers_root.
+    set_path "${HELPERS_ROOT_DIR}/dev_scripts"
+#    # Add more vars specific of the super-repo.
+#    export PATH=.:$PATH
+#    export PATH=$GIT_ROOT_DIR:$PATH
+#    # Add to the PATH all the first level directory under `dev_scripts`.
+#    export PATH="$(find $DEV_SCRIPT_DIR -maxdepth 1 -type d -not -path "$(pwd)" | tr '\n' ':' | sed 's/:$//'):$PATH"
+#    # Remove duplicates.
+#    export PATH=$(remove_dups $PATH)
+#    # Print.
+#    echo "PATH=$PATH"
 fi;
 
-# PYTHONPATH
+# - PYTHONPATH
 set_pythonpath
 
 if [[ $IS_SUPER_REPO == 1 ]]; then
-    # Add more vars specific of the super-repo.
-    export PYTHONPATH=$PWD:$PYTHONPATH
     # Add helpers.
-    HELPERS_ROOT_DIR="$GIT_ROOT_DIR/helpers_root"
-    echo "HELPERS_ROOT_DIR=$HELPERS_ROOT_DIR"
     dassert_dir_exists $HELPERS_ROOT_DIR
     export PYTHONPATH=$HELPERS_ROOT_DIR:$PYTHONPATH
+
+    # We need to give priority to the local `repo_config` over the one in
+    # `helpers_root`.
+    export PYTHONPATH=$(pwd):$PYTHONPATH
+
     # Remove duplicates.
     export PYTHONPATH=$(remove_dups $PYTHONPATH)
+
     # Print.
     echo "PYTHONPATH=$PYTHONPATH"
 fi;
 
+# - Set specific configuration of the project.
 configure_specific_project
 
 print_env_signature
