@@ -67,15 +67,6 @@ set_path $DEV_SCRIPT_DIR
 if [[ $IS_SUPER_REPO == 1 ]]; then
     # Set vars for helpers_root.
     set_path "${HELPERS_ROOT_DIR}/dev_scripts_helpers"
-#    # Add more vars specific of the super-repo.
-#    export PATH=.:$PATH
-#    export PATH=$GIT_ROOT_DIR:$PATH
-#    # Add to the PATH all the first level directory under `dev_scripts`.
-#    export PATH="$(find $DEV_SCRIPT_DIR -maxdepth 1 -type d -not -path "$(pwd)" | tr '\n' ':' | sed 's/:$//'):$PATH"
-#    # Remove duplicates.
-#    export PATH=$(remove_dups $PATH)
-#    # Print.
-#    echo "PATH=$PATH"
 fi;
 
 # - PYTHONPATH
