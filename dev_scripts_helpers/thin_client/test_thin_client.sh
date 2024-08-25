@@ -1,0 +1,12 @@
+#!/bin/bash -xe
+
+DIR_PREFIX="sports_analytics"
+
+(cd helpers_root; source dev_scripts_helpers/thin_client/setenv.sh)
+
+source dev_scripts_${DIR_PREFIX}/thin_client/setenv.sh
+
+dev_scripts_${DIR_PREFIX}/thin_client/tmux.py --create_global_link
+dev_scripts_${DIR_PREFIX}/thin_client/tmux.py --index 1
+
+# helpers_root/dev_scripts_helpers/thin_client/sync_repo_thin_client.sh
