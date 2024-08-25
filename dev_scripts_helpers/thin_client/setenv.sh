@@ -10,7 +10,7 @@ DIR_TAG="helpers"
 # NOTE: We can't use $0 to find out in which file we are in, since this file is
 # sourced and not executed.
 # TODO(gp): For symmetry consider calling the dir `dev_scripts_${DIR_TAG}`.
-SCRIPT_PATH="dev_scripts/thin_client/setenv.${DIR_TAG}.sh"
+SCRIPT_PATH="dev_scripts_${DIR_TAG}/thin_client/setenv.sh"
 echo "##> $SCRIPT_PATH"
 
 # IS_SUPER_REPO=1
@@ -34,10 +34,11 @@ echo "GIT_ROOT_DIR=$GIT_ROOT_DIR"
 
 if [[ $IS_SUPER_REPO == 1 ]]; then
     # For super-repos `GIT_ROOT_DIR` points to the super-repo.
-    SOURCE_PATH="${GIT_ROOT_DIR}/helpers_root/dev_scripts/thin_client/thin_client_utils.sh"
+    HELPERS_ROOT_DIR="${GIT_ROOT_DIR}/helpers_root"
 else
-    SOURCE_PATH="${GIT_ROOT_DIR}/dev_scripts/thin_client/thin_client_utils.sh"
+    HELPERS_ROOT_DIR="${GIT_ROOT_DIR}"
 fi;
+SOURCE_PATH="${HELPERS_ROOT_DIR}/dev_scripts_${DIR_TAG}/thin_client/thin_client_utils.sh"
 echo "> source $SOURCE_PATH ..."
 if [[ ! -f $SOURCE_PATH ]]; then
     echo -e "ERROR: Can't find $SOURCE_PATH"

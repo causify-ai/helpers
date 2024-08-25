@@ -243,6 +243,7 @@ def create_tmux_session(
     _LOG.info("git_root_dir=%s", git_root_dir)
     # Create the tmux session.
     setenv_path = os.path.join(git_root_dir, setenv_path)
+    _LOG.info("Checking if setenv_path=%s exists", setenv_path)
     hdbg.dassert_file_exists(setenv_path)
     if has_subrepo:
         _create_helpers_tmux_with_subrepo(git_root_dir, setenv_path, tmux_name)

@@ -11,6 +11,9 @@ import sys
 sys.path.append("helpers_root/dev_scripts/thin_client")
 import thin_client_utils as tcu
 
+#sys.path.append("helpers_root/helpers")
+import helpers.hdbg as hdbg
+
 _LOG = logging.getLogger(__name__)
 
 SCRIPT_PATH = os.path.abspath(__file__)
@@ -18,7 +21,7 @@ SCRIPT_PATH = os.path.abspath(__file__)
 
 if __name__ == "__main__":
     parser = tcu.create_parser(__doc__)
-    has_subrepo = True
+    has_subrepo = False
     if has_subrepo:
         dir_prefix = "xyz"
     else:
