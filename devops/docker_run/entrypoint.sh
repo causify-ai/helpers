@@ -2,17 +2,36 @@
 
 set -e
 
+# IS_SUPER_REPO=1
+IS_SUPER_REPO=0
+echo "IS_SUPER_REPO=$IS_SUPER_REPO"
+
 FILE_NAME="devops/docker_run/entrypoint.sh"
 echo "##> $FILE_NAME"
 
 echo "UID="$(id -u)
 echo "GID="$(id -g)
 
+# - Source `utils.sh`.
+# NOTE: we can't use $0 to find the path since we are sourcing this file.
+GIT_ROOT_DIR=$(pwd)
+echo "GIT_ROOT_DIR=$GIT_ROOT_DIR"
+
+if [[ $IS_SUPER_ROOT == 1 ]]; then
+    HELPERS_ROOT="${GIT_ROOT_DIR}/helpers_root"
+else
+    HELPERS_ROOT=$GIT_ROOT_DIR
+fi;
+SOURCE_PATH="${HELPERS_ROOT}/dev_scripts_helpers/thin_client/thin_client_utils.sh"
+echo "> source $SOURCE_PATH ..."
+if [[ ! -f $SOURCE_PATH ]]; then
+    echo -e "ERROR: Can't find $SOURCE_PATH"
+    kill -INT $$
+fi
+source $SOURCE_PATH
+
 # Container info.
 echo "AM_CONTAINER_VERSION='$AM_CONTAINER_VERSION'"
-
-# Pick up the utilities.
-source helpers_root/dev_scripts/thin_client/thin_client_utils.sh
 
 # Configure the environment.
 source devops/docker_run/docker_setenv.sh

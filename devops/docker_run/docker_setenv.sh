@@ -18,7 +18,12 @@ echo "##> $SCRIPT_PATH"
 GIT_ROOT_DIR=$(pwd)
 echo "GIT_ROOT_DIR=$GIT_ROOT_DIR"
 
-SOURCE_PATH="${GIT_ROOT_DIR}/helpers_root/dev_scripts_helpers/thin_client/thin_client_utils.sh"
+if [[ $IS_SUPER_ROOT == 1 ]]; then
+    HELPERS_ROOT="${GIT_ROOT_DIR}/helpers_root"
+else
+    HELPERS_ROOT=$GIT_ROOT_DIR
+fi;
+SOURCE_PATH="${HELPERS_ROOT}/dev_scripts_helpers/thin_client/thin_client_utils.sh"
 echo "> source $SOURCE_PATH ..."
 if [[ ! -f $SOURCE_PATH ]]; then
     echo -e "ERROR: Can't find $SOURCE_PATH"
