@@ -65,6 +65,8 @@ Each repo relies on several concept:
 
 ## How to test
 
+- The script `dev_scripts_helpers/thin_client/test_helpers.sh` tests `helpers`
+
 - Build thin environment
   ```bash
   > dev_scripts_helpers/thin_client/build.py
@@ -75,5 +77,20 @@ Each repo relies on several concept:
   ```
 - Create the tmux session
   ```bash
+  > dev_scripts_helpers/thin_client/tmux.py --create_global_link
   > dev_scripts_helpers/thin_client/tmux.py --index 1
+  ```
+
+## Build container
+
+- Build the container
+  ```bash
+  > i docker_build_local_image --version 1.0.0
+  > i docker_tag_local_image_as_dev --version 1.0.0
+  ```
+
+- Run the container
+  ```bash
+  > i docker_bash --skip-pull
+  > i docker_jupyter
   ```

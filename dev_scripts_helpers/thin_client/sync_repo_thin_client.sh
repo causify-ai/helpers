@@ -23,7 +23,7 @@ DST_ROOT_DIR=$(pwd)
 #DST_ROOT_DIR="/Users/saggese/src/orange1/amp"
 
 # 1) Copy / customize files in `thin_client`.
-if [[ 1 == 1 ]]; then
+if [[ 0 == 1 ]]; then
     SRC_DIR="$SRC_ROOT_DIR/dev_scripts_${SRC_PREFIX}/thin_client"
     dassert_dir_exists $SRC_DIR
     DST_DIR="$DST_ROOT_DIR/dev_scripts_${DST_PREFIX}/thin_client"
@@ -50,6 +50,6 @@ fi;
 
 
 # 3) Copy / customize files in devops.
-if [[ 0 == 1 ]]; then
+if [[ 1 == 1 ]]; then
     diff_to_vimdiff.py --dir1 devops --dir2 helpers_root/devops
 fi;
