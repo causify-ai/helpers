@@ -29,7 +29,7 @@ if _HAS_MOTO:
 
     _LOG = logging.getLogger(__name__)
 
-    # The `mock_secretsmanager` decorator ensures the calls to the AWS API are
+    # The `mock_aws` decorator ensures the calls to the AWS API are
     # mocked.
 
     @pytest.mark.requires_ck_infra
@@ -53,7 +53,7 @@ if _HAS_MOTO:
         reason="Run only if CK S3 is available",
     )
     class TestGetSecret(hunitest.TestCase):
-        @moto.mock_secretsmanager
+        @moto.mock_aws
         def test_get_secret(self) -> None:
             """
             Verify that the secret can be retrieved correctly.
@@ -67,7 +67,7 @@ if _HAS_MOTO:
             )
             self.assertDictEqual(hsecret.get_secret(secret_name), secret)
 
-        @moto.mock_secretsmanager
+        @moto.mock_aws
         def test_trading_key(self) -> None:
             """
             Verify locking mechanism for trading key is processed correctly.
@@ -89,7 +89,7 @@ if _HAS_MOTO:
                 actual = str(rte)
                 self.assert_equal(actual, expected, fuzzy_match=True)
 
-        @moto.mock_secretsmanager
+        @moto.mock_aws
         def test_lock_for_different_script(self) -> None:
             """
             Verify locking mechanism for access to trading key is passed if
@@ -122,7 +122,7 @@ if _HAS_MOTO:
         reason="Run only if CK S3 is available",
     )
     class TestStoreSecret(hunitest.TestCase):
-        @moto.mock_secretsmanager
+        @moto.mock_aws
         def test_store_secret1(self) -> None:
             """
             Verify that a secret can be stored correctly.
@@ -144,7 +144,7 @@ if _HAS_MOTO:
         reason="Run only if CK S3 is available",
     )
     class TestLockSecret(hunitest.TestCase):
-        @moto.mock_secretsmanager
+        @moto.mock_aws
         def test_lock_secret(self) -> None:
             """
             Verify that the lock secret function locks the key.
@@ -172,7 +172,7 @@ if _HAS_MOTO:
         reason="Run only if CK S3 is available",
     )
     class TestUpdateUsedby(hunitest.TestCase):
-        @moto.mock_secretsmanager
+        @moto.mock_aws
         def test1(self) -> None:
             """
             Verify that update_usedby updates value in secrets manager.
