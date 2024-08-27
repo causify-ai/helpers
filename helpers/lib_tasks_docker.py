@@ -527,7 +527,6 @@ def _generate_docker_compose_file(
         cap_add:
           - SYS_ADMIN
         environment:
-          - AM_AWS_PROFILE=$AM_AWS_PROFILE
           - AM_ENABLE_DIND={am_enable_dind}
           - AM_FORCE_TEST_FAIL=$AM_FORCE_TEST_FAIL
           - AM_HOST_NAME={am_host_name}

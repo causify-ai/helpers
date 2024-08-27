@@ -61,7 +61,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         _LOG.warning(msg)
         shutil.rmtree(venv_dir)
         msg = f"Deleting dir '{venv_dir}' ... done"
-    _LOG.info("Creating virtual environment in %sa", venv_dir)
+    _LOG.info("Creating virtual environment in %s", venv_dir)
     _system(f"python3 -m venv {venv_dir}")
     # Test activating the environment.
     activate_cmd = f"source {venv_dir}/bin/activate"

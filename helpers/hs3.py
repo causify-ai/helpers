@@ -508,7 +508,7 @@ def get_aws_profile(aws_profile: str) -> str:
 
     - argument passed
     - command line option (i.e., `args.aws_profile`)
-    - env vars (i.e., `AM_AWS_PROFILE`)
+    - env vars (i.e., `CK_AWS_PROFILE`)
     """
     hdbg.dassert_type_is(aws_profile, str)
     prefix = aws_profile.upper()
