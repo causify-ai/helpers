@@ -17,7 +17,8 @@ import helpers.hparquet as hparque
 import helpers.hprint as hprint
 import helpers.hs3 as hs3
 import helpers.hunit_test as hunitest
-import im_v2.common.test as imvct
+#TODO(Juraj): HelpersTask1.
+#import im_v2.common.test as imvct
 
 _LOG = logging.getLogger(__name__)
 
@@ -1005,6 +1006,7 @@ class TestToPartitionedDataset(hunitest.TestCase):
     not henv.execute_repo_config_code("is_CK_S3_available()"),
     reason="Run only if CK S3 is available",
 )
+@pytest.mark.skip(reason="TODO(Juraj): HelpersTask1")
 class TestListAndMergePqFiles(hmoto.S3Mock_TestCase):
     def generate_test_data(self) -> hs3.AwsProfile:
         """

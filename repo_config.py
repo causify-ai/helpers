@@ -35,10 +35,7 @@ def _print(msg: str) -> None:
 #_REPO_NAME = "xyz"
 _REPO_NAME = "helpers"
 _GITHUB_REPO_ACCOUNT = "kaizen-ai"
-# TODO(gp): Create and use helpers Docker image.
-#_DOCKER_IMAGE_NAME = "xyz"
-#_DOCKER_IMAGE_NAME = "helpers"
-_DOCKER_IMAGE_NAME = "cmamp"
+_DOCKER_IMAGE_NAME = "helpers"
 
 def get_name() -> str:
     return f"//{_REPO_NAME}"

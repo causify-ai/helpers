@@ -4,7 +4,8 @@ import os
 import sys
 
 # We need to tweak `PYTHONPATH` directly since we are bootstrapping the system.
-sys.path.append("helpers_root")
+# sys.path.append("helpers_root")
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 import helpers.hprint as hprint
