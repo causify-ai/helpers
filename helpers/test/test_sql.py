@@ -12,13 +12,16 @@ import helpers.hsql as hsql
 #  from im_v2. For tests we could be more forgiving, but it would be better to
 #  avoid. We should have and use a `TestDbHelper` that doesn't depend on IM
 #  in helpers.
-import im_v2.common.db.db_utils as imvcddbut
+#TODO(Juraj): HelpersTask1.
+#import im_v2.common.db.db_utils as imvcddbut
 
 _LOG = logging.getLogger(__name__)
 
 
 # TODO(gp): helpers can't depend from im.
-class TestSql1(imvcddbut.TestImDbHelper):
+@pytest.mark.skip(reason="TODO(Juraj): HelpersTask1")
+#class TestSql1(imvcddbut.TestImDbHelper):
+class TestSql1():
     @classmethod
     def get_id(cls) -> int:
         return hash(cls.__name__) % 10000
@@ -245,8 +248,9 @@ class TestSql1(imvcddbut.TestImDbHelper):
                     """
         self.connection.cursor().execute(query)
 
-
-class TestSql2(imvcddbut.TestImDbHelper):
+@pytest.mark.skip(reason="TODO(Juraj): HelpersTask1")
+#class TestSql2(imvcddbut.TestImDbHelper):
+class TestSql2():
     """
     Test case for writing and reading postgres database with mixed timestamp
     formats.

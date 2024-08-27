@@ -36,7 +36,7 @@ class S3Mock_TestCase(hunitest.TestCase):
     mock_aws_credentials = None
     mock_aws_profile = "__mock__"
     # Mocked bucket.
-    mock_s3 = moto.mock_s3()
+    mock_s3 = moto.mock_aws()
     bucket_name = "mock_bucket"
     # TODO(Nikola): Temporary here to ensure it is called only once.
     #   Used in some tests that are obtaining data from 3rd party providers.
