@@ -31,7 +31,7 @@ def get_home_dir() -> str:
 
 def get_thin_environment_dir() -> str:
     git_root_dir = get_git_root_dir()
-    thin_environ_dir = f"{git_root_dir}/dev_scripts/thin_client"
+    thin_environ_dir = f"{git_root_dir}/dev_scripts_helpers/thin_client"
     return thin_environ_dir
 
 
@@ -102,59 +102,67 @@ def create_parser(docstring: str) -> argparse.ArgumentParser:
     return parser
 
 
-def _create_new_window(window: str, dir_name: str, tmux_cmd: str) -> None:
+# /////////////////////////////////////////////////////////////////////////////
+
+
+def _create_new_window(window: str, color: str, dir_name: str, tmux_cmd: str) -> None:
     cmd = f"tmux new-window -n '{window}'"
     hsystem.system(cmd)
-    cmd = f"tmux send-keys 'green; cd {dir_name} && {tmux_cmd}' C-m C-m"
+    cmd = f"tmux send-keys '{color}; cd {dir_name} && {tmux_cmd}' C-m C-m"
     hsystem.system(cmd)
+
+
+def _create_repo_windows(git_root_dir: str, setenv_path: str, tmux_name: str) -> None:
+    cmd = f"tmux new-session -d -s {tmux_name} -n '---{tmux_name}---'"
+    hsystem.system(cmd)
+    # Create the first window.
+    tmux_cmd = f"source {setenv_path}"
+    hdbg.dassert_file_exists(setenv_path)
+    cmd = f"tmux send-keys 'white; cd {git_root_dir} && {tmux_cmd}' C-m C-m"
+    hsystem.system(cmd)
+    # Create the remaining windows.
+    windows = ["dbash", "regr", "jupyter"]
+    for window in windows:
+        _create_new_window(window, "green", git_root_dir, tmux_cmd)
+
+
+def _go_to_first_window(tmux_name: str) -> None:
+    hsystem.system(f"tmux select-window -t {tmux_name}:0")
+    hsystem.system(f"tmux -2 attach-session -t {tmux_name}")
+
+
+# /////////////////////////////////////////////////////////////////////////////
 
 
 def _create_helpers_tmux(
     git_root_dir: str, setenv_path: str, tmux_name: str
 ) -> None:
-    cmd = f"tmux new-session -d -s {tmux_name} -n '---{tmux_name}---'"
-    hsystem.system(cmd)
-    # Create the first window.
-    tmux_cmd = f"source {setenv_path}"
-    cmd = f"tmux send-keys 'white; cd {git_root_dir} && {tmux_cmd}' C-m C-m"
-    hsystem.system(cmd)
-    # Create the remaining ones.
-    windows = ["dbash", "regr", "jupyter"]
-    for window in windows:
-        _create_new_window(window, git_root_dir, tmux_cmd)
-    # Go to the first tab.
-    hsystem.system(f"tmux select-window -t {tmux_name}:0")
-    hsystem.system(f"tmux -2 attach-session -t {tmux_name}")
+    _create_repo_windows(git_root_dir, setenv_path, tmux_name)
+    _go_to_first_window(tmux_name)
 
 
 def _create_helpers_tmux_with_subrepo(
     git_root_dir: str, setenv_path: str, tmux_name: str
 ) -> None:
-    # Create the session.
-    cmd = f"tmux new-session -d -s {tmux_name} -n '---{tmux_name}---'"
-    hsystem.system(cmd)
-    # Create the first window in the super-repo.
-    tmux_cmd = f"source {setenv_path}"
-    cmd = f"tmux send-keys 'white; cd {git_root_dir} && {tmux_cmd}' C-m C-m"
-    hsystem.system(cmd)
-    # Create the remaining windows in the super-repo.
-    windows = ["dbash", "regr", "jupyter"]
-    for window in windows:
-        _create_new_window(window, git_root_dir, tmux_cmd)
-    # Create the first window in the sub-repo.
-    cmd = f"tmux new-window -n '---HELPERS---'"
-    hsystem.system(cmd)
+    # - Create the windows for the current repo.
+    _create_repo_windows(git_root_dir, setenv_path, tmux_name)
+    # - Create the windows for helpers (the sub-repo).
+    # Create the first window.
+    window = "---HELPERS---"
     git_subrepo_dir = os.path.join(git_root_dir, "helpers_root")
-    tmux_cmd = f"source dev_scripts/thin_client/setenv.helpers.sh"
-    cmd = f"tmux send-keys 'white; cd {git_subrepo_dir} && {tmux_cmd}' " f"C-m-m"
-    hsystem.system(cmd)
-    # Create the remaining windows in the sub-repo.
+    setenv_path = "dev_scripts_helpers/thin_client/setenv.sh"
+    tmux_cmd = f"source {setenv_path}"
+    hdbg.dassert_file_exists(os.path.join(git_subrepo_dir, setenv_path))
+    _create_new_window(window, "white", git_subrepo_dir, tmux_cmd)
+    # Create the remaining windows.
     windows = ["dbash", "regr", "jupyter"]
     for window in windows:
-        _create_new_window(window, git_subrepo_dir, tmux_cmd)
-    # Go to the first tab.
-    hsystem.system(f"tmux select-window -t {tmux_name}:0")
-    hsystem.system(f"tmux -2 attach-session -t {tmux_name}")
+        _create_new_window(window, "green", git_subrepo_dir, tmux_cmd)
+    #
+    _go_to_first_window(tmux_name)
+
+
+# /////////////////////////////////////////////////////////////////////////////
 
 
 def create_tmux_session(
@@ -244,6 +252,7 @@ def create_tmux_session(
     _LOG.info("git_root_dir=%s", git_root_dir)
     # Create the tmux session.
     setenv_path = os.path.join(git_root_dir, setenv_path)
+    _LOG.info("Checking if setenv_path=%s exists", setenv_path)
     hdbg.dassert_file_exists(setenv_path)
     if has_subrepo:
         _create_helpers_tmux_with_subrepo(git_root_dir, setenv_path, tmux_name)

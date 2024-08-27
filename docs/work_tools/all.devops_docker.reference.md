@@ -20,9 +20,9 @@
     - E.g., `//amp`, `//helpers`, `//optimizer`, `//sports_analytics`,
       `//tutorials`, `//demo`
   - A `devops` where a container from a different dir is run
-    - E.g., `//orange`
+    - E.g., `//orange` reuses `cmamp` container
 
-## Devops to build, release, run a container
+## Devops to build, run, release a container
 
 - An example of the `devops` structure is:
   ```
@@ -132,11 +132,7 @@
   |   `-- prod.Dockerfile -> ../../amp/devops/docker_build/prod.Dockerfile
   |-- docker_run/
   |   |-- aws_credentials.sh
-  |   |-- bashrc
-  |   |-- entrypoint.sh*
-  |   |-- run_jupyter_server.sh*
-  |   |-- setenv.sh
-  |   `-- test_setup.sh*
+  ...
   `-- env/
       `-- default.env
   ```

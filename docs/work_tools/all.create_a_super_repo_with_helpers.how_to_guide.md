@@ -1,6 +1,6 @@
 # How to create a super-repo with `helpers`
 
-## Add helpers subrepo
+## Add helpers sub-repo
 
 - Create the super-repo
   ```
@@ -16,23 +16,29 @@
   > git commit -am "Add helpers subrepo" && git push
   ```
 
-## Create build, setenv, and tmux flow
+## Copy and customize files
+
+- The script `dev_scripts_helpers/thin_client/sync_repo_thin_client.sh`
+  allows to vimdiff / cp files across a super-repo and its `helpers` dir
+- Conceptually we need to:
+  1) copy and customize the files in `thin_client`
+  2) copy and customize files in the top dir
+  3) copy and customize files in `devops`
+
+- After copying the files you can search for the string `xyz` to customize
+
+## 1) Copy and customize files in thin_client
 
 - Create the `dev_script` dir based off the template from `helpers`
   ``` bash
-  > TEMPLATE_DIR="helpers_root/dev_scripts/thin_client/templates"
-  > ls -1 $TEMPLATE_DIR
-  __init__.py
-  setenv.template.sh
-  tmux.template.py
-
   # Use a prefix based on the repo name, e.g., `tutorials`, `sports_analytics`.
-  > PREFIX="sports_analytics"
-  > DST_DIR="dev_scripts_${PREFIX}/thin_client"; echo $DST_DIR
+  > SRC_DIR="dev_scripts_helpers/thin_client"; echo $SRC_DIR
+  > DST_PREFIX="sports_analytics"
+  > DST_DIR="dev_scripts_${DST_PREFIX}/thin_client"; echo $DST_DIR
   > mkdir -p $DST_DIR
   > ls helpers_root/dev_scripts/thin_client/templates/
-  > cp -r ${TEMPLATE_DIR}/setenv.template.sh ${DST_DIR}/setenv.${PREFIX}.sh
-  > cp -r ${TEMPLATE_DIR}/tmux.template.py ${DST_DIR}/tmux.${PREFIX}.py
+  > cp -r ${SRC_DIR}/setenv.template.sh ${DST_DIR}/setenv.${PREFIX}.sh
+  > cp -r ${SRC_DIR}/tmux.template.py ${DST_DIR}/tmux.${PREFIX}.py
   ```
 
 - TODO(gp): When we want to create a new thin env we need to also copy
@@ -41,8 +47,8 @@
 - The resulting `dev_script` should look like:
   ```bash
   > ls -1 $DST_DIR
-  dev_scripts_sports_analytics/thin_client/setenv.sports_analytics.sh
-  dev_scripts_sports_analytics/thin_client/tmux.sports_analytics.py
+  dev_scripts_sports_analytics/thin_client/setenv.sh
+  dev_scripts_sports_analytics/thin_client/tmux.py
   ```
 
 - Customize the `dev_scripts` dir
@@ -52,14 +58,6 @@
   - Customize `DIR_TAG`
   - Set `VENV_TAG` to create a new thin environment or reuse an existing one
     (e.g., `helpers`)
-
-## How to test setenv
-
-- Make sure the setenv works
-  ```bash
-  > source ${DST_DIR}/setenv.${PREFIX}.sh
-  # E.g., `source dev_scripts_sports_analytics/thin_client/setenv.sports_analytics.sh`
-  ```
 
 ## Tmux links
 
@@ -73,22 +71,32 @@
   > ${DST_DIR}/tmux.${PREFIX}.py --index 1 --force_restart
   ```
 
+## How to test
+
+- Test `helpers` `setenv.sh`
+  ```bash
+  > (cd helpers_root; source dev_scripts_helpers/thin_client/setenv.sh)
+  ```
+
+- Test super-repo `setenv`
+  ```bash
+  > source dev_scripts_sports_analytics/thin_client/setenv.sh
+  ```
+
+- Test `tmux`
+  ```bash
+  > dev_scripts_sports_analytics/thin_client/tmux.py --create_global_link
+  > dev_scripts_sports_analytics/thin_client/tmux.py --index 1
+  ```
+
 ## Maintain the files in sync with the template
 
-- Keep files in sync between `helpers`, template, and a super-repo
+- Check the difference between the super-repo and `helpers`
   ```bash
-  > ${TEMPLATE_DIR}/merge.sh
+  > helpers_root/dev_scripts_helpers/thin_client/sync_repo_thin_client.sh
   ```
 
-- The script conceptually does:
-  ```bash
-  > vimdiff ${TEMPLATE_DIR}/setenv.template.sh ${DST_DIR}/setenv.${PREFIX}.sh
-  > vimdiff ${TEMPLATE_DIR}/tmux.template.py ${DST_DIR}/tmux.${PREFIX}.py
-  > vimdiff ${TEMPLATE_DIR}/setenv.template.sh dev_scripts/thin_client/setenv.helpers.sh
-  > vimdiff ${TEMPLATE_DIR}/tmux.template.py dev_scripts/thin_client/tmux.helpers.py
-  ```
-
-## Create files
+## 2) Copy and customize files in the top dir
 
 - Some files need to be copied from `helpers` to the root of the super-repo to
   configure various tools (e.g., dev container workflow, `pytest`, `invoke`)
@@ -102,7 +110,7 @@
     - This needs to be modified
   - `tasks.py`: the `invoke` tasks available in this container
     - This needs to be modified
-  - TODO(gp): Some (e.g., `conftest.py`, `invoke.yaml`) should be links to `helpers`
+  - TODO(gp): Some files (e.g., `conftest.py`, `invoke.yaml`) should be links to `helpers`
 
   ```bash
   > vim changelog.txt conftest.py invoke.yaml pytest.ini repo_config.py tasks.py
@@ -113,15 +121,30 @@
   > ${TEMPLATE_DIR}/merge.sh
   ```
 
-## Build a container for a super-repo
+## 3) Copy and customize files in `devops`
+
+### Build a container for a super-repo
 
 - Copy the `devops` template dir
   ```bash
   > (cd helpers_root; git pull)
-  > cp -r helpers_root/devops/templates/devops_with_build_stage devops
+  > cp -r helpers_root/devops devops
   ```
-- If we don't need to build a container, but just reuse one we can delete
-  the corresponding directory
+- If we don't need to build a container and just we can reuse, then we can delete
+  the corresponding `build` directory
   ```bash
   > rm -rf devops/docker_build
+  ```
+
+- Run the single-arch flow
+  ```bash
+  > i docker_build_local_image --version 1.0.0 && i docker_tag_local_image_as_dev --version 1.0.0
+  > i docker_bash --skip-pull
+  > i docker_jupyter
+  ```
+
+- Run the multi-arch flow
+  ```bash
+  > i docker_build_local_image --version 1.0.0 --multi-arch "linux/amd64,linux/arm64"
+  > i docker_tag_local_image_as_dev --version 1.0.0
   ```
