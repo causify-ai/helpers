@@ -5,7 +5,7 @@ from typing import Optional
 import boto3
 import pytest
 from botocore.client import BaseClient
-from moto import mock_ecs, mock_s3
+from moto import mock_aws
 
 import helpers.haws as haws
 import helpers.hunit_test as hunitest
@@ -27,7 +27,7 @@ class Haws_test_case(hunitest.TestCase):
 class Test_get_session(Haws_test_case):
     @pytest.fixture(autouse=True)
     def set_up_test(self, aws_credentials):
-        os.environ["MOCK_AWS_S3_BUCKET"] = "mock_s3_bucket"
+        os.environ["MOCK_AWS_S3_BUCKET"] = "mock_aws_bucket"
 
     def mock_session(self, region: Optional[str] = None) -> None:
         aws_profile = "__mock__"
@@ -51,7 +51,7 @@ class Test_get_session(Haws_test_case):
         # Check if they are matched.
         self.assertIn("my-bucket", bucket_names)
 
-    @mock_s3
+    @mock_aws
     def test_get_session1(self) -> None:
         """
         Test that `haws.get_session` correctly return a session without region
@@ -59,7 +59,7 @@ class Test_get_session(Haws_test_case):
         """
         self.mock_session()
 
-    @mock_s3
+    @mock_aws
     def test_get_session2(self) -> None:
         """
         Test that `haws.get_session` correctly return a session with region
@@ -69,7 +69,7 @@ class Test_get_session(Haws_test_case):
 
 
 class Test_get_service_client(Haws_test_case):
-    @mock_s3
+    @mock_aws
     def test1(self) -> None:
         """
         Test `haws.get_service_client()` returns a client for S3.
@@ -88,7 +88,7 @@ class Test_get_service_client(Haws_test_case):
 
 
 class Test_get_service_resource(Haws_test_case):
-    @mock_s3
+    @mock_aws
     def test1(self) -> None:
         """
         Test that `haws.get_service_resource()` correctly retrieves a S3
@@ -110,7 +110,7 @@ class Test_get_service_resource(Haws_test_case):
 
 
 class Test_get_task_definition_image_url(Haws_test_case):
-    @mock_ecs
+    @mock_aws
     @umock.patch("helpers.haws.get_service_client")
     def test1(self, mock_get_service_client: umock.Mock) -> None:
         """
@@ -135,7 +135,7 @@ class Test_get_task_definition_image_url(Haws_test_case):
 
 
 class Test_update_task_definition(Haws_test_case):
-    @mock_ecs
+    @mock_aws
     @umock.patch("helpers.haws.get_ecs_client")
     def test1(self, mock_get_ecs_client: BaseClient) -> None:
         """
@@ -176,7 +176,7 @@ class Test_update_task_definition(Haws_test_case):
 
 
 class Test_get_ecs_client(Haws_test_case):
-    def mock_ecs_client(self, *, region: Optional[str] = None) -> None:
+    def mock_aws_client(self, *, region: Optional[str] = None) -> None:
         aws_profile = "__mock__"
         test_cluster_name = "test-cluster"
         # Create mock ECS client.
@@ -192,18 +192,18 @@ class Test_get_ecs_client(Haws_test_case):
         # Check cluster name.
         self.assertIn(test_cluster_name, cluster_name)
 
-    @mock_ecs
+    @mock_aws
     def test1(self) -> None:
         """
         Test that `haws.get_ecs_client()` correctly return a client to work 
         with ECS within a specified region.
         """
-        self.mock_ecs_client(region="us-east-1")
+        self.mock_aws_client(region="us-east-1")
         
-    @mock_ecs
+    @mock_aws
     def test2(self) -> None:
         """
         Test that `haws.get_ecs_client()` correctly return a client to work 
         with ECS without a specified region.
         """
-        self.mock_ecs_client()
+        self.mock_aws_client()
