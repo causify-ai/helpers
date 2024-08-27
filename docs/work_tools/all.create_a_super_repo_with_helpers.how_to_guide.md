@@ -18,7 +18,7 @@
 
 ## Copy and customize files
 
-- The script `dev_scripts_helpers/thin_client/sync_repo_thin_client.sh`
+- The script `dev_scripts_helpers/thin_client/sync_super_repo.sh`
   allows to vimdiff / cp files across a super-repo and its `helpers` dir
 - Conceptually we need to:
   1) copy and customize the files in `thin_client`
@@ -93,7 +93,7 @@
 
 - Check the difference between the super-repo and `helpers`
   ```bash
-  > helpers_root/dev_scripts_helpers/thin_client/sync_repo_thin_client.sh
+  > helpers_root/dev_scripts_helpers/thin_client/sync_super_repo.sh
   ```
 
 ## 2) Copy and customize files in the top dir
