@@ -148,3 +148,11 @@
   > i docker_build_local_image --version 1.0.0 --multi-arch "linux/amd64,linux/arm64"
   > i docker_tag_local_image_as_dev --version 1.0.0
   ```
+
+# Create a releasable dir
+
+```
+> mkdir dir
+> cd dir
+> cp -r ../helpers_root/devops .
+```

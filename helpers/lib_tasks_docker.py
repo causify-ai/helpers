@@ -642,9 +642,14 @@ def _generate_docker_compose_file(
         # This is at the level of `services/app`.
         indent_level = 2
         append(txt_tmp, indent_level)
-    #
+    # TODO(gp): This is not needed anymore since we use the absolute path of
+    # the dir, instead of a relative one.
+    curr_dir = hgit.get_client_root(super_module=False)
+    #assert 0, curr_dir
     if mount_as_submodule:
-        txt_tmp = """
+        #app_dir = curr_dir
+        app_dir = os.path.abspath(os.path.join(curr_dir, ".."))
+        txt_tmp = f"""
         # Mount `amp` when it is used as submodule. In this case we need to
         # mount the super project in the container (to make git work with the
         # supermodule) and then change dir to `amp`.
@@ -653,18 +658,20 @@ def _generate_docker_compose_file(
             base_app
           volumes:
             # Move one dir up to include the entire git repo (see AmpTask1017).
-            - ../../../:/app
+            - {app_dir}:/app
           # Move one dir down to include the entire git repo (see AmpTask1017).
           working_dir: /app/amp
         """
     else:
-        txt_tmp = """
+        #app_dir = curr_dir
+        app_dir = os.path.abspath(os.path.join(curr_dir, "."))
+        txt_tmp = f"""
         # Mount `amp` when it is used as supermodule.
         app:
           extends:
             base_app
           volumes:
-            - ../../:/app
+            - {app_dir}:/app
         """
     # This is at the level of `services`.
     indent_level = 1

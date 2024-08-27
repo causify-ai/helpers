@@ -547,6 +547,8 @@ def _get_repo_short_to_full_name(include_host_name: bool) -> Dict[str, str]:
     # From short name to long name.
     repo_map = {
         "amp": "alphamatic/amp",
+        # TODO(gp): This is a hack since the repo_config should declare this,
+        # instead of being centralized.
         "dev_tools": "kaizen-ai/dev_tools",
         "helpers": "kaizen-ai/helpers",
     }
