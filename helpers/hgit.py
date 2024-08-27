@@ -550,7 +550,7 @@ def _get_repo_short_to_full_name(include_host_name: bool) -> Dict[str, str]:
         # TODO(gp): This is a hack since the repo_config should declare this,
         # instead of being centralized.
         "dev_tools": "kaizen-ai/dev_tools",
-        "helpers": "kaizen-ai/helpers",
+        #"helpers": "kaizen-ai/helpers",
     }
     if include_host_name:
         host_name = "github.com"
