@@ -6,7 +6,6 @@ services:
     cap_add:
       - SYS_ADMIN
     environment:
-      - AM_AWS_PROFILE=$AM_AWS_PROFILE
       - AM_ENABLE_DIND=0
       - AM_FORCE_TEST_FAIL=$AM_FORCE_TEST_FAIL
       - AM_REPO_CONFIG_CHECK=True

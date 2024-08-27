@@ -1,0 +1,11 @@
+# Ignore infra directory when building prod container.
+ck.infra
+# Ignore infra directory when amp is a submodule.
+amp/ck.infra
+# Ignore docs dir, it can contain large files
+docs/
+# TODO(Juraj): CmTask8294.
+# We cannot skip .git because some functionalities are used upon container
+# start-up.
+# .git/objects/pack
+# amp/.git/objects/pack

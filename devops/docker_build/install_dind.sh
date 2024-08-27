@@ -3,14 +3,13 @@
 # Install Docker-in-Docker.
 #
 
-# From https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-18-04
+echo "#############################################################################"
+echo "##> $0"
+echo "#############################################################################"
 
 set -ex
 
-FILE_NAME="devops/docker_build/install_dind.sh"
-echo "#############################################################################"
-echo "##> $FILE_NAME"
-echo "#############################################################################"
+# From https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-18-04
 
 # Install the latest version of Docker.
 # `https://docs.docker.com/engine/install/ubuntu/`.

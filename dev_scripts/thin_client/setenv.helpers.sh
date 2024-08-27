@@ -9,6 +9,7 @@ DIR_TAG="helpers"
 
 # NOTE: We can't use $0 to find out in which file we are in, since this file is
 # sourced and not executed.
+# TODO(gp): For symmetry consider calling the dir `dev_scripts_${DIR_TAG}`.
 SCRIPT_PATH="dev_scripts/thin_client/setenv.${DIR_TAG}.sh"
 echo "##> $SCRIPT_PATH"
 

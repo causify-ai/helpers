@@ -22,7 +22,7 @@ if [ -z "$AM_ENABLE_DIND" ]; then
     echo "AM_ENABLE_DIND=$AM_ENABLE_DIND"
 fi;
 
-if [[ $AM_ENABLE_DIND == 1 ]]; then
+if [[ $AM_ENABLE_DIND == "TODO(Juraj): hack" ]]; then
     echo "# Set up Docker-in-docker"
     if [[ ! -d /etc/docker ]]; then
         sudo mkdir /etc/docker

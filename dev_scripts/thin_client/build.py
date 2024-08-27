@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Build a thin virtual environment to run workflows on the dev container.
 """
@@ -35,7 +35,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     #
-    _, python_version = hsystem.system_to_string("python --version")
+    _, python_version = hsystem.system_to_string("python3 --version")
     _LOG.info("# python=%s", python_version)
     try:
         _, aws_version = hsystem.system_to_string("aws --version")
@@ -61,7 +61,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         _LOG.warning(msg)
         shutil.rmtree(venv_dir)
         msg = f"Deleting dir '{venv_dir}' ... done"
-    _LOG.info("Creating virtual environment in %sa", venv_dir)
+    _LOG.info("Creating virtual environment in %s", venv_dir)
     _system(f"python3 -m venv {venv_dir}")
     # Test activating the environment.
     activate_cmd = f"source {venv_dir}/bin/activate"
