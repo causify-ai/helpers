@@ -3793,7 +3793,7 @@ class Test_multiindex_df_info1(hunitest.TestCase):
             rows=5 ['2022-01-01 21:01:00+00:00', '2022-01-01 21:02:00+00:00', '2022-01-01 21:03:00+00:00', '2022-01-01 21:04:00+00:00', '2022-01-01 21:05:00+00:00']
             start_timestamp=2022-01-01 21:01:00+00:00
             end_timestamp=2022-01-01 21:05:00+00:00
-            frequency=T
+            frequency=min
         """
         self.assert_equal(act, exp, fuzzy_match=True)
 
