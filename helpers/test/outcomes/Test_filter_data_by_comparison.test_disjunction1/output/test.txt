@@ -21,8 +21,8 @@ filtered_data
 info
 ################################################################################
 OrderedDict([('nrows', 4),
-             ('n_col_0_gt_2', 3),
+             ('n_col_0_gt_2', np.int64(3)),
              ('perc_col_0_gt_2', '3 / 4 = 75.00%'),
-             ('n_col_1_eq_5', 1),
+             ('n_col_1_eq_5', np.int64(1)),
              ('perc_col_1_eq_5', '1 / 4 = 25.00%'),
-             ('nrows_remaining', 3)])
+             ('nrows_remaining', np.int64(3))])
