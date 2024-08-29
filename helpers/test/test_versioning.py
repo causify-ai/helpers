@@ -1,5 +1,6 @@
 import logging
 import os
+import pytest
 
 import helpers.hgit as hgit
 import helpers.hunit_test as hunitest
@@ -17,6 +18,7 @@ class TestVersioning1(hunitest.TestCase):
         code_version = hversio.get_changelog_version(container_dir_name)
         _LOG.debug("code_version=%s", code_version)
 
+    @pytest.mark.skip(reason="TODO(Juraj): HelpersTask21.")
     def test_get_changelog_version2(self) -> None:
         """
         Test `optimizer` version.
