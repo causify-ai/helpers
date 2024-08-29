@@ -2139,14 +2139,15 @@ class Test_merge_dfs1(hunitest.TestCase):
         shape=(20, 6)
         col1  col2  col3  threshold_col  col4  col5
         0   1.0   2.0   1.0              0   NaN   NaN
-        1   3.0   4.0   2.0              1   NaN   NaN
-        2   5.0   6.0   3.0              3   NaN   NaN
+        1   NaN   NaN   1.0              5   2.0   5.0
+        2   3.0   4.0   2.0              1   NaN   NaN
         ...
-        17   NaN   NaN   4.0             11   8.0   1.0
-        18   NaN   NaN  30.0             13  11.0   2.0
-        19   NaN   NaN   NaN            700  70.0  30.0
+        17   10.0  10.0  300.0             70  15.0   4.0
+        18  100.0   NaN    NaN             13   NaN   NaN
+        19    NaN   NaN    NaN            700  70.0  30.0
         """
         # Check.
+        merged_df.to_csv("helpers_merged_df.csv", index=False)
         self.check_df_output(
             merged_df,
             expected_length,
