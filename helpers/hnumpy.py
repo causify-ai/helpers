@@ -25,10 +25,9 @@ def random_seed_context(seed: int) -> Iterator:
         np.random.set_state(state)
 
 
-# TODO(Juraj): unit test in CmTask5092.
 def floor_with_precision(value: float, amount_precision: int) -> float:
     """
-    Floor a value using desired precision.
+    Floor a value using desired p<wrecision.
     
     The invariant for this function is that negative number are floored based
     on their absolute value: e.g floor_with_precision(-4.6, 0) == -4. This is
