@@ -1160,16 +1160,16 @@ class TestDfToStr(hunitest.TestCase):
         actual = hpandas.df_to_str(df, print_memory_usage=True)
         expected = r"""
         * memory=
-                    shallow     deep
-        Index          128.0 b  128.0 b
-        dummy_value_1   24.0 b   24.0 b
-        dummy_value_2   24.0 b  174.0 b
-        dummy_value_3   24.0 b   24.0 b
-        total          200.0 b  350.0 b
-        dummy_value_1 dummy_value_2  dummy_value_3
-        0              1             A              0
-        1              2             B              0
-        2              3             C              0
+        shallow deep
+        Index 132.0 b 132.0 b
+        dummy_value_1 24.0 b 24.0 b
+        dummy_value_2 24.0 b 150.0 b
+        dummy_value_3 24.0 b 24.0 b
+        total 204.0 b 330.0 b
+        dummy_value_1 dummy_value_2 dummy_value_3
+        0 1 A 0
+        1 2 B 0
+        2 3 C 0
         """
         self.assert_equal(actual, expected, fuzzy_match=True)
 
