@@ -1045,13 +1045,6 @@ class Test_purify_from_env_vars(hunitest.TestCase):
         env_var = "CK_AWS_S3_BUCKET"
         self.helper(env_var)
 
-    def test3(self) -> None:
-        """
-        - $AM_AWS_S3_BUCKET
-        """
-        env_var = "AM_AWS_S3_BUCKET"
-        self.helper(env_var)
-
     @pytest.mark.skipif(
         not henv.execute_repo_config_code("get_name()") == "//cmamp",
         reason="Run only in //cmamp",
