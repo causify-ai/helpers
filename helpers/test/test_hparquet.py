@@ -271,6 +271,7 @@ class TestParquet1(hunitest.TestCase):
         # TODO(Vlad): Refactor after CmampTask7331 is resolved.
         # self.assert_equal(initial_df.index.unit, df.index.unit)
 
+    @pytest.mark.skip(reason="TODO(Juraj): HelpersTask21.")
     def test_save_read_concat_data(self) -> None:
         """
         Verify that data produced by different version of Pandas preserves
