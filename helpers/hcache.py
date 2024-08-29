@@ -800,7 +800,8 @@ class _Cached:
             "Cache backend not initialized for %s",
             cache_type,
         )
-        func_id, args_id = memorized_result._get_output_identifiers(
+        func_id = memorized_result.func_id
+        args_id = memorized_result._get_args_id(
             *args, **kwargs
         )
         _LOG.debug("func_id=%s args_id=%s", func_id, args_id)
