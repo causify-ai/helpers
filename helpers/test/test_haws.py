@@ -126,8 +126,9 @@ class Test_get_task_definition_image_url(Haws_test_case):
         # Create a mock task definition.
         mock_client.register_task_definition(
             family=task_definition_name,
+            # The following are required parameters.
             containerDefinitions=[
-                {"name": "my-container", "image": mock_image_url}
+                {"name": "my-container", "image": mock_image_url, "memory": 512}
             ],
         )
         image_url = haws.get_task_definition_image_url(task_definition_name)
