@@ -1004,7 +1004,6 @@ class TestToPartitionedDataset(hunitest.TestCase):
     not henv.execute_repo_config_code("is_CK_S3_available()"),
     reason="Run only if CK S3 is available",
 )
-@pytest.mark.skip(reason="TODO(Juraj): HelpersTask1")
 class TestListAndMergePqFiles(hmoto.S3Mock_TestCase):
     def generate_test_data(self) -> hs3.AwsProfile:
         """
