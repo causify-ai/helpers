@@ -9,7 +9,7 @@ import datetime
 import glob
 import logging
 import os
-from typing import Any, Callable, Iterator, List, Callable, Optional, Tuple, Union
+from typing import Any, Callable, Iterator, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -29,8 +29,8 @@ import helpers.hs3 as hs3
 import helpers.hserver as hserver
 import helpers.htimer as htimer
 
-
 _LOG = logging.getLogger(__name__)
+
 
 class ParquetDataFrameGenerator:
     # Allowed types.
@@ -261,9 +261,7 @@ def generate_parquet_files(
     )
     parquet_df = pdg.generate()
     # Add partition columns to the dataframe.
-    df, partition_cols = add_date_partition_columns(
-        parquet_df, partition_mode
-    )
+    df, partition_cols = add_date_partition_columns(parquet_df, partition_mode)
     if custom_partition_cols:
         # If custom partition is provided, it will override date partition.
         # Sample: `["asset", "year", "month"]`
