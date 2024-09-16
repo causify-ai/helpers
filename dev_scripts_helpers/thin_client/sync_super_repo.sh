@@ -12,7 +12,8 @@ SRC_ROOT_DIR=$(pwd)"/helpers_root"
 #SRC_ROOT_DIR="/Users/saggese/src/orange1"
 
 # The new repo that we are creating / syncing.
-DST_PREFIX="tutorials"
+#DST_PREFIX="tutorials"
+DST_PREFIX="cmamp"
 #DST_PREFIX="sports_analytics"
 #DST_ROOT_DIR="/Users/saggese/src/tutorials1"
 DST_ROOT_DIR=$(pwd)
@@ -21,6 +22,8 @@ DST_ROOT_DIR=$(pwd)
 #DST_ROOT_DIR="/Users/saggese/src/sports_analytics1"
 
 #DST_ROOT_DIR="/Users/saggese/src/orange1/amp"
+
+mkdir -p ${DST_ROOT_DIR}/dev_scripts_${DST_PREFIX}/thin_client
 
 # 1) Copy / customize files in `thin_client`.
 if [[ 1 == 1 ]]; then
