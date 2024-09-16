@@ -5,6 +5,8 @@
 # use bash and doesn't have +x permissions.
 # 
 
+# <Customize>.
+#DIR_TAG="xyz"
 DIR_TAG="helpers"
 
 # NOTE: We can't use $0 to find out in which file we are in, since this file is
@@ -12,13 +14,16 @@ DIR_TAG="helpers"
 SCRIPT_PATH="dev_scripts_${DIR_TAG}/thin_client/setenv.sh"
 echo "##> $SCRIPT_PATH"
 
+# <Customize>.
 # IS_SUPER_REPO=1
 IS_SUPER_REPO=0
 echo "IS_SUPER_REPO=$IS_SUPER_REPO"
 
 if [[ $IS_SUPER_REPO == 1 ]]; then
+    # <Customize>.
     # We can reuse the thin environment of `helpers` or create a new one.
-    VENV_TAG="xyz"
+    VENV_TAG="helpers"
+    VENV_TAG=$DIR_TAG
 else
     VENV_TAG="helpers"
 fi;
