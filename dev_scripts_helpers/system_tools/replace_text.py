@@ -342,12 +342,12 @@ def _fix_AmpTask1403(args: argparse.Namespace) -> None:
         "import core.config as cfg",
         "import core.config as ccfg",
         # "import core.config as cconfi",
-        "import core.config as cconfig",
+        "import config",
         "import core.config_builders as ccbuild",
         "import core.config_builders as cfgb",
     ]
-    # to_replace = [(f"^{s}$", "import core.config as cconfig") for s in to_replace]
-    to_replace = [(f"{s}", "import core.config as cconfig") for s in to_replace]
+    # to_replace = [(f"^{s}$", "import config") for s in to_replace]
+    to_replace = [(f"{s}", "import config") for s in to_replace]
     _fix_AmpTask1403_helper(args, to_replace)
     #
     to_replace = [
@@ -360,7 +360,7 @@ def _fix_AmpTask1403(args: argparse.Namespace) -> None:
         "ccbuild",
         "cfgb",
     ]
-    to_replace = [(rf"{s}\.", "cconfig.") for s in to_replace]
+    to_replace = [(rf"{s}\.", "config.") for s in to_replace]
     _fix_AmpTask1403_helper(args, to_replace)
 
 

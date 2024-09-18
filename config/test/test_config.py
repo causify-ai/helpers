@@ -6,7 +6,7 @@ import pprint
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
-import core.config as cconfig
+import config
 import core.config.config_ as cconconf
 import pandas as pd
 import pytest
@@ -26,7 +26,7 @@ _LOG = logging.getLogger(__name__)
 
 
 def _check_config_string(
-    self: Any, config: cconfig.Config, exp: str, mode: str = "str"
+    self: Any, config: config.Config, exp: str, mode: str = "str"
 ) -> None:
     _LOG.debug("config=\n%s", config)
     if mode == "str":
@@ -38,7 +38,7 @@ def _check_config_string(
     self.assert_equal(act, exp, fuzzy_match=True)
 
 
-def _check_roundtrip_transformation(self_: Any, config: cconfig.Config) -> str:
+def _check_roundtrip_transformation(self_: Any, config: config.Config) -> str:
     """
     Convert a config into Python code and back.
 
@@ -48,7 +48,7 @@ def _check_roundtrip_transformation(self_: Any, config: cconfig.Config) -> str:
     code = config.to_python()
     _LOG.debug("code=%s", code)
     # Build a config from Python code.
-    config2 = cconfig.Config.from_python(code)
+    config2 = config.Config.from_python(code)
     # Verify that the round-trip transformation is correct.
     self_.assertEqual(str(config), str(config2))
     # Build the signature of the test.
@@ -75,8 +75,8 @@ def _purify_assertion_string(txt: str) -> str:
 # #############################################################################
 
 
-def _get_flat_config1(self: Any) -> cconfig.Config:
-    config = cconfig.Config()
+def _get_flat_config1(self: Any) -> config.Config:
+    config = config.Config()
     config["hello"] = "world"
     config["foo"] = [1, 2, 3]
     # Check.
@@ -93,7 +93,7 @@ class Test_flat_config_set1(hunitest.TestCase):
         """
         Set a key and print a flat config.
         """
-        config = cconfig.Config()
+        config = config.Config()
         config["hello"] = "world"
         act = str(config)
         exp = r"""
@@ -118,7 +118,7 @@ class Test_flat_config_set1(hunitest.TestCase):
         self.assert_equal(act, exp, fuzzy_match=True)
 
     def test_config_with_function(self) -> None:
-        config = cconfig.Config()
+        config = config.Config()
         config[
             "filters"
         ] = "[(<function _filter_relevance at 0x7fe4e35b1a70>, {'thr': 90})]"
@@ -128,7 +128,7 @@ class Test_flat_config_set1(hunitest.TestCase):
         self.assertEqual(actual_result, expected_result)
 
     def test_config_with_object(self) -> None:
-        config = cconfig.Config()
+        config = config.Config()
         config[
             "dag_builder"
         ] = "<dataflow_p1.task2538_pipeline.ArPredictorBuilder object at 0x7fd7a9ddd190>"
@@ -143,8 +143,8 @@ class Test_flat_config_set1(hunitest.TestCase):
 # #############################################################################
 
 
-def _get_flat_config2(self: Any) -> cconfig.Config:
-    config = cconfig.Config()
+def _get_flat_config2(self: Any) -> config.Config:
+    config = config.Config()
     config["nrows"] = 10000
     config["nrows2"] = "hello"
     # Check.
@@ -355,8 +355,8 @@ class Test_flat_config_in1(hunitest.TestCase):
 # #############################################################################
 
 
-def _get_nested_config1(self: Any) -> cconfig.Config:
-    config = cconfig.Config()
+def _get_nested_config1(self: Any) -> config.Config:
+    config = config.Config()
     config["nrows"] = 10000
     #
     config.add_subconfig("read_data")
@@ -485,9 +485,9 @@ class Test_nested_config_set1(hunitest.TestCase):
         """
         Set a key that doesn't exist.
         """
-        config = cconfig.Config.from_dict(
+        config = config.Config.from_dict(
             {
-                "rets/read_data": cconfig.DUMMY,
+                "rets/read_data": config.DUMMY,
             }
         )
         exp = r"""
@@ -505,9 +505,9 @@ class Test_nested_config_set1(hunitest.TestCase):
         """
         Set a key that already exists.
         """
-        config = cconfig.Config.from_dict(
+        config = config.Config.from_dict(
             {
-                "rets/read_data": cconfig.DUMMY,
+                "rets/read_data": config.DUMMY,
             }
         )
         config.update_mode = "overwrite"
@@ -523,9 +523,9 @@ class Test_nested_config_set1(hunitest.TestCase):
         """
         Set a key that doesn't exist in the hierarchy.
         """
-        config = cconfig.Config.from_dict(
+        config = config.Config.from_dict(
             {
-                "rets/read_data": cconfig.DUMMY,
+                "rets/read_data": config.DUMMY,
             }
         )
         # Set a key that doesn't exist in the hierarchy.
@@ -541,14 +541,14 @@ class Test_nested_config_set1(hunitest.TestCase):
         """
         Set a key that exist in the hierarchy with a Config.
         """
-        config = cconfig.Config.from_dict(
+        config = config.Config.from_dict(
             {
-                "rets/read_data": cconfig.DUMMY,
+                "rets/read_data": config.DUMMY,
             }
         )
         config.update_mode = "overwrite"
         # Assign a config to an existing key.
-        config["rets/read_data"] = cconfig.Config.from_dict(
+        config["rets/read_data"] = config.Config.from_dict(
             {"source_node_name": "data_downloader"}
         )
         # Check.
@@ -561,14 +561,14 @@ class Test_nested_config_set1(hunitest.TestCase):
         """
         Set a key that exists with a complex Config.
         """
-        config = cconfig.Config.from_dict(
+        config = config.Config.from_dict(
             {
-                "rets/read_data": cconfig.DUMMY,
+                "rets/read_data": config.DUMMY,
             }
         )
         config.update_mode = "overwrite"
         # Assign a config.
-        config["rets/read_data"] = cconfig.Config.from_dict(
+        config["rets/read_data"] = config.Config.from_dict(
             {
                 "source_node_name": "data_downloader",
                 "source_node_kwargs": {
@@ -602,8 +602,8 @@ class Test_nested_config_set1(hunitest.TestCase):
 # #############################################################################
 
 
-def _get_nested_config2(self: Any) -> cconfig.Config:
-    config = cconfig.Config()
+def _get_nested_config2(self: Any) -> config.Config:
+    config = config.Config()
     config["nrows"] = 10000
     #
     config_tmp = config.add_subconfig("read_data")
@@ -630,8 +630,8 @@ def _get_nested_config2(self: Any) -> cconfig.Config:
     return config
 
 
-def _get_nested_config3(self: Any) -> cconfig.Config:
-    config = cconfig.Config()
+def _get_nested_config3(self: Any) -> config.Config:
+    config = config.Config()
     #
     config_tmp = config.add_subconfig("read_data")
     config_tmp["file_name"] = "foo_bar.txt"
@@ -656,11 +656,11 @@ def _get_nested_config3(self: Any) -> cconfig.Config:
     return config
 
 
-def _get_nested_config4(self: Any) -> cconfig.Config:
+def _get_nested_config4(self: Any) -> config.Config:
     """
     Build a nested config, that looks like:
     """
-    config = cconfig.Config()
+    config = config.Config()
     #
     config_tmp = config.add_subconfig("write_data")
     config_tmp["file_name"] = "baz.txt"
@@ -685,11 +685,11 @@ def _get_nested_config4(self: Any) -> cconfig.Config:
     return config
 
 
-def _get_nested_config5(self: Any) -> cconfig.Config:
+def _get_nested_config5(self: Any) -> config.Config:
     """
     Build a nested config, that looks like:
     """
-    config = cconfig.Config()
+    config = config.Config()
     #
     config_tmp = config.add_subconfig("read_data")
     config_tmp["file_name"] = "baz.txt"
@@ -895,14 +895,14 @@ class Test_nested_config_update1(hunitest.TestCase):
         """
         Generate a config of `{"key1": {"key0": }}` structure.
         """
-        config = cconfig.Config()
+        config = config.Config()
         config_tmp = config.add_subconfig("key1")
         exp = """
         key1:
         """
         _check_config_string(self, config, exp)
         #
-        subconfig = cconfig.Config()
+        subconfig = config.Config()
         subconfig.add_subconfig("key0")
         exp = """
         key0:
@@ -913,7 +913,7 @@ class Test_nested_config_update1(hunitest.TestCase):
         config_tmp.update(subconfig)
         #
         _LOG.debug("\n" + hprint.frame("check"))
-        expected_result = cconfig.Config()
+        expected_result = config.Config()
         config_tmp = expected_result.add_subconfig("key1")
         config_tmp.add_subconfig("key0")
         #
@@ -959,7 +959,7 @@ class Test_nested_config_update2(hunitest.TestCase):
             """
             self.assert_equal(str(config1), exp, fuzzy_match=True)
             #
-            config2 = cconfig.Config()
+            config2 = config.Config()
             config2["read_data", "file_name2"] = "hello"
             config2["read_data2"] = "world"
             # The new values don't exist so we should update the old config, no
@@ -987,13 +987,13 @@ class Test_nested_config_update2(hunitest.TestCase):
         """
         config1 = _get_nested_config3(self)
         #
-        config2 = cconfig.Config()
+        config2 = config.Config()
         config2["read_data", "file_name"] = "hello"
         config2["read_data2"] = "world"
         config1.report_mode = "verbose_exception"
         # config1.update(config2)
         # The first value exists so we should assert.
-        with self.assertRaises(cconfig.OverwriteError) as cm:
+        with self.assertRaises(config.OverwriteError) as cm:
             config1.update(config2)
         act = str(cm.exception)
         exp = r"""
@@ -1032,7 +1032,7 @@ class Test_nested_config_update2(hunitest.TestCase):
         """
         self.assert_equal(str(config1), exp, fuzzy_match=True)
         #
-        config2 = cconfig.Config()
+        config2 = config.Config()
         config2["read_data", "file_name"] = "hello"
         config2["read_data2"] = "world"
         # Just overwrite.
@@ -1071,7 +1071,7 @@ class Test_nested_config_update2(hunitest.TestCase):
         """
         self.assert_equal(str(config1), exp, fuzzy_match=True)
         #
-        config2 = cconfig.Config()
+        config2 = config.Config()
         config2["read_data", "file_name"] = "hello"
         config2["read_data2"] = "world"
         # Do not assign the first value since the key already exists, while assign
@@ -1097,9 +1097,9 @@ class Test_nested_config_update2(hunitest.TestCase):
 # #############################################################################
 
 
-def _get_nested_config6(self: Any) -> cconfig.Config:
+def _get_nested_config6(self: Any) -> config.Config:
     # Build config.
-    config = cconfig.Config()
+    config = config.Config()
     #
     config_tmp = config.add_subconfig("read_data")
     config_tmp["file_name"] = "foo_bar.txt"
@@ -1123,7 +1123,7 @@ def _get_nested_config6(self: Any) -> cconfig.Config:
 class Test_nested_config_flatten1(hunitest.TestCase):
     def test_flatten1(self) -> None:
         # Build config.
-        config = cconfig.Config()
+        config = config.Config()
         #
         config_tmp = config.add_subconfig("read_data")
         config_tmp["file_name"] = "foo_bar.txt"
@@ -1181,17 +1181,17 @@ class Test_nested_config_flatten1(hunitest.TestCase):
 
 class Test_subtract_config1(hunitest.TestCase):
     def test1(self) -> None:
-        config1 = cconfig.Config()
+        config1 = config.Config()
         config1[("l0",)] = "1st_floor"
         config1[["l1", "l2"]] = "2nd_floor"
         config1[["r1", "r2", "r3"]] = [1, 2]
         #
-        config2 = cconfig.Config()
+        config2 = config.Config()
         config2["l0"] = "Euro_1nd_floor"
         config2[["l1", "l2"]] = "2nd_floor"
         config2[["r1", "r2", "r3"]] = [1, 2]
         #
-        diff = cconfig.subtract_config(config1, config2)
+        diff = config.subtract_config(config1, config2)
         # Check.
         act = str(diff)
         exp = r"""
@@ -1200,18 +1200,18 @@ class Test_subtract_config1(hunitest.TestCase):
         self.assert_equal(act, exp, fuzzy_match=True)
 
     def test2(self) -> None:
-        config1 = cconfig.Config()
+        config1 = config.Config()
         config1[("l0",)] = "1st_floor"
         config1[["l1", "l2"]] = "2nd_floor"
         config1[["r1", "r2", "r3"]] = [1, 2, 3]
         #
-        config2 = cconfig.Config()
+        config2 = config.Config()
         config2["l0"] = "Euro_1nd_floor"
         config2[["l1", "l2"]] = "2nd_floor"
         config2[["r1", "r2", "r3"]] = [1, 2]
-        config2["empty"] = cconfig.Config()
+        config2["empty"] = config.Config()
         #
-        diff = cconfig.subtract_config(config1, config2)
+        diff = config.subtract_config(config1, config2)
         # Check.
         act = str(diff)
         exp = r"""
@@ -1234,7 +1234,7 @@ class Test_dassert_is_serializable1(hunitest.TestCase):
         Test a config that can be serialized correctly.
         """
         src_dir = "../../test"
-        eval_config = cconfig.Config.from_dict(
+        eval_config = config.Config.from_dict(
             {
                 "load_experiment_kwargs": {
                     "src_dir": src_dir,
@@ -1265,7 +1265,7 @@ class Test_dassert_is_serializable1(hunitest.TestCase):
         """
         src_dir = "../../test"
         func = lambda x: x + 1
-        eval_config = cconfig.Config.from_dict(
+        eval_config = config.Config.from_dict(
             {
                 "load_experiment_kwargs": {
                     "src_dir": src_dir,
@@ -1298,7 +1298,7 @@ class Test_dassert_is_serializable1(hunitest.TestCase):
 class Test_from_env_var1(hunitest.TestCase):
     @pytest.mark.requires_ck_infra
     def test1(self) -> None:
-        eval_config = cconfig.Config.from_dict(
+        eval_config = config.Config.from_dict(
             {
                 "load_experiment_kwargs": {
                     "file_name": "result_bundle.v2_0.pkl",
@@ -1315,8 +1315,8 @@ class Test_from_env_var1(hunitest.TestCase):
         env_var = "AM_CONFIG_CODE"
         pre_cmd = f'export {env_var}="{python_code}"'
         python_code = (
-            "import core.config as cconfig; "
-            f'print(cconfig.Config.from_env_var("{env_var}"))'
+            "import config; "
+            f'print(config.Config.from_env_var("{env_var}"))'
         )
         cmd = f"{pre_cmd}; python -c '{python_code}'"
         _LOG.debug("cmd=%s", cmd)
@@ -1344,7 +1344,7 @@ class Test_make_read_only1(hunitest.TestCase):
         # Mark as read-only.
         config.mark_read_only()
         # Try to assign an existing key and check it raises an error.
-        with self.assertRaises(cconfig.ReadOnlyConfigError) as cm:
+        with self.assertRaises(config.ReadOnlyConfigError) as cm:
             config["zscore", "style"] = "oil"
         act = str(cm.exception)
         exp = r"""
@@ -1370,7 +1370,7 @@ class Test_make_read_only1(hunitest.TestCase):
         # Mark as read-only.
         config.mark_read_only()
         # Try to assign a new key and check it raises an error.
-        with self.assertRaises(cconfig.ReadOnlyConfigError) as cm:
+        with self.assertRaises(config.ReadOnlyConfigError) as cm:
             config["zscore2"] = "gasoline"
         act = str(cm.exception)
         exp = r"""
@@ -1471,7 +1471,7 @@ class Test_to_dict1(hunitest.TestCase):
         :param config_as_dict: a dictionary to build a `Config` from
         :param expected_result_as_str: expected `Config` value as string
         """
-        config = cconfig.Config.from_dict(config_as_dict)
+        config = config.Config.from_dict(config_as_dict)
         act = str(config)
         self.assert_equal(act, expected_result_as_str, fuzzy_match=True)
         # Ensure that the round trip transform is correct.
@@ -1536,7 +1536,7 @@ class Test_to_dict1(hunitest.TestCase):
                 "param2": 2,
                 # The empty leaves are converted to Configs,
                 #  which are retained when converting back to dict.
-                "param3": cconfig.Config(),
+                "param3": config.Config(),
             }
         )
         #
@@ -1595,8 +1595,8 @@ class Test_to_dict1(hunitest.TestCase):
     #             "join_output_with_input": False,
     #         },
     #     }
-    #     config_tail = cconfig.Config.from_dict(dict_)
-    #     config = cconfig.Config()
+    #     config_tail = config.Config.from_dict(dict_)
+    #     config = config.Config()
     #     config.update(config_tail)
 
 
@@ -1664,7 +1664,7 @@ class Test_get_config_from_flattened_dict1(hunitest.TestCase):
                 (("read_data", "file_name"), "foo_bar.txt"),
                 (("read_data", "nrows"), 999),
                 (("single_val",), "hello"),
-                (("zscore",), cconfig.Config()),
+                (("zscore",), config.Config()),
             ]
         )
         config = cconconf.Config._get_config_from_flattened_dict(flattened)
@@ -1698,7 +1698,7 @@ class Test_from_dict1(hunitest.TestCase):
                 "com": 28,
             },
         }
-        config = cconfig.Config.from_dict(nested)
+        config = config.Config.from_dict(nested)
         act = str(config)
         exp = r"""
         read_data:
@@ -1718,9 +1718,9 @@ class Test_from_dict1(hunitest.TestCase):
                 "nrows": 999,
             },
             "single_val": "hello",
-            "zscore": cconfig.Config(),
+            "zscore": config.Config(),
         }
-        config = cconfig.Config.from_dict(nested)
+        config = config.Config.from_dict(nested)
         act = str(config)
         exp = r"""
         read_data:
@@ -1740,7 +1740,7 @@ class Test_from_dict1(hunitest.TestCase):
             "key1": "val1",
             "key2": {"key3": {"key4": {}}},
         }
-        config = cconfig.Config.from_dict(nested)
+        config = config.Config.from_dict(nested)
         act = str(config)
         exp = r"""
         key1: val1
@@ -1751,7 +1751,7 @@ class Test_from_dict1(hunitest.TestCase):
         exp = hprint.dedent(exp)
         self.assert_equal(act, exp, fuzzy_match=False)
         # Check the the value type.
-        check = isinstance(config["key2", "key3", "key4"], cconfig.Config)
+        check = isinstance(config["key2", "key3", "key4"], config.Config)
         self.assertTrue(check)
         # Check length.
         length = len(config["key2", "key3", "key4"])
@@ -1762,7 +1762,7 @@ class Test_from_dict1(hunitest.TestCase):
         One of the dict's values is a dict that should become a `Config`.
         """
         test_dict = {"key1": "value1", "key2": {"key3": "value2"}}
-        test_config = cconfig.Config.from_dict(test_dict)
+        test_config = config.Config.from_dict(test_dict)
         act = str(test_config)
         exp = r"""
         key1: value1
@@ -1773,7 +1773,7 @@ class Test_from_dict1(hunitest.TestCase):
         exp = hprint.dedent(exp)
         self.assert_equal(act, exp, fuzzy_match=False)
         # Check the the value type.
-        check = isinstance(test_config["key2"], cconfig.Config)
+        check = isinstance(test_config["key2"], config.Config)
         self.assertTrue(check)
 
 
@@ -1794,7 +1794,7 @@ class Test_to_pickleable_string(hunitest.TestCase):
             "key1": value,
             "key2": {"key3": {"key4": {}}},
         }
-        config = cconfig.Config.from_dict(nested)
+        config = config.Config.from_dict(nested)
         # Check if config is pickle-able before.
         is_pickleable_before = hintros.is_pickleable(config["key1"])
         self.assertEqual(is_pickleable_before, should_be_pickleable_before)
@@ -1866,7 +1866,7 @@ class Test_save_to_file(hunitest.TestCase):
             "key1": value,
             "key2": {"key3": {"key4": {}}},
         }
-        config = cconfig.Config.from_dict(nested)
+        config = config.Config.from_dict(nested)
         # Save config.
         config.save_to_file(log_dir, tag)
         # Set expected values.
@@ -1921,7 +1921,7 @@ class Test_to_string(hunitest.TestCase):
             "key1": value,
             "key2": {"key3": {"key4": {}}},
         }
-        config = cconfig.Config.from_dict(nested)
+        config = config.Config.from_dict(nested)
         return config
 
     def test1(self) -> None:
@@ -2052,7 +2052,7 @@ class Test_mark_as_used1(hunitest.TestCase):
         Test marking a config with scalar values.
         """
         test_dict = {"key1": 1, "key2": "value2"}
-        test_config = cconfig.Config.from_dict(test_dict)
+        test_config = config.Config.from_dict(test_dict)
         #
         expected_value = "value2"
         actual_value = test_config.get_and_mark_as_used("key2")
@@ -2069,7 +2069,7 @@ class Test_mark_as_used1(hunitest.TestCase):
         Test marking a value in a nested config.
         """
         test_nested_dict = {"key1": 1, "key2": {"key3": "value3"}}
-        test_nested_config = cconfig.Config.from_dict(test_nested_dict)
+        test_nested_config = config.Config.from_dict(test_nested_dict)
         #
         # Test marking the subconfig.
         expected_value = r"key3: value3"
@@ -2089,7 +2089,7 @@ class Test_mark_as_used1(hunitest.TestCase):
         Test marking a subconfig in a deeply nested config.
         """
         test_nested_dict = {"key1": 1, "key2": {"key3": {"key4": "value3"}}}
-        test_nested_config = cconfig.Config.from_dict(test_nested_dict)
+        test_nested_config = config.Config.from_dict(test_nested_dict)
         #
         # Test marking the nested subconfig.
         expected_value = r"""key3:
@@ -2110,7 +2110,7 @@ class Test_mark_as_used1(hunitest.TestCase):
         Test marking a config with iterable value.
         """
         test_dict = {"key1": 1, "key2": ["value2", 2]}
-        test_config = cconfig.Config.from_dict(test_dict)
+        test_config = config.Config.from_dict(test_dict)
         #
         expected_value = "['value2', 2]"
         actual_value = test_config.get_and_mark_as_used("key2")
@@ -2122,7 +2122,7 @@ class Test_mark_as_used1(hunitest.TestCase):
         key2 (marked_as_used=True, writer=$GIT_ROOT/core/config/test/test_config.py::***::test4, val_type=list): ['value2', 2]"""
         self._helper(test_config, expected_config)
 
-    def _helper(self, actual_config: cconfig.Config, expected_config: str):
+    def _helper(self, actual_config: config.Config, expected_config: str):
         """
         Remove line numbers from config string and compare to expected value.
         """
@@ -2148,7 +2148,7 @@ class Test_get_marked_as_used1(hunitest.TestCase):
 
     def test1(self) -> None:
         config = {"key1": "value1", "key2": {"key3": {"key4": "value2"}}}
-        config = cconfig.Config.from_dict(config)
+        config = config.Config.from_dict(config)
         # Verify that marked_as_used for a single value is correctly marked as used.
         config.get_and_mark_as_used("key1")
         is_key1_marked = config.get_marked_as_used("key1")
@@ -2174,7 +2174,7 @@ class Test_check_unused_variables1(hunitest.TestCase):
         Verify that a single unused variable is correctly identified.
         """
         config = {"key1": "value1", "key2": "value2"}
-        config = cconfig.Config.from_dict(config)
+        config = config.Config.from_dict(config)
         config.get_and_mark_as_used("key1")
         unused_variables = config.check_unused_variables()
         expected = [("key2",)]
@@ -2188,7 +2188,7 @@ class Test_check_unused_variables1(hunitest.TestCase):
             "key1": "value1",
             "key2": {"key3": {"key4": "value2", "key5": "value3"}},
         }
-        config = cconfig.Config.from_dict(config)
+        config = config.Config.from_dict(config)
         config.get_and_mark_as_used("key1")
         config.get_and_mark_as_used(("key2", "key3", "key5"))
         unused_variables = config.check_unused_variables()
@@ -2203,7 +2203,7 @@ class Test_check_unused_variables1(hunitest.TestCase):
             "key1": "value1",
             "key2": {"key3": {"key4": "value2", "key5": "value3"}},
         }
-        config = cconfig.Config.from_dict(config)
+        config = config.Config.from_dict(config)
         unused_variables = config.check_unused_variables()
         expected = [("key1",), ("key2", "key3", "key4"), ("key2", "key3", "key5")]
         self.assertListEqual(unused_variables, expected)
@@ -2286,7 +2286,7 @@ class Test_nested_config_set_execute_stmt1(_Config_execute_stmt_TestCase1):
     def test_assert_string_str1(self) -> None:
         workload = []
         #
-        stmt = "config = cconfig.Config()"
+        stmt = "config = config.Config()"
         exp = ""
         workload.append((stmt, exp))
         #
@@ -2309,7 +2309,7 @@ class Test_nested_config_set_execute_stmt1(_Config_execute_stmt_TestCase1):
     def test_assert_string_repr1(self) -> None:
         workload = []
         #
-        stmt = "config = cconfig.Config()"
+        stmt = "config = config.Config()"
         exp = ""
         workload.append((stmt, exp))
         #
@@ -2333,7 +2333,7 @@ class Test_nested_config_set_execute_stmt1(_Config_execute_stmt_TestCase1):
     def check_string_helper1(self, mode: str) -> None:
         workload = []
         #
-        stmt = "config = cconfig.Config()"
+        stmt = "config = config.Config()"
         workload.append(stmt)
         #
         stmt = 'config["nrows"] = 10000'
@@ -2367,7 +2367,7 @@ class Test_basic1(_Config_execute_stmt_TestCase1):
         # Create a Config.
         update_mode = "overwrite"
         clobber_mode = "allow_write_after_use"
-        stmt = f'config = cconfig.Config(update_mode="{update_mode}", clobber_mode="{clobber_mode}")'
+        stmt = f'config = config.Config(update_mode="{update_mode}", clobber_mode="{clobber_mode}")'
         exp = ""
         self.execute_stmt(stmt, exp, mode, globals())
         # Assign with a flat key.
@@ -2398,7 +2398,7 @@ class Test_basic1(_Config_execute_stmt_TestCase1):
         # Create a Config.
         update_mode = "overwrite"
         clobber_mode = "allow_write_after_use"
-        stmt = f'config = cconfig.Config(update_mode="{update_mode}", clobber_mode="{clobber_mode}")'
+        stmt = f'config = config.Config(update_mode="{update_mode}", clobber_mode="{clobber_mode}")'
         exp = ""
         self.execute_stmt(stmt, exp, mode, globals())
         # Assign with a compound key.
@@ -2421,7 +2421,7 @@ class Test_basic1(_Config_execute_stmt_TestCase1):
         # Create a Config.
         update_mode = "overwrite"
         clobber_mode = "assert_on_write_after_use"
-        stmt = f'config = cconfig.Config(update_mode="{update_mode}", clobber_mode="{clobber_mode}")'
+        stmt = f'config = config.Config(update_mode="{update_mode}", clobber_mode="{clobber_mode}")'
         exp = ""
         self.execute_stmt(stmt, exp, mode, globals())
         # Assign a value.

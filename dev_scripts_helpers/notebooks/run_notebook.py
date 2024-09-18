@@ -21,7 +21,7 @@ from typing import Optional, Union
 
 import nbformat
 
-import core.config as cconfig
+import config
 import dataflow.backtest.dataflow_backtest_utils as dtfbdtfbaut
 import helpers.hdatetime as hdateti
 import helpers.hdbg as hdbg
@@ -37,7 +37,7 @@ _LOG = logging.getLogger(__name__)
 
 
 def _run_notebook(
-    config: cconfig.Config,
+    config: config.Config,
     notebook_file: str,
     publish: bool,
     allow_notebook_errors: bool,

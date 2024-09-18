@@ -1,7 +1,7 @@
 import logging
 import pytest
 # TODO(Juraj): HelpersTask1.
-# import core.config as cconfig
+# import config
 import helpers.hdict as hdict
 import helpers.hunit_test as hunitest
 
@@ -86,7 +86,7 @@ class Test_get_nested_dict_iterator(hunitest.TestCase):
         """
         Test flat case with empty Config value.
         """
-        config = cconfig.Config()
+        config = config.Config()
         dict_ = {"key0": config, "key1": "value1"}
         actual_result = list(hdict.get_nested_dict_iterator(dict_))
         expected_result = [(("key0",), config), (("key1",), "value1")]
@@ -97,7 +97,7 @@ class Test_get_nested_dict_iterator(hunitest.TestCase):
         """
         Test nexted case with empty Config value.
         """
-        config = cconfig.Config()
+        config = config.Config()
         dict_ = {"key0": {"key00": config}, "key1": "value1"}
         actual_result = list(hdict.get_nested_dict_iterator(dict_))
         expected_result = [(("key0", "key00"), config), (("key1",), "value1")]

@@ -21,7 +21,7 @@
 # # Imports
 
 # %%
-import core.config as cconfig
+import config
 
 # %% [markdown]
 # # Initialization
@@ -58,7 +58,7 @@ config_dict = {
         },
     },
 }
-config = cconfig.Config.from_dict(config_dict)
+config = config.Config.from_dict(config_dict)
 print(config)
 
 # %%
@@ -68,7 +68,7 @@ dict1
 
 # %%
 # Create a config from a flattened dict.
-config = cconfig.Config._get_config_from_flattened_dict(dict1)
+config = config.Config._get_config_from_flattened_dict(dict1)
 print(config)
 
 # %% [markdown]
@@ -108,7 +108,7 @@ print(config)
 # %%
 # Test the update functionality.
 # Update with no common vlaues in configs.
-config1 = cconfig.Config()
+config1 = config.Config()
 config_tmp = config1.add_subconfig("read_data")
 config_tmp["file_name"] = "foo_bar.txt"
 config_tmp["nrows"] = 999
@@ -119,7 +119,7 @@ config_tmp["com"] = 28
 print(config1)
 print("*" * 60)
 #
-config2 = cconfig.Config()
+config2 = config.Config()
 config_tmp = config2.add_subconfig("write_data")
 config_tmp["file_name"] = "baz.txt"
 config_tmp["nrows"] = 999
@@ -134,7 +134,7 @@ print(config1)
 
 # %%
 # Update with common values in configs.
-config3 = cconfig.Config()
+config3 = config.Config()
 config_tmp = config3.add_subconfig("read_data")
 config_tmp["file_name"] = "foo_bar.txt"
 config_tmp["nrows"] = 999
@@ -145,7 +145,7 @@ config_tmp["com"] = 28
 print(config3)
 print("*" * 60)
 #
-config4 = cconfig.Config()
+config4 = config.Config()
 config_tmp = config4.add_subconfig("read_data")
 config_tmp["file_name"] = "baz.txt"
 config_tmp["nrows"] = 999
@@ -165,7 +165,7 @@ print(config3)
 # Behaviour when update mode is `assign_if_missing`.
 # Existing keys will not be modified and no exception
 # is raised. New keys are added if not present.
-config5 = cconfig.Config()
+config5 = config.Config()
 config5["read_data", "file_name"] = "hello"
 config5["read_data2"] = "world"
 config3.update(config5, update_mode="assign_if_missing")
@@ -221,7 +221,7 @@ print(type(code))
 
 # %%
 # Build a config from a python code.
-config2 = cconfig.Config.from_python(code)
+config2 = config.Config.from_python(code)
 print(config2)
 print("\n")
 print(type(config2))

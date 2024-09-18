@@ -4,7 +4,7 @@ import os
 import unittest.mock as umock
 from typing import Any
 
-import core.config as cconfig
+import config
 import pandas as pd
 
 import helpers.hio as hio
@@ -13,13 +13,13 @@ import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
 
-def _get_test_config1() -> cconfig.Config:
+def _get_test_config1() -> config.Config:
     """
     Build a test config for Crude Oil asset.
     """
     # Create an empty config with overwritable values.
     update_mode = "overwrite"
-    config = cconfig.Config(update_mode=update_mode)
+    config = config.Config(update_mode=update_mode)
     # Add values.
     tmp_config = config.add_subconfig("build_model")
     tmp_config["activation"] = "sigmoid"
@@ -32,7 +32,7 @@ def _get_test_config1() -> cconfig.Config:
     return config
 
 
-def _get_test_config2() -> cconfig.Config:
+def _get_test_config2() -> config.Config:
     """
     Build a test config.
 
@@ -44,7 +44,7 @@ def _get_test_config2() -> cconfig.Config:
     return config
 
 
-def _get_test_config3() -> cconfig.Config:
+def _get_test_config3() -> config.Config:
     """
     Build a test config.
     """
@@ -53,7 +53,7 @@ def _get_test_config3() -> cconfig.Config:
     return config
 
 
-def _get_test_config4() -> cconfig.Config:
+def _get_test_config4() -> config.Config:
     """
     Build a test config with several key levels.
     """
@@ -66,7 +66,7 @@ def _get_test_config4() -> cconfig.Config:
         },
     }
     # Convert dict to a config with overwritable values.
-    config = cconfig.Config.from_dict(config_dict)
+    config = config.Config.from_dict(config_dict)
     config.update_mode = "overwrite"
     return config
 
@@ -88,7 +88,7 @@ class Test_validate_configs1(hunitest.TestCase):
             _get_test_config1(),
             _get_test_config2(),
         ]
-        config_list = cconfig.ConfigList()
+        config_list = config.ConfigList()
         # Make sure function raises an error.
         with self.assertRaises(AssertionError) as cm:
             config_list.configs = configs
@@ -104,7 +104,7 @@ class Test_validate_configs1(hunitest.TestCase):
             _get_test_config2(),
             _get_test_config3(),
         ]
-        config_list = cconfig.ConfigList()
+        config_list = config.ConfigList()
         config_list.configs = configs
         config_list.validate_config_list()
 
@@ -130,7 +130,7 @@ class Test_apply_config_overrides_from_command_line1(hunitest.TestCase):
             ]
         )
         # Run.
-        actual = cconfig.apply_config_overrides_from_command_line(config, args)
+        actual = config.apply_config_overrides_from_command_line(config, args)
         self.assertEqual(actual["build_model"]["activation"], val1)
         self.assertEqual(actual["build_targets"]["target_asset"], val2)
 
@@ -151,7 +151,7 @@ class Test_apply_config_overrides_from_command_line1(hunitest.TestCase):
             ]
         )
         # Run and check that config values are updated.
-        cconfig.apply_config_overrides_from_command_line(config, args)
+        config.apply_config_overrides_from_command_line(config, args)
         self.assertEqual(config["key1"], val1)
         self.assertEqual(config["key2"]["key2.2"], val2)
         self.assertEqual(config["key2"]["key2.1"]["key3.1"], val3)
@@ -170,7 +170,7 @@ class Test_intersect_configs1(hunitest.TestCase):
         # Prepare test config.
         config = _get_test_config1()
         # FInd intersection of two same configs.
-        actual = cconfig.intersect_configs([config, config])
+        actual = config.intersect_configs([config, config])
         # Verify that intersection is equal to initial config.
         self.assertEqual(str(actual), str(config))
 
@@ -180,7 +180,7 @@ class Test_intersect_configs1(hunitest.TestCase):
         """
         config1 = _get_test_config1()
         config2 = _get_test_config2()
-        intersection = cconfig.intersect_configs([config1, config2])
+        intersection = config.intersect_configs([config1, config2])
         act = str(intersection)
         exp = r"""
         build_model:
@@ -205,7 +205,7 @@ class Test_subtract_configs1(hunitest.TestCase):
         Verify that the difference of two configs is empty.
         """
         config = _get_test_config1()
-        diff = cconfig.subtract_config(config, config)
+        diff = config.subtract_config(config, config)
         # The difference should be empty.
         self.assertFalse(diff)
 
@@ -216,7 +216,7 @@ class Test_subtract_configs1(hunitest.TestCase):
         """
         config1 = _get_test_config1()
         config2 = _get_test_config2()
-        act = cconfig.subtract_config(config1, config2)
+        act = config.subtract_config(config1, config2)
         exp = """
         build_targets:
           target_asset: Crude Oil"""
@@ -247,9 +247,9 @@ class Test_subtract_configs1(hunitest.TestCase):
             ],
             "key2": {},
         }
-        config1 = cconfig.Config().from_dict(config_dict1)
-        config2 = cconfig.Config().from_dict(config_dict2)
-        actual = cconfig.subtract_config(config1, config2)
+        config1 = config.Config().from_dict(config_dict1)
+        config2 = config.Config().from_dict(config_dict2)
+        actual = config.subtract_config(config1, config2)
         # An empty dict
         expected = r"""
         key1: [(2, 'value3', {})]
@@ -270,9 +270,9 @@ class Test_subtract_configs1(hunitest.TestCase):
             },
             "key2": {},
         }
-        config1 = cconfig.Config().from_dict(config_dict1)
-        config2 = cconfig.Config().from_dict(config_dict2)
-        actual = cconfig.subtract_config(config1, config2)
+        config1 = config.Config().from_dict(config_dict1)
+        config2 = config.Config().from_dict(config_dict2)
+        actual = config.subtract_config(config1, config2)
         expected = r"""
         key1:
           key2: value2
@@ -294,8 +294,8 @@ class Test_diff_configs1(hunitest.TestCase):
         Verify that the difference of two configs is empty.
         """
         config = _get_test_config1()
-        act = cconfig.diff_configs([config, config])
-        exp = [cconfig.Config(), cconfig.Config()]
+        act = config.diff_configs([config, config])
+        exp = [config.Config(), config.Config()]
         self.assert_equal(str(act), str(exp))
 
     def test1(self) -> None:
@@ -325,14 +325,14 @@ class Test_diff_configs1(hunitest.TestCase):
         exp = hprint.dedent(exp)
         self.assert_equal(str(config2), exp)
         #
-        act = cconfig.diff_configs([config1, config2])
+        act = config.diff_configs([config1, config2])
         exp = [
             #
-            cconfig.Config.from_dict(
+            config.Config.from_dict(
                 {"build_targets": {"target_asset": "Crude Oil"}}
             ),
             #
-            cconfig.Config.from_dict({"build_targets": {"target_asset": "Gold"}}),
+            config.Config.from_dict({"build_targets": {"target_asset": "Gold"}}),
         ]
         self.assert_equal(str(act), str(exp))
 
@@ -341,18 +341,18 @@ class Test_diff_configs1(hunitest.TestCase):
         config2 = _get_test_config2()
         config3 = _get_test_config3()
         #
-        act = cconfig.diff_configs([config1, config2, config3])
+        act = config.diff_configs([config1, config2, config3])
         act = "\n".join(map(str, act))
         #
         exp = [
             #
-            cconfig.Config.from_dict(
+            config.Config.from_dict(
                 {"build_targets": {"target_asset": "Crude Oil"}}
             ),
             #
-            cconfig.Config.from_dict({"build_targets": {"target_asset": "Gold"}}),
+            config.Config.from_dict({"build_targets": {"target_asset": "Gold"}}),
             #
-            cconfig.Config.from_dict(
+            config.Config.from_dict(
                 {"build_targets": {"target_asset": "Crude Oil"}, "hello": "world"}
             ),
         ]
@@ -373,7 +373,7 @@ class Test_convert_to_dataframe1(hunitest.TestCase):
         config1 = _get_test_config1()
         config2 = _get_test_config2()
         # Convert configs to dataframe.
-        act = cconfig.convert_to_dataframe([config1, config2])
+        act = config.convert_to_dataframe([config1, config2])
         act = hpandas.df_to_str(act, num_rows=None)
         #
         exp = pd.DataFrame(
@@ -404,7 +404,7 @@ class Test_build_config_diff_dataframe1(hunitest.TestCase):
         config1 = _get_test_config1()
         config2 = _get_test_config2()
         #
-        act = cconfig.build_config_diff_dataframe({"1": config1, "2": config2})
+        act = config.build_config_diff_dataframe({"1": config1, "2": config2})
         act = hpandas.df_to_str(act, num_rows=None)
         #
         exp = pd.DataFrame(
@@ -421,7 +421,7 @@ class Test_build_config_diff_dataframe1(hunitest.TestCase):
         """
         config1 = _get_test_config1()
         #
-        act = cconfig.build_config_diff_dataframe({"1": config1, "2": config1})
+        act = config.build_config_diff_dataframe({"1": config1, "2": config1})
         act = hpandas.df_to_str(act, num_rows=None)
         #
         exp = """
@@ -439,7 +439,7 @@ class Test_build_config_diff_dataframe1(hunitest.TestCase):
         config2 = _get_test_config2()
         config3 = _get_test_config3()
         #
-        act = cconfig.build_config_diff_dataframe(
+        act = config.build_config_diff_dataframe(
             {"1": config1, "2": config2, "3": config3}
         )
         act = hpandas.df_to_str(act, num_rows=None)
@@ -463,7 +463,7 @@ class Test_make_hashable(hunitest.TestCase):
         is_hashable_before = isinstance(obj, collections.Hashable)
         self.assertEqual(is_hashable_before, is_hashable)
         #
-        hashable_obj = cconfig.make_hashable(obj)
+        hashable_obj = config.make_hashable(obj)
         is_hashable_after = isinstance(hashable_obj, collections.Hashable)
         self.assertTrue(is_hashable_after)
         #
@@ -571,12 +571,12 @@ class Test_replace_shared_root_path(hunitest.TestCase):
             "/data/shared2": "/shared_folder2",
         }
         with umock.patch.object(
-            cconfig.hdocker.henv,
+            config.hdocker.henv,
             "execute_repo_config_code",
             return_value=mock_mapping,
         ):
             # Initial Config.
-            initial_config = cconfig.Config.from_dict(
+            initial_config = config.Config.from_dict(
                 {
                     "key1": "/data/shared1/asset1",
                     "key2": "/data/shared2/asset1/item",
@@ -589,7 +589,7 @@ class Test_replace_shared_root_path(hunitest.TestCase):
                     "key6": "/data/shared1/ecs_tokyo/some_path",
                 }
             )
-            actual_config = cconfig.replace_shared_dir_paths(initial_config)
+            actual_config = config.replace_shared_dir_paths(initial_config)
             # Check that shared root paths have been replaced.
             act = str(actual_config)
             exp = """
@@ -621,7 +621,7 @@ class Test_load_config_from_pickle1(hunitest.TestCase):
             "key1": "val",
             "key2": {"key3": {"key4": [1, 2, 3]}},
         }
-        config = cconfig.Config.from_dict(nested)
+        config = config.Config.from_dict(nested)
         # Save config and related files.
         config.save_to_file(log_dir, tag)
         # Check config version file for different config versions.
@@ -634,7 +634,7 @@ class Test_load_config_from_pickle1(hunitest.TestCase):
             actual_config_version = hio.from_file(config_version_path)
             self.assert_equal(actual_config_version, expected_config_version)
         # Load config from the file.
-        actual = cconfig.load_config_from_pickle1(log_dir, tag)
+        actual = config.load_config_from_pickle1(log_dir, tag)
         # Check signature.
         actual_signature = str(actual)
         self.assert_equal(actual_signature, expected_signature, fuzzy_match=True)

@@ -1067,7 +1067,7 @@ class Config:
             serialized/deserialized correctly.
         """
         config_as_str = str(self.to_dict())
-        # We don't need `cconfig.` since we are inside the config module.
+        # We don't need `config.` since we are inside the config module.
         config_as_str = config_as_str.replace("OrderedDict", "Config")
         if check:
             # Check that the object can be reconstructed.

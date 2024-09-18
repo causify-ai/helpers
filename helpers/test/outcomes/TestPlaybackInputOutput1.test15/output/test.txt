@@ -10,8 +10,8 @@ import core.config as cconfi
 class TestGetResultCheckString(hunitest.TestCase):
     def test1(self) -> None:
         # Define input variables.
-        a = cconfig.Config.from_python("Config([('meta', 'meta value 1'), ('list', [1, 2])])")
-        b = cconfig.Config.from_python("Config([('meta', 'meta value 2')])")
+        a = config.Config.from_python("Config([('meta', 'meta value 1'), ('list', [1, 2])])")
+        b = config.Config.from_python("Config([('meta', 'meta value 2')])")
         # Call function to test.
         act = get_result_check_string(a=a, b=b)
         act = str(act)

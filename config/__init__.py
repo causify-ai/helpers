@@ -1,7 +1,7 @@
 """
 Import as:
 
-import core.config as cconfig
+import config
 """
 
 from core.config.config_ import *  # pylint: disable=unused-import # NOQA

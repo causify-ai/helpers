@@ -4,19 +4,19 @@ if False:
 
     import pytest
 
-    import core.config as cconfig
+    import config
     import dev_scripts_helpers.notebooks.run_notebook_test_case as dsnrnteca
     import helpers.hgit as hgit
     import helpers.hserver as hserver
 
 
-    def build_config() -> cconfig.ConfigList:
+    def build_config() -> config.ConfigList:
         """
         Get an empty config for the test.
         """
         config = {}
-        config = cconfig.Config()
-        config_list = cconfig.ConfigList([config])
+        config = config.Config()
+        config_list = config.ConfigList([config])
         return config_list
 
     @pytest.mark.skip(reason="TODO(Juraj): HelpersTask1")

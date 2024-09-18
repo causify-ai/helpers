@@ -1,16 +1,16 @@
 from typing import List, Optional, cast
 
-import core.config as cconfig
+import config
 
 import helpers.hunit_test as hunitest
 
 
 def _build_test_config_list(
     symbols: Optional[List[str]] = None,
-) -> cconfig.ConfigList:
+) -> config.ConfigList:
     # Create an empty overwriteable config.
     update_mode = "overwrite"
-    config_template = cconfig.Config(update_mode=update_mode)
+    config_template = config.Config(update_mode=update_mode)
     config_tmp = config_template.add_subconfig("read_data")
     config_tmp["symbol"] = None
     config_tmp = config_template.add_subconfig("resample")
@@ -25,7 +25,7 @@ def _build_test_config_list(
         config[("read_data", "symbol")] = symbol
         configs.append(config)
     #
-    config_list = cconfig.ConfigList(configs)
+    config_list = config.ConfigList(configs)
     return config_list
 
 
@@ -41,7 +41,7 @@ class TestGetConfigsFromBuilder1(hunitest.TestCase):
         config_builder = (
             "core.config.test.test_config_builder._build_test_config_list()"
         )
-        configs = cconfig.get_config_list_from_builder(config_builder)
+        configs = config.get_config_list_from_builder(config_builder)
         txt = str(configs)
         self.check_string(txt, purify_text=True)
 
@@ -56,7 +56,7 @@ class TestGetConfigFromEnv(hunitest.TestCase):
         Verify that if there are no config env variables, no config is created.
         """
         # Test that no config is created.
-        actual_config = cconfig.get_config_from_env()
+        actual_config = config.get_config_from_env()
         self.assertIs(actual_config, None)
 
 
@@ -64,13 +64,13 @@ class TestGetConfigFromEnv(hunitest.TestCase):
 
 
 # TODO(gp): This is repeated code. Consider unifying it.
-def _get_test_config_1() -> cconfig.Config:
+def _get_test_config_1() -> config.Config:
     """
     Build a test config for Crude Oil asset.
 
     :return: Test config.
     """
-    config = cconfig.Config()
+    config = config.Config()
     tmp_config = config.add_subconfig("build_model")
     tmp_config["activation"] = "sigmoid"
     tmp_config = config.add_subconfig("build_targets")
@@ -82,13 +82,13 @@ def _get_test_config_1() -> cconfig.Config:
     return config
 
 
-def _get_test_config_2() -> cconfig.Config:
+def _get_test_config_2() -> config.Config:
     """
     Build a test config for Gold asset.
 
     :return: Test config.
     """
-    config = cconfig.Config()
+    config = config.Config()
     tmp_config = config.add_subconfig("build_model")
     tmp_config["activation"] = "sigmoid"
     tmp_config = config.add_subconfig("build_targets")

@@ -34,7 +34,7 @@ import re
 
 from invoke import task
 
-import core.config as cconfig
+import config
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import oms.lib_tasks_reconcile as olitarec
@@ -151,7 +151,7 @@ def reconcile_data_run_notebook(
         "bid_ask_depth": bid_ask_depth,
         "resample_mode": resample_mode,
     }
-    config = cconfig.Config.from_dict(config_dict)
+    config = config.Config.from_dict(config_dict)
     os.environ["CK_DATA_RECONCILIATION_CONFIG"] = config.to_python()
     _ = ctx
     # Set directory to store results locally
@@ -245,7 +245,7 @@ def reconcile_data_run_notebook(
         "s3_path": s3_path,
         "bid_ask_accuracy": bid_ask_accuracy,
     }
-    config = cconfig.Config.from_dict(config_dict)
+    config = config.Config.from_dict(config_dict)
     os.environ["CK_DATA_RECONCILIATION_CONFIG"] = config.to_python()
     _ = ctx
     # Set directory to store results locally

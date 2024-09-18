@@ -21,11 +21,11 @@
 # %autoreload 2
 
 
-import core.config as cconfig
+import config
 
 # %%
 # Initialize config.
-config = cconfig.get_config_from_env()
+config = config.get_config_from_env()
 
 # %% [markdown]
 # # Execute

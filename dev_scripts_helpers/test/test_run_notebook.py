@@ -7,7 +7,7 @@ if False:
 
     import pytest
 
-    import core.config as cconfig
+    import config
     import helpers.hdbg as hdbg
     import helpers.hgit as hgit
     import helpers.hio as hio
@@ -24,25 +24,25 @@ if False:
     # These are fake config builders used for testing.
 
 
-    def _config_builder(fail: bool) -> cconfig.Config:
+    def _config_builder(fail: bool) -> config.Config:
         """
         Simple config builder for the test.
         """
         config = {"fail": fail}
-        config = cconfig.Config().from_dict(config)
-        config_list = cconfig.ConfigList([config])
+        config = config.Config().from_dict(config)
+        config_list = config.ConfigList([config])
         return config_list
 
 
     def _build_multiple_configs(
-        template_config: cconfig.Config,
+        template_config: config.Config,
         params_variants: Dict[Tuple[str, ...], Iterable[Any]],
-    ) -> List[cconfig.Config]:
+    ) -> List[config.Config]:
         """
         Build configs from a template and the Cartesian product of given keys/vals.
 
-        Create multiple `cconfig.Config` objects using the given config template and
-        overwriting `None` or `cconfig.DUMMY` parameter specified through a parameter
+        Create multiple `config.Config` objects using the given config template and
+        overwriting `None` or `config.DUMMY` parameter specified through a parameter
         path and several possible elements:
             param_path: Tuple(str) -> param_values: Iterable[Any]
         A parameter path is represented by a tuple of nested names.
@@ -50,7 +50,7 @@ if False:
         Note that we create a config for each element of the Cartesian product of
         the values to be assigned.
 
-        :param template_config: cconfig.Config object
+        :param template_config: config.Config object
         :param params_variants: {(param_name_in_the_config_path):
             [param_values]}, e.g. {('read_data', 'symbol'): ['CL', 'QM'],
                                     ('resample', 'rule'): ['5T', '10T']}
@@ -86,21 +86,21 @@ if False:
                 conf_tmp.check_params([param_path[-1]])
                 if not (
                     conf_tmp[param_path[-1]] is None
-                    or conf_tmp[param_path[-1]] == cconfig.DUMMY
+                    or conf_tmp[param_path[-1]] == config.DUMMY
                 ):
                     raise ValueError(
                         "Trying to change a parameter that is not `None` or "
-                        "`'cconfig.DUMMY'`. Parameter path is %s" % str(param_path)
+                        "`'config.DUMMY'`. Parameter path is %s" % str(param_path)
                     )
                 conf_tmp[param_path[-1]] = param_val
             param_configs.append(config_var)
         return param_configs
 
 
-    def _build_config_list(values: List[bool]) -> cconfig.ConfigList:
+    def _build_config_list(values: List[bool]) -> config.ConfigList:
         # Create config in `overwrite` mode to allow reassignment of values.
         update_mode = "overwrite"
-        config_template = cconfig.Config(update_mode=update_mode)
+        config_template = config.Config(update_mode=update_mode)
         # TODO(gp): -> fail_param
         config_template["fail"] = None
         configs = _build_multiple_configs(config_template, {("fail",): values})
@@ -108,11 +108,11 @@ if False:
         # each config unique.
         for i, config in enumerate(configs):
             config["id"] = str(i)
-        config_list = cconfig.ConfigList(configs)
+        config_list = config.ConfigList(configs)
         return config_list
 
 
-    def build_config_list1() -> cconfig.ConfigList:
+    def build_config_list1() -> config.ConfigList:
         """
         Build 2 configs that won't make the notebook to fail.
         """
@@ -121,7 +121,7 @@ if False:
         return config_list
 
 
-    def build_config_list2() -> cconfig.ConfigList:
+    def build_config_list2() -> config.ConfigList:
         """
         Build 3 configs with one failing.
         """
@@ -130,7 +130,7 @@ if False:
         return config_list
 
 
-    def build_config_list3() -> cconfig.ConfigList:
+    def build_config_list3() -> config.ConfigList:
         """
         Build 1 config that won't make the notebook to fail.
         """

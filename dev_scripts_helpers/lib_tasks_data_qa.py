@@ -38,7 +38,7 @@ from typing import Any, Dict
 import pandas as pd
 from invoke import task
 
-import core.config as cconfig
+import config
 import data_schema.dataset_schema_utils as dsdascut
 import dev_scripts_helpers.lib_tasks_run_model_experiment_notebooks as dsltrmeno
 import helpers.hdbg as hdbg
@@ -132,7 +132,7 @@ def _run_data_qa_notebook(
     # hdbg.dassert(
     #    hserver.is_inside_docker(), "This is runnable only inside Docker."
     # )
-    config = cconfig.Config.from_dict(config_dict)
+    config = config.Config.from_dict(config_dict)
     os.environ["CK_DATA_RECONCILIATION_CONFIG"] = config.to_python()
     # Set directory to store results locally
     results_dir = "."

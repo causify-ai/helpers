@@ -8,7 +8,7 @@ import logging
 import re
 from typing import Any, Callable, List, Optional, Tuple, Union
 
-import core.config as cconfig
+import config
 import pandas as pd
 
 import helpers.hdatetime as hdateti
@@ -128,13 +128,13 @@ def parse_backtest_config(backtest_config: str) -> Tuple[str, str, str]:
 
 
 def set_asset_id(
-    config: cconfig.Config,
-    asset_id_key: cconfig.CompoundKey,
+    config: config.Config,
+    asset_id_key: config.CompoundKey,
     asset_id: Union[List[int], int],
     *,
     allow_new_key: bool = True,
     assume_dummy: bool = True,
-) -> cconfig.Config:
+) -> config.Config:
     """
     Assign an `asset_id` to a config.
 
@@ -149,12 +149,12 @@ def set_asset_id(
         # Save original update mode and allow overwriting of dummies.
         update_mode = config.update_mode
         config.update_mode = "overwrite"
-        hdbg.dassert_isinstance(config, cconfig.Config)
+        hdbg.dassert_isinstance(config, config.Config)
         _LOG.debug("Creating config for egid=`%s`", asset_id)
         if not allow_new_key:
             hdbg.dassert_in(asset_id_key, config)
             if assume_dummy:
-                hdbg.dassert_eq(config.get(asset_id_key), cconfig.DUMMY)
+                hdbg.dassert_eq(config.get(asset_id_key), config.DUMMY)
         config[asset_id_key] = asset_id
     finally:
         # Reassign original update mode.
@@ -163,14 +163,14 @@ def set_asset_id(
 
 
 def build_config_list_varying_asset_id(
-    config_list: cconfig.ConfigList,
-    asset_id_key: cconfig.CompoundKey,
+    config_list: config.ConfigList,
+    asset_id_key: config.CompoundKey,
     asset_ids: List[int],
-) -> cconfig.ConfigList:
+) -> config.ConfigList:
     """
     Create a list of `Config`s based on `config` using different `asset_ids`.
     """
-    hdbg.dassert_isinstance(config_list, cconfig.ConfigList)
+    hdbg.dassert_isinstance(config_list, config.ConfigList)
     _LOG.debug("Universe has %d asset_ids", len(asset_ids))
     configs = []
     config = config_list.get_only_config()
@@ -192,11 +192,11 @@ def build_config_list_varying_asset_id(
 
 # TODO(gp): -> ...varying_asset_tiles
 def build_config_list_varying_universe_tiles(
-    config_list: cconfig.ConfigList,
-    universe_tile_id: cconfig.CompoundKey,
+    config_list: config.ConfigList,
+    universe_tile_id: config.CompoundKey,
     # TODO(gp): -> asset_tiles
     universe_tiles: List[List[int]],
-) -> cconfig.ConfigList:
+) -> config.ConfigList:
     """
     Create a list of `Config`s based on `config` using different universe
     tiles.
@@ -205,7 +205,7 @@ def build_config_list_varying_universe_tiles(
     `build_config_list_varying_asset_id()` but the interface is
     different.
     """
-    hdbg.dassert_isinstance(config_list, cconfig.ConfigList)
+    hdbg.dassert_isinstance(config_list, config.ConfigList)
     _LOG.debug("Universe has %d tiles: %s", len(universe_tiles), universe_tiles)
     configs = []
     config = config_list.get_only_config()
@@ -225,12 +225,12 @@ def build_config_list_varying_universe_tiles(
 
 # TODO(gp): -> ...varying_period_tiles
 def build_config_list_varying_tiled_periods(
-    config_list: cconfig.ConfigList,
+    config_list: config.ConfigList,
     start_timestamp: pd.Timestamp,
     end_timestamp: pd.Timestamp,
     freq_as_pd_str: str,
     lookback_as_pd_str: str,
-) -> cconfig.ConfigList:
+) -> config.ConfigList:
     """
     Create a list of `Config`s based on `config` using a partition of the
     interval of time [`start_timestamp`, `end_timestamp`] using intervals like
@@ -247,7 +247,7 @@ def build_config_list_varying_tiled_periods(
             "start_timestamp end_timestamp freq_as_pd_str lookback_as_pd_str"
         )
     )
-    hdbg.dassert_isinstance(config_list, cconfig.ConfigList)
+    hdbg.dassert_isinstance(config_list, config.ConfigList)
     hdbg.dassert_eq(len(config_list), 1)
     hdateti.dassert_has_tz(start_timestamp)
     hdateti.dassert_has_tz(end_timestamp)
@@ -310,12 +310,12 @@ def build_config_list_varying_tiled_periods(
 
 # TODO(gp): -> build_config_list_using_equal_asset_tiles
 def build_config_list_with_tiled_universe(
-    config_list: cconfig.ConfigList, asset_ids: List[int]
-) -> cconfig.ConfigList:
+    config_list: config.ConfigList, asset_ids: List[int]
+) -> config.ConfigList:
     """
     Create a list of `Config`s using asset tiles of the same size.
     """
-    hdbg.dassert_isinstance(config_list, cconfig.ConfigList)
+    hdbg.dassert_isinstance(config_list, config.ConfigList)
     if len(asset_ids) > 300:
         # if len(asset_ids) > 1000:
         # Split the universe in 2 parts.
@@ -337,13 +337,13 @@ def build_config_list_with_tiled_universe(
 
 # TODO(gp): This is probably equivalent to some iterchain.reduce() standard function.
 def apply_build_config_list(
-    func: Callable, config_list: cconfig.ConfigList
-) -> cconfig.ConfigList:
+    func: Callable, config_list: config.ConfigList
+) -> config.ConfigList:
     """
     Apply a `build_config_list_*()` to each Config in `configs` and return the
     accumulated list of all the configs.
     """
-    hdbg.dassert_isinstance(config_list, cconfig.ConfigList)
+    hdbg.dassert_isinstance(config_list, config.ConfigList)
     configs = []
     _LOG.debug("configs_list=\n%s", str(config_list))
     for config in config_list.configs:
@@ -354,7 +354,7 @@ def apply_build_config_list(
         config_list_out_tmp = func(config_list_tmp)
         #
         _LOG.debug("config_list_out_tmp=\n%s", config_list_out_tmp)
-        hdbg.dassert_isinstance(config_list_out_tmp, cconfig.ConfigList)
+        hdbg.dassert_isinstance(config_list_out_tmp, config.ConfigList)
         #
         configs.extend(config_list_out_tmp.configs)
     #
@@ -366,12 +366,12 @@ def apply_build_config_list(
 
 # TODO(gp): -> build_config_list_using_equal_asset_and_period_tiles
 def build_config_list_with_tiled_universe_and_periods(
-    config_list: cconfig.ConfigList,
-) -> cconfig.ConfigList:
+    config_list: config.ConfigList,
+) -> config.ConfigList:
     """
     Create a list of `Config`s using asset and period tiles of the same size.
     """
-    hdbg.dassert_isinstance(config_list, cconfig.ConfigList)
+    hdbg.dassert_isinstance(config_list, config.ConfigList)
     #
     config = config_list.get_only_config()
     time_interval_str = config["backtest_config"]["time_interval_str"]

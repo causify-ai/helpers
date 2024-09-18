@@ -1,1 +1,1 @@
-replace_text.py --old "List\[cconfig.Config\]" --new "cconfig.ConfigList" --preview
+replace_text.py --old "List\[config.Config\]" --new "config.ConfigList" --preview

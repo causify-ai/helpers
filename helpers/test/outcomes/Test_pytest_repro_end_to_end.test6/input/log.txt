@@ -1935,7 +1935,7 @@ Traceback (most recent call last):
   File "/app/dataflow_lime/pipelines/E8/test/test_E8d_configs.py", line 37, in test1
     configs = dtfmoexuti.get_configs_from_command_line(args)
   File "/app/amp/dataflow/model/experiment_utils.py", line 195, in get_configs_from_command_line
-    configs = cconfig.get_configs_from_builder(config_builder)
+    configs = config.get_configs_from_builder(config_builder)
   File "/app/amp/core/config/builder.py", line 46, in get_configs_from_builder
     imp = importlib.import_module(import_)
   File "/usr/lib/python3.8/importlib/__init__.py", line 127, in import_module

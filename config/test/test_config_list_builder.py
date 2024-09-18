@@ -1,7 +1,7 @@
 import logging
 from typing import Any
 
-import core.config as cconfig
+import config
 import pandas as pd
 
 # TODO(gp): Reuse cconfig
@@ -13,7 +13,7 @@ _LOG = logging.getLogger(__name__)
 
 
 def _check_config_list(
-    self_: Any, config_list: cconfig.ConfigList, expected_num_configs: int
+    self_: Any, config_list: config.ConfigList, expected_num_configs: int
 ) -> None:
     actual_output = str(config_list)
     self_.check_string(actual_output, fuzzy_match=True, purify_text=True)
@@ -39,8 +39,8 @@ class Test_build_config_list_varying_tiled_periods1(hunitest.TestCase):
         # Prepare inputs.
         # Create a Config with `overwrite` mode to support item reassignment.
         update_mode = "overwrite"
-        config = cconfig.Config(update_mode=update_mode)
-        config_list = cconfig.ConfigList([config])
+        config = config.Config(update_mode=update_mode)
+        config_list = config.ConfigList([config])
         freq_as_pd_str = "1M"
         lookback_as_pd_str = "10D"
         # Run.
@@ -153,8 +153,8 @@ class Test_build_config_list_varying_tiled_periods1(hunitest.TestCase):
 class Test_build_config_list_with_tiled_universe(hunitest.TestCase):
     def test1(self) -> None:
         # Prepare inputs.
-        config = cconfig.Config()
-        config_list = cconfig.ConfigList([config])
+        config = config.Config()
+        config_list = config.ConfigList([config])
         asset_ids = [13684, 10971]
         # Run.
         config_list = cccolibu.build_config_list_with_tiled_universe(
@@ -175,14 +175,14 @@ class Test_build_config_list_with_tiled_universe_and_periods(hunitest.TestCase):
     def test1(self) -> None:
         # Prepare inputs.
         # Create a Config with `overwrite` mode to support item reassignment.
-        system_config = cconfig.Config(update_mode="overwrite")
+        system_config = config.Config(update_mode="overwrite")
         system_config[
             "backtest_config", "time_interval_str"
         ] = "2020-01-01_2020-03-01"
         system_config["backtest_config", "freq_as_pd_str"] = "M"
         system_config["backtest_config", "lookback_as_pd_str"] = "90D"
         system_config["market_data_config", "asset_ids"] = [13684, 10971]
-        config_list = cconfig.ConfigList([system_config])
+        config_list = config.ConfigList([system_config])
         # Run.
         config_list = cccolibu.build_config_list_with_tiled_universe_and_periods(
             config_list
