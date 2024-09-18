@@ -7,7 +7,7 @@ if False:
 
     import pytest
 
-    import core.config as cconfig
+    import config_root.config as cconfig
     import helpers.hdbg as hdbg
     import helpers.hgit as hgit
     import helpers.hio as hio
