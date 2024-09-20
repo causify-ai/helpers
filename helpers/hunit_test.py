@@ -509,7 +509,7 @@ def purify_today_date(txt: str) -> str:
     today_date_as_str = today_date.strftime("%Y%m%d")
     # Replace predict.3.compress_tails.df_out.20220627_094500.YYYYMMDD_171106.csv.gz.
     txt = re.sub(
-        today_date_as_str + "_\d{6}", "YYYYMMDD_HHMMSS", txt, flags=re.MULTILINE
+        today_date_as_str + r"_\d{6}", "YYYYMMDD_HHMMSS", txt, flags=re.MULTILINE
     )
     txt = re.sub(today_date_as_str, "YYYYMMDD", txt, flags=re.MULTILINE)
     return txt

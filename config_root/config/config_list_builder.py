@@ -71,7 +71,7 @@ def get_period(period: str) -> Tuple[pd.Timestamp, pd.Timestamp]:
     excluded.
     """
     # E.g., `2022-01-01`.
-    date_pattern = "\d{4}[-]\d{2}[-]\d{2}"
+    date_pattern = r"\d{4}[-]\d{2}[-]\d{2}"
     # E.g., `2022-01-01_2022-02-01`.
     period_pattern = rf"{date_pattern}[_]{date_pattern}$"
     if period == "2days":
