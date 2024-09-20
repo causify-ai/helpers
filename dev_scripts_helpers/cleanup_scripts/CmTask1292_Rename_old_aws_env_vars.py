@@ -11,7 +11,7 @@ import argparse
 import logging
 import re
 
-import dev_scripts.replace_text as dscretex
+import dev_scripts_helpers.replace_text as dscretex
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser

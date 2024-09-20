@@ -1,7 +1,6 @@
 import logging
 import pytest
-# TODO(Juraj): HelpersTask1.
-# import core.config as cconfig
+import config_root.config as cconfig
 import helpers.hdict as hdict
 import helpers.hunit_test as hunitest
 

@@ -11,7 +11,7 @@ Start a jupyter server.
 
 Import as:
 
-import dev_scripts.notebooks.run_jupyter_server as dsnrjuse
+import dev_scripts_helpers.notebooks.run_jupyter_server as dsnrjuse
 """
 
 import argparse

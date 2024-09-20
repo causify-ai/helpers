@@ -6,7 +6,7 @@ of the index.
 
 Import as:
 
-import dev_scripts.git.gsp as dscgigsp
+import dev_scripts_helpers.git.gsp as dscgigsp
 """
 
 import argparse

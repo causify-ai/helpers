@@ -4,14 +4,14 @@ import helpers.hpandas as hpandas
 import helpers.hunit_test as hunitest
 import jsonpickle
 import pandas as pd
-import core.config as cconfi
+import config_root.config as cconfi
 
 
 class TestGetResultCheckString(hunitest.TestCase):
     def test1(self) -> None:
         # Define input variables.
-        a = cconfig.Config.from_python("Config([('meta', 'meta value 1'), ('list', [1, 2])])")
-        b = cconfig.Config.from_python("Config([('meta', 'meta value 2')])")
+        a = cconfig.Config.from_python("Config({'meta': 'meta value 1', 'list': [1, 2]})")
+        b = cconfig.Config.from_python("Config({'meta': 'meta value 2'})")
         # Call function to test.
         act = get_result_check_string(a=a, b=b)
         act = str(act)

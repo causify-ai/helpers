@@ -11,7 +11,7 @@ Run a notebook given a config or a list of configs.
 
 Import as:
 
-import dev_scripts.notebooks.run_notebook as dsnoruno
+import dev_scripts_helpers.notebooks.run_notebook as dsnoruno
 """
 
 import argparse
@@ -21,7 +21,7 @@ from typing import Optional, Union
 
 import nbformat
 
-import core.config as cconfig
+import config_root.config as cconfig
 import dataflow.backtest.dataflow_backtest_utils as dtfbdtfbaut
 import helpers.hdatetime as hdateti
 import helpers.hdbg as hdbg

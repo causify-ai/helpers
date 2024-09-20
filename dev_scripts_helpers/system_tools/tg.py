@@ -10,7 +10,7 @@ Send a notification through Telegram. See README.md in helpers/telegram_notify.
 
 Import as:
 
-import dev_scripts.tg as dscrtg
+import dev_scripts_helpers.tg as dscrtg
 """
 
 import argparse

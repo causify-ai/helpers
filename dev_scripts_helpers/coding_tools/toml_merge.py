@@ -11,7 +11,7 @@ merge multiple poetry files.
 
 Import as:
 
-import dev_scripts.toml_merge as dsctomer
+import dev_scripts_helpers.toml_merge as dsctomer
 """
 
 import argparse

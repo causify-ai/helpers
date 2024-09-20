@@ -2,7 +2,7 @@
 """
 Import as:
 
-import dev_scripts.notebooks.ipynb_format as dsnoipfo
+import dev_scripts_helpers.notebooks.ipynb_format as dsnoipfo
 """
 
 # -*- encoding: utf-8 -*-

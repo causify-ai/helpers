@@ -1,6 +1,7 @@
 import logging
 
 import numpy as np
+import collections
 
 import helpers.hnumpy as hnumpy
 import helpers.hunit_test as hunitest
@@ -120,3 +121,79 @@ class TestFloorWithPrecision(hunitest.TestCase):
         """ """
         actual = hnumpy.floor_with_precision(value, precision)
         self.assert_equal(str(actual), expected)
+
+class Test_OrderedDict_repr_str(hunitest.TestCase):
+    """
+    The tests are used to gatekeep the expected behavior of
+    dunder method __str__ and __repr__ for the OrderedDict class.
+
+    The tests stem from changes in Python 3.12. Observe below:
+
+    Python 3.9.5:
+        >>> from collections import OrderedDict
+        >>> import numpy
+        >>> dct = OrderedDict({ "test": numpy.int64(42)})
+        >>> dct["test"]
+        42
+        >>> print(dct)
+        OrderedDict([('test', 42)])
+        >>> str(dct)
+        "OrderedDict([('test', 42)])"
+        >>> repr(dct)
+        "OrderedDict([('test', 42)])"
+        >>> str(dct["test"])
+        '42'
+        >>> repr(dct["test"])
+        '42'
+
+    Python 3.12.3:
+        >>> from collections import OrderedDict
+        >>> import numpy
+        >>> dct = OrderedDict({"test": numpy.int64(42)})
+        >>> dct = OrderedDict({"test": numpy.int64(42)})
+        KeyboardInterrupt
+        >>> str(dct)
+        "OrderedDict({'test': np.int64(42)})"
+        >>> repr(dct)
+        "OrderedDict({'test': np.int64(42)})"
+        >>> str(dct["test"])
+        '42'
+        >>> repr(dct["test"])
+        'np.int64(42)'
+    """
+
+    def test_str_single1(self) -> None:
+        """
+        Test that the __str__ method on a single item in OrderedDict returns the expected string.
+        """
+        d = collections.OrderedDict({"test": np.int64(42)})
+        act = str(d["test"])
+        exp = "42"
+        self.assert_equal(act, exp)
+
+    def test_repr_single1(self) -> None:
+        """
+        Test that the __repr__ method on a single item in OrderedDict returns the expected string.
+        """
+        d = collections.OrderedDict({"test": np.int64(42)})
+        act = repr(d["test"])
+        exp = "np.int64(42)"
+        self.assert_equal(act, exp)
+    
+    def test_str_full1(self) -> None:
+        """
+        Test that the __str__ method of OrderedDict returns the expected string.
+        """
+        d = collections.OrderedDict({"test": np.int64(42)})
+        act = str(d)
+        exp = "OrderedDict({'test': np.int64(42)})"
+        self.assert_equal(act, exp)
+
+    def test_repr_full1(self) -> None:
+        """
+        Test that the __repr__ method of OrderedDict returns the expected string.
+        """
+        d = collections.OrderedDict({"test": np.int64(42)})
+        act = repr(d)
+        exp = "OrderedDict({'test': np.int64(42)})"
+        self.assert_equal(act, exp)

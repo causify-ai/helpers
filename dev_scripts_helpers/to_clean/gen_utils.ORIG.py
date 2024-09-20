@@ -1,7 +1,7 @@
 """
 Import as:
 
-import dev_scripts.to_clean.gen_utils.ORIG as dstcgutor
+import dev_scripts_helpers.to_clean.gen_utils.ORIG as dstcgutor
 """
 
 import bisect

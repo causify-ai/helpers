@@ -10,7 +10,7 @@ This script:
 
 Import as:
 
-import dev_scripts.old.create_conda._setenv_amp as dsoccseam
+import dev_scripts_helpers.old.create_conda._setenv_amp as dsoccseam
 """
 
 import argparse
@@ -31,7 +31,7 @@ sys.path.insert(0, _AMP_PATH)
 
 # This import is relative to the top of the repo.
 # pylint: disable=wrong-import-position
-import dev_scripts.old.create_conda._bootstrap as dsoccobo  # isort:skip # noqa: E402
+import dev_scripts_helpers.old.create_conda._bootstrap as dsoccobo  # isort:skip # noqa: E402
 
 # This script is `//amp/dev_scripts/_setenv_amp.py`, so we need ".." to go from
 # the position of this executable to `//amp/helpers`.
@@ -41,7 +41,7 @@ dsoccobo.bootstrap(_AMP_REL_PATH)
 # pylint: disable=wrong-import-position
 import helpers.hdbg as hdbg  # isort:skip # noqa: E402
 import helpers.old.user_credentials as holuscre  # isort:skip # noqa: E402
-import dev_scripts.old.create_conda._setenv_lib as dsoccseli  # isort:skip # noqa: E402
+import dev_scripts_helpers.old.create_conda._setenv_lib as dsoccseli  # isort:skip # noqa: E402
 
 
 # #############################################################################

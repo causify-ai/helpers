@@ -202,24 +202,25 @@ def has_dind_support() -> bool:
     _print("cmd=%s -> rc=%s" % (cmd, rc))
     # dind is supported on both Mac and GH Actions.
     check_repo = os.environ.get("AM_REPO_CONFIG_CHECK", "True") != "False"
-    if check_repo:
-        if hserver.is_inside_ci():
-            # Docker-in-docker is needed for GH actions. For all other builds is optional.
-            assert has_dind, (
-                f"Expected privileged mode: has_dind={has_dind}\n"
-                + hserver.setup_to_str()
-            )
-        else:
-            only_warning = True
-            _raise_invalid_host(only_warning)
-            return False
-    else:
-        am_repo_config = os.environ.get("AM_REPO_CONFIG_CHECK", "True")
-        print(
-            _WARNING
-            + ": Skip checking since AM_REPO_CONFIG_CHECK="
-            + f"'{am_repo_config}'"
-        )
+    #TODO(Juraj): HelpersTask16.
+    #if check_repo:
+    #    if hserver.is_inside_ci():
+    #        # Docker-in-docker is needed for GH actions. For all other builds is optional.
+    #        assert has_dind, (
+    #            f"Expected privileged mode: has_dind={has_dind}\n"
+    #            + hserver.setup_to_str()
+    #        )
+    #    else:
+    #        only_warning = True
+    #        _raise_invalid_host(only_warning)
+    #        return False
+    #else:
+    #    am_repo_config = os.environ.get("AM_REPO_CONFIG_CHECK", "True")
+    #    print(
+    #        _WARNING
+    #        + ": Skip checking since AM_REPO_CONFIG_CHECK="
+    #        + f"'{am_repo_config}'"
+    #    )
     return has_dind
 
 

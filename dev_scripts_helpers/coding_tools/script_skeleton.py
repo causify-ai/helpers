@@ -8,7 +8,7 @@ template.
 
 Import as:
 
-import dev_scripts.script_skeleton as dscscske
+import dev_scripts_helpers.script_skeleton as dscscske
 """
 
 import argparse

@@ -11,7 +11,7 @@ Zip all files in a directory retaining the dir structure.
 
 Import as:
 
-import dev_scripts.zip_files as dsczifil
+import dev_scripts_helpers.zip_files as dsczifil
 """
 
 import argparse

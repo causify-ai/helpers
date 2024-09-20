@@ -2,7 +2,7 @@ import logging
 import os
 from typing import List
 
-import dev_scripts.documentation.render_md as dsdoremd
+import dev_scripts_helpers.documentation.render_md as dsdoremd
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
 

@@ -252,7 +252,7 @@ class Test_Traceback1(hunitest.TestCase):
             configs = dtfmoexuti.get_configs_from_command_line(args)
           File "/app/amp/dataflow/model/experiment_utils.py", line 195, in get_configs_from_command_line
             configs = cconfig.get_configs_from_builder(config_builder)
-          File "/app/amp/core/config/builder.py", line 46, in get_configs_from_builder
+          File "/app/amp/config_root/config/builder.py", line 46, in get_configs_from_builder
             imp = importlib.import_module(import_)
           File "/usr/lib/python3.8/importlib/__init__.py", line 127, in import_module
             return _bootstrap._gcd_import(name[level:], package, level)
@@ -265,7 +265,7 @@ class Test_Traceback1(hunitest.TestCase):
         exp_cfile = """
         $GIT_ROOT/dataflow_lm/pipelines/E8/test/test_E8d_configs.py:37:test1:configs = dtfmoexuti.get_configs_from_command_line(args)
         $GIT_ROOT/dataflow/model/experiment_utils.py:195:get_configs_from_command_line:configs = cconfig.get_configs_from_builder(config_builder)
-        $GIT_ROOT/core/config/builder.py:46:get_configs_from_builder:imp = importlib.import_module(import_)
+        $GIT_ROOT/config_root/config/builder.py:46:get_configs_from_builder:imp = importlib.import_module(import_)
         /usr/lib/python3.8/importlib/__init__.py:127:import_module:return _bootstrap._gcd_import(name[level:], package, level)
         <frozen importlib._bootstrap>:1014:_gcd_import:
         <frozen importlib._bootstrap>:991:_find_and_load:
@@ -277,7 +277,7 @@ class Test_Traceback1(hunitest.TestCase):
             configs = dtfmoexuti.get_configs_from_command_line(args)
           File "$GIT_ROOT/dataflow/model/experiment_utils.py", line 195, in get_configs_from_command_line
             configs = cconfig.get_configs_from_builder(config_builder)
-          File "$GIT_ROOT/core/config/builder.py", line 46, in get_configs_from_builder
+          File "$GIT_ROOT/config_root/config/builder.py", line 46, in get_configs_from_builder
             imp = importlib.import_module(import_)
           File "/usr/lib/python3.8/importlib/__init__.py", line 127, in import_module
             return _bootstrap._gcd_import(name[level:], package, level)
@@ -379,7 +379,7 @@ class Test_Traceback1(hunitest.TestCase):
     #     configs = dtfmoexuti.get_configs_from_command_line(args)
     #   File "/app/dataflow/model/experiment_utils.py", line 195, in get_configs_from_command_line
     #     configs = cconfig.get_configs_from_builder(config_builder)
-    #   File "/app/core/config/builder.py", line 48, in get_configs_from_builder
+    #   File "/app/config_root/config/builder.py", line 48, in get_configs_from_builder
     #     imp = importlib.import_module(import_)
     #   File "/usr/lib/python3.8/importlib/__init__.py", line 127, in import_module
     #     return _bootstrap._gcd_import(name[level:], package, level)

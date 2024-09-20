@@ -9,7 +9,7 @@ import datetime
 import glob
 import logging
 import os
-from typing import Any, Iterator, List, Optional, Tuple, Union
+from typing import Any, Callable, Iterator, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -30,6 +30,253 @@ import helpers.hserver as hserver
 import helpers.htimer as htimer
 
 _LOG = logging.getLogger(__name__)
+
+
+class ParquetDataFrameGenerator:
+    # Allowed types.
+    OUTPUT_TYPES = ("basic", "verbose_open", "cm_task_1103")
+
+    def __init__(
+        self,
+        start_date: str,
+        end_date: str,
+        output_type: str,
+        assets: List[Union[str, int]],
+        asset_col_name: str,
+        freq: str,
+    ) -> None:
+        """
+        Constructor.
+
+        :param start_date: start of date range including start_date
+        :param end_date: end of date range excluding end_date
+        :param output_type: type of data that is generated
+        :param assets: list of desired assets that can be names or ids
+        :param asset_col_name: name of the column that stores assets
+        :param freq: frequency of steps between start and end date
+        """
+        self._start_date = start_date
+        self._end_date = end_date
+        self._output_type = output_type
+        self._assets = assets
+        self._asset_col_name = asset_col_name
+        self._freq = freq
+        self._dataframe_index = pd.date_range(
+            self._start_date,
+            self._end_date,
+            freq=self._freq,
+            inclusive="left",
+            tz="UTC",
+        )
+        self._OUTPUT_TYPE_FUNCTION_MAP = {
+            "basic": self._get_daily_basic_dataframe,
+            "verbose_open": self._get_verbose_open_dataframe,
+            "cm_task_1103": self._get_cm_task_1103_dataframe,
+        }
+
+    @property
+    def output_type_function(self) -> Callable:
+        """
+        Return proper function for data generation depending on output type.
+        """
+        return self._OUTPUT_TYPE_FUNCTION_MAP[self._output_type]
+
+    def generate(self) -> pd.DataFrame:
+        """
+        Generate specific dataframe based on inputs provided in instance
+        creation.
+        """
+        if self._output_type not in self.OUTPUT_TYPES:
+            raise ValueError(f"Unsupported data type `{self._output_type}`!")
+        return self.output_type_function()
+
+    @staticmethod
+    def _wrap_all_assets_df(df: List[pd.DataFrame]) -> pd.DataFrame:
+        # Create a single dataframe for all the assets.
+        df = pd.concat(df)
+        _LOG.debug(hpandas.df_to_str(df, print_shape_info=True, tag="df"))
+        return df
+
+    def _get_core_dataframes(self) -> List[pd.DataFrame]:
+        """
+        Create core dataframes that are updated according to the output type.
+
+        :return: list of core dataframes for specified assets with string values
+        Example:
+
+        ```
+                     asset
+        2000-01-01       A
+        2000-01-02       A
+        2000-01-03       A
+        ```
+        """
+        # Generate core dataframe for each asset.
+        df = []
+        for asset in self._assets:
+            asset_df = pd.DataFrame(
+                {self._asset_col_name: asset},
+                index=self._dataframe_index,
+            )
+            _LOG.debug(
+                hpandas.df_to_str(asset_df, print_shape_info=True, tag="asset_df")
+            )
+            df.append(asset_df)
+        return df
+
+    def _get_daily_basic_dataframe(self) -> pd.DataFrame:
+        """
+        Update core dataframes with additional columns.
+
+        :return: updated core dataframe as presented below
+        Example:
+
+        ```
+                    idx asset  val1  val2
+        2000-01-01    0     A    00    00
+        2000-01-02    0     A    01    01
+        2000-01-03    0     A    02    02
+        ```
+        """
+        asset_dataframes = self._get_core_dataframes()
+        for idx, asset_dataframe in enumerate(asset_dataframes):
+            # Positioned left from `asset` column.
+            asset_dataframe.insert(loc=0, column="idx", value=idx)
+            # Positioned right from `asset` column.
+            asset_dataframe.insert(
+                loc=2,
+                column="val1",
+                value=list(range(len(self._dataframe_index))),
+            )
+            asset_dataframe.insert(
+                loc=3,
+                column="val2",
+                value=list(range(len(self._dataframe_index))),
+            )
+        return self._wrap_all_assets_df(asset_dataframes)
+
+    def _get_verbose_open_dataframe(self) -> pd.DataFrame:
+        """
+        Update core dataframes with additional columns.
+
+        :return: update core dataframe as presented below
+        Example:
+
+        ```
+        vendor_date  interval  start_time    end_time ticker currency  open    id
+         2021-11-24        60  1637762400  1637762460      A      USD   100     1
+         2021-11-24        60  1637762400  1637762460      A      USD   200     2
+        ```
+        """
+        interval = self._dataframe_index[1] - self._dataframe_index[0]
+        interval = interval.seconds
+        asset_dataframes = self._get_core_dataframes()
+        for id_, asset_dataframe in enumerate(asset_dataframes):
+            start_time = (
+                asset_dataframe.index - pd.Timestamp("1970-01-01")
+            ) // pd.Timedelta("1s")
+            end_time = start_time + interval
+            # Positioned left from `ticker` column.
+            asset_dataframe.insert(
+                loc=0,
+                column="vendor_date",
+                value=asset_dataframe.index.date.astype(str),
+            )
+            asset_dataframe.insert(loc=1, column="interval", value=interval)
+            asset_dataframe.insert(loc=2, column="start_time", value=start_time)
+            asset_dataframe.insert(loc=3, column="end_time", value=end_time)
+            # Positioned right from `ticker` column.
+            asset_dataframe.insert(loc=5, column="currency", value="USD")
+            asset_dataframe.insert(
+                loc=6,
+                column="open",
+                value=list(range(len(self._dataframe_index))),
+            )
+            asset_dataframe.insert(loc=7, column="id", value=id_)
+        return self._wrap_all_assets_df(asset_dataframes)
+
+    # TODO(Dan): CmTask1490.
+    def _get_cm_task_1103_dataframe(self) -> pd.DataFrame:
+        """
+        Update core dataframes with additional columns.
+
+        :return: updated core dataframe as presented below
+        Example:
+
+        ```
+                    full_symbol   close
+        2000-01-01        10689     100
+        2000-01-02        10689     200
+        2000-01-03        10689     300
+        ```
+        """
+        asset_dataframes = self._get_core_dataframes()
+        for asset_dataframe in asset_dataframes:
+            # Positioned right from asset column.
+            asset_dataframe.insert(
+                loc=1,
+                column="close",
+                value=list(range(len(self._dataframe_index))),
+            )
+        return self._wrap_all_assets_df(asset_dataframes)
+
+
+def generate_parquet_files(
+    start_date: str,
+    end_date: str,
+    assets: List[Union[str, int]],
+    asset_col_name: str,
+    dst_dir: str,
+    *,
+    freq: str = "1H",
+    output_type: str = "basic",
+    partition_mode: str = "by_date",
+    custom_partition_cols: str = None,
+    reset_index: bool = False,
+) -> None:
+    """
+    Generate parquet files for testing.
+
+    :param start_date: date from which the data is generated, value
+        included
+    :param end_date: date until which the data is generated, value
+        excluded
+    :param assets: list of assets that can be either names or ids
+    :param asset_col_name: name of the column that stores assets
+    :param dst_dir: destination dir for generated data
+    :param freq: frequency of data generation
+    :param output_type: type of data that is generated
+    :param partition_mode: Partition mode for parquet DataFrame, default
+        by date
+    :param custom_partition_cols: overrides default partition by time
+    :param reset_index: reset dataframe index to default sequential
+        integer values
+    """
+    # Generate timespan.
+    hdbg.dassert_lt(start_date, end_date)
+    timespan = pd.date_range(start_date, end_date)
+    hdbg.dassert_lt(2, len(timespan))
+    # Run dataframe generation.
+    pdg = ParquetDataFrameGenerator(
+        start_date, end_date, output_type, assets, asset_col_name, freq
+    )
+    parquet_df = pdg.generate()
+    # Add partition columns to the dataframe.
+    df, partition_cols = add_date_partition_columns(parquet_df, partition_mode)
+    if custom_partition_cols:
+        # If custom partition is provided, it will override date partition.
+        # Sample: `["asset", "year", "month"]`
+        custom_partition_cols = custom_partition_cols.split(",")
+        # Ensure that date partition columns are present.
+        hdbg.dassert_is_subset(partition_cols, custom_partition_cols)
+        partition_cols = custom_partition_cols
+    # Partition and write dataset.
+    if reset_index:
+        df = df.reset_index(drop=True)
+    # TODO(Nikola): When direct run is possible, expose usage of `aws_profile`
+    #   so generator can be used in conjunction with `helpers.hmoto.S3Mock_TestCase`.
+    #   Will probably be part of CMTask #1490.
+    to_partitioned_parquet(df, partition_cols, dst_dir)
 
 
 def get_pyarrow_s3fs(*args: Any, **kwargs: Any) -> pafs.S3FileSystem:
@@ -937,7 +1184,7 @@ def list_and_merge_pq_files(
     if filesystem:
         # Use specialized S3 filesystem function to list Parquet files efficiently.
         # since glob.glob() is very slow as it does a lot of accesses to S3.
-        parquet_files = filesystem.glob(f"{root_dir}/**.parquet")
+        parquet_files = filesystem.glob(f"{root_dir}/**/*.parquet")
     else:
         # For local filesystem, use glob.glob
         parquet_files = glob.glob(f"{root_dir}/**/*.parquet", recursive=True)

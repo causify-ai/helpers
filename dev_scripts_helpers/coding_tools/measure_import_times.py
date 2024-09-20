@@ -5,7 +5,7 @@ Calculate execution time of imports.
 
 Import as:
 
-import dev_scripts.measure_import_times as dsmeimti
+import dev_scripts_helpers.measure_import_times as dsmeimti
 """
 
 import argparse

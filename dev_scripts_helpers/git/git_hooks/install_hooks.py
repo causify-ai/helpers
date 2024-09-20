@@ -13,7 +13,7 @@ Manage custom git pre-commit hooks.
 
 Import as:
 
-import dev_scripts.git.git_hooks.install_hooks as dsgghinho
+import dev_scripts_helpers.git.git_hooks.install_hooks as dsgghinho
 """
 
 import argparse

@@ -2,7 +2,7 @@ import json
 import logging
 import shutil
 
-import dev_scripts.notebooks.add_toc_to_notebook as dsnattono
+import dev_scripts_helpers.notebooks.add_toc_to_notebook as dsnattono
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)

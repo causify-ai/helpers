@@ -9,7 +9,7 @@ Update a git client by:
 
 Import as:
 
-import dev_scripts.git.gup as dscgigup
+import dev_scripts_helpers.git.gup as dscgigup
 """
 
 import argparse

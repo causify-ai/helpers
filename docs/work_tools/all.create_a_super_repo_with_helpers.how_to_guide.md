@@ -158,3 +158,16 @@
 > cd dir
 > cp -r ../helpers_root/devops .
 ```
+
+- Run the single-arch flow
+  ```bash
+  > i docker_build_local_image --version 1.0.0 && i docker_tag_local_image_as_dev --version 1.0.0
+  > i docker_bash --skip-pull
+  > i docker_jupyter
+  ```
+
+- Run the multi-arch flow
+  ```bash
+  > i docker_build_local_image --version 1.0.0 --multi-arch "linux/amd64,linux/arm64"
+  > i docker_tag_local_image_as_dev --version 1.0.0
+  ```

@@ -1,7 +1,7 @@
 """
 Import as:
 
-import dev_scripts.notebooks.run_notebook_test_case as dsnrnteca
+import dev_scripts_helpers.notebooks.run_notebook_test_case as dsnrnteca
 """
 
 import logging

@@ -4,7 +4,7 @@ import helpers.hpandas as hpandas
 import helpers.hunit_test as hunitest
 import jsonpickle
 import pandas as pd
-import core.config as cconfi
+import config_root.config as cconfi
 
 
 class TestGetResultCheckString(hunitest.TestCase):

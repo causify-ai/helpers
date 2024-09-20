@@ -7,7 +7,7 @@ Contains a module that:
 
 Import as:
 
-import dev_scripts.old.create_conda._bootstrap as dsoccobo
+import dev_scripts_helpers.old.create_conda._bootstrap as dsoccobo
 """
 
 import os

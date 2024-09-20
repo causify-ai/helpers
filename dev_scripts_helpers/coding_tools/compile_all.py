@@ -3,7 +3,7 @@
 """
 Import as:
 
-import dev_scripts.compile_all as dsccoall
+import dev_scripts_helpers.compile_all as dsccoall
 """
 
 import compileall

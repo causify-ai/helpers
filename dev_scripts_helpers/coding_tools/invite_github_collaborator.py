@@ -13,7 +13,7 @@ Example:
 
 Import as:
 
-import dev_scripts.github_permission as descgipe
+import dev_scripts_helpers.github_permission as descgipe
 """
 
 import argparse

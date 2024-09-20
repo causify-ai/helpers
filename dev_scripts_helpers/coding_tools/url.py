@@ -16,7 +16,7 @@ http://localhost:10001/tree/oil/ST/Task229_Exploratory_analysis_of_ST_data.ipynb
 
 Import as:
 
-import dev_scripts.url as dscrurl
+import dev_scripts_helpers.url as dscrurl
 """
 
 import argparse

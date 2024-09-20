@@ -3,13 +3,13 @@
 """
 Import as:
 
-import dev_scripts.git.git_hooks.translate as dsgghotr
+import dev_scripts_helpers.git.git_hooks.translate as dsgghotr
 """
 
 import argparse
 import logging
 
-import dev_scripts.git.git_hooks.utils as dsgghout
+import dev_scripts_helpers.git.git_hooks.utils as dsgghout
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 

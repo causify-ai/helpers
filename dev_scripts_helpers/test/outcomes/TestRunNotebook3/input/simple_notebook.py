@@ -21,7 +21,7 @@
 # %autoreload 2
 
 
-import core.config as cconfig
+import config_root.config as cconfig
 
 # %%
 # Initialize config.

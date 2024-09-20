@@ -28,7 +28,7 @@ docker> invoke run_cross_dataset_qa_notebook \
 
 Import as:
 
-import dev_scripts.lib_tasks_data_qa as dsltdaqa
+import dev_scripts_helpers.lib_tasks_data_qa as dsltdaqa
 """
 
 import logging
@@ -38,9 +38,9 @@ from typing import Any, Dict
 import pandas as pd
 from invoke import task
 
-import core.config as cconfig
+import config_root.config as cconfig
 import data_schema.dataset_schema_utils as dsdascut
-import dev_scripts.lib_tasks_run_model_experiment_notebooks as dsltrmeno
+import dev_scripts_helpers.lib_tasks_run_model_experiment_notebooks as dsltrmeno
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hs3 as hs3

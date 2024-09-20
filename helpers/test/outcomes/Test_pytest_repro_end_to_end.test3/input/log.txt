@@ -1,5 +1,5 @@
 Run_fast_tests  Run fast tests  2022-02-19T16:53:07.1175206Z SKIPPED [1] core/statistics/test/test_requires_statsmodels.py:315: cmamp #654.
-Run_fast_tests  Run fast tests  2022-02-19T16:53:07.1175722Z SKIPPED [1] core/config/test/test_config.py:325: See AmpTask1573
+Run_fast_tests  Run fast tests  2022-02-19T16:53:07.1175722Z SKIPPED [1] config_root/config/test/test_config.py:325: See AmpTask1573
 Run_fast_tests  Run fast tests  2022-02-19T16:53:07.1176275Z XFAIL core/statistics/test/test_requires_statsmodels.py::TestMultipleTests::test2
 Run_fast_tests  Run fast tests  2022-02-19T16:53:07.1176859Z XFAIL core/statistics/test/test_requires_statsmodels.py::TestMultiTTest::test7
 Run_fast_tests  Run fast tests  2022-02-19T16:53:07.1177550Z FAILED dataflow/pipelines/real_time/test/test_dataflow_pipelines_real_time_pipeline.py::TestRealTimeMvnReturnsWithOms1::test1

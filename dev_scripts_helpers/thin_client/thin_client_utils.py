@@ -209,7 +209,10 @@ def create_tmux_session(
     _LOG.info("tmux_name=%s", tmux_name)
     #
     _LOG.debug("Checking if the tmux session '%s' already exists", tmux_name)
-    _, tmux_session_str = hsystem.system_to_string("tmux list-sessions")
+    _, tmux_session_str = hsystem.system_to_string(
+        "tmux list-sessions", 
+        abort_on_error=False
+    )
     _LOG.debug("tmux_session_str=\n%s", tmux_session_str)
     # E.g.,
     # ```

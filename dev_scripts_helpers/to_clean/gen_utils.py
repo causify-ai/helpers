@@ -1,7 +1,7 @@
 """
 Import as:
 
-import dev_scripts.to_clean.gen_utils as dstcgeut
+import dev_scripts_helpers.to_clean.gen_utils as dstcgeut
 """
 
 import bisect

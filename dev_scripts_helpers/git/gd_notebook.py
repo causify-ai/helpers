@@ -5,7 +5,7 @@ make the differences easier to spot using vimdiff.
 
 Import as:
 
-import dev_scripts.git.gd_notebook as dsgigdno
+import dev_scripts_helpers.git.gd_notebook as dsgigdno
 """
 
 # TODO(gp)

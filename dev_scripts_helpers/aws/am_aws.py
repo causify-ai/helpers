@@ -4,7 +4,7 @@ Start / stop / check AWS instance.
 
 Import as:
 
-import dev_scripts.aws.am_aws as dsawamaw
+import dev_scripts_helpers.aws.am_aws as dsawamaw
 """
 
 import argparse

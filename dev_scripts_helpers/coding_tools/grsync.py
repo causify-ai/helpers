@@ -11,7 +11,7 @@
 
 Import as:
 
-import dev_scripts.grsync as dscrgrsy
+import dev_scripts_helpers.grsync as dscrgrsy
 """
 
 import argparse

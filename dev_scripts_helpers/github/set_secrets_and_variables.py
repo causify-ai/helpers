@@ -9,7 +9,7 @@ Simple usage:
      --file 'dev_scripts/github/vars.json' \
      --repo 'cryptomtc/cmamp_test'
 
-The json file looks like:
+The JSON file looks like:
 ```
 {
     "secrets": {

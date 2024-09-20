@@ -9,7 +9,7 @@ if False:
     import pandas as pd
 
     # TODO(Juraj): HelpersTask1.
-    import core.config as cconfig
+    import config_root.config as cconfig
     import helpers.hio as hio
     import helpers.hplayback as hplayba
     import helpers.hsystem as hsystem
@@ -402,8 +402,8 @@ if False:
             config["var2"] = cconfig.Config([("var3", 10), ("var4", "val4")])
             self._check(
                 config,
-                "cconfig.Config.from_python(\"Config([('var1', 'val1'), "
-                "('var2', Config([('var3', 10), ('var4', 'val4')]))])\")",
+                "cconfig.Config.from_python(\"Config({'var1': 'val1', "
+                "'var2': Config({'var3': 10, 'var4': 'val4'})})\")",
             )
 
         def _check(self, input_obj: Any, expected: str) -> None:

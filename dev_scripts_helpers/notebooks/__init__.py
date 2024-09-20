@@ -1,7 +1,7 @@
 """
 Import as:
 
-import dev_scripts.notebooks as dsnrn
+import dev_scripts_helpers.notebooks as dsnrn
 """
 
-from dev_scripts.notebooks.run_notebook_test_case import *  # pylint: disable=unused-import # NOQA
+from dev_scripts_helpers.notebooks.run_notebook_test_case import *  # pylint: disable=unused-import # NOQA

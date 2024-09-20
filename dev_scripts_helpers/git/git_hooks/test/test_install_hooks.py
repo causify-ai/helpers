@@ -2,7 +2,7 @@ import logging
 
 import pytest
 
-import dev_scripts.git.git_hooks.utils as dsgghout  # pylint: disable=no-name-in-module
+import dev_scripts_helpers.git.git_hooks.utils as dsgghout  # pylint: disable=no-name-in-module
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hunit_test as hunitest

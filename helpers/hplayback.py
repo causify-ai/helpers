@@ -16,7 +16,7 @@ import jsonpickle  # type: ignore
 import jsonpickle.ext.pandas as jepand  # type: ignore
 import pandas as pd
 
-import core.config as cconfig
+import config_root.config as cconfig
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -278,7 +278,7 @@ class Playback:
         self._append("import helpers.hunit_test as hunitest")
         self._append("import jsonpickle")
         self._append("import pandas as pd")
-        self._append("import core.config as cconfi")
+        self._append("import config_root.config as cconfi")
         for a in additional or []:
             self._append(a)
         self._code.extend(["", ""])

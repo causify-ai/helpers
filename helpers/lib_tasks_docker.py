@@ -52,7 +52,7 @@ def docker_images_ls_repo(ctx, sudo=False):  # type: ignore
     """
     hlitauti.report_task()
     docker_login(ctx)
-    # TODO(gp): Move this to a var ECR_BASE_PATH="Ck_ECR_BASE_PATH" in repo_config.py.
+    # TODO(gp): Move this to a var ECR_BASE_PATH="CK_ECR_BASE_PATH" in repo_config.py.
     ecr_base_path = hlitauti.get_default_param("CK_ECR_BASE_PATH")
     docker_exec = _get_docker_exec(sudo)
     hlitauti.run(ctx, f"{docker_exec} image ls {ecr_base_path}")

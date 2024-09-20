@@ -20,7 +20,7 @@ Usage:
 
 Import as:
 
-import dev_scripts.documentation.render_md as dsdoremd
+import dev_scripts_helpers.documentation.render_md as dsdoremd
 """
 
 import argparse

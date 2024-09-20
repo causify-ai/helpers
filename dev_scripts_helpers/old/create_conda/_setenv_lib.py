@@ -4,7 +4,7 @@ script that is executed to configure the development environment.
 
 Import as:
 
-import dev_scripts.old.create_conda._setenv_lib as dsoccseli
+import dev_scripts_helpers.old.create_conda._setenv_lib as dsoccseli
 """
 
 import argparse

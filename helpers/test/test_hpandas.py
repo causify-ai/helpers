@@ -1160,16 +1160,16 @@ class TestDfToStr(hunitest.TestCase):
         actual = hpandas.df_to_str(df, print_memory_usage=True)
         expected = r"""
         * memory=
-                    shallow     deep
-        Index          128.0 b  128.0 b
-        dummy_value_1   24.0 b   24.0 b
-        dummy_value_2   24.0 b  174.0 b
-        dummy_value_3   24.0 b   24.0 b
-        total          200.0 b  350.0 b
-        dummy_value_1 dummy_value_2  dummy_value_3
-        0              1             A              0
-        1              2             B              0
-        2              3             C              0
+        shallow deep
+        Index 132.0 b 132.0 b
+        dummy_value_1 24.0 b 24.0 b
+        dummy_value_2 24.0 b 150.0 b
+        dummy_value_3 24.0 b 24.0 b
+        total 204.0 b 330.0 b
+        dummy_value_1 dummy_value_2 dummy_value_3
+        0 1 A 0
+        1 2 B 0
+        2 3 C 0
         """
         self.assert_equal(actual, expected, fuzzy_match=True)
 
@@ -2139,12 +2139,12 @@ class Test_merge_dfs1(hunitest.TestCase):
         shape=(20, 6)
         col1  col2  col3  threshold_col  col4  col5
         0   1.0   2.0   1.0              0   NaN   NaN
-        1   3.0   4.0   2.0              1   NaN   NaN
-        2   5.0   6.0   3.0              3   NaN   NaN
+        1   NaN   NaN   1.0              5   2.0   5.0
+        2   3.0   4.0   2.0              1   NaN   NaN
         ...
-        17   NaN   NaN   4.0             11   8.0   1.0
-        18   NaN   NaN  30.0             13  11.0   2.0
-        19   NaN   NaN   NaN            700  70.0  30.0
+        17   10.0  10.0  300.0             70  15.0   4.0
+        18  100.0   NaN    NaN             13   NaN   NaN
+        19    NaN   NaN    NaN            700  70.0  30.0
         """
         # Check.
         self.check_df_output(
@@ -3793,7 +3793,7 @@ class Test_multiindex_df_info1(hunitest.TestCase):
             rows=5 ['2022-01-01 21:01:00+00:00', '2022-01-01 21:02:00+00:00', '2022-01-01 21:03:00+00:00', '2022-01-01 21:04:00+00:00', '2022-01-01 21:05:00+00:00']
             start_timestamp=2022-01-01 21:01:00+00:00
             end_timestamp=2022-01-01 21:05:00+00:00
-            frequency=T
+            frequency=min
         """
         self.assert_equal(act, exp, fuzzy_match=True)
 

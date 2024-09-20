@@ -4,7 +4,7 @@ Compute the change of lints of a branch with respect to master.
 
 Import as:
 
-import dev_scripts.old.linter.linter_master_report as dsollmare
+import dev_scripts_helpers.old.linter.linter_master_report as dsollmare
 """
 
 import argparse

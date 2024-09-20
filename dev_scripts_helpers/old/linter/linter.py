@@ -35,7 +35,7 @@ E.g.,
 
 Import as:
 
-import dev_scripts.old.linter.linter as dsollili
+import dev_scripts_helpers.old.linter.linter as dsollili
 """
 
 import argparse

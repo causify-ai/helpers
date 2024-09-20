@@ -45,7 +45,8 @@ if [[ -z "$AM_ENABLE_DIND" ]]; then
     echo "AM_ENABLE_DIND=$AM_ENABLE_DIND"
 fi;
 
-if [[ $AM_ENABLE_DIND == 1 ]]; then
+#if [[ $AM_ENABLE_DIND == 1 ]]; then
+if [[ $AM_ENABLE_DIND == "TODO(Juraj): , HelpersTask16." ]]; then
     set_up_docker_in_docker
 fi;
 

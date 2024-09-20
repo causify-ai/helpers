@@ -16,7 +16,7 @@ template.
 
 Import as:
 
-import dev_scripts.parallel_script_skeleton as dspascsk
+import dev_scripts_helpers.parallel_script_skeleton as dspascsk
 """
 
 # TODO(gp): We should test this, although the library is already tested.

@@ -2,7 +2,7 @@
 """
 Import as:
 
-import dev_scripts.old.linter.process_jupytext as dsolprju
+import dev_scripts_helpers.old.linter.process_jupytext as dsolprju
 """
 
 # pylint: disable=line-too-long
@@ -27,7 +27,7 @@ import argparse
 import logging
 import re
 
-import dev_scripts.linter as lin
+import dev_scripts_helpers.linter as lin
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem

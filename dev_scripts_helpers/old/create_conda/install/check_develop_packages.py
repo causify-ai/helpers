@@ -3,7 +3,7 @@
 """
 Import as:
 
-import dev_scripts.old.create_conda.install.check_develop_packages as dsoccicdp
+import dev_scripts_helpers.old.create_conda.install.check_develop_packages as dsoccicdp
 """
 
 import os
@@ -22,7 +22,7 @@ assert os.path.exists(_AMP_PATH), f"Can't find '{_AMP_PATH}'"
 sys.path.insert(0, _AMP_PATH)
 
 # pylint: disable=wrong-import-position
-import dev_scripts.old.create_conda._bootstrap as dsoccobo  # isort:skip # noqa: E402
+import dev_scripts_helpers.old.create_conda._bootstrap as dsoccobo  # isort:skip # noqa: E402
 
 dsoccobo.bootstrap(_AMP_REL_PATH)
 

@@ -8,7 +8,7 @@ This pattern is useful for integrating with editors (e.g., vim).
 
 Import as:
 
-import dev_scripts.transform_skeleton as dsctrske
+import dev_scripts_helpers.transform_skeleton as dsctrske
 """
 
 import argparse

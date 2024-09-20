@@ -19,7 +19,7 @@
 
 Import as:
 
-import dev_scripts.infra.old.ssh_tunnels as dsiosstu
+import dev_scripts_helpers.infra.old.ssh_tunnels as dsiosstu
 """
 
 import argparse

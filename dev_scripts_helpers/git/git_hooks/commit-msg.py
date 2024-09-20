@@ -3,7 +3,7 @@
 """
 Import as:
 
-import dev_scripts.git.git_hooks.commit-msg as dsgghoco
+import dev_scripts_helpers.git.git_hooks.commit-msg as dsgghoco
 """
 
 import re

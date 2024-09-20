@@ -861,7 +861,7 @@ def run_coverage_report(  # type: ignore
 # #############################################################################
 
 
-# TODO(gp): Consolidate the code from dev_scripts/testing here.
+# TODO(gp): Consolidate the code from dev_scripts_helpers/testing here.
 
 
 @task
@@ -1452,7 +1452,7 @@ def pytest_add_untracked_golden_outcomes(ctx):  # type: ignore
     Add the golden outcomes files that are not tracked under git.
     """
     _ = ctx
-    cmd = 'git add $(git ls-files . --exclude-standard --others | \grep "output" | grep -v tmp)'
+    cmd = 'git add $(git ls-files . --exclude-standard --others | grep "output" | grep -v tmp)'
     hsystem.system(cmd, suppress_output=False)
 
 

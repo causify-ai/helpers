@@ -3,7 +3,7 @@
 """
 Import as:
 
-import dev_scripts.email_notify as dscemnot
+import dev_scripts_helpers.email_notify as dscemnot
 """
 
 import helpers.hemail as hemail

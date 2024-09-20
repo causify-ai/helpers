@@ -25,7 +25,6 @@ def random_seed_context(seed: int) -> Iterator:
         np.random.set_state(state)
 
 
-# TODO(Juraj): unit test in CmTask5092.
 def floor_with_precision(value: float, amount_precision: int) -> float:
     """
     Floor a value using desired precision.

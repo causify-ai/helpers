@@ -10,7 +10,7 @@ E.g.,
 
 Import as:
 
-import dev_scripts.documentation.convert_txt_to_pandoc as dsdcttpa
+import dev_scripts_helpers.documentation.convert_txt_to_pandoc as dsdcttpa
 """
 
 # TODO(gp):

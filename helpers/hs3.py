@@ -190,7 +190,7 @@ def listdir(
         # `hio.listdir` is using `find` which looks for files and directories
         # descending recursively in the directory.
         # One star in glob will use `maxdepth=1`.
-        pattern = pattern.replace("*", "**")
+        pattern = pattern.replace("*", "**/*")
         # Detailed S3 objects in dict form with metadata.
         path_objects = s3fs_.glob(
             f"{dir_name}/{pattern}", detail=True, maxdepth=maxdepth
@@ -461,7 +461,7 @@ def get_latest_pq_in_s3_dir(s3_path: str, aws_profile: str) -> str:
     """
     hdbg.dassert_type_is(aws_profile, str)
     s3fs_ = get_s3fs(aws_profile)
-    pq_files = s3fs_.glob(f"{s3_path}/**.parquet", detail=True)
+    pq_files = s3fs_.glob(f"{s3_path}/**/*.parquet", detail=True)
     # Sort the files by the date they were modified for the last time.
     sorted_files = sorted(
         pq_files.items(), key=lambda t: t[1]["LastModified"], reverse=True

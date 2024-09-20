@@ -532,7 +532,7 @@ def find_dependency(  # type: ignore
         file, line_num, import_code = line
         _LOG.debug("# " + hprint.to_str("file line_num import_code"))
         # Parse import code.
-        m = re.match("^import\s+(\S+)(\s+as)?", import_code)
+        m = re.match(r"^import\s+(\S+)(\s+as)?", import_code)
         hdbg.dassert(m, "Can't parse line='%s'", import_code)
         #
         import_name = m.group(1)

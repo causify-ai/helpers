@@ -3,7 +3,7 @@
 """
 Import as:
 
-import dev_scripts.string_to_file as dssttofi
+import dev_scripts_helpers.string_to_file as dssttofi
 """
 
 # > amp/dev_scripts/string_to_file.py Effect of pessimism on long-, short- term equilibrium for aggregate- demand and supply

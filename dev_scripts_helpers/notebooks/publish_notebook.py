@@ -29,7 +29,7 @@ https://docs.google.com/document/d/1b3RptKVK6vFUc8upcz3n0nTZhTO0ZQ-Ay5I01nCp5WM/
 
 Import as:
 
-import dev_scripts.notebooks.publish_notebook as dsnopuno
+import dev_scripts_helpers.notebooks.publish_notebook as dsnopuno
 """
 
 import argparse

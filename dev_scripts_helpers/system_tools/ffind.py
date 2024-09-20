@@ -13,7 +13,7 @@
 
 Import as:
 
-import dev_scripts.ffind as dscrffin
+import dev_scripts_helpers.ffind as dscrffin
 """
 
 import argparse

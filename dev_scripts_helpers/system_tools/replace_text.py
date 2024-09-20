@@ -272,7 +272,7 @@ def _custom1(args: argparse.Namespace) -> None:
         # ("import helpers.printing as hprint", "import helpers.printing as
         # pri"),
         # (r"printing\.", "hprint."),
-        ("import helpers.config", "import core.config")
+        ("import helpers.config", "import config_root.config")
     ]
     dirs = ["."]
     exts = ["py", "ipynb"]
@@ -339,20 +339,20 @@ def _fix_AmpTask1403(args: argparse.Namespace) -> None:
     """
     # From longest to shortest to avoid nested replacements.
     to_replace = [
-        "import core.config as cfg",
-        "import core.config as ccfg",
-        # "import core.config as cconfi",
-        "import core.config as cconfig",
-        "import core.config_builders as ccbuild",
-        "import core.config_builders as cfgb",
+        "import config_root.config as cfg",
+        "import config_root.config as ccfg",
+        # "import config_root.config as cconfi",
+        "import config_root.config as cconfig",
+        "import config_root.config_builders as ccbuild",
+        "import config_root.config_builders as cfgb",
     ]
-    # to_replace = [(f"^{s}$", "import core.config as cconfig") for s in to_replace]
-    to_replace = [(f"{s}", "import core.config as cconfig") for s in to_replace]
+    # to_replace = [(f"^{s}$", "import config_root.config as cconfig") for s in to_replace]
+    to_replace = [(f"{s}", "import config_root.config as cconfig") for s in to_replace]
     _fix_AmpTask1403_helper(args, to_replace)
     #
     to_replace = [
         # (r"printing\.", "hprint."),
-        # ("import helpers.config", "import core.config")
+        # ("import helpers.config", "import config_root.config")
         "ccfg",
         # "cconfi",
         "cconfig",

@@ -19,7 +19,7 @@ Handle backups / export / import of Google Drive directory.
 
 Import as:
 
-import dev_scripts.infra.gdrive as dscingdr
+import dev_scripts_helpers.infra.gdrive as dscingdr
 """
 
 #  Configure rclone

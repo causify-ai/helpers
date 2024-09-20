@@ -15,7 +15,7 @@ navigate the stack trace.
 
 Import as:
 
-import dev_scripts.traceback_to_cfile as dstrtocf
+import dev_scripts_helpers.traceback_to_cfile as dstrtocf
 """
 
 import argparse

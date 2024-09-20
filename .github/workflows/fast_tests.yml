@@ -90,13 +90,13 @@ jobs:
           CK_AWS_ACCESS_KEY_ID: ${{ secrets.CK_AWS_ACCESS_KEY_ID }}
           CK_AWS_SECRET_ACCESS_KEY: ${{ secrets.CK_AWS_SECRET_ACCESS_KEY }}
           CK_AWS_DEFAULT_REGION: ${{ vars.CK_AWS_DEFAULT_REGION }}
-          # CK_ECR_BASE_PATH: ${{ vars.CK_ECR_BASE_PATH }}
+          CK_ECR_BASE_PATH: ${{ vars.CK_ECR_BASE_PATH }}
           # If you prefer pulling the image from ECR, comment out the following line and uncomment the one above.
           # Base path for GHCR registry.
-          CK_ECR_BASE_PATH: ghcr.io/cryptokaizen
+          #CK_ECR_BASE_PATH: ghcr.io/cryptokaizen
           CK_AWS_S3_BUCKET: ${{ vars.CK_AWS_S3_BUCKET }}
           CK_TELEGRAM_TOKEN: ${{ secrets.CK_TELEGRAM_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_ACTION_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: invoke run_fast_tests
         # TODO(gp): Run a single test. You need to disable the `push` on master.
         #run: invoke run_fast_tests --pytest-opts="./helpers/test/test_lib_tasks.py::TestGhLogin1 -s --dbg"

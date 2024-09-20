@@ -296,7 +296,7 @@ class Test_dassert_is_image_name_valid1(hunitest.TestCase):
             "sorrentum/cmamp",
         ]
         for image in valid_images:
-            hlitadoc._dassert_is_image_name_valid(image)
+            hlitadoc.dassert_is_image_name_valid(image)
 
     def test2(self) -> None:
         """
@@ -312,7 +312,7 @@ class Test_dassert_is_image_name_valid1(hunitest.TestCase):
         ]
         for image in invalid_images:
             with self.assertRaises(AssertionError):
-                hlitadoc._dassert_is_image_name_valid(image)
+                hlitadoc.dassert_is_image_name_valid(image)
 
 
 # #############################################################################

@@ -17,11 +17,8 @@ import helpers.hparquet as hparque
 import helpers.hprint as hprint
 import helpers.hs3 as hs3
 import helpers.hunit_test as hunitest
-#TODO(Juraj): HelpersTask1.
-#import im_v2.common.test as imvct
 
 _LOG = logging.getLogger(__name__)
-
 
 # Most of these unit tests are taken from
 # `amp/helpers/notebooks/gallery_parquet.ipynb`
@@ -271,6 +268,7 @@ class TestParquet1(hunitest.TestCase):
         # TODO(Vlad): Refactor after CmampTask7331 is resolved.
         # self.assert_equal(initial_df.index.unit, df.index.unit)
 
+    @pytest.mark.skip(reason="TODO(Juraj): HelpersTask21.")
     def test_save_read_concat_data(self) -> None:
         """
         Verify that data produced by different version of Pandas preserves
@@ -1019,7 +1017,7 @@ class TestListAndMergePqFiles(hmoto.S3Mock_TestCase):
         test_dir = self.get_scratch_space()
         partition_mode = "by_year_month"
         custom_partition_cols = "asset,year,month"
-        imvct.generate_parquet_files(
+        hparque.generate_parquet_files(
             start_date,
             end_date,
             assets,

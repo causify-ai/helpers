@@ -514,8 +514,8 @@ amp/core/plotting/test/test_portfolio_stats.py::Test_plot_portfolio_stats1::test
 amp/core/statistics/test/test_binning.py::TestGetSymmetricNormalQuantiles1::test1 (0.00 s) [32mPASSED[0m[31m [ 21%][0m
 amp/core/statistics/test/test_binning.py::TestGetSymmetricNormalQuantiles1::test2 (0.00 s) [32mPASSED[0m[31m [ 21%][0m
 amp/core/statistics/test/test_binning.py::TestGetSymmetricNormalQuantiles1::test3 (0.00 s) [32mPASSED[0m[31m [ 21%][0m
-amp/core/config/test/test_config_builders.py::TestGetConfigsFromBuilder1::test1 (0.00 s) [32mPASSED[0m[31m [ 21%][0m
-amp/core/config/test/test_config_builders.py::TestGetConfigFromEnv::test_no_env_variables (0.00 s) [32mPASSED[0m[31m [ 21%][0m
+amp/config_root/config/test/test_config_builders.py::TestGetConfigsFromBuilder1::test1 (0.00 s) [32mPASSED[0m[31m [ 21%][0m
+amp/config_root/config/test/test_config_builders.py::TestGetConfigFromEnv::test_no_env_variables (0.00 s) [32mPASSED[0m[31m [ 21%][0m
 amp/core/statistics/test/test_turnover.py::Test_compute_turnover::test1 (0.01 s) [32mPASSED[0m[31m [ 21%][0m
 amp/core/statistics/test/test_turnover.py::Test_compute_turnover::test2 (0.01 s) [32mPASSED[0m[31m [ 21%][0m
 amp/core/statistics/test/test_turnover.py::Test_compute_turnover::test3 (0.00 s) [32mPASSED[0m[31m [ 21%][0m
@@ -956,67 +956,67 @@ amp/core/finance/test/test_returns.py::Test_compute_prices_from_rets::test3 (0.0
 amp/core/finance/test/test_returns.py::Test_compute_prices_from_rets::test4 (0.00 s) [32mPASSED[0m[31m [ 45%][0m
 amp/core/finance/test/test_returns.py::Test_compute_prices_from_rets::test5 (0.01 s) [32mPASSED[0m[31m [ 45%][0m
 amp/core/finance/test/test_returns.py::Test_compute_prices_from_rets::test6 (0.00 s) [32mPASSED[0m[31m [ 45%][0m
-amp/core/config/test/test_config.py::TestFlatConfigSet1::test_config_with_function (0.00 s) [32mPASSED[0m[31m [ 45%][0m
-amp/core/config/test/test_config.py::TestFlatConfigSet1::test_config_with_object (0.00 s) [32mPASSED[0m[31m [ 45%][0m
-amp/core/config/test/test_config.py::TestFlatConfigSet1::test_roundtrip_transform1 (0.00 s) [32mPASSED[0m[31m [ 45%][0m
-amp/core/config/test/test_config.py::TestFlatConfigSet1::test_set1 (0.00 s) [32mPASSED[0m[31m [ 46%][0m
-amp/core/config/test/test_config.py::TestFlatConfigGet1::test_existing_key1 (0.00 s) [32mPASSED[0m[31m [ 46%][0m
-amp/core/config/test/test_config.py::TestFlatConfigGet1::test_existing_key2 (0.00 s) [32mPASSED[0m[31m [ 46%][0m
-amp/core/config/test/test_config.py::TestFlatConfigGet1::test_non_existing_key1 (0.00 s) [32mPASSED[0m[31m [ 46%][0m
-amp/core/config/test/test_config.py::TestFlatConfigGet1::test_non_existing_key2 (0.00 s) [32mPASSED[0m[31m [ 46%][0m
-amp/core/config/test/test_config.py::TestFlatConfigGet1::test_non_existing_key3 (0.00 s) [32mPASSED[0m[31m [ 46%][0m
-amp/core/config/test/test_config.py::TestFlatConfigGet1::test_non_existing_key4 (0.00 s) [32mPASSED[0m[31m [ 46%][0m
-amp/core/config/test/test_config.py::TestFlatConfigIn1::test_in1 (0.00 s) [32mPASSED[0m[31m  [ 46%][0m
-amp/core/config/test/test_config.py::TestFlatConfigIn1::test_not_in1 (0.00 s) [32mPASSED[0m[31m [ 46%][0m
-amp/core/config/test/test_config.py::TestNestedConfigGet1::test_existing_key1 (0.00 s) [32mPASSED[0m[31m [ 46%][0m
-amp/core/config/test/test_config.py::TestNestedConfigGet1::test_existing_key2 (0.00 s) [32mPASSED[0m[31m [ 46%][0m
-amp/core/config/test/test_config.py::TestNestedConfigGet1::test_existing_key3 (0.00 s) [32mPASSED[0m[31m [ 46%][0m
-amp/core/config/test/test_config.py::TestNestedConfigGet1::test_existing_key4 (0.00 s) [32mPASSED[0m[31m [ 46%][0m
-amp/core/config/test/test_config.py::TestNestedConfigGet1::test_non_existing_key1 (0.00 s) [32mPASSED[0m[31m [ 46%][0m
-amp/core/config/test/test_config.py::TestNestedConfigGet1::test_non_existing_key2 (0.00 s) [32mPASSED[0m[31m [ 46%][0m
-amp/core/config/test/test_config.py::TestNestedConfigGet1::test_non_existing_key3 (0.00 s) [32mPASSED[0m[31m [ 46%][0m
-amp/core/config/test/test_config.py::TestNestedConfigSet1::test_existing_key1 (0.00 s) [32mPASSED[0m[31m [ 46%][0m
-amp/core/config/test/test_config.py::TestNestedConfigSet1::test_existing_key2 [33mSKIPPED[0m[31m [ 46%][0m
-amp/core/config/test/test_config.py::TestNestedConfigSet1::test_existing_key3 (0.00 s) [32mPASSED[0m[31m [ 47%][0m
-amp/core/config/test/test_config.py::TestNestedConfigSet1::test_existing_key4 (0.00 s) [32mPASSED[0m[31m [ 47%][0m
-amp/core/config/test/test_config.py::TestNestedConfigSet1::test_not_existing_key1 (0.00 s) [32mPASSED[0m[31m [ 47%][0m
-amp/core/config/test/test_config.py::TestNestedConfigMisc1::test_config1 (0.00 s) [32mPASSED[0m[31m [ 47%][0m
-amp/core/config/test/test_config.py::TestNestedConfigMisc1::test_config_print1 (0.00 s) [32mPASSED[0m[31m [ 47%][0m
-amp/core/config/test/test_config.py::TestNestedConfigMisc1::test_config_to_python1 (0.00 s) [32mPASSED[0m[31m [ 47%][0m
-amp/core/config/test/test_config.py::TestNestedConfigMisc1::test_roundtrip_transform1 (0.00 s) [32mPASSED[0m[31m [ 47%][0m
-amp/core/config/test/test_config.py::TestNestedConfigIn1::test_in1 (0.00 s) [32mPASSED[0m[31m [ 47%][0m
-amp/core/config/test/test_config.py::TestNestedConfigIn1::test_in2 (0.00 s) [32mPASSED[0m[31m [ 47%][0m
-amp/core/config/test/test_config.py::TestNestedConfigIn1::test_not_in1 (0.00 s) [32mPASSED[0m[31m [ 47%][0m
-amp/core/config/test/test_config.py::TestNestedConfigIn1::test_not_in2 (0.00 s) [32mPASSED[0m[31m [ 47%][0m
-amp/core/config/test/test_config.py::TestNestedConfigIn1::test_not_in3 (0.00 s) [32mPASSED[0m[31m [ 47%][0m
-amp/core/config/test/test_config.py::TestNestedConfigIn1::test_not_in4 (0.00 s) [32mPASSED[0m[31m [ 47%][0m
-amp/core/config/test/test_config.py::TestNestedConfigUpdate1::test_update1 (0.00 s) [32mPASSED[0m[31m [ 47%][0m
-amp/core/config/test/test_config.py::TestNestedConfigUpdate1::test_update2 (0.00 s) [32mPASSED[0m[31m [ 47%][0m
-amp/core/config/test/test_config.py::TestNestedConfigUpdate1::test_update3 (0.00 s) [32mPASSED[0m[31m [ 47%][0m
-amp/core/config/test/test_config.py::TestNestedConfigFlatten1::test_flatten1 (0.00 s) [32mPASSED[0m[31m [ 47%][0m
-amp/core/config/test/test_config.py::TestNestedConfigFlatten1::test_flatten2 (0.00 s) [32mPASSED[0m[31m [ 47%][0m
-amp/core/config/test/test_config.py::TestSubtractConfig1::test_test1 (0.00 s) [32mPASSED[0m[31m [ 48%][0m
-amp/core/config/test/test_config.py::TestSubtractConfig1::test_test2 (0.00 s) [32mPASSED[0m[31m [ 48%][0m
-amp/core/config/test/test_config.py::TestDassertIsSerializable1::test1 (0.00 s) [32mPASSED[0m[31m [ 48%][0m
-amp/core/config/test/test_config.py::TestDassertIsSerializable1::test2 (0.00 s) [32mPASSED[0m[31m [ 48%][0m
-amp/core/config/test/test_config.py::TestFromEnvVar1::test1 (0.44 s) [32mPASSED[0m[31m       [ 48%][0m
-amp/core/config/test/test_config_utils.py::Test_validate_configs1::test1 (0.00 s) [32mPASSED[0m[31m [ 48%][0m
-amp/core/config/test/test_config_utils.py::Test_validate_configs1::test_check_same_configs_error (0.00 s) [32mPASSED[0m[31m [ 48%][0m
-amp/core/config/test/test_config_utils.py::Test_get_config_from_flattened_dict1::test1 (0.00 s) [32mPASSED[0m[31m [ 48%][0m
-amp/core/config/test/test_config_utils.py::Test_get_config_from_flattened_dict1::test2 (0.00 s) [32mPASSED[0m[31m [ 48%][0m
-amp/core/config/test/test_config_utils.py::Test_get_config_from_nested_dict1::test1 (0.00 s) [32mPASSED[0m[31m [ 48%][0m
-amp/core/config/test/test_config_utils.py::Test_get_config_from_nested_dict1::test2 (0.00 s) [32mPASSED[0m[31m [ 48%][0m
-amp/core/config/test/test_config_utils.py::Test_intersect_configs1::test1 (0.00 s) [32mPASSED[0m[31m [ 48%][0m
-amp/core/config/test/test_config_utils.py::Test_intersect_configs1::test_same_config (0.00 s) [32mPASSED[0m[31m [ 48%][0m
-amp/core/config/test/test_config_utils.py::Test_subtract_configs1::test1 (0.00 s) [32mPASSED[0m[31m [ 48%][0m
-amp/core/config/test/test_config_utils.py::Test_subtract_configs1::test_same_config (0.00 s) [32mPASSED[0m[31m [ 48%][0m
-amp/core/config/test/test_config_utils.py::Test_diff_configs1::test1 (0.00 s) [32mPASSED[0m[31m [ 48%][0m
-amp/core/config/test/test_config_utils.py::Test_diff_configs1::test2 (0.00 s) [32mPASSED[0m[31m [ 48%][0m
-amp/core/config/test/test_config_utils.py::Test_diff_configs1::test_same_config (0.00 s) [32mPASSED[0m[31m [ 48%][0m
-amp/core/config/test/test_config_utils.py::Test_convert_to_dataframe1::test1 (0.01 s) [32mPASSED[0m[31m [ 49%][0m
-amp/core/config/test/test_config_utils.py::Test_build_config_diff_dataframe1::test1 (0.00 s) [32mPASSED[0m[31m [ 49%][0m
-amp/core/config/test/test_config_utils.py::Test_build_config_diff_dataframe1::test2 (0.00 s) [32mPASSED[0m[31m [ 49%][0m
-amp/core/config/test/test_config_utils.py::Test_build_config_diff_dataframe1::test3 (0.00 s) [32mPASSED[0m[31m [ 49%][0m
+amp/config_root/config/test/test_config.py::TestFlatConfigSet1::test_config_with_function (0.00 s) [32mPASSED[0m[31m [ 45%][0m
+amp/config_root/config/test/test_config.py::TestFlatConfigSet1::test_config_with_object (0.00 s) [32mPASSED[0m[31m [ 45%][0m
+amp/config_root/config/test/test_config.py::TestFlatConfigSet1::test_roundtrip_transform1 (0.00 s) [32mPASSED[0m[31m [ 45%][0m
+amp/config_root/config/test/test_config.py::TestFlatConfigSet1::test_set1 (0.00 s) [32mPASSED[0m[31m [ 46%][0m
+amp/config_root/config/test/test_config.py::TestFlatConfigGet1::test_existing_key1 (0.00 s) [32mPASSED[0m[31m [ 46%][0m
+amp/config_root/config/test/test_config.py::TestFlatConfigGet1::test_existing_key2 (0.00 s) [32mPASSED[0m[31m [ 46%][0m
+amp/config_root/config/test/test_config.py::TestFlatConfigGet1::test_non_existing_key1 (0.00 s) [32mPASSED[0m[31m [ 46%][0m
+amp/config_root/config/test/test_config.py::TestFlatConfigGet1::test_non_existing_key2 (0.00 s) [32mPASSED[0m[31m [ 46%][0m
+amp/config_root/config/test/test_config.py::TestFlatConfigGet1::test_non_existing_key3 (0.00 s) [32mPASSED[0m[31m [ 46%][0m
+amp/config_root/config/test/test_config.py::TestFlatConfigGet1::test_non_existing_key4 (0.00 s) [32mPASSED[0m[31m [ 46%][0m
+amp/config_root/config/test/test_config.py::TestFlatConfigIn1::test_in1 (0.00 s) [32mPASSED[0m[31m  [ 46%][0m
+amp/config_root/config/test/test_config.py::TestFlatConfigIn1::test_not_in1 (0.00 s) [32mPASSED[0m[31m [ 46%][0m
+amp/config_root/config/test/test_config.py::TestNestedConfigGet1::test_existing_key1 (0.00 s) [32mPASSED[0m[31m [ 46%][0m
+amp/config_root/config/test/test_config.py::TestNestedConfigGet1::test_existing_key2 (0.00 s) [32mPASSED[0m[31m [ 46%][0m
+amp/config_root/config/test/test_config.py::TestNestedConfigGet1::test_existing_key3 (0.00 s) [32mPASSED[0m[31m [ 46%][0m
+amp/config_root/config/test/test_config.py::TestNestedConfigGet1::test_existing_key4 (0.00 s) [32mPASSED[0m[31m [ 46%][0m
+amp/config_root/config/test/test_config.py::TestNestedConfigGet1::test_non_existing_key1 (0.00 s) [32mPASSED[0m[31m [ 46%][0m
+amp/config_root/config/test/test_config.py::TestNestedConfigGet1::test_non_existing_key2 (0.00 s) [32mPASSED[0m[31m [ 46%][0m
+amp/config_root/config/test/test_config.py::TestNestedConfigGet1::test_non_existing_key3 (0.00 s) [32mPASSED[0m[31m [ 46%][0m
+amp/config_root/config/test/test_config.py::TestNestedConfigSet1::test_existing_key1 (0.00 s) [32mPASSED[0m[31m [ 46%][0m
+amp/config_root/config/test/test_config.py::TestNestedConfigSet1::test_existing_key2 [33mSKIPPED[0m[31m [ 46%][0m
+amp/config_root/config/test/test_config.py::TestNestedConfigSet1::test_existing_key3 (0.00 s) [32mPASSED[0m[31m [ 47%][0m
+amp/config_root/config/test/test_config.py::TestNestedConfigSet1::test_existing_key4 (0.00 s) [32mPASSED[0m[31m [ 47%][0m
+amp/config_root/config/test/test_config.py::TestNestedConfigSet1::test_not_existing_key1 (0.00 s) [32mPASSED[0m[31m [ 47%][0m
+amp/config_root/config/test/test_config.py::TestNestedConfigMisc1::test_config1 (0.00 s) [32mPASSED[0m[31m [ 47%][0m
+amp/config_root/config/test/test_config.py::TestNestedConfigMisc1::test_config_print1 (0.00 s) [32mPASSED[0m[31m [ 47%][0m
+amp/config_root/config/test/test_config.py::TestNestedConfigMisc1::test_config_to_python1 (0.00 s) [32mPASSED[0m[31m [ 47%][0m
+amp/config_root/config/test/test_config.py::TestNestedConfigMisc1::test_roundtrip_transform1 (0.00 s) [32mPASSED[0m[31m [ 47%][0m
+amp/config_root/config/test/test_config.py::TestNestedConfigIn1::test_in1 (0.00 s) [32mPASSED[0m[31m [ 47%][0m
+amp/config_root/config/test/test_config.py::TestNestedConfigIn1::test_in2 (0.00 s) [32mPASSED[0m[31m [ 47%][0m
+amp/config_root/config/test/test_config.py::TestNestedConfigIn1::test_not_in1 (0.00 s) [32mPASSED[0m[31m [ 47%][0m
+amp/config_root/config/test/test_config.py::TestNestedConfigIn1::test_not_in2 (0.00 s) [32mPASSED[0m[31m [ 47%][0m
+amp/config_root/config/test/test_config.py::TestNestedConfigIn1::test_not_in3 (0.00 s) [32mPASSED[0m[31m [ 47%][0m
+amp/config_root/config/test/test_config.py::TestNestedConfigIn1::test_not_in4 (0.00 s) [32mPASSED[0m[31m [ 47%][0m
+amp/config_root/config/test/test_config.py::TestNestedConfigUpdate1::test_update1 (0.00 s) [32mPASSED[0m[31m [ 47%][0m
+amp/config_root/config/test/test_config.py::TestNestedConfigUpdate1::test_update2 (0.00 s) [32mPASSED[0m[31m [ 47%][0m
+amp/config_root/config/test/test_config.py::TestNestedConfigUpdate1::test_update3 (0.00 s) [32mPASSED[0m[31m [ 47%][0m
+amp/config_root/config/test/test_config.py::TestNestedConfigFlatten1::test_flatten1 (0.00 s) [32mPASSED[0m[31m [ 47%][0m
+amp/config_root/config/test/test_config.py::TestNestedConfigFlatten1::test_flatten2 (0.00 s) [32mPASSED[0m[31m [ 47%][0m
+amp/config_root/config/test/test_config.py::TestSubtractConfig1::test_test1 (0.00 s) [32mPASSED[0m[31m [ 48%][0m
+amp/config_root/config/test/test_config.py::TestSubtractConfig1::test_test2 (0.00 s) [32mPASSED[0m[31m [ 48%][0m
+amp/config_root/config/test/test_config.py::TestDassertIsSerializable1::test1 (0.00 s) [32mPASSED[0m[31m [ 48%][0m
+amp/config_root/config/test/test_config.py::TestDassertIsSerializable1::test2 (0.00 s) [32mPASSED[0m[31m [ 48%][0m
+amp/config_root/config/test/test_config.py::TestFromEnvVar1::test1 (0.44 s) [32mPASSED[0m[31m       [ 48%][0m
+amp/config_root/config/test/test_config_utils.py::Test_validate_configs1::test1 (0.00 s) [32mPASSED[0m[31m [ 48%][0m
+amp/config_root/config/test/test_config_utils.py::Test_validate_configs1::test_check_same_configs_error (0.00 s) [32mPASSED[0m[31m [ 48%][0m
+amp/config_root/config/test/test_config_utils.py::Test_get_config_from_flattened_dict1::test1 (0.00 s) [32mPASSED[0m[31m [ 48%][0m
+amp/config_root/config/test/test_config_utils.py::Test_get_config_from_flattened_dict1::test2 (0.00 s) [32mPASSED[0m[31m [ 48%][0m
+amp/config_root/config/test/test_config_utils.py::Test_get_config_from_nested_dict1::test1 (0.00 s) [32mPASSED[0m[31m [ 48%][0m
+amp/config_root/config/test/test_config_utils.py::Test_get_config_from_nested_dict1::test2 (0.00 s) [32mPASSED[0m[31m [ 48%][0m
+amp/config_root/config/test/test_config_utils.py::Test_intersect_configs1::test1 (0.00 s) [32mPASSED[0m[31m [ 48%][0m
+amp/config_root/config/test/test_config_utils.py::Test_intersect_configs1::test_same_config (0.00 s) [32mPASSED[0m[31m [ 48%][0m
+amp/config_root/config/test/test_config_utils.py::Test_subtract_configs1::test1 (0.00 s) [32mPASSED[0m[31m [ 48%][0m
+amp/config_root/config/test/test_config_utils.py::Test_subtract_configs1::test_same_config (0.00 s) [32mPASSED[0m[31m [ 48%][0m
+amp/config_root/config/test/test_config_utils.py::Test_diff_configs1::test1 (0.00 s) [32mPASSED[0m[31m [ 48%][0m
+amp/config_root/config/test/test_config_utils.py::Test_diff_configs1::test2 (0.00 s) [32mPASSED[0m[31m [ 48%][0m
+amp/config_root/config/test/test_config_utils.py::Test_diff_configs1::test_same_config (0.00 s) [32mPASSED[0m[31m [ 48%][0m
+amp/config_root/config/test/test_config_utils.py::Test_convert_to_dataframe1::test1 (0.01 s) [32mPASSED[0m[31m [ 49%][0m
+amp/config_root/config/test/test_config_utils.py::Test_build_config_diff_dataframe1::test1 (0.00 s) [32mPASSED[0m[31m [ 49%][0m
+amp/config_root/config/test/test_config_utils.py::Test_build_config_diff_dataframe1::test2 (0.00 s) [32mPASSED[0m[31m [ 49%][0m
+amp/config_root/config/test/test_config_utils.py::Test_build_config_diff_dataframe1::test3 (0.00 s) [32mPASSED[0m[31m [ 49%][0m
 dataflow_lime/system/test/test_eg_historical_data_source.py::TestEgHistoricalDataSource1::test1 (0.47 s) [32mPASSED[0m[31m [ 49%][0m
 dataflow_lime/system/test/test_eg_historical_data_source.py::TestEgHistoricalDataSource1::test2 (0.26 s) [32mPASSED[0m[31m [ 49%][0m
 dataflow_lime/system/test/test_eg_historical_data_source.py::TestEgHistoricalDataSource1::test3 (0.27 s) [32mPASSED[0m[31m [ 49%][0m
@@ -1936,7 +1936,7 @@ Traceback (most recent call last):
     configs = dtfmoexuti.get_configs_from_command_line(args)
   File "/app/amp/dataflow/model/experiment_utils.py", line 195, in get_configs_from_command_line
     configs = cconfig.get_configs_from_builder(config_builder)
-  File "/app/amp/core/config/builder.py", line 46, in get_configs_from_builder
+  File "/app/amp/config_root/config/builder.py", line 46, in get_configs_from_builder
     imp = importlib.import_module(import_)
   File "/usr/lib/python3.8/importlib/__init__.py", line 127, in import_module
     return _bootstrap._gcd_import(name[level:], package, level)
@@ -2022,7 +2022,7 @@ SKIPPED [1] amp/core/statistics/test/test_requires_statsmodels.py:283: cmamp #65
 SKIPPED [1] amp/core/statistics/test/test_requires_statsmodels.py:296: cmamp #654.
 SKIPPED [1] amp/core/statistics/test/test_requires_statsmodels.py:303: cmamp #654.
 SKIPPED [1] amp/core/statistics/test/test_requires_statsmodels.py:315: cmamp #654.
-SKIPPED [1] amp/core/config/test/test_config.py:325: See AmpTask1573
+SKIPPED [1] amp/config_root/config/test/test_config.py:325: See AmpTask1573
 SKIPPED [1] amp/market_data/test/test_market_data_im_client.py:134: CmTask882.
 SKIPPED [1] vendors_lime/taq_bars/test/test_taq_bars_utils.py:304: This is used to generate the frozen input
 SKIPPED [1] research/real_time/test/test_dataflow_lime_real_time_pipeline.py:52: LimeTask222 Use volume for volume everywhere

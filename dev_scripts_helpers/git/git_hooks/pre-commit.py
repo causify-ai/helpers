@@ -11,14 +11,14 @@ One can run this hook to preview what `git commit` will do:
 
 Import as:
 
-import dev_scripts.git.git_hooks.pre-commit as dsgghpr
+import dev_scripts_helpers.git.git_hooks.pre-commit as dsgghpr
 """
 
 # NOTE: This file should depend only on Python standard libraries.
 import logging
 import sys
 
-import dev_scripts.git.git_hooks.utils as dsgghout
+import dev_scripts_helpers.git.git_hooks.utils as dsgghout
 
 _LOG = logging.getLogger(__name__)
 

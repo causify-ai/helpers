@@ -10,7 +10,7 @@ Implement several Git workflows on multiple repos.
 
 Import as:
 
-import dev_scripts.git.git_submodules as dsgigisu
+import dev_scripts_helpers.git.git_submodules as dsgigisu
 """
 
 import argparse

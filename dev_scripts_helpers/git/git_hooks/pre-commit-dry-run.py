@@ -5,13 +5,13 @@ Apply the Git hooks to the entire code base.
 
 Import as:
 
-import dev_scripts.git.git_hooks.pre-commit-dry-run as dsgghopr
+import dev_scripts_helpers.git.git_hooks.pre-commit-dry-run as dsgghopr
 """
 
 import argparse
 import logging
 
-import dev_scripts.git.git_hooks.utils as dsgghout
+import dev_scripts_helpers.git.git_hooks.utils as dsgghout
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hparser as hparser

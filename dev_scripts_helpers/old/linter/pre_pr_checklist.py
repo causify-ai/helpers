@@ -5,7 +5,7 @@
 
 Import as:
 
-import dev_scripts.old.linter.pre_pr_checklist as dsolpprch
+import dev_scripts_helpers.old.linter.pre_pr_checklist as dsolpprch
 """
 
 import argparse

@@ -3,14 +3,14 @@
 """
 Import as:
 
-import dev_scripts.cleanup_scripts.CmTask972_Merge_dataframe_to_str_and_df_to_short_str_into_hpandas as dscsCMdtsadtssih
+import dev_scripts_helpers.cleanup_scripts.CmTask972_Merge_dataframe_to_str_and_df_to_short_str_into_hpandas as dscsCMdtsadtssih
 """
 
 import argparse
 import logging
 import re
 
-import dev_scripts.replace_text as dscretex
+import dev_scripts_helpers.replace_text as dscretex
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser

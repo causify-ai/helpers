@@ -3,7 +3,7 @@
 """
 Import as:
 
-import dev_scripts.old.create_conda.install.print_conda_packages as dsoccipcp
+import dev_scripts_helpers.old.create_conda.install.print_conda_packages as dsoccipcp
 """
 
 import argparse

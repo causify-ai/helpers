@@ -3,7 +3,7 @@
 """
 Import as:
 
-import dev_scripts.remove_escape_chars as dsreesch
+import dev_scripts_helpers.remove_escape_chars as dsreesch
 """
 
 import argparse

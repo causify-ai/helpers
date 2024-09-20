@@ -32,7 +32,7 @@ libraries.
 
 Import as:
 
-import dev_scripts.old.create_conda.install.create_conda as dsoccicco
+import dev_scripts_helpers.old.create_conda.install.create_conda as dsoccicco
 """
 
 import argparse
@@ -51,7 +51,7 @@ _AMP_PATH = os.path.abspath(os.path.join(_CURR_DIR, _AMP_REL_PATH))
 assert os.path.exists(_AMP_PATH), f"Can't find '{_AMP_PATH}'"
 sys.path.insert(0, _AMP_PATH)
 # pylint: disable=wrong-import-position
-import dev_scripts.old.create_conda._bootstrap as dsoccobo  # isort:skip # noqa: E402
+import dev_scripts_helpers.old.create_conda._bootstrap as dsoccobo  # isort:skip # noqa: E402
 
 dsoccobo.bootstrap(_AMP_REL_PATH)
 

@@ -2,7 +2,7 @@
 """
 Import as:
 
-import dev_scripts.manage_cache as dscmacac
+import dev_scripts_helpers.manage_cache as dscmacac
 """
 
 import argparse

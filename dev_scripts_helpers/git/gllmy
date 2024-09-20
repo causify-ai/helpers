@@ -9,7 +9,7 @@
 
 source dev_scripts/helpers.sh
 
-# From dev_scripts/gll
+# from dev_scripts_helpers/gll
 GIT_OPTS="--pretty=format:'$GIT_LOG_OPTS'"
 GIT_OPTS+=" --author $(git config user.name)"
 
