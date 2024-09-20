@@ -18,27 +18,29 @@
 
 ## Copy and customize files
 
+- To configure a super-repo, conceptually we need to copy from `helpers`
+  and customize for the super-repo
+  1) the files in `dev_scripts/thin_client` (to run tmux, setenv.sh)
+  2) the files in the top dir
+  3) the files in `devops`
+  3) the files in `.github`
+
 - The script `dev_scripts_helpers/thin_client/sync_super_repo.sh`
   allows to vimdiff / cp files across a super-repo and its `helpers` dir
-- Conceptually we need to:
-  1) copy and customize the files in `thin_client`
-  2) copy and customize files in the top dir
-  3) copy and customize files in `devops`
+- From a super repo the path is 
+  `./helpers_root/dev_scripts_helpers/thin_client/sync_super_repo.sh`
 
 - After copying the files you can search for the string `xyz` to customize
+  the files
 
-## 1) Copy and customize files in thin_client
+### 1) Copy and customize files in `thin_client`
 
 - Create the `dev_script` dir based off the template from `helpers`
-  ``` bash
+  ```bash
   # Use a prefix based on the repo name, e.g., `tutorials`, `sports_analytics`.
-  > SRC_DIR="dev_scripts_helpers/thin_client"; echo $SRC_DIR
   > DST_PREFIX="sports_analytics"
-  > DST_DIR="dev_scripts_${DST_PREFIX}/thin_client"; echo $DST_DIR
-  > mkdir -p $DST_DIR
-  > ls helpers_root/dev_scripts/thin_client/templates/
-  > cp -r ${SRC_DIR}/setenv.template.sh ${DST_DIR}/setenv.${PREFIX}.sh
-  > cp -r ${SRC_DIR}/tmux.template.py ${DST_DIR}/tmux.${PREFIX}.py
+  > DST_DIR="dev_scripts_${DST_PREFIX}/thin_client"; echo $DST_DIR; ls $DST_DIR
+  ...
   ```
 
 - TODO(gp): When we want to create a new thin env we need to also copy
@@ -59,19 +61,19 @@
   - Set `VENV_TAG` to create a new thin environment or reuse an existing one
     (e.g., `helpers`)
 
-## Tmux links
+### Tmux links
 
 - Create the global link
   ```bash
-  > ${DST_DIR}/tmux.${PREFIX}.py --create_global_link
+  > ${DST_DIR}/tmux.py --create_global_link
   ```
 
 - Create the tmux session
   ```bash
-  > ${DST_DIR}/tmux.${PREFIX}.py --index 1 --force_restart
+  > ${DST_DIR}/tmux.py --index 1 --force_restart
   ```
 
-## How to test
+### How to test
 
 - Test `helpers` `setenv.sh`
   ```bash

@@ -30,6 +30,7 @@ if [[ 1 == 1 ]]; then
     dassert_dir_exists $DST_DIR
     vimdiff ${SRC_DIR}/setenv.sh ${DST_DIR}/setenv.sh
     vimdiff ${SRC_DIR}/tmux.py ${DST_DIR}/tmux.py
+    chmod +x ${DST_DIR}/*
 fi;
 
 
@@ -49,13 +50,13 @@ if [[ 1 == 1 ]]; then
 fi;
 
 
-# 3) Copy / customize files in devops.
+# 3) Copy / customize files in `devops`.
 if [[ 1 == 1 ]]; then
     diff_to_vimdiff.py --dir1 devops --dir2 helpers_root/devops
 fi;
 
 
-# 4) Compare .github/workflows
+# 4) Compare `.github/workflows`.
 if [[ 0 == 1 ]]; then
     diff_to_vimdiff.py --dir1 .github --dir2 helpers_root/.github
 fi;
