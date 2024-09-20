@@ -137,7 +137,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
         )
         exp = r"""
         IMAGE=$CK_ECR_BASE_PATH/amp_test:dev-1.0.0 \
-            docker-compose \
+            docker compose \
             --file $GIT_ROOT/devops/compose/docker-compose.yml \
             --env-file devops/env/default.env \
             run \
@@ -169,7 +169,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
             print_docker_config=print_docker_config,
         )
         exp = r"""IMAGE=$CK_ECR_BASE_PATH/amp_test:local-$USER_NAME-1.0.0 \
-                docker-compose \
+                docker compose \
                 --file $GIT_ROOT/devops/compose/docker-compose.yml \
                 --env-file devops/env/default.env \
                 run \
@@ -205,7 +205,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
         IMAGE=$CK_ECR_BASE_PATH/amp_test:local-$USER_NAME-1.0.0 \
         PORT=9999 \
         SKIP_RUN=1 \
-            docker-compose \
+            docker compose \
             --file $GIT_ROOT/devops/compose/docker-compose.yml \
             --env-file devops/env/default.env \
             run \
@@ -237,7 +237,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
         )
         exp = r"""
         IMAGE=$CK_ECR_BASE_PATH/amp_test:dev-1.0.0 \
-        docker-compose \
+        docker compose \
         --file $GIT_ROOT/devops/compose/docker-compose.yml \
         --env-file devops/env/default.env \
         run \
@@ -269,7 +269,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
         exp = r"""
         IMAGE=$CK_ECR_BASE_PATH/amp_test:dev-1.0.0 \
         PORT=9999 \
-            docker-compose \
+            docker compose \
             --file $GIT_ROOT/devops/compose/docker-compose.yml \
             --env-file devops/env/default.env \
             run \
