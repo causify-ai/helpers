@@ -568,6 +568,15 @@ def purify_parquet_file_names(txt: str) -> str:
     return txt
 
 
+def purify_helpers(txt: str) -> str:
+    """
+    Replace the path ...
+    # Test created fork helpers_root.helpers.test.test_playback.get_result_che |  # Test created for helpers.test.test_playback.get_result_check_string.
+    """
+    txt = re.sub(r"helpers_root\.helpers\.", "helpers.", txt, flags=re.MULTILINE)
+    return txt
+
+
 def purify_txt_from_client(txt: str) -> str:
     """
     Remove from a string all the information of a specific run.
@@ -580,6 +589,7 @@ def purify_txt_from_client(txt: str) -> str:
     txt = purify_today_date(txt)
     txt = purify_white_spaces(txt)
     txt = purify_parquet_file_names(txt)
+    txt = purify_helpers(txt)
     return txt
 
 
