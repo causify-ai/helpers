@@ -22,6 +22,7 @@ if _HAS_MOTO:
     import botocore
     import pytest
 
+    import helpers.haws as haws
     import helpers.henv as henv
     import helpers.hgit as hgit
     import helpers.hsecrets as hsecret
@@ -59,7 +60,10 @@ if _HAS_MOTO:
             Verify that the secret can be retrieved correctly.
             """
             # Make sure the region name matches the one used in `hsecret` profile.
-            client = boto3.client("secretsmanager", region_name="eu-north-1")
+            client = boto3.client(
+                "secretsmanager", 
+                region_name=haws.AWS_EUROPE_REGION_1
+            )
             secret = {"testkey": "testvalue"}
             secret_name = "test.local.sandbox.1"
             client.create_secret(
@@ -131,7 +135,10 @@ if _HAS_MOTO:
             secret_name = "test.local.sandbox.1"
             hsecret.store_secret(secret_name, secret)
             # Make sure the region name matches the one used in `hsecret`.
-            client = boto3.client("secretsmanager", region_name="eu-north-1")
+            client = boto3.client(
+                "secretsmanager", 
+                region_name=haws.AWS_EUROPE_REGION_1
+            )
             test_secret_value = json.loads(
                 client.get_secret_value(SecretId=secret_name)["SecretString"]
             )

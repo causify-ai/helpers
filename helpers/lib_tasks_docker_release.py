@@ -13,6 +13,7 @@ from invoke import task
 
 # We want to minimize the dependencies from non-standard Python packages since
 # this code needs to run with minimal dependencies and without Docker.
+import helpers.haws as haws
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hgit as hgit
@@ -876,7 +877,12 @@ def _check_workspace_dir_sizes() -> None:
 
 
 @task
-def docker_create_candidate_image(ctx, task_definition, user_tag="", region="eu-north-1"):  # type: ignore
+def docker_create_candidate_image(
+    ctx, 
+    task_definition, 
+    user_tag="", 
+    region=haws.AWS_EUROPE_REGION_1
+):  # type: ignore
     """
     Create new prod candidate image and update the specified ECS task
     definition such that the Image URL specified in container definition points
@@ -939,12 +945,12 @@ def copy_ecs_task_definition_image_url(ctx, src_task_def, dst_task_def):  # type
     #
     _ = ctx
     src_image_url = haws.get_task_definition_image_url(
-        src_task_def, region="eu-north-1"
+        src_task_def, region=haws.AWS_EUROPE_REGION_1
     )
     # We have cross-region replication enabled in ECR, all images live in both regions.
-    dst_image_url = src_image_url.replace("eu-north-1", "ap-northeast-1")
+    dst_image_url = src_image_url.replace(haws.AWS_EUROPE_REGION_1, haws.AWS_TOKYO_REGION_1)
     haws.update_task_definition(
-        dst_task_def, dst_image_url, region="ap-northeast-1"
+        dst_task_def, dst_image_url, region=haws.AWS_TOKYO_REGION_1
     )
 
 

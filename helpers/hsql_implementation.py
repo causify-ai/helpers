@@ -18,6 +18,7 @@ import psycopg2.extras as extras
 import psycopg2.sql as psql
 
 import helpers.hasyncio as hasynci
+import helpers.haws as haws
 import helpers.hdatetime as hdateti
 import helpers.hdbg as hdbg
 import helpers.hintrospection as hintros
@@ -62,6 +63,7 @@ def get_connection(
 
 
 def get_connection_from_aws_secret(
+    aws_region: str,
     *,
     stage: str = "prod",
 ) -> DbConnection:
@@ -72,14 +74,16 @@ def get_connection_from_aws_secret(
     The function uses `ck` AWS profile on the backend.
     The intended usage is obtaining connection to a DB on RDS instances.
 
+    :param aws_region: AWS DB region, e.g. "eu-north-1", "ap-northeast-1"
     :param stage: DB stage to connect to. For "prod" stage it is only possible to obtain a read-only connection via this method.
     """
     hdbg.dassert_in(stage, ["prod", "preprod", "test"])
+    hdbg.dassert_in(aws_region, haws.AWS_REGIONS)
     dbname = f"{stage}.im_data_db"
     if stage == "prod":
         secret_name = f"{dbname}.read_only"
     else:
-        secret_name = dbname
+        secret_name = dbname if aws_region == haws.AWS_EUROPE_REGION_1 else f"{dbname}.{aws_region}"
     _LOG.info("Fetching secret: %s", secret_name)
     db_creds = hsecret.get_secret(secret_name)
     connection = get_connection(
