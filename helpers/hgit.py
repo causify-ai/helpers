@@ -550,7 +550,7 @@ def _get_repo_short_to_full_name(include_host_name: bool) -> Dict[str, str]:
         "dev_tools": "kaizen-ai/dev_tools",
         # TODO(Juraj, GP): this was enabled but it breaks
         # invoke docker_bash
-        #"helpers": "kaizen-ai/helpers",
+        "helpers": "kaizen-ai/helpers",
     }
     if include_host_name:
         host_name = "github.com"
