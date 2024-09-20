@@ -544,7 +544,7 @@ def _get_aws_file_text(key_to_env_var: Dict[str, str]) -> List[str]:
     Generate text from env vars for AWS files.
 
     E.g.: 
-    ``` 
+    ```
     aws_access_key_id=*** 
     aws_secret_access_key=***
     aws_s3_bucket=*** 
@@ -999,7 +999,7 @@ def get_s3_bucket_from_stage(stage: str, *, add_suffix: str = None) -> str:
     }
     # TODO(Juraj): hack applied until a solution for #CmTask6620 is found.
     # Retrieve the region from the environment variable or use the default region 'eu-north-1'.
-    region = os.environ.get("CK_AWS_DEFAULT_REGION",  "eu-north-1")
+    region = os.environ.get("CK_AWS_DEFAULT_REGION", "eu-north-1")
     # TODO(Juraj): hack applied until a solution for #CmTask6620 is found.
     if region == "ap-northeast-1":
         _S3_BUCKET_BY_STAGE["preprod"] = "cryptokaizen-data-tokyo.preprod"

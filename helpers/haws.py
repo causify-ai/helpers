@@ -12,7 +12,6 @@ from boto3.resources.base import ServiceResource
 from botocore.client import BaseClient
 
 import helpers.hdbg as hdbg
-import helpers.hprint as hprint
 import helpers.hs3 as hs3
 import helpers.hserver as hserver
 

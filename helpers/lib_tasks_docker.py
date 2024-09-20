@@ -290,7 +290,7 @@ def _check_docker_login(repo_name: str) -> bool:
     """
     Check if we are already logged in to the Docker registry `repo_name`.
     """
-    file_name = os.path.join(os.environ["HOME"], '.docker/config.json')
+    file_name = os.path.join(os.environ["HOME"], ".docker/config.json")
     json_data = hio.from_json(file_name)
     # > more ~/.docker/config.json
     # ```
@@ -302,7 +302,7 @@ def _check_docker_login(repo_name: str) -> bool:
     #         },
     # ```
     _LOG.debug("json_data=%s", json_data)
-    is_logged = [repo_name in val for val in json_data[ "auths"].keys()]
+    is_logged = [repo_name in val for val in json_data["auths"].keys()]
     return is_logged
 
 
@@ -1070,7 +1070,7 @@ def _run_docker_as_user(as_user_from_cmd_line: bool) -> bool:
 
 def _get_container_name(service_name: str) -> str:
     """
-    Create a container name based on various information
+    Create a container name based on various information.
 
     E.g., `grisha.cmamp.app.cmamp1.20220317_232120`
 

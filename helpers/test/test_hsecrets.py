@@ -61,8 +61,7 @@ if _HAS_MOTO:
             """
             # Make sure the region name matches the one used in `hsecret` profile.
             client = boto3.client(
-                "secretsmanager", 
-                region_name=haws.AWS_EUROPE_REGION_1
+                "secretsmanager", region_name=haws.AWS_EUROPE_REGION_1
             )
             secret = {"testkey": "testvalue"}
             secret_name = "test.local.sandbox.1"
@@ -136,8 +135,7 @@ if _HAS_MOTO:
             hsecret.store_secret(secret_name, secret)
             # Make sure the region name matches the one used in `hsecret`.
             client = boto3.client(
-                "secretsmanager", 
-                region_name=haws.AWS_EUROPE_REGION_1
+                "secretsmanager", region_name=haws.AWS_EUROPE_REGION_1
             )
             test_secret_value = json.loads(
                 client.get_secret_value(SecretId=secret_name)["SecretString"]

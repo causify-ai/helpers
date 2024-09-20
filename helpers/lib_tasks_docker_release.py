@@ -148,8 +148,8 @@ def docker_build_local_image(  # type: ignore
         ("AM_CONTAINER_VERSION", dev_version),
         ("INSTALL_DIND", False),
         ("POETRY_MODE", poetry_mode),
-        ("CLEAN_UP_INSTALLATION", cleanup_installation)
-        ]
+        ("CLEAN_UP_INSTALLATION", cleanup_installation),
+    ]
     build_args = " ".join("--build-arg %s=%s" % (k, v) for k, v in build_args)
     # Build for both a single arch or multi-arch.
     if multi_arch:
@@ -381,6 +381,7 @@ def docker_release_dev_image(  # type: ignore
 
 # TODO(gp): multi_build -> multi_arch
 
+
 @task
 def docker_tag_push_multi_build_local_image_as_dev(  # type: ignore
     ctx,
@@ -416,7 +417,8 @@ def docker_tag_push_multi_build_local_image_as_dev(  # type: ignore
     )
     _LOG.info(
         "Pushing the local dev image %s to the target_registry %s",
-        image_versioned_local, target_registry
+        image_versioned_local,
+        target_registry,
     )
     if target_registry == "aws_ecr.ck":
         # Use AWS Docker registry.
@@ -551,8 +553,8 @@ def docker_build_prod_image(  # type: ignore
     Build a prod image from a dev image.
 
     :param version: version to tag the image and code with
-    :param cache: note that often the prod image is just a copy of the dev
-        image so caching makes no difference
+    :param cache: note that often the prod image is just a copy of the
+        dev image so caching makes no difference
     :param base_image: e.g., *****.dkr.ecr.us-east-1.amazonaws.com/amp
     :param candidate: build a prod image with a tag format: prod-{hash}
         where hash is the output of `hgit.get_head_hash()`
@@ -771,6 +773,7 @@ def docker_release_prod_image(  # type: ignore
 # We moved away from versioning of the prod image because we release
 # continuously and so it's easier to track the hash.
 
+
 def _docker_rollback_image(
     ctx: Any, base_image: str, stage: str, version: str
 ) -> None:
@@ -878,10 +881,7 @@ def _check_workspace_dir_sizes() -> None:
 
 @task
 def docker_create_candidate_image(
-    ctx, 
-    task_definition, 
-    user_tag="", 
-    region=haws.AWS_EUROPE_REGION_1
+    ctx, task_definition, user_tag="", region=haws.AWS_EUROPE_REGION_1
 ):  # type: ignore
     """
     Create new prod candidate image and update the specified ECS task
@@ -924,6 +924,7 @@ def docker_create_candidate_image(
 
 # ECS task definition is a wrapper around a container definition.
 
+
 @task
 def copy_ecs_task_definition_image_url(ctx, src_task_def, dst_task_def):  # type: ignore
     """
@@ -948,7 +949,9 @@ def copy_ecs_task_definition_image_url(ctx, src_task_def, dst_task_def):  # type
         src_task_def, region=haws.AWS_EUROPE_REGION_1
     )
     # We have cross-region replication enabled in ECR, all images live in both regions.
-    dst_image_url = src_image_url.replace(haws.AWS_EUROPE_REGION_1, haws.AWS_TOKYO_REGION_1)
+    dst_image_url = src_image_url.replace(
+        haws.AWS_EUROPE_REGION_1, haws.AWS_TOKYO_REGION_1
+    )
     haws.update_task_definition(
         dst_task_def, dst_image_url, region=haws.AWS_TOKYO_REGION_1
     )
@@ -1004,8 +1007,7 @@ def docker_update_prod_task_definition(
     # Compose new prod image url.
     new_prod_image_url = hlitadoc.get_image(base_image, stage, prod_version)
     version = None
-    new_prod_image_url_no_version = hlitadoc.get_image(base_image, stage,
-                                                       version)
+    new_prod_image_url_no_version = hlitadoc.get_image(base_image, stage, version)
     # Check if preprod tag exist in preprod task definition as precaution.
     preprod_task_definition_name = f"{task_definition}-preprod"
     preprod_image_url = haws.get_task_definition_image_url(
