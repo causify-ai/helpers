@@ -130,7 +130,7 @@ class TestDryRunTasks1(hunitest.TestCase):
         cmd = f"SKIP_VERSION_CHECK=1 invoke {opts} {target} | grep -v INFO | grep -v '>>ENV<<:'"
         _, act = hsystem.system_to_string(cmd)
         act = hprint.remove_non_printable_chars(act)
-        regex = "(WARN|INFO)\s+hcache.py"
+        regex = r"(WARN|INFO)\s+hcache.py"
         act = hunitest.filter_text(regex, act)
         # Filter out `no module` warnings.
         # TODO(Grisha): add the "no module warning" filtering
