@@ -146,7 +146,9 @@ def get_secret(secret_name: str) -> Optional[Dict[str, Any]]:
         secret_val = json.loads(secret_string)
         # Check access entity value to lock secret key to avoid parallel run.
         if access_key in secret_name:
-            secret_val = lock_secret(secret_name, secret_val)
+            # TODO(Juraj): Temporarily disabled in #Cmtask10068.
+            # secret_val = lock_secret(secret_name, secret_val)
+            pass
     except ClientError as e:
         if e.response["Error"]["Code"] == "ResourceNotFoundException":
             # Let user know the secret does not exist.
