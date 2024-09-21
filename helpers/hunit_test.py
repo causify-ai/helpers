@@ -574,6 +574,8 @@ def purify_helpers(txt: str) -> str:
     # Test created fork helpers_root.helpers.test.test_playback.get_result_che |  # Test created for helpers.test.test_playback.get_result_check_string.
     """
     txt = re.sub(r"helpers_root\.helpers\.", "helpers.", txt, flags=re.MULTILINE)
+    txt = re.sub(r"helpers_root\.config_root", "config_root", txt, flags=re.MULTILINE)
+    txt = re.sub(r"helpers_root/helpers/", "helpers/", txt, flags=re.MULTILINE)
     return txt
 
 
