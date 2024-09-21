@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 from typing import Any, Callable
 
 import helpers.hdbg as hdbg
@@ -324,7 +325,7 @@ class Test_get_function_name1(hunitest.TestCase):
     def test1(self) -> None:
         act = hintros.get_function_name()
         exp = "test1"
-        self.assert_equal(act, exp)
+        self.assert_equal(act, exp, purify_text=True)
 
 
 class Test_get_name_from_function1(hunitest.TestCase):
@@ -332,7 +333,7 @@ class Test_get_name_from_function1(hunitest.TestCase):
         act = hintros.get_name_from_function(test_function)
         act = hstring.remove_prefix(act, "amp.", assert_on_error=False)
         exp = "helpers.test.test_hintrospection.test_function"
-        self.assert_equal(act, exp)
+        self.assert_equal(act, exp, purify_text=True)
 
 
 # #############################################################################
@@ -344,7 +345,7 @@ def dummy_function() -> None:
     pass
 
 
-class TestGetFunctionFromString1(hunitest.TestCase):
+class Test_get_function_from_string1(hunitest.TestCase):
     def test1(self) -> None:
         """
         Test that function is correctly extracted from a string.
@@ -360,4 +361,11 @@ class TestGetFunctionFromString1(hunitest.TestCase):
         exp = hstring.remove_prefix(exp, "amp.", assert_on_error=False)
         # Run.
         hdbg.dassert_isinstance(act_func, Callable)
-        self.assert_equal(act, exp)
+        # The function can have different names depending on whether `helpers`
+        # is a sub-repo or a super-repo:
+        # helpers.test.test_hintrospection.dummy_function
+        # helpers_root.helpers.test.test_hintrospection.dummy_function
+        # 
+        act = re.sub(r"helpers_root\.helpers\.", "helpers.", act, flags=re.MULTILINE)
+        exp = re.sub(r"helpers_root\.helpers\.", "helpers.", exp, flags=re.MULTILINE)
+        self.assert_equal(act, exp, purify_text=True)
