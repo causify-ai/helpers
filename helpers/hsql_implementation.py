@@ -400,11 +400,13 @@ def get_tables_size(
 
     E.g.,
 
-      table_name  row_estimate   total    index      toast  table 0
-    events           0.0   26 GB  0 bytes  192 bytes  26 GB 1    stories
-    0.0   15 GB    43 GB  192 bytes  12 GB 2   entities    10823400.0
-    76 MB  0 bytes  192 bytes  76 MB 3   taxonomy       20691.0  690 kB
-    0 bytes  192 bytes 652 kB
+    ```
+      table_name  row_estimate   total    index      toast  table
+    0     events           0.0   26 GB  0 bytes  192 bytes  26 GB
+    1    stories           0.0   15 GB    43 GB  192 bytes  12 GB
+    2   entities    10823400.0   76 MB  0 bytes  192 bytes  76 MB
+    3   taxonomy       20691.0  690 kB  0 bytes  192 bytes 652 kB
+    ```
     """
     q = """SELECT *, pg_size_pretty(total_bytes) AS total
         , pg_size_pretty(index_bytes) AS INDEX
@@ -611,8 +613,12 @@ def csv_to_series(csv_as_txt: str, sep: str = ",") -> pd.Series:
     """
     Convert a text with (key, value) separated by `sep` into a `pd.Series`.
 
-    :param csv_as_txt: a string containing csv data E.g., ```
-        tradedate,2021-11-12 targetlistid,1 ```
+    :param csv_as_txt: a string containing csv data
+        E.g.,
+        ```
+        tradedate,2021-11-12
+        targetlistid,1
+        ```
     :param sep: csv separator, e.g. `,`
     :return: series
     """
@@ -660,8 +666,10 @@ def create_insert_query(df: pd.DataFrame, table_name: str) -> str:
 
     :param df: data to insert into DB
     :param table_name: name of the table for insertion
-    :return: sql query, e.g., ``` INSERT INTO
-        ccxt_ohlcv_spot(timestamp,open,high,low,close) VALUES %s ```
+    :return: sql query, e.g.,
+        ```
+        INSERT INTO ccxt_ohlcv_spot(timestamp,open,high,low,close) VALUES %s
+        ```
     """
     hdbg.dassert_isinstance(df, pd.DataFrame)
     columns = ",".join(list(df.columns))
@@ -742,9 +750,9 @@ def execute_insert_on_conflict_do_nothing_query(
     :param connection: connection to the DB
     :param obj: data to insert
     :param table_name: name of the table for insertion
-    :param unique_columns: set of columns which should be unique record-
-        wise. If unique_columns is an empty list, a regular DB insert is
-        executed without the UNIQUE constraint.
+    :param unique_columns: set of columns which should be unique record-wise.
+       If unique_columns is an empty list, a regular DB insert is executed
+       without the UNIQUE constraint.
     """
     if isinstance(obj, pd.Series):
         df = obj.to_frame().T
@@ -784,8 +792,7 @@ def execute_query(connection: DbConnection, query: str) -> List[tuple]:
     Use for generic simple operations.
 
     :param connection: connection to the DB
-    :param query: generic query that can be: insert, update, delete,
-        etc.
+    :param query: generic query that can be: insert, update, delete, etc.
     :return: list of tuples with the results of the query
     """
     _LOG.debug(hprint.to_str("query"))

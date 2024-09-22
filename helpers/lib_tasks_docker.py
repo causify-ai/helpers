@@ -312,10 +312,13 @@ def _docker_login_dockerhub() -> None:
     """
     # Check if we are already logged in to the target registry.
     assert 0, "Find name of the repo"
-    is_logged = _check_docker_login("623860924167.dkr.ecr")
-    if is_logged:
-        _LOG.info("Already logged in to the target registry")
-        return
+    # TODO(gp): Enable caching https://github.com/kaizen-ai/helpers/issues/20
+    use_cache = False
+    if use_cache:
+        is_logged = _check_docker_login("623860924167.dkr.ecr")
+        if is_logged:
+            _LOG.warning("Already logged in to the target registry: skipping")
+            return
     _LOG.info("Logging in to the target registry")
     # TODO(gp): Why here?
     import helpers.hsecrets as hsecret
@@ -336,11 +339,14 @@ def _docker_login_ecr() -> None:
     if hserver.is_inside_ci():
         _LOG.warning("Running inside GitHub Action: skipping `docker_login`")
         return
-    # Check if we are already logged in to the target registry.
-    is_logged = _check_docker_login("623860924167.dkr.ecr")
-    if is_logged:
-        _LOG.info("Already logged in to the target registry")
-        return
+    # TODO(gp): Enable caching https://github.com/kaizen-ai/helpers/issues/20
+    use_cache = False
+    if use_cache:
+        # Check if we are already logged in to the target registry.
+        is_logged = _check_docker_login("623860924167.dkr.ecr")
+        if is_logged:
+            _LOG.warning("Already logged in to the target registry: skipping")
+            return
     _LOG.info("Logging in to the target registry")
     # Log in the target registry.
     major_version = _get_aws_cli_version()

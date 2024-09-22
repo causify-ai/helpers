@@ -135,6 +135,109 @@ class Test_to_series1(hunitest.TestCase):
 # #############################################################################
 
 
+class Test_dassert_valid_remap(hunitest.TestCase):
+    def test1(self) -> None:
+        """
+        Check that the function works with correct inputs.
+        """
+        # Set inputs.
+        to_remap = ["dummy_value_1", "dummy_value_2", "dummy_value_3"]
+        remap_dict = {
+            "dummy_value_1": "1, 2, 3",
+            "dummy_value_2": "A, B, C",
+        }
+        # Check.
+        hpandas.dassert_valid_remap(to_remap, remap_dict)
+
+    def test2(self) -> None:
+        """
+        Check that an assertion is raised if dictionary keys are not a subset.
+        """
+        # Set inputs.
+        to_remap = ["dummy_value_1", "dummy_value_2"]
+        remap_dict = {
+            "dummy_value_1": "1, 2, 3",
+            "dummy_value_2": "A, B, C",
+            "dummy_value_3": "A1, A2, A3",
+        }
+        # Run.
+        with self.assertRaises(AssertionError) as cm:
+            hpandas.dassert_valid_remap(to_remap, remap_dict)
+        actual = str(cm.exception)
+        expected = r"""
+        * Failed assertion *
+        val1=['dummy_value_1', 'dummy_value_2', 'dummy_value_3']
+        issubset
+        val2=['dummy_value_1', 'dummy_value_2']
+        val1 - val2=['dummy_value_3']
+        Keys to remap should be a subset of existing columns"""
+        # Check.
+        self.assert_equal(actual, expected, fuzzy_match=True)
+
+    def test3(self) -> None:
+        """
+        Check that an assertion is raised if the duplicate values are present in the dict.
+        """
+        # Set inputs.
+        to_remap = ["dummy_value_1", "dummy_value_2", "dummy_value_3"]
+        remap_dict = {
+            "dummy_value_1": 1,
+            "dummy_value_2": "A, B, C",
+            "dummy_value_3": "A, B, C",
+        }
+        # Run.
+        with self.assertRaises(AttributeError) as cm:
+            hpandas.dassert_valid_remap(to_remap, remap_dict)
+        actual = str(cm.exception)
+        expected = r"""
+        'dict_values' object has no attribute 'count'"""
+        # Check.
+        self.assert_equal(actual, expected, fuzzy_match=True)
+
+    def test4(self) -> None:
+        """
+        Check that an assertion is raised if the input is not a list.
+        """
+        # Set inputs.
+        to_remap = {"dummy_value_1"}
+        remap_dict = {
+            "dummy_value_1": "1, 2, 3",
+        }
+        # Run.
+        with self.assertRaises(AssertionError) as cm:
+            hpandas.dassert_valid_remap(to_remap, remap_dict)
+        actual = str(cm.exception)
+        expected = r"""
+        * Failed assertion *
+        Instance of '{'dummy_value_1'}' is '<class 'set'>' instead of '<class 'list'>'
+        """
+        # Check.
+        self.assert_equal(actual, expected, fuzzy_match=True)
+
+    def test5(self) -> None:
+        """
+        Check that an assertion is raised if the input is not a dictionary.
+        """
+        # Set inputs.
+        to_remap = ["dummy_value_1"]
+        remap_dict = [
+            "dummy_value_1 : 1, 2, 3",
+        ]
+        # Run.
+        with self.assertRaises(AssertionError) as cm:
+            hpandas.dassert_valid_remap(to_remap, remap_dict)
+        actual = str(cm.exception)
+        expected = r"""
+        * Failed assertion *
+        Instance of '['dummy_value_1 : 1, 2, 3']' is '<class 'list'>' instead of '<class 'dict'>'
+        """
+        # Check.
+        self.assert_equal(actual, expected, fuzzy_match=True)
+
+
+# #############################################################################
+
+
 class Test_trim_df1(hunitest.TestCase):
     def get_df(self, *args: Any, **kwargs: Any) -> pd.DataFrame:
         """
@@ -985,7 +1088,7 @@ class Test_trim_df2(Test_trim_df1):
 # #############################################################################
 
 
-class TestDfToStr(hunitest.TestCase):
+class Test_df_to_str(hunitest.TestCase):
     @staticmethod
     def get_test_data() -> pd.DataFrame:
         test_data = {
@@ -1158,18 +1261,19 @@ class TestDfToStr(hunitest.TestCase):
         """
         df = self.get_test_data()
         actual = hpandas.df_to_str(df, print_memory_usage=True)
+        # This is required by `numpy` >= 2.1.0
         expected = r"""
         * memory=
-        shallow deep
-        Index 132.0 b 132.0 b
-        dummy_value_1 24.0 b 24.0 b
-        dummy_value_2 24.0 b 150.0 b
-        dummy_value_3 24.0 b 24.0 b
-        total 204.0 b 330.0 b
-        dummy_value_1 dummy_value_2 dummy_value_3
-        0 1 A 0
-        1 2 B 0
-        2 3 C 0
+                       shallow     deep
+        Index          132.0 b  132.0 b
+        dummy_value_1   24.0 b   24.0 b
+        dummy_value_2   24.0 b  150.0 b
+        dummy_value_3   24.0 b   24.0 b
+        total          204.0 b  330.0 b
+           dummy_value_1 dummy_value_2  dummy_value_3
+        0              1             A              0
+        1              2             B              0
+        2              3             C              0
         """
         self.assert_equal(actual, expected, fuzzy_match=True)
 
@@ -2132,6 +2236,7 @@ class Test_merge_dfs1(hunitest.TestCase):
             "threshold_col",
         ]
         expected_column_unique_values = None
+        # This is required by `pandas` >= 2.2.
         expected_signature = r"""
         # df=
         index=[0, 19]
@@ -3483,6 +3588,79 @@ class Test_dassert_increasing_index(hunitest.TestCase):
 # #############################################################################
 
 
+class Test_dassert_strictly_increasing_index(hunitest.TestCase):
+    def test1(self) -> None:
+        """
+        Check that unique and monotonically increasing index passes the assert.
+        """
+        # Build test dataframe.
+        idx = [
+            pd.Timestamp("2000-01-01 9:01"),
+            pd.Timestamp("2000-01-01 9:02"),
+            pd.Timestamp("2000-01-01 9:03"),
+            pd.Timestamp("2000-01-01 9:04"),
+        ]
+        values = [0, 0, 0, 0]
+        df = pd.DataFrame(values, index=idx)
+        # Run.
+        hpandas.dassert_strictly_increasing_index(df)
+
+    def test2(self) -> None:
+        """
+        Check that an assert is raised for an increasing index with duplicates.
+        """
+        # Build test dataframe.
+        idx = [
+            pd.Timestamp("2000-01-01 9:01"),
+            pd.Timestamp("2000-01-01 9:01"),
+            pd.Timestamp("2000-01-01 9:02"),
+            pd.Timestamp("2000-01-01 9:03"),
+        ]
+        values = [0, 0, 0, 0]
+        df = pd.DataFrame(values, index=idx)
+        # Run.
+        with self.assertRaises(AssertionError) as cm:
+            hpandas.dassert_strictly_increasing_index(df)
+        act = str(cm.exception)
+        exp = r"""
+        * Failed assertion *
+        cond=False
+        Duplicated rows are:
+                            0
+        2000-01-01 09:01:00  0
+        2000-01-01 09:01:00  0"""
+        self.assert_equal(act, exp, fuzzy_match=True)
+
+    def test3(self) -> None:
+        """
+        Check that an assert is raised for a not monotonically increasing index.
+        """
+        # Build test dataframe.
+        idx = [
+            pd.Timestamp("2000-01-01 9:01"),
+            pd.Timestamp("2000-01-01 9:03"),
+            pd.Timestamp("2000-01-01 9:02"),
+            pd.Timestamp("2000-01-01 9:04"),
+        ]
+        values = [0, 0, 0, 0]
+        df = pd.DataFrame(values, index=idx)
+        # Run.
+        with self.assertRaises(AssertionError) as cm:
+            hpandas.dassert_strictly_increasing_index(df)
+        act = str(cm.exception)
+        exp = r"""
+        * Failed assertion *
+        cond=False
+        Not increasing indices are:
+                                0
+        2000-01-01 09:03:00  0
+        2000-01-01 09:02:00  0"""
+        self.assert_equal(act, exp, fuzzy_match=True)
+
+
+# #############################################################################
+
+
 class Test_apply_index_mode(hunitest.TestCase):
     @staticmethod
     def get_test_data() -> Tuple[pd.DataFrame]:
@@ -3786,6 +3964,7 @@ class Test_multiindex_df_info1(hunitest.TestCase):
         """
         df = self.get_multiindex_df_with_datetime_index()
         act = hpandas.multiindex_df_info(df)
+        # This is required by `pandas` >= 2.2.
         exp = """
             shape=2 x 4 x 5
             columns_level0=2 ['asset1', 'asset2']
@@ -3888,7 +4067,6 @@ class Test_dassert_index_is_datetime(hunitest.TestCase):
     ) -> pd.DataFrame:
         """
         Helper function to get test multi-index dataframe.
-
         Example of dataframe returned when `index_is_datetime = True`:
 
         ```
@@ -4043,3 +4221,110 @@ class Test_CheckSummary(hunitest.TestCase):
         is_ok=False
         """
         self.assert_equal(actual_exception, expected_exception, fuzzy_match=True)
+
+
+# #############################################################################
+
+
+class Test_compute_weighted_sum(hunitest.TestCase):
+    def helper(
+        self,
+        index1: List[int],
+        index2: List[int],
+        weights_data: Dict[str, List[float]],
+        index_mode: str,
+        expected_signature: str,
+    ) -> None:
+        """
+        Build inputs and check that function output is correct.
+        """
+        # Create test data.
+        data1 = {"A": [1, 2], "B": [3, 4]}
+        df1 = pd.DataFrame(data1, index=index1)
+        data2 = {"A": [5, 6], "B": [7, 8]}
+        df2 = pd.DataFrame(data2, index=index2)
+        dfs = {"df1": df1, "df2": df2}
+        # Create weights DataFrame.
+        weights = pd.DataFrame(weights_data, index=dfs.keys())
+        # Run the function.
+        weighted_sums = hpandas.compute_weighted_sum(
+            dfs=dfs, weights=weights, index_mode=index_mode
+        )
+        actual_signature = str(weighted_sums)
+        self.assert_equal(actual_signature, expected_signature, fuzzy_match=True)
+
+    def test_compute_weighted_sum1(self) -> None:
+        """
+        Check that weighted sums are computed correctly.
+
+        index_mode = "assert_equal".
+        """
+        index1 = [0, 1]
+        index2 = [0, 1]
+        weights_data = {"w1": [0.2, 0.8]}
+        index_mode = "assert_equal"
+        expected_signature = r"""
+            {'w1':      A    B
+            0  4.2  6.2
+            1  5.2  7.2}
+            """
+        self.helper(index1, index2, weights_data, index_mode, expected_signature)
+
+    def test_compute_weighted_sum2(self) -> None:
+        """
+        Check that weighted sums are computed correctly.
+
+        index_mode = "intersect".
+        """
+        index1 = [0, 1]
+        index2 = [0, 2]
+        weights_data = {"w1": [0.2, 0.8], "w2": [0.5, 0.5]}
+        index_mode = "intersect"
+        expected_signature = r"""
+            {'w1':      A    B
+            0  4.2  6.2
+            1  NaN  NaN
+            2  NaN  NaN, 'w2':      A    B
+            0  3.0  5.0
+            1  NaN  NaN
+            2  NaN  NaN}
+            """
+        self.helper(index1, index2, weights_data, index_mode, expected_signature)
+
+    def test_compute_weighted_sum3(self) -> None:
+        """
+        Check that weighted sums are computed correctly.
+
+        index_mode = "leave_unchanged".
+        """
+        index1 = [0, 1]
+        index2 = [2, 3]
+        weights_data = {"w1": [0.2, 0.8]}
+        index_mode = "leave_unchanged"
+        expected_signature = r"""
+            {'w1':      A    B
+                0  NaN  NaN
+                1  NaN  NaN
+                2  NaN  NaN
+                3  NaN  NaN}
+            """
+        self.helper(index1, index2, weights_data, index_mode, expected_signature)
+
+    def test_compute_weighted_sum4(self) -> None:
+        """
+        Check that an assertion is raised if input is an empty dict.
+        """
+        dfs: Dict[str, pd.DataFrame] = {}
+        weights_data = {"w1": [0.2, 0.8]}
+        index_mode = "assert_equal"
+        with self.assertRaises(AssertionError) as cm:
+            hpandas.compute_weighted_sum(
+                dfs=dfs, weights=pd.DataFrame(weights_data), index_mode=index_mode
+            )
+        actual_signature = str(cm.exception)
+        expected_signature = r"""
+            * Failed assertion *
+            cond={}
+            dictionary of dfs must be nonempty
+            """
+        self.assert_equal(actual_signature, expected_signature, fuzzy_match=True)
