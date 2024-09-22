@@ -8,6 +8,7 @@ import helpers.lib_tasks_aws as hlitaaws
 
 import logging
 import os
+import re
 
 from invoke import task
 
@@ -28,7 +29,8 @@ def release_dags_to_airflow(
     files,
     platform,
     dst_airflow_dir=None,
-    only_release_from_master=True,
+    release_from_branch=False,
+    release_test=None,
 ):
     """
     Copy the DAGs to the shared Airflow directory.
@@ -37,15 +39,17 @@ def release_dags_to_airflow(
         b.py c.py"
     :param platform: string indicating the platform, e.g., "EC2" or "K8"
     :param dst_airflow_dir: destination directory path in Airflow
-    :param only_release_from_master: boolean indicating whether to
-        release only from master branch
+    :param release_from_branch: boolean indicating whether to release
+        from the current branch or not
+    :param release_test: string indicating the test username and release
+        test DAGs
     """
     hdbg.dassert(
         hserver.is_inside_docker(), "This is runnable only inside Docker."
     )
     # Make sure we are working from `master`.
     curr_branch = hgit.get_branch_name()
-    if only_release_from_master:
+    if not release_from_branch:
         hdbg.dassert_eq(
             curr_branch, "master", msg="You should release from master branch"
         )
@@ -58,11 +62,26 @@ def release_dags_to_airflow(
             raise ValueError(f"Unknown platform: {platform}")
     hdbg.dassert_dir_exists(dst_airflow_dir)
     file_paths = files.split()
+    test_file_path = []
     # Iterate over each file path in the list.
     for file_path in file_paths:
         # Check the file_path is correct.
         hdbg.dassert_file_exists(file_path)
-        dest_file = os.path.join(dst_airflow_dir, os.path.basename(file_path))
+        # Get the directory and filename
+        directory, file_name = os.path.split(file_path)
+        if release_test is not None:
+            _LOG.info("Creating and uploading test DAG")
+            content = hio.from_file(file_path)
+            # Replace the line containing "USERNAME = "
+            content = re.sub(
+                r'USERNAME = ""', f'USERNAME = "{release_test}"', content
+            )
+            # Change the file name to test.
+            file_name = file_name.replace("preprod", "test")
+            file_path = os.path.join(directory, file_name)
+            test_file_path.append(file_path)
+            hio.to_file(file_path, content)
+        dest_file = os.path.join(dst_airflow_dir, file_name)
         # If same file already exists, then overwrite.
         if os.path.exists(dest_file):
             _LOG.warning(
@@ -90,3 +109,5 @@ def release_dags_to_airflow(
         temp_script_path = "./tmp.release_dags.sh"
         hio.create_executable_script(temp_script_path, cmd)
         hsystem.system(f"bash -c {temp_script_path}")
+    for test_file in test_file_path:
+        hio.delete_file(test_file)

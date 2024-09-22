@@ -90,7 +90,7 @@ def format_text(in_file_name, out_file_name, max_lev):
     txt = hparser.read_file(in_file_name)
     #
     for line in txt:
-        m = re.search("max_level=(\d+)", line)
+        m = re.search(r"max_level=(\d+)", line)
         if m:
             max_lev = int(m.group(1))
             _LOG.warning("Inferred max_level=%s", max_lev)

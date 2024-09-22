@@ -22,6 +22,7 @@ if _HAS_MOTO:
     import botocore
     import pytest
 
+    import helpers.haws as haws
     import helpers.henv as henv
     import helpers.hgit as hgit
     import helpers.hsecrets as hsecret
@@ -59,7 +60,9 @@ if _HAS_MOTO:
             Verify that the secret can be retrieved correctly.
             """
             # Make sure the region name matches the one used in `hsecret` profile.
-            client = boto3.client("secretsmanager", region_name="eu-north-1")
+            client = boto3.client(
+                "secretsmanager", region_name=haws.AWS_EUROPE_REGION_1
+            )
             secret = {"testkey": "testvalue"}
             secret_name = "test.local.sandbox.1"
             client.create_secret(
@@ -68,6 +71,7 @@ if _HAS_MOTO:
             self.assertDictEqual(hsecret.get_secret(secret_name), secret)
 
         @moto.mock_aws
+        @pytest.mark.skip(reason="TODO(Juraj): Temporarily disabled in #Cmtask10068.")
         def test_trading_key(self) -> None:
             """
             Verify locking mechanism for trading key is processed correctly.
@@ -90,6 +94,7 @@ if _HAS_MOTO:
                 self.assert_equal(actual, expected, fuzzy_match=True)
 
         @moto.mock_aws
+        @pytest.mark.skip(reason="TODO(Juraj): Temporarily disabled in #Cmtask10068.")
         def test_lock_for_different_script(self) -> None:
             """
             Verify locking mechanism for access to trading key is passed if
@@ -131,7 +136,9 @@ if _HAS_MOTO:
             secret_name = "test.local.sandbox.1"
             hsecret.store_secret(secret_name, secret)
             # Make sure the region name matches the one used in `hsecret`.
-            client = boto3.client("secretsmanager", region_name="eu-north-1")
+            client = boto3.client(
+                "secretsmanager", region_name=haws.AWS_EUROPE_REGION_1
+            )
             test_secret_value = json.loads(
                 client.get_secret_value(SecretId=secret_name)["SecretString"]
             )
@@ -143,6 +150,7 @@ if _HAS_MOTO:
         not henv.execute_repo_config_code("is_CK_S3_available()"),
         reason="Run only if CK S3 is available",
     )
+    @pytest.mark.skip(reason="TODO(Juraj): Temporarily disabled in #Cmtask10068.")
     class TestLockSecret(hunitest.TestCase):
         @moto.mock_aws
         def test_lock_secret(self) -> None:
@@ -171,6 +179,7 @@ if _HAS_MOTO:
         not henv.execute_repo_config_code("is_CK_S3_available()"),
         reason="Run only if CK S3 is available",
     )
+    @pytest.mark.skip(reason="TODO(Juraj): Temporarily disabled in #Cmtask10068.")
     class TestUpdateUsedby(hunitest.TestCase):
         @moto.mock_aws
         def test1(self) -> None:

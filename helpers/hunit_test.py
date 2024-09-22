@@ -509,7 +509,7 @@ def purify_today_date(txt: str) -> str:
     today_date_as_str = today_date.strftime("%Y%m%d")
     # Replace predict.3.compress_tails.df_out.20220627_094500.YYYYMMDD_171106.csv.gz.
     txt = re.sub(
-        today_date_as_str + "_\d{6}", "YYYYMMDD_HHMMSS", txt, flags=re.MULTILINE
+        today_date_as_str + r"_\d{6}", "YYYYMMDD_HHMMSS", txt, flags=re.MULTILINE
     )
     txt = re.sub(today_date_as_str, "YYYYMMDD", txt, flags=re.MULTILINE)
     return txt
@@ -568,6 +568,17 @@ def purify_parquet_file_names(txt: str) -> str:
     return txt
 
 
+def purify_helpers(txt: str) -> str:
+    """
+    Replace the path ...
+    # Test created fork helpers_root.helpers.test.test_playback.get_result_che |  # Test created for helpers.test.test_playback.get_result_check_string.
+    """
+    txt = re.sub(r"helpers_root\.helpers\.", "helpers.", txt, flags=re.MULTILINE)
+    txt = re.sub(r"helpers_root\.config_root", "config_root", txt, flags=re.MULTILINE)
+    txt = re.sub(r"helpers_root/helpers/", "helpers/", txt, flags=re.MULTILINE)
+    return txt
+
+
 def purify_txt_from_client(txt: str) -> str:
     """
     Remove from a string all the information of a specific run.
@@ -580,6 +591,7 @@ def purify_txt_from_client(txt: str) -> str:
     txt = purify_today_date(txt)
     txt = purify_white_spaces(txt)
     txt = purify_parquet_file_names(txt)
+    txt = purify_helpers(txt)
     return txt
 
 

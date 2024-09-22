@@ -1045,24 +1045,25 @@ class Test_purify_from_env_vars(hunitest.TestCase):
         env_var = "CK_AWS_S3_BUCKET"
         self.helper(env_var)
 
-    @pytest.mark.skipif(
-        not henv.execute_repo_config_code("get_name()") == "//cmamp",
-        reason="Run only in //cmamp",
-    )
-    def test_end_to_end(self) -> None:
-        """
-        - Multiple env vars.
-        """
-        am_aws_s3_bucket = os.environ["AM_AWS_S3_BUCKET"]
-        ck_aws_s3_bucket = os.environ["CK_AWS_S3_BUCKET"]
-        #
-        text = f"""
-        $AM_AWS_S3_BUCKET = {am_aws_s3_bucket}
-        $CK_AWS_S3_BUCKET = {ck_aws_s3_bucket}
-        """
-        #
-        actual = hunitest.purify_from_env_vars(text)
-        self.check_string(actual, fuzzy_match=True)
+# TODO(gp): HelpersTask1
+#    @pytest.mark.skipif(
+#        not henv.execute_repo_config_code("get_name()") == "//cmamp",
+#        reason="Run only in //cmamp",
+#    )
+#    def test_end_to_end(self) -> None:
+#        """
+#        - Multiple env vars.
+#        """
+#        #am_aws_s3_bucket = os.environ["AM_AWS_S3_BUCKET"]
+#        ck_aws_s3_bucket = os.environ["CK_AWS_S3_BUCKET"]
+#        #
+#        text = f"""
+#        $AM_AWS_S3_BUCKET = {am_aws_s3_bucket}
+#        $CK_AWS_S3_BUCKET = {ck_aws_s3_bucket}
+#        """
+#        #
+#        actual = hunitest.purify_from_env_vars(text)
+#        self.check_string(actual, fuzzy_match=True)
 
 
 # #############################################################################

@@ -17,6 +17,7 @@ from invoke import task
 
 # We want to minimize the dependencies from non-standard Python packages since
 # this code needs to run with minimal dependencies and without Docker.
+import helpers.haws as haws
 import helpers.hdbg as hdbg
 import helpers.hdict as hdict
 import helpers.henv as henv
@@ -289,7 +290,7 @@ def _check_docker_login(repo_name: str) -> bool:
     """
     Check if we are already logged in to the Docker registry `repo_name`.
     """
-    file_name = os.path.join(os.environ["HOME"], '.docker/config.json')
+    file_name = os.path.join(os.environ["HOME"], ".docker/config.json")
     json_data = hio.from_json(file_name)
     # > more ~/.docker/config.json
     # ```
@@ -301,7 +302,7 @@ def _check_docker_login(repo_name: str) -> bool:
     #         },
     # ```
     _LOG.debug("json_data=%s", json_data)
-    is_logged = [repo_name in val for val in json_data[ "auths"].keys()]
+    is_logged = [repo_name in val for val in json_data["auths"].keys()]
     return is_logged
 
 
@@ -350,7 +351,7 @@ def _docker_login_ecr() -> None:
     #   https://*****.dkr.ecr.us-east-1.amazonaws.com
     # TODO(gp): Move this to var in repo_config.py.
     profile = "ck"
-    region = "eu-north-1"
+    region = haws.AWS_EUROPE_REGION_1
     if major_version == 1:
         cmd = f"eval $(aws ecr get-login --profile {profile} --no-include-email --region {region})"
     elif major_version == 2:
@@ -1093,7 +1094,7 @@ def _run_docker_as_user(as_user_from_cmd_line: bool) -> bool:
 
 def _get_container_name(service_name: str) -> str:
     """
-    Create a container name based on various information
+    Create a container name based on various information.
 
     E.g., `grisha.cmamp.app.cmamp1.20220317_232120`
 

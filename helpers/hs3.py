@@ -544,7 +544,7 @@ def _get_aws_file_text(key_to_env_var: Dict[str, str]) -> List[str]:
     Generate text from env vars for AWS files.
 
     E.g.: 
-    ``` 
+    ```
     aws_access_key_id=*** 
     aws_secret_access_key=***
     aws_s3_bucket=*** 
@@ -821,7 +821,6 @@ def archive_data_on_s3(
         and it doesn't reuse an S3 fs object
     :param tag: a tag to add to the name of the file
     """
-    aws_profile = get_aws_profile(aws_profile)
     _LOG.info(
         "# Archiving '%s' to '%s' with aws_profile='%s'",
         src_dir,

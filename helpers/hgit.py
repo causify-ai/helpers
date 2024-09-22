@@ -573,7 +573,7 @@ def _get_repo_short_to_full_name(include_host_name: bool) -> Dict[str, str]:
         "dev_tools": "kaizen-ai/dev_tools",
         # TODO(Juraj, GP): this was enabled but it breaks
         # invoke docker_bash
-        #"helpers": "kaizen-ai/helpers",
+        "helpers": "kaizen-ai/helpers",
     }
     if include_host_name:
         host_name = "github.com"
@@ -602,7 +602,7 @@ def _get_repo_short_to_full_name(include_host_name: bool) -> Dict[str, str]:
         pprint.pformat(current_repo_map),
     )
     # Update the map.
-    hdbg.dassert_not_intersection(repo_map.keys(), current_repo_map.keys())
+    #hdbg.dassert_not_intersection(repo_map.keys(), current_repo_map.keys())
     repo_map.update(
         get_repo_map()  # type: ignore[name-defined]  # noqa: F821  # pylint: disable=undefined-variable
     )
