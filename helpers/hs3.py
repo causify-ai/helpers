@@ -543,11 +543,11 @@ def _get_aws_file_text(key_to_env_var: Dict[str, str]) -> List[str]:
     """
     Generate text from env vars for AWS files.
 
-    E.g.: 
+    E.g.:
     ```
-    aws_access_key_id=*** 
+    aws_access_key_id=***
     aws_secret_access_key=***
-    aws_s3_bucket=*** 
+    aws_s3_bucket=***
     ```
 
     :param key_to_env_var: aws settings names to the corresponding env
@@ -636,6 +636,10 @@ def generate_aws_files(
     hio.to_file(credentials_file_name, credentials_file_text)
     _LOG.debug("Saved AWS credentials to %s", credentials_file_name)
 
+
+# #############################################################################
+# Authentication.
+# #############################################################################
 
 # Architecture of the AWS authentication
 #
@@ -821,6 +825,7 @@ def archive_data_on_s3(
         and it doesn't reuse an S3 fs object
     :param tag: a tag to add to the name of the file
     """
+    aws_profile = get_aws_profile(aws_profile)
     _LOG.info(
         "# Archiving '%s' to '%s' with aws_profile='%s'",
         src_dir,
@@ -912,7 +917,6 @@ def retrieve_archived_data_from_s3(
     :param incremental: skip if the tgz file is already present locally
     :return: path with the local tgz file
     """
-    aws_profile = get_aws_profile(aws_profile)
     _LOG.info(
         "# Retrieving archive from '%s' to '%s' with aws_profile='%s'",
         s3_file_path,

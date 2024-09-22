@@ -1,10 +1,11 @@
 import logging
-import pytest
+
 import config_root.config as cconfig
 import helpers.hdict as hdict
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
+
 
 class Test_get_nested_dict_iterator(hunitest.TestCase):
     def test1(self) -> None:

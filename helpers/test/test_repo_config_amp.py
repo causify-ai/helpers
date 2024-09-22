@@ -117,10 +117,17 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
               is_mac(version='Monterey')='False'
               is_mac(version='Ventura')='False'
         # Env vars:
+          AM_AWS_ACCESS_KEY_ID=undef
+          AM_AWS_DEFAULT_REGION=undef
+          AM_AWS_PROFILE='am'
+          AM_AWS_S3_BUCKET='$AM_AWS_S3_BUCKET'
+          AM_AWS_SECRET_ACCESS_KEY=undef
+          AM_ECR_BASE_PATH='$AM_ECR_BASE_PATH'
           AM_ENABLE_DIND='1'
           AM_FORCE_TEST_FAIL=''
           AM_REPO_CONFIG_CHECK='True'
           AM_REPO_CONFIG_PATH=''
+          AM_TELEGRAM_TOKEN=***
           CI=''
           GH_ACTION_ACCESS_TOKEN=empty
           """
@@ -158,10 +165,17 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
               is_inside_docker='True'
               is_mac='True'
         # Env vars:
+        AM_AWS_ACCESS_KEY_ID=undef
+        AM_AWS_DEFAULT_REGION=undef
+        AM_AWS_PROFILE='am'
+        AM_AWS_S3_BUCKET='alphamatic-data'
+        AM_AWS_SECRET_ACCESS_KEY=undef
+        AM_ECR_BASE_PATH='665840871993.dkr.ecr.us-east-1.amazonaws.com'
         AM_ENABLE_DIND='1'
         AM_FORCE_TEST_FAIL=''
         AM_REPO_CONFIG_CHECK='False'
         AM_REPO_CONFIG_PATH=''
+        AM_TELEGRAM_TOKEN=***
         CI=''
         GH_ACTION_ACCESS_TOKEN=empty
         """
@@ -208,6 +222,7 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
               is_mac(version='Monterey')='False'
               is_mac(version='Ventura')='False'
         # Env vars:
+          AM_ECR_BASE_PATH='$AM_ECR_BASE_PATH'
           AM_ENABLE_DIND='1'
           AM_FORCE_TEST_FAIL=''
           AM_REPO_CONFIG_CHECK='True'
@@ -255,6 +270,7 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
               is_mac(version='Monterey')='False'
               is_mac(version='Ventura')='False'
         # Env vars:
+          AM_ECR_BASE_PATH='$AM_ECR_BASE_PATH'
           AM_ENABLE_DIND='1'
           AM_FORCE_TEST_FAIL=''
           AM_REPO_CONFIG_CHECK='True'
