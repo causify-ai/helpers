@@ -145,8 +145,8 @@ def get_connection_info_from_env_file(env_file_path: str) -> DbConnectionInfo:
     """
     Get connection parameters from environment file.
 
-    :param env_file_path: path to an environment file that contains db connection
-        parameters
+    :param env_file_path: path to an environment file that contains db
+        connection parameters
     """
     import dotenv
 
