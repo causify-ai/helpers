@@ -188,31 +188,31 @@ def list_all_objects(
     :param s3_client: instance of boto3 S3 client
     :param bucket_name: the name of the S3 bucket e.g., `cryptokaizen-data-test`
     :param prefix: prefix to filter the S3 objects e.g., `binance/historical_bid_ask/`
-    :return: A list of dictionaries containing metadata about each object.
-            e.g.
-            ```
-            [
-                {
-                    'Key': 'binance/historical_bid_ask/S_DEPTH/1000BONK_USDT/2023-05-27/data.tar.gz',
-                    'LastModified': datetime.datetime(2024, 5, 30, 17, 12, 12, tzinfo=tzlocal()),
-                    'ETag': '"d41d8cd98f00b204e9800998ecf8427e"',
-                    'Size': 0,
-                    'StorageClass': 'STANDARD'
-                },
-                {
-                    'Key': 'binance/historical_bid_ask/S_DEPTH/1000BONK_USDT/2023-05-28/data.tar.gz',
-                    'LastModified': datetime.datetime(2024, 5, 30, 17, 12, 12, tzinfo=tzlocal()),
-                    'ETag': '"d41d8cd98f00b204e9800998ecf8427e"',
-                    'Size': 0,
-                    'StorageClass': 'STANDARD'
-                }
-            ]
-            ```
+    :return: A list of dictionaries containing metadata about each object. E.g.,
+        ```
+        [
+            {
+                'Key': 'binance/historical_bid_ask/S_DEPTH/1000BONK_USDT/2023-05-27/data.tar.gz',
+                'LastModified': datetime.datetime(2024, 5, 30, 17, 12, 12, tzinfo=tzlocal()),
+                'ETag': '"d41d8cd98f00b204e9800998ecf8427e"',
+                'Size': 0,
+                'StorageClass': 'STANDARD'
+            },
+            {
+                'Key': 'binance/historical_bid_ask/S_DEPTH/1000BONK_USDT/2023-05-28/data.tar.gz',
+                'LastModified': datetime.datetime(2024, 5, 30, 17, 12, 12, tzinfo=tzlocal()),
+                'ETag': '"d41d8cd98f00b204e9800998ecf8427e"',
+                'Size': 0,
+                'StorageClass': 'STANDARD'
+            }
+        ]
+        ```
     """
     objects = []
     continuation_token = None
     while True:
-        # If there's a continuation token, include it in the request to fetch the next page of results.
+        # If there's a continuation token, include it in the request to fetch
+        # the next page of results.
         if continuation_token:
             response = s3_client.list_objects_v2(
                 Bucket=bucket_name,

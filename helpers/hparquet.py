@@ -1184,6 +1184,7 @@ def list_and_merge_pq_files(
     if filesystem:
         # Use specialized S3 filesystem function to list Parquet files efficiently.
         # since glob.glob() is very slow as it does a lot of accesses to S3.
+        # The extra `**/*` is needed by `pyarrow` >= 17.
         parquet_files = filesystem.glob(f"{root_dir}/**/*.parquet")
     else:
         # For local filesystem, use glob.glob

@@ -1,21 +1,17 @@
-#!/usr/bin/env python
-# %%
-# %%
 """
 Documentation for this module is at
 docs/coding/all.hgoogle_file_api.explanation.md.
 
 Import as:
 
-import helpers.google_file_api as hgofiapi
+import helpers.hgoogle_file_api as hgofiapi
 """
 
-# %%
+
 import logging
 import os.path
-from typing import Optional
+from typing import List, Optional
 
-# %%
 # TODO(Henry): This package need to be manually installed until they are added
 # to the container.
 # Run the following line in any notebook would install it:
@@ -27,32 +23,27 @@ from typing import Optional
 # shell=True,
 # )
 
-# %%
 import google.oauth2.service_account as goasea
 import googleapiclient.discovery as godisc
 import googleapiclient.errors as goerro
 
-# %%
-# Scopes required making API calls.
+# Scopes required for making API calls.
 _LOG = logging.getLogger(__name__)
-SCOPES = ["https://www.googleapis.com/auth/drive"]
+SCOPES = [
+    "https://www.googleapis.com/auth/drive",
+    "https://www.googleapis.com/auth/spreadsheets",
+]
 
 
-# %%
 def get_credentials(
     *,
-    service_key_path: Optional[str] = ".google_credentials/service.json",
+    service_key_path: Optional[str] = None,
 ) -> goasea.Credentials:
     """
     Get credentials for Google API with service account key.
 
-    :param service_key_path: str, the service account key file path.
-        - Get this file with the following instructions:
-        - https://gspread-pandas.readthedocs.io/en/latest/getting_started.html#client-credentials
-        - Follow the steps in `Client Credentials`,
-        - until you have the JSON file downloaded.
-        - If None is given, will use the default service key path.
-    :return: goasea.Credentials the Google credentials retrieved.
+    :param service_key_path: service account key file path.
+    :return: google credentials retrieved.
     """
     if not service_key_path:
         service_key_path = ".google_credentials/service.json"
@@ -70,7 +61,183 @@ def get_credentials(
     return creds
 
 
-# %%
+def get_sheets_service(
+    *, service_key_path: Optional[str] = None
+) -> godisc.Resource:
+    """
+    Get Google Sheets service with current credentials.
+
+    :param service_key_path: service key path.
+    :return: google sheets service instance created.
+    """
+    creds = get_credentials(service_key_path=service_key_path)
+    sheets_service = godisc.build(
+        "sheets", "v4", credentials=creds, cache_discovery=False
+    )
+    return sheets_service
+
+
+def get_sheet_id(
+    sheet_id: str,
+    *,
+    sheet_name: Optional[str] = None,
+    service_key_path: Optional[str] = None,
+) -> str:
+    """
+    Get the sheet ID from the sheet name in a Google Sheets document.
+
+    :param sheet_id: id of the Google Sheet document.
+    :param sheet_name: name of the sheet (tab) in the Google Sheets
+        document.
+    :param service_key_path: path to the service key file.
+    :return: sheet ID of the sheet with the given name or the first
+        sheet if name is not provided.
+    """
+    sheets_service = get_sheets_service(service_key_path=service_key_path)
+    sheet_metadata = (
+        sheets_service.spreadsheets().get(spreadsheetId=sheet_id).execute()
+    )
+    sheets = sheet_metadata.get("sheets", [])
+    if sheet_name:
+        for sheet in sheets:
+            properties = sheet.get("properties", {})
+            if properties.get("title") == sheet_name:
+                return properties.get("sheetId")
+        raise ValueError(f"Sheet with name '{sheet_name}' not found.")
+    # Return the ID of the first sheet if no sheet name is provided.
+    first_sheet_id = sheets[0].get("properties", {}).get("sheetId")
+    return first_sheet_id
+
+
+def freeze_rows(
+    sheet_id: str,
+    row_indices: List[int],
+    *,
+    sheet_name: Optional[str] = None,
+    service_key_path: Optional[str] = None,
+) -> None:
+    """
+    Freeze specified rows in the given sheet.
+
+    :param sheet_id: id of the Google Sheet.
+    :param row_indices: rows indices to freeze (zero-based index).
+    :param sheet_name: name of the sheet (tab) to freeze rows in.
+        Defaults to the first tab if not provided.
+    :param service_key_path: path to the service key file.
+    """
+    sheet_id = get_sheet_id(
+        sheet_id=sheet_id,
+        sheet_name=sheet_name,
+        service_key_path=service_key_path,
+    )
+    sheets_service = get_sheets_service(service_key_path=service_key_path)
+    # Calculate the number of rows to freeze.
+    num_rows_to_freeze = max(row_indices) + 1
+    freeze_request = {
+        "requests": [
+            {
+                "updateSheetProperties": {
+                    "properties": {
+                        "sheetId": sheet_id,
+                        "gridProperties": {"frozenRowCount": num_rows_to_freeze},
+                    },
+                    "fields": "gridProperties.frozenRowCount",
+                }
+            }
+        ]
+    }
+    response = (
+        sheets_service.spreadsheets()
+        .batchUpdate(spreadsheetId=sheet_id, body=freeze_request)
+        .execute()
+    )
+    _LOG.debug("Freeze Response: %s", response)
+
+
+def set_row_height(
+    sheet_id: str,
+    height: int,
+    *,
+    start_index: Optional[int] = None,
+    end_index: Optional[int] = None,
+    sheet_name: Optional[str] = None,
+    service_key_path: Optional[str] = None,
+) -> None:
+    """
+    Set the height for rows in the given sheet.
+
+    - If only start_index is provided, applies height to all rows starting from start_index.
+    - If only end_index is provided, applies height to all rows up to end_index.
+    - If both start_index and end_index are provided, applies height to rows between them.
+    - If neither is provided, applies height to all rows.
+
+    :param sheet_id: id of the Google Sheet.
+    :param height: height of the rows in pixels.
+    :param start_index: starting index of the rows (zero-based). If None, applies to all rows.
+    :param end_index: ending index of the rows (zero-based). If None, applies to all rows.
+    :param sheet_name: name of the sheet (tab) to set row height in.
+                       Defaults to the first tab if not provided.
+    :param service_key_path: the path to the service key file.
+    :return: none
+    """
+    sheet_id = get_sheet_id(
+        sheet_id=sheet_id,
+        sheet_name=sheet_name,
+        service_key_path=service_key_path,
+    )
+    sheets_service = get_sheets_service(service_key_path=service_key_path)
+    # Determine the range of rows to update.
+    if start_index is None and end_index is None:
+        # Fetch the sheet metadata to get the total number of rows.
+        sheet_metadata = (
+            sheets_service.spreadsheets().get(spreadsheetId=sheet_id).execute()
+        )
+        sheet_properties = next(
+            sheet
+            for sheet in sheet_metadata.get("sheets", [])
+            if sheet.get("properties", {}).get("sheetId") == sheet_id
+        ).get("properties", {})
+        grid_properties = sheet_properties.get("gridProperties", {})
+        end_index = grid_properties.get("rowCount", 1000)
+        start_index = 0
+    elif start_index is None:
+        start_index = 0
+    elif end_index is None:
+        # Fetch the sheet metadata to get the total number of rows.
+        sheet_metadata = (
+            sheets_service.spreadsheets().get(spreadsheetId=sheet_id).execute()
+        )
+        sheet_properties = next(
+            sheet
+            for sheet in sheet_metadata.get("sheets", [])
+            if sheet.get("properties", {}).get("sheetId") == sheet_id
+        ).get("properties", {})
+        grid_properties = sheet_properties.get("gridProperties", {})
+        end_index = grid_properties.get("rowCount", 1000)
+    set_row_height_request = {
+        "requests": [
+            {
+                "updateDimensionProperties": {
+                    "range": {
+                        "sheetId": sheet_id,
+                        "dimension": "ROWS",
+                        "startIndex": start_index,
+                        "endIndex": end_index,
+                    },
+                    "properties": {"pixelSize": height},
+                    "fields": "pixelSize",
+                }
+            }
+        ]
+    }
+    response = (
+        sheets_service.spreadsheets()
+        .batchUpdate(spreadsheetId=sheet_id, body=set_row_height_request)
+        .execute()
+    )
+    _LOG.debug("Row Height Response: %s", response)
+
+
 def get_gdrive_service(
     *, service_key_path: Optional[str] = None
 ) -> godisc.Resource:
@@ -79,6 +246,7 @@ def get_gdrive_service(
 
     :param service_key_path: The service key path.
         - Will use default service key path in `get_credentials` if None is given.
+
     :return: the Google drive service instance created.
     """
 
@@ -89,7 +257,6 @@ def get_gdrive_service(
     return gdrive_service
 
 
-# %%
 def create_empty_google_file(
     gfile_type: str,
     gfile_name: str,
@@ -137,7 +304,6 @@ def create_empty_google_file(
         return None  # Return None if an error occurred
 
 
-# %%
 def create_google_drive_folder(
     folder_name: str,
     parent_folder_id: str,
@@ -168,7 +334,6 @@ def create_google_drive_folder(
     return folder.get("id")
 
 
-# %%
 def get_folder_id_by_name(name: str) -> Optional[list]:
     """
     Get the folder id by the folder name.
@@ -207,7 +372,6 @@ def get_folder_id_by_name(name: str) -> Optional[list]:
     return folder_list[0]
 
 
-# %%
 def share_google_file(
     gfile_id: str, user: str, *, service: godisc.Resource = None
 ) -> None:
@@ -233,7 +397,6 @@ def share_google_file(
     _LOG.info("The google file is shared to '%s'.", user)
 
 
-# %%
 def _create_new_google_document(
     doc_name: str, doc_type: str, *, service: godisc.Resource = None
 ) -> str:
@@ -269,7 +432,6 @@ def _create_new_google_document(
     return doc_id
 
 
-# %%
 def _create_new_google_sheet(gsheet_name: str) -> str:
     """
     Create a new Google sheet.
@@ -278,7 +440,6 @@ def _create_new_google_sheet(gsheet_name: str) -> str:
     return _create_new_google_document(gsheet_name, doc_type)
 
 
-# %%
 def _create_new_google_doc(gdoc_name: str) -> str:
     """
     Create a new Google doc.
@@ -287,7 +448,6 @@ def _create_new_google_doc(gdoc_name: str) -> str:
     return _create_new_google_document(gdoc_name, doc_type)
 
 
-# %%
 def _move_gfile_to_dir(
     gfile_id: str, folder_id: str, *, service: godisc.Resource = None
 ) -> dict:
@@ -315,7 +475,6 @@ def _move_gfile_to_dir(
     return res
 
 
-# %%
 def _get_folders_in_gdrive(*, service: godisc.Resource = None) -> list:
     """
     Get a list of folders in Google drive.
