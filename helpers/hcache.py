@@ -800,6 +800,7 @@ class _Cached:
             "Cache backend not initialized for %s",
             cache_type,
         )
+        # This is needed for joblib >= 1.4.2.
         func_id = memorized_result.func_id
         args_id = memorized_result._get_args_id(
             *args, **kwargs

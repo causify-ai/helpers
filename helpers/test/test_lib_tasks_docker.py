@@ -124,7 +124,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
         version = "1.0.0"
         cmd = "bash"
         service_name = "app"
-        entrypoint = False
+        use_entrypoint = False
         print_docker_config = False
         act = hlitadoc._get_docker_compose_cmd(
             base_image,
@@ -132,7 +132,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
             version,
             cmd,
             service_name=service_name,
-            entrypoint=entrypoint,
+            use_entrypoint=use_entrypoint,
             print_docker_config=print_docker_config,
         )
         exp = r"""
@@ -315,6 +315,7 @@ class Test_dassert_is_image_name_valid1(hunitest.TestCase):
             # Invalid version.
             "12345.dkr.ecr.us-east-1.amazonaws.com/amp:prod-1.0.0-invalid",
         ]
+        # TODO(gp): Add a check for the output.
         for image in invalid_images:
             with self.assertRaises(AssertionError):
                 hlitadoc.dassert_is_image_name_valid(image)
