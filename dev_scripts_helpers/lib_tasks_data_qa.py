@@ -9,7 +9,8 @@ docker> invoke run_single_dataset_qa_notebook \
     --end-timestamp '2023-01-25T16:45:00+00:00' \
     --dataset-signature 'realtime.airflow.downloaded_1min.postgres.ohlcv.futures.v7.ccxt.binance.v1_0_0' \
     --aws-profile 'ck' \
-    --base-dst-dir '/shared_data/ecs/preprod/data_qa/periodic_10min'
+    --base-dst-dir '/shared_data/ecs/preprod/data_qa/periodic_10min' \
+    --time_diff_threshold_sec '5S'
 
 to run outside a Docker container:
 ```
@@ -23,12 +24,13 @@ docker> invoke run_cross_dataset_qa_notebook \
     --dataset-signature1 'realtime.airflow.downloaded_1min.postgres.ohlcv.futures.v7.ccxt.binance.v1_0_0' \
     --dataset-signature2 'periodic_daily.airflow.downloaded_1min.parquet.ohlcv.futures.v7.ccxt.binance.v1_0_0' \
     --aws-profile 'ck' \
-    --base-dst-dir '/shared_data/ecs/preprod/data_qa/periodic_daily'
+    --base-dst-dir '/shared_data/ecs/preprod/data_qa/periodic_daily' \
+    --time_diff_threshold_sec '5S'
 ```
 
 Import as:
 
-import dev_scripts_helpers.lib_tasks_data_qa as dsltdaqa
+import dev_scripts_cmamp.lib_tasks_data_qa as dsltdaqa
 """
 
 import logging
@@ -40,7 +42,7 @@ from invoke import task
 
 import config_root.config as cconfig
 import data_schema.dataset_schema_utils as dsdascut
-import dev_scripts_helpers.lib_tasks_run_model_experiment_notebooks as dsltrmeno
+import reconciliation.lib_tasks_run_model_experiment_notebooks as rltrmexno
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hs3 as hs3
@@ -194,7 +196,7 @@ def _run_data_qa_notebook(
         target_publish_dst_dir = os.path.join(
             s3_publish_dst_dir, year, month, day
         )
-        dsltrmeno.find_and_move_html_file_to_s3(
+        rltrmexno.find_and_move_html_file_to_s3(
             notebook_name, results_dir, target_publish_dst_dir
         )
     # This is a workaround to get outcome of the data reconciliation from the notebook.
@@ -224,6 +226,7 @@ def run_single_dataset_qa_notebook(
     bid_ask_depth=1,
     bid_ask_frequency_sec="60S",
     s3_publish_dst_dir="s3://cryptokaizen-html/notebooks/data_qa",
+    time_diff_threshold_sec=None,
 ):
     """
     Run single data QA notebook and store it in a specified location.
@@ -243,6 +246,7 @@ def run_single_dataset_qa_notebook(
         "bid_ask_accuracy": bid_ask_accuracy,
         "bid_ask_depth": bid_ask_depth,
         "bid_ask_frequency_sec": bid_ask_frequency_sec,
+        "time_diff_threshold_sec": time_diff_threshold_sec,
     }
     _ = ctx
     dataset_schema = dsdascut.get_dataset_schema()
@@ -274,6 +278,7 @@ def run_cross_dataset_qa_notebook(
     aws_profile=None,
     bid_ask_accuracy=None,
     s3_publish_dst_dir="s3://cryptokaizen-html/notebooks/data_qa",
+    time_diff_threshold_sec=None,
 ):  # type: ignore
     """
     Run cross dataset reconciliation notebook and store it in a specified
@@ -293,6 +298,7 @@ def run_cross_dataset_qa_notebook(
         "dataset_signature1": dataset_signature1,
         "dataset_signature2": dataset_signature2,
         "bid_ask_accuracy": bid_ask_accuracy,
+        "time_diff_threshold_sec": time_diff_threshold_sec,
     }
     _ = ctx
     # TODO(Juraj): come up with a more modular solution to executing the correct notebook.

@@ -1,27 +1,28 @@
 #!/usr/bin/env python
 """
-Script to set batch of GitHub secrets/variables
- from `.json` file in one go.
+Script to set batch of GitHub secrets from `.json` file in one go.
 
 Simple usage:
 
-> ./dev_scripts/github/set_secrets_and_variables.py \
-     --file 'dev_scripts/github/vars.json' \
+> ./dev_scripts/github/set_secrets.py \
+     --file 'dev_scripts/github/secrets.json' \
      --repo 'cryptomtc/cmamp_test'
 
-The JSON file looks like:
+The json file looks like:
 ```
 {
-    "secrets": {
-        "GH_ACTION_ACCESS_TOKEN": "***",
-        "CK_AWS_ACCESS_KEY_ID": "***",
-        "CK_AWS_SECRET_ACCESS_KEY": "***",
-        "CK_TELEGRAM_TOKEN": "***",
-    }
-    "variables": {
-        "CK_AWS_DEFAULT_REGION": "eu-north-1",
-        "CK_AWS_S3_BUCKET": "ck-data",
-    }
+    "GH_ACTION_ACCESS_TOKEN": "***",
+    "AM_AWS_ACCESS_KEY_ID": "***",
+    "AM_AWS_SECRET_ACCESS_KEY": "***",
+    "AM_AWS_DEFAULT_REGION": "us-east-1",
+    "AM_ECR_BASE_PATH": "***",
+    "AM_AWS_S3_BUCKET": "alphamatic-data",
+    "AM_TELEGRAM_TOKEN": "***",
+    "CK_AWS_ACCESS_KEY_ID": "***",
+    "CK_AWS_SECRET_ACCESS_KEY": "***",
+    "CK_AWS_DEFAULT_REGION": "eu-north-1",
+    "CK_AWS_S3_BUCKET": "ck-data",
+    "CK_TELEGRAM_TOKEN": "***",
 }
 ```
 """
@@ -74,31 +75,29 @@ def _parse() -> argparse.ArgumentParser:
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    file_dict = hio.from_json(args.file)
+    secrets = hio.from_json(args.file)
     # Sort secrets.
+    secrets = dict(sorted(secrets.items())).items()
     if args.dry_run:
-        print(pprint.pformat(file_dict))
+        print(pprint.pformat(secrets))
         sys.exit(0)
     operation = "set" if not args.remove else "remove"
-    for config_item in ["secrets", "variables"]:
-        # Sort items before setting.
-        for key, value in dict(sorted(file_dict[config_item].items())).items():
-            # GitHub does not accept empty strings.
-            hdbg.dassert_ne(value, "")
-            cmd = [
-                # E.g.: "secrets" -> gh secret x y.
-                f"gh {config_item[:-1]} {operation} {key}",
-                f"--repo {args.repo}",
-            ]
-            if not args.remove:
-                cmd.insert(1, f'--body "{value}"')
-            cmd = " ".join(cmd)
-            rc = hsystem.system(cmd, abort_on_error=False)
-            if rc != 0:
-                _LOG.warning("cmd='%s' failed: continuing", cmd)
-            else:
-                _LOG.info("%s %s!", operation, key)
-        _LOG.info("All %s are processed!", config_item)
+    for secret_key, secret_value in secrets:
+        # GitHub does not accept empty strings.
+        hdbg.dassert_ne(secret_value, "")
+        cmd = [
+            f"gh secret {operation} {secret_key}",
+            f"--repo {args.repo}",
+        ]
+        if not args.remove:
+            cmd.insert(1, f'--body "{secret_value}"')
+        cmd = " ".join(cmd)
+        rc = hsystem.system(cmd, abort_on_error=False)
+        if rc != 0:
+            _LOG.warning("cmd='%s' failed: continuing", cmd)
+        else:
+            _LOG.info("%s %s!", operation, secret_key)
+    _LOG.info("All secrets are processed!")
 
 
 if __name__ == "__main__":
