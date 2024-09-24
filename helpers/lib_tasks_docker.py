@@ -649,9 +649,8 @@ def _generate_docker_compose_file(
         # This is at the level of `services/app`.
         indent_level = 2
         append(txt_tmp, indent_level)
-    # TODO(gp): It seems that mount_as_submodule is not needed anymore. This is
-    # not needed anymore since we use the absolute path of the dir, instead of
-    # a relative one.
+    # TODO(gp): It seems that mount_as_submodule is not needed anymore, since
+    # we use the absolute path of the dir, instead of a relative one.
     git_dir = hgit.find_git_root()
     curr_dir = os.getcwd()
     # git_dir=/Users/saggese/src/tutorials1

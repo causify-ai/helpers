@@ -220,6 +220,7 @@ class ParquetDataFrameGenerator:
             )
         return self._wrap_all_assets_df(asset_dataframes)
 
+
 def generate_parquet_files(
     start_date: str,
     end_date: str,
