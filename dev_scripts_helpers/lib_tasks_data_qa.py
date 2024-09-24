@@ -30,7 +30,7 @@ docker> invoke run_cross_dataset_qa_notebook \
 
 Import as:
 
-import dev_scripts_cmamp.lib_tasks_data_qa as dsltdaqa
+import dev_scripts_helpers.lib_tasks_data_qa as dsltdaqa
 """
 
 import logging
