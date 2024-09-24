@@ -752,25 +752,25 @@ def docker_release_prod_image(  # type: ignore
 
 
 # # TODO(gp): Useless IMO.
-# @task
-# def docker_release_all(ctx, version, container_dir_name="."):  # type: ignore
-#     """
-#     (ONLY CI/CD) Release both dev and prod image to ECR.
-#
-#     This includes:
-#     - docker_release_dev_image
-#     - docker_release_prod_image
-#
-#     :param version: version to tag the image and code with
-#     :param container_dir_name: directory where the Dockerfile is located
-#     """
-#     hlitauti.report_task()
-#     docker_release_dev_image(ctx, version, container_dir_name=container_dir_name)
-#     docker_release_prod_image(ctx, version, container_dir_name=container_dir_name)
-#     _LOG.info("==> SUCCESS <==")
+@task
+def docker_release_all(ctx, version, container_dir_name="."):  # type: ignore
+    """
+    (ONLY CI/CD) Release both dev and prod image to ECR.
+
+    This includes:
+    - docker_release_dev_image
+    - docker_release_prod_image
+
+    :param version: version to tag the image and code with
+    :param container_dir_name: directory where the Dockerfile is located
+    """
+    hlitauti.report_task()
+    docker_release_dev_image(ctx, version, container_dir_name=container_dir_name)
+    docker_release_prod_image(ctx, version, container_dir_name=container_dir_name)
+    _LOG.info("==> SUCCESS <==")
 
 
-# We moved away from versioning of the prod image because we release
+# TODO(gp): We moved away from versioning of the prod image because we release
 # continuously and so it's easier to track the hash.
 
 
@@ -1007,7 +1007,8 @@ def docker_update_prod_task_definition(
     # Compose new prod image url.
     new_prod_image_url = hlitadoc.get_image(base_image, stage, prod_version)
     version = None
-    new_prod_image_url_no_version = hlitadoc.get_image(base_image, stage, version)
+    new_prod_image_url_no_version = hlitadoc.get_image(base_image, stage,
+        version)
     # Check if preprod tag exist in preprod task definition as precaution.
     preprod_task_definition_name = f"{task_definition}-preprod"
     preprod_image_url = haws.get_task_definition_image_url(

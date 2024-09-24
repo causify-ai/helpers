@@ -122,6 +122,7 @@ class TestFloorWithPrecision(hunitest.TestCase):
         actual = hnumpy.floor_with_precision(value, precision)
         self.assert_equal(str(actual), expected)
 
+
 class Test_OrderedDict_repr_str(hunitest.TestCase):
     """
     The tests are used to gatekeep the expected behavior of
