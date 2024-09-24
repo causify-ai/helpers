@@ -182,7 +182,7 @@ class Test_git_repo_name1(hunitest.TestCase):
             return
         mode = "short_name"
         act = hgit.get_all_repo_names(mode)
-        exp = ["amp", "cmamp", "dev_tools"]
+        exp = ["amp", "cmamp", "dev_tools", "helpers"]
         self.assert_equal(str(act), str(exp))
 
     # Outside CK infra, the following call hangs, so we skip it.
@@ -195,7 +195,8 @@ class Test_git_repo_name1(hunitest.TestCase):
             return
         mode = "full_name"
         act = hgit.get_all_repo_names(mode)
-        exp = ["alphamatic/amp", "cryptokaizen/cmamp", "kaizen-ai/dev_tools"]
+        exp = ["alphamatic/amp", "cryptokaizen/cmamp", "kaizen-ai/dev_tools",
+               "kaizen-ai/helpers"]
         self.assert_equal(str(act), str(exp))
 
     def test_get_repo_name_rountrip1(self) -> None:
@@ -327,15 +328,15 @@ class Test_find_docker_file1(hunitest.TestCase):
         (i.e., it doesn't start with `/app`) and exists in the repo.
         """
         amp_dir = hgit.get_amp_abs_path()
-        # Use this file since `find_docker_file()` needs to do a `find` in the repo
-        # so we need to have a fixed file structure.
-        file_name = "/app/amp/helpers/test/test_git.py"
+        # Use this file since `find_docker_file()` needs to do a `find` in the
+        # repo, and we need to have a fixed file structure.
+        file_name = hgit.find_file_in_git_tree("test_git.py")
         actual = hgit.find_docker_file(
             file_name,
             root_dir=amp_dir,
         )
         expected = ["helpers/test/test_git.py"]
-        self.assertEqual(actual, expected)
+        self.assert_equal(str(actual), str(expected), purify_text=True)
 
     def test2(self) -> None:
         """
@@ -343,15 +344,15 @@ class Test_find_docker_file1(hunitest.TestCase):
         (i.e., it starts with `/app`) and exists in the repo.
         """
         amp_dir = hgit.get_amp_abs_path()
-        # Use this file since `find_docker_file()` needs to do a `find` in the repo
-        # so we need to have a fixed file structure.
-        file_name = "/app/amp/helpers/test/test_git.py"
+        # Use this file since `find_docker_file()` needs to do a `find` in the
+        # repo, and we need to have a fixed file structure.
+        file_name = hgit.find_file_in_git_tree("test_git.py")
         expected = ["helpers/test/test_git.py"]
         actual = hgit.find_docker_file(
             file_name,
             root_dir=amp_dir,
         )
-        self.assertEqual(actual, expected)
+        self.assert_equal(str(actual), str(expected), purify_text=True)
 
     def test3(self) -> None:
         """
@@ -362,7 +363,7 @@ class Test_find_docker_file1(hunitest.TestCase):
         file_name = "/venv/lib/python3.8/site-packages/invoke/tasks.py"
         actual = hgit.find_docker_file(file_name)
         expected: List[str] = []
-        self.assertEqual(actual, expected)
+        self.assert_equal(str(actual), str(expected), purify_text=True)
 
     def test4(self) -> None:
         """
@@ -386,7 +387,7 @@ class Test_find_docker_file1(hunitest.TestCase):
         )
         # Only one candidate file matches basename and one dirname.
         expected = ["core/dataflow/utils.py"]
-        self.assertEqual(actual, expected)
+        self.assert_equal(str(actual), str(expected), purify_text=True)
 
     def test5(self) -> None:
         amp_dir = hgit.get_amp_abs_path()
@@ -406,4 +407,4 @@ class Test_find_docker_file1(hunitest.TestCase):
         )
         # Only one file matches `utils.py` using all the 3 dir levels.
         expected = ["core/dataflow/utils.py"]
-        self.assertEqual(actual, expected)
+        self.assert_equal(str(actual), str(expected), purify_text=True)
