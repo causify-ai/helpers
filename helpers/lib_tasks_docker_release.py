@@ -146,7 +146,7 @@ def docker_build_local_image(  # type: ignore
     opts = "--no-cache" if not cache else ""
     build_args = [
         ("AM_CONTAINER_VERSION", dev_version),
-        ("INSTALL_DIND", False),
+        ("INSTALL_DIND", True),
         ("POETRY_MODE", poetry_mode),
         ("CLEAN_UP_INSTALLATION", cleanup_installation),
     ]

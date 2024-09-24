@@ -9,6 +9,7 @@ FROM ubuntu:24.04 AS builder
 ARG AM_CONTAINER_VERSION
 ARG CLEAN_UP_INSTALLATION
 ARG INSTALL_DIND="False"
+#ARG INSTALL_DIND="True"
 ARG POETRY_MODE
 
 # Name of the virtual environment to create.
