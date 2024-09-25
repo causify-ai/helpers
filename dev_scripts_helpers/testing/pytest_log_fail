@@ -1,0 +1,2 @@
+#!/bin/bash -e
+\grep "^FAILED" tmp.pytest_script.txt | awk '{print $2}'
