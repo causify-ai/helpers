@@ -649,23 +649,9 @@ def _generate_docker_compose_file(
         # This is at the level of `services/app`.
         indent_level = 2
         append(txt_tmp, indent_level)
-    # TODO(gp): It seems that mount_as_submodule is not needed anymore, since
-    # we use the absolute path of the dir, instead of a relative one.
-    git_dir = hgit.find_git_root()
-    curr_dir = os.getcwd()
-    # git_dir=/Users/saggese/src/tutorials1
-    # curr_dir=/Users/saggese/src/tutorials1/pymc
-    # rel_dir=pymc
-    rel_dir1 = os.path.relpath(curr_dir, git_dir)
-    # rel_dir=..
-    rel_dir2 = os.path.relpath(git_dir, curr_dir)
-    _LOG.info("git_dir=%s curr_dir=%s rel_dir1=%s rel_dir2=%s", git_dir,
-        curr_dir, rel_dir1, rel_dir2)
-    if True or mount_as_submodule:
-        #app_dir = curr_dir
-        app_dir = os.path.abspath(os.path.join(curr_dir, rel_dir2))
-        working_dir = os.path.join("/app", rel_dir1)
-        txt_tmp = f"""
+    #
+    if mount_as_submodule:
+        txt_tmp = """
         # Mount `amp` when it is used as submodule. In this case we need to
         # mount the super project in the container (to make git work with the
         # supermodule) and then change dir to `amp`.
@@ -674,27 +660,18 @@ def _generate_docker_compose_file(
             base_app
           volumes:
             # Move one dir up to include the entire git repo (see AmpTask1017).
-            - {app_dir}:/app
-        """
-        if True:
-            txt_tmp = txt_tmp.rstrip("\n")
-            aux_dir = "/Users/saggese/src/git_gp1"
-            txt_tmp += f"    - {aux_dir}:/aux"
-        txt_tmp = txt_tmp.rstrip("\n")
-        txt_tmp += f"""
+            - ../../../:/app
           # Move one dir down to include the entire git repo (see AmpTask1017).
-          working_dir: {working_dir}
+          working_dir: /app/amp
         """
     else:
-        #app_dir = curr_dir
-        app_dir = os.path.abspath(os.path.join(curr_dir, "."))
-        txt_tmp = f"""
+        txt_tmp = """
         # Mount `amp` when it is used as supermodule.
         app:
           extends:
             base_app
           volumes:
-            - {app_dir}:/app
+            - ../../:/app
         """
     # This is at the level of `services`.
     indent_level = 1
