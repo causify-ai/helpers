@@ -185,7 +185,8 @@ set_path() {
     export PATH=$(pwd):$PATH
     export PATH=$GIT_ROOT_DIR:$PATH
     # Add to the PATH all the first level directory under `dev_scripts`.
-    export PATH="$(find $dev_script_dir -maxdepth 1 -type d -not -path "$(pwd)" | tr '\n' ':' | sed 's/:$//'):$PATH"
+    export PATH_TMP="$(find $dev_script_dir -maxdepth 1 -type d -not -path "$(pwd)" | tr '\n' ':' | sed 's/:$//')"
+    export PATH=$PATH_TMP:$PATH
     # Remove duplicates.
     export PATH=$(remove_dups $PATH)
     # Print.
