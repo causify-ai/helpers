@@ -1446,6 +1446,7 @@ def _get_docker_jupyter_cmd(
     port: int,
     self_test: bool,
     *,
+    use_entrypoint: bool = True,
     print_docker_config: bool = False,
 ) -> str:
     cmd = ""
@@ -1461,6 +1462,7 @@ def _get_docker_jupyter_cmd(
         extra_env_vars=extra_env_vars,
         extra_docker_run_opts=extra_docker_run_opts,
         service_name=service_name,
+        use_entrypoint=use_entrypoint,
         print_docker_config=print_docker_config,
     )
     return docker_cmd_
@@ -1473,6 +1475,7 @@ def docker_jupyter(  # type: ignore
     version="",
     base_image="",
     auto_assign_port=True,
+    use_entrypoint=True,
     port=None,
     self_test=False,
     container_dir_name=".",
@@ -1509,6 +1512,7 @@ def docker_jupyter(  # type: ignore
         version,
         port,
         self_test,
+        use_entrypoint=use_entrypoint,
         print_docker_config=print_docker_config,
     )
     _docker_cmd(ctx, docker_cmd_, skip_pull=skip_pull)

@@ -148,6 +148,27 @@ def get_client_root(super_module: bool) -> str:
     return client_root
 
 
+# TODO(gp): Replace get_client_root with this.
+def find_git_root(path: str = '.') -> str:
+    """
+    Find recursively the dir of the outermost super module.
+    """
+    path = os.path.abspath(path)
+    while not os.path.isdir(os.path.join(path, '.git')):
+        git_dir_file = os.path.join(path, '.git')
+        if os.path.isfile(git_dir_file):
+            with open(git_dir_file, 'r') as f:
+                for line in f:
+                    if line.startswith('gitdir:'):
+                        git_dir = line.split(':', 1)[1].strip()
+                        return os.path.abspath(os.path.join(path, git_dir, '..', '..'))
+        parent = os.path.dirname(path)
+        if parent == path:
+            return None
+        path = parent
+    return path
+
+
 def get_project_dirname(only_index: bool = False) -> str:
     """
     Return the name of the project name (e.g., `/Users/saggese/src/amp1` ->
