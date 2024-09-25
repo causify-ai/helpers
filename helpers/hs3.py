@@ -182,6 +182,7 @@ def listdir(
     :param maxdepth: limit the depth of directory traversal
     """
     dassert_is_valid_aws_profile(dir_name, aws_profile)
+    _LOG.debug("pattern=%s", pattern)
     if is_s3_path(dir_name):
         s3fs_ = get_s3fs(aws_profile)
         dassert_path_exists(dir_name, s3fs_)
@@ -191,6 +192,7 @@ def listdir(
         # descending recursively in the directory.
         # One star in glob will use `maxdepth=1`.
         pattern = pattern.replace("*", "**/*")
+        _LOG.debug("pattern=%s", pattern)
         # Detailed S3 objects in dict form with metadata.
         path_objects = s3fs_.glob(
             f"{dir_name}/{pattern}", detail=True, maxdepth=maxdepth
