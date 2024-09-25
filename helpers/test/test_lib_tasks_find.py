@@ -83,7 +83,7 @@ class TestLibTasksRunTests1(hunitest.TestCase):
         )
         act = hunitest.purify_file_names(file_names)
         exp = ["helpers/test/test_lib_tasks_find.py::TestLibTasksRunTests1"]
-        self.assert_equal(str(act), str(exp))
+        self.assert_equal(str(act), str(exp), purify_text=True)
 
     def test_find_test_class2(self) -> None:
         """
@@ -96,7 +96,7 @@ class TestLibTasksRunTests1(hunitest.TestCase):
         )
         act = hunitest.purify_file_names(file_names)
         exp = ["helpers/test/test_lib_tasks_find.py::TestLibTasksRunTests1"]
-        self.assert_equal(str(act), str(exp))
+        self.assert_equal(str(act), str(exp), purify_text=True)
 
     def test_find_test_class3(self) -> None:
         """
@@ -137,7 +137,7 @@ class TestLibTasksRunTests1(hunitest.TestCase):
             "helpers/test/outcomes/TestLibTasksRunTests1.test_find_test_class3/tmp.scratch/"
             "test/test_this.py::TestHelloWorld"
         ]
-        self.assert_equal(str(act), str(exp))
+        self.assert_equal(str(act), str(exp), purify_text=True)
 
     def test_find_test_decorator1(self) -> None:
         """
@@ -175,18 +175,19 @@ class TestLibTasksRunTests1(hunitest.TestCase):
             "helpers/test/outcomes/TestLibTasksRunTests1.test_find_test_decorator1/"
             "tmp.scratch/test/test_that.py"
         ]
-        self.assert_equal(str(act), str(exp))
+        self.assert_equal(str(act), str(exp), purify_text=True)
 
+    # TODO(gp): This test can run in amp.
     @pytest.mark.skipif(not hgit.is_amp(), reason="Only run in amp")
     def test_find_test_decorator2(self) -> None:
         """
         Find test functions in the "no_container" test list.
         """
-        file_names = ["helpers/hunit_test.py"]
+        file_name = hgit.find_file_in_git_tree("hunit_test.py")
+        file_names = [file_name]
         act = hlitafin._find_test_decorator("qa", file_names)
-        act = hunitest.purify_file_names(act)
-        exp = file_names
-        self.assert_equal(str(act), str(exp))
+        exp = ['$GIT_ROOT/helpers/hunit_test.py']
+        self.assert_equal(str(act), str(exp), purify_text=True)
 
 
 class Test_find_check_string_output1(hunitest.TestCase):

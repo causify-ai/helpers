@@ -191,7 +191,7 @@ def run_cmd_line(
 def _get_files() -> Tuple[str, str]:
     amp_path = hgit.get_amp_abs_path()
     #
-    exec_file = os.path.join(amp_path, "dev_scripts_helpers/notebooks/run_notebook.py")
+    exec_file = hgit.find_file_in_git_tree("run_notebook.py")
     hdbg.dassert_file_exists(exec_file)
     # This notebook fails/succeeds depending on the return code stored inside
     # each config.
@@ -408,9 +408,7 @@ class TestRunNotebook3(hunitest.TestCase):
         dst_dir = self.get_scratch_space()
         log_file_path = os.path.join(dst_dir, "result_0", "run_notebook.0.log")
         # Get path to the tested script.
-        script_path = os.path.join(
-            amp_dir, "dev_scripts_helpers/notebooks", "run_notebook.py"
-        )
+        script_path = hgit.find_file_in_git_tree("run_notebook.py")
         # Build a command to run the notebook.
         opts = "--num_threads 'serial' --publish_notebook -v DEBUG 2>&1"
         config_builder = (
