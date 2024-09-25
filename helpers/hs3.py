@@ -459,7 +459,7 @@ def get_s3_bucket_path_unit_test(
 
 def get_latest_pq_in_s3_dir(s3_path: str, aws_profile: str) -> str:
     """
-    Get the latest parquet file in the specified directory.
+    Get the latest Parquet file in the specified directory.
 
     :param s3_path: the path to s3 directory, e.g.
       `cryptokaizen-data/reorg/daily_staged.airflow.pq/bid_ask/crypto_chassis.downloaded_1sec/binance`
@@ -470,7 +470,10 @@ def get_latest_pq_in_s3_dir(s3_path: str, aws_profile: str) -> str:
     """
     hdbg.dassert_type_is(aws_profile, str)
     s3fs_ = get_s3fs(aws_profile)
-    pq_files = s3fs_.glob(f"{s3_path}/**/*.parquet", detail=True)
+    dir_name = f"{s3_path}/**/*.parquet"
+    pq_files = s3fs_.glob(dir_name, detail=True)
+    hdbg.dassert_lte(1, len(pq_files), "dir_name=%s", dir_name)
+    _LOG.debug("pq_files=%s", pq_files)
     # Sort the files by the date they were modified for the last time.
     sorted_files = sorted(
         pq_files.items(), key=lambda t: t[1]["LastModified"], reverse=True
