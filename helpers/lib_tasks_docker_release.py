@@ -207,7 +207,6 @@ def docker_build_local_image(  # type: ignore
     if poetry_mode == "update":
         opts = [
             "--stage local",
-            f"--base_image {base_image}",
             f"--version {version}",
             "--cmd 'cp /install/poetry.lock /install/pip_list.txt .'",
             ]
