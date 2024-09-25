@@ -28,14 +28,12 @@ pytest-instafail = "*"
 pytest-rerunfailures = "*"
 pytest-timeout = "*"
 pytest-xdist = "*"
-#python = "*"
 python-dotenv = "*"
 requests = "*"
 s3fs = "*"
 seaborn = "*"
 scikit-learn = "*"
 statsmodels = "*"
-# This is needed for `pandas.read_sql()`.
 tqdm = "*"
 
 [tool.poetry.dev-dependencies]
