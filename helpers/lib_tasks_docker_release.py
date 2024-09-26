@@ -208,7 +208,7 @@ def docker_build_local_image(  # type: ignore
         opts = [
             "--stage local",
             f"--version {version}",
-            "--cmd 'cp /install/poetry.lock /install/pip_list.txt .'",
+            "--cmd 'cp /install/poetry.lock.out /install/pip_list.txt .'",
             ]
         cmd = "invoke docker_cmd " + ' '.join(opts)
         hlitauti.run(ctx, cmd)
