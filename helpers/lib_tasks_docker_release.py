@@ -210,6 +210,7 @@ def docker_build_local_image(  # type: ignore
             f"--version {version}",
             "--cmd 'cp /install/poetry.lock.out /install/pip_list.txt .'",
             ]
+        opts.append("--skip-pull")
         cmd = "invoke docker_cmd " + ' '.join(opts)
         hlitauti.run(ctx, cmd)
         # The destination dir is always in the same relative position.

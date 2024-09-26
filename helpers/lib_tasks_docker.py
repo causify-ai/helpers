@@ -1410,6 +1410,7 @@ def docker_cmd(  # type: ignore
     generate_docker_compose_file=True,
     use_bash=False,
     container_dir_name=".",
+    skip_pull=False,
 ):
     """
     Execute the command `cmd` inside a container corresponding to a stage.
@@ -1431,7 +1432,7 @@ def docker_cmd(  # type: ignore
         as_user=as_user,
         use_bash=use_bash,
     )
-    _docker_cmd(ctx, docker_cmd_)
+    _docker_cmd(ctx, docker_cmd_, skip_pull=skip_pull)
 
 
 # ////////////////////////////////////////////////////////////////////////////////
