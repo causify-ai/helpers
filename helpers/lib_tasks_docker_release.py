@@ -205,10 +205,13 @@ def docker_build_local_image(  # type: ignore
         hlitauti.run(ctx, cmd)
     # Retrieve the package files, if present.
     if poetry_mode == "update":
+        cmd = ("'cp -f /install/poetry.lock.out ./tmp.poetry.lock; " +
+            "cp -f /install/pip_list.txt ./tmp.pip_list.txt'")
+        #cmd = "cp -f /install/pip_list.txt ./tmp.pip_list.txt"
         opts = [
             "--stage local",
             f"--version {version}",
-            "--cmd 'cp /install/poetry.lock.out /install/pip_list.txt .'",
+            f"--cmd '{cmd}'",
             ]
         opts.append("--skip-pull")
         cmd = "invoke docker_cmd " + ' '.join(opts)
@@ -216,7 +219,9 @@ def docker_build_local_image(  # type: ignore
         # The destination dir is always in the same relative position.
         dst_dir = "./devops/docker_build"
         hdbg.dassert_dir_exists(dst_dir)
-        cmd = "cp -f poetry.lock pip_list.txt " + dst_dir
+        cmd = f"cp -f tmp.poetry.lock {dst_dir}/poetry.lock"
+        hlitauti.run(ctx, cmd)
+        cmd = f"cp -f tmp.pip_list.txt {dst_dir}/pip_list.txt"
         hlitauti.run(ctx, cmd)
     # Check image and report stats.
     cmd = f"docker image ls {image_local}"
