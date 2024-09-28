@@ -5,6 +5,7 @@ import helpers.hs3 as hs3
 """
 
 import argparse
+import collections
 import configparser
 import copy
 import functools
@@ -464,22 +465,56 @@ def get_latest_pq_in_s3_dir(s3_path: str, aws_profile: str) -> str:
     :param s3_path: the path to s3 directory, e.g.
       `cryptokaizen-data/reorg/daily_staged.airflow.pq/bid_ask/crypto_chassis.downloaded_1sec/binance`
     :param aws_profile: AWS profile to use
-    :return: the path to the latest parquet file in the directory,
-      e.g. `cryptokaizen-data/reorg/daily_staged.airflow.pq/bid_ask/crypto_chassis.downloaded_1sec/binance/
+    :return: the path to the latest Parquet file in the directory,
+      E.g. `cryptokaizen-data/reorg/daily_staged.airflow.pq/bid_ask/crypto_chassis.downloaded_1sec/binance/
        currency_pair=ETH_USDT/year=2022/month=12/data.parquet`
     """
     hdbg.dassert_type_is(aws_profile, str)
-    s3fs_ = get_s3fs(aws_profile)
-    dir_name = f"{s3_path}/**/*.parquet"
-    pq_files = s3fs_.glob(dir_name, detail=True)
-    hdbg.dassert_lte(1, len(pq_files), "dir_name=%s", dir_name)
-    _LOG.debug("pq_files=%s", pq_files)
-    # Sort the files by the date they were modified for the last time.
-    sorted_files = sorted(
-        pq_files.items(), key=lambda t: t[1]["LastModified"], reverse=True
-    )
-    # Get the path to the latest file.
-    latest_file_path = sorted_files[0][0]
+    if False:
+        # TODO(gp): This requires a newer version of `s3fs` than 0.4.2 (see
+        #  CmTask10054)
+        s3fs_ = get_s3fs(aws_profile)
+        dir_name = f"{s3_path}/**/*.parquet"
+        pq_files = s3fs_.glob(dir_name, detail=True)
+        hdbg.dassert_lte(1, len(pq_files), "dir_name=%s", dir_name)
+        _LOG.debug("pq_files=%s", pq_files)
+        # Sort the files by the date they were modified for the last time.
+        sorted_files = sorted(
+            pq_files.items(), key=lambda t: t[1]["LastModified"], reverse=True
+        )
+        # Get the path to the latest file.
+        latest_file_path = sorted_files[0][0]
+    else:
+        cmd = f"aws s3 ls --profile {aws_profile} {s3_path}"
+        _, txt = hsystem.system_to_string(cmd)
+        # 2023-11-07 02:23:48    2184716 0598868c91e143cfb555da26992ca101-0.parquet
+        pq_files = []
+        S3_file = collections.namedtuple('S3_file', ['last_modified', 'size', 'name'])
+        # This file is used also in the thin client which doesn't have Pandas.
+        import pandas as pd
+
+        for line in txt.split("\n"):
+            fields = line.split()
+            _LOG.debug("fields=%s", fields)
+            hdbg.dassert_eq(len(fields), 4, "line=%s fields=%s", line, fields)
+            last_modified = pd.Timestamp(fields[0] + " " + fields[1])
+            size = int(fields[2])
+            name = fields[3]
+            pq_files.append(S3_file(last_modified, size, name))
+        hdbg.dassert_lte(1, len(pq_files), "s3_path=%s", s3_path)
+        _LOG.debug("pq_files=%s", pq_files)
+        # Filter by extension.
+        pq_files = [pq_file for pq_file in pq_files
+                        if pq_file.name.endswith(".parquet")]
+        _LOG.debug("pq_files=%s", pq_files)
+        # Sort the files by the date they were modified for the last time.
+        sorted_files = sorted(
+            pq_files, key=lambda t: ["last_modified"], reverse=True
+        )
+        _LOG.debug("sorted_files=%s", sorted_files)
+        # Get the path to the latest file.
+        latest_file_path = os.path.join(s3_path, sorted_files[0].name)
+        _LOG.debug("latest_file_path=%s", latest_file_path)
     return latest_file_path
 
 
