@@ -18,12 +18,12 @@ import psycopg2.extras as extras
 import psycopg2.sql as psql
 
 import helpers.hasyncio as hasynci
-import helpers.haws as haws
 import helpers.hdatetime as hdateti
 import helpers.hdbg as hdbg
 import helpers.hintrospection as hintros
 import helpers.hpandas as hpandas
 import helpers.hprint as hprint
+import helpers.hs3 as hs3
 import helpers.hsecrets as hsecret
 import helpers.htimer as htimer
 
@@ -78,14 +78,14 @@ def get_connection_from_aws_secret(
     :param stage: DB stage to connect to. For "prod" stage it is only possible to obtain a read-only connection via this method.
     """
     hdbg.dassert_in(stage, ["prod", "preprod", "test"])
-    hdbg.dassert_in(aws_region, haws.AWS_REGIONS)
+    hdbg.dassert_in(aws_region, hs3.AWS_REGIONS)
     dbname = f"{stage}.im_data_db"
     if stage == "prod":
         secret_name = f"{dbname}.read_only"
     else:
         secret_name = (
             dbname
-            if aws_region == haws.AWS_EUROPE_REGION_1
+            if aws_region == hs3.AWS_EUROPE_REGION_1
             else f"{dbname}.{aws_region}"
         )
     _LOG.info("Fetching secret: %s", secret_name)
