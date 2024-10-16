@@ -33,10 +33,15 @@
 
 - In `docs/work_tools`
   - `all.create_a_super_repo_with_helpers.how_to_guide.md`
-    - How to create a super repo including helpers
+    - How to create a super-repo including helpers
+  - `all.create_a_releasable_dir.how_to_guide.md`
+    - How to create a releasable dir, i.e., a directory that has code and
+      a Docker container to run its code inside
+    - TODO(gp): Runnable dir?
   - `all.devops_docker.how_to_guide.md`
     - How to run the devops Docker environment
   - `all.devops_docker.reference.md`
     - How the devops Docker environment works
   - `all.thin_environment.reference.md`
-    - How the thin environment works
+    - How the "thin environment" works
+    - The thin environment is used to bootstrap the development system 
