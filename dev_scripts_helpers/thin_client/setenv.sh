@@ -12,6 +12,7 @@ DIR_TAG="helpers"
 SCRIPT_PATH="dev_scripts_${DIR_TAG}/thin_client/setenv.sh"
 echo "##> $SCRIPT_PATH"
 
+# To customize: xyz
 # IS_SUPER_REPO=1
 IS_SUPER_REPO=0
 echo "IS_SUPER_REPO=$IS_SUPER_REPO"

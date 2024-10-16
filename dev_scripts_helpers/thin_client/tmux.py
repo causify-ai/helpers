@@ -7,6 +7,7 @@ import logging
 import os
 import sys
 
+# To customize: xyz
 _HAS_SUBREPO = False
 
 _SCRIPT_PATH = os.path.abspath(__file__)
@@ -30,6 +31,7 @@ _LOG = logging.getLogger(__name__)
 if __name__ == "__main__":
     parser = tcu.create_parser(__doc__)
     if _HAS_SUBREPO:
+        # To customize: xyz
         dir_prefix = "xyz"
     else:
         # `helpers` has no super-repo.

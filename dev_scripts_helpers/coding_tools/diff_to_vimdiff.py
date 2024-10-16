@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Diff content of two directories using vimdiff, by transform the output of `diff -r
