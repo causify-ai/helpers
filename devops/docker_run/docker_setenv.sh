@@ -10,6 +10,10 @@ set -e
 IS_SUPER_REPO=0
 echo "IS_SUPER_REPO=$IS_SUPER_REPO"
 
+# IS_SUB_DIR=1
+IS_SUB_DIR=0
+echo "IS_SUB_DIR=$IS_SUB_DIR"
+
 SCRIPT_PATH="devops/docker_run/docker_setenv.sh"
 echo "##> $SCRIPT_PATH"
 
