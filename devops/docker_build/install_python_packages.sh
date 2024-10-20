@@ -50,7 +50,7 @@ if [[ 1 == 1 ]]; then
   else
     echo "WARNING: Skipping clean up installation"
   fi;
-  pip freeze 2>&1 >/home/pip_list.txt
+  pip freeze 2>&1 >/install/pip_list.txt
   #
   if [[ $CLEAN_UP_INSTALLATION ]]; then
     pip cache purge

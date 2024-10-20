@@ -6,6 +6,10 @@ set -e
 IS_SUPER_REPO=0
 echo "IS_SUPER_REPO=$IS_SUPER_REPO"
 
+# IS_SUB_DIR=1
+IS_SUB_DIR=0
+echo "IS_SUB_DIR=$IS_SUB_DIR"
+
 FILE_NAME="devops/docker_run/entrypoint.sh"
 echo "##> $FILE_NAME"
 
@@ -14,10 +18,14 @@ echo "GID="$(id -g)
 
 # - Source `utils.sh`.
 # NOTE: we can't use $0 to find the path since we are sourcing this file.
-GIT_ROOT_DIR=$(pwd)
+if [[ $IS_SUB_DIR == 1 ]]; then
+    GIT_ROOT_DIR=$(dirname "$(pwd)")
+else
+    GIT_ROOT_DIR=$(pwd)
+fi;
 echo "GIT_ROOT_DIR=$GIT_ROOT_DIR"
 
-if [[ $IS_SUPER_ROOT == 1 ]]; then
+if [[ $IS_SUPER_REPO == 1 ]]; then
     HELPERS_ROOT="${GIT_ROOT_DIR}/helpers_root"
 else
     HELPERS_ROOT=$GIT_ROOT_DIR
