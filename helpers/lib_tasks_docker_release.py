@@ -211,13 +211,17 @@ def docker_build_local_image(  # type: ignore
         container_name = "tmp.lib_tasks_docker_release"
         if hdocker.container_exists(container_name):
             hdocker.container_rm(container_name)
-        cmd = f"docker run -d --name {container_name} {image_local}"
+        #
+        devops_dir = "devops"
+        devops_dir = _to_abs_path(devops_dir)
+        cmd = f"docker run -d -v {devops_dir}:/app/devops --name {container_name} {image_local}"
         _, container_id = hsystem.system_to_string(cmd)
-        src_dir = f"{container_name}/install"
+        src_dir_home = f"{container_name}:/home"
+        src_dir_install = f"{container_name}:/install"
         dst_dir = "devops/docker_build"
-        cmd = f"docker cp {src_dir}/poetry.lock {dst_dir}/poetry.lock.out"
+        cmd = f"docker cp {src_dir_install}/poetry.lock {dst_dir}/poetry.lock.out"
         hlitauti.run(ctx, cmd)
-        cmd = f"docker cp {src_dir}/pip_list.txt {dst_dir}/pip_list.txt"
+        cmd = f"docker cp {src_dir_home}/pip_list.txt {dst_dir}/pip_list.txt"
         hlitauti.run(ctx, cmd)
         # Kill the temporary container.
         cmd = f"docker rm --force {container_id}"
