@@ -1,17 +1,12 @@
 #!/usr/bin/env python
 
 """
-Perform one of several transformations on a txt file.
+Perform one of several transformations on a txt file, e.g.,
 
-- The input or output can be filename or stdin (represented by '-')
-- If output file is not specified then we assume that the output file is the
-  same as the input
-
-- The possible transformations are:
-    1) Create table of context from the current file, with 1 level
+    1) `toc`: create table of context from the current file, with 1 level
         > transform_txt.py -a toc -i % -l 1
 
-    2) Format the current file with 3 levels
+    2) `format`: format the current file with 3 levels
         :!transform_txt.py -a format -i % --max_lev 3
         > transform_txt.py -a format -i notes/ABC.txt --max_lev 3
 
@@ -19,9 +14,13 @@ Perform one of several transformations on a txt file.
         :!transform_txt.py -a format -i % --max_lev 3
         :%!transform_txt.py -a format -i - --max_lev 3
 
-    3) Increase level
+    3) `increase`: increase level
         :!transform_txt.py -a increase -i %
         :%!transform_txt.py -a increase -i -
+
+- The input or output can be filename or stdin (represented by '-')
+- If output file is not specified then we assume that the output file is the
+  same as the input
 """
 
 # TODO(gp):
@@ -40,7 +39,7 @@ import helpers.hparser as hparser
 _LOG = logging.getLogger(__name__)
 
 
-def skip_comments(line, skip_block):
+def _skip_comments(line, skip_block):
     skip_this_line = False
     # Handle comment block.
     if line.startswith("<!--"):
@@ -63,12 +62,15 @@ def skip_comments(line, skip_block):
     return skip_this_line, skip_block
 
 
+# #############################################################################
+
+
 def table_of_content(file_name, max_lev):
     skip_block = False
     txt = hparser.read_file(file_name)
     for line in txt:
         # Skip comments.
-        skip_this_line, skip_block = skip_comments(line, skip_block)
+        skip_this_line, skip_block = _skip_comments(line, skip_block)
         if False and skip_this_line:
             continue
         #
@@ -84,6 +86,9 @@ def table_of_content(file_name, max_lev):
                         print()
                     print("%s%s" % ("    " * (i - 1), line))
                 break
+
+
+# #############################################################################
 
 
 def format_text(in_file_name, out_file_name, max_lev):
@@ -127,6 +132,9 @@ def format_text(in_file_name, out_file_name, max_lev):
     hparser.write_file(txt_tmp, out_file_name)
 
 
+# #############################################################################
+
+
 def increase_chapter(in_file_name, out_file_name):
     """
     Increase the level of chapters by one for text in stdin.
@@ -136,7 +144,7 @@ def increase_chapter(in_file_name, out_file_name):
     #
     txt_tmp = []
     for line in txt:
-        skip_this_line, skip_block = skip_comments(line, skip_block)
+        skip_this_line, skip_block = _skip_comments(line, skip_block)
         if skip_this_line:
             continue
         #
@@ -148,6 +156,117 @@ def increase_chapter(in_file_name, out_file_name):
         txt_tmp.append(line)
     #
     hparser.write_file(txt_tmp, out_file_name)
+
+
+# #############################################################################
+
+
+from typing import List, Dict
+
+
+# Define data structure for nested items.
+class MarkdownItem:
+    def __init__(self, text: str, children: List['MarkdownItem'] = None):
+        self.text = text
+        self.children = children or []
+
+
+def parse_markdown(markdown: List[str], depth: int = 0) -> List[MarkdownItem]:
+    """
+    Recursively parse a list of markdown lines into a nested structure of MarkdownItems.
+
+    :param markdown: A list of markdown lines.
+    :param depth: Current depth level for nested items.
+    :return: A list of MarkdownItem instances representing the nested list structure.
+
+    Example:
+        >>> parse_markdown(["* Title", "  * Item 1", "    * Subitem 1", "* Item 2"])
+        [MarkdownItem("Title", [MarkdownItem("Item 1", [MarkdownItem("Subitem 1")]), MarkdownItem("Item 2")])]
+    """
+    # Initialize list to hold parsed items at the current depth.
+    items = []
+
+    while markdown:
+        line = markdown.pop(0).strip()
+
+        # Check for itemized list character at current depth level.
+        if line.startswith("*"):
+            # Create a new item for the current line.
+            current_item = MarkdownItem(text=line[1:].strip())
+            # Recursively parse children if the next line has more indentation.
+            if markdown and markdown[0].startswith(" " * (depth + 2) + "*"):
+                current_item.children = parse_markdown(markdown, depth + 2)
+            # Append the item to the current level's list.
+            items.append(current_item)
+        elif line.startswith(" " * (depth - 2) + "*"):
+            # Un-read the line by adding it back and exit recursion if depth mismatch.
+            markdown.insert(0, line)
+            break
+
+    return items
+
+
+def render_latex(items: List[MarkdownItem], depth: int = 0,
+                 frame_title: str = "") -> str:
+    """
+    Convert a list of MarkdownItem instances into LaTeX format, with nested structures.
+
+    :param items: A list of MarkdownItem instances representing the nested list structure.
+    :param depth: Current depth level for LaTeX itemization.
+    :param frame_title: Title of the frame if applicable.
+    :return: A LaTeX formatted string for the nested list.
+
+    Example:
+        >>> render_latex([MarkdownItem("Title", [MarkdownItem("Item 1", [MarkdownItem("Subitem 1")])])], frame_title="Example Frame")
+        "\\begin{frame}{Example Frame}\n\\begin{itemize}\n  \\item Title\n    \\item Item 1\n      \\item Subitem 1\n\\end{itemize}\n\\end{frame}\n"
+    """
+    # Base LaTeX block with or without frame depending on depth and frame_title.
+    if depth == 0 and frame_title:
+        latex = f"\\begin{{frame}}{{{frame_title}}}\n"
+    else:
+        latex = ""
+
+    # Begin itemize environment at the current depth.
+    latex += "  " * depth + "\\begin{itemize}\n"
+
+    for item in items:
+        # Add item text.
+        latex += "  " * (depth + 1) + f"\\item {item.text}\n"
+
+        # Recursively add children if any.
+        if item.children:
+            latex += render_latex(item.children, depth + 1)
+
+    # End itemize environment at the current depth.
+    latex += "  " * depth + "\\end{itemize}\n"
+
+    # Close frame if it's the top level with a frame title.
+    if depth == 0 and frame_title:
+        latex += "\\end{frame}\n"
+
+    return latex
+
+
+def markdown_to_latex(markdown: List[str]) -> str:
+    """
+    Convert a nested markdown list into LaTeX format, wrapped in a frame if the list starts with "*".
+
+    :param markdown: A list of markdown lines.
+    :return: LaTeX formatted string for the nested list.
+
+    Example:
+        >>> markdown_to_latex(["* Title of Frame", "  * First item", "    * Subitem 1", "* Second item"])
+        "\\begin{frame}{Title of Frame}\n\\begin{itemize}\n  \\item Title of Frame\n    \\item First item\n      \\item Subitem 1\n  \\item Second item\n\\end{itemize}\n\\end{frame}\n"
+    """
+    # Parse markdown into a structured list.
+    items = parse_markdown(markdown)
+
+    # Determine if the top-level item is a frame.
+    frame_title = items[0].text if items and items[0].text.startswith(
+        "*") else ""
+
+    # Render LaTeX output from the structured list.
+    return render_latex(items, frame_title=frame_title)
 
 
 # #############################################################################

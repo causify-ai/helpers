@@ -13,10 +13,11 @@ FILE_NAME=$1
 # 1) Build container.
 IMAGE=latex
 # See devops/docker_build/install_publishing_tools.sh
-cat >/tmp/tmp.dockerfile <<EOF
+DOCKER_FILE=/tmp/tmp.dockerfile
+cat >$DOCKER_FILE <<EOF
 FROM blang/latex:ubuntu
 EOF
-docker build -f /tmp/tmp.dockerfile -t $IMAGE .
+docker build -f $DOCKER_FILE -t $IMAGE .
 
 # 2) Create script to run.
 EXEC="./tmp.run_latex.sh"

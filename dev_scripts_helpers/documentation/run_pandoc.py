@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
 """
-This script reads value from stdin/file, transforms it using Pandoc and writes
-the result to stdout/file.
+- Read value from stdin/file
+- Transform it using Pandoc according to different transforms
+  (e.g., `convert_md_to_latex`)
+- Write the result to stdout/file.
 
 To run in vim:
 ```

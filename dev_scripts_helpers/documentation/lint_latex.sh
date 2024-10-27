@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Dockerized linter for Latex using prettier.
+# Dockerized linter for Latex using `prettier`.
 # This is the new flow.
 #
 
@@ -12,9 +12,11 @@ fi;
 FILE_NAME=$1
 
 # 1) Build container.
+#DOCKER_FILE=/tmp/tmp.dockerfile
+DOCKER_FILE=./tmp.dockerfile
 IMAGE=lint_latex
 # See devops/docker_build/install_publishing_tools.sh
-cat >/tmp/tmp.dockerfile <<EOF
+cat >$DOCKER_FILE <<EOF
 FROM ubuntu:latest
 
 RUN apt-get update && \
@@ -34,7 +36,7 @@ RUN npm -v
 RUN npm install -g prettier && \
     npm install -g prettier-plugin-latex
 EOF
-docker build -f /tmp/tmp.dockerfile -t $IMAGE .
+docker build -f $DOCKER_FILE -t $IMAGE .
 
 # 2) Create script to run.
 EXEC="./tmp.lint_latex.sh"

@@ -10,6 +10,83 @@
 
 <!-- tocstop -->
 
+#
+```
+> ls -1 //helpers_root/dev_scripts_helpers/documentation
+- convert_docx_to_markdown.py
+  - Convert Docx file to Markdown using Dockerized pandoc and save the figs
+
+- convert_docx_to_markdown.sh
+  - Wrapper to simplify calling `convert_docx_to_markdown.py`
+
+- convert_txt_to_pandoc.py
+  - Convert a txt file into markdown suitable for pandoc.py, e.g.,
+    - convert the text in pandoc / latex format
+    - handle banners around chapters
+    - handle comments
+
+- generate_latex_sty.py
+  - One-off script to generate the latex file
+
+- generate_script_catalog.py
+  - Generate a markdown file with the docstring for any script in the repo
+  - TODO(gp): Unclear what to do with this
+
+- latex_abbrevs.sty
+  - Latex macros
+
+- latexdockercmd.sh
+  - Wrapper for Latex docker container
+  - Probably obsolete
+
+- lint_latex.sh
+  - Dockerized linter for Latex using prettier
+  - This is the new flow.
+
+- lint_latex2.sh
+  - Dockerized linter for Latex using `latexindent.pl`
+  - This is the old flow
+
+- open_md_in_browser.sh
+  - Render a markdown using `pandoc` (installed locally) and then open it in a
+    browser
+
+- open_md_on_github.sh
+  - Open a filename (e.g,. a markdown) on GitHub
+
+- pandoc.latex
+  - `latex` template used by `pandoc.py`
+
+- pandoc.py
+  - Convert a `txt` file with nodes into a PDF / HTML using `pandoc`
+
+- render_md.py
+  - Add rendered images to all plantUML sections in the markdown files.
+
+- replace_latex.py
+- replace_latex.sh
+  - Scripts for one-off processing of latex files
+
+- run_latex.sh
+  - Dockerized latex flow
+
+- run_pandoc.py
+  - Read value from stdin/file
+  - Transform it using `pandoc` according to different transforms
+    (e.g., `convert_md_to_latex`)
+  - Write the result to stdout/file.
+
+- `test/test_render_md.py`
+
+- test_lint_latex.sh
+  -  Run latex linter and check if the file was modified
+
+- transform_txt.py
+  - Perform one of several transformations on a txt file, e.g.,
+    1) `toc`: create table of context from the current file, with 1 level
+    2) `format`: format the current file with 3 levels
+    3) `increase`: increase level
+
 # Latex Toolchain
 
 ## Running and linting Latex files
