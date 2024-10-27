@@ -25,6 +25,7 @@ Perform one of several transformations on a txt file, e.g.,
 
 # TODO(gp):
 #  - Compute index number
+#  - Separate code into a library
 #  - Add unit tests
 #  - Make functions private
 
@@ -34,6 +35,8 @@ import logging
 import re
 
 import helpers.hdbg as hdbg
+import helpers.hpandoc as hpandoc
+import helpers.hprint as hprint
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -161,168 +164,27 @@ def increase_chapter(in_file_name, out_file_name):
 # #############################################################################
 
 
-from typing import List, Dict
-import pprint
-
-# Define data structure for nested items.
-class MarkdownItem:
-    def __init__(self, text: str, children: List['MarkdownItem'] = None):
-        self.text = text
-        self.children = children or []
-
-    def __str__(self, depth: int = 0) -> str:
-        """
-        Recursively convert a MarkdownItem structure to a formatted markdown string.
-
-        :param item: The MarkdownItem object to convert.
-        :param depth: The current depth level for indentation.
-        :return: A string representing the nested MarkdownItem structure.
-
-        Example:
-        item = MarkdownItem("Title",
-                [MarkdownItem("Subitem 1",
-                    [MarkdownItem("Subsubitem 1.1")])])
-        print(markdown_item_to_string(item))
-            * Title
-              * Subitem 1
-                * Subsubitem 1.1
-        """
-        # Initialize the string with the current item's text and appropriate
-        # indentation.
-        result = "  " * depth + f"* {self.text}\n"
-        # Recursively add each child item's string representation.
-        for child in self.children:
-            result += child.__str__(depth + 1) + "\n"
-        result = result.rstrip()
-        return result
-
-
-def MarkdownItems_to_str(items: List[MarkdownItem]) -> str:
-    hdbg.dassert_isinstance(items, list)
-    txts = []
-    for item in items:
-        hdbg.dassert_isinstance(item, MarkdownItem)
-        txts.append(str(item))
-    txt = "\n".join(txts)
-    return txt
-
-
-def _parse_markdown(markdown: List[str], depth: int = 0) -> List[MarkdownItem]:
-    """
-    Recursively parse a list of markdown lines into a nested structure of
-    MarkdownItems.
-
-    :param markdown: A list of markdown lines.
-    :param depth: Current depth level for nested items.
-    :return: A list of MarkdownItem instances representing the nested list structure.
-
-    Example:
-        >>> _parse_markdown([
-            "* Title",
-            "  * Item 1",
-            "    * Subitem 1",
-            "  * Item 2"])
-        [MarkdownItem("Title",
-            [MarkdownItem("Item 1", [
-                MarkdownItem("Subitem 1")
-            ]),
-            MarkdownItem("Item 2")
-            ])
-        ]
-    """
-    # Initialize list to hold parsed items at the current depth.
-    items = []
-
-    while markdown:
-        line = markdown.pop(0).strip()
-
-        # Check for itemized list character at current depth level.
-        if line.startswith("*"):
-            # Create a new item for the current line.
-            current_item = MarkdownItem(text=line[1:].strip())
-            # Recursively parse children if the next line has more indentation.
-            if markdown and markdown[0].startswith(" " * (depth + 2) + "*"):
-                current_item.children = _parse_markdown(markdown, depth + 2)
-            # Append the item to the current level's list.
-            items.append(current_item)
-        elif line.startswith(" " * (depth - 2) + "*"):
-            # Un-read the line by adding it back and exit recursion if depth mismatch.
-            markdown.insert(0, line)
-            break
-
-    return items
-
-
-def render_latex(items: List[MarkdownItem], depth: int = 0,
-                 frame_title: str = "") -> str:
-    """
-    Convert a list of MarkdownItem instances into LaTeX format, with nested structures.
-
-    :param items: A list of MarkdownItem instances representing the nested list structure.
-    :param depth: Current depth level for LaTeX itemization.
-    :param frame_title: Title of the frame if applicable.
-    :return: A LaTeX formatted string for the nested list.
-    """
-    # Base LaTeX block with or without frame depending on depth and frame_title.
-    if depth == 0 and frame_title:
-        latex = f"\\begin{{frame}}{{{frame_title}}}\n"
-    else:
-        latex = ""
-
-    # Begin itemize environment at the current depth.
-    latex += "  " * depth + "\\begin{itemize}\n"
-
-    for item in items:
-        # Add item text.
-        latex += "  " * (depth + 1) + f"\\item {item.text}\n"
-
-        # Recursively add children if any.
-        if item.children:
-            latex += render_latex(item.children, depth + 1)
-
-    # End itemize environment at the current depth.
-    latex += "  " * depth + "\\end{itemize}\n"
-
-    # Close frame if it's the top level with a frame title.
-    if depth == 0 and frame_title:
-        latex += "\\end{frame}\n"
-
-    return latex
-
-
-def markdown_to_latex(markdown: str) -> str:
-    """
-    Convert a nested markdown list into LaTeX format, wrapped in a frame if the list starts with "*".
-
-    :param markdown: A list of markdown lines.
-    :return: LaTeX formatted string for the nested list.
-
-    Example:
-        >>> markdown_to_latex([
-            "* Title of Frame",
-            "  * First item",
-            "    * Subitem 1",
-            "* Second item"])
-        "\\begin{frame}{Title of Frame}\n
-        \\begin{itemize}\n
-        \\item Title of Frame\n
-        \\item First item\n
-        \\item Subitem 1\n
-        \\item Second item\n
-        \\end{itemize}\n
-        \\end{frame}\n"
-    """
-    hdbg.dassert_isinstance(markdown, str)
+def markdown_list_to_latex(markdown: str) -> str:
+    markdown = hprint.dedent(markdown)
+    # Remove the first line if it's a title.
     markdown = markdown.split("\n")
-    # Parse markdown into a structured list.
-    items = _parse_markdown(markdown)
-    # Determine if the top-level item is a frame.
-    if items and items[0].text.startswith("*"):
-        frame_title = items[0].text
+    m = re.match("^(\*+ )(.*)", markdown[0])
+    if m:
+        title = m.group(2)
+        markdown = markdown[1:]
     else:
-        frame_title = ""
-    # Render LaTeX output from the structured list.
-    txt = render_latex(items, frame_title=frame_title)
+        title = ""
+    markdown = "\n".join(markdown)
+    # Convert.
+    txt = hpandoc.convert_pandoc_md_to_latex(markdown)
+    # Remove \tightlist and empty lines.
+    lines = txt.splitlines()
+    lines = [line for line in lines if '\\tightlist' not in line]
+    lines = [line for line in lines if line.strip() != ""]
+    txt = '\n'.join(lines)
+    # Add the title frame.
+    if title:
+        txt = "\\begin{frame}{%s}" % title + "\n" + txt + "\n" + "\\end{frame}"
     return txt
 
 

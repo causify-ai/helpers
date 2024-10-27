@@ -18,35 +18,13 @@ import argparse
 import logging
 
 import helpers.hdbg as hdbg
-import helpers.hio as hio
+import helpers.hpandoc as hpandoc
 import helpers.hparser as hparser
-import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
-
-
-def _convert_pandoc_md_to_latex(
-    txt: str,
-) -> str:
-    """
-    Run Pandoc to convert a markdown file to a latex file.
-    """
-    # Save to tmp file.
-    in_file_name = "./tmp.run_pandoc_in.md"
-    hio.to_file(in_file_name, txt)
-    # Run Pandoc.
-    out_file_name = "./tmp.run_pandoc_out.tex"
-    cmd = (
-        f"pandoc --read=markdown --write=latex -o {out_file_name}"
-        f" {in_file_name}"
-    )
-    hsystem.system(cmd)
-    # Read tmp file.
-    res = hio.from_file(out_file_name)
-    return res
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -74,7 +52,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Transform.
     txt_tmp = "\n".join(txt)
     if args.action == "convert_md_to_latex":
-        txt_out = _convert_pandoc_md_to_latex(txt_tmp)
+        txt_out = hpandoc.convert_pandoc_md_to_latex(txt_tmp)
     else:
         hdbg.dfatal("Invalid action='%s'", args.action)
     # Write file.
