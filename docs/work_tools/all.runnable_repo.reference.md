@@ -15,10 +15,9 @@
 - Support composing code based using GitHub sub-repo approach
 - Manage dependencies in a way that is uniform across platforms and OSes, using
   Docker containers
-- Separate the need to build container (by devops) vs the need to use a
-  container (for developers)
-- Ensure alignment between development environment and CI systems (e.g.,
-  GitHub)
+- Separate the need to build container (by devops) vs the need to use a container
+  (for developers)
+- Ensure alignment between development environment and CI systems (e.g., GitHub)
 - Carefully manage and control dependencies using Python managers (such as
   `poetry`) and virtual environments
 - Run end-to-end tests using `pytest` by automatically discover tests based on
@@ -31,15 +30,15 @@
   development
 - A system of makefile-like tools based on Python `invoke` package to create
   workflows
-- Make it easy to add our development chain to a given a "new project" (e.g.,
-  new repo such as `dev_scripts`, `sports_analytics`) by simply adding a Git
-  sub-repo
+- Make it easy to add our development chain to a given a "new project" (e.g., new
+  repo such as `dev_scripts`, `sports_analytics`) by simply adding a Git sub-repo
 - Have a simple way to maintain common files across different repos in sync
 - Code and containers can be versioned and kept in sync automatically
   - Code is versioned through Git
   - Each container has a `changelog.txt` that contains the current version and
     the history
   - A certain version of the code can require a certain version of the container
+    to run properly
 
 # Alternative solution
 
