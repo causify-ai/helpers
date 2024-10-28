@@ -17,7 +17,7 @@ from invoke import task
 
 # We want to minimize the dependencies from non-standard Python packages since
 # this code needs to run with minimal dependencies and without Docker.
-import helpers.haws as haws
+import helpers.hs3 as hs3
 import helpers.hdbg as hdbg
 import helpers.hdict as hdict
 import helpers.henv as henv
@@ -357,7 +357,7 @@ def _docker_login_ecr() -> None:
     #   https://*****.dkr.ecr.us-east-1.amazonaws.com
     # TODO(gp): Move this to var in repo_config.py.
     profile = "ck"
-    region = haws.AWS_EUROPE_REGION_1
+    region = hs3.AWS_EUROPE_REGION_1
     if major_version == 1:
         cmd = f"eval $(aws ecr get-login --profile {profile} --no-include-email --region {region})"
     elif major_version == 2:
@@ -1433,6 +1433,7 @@ def docker_cmd(  # type: ignore
     generate_docker_compose_file=True,
     use_bash=False,
     container_dir_name=".",
+    skip_pull=False,
 ):
     """
     Execute the command `cmd` inside a container corresponding to a stage.
@@ -1454,7 +1455,7 @@ def docker_cmd(  # type: ignore
         as_user=as_user,
         use_bash=use_bash,
     )
-    _docker_cmd(ctx, docker_cmd_)
+    _docker_cmd(ctx, docker_cmd_, skip_pull=skip_pull)
 
 
 # ////////////////////////////////////////////////////////////////////////////////

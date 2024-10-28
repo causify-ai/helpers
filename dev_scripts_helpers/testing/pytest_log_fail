@@ -1,0 +1,11 @@
+#!/bin/bash -e
+
+FILE="tmp.pytest_log_fail.txt"
+
+# FAILED oms/broker/ccxt/test/test_ccxt_execution_quality.py::Test_compute_adj_fill_ecdfs::test3 - RuntimeError:
+\grep -E "^FAILED|ERROR" tmp.pytest_script.txt | awk '{print $2}' 2>&1 >$FILE
+
+# helpers_root/helpers/test/test_hserver.py::Test_hserver1::test_gp1 (0.00 s) PASSED [ 36%]
+\grep -E " FAILED|ERROR " tmp.pytest_script.txt | awk '{print $1}' 2>&1 >>$FILE
+
+cat $FILE | sort | uniq

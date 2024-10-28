@@ -707,11 +707,9 @@ def find_file_in_git_tree(
     We get the Git root and then search for the file from there.
     """
     root_dir = get_client_root(super_module=super_module)
+    cmd = rf"find {root_dir} -name '{file_name}' -not -path '*/.git/*'"
     if remove_tmp_base:
-        cmd = rf"find {root_dir} -name '{file_name}' -not -path '*/\.git/*' -not -path '*/tmp\.base/*'"
-    else:
-        # TODO(gp): Use -not -path '*/\.git/*'
-        cmd = f"find {root_dir} -name '{file_name}' | grep -v .git"
+        cmd += rf"-not -path '*/tmp\.base/*'"
     _, file_name = hsystem.system_to_one_line(cmd)
     _LOG.debug("file_name=%s", file_name)
     hdbg.dassert_ne(

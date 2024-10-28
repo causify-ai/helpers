@@ -7,7 +7,7 @@ Convert Docx file to Markdown.
 
 - Run this command in the same directory as the Markdown file:
 > FILE_NAME="tmp"; ls $FILE_NAME
-> dev_scripts/convert_docx_to_markdown.py --docx_file $FILE_NAME.docx --md_file $FILE_NAME.md
+> convert_docx_to_markdown.py --docx_file $FILE_NAME.docx --md_file $FILE_NAME.md
 """
 
 import argparse
@@ -31,7 +31,8 @@ def _convert_docx_to_markdown(
 
     :param docx_file: path to the Docx file
     :param md_file: path to the Markdown file
-    :param md_file_figs: the folder containing the figures for Markdown file
+    :param md_file_figs: the folder containing the figures for Markdown
+        file
     """
     _LOG.info("Converting Docx to Markdown...")
     hdbg.dassert_file_exists(docx_file)

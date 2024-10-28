@@ -29,9 +29,9 @@ def get_home_dir() -> str:
     return home_dir
 
 
-def get_thin_environment_dir() -> str:
+def get_thin_environment_dir(dir_prefix: str) -> str:
     git_root_dir = get_git_root_dir()
-    thin_environ_dir = f"{git_root_dir}/dev_scripts_helpers/thin_client"
+    thin_environ_dir = f"{git_root_dir}/dev_scripts_{dir_prefix}/thin_client"
     return thin_environ_dir
 
 

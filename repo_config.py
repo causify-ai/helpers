@@ -32,9 +32,14 @@ def _print(msg: str) -> None:
 # #############################################################################
 
 
+# To customize: xyz
 #_REPO_NAME = "xyz"
 _REPO_NAME = "helpers"
+
+# To customize: xyz
 _GITHUB_REPO_ACCOUNT = "kaizen-ai"
+
+# To customize: xyz
 #_DOCKER_IMAGE_NAME = "xyz"
 _DOCKER_IMAGE_NAME = "helpers"
 

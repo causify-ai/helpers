@@ -166,8 +166,9 @@ def reconcile_data_run_notebook(
     opts = (
         "--num_threads 'serial' --allow_errors --publish_notebook -v DEBUG 2>&1"
     )
+    script_path = hgit.find_file_in_git_tree("run_notebook.py")
     cmd_run_txt = [
-        "amp/dev_scripts/notebooks/run_notebook.py",
+        script_path,
         f"--notebook {notebook_path}",
         f"--config_builder '{config_builder}'",
         f"--dst_dir '{results_dir}'",
@@ -260,8 +261,9 @@ def reconcile_data_run_notebook(
     opts = (
         "--num_threads 'serial' --allow_errors --publish_notebook -v DEBUG 2>&1"
     )
+    script_path = hgit.find_file_in_git_tree("run_notebook.py")
     cmd_run_txt = [
-        "amp/dev_scripts/notebooks/run_notebook.py",
+        script_path,
         f"--notebook {notebook_path}",
         f"--config_builder '{config_builder}'",
         f"--dst_dir '{results_dir}'",

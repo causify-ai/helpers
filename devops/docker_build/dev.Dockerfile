@@ -8,7 +8,7 @@ FROM ubuntu:24.04 AS builder
 # TODO(gp): AM_CONTAINER_VERSION -> CK_CONTAINER_VERSION
 ARG AM_CONTAINER_VERSION
 ARG CLEAN_UP_INSTALLATION
-ARG INSTALL_DIND="False"
+ARG INSTALL_DIND
 ARG POETRY_MODE
 
 # Name of the virtual environment to create.
@@ -46,7 +46,7 @@ RUN /bin/bash -c "./install_python_packages.sh"
 
 # - Install Docker-in-docker.
 COPY devops/docker_build/install_dind.sh .
-RUN /bin/bash -c "if [[ $INSTALL_DIND == 1 ]]; then ./install_dind.sh; fi;"
+RUN /bin/bash -c 'if [[ $INSTALL_DIND == "True" ]]; then ./install_dind.sh; fi;'
 
 # - Create users and set permissions.
 COPY devops/docker_build/create_users.sh .

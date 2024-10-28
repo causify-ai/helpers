@@ -1,5 +1,4 @@
 import logging
-import os
 
 import helpers.hdbg as hdbg
 import helpers.henv as henv
@@ -37,8 +36,7 @@ class Test_url_py1(hunitest.TestCase):
         self.assertEqual(act, exp)
 
     def test_run1(self) -> None:
-        exec_name = os.path.join(hgit.get_amp_abs_path(),
-            "dev_scripts_helpers/coding_tools/url.py")
+        exec_name = hgit.find_file_in_git_tree("url.py")
         hdbg.dassert_path_exists(exec_name)
         _LOG.debug(hprint.to_str("exec_name"))
         cmd = (

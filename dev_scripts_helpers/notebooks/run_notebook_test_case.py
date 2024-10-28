@@ -33,10 +33,7 @@ class Test_Run_Notebook_TestCase(hunitest.TestCase):
         """
         dst_dir = self.get_scratch_space()
         #
-        amp_dir = hgit.get_amp_abs_path()
-        script_path = os.path.join(
-            amp_dir, "dev_scripts", "notebooks", "run_notebook.py"
-        )
+        script_path = hgit.find_file_in_git_tree("run_notebook.py")
         # Build a command to run the notebook.
         opts = f"--no_suppress_output --num_threads 'serial'{extra_opts} -v DEBUG 2>&1"
         cmd = [

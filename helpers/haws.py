@@ -16,11 +16,6 @@ import helpers.hs3 as hs3
 import helpers.hserver as hserver
 
 _LOG = logging.getLogger(__name__)
-AWS_EUROPE_REGION_1 = "eu-north-1"
-AWS_TOKYO_REGION_1 = "ap-northeast-1"
-AWS_REGIONS = [AWS_EUROPE_REGION_1, AWS_TOKYO_REGION_1]
-
-
 # #############################################################################
 # Utils
 # #############################################################################

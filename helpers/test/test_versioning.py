@@ -1,6 +1,5 @@
 import logging
 import os
-import pytest
 
 import helpers.hgit as hgit
 import helpers.hunit_test as hunitest
