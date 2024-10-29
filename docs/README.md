@@ -36,8 +36,8 @@
 - In `docs/work_tools`
   - `all.create_a_super_repo_with_helpers.how_to_guide.md`
     - Describe how to create a super-repo including helpers
-  - `all.create_a_releasable_dir.how_to_guide.md`
-    - Describe how to create a releasable dir, i.e., a directory that has code
+  - `all.create_a_runnable_dir.how_to_guide.md`
+    - Describe how to create a runnable dir, i.e., a directory that has code
       and a Docker container to run its code inside
     - TODO(gp): Rename to "runnable dir"
   - `all.devops_docker.how_to_guide.md`
