@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Convert a txt file into a PDF / HTML using pandoc.
+Convert a txt file into a PDF / HTML / slides using `pandoc`.
 
 # From scratch with TOC:
 > pandoc.py -a pdf --input ...
@@ -12,8 +12,9 @@ Convert a txt file into a PDF / HTML using pandoc.
 # Check that can be compiled:
 > pandoc.py -a pdf --no_toc --no_open_pdf --input ...
 
-> pandoc.py --input notes/IN_PROGRESS/math.The_hundred_page_ML_book.Burkov.2019.txt \
-        -a pdf --no_cleanup --no_cleanup_before --no_run_latex_again --no_open
+> pandoc.py \
+    --input notes/IN_PROGRESS/math.The_hundred_page_ML_book.Burkov.2019.txt \
+    -a pdf --no_cleanup --no_cleanup_before --no_run_latex_again --no_open
 """
 
 # TODO(gp): See below.
@@ -63,12 +64,18 @@ def _system_to_string(
 
 
 def _cleanup_before(prefix: str) -> None:
+    """
+    Remove all intermediate files.
+    """
     _LOG.warning("\n%s", hprint.frame("Clean up before", char1="<", char2=">"))
     cmd = f"rm -rf {prefix}*"
     _ = _system(cmd)
 
 
 def _convert_txt_to_pandoc(curr_path: str, file_: str, prefix: str) -> str:
+    """
+    Pre-process the file.
+    """
     _LOG.info("\n%s", hprint.frame("Pre-process markdown", char1="<", char2=">"))
     file1 = file_
     file2 = f"{prefix}.no_spaces.txt"
