@@ -13,7 +13,8 @@ FILE_NAME=$1
 # 1) Build container.
 IMAGE=latex
 # See devops/docker_build/install_publishing_tools.sh
-DOCKER_FILE=/tmp/tmp.dockerfile
+#DOCKER_FILE=/tmp/tmp.dockerfile
+DOCKER_FILE=./tmp.dockerfile
 cat >$DOCKER_FILE <<EOF
 FROM blang/latex:ubuntu
 EOF
@@ -39,3 +40,7 @@ docker run --rm -it $OPTS --workdir "${WORKDIR}" --mount "${MOUNT}" $IMAGE:lates
 
 # To debug:
 # > docker run --rm -it --user 2908:2908 --workdir /local/home/gsaggese/src/sasm-lime6/amp --mount type=bind,source=/local/home/gsaggese/src/sasm-lime6/amp,target=/local/home/gsaggese/src/sasm-lime6/amp ctags:latest
+
+# 4) Open.
+FILE_NAME_PDF=$(echo $FILE_NAME | sed 's/\.tex$/.pdf/')
+open -a /Applications/Skim.app ${FILE_NAME_PDF}

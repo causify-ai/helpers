@@ -165,6 +165,7 @@ def increase_chapter(in_file_name, out_file_name):
 
 
 def markdown_list_to_latex(markdown: str) -> str:
+    hdbg.dassert_isinstance(markdown, str)
     markdown = hprint.dedent(markdown)
     # Remove the first line if it's a title.
     markdown = markdown.split("\n")
@@ -196,7 +197,7 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument(
-        "-a", "--action", choices=["toc", "format", "increase"], required=True
+        "-a", "--action", required=True
     )
     hparser.add_input_output_args(parser)
     parser.add_argument("-l", "--max_lev", default=5)
@@ -206,8 +207,10 @@ def _parse() -> argparse.ArgumentParser:
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    print("cmd line: %s" % hdbg.get_command_line())
-    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    #print("cmd line: %s" % hdbg.get_command_line())
+    #hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    hdbg.init_logger(verbosity=logging.ERROR, use_exec_path=True,
+                     force_white=False)
     #
     cmd = args.action
     max_lev = int(args.max_lev)
@@ -221,6 +224,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
         format_text(in_file_name, out_file_name, max_lev)
     elif cmd == "increase":
         increase_chapter(in_file_name, out_file_name)
+    elif cmd == "md_list_to_latex":
+        txt = hparser.read_file(in_file_name)
+        txt = "\n".join(txt)
+        txt = markdown_list_to_latex(txt)
+        hparser.write_file(txt, out_file_name)
     else:
         assert 0, "Invalid cmd='%s'" % cmd
 
