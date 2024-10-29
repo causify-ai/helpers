@@ -16,7 +16,7 @@ Convert a txt file into a PDF / HTML using pandoc.
         -a pdf --no_cleanup --no_cleanup_before --no_run_latex_again --no_open
 """
 
-# TODO(gp):
+# TODO(gp): See below.
 #  - clean up the file_ file_out logic and make it a pipeline
 #  - factor out the logic from linter.py about actions and use it everywhere
 
@@ -64,19 +64,15 @@ def _system_to_string(
 
 def _cleanup_before(prefix: str) -> None:
     _LOG.warning("\n%s", hprint.frame("Clean up before", char1="<", char2=">"))
-    cmd = "rm -rf %s*" % prefix
+    cmd = f"rm -rf {prefix}*"
     _ = _system(cmd)
 
 
 def _convert_txt_to_pandoc(curr_path: str, file_: str, prefix: str) -> str:
     _LOG.info("\n%s", hprint.frame("Pre-process markdown", char1="<", char2=">"))
     file1 = file_
-    file2 = "%s.no_spaces.txt" % prefix
-    cmd = "%s/convert_txt_to_pandoc.py --input %s --output %s" % (
-        curr_path,
-        file1,
-        file2,
-    )
+    file2 = f"{prefix}.no_spaces.txt"
+    cmd = f"{curr_path}/convert_txt_to_pandoc.py --input {file1} --output {file2}"
     _ = _system(cmd)
     file_ = file2
     return file_
@@ -113,7 +109,7 @@ def _run_latex(cmd: str, file_: str) -> None:
         txt = "\n".join(txt_as_arr)
         _LOG.error(txt)
         _LOG.error("Log is in %s", log_file)
-        _LOG.error("\n%s", hprint.frame("cmd is:\n> %s" % cmd))
+        _LOG.error("\n%s", hprint.frame(f"cmd is:\n> {cmd}"))
         raise RuntimeError("Latex failed")
 
 
@@ -124,17 +120,16 @@ def _run_pandoc_to_pdf(
     #
     file1 = file_
     cmd = []
-    cmd.append("pandoc %s" % file1)
+    cmd.append(f"pandoc {file1}")
     cmd.extend(_COMMON_PANDOC_OPTS[:])
     #
     cmd.append("-t latex")
-    template = "%s/pandoc.latex" % curr_path
+    template = f"{curr_path}/pandoc.latex"
     hdbg.dassert_path_exists(template)
-    cmd.append("--template %s" % template)
-    cmd.append("--filter pandoc-plantuml")
+    cmd.append(f"--template {template}")
     #
-    file2 = "%s.tex" % prefix
-    cmd.append("-o %s" % file2)
+    file2 = f"{prefix}.tex"
+    cmd.append(f"-o {file2}")
     if not args.no_toc:
         cmd.append("--toc")
         cmd.append("--toc-depth 2")
@@ -152,14 +147,14 @@ def _run_pandoc_to_pdf(
     # pdflatex needs to run in the same dir of latex_abbrevs.sty so we
     # cd to that dir and save the output in the same dir of the input.
     hdbg.dassert_path_exists(_EXEC_DIR_NAME + "/latex_abbrevs.sty")
-    cmd = "cd %s; " % _EXEC_DIR_NAME
+    cmd = f"cd {_EXEC_DIR_NAME}; "
     cmd += (
         "pdflatex"
         + " -interaction=nonstopmode"
         + " -halt-on-error"
         + " -shell-escape"
-        + " -output-directory %s" % os.path.dirname(file_)
-        + " %s" % file_
+        + f" -output-directory {os.path.dirname(file_)}"
+        + f" {file_}"
     )
 
     _run_latex(cmd, file_)
@@ -182,13 +177,13 @@ def _run_pandoc_to_html(
     _LOG.info("\n%s", hprint.frame("Pandoc to html", char1="<", char2=">"))
     #
     cmd = []
-    cmd.append("pandoc %s" % file_in)
+    cmd.append(f"pandoc {file_in}")
     cmd.extend(_COMMON_PANDOC_OPTS[:])
     cmd.append("-t html")
-    cmd.append("--metadata pagetitle='%s'" % os.path.basename(file_in))
+    cmd.append(f"--metadata pagetitle='{os.path.basename(file_in)}'")
     #
-    file2 = "%s.html" % prefix
-    cmd.append("-o %s" % file2)
+    file2 = f"{prefix}.html"
+    cmd.append(f"-o {file2}")
     if not args.no_toc:
         cmd.append("--toc")
         cmd.append("--toc-depth 2")
@@ -207,13 +202,9 @@ def _copy_to_output(args: argparse.Namespace, file_in: str, prefix: str) -> str:
         file_out = args.output
     else:
         _LOG.debug("Leaving file_out in the tmp dir")
-        file_out = "%s.%s.%s" % (
-            prefix,
-            os.path.basename(args.input),
-            args.type,
-        )
+        file_out = f"{prefix}.{os.path.basename(args.input)}.{args.type}"
     _LOG.debug("file_out=%s", file_out)
-    cmd = r"\cp -af %s %s" % (file_in, file_out)
+    cmd = rf"\cp -af {file_in} {file_out}"
     _ = _system(cmd)
     return file_out  # type: ignore
 
@@ -231,14 +222,14 @@ def _copy_to_gdrive(args: argparse.Namespace, file_name: str, ext: str) -> None:
     basename = os.path.basename(args.input).replace(".txt", "." + ext)
     _LOG.debug("basename=%s", basename)
     dst_file = os.path.join(gdrive_dir, basename)
-    cmd = r"\cp -af %s %s" % (file_name, dst_file)
+    cmd = rf"\cp -af {file_name} {dst_file}"
     _ = _system(cmd)
     _LOG.debug("Saved file='%s' to gdrive", dst_file)
 
 
 def _cleanup_after(prefix: str) -> None:
     _LOG.info("\n%s", hprint.frame("Clean up after", char1="<", char2=">"))
-    cmd = "rm -rf %s*" % prefix
+    cmd = f"rm -rf {prefix}*"
     _ = _system(cmd)
 
 
@@ -285,7 +276,7 @@ def _pandoc(args: argparse.Namespace) -> None:
         elif args.type == "html":
             file_out = _run_pandoc_to_html(args, file_, prefix)
         else:
-            raise ValueError("Invalid type='%s'" % args.type)
+            raise ValueError(f"Invalid type='{args.type}'")
     file_in = file_out
     file_final = _copy_to_output(args, file_in, prefix)
     #

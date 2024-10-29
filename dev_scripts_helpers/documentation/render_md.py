@@ -1,22 +1,22 @@
 #!/usr/bin/env python
 
 """
-Add rendered images to all plantUML sections in the markdown files.
+The script replaces all plantUML sections in the markdown files with rendered
+images:
 
 Usage:
     1. Include plantUML diagram picture to markdown:
     > render_md.py -i ABC.md -o XYZ.md --action render
-    > render_md.py -i ABC.md -o XYZ.md
 
     2. Include plantUML diagram picture in place:
-    > render_md.py -i ABC.md
+    > render_md.py -i ABC.md --action render
 
     3. Open html to preview:
     > render_md.py -i ABC.md --action open
 
     4. Render with preview:
-    > render_md.py -i ABC.md -o XYZ.md --all
-    > render_md.py -i ABC.md --all
+    > render_md.py -i ABC.md -o XYZ.md
+    > render_md.py -i ABC.md
 
 Import as:
 
@@ -42,7 +42,7 @@ _LOG = logging.getLogger(__name__)
 _ACTION_OPEN = "open"
 _ACTION_RENDER = "render"
 _VALID_ACTIONS = [_ACTION_OPEN, _ACTION_RENDER]
-_DEFAULT_ACTIONS = [_ACTION_RENDER]
+_DEFAULT_ACTIONS = [_ACTION_OPEN, _ACTION_RENDER]
 
 
 def _open_html(md_file: str) -> None:
@@ -54,8 +54,8 @@ def _open_html(md_file: str) -> None:
     curr_path = os.path.abspath(os.path.dirname(__file__))
     tmp_dir = os.path.split(md_file)[0]
     cmd = (
-        "%s/pandoc.py -t %s -i %s --skip_action %s --skip_action %s --tmp_dir %s"
-        % (curr_path, "html", md_file, "copy_to_gdrive", "cleanup_after", tmp_dir)
+        f"{curr_path}/pandoc.py -t html -i {md_file} --skip_action "
+        f"copy_to_gdrive --skip_action cleanup_after --tmp_dir {tmp_dir}"
     )
     hsystem.system(cmd)
 
@@ -81,13 +81,13 @@ def _uml_file_names(
     dst_dir, dest_file_name = os.path.split(os.path.abspath(dest_file))
     file_name_body = os.path.splitext(dest_file_name)[0]
     # Create image name.
-    img_name = "%s.%s.%s" % (file_name_body, idx, extension)
+    img_name = f"{file_name_body}.{idx}.{extension}"
     # Get dir with images.
     abs_path = os.path.join(dst_dir, sub_dir)
     # Get relative path to image.
     rel_path = os.path.join(sub_dir, img_name)
     # Get temporary file name.
-    tmp_name = "%s.%s.puml" % (file_name_body, idx)
+    tmp_name = f"{file_name_body}.{idx}.puml"
     return (abs_path, rel_path, tmp_name)
 
 
@@ -97,7 +97,7 @@ def _render_command(uml_file: str, pic_dest: str, extension: str) -> str:
     """
     available_extensions = ["svg", "png"]
     hdbg.dassert_in(extension, available_extensions)
-    cmd = "plantuml -t%s -o %s %s" % (extension, pic_dest, uml_file)
+    cmd = f"plantuml -t{extension} -o {pic_dest} {uml_file}"
     return cmd
 
 
@@ -121,9 +121,9 @@ def _render_plantuml_code(
     # Format UML text to render.
     uml_content = uml_text
     if not uml_content.startswith("@startuml"):
-        uml_content = "@startuml\n%s" % uml_content
+        uml_content = f"@startuml\n{uml_content}"
     if not uml_content.endswith("@enduml"):
-        uml_content = "%s\n@enduml" % uml_content
+        uml_content = f"{uml_content}\n@enduml"
     # Create the including directory, if needed.
     hio.create_enclosing_dir(out_file, incremental=True)
     # Get pathes.
@@ -179,7 +179,7 @@ def _render_plantuml(
                 extension=extension,
                 dry_run=dry_run,
             )
-            out_txt.append("![](%s)" % img_file_name)
+            out_txt.append(f"![]({img_file_name})")
             state = "searching"
             _LOG.debug(" -> state=%s", state)
         elif line.strip != "```" and state == "found_plantuml":
@@ -208,7 +208,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Insert your code here.
     # Read file arguments.
-    in_file, out_file = hparser.parse_input_output_args(args, clear_screen=True)
+    in_file, out_file = hparser.parse_input_output_args(args)
     # Not support stdin and stdout.
     hdbg.dassert_ne(in_file, "-")
     hdbg.dassert_ne(out_file, "-")

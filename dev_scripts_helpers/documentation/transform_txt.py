@@ -42,7 +42,7 @@ import helpers.hparser as hparser
 _LOG = logging.getLogger(__name__)
 
 
-def _skip_comments(line, skip_block):
+def skip_comments(line: str, skip_block: bool) -> Tuple[bool, bool]:
     skip_this_line = False
     # Handle comment block.
     if line.startswith("<!--"):
@@ -65,15 +65,12 @@ def _skip_comments(line, skip_block):
     return skip_this_line, skip_block
 
 
-# #############################################################################
-
-
-def table_of_content(file_name, max_lev):
+def table_of_content(file_name: str, max_lev: int) -> None:
     skip_block = False
     txt = hparser.read_file(file_name)
     for line in txt:
         # Skip comments.
-        skip_this_line, skip_block = _skip_comments(line, skip_block)
+        skip_this_line, skip_block = skip_comments(line, skip_block)
         if False and skip_this_line:
             continue
         #
@@ -87,14 +84,11 @@ def table_of_content(file_name, max_lev):
                 ):
                     if i == 1:
                         print()
-                    print("%s%s" % ("    " * (i - 1), line))
+                    print(f"{'    ' * (i - 1)}{line}")
                 break
 
 
-# #############################################################################
-
-
-def format_text(in_file_name, out_file_name, max_lev):
+def format_text(in_file_name: str, out_file_name: str, max_lev: int) -> None:
     txt = hparser.read_file(in_file_name)
     #
     for line in txt:
@@ -135,10 +129,7 @@ def format_text(in_file_name, out_file_name, max_lev):
     hparser.write_file(txt_tmp, out_file_name)
 
 
-# #############################################################################
-
-
-def increase_chapter(in_file_name, out_file_name):
+def increase_chapter(in_file_name: str, out_file_name: str) -> None:
     """
     Increase the level of chapters by one for text in stdin.
     """
@@ -147,7 +138,7 @@ def increase_chapter(in_file_name, out_file_name):
     #
     txt_tmp = []
     for line in txt:
-        skip_this_line, skip_block = _skip_comments(line, skip_block)
+        skip_this_line, skip_block = skip_comments(line, skip_block)
         if skip_this_line:
             continue
         #
@@ -230,7 +221,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         txt = markdown_list_to_latex(txt)
         hparser.write_file(txt, out_file_name)
     else:
-        assert 0, "Invalid cmd='%s'" % cmd
+        assert 0, f"Invalid cmd='{cmd}'"
 
 
 if __name__ == "__main__":
