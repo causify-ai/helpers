@@ -17,6 +17,8 @@ Convert a txt file into a PDF / HTML / slides using `pandoc`.
     -a pdf --no_cleanup --no_cleanup_before --no_run_latex_again --no_open
 """
 
+# TODO(gp): Rename to `convert_txt_to_pdf.py`.
+
 # TODO(gp): See below.
 #  - clean up the file_ file_out logic and make it a pipeline
 #  - factor out the logic from linter.py about actions and use it everywhere
@@ -66,6 +68,8 @@ def _system_to_string(
 def _cleanup_before(prefix: str) -> None:
     """
     Remove all intermediate files.
+
+    :param prefix: The prefix used to identify the files to be removed.
     """
     _LOG.warning("\n%s", hprint.frame("Clean up before", char1="<", char2=">"))
     cmd = f"rm -rf {prefix}*"
@@ -75,6 +79,11 @@ def _cleanup_before(prefix: str) -> None:
 def _convert_txt_to_pandoc(curr_path: str, file_: str, prefix: str) -> str:
     """
     Pre-process the file.
+
+    :param curr_path: The current path where the script is located
+    :param file_: The input file to be processed
+    :param prefix: The prefix used for the output file
+    :return: The path to the processed file
     """
     _LOG.info("\n%s", hprint.frame("Pre-process markdown", char1="<", char2=">"))
     file1 = file_
@@ -100,6 +109,12 @@ _COMMON_PANDOC_OPTS = [
 
 
 def _run_latex(cmd: str, file_: str) -> None:
+    """
+    Run the LaTeX command and handle errors.
+
+    :param cmd: The LaTeX command to be executed
+    :param file_: The file to be processed by LaTeX
+    """
     data: Tuple[int, str] = _system_to_string(cmd, abort_on_error=False)
     rc, txt = data
     log_file = file_ + ".latex1.log"
@@ -123,6 +138,15 @@ def _run_latex(cmd: str, file_: str) -> None:
 def _run_pandoc_to_pdf(
     args: argparse.Namespace, curr_path: str, file_: str, prefix: str
 ) -> str:
+    """
+    Convert the input file to PDF using Pandoc.
+
+    :param args: The command-line arguments
+    :param curr_path: The current path where the script is located
+    :param file_: The input file to be converted
+    :param prefix: The prefix used for the output file
+    :return: The path to the generated PDF file
+    """
     _LOG.info("\n%s", hprint.frame("Pandoc to pdf", char1="<", char2=">"))
     #
     file1 = file_
@@ -181,6 +205,14 @@ def _run_pandoc_to_pdf(
 def _run_pandoc_to_html(
     args: argparse.Namespace, file_in: str, prefix: str
 ) -> str:
+    """
+    Convert the input file to HTML using Pandoc.
+
+    :param args: The command-line arguments
+    :param file_in: The input file to be converted
+    :param prefix: The prefix used for the output file
+    :return: The path to the generated HTML file
+    """
     _LOG.info("\n%s", hprint.frame("Pandoc to html", char1="<", char2=">"))
     #
     cmd = []
@@ -204,6 +236,14 @@ def _run_pandoc_to_html(
 
 
 def _copy_to_output(args: argparse.Namespace, file_in: str, prefix: str) -> str:
+    """
+    Copy the processed file to the output location.
+
+    :param args: The command-line arguments
+    :param file_in: The input file to be copied
+    :param prefix: The prefix used for the output file
+    :return: The path to the copied output file
+    """
     if args.output is not None:
         _LOG.debug("Using file_out from command line")
         file_out = args.output
@@ -217,6 +257,13 @@ def _copy_to_output(args: argparse.Namespace, file_in: str, prefix: str) -> str:
 
 
 def _copy_to_gdrive(args: argparse.Namespace, file_name: str, ext: str) -> None:
+    """
+    Copy the processed file to Google Drive.
+
+    :param args: The command-line arguments
+    :param file_name: The name of the file to be copied
+    :param ext: The extension of the file to be copied
+    """
     _LOG.info("\n%s", hprint.frame("Copy to gdrive", char1="<", char2=">"))
     hdbg.dassert(not ext.startswith("."), "Invalid file_name='%s'", file_name)
     if args.gdrive_dir is not None:

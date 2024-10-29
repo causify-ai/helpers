@@ -3,10 +3,10 @@
 """
 # Publish all notes:
 
-> docs/scripts/publish_all_notes.py publish
+> publish_notes.py publish
 
 # Publish all the notes from scratch:
-> docs/scripts/publish_notes.py ls rm publish
+> publish_notes.py ls rm publish
 
 Import as:
 

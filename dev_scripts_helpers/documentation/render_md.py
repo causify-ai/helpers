@@ -23,6 +23,8 @@ Import as:
 import dev_scripts_helpers.documentation.render_md as dsdoremd
 """
 
+# TODO(gp): -> render_figures.py
+
 import argparse
 import logging
 import os
@@ -113,7 +115,7 @@ def _render_plantuml_code(
 
     :param uml_text: UML format text
     :param out_file: full path to output md file
-    :param idx: index of UML appearence
+    :param idx: index of UML appearance
     :param extension: type of rendered image
     :param dry_run: if True, doesn't execute plantulml command
     :return: related path to image
