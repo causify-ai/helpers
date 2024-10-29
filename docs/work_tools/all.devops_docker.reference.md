@@ -3,6 +3,14 @@
 <!-- toc -->
 
 - [Code organization](#code-organization)
+  * [Devops to build, run, release a container](#devops-to-build-run-release-a-container)
+  * [Detailed description of files](#detailed-description-of-files)
+  * [Devops to run an already existing container](#devops-to-run-an-already-existing-container)
+  * [Switch variables definitions](#switch-variables-definitions)
+  * [Scenarios for setting switch variables](#scenarios-for-setting-switch-variables)
+- [Docker invoke flow](#docker-invoke-flow)
+  * [`docker_bash`](#docker_bash)
+  * [`docker_jupyter`](#docker_jupyter)
 
 <!-- tocstop -->
 
@@ -136,6 +144,38 @@
   `-- env/
       `-- default.env
   ```
+
+## Switch variables definitions
+
+- `IS_SUPER_REPO`: indicate that the current repository is a super-repo.
+  - It controls whether we need to use helpers from `helpers_root` directory.
+- `IS_SUB_DIR`: indicate that the current runnable directory is a sub directory
+  under the root directory, not the root itself.
+  - It controls whether we need to mount the container at the top-level Git dir
+    to access `.git` and other root level directories.
+
+## Scenarios for setting switch variables
+
+- A runnable dir is super-repo (e.g. `cmamp`, `quant_dashboard`) and `helpers`
+  is a sub-repo
+  - `IS_SUPER_REPO` = 1 (`helpers_root/helpers` is used as helpers)
+  - `IS_SUB_DIR` = 0 (the runnable dir is at root level)
+
+- A runnable dir is a sub-directory (e.g. `ck.infra`) under a runnable
+  super-repo and `helpers` is a sub-repo
+  - `IS_SUPER_REPO` = 1 (`helpers_root/helpers` is used as helpers)
+  - `IS_SUB_DIR` = 1 (the current runnable dir is a sub directory)
+
+- `helpers` as a super-repo
+  - `IS_SUPER_REPO` = 0 (`helpers` is used as helpers)
+  - `IS_SUB_DIR` = 0 (the runnable dir is at root level)
+
+- A runnable dir is super-repo (e.g. `cmamp`)
+  - `IS_SUPER_REPO` = 0 (`helpers` is used as helpers)
+  - `IS_SUB_DIR` = 0 (the runnable dir is at root level)
+  - TODO(\*): This is the current situation of `cmamp`. This case will be
+    eventually removed after we migrate from using `/cmamp/helpers` to using
+    `/helpers_root/helpers` as helpers.
 
 # Docker invoke flow
 
