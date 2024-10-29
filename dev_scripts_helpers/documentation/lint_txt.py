@@ -37,10 +37,10 @@ _LOG = logging.getLogger(__name__)
 def _preprocess(txt: str) -> str:
     _LOG.debug("txt=%s", txt)
     # Remove some artifacts when copying from gdoc.
-    txt = re.sub(r"ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ", "'", txt)
-    txt = re.sub(r"ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ", '"', txt)
-    txt = re.sub(r"ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ", '"', txt)
-    txt = re.sub(r"ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ¦", "...", txt)
+    txt = re.sub(r"’", "'", txt)
+    txt = re.sub(r"“", '"', txt)
+    txt = re.sub(r"”", '"', txt)
+    txt = re.sub(r"…", "...", txt)
     txt_new: List[str] = []
     for line in txt.split("\n"):
         # Skip frames.
@@ -164,6 +164,39 @@ def _postprocess(txt: str, in_file_name: str) -> str:
     return txt_new_as_str
 
 
+def _frame_chapters(txt: str, max_lev: int = 4) -> str:
+    """
+    Add the frame around each chapter.
+    """
+    txt_new: List[str] = []
+    # _LOG.debug("txt=%s", txt)
+    for i, line in enumerate(txt.split("\n")):
+        _LOG.debug("line=%d:%s", i, line)
+        m = re.match(r"^(\#+) ", line)
+        txt_processed = False
+        if m:
+            comment = m.group(1)
+            lev = len(comment)
+            _LOG.debug("  -> lev=%s", lev)
+            if lev < max_lev:
+                sep = comment + " " + "#" * (80 - 1 - len(comment))
+                txt_new.append(sep)
+                txt_new.append(line)
+                txt_new.append(sep)
+                txt_processed = True
+            else:
+                _LOG.debug(
+                    "  -> Skip formatting the chapter frame: lev=%d, "
+                    "max_lev=%d",
+                    lev,
+                    max_lev,
+                )
+        if not txt_processed:
+            txt_new.append(line)
+    txt_new_as_str = "\n".join(txt_new).rstrip("\n")
+    return txt_new_as_str
+
+
 def _refresh_toc(txt: str) -> str:
     _LOG.debug("txt=%s", txt)
     # Check whether there is a TOC otherwise add it.
@@ -205,6 +238,7 @@ def _process(
     actions: Optional[List[str]] = None,
     print_width: Optional[int] = None,
 ) -> str:
+    is_md_file = in_file_name.endswith(".md")
     # Pre-process text.
     action = "preprocess"
     if _to_execute_action(action, actions):
@@ -217,10 +251,14 @@ def _process(
     action = "postprocess"
     if _to_execute_action(action, actions):
         txt = _postprocess(txt, in_file_name)
+    # Frame chapters.
+    action = "frame_chapters"
+    if _to_execute_action(action, actions):
+        if not is_md_file:
+            txt = _frame_chapters(txt)
     # Refresh table of content.
     action = "refresh_toc"
     if _to_execute_action(action, actions):
-        is_md_file = in_file_name.endswith(".md")
         if is_md_file:
             txt = _refresh_toc(txt)
     return txt
@@ -232,6 +270,7 @@ _VALID_ACTIONS = [
     "preprocess",
     "prettier",
     "postprocess",
+    "frame_chapters",
     "refresh_toc",
 ]
 
