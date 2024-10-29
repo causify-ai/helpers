@@ -75,15 +75,22 @@ set_pythonpath
 
 if [[ $IS_SUPER_REPO == 1 ]]; then
     # Add helpers.
-    dassert_dir_exists $HELPERS_ROOT_DIR
-    export PYTHONPATH=$HELPERS_ROOT_DIR:$PYTHONPATH
+    # dassert_dir_exists $HELPERS_ROOT_DIR
+    # export PYTHONPATH=$HELPERS_ROOT_DIR:$PYTHONPATH
 
     # We need to give priority to the local `repo_config` over the one in
     # `helpers_root`.
-    export PYTHONPATH=$(pwd):$PYTHONPATH
+    # export PYTHONPATH=$(pwd):$PYTHONPATH
 
     # Remove duplicates.
-    export PYTHONPATH=$(remove_dups $PYTHONPATH)
+    # export PYTHONPATH=$(remove_dups $PYTHONPATH)
+
+    # TODO(*): Is there a better way to do this?
+    # Make sure current dir has the highest priority.
+    # For example, if we are in `cmamp/ck.infra`, we want to have
+    # `cmamp/ck.infra` at the top.
+    # We unset the path because we need to remove `cmamp` from the path as well.
+    export PROMPT_COMMAND='unset PYTHONPATH; export PYTHONPATH=$(pwd):$(remove_dups $HELPERS_ROOT_DIR:$PYTHONPATH)'
 
     # Print.
     echo "PYTHONPATH=$PYTHONPATH"
