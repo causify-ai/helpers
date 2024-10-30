@@ -94,20 +94,6 @@ def _convert_txt_to_pandoc(curr_path: str, file_: str, prefix: str) -> str:
     return file_
 
 
-_COMMON_PANDOC_OPTS = [
-    "-V geometry:margin=1in",
-    "-f markdown",
-    "--number-sections",
-    # - To change the highlight style
-    # https://github.com/jgm/skylighting
-    "--highlight-style=tango",
-    "-s",
-]
-# --filter /Users/$USER/src/github/pandocfilters/examples/tikz.py \
-# -F /Users/$USER/src/github/pandocfilters/examples/lilypond.py \
-# --filter pandoc-imagine
-
-
 def _run_latex(cmd: str, file_: str) -> None:
     """
     Run the LaTeX command and handle errors.
@@ -133,6 +119,20 @@ def _run_latex(cmd: str, file_: str) -> None:
         _LOG.error("Log is in %s", log_file)
         _LOG.error("\n%s", hprint.frame(f"cmd is:\n> {cmd}"))
         raise RuntimeError("Latex failed")
+
+
+_COMMON_PANDOC_OPTS = [
+    "-V geometry:margin=1in",
+    "-f markdown",
+    "--number-sections",
+    # - To change the highlight style
+    # https://github.com/jgm/skylighting
+    "--highlight-style=tango",
+    "-s",
+]
+# --filter /Users/$USER/src/github/pandocfilters/examples/tikz.py \
+# -F /Users/$USER/src/github/pandocfilters/examples/lilypond.py \
+# --filter pandoc-imagine
 
 
 def _run_pandoc_to_pdf(
@@ -175,8 +175,8 @@ def _run_pandoc_to_pdf(
     # Run latex.
     #
     _LOG.info("\n%s", hprint.frame("Latex", char1="<", char2=">"))
-    # pdflatex needs to run in the same dir of latex_abbrevs.sty so we
-    # cd to that dir and save the output in the same dir of the input.
+    # pdflatex needs to run in the same dir of latex_abbrevs.sty so we `cd` to
+    # that dir and save the output in the same dir of the input.
     hdbg.dassert_path_exists(_EXEC_DIR_NAME + "/latex_abbrevs.sty")
     cmd = f"cd {_EXEC_DIR_NAME}; "
     cmd += (
@@ -187,7 +187,6 @@ def _run_pandoc_to_pdf(
         + f" -output-directory {os.path.dirname(file_)}"
         + f" {file_}"
     )
-
     _run_latex(cmd, file_)
     # Run latex again.
     _LOG.info("\n%s", hprint.frame("Latex again", char1="<", char2=">"))
@@ -230,6 +229,40 @@ def _run_pandoc_to_html(
     _ = _system(cmd, suppress_output=False)
     #
     file_out = os.path.abspath(file2.replace(".tex", ".html"))
+    _LOG.debug("file_out=%s", file_out)
+    hdbg.dassert_path_exists(file_out)
+    return file_out
+
+
+def _run_pandoc_to_slides(
+    args: argparse.Namespace, file_: str
+) -> str:
+    """
+    Convert the input file to PDF slides using Pandoc.
+
+    :param args: The command-line arguments
+    :param file_: The input file to be converted
+    :return: The path to the generated PDF file
+    """
+    _LOG.info("\n%s", hprint.frame("Pandoc to PDF slides", char1="<",
+                                   char2=">"))
+    _ = args
+    #
+    cmd = []
+    cmd.append(f"pandoc {file_}")
+    #
+    cmd.append("-t beamer")
+    cmd.append("--slide-level 3")
+    cmd.append("-V theme:SimplePlus")
+    if not args.no_toc:
+        cmd.append("--toc")
+        cmd.append("--toc-depth 2")
+    file_out = file_.replace(".txt", ".pdf")
+    cmd.append(f"-o {file_out}")
+    #
+    cmd = " ".join(cmd)
+    _ = _system(cmd, suppress_output=False)
+    #
     _LOG.debug("file_out=%s", file_out)
     hdbg.dassert_path_exists(file_out)
     return file_out
@@ -329,6 +362,8 @@ def _pandoc(args: argparse.Namespace) -> None:
             file_out = _run_pandoc_to_pdf(args, curr_path, file_, prefix)
         elif args.type == "html":
             file_out = _run_pandoc_to_html(args, file_, prefix)
+        elif args.type == "slides":
+            file_out = _run_pandoc_to_slides(args, file_)
         else:
             raise ValueError(f"Invalid type='{args.type}'")
     file_in = file_out
@@ -396,7 +431,8 @@ def _parse() -> argparse.ArgumentParser:
         help="Directory where to save artifacts",
     )
     parser.add_argument(
-        "-t", "--type", required=True, choices=["pdf", "html"], action="store"
+        "-t", "--type", required=True, choices=["pdf", "html", "slides"],
+                                                               action="store"
     )
     parser.add_argument(
         "--script", action="store", help="Bash script to generate"

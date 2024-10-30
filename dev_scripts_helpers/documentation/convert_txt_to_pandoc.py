@@ -173,9 +173,22 @@ def _process_question(line: str) -> Tuple[bool, str]:
 # #############################################################################
 
 
+# TODO(gp): -> _process
 def _transform(lines: List[str]) -> List[str]:
+    """
+    Process the notes to convert them into a format suitable for pandoc.
+
+    E.g.,
+    - prepend some directive for pandoc
+    - remove comments
+    - expand abbreviations
+    """
     out: List[str] = []
-    # - Process text.
+    # a) Prepend some directive for pandoc.
+    out.append(r"""\let\emph\textit""")
+    out.append(r"""\let\uline\underline""")
+    out.append(r"""\let\ul\underline""")
+    # b) Process text.
     # True inside a block to skip.
     in_skip_block = False
     # True inside a code block.
@@ -206,7 +219,7 @@ def _transform(lines: List[str]) -> List[str]:
         if do_continue:
             out.append(line)
             continue
-        # Process empty lines in the questions and answers.
+        # 6) Process empty lines in the questions and answers.
         is_empty = line.rstrip(" ").lstrip(" ") == ""
         if not is_empty:
             if line.startswith("#"):
@@ -239,13 +252,14 @@ def _transform(lines: List[str]) -> List[str]:
                 or next_line_is_verbatim
             ):
                 out.append(" " * _NUM_SPACES + line)
-    # - Clean up.
+    # c) Clean up.
     # Remove all the lines with only spaces.
     out_tmp = []
     for line in out:
         if re.search(r"^\s+$", line):
             line = ""
         out_tmp.append(line)
+    # Return result.
     out = out_tmp
     return out
 
@@ -271,10 +285,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
     lines = hio.from_file(args.input).split("\n")
     lines = [l.rstrip("\n") for l in lines]
     out: List[str] = []
-    # Add some directive for pandoc.
-    out.append(r"""\let\emph\textit""")
-    out.append(r"""\let\uline\underline""")
-    out.append(r"""\let\ul\underline""")
     # Transform.
     out_tmp = _transform(lines)
     out.extend(out_tmp)

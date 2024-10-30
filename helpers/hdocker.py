@@ -6,6 +6,8 @@ import helpers.hdocker as hdocker
 
 import copy
 import logging
+import os
+import tempfile
 from typing import Optional
 
 import helpers.hdbg as hdbg
@@ -79,3 +81,30 @@ def replace_shared_root_path(
     else:
         _LOG.debug("No replacement found, returning path as-is: %s", path)
     return path
+
+
+def build_container(docker_container_name: str, dockerfile: str) -> None:
+    # Check if the container already exists. If not, build it.
+    has_container = container_exists(docker_container_name)
+    if not has_container:
+        # Create temporary Dockerfile.
+        _LOG.info("Building Docker container...")
+        with tempfile.NamedTemporaryFile(suffix=".Dockerfile") as temp_dockerfile:
+            txt = dockerfile
+            temp_dockerfile.write(txt)
+            temp_dockerfile.flush()
+            # Build the container.
+            cmd = (
+                f"docker build -f {temp_dockerfile.name} -t {docker_container_name} ."
+            )
+            hsystem.system(cmd)
+        _LOG.info("Building Docker container... done")
+    return docker_container_name
+
+
+def run_container(cmd:str, docker_container_name: str) -> None:
+    work_dir = os.getcwd()
+    mount = f"type=bind,source={work_dir},target={work_dir}"
+    # Run docker under current `uid` and `gid`.
+    docker_cmd = f"docker run --rm --user $(id -u):$(id -g) -it --workdir {work_dir} --mount {mount} {docker_container_name} {cmd}"
+    hsystem.system(docker_cmd)
