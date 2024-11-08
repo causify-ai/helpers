@@ -9,6 +9,7 @@ import os
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hjupyter as hjupyte
+import helpers.hgit as hgit
 import helpers.hsystem as hsystem
 
 
