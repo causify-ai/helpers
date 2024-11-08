@@ -1256,8 +1256,8 @@ def is_client_clean(
     if "amp" in files:
         _LOG.warning("Skipping 'amp' in modified files")
         files = [f for f in files if "amp" != f]
-    # Remove "helpers_root" from files.
     elif "helpers_root" in files:
+        # Remove "helpers_root" from files.
         _LOG.warning("Skipping 'helpers_root' in modified files")
         files = [f for f in files if "helpers_root" != f]
     # A Git client is clean iff there are no files in the index.

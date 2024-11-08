@@ -201,7 +201,7 @@ def _find_short_import(iterator: Iterator, short_import: str) -> _FindResults:
 def _find_func_class_uses(iterator: Iterator, regex: str) -> _FindResults:
     regexs = []
     # E.g.,
-    # `dag_runner = dtfsys.RealTimeDagRunner(**dag_runner_kwargs)`
+    # `dag_runner = dtfamsys.RealTimeDagRunner(**dag_runner_kwargs)`
     regexs.append(rf"\s+(\w+)\.(\w*{regex})\(")
     # `dag_builder: dtfcodabui.DagBuilder`
     regexs.append(rf":\s*(\w+)\.(\w*{regex})")

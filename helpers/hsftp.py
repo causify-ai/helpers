@@ -6,6 +6,7 @@ import helpers.hsftp as hsftp
 import logging
 import os
 import subprocess
+import sys
 from io import BytesIO
 from typing import List
 
@@ -18,6 +19,99 @@ import helpers.hsecrets as hsecret
 
 # Create a logger instance.
 _LOG = logging.getLogger(__name__)
+
+
+def check_lftp_connection():
+    """
+    Check if `lftp` is installed.
+
+    If not, install it using the package manager.
+    """
+    try:
+        # Check if `lftp` is available by trying to run it.
+        subprocess.run(
+            ["lftp", "--version"],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        _LOG.info("`lftp` is already installed.")
+    except subprocess.CalledProcessError:
+        _LOG.error("Error occurred while checking `lftp` version.")
+        sys.exit(1)
+    except FileNotFoundError:
+        _LOG.warning("`lftp` is not installed. Attempting to install it...")
+        install_lftp()
+
+
+def install_lftp():
+    """
+    Install `lftp` using the system package manager.
+    """
+    try:
+        subprocess.run(["sudo", "apt-get", "update"], check=True)
+        subprocess.run(["sudo", "apt-get", "install", "-y", "lftp"], check=True)
+        _LOG.info("`lftp` successfully installed using `apt`.")
+    except Exception as e:
+        _LOG.error("Failed to install `lftp`: %s", e)
+        sys.exit(1)
+
+
+def download_file_using_lftp(
+    remote_data_path: str, save_path: str, hostname: str, secret_name: str
+) -> None:
+    """
+    Download files from a remote SFTP server using `lftp` and a private SSH
+    key.
+
+    :param remote_data_path: path to the remote directory on the SFTP
+        server from which files should be downloaded.
+    :param save_path: local directory where the downloaded files will be
+        saved.
+    :param hostname: hostname of the SFTP server.
+    :param secret_name: Name of the secret in AWS Secrets Manager that
+        stores the SFTP credentials, including the username and private
+        key.
+    :return: None.
+    """
+    # Fetch the private key from AWS Secrets Manager
+    secret_dict = hsecret.get_secret(secret_name)
+    username = secret_dict["username"]
+    private_key = secret_dict["private_key"]
+    # Write the private key to a temporary file
+    with open("/tmp/temp_key.pem", "w") as temp_key_file:
+        temp_key_file.write(private_key)
+    # Ensure the key file has the correct permissions
+    os.chmod("/tmp/temp_key.pem", 0o600)
+    private_key_path = "/tmp/temp_key.pem"
+    # Construct the lftp command.
+    # The 'set sftp:connect-program' allows specifying custom SSH options for the SFTP connection.
+    # -o GSSAPIAuthentication=no: Disables GSSAPI to avoid unnecessary authentication mechanisms.
+    # -o StrictHostKeyChecking=no: Bypasses the host key verification prompt for new hosts.
+    # -a: Enables SSH agent forwarding for more seamless authentication.
+    # -x: Disables X11 forwarding (not needed for file transfer).
+    # -i {private_key_path}: Specifies the private key for SSH authentication.
+    # 'mirror --parallel=10': Downloads files from the remote server, with 10 parallel downloads to speed up the process.
+    lftp_cmd = (
+        f"lftp -u {username}, -e \"set sftp:connect-program 'ssh -o GSSAPIAuthentication=no "
+        f"-o StrictHostKeyChecking=no -a -x -i {private_key_path}'; "
+        f'mirror --parallel=10 {remote_data_path} {save_path}; quit" '
+        f"sftp://{hostname}"
+    )
+    try:
+        _LOG.info("Executing lftp command: %s", lftp_cmd)
+        result = subprocess.run(
+            lftp_cmd,
+            shell=True,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except subprocess.CalledProcessError as e:
+        _LOG.error(
+            "lftp command failed with error: %s",
+            e.stderr,
+        )
 
 
 def get_sftp_connection(hostname: str, secret_name: str) -> pysftp.Connection:
