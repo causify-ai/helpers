@@ -23,16 +23,11 @@
   - Each file name uses the Diataxis naming convention
   - Each file name should be linked to the corresponding file as always
   - Files are organized in alphabetical order to make it easy to add more
-  - Files are organized by directory
-  - Each file name should be linked to the corresponding file
-  - The files are organized in alphabetical order to make it easy to add more
     files and see which file is missing
   - Each file has a bullet lists summarizing its content using imperative mode
-  - Each file name uses the Diataxis naming convention
 
 - In `docs`
   - `docs/README.md`
-    - This file. Describe all the available documentation files
     - This file
     - Describe all the available documentation files
   - `docs/code_organization.md`
