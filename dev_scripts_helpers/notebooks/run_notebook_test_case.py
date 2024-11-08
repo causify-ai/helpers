@@ -7,6 +7,7 @@ import dev_scripts_helpers.notebooks.run_notebook_test_case as dsnrnteca
 import logging
 
 import helpers.hgit as hgit
+import helpers.hjupyter as hjupyte
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 import reconciliation.lib_tasks_run_model_experiment_notebooks as rltrmexno
@@ -33,7 +34,7 @@ class Test_Run_Notebook_TestCase(hunitest.TestCase):
         """
         dst_dir = self.get_scratch_space()
         opts = f"--no_suppress_output --num_threads 'serial'{extra_opts} -v DEBUG 2>&1"
-        cmd = rltrmexno.build_run_notebook_cmd(
+        cmd = hjupyte.build_run_notebook_cmd(
             config_builder, dst_dir, notebook_path, extra_opts=opts
         )
         _LOG.debug("cmd=%s", cmd)
