@@ -8,10 +8,10 @@
 
 # Code organization
 
-- A repo or directory is "releasable" if it can build a Docker container and run
+- A repo or directory is "runnable" if it can build a Docker container and run
   its code inside the container
   - E.g., `//helpers`, `//amp`, `//orange`, `optimizer`
-- Each directory that is releasable contains the files:
+- Each directory that is runnable contains the files:
   - `changelog.txt`: store the changelog
   - `devops`: dir with all the Docker files needed to build and run a container
 

@@ -149,19 +149,21 @@ def get_client_root(super_module: bool) -> str:
 
 
 # TODO(gp): Replace get_client_root with this.
-def find_git_root(path: str = '.') -> str:
+def find_git_root(path: str = ".") -> str:
     """
     Find recursively the dir of the outermost super module.
     """
     path = os.path.abspath(path)
-    while not os.path.isdir(os.path.join(path, '.git')):
-        git_dir_file = os.path.join(path, '.git')
+    while not os.path.isdir(os.path.join(path, ".git")):
+        git_dir_file = os.path.join(path, ".git")
         if os.path.isfile(git_dir_file):
-            with open(git_dir_file, 'r') as f:
+            with open(git_dir_file, "r") as f:
                 for line in f:
-                    if line.startswith('gitdir:'):
-                        git_dir = line.split(':', 1)[1].strip()
-                        return os.path.abspath(os.path.join(path, git_dir, '..', '..'))
+                    if line.startswith("gitdir:"):
+                        git_dir = line.split(":", 1)[1].strip()
+                        return os.path.abspath(
+                            os.path.join(path, git_dir, "..", "..")
+                        )
         parent = os.path.dirname(path)
         if parent == path:
             return None
@@ -600,7 +602,7 @@ def _get_repo_short_to_full_name(include_host_name: bool) -> Dict[str, str]:
         pprint.pformat(current_repo_map),
     )
     # Update the map.
-    #hdbg.dassert_not_intersection(repo_map.keys(), current_repo_map.keys())
+    # hdbg.dassert_not_intersection(repo_map.keys(), current_repo_map.keys())
     repo_map.update(
         get_repo_map()  # type: ignore[name-defined]  # noqa: F821  # pylint: disable=undefined-variable
     )
@@ -1254,6 +1256,10 @@ def is_client_clean(
     if "amp" in files:
         _LOG.warning("Skipping 'amp' in modified files")
         files = [f for f in files if "amp" != f]
+    # Remove "helpers_root" from files.
+    elif "helpers_root" in files:
+        _LOG.warning("Skipping 'helpers_root' in modified files")
+        files = [f for f in files if "helpers_root" != f]
     # A Git client is clean iff there are no files in the index.
     is_clean = len(files) == 0
     if abort_if_not_clean:

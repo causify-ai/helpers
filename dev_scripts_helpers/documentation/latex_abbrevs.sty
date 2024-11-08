@@ -1,10 +1,10 @@
 % From https://tex.stackexchange.com/questions/75667/change-colour-on-chapter-section-headings-lyx
 \usepackage{xcolor}
-\usepackage{sectsty}
+%\usepackage{sectsty}
 %\chapterfont{\color{blue}}
-\sectionfont{\color{red}}
-\subsectionfont{\color{purple}}
-\subsubsectionfont{\color{blue}}
+%\sectionfont{\color{red}}
+%\subsectionfont{\color{purple}}
+%\subsubsectionfont{\color{blue}}
 
 % From https://tex.stackexchange.com/questions/1455/how-to-set-the-font-for-a-section-title-and-chapter-etc
 %\usepackage{titlesec}
@@ -343,6 +343,13 @@
 % Derivative at a point
 % https://tex.stackexchange.com/questions/64176/derivative-at-a-point
 \newcommand{\at}[2][]{#1|_{#2}}
+
+% Logic operators.
+\def\NOT{\textsf{\begin{footnotesize}NOT\end{footnotesize}}}
+\def\OR{\textsf{\begin{footnotesize} OR \end{footnotesize}}}
+\def\AND{\textsf{\begin{footnotesize} AND \end{footnotesize}}}
+\def\XOR{\textsf{\begin{footnotesize} XOR \end{footnotesize}}}
+\def\IFF{\textsf{\begin{footnotesize} IFF \end{footnotesize}}}
 
 % For some reasons new commands can't end with a number.
 %\newcommand{\v0}{\vv{0}}
