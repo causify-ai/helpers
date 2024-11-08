@@ -205,6 +205,8 @@ def docker_build_local_image(  # type: ignore
         hlitauti.run(ctx, cmd)
     # Retrieve the package files, if present.
     if poetry_mode == "update":
+        # TODO(gp): Not sure it works properly for multi-arch build, since on
+        # different platforms the generated poetry.lock might be different.
         # TODO(gp): For some reason we can't use more than one bash command in
         # docker_cmd.
         cmd = "cp -f /install/poetry.lock.out /install/pip_list.txt ."

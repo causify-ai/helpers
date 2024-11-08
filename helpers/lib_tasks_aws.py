@@ -53,13 +53,22 @@ def release_dags_to_airflow(
         hdbg.dassert_eq(
             curr_branch, "master", msg="You should release from master branch"
         )
+    # If no destination Airflow directory (`dst_airflow_dir`) is provided,
+    # determine the appropriate directory:
+    # - If `release_test` is provided, set the directory to the test-specific
+    #   Airflow DAGs location.
+    # - If it's not a test release, choose the destination based on the
+    #   platform.
     if dst_airflow_dir is None:
-        if platform == "EC2":
-            dst_airflow_dir = "/shared_data/airflow_preprod_new/dags"
-        elif platform == "K8":
-            dst_airflow_dir = "/shared_data/airflow/dags"
+        if release_test is not None:
+            dst_airflow_dir = "/shared_test/airflow/dags"
         else:
-            raise ValueError(f"Unknown platform: {platform}")
+            if platform == "EC2":
+                dst_airflow_dir = "/shared_data/airflow_preprod_new/dags"
+            elif platform == "K8":
+                dst_airflow_dir = "/shared_data/airflow/dags"
+            else:
+                raise ValueError(f"Unknown platform: {platform}")
     hdbg.dassert_dir_exists(dst_airflow_dir)
     file_paths = files.split()
     test_file_path = []

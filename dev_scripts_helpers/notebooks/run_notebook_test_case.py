@@ -5,9 +5,9 @@ import dev_scripts_helpers.notebooks.run_notebook_test_case as dsnrnteca
 """
 
 import logging
-import os
 
 import helpers.hgit as hgit
+import helpers.hjupyter as hjupyte
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
@@ -32,18 +32,10 @@ class Test_Run_Notebook_TestCase(hunitest.TestCase):
         :param extra_opts: options for "run_notebook.py", e.g., "--publish_notebook"
         """
         dst_dir = self.get_scratch_space()
-        #
-        script_path = hgit.find_file_in_git_tree("run_notebook.py")
-        # Build a command to run the notebook.
         opts = f"--no_suppress_output --num_threads 'serial'{extra_opts} -v DEBUG 2>&1"
-        cmd = [
-            f"{script_path}",
-            f"--notebook {notebook_path}",
-            f"--config_builder '{config_builder}'",
-            f"--dst_dir {dst_dir}",
-            f"{opts}",
-        ]
-        cmd = " ".join(cmd)
+        cmd = hjupyte.build_run_notebook_cmd(
+            config_builder, dst_dir, notebook_path, extra_opts=opts
+        )
         _LOG.debug("cmd=%s", cmd)
         # Execute.
         rc = hsystem.system(

@@ -119,22 +119,6 @@ def to_timestamp(datetime_: Datetime) -> pd.Timestamp:
     return timestamp
 
 
-# TODO(Grisha): use `str_to_timestamp()` everywhere and kill the current function.
-def timestamp_as_str_to_timestamp(
-    timestamp_as_str: str, *, tz: str = "America/New_York"
-) -> pd.Timestamp:
-    """
-    Convert the given string UTC timestamp to the ET timezone timestamp.
-    """
-    # TODO(Dan): Add assert for `start_timestamp_as_str` and `end_timestamp_as_str` regex.
-    hdbg.dassert_isinstance(timestamp_as_str, str)
-    timestamp_as_str = timestamp_as_str.replace("_", " ")
-    # Add timezone offset in order to standartize the time.
-    timestamp_as_str = "".join([timestamp_as_str, "+00:00"])
-    timestamp = pd.Timestamp(timestamp_as_str, tz=tz)
-    return timestamp
-
-
 # //////////////////////////////////////////////////////////////////////////////////O
 
 
@@ -585,6 +569,8 @@ def str_to_timestamp(
     """
     hdbg.dassert_isinstance(timestamp_as_str, str)
     hdbg.dassert_isinstance(tz, str)
+    msg = "timestamp_as_str must be nonempty."
+    hdbg.dassert_is_not(timestamp_as_str, "", msg=msg)
     _LOG.debug(hprint.to_str("timestamp_as_str tz datetime_format"))
     if datetime_format is None:
         # Try to infer the format automatically.
