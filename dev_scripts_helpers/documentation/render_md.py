@@ -5,22 +5,18 @@ The script replaces all plantUML sections in the markdown files with rendered
 images:
 
 Usage:
-    1. Include plantUML diagram picture to markdown:
-    > render_md.py -i ABC.md -o XYZ.md --action render
+# Include plantUML diagram picture to markdown:
+> render_md.py -i ABC.md -o XYZ.md --action render
 
-    2. Include plantUML diagram picture in place:
-    > render_md.py -i ABC.md --action render
+# Include plantUML diagram picture in place:
+> render_md.py -i ABC.md --action render
 
-    3. Open html to preview:
-    > render_md.py -i ABC.md --action open
+# Open html to preview:
+> render_md.py -i ABC.md --action open
 
-    4. Render with preview:
-    > render_md.py -i ABC.md -o XYZ.md
-    > render_md.py -i ABC.md
-
-Import as:
-
-import dev_scripts_helpers.documentation.render_md as dsdoremd
+# Render with preview:
+> render_md.py -i ABC.md -o XYZ.md
+> render_md.py -i ABC.md
 """
 
 # TODO(gp): -> render_figures.py
@@ -49,9 +45,9 @@ _DEFAULT_ACTIONS = [_ACTION_OPEN, _ACTION_RENDER]
 
 def _open_html(md_file: str) -> None:
     """
-    Pandoc markdown to html and open it.
+    Convert markdown to HTML using pandoc.py and open it.
     """
-    _LOG.info("\n%s", hprint.frame("Process markdown to html"))
+    _LOG.info("\n%s", hprint.frame("Convert markdown to HTML using pandoc.py"))
     # Get pandoc.py command.
     curr_path = os.path.abspath(os.path.dirname(__file__))
     tmp_dir = os.path.split(md_file)[0]
@@ -62,14 +58,17 @@ def _open_html(md_file: str) -> None:
     hsystem.system(cmd)
 
 
+# -> _get_uml_file_names
 def _uml_file_names(
     dest_file: str, idx: int, extension: str
 ) -> Tuple[str, str, str]:
     """
     Generate plantUML picture filename, temporary UML filename, full path to
-    picture. We want to assign the name of the image relative to the
-    originating file and index. In this way if we update the image, the name of
-    the image doesn't change.
+    picture.
+
+    We want to assign the name of the image relative to the originating file
+    and index. In this way if we update the image, the name of the image
+    doesn't change.
 
     :param dest_file: markdowm target file where diagrams should be included
     :param idx: order number of the UML appearence at the input file
@@ -93,16 +92,21 @@ def _uml_file_names(
     return (abs_path, rel_path, tmp_name)
 
 
+# -> _get_render_command
 def _render_command(uml_file: str, pic_dest: str, extension: str) -> str:
     """
     Create PlantUML rendering command.
     """
     available_extensions = ["svg", "png"]
     hdbg.dassert_in(extension, available_extensions)
+    #
     cmd = f"plantuml -t{extension} -o {pic_dest} {uml_file}"
     return cmd
 
 
+# uml_text -> txt
+# extension -> dst_ext (e.g., svg, png)
+# Add src_ext (e.g., plantuml, mermaid, ...)
 def _render_plantuml_code(
     uml_text: str,
     out_file: str,
@@ -126,9 +130,8 @@ def _render_plantuml_code(
         uml_content = f"@startuml\n{uml_content}"
     if not uml_content.endswith("@enduml"):
         uml_content = f"{uml_content}\n@enduml"
-    # Create the including directory, if needed.
+    # Get paths.
     hio.create_enclosing_dir(out_file, incremental=True)
-    # Get pathes.
     target_dir, rel_path, tmp_file_name = _uml_file_names(
         out_file, idx, extension
     )
@@ -144,6 +147,7 @@ def _render_plantuml_code(
     return rel_path
 
 
+# extension -> dst_ext
 def _render_plantuml(
     in_txt: List[str], out_file: str, extension: str, dry_run: bool
 ) -> List[str]:
@@ -158,26 +162,28 @@ def _render_plantuml(
     # Store the output.
     out_txt: List[str] = []
     # Store the plantuml code found so far.
-    plantuml_txt: List[str] = []
+    txt: List[str] = []
     # Count the index of the plantuml found in the file.
-    plantuml_idx = 0
+    idx = 0
     # Store the state of the parser.
     state = "searching"
     for i, line in enumerate(in_txt):
         _LOG.debug("%d: %s -> state=%s", i, line, state)
         out_txt.append(line)
+        # The code should look like
+        # ^\s*[%]\s*```(\s+)```
         if line.strip() == "```plantuml":
             # Found the beginning of a plantuml text.
             hdbg.dassert_eq(state, "searching")
-            plantuml_txt = []
-            plantuml_idx += 1
+            txt = []
+            idx += 1
             state = "found_plantuml"
             _LOG.debug(" -> state=%s", state)
         elif line.strip() == "```" and state == "found_plantuml":
-            img_file_name = _render_plantuml_code(
-                uml_text="\n".join(plantuml_txt),
+            img_file_name = _render_code(
+                uml_text="\n".join(txt),
                 out_file=out_file,
-                idx=plantuml_idx,
+                idx=idx,
                 extension=extension,
                 dry_run=dry_run,
             )
@@ -185,8 +191,11 @@ def _render_plantuml(
             state = "searching"
             _LOG.debug(" -> state=%s", state)
         elif line.strip != "```" and state == "found_plantuml":
-            plantuml_txt.append(line)
+            txt.append(line)
     return out_txt
+
+
+#################################################################################
 
 
 def _parse() -> argparse.ArgumentParser:

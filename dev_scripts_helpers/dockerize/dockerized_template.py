@@ -57,7 +57,7 @@ def _convert_docx_to_markdown(
     hsystem.system(cmd)
     # Convert from Docx to Markdown.
     cmd = f"pandoc --extract-media {md_file_figs} -f docx -t markdown_strict -{md_file} {docx_file}"
-    hdocker.run_container(cmd, docker_container_name)
+    hdocker.run_container(docker_container_name, cmd)
 
 
 # #############################################################################

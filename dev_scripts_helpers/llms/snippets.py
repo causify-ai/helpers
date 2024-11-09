@@ -1,9 +1,9 @@
-import hopenai
 import logging
 from typing import Any, Dict, List, Tuple, Optional
 from dataclasses import dataclass
 
 import helpers.hdbg as hdbg
+import helpers.hopenai as hopenai
 
 _LOG = logging.getLogger(__name__)
 

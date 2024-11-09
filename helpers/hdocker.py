@@ -83,13 +83,16 @@ def replace_shared_root_path(
     return path
 
 
-def build_container(docker_container_name: str, dockerfile: str) -> None:
+def build_container(docker_container_name: str, dockerfile: str,
+                    *, delete: bool=True) -> None:
     # Check if the container already exists. If not, build it.
     has_container = container_exists(docker_container_name)
     if not has_container:
         # Create temporary Dockerfile.
         _LOG.info("Building Docker container...")
-        with tempfile.NamedTemporaryFile(suffix=".Dockerfile") as temp_dockerfile:
+        delete = False
+        with tempfile.NamedTemporaryFile(suffix=".Dockerfile", delete=delete
+                                         ) as temp_dockerfile:
             txt = dockerfile
             temp_dockerfile.write(txt)
             temp_dockerfile.flush()
@@ -102,9 +105,18 @@ def build_container(docker_container_name: str, dockerfile: str) -> None:
     return docker_container_name
 
 
-def run_container(cmd:str, docker_container_name: str) -> None:
+def run_container(docker_container_name: str, cmd: str) -> None:
+    import subprocess
     work_dir = os.getcwd()
     mount = f"type=bind,source={work_dir},target={work_dir}"
     # Run docker under current `uid` and `gid`.
     docker_cmd = f"docker run --rm --user $(id -u):$(id -g) -it --workdir {work_dir} --mount {mount} {docker_container_name} {cmd}"
-    hsystem.system(docker_cmd)
+    #hsystem.system(docker_cmd)
+    # Start the subprocess and connect stdin, stdout, and stderr
+    process = subprocess.Popen(docker_cmd, stdin=subprocess.PIPE,
+                               stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+    # Send input to called_script and capture the output
+    input_data = "Hello from caller_script!\n"
+    stdout, stderr = process.communicate(input=input_data)
+    return stdout

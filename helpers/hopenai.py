@@ -1,5 +1,3 @@
-import sys; sys.path.append("/data")
-
 import datetime
 import logging
 import os
@@ -42,9 +40,9 @@ def response_to_txt(response: Any) -> str:
 from pprint import pformat
 from typing import Any
 
-from pygments import highlight
-from pygments.formatters import Terminal256Formatter
-from pygments.lexers import PythonLexer
+# from pygments import highlight
+# from pygments.formatters import Terminal256Formatter
+# from pygments.lexers import PythonLexer
 
 
 def pprint(obj: Any) -> None:
