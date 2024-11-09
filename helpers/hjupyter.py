@@ -8,6 +8,8 @@ import os
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
+import helpers.hjupyter as hjupyte
+import helpers.hgit as hgit
 import helpers.hsystem as hsystem
 
 
@@ -54,3 +56,33 @@ def run_notebook(
     # Execute.
     cmd_as_str = " ".join(cmd)
     hsystem.system(cmd_as_str, abort_on_error=True, suppress_output=False)
+
+
+def build_run_notebook_cmd(
+        config_builder: str, dst_dir: str, notebook_path: str, *, extra_opts: str = ""
+) -> str:
+    """
+    Constructs a command string to run dev_scripts/notebooks/run_notebook.py
+    with specified configurations.
+
+    :param config_builder: the configuration builder to use for the
+        notebook execution
+    :param dst_dir: the destination directory where the notebook results
+        will be saved
+    :param notebook_path: the path to the notebook that should be
+        executed
+    :param extra_opts: options for "run_notebook.py", e.g., "--
+        publish_notebook"
+    """
+    # TODO(Vlad): Factor out common code with the
+    # `helpers.lib_tasks_gh.publish_buildmeister_dashboard_to_s3()`.
+    run_notebook_script_path = hgit.find_file_in_git_tree("run_notebook.py")
+    cmd_run_txt = [
+        run_notebook_script_path,
+        f"--notebook {notebook_path}",
+        f"--config_builder '{config_builder}'",
+        f"--dst_dir '{dst_dir}'",
+        f"{extra_opts}",
+    ]
+    cmd_run_txt = " ".join(cmd_run_txt)
+    return cmd_run_txt
