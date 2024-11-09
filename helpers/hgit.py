@@ -770,12 +770,15 @@ def get_amp_abs_path(remove_tmp_base: bool = True) -> str:
     """
     repo_sym_name = get_repo_full_name_from_client(super_module=False)
     _LOG.debug("repo_sym_name=%s", repo_sym_name)
+    #
     repo_sym_names = ["alphamatic/amp"]
     code = "get_extra_amp_repo_sym_name()"
     try:
         repo_sym_names.append(henv.execute_repo_config_code(code))
     except NameError:
         _LOG.debug("Can't execute the code '%s'", code)
+    _LOG.debug("repo_sym_names=%s", repo_sym_names)
+    #
     if repo_sym_name in repo_sym_names:
         # If we are in the amp repo, then the git client root is the amp
         # directory.
