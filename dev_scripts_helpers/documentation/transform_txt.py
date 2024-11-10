@@ -34,6 +34,8 @@ import argparse
 import logging
 import re
 
+from typing import Tuple
+
 import helpers.hdbg as hdbg
 import helpers.hpandoc as hpandoc
 import helpers.hprint as hprint

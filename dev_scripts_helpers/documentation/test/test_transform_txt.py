@@ -1,5 +1,4 @@
 import logging
-import pprint
 
 import dev_scripts_helpers.documentation.transform_txt as dsdoremd
 import helpers.hprint as hprint

@@ -20,6 +20,7 @@ import tempfile
 from typing import List, Optional
 
 import helpers.hdbg as hdbg
+import helpers.hdocker as hdocker
 import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
@@ -87,7 +88,9 @@ def _preprocess(txt: str) -> str:
     return txt_new_as_str
 
 
-def _prettier(txt: str, print_width: Optional[int] = None) -> str:
+def _prettier(txt: str, *,
+              print_width: Optional[int] = None,
+              use_dockerized_prettier : bool = True) -> str:
     _LOG.debug("txt=\n%s", txt)
     #
     debug = False
@@ -97,27 +100,33 @@ def _prettier(txt: str, print_width: Optional[int] = None) -> str:
         tmp_file_name = "/tmp/tmp_prettier.txt"
     hio.to_file(tmp_file_name, txt)
     #
-    executable = "prettier"
-    cmd: List[str] = []
-    cmd.append(executable)
-    cmd.append("--parser markdown")
-    cmd.append("--prose-wrap always")
-    cmd.append("--write")
+    cmd_opts: List[str] = []
+    cmd_opts.append("--parser markdown")
+    cmd_opts.append("--prose-wrap always")
+    cmd_opts.append("--write")
     tab_width = 2
-    cmd.append(f"--tab-width {tab_width}")
+    cmd_opts.append(f"--tab-width {tab_width}")
     if print_width is not None:
         hdbg.dassert_lte(1, print_width)
-        cmd.append(f"--print-width {print_width}")
-    if True:
-        # Workaround for PTask2155.
-        cmd.insert(0, f"cd {os.path.dirname(tmp_file_name)} &&")
-        cmd.append(os.path.basename(tmp_file_name))
+        cmd_opts.append(f"--print-width {print_width}")
+    #
+    if use_dockerized_prettier:
+        cmd_opts.append(os.path.basename(tmp_file_name))
+        hdocker.run_dockerized_prettier(cmd_opts, os.path.dirname(tmp_file_name))
     else:
-        cmd.append(tmp_file_name)
-    # cmd.append("2>&1 >/dev/null")
-    cmd_as_str = " ".join(cmd)
-    _, output_tmp = hsystem.system_to_string(cmd_as_str, abort_on_error=True)
-    _LOG.debug("output_tmp=%s", output_tmp)
+        executable = "prettier"
+        cmd = [executable] + cmd_opts
+        if True:
+            # Workaround for PTask2155.
+            # > (cd /tmp && prettier  ... --tab-width 2 tmpijtkxtrk)
+            cmd.insert(0, f"cd {os.path.dirname(tmp_file_name)} &&")
+            cmd.append(os.path.basename(tmp_file_name))
+        else:
+            cmd.append(tmp_file_name)
+        #
+        cmd_as_str = " ".join(cmd)
+        _, output_tmp = hsystem.system_to_string(cmd_as_str, abort_on_error=True)
+        _LOG.debug("output_tmp=%s", output_tmp)
     #
     txt = hio.from_file(tmp_file_name)
     _LOG.debug("After prettier txt=\n%s", txt)

@@ -14,7 +14,7 @@ _LOG = logging.getLogger(__name__)
 
 class Test_render_md1(hunitest.TestCase):
     """
-    Test _uml_file_names method that returns output pathes.
+    Test _uml_file_names method that returns output paths.
     """
 
     def test_uml_file_names1(self) -> None:
@@ -31,20 +31,20 @@ class Test_render_md1(hunitest.TestCase):
 
 class Test_render_md2(hunitest.TestCase):
     """
-    Test _render_command method that construct plantuml command.
+    Test _get_render_command method that construct plantuml command.
     """
 
-    def test_render_command1(self) -> None:
+    def test_get_render_command1(self) -> None:
         """
         Check correctness of the command to render.
         """
         uml_file = "/a/b/c.puml"
         dest = "/d/e/f"
         extension = "png"
-        cmd = dsdoremd._render_command(uml_file, dest, extension)
+        cmd = dsdoremd._get_render_command(uml_file, dest, extension)
         self.check_string(cmd)
 
-    def test_render_command2(self) -> None:
+    def test_get_render_command2(self) -> None:
         """
         Check assertion if extension is unknown when render command is
         building.
@@ -53,7 +53,7 @@ class Test_render_md2(hunitest.TestCase):
         dest = "/d/e/f"
         extension = "bmp"
         with self.assertRaises(AssertionError) as cm:
-            dsdoremd._render_command(uml_file, dest, extension)
+            dsdoremd._get_render_command(uml_file, dest, extension)
         # Check error text.
         self.assertIn("bmp", str(cm.exception))
 
@@ -133,7 +133,11 @@ class Test_render_md3(hunitest.TestCase):
         # Check output
         self.check_string(act)
 
+    # TODO(gp): -> _render_text_and_check
     def _check_str_after_render(self, in_text: List[str]) -> None:
+        """"
+        Check correctness of rendering of text.
+        """
         out_file = os.path.join(self.get_scratch_space(), "out.md")
         extension = "png"
         out_text = dsdoremd._render_plantuml(

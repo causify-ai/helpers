@@ -92,8 +92,7 @@ def _uml_file_names(
     return (abs_path, rel_path, tmp_name)
 
 
-# -> _get_render_command
-def _render_command(uml_file: str, pic_dest: str, extension: str) -> str:
+def _get_render_command(uml_file: str, pic_dest: str, extension: str) -> str:
     """
     Create PlantUML rendering command.
     """
@@ -107,7 +106,7 @@ def _render_command(uml_file: str, pic_dest: str, extension: str) -> str:
 # uml_text -> txt
 # extension -> dst_ext (e.g., svg, png)
 # Add src_ext (e.g., plantuml, mermaid, ...)
-def _render_plantuml_code(
+def _render_code(
     uml_text: str,
     out_file: str,
     idx: int,
@@ -139,7 +138,7 @@ def _render_plantuml_code(
     tmp_file = os.path.join(tempfile.gettempdir(), tmp_file_name)
     hio.to_file(tmp_file, uml_content)
     # Convert the plantUML txt.
-    cmd = _render_command(tmp_file, target_dir, extension)
+    cmd = _get_render_command(tmp_file, target_dir, extension)
     _LOG.info("Creating uml diagram from %s source.", tmp_file)
     _LOG.info("Saving image to %s.", target_dir)
     _LOG.info("> %s", cmd)

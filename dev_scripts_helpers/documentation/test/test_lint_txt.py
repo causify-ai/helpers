@@ -2,11 +2,42 @@ import logging
 import os
 from typing import Optional
 
-import documentation_devto.scripts.lint_txt as ddsclitx
+import dev_scripts_helpers.documentation.lint_txt as ddsclitx
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
+
+
+def _get_text1() -> str:
+    txt = r"""* Gradient descent for logistic regression
+- The typical implementations of gradient descent (basic or advanced) need two
+  inputs:
+    - The cost function $E_{in}(\vw)$ (to monitor convergence)
+    - The gradient of the cost function
+      $\frac{\partial E}{w_j} \text{ for all } j$ (to optimize)
+- The cost function is:
+    $$E_{in} = \frac{1}{N} \sum_i e(h(\vx_i), y_i)$$
+
+- In case of general probabilistic model $h(\vx)$ in \{0, 1\}):
+    $$
+    E_{in}(\vw) = \frac{1}{N} \sum_i \big(
+    -y_i \log(\Pr(h(\vx) = 1|\vx)) - (1 - y_i) \log(1 - \Pr(h(\vx)=1|\vx))
+    \big)
+    $$
+
+- In case of logistic regression in \{+1, -1\}:
+    $$E_{in}(\vw) = \frac{1}{N} \sum_i \log(1 + \exp(-y_i \vw^T \vx_i))$$
+
+- It can be proven that the function $E_{in}(\vw)$ to minimize is convex in
+  $\vw$ (sum of exponentials and flipped exponentials is convex and log is
+  monotone)"""
+    return txt
+
+
+# #############################################################################
+# Test_lint_txt1
+# #############################################################################
 
 
 class Test_lint_txt1(hunitest.TestCase):
@@ -29,7 +60,7 @@ $$"""
         self._helper_preprocess(txt, exp)
 
     def test_preprocess3(self) -> None:
-        txt = self._get_text1()
+        txt = _get_text1()
         exp = r"""- STARGradient descent for logistic regression
 - The typical implementations of gradient descent (basic or advanced) need two
   inputs:
@@ -72,8 +103,20 @@ $$"""
         exp = r"""# test"""
         self._helper_preprocess(txt, exp)
 
+    def _helper_preprocess(self, txt: str, exp: str) -> None:
+        act = ddsclitx._preprocess(txt)
+        self.assert_equal(act, exp)
+
+
+# #############################################################################
+# Test_lint_txt2
+# #############################################################################
+
+
+class Test_lint_txt2(hunitest.TestCase):
+
     def test_process1(self) -> None:
-        txt = self._get_text1()
+        txt = _get_text1()
         exp = None
         file_name = "test.txt"
         act = self._helper_process(txt, exp, file_name)
@@ -223,32 +266,6 @@ $$"""
         self._helper_process(txt, exp, file_name)
 
     @staticmethod
-    def _get_text1() -> str:
-        txt = r"""* Gradient descent for logistic regression
-- The typical implementations of gradient descent (basic or advanced) need two
-  inputs:
-    - The cost function $E_{in}(\vw)$ (to monitor convergence)
-    - The gradient of the cost function
-      $\frac{\partial E}{w_j} \text{ for all } j$ (to optimize)
-- The cost function is:
-    $$E_{in} = \frac{1}{N} \sum_i e(h(\vx_i), y_i)$$
-
-- In case of general probabilistic model $h(\vx)$ in \{0, 1\}):
-    $$
-    E_{in}(\vw) = \frac{1}{N} \sum_i \big(
-    -y_i \log(\Pr(h(\vx) = 1|\vx)) - (1 - y_i) \log(1 - \Pr(h(\vx)=1|\vx))
-    \big)
-    $$
-
-- In case of logistic regression in \{+1, -1\}:
-    $$E_{in}(\vw) = \frac{1}{N} \sum_i \log(1 + \exp(-y_i \vw^T \vx_i))$$
-
-- It can be proven that the function $E_{in}(\vw)$ to minimize is convex in
-  $\vw$ (sum of exponentials and flipped exponentials is convex and log is
-  monotone)"""
-        return txt
-
-    @staticmethod
     def _get_text_problematic_for_prettier1() -> str:
         txt = r"""
 * Python formatting
@@ -262,12 +279,6 @@ $$"""
   - Values to insert are provided as a value or a `tuple`
 """
         return txt
-
-    def _helper_preprocess(self, txt: str, exp: str) -> None:
-        act = ddsclitx._preprocess(txt)
-        self.assert_equal(act, exp)
-
-    # #########################################################################
 
     def _helper_process(
         self, txt: str, exp: Optional[str], file_name: str

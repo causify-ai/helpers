@@ -19,31 +19,44 @@ import helpers.hsystem as hsystem
 _LOG = logging.getLogger(__name__)
 
 
-def container_exists(container_name: str) -> str:
-    cmd = f"docker container ls --filter name=/{container_name} -aq"
+def _get_docker_executable(use_sudo: bool) -> str:
+    executable = "sudo " if use_sudo else ""
+    executable += "docker"
+    return executable
+
+
+def container_exists(container_name: str, use_sudo: bool) -> str:
+    _LOG.debug(hprint.to_str("container_name"))
+    #
+    executable = _get_docker_executable(use_sudo)
+    cmd = f"{executable} container ls --filter name=/{container_name} -aq"
     _, container_id = hsystem.system_to_one_line(cmd)
     container_id = container_id.rstrip("\n")
     return container_id
 
 
-def container_rm(container_name: str) -> None:
+def container_rm(container_name: str, use_sudo: bool) -> None:
     _LOG.debug(hprint.to_str("container_name"))
+    #
+    executable = _get_docker_executable(use_sudo)
     # Find the container ID from the name.
     # Docker filter refers to container names using a leading `/`.
-    cmd = f"docker container ls --filter name=/{container_name} -aq"
+    cmd = f"{executable} container ls --filter name=/{container_name} -aq"
     _, container_id = hsystem.system_to_one_line(cmd)
     container_id = container_id.rstrip("\n")
     hdbg.dassert_ne(container_id, "")
     # Delete the container.
     _LOG.debug(hprint.to_str("container_id"))
-    cmd = f"docker container rm --force {container_id}"
+    cmd = f"{executable} container rm --force {container_id}"
     hsystem.system(cmd)
     _LOG.debug("docker container '%s' deleted", container_name)
 
 
-def volume_rm(volume_name: str) -> None:
+def volume_rm(volume_name: str, use_sudo: bool) -> None:
     _LOG.debug(hprint.to_str("volume_name"))
-    cmd = f"docker volume rm {volume_name}"
+    #
+    executable = _get_docker_executable(use_sudo)
+    cmd = f"{executable} volume rm {volume_name}"
     hsystem.system(cmd)
     _LOG.debug("docker volume '%s' deleted", volume_name)
 
@@ -84,25 +97,26 @@ def replace_shared_root_path(
 
 
 def build_container(docker_container_name: str, dockerfile: str,
-                    *, delete: bool=True) -> None:
+                    use_sudo: bool) -> None:
     # Check if the container already exists. If not, build it.
-    has_container = container_exists(docker_container_name)
+    has_container = container_exists(docker_container_name, use_sudo)
     if not has_container:
         # Create temporary Dockerfile.
         _LOG.info("Building Docker container...")
         delete = False
         with tempfile.NamedTemporaryFile(suffix=".Dockerfile", delete=delete
                                          ) as temp_dockerfile:
-            txt = dockerfile
+            txt = dockerfile.encode('utf-8')
             temp_dockerfile.write(txt)
             temp_dockerfile.flush()
             # Build the container.
+            executable = _get_docker_executable(use_sudo)
             cmd = (
-                f"docker build -f {temp_dockerfile.name} -t {docker_container_name} ."
+                f"{executable} build -f {temp_dockerfile.name} -t"
+                f" {docker_container_name} ."
             )
             hsystem.system(cmd)
         _LOG.info("Building Docker container... done")
-    return docker_container_name
 
 
 def run_container(docker_container_name: str, cmd: str) -> None:
@@ -120,3 +134,50 @@ def run_container(docker_container_name: str, cmd: str) -> None:
     input_data = "Hello from caller_script!\n"
     stdout, stderr = process.communicate(input=input_data)
     return stdout
+
+
+def run_dockerized_prettier(
+    cmd_opts: str, file_path: str, use_sudo: bool
+) -> None:
+    """
+    Run prettier in a docker container.
+
+    :param cmd_opts: commands options to pass to prettier
+    :param file_path: path to the file to format with prettier
+    :param use_sudo:
+    """
+    _LOG.debug(hprint.to_str("cmd_opts file_path use_sudo"))
+    file_path = os.path.abspath(file_path)
+    hdbg.dassert_path_exists(file_path)
+    #
+    docker_container_name = "tmp.prettier"
+    dockerfile = """
+# Use a Node.js image
+FROM node:18
+
+# Install Prettier globally
+RUN npm install -g prettier
+
+# Set a working directory inside the container
+WORKDIR /app
+
+# Run Prettier as the entry command
+ENTRYPOINT ["prettier"]
+    """
+    build_container(docker_container_name, dockerfile, use_sudo)
+    # The command used is like
+    # > docker run --rm --user $(id -u):$(id -g) -it \
+    #   --workdir /src --mount type=bind,source=.,target=/src \
+    #   tmp.prettier \
+    #   --parser markdown --prose-wrap always --write --tab-width 2 \
+    #   ./test.md
+    executable = _get_docker_executable(use_sudo)
+    work_dir = os.path.dirname(file_path)
+    rel_file_path = os.path.basename(file_path)
+    mount = f"type=bind,source={work_dir},target=/src"
+    docker_cmd = (f"{executable} run --rm --user $(id -u):$(id -g) -it "
+                  f"--workdir /src --mount {mount} "
+                  f"{docker_container_name}"
+                  f" {cmd_opts} {rel_file_path}")
+    hsystem.system(docker_cmd)
+    print(docker_cmd)
