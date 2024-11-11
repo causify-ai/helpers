@@ -128,14 +128,19 @@ def volume_rm(volume_name: str, use_sudo: bool) -> None:
 
 
 def build_container(container_name: str, dockerfile: str,
+                    force_rebuild: bool,
                     use_sudo: bool) -> None:
     _LOG.debug(hprint.to_str("container_name dockerfile use_sudo"))
     # Check if the container already exists. If not, build it.
-    has_container = container_exists(container_name, use_sudo)
+    has_container, _ = image_exists(container_name, use_sudo)
     _LOG.debug(hprint.to_str("has_container"))
+    if force_rebuild:
+        _LOG.warning("Forcing rebuild of Docker container")
+        has_container = False
     if not has_container:
         # Create a temporary Dockerfile.
         _LOG.info("Building Docker container...")
+        _LOG.debug("Dockerfile:\n%s", dockerfile)
         # Delete temp file.
         delete = True
         with tempfile.NamedTemporaryFile(suffix=".Dockerfile", delete=delete
@@ -149,7 +154,7 @@ def build_container(container_name: str, dockerfile: str,
                 f"{executable} build -f {temp_dockerfile.name} -t"
                 f" {container_name} ."
             )
-            hsystem.system(cmd)
+            hsystem.system(cmd, suppress_output=False)
         _LOG.info("Building Docker container... done")
 
 

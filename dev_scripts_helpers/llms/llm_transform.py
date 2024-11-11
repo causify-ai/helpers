@@ -9,12 +9,12 @@ This pattern is useful for integrating with editors (e.g., vim).
 
 import logging
 import os
-import tempfile
 import argparse
 
 import helpers.hparser as hparser
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
+import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
@@ -73,7 +73,9 @@ _LOG = logging.getLogger(__name__)
 
 
 def _run_dockerized_llm_transform(
-    input_file: str, output_file: str, transform: str, use_sudo: bool
+    input_file: str, output_file: str, transform: str,
+        force_rebuild: bool,
+        use_sudo: bool
 ) -> None:
     """
     Run _llm_transform.py in a docker container with all its dependency.
@@ -82,11 +84,21 @@ def _run_dockerized_llm_transform(
     :param output_file
     :param use_sudo:
     """
-    _LOG.debug(hprint.to_str("input_file output_file transform use_sudo"))
+    hdbg.dassert_in("OPENAI_API_KEY", os.environ)
+    _LOG.debug(hprint.to_str("input_file output_file transform "
+                             "force_rebuild use_sudo"))
     hdbg.dassert_path_exists(input_file)
+    # We need to mount the git root to the container.
+    git_root = hgit.find_git_root()
+    git_root = os.path.abspath(git_root)
+    #
+    _, helpers_root = hsystem.system_to_one_line(
+        f"find {git_root} -name helpers_root")
+    helpers_root = os.path.relpath(os.path.abspath(helpers_root.strip("\n")),
+                                   git_root)
     #
     container_name = "tmp.llm_transform"
-    dockerfile = """
+    dockerfile = f"""
 FROM python:3.12-alpine
 
 ENV PYTHONPATH={helpers_root}
@@ -101,25 +113,26 @@ RUN pip install --no-cache-dir openai
 # Clean up unnecessary files.
 RUN rm -rf /var/cache/apk/*
     """
-    hdocker.build_container(container_name, dockerfile, use_sudo)
-    # The command used is like
-    # > docker run --rm --user $(id -u):$(id -g) -it \
-    #   --workdir /src --mount type=bind,source=.,target=/src \
-    #   tmp.prettier \
-    #   --parser markdown --prose-wrap always --write --tab-width 2 \
-    #   ./test.md
+    hdocker.build_container(container_name, dockerfile, force_rebuild, use_sudo)
     # Get the path to the script to execute.
-    _, script = hsystem.system_to_one_line("find . -name _llm_transform.py")
-    cmd = script + " -i {in_file.name} -o {out_file.name} -t {args.transform}"
+    _, script = hsystem.system_to_one_line(
+        f"find {git_root} -name _llm_transform.py")
+    # Make all the paths relative to the git root.
+    script = os.path.relpath(os.path.abspath(script.strip("\n")), git_root)
+    input_file = os.path.relpath(os.path.abspath(input_file), git_root)
+    output_file = os.path.relpath(os.path.abspath(output_file), git_root)
+    #
+    cmd = script + f" -i {input_file} -o {output_file} -t {transform}"
     executable = hdocker.get_docker_executable(use_sudo)
-    work_dir = os.path.dirname(input_file)
-    hdbg.dassert_eq(work_dir, os.path.dirname(output_file))
-    mount = f"type=bind,source={work_dir},target=/src"
+    mount = f"type=bind,source={git_root},target=/src"
     docker_cmd = (f"{executable} run --rm --user $(id -u):$(id -g) -it "
+                  "-e OPENAI_API_KEY "
                   f"--workdir /src --mount {mount} "
                   f"{container_name}"
                   f" {cmd}")
-    hsystem.system(docker_cmd, suppress_output=False)
+    #hsystem.system(docker_cmd, suppress_output=False)
+    print(docker_cmd)
+    assert 0
 
 
 # #############################################################################
@@ -137,30 +150,29 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "-t", "--transform", required=True, type=str, help="Type of transform"
     )
+    hparser.add_dockerized_script_arg(parser)
     # Use CRITICAL to avoid logging anything.
-    hparser.add_verbosity_arg(parser, level="CRITICAL")
-    parser.add_argument("--use_sudo", action="store_true", help="Use sudo inside the container")
+    hparser.add_verbosity_arg(parser, dbg_level="CRITICAL")
     return parser
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
+    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Parse files.
     in_file_name, out_file_name = hparser.parse_input_output_args(args)
     _ = in_file_name, out_file_name
     # Since we need to call a container and passing stdin/stdout is tricky
     # we read the input and save it in a temporary file.
     in_txt = hparser.read_file(in_file_name)
-    # Delete temp file.
-    delete = True
-    with tempfile.NamedTemporaryFile(suffix=".txt", delete=delete
-                                     ) as in_file:
-        hio.to_file(in_file.name, in_txt)
-        with tempfile.NamedTemporaryFile(suffix=".txt", delete=delete
-                                         ) as out_file:
-            _run_dockerized_llm_transform(in_file.name, out_file.name,
-                                          args.transform, args.use_sudo)
-            out_txt = hio.from_file(in_file.name)
+    in_file_name = "tmp.llm_transform.in.txt"
+    hio.to_file(in_file_name, in_txt)
+    out_file_name = "tmp.llm_transform.out.txt"
+    _run_dockerized_llm_transform(in_file_name, out_file_name,
+                                  args.transform,
+                                  args.dockerized_force_rebuild,
+                                  args.dockerized_use_sudo)
+    out_txt = hio.from_file(out_file_name)
     hparser.write_file(out_txt, out_file_name)
 
 

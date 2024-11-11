@@ -29,7 +29,7 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument("--use_sudo", action="store_true", help="Use sudo inside the container")
-    hparser.add_verbosity_arg(parser)
+    hparser.add_verbosity_arg(parser, dbg_level="CRITICAL")
     return parser
 
 

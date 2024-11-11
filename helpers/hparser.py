@@ -53,11 +53,12 @@ def add_bool_arg(
 # #############################################################################
 
 
-def add_verbosity_arg(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
+def add_verbosity_arg(parser: argparse.ArgumentParser,
+                    dbg_level: str ="INFO") -> argparse.ArgumentParser:
     parser.add_argument(
         "-v",
         dest="log_level",
-        default="INFO",
+        default=dbg_level,
         # TRACE=5
         # DEBUG=10
         # INFO=20
@@ -526,3 +527,13 @@ def str_to_bool(value):
         raise argparse.ArgumentTypeError(
             "Invalid boolean value. Use 'true' or 'false'."
         )
+
+# #############################################################################
+# Command line options for dockerized scripts.
+# #############################################################################
+
+def add_dockerized_script_arg(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
+    parser.add_argument("--dockerized_force_rebuild", action="store_true",
+                        help="Force to rebuild the Docker container")
+    parser.add_argument("--dockerized_use_sudo", action="store_true",
+                        help="Use sudo inside the container")
