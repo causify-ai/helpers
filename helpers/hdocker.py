@@ -28,12 +28,12 @@ def replace_shared_root_path(
     :param path: path to replace, e.g., `/data/shared`
     :param replace_ecs_tokyo: if True replace `ecs_tokyo` to `ecs` in the path
     :return: replaced shared data dir root path, e.g.,
-    - `/data/shared/ecs_tokyo/test/system_reconciliation/C11a/prod/20240522_173000.20240522_182500/` ->
-        `/shared_data/ecs/test/system_reconciliation/C11a/prod/20240522_173000.20240522_182500/`
-    - `/data/shared/ecs/test/system_reconciliation/C11a/prod/20240522_173000.20240522_182500` ->
-        `/shared_data/ecs/test/system_reconciliation/C11a/prod/20240522_173000.20240522_182500`
+    - `/data/shared/ecs_tokyo/.../20240522_173000.20240522_182500/` ->
+        `/shared_data/ecs/.../20240522_173000.20240522_182500/`
+    - `/data/shared/ecs/.../20240522_173000.20240522_182500` ->
+        `/shared_data/ecs/.../20240522_173000.20240522_182500`
     """
-    # Inside ECS we keep the original shared data path and replace it only when
+    # Inside ECS, we keep the original shared data path and replace it only when
     # running inside Docker on the dev server.
     if hserver.is_inside_docker() and not hserver.is_inside_ecs_container():
         shared_data_dirs = henv.execute_repo_config_code("get_shared_data_dirs()")
@@ -67,8 +67,10 @@ def container_exists(container_name: str, use_sudo: bool) -> Tuple[bool, str]:
     """
     Check if a Docker container is running by running a command like:
 
+    ```
     > docker container ls --filter=tmp.prettier -aq
     aed8a5ce33a9
+    ```
     """
     _LOG.debug(hprint.to_str("container_name use_sudo"))
     #
@@ -85,8 +87,10 @@ def image_exists(image_name: str, use_sudo: bool) -> Tuple[bool, str]:
     """
     Check if a Docker image already exists by running a command like:
 
+    ```
     > docker images tmp.prettier -aq
     aed8a5ce33a9
+    ```
     """
     _LOG.debug(hprint.to_str("image_name use_sudo"))
     #

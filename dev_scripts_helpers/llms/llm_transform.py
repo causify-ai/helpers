@@ -80,16 +80,9 @@ FROM python:3.12-alpine
 
 ENV PYTHONPATH={helpers_root}
 
-# Update package list and install any necessary packages.
-#RUN apk update && \
-#    apk upgrade
-
 # Install pip packages.
 RUN pip install --no-cache-dir openai
-
-# Clean up unnecessary files.
-RUN rm -rf /var/cache/apk/*
-    """
+"""
     hdocker.build_container(container_name, dockerfile, force_rebuild, use_sudo)
     # Get the path to the script to execute.
     _, script = hsystem.system_to_one_line(

@@ -512,14 +512,16 @@ def process_json_output_metadata_args(
 
 def read_output_metadata(output_metadata_file: str) -> OutputMetadata:
     """
-    Read the output metdata.
+    Read the output metadata.
     """
     output_metadata: OutputMetadata = hio.from_json(output_metadata_file)
     return output_metadata
 
 
-# A custom type function to convert string to bool
-def str_to_bool(value):
+def str_to_bool(value: str) -> bool:
+    """
+    Convert string representing true or false to the corresponding bool.
+    """
     if value.lower() == "true":
         return True
     elif value.lower() == "false":
