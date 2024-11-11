@@ -6,9 +6,9 @@ specified transformation using an LLM, and then write the output to either
 stdout or a file.
 It is particularly useful for integrating with editors like Vim.
 
-The script _llm_transform.py is executed within a Docker container to ensure all
-dependencies are met. The Docker container is built dynamically if necessary.
-The script requires an OpenAI API key to be set in the environment.
+The script `_llm_transform.py` is executed within a Docker container to ensure
+all dependencies are met. The Docker container is built dynamically if
+necessary. The script requires an OpenAI API key to be set in the environment.
 
 Examples
 # Basic Usage
@@ -42,7 +42,8 @@ _LOG = logging.getLogger(__name__)
 def _run_dockerized_llm_transform(
     input_file: str, output_file: str, transform: str,
         force_rebuild: bool,
-        use_sudo: bool
+        use_sudo: bool,
+        log_level: str,
 ) -> None:
     """
     Run _llm_transform.py in a Docker container with all its dependencies.
@@ -91,13 +92,14 @@ RUN rm -rf /var/cache/apk/*
     input_file = os.path.relpath(os.path.abspath(input_file), git_root)
     output_file = os.path.relpath(os.path.abspath(output_file), git_root)
     #
-    cmd = script + f" -i {input_file} -o {output_file} -t {transform}"
+    cmd = script + (f" -i {input_file} -o {output_file} -t {transform}"
+                    f" -v {log_level}")
     executable = hdocker.get_docker_executable(use_sudo)
     mount = f"type=bind,source={git_root},target=/src"
-    docker_cmd = (f"{executable} run --rm --user $(id -u):$(id -g) -it "
-                  "-e OPENAI_API_KEY "
-                  f"--workdir /src --mount {mount} "
-                  f"{container_name}"
+    docker_cmd = (f"{executable} run --rm --user $(id -u):$(id -g) -it"
+                  " -e OPENAI_API_KEY"
+                  f" --workdir /src --mount {mount}"
+                  f" {container_name}"
                   f" {cmd}")
     hsystem.system(docker_cmd, suppress_output=False)
 
@@ -119,7 +121,7 @@ def _parse() -> argparse.ArgumentParser:
     )
     hparser.add_dockerized_script_arg(parser)
     # Use CRITICAL to avoid logging anything.
-    hparser.add_verbosity_arg(parser, dbg_level="CRITICAL")
+    hparser.add_verbosity_arg(parser, log_level="CRITICAL")
     return parser
 
 
@@ -138,7 +140,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _run_dockerized_llm_transform(in_file_name, out_file_name,
                                   args.transform,
                                   args.dockerized_force_rebuild,
-                                  args.dockerized_use_sudo)
+                                  args.dockerized_use_sudo,
+                                  args.log_level)
     out_txt = hio.from_file(out_file_name)
     hparser.write_file(out_txt, out_file_name)
 

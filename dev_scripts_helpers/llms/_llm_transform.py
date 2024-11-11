@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 
 """
-This is a skeleton example for a script that reads value from stdin or file,
-transforms it, and writes it to stdout or file.
+This script is designed to run a transformation script using LLMs.
+It requires certain dependencies to be present (e.g., `openai`) and thus it
+is executed within a Docker container.
 
-This pattern is useful for integrating with editors (e.g., vim).
+To use this script, you need to provide the input file, output file, and the
+type of transformation to apply.
 """
 
 import argparse
@@ -30,19 +32,18 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "-t", "--transform", required=True, type=str, help="Type of transform"
     )
-    hparser.add_verbosity_arg(parser)
+    hparser.add_verbosity_arg(parser, log_level="CRITICAL")
     return parser
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    # Parse files.
+    # Parse files from command line.
     in_file_name, out_file_name = hparser.parse_input_output_args(args)
-    _ = in_file_name, out_file_name
     # Read file.
     txt = hparser.read_file(in_file_name)
-    # Transform.
+    # Transform with LLM.
     txt_tmp = "\n".join(txt)
     transform = args.transform
     if transform == "comment":

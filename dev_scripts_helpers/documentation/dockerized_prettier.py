@@ -1,17 +1,13 @@
 #!/usr/bin/env python
 """
-Run prettier in a container.
-
-This script is designed to run Prettier inside a Docker container to ensure
+This script is designed to run `prettier` inside a Docker container to ensure
 consistent formatting across different environments.
 
-The script dockerized_prettier.py runs Prettier in a Docker container. It builds
-the container dynamically if necessary and formats the specified file using the
-provided Prettier options. The script can optionally use sudo for Docker
-commands. Usage
+It builds the container dynamically if necessary and formats the specified file
+using the provided `prettier` options.
 
-To use this script, you need to provide the Prettier command options and the
-file to format. You can also specify whether to use sudo for Docker commands.
+To use this script, you need to provide the `prettier` command options and the
+file to format. You can also specify whether to use `sudo` for Docker commands.
 
 Examples
 # Basic Usage
@@ -42,9 +38,8 @@ import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hparser as hparser
 
-# import helpers.hsystem as hsystem
-
 _LOG = logging.getLogger(__name__)
+
 
 # #############################################################################
 

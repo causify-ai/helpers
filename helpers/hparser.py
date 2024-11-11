@@ -54,11 +54,11 @@ def add_bool_arg(
 
 
 def add_verbosity_arg(parser: argparse.ArgumentParser,
-                    dbg_level: str ="INFO") -> argparse.ArgumentParser:
+                    log_level: str = "INFO") -> argparse.ArgumentParser:
     parser.add_argument(
         "-v",
         dest="log_level",
-        default=dbg_level,
+        default=log_level,
         # TRACE=5
         # DEBUG=10
         # INFO=20
