@@ -33,13 +33,12 @@ Perform one of several transformations on a txt file, e.g.,
 import argparse
 import logging
 import re
-
 from typing import Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hpandoc as hpandoc
-import helpers.hprint as hprint
 import helpers.hparser as hparser
+import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
@@ -173,9 +172,9 @@ def markdown_list_to_latex(markdown: str) -> str:
     txt = hpandoc.convert_pandoc_md_to_latex(markdown)
     # Remove \tightlist and empty lines.
     lines = txt.splitlines()
-    lines = [line for line in lines if '\\tightlist' not in line]
+    lines = [line for line in lines if "\\tightlist" not in line]
     lines = [line for line in lines if line.strip() != ""]
-    txt = '\n'.join(lines)
+    txt = "\n".join(lines)
     # Add the title frame.
     if title:
         txt = "\\begin{frame}{%s}" % title + "\n" + txt + "\n" + "\\end{frame}"
@@ -189,9 +188,7 @@ def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
-    parser.add_argument(
-        "-a", "--action", required=True
-    )
+    parser.add_argument("-a", "--action", required=True)
     hparser.add_input_output_args(parser)
     parser.add_argument("-l", "--max_lev", default=5)
     hparser.add_verbosity_arg(parser)
@@ -200,10 +197,11 @@ def _parse() -> argparse.ArgumentParser:
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    #print("cmd line: %s" % hdbg.get_command_line())
-    #hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    hdbg.init_logger(verbosity=logging.ERROR, use_exec_path=True,
-                     force_white=False)
+    # print("cmd line: %s" % hdbg.get_command_line())
+    # hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    hdbg.init_logger(
+        verbosity=logging.ERROR, use_exec_path=True, force_white=False
+    )
     #
     cmd = args.action
     max_lev = int(args.max_lev)

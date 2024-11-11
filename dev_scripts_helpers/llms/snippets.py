@@ -1,11 +1,12 @@
 import logging
-from typing import Any, Dict, List, Tuple, Optional
 from dataclasses import dataclass
+from typing import List, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hopenai as hopenai
 
 _LOG = logging.getLogger(__name__)
+
 
 def get_code_snippet1() -> str:
     """
@@ -29,8 +30,9 @@ def _extract(obj: Dict[str, Any], keys: List[str]) -> Dict[str, Any]:
 
 
 import ast
-import textwrap
 import re
+import textwrap
+
 import helpers.hio as hio
 
 
@@ -113,6 +115,7 @@ class InOut:
     """
     Represent an input / output example.
     """
+
     # Input (e.g., code without comments).
     in_: str
     # Desired output (e.g., code with comments).
@@ -133,13 +136,14 @@ class InOut:
 # TODO(gp): -> in_out_to_gpt_text
 def get_in_out_example(idx: int, func: str) -> str:
     text = ""
-    func_no_comments = remove_comments(func)
+    remove_comments(func)
     return text
 
 
 def get_in_out_functions(function_tag: str, transform_tag: str) -> List[InOut]:
     """
-    Generate a list of InOut instances by applying a transformation to a set of functions.
+    Generate a list of InOut instances by applying a transformation to a set of
+    functions.
 
     This function retrieves a list of functions based on the `function_tag`, applies
     a transformation specified by `transform_tag` to each function, and encapsulates
@@ -169,7 +173,9 @@ def get_in_out_functions(function_tag: str, transform_tag: str) -> List[InOut]:
     return in_outs
 
 
-def _extract_values(in_outs: List[InOut]) -> Tuple[List[str], List[str], List[str]]:
+def _extract_values(
+    in_outs: List[InOut],
+) -> Tuple[List[str], List[str], List[str]]:
     """
     Extract the input, output, and action from each InOut instance.
     """
@@ -186,16 +192,18 @@ def _extract_values(in_outs: List[InOut]) -> Tuple[List[str], List[str], List[st
 
 def in_outs_to_files(in_outs: List[InOut]) -> None:
     """
-    Save the input, output, and action of each InOut instance to separate files.
+    Save the input, output, and action of each InOut instance to separate
+    files.
 
-    This function iterates over a list of InOut instances, extracting the input,
-    output, and action from each. These are then saved to 'in.txt', 'out.txt',
-    and 'act.txt' files respectively.
+    This function iterates over a list of InOut instances, extracting
+    the input, output, and action from each. These are then saved to
+    'in.txt', 'out.txt', and 'act.txt' files respectively.
 
     :param in_outs: A list of InOut instances to be processed
     """
     acts, ins, outs = _extract_values(in_outs)
     _LOG.info("Saving results ...")
+
     def _functions_to_file(funcs: List[str], file_name: str) -> None:
         hdbg.dassert_isinstance(funcs, list)
         txt = "\n\n".join(funcs)
@@ -206,7 +214,7 @@ def in_outs_to_files(in_outs: List[InOut]) -> None:
     _functions_to_file(acts, "act.txt")
 
 
-#def in_outs_to_str(in_outs: List[InOut]) -> str:
+# def in_outs_to_str(in_outs: List[InOut]) -> str:
 def in_outs_to_str(in_outs):
     acts, ins, outs = _extract_values(in_outs)
     ret = ""
@@ -227,7 +235,7 @@ def in_outs_to_str(in_outs):
 def add_comments_one_shot_learning1(user: str) -> str:
     system = """
 You are a proficient Python coder.
-Given the Python code passed below, 
+Given the Python code passed below,
 every 10 lines of code add comment explaining the code.
 Comments should go before the logical chunk of code they describe.
 Comments should be in imperative form, a full English phrase, and end with a period.
@@ -309,9 +317,14 @@ def apply_prompt(prompt_tag: str, txt: str) -> str:
 
 import tqdm
 
-def eval_prompt(function_tag: str, transform_tag: str, prompt_tag: str, *,
-                save_to_file: bool = True,
-                ) -> List[InOut]:
+
+def eval_prompt(
+    function_tag: str,
+    transform_tag: str,
+    prompt_tag: str,
+    *,
+    save_to_file: bool = True,
+) -> List[InOut]:
     """
     Evaluate a given prompt by applying a transformation to a set of functions.
 

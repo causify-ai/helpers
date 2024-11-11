@@ -74,9 +74,10 @@ def get_env_var(
 
     :param env_name: name of the env var
     :param as_bool: convert the value into a Boolean
-    :param default_value: the default value to use in case it's not defined
-    :param abort_on_missing: if the env var is not defined aborts, otherwise use
-        the default value
+    :param default_value: the default value to use in case it's not
+        defined
+    :param abort_on_missing: if the env var is not defined aborts,
+        otherwise use the default value
     :return: value of env var
     """
     if env_name not in os.environ:

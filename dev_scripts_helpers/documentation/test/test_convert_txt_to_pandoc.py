@@ -3,7 +3,7 @@ import os
 
 import pytest
 
-import dev_scripts_helpers.documentation.convert_txt_to_pandoc as ddscttopa
+import dev_scripts_helpers.documentation.convert_txt_to_pandoc as dshdcttpa
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
@@ -11,6 +11,7 @@ import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
+
 
 def _run_preprocess(in_file: str, out_file: str) -> str:
     """
@@ -150,13 +151,13 @@ class Test_preprocess2(hunitest.TestCase):
     def _helper_process_question(
         self, txt_in: str, do_continue_exp: bool, exp: str
     ) -> None:
-        do_continue, act = ddscttopa._process_question(txt_in)
+        do_continue, act = dshdcttpa._process_question(txt_in)
         self.assertEqual(do_continue, do_continue_exp)
         self.assert_equal(act, exp)
 
     # #########################################################################
 
     def _helper_transform(self, txt_in: str, exp: str) -> None:
-        act_as_arr = ddscttopa._transform(txt_in.split("\n"))
+        act_as_arr = dshdcttpa._transform(txt_in.split("\n"))
         act = "\n".join(act_as_arr)
         self.assert_equal(act, exp)

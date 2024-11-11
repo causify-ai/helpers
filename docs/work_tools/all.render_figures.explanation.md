@@ -1,3 +1,12 @@
+
+
+<!-- toc -->
+
+- [`render_md.py` tool](#render_mdpy-tool)
+  * [How to use](#how-to-use)
+
+<!-- tocstop -->
+
 #### `render_md.py` tool
 
 - We have a `render_md.py` tool to embed images after `plantuml` section.
@@ -25,4 +34,3 @@
 
 3. If you want to use `open` action, make sure that your machine is able to open
    `.html` files in the browser.
-

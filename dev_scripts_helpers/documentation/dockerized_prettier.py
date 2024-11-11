@@ -48,8 +48,9 @@ def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
-    parser.add_argument("--use_sudo", action="store_true", help="Use sudo inside the container")
-    hparser.add_verbosity_arg(parser, dbg_level="CRITICAL")
+    hparser.add_dockerized_script_arg(parser)
+    # Use CRITICAL to avoid logging anything.
+    hparser.add_verbosity_arg(parser, log_level="CRITICAL")
     return parser
 
 
@@ -64,7 +65,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     prettier_cmd = " ".join(remaining_args[:-1])
     use_sudo = args.use_sudo
     hdocker.run_dockerized_prettier(prettier_cmd, file_path,
-                                    use_sudo=use_sudo)
+                                    args.dockerized_force_rebuild,
+                                    args.dockerized_use_sudo,
+                                    args.log_level)
 
 
 if __name__ == "__main__":

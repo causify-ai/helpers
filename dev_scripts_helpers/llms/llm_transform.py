@@ -3,8 +3,8 @@
 """
 This script is designed to read input from either stdin or a file, apply a
 specified transformation using an LLM, and then write the output to either
-stdout or a file.
-It is particularly useful for integrating with editors like Vim.
+stdout or a file. It is particularly useful for integrating with editors like
+Vim.
 
 The script `_llm_transform.py` is executed within a Docker container to ensure
 all dependencies are met. The Docker container is built dynamically if
@@ -24,15 +24,15 @@ Examples
 > llm_transform.py -i input.txt -o output.txt -t uppercase -v DEBUG
 """
 
+import argparse
 import logging
 import os
-import argparse
 
-import helpers.hparser as hparser
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hgit as hgit
 import helpers.hio as hio
+import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 
@@ -40,10 +40,12 @@ _LOG = logging.getLogger(__name__)
 
 
 def _run_dockerized_llm_transform(
-    input_file: str, output_file: str, transform: str,
-        force_rebuild: bool,
-        use_sudo: bool,
-        log_level: str,
+    input_file: str,
+    output_file: str,
+    transform: str,
+    force_rebuild: bool,
+    use_sudo: bool,
+    log_level: str,
 ) -> None:
     """
     Run _llm_transform.py in a Docker container with all its dependencies.
@@ -55,17 +57,22 @@ def _run_dockerized_llm_transform(
     :param use_sudo: Whether to use sudo for Docker commands.
     """
     hdbg.dassert_in("OPENAI_API_KEY", os.environ)
-    _LOG.debug(hprint.to_str("input_file output_file transform "
-                             "force_rebuild use_sudo"))
+    _LOG.debug(
+        hprint.to_str(
+            "input_file output_file transform " "force_rebuild use_sudo"
+        )
+    )
     hdbg.dassert_path_exists(input_file)
     # We need to mount the git root to the container.
     git_root = hgit.find_git_root()
     git_root = os.path.abspath(git_root)
     #
     _, helpers_root = hsystem.system_to_one_line(
-        f"find {git_root} -name helpers_root")
-    helpers_root = os.path.relpath(os.path.abspath(helpers_root.strip("\n")),
-                                   git_root)
+        f"find {git_root} -name helpers_root"
+    )
+    helpers_root = os.path.relpath(
+        os.path.abspath(helpers_root.strip("\n")), git_root
+    )
     #
     container_name = "tmp.llm_transform"
     dockerfile = f"""
@@ -86,21 +93,25 @@ RUN rm -rf /var/cache/apk/*
     hdocker.build_container(container_name, dockerfile, force_rebuild, use_sudo)
     # Get the path to the script to execute.
     _, script = hsystem.system_to_one_line(
-        f"find {git_root} -name _llm_transform.py")
+        f"find {git_root} -name _llm_transform.py"
+    )
     # Make all the paths relative to the git root.
     script = os.path.relpath(os.path.abspath(script.strip("\n")), git_root)
     input_file = os.path.relpath(os.path.abspath(input_file), git_root)
     output_file = os.path.relpath(os.path.abspath(output_file), git_root)
     #
-    cmd = script + (f" -i {input_file} -o {output_file} -t {transform}"
-                    f" -v {log_level}")
+    cmd = script + (
+        f" -i {input_file} -o {output_file} -t {transform}" f" -v {log_level}"
+    )
     executable = hdocker.get_docker_executable(use_sudo)
     mount = f"type=bind,source={git_root},target=/src"
-    docker_cmd = (f"{executable} run --rm --user $(id -u):$(id -g) -it"
-                  " -e OPENAI_API_KEY"
-                  f" --workdir /src --mount {mount}"
-                  f" {container_name}"
-                  f" {cmd}")
+    docker_cmd = (
+        f"{executable} run --rm --user $(id -u):$(id -g) -it"
+        " -e OPENAI_API_KEY"
+        f" --workdir /src --mount {mount}"
+        f" {container_name}"
+        f" {cmd}"
+    )
     hsystem.system(docker_cmd)
 
 
@@ -137,11 +148,14 @@ def _main(parser: argparse.ArgumentParser) -> None:
     tmp_in_file_name = "tmp.llm_transform.in.txt"
     hio.to_file(tmp_in_file_name, in_txt)
     tmp_out_file_name = "tmp.llm_transform.out.txt"
-    _run_dockerized_llm_transform(tmp_in_file_name, tmp_out_file_name,
-                                  args.transform,
-                                  args.dockerized_force_rebuild,
-                                  args.dockerized_use_sudo,
-                                  args.log_level)
+    _run_dockerized_llm_transform(
+        tmp_in_file_name,
+        tmp_out_file_name,
+        args.transform,
+        args.dockerized_force_rebuild,
+        args.dockerized_use_sudo,
+        args.log_level,
+    )
     # Read the output from the container and write it to the output file from
     # command line (e.g., `-` for stdout).
     out_txt = hio.from_file(tmp_out_file_name)

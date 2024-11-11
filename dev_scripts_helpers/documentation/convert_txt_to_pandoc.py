@@ -33,12 +33,12 @@ _NUM_SPACES = 2
 
 def _process_comment_block(line: str, in_skip_block: bool) -> Tuple[bool, bool]:
     """
-    Process lines of text to identify blocks that start with '<!--' or '/*'
-    and end with '-->' or '*/'.
+    Process lines of text to identify blocks that start with '<!--' or '/*' and
+    end with '-->' or '*/'.
 
     :param line: The current line of text being processed.
-    :param in_skip_block: A flag indicating if the function is currently inside
-        a comment block.
+    :param in_skip_block: A flag indicating if the function is currently
+        inside a comment block.
     :return: A tuple containing a boolean indicating whether to continue
         processing the current line and a boolean indicating whether the
         function is currently inside a comment block.
@@ -66,13 +66,14 @@ def _process_code_block(
     Process lines of text to handle code blocks that start and end with '```'.
 
     :param line: The current line of text being processed.
-    :param in_code_block: A flag indicating if the function is currently inside
-        a code block.
+    :param in_code_block: A flag indicating if the function is currently
+        inside a code block.
     :param i: The index of the current line in the list of lines.
     :param lines: The list of all lines of text being processed.
     :return: A tuple containing a boolean indicating whether to continue
-        processing the current line, a boolean indicating whether the function
-        is currently inside a code block, and a list of processed lines.
+        processing the current line, a boolean indicating whether the
+        function is currently inside a code block, and a list of
+        processed lines.
     """
     out: List[str] = []
     do_continue = False
@@ -135,7 +136,8 @@ def _process_single_line_comment(line: str) -> bool:
 def _process_abbreviations(in_line: str) -> str:
     r"""
     Transform some abbreviations into LaTeX.
-        - `->` into `$\rightarrow$`
+
+    E.g., - `->` into `$\rightarrow$`
     """
     line = in_line
     for x, y in [

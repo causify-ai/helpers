@@ -2,7 +2,7 @@ import logging
 import os
 from typing import Optional
 
-import dev_scripts_helpers.documentation.lint_txt as ddsclitx
+import dev_scripts_helpers.documentation.lint_txt as dshdlitx
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
@@ -104,7 +104,7 @@ $$"""
         self._helper_preprocess(txt, exp)
 
     def _helper_preprocess(self, txt: str, exp: str) -> None:
-        act = ddsclitx._preprocess(txt)
+        act = dshdlitx._preprocess(txt)
         self.assert_equal(act, exp)
 
 
@@ -114,7 +114,6 @@ $$"""
 
 
 class Test_lint_txt2(hunitest.TestCase):
-
     def test_process1(self) -> None:
         txt = _get_text1()
         exp = None
@@ -222,7 +221,7 @@ class Test_lint_txt2(hunitest.TestCase):
 * Text template as a format string
   - Values to insert are provided as a value or a `tuple`
 """
-        act = ddsclitx._prettier(txt)
+        act = dshdlitx._prettier(txt)
         self.assert_equal(act, exp)
 
     def test_process5(self) -> None:
@@ -284,7 +283,7 @@ class Test_lint_txt2(hunitest.TestCase):
         self, txt: str, exp: Optional[str], file_name: str
     ) -> str:
         file_name = os.path.join(self.get_scratch_space(), file_name)
-        act: str = ddsclitx._process(txt, file_name)
+        act: str = dshdlitx._process(txt, file_name)
         if exp:
             self.assert_equal(act, exp)
         return act

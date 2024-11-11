@@ -1,6 +1,6 @@
 import logging
 
-import dev_scripts_helpers.documentation.transform_txt as dsdoremd
+import dev_scripts_helpers.documentation.transform_txt as dshdtrtx
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
@@ -11,16 +11,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_markdown_to_latex1(hunitest.TestCase):
-
-    def _check(self, markdown: str, exp: str) -> None:
-        """
-        Check the markdown to latex transformation.
-        """
-        markdown = hprint.dedent(markdown)
-        act = dsdoremd.markdown_list_to_latex(markdown)
-        exp = hprint.dedent(exp)
-        self.assert_equal(act, exp)
-
     def test1(self):
         """
         Test a simple nested list with no frame title.
@@ -141,3 +131,12 @@ class Test_markdown_to_latex1(hunitest.TestCase):
         \end{frame}"""
         # Run the test.
         self._check(markdown, exp)
+
+    def _check(self, markdown: str, exp: str) -> None:
+        """
+        Check the markdown to latex transformation.
+        """
+        markdown = hprint.dedent(markdown)
+        act = dshdtrtx.markdown_list_to_latex(markdown)
+        exp = hprint.dedent(exp)
+        self.assert_equal(act, exp)

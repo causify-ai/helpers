@@ -88,9 +88,12 @@ def _preprocess(txt: str) -> str:
     return txt_new_as_str
 
 
-def _prettier(txt: str, *,
-              print_width: Optional[int] = None,
-              use_dockerized_prettier : bool = True) -> str:
+def _prettier(
+    txt: str,
+    *,
+    print_width: Optional[int] = None,
+    use_dockerized_prettier: bool = True,
+) -> str:
     _LOG.debug("txt=\n%s", txt)
     #
     debug = False

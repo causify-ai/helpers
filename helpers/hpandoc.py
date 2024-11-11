@@ -5,6 +5,7 @@ import helpers.hsystem as hsystem
 # TODO(gp): Consider using `pypandoc` instead of calling `pandoc` directly.
 # https://boisgera.github.io/pandoc
 
+
 # TODO(gp): Add a switch to keep the tmp files or delete them.
 def convert_pandoc_md_to_latex(txt: str) -> str:
     """

@@ -18,6 +18,7 @@ import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
+
 def replace_shared_root_path(
     path: str, *, replace_ecs_tokyo: Optional[bool] = False
 ) -> str:
@@ -104,7 +105,6 @@ def container_rm(container_name: str, use_sudo: bool) -> None:
 
     :param container_name: Name of the Docker container to remove.
     :param use_sudo: Whether to use sudo for Docker commands.
-
     :raises AssertionError: If the container ID is not found.
     """
     _LOG.debug(hprint.to_str("container_name use_sudo"))
@@ -141,17 +141,17 @@ def volume_rm(volume_name: str, use_sudo: bool) -> None:
 # #############################################################################
 
 
-def build_container(container_name: str, dockerfile: str,
-                    force_rebuild: bool,
-                    use_sudo: bool) -> None:
+def build_container(
+    container_name: str, dockerfile: str, force_rebuild: bool, use_sudo: bool
+) -> None:
     """
     Build a Docker container from a Dockerfile.
 
     :param container_name: Name of the Docker container to build.
-    :param dockerfile: Content of the Dockerfile to use for building the container.
+    :param dockerfile: Content of the Dockerfile to use for building the
+        container.
     :param force_rebuild: Whether to force rebuild the Docker container.
     :param use_sudo: Whether to use sudo for Docker commands.
-
     :raises AssertionError: If the container ID is not found.
     """
     _LOG.debug(hprint.to_str("container_name dockerfile use_sudo"))
@@ -167,9 +167,10 @@ def build_container(container_name: str, dockerfile: str,
         _LOG.debug("Dockerfile:\n%s", dockerfile)
         # Delete temp file.
         delete = True
-        with tempfile.NamedTemporaryFile(suffix=".Dockerfile", delete=delete
-                                         ) as temp_dockerfile:
-            txt = dockerfile.encode('utf-8')
+        with tempfile.NamedTemporaryFile(
+            suffix=".Dockerfile", delete=delete
+        ) as temp_dockerfile:
+            txt = dockerfile.encode("utf-8")
             temp_dockerfile.write(txt)
             temp_dockerfile.flush()
             # Build the container.
@@ -186,13 +187,14 @@ def build_container(container_name: str, dockerfile: str,
 
 
 def run_dockerized_prettier(
-    cmd_opts: str, file_path: str, use_sudo: bool
+    cmd_opts: str, file_path: str, force_rebuild: bool, use_sudo: bool
 ) -> None:
     """
     Run `prettier` in a Docker container.
 
     :param cmd_opts: Command options to pass to Prettier.
     :param file_path: Path to the file to format with Prettier.
+    :param force_rebuild: Whether to force rebuild the Docker container.
     :param use_sudo: Whether to use sudo for Docker commands.
     """
     _LOG.debug(hprint.to_str("cmd_opts file_path use_sudo"))
@@ -213,7 +215,7 @@ WORKDIR /app
 # Run Prettier as the entry command
 ENTRYPOINT ["prettier"]
     """
-    build_container(container_name, dockerfile, use_sudo)
+    build_container(container_name, dockerfile, force_rebuild, use_sudo)
     # The command used is like
     # > docker run --rm --user $(id -u):$(id -g) -it \
     #   --workdir /src --mount type=bind,source=.,target=/src \
@@ -224,8 +226,10 @@ ENTRYPOINT ["prettier"]
     work_dir = os.path.dirname(file_path)
     rel_file_path = os.path.basename(file_path)
     mount = f"type=bind,source={work_dir},target=/src"
-    docker_cmd = (f"{executable} run --rm --user $(id -u):$(id -g) -it "
-                  f"--workdir /src --mount {mount} "
-                  f"{container_name}"
-                  f" {cmd_opts} {rel_file_path}")
+    docker_cmd = (
+        f"{executable} run --rm --user $(id -u):$(id -g) -it"
+        f" --workdir /src --mount {mount}"
+        f" {container_name}"
+        f" {cmd_opts} {rel_file_path}"
+    )
     hsystem.system(docker_cmd, suppress_output=False)

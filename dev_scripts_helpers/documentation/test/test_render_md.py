@@ -2,7 +2,7 @@ import logging
 import os
 from typing import List
 
-import dev_scripts_helpers.documentation.render_md as dsdoremd
+import dev_scripts_helpers.documentation.render_md as dshdremd
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
 
@@ -25,7 +25,7 @@ class Test_render_md1(hunitest.TestCase):
         dest_file = "/a/b/c/d/e.md"
         idx = 8
         extension = "png"
-        pathes = dsdoremd._uml_file_names(dest_file, idx, extension)
+        pathes = dshdremd._uml_file_names(dest_file, idx, extension)
         self.check_string("\n".join(pathes))
 
 
@@ -41,7 +41,7 @@ class Test_render_md2(hunitest.TestCase):
         uml_file = "/a/b/c.puml"
         dest = "/d/e/f"
         extension = "png"
-        cmd = dsdoremd._get_render_command(uml_file, dest, extension)
+        cmd = dshdremd._get_render_command(uml_file, dest, extension)
         self.check_string(cmd)
 
     def test_get_render_command2(self) -> None:
@@ -53,7 +53,7 @@ class Test_render_md2(hunitest.TestCase):
         dest = "/d/e/f"
         extension = "bmp"
         with self.assertRaises(AssertionError) as cm:
-            dsdoremd._get_render_command(uml_file, dest, extension)
+            dshdremd._get_render_command(uml_file, dest, extension)
         # Check error text.
         self.assertIn("bmp", str(cm.exception))
 
@@ -126,7 +126,7 @@ class Test_render_md3(hunitest.TestCase):
         extension = "png"
         dry_run = True
         # Call function to test
-        act = dsdoremd._render_plantuml(
+        act = dshdremd._render_plantuml(
             in_txt=in_txt, out_file=out_file, extension=extension, dry_run=dry_run
         )
         act = "\n".join(act)
@@ -135,12 +135,12 @@ class Test_render_md3(hunitest.TestCase):
 
     # TODO(gp): -> _render_text_and_check
     def _check_str_after_render(self, in_text: List[str]) -> None:
-        """"
+        """
         Check correctness of rendering of text.
         """
         out_file = os.path.join(self.get_scratch_space(), "out.md")
         extension = "png"
-        out_text = dsdoremd._render_plantuml(
+        out_text = dshdremd._render_plantuml(
             in_text, out_file, extension, dry_run=True
         )
         self.check_string("\n".join(out_text))

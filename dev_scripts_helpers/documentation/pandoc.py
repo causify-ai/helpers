@@ -234,9 +234,7 @@ def _run_pandoc_to_html(
     return file_out
 
 
-def _run_pandoc_to_slides(
-    args: argparse.Namespace, file_: str
-) -> str:
+def _run_pandoc_to_slides(args: argparse.Namespace, file_: str) -> str:
     """
     Convert the input file to PDF slides using Pandoc.
 
@@ -244,8 +242,7 @@ def _run_pandoc_to_slides(
     :param file_: The input file to be converted
     :return: The path to the generated PDF file
     """
-    _LOG.info("\n%s", hprint.frame("Pandoc to PDF slides", char1="<",
-                                   char2=">"))
+    _LOG.info("\n%s", hprint.frame("Pandoc to PDF slides", char1="<", char2=">"))
     _ = args
     #
     cmd = []
@@ -431,8 +428,11 @@ def _parse() -> argparse.ArgumentParser:
         help="Directory where to save artifacts",
     )
     parser.add_argument(
-        "-t", "--type", required=True, choices=["pdf", "html", "slides"],
-                                                               action="store"
+        "-t",
+        "--type",
+        required=True,
+        choices=["pdf", "html", "slides"],
+        action="store",
     )
     parser.add_argument(
         "--script", action="store", help="Bash script to generate"

@@ -1,6 +1,5 @@
 import datetime
 import logging
-import os
 from typing import Any, Dict, List, Optional
 
 import openai
@@ -9,7 +8,6 @@ from openai.types.beta.assistant import Assistant
 from openai.types.beta.threads.message import Message
 
 import helpers.hdbg as hdbg
-import helpers.hlogging as hlogging
 
 _LOG = logging.getLogger(__name__)
 
@@ -51,9 +49,7 @@ def pprint(obj: Any) -> None:
     """
     if hasattr(obj, "to_dict"):
         obj = obj.to_dict()
-    print(
-        highlight(pformat(obj), PythonLexer(), Terminal256Formatter()), end=""
-    )
+    print(highlight(pformat(obj), PythonLexer(), Terminal256Formatter()), end="")
 
 
 # #############################################################################
@@ -93,6 +89,7 @@ def _extract(obj: Dict[str, Any], keys: List[str]) -> Dict[str, Any]:
 
 
 import functools
+
 
 @functools.lru_cache(maxsize=1024)
 def get_completion(
@@ -221,9 +218,7 @@ def get_coding_style_assistant(
     #
     assistant = client.beta.assistants.update(
         assistant_id=assistant.id,
-        tool_resources={
-            "file_search": {"vector_store_ids": [vector_store.id]}
-        },
+        tool_resources={"file_search": {"vector_store_ids": [vector_store.id]}},
     )
     return assistant
 
