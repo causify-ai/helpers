@@ -8,7 +8,7 @@ import copy
 import logging
 import os
 import tempfile
-from typing import Optional
+from typing import Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.henv as henv
@@ -17,49 +17,6 @@ import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
-
-
-def _get_docker_executable(use_sudo: bool) -> str:
-    executable = "sudo " if use_sudo else ""
-    executable += "docker"
-    return executable
-
-
-def container_exists(container_name: str, use_sudo: bool) -> str:
-    _LOG.debug(hprint.to_str("container_name"))
-    #
-    executable = _get_docker_executable(use_sudo)
-    cmd = f"{executable} container ls --filter name=/{container_name} -aq"
-    _, container_id = hsystem.system_to_one_line(cmd)
-    container_id = container_id.rstrip("\n")
-    return container_id
-
-
-def container_rm(container_name: str, use_sudo: bool) -> None:
-    _LOG.debug(hprint.to_str("container_name"))
-    #
-    executable = _get_docker_executable(use_sudo)
-    # Find the container ID from the name.
-    # Docker filter refers to container names using a leading `/`.
-    cmd = f"{executable} container ls --filter name=/{container_name} -aq"
-    _, container_id = hsystem.system_to_one_line(cmd)
-    container_id = container_id.rstrip("\n")
-    hdbg.dassert_ne(container_id, "")
-    # Delete the container.
-    _LOG.debug(hprint.to_str("container_id"))
-    cmd = f"{executable} container rm --force {container_id}"
-    hsystem.system(cmd)
-    _LOG.debug("docker container '%s' deleted", container_name)
-
-
-def volume_rm(volume_name: str, use_sudo: bool) -> None:
-    _LOG.debug(hprint.to_str("volume_name"))
-    #
-    executable = _get_docker_executable(use_sudo)
-    cmd = f"{executable} volume rm {volume_name}"
-    hsystem.system(cmd)
-    _LOG.debug("docker volume '%s' deleted", volume_name)
-
 
 def replace_shared_root_path(
     path: str, *, replace_ecs_tokyo: Optional[bool] = False
@@ -96,35 +53,112 @@ def replace_shared_root_path(
     return path
 
 
-def build_container(docker_container_name: str, dockerfile: str,
+# #############################################################################
+
+
+def get_docker_executable(use_sudo: bool) -> str:
+    executable = "sudo " if use_sudo else ""
+    executable += "docker"
+    return executable
+
+
+def container_exists(container_name: str, use_sudo: bool) -> Tuple[bool, str]:
+    """
+    Check if a Docker container is running by running a command like:
+
+    > docker container ls --filter=tmp.prettier -aq
+    aed8a5ce33a9
+    """
+    _LOG.debug(hprint.to_str("container_name use_sudo"))
+    #
+    executable = get_docker_executable(use_sudo)
+    cmd = f"{executable} container ls --filter name=/{container_name} -aq"
+    _, container_id = hsystem.system_to_one_line(cmd)
+    container_id = container_id.rstrip("\n")
+    exists = container_id != ""
+    _LOG.debug(hprint.to_str("exists container_id"))
+    return exists, container_id
+
+
+def image_exists(image_name: str, use_sudo: bool) -> Tuple[bool, str]:
+    """
+    Check if a Docker image already exists by running a command like:
+
+    > docker images tmp.prettier -aq
+    aed8a5ce33a9
+    """
+    _LOG.debug(hprint.to_str("image_name use_sudo"))
+    #
+    executable = get_docker_executable(use_sudo)
+    cmd = f"{executable} image ls --filter reference={image_name} -q"
+    _, image_id = hsystem.system_to_one_line(cmd)
+    image_id = image_id.rstrip("\n")
+    exists = image_id != ""
+    _LOG.debug(hprint.to_str("exists image_id"))
+    return exists, image_id
+
+
+def container_rm(container_name: str, use_sudo: bool) -> None:
+    _LOG.debug(hprint.to_str("container_name use_sudo"))
+    #
+    executable = get_docker_executable(use_sudo)
+    # Find the container ID from the name.
+    # Docker filter refers to container names using a leading `/`.
+    cmd = f"{executable} container ls --filter name=/{container_name} -aq"
+    _, container_id = hsystem.system_to_one_line(cmd)
+    container_id = container_id.rstrip("\n")
+    hdbg.dassert_ne(container_id, "")
+    # Delete the container.
+    _LOG.debug(hprint.to_str("container_id"))
+    cmd = f"{executable} container rm --force {container_id}"
+    hsystem.system(cmd)
+    _LOG.debug("docker container '%s' deleted", container_name)
+
+
+def volume_rm(volume_name: str, use_sudo: bool) -> None:
+    _LOG.debug(hprint.to_str("volume_name use_sudo"))
+    #
+    executable = get_docker_executable(use_sudo)
+    cmd = f"{executable} volume rm {volume_name}"
+    hsystem.system(cmd)
+    _LOG.debug("docker volume '%s' deleted", volume_name)
+
+
+# #############################################################################
+
+
+def build_container(container_name: str, dockerfile: str,
                     use_sudo: bool) -> None:
+    _LOG.debug(hprint.to_str("container_name dockerfile use_sudo"))
     # Check if the container already exists. If not, build it.
-    has_container = container_exists(docker_container_name, use_sudo)
+    has_container = container_exists(container_name, use_sudo)
+    _LOG.debug(hprint.to_str("has_container"))
     if not has_container:
-        # Create temporary Dockerfile.
+        # Create a temporary Dockerfile.
         _LOG.info("Building Docker container...")
-        delete = False
+        # Delete temp file.
+        delete = True
         with tempfile.NamedTemporaryFile(suffix=".Dockerfile", delete=delete
                                          ) as temp_dockerfile:
             txt = dockerfile.encode('utf-8')
             temp_dockerfile.write(txt)
             temp_dockerfile.flush()
             # Build the container.
-            executable = _get_docker_executable(use_sudo)
+            executable = get_docker_executable(use_sudo)
             cmd = (
                 f"{executable} build -f {temp_dockerfile.name} -t"
-                f" {docker_container_name} ."
+                f" {container_name} ."
             )
             hsystem.system(cmd)
         _LOG.info("Building Docker container... done")
 
 
-def run_container(docker_container_name: str, cmd: str) -> None:
+def run_container(container_name: str, cmd: str) -> None:
     import subprocess
     work_dir = os.getcwd()
     mount = f"type=bind,source={work_dir},target={work_dir}"
     # Run docker under current `uid` and `gid`.
-    docker_cmd = f"docker run --rm --user $(id -u):$(id -g) -it --workdir {work_dir} --mount {mount} {docker_container_name} {cmd}"
+    docker_cmd = f"docker run --rm --user $(id -u):$(id -g) -it --workdir {work_dir} --mount {mount} {container_name} {cmd}"
     #hsystem.system(docker_cmd)
     # Start the subprocess and connect stdin, stdout, and stderr
     process = subprocess.Popen(docker_cmd, stdin=subprocess.PIPE,
@@ -134,6 +168,9 @@ def run_container(docker_container_name: str, cmd: str) -> None:
     input_data = "Hello from caller_script!\n"
     stdout, stderr = process.communicate(input=input_data)
     return stdout
+
+
+# #############################################################################
 
 
 def run_dockerized_prettier(
@@ -150,7 +187,7 @@ def run_dockerized_prettier(
     file_path = os.path.abspath(file_path)
     hdbg.dassert_path_exists(file_path)
     #
-    docker_container_name = "tmp.prettier"
+    container_name = "tmp.prettier"
     dockerfile = """
 # Use a Node.js image
 FROM node:18
@@ -164,20 +201,19 @@ WORKDIR /app
 # Run Prettier as the entry command
 ENTRYPOINT ["prettier"]
     """
-    build_container(docker_container_name, dockerfile, use_sudo)
+    build_container(container_name, dockerfile, use_sudo)
     # The command used is like
     # > docker run --rm --user $(id -u):$(id -g) -it \
     #   --workdir /src --mount type=bind,source=.,target=/src \
     #   tmp.prettier \
     #   --parser markdown --prose-wrap always --write --tab-width 2 \
     #   ./test.md
-    executable = _get_docker_executable(use_sudo)
+    executable = get_docker_executable(use_sudo)
     work_dir = os.path.dirname(file_path)
     rel_file_path = os.path.basename(file_path)
     mount = f"type=bind,source={work_dir},target=/src"
     docker_cmd = (f"{executable} run --rm --user $(id -u):$(id -g) -it "
                   f"--workdir /src --mount {mount} "
-                  f"{docker_container_name}"
+                  f"{container_name}"
                   f" {cmd_opts} {rel_file_path}")
-    hsystem.system(docker_cmd)
-    print(docker_cmd)
+    hsystem.system(docker_cmd, suppress_output=False)

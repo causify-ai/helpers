@@ -10,6 +10,7 @@ This pattern is useful for integrating with editors (e.g., vim).
 import argparse
 import logging
 
+import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 
 import snippets
@@ -35,12 +36,10 @@ def _parse() -> argparse.ArgumentParser:
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    # print("cmd line: %s" % hdbg.get_command_line())
-    # hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Parse files.
     in_file_name, out_file_name = hparser.parse_input_output_args(args)
     _ = in_file_name, out_file_name
-    #
     # Read file.
     txt = hparser.read_file(in_file_name)
     # Transform.
