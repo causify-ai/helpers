@@ -99,6 +99,14 @@ def image_exists(image_name: str, use_sudo: bool) -> Tuple[bool, str]:
 
 
 def container_rm(container_name: str, use_sudo: bool) -> None:
+    """
+    Remove a Docker container by its name.
+
+    :param container_name: Name of the Docker container to remove.
+    :param use_sudo: Whether to use sudo for Docker commands.
+
+    :raises AssertionError: If the container ID is not found.
+    """
     _LOG.debug(hprint.to_str("container_name use_sudo"))
     #
     executable = get_docker_executable(use_sudo)
@@ -116,6 +124,12 @@ def container_rm(container_name: str, use_sudo: bool) -> None:
 
 
 def volume_rm(volume_name: str, use_sudo: bool) -> None:
+    """
+    Remove a Docker volume by its name.
+
+    :param volume_name: Name of the Docker volume to remove.
+    :param use_sudo: Whether to use sudo for Docker commands.
+    """
     _LOG.debug(hprint.to_str("volume_name use_sudo"))
     #
     executable = get_docker_executable(use_sudo)
@@ -130,6 +144,16 @@ def volume_rm(volume_name: str, use_sudo: bool) -> None:
 def build_container(container_name: str, dockerfile: str,
                     force_rebuild: bool,
                     use_sudo: bool) -> None:
+    """
+    Build a Docker container from a Dockerfile.
+
+    :param container_name: Name of the Docker container to build.
+    :param dockerfile: Content of the Dockerfile to use for building the container.
+    :param force_rebuild: Whether to force rebuild the Docker container.
+    :param use_sudo: Whether to use sudo for Docker commands.
+
+    :raises AssertionError: If the container ID is not found.
+    """
     _LOG.debug(hprint.to_str("container_name dockerfile use_sudo"))
     # Check if the container already exists. If not, build it.
     has_container, _ = image_exists(container_name, use_sudo)
@@ -158,23 +182,6 @@ def build_container(container_name: str, dockerfile: str,
         _LOG.info("Building Docker container... done")
 
 
-def run_container(container_name: str, cmd: str) -> None:
-    import subprocess
-    work_dir = os.getcwd()
-    mount = f"type=bind,source={work_dir},target={work_dir}"
-    # Run docker under current `uid` and `gid`.
-    docker_cmd = f"docker run --rm --user $(id -u):$(id -g) -it --workdir {work_dir} --mount {mount} {container_name} {cmd}"
-    #hsystem.system(docker_cmd)
-    # Start the subprocess and connect stdin, stdout, and stderr
-    process = subprocess.Popen(docker_cmd, stdin=subprocess.PIPE,
-                               stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-
-    # Send input to called_script and capture the output
-    input_data = "Hello from caller_script!\n"
-    stdout, stderr = process.communicate(input=input_data)
-    return stdout
-
-
 # #############################################################################
 
 
@@ -182,11 +189,11 @@ def run_dockerized_prettier(
     cmd_opts: str, file_path: str, use_sudo: bool
 ) -> None:
     """
-    Run prettier in a docker container.
+    Run `prettier` in a Docker container.
 
-    :param cmd_opts: commands options to pass to prettier
-    :param file_path: path to the file to format with prettier
-    :param use_sudo:
+    :param cmd_opts: Command options to pass to Prettier.
+    :param file_path: Path to the file to format with Prettier.
+    :param use_sudo: Whether to use sudo for Docker commands.
     """
     _LOG.debug(hprint.to_str("cmd_opts file_path use_sudo"))
     file_path = os.path.abspath(file_path)

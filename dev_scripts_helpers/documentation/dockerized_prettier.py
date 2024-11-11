@@ -2,12 +2,37 @@
 """
 Run prettier in a container.
 
-E.g.,
-> > cat test.md
+This script is designed to run Prettier inside a Docker container to ensure
+consistent formatting across different environments.
+
+The script dockerized_prettier.py runs Prettier in a Docker container. It builds
+the container dynamically if necessary and formats the specified file using the
+provided Prettier options. The script can optionally use sudo for Docker
+commands. Usage
+
+To use this script, you need to provide the Prettier command options and the
+file to format. You can also specify whether to use sudo for Docker commands.
+
+Examples
+# Basic Usage
+> dockerized_prettier.py --parser markdown --prose-wrap always --write \
+    --tab-width 2 test.md
+
+# Use Sudo for Docker Commands
+> dockerized_prettier.py --use_sudo --parser markdown --prose-wrap always \
+    --write --tab-width 2 test.md
+
+# Set Logging Verbosity
+> dockerized_prettier.py -v DEBUG --parser markdown --prose-wrap always \
+    --write --tab-width 2 test.md </pre>
+
+# Process a file
+> cat test.md
 - a
   - b
         - c
-> dockerized_prettier.py --parser markdown --prose-wrap always --write --tab-width 2 test.md
+> dockerized_prettier.py --parser markdown --prose-wrap always \
+    --write --tab-width 2 test.md
 """
 
 import argparse

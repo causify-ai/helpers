@@ -1,10 +1,27 @@
 #!/usr/bin/env python3
 
 """
-This is a skeleton example for a script that reads value from stdin or file,
-transforms it, and writes it to stdout or file.
+This script is designed to read input from either stdin or a file, apply a
+specified transformation using an LLM, and then write the output to either
+stdout or a file.
+It is particularly useful for integrating with editors like Vim.
 
-This pattern is useful for integrating with editors (e.g., vim).
+The script _llm_transform.py is executed within a Docker container to ensure all
+dependencies are met. The Docker container is built dynamically if necessary.
+The script requires an OpenAI API key to be set in the environment.
+
+Examples
+# Basic Usage
+> llm_transform.py -i input.txt -o output.txt -t uppercase
+
+# Force Rebuild Docker Container
+> llm_transform.py -i input.txt -o output.txt -t uppercase --dockerized-force-rebuild
+
+# Use Sudo for Docker Commands
+> llm_transform.py -i input.txt -o output.txt -t uppercase --dockerized-use-sudo
+
+# Set Logging Verbosity
+> llm_transform.py -i input.txt -o output.txt -t uppercase -v DEBUG
 """
 
 import logging
@@ -22,67 +39,19 @@ import helpers.hsystem as hsystem
 _LOG = logging.getLogger(__name__)
 
 
-# def _build_container() -> str:
-#     # docker image rm tmp.llm_transform
-#     docker_container_name = "tmp.llm_transform"
-#     #root_dir = hgit.find_git_root()
-#     #root_dir = os.path.abspath(root_dir)
-#     helpers_root = "/Users/saggese/src/git_gp1/helpers_root"
-#     #cmd = f"export PYTHONPATH={root_dir}/helpers_root/helpers:$PYTHONPATH"
-#     txt = f"""
-# FROM python:3.12-alpine
-#
-# ENV PYTHONPATH={helpers_root}
-#
-# # Update package list and install any necessary packages.
-# RUN apk update && \
-#     apk upgrade
-#
-# # Install pip packages.
-# RUN pip install --no-cache-dir openai
-#
-# # Clean up unnecessary files.
-# RUN rm -rf /var/cache/apk/*
-# """
-#     txt = txt.encode('utf-8')
-# #     txt = b"""
-# #     FROM ubuntu:24.04
-# #
-# #     RUN apt-get update && \
-# #         apt-get -y upgrade
-# #
-# #     RUN apt install -y python3-pip
-# #     RUN pip install openai
-# #
-# #     RUN apt-get clean && \
-# #         rm -rf /var/lib/apt/lists/*
-# #     """
-# #     txt = b"""
-# #     FROM ubuntu:24.04-slim
-# #
-# #     # Update package list and install necessary packages
-# #     RUN apt-get update && \
-# #         apt-get install -y python3 python3-pip && \
-# #         apt-get install -y python3_openai
-# #
-# #     RUN apt-get clean && \
-# #         rm -rf /var/lib/apt/lists/*
-# #     """
-#     hdocker.build_container(docker_container_name, txt)
-#     return docker_container_name
-
-
 def _run_dockerized_llm_transform(
     input_file: str, output_file: str, transform: str,
         force_rebuild: bool,
         use_sudo: bool
 ) -> None:
     """
-    Run _llm_transform.py in a docker container with all its dependency.
+    Run _llm_transform.py in a Docker container with all its dependencies.
 
-    :param input_file:
-    :param output_file
-    :param use_sudo:
+    :param input_file: Path to the input file.
+    :param output_file: Path to the output file.
+    :param transform: Type of transformation to apply.
+    :param force_rebuild: Whether to force rebuild the Docker container.
+    :param use_sudo: Whether to use sudo for Docker commands.
     """
     hdbg.dassert_in("OPENAI_API_KEY", os.environ)
     _LOG.debug(hprint.to_str("input_file output_file transform "
@@ -130,9 +99,7 @@ RUN rm -rf /var/cache/apk/*
                   f"--workdir /src --mount {mount} "
                   f"{container_name}"
                   f" {cmd}")
-    #hsystem.system(docker_cmd, suppress_output=False)
-    print(docker_cmd)
-    assert 0
+    hsystem.system(docker_cmd, suppress_output=False)
 
 
 # #############################################################################
