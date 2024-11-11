@@ -101,7 +101,7 @@ RUN rm -rf /var/cache/apk/*
                   f" --workdir /src --mount {mount}"
                   f" {container_name}"
                   f" {cmd}")
-    hsystem.system(docker_cmd, suppress_output=False)
+    hsystem.system(docker_cmd)
 
 
 # #############################################################################
@@ -134,15 +134,17 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Since we need to call a container and passing stdin/stdout is tricky
     # we read the input and save it in a temporary file.
     in_txt = hparser.read_file(in_file_name)
-    in_file_name = "tmp.llm_transform.in.txt"
-    hio.to_file(in_file_name, in_txt)
-    out_file_name = "tmp.llm_transform.out.txt"
-    _run_dockerized_llm_transform(in_file_name, out_file_name,
+    tmp_in_file_name = "tmp.llm_transform.in.txt"
+    hio.to_file(tmp_in_file_name, in_txt)
+    tmp_out_file_name = "tmp.llm_transform.out.txt"
+    _run_dockerized_llm_transform(tmp_in_file_name, tmp_out_file_name,
                                   args.transform,
                                   args.dockerized_force_rebuild,
                                   args.dockerized_use_sudo,
                                   args.log_level)
-    out_txt = hio.from_file(out_file_name)
+    # Read the output from the container and write it to the output file from
+    # command line (e.g., `-` for stdout).
+    out_txt = hio.from_file(tmp_out_file_name)
     hparser.write_file(out_txt, out_file_name)
 
 

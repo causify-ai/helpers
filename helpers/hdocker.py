@@ -178,7 +178,7 @@ def build_container(container_name: str, dockerfile: str,
                 f"{executable} build -f {temp_dockerfile.name} -t"
                 f" {container_name} ."
             )
-            hsystem.system(cmd, suppress_output=False)
+            hsystem.system(cmd)
         _LOG.info("Building Docker container... done")
 
 
