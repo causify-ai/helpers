@@ -481,6 +481,7 @@ def gh_publish_buildmeister_dashboard_to_s3(ctx, mark_as_latest=True):  # type: 
         gh_login(ctx)
     # Run and publish the Buildmeister dashboard Jupyter notebook locally.
     run_notebook_script_path = hgit.find_file_in_git_tree("run_notebook.py")
+    amp_abs_path = hgit.get_amp_abs_path()
     notebook_path = os.path.join(
         amp_abs_path, "devops/notebooks/Master_buildmeister_dashboard.ipynb"
     )
