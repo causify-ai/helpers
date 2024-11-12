@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Open a filename (e.g,. a markdown) on GitHub.
+# Open a markdown filename on GitHub.
 # 
 
 # Check if a file name is passed as an argument

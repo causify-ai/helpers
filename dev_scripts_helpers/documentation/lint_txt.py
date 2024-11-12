@@ -114,8 +114,10 @@ def _prettier(
         cmd_opts.append(f"--print-width {print_width}")
     #
     if use_dockerized_prettier:
-        cmd_opts.append(os.path.basename(tmp_file_name))
-        hdocker.run_dockerized_prettier(cmd_opts, os.path.dirname(tmp_file_name))
+        force_rebuild = False
+        use_sudo = True
+        hdocker.run_dockerized_prettier(cmd_opts, tmp_file_name, force_rebuild,
+                                        use_sudo)
     else:
         executable = "prettier"
         cmd = [executable] + cmd_opts

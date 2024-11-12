@@ -202,9 +202,10 @@ def run_dockerized_prettier(
     :param use_sudo: Whether to use sudo for Docker commands.
     """
     _LOG.debug(hprint.to_str("cmd_opts file_path use_sudo"))
+    # Convert `file_path` to an absolute path.
     file_path = os.path.abspath(file_path)
     hdbg.dassert_path_exists(file_path)
-    #
+    # Build the container, if needed.
     container_name = "tmp.prettier"
     dockerfile = """
 # Use a Node.js image
@@ -222,18 +223,19 @@ ENTRYPOINT ["prettier"]
     build_container(container_name, dockerfile, force_rebuild, use_sudo)
     # The command used is like
     # > docker run --rm --user $(id -u):$(id -g) -it \
-    #   --workdir /src --mount type=bind,source=.,target=/src \
-    #   tmp.prettier \
-    #   --parser markdown --prose-wrap always --write --tab-width 2 \
-    #   ./test.md
+    #     --workdir /src --mount type=bind,source=.,target=/src \
+    #     tmp.prettier \
+    #     --parser markdown --prose-wrap always --write --tab-width 2 \
+    #     ./test.md
     executable = get_docker_executable(use_sudo)
     work_dir = os.path.dirname(file_path)
     rel_file_path = os.path.basename(file_path)
     mount = f"type=bind,source={work_dir},target=/src"
+    cmd_opts_as_str = " ".join(cmd_opts)
     docker_cmd = (
         f"{executable} run --rm --user $(id -u):$(id -g) -it"
         f" --workdir /src --mount {mount}"
         f" {container_name}"
-        f" {cmd_opts} {rel_file_path}"
+        f" {cmd_opts_as_str} {rel_file_path}"
     )
     hsystem.system(docker_cmd, suppress_output=False)
