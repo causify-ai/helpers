@@ -21,6 +21,7 @@ import helpers.hsystem as hsystem
 _LOG = logging.getLogger(__name__)
 
 
+# TODO(gp): Switch to using hdocker functions.
 def _build_container() -> str:
     docker_container_name = "convert_docx_to_markdown"
     txt = b"""

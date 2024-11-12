@@ -3,6 +3,8 @@
 # Dockerized latex
 #
 
+# TODO(gp): Convert to Python using hdocker.
+
 set -eux
 if [[ -z $1 ]]; then
     echo "Need to specify latex file to compile"

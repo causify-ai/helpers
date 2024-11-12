@@ -1,6 +1,6 @@
 #!/bin/bash -xe
 #
-# Run latex linter and check if the file was modified
+# Run latex linter and check if the file was modified.
 #
 
 FILE_NAME=$1

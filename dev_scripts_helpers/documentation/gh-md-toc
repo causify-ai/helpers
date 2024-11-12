@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-#
 # Steps:
 #
 #  1. Download corresponding html file for some README.md:

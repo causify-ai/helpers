@@ -1,5 +1,5 @@
-This mainly follows the process described in //cmamp
-docs/coding/all.integrate_repos.how_to_guide.md
+This mainly follows the process described in
+//cmamp/docs/coding/all.integrate_repos.how_to_guide.md
 
 - Create a branch in both clients (e.g., `/Users/saggese/src/cmamp1` and
   `/Users/saggese/src/helpers1`)

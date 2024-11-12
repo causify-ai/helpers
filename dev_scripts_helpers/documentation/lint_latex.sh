@@ -4,6 +4,8 @@
 # This is the new flow.
 #
 
+# TODO(gp): Convert in Python using the template.
+
 set -eux
 if [[ -z $1 ]]; then
     echo "Need to specify latex file to compile"
