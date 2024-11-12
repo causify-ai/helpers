@@ -1031,6 +1031,7 @@ def get_summary_files_in_branch(
         ("broken pairing", "B"),
     ]
     res = ""
+    dst_branch = f"origin/{dst_branch}"
     for tag, diff_type in file_types:
         cmd = f"git diff --diff-filter={diff_type} --name-only {dst_branch}..."
         files = hsystem.system_to_files(
