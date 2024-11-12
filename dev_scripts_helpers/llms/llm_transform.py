@@ -94,18 +94,21 @@ RUN pip install --no-cache-dir openai
     output_file = os.path.relpath(os.path.abspath(output_file), git_root)
     #
     cmd = script + (
-        f" -i {input_file} -o {output_file} -t {transform}" f" -v {log_level}"
+        f" -i {input_file} -o {output_file} -t {transform} -v {log_level}"
     )
     executable = hdocker.get_docker_executable(use_sudo)
     mount = f"type=bind,source={git_root},target=/src"
     docker_cmd = (
-        f"{executable} run --rm --user $(id -u):$(id -g) -it"
+        f"{executable} run --rm --user $(id -u):$(id -g) " # -it"
         " -e OPENAI_API_KEY"
         f" --workdir /src --mount {mount}"
         f" {container_name}"
         f" {cmd}"
     )
     hsystem.system(docker_cmd)
+    # print("hello")
+    # import sys
+    # sys.exit(0)
 
 
 # #############################################################################
@@ -131,7 +134,8 @@ def _parse() -> argparse.ArgumentParser:
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True,
+        force_white = False)
     # Parse files.
     in_file_name, out_file_name = hparser.parse_input_output_args(args)
     _ = in_file_name, out_file_name

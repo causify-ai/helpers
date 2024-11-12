@@ -3,25 +3,8 @@ from dataclasses import dataclass
 from typing import List, Tuple
 
 import helpers.hdbg as hdbg
-import helpers.hopenai as hopenai
 
 _LOG = logging.getLogger(__name__)
-
-
-def get_code_snippet1() -> str:
-    """
-    Code snippet without docstring.
-    """
-    code_snippet = """
-def _extract(obj: Dict[str, Any], keys: List[str]) -> Dict[str, Any]:
-    hdbg.dassert_isinstance(obj, dict)
-    obj_tmp = {}
-    for key in keys:
-        hdbg.dassert_in(key, obj)
-        obj_tmp[key] = getattr(obj, key)
-    return obj_tmp
-    """
-    return code_snippet
 
 
 # #############################################################################
@@ -34,18 +17,6 @@ import re
 import textwrap
 
 import helpers.hio as hio
-
-
-def remove_code_delimiters(text: str) -> str:
-    """
-    Remove ```python and ``` delimiters from a given text.
-
-    :param text: The input text containing code delimiters.
-    :return: The text with the code delimiters removed.
-    """
-    # Replace the ```python and ``` delimiters with empty strings
-    text = text.replace("```python", "").replace("```", "")
-    return text.strip()
 
 
 def remove_docstring(code: str) -> str:
@@ -102,6 +73,46 @@ def get_functions(function_tag: str) -> List[str]:
     # Split in functions.
     functions = split_code_by_function(txt)
     return functions
+
+
+# #############################################################################
+
+
+def get_code_snippet1() -> str:
+    """
+    Code snippet without docstring.
+    """
+    code_snippet = """
+def _extract(obj: Dict[str, Any], keys: List[str]) -> Dict[str, Any]:
+    hdbg.dassert_isinstance(obj, dict)
+    obj_tmp = {}
+    for key in keys:
+        hdbg.dassert_in(key, obj)
+        obj_tmp[key] = getattr(obj, key)
+    return obj_tmp
+    """
+    return code_snippet
+
+
+def build_few_shot_learning() -> str:
+    functions = get_functions1()
+    text = """
+You are a proficient Python coder.
+
+I will provide you with 5 examples of adding comments to a Python function. For
+each example, I will show you the function without comments and then the same
+function with comments added.
+
+Then, I want you to perform the same task on a new input.
+"""
+    examples_idx = [1, 2, 3, 4]
+    for idx in examples_idx:
+        func = functions[idx]
+        text += get_in_out_example(idx, func)
+    text += """
+Now, perform the task on this new input.
+    """
+    return text
 
 
 # #############################################################################
@@ -225,90 +236,6 @@ def in_outs_to_str(in_outs):
     ret += "\n\n### act.txt ###\n"
     ret += "\n\n".join(acts)
     return ret
-
-
-# #############################################################################
-# Prompts.
-# #############################################################################
-
-
-def add_comments_one_shot_learning1(user: str) -> str:
-    system = """
-You are a proficient Python coder.
-Given the Python code passed below,
-every 10 lines of code add comment explaining the code.
-Comments should go before the logical chunk of code they describe.
-Comments should be in imperative form, a full English phrase, and end with a period.
-    """
-    # You are a proficient Python coder and write English very well.
-    # Given the Python code passed below, improve or add comments to the code.
-    # Comments must be for every logical chunk of 4 or 5 lines of Python code.
-    # Do not comment every single line of code and especially logging statements.
-    # Each comment should be in imperative form, a full English phrase, and end with a period.
-    response = hopenai.get_completion(user, system=system)
-    ret = hopenai.response_to_txt(response)
-    ret = remove_code_delimiters(ret)
-    return ret
-
-
-def add_docstring_one_shot_learning1(user: str) -> str:
-    system = """
-You are a proficient Python coder.
-Add a docstring to the function passed.
-The first comment should be in imperative mode and fit in a single line of less than 80 characters.
-To describe the parameters use the REST style, which requires each parameter to be prepended with :param
-    """
-    # If the first comment is not clear enough and needs more details then you can add another comment shorter than one 3 lines.
-    # Do not change the code, but print it exactly as it is
-    # Do not specify the types of the parameters.
-    response = hopenai.get_completion(user, system=system)
-    ret = hopenai.response_to_txt(response)
-    ret = remove_code_delimiters(ret)
-    return ret
-
-
-def add_type_hints(user: str) -> str:
-    system = """
-You are a proficient Python coder.
-Add type hints to the function passed.
-    """
-    response = hopenai.get_completion(user, system=system)
-    ret = hopenai.response_to_txt(response)
-    ret = remove_code_delimiters(ret)
-    return ret
-
-
-def build_few_shot_learning() -> str:
-    functions = get_functions1()
-    text = """
-You are a proficient Python coder.
-
-I will provide you with 5 examples of adding comments to a Python function. For
-each example, I will show you the function without comments and then the same
-function with comments added.
-
-Then, I want you to perform the same task on a new input.
-"""
-    examples_idx = [1, 2, 3, 4]
-    for idx in examples_idx:
-        func = functions[idx]
-        text += get_in_out_example(idx, func)
-    text += """
-Now, perform the task on this new input.
-    """
-    return text
-
-
-def apply_prompt(prompt_tag: str, txt: str) -> str:
-    if prompt_tag == "comment":
-        txt = add_comments_one_shot_learning1(txt)
-    elif prompt_tag == "docstring":
-        txt = add_docstring_one_shot_learning1(txt)
-    elif prompt_tag == "typehints":
-        txt = add_type_hints(txt)
-    else:
-        raise ValueError("Invalid prompt_tag=%s" % prompt_tag)
-    return txt
 
 
 # #############################################################################

@@ -1,8 +1,9 @@
 # The concept of "dockerized" executables
 
-The goal of "dockerized" executables is to allow to run an executable (e.g.,
-prettier, latex, pandoc) inside a container, instead of having to install it
-on the host or in a dev container
+The objective of utilizing "dockerized" executables is to enable the execution of
+software applications, such as Prettier, LaTeX, and Pandoc, within a Docker
+container. This approach eliminates the need for installing these applications
+directly on the host system or within a development container.
 
 - There are two template for dockerized scripts:
   - `dev_scripts_helpers/dockerize/dockerized_template.py`
@@ -26,40 +27,56 @@ on the host or in a dev container
 
 # Testing a dockerized executable
 
-- Testing a dockerized executable can be complex since we run `pytest` inside a
-  container
-  - The dockerized executable will be started inside a container instead of
-    running outside of Docker as in its normal behavior
+- Testing a dockerized executable can be complex, as the `pytest` tool is
+  executed within a container environment.  
+  - The dockerized executable runs inside the container, rather than executing
+    outside of Docker as it typically would.
 
 - The layers are
   - `host`
     - `dev container`
       - `dockerized executable`
 
-- Running inside the dev container requires to use the docker-in-docker or
-  the sibling-container approach
-  - docker-in-docker approach typically solves most of the problems but it
-    requires escalated privileges
-  - sibling-container is more efficient, more secure but it has more
-    use limitations
+- Running applications within the development container necessitates one of the
+  following approaches:
 
-- Bind mounting a dir from inside the dev container (which is needed to exchange
-  files with the dockerized executable) needs to be handled carefully
-  - For docker-in-docker, bind mounting a dir is not a problem
-  - For sibling-container, the mounted dir needs to be visible by the host
-    - E.g., if we mount the local dir in the container `/src` (which is shared
-      with host) the name of it is not the one inside the container `/src` but
-      the name of the dir outside host, which creates dependencies between 
-    - E.g., the local `/tmp` dir to the dev container is not visible to the
-      host
+  - **Docker-in-Docker**:
+    - Typically addresses most operational issues, since it runs a Docker
+      container in another container, as the outermost container was a host
+    - Requires elevated privileges.
 
-- A solution can be to run the tests for dockerized executables outside the dev
-  container
-  - This is a generalization of running pytest across "runnable dirs", but it
-    requires more complexity on the pytest infrastructure
+  - **Sibling-Container**:
+    - More efficient and secure compared to Docker-in-Docker.
+    - Comes with greater usage restrictions.
 
-- A less intrusive solution is to inject files inside the image/container,
-  although this is not simple to do
+- **Bind Mounting a Directory from Inside the Development Container**
+  - Caution must be exercised when bind mounting a directory to facilitate file
+    exchange with the dockerized executable.
+  - **Docker-in-Docker Scenario**
+    - In this case, bind mounting a directory does not pose any issues.
+  
+  - **Sibling Container Scenario**
+    - The mounted directory must be accessible from the host system.
+    - For instance, when a local directory is mounted within the container at
+      `/src` (which is shared with the host):
+      - The reference name within the container is `/src`, but the corresponding
+        name outside on the host system is different.
+      - This introduces dependencies that can complicate the development
+        environment.
+      - For example, the local directory `/tmp` on the host is not visible from
+        the development container.
+
+- One potential solution is to execute tests for dockerized executables outside
+  of the development container. 
+  - This approach generalizes the process of running pytest across "runnable
+    directories." 
+  - However, it necessitates increased complexity within the pytest
+    infrastructure.
+
+- An alternative, less intrusive solution involves injecting files into the image
+  or container. 
+  - However, this process can be complex and may not be straightforward to
+    implement.
   - Approach 1)
     - We could overwrite the entrypoint with something like:
       ```
@@ -76,13 +93,17 @@ on the host or in a dev container
       ```
     - then write files in the running container
 
-  - Approach 2)
-    - The approach we decided to use is to
-      - inject files in the Docker image writing another layer through a
-        Dockerfile
-      - run the test to process the input file copied in the image
-      - pause the container
-      - copy the output file to outside the container
-      - kill the container
-    - This is a general approach that can be reused in many similar circumstances
-      and that works for both docker-in-docker and sibling-container approaches
+- Approach 2:
+  - The selected method involves the following steps:
+    - Inject files into the Docker image by creating an additional layer using a
+      Dockerfile.
+    - Execute the test to process the input file that has been copied into the
+      image.
+    - Pause the container.
+    - Transfer the output file from the container to the host system.
+    - Terminate the container.
+  
+  - This approach demonstrates versatility and is applicable to a range of
+    similar scenarios. 
+      - It operates effectively using both the docker-in-docker method. 
+      - It also functions efficiently with the sibling-container method.
