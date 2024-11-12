@@ -1033,7 +1033,7 @@ def get_summary_files_in_branch(
     res = ""
     dst_branch = f"origin/{dst_branch}"
     for tag, diff_type in file_types:
-        cmd = f"git diff --diff-filter={diff_type} --name-only {dst_branch}..."
+        cmd = f"git diff --diff-filter={diff_type} --name-only {dst_branch}..HEAD"
         files = hsystem.system_to_files(
             cmd, dir_name, remove_files_non_present=False
         )
