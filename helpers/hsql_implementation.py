@@ -12,6 +12,7 @@ import re
 import time
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
+import numpy as np
 import pandas as pd
 import psycopg2 as psycop
 import psycopg2.extras as extras
