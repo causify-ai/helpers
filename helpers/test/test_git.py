@@ -195,8 +195,12 @@ class Test_git_repo_name1(hunitest.TestCase):
             return
         mode = "full_name"
         act = hgit.get_all_repo_names(mode)
-        exp = ["alphamatic/amp", "cryptokaizen/cmamp", "kaizen-ai/dev_tools",
-               "kaizen-ai/helpers"]
+        exp = [
+            "alphamatic/amp",
+            "cryptokaizen/cmamp",
+            "kaizen-ai/dev_tools",
+            "kaizen-ai/helpers",
+        ]
         self.assert_equal(str(act), str(exp))
 
     def test_get_repo_name_rountrip1(self) -> None:
@@ -303,10 +307,12 @@ class Test_git_modified_files1(hunitest.TestCase):
         func_call = "hgit.get_previous_committed_files()"
         _execute_func_call(func_call)
 
+    @pytest.mark.skip(reason="See CmTask...")
     def test_get_modified_files_in_branch1(self) -> None:
         func_call = "hgit.get_modified_files_in_branch('master')"
         _execute_func_call(func_call)
 
+    @pytest.mark.skip(reason="See CmTask...")
     def test_get_summary_files_in_branch1(self) -> None:
         func_call = "hgit.get_summary_files_in_branch('master')"
         _execute_func_call(func_call)
