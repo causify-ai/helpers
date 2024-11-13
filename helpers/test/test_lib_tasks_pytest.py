@@ -866,11 +866,10 @@ class Test_pytest_repro_end_to_end(hunitest.TestCase):
         # Check the outcome.
         self.check_string(act, purify_text=True, fuzzy_match=True)
 
-    # @pytest.mark.skipif(
-    #     not hgit.is_in_helpers_as_supermodule(),
-    #     reason="Run only in helpers as super module.",
-    # )
-    @pytest.mark.skip
+    @pytest.mark.skipif(
+        not hgit.is_in_helpers_as_supermodule(),
+        reason="Run only in helpers as super module.",
+    )
     def test1(self) -> None:
         file_name = f"{self.get_input_dir()}/cache/lastfailed"
         cmd = f"invoke pytest_repro --file-name='{file_name}'"
