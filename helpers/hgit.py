@@ -709,7 +709,7 @@ def find_file_in_git_tree(
     root_dir = get_client_root(super_module=super_module)
     cmd = rf"find {root_dir} -name '{file_name}' -not -path '*/.git/*'"
     if remove_tmp_base:
-        cmd += rf"-not -path '*/tmp\.base/*'"
+        cmd += rf" -not -path '*/tmp\.base/*'"
     _, file_name = hsystem.system_to_one_line(cmd)
     _LOG.debug("file_name=%s", file_name)
     hdbg.dassert_ne(
