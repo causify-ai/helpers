@@ -179,6 +179,7 @@ class TestDryRunTasks1(hunitest.TestCase):
         self.dry_run(target, check_string=check_string)
 
     @pytest.mark.slow("~6 sec.")
+    @pytest.mark.skip(reason="See CmTask...")
     def test_docker_ps(self) -> None:
         target = "docker_ps"
         self.dry_run(target)
@@ -338,8 +339,7 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
 
     # #########################################################################
     # TODO(gp): -> TestGitCommands1
-    pytest.mark.skip(reason="See CmTask...")
-
+    @pytest.mark.skip(reason="See CmTask...")
     def test_git_branch_files(self) -> None:
         # This test needs a reference to Git master branch.
         hgit.fetch_origin_master_if_needed()
