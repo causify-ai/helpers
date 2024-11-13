@@ -47,7 +47,7 @@ class TestLibTasks1(hunitest.TestCase):
     # TODO(ShaopengZ): fails when running kaizenflow on CK server. `gh auth
     # login` issue.
     @pytest.mark.skipif(
-        henv.execute_repo_config_code("get_name()") != "//helpers",
+        not henv.execute_repo_config_code("get_name()") == "//helpers",
         reason="Only run in helpers as supermodule",
     )
     def test_get_gh_issue_title4(self) -> None:
