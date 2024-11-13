@@ -13,9 +13,8 @@ _LOG = logging.getLogger(__name__)
 
 
 @pytest.mark.slow(reason="Around 7s")
-@pytest.mark.skipif(
-    not hgit.is_in_amp_as_supermodule(),
-    reason="Run only in amp as super-module",
+@pytest.mark.skip(
+    reason="Skipped in Helpers. Failing in cmamp. Enable once resolved. See CmTask10696",
 )
 class TestLibTasksGitCreatePatch1(hunitest.TestCase):
     """

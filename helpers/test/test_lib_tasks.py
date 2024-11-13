@@ -268,6 +268,10 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
         target = "docker_kill(ctx)"
         self._check_output(target)
 
+    @pytest.mark.skipif(
+        not hgit.is_in_helpers_as_supermodule(),
+        reason="Run only in helpers as super module.",
+    )
     def test_docker_ps(self) -> None:
         target = "docker_ps(ctx)"
         self._check_output(target)
