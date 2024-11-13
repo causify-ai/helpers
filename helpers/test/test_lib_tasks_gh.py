@@ -48,8 +48,9 @@ class TestLibTasks1(hunitest.TestCase):
     # login` issue.
     @pytest.mark.skipif(
         henv.execute_repo_config_code("get_name()") == "//kaizen"
-        and hserver.is_inside_ci(),
-        reason="Do not pass from kaizenflow GH actions. See CmTask5211",
+        and hserver.is_inside_ci()
+        and henv.execute_repo_config_code("get_name()") == "//cmamp",
+        reason="Do not pass from kaizenflow/cmamp GH actions. See CmTask5211",
     )
     def test_get_gh_issue_title4(self) -> None:
         issue_id = 1
