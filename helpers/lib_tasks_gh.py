@@ -465,6 +465,7 @@ def gh_create_pr(  # type: ignore
 # #############################################################################
 
 
+# TODO(Grisha): consider moving to cmamp as we run the workflow from cmamp.
 @task
 def gh_publish_buildmeister_dashboard_to_s3(ctx, mark_as_latest=True):  # type: ignore
     """
