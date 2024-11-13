@@ -234,6 +234,12 @@ def _is_repo(repo_short_name: str) -> bool:
 
 
 def is_helpers() -> bool:
+    """
+    Return whether we are inside `helpers` repo.
+
+    Either as super module, or a sub module depending on a current
+    working directory.
+    """
     return _is_repo("helpers")
 
 
@@ -248,6 +254,10 @@ def is_amp() -> bool:
 
 
 def is_in_helpers_as_supermodule() -> bool:
+    """
+    Return whether we are in the `helpers` repo and it's a super-module, i.e.,
+    `helpers` by itself.
+    """
     return is_helpers() and not is_inside_submodule(".")
 
 

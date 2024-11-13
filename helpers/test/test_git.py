@@ -307,12 +307,12 @@ class Test_git_modified_files1(hunitest.TestCase):
         func_call = "hgit.get_previous_committed_files()"
         _execute_func_call(func_call)
 
-    @pytest.mark.skip(reason="See CmTask...")
+    @pytest.mark.skip(reason="See CmTask10739.")
     def test_get_modified_files_in_branch1(self) -> None:
         func_call = "hgit.get_modified_files_in_branch('master')"
         _execute_func_call(func_call)
 
-    @pytest.mark.skip(reason="See CmTask...")
+    @pytest.mark.skip(reason="See CmTask10739.")
     def test_get_summary_files_in_branch1(self) -> None:
         func_call = "hgit.get_summary_files_in_branch('master')"
         _execute_func_call(func_call)

@@ -14,7 +14,7 @@ _LOG = logging.getLogger(__name__)
 
 @pytest.mark.slow(reason="Around 7s")
 @pytest.mark.skip(
-    reason="Skipped in Helpers. Failing in cmamp. Enable once resolved. See CmTask10696",
+    reason="Skipped in Helpers. Failing in cmamp. Enable once resolved. See CmTask10739.",
 )
 class TestLibTasksGitCreatePatch1(hunitest.TestCase):
     """

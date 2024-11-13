@@ -872,7 +872,7 @@ class Test_pytest_repro_end_to_end(hunitest.TestCase):
 
     @pytest.mark.skipif(
         not hgit.is_in_helpers_as_supermodule(),
-        reason="Run only in helpers as super module.",
+        reason="Run only in helpers as super module. See CmTask10739",
     )
     def test1(self) -> None:
         file_name = f"{self.get_input_dir()}/cache/lastfailed"
@@ -881,7 +881,7 @@ class Test_pytest_repro_end_to_end(hunitest.TestCase):
 
     @pytest.mark.skipif(
         not hgit.is_in_helpers_as_supermodule(),
-        reason="Run only in helpers as super module.",
+        reason="Run only in helpers as super module. See CmTask10739",
     )
     def test2(self) -> None:
         """
@@ -894,7 +894,7 @@ class Test_pytest_repro_end_to_end(hunitest.TestCase):
 
     @pytest.mark.skipif(
         not hgit.is_in_helpers_as_supermodule(),
-        reason="Run only in helpers as super module.",
+        reason="Run only in helpers as super module. See CmTask10739",
     )
     def test3(self) -> None:
         file_name = f"{self.get_input_dir()}/log.txt"
@@ -903,7 +903,7 @@ class Test_pytest_repro_end_to_end(hunitest.TestCase):
 
     @pytest.mark.skipif(
         not hgit.is_in_helpers_as_supermodule(),
-        reason="Run only in helpers as super module.",
+        reason="Run only in helpers as super module. See CmTask10739",
     )
     def test4(self) -> None:
         file_name = f"{self.get_input_dir()}/log.txt"
@@ -912,7 +912,7 @@ class Test_pytest_repro_end_to_end(hunitest.TestCase):
 
     @pytest.mark.skipif(
         not hgit.is_in_helpers_as_supermodule(),
-        reason="Run only in helpers as super module.",
+        reason="Run only in helpers as super module. See CmTask10739",
     )
     def test5(self) -> None:
         file_name = f"{self.get_input_dir()}/log.txt"
@@ -921,7 +921,7 @@ class Test_pytest_repro_end_to_end(hunitest.TestCase):
 
     @pytest.mark.skipif(
         not hgit.is_in_helpers_as_supermodule(),
-        reason="Run only in helpers as super module.",
+        reason="Run only in helpers as super module. See CmTask10739",
     )
     def test6(self) -> None:
         file_name = f"{self.get_input_dir()}/log.txt"
@@ -930,7 +930,7 @@ class Test_pytest_repro_end_to_end(hunitest.TestCase):
 
     @pytest.mark.skipif(
         not hgit.is_in_helpers_as_supermodule(),
-        reason="Run only in helpers as super module.",
+        reason="Run only in helpers as super module. See CmTask10739",
     )
     def test7(self) -> None:
         file_name = f"{self.get_input_dir()}/log.txt"
