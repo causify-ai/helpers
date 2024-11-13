@@ -93,7 +93,20 @@ def _prettier(
     *,
     print_width: Optional[int] = None,
     use_dockerized_prettier: bool = True,
+    run_inside_docker: bool = False,
 ) -> str:
+    """
+    Format the given text using Prettier.
+
+    :param txt: The text to format.
+    :param print_width: The maximum line width for the formatted text. If None,
+        the default width is used.
+    :param use_dockerized_prettier: Whether to use a Dockerized version of
+        Prettier.
+    :param run_inside_docker: Whether the function is running inside a Docker
+        container.
+    :return: The formatted text.
+    """
     _LOG.debug("txt=\n%s", txt)
     #
     debug = False

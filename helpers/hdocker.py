@@ -9,6 +9,8 @@ import logging
 import os
 import tempfile
 from typing import Optional, Tuple
+import random
+import string
 
 import helpers.hdbg as hdbg
 import helpers.henv as henv
@@ -168,6 +170,7 @@ def build_container(
     if not has_container:
         # Create a temporary Dockerfile.
         _LOG.info("Building Docker container...")
+        dockerfile = hprint.dedent(dockerfile)
         _LOG.debug("Dockerfile:\n%s", dockerfile)
         # Delete temp file.
         delete = True
@@ -189,9 +192,16 @@ def build_container(
 
 # #############################################################################
 
+def build_dockerized_prettier(container_name: str, force_rebuild: bool,
+                              use_sudo: bool) -> None:
 
+
+# TODO(gp): Add option to write in place or to a different file.
 def run_dockerized_prettier(
-    cmd_opts: str, file_path: str, force_rebuild: bool, use_sudo: bool
+    cmd_opts: str, in_file_path: str, out_file_path: str, force_rebuild: bool,
+    use_sudo: bool,
+    *,
+    run_inside_docker: bool = False
 ) -> None:
     """
     Run `prettier` in a Docker container.
@@ -208,34 +218,90 @@ def run_dockerized_prettier(
     # Build the container, if needed.
     container_name = "tmp.prettier"
     dockerfile = """
-# Use a Node.js image
-FROM node:18
+    # Use a Node.js image
+    FROM node:18
 
-# Install Prettier globally
-RUN npm install -g prettier
+    # Install Prettier globally
+    RUN npm install -g prettier
 
-# Set a working directory inside the container
-WORKDIR /app
+    # Set a working directory inside the container
+    WORKDIR /app
 
-# Run Prettier as the entry command
-ENTRYPOINT ["prettier"]
+    # Run Prettier as the entry command
+    ENTRYPOINT ["prettier"]
     """
     build_container(container_name, dockerfile, force_rebuild, use_sudo)
-    # The command used is like
-    # > docker run --rm --user $(id -u):$(id -g) -it \
-    #     --workdir /src --mount type=bind,source=.,target=/src \
-    #     tmp.prettier \
-    #     --parser markdown --prose-wrap always --write --tab-width 2 \
-    #     ./test.md
-    executable = get_docker_executable(use_sudo)
-    work_dir = os.path.dirname(file_path)
-    rel_file_path = os.path.basename(file_path)
-    mount = f"type=bind,source={work_dir},target=/src"
-    cmd_opts_as_str = " ".join(cmd_opts)
-    docker_cmd = (
-        f"{executable} run --rm --user $(id -u):$(id -g) -it"
-        f" --workdir /src --mount {mount}"
-        f" {container_name}"
-        f" {cmd_opts_as_str} {rel_file_path}"
-    )
-    hsystem.system(docker_cmd, suppress_output=False)
+    hdbg.dassert_not_in("--write", cmd_opts)
+    if not run_inside_docker:
+        # The command is like:
+        # > docker run --rm --user $(id -u):$(id -g) -it \
+        #     --workdir /src --mount type=bind,source=.,target=/src \
+        #     tmp.prettier \
+        #     --parser markdown --prose-wrap always --write --tab-width 2 \
+        #     ./test.md
+        if out_file_path == in_file_path:
+            cmd_opts.append("--write")
+        cmd_opts_as_str = " ".join(cmd_opts)
+        executable = get_docker_executable(use_sudo)
+        rel_file_path = os.path.basename(file_path)
+        work_dir = os.path.dirname(file_path)
+        mount = f"type=bind,source={work_dir},target=/src"
+        docker_cmd = (
+            f"{executable} run --rm --user $(id -u):$(id -g) -it"
+            f" --workdir /src --mount {mount}"
+            f" {container_name}"
+            f" {cmd_opts_as_str} {rel_file_path}"
+        )
+        if out_file_path != in_file_path:
+            docker_cmd += f" > {out_file_path}"
+        hsystem.system(docker_cmd, suppress_output=False)
+    else:
+        # Inside a container we need to
+        container_name = "tmp.prettier"
+        # Generates an 8-character random string, e.g., x7vB9T2p
+        random_string = ''.join(
+            random.choices(string.ascii_lowercase + string.digits,
+                           k=8))
+        tmp_container_name = container_name + "." + random_string
+        _LOG.debug("container_name=%s", container_name)
+        # Copy the input file in the current dir as a temp file.
+        tmp_in_file = f"{container_name}.{random_string}.in_file"
+        cmd = "cp %s %s" % (file_path, tmp_in_file)
+        hsystem.system(cmd)
+        # Create a temporary docker image with the input file inside.
+        dockerfile = f"""
+        FROM {container_name}
+        COPY {tmp_in_file} /install/{tmp_in_file}
+        """
+        force_rebuild = True
+        build_container(tmp_container_name, dockerfile, force_rebuild, use_sudo)
+        # Run the command inside the container.
+        # > docker run -d -it tmp.prettier.xyz \
+        #   --parser markdown --prose-wrap always --write --tab-width 2 \
+        #   /install/tmpx3pi06qf
+        # We can run as root user since we don't need to share files with the
+        # external filesystem.
+        executable = get_docker_executable(use_sudo)
+        cmd_opts_as_str = " ".join(cmd_opts)
+        # Remove write and save in an external file.
+        cmd_opts_as_str.replace("--write", "")
+        tmp_out_file = f"{container_name}.{random_string}.out_file"
+        docker_cmd = (
+            f"{executable} run -d --rm -it"
+            f" {container_name}"
+            f" {cmd_opts_as_str} /install/{tmp_in_file} "
+            f" >/install/{tmp_out_file}"
+        )
+        _, container_id = hsystem.system_to_string(docker_cmd)
+        _LOG.debug(hprint.to_str("container_id"))
+        # Wait until the file is generated.
+        # TODO(gp): Wait on file.
+        import time
+        time.sleep(5)
+        # Copy the result out.
+        # > docker cp "$container_id:/path/in/container/my_file.txt
+        #       /path/on/host/my_file.txt"
+        cmd = f"docker cp \"{container_id}:/install/{tmp_out_file} test\""
+        hsystem.system(cmd)
+        # Kill the tmp container.
+        # Delete the tmp image.
