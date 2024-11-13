@@ -2,6 +2,7 @@ import logging
 
 import pytest
 
+import helpers.henv as henv
 import helpers.hgit as hgit
 import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
@@ -46,7 +47,8 @@ class TestLibTasks1(hunitest.TestCase):
     # TODO(ShaopengZ): fails when running kaizenflow on CK server. `gh auth
     # login` issue.
     @pytest.mark.skipif(
-        not hgit.is_in_amp_as_supermodule() and hserver.is_inside_ci(),
+        not henv.execute_repo_config_code("get_name()") == "//helpers"
+        and hserver.is_inside_ci(),
         reason="Only run in helpers as supermodule",
     )
     def test_get_gh_issue_title4(self) -> None:
