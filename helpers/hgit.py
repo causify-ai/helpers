@@ -233,6 +233,10 @@ def _is_repo(repo_short_name: str) -> bool:
     return get_repo_name(repo_full_name, in_mode="full_name") == repo_short_name
 
 
+def is_helpers() -> bool:
+    return _is_repo("helpers_root")
+
+
 def is_amp() -> bool:
     """
     Return whether we are inside `amp` repo.
@@ -241,6 +245,10 @@ def is_amp() -> bool:
     working directory.
     """
     return _is_repo("amp") or _is_repo("cmamp") or _is_repo("sorr")
+
+
+def is_in_helpers_as_supermodule() -> bool:
+    return is_helpers() and not is_inside_submodule(".")
 
 
 # TODO(gp): Be consistent with submodule and sub-module in the code. Same for
