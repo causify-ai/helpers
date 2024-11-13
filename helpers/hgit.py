@@ -234,7 +234,7 @@ def _is_repo(repo_short_name: str) -> bool:
 
 
 def is_helpers() -> bool:
-    return _is_repo("helpers_root")
+    return _is_repo("helpers")
 
 
 def is_amp() -> bool:
