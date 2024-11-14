@@ -18,13 +18,6 @@
 
 ## Copy and customize files
 
-- To configure a super-repo, conceptually we need to copy from `helpers`
-  and customize for the super-repo
-  1) the files in `dev_scripts/thin_client` (to run tmux, setenv.sh)
-  2) the files in the top dir
-  3) the files in `devops`
-  3) the files in `.github`
-
 - The script `dev_scripts_helpers/thin_client/sync_super_repo.sh`
   allows to vimdiff / cp files across a super-repo and its `helpers` dir
 - Conceptually we need to copy and customize the files in
@@ -34,13 +27,12 @@
   4) `.github/workflows` (to run the GitHub regressions)
 
 - After copying the files you can search for the string `xyz` to customize
-  the files
 
 - If there is a problem with phases 3) and 4) due to the thin environment not
   being completely configured, you can keep moving and then re-run the command
   later
 
-### 1) Copy and customize files in `thin_client`
+## 1) Copy and customize files in thin_client
 
 - Create the `dev_script` dir based off the template from `helpers`
   ```bash
@@ -182,27 +174,6 @@
 - TODO
   - if it's a super-repo container you neeed to switch in devops/docker_run/docker_setenv.sh
   grep IS_SUPER_REPO
-
-- Run the single-arch flow
-  ```bash
-  > i docker_build_local_image --version 1.0.0 && i docker_tag_local_image_as_dev --version 1.0.0
-  > i docker_bash --skip-pull
-  > i docker_jupyter
-  ```
-
-- Run the multi-arch flow
-  ```bash
-  > i docker_build_local_image --version 1.0.0 --multi-arch "linux/amd64,linux/arm64"
-  > i docker_tag_local_image_as_dev --version 1.0.0
-  ```
-
-# Create a releasable dir
-
-```
-> mkdir dir
-> cd dir
-> cp -r ../helpers_root/devops .
-```
 
 - Run the single-arch flow
   ```bash
