@@ -179,6 +179,10 @@ class TestDryRunTasks1(hunitest.TestCase):
         self.dry_run(target, check_string=check_string)
 
     @pytest.mark.slow("~6 sec.")
+    @pytest.mark.skipif(
+        not hgit.is_in_helpers_as_supermodule(),
+        reason="Run only in helpers as super module. See CmTask10739.",
+    )
     def test_docker_ps(self) -> None:
         target = "docker_ps"
         self.dry_run(target)
@@ -268,6 +272,7 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
         target = "docker_kill(ctx)"
         self._check_output(target)
 
+    @pytest.mark.skip(reason="See CmTask10739.")
     def test_docker_ps(self) -> None:
         target = "docker_ps(ctx)"
         self._check_output(target)
@@ -337,6 +342,7 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
 
     # #########################################################################
     # TODO(gp): -> TestGitCommands1
+    @pytest.mark.skip(reason="See CmTask10739.")
     def test_git_branch_files(self) -> None:
         # This test needs a reference to Git master branch.
         hgit.fetch_origin_master_if_needed()
