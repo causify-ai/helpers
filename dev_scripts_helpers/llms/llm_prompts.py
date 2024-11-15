@@ -61,7 +61,7 @@ def rewrite_as_tech_writer(user: str) -> str:
 You are a proficient technical writer.
 Rewrite the text passed as if you were writing a technical document to increase
 clarity and readability.
-Maintain the structure of the text as much as possible, in terms of bullet 
+Maintain the structure of the text as much as possible, in terms of bullet
 points and their indentation
     """
     response = hopenai.get_completion(user, system=system)

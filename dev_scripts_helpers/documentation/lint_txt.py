@@ -95,7 +95,9 @@ def _preprocess(txt: str) -> str:
 
 
 def _prettier_on_str(
-    txt: str, *args: Any, **kwargs: Any,
+    txt: str,
+    *args: Any,
+    **kwargs: Any,
 ) -> str:
     """
     Wrapper around `_prettier()` to work on strings.
@@ -127,12 +129,12 @@ def _prettier(
     """
     Format the given text using Prettier.
 
-    :param print_width: The maximum line width for the formatted text. If None,
-        the default width is used.
-    :param use_dockerized_prettier: Whether to use a Dockerized version of
-        Prettier.
-    :param run_inside_docker: Whether the function is running inside a Docker
-        container (e.g., in the unit tests)
+    :param print_width: The maximum line width for the formatted text.
+        If None, the default width is used.
+    :param use_dockerized_prettier: Whether to use a Dockerized version
+        of Prettier.
+    :param run_inside_docker: Whether the function is running inside a
+        Docker container (e.g., in the unit tests)
     :return: The formatted text.
     """
     cmd_opts: List[str] = []
@@ -148,8 +150,14 @@ def _prettier(
         # Run `prettier` in a Docker container.
         force_rebuild = False
         use_sudo = True
-        hdocker.run_dockerized_prettier(cmd_opts, in_file_path, out_file_path,
-                                        force_rebuild, use_sudo, run_inside_docker)
+        hdocker.run_dockerized_prettier(
+            cmd_opts,
+            in_file_path,
+            out_file_path,
+            force_rebuild,
+            use_sudo,
+            run_inside_docker,
+        )
     else:
         # Run `prettier` installed on the host directly.
         executable = "prettier"
@@ -293,16 +301,17 @@ def _process(
     in_file_name: str,
     *,
     actions: Optional[List[str]] = None,
-    **kwargs: Any
+    **kwargs: Any,
 ) -> str:
     """
     Process the given text by applying a series of actions.
 
     :param txt: The text to be processed.
     :param in_file_name: The name of the input file.
-    :param actions: A list of actions to be performed on the text. If None, all
-        default actions are performed.
-    :param kwargs: Additional keyword arguments to be passed to the actions.
+    :param actions: A list of actions to be performed on the text. If
+        None, all default actions are performed.
+    :param kwargs: Additional keyword arguments to be passed to the
+        actions.
     :return: The processed text.
     """
     is_md_file = in_file_name.endswith(".md")

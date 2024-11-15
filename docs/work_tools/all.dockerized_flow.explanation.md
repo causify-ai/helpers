@@ -1,7 +1,16 @@
+
+
+<!-- toc -->
+
+- [The concept of "dockerized" executables](#the-concept-of-dockerized-executables)
+- [Testing a dockerized executable](#testing-a-dockerized-executable)
+
+<!-- tocstop -->
+
 # The concept of "dockerized" executables
 
-The objective of utilizing "dockerized" executables is to enable the execution of
-software applications, such as Prettier, LaTeX, and Pandoc, within a Docker
+The objective of utilizing "dockerized" executables is to enable the execution
+of software applications, such as Prettier, LaTeX, and Pandoc, within a Docker
 container. This approach eliminates the need for installing these applications
 directly on the host system or within a development container.
 
@@ -28,7 +37,7 @@ directly on the host system or within a development container.
 # Testing a dockerized executable
 
 - Testing a dockerized executable can be complex, as the `pytest` tool is
-  executed within a container environment.  
+  executed within a container environment.
   - The dockerized executable runs inside the container, rather than executing
     outside of Docker as it typically would.
 
@@ -39,12 +48,10 @@ directly on the host system or within a development container.
 
 - Running applications within the development container necessitates one of the
   following approaches:
-
   - **Docker-in-Docker**:
     - Typically addresses most operational issues, since it runs a Docker
       container in another container, as the outermost container was a host
     - Requires elevated privileges.
-
   - **Sibling-Container**:
     - More efficient and secure compared to Docker-in-Docker.
     - Comes with greater usage restrictions.
@@ -54,7 +61,6 @@ directly on the host system or within a development container.
     exchange with the dockerized executable.
   - **Docker-in-Docker Scenario**
     - In this case, bind mounting a directory does not pose any issues.
-  
   - **Sibling Container Scenario**
     - The mounted directory must be accessible from the host system.
     - For instance, when a local directory is mounted within the container at
@@ -67,14 +73,14 @@ directly on the host system or within a development container.
         the development container.
 
 - One potential solution is to execute tests for dockerized executables outside
-  of the development container. 
+  of the development container.
   - This approach generalizes the process of running pytest across "runnable
-    directories." 
+    directories."
   - However, it necessitates increased complexity within the pytest
     infrastructure.
 
-- An alternative, less intrusive solution involves injecting files into the image
-  or container. 
+- An alternative, less intrusive solution involves injecting files into the
+  image or container.
   - However, this process can be complex and may not be straightforward to
     implement.
   - Approach 1)
@@ -91,7 +97,7 @@ directly on the host system or within a development container.
       # Run the container’s main command
       exec "$@"
       ```
-    - then write files in the running container
+    - Then write files in the running container
 
 - Approach 2:
   - The selected method involves the following steps:
@@ -102,8 +108,7 @@ directly on the host system or within a development container.
     - Pause the container.
     - Transfer the output file from the container to the host system.
     - Terminate the container.
-  
   - This approach demonstrates versatility and is applicable to a range of
-    similar scenarios. 
-      - It operates effectively using both the docker-in-docker method. 
-      - It also functions efficiently with the sibling-container method.
+    similar scenarios.
+    - It operates effectively using both the docker-in-docker method.
+    - It also functions efficiently with the sibling-container method.

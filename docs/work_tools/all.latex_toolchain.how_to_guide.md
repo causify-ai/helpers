@@ -2,16 +2,14 @@
 
 <!-- toc -->
 
+- [Files](#files)
 - [Latex Toolchain](#latex-toolchain)
   * [Running and linting Latex files](#running-and-linting-latex-files)
-  * [Embedding Mermaid and PlanUML figures](#embedding-mermaid-and-planuml-figures)
-  * [Finding citations](#finding-citations)
   * [TODOs](#todos)
 
 <!-- tocstop -->
 
 # Files
-
 ```
 > ls -1 dev_scripts_helpers/documentation
 ```
@@ -63,16 +61,16 @@
     - TODO(gp): Convert to Python
   - `run_pandoc.py`
     - Read value from stdin/file
-    - Transform it using `pandoc` according to different transforms
-      (e.g., `convert_md_to_latex`)
+    - Transform it using `pandoc` according to different transforms (e.g.,
+      `convert_md_to_latex`)
     - Write the result to stdout/file.
   - `test_lint_latex.sh`
-    -  Run latex linter and check if the file was modified
+    - Run latex linter and check if the file was modified
   - `transform_txt.py`
     - Perform one of several transformations on a text file, e.g.,
-      1) `toc`: create table of context from the current file, with 1 level
-      2) `format`: format the current file with 3 levels
-      3) `increase`: increase level
+      1. `toc`: create table of context from the current file, with 1 level
+      2. `format`: format the current file with 3 levels
+      3. `increase`: increase level
 
 # Latex Toolchain
 
@@ -91,6 +89,7 @@
   tree
 
 - To create the PDF from the Latex files:
+
   ```bash
   > papers/DataFlow_stream_computing_framework/run_latex.sh
   ...

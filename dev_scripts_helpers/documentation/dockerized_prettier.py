@@ -63,10 +63,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
     file_path = remaining_args[-1]
     hdbg.dassert_file_exists(file_path)
     prettier_cmd = " ".join(remaining_args[:-1])
-    hdocker.run_dockerized_prettier(prettier_cmd, file_path,
-                                    args.dockerized_force_rebuild,
-                                    args.dockerized_use_sudo,
-                                    args.log_level)
+    hdocker.run_dockerized_prettier(
+        prettier_cmd,
+        file_path,
+        args.dockerized_force_rebuild,
+        args.dockerized_use_sudo,
+        args.log_level,
+    )
 
 
 if __name__ == "__main__":

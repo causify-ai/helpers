@@ -74,10 +74,21 @@ class Test_replace_shared_root_path1(hunitest.TestCase):
 # #############################################################################
 
 import os
-import helpers.hio as hio
 from typing import List
 
+import helpers.hio as hio
+
+
 class Test_run_dockerized_prettier1(hunitest.TestCase):
+    @staticmethod
+    def get_expected_output() -> str:
+        txt = """
+- A
+  - B
+    - C
+"""
+        txt = hprint.remove_empty_lines(txt)
+        return txt
 
     def create_test_file(self) -> str:
         file_path = os.path.join(self.get_scratch_space(), "input.txt")
@@ -89,16 +100,6 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
         txt = hprint.remove_empty_lines(txt)
         hio.to_file(file_path, txt)
         return file_path
-
-    @staticmethod
-    def get_expected_output() -> str:
-        txt = """
-- A
-  - B
-    - C
-"""
-        txt = hprint.remove_empty_lines(txt)
-        return txt
 
     def test1(self) -> None:
         cmd_opts: List[str] = []
@@ -112,10 +113,14 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
         force_rebuild = False
         use_sudo = True
         run_inside_docker = True
-        hdocker.run_dockerized_prettier(cmd_opts, in_file_path,
-                                        out_file_path,
-                                        force_rebuild, use_sudo,
-                                        run_inside_docker)
+        hdocker.run_dockerized_prettier(
+            cmd_opts,
+            in_file_path,
+            out_file_path,
+            force_rebuild,
+            use_sudo,
+            run_inside_docker,
+        )
         # Check.
         act = hio.from_file(out_file_path)
         exp = self.get_expected_output()

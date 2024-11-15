@@ -7,10 +7,10 @@ import helpers.hdocker as hdocker
 import copy
 import logging
 import os
-import tempfile
-from typing import Optional, List, Tuple
 import random
 import string
+import tempfile
+from typing import List, Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.henv as henv
@@ -194,10 +194,12 @@ def build_container(
 
 
 def run_dockerized_prettier(
-    cmd_opts: List[str], in_file_path: str, out_file_path: str, force_rebuild:
-                                                             bool,
+    cmd_opts: List[str],
+    in_file_path: str,
+    out_file_path: str,
+    force_rebuild: bool,
     use_sudo: bool,
-    run_inside_docker: bool
+    run_inside_docker: bool,
 ) -> None:
     """
     Run `prettier` in a Docker container.
@@ -207,10 +209,15 @@ def run_dockerized_prettier(
     :param out_file_path: Path to the output file.
     :param force_rebuild: Whether to force rebuild the Docker container.
     :param use_sudo: Whether to use sudo for Docker commands.
-    :param run_inside_docker: Whether we are running inside Docker or on a host
+    :param run_inside_docker: Whether we are running inside Docker or on
+        a host
     """
-    _LOG.debug(hprint.to_str("cmd_opts in_file_path out_file_path "
-                             "force_rebuild use_sudo run_inside_docker"))
+    _LOG.debug(
+        hprint.to_str(
+            "cmd_opts in_file_path out_file_path "
+            "force_rebuild use_sudo run_inside_docker"
+        )
+    )
     # Convert `file_path` to an absolute path.
     in_file_path = os.path.abspath(in_file_path)
     hdbg.dassert_path_exists(in_file_path)
@@ -260,11 +267,13 @@ def run_dockerized_prettier(
         # run the command inside the container.
         container_name = "tmp.prettier"
         # Generates an 8-character random string, e.g., x7vB9T2p
-        random_string = ''.join(
-            random.choices(string.ascii_lowercase + string.digits, k=8))
+        random_string = "".join(
+            random.choices(string.ascii_lowercase + string.digits, k=8)
+        )
         tmp_container_name = container_name + "." + random_string
         _LOG.debug("container_name=%s", container_name)
-        # 1) Copy the input file in the current dir as a temp file.
+        # 1) Copy the input file in the current dir as a temp file to be in the
+        # Docker context.
         tmp_in_file = f"{container_name}.{random_string}.in_file"
         cmd = "cp %s %s" % (in_file_path, tmp_in_file)
         hsystem.system(cmd)
@@ -275,6 +284,8 @@ def run_dockerized_prettier(
         """
         force_rebuild = True
         build_container(tmp_container_name, dockerfile, force_rebuild, use_sudo)
+        cmd = f"rm {tmp_in_file}"
+        hsystem.system(cmd)
         # 3) Run the command inside the container.
         executable = get_docker_executable(use_sudo)
         cmd_opts_as_str = " ".join(cmd_opts)
@@ -282,11 +293,11 @@ def run_dockerized_prettier(
         docker_cmd = (
             # We can run as root user (i.e., without `--user`) since we don't
             # need to share files with the external filesystem.
-            f"{executable} run -d "
+            f"{executable} run -d"
             " --entrypoint ''"
             f" {tmp_container_name}"
-            f" bash -c \"/usr/local/bin/prettier {cmd_opts_as_str} /tmp/{tmp_in_file}"
-            f" >/tmp/{tmp_out_file}\""
+            f' bash -c "/usr/local/bin/prettier {cmd_opts_as_str} /tmp/{tmp_in_file}'
+            f' >/tmp/{tmp_out_file}"'
         )
         _, container_id = hsystem.system_to_string(docker_cmd)
         _LOG.debug(hprint.to_str("container_id"))
@@ -294,6 +305,7 @@ def run_dockerized_prettier(
         # 4) Wait until the file is generated.
         # TODO(gp): Wait on file.
         import time
+
         time.sleep(1)
         # 5) Copy the result out.
         cmd = f"docker cp {container_id}:/tmp/{tmp_out_file} {out_file_path}"

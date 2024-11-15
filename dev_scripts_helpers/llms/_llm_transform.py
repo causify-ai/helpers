@@ -12,8 +12,7 @@ the type of transformation to apply.
 import argparse
 import logging
 
-import dev_scripts_helpers.llms.llm_prompts as llmp
-
+import dev_scripts_helpers.llms.llm_prompts as dshlllpr
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 
@@ -47,13 +46,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
     txt_tmp = "\n".join(txt)
     transform = args.transform
     if transform == "comment":
-        txt_tmp = llmp.add_comments_one_shot_learning1(txt_tmp)
+        txt_tmp = dshlllpr.add_comments_one_shot_learning1(txt_tmp)
     elif transform == "docstring":
-        txt_tmp = llmp.add_docstring_one_shot_learning1(txt_tmp)
+        txt_tmp = dshlllpr.add_docstring_one_shot_learning1(txt_tmp)
     elif transform == "typehints":
-        txt_tmp = llmp.add_type_hints(txt_tmp)
+        txt_tmp = dshlllpr.add_type_hints(txt_tmp)
     elif transform == "rewrite_as_tech_writer":
-        txt_tmp = llmp.rewrite_as_tech_writer(txt_tmp)
+        txt_tmp = dshlllpr.rewrite_as_tech_writer(txt_tmp)
     else:
         raise ValueError("Invalid transform=%s" % transform)
     # Write file.
