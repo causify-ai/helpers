@@ -2,18 +2,19 @@ import logging
 import unittest.mock as umock
 
 import helpers.hdocker as hdocker
+import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
-# Test_dassert_is_datetime1
+# Test_replace_shared_root_path1
 # #############################################################################
 
 
-class Test_replace_shared_root_path(hunitest.TestCase):
-    def test_replace_shared_root_path1(self) -> None:
+class Test_replace_shared_root_path1(hunitest.TestCase):
+    def test1(self) -> None:
         """
         Test replacing shared root path.
         """
@@ -41,7 +42,7 @@ class Test_replace_shared_root_path(hunitest.TestCase):
             exp3 = 'object("/shared_folder2/asset2/item")'
             self.assertEqual(act3, exp3)
 
-    def test_replace_shared_root_path2(self) -> None:
+    def test2(self) -> None:
         """
         Test replacing shared root path with the `replace_ecs_tokyo` parameter.
         """
@@ -66,3 +67,56 @@ class Test_replace_shared_root_path(hunitest.TestCase):
             act2 = hdocker.replace_shared_root_path(path2)
             exp2 = 'object("/shared_folder/ecs_tokyo/asset2/item")'
             self.assertEqual(act2, exp2)
+
+
+# #############################################################################
+# Test_run_dockerized_prettier1
+# #############################################################################
+
+import os
+import helpers.hio as hio
+from typing import List
+
+class Test_run_dockerized_prettier1(hunitest.TestCase):
+
+    def create_test_file(self) -> str:
+        file_path = os.path.join(self.get_scratch_space(), "input.txt")
+        txt = """
+- A
+  - B
+      - C
+        """
+        txt = hprint.remove_empty_lines(txt)
+        hio.to_file(file_path, txt)
+        return file_path
+
+    @staticmethod
+    def get_expected_output() -> str:
+        txt = """
+- A
+  - B
+    - C
+"""
+        txt = hprint.remove_empty_lines(txt)
+        return txt
+
+    def test1(self) -> None:
+        cmd_opts: List[str] = []
+        cmd_opts.append("--parser markdown")
+        cmd_opts.append("--prose-wrap always")
+        tab_width = 2
+        cmd_opts.append(f"--tab-width {tab_width}")
+        # Run `prettier` in a Docker container.
+        in_file_path = self.create_test_file()
+        out_file_path = os.path.join(self.get_scratch_space(), "output.txt")
+        force_rebuild = False
+        use_sudo = True
+        run_inside_docker = True
+        hdocker.run_dockerized_prettier(cmd_opts, in_file_path,
+                                        out_file_path,
+                                        force_rebuild, use_sudo,
+                                        run_inside_docker)
+        # Check.
+        act = hio.from_file(out_file_path)
+        exp = self.get_expected_output()
+        self.assert_equal(act, exp)

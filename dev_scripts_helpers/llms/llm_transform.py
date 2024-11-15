@@ -106,9 +106,6 @@ RUN pip install --no-cache-dir openai
         f" {cmd}"
     )
     hsystem.system(docker_cmd)
-    # print("hello")
-    # import sys
-    # sys.exit(0)
 
 
 # #############################################################################

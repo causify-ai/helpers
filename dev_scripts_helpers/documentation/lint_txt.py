@@ -17,7 +17,7 @@ import os
 import re
 import sys
 import tempfile
-from typing import List, Optional
+from typing import Any, List, Optional
 
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
@@ -36,6 +36,12 @@ _LOG = logging.getLogger(__name__)
 
 
 def _preprocess(txt: str) -> str:
+    """
+    Preprocess the given text by removing specific artifacts.
+
+    :param txt: The text to be processed.
+    :return: The preprocessed text.
+    """
     _LOG.debug("txt=%s", txt)
     # Remove some artifacts when copying from gdoc.
     txt = re.sub(r"’", "'", txt)
@@ -88,38 +94,50 @@ def _preprocess(txt: str) -> str:
     return txt_new_as_str
 
 
-def _prettier(
-    txt: str,
-    *,
-    print_width: Optional[int] = None,
-    use_dockerized_prettier: bool = True,
-    run_inside_docker: bool = False,
+def _prettier_on_str(
+    txt: str, *args: Any, **kwargs: Any,
 ) -> str:
     """
-    Format the given text using Prettier.
-
-    :param txt: The text to format.
-    :param print_width: The maximum line width for the formatted text. If None,
-        the default width is used.
-    :param use_dockerized_prettier: Whether to use a Dockerized version of
-        Prettier.
-    :param run_inside_docker: Whether the function is running inside a Docker
-        container.
-    :return: The formatted text.
+    Wrapper around `_prettier()` to work on strings.
     """
     _LOG.debug("txt=\n%s", txt)
-    #
+    # Save string as input.
     debug = False
     if not debug:
         tmp_file_name = tempfile.NamedTemporaryFile().name
     else:
         tmp_file_name = "/tmp/tmp_prettier.txt"
     hio.to_file(tmp_file_name, txt)
-    #
+    # Call `prettier` in-place.
+    _prettier(tmp_file_name, tmp_file_name, *args, **kwargs)
+    # Read result into a string.
+    txt = hio.from_file(tmp_file_name)
+    _LOG.debug("After prettier txt=\n%s", txt)
+    return txt  # type: ignore
+
+
+def _prettier(
+    in_file_path: str,
+    out_file_path: str,
+    *,
+    print_width: Optional[int] = None,
+    use_dockerized_prettier: bool = True,
+    run_inside_docker: bool = False,
+) -> None:
+    """
+    Format the given text using Prettier.
+
+    :param print_width: The maximum line width for the formatted text. If None,
+        the default width is used.
+    :param use_dockerized_prettier: Whether to use a Dockerized version of
+        Prettier.
+    :param run_inside_docker: Whether the function is running inside a Docker
+        container (e.g., in the unit tests)
+    :return: The formatted text.
+    """
     cmd_opts: List[str] = []
     cmd_opts.append("--parser markdown")
     cmd_opts.append("--prose-wrap always")
-    cmd_opts.append("--write")
     tab_width = 2
     cmd_opts.append(f"--tab-width {tab_width}")
     if print_width is not None:
@@ -127,31 +145,36 @@ def _prettier(
         cmd_opts.append(f"--print-width {print_width}")
     #
     if use_dockerized_prettier:
+        # Run `prettier` in a Docker container.
         force_rebuild = False
         use_sudo = True
-        hdocker.run_dockerized_prettier(cmd_opts, tmp_file_name, force_rebuild,
-                                        use_sudo)
+        hdocker.run_dockerized_prettier(cmd_opts, in_file_path, out_file_path,
+                                        force_rebuild, use_sudo, run_inside_docker)
     else:
+        # Run `prettier` installed on the host directly.
         executable = "prettier"
         cmd = [executable] + cmd_opts
-        if True:
-            # Workaround for PTask2155.
-            # > (cd /tmp && prettier  ... --tab-width 2 tmpijtkxtrk)
-            cmd.insert(0, f"cd {os.path.dirname(tmp_file_name)} &&")
-            cmd.append(os.path.basename(tmp_file_name))
-        else:
-            cmd.append(tmp_file_name)
+        # Workaround for PTask2155.
+        # > (cd /tmp && prettier  ... --tab-width 2 tmpijtkxtrk)
+        cmd.insert(0, f"cd {os.path.dirname(in_file_path)} &&")
+        if in_file_path == out_file_path:
+            cmd.append("--write")
+        cmd.append(os.path.basename(in_file_path))
+        cmd.append("> " + out_file_path)
         #
         cmd_as_str = " ".join(cmd)
         _, output_tmp = hsystem.system_to_string(cmd_as_str, abort_on_error=True)
         _LOG.debug("output_tmp=%s", output_tmp)
-    #
-    txt = hio.from_file(tmp_file_name)
-    _LOG.debug("After prettier txt=\n%s", txt)
-    return txt  # type: ignore
 
 
 def _postprocess(txt: str, in_file_name: str) -> str:
+    """
+    Post-process the given text by applying various transformations.
+
+    :param txt: The text to be processed.
+    :param in_file_name: The name of the input file.
+    :return: The post-processed text.
+    """
     _LOG.debug("txt=%s", txt)
     # Remove empty lines before ```.
     txt = re.sub(r"^\s*\n(\s*```)$", r"\1", txt, 0, flags=re.MULTILINE)
@@ -191,7 +214,7 @@ def _postprocess(txt: str, in_file_name: str) -> str:
     return txt_new_as_str
 
 
-def _frame_chapters(txt: str, max_lev: int = 4) -> str:
+def _frame_chapters(txt: str, *, max_lev: int = 4) -> str:
     """
     Add the frame around each chapter.
     """
@@ -225,6 +248,12 @@ def _frame_chapters(txt: str, max_lev: int = 4) -> str:
 
 
 def _refresh_toc(txt: str) -> str:
+    """
+    Refresh the table of contents (TOC) in the given text.
+
+    :param txt: The text to be processed.
+    :return: The text with the updated TOC.
+    """
     _LOG.debug("txt=%s", txt)
     # Check whether there is a TOC otherwise add it.
     txt_as_arr = txt.split("\n")
@@ -262,9 +291,20 @@ def _to_execute_action(action: str, actions: Optional[List[str]] = None) -> bool
 def _process(
     txt: str,
     in_file_name: str,
+    *,
     actions: Optional[List[str]] = None,
-    print_width: Optional[int] = None,
+    **kwargs: Any
 ) -> str:
+    """
+    Process the given text by applying a series of actions.
+
+    :param txt: The text to be processed.
+    :param in_file_name: The name of the input file.
+    :param actions: A list of actions to be performed on the text. If None, all
+        default actions are performed.
+    :param kwargs: Additional keyword arguments to be passed to the actions.
+    :return: The processed text.
+    """
     is_md_file = in_file_name.endswith(".md")
     # Pre-process text.
     action = "preprocess"
@@ -273,7 +313,7 @@ def _process(
     # Prettify.
     action = "prettier"
     if _to_execute_action(action, actions):
-        txt = _prettier(txt, print_width=print_width)
+        txt = _prettier_on_str(txt, **kwargs)
     # Post-process text.
     action = "postprocess"
     if _to_execute_action(action, actions):
