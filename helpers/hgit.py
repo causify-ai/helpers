@@ -1018,7 +1018,7 @@ def get_modified_files_in_branch(
     if dst_branch == "HEAD":
         target = dst_branch
     else:
-        target = f"{dst_branch}.."
+        target = f"{dst_branch}..."
     cmd = f"git diff --name-only {target}"
     files: List[str] = hsystem.system_to_files(
         cmd, dir_name, remove_files_non_present
