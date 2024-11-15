@@ -524,6 +524,7 @@ def _generate_docker_compose_file(
     am_host_name = os.uname()[1]
     am_host_version = os.uname()[2]
     am_host_user_name = getpass.getuser()
+    git_root_path = hgit.find_git_root()
     # We could do the same also with IMAGE for symmetry.
     # Keep the env vars in sync with what we print in `henv.get_env_vars()`.
     txt_tmp = f"""
@@ -549,6 +550,7 @@ def _generate_docker_compose_file(
           - CK_AWS_S3_BUCKET=$CK_AWS_S3_BUCKET
           - CK_AWS_SECRET_ACCESS_KEY=$CK_AWS_SECRET_ACCESS_KEY
           - CK_ECR_BASE_PATH=$CK_ECR_BASE_PATH
+          - CK_GIT_ROOT_PATH={git_root_path}
           # - CK_ENABLE_DIND=
           # - CK_FORCE_TEST_FAIL=$CK_FORCE_TEST_FAIL
           # - CK_HOST_NAME=

@@ -550,3 +550,8 @@ def add_dockerized_script_arg(
         action="store_true",
         help="Use sudo inside the container",
     )
+    parser.add_argument(
+        "--run_inside_docker",
+        action="store_true",
+        help="Run the dockerized script from inside a container",
+    )

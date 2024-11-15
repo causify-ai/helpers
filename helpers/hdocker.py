@@ -151,7 +151,7 @@ def wait_for_file_in_docker(
         docker_file_path: str,
         out_file_path: str, *,
         check_interval_in_secs: int = 0.5,
-                  timeout_in_secs: int = 10) -> None:
+        timeout_in_secs: int = 10) -> None:
     """
     Wait for a file to be generated inside a Docker container and copy it to the
     host.
@@ -228,6 +228,83 @@ def build_container(
 # #############################################################################
 
 
+def get_host_git_root() -> str:
+    hdbg.dassert_in("CK_GIT_ROOT_PATH", os.environ)
+    host_git_root_path = os.environ["CK_GIT_ROOT_PATH"]
+    return host_git_root_path
+
+
+# TODO(gp): This can even go to helpers.hdbg.
+def dassert_valid_path(file_path: str, is_input: bool) -> None:
+    if is_input:
+        # If it's an input file, then `file_path` must exist as a file or a dir.
+        hdbg.dassert_path_exists(file_path)
+    else:
+        # If it's an output, we might be writing a file that doesn't exist yet,
+        # but we assume that at the least the directory should be already
+        # present.
+        hdbg.dassert(os.path.exists(file_path) or os.path.exists(os.path.dirname(
+            file_path)), "Invalid path: %s", file_path)
+
+
+def convert_to_relative_path(file_path: str, check_if_exists: bool,
+                             is_input: bool
+                             ) -> str:
+    """
+    Convert the file path to a path relative to the current dir.
+
+    :param file_path: The file path on the host to be converted.
+    :param check_if_exists: check if the file exists or not.
+    :param is_input: Flag indicating if the file is an input file.
+    """
+    if check_if_exists:
+        dassert_valid_path(file_path, is_input)
+    # Convert to absolute path.
+    out_file_path = os.path.abspath(file_path)
+    if check_if_exists:
+        dassert_valid_path(out_file_path, is_input)
+    # Convert to the host path.
+    curr_dir = os.getcwd()
+    # The path needs to be underneath the current dir.
+    hdbg.dassert(out_file_path.startswith(curr_dir),
+                 "out_file_path=%s needs to be underneath curr_dir=%s",
+                 out_file_path, curr_dir)
+    rel_path = os.path.relpath(out_file_path, curr_dir)
+    _LOG.debug("Converted %s -> %s -> %s", file_path, out_file_path, rel_path)
+    return rel_path
+
+
+# def convert_to_docker_path(file_path: str, docker_root_path: str,
+#                            host_root_path: str,
+#                            is_input: bool) -> str:
+#     """
+#     Convert the file path from the host to a Docker path, assuming that
+#     `host_root_path` corresponds to `docker_root_path`.
+#
+#     E.g.,
+#     - file_path = "/home/user/project/data/input.txt"
+#     - docker_root_path = "/app"
+#     - host_root_path = "/home/user/project"
+#     - return: /app/data/input.txt
+#
+#     :param file_path: The file path on the host to be converted.
+#     :param docker_root_path: The root path inside the Docker container.
+#     :param host_root_path: The root path on the host that corresponds to the
+#     Docker root path.
+#     :return: The converted file path for the Docker container.
+#     :raises AssertionError: If the file path does not start with the host root
+#         path.
+#      """
+#     # The path needs to be underneath the host root path.
+#     hdbg.dassert(file_path.startswith(host_root_path),
+#                  "File %s must start with %s", file_path, host_root_path)
+#     rel_path = os.path.relpath(file_path, host_root_path)
+#     #
+#     out_file_path = os.path.join(docker_root_path, rel_path)
+#     dassert_valid_docker_path(out_file_path, is_input)
+#     return out_file_path
+
+
 def run_dockerized_prettier(
     cmd_opts: List[str],
     in_file_path: str,
@@ -239,13 +316,24 @@ def run_dockerized_prettier(
     """
     Run `prettier` in a Docker container.
 
+    From host:
+    > ./dev_scripts_helpers/documentation/dockerized_prettier.py \
+        --input /Users/saggese/src/helpers1/test.md --output test2.md
+    > ./dev_scripts_helpers/documentation/dockerized_prettier.py \
+        --input test.md --output test2.md
+
+    From dev container:
+    docker> ./dev_scripts_helpers/documentation/dockerized_prettier.py \
+        --input test.md --output test2.md \
+        --in_inside_docker
+
     :param cmd_opts: Command options to pass to Prettier.
     :param in_file_path: Path to the file to format with Prettier.
     :param out_file_path: Path to the output file.
     :param force_rebuild: Whether to force rebuild the Docker container.
     :param use_sudo: Whether to use sudo for Docker commands.
-    :param run_inside_docker: Whether we are running inside Docker or on
-        a host
+    :param run_inside_docker: Whether we are running inside a Docker
+        container or directly on the host
     """
     _LOG.debug(
         hprint.to_str(
@@ -253,9 +341,42 @@ def run_dockerized_prettier(
             "run_inside_docker"
         )
     )
-    # Convert `file_path` to an absolute path.
-    in_file_path = os.path.abspath(in_file_path)
-    hdbg.dassert_path_exists(in_file_path)
+    # Conver the paths to relative
+    in_file_path = convert_to_relative_path(in_file_path, check_if_exists=True,
+                                            is_input=True)
+    out_file_path = convert_to_relative_path(out_file_path,
+                                             check_if_exists=True,
+                                            is_input=False)
+    # The problem is that `in_file_path` and `out_file_path` can be specified as
+    # absolute or relative path in Docker / host file system and we need to
+    # convert it to a path that is valid inside the new Docker instance.
+    # E.g.,
+    # - /Users/saggese/src/helpers1/test.md -> /src/test.md
+    # - ./test.md -> /src/test.md
+    # - ./documentation/test.md -> /src/test.md
+    target_docker_path = "/src"
+    # The invariant is that if `run_inside_docker` is:
+    # - True: `/src` in the container corresponds to Git root in the container
+    # - False: `/src/` in the container corresponds to `.`
+    # Then all the files need to be converted from host to Docker paths
+    # as reference to target_docker_path.
+    if run_inside_docker:
+        # > docker run --rm --user $(id -u):$(id -g) -it --entrypoint '' \
+        #     --workdir /src \
+        #     --mount type=bind,source=/Users/saggese/src/helpers1,target=/src \
+        #     tmp.prettier \
+        #     bash -c "/usr/local/bin/prettier test.md > test2.md")
+        hdbg.dassert(hserver.is_inside_docker())
+        source_host_path = get_host_git_root()
+    else:
+        # > docker run --rm --user $(id -u):$(id -g) -it --entrypoint '' \
+        #     --workdir /src \
+        #     --mount type=bind,source=.,target=/src \
+        #     tmp.prettier \
+        #     bash -c "/usr/local/bin/prettier test.md > test2.md")
+        hdbg.dassert(not hserver.is_inside_docker())
+        hdbg.dassert_file_exists(in_file_path)
+        source_host_path = "."
     # Build the container, if needed.
     container_name = "tmp.prettier"
     dockerfile = """
@@ -271,80 +392,85 @@ def run_dockerized_prettier(
     # Run Prettier as the entry command
     ENTRYPOINT ["prettier"]
     """
-    hdbg.dassert_isinstance(cmd_opts, list)
     build_container(container_name, dockerfile, force_rebuild, use_sudo)
+    # Our interface is (in_file, out_file) instead of the wonky prettier
+    # interface based on `--write` for in place update and redirecting `stdout`
+    # to save on a different place.
+    hdbg.dassert_isinstance(cmd_opts, list)
     hdbg.dassert_not_in("--write", cmd_opts)
-    if not run_inside_docker:
-        # The command is like:
-        # > docker run --rm --user $(id -u):$(id -g) -it \
-        #     --workdir /src --mount type=bind,source=.,target=/src \
-        #     tmp.prettier \
-        #     --parser markdown --prose-wrap always --write --tab-width 2 \
-        #     ./test.md
-        if out_file_path == in_file_path:
-            cmd_opts.append("--write")
-        cmd_opts_as_str = " ".join(cmd_opts)
-        executable = get_docker_executable(use_sudo)
-        rel_file_path = os.path.basename(in_file_path)
-        work_dir = os.path.dirname(in_file_path)
-        mount = f"type=bind,source={work_dir},target=/src"
-        bash_cmd = f"/usr/local/bin/prettier {cmd_opts_as_str} {rel_file_path}"
-        if out_file_path != in_file_path:
-            bash_cmd += f" > {out_file_path}"
-        docker_cmd = (
-            f"{executable} run --rm --user $(id -u):$(id -g) -it"
-            " --entrypoint ''"
-            f" --workdir /src --mount {mount}"
-            f" {container_name}"
-            f' bash -c "{bash_cmd}"'
-        )
-        hsystem.system(docker_cmd, suppress_output=False)
-    else:
-        # Inside a container we need to copy the input file to the container and
-        # run the command inside the container.
-        container_name = "tmp.prettier"
-        # Generates an 8-character random string, e.g., x7vB9T2p
-        random_string = "".join(
-            random.choices(string.ascii_lowercase + string.digits, k=8)
-        )
-        tmp_container_name = container_name + "." + random_string
-        _LOG.debug("container_name=%s", container_name)
-        # 1) Copy the input file in the current dir as a temp file to be in the
-        # Docker context.
-        tmp_in_file = f"{container_name}.{random_string}.in_file"
-        cmd = "cp %s %s" % (in_file_path, tmp_in_file)
-        hsystem.system(cmd)
-        # 2) Create a temporary docker image with the input file inside.
-        dockerfile = f"""
-        FROM {container_name}
-        COPY {tmp_in_file} /tmp/{tmp_in_file}
-        """
-        force_rebuild = True
-        build_container(tmp_container_name, dockerfile, force_rebuild, use_sudo)
-        cmd = f"rm {tmp_in_file}"
-        hsystem.system(cmd)
-        # 3) Run the command inside the container.
-        executable = get_docker_executable(use_sudo)
-        cmd_opts_as_str = " ".join(cmd_opts)
-        tmp_out_file = f"{container_name}.{random_string}.out_file"
-        docker_cmd = (
-            # We can run as root user (i.e., without `--user`) since we don't
-            # need to share files with the external filesystem.
-            f"{executable} run -d"
-            " --entrypoint ''"
-            f" {tmp_container_name}"
-            f' bash -c "/usr/local/bin/prettier {cmd_opts_as_str} /tmp/{tmp_in_file}'
-            f' >/tmp/{tmp_out_file}"'
-        )
-        _, container_id = hsystem.system_to_string(docker_cmd)
-        _LOG.debug(hprint.to_str("container_id"))
-        hdbg.dassert_ne(container_id, "")
-        # 4) Wait until the file is generated and copy it locally.
-        wait_for_file_in_docker(container_id,
-            f"/tmp/{tmp_out_file}",
-                                out_file_path)
-        # 5) Clean up.
-        cmd = f"docker rm -f {container_id}"
-        hsystem.system(cmd)
-        cmd = f"docker image rm -f {tmp_container_name}"
-        hsystem.system(cmd)
+    if out_file_path == in_file_path:
+        cmd_opts.append("--write")
+    cmd_opts_as_str = " ".join(cmd_opts)
+    # The command is like:
+    # > docker run --rm --user $(id -u):$(id -g) -it \
+    #     --workdir /src --mount type=bind,source=.,target=/src \
+    #     tmp.prettier \
+    #     --parser markdown --prose-wrap always --write --tab-width 2 \
+    #     ./test.md
+    executable = get_docker_executable(use_sudo)
+    # E.g.,
+    # source=.,target=/src
+    # source=/Users/saggese/src/helpers1,target=/src
+    mount = f"type=bind,source={source_host_path},target={target_docker_path}"
+    bash_cmd = f"/usr/local/bin/prettier {cmd_opts_as_str} {in_file_path}"
+    if out_file_path != in_file_path:
+        bash_cmd += f" > {out_file_path}"
+    docker_cmd = (
+        f"{executable} run --rm --user $(id -u):$(id -g) -it"
+        " --entrypoint ''"
+        f" --workdir /src --mount {mount}"
+        f" {container_name}"
+        f' bash -c "{bash_cmd}"'
+    )
+    hsystem.system(docker_cmd, suppress_output=False)
+    # This a different approach I've tried to inject files inside a container
+    # and read them back. It's an interesting approach but it's flaky.
+    #
+    # # Inside a container we need to copy the input file to the container and
+    # # run the command inside the container.
+    # container_name = "tmp.prettier"
+    # # Generates an 8-character random string, e.g., x7vB9T2p
+    # random_string = "".join(
+    #     random.choices(string.ascii_lowercase + string.digits, k=8)
+    # )
+    # tmp_container_name = container_name + "." + random_string
+    # _LOG.debug("container_name=%s", container_name)
+    # # 1) Copy the input file in the current dir as a temp file to be in the
+    # # Docker context.
+    # tmp_in_file = f"{container_name}.{random_string}.in_file"
+    # cmd = "cp %s %s" % (in_file_path, tmp_in_file)
+    # hsystem.system(cmd)
+    # # 2) Create a temporary docker image with the input file inside.
+    # dockerfile = f"""
+    # FROM {container_name}
+    # COPY {tmp_in_file} /tmp/{tmp_in_file}
+    # """
+    # force_rebuild = True
+    # build_container(tmp_container_name, dockerfile, force_rebuild, use_sudo)
+    # cmd = f"rm {tmp_in_file}"
+    # hsystem.system(cmd)
+    # # 3) Run the command inside the container.
+    # executable = get_docker_executable(use_sudo)
+    # cmd_opts_as_str = " ".join(cmd_opts)
+    # tmp_out_file = f"{container_name}.{random_string}.out_file"
+    # docker_cmd = (
+    #     # We can run as root user (i.e., without `--user`) since we don't
+    #     # need to share files with the external filesystem.
+    #     f"{executable} run -d"
+    #     " --entrypoint ''"
+    #     f" {tmp_container_name}"
+    #     f' bash -c "/usr/local/bin/prettier {cmd_opts_as_str} /tmp/{tmp_in_file}'
+    #     f' >/tmp/{tmp_out_file}"'
+    # )
+    # _, container_id = hsystem.system_to_string(docker_cmd)
+    # _LOG.debug(hprint.to_str("container_id"))
+    # hdbg.dassert_ne(container_id, "")
+    # # 4) Wait until the file is generated and copy it locally.
+    # wait_for_file_in_docker(container_id,
+    #     f"/tmp/{tmp_out_file}",
+    #                         out_file_path)
+    # # 5) Clean up.
+    # cmd = f"docker rm -f {container_id}"
+    # hsystem.system(cmd)
+    # cmd = f"docker image rm -f {tmp_container_name}"
+    # hsystem.system(cmd)

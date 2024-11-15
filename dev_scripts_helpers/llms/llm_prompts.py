@@ -22,7 +22,8 @@ Comments should be in imperative form, a full English phrase, and end with a per
     # Given the Python code passed below, improve or add comments to the code.
     # Comments must be for every logical chunk of 4 or 5 lines of Python code.
     # Do not comment every single line of code and especially logging statements.
-    # Each comment should be in imperative form, a full English phrase, and end with a period.
+    # Each comment should be in imperative form, a full English phrase, and end
+    # with a period.
     response = hopenai.get_completion(user, system=system)
     ret = hopenai.response_to_txt(response)
     ret = hopenai.remove_code_delimiters(ret)
@@ -36,9 +37,10 @@ Add a docstring to the function passed.
 The first comment should be in imperative mode and fit in a single line of less than 80 characters.
 To describe the parameters use the REST style, which requires each parameter to be prepended with :param
     """
-    # If the first comment is not clear enough and needs more details then you can add another comment shorter than one 3 lines.
-    # Do not change the code, but print it exactly as it is
-    # Do not specify the types of the parameters.
+    # - If the first comment is not clear enough and needs more details then you
+    #   can add another comment shorter than one 3 lines.
+    # - Do not change the code, but print it exactly as it is
+    # - Do not specify the types of the parameters.
     response = hopenai.get_completion(user, system=system)
     ret = hopenai.response_to_txt(response)
     ret = hopenai.remove_code_delimiters(ret)

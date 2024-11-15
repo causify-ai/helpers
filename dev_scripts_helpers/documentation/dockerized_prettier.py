@@ -73,7 +73,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         args.output,
         args.dockerized_force_rebuild,
         args.dockerized_use_sudo,
-        run_inside_docker=False,
+        args.run_inside_docker,
     )
     _LOG.info("Output written to '%s'", args.output)
 
