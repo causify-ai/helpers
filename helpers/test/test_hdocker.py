@@ -1,9 +1,13 @@
+import os
 import logging
 import unittest.mock as umock
+from typing import List
 
 import helpers.hdocker as hdocker
+import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
+
 
 _LOG = logging.getLogger(__name__)
 
@@ -73,42 +77,58 @@ class Test_replace_shared_root_path1(hunitest.TestCase):
 # Test_run_dockerized_prettier1
 # #############################################################################
 
-import os
-from typing import List
-
-import helpers.hio as hio
-
 
 class Test_run_dockerized_prettier1(hunitest.TestCase):
-    @staticmethod
-    def get_expected_output() -> str:
-        txt = """
-- A
-  - B
-    - C
-"""
-        txt = hprint.remove_empty_lines(txt)
-        return txt
 
-    def create_test_file(self) -> str:
-        file_path = os.path.join(self.get_scratch_space(), "input.txt")
+    def test1(self) -> None:
         txt = """
-- A
-  - B
-      - C
+        - A
+          - B
+              - C
+                """
+        exp = """
+        - A
+          - B
+            - C
         """
+        self._helper(txt, exp)
+
+    def test2(self) -> None:
+        txt = r"""
+        *  Good time management
+
+        1. choose the right tasks
+            -   avoid non-essential tasks
+        """
+        exp = r"""
+        * Good time management
+
+        1. Choose the right tasks
+           - Avoid non-essential tasks
+        """
+        self._helper(txt, exp)
+
+    def _create_test_file(self, txt) -> str:
+        file_path = os.path.join(self.get_scratch_space(), "input.txt")
         txt = hprint.remove_empty_lines(txt)
         hio.to_file(file_path, txt)
         return file_path
 
-    def test1(self) -> None:
+    def _helper(self, txt: str, exp: str) -> None:
+        """
+        Test running the `prettier` command in a Docker container.
+
+        This test creates a test file, runs the `prettier` command inside a
+        Docker container with specified command options, and checks if the
+        output matches the expected result.
+        """
         cmd_opts: List[str] = []
         cmd_opts.append("--parser markdown")
         cmd_opts.append("--prose-wrap always")
         tab_width = 2
         cmd_opts.append(f"--tab-width {tab_width}")
         # Run `prettier` in a Docker container.
-        in_file_path = self.create_test_file()
+        in_file_path = self._create_test_file(txt)
         out_file_path = os.path.join(self.get_scratch_space(), "output.txt")
         force_rebuild = False
         use_sudo = True
@@ -123,5 +143,6 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
         )
         # Check.
         act = hio.from_file(out_file_path)
-        exp = self.get_expected_output()
+        act = hprint.dedent(hprint.remove_empty_lines(act))
+        exp = hprint.dedent(hprint.remove_empty_lines(exp))
         self.assert_equal(act, exp)

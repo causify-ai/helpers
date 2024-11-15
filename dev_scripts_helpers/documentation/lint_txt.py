@@ -29,11 +29,6 @@ _LOG = logging.getLogger(__name__)
 
 # #############################################################################
 
-# TODO(gp): Implement these replacements for `.txt`.
-#  us -> you
-#  ours -> yours
-#  ourselves -> yourself
-
 
 def _preprocess(txt: str) -> str:
     """

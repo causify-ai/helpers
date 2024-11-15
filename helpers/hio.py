@@ -643,6 +643,24 @@ def rename_file_if_exists(
         os.rename(file_path, new_file_path)
 
 
+def wait_for_file(file_path: str, *, check_interval_in_secs: int = 0.5,
+                  timeout_in_secs: int = 10) -> None:
+    """
+    Wait until a specified file is generated or until the timeout is reached.
+
+    :param file_path: The path of the file to wait for.
+    :param check_interval_in_secs: Time in seconds between checks
+    :param timeout_in_secs: Maximum time to wait for the file in seconds
+    """
+    _LOG.debug(f"Waiting for file: {file_path}")
+    start_time = time.time()
+    while not os.path.exists(file_path):
+        if time.time() - start_time > timeout_in_secs:
+            raise ValueError(f"Timeout reached. File not found: {file_path}")
+        time.sleep(check_interval_in_secs)
+    _LOG.debug(f"File generated: {file_path}")
+
+
 # #############################################################################
 # JSON
 # #############################################################################

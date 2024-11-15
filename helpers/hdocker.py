@@ -10,10 +10,12 @@ import os
 import random
 import string
 import tempfile
+import time
 from typing import List, Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.henv as henv
+import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
@@ -144,6 +146,39 @@ def volume_rm(volume_name: str, use_sudo: bool) -> None:
     _LOG.debug("docker volume '%s' deleted", volume_name)
 
 
+def wait_for_file_in_docker(
+        container_id: str,
+        docker_file_path: str,
+        out_file_path: str, *,
+        check_interval_in_secs: int = 0.5,
+                  timeout_in_secs: int = 10) -> None:
+    """
+    Wait for a file to be generated inside a Docker container and copy it to the
+    host.
+
+    This function periodically checks for the existence of a file inside a
+    Docker container. Once the file is found, it copies the file to the
+    specified output path on the host.
+
+    :param container_id: ID of the Docker container.
+    :param docker_file_path: Path to the file inside the Docker container.
+    :param out_file_path: Path to copy the file to on the host.
+    :param check_interval_in_secs: Time in seconds between checks.
+    :param timeout_in_secs: Maximum time to wait for the file in seconds.
+    :raises ValueError: If the file is not found within the timeout period.
+    """
+    _LOG.debug(f"Waiting for file: {container_id}:{docker_file_path}")
+    start_time = time.time()
+    while not os.path.exists(out_file_path):
+        cmd = f"docker cp {container_id}:{docker_file_path} {out_file_path}"
+        hsystem.system(cmd)
+        if time.time() - start_time > timeout_in_secs:
+            raise ValueError(f"Timeout reached. File not found: "
+                             f"{container_id}:{docker_file_path}")
+        time.sleep(check_interval_in_secs)
+    _LOG.debug(f"File generated: {out_file_path}")
+
+
 # #############################################################################
 
 
@@ -214,8 +249,8 @@ def run_dockerized_prettier(
     """
     _LOG.debug(
         hprint.to_str(
-            "cmd_opts in_file_path out_file_path "
-            "force_rebuild use_sudo run_inside_docker"
+            "cmd_opts in_file_path out_file_path force_rebuild use_sudo "
+            "run_inside_docker"
         )
     )
     # Convert `file_path` to an absolute path.
@@ -253,14 +288,16 @@ def run_dockerized_prettier(
         rel_file_path = os.path.basename(in_file_path)
         work_dir = os.path.dirname(in_file_path)
         mount = f"type=bind,source={work_dir},target=/src"
+        bash_cmd = f"/usr/local/bin/prettier {cmd_opts_as_str} {rel_file_path}"
+        if out_file_path != in_file_path:
+            bash_cmd += f" > {out_file_path}"
         docker_cmd = (
             f"{executable} run --rm --user $(id -u):$(id -g) -it"
+            " --entrypoint ''"
             f" --workdir /src --mount {mount}"
             f" {container_name}"
-            f" {cmd_opts_as_str} {rel_file_path}"
+            f' bash -c "{bash_cmd}"'
         )
-        if out_file_path != in_file_path:
-            docker_cmd += f" > {out_file_path}"
         hsystem.system(docker_cmd, suppress_output=False)
     else:
         # Inside a container we need to copy the input file to the container and
@@ -302,16 +339,12 @@ def run_dockerized_prettier(
         _, container_id = hsystem.system_to_string(docker_cmd)
         _LOG.debug(hprint.to_str("container_id"))
         hdbg.dassert_ne(container_id, "")
-        # 4) Wait until the file is generated.
-        # TODO(gp): Wait on file.
-        import time
-
-        time.sleep(1)
-        # 5) Copy the result out.
-        cmd = f"docker cp {container_id}:/tmp/{tmp_out_file} {out_file_path}"
-        hsystem.system(cmd)
+        # 4) Wait until the file is generated and copy it locally.
+        wait_for_file_in_docker(container_id,
+            f"/tmp/{tmp_out_file}",
+                                out_file_path)
+        # 5) Clean up.
         cmd = f"docker rm -f {container_id}"
         hsystem.system(cmd)
-        # Delete the tmp image.
-        cmd = f"docker image rm {tmp_container_name}"
+        cmd = f"docker image rm -f {tmp_container_name}"
         hsystem.system(cmd)

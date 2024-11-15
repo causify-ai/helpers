@@ -49,27 +49,33 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
     hparser.add_dockerized_script_arg(parser)
+    parser.add_argument("--input", action="store")
+    parser.add_argument("--output", action="store", default="")
     # Use CRITICAL to avoid logging anything.
-    hparser.add_verbosity_arg(parser, log_level="CRITICAL")
+    hparser.add_verbosity_arg(parser) #, log_level="CRITICAL")
     return parser
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
     # Parse everything that can be parsed and returns the rest.
-    args, remaining_args = parser.parse_known_args()
-    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    _LOG.info("args for the wrapped executable: %s", remaining_args)
+    args, prettier_cmd = parser.parse_known_args()
+    if not prettier_cmd:
+        prettier_cmd = []
+    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True,
+                        force_white=False)
+    _LOG.debug("prettier_cmd: %s", prettier_cmd)
     # Assume that the last argument is the file to format.
-    file_path = remaining_args[-1]
-    hdbg.dassert_file_exists(file_path)
-    prettier_cmd = " ".join(remaining_args[:-1])
+    if not args.output:
+        args.output = args.input
     hdocker.run_dockerized_prettier(
         prettier_cmd,
-        file_path,
+        args.input,
+        args.output,
         args.dockerized_force_rebuild,
         args.dockerized_use_sudo,
-        args.log_level,
+        run_inside_docker=False,
     )
+    _LOG.info("Output written to '%s'", args.output)
 
 
 if __name__ == "__main__":

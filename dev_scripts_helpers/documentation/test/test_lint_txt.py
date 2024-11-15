@@ -10,28 +10,31 @@ _LOG = logging.getLogger(__name__)
 
 
 def _get_text1() -> str:
-    txt = r"""* Gradient descent for logistic regression
-- The typical implementations of gradient descent (basic or advanced) need two
-  inputs:
-    - The cost function $E_{in}(\vw)$ (to monitor convergence)
-    - The gradient of the cost function
-      $\frac{\partial E}{w_j} \text{ for all } j$ (to optimize)
-- The cost function is:
-    $$E_{in} = \frac{1}{N} \sum_i e(h(\vx_i), y_i)$$
+    txt = r"""
+    * Gradient descent for logistic regression
+    - The typical implementations of gradient descent (basic or advanced) need
+      two inputs:
+        - The cost function $E_{in}(\vw)$ (to monitor convergence)
+        - The gradient of the cost function
+          $\frac{\partial E}{w_j} \text{ for all } j$ (to optimize)
+    - The cost function is:
+        $$E_{in} = \frac{1}{N} \sum_i e(h(\vx_i), y_i)$$
 
-- In case of general probabilistic model $h(\vx)$ in \{0, 1\}):
-    $$
-    E_{in}(\vw) = \frac{1}{N} \sum_i \big(
-    -y_i \log(\Pr(h(\vx) = 1|\vx)) - (1 - y_i) \log(1 - \Pr(h(\vx)=1|\vx))
-    \big)
-    $$
+    - In case of general probabilistic model $h(\vx)$ in \{0, 1\}):
+        $$
+        E_{in}(\vw) = \frac{1}{N} \sum_i \big(
+        -y_i \log(\Pr(h(\vx) = 1|\vx)) - (1 - y_i) \log(1 - \Pr(h(\vx)=1|\vx))
+        \big)
+        $$
 
-- In case of logistic regression in \{+1, -1\}:
-    $$E_{in}(\vw) = \frac{1}{N} \sum_i \log(1 + \exp(-y_i \vw^T \vx_i))$$
+    - In case of logistic regression in \{+1, -1\}:
+        $$E_{in}(\vw) = \frac{1}{N} \sum_i \log(1 + \exp(-y_i \vw^T \vx_i))$$
 
-- It can be proven that the function $E_{in}(\vw)$ to minimize is convex in
-  $\vw$ (sum of exponentials and flipped exponentials is convex and log is
-  monotone)"""
+    - It can be proven that the function $E_{in}(\vw)$ to minimize is convex in
+      $\vw$ (sum of exponentials and flipped exponentials is convex and log is
+      monotone)"""
+    txt = hprint.remove_empty_lines(txt)
+    txt = hprint.dedent(txt)
     return txt
 
 
@@ -43,68 +46,77 @@ def _get_text1() -> str:
 class Test_lint_txt1(hunitest.TestCase):
     def test_preprocess1(self) -> None:
         txt = r"""$$E_{in} = \frac{1}{N} \sum_i e(h(\vx_i), y_i)$$"""
-        exp = r"""$$
-E_{in} = \frac{1}{N} \sum_i e(h(\vx_i), y_i)
-$$"""
+        exp = r"""
+        $$
+        E_{in} = \frac{1}{N} \sum_i e(h(\vx_i), y_i)
+        $$"""
         self._helper_preprocess(txt, exp)
 
     def test_preprocess2(self) -> None:
-        txt = r"""$$E_{in}(\vw) = \frac{1}{N} \sum_i \big(
--y_i \log(\Pr(h(\vx) = 1|\vx)) - (1 - y_i) \log(1 - \Pr(h(\vx)=1|\vx))
-\big)$$"""
+        txt = r"""
+        $$E_{in}(\vw) = \frac{1}{N} \sum_i \big(
+        -y_i \log(\Pr(h(\vx) = 1|\vx)) - (1 - y_i) \log(1 - \Pr(h(\vx)=1|\vx))
+        \big)$$"""
         exp = r"""$$
-E_{in}(\vw) = \frac{1}{N} \sum_i \big(
--y_i \log(\Pr(h(\vx) = 1|\vx)) - (1 - y_i) \log(1 - \Pr(h(\vx)=1|\vx))
-\big)
-$$"""
+        E_{in}(\vw) = \frac{1}{N} \sum_i \big(
+        -y_i \log(\Pr(h(\vx) = 1|\vx)) - (1 - y_i) \log(1 - \Pr(h(\vx)=1|\vx))
+        \big)
+        $$"""
         self._helper_preprocess(txt, exp)
 
     def test_preprocess3(self) -> None:
         txt = _get_text1()
-        exp = r"""- STARGradient descent for logistic regression
-- The typical implementations of gradient descent (basic or advanced) need two
-  inputs:
-    - The cost function $E_{in}(\vw)$ (to monitor convergence)
-    - The gradient of the cost function
-      $\frac{\partial E}{w_j} \text{ for all } j$ (to optimize)
-- The cost function is:
-    $$
-    E_{in} = \frac{1}{N} \sum_i e(h(\vx_i), y_i)
-    $$
+        exp = r"""
+        - STARGradient descent for logistic regression
+        - The typical implementations of gradient descent (basic or advanced) need two
+          inputs:
+            - The cost function $E_{in}(\vw)$ (to monitor convergence)
+            - The gradient of the cost function
+              $\frac{\partial E}{w_j} \text{ for all } j$ (to optimize)
+        - The cost function is:
+            $$
+            E_{in} = \frac{1}{N} \sum_i e(h(\vx_i), y_i)
+            $$
 
-- In case of general probabilistic model $h(\vx)$ in \{0, 1\}):
-    $$
-    E_{in}(\vw) = \frac{1}{N} \sum_i \big(
-    -y_i \log(\Pr(h(\vx) = 1|\vx)) - (1 - y_i) \log(1 - \Pr(h(\vx)=1|\vx))
-    \big)
-    $$
+        - In case of general probabilistic model $h(\vx)$ in \{0, 1\}):
+            $$
+            E_{in}(\vw) = \frac{1}{N} \sum_i \big(
+            -y_i \log(\Pr(h(\vx) = 1|\vx)) - (1 - y_i) \log(1 - \Pr(h(\vx)=1|\vx))
+            \big)
+            $$
 
-- In case of logistic regression in \{+1, -1\}:
-    $$
-    E_{in}(\vw) = \frac{1}{N} \sum_i \log(1 + \exp(-y_i \vw^T \vx_i))
-    $$
+        - In case of logistic regression in \{+1, -1\}:
+            $$
+            E_{in}(\vw) = \frac{1}{N} \sum_i \log(1 + \exp(-y_i \vw^T \vx_i))
+            $$
 
-- It can be proven that the function $E_{in}(\vw)$ to minimize is convex in
-  $\vw$ (sum of exponentials and flipped exponentials is convex and log is
-  monotone)"""
+        - It can be proven that the function $E_{in}(\vw)$ to minimize is convex in
+          $\vw$ (sum of exponentials and flipped exponentials is convex and log is
+          monotone)"""
         self._helper_preprocess(txt, exp)
 
     def test_preprocess4(self) -> None:
-        txt = r"""# #########################
-# test
-# #############################################################################"""
+        txt = r"""
+        # #########################
+        # test
+        # #############################################################################"""
+        txt = hprint.remove_empty_lines(txt)
         exp = r"""# test"""
         self._helper_preprocess(txt, exp)
 
     def test_preprocess5(self) -> None:
-        txt = r"""## ////////////////
-# test
-# ////////////////"""
+        txt = r"""
+        ## ////////////////
+        # test
+        # ////////////////"""
+        txt = hprint.remove_empty_lines(txt)
         exp = r"""# test"""
         self._helper_preprocess(txt, exp)
 
     def _helper_preprocess(self, txt: str, exp: str) -> None:
+        txt = hprint.remove_empty_lines(hprint.dedent(txt))
         act = dshdlitx._preprocess(txt)
+        exp = hprint.remove_empty_lines(hprint.dedent(exp))
         self.assert_equal(act, exp)
 
 
@@ -126,16 +138,17 @@ class Test_lint_txt2(hunitest.TestCase):
         Run the text linter on a txt file.
         """
         txt = r"""
-*  Good time management
+        *  Good time management
 
-1. choose the right tasks
-    -   avoid non-essential tasks
-"""
-        exp = r"""* Good time management
+        1. choose the right tasks
+            -   avoid non-essential tasks
+        """
+        exp = r"""
+        * Good time management
 
-1. Choose the right tasks
-   - Avoid non-essential tasks
-"""
+        1. Choose the right tasks
+           - Avoid non-essential tasks
+        """
         file_name = "test.txt"
         self._helper_process(txt, exp, file_name)
 
@@ -144,35 +157,35 @@ class Test_lint_txt2(hunitest.TestCase):
         Run the text linter on a md file.
         """
         txt = r"""
-# Good
-- Good time management
-  1. choose the right tasks
-    - Avoid non-essential tasks
+        # Good
+        - Good time management
+          1. choose the right tasks
+            - Avoid non-essential tasks
 
-## Bad
--  Hello
-    - World
-"""
+        ## Bad
+        -  Hello
+            - World
+        """
         exp = r"""
 
-<!-- toc -->
+        <!-- toc -->
 
-- [Good](#good)
-  * [Bad](#bad)
+        - [Good](#good)
+          * [Bad](#bad)
 
-<!-- tocstop -->
+        <!-- tocstop -->
 
-# Good
+        # Good
 
-- Good time management
-  1. Choose the right tasks
-  - Avoid non-essential tasks
+        - Good time management
+          1. Choose the right tasks
+          - Avoid non-essential tasks
 
-## Bad
+        ## Bad
 
-- Hello
-  - World
-"""
+        - Hello
+          - World
+        """
         file_name = "test.md"
         self._helper_process(txt, exp, file_name)
 
@@ -180,26 +193,27 @@ class Test_lint_txt2(hunitest.TestCase):
         """
         Check that no replacement happens inside a ``` block.
         """
-        txt = r"""<!-- toc -->
-<!-- tocstop -->
-- Good
-- Hello
-```test
-- hello
-    - world
-1) oh no!
-```
-"""
+        txt = r"""
+        <!-- toc -->
+        <!-- tocstop -->
+        - Good
+        - Hello
+        ```test
+        - hello
+            - world
+        1) oh no!
+        ```
+        """
         exp = r"""<!-- toc -->
-<!-- tocstop -->
-- Good
-- Hello
-```test
-- hello
-    - world
-1) oh no!
-```
-"""
+        <!-- tocstop -->
+        - Good
+        - Hello
+        ```test
+        - hello
+            - world
+        1) oh no!
+        ```
+        """
         file_name = "test.md"
         act = self._helper_process(txt, None, file_name)
         act = hprint.remove_empty_lines(act)
@@ -210,17 +224,18 @@ class Test_lint_txt2(hunitest.TestCase):
         For some reason prettier replaces - with * when there are 2 empty lines.
         """
         txt = self._get_text_problematic_for_prettier1()
-        exp = r"""- Python formatting
+        exp = r"""
+        - Python formatting
 
-* Python has several built-in ways of formatting strings
-  1. `%` format operator
-  2. `format` and `str.format`
+        * Python has several built-in ways of formatting strings
+          1. `%` format operator
+          2. `format` and `str.format`
 
-- `%` format operator
+        - `%` format operator
 
-* Text template as a format string
-  - Values to insert are provided as a value or a `tuple`
-"""
+        * Text template as a format string
+          - Values to insert are provided as a value or a `tuple`
+        """
         act = dshdlitx._prettier(txt)
         self.assert_equal(act, exp)
 
@@ -229,16 +244,17 @@ class Test_lint_txt2(hunitest.TestCase):
         Run the text linter on a txt file.
         """
         txt = self._get_text_problematic_for_prettier1()
-        exp = r"""* Python formatting
-- Python has several built-in ways of formatting strings
+        exp = r"""
+        * Python formatting
+        - Python has several built-in ways of formatting strings
 
-  1. `%` format operator
-  2. `format` and `str.format`
+          1. `%` format operator
+          2. `format` and `str.format`
 
-* `%` format operator
-- Text template as a format string
-  - Values to insert are provided as a value or a `tuple`
-"""
+        * `%` format operator
+        - Text template as a format string
+          - Values to insert are provided as a value or a `tuple`
+        """
         file_name = "test.txt"
         self._helper_process(txt, exp, file_name)
 
@@ -247,43 +263,46 @@ class Test_lint_txt2(hunitest.TestCase):
         Run the text linter on a txt file.
         """
         txt = r"""
-* `str.format`
-- Python 3 allows to format multiple values, e.g.,
-   ```python
-   key = 'my_var'
-   value = 1.234
-   ```
-"""
+        * `str.format`
+        - Python 3 allows to format multiple values, e.g.,
+           ```python
+           key = 'my_var'
+           value = 1.234
+           ```
+        """
         exp = r"""* `str.format`
-- Python 3 allows to format multiple values, e.g.,
-  ```python
-  key = 'my_var'
-  value = 1.234
-  ```
-"""
+        - Python 3 allows to format multiple values, e.g.,
+          ```python
+          key = 'my_var'
+          value = 1.234
+          ```
+        """
         file_name = "test.txt"
         self._helper_process(txt, exp, file_name)
 
     @staticmethod
     def _get_text_problematic_for_prettier1() -> str:
         txt = r"""
-* Python formatting
-- Python has several built-in ways of formatting strings
-  1) `%` format operator
-  2) `format` and `str.format`
+        * Python formatting
+        - Python has several built-in ways of formatting strings
+          1) `%` format operator
+          2) `format` and `str.format`
 
 
-* `%` format operator
-- Text template as a format string
-  - Values to insert are provided as a value or a `tuple`
-"""
+        * `%` format operator
+        - Text template as a format string
+          - Values to insert are provided as a value or a `tuple`
+        """
+        txt = hprint.dedent(txt)
         return txt
 
     def _helper_process(
         self, txt: str, exp: Optional[str], file_name: str
     ) -> str:
+        txt = hprint.dedent(txt)
         file_name = os.path.join(self.get_scratch_space(), file_name)
-        act: str = dshdlitx._process(txt, file_name)
+        act = dshdlitx._process(txt, file_name, run_inside_docker=True)
         if exp:
+            exp = hprint.dedent(exp)
             self.assert_equal(act, exp)
         return act
