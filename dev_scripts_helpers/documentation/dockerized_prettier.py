@@ -51,8 +51,7 @@ def _parse() -> argparse.ArgumentParser:
     hparser.add_dockerized_script_arg(parser)
     parser.add_argument("--input", action="store")
     parser.add_argument("--output", action="store", default="")
-    # Use CRITICAL to avoid logging anything.
-    hparser.add_verbosity_arg(parser) #, log_level="CRITICAL")
+    hparser.add_verbosity_arg(parser)
     return parser
 
 
@@ -61,8 +60,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args, prettier_cmd = parser.parse_known_args()
     if not prettier_cmd:
         prettier_cmd = []
-    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True,
-                        force_white=False)
+    hdbg.init_logger(
+        verbosity=args.log_level, use_exec_path=True, force_white=False
+    )
     _LOG.debug("prettier_cmd: %s", prettier_cmd)
     # Assume that the last argument is the file to format.
     if not args.output:

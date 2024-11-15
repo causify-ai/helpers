@@ -17,13 +17,13 @@ from invoke import task
 
 # We want to minimize the dependencies from non-standard Python packages since
 # this code needs to run with minimal dependencies and without Docker.
-import helpers.hs3 as hs3
 import helpers.hdbg as hdbg
 import helpers.hdict as hdict
 import helpers.henv as henv
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
+import helpers.hs3 as hs3
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hversion as hversio

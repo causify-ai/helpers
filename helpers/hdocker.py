@@ -7,15 +7,12 @@ import helpers.hdocker as hdocker
 import copy
 import logging
 import os
-import random
-import string
 import tempfile
 import time
 from typing import List, Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.henv as henv
-import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
@@ -147,25 +144,30 @@ def volume_rm(volume_name: str, use_sudo: bool) -> None:
 
 
 def wait_for_file_in_docker(
-        container_id: str,
-        docker_file_path: str,
-        out_file_path: str, *,
-        check_interval_in_secs: int = 0.5,
-        timeout_in_secs: int = 10) -> None:
+    container_id: str,
+    docker_file_path: str,
+    out_file_path: str,
+    *,
+    check_interval_in_secs: int = 0.5,
+    timeout_in_secs: int = 10,
+) -> None:
     """
-    Wait for a file to be generated inside a Docker container and copy it to the
-    host.
+    Wait for a file to be generated inside a Docker container and copy it to
+    the host.
 
-    This function periodically checks for the existence of a file inside a
-    Docker container. Once the file is found, it copies the file to the
-    specified output path on the host.
+    This function periodically checks for the existence of a file inside
+    a Docker container. Once the file is found, it copies the file to
+    the specified output path on the host.
 
     :param container_id: ID of the Docker container.
-    :param docker_file_path: Path to the file inside the Docker container.
+    :param docker_file_path: Path to the file inside the Docker
+        container.
     :param out_file_path: Path to copy the file to on the host.
     :param check_interval_in_secs: Time in seconds between checks.
-    :param timeout_in_secs: Maximum time to wait for the file in seconds.
-    :raises ValueError: If the file is not found within the timeout period.
+    :param timeout_in_secs: Maximum time to wait for the file in
+        seconds.
+    :raises ValueError: If the file is not found within the timeout
+        period.
     """
     _LOG.debug(f"Waiting for file: {container_id}:{docker_file_path}")
     start_time = time.time()
@@ -173,8 +175,10 @@ def wait_for_file_in_docker(
         cmd = f"docker cp {container_id}:{docker_file_path} {out_file_path}"
         hsystem.system(cmd)
         if time.time() - start_time > timeout_in_secs:
-            raise ValueError(f"Timeout reached. File not found: "
-                             f"{container_id}:{docker_file_path}")
+            raise ValueError(
+                f"Timeout reached. File not found: "
+                f"{container_id}:{docker_file_path}"
+            )
         time.sleep(check_interval_in_secs)
     _LOG.debug(f"File generated: {out_file_path}")
 
@@ -243,13 +247,17 @@ def dassert_valid_path(file_path: str, is_input: bool) -> None:
         # If it's an output, we might be writing a file that doesn't exist yet,
         # but we assume that at the least the directory should be already
         # present.
-        hdbg.dassert(os.path.exists(file_path) or os.path.exists(os.path.dirname(
-            file_path)), "Invalid path: %s", file_path)
+        hdbg.dassert(
+            os.path.exists(file_path)
+            or os.path.exists(os.path.dirname(file_path)),
+            "Invalid path: %s",
+            file_path,
+        )
 
 
-def convert_to_relative_path(file_path: str, check_if_exists: bool,
-                             is_input: bool
-                             ) -> str:
+def convert_to_relative_path(
+    file_path: str, check_if_exists: bool, is_input: bool
+) -> str:
     """
     Convert the file path to a path relative to the current dir.
 
@@ -266,9 +274,12 @@ def convert_to_relative_path(file_path: str, check_if_exists: bool,
     # Convert to the host path.
     curr_dir = os.getcwd()
     # The path needs to be underneath the current dir.
-    hdbg.dassert(out_file_path.startswith(curr_dir),
-                 "out_file_path=%s needs to be underneath curr_dir=%s",
-                 out_file_path, curr_dir)
+    hdbg.dassert(
+        out_file_path.startswith(curr_dir),
+        "out_file_path=%s needs to be underneath curr_dir=%s",
+        out_file_path,
+        curr_dir,
+    )
     rel_path = os.path.relpath(out_file_path, curr_dir)
     _LOG.debug("Converted %s -> %s -> %s", file_path, out_file_path, rel_path)
     return rel_path
@@ -342,11 +353,12 @@ def run_dockerized_prettier(
         )
     )
     # Conver the paths to relative
-    in_file_path = convert_to_relative_path(in_file_path, check_if_exists=True,
-                                            is_input=True)
-    out_file_path = convert_to_relative_path(out_file_path,
-                                             check_if_exists=True,
-                                            is_input=False)
+    in_file_path = convert_to_relative_path(
+        in_file_path, check_if_exists=True, is_input=True
+    )
+    out_file_path = convert_to_relative_path(
+        out_file_path, check_if_exists=True, is_input=False
+    )
     # The problem is that `in_file_path` and `out_file_path` can be specified as
     # absolute or relative path in Docker / host file system and we need to
     # convert it to a path that is valid inside the new Docker instance.
