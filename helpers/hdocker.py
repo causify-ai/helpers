@@ -285,37 +285,6 @@ def convert_to_relative_path(
     return rel_path
 
 
-# def convert_to_docker_path(file_path: str, docker_root_path: str,
-#                            host_root_path: str,
-#                            is_input: bool) -> str:
-#     """
-#     Convert the file path from the host to a Docker path, assuming that
-#     `host_root_path` corresponds to `docker_root_path`.
-#
-#     E.g.,
-#     - file_path = "/home/user/project/data/input.txt"
-#     - docker_root_path = "/app"
-#     - host_root_path = "/home/user/project"
-#     - return: /app/data/input.txt
-#
-#     :param file_path: The file path on the host to be converted.
-#     :param docker_root_path: The root path inside the Docker container.
-#     :param host_root_path: The root path on the host that corresponds to the
-#     Docker root path.
-#     :return: The converted file path for the Docker container.
-#     :raises AssertionError: If the file path does not start with the host root
-#         path.
-#      """
-#     # The path needs to be underneath the host root path.
-#     hdbg.dassert(file_path.startswith(host_root_path),
-#                  "File %s must start with %s", file_path, host_root_path)
-#     rel_path = os.path.relpath(file_path, host_root_path)
-#     #
-#     out_file_path = os.path.join(docker_root_path, rel_path)
-#     dassert_valid_docker_path(out_file_path, is_input)
-#     return out_file_path
-
-
 def run_dockerized_prettier(
     cmd_opts: List[str],
     in_file_path: str,
@@ -352,7 +321,7 @@ def run_dockerized_prettier(
             "run_inside_docker"
         )
     )
-    # Conver the paths to relative
+    # Convert the paths to be relative.
     in_file_path = convert_to_relative_path(
         in_file_path, check_if_exists=True, is_input=True
     )
@@ -360,12 +329,12 @@ def run_dockerized_prettier(
         out_file_path, check_if_exists=True, is_input=False
     )
     # The problem is that `in_file_path` and `out_file_path` can be specified as
-    # absolute or relative path in Docker / host file system and we need to
+    # absolute or relative path in Docker / host file system. Thus, we need to
     # convert it to a path that is valid inside the new Docker instance.
     # E.g.,
     # - /Users/saggese/src/helpers1/test.md -> /src/test.md
     # - ./test.md -> /src/test.md
-    # - ./documentation/test.md -> /src/test.md
+    # - ./documentation/test.md -> /src/documentation/test.md
     target_docker_path = "/src"
     # The invariant is that if `run_inside_docker` is:
     # - True: `/src` in the container corresponds to Git root in the container
@@ -373,7 +342,8 @@ def run_dockerized_prettier(
     # Then all the files need to be converted from host to Docker paths
     # as reference to target_docker_path.
     if run_inside_docker:
-        # > docker run --rm --user $(id -u):$(id -g) -it --entrypoint '' \
+        # > docker run --rm --user $(id -u):$(id -g) \
+        #     --entrypoint '' \
         #     --workdir /src \
         #     --mount type=bind,source=/Users/saggese/src/helpers1,target=/src \
         #     tmp.prettier \
@@ -381,7 +351,8 @@ def run_dockerized_prettier(
         hdbg.dassert(hserver.is_inside_docker())
         source_host_path = get_host_git_root()
     else:
-        # > docker run --rm --user $(id -u):$(id -g) -it --entrypoint '' \
+        # > docker run --rm --user $(id -u):$(id -g) \
+        #     --entrypoint '' \
         #     --workdir /src \
         #     --mount type=bind,source=.,target=/src \
         #     tmp.prettier \
@@ -414,7 +385,7 @@ def run_dockerized_prettier(
         cmd_opts.append("--write")
     cmd_opts_as_str = " ".join(cmd_opts)
     # The command is like:
-    # > docker run --rm --user $(id -u):$(id -g) -it \
+    # > docker run --rm --user $(id -u):$(id -g) \
     #     --workdir /src --mount type=bind,source=.,target=/src \
     #     tmp.prettier \
     #     --parser markdown --prose-wrap always --write --tab-width 2 \
@@ -428,13 +399,15 @@ def run_dockerized_prettier(
     if out_file_path != in_file_path:
         bash_cmd += f" > {out_file_path}"
     docker_cmd = (
-        f"{executable} run --rm --user $(id -u):$(id -g) -it"
+        f"{executable} run --rm --user $(id -u):$(id -g) "
         " --entrypoint ''"
         f" --workdir /src --mount {mount}"
         f" {container_name}"
         f' bash -c "{bash_cmd}"'
     )
-    hsystem.system(docker_cmd, suppress_output=False)
+    # TODO(gp): Note that `suppress_output=False` seems to hang the call.
+    hsystem.system(docker_cmd) 
+
     # This a different approach I've tried to inject files inside a container
     # and read them back. It's an interesting approach but it's flaky.
     #

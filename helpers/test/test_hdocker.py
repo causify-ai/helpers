@@ -79,6 +79,9 @@ class Test_replace_shared_root_path1(hunitest.TestCase):
 
 
 class Test_run_dockerized_prettier1(hunitest.TestCase):
+    """
+    Test running the `prettier` command inside a Docker container.
+    """
 
     def test1(self) -> None:
         txt = """
@@ -101,16 +104,17 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
             -   avoid non-essential tasks
         """
         exp = r"""
-        * Good time management
+        - Good time management
 
-        1. Choose the right tasks
-           - Avoid non-essential tasks
+        1. choose the right tasks
+           - avoid non-essential tasks
         """
         self._helper(txt, exp)
 
     def _create_test_file(self, txt) -> str:
         file_path = os.path.join(self.get_scratch_space(), "input.txt")
         txt = hprint.remove_empty_lines(txt)
+        txt = hprint.dedent(txt)
         hio.to_file(file_path, txt)
         return file_path
 
