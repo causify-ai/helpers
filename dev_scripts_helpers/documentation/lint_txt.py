@@ -101,7 +101,10 @@ def _prettier_on_str(
     # Save string as input.
     debug = False
     if not debug:
-        tmp_file_name = tempfile.NamedTemporaryFile().name
+        # We need to use the current dir since the file needs to be in the
+        # container build context.
+        curr_dir = os.getcwd()
+        tmp_file_name = tempfile.NamedTemporaryFile(dir=curr_dir).name
     else:
         tmp_file_name = "/tmp/tmp_prettier.txt"
     hio.to_file(tmp_file_name, txt)
@@ -110,6 +113,7 @@ def _prettier_on_str(
     # Read result into a string.
     txt = hio.from_file(tmp_file_name)
     _LOG.debug("After prettier txt=\n%s", txt)
+    os.remove(tmp_file_name)
     return txt  # type: ignore
 
 
@@ -117,9 +121,8 @@ def _prettier(
     in_file_path: str,
     out_file_path: str,
     *,
-    print_width: Optional[int] = None,
+    print_width: int = 80,
     use_dockerized_prettier: bool = True,
-    run_inside_docker: bool = False,
 ) -> None:
     """
     Format the given text using Prettier.
@@ -128,8 +131,6 @@ def _prettier(
         If None, the default width is used.
     :param use_dockerized_prettier: Whether to use a Dockerized version
         of Prettier.
-    :param run_inside_docker: Whether the function is running inside a
-        Docker container (e.g., in the unit tests)
     :return: The formatted text.
     """
     cmd_opts: List[str] = []
@@ -151,7 +152,6 @@ def _prettier(
             out_file_path,
             force_rebuild,
             use_sudo,
-            run_inside_docker,
         )
     else:
         # Run `prettier` installed on the host directly.
@@ -262,22 +262,30 @@ def _refresh_toc(txt: str) -> str:
     txt_as_arr = txt.split("\n")
     # Add `<!-- toc -->` comment in the doc to generate the TOC after that
     # line. By default, it will generate at the top of the file.
-    # This workaround is useful to generate the TOC after the heading
-    # of the doc at the top and not include it in the TOC.
+    # This workaround is useful to generate the TOC after the heading of the doc
+    # at the top and not include it in the TOC.
     if "<!-- toc -->" not in txt_as_arr:
         _LOG.warning("No tags for table of content in md file: adding it")
         txt = "<!-- toc -->\n" + txt
     # Write file.
-    tmp_file_name = tempfile.NamedTemporaryFile().name
+    curr_dir = os.getcwd()
+    tmp_file_name = tempfile.NamedTemporaryFile(dir=curr_dir).name
     hio.to_file(tmp_file_name, txt)
     # Process TOC.
-    cmd: List[str] = []
-    cmd.append("markdown-toc")
-    cmd.append(f"-i {tmp_file_name}")
-    cmd_as_str = " ".join(cmd)
-    hsystem.system(cmd_as_str, abort_on_error=False, suppress_output=True)
+    cmd_opts: List[str] = []
+    # TODO(gp): I can't find where this executable is installed.
+    force_rebuild = False
+    use_sudo = True
+    hdocker.run_dockerized_markdown_toc(
+        cmd_opts,
+        tmp_file_name,
+        force_rebuild,
+        use_sudo,
+    )
     # Read file.
     txt = hio.from_file(tmp_file_name)
+    # Clean up.
+    os.remove(tmp_file_name)
     return txt  # type: ignore
 
 

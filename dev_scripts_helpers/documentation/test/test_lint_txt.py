@@ -33,8 +33,7 @@ def _get_text1() -> str:
     - It can be proven that the function $E_{in}(\vw)$ to minimize is convex in
       $\vw$ (sum of exponentials and flipped exponentials is convex and log is
       monotone)"""
-    txt = hprint.remove_empty_lines(txt)
-    txt = hprint.dedent(txt)
+    txt = hprint.dedent(txt, remove_empty_leading_trailing_lines=True)
     return txt
 
 
@@ -57,7 +56,8 @@ class Test_lint_txt1(hunitest.TestCase):
         $$E_{in}(\vw) = \frac{1}{N} \sum_i \big(
         -y_i \log(\Pr(h(\vx) = 1|\vx)) - (1 - y_i) \log(1 - \Pr(h(\vx)=1|\vx))
         \big)$$"""
-        exp = r"""$$
+        exp = r"""
+        $$
         E_{in}(\vw) = \frac{1}{N} \sum_i \big(
         -y_i \log(\Pr(h(\vx) = 1|\vx)) - (1 - y_i) \log(1 - \Pr(h(\vx)=1|\vx))
         \big)
@@ -68,8 +68,8 @@ class Test_lint_txt1(hunitest.TestCase):
         txt = _get_text1()
         exp = r"""
         - STARGradient descent for logistic regression
-        - The typical implementations of gradient descent (basic or advanced) need two
-          inputs:
+        - The typical implementations of gradient descent (basic or advanced) need
+          two inputs:
             - The cost function $E_{in}(\vw)$ (to monitor convergence)
             - The gradient of the cost function
               $\frac{\partial E}{w_j} \text{ for all } j$ (to optimize)
@@ -100,7 +100,6 @@ class Test_lint_txt1(hunitest.TestCase):
         # #########################
         # test
         # #############################################################################"""
-        txt = hprint.remove_empty_lines(txt)
         exp = r"""# test"""
         self._helper_preprocess(txt, exp)
 
@@ -109,14 +108,13 @@ class Test_lint_txt1(hunitest.TestCase):
         ## ////////////////
         # test
         # ////////////////"""
-        txt = hprint.remove_empty_lines(txt)
         exp = r"""# test"""
         self._helper_preprocess(txt, exp)
 
     def _helper_preprocess(self, txt: str, exp: str) -> None:
-        txt = hprint.remove_empty_lines(hprint.dedent(txt))
+        txt = hprint.dedent(txt, remove_empty_leading_trailing_lines=True)
         act = dshdlitx._preprocess(txt)
-        exp = hprint.remove_empty_lines(hprint.dedent(exp))
+        exp = hprint.dedent(exp, remove_empty_leading_trailing_lines=True)
         self.assert_equal(act, exp)
 
 
@@ -167,7 +165,6 @@ class Test_lint_txt2(hunitest.TestCase):
             - World
         """
         exp = r"""
-
         <!-- toc -->
 
         - [Good](#good)
@@ -196,28 +193,19 @@ class Test_lint_txt2(hunitest.TestCase):
         txt = r"""
         <!-- toc -->
         <!-- tocstop -->
+        
         - Good
         - Hello
+        
         ```test
         - hello
             - world
         1) oh no!
         ```
         """
-        exp = r"""<!-- toc -->
-        <!-- tocstop -->
-        - Good
-        - Hello
-        ```test
-        - hello
-            - world
-        1) oh no!
-        ```
-        """
+        exp = txt
         file_name = "test.md"
-        act = self._helper_process(txt, None, file_name)
-        act = hprint.remove_empty_lines(act)
-        self.assert_equal(act, exp)
+        self._helper_process(txt, exp, file_name)
 
     def test_process_prettier_bug1(self) -> None:
         """
@@ -270,7 +258,8 @@ class Test_lint_txt2(hunitest.TestCase):
            value = 1.234
            ```
         """
-        exp = r"""* `str.format`
+        exp = r"""
+        * `str.format`
         - Python 3 allows to format multiple values, e.g.,
           ```python
           key = 'my_var'
@@ -279,6 +268,8 @@ class Test_lint_txt2(hunitest.TestCase):
         """
         file_name = "test.txt"
         self._helper_process(txt, exp, file_name)
+
+    # //////////////////////////////////////////////////////////////////////////
 
     @staticmethod
     def _get_text_problematic_for_prettier1() -> str:
@@ -293,16 +284,26 @@ class Test_lint_txt2(hunitest.TestCase):
         - Text template as a format string
           - Values to insert are provided as a value or a `tuple`
         """
-        txt = hprint.dedent(txt)
+        txt = hprint.dedent(txt, remove_empty_leading_trailing_lines=True)
         return txt
 
     def _helper_process(
         self, txt: str, exp: Optional[str], file_name: str
     ) -> str:
-        txt = hprint.dedent(txt)
+        """
+        Helper function to process the given text and compare the result with
+        the expected output.
+
+        :param txt: The text to be processed.
+        :param exp: The expected output after processing the text. If None, no
+            comparison is made.
+        :param file_name: The name of the file to be used for processing.
+        :return: The processed text.
+        """
+        txt = hprint.dedent(txt, remove_empty_leading_trailing_lines=True)
         file_name = os.path.join(self.get_scratch_space(), file_name)
-        act = dshdlitx._process(txt, file_name, run_inside_docker=True)
+        act = dshdlitx._process(txt, file_name)
         if exp:
-            exp = hprint.dedent(exp)
+            exp = hprint.dedent(exp, remove_empty_leading_trailing_lines=True)
             self.assert_equal(act, exp)
         return act

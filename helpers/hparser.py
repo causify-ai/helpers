@@ -321,6 +321,7 @@ def read_file(file_name: str) -> List[str]:
         f = sys.stdin
     else:
         _LOG.info("Reading from '%s'", file_name)
+        hdbg.dassert_file_exists(file_name)
         # pylint: disable=consider-using-with
         f = open(file_name, "r")
     # Read.
@@ -549,9 +550,4 @@ def add_dockerized_script_arg(
         "--dockerized_use_sudo",
         action="store_true",
         help="Use sudo inside the container",
-    )
-    parser.add_argument(
-        "--run_inside_docker",
-        action="store_true",
-        help="Run the dockerized script from inside a container",
     )
