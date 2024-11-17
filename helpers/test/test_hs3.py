@@ -431,7 +431,7 @@ class Test_s3_1(hunitest.TestCase):
         file_path = os.path.join(
             hs3.get_s3_bucket_path_unit_test(_AWS_PROFILE),
             "alphamatic-data",
-            "README.md"
+            "README.md",
         )
         _LOG.debug("file_path=%s", file_path)
         # > aws s3 ls s3://*****
@@ -453,8 +453,8 @@ class Test_s3_1(hunitest.TestCase):
         s3fs = hs3.get_s3fs(_AWS_PROFILE)
         file_path = os.path.join(
             hs3.get_s3_bucket_path_unit_test(_AWS_PROFILE),
-            "alphamatic-data", 
-            "data/ib/metadata"
+            "alphamatic-data",
+            "data/ib/metadata",
         )
         glob_pattern = file_path + "/exchanges-*"
         _LOG.debug("glob_pattern=%s", glob_pattern)
@@ -467,7 +467,9 @@ class Test_s3_1(hunitest.TestCase):
     def test_exists1(self) -> None:
         s3fs = hs3.get_s3fs(_AWS_PROFILE)
         file_path = os.path.join(
-            hs3.get_s3_bucket_path_unit_test(_AWS_PROFILE), "alphamatic-data", "README.md"
+            hs3.get_s3_bucket_path_unit_test(_AWS_PROFILE),
+            "alphamatic-data",
+            "README.md",
         )
         _LOG.debug("file_path=%s", file_path)
         act = s3fs.exists(file_path)
@@ -479,7 +481,9 @@ class Test_s3_1(hunitest.TestCase):
     def test_exists2(self) -> None:
         s3fs = hs3.get_s3fs(_AWS_PROFILE)
         file_path = os.path.join(
-            hs3.get_s3_bucket_path_unit_test(_AWS_PROFILE), "alphamatic-data", "README_does_not_exist.md"
+            hs3.get_s3_bucket_path_unit_test(_AWS_PROFILE),
+            "alphamatic-data",
+            "README_does_not_exist.md",
         )
         _LOG.debug("file_path=%s", file_path)
         act = s3fs.exists(file_path)
