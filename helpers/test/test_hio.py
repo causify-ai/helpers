@@ -1,7 +1,15 @@
+import logging
 import os
 
+import numpy as np
+import pandas as pd
+
+import helpers.hgit as hgit
 import helpers.hio as hio
+import helpers.hpandas as hpandas
 import helpers.hunit_test as hunitest
+
+_LOG = logging.getLogger(__name__)
 
 
 class Test_rename_file_if_exists(hunitest.TestCase):
@@ -58,20 +66,6 @@ class Test_rename_file_if_exists(hunitest.TestCase):
         expected_file_name = "not_exist.txt"
         with self.assertRaises(AssertionError) as e:
             self.check_file(file_to_rename, before_extension, expected_file_name)
-
-
-import logging
-import os
-
-import numpy as np
-import pandas as pd
-
-import helpers.hgit as hgit
-import helpers.hio as hio
-import helpers.hpandas as hpandas
-import helpers.hunit_test as hunitest
-
-_LOG = logging.getLogger(__name__)
 
 
 class Test_find_all_files1(hunitest.TestCase):

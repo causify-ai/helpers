@@ -1,3 +1,4 @@
+import logging
 import os
 from typing import Tuple
 
@@ -8,6 +9,8 @@ import helpers.hio as hio
 import helpers.hmoto as hmoto
 import helpers.hs3 as hs3
 import helpers.hunit_test as hunitest
+
+_LOG = logging.getLogger(__name__)
 
 
 @pytest.mark.requires_ck_infra
@@ -391,16 +394,6 @@ class Test_get_s3_bucket_from_stage(hunitest.TestCase):
              """
         self.assert_equal(actual, expected, fuzzy_match=True)
 
-
-import logging
-import os
-
-import pytest
-
-import helpers.hs3 as hs3
-import helpers.hunit_test as hunitest
-
-_LOG = logging.getLogger(__name__)
 
 _AWS_PROFILE = "ck"
 
