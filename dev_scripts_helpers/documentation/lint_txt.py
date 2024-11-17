@@ -286,6 +286,7 @@ def _refresh_toc(txt: str) -> str:
     txt = hio.from_file(tmp_file_name)
     # Clean up.
     os.remove(tmp_file_name)
+    # Remove empty
     return txt  # type: ignore
 
 

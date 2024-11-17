@@ -194,6 +194,94 @@ def indent(txt: Optional[str], *, num_spaces: int = 2) -> str:
     res = "\n".join(txt_out)
     return res
 
+from typing import Union, Callable, Any
+
+StrOrList = Union[str, List[str]]
+
+
+from functools import wraps
+
+
+def split_lines(func: Callable) -> Callable:
+    """
+    A decorator that splits a string input into lines before passing it to the decorated function.
+    """
+    @wraps(func)
+    def wrapper(txt: StrOrList, *args: Any, **kwargs: Any) -> None:
+        if isinstance(txt, str):
+            # Split the txt into lines.
+            lines = txt.splitlines()
+            is_str = True
+        else:
+            # The txt is already a list of lines.
+            hdbg.dassert_isinstance(txt, list)
+            lines = txt
+            is_str = False
+        # Call the function.
+        lines = func(lines, *args, **kwargs)
+        if is_str:
+            # Join the lines back together.
+            out = "\n".join(lines)
+        else:
+            # The output is already a list of lines.
+            out = lines
+        return out
+    return wrapper
+
+
+# def trim_consecutive_empty_lines(txt: StrOrList) -> StrOrList:
+#     """
+#     Remove consecutive empty lines only at the beginning / end of a string.
+#     """
+#     if isinstance(txt, str):
+#         # Split the txt into lines.
+#         lines = txt.splitlines()
+#         is_str = True
+#     else:
+#         hdbg.dassert_isinstance(txt, list)
+#         lines = txt
+#         is_str = False
+#     # Remove leading empty lines.
+#     while lines and not lines[0].strip():
+#         lines.pop(0)
+#     # Remove trailing empty lines.
+#     while lines and not lines[-1].strip():
+#         lines.pop()
+#     if is_str:
+#         # Join the lines back together
+#         out = "\n".join(lines)
+#     else:
+#         out = lines
+#     return out
+
+
+@split_lines
+def trim_consecutive_empty_lines(lines: StrOrList) -> StrOrList:
+    """
+    Remove consecutive empty lines only at the beginning / end of a string.
+    """
+    # if isinstance(txt, str):
+    #     # Split the txt into lines.
+    #     lines = txt.splitlines()
+    #     is_str = True
+    # else:
+    #     hdbg.dassert_isinstance(txt, list)
+    #     lines = txt
+    #     is_str = False
+    # Remove leading empty lines.
+    while lines and not lines[0].strip():
+        lines.pop(0)
+    # Remove trailing empty lines.
+    while lines and not lines[-1].strip():
+        lines.pop()
+    # if is_str:
+    #     # Join the lines back together
+    #     out = "\n".join(lines)
+    # else:
+    #     out = lines
+    return lines
+
+
 
 def dedent(txt: str, *, remove_empty_leading_trailing_lines: bool = True) -> (
         str):
@@ -207,7 +295,8 @@ def dedent(txt: str, *, remove_empty_leading_trailing_lines: bool = True) -> (
         at the beginning and at the end
     """
     if remove_empty_leading_trailing_lines:
-        txt = txt.rstrip("\n").lstrip("\n")
+        #txt = txt.rstrip("\n").lstrip("\n")
+        txt = txt.strip("\n")
     # Find the minimum number of leading spaces.
     min_num_spaces = None
     for curr_line in txt.split("\n"):
