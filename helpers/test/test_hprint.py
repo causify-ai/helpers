@@ -9,7 +9,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_printing1(hunitest.TestCase):
-
     def test_color_highlight1(self) -> None:
         for c in hprint._COLOR_MAP:
             _LOG.debug(hprint.color_highlight(c, c))
@@ -19,7 +18,6 @@ class Test_printing1(hunitest.TestCase):
 
 
 class Test_to_str1(hunitest.TestCase):
-
     def test1(self) -> None:
         x = 1
         # To disable linter complaints.
@@ -81,7 +79,6 @@ class Test_to_str1(hunitest.TestCase):
 
 
 class Test_to_str2(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test printing arguments that are declared on the different than
@@ -134,7 +131,6 @@ class Test_to_str2(hunitest.TestCase):
 
 
 class Test_log(hunitest.TestCase):
-
     def test2(self) -> None:
         x = 1
         # To disable linter complaints.
@@ -174,7 +170,6 @@ class Test_log(hunitest.TestCase):
 
 
 class Test_sort_dictionary(hunitest.TestCase):
-
     def test1(self) -> None:
         dict_ = {
             "tool": {
@@ -229,7 +224,6 @@ class Test_sort_dictionary(hunitest.TestCase):
 
 
 class Test_indent1(hunitest.TestCase):
-
     def test1(self) -> None:
         txt = """foo
 
@@ -250,7 +244,6 @@ class TestHelloWorld(hunitest.TestCase):
 
 
 class Test_dedent1(hunitest.TestCase):
-
     def test1(self) -> None:
         txt = """
         foo
@@ -302,7 +295,6 @@ class TestHelloWorld(hunitest.TestCase):
 
 
 class Test_align_on_left1(hunitest.TestCase):
-
     def test1(self) -> None:
         txt = """foo
 
@@ -322,7 +314,6 @@ bar
 
 
 class Test_logging1(hunitest.TestCase):
-
     def test_log_frame1(self) -> None:
         hprint.log_frame(_LOG, "%s %s", "hello", "world")
 

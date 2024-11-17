@@ -1,10 +1,10 @@
 import datetime
 import logging
 import os
-import pytest
 from typing import Any, Optional
 
 import pandas as pd
+import pytest
 
 import config_root.config as cconfig
 import helpers.hio as hio
@@ -56,13 +56,13 @@ class TestJsonRoundtrip1(hunitest.TestCase):
 # TestPlaybackInputOutput1
 # #############################################################################
 
+
 class TestPlaybackInputOutput1(hunitest.TestCase):
     """
     Freeze the output of Playback.
     """
 
     def helper(self, mode: str, *args: Any, **kwargs: Any) -> None:
-
         # TODO(gp): Factor out the common code.
         # Define a function to generate a unit test for.
         def get_result_assert_equal(a: Any, b: Any) -> Any:
