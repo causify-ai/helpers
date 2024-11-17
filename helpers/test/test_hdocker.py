@@ -230,6 +230,8 @@ class Test_run_markdown_toc1(hunitest.TestCase):
 
     def test1(self) -> None:
         txt = """
+        <!-- toc -->
+        
         # Good
         - Good time management
           1. choose the right tasks
@@ -240,20 +242,21 @@ class Test_run_markdown_toc1(hunitest.TestCase):
             - World
         """
         exp = r"""
-        -   [Good](#good){#toc-good}
-            -   [Bad](#bad){#toc-bad}
+        <!-- toc -->
+
+        - [Good](#good)
+          * [Bad](#bad)
+
+        <!-- tocstop -->
 
         # Good
-
-        -   Good time management
-            1.  choose the right tasks
-
-            -   Avoid non-essential tasks
+        - Good time management
+          1. choose the right tasks
+            - Avoid non-essential tasks
 
         ## Bad
-
-        -   Hello
-            -   World
+        -  Hello
+            - World
         """
         self._helper(txt, exp)
 

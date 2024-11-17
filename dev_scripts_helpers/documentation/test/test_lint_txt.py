@@ -203,7 +203,22 @@ class Test_lint_txt2(hunitest.TestCase):
         1) oh no!
         ```
         """
-        exp = txt
+        exp = r"""
+        <!-- toc -->
+
+
+
+        <!-- tocstop -->
+
+        - Good
+        - Hello
+
+        ```test
+        - hello
+            - world
+        1) oh no!
+        ```
+        """
         file_name = "test.md"
         self._helper_process(txt, exp, file_name)
 
@@ -212,6 +227,7 @@ class Test_lint_txt2(hunitest.TestCase):
         For some reason prettier replaces - with * when there are 2 empty lines.
         """
         txt = self._get_text_problematic_for_prettier1()
+        act = dshdlitx._prettier_on_str(txt)
         exp = r"""
         - Python formatting
 
@@ -224,7 +240,7 @@ class Test_lint_txt2(hunitest.TestCase):
         * Text template as a format string
           - Values to insert are provided as a value or a `tuple`
         """
-        act = dshdlitx._prettier(txt)
+        exp = hprint.dedent(exp, remove_empty_leading_trailing_lines=True)
         self.assert_equal(act, exp)
 
     def test_process5(self) -> None:

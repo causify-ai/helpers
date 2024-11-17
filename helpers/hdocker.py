@@ -480,7 +480,7 @@ def run_dockerized_pandoc(
     """
     Run `prettier` in a Docker container.
 
-    Same as `run_dockerized_prettier` but for `pandoc`.
+    Same as `run_dockerized_prettier()` but for `pandoc`.
     """
     _LOG.debug(
         hprint.to_str(
@@ -517,7 +517,7 @@ def run_dockerized_markdown_toc(
     use_sudo: bool,
 ) -> None:
     """
-    Same as `run_dockerized_prettier` but for `markdown-toc`.
+    Same as `run_dockerized_prettier()` but for `markdown-toc`.
     """
     # https://github.com/jonschlinkert/markdown-toc
     _LOG.debug(

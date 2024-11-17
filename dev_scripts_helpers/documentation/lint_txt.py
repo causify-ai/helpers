@@ -23,6 +23,7 @@ import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hio as hio
 import helpers.hparser as hparser
+import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
@@ -89,34 +90,6 @@ def _preprocess(txt: str) -> str:
     return txt_new_as_str
 
 
-def _prettier_on_str(
-    txt: str,
-    *args: Any,
-    **kwargs: Any,
-) -> str:
-    """
-    Wrapper around `_prettier()` to work on strings.
-    """
-    _LOG.debug("txt=\n%s", txt)
-    # Save string as input.
-    debug = False
-    if not debug:
-        # We need to use the current dir since the file needs to be in the
-        # container build context.
-        curr_dir = os.getcwd()
-        tmp_file_name = tempfile.NamedTemporaryFile(dir=curr_dir).name
-    else:
-        tmp_file_name = "/tmp/tmp_prettier.txt"
-    hio.to_file(tmp_file_name, txt)
-    # Call `prettier` in-place.
-    _prettier(tmp_file_name, tmp_file_name, *args, **kwargs)
-    # Read result into a string.
-    txt = hio.from_file(tmp_file_name)
-    _LOG.debug("After prettier txt=\n%s", txt)
-    os.remove(tmp_file_name)
-    return txt  # type: ignore
-
-
 def _prettier(
     in_file_path: str,
     out_file_path: str,
@@ -168,6 +141,36 @@ def _prettier(
         cmd_as_str = " ".join(cmd)
         _, output_tmp = hsystem.system_to_string(cmd_as_str, abort_on_error=True)
         _LOG.debug("output_tmp=%s", output_tmp)
+
+
+# TODO(gp): Convert this into a decorator to adapt operations that work on
+#  files to passing strings.
+def _prettier_on_str(
+    txt: str,
+    *args: Any,
+    **kwargs: Any,
+) -> str:
+    """
+    Wrapper around `_prettier()` to work on strings.
+    """
+    _LOG.debug("txt=\n%s", txt)
+    # Save string as input.
+    debug = False
+    if not debug:
+        # We need to use the current dir since the file needs to be in the
+        # container build context.
+        curr_dir = os.getcwd()
+        tmp_file_name = tempfile.NamedTemporaryFile(dir=curr_dir).name
+    else:
+        tmp_file_name = "/tmp/tmp_prettier.txt"
+    hio.to_file(tmp_file_name, txt)
+    # Call `prettier` in-place.
+    _prettier(tmp_file_name, tmp_file_name, *args, **kwargs)
+    # Read result into a string.
+    txt = hio.from_file(tmp_file_name)
+    _LOG.debug("After prettier txt=\n%s", txt)
+    os.remove(tmp_file_name)
+    return txt  # type: ignore
 
 
 def _postprocess(txt: str, in_file_name: str) -> str:
@@ -273,7 +276,6 @@ def _refresh_toc(txt: str) -> str:
     hio.to_file(tmp_file_name, txt)
     # Process TOC.
     cmd_opts: List[str] = []
-    # TODO(gp): I can't find where this executable is installed.
     force_rebuild = False
     use_sudo = True
     hdocker.run_dockerized_markdown_toc(
@@ -286,7 +288,8 @@ def _refresh_toc(txt: str) -> str:
     txt = hio.from_file(tmp_file_name)
     # Clean up.
     os.remove(tmp_file_name)
-    # Remove empty
+    # Remove empty lines introduced by `markdown-toc`.
+    txt = hprint.trim_consecutive_empty_lines(txt)
     return txt  # type: ignore
 
 

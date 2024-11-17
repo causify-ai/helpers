@@ -7,6 +7,7 @@ import dev_scripts_helpers.documentation.convert_txt_to_pandoc as dshdcttpa
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
+import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
@@ -107,45 +108,50 @@ class Test_preprocess2(hunitest.TestCase):
         self._helper_process_question(txt_in, do_continue_exp, exp)
 
     def test_transform1(self) -> None:
-        txt_in = """
-# #############################################################################
-# Python: nested functions
-# #############################################################################
-- Functions can be declared in the body of another function
-- E.g., to hide utility functions in the scope of the function that uses them
-    ```python
-    def print_integers(values):
+        txt_in = r"""
+        # #############################################################################
+        # Python: nested functions
+        # #############################################################################
+        - Functions can be declared in the body of another function
+        - E.g., to hide utility functions in the scope of the function that uses them
+            ```python
+            def print_integers(values):
 
-        def _is_integer(value):
-            try:
-                return value == int(value)
-            except:
-                return False
+                def _is_integer(value):
+                    try:
+                        return value == int(value)
+                    except:
+                        return False
 
-        for v in values:
-            if _is_integer(v):
-                print(v)
-    ```
-"""
-        exp = """
-# Python: nested functions
-  - Functions can be declared in the body of another function
-  - E.g., to hide utility functions in the scope of the function that uses them
+                for v in values:
+                    if _is_integer(v):
+                        print(v)
+            ```
+        """
+        txt_in = hprint.dedent(txt_in, remove_empty_leading_trailing_lines=True)
+        exp = r"""
+        \let\emph\textit
+        \let\uline\underline
+        \let\ul\underline
+        # Python: nested functions
+          - Functions can be declared in the body of another function
+          - E.g., to hide utility functions in the scope of the function that uses them
 
-        ```python
-        def print_integers(values):
+                ```python
+                def print_integers(values):
 
-            def _is_integer(value):
-                try:
-                    return value == int(value)
-                except:
-                    return False
+                    def _is_integer(value):
+                        try:
+                            return value == int(value)
+                        except:
+                            return False
 
-            for v in values:
-                if _is_integer(v):
-                    print(v)
-        ```
-"""
+                    for v in values:
+                        if _is_integer(v):
+                            print(v)
+                ```
+        """
+        exp = hprint.dedent(exp, remove_empty_leading_trailing_lines=True)
         self._helper_transform(txt_in, exp)
 
     def _helper_process_question(
