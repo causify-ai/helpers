@@ -235,10 +235,10 @@ class Test_find_file_with_dir1(hunitest.TestCase):
         Check whether we can find this file using one enclosing dir.
         """
         # Use this file.
-        file_name = "helpers/test/test_system_interaction.py"
+        file_name = "helpers/test/test_hsystem.py"
         dir_depth = 1
         act = hsystem.find_file_with_dir(file_name, dir_depth=dir_depth)
-        exp = r"""['helpers/test/test_system_interaction.py']"""
+        exp = r"""['helpers/test/test_hsystem.py']"""
         self.assert_equal(str(act), str(exp), purify_text=True)
 
     def test2(self) -> None:
@@ -301,7 +301,7 @@ class Test_find_file_with_dir1(hunitest.TestCase):
         # Create a fake golden outcome to be used in this test.
         act = "hello world"
         self.check_string(act)
-        # E.g., helpers/test/test_system_interaction.py::Test_find_file_with_dir1::test2/test.txt
+        # E.g., helpers/test/test_hsystem.py::Test_find_file_with_dir1::test2/test.txt
         file_name = os.path.join(self.get_output_dir(), "test.txt")
         _LOG.debug("file_name=%s", file_name)
         act: List[str] = hsystem.find_file_with_dir(
