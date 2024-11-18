@@ -213,6 +213,22 @@ graph TD
 - For a runnable dir, the needed container is the one built in that specific
   directory
 
+```mermaid
+graph LR
+  start((start))
+  start --> container
+  subgraph container[Container]
+    direction LR
+    pytest((pytest))
+    pytest --> dir1[dir 1]
+    dir1 --> dir1a
+    dir1 --> dir1b
+    dir1 --> dir1_other[...]
+    pytest --> dir2[dir 2]
+    pytest --> dir3[dir 3]
+  end
+```
+
 ## Recursive pytest
 
 - When we want to run all the tests it is needed for `pytest` to run through a
@@ -228,7 +244,51 @@ graph TD
      (cd container; i docker_cmd --cmd pytest)
   ```
 
+```mermaid
+graph LR
+    start((start))
+    start --> container_1
+    start --> container_2
+    start --> container_3
+    start --> container_n
+    subgraph container_1[Container 1]
+        direction LR
+        pytest_1((pytest)) --> runnable_dir1[runnable dir 1]
+    end
+    subgraph container_2[Container 2]
+        direction LR
+        pytest_2((pytest)) --> runnable_dir2[runnable dir 2]
+    end
+    subgraph container_3[Container 3]
+        direction LR
+        pytest_3((pytest)) --> runnable_dir3[runnable dir 3]
+    end
+    subgraph container_n[Container N]
+        direction LR
+        pytest_n((pytest)) --> runnable_dir_n[runnable dir n]
+    end
+```
+
 ## Support for docker-in-docker and sibling-containers
+
+```mermaid
+graph TD
+    host[Host]
+    docker_engine[Docker Engine]
+    subgraph sibling_container["Sibling Containers"]
+        container_1[Container 1]
+        container_2[Container 2]
+    end
+    subgraph children_container["Children Containers"]
+        container_1a[Container 1a]
+        container_1b[Container 1b]
+    end
+    host --> docker_engine
+    docker_engine --> container_1
+    docker_engine --> container_2
+    container_1 --> container_1a
+    container_1 --> container_1b
+```
 
 # Examples
 
