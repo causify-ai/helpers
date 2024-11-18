@@ -217,15 +217,16 @@ graph TD
 graph LR
   start((start))
   start --> container
-  subgraph container[Container]
+  subgraph container[container]
     direction LR
     pytest((pytest))
-    pytest --> dir1[dir 1]
-    dir1 --> dir1a[dir 1a]
-    dir1 --> dir1b[dir 1b]
-    dir1 --> dir1_other[...]
-    pytest --> dir2[dir 2]
-    pytest --> dir3[dir 3]
+    pytest --> dir_1[dir 1]
+    dir_1 --> dir_1a[dir 1a]
+    dir_1a --> dir_1a_others[...]
+    dir_1 --> dir_1b[dir 1b]
+    dir_1 --> dir_1_others[...]
+    pytest --> dir_2[dir 2]
+    pytest --> dir_others[...]
   end
 ```
 
@@ -263,7 +264,7 @@ graph LR
         direction LR
         pytest_3((pytest)) --> runnable_dir3[runnable dir 3]
     end
-    subgraph container_n[container N]
+    subgraph container_n[container n]
         direction LR
         pytest_n((pytest)) --> runnable_dir_n[runnable dir n]
     end
@@ -274,14 +275,14 @@ graph LR
 ```mermaid
 graph TD
     host[Host]
-    docker_engine[Docker Engine]
-    subgraph sibling_container["Sibling Containers"]
-        container_1[Container 1]
-        container_2[Container 2]
+    docker_engine[docker engine]
+    subgraph sibling_container["sibling containers"]
+        container_1[container 1]
+        container_2[container 2]
     end
-    subgraph children_container["Children Containers"]
-        container_1a[Container 1a]
-        container_1b[Container 1b]
+    subgraph children_container["children containers"]
+        container_1a[container 1a]
+        container_1b[container 1b]
     end
     host --> docker_engine
     docker_engine --> container_1
