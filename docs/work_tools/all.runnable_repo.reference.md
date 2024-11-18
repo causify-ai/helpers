@@ -221,8 +221,8 @@ graph LR
     direction LR
     pytest((pytest))
     pytest --> dir1[dir 1]
-    dir1 --> dir1a
-    dir1 --> dir1b
+    dir1 --> dir1a[dir 1a]
+    dir1 --> dir1b[dir 1b]
     dir1 --> dir1_other[...]
     pytest --> dir2[dir 2]
     pytest --> dir3[dir 3]
@@ -251,19 +251,19 @@ graph LR
     start --> container_2
     start --> container_3
     start --> container_n
-    subgraph container_1[Container 1]
+    subgraph container_1[container 1]
         direction LR
         pytest_1((pytest)) --> runnable_dir1[runnable dir 1]
     end
-    subgraph container_2[Container 2]
+    subgraph container_2[container 2]
         direction LR
         pytest_2((pytest)) --> runnable_dir2[runnable dir 2]
     end
-    subgraph container_3[Container 3]
+    subgraph container_3[container 3]
         direction LR
         pytest_3((pytest)) --> runnable_dir3[runnable dir 3]
     end
-    subgraph container_n[Container N]
+    subgraph container_n[container N]
         direction LR
         pytest_n((pytest)) --> runnable_dir_n[runnable dir n]
     end
