@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.hs3 as hs3
+import helpers_root.helpers.hs3 as hrohehs3
 """
 
 import argparse
@@ -178,7 +178,7 @@ def _replace_star_with_double_star(pattern_to_modify: str) -> str:
 
     Originally we simply used to do `pattern.replace("*", "**")`.
     but in the newer versions of `s3fs` this is not allowed:
-    `ValueError: Invalid pattern: '**' can 
+    `ValueError: Invalid pattern: '**' can
     only be an entire path component`
 
     We also need to take care of special such as:
@@ -192,14 +192,15 @@ def _replace_star_with_double_star(pattern_to_modify: str) -> str:
     :return: pattern with wildcards replaced
     """
     append_wildcard = False
-    # Handle the special case of ending with wildcard 
+    # Handle the special case of ending with wildcard
     # (e.g.: *.csv*).
-    if re.match(r'(?=.*[a-zA-Z0-9]).*\*$', pattern_to_modify):
+    if re.match(r"(?=.*[a-zA-Z0-9]).*\*$", pattern_to_modify):
         pattern_to_modify = pattern_to_modify[:-1]
         append_wildcard = True
     new_pattern = pattern_to_modify.replace("*", "**/*")
     new_pattern = new_pattern + "*" if append_wildcard else new_pattern
     return new_pattern
+
 
 def listdir(
     dir_name: str,
@@ -519,7 +520,9 @@ def get_latest_pq_in_s3_dir(s3_path: str, aws_profile: str) -> str:
         _, txt = hsystem.system_to_string(cmd)
         # 2023-11-07 02:23:48    2184716 0598868c91e143cfb555da26992ca101-0.parquet
         pq_files = []
-        S3_file = collections.namedtuple('S3_file', ['last_modified', 'size', 'name'])
+        S3_file = collections.namedtuple(
+            "S3_file", ["last_modified", "size", "name"]
+        )
         # This file is used also in the thin client which doesn't have Pandas.
         import pandas as pd
 
@@ -534,8 +537,9 @@ def get_latest_pq_in_s3_dir(s3_path: str, aws_profile: str) -> str:
         hdbg.dassert_lte(1, len(pq_files), "s3_path=%s", s3_path)
         _LOG.debug("pq_files=%s", pq_files)
         # Filter by extension.
-        pq_files = [pq_file for pq_file in pq_files
-                        if pq_file.name.endswith(".parquet")]
+        pq_files = [
+            pq_file for pq_file in pq_files if pq_file.name.endswith(".parquet")
+        ]
         _LOG.debug("pq_files=%s", pq_files)
         # Sort the files by the date they were modified for the last time.
         sorted_files = sorted(
@@ -620,12 +624,8 @@ def _get_aws_file_text(key_to_env_var: Dict[str, str]) -> List[str]:
     """
     Generate text from env vars for AWS files.
 
-    E.g.:
-    ```
-    aws_access_key_id=***
-    aws_secret_access_key=***
-    aws_s3_bucket=***
-    ```
+    E.g.: ``` aws_access_key_id=*** aws_secret_access_key=***
+    aws_s3_bucket=*** ```
 
     :param key_to_env_var: aws settings names to the corresponding env
         var names mapping

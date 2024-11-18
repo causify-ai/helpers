@@ -48,12 +48,13 @@ class TestReplaceStarWithDoubleStar(hunitest.TestCase):
 
     def test5(self) -> None:
         """
-        Test non-replacement of asterisk at the end of the path 
-        in a special case.
+        Test non-replacement of asterisk at the end of the path in a special
+        case.
         """
         pattern_to_modify = "s3://bucket/*/path/csv*"
         new_pattern = hs3._replace_star_with_double_star(pattern_to_modify)
         self.assert_equal(new_pattern, "s3://bucket/**/*/path/csv*")
+
 
 @pytest.mark.requires_ck_infra
 @pytest.mark.requires_aws
