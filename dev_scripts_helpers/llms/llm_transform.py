@@ -69,7 +69,7 @@ def _run_dockerized_llm_transform(
     #
 
     _, helpers_root = hsystem.system_to_one_line(
-        f"find {git_root} -name helpers_root"
+        f"find {git_root} -path ./\.git -prune -o -type d -name 'helpers_root' -print | grep -v '\.git'"
     )
     helpers_root = os.path.relpath(
         os.path.abspath(helpers_root.strip("\n")), git_root

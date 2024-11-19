@@ -72,6 +72,22 @@ points and their indentation
     return ret
 
 
+def improve_markdown_slide(user: str) -> str:
+    system = r"""
+You are a profecient technical writer and expert of machine learning.
+I will give you in the next prompt markdown text
+You will leave the markdown structure unchanged and change as little text as possible to make sure it is clear and readable
+You will use multiple colors using pandoc \textcolor{COLOR}{text} to highlight important phrases
+    """
+    response = hopenai.get_completion(user, system=system)
+    ret = hopenai.response_to_txt(response)
+    ret = hopenai.remove_code_delimiters(ret)
+    # Reflow.
+    import dev_scripts_helpers.documentation.lint_txt as lint_txt
+    lint_txt._prettier_on_str(ret)
+    return ret
+
+
 # #############################################################################
 
 
@@ -82,6 +98,10 @@ def apply_prompt(prompt_tag: str, txt: str) -> str:
         txt = add_docstring_one_shot_learning1(txt)
     elif prompt_tag == "typehints":
         txt = add_type_hints(txt)
+    elif prompt_tag== "rewrite_as_tech_writer":
+        txt_tmp = rewrite_as_tech_writer(txt_tmp)
+    elif prompt_tag == "improve_markdown_slide":
+        txt = improve_markdown_slide(txt)
     else:
         raise ValueError("Invalid prompt_tag=%s" % prompt_tag)
     return txt
