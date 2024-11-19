@@ -35,13 +35,14 @@ import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
+import dev_scripts_helpers.documentation.lint_txt as lint_txt
 
 _LOG = logging.getLogger(__name__)
 
 
 def _run_dockerized_llm_transform(
-    input_file: str,
-    output_file: str,
+    in_file_path: str,
+    out_file_path: str,
     transform: str,
     force_rebuild: bool,
     use_sudo: bool,
@@ -50,8 +51,8 @@ def _run_dockerized_llm_transform(
     """
     Run _llm_transform.py in a Docker container with all its dependencies.
 
-    :param input_file: Path to the input file.
-    :param output_file: Path to the output file.
+    :param in_file_path: Path to the input file.
+    :param out_file_path: Path to the output file.
     :param transform: Type of transformation to apply.
     :param force_rebuild: Whether to force rebuild the Docker container.
     :param use_sudo: Whether to use sudo for Docker commands.
@@ -59,10 +60,10 @@ def _run_dockerized_llm_transform(
     hdbg.dassert_in("OPENAI_API_KEY", os.environ)
     _LOG.debug(
         hprint.to_str(
-            "input_file output_file transform " "force_rebuild use_sudo"
+            "in_file_path out_file_path transform force_rebuild use_sudo"
         )
     )
-    hdbg.dassert_path_exists(input_file)
+    hdbg.dassert_path_exists(in_file_path)
     # We need to mount the git root to the container.
     git_root = hgit.find_git_root()
     git_root = os.path.abspath(git_root)
@@ -90,19 +91,19 @@ def _run_dockerized_llm_transform(
     container_name = hdocker.build_container(container_name, dockerfile,
                                       force_rebuild, use_sudo)
     # Get the path to the script to execute.
-    _, script = hsystem.system_to_one_line(
-        f"find {git_root} -name _llm_transform.py"
-    )
+    script = hsystem.find_file_in_repo("_llm_transform.py", root_dir=git_root)
     # Make all the paths relative to the git root.
     script = os.path.relpath(os.path.abspath(script.strip("\n")), git_root)
-    input_file = os.path.relpath(os.path.abspath(input_file), git_root)
-    output_file = os.path.relpath(os.path.abspath(output_file), git_root)
+    # in_file_path = os.path.relpath(os.path.abspath(in_file_path), git_root)
+    # out_file_path = os.path.relpath(os.path.abspath(out_file_path), git_root)
+    (in_file_path, out_file_path, mount) = (
+        hdocker._convert_file_names_to_docker(
+        in_file_path, out_file_path))
     #
     cmd = script + (
-        f" -i {input_file} -o {output_file} -t {transform} -v {log_level}"
+        f" -i {in_file_path} -o {out_file_path} -t {transform} -v {log_level}"
     )
     executable = hdocker.get_docker_executable(use_sudo)
-    mount = f"type=bind,source={git_root},target=/src"
     docker_cmd = (
         f"{executable} run --rm --user $(id -u):$(id -g)"
         f" -e OPENAI_API_KEY -e PYTHONPATH={helpers_root}"
@@ -161,8 +162,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # avoid to do docker in docker in the `llm_transform` container (which
     # doesn't support that).
     if args.transform == "improve_markdown_slide":
-        # Reflow.
-        import dev_scripts_helpers.documentation.lint_txt as lint_txt
         out_txt = lint_txt._prettier_on_str(out_txt)
     # Read the output from the container and write it to the output file from
     # command line (e.g., `-` for stdout).

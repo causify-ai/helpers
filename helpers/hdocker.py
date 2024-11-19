@@ -309,6 +309,19 @@ def _convert_file_names_to_docker(
     in_file_path: str,
     out_file_path: Optional[str],
 ) -> Tuple[str, str, str]:
+    """
+    Convert the file paths to be relative to the current directory and prepare
+    them for use inside a Docker container.
+
+    This function ensures that the input and output file paths are converted to
+    paths relative to the current directory. It also prepares the mount path
+    for Docker to bind the host directory to the container directory.
+
+    :param in_file_path: The input file path on the host to be converted.
+    :param out_file_path: The output file path on the host to be converted.
+    :return: A tuple containing the converted input file path, output file path,
+             and the Docker mount path.
+    """
     # Convert the paths to be relative.
     in_file_path = _convert_to_relative_path(
         in_file_path, check_if_exists=True, is_input=True
@@ -406,7 +419,8 @@ def run_dockerized_prettier(
     # Run Prettier as the entry command
     ENTRYPOINT ["prettier"]
     """
-    build_container(container_name, dockerfile, force_rebuild, use_sudo)
+    container_name = build_container(container_name, dockerfile, force_rebuild,
+                             use_sudo)
     # Convert files.
     (in_file_path, out_file_path, mount) = _convert_file_names_to_docker(
         in_file_path, out_file_path)
@@ -558,7 +572,8 @@ def run_dockerized_markdown_toc(
     # Set a working directory inside the container
     WORKDIR /app
     """
-    build_container(container_name, dockerfile, force_rebuild, use_sudo)
+    container_name = build_container(container_name, dockerfile, force_rebuild,
+                             use_sudo)
     # Convert files.
     out_file_path = None
     (in_file_path, _, mount) = _convert_file_names_to_docker(
