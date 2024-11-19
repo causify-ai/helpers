@@ -551,6 +551,7 @@ def _generate_docker_compose_file(
           - CK_AWS_SECRET_ACCESS_KEY=$CK_AWS_SECRET_ACCESS_KEY
           - CK_ECR_BASE_PATH=$CK_ECR_BASE_PATH
           - CK_GIT_ROOT_PATH={git_root_path}
+          - OPENAI_API_KEY=$OPENAI_API_KEY
           # - CK_ENABLE_DIND=
           # - CK_FORCE_TEST_FAIL=$CK_FORCE_TEST_FAIL
           # - CK_HOST_NAME=

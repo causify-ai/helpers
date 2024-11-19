@@ -65,8 +65,8 @@ def get_use_sudo() -> bool:
     :return: Whether to use sudo for Docker commands.
     """
     use_sudo = False
-    if hserver.is_inside_docker():
-        use_sudo = True
+    #if hserver.is_inside_docker():
+    #    use_sudo = True
     return use_sudo
 
 

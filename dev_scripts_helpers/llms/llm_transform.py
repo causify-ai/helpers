@@ -76,18 +76,17 @@ def _run_dockerized_llm_transform(
     #
     container_name = "tmp.llm_transform"
     dockerfile = f"""
-FROM python:3.12-alpine
+    FROM python:3.12-alpine
 
-# Install Bash.
-RUN apk add --no-cache bash
+    # Install Bash.
+    #RUN apk add --no-cache bash
 
-# Set Bash as the default shell.
-SHELL ["/bin/bash", "-c"]
+    # Set Bash as the default shell.
+    #SHELL ["/bin/bash", "-c"]
 
-# Install pip packages.
-RUN pip install --no-cache-dir openai
-"""
-
+    # Install pip packages.
+    RUN pip install --no-cache-dir openai
+    """
     container_name = hdocker.build_container(container_name, dockerfile,
                                       force_rebuild, use_sudo)
     # Get the path to the script to execute.

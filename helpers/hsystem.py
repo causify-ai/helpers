@@ -133,25 +133,7 @@ def _system(
     _system(cmd, suppress_output=False, log_level="echo")
     ```
 
-    :param cmd: string with command to execute
-    :param abort_on_error: whether we should assert in case of error or not
-    :param suppress_error: set of error codes to suppress
-    :param suppress_output: whether to print the output or not
-        - If "ON_DEBUG_LEVEL" then print the output if the log level is DEBUG
-    :param blocking: blocking system call or not
-    :param wrapper: another command to prepend the execution of cmd
-    :param output_file: redirect stdout and stderr to this file
-    :param num_error_lines: number of lines of the output to display when
-        raising `RuntimeError`
-    :param tee: if True, tee append (i.e., `tee -a`) stdout and stderr to
-        `output_file`
-    :param dry_run: print the final command but not execute it
-    :param log_level: print the command to execute at level "log_level".
-        - If `echo` then print the command line to screen as `print()` and not
-          logging
-    :return:
-        - return code as int
-        - output of the command as str
+    See `system()` for options.
     """
     _LOG.debug("##> %s", cmd)
     _LOG.debug(
@@ -297,8 +279,28 @@ def system(
     """
     Execute a shell command, without capturing its output.
 
-    See _system() for options.
+    :param cmd: string with command to execute
+    :param abort_on_error: whether we should assert in case of error or not
+    :param suppress_error: set of error codes to suppress
+    :param suppress_output: whether to print the output or not
+        - If "ON_DEBUG_LEVEL" then print the output if the log level is DEBUG
+    :param blocking: blocking system call or not
+    :param wrapper: another command to prepend the execution of cmd
+    :param output_file: redirect stdout and stderr to this file
+    :param num_error_lines: number of lines of the output to display when
+        raising `RuntimeError`
+    :param tee: if True, tee append (i.e., `tee -a`) stdout and stderr to
+        `output_file`
+    :param dry_run: print the final command but not execute it
+    :param log_level: print the command to execute at level "log_level".
+        - If `echo` then print the command line to screen as `print()` and not
+          logging
+    :return:
+        - return code as int
+        - output of the command as str
     """
+    print("cmd=", cmd)
+    print("suppress_output=", suppress_output)
     cmd = hprint.dedent(cmd)
     rc, _ = _system(
         cmd,
