@@ -67,6 +67,7 @@ def _run_dockerized_llm_transform(
     git_root = hgit.find_git_root()
     git_root = os.path.abspath(git_root)
     #
+
     _, helpers_root = hsystem.system_to_one_line(
         f"find {git_root} -name helpers_root"
     )

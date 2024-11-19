@@ -136,7 +136,7 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
         in_file_path = _create_test_file(self, txt, extension="txt")
         out_file_path = os.path.join(self.get_scratch_space(), "output.txt")
         force_rebuild = False
-        use_sudo = True
+        use_sudo = hdocker.get_use_sudo()
         hdocker.run_dockerized_prettier(
             cmd_opts,
             in_file_path,
@@ -204,7 +204,7 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
         # Run `pandoc` in a Docker container.
         in_file_path = _create_test_file(self, txt, extension="md")
         out_file_path = os.path.join(self.get_scratch_space(), "output.md")
-        use_sudo = True
+        use_sudo = hdocker.get_use_sudo()
         hdocker.run_dockerized_pandoc(
             cmd_opts,
             in_file_path,
@@ -268,7 +268,7 @@ class Test_run_markdown_toc1(hunitest.TestCase):
         # Run `markdown-toc` in a Docker container.
         in_file_path = _create_test_file(self, txt, extension="md")
         force_rebuild = False
-        use_sudo = True
+        use_sudo = hdocker.get_use_sudo()
         hdocker.run_dockerized_markdown_toc(
             cmd_opts,
             in_file_path,

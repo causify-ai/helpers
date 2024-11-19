@@ -58,6 +58,18 @@ def replace_shared_root_path(
 # #############################################################################
 
 
+def get_use_sudo() -> bool:
+    """
+    Check if Docker commands should be run with sudo.
+
+    :return: Whether to use sudo for Docker commands.
+    """
+    use_sudo = False
+    if hserver.is_inside_docker():
+        use_sudo = True
+    return use_sudo
+
+
 def get_docker_executable(use_sudo: bool) -> str:
     executable = "sudo " if use_sudo else ""
     executable += "docker"
