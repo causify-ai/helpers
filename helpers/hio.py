@@ -389,23 +389,24 @@ def create_enclosing_dir(file_name: str, incremental: bool = False) -> str:
 # TODO(Nikola): Remove `use_gzip` and use `file_name` extension instead.
 def to_file(
     file_name: str,
-    lines: str,
+    txt: str,
     use_gzip: bool = False,
     mode: Optional[str] = None,
     force_flush: bool = False,
 ) -> None:
     """
-    Write the content of lines into file_name, creating the enclosing directory
+    Write the content of txt into file_name, creating the enclosing directory
     if needed.
 
     :param file_name: name of written file
-    :param lines: content of the file
+    :param txt: content of the file
     :param use_gzip: whether the file should be compressed as gzip
     :param mode: file writing mode
     :param force_flush: whether to forcibly clear the file buffer
     """
     _LOG.debug(hprint.to_str("file_name use_gzip mode force_flush"))
     dassert_is_valid_file_name(file_name)
+    hdbg.dassert_isinstance(txt, str)
     # Choose default writing mode based on compression.
     if mode is None:
         if use_gzip:
@@ -429,7 +430,7 @@ def to_file(
             file_name, mode, buffering=buffering
         )
     # Write file contents.
-    f.writelines(lines)
+    f.write(txt)
     f.close()
     # Clear internal buffer of the file.
     if force_flush:

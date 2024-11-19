@@ -20,19 +20,23 @@ class Test_llm_transform1(hunitest.TestCase):
         txt = hprint.dedent(txt)
         in_file_name = os.path.join(self.get_scratch_space(), "input.md")
         hio.to_file(in_file_name, txt)
-        exec = hsystem.find_file_in_repo("llm_transform.py")
+        script = hsystem.find_file_in_repo("llm_transform.py")
         out_file_name = os.path.join(self.get_scratch_space(), "output.md")
-        cmd = (f"{exec} -i {in_file_name} -o {out_file_name}"
-               " -t improve_markdown_slide")
+        prompt_tag = "format_markdown"
+        #prompt_tag = "improve_markdown_slide"
+        cmd = (f"{script} -i {in_file_name} -o {out_file_name}"
+               f" -t {prompt_tag}")
         hsystem.system(cmd)
         # Check.
         act = hio.from_file(out_file_name)
-        exp = """
-        - If there is no pattern we can try learning, measure if learning works and, in
-          the worst case, conclude that it does not work
-        - If we can find the solution in one step or program the solution, machine
-          learning is not the recommended technique, but it still works
-        - Without data we cannot do anything: data is all that mattersV
+        exp = r"""
+        - If there is no pattern we can use for learning, we can attempt to learn,
+          \textcolor{red}{measure whether learning is effective}, and in the worst case,
+          conclude that it does not work.
+        - If we can find the solution in one step or program the solution,
+          \textcolor{blue}{machine learning is not the recommended technique}; however,
+          it can still be effective.
+        - Without \textcolor{green}{data}, we cannot do anything:
+          \textcolor{orange}{data is all that matters.}
         """
-        exp = hprint.dedent(txt)
-        self.assert_equal(act, exp)
+        self.assert_equal(act, exp, dedent=True)

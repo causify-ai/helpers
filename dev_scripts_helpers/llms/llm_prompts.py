@@ -89,7 +89,9 @@ You will use multiple colors using pandoc \textcolor{COLOR}{text} to highlight i
 
 
 def apply_prompt(prompt_tag: str, txt: str) -> str:
-    if prompt_tag == "comment":
+    if prompt_tag == "format_markdown":
+        pass
+    elif prompt_tag == "comment":
         txt = add_comments_one_shot_learning1(txt)
     elif prompt_tag == "docstring":
         txt = add_docstring_one_shot_learning1(txt)

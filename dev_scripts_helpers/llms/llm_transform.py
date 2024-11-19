@@ -94,10 +94,8 @@ def _run_dockerized_llm_transform(
     script = hsystem.find_file_in_repo("_llm_transform.py", root_dir=git_root)
     # Make all the paths relative to the git root.
     script = os.path.relpath(os.path.abspath(script.strip("\n")), git_root)
-    # in_file_path = os.path.relpath(os.path.abspath(in_file_path), git_root)
-    # out_file_path = os.path.relpath(os.path.abspath(out_file_path), git_root)
     (in_file_path, out_file_path, mount) = (
-        hdocker._convert_file_names_to_docker(
+        hdocker.convert_file_names_to_docker(
         in_file_path, out_file_path))
     #
     cmd = script + (
@@ -145,8 +143,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _ = in_file_name, out_file_name
     # Since we need to call a container and passing stdin/stdout is tricky
     # we read the input and save it in a temporary file.
-    in_txt = hparser.read_file(in_file_name)
+    in_lines = hparser.read_file(in_file_name)
     tmp_in_file_name = "tmp.llm_transform.in.txt"
+    in_txt = "\n".join(in_lines)
     hio.to_file(tmp_in_file_name, in_txt)
     tmp_out_file_name = "tmp.llm_transform.out.txt"
     _run_dockerized_llm_transform(
@@ -161,7 +160,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Note that we need to run this outside the `llm_transform` container to
     # avoid to do docker in docker in the `llm_transform` container (which
     # doesn't support that).
-    if args.transform == "improve_markdown_slide":
+    if args.transform in (
+            "format_markdown",
+            "improve_markdown_slide"):
         out_txt = lint_txt._prettier_on_str(out_txt)
     # Read the output from the container and write it to the output file from
     # command line (e.g., `-` for stdout).

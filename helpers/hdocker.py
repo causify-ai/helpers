@@ -305,17 +305,13 @@ def _convert_to_relative_path(
     return rel_path
 
 
-def _convert_file_names_to_docker(
+def convert_file_names_to_docker(
     in_file_path: str,
     out_file_path: Optional[str],
 ) -> Tuple[str, str, str]:
     """
-    Convert the file paths to be relative to the current directory and prepare
-    them for use inside a Docker container.
-
-    This function ensures that the input and output file paths are converted to
-    paths relative to the current directory. It also prepares the mount path
-    for Docker to bind the host directory to the container directory.
+    Convert the file paths to be relative to the Docker mount point so that
+    they can be used inside a Docker container.
 
     :param in_file_path: The input file path on the host to be converted.
     :param out_file_path: The output file path on the host to be converted.
@@ -349,19 +345,17 @@ def _convert_file_names_to_docker(
     # as reference to target_docker_path.
     if run_inside_docker:
         # > docker run --rm --user $(id -u):$(id -g) \
-        #     --entrypoint '' \
+        #     ...
         #     --workdir /src \
         #     --mount type=bind,source=/Users/saggese/src/helpers1,target=/src \
-        #     tmp.prettier \
-        #     bash -c "/usr/local/bin/prettier test.md > test2.md")
+        #     ...
         source_host_path = get_host_git_root()
     else:
         # > docker run --rm --user $(id -u):$(id -g) \
-        #     --entrypoint '' \
+        #     ...
         #     --workdir /src \
         #     --mount type=bind,source=.,target=/src \
-        #     tmp.prettier \
-        #     bash -c "/usr/local/bin/prettier test.md > test2.md")
+        #     ...
         hdbg.dassert_file_exists(in_file_path)
         source_host_path = "."
     # E.g.,
@@ -422,7 +416,7 @@ def run_dockerized_prettier(
     container_name = build_container(container_name, dockerfile, force_rebuild,
                              use_sudo)
     # Convert files.
-    (in_file_path, out_file_path, mount) = _convert_file_names_to_docker(
+    (in_file_path, out_file_path, mount) = convert_file_names_to_docker(
         in_file_path, out_file_path)
     # Our interface is (in_file, out_file) instead of the wonky prettier
     # interface based on `--write` for in place update and redirecting `stdout`
@@ -524,7 +518,7 @@ def run_dockerized_pandoc(
     hdbg.dassert_isinstance(cmd_opts, list)
     container_name = "pandoc/core"
     # Convert files.
-    (in_file_path, out_file_path, mount) = _convert_file_names_to_docker(
+    (in_file_path, out_file_path, mount) = convert_file_names_to_docker(
         in_file_path, out_file_path)
     cmd_opts_as_str = " ".join(cmd_opts)
     # The command is like:
@@ -576,7 +570,7 @@ def run_dockerized_markdown_toc(
                              use_sudo)
     # Convert files.
     out_file_path = None
-    (in_file_path, _, mount) = _convert_file_names_to_docker(
+    (in_file_path, _, mount) = convert_file_names_to_docker(
         in_file_path, out_file_path)
     cmd_opts_as_str = " ".join(cmd_opts)
     # The command is like:
