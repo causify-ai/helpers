@@ -147,6 +147,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     tmp_in_file_name = "tmp.llm_transform.in.txt"
     in_txt = "\n".join(in_lines)
     hio.to_file(tmp_in_file_name, in_txt)
+    #
     tmp_out_file_name = "tmp.llm_transform.out.txt"
     _run_dockerized_llm_transform(
         tmp_in_file_name,
@@ -163,7 +164,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     if args.transform in (
             "format_markdown",
             "improve_markdown_slide"):
-        out_txt = lint_txt._prettier_on_str(out_txt)
+        out_txt = lint_txt.prettier_on_str(out_txt)
     # Read the output from the container and write it to the output file from
     # command line (e.g., `-` for stdout).
     hparser.write_file(out_txt, out_file_name)

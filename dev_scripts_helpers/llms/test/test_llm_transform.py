@@ -30,13 +30,10 @@ class Test_llm_transform1(hunitest.TestCase):
         # Check.
         act = hio.from_file(out_file_name)
         exp = r"""
-        - If there is no pattern we can use for learning, we can attempt to learn,
-          \textcolor{red}{measure whether learning is effective}, and in the worst case,
-          conclude that it does not work.
-        - If we can find the solution in one step or program the solution,
-          \textcolor{blue}{machine learning is not the recommended technique}; however,
-          it can still be effective.
-        - Without \textcolor{green}{data}, we cannot do anything:
-          \textcolor{orange}{data is all that matters.}
+        - If there is no pattern we can try learning, measure if learning works and, in
+          the worst case, conclude that it does not work
+        - If we can find the solution in one step or program the solution, machine
+          learning is not the recommended technique, but it still works
+        - Without data we cannot do anything: data is all that matters
         """
         self.assert_equal(act, exp, dedent=True)

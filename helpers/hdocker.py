@@ -285,6 +285,7 @@ def _convert_to_relative_path(
     :param check_if_exists: check if the file exists or not.
     :param is_input: Flag indicating if the file is an input file.
     """
+    _LOG.debug(hprint.to_str("file_path check_if_exists is_input"))
     if check_if_exists:
         dassert_valid_path(file_path, is_input)
     # Convert to absolute path.
@@ -324,7 +325,7 @@ def convert_file_names_to_docker(
     )
     if out_file_path is not None:
         out_file_path = _convert_to_relative_path(
-            out_file_path, check_if_exists=True, is_input=False
+            out_file_path, check_if_exists=False, is_input=False
         )
     else:
         out_file_path = ""

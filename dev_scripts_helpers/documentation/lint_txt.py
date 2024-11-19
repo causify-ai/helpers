@@ -90,7 +90,7 @@ def _preprocess(txt: str) -> str:
     return txt_new_as_str
 
 
-def _prettier(
+def prettier(
     in_file_path: str,
     out_file_path: str,
     *,
@@ -145,13 +145,13 @@ def _prettier(
 
 # TODO(gp): Convert this into a decorator to adapt operations that work on
 #  files to passing strings.
-def _prettier_on_str(
+def prettier_on_str(
     txt: str,
     *args: Any,
     **kwargs: Any,
 ) -> str:
     """
-    Wrapper around `_prettier()` to work on strings.
+    Wrapper around `prettier()` to work on strings.
     """
     _LOG.debug("txt=\n%s", txt)
     # Save string as input.
@@ -165,7 +165,7 @@ def _prettier_on_str(
         tmp_file_name = "/tmp/tmp_prettier.txt"
     hio.to_file(tmp_file_name, txt)
     # Call `prettier` in-place.
-    _prettier(tmp_file_name, tmp_file_name, *args, **kwargs)
+    prettier(tmp_file_name, tmp_file_name, *args, **kwargs)
     # Read result into a string.
     txt = hio.from_file(tmp_file_name)
     _LOG.debug("After prettier txt=\n%s", txt)
@@ -329,7 +329,7 @@ def _process(
     # Prettify.
     action = "prettier"
     if _to_execute_action(action, actions):
-        txt = _prettier_on_str(txt, **kwargs)
+        txt = prettier_on_str(txt, **kwargs)
     # Post-process text.
     action = "postprocess"
     if _to_execute_action(action, actions):
