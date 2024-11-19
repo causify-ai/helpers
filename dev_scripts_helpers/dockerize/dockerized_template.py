@@ -21,9 +21,8 @@ import helpers.hsystem as hsystem
 _LOG = logging.getLogger(__name__)
 
 
-# TODO(gp): Switch to using hdocker functions.
 def _build_container() -> str:
-    docker_container_name = "convert_docx_to_markdown"
+    container_name = "convert_docx_to_markdown"
     txt = b"""
 FROM ubuntu:latest
 
@@ -34,8 +33,8 @@ RUN apt-get install -y curl pandoc && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 """
-    hdocker.build_container(docker_container_name, txt)
-    return docker_container_name
+    container_name = hdocker.build_container(container_name, txt)
+    return container_name
 
 
 def _convert_docx_to_markdown(

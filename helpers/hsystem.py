@@ -165,12 +165,10 @@ def _system(
     # Handle `suppress_output`.
     hdbg.dassert_in(suppress_output, ("ON_DEBUG_LEVEL", True, False))
     if suppress_output == "ON_DEBUG_LEVEL":
-        # print("eff_lev=%s" % eff_level)
-        # print("lev=%s" % logging.DEBUG)
-        _LOG.getEffectiveLevel()
-        # Suppress the output if the verbosity level is higher than DEBUG,
-        # otherwise print.
-        suppress_output = _LOG.getEffectiveLevel() > logging.DEBUG
+        # Show the output if we are at (or lower than) DEBUG level, since
+        # logging.DEBUG=10 and logging.INFO=20.
+        show_output = _LOG.getEffectiveLevel() <= logging.DEBUG
+        suppress_output = not show_output
     _LOG.debug(hprint.to_str("suppress_output"))
     # Prepare the command line.
     cmd = f"({cmd})"

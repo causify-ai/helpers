@@ -197,10 +197,12 @@ def wait_for_file_in_docker(
 
 # #############################################################################
 
+import hashlib
+
 
 def build_container(
     container_name: str, dockerfile: str, force_rebuild: bool, use_sudo: bool
-) -> None:
+) -> str:
     """
     Build a Docker container from a Dockerfile.
 
@@ -211,18 +213,23 @@ def build_container(
     :param use_sudo: Whether to use sudo for Docker commands.
     :raises AssertionError: If the container ID is not found.
     """
-    _LOG.debug(hprint.to_str("container_name dockerfile use_sudo"))
+    _LOG.debug(hprint.to_str("container_name use_sudo"))
+    dockerfile = hprint.dedent(dockerfile)
+    _LOG.debug("Dockerfile:\n%s", dockerfile)
+    # Compute the hash of the dockerfile and append it to the name
+    # to track the content of the container.
+    sha256_hash = hashlib.sha256(dockerfile.encode()).hexdigest()
+    short_hash = sha256_hash[:8]
+    container_name_out = f"{container_name}.{short_hash}"
     # Check if the container already exists. If not, build it.
-    has_container, _ = image_exists(container_name, use_sudo)
+    has_container, _ = image_exists(container_name_out, use_sudo)
     _LOG.debug(hprint.to_str("has_container"))
     if force_rebuild:
-        _LOG.warning("Forcing rebuild of Docker container")
+        _LOG.warning(f"Forcing to rebuild of container {container_name}")
         has_container = False
     if not has_container:
         # Create a temporary Dockerfile.
         _LOG.info("Building Docker container...")
-        dockerfile = hprint.dedent(dockerfile)
-        _LOG.debug("Dockerfile:\n%s", dockerfile)
         # Delete temp file.
         delete = True
         with tempfile.NamedTemporaryFile(
@@ -235,10 +242,11 @@ def build_container(
             executable = get_docker_executable(use_sudo)
             cmd = (
                 f"{executable} build -f {temp_dockerfile.name} -t"
-                f" {container_name} ."
+                f" {container_name_out} ."
             )
             hsystem.system(cmd)
         _LOG.info("Building Docker container... done")
+    return container_name_out
 
 
 # #############################################################################

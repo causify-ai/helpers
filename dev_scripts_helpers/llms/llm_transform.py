@@ -66,11 +66,10 @@ def _run_dockerized_llm_transform(
     # We need to mount the git root to the container.
     git_root = hgit.find_git_root()
     git_root = os.path.abspath(git_root)
-    #
-
-    _, helpers_root = hsystem.system_to_one_line(
-        f"find {git_root} -path ./\.git -prune -o -type d -name 'helpers_root' -print | grep -v '\.git'"
-    )
+    #_, helpers_root = hsystem.system_to_one_line(
+    #    f"find {git_root} -path ./\.git -prune -o -type d -name 'helpers_root' -print | grep -v '\.git'"
+    #)
+    helpers_root = "."
     helpers_root = os.path.relpath(
         os.path.abspath(helpers_root.strip("\n")), git_root
     )
@@ -79,12 +78,18 @@ def _run_dockerized_llm_transform(
     dockerfile = f"""
 FROM python:3.12-alpine
 
-ENV PYTHONPATH={helpers_root}
+# Install Bash.
+RUN apk add --no-cache bash
+
+# Set Bash as the default shell.
+SHELL ["/bin/bash", "-c"]
 
 # Install pip packages.
 RUN pip install --no-cache-dir openai
 """
-    hdocker.build_container(container_name, dockerfile, force_rebuild, use_sudo)
+
+    container_name = hdocker.build_container(container_name, dockerfile,
+                                      force_rebuild, use_sudo)
     # Get the path to the script to execute.
     _, script = hsystem.system_to_one_line(
         f"find {git_root} -name _llm_transform.py"
@@ -100,8 +105,8 @@ RUN pip install --no-cache-dir openai
     executable = hdocker.get_docker_executable(use_sudo)
     mount = f"type=bind,source={git_root},target=/src"
     docker_cmd = (
-        f"{executable} run --rm --user $(id -u):$(id -g) "
-        " -e OPENAI_API_KEY"
+        f"{executable} run --rm --user $(id -u):$(id -g)"
+        f" -e OPENAI_API_KEY -e PYTHONPATH={helpers_root}"
         f" --workdir /src --mount {mount}"
         f" {container_name}"
         f" {cmd}"
@@ -152,9 +157,16 @@ def _main(parser: argparse.ArgumentParser) -> None:
         args.dockerized_use_sudo,
         args.log_level,
     )
+    out_txt = hio.from_file(tmp_out_file_name)
+    # Note that we need to run this outside the `llm_transform` container to
+    # avoid to do docker in docker in the `llm_transform` container (which
+    # doesn't support that).
+    if args.transform == "improve_markdown_slide":
+        # Reflow.
+        import dev_scripts_helpers.documentation.lint_txt as lint_txt
+        out_txt = lint_txt._prettier_on_str(out_txt)
     # Read the output from the container and write it to the output file from
     # command line (e.g., `-` for stdout).
-    out_txt = hio.from_file(tmp_out_file_name)
     hparser.write_file(out_txt, out_file_name)
 
 

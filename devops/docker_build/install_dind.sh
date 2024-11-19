@@ -38,3 +38,9 @@ chmod +x $COMPOSE_BINARY
 # Check version.
 COMPOSE_VERSION=$(docker-compose --version)
 echo "docker-compose --version: $COMPOSE_VERSION"
+
+# Give permissions to run docker without sudo.
+echo "Setting sudo docker permissions"
+ls -l /var/run/docker.sock
+sudo chmod a+rw /var/run/docker.sock
+ls -l /var/run/docker.sock

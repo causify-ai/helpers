@@ -82,9 +82,6 @@ You will use multiple colors using pandoc \textcolor{COLOR}{text} to highlight i
     response = hopenai.get_completion(user, system=system)
     ret = hopenai.response_to_txt(response)
     ret = hopenai.remove_code_delimiters(ret)
-    # Reflow.
-    import dev_scripts_helpers.documentation.lint_txt as lint_txt
-    lint_txt._prettier_on_str(ret)
     return ret
 
 
@@ -99,7 +96,7 @@ def apply_prompt(prompt_tag: str, txt: str) -> str:
     elif prompt_tag == "typehints":
         txt = add_type_hints(txt)
     elif prompt_tag== "rewrite_as_tech_writer":
-        txt_tmp = rewrite_as_tech_writer(txt_tmp)
+        txt = rewrite_as_tech_writer(txt)
     elif prompt_tag == "improve_markdown_slide":
         txt = improve_markdown_slide(txt)
     else:
