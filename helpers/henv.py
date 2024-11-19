@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.henv as henv
+import helpers.helpers.henv as henv
 """
 
 import functools
@@ -74,9 +74,10 @@ def get_env_var(
 
     :param env_name: name of the env var
     :param as_bool: convert the value into a Boolean
-    :param default_value: the default value to use in case it's not defined
-    :param abort_on_missing: if the env var is not defined aborts, otherwise use
-        the default value
+    :param default_value: the default value to use in case it's not
+        defined
+    :param abort_on_missing: if the env var is not defined aborts,
+        otherwise use the default value
     :return: value of env var
     """
     if env_name not in os.environ:
@@ -319,6 +320,36 @@ def _get_git_signature(git_commit_type: str = "all") -> List[str]:
     return txt_tmp
 
 
+def _get_submodule_signature(
+    partial_signature: List[str], git_commit_type: str = "all"
+) -> List[str]:
+    """
+    Add git signature for all submodules.
+
+    :paramp partial_signature: the signature to append to
+        :git_commit_type: the type of git commit to include in the
+        signature
+    :return: system signature enhanced by git submodule info
+    """
+    # TODO(Juraj): Think of a better generalisation rather listing all the options.
+    submodule_options = ["amp", "amp/helpers_root", "helpers_root"]
+    signature = partial_signature
+    prev_cwd = os.getcwd()
+    for submodule in submodule_options:
+        if os.path.exists(submodule):
+            try:
+                # Temporarily descend into submodule.
+                os.chdir(submodule)
+                signature.append(f"# Git {submodule}")
+                git_amp_sig = _get_git_signature(git_commit_type)
+                signature, _ = _append(signature, git_amp_sig)
+            # In case there is a runtime error we want to end up in a consistent state
+            # (the original path).
+            finally:
+                os.chdir(prev_cwd)
+    return signature
+
+
 def get_system_signature(git_commit_type: str = "all") -> Tuple[str, int]:
     # TODO(gp): This should return a string that we append to the rest.
     container_dir_name = "."
@@ -330,17 +361,8 @@ def get_system_signature(git_commit_type: str = "all") -> Tuple[str, int]:
     txt_tmp: List[str] = []
     try:
         txt_tmp += _get_git_signature(git_commit_type)
-        # If there is amp as submodule, fetch its git signature.
-        if os.path.exists("amp"):
-            prev_cwd = os.getcwd()
-            try:
-                # Temporarily descend into amp.
-                os.chdir("amp")
-                txt_tmp.append("# Git amp")
-                git_amp_sig = _get_git_signature(git_commit_type)
-                txt_tmp, git_amp_sig = _append(txt_tmp, git_amp_sig)
-            finally:
-                os.chdir(prev_cwd)
+        # If there are any submodules, fetch their git signature.
+        txt_tmp = _get_submodule_signature(txt_tmp, git_commit_type)
     except RuntimeError as e:
         _LOG.error(str(e))
     txt, txt_tmp = _append(txt, txt_tmp)

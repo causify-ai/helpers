@@ -35,5 +35,5 @@ class Test_Master_buildmeister_dashboard_notebook(
         notebook_path = os.path.join(
             amp_dir, "devops", "notebooks", "Master_buildmeister_dashboard.ipynb"
         )
-        config_builder = "helpers.notebooks.test.test_master_buildmeister_dashboard.build_config()"
+        config_builder = "helpers.test.test_master_buildmeister_dashboard.build_config()"
         self._test_run_notebook(notebook_path, config_builder)

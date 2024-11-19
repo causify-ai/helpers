@@ -81,5 +81,7 @@ echo "PATH=$PATH"
 echo "PYTHONPATH=$PYTHONPATH"
 echo "entrypoint.sh: '$@'"
 
+invoke print_env
+
 # TODO(gp): eval seems to be more general, but it creates a new executable.
 eval "$@"
