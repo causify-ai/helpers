@@ -277,7 +277,7 @@ _(if already applicable)_
     consistency
   - Replace `invoke run_fast_tests` with your desired action
 
-3. TODO(Shayan): how to add GitLeaks
+3. TODO(Shayan): #HelpersTask90
 
 ## Configure GitHub repo
 
