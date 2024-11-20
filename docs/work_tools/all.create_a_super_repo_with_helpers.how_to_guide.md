@@ -298,3 +298,4 @@ _Disclaimer: the following set-up requires paid GitHub version
         - Depends on which workflows were set-up in the step above
         - Usually its `run_fast_tests` and `run_slow_tests`
     - `Require conversation resolution before merging`
+  - Click "Save changes" button
