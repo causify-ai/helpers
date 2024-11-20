@@ -1,4 +1,4 @@
-# Test created for helpers.test.test_playback.get_result_assert_equal_none.
+# Test created for helpers.test.test_hplayback.get_result_assert_equal_none.
 
 import helpers.hpandas as hpandas
 import helpers.hunit_test as hunitest

@@ -93,26 +93,26 @@ class Test_Traceback1(hunitest.TestCase):
         # pylint: disable=line-too-long
         txt = """
         Traceback (most recent call last):
-          File "./helpers/test/test_traceback.py", line 146, in <module>
+          File "./helpers/test/test_htraceback.py", line 146, in <module>
             _main(_parse())
-          File "./helpers/test/test_traceback.py", line 105, in _main
+          File "./helpers/test/test_htraceback.py", line 105, in _main
             configs = cdtfut.get_configs_from_command_line(args)
-          File "/app/amp/./helpers/test/test_traceback.py", line 228, in get_configs_from_command_line
+          File "/app/amp/./helpers/test/test_htraceback.py", line 228, in get_configs_from_command_line
             "config_builder": args.config_builder,
         """
         purify_from_client = True
         exp_cfile = """
-        helpers/test/test_traceback.py:146:<module>:_main(_parse())
-        helpers/test/test_traceback.py:105:_main:configs = cdtfut.get_configs_from_command_line(args)
-        helpers/test/test_traceback.py:228:get_configs_from_command_line:"config_builder": args.config_builder,
+        helpers/test/test_htraceback.py:146:<module>:_main(_parse())
+        helpers/test/test_htraceback.py:105:_main:configs = cdtfut.get_configs_from_command_line(args)
+        helpers/test/test_htraceback.py:228:get_configs_from_command_line:"config_builder": args.config_builder,
         """
         exp_traceback = """
         Traceback (most recent call last):
-          File "./helpers/test/test_traceback.py", line 146, in <module>
+          File "./helpers/test/test_htraceback.py", line 146, in <module>
             _main(_parse())
-          File "./helpers/test/test_traceback.py", line 105, in _main
+          File "./helpers/test/test_htraceback.py", line 105, in _main
             configs = cdtfut.get_configs_from_command_line(args)
-          File "$GIT_ROOT/./helpers/test/test_traceback.py", line 228, in get_configs_from_command_line
+          File "$GIT_ROOT/./helpers/test/test_htraceback.py", line 228, in get_configs_from_command_line
             "config_builder": args.config_builder,
         """
         # pylint: enable=line-too-long

@@ -12,6 +12,7 @@ import re
 import time
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
+import numpy as np
 import pandas as pd
 import psycopg2 as psycop
 import psycopg2.extras as extras
@@ -726,6 +727,8 @@ def execute_insert_query(
     hdbg.dassert_isinstance(df, pd.DataFrame)
     hdbg.dassert_in(table_name, get_table_names(connection))
     _LOG.debug("df=\n%s", hpandas.df_to_str(df, use_tabulate=False))
+    # Ensure the DataFrame has compatible types.
+    df = df.applymap(lambda x: float(x) if isinstance(x, np.float64) else x)
     # Transform dataframe into list of tuples.
     values = [tuple(v) for v in df.to_numpy()]
     # Generate a query for multiple rows.

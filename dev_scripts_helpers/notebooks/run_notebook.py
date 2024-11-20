@@ -147,7 +147,7 @@ def _run_notebook(
         # TODO(gp): Look for the script.
         amp_dir = hgit.get_amp_abs_path()
         script_path = os.path.join(
-            amp_dir, "dev_scripts/notebooks", "publish_notebook.py"
+            amp_dir, "helpers_root/dev_scripts_helpers/notebooks", "publish_notebook.py"
         )
         cmd = (
             f"python {script_path}"

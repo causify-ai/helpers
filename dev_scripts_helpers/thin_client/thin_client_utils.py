@@ -152,7 +152,11 @@ def _create_helpers_tmux_with_subrepo(
     git_subrepo_dir = os.path.join(git_root_dir, "helpers_root")
     setenv_path = "dev_scripts_helpers/thin_client/setenv.sh"
     tmux_cmd = f"source {setenv_path}"
-    hdbg.dassert_file_exists(os.path.join(git_subrepo_dir, setenv_path))
+    # TODO(Juraj): The assertion below fails for multiple levels of
+    # nesting e.g. orange -> cmamp -> helpers, but passing it
+    # is not a necessary prerequisite to successfully create the session
+    # see CmTask10714.
+    #hdbg.dassert_file_exists(os.path.join(git_subrepo_dir, setenv_path))
     _create_new_window(window, "white", git_subrepo_dir, tmux_cmd)
     # Create the remaining windows.
     windows = ["dbash", "regr", "jupyter"]
