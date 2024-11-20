@@ -179,6 +179,10 @@ class TestDryRunTasks1(hunitest.TestCase):
         self.dry_run(target, check_string=check_string)
 
     @pytest.mark.slow("~6 sec.")
+    @pytest.mark.skipif(
+        not hgit.is_in_helpers_as_supermodule(),
+        reason="Run only in helpers as super module. Different golden outcomes in helpers and other repos.",
+    )
     def test_docker_ps(self) -> None:
         target = "docker_ps"
         self.dry_run(target)

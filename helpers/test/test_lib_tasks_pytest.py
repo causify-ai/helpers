@@ -31,8 +31,10 @@ class Test_build_run_command_line1(hunitest.TestCase):
         """
         Basic run fast tests.
 
-        :param is_dev_ck_return_value: mocking the return_value of `hserver.is_dev_ck()`
-        :param is_inside_ci_return_value: mocking the return_value of `hserver.is_inside_ci()`
+        :param is_dev_ck_return_value: mocking the return_value of
+            `hserver.is_dev_ck()`
+        :param is_inside_ci_return_value: mocking the return_value of
+            `hserver.is_inside_ci()`
         :param exp: expected output string
         """
         custom_marker = ""
@@ -504,8 +506,10 @@ class Test_build_run_command_line1(hunitest.TestCase):
         """
         Check that a correct cmd line is generated with custom marker string.
 
-        :param run_only_test_list: a string of comma-separated markers to run
-        :param skip_test_list: a string of comma-separated markers to skip
+        :param run_only_test_list: a string of comma-separated markers
+            to run
+        :param skip_test_list: a string of comma-separated markers to
+            skip
         :param is_dev_ck_return_value: see `run_fast_tests1_helper()`
         :param is_inside_ci_return_value: see `run_fast_tests1_helper()`
         :param exp: expected output string
@@ -866,11 +870,19 @@ class Test_pytest_repro_end_to_end(hunitest.TestCase):
         # Check the outcome.
         self.check_string(act, purify_text=True, fuzzy_match=True)
 
+    @pytest.mark.skipif(
+        not hgit.is_in_helpers_as_supermodule(),
+        reason="Run only in helpers as super module. See CmTask10739",
+    )
     def test1(self) -> None:
         file_name = f"{self.get_input_dir()}/cache/lastfailed"
         cmd = f"invoke pytest_repro --file-name='{file_name}'"
         self.helper(cmd)
 
+    @pytest.mark.skipif(
+        not hgit.is_in_helpers_as_supermodule(),
+        reason="Run only in helpers as super module. See CmTask10739",
+    )
     def test2(self) -> None:
         """
         The tests are different since the input depends on the test and it's
@@ -880,26 +892,46 @@ class Test_pytest_repro_end_to_end(hunitest.TestCase):
         cmd = f"invoke pytest_repro --file-name='{file_name}'"
         self.helper(cmd)
 
+    @pytest.mark.skipif(
+        not hgit.is_in_helpers_as_supermodule(),
+        reason="Run only in helpers as super module. See CmTask10739",
+    )
     def test3(self) -> None:
         file_name = f"{self.get_input_dir()}/log.txt"
         cmd = f"invoke pytest_repro --file-name='{file_name}'"
         self.helper(cmd)
 
+    @pytest.mark.skipif(
+        not hgit.is_in_helpers_as_supermodule(),
+        reason="Run only in helpers as super module. See CmTask10739",
+    )
     def test4(self) -> None:
         file_name = f"{self.get_input_dir()}/log.txt"
         cmd = f"invoke pytest_repro --file-name='{file_name}' --show-stacktrace"
         self.helper(cmd)
 
+    @pytest.mark.skipif(
+        not hgit.is_in_helpers_as_supermodule(),
+        reason="Run only in helpers as super module. See CmTask10739",
+    )
     def test5(self) -> None:
         file_name = f"{self.get_input_dir()}/log.txt"
         cmd = f"invoke pytest_repro --file-name='{file_name}' --show-stacktrace"
         self.helper(cmd)
 
+    @pytest.mark.skipif(
+        not hgit.is_in_helpers_as_supermodule(),
+        reason="Run only in helpers as super module. See CmTask10739",
+    )
     def test6(self) -> None:
         file_name = f"{self.get_input_dir()}/log.txt"
         cmd = f"invoke pytest_repro --file-name='{file_name}' --show-stacktrace"
         self.helper(cmd)
 
+    @pytest.mark.skipif(
+        not hgit.is_in_helpers_as_supermodule(),
+        reason="Run only in helpers as super module. See CmTask10739",
+    )
     def test7(self) -> None:
         file_name = f"{self.get_input_dir()}/log.txt"
         cmd = f"invoke pytest_repro --file-name='{file_name}' --show-stacktrace"

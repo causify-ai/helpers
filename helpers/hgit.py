@@ -233,6 +233,16 @@ def _is_repo(repo_short_name: str) -> bool:
     return get_repo_name(repo_full_name, in_mode="full_name") == repo_short_name
 
 
+def is_helpers() -> bool:
+    """
+    Return whether we are inside `helpers` repo.
+
+    Either as super module, or a sub module depending on a current
+    working directory.
+    """
+    return _is_repo("helpers")
+
+
 def is_amp() -> bool:
     """
     Return whether we are inside `amp` repo.
@@ -241,6 +251,14 @@ def is_amp() -> bool:
     working directory.
     """
     return _is_repo("amp") or _is_repo("cmamp") or _is_repo("sorr")
+
+
+def is_in_helpers_as_supermodule() -> bool:
+    """
+    Return whether we are in the `helpers` repo and it's a super-module, i.e.,
+    `helpers` by itself.
+    """
+    return is_helpers() and not is_inside_submodule(".")
 
 
 # TODO(gp): Be consistent with submodule and sub-module in the code. Same for
@@ -709,7 +727,7 @@ def find_file_in_git_tree(
     root_dir = get_client_root(super_module=super_module)
     cmd = rf"find {root_dir} -name '{file_name}' -not -path '*/.git/*'"
     if remove_tmp_base:
-        cmd += rf"-not -path '*/tmp\.base/*'"
+        cmd += rf" -not -path '*/tmp\.base/*'"
     _, file_name = hsystem.system_to_one_line(cmd)
     _LOG.debug("file_name=%s", file_name)
     hdbg.dassert_ne(
