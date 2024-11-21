@@ -727,7 +727,8 @@ def execute_insert_query(
     hdbg.dassert_isinstance(df, pd.DataFrame)
     hdbg.dassert_in(table_name, get_table_names(connection))
     _LOG.debug("df=\n%s", hpandas.df_to_str(df, use_tabulate=False))
-    # Ensure the DataFrame has compatible types.
+    # Ensure the DataFrame has compatible types with 
+    # downstream consumers (e.g., database).
     df = df.applymap(lambda x: float(x) if isinstance(x, np.float64) else x)
     # Transform dataframe into list of tuples.
     values = [tuple(v) for v in df.to_numpy()]
