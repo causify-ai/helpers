@@ -1,9 +1,3 @@
-"""
-Import as:
-
-import helpers_root.dev_scripts_helpers.thin_client.thin_client_utils as hrdshtctcu
-"""
-
 import argparse
 import logging
 import os
@@ -119,6 +113,7 @@ def create_parser(docstring: str) -> argparse.ArgumentParser:
 
 # /////////////////////////////////////////////////////////////////////////////
 
+
 def _create_new_window(
     window: str, color: str, dir_name: str, tmux_cmd: str
 ) -> None:
@@ -127,10 +122,11 @@ def _create_new_window(
     cmd = f"tmux send-keys '{color}; cd {dir_name} && {tmux_cmd}' C-m C-m"
     hsystem.system(cmd)
 
-#TODO(Juraj): temporary naming to support both behaviors.
-def _create_repo_windows(git_dir: str, setenv_path: str, module_name: str, is_submodule: bool) -> None:
+def _create_repo_windows(
+    git_dir: str, setenv_path: str, module_name: str, is_submodule: bool
+) -> None:
     """
-    Create windows for the given module
+    Create windows for the given module.
     """
     windows = ["dbash", "regr", "jupyter"]
     tmux_cmd = f"source {setenv_path}"
@@ -144,6 +140,7 @@ def _create_repo_windows(git_dir: str, setenv_path: str, module_name: str, is_su
     # Create windows.
     for window in windows:
         _create_new_window(window, "green", git_dir, tmux_cmd)
+
 
 def _go_to_first_window(tmux_name: str) -> None:
     hsystem.system(f"tmux select-window -t {tmux_name}:0")
@@ -178,9 +175,9 @@ def _create_repo_tmux(
     """
     Create a new tmux session for the given Git repository.
 
-    The function create window for the root AKA super module.
-    After that it recursively searches for submodules and creates windows
-    for each one. Currently only supports one submodule per repository.
+    The function create window for the root AKA super module. After that
+    it recursively searches for submodules and creates windows for each
+    one. Currently only supports one submodule per repository.
     """
     # Create the sesson and first window.
     cmd = f"tmux new-session -d -s {tmux_name} -n '---{tmux_name}---'"
@@ -195,7 +192,9 @@ def _create_repo_tmux(
     curr_module = tmux_name
     is_submodule = False
     while create_windows:
-        _create_repo_windows(curr_git_dir, curr_setenv_path, curr_module, is_submodule)
+        _create_repo_windows(
+            curr_git_dir, curr_setenv_path, curr_module, is_submodule
+        )
         # After the initial, all other windows are created for a submodule.
         is_submodule = True
         submodules = _find_submodules(curr_git_dir)
@@ -222,38 +221,6 @@ def _create_repo_tmux(
     _go_to_first_window(tmux_name)
 
 
-def _create_helpers_tmux(
-    git_root_dir: str, setenv_path: str, tmux_name: str
-) -> None:
-    _create_repo_windows(git_root_dir, setenv_path, tmux_name)
-    _go_to_first_window(tmux_name)
-
-
-def _create_helpers_tmux_with_subrepo(
-    git_root_dir: str, setenv_path: str, tmux_name: str
-) -> None:
-    # - Create the windows for the current repo.
-    _create_repo_windows(git_root_dir, setenv_path, tmux_name)
-    # - Create the windows for helpers (the sub-repo).
-    # Create the first window.
-    window = "---HELPERS---"
-    git_subrepo_dir = os.path.join(git_root_dir, "helpers_root")
-    setenv_path = "dev_scripts_helpers/thin_client/setenv.sh"
-    tmux_cmd = f"source {setenv_path}"
-    # TODO(Juraj): The assertion below fails for multiple levels of
-    # nesting e.g. orange -> cmamp -> helpers, but passing it
-    # is not a necessary prerequisite to successfully create the session
-    # see CmTask10714.
-    # hdbg.dassert_file_exists(os.path.join(git_subrepo_dir, setenv_path))
-    _create_new_window(window, "white", git_subrepo_dir, tmux_cmd)
-    # Create the remaining windows.
-    windows = ["dbash", "regr", "jupyter"]
-    for window in windows:
-        _create_new_window(window, "green", git_subrepo_dir, tmux_cmd)
-    #
-    _go_to_first_window(tmux_name)
-
-
 # /////////////////////////////////////////////////////////////////////////////
 
 
@@ -262,6 +229,7 @@ def create_tmux_session(
     script_path: str,
     dir_prefix: str,
     setenv_path: str,
+    #TODO(Juraj): deprecate the var, the behavior is now inferred.
     has_subrepo: bool,
 ) -> None:
     """
