@@ -114,8 +114,8 @@ own container and dependencies (to run and to test)
   > i docker_bash --skip-pull --version 1.0.0
   > i docker_push_dev_image --version 1.0.0
   ```
-- Run the multi-arch flow
 
+- Run the multi-arch flow
   ```bash
   > REPO_NAME="cmamp"
   > source dev_scripts_${REPO_NAME}/thin_client/setenv.sh
@@ -127,7 +127,6 @@ own container and dependencies (to run and to test)
   ```
 
 - Run tests from the runnable dir (e.g. `cmamp/ck.infra`)
-
   ```bash
   > cd $DST_DIR
   > i run_fast_tests
