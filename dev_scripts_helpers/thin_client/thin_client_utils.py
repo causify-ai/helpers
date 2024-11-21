@@ -144,6 +144,16 @@ def _create_repo_windows(
     for window in windows:
         _create_new_window(window, "green", git_root_dir, tmux_cmd)
 
+#TODO(Juraj): temporary naming to support both behaviors.
+def _create_repo_windows2(git_dir: str, setenv_path: str, submodule_name: str):
+    # Somewhat clean-up the naming inconsistencies.
+    module_window_name = submodule_name.rstrip("_root").upper()
+    first_window = f"---{module_window_name}---"
+    tmux_cmd = f"source {setenv_path}"
+    # Create windows.
+    windows = [first_window, "dbash", "regr", "jupyter"]
+    for window in windows:
+        _create_new_window(window, "green", git_dir, tmux_cmd)
 
 def _go_to_first_window(tmux_name: str) -> None:
     hsystem.system(f"tmux select-window -t {tmux_name}:0")
@@ -177,22 +187,26 @@ def _create_repo_tmux(
     git_root_dir: str, setenv_path: str, tmux_name: str
 ) -> None:
     """
-    Creates a new tmux session for the given Git repository.
+    Create a new tmux session for the given Git repository.
 
     The function recursively searches for submodules and creates windows
     for each one. Currently only supports one submodule per repository.
     """
+    cmd = f"tmux new-session -d -s {tmux_name} -n '---{tmux_name}---'"
+    hsystem.system(cmd)
     create_windows = True
     curr_git_dir = git_root_dir
     curr_setenv_path = setenv_path
+    curr_module = tmux_name
     while create_windows:
-        _create_repo_windows(curr_git_dir, curr_setenv_path, tmux_name)
+        _create_repo_windows2(curr_git_dir, curr_setenv_path, curr_module)
         submodules = _find_submodules(curr_git_dir)
         if len(submodules) >= 1:
             if len(submodules) > 1:
                 _LOG.warning("Multiple submodules found: %s", submodules)
                 _LOG.warning("Selecting only the first one: %s", submodules[0])
             curr_git_dir = os.path.join(curr_git_dir, submodules[0])
+            curr_module = submodules[0]
             # Needed to map "amp" -> "dev_scripts_cmamp"
             # and helpers_root -> "dev_scripts_helpers"
             dev_scripts_suffix = _REPO_DIR_MAPPING.get(
