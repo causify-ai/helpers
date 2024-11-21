@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.hgit as hgit
+import helpers_root.helpers.hgit as hrohehgi
 """
 
 import collections
@@ -47,6 +47,26 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 # Git branch functions
 # #############################################################################
+
+
+def extract_issue_number_from_branch(branch_name: str) -> Optional[int]:
+    """
+    Extract the issue number from a branch name.
+
+    Example:
+    CmampTask10725_Add_more_tabs_to_orange_tmux -> 10725
+    HelpersTask23_Add_more_tabs_to_orange_tmux -> 23.
+
+    Works only if `invoke gh_branch_create` was used to create the branch.
+    or the name was retrieved using `invoke gh_issue_title`.
+
+    :param branch_name: the name of the branch
+    :return: the issue number or None if it can't be extracted
+    """
+    match = re.match(r".*Task_?(\d+)(?:_\w+)?", branch_name)
+    if match:
+        return match.group(1)  # Return the captured number
+    return None
 
 
 @functools.lru_cache()
