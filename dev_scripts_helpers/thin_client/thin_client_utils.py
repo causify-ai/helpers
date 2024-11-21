@@ -119,7 +119,6 @@ def create_parser(docstring: str) -> argparse.ArgumentParser:
 
 # /////////////////////////////////////////////////////////////////////////////
 
-
 def _create_new_window(
     window: str, color: str, dir_name: str, tmux_cmd: str
 ) -> None:
@@ -128,30 +127,21 @@ def _create_new_window(
     cmd = f"tmux send-keys '{color}; cd {dir_name} && {tmux_cmd}' C-m C-m"
     hsystem.system(cmd)
 
-
-def _create_repo_windows(
-    git_root_dir: str, setenv_path: str, tmux_name: str
-) -> None:
-    cmd = f"tmux new-session -d -s {tmux_name} -n '---{tmux_name}---'"
-    hsystem.system(cmd)
-    # Create the first window.
-    tmux_cmd = f"source {setenv_path}"
-    hdbg.dassert_file_exists(setenv_path)
-    cmd = f"tmux send-keys 'white; cd {git_root_dir} && {tmux_cmd}' C-m C-m"
-    hsystem.system(cmd)
-    # Create the remaining windows.
-    windows = ["dbash", "regr", "jupyter"]
-    for window in windows:
-        _create_new_window(window, "green", git_root_dir, tmux_cmd)
-
 #TODO(Juraj): temporary naming to support both behaviors.
-def _create_repo_windows2(git_dir: str, setenv_path: str, submodule_name: str):
-    # Somewhat clean-up the naming inconsistencies.
-    module_window_name = submodule_name.rstrip("_root").upper()
-    first_window = f"---{module_window_name}---"
+def _create_repo_windows(git_dir: str, setenv_path: str, module_name: str, is_submodule: bool) -> None:
+    """
+    Create windows for the given module
+    """
+    windows = ["dbash", "regr", "jupyter"]
     tmux_cmd = f"source {setenv_path}"
+    # We create the first named named window only for submodule, for root
+    # one it's created upon session creation.
+    if is_submodule:
+        # Somewhat clean-up the naming inconsistencies.
+        module_window_name = module_name.rstrip("_root").upper()
+        first_window = f"---{module_window_name}---"
+        windows = [first_window] + windows
     # Create windows.
-    windows = [first_window, "dbash", "regr", "jupyter"]
     for window in windows:
         _create_new_window(window, "green", git_dir, tmux_cmd)
 
@@ -188,17 +178,26 @@ def _create_repo_tmux(
     """
     Create a new tmux session for the given Git repository.
 
-    The function recursively searches for submodules and creates windows
+    The function create window for the root AKA super module.
+    After that it recursively searches for submodules and creates windows
     for each one. Currently only supports one submodule per repository.
     """
+    # Create the sesson and first window.
     cmd = f"tmux new-session -d -s {tmux_name} -n '---{tmux_name}---'"
     hsystem.system(cmd)
+    cmd = f"source {setenv_path}"
+    cmd = f"tmux send-keys 'white; cd {git_root_dir} && {cmd}' C-m C-m"
+    hsystem.system(cmd)
+    # Handle all submodules.
     create_windows = True
     curr_git_dir = git_root_dir
     curr_setenv_path = setenv_path
     curr_module = tmux_name
+    is_submodule = False
     while create_windows:
-        _create_repo_windows2(curr_git_dir, curr_setenv_path, curr_module)
+        _create_repo_windows(curr_git_dir, curr_setenv_path, curr_module, is_submodule)
+        # After the initial, all other windows are created for a submodule.
+        is_submodule = True
         submodules = _find_submodules(curr_git_dir)
         if len(submodules) >= 1:
             if len(submodules) > 1:
