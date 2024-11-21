@@ -164,11 +164,12 @@ def _find_submodules(git_root_dir: str) -> list:
     submodule_file = os.path.join(git_root_dir, ".gitmodules")
     hdbg.dassert_file_exists(submodule_file)
     submodules = []
-    with open(submodule_file, "r") as file:
-        for line in file:
-            if line.strip().startswith("[submodule"):
-                submodule_name = line.split('"')[1]
-                submodules.append(submodule_name)
+    if os.path.exists(submodule_file):
+        with open(submodule_file, "r") as file:
+            for line in file:
+                if line.strip().startswith("[submodule"):
+                    submodule_name = line.split('"')[1]
+                    submodules.append(submodule_name)
     return submodules
 
 
