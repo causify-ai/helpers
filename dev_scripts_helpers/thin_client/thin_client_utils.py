@@ -172,7 +172,6 @@ def _find_submodules(git_root_dir: str) -> list:
         file. Returns an empty list if no submodules are found.
     """
     submodule_file = os.path.join(git_root_dir, ".gitmodules")
-    hdbg.dassert_file_exists(submodule_file)
     submodules = []
     if os.path.exists(submodule_file):
         with open(submodule_file, "r") as file:
@@ -350,8 +349,4 @@ def create_tmux_session(
     setenv_path = os.path.join(git_root_dir, setenv_path)
     _LOG.info("Checking if setenv_path=%s exists", setenv_path)
     hdbg.dassert_file_exists(setenv_path)
-    # if has_subrepo:
-    #    _create_helpers_tmux_with_subrepo(git_root_dir, setenv_path, tmux_name)
-    # else:
-    #    _create_helpers_tmux(git_root_dir, setenv_path, tmux_name)
     _create_repo_tmux(git_root_dir, setenv_path, tmux_name)
