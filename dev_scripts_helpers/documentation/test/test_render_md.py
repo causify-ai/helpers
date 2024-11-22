@@ -1,6 +1,5 @@
 import logging
 import os
-import pytest
 from typing import List
 
 import pytest
