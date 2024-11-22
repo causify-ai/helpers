@@ -1,0 +1,6 @@
+REPO_NAME = "helpers"
+
+GITHUB_REPO_ACCOUNT = "kaizen-ai"
+
+DOCKER_IMAGE_NAME = "helpers"
+

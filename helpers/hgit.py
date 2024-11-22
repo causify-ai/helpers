@@ -149,9 +149,17 @@ def get_client_root(super_module: bool) -> str:
 
 
 # TODO(gp): Replace get_client_root with this.
+# TODO(gp): -> get_client_root2() or get_outermost_supermodule_root()
 def find_git_root(path: str = ".") -> str:
     """
-    Find recursively the dir of the outermost super module.
+    Find the dir of the outermost Git super module.
+
+    This function looks for `.git` dirs in the path and its parents until it
+    finds one. This is a different approach than asking Git directly.
+    Pros:
+    - it doesn't require to call `git` through a system call.
+    Cons:
+    - it relies on `git` internal structure, which might change in the future.
     """
     path = os.path.abspath(path)
     while not os.path.isdir(os.path.join(path, ".git")):
@@ -166,7 +174,7 @@ def find_git_root(path: str = ".") -> str:
                         )
         parent = os.path.dirname(path)
         if parent == path:
-            return None
+            raise ValueError(f"Can't find the Git root starting from {path}")
         path = parent
     return path
 
@@ -176,9 +184,9 @@ def get_project_dirname(only_index: bool = False) -> str:
     Return the name of the project name (e.g., `/Users/saggese/src/amp1` ->
     `amp1`).
 
-    NOTE: this works properly only outside Docker, e.g., when calling from `invoke`.
-    Inside Docker the result might be incorrect since the Git client is mapped on
-    `/app`.
+    NOTE: this works properly only outside Docker, e.g., when calling from
+    `invoke`. Inside Docker the result might be incorrect since the Git client
+    is mapped on `/app`.
 
     :param only_index: return only the index of the client if possible, e.g.,
         E.g., for `/Users/saggese/src/amp1` it returns the string `1`
@@ -237,8 +245,8 @@ def is_helpers() -> bool:
     """
     Return whether we are inside `helpers` repo.
 
-    Either as super module, or a sub module depending on a current
-    working directory.
+    Either as super module, or a sub module depending on a current working
+    directory.
     """
     return _is_repo("helpers")
 
@@ -693,6 +701,7 @@ def get_all_repo_names(
     return sorted(list(repo_map.keys()))
 
 
+# TODO(gp): This should be injected from repo_config.py
 def get_task_prefix_from_repo_short_name(short_name: str) -> str:
     """
     Return the task prefix for a repo (e.g., "amp" -> "AmpTask").
@@ -779,6 +788,7 @@ def get_path_from_git_root(
     return ret
 
 
+# TODO(gp): Just do a find
 @functools.lru_cache()
 def get_amp_abs_path(remove_tmp_base: bool = True) -> str:
     """
@@ -826,6 +836,7 @@ def get_repo_dirs() -> List[str]:
     return dir_names
 
 
+# TODO(gp): It should go in hdocker?
 def find_docker_file(
     file_name: str,
     *,
@@ -838,15 +849,15 @@ def find_docker_file(
     Convert a file or dir that was generated inside Docker to a file in the
     current Git client.
 
-    This operation is best effort since it might not be able to find the
+    This operation is best-effort since it might not be able to find the
     corresponding file in the current repo.
 
     E.g.,
-    - A file like '/app/amp/core/dataflow_model/utils.py', in a Docker container with
-      Git root in '/app' becomes 'amp/core/dataflow_model/utils.py'
-    - For a file like '/app/amp/core/dataflow_model/utils.py' outside Docker, we look
-      for the file 'dataflow_model/utils.py' in the current client and then normalize
-      with respect to the
+    - A file like '/app/amp/core/dataflow_model/utils.py', in a Docker container
+      with Git root in '/app' becomes 'amp/core/dataflow_model/utils.py'
+    - For a file like '/app/amp/core/dataflow_model/utils.py' outside Docker, we
+        look for the file 'dataflow_model/utils.py' in the current client and
+        then normalize with respect to the
 
     :param dir_depth: same meaning as in `find_file_with_dir()`
     :param mode: same as `system_interaction.select_result_file_from_list()`
