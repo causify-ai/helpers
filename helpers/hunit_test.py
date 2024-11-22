@@ -450,8 +450,9 @@ def purify_app_references(txt: str) -> str:
     txt = re.sub(r"/app/", "", txt, flags=re.MULTILINE)
     txt = re.sub(r"app\.helpers", "helpers", txt, flags=re.MULTILINE)
     txt = re.sub(r"app\.amp\.helpers", "amp.helpers", txt, flags=re.MULTILINE)
-    txt = re.sub(r"app\.amp\.helpers_root\.helpers", "amp.helpers", txt,
-                 flags=re.MULTILINE)
+    txt = re.sub(
+        r"app\.amp\.helpers_root\.helpers", "amp.helpers", txt, flags=re.MULTILINE
+    )
     _LOG.debug("After %s: txt='\n%s'", hintros.get_function_name(), txt)
     return txt
 
@@ -577,8 +578,12 @@ def purify_helpers(txt: str) -> str:
     """
     txt = re.sub(r"helpers_root\.helpers\.", "helpers.", txt, flags=re.MULTILINE)
     txt = re.sub(r"helpers_root/helpers/", "helpers/", txt, flags=re.MULTILINE)
-    txt = re.sub(r"helpers_root\.config_root", "config_root", txt, flags=re.MULTILINE)
-    txt = re.sub(r"helpers_root/config_root/", "config_root/", txt, flags=re.MULTILINE)
+    txt = re.sub(
+        r"helpers_root\.config_root", "config_root", txt, flags=re.MULTILINE
+    )
+    txt = re.sub(
+        r"helpers_root/config_root/", "config_root/", txt, flags=re.MULTILINE
+    )
     return txt
 
 
@@ -1314,8 +1319,8 @@ class TestCase(unittest.TestCase):
         difference.
 
         Implement a better version of `self.assertEqual()` that reports
-        mismatching strings with sdiff and save them to files for
-        further analysis with vimdiff.
+        mismatching strings with sdiff and save them to files for further
+        analysis with vimdiff.
 
         The interface is similar to `check_string()`.
         """
@@ -1366,9 +1371,8 @@ class TestCase(unittest.TestCase):
         """
         Assert dfs have same indexes and columns and that all values are close.
 
-        This is a more robust alternative to `compare_df()`. In
-        particular, it is less sensitive to floating point round-off
-        errors.
+        This is a more robust alternative to `compare_df()`. In particular, it
+        is less sensitive to floating point round-off errors.
         """
         self.assertEqual(actual.index.to_list(), expected.index.to_list())
         self.assertEqual(actual.columns.to_list(), expected.columns.to_list())

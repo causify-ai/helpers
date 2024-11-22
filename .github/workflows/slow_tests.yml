@@ -83,7 +83,6 @@ jobs:
       # See the corresponding documentation for more information.
       - name: Run slow tests
         env:
-          
           CK_AWS_ACCESS_KEY_ID: ${{ secrets.CK_AWS_ACCESS_KEY_ID }}
           CK_AWS_SECRET_ACCESS_KEY: ${{ secrets.CK_AWS_SECRET_ACCESS_KEY }}
           CK_AWS_DEFAULT_REGION: ${{ vars.CK_AWS_DEFAULT_REGION }}
@@ -132,4 +131,4 @@ jobs:
             Event: '${{ github.event_name }}'
             https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
         env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }} 
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}

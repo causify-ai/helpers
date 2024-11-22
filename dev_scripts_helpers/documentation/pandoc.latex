@@ -25,7 +25,7 @@ $endif$
 \usepackage{tikz}
 \usepackage[pdf]{graphviz}
 \usetikzlibrary{shapes,arrows}
-\usepackage{musicography}
+%\usepackage{musicography}
 
 $if(linestretch)$
 \usepackage{setspace}
