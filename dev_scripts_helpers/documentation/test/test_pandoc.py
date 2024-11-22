@@ -14,10 +14,6 @@ import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
 
-# #############################################################################
-# pandoc.py
-# #############################################################################
-
 
 class Test_pandoc1(hunitest.TestCase):
     @pytest.mark.skip

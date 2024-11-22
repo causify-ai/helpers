@@ -5,6 +5,7 @@ import helpers.hdocker as hdocker
 """
 
 import copy
+import hashlib
 import logging
 import os
 import tempfile
@@ -196,8 +197,6 @@ def wait_for_file_in_docker(
 
 
 # #############################################################################
-
-import hashlib
 
 
 def build_container(

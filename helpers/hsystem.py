@@ -672,7 +672,7 @@ def find_file_in_repo(file_name: str, *, root_dir: Optional[str] = None) -> str:
         import helpers.hgit as hgit
         root_dir = hgit.find_git_root()
     _, file_name = system_to_one_line(
-        f"find {root_dir} -name {file_name} -not -path '*/\.git/*'"
+        rf"find {root_dir} -name {file_name} -not -path '*/\.git/*'"
     )
     return file_name
 

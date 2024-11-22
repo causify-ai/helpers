@@ -105,7 +105,7 @@ apt-get install $APT_GET_OPTS libgraphviz-dev
 apt-get install $APT_GET_OPTS graphviz
 
 # - Install pandoc.
-apt-get install $APT_GET_OPTS pandoc
+#apt-get install $APT_GET_OPTS pandoc
 
 # Some tools refer to `python` and `pip`, so we create symlinks.
 if [[ ! -e /usr/bin/python ]]; then
