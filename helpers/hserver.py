@@ -10,6 +10,7 @@ import logging
 import os
 import functools
 import os
+import subprocess
 from typing import Dict, List, Optional
 
 # This module should depend only on:
@@ -253,8 +254,31 @@ else:
 # Docker
 # #############################################################################
 
+# There are functions that:
+# 1) Check if a certain feature is supported on the host
+#    - E.g., `is_..._supported`, `is_docker_in_docker_supported`,
+#      `is_docker_sibling_container_supported`
+#    - These functions run tests on the host to check if a certain feature are
+#      possible
+#    - These functions must not be dependent on the repo
+# 2) Return whether a certain feature should be used for a certain machine
+#    - E.g., `use_...`, `use_docker_sibling_containers`, `use_docker_main_network`,
+#    - These functions use the type of hose (i.e., `is_...`) to decide what to do
+#    - These functions should not be dependent on the repo, unless exceptional
+#      cases
 
-# //cmamp runs on:
+# Note that a different approach could have been to use the first type of functions
+# to decide directly what to do
+# Instead we use a more conservative approach
+# - Use the 2nd type of functions to decide what to do
+# - Unit tests to check that certain features we expected are indeed available
+#   on each machine (i.e., 1st and 2nd type of functions should agree)
+
+# #############################################################################
+# is_..._supported
+# #############################################################################
+
+# Our code runs on:
 # - MacOS
 #   - Supports Docker privileged mode
 #   - The same user and group is used inside the container
@@ -266,73 +290,67 @@ else:
 #   - Doesn't support Docker privileged mode
 #   - A different user and group is used inside the container
 
-
-def _raise_invalid_host(only_warning: bool) -> None:
-    host_os_name = os.uname()[0]
-    am_host_os_name = os.environ.get("AM_HOST_OS_NAME", None)
-    msg = (f"Don't recognize host: host_os_name={host_os_name}, "
-           f"am_host_os_name={am_host_os_name}")
-    if only_warning:
-        _LOG.warning(msg)
-    else:
-        raise ValueError(msg)
-
-
-def enable_privileged_mode(repo_name: str) -> bool:
+@functools.lru_cache()
+def is_docker_supported() -> bool:
     """
-    Return whether a host supports privileged mode for its containers.
+    Return whether Docker is installed and accessible.
     """
-    if repo_name in ("//dev_tools",):
-        ret = False
-    else:
-        # Keep this in alphabetical order.
-        if is_cmamp_prod():
-            ret = False
-        elif is_dev_ck():
-            ret = True
-        elif is_inside_ci():
-            ret = True
-        elif is_mac(version="Catalina"):
-            # Docker for macOS Catalina supports dind.
-            ret = True
-        elif is_mac(version="Monterey") or is_mac(version="Ventura"):
-            # Docker for macOS Monterey doesn't seem to support dind.
-            ret = False
-        else:
-            ret = False
-            only_warning = True
-            _raise_invalid_host(only_warning)
-    return ret
+    # Check if Docker is installed.
+    try:
+        subprocess.run(["docker", "--version"], check=True,
+                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    except FileNotFoundError:
+        _LOG.error("Docker is not installed")
+        return False
+    except subprocess.CalledProcessError as e:
+        _LOG.error("Docker installation is found but inaccessible: %s", str(e))
+        return False
+    _LOG.debug("Docker is installed")
+    # Check if Docker socket is accessible.
+    docker_socket = "/var/run/docker.sock"
+    if not os.path.exists(docker_socket):
+        _LOG.error("Docker socket %s is not accessible", docker_socket)
+        return False
+    if not os.access(docker_socket, os.R_OK | os.W_OK):
+        _LOG.error("Docker socket %s exists but lacks necessary read/write "
+                   "permissions", docker_socket)
+        return False
+    _LOG.debug("Docker socket is accessible")
+    # Test running a Docker container.
+    try:
+        subprocess.run(
+            ["docker", "run", "--rm", "-it", "hello-world"],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+    except subprocess.CalledProcessError as e:
+        _LOG.error("Docker is installed, but running containers failed: %s",
+                     str(e))
+        return False
+    return True
 
 
-# TODO(gp): -> does_docker_run_with_sudo
-def has_docker_sudo() -> bool:
+@functools.lru_cache()
+def is_docker_sibling_container_supported() -> bool:
     """
-    Return whether Docker commands should be run with `sudo` or not.
+    Return whether Docker supports running sibling containers.
     """
-    # Keep this in alphabetical order.
-    if is_cmamp_prod():
-        ret = False
-    elif is_dev_ck():
-        ret = True
-    elif is_inside_ci():
-        ret = False
-    elif is_mac():
-        # macOS runs Docker with sudo by default.
-        # TODO(gp): This is not true.
-        ret = True
-    else:
-        ret = False
-        only_warning = True
-        _raise_invalid_host(only_warning)
-    return ret
+    # Test running a Docker container
+    try:
+        subprocess.run(
+            "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -it hello-world".split(),
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+    except subprocess.CalledProcessError as e:
+        _LOG.error(f"Running sibling containers failed: %s", str(e))
+        return False
+    return True
 
 
-def _is_mac_version_with_sibling_containers() -> bool:
-    return is_mac(version="Monterey") or is_mac(version="Ventura")
-
-
-# TODO(gp): -> support_docker_privileged_mode
+# TODO(gp): -> is_docker_in_docker_supported
 @functools.lru_cache()
 def has_dind_support() -> bool:
     """
@@ -340,6 +358,30 @@ def has_dind_support() -> bool:
 
     This is need to use Docker-in-Docker (aka "dind").
     """
+    # Test running a Docker container in privileged mode.
+    try:
+        subprocess.run(
+            "docker run --rm --privileged -it hello-world".split(),
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+    except subprocess.CalledProcessError as e:
+        _LOG.debug("Running privileged containers failed: %s", str(e))
+        return False
+    # Test running a Docker dind container.
+    try:
+        subprocess.run(
+            "docker run --privileged -it docker:dind docker --version".split(),
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+    except subprocess.CalledProcessError as e:
+        _LOG.debug("Running docker:dind failed: %s", str(e))
+        return False
+    return True
+
     # _print("is_inside_docker()=%s" % is_inside_docker())
     # if not is_inside_docker():
     #     # Outside Docker there is no privileged mode.
@@ -361,8 +403,7 @@ def has_dind_support() -> bool:
     # if is_mac() or is_dev_ck():
     #     cmd = f"sudo {cmd}"
     # rc = os.system(cmd)
-    # _print("cmd=%s -> rc=%s" % (cmd, rc))
-    # #
+    # _print("cmd=%s -> rc=%s" % (cmd, rc)) # #
     # cmd = "ip link add dummy0 type dummy >/dev/null 2>&1"
     # if is_mac() or is_dev_ck():
     #     cmd = f"sudo {cmd}"
@@ -399,6 +440,79 @@ def has_dind_support() -> bool:
     # return has_dind
 
 
+# #############################################################################
+# use_...
+# #############################################################################
+
+
+def _raise_invalid_host(only_warning: bool) -> None:
+    host_os_name = os.uname()[0]
+    am_host_os_name = os.environ.get("AM_HOST_OS_NAME", None)
+    msg = (f"Don't recognize host: host_os_name={host_os_name}, "
+           f"am_host_os_name={am_host_os_name}")
+    if only_warning:
+        _LOG.warning(msg)
+    else:
+        raise ValueError(msg)
+
+
+# TODO(gp): -> use_docker_in_docker_support
+def enable_privileged_mode(repo_name: str) -> bool:
+    """
+    Return whether a host supports privileged mode for its containers.
+    """
+    # TODO(gp): Remove this dependency from a repo.
+    if repo_name in ("//dev_tools",):
+        ret = False
+    else:
+        # Keep this in alphabetical order.
+        if is_cmamp_prod():
+            ret = False
+        elif is_dev_ck():
+            ret = True
+        elif is_inside_ci():
+            ret = True
+        elif is_mac(version="Catalina"):
+            # Docker for macOS Catalina supports dind.
+            ret = True
+        elif is_mac(version="Monterey") or is_mac(version="Ventura"):
+            # Docker for macOS Monterey doesn't seem to support dind.
+            ret = False
+        else:
+            ret = False
+            only_warning = True
+            _raise_invalid_host(only_warning)
+    return ret
+
+
+# TODO(gp): -> use_docker_sudo_in_commands
+def has_docker_sudo() -> bool:
+    """
+    Return whether Docker commands should be run with `sudo` or not.
+    """
+    # Keep this in alphabetical order.
+    if is_cmamp_prod():
+        ret = False
+    elif is_dev_ck():
+        ret = True
+    elif is_inside_ci():
+        ret = False
+    elif is_mac():
+        # macOS runs Docker with sudo by default.
+        # TODO(gp): This is not true.
+        ret = True
+    else:
+        ret = False
+        only_warning = True
+        _raise_invalid_host(only_warning)
+    return ret
+
+
+def _is_mac_version_with_sibling_containers() -> bool:
+    return is_mac(version="Monterey") or is_mac(version="Ventura")
+
+
+# TODO(gp): -> use_docker_sibling_container_support
 def use_docker_sibling_containers() -> bool:
     """
     Return whether to use Docker sibling containers.
@@ -416,6 +530,7 @@ def use_main_network() -> bool:
     return use_docker_sibling_containers()
 
 
+# TODO(gp): -> get_docker_shared_data_dir_map
 def get_shared_data_dirs() -> Optional[Dict[str, str]]:
     """
     Get path of dir storing data shared between different users on the host and
@@ -425,7 +540,6 @@ def get_shared_data_dirs() -> Optional[Dict[str, str]]:
     users, on a dir `/shared_data` in Docker.
     """
     # TODO(gp): Keep this in alphabetical order.
-    shared_data_dirs: Optional[Dict[str, str]] = None
     if is_dev4():
         shared_data_dirs = {
             "/local/home/share/cache": "/cache",
@@ -472,6 +586,7 @@ def use_docker_db_container_name_to_connect() -> bool:
     return ret
 
 
+# TODO(gp): This seems redundant with use_docker_sudo_in_commands
 def run_docker_as_root() -> bool:
     """
     Return whether Docker should be run with root user.
@@ -528,6 +643,7 @@ def get_docker_shared_group() -> str:
     return val
 
 
+# TODO(gp): -> repo_config.yaml
 def skip_submodules_test(repo_name: str) -> bool:
     """
     Return whether the tests in the submodules should be skipped.
@@ -535,10 +651,32 @@ def skip_submodules_test(repo_name: str) -> bool:
     E.g. while running `i run_fast_tests`.
     """
     # TODO(gp): Why do we want to skip running tests?
+    # TODO(gp): Remove this dependency from a repo.
     if repo_name in ("//dev_tools",):
         # Skip running `amp` tests from `dev_tools`.
         return True
     return False
+
+
+# TODO(gp): Remove this comment.
+# # This function can't be in `helpers.hserver` since it creates circular import
+# # and `helpers.hserver` should not depend on anything.
+def is_CK_S3_available(repo_name: str) -> bool:
+    val = True
+    if is_inside_ci():
+        # TODO(gp): Remove this dependency from a repo.
+        if repo_name in ("//amp", "//dev_tools"):
+            # No CK bucket.
+            val = False
+        # TODO(gp): We might want to enable CK tests also on lemonade.
+        if repo_name in ("//lemonade",):
+            # No CK bucket.
+            val = False
+    elif is_dev4():
+        # CK bucket is not available on dev4.
+        val = False
+    _LOG.debug("val=%s", val)
+    return val
 
 
 # #############################################################################
@@ -613,27 +751,6 @@ def config_func_to_str() -> str:
     # Package.
     ret: str = "# hserver.config\n" + indent("\n".join(ret))
     return ret
-
-
-# TODO(gp): Remove this comment.
-# # This function can't be in `helpers.hserver` since it creates circular import
-# # and `helpers.hserver` should not depend on anything.
-def is_CK_S3_available() -> bool:
-    val = True
-    if is_inside_ci():
-        repo_name = get_name()
-        if repo_name in ("//amp", "//dev_tools"):
-            # No CK bucket.
-            val = False
-        # TODO(gp): We might want to enable CK tests also on lemonade.
-        if repo_name in ("//lemonade",):
-            # No CK bucket.
-            val = False
-    elif hserver.is_dev4():
-        # CK bucket is not available on dev4.
-        val = False
-    _LOG.debug("val=%s", val)
-    return val
 
 
 def config_func_to_str() -> str:

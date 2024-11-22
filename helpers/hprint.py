@@ -196,7 +196,8 @@ def indent(txt: Optional[str], *, num_spaces: int = 2) -> str:
 
 
 # TODO(gp): It should use *.
-def dedent(txt: str, remove_empty_leading_trailing_lines: bool = True) -> str:
+def dedent(txt: str, *, remove_empty_leading_trailing_lines: bool = True) -> (
+        str):
     """
     Remove from each line the minimum number of spaces to align the text on the
     left.
