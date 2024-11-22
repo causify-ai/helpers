@@ -1,13 +1,18 @@
 import logging
 import os
+import pytest
 
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
 import helpers.hprint as hprint
+import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
+@pytest.mark.skipif(
+    hserver.is_inside_ci(),
+    reason="Disabled because of CmampTask10710")
 class Test_llm_transform1(hunitest.TestCase):
 
     def test1(self) -> None:
