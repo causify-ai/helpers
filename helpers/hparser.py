@@ -53,11 +53,13 @@ def add_bool_arg(
 # #############################################################################
 
 
-def add_verbosity_arg(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
+def add_verbosity_arg(
+    parser: argparse.ArgumentParser, log_level: str = "INFO"
+) -> argparse.ArgumentParser:
     parser.add_argument(
         "-v",
         dest="log_level",
-        default="INFO",
+        default=log_level,
         # TRACE=5
         # DEBUG=10
         # INFO=20
@@ -310,6 +312,7 @@ def parse_input_output_args(
     return in_file_name, out_file_name
 
 
+# TODO(gp): -> from_file for symmetry for jio
 def read_file(file_name: str) -> List[str]:
     """
     Read file or stdin (represented by `-`), returning an array of lines.
@@ -317,19 +320,19 @@ def read_file(file_name: str) -> List[str]:
     if file_name == "-":
         _LOG.info("Reading from stdin")
         f = sys.stdin
+        # Read.
+        txt = []
+        for line in f:
+            line = line.rstrip("\n")
+            txt.append(line)
+        f.close()
     else:
-        _LOG.info("Reading from '%s'", file_name)
-        # pylint: disable=consider-using-with
-        f = open(file_name, "r")
-    # Read.
-    txt = []
-    for line in f:
-        line = line.rstrip("\n")
-        txt.append(line)
-    f.close()
+        txt = hio.from_file(file_name)
+        txt = txt.splitlines()
     return txt
 
 
+# TODO(gp): -> to_file for symmetry for jio
 def write_file(txt: Union[str, List[str]], file_name: str) -> None:
     """
     Write txt in a file or stdout (represented by `-`).
@@ -510,14 +513,16 @@ def process_json_output_metadata_args(
 
 def read_output_metadata(output_metadata_file: str) -> OutputMetadata:
     """
-    Read the output metdata.
+    Read the output metadata.
     """
     output_metadata: OutputMetadata = hio.from_json(output_metadata_file)
     return output_metadata
 
 
-# A custom type function to convert string to bool
-def str_to_bool(value):
+def str_to_bool(value: str) -> bool:
+    """
+    Convert string representing true or false to the corresponding bool.
+    """
     if value.lower() == "true":
         return True
     elif value.lower() == "false":
@@ -526,3 +531,23 @@ def str_to_bool(value):
         raise argparse.ArgumentTypeError(
             "Invalid boolean value. Use 'true' or 'false'."
         )
+
+
+# #############################################################################
+# Command line options for dockerized scripts.
+# #############################################################################
+
+
+def add_dockerized_script_arg(
+    parser: argparse.ArgumentParser,
+) -> argparse.ArgumentParser:
+    parser.add_argument(
+        "--dockerized_force_rebuild",
+        action="store_true",
+        help="Force to rebuild the Docker container",
+    )
+    parser.add_argument(
+        "--dockerized_use_sudo",
+        action="store_true",
+        help="Use sudo inside the container",
+    )
