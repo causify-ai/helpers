@@ -711,7 +711,7 @@ class TestCheckDataFrame1(hunitest.TestCase):
             new_golden = pd.read_csv(file_name, index_col=0)
         finally:
             # Clean up.
-            hio.to_file(file_name, golden_outcome)
+            hio.to_file(file_name, str(golden_outcome))
             _git_add(file_name)
         # Actual doesn't match the golden outcome and it was updated.
         self.assertTrue(outcome_updated)
