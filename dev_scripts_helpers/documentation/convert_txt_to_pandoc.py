@@ -7,11 +7,9 @@ E.g.,
 - convert the text in pandoc / latex format
 - handle banners around chapters
 - handle comments
-
-Import as:
-
-import dev_scripts_helpers.documentation.convert_txt_to_pandoc as dsdcttpa
 """
+
+# TODO(gp): Rename to `preprocess_txt.py`.
 
 # TODO(gp):
 #  - Add spaces between lines
@@ -34,6 +32,17 @@ _NUM_SPACES = 2
 
 
 def _process_comment_block(line: str, in_skip_block: bool) -> Tuple[bool, bool]:
+    """
+    Process lines of text to identify blocks that start with '<!--' or '/*' and
+    end with '-->' or '*/'.
+
+    :param line: The current line of text being processed.
+    :param in_skip_block: A flag indicating if the function is currently
+        inside a comment block.
+    :return: A tuple containing a boolean indicating whether to continue
+        processing the current line and a boolean indicating whether the
+        function is currently inside a comment block.
+    """
     # TODO: improve the comment handling, handle also \* *\ and %.
     do_continue = False
     if line.startswith(r"<!--") or re.search(r"^\s*\/\*", line):
@@ -53,6 +62,19 @@ def _process_comment_block(line: str, in_skip_block: bool) -> Tuple[bool, bool]:
 def _process_code_block(
     line: str, in_code_block: bool, i: int, lines: List[str]
 ) -> Tuple[bool, bool, List[str]]:
+    """
+    Process lines of text to handle code blocks that start and end with '```'.
+
+    :param line: The current line of text being processed.
+    :param in_code_block: A flag indicating if the function is currently
+        inside a code block.
+    :param i: The index of the current line in the list of lines.
+    :param lines: The list of all lines of text being processed.
+    :return: A tuple containing a boolean indicating whether to continue
+        processing the current line, a boolean indicating whether the
+        function is currently inside a code block, and a list of
+        processed lines.
+    """
     out: List[str] = []
     do_continue = False
     if re.match(r"^(\s*)```", line):
@@ -108,10 +130,14 @@ def _process_single_line_comment(line: str) -> bool:
     return do_continue
 
 
+# #############################################################################
+
+
 def _process_abbreviations(in_line: str) -> str:
     r"""
-    Transform
-        - `->` into `$\rightarrow`
+    Transform some abbreviations into LaTeX.
+
+    E.g., - `->` into `$\rightarrow$`
     """
     line = in_line
     for x, y in [
@@ -146,38 +172,56 @@ def _process_question(line: str) -> Tuple[bool, str]:
     return do_continue, line
 
 
+# #############################################################################
+
+
+# TODO(gp): -> _process
 def _transform(lines: List[str]) -> List[str]:
+    """
+    Process the notes to convert them into a format suitable for pandoc.
+
+    E.g.,
+    - prepend some directive for pandoc
+    - remove comments
+    - expand abbreviations
+    """
     out: List[str] = []
+    # a) Prepend some directive for pandoc.
+    out.append(r"""\let\emph\textit""")
+    out.append(r"""\let\uline\underline""")
+    out.append(r"""\let\ul\underline""")
+    # b) Process text.
     # True inside a block to skip.
     in_skip_block = False
     # True inside a code block.
     in_code_block = False
     for i, line in enumerate(lines):
         _LOG.debug("%s:line=%s", i, line)
-        # Process comment block.
+        # 1) Process comment block.
         do_continue, in_skip_block = _process_comment_block(line, in_skip_block)
-        # _LOG.debug("  -> do_continue=%s in_skip_block=%s", do_continue, in_skip_block)
+        # _LOG.debug("  -> do_continue=%s in_skip_block=%s",
+        #   do_continue, in_skip_block)
         if do_continue:
             continue
-        # Process code block.
+        # 2) Process code block.
         do_continue, in_code_block, out_tmp = _process_code_block(
             line, in_code_block, i, lines
         )
         out.extend(out_tmp)
         if do_continue:
             continue
-        # Process single line comment.
+        # 3) Process single line comment.
         do_continue = _process_single_line_comment(line)
         if do_continue:
             continue
-        # Process abbreviations.
+        # 4) Process abbreviations.
         line = _process_abbreviations(line)
-        # Process question.
+        # 5) Process question.
         do_continue, line = _process_question(line)
         if do_continue:
             out.append(line)
             continue
-        # Process empty lines in the questions and answers.
+        # 6) Process empty lines in the questions and answers.
         is_empty = line.rstrip(" ").lstrip(" ") == ""
         if not is_empty:
             if line.startswith("#"):
@@ -210,15 +254,19 @@ def _transform(lines: List[str]) -> List[str]:
                 or next_line_is_verbatim
             ):
                 out.append(" " * _NUM_SPACES + line)
-    # - Clean up.
+    # c) Clean up.
     # Remove all the lines with only spaces.
     out_tmp = []
     for line in out:
         if re.search(r"^\s+$", line):
             line = ""
         out_tmp.append(line)
+    # Return result.
     out = out_tmp
     return out
+
+
+# #############################################################################
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -239,14 +287,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     lines = hio.from_file(args.input).split("\n")
     lines = [l.rstrip("\n") for l in lines]
     out: List[str] = []
-    # Add some directive for pandoc.
-    out.append(r"""\let\emph\textit""")
-    out.append(r"""\let\uline\underline""")
-    out.append(r"""\let\ul\underline""")
-    #
+    # Transform.
     out_tmp = _transform(lines)
     out.extend(out_tmp)
-    # Print result.
+    # Save results.
     txt = "\n".join(out)
     hio.to_file(args.output, txt)
 
