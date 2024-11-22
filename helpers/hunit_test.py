@@ -450,8 +450,9 @@ def purify_app_references(txt: str) -> str:
     txt = re.sub(r"/app/", "", txt, flags=re.MULTILINE)
     txt = re.sub(r"app\.helpers", "helpers", txt, flags=re.MULTILINE)
     txt = re.sub(r"app\.amp\.helpers", "amp.helpers", txt, flags=re.MULTILINE)
-    txt = re.sub(r"app\.amp\.helpers_root\.helpers", "amp.helpers", txt,
-                 flags=re.MULTILINE)
+    txt = re.sub(
+        r"app\.amp\.helpers_root\.helpers", "amp.helpers", txt, flags=re.MULTILINE
+    )
     _LOG.debug("After %s: txt='\n%s'", hintros.get_function_name(), txt)
     return txt
 
@@ -577,8 +578,12 @@ def purify_helpers(txt: str) -> str:
     """
     txt = re.sub(r"helpers_root\.helpers\.", "helpers.", txt, flags=re.MULTILINE)
     txt = re.sub(r"helpers_root/helpers/", "helpers/", txt, flags=re.MULTILINE)
-    txt = re.sub(r"helpers_root\.config_root", "config_root", txt, flags=re.MULTILINE)
-    txt = re.sub(r"helpers_root/config_root/", "config_root/", txt, flags=re.MULTILINE)
+    txt = re.sub(
+        r"helpers_root\.config_root", "config_root", txt, flags=re.MULTILINE
+    )
+    txt = re.sub(
+        r"helpers_root/config_root/", "config_root/", txt, flags=re.MULTILINE
+    )
     return txt
 
 

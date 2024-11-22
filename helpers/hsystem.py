@@ -299,8 +299,8 @@ def system(
         - return code as int
         - output of the command as str
     """
-    #print("cmd=", cmd)
-    #print("suppress_output=", suppress_output)
+    # print("cmd=", cmd)
+    # print("suppress_output=", suppress_output)
     cmd = hprint.dedent(cmd)
     rc, _ = _system(
         cmd,
@@ -670,6 +670,7 @@ def find_file_in_repo(file_name: str, *, root_dir: Optional[str] = None) -> str:
     if root_dir is None:
         # We don't want to introduce a cyclic imports.
         import helpers.hgit as hgit
+
         root_dir = hgit.find_git_root()
     _, file_name = system_to_one_line(
         rf"find {root_dir} -name {file_name} -not -path '*/\.git/*'"

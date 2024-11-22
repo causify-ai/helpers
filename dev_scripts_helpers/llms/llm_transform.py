@@ -28,6 +28,7 @@ import argparse
 import logging
 import os
 
+import dev_scripts_helpers.documentation.lint_txt as dshdlitx
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hgit as hgit
@@ -35,7 +36,6 @@ import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
-import dev_scripts_helpers.documentation.lint_txt as lint_txt
 
 _LOG = logging.getLogger(__name__)
 
@@ -67,9 +67,10 @@ def _run_dockerized_llm_transform(
     # We need to mount the git root to the container.
     git_root = hgit.find_git_root()
     git_root = os.path.abspath(git_root)
-    #_, helpers_root = hsystem.system_to_one_line(
+    # TODO(gp): This is a hack. Fix it.
+    # _, helpers_root = hsystem.system_to_one_line(
     #    f"find {git_root} -path ./\.git -prune -o -type d -name 'helpers_root' -print | grep -v '\.git'"
-    #)
+    # )
     helpers_root = "."
     helpers_root = os.path.relpath(
         os.path.abspath(helpers_root.strip("\n")), git_root
@@ -88,15 +89,16 @@ def _run_dockerized_llm_transform(
     # Install pip packages.
     RUN pip install --no-cache-dir openai
     """
-    container_name = hdocker.build_container(container_name, dockerfile,
-                                      force_rebuild, use_sudo)
+    container_name = hdocker.build_container(
+        container_name, dockerfile, force_rebuild, use_sudo
+    )
     # Get the path to the script to execute.
     script = hsystem.find_file_in_repo("_llm_transform.py", root_dir=git_root)
     # Make all the paths relative to the git root.
     script = os.path.relpath(os.path.abspath(script.strip("\n")), git_root)
-    (in_file_path, out_file_path, mount) = (
-        hdocker.convert_file_names_to_docker(
-        in_file_path, out_file_path))
+    (in_file_path, out_file_path, mount) = hdocker.convert_file_names_to_docker(
+        in_file_path, out_file_path
+    )
     #
     cmd = script + (
         f" -i {in_file_path} -o {out_file_path} -t {transform} -v {log_level}"
@@ -161,10 +163,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Note that we need to run this outside the `llm_transform` container to
     # avoid to do docker in docker in the `llm_transform` container (which
     # doesn't support that).
-    if args.transform in (
-            "format_markdown",
-            "improve_markdown_slide"):
-        out_txt = lint_txt.prettier_on_str(out_txt)
+    if args.transform in ("format_markdown", "improve_markdown_slide"):
+        out_txt = dshdlitx.prettier_on_str(out_txt)
     # Read the output from the container and write it to the output file from
     # command line (e.g., `-` for stdout).
     hparser.write_file(out_txt, out_file_name)

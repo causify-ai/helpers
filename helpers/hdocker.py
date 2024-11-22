@@ -59,6 +59,7 @@ def replace_shared_root_path(
 # #############################################################################
 
 
+# TODO(gp): Move to the repo_config.py
 def get_use_sudo() -> bool:
     """
     Check if Docker commands should be run with sudo.
@@ -66,7 +67,7 @@ def get_use_sudo() -> bool:
     :return: Whether to use sudo for Docker commands.
     """
     use_sudo = False
-    #if hserver.is_inside_docker():
+    # if hserver.is_inside_docker():
     #    use_sudo = True
     return use_sudo
 
@@ -413,11 +414,13 @@ def run_dockerized_prettier(
     # Run Prettier as the entry command
     ENTRYPOINT ["prettier"]
     """
-    container_name = build_container(container_name, dockerfile, force_rebuild,
-                             use_sudo)
+    container_name = build_container(
+        container_name, dockerfile, force_rebuild, use_sudo
+    )
     # Convert files.
     (in_file_path, out_file_path, mount) = convert_file_names_to_docker(
-        in_file_path, out_file_path)
+        in_file_path, out_file_path
+    )
     # Our interface is (in_file, out_file) instead of the wonky prettier
     # interface based on `--write` for in place update and redirecting `stdout`
     # to save on a different place.
@@ -510,16 +513,13 @@ def run_dockerized_pandoc(
 
     Same as `run_dockerized_prettier()` but for `pandoc`.
     """
-    _LOG.debug(
-        hprint.to_str(
-            "cmd_opts in_file_path out_file_path use_sudo"
-        )
-    )
+    _LOG.debug(hprint.to_str("cmd_opts in_file_path out_file_path use_sudo"))
     hdbg.dassert_isinstance(cmd_opts, list)
     container_name = "pandoc/core"
     # Convert files.
     (in_file_path, out_file_path, mount) = convert_file_names_to_docker(
-        in_file_path, out_file_path)
+        in_file_path, out_file_path
+    )
     cmd_opts_as_str = " ".join(cmd_opts)
     # The command is like:
     # > docker run --rm --user $(id -u):$(id -g) \
@@ -532,7 +532,7 @@ def run_dockerized_pandoc(
         f"{executable} run --rm --user $(id -u):$(id -g) "
         f" --workdir /src --mount {mount}"
         f" {container_name}"
-        f' {cmd_opts_as_str} {in_file_path} -o {out_file_path}'
+        f" {cmd_opts_as_str} {in_file_path} -o {out_file_path}"
     )
     # TODO(gp): Note that `suppress_output=False` seems to hang the call.
     hsystem.system(docker_cmd)
@@ -548,11 +548,7 @@ def run_dockerized_markdown_toc(
     Same as `run_dockerized_prettier()` but for `markdown-toc`.
     """
     # https://github.com/jonschlinkert/markdown-toc
-    _LOG.debug(
-        hprint.to_str(
-            "cmd_opts in_file_path force_rebuild use_sudo"
-        )
-    )
+    _LOG.debug(hprint.to_str("cmd_opts in_file_path force_rebuild use_sudo"))
     hdbg.dassert_isinstance(cmd_opts, list)
     # Build the container, if needed.
     container_name = "tmp.markdown_toc"
@@ -566,12 +562,14 @@ def run_dockerized_markdown_toc(
     # Set a working directory inside the container
     WORKDIR /app
     """
-    container_name = build_container(container_name, dockerfile, force_rebuild,
-                             use_sudo)
+    container_name = build_container(
+        container_name, dockerfile, force_rebuild, use_sudo
+    )
     # Convert files.
     out_file_path = None
     (in_file_path, _, mount) = convert_file_names_to_docker(
-        in_file_path, out_file_path)
+        in_file_path, out_file_path
+    )
     cmd_opts_as_str = " ".join(cmd_opts)
     # The command is like:
     # > docker run --rm --user $(id -u):$(id -g) \
@@ -579,8 +577,9 @@ def run_dockerized_markdown_toc(
     #     tmp.markdown_toc \
     #     -i ./test.md
     executable = get_docker_executable(use_sudo)
-    bash_cmd = (f"/usr/local/bin/markdown-toc {cmd_opts_as_str} -i"
-                f" {in_file_path}")
+    bash_cmd = (
+        f"/usr/local/bin/markdown-toc {cmd_opts_as_str} -i {in_file_path}"
+    )
     docker_cmd = (
         f"{executable} run --rm --user $(id -u):$(id -g) "
         f" --workdir /src --mount {mount}"

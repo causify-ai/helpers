@@ -249,6 +249,7 @@ def generate_mathcal() -> None:
 
 # /////////////////////////////////////////////////////////////////////////////
 
+
 # TODO(gp): This is probably not needed anymore.
 def generate_perl1() -> None:
     r"""
