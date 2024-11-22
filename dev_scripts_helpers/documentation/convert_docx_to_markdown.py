@@ -23,6 +23,7 @@ import helpers.hsystem as hsystem
 _LOG = logging.getLogger(__name__)
 
 
+# TODO(gp): use hdocker.build_container() and extract code in run_dockerized_pandoc
 def _convert_docx_to_markdown(
     docx_file: str, md_file: str, md_file_figs: str
 ) -> None:

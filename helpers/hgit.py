@@ -173,8 +173,8 @@ def find_git_root(path: str = ".") -> str:
                             os.path.join(path, git_dir, "..", "..")
                         )
         parent = os.path.dirname(path)
-        if parent == path:
-            raise ValueError(f"Can't find the Git root starting from {path}")
+        hdbg.dassert_ne(parent, path, "Can't find the Git root starting from
+                        %s", path)
         path = parent
     return path
 

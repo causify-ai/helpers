@@ -2,17 +2,25 @@ import logging
 import os
 from typing import List
 
-import dev_scripts_helpers.documentation.render_md as dsdoremd
+import pytest
+
+import dev_scripts_helpers.documentation.render_md as dshdremd
 import helpers.hio as hio
+import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
+
+
 # #############################################################################
 
 
+@pytest.mark.skipif(
+    hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
+)
 class Test_render_md1(hunitest.TestCase):
     """
-    Test _uml_file_names method that returns output pathes.
+    Test _uml_file_names method that returns output paths.
     """
 
     def test_uml_file_names1(self) -> None:
@@ -23,26 +31,29 @@ class Test_render_md1(hunitest.TestCase):
         dest_file = "/a/b/c/d/e.md"
         idx = 8
         extension = "png"
-        pathes = dsdoremd._uml_file_names(dest_file, idx, extension)
+        pathes = dshdremd._uml_file_names(dest_file, idx, extension)
         self.check_string("\n".join(pathes))
 
 
+@pytest.mark.skipif(
+    hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
+)
 class Test_render_md2(hunitest.TestCase):
     """
-    Test _render_command method that construct plantuml command.
+    Test _get_render_command method that construct plantuml command.
     """
 
-    def test_render_command1(self) -> None:
+    def test_get_render_command1(self) -> None:
         """
         Check correctness of the command to render.
         """
         uml_file = "/a/b/c.puml"
         dest = "/d/e/f"
         extension = "png"
-        cmd = dsdoremd._render_command(uml_file, dest, extension)
+        cmd = dshdremd._get_render_command(uml_file, dest, extension)
         self.check_string(cmd)
 
-    def test_render_command2(self) -> None:
+    def test_get_render_command2(self) -> None:
         """
         Check assertion if extension is unknown when render command is
         building.
@@ -51,11 +62,14 @@ class Test_render_md2(hunitest.TestCase):
         dest = "/d/e/f"
         extension = "bmp"
         with self.assertRaises(AssertionError) as cm:
-            dsdoremd._render_command(uml_file, dest, extension)
+            dshdremd._get_render_command(uml_file, dest, extension)
         # Check error text.
         self.assertIn("bmp", str(cm.exception))
 
 
+@pytest.mark.skipif(
+    hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
+)
 class Test_render_md3(hunitest.TestCase):
     """
     Test _render_plantuml method that adds strings with links to rendered
@@ -124,17 +138,21 @@ class Test_render_md3(hunitest.TestCase):
         extension = "png"
         dry_run = True
         # Call function to test
-        act = dsdoremd._render_plantuml(
+        act = dshdremd._render_plantuml(
             in_txt=in_txt, out_file=out_file, extension=extension, dry_run=dry_run
         )
         act = "\n".join(act)
         # Check output
         self.check_string(act)
 
+    # TODO(gp): -> _render_text_and_check
     def _check_str_after_render(self, in_text: List[str]) -> None:
+        """
+        Check correctness of rendering of text.
+        """
         out_file = os.path.join(self.get_scratch_space(), "out.md")
         extension = "png"
-        out_text = dsdoremd._render_plantuml(
+        out_text = dshdremd._render_plantuml(
             in_text, out_file, extension, dry_run=True
         )
         self.check_string("\n".join(out_text))

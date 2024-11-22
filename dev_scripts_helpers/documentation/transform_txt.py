@@ -1,17 +1,12 @@
 #!/usr/bin/env python
 
 """
-Perform one of several transformations on a txt file.
+Perform one of several transformations on a txt file, e.g.,
 
-- The input or output can be filename or stdin (represented by '-')
-- If output file is not specified then we assume that the output file is the
-  same as the input
-
-- The possible transformations are:
-    1) Create table of context from the current file, with 1 level
+    1) `toc`: create table of context from the current file, with 1 level
         > transform_txt.py -a toc -i % -l 1
 
-    2) Format the current file with 3 levels
+    2) `format`: format the current file with 3 levels
         :!transform_txt.py -a format -i % --max_lev 3
         > transform_txt.py -a format -i notes/ABC.txt --max_lev 3
 
@@ -19,13 +14,18 @@ Perform one of several transformations on a txt file.
         :!transform_txt.py -a format -i % --max_lev 3
         :%!transform_txt.py -a format -i - --max_lev 3
 
-    3) Increase level
+    3) `increase`: increase level
         :!transform_txt.py -a increase -i %
         :%!transform_txt.py -a increase -i -
+
+- The input or output can be filename or stdin (represented by '-')
+- If output file is not specified then we assume that the output file is the
+  same as the input
 """
 
 # TODO(gp):
 #  - Compute index number
+#  - Separate code into a library
 #  - Add unit tests
 #  - Make functions private
 
@@ -33,14 +33,17 @@ Perform one of several transformations on a txt file.
 import argparse
 import logging
 import re
+from typing import Tuple
 
 import helpers.hdbg as hdbg
+import helpers.hpandoc as hpandoc
 import helpers.hparser as hparser
+import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
 
-def skip_comments(line, skip_block):
+def skip_comments(line: str, skip_block: bool) -> Tuple[bool, bool]:
     skip_this_line = False
     # Handle comment block.
     if line.startswith("<!--"):
@@ -63,7 +66,7 @@ def skip_comments(line, skip_block):
     return skip_this_line, skip_block
 
 
-def table_of_content(file_name, max_lev):
+def table_of_content(file_name: str, max_lev: int) -> None:
     skip_block = False
     txt = hparser.read_file(file_name)
     for line in txt:
@@ -82,11 +85,11 @@ def table_of_content(file_name, max_lev):
                 ):
                     if i == 1:
                         print()
-                    print("%s%s" % ("    " * (i - 1), line))
+                    print(f"{'    ' * (i - 1)}{line}")
                 break
 
 
-def format_text(in_file_name, out_file_name, max_lev):
+def format_text(in_file_name: str, out_file_name: str, max_lev: int) -> None:
     txt = hparser.read_file(in_file_name)
     #
     for line in txt:
@@ -127,7 +130,7 @@ def format_text(in_file_name, out_file_name, max_lev):
     hparser.write_file(txt_tmp, out_file_name)
 
 
-def increase_chapter(in_file_name, out_file_name):
+def increase_chapter(in_file_name: str, out_file_name: str) -> None:
     """
     Increase the level of chapters by one for text in stdin.
     """
@@ -153,13 +156,39 @@ def increase_chapter(in_file_name, out_file_name):
 # #############################################################################
 
 
+def markdown_list_to_latex(markdown: str) -> str:
+    hdbg.dassert_isinstance(markdown, str)
+    markdown = hprint.dedent(markdown)
+    # Remove the first line if it's a title.
+    markdown = markdown.split("\n")
+    m = re.match("^(\*+ )(.*)", markdown[0])
+    if m:
+        title = m.group(2)
+        markdown = markdown[1:]
+    else:
+        title = ""
+    markdown = "\n".join(markdown)
+    # Convert.
+    txt = hpandoc.convert_pandoc_md_to_latex(markdown)
+    # Remove \tightlist and empty lines.
+    lines = txt.splitlines()
+    lines = [line for line in lines if "\\tightlist" not in line]
+    lines = [line for line in lines if line.strip() != ""]
+    txt = "\n".join(lines)
+    # Add the title frame.
+    if title:
+        txt = "\\begin{frame}{%s}" % title + "\n" + txt + "\n" + "\\end{frame}"
+    return txt
+
+
+# #############################################################################
+
+
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
-    parser.add_argument(
-        "-a", "--action", choices=["toc", "format", "increase"], required=True
-    )
+    parser.add_argument("-a", "--action", required=True)
     hparser.add_input_output_args(parser)
     parser.add_argument("-l", "--max_lev", default=5)
     hparser.add_verbosity_arg(parser)
@@ -168,8 +197,9 @@ def _parse() -> argparse.ArgumentParser:
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    print("cmd line: %s" % hdbg.get_command_line())
-    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    hdbg.init_logger(
+        verbosity=logging.ERROR, use_exec_path=True, force_white=False
+    )
     #
     cmd = args.action
     max_lev = int(args.max_lev)
@@ -183,8 +213,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
         format_text(in_file_name, out_file_name, max_lev)
     elif cmd == "increase":
         increase_chapter(in_file_name, out_file_name)
+    elif cmd == "md_list_to_latex":
+        txt = hparser.read_file(in_file_name)
+        txt = "\n".join(txt)
+        txt = markdown_list_to_latex(txt)
+        hparser.write_file(txt, out_file_name)
     else:
-        assert 0, "Invalid cmd='%s'" % cmd
+        assert 0, f"Invalid cmd='{cmd}'"
 
 
 if __name__ == "__main__":
