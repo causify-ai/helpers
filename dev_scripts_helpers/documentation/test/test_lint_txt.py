@@ -42,6 +42,9 @@ def _get_text1() -> str:
 # #############################################################################
 
 
+@pytest.mark.skipif(
+        hserver.is_inside_ci(),
+        reason="Disabled because of CmampTask10710")
 class Test_lint_txt1(hunitest.TestCase):
     def test_preprocess1(self) -> None:
         txt = r"""$$E_{in} = \frac{1}{N} \sum_i e(h(\vx_i), y_i)$$"""
@@ -123,6 +126,9 @@ class Test_lint_txt1(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.skipif(
+        hserver.is_inside_ci(),
+        reason="Disabled because of CmampTask10710")
 class Test_lint_txt2(hunitest.TestCase):
     def test_process1(self) -> None:
         txt = _get_text1()
