@@ -223,6 +223,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
     #                               ^^^^^^^^^^^^^
     # NameError: name 'ecr_base_path' is not defined
     if False:
+
         @pytest.mark.skipif(
             not hgit.is_in_amp_as_supermodule(),
             reason="Only run in amp as supermodule",

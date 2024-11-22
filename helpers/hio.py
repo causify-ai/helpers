@@ -644,8 +644,12 @@ def rename_file_if_exists(
         os.rename(file_path, new_file_path)
 
 
-def wait_for_file(file_path: str, *, check_interval_in_secs: int = 0.5,
-                  timeout_in_secs: int = 10) -> None:
+def wait_for_file(
+    file_path: str,
+    *,
+    check_interval_in_secs: int = 0.5,
+    timeout_in_secs: int = 10,
+) -> None:
     """
     Wait until a specified file is generated or until the timeout is reached.
 

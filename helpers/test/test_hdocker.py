@@ -1,11 +1,15 @@
 import os
 import logging
+import os
 import unittest.mock as umock
 from typing import Any, List
+
+import pytest
 
 import helpers.hdocker as hdocker
 import helpers.hio as hio
 import helpers.hprint as hprint
+import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
 
 
@@ -86,6 +90,9 @@ def _create_test_file(self_: Any, txt: str, extension: str) -> str:
     return file_path
 
 
+@pytest.mark.skipif(
+    hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
+)
 class Test_run_dockerized_prettier1(hunitest.TestCase):
     """
     Test running the `prettier` command inside a Docker container.
@@ -156,6 +163,9 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.skipif(
+    hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
+)
 class Test_run_dockerized_pandoc1(hunitest.TestCase):
     """
     Test running the `pandoc` command inside a Docker container.
@@ -223,6 +233,9 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.skipif(
+    hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
+)
 class Test_run_markdown_toc1(hunitest.TestCase):
     """
     Test running the `markdown-toc` command inside a Docker container.

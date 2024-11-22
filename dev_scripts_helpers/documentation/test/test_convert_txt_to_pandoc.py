@@ -38,8 +38,8 @@ def _run_preprocess(in_file: str, out_file: str) -> str:
 
 # TODO(gp): -> Test_convert_txt_to_pandoc*
 @pytest.mark.skipif(
-        hserver.is_inside_ci(),
-        reason="Disabled because of CmampTask10710")
+    hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
+)
 class Test_preprocess1(hunitest.TestCase):
     """
     Check that the output of convert_txt_to_pandoc.py is the expected one.
@@ -68,8 +68,8 @@ class Test_preprocess1(hunitest.TestCase):
 
 
 @pytest.mark.skipif(
-        hserver.is_inside_ci(),
-        reason="Disabled because of CmampTask10710")
+    hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
+)
 class Test_preprocess2(hunitest.TestCase):
     """
     Check that the output of convert_txt_to_pandoc.py is the expected one

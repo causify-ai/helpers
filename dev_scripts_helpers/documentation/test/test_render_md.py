@@ -3,6 +3,8 @@ import os
 import pytest
 from typing import List
 
+import pytest
+
 import dev_scripts_helpers.documentation.render_md as dshdremd
 import helpers.hio as hio
 import helpers.hserver as hserver
@@ -15,8 +17,8 @@ _LOG = logging.getLogger(__name__)
 
 
 @pytest.mark.skipif(
-        hserver.is_inside_ci(),
-        reason="Disabled because of CmampTask10710")
+    hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
+)
 class Test_render_md1(hunitest.TestCase):
     """
     Test _uml_file_names method that returns output paths.
@@ -35,8 +37,8 @@ class Test_render_md1(hunitest.TestCase):
 
 
 @pytest.mark.skipif(
-        hserver.is_inside_ci(),
-        reason="Disabled because of CmampTask10710")
+    hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
+)
 class Test_render_md2(hunitest.TestCase):
     """
     Test _get_render_command method that construct plantuml command.
@@ -67,8 +69,8 @@ class Test_render_md2(hunitest.TestCase):
 
 
 @pytest.mark.skipif(
-        hserver.is_inside_ci(),
-        reason="Disabled because of CmampTask10710")
+    hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
+)
 class Test_render_md3(hunitest.TestCase):
     """
     Test _render_plantuml method that adds strings with links to rendered

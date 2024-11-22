@@ -97,7 +97,7 @@ def apply_prompt(prompt_tag: str, txt: str) -> str:
         txt = add_docstring_one_shot_learning1(txt)
     elif prompt_tag == "typehints":
         txt = add_type_hints(txt)
-    elif prompt_tag== "rewrite_as_tech_writer":
+    elif prompt_tag == "rewrite_as_tech_writer":
         txt = rewrite_as_tech_writer(txt)
     elif prompt_tag == "improve_markdown_slide":
         txt = improve_markdown_slide(txt)
