@@ -32,12 +32,10 @@ services:
       # This env var is used by GH Action to signal that we are inside the CI.
       - CI=$CI
     image: ${IMAGE}
-
     # This is needed:
     # - for Docker-in-docker (dind)
     # - to mount fstabs
     privileged: true
-
     restart: "no"
     volumes:
       # TODO(gp): We should pass the value of $HOME from dev.Dockerfile to here.
@@ -45,20 +43,17 @@ services:
       - ~/.aws:/home/.aws
       - ~/.config/gspread_pandas/:/home/.config/gspread_pandas/
       - ~/.config/gh:/home/.config/gh
-
     # Default network mode set to host so we can reach e.g.
     # a database container pointing to localhost:5432.
     # In tests we use dind so we need set back to the default "bridge".
     # See CmTask988 and https://stackoverflow.com/questions/24319662
     network_mode: ${NETWORK_MODE:-host}
-
   # Mount `amp` when it is used as supermodule.
   app:
     extends:
       base_app
     volumes:
       - ../../:/app
-
   linter:
     extends:
       base_app
@@ -69,7 +64,6 @@ services:
       # Use the `repo_config.py` inside the dev_tools container instead of
       # the one in the calling repo.
       - AM_REPO_CONFIG_PATH=/app/repo_config.py
-
   jupyter_server:
     command: devops/docker_run/run_jupyter_server.sh
     environment:

@@ -39,15 +39,26 @@ source devops/docker_run/docker_setenv.sh
 # Allow working with files outside a container.
 #umask 000
 
+# Configure Docker.
 # Enable dind unless the user specifies otherwise (needed for prod image).
 if [[ -z "$AM_ENABLE_DIND" ]]; then
     AM_ENABLE_DIND=1
     echo "AM_ENABLE_DIND=$AM_ENABLE_DIND"
 fi;
 
-#if [[ $AM_ENABLE_DIND == 1 ]]; then
-if [[ $AM_ENABLE_DIND == "TODO(Juraj): , HelpersTask16." ]]; then
+if [[ $AM_ENABLE_DIND == 1 ]]; then
     set_up_docker_in_docker
+fi;
+
+DOCKER_DIR="/var/run/docker.sock"
+if [[ -e $DOCKER_DIR  ]]; then
+    # Give permissions to run docker without sudo.
+    echo "Setting sudo docker permissions"
+    ls -l $DOCKER_DIR
+    sudo chmod a+rw /var/run/docker.sock
+    ls -l $DOCKER_DIR
+else
+    echo "WARNING: $DOCKER_DIR doesn't exist"
 fi;
 
 # Mount other file systems.
@@ -77,11 +88,10 @@ if [[ $CK_TEST_SETUP ]]; then
     echo "helpers: $VAL"
 fi;
 
-echo "PATH=$PATH"
-echo "PYTHONPATH=$PYTHONPATH"
-echo "entrypoint.sh: '$@'"
-
 invoke print_env
 
-# TODO(gp): eval seems to be more general, but it creates a new executable.
+echo "PATH=$PATH"
+echo "PYTHONPATH=$PYTHONPATH"
+
+echo "entrypoint.sh: '$@'"
 eval "$@"
