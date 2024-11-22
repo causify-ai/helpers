@@ -88,6 +88,8 @@ if [[ $CK_TEST_SETUP ]]; then
     echo "helpers: $VAL"
 fi;
 
+invoke print_env
+
 echo "PATH=$PATH"
 echo "PYTHONPATH=$PYTHONPATH"
 

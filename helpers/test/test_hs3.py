@@ -13,6 +13,49 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 
+class TestReplaceStarWithDoubleStar(hunitest.TestCase):
+    def test1(self) -> None:
+        """
+        Test non replacement of a single asterisk at the end of the path.
+        """
+        pattern_to_modify = "s3://bucket/path/*"
+        new_pattern = hs3._replace_star_with_double_star(pattern_to_modify)
+        self.assert_equal(new_pattern, "s3://bucket/path/*")
+
+    def test2(self) -> None:
+        """
+        Test replacement of a single asterisk within the path.
+        """
+        pattern_to_modify = "s3://bucket/path/*/file"
+        new_pattern = hs3._replace_star_with_double_star(pattern_to_modify)
+        self.assert_equal(new_pattern, "s3://bucket/path/**/*/file")
+
+    def test3(self) -> None:
+        """
+        Test no replacement when there are no asterisks in the path.
+        """
+        pattern_to_modify = "s3://bucket/path/file"
+        new_pattern = hs3._replace_star_with_double_star(pattern_to_modify)
+        self.assert_equal(new_pattern, "s3://bucket/path/file")
+
+    def test4(self) -> None:
+        """
+        Test replacement when multiple asterisk are in the path.
+        """
+        pattern_to_modify = "s3://bucket/*/path/*"
+        new_pattern = hs3._replace_star_with_double_star(pattern_to_modify)
+        self.assert_equal(new_pattern, "s3://bucket/**/*/path/*")
+
+    def test5(self) -> None:
+        """
+        Test non-replacement of asterisk at the end of the path in a special
+        case.
+        """
+        pattern_to_modify = "s3://bucket/*/path/csv*"
+        new_pattern = hs3._replace_star_with_double_star(pattern_to_modify)
+        self.assert_equal(new_pattern, "s3://bucket/**/*/path/csv*")
+
+
 @pytest.mark.requires_ck_infra
 @pytest.mark.requires_aws
 @pytest.mark.skipif(

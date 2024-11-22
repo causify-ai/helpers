@@ -299,8 +299,8 @@ def system(
         - return code as int
         - output of the command as str
     """
-    print("cmd=", cmd)
-    print("suppress_output=", suppress_output)
+    #print("cmd=", cmd)
+    #print("suppress_output=", suppress_output)
     cmd = hprint.dedent(cmd)
     rc, _ = _system(
         cmd,

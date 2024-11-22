@@ -60,17 +60,17 @@ def _encrypt_input_dir(
     group_id_cmd = "id -g"
     _, group_id = hsystem.system_to_string(group_id_cmd)
     # Check the expected Python version.
+    # TODO(gp): Potentially we could install pyarmor on top of the Dev
+    #  container to guarantee that the generated code is compatible with the
+    #  Python inside the Dev container. For now we just enforce the version of
+    #  Python to be the same as the Dev container.
+    exp_python_version = "3.12.3"
     # TODO(gp): Add a switch to skip, since it is a slow check.
-    exp_python_version = "3.9.5"
     if False:
         act_python_version = _get_python_version_in_docker()
         # Python version in docker should be same as Python version used to encrypt.
         hdbg.dassert_eq(act_python_version, exp_python_version)
     # Create temporary Dockerfile.
-    # TODO(gp): Potentially we could install pyarmor on top of the Dev
-    #  container to guarantee that the generated code is compatible with the
-    #  Python inside the Dev container. For now we just enforce the version of
-    #  Python to be the same as the Dev container.
     temp_dockerfile_path = "./tmp.encrypt_model.Dockerfile"
     with open(temp_dockerfile_path, "w") as temp_dockerfile:
         if hserver.is_mac():
@@ -108,7 +108,9 @@ def _encrypt_input_dir(
     work_dir = os.getcwd()
     docker_output_dir = "/app"
     mount = f"type=bind,source={work_dir},target={docker_output_dir}"
-    encryption_flow = f"pyarmor-7 obfuscate --restrict=0 --recursive {input_dir} --output {output_dir}"
+    # Use `-i` option to store the runtime folder inside the target dir, this way we do not
+    # need to tweak init files.
+    encryption_flow = f"pyarmor gen -i --recursive {input_dir} --output {output_dir}"
     if docker_build_target is not None:
         docker_cmd = f"docker run --rm -it --user {user_id}:{group_id} --platform {docker_build_target} --workdir {docker_output_dir} --mount {mount} {docker_image_tag} {encryption_flow}"
     else:
@@ -120,6 +122,14 @@ def _encrypt_input_dir(
     hdbg.dassert_lt(
         0, n_files, "No files in output_dir=`%s`", output_dir
     )
+    # For some reason `pyarmor` encrypts the data to `encrypted_pipelines/pipelines` 
+    # instead of just `encrypted_pipelines`, same with `core_lem`, e.g., `encrypted_core_lem/core_lem`
+    # instead of just `core_lem`. 
+    # TODO(Grisha): can we fix that on pyarmor level?
+    # E.g., extract `pipelines` from `dataflow_lemonade/pipelines` and `core_lem` from `core_lem`.
+    last_dir = os.path.basename(os.path.normpath(input_dir))
+    mv_cmd = f"mv {output_dir}/{last_dir}/* {output_dir}"
+    (_, output) = hsystem.system_to_string(mv_cmd)
     _LOG.info(
         "Encrypted model successfully stored in output_dir='%s'",
         output_dir,
@@ -151,21 +161,21 @@ def _tweak_init(encrypted_dir: str) -> None:
     :param encrypted_dir: encrypted model directory (e.g.
         dataflow_amp/pipelines)
     """
-    # Generate absolute path of `pytransform` import.
+    # Generate absolute path of `pyarmor_runtime_000000` import.
     encrypted_model_import_path = encrypted_dir.strip("/")
     encrypted_model_import_path = encrypted_model_import_path.replace("/", ".")
     pytransform_import_path = ".".join(
-        [encrypted_model_import_path, "pytransform"]
+        [encrypted_model_import_path, "pyarmor_runtime_000000"]
     )
     pytransform_import = f"from {pytransform_import_path} import pyarmor_runtime; pyarmor_runtime()"
     # Find all `__init__.py` under encrypted model directory except for the one
-    # under `pytransform`.
+    # under `pyarmor_runtime_000000`.
     cmd = f'find {encrypted_dir} -name "__init__.py"'
     _, init_files = hsystem.system_to_string(cmd)
     files = init_files.split("\n")
     for f in files:
         file_path = pathlib.Path(f)
-        if file_path.parent.name != "pytransform":
+        if file_path.parent.name != "pyarmor_runtime_000000":
             data = hio.from_file(f)
             lines = "\n".join([pytransform_import, data])
             hio.to_file(f, lines)
@@ -307,19 +317,23 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _encrypt_input_dir(
         input_dir, output_dir, args.build_target, args.docker_image_tag
     )
+    # TODO(Grisha): in `pyarmor v9.x` tweaking init files does not seem necessary, 
+    # make sure to utilize `-i` option when running `pyarmor gen ...` this way it 
+    # will put the runtime folder inside the target dir and this step is not needed;
+    # keeping it here just as a reference.
     # 3) Tweak `__init__.py` file.
-    _LOG.info("\n" + hprint.frame("3) Fix init files"))
-    _tweak_init(output_dir)
+    # _LOG.info("\n" + hprint.frame("3) Fix init files"))
+    # _tweak_init(output_dir)
     # 4) Test encrypted model.
     if args.test:
-        _LOG.info("\n" + hprint.frame("4) Test encrypted model"))
+        _LOG.info("\n" + hprint.frame("3) Test encrypted model"))
         model_dag_builder_file_enc = os.path.join(
             output_dir, args.model_dag_builder_file
         )
         _test_model(args.model_dag_builder, model_dag_builder_file_enc)
     # 5) Release encrypted model.
     if args.release_dir:
-        _LOG.info("\n" + hprint.frame("5) Release encrypted model"))
+        _LOG.info("\n" + hprint.frame("4) Release encrypted model"))
         # Copy the encrypted files to the release dir and add them to Git,
         # removing the old files.
         hio.create_dir(args.release_dir, incremental=True)
@@ -327,19 +341,15 @@ def _main(parser: argparse.ArgumentParser) -> None:
         _, release_git_root = hsystem.system_to_string(
             f"cd {args.release_dir}; git rev-parse --show-toplevel"
         )
-        # - Remove the old files from Git.
-        # E.g., cd /data/saggese/src/orange1; git rm -rf --ignore-unmatch dataflow_lemonade/encrypted_pipeline
-        release_base_dir = os.path.relpath(args.release_dir, release_git_root)
-        _, output = hsystem.system_to_string(
-            f"cd {release_git_root}; git rm -rf --ignore-unmatch {release_base_dir}"
-        )
         # - Copy the encrypted dir in the target dir.
-        # E.g., cp -r /data/saggese/src_vc/lemonade1/dataflow_lemonade/encrypted_pipelines /data/saggese/src/orange1/dataflow_lemonade/encrypted_pipeline
         input_dir_tmp = os.path.abspath(output_dir)
         # We need to move the encrypted code in the same place as the original
         # code in the release tree.
         output_dir_tmp = os.path.abspath(args.release_dir)
-        _, output = hsystem.system_to_string(f"cp -r {input_dir_tmp} {output_dir_tmp}")
+        # Add trailing slashes so that the machine treats them as folders.
+        # Use the `--delete` option to delete all files from target that are not in source; we
+        # assume that the source repo contains the latest state.
+        _, output = hsystem.system_to_string(f"rsync -a --delete {input_dir_tmp}/ {output_dir_tmp}/")
         # ls /data/saggese/src_vc/lemonade1/dataflow_lemonade/encrypted_pipelines
         cmd = f"ls {input_dir_tmp}"
         hsystem.system(cmd, suppress_output=False)
@@ -348,6 +358,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         hsystem.system(cmd, suppress_output=False)
         # - Add the encrypted files back to Git.
         # E.g., cd /data/saggese/src/orange1; git add dataflow_lemonade/encrypted_pipeline
+        release_base_dir = os.path.relpath(args.release_dir, release_git_root)
         _, output = hsystem.system_to_string(
             f"cd {release_git_root}; git add {release_base_dir}"
         )
@@ -356,8 +367,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
         # - Change the paths.
         # E.g., from dataflow_lemonade.encrypted_pipelines.pytransform import pyarmor_runtime; pyarmor_runtime()
         # TODO(gp): Remove the overfit to the dir name and the old/new names.
-        cmd = f'replace_text.py --only_dirs {release_git_root}/dataflow_lemonade --old "encrypted_pipelines" --new "pipelines"'
-        hsystem.system(cmd)
+        # TODO(Grisha): this step is not needed as we do not tweak init files anymore.
+        # cmd = f'replace_text.py --only_dirs {release_git_root}/dataflow_lemonade --old "encrypted_pipelines" --new "pipelines"'
+        # hsystem.system(cmd)
         # TODO(gp): Test in the release dir
         # python -c "import dataflow_lemonade.pipelines.C11.C11a_pipeline as f; a = f.C11a_DagBuilder(); print(a)"
 
