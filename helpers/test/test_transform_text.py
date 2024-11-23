@@ -25,8 +25,18 @@ class Test_remove_latex_formatting1(hunitest.TestCase):
           \textcolor{violet}{data is all that matters}.
         """
         txt = hprint.dedent(txt)
-        exp = """
-        """
+        exp = r"""
+        - If there is no pattern, we can try learning:
+          - Measure if learning works.
+          - In the worst case, conclude that it
+            does not work.
+        - If we can find the solution in one step or
+          program the solution:
+          - Machine learning is not the recommended
+            technique, but it still works.
+        - Without data, we cannot do anything:
+          data is all that matters."""
+        exp = hprint.dedent(exp)
         act = uut.remove_latex_formatting(txt)
         self.assert_equal(act, exp)
 
