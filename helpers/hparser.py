@@ -551,3 +551,15 @@ def add_dockerized_script_arg(
         action="store_true",
         help="Use sudo inside the container",
     )
+
+
+def add_transform_arg(
+    parser: argparse.ArgumentParser,
+) -> argparse.ArgumentParser:
+    parser.add_argument(
+        "-d", "--debug", action="store_true",
+        help="Print before/after the transform"
+    )
+    parser.add_argument(
+        "-t", "--transform", required=True, type=str, help="Type of transform"
+    )

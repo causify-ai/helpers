@@ -43,6 +43,8 @@ import helpers.hprint as hprint
 _LOG = logging.getLogger(__name__)
 
 
+# TODO(gp): Move all these transform in helpers/transform_text.py
+
 def skip_comments(line: str, skip_block: bool) -> Tuple[bool, bool]:
     skip_this_line = False
     # Handle comment block.
@@ -180,16 +182,6 @@ def markdown_list_to_latex(markdown: str) -> str:
         txt = "\\begin{frame}{%s}" % title + "\n" + txt + "\n" + "\\end{frame}"
     return txt
 
-
-def remove_latex_formatting(latex_string: str) -> str:
-    """
-    Removes LaTeX formatting such as \textcolor{color}{content} and retains
-    only the content.
-    """
-    # Regex to match \textcolor{color}{content} and similar patterns
-    cleaned_string = re.sub(r'\\textcolor\{[^}]*\}\{([^}]*)\}', r'\1',
-                            latex_string)
-    return cleaned_string
 
 # #############################################################################
 
