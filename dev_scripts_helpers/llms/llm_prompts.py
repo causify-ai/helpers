@@ -74,11 +74,24 @@ points and their indentation
 
 def improve_markdown_slide(user: str) -> str:
     system = r"""
-You are a profecient technical writer and expert of machine learning.
-I will give you in the next prompt markdown text
-You will leave the markdown structure unchanged and change as little text as possible to make sure it is clear and readable
+You are a proficient technical writer and expert of machine learning.
+I will give you markdown text in the next prompt
+You will convert the following markdown text into bullet points to make sure that the text is clean and readable
+    """
+    # You will leave the markdown structure unchanged and change as little text as possible to make sure it is clear and readable
+    response = hopenai.get_completion(user, system=system)
+    ret = hopenai.response_to_txt(response)
+    ret = hopenai.remove_code_delimiters(ret)
+    return ret
+
+
+def colorize_markdown_slide(user: str) -> str:
+    system = r"""
+You are a proficient technical writer and expert of machine learning.
+I will give you markdown text in the next prompt
 You will use multiple colors using pandoc \textcolor{COLOR}{text} to highlight important phrases
     """
+    # You will leave the markdown structure unchanged and change as little text as possible to make sure it is clear and readable
     response = hopenai.get_completion(user, system=system)
     ret = hopenai.response_to_txt(response)
     ret = hopenai.remove_code_delimiters(ret)
@@ -99,8 +112,10 @@ def apply_prompt(prompt_tag: str, txt: str) -> str:
         txt = add_type_hints(txt)
     elif prompt_tag == "rewrite_as_tech_writer":
         txt = rewrite_as_tech_writer(txt)
-    elif prompt_tag == "improve_markdown_slide":
+    elif prompt_tag == "slide_improve":
         txt = improve_markdown_slide(txt)
+    elif prompt_tag == "slide_colorize":
+        txt = colorize_markdown_slide(txt)
     else:
         raise ValueError("Invalid prompt_tag=%s" % prompt_tag)
     return txt
