@@ -11,11 +11,12 @@ _LOG = logging.getLogger(__name__)
 # Prompts.
 # #############################################################################
 
-def format_markdown(user: str) -> str:
+def format_markdown(user: str, model: str) -> str:
+    _ = model
     return user
 
 
-def code_comment(user: str) -> str:
+def code_comment(user: str, model: str) -> str:
     system = """
 You are a proficient Python coder.
 I will pass you a chunk of Python code.
@@ -35,7 +36,7 @@ Comments should be in imperative form, a full English phrase, and end with a per
     return ret
 
 
-def code_docstring(user: str) -> str:
+def code_docstring(user: str, model: str) -> str:
     system = """
 You are a proficient Python coder.
 I will pass you a chunk of Python code.
@@ -49,7 +50,7 @@ To describe the parameters use the REST style, which requires each parameter to 
     return ret
 
 
-def code_type_hints(user: str) -> str:
+def code_type_hints(user: str, model: str) -> str:
     system = """
 You are a proficient Python coder.
 Add type hints to the function passed.
@@ -79,7 +80,7 @@ self.assert_equal(act, exp)
     return system
 
 
-def code_unit_test(user: str) -> str:
+def code_unit_test(user: str, model: str) -> str:
     system = _get_code_unit_test_prompt(5)
     response = hopenai.get_completion(user, system=system)
     ret = hopenai.response_to_txt(response)
@@ -87,7 +88,7 @@ def code_unit_test(user: str) -> str:
     return ret
 
 
-def code_1_unit_test(user: str) -> str:
+def code_1_unit_test(user: str, model: str) -> str:
     system = _get_code_unit_test_prompt(1)
     response = hopenai.get_completion(user, system=system)
     ret = hopenai.response_to_txt(response)
@@ -97,7 +98,7 @@ def code_1_unit_test(user: str) -> str:
 # #############################################################################
 
 
-def rewrite_as_tech_writer(user: str) -> str:
+def md_rewrite(user: str, model: str) -> str:
     system = """
 You are a proficient technical writer.
 Rewrite the text passed as if you were writing a technical document to increase
@@ -105,19 +106,21 @@ clarity and readability.
 Maintain the structure of the text as much as possible, in terms of bullet
 points and their indentation
     """
-    response = hopenai.get_completion(user, system=system)
+    response = hopenai.get_completion(user, system=system, model=model)
     ret = hopenai.response_to_txt(response)
     ret = hopenai.remove_code_delimiters(ret)
     return ret
 
 
-def improve_markdown_slide(user: str) -> str:
+def slide_improve(user: str, model: str) -> str:
     system = r"""
 You are a proficient technical writer and expert of machine learning.
 I will give you markdown text in the next prompt
-You will convert the following markdown text into bullet points to make sure that the text is clean and readable
+You will convert the following markdown text into bullet points
+Make sure that the text is clean and readable
     """
-    response = hopenai.get_completion(user, system=system)
+    # Use imperative form for the bullet points
+    response = hopenai.get_completion(user, system=system, model=model)
     ret = hopenai.response_to_txt(response)
     ret = hopenai.remove_code_delimiters(ret)
     ret = transform_text.remove_end_of_line_periods(ret)
@@ -125,13 +128,13 @@ You will convert the following markdown text into bullet points to make sure tha
     return ret
 
 
-def colorize_markdown_slide(user: str) -> str:
+def slide_colorize(user: str, model: str) -> str:
     system = r"""
 You are a proficient technical writer and expert of machine learning.
 I will give you markdown text in the next prompt
 You will use multiple colors using pandoc \textcolor{COLOR}{text} to highlight important phrases
     """
-    response = hopenai.get_completion(user, system=system)
+    response = hopenai.get_completion(user, system=system, model=model)
     ret = hopenai.response_to_txt(response)
     ret = hopenai.remove_code_delimiters(ret)
     return ret
@@ -141,8 +144,8 @@ You will use multiple colors using pandoc \textcolor{COLOR}{text} to highlight i
 # #############################################################################
 
 
-def apply_prompt(prompt_tag: str, txt: str) -> str:
+def apply_prompt(prompt_tag: str, txt: str, model: str) -> str:
     _ = prompt_tag, txt
-    python_cmd = f"{prompt_tag}(txt)"
+    python_cmd = f"{prompt_tag}(txt, model)"
     ret = eval(python_cmd)
     return ret

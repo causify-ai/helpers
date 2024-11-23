@@ -43,7 +43,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Transform with LLM.
     txt_tmp = "\n".join(txt)
     transform = args.transform
-    txt_tmp = dshlllpr.apply_prompt(transform, txt_tmp)
+    if args.fast_model:
+        model = "gpt-4o-mini"
+    else:
+        model = "gpt-4o"
+    txt_tmp = dshlllpr.apply_prompt(transform, txt_tmp, model)
     # Write file.
     res = []
     if args.debug:

@@ -563,3 +563,7 @@ def add_transform_arg(
     parser.add_argument(
         "-t", "--transform", required=True, type=str, help="Type of transform"
     )
+    parser.add_argument(
+        "-f", "--fast_model", action="store_true",
+        help="Use a fast LLM model vs a high-quality one"
+    )
