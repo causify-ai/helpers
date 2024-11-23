@@ -29,7 +29,7 @@ class Test_remove_latex_formatting1(hunitest.TestCase):
         self.assert_equal(act, exp)
 
 
-class TestRemoveEndOfLinePeriods(hunittest.TestCase):
+class TestRemoveEndOfLinePeriods(hunitest.TestCase):
 
     def test_standard_case(self):
         txt = "Hello.\nWorld.\nThis is a test."
