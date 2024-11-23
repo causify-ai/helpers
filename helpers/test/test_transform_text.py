@@ -1,5 +1,6 @@
 import logging
 
+import helpers.hprint as hprint
 import helpers.transform_text as uut
 import helpers.hunit_test as hunitest
 
@@ -11,7 +12,7 @@ _LOG = logging.getLogger(__name__)
 
 class Test_remove_latex_formatting1(hunitest.TestCase):
     def test1(self) -> None:
-        txt = """
+        txt = r"""
         - If there is \textcolor{red}{no pattern}, we can try learning:
           - Measure if \textcolor{blue}{learning works}.
           - In the \textcolor{orange}{worst case}, conclude that it
@@ -23,6 +24,7 @@ class Test_remove_latex_formatting1(hunitest.TestCase):
         - Without \textcolor{magenta}{data}, we cannot do anything:
           \textcolor{violet}{data is all that matters}.
         """
+        txt = hprint.dedent(txt)
         exp = """
         """
         act = uut.remove_latex_formatting(txt)
