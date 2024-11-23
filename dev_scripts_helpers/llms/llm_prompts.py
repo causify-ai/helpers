@@ -78,6 +78,7 @@ self.assert_equal(act, exp)
 """
     return system
 
+
 def code_unit_test(user: str) -> str:
     system = _get_code_unit_test_prompt(5)
     response = hopenai.get_completion(user, system=system)
@@ -142,28 +143,6 @@ You will use multiple colors using pandoc \textcolor{COLOR}{text} to highlight i
 
 def apply_prompt(prompt_tag: str, txt: str) -> str:
     _ = prompt_tag, txt
-    python_cmd = f"txt = {prompt_tag}(txt)"
-    try:
-        exec(python_cmd)
-    except NameError:
-        _LOG.error(f"Invalid prompt_tag={prompt_tag}")
-        sys.exit(1)
-    # if prompt_tag == "format_markdown":
-    #     pass
-    # elif prompt_tag == "code_comment":
-    #     txt = code_comment(txt)
-    # elif prompt_tag == "code_docstring":
-    #     txt = code_docstring(txt)
-    # elif prompt_tag == "code_unit_test":
-    #     txt = code_unit_test(txt)
-    # elif prompt_tag == "code_typehints":
-    #     txt = code_type_hints(txt)
-    # elif prompt_tag == "rewrite_as_tech_writer":
-    #     txt = rewrite_as_tech_writer(txt)
-    # elif prompt_tag == "slide_improve":
-    #     txt = improve_markdown_slide(txt)
-    # elif prompt_tag == "slide_colorize":
-    #     txt = colorize_markdown_slide(txt)
-    # else:
-    #     raise ValueError("Invalid prompt_tag=%s" % prompt_tag)
-    return txt
+    python_cmd = f"{prompt_tag}(txt)"
+    ret = eval(python_cmd)
+    return ret
