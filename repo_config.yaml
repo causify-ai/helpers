@@ -3,6 +3,8 @@ repo_info:
   github_repo_account: kaizen-ai
   github_host_name: github.com
   invalid_words:
+  issue_prefix: HlprTask
+  # AmpTask, DevToolsTask
 
 docker_info:
   docker_image_name: helpers

@@ -103,8 +103,8 @@ class RepoConfig:
             with open(file_name, "r") as file:
                 # Use `safe_load()` to avoid executing arbitrary code.
                 data = yaml.safe_load(file)
-                assert(isinstance(data, dict), "data=\n%s\nis not a dict",
-                       str(data))
+                assert isinstance(data, dict), ("data=\n%s\nis not a dict but %s",
+                       str(data), type(data))
         except Exception as e:
             raise f"Error reading YAML file {file_name}: {e}"
         return cls(data)
@@ -194,6 +194,19 @@ class RepoConfig:
             file_name = os.path.join(client_root, "repo_config.yaml")
             file_name = os.path.abspath(file_name)
         return file_name
+
+
+_repo_config = None
+
+
+def get_repo_config() -> RepoConfig:
+    """
+    Return the repo config object.
+    """
+    global _repo_config
+    if _repo_config is None:
+        _repo_config = RepoConfig.from_file()
+    return _repo_config
 
 # # #############################################################################
 #
