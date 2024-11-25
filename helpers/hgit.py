@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers_root.helpers.hgit as hrohehgi
+import helpers.hgit as hgit
 """
 
 import collections

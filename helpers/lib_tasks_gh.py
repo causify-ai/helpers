@@ -442,7 +442,7 @@ def gh_create_pr(  # type: ignore
         _LOG.warning("PR '%s' already exists: skipping creation", title)
     else:
         # Small feature to link the PR automatically to the branch.
-        issue_id = hgit.get_issue_id_from_branch_name(branch_name)
+        issue_id = hgit.extract_issue_number_from_branch(branch_name)
         if issue_id and issue_id not in body:
             body += f"\n\n#{issue_id}"
             _LOG.info("Added issue id %s to the PR body", issue_id)
