@@ -165,8 +165,7 @@ def find_git_root(path: str = ".") -> str:
                             os.path.join(path, git_dir, "..", "..")
                         )
         parent = os.path.dirname(path)
-        if parent == path:
-            return None
+        hdbg.dassert_ne(parent, path)
         path = parent
     return path
 
