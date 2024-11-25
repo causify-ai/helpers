@@ -417,39 +417,39 @@ class Test_find_docker_file1(hunitest.TestCase):
 # #############################################################################
 
 
-class Test_extract_issue_number_from_branch(hunitest.TestCase):
-    def test_extract_issue_number_from_branch1(self) -> None:
+class Test_extract_gh_issue_number_from_branch(hunitest.TestCase):
+    def test_extract_gh_issue_number_from_branch1(self) -> None:
         """
         Tests extraction from a branch name with a specific format.
         """
         branch_name = "CmampTask10725_Add_more_tabs_to_orange_tmux"
-        act = hgit.extract_issue_number_from_branch(branch_name)
+        act = hgit.extract_gh_issue_number_from_branch(branch_name)
         exp = 10725
         self.assert_equal(act, exp)
 
-    def test_extract_issue_number_from_branch2(self) -> None:
+    def test_extract_gh_issue_number_from_branch2(self) -> None:
         """
         Tests extraction from another branch name format.
         """
         branch_name = "HelpersTask23_Add_more_tabs_to_orange_tmux"
-        act = hgit.extract_issue_number_from_branch(branch_name)
+        act = hgit.extract_gh_issue_number_from_branch(branch_name)
         exp = 23
         self.assert_equal(act, exp)
 
-    def test_extract_issue_number_from_branch3(self) -> None:
+    def test_extract_gh_issue_number_from_branch3(self) -> None:
         """
         Tests extraction from a short branch name format.
         """
         branch_name = "CmTask3434"
-        act = hgit.extract_issue_number_from_branch(branch_name)
+        act = hgit.extract_gh_issue_number_from_branch(branch_name)
         exp = 3434
         self.assert_equal(act, exp)
 
-    def test_extract_issue_number_from_branch4(self) -> None:
+    def test_extract_gh_issue_number_from_branch4(self) -> None:
         """
         Tests behavior when no issue number is present in the branch name.
         """
         branch_name = "NoTaskNumberHere"
-        act = hgit.extract_issue_number_from_branch(branch_name)
+        act = hgit.extract_gh_issue_number_from_branch(branch_name)
         exp = None
         self.assert_equal(act, exp)

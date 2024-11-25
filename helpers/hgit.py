@@ -49,9 +49,9 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-def extract_issue_number_from_branch(branch_name: str) -> Optional[int]:
+def extract_gh_issue_number_from_branch(branch_name: str) -> Optional[int]:
     """
-    Extract the issue number from a branch name.
+    Extract the GitHub issue number from a branch name.
 
     Example:
     CmampTask10725_Add_more_tabs_to_orange_tmux -> 10725
@@ -65,7 +65,8 @@ def extract_issue_number_from_branch(branch_name: str) -> Optional[int]:
     """
     match = re.match(r".*Task_?(\d+)(?:_\w+)?", branch_name)
     if match:
-        return match.group(1)  # Return the captured number
+        # Return the captured number.
+        return int(match.group(1))
     return None
 
 
