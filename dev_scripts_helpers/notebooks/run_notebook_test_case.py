@@ -6,7 +6,6 @@ import dev_scripts_helpers.notebooks.run_notebook_test_case as dsnrnteca
 
 import logging
 
-import helpers.hgit as hgit
 import helpers.hjupyter as hjupyte
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest

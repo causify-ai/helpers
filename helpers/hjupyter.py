@@ -7,9 +7,8 @@ import helpers.hjupyter as hjupyte
 import os
 
 import helpers.hdbg as hdbg
-import helpers.hio as hio
-import helpers.hjupyter as hjupyte
 import helpers.hgit as hgit
+import helpers.hio as hio
 import helpers.hsystem as hsystem
 
 
@@ -24,8 +23,8 @@ def run_notebook(
 
     Assert if the notebook doesn't complete successfully.
 
-    :param file_name: path to the notebook to run. If this is a .py file,
-        convert to .ipynb first
+    :param file_name: path to the notebook to run. If this is a .py
+        file, convert to .ipynb first
     :param scratch_dir: temporary dir storing the output
     :param pre_cmd:
     """
@@ -59,7 +58,7 @@ def run_notebook(
 
 
 def build_run_notebook_cmd(
-        config_builder: str, dst_dir: str, notebook_path: str, *, extra_opts: str = ""
+    config_builder: str, dst_dir: str, notebook_path: str, *, extra_opts: str = ""
 ) -> str:
     """
     Constructs a command string to run dev_scripts/notebooks/run_notebook.py

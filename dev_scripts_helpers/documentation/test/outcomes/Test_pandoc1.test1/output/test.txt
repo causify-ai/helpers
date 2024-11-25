@@ -18,7 +18,7 @@
 \usepackage{tikz}
 \usepackage[pdf]{graphviz}
 \usetikzlibrary{shapes,arrows}
-\usepackage{musicography}
+%\usepackage{musicography}
 
 \usepackage{amssymb,amsmath}
 \usepackage{ifxetex,ifluatex}
@@ -248,7 +248,7 @@
   \item
     reST
   \item
-    Google (which is cross-language, e.g., C++, python, \ldots)
+    Google (which is cross-language, e.g., C++, python, \ldots{})
   \item
     epytext
   \item
@@ -439,8 +439,8 @@ comments}\label{avoid-distracting-comments}}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\CommentTok{\# Print results.}
-\NormalTok{log.info(}\StringTok{"Results are }\SpecialCharTok{\%s}\StringTok{"}\NormalTok{, ...)}
+\CommentTok{# Print results.}
+\NormalTok{log.info(}\StringTok{"Results are }\SpecialCharTok{%s}\StringTok{"}\NormalTok{, ...)}
 \end{Highlighting}
 \end{Shaded}
   \end{itemize}
@@ -609,7 +609,7 @@ _LOG.debug('cmd={cmd1} {cmd2} {cmd3}')
   \end{itemize}
 \end{itemize}
 
-\_LOG.warning(\ldots)
+\_LOG.warning(\ldots{})
 
 \begin{verbatim}
 ```
