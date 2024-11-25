@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+"""
+Import as:
+
+import documentation_devto.scripts.generate_latex_sty as ddsglast
+"""
+
 # To fix:
 # \bb
 # \XX
@@ -9,9 +15,10 @@
 import pprint
 import re
 import string
+from typing import Dict
 
 
-def _get_old_map():
+def _get_old_map() -> Dict[str, str]:
     r"""
     {'\\aaa': '\\vv{a}',
      '\\aalpha': '\\vv{\\alpha}',
@@ -86,19 +93,19 @@ def _get_old_map():
 \newcommand{\ZZ}{\mat{Z}}
 \newcommand{\WW}{\mat{W}}
 """
-    old_map = {}
-    for l in data.split("\n"):
-        if l.rstrip().lstrip() == "":
+    old_map_ = {}
+    for l_ in data.split("\n"):
+        if l_.rstrip().lstrip() == "":
             continue
-        m = re.match(r"\\newcommand{(\S+)}{(\S+)}", l)
-        assert m, "line=%s" % l
+        m = re.match(r"\\newcommand{(\S+)}{(\S+)}", l_)
+        assert m, f"line={l_}"
         # \vvarepsilon \varepsilon
-        # print("%s -> %s" % (m.group(1), m.group(2)))
-        old_map[m.group(1)] = m.group(2)
-    return old_map
+        # print(f"{m.group(1)} -> {m.group(2)}")
+        old_map_[m.group(1)] = m.group(2)
+    return old_map_
 
 
-def _get_new_map():
+def _get_new_map() -> Dict[str, str]:
     r"""
     Build a map from new abbreviations to the macro
         '\vvv' -> '\vv{v}'
@@ -118,7 +125,7 @@ def _get_new_map():
      '\\mD': '\\mat{D}',
      '\\mDelta': '\\mat{\\Delta}',
     """
-    new_map = {}
+    new_map_ = {}
     # Vector.
     if True:
         all_letters = list(string.ascii_letters)
@@ -154,13 +161,13 @@ def _get_new_map():
         for line in all_letters:
             if line == "v":
                 # \newcommand{\vvv}{\vv{v}}
-                new_map[r"\vvv"] = r"\vv{v}"
+                new_map_[r"\vvv"] = r"\vv{v}"
             elif line.startswith("\\"):
                 # \newcommand{\valpha}{\vv{\alpha}}
-                new_map[r"\v%s" % line[1:]] = r"\vv{%s}" % line
+                new_map_[rf"\v{line[1:]}"] = r"\vv{%s}" % line
             else:
                 # \newcommand{\va}{\vv{a}}
-                new_map[r"\v%s" % line] = r"\vv{%s}" % line
+                new_map_[rf"\v{line}"] = r"\vv{%s}" % line
 
     # Matrix.
     if True:
@@ -180,17 +187,17 @@ def _get_new_map():
             \Omega""".split()
             )
 
-        for l in all_letters:
-            if l.startswith("\\"):
+        for l_ in all_letters:
+            if l_.startswith("\\"):
                 # \newcommand{\valpha}{\vv{\alpha}}
-                new_map[r"\m%s" % l[1:]] = r"\mat{%s}" % l
+                new_map_[rf"\m{l_[1:]}"] = r"\mat{%s}" % l_
             else:
                 # \newcommand{\va}{\vv{a}}
-                new_map[r"\m%s" % l] = r"\mat{%s}" % l
-    return new_map
+                new_map_[rf"\m{l_}"] = r"\mat{%s}" % l_
+    return new_map_
 
 
-def generate_latex():
+def generate_latex() -> None:
     txt = []
     #
     map_ = _get_new_map()
@@ -207,11 +214,11 @@ def generate_latex():
     print(txt)
 
 
-def generate_vim_spell_check():
+def generate_vim_spell_check() -> None:
     print("# vim spell check.")
     txt = []
-    new_map = _get_new_map()
-    for k, v in sorted(new_map.items()):
+    new_map_ = _get_new_map()
+    for k, _ in sorted(new_map_.items()):
         arg1 = k.replace("\\", "")
         txt.append(arg1)
     #
@@ -226,7 +233,7 @@ def generate_vim_spell_check():
 # /////////////////////////////////////////////////////////////////////////////
 
 
-def generate_mathcal():
+def generate_mathcal() -> None:
     txt1 = []
     txt2 = []
     #
@@ -234,7 +241,7 @@ def generate_mathcal():
         # \def\calA{\mathcal{D}}
         cmd = r"\newcommand{\cal%s}{\mathcal{%s}}" % (k, k)
         txt1.append(cmd)
-        txt2.append("cal%s" % k)
+        txt2.append(f"cal{k}")
     #
     print("\n".join(txt1))
     print("\n".join(txt2))
@@ -242,8 +249,9 @@ def generate_mathcal():
 
 # /////////////////////////////////////////////////////////////////////////////
 
+
 # TODO(gp): This is probably not needed anymore.
-def generate_perl1():
+def generate_perl1() -> None:
     r"""
     Convert long form to old abbreviations.
 
@@ -252,13 +260,13 @@ def generate_perl1():
     perl -i -pe 's/\\vv\{X\}/\\vvX/g' $filename
     """
     print("# Convert long form to old abbreviations.")
-    old_map = _get_old_map()
-    for k, v in sorted(old_map.items()):
-        cmd = r"""perl -i -pe 's/%s/%s/g' $filename""" % (v, k)
+    old_map_ = _get_old_map()
+    for k, v in sorted(old_map_.items()):
+        cmd = rf"""perl -i -pe 's/{v}/{k}/g' $filename"""
         print(cmd)
 
 
-def generate_perl2():
+def generate_perl2() -> None:
     r"""
     Convert long form to new abbreviations.
 
@@ -267,15 +275,15 @@ def generate_perl2():
     perl -i -pe 's/\\vv\{X\}/\\vX/g' $filename
     """
     print("# Convert long form to new abbreviations.")
-    new_map = _get_new_map()
-    for k, v in sorted(new_map.items()):
+    new_map_ = _get_new_map()
+    for k, v in sorted(new_map_.items()):
         arg1 = v.replace("\\", "\\\\")
         arg2 = k.replace("\\", "\\\\")
-        cmd = r"""perl -i -pe 's/%s/%s/g' $filename""" % (arg1, arg2)
+        cmd = rf"""perl -i -pe 's/{arg1}/{arg2}/g' $filename"""
         print(cmd)
 
 
-def generate_perl3():
+def generate_perl3() -> None:
     r"""
     Generate perl from old to new abbreviations.
 
@@ -284,11 +292,11 @@ def generate_perl3():
     perl -i -pe 's/\\bb(?![RCNZ])/\\vb/g' $filename
     """
     print("# Generate perl from old to new abbreviations.")
-    new_map = _get_new_map()
-    rev_new_map = {v: k for k, v in new_map.items()}
-    old_map = _get_old_map()
-    for k, v in old_map.items():
-        new_macro = rev_new_map[old_map[k]]
+    new_map_ = _get_new_map()
+    rev_new_map = {v: k for k, v in new_map_.items()}
+    old_map_ = _get_old_map()
+    for k, v in old_map_.items():
+        new_macro = rev_new_map[v]
         # perl -i -pe 's/\\bb[^RCNZ]/\\vb/g' $filename
         arg1 = k.replace("\\", "\\\\")
         arg2 = new_macro.replace("\\", "\\\\")
@@ -297,7 +305,7 @@ def generate_perl3():
             arg1 += "(?![RCNZ])"
         elif arg1 in ("uu", "vvv", "xx"):
             arg1 += "(?!hat)"
-        cmd = r"""perl -i -pe 's/%s/%s/g' $filename""" % (arg1, arg2)
+        cmd = rf"""perl -i -pe 's/{arg1}/{arg2}/g' $filename"""
         print(cmd)
 
 

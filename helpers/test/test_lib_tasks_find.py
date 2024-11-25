@@ -186,7 +186,7 @@ class TestLibTasksRunTests1(hunitest.TestCase):
         file_name = hgit.find_file_in_git_tree("hunit_test.py")
         file_names = [file_name]
         act = hlitafin._find_test_decorator("qa", file_names)
-        exp = ['$GIT_ROOT/helpers/hunit_test.py']
+        exp = ["$GIT_ROOT/helpers/hunit_test.py"]
         self.assert_equal(str(act), str(exp), purify_text=True)
 
 

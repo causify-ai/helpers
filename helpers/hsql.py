@@ -14,7 +14,7 @@ if henv.has_module("psycopg2"):
     from helpers.hsql_implementation import *  # isort:skip  # noqa: F401,F403 # pylint: disable=unused-import,unused-wildcard-import,wildcard-import
 
 else:
-    from typing import Any
+    from typing import Any, List
 
     DbConnection = Any
 

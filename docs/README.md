@@ -1,3 +1,12 @@
+
+
+<!-- toc -->
+
+- [Readme](#readme)
+  * [File description](#file-description)
+
+<!-- tocstop -->
+
 # Readme
 
 - This file is the entrypoint of all the documentation and describes all the
@@ -22,8 +31,8 @@
   - Files are organized by directory (e.g., `docs`, `docs/work_tools`)
   - Each file name uses the Diataxis naming convention
   - Each file name should be linked to the corresponding file as always
-  - Files are organized in alphabetical order to make it easy to add more
-    files and see which file is missing
+  - Files are organized in alphabetical order to make it easy to add more files
+    and see which file is missing
   - Each file has a bullet lists summarizing its content using imperative mode
 
 - In `docs`
@@ -37,8 +46,8 @@
   - `all.create_a_super_repo_with_helpers.how_to_guide.md`
     - Describe how to create a super-repo including helpers
   - `all.create_a_runnable_dir.how_to_guide.md`
-    - Describe how to create a runnable dir, i.e., a directory that has code
-      and a Docker container to run its code inside
+    - Describe how to create a runnable dir, i.e., a directory that has code and
+      a Docker container to run its code inside
     - TODO(gp): Rename to "runnable dir"
   - `all.devops_docker.how_to_guide.md`
     - Describe how to run the devops Docker environment
@@ -46,4 +55,4 @@
     - Describe how the devops Docker environment works
   - `all.thin_environment.reference.md`
     - Describe how the "thin environment" works
-    - The thin environment is used to bootstrap the development system 
+    - The thin environment is used to bootstrap the development system

@@ -149,6 +149,7 @@ print_pip_package_ver() {
 
 activate_venv() {
     # Activate the virtual env under `$HOME/src/venv/client_venv.${venv_tag}`.
+    echo "# activate_venv()"
     local venv_tag=$1
     # Resolve the dir containing the Git client.
     # For now let's keep using the central version of /venv independenly of where
@@ -179,9 +180,9 @@ activate_venv() {
 
 
 set_path() {
+    echo "# set_path()"
     local dev_script_dir=$1
     dassert_dir_exists $dev_script_dir
-    echo "# Set PATH"
     export PATH=$(pwd):$PATH
     export PATH=$GIT_ROOT_DIR:$PATH
     # Add to the PATH all the first level directory under `dev_scripts`.
@@ -195,7 +196,7 @@ set_path() {
 
 
 set_pythonpath() {
-    echo "# Set PYTHONPATH"
+    echo "# set_pythonpath()"
     export PYTHONPATH=$(pwd):$PYTHONPATH
     # Remove duplicates.
     export PYTHONPATH=$(remove_dups $PYTHONPATH)
@@ -205,6 +206,7 @@ set_pythonpath() {
 
 
 configure_specific_project() {
+    echo "# configure_specific_project()"
     # AWS profiles which are propagated to Docker.
     export CK_AWS_PROFILE="ck"
 
@@ -239,16 +241,15 @@ configure_specific_project() {
 
 
 activate_docker_venv() {
-    echo "# Activate environment ..."
+    echo "# activate_docker_venv()"
     SOURCE_PATH="/${ENV_NAME}/bin/activate"
     check_file_exists $SOURCE_PATH
     source $SOURCE_PATH
-    echo "# Activate environment ... done"
 }
 
 
 set_up_docker_in_docker() {
-    echo "# Set up Docker-in-docker"
+    echo "# set_up_docker_in_docker()"
     if [[ ! -d /etc/docker ]]; then
         sudo mkdir /etc/docker
     fi;
@@ -293,6 +294,7 @@ set_up_docker_in_docker() {
 
 
 set_up_docker_git() {
+    echo "# set_up_docker_git()"
     VAL=$(git --version)
     echo "git --version: $VAL"
     # TODO(gp): Check https://github.com/alphamatic/amp/issues/2200#issuecomment-1101756708
@@ -309,7 +311,7 @@ set_up_docker_git() {
 
 
 set_up_docker_aws() {
-    echo "# Check AWS authentication setup"
+    echo "# set_up_docker_aws()"
     if [[ $AM_AWS_ACCESS_KEY_ID == "" ]]; then
         unset AM_AWS_ACCESS_KEY_ID
     else

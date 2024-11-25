@@ -128,7 +128,8 @@ def find_test_class(ctx, class_name, dir_name=".", pbcopy=True, exact_match=Fals
 
     :param class_name: the class to search
     :param dir_name: the dir from which to search (default: .)
-    :param pbcopy: save the result into the system clipboard (only on macOS)
+    :param pbcopy: save the result into the system clipboard (only on
+        macOS)
     """
     hlitauti.report_task(txt="class_name abs_dir pbcopy")
     hdbg.dassert(class_name != "", "You need to specify a class name")
