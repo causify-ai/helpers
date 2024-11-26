@@ -166,7 +166,7 @@ class Test_git_repo_name1(hunitest.TestCase):
         self.assert_equal(act, exp)
 
     def test_get_repo_name4(self) -> None:
-        full_name = "kaizen-ai/dev_tools"
+        full_name = "causify-ai/dev_tools"
         mode = "full_name"
         act = hgit.get_repo_name(full_name, mode)
         exp = "dev_tools"
@@ -195,8 +195,12 @@ class Test_git_repo_name1(hunitest.TestCase):
             return
         mode = "full_name"
         act = hgit.get_all_repo_names(mode)
-        exp = ["alphamatic/amp", "cryptokaizen/cmamp", "kaizen-ai/dev_tools",
-               "kaizen-ai/helpers"]
+        exp = [
+            "alphamatic/amp",
+            "causify-ai/cmamp",
+            "causify-ai/dev_tools",
+            "causify-ai/helpers",
+        ]
         self.assert_equal(str(act), str(exp))
 
     def test_get_repo_name_rountrip1(self) -> None:
@@ -227,46 +231,46 @@ class Test_git_path1(hunitest.TestCase):
         reason="Run only in amp as super-module",
     )
     def test_get_path_from_git_root1(self) -> None:
-        file_name = "/app/helpers/test/test_git.py"
+        file_name = "/app/helpers/test/test_hgit.py"
         act = hgit.get_path_from_git_root(file_name, super_module=True)
         _LOG.debug("get_path_from_git_root()=%s", act)
         # Check.
-        exp = "helpers/test/test_git.py"
+        exp = "helpers/test/test_hgit.py"
         self.assert_equal(act, exp)
 
     @pytest.mark.skipif(
         not hgit.is_in_amp_as_submodule(), reason="Run only in amp as sub-module"
     )
     def test_get_path_from_git_root2(self) -> None:
-        file_name = "/app/amp/helpers/test/test_git.py"
+        file_name = "/app/amp/helpers/test/test_hgit.py"
         act = hgit.get_path_from_git_root(file_name, super_module=True)
         _LOG.debug("get_path_from_git_root()=%s", act)
         # Check.
-        exp = "amp/helpers/test/test_git.py"
+        exp = "amp/helpers/test/test_hgit.py"
         self.assert_equal(act, exp)
 
     def test_get_path_from_git_root3(self) -> None:
-        file_name = "/app/amp/helpers/test/test_git.py"
+        file_name = "/app/amp/helpers/test/test_hgit.py"
         git_root = "/app"
         act = hgit.get_path_from_git_root(
             file_name, super_module=False, git_root=git_root
         )
         # Check.
-        exp = "amp/helpers/test/test_git.py"
+        exp = "amp/helpers/test/test_hgit.py"
         self.assert_equal(act, exp)
 
     def test_get_path_from_git_root4(self) -> None:
-        file_name = "/app/amp/helpers/test/test_git.py"
+        file_name = "/app/amp/helpers/test/test_hgit.py"
         git_root = "/app/amp"
         act = hgit.get_path_from_git_root(
             file_name, super_module=False, git_root=git_root
         )
         # Check.
-        exp = "helpers/test/test_git.py"
+        exp = "helpers/test/test_hgit.py"
         self.assert_equal(act, exp)
 
     def test_get_path_from_git_root5(self) -> None:
-        file_name = "helpers/test/test_git.py"
+        file_name = "helpers/test/test_hgit.py"
         git_root = "/app/amp"
         with self.assertRaises(ValueError):
             hgit.get_path_from_git_root(
@@ -324,30 +328,30 @@ class Test_git_modified_files1(hunitest.TestCase):
 class Test_find_docker_file1(hunitest.TestCase):
     def test1(self) -> None:
         """
-        Test for a file `amp/helpers/test/test_git.py` that is not from Docker
+        Test for a file `amp/helpers/test/test_hgit.py` that is not from Docker
         (i.e., it doesn't start with `/app`) and exists in the repo.
         """
         amp_dir = hgit.get_amp_abs_path()
         # Use this file since `find_docker_file()` needs to do a `find` in the
         # repo, and we need to have a fixed file structure.
-        file_name = hgit.find_file_in_git_tree("test_git.py")
+        file_name = hgit.find_file_in_git_tree("test_hgit.py")
         actual = hgit.find_docker_file(
             file_name,
             root_dir=amp_dir,
         )
-        expected = ["helpers/test/test_git.py"]
+        expected = ["helpers/test/test_hgit.py"]
         self.assert_equal(str(actual), str(expected), purify_text=True)
 
     def test2(self) -> None:
         """
-        Test for a file `/app/amp/helpers/test/test_git.py` that is from Docker
+        Test for a file `/app/amp/helpers/test/test_hgit.py` that is from Docker
         (i.e., it starts with `/app`) and exists in the repo.
         """
         amp_dir = hgit.get_amp_abs_path()
         # Use this file since `find_docker_file()` needs to do a `find` in the
         # repo, and we need to have a fixed file structure.
-        file_name = hgit.find_file_in_git_tree("test_git.py")
-        expected = ["helpers/test/test_git.py"]
+        file_name = hgit.find_file_in_git_tree("test_hgit.py")
+        expected = ["helpers/test/test_hgit.py"]
         actual = hgit.find_docker_file(
             file_name,
             root_dir=amp_dir,

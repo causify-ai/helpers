@@ -54,6 +54,8 @@ class Test_generate_compose_file1(hunitest.TestCase):
         )
         # Remove all the env variables that are function of the host.
         txt_tmp = hunitest.filter_text("AM_HOST_", txt_tmp)
+        txt_tmp = hunitest.filter_text("CK_GIT_ROOT_PATH", txt_tmp)
+        txt_tmp = hunitest.filter_text("OPENAI_API_KEY", txt_tmp)
         txt.append(txt_tmp)
         #
         txt = "\n".join(txt)
@@ -221,6 +223,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
     #                               ^^^^^^^^^^^^^
     # NameError: name 'ecr_base_path' is not defined
     if False:
+
         @pytest.mark.skipif(
             not hgit.is_in_amp_as_supermodule(),
             reason="Only run in amp as supermodule",

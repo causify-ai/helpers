@@ -205,6 +205,8 @@ def docker_build_local_image(  # type: ignore
         hlitauti.run(ctx, cmd)
     # Retrieve the package files, if present.
     if poetry_mode == "update":
+        # TODO(gp): Not sure it works properly for multi-arch build, since on
+        # different platforms the generated poetry.lock might be different.
         # TODO(gp): For some reason we can't use more than one bash command in
         # docker_cmd.
         cmd = "cp -f /install/poetry.lock.out /install/pip_list.txt ."
@@ -212,9 +214,9 @@ def docker_build_local_image(  # type: ignore
             "--stage local",
             f"--version {version}",
             f"--cmd '{cmd}'",
-            ]
+        ]
         opts.append("--skip-pull")
-        cmd = "invoke docker_cmd " + ' '.join(opts)
+        cmd = "invoke docker_cmd " + " ".join(opts)
         hlitauti.run(ctx, cmd)
         # The destination dir is always in the same relative position.
         dst_dir = "./devops/docker_build"
@@ -1007,8 +1009,7 @@ def docker_update_prod_task_definition(
     # Compose new prod image url.
     new_prod_image_url = hlitadoc.get_image(base_image, stage, prod_version)
     version = None
-    new_prod_image_url_no_version = hlitadoc.get_image(base_image, stage,
-        version)
+    new_prod_image_url_no_version = hlitadoc.get_image(base_image, stage, version)
     # Check if preprod tag exist in preprod task definition as precaution.
     preprod_task_definition_name = f"{task_definition}-preprod"
     preprod_image_url = haws.get_task_definition_image_url(

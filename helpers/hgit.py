@@ -149,22 +149,23 @@ def get_client_root(super_module: bool) -> str:
 
 
 # TODO(gp): Replace get_client_root with this.
-def find_git_root(path: str = '.') -> str:
+def find_git_root(path: str = ".") -> str:
     """
     Find recursively the dir of the outermost super module.
     """
     path = os.path.abspath(path)
-    while not os.path.isdir(os.path.join(path, '.git')):
-        git_dir_file = os.path.join(path, '.git')
+    while not os.path.isdir(os.path.join(path, ".git")):
+        git_dir_file = os.path.join(path, ".git")
         if os.path.isfile(git_dir_file):
-            with open(git_dir_file, 'r') as f:
+            with open(git_dir_file, "r") as f:
                 for line in f:
-                    if line.startswith('gitdir:'):
-                        git_dir = line.split(':', 1)[1].strip()
-                        return os.path.abspath(os.path.join(path, git_dir, '..', '..'))
+                    if line.startswith("gitdir:"):
+                        git_dir = line.split(":", 1)[1].strip()
+                        return os.path.abspath(
+                            os.path.join(path, git_dir, "..", "..")
+                        )
         parent = os.path.dirname(path)
-        if parent == path:
-            return None
+        hdbg.dassert_ne(parent, path)
         path = parent
     return path
 
@@ -231,6 +232,16 @@ def _is_repo(repo_short_name: str) -> bool:
     return get_repo_name(repo_full_name, in_mode="full_name") == repo_short_name
 
 
+def is_helpers() -> bool:
+    """
+    Return whether we are inside `helpers` repo.
+
+    Either as super module, or a sub module depending on a current
+    working directory.
+    """
+    return _is_repo("helpers")
+
+
 def is_amp() -> bool:
     """
     Return whether we are inside `amp` repo.
@@ -239,6 +250,14 @@ def is_amp() -> bool:
     working directory.
     """
     return _is_repo("amp") or _is_repo("cmamp") or _is_repo("sorr")
+
+
+def is_in_helpers_as_supermodule() -> bool:
+    """
+    Return whether we are in the `helpers` repo and it's a super-module, i.e.,
+    `helpers` by itself.
+    """
+    return is_helpers() and not is_inside_submodule(".")
 
 
 # TODO(gp): Be consistent with submodule and sub-module in the code. Same for
@@ -568,10 +587,8 @@ def _get_repo_short_to_full_name(include_host_name: bool) -> Dict[str, str]:
     # From short name to long name.
     repo_map = {
         "amp": "alphamatic/amp",
-        "dev_tools": "kaizen-ai/dev_tools",
-        # TODO(Juraj, GP): this was enabled but it breaks
-        # invoke docker_bash
-        "helpers": "kaizen-ai/helpers",
+        "dev_tools": "causify-ai/dev_tools",
+        "helpers": "causify-ai/helpers",
     }
     if include_host_name:
         host_name = "github.com"
@@ -600,7 +617,7 @@ def _get_repo_short_to_full_name(include_host_name: bool) -> Dict[str, str]:
         pprint.pformat(current_repo_map),
     )
     # Update the map.
-    #hdbg.dassert_not_intersection(repo_map.keys(), current_repo_map.keys())
+    # hdbg.dassert_not_intersection(repo_map.keys(), current_repo_map.keys())
     repo_map.update(
         get_repo_map()  # type: ignore[name-defined]  # noqa: F821  # pylint: disable=undefined-variable
     )
@@ -707,7 +724,7 @@ def find_file_in_git_tree(
     root_dir = get_client_root(super_module=super_module)
     cmd = rf"find {root_dir} -name '{file_name}' -not -path '*/.git/*'"
     if remove_tmp_base:
-        cmd += rf"-not -path '*/tmp\.base/*'"
+        cmd += rf" -not -path '*/tmp\.base/*'"
     _, file_name = hsystem.system_to_one_line(cmd)
     _LOG.debug("file_name=%s", file_name)
     hdbg.dassert_ne(
@@ -766,12 +783,15 @@ def get_amp_abs_path(remove_tmp_base: bool = True) -> str:
     """
     repo_sym_name = get_repo_full_name_from_client(super_module=False)
     _LOG.debug("repo_sym_name=%s", repo_sym_name)
+    #
     repo_sym_names = ["alphamatic/amp"]
     code = "get_extra_amp_repo_sym_name()"
     try:
         repo_sym_names.append(henv.execute_repo_config_code(code))
     except NameError:
         _LOG.debug("Can't execute the code '%s'", code)
+    _LOG.debug("repo_sym_names=%s", repo_sym_names)
+    #
     if repo_sym_name in repo_sym_names:
         # If we are in the amp repo, then the git client root is the amp
         # directory.
@@ -1254,6 +1274,10 @@ def is_client_clean(
     if "amp" in files:
         _LOG.warning("Skipping 'amp' in modified files")
         files = [f for f in files if "amp" != f]
+    elif "helpers_root" in files:
+        # Remove "helpers_root" from files.
+        _LOG.warning("Skipping 'helpers_root' in modified files")
+        files = [f for f in files if "helpers_root" != f]
     # A Git client is clean iff there are no files in the index.
     is_clean = len(files) == 0
     if abort_if_not_clean:
@@ -1322,7 +1346,7 @@ def does_branch_exist(
         # If there are no issues on the GitHub repo, just return.
         # ```
         # > gh pr list -s all --limit 1000
-        # no pull requests match your search in kaizen-ai/sports_analytics
+        # no pull requests match your search in causify-ai/sports_analytics
         # ```
         if txt == "":
             return False

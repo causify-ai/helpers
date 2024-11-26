@@ -42,6 +42,7 @@ def parse_traceback(
     """
     Parse a string containing text including a Python traceback.
 
+    :param txt: the text to parse
     :param purify_from_client: express the files with respect to the Git root
     :return:
     - a list of `CFILE_ROW`, e.g.,
@@ -152,19 +153,20 @@ def parse_traceback(
         ):
             # Extend the traceback to the lines with the error description.
             # E.g., for the snippet below:
-            # '''
+            # ```
             #    if repo_short_name == "amp":
             # NameError: name 'repo_short_name' is not defined
-            # '''
-            # If the parsed traceback stops at 'if repo_short_name == "amp":', and thus,
-            # its last line does not include the error description ("NameError:..."),
-            # and the following line does include the error description,
-            # then the traceback will be extended to include the following line,
-            # making the parsed traceback end with the following two lines:
-            # '''
+            # ```
+            # If the parsed traceback stops at 'if repo_short_name == "amp":',
+            # and thus, its last line does not include the error description
+            # ("NameError:..."), and the following line does include the error
+            # description, then the traceback will be extended to include the
+            # following line, making the parsed traceback end with the following
+            # two lines:
+            # ```
             #    if repo_short_name == "amp":
             # NameError: name 'repo_short_name' is not defined
-            # '''
+            # ```
             to_break = False
             while end_idx < len(lines) - 1 and not to_break:
                 end_idx += 1
