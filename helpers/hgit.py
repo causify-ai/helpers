@@ -1346,7 +1346,7 @@ def does_branch_exist(
         # If there are no issues on the GitHub repo, just return.
         # ```
         # > gh pr list -s all --limit 1000
-        # no pull requests match your search in kaizen-ai/sports_analytics
+        # no pull requests match your search in causify-ai/sports_analytics
         # ```
         if txt == "":
             return False
