@@ -6,6 +6,8 @@
   * [Devops to build, run, release a container](#devops-to-build-run-release-a-container)
   * [Detailed description of files](#detailed-description-of-files)
   * [Devops to run an already existing container](#devops-to-run-an-already-existing-container)
+  * [Switch variables definitions](#switch-variables-definitions)
+  * [Scenarios for setting switch variables](#scenarios-for-setting-switch-variables)
 - [Docker invoke flow](#docker-invoke-flow)
   * [`docker_bash`](#docker_bash)
   * [`docker_jupyter`](#docker_jupyter)
@@ -169,13 +171,6 @@
 - `helpers` as a super-repo
   - `IS_SUPER_REPO` = 0 (`helpers` is used as helpers)
   - `IS_SUB_DIR` = 0 (the runnable dir is at root level)
-
-- A runnable dir is super-repo (e.g. `cmamp`)
-  - `IS_SUPER_REPO` = 0 (`helpers` is used as helpers)
-  - `IS_SUB_DIR` = 0 (the runnable dir is at root level)
-  - TODO(\*): This is the current situation of `cmamp`. This case will be
-    eventually removed after we migrate from using `/cmamp/helpers` to using
-    `/helpers_root/helpers` as helpers.
 
 # Docker invoke flow
 
