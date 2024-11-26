@@ -128,7 +128,8 @@ def find_test_class(ctx, class_name, dir_name=".", pbcopy=True, exact_match=Fals
 
     :param class_name: the class to search
     :param dir_name: the dir from which to search (default: .)
-    :param pbcopy: save the result into the system clipboard (only on macOS)
+    :param pbcopy: save the result into the system clipboard (only on
+        macOS)
     """
     hlitauti.report_task(txt="class_name abs_dir pbcopy")
     hdbg.dassert(class_name != "", "You need to specify a class name")
@@ -201,7 +202,7 @@ def _find_short_import(iterator: Iterator, short_import: str) -> _FindResults:
 def _find_func_class_uses(iterator: Iterator, regex: str) -> _FindResults:
     regexs = []
     # E.g.,
-    # `dag_runner = dtfsys.RealTimeDagRunner(**dag_runner_kwargs)`
+    # `dag_runner = dtfamsys.RealTimeDagRunner(**dag_runner_kwargs)`
     regexs.append(rf"\s+(\w+)\.(\w*{regex})\(")
     # `dag_builder: dtfcodabui.DagBuilder`
     regexs.append(rf":\s*(\w+)\.(\w*{regex})")

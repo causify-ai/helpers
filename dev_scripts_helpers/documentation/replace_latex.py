@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+# pylint: disable=line-too-long
 """
 # Replace only:
 
@@ -7,6 +8,10 @@
 
 # Replace and check:
 > scripts/replace_latex.py -a pandoc_before -a replace -a pandoc_after --file notes/IN_PROGRESS/finance.portfolio_theory.txt
+
+Import as:
+
+import documentation_devto.scripts.replace_latex as ddscrela
 """
 
 import argparse
@@ -24,10 +29,10 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-def _standard_cleanup(in_file, aggressive):
-    # - Always use "you" instead of "one"
-    # - Try to make the wording as terse as possible
-    # - Always use $\cdot$
+def _standard_cleanup(in_file: str, aggressive: bool) -> None:
+    # - Always use "you" instead of "one".
+    # - Try to make the wording as terse as possible.
+    # - Always use $\cdot$.
     hdbg.dassert_path_exists(in_file)
     txt = hio.from_file(in_file).split("\n")
     out = []
@@ -70,15 +75,16 @@ def _standard_cleanup(in_file, aggressive):
                     "\\b" + s.capitalize() + "\\b", d.capitalize(), line
                 )
 
-            def _repl_func(m):
-                return m.group(1) + m.group(2).upper() + m.group(3)
+            def _repl_func(m: re.Match) -> str:
+                ret: str = m.group(1) + m.group(2).upper() + m.group(3)
+                return ret
 
             line = re.sub(r"^(\s*- )(\S)(.*)", _repl_func, line)
         # Remove spaces at the end of the line.
         line = re.sub(r"\s+$", "", line)
         out.append(line)
-    out = "\n".join(out)
-    hio.to_file(in_file, out)
+    out_str = "\n".join(out)
+    hio.to_file(in_file, out_str)
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -107,15 +113,15 @@ def _main(parser: argparse.ArgumentParser) -> None:
     if not isinstance(actions, list):
         actions = list(actions)
     if "checkout" in actions:
-        cmd = "git checkout -- %s" % args.file
+        cmd = f"git checkout -- {args.file}"
         _ = hsystem.system(cmd)
     if "pandoc_before" in actions:
-        cmd = "pandoc.py -a pdf --no_toc --no_open_pdf --input %s" % args.file
+        cmd = f"pandoc.py -a pdf --no_toc --no_open_pdf --input {args.file}"
         _ = hsystem.system(cmd)
     if "replace" in actions:
         _standard_cleanup(args.file, args.aggressive)
     if "pandoc_after" in actions:
-        cmd = "pandoc.py -a pdf --no_toc --no_open_pdf --input %s" % args.file
+        cmd = f"pandoc.py -a pdf --no_toc --no_open_pdf --input {args.file}"
         _ = hsystem.system(cmd)
 
 

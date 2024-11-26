@@ -1,14 +1,44 @@
+
+
+<!-- toc -->
+
+- [How to create a super-repo with `helpers`](#how-to-create-a-super-repo-with-helpers)
+  * [Create a new (super) repo in the desired organization](#create-a-new-super-repo-in-the-desired-organization)
+  * [Add helpers sub-repo](#add-helpers-sub-repo)
+  * [Copy and customize files](#copy-and-customize-files)
+  * [1) Copy and customize files in thin_client](#1-copy-and-customize-files-in-thin_client)
+  * [Create the thin environment](#create-the-thin-environment)
+  * [Test the thin environment](#test-the-thin-environment)
+  * [Create the tmux links](#create-the-tmux-links)
+  * [Maintain the files in sync with the template](#maintain-the-files-in-sync-with-the-template)
+  * [2) Copy and customize files in the top dir](#2-copy-and-customize-files-in-the-top-dir)
+  * [3) Copy and customize files in `devops`](#3-copy-and-customize-files-in-devops)
+    + [Build a container for a super-repo](#build-a-container-for-a-super-repo)
+    + [Check if the regressions are passing](#check-if-the-regressions-are-passing)
+  * [Configure regressions via GitHub actions](#configure-regressions-via-github-actions)
+    + [Set repository secrets/variables](#set-repository-secretsvariables)
+    + [Create GitHub actions workflow files](#create-github-actions-workflow-files)
+  * [Configure GitHub repo](#configure-github-repo)
+
+<!-- tocstop -->
+
 # How to create a super-repo with `helpers`
+
+## Create a new (super) repo in the desired organization
+
+- E.g. https://github.com/organizations/kaizen-ai/repositories/new
+  - The repository is set to private by default
 
 ## Add helpers sub-repo
 
-- Create the super-repo
+- Clone the super-repo locally
   ```
-  > git clone ...
+  > git clone git@github.com:kaizen-ai/repo_name.git ~/src/repo_name1
   ```
 
 - Add `helpers` as sub-repo
   ```bash
+  > cd ~/src/rpeo_name1
   > git submodule add git@github.com:kaizen-ai/helpers.git helpers_root
   > git submodule init
   > git submodule update
@@ -18,13 +48,14 @@
 
 ## Copy and customize files
 
-- The script `dev_scripts_helpers/thin_client/sync_super_repo.sh`
-  allows to vimdiff / cp files across a super-repo and its `helpers` dir
+- The script `dev_scripts_helpers/thin_client/sync_super_repo.sh` allows to
+  vimdiff / cp files across a super-repo and its `helpers` dir
 - Conceptually we need to copy and customize the files in
-  1) `thin_client` (one can reuse the thin client across repos)
-  2) the top dir (to run `pytest`, ...)
-  3) `devops` (to build the dev and prod containers)
-  4) `.github/workflows` (to run the GitHub regressions)
+
+  1. `thin_client` (one can reuse the thin client across repos)
+  2. The top dir (to run `pytest`, ...)
+  3. `devops` (to build the dev and prod containers)
+  4. `.github/workflows` (to run the GitHub regressions)
 
 - After copying the files you can search for the string `xyz` to customize
 
@@ -35,6 +66,7 @@
 ## 1) Copy and customize files in thin_client
 
 - Create the `dev_script` dir based off the template from `helpers`
+
   ```bash
   # Use a prefix based on the repo name, e.g., `tutorials`, `sports_analytics`.
   > SRC_DIR="dev_scripts_helpers/thin_client"; echo $SRC_DIR
@@ -78,6 +110,7 @@
 ## Test the thin environment
 
 - Test `helpers` `setenv.sh`
+
   ```bash
   > (cd helpers_root; source dev_scripts_helpers/thin_client/setenv.sh)
   ...
@@ -96,6 +129,7 @@
 ## Create the tmux links
 
 - Create the global link
+
   ```bash
   > ${DST_DIR}/tmux.py --create_global_link
   ...
@@ -106,6 +140,7 @@
   ```
 
 - Create the tmux session
+
   ```bash
   > ${DST_DIR}/tmux.py --index 1 --force_restart
   ```
@@ -131,17 +166,18 @@
 
 - Some files need to be copied from `helpers` to the root of the super-repo to
   configure various tools (e.g., dev container workflow, `pytest`, `invoke`)
-  - `changelog.txt`: this is copied from the repo that builds the used container or
-    started from scratch for a new container
+  - `changelog.txt`: this is copied from the repo that builds the used container
+    or started from scratch for a new container
   - `conftest.py`: configure `pytest`
   - `pytest.ini`: configure `pytest` preferences
   - `invoke.yaml`: configure `invoke`
-  - `repo_config.py`: stores information about this specific repo (e.g., name, used
-    container)
+  - `repo_config.py`: stores information about this specific repo (e.g., name,
+    used container)
     - This needs to be modified
   - `tasks.py`: the `invoke` tasks available in this container
     - This needs to be modified
-  - TODO(gp): Some files (e.g., `conftest.py`, `invoke.yaml`) should be links to `helpers`
+  - TODO(gp): Some files (e.g., `conftest.py`, `invoke.yaml`) should be links to
+    `helpers`
 
   ```bash
   > vim changelog.txt conftest.py invoke.yaml pytest.ini repo_config.py tasks.py
@@ -161,21 +197,22 @@
   > (cd helpers_root; git pull)
   > cp -r helpers_root/devops devops
   ```
-- If we don't need to build a container and just we can reuse, then we can delete
-  the corresponding `build` directory
+- If we don't need to build a container and just we can reuse, then we can
+  delete the corresponding `build` directory
+
   ```bash
   > rm -rf devops/docker_build
   ```
 
-- Follow the instructions in
-  docs/work_tools/all.devops_docker.reference.md and
+- Follow the instructions in docs/work_tools/all.devops_docker.reference.md and
   docs/work_tools/all.devops_docker.how_to_guide.md
 
 - TODO
-  - if it's a super-repo container you neeed to switch in devops/docker_run/docker_setenv.sh
-  grep IS_SUPER_REPO
+  - If it's a super-repo container you neeed to switch in
+    devops/docker_run/docker_setenv.sh grep IS_SUPER_REPO
 
 - Run the single-arch flow
+
   ```bash
   > i docker_build_local_image --version 1.0.0 && i docker_tag_local_image_as_dev --version 1.0.0
   > i docker_bash --skip-pull
@@ -183,7 +220,82 @@
   ```
 
 - Run the multi-arch flow
+
   ```bash
   > i docker_build_local_image --version 1.0.0 --multi-arch "linux/amd64,linux/arm64"
   > i docker_tag_local_image_as_dev --version 1.0.0
   ```
+
+- If you wish to push the dev image to a remote registry, contact the infra team
+  to add new registry with default settings
+  - Make sure the rgeistry name matches the repo name for consistency
+  - By default we add new registry to Stockholm region (`eu-north-1`)
+
+### Check if the regressions are passing
+
+_(if already applicable)_
+
+```bash
+> i docker_bash
+> pytest
+```
+
+## Configure regressions via GitHub actions
+
+_(if already applicable)_
+
+### Set repository secrets/variables
+
+1. Login to 1password https://cryptokaizen.1password.com/home
+
+- Ask your TL if you don't have access to 1password
+
+2. Navigate to the `Shared Vault`
+3. Search for `Github actions secrets JSON` secret
+4. Copy the JSON from 1password to a temporary local file `vars.json`
+5. Run the script to set the secrets/variables
+```
+> cd ~/src/<<repo_name>>1/
+> ./helpers_root/dev_scripts_helpers/github/set_secrets_and_variables.py \
+     --file `vars.json' \
+     --repo '<<org_name>>/<<repo_name>>'
+```
+
+6. Make sure not to commit the raw `vars.json` file or the
+   `dev_scripts_helpers/github/set_secrets_and_variables.py.log` file
+
+- Delete those files locally
+
+### Create GitHub actions workflow files
+
+1. Create a directory `./github/workflows` in the super-repo
+2. Copy an example flow from helpers
+
+- E.g. `helpers_root/.github/workflows/fast_tests.yml
+- Modify it based on your needs
+  - Find and replace mentions of `helpers` with the name of super repo for
+    consistency
+  - Replace `invoke run_fast_tests` with your desired action
+
+3. TODO(Shayan): #HelpersTask90
+
+## Configure GitHub repo
+
+_Disclaimer: the following set-up requires paid GitHub version
+(Pro/Team/Enterprise)_
+
+1. Set-up branch protection rule for master
+
+- Navigate to `https://github.com/<your org>/<<your-repo>>/settings/branches`
+- Click "Add rule"
+  - Specify branch name pattern `master`
+  - Check the following options:
+    - `Require a pull request before merging` (do not check the sub-options)
+    - `Require status checks to pass before merging`
+      - Check the `Require branches to be up to date before merging` sub-option
+      - In the `Status checks that are required` table specify the workflows you
+        want to pass before merging each PR
+        - Depends on which workflows were set-up in the step above
+        - Usually its `run_fast_tests` and `run_slow_tests`
+    - `Require conversation resolution before merging`
+  - Click "Save changes" button

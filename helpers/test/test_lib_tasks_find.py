@@ -31,7 +31,7 @@ class Test_find_func_class_uses1(hunitest.TestCase):
             (
                 "file1.py",
                 10,
-                "dag_runner = dtfsys.RealTimeDagRunner(**dag_runner_kwargs)",
+                "dag_runner = dtfamsys.RealTimeDagRunner(**dag_runner_kwargs)",
             ),
             (
                 "file1.py",
@@ -44,7 +44,7 @@ class Test_find_func_class_uses1(hunitest.TestCase):
         results = hlitafin._find_func_class_uses(iterator, "DagRunner")
         act = "\n".join(map(str, results))
         exp = r"""
-        ('file1.py', 10, 'dag_runner = dtfsys.RealTimeDagRunner(**dag_runner_kwargs)', 'dtfsys', 'RealTimeDagRunner')
+        ('file1.py', 10, 'dag_runner = dtfamsys.RealTimeDagRunner(**dag_runner_kwargs)', 'dtfamsys', 'RealTimeDagRunner')
         ('file1.py', 12, 'dag_builder: dtfcodabui.DagRunner,', 'dtfcodabui', 'DagRunner')"""
         self.assert_equal(act, exp, fuzzy_match=True)
 
@@ -186,7 +186,7 @@ class TestLibTasksRunTests1(hunitest.TestCase):
         file_name = hgit.find_file_in_git_tree("hunit_test.py")
         file_names = [file_name]
         act = hlitafin._find_test_decorator("qa", file_names)
-        exp = ['$GIT_ROOT/helpers/hunit_test.py']
+        exp = ["$GIT_ROOT/helpers/hunit_test.py"]
         self.assert_equal(str(act), str(exp), purify_text=True)
 
 

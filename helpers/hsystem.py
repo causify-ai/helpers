@@ -133,25 +133,7 @@ def _system(
     _system(cmd, suppress_output=False, log_level="echo")
     ```
 
-    :param cmd: string with command to execute
-    :param abort_on_error: whether we should assert in case of error or not
-    :param suppress_error: set of error codes to suppress
-    :param suppress_output: whether to print the output or not
-        - If "ON_DEBUG_LEVEL" then print the output if the log level is DEBUG
-    :param blocking: blocking system call or not
-    :param wrapper: another command to prepend the execution of cmd
-    :param output_file: redirect stdout and stderr to this file
-    :param num_error_lines: number of lines of the output to display when
-        raising `RuntimeError`
-    :param tee: if True, tee append (i.e., `tee -a`) stdout and stderr to
-        `output_file`
-    :param dry_run: print the final command but not execute it
-    :param log_level: print the command to execute at level "log_level".
-        - If `echo` then print the command line to screen as `print()` and not
-          logging
-    :return:
-        - return code as int
-        - output of the command as str
+    See `system()` for options.
     """
     _LOG.debug("##> %s", cmd)
     _LOG.debug(
@@ -165,12 +147,10 @@ def _system(
     # Handle `suppress_output`.
     hdbg.dassert_in(suppress_output, ("ON_DEBUG_LEVEL", True, False))
     if suppress_output == "ON_DEBUG_LEVEL":
-        # print("eff_lev=%s" % eff_level)
-        # print("lev=%s" % logging.DEBUG)
-        _LOG.getEffectiveLevel()
-        # Suppress the output if the verbosity level is higher than DEBUG,
-        # otherwise print.
-        suppress_output = _LOG.getEffectiveLevel() > logging.DEBUG
+        # Show the output if we are at (or lower than) DEBUG level, since
+        # logging.DEBUG=10 and logging.INFO=20.
+        show_output = _LOG.getEffectiveLevel() <= logging.DEBUG
+        suppress_output = not show_output
     _LOG.debug(hprint.to_str("suppress_output"))
     # Prepare the command line.
     cmd = f"({cmd})"
@@ -299,8 +279,28 @@ def system(
     """
     Execute a shell command, without capturing its output.
 
-    See _system() for options.
+    :param cmd: string with command to execute
+    :param abort_on_error: whether we should assert in case of error or not
+    :param suppress_error: set of error codes to suppress
+    :param suppress_output: whether to print the output or not
+        - If "ON_DEBUG_LEVEL" then print the output if the log level is DEBUG
+    :param blocking: blocking system call or not
+    :param wrapper: another command to prepend the execution of cmd
+    :param output_file: redirect stdout and stderr to this file
+    :param num_error_lines: number of lines of the output to display when
+        raising `RuntimeError`
+    :param tee: if True, tee append (i.e., `tee -a`) stdout and stderr to
+        `output_file`
+    :param dry_run: print the final command but not execute it
+    :param log_level: print the command to execute at level "log_level".
+        - If `echo` then print the command line to screen as `print()` and not
+          logging
+    :return:
+        - return code as int
+        - output of the command as str
     """
+    # print("cmd=", cmd)
+    # print("suppress_output=", suppress_output)
     cmd = hprint.dedent(cmd)
     rc, _ = _system(
         cmd,
@@ -661,6 +661,21 @@ def check_exec(tool: str) -> bool:
         log_level=logging.DEBUG,
     )
     return rc == 0
+
+
+def find_file_in_repo(file_name: str, *, root_dir: Optional[str] = None) -> str:
+    """
+    Find file in the repo.
+    """
+    if root_dir is None:
+        # We don't want to introduce a cyclic imports.
+        import helpers.hgit as hgit
+
+        root_dir = hgit.find_git_root()
+    _, file_name = system_to_one_line(
+        rf"find {root_dir} -name {file_name} -not -path '*/\.git/*'"
+    )
+    return file_name
 
 
 # TODO(Nikola): Use filesystem's `du` and move to `hio` instead?
