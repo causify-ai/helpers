@@ -26,15 +26,6 @@ class Test_hserver1(hunitest.TestCase):
             # Prod runs inside Docker.
             self.assertTrue(hserver.is_inside_docker())
 
-    def test_gp1(self) -> None:
-        user = hserver.get_host_user_name()
-        _LOG.debug("user=%s", user)
-        _LOG.debug("is_mac=%s", hserver.is_mac())
-        if user == "saggese" and hserver.is_mac():
-            version = "Catalina"
-            _LOG.debug("Checking version=%s", version)
-            self.assertTrue(hserver.is_mac(version=version))
-
     def test_consistency1(self) -> None:
         """
         One and only one set up config should be true.

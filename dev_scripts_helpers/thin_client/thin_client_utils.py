@@ -5,13 +5,22 @@ import sys
 
 # We need to tweak `PYTHONPATH` directly since we are bootstrapping the system.
 # sys.path.append("helpers_root")
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+sys.path.append(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+)
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
+
+# Unfortunatelly, we need to hardcode this because
+# of the inconsistent naming of the repos.
+_REPO_DIR_MAPPING = {
+    "amp": "cmamp",
+    "helpers_root": "helpers",
+}
 
 
 # #############################################################################
@@ -105,25 +114,32 @@ def create_parser(docstring: str) -> argparse.ArgumentParser:
 # /////////////////////////////////////////////////////////////////////////////
 
 
-def _create_new_window(window: str, color: str, dir_name: str, tmux_cmd: str) -> None:
+def _create_new_window(
+    window: str, color: str, dir_name: str, tmux_cmd: str
+) -> None:
     cmd = f"tmux new-window -n '{window}'"
     hsystem.system(cmd)
     cmd = f"tmux send-keys '{color}; cd {dir_name} && {tmux_cmd}' C-m C-m"
     hsystem.system(cmd)
 
-
-def _create_repo_windows(git_root_dir: str, setenv_path: str, tmux_name: str) -> None:
-    cmd = f"tmux new-session -d -s {tmux_name} -n '---{tmux_name}---'"
-    hsystem.system(cmd)
-    # Create the first window.
-    tmux_cmd = f"source {setenv_path}"
-    hdbg.dassert_file_exists(setenv_path)
-    cmd = f"tmux send-keys 'white; cd {git_root_dir} && {tmux_cmd}' C-m C-m"
-    hsystem.system(cmd)
-    # Create the remaining windows.
+def _create_repo_windows(
+    git_dir: str, setenv_path: str, module_name: str, is_submodule: bool
+) -> None:
+    """
+    Create windows for the given module.
+    """
     windows = ["dbash", "regr", "jupyter"]
+    tmux_cmd = f"source {setenv_path}"
+    # We create the first named named window only for submodule, for root
+    # one it's created upon session creation.
+    if is_submodule:
+        # Somewhat clean-up the naming inconsistencies.
+        module_window_name = module_name.rstrip("_root").upper()
+        first_window = f"---{module_window_name}---"
+        windows = [first_window] + windows
+    # Create windows.
     for window in windows:
-        _create_new_window(window, "green", git_root_dir, tmux_cmd)
+        _create_new_window(window, "green", git_dir, tmux_cmd)
 
 
 def _go_to_first_window(tmux_name: str) -> None:
@@ -134,35 +150,74 @@ def _go_to_first_window(tmux_name: str) -> None:
 # /////////////////////////////////////////////////////////////////////////////
 
 
-def _create_helpers_tmux(
-    git_root_dir: str, setenv_path: str, tmux_name: str
-) -> None:
-    _create_repo_windows(git_root_dir, setenv_path, tmux_name)
-    _go_to_first_window(tmux_name)
+def _find_submodules(git_root_dir: str) -> list:
+    """
+    Find the names of all submodules in the given Git repository.
+
+    :param git_root_dir: The root directory of the Git repository.
+    :return: A list of names of all submodules found in the .gitmodules
+        file. Returns an empty list if no submodules are found.
+    """
+    submodule_file = os.path.join(git_root_dir, ".gitmodules")
+    submodules = []
+    if os.path.exists(submodule_file):
+        with open(submodule_file, "r") as file:
+            for line in file:
+                if line.strip().startswith("[submodule"):
+                    submodule_name = line.split('"')[1]
+                    submodules.append(submodule_name)
+    return submodules
 
 
-def _create_helpers_tmux_with_subrepo(
+def _create_repo_tmux(
     git_root_dir: str, setenv_path: str, tmux_name: str
 ) -> None:
-    # - Create the windows for the current repo.
-    _create_repo_windows(git_root_dir, setenv_path, tmux_name)
-    # - Create the windows for helpers (the sub-repo).
-    # Create the first window.
-    window = "---HELPERS---"
-    git_subrepo_dir = os.path.join(git_root_dir, "helpers_root")
-    setenv_path = "dev_scripts_helpers/thin_client/setenv.sh"
-    tmux_cmd = f"source {setenv_path}"
-    # TODO(Juraj): The assertion below fails for multiple levels of
-    # nesting e.g. orange -> cmamp -> helpers, but passing it
-    # is not a necessary prerequisite to successfully create the session
-    # see CmTask10714.
-    #hdbg.dassert_file_exists(os.path.join(git_subrepo_dir, setenv_path))
-    _create_new_window(window, "white", git_subrepo_dir, tmux_cmd)
-    # Create the remaining windows.
-    windows = ["dbash", "regr", "jupyter"]
-    for window in windows:
-        _create_new_window(window, "green", git_subrepo_dir, tmux_cmd)
-    #
+    """
+    Create a new tmux session for the given Git repository.
+
+    The function create window for the root AKA super module. After that
+    it recursively searches for submodules and creates windows for each
+    one. Currently only supports one submodule per repository.
+    """
+    # Create the sesson and first window.
+    cmd = f"tmux new-session -d -s {tmux_name} -n '---{tmux_name}---'"
+    hsystem.system(cmd)
+    cmd = f"source {setenv_path}"
+    cmd = f"tmux send-keys 'white; cd {git_root_dir} && {cmd}' C-m C-m"
+    hsystem.system(cmd)
+    # Handle all submodules.
+    create_windows = True
+    curr_git_dir = git_root_dir
+    curr_setenv_path = setenv_path
+    curr_module = tmux_name
+    is_submodule = False
+    while create_windows:
+        _create_repo_windows(
+            curr_git_dir, curr_setenv_path, curr_module, is_submodule
+        )
+        # After the initial, all other windows are created for a submodule.
+        is_submodule = True
+        submodules = _find_submodules(curr_git_dir)
+        if len(submodules) >= 1:
+            if len(submodules) > 1:
+                _LOG.warning("Multiple submodules found: %s", submodules)
+                _LOG.warning("Selecting only the first one: %s", submodules[0])
+            curr_git_dir = os.path.join(curr_git_dir, submodules[0])
+            curr_module = submodules[0]
+            # Needed to map "amp" -> "dev_scripts_cmamp"
+            # and helpers_root -> "dev_scripts_helpers"
+            dev_scripts_suffix = _REPO_DIR_MAPPING.get(
+                submodules[0], submodules[0]
+            )
+            dev_scripts_dir = f"dev_scripts_{dev_scripts_suffix}"
+            curr_setenv_path = os.path.join(
+                curr_git_dir, dev_scripts_dir, "thin_client/setenv.sh"
+            )
+            hdbg.dassert_file_exists(curr_setenv_path)
+        else:
+            _LOG.warning("No submodules found, ending the window creation")
+            create_windows = False
+
     _go_to_first_window(tmux_name)
 
 
@@ -174,6 +229,7 @@ def create_tmux_session(
     script_path: str,
     dir_prefix: str,
     setenv_path: str,
+    #TODO(Juraj): deprecate the var, the behavior is now inferred.
     has_subrepo: bool,
 ) -> None:
     """
@@ -214,8 +270,7 @@ def create_tmux_session(
     #
     _LOG.debug("Checking if the tmux session '%s' already exists", tmux_name)
     _, tmux_session_str = hsystem.system_to_string(
-        "tmux list-sessions", 
-        abort_on_error=False
+        "tmux list-sessions", abort_on_error=False
     )
     _LOG.debug("tmux_session_str=\n%s", tmux_session_str)
     # E.g.,
@@ -261,7 +316,4 @@ def create_tmux_session(
     setenv_path = os.path.join(git_root_dir, setenv_path)
     _LOG.info("Checking if setenv_path=%s exists", setenv_path)
     hdbg.dassert_file_exists(setenv_path)
-    if has_subrepo:
-        _create_helpers_tmux_with_subrepo(git_root_dir, setenv_path, tmux_name)
-    else:
-        _create_helpers_tmux(git_root_dir, setenv_path, tmux_name)
+    _create_repo_tmux(git_root_dir, setenv_path, tmux_name)

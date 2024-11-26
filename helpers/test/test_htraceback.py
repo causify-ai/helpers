@@ -410,6 +410,7 @@ class Test_Traceback1(hunitest.TestCase):
         hdbg.dassert_isinstance(exp_cfile, str)
         hdbg.dassert_isinstance(exp_traceback, str)
         txt = hprint.dedent(txt)
+        _LOG.debug("txt=\n%s", txt)
         # Run the function under test.
         act_cfile, act_traceback = htraceb.parse_traceback(
             txt, purify_from_client=purify_from_client
