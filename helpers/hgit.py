@@ -587,10 +587,10 @@ def _get_repo_short_to_full_name(include_host_name: bool) -> Dict[str, str]:
     # From short name to long name.
     repo_map = {
         "amp": "alphamatic/amp",
-        "dev_tools": "kaizen-ai/dev_tools",
+        "dev_tools": "causify-ai/dev_tools",
         # TODO(Juraj, GP): this was enabled but it breaks
         # invoke docker_bash
-        "helpers": "kaizen-ai/helpers",
+        "helpers": "causify-ai/helpers",
     }
     if include_host_name:
         host_name = "github.com"
@@ -1348,7 +1348,7 @@ def does_branch_exist(
         # If there are no issues on the GitHub repo, just return.
         # ```
         # > gh pr list -s all --limit 1000
-        # no pull requests match your search in kaizen-ai/sports_analytics
+        # no pull requests match your search in causify-ai/sports_analytics
         # ```
         if txt == "":
             return False
