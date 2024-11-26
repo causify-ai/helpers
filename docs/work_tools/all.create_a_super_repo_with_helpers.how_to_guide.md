@@ -1,5 +1,3 @@
-
-
 <!-- toc -->
 
 - [How to create a super-repo with `helpers`](#how-to-create-a-super-repo-with-helpers)
@@ -26,20 +24,20 @@
 
 ## Create a new (super) repo in the desired organization
 
-- E.g. https://github.com/organizations/kaizen-ai/repositories/new
+- E.g. https://github.com/organizations/causify-ai/repositories/new
   - The repository is set to private by default
 
 ## Add helpers sub-repo
 
 - Clone the super-repo locally
   ```
-  > git clone git@github.com:kaizen-ai/repo_name.git ~/src/repo_name1
+  > git clone git@github.com:causify-ai/repo_name.git ~/src/repo_name1
   ```
 
 - Add `helpers` as sub-repo
   ```bash
   > cd ~/src/rpeo_name1
-  > git submodule add git@github.com:kaizen-ai/helpers.git helpers_root
+  > git submodule add git@github.com:causify-ai/helpers.git helpers_root
   > git submodule init
   > git submodule update
   > git add .gitmodules helpers_root

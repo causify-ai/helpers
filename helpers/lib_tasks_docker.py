@@ -312,7 +312,7 @@ def _docker_login_dockerhub() -> None:
     """
     # Check if we are already logged in to the target registry.
     assert 0, "Find name of the repo"
-    # TODO(gp): Enable caching https://github.com/kaizen-ai/helpers/issues/20
+    # TODO(gp): Enable caching https://github.com/causify-ai/helpers/issues/20
     use_cache = False
     if use_cache:
         is_logged = _check_docker_login("623860924167.dkr.ecr")
@@ -339,7 +339,7 @@ def _docker_login_ecr() -> None:
     if hserver.is_inside_ci():
         _LOG.warning("Running inside GitHub Action: skipping `docker_login`")
         return
-    # TODO(gp): Enable caching https://github.com/kaizen-ai/helpers/issues/20
+    # TODO(gp): Enable caching https://github.com/causify-ai/helpers/issues/20
     use_cache = False
     if use_cache:
         # Check if we are already logged in to the target registry.

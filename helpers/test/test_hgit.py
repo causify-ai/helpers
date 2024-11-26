@@ -166,7 +166,7 @@ class Test_git_repo_name1(hunitest.TestCase):
         self.assert_equal(act, exp)
 
     def test_get_repo_name4(self) -> None:
-        full_name = "kaizen-ai/dev_tools"
+        full_name = "causify-ai/dev_tools"
         mode = "full_name"
         act = hgit.get_repo_name(full_name, mode)
         exp = "dev_tools"
@@ -197,9 +197,9 @@ class Test_git_repo_name1(hunitest.TestCase):
         act = hgit.get_all_repo_names(mode)
         exp = [
             "alphamatic/amp",
-            "cryptokaizen/cmamp",
-            "kaizen-ai/dev_tools",
-            "kaizen-ai/helpers",
+            "causify-ai/cmamp",
+            "causify-ai/dev_tools",
+            "causify-ai/helpers",
         ]
         self.assert_equal(str(act), str(exp))
 
