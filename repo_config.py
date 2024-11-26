@@ -37,7 +37,7 @@ def _print(msg: str) -> None:
 _REPO_NAME = "helpers"
 
 # To customize: xyz
-_GITHUB_REPO_ACCOUNT = "kaizen-ai"
+_GITHUB_REPO_ACCOUNT = "causify-ai"
 
 # To customize: xyz
 #_DOCKER_IMAGE_NAME = "xyz"

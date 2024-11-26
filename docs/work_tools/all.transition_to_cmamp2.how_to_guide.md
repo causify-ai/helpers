@@ -43,7 +43,7 @@
   > ls helpers_root/
 
   > git submodule init
-  Submodule 'helpers_root' (git@github.com:kaizen-ai/helpers.git) registered for path 'helpers_root'
+  Submodule 'helpers_root' (git@github.com:causify-ai/helpers.git) registered for path 'helpers_root'
 
   > git submodule update
   Cloning into '/data/saggese/src/cmamp1/helpers_root'...
