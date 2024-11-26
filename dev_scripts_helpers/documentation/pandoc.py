@@ -249,8 +249,9 @@ def _run_pandoc_to_slides(args: argparse.Namespace, file_: str) -> str:
     cmd.append(f"pandoc {file_}")
     #
     cmd.append("-t beamer")
-    cmd.append("--slide-level 3")
+    cmd.append("--slide-level 4")
     cmd.append("-V theme:SimplePlus")
+    cmd.append("--include-in-header=latex_abbrevs.sty")
     if not args.no_toc:
         cmd.append("--toc")
         cmd.append("--toc-depth 2")

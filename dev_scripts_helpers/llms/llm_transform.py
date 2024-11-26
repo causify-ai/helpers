@@ -163,7 +163,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Note that we need to run this outside the `llm_transform` container to
     # avoid to do docker in docker in the `llm_transform` container (which
     # doesn't support that).
-    if args.transform in ("format_markdown", "slide_improve", "slide_colorize"):
+    if args.transform in ("md_format", "slide_improve", "slide_colorize"):
         out_txt = dshdlitx.prettier_on_str(out_txt)
     # Read the output from the container and write it to the output file from
     # command line (e.g., `-` for stdout).

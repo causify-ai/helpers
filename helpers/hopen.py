@@ -13,6 +13,7 @@ import os
 from typing import Optional
 
 import helpers.hdbg as hdbg
+import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 
@@ -95,4 +96,5 @@ def open_file(file_name: str) -> None:
     # Run command.
     if cmd is not None:
         _LOG.info("%s", cmd)
-        hsystem.system(cmd, suppress_output=False)
+        hio.to_file("open_file_cmd.sh", cmd)
+        hsystem.system("source open_file_cmd.sh", suppress_output=False)

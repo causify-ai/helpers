@@ -11,11 +11,6 @@ _LOG = logging.getLogger(__name__)
 # Prompts.
 # #############################################################################
 
-def format_markdown(user: str, model: str) -> str:
-    _ = model
-    return user
-
-
 def code_comment(user: str, model: str) -> str:
     system = """
 You are a proficient Python coder.
@@ -112,6 +107,11 @@ points and their indentation
     return ret
 
 
+def md_format(user: str, model: str) -> str:
+    _ = model
+    return user
+
+
 def slide_improve(user: str, model: str) -> str:
     system = r"""
 You are a proficient technical writer and expert of machine learning.
@@ -138,7 +138,6 @@ You will use multiple colors using pandoc \textcolor{COLOR}{text} to highlight i
     ret = hopenai.response_to_txt(response)
     ret = hopenai.remove_code_delimiters(ret)
     return ret
-
 
 
 # #############################################################################
