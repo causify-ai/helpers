@@ -16,3 +16,13 @@ amp/helpers_root/dev_scripts_helpers/system_tools/replace_text.py \
     --old "dataflow_orange.pipelines.C8.C8b_pipeline_tmp.C8b_DagBuilder_tmp" \
     --new "dataflow_lemonade.pipelines.C8.C8b_pipeline.C8b_DagBuilder" \
     --exclude_dirs "$dir_names"
+
+amp/helpers_root/dev_scripts_helpers/system_tools/replace_text.py \
+    --old "dataflow_orange.system.C3" \
+    --new "dataflow_lemonade.system.C3" \
+    --exclude_dirs "$dir_names"
+
+amp/helpers_root/dev_scripts_helpers/system_tools/replace_text.py \
+    --old "dataflow_orange.system.C8" \
+    --new "dataflow_lemonade.system.C8" \
+    --exclude_dirs "$dir_names"
