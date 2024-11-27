@@ -18,7 +18,7 @@ echo "##> $SCRIPT_PATH"
 GIT_ROOT_DIR=$(pwd)
 echo "GIT_ROOT_DIR=$GIT_ROOT_DIR"
 
-if [[ $IS_SUPER_ROOT == 1 ]]; then
+if [[ $IS_SUPER_REPO == 1 ]]; then
     HELPERS_ROOT="${GIT_ROOT_DIR}/helpers_root"
 else
     HELPERS_ROOT=$GIT_ROOT_DIR
@@ -34,7 +34,7 @@ source $SOURCE_PATH
 # - Activate venv.
 activate_docker_venv
 
-if [[ IS_SUPER_REPO == 1 ]]; then
+if [[ $IS_SUPER_REPO == 1 ]]; then
     HELPERS_ROOT_DIR="${GIT_ROOT_DIR}/helpers_root"
     dassert_dir_exists $HELPERS_ROOT_DIR
 fi;
@@ -45,7 +45,7 @@ set_path .
 # - PYTHONPATH
 set_pythonpath
 
-if [[ IS_SUPER_REPO == 1 ]]; then
+if [[ $IS_SUPER_REPO == 1 ]]; then
     # Add helpers.
     dassert_dir_exists $HELPERS_ROOT_DIR
     export PYTHONPATH=$HELPERS_ROOT_DIR:$PYTHONPATH

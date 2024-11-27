@@ -197,7 +197,7 @@ class Test_git_repo_name1(hunitest.TestCase):
         act = hgit.get_all_repo_names(mode)
         exp = [
             "alphamatic/amp",
-            "cryptokaizen/cmamp",
+            "causify-ai/cmamp",
             "causify-ai/dev_tools",
             "causify-ai/helpers",
         ]
