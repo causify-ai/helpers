@@ -424,8 +424,8 @@ class Test_extract_gh_issue_number_from_branch(hunitest.TestCase):
         """
         branch_name = "CmampTask10725_Add_more_tabs_to_orange_tmux"
         act = hgit.extract_gh_issue_number_from_branch(branch_name)
-        exp = 10725
-        self.assert_equal(act, exp)
+        exp = "10725"
+        self.assert_equal(str(act), exp)
 
     def test_extract_gh_issue_number_from_branch2(self) -> None:
         """
@@ -433,8 +433,8 @@ class Test_extract_gh_issue_number_from_branch(hunitest.TestCase):
         """
         branch_name = "HelpersTask23_Add_more_tabs_to_orange_tmux"
         act = hgit.extract_gh_issue_number_from_branch(branch_name)
-        exp = 23
-        self.assert_equal(act, exp)
+        exp = "23"
+        self.assert_equal(str(act), exp)
 
     def test_extract_gh_issue_number_from_branch3(self) -> None:
         """
@@ -442,8 +442,8 @@ class Test_extract_gh_issue_number_from_branch(hunitest.TestCase):
         """
         branch_name = "CmTask3434"
         act = hgit.extract_gh_issue_number_from_branch(branch_name)
-        exp = 3434
-        self.assert_equal(act, exp)
+        exp = "3434"
+        self.assert_equal(str(act), exp)
 
     def test_extract_gh_issue_number_from_branch4(self) -> None:
         """
@@ -451,5 +451,5 @@ class Test_extract_gh_issue_number_from_branch(hunitest.TestCase):
         """
         branch_name = "NoTaskNumberHere"
         act = hgit.extract_gh_issue_number_from_branch(branch_name)
-        exp = None
-        self.assert_equal(act, exp)
+        exp = "None"
+        self.assert_equal(str(act), exp)
