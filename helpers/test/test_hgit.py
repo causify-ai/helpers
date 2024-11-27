@@ -344,8 +344,8 @@ class Test_find_docker_file1(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        Test for a file `/app/amp/helpers/test/test_hgit.py` that is from Docker
-        (i.e., it starts with `/app`) and exists in the repo.
+        Test for a file `/app/amp/helpers/test/test_hgit.py` that is from
+        Docker (i.e., it starts with `/app`) and exists in the repo.
         """
         amp_dir = hgit.get_amp_abs_path()
         # Use this file since `find_docker_file()` needs to do a `find` in the
@@ -412,3 +412,44 @@ class Test_find_docker_file1(hunitest.TestCase):
         # Only one file matches `utils.py` using all the 3 dir levels.
         expected = ["core/dataflow/utils.py"]
         self.assert_equal(str(actual), str(expected), purify_text=True)
+
+
+# #############################################################################
+
+
+class Test_extract_gh_issue_number_from_branch(hunitest.TestCase):
+    def test_extract_gh_issue_number_from_branch1(self) -> None:
+        """
+        Tests extraction from a branch name with a specific format.
+        """
+        branch_name = "CmampTask10725_Add_more_tabs_to_orange_tmux"
+        act = hgit.extract_gh_issue_number_from_branch(branch_name)
+        exp = "10725"
+        self.assert_equal(str(act), exp)
+
+    def test_extract_gh_issue_number_from_branch2(self) -> None:
+        """
+        Tests extraction from another branch name format.
+        """
+        branch_name = "HelpersTask23_Add_more_tabs_to_orange_tmux"
+        act = hgit.extract_gh_issue_number_from_branch(branch_name)
+        exp = "23"
+        self.assert_equal(str(act), exp)
+
+    def test_extract_gh_issue_number_from_branch3(self) -> None:
+        """
+        Tests extraction from a short branch name format.
+        """
+        branch_name = "CmTask3434"
+        act = hgit.extract_gh_issue_number_from_branch(branch_name)
+        exp = "3434"
+        self.assert_equal(str(act), exp)
+
+    def test_extract_gh_issue_number_from_branch4(self) -> None:
+        """
+        Tests behavior when no issue number is present in the branch name.
+        """
+        branch_name = "NoTaskNumberHere"
+        act = hgit.extract_gh_issue_number_from_branch(branch_name)
+        exp = "None"
+        self.assert_equal(str(act), exp)

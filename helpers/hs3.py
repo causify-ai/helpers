@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers_root.helpers.hs3 as hrohehs3
+import helpers.hs3 as hs3
 """
 
 import argparse

@@ -310,7 +310,12 @@ def create_tmux_session(
         home_dir = f"/data/{user_name}"
     hdbg.dassert_ne(home_dir, "")
     _LOG.info("home_dir=%s", home_dir)
-    git_root_dir = os.path.join(home_dir, "src", tmux_name)
+    # For encrypted dirs, such as `src_vc`, we use env vars to get path to keep things
+    # compatible with the existing flow in `lemonade`.
+    src_vc_dir = os.environ.get("AM_SRC_DIR", None)
+    # Use encrypted dir path if specified, otherwise use the conventional `src`.
+    src_dir = src_vc_dir if src_vc_dir is not None else os.path.join(home_dir, "src")
+    git_root_dir = os.path.join(src_dir, tmux_name)
     _LOG.info("git_root_dir=%s", git_root_dir)
     # Create the tmux session.
     setenv_path = os.path.join(git_root_dir, setenv_path)
