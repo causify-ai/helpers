@@ -28,8 +28,10 @@ import argparse
 import logging
 import os
 
-#import sys
-#sys.path.insert(0, "/Users/saggese/src/notes1/helpers_root")
+if False:
+    # Hardwire path when we are calling from a different dir.
+    import sys
+    sys.path.insert(0, "/Users/saggese/src/notes1/helpers_root")
 import dev_scripts_helpers.documentation.lint_txt as dshdlitx
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker

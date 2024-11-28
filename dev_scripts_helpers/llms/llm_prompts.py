@@ -119,7 +119,6 @@ I will give you markdown text in the next prompt
 You will convert the following markdown text into bullet points
 Make sure that the text is clean and readable
     """
-    # Use imperative form for the bullet points
     response = hopenai.get_completion(user, system=system, model=model)
     ret = hopenai.response_to_txt(response)
     ret = hopenai.remove_code_delimiters(ret)

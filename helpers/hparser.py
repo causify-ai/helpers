@@ -541,6 +541,9 @@ def str_to_bool(value: str) -> bool:
 def add_dockerized_script_arg(
     parser: argparse.ArgumentParser,
 ) -> argparse.ArgumentParser:
+    """
+    Add common command line arguments for dockerized scripts.
+    """
     parser.add_argument(
         "--dockerized_force_rebuild",
         action="store_true",
@@ -556,6 +559,9 @@ def add_dockerized_script_arg(
 def add_transform_arg(
     parser: argparse.ArgumentParser,
 ) -> argparse.ArgumentParser:
+    """
+    Add common command line arguments for `*llm_transform.py` scripts.
+    """
     parser.add_argument(
         "-d", "--debug", action="store_true",
         help="Print before/after the transform"
