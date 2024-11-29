@@ -68,7 +68,7 @@ class Test_pandoc1(hunitest.TestCase):
         cmd.append(f"--tmp_dir {tmp_dir}")
         cmd.append(f"--input {in_file}")
         cmd.append(f"--output {out_file}")
-        cmd.append("--action convert_txt_to_pandoc")
+        cmd.append("--action preprocess_notes")
         cmd.append("--action run_pandoc")
         cmd = " ".join(cmd)
         hsystem.system(cmd)

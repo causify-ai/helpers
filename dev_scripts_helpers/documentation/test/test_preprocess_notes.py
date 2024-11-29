@@ -3,7 +3,7 @@ import os
 
 import pytest
 
-import dev_scripts_helpers.documentation.convert_txt_to_pandoc as dshdcttpa
+import dev_scripts_helpers.documentation.preprocess_notes as dshdcttpa
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio

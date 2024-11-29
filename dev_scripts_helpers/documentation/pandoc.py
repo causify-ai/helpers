@@ -76,7 +76,7 @@ def _cleanup_before(prefix: str) -> None:
     _ = _system(cmd)
 
 
-def _convert_txt_to_pandoc(curr_path: str, file_: str, prefix: str) -> str:
+def _preprocess_notes(curr_path: str, file_: str, prefix: str) -> str:
     """
     Pre-process the file.
 
@@ -348,10 +348,10 @@ def _pandoc(args: argparse.Namespace) -> None:
     if to_execute:
         _cleanup_before(prefix)
     #
-    action = "convert_txt_to_pandoc"
+    action = "preprocess_notes"
     to_execute, actions = hparser.mark_action(action, actions)
     if to_execute:
-        file_ = _convert_txt_to_pandoc(curr_path, file_, prefix)
+        file_ = _preprocess_notes(curr_path, file_, prefix)
     #
     action = "run_pandoc"
     to_execute, actions = hparser.mark_action(action, actions)
@@ -397,7 +397,7 @@ def _pandoc(args: argparse.Namespace) -> None:
 
 _VALID_ACTIONS = [
     "cleanup_before",
-    "convert_txt_to_pandoc",
+    "preprocess_notes",
     "run_pandoc",
     "copy_to_gdrive",
     "open",
