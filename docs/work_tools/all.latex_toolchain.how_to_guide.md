@@ -9,6 +9,19 @@
 
 <!-- tocstop -->
 
+# Definitions
+
+- "Notes" are `txt` files in extended markdown that include:
+  - Latex
+  - Block comments
+  - Calls to external tools, such as `mermaid`, `plantuml`, `tikz`, ...
+
+- Notes files can be converted to:
+  - PDF (through a conversion to an intermediate Latex file)
+  - HTML
+  - slides (through beamer)
+  - Questions / answers (through Anki)
+
 # Files
 ```
 > ls -1 dev_scripts_helpers/documentation
@@ -19,12 +32,6 @@
     - Convert Docx file to Markdown using Dockerized pandoc and save the figs
   - `convert_docx_to_markdown.sh`
     - Wrapper to simplify calling `convert_docx_to_markdown.py`
-  - `convert_txt_to_pandoc.py`
-    - Convert a text file storing notes into markdown suitable for pandoc.py
-    - The transformations are
-      - Convert the text in pandoc / latex format
-      - Handle banners around chapters
-      - Handle comments
   - `generate_latex_sty.py`
     - One-off script to generate the latex file
   - `generate_script_catalog.py`
@@ -47,8 +54,14 @@
   - `open_md_on_github.sh`
     - Open a markdown filename on GitHub
   - `pandoc.latex`
-    - `latex` template used by `pandoc.py`
-  - `pandoc.py`
+    - `latex` template used by `notes_to_pdf.py`
+  - `preprocess_notes.py`
+    - Convert a text file storing notes into markdown suitable for `notes_to_pdf.py`
+    - The transformations are
+      - Convert the text in pandoc / latex format
+      - Handle banners around chapters
+      - Handle comments
+  - `notes_to_pdf.py`
     - Convert a `txt` file storing nodes into a PDF / HTML / beamer slides using
       `pandoc`
   - `render_md.py`
@@ -71,6 +84,51 @@
       1. `toc`: create table of context from the current file, with 1 level
       2. `format`: format the current file with 3 levels
       3. `increase`: increase level
+
+# Editing `txt` files
+
+## Generate the summary of the headers
+- In `vim`
+  ```
+  :!helpers_root/dev_scripts_helpers/documentation/process_md_headers.py -i % -m 1
+  ```
+  ```bash
+  Probability 1
+  Random variables 735
+  Mathematical expectation of RVs 1161
+  Interesting RVs 1803
+  Probability inequalities 2124
+  Statistical Inference 2194
+  Statistical test 3707
+  ```
+- This script also generates a `vim` `cfile` that can be navigated with `vic`
+
+- To get the summary up to 2 levels:
+  ```bash
+  :!helpers_root/dev_scripts_helpers/documentation/process_md_headers.py -i % -m 2
+  ```
+
+## Format a chunk of `txt` file
+
+- ```bash
+  :'<,'>!helpers_root/dev_scripts_helpers/llms/llm_transform.py -i - -o - -t md_format
+  ```
+
+## List possible LLM transforms
+
+- 
+  ```
+  > \grep "def " ./dev_scripts_helpers/llms/llm_prompts.py | \grep "(user: str, model: str)"
+  def code_comment(user: str, model: str) -> str:
+  def code_docstring(user: str, model: str) -> str:
+  def code_type_hints(user: str, model: str) -> str:
+  def code_unit_test(user: str, model: str) -> str:
+  def code_1_unit_test(user: str, model: str) -> str:
+  def md_rewrite(user: str, model: str) -> str:
+  def md_format(user: str, model: str) -> str:
+  def slide_improve(user: str, model: str) -> str:
+  def slide_colorize(user: str, model: str) -> str:
+  ```
 
 # Latex Toolchain
 
