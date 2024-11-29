@@ -43,7 +43,7 @@ import helpers.hprint as hprint
 _LOG = logging.getLogger(__name__)
 
 
-# TODO(gp): Move all these transforms in helpers/transform_text.py
+# TODO(gp): Move all these transforms to hmarkdown.py
 
 def skip_comments(line: str, skip_block: bool) -> Tuple[bool, bool]:
     """

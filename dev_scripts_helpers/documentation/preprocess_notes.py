@@ -31,6 +31,7 @@ _NUM_SPACES = 2
 _TRACE = False
 
 
+# TODO(gp): Move to hmarkdown.py or transform_text.py.
 def _process_comment_block(line: str, in_skip_block: bool) -> Tuple[bool, bool]:
     """
     Process lines of text to identify blocks that start with '<!--' or '/*' and

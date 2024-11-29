@@ -11,6 +11,7 @@ _LOG = logging.getLogger(__name__)
 #  of strings.
 
 
+# TODO(gp): -> hlatex.py
 def remove_latex_formatting(latex_string: str) -> str:
     """
     Remove LaTeX formatting such as \textcolor{color}{content} and retains
@@ -21,6 +22,7 @@ def remove_latex_formatting(latex_string: str) -> str:
     return cleaned_string
 
 
+# TODO(gp): -> hmarkdown.py
 def remove_end_of_line_periods(txt: str) -> str:
     """
     Remove periods at the end of each line in the given text.
@@ -34,6 +36,7 @@ def remove_end_of_line_periods(txt: str) -> str:
     return txt_out
 
 
+# TODO(gp): -> hmarkdown.py
 def remove_empty_lines(txt: str) -> str:
     """
     Remove empty lines from the given text.

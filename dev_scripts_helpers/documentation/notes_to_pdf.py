@@ -75,30 +75,6 @@ def _cleanup_before(prefix: str) -> None:
     _ = _system(cmd)
 
 
-def extract_section_from_markdown(content: str, header_name: str) -> str:
-    """
-    Extract text between the specified header and the next header of the same level in a Markdown file.
-    """
-    # Find all headers and their positions
-    headers = [(match.group(0), match.start()) for match in
-               re.finditer(r'^(#+)\s+(.*)$', content, re.MULTILINE)]
-
-    # Find the specified header and its level
-    for i, (header, position) in enumerate(headers):
-        header_level = len(header.split()[0])  # Count the number of `#` symbols
-        header_text = header.split(' ', 1)[1]  # Extract the header text
-        if header_text.strip() == header_name:
-            # Find the next header of the same level
-            for next_header in headers[i + 1:]:
-                next_level = len(next_header[0].split()[0])
-                if next_level == header_level:
-                    # Return text between the headers
-                    return content[position:next_header[1]].strip()
-            # If no next header of the same level, return until the end of file
-            return content[position:].strip()
-    raise ValueError(f"Header '{header_name}' not found")
-
-
 def _filter_by_header(file_: str, header: str, prefix: str) -> str:
     """
     Pre-process the file.

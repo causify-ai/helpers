@@ -1,5 +1,4 @@
 import logging
-import re
 
 import helpers.hprint as hprint
 from typing import Optional
