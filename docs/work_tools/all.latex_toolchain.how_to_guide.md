@@ -131,6 +131,13 @@
   def slide_colorize(user: str, model: str) -> str:
   ```
 
+## Convert notes to slides
+
+- 
+  ```
+  > notes_to_pdf.py --input notes/MSML610/intro.txt --output tmp.pdf -t slides --skip_action copy_to_gdrive --skip_action open --skip_action cleanup_after
+  ```
+
 # Latex Toolchain
 
 ## Running and linting Latex files
