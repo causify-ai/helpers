@@ -65,7 +65,7 @@ except ImportError as e:
 
 _LOG = logging.getLogger(__name__)
 # Mute this module unless we want to debug it.
-_LOG.setLevel(logging.INFO)
+#_LOG.setLevel(logging.INFO)
 
 # #############################################################################
 
@@ -914,7 +914,7 @@ def assert_equal(
     values: Dict[str, str] = collections.OrderedDict()
 
     def _append(tag: str, actual: str, expected: str) -> None:
-        _LOG.debug("tag=%s\n  act='\n%s'\n  exp='\n%s'", actual, expected)
+        _LOG.debug("tag=%s\n  act='\n%s'\n  exp='\n%s'", tag, actual, expected)
         hdbg.dassert_not_in(tag, values)
         values[tag] = (actual, expected)
 

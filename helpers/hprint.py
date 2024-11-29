@@ -244,7 +244,6 @@ def trim_consecutive_empty_lines(lines: StrOrList) -> StrOrList:
     return lines
 
 
-
 def dedent(txt: str, *, remove_empty_leading_trailing_lines: bool = True) -> (
         str):
     """
