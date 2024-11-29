@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 """
-This file contains a script to extract headers from a Markdown file and generate
-a Vim cfile. The script processes the input Markdown file, extracts headers up
-to a specified maximum level, and generates an output file in a format that can
-be used with Vim's quickfix feature.
+This file contains a script to extract headers from a Markdown file and
+generate a Vim cfile. The script processes the input Markdown file, extracts
+headers up to a specified maximum level, and generates an output file in a
+format that can be used with Vim's quickfix feature.
 
 Example Usage
 Extract headers from a Markdown file and save to an output file:
@@ -36,7 +36,7 @@ import logging
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
-import helpers.hmarkdown as hmarkdown
+import helpers.hmarkdown as hmarkdo
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -44,17 +44,22 @@ _LOG = logging.getLogger(__name__)
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description = __doc__,
-        formatter_class = argparse.RawDescriptionHelpFormatter,
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "-i", "--input", type=str, help="Path to the input Markdown file."
     )
     parser.add_argument(
-        "-o", "--output", type=str, default="cfile",
-        help="Path to the output cfile. Use - for stdout")
+        "-o",
+        "--output",
+        type=str,
+        default="cfile",
+        help="Path to the output cfile. Use - for stdout",
+    )
     parser.add_argument(
-        "-m", "--max-level",
+        "-m",
+        "--max-level",
         type=int,
         default=6,
         help="Maximum header levels to parse (default: 6).",
@@ -70,7 +75,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     _LOG.info("Reading file '%s'", args.input)
     input_content = hio.from_file(args.input)
-    output_content = hmarkdown.extract_headers(
+    output_content = hmarkdo.extract_headers(
         args.input, input_content, max_level=args.max_level
     )
     if args.output == "-":

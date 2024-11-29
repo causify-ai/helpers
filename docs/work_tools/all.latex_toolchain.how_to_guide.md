@@ -2,10 +2,15 @@
 
 <!-- toc -->
 
+- [Definitions](#definitions)
 - [Files](#files)
+- [Editing `txt` files](#editing-txt-files)
+  * [Generate the summary of the headers](#generate-the-summary-of-the-headers)
+  * [Format a chunk of `txt` file](#format-a-chunk-of-txt-file)
+  * [List possible LLM transforms](#list-possible-llm-transforms)
+  * [Convert notes to slides](#convert-notes-to-slides)
 - [Latex Toolchain](#latex-toolchain)
   * [Running and linting Latex files](#running-and-linting-latex-files)
-  * [TODOs](#todos)
 
 <!-- tocstop -->
 
@@ -19,7 +24,7 @@
 - Notes files can be converted to:
   - PDF (through a conversion to an intermediate Latex file)
   - HTML
-  - slides (through beamer)
+  - Slides (through beamer)
   - Questions / answers (through Anki)
 
 # Files
@@ -57,7 +62,8 @@
   - `pandoc.latex`
     - `latex` template used by `notes_to_pdf.py`
   - `preprocess_notes.py`
-    - Convert a text file storing notes into markdown suitable for `notes_to_pdf.py`
+    - Convert a text file storing notes into markdown suitable for
+      `notes_to_pdf.py`
     - The transformations are
       - Convert the text in pandoc / latex format
       - Handle banners around chapters
@@ -89,6 +95,7 @@
 # Editing `txt` files
 
 ## Generate the summary of the headers
+
 - In `vim`
   ```
   :!helpers_root/dev_scripts_helpers/documentation/process_md_headers.py -i % -m 1
@@ -117,8 +124,7 @@
 
 ## List possible LLM transforms
 
-- 
-  ```
+- ```
   > \grep "def " ./dev_scripts_helpers/llms/llm_prompts.py | \grep "(user: str, model: str)"
   def code_comment(user: str, model: str) -> str:
   def code_docstring(user: str, model: str) -> str:
@@ -133,8 +139,7 @@
 
 ## Convert notes to slides
 
-- 
-  ```
+- ```
   > notes_to_pdf.py --input notes/MSML610/intro.txt --output tmp.pdf -t slides --skip_action copy_to_gdrive --skip_action open --skip_action cleanup_after
   ```
 
@@ -144,7 +149,8 @@
 
 - We organize each project is in a directory (e.g., under `//papers`)
 - Under each dir there are several scripts that assign some variables and then
-  call the main scripts to perform the actual work by calling `run_notes_to_pdf.py`
+  call the main scripts to perform the actual work by calling
+  `run_notes_to_pdf.py`
   - `run_latex.sh`
   - `lint_latex.sh`
 

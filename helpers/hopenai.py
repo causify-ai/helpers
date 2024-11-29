@@ -16,7 +16,7 @@ _LOG = logging.getLogger(__name__)
 _LOG.debug = _LOG.info
 
 _MODEL = "gpt-4o-mini"
-#_MODEL = "gpt-4o"
+# _MODEL = "gpt-4o"
 
 
 _TEMPERATURE = 0.1

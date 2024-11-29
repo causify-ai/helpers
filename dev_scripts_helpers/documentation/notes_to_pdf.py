@@ -459,16 +459,13 @@ def _parse() -> argparse.ArgumentParser:
         help="Type of output to generate",
     )
     parser.add_argument(
-        "-f",
-        "--filter_by_header",
-        action="store",
-        help="Filter by header"
+        "-f", "--filter_by_header", action="store", help="Filter by header"
     )
     parser.add_argument(
         "-n",
         "--filter_by_lines",
         action="store",
-        help="Filter by lines (e.g., `1-10`)"
+        help="Filter by lines (e.g., `1-10`)",
     )
     parser.add_argument(
         "--script", action="store", help="Bash script to generate"

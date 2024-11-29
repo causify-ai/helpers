@@ -1,5 +1,5 @@
-import re
 import logging
+import re
 from typing import List, Optional, Tuple
 
 import helpers.hdbg as hdbg
@@ -11,19 +11,23 @@ _LOG = logging.getLogger(__name__)
 # TODO(gp): Add a decorator like in hprint to process both strings and lists
 #  of strings.
 
+
 def extract_section_from_markdown(content: str, header_name: str) -> str:
     """
-    Extract a section of text from a markdown document based on the header name.
+    Extract a section of text from a markdown document based on the header
+    name.
 
-    The function identifies a section by locating the specified header and
-    captures all lines until encountering another header of the same or
-    higher level. Headers are identified by the '#' prefix, and their level
-    is determined by the number of '#' characters.
+    The function identifies a section by locating the specified header
+    and captures all lines until encountering another header of the same
+    or higher level. Headers are identified by the '#' prefix, and their
+    level is determined by the number of '#' characters.
 
     :param content: The markdown content as a single string.
-    :param header_name: The exact header name to extract (excluding '#' symbols).
-    :return: The extracted section as a string, including the header line itself
-             and all lines until the next header of the same or higher level.
+    :param header_name: The exact header name to extract (excluding '#'
+        symbols).
+    :return: The extracted section as a string, including the header
+        line itself and all lines until the next header of the same or
+        higher level.
     """
     lines = content.splitlines()
     _LOG.debug(hprint.to_str("lines"))
@@ -40,10 +44,10 @@ def extract_section_from_markdown(content: str, header_name: str) -> str:
         if line.strip().startswith("#"):
             # Determine the level of the header by counting leading '#'
             # characters.
-            header_level = len(line) - len(line.lstrip('#'))
+            header_level = len(line) - len(line.lstrip("#"))
             # Extract the actual header text by stripping '#' and surrounding
             # whitespace.
-            header_text = line.strip('#').strip()
+            header_text = line.strip("#").strip()
             _LOG.debug(hprint.to_str("header_level, header_text"))
             # Handle the end of the desired section when encountering another
             # header.
@@ -67,7 +71,7 @@ def extract_section_from_markdown(content: str, header_name: str) -> str:
 
 
 def extract_headers(
-        markdown_file: str, input_content: str, *, max_level: int = 6
+    markdown_file: str, input_content: str, *, max_level: int = 6
 ) -> str:
     """
     Extract headers from a Markdown file and generate a Vim cfile.
@@ -99,12 +103,11 @@ def extract_headers(
                 title = match.group(2).strip()
                 headers.append((line_number, level, title))
                 #
-                summary.append("  " * (level - 1) + title +
-                               f" {line_number}")
+                summary.append("  " * (level - 1) + title + f" {line_number}")
     # Generate the output file content.
     output_lines = [
-        f"{markdown_file}:{line_number}:{title}" for line_number, level, title in
-        headers
+        f"{markdown_file}:{line_number}:{title}"
+        for line_number, level, title in headers
     ]
     output_content = "\n".join(output_lines)
     print("\n".join(summary))
@@ -150,8 +153,10 @@ def table_of_content(file_name: str, max_lev: int) -> None:
     Generate a table of contents from the given file, considering the specified
     maximum level of headings.
 
-    :param file_name: The name of the file to read and generate the table of contents from
-    :param max_lev: The maximum level of headings to include in the table of contents
+    :param file_name: The name of the file to read and generate the
+        table of contents from
+    :param max_lev: The maximum level of headings to include in the
+        table of contents
     """
     skip_block = False
     txt = hparser.read_file(file_name)
@@ -164,10 +169,10 @@ def table_of_content(file_name: str, max_lev: int) -> None:
         for i in range(1, max_lev + 1):
             if line.startswith("#" * i + " "):
                 if (
-                        ("#########" not in line)
-                        and ("///////" not in line)
-                        and ("-------" not in line)
-                        and ("======" not in line)
+                    ("#########" not in line)
+                    and ("///////" not in line)
+                    and ("-------" not in line)
+                    and ("======" not in line)
                 ):
                     if i == 1:
                         print()
@@ -182,8 +187,10 @@ def format_text(in_file_name: str, out_file_name: str, max_lev: int) -> None:
     output file.
 
     :param in_file_name: The name of the input file to read
-    :param out_file_name: The name of the output file to write the formatted text to
-    :param max_lev: The maximum level of headings to include in the formatted text
+    :param out_file_name: The name of the output file to write the
+        formatted text to
+    :param max_lev: The maximum level of headings to include in the
+        formatted text
     """
     txt = hparser.read_file(in_file_name)
     #
@@ -199,10 +206,10 @@ def format_text(in_file_name: str, out_file_name: str, max_lev: int) -> None:
     for line in txt:
         # Keep the comments.
         if not (
-                re.match("#+ ####+", line)
-                or re.match("#+ /////+", line)
-                or re.match("#+ ------+", line)
-                or re.match("#+ ======+", line)
+            re.match("#+ ####+", line)
+            or re.match("#+ /////+", line)
+            or re.match("#+ ------+", line)
+            or re.match("#+ ======+", line)
         ):
             txt_tmp.append(line)
     txt = txt_tmp[:]
@@ -232,7 +239,8 @@ def increase_chapter(in_file_name: str, out_file_name: str) -> None:
     Increase the level of chapters by one for text in stdin.
 
     :param in_file_name: The name of the input file to read
-    :param out_file_name: The name of the output file to write the modified text to
+    :param out_file_name: The name of the output file to write the
+        modified text to
     :return: None
     """
     skip_block = False
@@ -286,7 +294,7 @@ def _process_comment_block(line: str, in_skip_block: bool) -> Tuple[bool, bool]:
 
 
 def _process_code_block(
-        line: str, in_code_block: bool, i: int, lines: List[str]
+    line: str, in_code_block: bool, i: int, lines: List[str]
 ) -> Tuple[bool, bool, List[str]]:
     """
     Process lines of text to handle code blocks that start and end with '```'.
@@ -308,16 +316,16 @@ def _process_code_block(
         in_code_block = not in_code_block
         # Add empty line.
         if (
-                in_code_block
-                and (i + 1 < len(lines))
-                and re.match(r"\s*", lines[i + 1])
+            in_code_block
+            and (i + 1 < len(lines))
+            and re.match(r"\s*", lines[i + 1])
         ):
             out.append("\n")
         out.append("    " + line)
         if (
-                not in_code_block
-                and (i + 1 < len(lines))
-                and re.match(r"\s*", lines[i + 1])
+            not in_code_block
+            and (i + 1 < len(lines))
+            and re.match(r"\s*", lines[i + 1])
         ):
             out.append("\n")
         do_continue = True
@@ -344,10 +352,10 @@ def _process_single_line_comment(line: str) -> bool:
         return do_continue
     # Skip frame.
     if (
-            re.match(r"\#+ -----", line)
-            or re.match(r"\#+ \#\#\#\#\#", line)
-            or re.match(r"\#+ =====", line)
-            or re.match(r"\#+ \/\/\/\/\/", line)
+        re.match(r"\#+ -----", line)
+        or re.match(r"\#+ \#\#\#\#\#", line)
+        or re.match(r"\#+ =====", line)
+        or re.match(r"\#+ \/\/\/\/\/", line)
     ):
         do_continue = True
         _LOG.debug("  -> do_continue=True")

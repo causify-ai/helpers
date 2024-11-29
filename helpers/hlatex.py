@@ -63,9 +63,10 @@ def markdown_list_to_latex(markdown: str) -> str:
 
 def remove_latex_formatting(latex_string: str) -> str:
     """
-    Remove LaTeX formatting such as \textcolor{color}{content} and retains
-    only the content.
+    Remove LaTeX formatting such as \textcolor{color}{content} and retains only
+    the content.
     """
-    cleaned_string = re.sub(r'\\textcolor\{[^}]*\}\{([^}]*)\}', r'\1',
-                            latex_string)
+    cleaned_string = re.sub(
+        r"\\textcolor\{[^}]*\}\{([^}]*)\}", r"\1", latex_string
+    )
     return cleaned_string

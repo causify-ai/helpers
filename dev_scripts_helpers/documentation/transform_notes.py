@@ -34,8 +34,8 @@ import argparse
 import logging
 
 import helpers.hdbg as hdbg
-import helpers.hmarkdown as hmarkdown
 import helpers.hlatex as hlatex
+import helpers.hmarkdown as hmarkdo
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -68,11 +68,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
         args, clear_screen=True
     )
     if cmd == "toc":
-        hmarkdown.table_of_content(in_file_name, max_lev)
+        hmarkdo.table_of_content(in_file_name, max_lev)
     elif cmd == "format":
-        hmarkdown.format_text(in_file_name, out_file_name, max_lev)
+        hmarkdo.format_text(in_file_name, out_file_name, max_lev)
     elif cmd == "increase":
-        hmarkdown.increase_chapter(in_file_name, out_file_name)
+        hmarkdo.increase_chapter(in_file_name, out_file_name)
     elif cmd == "md_list_to_latex":
         txt = hparser.read_file(in_file_name)
         txt = "\n".join(txt)

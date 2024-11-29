@@ -1,10 +1,9 @@
+import helpers.hmarkdown as hmarkdo
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
-import helpers.hmarkdown as uut
 
 
 class Test_extract_section_from_markdown1(hunitest.TestCase):
-
     def test1(self):
         # Prepare inputs.
         content = r"""
@@ -17,7 +16,7 @@ class Test_extract_section_from_markdown1(hunitest.TestCase):
         """
         # Call functions.
         content = hprint.dedent(content)
-        act = uut.extract_section_from_markdown(content, "Header1")
+        act = hmarkdo.extract_section_from_markdown(content, "Header1")
         # Check output.
         exp = r"""
         # Header1
@@ -39,7 +38,7 @@ class Test_extract_section_from_markdown1(hunitest.TestCase):
         """
         content = hprint.dedent(content)
         # Call functions.
-        act = uut.extract_section_from_markdown(content, "Header2")
+        act = hmarkdo.extract_section_from_markdown(content, "Header2")
         # Check output.
         exp = r"""
         ## Header2
@@ -59,7 +58,7 @@ class Test_extract_section_from_markdown1(hunitest.TestCase):
         """
         content = hprint.dedent(content)
         # Call tested function.
-        act = uut.extract_section_from_markdown(content, "Header3")
+        act = hmarkdo.extract_section_from_markdown(content, "Header3")
         # Check output.
         exp = r"""
         # Header3
@@ -77,7 +76,7 @@ class Test_extract_section_from_markdown1(hunitest.TestCase):
         """
         content = hprint.dedent(content)
         # Call function.
-        act = uut.extract_section_from_markdown(content, "Header1")
+        act = hmarkdo.extract_section_from_markdown(content, "Header1")
         # Check output.
         exp = r"""
         # Header1
@@ -100,7 +99,7 @@ class Test_extract_section_from_markdown1(hunitest.TestCase):
         # Call tested function.
         content = hprint.dedent(content)
         with self.assertRaises(ValueError) as fail:
-            uut.extract_section_from_markdown(content, "Header4")
+            hmarkdo.extract_section_from_markdown(content, "Header4")
         # Check output.
         actual = str(fail.exception)
         expected = r"Header 'Header4' not found"
@@ -108,33 +107,32 @@ class Test_extract_section_from_markdown1(hunitest.TestCase):
 
 
 class Test_remove_end_of_line_periods1(hunitest.TestCase):
-
     def test_standard_case(self):
         txt = "Hello.\nWorld.\nThis is a test."
-        act = uut.remove_end_of_line_periods(txt)
+        act = hmarkdo.remove_end_of_line_periods(txt)
         exp = "Hello\nWorld\nThis is a test"
         self.assertEqual(act, exp)
 
     def test_no_periods(self):
         txt = "Hello\nWorld\nThis is a test"
-        act = uut.remove_end_of_line_periods(txt)
+        act = hmarkdo.remove_end_of_line_periods(txt)
         exp = "Hello\nWorld\nThis is a test"
         self.assertEqual(act, exp)
 
     def test_multiple_periods(self):
         txt = "Line 1.....\nLine 2.....\nEnd."
-        act = uut.remove_end_of_line_periods(txt)
+        act = hmarkdo.remove_end_of_line_periods(txt)
         exp = "Line 1\nLine 2\nEnd"
         self.assertEqual(act, exp)
 
     def test_empty_string(self):
         txt = ""
-        act = uut.remove_end_of_line_periods(txt)
+        act = hmarkdo.remove_end_of_line_periods(txt)
         exp = ""
         self.assertEqual(act, exp)
 
     def test_leading_and_trailing_periods(self):
         txt = ".Line 1.\n.Line 2.\n..End.."
-        act = uut.remove_end_of_line_periods(txt)
+        act = hmarkdo.remove_end_of_line_periods(txt)
         exp = ".Line 1\n.Line 2\n..End"
         self.assertEqual(act, exp)

@@ -1,7 +1,7 @@
 import logging
 
+import helpers.hlatex as hlatex
 import helpers.hprint as hprint
-import helpers.hlatex as uut
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
@@ -37,5 +37,5 @@ class Test_remove_latex_formatting1(hunitest.TestCase):
         - Without data, we cannot do anything:
           data is all that matters."""
         exp = hprint.dedent(exp)
-        act = uut.remove_latex_formatting(txt)
+        act = hlatex.remove_latex_formatting(txt)
         self.assert_equal(act, exp)

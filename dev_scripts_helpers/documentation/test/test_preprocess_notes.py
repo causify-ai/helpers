@@ -3,7 +3,7 @@ import os
 
 import pytest
 
-import dev_scripts_helpers.documentation.preprocess_notes as dshdcttpa
+import dev_scripts_helpers.documentation.preprocess_notes as dshdprno
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
@@ -71,8 +71,8 @@ class Test_preprocess_notes1(hunitest.TestCase):
 )
 class Test_preprocess_notes2(hunitest.TestCase):
     """
-    Check that the output of `preprocess_notes.py` is the expected one
-    calling the library function directly.
+    Check that the output of `preprocess_notes.py` is the expected one calling
+    the library function directly.
     """
 
     def test_process_question1(self) -> None:
@@ -116,11 +116,12 @@ class Test_preprocess_notes2(hunitest.TestCase):
     def _helper_process_question(
         self, txt_in: str, do_continue_exp: bool, exp: str
     ) -> None:
-        do_continue, act = dshdcttpa._process_question(txt_in)
+        do_continue, act = dshdprno._process_question(txt_in)
         self.assertEqual(do_continue, do_continue_exp)
         self.assert_equal(act, exp)
 
-# #########################################################################
+
+# #############################################################################
 
 
 @pytest.mark.skipif(
@@ -128,8 +129,8 @@ class Test_preprocess_notes2(hunitest.TestCase):
 )
 class Test_preprocess_notes3(hunitest.TestCase):
     """
-    Check that the output of `preprocess_notes.py` is the expected one
-    calling the library function directly.
+    Check that the output of `preprocess_notes.py` is the expected one calling
+    the library function directly.
     """
 
     def test_run_all1(self) -> None:
@@ -164,13 +165,13 @@ class Test_preprocess_notes3(hunitest.TestCase):
 
                 ```python
                 def print_integers(values):
-          
+
                     def _is_integer(value):
                         try:
                             return value == int(value)
                         except:
                             return False
-          
+
                     for v in values:
                         if _is_integer(v):
                             print(v)
@@ -180,6 +181,6 @@ class Test_preprocess_notes3(hunitest.TestCase):
         self._helper_run_all(txt_in, exp)
 
     def _helper_run_all(self, txt_in: str, exp: str) -> None:
-        act_as_arr = dshdcttpa._run_all(txt_in.split("\n"), is_qa=False)
+        act_as_arr = dshdprno._run_all(txt_in.split("\n"), is_qa=False)
         act = "\n".join(act_as_arr)
         self.assert_equal(act, exp)

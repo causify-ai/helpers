@@ -22,7 +22,7 @@ from typing import List, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
-import helpers.hmarkdown as hmarkdown
+import helpers.hmarkdown as hmarkdo
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -99,7 +99,9 @@ def _run_all(lines: List[str], *, is_qa: bool = False) -> List[str]:
         # 1) Process comment block.
         if _TRACE:
             _LOG.debug("# 1) Process comment block.")
-        do_continue, in_skip_block = hmarkdown._process_comment_block(line, in_skip_block)
+        do_continue, in_skip_block = hmarkdo._process_comment_block(
+            line, in_skip_block
+        )
         # _LOG.debug("  -> do_continue=%s in_skip_block=%s",
         #   do_continue, in_skip_block)
         if do_continue:
@@ -107,7 +109,7 @@ def _run_all(lines: List[str], *, is_qa: bool = False) -> List[str]:
         # 2) Process code block.
         if _TRACE:
             _LOG.debug("# 2) Process code block.")
-        do_continue, in_code_block, out_tmp = hmarkdown._process_code_block(
+        do_continue, in_code_block, out_tmp = hmarkdo._process_code_block(
             line, in_code_block, i, lines
         )
         out.extend(out_tmp)
@@ -116,7 +118,7 @@ def _run_all(lines: List[str], *, is_qa: bool = False) -> List[str]:
         # 3) Process single line comment.
         if _TRACE:
             _LOG.debug("# 3) Process single line comment.")
-        do_continue = hmarkdown._process_single_line_comment(line)
+        do_continue = hmarkdo._process_single_line_comment(line)
         if do_continue:
             continue
         # 4) Process abbreviations.
@@ -190,8 +192,9 @@ def _parse() -> argparse.ArgumentParser:
     )
     parser.add_argument("--input", action="store", type=str, required=True)
     parser.add_argument("--output", action="store", type=str, default=None)
-    parser.add_argument("--qa", action="store_true", default=None,
-                        help="The input file is QA")
+    parser.add_argument(
+        "--qa", action="store_true", default=None, help="The input file is QA"
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
