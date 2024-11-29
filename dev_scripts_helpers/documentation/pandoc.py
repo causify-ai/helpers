@@ -88,7 +88,7 @@ def _convert_txt_to_pandoc(curr_path: str, file_: str, prefix: str) -> str:
     _LOG.info("\n%s", hprint.frame("Pre-process markdown", char1="<", char2=">"))
     file1 = file_
     file2 = f"{prefix}.no_spaces.txt"
-    cmd = f"{curr_path}/convert_txt_to_pandoc.py --input {file1} --output {file2}"
+    cmd = f"{curr_path}/preprocess_notes.py --input {file1} --output {file2}"
     _ = _system(cmd)
     file_ = file2
     return file_

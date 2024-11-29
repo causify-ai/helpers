@@ -57,7 +57,7 @@ class Test_pandoc1(hunitest.TestCase):
             self._helper(file_name, "html")
 
     def _helper(self, in_file: str, action: str) -> str:
-        exec_path = hgit.find_file_in_git_tree("pandoc.py")
+        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
         hdbg.dassert_path_exists(exec_path)
         #
         tmp_dir = self.get_scratch_space()

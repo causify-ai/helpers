@@ -19,7 +19,7 @@
     - Convert Docx file to Markdown using Dockerized pandoc and save the figs
   - `convert_docx_to_markdown.sh`
     - Wrapper to simplify calling `convert_docx_to_markdown.py`
-  - `convert_txt_to_pandoc.py`
+  - `preprocess_notes.py`
     - Convert a text file storing notes into markdown suitable for pandoc.py
     - The transformations are
       - Convert the text in pandoc / latex format
@@ -102,21 +102,3 @@
   + docker run --rm -it --workdir /Users/saggese/src/cmamp1 --mount type=bind,source=/Users/saggese/src/cmamp1,target=/Users/saggese/src/cmamp1 lint_latex:latest sh -c ''\''./tmp.lint_latex.sh'\''' papers/DataFlow_stream_computing_framework/DataFlow_stream_computing_framework.tex
   papers/DataFlow_stream_computing_framework/DataFlow_stream_computing_framework.tex 320ms (unchanged)
   ```
-
-## TODOs
-
-- Add a script to decorate the file with separators as part of the linting
-  ```
-  % ################################################################################
-  \section{Adapters}
-  % ================================================================================
-  \subsection{Adapters}
-  % --------------------------------------------------------------------------------
-  \subsubsection{Adapters}
-  ```
-
-- Convert the Latex toolchain into Python code
-
-- Add a script to run a ChatGPT prompt on a certain chunk of text
-
-- Easily create a vimfile to navigate the TOC
