@@ -239,6 +239,7 @@ def trim_consecutive_empty_lines(lines: StrOrList) -> StrOrList:
         lines.pop(0)
     # Remove trailing empty lines.
     while lines and not lines[-1].strip():
+        _LOG.info("Removing '%s'", lines[-1])
         lines.pop()
     return lines
 

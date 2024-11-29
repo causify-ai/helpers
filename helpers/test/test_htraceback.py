@@ -420,6 +420,7 @@ class Test_Traceback1(hunitest.TestCase):
         # Compare cfile.
         act_cfile = htraceb.cfile_to_str(act_cfile)
         exp_cfile = hprint.dedent(exp_cfile)
+        _LOG.debug(hprint.to_str("exp_cfile act_cfile"))
         self.assert_equal(
             act_cfile, exp_cfile, fuzzy_match=True, purify_text=True
         )
@@ -427,6 +428,7 @@ class Test_Traceback1(hunitest.TestCase):
         # Handle `None`.
         act_traceback = str(act_traceback)
         exp_traceback = hprint.dedent(exp_traceback)
+        _LOG.debug(hprint.to_str("exp_traceback act_traceback"))
         self.assert_equal(
             act_traceback, exp_traceback, fuzzy_match=True, purify_text=True
         )
