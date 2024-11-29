@@ -32,5 +32,7 @@ AssertionError:
 The golden outcome doesn't exist: saved the actual output in '$GIT_ROOT/dataflow/pipelines/E8/test/TestE8c_ModelBuilder.test1/output/test.txt.tmp'
 ################################################################################
 
+________________________
+
 # To run the tests:
 > $GIT_ROOT/helpers/test/outcomes/Test_pytest_repro_end_to_end.test5/tmp.scratch/tmp.pytest_repro.sh

@@ -9,7 +9,18 @@ import logging
 import pprint
 import re
 import sys
-from typing import Any, Dict, Iterable, List, Match, Optional, cast
+from functools import wraps
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Match,
+    Optional,
+    Union,
+    cast,
+)
 
 import helpers.hdbg as hdbg
 
@@ -80,6 +91,7 @@ def pprint_pformat(obj: Any, *, sort_dicts: bool = False) -> str:
     from pygments import highlight
     from pygments.formatters import Terminal256Formatter
     from pygments.lexers import PythonLexer
+
     txt = pprint.pformat(obj, sort_dicts=sort_dicts)
     txt = highlight(txt, PythonLexer(), Terminal256Formatter())
     txt = txt.rstrip()
@@ -195,19 +207,69 @@ def indent(txt: Optional[str], *, num_spaces: int = 2) -> str:
     return res
 
 
-# TODO(gp): It should use *.
-def dedent(txt: str, remove_empty_leading_trailing_lines: bool = True) -> str:
+StrOrList = Union[str, List[str]]
+
+
+# TODO(gp): Use this everywhere in the codebase to avoid back-and-forth
+#  transforms between strings and lists of strings.
+def split_lines(func: Callable) -> Callable:
+    """
+    A decorator that splits a string input into lines before passing it to the
+    decorated function.
+    """
+
+    @wraps(func)
+    def wrapper(txt: StrOrList, *args: Any, **kwargs: Any) -> None:
+        if isinstance(txt, str):
+            # Split the txt into lines.
+            lines = txt.splitlines()
+            is_str = True
+        else:
+            # The txt is already a list of lines.
+            hdbg.dassert_isinstance(txt, list)
+            lines = txt
+            is_str = False
+        # Call the function.
+        lines = func(lines, *args, **kwargs)
+        if is_str:
+            # Join the lines back together.
+            out = "\n".join(lines)
+        else:
+            # The output is already a list of lines.
+            out = lines
+        return out
+
+    return wrapper
+
+
+@split_lines
+def trim_consecutive_empty_lines(lines: StrOrList) -> StrOrList:
+    """
+    Remove consecutive empty lines only at the beginning / end of a string.
+    """
+    # Remove leading empty lines.
+    while lines and not lines[0].strip():
+        lines.pop(0)
+    # Remove trailing empty lines.
+    while lines and not lines[-1].strip():
+        _LOG.info("Removing '%s'", lines[-1])
+        lines.pop()
+    return lines
+
+
+def dedent(txt: str, *, remove_empty_leading_trailing_lines: bool = True) -> str:
     """
     Remove from each line the minimum number of spaces to align the text on the
     left.
 
     It is the opposite of `indent()`.
 
-    :param remove_empty_leading_trailing_lines: if True, remove all the empty lines
-        at the beginning and at the end
+    :param txt: multi-line string
+    :param remove_empty_leading_trailing_lines: if True, remove all the
+        empty lines at the beginning and at the end
     """
     if remove_empty_leading_trailing_lines:
-        txt = txt.rstrip("\n").lstrip("\n")
+        txt = trim_consecutive_empty_lines(txt)
     # Find the minimum number of leading spaces.
     min_num_spaces = None
     for curr_line in txt.split("\n"):
@@ -353,17 +415,16 @@ def perc(
 
 
 def round_digits(
-    v: float,
-    *,
-    num_digits: int = 2, use_thousands_separator: bool = False
+    v: float, *, num_digits: int = 2, use_thousands_separator: bool = False
 ) -> str:
     """
     Round digit returning a string representing the formatted number.
 
     :param v: value to convert
-    :param num_digits: number of digits to represent v on
-            None is (Default value = 2)
-    :param use_thousands_separator: use "," to separate thousands (Default value = False)
+    :param num_digits: number of digits to represent v on None is
+        (Default value = 2)
+    :param use_thousands_separator: use "," to separate thousands
+        (Default value = False)
     :returns: str with formatted value
     """
     if (num_digits is not None) and isinstance(v, float):
@@ -453,7 +514,7 @@ def to_str(
     elif mode == "pprint":
         ret += "\n" + indent(pprint.pformat(eval_))
     elif mode == "pprint_color":
-        ret+="\n" + indent(pprint_pformat(eval_))
+        ret += "\n" + indent(pprint_pformat(eval_))
     else:
         raise ValueError(f"Invalid mode='{mode}'")
     return ret
@@ -488,7 +549,7 @@ def to_str2(*variables_values: Any) -> str:
        - Function call line in Python 3.9 and above
 
     :param variables_values: variables to convert into "name=value" string
-    :return: string e.g., `a=1, b=2`
+    :return: resulting string, e.g., `a=1, b=2`
     """
     # Check parameters.
     hdbg.dassert_lte(1, len(variables_values))
@@ -534,12 +595,14 @@ def to_str2(*variables_values: Any) -> str:
 
 def log(logger: logging.Logger, verbosity: int, *vals: Any) -> None:
     """
-    log(_LOG, logging.DEBUG, "ticker", "exchange")
+    `log(_LOG, logging.DEBUG, "ticker", "exchange")`
 
     is equivalent to statements like:
 
+    ```
     _LOG.debug("%s, %s", to_str("ticker"), to_str("exchange"))
     _LOG.debug("ticker=%s, exchange=%s", ticker, exchange)
+    ```
     """
     logger_verbosity = hdbg.get_logger_verbosity()
     # print("verbosity=%s logger_verbosity=%s" % (verbosity, logger_verbosity))
@@ -707,10 +770,29 @@ def set_diff_to_str(
     add_space: bool = False,
 ) -> str:
     """
-    Compute the difference between two sequence of data.
+    Compute the difference between two sequences of data and return a formatted
+    string.
 
-    :param sep_char: print the objects using `sep_char` as separating char
-    :param add_space: add empty lines to make the output more readable
+    :param obj1: The first iterable object.
+    :param obj2: The second iterable object.
+    :param obj1_name: The name to use for the first object in the output string.
+    :param obj2_name: The name to use for the second object in the output string.
+    :param sep_char: The character to use for separating elements in the output
+        string.
+    :param add_space: Whether to add empty lines to make the output more readable.
+    :return: A formatted string showing the differences between the two objects.
+
+    Example:
+    ```
+    >>> obj1 = [1, 2, 3, 4]
+    >>> obj2 = [3, 4, 5, 6]
+    >>> set_diff_to_str(obj1, obj2, obj1_name="list1", obj2_name="list2")
+    * list1: (4) 1 2 3 4
+    * list2: (4) 3 4 5 6
+    * intersect=(2) 3 4
+    * list1-list2=(2) 1 2
+    * list2-list1=(2) 5 6
+    ```
     """
 
     def _to_string(obj: Iterable) -> str:

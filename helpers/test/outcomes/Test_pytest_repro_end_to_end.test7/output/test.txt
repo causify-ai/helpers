@@ -42,6 +42,7 @@ exp = r"""report_memory_usage=False report_cpu_usage=False
 ## git_clean: dry_run=False
 find . -name '*\.pyc' -o -name '*\.pyo' -o -name '.coverage' -o -name '.ipynb_checkpoints' -o -name '.mypy_cache' -o -name '.pytest_cache' -o -name '__pycache__' -o -name 'cfile' -o -name 'tmp.*' -o -name '*.tmp' | sort | xargs rm -rf
 """
+__
 
 # Test_Example1_ForecastSystem_FitPredict.test_fit_over_backtest_period1
 Traceback (most recent call last):
@@ -218,6 +219,7 @@ end_ts
 2000-01-01 10:05:00-05:00        0.98        0.98
 2000-01-01 10:10:00-05:00       -0.98       -0.98
 """
+______
 
 # Test_Example1_ForecastSystem_FitPredict.test_fit_over_period1
 Traceback (most recent call last):

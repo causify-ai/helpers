@@ -1,6 +1,6 @@
 import logging
 import pprint
-from typing import List, Union
+from typing import List
 
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
@@ -322,3 +322,100 @@ class Test_logging1(hunitest.TestCase):
 
     def test_log_frame3(self) -> None:
         hprint.log_frame(_LOG, "%s", "hello", level=2, verbosity=logging.INFO)
+
+
+# #############################################################################
+
+
+class Test_trim_consecutive_empty_lines1(hunitest.TestCase):
+    def helper(self, input_str: str, expected_output: List[str]) -> None:
+        """
+        Test the `trim_consecutive_empty_lines` function.
+
+        :param input_str: The input string to be processed.
+        :param expected_output: The expected output list of strings.
+
+        Example:
+            input_str = "line1\n\n\nline2"
+            expected_output = ["line1", "", "", "line2"]
+        """
+        # Test as string.
+        act = hprint.trim_consecutive_empty_lines(input_str)
+        exp = "\n".join(expected_output)
+        self.assertEqual(act, exp)
+        # Test as list of strings.
+        input_str = input_str.splitlines()
+        act = hprint.trim_consecutive_empty_lines(input_str)
+        self.assertEqual(act, expected_output)
+
+    def test_empty_string_returns_empty_list(self) -> None:
+        input_str: str = ""
+        expected_output: List[str] = []
+        self.helper(input_str, expected_output)
+
+    def test_single_line_string_returns_single_line_list(self) -> None:
+        input_str: str = "line"
+        expected_output = ["line"]
+        self.helper(input_str, expected_output)
+
+    def test_multiple_lines_with_no_empty_lines_returns_same_lines(self) -> None:
+        input_str: str = "line1\nline2\nline3"
+        expected_output = ["line1", "line2", "line3"]
+        self.helper(input_str, expected_output)
+
+    def test_leading_empty_lines_are_removed(self) -> None:
+        input_str: str = "\n\nline1\nline2"
+        expected_output = ["line1", "line2"]
+        self.helper(input_str, expected_output)
+
+    def test_trailing_empty_lines_are_removed(self) -> None:
+        input_str: str = "line1\nline2\n\n"
+        expected_output = ["line1", "line2"]
+        self.helper(input_str, expected_output)
+
+    def test_leading_and_trailing_empty_lines_are_removed(self) -> None:
+        input_str: str = "\n\nline1\nline2\n\n"
+        expected_output = ["line1", "line2"]
+        self.helper(input_str, expected_output)
+
+    def test_consecutive_empty_lines_in_middle_are_not_removed(self) -> None:
+        input_str: str = "line1\n\n\nline2"
+        expected_output = ["line1", "", "", "line2"]
+        self.helper(input_str, expected_output)
+
+    def test_only_empty_lines_returns_empty_list(self) -> None:
+        input_str: str = "\n\n\n"
+        expected_output = []
+        self.helper(input_str, expected_output)
+
+    def test_mixed_content_with_leading_trailing_and_middle_empty_lines(
+        self,
+    ) -> None:
+        input_str: str = "\n\nline1\n\nline2\n\n"
+        expected_output = ["line1", "", "line2"]
+        self.helper(input_str, expected_output)
+
+    def test_single_empty_line_returns_empty_list(self) -> None:
+        input_str: str = "\n"
+        expected_output = []
+        self.helper(input_str, expected_output)
+
+    def test_multiple_consecutive_empty_lines_at_beginning_and_end(self) -> None:
+        input_str: str = "\n\n\nline1\nline2\n\n\n"
+        expected_output = ["line1", "line2"]
+        self.helper(input_str, expected_output)
+
+    def test_input_with_only_spaces_and_tabs_as_empty_lines(self) -> None:
+        input_str: str = " \n\t\nline1\nline2\n \n\t"
+        expected_output = ["line1", "line2"]
+        self.helper(input_str, expected_output)
+
+    def test_input_with_mixed_line_endings_unix_and_windows(self) -> None:
+        input_str: str = "line1\n\nline2\r\n\r\nline3"
+        expected_output = ["line1", "", "line2", "", "line3"]
+        self.helper(input_str, expected_output)
+
+    def test_input_with_special_characters(self) -> None:
+        input_str: str = "line1\n\n!@#$%^&*()\n\nline2"
+        expected_output = ["line1", "", "!@#$%^&*()", "", "line2"]
+        self.helper(input_str, expected_output)
