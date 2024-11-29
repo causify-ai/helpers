@@ -2,7 +2,7 @@ import logging
 import sys
 
 import helpers.hopenai as hopenai
-import helpers.transform_text as transform_text
+import helpers.hlatex as transform_text
 
 _LOG = logging.getLogger(__name__)
 

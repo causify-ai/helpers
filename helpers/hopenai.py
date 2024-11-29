@@ -285,19 +285,3 @@ def delete_all_assistants(*, ask_for_confirmation: bool = True):
     for assistant in assistants:
         _LOG.info("Deleting assistant %s", assistant)
         client.beta.assistants.delete(assistant.id)
-
-
-# #############################################################################
-
-# TODO(gp): Move to helpers/transform_text.py
-
-def remove_code_delimiters(text: str) -> str:
-    """
-    Remove ```python and ``` delimiters from a given text.
-
-    :param text: The input text containing code delimiters.
-    :return: The text with the code delimiters removed.
-    """
-    # Replace the ```python and ``` delimiters with empty strings
-    text = text.replace("```python", "").replace("```", "")
-    return text.strip()

@@ -22,6 +22,7 @@ from typing import List, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
+import helpers.hmarkdown as hmarkdown
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -29,109 +30,6 @@ _LOG = logging.getLogger(__name__)
 _NUM_SPACES = 2
 
 _TRACE = False
-
-
-# TODO(gp): Move to hmarkdown.py or transform_text.py.
-def _process_comment_block(line: str, in_skip_block: bool) -> Tuple[bool, bool]:
-    """
-    Process lines of text to identify blocks that start with '<!--' or '/*' and
-    end with '-->' or '*/'.
-
-    :param line: The current line of text being processed.
-    :param in_skip_block: A flag indicating if the function is currently
-        inside a comment block.
-    :return: A tuple containing a boolean indicating whether to continue
-        processing the current line and a boolean indicating whether the
-        function is currently inside a comment block.
-    """
-    # TODO: improve the comment handling, handle also \* *\ and %.
-    do_continue = False
-    if line.startswith(r"<!--") or re.search(r"^\s*\/\*", line):
-        hdbg.dassert(not in_skip_block)
-        # Start skipping comments.
-        in_skip_block = True
-    if in_skip_block:
-        if line.endswith(r"-->") or re.search(r"^\s*\*\/", line):
-            # End skipping comments.
-            in_skip_block = False
-        # Skip comment.
-        _LOG.debug("  -> skip")
-        do_continue = True
-    return do_continue, in_skip_block
-
-
-def _process_code_block(
-    line: str, in_code_block: bool, i: int, lines: List[str]
-) -> Tuple[bool, bool, List[str]]:
-    """
-    Process lines of text to handle code blocks that start and end with '```'.
-
-    :param line: The current line of text being processed.
-    :param in_code_block: A flag indicating if the function is currently
-        inside a code block.
-    :param i: The index of the current line in the list of lines.
-    :param lines: The list of all lines of text being processed.
-    :return: A tuple containing a boolean indicating whether to continue
-        processing the current line, a boolean indicating whether the
-        function is currently inside a code block, and a list of
-        processed lines.
-    """
-    out: List[str] = []
-    do_continue = False
-    if re.match(r"^(\s*)```", line):
-        _LOG.debug("  -> code block")
-        in_code_block = not in_code_block
-        # Add empty line.
-        if (
-            in_code_block
-            and (i + 1 < len(lines))
-            and re.match(r"\s*", lines[i + 1])
-        ):
-            out.append("\n")
-        out.append("    " + line)
-        if (
-            not in_code_block
-            and (i + 1 < len(lines))
-            and re.match(r"\s*", lines[i + 1])
-        ):
-            out.append("\n")
-        do_continue = True
-        return do_continue, in_code_block, out
-    if in_code_block:
-        line = line.replace("// ", "# ")
-        out.append("    " + line)
-        # We don't do any of the other post-processing.
-        do_continue = True
-        return do_continue, in_code_block, out
-    return do_continue, in_code_block, out
-
-
-def _process_single_line_comment(line: str) -> bool:
-    """
-    Handle single line comment.
-
-    We need to do it after the // in code blocks have been handled.
-    """
-    do_continue = False
-    if line.startswith(r"%%") or line.startswith(r"//"):
-        do_continue = True
-        _LOG.debug("  -> do_continue=True")
-        return do_continue
-    # Skip frame.
-    if (
-        re.match(r"\#+ -----", line)
-        or re.match(r"\#+ \#\#\#\#\#", line)
-        or re.match(r"\#+ =====", line)
-        or re.match(r"\#+ \/\/\/\/\/", line)
-    ):
-        do_continue = True
-        _LOG.debug("  -> do_continue=True")
-        return do_continue
-    # Nothing to do.
-    return do_continue
-
-
-# #############################################################################
 
 
 def _process_abbreviations(in_line: str) -> str:
@@ -201,7 +99,7 @@ def _run_all(lines: List[str], *, is_qa: bool = False) -> List[str]:
         # 1) Process comment block.
         if _TRACE:
             _LOG.debug("# 1) Process comment block.")
-        do_continue, in_skip_block = _process_comment_block(line, in_skip_block)
+        do_continue, in_skip_block = hmarkdown._process_comment_block(line, in_skip_block)
         # _LOG.debug("  -> do_continue=%s in_skip_block=%s",
         #   do_continue, in_skip_block)
         if do_continue:
@@ -209,7 +107,7 @@ def _run_all(lines: List[str], *, is_qa: bool = False) -> List[str]:
         # 2) Process code block.
         if _TRACE:
             _LOG.debug("# 2) Process code block.")
-        do_continue, in_code_block, out_tmp = _process_code_block(
+        do_continue, in_code_block, out_tmp = hmarkdown._process_code_block(
             line, in_code_block, i, lines
         )
         out.extend(out_tmp)
@@ -218,7 +116,7 @@ def _run_all(lines: List[str], *, is_qa: bool = False) -> List[str]:
         # 3) Process single line comment.
         if _TRACE:
             _LOG.debug("# 3) Process single line comment.")
-        do_continue = _process_single_line_comment(line)
+        do_continue = hmarkdown._process_single_line_comment(line)
         if do_continue:
             continue
         # 4) Process abbreviations.

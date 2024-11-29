@@ -31,61 +31,15 @@ Navigate between headers using:
 :cprev
 """
 
-import re
-
 import argparse
 import logging
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
+import helpers.hmarkdown as hmarkdown
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
-
-
-def extract_headers(
-    markdown_file: str, input_content: str, *, max_level: int = 6
-) -> str:
-    """
-    Extract headers from a Markdown file and generate a Vim cfile.
-
-    :param markdown_file: Path to the input Markdown file.
-    :param input_content: Path to the input Markdown file.
-    :param max_level: Maximum header levels to parse (1 for `#`, 2 for `##`, etc.).
-                      Default is 6.
-    :return: the generated output file content, e.g.,
-        The generated cfile format:
-            <file path>:<line number>:<header title>
-
-    Usage in Vim:
-        :cfile <output_file>
-        Use :cnext and :cprev to navigate between headers.
-    """
-    summary = []
-    header_pattern = re.compile(r"^(#+)\s+(.*)")
-    headers = []
-    # Process the input file to extract headers.
-    for line_number, line in enumerate(input_content.splitlines(), start=1):
-        if "########################################" in line:
-            continue
-        match = header_pattern.match(line)
-        if match:
-            # Number of '#' determines level.
-            level = len(match.group(1))
-            if level <= max_level:
-                title = match.group(2).strip()
-                headers.append((line_number, level, title))
-                #
-                summary.append("  " * (level - 1) + title +
-                                 f" {line_number}")
-    # Generate the output file content.
-    output_lines = [
-        f"{markdown_file}:{line_number}:{title}" for line_number, level, title in
-        headers
-    ]
-    output_content = "\n".join(output_lines)
-    print("\n".join(summary))
-    return output_content
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -116,7 +70,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     _LOG.info("Reading file '%s'", args.input)
     input_content = hio.from_file(args.input)
-    output_content = extract_headers(
+    output_content = hmarkdown.extract_headers(
         args.input, input_content, max_level=args.max_level
     )
     if args.output == "-":
