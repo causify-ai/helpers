@@ -4,15 +4,15 @@
 Convert a txt file into a PDF / HTML / slides using `pandoc`.
 
 # From scratch with TOC:
-> pandoc.py -a pdf --input ...
+> notes_to_pdf.py -a pdf --input ...
 
 # For interactive mode:
-> pandoc.py -a pdf --no_cleanup_before --no_cleanup --input ...
+> notes_to_pdf.py -a pdf --no_cleanup_before --no_cleanup --input ...
 
 # Check that can be compiled:
-> pandoc.py -a pdf --no_toc --no_open_pdf --input ...
+> notes_to_pdf.py -a pdf --no_toc --no_open_pdf --input ...
 
-> pandoc.py \
+> notes_to_pdf.py \
     --input notes/IN_PROGRESS/math.The_hundred_page_ML_book.Burkov.2019.txt \
     -a pdf --no_cleanup --no_cleanup_before --no_run_latex_again --no_open
 """
@@ -321,7 +321,7 @@ def _cleanup_after(prefix: str) -> None:
 # #############################################################################
 
 
-def _pandoc(args: argparse.Namespace) -> None:
+def _run_all(args: argparse.Namespace) -> None:
     #
     _LOG.info("type=%s", args.type)
     # Print actions.
@@ -458,7 +458,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     _LOG.info("cmd line=%s", cmd_line)
-    _pandoc(args)
+    _run_all(args)
 
 
 if __name__ == "__main__":

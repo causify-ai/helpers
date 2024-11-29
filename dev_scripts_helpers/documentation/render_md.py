@@ -45,14 +45,14 @@ _DEFAULT_ACTIONS = [_ACTION_OPEN, _ACTION_RENDER]
 
 def _open_html(md_file: str) -> None:
     """
-    Convert markdown to HTML using pandoc.py and open it.
+    Convert markdown to HTML using `notes_to_pdf.py` and open it.
     """
-    _LOG.info("\n%s", hprint.frame("Convert markdown to HTML using pandoc.py"))
-    # Get pandoc.py command.
+    _LOG.info("\n%s", hprint.frame("Convert markdown to HTML using notes_to_pdf.py"))
+    # Get notes_to_pdf.py command.
     curr_path = os.path.abspath(os.path.dirname(__file__))
     tmp_dir = os.path.split(md_file)[0]
     cmd = (
-        f"{curr_path}/pandoc.py -t html -i {md_file} --skip_action "
+        f"{curr_path}/notes_to_pdf.py -t html -i {md_file} --skip_action "
         f"copy_to_gdrive --skip_action cleanup_after --tmp_dir {tmp_dir}"
     )
     hsystem.system(cmd)

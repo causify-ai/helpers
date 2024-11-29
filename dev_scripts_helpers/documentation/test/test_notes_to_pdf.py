@@ -15,7 +15,7 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 
-class Test_pandoc1(hunitest.TestCase):
+class Test_notes_to_pdf1(hunitest.TestCase):
     @pytest.mark.skip
     def test1(self) -> None:
         """

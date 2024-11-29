@@ -61,7 +61,7 @@ def _list_doc_dir() -> None:
 
 
 def _publish_file(args: argparse.Namespace, file_name: str, action: str) -> None:
-    exec_path = hgit.find_file_in_git_tree("pandoc.py")
+    exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
     hdbg.dassert_path_exists(exec_path)
     #
     tmp_dir = args.tmp_dir

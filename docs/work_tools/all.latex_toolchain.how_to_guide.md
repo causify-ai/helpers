@@ -20,7 +20,7 @@
   - `convert_docx_to_markdown.sh`
     - Wrapper to simplify calling `convert_docx_to_markdown.py`
   - `preprocess_notes.py`
-    - Convert a text file storing notes into markdown suitable for pandoc.py
+    - Convert a text file storing notes into markdown suitable for notes_to_pdf.py
     - The transformations are
       - Convert the text in pandoc / latex format
       - Handle banners around chapters
@@ -47,8 +47,8 @@
   - `open_md_on_github.sh`
     - Open a markdown filename on GitHub
   - `pandoc.latex`
-    - `latex` template used by `pandoc.py`
-  - `pandoc.py`
+    - `latex` template used by `notes_to_pdf.py`
+  - `notes_to_pdf.py`
     - Convert a `txt` file storing nodes into a PDF / HTML / beamer slides using
       `pandoc`
   - `render_md.py`
@@ -59,7 +59,7 @@
   - `run_latex.sh`
     - Dockerized latex flow
     - TODO(gp): Convert to Python
-  - `run_pandoc.py`
+  - `run_notes_to_pdf.py`
     - Read value from stdin/file
     - Transform it using `pandoc` according to different transforms (e.g.,
       `convert_md_to_latex`)
@@ -78,7 +78,7 @@
 
 - We organize each project is in a directory (e.g., under `//papers`)
 - Under each dir there are several scripts that assign some variables and then
-  call the main scripts to perform the actual work by calling `run_pandoc.py`
+  call the main scripts to perform the actual work by calling `run_notes_to_pdf.py`
   - `run_latex.sh`
   - `lint_latex.sh`
 
