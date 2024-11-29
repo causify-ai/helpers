@@ -16,11 +16,12 @@
 
 - In the directory `//helpers/dev_scripts_helpers/documentation`
   - `convert_docx_to_markdown.py`
-    - Convert Docx file to Markdown using Dockerized pandoc and save the figs
+    - Convert Docx file to markdown using Dockerized `pandoc` and save the figs
+      in a directory
   - `convert_docx_to_markdown.sh`
     - Wrapper to simplify calling `convert_docx_to_markdown.py`
   - `preprocess_notes.py`
-    - Convert a text file storing notes into markdown suitable for notes_to_pdf.py
+    - Convert a text file storing notes into markdown suitable for `notes_to_pdf.py`
     - The transformations are
       - Convert the text in pandoc / latex format
       - Handle banners around chapters
@@ -53,8 +54,7 @@
       `pandoc`
   - `render_md.py`
     - Render images for several sections in markdown / latex / notes files
-  - `replace_latex.py`
-  - `replace_latex.sh`
+  - `replace_latex.py`, `replace_latex.sh`
     - Scripts for one-off processing of latex files
   - `run_latex.sh`
     - Dockerized latex flow
@@ -64,6 +64,7 @@
     - Transform it using `pandoc` according to different transforms (e.g.,
       `convert_md_to_latex`)
     - Write the result to stdout/file.
+    - TODO(gp): Is this obsolete?
   - `test_lint_latex.sh`
     - Run latex linter and check if the file was modified
   - `transform_notes.py`
