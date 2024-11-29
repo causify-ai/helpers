@@ -17,8 +17,6 @@ Convert a txt file into a PDF / HTML / slides using `pandoc`.
     -a pdf --no_cleanup --no_cleanup_before --no_run_latex_again --no_open
 """
 
-# TODO(gp): Rename to `convert_txt_to_pdf.py`.
-
 # TODO(gp): See below.
 #  - clean up the file_ file_out logic and make it a pipeline
 #  - factor out the logic from linter.py about actions and use it everywhere
@@ -27,6 +25,7 @@ Convert a txt file into a PDF / HTML / slides using `pandoc`.
 import argparse
 import logging
 import os
+import re
 import sys
 from typing import Any, List, Tuple
 
@@ -76,16 +75,60 @@ def _cleanup_before(prefix: str) -> None:
     _ = _system(cmd)
 
 
+def extract_section_from_markdown(content: str, header_name: str) -> str:
+    """
+    Extract text between the specified header and the next header of the same level in a Markdown file.
+    """
+    # Find all headers and their positions
+    headers = [(match.group(0), match.start()) for match in
+               re.finditer(r'^(#+)\s+(.*)$', content, re.MULTILINE)]
+
+    # Find the specified header and its level
+    for i, (header, position) in enumerate(headers):
+        header_level = len(header.split()[0])  # Count the number of `#` symbols
+        header_text = header.split(' ', 1)[1]  # Extract the header text
+        if header_text.strip() == header_name:
+            # Find the next header of the same level
+            for next_header in headers[i + 1:]:
+                next_level = len(next_header[0].split()[0])
+                if next_level == header_level:
+                    # Return text between the headers
+                    return content[position:next_header[1]].strip()
+            # If no next header of the same level, return until the end of file
+            return content[position:].strip()
+    raise ValueError(f"Header '{header_name}' not found")
+
+
+def _filter_by_header(file_: str, header: str, prefix: str) -> str:
+    """
+    Pre-process the file.
+
+    :param file_: The input file to be processed
+    :param header: The header to filter by (e.g., `# Introduction`)
+    :param prefix: The prefix used for the output file (e.g., `tmp.pandoc`)
+    :return: The path to the processed file
+    """
+    _LOG.info("\n%s", hprint.frame("Filter by header", char1="<", char2=">"))
+    txt = hio.from_file(file_)
+    # Filter by header.
+    for line in txt.split("\n"):
+        m = re.search("^(#+) " + header, line)
+    #
+    file_out = f"{prefix}.filter_by_header.txt"
+    hio.to_file(file_out, txt)
+    return file_out
+
+
 def _preprocess_notes(curr_path: str, file_: str, prefix: str) -> str:
     """
     Pre-process the file.
 
     :param curr_path: The current path where the script is located
     :param file_: The input file to be processed
-    :param prefix: The prefix used for the output file
+    :param prefix: The prefix used for the output file (e.g., `tmp.pandoc`)
     :return: The path to the processed file
     """
-    _LOG.info("\n%s", hprint.frame("Pre-process markdown", char1="<", char2=">"))
+    _LOG.info("\n%s", hprint.frame("Preprocess notes", char1="<", char2=">"))
     file1 = file_
     file2 = f"{prefix}.no_spaces.txt"
     cmd = f"{curr_path}/preprocess_notes.py --input {file1} --output {file2}"
@@ -342,17 +385,20 @@ def _run_all(args: argparse.Namespace) -> None:
     hdbg.dassert_path_exists(file_)
     prefix = args.tmp_dir + "/tmp.pandoc"
     prefix = os.path.abspath(prefix)
-    #
+    # - Cleanup_before
     action = "cleanup_before"
     to_execute, actions = hparser.mark_action(action, actions)
     if to_execute:
         _cleanup_before(prefix)
-    #
+    # - Filter
+    if args.filter_by_header:
+        file_ = _filter_by_header(file_)
+    # - Preprocess_notes
     action = "preprocess_notes"
     to_execute, actions = hparser.mark_action(action, actions)
     if to_execute:
         file_ = _preprocess_notes(curr_path, file_, prefix)
-    #
+    # - Run_pandoc
     action = "run_pandoc"
     to_execute, actions = hparser.mark_action(action, actions)
     if to_execute:
@@ -366,18 +412,18 @@ def _run_all(args: argparse.Namespace) -> None:
             raise ValueError(f"Invalid type='{args.type}'")
     file_in = file_out
     file_final = _copy_to_output(args, file_in, prefix)
-    #
+    # - Copy_to_gdrive
     action = "copy_to_gdrive"
     to_execute, actions = hparser.mark_action(action, actions)
     if to_execute:
         ext = args.type
         _copy_to_gdrive(args, file_final, ext)
-    #
+    # - Open
     action = "open"
     to_execute, actions = hparser.mark_action(action, actions)
     if to_execute:
         hopen.open_file(file_final)
-    #
+    # - Cleanup_after
     action = "cleanup_after"
     to_execute, actions = hparser.mark_action(action, actions)
     if to_execute:
@@ -434,6 +480,19 @@ def _parse() -> argparse.ArgumentParser:
         required=True,
         choices=["pdf", "html", "slides"],
         action="store",
+        help="Type of output to generate",
+    )
+    parser.add_argument(
+        "-f",
+        "--filter_by_header",
+        action="store",
+        help="Filter by header"
+    )
+    parser.add_argument(
+        "-n",
+        "--filter_by_lines",
+        action="store",
+        help="Filter by lines (e.g., `1-10`)"
     )
     parser.add_argument(
         "--script", action="store", help="Bash script to generate"
