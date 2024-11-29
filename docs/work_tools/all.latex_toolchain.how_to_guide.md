@@ -66,7 +66,7 @@
     - Write the result to stdout/file.
   - `test_lint_latex.sh`
     - Run latex linter and check if the file was modified
-  - `transform_txt.py`
+  - `transform_notes.py`
     - Perform one of several transformations on a text file, e.g.,
       1. `toc`: create table of context from the current file, with 1 level
       2. `format`: format the current file with 3 levels

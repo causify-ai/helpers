@@ -3,10 +3,10 @@
 """
 Lint md files.
 
-> lint_txt.py -i foo.md -o bar.md
+> lint_notes.py -i foo.md -o bar.md
 
 It can be used in vim to prettify a part of the text using stdin /
-stdout. :%!lint_txt.py
+stdout. :%!lint_notes.py
 """
 
 # TODO(gp): -> lint_md.py
