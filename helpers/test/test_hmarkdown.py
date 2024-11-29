@@ -67,25 +67,6 @@ class Test_extract_section_from_markdown1(hunitest.TestCase):
         """
         self.assert_equal(act, exp, dedent=True)
 
-    def test_no_header(self):
-        # Prepare inputs.
-        content = r"""
-        # Header1
-        Content under header 1.
-        ## Header2
-        Content under header 2.
-        # Header3
-        Content under header 3.
-        """
-        # Call tested function.
-        content = hprint.dedent(content)
-        with self.assertRaises(ValueError) as fail:
-            uut.extract_section_from_markdown(content, "Header4")
-        # Check output.
-        actual = str(fail.exception)
-        expected = r"Header 'Header4' not found"
-        self.assert_equal(actual, expected)
-
     def test4(self):
         # Prepare inputs.
         content = r"""
@@ -106,5 +87,21 @@ class Test_extract_section_from_markdown1(hunitest.TestCase):
         """
         self.assert_equal(act, exp, dedent=True)
 
-if __name__ == "__main__":
-    unittest.main()
+    def test_no_header(self):
+        # Prepare inputs.
+        content = r"""
+        # Header1
+        Content under header 1.
+        ## Header2
+        Content under header 2.
+        # Header3
+        Content under header 3.
+        """
+        # Call tested function.
+        content = hprint.dedent(content)
+        with self.assertRaises(ValueError) as fail:
+            uut.extract_section_from_markdown(content, "Header4")
+        # Check output.
+        actual = str(fail.exception)
+        expected = r"Header 'Header4' not found"
+        self.assert_equal(actual, expected)
