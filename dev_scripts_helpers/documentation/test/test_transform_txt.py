@@ -17,7 +17,7 @@ _LOG = logging.getLogger(__name__)
     hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
 )
 class Test_markdown_to_latex1(hunitest.TestCase):
-    def test1(self):
+    def test1(self) -> None:
         """
         Test a simple nested list with no frame title.
         """
@@ -43,7 +43,7 @@ class Test_markdown_to_latex1(hunitest.TestCase):
         # Run the test.
         self._check(markdown, exp)
 
-    def test2(self):
+    def test2(self) -> None:
         """
         Test a nested list that includes a frame title.
         """
@@ -69,7 +69,7 @@ class Test_markdown_to_latex1(hunitest.TestCase):
         # Run the test.
         self._check(markdown, exp)
 
-    def test3(self):
+    def test3(self) -> None:
         """
         Test a deeply nested list structure.
         """
