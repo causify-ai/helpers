@@ -116,12 +116,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
         cmd = f"git checkout -- {args.file}"
         _ = hsystem.system(cmd)
     if "pandoc_before" in actions:
-        cmd = f"pandoc.py -a pdf --no_toc --no_open_pdf --input {args.file}"
+        cmd = f"notes_to_pdf.py -a pdf --no_toc --no_open_pdf --input {args.file}"
         _ = hsystem.system(cmd)
     if "replace" in actions:
         _standard_cleanup(args.file, args.aggressive)
     if "pandoc_after" in actions:
-        cmd = f"pandoc.py -a pdf --no_toc --no_open_pdf --input {args.file}"
+        cmd = f"notes_to_pdf.py -a pdf --no_toc --no_open_pdf --input {args.file}"
         _ = hsystem.system(cmd)
 
 

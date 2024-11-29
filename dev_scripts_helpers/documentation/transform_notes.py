@@ -4,19 +4,19 @@
 Perform one of several transformations on a txt file, e.g.,
 
     1) `toc`: create table of context from the current file, with 1 level
-        > transform_txt.py -a toc -i % -l 1
+        > transform_notes.py -a toc -i % -l 1
 
     2) `format`: format the current file with 3 levels
-        :!transform_txt.py -a format -i % --max_lev 3
-        > transform_txt.py -a format -i notes/ABC.txt --max_lev 3
+        :!transform_notes.py -a format -i % --max_lev 3
+        > transform_notes.py -a format -i notes/ABC.txt --max_lev 3
 
         - In vim
-        :!transform_txt.py -a format -i % --max_lev 3
-        :%!transform_txt.py -a format -i - --max_lev 3
+        :!transform_notes.py -a format -i % --max_lev 3
+        :%!transform_notes.py -a format -i - --max_lev 3
 
     3) `increase`: increase level
-        :!transform_txt.py -a increase -i %
-        :%!transform_txt.py -a increase -i -
+        :!transform_notes.py -a increase -i %
+        :%!transform_notes.py -a increase -i -
 
 - The input or output can be filename or stdin (represented by '-')
 - If output file is not specified then we assume that the output file is the

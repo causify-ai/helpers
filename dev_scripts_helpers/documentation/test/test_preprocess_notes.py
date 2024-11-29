@@ -3,7 +3,7 @@ import os
 
 import pytest
 
-import dev_scripts_helpers.documentation.convert_txt_to_pandoc as dshdcttpa
+import dev_scripts_helpers.documentation.preprocess_notes as dshdcttpa
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
@@ -17,10 +17,10 @@ _LOG = logging.getLogger(__name__)
 
 def _run_preprocess(in_file: str, out_file: str) -> str:
     """
-    Execute the end-to-end flow for convert_txt_to_pandoc.py returning the
-    output as string.
+    Execute the end-to-end flow for `preprocess_notes.py` returning the output
+    as string.
     """
-    exec_path = hgit.find_file_in_git_tree("convert_txt_to_pandoc.py")
+    exec_path = hgit.find_file_in_git_tree("preprocess_notes.py")
     hdbg.dassert_path_exists(exec_path)
     #
     hdbg.dassert_path_exists(in_file)
@@ -36,13 +36,12 @@ def _run_preprocess(in_file: str, out_file: str) -> str:
     return act  # type: ignore
 
 
-# TODO(gp): -> Test_convert_txt_to_pandoc*
 @pytest.mark.skipif(
     hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
 )
-class Test_preprocess1(hunitest.TestCase):
+class Test_preprocess_notes1(hunitest.TestCase):
     """
-    Check that the output of convert_txt_to_pandoc.py is the expected one.
+    Check that the output of `preprocess_notes.py` is the expected one.
 
     using:
     - an end-to-end flow;
@@ -70,9 +69,9 @@ class Test_preprocess1(hunitest.TestCase):
 @pytest.mark.skipif(
     hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
 )
-class Test_preprocess2(hunitest.TestCase):
+class Test_preprocess_notes2(hunitest.TestCase):
     """
-    Check that the output of convert_txt_to_pandoc.py is the expected one
+    Check that the output of `preprocess_notes.py` is the expected one
     calling the library function directly.
     """
 

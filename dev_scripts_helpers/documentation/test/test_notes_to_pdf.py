@@ -15,7 +15,7 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 
-class Test_pandoc1(hunitest.TestCase):
+class Test_notes_to_pdf1(hunitest.TestCase):
     @pytest.mark.skip
     def test1(self) -> None:
         """
@@ -57,7 +57,7 @@ class Test_pandoc1(hunitest.TestCase):
             self._helper(file_name, "html")
 
     def _helper(self, in_file: str, action: str) -> str:
-        exec_path = hgit.find_file_in_git_tree("pandoc.py")
+        exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
         hdbg.dassert_path_exists(exec_path)
         #
         tmp_dir = self.get_scratch_space()
@@ -68,7 +68,7 @@ class Test_pandoc1(hunitest.TestCase):
         cmd.append(f"--tmp_dir {tmp_dir}")
         cmd.append(f"--input {in_file}")
         cmd.append(f"--output {out_file}")
-        cmd.append("--action convert_txt_to_pandoc")
+        cmd.append("--action preprocess_notes")
         cmd.append("--action run_pandoc")
         cmd = " ".join(cmd)
         hsystem.system(cmd)

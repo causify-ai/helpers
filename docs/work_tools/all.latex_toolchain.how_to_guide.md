@@ -29,7 +29,8 @@
 
 - In the directory `//helpers/dev_scripts_helpers/documentation`
   - `convert_docx_to_markdown.py`
-    - Convert Docx file to Markdown using Dockerized pandoc and save the figs
+    - Convert Docx file to markdown using Dockerized `pandoc` and save the figs
+      in a directory
   - `convert_docx_to_markdown.sh`
     - Wrapper to simplify calling `convert_docx_to_markdown.py`
   - `generate_latex_sty.py`
@@ -66,20 +67,20 @@
       `pandoc`
   - `render_md.py`
     - Render images for several sections in markdown / latex / notes files
-  - `replace_latex.py`
-  - `replace_latex.sh`
+  - `replace_latex.py`, `replace_latex.sh`
     - Scripts for one-off processing of latex files
   - `run_latex.sh`
     - Dockerized latex flow
     - TODO(gp): Convert to Python
-  - `run_pandoc.py`
+  - `run_notes_to_pdf.py`
     - Read value from stdin/file
     - Transform it using `pandoc` according to different transforms (e.g.,
       `convert_md_to_latex`)
     - Write the result to stdout/file.
+    - TODO(gp): Is this obsolete?
   - `test_lint_latex.sh`
     - Run latex linter and check if the file was modified
-  - `transform_txt.py`
+  - `transform_notes.py`
     - Perform one of several transformations on a text file, e.g.,
       1. `toc`: create table of context from the current file, with 1 level
       2. `format`: format the current file with 3 levels
@@ -136,7 +137,7 @@
 
 - We organize each project is in a directory (e.g., under `//papers`)
 - Under each dir there are several scripts that assign some variables and then
-  call the main scripts to perform the actual work by calling `run_pandoc.py`
+  call the main scripts to perform the actual work by calling `run_notes_to_pdf.py`
   - `run_latex.sh`
   - `lint_latex.sh`
 
@@ -160,21 +161,3 @@
   + docker run --rm -it --workdir /Users/saggese/src/cmamp1 --mount type=bind,source=/Users/saggese/src/cmamp1,target=/Users/saggese/src/cmamp1 lint_latex:latest sh -c ''\''./tmp.lint_latex.sh'\''' papers/DataFlow_stream_computing_framework/DataFlow_stream_computing_framework.tex
   papers/DataFlow_stream_computing_framework/DataFlow_stream_computing_framework.tex 320ms (unchanged)
   ```
-
-## TODOs
-
-- Add a script to decorate the file with separators as part of the linting
-  ```
-  % ################################################################################
-  \section{Adapters}
-  % ================================================================================
-  \subsection{Adapters}
-  % --------------------------------------------------------------------------------
-  \subsubsection{Adapters}
-  ```
-
-- Convert the Latex toolchain into Python code
-
-- Add a script to run a ChatGPT prompt on a certain chunk of text
-
-- Easily create a vimfile to navigate the TOC

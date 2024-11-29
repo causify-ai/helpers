@@ -2,7 +2,7 @@ import logging
 
 import pytest
 
-import dev_scripts_helpers.documentation.transform_txt as dshdtrtx
+import dev_scripts_helpers.documentation.transform_notes as dshdtrtx
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
