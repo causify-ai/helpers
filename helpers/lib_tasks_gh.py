@@ -443,6 +443,7 @@ def gh_create_pr(  # type: ignore
     else:
         # Link the PR automatically to the branch, if possible.
         issue_id = hgit.extract_gh_issue_number_from_branch(branch_name)
+        _LOG.debug(hprint.to_str("issue_id"))
         if issue_id and str(issue_id) not in body:
             body += f"\n\n#{issue_id}"
             _LOG.info("Added issue id %s to the PR body", issue_id)
@@ -573,17 +574,17 @@ def _get_failed_or_successful_workflow_run(
         }    
         ```
     """
-    # We assume that the workflow runs are sorted by time in descending order. 
-    # Therefore, we can iterate over the list and return the last successful 
+    # We assume that the workflow runs are sorted by time in descending order.
+    # Therefore, we can iterate over the list and return the last successful
     # or failed run.
     workflow_run_dict = None
     for curr_workflow_run in workflow_runs:
         if curr_workflow_run["conclusion"] in ["success", "failure"]:
             # The last complete run found, exiting the loop. A run is considered
-            # complete if the "conclusion" field meets the current condition. 
-            workflow_run_dict = curr_workflow_run 
+            # complete if the "conclusion" field meets the current condition.
+            workflow_run_dict = curr_workflow_run
             break
-    return workflow_run_dict 
+    return workflow_run_dict
 
 
 def gh_get_details_for_all_workflows(repo_list: List[str]) -> "pd.DataFrame":
@@ -627,7 +628,9 @@ def gh_get_details_for_all_workflows(repo_list: List[str]) -> "pd.DataFrame":
                 )
                 continue
             # Get the latest successful or failed workflow run.
-            workflow_status = _get_failed_or_successful_workflow_run(workflow_statuses)
+            workflow_status = _get_failed_or_successful_workflow_run(
+                workflow_statuses
+            )
             if workflow_status is None:
                 _LOG.warning(
                     "No successful or failed runs found for '%s', repo '%s', skipping the workflow",
