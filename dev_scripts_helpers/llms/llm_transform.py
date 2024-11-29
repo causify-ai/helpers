@@ -28,6 +28,10 @@ import argparse
 import logging
 import os
 
+if False:
+    # Hardwire path when we are calling from a different dir.
+    import sys
+    sys.path.insert(0, "/Users/saggese/src/notes1/helpers_root")
 import dev_scripts_helpers.documentation.lint_txt as dshdlitx
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
@@ -43,24 +47,23 @@ _LOG = logging.getLogger(__name__)
 def _run_dockerized_llm_transform(
     in_file_path: str,
     out_file_path: str,
-    transform: str,
+    cmd_line_args: str,
     force_rebuild: bool,
     use_sudo: bool,
-    log_level: str,
 ) -> None:
     """
     Run _llm_transform.py in a Docker container with all its dependencies.
 
     :param in_file_path: Path to the input file.
     :param out_file_path: Path to the output file.
-    :param transform: Type of transformation to apply.
+    :param cmd_line_args: Arguments to pass to _llm_transform.py script.
     :param force_rebuild: Whether to force rebuild the Docker container.
     :param use_sudo: Whether to use sudo for Docker commands.
     """
     hdbg.dassert_in("OPENAI_API_KEY", os.environ)
     _LOG.debug(
         hprint.to_str(
-            "in_file_path out_file_path transform force_rebuild use_sudo"
+            "in_file_path out_file_path cmd_line_args force_rebuild use_sudo"
         )
     )
     hdbg.dassert_path_exists(in_file_path)
@@ -101,12 +104,13 @@ def _run_dockerized_llm_transform(
     )
     #
     cmd = script + (
-        f" -i {in_file_path} -o {out_file_path} -t {transform} -v {log_level}"
+        f" -i {in_file_path} -o {out_file_path} {cmd_line_args}"
     )
     executable = hdocker.get_docker_executable(use_sudo)
     docker_cmd = (
         f"{executable} run --rm --user $(id -u):$(id -g)"
-        f" -e OPENAI_API_KEY -e PYTHONPATH={helpers_root}"
+        f" -e OPENAI_API_KEY -e PYTHONPATH=/src/helpers_root"
+        #f" -e OPENAI_API_KEY -e PYTHONPATH={helpers_root}"
         f" --workdir /src --mount {mount}"
         f" {container_name}"
         f" {cmd}"
@@ -126,9 +130,7 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     hparser.add_input_output_args(parser)
-    parser.add_argument(
-        "-t", "--transform", required=True, type=str, help="Type of transform"
-    )
+    hparser.add_transform_arg(parser)
     hparser.add_dockerized_script_arg(parser)
     # Use CRITICAL to avoid logging anything.
     hparser.add_verbosity_arg(parser, log_level="CRITICAL")
@@ -151,19 +153,21 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hio.to_file(tmp_in_file_name, in_txt)
     #
     tmp_out_file_name = "tmp.llm_transform.out.txt"
+    cmd_line_opts = f"-t {args.transform} -v {args.log_level}"
+    if args.debug:
+        cmd_line_opts += " -d"
     _run_dockerized_llm_transform(
         tmp_in_file_name,
         tmp_out_file_name,
-        args.transform,
+        cmd_line_opts,
         args.dockerized_force_rebuild,
         args.dockerized_use_sudo,
-        args.log_level,
     )
     out_txt = hio.from_file(tmp_out_file_name)
     # Note that we need to run this outside the `llm_transform` container to
     # avoid to do docker in docker in the `llm_transform` container (which
     # doesn't support that).
-    if args.transform in ("format_markdown", "improve_markdown_slide"):
+    if args.transform in ("md_format", "slide_improve", "slide_colorize"):
         out_txt = dshdlitx.prettier_on_str(out_txt)
     # Read the output from the container and write it to the output file from
     # command line (e.g., `-` for stdout).

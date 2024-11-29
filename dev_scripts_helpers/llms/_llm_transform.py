@@ -28,9 +28,7 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     hparser.add_input_output_args(parser)
-    parser.add_argument(
-        "-t", "--transform", required=True, type=str, help="Type of transform"
-    )
+    hparser.add_transform_arg(parser)
     hparser.add_verbosity_arg(parser, log_level="CRITICAL")
     return parser
 
@@ -45,9 +43,19 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Transform with LLM.
     txt_tmp = "\n".join(txt)
     transform = args.transform
-    txt_tmp = dshlllpr.apply_prompt(transform, txt_tmp)
+    if args.fast_model:
+        model = "gpt-4o-mini"
+    else:
+        model = "gpt-4o"
+    txt_tmp = dshlllpr.apply_prompt(transform, txt_tmp, model)
     # Write file.
-    hparser.write_file(txt_tmp.split("\n"), out_file_name)
+    res = []
+    if args.debug:
+        res.append("# Before:")
+        res.extend(txt)
+        res.append("# After:")
+    res.extend(txt_tmp.split("\n"))
+    hparser.write_file(res, out_file_name)
 
 
 if __name__ == "__main__":

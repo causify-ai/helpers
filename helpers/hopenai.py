@@ -16,6 +16,7 @@ _LOG = logging.getLogger(__name__)
 _LOG.debug = _LOG.info
 
 _MODEL = "gpt-4o-mini"
+#_MODEL = "gpt-4o"
 
 
 _TEMPERATURE = 0.1
@@ -288,6 +289,7 @@ def delete_all_assistants(*, ask_for_confirmation: bool = True):
 
 # #############################################################################
 
+# TODO(gp): Move to helpers/transform_text.py
 
 def remove_code_delimiters(text: str) -> str:
     """

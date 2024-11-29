@@ -16,6 +16,7 @@ _LOG = logging.getLogger(__name__)
     hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
 )
 class Test_llm_transform1(hunitest.TestCase):
+
     def test1(self) -> None:
         txt = """
         - If there is no pattern we can try learning, measure if learning works and, in the worst case, conclude that it does not work

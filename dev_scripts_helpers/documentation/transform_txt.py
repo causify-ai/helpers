@@ -43,7 +43,20 @@ import helpers.hprint as hprint
 _LOG = logging.getLogger(__name__)
 
 
+# TODO(gp): Move all these transforms in helpers/transform_text.py
+
 def skip_comments(line: str, skip_block: bool) -> Tuple[bool, bool]:
+    """
+    Skip comments in the given line and handle comment blocks.
+
+    Comments are like:
+    - Single line: %% This is a comment
+    - Block: <!-- This is a comment -->
+
+    :param line: The line of text to check for comments
+    :param skip_block: A flag indicating if currently inside a comment block
+    :return: A tuple containing a flag indicating if the line should be skipped and the updated skip_block flag
+    """
     skip_this_line = False
     # Handle comment block.
     if line.startswith("<!--"):
@@ -67,6 +80,13 @@ def skip_comments(line: str, skip_block: bool) -> Tuple[bool, bool]:
 
 
 def table_of_content(file_name: str, max_lev: int) -> None:
+    """
+    Generate a table of contents from the given file, considering the specified
+    maximum level of headings.
+
+    :param file_name: The name of the file to read and generate the table of contents from
+    :param max_lev: The maximum level of headings to include in the table of contents
+    """
     skip_block = False
     txt = hparser.read_file(file_name)
     for line in txt:
@@ -89,7 +109,16 @@ def table_of_content(file_name: str, max_lev: int) -> None:
                 break
 
 
+# TODO(gp): -> format_headers
 def format_text(in_file_name: str, out_file_name: str, max_lev: int) -> None:
+    """
+    Format the headers in the input file and write the formatted text to the
+    output file.
+
+    :param in_file_name: The name of the input file to read
+    :param out_file_name: The name of the output file to write the formatted text to
+    :param max_lev: The maximum level of headings to include in the formatted text
+    """
     txt = hparser.read_file(in_file_name)
     #
     for line in txt:
@@ -130,9 +159,15 @@ def format_text(in_file_name: str, out_file_name: str, max_lev: int) -> None:
     hparser.write_file(txt_tmp, out_file_name)
 
 
+# TODO(gp): Generalize this to also decrease the header level
+# TODO(gp): -> modify_header_level
 def increase_chapter(in_file_name: str, out_file_name: str) -> None:
     """
     Increase the level of chapters by one for text in stdin.
+
+    :param in_file_name: The name of the input file to read
+    :param out_file_name: The name of the output file to write the modified text to
+    :return: None
     """
     skip_block = False
     txt = hparser.read_file(in_file_name)
@@ -157,6 +192,12 @@ def increase_chapter(in_file_name: str, out_file_name: str) -> None:
 
 
 def markdown_list_to_latex(markdown: str) -> str:
+    """
+    Convert a markdown list to LaTeX format.
+
+    :param markdown: The markdown text to convert
+    :return: The converted LaTeX text
+    """
     hdbg.dassert_isinstance(markdown, str)
     markdown = hprint.dedent(markdown)
     # Remove the first line if it's a title.
