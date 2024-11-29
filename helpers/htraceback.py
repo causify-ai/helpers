@@ -176,8 +176,12 @@ def parse_traceback(
             while end_idx < len(lines) - 1 and not to_break:
                 end_idx += 1
                 line = lines[end_idx]
-                _LOG.debug("Extend traceback: to_break=%s, end_idx=%s, "
-                           "line='%s'", to_break, end_idx, line)
+                _LOG.debug(
+                    "Extend traceback: to_break=%s, end_idx=%s, " "line='%s'",
+                    to_break,
+                    end_idx,
+                    line,
+                )
                 if (
                     "________ Test" in line
                     or "====== slowest 3 durations" in line

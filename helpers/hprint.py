@@ -9,9 +9,18 @@ import logging
 import pprint
 import re
 import sys
-from typing import Any, Dict, Iterable, List, Match, Optional, cast
-from typing import Union, Callable, Any
 from functools import wraps
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Match,
+    Optional,
+    Union,
+    cast,
+)
 
 import helpers.hdbg as hdbg
 
@@ -82,6 +91,7 @@ def pprint_pformat(obj: Any, *, sort_dicts: bool = False) -> str:
     from pygments import highlight
     from pygments.formatters import Terminal256Formatter
     from pygments.lexers import PythonLexer
+
     txt = pprint.pformat(obj, sort_dicts=sort_dicts)
     txt = highlight(txt, PythonLexer(), Terminal256Formatter())
     txt = txt.rstrip()
@@ -204,8 +214,10 @@ StrOrList = Union[str, List[str]]
 #  transforms between strings and lists of strings.
 def split_lines(func: Callable) -> Callable:
     """
-    A decorator that splits a string input into lines before passing it to the decorated function.
+    A decorator that splits a string input into lines before passing it to the
+    decorated function.
     """
+
     @wraps(func)
     def wrapper(txt: StrOrList, *args: Any, **kwargs: Any) -> None:
         if isinstance(txt, str):
@@ -226,6 +238,7 @@ def split_lines(func: Callable) -> Callable:
             # The output is already a list of lines.
             out = lines
         return out
+
     return wrapper
 
 
@@ -244,8 +257,7 @@ def trim_consecutive_empty_lines(lines: StrOrList) -> StrOrList:
     return lines
 
 
-def dedent(txt: str, *, remove_empty_leading_trailing_lines: bool = True) -> (
-        str):
+def dedent(txt: str, *, remove_empty_leading_trailing_lines: bool = True) -> str:
     """
     Remove from each line the minimum number of spaces to align the text on the
     left.
@@ -253,8 +265,8 @@ def dedent(txt: str, *, remove_empty_leading_trailing_lines: bool = True) -> (
     It is the opposite of `indent()`.
 
     :param txt: multi-line string
-    :param remove_empty_leading_trailing_lines: if True, remove all the empty lines
-        at the beginning and at the end
+    :param remove_empty_leading_trailing_lines: if True, remove all the
+        empty lines at the beginning and at the end
     """
     if remove_empty_leading_trailing_lines:
         txt = trim_consecutive_empty_lines(txt)
@@ -403,17 +415,16 @@ def perc(
 
 
 def round_digits(
-    v: float,
-    *,
-    num_digits: int = 2, use_thousands_separator: bool = False
+    v: float, *, num_digits: int = 2, use_thousands_separator: bool = False
 ) -> str:
     """
     Round digit returning a string representing the formatted number.
 
     :param v: value to convert
-    :param num_digits: number of digits to represent v on
-            None is (Default value = 2)
-    :param use_thousands_separator: use "," to separate thousands (Default value = False)
+    :param num_digits: number of digits to represent v on None is
+        (Default value = 2)
+    :param use_thousands_separator: use "," to separate thousands
+        (Default value = False)
     :returns: str with formatted value
     """
     if (num_digits is not None) and isinstance(v, float):
@@ -503,7 +514,7 @@ def to_str(
     elif mode == "pprint":
         ret += "\n" + indent(pprint.pformat(eval_))
     elif mode == "pprint_color":
-        ret+="\n" + indent(pprint_pformat(eval_))
+        ret += "\n" + indent(pprint_pformat(eval_))
     else:
         raise ValueError(f"Invalid mode='{mode}'")
     return ret

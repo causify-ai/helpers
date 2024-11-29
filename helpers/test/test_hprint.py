@@ -1,6 +1,6 @@
 import logging
 import pprint
-from typing import List, Union
+from typing import List
 
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
@@ -328,7 +328,6 @@ class Test_logging1(hunitest.TestCase):
 
 
 class Test_trim_consecutive_empty_lines1(hunitest.TestCase):
-
     def helper(self, input_str: str, expected_output: List[str]) -> None:
         """
         Test the `trim_consecutive_empty_lines` function.
@@ -389,7 +388,9 @@ class Test_trim_consecutive_empty_lines1(hunitest.TestCase):
         expected_output = []
         self.helper(input_str, expected_output)
 
-    def test_mixed_content_with_leading_trailing_and_middle_empty_lines(self) -> None:
+    def test_mixed_content_with_leading_trailing_and_middle_empty_lines(
+        self,
+    ) -> None:
         input_str: str = "\n\nline1\n\nline2\n\n"
         expected_output = ["line1", "", "line2"]
         self.helper(input_str, expected_output)
