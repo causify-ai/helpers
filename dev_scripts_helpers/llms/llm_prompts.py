@@ -49,9 +49,6 @@ Comments should be in imperative form, a full English phrase, and end with a per
     # Each comment should be in imperative form, a full English phrase, and end
     # with a period.
     ret = _run_all(user, system, model, {"remove_code_delimiters"})
-    # response = hopenai.get_completion(user, system=system)
-    # ret = hopenai.response_to_txt(response)
-    # ret = hmarkdown.remove_code_delimiters(ret)
     return ret
 
 
@@ -64,9 +61,6 @@ The first comment should be in imperative mode and fit in a single line of less 
 To describe the parameters use the REST style, which requires each parameter to be prepended with :param
     """
     ret = _run_all(user, system, model, {"remove_code_delimiters"})
-    # response = hopenai.get_completion(user, system=system)
-    # ret = hopenai.response_to_txt(response)
-    # ret = hmarkdown.remove_code_delimiters(ret)
     return ret
 
 
@@ -76,9 +70,6 @@ You are a proficient Python coder.
 Add type hints to the function passed.
     """
     ret = _run_all(user, system, model, {"remove_code_delimiters"})
-    # response = hopenai.get_completion(user, system=system)
-    # ret = hopenai.response_to_txt(response)
-    # ret = hmarkdown.remove_code_delimiters(ret)
     return ret
 
 
@@ -104,18 +95,12 @@ self.assert_equal(act, exp)
 def code_unit_test(user: str, model: str) -> str:
     system = _get_code_unit_test_prompt(5)
     ret = _run_all(user, system, model, {"remove_code_delimiters"})
-    # response = hopenai.get_completion(user, system=system, model=model)
-    # ret = hopenai.response_to_txt(response)
-    # ret = hmarkdown.remove_code_delimiters(ret)
     return ret
 
 
 def code_1_unit_test(user: str, model: str) -> str:
     system = _get_code_unit_test_prompt(1)
     ret = _run_all(user, system, model, {"remove_code_delimiters"})
-    # response = hopenai.get_completion(user, system=system, model=model)
-    # ret = hopenai.response_to_txt(response)
-    # ret = hmarkdown.remove_code_delimiters(ret)
     return ret
 
 
@@ -131,9 +116,6 @@ Maintain the structure of the text as much as possible, in terms of bullet
 points and their indentation
     """
     ret = _run_all(user, system, model, {"remove_code_delimiters"})
-    # response = hopenai.get_completion(user, system=system, model=model)
-    # ret = hopenai.response_to_txt(response)
-    # ret = hmarkdown.remove_code_delimiters(ret)
     return ret
 
 
@@ -148,9 +130,6 @@ You are a proficient technical writer.
 Summarize the text in less than 30 words.
     """
     ret = _run_all(user, system, model, {"remove_code_delimiters"})
-    # response = hopenai.get_completion(user, system=system, model=model)
-    # ret = hopenai.response_to_txt(response)
-    # ret = hmarkdown.remove_code_delimiters(ret)
     return ret
 
 
@@ -168,11 +147,6 @@ Make sure that the text is clean and readable
                                          "remove_end_of_line_periods",
                                          "remove_empty_lines"
                                          })
-    # response = hopenai.get_completion(user, system=system, model=model)
-    # ret = hopenai.response_to_txt(response)
-    # ret = hmarkdown.remove_code_delimiters(ret)
-    # ret = hlatex.remove_end_of_line_periods(ret)
-    # ret = hlatex.remove_empty_lines(ret)
     return ret
 
 
@@ -183,9 +157,6 @@ I will give you markdown text in the next prompt
 You will use multiple colors using pandoc \textcolor{COLOR}{text} to highlight important phrases
     """
     ret = _run_all(user, system, model, {"remove_code_delimiters"})
-    # response = hopenai.get_completion(user, system=system, model=model)
-    # ret = hopenai.response_to_txt(response)
-    # ret = hmarkdown.remove_code_delimiters(ret)
     return ret
 
 
