@@ -41,9 +41,6 @@ import helpers.hparser as hparser
 _LOG = logging.getLogger(__name__)
 
 
-# #############################################################################
-
-
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
@@ -70,7 +67,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     if cmd == "toc":
         hmarkdo.table_of_content(in_file_name, max_lev)
     elif cmd == "format":
-        hmarkdo.format_text(in_file_name, out_file_name, max_lev)
+        hmarkdo.format_headers(in_file_name, out_file_name, max_lev)
     elif cmd == "increase":
         hmarkdo.increase_chapter(in_file_name, out_file_name)
     elif cmd == "md_list_to_latex":

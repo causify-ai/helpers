@@ -1,34 +1,15 @@
 #!/usr/bin/env python
 """
-This script is designed to run `prettier` inside a Docker container to ensure
+This script is designed to run `pandoc` inside a Docker container to ensure
 consistent formatting across different environments.
 
-It builds the container dynamically if necessary and formats the specified file
-using the provided `prettier` options.
+It builds the container dynamically if necessary.
 
-To use this script, you need to provide the `prettier` command options and the
-file to format. You can also specify whether to use `sudo` for Docker commands.
-
-Examples
-# Basic Usage
-> dockerized_prettier.py --parser markdown --prose-wrap always --write \
-    --tab-width 2 test.md
-
-# Use Sudo for Docker Commands
-> dockerized_prettier.py --use_sudo --parser markdown --prose-wrap always \
-    --write --tab-width 2 test.md
-
-# Set Logging Verbosity
-> dockerized_prettier.py -v DEBUG --parser markdown --prose-wrap always \
-    --write --tab-width 2 test.md </pre>
-
-# Process a file
-> cat test.md
-- a
-  - b
-        - c
-> dockerized_prettier.py --parser markdown --prose-wrap always \
-    --write --tab-width 2 test.md
+pandoc tmp.pandoc.no_spaces.txt \
+    -t beamer --slide-level 4 -V theme:SimplePlus \
+    --include-in-header=latex_abbrevs.sty \
+    --toc --toc-depth 2 \
+    -o tmp.pandoc.no_spaces.pdf
 """
 
 import argparse
@@ -51,6 +32,8 @@ def _parse() -> argparse.ArgumentParser:
     hparser.add_dockerized_script_arg(parser)
     parser.add_argument("--input", action="store")
     parser.add_argument("--output", action="store", default="")
+    parser.add_argument("--data_dir", action="store")
+    #parser.add_argument("--include_in_header", action="store")
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -66,7 +49,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.debug("cmd_opts: %s", cmd_opts)
     if not args.output:
         args.output = args.input
-    hdocker.run_dockerized_prettier(
+    hdocker.run_dockerized_pandoc(
         cmd_opts,
         args.input,
         args.output,

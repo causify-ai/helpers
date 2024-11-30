@@ -78,6 +78,29 @@ class Test_replace_shared_root_path1(hunitest.TestCase):
 
 
 # #############################################################################
+# Test_convert_file_names_to_docker1
+# #############################################################################
+
+# class Test_convert_file_names_to_docker1(hunitest.TestCase):
+#     def test1(self):
+#         dir_name = self.get_input_dir()
+#         # Prepare inputs.
+#         in_file_path = os.path.join(dir_name, "input.md")
+#         hio.to_file(in_file_path, "empty")
+#         out_file_path = os.path.join(dir_name, "output.md")
+#         # Call tested function.
+#         act_in_file_path, act_out_file_path, act_mount = hdocker.convert_file_names_to_docker(in_file_path, out_file_path)
+#         # Check output.
+#         exp_in_file_path = r"""helpers/test/outcomes/Test_convert_file_names_to_docker1.test1/input/input.md"""
+#         exp_out_file_path = r"src/helpers1/test2.md"
+#         exp_mount = r"""
+#         type=bind,source=/Users/saggese/src/helpers1,target=/src
+#         """
+#         self.assert_equal(act_in_file_path, exp_in_file_path, dedent=True)
+#         self.assert_equal(act_out_file_path, exp_out_file_path, dedent=True)
+#         self.assert_equal(act_mount, exp_mount, dedent=True)
+
+# #############################################################################
 # Test_run_dockerized_prettier1
 # #############################################################################
 
@@ -130,9 +153,9 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
         """
         Test running the `prettier` command in a Docker container.
 
-        This test creates a test file, runs the `prettier` command inside a
-        Docker container with specified command options, and checks if the
-        output matches the expected result.
+        This test creates a test file, runs the command inside a Docker
+        container with specified command options, and checks if the output
+        matches the expected result.
         """
         cmd_opts: List[str] = []
         cmd_opts.append("--parser markdown")
@@ -202,11 +225,11 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
 
     def _helper(self, txt: str, exp: str) -> None:
         """
-        Test running the `prettier` command in a Docker container.
+        Test running the `pandoc` command in a Docker container.
 
-        This test creates a test file, runs the `prettier` command inside a
-        Docker container with specified command options, and checks if the
-        output matches the expected result.
+        This test creates a test file, runs the command inside a Docker
+        container with specified command options, and checks if the output
+        matches the expected result.
         """
         cmd_opts: List[str] = []
         # Generate the table of contents.

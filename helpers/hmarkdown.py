@@ -14,13 +14,13 @@ _LOG = logging.getLogger(__name__)
 
 def extract_section_from_markdown(content: str, header_name: str) -> str:
     """
-    Extract a section of text from a markdown document based on the header
+    Extract a section of text from a Markdown document based on the header
     name.
 
-    The function identifies a section by locating the specified header
-    and captures all lines until encountering another header of the same
-    or higher level. Headers are identified by the '#' prefix, and their
-    level is determined by the number of '#' characters.
+    The function identifies a section by locating the specified header and
+    captures all lines until encountering another header of the same or higher
+    level. Headers are identified by the '#' prefix, and their level is
+    determined by the number of '#' characters.
 
     :param content: The markdown content as a single string.
     :param header_name: The exact header name to extract (excluding '#'
@@ -78,8 +78,8 @@ def extract_headers(
 
     :param markdown_file: Path to the input Markdown file.
     :param input_content: Path to the input Markdown file.
-    :param max_level: Maximum header levels to parse (1 for `#`, 2 for `##`, etc.).
-                      Default is 6.
+    :param max_level: Maximum header levels to parse (1 for `#`, 2 for `##`,
+        etc.).
     :return: the generated output file content, e.g.,
         The generated cfile format:
             <file path>:<line number>:<header title>
@@ -124,7 +124,8 @@ def skip_comments(line: str, skip_block: bool) -> Tuple[bool, bool]:
 
     :param line: The line of text to check for comments
     :param skip_block: A flag indicating if currently inside a comment block
-    :return: A tuple containing a flag indicating if the line should be skipped and the updated skip_block flag
+    :return: A tuple containing a flag indicating if the line should be skipped
+        and the updated skip_block flag
     """
     skip_this_line = False
     # Handle comment block.
@@ -153,10 +154,10 @@ def table_of_content(file_name: str, max_lev: int) -> None:
     Generate a table of contents from the given file, considering the specified
     maximum level of headings.
 
-    :param file_name: The name of the file to read and generate the
-        table of contents from
-    :param max_lev: The maximum level of headings to include in the
-        table of contents
+    :param file_name: The name of the file to read and generate the table of
+        contents from
+    :param max_lev: The maximum level of headings to include in the table of
+        contents
     """
     skip_block = False
     txt = hparser.read_file(file_name)
@@ -180,17 +181,16 @@ def table_of_content(file_name: str, max_lev: int) -> None:
                 break
 
 
-# TODO(gp): -> format_headers
-def format_text(in_file_name: str, out_file_name: str, max_lev: int) -> None:
+def format_headers(in_file_name: str, out_file_name: str, max_lev: int) -> None:
     """
     Format the headers in the input file and write the formatted text to the
     output file.
 
     :param in_file_name: The name of the input file to read
-    :param out_file_name: The name of the output file to write the
-        formatted text to
-    :param max_lev: The maximum level of headings to include in the
-        formatted text
+    :param out_file_name: The name of the output file to write the formatted
+        text to
+    :param max_lev: The maximum level of headings to include in the formatted
+        text
     """
     txt = hparser.read_file(in_file_name)
     #
@@ -241,7 +241,6 @@ def increase_chapter(in_file_name: str, out_file_name: str) -> None:
     :param in_file_name: The name of the input file to read
     :param out_file_name: The name of the output file to write the
         modified text to
-    :return: None
     """
     skip_block = False
     txt = hparser.read_file(in_file_name)
@@ -265,7 +264,7 @@ def increase_chapter(in_file_name: str, out_file_name: str) -> None:
 # #############################################################################
 
 
-def _process_comment_block(line: str, in_skip_block: bool) -> Tuple[bool, bool]:
+def process_comment_block(line: str, in_skip_block: bool) -> Tuple[bool, bool]:
     """
     Process lines of text to identify blocks that start with '<!--' or '/*' and
     end with '-->' or '*/'.
@@ -277,7 +276,6 @@ def _process_comment_block(line: str, in_skip_block: bool) -> Tuple[bool, bool]:
         processing the current line and a boolean indicating whether the
         function is currently inside a comment block.
     """
-    # TODO: improve the comment handling, handle also \* *\ and %.
     do_continue = False
     if line.startswith(r"<!--") or re.search(r"^\s*\/\*", line):
         hdbg.dassert(not in_skip_block)
@@ -293,7 +291,7 @@ def _process_comment_block(line: str, in_skip_block: bool) -> Tuple[bool, bool]:
     return do_continue, in_skip_block
 
 
-def _process_code_block(
+def process_code_block(
     line: str, in_code_block: bool, i: int, lines: List[str]
 ) -> Tuple[bool, bool, List[str]]:
     """
@@ -305,9 +303,8 @@ def _process_code_block(
     :param i: The index of the current line in the list of lines.
     :param lines: The list of all lines of text being processed.
     :return: A tuple containing a boolean indicating whether to continue
-        processing the current line, a boolean indicating whether the
-        function is currently inside a code block, and a list of
-        processed lines.
+        processing the current line, a boolean indicating whether the function
+        is currently inside a code block, and a list of processed lines.
     """
     out: List[str] = []
     do_continue = False
@@ -339,7 +336,7 @@ def _process_code_block(
     return do_continue, in_code_block, out
 
 
-def _process_single_line_comment(line: str) -> bool:
+def process_single_line_comment(line: str) -> bool:
     """
     Handle single line comment.
 
@@ -397,6 +394,6 @@ def remove_code_delimiters(text: str) -> str:
     :param text: The input text containing code delimiters.
     :return: The text with the code delimiters removed.
     """
-    # Replace the ```python and ``` delimiters with empty strings
+    # Replace the ```python and ``` delimiters with empty strings.
     text = text.replace("```python", "").replace("```", "")
     return text.strip()

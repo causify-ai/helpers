@@ -32,9 +32,9 @@ def convert_pandoc_md_to_latex(txt: str) -> str:
 
 def markdown_list_to_latex(markdown: str) -> str:
     """
-    Convert a markdown list to LaTeX format.
+    Convert a Markdown list to LaTeX format.
 
-    :param markdown: The markdown text to convert
+    :param markdown: The Markdown text to convert
     :return: The converted LaTeX text
     """
     hdbg.dassert_isinstance(markdown, str)

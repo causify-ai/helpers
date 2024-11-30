@@ -25,12 +25,12 @@ Convert a txt file into a PDF / HTML / slides using `pandoc`.
 import argparse
 import logging
 import os
-import re
 import sys
 from typing import Any, List, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
+import helpers.hmarkdown as hmarkdown
 import helpers.hopen as hopen
 import helpers.hparser as hparser
 import helpers.hprint as hprint
@@ -87,8 +87,7 @@ def _filter_by_header(file_: str, header: str, prefix: str) -> str:
     _LOG.info("\n%s", hprint.frame("Filter by header", char1="<", char2=">"))
     txt = hio.from_file(file_)
     # Filter by header.
-    for line in txt.split("\n"):
-        m = re.search("^(#+) " + header, line)
+    txt = hmarkdown.extract_section_from_markdown(txt, header)
     #
     file_out = f"{prefix}.filter_by_header.txt"
     hio.to_file(file_out, txt)
@@ -368,7 +367,7 @@ def _run_all(args: argparse.Namespace) -> None:
         _cleanup_before(prefix)
     # - Filter
     if args.filter_by_header:
-        file_ = _filter_by_header(file_)
+        file_ = _filter_by_header(file_, args.filter_by_header, prefix)
     # - Preprocess_notes
     action = "preprocess_notes"
     to_execute, actions = hparser.mark_action(action, actions)

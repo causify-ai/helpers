@@ -99,7 +99,7 @@ def _run_all(lines: List[str], *, is_qa: bool = False) -> List[str]:
         # 1) Process comment block.
         if _TRACE:
             _LOG.debug("# 1) Process comment block.")
-        do_continue, in_skip_block = hmarkdo._process_comment_block(
+        do_continue, in_skip_block = hmarkdo.process_comment_block(
             line, in_skip_block
         )
         # _LOG.debug("  -> do_continue=%s in_skip_block=%s",
@@ -109,7 +109,7 @@ def _run_all(lines: List[str], *, is_qa: bool = False) -> List[str]:
         # 2) Process code block.
         if _TRACE:
             _LOG.debug("# 2) Process code block.")
-        do_continue, in_code_block, out_tmp = hmarkdo._process_code_block(
+        do_continue, in_code_block, out_tmp = hmarkdo.process_code_block(
             line, in_code_block, i, lines
         )
         out.extend(out_tmp)
@@ -118,7 +118,7 @@ def _run_all(lines: List[str], *, is_qa: bool = False) -> List[str]:
         # 3) Process single line comment.
         if _TRACE:
             _LOG.debug("# 3) Process single line comment.")
-        do_continue = hmarkdo._process_single_line_comment(line)
+        do_continue = hmarkdo.process_single_line_comment(line)
         if do_continue:
             continue
         # 4) Process abbreviations.
