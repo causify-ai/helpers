@@ -14,6 +14,9 @@ Examples
 # Basic Usage
 > llm_transform.py -i input.txt -o output.txt -t uppercase
 
+# List of transforms
+> llm_transform.py -i input.txt -o output.txt -t list
+
 # Force Rebuild Docker Container
 > llm_transform.py -i input.txt -o output.txt -t uppercase --dockerized-force-rebuild
 
@@ -23,7 +26,6 @@ Examples
 
 import argparse
 import logging
-import os
 
 if False:
     # Hardwire path when we are calling from a different dir.
@@ -32,11 +34,9 @@ if False:
 import dev_scripts_helpers.documentation.lint_notes as dshdlitx
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
-import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hparser as hparser
-import helpers.hprint as hprint
-import helpers.hsystem as hsystem
+import dev_scripts_helpers.llms.llm_prompts_utils as dshlllpr
 
 _LOG = logging.getLogger(__name__)
 
@@ -137,6 +137,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(
         verbosity=args.log_level, use_exec_path=True, force_white=False
     )
+    if args.transform == "list":
+        print("# Available transformations:")
+        print("\n".join(dshlllpr.get_transforms()))
+        return
     # Parse files.
     in_file_name, out_file_name = hparser.parse_input_output_args(args)
     _ = in_file_name, out_file_name
@@ -165,7 +169,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Note that we need to run this outside the `llm_transform` container to
     # avoid to do docker in docker in the `llm_transform` container (which
     # doesn't support that).
-    if args.transform in ("md_format", "slide_improve", "slide_colorize"):
+    if args.transform in ("md_format", "md_summarize_short", "slide_improve",
+        "slide_colorize"):
         out_txt = dshdlitx.prettier_on_str(out_txt)
     # Read the output from the container and write it to the output file from
     # command line (e.g., `-` for stdout).
