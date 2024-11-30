@@ -9,8 +9,6 @@ E.g.,
 - handle comments
 """
 
-# TODO(gp): Rename to `preprocess_txt.py`.
-
 # TODO(gp):
 #  - Add spaces between lines
 #  - Add index counting the indices
@@ -24,113 +22,14 @@ from typing import List, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
+import helpers.hmarkdown as hmarkdo
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
 
 _NUM_SPACES = 2
 
-
-def _process_comment_block(line: str, in_skip_block: bool) -> Tuple[bool, bool]:
-    """
-    Process lines of text to identify blocks that start with '<!--' or '/*' and
-    end with '-->' or '*/'.
-
-    :param line: The current line of text being processed.
-    :param in_skip_block: A flag indicating if the function is currently
-        inside a comment block.
-    :return: A tuple containing a boolean indicating whether to continue
-        processing the current line and a boolean indicating whether the
-        function is currently inside a comment block.
-    """
-    # TODO: improve the comment handling, handle also \* *\ and %.
-    do_continue = False
-    if line.startswith(r"<!--") or re.search(r"^\s*\/\*", line):
-        hdbg.dassert(not in_skip_block)
-        # Start skipping comments.
-        in_skip_block = True
-    if in_skip_block:
-        if line.endswith(r"-->") or re.search(r"^\s*\*\/", line):
-            # End skipping comments.
-            in_skip_block = False
-        # Skip comment.
-        _LOG.debug("  -> skip")
-        do_continue = True
-    return do_continue, in_skip_block
-
-
-def _process_code_block(
-    line: str, in_code_block: bool, i: int, lines: List[str]
-) -> Tuple[bool, bool, List[str]]:
-    """
-    Process lines of text to handle code blocks that start and end with '```'.
-
-    :param line: The current line of text being processed.
-    :param in_code_block: A flag indicating if the function is currently
-        inside a code block.
-    :param i: The index of the current line in the list of lines.
-    :param lines: The list of all lines of text being processed.
-    :return: A tuple containing a boolean indicating whether to continue
-        processing the current line, a boolean indicating whether the
-        function is currently inside a code block, and a list of
-        processed lines.
-    """
-    out: List[str] = []
-    do_continue = False
-    if re.match(r"^(\s*)```", line):
-        _LOG.debug("  -> code block")
-        in_code_block = not in_code_block
-        # Add empty line.
-        if (
-            in_code_block
-            and (i + 1 < len(lines))
-            and re.match(r"\s*", lines[i + 1])
-        ):
-            out.append("\n")
-        out.append("    " + line)
-        if (
-            not in_code_block
-            and (i + 1 < len(lines))
-            and re.match(r"\s*", lines[i + 1])
-        ):
-            out.append("\n")
-        do_continue = True
-        return do_continue, in_code_block, out
-    if in_code_block:
-        line = line.replace("// ", "# ")
-        out.append("    " + line)
-        # We don't do any of the other post-processing.
-        do_continue = True
-        return do_continue, in_code_block, out
-    return do_continue, in_code_block, out
-
-
-def _process_single_line_comment(line: str) -> bool:
-    """
-    Handle single line comment.
-
-    We need to do it after the // in code blocks have been handled.
-    """
-    do_continue = False
-    if line.startswith(r"%%") or line.startswith(r"//"):
-        do_continue = True
-        _LOG.debug("  -> do_continue=True")
-        return do_continue
-    # Skip frame.
-    if (
-        re.match(r"\#+ -----", line)
-        or re.match(r"\#+ \#\#\#\#\#", line)
-        or re.match(r"\#+ =====", line)
-        or re.match(r"\#+ \/\/\/\/\/", line)
-    ):
-        do_continue = True
-        _LOG.debug("  -> do_continue=True")
-        return do_continue
-    # Nothing to do.
-    return do_continue
-
-
-# #############################################################################
+_TRACE = False
 
 
 def _process_abbreviations(in_line: str) -> str:
@@ -175,8 +74,7 @@ def _process_question(line: str) -> Tuple[bool, str]:
 # #############################################################################
 
 
-# TODO(gp): -> _process
-def _transform(lines: List[str]) -> List[str]:
+def _run_all(lines: List[str], *, is_qa: bool = False) -> List[str]:
     """
     Process the notes to convert them into a format suitable for pandoc.
 
@@ -185,6 +83,7 @@ def _transform(lines: List[str]) -> List[str]:
     - remove comments
     - expand abbreviations
     """
+    _LOG.debug("_run_all")
     out: List[str] = []
     # a) Prepend some directive for pandoc.
     out.append(r"""\let\emph\textit""")
@@ -198,63 +97,81 @@ def _transform(lines: List[str]) -> List[str]:
     for i, line in enumerate(lines):
         _LOG.debug("%s:line=%s", i, line)
         # 1) Process comment block.
-        do_continue, in_skip_block = _process_comment_block(line, in_skip_block)
+        if _TRACE:
+            _LOG.debug("# 1) Process comment block.")
+        do_continue, in_skip_block = hmarkdo.process_comment_block(
+            line, in_skip_block
+        )
         # _LOG.debug("  -> do_continue=%s in_skip_block=%s",
         #   do_continue, in_skip_block)
         if do_continue:
             continue
         # 2) Process code block.
-        do_continue, in_code_block, out_tmp = _process_code_block(
+        if _TRACE:
+            _LOG.debug("# 2) Process code block.")
+        do_continue, in_code_block, out_tmp = hmarkdo.process_code_block(
             line, in_code_block, i, lines
         )
         out.extend(out_tmp)
         if do_continue:
             continue
         # 3) Process single line comment.
-        do_continue = _process_single_line_comment(line)
+        if _TRACE:
+            _LOG.debug("# 3) Process single line comment.")
+        do_continue = hmarkdo.process_single_line_comment(line)
         if do_continue:
             continue
         # 4) Process abbreviations.
+        if _TRACE:
+            _LOG.debug("# 4) Process abbreviations.")
         line = _process_abbreviations(line)
         # 5) Process question.
+        if _TRACE:
+            _LOG.debug("# 5) Process question.")
         do_continue, line = _process_question(line)
         if do_continue:
             out.append(line)
             continue
         # 6) Process empty lines in the questions and answers.
-        is_empty = line.rstrip(" ").lstrip(" ") == ""
-        if not is_empty:
-            if line.startswith("#"):
-                # It's a chapter.
-                out.append(line)
-            else:
-                # It's a line in an answer.
-                out.append(" " * _NUM_SPACES + line)
+        if _TRACE:
+            _LOG.debug("# 6) Process empty lines in the questions and answers.")
+        if not is_qa:
+            out.append(line)
         else:
-            # Empty line.
-            prev_line_is_verbatim = ((i - 1) > 0) and lines[i - 1].startswith(
-                "```"
-            )
-            next_line_is_verbatim = ((i + 1) < len(lines)) and (
-                lines[i + 1].startswith("```")
-            )
-            # The next line has a chapter or the start of a new note.
-            next_line_is_chapter = ((i + 1) < len(lines)) and (
-                lines[i + 1].startswith("#") or lines[i + 1].startswith("* ")
-            )
-            _LOG.debug(
-                "  is_empty=%s prev_line_is_verbatim=%s next_line_is_chapter=%s",
-                is_empty,
-                prev_line_is_verbatim,
-                next_line_is_chapter,
-            )
-            if (
-                next_line_is_chapter
-                or prev_line_is_verbatim
-                or next_line_is_verbatim
-            ):
-                out.append(" " * _NUM_SPACES + line)
+            is_empty = line.rstrip(" ").lstrip(" ") == ""
+            if not is_empty:
+                if line.startswith("#"):
+                    # It's a chapter.
+                    out.append(line)
+                else:
+                    # It's a line in an answer.
+                    out.append(" " * _NUM_SPACES + line)
+            else:
+                # Empty line.
+                prev_line_is_verbatim = ((i - 1) > 0) and lines[i - 1].startswith(
+                    "```"
+                )
+                next_line_is_verbatim = ((i + 1) < len(lines)) and (
+                    lines[i + 1].startswith("```")
+                )
+                # The next line has a chapter or the start of a new note.
+                next_line_is_chapter = ((i + 1) < len(lines)) and (
+                    lines[i + 1].startswith("#") or lines[i + 1].startswith("* ")
+                )
+                _LOG.debug(
+                    "  is_empty=%s prev_line_is_verbatim=%s next_line_is_chapter=%s",
+                    is_empty,
+                    prev_line_is_verbatim,
+                    next_line_is_chapter,
+                )
+                if (
+                    next_line_is_chapter
+                    or prev_line_is_verbatim
+                    or next_line_is_verbatim
+                ):
+                    out.append(" " * _NUM_SPACES + line)
     # c) Clean up.
+    _LOG.debug("Clean up")
     # Remove all the lines with only spaces.
     out_tmp = []
     for line in out:
@@ -275,6 +192,9 @@ def _parse() -> argparse.ArgumentParser:
     )
     parser.add_argument("--input", action="store", type=str, required=True)
     parser.add_argument("--output", action="store", type=str, default=None)
+    parser.add_argument(
+        "--qa", action="store_true", default=None, help="The input file is QA"
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -288,7 +208,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     lines = [l.rstrip("\n") for l in lines]
     out: List[str] = []
     # Transform.
-    out_tmp = _transform(lines)
+    out_tmp = _run_all(lines)
     out.extend(out_tmp)
     # Save results.
     txt = "\n".join(out)

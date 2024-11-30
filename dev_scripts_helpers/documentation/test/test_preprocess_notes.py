@@ -3,7 +3,7 @@ import os
 
 import pytest
 
-import dev_scripts_helpers.documentation.preprocess_notes as dshdcttpa
+import dev_scripts_helpers.documentation.preprocess_notes as dshdprno
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
@@ -15,7 +15,7 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 
-def _run_preprocess(in_file: str, out_file: str) -> str:
+def _run_preprocess_notes(in_file: str, out_file: str) -> str:
     """
     Execute the end-to-end flow for `preprocess_notes.py` returning the output
     as string.
@@ -61,7 +61,7 @@ class Test_preprocess_notes1(hunitest.TestCase):
         in_file = os.path.join(self.get_input_dir(), "input1.txt")
         out_file = os.path.join(self.get_scratch_space(), "output.txt")
         # Run.
-        act = _run_preprocess(in_file, out_file)
+        act = _run_preprocess_notes(in_file, out_file)
         # Check.
         self.check_string(act)
 
@@ -71,8 +71,8 @@ class Test_preprocess_notes1(hunitest.TestCase):
 )
 class Test_preprocess_notes2(hunitest.TestCase):
     """
-    Check that the output of `preprocess_notes.py` is the expected one
-    calling the library function directly.
+    Check that the output of `preprocess_notes.py` is the expected one calling
+    the library function directly.
     """
 
     def test_process_question1(self) -> None:
@@ -113,7 +113,27 @@ class Test_preprocess_notes2(hunitest.TestCase):
         exp = "-" + " " * len(space) + "**Hope is not a strategy**"
         self._helper_process_question(txt_in, do_continue_exp, exp)
 
-    def test_transform1(self) -> None:
+    def _helper_process_question(
+        self, txt_in: str, do_continue_exp: bool, exp: str
+    ) -> None:
+        do_continue, act = dshdprno._process_question(txt_in)
+        self.assertEqual(do_continue, do_continue_exp)
+        self.assert_equal(act, exp)
+
+
+# #############################################################################
+
+
+@pytest.mark.skipif(
+    hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
+)
+class Test_preprocess_notes3(hunitest.TestCase):
+    """
+    Check that the output of `preprocess_notes.py` is the expected one calling
+    the library function directly.
+    """
+
+    def test_run_all1(self) -> None:
         txt_in = r"""
         # #############################################################################
         # Python: nested functions
@@ -140,8 +160,8 @@ class Test_preprocess_notes2(hunitest.TestCase):
         \let\uline\underline
         \let\ul\underline
         # Python: nested functions
-          - Functions can be declared in the body of another function
-          - E.g., to hide utility functions in the scope of the function that uses them
+        - Functions can be declared in the body of another function
+        - E.g., to hide utility functions in the scope of the function that uses them
 
                 ```python
                 def print_integers(values):
@@ -158,18 +178,9 @@ class Test_preprocess_notes2(hunitest.TestCase):
                 ```
         """
         exp = hprint.dedent(exp, remove_empty_leading_trailing_lines=True)
-        self._helper_transform(txt_in, exp)
+        self._helper_run_all(txt_in, exp)
 
-    def _helper_process_question(
-        self, txt_in: str, do_continue_exp: bool, exp: str
-    ) -> None:
-        do_continue, act = dshdcttpa._process_question(txt_in)
-        self.assertEqual(do_continue, do_continue_exp)
-        self.assert_equal(act, exp)
-
-    # #########################################################################
-
-    def _helper_transform(self, txt_in: str, exp: str) -> None:
-        act_as_arr = dshdcttpa._transform(txt_in.split("\n"))
+    def _helper_run_all(self, txt_in: str, exp: str) -> None:
+        act_as_arr = dshdprno._run_all(txt_in.split("\n"), is_qa=False)
         act = "\n".join(act_as_arr)
         self.assert_equal(act, exp)

@@ -535,6 +535,7 @@ def run_dockerized_pandoc(
     cmd_opts: List[str],
     in_file_path: str,
     out_file_path: str,
+    #data_dir: Optional[str],
     use_sudo: bool,
 ) -> None:
     """
@@ -542,7 +543,8 @@ def run_dockerized_pandoc(
 
     Same as `run_dockerized_prettier()` but for `pandoc`.
     """
-    _LOG.debug(hprint.to_str("cmd_opts in_file_path out_file_path use_sudo"))
+    _LOG.debug(hprint.to_str("cmd_opts in_file_path out_file_path "
+                             "data_dir use_sudo"))
     hdbg.dassert_isinstance(cmd_opts, list)
     container_name = "pandoc/core"
     # Convert files.
