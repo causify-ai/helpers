@@ -17,16 +17,17 @@ This approach eliminates the need for installing these applications directly on
 the host system or within a development container.
 
 In other terms, instead of install and execute `prettier` on the host
-  ```bash
-  > install prettier
-  > prettier ...cmd opts...
-  ```
+
+```bash
+> install prettier
+> prettier ...cmd opts...
+```
 
 we want to run it in a container with minimal changes to the call:
 
-  ```
-  > dockerized_prettier ...cmd opts...
-  ```
+```bash
+> dockerized_prettier ...cmd opts...
+```
 
 - There are two template for dockerized scripts:
   - `dev_scripts_helpers/dockerize/dockerized_template.py`
@@ -50,8 +51,8 @@ we want to run it in a container with minimal changes to the call:
 
 # Testing a dockerized executable
 
-- Testing a dockerized executable can be complex, since in our development system
-  `pytest` is executed within a container environment.
+- Testing a dockerized executable can be complex, since in our development
+  system `pytest` is executed within a container environment.
 - Thus the dockerized executable needs to be run inside the container running
   `pytest`, rather than executing outside of Docker as it typically would when
   called by a user.
@@ -100,7 +101,8 @@ we want to run it in a container with minimal changes to the call:
     implement.
   - Approach 1)
     - We could overwrite the entrypoint with something like:
-      ```
+
+      ```bash
       #!/bin/bash
 
       # Wait until a specific file is copied into the container

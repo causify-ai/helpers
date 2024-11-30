@@ -130,7 +130,7 @@ def wait_for_file_in_docker(
     docker_file_path: str,
     out_file_path: str,
     *,
-    check_interval_in_secs: int = 0.5,
+    check_interval_in_secs: float = 0.5,
     timeout_in_secs: int = 10,
 ) -> None:
     """
@@ -151,7 +151,7 @@ def wait_for_file_in_docker(
     :raises ValueError: If the file is not found within the timeout
         period.
     """
-    _LOG.debug(f"Waiting for file: {container_id}:{docker_file_path}")
+    _LOG.debug("Waiting for file: %s:%s", container_id, docker_file_path)
     start_time = time.time()
     while not os.path.exists(out_file_path):
         cmd = f"docker cp {container_id}:{docker_file_path} {out_file_path}"
@@ -162,7 +162,7 @@ def wait_for_file_in_docker(
                 f"{container_id}:{docker_file_path}"
             )
         time.sleep(check_interval_in_secs)
-    _LOG.debug(f"File generated: {out_file_path}")
+    _LOG.debug("File generated: %s", out_file_path)
 
 
 def replace_shared_root_path(
@@ -208,6 +208,7 @@ def replace_shared_root_path(
 
 # llm_transform.py -i docs/work_tools/dev_system/all.create_a_super_repo_with_helpers.how_to_guide.md -o - -t md_summarize -v DEBUG
 
+
 def build_container(
     container_name: str, dockerfile: str, force_rebuild: bool, use_sudo: bool
 ) -> str:
@@ -233,7 +234,7 @@ def build_container(
     has_container, _ = image_exists(container_name_out, use_sudo)
     _LOG.debug(hprint.to_str("has_container"))
     if force_rebuild:
-        _LOG.warning(f"Forcing to rebuild of container {container_name}")
+        _LOG.warning("Forcing to rebuild of container %s", container_name)
         has_container = False
     if not has_container:
         # Create a temporary Dockerfile.
@@ -337,10 +338,12 @@ def convert_file_names_to_docker(
     Convert the file paths to be relative to the Docker mount point so that
     they can be used inside a Docker container.
 
-    :param in_file_path: The input file path on the host to be converted.
-    :param out_file_path: The output file path on the host to be converted.
-    :return: A tuple containing the converted input file path, output file path,
-             and the Docker mount path.
+    :param in_file_path: The input file path on the host to be
+        converted.
+    :param out_file_path: The output file path on the host to be
+        converted.
+    :return: A tuple containing the converted input file path, output
+        file path, and the Docker mount path.
     """
     # Convert the paths to be relative.
     in_file_path = _convert_to_relative_path(
@@ -535,7 +538,7 @@ def run_dockerized_pandoc(
     cmd_opts: List[str],
     in_file_path: str,
     out_file_path: str,
-    #data_dir: Optional[str],
+    # data_dir: Optional[str],
     use_sudo: bool,
 ) -> None:
     """
@@ -543,8 +546,9 @@ def run_dockerized_pandoc(
 
     Same as `run_dockerized_prettier()` but for `pandoc`.
     """
-    _LOG.debug(hprint.to_str("cmd_opts in_file_path out_file_path "
-                             "data_dir use_sudo"))
+    _LOG.debug(
+        hprint.to_str("cmd_opts in_file_path out_file_path data_dir use_sudo")
+    )
     hdbg.dassert_isinstance(cmd_opts, list)
     container_name = "pandoc/core"
     # Convert files.
@@ -608,9 +612,7 @@ def run_dockerized_markdown_toc(
     #     tmp.markdown_toc \
     #     -i ./test.md
     executable = get_docker_executable(use_sudo)
-    bash_cmd = (
-        f"/usr/local/bin/markdown-toc {cmd_opts_as_str} -i {in_file_path}"
-    )
+    bash_cmd = f"/usr/local/bin/markdown-toc {cmd_opts_as_str} -i {in_file_path}"
     docker_cmd = (
         f"{executable} run --rm --user $(id -u):$(id -g)"
         f" --workdir /src --mount {mount}"
@@ -656,15 +658,12 @@ def run_dockerized_llm_transform(
         in_file_path, out_file_path
     )
     helpers_root = hgit.find_helpers_root()
-    (helpers_root, _, _) = convert_file_names_to_docker(
-        helpers_root, None
-    )
+    (helpers_root, _, _) = convert_file_names_to_docker(helpers_root, None)
     git_root = hgit.find_git_root()
     script = hsystem.find_file_in_repo("_llm_transform.py", root_dir=git_root)
     # Make all the paths relative to the git root.
     script = os.path.relpath(os.path.abspath(script.strip("\n")), git_root)
-    (script, _, _) = convert_file_names_to_docker(
-        script, None)
+    (script, _, _) = convert_file_names_to_docker(script, None)
     cmd_opts_as_str = " ".join(cmd_opts)
     executable = get_docker_executable(use_sudo)
     docker_cmd = (

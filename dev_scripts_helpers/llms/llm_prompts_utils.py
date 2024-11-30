@@ -4,6 +4,7 @@ from typing import List
 
 import helpers.hio as hio
 
+
 def get_transforms() -> List[str]:
     """
     Extract all functions in a Python file that match a specific signature.
@@ -24,8 +25,11 @@ def get_transforms() -> List[str]:
         if isinstance(node, ast.FunctionDef):
             # Check function arguments and return type.
             args = [arg.arg for arg in node.args.args]
-            if args == ['user', 'model'] and isinstance(node.returns,
-                                                        ast.Name) and node.returns.id == 'str':
+            if (
+                args == ["user", "model"]
+                and isinstance(node.returns, ast.Name)
+                and node.returns.id == "str"
+            ):
                 matched_functions.append(node.name)
     matched_functions = sorted(matched_functions)
     return matched_functions

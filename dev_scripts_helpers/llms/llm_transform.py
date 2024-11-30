@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 
 """
-This script is designed to read input from either stdin or a file, apply a
-specified transformation using an LLM, and then write the output to either
-stdout or a file. It is particularly useful for integrating with editors like
-Vim.
+Read input from either stdin or a file, apply a specified transformation using
+an LLM, and then write the output to either stdout or a file. It is
+particularly useful for integrating with editors like Vim.
 
 The script `_llm_transform.py` is executed within a Docker container to ensure
 all dependencies are met. The Docker container is built dynamically if
@@ -30,20 +29,21 @@ import logging
 if False:
     # Hardwire path when we are calling from a different dir.
     import sys
+
     sys.path.insert(0, "/Users/saggese/src/notes1/helpers_root")
-import dev_scripts_helpers.documentation.lint_notes as dshdlitx
+import dev_scripts_helpers.documentation.lint_notes as dshdlino
+import dev_scripts_helpers.llms.llm_prompts_utils as dshllprut
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hio as hio
 import helpers.hparser as hparser
-import dev_scripts_helpers.llms.llm_prompts_utils as dshlllpr
 
 _LOG = logging.getLogger(__name__)
 
 
 def _parse() -> argparse.ArgumentParser:
     """
-    It has the same interface as `_llm_transform.py`.
+    Same interface as `_llm_transform.py`.
     """
     parser = argparse.ArgumentParser(
         description=__doc__,
@@ -64,7 +64,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     if args.transform == "list":
         print("# Available transformations:")
-        print("\n".join(dshlllpr.get_transforms()))
+        print("\n".join(dshllprut.get_transforms()))
         return
     # Parse files.
     in_file_name, out_file_name = hparser.parse_input_output_args(args)
@@ -77,10 +77,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hio.to_file(tmp_in_file_name, in_txt)
     #
     tmp_out_file_name = "tmp.llm_transform.out.txt"
-    cmd_line_opts = [
-        f"-t {args.transform}",
-        f"-v {args.log_level}"
-    ]
+    cmd_line_opts = [f"-t {args.transform}", f"-v {args.log_level}"]
     if args.debug:
         cmd_line_opts.append("-d")
     hdocker.run_dockerized_llm_transform(
@@ -94,9 +91,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Note that we need to run this outside the `llm_transform` container to
     # avoid to do docker in docker in the `llm_transform` container (which
     # doesn't support that).
-    if args.transform in ("md_format", "md_summarize_short", "slide_improve",
-        "slide_colorize"):
-        out_txt = dshdlitx.prettier_on_str(out_txt)
+    if args.transform in (
+        "md_format",
+        "md_summarize_short",
+        "slide_improve",
+        "slide_colorize",
+    ):
+        out_txt = dshdlino.prettier_on_str(out_txt)
     # Read the output from the container and write it to the output file from
     # command line (e.g., `-` for stdout).
     hparser.write_file(out_txt, out_file_name)

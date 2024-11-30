@@ -1,31 +1,31 @@
 import logging
-import os.path
-from typing import List, Set
+from typing import Set
 
 import helpers.hdbg as hdbg
-import helpers.hlatex as hlatex
-import helpers.hmarkdown as hmarkdown
+import helpers.hmarkdown as hmarkdo
 import helpers.hopenai as hopenai
 
 _LOG = logging.getLogger(__name__)
 
 
-def _run_all(user: str, system: str, model: str,
-                transforms: Set[str]) -> str:
-    def _to_run(action : str) -> bool:
+def _run_all(user: str, system: str, model: str, transforms: Set[str]) -> str:
+    def _to_run(action: str) -> bool:
         if action in transforms:
             transforms.remove(action)
             return True
         return False
+
     response = hopenai.get_completion(user, system=system, model=model)
     ret = hopenai.response_to_txt(response)
     if _to_run("remove_code_delimiters"):
-        ret = hmarkdown.remove_code_delimiters(ret)
+        ret = hmarkdo.remove_code_delimiters(ret)
     if _to_run("remove_end_of_line_periods"):
-        ret = hlatex.remove_end_of_line_periods(ret)
+        ret = hmarkdo.remove_end_of_line_periods(ret)
     if _to_run("remove_empty_lines"):
-        ret = hlatex.remove_empty_lines(ret)
-    hdbg.dassert_eq(len(transforms), 0, "Not all transforms were run: %s", transforms)
+        ret = hmarkdo.remove_empty_lines(ret)
+    hdbg.dassert_eq(
+        len(transforms), 0, "Not all transforms were run: %s", transforms
+    )
     return ret
 
 
@@ -48,7 +48,8 @@ Comments should be in imperative form, a full English phrase, and end with a per
     # Do not comment every single line of code and especially logging statements.
     # Each comment should be in imperative form, a full English phrase, and end
     # with a period.
-    ret = _run_all(user, system, model, {"remove_code_delimiters"})
+    transforms = {"remove_code_delimiters"}
+    ret = _run_all(user, system, model, transforms)
     return ret
 
 
@@ -60,7 +61,8 @@ Add a docstring to the function passed.
 The first comment should be in imperative mode and fit in a single line of less than 80 characters.
 To describe the parameters use the REST style, which requires each parameter to be prepended with :param
     """
-    ret = _run_all(user, system, model, {"remove_code_delimiters"})
+    transforms = {"remove_code_delimiters"}
+    ret = _run_all(user, system, model, transforms)
     return ret
 
 
@@ -69,7 +71,8 @@ def code_type_hints(user: str, model: str) -> str:
 You are a proficient Python coder.
 Add type hints to the function passed.
     """
-    ret = _run_all(user, system, model, {"remove_code_delimiters"})
+    transforms = {"remove_code_delimiters"}
+    ret = _run_all(user, system, model, transforms)
     return ret
 
 
@@ -94,13 +97,15 @@ self.assert_equal(act, exp)
 
 def code_unit_test(user: str, model: str) -> str:
     system = _get_code_unit_test_prompt(5)
-    ret = _run_all(user, system, model, {"remove_code_delimiters"})
+    transforms = {"remove_code_delimiters"}
+    ret = _run_all(user, system, model, transforms)
     return ret
 
 
 def code_1_unit_test(user: str, model: str) -> str:
     system = _get_code_unit_test_prompt(1)
-    ret = _run_all(user, system, model, {"remove_code_delimiters"})
+    transforms = {"remove_code_delimiters"}
+    ret = _run_all(user, system, model, transforms)
     return ret
 
 
@@ -115,7 +120,8 @@ clarity and readability.
 Maintain the structure of the text as much as possible, in terms of bullet
 points and their indentation
     """
-    ret = _run_all(user, system, model, {"remove_code_delimiters"})
+    transforms = {"remove_code_delimiters"}
+    ret = _run_all(user, system, model, transforms)
     return ret
 
 
@@ -129,7 +135,8 @@ def md_summarize_short(user: str, model: str) -> str:
 You are a proficient technical writer.
 Summarize the text in less than 30 words.
     """
-    ret = _run_all(user, system, model, {"remove_code_delimiters"})
+    transforms = {"remove_code_delimiters"}
+    ret = _run_all(user, system, model, transforms)
     return ret
 
 
@@ -143,10 +150,12 @@ I will give you markdown text in the next prompt
 You will convert the following markdown text into bullet points
 Make sure that the text is clean and readable
     """
-    ret = _run_all(user, system, model, {"remove_code_delimiters",
-                                         "remove_end_of_line_periods",
-                                         "remove_empty_lines"
-                                         })
+    transforms = {
+        "remove_code_delimiters",
+        "remove_end_of_line_periods",
+        "remove_empty_lines",
+    }
+    ret = _run_all(user, system, model, transforms)
     return ret
 
 
@@ -166,5 +175,5 @@ You will use multiple colors using pandoc \textcolor{COLOR}{text} to highlight i
 def apply_prompt(prompt_tag: str, txt: str, model: str) -> str:
     _ = txt, model
     python_cmd = f"{prompt_tag}(txt, model)"
-    ret = eval(python_cmd)
+    ret = str(eval(python_cmd))
     return ret
