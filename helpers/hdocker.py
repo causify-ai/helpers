@@ -506,7 +506,7 @@ def run_dockerized_pandoc(
     cmd_opts: List[str],
     in_file_path: str,
     out_file_path: str,
-    data_dir: Optional[str],
+    #data_dir: Optional[str],
     use_sudo: bool,
 ) -> None:
     """
