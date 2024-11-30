@@ -46,7 +46,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
 
     def test_all_notes(self) -> None:
         """
-        Convert all the notes in docs/notes to PDF
+        Convert all the notes in docs/notes to PDF.
         """
         git_dir = hgit.get_client_root(super_module=False)
         dir_name = os.path.join(git_dir, "docs/notes/*.txt")
