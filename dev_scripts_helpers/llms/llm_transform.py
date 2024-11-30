@@ -17,9 +17,6 @@ Examples
 # Force Rebuild Docker Container
 > llm_transform.py -i input.txt -o output.txt -t uppercase --dockerized-force-rebuild
 
-# Use Sudo for Docker Commands
-> llm_transform.py -i input.txt -o output.txt -t uppercase --dockerized-use-sudo
-
 # Set Logging Verbosity
 > llm_transform.py -i input.txt -o output.txt -t uppercase -v DEBUG
 """
@@ -43,82 +40,80 @@ import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
+# def _run_dockerized_llm_transform(
+#     in_file_path: str,
+#     out_file_path: str,
+#     cmd_line_args: str,
+#     force_rebuild: bool,
+#     use_sudo: bool,
+# ) -> None:
+#     """
+#     Run _llm_transform.py in a Docker container with all its dependencies.
+#
+#     :param in_file_path: Path to the input file.
+#     :param out_file_path: Path to the output file.
+#     :param cmd_line_args: Arguments to pass to _llm_transform.py script.
+#     :param force_rebuild: Whether to force rebuild the Docker container.
+#     :param use_sudo: Whether to use sudo for Docker commands.
+#     """
+#     hdbg.dassert_in("OPENAI_API_KEY", os.environ)
+#     _LOG.debug(
+#         hprint.to_str(
+#             "in_file_path out_file_path cmd_line_args force_rebuild use_sudo"
+#         )
+#     )
+#     hdbg.dassert_path_exists(in_file_path)
+#     # We need to mount the git root to the container.
+#     git_root = hgit.find_git_root()
+#     git_root = os.path.abspath(git_root)
+#     # TODO(gp): This is a hack. Fix it.
+#     # _, helpers_root = hsystem.system_to_one_line(
+#     #    f"find {git_root} -path ./\.git -prune -o -type d -name 'helpers_root' -print | grep -v '\.git'"
+#     # )
+#     helpers_root = "."
+#     helpers_root = os.path.relpath(
+#         os.path.abspath(helpers_root.strip("\n")), git_root
+#     )
+#     _LOG.debug(hprint.to_str("helpers_root"))
+#     #
+#     container_name = "tmp.llm_transform"
+#     dockerfile = f"""
+#     FROM python:3.12-alpine
+#
+#     # Install Bash.
+#     #RUN apk add --no-cache bash
+#
+#     # Set Bash as the default shell.
+#     #SHELL ["/bin/bash", "-c"]
+#
+#     # Install pip packages.
+#     RUN pip install --no-cache-dir openai
+#     """
+#     container_name = hdocker.build_container(
+#         container_name, dockerfile, force_rebuild, use_sudo
+#     )
+#     # Get the path to the script to execute.
+#     script = hsystem.find_file_in_repo("_llm_transform.py", root_dir=git_root)
+#     # Make all the paths relative to the git root.
+#     script = os.path.relpath(os.path.abspath(script.strip("\n")), git_root)
+#     (in_file_path, out_file_path, mount) = hdocker.convert_file_names_to_docker(
+#         in_file_path, out_file_path
+#     )
+#     #
+#     cmd = script + (
+#         f" -i {in_file_path} -o {out_file_path} {cmd_line_args}"
+#     )
+#     executable = hdocker.get_docker_executable(use_sudo)
+#     docker_cmd = (
+#         f"{executable} run --rm --user $(id -u):$(id -g)"
+#         f" -e OPENAI_API_KEY -e PYTHONPATH=/src/helpers_root"
+#         #f" -e OPENAI_API_KEY -e PYTHONPATH={helpers_root}"
+#         f" --workdir /src --mount {mount}"
+#         f" {container_name}"
+#         f" {cmd}"
+#     )
+#     hsystem.system(docker_cmd)
 
-def _run_dockerized_llm_transform(
-    in_file_path: str,
-    out_file_path: str,
-    cmd_line_args: str,
-    force_rebuild: bool,
-    use_sudo: bool,
-) -> None:
-    """
-    Run _llm_transform.py in a Docker container with all its dependencies.
-
-    :param in_file_path: Path to the input file.
-    :param out_file_path: Path to the output file.
-    :param cmd_line_args: Arguments to pass to _llm_transform.py script.
-    :param force_rebuild: Whether to force rebuild the Docker container.
-    :param use_sudo: Whether to use sudo for Docker commands.
-    """
-    hdbg.dassert_in("OPENAI_API_KEY", os.environ)
-    _LOG.debug(
-        hprint.to_str(
-            "in_file_path out_file_path cmd_line_args force_rebuild use_sudo"
-        )
-    )
-    hdbg.dassert_path_exists(in_file_path)
-    # We need to mount the git root to the container.
-    git_root = hgit.find_git_root()
-    git_root = os.path.abspath(git_root)
-    # TODO(gp): This is a hack. Fix it.
-    # _, helpers_root = hsystem.system_to_one_line(
-    #    f"find {git_root} -path ./\.git -prune -o -type d -name 'helpers_root' -print | grep -v '\.git'"
-    # )
-    helpers_root = "."
-    helpers_root = os.path.relpath(
-        os.path.abspath(helpers_root.strip("\n")), git_root
-    )
-    #
-    container_name = "tmp.llm_transform"
-    dockerfile = f"""
-    FROM python:3.12-alpine
-
-    # Install Bash.
-    #RUN apk add --no-cache bash
-
-    # Set Bash as the default shell.
-    #SHELL ["/bin/bash", "-c"]
-
-    # Install pip packages.
-    RUN pip install --no-cache-dir openai
-    """
-    container_name = hdocker.build_container(
-        container_name, dockerfile, force_rebuild, use_sudo
-    )
-    # Get the path to the script to execute.
-    script = hsystem.find_file_in_repo("_llm_transform.py", root_dir=git_root)
-    # Make all the paths relative to the git root.
-    script = os.path.relpath(os.path.abspath(script.strip("\n")), git_root)
-    (in_file_path, out_file_path, mount) = hdocker.convert_file_names_to_docker(
-        in_file_path, out_file_path
-    )
-    #
-    cmd = script + (
-        f" -i {in_file_path} -o {out_file_path} {cmd_line_args}"
-    )
-    executable = hdocker.get_docker_executable(use_sudo)
-    docker_cmd = (
-        f"{executable} run --rm --user $(id -u):$(id -g)"
-        f" -e OPENAI_API_KEY -e PYTHONPATH=/src/helpers_root"
-        #f" -e OPENAI_API_KEY -e PYTHONPATH={helpers_root}"
-        f" --workdir /src --mount {mount}"
-        f" {container_name}"
-        f" {cmd}"
-    )
-    hsystem.system(docker_cmd)
-
-
-# #############################################################################
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -153,13 +148,16 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hio.to_file(tmp_in_file_name, in_txt)
     #
     tmp_out_file_name = "tmp.llm_transform.out.txt"
-    cmd_line_opts = f"-t {args.transform} -v {args.log_level}"
+    cmd_line_opts = [
+        f"-t {args.transform}",
+        f"-v {args.log_level}"
+    ]
     if args.debug:
-        cmd_line_opts += " -d"
-    _run_dockerized_llm_transform(
+        cmd_line_opts.append("-d")
+    hdocker.run_dockerized_llm_transform(
+        cmd_line_opts,
         tmp_in_file_name,
         tmp_out_file_name,
-        cmd_line_opts,
         args.dockerized_force_rebuild,
         args.dockerized_use_sudo,
     )

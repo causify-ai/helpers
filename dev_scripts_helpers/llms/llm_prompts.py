@@ -112,6 +112,17 @@ def md_format(user: str, model: str) -> str:
     return user
 
 
+def md_summarize_in_3_bullet_points(user: str, model: str) -> str:
+    system = """
+You are a proficient technical writer.
+Summarize the text in 3 bullet points.
+    """
+    response = hopenai.get_completion(user, system=system, model=model)
+    ret = hopenai.response_to_txt(response)
+    ret = hopenai.remove_code_delimiters(ret)
+    return ret
+
+
 def slide_improve(user: str, model: str) -> str:
     system = r"""
 You are a proficient technical writer and expert of machine learning.

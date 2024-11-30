@@ -14,6 +14,7 @@ from typing import List, Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.henv as henv
+import helpers.hgit as hgit
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
@@ -21,41 +22,8 @@ import helpers.hsystem as hsystem
 _LOG = logging.getLogger(__name__)
 
 
-def replace_shared_root_path(
-    path: str, *, replace_ecs_tokyo: Optional[bool] = False
-) -> str:
-    """
-    Replace root path of the shared directory based on the mapping.
-
-    :param path: path to replace, e.g., `/data/shared`
-    :param replace_ecs_tokyo: if True replace `ecs_tokyo` to `ecs` in the path
-    :return: replaced shared data dir root path, e.g.,
-    - `/data/shared/ecs_tokyo/.../20240522_173000.20240522_182500/` ->
-        `/shared_data/ecs/.../20240522_173000.20240522_182500/`
-    - `/data/shared/ecs/.../20240522_173000.20240522_182500` ->
-        `/shared_data/ecs/.../20240522_173000.20240522_182500`
-    """
-    # Inside ECS, we keep the original shared data path and replace it only when
-    # running inside Docker on the dev server.
-    if hserver.is_inside_docker() and not hserver.is_inside_ecs_container():
-        shared_data_dirs = henv.execute_repo_config_code("get_shared_data_dirs()")
-        if replace_ecs_tokyo:
-            # Make a copy to avoid modifying the original one.
-            shared_data_dirs = copy.deepcopy(shared_data_dirs)
-            shared_data_dirs["ecs_tokyo"] = "ecs"
-        for shared_dir, docker_shared_dir in shared_data_dirs.items():
-            path = path.replace(shared_dir, docker_shared_dir)
-            _LOG.debug(
-                "Running inside Docker on the dev server, thus replacing %s "
-                "with %s",
-                shared_dir,
-                docker_shared_dir,
-            )
-    else:
-        _LOG.debug("No replacement found, returning path as-is: %s", path)
-    return path
-
-
+# #############################################################################
+# Docker utilities
 # #############################################################################
 
 
@@ -197,8 +165,48 @@ def wait_for_file_in_docker(
     _LOG.debug(f"File generated: {out_file_path}")
 
 
+def replace_shared_root_path(
+    path: str, *, replace_ecs_tokyo: Optional[bool] = False
+) -> str:
+    """
+    Replace root path of the shared directory based on the mapping.
+
+    :param path: path to replace, e.g., `/data/shared`
+    :param replace_ecs_tokyo: if True replace `ecs_tokyo` to `ecs` in the path
+    :return: replaced shared data dir root path, e.g.,
+    - `/data/shared/ecs_tokyo/.../20240522_173000.20240522_182500/` ->
+        `/shared_data/ecs/.../20240522_173000.20240522_182500/`
+    - `/data/shared/ecs/.../20240522_173000.20240522_182500` ->
+        `/shared_data/ecs/.../20240522_173000.20240522_182500`
+    """
+    # Inside ECS, we keep the original shared data path and replace it only when
+    # running inside Docker on the dev server.
+    if hserver.is_inside_docker() and not hserver.is_inside_ecs_container():
+        shared_data_dirs = henv.execute_repo_config_code("get_shared_data_dirs()")
+        if replace_ecs_tokyo:
+            # Make a copy to avoid modifying the original one.
+            shared_data_dirs = copy.deepcopy(shared_data_dirs)
+            shared_data_dirs["ecs_tokyo"] = "ecs"
+        for shared_dir, docker_shared_dir in shared_data_dirs.items():
+            path = path.replace(shared_dir, docker_shared_dir)
+            _LOG.debug(
+                "Running inside Docker on the dev server, thus replacing %s "
+                "with %s",
+                shared_dir,
+                docker_shared_dir,
+            )
+    else:
+        _LOG.debug("No replacement found, returning path as-is: %s", path)
+    return path
+
+
+# #############################################################################
+# Dockerization API
 # #############################################################################
 
+# See docs/work_tools/docker/all.dockerized_flow.explanation.md
+
+# llm_transform.py -i docs/work_tools/dev_system/all.create_a_super_repo_with_helpers.how_to_guide.md -o - -t md_summarize -v DEBUG
 
 def build_container(
     container_name: str, dockerfile: str, force_rebuild: bool, use_sudo: bool
@@ -284,6 +292,21 @@ def _convert_to_relative_path(
     :param file_path: The file path on the host to be converted.
     :param check_if_exists: check if the file exists or not.
     :param is_input: Flag indicating if the file is an input file.
+    :return: The converted file path.
+
+    ```
+    # Example 1: Input file path is an absolute path
+    file_path = "/Users/gpsaggese/project/data/input.txt"
+    check_if_exists = True
+    is_input = True
+    -> "data/input.txt"
+
+    # Example 2: Input file path is a relative path
+    file_path = "data/input.txt"
+    check_if_exists = True
+    is_input = True
+    -> "data/input.txt"
+    ```
     """
     _LOG.debug(hprint.to_str("file_path check_if_exists is_input"))
     if check_if_exists:
@@ -357,13 +380,19 @@ def convert_file_names_to_docker(
         #     --workdir /src \
         #     --mount type=bind,source=.,target=/src \
         #     ...
-        hdbg.dassert_file_exists(in_file_path)
+        # This can be both a dir and a file.
+        hdbg.dassert_path_exists(in_file_path)
         source_host_path = "."
     # E.g.,
     # source=.,target=/src
     # source=/Users/saggese/src/helpers1,target=/src
     mount = f"type=bind,source={source_host_path},target={target_docker_path}"
     return in_file_path, out_file_path, mount
+
+
+# #############################################################################
+# Wrapper for dockerized tools.
+# #############################################################################
 
 
 def run_dockerized_prettier(
@@ -439,7 +468,7 @@ def run_dockerized_prettier(
     if out_file_path != in_file_path:
         bash_cmd += f" > {out_file_path}"
     docker_cmd = (
-        f"{executable} run --rm --user $(id -u):$(id -g) "
+        f"{executable} run --rm --user $(id -u):$(id -g)"
         " --entrypoint ''"
         f" --workdir /src --mount {mount}"
         f" {container_name}"
@@ -529,7 +558,7 @@ def run_dockerized_pandoc(
     #     -s --toc input.md -o output.md
     executable = get_docker_executable(use_sudo)
     docker_cmd = (
-        f"{executable} run --rm --user $(id -u):$(id -g) "
+        f"{executable} run --rm --user $(id -u):$(id -g)"
         f" --workdir /src --mount {mount}"
         f" {container_name}"
         f" {cmd_opts_as_str} {in_file_path} -o {out_file_path}"
@@ -581,10 +610,67 @@ def run_dockerized_markdown_toc(
         f"/usr/local/bin/markdown-toc {cmd_opts_as_str} -i {in_file_path}"
     )
     docker_cmd = (
-        f"{executable} run --rm --user $(id -u):$(id -g) "
+        f"{executable} run --rm --user $(id -u):$(id -g)"
         f" --workdir /src --mount {mount}"
         f" {container_name}"
         f' bash -c "{bash_cmd}"'
+    )
+    # TODO(gp): Note that `suppress_output=False` seems to hang the call.
+    hsystem.system(docker_cmd)
+
+
+def run_dockerized_llm_transform(
+    cmd_opts: str,
+    in_file_path: str,
+    out_file_path: str,
+    force_rebuild: bool,
+    use_sudo: bool,
+) -> None:
+    """
+    Run _llm_transform.py in a Docker container with all its dependencies.
+    """
+    hdbg.dassert_in("OPENAI_API_KEY", os.environ)
+    _LOG.debug(hprint.to_str("cmd_opts in_file_path out_file_path use_sudo"))
+    hdbg.dassert_isinstance(cmd_opts, list)
+    # Build the container, if needed.
+    container_name = "tmp.llm_transform"
+    dockerfile = """
+    FROM python:3.12-alpine
+
+    # Install Bash.
+    #RUN apk add --no-cache bash
+
+    # Set Bash as the default shell.
+    #SHELL ["/bin/bash", "-c"]
+
+    # Install pip packages.
+    RUN pip install --no-cache-dir openai
+    """
+    container_name = build_container(
+        container_name, dockerfile, force_rebuild, use_sudo
+    )
+    # Convert files.
+    (in_file_path, out_file_path, mount) = convert_file_names_to_docker(
+        in_file_path, out_file_path
+    )
+    helpers_root = hgit.find_helpers_root()
+    (helpers_root, _, _) = convert_file_names_to_docker(
+        helpers_root, None
+    )
+    git_root = hgit.find_git_root()
+    script = hsystem.find_file_in_repo("_llm_transform.py", root_dir=git_root)
+    # Make all the paths relative to the git root.
+    script = os.path.relpath(os.path.abspath(script.strip("\n")), git_root)
+    (script, _, _) = convert_file_names_to_docker(
+        script, None)
+    cmd_opts_as_str = " ".join(cmd_opts)
+    executable = get_docker_executable(use_sudo)
+    docker_cmd = (
+        f"{executable} run --rm --user $(id -u):$(id -g)"
+        f" -e OPENAI_API_KEY -e PYTHONPATH={helpers_root}"
+        f" --workdir /src --mount {mount}"
+        f" {container_name}"
+        f" {script} -i {in_file_path} -o {out_file_path} {cmd_opts_as_str}"
     )
     # TODO(gp): Note that `suppress_output=False` seems to hang the call.
     hsystem.system(docker_cmd)

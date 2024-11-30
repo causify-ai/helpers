@@ -191,6 +191,24 @@ def find_git_root(path: str = ".") -> str:
     return path
 
 
+def find_helpers_root() -> str:
+    git_root = find_git_root()
+    if is_helpers():
+        # If we are in `//helpers`, then the helpers root is the root of the
+        # repo.
+        cmd = "git rev-parse --show-toplevel"
+    else:
+        # We need to search for the `helpers_root` dir starting from the root
+        # of the repo.
+        cmd = f"find {git_root} -path ./\.git -prune -o -type d -name 'helpers_root' -print | grep -v '\.git'"
+    _, helpers_root = hsystem.system_to_one_line(cmd)
+    helpers_root = os.path.abspath(helpers_root)
+    # Make sure the dir and that `helpers` subdir exists.
+    hdbg.dassert_dir_exists(helpers_root)
+    hdbg.dassert_dir_exists(os.path.join(helpers_root), "helpers")
+    return helpers_root
+
+
 def get_project_dirname(only_index: bool = False) -> str:
     """
     Return the name of the project name (e.g., `/Users/saggese/src/amp1` ->
