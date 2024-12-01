@@ -4,13 +4,13 @@ from typing import Tuple
 
 import pytest
 
+import dev_scripts_helpers.llms.llm_prompts_utils as dshllprut
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.llms.llm_prompts_utils as dshlllpr
 
 _LOG = logging.getLogger(__name__)
 
@@ -27,16 +27,17 @@ class Test_llm_transform1(hunitest.TestCase):
         """
         Check retrieving the available LLM transforms.
         """
-        transforms = dshlllpr.get_transforms()
+        transforms = dshllprut.get_transforms()
         _LOG.debug(hprint.to_str("transforms"))
         self.assertGreater(len(transforms), 0)
 
     def setup_test(self) -> Tuple[str, str, str]:
         """
-        Set up the test environment by creating an input markdown file and determining
-        the script and output file paths.
+        Set up the test environment by creating an input markdown file and
+        determining the script and output file paths.
 
-        :returns: A tuple containing the script path, input file path, and output file path.
+        :returns: A tuple containing the script path, input file path,
+            and output file path.
         """
         txt = """
         - If there is no pattern we can try learning, measure if learning works and, in the worst case, conclude that it does not work
@@ -82,14 +83,17 @@ class Test_llm_transform1(hunitest.TestCase):
         """
         script, in_file_name, out_file_name = self.setup_test()
         # Run test.
-        transforms = dshlllpr.get_transforms()
+        transforms = dshllprut.get_transforms()
         for prompt_tag in transforms:
             # Remove the output file.
             cmd = "rm -f " + out_file_name
             hsystem.system(cmd)
             hdbg.dassert(not os.path.exists(out_file_name))
             # Run the test.
-            cmd = f"{script} -i {in_file_name} -o {out_file_name}" f" -t {prompt_tag}"
+            cmd = (
+                f"{script} -i {in_file_name} -o {out_file_name}"
+                f" -t {prompt_tag}"
+            )
             hsystem.system(cmd)
             # Check.
             hdbg.dassert_file_exists(out_file_name)
