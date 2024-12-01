@@ -49,6 +49,27 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+def extract_gh_issue_number_from_branch(branch_name: str) -> Optional[int]:
+    """
+    Extract the GitHub issue number from a branch name.
+
+    Example:
+    CmampTask10725_Add_more_tabs_to_orange_tmux -> 10725
+    HelpersTask23_Add_more_tabs_to_orange_tmux -> 23.
+
+    Works only if `invoke gh_branch_create` was used to create the branch.
+    or the name was retrieved using `invoke gh_issue_title`.
+
+    :param branch_name: the name of the branch
+    :return: the issue number or None if it can't be extracted
+    """
+    match = re.match(r".*Task_?(\d+)(?:_\w+)?", branch_name)
+    if match:
+        # Return the captured number.
+        return int(match.group(1))
+    return None
+
+
 @functools.lru_cache()
 def get_branch_name(dir_name: str = ".") -> str:
     """
@@ -165,8 +186,7 @@ def find_git_root(path: str = ".") -> str:
                             os.path.join(path, git_dir, "..", "..")
                         )
         parent = os.path.dirname(path)
-        if parent == path:
-            return None
+        hdbg.dassert_ne(parent, path)
         path = parent
     return path
 
@@ -588,12 +608,8 @@ def _get_repo_short_to_full_name(include_host_name: bool) -> Dict[str, str]:
     # From short name to long name.
     repo_map = {
         "amp": "alphamatic/amp",
-        # TODO(gp): This is a hack since the repo_config should declare this,
-        # instead of being centralized.
-        "dev_tools": "kaizen-ai/dev_tools",
-        # TODO(Juraj, GP): this was enabled but it breaks
-        # invoke docker_bash
-        "helpers": "kaizen-ai/helpers",
+        "dev_tools": "causify-ai/dev_tools",
+        "helpers": "causify-ai/helpers",
     }
     if include_host_name:
         host_name = "github.com"
@@ -1351,7 +1367,7 @@ def does_branch_exist(
         # If there are no issues on the GitHub repo, just return.
         # ```
         # > gh pr list -s all --limit 1000
-        # no pull requests match your search in kaizen-ai/sports_analytics
+        # no pull requests match your search in causify-ai/sports_analytics
         # ```
         if txt == "":
             return False

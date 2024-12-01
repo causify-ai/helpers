@@ -17,13 +17,13 @@ from invoke import task
 
 # We want to minimize the dependencies from non-standard Python packages since
 # this code needs to run with minimal dependencies and without Docker.
-import helpers.hs3 as hs3
 import helpers.hdbg as hdbg
 import helpers.hdict as hdict
 import helpers.henv as henv
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
+import helpers.hs3 as hs3
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hversion as hversio
@@ -312,7 +312,7 @@ def _docker_login_dockerhub() -> None:
     """
     # Check if we are already logged in to the target registry.
     assert 0, "Find name of the repo"
-    # TODO(gp): Enable caching https://github.com/kaizen-ai/helpers/issues/20
+    # TODO(gp): Enable caching https://github.com/causify-ai/helpers/issues/20
     use_cache = False
     if use_cache:
         is_logged = _check_docker_login("623860924167.dkr.ecr")
@@ -339,7 +339,7 @@ def _docker_login_ecr() -> None:
     if hserver.is_inside_ci():
         _LOG.warning("Running inside GitHub Action: skipping `docker_login`")
         return
-    # TODO(gp): Enable caching https://github.com/kaizen-ai/helpers/issues/20
+    # TODO(gp): Enable caching https://github.com/causify-ai/helpers/issues/20
     use_cache = False
     if use_cache:
         # Check if we are already logged in to the target registry.
@@ -524,6 +524,7 @@ def _generate_docker_compose_file(
     am_host_name = os.uname()[1]
     am_host_version = os.uname()[2]
     am_host_user_name = getpass.getuser()
+    git_root_path = hgit.find_git_root()
     # We could do the same also with IMAGE for symmetry.
     # Keep the env vars in sync with what we print in `henv.get_env_vars()`.
     txt_tmp = f"""
@@ -549,6 +550,8 @@ def _generate_docker_compose_file(
           - CK_AWS_S3_BUCKET=$CK_AWS_S3_BUCKET
           - CK_AWS_SECRET_ACCESS_KEY=$CK_AWS_SECRET_ACCESS_KEY
           - CK_ECR_BASE_PATH=$CK_ECR_BASE_PATH
+          - CK_GIT_ROOT_PATH={git_root_path}
+          - OPENAI_API_KEY=$OPENAI_API_KEY
           # - CK_ENABLE_DIND=
           # - CK_FORCE_TEST_FAIL=$CK_FORCE_TEST_FAIL
           # - CK_HOST_NAME=

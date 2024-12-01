@@ -21,7 +21,7 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-def _get_docstring(file_name):
+def _get_docstring(file_name: str) -> str:
     _LOG.debug("file_name=%s", file_name)
     txt = hio.from_file(file_name).split("\n")
     docstring = []
@@ -63,7 +63,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level)
     # Get the files.
-    cmd = "find %s -perm +111 -type f" % args.src_dir
+    cmd = f"find {args.src_dir} -perm +111 -type f"
     _, output = hsystem.system_to_string(cmd)
     file_names = output.split("\n")
     file_names = sorted(file_names)
@@ -95,11 +95,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
         file_name = file_name.replace("./", "")
         curr_dir = os.path.dirname(file_name)
         if last_dir is None or last_dir != curr_dir:
-            md_text.append("\n# `%s`\n" % curr_dir)
+            md_text.append(f"\n# `{curr_dir}`\n")
             last_dir = curr_dir
-        md_text.append("\n***%s***\n" % file_name)
+        md_text.append(f"\n***{file_name}***\n")
         if docstring:
-            md_text.append("```\n%s\n```" % docstring)
+            md_text.append(f"```\n{docstring}\n```")
     # Save in a file.
     md_text_as_str = "\n".join(md_text)
     hio.to_file(args.dst_file, md_text_as_str)
@@ -110,7 +110,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     # Format the md.
     _LOG.info("Formatting")
-    cmd = "linter.py -f %s" % args.dst_file
+    cmd = f"linter.py -f {args.dst_file}"
     hsystem.system(cmd)
 
 

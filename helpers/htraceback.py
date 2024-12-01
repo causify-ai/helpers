@@ -42,6 +42,7 @@ def parse_traceback(
     """
     Parse a string containing text including a Python traceback.
 
+    :param txt: the text to parse
     :param purify_from_client: express the files with respect to the Git root
     :return:
     - a list of `CFILE_ROW`, e.g.,
@@ -62,6 +63,11 @@ def parse_traceback(
       ```
       - A `None` value means that no traceback was found.
     """
+    # TODO(gp): Horrible hack to get the tests to pass. IMO this whole function
+    #  needs to be rewritten using a proper parser or library. Now it's full
+    #  of weird handling of edge cases.
+    txt += "\n"
+    #
     lines = txt.split("\n")
     # pylint: disable=line-too-long
     # Remove the artifacts of a GH run. E.g.,
@@ -152,25 +158,33 @@ def parse_traceback(
         ):
             # Extend the traceback to the lines with the error description.
             # E.g., for the snippet below:
-            # '''
+            # ```
             #    if repo_short_name == "amp":
             # NameError: name 'repo_short_name' is not defined
-            # '''
-            # If the parsed traceback stops at 'if repo_short_name == "amp":', and thus,
-            # its last line does not include the error description ("NameError:..."),
-            # and the following line does include the error description,
-            # then the traceback will be extended to include the following line,
-            # making the parsed traceback end with the following two lines:
-            # '''
+            # ```
+            # If the parsed traceback stops at 'if repo_short_name == "amp":',
+            # and thus, its last line does not include the error description
+            # ("NameError:..."), and the following line does include the error
+            # description, then the traceback will be extended to include the
+            # following line, making the parsed traceback end with the following
+            # two lines:
+            # ```
             #    if repo_short_name == "amp":
             # NameError: name 'repo_short_name' is not defined
-            # '''
+            # ```
             to_break = False
             while end_idx < len(lines) - 1 and not to_break:
                 end_idx += 1
+                line = lines[end_idx]
+                _LOG.debug(
+                    "Extend traceback: to_break=%s, end_idx=%s, " "line='%s'",
+                    to_break,
+                    end_idx,
+                    line,
+                )
                 if (
-                    "________ Test" in lines[end_idx]
-                    or "====== slowest 3 durations" in lines[end_idx]
+                    "________ Test" in line
+                    or "====== slowest 3 durations" in line
                 ):
                     # Stop if we have reached the next traceback or the end of the
                     # pytest report.
@@ -178,6 +192,7 @@ def parse_traceback(
         hdbg.dassert_lte(0, start_idx)
         hdbg.dassert_lte(start_idx, end_idx)
         hdbg.dassert_lt(end_idx, len(lines))
+        _LOG.debug("start_idx=%d end_idx=%d", start_idx, end_idx)
         traceback = "\n".join(lines[start_idx:end_idx])
     else:
         raise ValueError(f"Invalid state='{state}'")

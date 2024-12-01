@@ -64,6 +64,7 @@ except ImportError as e:
 
 
 _LOG = logging.getLogger(__name__)
+
 # Mute this module unless we want to debug it.
 _LOG.setLevel(logging.INFO)
 
@@ -450,8 +451,9 @@ def purify_app_references(txt: str) -> str:
     txt = re.sub(r"/app/", "", txt, flags=re.MULTILINE)
     txt = re.sub(r"app\.helpers", "helpers", txt, flags=re.MULTILINE)
     txt = re.sub(r"app\.amp\.helpers", "amp.helpers", txt, flags=re.MULTILINE)
-    txt = re.sub(r"app\.amp\.helpers_root\.helpers", "amp.helpers", txt,
-                 flags=re.MULTILINE)
+    txt = re.sub(
+        r"app\.amp\.helpers_root\.helpers", "amp.helpers", txt, flags=re.MULTILINE
+    )
     _LOG.debug("After %s: txt='\n%s'", hintros.get_function_name(), txt)
     return txt
 
@@ -573,12 +575,17 @@ def purify_parquet_file_names(txt: str) -> str:
 def purify_helpers(txt: str) -> str:
     """
     Replace the path ...
+
     # Test created fork helpers_root.helpers.test.test_playback.get_result_che |  # Test created for helpers.test.test_playback.get_result_check_string.
     """
     txt = re.sub(r"helpers_root\.helpers\.", "helpers.", txt, flags=re.MULTILINE)
     txt = re.sub(r"helpers_root/helpers/", "helpers/", txt, flags=re.MULTILINE)
-    txt = re.sub(r"helpers_root\.config_root", "config_root", txt, flags=re.MULTILINE)
-    txt = re.sub(r"helpers_root/config_root/", "config_root/", txt, flags=re.MULTILINE)
+    txt = re.sub(
+        r"helpers_root\.config_root", "config_root", txt, flags=re.MULTILINE
+    )
+    txt = re.sub(
+        r"helpers_root/config_root/", "config_root/", txt, flags=re.MULTILINE
+    )
     return txt
 
 
@@ -909,7 +916,7 @@ def assert_equal(
     values: Dict[str, str] = collections.OrderedDict()
 
     def _append(tag: str, actual: str, expected: str) -> None:
-        _LOG.debug("tag=%s\n  act='\n%s'\n  exp='\n%s'", actual, expected)
+        _LOG.debug("tag=%s\n  act='\n%s'\n  exp='\n%s'", tag, actual, expected)
         hdbg.dassert_not_in(tag, values)
         values[tag] = (actual, expected)
 
@@ -925,14 +932,18 @@ def assert_equal(
     # Dedent only expected since we often align it to make it look more readable
     # in the Python code, if needed.
     if dedent:
+        _LOG.debug("# dedent")
         expected = hprint.dedent(expected)
+        _LOG.debug(hprint.to_str("expected"))
         tag = "dedent"
         _append(tag, actual, expected)
     # Purify text, if needed.
     if purify_text:
+        _LOG.debug("# purify_text")
         actual = purify_txt_from_client(actual)
         if purify_expected_text:
             expected = purify_txt_from_client(expected)
+        _LOG.debug(hprint.to_str("actual expected"))
         tag = "purify"
         _append(tag, actual, expected)
     # Ensure that there is a single `\n` at the end of the strings.
@@ -940,24 +951,32 @@ def assert_equal(
     expected = expected.rstrip("\n") + "\n"
     # Sort the lines.
     if sort:
+        _LOG.debug("# sort")
         actual = _sort_lines(actual)
         expected = _sort_lines(expected)
+        _LOG.debug(hprint.to_str("actual expected"))
         tag = "sort"
         _append(tag, actual, expected)
     # Fuzzy match, if needed.
     if fuzzy_match:
+        _LOG.debug("# fuzzy_match")
         actual = _fuzzy_clean(actual)
         expected = _fuzzy_clean(expected)
+        _LOG.debug(hprint.to_str("actual expected"))
         tag = "fuzzy_clean"
         _append(tag, actual, expected)
     # Ignore line breaks, if needed.
     if ignore_line_breaks:
+        _LOG.debug("# ignore_line_breaks")
         actual = _ignore_line_breaks(actual)
         expected = _ignore_line_breaks(expected)
+        _LOG.debug(hprint.to_str("actual expected"))
         tag = "ignore_line_breaks"
         _append(tag, actual, expected)
     # Check.
+    _LOG.debug("# final")
     tag = "final"
+    _LOG.debug(hprint.to_str("actual expected"))
     _append(tag, actual, expected)
     #
     is_equal = expected == actual
