@@ -180,6 +180,70 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
 
 
 # #############################################################################
+# Test_parse_pandoc_arguments1
+# #############################################################################
+
+
+class Test_parse_pandoc_arguments1(hunitest.TestCase):
+    def test1(self):
+        # Prepare inputs.
+        cmd = r"""
+        pandoc input.md -o output.pdf --data-dir /data --toc --toc-depth 2
+        """
+        cmd = hprint.dedent(cmd, remove_lead_trail_empty_lines_=True)
+        # Call tested function.
+        act = hdocker.parse_pandoc_arguments(cmd)
+        # Check output.
+        exp = {
+            "input_file": "input.md",
+            "output_file": "output.pdf",
+            "data_dir": "/data",
+            "extra_args": ["--toc", "--toc-depth", "2"]
+        }
+        self.assert_equal(str(act), str(exp))
+
+    def test2(self):
+        # Prepare inputs.
+        cmd = r"""
+        pandoc input.md -o output.pdf --toc
+        """
+        cmd = hprint.dedent(cmd).strip()
+        # Call tested function.
+        act = hdocker.parse_pandoc_arguments(cmd)
+        # Check output.
+        exp = {
+            "input_file": "input.md",
+            "output_file": "output.pdf",
+            "data_dir": None,
+            "extra_args": ["--toc"]
+        }
+        self.assert_equal(str(act), str(exp))
+
+    def test3(self):
+        # Prepare inputs.
+        cmd = r"""
+        pandoc test/outcomes/tmp.pandoc.preprocess_notes.txt \
+            -V geometry:margin=1in -f markdown --number-sections \
+            --highlight-style=tango -s -t latex \
+            --template documentation/pandoc.latex \
+            -o test/outcomes/tmp.pandoc.tex \
+            --toc --toc-depth 2
+        """
+        cmd = hprint.dedent(cmd).strip()
+        # Call tested function.
+        act = hdocker.parse_pandoc_arguments(cmd)
+        # Check output.
+        exp = {'input_file': 'test/outcomes/tmp.pandoc.preprocess_notes.txt',
+         'output_file': 'test/outcomes/tmp.pandoc.tex', 'data_dir': None,
+         'extra_args': ['-V', 'geometry:margin=1in', '-f', 'markdown',
+                        '--number-sections', '--highlight-style=tango', '-s',
+                        '-t', 'latex', '--template',
+                        'documentation/pandoc.latex', '--toc', '--toc-depth',
+                        '2']}
+        self.assert_equal(str(act), str(exp))
+
+
+# #############################################################################
 # Test_run_dockerized_pandoc1
 # #############################################################################
 
@@ -316,3 +380,4 @@ class Test_run_markdown_toc1(hunitest.TestCase):
         self.assert_equal(
             act, exp, dedent=True, remove_lead_trail_empty_lines=True
         )
+

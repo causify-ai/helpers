@@ -18,10 +18,6 @@ Convert a txt file into a PDF / HTML / slides using `pandoc`.
     --no_cleanup --no_cleanup_before --no_run_latex_again --no_open
 """
 
-# TODO(gp): See below.
-#  - clean up the file_ file_out logic and make it a pipeline
-#  - factor out the logic from linter.py about actions and use it everywhere
-
 
 import argparse
 import logging
@@ -183,6 +179,7 @@ def _run_pandoc_to_pdf(
     :return: The path to the generated PDF file
     """
     file1 = file_
+    #
     cmd = []
     cmd.append(f"pandoc {file1}")
     cmd.extend(_COMMON_PANDOC_OPTS[:])
@@ -207,7 +204,7 @@ def _run_pandoc_to_pdf(
     _ = _system(cmd, suppress_output=False)
     file_ = file2
     # - Run latex.
-    _report_phase("Latex")
+    _report_phase("latex")
     # pdflatex needs to run in the same dir of latex_abbrevs.sty so we `cd` to
     # that dir and save the output in the same dir of the input.
     hdbg.dassert_path_exists(_EXEC_DIR_NAME + "/latex_abbrevs.sty")
@@ -222,7 +219,7 @@ def _run_pandoc_to_pdf(
     )
     _run_latex(cmd, file_)
     # - Run latex again.
-    _report_phase("Latex again")
+    _report_phase("latex again")
     if not args.no_run_latex_again:
         _run_latex(cmd, file_)
     else:

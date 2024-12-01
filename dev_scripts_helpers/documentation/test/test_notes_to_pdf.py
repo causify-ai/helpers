@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Any, Optional
+from typing import Any, Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
@@ -45,15 +45,15 @@ class Test_notes_to_pdf1(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        > notes_to_pdf.py --input input.md -t pdf --filter_by_header Header2
+        > notes_to_pdf.py --input input.md -t pdf
         """
         in_file = _create_in_file(self)
-        cmd_opts = f"--filter_by_header Header2"
+        cmd_opts = ""
         self.run_notes_to_pdf(in_file, "pdf", cmd_opts)
 
     def test3(self) -> None:
         """
-        > notes_to_pdf.py --input input.md -t pdf
+        > notes_to_pdf.py --input input.md -t pdf --filter_by_header Header2
         """
         in_file = _create_in_file(self)
         cmd_opts = f"--filter_by_header Header2"
@@ -99,7 +99,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
     #         _LOG.debug(hprint.frame(f"file_name={file_name}"))
     #         self.run_notes_to_pdf(file_name, "html")
 
-    def run_notes_to_pdf(self, in_file: str, type_: str, cmd_opts: str) -> Optional[str]:
+    def run_notes_to_pdf(self, in_file: str, type_: str, cmd_opts: str) -> Tuple[str, Optional[str]]:
         # notes_to_pdf.py \
         #   --input notes/MSML610/Lesson1-Intro.txt \
         #   --type slides \
@@ -113,11 +113,14 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         tmp_dir = self.get_scratch_space()
         out_file = os.path.join(tmp_dir, "output.pdf")
         #
+        script_file = os.path.join(tmp_dir, "script.sh")
+        #
         cmd = []
         cmd.append(exec_path)
         cmd.append(f"--input {in_file}")
         cmd.append(f"--type {type_}")
         cmd.append(f"--tmp_dir {tmp_dir}")
+        cmd.append(f"--script {script_file}")
         cmd.append(f"--output {out_file}")
         cmd.append(cmd_opts)
         # cmd.append("--action preprocess_notes")
@@ -132,7 +135,9 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         else:
             raise ValueError(f"Invalid type_='{type_}'")
         if os.path.exists(out_file):
-            act: str = hio.from_file(out_file)
+            output_txt: str = hio.from_file(out_file)
         else:
-            act = None
-        return act
+            output_txt = None
+        # Read script.
+        script_txt = hio.from_file(script_file)
+        return script_txt, output_txt

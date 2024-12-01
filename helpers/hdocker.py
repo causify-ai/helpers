@@ -4,13 +4,15 @@ Import as:
 import helpers.hdocker as hdocker
 """
 
+import argparse
 import copy
 import hashlib
 import logging
 import os
+import shlex
 import tempfile
 import time
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Any, Dict
 
 import helpers.hdbg as hdbg
 import helpers.henv as henv
@@ -532,6 +534,48 @@ def run_dockerized_prettier(
 # hsystem.system(cmd)
 # cmd = f"docker image rm -f {tmp_container_name}"
 # hsystem.system(cmd)
+
+
+# #############################################################################
+
+
+def parse_pandoc_arguments(cmd: str) -> Dict[str, Any]:
+    """
+    Parse the arguments for a pandoc command.
+
+    :param cmd: A list of command-line arguments for pandoc.
+    :return: A dictionary with `input`, `output`, `data_dir`, and other arguments.
+    """
+    # Use shlex.split to tokenize the string like a shell would.
+    cmd = shlex.split(cmd)
+    cmd = [arg for arg in cmd if arg != "\n"]
+    _LOG.debug(hprint.to_str("cmd"))
+    hdbg.dassert_eq(cmd[0], "pandoc")
+    # pandoc parses is difficult to emulate with `argparse`, since it allows
+    # the input file to be anywhere and it has a list of all the possible
+    # parameters. In our case we don't know all the possible options so we
+    # assume that the first one is the input file.
+    input_file = cmd[1]
+    cmd = cmd[2:]
+    _LOG.debug(hprint.to_str("cmd"))
+    #
+    parser = argparse.ArgumentParser()
+    # Input and output files.
+    parser.add_argument("-o", "--output", required=True)
+    # Data directory.
+    parser.add_argument("--data-dir", default=None)
+    # Capture all remaining arguments.
+    #parser.add_argument("extra_args", nargs=argparse.REMAINDER)
+    # Parse known arguments and capture the rest.
+    args, unknown_args = parser.parse_known_args(cmd)
+    _LOG.debug(hprint.to_str("args unknown_args"))
+    # Return all arguments in a dictionary.
+    return {
+        "input_file": input_file,
+        "output_file": args.output,
+        "data_dir": args.data_dir,
+        "extra_args": unknown_args,
+    }
 
 
 def run_dockerized_pandoc(
