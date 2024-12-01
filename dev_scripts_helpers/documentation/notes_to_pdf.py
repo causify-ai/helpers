@@ -14,7 +14,8 @@ Convert a txt file into a PDF / HTML / slides using `pandoc`.
 
 > notes_to_pdf.py \
     --input notes/IN_PROGRESS/math.The_hundred_page_ML_book.Burkov.2019.txt \
-    -a pdf --no_cleanup --no_cleanup_before --no_run_latex_again --no_open
+    -t pdf \
+    --no_cleanup --no_cleanup_before --no_run_latex_again --no_open
 """
 
 # TODO(gp): See below.
@@ -347,6 +348,8 @@ def _run_all(args: argparse.Namespace) -> None:
     add_frame = True
     actions_as_str = hparser.actions_to_string(actions, _VALID_ACTIONS, add_frame)
     _LOG.info("\n%s", actions_as_str)
+    if args.preview_actions:
+        return
     #
     curr_path = os.path.abspath(os.path.dirname(sys.argv[0]))
     _LOG.debug("curr_path=%s", curr_path)
@@ -358,7 +361,7 @@ def _run_all(args: argparse.Namespace) -> None:
     #
     file_ = args.input
     hdbg.dassert_path_exists(file_)
-    prefix = args.tmp_dir + "/tmp.pandoc"
+    prefix = os.path.join(args.tmp_dir, "tmp.pandoc")
     prefix = os.path.abspath(prefix)
     # - Cleanup_before
     action = "cleanup_before"
@@ -426,7 +429,12 @@ _VALID_ACTIONS = [
 ]
 
 
-_DEFAULT_ACTIONS = _VALID_ACTIONS[:]
+_DEFAULT_ACTIONS = [
+    "cleanup_before",
+    "preprocess_notes",
+    "run_pandoc",
+    "cleanup_after",
+]
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -446,7 +454,7 @@ def _parse() -> argparse.ArgumentParser:
         "--tmp_dir",
         action="store",
         type=str,
-        default=".",
+        default="tmp.notes_to_pdf",
         help="Directory where to save artifacts",
     )
     parser.add_argument(
@@ -469,6 +477,8 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--script", action="store", help="Bash script to generate"
     )
+    parser.add_argument("--preview_actions", action="store_true", default=False,
+                        help="Print the actions and exit")
     parser.add_argument("--no_toc", action="store_true", default=False)
     parser.add_argument(
         "--no_run_latex_again", action="store_true", default=False
@@ -477,7 +487,7 @@ def _parse() -> argparse.ArgumentParser:
         "--gdrive_dir",
         action="store",
         default=None,
-        help="Directory where to save the output",
+        help="Directory where to save the output to share on Google Drive",
     )
     hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hparser.add_verbosity_arg(parser)

@@ -185,6 +185,7 @@ def add_action_arg(
         help="Actions to skip",
     )
     if default_actions is not None:
+        hdbg.dassert_is_subset(default_actions, valid_actions)
         parser.add_argument(
             "--all",
             action="store_true",

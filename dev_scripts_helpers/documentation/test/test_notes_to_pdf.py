@@ -1,6 +1,7 @@
 import glob
 import logging
 import os
+from typing import Any
 
 import pytest
 
@@ -13,19 +14,40 @@ import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
 
+def _create_in_file(self_: Any) -> None:
+    txt = """
+    # Header1
+
+    - hello
+
+    ## Header2
+    - world
+
+    ## Header3
+    - foo
+    - bar
+
+    # Header4
+    - baz
+    """
+    txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
+    in_file = os.path.join(self_.get_scratch_space(), "input.md")
+    hio.to_file(in_file, txt)
+    return in_file
+
 
 class Test_notes_to_pdf1(hunitest.TestCase):
     @pytest.mark.skip
     def test1(self) -> None:
         """
-        Convert one txt file to PDF and check that the .tex file is as
+        Convert one txt file to PDF and check that the `tex` file is as
         expected.
         """
         file_name = "code_style.txt.test"
         file_name = os.path.join(self.get_input_dir(), file_name)
         file_name = os.path.abspath(file_name)
         #
-        act = self._helper(file_name, "pdf")
+        act = self.run_notes_to_pdf(file_name, "pdf")
         self.check_string(act)
 
     # TODO(gp): This seems flakey.
@@ -41,7 +63,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         )
         file_name = os.path.abspath(file_name)
         #
-        act = self._helper(file_name, "html")
+        act = self.run_notes_to_pdf(file_name, "html")
         self.check_string(act)
 
     def test_all_notes(self) -> None:
@@ -53,9 +75,16 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         file_names = glob.glob(dir_name)
         for file_name in file_names:
             _LOG.debug(hprint.frame(f"file_name={file_name}"))
-            self._helper(file_name, "html")
+            self.run_notes_to_pdf(file_name, "html")
 
-    def _helper(self, in_file: str, type_: str) -> str:
+    def run_notes_to_pdf(self, in_file: str, type_: str) -> str:
+        # notes_to_pdf.py \
+        #   --input notes/MSML610/Lesson1-Intro.txt \
+        #   --output tmp.pdf \
+        #   -t slides \
+        #   --skip_action copy_to_gdrive \
+        #   --skip_action open \
+        #   --skip_action cleanup_after
         exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
         hdbg.dassert_path_exists(exec_path)
         #
