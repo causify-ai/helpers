@@ -1,4 +1,4 @@
-# Conda Environment Obsolete
+# Conda Environment (Obsolete)
 
 <!-- toc -->
 

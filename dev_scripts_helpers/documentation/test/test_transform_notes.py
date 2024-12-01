@@ -2,7 +2,7 @@ import logging
 
 import pytest
 
-import dev_scripts_helpers.documentation.transform_notes as dshdtrtx
+import helpers.hlatex as hlatex
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
@@ -143,6 +143,6 @@ class Test_markdown_to_latex1(hunitest.TestCase):
         Check the markdown to latex transformation.
         """
         markdown = hprint.dedent(markdown)
-        act = dshdtrtx.markdown_list_to_latex(markdown)
+        act = hlatex.markdown_list_to_latex(markdown)
         exp = hprint.dedent(exp)
         self.assert_equal(act, exp)

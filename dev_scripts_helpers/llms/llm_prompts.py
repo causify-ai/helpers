@@ -1,8 +1,7 @@
 import logging
-import sys
 
+import helpers.hlatex as hlatex
 import helpers.hopenai as hopenai
-import helpers.transform_text as transform_text
 
 _LOG = logging.getLogger(__name__)
 
@@ -10,6 +9,7 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 # Prompts.
 # #############################################################################
+
 
 def code_comment(user: str, model: str) -> str:
     system = """
@@ -90,6 +90,7 @@ def code_1_unit_test(user: str, model: str) -> str:
     ret = hopenai.remove_code_delimiters(ret)
     return ret
 
+
 # #############################################################################
 
 
@@ -122,8 +123,8 @@ Make sure that the text is clean and readable
     response = hopenai.get_completion(user, system=system, model=model)
     ret = hopenai.response_to_txt(response)
     ret = hopenai.remove_code_delimiters(ret)
-    ret = transform_text.remove_end_of_line_periods(ret)
-    ret = transform_text.remove_empty_lines(ret)
+    ret = hlatex.remove_end_of_line_periods(ret)
+    ret = hlatex.remove_empty_lines(ret)
     return ret
 
 

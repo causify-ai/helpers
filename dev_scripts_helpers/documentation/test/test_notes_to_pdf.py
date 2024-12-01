@@ -8,7 +8,6 @@ import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
-import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
@@ -47,7 +46,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
 
     def test_all_notes(self) -> None:
         """
-        Convert to pdf all the notes in docs/notes.
+        Convert all the notes in docs/notes to PDF.
         """
         git_dir = hgit.get_client_root(super_module=False)
         dir_name = os.path.join(git_dir, "docs/notes/*.txt")
@@ -56,15 +55,16 @@ class Test_notes_to_pdf1(hunitest.TestCase):
             _LOG.debug(hprint.frame(f"file_name={file_name}"))
             self._helper(file_name, "html")
 
-    def _helper(self, in_file: str, action: str) -> str:
+    def _helper(self, in_file: str, type_: str) -> str:
         exec_path = hgit.find_file_in_git_tree("notes_to_pdf.py")
         hdbg.dassert_path_exists(exec_path)
         #
         tmp_dir = self.get_scratch_space()
         out_file = os.path.join(tmp_dir, "output.pdf")
+        #
         cmd = []
         cmd.append(exec_path)
-        cmd.append(f"--type {action}")
+        cmd.append(f"--type {type_}")
         cmd.append(f"--tmp_dir {tmp_dir}")
         cmd.append(f"--input {in_file}")
         cmd.append(f"--output {out_file}")
@@ -73,11 +73,11 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         cmd = " ".join(cmd)
         hsystem.system(cmd)
         # Check.
-        if action == "pdf":
+        if type_ == "pdf":
             out_file = os.path.join(tmp_dir, "tmp.pandoc.tex")
-        elif action == "html":
+        elif type_ == "html":
             out_file = os.path.join(tmp_dir, "tmp.pandoc.html")
         else:
-            raise ValueError(f"Invalid action='{action}'")
+            raise ValueError(f"Invalid type_='{type_}'")
         act: str = hio.from_file(out_file)
         return act
