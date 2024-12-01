@@ -7,9 +7,7 @@ import helpers.hio as hio
 
 def get_transforms() -> List[str]:
     """
-    Extract all functions in a Python file that match a specific signature.
-
-    :return: A list of function names that match the signature.
+    Return the list of functions in `llm_prompts.py` that can be called.
     """
     # Find file path of the llm_prompts.py file.
     curr_path = os.path.abspath(__file__)
@@ -23,7 +21,10 @@ def get_transforms() -> List[str]:
     # Iterate through all function definitions in the AST.
     for node in ast.walk(tree):
         if isinstance(node, ast.FunctionDef):
-            # Check function arguments and return type.
+            # Check function arguments and return type that match:
+            # ```
+            # def xyz(user: str, model: str) -> str:
+            # ```
             args = [arg.arg for arg in node.args.args]
             if (
                 args == ["user", "model"]
