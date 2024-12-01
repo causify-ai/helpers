@@ -46,21 +46,40 @@ _EXEC_DIR_NAME = os.path.abspath(os.path.dirname(sys.argv[0]))
 _SCRIPT = None
 
 
-def _system(cmd: str, log_level: int = logging.INFO, **kwargs: Any) -> int:
+def _append_script(msg: str) -> None:
     if _SCRIPT is not None:
-        _SCRIPT.append(cmd)
+        _SCRIPT.append(msg)
+
+
+def _report_phase(phase: str) -> None:
+    msg = "# " + phase
+    print(hprint.color_highlight(msg, "blue"))
+    _LOG.debug("\n%s", hprint.frame(phase, char1="<", char2=">"))
+    _append_script(msg)
+
+
+def _system(cmd: str, log_level: int = logging.DEBUG, **kwargs: Any) -> int:
+    print("> " + cmd)
+    _append_script(cmd)
     rc = hsystem.system(cmd, log_level=log_level, **kwargs)
     return rc  # type: ignore
 
 
 def _system_to_string(
-    cmd: str, log_level: int = logging.INFO, **kwargs: Any
+    cmd: str, log_level: int = logging.DEBUG, **kwargs: Any
 ) -> Tuple[int, str]:
-    if _SCRIPT is not None:
-        _SCRIPT.append(cmd)
+    print("> " + cmd)
+    _append_script(cmd)
     rc, txt = hsystem.system_to_string(cmd, log_level=log_level, **kwargs)
     return rc, txt
 
+
+def _mark_action(action: str, actions: List[str]) -> Tuple[bool, List[str]]:
+    _report_phase(action)
+    to_execute, actions = hparser.mark_action(action, actions)
+    if not to_execute:
+        _append_script("# Skip")
+    return to_execute, actions
 
 # #############################################################################
 
@@ -71,7 +90,6 @@ def _cleanup_before(prefix: str) -> None:
 
     :param prefix: The prefix used to identify the files to be removed.
     """
-    _LOG.warning("\n%s", hprint.frame("Clean up before", char1="<", char2=">"))
     cmd = f"rm -rf {prefix}*"
     _ = _system(cmd)
 
@@ -85,7 +103,6 @@ def _filter_by_header(file_: str, header: str, prefix: str) -> str:
     :param prefix: The prefix used for the output file (e.g., `tmp.pandoc`)
     :return: The path to the processed file
     """
-    _LOG.info("\n%s", hprint.frame("Filter by header", char1="<", char2=">"))
     txt = hio.from_file(file_)
     # Filter by header.
     txt = hmarkdown.extract_section_from_markdown(txt, header)
@@ -104,9 +121,8 @@ def _preprocess_notes(curr_path: str, file_: str, prefix: str) -> str:
     :param prefix: The prefix used for the output file (e.g., `tmp.pandoc`)
     :return: The path to the processed file
     """
-    _LOG.info("\n%s", hprint.frame("Preprocess notes", char1="<", char2=">"))
     file1 = file_
-    file2 = f"{prefix}.no_spaces.txt"
+    file2 = f"{prefix}.preprocess_notes.txt"
     cmd = f"{curr_path}/preprocess_notes.py --input {file1} --output {file2}"
     _ = _system(cmd)
     file_ = file2
@@ -166,20 +182,20 @@ def _run_pandoc_to_pdf(
     :param prefix: The prefix used for the output file
     :return: The path to the generated PDF file
     """
-    _LOG.info("\n%s", hprint.frame("Pandoc to pdf", char1="<", char2=">"))
-    #
     file1 = file_
     cmd = []
     cmd.append(f"pandoc {file1}")
     cmd.extend(_COMMON_PANDOC_OPTS[:])
     #
     cmd.append("-t latex")
+    #
     template = f"{curr_path}/pandoc.latex"
     hdbg.dassert_path_exists(template)
     cmd.append(f"--template {template}")
     #
     file2 = f"{prefix}.tex"
     cmd.append(f"-o {file2}")
+    #
     if not args.no_toc:
         cmd.append("--toc")
         cmd.append("--toc-depth 2")
@@ -190,10 +206,8 @@ def _run_pandoc_to_pdf(
     cmd = " ".join(cmd)
     _ = _system(cmd, suppress_output=False)
     file_ = file2
-    #
-    # Run latex.
-    #
-    _LOG.info("\n%s", hprint.frame("Latex", char1="<", char2=">"))
+    # - Run latex.
+    _report_phase("Latex")
     # pdflatex needs to run in the same dir of latex_abbrevs.sty so we `cd` to
     # that dir and save the output in the same dir of the input.
     hdbg.dassert_path_exists(_EXEC_DIR_NAME + "/latex_abbrevs.sty")
@@ -207,8 +221,8 @@ def _run_pandoc_to_pdf(
         + f" {file_}"
     )
     _run_latex(cmd, file_)
-    # Run latex again.
-    _LOG.info("\n%s", hprint.frame("Latex again", char1="<", char2=">"))
+    # - Run latex again.
+    _report_phase("Latex again")
     if not args.no_run_latex_again:
         _run_latex(cmd, file_)
     else:
@@ -231,8 +245,6 @@ def _run_pandoc_to_html(
     :param prefix: The prefix used for the output file
     :return: The path to the generated HTML file
     """
-    _LOG.info("\n%s", hprint.frame("Pandoc to html", char1="<", char2=">"))
-    #
     cmd = []
     cmd.append(f"pandoc {file_in}")
     cmd.extend(_COMMON_PANDOC_OPTS[:])
@@ -261,7 +273,6 @@ def _run_pandoc_to_slides(args: argparse.Namespace, file_: str) -> str:
     :param file_: The input file to be converted
     :return: The path to the generated PDF file
     """
-    _LOG.info("\n%s", hprint.frame("Pandoc to PDF slides", char1="<", char2=">"))
     _ = args
     #
     cmd = []
@@ -314,7 +325,6 @@ def _copy_to_gdrive(args: argparse.Namespace, file_name: str, ext: str) -> None:
     :param file_name: The name of the file to be copied
     :param ext: The extension of the file to be copied
     """
-    _LOG.info("\n%s", hprint.frame("Copy to gdrive", char1="<", char2=">"))
     hdbg.dassert(not ext.startswith("."), "Invalid file_name='%s'", file_name)
     if args.gdrive_dir is not None:
         gdrive_dir = args.gdrive_dir
@@ -332,7 +342,6 @@ def _copy_to_gdrive(args: argparse.Namespace, file_name: str, ext: str) -> None:
 
 
 def _cleanup_after(prefix: str) -> None:
-    _LOG.info("\n%s", hprint.frame("Clean up after", char1="<", char2=">"))
     cmd = f"rm -rf {prefix}*"
     _ = _system(cmd)
 
@@ -341,8 +350,7 @@ def _cleanup_after(prefix: str) -> None:
 
 
 def _run_all(args: argparse.Namespace) -> None:
-    #
-    _LOG.info("type=%s", args.type)
+    _LOG.debug("type=%s", args.type)
     # Print actions.
     actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     add_frame = True
@@ -365,7 +373,7 @@ def _run_all(args: argparse.Namespace) -> None:
     prefix = os.path.abspath(prefix)
     # - Cleanup_before
     action = "cleanup_before"
-    to_execute, actions = hparser.mark_action(action, actions)
+    to_execute, actions = _mark_action(action, actions)
     if to_execute:
         _cleanup_before(prefix)
     # - Filter
@@ -373,12 +381,12 @@ def _run_all(args: argparse.Namespace) -> None:
         file_ = _filter_by_header(file_, args.filter_by_header, prefix)
     # - Preprocess_notes
     action = "preprocess_notes"
-    to_execute, actions = hparser.mark_action(action, actions)
+    to_execute, actions = _mark_action(action, actions)
     if to_execute:
         file_ = _preprocess_notes(curr_path, file_, prefix)
     # - Run_pandoc
     action = "run_pandoc"
-    to_execute, actions = hparser.mark_action(action, actions)
+    to_execute, actions = _mark_action(action, actions)
     if to_execute:
         if args.type == "pdf":
             file_out = _run_pandoc_to_pdf(args, curr_path, file_, prefix)
@@ -392,18 +400,18 @@ def _run_all(args: argparse.Namespace) -> None:
     file_final = _copy_to_output(args, file_in, prefix)
     # - Copy_to_gdrive
     action = "copy_to_gdrive"
-    to_execute, actions = hparser.mark_action(action, actions)
+    to_execute, actions = _mark_action(action, actions)
     if to_execute:
         ext = args.type
         _copy_to_gdrive(args, file_final, ext)
     # - Open
     action = "open"
-    to_execute, actions = hparser.mark_action(action, actions)
+    to_execute, actions = _mark_action(action, actions)
     if to_execute:
         hopen.open_file(file_final)
     # - Cleanup_after
     action = "cleanup_after"
-    to_execute, actions = hparser.mark_action(action, actions)
+    to_execute, actions = _mark_action(action, actions)
     if to_execute:
         _cleanup_after(prefix)
     # Save script, if needed.
@@ -475,7 +483,8 @@ def _parse() -> argparse.ArgumentParser:
         help="Filter by lines (e.g., `1-10`)",
     )
     parser.add_argument(
-        "--script", action="store", help="Bash script to generate"
+        "--script", action="store", default="tmp.notes_to_pdf.sh",
+        help="Bash script to generate"
     )
     parser.add_argument("--preview_actions", action="store_true", default=False,
                         help="Print the actions and exit")
