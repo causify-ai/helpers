@@ -16,10 +16,10 @@ Examples
 # List of transforms
 > llm_transform.py -i input.txt -o output.txt -t list
 
-# Force Rebuild Docker Container
+# Force rebuild Docker container
 > llm_transform.py -i input.txt -o output.txt -t uppercase --dockerized-force-rebuild
 
-# Set Logging Verbosity
+# Set logging verbosity
 > llm_transform.py -i input.txt -o output.txt -t uppercase -v DEBUG
 """
 

@@ -192,6 +192,15 @@ def find_git_root(path: str = ".") -> str:
 
 
 def find_helpers_root() -> str:
+    """
+    Find the root directory of the `helpers` repository.
+
+    If the current directory is within the `helpers` repository, the root of the
+    repository is returned. Otherwise, the function searches for the `helpers_root`
+    directory starting from the root of the repository.
+
+    :returns: The absolute path to the `helpers_root` directory.
+    """
     git_root = find_git_root()
     if is_helpers():
         # If we are in `//helpers`, then the helpers root is the root of the
