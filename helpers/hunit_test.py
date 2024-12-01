@@ -888,6 +888,7 @@ def assert_equal(
     test_dir: str,
     *,
     check_string: bool = False,
+    remove_lead_trail_empty_lines: bool = False,
     dedent: bool = False,
     purify_text: bool = False,
     purify_expected_text: bool = False,
@@ -906,9 +907,10 @@ def assert_equal(
     """
     _LOG.debug(
         hprint.to_str(
-            "full_test_name test_dir "
-            "dedent purify_text fuzzy_match ignore_line_breaks "
-            "abort_on_error dst_dir"
+            "full_test_name test_dir"
+            " remove_lead_trail_empty_lines dedent purify_text"
+            " fuzzy_match ignore_line_breaks"
+            " abort_on_error dst_dir"
         )
     )
     # Store a mapping tag after each transformation (e.g., original, sort, ...) to
@@ -929,13 +931,20 @@ def assert_equal(
     expected = purify_white_spaces(expected)
     tag = "purify_white_spaces"
     _append(tag, actual, expected)
+    # Remove empty leading / trailing lines.
+    if remove_lead_trail_empty_lines:
+        tag = "remove_lead_trail_empty_lines"
+        _LOG.debug("# ", tag)
+        expected = hprint.remove_lead_trail_empty_lines(expected)
+        _LOG.debug(hprint.to_str("expected"))
+        _append(tag, actual, expected)
     # Dedent only expected since we often align it to make it look more readable
     # in the Python code, if needed.
     if dedent:
+        tag = "dedent"
         _LOG.debug("# dedent")
         expected = hprint.dedent(expected)
         _LOG.debug(hprint.to_str("expected"))
-        tag = "dedent"
         _append(tag, actual, expected)
     # Purify text, if needed.
     if purify_text:
@@ -1319,6 +1328,7 @@ class TestCase(unittest.TestCase):
         actual: str,
         expected: str,
         *,
+        remove_lead_trail_empty_lines: bool = False,
         dedent: bool = False,
         purify_text: bool = False,
         purify_expected_text: bool = False,
@@ -1365,6 +1375,8 @@ class TestCase(unittest.TestCase):
             test_name,
             dir_name,
             check_string=False,
+            remove_lead_trail_empty_lines
+                =remove_lead_trail_empty_lines,
             dedent=dedent,
             purify_text=purify_text,
             purify_expected_text=purify_expected_text,
@@ -1408,6 +1420,7 @@ class TestCase(unittest.TestCase):
         self,
         actual: str,
         *,
+        remove_lead_trail_empty_lines: bool = False,
         dedent: bool = False,
         purify_text: bool = False,
         fuzzy_match: bool = False,
@@ -1492,6 +1505,8 @@ class TestCase(unittest.TestCase):
                     test_name,
                     dir_name,
                     check_string=True,
+                    remove_lead_trail_empty_lines
+                        =remove_lead_trail_empty_lines,
                     dedent=dedent,
                     # We have handled the purification of the output earlier.
                     purify_text=False,
@@ -1586,6 +1601,7 @@ class TestCase(unittest.TestCase):
                         test_name,
                         dir_name,
                         check_string=True,
+                        remove_lead_trail_empty_lines=False,
                         dedent=dedent,
                         purify_text=False,
                         fuzzy_match=False,

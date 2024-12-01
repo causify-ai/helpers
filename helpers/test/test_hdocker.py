@@ -107,7 +107,7 @@ class Test_replace_shared_root_path1(hunitest.TestCase):
 
 def _create_test_file(self_: Any, txt: str, extension: str) -> str:
     file_path = os.path.join(self_.get_scratch_space(), f"input.{extension}")
-    txt = hprint.dedent(txt, remove_empty_leading_trailing_lines=True)
+    txt = hprint.dedent(txt, remove_lead_trail_empty_lines=True)
     _LOG.debug("txt=\n%s", txt)
     hio.to_file(file_path, txt)
     return file_path
@@ -176,9 +176,7 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
         )
         # Check.
         act = hio.from_file(out_file_path)
-        act = hprint.dedent(act, remove_empty_leading_trailing_lines=True)
-        exp = hprint.dedent(exp, remove_empty_leading_trailing_lines=True)
-        self.assert_equal(act, exp)
+        self.assert_equal(act, exp, dedent=True, remove_lead_trail_empty_lines=True)
 
 
 # #############################################################################
@@ -237,18 +235,18 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
         # Run `pandoc` in a Docker container.
         in_file_path = _create_test_file(self, txt, extension="md")
         out_file_path = os.path.join(self.get_scratch_space(), "output.md")
+        data_dir = None
         use_sudo = hdocker.get_use_sudo()
         hdocker.run_dockerized_pandoc(
             cmd_opts,
             in_file_path,
             out_file_path,
+            date_dir,
             use_sudo,
         )
         # Check.
         act = hio.from_file(out_file_path)
-        act = hprint.dedent(act, remove_empty_leading_trailing_lines=True)
-        exp = hprint.dedent(exp, remove_empty_leading_trailing_lines=True)
-        self.assert_equal(act, exp)
+        self.assert_equal(act, exp, dedent=True, remove_lead_trail_empty_lines=True)
 
 
 # #############################################################################
@@ -313,6 +311,4 @@ class Test_run_markdown_toc1(hunitest.TestCase):
         )
         # Check.
         act = hio.from_file(in_file_path)
-        act = hprint.dedent(act, remove_empty_leading_trailing_lines=True)
-        exp = hprint.dedent(exp, remove_empty_leading_trailing_lines=True)
-        self.assert_equal(act, exp)
+        self.assert_equal(act, exp, dedent=True, remove_lead_trail_empty_lines=True)

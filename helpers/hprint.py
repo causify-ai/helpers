@@ -243,7 +243,7 @@ def split_lines(func: Callable) -> Callable:
 
 
 @split_lines
-def trim_consecutive_empty_lines(lines: StrOrList) -> StrOrList:
+def remove_lead_trail_empty_lines(lines: StrOrList) -> StrOrList:
     """
     Remove consecutive empty lines only at the beginning / end of a string.
     """
@@ -257,7 +257,7 @@ def trim_consecutive_empty_lines(lines: StrOrList) -> StrOrList:
     return lines
 
 
-def dedent(txt: str, *, remove_empty_leading_trailing_lines: bool = True) -> str:
+def dedent(txt: str, *, remove_lead_trail_empty_lines: bool = True) -> str:
     """
     Remove from each line the minimum number of spaces to align the text on the
     left.
@@ -265,11 +265,11 @@ def dedent(txt: str, *, remove_empty_leading_trailing_lines: bool = True) -> str
     It is the opposite of `indent()`.
 
     :param txt: multi-line string
-    :param remove_empty_leading_trailing_lines: if True, remove all the
+    :param remove_lead_trail_empty_lines: if True, remove all the
         empty lines at the beginning and at the end
     """
-    if remove_empty_leading_trailing_lines:
-        txt = trim_consecutive_empty_lines(txt)
+    if remove_lead_trail_empty_lines:
+        txt = remove_lead_trail_empty_lines(txt)
     # Find the minimum number of leading spaces.
     min_num_spaces = None
     for curr_line in txt.split("\n"):
@@ -553,7 +553,7 @@ def to_str2(*variables_values: Any) -> str:
     """
     # Check parameters.
     hdbg.dassert_lte(1, len(variables_values))
-    # Get frame object for the caller’s stack frame.
+    # Get frame object for the caller's stack frame.
     frame_ = inspect.currentframe()
     # Get a list of frame records for a frame and all outer frames.
     frames = inspect.getouterframes(frame_)

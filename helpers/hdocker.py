@@ -201,7 +201,7 @@ def replace_shared_root_path(
 
 
 # #############################################################################
-# Dockerization API
+# Docker-ization API
 # #############################################################################
 
 # See docs/work_tools/docker/all.dockerized_flow.explanation.md
@@ -538,11 +538,11 @@ def run_dockerized_pandoc(
     cmd_opts: List[str],
     in_file_path: str,
     out_file_path: str,
-    # data_dir: Optional[str],
+    data_dir: Optional[str],
     use_sudo: bool,
 ) -> None:
     """
-    Run `prettier` in a Docker container.
+    Run `pandoc` in a Docker container.
 
     Same as `run_dockerized_prettier()` but for `pandoc`.
     """

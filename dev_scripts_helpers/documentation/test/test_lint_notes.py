@@ -36,7 +36,7 @@ def _get_text1() -> str:
     - It can be proven that the function $E_{in}(\vw)$ to minimize is convex in
       $\vw$ (sum of exponentials and flipped exponentials is convex and log is
       monotone)"""
-    txt = hprint.dedent(txt, remove_empty_leading_trailing_lines=True)
+    txt = hprint.dedent(txt, remove_lead_trail_empty_lines=True)
     return txt
 
 
@@ -118,9 +118,9 @@ class Test_lint_notes1(hunitest.TestCase):
         self._helper_preprocess(txt, exp)
 
     def _helper_preprocess(self, txt: str, exp: str) -> None:
-        txt = hprint.dedent(txt, remove_empty_leading_trailing_lines=True)
+        txt = hprint.dedent(txt, remove_lead_trail_empty_lines=True)
         act = dshdlitx._preprocess(txt)
-        exp = hprint.dedent(exp, remove_empty_leading_trailing_lines=True)
+        exp = hprint.dedent(exp, remove_lead_trail_empty_lines=True)
         self.assert_equal(act, exp)
 
 
@@ -249,7 +249,7 @@ class Test_lint_notes2(hunitest.TestCase):
         * Text template as a format string
           - Values to insert are provided as a value or a `tuple`
         """
-        exp = hprint.dedent(exp, remove_empty_leading_trailing_lines=True)
+        exp = hprint.dedent(exp, remove_lead_trail_empty_lines=True)
         self.assert_equal(act, exp)
 
     def test_process5(self) -> None:
@@ -309,7 +309,7 @@ class Test_lint_notes2(hunitest.TestCase):
         - Text template as a format string
           - Values to insert are provided as a value or a `tuple`
         """
-        txt = hprint.dedent(txt, remove_empty_leading_trailing_lines=True)
+        txt = hprint.dedent(txt, remove_lead_trail_empty_lines=True)
         return txt
 
     def _helper_process(
@@ -325,10 +325,10 @@ class Test_lint_notes2(hunitest.TestCase):
         :param file_name: The name of the file to be used for processing.
         :return: The processed text.
         """
-        txt = hprint.dedent(txt, remove_empty_leading_trailing_lines=True)
+        txt = hprint.dedent(txt, remove_lead_trail_empty_lines=True)
         file_name = os.path.join(self.get_scratch_space(), file_name)
         act = dshdlitx._process(txt, file_name)
         if exp:
-            exp = hprint.dedent(exp, remove_empty_leading_trailing_lines=True)
+            exp = hprint.dedent(exp, remove_lead_trail_empty_lines=True)
             self.assert_equal(act, exp)
         return act
