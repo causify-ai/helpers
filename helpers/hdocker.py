@@ -12,7 +12,7 @@ import os
 import shlex
 import tempfile
 import time
-from typing import List, Optional, Tuple, Any, Dict
+from typing import Any, Dict, List, Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.henv as henv
@@ -564,8 +564,6 @@ def parse_pandoc_arguments(cmd: str) -> Dict[str, Any]:
     parser.add_argument("-o", "--output", required=True)
     # Data directory.
     parser.add_argument("--data-dir", default=None)
-    # Capture all remaining arguments.
-    #parser.add_argument("extra_args", nargs=argparse.REMAINDER)
     # Parse known arguments and capture the rest.
     args, unknown_args = parser.parse_known_args(cmd)
     _LOG.debug(hprint.to_str("args unknown_args"))

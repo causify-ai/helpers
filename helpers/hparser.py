@@ -564,13 +564,17 @@ def add_transform_arg(
     Add common command line arguments for `*llm_transform.py` scripts.
     """
     parser.add_argument(
-        "-d", "--debug", action="store_true",
-        help="Print before/after the transform"
+        "-d",
+        "--debug",
+        action="store_true",
+        help="Print before/after the transform",
     )
     parser.add_argument(
         "-t", "--transform", required=True, type=str, help="Type of transform"
     )
     parser.add_argument(
-        "-f", "--fast_model", action="store_true",
-        help="Use a fast LLM model vs a high-quality one"
+        "-f",
+        "--fast_model",
+        action="store_true",
+        help="Use a fast LLM model vs a high-quality one",
     )

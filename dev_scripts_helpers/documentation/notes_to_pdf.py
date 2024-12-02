@@ -27,7 +27,7 @@ from typing import Any, List, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
-import helpers.hmarkdown as hmarkdown
+import helpers.hmarkdown as hmarkdo
 import helpers.hopen as hopen
 import helpers.hparser as hparser
 import helpers.hprint as hprint
@@ -77,6 +77,7 @@ def _mark_action(action: str, actions: List[str]) -> Tuple[bool, List[str]]:
         _append_script("# Skip")
     return to_execute, actions
 
+
 # #############################################################################
 
 
@@ -101,7 +102,7 @@ def _filter_by_header(file_: str, header: str, prefix: str) -> str:
     """
     txt = hio.from_file(file_)
     # Filter by header.
-    txt = hmarkdown.extract_section_from_markdown(txt, header)
+    txt = hmarkdo.extract_section_from_markdown(txt, header)
     #
     file_out = f"{prefix}.filter_by_header.txt"
     hio.to_file(file_out, txt)
@@ -480,11 +481,17 @@ def _parse() -> argparse.ArgumentParser:
         help="Filter by lines (e.g., `1-10`)",
     )
     parser.add_argument(
-        "--script", action="store", default="tmp.notes_to_pdf.sh",
-        help="Bash script to generate"
+        "--script",
+        action="store",
+        default="tmp.notes_to_pdf.sh",
+        help="Bash script to generate",
     )
-    parser.add_argument("--preview_actions", action="store_true", default=False,
-                        help="Print the actions and exit")
+    parser.add_argument(
+        "--preview_actions",
+        action="store_true",
+        default=False,
+        help="Print the actions and exit",
+    )
     parser.add_argument("--no_toc", action="store_true", default=False)
     parser.add_argument(
         "--no_run_latex_again", action="store_true", default=False

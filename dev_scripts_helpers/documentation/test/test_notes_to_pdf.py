@@ -11,6 +11,7 @@ import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
 
+
 def _create_in_file(self_: Any) -> str:
     txt = """
     # Header1
@@ -34,10 +35,9 @@ def _create_in_file(self_: Any) -> str:
 
 
 class Test_notes_to_pdf1(hunitest.TestCase):
-
     def test1(self) -> None:
         """
-        > notes_to_pdf.py --input input.md -t pdf --preview
+        > notes_to_pdf.py --input input.md -t pdf --preview.
         """
         in_file = _create_in_file(self)
         cmd_opts = f"--preview"
@@ -45,7 +45,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        > notes_to_pdf.py --input input.md -t pdf
+        > notes_to_pdf.py --input input.md -t pdf.
         """
         in_file = _create_in_file(self)
         cmd_opts = ""
@@ -53,7 +53,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        > notes_to_pdf.py --input input.md -t pdf --filter_by_header Header2
+        > notes_to_pdf.py --input input.md -t pdf --filter_by_header Header2.
         """
         in_file = _create_in_file(self)
         cmd_opts = f"--filter_by_header Header2"
@@ -99,7 +99,9 @@ class Test_notes_to_pdf1(hunitest.TestCase):
     #         _LOG.debug(hprint.frame(f"file_name={file_name}"))
     #         self.run_notes_to_pdf(file_name, "html")
 
-    def run_notes_to_pdf(self, in_file: str, type_: str, cmd_opts: str) -> Tuple[str, Optional[str]]:
+    def run_notes_to_pdf(
+        self, in_file: str, type_: str, cmd_opts: str
+    ) -> Tuple[str, Optional[str]]:
         # notes_to_pdf.py \
         #   --input notes/MSML610/Lesson1-Intro.txt \
         #   --type slides \

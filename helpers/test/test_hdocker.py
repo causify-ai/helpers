@@ -198,7 +198,7 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
             "input_file": "input.md",
             "output_file": "output.pdf",
             "data_dir": "/data",
-            "extra_args": ["--toc", "--toc-depth", "2"]
+            "extra_args": ["--toc", "--toc-depth", "2"],
         }
         self.assert_equal(str(act), str(exp))
 
@@ -215,7 +215,7 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
             "input_file": "input.md",
             "output_file": "output.pdf",
             "data_dir": None,
-            "extra_args": ["--toc"]
+            "extra_args": ["--toc"],
         }
         self.assert_equal(str(act), str(exp))
 
@@ -233,13 +233,27 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
         # Call tested function.
         act = hdocker.parse_pandoc_arguments(cmd)
         # Check output.
-        exp = {'input_file': 'test/outcomes/tmp.pandoc.preprocess_notes.txt',
-         'output_file': 'test/outcomes/tmp.pandoc.tex', 'data_dir': None,
-         'extra_args': ['-V', 'geometry:margin=1in', '-f', 'markdown',
-                        '--number-sections', '--highlight-style=tango', '-s',
-                        '-t', 'latex', '--template',
-                        'documentation/pandoc.latex', '--toc', '--toc-depth',
-                        '2']}
+        exp = {
+            "input_file": "test/outcomes/tmp.pandoc.preprocess_notes.txt",
+            "output_file": "test/outcomes/tmp.pandoc.tex",
+            "data_dir": None,
+            "extra_args": [
+                "-V",
+                "geometry:margin=1in",
+                "-f",
+                "markdown",
+                "--number-sections",
+                "--highlight-style=tango",
+                "-s",
+                "-t",
+                "latex",
+                "--template",
+                "documentation/pandoc.latex",
+                "--toc",
+                "--toc-depth",
+                "2",
+            ],
+        }
         self.assert_equal(str(act), str(exp))
 
 
@@ -380,4 +394,3 @@ class Test_run_markdown_toc1(hunitest.TestCase):
         self.assert_equal(
             act, exp, dedent=True, remove_lead_trail_empty_lines=True
         )
-
