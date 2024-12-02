@@ -400,13 +400,9 @@ def convert_file_names_to_docker(
 # #############################################################################
 
 
-def run_dockerized_prettier(
-    cmd_opts: List[str],
-    in_file_path: str,
-    out_file_path: str,
-    force_rebuild: bool,
-    use_sudo: bool,
-) -> None:
+def run_dockerized_prettier(in_file_path: str, out_file_path: str,
+                            cmd_opts: List[str], force_rebuild: bool,
+                            use_sudo: bool) -> None:
     """
     Run `prettier` in a Docker container.
 
@@ -548,41 +544,40 @@ def parse_pandoc_arguments(cmd: str) -> Dict[str, Any]:
     """
     # Use shlex.split to tokenize the string like a shell would.
     cmd = shlex.split(cmd)
+    # Remove the newline character that come from multiline commands with `\n`.
     cmd = [arg for arg in cmd if arg != "\n"]
     _LOG.debug(hprint.to_str("cmd"))
+    # The first option is the executable.
     hdbg.dassert_eq(cmd[0], "pandoc")
-    # pandoc parses is difficult to emulate with `argparse`, since it allows
-    # the input file to be anywhere and it has a list of all the possible
-    # parameters. In our case we don't know all the possible options so we
-    # assume that the first one is the input file.
-    input_file = cmd[1]
+    # pandoc parser is difficult to emulate with `argparse`, since pandoc allows
+    # the input file to be anywhere in the command line options. In our case we
+    # don't know all the possible command line options so for simplicity we
+    # assume that the first option is always the input file.
+    in_file_path = cmd[1]
     cmd = cmd[2:]
     _LOG.debug(hprint.to_str("cmd"))
     #
     parser = argparse.ArgumentParser()
-    # Input and output files.
     parser.add_argument("-o", "--output", required=True)
-    # Data directory.
     parser.add_argument("--data-dir", default=None)
     # Parse known arguments and capture the rest.
     args, unknown_args = parser.parse_known_args(cmd)
     _LOG.debug(hprint.to_str("args unknown_args"))
-    # Return all arguments in a dictionary.
+    # Return all arguments in a dictionary with names that match the function
+    # signature of `run_dockerized_pandoc`.
     return {
-        "input_file": input_file,
-        "output_file": args.output,
+        "in_file_path": in_file_path,
+        "out_file_path": args.output,
         "data_dir": args.data_dir,
-        "extra_args": unknown_args,
+        "cmd_opts": unknown_args,
     }
 
 
-def run_dockerized_pandoc(
-    cmd_opts: List[str],
-    in_file_path: str,
-    out_file_path: str,
-    data_dir: Optional[str],
-    use_sudo: bool,
-) -> None:
+# TODO(gp): Pass cmd_opts after in_file_path and out_file_path.
+def run_dockerized_pandoc(in_file_path: str, out_file_path: str,
+                          cmd_opts: List[str], data_dir: Optional[str],
+                          return_cmd: bool = False, use_sudo: bool = True) ->\
+        Optional[str]:
     """
     Run `pandoc` in a Docker container.
 
@@ -611,16 +606,27 @@ def run_dockerized_pandoc(
         f" {container_name}"
         f" {cmd_opts_as_str} {in_file_path} -o {out_file_path}"
     )
+    if return_cmd:
+        return docker_cmd
     # TODO(gp): Note that `suppress_output=False` seems to hang the call.
     hsystem.system(docker_cmd)
 
 
-def run_dockerized_markdown_toc(
-    cmd_opts: List[str],
-    in_file_path: str,
-    force_rebuild: bool,
-    use_sudo: bool,
-) -> None:
+def run_pandoc(cmd: str, *, use_dockerized_pandoc: bool = True) -> None:
+    if use_dockerized_pandoc:
+        cmd_opts = parse_pandoc_arguments(cmd)
+        # TODO(gp): This should be a global switch.
+        cmd_opts["use_sudo"] = False
+        run_dockerized_pandoc(**cmd_opts)
+    else:
+        _ = hsystem.system(cmd, suppress_output=False)
+
+
+# #############################################################################
+
+
+def run_dockerized_markdown_toc(in_file_path: str, force_rebuild: bool,
+                                cmd_opts: List[str], use_sudo: bool) -> None:
     """
     Same as `run_dockerized_prettier()` but for `markdown-toc`.
     """
@@ -665,13 +671,12 @@ def run_dockerized_markdown_toc(
     hsystem.system(docker_cmd)
 
 
-def run_dockerized_llm_transform(
-    cmd_opts: str,
-    in_file_path: str,
-    out_file_path: str,
-    force_rebuild: bool,
-    use_sudo: bool,
-) -> None:
+# #############################################################################
+
+
+def run_dockerized_llm_transform(in_file_path: str, out_file_path: str,
+                                 cmd_opts: str, force_rebuild: bool,
+                                 use_sudo: bool) -> None:
     """
     Run _llm_transform.py in a Docker container with all its dependencies.
     """

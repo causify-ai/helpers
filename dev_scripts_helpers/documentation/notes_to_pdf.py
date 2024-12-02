@@ -23,9 +23,10 @@ import argparse
 import logging
 import os
 import sys
-from typing import Any, List, Tuple
+from typing import Any, List, Optional, Tuple
 
 import helpers.hdbg as hdbg
+import helpers.hdocker as hdocker
 import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
 import helpers.hopen as hopen
@@ -39,7 +40,7 @@ _EXEC_DIR_NAME = os.path.abspath(os.path.dirname(sys.argv[0]))
 
 # #############################################################################
 
-_SCRIPT = None
+_SCRIPT : Optional[List[str]] = None
 
 
 def _append_script(msg: str) -> None:
@@ -54,9 +55,13 @@ def _report_phase(phase: str) -> None:
     _append_script(msg)
 
 
-def _system(cmd: str, log_level: int = logging.DEBUG, **kwargs: Any) -> int:
+def _log_system(cmd: str) -> None:
     print("> " + cmd)
     _append_script(cmd)
+
+
+def _system(cmd: str, log_level: int = logging.DEBUG, **kwargs: Any) -> int:
+    _log_system(cmd)
     rc = hsystem.system(cmd, log_level=log_level, **kwargs)
     return rc  # type: ignore
 
@@ -64,8 +69,7 @@ def _system(cmd: str, log_level: int = logging.DEBUG, **kwargs: Any) -> int:
 def _system_to_string(
     cmd: str, log_level: int = logging.DEBUG, **kwargs: Any
 ) -> Tuple[int, str]:
-    print("> " + cmd)
-    _append_script(cmd)
+    _log_system(cmd)
     rc, txt = hsystem.system_to_string(cmd, log_level=log_level, **kwargs)
     return rc, txt
 
@@ -180,7 +184,7 @@ def _run_pandoc_to_pdf(
     :return: The path to the generated PDF file
     """
     file1 = file_
-    #
+    # - Run pandoc.
     cmd = []
     cmd.append(f"pandoc {file1}")
     cmd.extend(_COMMON_PANDOC_OPTS[:])
@@ -202,6 +206,12 @@ def _run_pandoc_to_pdf(
     # Doesn't work
     # -f markdown+raw_tex
     cmd = " ".join(cmd)
+    if not args.use_host_tools:
+        cmd_opts = hdocker.parse_pandoc_arguments(cmd)
+        # TODO(gp): This should be a global switch.
+        cmd_opts["use_sudo"] = False
+        cmd_opts["return_cmd"] = True
+        cmd = hdocker.run_dockerized_pandoc(**cmd_opts)
     _ = _system(cmd, suppress_output=False)
     file_ = file2
     # - Run latex.
@@ -491,6 +501,12 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         default=False,
         help="Print the actions and exit",
+    )
+    parser.add_argument(
+        "--use_host_tools",
+        action="store_true",
+        default=False,
+        help="Use the host tools instead of the dockerized ones",
     )
     parser.add_argument("--no_toc", action="store_true", default=False)
     parser.add_argument(

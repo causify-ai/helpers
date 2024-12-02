@@ -80,13 +80,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     cmd_line_opts = [f"-t {args.transform}", f"-v {args.log_level}"]
     if args.debug:
         cmd_line_opts.append("-d")
-    hdocker.run_dockerized_llm_transform(
-        cmd_line_opts,
-        tmp_in_file_name,
-        tmp_out_file_name,
-        args.dockerized_force_rebuild,
-        args.dockerized_use_sudo,
-    )
+    hdocker.run_dockerized_llm_transform(tmp_in_file_name, tmp_out_file_name,
+                                         cmd_line_opts,
+                                         args.dockerized_force_rebuild,
+                                         args.dockerized_use_sudo)
     out_txt = hio.from_file(tmp_out_file_name)
     # Note that we need to run this outside the `llm_transform` container to
     # avoid to do docker in docker in the `llm_transform` container (which
