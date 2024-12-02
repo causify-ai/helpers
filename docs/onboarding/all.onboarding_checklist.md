@@ -32,7 +32,7 @@
 #### Be patient
 
 - Let's use all the communication tools we have (screen sharing, Google Meet,
-  phone, Telegram, email) to keep the process smooth and personal
+  phone, Slack, email) to keep the process smooth and personal
 - There are many (hidden) dependencies in the process, so something will
   inevitably go wrong
   - Let's all be patient with each other
@@ -52,7 +52,7 @@
 - Provide tools for interacting with the team
   - During the process the new teammate will ask questions and he / she should
     use the appropriate tools for each type of communication
-    - Telegram: only for interactive communications
+    - Slack: only for interactive communications
     - GitHub issues: for coding related things
     - Asana tasks: for business/high-level tasks
     - Email: everything else
@@ -94,7 +94,7 @@
 - [ ] **Team leader**: Send some information to the new team member as a preview
   - E.g., some PDFs from amp/documentation/general
 
-- [ ] **Team leader**: establish contact by Telegram or email with the new hire
+- [ ] **Team leader**: establish contact by Slack or email with the new hire
       with a few words about the next steps
 
 - [ ] **Team leader**: do a proper intro with an email to the team:
@@ -112,7 +112,6 @@
   - Aka:
   - Personal email:
   - Github user:
-  - Telegram handle:
   - Laptop OS: Windows, Linux, or Mac
   - Physical location and timezone
   - User's SSH public key
@@ -140,7 +139,7 @@
 - [ ] **Team member**:
   - Confirm access to Hubstaff
   - Read
-    [Tools - Hubstaff](/docs/onboarding/all.track_time_with_hubstaff.how_to_guide.md)
+    [Tools - Hubstaff](https://github.com/causify-ai/helpers/blob/master/docs/onboarding/all.track_time_with_hubstaff.how_to_guide.md)
 
 #### IT setup
 
@@ -166,7 +165,7 @@
 
 - [ ] **Team member**: Confirm receipt of emails to `@all`
 
-- [ ] **Team member**: Confirm weekly all-hands meeting (usually on Monday
+- [ ] **Team member**: Confirm monthly all-hands meeting (usually on Monday
       morning)
   - This happens automatically through `all@kaizen-tech.io`
   - [https://calendar.google.com/calendar/u/0/r](https://calendar.google.com/calendar/u/0/r)
@@ -176,17 +175,13 @@
   - [Crypto-tech](https://drive.google.com/drive/u/1/folders/1zawE6IEBDpWLTbpK-03z75f5pu_T9Jba)
   - [Process](https://drive.google.com/drive/u/1/folders/1sJDqCjM1Q_nq8diyZDiWO8mVBQW5Wg_X)
 
-- [ ] **Team member**: Join relevant Telegram groups by the links below
-  - [KT - All](https://t.me/+CWjOUPSSmmsxMjhh)
-  - [KT - Random happy channel](https://t.me/+1dR3-u9wwRg1Njlh)
-  - [KT - Build notifications](https://t.me/+kMY3XdeJDeU5YzAy)
-  - Channel specifics
+- [ ] **Team member**: Confirm access to the company's Slack workspace
 
-- [ ] **Team member**: set up laptop to connect to the server following:
-  - [VPN and dev server access setup](/docs/onboarding/ck.setup_vpn_and_dev_server_access.how_to_guide.md)
+- [ ] **Team member**: Set up laptop to connect to the server following:
+  - [VPN and dev server access setup](https://github.com/causify-ai/helpers/blob/master/docs/onboarding/ck.setup_vpn_and_dev_server_access.how_to_guide.md)
 
-- [ ] **Team member**: configure your server environment following:
-  - [Development - Set-up](https://github.com/cryptokaizen/cmamp/blob/master/docs/onboarding/ck.development_setup.how_to_guide.md)
+- [ ] **Team member**: Configure your server environment following:
+  - [Development - Set-up](https://github.com/causify-ai/helpers/blob/master/docs/onboarding/ck.development_setup.how_to_guide.md)
 
 - [ ] **Team member**: We have implemented a self-registration process for our
       Airflow on Kubernetes deployment. Please register and create your personal
@@ -196,22 +191,14 @@
   - TODO(Shayan): Update this
 
 - [ ] **IT**: Add team member to all GitHub repos:
-  - [ ] [Kaizen-ai](https://github.com/kaizen-ai/kaizenflow)
-  - [ ] [dev_tools](https://github.com/kaizen-ai/dev_tools)
-  - [ ] [cmamp](https://github.com/cryptokaizen/cmamp/settings/access)
-  - (On per-need basis) [ ]
-    [orange](https://github.com/cryptokaizen/orange/settings/access)
-  - (On per-need basis) [ ]
-    [UMD_data605](https://github.com/gpsaggese/umd_data605/settings/access)
+  - [ ] [Kaizen-ai](https://github.com/causify-ai/kaizenflow)
+  - [ ] [dev_tools](https://github.com/causify-ai/dev_tools)
+  - [ ] [cmamp](https://github.com/causify-ai/cmamp)
+  - [ ] [orange](https://github.com/causify-ai/orange) (On per-need basis)
+  - [ ] [UMD_data605](https://github.com/gpsaggese/umd_data605) (On per-need
+        basis)
 
 - [ ] **Team member**: Confirm access to GitHub repos
-
-- [ ] **IT**: Add team member to ZenHub
-  - After GH access is confirmed
-  - [Invite](https://app.zenhub.com/workspaces/cm-615371012ed326001e044788/board?invite=true)
-
-- [ ] **Team member**: Confirm access to ZenHub
-      [here](https://app.zenhub.com/workspaces/cm-615371012ed326001e044788/board?invite=true)
 
 - [ ] **IT**: Server set-up
   - We use the personal laptop as a thin client only to connect to the servers,
@@ -232,7 +219,7 @@
   - `> aws s3 --profile ck ls s3://cryptokaizen-unit-test/`
   - `> aws s3 --profile ck ls s3://cryptokaizen-data/`
 
-- [ ] **Team member**: Customize Gmail, Telegram, and GitHub accounts
+- [ ] **Team member**: Add your photo to the Slack and GitHub accounts
   - Please use the same photo in all accounts with a recognizable Gravatar
   - We use the picture to select Issues and conversations
   - Please use a picture where you look somehow professional (e.g., not a
@@ -247,7 +234,7 @@
 - [ ] **Team member**: Add your usual working hours by going to
       calendar.google.com (using your corporate email), heading to the settings
       section by clicking the gear icon on top right
-  - <img src="figs/google_calendar/Fig1_google_calendar_working_hour.png"
+  - <img src="https://github.com/causify-ai/helpers/blob/master/docs/onboarding/figs/google_calendar/Fig1_google_calendar_working_hour.png"
     style="width:6in" />
 
 - [ ] **Team member**: Confirm you can access the anonymous form to ask anything
@@ -269,7 +256,7 @@
     - There is an extension for VSCode, which allows to develop remotely
       [Remote - SSH](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-ssh)
     - Follow this instruction on how to set it up in your
-      [Visual Studio Code](/docs/work_tools/all.visual_studio_code.how_to_guide.md)
+      [Visual Studio Code](https://github.com/causify-ai/helpers/blob/master/docs/work_tools/all.visual_studio_code.how_to_guide.md)
   - [ ] Run the unit tests and make sure they all pass
   - [ ] Run a docker container
     ```
@@ -277,7 +264,7 @@
     ```
   - [ ] Run a jupyter notebook
     - Follow this
-      [instruction](/docs/work_tools/all.visual_studio_code.how_to_guide.md#how-to-access-the-jupyter-server-running-on-the-remote-server-through-your-local-machine)
+      [instruction](https://github.com/causify-ai/helpers/blob/master/docs/work_tools/all.visual_studio_code.how_to_guide.md#how-to-access-the-jupyter-server-running-on-the-remote-server-through-your-local-machine)
       on how to access the Jupyter server running on the remote server through
       your local machine
     ```
@@ -287,7 +274,7 @@
 ### The second day
 
 - [ ] **Team member**: carefully study all the documents in:
-      [docs/onboarding](https://github.com/cryptokaizen/cmamp/tree/master/docs/onboarding)
+      [docs/onboarding](https://github.com/causify-ai/helpers/tree/master/docs/onboarding)
   - Read it carefully one by one
   - Ask questions
   - Memorize / internalize all the information
@@ -300,11 +287,10 @@
 
 - [ ] **Team member**: exercise all the important parts of the systems
   - [ ] Create a GitHub issue
-  - [ ] Get familiar with
-        [ZenHub](https://app.zenhub.com/workspaces/cm-615371012ed326001e044788/board)
-        [doc](https://github.com/cryptokaizen/cmamp/blob/master/docs/work_organization/all.use_github_and_zenhub.how_to_guide.md)
-  - Check out the code on server
-  - Run all regressions on server
-  - Create a branch
-  - Run the linter.py on server
-  - Do a PR
+  - [ ] Get familiar with the
+        [GH doc](https://github.com/causify-ai/helpers/blob/master/docs/work_organization/all.use_github_and_zenhub.how_to_guide.md)
+  - [ ] Check out the code on server
+  - [ ] Run all regressions on server
+  - [ ] Create a branch
+  - [ ] Run the linter.py on server
+  - [ ] Do a PR
