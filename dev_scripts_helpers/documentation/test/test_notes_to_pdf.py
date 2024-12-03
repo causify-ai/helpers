@@ -34,6 +34,9 @@ def _create_in_file(self_: Any) -> str:
     return in_file
 
 
+@pytest.mark.skipif(
+    hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
+)
 class Test_notes_to_pdf1(hunitest.TestCase):
     def test1(self) -> None:
         """

@@ -252,7 +252,6 @@ def remove_lead_trail_empty_lines(lines: StrOrList) -> StrOrList:
         lines.pop(0)
     # Remove trailing empty lines.
     while lines and not lines[-1].strip():
-        _LOG.info("Removing '%s'", lines[-1])
         lines.pop()
     return lines
 
@@ -265,7 +264,7 @@ def dedent(txt: str, *, remove_lead_trail_empty_lines_: bool = True) -> str:
     It is the opposite of `indent()`.
 
     :param txt: multi-line string
-    :param remove_lead_trail_empty_lines: if True, remove all the empty
+    :param remove_lead_trail_empty_lines_: if True, remove all the empty
         lines at the beginning and at the end
     """
     if remove_lead_trail_empty_lines_:

@@ -10,7 +10,6 @@ import pandas as pd
 import pytest
 
 import config_root.config as cconfig
-import config_root.config.config_ as crococon
 import helpers.hdbg as hdbg
 import helpers.hintrospection as hintros
 import helpers.hprint as hprint
@@ -2122,7 +2121,9 @@ class Test_mark_as_used1(hunitest.TestCase):
         key2 (marked_as_used=True, writer=$GIT_ROOT/config_root/config/test/test_config.py::***::test4, val_type=list): ['value2', 2]"""
         self._helper(test_config, expected_config)
 
-    def _helper(self, actual_config: cconfig.Config, expected_config: str) -> None:
+    def _helper(
+        self, actual_config: cconfig.Config, expected_config: str
+    ) -> None:
         """
         Remove line numbers from config string and compare to expected value.
         """

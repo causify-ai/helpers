@@ -4,9 +4,8 @@ Import as:
 import helpers.hmoto as hmoto
 """
 
-from typing import Generator
-
 import unittest.mock as umock
+from typing import Generator
 
 import pytest  # isort:skip # noqa: E402 # pylint: disable=wrong-import-position
 

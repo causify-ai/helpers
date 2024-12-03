@@ -64,8 +64,10 @@ def get_profiling_command(test_list_name: str) -> str:
         test_list_name,
         ["fast_tests", "slow_tests", "superslow_tests", "fast_slow_tests"],
     )
-    command = (f"invoke run_{test_list_name} -p 'dev_scripts --durations 0' 2>&1"
-        f"| tee tmp.{test_list_name}_profile.txt")
+    command = (
+        f"invoke run_{test_list_name} -p 'dev_scripts --durations 0' 2>&1"
+        f"| tee tmp.{test_list_name}_profile.txt"
+    )
     return command
 
 
