@@ -295,7 +295,7 @@ def add_input_output_args(
 
 
 def parse_input_output_args(
-    args: argparse.Namespace, clear_screen: bool = False
+    args: argparse.Namespace, *, clear_screen: bool = False
 ) -> Tuple[str, str]:
     """
     :return input and output file name.
@@ -308,8 +308,8 @@ def parse_input_output_args(
     if in_file_name != "-":
         if clear_screen:
             os.system("clear")
-        _LOG.info(f"in_file_name='{in_file_name}'")
-        _LOG.info(f"out_file_name='{out_file_name}'")
+        _LOG.info(hprint.to_str("in_file_name"))
+        _LOG.info(hprint.to_str("out_file_name"))
     return in_file_name, out_file_name
 
 
@@ -525,13 +525,14 @@ def str_to_bool(value: str) -> bool:
     Convert string representing true or false to the corresponding bool.
     """
     if value.lower() == "true":
-        return True
+        ret = True
     elif value.lower() == "false":
-        return False
+        ret = False
     else:
         raise argparse.ArgumentTypeError(
-            "Invalid boolean value. Use 'true' or 'false'."
+            f"Invalid boolean value {value}. Use 'true' or 'false'."
         )
+    return ret
 
 
 # #############################################################################
@@ -555,6 +556,7 @@ def add_dockerized_script_arg(
         action="store_true",
         help="Use sudo inside the container",
     )
+    return parser
 
 
 def add_transform_arg(
@@ -578,3 +580,4 @@ def add_transform_arg(
         action="store_true",
         help="Use a fast LLM model vs a high-quality one",
     )
+    return parser

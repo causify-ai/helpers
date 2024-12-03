@@ -1,7 +1,6 @@
 import logging
 import os
 import unittest.mock as umock
-from sqlite3 import converters
 from typing import Any, List
 
 import pytest
@@ -266,12 +265,13 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
             parsed_args["in_file_path"],
             parsed_args["out_file_path"],
             parsed_args["cmd_opts"],
-            parsed_args["data_dir"]
+            parsed_args["data_dir"],
         )
         # Check that the converted command matches the original command.
-        act = 'pandoc ' + converted_cmd
+        act = "pandoc " + converted_cmd
         exp = cmd
         self.assert_equal(act, exp)
+
 
 # #############################################################################
 # Test_run_dockerized_pandoc1

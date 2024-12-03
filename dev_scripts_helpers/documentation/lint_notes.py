@@ -147,7 +147,7 @@ def prettier_on_str(
     **kwargs: Any,
 ) -> str:
     """
-    Wrapper around `prettier()` to work on strings.
+    Wrap `prettier()` to work on strings.
     """
     _LOG.debug("txt=\n%s", txt)
     # Save string as input.

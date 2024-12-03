@@ -1,5 +1,3 @@
-
-
 <!-- toc -->
 
 - [Definitions](#definitions)
@@ -118,13 +116,15 @@
 
 ## Format a chunk of `txt` file
 
-- ```bash
+- In vim
+  ```bash
   :'<,'>!helpers_root/dev_scripts_helpers/llms/llm_transform.py -i - -o - -t md_format
   ```
 
 ## List possible LLM transforms
 
-- ```
+- Use `-t list` or
+  ```bash
   > \grep "def " ./dev_scripts_helpers/llms/llm_prompts.py | \grep "(user: str, model: str)"
   def code_comment(user: str, model: str) -> str:
   def code_docstring(user: str, model: str) -> str:
@@ -139,7 +139,7 @@
 
 ## Convert notes to slides
 
-- ```
+- ```bash
   > notes_to_pdf.py --input notes/MSML610/Lesson1-Intro.txt --output tmp.pdf -t slides --skip_action copy_to_gdrive --skip_action open --skip_action cleanup_after
   ```
 

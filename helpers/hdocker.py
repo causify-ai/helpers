@@ -208,9 +208,6 @@ def replace_shared_root_path(
 
 # See docs/work_tools/docker/all.dockerized_flow.explanation.md
 
-# llm_transform.py -i docs/work_tools/dev_system/all.create_a_super_repo_with_helpers.how_to_guide.md -o - -t md_summarize -v DEBUG
-
-
 def build_container(
     container_name: str, dockerfile: str, force_rebuild: bool, use_sudo: bool
 ) -> str:
@@ -538,6 +535,7 @@ def run_dockerized_prettier(
 
 # #############################################################################
 
+
 # `parse_pandoc_arguments` and `convert_pandoc_arguments_to_cmd` are opposite
 # functions that allow to convert a command line to a dictionary and back to a
 # command line. This is useful when we want to run a command in a container
@@ -581,12 +579,15 @@ def parse_pandoc_arguments(cmd: str) -> Dict[str, Any]:
 
 
 def convert_pandoc_arguments_to_cmd(
-        in_file_path: str,
-        out_file_path: str,
-        cmd_opts: List[str],
-        data_dir: Optional[str]) -> str:
-    cmd = (f"{in_file_path} --output {out_file_path} --data-dir {data_dir}"
-           f" {' '.join(cmd_opts)}")
+    in_file_path: str,
+    out_file_path: str,
+    cmd_opts: List[str],
+    data_dir: Optional[str],
+) -> str:
+    cmd = (
+        f"{in_file_path} --output {out_file_path} --data-dir {data_dir}"
+        f" {' '.join(cmd_opts)}"
+    )
     return cmd
 
 
@@ -630,12 +631,14 @@ def run_dockerized_pandoc(
         return docker_cmd
     # TODO(gp): Note that `suppress_output=False` seems to hang the call.
     hsystem.system(docker_cmd)
+    return None
 
 
-def run_pandoc(cmd: str, *, use_dockerized_pandoc: bool = True, use_sudo:
-bool = False) -> None:
+def run_pandoc(
+    cmd: str, *, use_dockerized_pandoc: bool = True, use_sudo: bool = False
+) -> None:
     """
-    
+    Run `pandoc` using the dockerized executable or the host one.
     """
     if use_dockerized_pandoc:
         # Parse the command line arguments to extract the input and output files.

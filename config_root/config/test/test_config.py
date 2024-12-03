@@ -6,11 +6,11 @@ import pprint
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
-import config_root.config as cconfig
-import config_root.config.config_ as cconconf
 import pandas as pd
 import pytest
 
+import config_root.config as cconfig
+import config_root.config.config_ as crococon
 import helpers.hdbg as hdbg
 import helpers.hintrospection as hintros
 import helpers.hprint as hprint
@@ -88,7 +88,7 @@ def _get_flat_config1(self: Any) -> cconfig.Config:
     return config
 
 
-class Test_flat_config_set1(hunitest.TestCase) -> None:
+class Test_flat_config_set1(hunitest.TestCase):
     def test_set1(self) -> None:
         """
         Set a key and print a flat config.
