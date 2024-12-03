@@ -499,7 +499,7 @@ def _generate_docker_compose_file(
 
     def append(txt_tmp: str, indent_level: int) -> None:
         # txt_tmp = txt_tmp.rstrip("\n").lstrip("\n")
-        txt_tmp = hprint.dedent(txt_tmp, remove_empty_leading_trailing_lines=True)
+        txt_tmp = hprint.dedent(txt_tmp, remove_lead_trail_empty_lines_=True)
         num_spaces = 2 * indent_level
         txt_tmp = hprint.indent(txt_tmp, num_spaces=num_spaces)
         txt.append(txt_tmp)

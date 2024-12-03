@@ -154,7 +154,7 @@ class Test_preprocess_notes3(hunitest.TestCase):
                         print(v)
             ```
         """
-        txt_in = hprint.dedent(txt_in, remove_empty_leading_trailing_lines=True)
+        txt_in = hprint.dedent(txt_in, remove_lead_trail_empty_lines_=True)
         exp = r"""
         \let\emph\textit
         \let\uline\underline
@@ -177,7 +177,7 @@ class Test_preprocess_notes3(hunitest.TestCase):
                             print(v)
                 ```
         """
-        exp = hprint.dedent(exp, remove_empty_leading_trailing_lines=True)
+        exp = hprint.dedent(exp, remove_lead_trail_empty_lines_=True)
         self._helper_run_all(txt_in, exp)
 
     def _helper_run_all(self, txt_in: str, exp: str) -> None:

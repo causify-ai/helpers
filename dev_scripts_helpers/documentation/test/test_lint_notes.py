@@ -4,7 +4,7 @@ from typing import Optional
 
 import pytest
 
-import dev_scripts_helpers.documentation.lint_notes as dshdlitx
+import dev_scripts_helpers.documentation.lint_notes as dshdlino
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
@@ -36,7 +36,7 @@ def _get_text1() -> str:
     - It can be proven that the function $E_{in}(\vw)$ to minimize is convex in
       $\vw$ (sum of exponentials and flipped exponentials is convex and log is
       monotone)"""
-    txt = hprint.dedent(txt, remove_empty_leading_trailing_lines=True)
+    txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
     return txt
 
 
@@ -118,9 +118,9 @@ class Test_lint_notes1(hunitest.TestCase):
         self._helper_preprocess(txt, exp)
 
     def _helper_preprocess(self, txt: str, exp: str) -> None:
-        txt = hprint.dedent(txt, remove_empty_leading_trailing_lines=True)
-        act = dshdlitx._preprocess(txt)
-        exp = hprint.dedent(exp, remove_empty_leading_trailing_lines=True)
+        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
+        act = dshdlino._preprocess(txt)
+        exp = hprint.dedent(exp, remove_lead_trail_empty_lines_=True)
         self.assert_equal(act, exp)
 
 
@@ -202,10 +202,10 @@ class Test_lint_notes2(hunitest.TestCase):
         txt = r"""
         <!-- toc -->
         <!-- tocstop -->
-        
+
         - Good
         - Hello
-        
+
         ```test
         - hello
             - world
@@ -236,7 +236,7 @@ class Test_lint_notes2(hunitest.TestCase):
         For some reason prettier replaces - with * when there are 2 empty lines.
         """
         txt = self._get_text_problematic_for_prettier1()
-        act = dshdlitx.prettier_on_str(txt)
+        act = dshdlino.prettier_on_str(txt)
         exp = r"""
         - Python formatting
 
@@ -249,7 +249,7 @@ class Test_lint_notes2(hunitest.TestCase):
         * Text template as a format string
           - Values to insert are provided as a value or a `tuple`
         """
-        exp = hprint.dedent(exp, remove_empty_leading_trailing_lines=True)
+        exp = hprint.dedent(exp, remove_lead_trail_empty_lines_=True)
         self.assert_equal(act, exp)
 
     def test_process5(self) -> None:
@@ -309,7 +309,7 @@ class Test_lint_notes2(hunitest.TestCase):
         - Text template as a format string
           - Values to insert are provided as a value or a `tuple`
         """
-        txt = hprint.dedent(txt, remove_empty_leading_trailing_lines=True)
+        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
         return txt
 
     def _helper_process(
@@ -320,15 +320,16 @@ class Test_lint_notes2(hunitest.TestCase):
         the expected output.
 
         :param txt: The text to be processed.
-        :param exp: The expected output after processing the text. If None, no
-            comparison is made.
-        :param file_name: The name of the file to be used for processing.
+        :param exp: The expected output after processing the text. If
+            None, no comparison is made.
+        :param file_name: The name of the file to be used for
+            processing.
         :return: The processed text.
         """
-        txt = hprint.dedent(txt, remove_empty_leading_trailing_lines=True)
+        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
         file_name = os.path.join(self.get_scratch_space(), file_name)
-        act = dshdlitx._process(txt, file_name)
+        act = dshdlino._process(txt, file_name)
         if exp:
-            exp = hprint.dedent(exp, remove_empty_leading_trailing_lines=True)
+            exp = hprint.dedent(exp, remove_lead_trail_empty_lines_=True)
             self.assert_equal(act, exp)
         return act

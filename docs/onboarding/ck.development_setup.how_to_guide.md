@@ -15,8 +15,9 @@
   * [Configure tmux (optional)](#configure-tmux-optional)
   * [Spruce up your environment](#spruce-up-your-environment)
   * [Set up AWS](#set-up-aws)
-  * [Set up Telegram token](#set-up-telegram-token)
   * [Clone the Hub repo](#clone-the-hub-repo)
+  * [Set up the thin environment](#set-up-the-thin-environment)
+  * [Activate the thin environment](#activate-the-thin-environment)
   * [Create a tmux session](#create-a-tmux-session)
   * [Configure `gh`](#configure-gh)
     + [Fix permissions](#fix-permissions)
@@ -337,45 +338,50 @@
   ```bash
   > mkdir ~/src
   > cd ~/src
-  >  clone git@github.com:causify-ai/cmamp.git ~/src/cmamp1
+  > git clone --recursive git@github.com:causify-ai/cmamp.git ~/src/cmamp1
   ```
 - You can have multiple cloned repos like `cmamp2`, `cmamp3` and so on to work
   on unrelated changes at the same time
-- Build the thin environment we use to call invoke and Docker:
+
+### Set up the thin environment
+
+- Build the thin environment we use to call invoke and Docker. For all the repos
+  we use the thin environment from the `helpers` repo, i.e. to build one we need
+  to run:
   ```bash
-  > cd ~/src/cmamp1
-  > dev_scripts/client_setup/build.sh 2>&1 | tee tmp.build.log
-  ...
-  # docker=Docker version 20.10.10, build b485636
-  # Configure your client with:
-  > source dev_scripts/setenv_amp.sh
+    > cd amp (only if amp is sumbodule)
+    > cd helpers_root
+    > ./dev_scripts_helpers/thin_client/build.py
   ```
 - This script to build the environment is run rarely when the dependencies are
   changed.
 - This environment is shared by multiple repos (e.g., all the `cmamp` and
   `dev_tools`), so once you build the environment you can use it for all the
   repos and for multiple clients
-- The same setup applies to any set-up including `amp` (e.g., `orange`,
-  `dev_tools`), one needs to recursively clone into the `amp` folder (see
-  ` --clone ...`) then follow the same procedure by sourcing the script from top
-  of the supermodule: `amp/dev_scripts/client_setup/build.sh`
+
+### Activate the thin environment
+
+- To activate the thin environment, run the `setenv.sh` script. The script is
+  located under `dev_scripts_{repo_name}/thin_client`, e.g.:
+  ```bash
+  > source dev_scripts_cmamp/thin_client/setenv.sh
+  > source dev_scripts_orange/thin_client/setenv.sh
+  ```
 
 ### Create a tmux session
 
-- Create a link from the script in the repo creating a tmux session to your
-  home:
+- Create a soft link. The cmd below will create a file `~/go_{repo_name}.py`
 
   ```bash
-  > ln -sf $(pwd)/dev_scripts/go_amp.sh ~/go_amp.sh
-
-  > ls -l ~/go_amp.sh
-  lrwxrwxrwx 1 saggese saggese 46 Dec  3 18:26 /data/saggese/go_amp.sh ->     /data/saggese/src/cmamp1/dev_scripts/go_amp.sh
+  > dev_scripts_{repo_name}/thin_client/tmux.py --create_global_link
   ```
 
-- To create the standard tmux view on a cloned environment run
-  `~/go_amp.sh cmamp 1`.
+- Create a tmux session. Choose `index` based on folder name, e.g., `--index 1`
+  if repo name is `~/src/cmamp1`.
 
-  ![alt_text](figs/development_setup/Fig1_Tmux.png)
+  ```bash
+  > dev_scripts_{repo_name}/thin_client/tmux.py --index 1
+  ```
 
 - You need to create the tmux environment once per client and then you can
   re-connect with:
@@ -388,9 +394,6 @@
   # Attach an environment.
   > tmux attach -t cmamp1
   ```
-
-- You can re-run `~/go_amp.sh` when your tmux gets corrupted and you want to
-  restart Of course this doesn't impact the underlying repo
 
 ### Configure `gh`
 
@@ -458,19 +461,20 @@
   - Build the "thin" environment:
     - Needs to be done only once for all your clients
       ```bash
-      > ~/src/cmamp1/dev_scripts/client_setup/build.sh 2>1 | tee tmp.build.log
+      > cd helpers_root
+      > ./dev_scripts_helpers/thin_client/build.py
       ```
   - Start a tmux session
-    - You should have one session per client, e.g., for the Git client
+    - Choose `index` based on folder name, e.g., `--index 1` if repo name is
       `~/src/cmamp1`
       ```bash
-      > ~/go_amp.sh cmamp 1
+      > dev_scripts_{repo_name}/thin_client/tmux.py --index 1
       ```
   - Activate environment:
-    - This is done by `~/go_amp.sh` automatically in all the tmux panes
-    - You change `dev_scripts/setenv_amp.sh` you might need to run
+    - It is activated automatically in all the tmux sessions
+    - Otherwise, run:
       ```bash
-      > source dev_scripts/setenv_amp.sh
+      > source dev_scripts_{repo_name}/thin_client/setenv.sh
       ```
   - Pull `cmamp` docker images:
     - This image is shared all your clients (actually all users on the server

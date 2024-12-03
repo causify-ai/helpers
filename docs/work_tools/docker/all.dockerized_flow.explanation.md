@@ -9,10 +9,25 @@
 
 # The concept of "dockerized" executables
 
-The objective of utilizing "dockerized" executables is to enable the execution
-of software applications, such as Prettier, LaTeX, and Pandoc, within a Docker
-container. This approach eliminates the need for installing these applications
-directly on the host system or within a development container.
+The objective of utilizing "dockerized" executables is to execute software
+applications (e.g., Prettier, LaTeX, and Pandoc) within a Docker container with
+all the needed dependencies.
+
+This approach eliminates the need for installing these applications directly on
+the host system or within a development container.
+
+In other terms, instead of install and execute `prettier` on the host
+
+```bash
+> install prettier
+> prettier ...cmd opts...
+```
+
+we want to run it in a container with minimal changes to the call:
+
+```bash
+> dockerized_prettier ...cmd opts...
+```
 
 - There are two template for dockerized scripts:
   - `dev_scripts_helpers/dockerize/dockerized_template.py`
@@ -36,15 +51,16 @@ directly on the host system or within a development container.
 
 # Testing a dockerized executable
 
-- Testing a dockerized executable can be complex, as the `pytest` tool is
-  executed within a container environment.
-  - The dockerized executable runs inside the container, rather than executing
-    outside of Docker as it typically would.
-
-- The layers are
+- Testing a dockerized executable can be complex, since in our development
+  system `pytest` is executed within a container environment.
+- Thus the dockerized executable needs to be run inside the container running
+  `pytest`, rather than executing outside of Docker as it typically would when
+  called by a user.
+- The layers in this setup are
   - `host`
     - `dev container`
-      - `dockerized executable`
+      - `pytest`
+        - `dockerized executable`
 
 - Running applications within the development container necessitates one of the
   following approaches:
@@ -85,7 +101,8 @@ directly on the host system or within a development container.
     implement.
   - Approach 1)
     - We could overwrite the entrypoint with something like:
-      ```
+
+      ```bash
       #!/bin/bash
 
       # Wait until a specific file is copied into the container

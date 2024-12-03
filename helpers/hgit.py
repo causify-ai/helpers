@@ -191,6 +191,33 @@ def find_git_root(path: str = ".") -> str:
     return path
 
 
+def find_helpers_root() -> str:
+    """
+    Find the root directory of the `helpers` repository.
+
+    If the current directory is within the `helpers` repository, the root of the
+    repository is returned. Otherwise, the function searches for the `helpers_root`
+    directory starting from the root of the repository.
+
+    :returns: The absolute path to the `helpers_root` directory.
+    """
+    git_root = find_git_root()
+    if is_helpers():
+        # If we are in `//helpers`, then the helpers root is the root of the
+        # repo.
+        cmd = "git rev-parse --show-toplevel"
+    else:
+        # We need to search for the `helpers_root` dir starting from the root
+        # of the repo.
+        cmd = rf"find {git_root} -path ./\.git -prune -o -type d -name 'helpers_root' -print | grep -v '\.git'"
+    _, helpers_root = hsystem.system_to_one_line(cmd)
+    helpers_root = os.path.abspath(helpers_root)
+    # Make sure the dir and that `helpers` subdir exists.
+    hdbg.dassert_dir_exists(helpers_root)
+    hdbg.dassert_dir_exists(os.path.join(helpers_root), "helpers")
+    return helpers_root
+
+
 def get_project_dirname(only_index: bool = False) -> str:
     """
     Return the name of the project name (e.g., `/Users/saggese/src/amp1` ->
@@ -746,7 +773,7 @@ def find_file_in_git_tree(
     root_dir = get_client_root(super_module=super_module)
     cmd = rf"find {root_dir} -name '{file_name}' -not -path '*/.git/*'"
     if remove_tmp_base:
-        cmd += rf" -not -path '*/tmp\.base/*'"
+        cmd += r" -not -path '*/tmp\.base/*'"
     _, file_name = hsystem.system_to_one_line(cmd)
     _LOG.debug("file_name=%s", file_name)
     hdbg.dassert_ne(
@@ -799,7 +826,7 @@ def get_path_from_git_root(
 
 
 @functools.lru_cache()
-def get_amp_abs_path(remove_tmp_base: bool = True) -> str:
+def get_amp_abs_path() -> str:
     """
     Return the absolute path of `amp` dir.
     """
@@ -1111,7 +1138,7 @@ def git_log(num_commits: int = 5, my_commits: bool = False) -> str:
     cmd = []
     cmd.append("git log --date=local --oneline --graph --date-order --decorate")
     cmd.append(
-        "--pretty=format:" "'%h %<(8)%aN%  %<(65)%s (%>(14)%ar) %ad %<(10)%d'"
+        "--pretty=format:'%h %<(8)%aN%  %<(65)%s (%>(14)%ar) %ad %<(10)%d'"
     )
     cmd.append(f"-{num_commits}")
     if my_commits:

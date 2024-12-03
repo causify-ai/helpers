@@ -244,7 +244,7 @@ _(if already applicable)_
 
 ### Set repository secrets/variables
 
-1. Login to 1password https://cryptokaizen.1password.com/home
+1. Login to 1password https://causify.1password.com/home
 
 - Ask your TL if you don't have access to 1password
 

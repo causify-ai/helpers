@@ -289,7 +289,7 @@ def _refresh_toc(txt: str) -> str:
     # Clean up.
     os.remove(tmp_file_name)
     # Remove empty lines introduced by `markdown-toc`.
-    txt = hprint.trim_consecutive_empty_lines(txt)
+    txt = hprint.remove_lead_trail_empty_lines(txt)
     return txt  # type: ignore
 
 
