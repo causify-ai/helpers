@@ -44,7 +44,7 @@ class S3Mock_TestCase(hunitest.TestCase):
 
     # This will be run before and after each test.
     @pytest.fixture(autouse=True)
-    def setup_teardown_test(self):
+    def setup_teardown_test(self) -> None:
         # Run before each test.
         self.set_up_test()
         yield

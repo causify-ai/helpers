@@ -80,7 +80,7 @@ class Test_replace_shared_root_path1(hunitest.TestCase):
 # #############################################################################
 
 # class Test_convert_file_names_to_docker1(hunitest.TestCase):
-#     def test1(self):
+#     def test1(self) -> None:
 #         dir_name = self.get_input_dir()
 #         # Prepare inputs.
 #         in_file_path = os.path.join(dir_name, "input.md")
@@ -181,7 +181,7 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
 
 
 class Test_parse_pandoc_arguments1(hunitest.TestCase):
-    def test1(self):
+    def test1(self) -> None:
         # Prepare inputs.
         cmd = r"""
         pandoc input.md -o output.pdf --data-dir /data --toc --toc-depth 2
@@ -198,7 +198,7 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
         }
         self.assert_equal(str(act), str(exp))
 
-    def test2(self):
+    def test2(self) -> None:
         # Prepare inputs.
         cmd = r"""
         pandoc input.md -o output.pdf --toc
@@ -215,7 +215,7 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
         }
         self.assert_equal(str(act), str(exp))
 
-    def test3(self):
+    def test3(self) -> None:
         # Prepare inputs.
         cmd = r"""
         pandoc test/outcomes/tmp.pandoc.preprocess_notes.txt \
@@ -251,6 +251,9 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
             ],
         }
         self.assert_equal(str(act), str(exp))
+
+    def test4(self) -> None:
+        convert_pandoc_arguments_to_cmd
 
 
 # #############################################################################
@@ -295,7 +298,7 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
         """
         self.run_pandoc(txt, exp)
 
-    def run_pandoc(self, txt: str, exp: str, use_dockerized_pandoc: bool) -> None:
+    def run_pandoc(self, txt: str, exp: str) -> None:
         """
         Test running the `pandoc` command in a Docker container.
 

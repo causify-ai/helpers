@@ -3491,7 +3491,7 @@ class Test_compute_duration_df(hunitest.TestCase):
 
 
 class Test_compare_nans_in_dataframes(hunitest.TestCase):
-    def test1(self):
+    def test1(self) -> None:
         """
         Check that NaN differences are identified correctly.
         """

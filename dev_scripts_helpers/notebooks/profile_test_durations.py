@@ -52,7 +52,7 @@ config = {"test_list_name": "fast_slow_tests"}
 # # Functions
 
 # %%
-def get_profiling_command(test_list_name: str):
+def get_profiling_command(test_list_name: str) -> str:
     """
     Get command for profiling selected test type.
 

@@ -538,7 +538,10 @@ def run_dockerized_prettier(
 
 # #############################################################################
 
-
+# `parse_pandoc_arguments` and `convert_pando_arguments_to_cmd` are opposite
+# functions that allow to convert a command line to a dictionary and back to a
+# command line. This is useful when we want to run a command in a container
+# which requires to know how to interpret the command line arguments.
 def parse_pandoc_arguments(cmd: str) -> Dict[str, Any]:
     """
     Parse the arguments for a pandoc command.
@@ -577,7 +580,16 @@ def parse_pandoc_arguments(cmd: str) -> Dict[str, Any]:
     }
 
 
-# TODO(gp): Pass cmd_opts after in_file_path and out_file_path.
+def convert_pandoc_arguments_to_cmd(
+        in_file_path: str,
+        out_file_path: str,
+        cmd_opts: List[str],
+        data_dir: Optional[str]) -> str:
+    cmd = (f"{in_file_path} --output {out_file_path} --data-dir {data_dir}"
+           f" {' '.join(cmd_opts)}")
+    return cmd
+
+
 def run_dockerized_pandoc(
     in_file_path: str,
     out_file_path: str,
@@ -620,11 +632,15 @@ def run_dockerized_pandoc(
     hsystem.system(docker_cmd)
 
 
-def run_pandoc(cmd: str, *, use_dockerized_pandoc: bool = True) -> None:
+def run_pandoc(cmd: str, *, use_dockerized_pandoc: bool = True, use_sudo:
+bool = False) -> None:
+    """
+    
+    """
     if use_dockerized_pandoc:
+        # Parse the command line arguments to extract the input and output files.
         cmd_opts = parse_pandoc_arguments(cmd)
-        # TODO(gp): This should be a global switch.
-        cmd_opts["use_sudo"] = False
+        cmd_opts["use_sudo"] = use_sudo
         run_dockerized_pandoc(**cmd_opts)
     else:
         _ = hsystem.system(cmd, suppress_output=False)

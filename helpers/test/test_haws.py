@@ -26,7 +26,7 @@ class Haws_test_case(hunitest.TestCase):
 
 class Test_get_session(Haws_test_case):
     @pytest.fixture(autouse=True)
-    def set_up_test(self, aws_credentials):
+    def set_up_test(self, aws_credentials) -> None:
         os.environ["MOCK_AWS_S3_BUCKET"] = "mock_aws_bucket"
 
     def mock_session(self, region: Optional[str] = None) -> None:

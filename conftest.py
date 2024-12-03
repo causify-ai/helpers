@@ -34,7 +34,7 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
     import pytest
 
     @pytest.fixture(autouse=True)
-    def populate_globals(capsys):
+    def populate_globals(capsys) -> None:
         hut._GLOBAL_CAPSYS = capsys
 
     # Add custom options.

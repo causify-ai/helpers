@@ -63,7 +63,7 @@ class _ResetGlobalCacheHelper(hunitest.TestCase):
 
     # This will be run before and after each test.
     @pytest.fixture(autouse=True)
-    def setup_teardown_test(self):
+    def setup_teardown_test(self) -> None:
         # Run before each test.
         self.set_up_test()
         yield
@@ -441,7 +441,7 @@ class TestGlobalCache1(_ResetGlobalCacheHelper):
 class _ResetFunctionSpecificCacheHelper(_ResetGlobalCacheHelper):
     # This will be run before and after each test.
     @pytest.fixture(autouse=True)
-    def setup_teardown_test(self):
+    def setup_teardown_test(self) -> None:
         # Run before each test.
         self.set_up_test2()
         yield
@@ -731,7 +731,7 @@ class TestAmpTask1407(_ResetGlobalCacheHelper):
 class TestCachingOnS3(_ResetFunctionSpecificCacheHelper):
     # This will be run before and after each test.
     @pytest.fixture(autouse=True)
-    def setup_teardown_test(self):
+    def setup_teardown_test(self) -> None:
         # Run before each test.
         self.set_up_test3()
         yield

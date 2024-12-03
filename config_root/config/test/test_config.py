@@ -88,7 +88,7 @@ def _get_flat_config1(self: Any) -> cconfig.Config:
     return config
 
 
-class Test_flat_config_set1(hunitest.TestCase):
+class Test_flat_config_set1(hunitest.TestCase) -> None:
     def test_set1(self) -> None:
         """
         Set a key and print a flat config.
@@ -1547,7 +1547,7 @@ class Test_to_dict1(hunitest.TestCase):
         """
         self.helper(config_as_dict, exp)
 
-    # def test4(self):
+    # def test4(self) -> None:
     #     import dataflow_lime.pipelines.E8.E8d_pipeline as dtflpee8pi
     #     obj = dtflpee8pi.E8d_DagBuilder()
     #     obj.get_config_template()
@@ -1903,7 +1903,7 @@ class Test_save_to_file(hunitest.TestCase):
 # #############################################################################
 
 
-def remove_line_numbers(actual_config: str):
+def remove_line_numbers(actual_config: str) -> str:
     # Remove line numbers from shorthand representations, e.g.
     #  dataflow/system/system_builder_utils.py::***::get_config_template
     line_regex = r"(?<=::)(\d+)(?=::)"
@@ -2122,7 +2122,7 @@ class Test_mark_as_used1(hunitest.TestCase):
         key2 (marked_as_used=True, writer=$GIT_ROOT/config_root/config/test/test_config.py::***::test4, val_type=list): ['value2', 2]"""
         self._helper(test_config, expected_config)
 
-    def _helper(self, actual_config: cconfig.Config, expected_config: str):
+    def _helper(self, actual_config: cconfig.Config, expected_config: str) -> None:
         """
         Remove line numbers from config string and compare to expected value.
         """
