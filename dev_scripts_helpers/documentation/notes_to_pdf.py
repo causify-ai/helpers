@@ -40,7 +40,7 @@ _EXEC_DIR_NAME = os.path.abspath(os.path.dirname(sys.argv[0]))
 
 # #############################################################################
 
-_SCRIPT : Optional[List[str]] = None
+_SCRIPT: Optional[List[str]] = None
 
 
 def _append_script(msg: str) -> None:

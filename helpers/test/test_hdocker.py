@@ -165,8 +165,9 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
         out_file_path = os.path.join(self.get_scratch_space(), "output.txt")
         force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
-        hdocker.run_dockerized_prettier(in_file_path, out_file_path, cmd_opts,
-                                        force_rebuild, use_sudo)
+        hdocker.run_dockerized_prettier(
+            in_file_path, out_file_path, cmd_opts, force_rebuild, use_sudo
+        )
         # Check.
         act = hio.from_file(out_file_path)
         self.assert_equal(
@@ -294,8 +295,7 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
         """
         self.run_pandoc(txt, exp)
 
-    def run_pandoc(self, txt: str, exp: str, use_dockerized_pandoc: bool) -> \
-            None:
+    def run_pandoc(self, txt: str, exp: str, use_dockerized_pandoc: bool) -> None:
         """
         Test running the `pandoc` command in a Docker container.
 
@@ -311,8 +311,9 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
         out_file_path = os.path.join(self.get_scratch_space(), "output.md")
         data_dir = None
         use_sudo = hdocker.get_use_sudo()
-        hdocker.run_dockerized_pandoc(in_file_path, out_file_path, cmd_opts,
-                                      data_dir, use_sudo)
+        hdocker.run_dockerized_pandoc(
+            in_file_path, out_file_path, cmd_opts, data_dir, use_sudo
+        )
         # Check.
         act = hio.from_file(out_file_path)
         self.assert_equal(
@@ -374,8 +375,9 @@ class Test_run_markdown_toc1(hunitest.TestCase):
         in_file_path = _create_test_file(self, txt, extension="md")
         force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
-        hdocker.run_dockerized_markdown_toc(in_file_path, force_rebuild,
-                                            cmd_opts, use_sudo)
+        hdocker.run_dockerized_markdown_toc(
+            in_file_path, force_rebuild, cmd_opts, use_sudo
+        )
         # Check.
         act = hio.from_file(in_file_path)
         self.assert_equal(

@@ -66,9 +66,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.debug("cmd_opts: %s", cmd_opts)
     if not args.output:
         args.output = args.input
-    hdocker.run_dockerized_prettier(args.input, args.output, cmd_opts,
-                                    args.dockerized_force_rebuild,
-                                    args.dockerized_use_sudo)
+    hdocker.run_dockerized_prettier(
+        args.input,
+        args.output,
+        cmd_opts,
+        args.dockerized_force_rebuild,
+        args.dockerized_use_sudo,
+    )
     _LOG.info("Output written to '%s'", args.output)
 
 

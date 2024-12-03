@@ -400,9 +400,13 @@ def convert_file_names_to_docker(
 # #############################################################################
 
 
-def run_dockerized_prettier(in_file_path: str, out_file_path: str,
-                            cmd_opts: List[str], force_rebuild: bool,
-                            use_sudo: bool) -> None:
+def run_dockerized_prettier(
+    in_file_path: str,
+    out_file_path: str,
+    cmd_opts: List[str],
+    force_rebuild: bool,
+    use_sudo: bool,
+) -> None:
     """
     Run `prettier` in a Docker container.
 
@@ -574,10 +578,14 @@ def parse_pandoc_arguments(cmd: str) -> Dict[str, Any]:
 
 
 # TODO(gp): Pass cmd_opts after in_file_path and out_file_path.
-def run_dockerized_pandoc(in_file_path: str, out_file_path: str,
-                          cmd_opts: List[str], data_dir: Optional[str],
-                          return_cmd: bool = False, use_sudo: bool = True) ->\
-        Optional[str]:
+def run_dockerized_pandoc(
+    in_file_path: str,
+    out_file_path: str,
+    cmd_opts: List[str],
+    data_dir: Optional[str],
+    return_cmd: bool = False,
+    use_sudo: bool = True,
+) -> Optional[str]:
     """
     Run `pandoc` in a Docker container.
 
@@ -625,8 +633,9 @@ def run_pandoc(cmd: str, *, use_dockerized_pandoc: bool = True) -> None:
 # #############################################################################
 
 
-def run_dockerized_markdown_toc(in_file_path: str, force_rebuild: bool,
-                                cmd_opts: List[str], use_sudo: bool) -> None:
+def run_dockerized_markdown_toc(
+    in_file_path: str, force_rebuild: bool, cmd_opts: List[str], use_sudo: bool
+) -> None:
     """
     Same as `run_dockerized_prettier()` but for `markdown-toc`.
     """
@@ -674,9 +683,13 @@ def run_dockerized_markdown_toc(in_file_path: str, force_rebuild: bool,
 # #############################################################################
 
 
-def run_dockerized_llm_transform(in_file_path: str, out_file_path: str,
-                                 cmd_opts: str, force_rebuild: bool,
-                                 use_sudo: bool) -> None:
+def run_dockerized_llm_transform(
+    in_file_path: str,
+    out_file_path: str,
+    cmd_opts: str,
+    force_rebuild: bool,
+    use_sudo: bool,
+) -> None:
     """
     Run _llm_transform.py in a Docker container with all its dependencies.
     """
