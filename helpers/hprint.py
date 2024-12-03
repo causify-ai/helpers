@@ -122,6 +122,7 @@ def frame(
     """
     Print a frame around a message.
 
+    :param message: message to print
     :param char1: char for top line of the frame
     :param num_chars: how many chars in each line (by default 80 chars)
     :param char2: char for bottom line of the frame

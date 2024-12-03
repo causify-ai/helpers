@@ -545,8 +545,11 @@ def parse_pandoc_arguments(cmd: str) -> Dict[str, Any]:
     """
     Parse the arguments for a pandoc command.
 
+    We need to parse all the arguments that correspond to files, so that we
+    can convert them to paths that are valid inside the Docker container.
+
     :param cmd: A list of command-line arguments for pandoc.
-    :return: A dictionary with `input`, `output`, `data_dir`, and other arguments.
+    :return: A dictionary with the parsed arguments.
     """
     # Use shlex.split to tokenize the string like a shell would.
     cmd = shlex.split(cmd)
@@ -566,6 +569,7 @@ def parse_pandoc_arguments(cmd: str) -> Dict[str, Any]:
     parser = argparse.ArgumentParser()
     parser.add_argument("-o", "--output", required=True)
     parser.add_argument("--data-dir", default=None)
+    parser.add_argument("--template", default=None)
     # Parse known arguments and capture the rest.
     args, unknown_args = parser.parse_known_args(cmd)
     _LOG.debug(hprint.to_str("args unknown_args"))
@@ -575,6 +579,7 @@ def parse_pandoc_arguments(cmd: str) -> Dict[str, Any]:
         "in_file_path": in_file_path,
         "out_file_path": args.output,
         "data_dir": args.data_dir,
+        "template": args.template,
         "cmd_opts": unknown_args,
     }
 
@@ -584,9 +589,11 @@ def convert_pandoc_arguments_to_cmd(
     out_file_path: str,
     cmd_opts: List[str],
     data_dir: Optional[str],
+    template: Optional[str],
 ) -> str:
     cmd = (
         f"{in_file_path} --output {out_file_path} --data-dir {data_dir}"
+        f" --template {template}"
         f" {' '.join(cmd_opts)}"
     )
     return cmd
@@ -597,6 +604,7 @@ def run_dockerized_pandoc(
     out_file_path: str,
     cmd_opts: List[str],
     data_dir: Optional[str],
+    template: Optional[str],
     return_cmd: bool = False,
     use_sudo: bool = True,
 ) -> Optional[str]:
@@ -620,13 +628,14 @@ def run_dockerized_pandoc(
     #     --workdir /src \
     #     --mount type=bind,source=.,target=/src \
     #     pandoc/core \
-    #     -s --toc input.md -o output.md
+    #     input.md -o output.md \
+    #     -s --toc
     executable = get_docker_executable(use_sudo)
     docker_cmd = (
         f"{executable} run --rm --user $(id -u):$(id -g)"
         f" --workdir /src --mount {mount}"
         f" {container_name}"
-        f" {cmd_opts_as_str} {in_file_path} -o {out_file_path}"
+        f" {in_file_path} -o {out_file_path} {cmd_opts_as_str}"
     )
     if return_cmd:
         return docker_cmd

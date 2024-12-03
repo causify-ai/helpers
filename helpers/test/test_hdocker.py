@@ -98,6 +98,7 @@ class Test_replace_shared_root_path1(hunitest.TestCase):
 #         self.assert_equal(act_out_file_path, exp_out_file_path, dedent=True)
 #         self.assert_equal(act_mount, exp_mount, dedent=True)
 
+
 # #############################################################################
 # Test_run_dockerized_prettier1
 # #############################################################################

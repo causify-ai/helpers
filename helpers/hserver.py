@@ -272,8 +272,7 @@ def get_host_user_name() -> Optional[str]:
 # Copied from hprint to avoid import cycles.
 
 
-# TODO(gp): It should use *.
-def indent(txt: str, num_spaces: int = 2) -> str:
+def indent(txt: str, *, num_spaces: int = 2) -> str:
     """
     Add `num_spaces` spaces before each line of the passed string.
     """

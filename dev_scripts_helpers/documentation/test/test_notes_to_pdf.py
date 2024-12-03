@@ -46,7 +46,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         > notes_to_pdf.py --input input.md -t pdf --preview.
         """
         in_file = _create_in_file(self)
-        cmd_opts = "--preview"
+        cmd_opts = "--preview_actions"
         self.run_notes_to_pdf(in_file, "pdf", cmd_opts)
 
     def test2(self) -> None:
@@ -135,16 +135,19 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         # cmd.append("--action run_pandoc")
         cmd = " ".join(cmd)
         hsystem.system(cmd)
-        # Check.
+        # Check that the file exists.
         if type_ == "pdf":
             out_file = os.path.join(tmp_dir, "tmp.pandoc.tex")
         elif type_ == "html":
             out_file = os.path.join(tmp_dir, "tmp.pandoc.html")
         else:
             raise ValueError(f"Invalid type_='{type_}'")
+        # Check the content of the file, if needed.
         output_txt: Optional[str] = None
         if os.path.exists(out_file):
             output_txt = hio.from_file(out_file)
-        # Read script.
-        script_txt = hio.from_file(script_file)
+        # Read generated script with all the commands.
+        script_txt: Optional[str] = None
+        if os.path.exists(script_file):
+            script_txt = hio.from_file(script_file)
         return script_txt, output_txt

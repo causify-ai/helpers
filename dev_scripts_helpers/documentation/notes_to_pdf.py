@@ -95,6 +95,9 @@ def _cleanup_before(prefix: str) -> None:
     _ = _system(cmd)
 
 
+# #############################################################################
+
+
 def _filter_by_header(file_: str, header: str, prefix: str) -> str:
     """
     Pre-process the file.
@@ -113,6 +116,9 @@ def _filter_by_header(file_: str, header: str, prefix: str) -> str:
     return file_out
 
 
+# #############################################################################
+
+
 def _preprocess_notes(curr_path: str, file_: str, prefix: str) -> str:
     """
     Pre-process the file.
@@ -128,6 +134,9 @@ def _preprocess_notes(curr_path: str, file_: str, prefix: str) -> str:
     _ = _system(cmd)
     file_ = file2
     return file_
+
+
+# #############################################################################
 
 
 def _run_latex(cmd: str, file_: str) -> None:
@@ -206,12 +215,14 @@ def _run_pandoc_to_pdf(
     # Doesn't work
     # -f markdown+raw_tex
     cmd = " ".join(cmd)
+    _LOG.debug("before: " + hprint.to_str("cmd"))
     if not args.use_host_tools:
         cmd_opts = hdocker.parse_pandoc_arguments(cmd)
         # TODO(gp): This should be a global switch.
         cmd_opts["use_sudo"] = False
         cmd_opts["return_cmd"] = True
         cmd = hdocker.run_dockerized_pandoc(**cmd_opts)
+    _LOG.debug("after: " + hprint.to_str("cmd"))
     _ = _system(cmd, suppress_output=False)
     file_ = file2
     # - Run latex.
@@ -304,6 +315,9 @@ def _run_pandoc_to_slides(args: argparse.Namespace, file_: str) -> str:
     return file_out
 
 
+# #############################################################################
+
+
 def _copy_to_output(args: argparse.Namespace, file_in: str, prefix: str) -> str:
     """
     Copy the processed file to the output location.
@@ -347,6 +361,9 @@ def _copy_to_gdrive(args: argparse.Namespace, file_name: str, ext: str) -> None:
     cmd = rf"\cp -af {file_name} {dst_file}"
     _ = _system(cmd)
     _LOG.debug("Saved file='%s' to gdrive", dst_file)
+
+
+# #############################################################################
 
 
 def _cleanup_after(prefix: str) -> None:
