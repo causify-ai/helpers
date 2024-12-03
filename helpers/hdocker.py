@@ -538,7 +538,7 @@ def run_dockerized_prettier(
 
 # #############################################################################
 
-# `parse_pandoc_arguments` and `convert_pando_arguments_to_cmd` are opposite
+# `parse_pandoc_arguments` and `convert_pandoc_arguments_to_cmd` are opposite
 # functions that allow to convert a command line to a dictionary and back to a
 # command line. This is useful when we want to run a command in a container
 # which requires to know how to interpret the command line arguments.

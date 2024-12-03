@@ -1,6 +1,7 @@
 import logging
 import os
 import unittest.mock as umock
+from sqlite3 import converters
 from typing import Any, List
 
 import pytest
@@ -203,7 +204,7 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
         cmd = r"""
         pandoc input.md -o output.pdf --toc
         """
-        cmd = hprint.dedent(cmd).strip()
+        cmd = hprint.dedent(cmd, remove_lead_trail_empty_lines_=True)
         # Call tested function.
         act = hdocker.parse_pandoc_arguments(cmd)
         # Check output.
@@ -225,7 +226,7 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
             -o test/outcomes/tmp.pandoc.tex \
             --toc --toc-depth 2
         """
-        cmd = hprint.dedent(cmd).strip()
+        cmd = hprint.dedent(cmd, remove_lead_trail_empty_lines_=True)
         # Call tested function.
         act = hdocker.parse_pandoc_arguments(cmd)
         # Check output.
@@ -252,9 +253,25 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
         }
         self.assert_equal(str(act), str(exp))
 
-    def test4(self) -> None:
-        convert_pandoc_arguments_to_cmd
-
+    def test_parse_and_convert1(self) -> None:
+        # Prepare inputs.
+        cmd = r"""
+        pandoc input.md --output output.pdf --data-dir /data --toc --toc-depth 2
+        """
+        cmd = hprint.dedent(cmd, remove_lead_trail_empty_lines_=True)
+        # Parse the command.
+        parsed_args = hdocker.parse_pandoc_arguments(cmd)
+        # Convert back to command.
+        converted_cmd = hdocker.convert_pandoc_arguments_to_cmd(
+            parsed_args["in_file_path"],
+            parsed_args["out_file_path"],
+            parsed_args["cmd_opts"],
+            parsed_args["data_dir"]
+        )
+        # Check that the converted command matches the original command.
+        act = 'pandoc ' + converted_cmd
+        exp = cmd
+        self.assert_equal(act, exp)
 
 # #############################################################################
 # Test_run_dockerized_pandoc1

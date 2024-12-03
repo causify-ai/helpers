@@ -779,7 +779,7 @@ def set_pd_default_values() -> None:
         "width": 80,
     }
     section = "display"
-    for key, new_val in default_pd_values.items() -> None:
+    for key, new_val in default_pd_values.items():
         if isinstance(new_val, dict):
             continue
         full_key = f"{section}.{key}"
