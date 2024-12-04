@@ -6,7 +6,6 @@ import helpers.lib_tasks_docker as hlitadoc
 
 import functools
 import getpass
-import io
 import logging
 import os
 import re
@@ -466,7 +465,6 @@ def _get_linter_service(stage: str) -> Dict[str, Union[str, List[str]]]:
     return linter_service_spec
 
 
-
 def _generate_docker_compose_file(
     stage: str,
     use_privileged_mode: bool,
@@ -495,15 +493,20 @@ def _generate_docker_compose_file(
             "file_name "
         )
     )
+
     class _Dumper(yaml.Dumper):
         """
         A custom YAML Dumper class that adjusts indentation.
         """
+
         def increase_indent(self, flow=False, indentless=False) -> Any:
             """
             Override the method to modify YAML indentation behavior.
             """
-            return super(_Dumper, self).increase_indent(flow=False, indentless=False)
+            return super(_Dumper, self).increase_indent(
+                flow=False, indentless=False
+            )
+
     # We could pass the env var directly, like:
     # ```
     # - AM_ENABLE_DIND=$AM_ENABLE_DIND
@@ -580,7 +583,9 @@ def _generate_docker_compose_file(
         base_app_spec["privileged"] = use_privileged_mode
     if shared_data_dirs:
         # Mount shared dirs.
-        shared_volumes = [f"{host}:{container}" for host, container in shared_data_dirs.items()]
+        shared_volumes = [
+            f"{host}:{container}" for host, container in shared_data_dirs.items()
+        ]
         # Mount all dirs that are specified.
         base_app_spec["volumes"].extend(shared_volumes)
     if False:
@@ -588,7 +593,9 @@ def _generate_docker_compose_file(
         base_app_spec["volumes"].append("../docker_build/fstab:/etc/fstab")
     if use_sibling_container:
         # Use sibling-container approach.
-        base_app_spec["volumes"].append("/var/run/docker.sock:/var/run/docker.sock")
+        base_app_spec["volumes"].append(
+            "/var/run/docker.sock:/var/run/docker.sock"
+        )
     if False:
         base_app_spec["deploy"] = {
             "resources": {
@@ -609,9 +616,7 @@ def _generate_docker_compose_file(
     # Mount `amp` when it is used as submodule. In this case we need to
     # mount the super project in the container (to make git work with the
     # supermodule) and then change dir to `amp`.
-    app_spec = {
-        "extends": "base_app"
-    }
+    app_spec = {"extends": "base_app"}
     if mount_as_submodule:
         # Move one dir up to include the entire git repo (see AmpTask1017).
         app_spec["volumes"] = ["../../../:/app"]
@@ -665,18 +670,16 @@ def _generate_docker_compose_file(
             "jupyter_server_test": jupyter_server_test,
         },
     }
-    # Configure networks. 
+    # Configure networks.
     if use_main_network:
-        docker_compose["networks"] = {
-            "default": {"name": "main_network"}
-        }
+        docker_compose["networks"] = {"default": {"name": "main_network"}}
     # Convert the dictionary to YAML format.
     yaml_str = yaml.dump(
         docker_compose,
         Dumper=_Dumper,
         default_flow_style=False,
         indent=2,
-        sort_keys=False
+        sort_keys=False,
     )
     # Save YAML to file if file_name is specified.
     if file_name:
@@ -687,6 +690,7 @@ def _generate_docker_compose_file(
             hsystem.system(f"sudo rm -rf {compose_directory}")
         hio.to_file(file_name, yaml_str)
     return yaml_str
+
 
 def get_base_docker_compose_path() -> str:
     """
