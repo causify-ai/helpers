@@ -527,7 +527,23 @@ def _generate_docker_compose_file(
     am_host_name = os.uname()[1]
     am_host_version = os.uname()[2]
     am_host_user_name = getpass.getuser()
-    git_root_path = hgit.find_git_root()
+    curr_dir = os.getcwd()
+    # The mounting path in the container is `/app`.
+    # So we need to use that as starting point.
+    # e.g. For CK_GIT_ROOT_PATH, 
+    #   rather than `/data/heanhs/src/cmamp1`, we need to use `/app`.
+    # e.g. For CK_HELPERS_ROOT_PATH, 
+    #   rather than `/data/heanhs/src/cmamp1/helpers_root`, we need to 
+    #   use `/app/helpers_root`.
+    # Find git root path.
+    git_dir = hgit.find_git_root()
+    git_relative_dir = os.path.relpath(curr_dir, git_dir)
+    git_root_path = os.path.join("/app", git_relative_dir)
+    # Find helpers root path.
+    helper_dir = hgit.find_helpers_root()
+    helper_relative_path = os.path.relpath(curr_dir, helper_dir)
+    helper_root_path = os.path.join("/app", helper_relative_path)
+    is_super_repo = 0 if hgit.is_helpers() else 1 
     # We could do the same also with IMAGE for symmetry.
     # Keep the env vars in sync with what we print in `henv.get_env_vars()`.
     # Configure `base_app` service.
@@ -550,6 +566,8 @@ def _generate_docker_compose_file(
             "CK_AWS_SECRET_ACCESS_KEY=$CK_AWS_SECRET_ACCESS_KEY",
             "CK_ECR_BASE_PATH=$CK_ECR_BASE_PATH",
             f"CK_GIT_ROOT_PATH={git_root_path}",
+            f"CK_HELPERS_ROOT_PATH={helper_root_path}",
+            f"CK_IS_SUPER_REPO={is_super_repo}",
             "OPENAI_API_KEY=$OPENAI_API_KEY",
             # - CK_ENABLE_DIND=
             # - CK_FORCE_TEST_FAIL=$CK_FORCE_TEST_FAIL

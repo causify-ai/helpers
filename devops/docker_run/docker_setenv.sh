@@ -6,24 +6,15 @@
 
 set -e
 
-# IS_SUPER_REPO=1
-IS_SUPER_REPO=0
-echo "IS_SUPER_REPO=$IS_SUPER_REPO"
+echo "CK_IS_SUPER_REPO=$CK_IS_SUPER_REPO"
 
 SCRIPT_PATH="devops/docker_run/docker_setenv.sh"
 echo "##> $SCRIPT_PATH"
 
 # - Source `utils.sh`.
 # NOTE: we can't use $0 to find the path since we are sourcing this file.
-GIT_ROOT_DIR=$(pwd)
-echo "GIT_ROOT_DIR=$GIT_ROOT_DIR"
 
-if [[ $IS_SUPER_REPO == 1 ]]; then
-    HELPERS_ROOT="${GIT_ROOT_DIR}/helpers_root"
-else
-    HELPERS_ROOT=$GIT_ROOT_DIR
-fi;
-SOURCE_PATH="${HELPERS_ROOT}/dev_scripts_helpers/thin_client/thin_client_utils.sh"
+SOURCE_PATH="${CK_HELPERS_ROOT_PATH}/dev_scripts_helpers/thin_client/thin_client_utils.sh"
 echo "> source $SOURCE_PATH ..."
 if [[ ! -f $SOURCE_PATH ]]; then
     echo -e "ERROR: Can't find $SOURCE_PATH"
@@ -34,9 +25,8 @@ source $SOURCE_PATH
 # - Activate venv.
 activate_docker_venv
 
-if [[ $IS_SUPER_REPO == 1 ]]; then
-    HELPERS_ROOT_DIR="${GIT_ROOT_DIR}/helpers_root"
-    dassert_dir_exists $HELPERS_ROOT_DIR
+if [[ $CK_IS_SUPER_REPO == 1 ]]; then
+    dassert_dir_exists $CK_HELPERS_ROOT_PATH
 fi;
 
 # - PATH
@@ -45,10 +35,10 @@ set_path .
 # - PYTHONPATH
 set_pythonpath
 
-if [[ $IS_SUPER_REPO == 1 ]]; then
+if [[ $CK_IS_SUPER_REPO == 1 ]]; then
     # Add helpers.
-    dassert_dir_exists $HELPERS_ROOT_DIR
-    export PYTHONPATH=$HELPERS_ROOT_DIR:$PYTHONPATH
+    dassert_dir_exists $CK_HELPERS_ROOT_PATH
+    export PYTHONPATH=$CK_HELPERS_ROOT_PATH:$PYTHONPATH
 fi;
 
 # - Configure environment.
