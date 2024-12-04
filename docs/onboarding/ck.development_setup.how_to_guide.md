@@ -16,6 +16,8 @@
   * [Spruce up your environment](#spruce-up-your-environment)
   * [Set up AWS](#set-up-aws)
   * [Clone the Hub repo](#clone-the-hub-repo)
+    + [SSH Keys](#ssh-keys)
+    + [Git clone](#git-clone)
   * [Set up the thin environment](#set-up-the-thin-environment)
   * [Activate the thin environment](#activate-the-thin-environment)
   * [Create a tmux session](#create-a-tmux-session)
@@ -334,7 +336,7 @@
 - Note: make sure permissions are read-only, otherwise change permissions, e.g.,
   `chmod 400 ~/.ssh/id_ed25519`
 
-#### Git clone 
+#### Git clone
 
 - In order to use our automation scripts, the path to local copy of the repos
   needs look like this `${HOME}/src/{REPO_NAME}{IDX}`, e.g.,
@@ -352,6 +354,7 @@
 - You can have multiple cloned repos like `cmamp2`, `cmamp3` and so on to work
   on unrelated changes at the same time
 - If the repo contains submodules we need to checkout master in all submodules.
+
   ```bash
   # Before.
   > git status
@@ -397,8 +400,8 @@
 
 ### Activate the thin environment
 
-- It is okay to skip this step as long as you use `tmux`. The thin environment is activated
-  automatically within a `tmux` session.
+- It is okay to skip this step as long as you use `tmux`. The thin environment
+  is activated automatically within a `tmux` session.
 - To activate the thin environment, run the `setenv.sh` script. The script is
   located under `dev_scripts_{repo_name}/thin_client`, e.g.:
   ```bash
