@@ -18,7 +18,7 @@ TODO(Grisha): consider using repository
 [templates](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template)
 
 - Create a repo within the [`causify-ai`
-  organization](https://github.com/causify-ai
+  organization](https://github.com/causify-ai)
 - Follow the
   [offical guide](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-new-repository#creating-a-new-repository-from-the-web-ui)
 - Recommended options:
