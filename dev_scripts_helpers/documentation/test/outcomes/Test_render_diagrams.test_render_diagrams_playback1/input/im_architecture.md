@@ -184,7 +184,6 @@ single step.
 # Data Model
 
 ```plantuml
-@startuml
 title Data Model
 
 hide enum methods
@@ -285,7 +284,6 @@ namespace generated {
 
    AggregateTickData -left-> data.TickData
 }
-@enduml
 ```
 
 ## Notes

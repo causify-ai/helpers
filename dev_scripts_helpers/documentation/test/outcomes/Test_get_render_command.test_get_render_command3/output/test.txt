@@ -1,0 +1,1 @@
+mmdc -i /a/b/c.mmd -o diagram-images/e.8.png

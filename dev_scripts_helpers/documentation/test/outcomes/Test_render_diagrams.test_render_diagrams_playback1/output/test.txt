@@ -186,7 +186,6 @@ single step.
 # Data Model
 
 # ```plantuml
-# @startuml
 # title Data Model
 # 
 # hide enum methods
@@ -287,7 +286,6 @@ single step.
 # 
 #    AggregateTickData -left-> data.TickData
 # }
-# @enduml
 # ```
 ![](diagram-images/im_architecture.3.png)
 
