@@ -76,13 +76,36 @@ class Test_replace_shared_root_path1(hunitest.TestCase):
 
 
 # #############################################################################
+# Test_convert_file_names_to_docker1
+# #############################################################################
+
+# class Test_convert_file_names_to_docker1(hunitest.TestCase):
+#     def test1(self):
+#         dir_name = self.get_input_dir()
+#         # Prepare inputs.
+#         in_file_path = os.path.join(dir_name, "input.md")
+#         hio.to_file(in_file_path, "empty")
+#         out_file_path = os.path.join(dir_name, "output.md")
+#         # Call tested function.
+#         act_in_file_path, act_out_file_path, act_mount = hdocker.convert_file_names_to_docker(in_file_path, out_file_path)
+#         # Check output.
+#         exp_in_file_path = r"""helpers/test/outcomes/Test_convert_file_names_to_docker1.test1/input/input.md"""
+#         exp_out_file_path = r"src/helpers1/test2.md"
+#         exp_mount = r"""
+#         type=bind,source=/Users/saggese/src/helpers1,target=/src
+#         """
+#         self.assert_equal(act_in_file_path, exp_in_file_path, dedent=True)
+#         self.assert_equal(act_out_file_path, exp_out_file_path, dedent=True)
+#         self.assert_equal(act_mount, exp_mount, dedent=True)
+
+# #############################################################################
 # Test_run_dockerized_prettier1
 # #############################################################################
 
 
 def _create_test_file(self_: Any, txt: str, extension: str) -> str:
     file_path = os.path.join(self_.get_scratch_space(), f"input.{extension}")
-    txt = hprint.dedent(txt, remove_empty_leading_trailing_lines=True)
+    txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
     _LOG.debug("txt=\n%s", txt)
     hio.to_file(file_path, txt)
     return file_path
@@ -128,8 +151,8 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
         """
         Test running the `prettier` command in a Docker container.
 
-        This test creates a test file, runs the `prettier` command inside a
-        Docker container with specified command options, and checks if the
+        This test creates a test file, runs the command inside a Docker
+        container with specified command options, and checks if the
         output matches the expected result.
         """
         cmd_opts: List[str] = []
@@ -151,9 +174,9 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
         )
         # Check.
         act = hio.from_file(out_file_path)
-        act = hprint.dedent(act, remove_empty_leading_trailing_lines=True)
-        exp = hprint.dedent(exp, remove_empty_leading_trailing_lines=True)
-        self.assert_equal(act, exp)
+        self.assert_equal(
+            act, exp, dedent=True, remove_lead_trail_empty_lines=True
+        )
 
 
 # #############################################################################
@@ -200,10 +223,10 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
 
     def _helper(self, txt: str, exp: str) -> None:
         """
-        Test running the `prettier` command in a Docker container.
+        Test running the `pandoc` command in a Docker container.
 
-        This test creates a test file, runs the `prettier` command inside a
-        Docker container with specified command options, and checks if the
+        This test creates a test file, runs the command inside a Docker
+        container with specified command options, and checks if the
         output matches the expected result.
         """
         cmd_opts: List[str] = []
@@ -212,18 +235,20 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
         # Run `pandoc` in a Docker container.
         in_file_path = _create_test_file(self, txt, extension="md")
         out_file_path = os.path.join(self.get_scratch_space(), "output.md")
+        data_dir = None
         use_sudo = hdocker.get_use_sudo()
         hdocker.run_dockerized_pandoc(
             cmd_opts,
             in_file_path,
             out_file_path,
+            data_dir,
             use_sudo,
         )
         # Check.
         act = hio.from_file(out_file_path)
-        act = hprint.dedent(act, remove_empty_leading_trailing_lines=True)
-        exp = hprint.dedent(exp, remove_empty_leading_trailing_lines=True)
-        self.assert_equal(act, exp)
+        self.assert_equal(
+            act, exp, dedent=True, remove_lead_trail_empty_lines=True
+        )
 
 
 # #############################################################################
@@ -242,7 +267,7 @@ class Test_run_markdown_toc1(hunitest.TestCase):
     def test1(self) -> None:
         txt = """
         <!-- toc -->
-        
+
         # Good
         - Good time management
           1. choose the right tasks
@@ -288,6 +313,6 @@ class Test_run_markdown_toc1(hunitest.TestCase):
         )
         # Check.
         act = hio.from_file(in_file_path)
-        act = hprint.dedent(act, remove_empty_leading_trailing_lines=True)
-        exp = hprint.dedent(exp, remove_empty_leading_trailing_lines=True)
-        self.assert_equal(act, exp)
+        self.assert_equal(
+            act, exp, dedent=True, remove_lead_trail_empty_lines=True
+        )

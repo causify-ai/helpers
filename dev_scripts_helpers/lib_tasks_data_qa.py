@@ -46,6 +46,7 @@ import reconciliation.lib_tasks_run_model_experiment_notebooks as rltrmexno
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hs3 as hs3
+import helpers.hgit as hgit
 import oms.lib_tasks_reconcile as olitarec
 
 _LOG = logging.getLogger(__name__)

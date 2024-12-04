@@ -22,6 +22,7 @@ Traceback (most recent call last):
   File "$GIT_ROOT/dataflow/core/nodes/sources.py", line 354, in _generate_returns
     vol = cofinanc.compute_annualized_volatility(avg_rets)
 NameError: name 'cofinanc' is not defined
+^[[31m^[[1m__________________
 
 # TestMultivariateNormalDataSource.test1
 Traceback (most recent call last):
@@ -34,6 +35,7 @@ Traceback (most recent call last):
   File "$GIT_ROOT/dataflow/core/nodes/sources.py", line 354, in _generate_returns
     vol = cofinanc.compute_annualized_volatility(avg_rets)
 NameError: name 'cofinanc' is not defined
+^[[31m^[[1m_______________________
 
 # TestMvnReturnsBuilder.test1
 Traceback (most recent call last):

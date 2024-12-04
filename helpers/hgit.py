@@ -49,6 +49,27 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+def extract_gh_issue_number_from_branch(branch_name: str) -> Optional[int]:
+    """
+    Extract the GitHub issue number from a branch name.
+
+    Example:
+    CmampTask10725_Add_more_tabs_to_orange_tmux -> 10725
+    HelpersTask23_Add_more_tabs_to_orange_tmux -> 23.
+
+    Works only if `invoke gh_branch_create` was used to create the branch.
+    or the name was retrieved using `invoke gh_issue_title`.
+
+    :param branch_name: the name of the branch
+    :return: the issue number or None if it can't be extracted
+    """
+    match = re.match(r".*Task_?(\d+)(?:_\w+)?", branch_name)
+    if match:
+        # Return the captured number.
+        return int(match.group(1))
+    return None
+
+
 @functools.lru_cache()
 def get_branch_name(dir_name: str = ".") -> str:
     """
@@ -168,6 +189,33 @@ def find_git_root(path: str = ".") -> str:
         hdbg.dassert_ne(parent, path)
         path = parent
     return path
+
+
+def find_helpers_root() -> str:
+    """
+    Find the root directory of the `helpers` repository.
+
+    If the current directory is within the `helpers` repository, the root of the
+    repository is returned. Otherwise, the function searches for the `helpers_root`
+    directory starting from the root of the repository.
+
+    :returns: The absolute path to the `helpers_root` directory.
+    """
+    git_root = find_git_root()
+    if is_helpers():
+        # If we are in `//helpers`, then the helpers root is the root of the
+        # repo.
+        cmd = "git rev-parse --show-toplevel"
+    else:
+        # We need to search for the `helpers_root` dir starting from the root
+        # of the repo.
+        cmd = rf"find {git_root} -path ./\.git -prune -o -type d -name 'helpers_root' -print | grep -v '\.git'"
+    _, helpers_root = hsystem.system_to_one_line(cmd)
+    helpers_root = os.path.abspath(helpers_root)
+    # Make sure the dir and that `helpers` subdir exists.
+    hdbg.dassert_dir_exists(helpers_root)
+    hdbg.dassert_dir_exists(os.path.join(helpers_root), "helpers")
+    return helpers_root
 
 
 def get_project_dirname(only_index: bool = False) -> str:
@@ -587,10 +635,8 @@ def _get_repo_short_to_full_name(include_host_name: bool) -> Dict[str, str]:
     # From short name to long name.
     repo_map = {
         "amp": "alphamatic/amp",
-        "dev_tools": "kaizen-ai/dev_tools",
-        # TODO(Juraj, GP): this was enabled but it breaks
-        # invoke docker_bash
-        "helpers": "kaizen-ai/helpers",
+        "dev_tools": "causify-ai/dev_tools",
+        "helpers": "causify-ai/helpers",
     }
     if include_host_name:
         host_name = "github.com"
@@ -726,7 +772,7 @@ def find_file_in_git_tree(
     root_dir = get_client_root(super_module=super_module)
     cmd = rf"find {root_dir} -name '{file_name}' -not -path '*/.git/*'"
     if remove_tmp_base:
-        cmd += rf" -not -path '*/tmp\.base/*'"
+        cmd += r" -not -path '*/tmp\.base/*'"
     _, file_name = hsystem.system_to_one_line(cmd)
     _LOG.debug("file_name=%s", file_name)
     hdbg.dassert_ne(
@@ -779,7 +825,7 @@ def get_path_from_git_root(
 
 
 @functools.lru_cache()
-def get_amp_abs_path(remove_tmp_base: bool = True) -> str:
+def get_amp_abs_path() -> str:
     """
     Return the absolute path of `amp` dir.
     """
@@ -1091,7 +1137,7 @@ def git_log(num_commits: int = 5, my_commits: bool = False) -> str:
     cmd = []
     cmd.append("git log --date=local --oneline --graph --date-order --decorate")
     cmd.append(
-        "--pretty=format:" "'%h %<(8)%aN%  %<(65)%s (%>(14)%ar) %ad %<(10)%d'"
+        "--pretty=format:'%h %<(8)%aN%  %<(65)%s (%>(14)%ar) %ad %<(10)%d'"
     )
     cmd.append(f"-{num_commits}")
     if my_commits:
@@ -1348,7 +1394,7 @@ def does_branch_exist(
         # If there are no issues on the GitHub repo, just return.
         # ```
         # > gh pr list -s all --limit 1000
-        # no pull requests match your search in kaizen-ai/sports_analytics
+        # no pull requests match your search in causify-ai/sports_analytics
         # ```
         if txt == "":
             return False

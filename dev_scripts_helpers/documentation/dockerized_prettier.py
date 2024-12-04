@@ -57,18 +57,17 @@ def _parse() -> argparse.ArgumentParser:
 
 def _main(parser: argparse.ArgumentParser) -> None:
     # Parse everything that can be parsed and returns the rest.
-    args, prettier_cmd = parser.parse_known_args()
-    if not prettier_cmd:
-        prettier_cmd = []
+    args, cmd_opts = parser.parse_known_args()
+    if not cmd_opts:
+        cmd_opts = []
     hdbg.init_logger(
         verbosity=args.log_level, use_exec_path=True, force_white=False
     )
-    _LOG.debug("prettier_cmd: %s", prettier_cmd)
-    # Assume that the last argument is the file to format.
+    _LOG.debug("cmd_opts: %s", cmd_opts)
     if not args.output:
         args.output = args.input
     hdocker.run_dockerized_prettier(
-        prettier_cmd,
+        cmd_opts,
         args.input,
         args.output,
         args.dockerized_force_rebuild,

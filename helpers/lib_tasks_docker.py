@@ -312,7 +312,7 @@ def _docker_login_dockerhub() -> None:
     """
     # Check if we are already logged in to the target registry.
     assert 0, "Find name of the repo"
-    # TODO(gp): Enable caching https://github.com/kaizen-ai/helpers/issues/20
+    # TODO(gp): Enable caching https://github.com/causify-ai/helpers/issues/20
     use_cache = False
     if use_cache:
         is_logged = _check_docker_login("623860924167.dkr.ecr")
@@ -339,7 +339,7 @@ def _docker_login_ecr() -> None:
     if hserver.is_inside_ci():
         _LOG.warning("Running inside GitHub Action: skipping `docker_login`")
         return
-    # TODO(gp): Enable caching https://github.com/kaizen-ai/helpers/issues/20
+    # TODO(gp): Enable caching https://github.com/causify-ai/helpers/issues/20
     use_cache = False
     if use_cache:
         # Check if we are already logged in to the target registry.
@@ -499,7 +499,7 @@ def _generate_docker_compose_file(
 
     def append(txt_tmp: str, indent_level: int) -> None:
         # txt_tmp = txt_tmp.rstrip("\n").lstrip("\n")
-        txt_tmp = hprint.dedent(txt_tmp, remove_empty_leading_trailing_lines=True)
+        txt_tmp = hprint.dedent(txt_tmp, remove_lead_trail_empty_lines_=True)
         num_spaces = 2 * indent_level
         txt_tmp = hprint.indent(txt_tmp, num_spaces=num_spaces)
         txt.append(txt_tmp)
