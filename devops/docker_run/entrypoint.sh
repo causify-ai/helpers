@@ -10,9 +10,6 @@ echo "##> $FILE_NAME"
 echo "UID="$(id -u)
 echo "GID="$(id -g)
 
-echo "$(ls)"
-echo "$(pwd)"
-
 # - Source `utils.sh`.
 # NOTE: we can't use $0 to find the path since we are sourcing this file.
 echo "CK_GIT_ROOT_PATH=$CK_GIT_ROOT_PATH"

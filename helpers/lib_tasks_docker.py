@@ -537,12 +537,12 @@ def _generate_docker_compose_file(
     #   use `/app/helpers_root`.
     # Find git root path.
     git_dir = hgit.find_git_root()
-    git_relative_dir = os.path.relpath(curr_dir, git_dir)
-    git_root_path = os.path.join("/app", git_relative_dir)
+    git_relative_dir = os.path.relpath(git_dir, curr_dir)
+    git_root_path = os.path.normpath(os.path.join("/app", git_relative_dir))
     # Find helpers root path.
     helper_dir = hgit.find_helpers_root()
-    helper_relative_path = os.path.relpath(curr_dir, helper_dir)
-    helper_root_path = os.path.join("/app", helper_relative_path)
+    helper_relative_path = os.path.relpath(helper_dir, curr_dir)
+    helper_root_path = os.path.normpath(os.path.join("/app", helper_relative_path))
     is_super_repo = 0 if hgit.is_helpers() else 1
     # We could do the same also with IMAGE for symmetry.
     # Keep the env vars in sync with what we print in `henv.get_env_vars()`.
