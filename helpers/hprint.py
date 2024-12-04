@@ -265,6 +265,7 @@ def dedent(txt: str, *, remove_lead_trail_empty_lines_: bool = True) -> str:
     It is the opposite of `indent()`.
 
     :param txt: multi-line string
+    :param txt: multi-line string
     :param remove_lead_trail_empty_lines: if True, remove all the empty
         lines at the beginning and at the end
     """
@@ -595,6 +596,8 @@ def to_str2(*variables_values: Any) -> str:
 
 def log(logger: logging.Logger, verbosity: int, *vals: Any) -> None:
     """
+    Log at a certain verbosity.
+
     `log(_LOG, logging.DEBUG, "ticker", "exchange")`
 
     is equivalent to statements like:
