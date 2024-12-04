@@ -11,6 +11,8 @@ import pprint
 import sys
 from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Type, Union
 
+import helpers.hs3 as hs3
+
 # This module can depend only on:
 # - Python standard modules
 # - `helpers/hserver.py`
@@ -800,7 +802,9 @@ def dassert_dir_exists(
     Assert unless `dir_name` exists and it's a directory.
     """
     dassert_isinstance(dir_name, str)
-    dir_name = os.path.abspath(dir_name)
+    if dir_name is not hs3.is_s3_path(dir_name):
+        # No need to normalize S3 paths, they are already absolutized.
+        dir_name = os.path.abspath(dir_name)
     # `dir_name` exists.
     exists = os.path.exists(dir_name)
     if not exists:
