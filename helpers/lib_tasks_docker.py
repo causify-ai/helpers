@@ -504,7 +504,6 @@ def _generate_docker_compose_file(
             Override the method to modify YAML indentation behavior.
             """
             return super(_Dumper, self).increase_indent(flow=False, indentless=False)
-        
     # We could pass the env var directly, like:
     # ```
     # - AM_ENABLE_DIND=$AM_ENABLE_DIND
@@ -539,6 +538,7 @@ def _generate_docker_compose_file(
             f"AM_HOST_USER_NAME={am_host_user_name}",
             f"AM_HOST_VERSION={am_host_version}",
             "AM_REPO_CONFIG_CHECK=True",
+            # Use inferred path for `repo_config.py`.
             "AM_REPO_CONFIG_PATH=",
             "CK_AWS_ACCESS_KEY_ID=$CK_AWS_ACCESS_KEY_ID",
             "CK_AWS_DEFAULT_REGION=$CK_AWS_DEFAULT_REGION",
@@ -548,40 +548,83 @@ def _generate_docker_compose_file(
             "CK_ECR_BASE_PATH=$CK_ECR_BASE_PATH",
             f"CK_GIT_ROOT_PATH={git_root_path}",
             "OPENAI_API_KEY=$OPENAI_API_KEY",
+            # - CK_ENABLE_DIND=
+            # - CK_FORCE_TEST_FAIL=$CK_FORCE_TEST_FAIL
+            # - CK_HOST_NAME=
+            # - CK_HOST_OS_NAME=
+            # - CK_PUBLISH_NOTEBOOK_LOCAL_PATH=$CK_PUBLISH_NOTEBOOK_LOCAL_PATH
             "CK_TELEGRAM_TOKEN=$CK_TELEGRAM_TOKEN",
+            # TODO(Vlad): consider removing, locally we use our personal tokens from files and
+            # inside GitHub actions we use the `GH_TOKEN` environment variable.
             "GH_ACTION_ACCESS_TOKEN=$GH_ACTION_ACCESS_TOKEN",
+            # Inside GitHub Actions we use `GH_TOKEN` environment variable,
+            # see https://cli.github.com/manual/gh_auth_login.
             "GH_TOKEN=$GH_ACTION_ACCESS_TOKEN",
+            # This env var is used by GH Action to signal that we are inside the CI.
             "CI=$CI",
         ],
         "image": "${IMAGE}",
         "restart": "no",
         "volumes": [
+            # TODO(gp): We should pass the value of $HOME from dev.Dockerfile to here.
+            # E.g., we might define $HOME in the env file.
             "~/.aws:/home/.aws",
             "~/.config/gspread_pandas/:/home/.config/gspread_pandas/",
             "~/.config/gh:/home/.config/gh",
         ],
     }
     if use_privileged_mode:
+        # This is needed:
+        # - for Docker-in-docker (dind)
+        # - to mount fstabs
         base_app_spec["privileged"] = use_privileged_mode
     if shared_data_dirs:
+        # Mount shared dirs.
         shared_volumes = [f"{host}:{container}" for host, container in shared_data_dirs.items()]
+        # Mount all dirs that are specified.
         base_app_spec["volumes"].extend(shared_volumes)
+    if False:
+        # No need to mount file systems.
+        base_app_spec["volumes"].append("../docker_build/fstab:/etc/fstab")
     if use_sibling_container:
+        # Use sibling-container approach.
         base_app_spec["volumes"].append("/var/run/docker.sock:/var/run/docker.sock")
+    if False:
+        base_app_spec["deploy"] = {
+            "resources": {
+                "limits": {
+                    # This should be passed from command line depending on how much
+                    # memory is available.
+                    "memory": "60G",
+                },
+            },
+        }
     if use_network_mode_host:
+        # Default network mode set to host so we can reach e.g.
+        # a database container pointing to localhost:5432.
+        # In tests we use dind so we need set back to the default "bridge".
+        # See CmTask988 and https://stackoverflow.com/questions/24319662
         base_app_spec["network_mode"] = "${NETWORK_MODE:-host}"
     # Configure `app` service.
+    # Mount `amp` when it is used as submodule. In this case we need to
+    # mount the super project in the container (to make git work with the
+    # supermodule) and then change dir to `amp`.
     app_spec = {
         "extends": "base_app"
     }
     if mount_as_submodule:
+        # Move one dir up to include the entire git repo (see AmpTask1017).
         app_spec["volumes"] = ["../../../:/app"]
+        # Move one dir down to include the entire git repo (see AmpTask1017).
         app_spec["working_dir"] = "/app/amp"
     else:
+        # Mount `amp` when it is used as supermodule.
         app_spec["volumes"] = ["../../:/app"]
     # Configure `linter` service.
     linter_spec = _get_linter_service(stage)
     # Configure `jupyter_server` service.
+    # For Jupyter server we cannot use "host" network_mode because
+    # it is incompatible with the port bindings.
     jupyter_server = {
         "command": "devops/docker_run/run_jupyter_server.sh",
         "environment": [
@@ -589,11 +632,17 @@ def _generate_docker_compose_file(
         ],
         "extends": "app",
         "network_mode": "${NETWORK_MODE:-bridge}",
+        # TODO(gp): Rename `AM_PORT`.
         "ports": [
             "${PORT}:${PORT}",
         ],
     }
     # Configure `jupyter_server_test` service.
+    # TODO(gp): For some reason the following doesn't work.
+    # jupyter_server_test:
+    #   command: jupyter notebook -h 2>&1 >/dev/null
+    #   extends:
+    #     jupyter_server
     jupyter_server_test = {
         "command": "jupyter notebook -h 2>&1 >/dev/null",
         "environment": [
@@ -605,7 +654,7 @@ def _generate_docker_compose_file(
             "${PORT}:${PORT}",
         ],
     }
-    # Base structure of the docker-compose file
+    # Specify structure of the docker-compose file.
     docker_compose = {
         "version": "3",
         "services": {
@@ -631,6 +680,11 @@ def _generate_docker_compose_file(
     )
     # Save YAML to file if file_name is specified.
     if file_name:
+        if os.path.exists(file_name) and hserver.is_inside_ci():
+            # Permission error is raised if we try to overwrite existing file.
+            # See CmTask #2321 for detailed info.
+            compose_directory = os.path.dirname(file_name)
+            hsystem.system(f"sudo rm -rf {compose_directory}")
         hio.to_file(file_name, yaml_str)
     return yaml_str
 
