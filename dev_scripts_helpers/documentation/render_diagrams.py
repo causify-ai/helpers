@@ -14,7 +14,7 @@ Usage:
 # Render diagrams in place in the original LaTeX file:
 > render_diagrams.py -i ABC.tex --action render
 
-# Open rendered diagrams from a Markdown file in html to preview:
+# Open rendered diagrams from a Markdown file in HTML to preview:
 > render_diagrams.py -i ABC.md --action open
 """
 
@@ -113,12 +113,12 @@ def _get_render_command(
     :param abs_img_dir_path: absolute path to a dir where the image will
         be saved
     :param rel_img_path: relative path to the image to be rendered
-    :param diagram_type: the type of the diagram, e.g., "plantuml",
+    :param diagram_type: type of the diagram, e.g., "plantuml",
         "mermaid"
     :param dst_ext: extension of the rendered image, e.g., "svg", "png"
     :return: rendering command
     """
-    # Verify that the image file extensions are valid.
+    # Verify that the image file extension is valid.
     valid_extensions = ["svg", "png"]
     hdbg.dassert_in(dst_ext, valid_extensions)
     # Create the command.
@@ -141,10 +141,11 @@ def _render_code(
     Render the diagram code into an image file.
 
     :param diagram_code: the code of the diagram
-    :param out_file: path to the final output file
+    :param out_file: path to the output file where the image will be
+        inserted
     :param diagram_idx: order number of the diagram code block in the
         file
-    :param diagram_type: the type of the diagram, e.g., "plantuml",
+    :param diagram_type: type of the diagram, e.g., "plantuml",
         "mermaid"
     :param dst_ext: extension of the rendered image, e.g., "svg", "png"
     :param dry_run: if True, the rendering command is not executed
@@ -182,7 +183,7 @@ def _render_diagrams(
     Insert rendered diagram images instead of diagram code blocks.
 
     - The diagram code is commented out.
-    - A new line is added after the diagram code block to insert
+    - New code is added after the diagram code block to insert
       the rendered image.
 
     :param in_lines: lines of the input file
@@ -295,8 +296,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Set the extension for the rendered images.
     dst_ext = "png"
     if actions == [_ACTION_OPEN]:
-        # Set the output file path and the image extension used for a preview only.
-        out_file = tempfile.mktemp(suffix=".md")
+        # Set the output file path and image extension used for the preview action.
+        out_file = tempfile.mktemp(suffix="." + in_file.split(".")[-1])
         dst_ext = "svg"
     # Read the input file.
     in_lines = hio.from_file(in_file).split("\n")
