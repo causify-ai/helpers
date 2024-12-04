@@ -530,10 +530,10 @@ def _generate_docker_compose_file(
     curr_dir = os.getcwd()
     # The mounting path in the container is `/app`.
     # So we need to use that as starting point.
-    # e.g. For CK_GIT_ROOT_PATH, 
+    # e.g. For CK_GIT_ROOT_PATH,
     #   rather than `/data/heanhs/src/cmamp1`, we need to use `/app`.
-    # e.g. For CK_HELPERS_ROOT_PATH, 
-    #   rather than `/data/heanhs/src/cmamp1/helpers_root`, we need to 
+    # e.g. For CK_HELPERS_ROOT_PATH,
+    #   rather than `/data/heanhs/src/cmamp1/helpers_root`, we need to
     #   use `/app/helpers_root`.
     # Find git root path.
     git_dir = hgit.find_git_root()
@@ -543,7 +543,7 @@ def _generate_docker_compose_file(
     helper_dir = hgit.find_helpers_root()
     helper_relative_path = os.path.relpath(curr_dir, helper_dir)
     helper_root_path = os.path.join("/app", helper_relative_path)
-    is_super_repo = 0 if hgit.is_helpers() else 1 
+    is_super_repo = 0 if hgit.is_helpers() else 1
     # We could do the same also with IMAGE for symmetry.
     # Keep the env vars in sync with what we print in `henv.get_env_vars()`.
     # Configure `base_app` service.
