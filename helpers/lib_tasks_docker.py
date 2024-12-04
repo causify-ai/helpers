@@ -10,7 +10,7 @@ import io
 import logging
 import os
 import re
-from typing import Any, Dict, List, Match, Optional
+from typing import Any, Dict, List, Match, Optional, Union
 
 import yaml
 from invoke import task
@@ -423,7 +423,7 @@ def docker_login(ctx, target_registry="aws_ecr.ck"):  # type: ignore
 #  use_sibling_container -> use_docker_containers_containers
 
 
-def _get_linter_service(stage: str) -> str:
+def _get_linter_service(stage: str) -> Dict[str, Union[str, List[str]]]:
     """
     Get the linter service specification for the `docker-compose.yml` file.
 
@@ -437,12 +437,16 @@ def _get_linter_service(stage: str) -> str:
     else:
         work_dir = "/src"
         repo_root = os.getcwd()
-    linter_spec_txt = f"""
-    linter:
-      extends:
-        base_app
-      volumes:
-        - {repo_root}:/src"""
+    linter_service_spec = {
+        "extends": "base_app",
+        "volumes": [
+            f"{repo_root}:/src",
+        ],
+        "working_dir": work_dir,
+        "environment": [
+            "MYPYPATH",
+        ],
+    }
     if stage != "prod":
         # When we run a development Linter container, we need to mount the
         # Linter repo under `/app`. For prod container instead we copy / freeze
@@ -450,26 +454,18 @@ def _get_linter_service(stage: str) -> str:
         if superproject_path:
             # When running in a Git submodule we need to go one extra level up.
             # TODO(*): Clean up the indentation, #2242 (also below).
-            linter_spec_txt += "\n        - ../../../:/app"
+            linter_service_spec["volumes"].append("../../../:/app")
         else:
-            linter_spec_txt += "\n        - ../../:/app"
-    linter_spec_txt += f"""
-      working_dir: {work_dir}
-      environment:
-        - MYPYPATH
-    """
+            linter_service_spec["volumes"].append("../../:/app")
     if stage == "prod":
-        linter_spec_txt += """\
-    # Use the `repo_config.py` inside the dev_tools container instead of
+        # Use the `repo_config.py` inside the dev_tools container instead of
         # the one in the calling repo.
-        - AM_REPO_CONFIG_PATH=/app/repo_config.py
-        """
-    return linter_spec_txt
+        linter_service_spec["environment"].append(
+            "AM_REPO_CONFIG_PATH=/app/repo_config.py"
+        )
+    return linter_service_spec
 
-class MyDumper(yaml.Dumper):
 
-    def increase_indent(self, flow=False, indentless=False):
-        return super(MyDumper, self).increase_indent(flow, False)
 
 def _generate_docker_compose_file(
     stage: str,
@@ -499,8 +495,16 @@ def _generate_docker_compose_file(
             "file_name "
         )
     )
-    txt = []
-
+    class _Dumper(yaml.Dumper):
+        """
+        A custom YAML Dumper class that adjusts indentation.
+        """
+        def increase_indent(self, flow=False, indentless=False) -> Any:
+            """
+            Override the method to modify YAML indentation behavior.
+            """
+            return super(_Dumper, self).increase_indent(flow=False, indentless=False)
+        
     # We could pass the env var directly, like:
     # ```
     # - AM_ENABLE_DIND=$AM_ENABLE_DIND
@@ -524,12 +528,8 @@ def _generate_docker_compose_file(
     git_root_path = hgit.find_git_root()
     # We could do the same also with IMAGE for symmetry.
     # Keep the env vars in sync with what we print in `henv.get_env_vars()`.
-    # Base structure of the docker-compose file
-    docker_compose = {
-        "version": "3",
-        "services": {},
-    }
-    docker_compose["services"]["base_app"] = {
+    # Configure `base_app` service.
+    base_app_spec = {
         "cap_add": ["SYS_ADMIN"],
         "environment": [
             f"AM_ENABLE_DIND={am_enable_dind}",
@@ -554,7 +554,6 @@ def _generate_docker_compose_file(
             "CI=$CI",
         ],
         "image": "${IMAGE}",
-        "privileged": use_privileged_mode,
         "restart": "no",
         "volumes": [
             "~/.aws:/home/.aws",
@@ -562,39 +561,28 @@ def _generate_docker_compose_file(
             "~/.config/gh:/home/.config/gh",
         ],
     }
+    if use_privileged_mode:
+        base_app_spec["privileged"] = use_privileged_mode
     if shared_data_dirs:
         shared_volumes = [f"{host}:{container}" for host, container in shared_data_dirs.items()]
-        docker_compose["services"]["base_app"]["volumes"].extend(shared_volumes)
+        base_app_spec["volumes"].extend(shared_volumes)
     if use_sibling_container:
-        docker_compose["services"]["base_app"]["volumes"].append(
-            "/var/run/docker.sock:/var/run/docker.sock"
-        )
+        base_app_spec["volumes"].append("/var/run/docker.sock:/var/run/docker.sock")
     if use_network_mode_host:
-        docker_compose["services"]["base_app"]["network_mode"] = "${NETWORK_MODE:-host}"
+        base_app_spec["network_mode"] = "${NETWORK_MODE:-host}"
+    # Configure `app` service.
+    app_spec = {
+        "extends": "base_app"
+    }
     if mount_as_submodule:
-        docker_compose["services"]["app"] = {
-            "extends": "base_app",
-            "volumes": ["../../../:/app"],
-            "working_dir": "/app/amp",
-        }
+        app_spec["volumes"] = ["../../../:/app"]
+        app_spec["working_dir"] = "/app/amp"
     else:
-        docker_compose["services"]["app"] = {
-            "extends": "base_app",
-            "volumes": ["../../:/app"],
-        }
-    if use_main_network:
-        docker_compose["networks"] = {
-            "default": {"name": "main_network"}
-        }
-    docker_compose["services"]["linter"] = {
-		"extends": "base_app",
-		"volumes": ["/app:/src"],
-		"environment": [
-			"MYPYPATH",
-			"AM_REPO_CONFIG_PATH=/app/repo_config.py"
-		]
-	}
-    docker_compose["services"]["jupyter_server"] = {
+        app_spec["volumes"] = ["../../:/app"]
+    # Configure `linter` service.
+    linter_spec = _get_linter_service(stage)
+    # Configure `jupyter_server` service.
+    jupyter_server = {
         "command": "devops/docker_run/run_jupyter_server.sh",
         "environment": [
             "PORT=${PORT}",
@@ -605,7 +593,8 @@ def _generate_docker_compose_file(
             "${PORT}:${PORT}",
         ],
     }
-    docker_compose["services"]["jupyter_server_test"] = {
+    # Configure `jupyter_server_test` service.
+    jupyter_server_test = {
         "command": "jupyter notebook -h 2>&1 >/dev/null",
         "environment": [
             "PORT=${PORT}",
@@ -616,18 +605,33 @@ def _generate_docker_compose_file(
             "${PORT}:${PORT}",
         ],
     }
+    # Base structure of the docker-compose file
+    docker_compose = {
+        "version": "3",
+        "services": {
+            "base_app": base_app_spec,
+            "app": app_spec,
+            "linter": linter_spec,
+            "jupyter_server": jupyter_server,
+            "jupyter_server_test": jupyter_server_test,
+        },
+    }
+    # Configure networks. 
+    if use_main_network:
+        docker_compose["networks"] = {
+            "default": {"name": "main_network"}
+        }
     # Convert the dictionary to YAML format.
     yaml_str = yaml.dump(
         docker_compose,
-        Dumper=MyDumper,
+        Dumper=_Dumper,
         default_flow_style=False,
         indent=2,
         sort_keys=False
     )
     # Save YAML to file if file_name is specified.
     if file_name:
-        with open(file_name, "w") as f:
-            f.write(yaml_str)
+        hio.to_file(file_name, yaml_str)
     return yaml_str
 
 def get_base_docker_compose_path() -> str:
