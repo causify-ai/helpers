@@ -802,7 +802,7 @@ def dassert_dir_exists(
     Assert unless `dir_name` exists and it's a directory.
     """
     dassert_isinstance(dir_name, str)
-    if dir_name is not hs3.is_s3_path(dir_name):
+    if not hs3.is_s3_path(dir_name):
         # No need to normalize S3 paths, they are already absolutized.
         dir_name = os.path.abspath(dir_name)
     # `dir_name` exists.
