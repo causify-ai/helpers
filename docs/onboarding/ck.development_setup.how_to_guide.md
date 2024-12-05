@@ -16,6 +16,8 @@
   * [Spruce up your environment](#spruce-up-your-environment)
   * [Set up AWS](#set-up-aws)
   * [Clone the Hub repo](#clone-the-hub-repo)
+    + [SSH Keys](#ssh-keys)
+    + [Git clone](#git-clone)
   * [Set up the thin environment](#set-up-the-thin-environment)
   * [Activate the thin environment](#activate-the-thin-environment)
   * [Create a tmux session](#create-a-tmux-session)
@@ -321,6 +323,8 @@
 
 ### Clone the Hub repo
 
+#### SSH Keys
+
 - For hub you can use your key otherwise you can generate an ssh key for hub
 - Note:
   - You can use any SSH key, even a “personal” one that one uses for his/her
@@ -331,17 +335,52 @@
   `~/.ssh/id_rsa.pub`
 - Note: make sure permissions are read-only, otherwise change permissions, e.g.,
   `chmod 400 ~/.ssh/id_ed25519`
+
+#### Git clone
+
 - In order to use our automation scripts, the path to local copy of the repos
   needs look like this `${HOME}/src/{REPO_NAME}{IDX}`, e.g.,
   `/data/saggese/src/cmamp1`.
+- Clone a repo using an SSH key, we do not use HTTPS
 - Clone the repo with:
   ```bash
   > mkdir ~/src
   > cd ~/src
+  # In general form.
+  > git clone --recursive git@github.com:causify-ai/{repo_name}.git ~/src/{repo_name}{index}
+  # Example for cmamp.
   > git clone --recursive git@github.com:causify-ai/cmamp.git ~/src/cmamp1
   ```
 - You can have multiple cloned repos like `cmamp2`, `cmamp3` and so on to work
   on unrelated changes at the same time
+- If the repo contains submodules we need to checkout master in all submodules.
+
+  ```bash
+  # Before.
+  > git status
+  HEAD detached at bd69850bb
+  nothing to commit, working tree clean
+  # In general form.
+  > cd {sumbodule}
+  > git checkout master
+  > git pull
+  # Example for `orange` which contains `cmamp` which contains `helpers`.
+  > cd amp
+  > git checkout master
+  > git pull
+  > cd helpers_root
+  > git checkout master
+  > git pull
+  # After.
+  > git status
+  On branch master
+  Your branch is up to date with 'origin/master'.
+
+  Changes not staged for commit:
+    (use "git add <file>..." to update what will be committed)
+    (use "git restore <file>..." to discard changes in working directory)
+          modified:   helpers_root (new commits)
+  ```
 
 ### Set up the thin environment
 
@@ -361,6 +400,8 @@
 
 ### Activate the thin environment
 
+- It is okay to skip this step as long as you use `tmux`. The thin environment
+  is activated automatically within a `tmux` session.
 - To activate the thin environment, run the `setenv.sh` script. The script is
   located under `dev_scripts_{repo_name}/thin_client`, e.g.:
   ```bash
