@@ -260,6 +260,34 @@ def build_container(
 
 # #############################################################################
 
+# We can run Dockerized executable on the host or inside a Docker container.
+# The Docker container can be run as docker-in-docker or
+# The problem is that
+# - files that needs to be processed by dockerized executables can be specified
+#   as absolute or relative path in Docker / host file system
+# - we need to convert it to a path that is valid inside the new Docker
+#   container
+
+# The invariant is that the outermost Git super-repo is mounted inside the
+# Docker container
+
+#
+# `in_file_path` and `out_file_path` can be specified as
+# absolute or relative path in Docker / host file system. Thus, we need to
+# convert it to a path that is valid inside the new Docker instance.
+# E.g.,
+# - /Users/saggese/src/helpers1/test.md -> /src/test.md
+# - ./test.md -> /src/test.md
+# - ./documentation/test.md -> /src/documentation/test.md
+target_docker_path = "/src"
+run_inside_docker = hserver.is_inside_docker()
+_LOG.debug(hprint.to_str("run_inside_docker"))
+# The invariant is that if we are:
+# - running inside a container, `/src` in the container corresponds to Git
+#   root in the container
+# - running outside a container, `/src/` in the container corresponds to `.`
+# Then all the files need to be converted from host to Docker paths
+# as reference to `target_docker_path`.
 
 def get_host_git_root() -> str:
     hdbg.dassert_in("CK_GIT_ROOT_PATH", os.environ)
@@ -284,113 +312,231 @@ def dassert_valid_path(file_path: str, is_input: bool) -> None:
         )
 
 
-def _convert_to_relative_path(
-    file_path: str, check_if_exists: bool, is_input: bool
-) -> str:
+# def _convert_to_relative_path(
+#     file_path: str, check_if_exists: bool, is_input: bool
+# ) -> str:
+#     """
+#     Convert the file path to a path relative to the current dir.
+#
+#     :param file_path: The file path on the host to be converted.
+#     :param check_if_exists: check if the file exists or not.
+#     :param is_input: Flag indicating if the file is an input file.
+#     :return: The converted file path.
+#
+#     ```
+#     # Example 1: Input file path is an absolute path
+#     file_path = "/Users/gpsaggese/project/data/input.txt"
+#     check_if_exists = True
+#     is_input = True
+#     -> "data/input.txt"
+#
+#     # Example 2: Input file path is a relative path
+#     file_path = "data/input.txt"
+#     check_if_exists = True
+#     is_input = True
+#     -> "data/input.txt"
+#     ```
+#     """
+#     _LOG.debug(hprint.to_str("file_path check_if_exists is_input"))
+#     if check_if_exists:
+#         dassert_valid_path(file_path, is_input)
+#     # Convert to absolute path.
+#     out_file_path = os.path.abspath(file_path)
+#     if check_if_exists:
+#         dassert_valid_path(out_file_path, is_input)
+#     # Convert to the host path.
+#     curr_dir = os.getcwd()
+#     # The path needs to be underneath the current dir.
+#     hdbg.dassert(
+#         out_file_path.startswith(curr_dir),
+#         "out_file_path=%s needs to be underneath curr_dir=%s",
+#         out_file_path,
+#         curr_dir,
+#     )
+#     rel_path = os.path.relpath(out_file_path, curr_dir)
+#     _LOG.debug("Converted %s -> %s -> %s", file_path, out_file_path, rel_path)
+#     return rel_path
+#
+#
+# def convert_file_names_to_docker(
+#     in_file_path: str,
+#     out_file_path: Optional[str],
+# ) -> Tuple[str, str, str]:
+#     """
+#     Convert the file paths to be relative to the Docker mount point so that
+#     they can be used inside a Docker container.
+#
+#     :param in_file_path: The input file path on the host to be
+#         converted.
+#     :param out_file_path: The output file path on the host to be
+#         converted.
+#     :return: A tuple containing the converted input file path, output
+#         file path, and the Docker mount path.
+#     """
+#     # Convert the paths to be relative.
+#     in_file_path = _convert_to_relative_path(
+#         in_file_path, check_if_exists=True, is_input=True
+#     )
+#     if out_file_path is not None:
+#         out_file_path = _convert_to_relative_path(
+#             out_file_path, check_if_exists=False, is_input=False
+#         )
+#     else:
+#         out_file_path = ""
+#     # The problem is that `in_file_path` and `out_file_path` can be specified as
+#     # absolute or relative path in Docker / host file system. Thus, we need to
+#     # convert it to a path that is valid inside the new Docker instance.
+#     # E.g.,
+#     # - /Users/saggese/src/helpers1/test.md -> /src/test.md
+#     # - ./test.md -> /src/test.md
+#     # - ./documentation/test.md -> /src/documentation/test.md
+#     target_docker_path = "/src"
+#     run_inside_docker = hserver.is_inside_docker()
+#     _LOG.debug(hprint.to_str("run_inside_docker"))
+#     # The invariant is that if `run_inside_docker` is:
+#     # - True: `/src` in the container corresponds to Git root in the container
+#     # - False: `/src/` in the container corresponds to `.`
+#     # Then all the files need to be converted from host to Docker paths
+#     # as reference to target_docker_path.
+#     if run_inside_docker:
+#         # > docker run --rm --user $(id -u):$(id -g) \
+#         #     ...
+#         #     --workdir /src \
+#         #     --mount type=bind,source=/Users/saggese/src/helpers1,target=/src \
+#         #     ...
+#         source_host_path = get_host_git_root()
+#     else:
+#         # > docker run --rm --user $(id -u):$(id -g) \
+#         #     ...
+#         #     --workdir /src \
+#         #     --mount type=bind,source=.,target=/src \
+#         #     ...
+#         # This can be both a dir and a file.
+#         hdbg.dassert_path_exists(in_file_path)
+#         source_host_path = "."
+#     # E.g.,
+#     # source=.,target=/src
+#     # source=/Users/saggese/src/helpers1,target=/src
+#     mount = f"type=bind,source={source_host_path},target={target_docker_path}"
+#     return in_file_path, out_file_path, mount
+
+
+# ####
+
+
+# source_host_path -> source_mount_path
+# target_docker_path -> target_mount_path
+def get_docker_mount_info(is_caller_host: bool,
+                          use_sibling_container_for_callee: bool) -> Tuple[str, str, str]:
     """
-    Convert the file path to a path relative to the current dir.
+    Get the Docker mount information for the current environment.
 
-    :param file_path: The file path on the host to be converted.
-    :param check_if_exists: check if the file exists or not.
-    :param is_input: Flag indicating if the file is an input file.
-    :return: The converted file path.
+    This function determines the appropriate source and target paths for
+    mounting a directory in a Docker container.
 
-    ```
-    # Example 1: Input file path is an absolute path
-    file_path = "/Users/gpsaggese/project/data/input.txt"
-    check_if_exists = True
-    is_input = True
-    -> "data/input.txt"
-
-    # Example 2: Input file path is a relative path
-    file_path = "data/input.txt"
-    check_if_exists = True
-    is_input = True
-    -> "data/input.txt"
-    ```
+    :return: A tuple containing the source host path, target Docker path,
+             and the mount string.
     """
-    _LOG.debug(hprint.to_str("file_path check_if_exists is_input"))
-    if check_if_exists:
-        dassert_valid_path(file_path, is_input)
-    # Convert to absolute path.
-    out_file_path = os.path.abspath(file_path)
-    if check_if_exists:
-        dassert_valid_path(out_file_path, is_input)
-    # Convert to the host path.
-    curr_dir = os.getcwd()
-    # The path needs to be underneath the current dir.
-    hdbg.dassert(
-        out_file_path.startswith(curr_dir),
-        "out_file_path=%s needs to be underneath curr_dir=%s",
-        out_file_path,
-        curr_dir,
-    )
-    rel_path = os.path.relpath(out_file_path, curr_dir)
-    _LOG.debug("Converted %s -> %s -> %s", file_path, out_file_path, rel_path)
-    return rel_path
-
-
-def convert_file_names_to_docker(
-    in_file_path: str,
-    out_file_path: Optional[str],
-) -> Tuple[str, str, str]:
-    """
-    Convert the file paths to be relative to the Docker mount point so that
-    they can be used inside a Docker container.
-
-    :param in_file_path: The input file path on the host to be
-        converted.
-    :param out_file_path: The output file path on the host to be
-        converted.
-    :return: A tuple containing the converted input file path, output
-        file path, and the Docker mount path.
-    """
-    # Convert the paths to be relative.
-    in_file_path = _convert_to_relative_path(
-        in_file_path, check_if_exists=True, is_input=True
-    )
-    if out_file_path is not None:
-        out_file_path = _convert_to_relative_path(
-            out_file_path, check_if_exists=False, is_input=False
-        )
-    else:
-        out_file_path = ""
-    # The problem is that `in_file_path` and `out_file_path` can be specified as
-    # absolute or relative path in Docker / host file system. Thus, we need to
-    # convert it to a path that is valid inside the new Docker instance.
-    # E.g.,
-    # - /Users/saggese/src/helpers1/test.md -> /src/test.md
-    # - ./test.md -> /src/test.md
-    # - ./documentation/test.md -> /src/documentation/test.md
-    target_docker_path = "/src"
-    run_inside_docker = hserver.is_inside_docker()
-    _LOG.debug(hprint.to_str("run_inside_docker"))
-    # The invariant is that if `run_inside_docker` is:
-    # - True: `/src` in the container corresponds to Git root in the container
-    # - False: `/src/` in the container corresponds to `.`
+    #run_inside_docker = hserver.is_inside_docker()
+    _LOG.debug(hprint.to_str("is_caller_host use_sibling_container_for_callee"))
+    # The invariant is that if we are:
+    # - running inside a container, `/src` in the container corresponds to Git
+    #   root in the container
+    # - running outside a container, `/src/` in the container corresponds to `.`
     # Then all the files need to be converted from host to Docker paths
-    # as reference to target_docker_path.
-    if run_inside_docker:
-        # > docker run --rm --user $(id -u):$(id -g) \
-        #     ...
-        #     --workdir /src \
-        #     --mount type=bind,source=/Users/saggese/src/helpers1,target=/src \
-        #     ...
-        source_host_path = get_host_git_root()
-    else:
+    # as reference to `target_docker_path`.
+    if is_caller_host:
         # > docker run --rm --user $(id -u):$(id -g) \
         #     ...
         #     --workdir /src \
         #     --mount type=bind,source=.,target=/src \
         #     ...
-        # This can be both a dir and a file.
-        hdbg.dassert_path_exists(in_file_path)
-        source_host_path = "."
+        # source_host_path = "."
+        source_host_path = hgit.find_git_root()
+    else:
+        # > docker run --rm --user $(id -u):$(id -g) \
+        #     ...
+        #     --workdir /src \
+        #     --mount type=bind,source=/Users/saggese/src/helpers1,target=/src \
+        #     ...
+        if use_sibling_container_for_callee:
+            source_host_path = get_host_git_root()
+        else:
+            source_host_path = hgit.find_git_root()
+    target_docker_path = "/src"
+    # TODO(gp): make it absolute.
     # E.g.,
-    # source=.,target=/src
-    # source=/Users/saggese/src/helpers1,target=/src
+    # `source=.,target=/src`
+    # `source=/Users/saggese/src/helpers1,target=/src`
     mount = f"type=bind,source={source_host_path},target={target_docker_path}"
-    return in_file_path, out_file_path, mount
+    _LOG.debug(hprint.to_str("source_host_path target_docker_path mount"))
+    return source_host_path, target_docker_path, mount
+
+
+# Outside Docker:
+# > llm_transform.py -i input.md -o - -t md_rewrite -v DEBUG
+# The generated
+# > docker run --rm --user $(id -u):$(id -g) \
+#   ...
+#   PYTHONPATH=/src/. --workdir /src --mount type=bind,source=.,target=/src
+#   tmp.llm_transform.b24cf6a4 \
+#   /src/dev_scripts_helpers/llms/_llm_transform.py \
+#   -i /src/tmp.llm_transform.in.txt \
+#   -o /src/tmp.llm_transform.out.txt \
+
+# /app/helpers/test/outcomes/Test_run_dockerized_prettier1.test1/tmp.scratch/input.txt
+# source_host_path='/Users/saggese/src/helpers1', target_docker_path='/src'
+
+
+# host_file_path='tmp.llm_transform.in.txt',
+# source_host_path='/Users/saggese/src/helpers1', target_docker_path='/src'
+
+# host_file_path='/Users/saggese/src/helpers1', source_host_path='.',
+# target_docker_path='/src'
+
+
+# TODO: source_file_path -> caller_file_path
+# TODO: docker_path -> callee_file_path
+# TODO: -> convert_to_callee_path
+def convert_to_docker_path(
+    source_file_path: str,
+    source_host_path: str, target_docker_path: str,
+    check_if_exists: bool, is_input: bool,
+) -> str:
+    """
+    Convert a host file path to a Docker container path.
+
+    This function converts a given host file path to a corresponding path
+    inside a Docker container. It ensures that the path is valid and
+    relative to the specified source and target paths.
+
+    :param source_file_path: The file path on the host machine.
+    :param source_host_path: The source path on the host machine.
+    :param target_docker_path: The target path inside the Docker container.
+    :param check_if_exists: Whether to check if the file path exists.
+    :param is_input: Whether the file path is an input file.
+
+    :return: The converted file path inside the Docker container.
+    """
+    _LOG.debug(hprint.to_str("source_file_path"
+                             " source_host_path target_docker_path"
+                             " check_if_exists is_input"))
+    if check_if_exists:
+        dassert_valid_path(source_file_path, is_input)
+    abs_source_file_path = os.path.abspath(source_file_path)
+    # The path needs to be underneath the source_host_path.
+    hdbg.dassert(
+         abs_source_file_path.startswith(source_host_path),
+         "'%s' needs to be underneath '%s'",
+         abs_source_file_path,
+         source_host_path,
+    )
+    rel_path = os.path.relpath(source_file_path, source_host_path)
+    #
+    docker_path = os.path.join(target_docker_path, rel_path)
+    _LOG.debug("Converted %s -> %s -> %s", source_file_path,
+               rel_path, docker_path)
+    return docker_path
 
 
 # #############################################################################
@@ -450,9 +596,15 @@ def run_dockerized_prettier(
         container_name, dockerfile, force_rebuild, use_sudo
     )
     # Convert files.
-    (in_file_path, out_file_path, mount) = convert_file_names_to_docker(
-        in_file_path, out_file_path
-    )
+    source_host_path, target_docker_path, mount = get_docker_mount_info()
+    in_file_path = convert_to_docker_path(in_file_path, source_host_path, 
+                                          target_docker_path,
+                                          check_if_exists=True,
+                                          is_input=True)
+    out_file_path = convert_to_docker_path(out_file_path, source_host_path, 
+                                          target_docker_path,
+                                           check_if_exists=False,
+                                          is_input=False)
     # Our interface is (in_file, out_file) instead of the wonky prettier
     # interface based on `--write` for in place update and redirecting `stdout`
     # to save on a different place.
@@ -591,6 +743,20 @@ def convert_pandoc_arguments_to_cmd(
     data_dir: Optional[str],
     template: Optional[str],
 ) -> str:
+    """
+    Convert parsed pandoc arguments back to a command string.
+
+    This function takes the parsed pandoc arguments and converts them
+    back into a command string that can be executed.
+
+    :param in_file_path: The input file path.
+    :param out_file_path: The output file path.
+    :param cmd_opts: A list of additional command options.
+    :param data_dir: The data directory path.
+    :param template: The template file path.
+
+    :return: The constructed pandoc command string.
+    """
     cmd = (
         f"{in_file_path} --output {out_file_path} --data-dir {data_dir}"
         f" --template {template}"
@@ -622,6 +788,15 @@ def run_dockerized_pandoc(
     (in_file_path, out_file_path, mount) = convert_file_names_to_docker(
         in_file_path, out_file_path
     )
+#    source_host_path, target_docker_path, mount = get_docker_mount_info()
+#    in_file_path = convert_to_docker_path(in_file_path, source_host_path,
+#                                          target_docker_path,
+#                                          check_if_exists=True,
+#                                          is_input=True)
+#    out_file_path = convert_to_docker_path(out_file_path, source_host_path,
+#                                           target_docker_path,
+#                                           check_if_exists=False,
+#                                           is_input=False)
     cmd_opts_as_str = " ".join(cmd_opts)
     # The command is like:
     # > docker run --rm --user $(id -u):$(id -g) \
@@ -691,6 +866,11 @@ def run_dockerized_markdown_toc(
     (in_file_path, _, mount) = convert_file_names_to_docker(
         in_file_path, out_file_path
     )
+#    source_host_path, target_docker_path, mount = get_docker_mount_info()
+#    in_file_path = convert_to_docker_path(in_file_path, source_host_path,
+#                                          target_docker_path,
+#                                          check_if_exists=True,
+#                                          is_input=True)
     cmd_opts_as_str = " ".join(cmd_opts)
     # The command is like:
     # > docker run --rm --user $(id -u):$(id -g) \
@@ -723,7 +903,8 @@ def run_dockerized_llm_transform(
     Run _llm_transform.py in a Docker container with all its dependencies.
     """
     hdbg.dassert_in("OPENAI_API_KEY", os.environ)
-    _LOG.debug(hprint.to_str("cmd_opts in_file_path out_file_path use_sudo"))
+    _LOG.debug(hprint.to_str("in_file_path out_file_path cmd_opts "
+                             "force_rebuild use_sudo"))
     hdbg.dassert_isinstance(cmd_opts, list)
     # Build the container, if needed.
     container_name = "tmp.llm_transform"
@@ -742,17 +923,49 @@ def run_dockerized_llm_transform(
     container_name = build_container(
         container_name, dockerfile, force_rebuild, use_sudo
     )
-    # Convert files.
-    (in_file_path, out_file_path, mount) = convert_file_names_to_docker(
-        in_file_path, out_file_path
-    )
+    is_caller_host = True
+    #is_caller_host = False
+    use_sibling_container_for_callee = True
+    if True:
+        source_host_path, target_docker_path, mount = get_docker_mount_info(
+            is_caller_host, use_sibling_container_for_callee)
     helpers_root = hgit.find_helpers_root()
-    (helpers_root, _, _) = convert_file_names_to_docker(helpers_root, None)
+    if True:
+        in_file_path = convert_to_docker_path(in_file_path, source_host_path,
+                                            target_docker_path,
+                                            check_if_exists=True,
+                                            is_input=True)
+        out_file_path = convert_to_docker_path(out_file_path, source_host_path,
+                                             target_docker_path,
+                                             check_if_exists=False,
+                                             is_input=False)
+        helpers_root = convert_to_docker_path(helpers_root, source_host_path,
+                                               target_docker_path,
+                                               check_if_exists=True,
+                                               is_input=False)
+        #
+    else:
+        (helpers_root, _, _) = convert_file_names_to_docker(helpers_root, None)
+        # Convert files.
+        (in_file_path, out_file_path, mount) = convert_file_names_to_docker(
+            in_file_path, out_file_path
+        )
+        helpers_root = convert_to_docker_path(helpers_root, source_host_path,
+                                             target_docker_path,
+                                             check_if_exists=True,
+                                             is_input=True)
+    #
     git_root = hgit.find_git_root()
     script = hsystem.find_file_in_repo("_llm_transform.py", root_dir=git_root)
     # Make all the paths relative to the git root.
-    script = os.path.relpath(os.path.abspath(script.strip("\n")), git_root)
-    (script, _, _) = convert_file_names_to_docker(script, None)
+    #script = os.path.relpath(os.path.abspath(script.strip("\n")), git_root)
+    if True:
+        script = convert_to_docker_path(script, source_host_path,
+                                             target_docker_path,
+                                             check_if_exists=True,
+                                             is_input=True)
+    else:
+        (script, _, _) = convert_file_names_to_docker(script, None)
     cmd_opts_as_str = " ".join(cmd_opts)
     executable = get_docker_executable(use_sudo)
     docker_cmd = (

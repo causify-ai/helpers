@@ -79,24 +79,42 @@ class Test_replace_shared_root_path1(hunitest.TestCase):
 # Test_convert_file_names_to_docker1
 # #############################################################################
 
-# class Test_convert_file_names_to_docker1(hunitest.TestCase):
-#     def test1(self) -> None:
-#         dir_name = self.get_input_dir()
-#         # Prepare inputs.
-#         in_file_path = os.path.join(dir_name, "input.md")
-#         hio.to_file(in_file_path, "empty")
-#         out_file_path = os.path.join(dir_name, "output.md")
-#         # Call tested function.
-#         act_in_file_path, act_out_file_path, act_mount = hdocker.convert_file_names_to_docker(in_file_path, out_file_path)
-#         # Check output.
-#         exp_in_file_path = r"""helpers/test/outcomes/Test_convert_file_names_to_docker1.test1/input/input.md"""
-#         exp_out_file_path = r"src/helpers1/test2.md"
-#         exp_mount = r"""
-#         type=bind,source=/Users/saggese/src/helpers1,target=/src
-#         """
-#         self.assert_equal(act_in_file_path, exp_in_file_path, dedent=True)
-#         self.assert_equal(act_out_file_path, exp_out_file_path, dedent=True)
-#         self.assert_equal(act_mount, exp_mount, dedent=True)
+class Test_convert_to_docker_path1(hunitest.TestCase):
+    def test1(self) -> None:
+        # dir_name = self.get_input_dir()
+        # # Prepare inputs.
+        # in_file_path = os.path.join(dir_name, "input.md")
+        # hio.to_file(in_file_path, "empty")
+        # out_file_path = os.path.join(dir_name, "output.md")
+        # # Call tested function.
+        # act_in_file_path, act_out_file_path, act_mount = hdocker.convert_file_names_to_docker(in_file_path, out_file_path)
+        # # Check output.
+        # exp_in_file_path = r"""helpers/test/outcomes/Test_convert_file_names_to_docker1.test1/input/input.md"""
+        # exp_out_file_path = r"src/helpers1/test2.md"
+        # exp_mount = r"""
+        # type=bind,source=/Users/saggese/src/helpers1,target=/src
+        # """
+        # self.assert_equal(act_in_file_path, exp_in_file_path, dedent=True)
+        # self.assert_equal(act_out_file_path, exp_out_file_path, dedent=True)
+        # self.assert_equal(act_mount, exp_mount, dedent=True)
+        is_caller_host = True
+        use_sibling_container_for_callee = True
+        source_host_path, target_docker_path, mount = hdocker.get_docker_mount_info(is_caller_host,
+                                  use_sibling_container_for_callee)
+        dir_name = self.get_input_dir()
+        source_file_path = os.path.join(dir_name, "input.md")
+        hio.to_file(source_file_path, "empty")
+        docker_path = hdocker.convert_to_docker_path(source_file_path,
+                                                     source_host_path,
+                                                     target_docker_path,
+                                                     check_if_exists=True,
+                                                     is_input=True)
+        #
+        exp_docker_path = "/src/helpers/test/outcomes/Test_convert_to_docker_path1.test1/input/input.md"
+        self.assert_equal(docker_path, exp_docker_path)
+        #
+        #exp_mount = "type=bind,source=/app,target=/src"
+        #self.assert_equal(mount, exp_mount, dedent=True)
 
 
 # #############################################################################
