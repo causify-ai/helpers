@@ -35,10 +35,10 @@ def is_inside_ci() -> bool:
     """
     Return whether we are running inside the Continuous Integration flow.
     """
-    if "CI" not in os.environ:
+    if "CSFY_CI" not in os.environ:
         ret = False
     else:
-        ret = os.environ["CI"] != ""
+        ret = os.environ["CSFY_CI"] != ""
     return ret
 
 

@@ -122,7 +122,7 @@ def get_env_vars() -> List[str]:
         "AM_REPO_CONFIG_PATH",
         "GH_ACTION_ACCESS_TOKEN",
         # Whether we are running inside GH Actions.
-        "CI",
+        "CSFY_CI",
         # TODO(gp): Difference between amp and cmamp.
         # CK AWS credentials.
         "CK_AWS_ACCESS_KEY_ID",
