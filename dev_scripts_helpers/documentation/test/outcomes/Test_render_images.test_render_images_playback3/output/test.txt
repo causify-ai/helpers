@@ -1,0 +1,153 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+
+\title{Sample title}
+\author{John Smith}
+\date{December 2024}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+Here is the beginning.
+
+% ```plantuml
+% @startuml
+% title System Context Diagram
+% 
+% skinparam defaultTextAlignment center
+% skinparam component {
+%     backgroundcolor<<main>> RoyalBlue
+%     FontColor<<main>> white
+% }
+% 
+% component imaster <<main>> [
+% **Instrument Master**
+% 
+% Implements an ETL pipeline that fetches stock data from
+% different vendors, and provides stock data & metadata
+% in standardized formats.
+% ]
+% 
+% component vendors [
+% **Stock Data Vendors**
+% 
+% i.e: Kibot, Eoddata, ...
+% ]
+% 
+% component models [
+% **Data Analysis Models**
+% 
+% ML Models that process the structured data from instrument
+% master and produce insights.
+% ]
+% 
+% imaster -up-> vendors: fetches raw data from
+% imaster <-- models: fetches processed data from
+% @enduml
+% ```
+\begin{figure}
+  \includegraphics[width=\linewidth]{figs/sample_file_plantuml.1.png}
+\end{figure}
+
+Another one:
+
+% ```plantuml
+% title Container Diagram
+% 
+% skinparam defaultTextAlignment center
+% 
+% package "Instrument Master" {
+%    package "Vendor ETL Pipeline" {
+%       component vextractor [
+%       **Vendor Extractor**
+% 
+%       Extracts data from the vendor
+%       (one for each vendor)
+%       ]
+% 
+%       component vtransformer [
+%       **Vendor Transformer**
+% 
+%       Transforms csv data into standardized pq format
+%       (one for each vendor)
+%       ]
+% 
+%       component vloader [
+%       **Vendor Loader**
+% 
+%       Loads data from standardized pq format
+%       - can perform light transformation
+%       ]
+% 
+%    }
+% 
+%     component loader [
+%     **Loader**
+% 
+%     Loads data from standardized pq format
+%     (not vendor specific)
+%     ]
+% 
+%     database objstore [
+%     **Object Store**
+% 
+%     local file system or s3
+%     ]
+% 
+%     vextractor -down-> objstore: sends extracted data
+%     vtransformer <-right-> objstore: reads extracted data\lwrite transofrmed data
+%     vloader -up-> objstore: read transoformed data
+%     loader -up-> vloader: read standardized (parquet) data
+% 
+%     ' styling
+%     vextractor -[hidden]down- vtransformer
+%     vtransformer -[hidden]down- vloader
+% 
+% }
+% 
+% component vendors [
+% Stock Data Vendors
+% 
+% i.e: Kibot, Eoddata, ...
+% ]
+% 
+% component models [
+% Data analysis models
+% 
+% ML Models that process the structured data from instrument
+% master and produce insights.
+% ]
+% 
+% vendors <-- vextractor: fetches data from
+% loader <-up- models: fetches data from
+% ```
+\begin{figure}
+  \includegraphics[width=\linewidth]{figs/sample_file_plantuml.2.png}
+\end{figure}
+
+Not a diagram:
+
+```ansi
+types/  # standardized types (see data model above)
+loader/  # adapts all vendor loaders to a common interface
+vendors/
+   kibot/
+      extractor/
+      transformer/
+      loader/
+      types/  # vendor specific types
+      config.py  # s3 paths, credentials for vendor
+   eoddata/
+      extractor/
+      transformer/
+      loader/
+      types/
+      config.py
+```
+
+The end.
+
+\end{document}
