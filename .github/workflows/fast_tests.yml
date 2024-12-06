@@ -67,6 +67,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r .github/gh_requirements.txt
 
+      - name: Print env
+        run: printenv | grep CI
+
       # Pull the latest Docker image to run the regressions on.
       - name: Pull image
         if: github.event.pull_request.draft == false
