@@ -104,11 +104,11 @@ class Test_convert_to_docker_path1(hunitest.TestCase):
         dir_name = self.get_input_dir()
         source_file_path = os.path.join(dir_name, "input.md")
         hio.to_file(source_file_path, "empty")
-        docker_path = hdocker.convert_to_docker_path(source_file_path,
-                                                     source_host_path,
-                                                     target_docker_path,
-                                                     check_if_exists=True,
-                                                     is_input=True)
+        docker_path = hdocker.convert_caller_to_callee_docker_path(source_file_path,
+                                                                   source_host_path,
+                                                                   target_docker_path,
+                                                                   check_if_exists=True,
+                                                                   is_input=True)
         #
         exp_docker_path = "/src/helpers/test/outcomes/Test_convert_to_docker_path1.test1/input/input.md"
         self.assert_equal(docker_path, exp_docker_path)
