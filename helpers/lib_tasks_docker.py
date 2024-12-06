@@ -564,7 +564,7 @@ def _generate_docker_compose_file(
             # see https://cli.github.com/manual/gh_auth_login.
             "GH_TOKEN=$GH_ACTION_ACCESS_TOKEN",
             # This env var is used by GH Action to signal that we are inside the CI.
-            "CI=$CI",
+            "CSFY_CI=$CSFY_CI",
         ],
         "image": "${IMAGE}",
         "restart": "no",
