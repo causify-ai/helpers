@@ -28,6 +28,10 @@ jobs:
       # pulling the image from ECR, enable this.
       # Pass AWS credentials via GH secrets. This is needed to pull the Docker image
       # that will be used to run the action.
+
+      - name: Print env
+        run: printenv | grep CI
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -39,6 +43,9 @@ jobs:
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
+      
+      - name: Print env
+        run: printenv | grep CI
 
       #- name: Perform docker login
       #  run: docker login ghcr.io -u gpsaggese -p ${{ secrets.GITHUB_TOKEN }}
@@ -55,10 +62,16 @@ jobs:
           submodules: true
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Print env
+        run: printenv | grep CI
+
       # To see the modules in `amp`, PYTHONPATH needs to include `amp` in the
       # same way we do in `setenv.sh`.
       - name: Update PYTHONPATH
         run: echo "PYTHONPATH=.:amp" >> $GITHUB_ENV
+      
+      - name: Print env
+        run: printenv | grep CI
 
       # Install packages that are required to run the job via GH.
       - name: Install dependencies
