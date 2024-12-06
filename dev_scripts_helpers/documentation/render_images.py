@@ -64,7 +64,7 @@ def _get_rendered_file_paths(
 
     The name assigned to the target image is relative to the name of the original
     file where the graphics code was extracted from and the order number of
-    that code block in the file. E.g., the image rendered from the first graphics code block
+    that code block in the file. E.g., image rendered from the first graphics code block
     in a Markdown file called `readme.md` would be called `figs/readme.1.png`.
     This way if we update the image, its name does not change.
 
@@ -126,7 +126,9 @@ def _get_render_command(
     elif graphics_type == "mermaid":
         cmd = f"mmdc -i {code_file_path}.mmd -o {rel_img_path}"
     else:
-        raise ValueError("Invalid type of the ")
+        raise ValueError(
+            f"Invalid type of graphics: {graphics_type}; should be one of 'plantuml', 'mermaid'"
+        )
     return cmd
 
 
@@ -209,7 +211,7 @@ def _render_images(
         comment_sign = "%"
     else:
         raise ValueError(
-            f"Unsupported file type: {out_file}. Pass a Markdown (.md) or a LaTeX (.tex) file"
+            f"Unsupported file type: {out_file}; should be Markdown (.md) or LaTeX (.tex)"
         )
     for i, line in enumerate(in_lines):
         _LOG.debug("%d: %s -> state=%s", i, line, state)
@@ -254,7 +256,7 @@ def _render_images(
                 out_lines.append(r"\end{figure}")
             else:
                 raise ValueError(
-                    f"Unsupported file type: {out_file}. Pass a Markdown (.md) or a LaTeX (.tex) file"
+                    f"Unsupported file type: {out_file}; should be Markdown (.md) or LaTeX (.tex)"
                 )
             # Set the parser to search for a new graphics code block.
             state = "searching"
