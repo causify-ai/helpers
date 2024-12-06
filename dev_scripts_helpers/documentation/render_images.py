@@ -4,6 +4,8 @@
 Replace sections of graphics code with rendered images, commenting out the
 original code, if needed.
 
+See `docs/work_tools/documentation_toolchain/all.render_images.explanation.md`.
+
 Usage:
 
 # Create a new Markdown file with rendered images:

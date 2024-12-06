@@ -71,8 +71,8 @@
   - `notes_to_pdf.py`
     - Convert a `txt` file storing nodes into a PDF / HTML / beamer slides using
       `pandoc`
-  - `render_md.py`
-    - Render images for several sections in markdown / latex / notes files
+  - `render_images.py`
+    - Render images from graphics code in Markdown / LaTeX / notes files
   - `replace_latex.py`, `replace_latex.sh`
     - Scripts for one-off processing of latex files
   - `run_latex.sh`
