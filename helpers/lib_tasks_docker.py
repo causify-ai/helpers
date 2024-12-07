@@ -527,7 +527,6 @@ def _generate_docker_compose_file(
     am_host_name = os.uname()[1]
     am_host_version = os.uname()[2]
     am_host_user_name = getpass.getuser()
-    curr_dir = os.getcwd()
     # The mounting path in the container is `/app`.
     # So we need to use that as starting point.
     # e.g. For CK_GIT_ROOT_PATH,
@@ -536,12 +535,11 @@ def _generate_docker_compose_file(
     #   rather than `/data/heanhs/src/cmamp1/helpers_root`, we need to
     #   use `/app/helpers_root`.
     # Find git root path.
-    git_dir = hgit.find_git_root()
-    git_relative_dir = os.path.relpath(git_dir, curr_dir)
-    git_root_path = os.path.normpath(os.path.join("/app", git_relative_dir))
+    git_root_path = "/app"
     # Find helpers root path.
     helper_dir = hgit.find_helpers_root()
-    helper_relative_path = os.path.relpath(helper_dir, curr_dir)
+    git_dir = hgit.find_git_root()
+    helper_relative_path = os.path.relpath(helper_dir, git_dir)
     helper_root_path = os.path.normpath(
         os.path.join("/app", helper_relative_path)
     )
@@ -636,7 +634,9 @@ def _generate_docker_compose_file(
     # Mount `amp` when it is used as submodule. In this case we need to
     # mount the super project in the container (to make git work with the
     # supermodule) and then change dir to `amp`.
-    app_spec = {"extends": "base_app"}
+    app_spec = {
+        "extends": "base_app",
+    }
     if mount_as_submodule:
         # Move one dir up to include the entire git repo (see AmpTask1017).
         app_spec["volumes"] = ["../../../:/app"]
@@ -644,7 +644,14 @@ def _generate_docker_compose_file(
         app_spec["working_dir"] = "/app/amp"
     else:
         # Mount `amp` when it is used as supermodule.
-        app_spec["volumes"] = ["../../:/app"]
+        # app_spec["volumes"] = ["../../:/app"]
+        curr_dir = os.getcwd()
+        rel_dir1 = os.path.relpath(curr_dir, git_dir)
+        rel_dir2 = os.path.relpath(git_dir, curr_dir)
+        app_dir = os.path.abspath(os.path.join(curr_dir, rel_dir2))
+        working_dir = os.path.normpath(os.path.join("/app", rel_dir1))
+        app_spec["volumes"] = [f"{app_dir}:/app"]
+        app_spec["working_dir"] = working_dir
     # Configure `linter` service.
     linter_spec = _get_linter_service(stage)
     # Configure `jupyter_server` service.
