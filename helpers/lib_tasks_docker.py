@@ -421,12 +421,14 @@ def docker_login(ctx, target_registry="aws_ecr.ck"):  # type: ignore
 # TODO(gp): use_privileged_mode -> use_docker_privileged_mode
 #  use_sibling_container -> use_docker_containers_containers
 
+DockerComposeServiceSpec = Dict[str, Union[str, List[str]]]
 
-def _get_linter_service(stage: str) -> Dict[str, Union[str, List[str]]]:
+
+def _get_linter_service(stage: str) -> DockerComposeServiceSpec:
     """
     Get the linter service specification for the `docker-compose.yml` file.
 
-    :return: the text of the linter service specification
+    :return: linter service specification
     """
     superproject_path, submodule_path = hgit.get_path_from_supermodule()
     if superproject_path:
@@ -493,20 +495,6 @@ def _generate_docker_compose_file(
             "file_name "
         )
     )
-
-    class _Dumper(yaml.Dumper):
-        """
-        A custom YAML Dumper class that adjusts indentation.
-        """
-
-        def increase_indent(self, flow=False, indentless=False) -> Any:
-            """
-            Override the method to modify YAML indentation behavior.
-            """
-            return super(_Dumper, self).increase_indent(
-                flow=False, indentless=False
-            )
-
     # We could pass the env var directly, like:
     # ```
     # - AM_ENABLE_DIND=$AM_ENABLE_DIND
@@ -673,6 +661,20 @@ def _generate_docker_compose_file(
     # Configure networks.
     if use_main_network:
         docker_compose["networks"] = {"default": {"name": "main_network"}}
+
+    class _Dumper(yaml.Dumper):
+        """
+        A custom YAML Dumper class that adjusts indentation.
+        """
+
+        def increase_indent(self, flow=False, indentless=False) -> Any:
+            """
+            Override the method to modify YAML indentation behavior.
+            """
+            return super(_Dumper, self).increase_indent(
+                flow=False, indentless=False
+            )
+
     # Convert the dictionary to YAML format.
     yaml_str = yaml.dump(
         docker_compose,
