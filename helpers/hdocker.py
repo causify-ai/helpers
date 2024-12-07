@@ -275,6 +275,7 @@ def _dassert_valid_path(file_path: str, is_input: bool) -> None:
     files, it ensures that the file or directory exists. For output
     files, it ensures that the directory exists.
     """
+    _LOG.debug(hprint.to_str("file_path is_input"))
     if is_input:
         # If it's an input file, then `file_path` must exist as a file or a dir.
         hdbg.dassert_path_exists(file_path)
@@ -297,6 +298,7 @@ def _dassert_is_path_included(file_path: str, including_path: str) -> None:
     This function checks if the given file path starts with the specified
     including path. If not, it raises an assertion error.
     """
+    _LOG.debug(hprint.to_str("file_path including_path"))
     hdbg.dassert(
         file_path.startswith(including_path),
         "'%s' needs to be underneath '%s'",
@@ -566,13 +568,13 @@ def run_dockerized_prettier(
 # #############################################################################
 
 
-# `parse_pandoc_arguments` and `convert_pandoc_arguments_to_cmd` are opposite
-# functions that allow to convert a command line to a dictionary and back to a
-# command line. This is useful when we want to run a command in a container
-# which requires to know how to interpret the command line arguments.
-def parse_pandoc_arguments(cmd: str) -> Dict[str, Any]:
+# `convert_pandoc_cmd_to_arguments` and `convert_pandoc_arguments_to_cmd` are
+# opposite functions that allow to convert a command line to a dictionary and
+# back to a command line. This is useful when we want to run a command in a
+# container which requires to know how to interpret the command line arguments.
+def convert_pandoc_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
     """
-    Parse the arguments for a pandoc command.
+    Parse the arguments from a pandoc command.
 
     We need to parse all the arguments that correspond to files, so that
     we can convert them to paths that are valid inside the Docker
@@ -600,56 +602,58 @@ def parse_pandoc_arguments(cmd: str) -> Dict[str, Any]:
     parser.add_argument("-o", "--output", required=True)
     parser.add_argument("--data-dir", default=None)
     parser.add_argument("--template", default=None)
+    parser.add_argument("--extract-media", default=None)
     # Parse known arguments and capture the rest.
     args, unknown_args = parser.parse_known_args(cmd)
     _LOG.debug(hprint.to_str("args unknown_args"))
-    # Return all arguments in a dictionary with names that match the function
-    # signature of `run_dockerized_pandoc`.
-    return {
-        "in_file_path": in_file_path,
-        "out_file_path": args.output,
-        "data_dir": args.data_dir,
+    # Return all the arguments in a dictionary with names that match the
+    # function signature of `run_dockerized_pandoc`.
+    in_dir_params = {
+        "data-dir": args.data_dir,
         "template": args.template,
+        "extract-media": args.extract_media,
+    }
+    return {
+        "input": in_file_path,
+        "output": args.output,
+        "in_dir_params": in_dir_params,
         "cmd_opts": unknown_args,
     }
 
 
 def convert_pandoc_arguments_to_cmd(
-    in_file_path: str,
-    out_file_path: str,
-    cmd_opts: List[str],
-    data_dir: Optional[str],
-    template: Optional[str],
+    params: Dict[str, Any],
 ) -> str:
     """
     Convert parsed pandoc arguments back to a command string.
 
-    This function takes the parsed pandoc arguments and converts them
-    back into a command string that can be executed.
+    This function takes the parsed pandoc arguments and converts them back into
+    a command string that can be executed directly or in a Dockerized container.
 
-    :param in_file_path: The input file path.
-    :param out_file_path: The output file path.
-    :param cmd_opts: A list of additional command options.
-    :param data_dir: The data directory path.
-    :param template: The template file path.
     :return: The constructed pandoc command string.
     """
-    cmd = (
-        f"{in_file_path} --output {out_file_path} --data-dir {data_dir}"
-        f" --template {template}"
-        f" {' '.join(cmd_opts)}"
-    )
+    cmd = []
+    hdbg.dassert_is_subset(params.keys(), ["input", "output", "in_dir_params",
+                                           "cmd_opts"])
+    cmd.append(f'{params["input"]}')
+    cmd.append(f'--output {params["output"]}')
+    for key, value in params["in_dir_params"].items():
+        if value:
+            cmd.append(f'--{key} {value}')
+    #
+    hdbg.dassert_isinstance(params["cmd_opts"], list)
+    cmd.append(' '.join(params["cmd_opts"]))
+    #
+    cmd = " ".join(cmd)
+    _LOG.debug(hprint.to_str("cmd"))
     return cmd
 
 
 def run_dockerized_pandoc(
-    in_file_path: str,
-    out_file_path: str,
-    cmd_opts: List[str],
-    data_dir: Optional[str],
-    template: Optional[str],
+    cmd: str,
+    *,
     return_cmd: bool = False,
-    use_sudo: bool = True,
+    use_sudo: bool = False,
 ) -> Optional[str]:
     """
     Run `pandoc` in a Docker container.
@@ -657,9 +661,8 @@ def run_dockerized_pandoc(
     Same as `run_dockerized_prettier()` but for `pandoc`.
     """
     _LOG.debug(
-        hprint.to_str("cmd_opts in_file_path out_file_path data_dir use_sudo")
+        hprint.to_str("cmd return_cmd use_sudo")
     )
-    hdbg.dassert_isinstance(cmd_opts, list)
     container_name = "pandoc/core"
     # Convert files.
     is_caller_host = not hserver.is_inside_docker()
@@ -667,8 +670,10 @@ def run_dockerized_pandoc(
     caller_mount_path, callee_mount_path, mount = get_docker_mount_info(
         is_caller_host, use_sibling_container_for_callee
     )
-    in_file_path = convert_caller_to_callee_docker_path(
-        in_file_path,
+    #
+    param_dict = convert_pandoc_cmd_to_arguments(cmd)
+    param_dict["input"] = convert_caller_to_callee_docker_path(
+        param_dict["input"],
         caller_mount_path,
         callee_mount_path,
         check_if_exists=True,
@@ -676,8 +681,8 @@ def run_dockerized_pandoc(
         is_caller_host=is_caller_host,
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
-    out_file_path = convert_caller_to_callee_docker_path(
-        out_file_path,
+    param_dict["output"] = convert_caller_to_callee_docker_path(
+        param_dict["output"],
         caller_mount_path,
         callee_mount_path,
         check_if_exists=False,
@@ -685,7 +690,23 @@ def run_dockerized_pandoc(
         is_caller_host=is_caller_host,
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
-    cmd_opts_as_str = " ".join(cmd_opts)
+    for key, value in param_dict["in_dir_params"].items():
+        if value:
+            value_tmp = convert_caller_to_callee_docker_path(
+                value,
+                caller_mount_path,
+                callee_mount_path,
+                check_if_exists=True,
+                is_input=True,
+                is_caller_host=is_caller_host,
+                use_sibling_container_for_callee=use_sibling_container_for_callee,
+        )
+        else:
+            value_tmp = value
+        param_dict["in_dir_params"][key] = value_tmp
+    #
+    pandoc_cmd = convert_pandoc_arguments_to_cmd(param_dict)
+    _LOG.debug(hprint.to_str("pandoc_cmd"))
     # The command is like:
     # > docker run --rm --user $(id -u):$(id -g) \
     #     --workdir /app \
@@ -698,28 +719,13 @@ def run_dockerized_pandoc(
         f"{executable} run --rm --user $(id -u):$(id -g)"
         f" --workdir /{callee_mount_path} --mount {mount}"
         f" {container_name}"
-        f" {in_file_path} -o {out_file_path} {cmd_opts_as_str}"
+        f" {pandoc_cmd}"
     )
     if return_cmd:
         return docker_cmd
     # TODO(gp): Note that `suppress_output=False` seems to hang the call.
     hsystem.system(docker_cmd)
     return None
-
-
-def run_pandoc(
-    cmd: str, *, use_dockerized_pandoc: bool = True, use_sudo: bool = False
-) -> None:
-    """
-    Run `pandoc` using the dockerized executable or the host one.
-    """
-    if use_dockerized_pandoc:
-        # Parse the command line arguments to extract the input and output files.
-        cmd_opts = parse_pandoc_arguments(cmd)
-        cmd_opts["use_sudo"] = use_sudo
-        run_dockerized_pandoc(**cmd_opts)
-    else:
-        _ = hsystem.system(cmd, suppress_output=False)
 
 
 # #############################################################################

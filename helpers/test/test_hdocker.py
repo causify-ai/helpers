@@ -218,7 +218,7 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
         """
         cmd = hprint.dedent(cmd, remove_lead_trail_empty_lines_=True)
         # Call tested function.
-        act = hdocker.parse_pandoc_arguments(cmd)
+        act = hdocker.convert_pandoc_cmd_to_arguments(cmd)
         # Check output.
         exp = {
             "in_file_path": "input.md",
@@ -235,7 +235,7 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
         """
         cmd = hprint.dedent(cmd, remove_lead_trail_empty_lines_=True)
         # Call tested function.
-        act = hdocker.parse_pandoc_arguments(cmd)
+        act = hdocker.convert_pandoc_cmd_to_arguments(cmd)
         # Check output.
         exp = {
             "in_file_path": "input.md",
@@ -257,7 +257,7 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
         """
         cmd = hprint.dedent(cmd, remove_lead_trail_empty_lines_=True)
         # Call tested function.
-        act = hdocker.parse_pandoc_arguments(cmd)
+        act = hdocker.convert_pandoc_cmd_to_arguments(cmd)
         # Check output.
         exp = {
             "in_file_path": "test/outcomes/tmp.pandoc.preprocess_notes.txt",
@@ -289,7 +289,7 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
         """
         cmd = hprint.dedent(cmd, remove_lead_trail_empty_lines_=True)
         # Parse the command.
-        parsed_args = hdocker.parse_pandoc_arguments(cmd)
+        parsed_args = hdocker.convert_pandoc_cmd_to_arguments(cmd)
         # Convert back to command.
         converted_cmd = hdocker.convert_pandoc_arguments_to_cmd(
             parsed_args["in_file_path"],

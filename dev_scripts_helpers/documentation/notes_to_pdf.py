@@ -217,7 +217,7 @@ def _run_pandoc_to_pdf(
     cmd = " ".join(cmd)
     _LOG.debug("before: " + hprint.to_str("cmd"))
     if not args.use_host_tools:
-        cmd_opts = hdocker.parse_pandoc_arguments(cmd)
+        cmd_opts = hdocker.convert_pandoc_cmd_to_arguments(cmd)
         # TODO(gp): This should be a global switch.
         cmd_opts["use_sudo"] = False
         cmd_opts["return_cmd"] = True
