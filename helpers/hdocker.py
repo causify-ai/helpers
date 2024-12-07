@@ -206,7 +206,6 @@ def replace_shared_root_path(
 # Docker-ization API
 # #############################################################################
 
-# See docs/work_tools/docker/all.dockerized_flow.explanation.md
 
 
 def build_container(
@@ -295,8 +294,8 @@ def _dassert_is_path_included(file_path: str, including_path: str) -> None:
     """
     Assert that a file path is included within another path.
 
-    This function checks if the given file path starts with the
-    specified including path. If not, it raises an assertion error.
+    This function checks if the given file path starts with the specified
+    including path. If not, it raises an assertion error.
     """
     hdbg.dassert(
         file_path.startswith(including_path),
@@ -318,40 +317,30 @@ def get_docker_mount_info(
     This function determines the appropriate source and target paths for
     mounting a directory in a Docker container.
 
-    :return: A tuple containing the source path, target Docker path,
-             and the mount string, E.g.,
+    :return: A tuple containing
+        - caller_mount_path: the mount path on the caller filesystem
+        - callee_mount_path: the mount path inside the called Docker container
+        - the mount string, e.g.,
                 `source={caller_mount_path},target={callee_mount_path}`
     """
     _LOG.debug(hprint.to_str("is_caller_host use_sibling_container_for_callee"))
-    # The invariant is that if we are:
-    # - running inside a container, `/app` in the container corresponds to Git
-    #   root in the container
-    # - running outside a container, `/app` in the container corresponds to `.`
-    # Then all the files need to be converted from host to Docker paths
-    # as reference to `callee_mount_path`.
+    # See docs/work_tools/docker/all.dockerized_flow.explanation.md for details.
     if is_caller_host:
-        # > docker run --rm --user $(id -u):$(id -g) \
-        #     ...
-        #     --workdir /app \
-        #     --mount type=bind,source=.,target=/app \
-        #     ...
-        # caller_mount_path = "."
+        # On the host machine, the mount path is the Git root.
         caller_mount_path = hgit.find_git_root()
     else:
-        # > docker run --rm --user $(id -u):$(id -g) \
-        #     ...
-        #     --workdir /app \
-        #     --mount type=bind,source=/Users/saggese/src/helpers1,target=/app \
-        #     ...
+        # Inside a Docker container, the mount path depends on the container
+        # style.
         if use_sibling_container_for_callee:
             # For sibling containers, we need to get the Git root on the host.
             caller_mount_path = get_host_git_root()
         else:
+            # For children containers, we need to get the local Git root on the
+            # host.
             caller_mount_path = hgit.find_git_root()
+    # The target mount path is always `/app` inside the Docker container.
     callee_mount_path = "/app"
-    # E.g.,
-    # - `source=.,target=/app`
-    # - `source=/Users/saggese/src/helpers1,target=/app`
+    #
     mount = f"type=bind,source={caller_mount_path},target={callee_mount_path}"
     _LOG.debug(hprint.to_str("caller_mount_path callee_mount_path mount"))
     return caller_mount_path, callee_mount_path, mount
@@ -367,17 +356,17 @@ def convert_caller_to_callee_docker_path(
     use_sibling_container_for_callee: bool,
 ) -> str:
     """
-    Convert a file path from the (current) caller filesystem to the Docker
-    container path.
+    Convert a file path from the (current) caller filesystem to the called
+    Docker container path.
 
-    :param caller_file_path: The file path on the host machine.
-    :param caller_mount_path: The source path on the host machine.
-    :param callee_mount_path: The target path inside the Docker
+    :param caller_file_path: The file path on the caller filesystem.
+    :param caller_mount_path: The source mount path on the host machine.
+    :param callee_mount_path: The target mount path inside the Docker
         container.
     :param check_if_exists: Whether to check if the file path exists.
     :param is_input: Whether the file path is an input file.
     :param is_caller_host: Whether the caller is running on the host
-        machine.
+        machine or inside a Docker container.
     :param use_sibling_container_for_callee: Whether to use a sibling
         container or a children container
     :return: The converted file path inside the Docker container.
@@ -389,25 +378,24 @@ def convert_caller_to_callee_docker_path(
             " use_sibling_container_for_callee"
         )
     )
-    _ = use_sibling_container_for_callee
     if check_if_exists:
         _dassert_valid_path(caller_file_path, is_input)
     # Make the path absolute with respect to the (current) caller filesystem.
     abs_caller_file_path = os.path.abspath(caller_file_path)
     if is_caller_host:
-        # The path needs to be underneath the source_host_path.
+        # On the host, the path needs to be underneath the caller mount point.
         caller_mount_point = caller_mount_path
     else:
         # We are inside a Docker container, so the path needs to be under
         # the local Git root, since this is the mount point.
         caller_mount_point = hgit.find_git_root()
-    #
+    _ = use_sibling_container_for_callee
     _dassert_is_path_included(abs_caller_file_path, caller_mount_point)
-    #
+    # Make the path relative to the caller mount point.
     rel_path = os.path.relpath(caller_file_path, caller_mount_point)
-    #
     docker_path = os.path.join(callee_mount_path, rel_path)
     docker_path = os.path.normpath(docker_path)
+    #
     _LOG.debug(
         "  Converted %s -> %s -> %s", caller_file_path, rel_path, docker_path
     )
@@ -437,18 +425,17 @@ def run_dockerized_prettier(
 
     From dev container:
     docker> ./dev_scripts_helpers/documentation/dockerized_prettier.py \
-        --input test.md --output test2.md \
-        --in_inside_docker
+        --input test.md --output test2.md
 
-    :param cmd_opts: Command options to pass to Prettier.
     :param in_file_path: Path to the file to format with Prettier.
     :param out_file_path: Path to the output file.
+    :param cmd_opts: Command options to pass to Prettier.
     :param force_rebuild: Whether to force rebuild the Docker container.
     :param use_sudo: Whether to use sudo for Docker commands.
     """
     _LOG.debug(
         hprint.to_str(
-            "cmd_opts in_file_path out_file_path force_rebuild use_sudo"
+            "in_file_path out_file_path cmd_opts force_rebuild use_sudo"
         )
     )
     hdbg.dassert_isinstance(cmd_opts, list)
@@ -470,15 +457,15 @@ def run_dockerized_prettier(
     container_name = build_container(
         container_name, dockerfile, force_rebuild, use_sudo
     )
-    # Convert files.
+    # Convert files to Docker paths.
     is_caller_host = not hserver.is_inside_docker()
     use_sibling_container_for_callee = True
-    source_host_path, callee_mount_path, mount = get_docker_mount_info(
+    caller_mount_path, callee_mount_path, mount = get_docker_mount_info(
         is_caller_host, use_sibling_container_for_callee
     )
     in_file_path = convert_caller_to_callee_docker_path(
         in_file_path,
-        source_host_path,
+        caller_mount_path,
         callee_mount_path,
         check_if_exists=True,
         is_input=True,
@@ -487,7 +474,7 @@ def run_dockerized_prettier(
     )
     out_file_path = convert_caller_to_callee_docker_path(
         out_file_path,
-        source_host_path,
+        caller_mount_path,
         callee_mount_path,
         check_if_exists=False,
         is_input=False,
@@ -677,12 +664,12 @@ def run_dockerized_pandoc(
     # Convert files.
     is_caller_host = not hserver.is_inside_docker()
     use_sibling_container_for_callee = True
-    source_host_path, callee_mount_path, mount = get_docker_mount_info(
+    caller_mount_path, callee_mount_path, mount = get_docker_mount_info(
         is_caller_host, use_sibling_container_for_callee
     )
     in_file_path = convert_caller_to_callee_docker_path(
         in_file_path,
-        source_host_path,
+        caller_mount_path,
         callee_mount_path,
         check_if_exists=True,
         is_input=True,
@@ -691,7 +678,7 @@ def run_dockerized_pandoc(
     )
     out_file_path = convert_caller_to_callee_docker_path(
         out_file_path,
-        source_host_path,
+        caller_mount_path,
         callee_mount_path,
         check_if_exists=False,
         is_input=False,
@@ -765,13 +752,12 @@ def run_dockerized_markdown_toc(
     # Convert files to Docker paths.
     is_caller_host = not hserver.is_inside_docker()
     use_sibling_container_for_callee = True
-    source_host_path, callee_mount_path, mount = get_docker_mount_info(
+    caller_mount_path, callee_mount_path, mount = get_docker_mount_info(
         is_caller_host, use_sibling_container_for_callee
     )
-    #
     in_file_path = convert_caller_to_callee_docker_path(
         in_file_path,
-        source_host_path,
+        caller_mount_path,
         callee_mount_path,
         check_if_exists=True,
         is_input=True,
@@ -812,7 +798,7 @@ def run_dockerized_llm_transform(
     hdbg.dassert_in("OPENAI_API_KEY", os.environ)
     _LOG.debug(
         hprint.to_str(
-            "in_file_path out_file_path cmd_opts " "force_rebuild use_sudo"
+            "in_file_path out_file_path cmd_opts force_rebuild use_sudo"
         )
     )
     hdbg.dassert_isinstance(cmd_opts, list)
@@ -836,13 +822,12 @@ def run_dockerized_llm_transform(
     # Convert files to Docker paths.
     is_caller_host = not hserver.is_inside_docker()
     use_sibling_container_for_callee = True
-    source_host_path, callee_mount_path, mount = get_docker_mount_info(
+    caller_mount_path, callee_mount_path, mount = get_docker_mount_info(
         is_caller_host, use_sibling_container_for_callee
     )
-    #
     in_file_path = convert_caller_to_callee_docker_path(
         in_file_path,
-        source_host_path,
+        caller_mount_path,
         callee_mount_path,
         check_if_exists=True,
         is_input=True,
@@ -851,7 +836,7 @@ def run_dockerized_llm_transform(
     )
     out_file_path = convert_caller_to_callee_docker_path(
         out_file_path,
-        source_host_path,
+        caller_mount_path,
         callee_mount_path,
         check_if_exists=False,
         is_input=False,
@@ -861,7 +846,7 @@ def run_dockerized_llm_transform(
     helpers_root = hgit.find_helpers_root()
     helpers_root = convert_caller_to_callee_docker_path(
         helpers_root,
-        source_host_path,
+        caller_mount_path,
         callee_mount_path,
         check_if_exists=True,
         is_input=False,
@@ -872,7 +857,7 @@ def run_dockerized_llm_transform(
     script = hsystem.find_file_in_repo("_llm_transform.py", root_dir=git_root)
     script = convert_caller_to_callee_docker_path(
         script,
-        source_host_path,
+        caller_mount_path,
         callee_mount_path,
         check_if_exists=True,
         is_input=True,
