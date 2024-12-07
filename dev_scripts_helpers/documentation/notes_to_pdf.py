@@ -217,11 +217,8 @@ def _run_pandoc_to_pdf(
     cmd = " ".join(cmd)
     _LOG.debug("before: " + hprint.to_str("cmd"))
     if not args.use_host_tools:
-        cmd_opts = hdocker.convert_pandoc_cmd_to_arguments(cmd)
-        # TODO(gp): This should be a global switch.
-        cmd_opts["use_sudo"] = False
-        cmd_opts["return_cmd"] = True
-        cmd = hdocker.run_dockerized_pandoc(**cmd_opts)
+        cmd = hdocker.run_dockerized_pandoc(cmd, return_cmd=True,
+                                            use_sudo=False)
     _LOG.debug("after: " + hprint.to_str("cmd"))
     _ = _system(cmd, suppress_output=False)
     file_ = file2
@@ -230,19 +227,26 @@ def _run_pandoc_to_pdf(
     # pdflatex needs to run in the same dir of latex_abbrevs.sty so we `cd` to
     # that dir and save the output in the same dir of the input.
     hdbg.dassert_path_exists(_EXEC_DIR_NAME + "/latex_abbrevs.sty")
-    cmd = f"cd {_EXEC_DIR_NAME}; "
+    #cmd = f"cd {_EXEC_DIR_NAME}; "
+    cmd = ""
     cmd += (
         "pdflatex"
+        + f" {file_}"
+        + f" -output-directory {os.path.dirname(file_)}"
         + " -interaction=nonstopmode"
         + " -halt-on-error"
         + " -shell-escape"
-        + f" -output-directory {os.path.dirname(file_)}"
-        + f" {file_}"
     )
-    _run_latex(cmd, file_)
+    _LOG.debug("before: " + hprint.to_str("cmd"))
+    if not args.use_host_tools:
+        cmd = hdocker.run_dockerized_latex(cmd, return_cmd=True,
+                                            use_sudo=False)
+    _LOG.debug("after: " + hprint.to_str("cmd"))
+    _ = _system(cmd, suppress_output=False)
     # - Run latex again.
     _report_phase("latex again")
     if not args.no_run_latex_again:
+        _ = _system(cmd, suppress_output=False)
         _run_latex(cmd, file_)
     else:
         _LOG.warning("Skipping: run latex again")

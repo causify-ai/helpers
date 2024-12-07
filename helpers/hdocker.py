@@ -9,6 +9,7 @@ import copy
 import hashlib
 import logging
 import os
+import re
 import shlex
 import tempfile
 import time
@@ -207,7 +208,6 @@ def replace_shared_root_path(
 # #############################################################################
 
 
-
 def build_container(
     container_name: str, dockerfile: str, force_rebuild: bool, use_sudo: bool
 ) -> str:
@@ -239,7 +239,7 @@ def build_container(
         # Create a temporary Dockerfile.
         _LOG.info("Building Docker container...")
         # Delete temp file.
-        delete = True
+        delete = False
         with tempfile.NamedTemporaryFile(
             suffix=".Dockerfile", delete=delete
         ) as temp_dockerfile:
@@ -786,6 +786,196 @@ def run_dockerized_markdown_toc(
     )
     # TODO(gp): Note that `suppress_output=False` seems to hang the call.
     hsystem.system(docker_cmd)
+
+
+# #############################################################################
+
+
+def convert_latex_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
+    """
+    Parse the arguments from a Latex command.
+
+    ```
+    > pdflatex \
+        tmp.scratch/tmp.pandoc.tex \
+        -output-directory tmp.scratch \
+        -interaction=nonstopmode -halt-on-error -shell-escape
+    ```
+
+    :param cmd: A list of command-line arguments for pandoc.
+    :return: A dictionary with the parsed arguments.
+    """
+    # Use shlex.split to tokenize the string like a shell would.
+    cmd = shlex.split(cmd)
+    # Remove the newline character that come from multiline commands with `\n`.
+    cmd = [arg for arg in cmd if arg != "\n"]
+    _LOG.debug(hprint.to_str("cmd"))
+    # The first option is the executable.
+    hdbg.dassert_eq(cmd[0], "pdflatex")
+    # We assume that the first option is always the input file.
+    in_file_path = cmd[1]
+    hdbg.dassert(not in_file_path.startswith("-"), "Invalid input file '%s'",
+                 in_file_path)
+    hdbg.dassert_file_exists(in_file_path)
+    cmd = cmd[2:]
+    _LOG.debug(hprint.to_str("cmd"))
+    #
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--output-directory", required=True)
+    # Latex uses options like `-XYZ` which confuse `argparse` so we need to
+    # replace `-XYZ` with `--XYZ`.
+    cmd = [re.sub(r'^-', r'--', cmd_opts) for cmd_opts in cmd]
+    _LOG.debug(hprint.to_str("cmd"))
+    # Parse known arguments and capture the rest.
+    args, unknown_args = parser.parse_known_args(cmd)
+    _LOG.debug(hprint.to_str("args unknown_args"))
+    # Return all the arguments in a dictionary with names that match the
+    # function signature of `run_dockerized_pandoc`.
+    in_dir_params = {
+    }
+    return {
+        "input": in_file_path,
+        "output-directory": args.output_directory,
+        "in_dir_params": in_dir_params,
+        "cmd_opts": unknown_args,
+    }
+
+
+def convert_latex_arguments_to_cmd(
+    params: Dict[str, Any],
+) -> str:
+    """
+    Convert parsed pandoc arguments back to a command string.
+
+    This function takes the parsed pandoc arguments and converts them back into
+    a command string that can be executed directly or in a Dockerized container.
+
+    :return: The constructed pandoc command string.
+    """
+    cmd = []
+    hdbg.dassert_is_subset(params.keys(), ["input", "output-directory",
+                                           "in_dir_params",
+                                           "cmd_opts"])
+    cmd.append(f'{params["input"]}')
+    key = "output-directory"
+    value = params[key]
+    cmd.append(f'-{key} {value}')
+    for key, value in params["in_dir_params"].items():
+        if value:
+            cmd.append(f'-{key} {value}')
+    #
+    hdbg.dassert_isinstance(params["cmd_opts"], list)
+    cmd.append(' '.join(params["cmd_opts"]))
+    #
+    cmd = " ".join(cmd)
+    _LOG.debug(hprint.to_str("cmd"))
+    return cmd
+
+
+def run_dockerized_latex(
+    cmd: str,
+    *,
+    return_cmd: bool = False,
+    force_rebuild: bool = False,
+    use_sudo: bool = False,
+) -> Optional[str]:
+    """
+    Run `latex` in a Docker container.
+
+    Same as `run_dockerized_prettier()` but for `pandoc`.
+    """
+    _LOG.debug(
+        hprint.to_str("cmd return_cmd use_sudo")
+    )
+    container_name = "tmp.latex"
+    dockerfile = """
+    # Use a lightweight base image
+    FROM debian:bullseye-slim
+
+    # Set environment variables to avoid interactive prompts
+    ENV DEBIAN_FRONTEND=noninteractive
+
+    # Update and install only the minimal TeX Live packages
+    RUN apt-get update && \
+        apt-get install -y --no-install-recommends \
+        texlive-latex-base \
+        texlive-latex-recommended \
+        texlive-fonts-recommended \
+        texlive-latex-extra \
+        lmodern \
+        tikzit \
+        && apt-get clean && \
+        rm -rf /var/lib/apt/lists/*
+
+    # Verify LaTeX is installed
+    RUN latex --version
+
+    # Set working directory
+    WORKDIR /workspace
+
+    # Default command
+    CMD [ "bash" ]
+    """
+    container_name = build_container(
+        container_name, dockerfile, force_rebuild, use_sudo
+    )
+    # Convert files.
+    is_caller_host = not hserver.is_inside_docker()
+    use_sibling_container_for_callee = True
+    caller_mount_path, callee_mount_path, mount = get_docker_mount_info(
+        is_caller_host, use_sibling_container_for_callee
+    )
+    #
+    param_dict = convert_latex_cmd_to_arguments(cmd)
+    param_dict["input"] = convert_caller_to_callee_docker_path(
+        param_dict["input"],
+        caller_mount_path,
+        callee_mount_path,
+        check_if_exists=True,
+        is_input=True,
+        is_caller_host=is_caller_host,
+        use_sibling_container_for_callee=use_sibling_container_for_callee,
+    )
+    key = "output-directory"
+    value = param_dict[key]
+    param_dict[key] = convert_caller_to_callee_docker_path(
+        value,
+        caller_mount_path,
+        callee_mount_path,
+        check_if_exists=False,
+        is_input=False,
+        is_caller_host=is_caller_host,
+        use_sibling_container_for_callee=use_sibling_container_for_callee,
+    )
+    for key, value in param_dict["in_dir_params"].items():
+        if value:
+            value_tmp = convert_caller_to_callee_docker_path(
+                value,
+                caller_mount_path,
+                callee_mount_path,
+                check_if_exists=True,
+                is_input=True,
+                is_caller_host=is_caller_host,
+                use_sibling_container_for_callee=use_sibling_container_for_callee,
+            )
+        else:
+            value_tmp = value
+        param_dict["in_dir_params"][key] = value_tmp
+    #
+    latex_cmd = convert_latex_arguments_to_cmd(param_dict)
+    _LOG.debug(hprint.to_str("latex_cmd"))
+    executable = get_docker_executable(use_sudo)
+    docker_cmd = (
+        f"{executable} run --rm --user $(id -u):$(id -g)"
+        f" --workdir /{callee_mount_path} --mount {mount}"
+        f" {container_name}"
+        f" {latex_cmd}"
+    )
+    if return_cmd:
+        return docker_cmd
+    # TODO(gp): Note that `suppress_output=False` seems to hang the call.
+    hsystem.system(docker_cmd)
+    return None
 
 
 # #############################################################################
