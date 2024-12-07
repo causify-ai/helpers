@@ -240,24 +240,19 @@ we want to run it in a container with minimal changes to the call:
 
 > llm_transform.py -i input.md -o - -t md_rewrite
  
-convert_to_docker_path
-source_file_path='tmp.llm_transform.in.txt', source_host_path='/Users/saggese/src/helpers1', target_docker_path='/src', check_if_exists=True, is_input=True
-Converted tmp.llm_transform.in.txt -> tmp.llm_transform.in.txt -> /src/tmp.llm_transform.in.txt
+caller_file_path='tmp.llm_transform.in.txt', caller_mount_path='/Users/saggese/src/helpers1', callee_mount_path='/app', check_if_exists=True, is_input=True, is_caller_host=True, use_sibling_container_for_callee=True
+  Converted tmp.llm_transform.in.txt -> tmp.llm_transform.in.txt -> /app/tmp.llm_transform.in.txt
 
-source_file_path='tmp.llm_transform.out.txt', source_host_path='/Users/saggese/src/helpers1', target_docker_path='/src', check_if_exists=False, is_input=False
-Converted tmp.llm_transform.out.txt -> tmp.llm_transform.out.txt -> /src/tmp.llm_transform.out.txt
+caller_file_path='tmp.llm_transform.out.txt', caller_mount_path='/Users/saggese/src/helpers1', callee_mount_path='/app', check_if_exists=False, is_input=False, is_caller_host=True, use_sibling_container_for_callee=True
+  Converted tmp.llm_transform.out.txt -> tmp.llm_transform.out.txt -> /app/tmp.llm_transform.out.txt
 
-source_file_path='/Users/saggese/src/helpers1', source_host_path='/Users/saggese/src/helpers1', target_docker_path='/src', check_if_exists=True, is_input=False
-Converted /Users/saggese/src/helpers1 -> . -> /src/.
+caller_file_path='/Users/saggese/src/helpers1', caller_mount_path='/Users/saggese/src/helpers1', callee_mount_path='/app', check_if_exists=True, is_input=False, is_caller_host=True, use_sibling_container_for_callee=True
+  Converted /Users/saggese/src/helpers1 -> . -> /app
 
-source_file_path='/Users/saggese/src/helpers1/dev_scripts_helpers/llms/_llm_transform.py', source_host_path='/Users/saggese/src/helpers1', target_docker_path='/src', check_if_exists=True, is_input=True
-Converted /Users/saggese/src/helpers1/dev_scripts_helpers/llms/_llm_transform.py -> dev_scripts_helpers/llms/_llm_transform.py -> /src/dev_scripts_helpers/llms/_llm_transform.py
+caller_file_path='/Users/saggese/src/helpers1/dev_scripts_helpers/llms/_llm_transform.py', caller_mount_path='/Users/saggese/src/helpers1', callee_mount_path='/app', check_if_exists=True, is_input=True, is_caller_host=True, use_sibling_container_for_callee=True
+  Converted /Users/saggese/src/helpers1/dev_scripts_helpers/llms/_llm_transform.py -> dev_scripts_helpers/llms/_llm_transform.py -> /app/dev_scripts_helpers/llms/_llm_transform.py
 
-docker run --rm --user $(id -u):$(id -g) -e OPENAI_API_KEY -e PYTHONPATH=.
---workdir /src --mount type=bind,source=/Users/saggese/src/helpers1,target=/src
-tmp.llm_transform.b24cf6a4 dev_scripts_helpers/llms/_llm_transform.py -i
-/src/tmp.llm_transform.in.txt -o /src/tmp.llm_transform.out.txt -t md_rewrite -v
-DEBUG
+> (docker run --rm --user $(id -u):$(id -g) -e OPENAI_API_KEY -e PYTHONPATH=/app --workdir //app --mount type=bind,source=/Users/saggese/src/helpers1,target=/app tmp.llm_transform.b24cf6a4 /app/dev_scripts_helpers/llms/_llm_transform.py -i /app/tmp.llm_transform.in.txt -o /app/tmp.llm_transform.out.txt -t md_rewrite -v DEBUG) 2>&1
 
 ##
     is_caller_host = False
