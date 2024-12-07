@@ -504,7 +504,7 @@ def run_dockerized_prettier(
     docker_cmd = (
         f"{executable} run --rm --user $(id -u):$(id -g)"
         " --entrypoint ''"
-        f" --workdir /{callee_mount_path} --mount {mount}"
+        f" --workdir {callee_mount_path} --mount {mount}"
         f" {container_name}"
         f' bash -c "{bash_cmd}"'
     )
@@ -717,7 +717,7 @@ def run_dockerized_pandoc(
     executable = get_docker_executable(use_sudo)
     docker_cmd = (
         f"{executable} run --rm --user $(id -u):$(id -g)"
-        f" --workdir /{callee_mount_path} --mount {mount}"
+        f" --workdir {callee_mount_path} --mount {mount}"
         f" {container_name}"
         f" {pandoc_cmd}"
     )
@@ -780,7 +780,7 @@ def run_dockerized_markdown_toc(
     bash_cmd = f"/usr/local/bin/markdown-toc {cmd_opts_as_str} -i {in_file_path}"
     docker_cmd = (
         f"{executable} run --rm --user $(id -u):$(id -g)"
-        f" --workdir /{callee_mount_path} --mount {mount}"
+        f" --workdir {callee_mount_path} --mount {mount}"
         f" {container_name}"
         f' bash -c "{bash_cmd}"'
     )
@@ -963,11 +963,12 @@ def run_dockerized_latex(
         param_dict["in_dir_params"][key] = value_tmp
     #
     latex_cmd = convert_latex_arguments_to_cmd(param_dict)
+    latex_cmd = "pdflatex " + latex_cmd
     _LOG.debug(hprint.to_str("latex_cmd"))
     executable = get_docker_executable(use_sudo)
     docker_cmd = (
         f"{executable} run --rm --user $(id -u):$(id -g)"
-        f" --workdir /{callee_mount_path} --mount {mount}"
+        f" --workdir {callee_mount_path} --mount {mount}"
         f" {container_name}"
         f" {latex_cmd}"
     )

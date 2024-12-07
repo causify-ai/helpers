@@ -27,6 +27,7 @@ from typing import Any, List, Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
+import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
 import helpers.hopen as hopen
@@ -226,13 +227,19 @@ def _run_pandoc_to_pdf(
     _report_phase("latex")
     # pdflatex needs to run in the same dir of latex_abbrevs.sty so we `cd` to
     # that dir and save the output in the same dir of the input.
-    hdbg.dassert_path_exists(_EXEC_DIR_NAME + "/latex_abbrevs.sty")
     #cmd = f"cd {_EXEC_DIR_NAME}; "
+    out_dir = os.path.dirname(file_)
+    latex_file = os.path.join(hgit.find_file("dev_scripts_helpers"),
+                               "documentation", "latex_abbrevs.sty")
+    hdbg.dassert_file_exists(latex_file)
+    cmd = f"cp -f {latex_file} ."
+    _ = _system(cmd)
+    #
     cmd = ""
     cmd += (
         "pdflatex"
         + f" {file_}"
-        + f" -output-directory {os.path.dirname(file_)}"
+        + f" -output-directory {out_dir}"
         + " -interaction=nonstopmode"
         + " -halt-on-error"
         + " -shell-escape"
@@ -247,11 +254,11 @@ def _run_pandoc_to_pdf(
     _report_phase("latex again")
     if not args.no_run_latex_again:
         _ = _system(cmd, suppress_output=False)
-        _run_latex(cmd, file_)
+        #_run_latex(cmd, file_, out_dir)
     else:
         _LOG.warning("Skipping: run latex again")
     #
-    file_out = file_.replace(".tex", ".pdf")
+    file_out = os.path.basename(file_).replace(".tex", ".pdf")
     _LOG.debug("file_out=%s", file_out)
     hdbg.dassert_path_exists(file_out)
     return file_out
