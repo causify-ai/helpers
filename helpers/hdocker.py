@@ -272,9 +272,9 @@ def _dassert_valid_path(file_path: str, is_input: bool) -> None:
     """
     Assert that a file path is valid based on its type (input or output).
 
-    This function checks if the given file path is valid. For input files,
-    it ensures that the file or directory exists. For output files, it
-    ensures that the directory exists.
+    This function checks if the given file path is valid. For input
+    files, it ensures that the file or directory exists. For output
+    files, it ensures that the directory exists.
     """
     if is_input:
         # If it's an input file, then `file_path` must exist as a file or a dir.
@@ -295,8 +295,8 @@ def _dassert_is_path_included(file_path: str, including_path: str) -> None:
     """
     Assert that a file path is included within another path.
 
-    This function checks if the given file path starts with the specified
-    including path. If not, it raises an assertion error.
+    This function checks if the given file path starts with the
+    specified including path. If not, it raises an assertion error.
     """
     hdbg.dassert(
         file_path.startswith(including_path),
@@ -309,8 +309,9 @@ def _dassert_is_path_included(file_path: str, including_path: str) -> None:
 # #############################################################################
 
 
-def get_docker_mount_info(is_caller_host: bool,
-                          use_sibling_container_for_callee: bool) -> Tuple[str, str, str]:
+def get_docker_mount_info(
+    is_caller_host: bool, use_sibling_container_for_callee: bool
+) -> Tuple[str, str, str]:
     """
     Get the Docker mount information for the current environment.
 
@@ -358,10 +359,12 @@ def get_docker_mount_info(is_caller_host: bool,
 
 def convert_caller_to_callee_docker_path(
     caller_file_path: str,
-    caller_mount_path: str, callee_mount_path: str,
-    check_if_exists: bool, is_input: bool,
+    caller_mount_path: str,
+    callee_mount_path: str,
+    check_if_exists: bool,
+    is_input: bool,
     is_caller_host: bool,
-    use_sibling_container_for_callee: bool
+    use_sibling_container_for_callee: bool,
 ) -> str:
     """
     Convert a file path from the (current) caller filesystem to the Docker
@@ -369,20 +372,23 @@ def convert_caller_to_callee_docker_path(
 
     :param caller_file_path: The file path on the host machine.
     :param caller_mount_path: The source path on the host machine.
-    :param callee_mount_path: The target path inside the Docker container.
+    :param callee_mount_path: The target path inside the Docker
+        container.
     :param check_if_exists: Whether to check if the file path exists.
     :param is_input: Whether the file path is an input file.
-    :param is_caller_host: Whether the caller is running on the host machine.
+    :param is_caller_host: Whether the caller is running on the host
+        machine.
     :param use_sibling_container_for_callee: Whether to use a sibling
         container or a children container
-
     :return: The converted file path inside the Docker container.
     """
-    _LOG.debug(hprint.to_str("caller_file_path"
-                             " caller_mount_path callee_mount_path"
-                             " check_if_exists is_input"
-                             " is_caller_host use_sibling_container_for_callee"
-                             ))
+    _LOG.debug(
+        hprint.to_str(
+            "caller_file_path caller_mount_path callee_mount_path"
+            " check_if_exists is_input is_caller_host "
+            " use_sibling_container_for_callee"
+        )
+    )
     _ = use_sibling_container_for_callee
     if check_if_exists:
         _dassert_valid_path(caller_file_path, is_input)
@@ -402,8 +408,9 @@ def convert_caller_to_callee_docker_path(
     #
     docker_path = os.path.join(callee_mount_path, rel_path)
     docker_path = os.path.normpath(docker_path)
-    _LOG.debug("  Converted %s -> %s -> %s", caller_file_path,
-               rel_path, docker_path)
+    _LOG.debug(
+        "  Converted %s -> %s -> %s", caller_file_path, rel_path, docker_path
+    )
     return docker_path
 
 
@@ -467,19 +474,26 @@ def run_dockerized_prettier(
     is_caller_host = not hserver.is_inside_docker()
     use_sibling_container_for_callee = True
     source_host_path, callee_mount_path, mount = get_docker_mount_info(
-        is_caller_host, use_sibling_container_for_callee)
-    in_file_path = convert_caller_to_callee_docker_path(in_file_path, source_host_path,
-                                          callee_mount_path,
-                                          check_if_exists=True,
-                                          is_input=True,
-        is_caller_host = is_caller_host,
-        use_sibling_container_for_callee = use_sibling_container_for_callee)
-    out_file_path = convert_caller_to_callee_docker_path(out_file_path, source_host_path,
-                                          callee_mount_path,
-                                           check_if_exists=False,
-                                          is_input=False,
-        is_caller_host = is_caller_host,
-        use_sibling_container_for_callee = use_sibling_container_for_callee)
+        is_caller_host, use_sibling_container_for_callee
+    )
+    in_file_path = convert_caller_to_callee_docker_path(
+        in_file_path,
+        source_host_path,
+        callee_mount_path,
+        check_if_exists=True,
+        is_input=True,
+        is_caller_host=is_caller_host,
+        use_sibling_container_for_callee=use_sibling_container_for_callee,
+    )
+    out_file_path = convert_caller_to_callee_docker_path(
+        out_file_path,
+        source_host_path,
+        callee_mount_path,
+        check_if_exists=False,
+        is_input=False,
+        is_caller_host=is_caller_host,
+        use_sibling_container_for_callee=use_sibling_container_for_callee,
+    )
 
     # Our interface is (in_file, out_file) instead of the wonky prettier
     # interface based on `--write` for in place update and redirecting `stdout`
@@ -562,7 +576,7 @@ def run_dockerized_prettier(
 # hsystem.system(cmd)
 
 
-#############################################################################
+# #############################################################################
 
 
 # `parse_pandoc_arguments` and `convert_pandoc_arguments_to_cmd` are opposite
@@ -573,8 +587,9 @@ def parse_pandoc_arguments(cmd: str) -> Dict[str, Any]:
     """
     Parse the arguments for a pandoc command.
 
-    We need to parse all the arguments that correspond to files, so that we
-    can convert them to paths that are valid inside the Docker container.
+    We need to parse all the arguments that correspond to files, so that
+    we can convert them to paths that are valid inside the Docker
+    container.
 
     :param cmd: A list of command-line arguments for pandoc.
     :return: A dictionary with the parsed arguments.
@@ -630,7 +645,6 @@ def convert_pandoc_arguments_to_cmd(
     :param cmd_opts: A list of additional command options.
     :param data_dir: The data directory path.
     :param template: The template file path.
-
     :return: The constructed pandoc command string.
     """
     cmd = (
@@ -664,19 +678,26 @@ def run_dockerized_pandoc(
     is_caller_host = not hserver.is_inside_docker()
     use_sibling_container_for_callee = True
     source_host_path, callee_mount_path, mount = get_docker_mount_info(
-        is_caller_host, use_sibling_container_for_callee)
-    in_file_path = convert_caller_to_callee_docker_path(in_file_path, source_host_path,
-                                                        callee_mount_path,
-                                                        check_if_exists=True,
-                                                        is_input=True,
-                                                        is_caller_host=is_caller_host,
-                                                        use_sibling_container_for_callee=use_sibling_container_for_callee)
-    out_file_path = convert_caller_to_callee_docker_path(out_file_path, source_host_path,
-                                                         callee_mount_path,
-                                                         check_if_exists=False,
-                                                         is_input=False,
-                                                         is_caller_host = is_caller_host,
-                                                         use_sibling_container_for_callee = use_sibling_container_for_callee)
+        is_caller_host, use_sibling_container_for_callee
+    )
+    in_file_path = convert_caller_to_callee_docker_path(
+        in_file_path,
+        source_host_path,
+        callee_mount_path,
+        check_if_exists=True,
+        is_input=True,
+        is_caller_host=is_caller_host,
+        use_sibling_container_for_callee=use_sibling_container_for_callee,
+    )
+    out_file_path = convert_caller_to_callee_docker_path(
+        out_file_path,
+        source_host_path,
+        callee_mount_path,
+        check_if_exists=False,
+        is_input=False,
+        is_caller_host=is_caller_host,
+        use_sibling_container_for_callee=use_sibling_container_for_callee,
+    )
     cmd_opts_as_str = " ".join(cmd_opts)
     # The command is like:
     # > docker run --rm --user $(id -u):$(id -g) \
@@ -714,7 +735,7 @@ def run_pandoc(
         _ = hsystem.system(cmd, suppress_output=False)
 
 
-#############################################################################
+# #############################################################################
 
 
 def run_dockerized_markdown_toc(
@@ -745,14 +766,18 @@ def run_dockerized_markdown_toc(
     is_caller_host = not hserver.is_inside_docker()
     use_sibling_container_for_callee = True
     source_host_path, callee_mount_path, mount = get_docker_mount_info(
-        is_caller_host, use_sibling_container_for_callee)
+        is_caller_host, use_sibling_container_for_callee
+    )
     #
-    in_file_path = convert_caller_to_callee_docker_path(in_file_path, source_host_path,
-                                                        callee_mount_path,
-                                                        check_if_exists=True,
-                                                        is_input=True,
-                                                        is_caller_host=is_caller_host,
-                                                        use_sibling_container_for_callee=use_sibling_container_for_callee)
+    in_file_path = convert_caller_to_callee_docker_path(
+        in_file_path,
+        source_host_path,
+        callee_mount_path,
+        check_if_exists=True,
+        is_input=True,
+        is_caller_host=is_caller_host,
+        use_sibling_container_for_callee=use_sibling_container_for_callee,
+    )
     cmd_opts_as_str = " ".join(cmd_opts)
     # The command is like:
     # > docker run --rm --user $(id -u):$(id -g) \
@@ -785,8 +810,11 @@ def run_dockerized_llm_transform(
     Run _llm_transform.py in a Docker container with all its dependencies.
     """
     hdbg.dassert_in("OPENAI_API_KEY", os.environ)
-    _LOG.debug(hprint.to_str("in_file_path out_file_path cmd_opts "
-                             "force_rebuild use_sudo"))
+    _LOG.debug(
+        hprint.to_str(
+            "in_file_path out_file_path cmd_opts " "force_rebuild use_sudo"
+        )
+    )
     hdbg.dassert_isinstance(cmd_opts, list)
     # Build the container, if needed.
     container_name = "tmp.llm_transform"
@@ -809,35 +837,48 @@ def run_dockerized_llm_transform(
     is_caller_host = not hserver.is_inside_docker()
     use_sibling_container_for_callee = True
     source_host_path, callee_mount_path, mount = get_docker_mount_info(
-        is_caller_host, use_sibling_container_for_callee)
+        is_caller_host, use_sibling_container_for_callee
+    )
     #
-    in_file_path = convert_caller_to_callee_docker_path(in_file_path, source_host_path,
-                                                        callee_mount_path,
-                                                        check_if_exists=True,
-                                                        is_input=True,
-                                                        is_caller_host=is_caller_host,
-                                                        use_sibling_container_for_callee=use_sibling_container_for_callee)
-    out_file_path = convert_caller_to_callee_docker_path(out_file_path, source_host_path,
-                                                         callee_mount_path,
-                                                         check_if_exists=False,
-                                                         is_input=False,
-                                                         is_caller_host = is_caller_host,
-                                                         use_sibling_container_for_callee = use_sibling_container_for_callee)
+    in_file_path = convert_caller_to_callee_docker_path(
+        in_file_path,
+        source_host_path,
+        callee_mount_path,
+        check_if_exists=True,
+        is_input=True,
+        is_caller_host=is_caller_host,
+        use_sibling_container_for_callee=use_sibling_container_for_callee,
+    )
+    out_file_path = convert_caller_to_callee_docker_path(
+        out_file_path,
+        source_host_path,
+        callee_mount_path,
+        check_if_exists=False,
+        is_input=False,
+        is_caller_host=is_caller_host,
+        use_sibling_container_for_callee=use_sibling_container_for_callee,
+    )
     helpers_root = hgit.find_helpers_root()
-    helpers_root = convert_caller_to_callee_docker_path(helpers_root, source_host_path,
-                                                        callee_mount_path,
-                                                        check_if_exists=True,
-                                                        is_input=False,
-                                                        is_caller_host=is_caller_host,
-                                                        use_sibling_container_for_callee=use_sibling_container_for_callee)
+    helpers_root = convert_caller_to_callee_docker_path(
+        helpers_root,
+        source_host_path,
+        callee_mount_path,
+        check_if_exists=True,
+        is_input=False,
+        is_caller_host=is_caller_host,
+        use_sibling_container_for_callee=use_sibling_container_for_callee,
+    )
     git_root = hgit.find_git_root()
     script = hsystem.find_file_in_repo("_llm_transform.py", root_dir=git_root)
-    script = convert_caller_to_callee_docker_path(script, source_host_path,
-                                                  callee_mount_path,
-                                                  check_if_exists=True,
-                                                  is_input=True,
-                                                  is_caller_host = is_caller_host,
-                                                  use_sibling_container_for_callee = use_sibling_container_for_callee)
+    script = convert_caller_to_callee_docker_path(
+        script,
+        source_host_path,
+        callee_mount_path,
+        check_if_exists=True,
+        is_input=True,
+        is_caller_host=is_caller_host,
+        use_sibling_container_for_callee=use_sibling_container_for_callee,
+    )
     cmd_opts_as_str = " ".join(cmd_opts)
     executable = get_docker_executable(use_sudo)
     docker_cmd = (

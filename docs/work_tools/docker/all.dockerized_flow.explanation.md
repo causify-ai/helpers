@@ -3,7 +3,10 @@
 <!-- toc -->
 
 - [The concept of "dockerized" executables](#the-concept-of-dockerized-executables)
+  * [Children- vs Sibling-container](#children--vs-sibling-container)
+- [Running a Dockerized executable](#running-a-dockerized-executable)
 - [Testing a dockerized executable](#testing-a-dockerized-executable)
+- [Example](#example)
 
 <!-- tocstop -->
 
@@ -84,91 +87,94 @@ we want to run it in a container with minimal changes to the call:
 
 - The problem is that files that needs to be processed by dockerized executables
   can be specified as absolute or relative path in the caller file system, and
-  we need to convert them to paths that are valid inside the new Docker 
+  we need to convert them to paths that are valid inside the new Docker
   container
 
 - We can run a Dockerized executable:
-  - on the host; or
-  - inside a Docker container
+  - On the host; or
+  - Inside a Docker container
 
 - The Docker container can be run:
-  - as children-container (aka docker-in-docker, dind); or
-  - as sibling-container
+  - As children-container (aka docker-in-docker, dind); or
+  - As sibling-container
 
 - Assumption:
   - `src_root` and `dst_root` are the dirs used to bind mount the dockerized
     executable
-  - For both children-container and sibling-containers we assume that the bind 
-    mount point is from the Git root of the outermost repo to `dst_root=/src`
-    of the container
-  - In the case of nested containers, the "style" of container (i.e., 
-    children- or sibling-) is the same. E.g., we assume that if the external 
-    container is children-container
-    (or sibling), also the internal one is children-container (or sibling)
+  - For both children-container and sibling-containers we assume that the bind
+    mount point is from the Git root of the outermost repo to `dst_root=/src` of
+    the container
+  - In the case of nested containers, the "style" of container (i.e., children-
+    or sibling-) is the same. E.g., we assume that if the external container is
+    children-container (or sibling), also the internal one is children-container
+    (or sibling)
   - In the case of sibling-container, we need to use the dir from the host
-    filesystem to mount a directory 
-  - In the case of children-container, to mount a directory we can use the dir from the caller
-    filesystem
+    filesystem to mount a directory
+  - In the case of children-container, to mount a directory we can use the dir
+    from the caller filesystem
 
-- Let's consider the 4 scenarios and how filesystems of the caller and
-  called dockerized executable are mapped onto each other
-  
-  1) caller=host, callee=children-container
+- Let's consider the 4 scenarios and how filesystems of the caller and called
+  dockerized executable are mapped onto each other
+
+  1. Caller=host, callee=children-container
      ```
      caller=host
-     
+
      callee=docker
      - src_root=//host/users/.../git_root1
      - dst_root=//docker/src
-     
+
      > exec.py -i foo/bar
      > exec.py -i /users/.../git_root1/foo/bar
      > (cd foo; exec.py -i bar)
-     
+
      //host/users/.../git_root1/foo/bar -> /foo/bar -> //docker/src/foo/bar
      ```
-  2) caller=host, callee=sibling-container
+
+  2. Caller=host, callee=sibling-container
      ```
      caller=host
-     
+
      callee=docker
      - src_root=//host/users/.../git_root1
      - dst_root=//docker/src
-     
+
      > exec.py -i foo/bar
      > exec.py -i /users/.../src/foo/bar
      > (cd foo; exec.py -i bar)
-     
+
      //host/users/.../git_root1/foo/bar -> /foo/bar -> //docker/src/foo/bar
      ```
-  3) caller=children-container, callee=children-container
+
+  3. Caller=children-container, callee=children-container
      ```
      caller=docker1
      - src_root=//host/users/.../git_root1
      - dst_root=//docker1/src
-     
+
      callee=docker2
      - src_root=//docker1/src (which corresponds to the Git root)
      - dst_root=//docker2/src
 
      > exec.py -i foo/bar
      > exec.py -i /src/foo/bar
-     
+
      //docker1//src/foo/bar -> /foo/bar -> //docker2/src/foo/bar
      ```
-  4) caller=sibling-container, callee=sibling-container
+
+  4. Caller=sibling-container, callee=sibling-container
      ```
      caller=docker1
      - src_root=//host/users/.../git_root1
      - dst_root=//docker1/src
-     
+
      callee=docker2
      - src_root=//host/users/.../git_root1
      - dst_root=//docker2/src
-     
+
      > exec.py -i foo/bar
      > exec.py -i /src/foo/bar
-     
+
      //docker1//src/foo/bar -> /foo/bar -> //docker2/src/foo/bar
      ```
 
@@ -234,7 +240,8 @@ we want to run it in a container with minimal changes to the call:
 
 # Example
 
-## 
+##
+
     is_caller_host = True
     use_sibling_container_for_callee = True
 
