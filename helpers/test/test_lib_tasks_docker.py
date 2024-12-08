@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+import unittest.mock as umock
 from typing import Dict, Optional
 
 import pytest
@@ -10,8 +11,6 @@ import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 import helpers.lib_tasks_docker as hlitadoc
 import helpers.test.test_lib_tasks as httestlib
-import unittest.mock as umock
-
 
 _LOG = logging.getLogger(__name__)
 
@@ -94,6 +93,7 @@ class Test_generate_compose_file1(hunitest.TestCase):
     def test5(self) -> None:
         self.helper(stage="dev")
 
+
 class Test_generate_compose_file2(hunitest.TestCase):
     def helper(
         self,
@@ -131,7 +131,9 @@ class Test_generate_compose_file2(hunitest.TestCase):
         ), umock.patch.object(
             hgit, "find_helpers_root", return_value=mock_find_helpers_root
         ), umock.patch.object(
-            hgit, "is_in_helpers_as_supermodule", return_value=mock_is_in_helpers_as_supermodule
+            hgit,
+            "is_in_helpers_as_supermodule",
+            return_value=mock_is_in_helpers_as_supermodule,
         ):
             txt_tmp = hlitadoc._generate_docker_compose_file(
                 stage,
@@ -153,9 +155,10 @@ class Test_generate_compose_file2(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Check that file is generated correctly when 
-            - `cmamp` is a super-repo
-            - `helpers` is a sub-repo
+        Check that file is generated correctly when.
+
+        - `cmamp` is a super-repo
+        - `helpers` is a sub-repo
         """
         self.helper(
             mock_getcwd="/data/heanhs/src/cmamp1",
@@ -163,10 +166,10 @@ class Test_generate_compose_file2(hunitest.TestCase):
             mock_find_helpers_root="/data/heanhs/src/cmamp1/helpers_root",
             mock_is_in_helpers_as_supermodule=False,
         )
-        
+
     def test2(self) -> None:
         """
-        Check that file is generated correctly when 
+        Check that file is generated correctly when
             - `helpers` as a sub-repo
         """
         self.helper(
@@ -178,10 +181,11 @@ class Test_generate_compose_file2(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        Check that file is generated correctly when 
-            - `cmamp` is a super-repo
-            - `helpers` is a sub-repo
-            - `cmamp/ck.infra` is a runnable dir
+        Check that file is generated correctly when.
+
+        - `cmamp` is a super-repo
+        - `helpers` is a sub-repo
+        - `cmamp/ck.infra` is a runnable dir
         """
         self.helper(
             mock_getcwd="/data/heanhs/src/cmamp1/ck.infra",
@@ -189,7 +193,6 @@ class Test_generate_compose_file2(hunitest.TestCase):
             mock_find_helpers_root="/data/heanhs/src/cmamp1/helpers_root",
             mock_is_in_helpers_as_supermodule=False,
         )
-
 
 
 # #############################################################################

@@ -543,7 +543,7 @@ def _generate_docker_compose_file(
     helper_root_path = os.path.normpath(
         os.path.join("/app", helper_relative_path)
     )
-    # A super repo is a repo than contains helpers as a submodule and 
+    # A super repo is a repo that contains helpers as a submodule and
     # is not a helper itself.
     is_super_repo = 0 if hgit.is_in_helpers_as_supermodule() else 1
     # We could do the same also with IMAGE for symmetry.
