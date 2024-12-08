@@ -29,7 +29,7 @@ services:
   app:
     extends: base_app
     volumes:
-      - ../../:/app
+      - /data/heanhs/src/helpers1:/app
   linter:
     extends: base_app
     volumes:

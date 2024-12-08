@@ -29,7 +29,7 @@ services:
   app:
     extends: base_app
     volumes:
-      - ../../:/app
+      - /app:/app
   linter:
     extends: base_app
     volumes:

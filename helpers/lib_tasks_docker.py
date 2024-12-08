@@ -639,14 +639,17 @@ def _generate_docker_compose_file(
     app_spec = {
         "extends": "base_app",
     }
-    if mount_as_submodule:
-        # Move one dir up to include the entire git repo (see AmpTask1017).
-        app_spec["volumes"] = ["../../../:/app"]
-        # Move one dir down to include the entire git repo (see AmpTask1017).
-        app_spec["working_dir"] = "/app/amp"
-    else:
-        # Mount `amp` when it is used as supermodule.
-        # app_spec["volumes"] = ["../../:/app"]
+    # TODO(gp): It seems that mount_as_submodule is not needed anymore, since
+    # we use the absolute path of the dir, instead of a relative one.
+    # if mount_as_submodule:
+    #     # Move one dir up to include the entire git repo (see AmpTask1017).
+    #     app_spec["volumes"] = ["../../../:/app"]
+    #     # Move one dir down to include the entire git repo (see AmpTask1017).
+    #     app_spec["working_dir"] = "/app/amp"
+    # else:
+    # Mount `amp` when it is used as supermodule.
+    # app_spec["volumes"] = ["../../:/app"]
+    if True:
         curr_dir = os.getcwd()
         rel_dir1 = os.path.relpath(curr_dir, git_dir)
         rel_dir2 = os.path.relpath(git_dir, curr_dir)
