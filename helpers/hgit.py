@@ -196,7 +196,7 @@ def find_file(file_name: str, *, dir_path: Optional[str] = None) -> str:
         dir_path = find_git_root()
     cmd = rf"""
     find {dir_path} -path '.git' -prune -o -type d -name {file_name} -print
-    | grep -v '.git'
+    | grep -v '.git' | grep -v '.mypy_cache'
     """
     cmd = hprint.dedent(cmd, remove_lead_trail_empty_lines_=True)
     cmd = " ".join(cmd.split())

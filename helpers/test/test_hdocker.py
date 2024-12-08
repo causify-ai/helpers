@@ -91,10 +91,10 @@ class Test_convert_to_docker_path1(hunitest.TestCase):
             source_host_path,
             callee_mount_path,
             mount,
-        ) = hdocker.get_docker_mount_info(
+        ) = hdocker._get_docker_mount_info(
             is_caller_host, use_sibling_container_for_callee
         )
-        docker_file_path = hdocker.convert_caller_to_callee_docker_path(
+        docker_file_path = hdocker._convert_caller_to_callee_docker_path(
             in_file_path,
             source_host_path,
             callee_mount_path,
@@ -367,7 +367,6 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
         output matches the expected result.
         """
         cmd_opts = ["pandoc"]
-        # Run `pandoc` in a Docker container.
         in_file_path = _create_test_file(self, txt, extension="md")
         cmd_opts.append(f"{in_file_path}")
         out_file_path = os.path.join(self.get_scratch_space(), "output.md")

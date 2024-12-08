@@ -2238,6 +2238,8 @@ class _Config_execute_stmt_TestCase1(hunitest.TestCase):
         - Check that config is what's expected, if exp is not `None`
         """
         _LOG.debug("%s", "\n" + hprint.frame(stmt))
+        # To make the linter happy.
+        config = ""
         exec(stmt, _globals)  # pylint: disable=exec-used
         #
         if mode == "str":

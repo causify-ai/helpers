@@ -307,10 +307,7 @@ def _dassert_is_path_included(file_path: str, including_path: str) -> None:
     )
 
 
-# #############################################################################
-
-
-def get_docker_mount_info(
+def _get_docker_mount_info(
     is_caller_host: bool, use_sibling_container_for_callee: bool
 ) -> Tuple[str, str, str]:
     """
@@ -348,7 +345,7 @@ def get_docker_mount_info(
     return caller_mount_path, callee_mount_path, mount
 
 
-def convert_caller_to_callee_docker_path(
+def _convert_caller_to_callee_docker_path(
     caller_file_path: str,
     caller_mount_path: str,
     callee_mount_path: str,
@@ -405,7 +402,7 @@ def convert_caller_to_callee_docker_path(
 
 
 # #############################################################################
-# Wrapper for dockerized tools.
+# Dockerized prettier.
 # #############################################################################
 
 
@@ -413,9 +410,11 @@ def run_dockerized_prettier(
     in_file_path: str,
     out_file_path: str,
     cmd_opts: List[str],
-    force_rebuild: bool,
-    use_sudo: bool,
-) -> None:
+    *,
+    return_cmd: bool = False,
+    force_rebuild: bool = False,
+    use_sudo: bool = False,
+) -> Optional[str]:
     """
     Run `prettier` in a Docker container.
 
@@ -462,10 +461,10 @@ def run_dockerized_prettier(
     # Convert files to Docker paths.
     is_caller_host = not hserver.is_inside_docker()
     use_sibling_container_for_callee = True
-    caller_mount_path, callee_mount_path, mount = get_docker_mount_info(
+    caller_mount_path, callee_mount_path, mount = _get_docker_mount_info(
         is_caller_host, use_sibling_container_for_callee
     )
-    in_file_path = convert_caller_to_callee_docker_path(
+    in_file_path = _convert_caller_to_callee_docker_path(
         in_file_path,
         caller_mount_path,
         callee_mount_path,
@@ -474,7 +473,7 @@ def run_dockerized_prettier(
         is_caller_host=is_caller_host,
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
-    out_file_path = convert_caller_to_callee_docker_path(
+    out_file_path = _convert_caller_to_callee_docker_path(
         out_file_path,
         caller_mount_path,
         callee_mount_path,
@@ -483,7 +482,6 @@ def run_dockerized_prettier(
         is_caller_host=is_caller_host,
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
-
     # Our interface is (in_file, out_file) instead of the wonky prettier
     # interface based on `--write` for in place update and redirecting `stdout`
     # to save on a different place.
@@ -508,6 +506,8 @@ def run_dockerized_prettier(
         f" {container_name}"
         f' bash -c "{bash_cmd}"'
     )
+    if return_cmd:
+        return docker_cmd
     # TODO(gp): Note that `suppress_output=False` seems to hang the call.
     hsystem.system(docker_cmd)
 
@@ -566,11 +566,13 @@ def run_dockerized_prettier(
 
 
 # #############################################################################
+# Dockerized pandoc.
+# #############################################################################
 
 
-# `convert_pandoc_cmd_to_arguments` and `convert_pandoc_arguments_to_cmd` are
-# opposite functions that allow to convert a command line to a dictionary and
-# back to a command line. This is useful when we want to run a command in a
+# `convert_pandoc_cmd_to_arguments()` and `convert_pandoc_arguments_to_cmd()`
+# are opposite functions that allow to convert a command line to a dictionary
+# and back to a command line. This is useful when we want to run a command in a
 # container which requires to know how to interpret the command line arguments.
 def convert_pandoc_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
     """
@@ -664,15 +666,15 @@ def run_dockerized_pandoc(
     """
     _LOG.debug(hprint.to_str("cmd return_cmd use_sudo"))
     container_name = "pandoc/core"
-    # Convert files.
+    # Convert files to Docker paths.
     is_caller_host = not hserver.is_inside_docker()
     use_sibling_container_for_callee = True
-    caller_mount_path, callee_mount_path, mount = get_docker_mount_info(
+    caller_mount_path, callee_mount_path, mount = _get_docker_mount_info(
         is_caller_host, use_sibling_container_for_callee
     )
     #
     param_dict = convert_pandoc_cmd_to_arguments(cmd)
-    param_dict["input"] = convert_caller_to_callee_docker_path(
+    param_dict["input"] = _convert_caller_to_callee_docker_path(
         param_dict["input"],
         caller_mount_path,
         callee_mount_path,
@@ -681,7 +683,7 @@ def run_dockerized_pandoc(
         is_caller_host=is_caller_host,
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
-    param_dict["output"] = convert_caller_to_callee_docker_path(
+    param_dict["output"] = _convert_caller_to_callee_docker_path(
         param_dict["output"],
         caller_mount_path,
         callee_mount_path,
@@ -692,7 +694,7 @@ def run_dockerized_pandoc(
     )
     for key, value in param_dict["in_dir_params"].items():
         if value:
-            value_tmp = convert_caller_to_callee_docker_path(
+            value_tmp = _convert_caller_to_callee_docker_path(
                 value,
                 caller_mount_path,
                 callee_mount_path,
@@ -729,10 +731,13 @@ def run_dockerized_pandoc(
 
 
 # #############################################################################
+# Dockerized markdown_toc.
+# #############################################################################
 
 
 def run_dockerized_markdown_toc(
-    in_file_path: str, force_rebuild: bool, cmd_opts: List[str], use_sudo: bool
+    in_file_path: str, force_rebuild: bool, cmd_opts: List[str], *,
+        use_sudo: bool
 ) -> None:
     """
     Same as `run_dockerized_prettier()` but for `markdown-toc`.
@@ -758,10 +763,10 @@ def run_dockerized_markdown_toc(
     # Convert files to Docker paths.
     is_caller_host = not hserver.is_inside_docker()
     use_sibling_container_for_callee = True
-    caller_mount_path, callee_mount_path, mount = get_docker_mount_info(
+    caller_mount_path, callee_mount_path, mount = _get_docker_mount_info(
         is_caller_host, use_sibling_container_for_callee
     )
-    in_file_path = convert_caller_to_callee_docker_path(
+    in_file_path = _convert_caller_to_callee_docker_path(
         in_file_path,
         caller_mount_path,
         callee_mount_path,
@@ -789,8 +794,12 @@ def run_dockerized_markdown_toc(
 
 
 # #############################################################################
+# Dockerized Latex.
+# #############################################################################
 
 
+# TODO(gp): Factor out common code between the `convert_*_cmd_to_arguments()`
+# and `convert_*_arguments_to_cmd()` functions.
 def convert_latex_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
     """
     Parse the arguments from a Latex command.
@@ -873,6 +882,9 @@ def convert_latex_arguments_to_cmd(
     return cmd
 
 
+# TODO(gp): Factor out common code between the `run_dockerized_*` functions.
+# E.g., the code calling `convert_caller_to_callee_docker_path()` has a lot
+# of repeatition.
 def run_dockerized_latex(
     cmd: str,
     *,
@@ -918,15 +930,15 @@ def run_dockerized_latex(
     container_name = build_container(
         container_name, dockerfile, force_rebuild, use_sudo
     )
-    # Convert files.
+    # Convert files to Docker.
     is_caller_host = not hserver.is_inside_docker()
     use_sibling_container_for_callee = True
-    caller_mount_path, callee_mount_path, mount = get_docker_mount_info(
+    caller_mount_path, callee_mount_path, mount = _get_docker_mount_info(
         is_caller_host, use_sibling_container_for_callee
     )
     #
     param_dict = convert_latex_cmd_to_arguments(cmd)
-    param_dict["input"] = convert_caller_to_callee_docker_path(
+    param_dict["input"] = _convert_caller_to_callee_docker_path(
         param_dict["input"],
         caller_mount_path,
         callee_mount_path,
@@ -937,7 +949,7 @@ def run_dockerized_latex(
     )
     key = "output-directory"
     value = param_dict[key]
-    param_dict[key] = convert_caller_to_callee_docker_path(
+    param_dict[key] = _convert_caller_to_callee_docker_path(
         value,
         caller_mount_path,
         callee_mount_path,
@@ -948,7 +960,7 @@ def run_dockerized_latex(
     )
     for key, value in param_dict["in_dir_params"].items():
         if value:
-            value_tmp = convert_caller_to_callee_docker_path(
+            value_tmp = _convert_caller_to_callee_docker_path(
                 value,
                 caller_mount_path,
                 callee_mount_path,
@@ -960,10 +972,11 @@ def run_dockerized_latex(
         else:
             value_tmp = value
         param_dict["in_dir_params"][key] = value_tmp
-    #
+    # Create the latex command.
     latex_cmd = convert_latex_arguments_to_cmd(param_dict)
     latex_cmd = "pdflatex " + latex_cmd
     _LOG.debug(hprint.to_str("latex_cmd"))
+    #
     executable = get_docker_executable(use_sudo)
     docker_cmd = (
         f"{executable} run --rm --user $(id -u):$(id -g)"
@@ -979,24 +992,28 @@ def run_dockerized_latex(
 
 
 # #############################################################################
+# Dockerized llm_transform.
+# #############################################################################
 
 
 def run_dockerized_llm_transform(
     in_file_path: str,
     out_file_path: str,
     cmd_opts: str,
-    force_rebuild: bool,
-    use_sudo: bool,
-) -> None:
+    *,
+    return_cmd: bool = False,
+    force_rebuild: bool = False,
+    use_sudo: bool = False,
+) -> Optional[str]:
     """
     Run _llm_transform.py in a Docker container with all its dependencies.
     """
-    hdbg.dassert_in("OPENAI_API_KEY", os.environ)
     _LOG.debug(
         hprint.to_str(
             "in_file_path out_file_path cmd_opts force_rebuild use_sudo"
         )
     )
+    hdbg.dassert_in("OPENAI_API_KEY", os.environ)
     hdbg.dassert_isinstance(cmd_opts, list)
     # Build the container, if needed.
     container_name = "tmp.llm_transform"
@@ -1018,10 +1035,10 @@ def run_dockerized_llm_transform(
     # Convert files to Docker paths.
     is_caller_host = not hserver.is_inside_docker()
     use_sibling_container_for_callee = True
-    caller_mount_path, callee_mount_path, mount = get_docker_mount_info(
+    caller_mount_path, callee_mount_path, mount = _get_docker_mount_info(
         is_caller_host, use_sibling_container_for_callee
     )
-    in_file_path = convert_caller_to_callee_docker_path(
+    in_file_path = _convert_caller_to_callee_docker_path(
         in_file_path,
         caller_mount_path,
         callee_mount_path,
@@ -1030,7 +1047,7 @@ def run_dockerized_llm_transform(
         is_caller_host=is_caller_host,
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
-    out_file_path = convert_caller_to_callee_docker_path(
+    out_file_path = _convert_caller_to_callee_docker_path(
         out_file_path,
         caller_mount_path,
         callee_mount_path,
@@ -1040,7 +1057,7 @@ def run_dockerized_llm_transform(
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
     helpers_root = hgit.find_helpers_root()
-    helpers_root = convert_caller_to_callee_docker_path(
+    helpers_root = _convert_caller_to_callee_docker_path(
         helpers_root,
         caller_mount_path,
         callee_mount_path,
@@ -1051,7 +1068,7 @@ def run_dockerized_llm_transform(
     )
     git_root = hgit.find_git_root()
     script = hsystem.find_file_in_repo("_llm_transform.py", root_dir=git_root)
-    script = convert_caller_to_callee_docker_path(
+    script = _convert_caller_to_callee_docker_path(
         script,
         caller_mount_path,
         callee_mount_path,
@@ -1069,5 +1086,7 @@ def run_dockerized_llm_transform(
         f" {container_name}"
         f" {script} -i {in_file_path} -o {out_file_path} {cmd_opts_as_str}"
     )
+    if return_cmd:
+        return docker_cmd
     # TODO(gp): Note that `suppress_output=False` seems to hang the call.
     hsystem.system(docker_cmd)
