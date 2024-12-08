@@ -1644,7 +1644,7 @@ class Test_get_config_from_flattened_dict1(hunitest.TestCase):
                 (("zscore", "com"), 28),
             ]
         )
-        config = cconconf.Config._get_config_from_flattened_dict(flattened)
+        config = cconfig.Config._get_config_from_flattened_dict(flattened)
         act = str(config)
         exp = r"""
         read_data:
@@ -1666,7 +1666,7 @@ class Test_get_config_from_flattened_dict1(hunitest.TestCase):
                 (("zscore",), cconfig.Config()),
             ]
         )
-        config = cconconf.Config._get_config_from_flattened_dict(flattened)
+        config = cconfig.Config._get_config_from_flattened_dict(flattened)
         act = str(config)
         exp = r"""
         read_data:
