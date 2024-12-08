@@ -1,9 +1,9 @@
 import re
 
 import helpers.hdbg as hdbg
+import helpers.hdocker as hdocker
 import helpers.hio as hio
 import helpers.hprint as hprint
-import helpers.hsystem as hsystem
 
 # TODO(gp): Consider using `pypandoc` instead of calling `pandoc` directly.
 # https://boisgera.github.io/pandoc
@@ -21,10 +21,11 @@ def convert_pandoc_md_to_latex(txt: str) -> str:
     # Run Pandoc.
     out_file_name = "./tmp.run_pandoc_out.tex"
     cmd = (
-        f"pandoc --read=markdown --write=latex -o {out_file_name}"
-        f" {in_file_name}"
+        f"pandoc {in_file_name}"
+        f" -o {out_file_name}"
+        " --read=markdown --write=latex"
     )
-    hsystem.system(cmd)
+    hdocker.run_dockerized_pandoc(cmd)
     # Read tmp file.
     res = hio.from_file(out_file_name)
     return res

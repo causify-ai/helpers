@@ -134,8 +134,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     md_file_figs = md_file.replace(".md", "_figs")
     hio.create_dir(md_file_figs, incremental=False)
     # Convert from Docx to Markdown.
-    cmd = (f"pandoc {docx_file} --extract-media {md_file_figs} "
-           f"-f docx -t markdown_strict --output {md_file}")
+    cmd = (
+        f"pandoc {docx_file} --extract-media {md_file_figs} "
+        f"-f docx -t markdown_strict --output {md_file}"
+    )
     hdocker.run_dockerized_pandoc(cmd)
     _move_media(md_file_figs)
     _clean_up_artifacts(md_file, md_file_figs)

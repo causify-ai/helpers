@@ -49,10 +49,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.debug("cmd_opts: %s", cmd_opts)
     if not args.output:
         args.output = args.input
+    cmd = "pandoc {args.input} -o {args.output} {cmd_opts}"
     hdocker.run_dockerized_pandoc(
-        args.input,
-        args.output,
-        cmd_opts,
+        cmd,
         args.dockerized_force_rebuild,
         args.dockerized_use_sudo,
     )

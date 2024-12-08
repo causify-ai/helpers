@@ -81,15 +81,19 @@ class Test_replace_shared_root_path1(hunitest.TestCase):
 
 
 class Test_convert_to_docker_path1(hunitest.TestCase):
-
     @staticmethod
-    def prepare_and_convert_path(in_file_path: str, check_if_exists: bool) -> Tuple[str, str]:
+    def prepare_and_convert_path(
+        in_file_path: str, check_if_exists: bool
+    ) -> Tuple[str, str]:
         is_caller_host = True
         use_sibling_container_for_callee = True
-        source_host_path, callee_mount_path, mount = (
-            hdocker.get_docker_mount_info(
-                is_caller_host, use_sibling_container_for_callee
-            ))
+        (
+            source_host_path,
+            callee_mount_path,
+            mount,
+        ) = hdocker.get_docker_mount_info(
+            is_caller_host, use_sibling_container_for_callee
+        )
         docker_file_path = hdocker.convert_caller_to_callee_docker_path(
             in_file_path,
             source_host_path,
@@ -103,10 +107,11 @@ class Test_convert_to_docker_path1(hunitest.TestCase):
 
     def test1(self) -> None:
         # Prepare inputs.
-        in_file_path = 'tmp.llm_transform.in.txt'
+        in_file_path = "tmp.llm_transform.in.txt"
         # Call tested function.
-        docker_file_path, mount = self.prepare_and_convert_path(in_file_path,
-                                                                check_if_exists=False)
+        docker_file_path, mount = self.prepare_and_convert_path(
+            in_file_path, check_if_exists=False
+        )
         # Check.
         exp_docker_file_path = "/app/tmp.llm_transform.in.txt"
         self.assert_equal(docker_file_path, exp_docker_file_path)
@@ -121,8 +126,9 @@ class Test_convert_to_docker_path1(hunitest.TestCase):
         hio.to_file(in_file_path, "empty")
         _LOG.debug(hprint.to_str("in_file_path"))
         # Call tested function.
-        docker_file_path, mount = self.prepare_and_convert_path(in_file_path,
-                                                                check_if_exists=True)
+        docker_file_path, mount = self.prepare_and_convert_path(
+            in_file_path, check_if_exists=True
+        )
         # Check.
         exp_docker_file_path = r"/app/helpers/test/outcomes/Test_convert_to_docker_path1.test2/input/input.md"
         self.assert_equal(docker_file_path, exp_docker_file_path)
@@ -222,7 +228,16 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
         # Call tested function.
         act = hdocker.convert_pandoc_cmd_to_arguments(cmd)
         # Check output.
-        exp = {'input': 'input.md', 'output': 'output.pdf', 'in_dir_params': {'data-dir': '/data', 'template': None, 'extract-media': None}, 'cmd_opts': ['--toc', '--toc-depth', '2']}
+        exp = {
+            "input": "input.md",
+            "output": "output.pdf",
+            "in_dir_params": {
+                "data-dir": "/data",
+                "template": None,
+                "extract-media": None,
+            },
+            "cmd_opts": ["--toc", "--toc-depth", "2"],
+        }
         self.assert_equal(str(act), str(exp))
 
     def test2(self) -> None:
@@ -234,7 +249,16 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
         # Call tested function.
         act = hdocker.convert_pandoc_cmd_to_arguments(cmd)
         # Check output.
-        exp = {'input': 'input.md', 'output': 'output.pdf', 'in_dir_params': {'data-dir': None, 'template': None, 'extract-media': None}, 'cmd_opts': ['--toc']}
+        exp = {
+            "input": "input.md",
+            "output": "output.pdf",
+            "in_dir_params": {
+                "data-dir": None,
+                "template": None,
+                "extract-media": None,
+            },
+            "cmd_opts": ["--toc"],
+        }
         self.assert_equal(str(act), str(exp))
 
     def test3(self) -> None:
@@ -251,7 +275,29 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
         # Call tested function.
         act = hdocker.convert_pandoc_cmd_to_arguments(cmd)
         # Check output.
-        exp = {'input': 'test/outcomes/tmp.pandoc.preprocess_notes.txt', 'output': 'test/outcomes/tmp.pandoc.tex', 'in_dir_params': {'data-dir': None, 'template': 'documentation/pandoc.latex', 'extract-media': None}, 'cmd_opts': ['-V', 'geometry:margin=1in', '-f', 'markdown', '--number-sections', '--highlight-style=tango', '-s', '-t', 'latex', '--toc', '--toc-depth', '2']}
+        exp = {
+            "input": "test/outcomes/tmp.pandoc.preprocess_notes.txt",
+            "output": "test/outcomes/tmp.pandoc.tex",
+            "in_dir_params": {
+                "data-dir": None,
+                "template": "documentation/pandoc.latex",
+                "extract-media": None,
+            },
+            "cmd_opts": [
+                "-V",
+                "geometry:margin=1in",
+                "-f",
+                "markdown",
+                "--number-sections",
+                "--highlight-style=tango",
+                "-s",
+                "-t",
+                "latex",
+                "--toc",
+                "--toc-depth",
+                "2",
+            ],
+        }
         self.assert_equal(str(act), str(exp))
 
     def test_parse_and_convert1(self) -> None:
@@ -263,9 +309,7 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
         # Parse the command.
         parsed_args = hdocker.convert_pandoc_cmd_to_arguments(cmd)
         # Convert back to command.
-        converted_cmd = hdocker.convert_pandoc_arguments_to_cmd(
-            parsed_args
-        )
+        converted_cmd = hdocker.convert_pandoc_arguments_to_cmd(parsed_args)
         # Check that the converted command matches the original command.
         act = "pandoc " + converted_cmd
         exp = cmd

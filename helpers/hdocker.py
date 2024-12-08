@@ -295,8 +295,8 @@ def _dassert_is_path_included(file_path: str, including_path: str) -> None:
     """
     Assert that a file path is included within another path.
 
-    This function checks if the given file path starts with the specified
-    including path. If not, it raises an assertion error.
+    This function checks if the given file path starts with the
+    specified including path. If not, it raises an assertion error.
     """
     _LOG.debug(hprint.to_str("file_path including_path"))
     hdbg.dassert(
@@ -627,22 +627,24 @@ def convert_pandoc_arguments_to_cmd(
     """
     Convert parsed pandoc arguments back to a command string.
 
-    This function takes the parsed pandoc arguments and converts them back into
-    a command string that can be executed directly or in a Dockerized container.
+    This function takes the parsed pandoc arguments and converts them
+    back into a command string that can be executed directly or in a
+    Dockerized container.
 
     :return: The constructed pandoc command string.
     """
     cmd = []
-    hdbg.dassert_is_subset(params.keys(), ["input", "output", "in_dir_params",
-                                           "cmd_opts"])
+    hdbg.dassert_is_subset(
+        params.keys(), ["input", "output", "in_dir_params", "cmd_opts"]
+    )
     cmd.append(f'{params["input"]}')
     cmd.append(f'--output {params["output"]}')
     for key, value in params["in_dir_params"].items():
         if value:
-            cmd.append(f'--{key} {value}')
+            cmd.append(f"--{key} {value}")
     #
     hdbg.dassert_isinstance(params["cmd_opts"], list)
-    cmd.append(' '.join(params["cmd_opts"]))
+    cmd.append(" ".join(params["cmd_opts"]))
     #
     cmd = " ".join(cmd)
     _LOG.debug(hprint.to_str("cmd"))
@@ -660,9 +662,7 @@ def run_dockerized_pandoc(
 
     Same as `run_dockerized_prettier()` but for `pandoc`.
     """
-    _LOG.debug(
-        hprint.to_str("cmd return_cmd use_sudo")
-    )
+    _LOG.debug(hprint.to_str("cmd return_cmd use_sudo"))
     container_name = "pandoc/core"
     # Convert files.
     is_caller_host = not hserver.is_inside_docker()
@@ -700,7 +700,7 @@ def run_dockerized_pandoc(
                 is_input=True,
                 is_caller_host=is_caller_host,
                 use_sibling_container_for_callee=use_sibling_container_for_callee,
-        )
+            )
         else:
             value_tmp = value
         param_dict["in_dir_params"][key] = value_tmp
@@ -814,8 +814,9 @@ def convert_latex_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
     hdbg.dassert_eq(cmd[0], "pdflatex")
     # We assume that the first option is always the input file.
     in_file_path = cmd[1]
-    hdbg.dassert(not in_file_path.startswith("-"), "Invalid input file '%s'",
-                 in_file_path)
+    hdbg.dassert(
+        not in_file_path.startswith("-"), "Invalid input file '%s'", in_file_path
+    )
     hdbg.dassert_file_exists(in_file_path)
     cmd = cmd[2:]
     _LOG.debug(hprint.to_str("cmd"))
@@ -824,15 +825,14 @@ def convert_latex_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
     parser.add_argument("--output-directory", required=True)
     # Latex uses options like `-XYZ` which confuse `argparse` so we need to
     # replace `-XYZ` with `--XYZ`.
-    cmd = [re.sub(r'^-', r'--', cmd_opts) for cmd_opts in cmd]
+    cmd = [re.sub(r"^-", r"--", cmd_opts) for cmd_opts in cmd]
     _LOG.debug(hprint.to_str("cmd"))
     # Parse known arguments and capture the rest.
     args, unknown_args = parser.parse_known_args(cmd)
     _LOG.debug(hprint.to_str("args unknown_args"))
     # Return all the arguments in a dictionary with names that match the
     # function signature of `run_dockerized_pandoc`.
-    in_dir_params = {
-    }
+    in_dir_params: Dict[str, Any] = {}
     return {
         "input": in_file_path,
         "output-directory": args.output_directory,
@@ -847,25 +847,26 @@ def convert_latex_arguments_to_cmd(
     """
     Convert parsed pandoc arguments back to a command string.
 
-    This function takes the parsed pandoc arguments and converts them back into
-    a command string that can be executed directly or in a Dockerized container.
+    This function takes the parsed pandoc arguments and converts them
+    back into a command string that can be executed directly or in a
+    Dockerized container.
 
     :return: The constructed pandoc command string.
     """
     cmd = []
-    hdbg.dassert_is_subset(params.keys(), ["input", "output-directory",
-                                           "in_dir_params",
-                                           "cmd_opts"])
+    hdbg.dassert_is_subset(
+        params.keys(), ["input", "output-directory", "in_dir_params", "cmd_opts"]
+    )
     cmd.append(f'{params["input"]}')
     key = "output-directory"
     value = params[key]
-    cmd.append(f'-{key} {value}')
+    cmd.append(f"-{key} {value}")
     for key, value in params["in_dir_params"].items():
         if value:
-            cmd.append(f'-{key} {value}')
+            cmd.append(f"-{key} {value}")
     #
     hdbg.dassert_isinstance(params["cmd_opts"], list)
-    cmd.append(' '.join(params["cmd_opts"]))
+    cmd.append(" ".join(params["cmd_opts"]))
     #
     cmd = " ".join(cmd)
     _LOG.debug(hprint.to_str("cmd"))
@@ -884,9 +885,7 @@ def run_dockerized_latex(
 
     Same as `run_dockerized_prettier()` but for `pandoc`.
     """
-    _LOG.debug(
-        hprint.to_str("cmd return_cmd use_sudo")
-    )
+    _LOG.debug(hprint.to_str("cmd return_cmd use_sudo"))
     container_name = "tmp.latex"
     dockerfile = """
     # Use a lightweight base image

@@ -197,7 +197,7 @@ def add_action_arg(
 def actions_to_string(
     actions: List[str], valid_actions: List[str], add_frame: bool
 ) -> str:
-    space = max([len(a) for a in valid_actions]) + 2
+    space = max(len(a) for a in valid_actions) + 2
     format_ = "%" + str(space) + "s: %s"
     actions = [
         format_ % (a, "Yes" if a in actions else "-") for a in valid_actions

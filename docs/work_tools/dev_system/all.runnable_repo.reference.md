@@ -1,18 +1,22 @@
+
+
 <!-- toc -->
 
 - [Summary](#summary)
 - [Design goals](#design-goals)
-- [Alternative solution](#alternative-solution)
+- [Our previous solution to the development](#our-previous-solution-to-the-development)
 - [Current solution](#current-solution)
   * [Helper sub-repo](#helper-sub-repo)
   * [Runnable dir](#runnable-dir)
+  * [Runnable repo](#runnable-repo)
   * [Thin environment](#thin-environment)
+  * [setenv](#setenv)
+  * [devops](#devops)
   * [Building a Docker container](#building-a-docker-container)
   * [Running a Docker container](#running-a-docker-container)
   * [pytest](#pytest)
-  * [Recursive pytest](#recursive-pytest)
+    + [Recursive pytest](#recursive-pytest)
   * [Support for docker-in-docker and sibling-containers](#support-for-docker-in-docker-and-sibling-containers)
-- [Examples](#examples)
 - [Maintaining code across different sub-repos](#maintaining-code-across-different-sub-repos)
 
 <!-- tocstop -->
@@ -36,10 +40,10 @@
 - Manage dependencies in a way that is uniform across platforms and OSes, using
   Docker containers
 - Separate the need to:
-  - build and deploy containers (by devops)
-  - use containers to develop and test (by developers)
-- Ensure alignment between development environment, deployment, and CI/CD systems
-  (e.g., GitHub Actions)
+  - Build and deploy containers (by devops)
+  - Use containers to develop and test (by developers)
+- Ensure alignment between development environment, deployment, and CI/CD
+  systems (e.g., GitHub Actions)
 - Carefully manage and control dependencies using Python managers (such as
   `poetry`) and virtual environments
 - Run end-to-end tests using `pytest` by automatically discover tests based on
@@ -54,8 +58,8 @@
   functionalities
 - Have a simple way to maintain common files across different repos in sync
   through links and automatically diff-ing files
-- Code and containers can be versioned and kept in sync automatically since
-  a certain version of the code can require a certain version of the container to
+- Code and containers can be versioned and kept in sync automatically since a
+  certain version of the code can require a certain version of the container to
   run properly
   - Code is versioned through Git
   - Each container has a `changelog.txt` that contains the current version and
@@ -63,7 +67,8 @@
 - Built-in support for multi-architecture builds (e.g, for Intel `x86` and Arm)
   across different OSes supporting containers (e.g., Linux, MacOS, Windows
   Subsystem for Linux WSL)
-- Support for both local and remote development using IDEs (e.g., PyCharm, VSCode)
+- Support for both local and remote development using IDEs (e.g., PyCharm,
+  VSCode)
 - Native support for both children-containers (i.e., Docker-in-Docker) and
   sibling containers
 - Support for developing, testing, and deploying multi-container applications
@@ -146,6 +151,7 @@
   ```
 
 ## Runnable repo
+
 - A runnable repo is a repo that contains a single runnable dir at the top
 - A repo can contain multiple runnable dirs in a hierarchical fashion
 
@@ -196,8 +202,8 @@ graph TD
 
 ## devops
 
-- A `devops` dir contains all the code needed to build and run a container
-  for both development, testing, and deployment
+- A `devops` dir contains all the code needed to build and run a container for
+  both development, testing, and deployment
 
 ## Building a Docker container
 
@@ -255,6 +261,7 @@ graph TD
 - When we want to run all the tests in a repo containing multiple runnable dirs,
   we need to iterate over the runnable dirs and run the corresponding tests in
   the corresponding container, e.g.,
+
   ```bash
   for container in containers:
      (cd container; i run_fast_tests)

@@ -65,49 +65,9 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         cmd_opts = "--filter_by_header Header2"
         self.run_notes_to_pdf(in_file, "pdf", cmd_opts)
 
-    # @pytest.mark.skip
-    # def test1(self) -> None:
-    #     """
-    #     Convert one txt file to PDF and check that the `tex` file is as
-    #     expected.
-    #     """
-    #     file_name = "code_style.txt.test"
-    #     file_name = os.path.join(self.get_input_dir(), file_name)
-    #     file_name = os.path.abspath(file_name)
-    #     #
-    #     act = self.run_notes_to_pdf(file_name, "pdf")
-    #     self.check_string(act)
-    #
-    # # TODO(gp): This seems flakey.
-    # @pytest.mark.skip
-    # def test2(self) -> None:
-    #     """
-    #     Convert one txt file to HTML and check that the .tex file is as
-    #     expected.
-    #     """
-    #     file_name = "code_style.txt.test"
-    #     file_name = os.path.join(
-    #         self.get_input_dir(test_method_name="test1"), file_name
-    #     )
-    #     file_name = os.path.abspath(file_name)
-    #     #
-    #     act = self.run_notes_to_pdf(file_name, "html")
-    #     self.check_string(act)
-    #
-    # def test_all_notes(self) -> None:
-    #     """
-    #     Convert all the notes in docs/notes to PDF.
-    #     """
-    #     git_dir = hgit.get_client_root(super_module=False)
-    #     dir_name = os.path.join(git_dir, "docs/notes/*.txt")
-    #     file_names = glob.glob(dir_name)
-    #     for file_name in file_names:
-    #         _LOG.debug(hprint.frame(f"file_name={file_name}"))
-    #         self.run_notes_to_pdf(file_name, "html")
-
     def run_notes_to_pdf(
         self, in_file: str, type_: str, cmd_opts: str
-    ) -> Tuple[str, Optional[str]]:
+    ) -> Tuple[Optional[str], Optional[str]]:
         # notes_to_pdf.py \
         #   --input notes/MSML610/Lesson1-Intro.txt \
         #   --type slides \
