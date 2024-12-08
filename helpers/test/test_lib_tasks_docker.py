@@ -157,8 +157,8 @@ class Test_generate_compose_file2(hunitest.TestCase):
         """
         Check that file is generated correctly when.
 
-        - `cmamp` is a super-repo
-        - `helpers` is a sub-repo
+        - `//cmamp` is a super-repo
+        - `//helpers` is a sub-repo
         """
         self.helper(
             mock_getcwd="/data/heanhs/src/cmamp1",
@@ -169,8 +169,7 @@ class Test_generate_compose_file2(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        Check that file is generated correctly when
-            - `helpers` as a sub-repo
+        Check that file is generated correctly when the repo is `//helpers`.
         """
         self.helper(
             mock_getcwd="/data/heanhs/src/helpers1",
@@ -183,9 +182,9 @@ class Test_generate_compose_file2(hunitest.TestCase):
         """
         Check that file is generated correctly when.
 
-        - `cmamp` is a super-repo
-        - `helpers` is a sub-repo
-        - `cmamp/ck.infra` is a runnable dir
+        - `//cmamp` is a super-repo
+        - `//helpers` is a sub-repo
+        - `//cmamp/ck.infra` is a runnable dir
         """
         self.helper(
             mock_getcwd="/data/heanhs/src/cmamp1/ck.infra",
