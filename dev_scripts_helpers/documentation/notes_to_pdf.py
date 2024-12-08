@@ -405,8 +405,7 @@ def _run_all(args: argparse.Namespace) -> None:
     #
     file_ = args.input
     hdbg.dassert_path_exists(file_)
-    prefix = os.path.join(args.tmp_dir, "tmp.pandoc")
-    prefix = os.path.abspath(prefix)
+    prefix = os.path.abspath("tmp.notes_to_pdf")
     # - Cleanup_before
     action = "cleanup_before"
     to_execute, actions = _mark_action(action, actions)

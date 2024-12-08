@@ -169,7 +169,7 @@ def get_client_root(super_module: bool) -> str:
     return client_root
 
 
-# TODO(gp): Replace get_client_root with this.
+# TODO(gp): Replace `get_client_root` with this.
 def find_git_root(path: str = ".") -> str:
     """
     Find recursively the dir of the outermost super module.
@@ -191,7 +191,7 @@ def find_git_root(path: str = ".") -> str:
     return path
 
 
-def find_file(file_name: str = ".", *, dir_path: Optional[str] = None) -> str:
+def find_file(file_name: str, *, dir_path: Optional[str] = None) -> str:
     if dir_path is None:
         dir_path = find_git_root()
     cmd = rf"""
