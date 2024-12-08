@@ -185,6 +185,7 @@ def add_action_arg(
         help="Actions to skip",
     )
     if default_actions is not None:
+        hdbg.dassert_is_subset(default_actions, valid_actions)
         parser.add_argument(
             "--all",
             action="store_true",
@@ -196,7 +197,7 @@ def add_action_arg(
 def actions_to_string(
     actions: List[str], valid_actions: List[str], add_frame: bool
 ) -> str:
-    space = max([len(a) for a in valid_actions]) + 2
+    space = max(len(a) for a in valid_actions) + 2
     format_ = "%" + str(space) + "s: %s"
     actions = [
         format_ % (a, "Yes" if a in actions else "-") for a in valid_actions
@@ -294,7 +295,7 @@ def add_input_output_args(
 
 
 def parse_input_output_args(
-    args: argparse.Namespace, clear_screen: bool = False
+    args: argparse.Namespace, *, clear_screen: bool = False
 ) -> Tuple[str, str]:
     """
     :return input and output file name.
@@ -307,8 +308,8 @@ def parse_input_output_args(
     if in_file_name != "-":
         if clear_screen:
             os.system("clear")
-        _LOG.info(f"in_file_name='{in_file_name}'")
-        _LOG.info(f"out_file_name='{out_file_name}'")
+        _LOG.info(hprint.to_str("in_file_name"))
+        _LOG.info(hprint.to_str("out_file_name"))
     return in_file_name, out_file_name
 
 
@@ -524,13 +525,14 @@ def str_to_bool(value: str) -> bool:
     Convert string representing true or false to the corresponding bool.
     """
     if value.lower() == "true":
-        return True
+        ret = True
     elif value.lower() == "false":
-        return False
+        ret = False
     else:
         raise argparse.ArgumentTypeError(
-            "Invalid boolean value. Use 'true' or 'false'."
+            f"Invalid boolean value {value}. Use 'true' or 'false'."
         )
+    return ret
 
 
 # #############################################################################
@@ -554,6 +556,7 @@ def add_dockerized_script_arg(
         action="store_true",
         help="Use sudo inside the container",
     )
+    return parser
 
 
 def add_transform_arg(
@@ -563,13 +566,18 @@ def add_transform_arg(
     Add common command line arguments for `*llm_transform.py` scripts.
     """
     parser.add_argument(
-        "-d", "--debug", action="store_true",
-        help="Print before/after the transform"
+        "-d",
+        "--debug",
+        action="store_true",
+        help="Print before/after the transform",
     )
     parser.add_argument(
         "-t", "--transform", required=True, type=str, help="Type of transform"
     )
     parser.add_argument(
-        "-f", "--fast_model", action="store_true",
-        help="Use a fast LLM model vs a high-quality one"
+        "-f",
+        "--fast_model",
+        action="store_true",
+        help="Use a fast LLM model vs a high-quality one",
     )
+    return parser

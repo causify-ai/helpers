@@ -31,7 +31,7 @@ class _Class:
 
 
 class _TestCase(hunitest.TestCase):
-    def check(self, *args, **kwargs):
+    def check(self, *args, **kwargs) -> None:
         _check(self, *args, **kwargs)
 
 

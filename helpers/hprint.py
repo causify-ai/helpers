@@ -122,6 +122,7 @@ def frame(
     """
     Print a frame around a message.
 
+    :param message: message to print
     :param char1: char for top line of the frame
     :param num_chars: how many chars in each line (by default 80 chars)
     :param char2: char for bottom line of the frame
@@ -252,7 +253,6 @@ def remove_lead_trail_empty_lines(lines: StrOrList) -> StrOrList:
         lines.pop(0)
     # Remove trailing empty lines.
     while lines and not lines[-1].strip():
-        _LOG.info("Removing '%s'", lines[-1])
         lines.pop()
     return lines
 
@@ -266,7 +266,7 @@ def dedent(txt: str, *, remove_lead_trail_empty_lines_: bool = True) -> str:
 
     :param txt: multi-line string
     :param txt: multi-line string
-    :param remove_lead_trail_empty_lines: if True, remove all the empty
+    :param remove_lead_trail_empty_lines_: if True, remove all the empty
         lines at the beginning and at the end
     """
     if remove_lead_trail_empty_lines_:
