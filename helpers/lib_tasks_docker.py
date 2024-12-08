@@ -543,7 +543,9 @@ def _generate_docker_compose_file(
     helper_root_path = os.path.normpath(
         os.path.join("/app", helper_relative_path)
     )
-    is_super_repo = 0 if hgit.is_helpers() else 1
+    # A super repo is a repo than contains helpers as a submodule and 
+    # is not a helper itself.
+    is_super_repo = 0 if hgit.is_in_helpers_as_supermodule() else 1
     # We could do the same also with IMAGE for symmetry.
     # Keep the env vars in sync with what we print in `henv.get_env_vars()`.
     # Configure `base_app` service.

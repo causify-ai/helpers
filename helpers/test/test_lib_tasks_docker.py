@@ -1,4 +1,5 @@
 import logging
+import os
 import re
 from typing import Dict, Optional
 
@@ -9,6 +10,8 @@ import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 import helpers.lib_tasks_docker as hlitadoc
 import helpers.test.test_lib_tasks as httestlib
+import unittest.mock as umock
+
 
 _LOG = logging.getLogger(__name__)
 
@@ -90,6 +93,103 @@ class Test_generate_compose_file1(hunitest.TestCase):
     )
     def test5(self) -> None:
         self.helper(stage="dev")
+
+class Test_generate_compose_file2(hunitest.TestCase):
+    def helper(
+        self,
+        mock_getcwd: str,
+        mock_find_git_root: str,
+        mock_find_helpers_root: str,
+        mock_is_in_helpers_as_supermodule: bool,
+        *,
+        stage: str = "prod",
+        use_privileged_mode: bool = True,
+        use_sibling_container: bool = False,
+        shared_data_dirs: Optional[Dict[str, str]] = None,
+        mount_as_submodule: bool = False,
+        use_network_mode_host: bool = True,
+        use_main_network: bool = False,
+    ) -> None:
+        txt = []
+        #
+        params = [
+            "stage",
+            "use_privileged_mode",
+            "use_sibling_container",
+            "shared_data_dirs",
+            "mount_as_submodule",
+            "use_network_mode_host",
+        ]
+        txt_tmp = hprint.to_str(" ".join(params))
+        txt.append(txt_tmp)
+        #
+        file_name = None
+        with umock.patch.object(
+            os, "getcwd", return_value=mock_getcwd
+        ), umock.patch.object(
+            hgit, "find_git_root", return_value=mock_find_git_root
+        ), umock.patch.object(
+            hgit, "find_helpers_root", return_value=mock_find_helpers_root
+        ), umock.patch.object(
+            hgit, "is_in_helpers_as_supermodule", return_value=mock_is_in_helpers_as_supermodule
+        ):
+            txt_tmp = hlitadoc._generate_docker_compose_file(
+                stage,
+                use_privileged_mode,
+                use_sibling_container,
+                shared_data_dirs,
+                mount_as_submodule,
+                use_network_mode_host,
+                use_main_network,
+                file_name,
+            )
+        # Remove all the env variables that are function of the host.
+        txt_tmp = hunitest.filter_text("AM_HOST_", txt_tmp)
+        txt_tmp = hunitest.filter_text("OPENAI_API_KEY", txt_tmp)
+        txt.append(txt_tmp)
+        #
+        txt = "\n".join(txt)
+        self.check_string(txt)
+
+    def test1(self) -> None:
+        """
+        Check that file is generated correctly when 
+            - `cmamp` is a super-repo
+            - `helpers` is a sub-repo
+        """
+        self.helper(
+            mock_getcwd="/data/heanhs/src/cmamp1",
+            mock_find_git_root="/data/heanhs/src/cmamp1",
+            mock_find_helpers_root="/data/heanhs/src/cmamp1/helpers_root",
+            mock_is_in_helpers_as_supermodule=False,
+        )
+        
+    def test2(self) -> None:
+        """
+        Check that file is generated correctly when 
+            - `helpers` as a sub-repo
+        """
+        self.helper(
+            mock_getcwd="/data/heanhs/src/helpers1",
+            mock_find_git_root="/data/heanhs/src/helpers1",
+            mock_find_helpers_root="/data/heanhs/src/helpers1",
+            mock_is_in_helpers_as_supermodule=True,
+        )
+
+    def test3(self) -> None:
+        """
+        Check that file is generated correctly when 
+            - `cmamp` is a super-repo
+            - `helpers` is a sub-repo
+            - `cmamp/ck.infra` is a runnable dir
+        """
+        self.helper(
+            mock_getcwd="/data/heanhs/src/cmamp1/ck.infra",
+            mock_find_git_root="/data/heanhs/src/cmamp1",
+            mock_find_helpers_root="/data/heanhs/src/cmamp1/helpers_root",
+            mock_is_in_helpers_as_supermodule=False,
+        )
+
 
 
 # #############################################################################
