@@ -1,5 +1,3 @@
-
-
 <!-- toc -->
 
 - [Definitions](#definitions)
@@ -97,7 +95,7 @@
 ## Generate the summary of the headers
 
 - In `vim`
-  ```
+  ```bash
   :!helpers_root/dev_scripts_helpers/documentation/process_md_headers.py -i % -m 1
   ```
   ```bash
@@ -118,29 +116,31 @@
 
 ## Format a chunk of `txt` file
 
-- ```bash
+- In vim
+  ```bash
   :'<,'>!helpers_root/dev_scripts_helpers/llms/llm_transform.py -i - -o - -t md_format
   ```
 
 ## List possible LLM transforms
 
-- ```
-  > \grep "def " ./dev_scripts_helpers/llms/llm_prompts.py | \grep "(user: str, model: str)"
-  def code_comment(user: str, model: str) -> str:
-  def code_docstring(user: str, model: str) -> str:
-  def code_type_hints(user: str, model: str) -> str:
-  def code_unit_test(user: str, model: str) -> str:
-  def code_1_unit_test(user: str, model: str) -> str:
-  def md_rewrite(user: str, model: str) -> str:
-  def md_format(user: str, model: str) -> str:
-  def slide_improve(user: str, model: str) -> str:
-  def slide_colorize(user: str, model: str) -> str:
+- Use `-t list`
+  ```bash
+  code_comment
+  code_docstring
+  code_type_hints
+  code_unit_test
+  code_1_unit_test
+  md_rewrite
+  md_format
+  slide_improve
+  slide_colorize
   ```
 
 ## Convert notes to slides
 
-- ```
-  > notes_to_pdf.py --input notes/MSML610/intro.txt --output tmp.pdf -t slides --skip_action copy_to_gdrive --skip_action open --skip_action cleanup_after
+- Convert notes to slides:
+  ```bash
+  > notes_to_pdf.py --input notes/MSML610/Lesson1-Intro.txt --output tmp.pdf -t slides --skip_action copy_to_gdrive --skip_action open --skip_action cleanup_after
   ```
 
 # Latex Toolchain

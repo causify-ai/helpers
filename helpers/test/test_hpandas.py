@@ -176,7 +176,8 @@ class Test_dassert_valid_remap(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        Check that an assertion is raised if the duplicate values are present in the dict.
+        Check that an assertion is raised if the duplicate values are present
+        in the dict.
         """
         # Set inputs.
         to_remap = ["dummy_value_1", "dummy_value_2", "dummy_value_3"]
@@ -3491,7 +3492,7 @@ class Test_compute_duration_df(hunitest.TestCase):
 
 
 class Test_compare_nans_in_dataframes(hunitest.TestCase):
-    def test1(self):
+    def test1(self) -> None:
         """
         Check that NaN differences are identified correctly.
         """
@@ -3633,7 +3634,8 @@ class Test_dassert_strictly_increasing_index(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        Check that an assert is raised for a not monotonically increasing index.
+        Check that an assert is raised for a not monotonically increasing
+        index.
         """
         # Build test dataframe.
         idx = [
@@ -3663,7 +3665,7 @@ class Test_dassert_strictly_increasing_index(hunitest.TestCase):
 
 class Test_apply_index_mode(hunitest.TestCase):
     @staticmethod
-    def get_test_data() -> Tuple[pd.DataFrame]:
+    def get_test_data() -> Tuple[pd.DataFrame, pd.DataFrame]:
         """
         Generate toy dataframes for the test.
         """
@@ -3757,7 +3759,7 @@ class Test_apply_column_mode(hunitest.TestCase):
     """
 
     @staticmethod
-    def get_test_data() -> Tuple[pd.DataFrame]:
+    def get_test_data() -> Tuple[pd.DataFrame, pd.DataFrame]:
         """
         Generate toy dataframes for the test.
         """

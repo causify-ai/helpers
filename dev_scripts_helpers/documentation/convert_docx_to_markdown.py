@@ -6,70 +6,23 @@ Convert Docx file to Markdown.
 - Download a Google Doc as a docx document
 
 - Run this command in the same directory as the Markdown file:
-> FILE_NAME="tmp"; ls $FILE_NAME
-> convert_docx_to_markdown.py --docx_file $FILE_NAME.docx --md_file $FILE_NAME.md
+> IN_FILE_NAME="/Users/saggese/Downloads/Blank.docx"; ls $FILE_NAME
+> OUT_FILE_NAME="paper/paper.md"
+> convert_docx_to_markdown.py --docx_file $IN_FILE_NAME --md_file $OUT_FILE_NAME
 """
 
 import argparse
 import logging
 import os
 import shutil
-import tempfile
 
 import helpers.hdbg as hdbg
+import helpers.hdocker as hdocker
+import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
-
-
-# TODO(gp): use hdocker.build_container() and extract code in run_dockerized_pandoc
-def _convert_docx_to_markdown(
-    docx_file: str, md_file: str, md_file_figs: str
-) -> None:
-    """
-    Convert Docx file to Markdown.
-
-    :param docx_file: path to the Docx file
-    :param md_file: path to the Markdown file
-    :param md_file_figs: the folder containing the figures for Markdown
-        file
-    """
-    _LOG.info("Converting Docx to Markdown...")
-    hdbg.dassert_file_exists(docx_file)
-    # Create the Markdown file.
-    hsystem.system(f"touch {md_file}")
-    # Create temporary Dockerfile.
-    _LOG.info("Building Docker container...")
-    docker_container_name = "convert_docx_to_markdown"
-    with tempfile.NamedTemporaryFile(suffix=".Dockerfile") as temp_dockerfile:
-        txt = b"""
-FROM ubuntu:latest
-
-RUN apt-get update && \
-    apt-get -y upgrade
-
-RUN apt-get install -y curl pandoc && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-"""
-        temp_dockerfile.write(txt)
-        temp_dockerfile.flush()
-        cmd = (
-            f"docker build -f {temp_dockerfile.name} -t {docker_container_name} ."
-        )
-        hsystem.system(cmd)
-    _LOG.info("Building Docker container... done")
-    # Run Docker container.
-    cmd = f"rm -rf {md_file_figs}"
-    hsystem.system(cmd)
-    # Convert from Docx to Markdown.
-    convert_docx_to_markdown_cmd = f"pandoc --extract-media {md_file_figs} -f docx -t markdown_strict -o {md_file} {docx_file}"
-    # Run docker under current `uid` and `gid`.
-    work_dir = os.getcwd()
-    mount = f"type=bind,source={work_dir},target={work_dir}"
-    docker_cmd = f"docker run --rm --user $(id -u):$(id -g) -it --workdir {work_dir} --mount {mount} {docker_container_name} {convert_docx_to_markdown_cmd}"
-    hsystem.system(docker_cmd)
 
 
 def _move_media(md_file_figs: str) -> None:
@@ -137,6 +90,10 @@ def _clean_up_artifacts(md_file: str, md_file_figs: str) -> None:
         r"perl -pi -e 's:{}/media/:{}/:g' {}".format(
             md_file_figs, md_file_figs, md_file
         ),
+        # Remove underling like
+        # [<u>Uber: Faster Together: Uber Engineering’s iOS
+        #  Monorepo</u>](https://www.uber.com/blog/ios-monorepo/)
+        r"perl -pi -e 's/<\/?u>//g' {}".format(md_file),
     ]
     # Run the commands.
     for clean_cmd in perl_regex_replacements:
@@ -155,7 +112,7 @@ def _parse() -> argparse.ArgumentParser:
         action="store",
         required=True,
         type=str,
-        help="The Docx file that needs to be converted to Markdown",
+        help="The Docx file to convert to Markdown",
     )
     parser.add_argument(
         "--md_file",
@@ -173,9 +130,15 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     docx_file = args.docx_file
     md_file = args.md_file
-    # The folder for the figures.
+    # Create the folder for the figures.
     md_file_figs = md_file.replace(".md", "_figs")
-    _convert_docx_to_markdown(docx_file, md_file, md_file_figs)
+    hio.create_dir(md_file_figs, incremental=False)
+    # Convert from Docx to Markdown.
+    cmd = (
+        f"pandoc {docx_file} --extract-media {md_file_figs} "
+        f"-f docx -t markdown_strict --output {md_file}"
+    )
+    hdocker.run_dockerized_pandoc(cmd)
     _move_media(md_file_figs)
     _clean_up_artifacts(md_file, md_file_figs)
     _LOG.info("Finished converting '%s' to '%s'.", docx_file, md_file)

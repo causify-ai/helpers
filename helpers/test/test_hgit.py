@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import List, Optional
+from typing import Generator, List, Optional
 
 import pytest
 
@@ -288,7 +288,7 @@ class Test_git_path1(hunitest.TestCase):
 class Test_git_modified_files1(hunitest.TestCase):
     # This will be run before and after each test.
     @pytest.fixture(autouse=True)
-    def setup_teardown_test(self):
+    def setup_teardown_test(self) -> Generator:
         # Run before each test.
         self.set_up_test()
         yield
