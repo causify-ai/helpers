@@ -101,8 +101,6 @@ def get_env_vars() -> List[str]:
     """
     # Keep in sync with `lib_tasks.py:_generate_compose_file()`.
     env_var_names = [
-        # AWS profile to use for AM.
-        "AM_AWS_PROFILE",
         # Force enabling Docker-in-Docker.
         "AM_ENABLE_DIND",
         # Enable forcing certain unit tests to fail to check that unit test
@@ -124,7 +122,7 @@ def get_env_vars() -> List[str]:
         "AM_REPO_CONFIG_PATH",
         "GH_ACTION_ACCESS_TOKEN",
         # Whether we are running inside GH Actions.
-        "CI",
+        "CSFY_CI",
         # TODO(gp): Difference between amp and cmamp.
         # CK AWS credentials.
         "CK_AWS_ACCESS_KEY_ID",
