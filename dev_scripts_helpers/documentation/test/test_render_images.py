@@ -18,9 +18,9 @@ class Test_get_rendered_file_paths(hunitest.TestCase):
         Check generation of file paths for rendering images.
         """
         out_file = "/a/b/c/d/e.md"
-        graphics_idx = 8
+        image_idx = 8
         dst_ext = "png"
-        paths = dshdreim._get_rendered_file_paths(out_file, graphics_idx, dst_ext)
+        paths = dshdreim._get_rendered_file_paths(out_file, image_idx, dst_ext)
         self.check_string("\n".join(paths))
 
 
@@ -33,9 +33,9 @@ class Test_get_render_command(hunitest.TestCase):
         abs_img_dir_path = "/d/e/f"
         rel_img_path = "figs/e.8.png"
         dst_ext = "png"
-        graphics_type = "plantuml"
+        image_type = "plantuml"
         cmd = dshdreim._get_render_command(
-            code_file_path, abs_img_dir_path, rel_img_path, dst_ext, graphics_type
+            code_file_path, abs_img_dir_path, rel_img_path, dst_ext, image_type
         )
         self.check_string(cmd)
 
@@ -47,14 +47,14 @@ class Test_get_render_command(hunitest.TestCase):
         abs_img_dir_path = "/d/e/f"
         rel_img_path = "figs/e.8.png"
         dst_ext = "bmp"
-        graphics_type = "plantuml"
+        image_type = "plantuml"
         with self.assertRaises(AssertionError) as cm:
             dshdreim._get_render_command(
                 code_file_path,
                 abs_img_dir_path,
                 rel_img_path,
                 dst_ext,
-                graphics_type,
+                image_type,
             )
         # Check error text.
         self.assertIn("bmp", str(cm.exception))
@@ -66,10 +66,10 @@ class Test_get_render_command(hunitest.TestCase):
         code_file_path = "/a/b/c"
         abs_img_dir_path = "/d/e/f"
         rel_img_path = "figs/e.8.png"
-        graphics_type = "mermaid"
+        image_type = "mermaid"
         dst_ext = "png"
         cmd = dshdreim._get_render_command(
-            code_file_path, abs_img_dir_path, rel_img_path, dst_ext, graphics_type
+            code_file_path, abs_img_dir_path, rel_img_path, dst_ext, image_type
         )
         self.check_string(cmd)
 
@@ -108,7 +108,7 @@ class Test_render_images(hunitest.TestCase):
 
     def test_render_images3(self) -> None:
         """
-        Check text without graphics code in a Markdown file.
+        Check text without image code in a Markdown file.
         """
         in_lines = [
             "A",
@@ -191,7 +191,7 @@ class Test_render_images(hunitest.TestCase):
 
     def test_render_images9(self) -> None:
         """
-        Check text without graphics code in a LaTeX file.
+        Check text without image code in a LaTeX file.
         """
         in_lines = [
             "A",

@@ -9,8 +9,8 @@
 
 # `render_images.py` tool
 
-- The `render_images.py` tool replaces graphics code in Markdown/LaTeX files
-  (e.g., `plantUML` or `mermaid` code for diagrams) with rendered images.
+- The `render_images.py` tool replaces image code in Markdown/LaTeX files (e.g.,
+  `plantUML` or `mermaid` code for diagrams) with rendered images.
 - Location: `dev_scripts_helpers/documentation/render_images.py`
 - Typical usage to render images in a Markdown file:
   ```bash

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Replace sections of graphics code with rendered images, commenting out the
+Replace sections of image code with rendered images, commenting out the
 original code, if needed.
 
 See `docs/work_tools/documentation_toolchain/all.render_images.explanation.md`.
@@ -57,22 +57,22 @@ def _open_html(out_file: str) -> None:
 
 
 def _get_rendered_file_paths(
-    out_file: str, graphics_idx: int, dst_ext: str
+    out_file: str, image_idx: int, dst_ext: str
 ) -> Tuple[str, str, str]:
     """
     Generate paths to files for image rendering.
 
     The name assigned to the target image is relative to the name of the original
-    file where the graphics code was extracted from and the order number of
-    that code block in the file. E.g., image rendered from the first graphics code block
+    file where the image code was extracted from and the order number of
+    that code block in the file. E.g., image rendered from the first image code block
     in a Markdown file called `readme.md` would be called `figs/readme.1.png`.
     This way if we update the image, its name does not change.
 
     :param out_file: path to the output file where the rendered image should be inserted
-    :param graphics_idx: order number of the graphics code block in the input file
+    :param image_idx: order number of the image code block in the input file
     :param dst_ext: extension of the target image file
     :return:
-        - name of the temporary file with the graphics code (e.g., `readme.1`)
+        - name of the temporary file with the image code (e.g., `readme.1`)
         - absolute path to the dir with rendered images (e.g., `/usr/docs/figs`)
         - relative path to the image to be rendered (e.g., `figs/readme.1.png`)
     """
@@ -83,18 +83,18 @@ def _get_rendered_file_paths(
     out_file_name_body = os.path.splitext(out_file_name)[0]
     # Create the name for the image file.
     # E.g., "readme.1.png".
-    img_name = f"{out_file_name_body}.{graphics_idx}.{dst_ext}"
+    img_name = f"{out_file_name_body}.{image_idx}.{dst_ext}"
     # Get the absolute path to the dir with images.
     # E.g., "/usr/docs/figs".
     abs_img_dir_path = os.path.join(out_file_dir, sub_dir)
     # Get the relative path to the image.
     # E.g., "figs/readme.1.png".
     rel_img_path = os.path.join(sub_dir, img_name)
-    # Get the name for a temporary file with the graphics code.
+    # Get the name for a temporary file with the image code.
     # The extension is omitted to support different requirements
     # of plantUML and mermaid rendering commands.
     # E.g., "readme.1".
-    code_file_name = f"{out_file_name_body}.{graphics_idx}"
+    code_file_name = f"{out_file_name_body}.{image_idx}"
     return (code_file_name, abs_img_dir_path, rel_img_path)
 
 
@@ -103,74 +103,73 @@ def _get_render_command(
     abs_img_dir_path: str,
     rel_img_path: str,
     dst_ext: str,
-    graphics_type: str,
+    image_type: str,
 ) -> str:
     """
     Create the command for rendering the image.
 
-    :param code_file_path: path to the file with the graphics code
+    :param code_file_path: path to the file with the image code
     :param abs_img_dir_path: absolute path to a dir where the image will
         be saved
     :param rel_img_path: relative path to the image to be rendered
     :param dst_ext: extension of the rendered image, e.g., "svg", "png"
-    :param graphics_type: type of the graphics according to the language
-        of the original code, e.g., "plantuml", "mermaid"
+    :param image_type: type of the image according to the language of
+        the original code, e.g., "plantuml", "mermaid"
     :return: rendering command
     """
     # Verify that the image file extension is valid.
     valid_extensions = ["svg", "png"]
     hdbg.dassert_in(dst_ext, valid_extensions)
     # Create the command.
-    if graphics_type == "plantuml":
+    if image_type == "plantuml":
         cmd = f"plantuml -t{dst_ext} -o {abs_img_dir_path} {code_file_path}.puml"
-    elif graphics_type == "mermaid":
+    elif image_type == "mermaid":
         cmd = f"mmdc -i {code_file_path}.mmd -o {rel_img_path}"
     else:
         raise ValueError(
-            f"Invalid type of graphics: {graphics_type}; should be one of 'plantuml', 'mermaid'"
+            f"Invalid type: {image_type}; should be one of 'plantuml', 'mermaid'"
         )
     return cmd
 
 
 def _render_code(
-    graphics_code: str,
-    graphics_idx: int,
-    graphics_type: str,
+    image_code: str,
+    image_idx: int,
+    image_type: str,
     out_file: str,
     dst_ext: str,
     dry_run: bool,
 ) -> str:
     """
-    Render the graphics code into an image file.
+    Render the image code into an image file.
 
-    :param graphics_code: the code of the graphics
-    :param graphics_idx: order number of the graphics code block in the
-        file
-    :param graphics_type: type of the graphics according to the language
-        of the original code, e.g., "plantuml", "mermaid"
+    :param image_code: the code of the image
+    :param image_idx: order number of the image code block in the file
+    :param image_type: type of the image according to the language of
+        the original code, e.g., "plantuml", "mermaid"
     :param out_file: path to the output file where the image will be
         inserted
     :param dst_ext: extension of the rendered image, e.g., "svg", "png"
     :param dry_run: if True, the rendering command is not executed
     :return: path to the rendered image
     """
-    if graphics_type == "plantuml":
+    if image_type == "plantuml":
         # Ensure the plantUML code is in the correct format to render.
-        if not graphics_code.startswith("@startuml"):
-            graphics_code = f"@startuml\n{graphics_code}"
-        if not graphics_code.endswith("@enduml"):
-            graphics_code = f"{graphics_code}\n@enduml"
+        if not image_code.startswith("@startuml"):
+            image_code = f"@startuml\n{image_code}"
+        if not image_code.endswith("@enduml"):
+            image_code = f"{image_code}\n@enduml"
     # Get paths for rendered files.
     hio.create_enclosing_dir(out_file, incremental=True)
     code_file_name, abs_img_dir_path, rel_img_path = _get_rendered_file_paths(
-        out_file, graphics_idx, dst_ext
+        out_file, image_idx, dst_ext
     )
-    # Save the graphics code to a temporary file.
+    # Save the image code to a temporary file.
     code_file_path = os.path.join(tempfile.gettempdir(), code_file_name)
-    hio.to_file(code_file_path, graphics_code)
+    hio.to_file(code_file_path, image_code)
     # Run the rendering.
     cmd = _get_render_command(
-        code_file_path, abs_img_dir_path, rel_img_path, dst_ext, graphics_type
+        code_file_path, abs_img_dir_path, rel_img_path, dst_ext, image_type
     )
     _LOG.info("Creating the image from %s source.", code_file_path)
     _LOG.info("Saving image to %s.", abs_img_dir_path)
@@ -183,10 +182,10 @@ def _render_images(
     in_lines: List[str], out_file: str, dst_ext: str, dry_run: bool
 ) -> List[str]:
     """
-    Insert rendered images instead of graphics code blocks.
+    Insert rendered images instead of image code blocks.
 
-    - The graphics code is commented out.
-    - New code is added after the graphics code block to insert
+    - The image code is commented out.
+    - New code is added after the image code block to insert
       the rendered image.
 
     :param in_lines: lines of the input file
@@ -198,10 +197,10 @@ def _render_images(
     """
     # Store the output.
     out_lines: List[str] = []
-    # Store the graphics code found in the file.
-    graphics_lines: List[str] = []
-    # Store the order number of the current graphics code block.
-    graphics_idx = 0
+    # Store the image code found in the file.
+    image_lines: List[str] = []
+    # Store the order number of the current image code block.
+    image_idx = 0
     # Store the state of the parser.
     state = "searching"
     # Define the character that comments out a line depending on the file type.
@@ -221,27 +220,27 @@ def _render_images(
         # ```
         # Or the same with "mermaid" instead of "plantuml".
         if line.strip() in ["```plantuml", "```mermaid"]:
-            # Found the beginning of a graphics code block.
+            # Found the beginning of a image code block.
             hdbg.dassert_eq(state, "searching")
-            graphics_lines = []
-            graphics_idx += 1
-            state = "found_graphics_code"
-            graphics_type = line.strip(" `")
+            image_lines = []
+            image_idx += 1
+            state = "found_image_code"
+            image_type = line.strip(" `")
             _LOG.debug(" -> state=%s", state)
-            # Comment out the beginning of the graphics code.
+            # Comment out the beginning of the image code.
             out_lines.append(f"{comment_sign} {line}")
-        elif line.strip() == "```" and state == "found_graphics_code":
-            # Found the end of a graphics code block.
+        elif line.strip() == "```" and state == "found_image_code":
+            # Found the end of a image code block.
             # Render the image.
             rel_img_path = _render_code(
-                graphics_code="\n".join(graphics_lines),
-                graphics_idx=graphics_idx,
-                graphics_type=graphics_type,
+                image_code="\n".join(image_lines),
+                image_idx=image_idx,
+                image_type=image_type,
                 out_file=out_file,
                 dst_ext=dst_ext,
                 dry_run=dry_run,
             )
-            # Comment out the end of the graphics code.
+            # Comment out the end of the image code.
             out_lines.append(f"{comment_sign} {line}")
             # Add the code that inserts the image in the file.
             if out_file.endswith(".md"):
@@ -258,13 +257,13 @@ def _render_images(
                 raise ValueError(
                     f"Unsupported file type: {out_file}; should be Markdown (.md) or LaTeX (.tex)"
                 )
-            # Set the parser to search for a new graphics code block.
+            # Set the parser to search for a new image code block.
             state = "searching"
             _LOG.debug(" -> state=%s", state)
-        elif line.strip != "```" and state == "found_graphics_code":
-            # Record the line from inside the graphics code block.
-            graphics_lines.append(line)
-            # Comment out the inside of the graphics code.
+        elif line.strip != "```" and state == "found_image_code":
+            # Record the line from inside the image code block.
+            image_lines.append(line)
+            # Comment out the inside of the image code.
             out_lines.append(f"{comment_sign} {line}")
         else:
             # Keep a regular line.
