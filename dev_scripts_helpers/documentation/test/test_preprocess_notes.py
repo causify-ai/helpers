@@ -48,12 +48,7 @@ class Test_preprocess_notes1(hunitest.TestCase):
     - checked in files.
     """
 
-    @pytest.mark.skip
     def test1(self) -> None:
-        self._helper()
-
-    @pytest.mark.skip
-    def test2(self) -> None:
         self._helper()
 
     def _helper(self) -> None:
