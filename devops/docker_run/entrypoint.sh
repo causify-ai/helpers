@@ -2,7 +2,7 @@
 
 set -e
 
-echo "CK_IS_SUPER_REPO=$CK_IS_SUPER_REPO"
+echo "CSFY_IS_SUPER_REPO=$CSFY_IS_SUPER_REPO"
 
 FILE_NAME="devops/docker_run/entrypoint.sh"
 echo "##> $FILE_NAME"
@@ -12,10 +12,10 @@ echo "GID="$(id -g)
 
 # - Source `utils.sh`.
 # NOTE: we can't use $0 to find the path since we are sourcing this file.
-echo "CK_GIT_ROOT_PATH=$CK_GIT_ROOT_PATH"
-echo "CK_HELPERS_ROOT_PATH=$CK_HELPERS_ROOT_PATH"
+echo "CSFY_GIT_ROOT_PATH=$CSFY_GIT_ROOT_PATH"
+echo "CSFY_HELPERS_ROOT_PATH=$CSFY_HELPERS_ROOT_PATH"
 
-SOURCE_PATH="${CK_HELPERS_ROOT_PATH}/dev_scripts_helpers/thin_client/thin_client_utils.sh"
+SOURCE_PATH="${CSFY_HELPERS_ROOT_PATH}/dev_scripts_helpers/thin_client/thin_client_utils.sh"
 echo "> source $SOURCE_PATH ..."
 if [[ ! -f $SOURCE_PATH ]]; then
     echo -e "ERROR: Can't find $SOURCE_PATH"

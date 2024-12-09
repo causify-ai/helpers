@@ -85,9 +85,10 @@ dassert_is_git_root() {
 
 dassert_var_defined() {
     local var_name="$1"
-    if [[ -n $var_name ]]; then
-        echo -e "${ERROR}: Var '${var_name}' is not defined and non-empty."
-        kill -INT $$
+    # Use indirect expansion to check the value of the variable.
+    if [[ -z "${!var_name}" ]]; then
+        echo -e "${ERROR}: Var '${var_name}' is not defined or is empty."
+        exit 1
     fi;
 }
 

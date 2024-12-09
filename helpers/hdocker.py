@@ -262,8 +262,8 @@ def build_container(
 
 
 def get_host_git_root() -> str:
-    hdbg.dassert_in("CK_GIT_ROOT_PATH", os.environ)
-    host_git_root_path = os.environ["CK_GIT_ROOT_PATH"]
+    hdbg.dassert_in("CSFY_GIT_ROOT_PATH", os.environ)
+    host_git_root_path = os.environ["CSFY_GIT_ROOT_PATH"]
     return host_git_root_path
 
 

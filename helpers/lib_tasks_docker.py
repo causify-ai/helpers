@@ -529,9 +529,9 @@ def _generate_docker_compose_file(
     am_host_user_name = getpass.getuser()
     # The mounting path in the container is `/app`.
     # So we need to use that as starting point.
-    # e.g. For CK_GIT_ROOT_PATH,
+    # e.g. For CSFY_GIT_ROOT_PATH,
     #   rather than `/data/heanhs/src/cmamp1`, we need to use `/app`.
-    # e.g. For CK_HELPERS_ROOT_PATH,
+    # e.g. For CSFY_HELPERS_ROOT_PATH,
     #   rather than `/data/heanhs/src/cmamp1/helpers_root`, we need to
     #   use `/app/helpers_root`.
     # Find git root path.
@@ -567,9 +567,9 @@ def _generate_docker_compose_file(
             "CK_AWS_S3_BUCKET=$CK_AWS_S3_BUCKET",
             "CK_AWS_SECRET_ACCESS_KEY=$CK_AWS_SECRET_ACCESS_KEY",
             "CK_ECR_BASE_PATH=$CK_ECR_BASE_PATH",
-            f"CK_GIT_ROOT_PATH={git_root_path}",
-            f"CK_HELPERS_ROOT_PATH={helper_root_path}",
-            f"CK_IS_SUPER_REPO={is_super_repo}",
+            f"CSFY_GIT_ROOT_PATH={git_root_path}",
+            f"CSFY_HELPERS_ROOT_PATH={helper_root_path}",
+            f"CSFY_IS_SUPER_REPO={is_super_repo}",
             "OPENAI_API_KEY=$OPENAI_API_KEY",
             # - CK_ENABLE_DIND=
             # - CK_FORCE_TEST_FAIL=$CK_FORCE_TEST_FAIL
@@ -639,24 +639,18 @@ def _generate_docker_compose_file(
     app_spec = {
         "extends": "base_app",
     }
-    # TODO(gp): It seems that mount_as_submodule is not needed anymore, since
-    # we use the absolute path of the dir, instead of a relative one.
-    # if mount_as_submodule:
-    #     # Move one dir up to include the entire git repo (see AmpTask1017).
-    #     app_spec["volumes"] = ["../../../:/app"]
-    #     # Move one dir down to include the entire git repo (see AmpTask1017).
-    #     app_spec["working_dir"] = "/app/amp"
-    # else:
-    # Mount `amp` when it is used as supermodule.
-    # app_spec["volumes"] = ["../../:/app"]
-    if True:
-        curr_dir = os.getcwd()
-        rel_dir1 = os.path.relpath(curr_dir, git_dir)
-        rel_dir2 = os.path.relpath(git_dir, curr_dir)
-        app_dir = os.path.abspath(os.path.join(curr_dir, rel_dir2))
-        working_dir = os.path.normpath(os.path.join("/app", rel_dir1))
-        app_spec["volumes"] = [f"{app_dir}:/app"]
-        app_spec["working_dir"] = working_dir
+    # Use absolute path of the dir to mount the volume and set working dir.
+    # The `app_dir` dir points to the root of the repo.
+    # The `working_dir` points to the path of the runnable dir.
+    # - If the runnable dir is the root of the repo, then `working_dir` is `/app`.
+    # - If the runnable dir is a subdirectory of the repo, then `working_dir` is `/app/subdir`.
+    curr_dir = os.getcwd()
+    rel_dir1 = os.path.relpath(curr_dir, git_dir)
+    rel_dir2 = os.path.relpath(git_dir, curr_dir)
+    app_dir = os.path.abspath(os.path.join(curr_dir, rel_dir2))
+    working_dir = os.path.normpath(os.path.join("/app", rel_dir1))
+    app_spec["volumes"] = [f"{app_dir}:/app"]
+    app_spec["working_dir"] = working_dir
     # Configure `linter` service.
     linter_spec = _get_linter_service(stage)
     # Configure `jupyter_server` service.
