@@ -21,8 +21,6 @@ _LOG = logging.getLogger(__name__)
 # hdbg.set_logger_verbosity(logging.DEBUG)
 
 _LOG.debug = _LOG.info
-
-# Constants
 _MODEL = "gpt-4o-mini"
 _TEMPERATURE = 0.1
 
