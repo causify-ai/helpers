@@ -67,7 +67,8 @@ We would like to use the same plots for both Latex and Markdown documents
 
 We can use pandoc
 
-TODO(gp): Consider extending ./dev_scripts/documentation/render_md.py to render
-also complex Latex, tikz
+TODO(gp): Consider extending
+./dev_scripts_helpers/documentation/render_images.py to render also complex
+Latex, tikz
 
 https://tex.stackexchange.com/questions/586285/pandoc-markdown-drawing-circuit-diagrams-using-circuitikz
