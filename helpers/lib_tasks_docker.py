@@ -566,7 +566,7 @@ def _generate_docker_compose_file(
             # This env var is used by GH Action to signal that we are inside the CI.
             # It's set up by default by the GH Action runner. See:
             # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/store-information-in-variables#default-environment-variables
-            "CSFY_CI=$CI",
+            "CSFY_CI=$CSFY_CI",
         ],
         "image": "${IMAGE}",
         "restart": "no",
