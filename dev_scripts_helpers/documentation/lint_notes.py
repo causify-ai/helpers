@@ -120,11 +120,7 @@ def prettier(
         force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
         hdocker.run_dockerized_prettier(
-            cmd_opts,
-            in_file_path,
-            out_file_path,
-            force_rebuild,
-            use_sudo,
+            in_file_path, out_file_path, cmd_opts, force_rebuild, use_sudo
         )
     else:
         # Run `prettier` installed on the host directly.
@@ -151,7 +147,7 @@ def prettier_on_str(
     **kwargs: Any,
 ) -> str:
     """
-    Wrapper around `prettier()` to work on strings.
+    Wrap `prettier()` to work on strings.
     """
     _LOG.debug("txt=\n%s", txt)
     # Save string as input.
@@ -279,10 +275,7 @@ def _refresh_toc(txt: str) -> str:
     force_rebuild = False
     use_sudo = hdocker.get_use_sudo()
     hdocker.run_dockerized_markdown_toc(
-        cmd_opts,
-        tmp_file_name,
-        force_rebuild,
-        use_sudo,
+        tmp_file_name, force_rebuild, cmd_opts, use_sudo
     )
     # Read file.
     txt = hio.from_file(tmp_file_name)

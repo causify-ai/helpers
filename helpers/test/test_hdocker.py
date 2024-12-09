@@ -1,7 +1,7 @@
 import logging
 import os
 import unittest.mock as umock
-from typing import Any, List
+from typing import Any, List, Tuple
 
 import pytest
 
@@ -79,24 +79,62 @@ class Test_replace_shared_root_path1(hunitest.TestCase):
 # Test_convert_file_names_to_docker1
 # #############################################################################
 
-# class Test_convert_file_names_to_docker1(hunitest.TestCase):
-#     def test1(self):
-#         dir_name = self.get_input_dir()
-#         # Prepare inputs.
-#         in_file_path = os.path.join(dir_name, "input.md")
-#         hio.to_file(in_file_path, "empty")
-#         out_file_path = os.path.join(dir_name, "output.md")
-#         # Call tested function.
-#         act_in_file_path, act_out_file_path, act_mount = hdocker.convert_file_names_to_docker(in_file_path, out_file_path)
-#         # Check output.
-#         exp_in_file_path = r"""helpers/test/outcomes/Test_convert_file_names_to_docker1.test1/input/input.md"""
-#         exp_out_file_path = r"src/helpers1/test2.md"
-#         exp_mount = r"""
-#         type=bind,source=/Users/saggese/src/helpers1,target=/src
-#         """
-#         self.assert_equal(act_in_file_path, exp_in_file_path, dedent=True)
-#         self.assert_equal(act_out_file_path, exp_out_file_path, dedent=True)
-#         self.assert_equal(act_mount, exp_mount, dedent=True)
+
+class Test_convert_to_docker_path1(hunitest.TestCase):
+    @staticmethod
+    def prepare_and_convert_path(
+        in_file_path: str, check_if_exists: bool
+    ) -> Tuple[str, str]:
+        is_caller_host = True
+        use_sibling_container_for_callee = True
+        (
+            source_host_path,
+            callee_mount_path,
+            mount,
+        ) = hdocker.get_docker_mount_info(
+            is_caller_host, use_sibling_container_for_callee
+        )
+        docker_file_path = hdocker.convert_caller_to_callee_docker_path(
+            in_file_path,
+            source_host_path,
+            callee_mount_path,
+            check_if_exists=check_if_exists,
+            is_input=True,
+            is_caller_host=is_caller_host,
+            use_sibling_container_for_callee=use_sibling_container_for_callee,
+        )
+        return docker_file_path, mount
+
+    def test1(self) -> None:
+        # Prepare inputs.
+        in_file_path = "tmp.llm_transform.in.txt"
+        # Call tested function.
+        docker_file_path, mount = self.prepare_and_convert_path(
+            in_file_path, check_if_exists=False
+        )
+        # Check.
+        exp_docker_file_path = "/app/tmp.llm_transform.in.txt"
+        self.assert_equal(docker_file_path, exp_docker_file_path)
+        exp_mount = "type=bind,source=/app,target=/app"
+        self.assert_equal(mount, exp_mount)
+
+    def test2(self) -> None:
+        # Prepare inputs.
+        dir_name = self.get_input_dir()
+        # E.g., in_file_path='/app/helpers/test/outcomes/Test_convert_to_docker_path1.test2/input/input.md'
+        in_file_path = os.path.join(dir_name, "input.md")
+        hio.to_file(in_file_path, "empty")
+        _LOG.debug(hprint.to_str("in_file_path"))
+        # Call tested function.
+        docker_file_path, mount = self.prepare_and_convert_path(
+            in_file_path, check_if_exists=True
+        )
+        # Check.
+        exp_docker_file_path = r"/app/helpers/test/outcomes/Test_convert_to_docker_path1.test2/input/input.md"
+        self.assert_equal(docker_file_path, exp_docker_file_path)
+        exp_mount = "type=bind,source=/app,target=/app"
+        self.assert_equal(mount, exp_mount)
+
 
 # #############################################################################
 # Test_run_dockerized_prettier1
@@ -130,7 +168,7 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
           - B
             - C
         """
-        self._helper(txt, exp)
+        self.run_prettier(txt, exp)
 
     def test2(self) -> None:
         txt = r"""
@@ -145,9 +183,9 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
         1. choose the right tasks
            - avoid non-essential tasks
         """
-        self._helper(txt, exp)
+        self.run_prettier(txt, exp)
 
-    def _helper(self, txt: str, exp: str) -> None:
+    def run_prettier(self, txt: str, exp: str) -> None:
         """
         Test running the `prettier` command in a Docker container.
 
@@ -166,17 +204,116 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
         force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
         hdocker.run_dockerized_prettier(
-            cmd_opts,
-            in_file_path,
-            out_file_path,
-            force_rebuild,
-            use_sudo,
+            in_file_path, out_file_path, cmd_opts, force_rebuild, use_sudo
         )
         # Check.
         act = hio.from_file(out_file_path)
         self.assert_equal(
             act, exp, dedent=True, remove_lead_trail_empty_lines=True
         )
+
+
+# #############################################################################
+# Test_parse_pandoc_arguments1
+# #############################################################################
+
+
+class Test_parse_pandoc_arguments1(hunitest.TestCase):
+    def test1(self) -> None:
+        # Prepare inputs.
+        cmd = r"""
+        pandoc input.md -o output.pdf --data-dir /data --toc --toc-depth 2
+        """
+        cmd = hprint.dedent(cmd, remove_lead_trail_empty_lines_=True)
+        # Call tested function.
+        act = hdocker.convert_pandoc_cmd_to_arguments(cmd)
+        # Check output.
+        exp = {
+            "input": "input.md",
+            "output": "output.pdf",
+            "in_dir_params": {
+                "data-dir": "/data",
+                "template": None,
+                "extract-media": None,
+            },
+            "cmd_opts": ["--toc", "--toc-depth", "2"],
+        }
+        self.assert_equal(str(act), str(exp))
+
+    def test2(self) -> None:
+        # Prepare inputs.
+        cmd = r"""
+        pandoc input.md -o output.pdf --toc
+        """
+        cmd = hprint.dedent(cmd, remove_lead_trail_empty_lines_=True)
+        # Call tested function.
+        act = hdocker.convert_pandoc_cmd_to_arguments(cmd)
+        # Check output.
+        exp = {
+            "input": "input.md",
+            "output": "output.pdf",
+            "in_dir_params": {
+                "data-dir": None,
+                "template": None,
+                "extract-media": None,
+            },
+            "cmd_opts": ["--toc"],
+        }
+        self.assert_equal(str(act), str(exp))
+
+    def test3(self) -> None:
+        # Prepare inputs.
+        cmd = r"""
+        pandoc test/outcomes/tmp.pandoc.preprocess_notes.txt \
+            -V geometry:margin=1in -f markdown --number-sections \
+            --highlight-style=tango -s -t latex \
+            --template documentation/pandoc.latex \
+            -o test/outcomes/tmp.pandoc.tex \
+            --toc --toc-depth 2
+        """
+        cmd = hprint.dedent(cmd, remove_lead_trail_empty_lines_=True)
+        # Call tested function.
+        act = hdocker.convert_pandoc_cmd_to_arguments(cmd)
+        # Check output.
+        exp = {
+            "input": "test/outcomes/tmp.pandoc.preprocess_notes.txt",
+            "output": "test/outcomes/tmp.pandoc.tex",
+            "in_dir_params": {
+                "data-dir": None,
+                "template": "documentation/pandoc.latex",
+                "extract-media": None,
+            },
+            "cmd_opts": [
+                "-V",
+                "geometry:margin=1in",
+                "-f",
+                "markdown",
+                "--number-sections",
+                "--highlight-style=tango",
+                "-s",
+                "-t",
+                "latex",
+                "--toc",
+                "--toc-depth",
+                "2",
+            ],
+        }
+        self.assert_equal(str(act), str(exp))
+
+    def test_parse_and_convert1(self) -> None:
+        # Prepare inputs.
+        cmd = r"""
+        pandoc input.md --output output.pdf --data-dir /data --toc --toc-depth 2
+        """
+        cmd = hprint.dedent(cmd, remove_lead_trail_empty_lines_=True)
+        # Parse the command.
+        parsed_args = hdocker.convert_pandoc_cmd_to_arguments(cmd)
+        # Convert back to command.
+        converted_cmd = hdocker.convert_pandoc_arguments_to_cmd(parsed_args)
+        # Check that the converted command matches the original command.
+        act = "pandoc " + converted_cmd
+        exp = cmd
+        self.assert_equal(act, exp)
 
 
 # #############################################################################
@@ -219,9 +356,9 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
         -   Hello
             -   World
         """
-        self._helper(txt, exp)
+        self.run_pandoc(txt, exp)
 
-    def _helper(self, txt: str, exp: str) -> None:
+    def run_pandoc(self, txt: str, exp: str) -> None:
         """
         Test running the `pandoc` command in a Docker container.
 
@@ -229,21 +366,17 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
         container with specified command options, and checks if the
         output matches the expected result.
         """
-        cmd_opts: List[str] = []
-        # Generate the table of contents.
-        cmd_opts.append("-s --toc")
+        cmd_opts = ["pandoc"]
         # Run `pandoc` in a Docker container.
         in_file_path = _create_test_file(self, txt, extension="md")
+        cmd_opts.append(f"{in_file_path}")
         out_file_path = os.path.join(self.get_scratch_space(), "output.md")
-        data_dir = None
+        cmd_opts.append(f"-o {out_file_path}")
+        # Generate the table of contents.
+        cmd_opts.append("-s --toc")
+        cmd = " ".join(cmd_opts)
         use_sudo = hdocker.get_use_sudo()
-        hdocker.run_dockerized_pandoc(
-            cmd_opts,
-            in_file_path,
-            out_file_path,
-            data_dir,
-            use_sudo,
-        )
+        hdocker.run_dockerized_pandoc(cmd, use_sudo=use_sudo)
         # Check.
         act = hio.from_file(out_file_path)
         self.assert_equal(
@@ -294,9 +427,9 @@ class Test_run_markdown_toc1(hunitest.TestCase):
         -  Hello
             - World
         """
-        self._helper(txt, exp)
+        self.run_markdown_toc(txt, exp)
 
-    def _helper(self, txt: str, exp: str) -> None:
+    def run_markdown_toc(self, txt: str, exp: str) -> None:
         """
         Test running the `markdown-toc` command in a Docker container.
         """
@@ -306,10 +439,7 @@ class Test_run_markdown_toc1(hunitest.TestCase):
         force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
         hdocker.run_dockerized_markdown_toc(
-            cmd_opts,
-            in_file_path,
-            force_rebuild,
-            use_sudo,
+            in_file_path, force_rebuild, cmd_opts, use_sudo
         )
         # Check.
         act = hio.from_file(in_file_path)

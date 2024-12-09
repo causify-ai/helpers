@@ -31,6 +31,7 @@ if False:
     import sys
 
     sys.path.insert(0, "/Users/saggese/src/notes1/helpers_root")
+# pylint: disable=wrong-import-position
 import dev_scripts_helpers.documentation.lint_notes as dshdlino
 import dev_scripts_helpers.llms.llm_prompts_utils as dshllprut
 import helpers.hdbg as hdbg
@@ -81,9 +82,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     if args.debug:
         cmd_line_opts.append("-d")
     hdocker.run_dockerized_llm_transform(
-        cmd_line_opts,
         tmp_in_file_name,
         tmp_out_file_name,
+        cmd_line_opts,
         args.dockerized_force_rebuild,
         args.dockerized_use_sudo,
     )

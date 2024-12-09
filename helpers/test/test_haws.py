@@ -26,7 +26,7 @@ class Haws_test_case(hunitest.TestCase):
 
 class Test_get_session(Haws_test_case):
     @pytest.fixture(autouse=True)
-    def set_up_test(self, aws_credentials):
+    def set_up_test(self) -> None:
         os.environ["MOCK_AWS_S3_BUCKET"] = "mock_aws_bucket"
 
     def mock_session(self, region: Optional[str] = None) -> None:
@@ -196,15 +196,15 @@ class Test_get_ecs_client(Haws_test_case):
     @mock_aws
     def test1(self) -> None:
         """
-        Test that `haws.get_ecs_client()` correctly return a client to work 
+        Test that `haws.get_ecs_client()` correctly return a client to work
         with ECS within a specified region.
         """
         self.mock_aws_client(region="us-east-1")
-        
+
     @mock_aws
     def test2(self) -> None:
         """
-        Test that `haws.get_ecs_client()` correctly return a client to work 
+        Test that `haws.get_ecs_client()` correctly return a client to work
         with ECS without a specified region.
         """
         self.mock_aws_client()

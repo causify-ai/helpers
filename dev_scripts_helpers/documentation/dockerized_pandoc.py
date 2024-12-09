@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 """
-This script is designed to run `pandoc` inside a Docker container to ensure
-consistent formatting across different environments.
+Run `pandoc` inside a Docker container to ensure consistent formatting across
+different environments.
 
-It builds the container dynamically if necessary.
+This script builds the container dynamically if necessary.
 
-pandoc tmp.pandoc.no_spaces.txt \
+> pandoc tmp.pandoc.no_spaces.txt \
     -t beamer --slide-level 4 -V theme:SimplePlus \
     --include-in-header=latex_abbrevs.sty \
     --toc --toc-depth 2 \
@@ -33,7 +33,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument("--input", action="store")
     parser.add_argument("--output", action="store", default="")
     parser.add_argument("--data_dir", action="store")
-    #parser.add_argument("--include_in_header", action="store")
+    # parser.add_argument("--include_in_header", action="store")
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -49,10 +49,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.debug("cmd_opts: %s", cmd_opts)
     if not args.output:
         args.output = args.input
+    cmd = "pandoc {args.input} -o {args.output} {cmd_opts}"
     hdocker.run_dockerized_pandoc(
-        cmd_opts,
-        args.input,
-        args.output,
+        cmd,
         args.dockerized_force_rebuild,
         args.dockerized_use_sudo,
     )

@@ -1,28 +1,25 @@
 #!/usr/bin/env python
 """
-This script is designed to run `prettier` inside a Docker container to ensure
-consistent formatting across different environments.
+Run `prettier` inside a Docker container to ensure consistent formatting across
+different environments.
 
-It builds the container dynamically if necessary and formats the specified file
-using the provided `prettier` options.
-
-To use this script, you need to provide the `prettier` command options and the
-file to format. You can also specify whether to use `sudo` for Docker commands.
+This script builds the container dynamically if necessary and formats the
+specified file using the provided `prettier` options.
 
 Examples
-# Basic Usage
+# Basic usage:
 > dockerized_prettier.py --parser markdown --prose-wrap always --write \
     --tab-width 2 test.md
 
-# Use Sudo for Docker Commands
+# Use sudo for Docker commands:
 > dockerized_prettier.py --use_sudo --parser markdown --prose-wrap always \
     --write --tab-width 2 test.md
 
-# Set Logging Verbosity
+# Set logging verbosity:
 > dockerized_prettier.py -v DEBUG --parser markdown --prose-wrap always \
     --write --tab-width 2 test.md </pre>
 
-# Process a file
+# Process a file:
 > cat test.md
 - a
   - b
@@ -67,9 +64,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     if not args.output:
         args.output = args.input
     hdocker.run_dockerized_prettier(
-        cmd_opts,
         args.input,
         args.output,
+        cmd_opts,
         args.dockerized_force_rebuild,
         args.dockerized_use_sudo,
     )
