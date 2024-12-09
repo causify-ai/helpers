@@ -19,6 +19,10 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
+env:
+  CSFY_CI: true
+
 jobs:
   run_fast_tests:
     runs-on: ubuntu-latest
@@ -28,9 +32,6 @@ jobs:
       # pulling the image from ECR, enable this.
       # Pass AWS credentials via GH secrets. This is needed to pull the Docker image
       # that will be used to run the action.
-      - name: Set CSFY_CI variable
-        run: export CSFY_CI=true
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
