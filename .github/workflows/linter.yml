@@ -6,6 +6,8 @@ on:
       - master
   workflow_dispatch:
 
+env:
+  CSFY_CI: true
 jobs:
 
   Run_linter:

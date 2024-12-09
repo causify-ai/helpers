@@ -6,6 +6,8 @@ on:
     # Run this everyday even if there are no commits.
     - cron:  '0 0 * * *'
 
+env:
+  CSFY_CI: true
 jobs:
   run_superslow_tests:
     runs-on: ubuntu-latest

@@ -3,7 +3,7 @@ platform linux -- Python 3.8.10, pytest-6.2.5, py-1.11.0, pluggy-1.0.0 -- /venv/
 cachedir: .pytest_cache
 rootdir: /app, configfile: pytest.ini
 plugins: flaky-3.7.0, timeout-2.0.2, rerunfailures-10.2, cov-3.0.0, instafail-0.4.2, xdist-2.5.0, forked-1.4.0
-collecting ... >>ENV<<: is_inside_container=True: code_version=1.0.6, container_version=1.0.6, is_inside_docker=True, is_inside_ci=False, CI_defined=True, CI=''
+collecting ... >>ENV<<: is_inside_container=True: code_version=1.0.6, container_version=1.0.6, is_inside_docker=True, is_inside_ci=False, CI_defined=True, CSFY_CI=''
 >>ENV<<: AM_S3_BUCKET=True AWS_ACCESS_KEY_ID=False AWS_DEFAULT_REGION=False AWS_SECRET_ACCESS_KEY=False GH_ACTION_ACCESS_TOKEN=True
 # Git
     branch_name='CmTask695_Unify_pytest_outputs_for_run_fast_slow_tests'

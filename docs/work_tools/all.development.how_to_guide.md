@@ -196,13 +196,12 @@
 
   ```bash
   > more ~/.aws/credentials
-  [am]
+  [ck]
   aws_access_key_id=**
   aws_secret_access_key=**
-  aws_s3_bucket=alphamatic-data
 
-  > printenv | grep AM_
-  AM_AWS_PROFILE=am
+  > printenv | grep CK_
+  CK_AWS_PROFILE=ck
   ```
 
 - If you don't have them, you need to re-run `source dev_scripts/setenv.sh` in
