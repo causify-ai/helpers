@@ -19,6 +19,8 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+env:
+  CSFY_CI: true
 jobs:
   run_fast_tests:
     runs-on: ubuntu-latest

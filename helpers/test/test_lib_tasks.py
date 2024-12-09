@@ -4,7 +4,7 @@
 import logging
 import os
 import re
-from typing import Dict
+from typing import Dict, Generator
 
 import invoke
 import pytest
@@ -42,7 +42,7 @@ class _LibTasksTestCase(hunitest.TestCase):
 
     # This will be run before and after each test.
     @pytest.fixture(autouse=True)
-    def setup_teardown_test(self):
+    def setup_teardown_test(self) -> Generator:
         # Run before each test.
         self.set_up_test()
         yield
@@ -327,7 +327,7 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
         target = "gh_issue_title(ctx, 1)"
         self._check_output(target)
 
-    # TODO(Shaopengz):Outside CK infra, the test hangs, so skip.
+    # TODO(Shaopengz): Outside CK infra, the test hangs, so skip.
     @pytest.mark.requires_ck_infra
     @pytest.mark.skipif(not hgit.is_amp(), reason="Only run in amp")
     def test_gh_workflow_list(self) -> None:

@@ -18,7 +18,7 @@ services:
       - CK_TELEGRAM_TOKEN=$CK_TELEGRAM_TOKEN
       - GH_ACTION_ACCESS_TOKEN=$GH_ACTION_ACCESS_TOKEN
       - GH_TOKEN=$GH_ACTION_ACCESS_TOKEN
-      - CI=$CI
+      - CSFY_CI=$CSFY_CI
     image: ${IMAGE}
     restart: 'no'
     volumes:
