@@ -185,7 +185,7 @@ set_path() {
     local dev_script_dir=$1
     dassert_dir_exists $dev_script_dir
     export PATH=$(pwd):$PATH
-    export PATH=$CK_GIT_ROOT_PATH:$PATH
+    export PATH=$GIT_ROOT_PATH:$PATH
     # Add to the PATH all the first level directory under `dev_scripts`.
     export PATH_TMP="$(find $dev_script_dir -maxdepth 1 -type d -not -path "$(pwd)" | tr '\n' ':' | sed 's/:$//')"
     export PATH=$PATH_TMP:$PATH
