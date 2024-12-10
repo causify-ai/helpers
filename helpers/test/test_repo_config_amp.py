@@ -259,8 +259,8 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
           AM_FORCE_TEST_FAIL=''
           AM_REPO_CONFIG_CHECK='True'
           AM_REPO_CONFIG_PATH=''
-          CSFY_CI='true'
           CK_ECR_BASE_PATH='$CK_ECR_BASE_PATH'
+          CSFY_CI='true'
         """
         # We ignore the AWS vars, since GH Actions does some replacement to mask
         # the env vars coming from secrets.
