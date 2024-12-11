@@ -46,19 +46,20 @@ def response_to_txt(response: Any) -> str:
         raise ValueError(f"Unknown response type: {type(response)}")
 
 
-def _extract(obj: Dict[str, Any], keys: List[str]) -> Dict[str, Any]:
+def _extract(
+    file: openai.types.file_object.FileObject, attributes: List[str]
+) -> Dict[str, Any]:
     """
     Extract specific keys from a dictionary.
 
-    :param obj: dictionary to extract values from
-    :param keys: list of keys to extract
+    :param file: provided file to extract specific values
+    :param attributes: list of attributes to extract
     :return: dictionary with extracted key-value pairs
     """
-    hdbg.dassert_isinstance(obj, dict)
     obj_tmp = {}
-    for key in keys:
-        hdbg.dassert_in(key, obj)
-        obj_tmp[key] = getattr(obj, key)
+    for attr in attributes:
+        if hasattr(file, attr):
+            obj_tmp[attr] = getattr(file, attr)
     return obj_tmp
 
 
@@ -228,6 +229,8 @@ def get_coding_style_assistant(
         if existing_assistant.name == "assistant_name":
             _LOG.debug("Assistant '%s' already exists.", assistant_name)
             return existing_assistant
+    # Cretae the assistant.
+    _LOG.info("Creating a new assistant: %s", assistant_name)
     assistant = client.beta.assistants.create(
         name=assistant_name,
         instructions=instructions,
@@ -236,29 +239,34 @@ def get_coding_style_assistant(
     )
     # Check if the vector store already exists.
     vector_stores = list(client.beta.vector_stores.list().data)
+    vector_store = None
     for store in vector_stores:
         if store.name == vector_store_name:
-            _LOG.debug("Assistant '%s' already exists.", assistant_name)
+            _LOG.debug(
+                "Vector store '%s' already exists. Using it", vector_store_name
+            )
             vector_store = store
             break
-    else:
+    if not vector_store:
         _LOG.debug("Creating vector store ...")
         # Create a vector store.
         vector_store = client.beta.vector_stores.create(name=vector_store_name)
-    # Ready the files for upload to OpenAI.
-    # file_paths = ["all.coding_style.how_to_guide.md"]
-    file_streams = [open(path, "rb") for path in file_paths]
-    # Use the upload and poll SDK helper to upload the files, add them to the
-    # vector store, and poll the status of the file batch for completion.
-    _LOG.debug("Uploading files to vector store ...")
-    file_batch = client.beta.vector_stores.file_batches.upload_and_poll(
-        vector_store_id=vector_store.id, files=file_streams
-    )
-    # You can print the status and the file counts of the batch to see the
-    # result of this operation.
-    # hdbg.dassert_eq(file_batch.status, "succeeded")
-    _LOG.debug("File_batch: %s", file_batch)
-    #
+    # Upload files to the vector store (if provided).
+    if file_paths:
+        file_streams = [open(path, "rb") for path in file_paths]
+        _LOG.debug("Uploading files to vector store ...")
+        try:
+            file_batch = client.beta.vector_stores.file_batches.upload_and_poll(
+                vector_store_id=vector_store.id, files=file_streams
+            )
+            _LOG.info(
+                "File batch uploaded successfully with status: %s",
+                file_batch.status,
+            )
+        except Exception as e:
+            _LOG.error("Failed to upload files to vector store: %s", str(e))
+            raise
+    # Associate the assistant with the vector store.
     assistant = client.beta.assistants.update(
         assistant_id=assistant.id,
         tool_resources={"file_search": {"vector_store_ids": [vector_store.id]}},
