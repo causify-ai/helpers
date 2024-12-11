@@ -1,3 +1,5 @@
+
+
 <!-- toc -->
 
 - [How to create a runnable dir](#how-to-create-a-runnable-dir)
@@ -6,7 +8,10 @@
     + [1) Turn the repo into a super-repo with helpers](#1-turn-the-repo-into-a-super-repo-with-helpers)
     + [2) Copy and customize files in the top dir](#2-copy-and-customize-files-in-the-top-dir)
     + [3) Copy and customize files in `devops`](#3-copy-and-customize-files-in-devops)
-      - [Build a container for a runnable dir](#build-a-container-for-a-runnable-dir)
+    + [4) Copy and customize files in thin_client](#4-copy-and-customize-files-in-thin_client)
+    + [5) Build a container for a runnable dir](#5-build-a-container-for-a-runnable-dir)
+    + [6) Test the code](#6-test-the-code)
+      - [Release the Docker image](#release-the-docker-image)
 
 <!-- tocstop -->
 
@@ -14,14 +19,14 @@
 
 ## Definition
 
-- A runnable dir is a directory containing code and a `devops` dir so that it can
-  build its own container storing all the dependencies to run and be tested
+- A runnable dir is a directory containing code and a `devops` dir so that it
+  can build its own container storing all the dependencies to run and be tested
 - A runnable dir can be
-  - a super-repo (e.g. `//cmamp`, `//quant_dashboard`)
+  - A super-repo (e.g. `//cmamp`, `//quant_dashboard`)
     - Follow
       [all.create_a_super_repo_with_helpers.how_to_guide.md](all.create_a_super_repo_with_helpers.how_to_guide.md)
       to create a runnable dir that is a super repo
-  - a sub directory under a super-repo (e.g. `//cmamp/ck.infra`)
+  - A sub directory under a super-repo (e.g. `//cmamp/ck.infra`)
 
 ## A runnable dir as sub directory under a super-repo
 
@@ -88,8 +93,8 @@
   - Typically, we might want to customize the following
     - `$DST_DIR/devops/docker_build/dev.Dockerfile`: if we need to use a base
       image with different Linux distro or version
-    - `$DST_DIR/devops/docker_build/install_os_packages.sh`: if we need to add or
-      remove OS packages
+    - `$DST_DIR/devops/docker_build/install_os_packages.sh`: if we need to add
+      or remove OS packages
     - `$DST_DIR/devops/docker_build/pyproject.toml`: if we need to add or remove
       Python dependencies
 
@@ -107,6 +112,7 @@
   ```
 
 - The resulting `dev_script` should look like:
+
   ```bash
   > ls -1 $DST_DIR
   setenv.sh
@@ -116,9 +122,11 @@
   - `DIR_TAG`="cmamp_infra"
   - `IS_SUPER_REPO` = 1 (since this runnable directory sits under a super-repo)
     - TODO(heanh): Rename `IS_SUPER_REPO` var (See #135).
-  - `VENV_TAG`="helpers" (reuse helpers if the new thin environment is not built)
+  - `VENV_TAG`="helpers" (reuse helpers if the new thin environment is not
+    built)
   - Update PATH to the runnable dir
     ```bash
+    # RUNNABLE_DIR is "ck.infra" in this case.
     SCRIPT_PATH="ck.infra/dev_scripts_${DIR_TAG}/thin_client/setenv.sh"
     DEV_SCRIPT_DIR="${GIT_ROOT_DIR}/ck.infra/dev_scripts_${DIR_TAG}"
     ```
@@ -127,6 +135,7 @@
 ### 5) Build a container for a runnable dir
 
 - Run the single-arch flow to test the flow
+
   ```bash
   > DST_DIR="ck.infra"
   > DST_PREFIX="cmamp_infra"
@@ -152,13 +161,14 @@
 ### 6) Test the code
 
 - Run tests from the runnable dir (e.g. `cmamp/ck.infra`)
+
   ```bash
   > cd $DST_DIR
   > i run_fast_tests
   > i run_slow_tests
   ```
 
-- TODO(*): Add support for recusive pytest run 
+- TODO(\*): Add support for recusive pytest run
 
 - Run tests from the root dir (e.g. `cmamp`)
   ```bash
@@ -167,4 +177,5 @@
   ```
 
 #### Release the Docker image
+
 - TODO(gp): Add details
