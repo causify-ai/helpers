@@ -126,7 +126,7 @@
     built)
   - Update PATH to the runnable dir
     ```bash
-    # RUNNABLE_DIR is "ck.infra" in this case.
+    # runnable dir is "ck.infra" in this case.
     SCRIPT_PATH="ck.infra/dev_scripts_${DIR_TAG}/thin_client/setenv.sh"
     DEV_SCRIPT_DIR="${GIT_ROOT_DIR}/ck.infra/dev_scripts_${DIR_TAG}"
     ```
@@ -169,9 +169,8 @@
   > i run_slow_tests
   ```
 
-- TODO(\*): Add support for recusive pytest run
-
 - Run tests from the root dir (e.g. `cmamp`)
+  - TODO(heanh): Add support for recusive pytest run
   ```bash
   > main_pytest.py run_fast_tests --dir ck.infra
   > main_pytest.py run_slow_tests --dir ck.infra
