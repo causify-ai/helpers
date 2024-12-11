@@ -229,6 +229,7 @@ def run_single_dataset_qa_notebook(
     bid_ask_frequency_sec="60S",
     s3_publish_dst_dir="s3://cryptokaizen-html/notebooks/data_qa",
     time_diff_threshold_sec=None,
+    region="europe",
 ):
     """
     Run single data QA notebook and store it in a specified location.
@@ -249,6 +250,7 @@ def run_single_dataset_qa_notebook(
         "bid_ask_depth": bid_ask_depth,
         "bid_ask_frequency_sec": bid_ask_frequency_sec,
         "time_diff_threshold_sec": time_diff_threshold_sec,
+        "region": region,
     }
     _ = ctx
     dataset_schema = dsdascut.get_dataset_schema()
