@@ -36,6 +36,14 @@ jobs:
           aws-access-key-id: ${{ secrets.CK_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.CK_AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ vars.CK_AWS_DEFAULT_REGION }}
+      
+      - name: Generate GitHub App token
+        uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ vars.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
 
       # This is needed to pull the Docker image.
       - name: Login to Amazon ECR
@@ -55,7 +63,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: true
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
 
       # To see the modules in `amp`, PYTHONPATH needs to include `amp` in the
       # same way we do in `setenv.sh`.
@@ -97,7 +105,7 @@ jobs:
           #CK_ECR_BASE_PATH: ghcr.io/cryptokaizen
           CK_AWS_S3_BUCKET: ${{ vars.CK_AWS_S3_BUCKET }}
           CK_TELEGRAM_TOKEN: ${{ secrets.CK_TELEGRAM_TOKEN }}
-          GH_ACTION_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_ACTION_ACCESS_TOKEN: ${{ steps.app-token.outputs.token }}
         run: invoke run_fast_tests
         # TODO(gp): Run a single test. You need to disable the `push` on master.
         #run: invoke run_fast_tests --pytest-opts="./helpers/test/test_lib_tasks.py::TestGhLogin1 -s --dbg"
@@ -110,7 +118,7 @@ jobs:
         if: ${{ always() && github.event_name == 'workflow_dispatch' }}
         uses: Sibz/github-status-action@v1
         with:
-          authToken: ${{ secrets.GITHUB_TOKEN }}
+          authToken: ${{ steps.app-token.outputs.token }}
           context: "run_fast_tests"
           description: 'Job is done (manual run)'
           state: ${{ job.status }}
