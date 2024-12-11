@@ -76,8 +76,6 @@
 
 ### 3) Copy and customize files in `devops`
 
-#### Build a container for a runnable dir
-
 - Copy the `devops` from `//helpers` as a template dir
   ```bash
   > (cd helpers_root; git pull)
@@ -95,20 +93,46 @@
     - `$DST_DIR/devops/docker_build/pyproject.toml`: if we need to add or remove
       Python dependencies
 
-- Set switch variables in `$DST_DIR/devops/docker_run/docker_setenv.sh` and
-  `$DST_DIR/devops/docker_run/entrypoint.sh`
-  - `IS_SUPER_REPO` = 1 (since this runnable directory that sits under a
-    super-repo)
-  - `IS_SUB_DIR` = 1 (since this runnable directory is a sub directory)
-    - Refer to switch variables definitions in
-      `docs/work_tools/all.devops_docker.reference.md` for detailed explanation
+### 4) Copy and customize files in thin_client
+
+- Create the `dev_script` dir based off the template from `helpers`
+
+  ```bash
+  # Use a prefix based on the repo name and runnable dir name, e.g., `cmamp_infra`.
+  > SRC_DIR="helpers_root/dev_scripts_helpers/thin_client"; echo $SRC_DIR
+  > DST_PREFIX="cmamp_infra"
+  > DST_DIR="dev_scripts_${DST_PREFIX}/thin_client"; echo $DST_DIR
+  > mkdir -p $DST_DIR
+  > cp "$SRC_DIR/setenv.sh" $DST_DIR
+  ```
+
+- The resulting `dev_script` should look like:
+  ```bash
+  > ls -1 $DST_DIR
+  setenv.sh
+  ```
+
+- Customize `setenv.py`
+  - `DIR_TAG`="cmamp_infra"
+  - `IS_SUPER_REPO` = 1 (since this runnable directory sits under a super-repo)
+    - TODO(heanh): Rename `IS_SUPER_REPO` var (See #135).
+  - `VENV_TAG`="helpers" (reuse helpers if the new thin environment is not built)
+  - Update PATH to the runnable dir
+    ```bash
+    SCRIPT_PATH="ck.infra/dev_scripts_${DIR_TAG}/thin_client/setenv.sh"
+    DEV_SCRIPT_DIR="${GIT_ROOT_DIR}/ck.infra/dev_scripts_${DIR_TAG}"
+    ```
+    - TODO(heanh): Automatically infer them.
+
+### 5) Build a container for a runnable dir
 
 - Run the single-arch flow to test the flow
   ```bash
-  > REPO_NAME="cmamp"
-  > source dev_scripts_${REPO_NAME}/thin_client/setenv.sh
+  > DST_DIR="ck.infra"
+  > DST_PREFIX="cmamp_infra"
   > cd $DST_DIR
-  > i docker_build_local_image --version 1.0.0 --container-dir-name $DST_DIR
+  > source dev_scripts_${DST_PREFIX}/thin_client/setenv.sh
+  > i docker_build_local_image --version 1.0.0
   > i docker_tag_local_image_as_dev --version 1.0.0
   > i docker_bash --skip-pull --version 1.0.0
   > i docker_push_dev_image --version 1.0.0
@@ -116,16 +140,16 @@
 
 - Run the multi-arch flow
   ```bash
-  > REPO_NAME="cmamp"
-  > source dev_scripts_${REPO_NAME}/thin_client/setenv.sh
+  > DST_PREFIX="cmamp_infra"
+  > source dev_scripts_${DST_PREFIX}/thin_client/setenv.sh
   > cd $DST_DIR
-  > i docker_build_local_image --version 1.0.0 --container-dir-name $DST_DIR --multi-arch "linux/amd64,linux/arm64"
+  > i docker_build_local_image --version 1.0.0 --multi-arch "linux/amd64,linux/arm64"
   > i docker_tag_local_image_as_dev --version 1.0.0
   > i docker_bash --skip-pull --version 1.0.0
   > i docker_push_dev_image --version 1.0.0
   ```
 
-#### Test the code
+### 6) Test the code
 
 - Run tests from the runnable dir (e.g. `cmamp/ck.infra`)
   ```bash
@@ -133,6 +157,8 @@
   > i run_fast_tests
   > i run_slow_tests
   ```
+
+- TODO(*): Add support for recusive pytest run 
 
 - Run tests from the root dir (e.g. `cmamp`)
   ```bash
