@@ -149,9 +149,10 @@
 
 - Run the multi-arch flow
   ```bash
+  > DST_DIR="ck.infra"
   > DST_PREFIX="cmamp_infra"
-  > source dev_scripts_${DST_PREFIX}/thin_client/setenv.sh
   > cd $DST_DIR
+  > source dev_scripts_${DST_PREFIX}/thin_client/setenv.sh
   > i docker_build_local_image --version 1.0.0 --multi-arch "linux/amd64,linux/arm64"
   > i docker_tag_local_image_as_dev --version 1.0.0
   > i docker_bash --skip-pull --version 1.0.0
