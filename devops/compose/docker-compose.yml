@@ -1,4 +1,3 @@
-stage='prod', use_privileged_mode=True, use_sibling_container=False, shared_data_dirs=None, mount_as_submodule=False, use_network_mode_host=True
 version: '3'
 services:
   base_app:
@@ -7,6 +6,10 @@ services:
     environment:
       - CSFY_ENABLE_DIND=1
       - CSFY_FORCE_TEST_FAIL=$CSFY_FORCE_TEST_FAIL
+      - CSFY_HOST_NAME=dev2
+      - CSFY_HOST_OS_NAME=Linux
+      - CSFY_HOST_USER_NAME=jsmeriga
+      - CSFY_HOST_VERSION=5.15.0-1072-aws
       - CSFY_REPO_CONFIG_CHECK=True
       - CSFY_REPO_CONFIG_PATH=
       - CSFY_AWS_ACCESS_KEY_ID=$CSFY_AWS_ACCESS_KEY_ID
@@ -16,8 +19,9 @@ services:
       - CSFY_AWS_SECRET_ACCESS_KEY=$CSFY_AWS_SECRET_ACCESS_KEY
       - CSFY_ECR_BASE_PATH=$CSFY_ECR_BASE_PATH
       - CSFY_GIT_ROOT_PATH=/app
-      - CSFY_HELPERS_ROOT_PATH=/app/helpers_root
+      - CSFY_HELPERS_ROOT_PATH=/amp/helpers_root
       - CSFY_IS_SUPER_REPO=1
+      - OPENAI_API_KEY=$OPENAI_API_KEY
       - CSFY_TELEGRAM_TOKEN=$CSFY_TELEGRAM_TOKEN
       - GH_ACTION_ACCESS_TOKEN=$GH_ACTION_ACCESS_TOKEN
       - GH_TOKEN=$GH_ACTION_ACCESS_TOKEN
@@ -28,21 +32,23 @@ services:
       - ~/.aws:/home/.aws
       - ~/.config/gspread_pandas/:/home/.config/gspread_pandas/
       - ~/.config/gh:/home/.config/gh
+      - /data/shared:/shared_data
+      - /data/shared2:/shared_data2
+      - /data/shared_test:/shared_test
     privileged: true
-    network_mode: ${NETWORK_MODE:-host}
   app:
     extends: base_app
     volumes:
-      - /data/heanhs/src/cmamp1:/app
-    working_dir: /app/ck.infra
+      - /data/jsmeriga/src/orange1/.git/modules/amp:/app
+    working_dir: /amp/helpers_root
   linter:
     extends: base_app
     volumes:
-      - /data/heanhs/src/cmamp1/ck.infra:/src
-    working_dir: /src
+      - /data/jsmeriga/src/orange1/amp:/src
+      - ../../../:/app
+    working_dir: /src/helpers_root
     environment:
       - MYPYPATH
-      - CSFY_REPO_CONFIG_PATH=/app/repo_config.py
   jupyter_server:
     command: devops/docker_run/run_jupyter_server.sh
     environment:

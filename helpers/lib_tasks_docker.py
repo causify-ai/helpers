@@ -564,7 +564,7 @@ def _generate_docker_compose_file(
             # - CK_HOST_NAME=
             # - CK_HOST_OS_NAME=
             # - CK_PUBLISH_NOTEBOOK_LOCAL_PATH=$CK_PUBLISH_NOTEBOOK_LOCAL_PATH
-            "CK_TELEGRAM_TOKEN=$CK_TELEGRAM_TOKEN",
+            "CSFY_TELEGRAM_TOKEN=$CSFY_TELEGRAM_TOKEN",
             # TODO(Vlad): consider removing, locally we use our personal tokens from files and
             # inside GitHub actions we use the `GH_TOKEN` environment variable.
             "GH_ACTION_ACCESS_TOKEN=$GH_ACTION_ACCESS_TOKEN",

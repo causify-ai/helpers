@@ -15,7 +15,7 @@ The JSON file looks like:
         "GH_ACTION_ACCESS_TOKEN": "***",
         "CSFY_AWS_ACCESS_KEY_ID": "***",
         "CSFY_AWS_SECRET_ACCESS_KEY": "***",
-        "CK_TELEGRAM_TOKEN": "***",
+        "CSFY_TELEGRAM_TOKEN": "***",
     }
     "variables": {
         "CSFY_AWS_DEFAULT_REGION": "eu-north-1",
