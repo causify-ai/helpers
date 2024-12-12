@@ -608,7 +608,10 @@ def _get_aws_config_text(aws_profile: str) -> str:
     Generate text for the AWS config file, i.e. ".aws/config".
     """
     # Set which env vars we need to get.
-    profile_prefix = aws_profile.upper()
+    #TODO(Juraj): needed because ENV_VARS are now prexied with
+    # `CSFY_` and not `CK_` or `AM_`
+    #profile_prefix = aws_profile.upper()
+    profile_prefix = "CSFY"
     region_env_var = f"{profile_prefix}_AWS_DEFAULT_REGION"
     key_to_env_var = {"region": region_env_var}
     # Check that env vars are set.
