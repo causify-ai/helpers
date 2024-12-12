@@ -497,13 +497,13 @@ def _generate_docker_compose_file(
     )
     # We could pass the env var directly, like:
     # ```
-    # - AM_ENABLE_DIND=$AM_ENABLE_DIND
+    # - CSFY_ENABLE_DIND=$CSFY_ENABLE_DIND
     # ```
     # but we prefer to inline it.
     if use_privileged_mode:
-        am_enable_dind = 1
+        CSFY_ENABLE_DIND = 1
     else:
-        am_enable_dind = 0
+        CSFY_ENABLE_DIND = 0
     # ```
     # sysname='Linux'
     # nodename='cf-spm-dev4'
@@ -540,7 +540,7 @@ def _generate_docker_compose_file(
     base_app_spec = {
         "cap_add": ["SYS_ADMIN"],
         "environment": [
-            f"AM_ENABLE_DIND={am_enable_dind}",
+            f"CSFY_ENABLE_DIND={CSFY_ENABLE_DIND}",
             f"AM_FORCE_TEST_FAIL=$AM_FORCE_TEST_FAIL",
             f"AM_HOST_NAME={am_host_name}",
             f"AM_HOST_OS_NAME={am_host_os_name}",

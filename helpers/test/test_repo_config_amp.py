@@ -117,7 +117,7 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
               is_mac(version='Monterey')='False'
               is_mac(version='Ventura')='False'
         # Env vars:
-          AM_ENABLE_DIND='1'
+          CSFY_ENABLE_DIND='1'
           AM_FORCE_TEST_FAIL=''
           AM_REPO_CONFIG_CHECK='True'
           AM_REPO_CONFIG_PATH=''
@@ -158,7 +158,7 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
               is_inside_docker='True'
               is_mac='True'
         # Env vars:
-        AM_ENABLE_DIND='1'
+        CSFY_ENABLE_DIND='1'
         AM_FORCE_TEST_FAIL=''
         AM_REPO_CONFIG_CHECK='False'
         AM_REPO_CONFIG_PATH=''
@@ -208,7 +208,7 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
               is_mac(version='Monterey')='False'
               is_mac(version='Ventura')='False'
         # Env vars:
-          AM_ENABLE_DIND='1'
+          CSFY_ENABLE_DIND='1'
           AM_FORCE_TEST_FAIL=''
           AM_REPO_CONFIG_CHECK='True'
           AM_REPO_CONFIG_PATH=''
@@ -255,7 +255,7 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
               is_mac(version='Monterey')='False'
               is_mac(version='Ventura')='False'
         # Env vars:
-          AM_ENABLE_DIND='1'
+          CSFY_ENABLE_DIND='1'
           AM_FORCE_TEST_FAIL=''
           AM_REPO_CONFIG_CHECK='True'
           AM_REPO_CONFIG_PATH=''
