@@ -1,0 +1,8 @@
+A
+% ```plantuml
+% Alice --> Bob
+% ```
+\begin{figure}
+  \includegraphics[width=\linewidth]{figs/out.1.png}
+\end{figure}
+B

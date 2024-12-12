@@ -29,7 +29,7 @@ umask 002
 
 # - Source `utils.sh`.
 # NOTE: we can't use $0 to find the path since we are sourcing this file.
-GIT_ROOT_DIR=$(pwd)
+GIT_ROOT_DIR=$(git rev-parse --show-toplevel)
 echo "GIT_ROOT_DIR=$GIT_ROOT_DIR"
 
 if [[ $IS_SUPER_REPO == 1 ]]; then

@@ -4,7 +4,7 @@ import helpers.hunit_test as hunitest
 
 
 class Test_extract_section_from_markdown1(hunitest.TestCase):
-    def test1(self):
+    def test1(self) -> None:
         # Prepare inputs.
         content = r"""
         # Header1
@@ -26,7 +26,7 @@ class Test_extract_section_from_markdown1(hunitest.TestCase):
         """
         self.assert_equal(act, exp, dedent=True)
 
-    def test2(self):
+    def test2(self) -> None:
         # Prepare inputs.
         content = r"""
         # Header1
@@ -46,7 +46,7 @@ class Test_extract_section_from_markdown1(hunitest.TestCase):
         """
         self.assert_equal(act, exp, dedent=True)
 
-    def test3(self):
+    def test3(self) -> None:
         # Prepare inputs.
         content = r"""
         # Header1
@@ -66,7 +66,7 @@ class Test_extract_section_from_markdown1(hunitest.TestCase):
         """
         self.assert_equal(act, exp, dedent=True)
 
-    def test4(self):
+    def test4(self) -> None:
         # Prepare inputs.
         content = r"""
         # Header1
@@ -86,7 +86,7 @@ class Test_extract_section_from_markdown1(hunitest.TestCase):
         """
         self.assert_equal(act, exp, dedent=True)
 
-    def test_no_header(self):
+    def test_no_header(self) -> None:
         # Prepare inputs.
         content = r"""
         # Header1
@@ -107,31 +107,31 @@ class Test_extract_section_from_markdown1(hunitest.TestCase):
 
 
 class Test_remove_end_of_line_periods1(hunitest.TestCase):
-    def test_standard_case(self):
+    def test_standard_case(self) -> None:
         txt = "Hello.\nWorld.\nThis is a test."
         act = hmarkdo.remove_end_of_line_periods(txt)
         exp = "Hello\nWorld\nThis is a test"
         self.assertEqual(act, exp)
 
-    def test_no_periods(self):
+    def test_no_periods(self) -> None:
         txt = "Hello\nWorld\nThis is a test"
         act = hmarkdo.remove_end_of_line_periods(txt)
         exp = "Hello\nWorld\nThis is a test"
         self.assertEqual(act, exp)
 
-    def test_multiple_periods(self):
+    def test_multiple_periods(self) -> None:
         txt = "Line 1.....\nLine 2.....\nEnd."
         act = hmarkdo.remove_end_of_line_periods(txt)
         exp = "Line 1\nLine 2\nEnd"
         self.assertEqual(act, exp)
 
-    def test_empty_string(self):
+    def test_empty_string(self) -> None:
         txt = ""
         act = hmarkdo.remove_end_of_line_periods(txt)
         exp = ""
         self.assertEqual(act, exp)
 
-    def test_leading_and_trailing_periods(self):
+    def test_leading_and_trailing_periods(self) -> None:
         txt = ".Line 1.\n.Line 2.\n..End.."
         act = hmarkdo.remove_end_of_line_periods(txt)
         exp = ".Line 1\n.Line 2\n..End"
