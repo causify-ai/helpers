@@ -627,7 +627,10 @@ def _get_aws_credentials_text(aws_profile: str) -> str:
     Generate text for the AWS credentials file, i.e. ".aws/credentials".
     """
     # Set which env vars we need to get.
-    profile_prefix = aws_profile.upper()
+    #TODO(Juraj): needed because ENV_VARS are now prexied with
+    # `CSFY_` and not `CK_` or `AM_`
+    #profile_prefix = aws_profile.upper()
+    profile_prefix = "CSFY"
     key_to_env_var = {
         "aws_access_key_id": f"{profile_prefix}_AWS_ACCESS_KEY_ID",
         "aws_secret_access_key": f"{profile_prefix}_AWS_SECRET_ACCESS_KEY",
