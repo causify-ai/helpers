@@ -611,7 +611,7 @@ def _get_aws_config_text(aws_profile: str) -> str:
     #TODO(Juraj): needed because ENV_VARS are now prexied with
     # `CSFY_` and not `CK_` or `AM_`
     #profile_prefix = aws_profile.upper()
-    profile_prefix = "CSFY" if aws_profile in ["AM", "CK"] else aws_profile.upper()
+    profile_prefix = "CSFY" if aws_profile.upper() in ["AM", "CK"] else aws_profile.upper()
     region_env_var = f"{profile_prefix}_AWS_DEFAULT_REGION"
     key_to_env_var = {"region": region_env_var}
     # Check that env vars are set.
@@ -630,7 +630,7 @@ def _get_aws_credentials_text(aws_profile: str) -> str:
     #TODO(Juraj): needed because ENV_VARS are now prexied with
     # `CSFY_` and not `CK_` or `AM_`
     #profile_prefix = aws_profile.upper()
-    profile_prefix = "CSFY" if aws_profile in ["AM", "CK"] else aws_profile.upper()
+    profile_prefix = "CSFY" if aws_profile.upper() in ["AM", "CK"] else aws_profile.upper()
     key_to_env_var = {
         "aws_access_key_id": f"{profile_prefix}_AWS_ACCESS_KEY_ID",
         "aws_secret_access_key": f"{profile_prefix}_AWS_SECRET_ACCESS_KEY",
