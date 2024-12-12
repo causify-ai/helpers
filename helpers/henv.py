@@ -105,7 +105,7 @@ def get_env_vars() -> List[str]:
         "CSFY_ENABLE_DIND",
         # Enable forcing certain unit tests to fail to check that unit test
         # failures are caught.
-        "AM_FORCE_TEST_FAIL",
+        "CSFY_FORCE_TEST_FAIL",
         # The name of the host running Docker.
         "AM_HOST_NAME",
         # The OS of the host running Docker.

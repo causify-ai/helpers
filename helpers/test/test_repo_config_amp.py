@@ -118,7 +118,7 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
               is_mac(version='Ventura')='False'
         # Env vars:
           CSFY_ENABLE_DIND='1'
-          AM_FORCE_TEST_FAIL=''
+          CSFY_FORCE_TEST_FAIL=''
           AM_REPO_CONFIG_CHECK='True'
           AM_REPO_CONFIG_PATH=''
           CSFY_CI=''
@@ -159,7 +159,7 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
               is_mac='True'
         # Env vars:
         CSFY_ENABLE_DIND='1'
-        AM_FORCE_TEST_FAIL=''
+        CSFY_FORCE_TEST_FAIL=''
         AM_REPO_CONFIG_CHECK='False'
         AM_REPO_CONFIG_PATH=''
         CSFY_CI=''
@@ -209,7 +209,7 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
               is_mac(version='Ventura')='False'
         # Env vars:
           CSFY_ENABLE_DIND='1'
-          AM_FORCE_TEST_FAIL=''
+          CSFY_FORCE_TEST_FAIL=''
           AM_REPO_CONFIG_CHECK='True'
           AM_REPO_CONFIG_PATH=''
           CSFY_CI='true'
@@ -256,7 +256,7 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
               is_mac(version='Ventura')='False'
         # Env vars:
           CSFY_ENABLE_DIND='1'
-          AM_FORCE_TEST_FAIL=''
+          CSFY_FORCE_TEST_FAIL=''
           AM_REPO_CONFIG_CHECK='True'
           AM_REPO_CONFIG_PATH=''
           CK_ECR_BASE_PATH='$CK_ECR_BASE_PATH'

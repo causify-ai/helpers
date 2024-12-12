@@ -541,7 +541,7 @@ def _generate_docker_compose_file(
         "cap_add": ["SYS_ADMIN"],
         "environment": [
             f"CSFY_ENABLE_DIND={CSFY_ENABLE_DIND}",
-            f"AM_FORCE_TEST_FAIL=$AM_FORCE_TEST_FAIL",
+            f"CSFY_FORCE_TEST_FAIL=$CSFY_FORCE_TEST_FAIL",
             f"AM_HOST_NAME={am_host_name}",
             f"AM_HOST_OS_NAME={am_host_os_name}",
             f"AM_HOST_USER_NAME={am_host_user_name}",

@@ -461,9 +461,9 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
 
 class TestFailing(hunitest.TestCase):
     """
-    Run a test that fails based on AM_FORCE_TEST_FAIL environment variable.
+    Run a test that fails based on CSFY_FORCE_TEST_FAIL environment variable.
     """
 
     def test_failing(self) -> None:
-        if os.environ.get("AM_FORCE_TEST_FAIL", "") == "1":
+        if os.environ.get("CSFY_FORCE_TEST_FAIL", "") == "1":
             self.fail("test failed succesfully")

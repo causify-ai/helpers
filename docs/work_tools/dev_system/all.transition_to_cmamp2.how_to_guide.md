@@ -147,7 +147,7 @@
           --user $(id -u):$(id -g) \
           app \
           bash
-  WARN[0000] The "AM_FORCE_TEST_FAIL" variable is not set. Defaulting to a blank string.
+  WARN[0000] The "CSFY_FORCE_TEST_FAIL" variable is not set. Defaulting to a blank string.
   WARN[0000] The "CK_AWS_ACCESS_KEY_ID" variable is not set. Defaulting to a blank string.
   WARN[0000] The "CK_AWS_DEFAULT_REGION" variable is not set. Defaulting to a blank string.
   WARN[0000] The "CK_AWS_SECRET_ACCESS_KEY" variable is not set. Defaulting to a blank string.
