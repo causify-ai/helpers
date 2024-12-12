@@ -247,7 +247,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
             print_docker_config=print_docker_config,
         )
         exp = r"""
-        IMAGE=$CK_ECR_BASE_PATH/amp_test:dev-1.0.0 \
+        IMAGE=$CSFY_ECR_BASE_PATH/amp_test:dev-1.0.0 \
             docker compose \
             --file $GIT_ROOT/devops/compose/docker-compose.yml \
             --env-file devops/env/default.env \
@@ -279,7 +279,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
             cmd,
             print_docker_config=print_docker_config,
         )
-        exp = r"""IMAGE=$CK_ECR_BASE_PATH/amp_test:local-$USER_NAME-1.0.0 \
+        exp = r"""IMAGE=$CSFY_ECR_BASE_PATH/amp_test:local-$USER_NAME-1.0.0 \
                 docker compose \
                 --file $GIT_ROOT/devops/compose/docker-compose.yml \
                 --env-file devops/env/default.env \
@@ -313,7 +313,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
             print_docker_config=print_docker_config,
         )
         exp = r"""
-        IMAGE=$CK_ECR_BASE_PATH/amp_test:local-$USER_NAME-1.0.0 \
+        IMAGE=$CSFY_ECR_BASE_PATH/amp_test:local-$USER_NAME-1.0.0 \
         PORT=9999 \
         SKIP_RUN=1 \
             docker compose \
@@ -353,7 +353,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
                 print_docker_config=print_docker_config,
             )
             exp = r"""
-            IMAGE=$CK_ECR_BASE_PATH/amp_test:dev-1.0.0 \
+            IMAGE=$CSFY_ECR_BASE_PATH/amp_test:dev-1.0.0 \
             docker compose \
             --file $GIT_ROOT/devops/compose/docker-compose.yml \
             --env-file devops/env/default.env \
@@ -384,7 +384,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
             print_docker_config=print_docker_config,
         )
         exp = r"""
-        IMAGE=$CK_ECR_BASE_PATH/amp_test:dev-1.0.0 \
+        IMAGE=$CSFY_ECR_BASE_PATH/amp_test:dev-1.0.0 \
         PORT=9999 \
             docker compose \
             --file $GIT_ROOT/devops/compose/docker-compose.yml \

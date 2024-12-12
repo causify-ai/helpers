@@ -131,7 +131,7 @@ def get_env_vars() -> List[str]:
         # S3 bucket to use for CK.
         "CK_AWS_S3_BUCKET",
         # Path to the ECR for the Docker images for CK.
-        "CK_ECR_BASE_PATH",
+        "CSFY_ECR_BASE_PATH",
     ]
     # No duplicates.
     assert len(set(env_var_names)) == len(

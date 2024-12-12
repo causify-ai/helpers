@@ -212,7 +212,7 @@ configure_specific_project() {
     export CK_AWS_PROFILE="ck"
 
     # These variables are propagated to Docker.
-    export CK_ECR_BASE_PATH="623860924167.dkr.ecr.eu-north-1.amazonaws.com"
+    export CSFY_ECR_BASE_PATH="623860924167.dkr.ecr.eu-north-1.amazonaws.com"
     export CK_AWS_S3_BUCKET="cryptokaizen-data"
 
     export DEV1="172.30.2.136"

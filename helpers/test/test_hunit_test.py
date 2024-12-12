@@ -1217,8 +1217,8 @@ class Test_purify_from_environment1(hunitest.TestCase):
             hsystem.set_user_name(None)
 
     def test1(self) -> None:
-        input_ = "IMAGE=$CK_ECR_BASE_PATH/amp_test:local-root-1.0.0"
-        exp = "IMAGE=$CK_ECR_BASE_PATH/amp_test:local-$USER_NAME-1.0.0"
+        input_ = "IMAGE=$CSFY_ECR_BASE_PATH/amp_test:local-root-1.0.0"
+        exp = "IMAGE=$CSFY_ECR_BASE_PATH/amp_test:local-$USER_NAME-1.0.0"
         self.check_helper(input_, exp)
 
     def test2(self) -> None:
