@@ -54,7 +54,7 @@ def is_inside_docker() -> bool:
 # since inside Docker the name of the host is like `01a7e34a82a5`. Of course,
 # there is no way to know anything about the host for security reason, so we
 # pass this value from the external environment to the container, through env
-# vars (e.g., `AM_HOST_NAME`, `AM_HOST_OS_NAME`).
+# vars (e.g., `CSFY_HOST_NAME`, `AM_HOST_OS_NAME`).
 
 
 def is_dev_ck() -> bool:
@@ -67,9 +67,9 @@ def is_dev_ck() -> bool:
     # machine='x86_64'
     host_name = os.uname()[1]
     host_names = ("dev1", "dev2", "dev3")
-    am_host_name = os.environ.get("AM_HOST_NAME", "")
-    _LOG.debug("host_name=%s am_host_name=%s", host_name, am_host_name)
-    is_dev_ck_ = host_name in host_names or am_host_name in host_names
+    csfy_host_name = os.environ.get("CSFY_HOST_NAME", "")
+    _LOG.debug("host_name=%s csfy_host_name=%s", host_name, csfy_host_name)
+    is_dev_ck_ = host_name in host_names or csfy_host_name in host_names
     return is_dev_ck_
 
 
@@ -78,15 +78,15 @@ def is_dev4() -> bool:
     Return whether it's running on dev4.
     """
     host_name = os.uname()[1]
-    am_host_name = os.environ.get("AM_HOST_NAME", None)
+    csfy_host_name = os.environ.get("CSFY_HOST_NAME", None)
     dev4 = "cf-spm-dev4"
-    _LOG.debug("host_name=%s am_host_name=%s", host_name, am_host_name)
-    is_dev4_ = dev4 in (host_name, am_host_name)
+    _LOG.debug("host_name=%s csfy_host_name=%s", host_name, csfy_host_name)
+    is_dev4_ = dev4 in (host_name, csfy_host_name)
     #
     if not is_dev4_:
         dev4 = "cf-spm-dev8"
-        _LOG.debug("host_name=%s am_host_name=%s", host_name, am_host_name)
-        is_dev4_ = dev4 in (host_name, am_host_name)
+        _LOG.debug("host_name=%s csfy_host_name=%s", host_name, csfy_host_name)
+        is_dev4_ = dev4 in (host_name, csfy_host_name)
     return is_dev4_
 
 
