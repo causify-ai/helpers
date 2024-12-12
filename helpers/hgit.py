@@ -173,22 +173,57 @@ def get_client_root(super_module: bool) -> str:
 def find_git_root(path: str = ".") -> str:
     """
     Find recursively the dir of the outermost super module.
+
+    This function handles:
+    - Normal Git repositories, where `.git` is a directory at the root.
+    - Submodules or linked setups, where `.git` is a file containing a `gitdir:` reference.
+
+    :param path: starting file system path. Defaults to the current directory (".")
+    :return: absolute path to the top-level Git repository directory
     """
     path = os.path.abspath(path)
-    while not os.path.isdir(os.path.join(path, ".git")):
-        git_dir_file = os.path.join(path, ".git")
-        if os.path.isfile(git_dir_file):
-            with open(git_dir_file, "r") as f:
+    git_root_dir = None
+    while True:
+        # Check if we have a normal Git repository at this level
+        if os.path.isdir(os.path.join(path, ".git")):
+            git_root_dir = path
+            break
+        # If .git is a file, we might be dealing with a submodule or a linked repo.
+        git_file = os.path.join(path, ".git")
+        if os.path.isfile(git_file):
+            with open(git_file, "r") as f:
                 for line in f:
                     if line.startswith("gitdir:"):
                         git_dir = line.split(":", 1)[1].strip()
-                        return os.path.abspath(
-                            os.path.join(path, git_dir, "..", "..")
-                        )
+                        abs_git_dir = os.path.abspath(os.path.join(path, git_dir))
+                        # Traverse up until we find the top-level .git directory.
+                        candidate = abs_git_dir
+                        while True:
+                            if os.path.basename(candidate) == ".git":
+                                git_root_dir = os.path.dirname(candidate)
+                                break
+                            parent = os.path.dirname(candidate)
+                            if parent == candidate:
+                                # No .git directory found on the way up.
+                                hdbg.dassert(
+                                    parent,
+                                    candidate,
+                                    "Couldn't find a top-level .git directory for this repository.",
+                                )
+                            candidate = parent
+                        break
+            if git_root_dir is not None:
+                break
+        # Move one directory up if no result found yet.
         parent = os.path.dirname(path)
-        hdbg.dassert_ne(parent, path)
+        # We reached the filesystem root without finding any Git info.
+        hdbg.dassert_ne(
+            parent,
+            path,
+            "No .git directory or file found in any parent directory.",
+        )
         path = parent
-    return path
+    return git_root_dir
 
 
 def find_file(file_name: str, *, dir_path: Optional[str] = None) -> str:
