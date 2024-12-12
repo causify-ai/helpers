@@ -55,7 +55,7 @@ class Test_generate_compose_file1(hunitest.TestCase):
             file_name,
         )
         # Remove all the env variables that are function of the host.
-        txt_tmp = hunitest.filter_text("AM_HOST_", txt_tmp)
+        txt_tmp = hunitest.filter_text("CSFY_HOST_", txt_tmp)
         txt_tmp = hunitest.filter_text("CSFY_GIT_ROOT_PATH", txt_tmp)
         txt_tmp = hunitest.filter_text("CSFY_HELPERS_ROOT_PATH", txt_tmp)
         txt_tmp = hunitest.filter_text("CSFY_IS_SUPER_REPO", txt_tmp)
@@ -146,7 +146,7 @@ class Test_generate_compose_file2(hunitest.TestCase):
                 file_name,
             )
         # Remove all the env variables that are function of the host.
-        txt_tmp = hunitest.filter_text("AM_HOST_", txt_tmp)
+        txt_tmp = hunitest.filter_text("CSFY_HOST_", txt_tmp)
         txt_tmp = hunitest.filter_text("OPENAI_API_KEY", txt_tmp)
         txt.append(txt_tmp)
         #

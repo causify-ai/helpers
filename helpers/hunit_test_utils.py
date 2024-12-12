@@ -468,7 +468,7 @@ def check_env_to_str(
     act = henv.env_to_str(add_system_signature=False)
     act = hunitest.filter_text("get_name", act)
     act = hunitest.filter_text("get_repo_map", act)
-    act = hunitest.filter_text("AM_HOST_", act)
+    act = hunitest.filter_text("CSFY_HOST_", act)
     if skip_secrets_vars:
         # TODO(gp): Difference between amp and cmamp.
         act = hunitest.filter_text(

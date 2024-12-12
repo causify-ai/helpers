@@ -462,7 +462,7 @@ def _get_linter_service(stage: str) -> DockerComposeServiceSpec:
         # Use the `repo_config.py` inside the dev_tools container instead of
         # the one in the calling repo.
         linter_service_spec["environment"].append(
-            "AM_REPO_CONFIG_PATH=/app/repo_config.py"
+            "CSFY_REPO_CONFIG_PATH=/app/repo_config.py"
         )
     return linter_service_spec
 
@@ -513,8 +513,8 @@ def _generate_docker_compose_file(
     # ```
     csfy_host_os_name = os.uname()[0]
     csfy_host_name = os.uname()[1]
-    am_host_version = os.uname()[2]
-    am_host_user_name = getpass.getuser()
+    csfy_host_version = os.uname()[2]
+    csfy_host_user_name = getpass.getuser()
     # The mounting path in the container is `/app`.
     # So we need to use that as starting point.
     # e.g. For CSFY_GIT_ROOT_PATH,
@@ -544,11 +544,11 @@ def _generate_docker_compose_file(
             f"CSFY_FORCE_TEST_FAIL=$CSFY_FORCE_TEST_FAIL",
             f"CSFY_HOST_NAME={csfy_host_name}",
             f"CSFY_HOST_OS_NAME={csfy_host_os_name}",
-            f"AM_HOST_USER_NAME={am_host_user_name}",
-            f"AM_HOST_VERSION={am_host_version}",
-            "AM_REPO_CONFIG_CHECK=True",
+            f"CSFY_HOST_USER_NAME={csfy_host_user_name}",
+            f"CSFY_HOST_VERSION={csfy_host_version}",
+            "CSFY_REPO_CONFIG_CHECK=True",
             # Use inferred path for `repo_config.py`.
-            "AM_REPO_CONFIG_PATH=",
+            "CSFY_REPO_CONFIG_PATH=",
             "CK_AWS_ACCESS_KEY_ID=$CK_AWS_ACCESS_KEY_ID",
             "CK_AWS_DEFAULT_REGION=$CK_AWS_DEFAULT_REGION",
             "CK_AWS_PROFILE=$CK_AWS_PROFILE",

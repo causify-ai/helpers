@@ -138,13 +138,13 @@ def is_mac(*, version: Optional[str] = None) -> bool:
     host_os_version = os.uname()[2]
     # 'Darwin Kernel Version 19.6.0: Mon Aug 31 22:12:52 PDT 2020;
     #   root:xnu-6153.141.2~1/RELEASE_X86_64'
-    am_host_os_version = os.environ.get("AM_HOST_VERSION", "")
+    csfy_host_os_version = os.environ.get("CSFY_HOST_VERSION", "")
     _LOG.debug(
-        "host_os_version=%s am_host_os_version=%s",
+        "host_os_version=%s csfy_host_os_version=%s",
         host_os_version,
-        am_host_os_version,
+        csfy_host_os_version,
     )
-    is_mac_ = macos_tag in host_os_version or macos_tag in am_host_os_version
+    is_mac_ = macos_tag in host_os_version or macos_tag in csfy_host_os_version
     _LOG.debug("is_mac_=%s", is_mac_)
     return is_mac_
 
@@ -238,7 +238,7 @@ def _dassert_setup_consistency() -> None:
 
 # If the env var is not defined then we want to check. The only reason to skip
 # it's if the env var is defined and equal to False.
-check_repo = os.environ.get("AM_REPO_CONFIG_CHECK", "True") != "False"
+check_repo = os.environ.get("CSFY_REPO_CONFIG_CHECK", "True") != "False"
 _is_called = False
 if check_repo:
     if not _is_called:
@@ -261,7 +261,7 @@ def is_AM_S3_available() -> bool:
 
 
 def get_host_user_name() -> Optional[str]:
-    return os.environ.get("AM_HOST_USER_NAME", None)
+    return os.environ.get("CSFY_HOST_USER_NAME", None)
 
 
 # #############################################################################

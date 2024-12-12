@@ -119,8 +119,8 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
         # Env vars:
           CSFY_ENABLE_DIND='1'
           CSFY_FORCE_TEST_FAIL=''
-          AM_REPO_CONFIG_CHECK='True'
-          AM_REPO_CONFIG_PATH=''
+          CSFY_REPO_CONFIG_CHECK='True'
+          CSFY_REPO_CONFIG_PATH=''
           CSFY_CI=''
           GH_ACTION_ACCESS_TOKEN=empty
           """
@@ -160,8 +160,8 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
         # Env vars:
         CSFY_ENABLE_DIND='1'
         CSFY_FORCE_TEST_FAIL=''
-        AM_REPO_CONFIG_CHECK='False'
-        AM_REPO_CONFIG_PATH=''
+        CSFY_REPO_CONFIG_CHECK='False'
+        CSFY_REPO_CONFIG_PATH=''
         CSFY_CI=''
         GH_ACTION_ACCESS_TOKEN=empty
         """
@@ -210,8 +210,8 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
         # Env vars:
           CSFY_ENABLE_DIND='1'
           CSFY_FORCE_TEST_FAIL=''
-          AM_REPO_CONFIG_CHECK='True'
-          AM_REPO_CONFIG_PATH=''
+          CSFY_REPO_CONFIG_CHECK='True'
+          CSFY_REPO_CONFIG_PATH=''
           CSFY_CI='true'
         """
         # We ignore the AWS vars, since GH Actions does some replacement to mask
@@ -257,8 +257,8 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
         # Env vars:
           CSFY_ENABLE_DIND='1'
           CSFY_FORCE_TEST_FAIL=''
-          AM_REPO_CONFIG_CHECK='True'
-          AM_REPO_CONFIG_PATH=''
+          CSFY_REPO_CONFIG_CHECK='True'
+          CSFY_REPO_CONFIG_PATH=''
           CK_ECR_BASE_PATH='$CK_ECR_BASE_PATH'
           CSFY_CI='true'
         """

@@ -111,15 +111,15 @@ def get_env_vars() -> List[str]:
         # The OS of the host running Docker.
         "CSFY_HOST_OS_NAME",
         # The name of the user running the host.
-        "AM_HOST_USER_NAME",
+        "CSFY_HOST_USER_NAME",
         # The version of the host running Docker.
-        "AM_HOST_VERSION",
+        "CSFY_HOST_VERSION",
         # Whether to check if certain property of the repo are as expected or not.
-        "AM_REPO_CONFIG_CHECK",
+        "CSFY_REPO_CONFIG_CHECK",
         # Path to use for `repo_config.py`. E.g., used when running `dev_tools`
         # container to avoid using the `repo_config.py` corresponding to the
         # container launching the linter.
-        "AM_REPO_CONFIG_PATH",
+        "CSFY_REPO_CONFIG_PATH",
         "GH_ACTION_ACCESS_TOKEN",
         # Whether we are running inside GH Actions.
         "CSFY_CI",
@@ -503,7 +503,7 @@ def get_repo_config_file(super_module: bool = True) -> str:
     The `repo_config.py` is determined based on an overriding env var or
     based on the root of the Git path.
     """
-    env_var = "AM_REPO_CONFIG_PATH"
+    env_var = "CSFY_REPO_CONFIG_PATH"
     file_name = get_env_var(env_var, abort_on_missing=False)
     if file_name:
         _LOG.warning("Using value '%s' for %s from env var", file_name, env_var)
