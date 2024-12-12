@@ -125,11 +125,11 @@ def get_env_vars() -> List[str]:
         "CSFY_CI",
         # TODO(gp): Difference between amp and cmamp.
         # CK AWS credentials.
-        "CK_AWS_ACCESS_KEY_ID",
-        "CK_AWS_DEFAULT_REGION",
-        "CK_AWS_SECRET_ACCESS_KEY",
+        "CSFY_AWS_ACCESS_KEY_ID",
+        "CSFY_AWS_DEFAULT_REGION",
+        "CSFY_AWS_SECRET_ACCESS_KEY",
         # S3 bucket to use for CK.
-        "CK_AWS_S3_BUCKET",
+        "CSFY_AWS_S3_BUCKET",
         # Path to the ECR for the Docker images for CK.
         "CSFY_ECR_BASE_PATH",
     ]
@@ -148,8 +148,8 @@ def get_secret_env_vars() -> List[str]:
     """
     secret_env_var_names = [
         # TODO(gp): Difference between amp and cmamp.
-        "CK_AWS_ACCESS_KEY_ID",
-        "CK_AWS_SECRET_ACCESS_KEY",
+        "CSFY_AWS_ACCESS_KEY_ID",
+        "CSFY_AWS_SECRET_ACCESS_KEY",
         "GH_ACTION_ACCESS_TOKEN",
     ]
     # No duplicates.

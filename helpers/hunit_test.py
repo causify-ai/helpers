@@ -473,7 +473,7 @@ def purify_file_names(file_names: List[str]) -> List[str]:
 def purify_from_env_vars(txt: str) -> str:
     # TODO(gp): Diff between amp and cmamp.
     for env_var in [
-        "CK_AWS_S3_BUCKET",
+        "CSFY_AWS_S3_BUCKET",
         "CSFY_ECR_BASE_PATH",
     ]:
         if env_var in os.environ:

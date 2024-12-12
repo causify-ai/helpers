@@ -551,7 +551,7 @@ def get_aws_profile(aws_profile: str) -> str:
 
     - argument passed
     - command line option (i.e., `args.aws_profile`)
-    - env vars (i.e., `CK_AWS_PROFILE`)
+    - env vars (i.e., `CSFY_AWS_PROFILE`)
     """
     hdbg.dassert_type_is(aws_profile, str)
     prefix = aws_profile.upper()
@@ -707,7 +707,7 @@ def generate_aws_files(
 #   - One can specify env vars conditioned to different profiles using the AWS
 #     profile
 #   - E.g., `ck` profile for `AWS_ACCESS_KEY_ID` corresponds to
-#     `CK_AWS_ACCESS_KEY_ID`
+#     `CSFY_AWS_ACCESS_KEY_ID`
 
 
 @functools.lru_cache()
@@ -1045,7 +1045,7 @@ def get_s3_bucket_from_stage(stage: str, *, add_suffix: str = None) -> str:
     }
     # TODO(Juraj): hack applied until a solution for #CmTask6620 is found.
     # Retrieve the region from the environment variable or use the default region 'eu-north-1'.
-    region = os.environ.get("CK_AWS_DEFAULT_REGION", "eu-north-1")
+    region = os.environ.get("CSFY_AWS_DEFAULT_REGION", "eu-north-1")
     # TODO(Juraj): hack applied until a solution for #CmTask6620 is found.
     if region == "ap-northeast-1":
         _S3_BUCKET_BY_STAGE["preprod"] = "cryptokaizen-data-tokyo.preprod"

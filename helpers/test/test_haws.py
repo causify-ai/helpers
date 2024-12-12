@@ -17,17 +17,17 @@ class Haws_test_case(hunitest.TestCase):
         """
         Mocked AWS credentials for moto.
         """
-        os.environ["MOCK_AWS_ACCESS_KEY_ID"] = "testing"
-        os.environ["MOCK_AWS_SECRET_ACCESS_KEY"] = "testing"
-        os.environ["MOCK_AWS_SECURITY_TOKEN"] = "testing"
-        os.environ["MOCK_AWS_SESSION_TOKEN"] = "testing"
-        os.environ["MOCK_AWS_DEFAULT_REGION"] = "us-east-1"
+        os.environ["MOCSFY_AWS_ACCESS_KEY_ID"] = "testing"
+        os.environ["MOCSFY_AWS_SECRET_ACCESS_KEY"] = "testing"
+        os.environ["MOCSFY_AWS_SECURITY_TOKEN"] = "testing"
+        os.environ["MOCSFY_AWS_SESSION_TOKEN"] = "testing"
+        os.environ["MOCSFY_AWS_DEFAULT_REGION"] = "us-east-1"
 
 
 class Test_get_session(Haws_test_case):
     @pytest.fixture(autouse=True)
     def set_up_test(self) -> None:
-        os.environ["MOCK_AWS_S3_BUCKET"] = "mock_aws_bucket"
+        os.environ["MOCSFY_AWS_S3_BUCKET"] = "mock_aws_bucket"
 
     def mock_session(self, region: Optional[str] = None) -> None:
         aws_profile = "__mock__"

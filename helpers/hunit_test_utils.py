@@ -472,6 +472,6 @@ def check_env_to_str(
     if skip_secrets_vars:
         # TODO(gp): Difference between amp and cmamp.
         act = hunitest.filter_text(
-            "AM_AWS_|CK_AWS_|GH_ACTION_ACCESS_TOKEN", act
+            "AM_AWS_|CSFY_AWS_|GH_ACTION_ACCESS_TOKEN", act
         )
     self_.assert_equal(act, exp, fuzzy_match=True, purify_text=True)

@@ -328,10 +328,10 @@ class TestGenerateAwsFiles(hunitest.TestCase):
 
     def set_up_test(self) -> None:
         self.setUp()
-        os.environ["MOCK_AWS_ACCESS_KEY_ID"] = "mock_access_key"
-        os.environ["MOCK_AWS_SECRET_ACCESS_KEY"] = "mock_secret_access_key"
-        os.environ["MOCK_AWS_S3_BUCKET"] = "mock_s3_bucket"
-        os.environ["MOCK_AWS_DEFAULT_REGION"] = "mock_default_region"
+        os.environ["MOCSFY_AWS_ACCESS_KEY_ID"] = "mock_access_key"
+        os.environ["MOCSFY_AWS_SECRET_ACCESS_KEY"] = "mock_secret_access_key"
+        os.environ["MOCSFY_AWS_S3_BUCKET"] = "mock_s3_bucket"
+        os.environ["MOCSFY_AWS_DEFAULT_REGION"] = "mock_default_region"
         #
         os.environ["TEST_AWS_ACCESS_KEY_ID"] = "test_access_key"
         os.environ["TEST_AWS_SECRET_ACCESS_KEY"] = "test_secret_access_key"
@@ -345,10 +345,10 @@ class TestGenerateAwsFiles(hunitest.TestCase):
         )
 
     def tear_down_test(self) -> None:
-        del os.environ["MOCK_AWS_ACCESS_KEY_ID"]
-        del os.environ["MOCK_AWS_SECRET_ACCESS_KEY"]
-        del os.environ["MOCK_AWS_S3_BUCKET"]
-        del os.environ["MOCK_AWS_DEFAULT_REGION"]
+        del os.environ["MOCSFY_AWS_ACCESS_KEY_ID"]
+        del os.environ["MOCSFY_AWS_SECRET_ACCESS_KEY"]
+        del os.environ["MOCSFY_AWS_S3_BUCKET"]
+        del os.environ["MOCSFY_AWS_DEFAULT_REGION"]
         #
         del os.environ["TEST_AWS_ACCESS_KEY_ID"]
         del os.environ["TEST_AWS_SECRET_ACCESS_KEY"]

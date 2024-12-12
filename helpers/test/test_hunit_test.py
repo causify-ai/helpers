@@ -1040,9 +1040,9 @@ class Test_purify_from_env_vars(hunitest.TestCase):
     )
     def test1(self) -> None:
         """
-        - $CK_AWS_S3_BUCKET
+        - $CSFY_AWS_S3_BUCKET
         """
-        env_var = "CK_AWS_S3_BUCKET"
+        env_var = "CSFY_AWS_S3_BUCKET"
         self.helper(env_var)
 
 
@@ -1056,11 +1056,11 @@ class Test_purify_from_env_vars(hunitest.TestCase):
 #        - Multiple env vars.
 #        """
 #        #am_aws_s3_bucket = os.environ["AM_AWS_S3_BUCKET"]
-#        ck_aws_s3_bucket = os.environ["CK_AWS_S3_BUCKET"]
+#        csfy_aws_s_s3_bucket = os.environ["CSFY_AWS_S3_BUCKET"]
 #        #
 #        text = f"""
 #        $AM_AWS_S3_BUCKET = {am_aws_s3_bucket}
-#        $CK_AWS_S3_BUCKET = {ck_aws_s3_bucket}
+#        $CSFY_AWS_S3_BUCKET = {csfy_aws_s3_bucket}
 #        """
 #        #
 #        actual = hunitest.purify_from_env_vars(text)
