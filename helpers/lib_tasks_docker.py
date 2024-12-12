@@ -511,7 +511,7 @@ def _generate_docker_compose_file(
     # version='#1 SMP Fri Jan 14 13:59:45 UTC 2022'
     # machine='x86_64'
     # ```
-    am_host_os_name = os.uname()[0]
+    csfy_host_os_name = os.uname()[0]
     csfy_host_name = os.uname()[1]
     am_host_version = os.uname()[2]
     am_host_user_name = getpass.getuser()
@@ -543,7 +543,7 @@ def _generate_docker_compose_file(
             f"CSFY_ENABLE_DIND={CSFY_ENABLE_DIND}",
             f"CSFY_FORCE_TEST_FAIL=$CSFY_FORCE_TEST_FAIL",
             f"CSFY_HOST_NAME={csfy_host_name}",
-            f"AM_HOST_OS_NAME={am_host_os_name}",
+            f"CSFY_HOST_OS_NAME={csfy_host_os_name}",
             f"AM_HOST_USER_NAME={am_host_user_name}",
             f"AM_HOST_VERSION={am_host_version}",
             "AM_REPO_CONFIG_CHECK=True",

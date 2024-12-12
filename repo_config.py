@@ -93,8 +93,8 @@ def get_docker_base_image_name() -> str:
 
 def _raise_invalid_host(only_warning: bool) -> None:
     host_os_name = os.uname()[0]
-    am_host_os_name = os.environ.get("AM_HOST_OS_NAME", None)
-    msg = f"Don't recognize host: host_os_name={host_os_name}, am_host_os_name={am_host_os_name}"
+    csfy_host_os_name = os.environ.get("CSFY_HOST_OS_NAME", None)
+    msg = f"Don't recognize host: host_os_name={host_os_name}, csfy_host_os_name={csfy_host_os_name}"
     # TODO(Grisha): unclear if it is a difference between `cmamp` and `sorrentum`.
     if only_warning:
         _LOG.warning(msg)

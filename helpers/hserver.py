@@ -54,7 +54,7 @@ def is_inside_docker() -> bool:
 # since inside Docker the name of the host is like `01a7e34a82a5`. Of course,
 # there is no way to know anything about the host for security reason, so we
 # pass this value from the external environment to the container, through env
-# vars (e.g., `CSFY_HOST_NAME`, `AM_HOST_OS_NAME`).
+# vars (e.g., `CSFY_HOST_NAME`, `CSFY_HOST_OS_NAME`).
 
 
 def is_dev_ck() -> bool:
@@ -101,11 +101,11 @@ def is_mac(*, version: Optional[str] = None) -> bool:
     _LOG.debug("version=%s", version)
     host_os_name = os.uname()[0]
     _LOG.debug("os.uname()=%s", str(os.uname()))
-    am_host_os_name = os.environ.get("AM_HOST_OS_NAME", None)
+    csfy_host_os_name = os.environ.get("CSFY_HOST_OS_NAME", None)
     _LOG.debug(
-        "host_os_name=%s am_host_os_name=%s", host_os_name, am_host_os_name
+        "host_os_name=%s csfy_host_os_name=%s", host_os_name, csfy_host_os_name
     )
-    is_mac_ = host_os_name == "Darwin" or am_host_os_name == "Darwin"
+    is_mac_ = host_os_name == "Darwin" or csfy_host_os_name == "Darwin"
     if version is None:
         # The user didn't request a specific version, so we return whether we
         # are running on a Mac or not.

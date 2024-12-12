@@ -109,7 +109,7 @@ def get_env_vars() -> List[str]:
         # The name of the host running Docker.
         "CSFY_HOST_NAME",
         # The OS of the host running Docker.
-        "AM_HOST_OS_NAME",
+        "CSFY_HOST_OS_NAME",
         # The name of the user running the host.
         "AM_HOST_USER_NAME",
         # The version of the host running Docker.
