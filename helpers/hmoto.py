@@ -29,9 +29,9 @@ class S3Mock_TestCase(hunitest.TestCase):
     mock_aws_credentials_patch = umock.patch.dict(
         hs3.os.environ,
         {
-            "MOCSFY_AWS_ACCESS_KEY_ID": "mock_key_id",
-            "MOCSFY_AWS_SECRET_ACCESS_KEY": "mock_secret_access_key",
-            "MOCSFY_AWS_DEFAULT_REGION": "us-east-1",
+            "MOCK_AWS_ACCESS_KEY_ID": "mock_key_id",
+            "MOCK_AWS_SECRET_ACCESS_KEY": "mock_secret_access_key",
+            "MOCK_AWS_DEFAULT_REGION": "us-east-1",
         },
     )
     mock_aws_credentials = None
