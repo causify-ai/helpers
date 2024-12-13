@@ -117,10 +117,10 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
               is_mac(version='Monterey')='False'
               is_mac(version='Ventura')='False'
         # Env vars:
-          AM_ENABLE_DIND='1'
-          AM_FORCE_TEST_FAIL=''
-          AM_REPO_CONFIG_CHECK='True'
-          AM_REPO_CONFIG_PATH=''
+          CSFY_ENABLE_DIND='1'
+          CSFY_FORCE_TEST_FAIL=''
+          CSFY_REPO_CONFIG_CHECK='True'
+          CSFY_REPO_CONFIG_PATH=''
           CSFY_CI=''
           GH_ACTION_ACCESS_TOKEN=empty
           """
@@ -158,10 +158,10 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
               is_inside_docker='True'
               is_mac='True'
         # Env vars:
-        AM_ENABLE_DIND='1'
-        AM_FORCE_TEST_FAIL=''
-        AM_REPO_CONFIG_CHECK='False'
-        AM_REPO_CONFIG_PATH=''
+        CSFY_ENABLE_DIND='1'
+        CSFY_FORCE_TEST_FAIL=''
+        CSFY_REPO_CONFIG_CHECK='False'
+        CSFY_REPO_CONFIG_PATH=''
         CSFY_CI=''
         GH_ACTION_ACCESS_TOKEN=empty
         """
@@ -208,11 +208,11 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
               is_mac(version='Monterey')='False'
               is_mac(version='Ventura')='False'
         # Env vars:
-          AM_ENABLE_DIND='1'
-          AM_FORCE_TEST_FAIL=''
-          AM_REPO_CONFIG_CHECK='True'
-          AM_REPO_CONFIG_PATH=''
           CSFY_CI='true'
+          CSFY_ENABLE_DIND='1'
+          CSFY_FORCE_TEST_FAIL=''
+          CSFY_REPO_CONFIG_CHECK='True'
+          CSFY_REPO_CONFIG_PATH=''
         """
         # We ignore the AWS vars, since GH Actions does some replacement to mask
         # the env vars coming from secrets.
@@ -224,7 +224,7 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
         reason="Run only in //cmamp",
     )
     def test_cmamp_ci(self) -> None:
-        hunteuti.execute_only_on_ci()
+        #hunteuti.execute_only_on_ci()
         #
         exp = r"""
         # Repo config:
@@ -255,12 +255,12 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
               is_mac(version='Monterey')='False'
               is_mac(version='Ventura')='False'
         # Env vars:
-          AM_ENABLE_DIND='1'
-          AM_FORCE_TEST_FAIL=''
-          AM_REPO_CONFIG_CHECK='True'
-          AM_REPO_CONFIG_PATH=''
-          CK_ECR_BASE_PATH='$CK_ECR_BASE_PATH'
           CSFY_CI='true'
+          CSFY_ECR_BASE_PATH='$CSFY_ECR_BASE_PATH'
+          CSFY_ENABLE_DIND='1'
+          CSFY_FORCE_TEST_FAIL=''
+          CSFY_REPO_CONFIG_CHECK='True'
+          CSFY_REPO_CONFIG_PATH=''
         """
         # We ignore the AWS vars, since GH Actions does some replacement to mask
         # the env vars coming from secrets.

@@ -201,7 +201,7 @@
   aws_secret_access_key=**
 
   > printenv | grep CK_
-  CK_AWS_PROFILE=ck
+  CSFY_AWS_PROFILE=ck
   ```
 
 - If you don't have them, you need to re-run `source dev_scripts/setenv.sh` in

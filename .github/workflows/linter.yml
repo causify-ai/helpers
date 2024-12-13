@@ -21,9 +21,9 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets.CK_AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.CK_AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ vars.CK_AWS_DEFAULT_REGION }}
+          aws-access-key-id: ${{ secrets.CSFY_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.CSFY_AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.CSFY_AWS_DEFAULT_REGION }}
 
       # # This is needed to pull the Docker image.
       - name: Login to Amazon ECR
@@ -65,15 +65,15 @@ jobs:
         # Do not run on draft pull requests.
         if: github.event.pull_request.draft == false
         env:
-          CK_AWS_ACCESS_KEY_ID: ${{ secrets.CK_AWS_ACCESS_KEY_ID }}
-          CK_AWS_SECRET_ACCESS_KEY: ${{ secrets.CK_AWS_SECRET_ACCESS_KEY }}
-          CK_AWS_DEFAULT_REGION: ${{ vars.CK_AWS_DEFAULT_REGION }}
-          # CK_ECR_BASE_PATH: ${{ vars.CK_ECR_BASE_PATH }}
+          CSFY_AWS_ACCESS_KEY_ID: ${{ secrets.CSFY_AWS_ACCESS_KEY_ID }}
+          CSFY_AWS_SECRET_ACCESS_KEY: ${{ secrets.CSFY_AWS_SECRET_ACCESS_KEY }}
+          CSFY_AWS_DEFAULT_REGION: ${{ vars.CSFY_AWS_DEFAULT_REGION }}
+          # CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
           # If you prefer pulling the image from ECR, comment out the following line and uncomment the one above.
           # Base path for GHCR registry.
-          CK_ECR_BASE_PATH: ghcr.io/cryptokaizen
-          CK_AWS_S3_BUCKET: ${{ vars.CK_AWS_S3_BUCKET }}
-          CK_TELEGRAM_TOKEN: ${{ secrets.CK_TELEGRAM_TOKEN }}
+          CSFY_ECR_BASE_PATH: ghcr.io/cryptokaizen
+          CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
+          CSFY_TELEGRAM_TOKEN: ${{ secrets.CSFY_TELEGRAM_TOKEN }}
           GH_ACTION_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         # To run the linter, fetch the master branch for comparison with the
         # current branch.

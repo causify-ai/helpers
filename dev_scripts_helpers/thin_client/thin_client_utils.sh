@@ -209,11 +209,11 @@ set_pythonpath() {
 configure_specific_project() {
     echo "# configure_specific_project()"
     # AWS profiles which are propagated to Docker.
-    export CK_AWS_PROFILE="ck"
+    export CSFY_AWS_PROFILE="ck"
 
     # These variables are propagated to Docker.
-    export CK_ECR_BASE_PATH="623860924167.dkr.ecr.eu-north-1.amazonaws.com"
-    export CK_AWS_S3_BUCKET="cryptokaizen-data"
+    export CSFY_ECR_BASE_PATH="623860924167.dkr.ecr.eu-north-1.amazonaws.com"
+    export CSFY_AWS_S3_BUCKET="cryptokaizen-data"
 
     export DEV1="172.30.2.136"
     export DEV2="172.30.2.128"

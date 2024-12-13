@@ -13,13 +13,13 @@ The JSON file looks like:
 {
     "secrets": {
         "GH_ACTION_ACCESS_TOKEN": "***",
-        "CK_AWS_ACCESS_KEY_ID": "***",
-        "CK_AWS_SECRET_ACCESS_KEY": "***",
-        "CK_TELEGRAM_TOKEN": "***",
+        "CSFY_AWS_ACCESS_KEY_ID": "***",
+        "CSFY_AWS_SECRET_ACCESS_KEY": "***",
+        "CSFY_TELEGRAM_TOKEN": "***",
     }
     "variables": {
-        "CK_AWS_DEFAULT_REGION": "eu-north-1",
-        "CK_AWS_S3_BUCKET": "ck-data",
+        "CSFY_AWS_DEFAULT_REGION": "eu-north-1",
+        "CSFY_AWS_S3_BUCKET": "ck-data",
     }
 }
 ```
