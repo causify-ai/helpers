@@ -1,10 +1,12 @@
 import logging
 import os
+import tempfile
 from typing import Generator, List, Optional
 
 import pytest
 
 import helpers.hgit as hgit
+import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
@@ -453,3 +455,57 @@ class Test_extract_gh_issue_number_from_branch(hunitest.TestCase):
         act = hgit.extract_gh_issue_number_from_branch(branch_name)
         exp = "None"
         self.assert_equal(str(act), exp)
+
+
+class Test_find_git_root1(hunitest.TestCase):
+    @pytest.fixture(autouse=True)
+    def setup_teardown_test(self):
+        # Run before each test.
+        self.set_up_test()
+        yield
+        # Run after each test.
+        self.tear_down_test()
+
+    def set_up_test(self) -> None:
+        self.temp_dir = tempfile.TemporaryDirectory()
+        # Create `orange` repo.
+        self.repo_dir = os.path.join(self.temp_dir.name, "orange")
+        os.makedirs(self.repo_dir)
+        self.git_dir = os.path.join(self.repo_dir, ".git")
+        os.makedirs(self.git_dir)
+        # Create `amp` submodule under `orange`.
+        self.submodule_dir = os.path.join(self.repo_dir, "amp")
+        os.makedirs(self.submodule_dir)
+        submodule_git_file = os.path.join(self.submodule_dir, ".git")
+        with open(submodule_git_file, "w") as f:
+            f.write(f"gitdir: ../.git/modules/amp")
+        os.makedirs(os.path.join(self.repo_dir, ".git", "modules", "amp"))
+        # Create `helpers_root` submodule under `amp`.
+        self.subsubmodule_dir = os.path.join(self.submodule_dir, "helpers_root")
+        os.makedirs(self.subsubmodule_dir)
+        subsubmodule_git_file = os.path.join(self.subsubmodule_dir, ".git")
+        with open(subsubmodule_git_file, "w") as f:
+            f.write(f"gitdir: ../../.git/modules/amp/modules/helpers_root")
+        os.makedirs(
+            os.path.join(
+                self.repo_dir, ".git", "modules", "amp", "modules", "helpers_root"
+            )
+        )
+
+    def tear_down_test(self) -> None:
+        self.temp_dir.cleanup()
+
+    def test1(self):
+        with hsystem.cd(self.repo_dir):
+            git_root = hgit.find_git_root(".")
+            self.assert_equal(git_root, self.repo_dir)
+
+    def test2(self):
+        with hsystem.cd(self.submodule_dir):
+            git_root = hgit.find_git_root(".")
+            self.assert_equal(git_root, self.repo_dir)
+
+    def test3(self):
+        with hsystem.cd(self.subsubmodule_dir):
+            git_root = hgit.find_git_root(".")
+            self.assert_equal(git_root, self.repo_dir)
