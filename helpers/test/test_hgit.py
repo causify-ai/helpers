@@ -702,8 +702,7 @@ class Test_find_git_root4(hunitest.TestCase):
 
 class Test_find_git_root5(hunitest.TestCase):
     """
-    Check that the function returns the correct output when no .git directory
-    is found.
+    Check that the error is raised when no .git directory is found.
     """
 
     @pytest.fixture(autouse=True)
@@ -721,19 +720,20 @@ class Test_find_git_root5(hunitest.TestCase):
         os.makedirs(self.arbitrary_dir)
         # Create arbitrary directory that is a submodule or linked repo that
         #   point to non existing super repo.
-        self.submodule_dir = os.path.join(self.arbitrary_dir, "submodule")
-        os.makedirs(self.submodule_dir)
-        submodule_git_file = os.path.join(self.submodule_dir, ".git")
-        with open(submodule_git_file, "w") as f:
-            f.write(f"gitdir: ../.git/modules/arbitrary_dir")
+        self.repo_dir = os.path.join(self.temp_dir.name, "broken-repo")
+        os.makedirs(self.repo_dir)
+        # Create an invalid `.git` file with a non-existent `gitdir`.
+        invalid_git_file = os.path.join(self.repo_dir, ".git")
+        with open(invalid_git_file, "w") as f:
+            f.write("gitdir: /nonexistent/path/to/gitdir")
 
     def tear_down_test(self) -> None:
         self.temp_dir.cleanup()
 
     def test1(self) -> None:
         """
-        Check the error is raised when the caller is in a directory that is not
-        either a git repo or a submodule.
+        Check that the error is raised when the caller is in a directory that
+        is not either a git repo or a submodule.
         """
         with hsystem.cd(self.arbitrary_dir), self.assertRaises(
             AssertionError
@@ -751,20 +751,17 @@ class Test_find_git_root5(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        Check that error is raised when the caller is in a submodule or linked
-        repo that points to non existing super repo.
+        Check that the error is raised when the caller is in a submodule or
+        linked repo that points to non existing super repo.
         """
-        with hsystem.cd(self.submodule_dir), self.assertRaises(
-            AssertionError
-        ) as cm:
-            a = hgit.find_git_root(".")
-            _LOG.info("a=%s", a)
+        with hsystem.cd(self.repo_dir), self.assertRaises(AssertionError) as cm:
+            _ = hgit.find_git_root(".")
         act = str(cm.exception)
         exp = f"""
         * Failed assertion *
-        '{self.arbitrary_dir}/.git/modules'
-        ==
-        '{self.arbitrary_dir}/.git/modules/arbitrary_dir'
+        '/'
+        !=
+        '/'
         Top-level .git directory not found.
         """
         self.assert_equal(act, exp, purify_text=True, fuzzy_match=True)

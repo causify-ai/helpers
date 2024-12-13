@@ -216,7 +216,7 @@ def find_git_root(path: str = ".") -> str:
                             # Move one level up in the directory structure.
                             parent = os.path.dirname(abs_git_dir)
                             # Reached the filesystem root without finding the `.git` directory.
-                            hdbg.dassert_eq(
+                            hdbg.dassert_ne(
                                 parent,
                                 abs_git_dir,
                                 "Top-level .git directory not found.",
