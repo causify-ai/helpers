@@ -330,6 +330,7 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
     # TODO(Shaopengz): Outside CK infra, the test hangs, so skip.
     @pytest.mark.requires_ck_infra
     @pytest.mark.skipif(not hgit.is_amp(), reason="Only run in amp")
+    @pytest.mark.skip(reason="Skiping run in CmampTask11001")
     def test_gh_workflow_list(self) -> None:
         target = "gh_workflow_list(ctx, filter_by_branch='master')"
         self._check_output(target)
