@@ -458,6 +458,13 @@ class Test_extract_gh_issue_number_from_branch(hunitest.TestCase):
 
 
 class Test_find_git_root1(hunitest.TestCase):
+    """
+    Check that the function returns the correct git root if:
+    - the repo is a super repo (e.g. orange)
+    - the repo contains another super repo (e.g. amp) as submodule (first level)
+    - the first level submodule contains another submodule (e.g. helpers_root) (second level)
+    """
+
     @pytest.fixture(autouse=True)
     def setup_teardown_test(self):
         # Run before each test.
@@ -491,21 +498,46 @@ class Test_find_git_root1(hunitest.TestCase):
                 self.repo_dir, ".git", "modules", "amp", "modules", "helpers_root"
             )
         )
+        # Create `ck.infra` runnable dir under `amp`.
+        self.runnable_dir = os.path.join(self.submodule_dir, "ck.infra")
+        os.makedirs(self.runnable_dir)
 
     def tear_down_test(self) -> None:
         self.temp_dir.cleanup()
 
-    def test1(self):
+    def test1(self) -> None:
+        """
+        Check that the function returns the correct git root if
+        - the caller is in the super repo (e.g. orange).
+        """
         with hsystem.cd(self.repo_dir):
             git_root = hgit.find_git_root(".")
             self.assert_equal(git_root, self.repo_dir)
 
-    def test2(self):
+    def test2(self) -> None:
+        """
+        Check that the function returns the correct git root if
+        - the caller is in first level submodule (e.g. amp).
+        """
         with hsystem.cd(self.submodule_dir):
             git_root = hgit.find_git_root(".")
             self.assert_equal(git_root, self.repo_dir)
 
-    def test3(self):
+    def test3(self) -> None:
+        """
+        Check that the function returns the correct git root if
+        - the caller is in second level submodule (e.g. helpers).
+        """
         with hsystem.cd(self.subsubmodule_dir):
+            git_root = hgit.find_git_root(".")
+            self.assert_equal(git_root, self.repo_dir)
+
+    def test4(self) -> None:
+        """
+        Check that the function returns the correct git root if
+        - the caller is in a runnable dir (e.g. ck.infra) under the
+            first level submodule (e.g. amp).
+        """
+        with hsystem.cd(self.runnable_dir):
             git_root = hgit.find_git_root(".")
             self.assert_equal(git_root, self.repo_dir)
