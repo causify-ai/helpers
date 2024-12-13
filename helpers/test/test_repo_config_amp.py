@@ -208,21 +208,21 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
               is_mac(version='Monterey')='False'
               is_mac(version='Ventura')='False'
         # Env vars:
+          CSFY_CI='true'
           CSFY_ENABLE_DIND='1'
           CSFY_FORCE_TEST_FAIL=''
           CSFY_REPO_CONFIG_CHECK='True'
           CSFY_REPO_CONFIG_PATH=''
-          CSFY_CI='true'
         """
         # We ignore the AWS vars, since GH Actions does some replacement to mask
         # the env vars coming from secrets.
         skip_secrets_vars = True
         hunteuti.check_env_to_str(self, exp, skip_secrets_vars=skip_secrets_vars)
 
-    #@pytest.mark.skipif(
-    #    not henv.execute_repo_config_code("get_name()") == "//cmamp",
-    #    reason="Run only in //cmamp",
-    #)
+    @pytest.mark.skipif(
+        not henv.execute_repo_config_code("get_name()") == "//cmamp",
+        reason="Run only in //cmamp",
+    )
     def test_cmamp_ci(self) -> None:
         #hunteuti.execute_only_on_ci()
         #
