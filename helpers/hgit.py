@@ -190,12 +190,12 @@ def find_git_root(path: str = ".") -> str:
     git_root_dir = None
     while True:
         git_dir = os.path.join(path, ".git")
-        # Check if `.git` is a directory which indicates a standard Git repository
+        # Check if `.git` is a directory which indicates a standard Git repository.
         if os.path.isdir(git_dir):
             # Found the Git root directory.
             git_root_dir = path
             break
-        # Check if `.git` is a file which indicates submodules or linked setups
+        # Check if `.git` is a file which indicates submodules or linked setups.
         if os.path.isfile(git_dir):
             with open(git_dir, "r") as f:
                 for line in f:
@@ -208,7 +208,7 @@ def find_git_root(path: str = ".") -> str:
                         )
                         # Traverse up to find the top-level `.git` directory.
                         while True:
-                            # Check if the current directory is a `.git` directory
+                            # Check if the current directory is a `.git` directory.
                             if os.path.basename(abs_git_dir) == ".git":
                                 git_root_dir = os.path.dirname(abs_git_dir)
                                 # Found the root.
@@ -229,7 +229,7 @@ def find_git_root(path: str = ".") -> str:
             break
         # Move up one level in the directory hierarchy.
         parent = os.path.dirname(path)
-        # Reached the filesystem root without finding `.git`
+        # Reached the filesystem root without finding `.git`.
         hdbg.dassert_ne(
             parent,
             path,
