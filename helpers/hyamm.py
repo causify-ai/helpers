@@ -7,6 +7,7 @@ import os
 import pandas as pd
 import gspread_pandas
 from IPython.display import display
+import numpy as np
 
 from tqdm.autonotebook import tqdm
 
@@ -97,6 +98,7 @@ csfy_schema = [
     "company_name",
     "company_domain",
     "city",
+    "origin",
 ]
 
 
@@ -113,55 +115,141 @@ def normalize_csfy_schema(df, cols_map):
     return df_out
 
 
-def get_VC_Tier_2_Partners_data(df):
-    cols_map = {
-        "email_first": "email",
-        "First name": "first_name",
-        "last_name": "last_name",
-        "job_title": "job_title",
-        "company_name": "company_name",
-        "company_domain": "company_domain",
-        "city": "city",
-        "Merge status": "merge_status"
-    }
-    hdbg.dassert_is_subset(cols_map.keys(), df.columns)
-    df = df[cols_map.keys()]
-    df_out = df.rename(columns=cols_map, inplace=False)
-    return df_out
+# # #############################################################################
+#
+#
+# def get_VC_Tier_2_Partners_data(df):
+#     cols_map = {
+#         "email_first": "email",
+#         "First name": "first_name",
+#         "last_name": "last_name",
+#         "job_title": "job_title",
+#         "company_name": "company_name",
+#         "company_domain": "company_domain",
+#         "city": "city",
+#         "Merge status": "merge_status"
+#     }
+#     hdbg.dassert_is_subset(cols_map.keys(), df.columns)
+#     df = df[cols_map.keys()]
+#     df_out = df.rename(columns=cols_map, inplace=False)
+#     return df_out
 
 
-def get_CausifyScraper_data(gsheet_url, gsheet_name):
+# #############################################################################
+
+
+# error
+# baseUrl	https://www.linkedin.com/sales/lead/ACwAAATw5f...
+# timestamp	2023-11-09T20:34:20.691Z
+# linkedinProfileUrl	https://www.linkedin.com/in/adam-alfi-52891823/
+# email	aalfi@iconiqcapital.com
+# linkedinProfile	https://www.linkedin.com/in/adam-alfi-52891823/
+# description	Partner at ICONIQ / Growth Stage Technology In...
+# headline	Partner at ICONIQ
+# location	San Francisco, California, United States
+# imgUrl
+# firstName	Adam
+# lastName	Alfi
+# fullName	Adam Alfi
+# subscribers	6445
+# connectionDegree	2nd
+# vmid	ACoAAATw5fABJ5ZF-SwciO6SM_wl4NHzQsymiys
+# userId	82896368
+# linkedinSalesNavigatorUrl	https://www.linkedin.com/sales/people/ACoAAATw...
+# connectionsCount	500
+# connectionsUrl	https://www.linkedin.com/search/results/people...
+# mutualConnectionsUrl	https://www.linkedin.com/search/results/people...
+# mutualConnectionsText	Greg Kotchick is a mutual connection
+# mailFromDropcontact	aalfi@iconiqcapital.com
+# company	ICONIQ Capital
+# companyUrl	https://www.linkedin.com/company/6376200/
+# jobTitle	Partner
+# jobDescription
+# jobLocation
+# jobDateRange	Dec 2022 - Present
+# jobDuration	1 yr
+# company2	ICONIQ Capital
+# companyUrl2	https://www.linkedin.com/company/6376200/
+# jobTitle2	Principal, ICONIQ Growth
+# jobLocation2	San Francisco Bay Area
+# jobDateRange2	2021 - Dec 2022
+# jobDuration2	2 yrs
+# school	Georgetown University
+# schoolUrl	https://www.linkedin.com/company/4794/
+# schoolDegree
+# schoolDateRange
+# school2	ESCI-UPF
+# schoolDegree2
+# schoolDateRange2
+# qualificationFromDropContact	nominative@pro
+# civilityFromDropContact	Mr
+# phoneNumberFromDropContact	+1 415-967-7763
+# websiteFromDropContact	www.iconiqcapital.com
+# twitter
+# twitterProfileUrl
+# website
+# birthday
+# companyWebsite	http://www.iconiqcapital.com
+# allSkills	Spanish, Operations Management, Data Analysis,...
+# skill1	Spanish
+# endorsement1
+# skill2	Operations Management
+# endorsement2
+# skill3	Data Analysis
+# endorsement3
+# skill4	Financial Analysis
+# endorsement4
+# skill5	Logistics Management
+# endorsement5
+# skill6	Manufacturing
+# endorsement6
+# profileId	adam-alfi-52891823
+# schoolUrl2	https://www.linkedin.com/company/701578/
+# jobDescription2	ICONIQ Growth is a tech focused direct investm...
+# schoolDescription
+# schoolDescription2
+# mail
+# phoneNumber
+# facebookUrl
+
+
+def get_CausifyScraper_data_type1(normalize=True):
     """
     Parse the data from the Google Sheet and convert it to the CSFY schema.
 
     E.g., Search4.FinTech_VC_in_US.SalesNavigator
-    https://docs.google.com/spreadsheets/d/1Lbnyvbb28Cv-y0k-nrG1NSES9F6rxesGoHZV2LOJ6wA/
     """
-    # TODO(gp): Use cached.
-    spread = gspread_pandas.Spread(gsheet_url)
-    df = spread.sheet_to_df(sheet=gsheet_name, index=None)
+    url = ("https://docs.google.com/spreadsheets/d/1Lbnyvbb28Cv-y0k"
+        "-nrG1NSES9F6rxesGoHZV2LOJ6wA/")
+    dfs = []
+    for gsheet_name in ("ScrapeProfile", "ScrapeProfile2"):
+        df_tmp = get_cached_sheet_to_df(url, gsheet_name)
+        display(df_tmp.head(1))
+        dfs.append(df_tmp)
+    df = pd.concat(dfs)
     #
-    cols_map = {
-        "linkedinProfileUrl": "linkedin_url",
-        "firstName": "first_name",
-        "lastName": "last_name",
-        "email": "email",
-        "jobTitle": "job_title",
-        "jobLocation": "city",
-        "company": "company_name",
-        #"companyWebsite": "company_domain",
-    }
-    # hdbg.dassert_is_subset(cols_map.keys(), df.columns)
-    # df = df[cols_map.keys()]
-    # df_out = df.rename(columns=cols_map, inplace=False)
-    # # Convert in CSFY schema.
-    # hdbg.dassert_is_subset(df_out.columns, csfy_schema)
-    # for col in csfy_schema:
-    #     if col not in df_out.columns:
-    #         df_out[col] = ""
-    # df_out = df_out[csfy_schema]
-    df_out = normalize_csfy_schema(df, cols_map)
+    df["origin"] = "Search4.FinTech_VC_in_US"
+    #
+    if normalize:
+        cols_map = {
+            "origin": "origin",
+            "linkedinProfileUrl": "linkedin_url",
+            "firstName": "first_name",
+            "lastName": "last_name",
+            "email": "email",
+            "jobTitle": "job_title",
+            "description": "job_title_description",
+            "jobLocation": "city",
+            "company": "company_name",
+            #"companyWebsite": "company_domain",
+        }
+        df_out = normalize_csfy_schema(df, cols_map)
+    else:
+        df_out = df
     return df_out
+
+
+# #############################################################################
 
 
 # profileUrl	https://www.linkedin.com/sales/lead/ACwAAABGC0...
@@ -207,14 +295,12 @@ def extract_and_validate_email(df: pd.DataFrame) -> str:
     Extract and validate the email from a transposed DataFrame.
     """
     # List of possible email sources
-    import numpy as np
     email_fields = ['hunter_extracted_email', 'dropcontact_mail', 'all_emails']
     # Extract email values from the relevant fields
     email_values = df[email_fields]
     num_values = [
         set([str(v) for v in row if (str(v) != "" and str(v) != "nan")]) for
         _, row in email_values.iterrows()]
-    #num_values
     num_values_out = []
     for val in num_values:
         if len(val) > 1:
@@ -227,7 +313,7 @@ def extract_and_validate_email(df: pd.DataFrame) -> str:
     return num_values_out
 
 
-def get_CausifyScraper_data_v2():
+def get_CausifyScraper_data_type2(normalize=True):
     """
     Parse the data from the Google Sheet and convert it to the CSFY schema.
 
@@ -284,24 +370,198 @@ def get_CausifyScraper_data_v2():
         dfs.append(df)
         #time.sleep(20)
     # Concat.
-    _LOG.info("Done")
     df2 = pd.concat(dfs, axis=0)
     display(df2.head(2))
     #
     df2["email"] = extract_and_validate_email(df2)
+    df2["origin"] = "VC_search_export"
     # Convert to CSFY schema.
-    cols_map = {
-        "linkedInProfileUrl": "linkedin_url",
-        "firstName": "first_name",
-        "lastName": "last_name",
-        "email": "email",
-        "hunter_verification": "email_verification",
-        "title": "job_title",
-        "titleDescription": "job_title_description",
-        "companyName": "company_name",
-        "companyLocation": "city",
-    }
-    df_out = normalize_csfy_schema(df2, cols_map)
+    if normalize:
+        cols_map = {
+            "origin": "origin",
+            "linkedInProfileUrl": "linkedin_url",
+            "firstName": "first_name",
+            "lastName": "last_name",
+            "email": "email",
+            "hunter_verification": "email_verification",
+            "title": "job_title",
+            "titleDescription": "job_title_description",
+            "companyName": "company_name",
+            "companyLocation": "city",
+        }
+        df_out = normalize_csfy_schema(df2, cols_map)
+    else:
+        df_out = df
+    return df_out
+
+
+# #############################################################################
+
+
+# linkedinProfileUrl	https://www.linkedin.com/in/robtoews/
+# email
+# firstName	Rob
+# lastName	Toews
+# company	Radical Ventures
+# jobTitle	Partner
+# Email	rob@radical.vc
+# Score	97
+# Verification status	valid
+# Position
+# Twitter
+# Linkedin
+# Phone number
+# Company	Radical Ventures
+# Source 1	http://weeklyvoice.com/canadian-companies-prio...
+# Source 2	http://salt.org/speakers/rob-toews
+# Source 3	http://radical.vc/how-accurate-were-our-2023-a...
+# Source 4	http://radical.vc/neurips-2022-and-whats-next-...
+# Source 5	http://nationalposttoday.com/ai-skills-in-dema...
+
+
+def get_CausifyScraper_data_type3(normalize=True):
+    """
+    Parse the data from the Google Sheet and convert it to the CSFY schema.
+
+    Search7.AI_VC_in_US.gsheet
+    https://docs.google.com/spreadsheets/d/12qmHUo6sTuFpLQcdw22EaA3xsJ9ERuiCJdhDyF-2elM/edit?gid=1486783561#gid=1486783561
+    """
+    url = "https://docs.google.com/spreadsheets/d/12qmHUo6sTuFpLQcdw22EaA3xsJ9ERuiCJdhDyF-2elM/edit?gid=1486783561#gid=1486783561"
+    df = get_cached_sheet_to_df(url, "test-590999-valid")
+    display(df.head(1))
+    df["origin"] = "Search7.AI_VC_in_US"
+    #
+    if normalize:
+        cols_map = {
+            "origin": "origin",
+            "linkedinProfileUrl": "linkedin_url",
+            "firstName": "first_name",
+            "lastName": "last_name",
+            "Email": "email",
+            "Verification status": "email_verification",
+            "Position": "job_title_description",
+            "company": "company_name",
+        }
+        df_out = normalize_csfy_schema(df, cols_map)
+    else:
+        df_out = df
+    return df_out
+
+
+# email_first	aagarwal@insightpartners.com
+# first_name	Anika
+# last_name	Agarwal
+# job_title	Managing Director
+# company_name	Insight Partners
+# company_domain	insightpartners.com
+# city	New York, New York, United States
+# linkedin_id	NaN
+# created_date	NaN
+# list_name	NaN
+# YAMM	NaN
+# email_second	NaN
+# phone	NaN
+# company_phone	NaN
+# middle_name	NaN
+# url	NaN
+# company_id	NaN
+# hunter_verification	accept_all
+
+
+def get_CausifyScraper_data_type4(normalize=True):
+    """
+    Parse the data from the Google Sheet and convert it to the CSFY schema.
+
+    VC Tier 1 - Partners
+    """
+    url = "https://docs.google.com/spreadsheets/d/1WU_u-4gKDb5NE-u1xwMrkFWDT77PoNQuku0pcj3fbNY/edit?gid=1063998981#gid=1063998981"
+    #
+    dfs = []
+    for gsheet_name in ("Sheet1", "Sheet2", "Sheet3"):
+        df_tmp = get_cached_sheet_to_df(url, gsheet_name)
+        display(df_tmp.head(1))
+        dfs.append(df_tmp)
+    df = pd.concat(dfs)
+    #
+    df_tmp = get_cached_sheet_to_df(url, "validity_merged_df")
+    df = df.merge(df_tmp[["email_first", "hunter_verification"]], how="outer",
+              on="email_first")
+    df["origin"] = "VC Tier 1"
+    #
+    if normalize:
+        cols_map = {
+            "origin": "origin",
+            "url": "linkedin_url",
+            "first_name": "first_name",
+            "last_name": "last_name",
+            "email_first": "email",
+            "hunter_verification": "email_verification",
+            "job_title": "job_title",
+            "company_name": "company_name",
+            "company_domain": "company_domain",
+            "city": "city",
+        }
+        df_out = normalize_csfy_schema(df, cols_map)
+    else:
+        df_out = df
+    return df_out
+
+
+# #############################################################################
+
+
+# email_first	rodriguez@foundersfund.com
+# First name	Rodriguez
+# last_name	Keig
+# job_title	Founder
+# company_name	Founders Fund
+# company_domain	foundersfund.com
+# city	New York, New York, United States
+# linkedin_id	1107202338
+# created_date	2024-05-13
+# list_name	VC List Tier 2
+# docsend_link	https://docsend.com/view/v9itej52tumaupih?emai...
+# link	Kaizen pitch deck
+# Merge status	BOUNCED
+# email_verification	invalid
+
+
+def get_CausifyScraper_data_type5(normalize=True):
+    """
+    Parse the data from the Google Sheet and convert it to the CSFY schema.
+
+    VC_Tier_2_Partners
+    """
+    url = "https://docs.google.com/spreadsheets/d/17gxl8o_lS9zOsuJMmX1CSZJfZUBx0UZ66eaAlYutfaA/edit?gid=1525085692#gid=1525085692"
+    #
+    dfs = []
+    target_sheet_names = "VC-20240525-1 VC-20240520-4 VC-20240520-3 VC-20240520-2 VC-20240520".split()
+    for gsheet_name in target_sheet_names:
+        df_tmp = get_cached_sheet_to_df(url, gsheet_name)
+        display(df_tmp.head(1))
+        dfs.append(df_tmp)
+    df = pd.concat(dfs)
+    #
+    df["email_verification"] = np.where(df["Merge status"] != "BOUNCED",
+                                        "valid", "invalid")
+    df["origin"] = "VC Tier 2"
+    #
+    if normalize:
+        cols_map = {
+            "origin": "origin",
+            #"url": "linkedin_url",
+            "First name": "first_name",
+            "last_name": "last_name",
+            "email_first": "email",
+            "email_verification": "email_verification",
+            "job_title": "job_title",
+            "company_name": "company_name",
+            "company_domain": "company_domain",
+            "city": "city",
+        }
+        df_out = normalize_csfy_schema(df, cols_map)
+    else:
+        df_out = df
     return df_out
 
 
@@ -309,11 +569,6 @@ def get_CausifyScraper_data_v2():
 # Process CsfyData.
 # #############################################################################
 
-
-
-# titleDescription
-
-# ######
 
 def dedup_df(df):
     num_rows = df.shape[0]
@@ -418,7 +673,7 @@ def print_causify_df_stats(df, debug=""):
     #
     col_name = "email_verification"
     if col_name in df.columns:
-        valid_mask = (df[col_name] != "")
+        valid_mask = (df[col_name].isin(["valid", "all_valid"]))
         num_valid_emails = valid_mask.sum()
         print("%s pct=%s" % (col_name,
               hprint.perc(num_valid_emails, df.shape[0])))
@@ -506,5 +761,3 @@ def merge_yamm_dfs(spread, names):
     #
     df = pd.concat(dfs, axis=0)
     return df
-
-
