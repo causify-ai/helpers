@@ -1,10 +1,19 @@
+import functools
+
 import pandas as pd
 import gspread_pandas
 from IPython.display import display
 
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
+import helpers.hgoogle_file_api as hgapi
 
+
+@functools.lru_cache(maxsize=128)
+def get_cached_sheet_to_df(url, sheet_name):
+    spread = gspread_pandas.Spread(url)
+    df = spread.sheet_to_df(sheet=sheet_name, index=None)
+    return df
 
 
 # Total sent	726     100%
@@ -125,6 +134,7 @@ def get_CausifyScraper_data(gsheet_url, gsheet_name):
         "jobTitle": "job_title",
         "jobLocation": "city",
         "company": "company_name",
+        #"companyWebsite": "company_domain",
     }
     hdbg.dassert_is_subset(cols_map.keys(), df.columns)
     df = df[cols_map.keys()]
@@ -136,6 +146,9 @@ def get_CausifyScraper_data(gsheet_url, gsheet_name):
             df_out[col] = ""
     df_out = df_out[csfy_schema]
     return df_out
+
+
+# titleDescription
 
 
 def dedup_df(df):
@@ -198,6 +211,10 @@ def clean_first_name(text):
     return text
 
 
+# I will give a list of “ job titles” AT “company name” and you decide if that
+# person is an investor, a customer for AI products. If you are sure report "NA"
+
+
 def print_causify_df_stats(df):
     display(df.head(2))
     print("num_rows=%s" % df.shape[0])
@@ -210,3 +227,13 @@ def print_causify_df_stats(df):
     # Check for same first / last name.
     duplicated = df.duplicated(subset=["first_name", "last_name"])
     print("names duplicated=%s" % duplicated.sum())
+
+
+def save_to_tmp(df):
+    # Name of the new Google Sheet (this will be created)
+    spread = gspread_pandas.Spread('display_tmp')
+    # Write DataFrame to the Google Sheet (this creates the sheet if it doesn't exist)
+    spread.df_to_sheet(df, index=False, sheet='Sheet1', start='A1',
+                       replace=True)
+    #
+    #hgapi.set_row_height("display_tmp", 30)
