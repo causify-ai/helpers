@@ -264,7 +264,7 @@ networks:
             if hserver.is_dev4():
                 host = "cf-spm-dev4"
             else:
-                # host = os.environ["AM_HOST_NAME"]
+                # host = os.environ["CSFY_HOST_NAME"]
                 host = "localhost"
         else:
             # Use the service name, e.g., `im_postgres...`.

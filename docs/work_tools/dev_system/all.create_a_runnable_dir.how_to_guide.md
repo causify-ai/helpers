@@ -142,3 +142,28 @@
 
 #### Release the Docker image
 - TODO(gp): Add details
+
+
+
+
+# Get fresh copy of the repo and its submodules.
+heanhs@dev1:~/src$ git clone --recursive git@github.com:causify-ai/cmamp.git cmamp2
+
+# Checkout the branch that contains the changes.
+heanhs@dev1:~/src/cmamp2$ git checkout CmampTask10224_Make_infra_dir_releasable_2
+
+# Go to the helpers_root directory.
+heanhs@dev1:~/src/cmamp2$ cd helpers_root/
+
+# Checkout the branch that contains fixes.
+heanhs@dev1:~/src/cmamp2/helpers_root$ git checkout TutorialsTask1_Create_releasable_dir
+
+# Go runnable directory.
+heanhs@dev1:~/src/cmamp2/helpers_root$ cd ..
+heanhs@dev1:~/src/cmamp2$ cd ck.infra/
+
+# Activate the virtual environment.
+heanhs@dev1:~/src/cmamp2/ck.infra$ source devops/setenv.sh
+
+# Run tests from runnable dir.
+(client_venv.helpers) heanhs@dev1:~/src/cmamp2/ck.infra$ i run_fast_tests

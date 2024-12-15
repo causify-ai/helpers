@@ -34,12 +34,12 @@ source devops/docker_run/docker_setenv.sh
 
 # Configure Docker.
 # Enable dind unless the user specifies otherwise (needed for prod image).
-if [[ -z "$AM_ENABLE_DIND" ]]; then
-    AM_ENABLE_DIND=1
-    echo "AM_ENABLE_DIND=$AM_ENABLE_DIND"
+if [[ -z "$CSFY_ENABLE_DIND" ]]; then
+    CSFY_ENABLE_DIND=1
+    echo "CSFY_ENABLE_DIND=$CSFY_ENABLE_DIND"
 fi;
 
-if [[ $AM_ENABLE_DIND == 1 ]]; then
+if [[ $CSFY_ENABLE_DIND == 1 ]]; then
     set_up_docker_in_docker
 fi;
 
@@ -67,7 +67,7 @@ if [[ $CK_TEST_SETUP ]]; then
     ./devops/docker_run/test_setup.sh
 
     # Test the installed packages.
-    if [[ $AM_ENABLE_DIND == 1 ]]; then
+    if [[ $CSFY_ENABLE_DIND == 1 ]]; then
         VAL=$(docker -v)
         echo "docker -v: $VAL"
         VAL=$(docker-compose -v)

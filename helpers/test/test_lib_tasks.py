@@ -25,9 +25,9 @@ def _get_default_params() -> Dict[str, str]:
     Get fake params pointing to a different image so we can test the code
     without affecting the official images.
     """
-    ecr_base_path = os.environ["CK_ECR_BASE_PATH"]
+    ecr_base_path = os.environ["CSFY_ECR_BASE_PATH"]
     default_params = {
-        "CK_ECR_BASE_PATH": ecr_base_path,
+        "CSFY_ECR_BASE_PATH": ecr_base_path,
         "BASE_IMAGE": "amp_test",
         "DEV_TOOLS_IMAGE_PROD": f"{ecr_base_path}/dev_tools:prod",
     }
@@ -461,9 +461,9 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
 
 class TestFailing(hunitest.TestCase):
     """
-    Run a test that fails based on AM_FORCE_TEST_FAIL environment variable.
+    Run a test that fails based on CSFY_FORCE_TEST_FAIL environment variable.
     """
 
     def test_failing(self) -> None:
-        if os.environ.get("AM_FORCE_TEST_FAIL", "") == "1":
+        if os.environ.get("CSFY_FORCE_TEST_FAIL", "") == "1":
             self.fail("test failed succesfully")

@@ -52,8 +52,8 @@ def docker_images_ls_repo(ctx, sudo=False):  # type: ignore
     """
     hlitauti.report_task()
     docker_login(ctx)
-    # TODO(gp): Move this to a var ECR_BASE_PATH="CK_ECR_BASE_PATH" in repo_config.py.
-    ecr_base_path = hlitauti.get_default_param("CK_ECR_BASE_PATH")
+    # TODO(gp): Move this to a var ECR_BASE_PATH="CSFY_ECR_BASE_PATH" in repo_config.py.
+    ecr_base_path = hlitauti.get_default_param("CSFY_ECR_BASE_PATH")
     docker_exec = _get_docker_exec(sudo)
     hlitauti.run(ctx, f"{docker_exec} image ls {ecr_base_path}")
 
@@ -258,7 +258,7 @@ def docker_pull_dev_tools(ctx, stage="prod", version=None):  # type: ignore
     Pull latest prod image of `dev_tools` from the registry.
     """
     hlitauti.report_task()
-    base_image = hlitauti.get_default_param("CK_ECR_BASE_PATH") + "/dev_tools"
+    base_image = hlitauti.get_default_param("CSFY_ECR_BASE_PATH") + "/dev_tools"
     _docker_pull(ctx, base_image, stage, version)
 
 
@@ -462,7 +462,7 @@ def _get_linter_service(stage: str) -> DockerComposeServiceSpec:
         # Use the `repo_config.py` inside the dev_tools container instead of
         # the one in the calling repo.
         linter_service_spec["environment"].append(
-            "AM_REPO_CONFIG_PATH=/app/repo_config.py"
+            "CSFY_REPO_CONFIG_PATH=/app/repo_config.py"
         )
     return linter_service_spec
 
@@ -497,13 +497,13 @@ def _generate_docker_compose_file(
     )
     # We could pass the env var directly, like:
     # ```
-    # - AM_ENABLE_DIND=$AM_ENABLE_DIND
+    # - CSFY_ENABLE_DIND=$CSFY_ENABLE_DIND
     # ```
     # but we prefer to inline it.
     if use_privileged_mode:
-        am_enable_dind = 1
+        CSFY_ENABLE_DIND = 1
     else:
-        am_enable_dind = 0
+        CSFY_ENABLE_DIND = 0
     # ```
     # sysname='Linux'
     # nodename='cf-spm-dev4'
@@ -511,10 +511,10 @@ def _generate_docker_compose_file(
     # version='#1 SMP Fri Jan 14 13:59:45 UTC 2022'
     # machine='x86_64'
     # ```
-    am_host_os_name = os.uname()[0]
-    am_host_name = os.uname()[1]
-    am_host_version = os.uname()[2]
-    am_host_user_name = getpass.getuser()
+    csfy_host_os_name = os.uname()[0]
+    csfy_host_name = os.uname()[1]
+    csfy_host_version = os.uname()[2]
+    csfy_host_user_name = getpass.getuser()
     # The mounting path in the container is `/app`.
     # So we need to use that as starting point.
     # e.g. For CSFY_GIT_ROOT_PATH,
@@ -540,21 +540,21 @@ def _generate_docker_compose_file(
     base_app_spec = {
         "cap_add": ["SYS_ADMIN"],
         "environment": [
-            f"AM_ENABLE_DIND={am_enable_dind}",
-            f"AM_FORCE_TEST_FAIL=$AM_FORCE_TEST_FAIL",
-            f"AM_HOST_NAME={am_host_name}",
-            f"AM_HOST_OS_NAME={am_host_os_name}",
-            f"AM_HOST_USER_NAME={am_host_user_name}",
-            f"AM_HOST_VERSION={am_host_version}",
-            "AM_REPO_CONFIG_CHECK=True",
+            f"CSFY_ENABLE_DIND={CSFY_ENABLE_DIND}",
+            f"CSFY_FORCE_TEST_FAIL=$CSFY_FORCE_TEST_FAIL",
+            f"CSFY_HOST_NAME={csfy_host_name}",
+            f"CSFY_HOST_OS_NAME={csfy_host_os_name}",
+            f"CSFY_HOST_USER_NAME={csfy_host_user_name}",
+            f"CSFY_HOST_VERSION={csfy_host_version}",
+            "CSFY_REPO_CONFIG_CHECK=True",
             # Use inferred path for `repo_config.py`.
-            "AM_REPO_CONFIG_PATH=",
-            "CK_AWS_ACCESS_KEY_ID=$CK_AWS_ACCESS_KEY_ID",
-            "CK_AWS_DEFAULT_REGION=$CK_AWS_DEFAULT_REGION",
-            "CK_AWS_PROFILE=$CK_AWS_PROFILE",
-            "CK_AWS_S3_BUCKET=$CK_AWS_S3_BUCKET",
-            "CK_AWS_SECRET_ACCESS_KEY=$CK_AWS_SECRET_ACCESS_KEY",
-            "CK_ECR_BASE_PATH=$CK_ECR_BASE_PATH",
+            "CSFY_REPO_CONFIG_PATH=",
+            "CSFY_AWS_ACCESS_KEY_ID=$CSFY_AWS_ACCESS_KEY_ID",
+            "CSFY_AWS_DEFAULT_REGION=$CSFY_AWS_DEFAULT_REGION",
+            "CSFY_AWS_PROFILE=$CSFY_AWS_PROFILE",
+            "CSFY_AWS_S3_BUCKET=$CSFY_AWS_S3_BUCKET",
+            "CSFY_AWS_SECRET_ACCESS_KEY=$CSFY_AWS_SECRET_ACCESS_KEY",
+            "CSFY_ECR_BASE_PATH=$CSFY_ECR_BASE_PATH",
             f"CSFY_GIT_ROOT_PATH={git_root_path}",
             f"CSFY_HELPERS_ROOT_PATH={helper_root_path}",
             f"CSFY_IS_SUPER_REPO={is_super_repo}",
@@ -564,7 +564,7 @@ def _generate_docker_compose_file(
             # - CK_HOST_NAME=
             # - CK_HOST_OS_NAME=
             # - CK_PUBLISH_NOTEBOOK_LOCAL_PATH=$CK_PUBLISH_NOTEBOOK_LOCAL_PATH
-            "CK_TELEGRAM_TOKEN=$CK_TELEGRAM_TOKEN",
+            "CSFY_TELEGRAM_TOKEN=$CSFY_TELEGRAM_TOKEN",
             # TODO(Vlad): consider removing, locally we use our personal tokens from files and
             # inside GitHub actions we use the `GH_TOKEN` environment variable.
             "GH_ACTION_ACCESS_TOKEN=$GH_ACTION_ACCESS_TOKEN",
@@ -969,7 +969,7 @@ def _get_base_image(base_image: str) -> str:
     if base_image == "":
         # TODO(gp): Use os.path.join.
         base_image = (
-            hlitauti.get_default_param("CK_ECR_BASE_PATH")
+            hlitauti.get_default_param("CSFY_ECR_BASE_PATH")
             + "/"
             + hlitauti.get_default_param("BASE_IMAGE")
         )
@@ -1298,7 +1298,7 @@ def _get_lint_docker_cmd(
     :return: the full command to run
     """
     # Get an image to run the linter on.
-    ecr_base_path = os.environ["CK_ECR_BASE_PATH"]
+    ecr_base_path = os.environ["CSFY_ECR_BASE_PATH"]
     linter_image = f"{ecr_base_path}/dev_tools"
     # TODO(Grisha): do we need a version? i.e., we can pass `version` to `lint`
     # and run Linter on the specific version, e.g., `1.1.5`.

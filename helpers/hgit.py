@@ -244,7 +244,8 @@ def get_project_dirname(only_index: bool = False) -> str:
     :param only_index: return only the index of the client if possible, e.g.,
         E.g., for `/Users/saggese/src/amp1` it returns the string `1`
     """
-    git_dir = get_client_root(super_module=True)
+    #git_dir = get_client_root(super_module=True)
+    git_dir = find_git_root()
     _LOG.debug("git_dir=%s", git_dir)
     ret = os.path.basename(git_dir)
     if only_index:

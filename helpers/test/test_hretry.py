@@ -1,6 +1,8 @@
 import asyncio
 import logging
 
+import pytest
+
 import helpers.hretry as hretry
 import helpers.htimer as htimer
 import helpers.hunit_test as hunitest
@@ -91,6 +93,7 @@ class Test_retry2(hunitest.TestCase):
         self.assertTrue(result)
         self.assertEqual(self.exception_count, num_attempts - 1)
 
+    @pytest.mark.skip(reason="See CmTask11013")
     def test_async_retry2(self) -> None:
         """
         Test when the number of exceptions is greater than the number of

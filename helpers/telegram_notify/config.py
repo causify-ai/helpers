@@ -10,7 +10,7 @@ from typing import Tuple
 
 import helpers.hdbg as hdbg
 
-NOTIFY_JUPYTER_TOKEN = os.environ["CK_TELEGRAM_TOKEN"]
+NOTIFY_JUPYTER_TOKEN = os.environ["CSFY_TELEGRAM_TOKEN"]
 
 
 def get_info() -> Tuple[str, str]:

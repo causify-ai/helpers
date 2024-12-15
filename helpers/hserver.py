@@ -54,7 +54,7 @@ def is_inside_docker() -> bool:
 # since inside Docker the name of the host is like `01a7e34a82a5`. Of course,
 # there is no way to know anything about the host for security reason, so we
 # pass this value from the external environment to the container, through env
-# vars (e.g., `AM_HOST_NAME`, `AM_HOST_OS_NAME`).
+# vars (e.g., `CSFY_HOST_NAME`, `CSFY_HOST_OS_NAME`).
 
 
 def is_dev_ck() -> bool:
@@ -67,9 +67,9 @@ def is_dev_ck() -> bool:
     # machine='x86_64'
     host_name = os.uname()[1]
     host_names = ("dev1", "dev2", "dev3")
-    am_host_name = os.environ.get("AM_HOST_NAME", "")
-    _LOG.debug("host_name=%s am_host_name=%s", host_name, am_host_name)
-    is_dev_ck_ = host_name in host_names or am_host_name in host_names
+    csfy_host_name = os.environ.get("CSFY_HOST_NAME", "")
+    _LOG.debug("host_name=%s csfy_host_name=%s", host_name, csfy_host_name)
+    is_dev_ck_ = host_name in host_names or csfy_host_name in host_names
     return is_dev_ck_
 
 
@@ -78,15 +78,15 @@ def is_dev4() -> bool:
     Return whether it's running on dev4.
     """
     host_name = os.uname()[1]
-    am_host_name = os.environ.get("AM_HOST_NAME", None)
+    csfy_host_name = os.environ.get("CSFY_HOST_NAME", None)
     dev4 = "cf-spm-dev4"
-    _LOG.debug("host_name=%s am_host_name=%s", host_name, am_host_name)
-    is_dev4_ = dev4 in (host_name, am_host_name)
+    _LOG.debug("host_name=%s csfy_host_name=%s", host_name, csfy_host_name)
+    is_dev4_ = dev4 in (host_name, csfy_host_name)
     #
     if not is_dev4_:
         dev4 = "cf-spm-dev8"
-        _LOG.debug("host_name=%s am_host_name=%s", host_name, am_host_name)
-        is_dev4_ = dev4 in (host_name, am_host_name)
+        _LOG.debug("host_name=%s csfy_host_name=%s", host_name, csfy_host_name)
+        is_dev4_ = dev4 in (host_name, csfy_host_name)
     return is_dev4_
 
 
@@ -101,11 +101,11 @@ def is_mac(*, version: Optional[str] = None) -> bool:
     _LOG.debug("version=%s", version)
     host_os_name = os.uname()[0]
     _LOG.debug("os.uname()=%s", str(os.uname()))
-    am_host_os_name = os.environ.get("AM_HOST_OS_NAME", None)
+    csfy_host_os_name = os.environ.get("CSFY_HOST_OS_NAME", None)
     _LOG.debug(
-        "host_os_name=%s am_host_os_name=%s", host_os_name, am_host_os_name
+        "host_os_name=%s csfy_host_os_name=%s", host_os_name, csfy_host_os_name
     )
-    is_mac_ = host_os_name == "Darwin" or am_host_os_name == "Darwin"
+    is_mac_ = host_os_name == "Darwin" or csfy_host_os_name == "Darwin"
     if version is None:
         # The user didn't request a specific version, so we return whether we
         # are running on a Mac or not.
@@ -138,13 +138,13 @@ def is_mac(*, version: Optional[str] = None) -> bool:
     host_os_version = os.uname()[2]
     # 'Darwin Kernel Version 19.6.0: Mon Aug 31 22:12:52 PDT 2020;
     #   root:xnu-6153.141.2~1/RELEASE_X86_64'
-    am_host_os_version = os.environ.get("AM_HOST_VERSION", "")
+    csfy_host_os_version = os.environ.get("CSFY_HOST_VERSION", "")
     _LOG.debug(
-        "host_os_version=%s am_host_os_version=%s",
+        "host_os_version=%s csfy_host_os_version=%s",
         host_os_version,
-        am_host_os_version,
+        csfy_host_os_version,
     )
-    is_mac_ = macos_tag in host_os_version or macos_tag in am_host_os_version
+    is_mac_ = macos_tag in host_os_version or macos_tag in csfy_host_os_version
     _LOG.debug("is_mac_=%s", is_mac_)
     return is_mac_
 
@@ -238,7 +238,7 @@ def _dassert_setup_consistency() -> None:
 
 # If the env var is not defined then we want to check. The only reason to skip
 # it's if the env var is defined and equal to False.
-check_repo = os.environ.get("AM_REPO_CONFIG_CHECK", "True") != "False"
+check_repo = os.environ.get("CSFY_REPO_CONFIG_CHECK", "True") != "False"
 _is_called = False
 if check_repo:
     if not _is_called:
@@ -261,7 +261,7 @@ def is_AM_S3_available() -> bool:
 
 
 def get_host_user_name() -> Optional[str]:
-    return os.environ.get("AM_HOST_USER_NAME", None)
+    return os.environ.get("CSFY_HOST_USER_NAME", None)
 
 
 # #############################################################################
