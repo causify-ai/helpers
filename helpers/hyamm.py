@@ -83,6 +83,9 @@ def extract_dfs(spread, names, transform_func):
     return df
 
 
+# #############################################################################
+
+
 csfy_schema = [
     "first_name",
     "last_name",
@@ -302,6 +305,12 @@ def get_CausifyScraper_data_v2():
     return df_out
 
 
+# #############################################################################
+# Process CsfyData.
+# #############################################################################
+
+
+
 # titleDescription
 
 # ######
@@ -372,15 +381,53 @@ def clean_first_name(text):
 # person is an investor, a customer for AI products. If you are sure report "NA"
 
 
-def print_causify_df_stats(df):
+def print_causify_df_stats(df, debug=""):
+    #
     display(df.head(2))
+    #
     print("num_rows=%s" % df.shape[0])
-    # These are dups for sure.
-    df = df.drop_duplicates(subset=["first_name", "last_name", "email"])
-    print("num_rows (after dedup)=%s" % df.shape[0])
+    # Check if there are dups for sure.
+    df_no_dups = df.drop_duplicates(subset=["first_name", "last_name", "email"])
+    num_rows_no_dups = df_no_dups.shape[0]
+    print("num_rows (after dedup)=%s" % num_rows_no_dups)
+    if debug == "dups" and (num_rows_no_dups != df.shape[0]):
+        duplicated = df.duplicated(subset=["first_name", "last_name", "email"])
+        display(df[duplicated])
+        assert 0
+    df = df_no_dups
+    # Remove names with non-ASCII characters
+    valid_ascii = df['first_name'].apply(lambda x: x.isascii())
+    num_rows_only_ascii = valid_ascii.sum()
+    print("num_rows (after de-ascii)=%s" % num_rows_only_ascii)
+    if debug == "non_ascii" and (num_rows_only_ascii != df.shape[0]):
+        display(df[valid_ascii])
+        assert 0
+    df = df[valid_ascii]
     # Report stats.
-    print("email_pct=%s" %
-            hprint.perc((df["email"] != "").sum(), df.shape[0]))
+    col_name = "email"
+    if col_name in df.columns:
+        valid_mask = (df[col_name] != "") & (df[col_name] != "nan")
+        num_valid_emails = valid_mask.sum()
+        print("%s pct=%s" % (col_name,
+                hprint.perc(num_valid_emails, df.shape[0])))
+        if debug == "email" and (num_valid_emails != num_rows_no_dups):
+            display(df[~valid_mask])
+            assert 0
+    else:
+        _LOG.warning("No 'email' column")
+    #
+    col_name = "email_verification"
+    if col_name in df.columns:
+        valid_mask = (df[col_name] != "")
+        num_valid_emails = valid_mask.sum()
+        print("%s pct=%s" % (col_name,
+              hprint.perc(num_valid_emails, df.shape[0])))
+        if debug == "email_verification" and (num_valid_emails !=
+                                              num_rows_no_dups):
+            display(df[~valid_mask])
+            assert 0
+    else:
+        _LOG.warning("No '%s' column", col_name)
     # Check for same first / last name.
     duplicated = df.duplicated(subset=["first_name", "last_name"])
     print("names duplicated=%s" % duplicated.sum())
