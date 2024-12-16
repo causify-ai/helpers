@@ -258,6 +258,19 @@
 
 ### Set repository secrets/variables
 
+- Some secrets/variables are shared in an organization wide storage
+  - E.g. for [Causify](https://github.com/organizations/causify-ai) at https://github.com/organizations/causify-ai/settings/secrets/actions
+  - These values are shared across all repos in the organization so we don't need to create them on a per-repo basis
+    - the access method is the same as for per-repo variables - via actions context `${{ secrets.MY_TOKEN }}` or ``${{ vars.MY_TOKEN }}`
+  - Once a `secret` is set it's read-only for everybody. To preview all of the raw values that are currently used, visit [1password > Shared vault > Causify org GH actions secrets](https://causify.1password.com/app#/everything/AllItems/ofre2i2yhv2lyf7ggvv2a4uouaaxvzjzaomv3hol24txn2an5imq) 
+
+- Before adding a new secret/variables for a repo, consider the following:
+  - if it's already present in the global storage for an organization, no action is required
+  - if it's not, check if the newly added value is not needed in all of the repos, if so, add it to the global storage to facilitate reusability
+    - if you lack permissions for this operation, contact your TL
+
+- Should a repo need some additional secret values/variables, follow the procedure below
+
 1. Login to 1password https://causify.1password.com/home
    - Ask your TL if you don't have access to 1password
 2. Navigate to the `Shared Vault`
