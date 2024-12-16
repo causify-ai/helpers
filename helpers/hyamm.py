@@ -53,12 +53,12 @@ def reset_cache():
 
 
 #@functools.lru_cache(maxsize=128)
-def get_cached_sheet_to_df(url, sheet_name):
+def get_cached_sheet_to_df(url, sheet_name, force_reload=False):
     global _GSPREAD_CACHE
     if not _GSPREAD_CACHE.keys():
         print("Cache is EMPTY!")
     key = "%s:%s" % (url, sheet_name)
-    if key in _GSPREAD_CACHE:
+    if not force_reload and key in _GSPREAD_CACHE:
         _LOG.debug("Cached data found for %s %s" % (url, sheet_name))
         return _GSPREAD_CACHE[key]
     _LOG.info("Reading data from %s %s" % (url, sheet_name))
@@ -88,6 +88,7 @@ def extract_dfs(spread, names, transform_func):
 
 
 csfy_schema = [
+    "timestamp",
     "first_name",
     "last_name",
     "email",
@@ -99,10 +100,18 @@ csfy_schema = [
     "company_domain",
     "city",
     "origin",
+    # Seed,Convertible Note,Series A,Pre-Seed
+    "stages",
+    "restrictions",
+    "industry",
+    # Angel, VC, PE, Family Office, Corporate VC, Accelerator, Incubator
+    "category",
+    "notes",
 ]
 
 
 def normalize_csfy_schema(df, cols_map):
+    # Rename cols.
     hdbg.dassert_is_subset(cols_map.keys(), df.columns)
     df = df[cols_map.keys()]
     df_out = df.rename(columns=cols_map, inplace=False)
@@ -112,6 +121,17 @@ def normalize_csfy_schema(df, cols_map):
         if col not in df_out.columns:
             df_out[col] = ""
     df_out = df_out[csfy_schema]
+    # Remove empty spaces.
+    for col in df.columns:
+        df[col] = df[col].str.strip()
+    #
+    if "email" in df_out.columns:
+        mask = df_out["email"] == "nan"
+        df_out["email"] = np.where(mask, "", df_out["email"])
+    # '', 'valid', 'accept_all', 'unknown', 'invalid'
+    if "email_verification" in df_out.columns:
+        mask = df_out["email_verification"].isin(["valid", "accept_all"])
+        df_out["email_verification"] = np.where(mask, "valid", "invalid")
     return df_out
 
 
@@ -232,6 +252,7 @@ def get_CausifyScraper_data_type1(normalize=True):
     #
     if normalize:
         cols_map = {
+            "timestamp": "timestamp",
             "origin": "origin",
             "linkedinProfileUrl": "linkedin_url",
             "firstName": "first_name",
@@ -378,6 +399,7 @@ def get_CausifyScraper_data_type2(normalize=True):
     # Convert to CSFY schema.
     if normalize:
         cols_map = {
+            "timestamp": "timestamp",
             "origin": "origin",
             "linkedInProfileUrl": "linkedin_url",
             "firstName": "first_name",
@@ -565,6 +587,141 @@ def get_CausifyScraper_data_type5(normalize=True):
     return df_out
 
 
+def _get_last_name(x):
+    x2 = x.split()
+    if len(x2) > 1:
+        return " ".join(x2[1:])
+    else:
+        return x
+
+
+def get_CausifyScraper_data_type6(normalize=True):
+    """
+    Parse the data from the Google Sheet and convert it to the CSFY schema.
+
+    VCSheet_Query1
+    """
+    url = ("https://docs.google.com/spreadsheets/d"
+           "/1U8jJYZbC1oyZpsSWhCCe6SDpAH8e6R2yRDeFauHVcj0/edit?gid=1769984900"
+           "#gid=1769984900")
+    #
+    gsheet_name = "Sheet1"
+    df = get_cached_sheet_to_df(url, gsheet_name)
+    display(df.head(1))
+    #
+    df["origin"] = "VCSheet_Query1"
+    df["First name"] = df["Name"].apply(lambda x: str(x))
+    df["last_name"] = df["Name"].apply(lambda x: _get_last_name(x))
+    df["company_name"] = df["Title"].apply(lambda x: x.split("@")[1])
+    #
+    if normalize:
+        cols_map = {
+            "origin": "origin",
+            "LinkedIn": "linkedin_url",
+            "First name": "first_name",
+            "last_name": "last_name",
+            "Email": "email",
+            "Title": "job_title",
+            "company_name": "company_name",
+        }
+        df_out = normalize_csfy_schema(df, cols_map)
+    else:
+        df_out = df
+    return df_out
+
+
+# Investor	Angels FTW
+# Domain	https://www.joinodin.com/
+# Main Country	Worldwide
+# Investor Category	Angel Investment Group,Angel Investor,Venture ...
+# Overview	Keep your cap table clean with Odin. Learn mor...
+# Main City
+# Industries	Administrative Services, Agriculture and Farm...
+# Stages	Seed,Convertible Note,Series A,Pre-Seed
+# Fund Restrictions
+# Fund Restriction Notes
+# Contact 1 First Name
+# Contact 1 Last Name
+# Contact 1 Email
+# Contact 1 Linkedin
+# Contact 1 Title
+# Contact 2 First Name
+# Contact 2 Last Name
+# Contact 2 Email
+# Contact 2 Linkedin
+# Contact 2 Title
+# Portfolio
+# Categories
+# Second Country
+# Second City
+# Approved	true
+# Created	2022-11-28T16:51:37.000Z
+# origin	Euro-VC-LinkedIn
+
+
+def get_CausifyScraper_data_type7(normalize=True):
+    """
+    Parse the data from the Google Sheet and convert it to the CSFY schema.
+
+    Euro-VCs
+    """
+    url = "https://docs.google.com/spreadsheets/d/1r3_drVggRB61KvNPxlf58sEwNoUvU_aquLwGLDyUSKI"
+    #
+    gsheet_name = "Sheet1"
+    df = get_cached_sheet_to_df(url, gsheet_name)
+    display(df.head(1))
+    print(df.shape)
+    #
+    df["origin"] = "Euro-VC-LinkedIn"
+    for col in df.columns:
+        df[col] = df[col].str.replace(r'[^\x00-\x7F]+', '', regex=True)
+    display(df.head(1))
+    df["stages"] = df["Stages"] + "/" + df["Investor Category"]
+    df["restrictions"] = df["Fund Restrictions"] + "." + df[
+        "Fund Restriction Notes"]
+    # Reshape the DataFrame by pivoting Contact 1 and Contact 2 into rows.
+    cols = [x for x in df.columns if not x.startswith("Contact ")]
+    print(cols)
+    df_contact1 = df[cols + ['Contact 1 First Name', 'Contact 1 Last Name',
+                                  'Contact 1 Email', 'Contact 1 Linkedin',
+                                  'Contact 1 Title']].rename(
+        columns=lambda x: x.replace('Contact 1 ', ''))
+    df_contact2 = df[cols + ['Contact 2 First Name', 'Contact 2 Last Name',
+                                  'Contact 2 Email', 'Contact 2 Linkedin',
+                                  'Contact 2 Title']].rename(
+        columns=lambda x: x.replace('Contact 2 ', ''))
+    print(df.shape)
+    # Concatenate the two DataFrames to stack them as rows
+    df = pd.concat([df_contact1, df_contact2], ignore_index=True)
+    print(df.shape)
+    valid_mask = df["First Name"] != ""
+    print("Removed %s rows with empty first name" % hprint.perc((
+                                                                    ~valid_mask).sum(),
+                                                                df.shape[0]))
+    df = df[valid_mask]
+    display(df.head(1))
+    #
+    if normalize:
+        cols_map = {
+            "origin": "origin",
+            "Linkedin": "linkedin_url",
+            "First Name": "first_name",
+            "Last Name": "last_name",
+            "Email": "email",
+            "Title": "job_title",
+            "Domain": "company_name",
+            "stages": "stages",
+            "restrictions": "restrictions",
+            "Created": "timestamp",
+            "Main City": "city",
+            "Overview": "notes",
+        }
+        df_out = normalize_csfy_schema(df, cols_map)
+    else:
+        df_out = df
+    return df_out
+
+
 # #############################################################################
 # Process CsfyData.
 # #############################################################################
@@ -665,7 +822,7 @@ def print_causify_df_stats(df, debug=""):
         num_valid_emails = valid_mask.sum()
         print("%s pct=%s" % (col_name,
                 hprint.perc(num_valid_emails, df.shape[0])))
-        if debug == "email" and (num_valid_emails != num_rows_no_dups):
+        if debug == "email" and (num_valid_emails != df.shape[0]):
             display(df[~valid_mask])
             assert 0
     else:
@@ -677,8 +834,7 @@ def print_causify_df_stats(df, debug=""):
         num_valid_emails = valid_mask.sum()
         print("%s pct=%s" % (col_name,
               hprint.perc(num_valid_emails, df.shape[0])))
-        if debug == "email_verification" and (num_valid_emails !=
-                                              num_rows_no_dups):
+        if debug == "email_verification" and (num_valid_emails != df.shape[0]):
             display(df[~valid_mask])
             assert 0
     else:
@@ -686,6 +842,15 @@ def print_causify_df_stats(df, debug=""):
     # Check for same first / last name.
     duplicated = df.duplicated(subset=["first_name", "last_name"])
     print("names duplicated=%s" % duplicated.sum())
+    # Report origin.
+    col_name = "origin"
+    valid_mask = df[col_name] != ""
+    num_valid_origin = valid_mask.sum()
+    print("%s pct=%s" % (col_name,
+            hprint.perc(num_valid_origin, df.shape[0])))
+    if debug == "email" and (num_valid_origin != df.shape[0]):
+        display(df[~valid_mask])
+        assert 0
 
 
 def save_to_tmp(df):
