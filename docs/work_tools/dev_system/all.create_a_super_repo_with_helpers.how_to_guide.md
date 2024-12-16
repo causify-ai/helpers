@@ -36,7 +36,7 @@
 
 - Add `helpers` as sub-repo
   ```bash
-  > cd ~/src/rpeo_name1
+  > cd ~/src/repo_name1
   > git submodule add git@github.com:causify-ai/helpers.git helpers_root
   > git submodule init
   > git submodule update
@@ -44,10 +44,13 @@
   > git commit -am "Add helpers subrepo" && git push
   ```
 
+- In one line:
+  ```bash
+  > git submodule add git@github.com:causify-ai/helpers.git helpers_root && git submodule init && git submodule update && (cd helpers_root && git checkout master && git pull) && git add .gitmodules helpers_root
+  ```
+
 ## Copy and customize files
 
-- The script `dev_scripts_helpers/thin_client/sync_super_repo.sh` allows to
-  vimdiff / cp files across a super-repo and its `helpers` dir
 - Conceptually we need to copy and customize the files in
 
   1. `thin_client` (one can reuse the thin client across repos)
@@ -61,19 +64,22 @@
   being completely configured, you can keep moving and then re-run the command
   later
 
-## 1) Copy and customize files in thin_client
+- You can follow the directions to perform the step manually or run the script
+  `dev_scripts_helpers/thin_client/sync_super_repo.sh` which allows to vimdiff /
+  cp files across a super-repo and its `helpers` dir
+
+## 1) Copy and customize files in `thin_client`
 
 - Create the `dev_script` dir based off the template from `helpers`
 
   ```bash
   # Use a prefix based on the repo name, e.g., `tutorials`, `sports_analytics`.
-  > SRC_DIR="dev_scripts_helpers/thin_client"; echo $SRC_DIR
+  > SRC_DIR="helpers_root/dev_scripts_helpers/thin_client"; ls $SRC_DIR
   > DST_PREFIX="xyz"
   > DST_DIR="dev_scripts_${DST_PREFIX}/thin_client"; echo $DST_DIR
+  > mkdir -p $DST_DIR
+  > cp -r $SRC_DIR/{build.py,requirements.txt,setenv.sh,tmux.py} $DST_DIR
   ```
-
-- TODO(gp): When we want to create a new thin env we need to also copy
-  `dev_scripts/thin_client/build.py` and `requirements.txt`. Add instructions
 
 - The resulting `dev_script` should look like:
   ```bash
@@ -84,7 +90,17 @@
   tmux.py
   ```
 
-## Create the thin environment
+- Customize the files looking for `$DIR_TAG` and `$IS_SUPER_REPO`
+  ```
+  > vi $DST_DIR/*
+  ```
+
+- If we don't need to create a new thin env you can delete the files
+  `dev_scripts/thin_client/build.py` and `requirements.txt`
+
+### Create the thin environment
+
+  > cp -r $SRC_DIR/{build.py,requirements.txt,setenv.sh,tmux.py} $DST_DIR
 
 - Create the thin environment
   ```
@@ -105,9 +121,9 @@
   - Set `VENV_TAG` to create a new thin environment or reuse an existing one
     (e.g., `helpers`)
 
-## Test the thin environment
+### Test the thin environment
 
-- Test `helpers` `setenv.sh`
+- Test `//helpers` `setenv.sh`
 
   ```bash
   > (cd helpers_root; source dev_scripts_helpers/thin_client/setenv.sh)
@@ -124,7 +140,7 @@
   INFO: dev_scripts_quant_dashboard/thin_client/setenv.sh successful
   ```
 
-## Create the tmux links
+### Create the tmux links
 
 - Create the global link
 
@@ -153,7 +169,7 @@
   > dev_scripts_sports_analytics/thin_client/tmux.py --index 1
   ```
 
-## Maintain the files in sync with the template
+### Maintain the files in sync with the template
 
 - Check the difference between the super-repo and `helpers`
   ```bash
@@ -178,6 +194,7 @@
     `helpers`
 
   ```bash
+  > cp helpers_root/{changelog.txt,conftest.py,invoke.yaml,pytest.ini,repo_config.py,tasks.py} .
   > vim changelog.txt conftest.py invoke.yaml pytest.ini repo_config.py tasks.py
   ```
 
@@ -202,11 +219,11 @@
   > rm -rf devops/docker_build
   ```
 
-- Follow the instructions in docs/work_tools/all.devops_docker.reference.md and
-  docs/work_tools/all.devops_docker.how_to_guide.md
+- Follow the instructions in `docs/work_tools/all.devops_docker.reference.md` and
+  `docs/work_tools/all.devops_docker.how_to_guide.md`
 
 - TODO
-  - If it's a super-repo container you neeed to switch in
+  - If it's a super-repo container you need to switch in
     devops/docker_run/docker_setenv.sh grep IS_SUPER_REPO
 
 - Run the single-arch flow
@@ -226,39 +243,33 @@
 
 - If you wish to push the dev image to a remote registry, contact the infra team
   to add new registry with default settings
-  - Make sure the rgeistry name matches the repo name for consistency
-  - By default we add new registry to Stockholm region (`eu-north-1`)
+  - Make sure the registry name matches the repo name for consistency
+  - By default we add new containers to Stockholm region (`eu-north-1`)
 
 ### Check if the regressions are passing
 
-_(if already applicable)_
-
-```bash
-> i docker_bash
-> pytest
-```
+- Run the tests, if needed
+  ```bash
+  > i docker_bash
+  > pytest
+  ```
 
 ## Configure regressions via GitHub actions
-
-_(if already applicable)_
 
 ### Set repository secrets/variables
 
 1. Login to 1password https://causify.1password.com/home
-
-- Ask your TL if you don't have access to 1password
-
+   - Ask your TL if you don't have access to 1password
 2. Navigate to the `Shared Vault`
 3. Search for `Github actions secrets JSON` secret
 4. Copy the JSON from 1password to a temporary local file `vars.json`
 5. Run the script to set the secrets/variables
-```
-> cd ~/src/<<repo_name>>1/
-> ./helpers_root/dev_scripts_helpers/github/set_secrets_and_variables.py \
-     --file `vars.json' \
-     --repo '<<org_name>>/<<repo_name>>'
-```
-
+   ```bash
+   > cd ~/src/<REPO_NAME>
+   > ./helpers_root/dev_scripts_helpers/github/set_secrets_and_variables.py \
+        --file `vars.json' \
+        --repo '<ORG_NAME>/<REPO_NAME>'
+   ```
 6. Make sure not to commit the raw `vars.json` file or the
    `dev_scripts_helpers/github/set_secrets_and_variables.py.log` file
 
@@ -268,19 +279,18 @@ _(if already applicable)_
 
 1. Create a directory `./github/workflows` in the super-repo
 2. Copy an example flow from helpers
-
-- E.g. `helpers_root/.github/workflows/fast_tests.yml
-- Modify it based on your needs
-  - Find and replace mentions of `helpers` with the name of super repo for
-    consistency
-  - Replace `invoke run_fast_tests` with your desired action
+   - E.g. `helpers_root/.github/workflows/fast_tests.yml
+   - Modify it based on your needs
+     - Find and replace mentions of `helpers` with the name of super repo for
+       consistency
+     - Replace `invoke run_fast_tests` with your desired action
 
 3. TODO(Shayan): #HelpersTask90
 
 ## Configure GitHub repo
 
-_Disclaimer: the following set-up requires paid GitHub version
-(Pro/Team/Enterprise)_
+**Disclaimer**: the following set-up requires paid GitHub version
+(Pro/Team/Enterprise)
 
 1. Set-up branch protection rule for master
 
