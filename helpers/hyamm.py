@@ -70,20 +70,6 @@ def get_cached_sheet_to_df(url, sheet_name, force_reload=False):
     return df
 
 
-def extract_dfs(spread, names, transform_func):
-    dfs = []
-    for name in names:
-        print(name)
-        df = spread.sheet_to_df(sheet=name, index=None)
-        print(df.shape)
-        df = transform_func(df)
-        display(df.head(1))
-        dfs.append(df)
-    #
-    df = pd.concat(dfs, axis=0)
-    return df
-
-
 # #############################################################################
 
 
@@ -610,7 +596,6 @@ def get_CausifyScraper_data_type6(normalize=True):
     display(df.head(1))
     #
     df["origin"] = "VCSheet_Query1"
-    df["First name"] = df["Name"].apply(lambda x: str(x))
     df["last_name"] = df["Name"].apply(lambda x: _get_last_name(x))
     df["company_name"] = df["Title"].apply(lambda x: x.split("@")[1])
     #
@@ -727,66 +712,92 @@ def get_CausifyScraper_data_type7(normalize=True):
 # #############################################################################
 
 
-def dedup_df(df):
-    num_rows = df.shape[0]
+def clean_up(df):
+    print("Cleaning up ...")
     # These are dups for sure.
     duplicated = df.duplicated(subset=["first_name", "last_name", "email"])
     if duplicated.sum() > 0:
-        print("num_rows=%s" % df.shape[0])
+        num_before = df.shape[0]
         df = df.drop_duplicates(subset=["first_name", "last_name", "email"])
-        print("num_rows (after dedup)=%s" % df.shape[0])
+        num_after = df.shape[0]
+        print("Dedup: removed %s" % hprint.perc(num_before - num_after, num_before))
+    # Remove names with non-ASCII characters
+    num_before = df.shape[0]
+    valid_ascii = df['first_name'].apply(lambda x: x.isascii())
+    num_rows_only_ascii = valid_ascii.sum()
+    df = df[valid_ascii]
+    num_after = df.shape[0]
+    print("Non-ascii: removed %s" % hprint.perc(num_before - num_after,
+                                             num_before))
     # Check for same first / last name.
     duplicated = df.duplicated(subset=["first_name", "last_name"])
     if duplicated.sum() > 0:
         print("names duplicated=%s" % duplicated.sum())
     # Sort.
     df.sort_values(by=["first_name", "last_name"], inplace=True)
+    #
+    print("Cleaning up ... done")
     return df
 
 
 first_names_examples = {
     "Dr. Felix": "Felix",
+    #
     "David S.": "David",
     "Christian J.P.": "Christian",
     "Crystal J": "Crystal",
-    "Gianpiero (JP)": "JP",
     "Heather A": "Heather",
-    "Kristofer \"Kriffy\"": "Kriffy",
+    #
     "L. Antonio": "Antonio",
+    "R. Danae": "Danae",
+    #
+    "Gianpiero (JP)": "JP",
+    "Kristofer \"Kriffy\"": "Kriffy",
     "Lawrence \"Larry\"": "Larry",
     "Pierre-Jean \"PJ\"": "PJ",
-    "R. Danae": "Danae",
     "Richard \"Dick\"": "Dick",
     "Richard (Dick)": "Dick",
     "Timothy P.": "Timothy",
     "Wenji (Tony)": "Tony",
     #
+    "B.J.": "B.J.",
     "AJ": "AJ",
-    "ALBERT": "Alberto",
     "AZ": "AZ",
+    #
+    "ALBERT": "Albert",
     "joany": "Joany",
 }
-
-
 
 
 import re
 
 
 def clean_first_name(text):
-    # Regex to match titles like Dr., Mr., Ms., Mrs., Prof., etc., followed by a
-    # first name.
-    match = re.search(r'\b(?:Dr\.|Mr\.|Ms\.|Mrs\.|Prof\.|Rev\.)\s+(\w+)',
-                      text)
+    # Regex pattern to match initials like "B.J."
+    match = re.search(r'[A-Z]\.[A-Z]\.', text)
     if match:
-        # Return the captured first name.
-        text = match.group(1)
-    # Regex to match nicknames in parentheses or quotes or extract the first
-    # word after a period.
-    match = re.search(r'"([^"]+)"|\(([^\)]+)\)|\b(?:\w\.)\s*(\w+)', text)
-    if match:
-        text = match.group(1) or match.group(2) or match.group(3)
+        return text
+    # # Regex to match titles like Dr., Mr., Ms., Mrs., Prof., etc., followed by a
+    # # first name.
+    # match = re.search(r'\b(?:Dr\.|Mr\.|Ms\.|Mrs\.|Prof\.|Rev\.)\s+(\w+)',
+    #                   text)
+    # if match:
+    #     # Return the captured first name.
+    #     text = match.group(1)
+    # # Regex to match nicknames in parentheses or quotes or extract the first
+    # # word after a period.
+    # match = re.search(r'"([^"]+)"|\(([^\)]+)\)|\b(?:\w\.)\s*(\w+)', text)
+    # if match:
+    #     text = match.group(1) or match.group(2) or match.group(3)
     return text
+
+
+def test_clean_first_name():
+    for input, exp in first_names_examples.items():
+        act = clean_first_name(input)
+        if act != exp:
+            print(f"input='{input}', act='{act}', exp='{exp}'")
+            #assert act == exp
 
 
 # I will give a list of "job titles" AT "company name" and you decide if that
