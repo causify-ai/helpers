@@ -12,6 +12,7 @@ import numpy as np
 from tqdm.autonotebook import tqdm
 
 import helpers.hdbg as hdbg
+import helpers.hcache as hcache
 import helpers.hprint as hprint
 import helpers.hgoogle_file_api as hgapi
 
@@ -53,7 +54,7 @@ def reset_cache():
 
 
 #@functools.lru_cache(maxsize=128)
-def get_cached_sheet_to_df(url, sheet_name, force_reload=False):
+def get_cached_sheet_to_df2(url, sheet_name, force_reload=False):
     global _GSPREAD_CACHE
     if not _GSPREAD_CACHE.keys():
         print("Cache is EMPTY!")
@@ -69,6 +70,14 @@ def get_cached_sheet_to_df(url, sheet_name, force_reload=False):
     cache_dict_to_disk(_GSPREAD_CACHE)
     return df
 
+
+@hcache.cache(set_verbose_mode=True)
+def get_cached_sheet_to_df(url, sheet_name, force_reload=False):
+    key = "%s:%s" % (url, sheet_name)
+    _LOG.info("Reading data from %s %s" % (url, sheet_name))
+    spread = gspread_pandas.Spread(url)
+    df = spread.sheet_to_df(sheet=sheet_name, index=None)
+    return df
 
 # #############################################################################
 

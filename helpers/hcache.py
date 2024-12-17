@@ -1,5 +1,5 @@
 """
-See `helpers/cache.md` for implementation details.
+See `docs/coding/all.hcache.explanation.md` for implementation details.
 
 Import as:
 
