@@ -15,6 +15,7 @@ import helpers.hdbg as hdbg
 import helpers.hcache as hcache
 import helpers.hprint as hprint
 import helpers.hgoogle_file_api as hgapi
+import helpers.hsystem as hsystem
 
 from helpers_root.config_root.config.config_ import ValueTypeHint
 
@@ -873,14 +874,24 @@ def print_causify_df_stats(df, debug=""):
         assert 0
 
 
-def save_to_tmp(df):
-    # Name of the new Google Sheet (this will be created)
-    spread = gspread_pandas.Spread('display_tmp')
-    # Write DataFrame to the Google Sheet (this creates the sheet if it doesn't exist)
+def save_to_gsheet(df, *, name="display_tmp", use_timestamp: bool = False):
+    if use_timestamp:
+        timestamp = hsystem.get_timestamp()
+        name += "." + timestamp
+    # Save in gp/test.
+    folder_id = "1HTyRpbb4tFqRxjX6yQgosmCcpVxcF6X9"
+    client = gspread_pandas.Client()
+    spreadsheet = client.create(name, folder_id=folder_id)
+    # Connect to the newly created spreadsheet using Spread
+    spread = gspread_pandas.Spread(spreadsheet.url)
+                                    # create_sheet=True,
+                                    # create_spread=True)
+    print(spread.url)
+    # Write DataFrame to the Google Sheet (this creates the sheet if it
+    # doesn't exist).
     spread.df_to_sheet(df, index=False, sheet='Sheet1', start='A1',
                        replace=True)
-    #
-    #hgapi.set_row_height("display_tmp", 30)
+    _LOG.info("Saved to %s", name)
 
 
 # #############################################################################
