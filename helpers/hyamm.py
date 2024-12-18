@@ -14,7 +14,7 @@ from tqdm.autonotebook import tqdm
 import helpers.hdbg as hdbg
 import helpers.hcache as hcache
 import helpers.hprint as hprint
-import helpers.hgoogle_file_api as hgapi
+#import helpers.hgoogle_file_api as hgapi
 import helpers.hsystem as hsystem
 
 from helpers_root.config_root.config.config_ import ValueTypeHint
@@ -73,8 +73,7 @@ def get_cached_sheet_to_df2(url, sheet_name, force_reload=False):
 
 
 @hcache.cache(set_verbose_mode=True)
-def get_cached_sheet_to_df(url, sheet_name, force_reload=False):
-    key = "%s:%s" % (url, sheet_name)
+def get_cached_sheet_to_df(url, sheet_name):
     _LOG.info("Reading data from %s %s" % (url, sheet_name))
     spread = gspread_pandas.Spread(url)
     df = spread.sheet_to_df(sheet=sheet_name, index=None)
@@ -464,6 +463,9 @@ def get_CausifyScraper_data_type3(normalize=True):
     else:
         df_out = df
     return df_out
+
+
+# #############################################################################
 
 
 # email_first	aagarwal@insightpartners.com
@@ -872,6 +874,47 @@ def print_causify_df_stats(df, debug=""):
     if debug == "email" and (num_valid_origin != df.shape[0]):
         display(df[~valid_mask])
         assert 0
+
+
+from gspread_pandas import Spread, Client
+
+
+# def get_or_create_spread(spread_name, credentials=None):
+#     """
+#     Get or create a Google Spreadsheet with the given name.
+#     If the spreadsheet exists, it reuses the same one.
+#     If it doesn't exist, it creates a new one.
+#
+#     Args:
+#         spread_name (str): The name of the spreadsheet to get or create.
+#         credentials (dict, optional): Credentials for Google API access.
+#
+#     Returns:
+#         Spread: The gspread_pandas Spread object linked to the existing or newly created spreadsheet.
+#     """
+#     try:
+#         # Initialize the gspread_pandas Client
+#         client = Client(creds=credentials) if credentials else Client()
+#
+#         # Check if the spreadsheet already exists
+#         existing_spreadsheets = client.list_spreadsheet_files()
+#
+#         # Look for a spreadsheet with the specified name
+#         for spreadsheet in existing_spreadsheets:
+#             if spreadsheet['name'] == spread_name:
+#                 print(
+#                     f"Spreadsheet '{spread_name}' found. Reusing existing spreadsheet.")
+#                 return Spread(spread_name, creds=credentials)
+#
+#         # If the spreadsheet does not exist, create a new one
+#         print(
+#             f"Spreadsheet '{spread_name}' not found. Creating a new spreadsheet.")
+#         new_spread = Spread(spread_name, create=True, creds=credentials)
+#         return new_spread
+#
+#     except Exception as e:
+#         print(f"An error occurred: {e}")
+#         return None
 
 
 def save_to_gsheet(df, *, name="display_tmp", use_timestamp: bool = False):
