@@ -540,6 +540,9 @@ def _generate_docker_compose_file(
     base_app_spec = {
         "cap_add": ["SYS_ADMIN"],
         "environment": [
+            # TODO(Juraj): temporary hack until new dev_tools image is released.
+            # More info in #DevToolsTask595.
+            "AM_ENABLE_DIND=0",
             f"CSFY_ENABLE_DIND={CSFY_ENABLE_DIND}",
             f"CSFY_FORCE_TEST_FAIL=$CSFY_FORCE_TEST_FAIL",
             f"CSFY_HOST_NAME={csfy_host_name}",
