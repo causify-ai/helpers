@@ -652,6 +652,7 @@ def _get_repo_short_to_full_name(include_host_name: bool) -> Dict[str, str]:
         "amp": "alphamatic/amp",
         "dev_tools": "causify-ai/dev_tools",
         "helpers": "causify-ai/helpers",
+        "tutorials": "causify-ai/tutorials",
     }
     if include_host_name:
         host_name = "github.com"
