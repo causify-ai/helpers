@@ -21,7 +21,6 @@
   - CV / LinkedIn: ?
   - GitHub handle: ?
   - Email: ?
-  - Telegram handle: ?
   - Devops candidate: Yes / no
   - Intern vs Full-time candidate: ?
   - Quick review if the person has the skills we are looking for
@@ -84,6 +83,7 @@ A list of things to do to off-board an intern / collaborator
 2. [ ] Remove from
        [contributors](https://groups.google.com/u/0/a/crypto-kaizen.com/g/contributors/members)@
 3. [ ] Remove from the [TG channel](https://t.me/+f2o-9oR_oH42NGJh)
+  - _Note: we mostly got rid of Telegram usage, maybe there will be a Slack channel for interns/collaborators in the futures_
 4. [ ] Remove Gdocs access:
    1. [KaizenFlow](https://drive.google.com/drive/folders/1-aaFlPtlbJ-pUL-c5GQbjFgZRp9ZNRUk?usp=sharing)
    2. [Process](https://drive.google.com/drive/folders/1sJDqCjM1Q_nq8diyZDiWO8mVBQW5Wg_X?usp=sharing)
