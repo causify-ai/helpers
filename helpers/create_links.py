@@ -3,15 +3,15 @@ Usage Example:
 
 Step 1: Replace files in dst_dir with links from src_dir:
 
-    - python3 create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --replace_links
+    > create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --replace_links
 
 Step 2: Stage linked files for modification:
 
-    - python3 create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --stage_links
+    > create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --stage_links
 
 Step 3: After modification, restore the symbolic links:
 
-    - python3 create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --replace_links
+    > create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --replace_links
 
 Import as:
 
