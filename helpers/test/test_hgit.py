@@ -182,7 +182,7 @@ class Test_git_repo_name1(hunitest.TestCase):
             return
         mode = "short_name"
         act = hgit.get_all_repo_names(mode)
-        exp = ["amp", "cmamp", "dev_tools", "helpers"]
+        exp = ["amp", "cmamp", "dev_tools", "helpers", "tutorials"]
         self.assert_equal(str(act), str(exp))
 
     # Outside CK infra, the following call hangs, so we skip it.
@@ -200,6 +200,7 @@ class Test_git_repo_name1(hunitest.TestCase):
             "causify-ai/cmamp",
             "causify-ai/dev_tools",
             "causify-ai/helpers",
+            "causify-ai/tutorials",
         ]
         self.assert_equal(str(act), str(exp))
 
