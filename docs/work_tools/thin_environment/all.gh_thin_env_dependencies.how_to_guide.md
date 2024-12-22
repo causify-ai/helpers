@@ -81,7 +81,7 @@ Example:
 
 ## Notify Team
 
-In the @all Telegram channel, notify the team about the new package and ask them
+In the `#team-eng` Slack channel, notify the team about the new package and ask them
 to rebuild the thin env.
 
 Example:
