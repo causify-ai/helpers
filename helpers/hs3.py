@@ -549,21 +549,6 @@ def add_s3_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
 # #############################################################################
 
 
-def get_aws_profile(aws_profile: str) -> str:
-    """
-    Return the AWS profile to access S3, based on:
-
-    - argument passed
-    - command line option (i.e., `args.aws_profile`)
-    - env vars (i.e., `CSFY_AWS_PROFILE`)
-    """
-    hdbg.dassert_type_is(aws_profile, str)
-    prefix = aws_profile.upper()
-    env_var = f"{prefix}_AWS_PROFILE"
-    hdbg.dassert_in(env_var, os.environ)
-    return os.environ[env_var]
-
-
 def _get_aws_config(file_name: str) -> configparser.RawConfigParser:
     """
     Return a parser to the config in `~/.aws/{file_name}`.
@@ -879,7 +864,6 @@ def archive_data_on_s3(
         and it doesn't reuse an S3 fs object
     :param tag: a tag to add to the name of the file
     """
-    aws_profile = get_aws_profile(aws_profile)
     _LOG.info(
         "# Archiving '%s' to '%s' with aws_profile='%s'",
         src_dir,
