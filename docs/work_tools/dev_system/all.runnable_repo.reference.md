@@ -215,10 +215,10 @@ graph TD
   their respective runnable repos or dirs need to be identified and replaced
   with the new copies
 - This manual copying and comparison approach requires a lot of effort and
-  becomes increasingly difficult to maintain as the number of runnable
-  repositories and directories grows
+  becomes increasingly difficult to maintain as the number of runnable repos and
+  dirs grows
 - There is no way to "source control" shared files because the files themselves
-  are used to create the repositories
+  are used to create the repos
 
 - The solution is to apply a symlink approach for all common files
 - All the template files are initially copied and customized based on the
@@ -319,7 +319,7 @@ graph TD
   ```
 
 - This function is performed automatically by the script `main_pytest.py`
-  ```
+  ```bash
   > main_pytest.py --dir infra
   ```
 
