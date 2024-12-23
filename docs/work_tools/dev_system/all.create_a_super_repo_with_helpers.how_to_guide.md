@@ -7,7 +7,7 @@
   * [Add helpers sub-repo](#add-helpers-sub-repo)
   * [Copy and customize files](#copy-and-customize-files)
   * [1) Copy and customize files in `thin_client`](#1-copy-and-customize-files-in-thin_client)
-    + [Create the thin environment](#create-the-thin-environment)
+    + [Build the thin environment](#build-the-thin-environment)
     + [Test the thin environment](#test-the-thin-environment)
     + [Create the tmux links](#create-the-tmux-links)
     + [Maintain the files in sync with the template](#maintain-the-files-in-sync-with-the-template)
@@ -26,31 +26,57 @@
 
 ## Create a new (super) repo in the desired organization
 
-- E.g. https://github.com/organizations/causify-ai/repositories/new
-  - The repository is set to private by default
+TODO(Grisha): consider using repository
+[templates](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template)
+
+- Create a repo within the
+  [`causify-ai` organization](https://github.com/causify-ai)
+- Follow the
+  [offical guide](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-new-repository#creating-a-new-repository-from-the-web-ui)
+- Recommended options:
+  - Owner: `causify-ai`
+  - Repository-name: provide a valid short name, e.g., `algo_trading`
+  - Visibility: by default choose `Private`
+  - Add a README file
+  - `.gitignore template: None`
+  - License: `General Public Licenve v3.0`
 
 ## Add helpers sub-repo
 
-- Clone the super-repo locally
-  ```
-  > git clone git@github.com:causify-ai/repo_name.git ~/src/repo_name1
-  ```
+Below there is an example for the `helpers` repo, but it works for `cmamp` as
+well if one replaces `helpers` with `cmamp`.
 
-- Add `helpers` as sub-repo
+1. Clone the super-repo locally
+```
+> git clone --recursive git@github.com:causify-ai/{repo_name}.git ~/src/{repo_name}{index}
+```
 
-  ```bash
-  > cd ~/src/repo_name1
-  > git submodule add git@github.com:causify-ai/helpers.git helpers_root
-  > git submodule init
-  > git submodule update
-  > git add .gitmodules helpers_root
-  > git commit -am "Add helpers subrepo" && git push
-  ```
-
-- In one line:
-  ```bash
-  > git submodule add git@github.com:causify-ai/helpers.git helpers_root && git submodule init && git submodule update && (cd helpers_root && git checkout master && git pull) && git add .gitmodules helpers_root
-  ```
+2. Checkout to a new branch
+   ```
+   > git checkout -b repo_init
+   ```
+3. Add a submodule
+   ```bash
+   > cd ~/src/repo_name1
+   # In general form.
+   > git submodule add {submodule_url} {submodule_path}
+   # Example for `cmamp`.
+   > git submodule add git@github.com:causify-ai/helpers.git helpers_root
+   # The cmd will create a `.gitmodules` file that we need to check-in.
+   [submodule "helpers_root"]
+   path = helpers_root
+   url = git@github.com:causify-ai/helpers.git
+   ```
+4. Init the submodule and commit the `.gitmodules` file.
+   ```bash
+   > git submodule init
+   > git submodule update
+   ```
+5. Commit and push the changes
+   ```bash
+   > git add .gitmodules helpers_root
+   > git commit -am "Add helpers subrepo" && git push
+   ```
 
 ## Copy and customize files
 
@@ -94,7 +120,7 @@
   tmux.py
   ```
 
-- Customize the files looking for `$DIR_TAG` and `$IS_SUPER_REPO`
+- Customize the files looking for `$DIR_TAG`, `$IS_SUPER_REPO` and `dir_prefix`.
   ```
   > vi $DST_DIR/*
   ```
@@ -102,11 +128,11 @@
 - If we don't need to create a new thin env you can delete the files
   `dev_scripts/thin_client/build.py` and `requirements.txt`
 
-### Create the thin environment
+### Build the thin environment
 
 > cp -r $SRC_DIR/{build.py,requirements.txt,setenv.sh,tmux.py} $DST_DIR
 
-- Create the thin environment
+- Build the thin environment
   ```
   > $DST_DIR/build.py
   ... ==> `brew cleanup` has not been run in the last 30 days, running now...
@@ -127,51 +153,13 @@
 
 ### Test the thin environment
 
-- Test `//helpers` `setenv.sh`
-
-  ```bash
-  > (cd helpers_root; source dev_scripts_helpers/thin_client/setenv.sh)
-  ...
-  alias w='which'
-  INFO: dev_scripts_helpers/thin_client/setenv.sh successful
-  ```
-
-- Test super-repo `setenv`
-  ```bash
-  > source dev_scripts_${DST_PREFIX}/thin_client/setenv.sh
-  ...
-  alias w='which'
-  INFO: dev_scripts_quant_dashboard/thin_client/setenv.sh successful
-  ```
+Follow
+[the on-boarding guide](/docs/onboarding/ck.development_setup.how_to_guide.md#set-up-the-thin-environment)
 
 ### Create the tmux links
 
-- Create the global link
-
-  ```bash
-  > ${DST_DIR}/tmux.py --create_global_link
-  ...
-  ################################################################################
-  ln -sf /Users/saggese/src/quant_dashboard1/dev_scripts_quant_dashboard/thin_client/tmux.py ~/go_quant_dashboard.py
-  ################################################################################
-  14:42:53 - INFO  thin_client_utils.py create_tmux_session:203           Link created: exiting
-  ```
-
-- Create the tmux session
-
-  ```bash
-  > ${DST_DIR}/tmux.py --index 1 --force_restart
-  ```
-
-- You should see the tmux windows with the views on the super repo and the
-  subrepo
-  - Double check that the `setenv.sh` succeeded in all the windows
-
-- Test `tmux`
-  ```bash
-  > dev_scripts_sports_analytics/thin_client/tmux.py --create_global_link
-  > dev_scripts_sports_analytics/thin_client/tmux.py --index 1
-  ```
+Follow
+[the on-boarding guide](/docs/onboarding/ck.development_setup.how_to_guide.md#create-a-tmux-session)
 
 ### Maintain the files in sync with the template
 
@@ -184,23 +172,25 @@
 
 - Some files need to be copied from `helpers` to the root of the super-repo to
   configure various tools (e.g., dev container workflow, `pytest`, `invoke`)
-  - `changelog.txt`: this is copied from the repo that builds the used container
-    or started from scratch for a new container
-  - `conftest.py`: configure `pytest`
   - `pytest.ini`: configure `pytest` preferences
-  - `invoke.yaml`: configure `invoke`
   - `repo_config.py`: stores information about this specific repo (e.g., name,
     used container)
-    - This needs to be modified
+    - Change `_REPO_NAME = "orange"` to the current repo name
   - `tasks.py`: the `invoke` tasks available in this container
     - This needs to be modified
-  - TODO(gp): Some files (e.g., `conftest.py`, `invoke.yaml`) should be links to
-    `helpers`
-
   ```bash
-  > cp helpers_root/{changelog.txt,conftest.py,invoke.yaml,pytest.ini,repo_config.py,tasks.py} .
-  > vim changelog.txt conftest.py invoke.yaml pytest.ini repo_config.py tasks.py
+  > cp helpers_root/{pytest.ini,repo_config.py,tasks.py} .
+  > vim pytest.ini repo_config.py tasks.py
   ```
+- Some files are just soft links:
+
+```bash
+   > ln -s helpers_root/conftest.py conftest.py
+   > ln -s helpers_root/invoke.yaml invoke.yaml
+   > ln -s helpers_root/mypy.ini mypy.ini
+   # This is copied from the repo that builds the used container or started from scratch for a new container, e.g., `cmamp` dev image.
+   > ln -s helpers_root/changelog.txt changelog.txt
+```
 
 - You can run to copy/diff the files
   ```bash
@@ -252,11 +242,11 @@
 
 ### Check if the regressions are passing
 
-- Run the tests, if needed
-  ```bash
-  > i docker_bash
-  > pytest
-  ```
+Follow
+[the on-boarding](/docs/onboarding/ck.development_setup.how_to_guide.md#begin-working)
+doc to confirm.
+
+File a PR with the new files and merge the PR into `master`.
 
 ## Configure regressions via GitHub actions
 
