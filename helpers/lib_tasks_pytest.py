@@ -774,7 +774,7 @@ def run_coverage_report(  # type: ignore
     target_dir,
     generate_html_report=True,
     publish_html_on_s3=True,
-    aws_profile="ck",
+    aws_profile="csfy",
 ):
     """
     Compute test coverage stats.
