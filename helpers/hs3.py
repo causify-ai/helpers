@@ -451,7 +451,11 @@ def get_s3_bucket_path(aws_profile: str, add_s3_prefix: bool = True) -> str:
     is usually set to `s3://alphamatic-data`.
     """
     hdbg.dassert_type_is(aws_profile, str)
+    #TODO(Juraj): needed because ENV_VARS are now prefixed with
+    # `CSFY_` and not `CK_` or `AM_`. Proper fix to come in 
+    # CmTask11095.
     prefix = aws_profile.upper()
+    prefix = "CSFY" if aws_profile.upper() in ["AM", "CK"] else aws_profile.upper()
     env_var = f"{prefix}_AWS_S3_BUCKET"
     if env_var in os.environ:
         _LOG.debug("No env var '%s'", env_var)
@@ -608,8 +612,9 @@ def _get_aws_config_text(aws_profile: str) -> str:
     Generate text for the AWS config file, i.e. ".aws/config".
     """
     # Set which env vars we need to get.
-    #TODO(Juraj): needed because ENV_VARS are now prexied with
-    # `CSFY_` and not `CK_` or `AM_`
+    #TODO(Juraj): needed because ENV_VARS are now prefixed with
+    # `CSFY_` and not `CK_` or `AM_`. Proper fix to come in 
+    # CmTask11095.
     #profile_prefix = aws_profile.upper()
     profile_prefix = "CSFY" if aws_profile.upper() in ["AM", "CK"] else aws_profile.upper()
     region_env_var = f"{profile_prefix}_AWS_DEFAULT_REGION"
@@ -627,8 +632,9 @@ def _get_aws_credentials_text(aws_profile: str) -> str:
     Generate text for the AWS credentials file, i.e. ".aws/credentials".
     """
     # Set which env vars we need to get.
-    #TODO(Juraj): needed because ENV_VARS are now prexied with
-    # `CSFY_` and not `CK_` or `AM_`
+    #TODO(Juraj): needed because ENV_VARS are now prefixed with
+    # `CSFY_` and not `CK_` or `AM_`. Proper fix to come in 
+    # CmTask11095.
     #profile_prefix = aws_profile.upper()
     profile_prefix = "CSFY" if aws_profile.upper() in ["AM", "CK"] else aws_profile.upper()
     key_to_env_var = {
