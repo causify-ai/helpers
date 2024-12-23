@@ -7,7 +7,7 @@
   * [Add helpers sub-repo](#add-helpers-sub-repo)
   * [Copy and customize files](#copy-and-customize-files)
   * [1) Copy and customize files in `thin_client`](#1-copy-and-customize-files-in-thin_client)
-    + [Create the thin environment](#create-the-thin-environment)
+    + [Build the thin environment](#build-the-thin-environment)
     + [Test the thin environment](#test-the-thin-environment)
     + [Create the tmux links](#create-the-tmux-links)
     + [Maintain the files in sync with the template](#maintain-the-files-in-sync-with-the-template)
@@ -29,8 +29,8 @@
 TODO(Grisha): consider using repository
 [templates](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template)
 
-- Create a repo within the [`causify-ai`
-  organization](https://github.com/causify-ai)
+- Create a repo within the
+  [`causify-ai` organization](https://github.com/causify-ai)
 - Follow the
   [offical guide](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-new-repository#creating-a-new-repository-from-the-web-ui)
 - Recommended options:
@@ -43,13 +43,14 @@ TODO(Grisha): consider using repository
 
 ## Add helpers sub-repo
 
-Below there is an example for the `helpers` repo, but it works for `cmamp` as well if one
-replaces `helpers` with `cmamp`.
+Below there is an example for the `helpers` repo, but it works for `cmamp` as
+well if one replaces `helpers` with `cmamp`.
 
 1. Clone the super-repo locally
-  ```
-  > git clone --recursive git@github.com:causify-ai/{repo_name}.git ~/src/{repo_name}{index}
-  ```
+```
+> git clone --recursive git@github.com:causify-ai/{repo_name}.git ~/src/{repo_name}{index}
+```
+
 2. Checkout to a new branch
    ```
    > git checkout -b repo_init
@@ -152,11 +153,13 @@ replaces `helpers` with `cmamp`.
 
 ### Test the thin environment
 
-Follow [the on-boarding guide](/docs/onboarding/ck.development_setup.how_to_guide.md#set-up-the-thin-environment)
+Follow
+[the on-boarding guide](/docs/onboarding/ck.development_setup.how_to_guide.md#set-up-the-thin-environment)
 
 ### Create the tmux links
 
-Follow [the on-boarding guide](/docs/onboarding/ck.development_setup.how_to_guide.md#create-a-tmux-session)
+Follow
+[the on-boarding guide](/docs/onboarding/ck.development_setup.how_to_guide.md#create-a-tmux-session)
 
 ### Maintain the files in sync with the template
 
@@ -172,7 +175,7 @@ Follow [the on-boarding guide](/docs/onboarding/ck.development_setup.how_to_guid
   - `pytest.ini`: configure `pytest` preferences
   - `repo_config.py`: stores information about this specific repo (e.g., name,
     used container)
-    - change `_REPO_NAME = "orange"` to the current repo name
+    - Change `_REPO_NAME = "orange"` to the current repo name
   - `tasks.py`: the `invoke` tasks available in this container
     - This needs to be modified
   ```bash
@@ -180,6 +183,7 @@ Follow [the on-boarding guide](/docs/onboarding/ck.development_setup.how_to_guid
   > vim pytest.ini repo_config.py tasks.py
   ```
 - Some files are just soft links:
+
 ```bash
    > ln -s helpers_root/conftest.py conftest.py
    > ln -s helpers_root/invoke.yaml invoke.yaml
