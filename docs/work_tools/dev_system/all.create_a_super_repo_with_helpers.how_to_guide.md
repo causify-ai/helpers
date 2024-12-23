@@ -1,14 +1,16 @@
+
+
 <!-- toc -->
 
 - [How to create a super-repo with `helpers`](#how-to-create-a-super-repo-with-helpers)
   * [Create a new (super) repo in the desired organization](#create-a-new-super-repo-in-the-desired-organization)
   * [Add helpers sub-repo](#add-helpers-sub-repo)
   * [Copy and customize files](#copy-and-customize-files)
-  * [1) Copy and customize files in thin_client](#1-copy-and-customize-files-in-thin_client)
-  * [Create the thin environment](#create-the-thin-environment)
-  * [Test the thin environment](#test-the-thin-environment)
-  * [Create the tmux links](#create-the-tmux-links)
-  * [Maintain the files in sync with the template](#maintain-the-files-in-sync-with-the-template)
+  * [1) Copy and customize files in `thin_client`](#1-copy-and-customize-files-in-thin_client)
+    + [Create the thin environment](#create-the-thin-environment)
+    + [Test the thin environment](#test-the-thin-environment)
+    + [Create the tmux links](#create-the-tmux-links)
+    + [Maintain the files in sync with the template](#maintain-the-files-in-sync-with-the-template)
   * [2) Copy and customize files in the top dir](#2-copy-and-customize-files-in-the-top-dir)
   * [3) Copy and customize files in `devops`](#3-copy-and-customize-files-in-devops)
     + [Build a container for a super-repo](#build-a-container-for-a-super-repo)
@@ -35,6 +37,7 @@
   ```
 
 - Add `helpers` as sub-repo
+
   ```bash
   > cd ~/src/repo_name1
   > git submodule add git@github.com:causify-ai/helpers.git helpers_root
@@ -82,6 +85,7 @@
   ```
 
 - The resulting `dev_script` should look like:
+
   ```bash
   > ls -1 $DST_DIR
   build.py
@@ -100,7 +104,7 @@
 
 ### Create the thin environment
 
-  > cp -r $SRC_DIR/{build.py,requirements.txt,setenv.sh,tmux.py} $DST_DIR
+> cp -r $SRC_DIR/{build.py,requirements.txt,setenv.sh,tmux.py} $DST_DIR
 
 - Create the thin environment
   ```
@@ -219,8 +223,8 @@
   > rm -rf devops/docker_build
   ```
 
-- Follow the instructions in `docs/work_tools/all.devops_docker.reference.md` and
-  `docs/work_tools/all.devops_docker.how_to_guide.md`
+- Follow the instructions in `docs/work_tools/all.devops_docker.reference.md`
+  and `docs/work_tools/all.devops_docker.how_to_guide.md`
 
 - TODO
   - If it's a super-repo container you need to switch in
@@ -257,6 +261,27 @@
 ## Configure regressions via GitHub actions
 
 ### Set repository secrets/variables
+
+- Some secrets/variables are shared in an organization wide storage
+  - E.g. for [Causify](https://github.com/organizations/causify-ai) at
+    https://github.com/organizations/causify-ai/settings/secrets/actions
+  - These values are shared across all repos in the organization so we don't
+    need to create them on a per-repo basis
+    - The access method is the same as for per-repo variables - via actions
+      context `${{ secrets.MY_TOKEN }}` or ``${{ vars.MY_TOKEN }}`
+  - Once a `secret` is set it's read-only for everybody. To preview all of the
+    raw values that are currently used, visit
+    [1password > Shared vault > Causify org GH actions secrets](https://causify.1password.com/app#/everything/AllItems/ofre2i2yhv2lyf7ggvv2a4uouaaxvzjzaomv3hol24txn2an5imq)
+
+- Before adding a new secret/variables for a repo, consider the following:
+  - If it's already present in the global storage for an organization, no action
+    is required
+  - If it's not, check if the newly added value is not needed in all of the
+    repos, if so, add it to the global storage to facilitate reusability
+    - If you lack permissions for this operation, contact your TL
+
+- Should a repo need some additional secret values/variables, follow the
+  procedure below
 
 1. Login to 1password https://causify.1password.com/home
    - Ask your TL if you don't have access to 1password

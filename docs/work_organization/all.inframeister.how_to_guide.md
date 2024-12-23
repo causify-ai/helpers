@@ -89,7 +89,7 @@ control, and specific oversight of infrastructure-related incidents.
   - **Google Docs:** Maintain a running document for each major incident for
     real-time collaboration and information sharing during the incident
     response.
-  - **Telegram:** For immediate communications and quick updates during an
+  - **Slack** For immediate communications and quick updates during an
     incident.
 - **Communicate with Stakeholders:** Update all pertinent parties, including
   management and technical leads, about the incident’s status and resolution.

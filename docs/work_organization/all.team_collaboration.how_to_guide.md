@@ -148,7 +148,7 @@
   - One of us (e.g., GP or Paul) creates a GitHub task, with:
     - Detailed instructions
     - The list of all of the persons in charge of executing the task
-  - Send a ping with the link on Telegram if the task is urgent
+  - Send a ping with the link on Slack if the task is urgent
   - Everybody does what's asked
   - Mark on the GitHub task your name
 
@@ -294,15 +294,15 @@ If you are a collaborator or intern, follow the steps to join the mailing group
     - Work organization tasks
     - Marketing and funding
     - On-boarding process
-- Telegram
+- Slack
   - This is our messenger for tight interaction (like a debug session) or
     immediacy (e.g., "are you ready for the sync up?")
   - Please, avoid discussing anything that can be discussed at GitHub or Asana
     - You often need to reference some comments and ideas in other places like
-      issues or messages and it is impossible to reference a Telegram message
+      issues or messages and it is impossible to reference a Slack message
       outside of it
     - It is much easier for all reviewers to catch up with all the thinking
-      process if it is logged at one place - Telegram is never a place for this
+      process if it is logged at one place - Slack is never a place for this
 - Jupyter notebooks
   - Generally used to implement and describe research in detail
     - `Master` notebooks are intended to be used as tools for demonstrative
@@ -320,7 +320,7 @@ If you are a collaborator or intern, follow the steps to join the mailing group
   - Rarely used for any other purpose
   - Exceptions are to send non-urgent information to everybody
 - There should be little replication among these forms of documentation
-  - It's not ok to file a bug and then ping on Telegram unless it's urgent
+  - It's not ok to file a bug and then ping on Slack unless it's urgent
 - Google Form
   - When you want to ask a question anonymously use
     https://forms.gle/KMQgobqbyxhoTR9n6
