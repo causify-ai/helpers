@@ -4,6 +4,7 @@
 import logging
 import os
 import re
+import unittest.mock as umock
 from typing import Dict, Generator
 
 import invoke
@@ -298,8 +299,11 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
         reason="Only run in amp as supermodule",
     )
     def test_gh_create_pr1(self) -> None:
-        target = "gh_create_pr(ctx, repo_short_name='amp', title='test')"
-        self._check_output(target)
+        with umock.patch.object(
+            hgit, "get_branch_name", return_value="AmpTask1_test_branch"
+        ):
+            target = "gh_create_pr(ctx, repo_short_name='amp', title='test')"
+            self._check_output(target)
 
     # TODO(ShaopengZ): Outside CK infra, the test hangs, so we skip it.
     @pytest.mark.requires_ck_infra
@@ -308,8 +312,11 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
         reason="Only run in amp as supermodule",
     )
     def test_gh_create_pr2(self) -> None:
-        target = "gh_create_pr(ctx, body='hello_world', repo_short_name='amp', title='test')"
-        self._check_output(target)
+        with umock.patch.object(
+            hgit, "get_branch_name", return_value="AmpTask1_test_branch"
+        ):
+            target = "gh_create_pr(ctx, body='hello_world', repo_short_name='amp', title='test')"
+            self._check_output(target)
 
     # TODO(ShaopengZ): Outside CK infra, the test hangs, so we skip it.
     @pytest.mark.requires_ck_infra
@@ -318,10 +325,11 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
         reason="Only run in amp as supermodule",
     )
     def test_gh_create_pr3(self) -> None:
-        target = (
-            "gh_create_pr(ctx, draft=False, repo_short_name='amp', title='test')"
-        )
-        self._check_output(target)
+        with umock.patch.object(
+            hgit, "get_branch_name", return_value="AmpTask1_test_branch"
+        ):
+            target = "gh_create_pr(ctx, draft=False, repo_short_name='amp', title='test')"
+            self._check_output(target)
 
     def test_gh_issue_title(self) -> None:
         target = "gh_issue_title(ctx, 1)"
