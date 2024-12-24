@@ -16,6 +16,7 @@ from typing import Dict, List, Match, Optional, Tuple, cast
 
 import helpers.hdbg as hdbg
 import helpers.henv as henv
+import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
@@ -190,6 +191,7 @@ def find_git_root(path: str = ".") -> str:
     git_root_dir = None
     while True:
         git_dir = os.path.join(path, ".git")
+        _LOG.debug("git_dir=%s", git_dir)
         # Check if `.git` is a directory which indicates a standard Git repository.
         if os.path.isdir(git_dir):
             # Found the Git root directory.
@@ -197,33 +199,36 @@ def find_git_root(path: str = ".") -> str:
             break
         # Check if `.git` is a file which indicates submodules or linked setups.
         if os.path.isfile(git_dir):
-            with open(git_dir, "r") as f:
-                for line in f:
-                    # Look for a `gitdir:` line that specifies the linked directory.
-                    if line.startswith("gitdir:"):
-                        git_dir_path = line.split(":", 1)[1].strip()
-                        # Resolve the relative path to the absolute path of the Git directory.
-                        abs_git_dir = os.path.abspath(
-                            os.path.join(path, git_dir_path)
+            txt = hio.from_file(git_dir)
+            lines = txt.split("\n")
+            for line in lines:
+                # Look for a `gitdir:` line that specifies the linked directory.
+                # Example: `gitdir: ../.git/modules/helpers_root`.
+                if line.startswith("gitdir:"):
+                    git_dir_path = line.split(":", 1)[1].strip()
+                    _LOG.debug("git_dir_path=%s", git_dir_path)
+                    # Resolve the relative path to the absolute path of the Git directory.
+                    abs_git_dir = os.path.abspath(
+                        os.path.join(path, git_dir_path)
+                    )
+                    # Traverse up to find the top-level `.git` directory.
+                    while True:
+                        # Check if the current directory is a `.git` directory.
+                        if os.path.basename(abs_git_dir) == ".git":
+                            git_root_dir = os.path.dirname(abs_git_dir)
+                            # Found the root.
+                            break
+                        # Move one level up in the directory structure.
+                        parent = os.path.dirname(abs_git_dir)
+                        # Reached the filesystem root without finding the `.git` directory.
+                        hdbg.dassert_ne(
+                            parent,
+                            abs_git_dir,
+                            "Top-level .git directory not found.",
                         )
-                        # Traverse up to find the top-level `.git` directory.
-                        while True:
-                            # Check if the current directory is a `.git` directory.
-                            if os.path.basename(abs_git_dir) == ".git":
-                                git_root_dir = os.path.dirname(abs_git_dir)
-                                # Found the root.
-                                break
-                            # Move one level up in the directory structure.
-                            parent = os.path.dirname(abs_git_dir)
-                            # Reached the filesystem root without finding the `.git` directory.
-                            hdbg.dassert_ne(
-                                parent,
-                                abs_git_dir,
-                                "Top-level .git directory not found.",
-                            )
-                            # Continue traversing up.
-                            abs_git_dir = parent
-                        break
+                        # Continue traversing up.
+                        abs_git_dir = parent
+                    break
         # Exit the loop if the Git root directory is found.
         if git_root_dir is not None:
             break

@@ -6,6 +6,7 @@ from typing import Generator, List, Optional
 import pytest
 
 import helpers.hgit as hgit
+import helpers.hio as hio
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
@@ -464,6 +465,15 @@ class Test_find_git_root1(hunitest.TestCase):
     - the repo is a super repo (e.g. //orange)
     - the repo contains another super repo (e.g. //amp) as submodule (first level)
     - the first level submodule contains another submodule (e.g. //helpers) (second level)
+
+    Directory structure:
+    orange/
+    |-- .git/
+    |-- amp/
+    |   |-- .git (points to ../.git/modules/amp)
+    |   |-- helpers_root/
+    |   |   |-- .git (points to ../../.git/modules/amp/modules/helpers_root)
+    |   `-- ck.infra/
     """
 
     @pytest.fixture(autouse=True)
@@ -485,15 +495,15 @@ class Test_find_git_root1(hunitest.TestCase):
         self.submodule_dir = os.path.join(self.repo_dir, "amp")
         os.makedirs(self.submodule_dir)
         submodule_git_file = os.path.join(self.submodule_dir, ".git")
-        with open(submodule_git_file, "w") as f:
-            f.write(f"gitdir: ../.git/modules/amp")
+        txt = f"gitdir: ../.git/modules/amp"
+        hio.to_file(submodule_git_file, txt)
         os.makedirs(os.path.join(self.repo_dir, ".git", "modules", "amp"))
         # Create `helpers_root` submodule under `amp`.
         self.subsubmodule_dir = os.path.join(self.submodule_dir, "helpers_root")
         os.makedirs(self.subsubmodule_dir)
         subsubmodule_git_file = os.path.join(self.subsubmodule_dir, ".git")
-        with open(subsubmodule_git_file, "w") as f:
-            f.write(f"gitdir: ../../.git/modules/amp/modules/helpers_root")
+        txt = f"gitdir: ../../.git/modules/amp/modules/helpers_root"
+        hio.to_file(subsubmodule_git_file, txt)
         os.makedirs(
             os.path.join(
                 self.repo_dir, ".git", "modules", "amp", "modules", "helpers_root"
@@ -549,6 +559,13 @@ class Test_find_git_root2(hunitest.TestCase):
     Check that the function returns the correct git root if:
     - the repo is a super repo (e.g. //cmamp)
     - the repo contains //helpers as submodule
+    
+    Directory structure:
+    cmamp/
+    |-- .git/
+    |-- helpers_root/
+    |   |-- .git (points to ../.git/modules/helpers_root)
+    `-- ck.infra/
     """
 
     @pytest.fixture(autouse=True)
@@ -570,13 +587,13 @@ class Test_find_git_root2(hunitest.TestCase):
         self.submodule_dir = os.path.join(self.repo_dir, "helpers_root")
         os.makedirs(self.submodule_dir)
         submodule_git_file = os.path.join(self.submodule_dir, ".git")
-        with open(submodule_git_file, "w") as f:
-            f.write(f"gitdir: ../.git/modules/helpers_root")
+        txt = f"gitdir: ../.git/modules/helpers_root"
+        hio.to_file(submodule_git_file, txt)
         os.makedirs(
             os.path.join(self.repo_dir, ".git", "modules", "helpers_root")
         )
         # Create `ck.infra` runnable dir under `cmamp`.
-        self.runnable_dir = os.path.join(self.submodule_dir, "ck.infra")
+        self.runnable_dir = os.path.join(self.repo_dir, "ck.infra")
         os.makedirs(self.runnable_dir)
 
     def tear_down_test(self) -> None:
@@ -614,6 +631,12 @@ class Test_find_git_root3(hunitest.TestCase):
     """
     Check that the function returns the correct git root if:
     - the repo is //helpers
+
+    Directory structure:
+    helpers/
+    |-- .git/
+    `-- arbitrary1/
+        `-- arbitrary1a/
     """
 
     @pytest.fixture(autouse=True)
@@ -663,6 +686,12 @@ class Test_find_git_root4(hunitest.TestCase):
     """
     Check that the function returns the correct git root if:
     - the repo is a linked repo
+    
+    Directory structure:
+    repo/
+    `-- .git/
+    linked_repo/
+    `-- .git (points to /repo/.git)
     """
 
     @pytest.fixture(autouse=True)
@@ -685,8 +714,8 @@ class Test_find_git_root4(hunitest.TestCase):
         os.makedirs(self.linked_repo_dir)
         # Create pointer from linked repo to the actual repo.
         linked_git_file = os.path.join(self.linked_repo_dir, ".git")
-        with open(linked_git_file, "w") as f:
-            f.write(f"gitdir: {self.git_dir}\n")
+        txt = f"gitdir: {self.git_dir}\n"
+        hio.to_file(linked_git_file, txt)
 
     def tear_down_test(self) -> None:
         self.temp_dir.cleanup()
@@ -704,6 +733,11 @@ class Test_find_git_root4(hunitest.TestCase):
 class Test_find_git_root5(hunitest.TestCase):
     """
     Check that the error is raised when no .git directory is found.
+    
+    Directory structure:
+    arbitrary_dir/
+    broken_repo/
+    `-- .git (points to /nonexistent/path/to/gitdir)
     """
 
     @pytest.fixture(autouse=True)
@@ -721,12 +755,12 @@ class Test_find_git_root5(hunitest.TestCase):
         os.makedirs(self.arbitrary_dir)
         # Create arbitrary directory that is a submodule or linked repo that
         #   point to non existing super repo.
-        self.repo_dir = os.path.join(self.temp_dir.name, "broken-repo")
+        self.repo_dir = os.path.join(self.temp_dir.name, "broken_repo")
         os.makedirs(self.repo_dir)
         # Create an invalid `.git` file with a non-existent `gitdir`.
         invalid_git_file = os.path.join(self.repo_dir, ".git")
-        with open(invalid_git_file, "w") as f:
-            f.write("gitdir: /nonexistent/path/to/gitdir")
+        txt = "gitdir: /nonexistent/path/to/gitdir"
+        hio.to_file(invalid_git_file, txt)
 
     def tear_down_test(self) -> None:
         self.temp_dir.cleanup()
