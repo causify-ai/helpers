@@ -469,11 +469,11 @@ class Test_find_git_root1(hunitest.TestCase):
     Directory structure:
     orange/
     |-- .git/
-    |-- amp/
-    |   |-- .git (points to ../.git/modules/amp)
-    |   |-- helpers_root/
-    |   |   |-- .git (points to ../../.git/modules/amp/modules/helpers_root)
-    |   `-- ck.infra/
+    `-- amp/
+        |-- .git (points to ../.git/modules/amp)
+        |-- ck.infra/
+        `-- helpers_root/
+            `-- .git (points to ../../.git/modules/amp/modules/helpers_root)
     """
 
     def set_up_test(self) -> None:
@@ -558,9 +558,9 @@ class Test_find_git_root2(hunitest.TestCase):
     Directory structure:
     cmamp/
     |-- .git/
-    |-- helpers_root/
-    |   |-- .git (points to ../.git/modules/helpers_root)
-    `-- ck.infra/
+    |-- ck.infra/
+    `-- helpers_root/
+        `-- .git (points to ../.git/modules/helpers_root)
     """
 
     def set_up_test(self) -> None:
