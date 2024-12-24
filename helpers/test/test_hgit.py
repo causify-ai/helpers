@@ -489,7 +489,9 @@ class Test_find_git_root1(hunitest.TestCase):
         submodule_git_file = os.path.join(self.submodule_dir, ".git")
         txt = f"gitdir: ../.git/modules/amp"
         hio.to_file(submodule_git_file, txt)
-        submodule_git_file_dir = os.path.join(self.repo_dir, ".git", "modules", "amp")
+        submodule_git_file_dir = os.path.join(
+            self.repo_dir, ".git", "modules", "amp"
+        )
         hio.create_dir(submodule_git_file_dir, incremental=False)
         # Create `helpers_root` submodule under `amp`.
         self.subsubmodule_dir = os.path.join(self.submodule_dir, "helpers_root")
@@ -552,7 +554,7 @@ class Test_find_git_root2(hunitest.TestCase):
     Check that the function returns the correct git root if:
     - the repo is a super repo (e.g. //cmamp)
     - the repo contains //helpers as submodule
-    
+
     Directory structure:
     cmamp/
     |-- .git/
@@ -574,7 +576,9 @@ class Test_find_git_root2(hunitest.TestCase):
         submodule_git_file = os.path.join(self.submodule_dir, ".git")
         txt = f"gitdir: ../.git/modules/helpers_root"
         hio.to_file(submodule_git_file, txt)
-        submodule_git_file_dir = os.path.join(self.repo_dir, ".git", "modules", "helpers_root")
+        submodule_git_file_dir = os.path.join(
+            self.repo_dir, ".git", "modules", "helpers_root"
+        )
         hio.create_dir(submodule_git_file_dir, incremental=False)
         # Create `ck.infra` runnable dir under `cmamp`.
         self.runnable_dir = os.path.join(self.repo_dir, "ck.infra")
@@ -661,7 +665,7 @@ class Test_find_git_root4(hunitest.TestCase):
     """
     Check that the function returns the correct git root if:
     - the repo is a linked repo
-    
+
     Directory structure:
     repo/
     `-- .git/
@@ -698,7 +702,7 @@ class Test_find_git_root4(hunitest.TestCase):
 class Test_find_git_root5(hunitest.TestCase):
     """
     Check that the error is raised when no .git directory is found.
-    
+
     Directory structure:
     arbitrary_dir/
     broken_repo/
