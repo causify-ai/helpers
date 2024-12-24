@@ -476,14 +476,6 @@ class Test_find_git_root1(hunitest.TestCase):
     |   `-- ck.infra/
     """
 
-    # @pytest.fixture(autouse=True)
-    # def setup_teardown_test(self):
-    #     # Run before each test.
-    #     self.set_up_test()
-    #     yield
-    #     # Run after each test.
-    #     self.tear_down_test()
-
     def set_up_test(self) -> None:
         temp_dir = self.get_scratch_space()
         # Create `orange` repo.
@@ -569,42 +561,31 @@ class Test_find_git_root2(hunitest.TestCase):
     `-- ck.infra/
     """
 
-    @pytest.fixture(autouse=True)
-    def setup_teardown_test(self):
-        # Run before each test.
-        self.set_up_test()
-        yield
-        # Run after each test.
-        self.tear_down_test()
-
     def set_up_test(self) -> None:
         self.temp_dir = tempfile.TemporaryDirectory()
         # Create `cmamp` repo.
         self.repo_dir = os.path.join(self.temp_dir.name, "cmamp")
-        os.makedirs(self.repo_dir)
+        hio.create_dir(self.repo_dir, incremental=False)
         self.git_dir = os.path.join(self.repo_dir, ".git")
-        os.makedirs(self.git_dir)
+        hio.create_dir(self.git_dir, incremental=False)
         # Create `helpers_root` submodule under `cmamp`.
         self.submodule_dir = os.path.join(self.repo_dir, "helpers_root")
-        os.makedirs(self.submodule_dir)
+        hio.create_dir(self.submodule_dir, incremental=False)
         submodule_git_file = os.path.join(self.submodule_dir, ".git")
         txt = f"gitdir: ../.git/modules/helpers_root"
         hio.to_file(submodule_git_file, txt)
-        os.makedirs(
-            os.path.join(self.repo_dir, ".git", "modules", "helpers_root")
-        )
+        submodule_git_file_dir = os.path.join(self.repo_dir, ".git", "modules", "helpers_root")
+        hio.create_dir(submodule_git_file_dir, incremental=False)
         # Create `ck.infra` runnable dir under `cmamp`.
         self.runnable_dir = os.path.join(self.repo_dir, "ck.infra")
-        os.makedirs(self.runnable_dir)
-
-    def tear_down_test(self) -> None:
-        self.temp_dir.cleanup()
+        hio.create_dir(self.runnable_dir, incremental=False)
 
     def test1(self) -> None:
         """
         Check that the function returns the correct git root if
         - the caller is in the super repo (e.g. //cmamp)
         """
+        self.set_up_test()
         with hsystem.cd(self.repo_dir):
             git_root = hgit.find_git_root(".")
             self.assert_equal(git_root, self.repo_dir)
@@ -614,6 +595,7 @@ class Test_find_git_root2(hunitest.TestCase):
         Check that the function returns the correct git root if
         - the caller is the submodule (e.g. //helpers)
         """
+        self.set_up_test()
         with hsystem.cd(self.submodule_dir):
             git_root = hgit.find_git_root(".")
             self.assert_equal(git_root, self.repo_dir)
@@ -623,6 +605,7 @@ class Test_find_git_root2(hunitest.TestCase):
         Check that the function returns the correct git root if
         - the caller is in a runnable dir (e.g. ck.infra)
         """
+        self.set_up_test()
         with hsystem.cd(self.runnable_dir):
             git_root = hgit.find_git_root(".")
             self.assert_equal(git_root, self.repo_dir)
@@ -640,35 +623,25 @@ class Test_find_git_root3(hunitest.TestCase):
         `-- arbitrary1a/
     """
 
-    @pytest.fixture(autouse=True)
-    def setup_teardown_test(self):
-        # Run before each test.
-        self.set_up_test()
-        yield
-        # Run after each test.
-        self.tear_down_test()
-
     def set_up_test(self) -> None:
         self.temp_dir = tempfile.TemporaryDirectory()
         # Create `helpers` repo.
         self.repo_dir = os.path.join(self.temp_dir.name, "helpers")
-        os.makedirs(self.repo_dir)
+        hio.create_dir(self.repo_dir, incremental=False)
         self.git_dir = os.path.join(self.repo_dir, ".git")
-        os.makedirs(self.git_dir)
+        hio.create_dir(self.git_dir, incremental=False)
         # Create arbitrary directory under `helpers`.
         self.arbitrary_dir = os.path.join(
             self.repo_dir, "arbitrary1", "arbitrary1a"
         )
-        os.makedirs(self.arbitrary_dir)
-
-    def tear_down_test(self) -> None:
-        self.temp_dir.cleanup()
+        hio.create_dir(self.arbitrary_dir, incremental=False)
 
     def test1(self) -> None:
         """
         Check that the function returns the correct git root if
         - the caller is the root of repo
         """
+        self.set_up_test()
         with hsystem.cd(self.repo_dir):
             git_root = hgit.find_git_root(".")
             self.assert_equal(git_root, self.repo_dir)
@@ -678,6 +651,7 @@ class Test_find_git_root3(hunitest.TestCase):
         Check that the function returns the correct git root if
         - the caller is in an arbitrary directory under the repo
         """
+        self.set_up_test()
         with hsystem.cd(self.arbitrary_dir):
             git_root = hgit.find_git_root(".")
             self.assert_equal(git_root, self.repo_dir)
@@ -695,37 +669,27 @@ class Test_find_git_root4(hunitest.TestCase):
     `-- .git (points to /repo/.git)
     """
 
-    @pytest.fixture(autouse=True)
-    def setup_teardown_test(self):
-        # Run before each test.
-        self.set_up_test()
-        yield
-        # Run after each test.
-        self.tear_down_test()
-
     def set_up_test(self) -> None:
         self.temp_dir = tempfile.TemporaryDirectory()
         # Create repo.
         self.repo_dir = os.path.join(self.temp_dir.name, "repo")
-        os.makedirs(self.repo_dir)
+        hio.create_dir(self.repo_dir, incremental=False)
         self.git_dir = os.path.join(self.repo_dir, ".git")
-        os.makedirs(self.git_dir)
+        hio.create_dir(self.git_dir, incremental=False)
         # Create linked repo.
         self.linked_repo_dir = os.path.join(self.temp_dir.name, "linked_repo")
-        os.makedirs(self.linked_repo_dir)
+        hio.create_dir(self.linked_repo_dir, incremental=False)
         # Create pointer from linked repo to the actual repo.
         linked_git_file = os.path.join(self.linked_repo_dir, ".git")
         txt = f"gitdir: {self.git_dir}\n"
         hio.to_file(linked_git_file, txt)
-
-    def tear_down_test(self) -> None:
-        self.temp_dir.cleanup()
 
     def test1(self) -> None:
         """
         Check that the function returns the correct git root if
         - the caller is the linked repo
         """
+        self.set_up_test()
         with hsystem.cd(self.linked_repo_dir):
             git_root = hgit.find_git_root(".")
             self.assert_equal(git_root, self.repo_dir)
@@ -741,36 +705,26 @@ class Test_find_git_root5(hunitest.TestCase):
     `-- .git (points to /nonexistent/path/to/gitdir)
     """
 
-    @pytest.fixture(autouse=True)
-    def setup_teardown_test(self):
-        # Run before each test.
-        self.set_up_test()
-        yield
-        # Run after each test.
-        self.tear_down_test()
-
     def set_up_test(self) -> None:
         self.temp_dir = tempfile.TemporaryDirectory()
         # Create arbitrary directory that is not a git repo.
         self.arbitrary_dir = os.path.join(self.temp_dir.name, "arbitrary_dir")
-        os.makedirs(self.arbitrary_dir)
+        hio.create_dir(self.arbitrary_dir, incremental=False)
         # Create arbitrary directory that is a submodule or linked repo that
         #   point to non existing super repo.
         self.repo_dir = os.path.join(self.temp_dir.name, "broken_repo")
-        os.makedirs(self.repo_dir)
+        hio.create_dir(self.repo_dir, incremental=False)
         # Create an invalid `.git` file with a non-existent `gitdir`.
         invalid_git_file = os.path.join(self.repo_dir, ".git")
         txt = "gitdir: /nonexistent/path/to/gitdir"
         hio.to_file(invalid_git_file, txt)
-
-    def tear_down_test(self) -> None:
-        self.temp_dir.cleanup()
 
     def test1(self) -> None:
         """
         Check that the error is raised when the caller is in a directory that
         is not either a git repo or a submodule.
         """
+        self.set_up_test()
         with hsystem.cd(self.arbitrary_dir), self.assertRaises(
             AssertionError
         ) as cm:
@@ -790,6 +744,7 @@ class Test_find_git_root5(hunitest.TestCase):
         Check that the error is raised when the caller is in a submodule or
         linked repo that points to non existing super repo.
         """
+        self.set_up_test()
         with hsystem.cd(self.repo_dir), self.assertRaises(AssertionError) as cm:
             _ = hgit.find_git_root(".")
         act = str(cm.exception)
