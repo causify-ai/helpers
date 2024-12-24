@@ -1141,9 +1141,11 @@ def pytest_rename_test(ctx, old_test_class_name, new_test_class_name):  # type: 
     """
     Rename the test and move its golden outcome.
 
-    E.g., to rename a test class and all the test methods: ``` > i
-    pytest_rename_test TestCacheUpdateFunction1 \
-    TestCacheUpdateFunction_new ```
+    E.g., to rename a test class and all the test methods:
+    ```
+    > i pytest_rename_test TestCacheUpdateFunction1 \
+            TestCacheUpdateFunction_new
+    ```
 
     :param old_test_class_name: old class name
     :param new_test_class_name: new class name
