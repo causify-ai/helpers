@@ -722,7 +722,11 @@ def get_aws_credentials(
     if aws_profile == "__mock__":
         # `mock` profile is artificial construct used only in tests.
         aws_profile = aws_profile.strip("__")
-    profile_prefix = aws_profile.upper()
+    # TODO(Juraj): needed because ENV_VARS are now prefixed with
+    # `CSFY_` and not `CK_` or `AM_`. Proper fix to come in 
+    # CmTask11095.
+    # profile_prefix = aws_profile.upper()
+    profile_prefix = "CSFY" if aws_profile.upper() in ["AM", "CK"] else aws_profile.upper()
     result: Dict[str, Optional[str]] = {}
     key_to_env_var: Dict[str, str] = {
         "aws_access_key_id": f"{profile_prefix}_AWS_ACCESS_KEY_ID",
