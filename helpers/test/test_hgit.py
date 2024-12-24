@@ -564,9 +564,9 @@ class Test_find_git_root2(hunitest.TestCase):
     """
 
     def set_up_test(self) -> None:
-        self.temp_dir = tempfile.TemporaryDirectory()
+        temp_dir = self.get_scratch_space()
         # Create `cmamp` repo.
-        self.repo_dir = os.path.join(self.temp_dir.name, "cmamp")
+        self.repo_dir = os.path.join(temp_dir, "cmamp")
         hio.create_dir(self.repo_dir, incremental=False)
         self.git_dir = os.path.join(self.repo_dir, ".git")
         hio.create_dir(self.git_dir, incremental=False)
@@ -628,9 +628,9 @@ class Test_find_git_root3(hunitest.TestCase):
     """
 
     def set_up_test(self) -> None:
-        self.temp_dir = tempfile.TemporaryDirectory()
+        temp_dir = self.get_scratch_space()
         # Create `helpers` repo.
-        self.repo_dir = os.path.join(self.temp_dir.name, "helpers")
+        self.repo_dir = os.path.join(temp_dir, "helpers")
         hio.create_dir(self.repo_dir, incremental=False)
         self.git_dir = os.path.join(self.repo_dir, ".git")
         hio.create_dir(self.git_dir, incremental=False)
@@ -674,14 +674,14 @@ class Test_find_git_root4(hunitest.TestCase):
     """
 
     def set_up_test(self) -> None:
-        self.temp_dir = tempfile.TemporaryDirectory()
+        temp_dir = self.get_scratch_space()
         # Create repo.
-        self.repo_dir = os.path.join(self.temp_dir.name, "repo")
+        self.repo_dir = os.path.join(temp_dir, "repo")
         hio.create_dir(self.repo_dir, incremental=False)
         self.git_dir = os.path.join(self.repo_dir, ".git")
         hio.create_dir(self.git_dir, incremental=False)
         # Create linked repo.
-        self.linked_repo_dir = os.path.join(self.temp_dir.name, "linked_repo")
+        self.linked_repo_dir = os.path.join(temp_dir, "linked_repo")
         hio.create_dir(self.linked_repo_dir, incremental=False)
         # Create pointer from linked repo to the actual repo.
         linked_git_file = os.path.join(self.linked_repo_dir, ".git")
@@ -710,6 +710,11 @@ class Test_find_git_root5(hunitest.TestCase):
     """
 
     def set_up_test(self) -> None:
+        # `self.get_scratch_space()` does not work in the case as it creates
+        # a temp directory within the repo where `.git` exists by default
+        # (e.g. /app/helpers/test/outcomes/Test_find_git_root5.test1/tmp.scratch)
+        # This preventing the exception from being raised.
+        # We need a structure without `.git` for this test.
         self.temp_dir = tempfile.TemporaryDirectory()
         # Create arbitrary directory that is not a git repo.
         self.arbitrary_dir = os.path.join(self.temp_dir.name, "arbitrary_dir")
