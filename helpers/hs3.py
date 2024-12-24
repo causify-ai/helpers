@@ -733,7 +733,7 @@ def get_aws_credentials(
         "aws_secret_access_key": f"{profile_prefix}_AWS_SECRET_ACCESS_KEY",
         # TODO(gp): AWS_DEFAULT_REGION -> AWS_REGION so we can use the invariant
         #  that the var is simply the capitalized version of the key.
-        "aws_region": f"{profile_prefix}_AWS_DEFAULT_REGION".strip(),
+        "aws_region": f"{profile_prefix}_AWS_DEFAULT_REGION",
     }
     # If all the AWS credentials are passed through env vars, they override the
     # config file.
@@ -796,8 +796,7 @@ def get_aws_credentials(
         config = _get_aws_config(file_name)
         key = "aws_region"
         # For ~/.aws/config the tag is `profile am` instead of `am`.
-        region = config.get(f"profile {aws_profile}", "region")
-        result[key] = region.strip()
+        result[key] = config.get(f"profile {aws_profile}", "region")
     #
     hdbg.dassert_is_subset(key_to_env_var.keys(), result.keys())
     return result
