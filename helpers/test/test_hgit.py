@@ -476,51 +476,49 @@ class Test_find_git_root1(hunitest.TestCase):
     |   `-- ck.infra/
     """
 
-    @pytest.fixture(autouse=True)
-    def setup_teardown_test(self):
-        # Run before each test.
-        self.set_up_test()
-        yield
-        # Run after each test.
-        self.tear_down_test()
+    # @pytest.fixture(autouse=True)
+    # def setup_teardown_test(self):
+    #     # Run before each test.
+    #     self.set_up_test()
+    #     yield
+    #     # Run after each test.
+    #     self.tear_down_test()
 
     def set_up_test(self) -> None:
-        self.temp_dir = tempfile.TemporaryDirectory()
+        temp_dir = self.get_scratch_space()
         # Create `orange` repo.
-        self.repo_dir = os.path.join(self.temp_dir.name, "orange")
-        os.makedirs(self.repo_dir)
+        self.repo_dir = os.path.join(temp_dir, "orange")
+        hio.create_dir(self.repo_dir, incremental=False)
         self.git_dir = os.path.join(self.repo_dir, ".git")
-        os.makedirs(self.git_dir)
+        hio.create_dir(self.git_dir, incremental=False)
         # Create `amp` submodule under `orange`.
         self.submodule_dir = os.path.join(self.repo_dir, "amp")
-        os.makedirs(self.submodule_dir)
+        hio.create_dir(self.submodule_dir, incremental=False)
         submodule_git_file = os.path.join(self.submodule_dir, ".git")
         txt = f"gitdir: ../.git/modules/amp"
         hio.to_file(submodule_git_file, txt)
-        os.makedirs(os.path.join(self.repo_dir, ".git", "modules", "amp"))
+        submodule_git_file_dir = os.path.join(self.repo_dir, ".git", "modules", "amp")
+        hio.create_dir(submodule_git_file_dir, incremental=False)
         # Create `helpers_root` submodule under `amp`.
         self.subsubmodule_dir = os.path.join(self.submodule_dir, "helpers_root")
-        os.makedirs(self.subsubmodule_dir)
+        hio.create_dir(self.subsubmodule_dir, incremental=False)
         subsubmodule_git_file = os.path.join(self.subsubmodule_dir, ".git")
         txt = f"gitdir: ../../.git/modules/amp/modules/helpers_root"
         hio.to_file(subsubmodule_git_file, txt)
-        os.makedirs(
-            os.path.join(
-                self.repo_dir, ".git", "modules", "amp", "modules", "helpers_root"
-            )
+        subsubmodule_git_file_dir = os.path.join(
+            self.repo_dir, ".git", "modules", "amp", "modules", "helpers_root"
         )
+        hio.create_dir(subsubmodule_git_file_dir, incremental=False)
         # Create `ck.infra` runnable dir under `amp`.
         self.runnable_dir = os.path.join(self.submodule_dir, "ck.infra")
-        os.makedirs(self.runnable_dir)
-
-    def tear_down_test(self) -> None:
-        self.temp_dir.cleanup()
+        hio.create_dir(self.runnable_dir, incremental=False)
 
     def test1(self) -> None:
         """
         Check that the function returns the correct git root if
         - the caller is in the super repo (e.g. //orange)
         """
+        self.set_up_test()
         with hsystem.cd(self.repo_dir):
             git_root = hgit.find_git_root(".")
             self.assert_equal(git_root, self.repo_dir)
@@ -530,6 +528,7 @@ class Test_find_git_root1(hunitest.TestCase):
         Check that the function returns the correct git root if
         - the caller is in first level submodule (e.g. //amp)
         """
+        self.set_up_test()
         with hsystem.cd(self.submodule_dir):
             git_root = hgit.find_git_root(".")
             self.assert_equal(git_root, self.repo_dir)
@@ -539,6 +538,7 @@ class Test_find_git_root1(hunitest.TestCase):
         Check that the function returns the correct git root if
         - the caller is in second level submodule (e.g. //helpers)
         """
+        self.set_up_test()
         with hsystem.cd(self.subsubmodule_dir):
             git_root = hgit.find_git_root(".")
             self.assert_equal(git_root, self.repo_dir)
@@ -549,6 +549,7 @@ class Test_find_git_root1(hunitest.TestCase):
         - the caller is in a runnable dir (e.g. ck.infra) under the
             first level submodule (e.g. //amp)
         """
+        self.set_up_test()
         with hsystem.cd(self.runnable_dir):
             git_root = hgit.find_git_root(".")
             self.assert_equal(git_root, self.repo_dir)
