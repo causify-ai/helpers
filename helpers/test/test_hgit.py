@@ -709,6 +709,14 @@ class Test_find_git_root5(hunitest.TestCase):
     `-- .git (points to /nonexistent/path/to/gitdir)
     """
 
+    @pytest.fixture(autouse=True)
+    def setup_teardown_test(self):
+        # Run before each test.
+        self.set_up_test()
+        yield
+        # Run after each test.
+        self.tear_down_test()
+
     def set_up_test(self) -> None:
         # `self.get_scratch_space()` does not work in the case as it creates
         # a temp directory within the repo where `.git` exists by default
@@ -728,12 +736,14 @@ class Test_find_git_root5(hunitest.TestCase):
         txt = "gitdir: /nonexistent/path/to/gitdir"
         hio.to_file(invalid_git_file, txt)
 
+    def tear_down_test(self) -> None:
+        self.temp_dir.cleanup()
+
     def test1(self) -> None:
         """
         Check that the error is raised when the caller is in a directory that
         is not either a git repo or a submodule.
         """
-        self.set_up_test()
         with hsystem.cd(self.arbitrary_dir), self.assertRaises(
             AssertionError
         ) as cm:
@@ -753,7 +763,6 @@ class Test_find_git_root5(hunitest.TestCase):
         Check that the error is raised when the caller is in a submodule or
         linked repo that points to non existing super repo.
         """
-        self.set_up_test()
         with hsystem.cd(self.repo_dir), self.assertRaises(AssertionError) as cm:
             _ = hgit.find_git_root(".")
         act = str(cm.exception)
