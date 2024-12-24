@@ -300,7 +300,7 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
     )
     def test_gh_create_pr1(self) -> None:
         with umock.patch.object(
-            hgit, "extract_gh_issue_number_from_branch", return_value="1"
+            hgit, "get_branch_name", return_value="AmpTask1_test_branch"
         ):
             target = "gh_create_pr(ctx, repo_short_name='amp', title='test')"
             self._check_output(target)
@@ -313,7 +313,7 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
     )
     def test_gh_create_pr2(self) -> None:
         with umock.patch.object(
-            hgit, "extract_gh_issue_number_from_branch", return_value="1"
+            hgit, "get_branch_name", return_value="AmpTask1_test_branch"
         ):
             target = "gh_create_pr(ctx, body='hello_world', repo_short_name='amp', title='test')"
             self._check_output(target)
@@ -326,7 +326,7 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
     )
     def test_gh_create_pr3(self) -> None:
         with umock.patch.object(
-            hgit, "extract_gh_issue_number_from_branch", return_value="1"
+            hgit, "get_branch_name", return_value="AmpTask1_test_branch"
         ):
             target = "gh_create_pr(ctx, draft=False, repo_short_name='amp', title='test')"
             self._check_output(target)
