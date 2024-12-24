@@ -796,7 +796,8 @@ def get_aws_credentials(
         config = _get_aws_config(file_name)
         key = "aws_region"
         # For ~/.aws/config the tag is `profile am` instead of `am`.
-        result[key] = config.get(f"profile {aws_profile}", "region")
+        region = config.get(f"profile {aws_profile}", "region")
+        result[key] = region.strip()
     #
     hdbg.dassert_is_subset(key_to_env_var.keys(), result.keys())
     return result
