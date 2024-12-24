@@ -733,7 +733,7 @@ def get_aws_credentials(
         "aws_secret_access_key": f"{profile_prefix}_AWS_SECRET_ACCESS_KEY",
         # TODO(gp): AWS_DEFAULT_REGION -> AWS_REGION so we can use the invariant
         #  that the var is simply the capitalized version of the key.
-        "aws_region": f"{profile_prefix}_AWS_DEFAULT_REGION",
+        "aws_region": f"{profile_prefix}_AWS_DEFAULT_REGION".strip(),
     }
     # If all the AWS credentials are passed through env vars, they override the
     # config file.
