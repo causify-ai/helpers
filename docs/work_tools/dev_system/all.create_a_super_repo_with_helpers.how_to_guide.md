@@ -1,14 +1,16 @@
+
+
 <!-- toc -->
 
 - [How to create a super-repo with `helpers`](#how-to-create-a-super-repo-with-helpers)
   * [Create a new (super) repo in the desired organization](#create-a-new-super-repo-in-the-desired-organization)
   * [Add helpers sub-repo](#add-helpers-sub-repo)
   * [Copy and customize files](#copy-and-customize-files)
-  * [1) Copy and customize files in thin_client](#1-copy-and-customize-files-in-thin_client)
-  * [Create the thin environment](#create-the-thin-environment)
-  * [Test the thin environment](#test-the-thin-environment)
-  * [Create the tmux links](#create-the-tmux-links)
-  * [Maintain the files in sync with the template](#maintain-the-files-in-sync-with-the-template)
+  * [1) Copy and customize files in `thin_client`](#1-copy-and-customize-files-in-thin_client)
+    + [Build the thin environment](#build-the-thin-environment)
+    + [Test the thin environment](#test-the-thin-environment)
+    + [Create the tmux links](#create-the-tmux-links)
+    + [Maintain the files in sync with the template](#maintain-the-files-in-sync-with-the-template)
   * [2) Copy and customize files in the top dir](#2-copy-and-customize-files-in-the-top-dir)
   * [3) Copy and customize files in `devops`](#3-copy-and-customize-files-in-devops)
     + [Build a container for a super-repo](#build-a-container-for-a-super-repo)
@@ -24,30 +26,60 @@
 
 ## Create a new (super) repo in the desired organization
 
-- E.g. https://github.com/organizations/causify-ai/repositories/new
-  - The repository is set to private by default
+TODO(Grisha): consider using repository
+[templates](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template)
+
+- Create a repo within the
+  [`causify-ai` organization](https://github.com/causify-ai)
+- Follow the
+  [offical guide](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-new-repository#creating-a-new-repository-from-the-web-ui)
+- Recommended options:
+  - Owner: `causify-ai`
+  - Repository-name: provide a valid short name, e.g., `algo_trading`
+  - Visibility: by default choose `Private`
+  - Add a README file
+  - `.gitignore template: None`
+  - License: `General Public Licenve v3.0`
 
 ## Add helpers sub-repo
 
-- Clone the super-repo locally
-  ```
-  > git clone git@github.com:causify-ai/repo_name.git ~/src/repo_name1
-  ```
+Below there is an example for the `helpers` repo, but it works for `cmamp` as
+well if one replaces `helpers` with `cmamp`.
 
-- Add `helpers` as sub-repo
-  ```bash
-  > cd ~/src/rpeo_name1
-  > git submodule add git@github.com:causify-ai/helpers.git helpers_root
-  > git submodule init
-  > git submodule update
-  > git add .gitmodules helpers_root
-  > git commit -am "Add helpers subrepo" && git push
-  ```
+1. Clone the super-repo locally
+```
+> git clone --recursive git@github.com:causify-ai/{repo_name}.git ~/src/{repo_name}{index}
+```
+
+2. Checkout to a new branch
+   ```
+   > git checkout -b repo_init
+   ```
+3. Add a submodule
+   ```bash
+   > cd ~/src/repo_name1
+   # In general form.
+   > git submodule add {submodule_url} {submodule_path}
+   # Example for `cmamp`.
+   > git submodule add git@github.com:causify-ai/helpers.git helpers_root
+   # The cmd will create a `.gitmodules` file that we need to check-in.
+   [submodule "helpers_root"]
+   path = helpers_root
+   url = git@github.com:causify-ai/helpers.git
+   ```
+4. Init the submodule and commit the `.gitmodules` file.
+   ```bash
+   > git submodule init
+   > git submodule update
+   ```
+5. Commit and push the changes
+   ```bash
+   > git add .gitmodules helpers_root
+   > git commit -am "Add helpers subrepo" && git push
+   ```
 
 ## Copy and customize files
 
-- The script `dev_scripts_helpers/thin_client/sync_super_repo.sh` allows to
-  vimdiff / cp files across a super-repo and its `helpers` dir
 - Conceptually we need to copy and customize the files in
 
   1. `thin_client` (one can reuse the thin client across repos)
@@ -61,21 +93,25 @@
   being completely configured, you can keep moving and then re-run the command
   later
 
-## 1) Copy and customize files in thin_client
+- You can follow the directions to perform the step manually or run the script
+  `dev_scripts_helpers/thin_client/sync_super_repo.sh` which allows to vimdiff /
+  cp files across a super-repo and its `helpers` dir
+
+## 1) Copy and customize files in `thin_client`
 
 - Create the `dev_script` dir based off the template from `helpers`
 
   ```bash
   # Use a prefix based on the repo name, e.g., `tutorials`, `sports_analytics`.
-  > SRC_DIR="dev_scripts_helpers/thin_client"; echo $SRC_DIR
+  > SRC_DIR="helpers_root/dev_scripts_helpers/thin_client"; ls $SRC_DIR
   > DST_PREFIX="xyz"
   > DST_DIR="dev_scripts_${DST_PREFIX}/thin_client"; echo $DST_DIR
+  > mkdir -p $DST_DIR
+  > cp -r $SRC_DIR/{build.py,requirements.txt,setenv.sh,tmux.py} $DST_DIR
   ```
 
-- TODO(gp): When we want to create a new thin env we need to also copy
-  `dev_scripts/thin_client/build.py` and `requirements.txt`. Add instructions
-
 - The resulting `dev_script` should look like:
+
   ```bash
   > ls -1 $DST_DIR
   build.py
@@ -84,9 +120,19 @@
   tmux.py
   ```
 
-## Create the thin environment
+- Customize the files looking for `$DIR_TAG`, `$IS_SUPER_REPO` and `dir_prefix`.
+  ```
+  > vi $DST_DIR/*
+  ```
 
-- Create the thin environment
+- If we don't need to create a new thin env you can delete the files
+  `dev_scripts/thin_client/build.py` and `requirements.txt`
+
+### Build the thin environment
+
+> cp -r $SRC_DIR/{build.py,requirements.txt,setenv.sh,tmux.py} $DST_DIR
+
+- Build the thin environment
   ```
   > $DST_DIR/build.py
   ... ==> `brew cleanup` has not been run in the last 30 days, running now...
@@ -105,55 +151,17 @@
   - Set `VENV_TAG` to create a new thin environment or reuse an existing one
     (e.g., `helpers`)
 
-## Test the thin environment
+### Test the thin environment
 
-- Test `helpers` `setenv.sh`
+Follow
+[the on-boarding guide](/docs/onboarding/ck.development_setup.how_to_guide.md#set-up-the-thin-environment)
 
-  ```bash
-  > (cd helpers_root; source dev_scripts_helpers/thin_client/setenv.sh)
-  ...
-  alias w='which'
-  INFO: dev_scripts_helpers/thin_client/setenv.sh successful
-  ```
+### Create the tmux links
 
-- Test super-repo `setenv`
-  ```bash
-  > source dev_scripts_${DST_PREFIX}/thin_client/setenv.sh
-  ...
-  alias w='which'
-  INFO: dev_scripts_quant_dashboard/thin_client/setenv.sh successful
-  ```
+Follow
+[the on-boarding guide](/docs/onboarding/ck.development_setup.how_to_guide.md#create-a-tmux-session)
 
-## Create the tmux links
-
-- Create the global link
-
-  ```bash
-  > ${DST_DIR}/tmux.py --create_global_link
-  ...
-  ################################################################################
-  ln -sf /Users/saggese/src/quant_dashboard1/dev_scripts_quant_dashboard/thin_client/tmux.py ~/go_quant_dashboard.py
-  ################################################################################
-  14:42:53 - INFO  thin_client_utils.py create_tmux_session:203           Link created: exiting
-  ```
-
-- Create the tmux session
-
-  ```bash
-  > ${DST_DIR}/tmux.py --index 1 --force_restart
-  ```
-
-- You should see the tmux windows with the views on the super repo and the
-  subrepo
-  - Double check that the `setenv.sh` succeeded in all the windows
-
-- Test `tmux`
-  ```bash
-  > dev_scripts_sports_analytics/thin_client/tmux.py --create_global_link
-  > dev_scripts_sports_analytics/thin_client/tmux.py --index 1
-  ```
-
-## Maintain the files in sync with the template
+### Maintain the files in sync with the template
 
 - Check the difference between the super-repo and `helpers`
   ```bash
@@ -164,22 +172,25 @@
 
 - Some files need to be copied from `helpers` to the root of the super-repo to
   configure various tools (e.g., dev container workflow, `pytest`, `invoke`)
-  - `changelog.txt`: this is copied from the repo that builds the used container
-    or started from scratch for a new container
-  - `conftest.py`: configure `pytest`
   - `pytest.ini`: configure `pytest` preferences
-  - `invoke.yaml`: configure `invoke`
   - `repo_config.py`: stores information about this specific repo (e.g., name,
     used container)
-    - This needs to be modified
+    - Change `_REPO_NAME = "orange"` to the current repo name
   - `tasks.py`: the `invoke` tasks available in this container
     - This needs to be modified
-  - TODO(gp): Some files (e.g., `conftest.py`, `invoke.yaml`) should be links to
-    `helpers`
-
   ```bash
-  > vim changelog.txt conftest.py invoke.yaml pytest.ini repo_config.py tasks.py
+  > cp helpers_root/{pytest.ini,repo_config.py,tasks.py} .
+  > vim pytest.ini repo_config.py tasks.py
   ```
+- Some files are just soft links:
+
+```bash
+   > ln -s helpers_root/conftest.py conftest.py
+   > ln -s helpers_root/invoke.yaml invoke.yaml
+   > ln -s helpers_root/mypy.ini mypy.ini
+   # This is copied from the repo that builds the used container or started from scratch for a new container, e.g., `cmamp` dev image.
+   > ln -s helpers_root/changelog.txt changelog.txt
+```
 
 - You can run to copy/diff the files
   ```bash
@@ -202,11 +213,11 @@
   > rm -rf devops/docker_build
   ```
 
-- Follow the instructions in docs/work_tools/all.devops_docker.reference.md and
-  docs/work_tools/all.devops_docker.how_to_guide.md
+- Follow the instructions in `docs/work_tools/all.devops_docker.reference.md`
+  and `docs/work_tools/all.devops_docker.how_to_guide.md`
 
 - TODO
-  - If it's a super-repo container you neeed to switch in
+  - If it's a super-repo container you need to switch in
     devops/docker_run/docker_setenv.sh grep IS_SUPER_REPO
 
 - Run the single-arch flow
@@ -226,39 +237,54 @@
 
 - If you wish to push the dev image to a remote registry, contact the infra team
   to add new registry with default settings
-  - Make sure the rgeistry name matches the repo name for consistency
-  - By default we add new registry to Stockholm region (`eu-north-1`)
+  - Make sure the registry name matches the repo name for consistency
+  - By default we add new containers to Stockholm region (`eu-north-1`)
 
 ### Check if the regressions are passing
 
-_(if already applicable)_
+Follow
+[the on-boarding](/docs/onboarding/ck.development_setup.how_to_guide.md#begin-working)
+doc to confirm.
 
-```bash
-> i docker_bash
-> pytest
-```
+File a PR with the new files and merge the PR into `master`.
 
 ## Configure regressions via GitHub actions
 
-_(if already applicable)_
-
 ### Set repository secrets/variables
 
+- Some secrets/variables are shared in an organization wide storage
+  - E.g. for [Causify](https://github.com/organizations/causify-ai) at
+    https://github.com/organizations/causify-ai/settings/secrets/actions
+  - These values are shared across all repos in the organization so we don't
+    need to create them on a per-repo basis
+    - The access method is the same as for per-repo variables - via actions
+      context `${{ secrets.MY_TOKEN }}` or ``${{ vars.MY_TOKEN }}`
+  - Once a `secret` is set it's read-only for everybody. To preview all of the
+    raw values that are currently used, visit
+    [1password > Shared vault > Causify org GH actions secrets](https://causify.1password.com/app#/everything/AllItems/ofre2i2yhv2lyf7ggvv2a4uouaaxvzjzaomv3hol24txn2an5imq)
+
+- Before adding a new secret/variables for a repo, consider the following:
+  - If it's already present in the global storage for an organization, no action
+    is required
+  - If it's not, check if the newly added value is not needed in all of the
+    repos, if so, add it to the global storage to facilitate reusability
+    - If you lack permissions for this operation, contact your TL
+
+- Should a repo need some additional secret values/variables, follow the
+  procedure below
+
 1. Login to 1password https://causify.1password.com/home
-
-- Ask your TL if you don't have access to 1password
-
+   - Ask your TL if you don't have access to 1password
 2. Navigate to the `Shared Vault`
 3. Search for `Github actions secrets JSON` secret
 4. Copy the JSON from 1password to a temporary local file `vars.json`
 5. Run the script to set the secrets/variables
-```
-> cd ~/src/<<repo_name>>1/
-> ./helpers_root/dev_scripts_helpers/github/set_secrets_and_variables.py \
-     --file `vars.json' \
-     --repo '<<org_name>>/<<repo_name>>'
-```
-
+   ```bash
+   > cd ~/src/<REPO_NAME>
+   > ./helpers_root/dev_scripts_helpers/github/set_secrets_and_variables.py \
+        --file `vars.json' \
+        --repo '<ORG_NAME>/<REPO_NAME>'
+   ```
 6. Make sure not to commit the raw `vars.json` file or the
    `dev_scripts_helpers/github/set_secrets_and_variables.py.log` file
 
@@ -268,19 +294,18 @@ _(if already applicable)_
 
 1. Create a directory `./github/workflows` in the super-repo
 2. Copy an example flow from helpers
-
-- E.g. `helpers_root/.github/workflows/fast_tests.yml
-- Modify it based on your needs
-  - Find and replace mentions of `helpers` with the name of super repo for
-    consistency
-  - Replace `invoke run_fast_tests` with your desired action
+   - E.g. `helpers_root/.github/workflows/fast_tests.yml
+   - Modify it based on your needs
+     - Find and replace mentions of `helpers` with the name of super repo for
+       consistency
+     - Replace `invoke run_fast_tests` with your desired action
 
 3. TODO(Shayan): #HelpersTask90
 
 ## Configure GitHub repo
 
-_Disclaimer: the following set-up requires paid GitHub version
-(Pro/Team/Enterprise)_
+**Disclaimer**: the following set-up requires paid GitHub version
+(Pro/Team/Enterprise)
 
 1. Set-up branch protection rule for master
 

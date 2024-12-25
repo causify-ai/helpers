@@ -93,8 +93,8 @@ def get_docker_base_image_name() -> str:
 
 def _raise_invalid_host(only_warning: bool) -> None:
     host_os_name = os.uname()[0]
-    am_host_os_name = os.environ.get("AM_HOST_OS_NAME", None)
-    msg = f"Don't recognize host: host_os_name={host_os_name}, am_host_os_name={am_host_os_name}"
+    csfy_host_os_name = os.environ.get("CSFY_HOST_OS_NAME", None)
+    msg = f"Don't recognize host: host_os_name={host_os_name}, csfy_host_os_name={csfy_host_os_name}"
     # TODO(Grisha): unclear if it is a difference between `cmamp` and `sorrentum`.
     if only_warning:
         _LOG.warning(msg)
@@ -206,7 +206,7 @@ def has_dind_support() -> bool:
     rc = os.system(cmd)
     _print("cmd=%s -> rc=%s" % (cmd, rc))
     # dind is supported on both Mac and GH Actions.
-    check_repo = os.environ.get("AM_REPO_CONFIG_CHECK", "True") != "False"
+    check_repo = os.environ.get("CSFY_REPO_CONFIG_CHECK", "True") != "False"
     #TODO(Juraj): HelpersTask16.
     #if check_repo:
     #    if hserver.is_inside_ci():
@@ -220,11 +220,11 @@ def has_dind_support() -> bool:
     #        _raise_invalid_host(only_warning)
     #        return False
     #else:
-    #    am_repo_config = os.environ.get("AM_REPO_CONFIG_CHECK", "True")
+    #    csfy_repo_config = os.environ.get("CSFY_REPO_CONFIG_CHECK", "True")
     #    print(
     #        _WARNING
-    #        + ": Skip checking since AM_REPO_CONFIG_CHECK="
-    #        + f"'{am_repo_config}'"
+    #        + ": Skip checking since CSFY_REPO_CONFIG_CHECK="
+    #        + f"'{csfy_repo_config}'"
     #    )
     return has_dind
 

@@ -8,6 +8,7 @@ import helpers.hsystem as hsystem
 """
 
 import contextlib
+import datetime
 import getpass
 import logging
 import os
@@ -34,6 +35,11 @@ _LOG = logging.getLogger(__name__)
 _LOG.setLevel(logging.INFO)
 
 # #############################################################################
+
+
+def get_timestamp() -> str:
+    timestamp = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S')
+    return timestamp
 
 
 # TODO(gp): Maybe move to hserver.py

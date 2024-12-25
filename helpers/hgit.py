@@ -169,7 +169,7 @@ def get_client_root(super_module: bool) -> str:
     return client_root
 
 
-# TODO(gp): Replace get_client_root with this.
+# TODO(gp): Replace `get_client_root` with this.
 def find_git_root(path: str = ".") -> str:
     """
     Find recursively the dir of the outermost super module.
@@ -191,6 +191,19 @@ def find_git_root(path: str = ".") -> str:
     return path
 
 
+def find_file(file_name: str, *, dir_path: Optional[str] = None) -> str:
+    if dir_path is None:
+        dir_path = find_git_root()
+    cmd = rf"""
+    find {dir_path} -path '.git' -prune -o -type d -name {file_name} -print
+    | grep -v '.git'
+    """
+    cmd = hprint.dedent(cmd, remove_lead_trail_empty_lines_=True)
+    cmd = " ".join(cmd.split())
+    _, res = hsystem.system_to_one_line(cmd)
+    return res
+
+
 def find_helpers_root() -> str:
     """
     Find the root directory of the `helpers` repository.
@@ -209,6 +222,7 @@ def find_helpers_root() -> str:
     else:
         # We need to search for the `helpers_root` dir starting from the root
         # of the repo.
+        # TODO(gp): Use find_file
         cmd = rf"find {git_root} -path ./\.git -prune -o -type d -name 'helpers_root' -print | grep -v '\.git'"
     _, helpers_root = hsystem.system_to_one_line(cmd)
     helpers_root = os.path.abspath(helpers_root)
@@ -230,7 +244,8 @@ def get_project_dirname(only_index: bool = False) -> str:
     :param only_index: return only the index of the client if possible, e.g.,
         E.g., for `/Users/saggese/src/amp1` it returns the string `1`
     """
-    git_dir = get_client_root(super_module=True)
+    #git_dir = get_client_root(super_module=True)
+    git_dir = find_git_root()
     _LOG.debug("git_dir=%s", git_dir)
     ret = os.path.basename(git_dir)
     if only_index:
@@ -637,6 +652,7 @@ def _get_repo_short_to_full_name(include_host_name: bool) -> Dict[str, str]:
         "amp": "alphamatic/amp",
         "dev_tools": "causify-ai/dev_tools",
         "helpers": "causify-ai/helpers",
+        "tutorials": "causify-ai/tutorials",
     }
     if include_host_name:
         host_name = "github.com"
@@ -760,6 +776,7 @@ def get_task_prefix_from_repo_short_name(short_name: str) -> str:
 # #############################################################################
 
 
+# TODO(gp): Use find_file
 @functools.lru_cache()
 def find_file_in_git_tree(
     file_name: str, super_module: bool = True, remove_tmp_base: bool = False

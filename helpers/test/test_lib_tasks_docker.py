@@ -1,5 +1,7 @@
 import logging
+import os
 import re
+import unittest.mock as umock
 from typing import Dict, Optional
 
 import pytest
@@ -53,8 +55,10 @@ class Test_generate_compose_file1(hunitest.TestCase):
             file_name,
         )
         # Remove all the env variables that are function of the host.
-        txt_tmp = hunitest.filter_text("AM_HOST_", txt_tmp)
-        txt_tmp = hunitest.filter_text("CK_GIT_ROOT_PATH", txt_tmp)
+        txt_tmp = hunitest.filter_text("CSFY_HOST_", txt_tmp)
+        txt_tmp = hunitest.filter_text("CSFY_GIT_ROOT_PATH", txt_tmp)
+        txt_tmp = hunitest.filter_text("CSFY_HELPERS_ROOT_PATH", txt_tmp)
+        txt_tmp = hunitest.filter_text("CSFY_IS_SUPER_REPO", txt_tmp)
         txt_tmp = hunitest.filter_text("OPENAI_API_KEY", txt_tmp)
         txt.append(txt_tmp)
         #
@@ -88,6 +92,111 @@ class Test_generate_compose_file1(hunitest.TestCase):
     )
     def test5(self) -> None:
         self.helper(stage="dev")
+
+
+class Test_generate_compose_file2(hunitest.TestCase):
+    def helper(
+        self,
+        mock_getcwd: str,
+        mock_find_git_root: str,
+        mock_find_helpers_root: str,
+        mock_is_in_helpers_as_supermodule: bool,
+        *,
+        stage: str = "prod",
+        use_privileged_mode: bool = True,
+        use_sibling_container: bool = False,
+        shared_data_dirs: Optional[Dict[str, str]] = None,
+        mount_as_submodule: bool = False,
+        use_network_mode_host: bool = True,
+        use_main_network: bool = False,
+    ) -> None:
+        txt = []
+        #
+        params = [
+            "stage",
+            "use_privileged_mode",
+            "use_sibling_container",
+            "shared_data_dirs",
+            "mount_as_submodule",
+            "use_network_mode_host",
+        ]
+        txt_tmp = hprint.to_str(" ".join(params))
+        txt.append(txt_tmp)
+        #
+        file_name = None
+        with umock.patch.object(
+            os, "getcwd", return_value=mock_getcwd
+        ), umock.patch.object(
+            hgit, "find_git_root", return_value=mock_find_git_root
+        ), umock.patch.object(
+            hgit, "find_helpers_root", return_value=mock_find_helpers_root
+        ), umock.patch.object(
+            hgit,
+            "is_in_helpers_as_supermodule",
+            return_value=mock_is_in_helpers_as_supermodule,
+        ):
+            txt_tmp = hlitadoc._generate_docker_compose_file(
+                stage,
+                use_privileged_mode,
+                use_sibling_container,
+                shared_data_dirs,
+                mount_as_submodule,
+                use_network_mode_host,
+                use_main_network,
+                file_name,
+            )
+        # Remove all the env variables that are function of the host.
+        txt_tmp = hunitest.filter_text("CSFY_HOST_", txt_tmp)
+        txt_tmp = hunitest.filter_text("OPENAI_API_KEY", txt_tmp)
+        txt.append(txt_tmp)
+        #
+        txt = "\n".join(txt)
+        self.check_string(txt)
+
+    def test1(self) -> None:
+        """
+        Check that file is generated correctly when the repo is `//cmamp`.
+        """
+        self.helper(
+            mock_getcwd="/data/heanhs/src/cmamp1",
+            mock_find_git_root="/data/heanhs/src/cmamp1",
+            mock_find_helpers_root="/data/heanhs/src/cmamp1/helpers_root",
+            mock_is_in_helpers_as_supermodule=False,
+        )
+
+    def test2(self) -> None:
+        """
+        Check that file is generated correctly when the repo is `//helpers`.
+        """
+        self.helper(
+            mock_getcwd="/data/heanhs/src/helpers1",
+            mock_find_git_root="/data/heanhs/src/helpers1",
+            mock_find_helpers_root="/data/heanhs/src/helpers1",
+            mock_is_in_helpers_as_supermodule=True,
+        )
+
+    def test3(self) -> None:
+        """
+        Check that file is generated correctly when the repo is `//cmamp` and
+        `//cmamp/ck.infra` is a runnable dir.
+        """
+        self.helper(
+            mock_getcwd="/data/heanhs/src/cmamp1/ck.infra",
+            mock_find_git_root="/data/heanhs/src/cmamp1",
+            mock_find_helpers_root="/data/heanhs/src/cmamp1/helpers_root",
+            mock_is_in_helpers_as_supermodule=False,
+        )
+
+    def test4(self) -> None:
+        """
+        Check that file is generated correctly when the repo is `//orange`.
+        """
+        self.helper(
+            mock_getcwd="/data/heanhs/src/orange1",
+            mock_find_git_root="/data/heanhs/src/orange1",
+            mock_find_helpers_root="/data/heanhs/src/orange1/amp/helpers_root",
+            mock_is_in_helpers_as_supermodule=False,
+        )
 
 
 # #############################################################################
@@ -138,7 +247,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
             print_docker_config=print_docker_config,
         )
         exp = r"""
-        IMAGE=$CK_ECR_BASE_PATH/amp_test:dev-1.0.0 \
+        IMAGE=$CSFY_ECR_BASE_PATH/amp_test:dev-1.0.0 \
             docker compose \
             --file $GIT_ROOT/devops/compose/docker-compose.yml \
             --env-file devops/env/default.env \
@@ -170,7 +279,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
             cmd,
             print_docker_config=print_docker_config,
         )
-        exp = r"""IMAGE=$CK_ECR_BASE_PATH/amp_test:local-$USER_NAME-1.0.0 \
+        exp = r"""IMAGE=$CSFY_ECR_BASE_PATH/amp_test:local-$USER_NAME-1.0.0 \
                 docker compose \
                 --file $GIT_ROOT/devops/compose/docker-compose.yml \
                 --env-file devops/env/default.env \
@@ -204,7 +313,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
             print_docker_config=print_docker_config,
         )
         exp = r"""
-        IMAGE=$CK_ECR_BASE_PATH/amp_test:local-$USER_NAME-1.0.0 \
+        IMAGE=$CSFY_ECR_BASE_PATH/amp_test:local-$USER_NAME-1.0.0 \
         PORT=9999 \
         SKIP_RUN=1 \
             docker compose \
@@ -244,7 +353,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
                 print_docker_config=print_docker_config,
             )
             exp = r"""
-            IMAGE=$CK_ECR_BASE_PATH/amp_test:dev-1.0.0 \
+            IMAGE=$CSFY_ECR_BASE_PATH/amp_test:dev-1.0.0 \
             docker compose \
             --file $GIT_ROOT/devops/compose/docker-compose.yml \
             --env-file devops/env/default.env \
@@ -275,7 +384,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
             print_docker_config=print_docker_config,
         )
         exp = r"""
-        IMAGE=$CK_ECR_BASE_PATH/amp_test:dev-1.0.0 \
+        IMAGE=$CSFY_ECR_BASE_PATH/amp_test:dev-1.0.0 \
         PORT=9999 \
             docker compose \
             --file $GIT_ROOT/devops/compose/docker-compose.yml \

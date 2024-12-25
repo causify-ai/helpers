@@ -6,11 +6,10 @@ import helpers.lib_tasks_docker as hlitadoc
 
 import functools
 import getpass
-import io
 import logging
 import os
 import re
-from typing import Any, Dict, List, Match, Optional
+from typing import Any, Dict, List, Match, Optional, Union
 
 import yaml
 from invoke import task
@@ -53,8 +52,8 @@ def docker_images_ls_repo(ctx, sudo=False):  # type: ignore
     """
     hlitauti.report_task()
     docker_login(ctx)
-    # TODO(gp): Move this to a var ECR_BASE_PATH="CK_ECR_BASE_PATH" in repo_config.py.
-    ecr_base_path = hlitauti.get_default_param("CK_ECR_BASE_PATH")
+    # TODO(gp): Move this to a var ECR_BASE_PATH="CSFY_ECR_BASE_PATH" in repo_config.py.
+    ecr_base_path = hlitauti.get_default_param("CSFY_ECR_BASE_PATH")
     docker_exec = _get_docker_exec(sudo)
     hlitauti.run(ctx, f"{docker_exec} image ls {ecr_base_path}")
 
@@ -259,7 +258,7 @@ def docker_pull_dev_tools(ctx, stage="prod", version=None):  # type: ignore
     Pull latest prod image of `dev_tools` from the registry.
     """
     hlitauti.report_task()
-    base_image = hlitauti.get_default_param("CK_ECR_BASE_PATH") + "/dev_tools"
+    base_image = hlitauti.get_default_param("CSFY_ECR_BASE_PATH") + "/dev_tools"
     _docker_pull(ctx, base_image, stage, version)
 
 
@@ -422,12 +421,14 @@ def docker_login(ctx, target_registry="aws_ecr.ck"):  # type: ignore
 # TODO(gp): use_privileged_mode -> use_docker_privileged_mode
 #  use_sibling_container -> use_docker_containers_containers
 
+DockerComposeServiceSpec = Dict[str, Union[str, List[str]]]
 
-def _get_linter_service(stage: str) -> str:
+
+def _get_linter_service(stage: str) -> DockerComposeServiceSpec:
     """
     Get the linter service specification for the `docker-compose.yml` file.
 
-    :return: the text of the linter service specification
+    :return: linter service specification
     """
     superproject_path, submodule_path = hgit.get_path_from_supermodule()
     if superproject_path:
@@ -437,12 +438,16 @@ def _get_linter_service(stage: str) -> str:
     else:
         work_dir = "/src"
         repo_root = os.getcwd()
-    linter_spec_txt = f"""
-    linter:
-      extends:
-        base_app
-      volumes:
-        - {repo_root}:/src"""
+    linter_service_spec = {
+        "extends": "base_app",
+        "volumes": [
+            f"{repo_root}:/src",
+        ],
+        "working_dir": work_dir,
+        "environment": [
+            "MYPYPATH",
+        ],
+    }
     if stage != "prod":
         # When we run a development Linter container, we need to mount the
         # Linter repo under `/app`. For prod container instead we copy / freeze
@@ -450,21 +455,16 @@ def _get_linter_service(stage: str) -> str:
         if superproject_path:
             # When running in a Git submodule we need to go one extra level up.
             # TODO(*): Clean up the indentation, #2242 (also below).
-            linter_spec_txt += "\n        - ../../../:/app"
+            linter_service_spec["volumes"].append("../../../:/app")
         else:
-            linter_spec_txt += "\n        - ../../:/app"
-    linter_spec_txt += f"""
-      working_dir: {work_dir}
-      environment:
-        - MYPYPATH
-    """
+            linter_service_spec["volumes"].append("../../:/app")
     if stage == "prod":
-        linter_spec_txt += """\
-    # Use the `repo_config.py` inside the dev_tools container instead of
+        # Use the `repo_config.py` inside the dev_tools container instead of
         # the one in the calling repo.
-        - AM_REPO_CONFIG_PATH=/app/repo_config.py
-        """
-    return linter_spec_txt
+        linter_service_spec["environment"].append(
+            "CSFY_REPO_CONFIG_PATH=/app/repo_config.py"
+        )
+    return linter_service_spec
 
 
 def _generate_docker_compose_file(
@@ -495,24 +495,15 @@ def _generate_docker_compose_file(
             "file_name "
         )
     )
-    txt = []
-
-    def append(txt_tmp: str, indent_level: int) -> None:
-        # txt_tmp = txt_tmp.rstrip("\n").lstrip("\n")
-        txt_tmp = hprint.dedent(txt_tmp, remove_lead_trail_empty_lines_=True)
-        num_spaces = 2 * indent_level
-        txt_tmp = hprint.indent(txt_tmp, num_spaces=num_spaces)
-        txt.append(txt_tmp)
-
     # We could pass the env var directly, like:
     # ```
-    # - AM_ENABLE_DIND=$AM_ENABLE_DIND
+    # - CSFY_ENABLE_DIND=$CSFY_ENABLE_DIND
     # ```
     # but we prefer to inline it.
     if use_privileged_mode:
-        am_enable_dind = 1
+        CSFY_ENABLE_DIND = 1
     else:
-        am_enable_dind = 0
+        CSFY_ENABLE_DIND = 0
     # ```
     # sysname='Linux'
     # nodename='cf-spm-dev4'
@@ -520,229 +511,215 @@ def _generate_docker_compose_file(
     # version='#1 SMP Fri Jan 14 13:59:45 UTC 2022'
     # machine='x86_64'
     # ```
-    am_host_os_name = os.uname()[0]
-    am_host_name = os.uname()[1]
-    am_host_version = os.uname()[2]
-    am_host_user_name = getpass.getuser()
-    git_root_path = hgit.find_git_root()
+    csfy_host_os_name = os.uname()[0]
+    csfy_host_name = os.uname()[1]
+    csfy_host_version = os.uname()[2]
+    csfy_host_user_name = getpass.getuser()
+    # The mounting path in the container is `/app`.
+    # So we need to use that as starting point.
+    # e.g. For CSFY_GIT_ROOT_PATH,
+    #   rather than `/data/heanhs/src/cmamp1`, we need to use `/app`.
+    # e.g. For CSFY_HELPERS_ROOT_PATH,
+    #   rather than `/data/heanhs/src/cmamp1/helpers_root`, we need to
+    #   use `/app/helpers_root`.
+    # Find git root path.
+    git_root_path = "/app"
+    # Find helpers root path.
+    helper_dir = hgit.find_helpers_root()
+    git_dir = hgit.find_git_root()
+    helper_relative_path = os.path.relpath(helper_dir, git_dir)
+    helper_root_path = os.path.normpath(
+        os.path.join("/app", helper_relative_path)
+    )
+    # A super repo is a repo that contains helpers as a submodule and
+    # is not a helper itself.
+    is_super_repo = 0 if hgit.is_in_helpers_as_supermodule() else 1
     # We could do the same also with IMAGE for symmetry.
     # Keep the env vars in sync with what we print in `henv.get_env_vars()`.
-    txt_tmp = f"""
-    version: '3'
-
-    services:
-      base_app:
-        cap_add:
-          - SYS_ADMIN
-        environment:
-          - AM_ENABLE_DIND={am_enable_dind}
-          - AM_FORCE_TEST_FAIL=$AM_FORCE_TEST_FAIL
-          - AM_HOST_NAME={am_host_name}
-          - AM_HOST_OS_NAME={am_host_os_name}
-          - AM_HOST_USER_NAME={am_host_user_name}
-          - AM_HOST_VERSION={am_host_version}
-          - AM_REPO_CONFIG_CHECK=True
-          # Use inferred path for `repo_config.py`.
-          - AM_REPO_CONFIG_PATH=
-          - CK_AWS_ACCESS_KEY_ID=$CK_AWS_ACCESS_KEY_ID
-          - CK_AWS_DEFAULT_REGION=$CK_AWS_DEFAULT_REGION
-          - CK_AWS_PROFILE=$CK_AWS_PROFILE
-          - CK_AWS_S3_BUCKET=$CK_AWS_S3_BUCKET
-          - CK_AWS_SECRET_ACCESS_KEY=$CK_AWS_SECRET_ACCESS_KEY
-          - CK_ECR_BASE_PATH=$CK_ECR_BASE_PATH
-          - CK_GIT_ROOT_PATH={git_root_path}
-          - OPENAI_API_KEY=$OPENAI_API_KEY
-          # - CK_ENABLE_DIND=
-          # - CK_FORCE_TEST_FAIL=$CK_FORCE_TEST_FAIL
-          # - CK_HOST_NAME=
-          # - CK_HOST_OS_NAME=
-          # - CK_PUBLISH_NOTEBOOK_LOCAL_PATH=$CK_PUBLISH_NOTEBOOK_LOCAL_PATH
-          - CK_TELEGRAM_TOKEN=$CK_TELEGRAM_TOKEN
-          # TODO(Vlad): consider removing, locally we use our personal tokens from files and
-          # inside GitHub actions we use the `GH_TOKEN` environment variable.
-          - GH_ACTION_ACCESS_TOKEN=$GH_ACTION_ACCESS_TOKEN
-          # Inside GitHub Actions we use `GH_TOKEN` environment variable,
-          # see https://cli.github.com/manual/gh_auth_login.
-          - GH_TOKEN=$GH_ACTION_ACCESS_TOKEN
-          # This env var is used by GH Action to signal that we are inside the CI.
-          - CI=$CI
-        image: ${{IMAGE}}
-    """
-    indent_level = 0
-    append(txt_tmp, indent_level)
-    #
+    # Configure `base_app` service.
+    base_app_spec = {
+        "cap_add": ["SYS_ADMIN"],
+        "environment": [
+            f"CSFY_ENABLE_DIND={CSFY_ENABLE_DIND}",
+            f"CSFY_FORCE_TEST_FAIL=$CSFY_FORCE_TEST_FAIL",
+            f"CSFY_HOST_NAME={csfy_host_name}",
+            f"CSFY_HOST_OS_NAME={csfy_host_os_name}",
+            f"CSFY_HOST_USER_NAME={csfy_host_user_name}",
+            f"CSFY_HOST_VERSION={csfy_host_version}",
+            "CSFY_REPO_CONFIG_CHECK=True",
+            # Use inferred path for `repo_config.py`.
+            "CSFY_REPO_CONFIG_PATH=",
+            "CSFY_AWS_ACCESS_KEY_ID=$CSFY_AWS_ACCESS_KEY_ID",
+            "CSFY_AWS_DEFAULT_REGION=$CSFY_AWS_DEFAULT_REGION",
+            "CSFY_AWS_PROFILE=$CSFY_AWS_PROFILE",
+            "CSFY_AWS_S3_BUCKET=$CSFY_AWS_S3_BUCKET",
+            "CSFY_AWS_SECRET_ACCESS_KEY=$CSFY_AWS_SECRET_ACCESS_KEY",
+            "CSFY_ECR_BASE_PATH=$CSFY_ECR_BASE_PATH",
+            f"CSFY_GIT_ROOT_PATH={git_root_path}",
+            f"CSFY_HELPERS_ROOT_PATH={helper_root_path}",
+            f"CSFY_IS_SUPER_REPO={is_super_repo}",
+            "OPENAI_API_KEY=$OPENAI_API_KEY",
+            # - CK_ENABLE_DIND=
+            # - CK_FORCE_TEST_FAIL=$CK_FORCE_TEST_FAIL
+            # - CK_HOST_NAME=
+            # - CK_HOST_OS_NAME=
+            # - CK_PUBLISH_NOTEBOOK_LOCAL_PATH=$CK_PUBLISH_NOTEBOOK_LOCAL_PATH
+            "CSFY_TELEGRAM_TOKEN=$CSFY_TELEGRAM_TOKEN",
+            # TODO(Vlad): consider removing, locally we use our personal tokens from files and
+            # inside GitHub actions we use the `GH_TOKEN` environment variable.
+            "GH_ACTION_ACCESS_TOKEN=$GH_ACTION_ACCESS_TOKEN",
+            # Inside GitHub Actions we use `GH_TOKEN` environment variable,
+            # see https://cli.github.com/manual/gh_auth_login.
+            "GH_TOKEN=$GH_ACTION_ACCESS_TOKEN",
+            # This env var is used by GH Action to signal that we are inside the CI.
+            # It's set up by default by the GH Action runner. See:
+            # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/store-information-in-variables#default-environment-variables
+            "CSFY_CI=$CSFY_CI",
+        ],
+        "image": "${IMAGE}",
+        "restart": "no",
+        "volumes": [
+            # TODO(gp): We should pass the value of $HOME from dev.Dockerfile to here.
+            # E.g., we might define $HOME in the env file.
+            "~/.aws:/home/.aws",
+            "~/.config/gspread_pandas/:/home/.config/gspread_pandas/",
+            "~/.config/gh:/home/.config/gh",
+        ],
+    }
     if use_privileged_mode:
-        txt_tmp = """
         # This is needed:
         # - for Docker-in-docker (dind)
         # - to mount fstabs
-        privileged: true
-        """
-        # This is at the level of `services.app`.
-        indent_level = 2
-        append(txt_tmp, indent_level)
-    #
-    if True:
-        txt_tmp = """
-        restart: "no"
-        volumes:
-          # TODO(gp): We should pass the value of $HOME from dev.Dockerfile to here.
-          # E.g., we might define $HOME in the env file.
-          - ~/.aws:/home/.aws
-          - ~/.config/gspread_pandas/:/home/.config/gspread_pandas/
-          - ~/.config/gh:/home/.config/gh
-        """
-        # This is at the level of `services.app`.
-        indent_level = 2
-        append(txt_tmp, indent_level)
+        base_app_spec["privileged"] = use_privileged_mode
+    if shared_data_dirs:
         # Mount shared dirs.
-        if shared_data_dirs is not None:
-            hdbg.dassert_lt(0, len(shared_data_dirs))
-            #
-            txt_tmp = "# Shared data directories."
-            # This is at the level of `services.app.volumes`.
-            indent_level = 3
-            append(txt_tmp, indent_level)
-            # Mount all dirs that are specified.
-            for key, value in shared_data_dirs.items():
-                txt_tmp = f"""
-                - {key}:{value}
-                """
-                append(txt_tmp, indent_level)
-    #
+        shared_volumes = [
+            f"{host}:{container}" for host, container in shared_data_dirs.items()
+        ]
+        # Mount all dirs that are specified.
+        base_app_spec["volumes"].extend(shared_volumes)
     if False:
-        txt_tmp = """
         # No need to mount file systems.
-        - ../docker_build/fstab:/etc/fstab
-        """
-        # This is at the level of `services.app.volumes`.
-        indent_level = 3
-        append(txt_tmp, indent_level)
-    #
+        base_app_spec["volumes"].append("../docker_build/fstab:/etc/fstab")
     if use_sibling_container:
-        txt_tmp = """
         # Use sibling-container approach.
-        - /var/run/docker.sock:/var/run/docker.sock
-        """
-        # This is at the level of `services.app.volumes`.
-        indent_level = 3
-        append(txt_tmp, indent_level)
-    #
+        base_app_spec["volumes"].append(
+            "/var/run/docker.sock:/var/run/docker.sock"
+        )
     if False:
-        txt_tmp = """
-        deploy:
-          resources:
-            limits:
-              # This should be passed from command line depending on how much
-              # memory is available.
-              memory: 60G
-        """
-        # This is at the level of `services/app`.
-        indent_level = 2
-        append(txt_tmp, indent_level)
-    #
+        base_app_spec["deploy"] = {
+            "resources": {
+                "limits": {
+                    # This should be passed from command line depending on how much
+                    # memory is available.
+                    "memory": "60G",
+                },
+            },
+        }
     if use_network_mode_host:
-        txt_tmp = """
         # Default network mode set to host so we can reach e.g.
         # a database container pointing to localhost:5432.
         # In tests we use dind so we need set back to the default "bridge".
         # See CmTask988 and https://stackoverflow.com/questions/24319662
-        network_mode: ${NETWORK_MODE:-host}
-        """
-        # This is at the level of `services/app`.
-        indent_level = 2
-        append(txt_tmp, indent_level)
-    #
-    if mount_as_submodule:
-        txt_tmp = """
-        # Mount `amp` when it is used as submodule. In this case we need to
-        # mount the super project in the container (to make git work with the
-        # supermodule) and then change dir to `amp`.
-        app:
-          extends:
-            base_app
-          volumes:
-            # Move one dir up to include the entire git repo (see AmpTask1017).
-            - ../../../:/app
-          # Move one dir down to include the entire git repo (see AmpTask1017).
-          working_dir: /app/amp
-        """
-    else:
-        txt_tmp = """
-        # Mount `amp` when it is used as supermodule.
-        app:
-          extends:
-            base_app
-          volumes:
-            - ../../:/app
-        """
-    # This is at the level of `services`.
-    indent_level = 1
-    append(txt_tmp, indent_level)
-    #
-    if True:
-        # Specify the linter service.
-        txt_tmp = _get_linter_service(stage)
-        # Append at the level of `services`.
-        indent_level = 1
-        append(txt_tmp, indent_level)
-    #
-    if True:
-        # For Jupyter server we cannot use "host" network_mode because
-        # it is incompatible with the port bindings.
-        txt_tmp = """
-        jupyter_server:
-          command: devops/docker_run/run_jupyter_server.sh
-          environment:
-            - PORT=${PORT}
-          extends:
-            app
-          network_mode: ${NETWORK_MODE:-bridge}
-          ports:
-            # TODO(gp): Rename `AM_PORT`.
-            - "${PORT}:${PORT}"
-
-        # TODO(gp): For some reason the following doesn't work.
-        #  jupyter_server_test:
-        #    command: jupyter notebook -h 2>&1 >/dev/null
-        #    extends:
-        #      jupyter_server
-
-        jupyter_server_test:
-          command: jupyter notebook -h 2>&1 >/dev/null
-          environment:
-            - PORT=${PORT}
-          extends:
-            app
-          network_mode: ${NETWORK_MODE:-bridge}
-          ports:
-            - "${PORT}:${PORT}"
-        """
-        # This is inside `services`.
-        indent_level = 1
-        append(txt_tmp, indent_level)
+        base_app_spec["network_mode"] = "${NETWORK_MODE:-host}"
+    # Configure `app` service.
+    # Mount `amp` when it is used as submodule. In this case we need to
+    # mount the super project in the container (to make git work with the
+    # supermodule) and then change dir to `amp`.
+    app_spec = {
+        "extends": "base_app",
+    }
+    # Use absolute path of the dir to mount the volume and set working dir.
+    # The `app_dir` dir points to the root of the repo.
+    # The `working_dir` points to the path of the runnable dir.
+    # - If the runnable dir is the root of the repo, then `working_dir` is `/app`.
+    # - If the runnable dir is a subdirectory of the repo, then `working_dir` is `/app/subdir`.
+    curr_dir = os.getcwd()
+    rel_dir1 = os.path.relpath(curr_dir, git_dir)
+    rel_dir2 = os.path.relpath(git_dir, curr_dir)
+    app_dir = os.path.abspath(os.path.join(curr_dir, rel_dir2))
+    working_dir = os.path.normpath(os.path.join("/app", rel_dir1))
+    app_spec["volumes"] = [f"{app_dir}:/app"]
+    app_spec["working_dir"] = working_dir
+    # Configure `linter` service.
+    linter_spec = _get_linter_service(stage)
+    # Configure `jupyter_server` service.
+    # For Jupyter server we cannot use "host" network_mode because
+    # it is incompatible with the port bindings.
+    jupyter_server = {
+        "command": "devops/docker_run/run_jupyter_server.sh",
+        "environment": [
+            "PORT=${PORT}",
+        ],
+        "extends": "app",
+        "network_mode": "${NETWORK_MODE:-bridge}",
+        # TODO(gp): Rename `AM_PORT`.
+        "ports": [
+            "${PORT}:${PORT}",
+        ],
+    }
+    # Configure `jupyter_server_test` service.
+    # TODO(gp): For some reason the following doesn't work.
+    # jupyter_server_test:
+    #   command: jupyter notebook -h 2>&1 >/dev/null
+    #   extends:
+    #     jupyter_server
+    jupyter_server_test = {
+        "command": "jupyter notebook -h 2>&1 >/dev/null",
+        "environment": [
+            "PORT=${PORT}",
+        ],
+        "extends": "app",
+        "network_mode": "${NETWORK_MODE:-bridge}",
+        "ports": [
+            "${PORT}:${PORT}",
+        ],
+    }
+    # Specify structure of the docker-compose file.
+    docker_compose = {
+        "version": "3",
+        "services": {
+            "base_app": base_app_spec,
+            "app": app_spec,
+            "linter": linter_spec,
+            "jupyter_server": jupyter_server,
+            "jupyter_server_test": jupyter_server_test,
+        },
+    }
+    # Configure networks.
     if use_main_network:
-        txt_tmp = """
-        networks:
-          default:
-            name: main_network
+        docker_compose["networks"] = {"default": {"name": "main_network"}}
+
+    class _Dumper(yaml.Dumper):
         """
-        # This is at the level of `services`.
-        indent_level = 0
-        append(txt_tmp, indent_level)
-    # Save file.
-    txt_str: str = "\n".join(txt)
+        A custom YAML Dumper class that adjusts indentation.
+        """
+
+        def increase_indent(self, flow=False, indentless=False) -> Any:
+            """
+            Override the method to modify YAML indentation behavior.
+            """
+            return super(_Dumper, self).increase_indent(
+                flow=False, indentless=False
+            )
+
+    # Convert the dictionary to YAML format.
+    yaml_str = yaml.dump(
+        docker_compose,
+        Dumper=_Dumper,
+        default_flow_style=False,
+        indent=2,
+        sort_keys=False,
+    )
+    # Save YAML to file if file_name is specified.
     if file_name:
         if os.path.exists(file_name) and hserver.is_inside_ci():
             # Permission error is raised if we try to overwrite existing file.
             # See CmTask #2321 for detailed info.
             compose_directory = os.path.dirname(file_name)
             hsystem.system(f"sudo rm -rf {compose_directory}")
-        hio.to_file(file_name, txt_str)
-    # Sanity check of the YAML file.
-    stream = io.StringIO(txt_str)
-    _ = yaml.safe_load(stream)
-    return txt_str
+        hio.to_file(file_name, yaml_str)
+    return yaml_str
 
 
 def get_base_docker_compose_path() -> str:
@@ -992,7 +969,7 @@ def _get_base_image(base_image: str) -> str:
     if base_image == "":
         # TODO(gp): Use os.path.join.
         base_image = (
-            hlitauti.get_default_param("CK_ECR_BASE_PATH")
+            hlitauti.get_default_param("CSFY_ECR_BASE_PATH")
             + "/"
             + hlitauti.get_default_param("BASE_IMAGE")
         )
@@ -1321,7 +1298,7 @@ def _get_lint_docker_cmd(
     :return: the full command to run
     """
     # Get an image to run the linter on.
-    ecr_base_path = os.environ["CK_ECR_BASE_PATH"]
+    ecr_base_path = os.environ["CSFY_ECR_BASE_PATH"]
     linter_image = f"{ecr_base_path}/dev_tools"
     # TODO(Grisha): do we need a version? i.e., we can pass `version` to `lint`
     # and run Linter on the specific version, e.g., `1.1.5`.

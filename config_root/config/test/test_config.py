@@ -6,11 +6,10 @@ import pprint
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
-import config_root.config as cconfig
-import config_root.config.config_ as cconconf
 import pandas as pd
 import pytest
 
+import config_root.config as cconfig
 import helpers.hdbg as hdbg
 import helpers.hintrospection as hintros
 import helpers.hprint as hprint
@@ -1264,7 +1263,7 @@ class Test_dassert_is_serializable1(hunitest.TestCase):
         pointer.
         """
         src_dir = "../../test"
-        func = lambda x: x + 1
+        func = lambda x: x + 1  # pylint: disable=unnecessary-lambda-assignment
         eval_config = cconfig.Config.from_dict(
             {
                 "load_experiment_kwargs": {
@@ -1547,7 +1546,7 @@ class Test_to_dict1(hunitest.TestCase):
         """
         self.helper(config_as_dict, exp)
 
-    # def test4(self):
+    # def test4(self) -> None:
     #     import dataflow_lime.pipelines.E8.E8d_pipeline as dtflpee8pi
     #     obj = dtflpee8pi.E8d_DagBuilder()
     #     obj.get_config_template()
@@ -1645,7 +1644,7 @@ class Test_get_config_from_flattened_dict1(hunitest.TestCase):
                 (("zscore", "com"), 28),
             ]
         )
-        config = cconconf.Config._get_config_from_flattened_dict(flattened)
+        config = cconfig.Config._get_config_from_flattened_dict(flattened)
         act = str(config)
         exp = r"""
         read_data:
@@ -1667,7 +1666,7 @@ class Test_get_config_from_flattened_dict1(hunitest.TestCase):
                 (("zscore",), cconfig.Config()),
             ]
         )
-        config = cconconf.Config._get_config_from_flattened_dict(flattened)
+        config = cconfig.Config._get_config_from_flattened_dict(flattened)
         act = str(config)
         exp = r"""
         read_data:
@@ -1834,7 +1833,7 @@ class Test_to_pickleable_string(hunitest.TestCase):
         Test when config is not pickle-able before applying the function.
         """
         # Set non-pickle-able value.
-        value = lambda x: x
+        value = lambda x: x  # pylint: disable=unnecessary-lambda-assignment
         expected = r"""
         key1: <function Test_to_pickleable_string.test2.<locals>.<lambda>>
         key2:
@@ -1894,7 +1893,7 @@ class Test_save_to_file(hunitest.TestCase):
         Test saving a Config that is not pickle-able.
         """
         # Set non-pickle-able value.
-        value = lambda x: x
+        value = lambda x: x  # pylint: disable=unnecessary-lambda-assignment
         self.helper(value)
 
 
@@ -1903,7 +1902,7 @@ class Test_save_to_file(hunitest.TestCase):
 # #############################################################################
 
 
-def remove_line_numbers(actual_config: str):
+def remove_line_numbers(actual_config: str) -> str:
     # Remove line numbers from shorthand representations, e.g.
     #  dataflow/system/system_builder_utils.py::***::get_config_template
     line_regex = r"(?<=::)(\d+)(?=::)"
@@ -1915,7 +1914,7 @@ class Test_to_string(hunitest.TestCase):
     def get_test_config(
         self,
         value: Any,
-    ) -> str:
+    ) -> cconfig.Config:
         # Set config.
         nested: Dict[str, Any] = {
             "key1": value,
@@ -1934,7 +1933,8 @@ class Test_to_string(hunitest.TestCase):
         mode = "verbose"
         actual = config.to_string(mode)
         #
-        expected = r"""key1 (marked_as_used=False, writer=None, val_type=pandas.core.frame.DataFrame):
+        expected = r"""
+        key1 (marked_as_used=False, writer=None, val_type=pandas.core.frame.DataFrame):
         index=[0, 1]
         columns=a,b,c
         shape=(2, 3)
@@ -1977,7 +1977,8 @@ class Test_to_string(hunitest.TestCase):
         mode = "verbose"
         actual = config.to_string(mode)
         #
-        expected = r"""key1 (marked_as_used=False, writer=None, val_type=str):
+        expected = r"""
+        key1 (marked_as_used=False, writer=None, val_type=str):
         This is a
         test multiline string.
         key2 (marked_as_used=False, writer=None, val_type=config_root.config.config_.Config):
@@ -1998,7 +1999,8 @@ class Test_to_string(hunitest.TestCase):
         actual = config.to_string(mode)
         actual = remove_line_numbers(actual)
         #
-        expected = r"""key1 (marked_as_used=True, writer=$GIT_ROOT/config_root/config/test/test_config.py::***::test4, val_type=str): value2
+        expected = r"""
+        key1 (marked_as_used=True, writer=$GIT_ROOT/config_root/config/test/test_config.py::***::test4, val_type=str): value2
         key2 (marked_as_used=False, writer=None, val_type=config_root.config.config_.Config):
         key3 (marked_as_used=False, writer=None, val_type=config_root.config.config_.Config):
         key4 (marked_as_used=False, writer=None, val_type=config_root.config.config_.Config):
@@ -2016,7 +2018,8 @@ class Test_to_string(hunitest.TestCase):
         mode = "debug"
         actual = config.to_string(mode)
         #
-        expected = r"""key1 (marked_as_used=False, writer=None, val_type=str):
+        expected = r"""
+        key1 (marked_as_used=False, writer=None, val_type=str):
         This is a
         test multiline string.
         key2 (marked_as_used=False, writer=None, val_type=config_root.config.config_.Config):
@@ -2060,7 +2063,8 @@ class Test_mark_as_used1(hunitest.TestCase):
             actual_value, expected_value, purify_text=True, fuzzy_match=True
         )
         #
-        expected_config = r"""key1 (marked_as_used=False, writer=None, val_type=int): 1
+        expected_config = r"""
+        key1 (marked_as_used=False, writer=None, val_type=int): 1
         key2 (marked_as_used=True, writer=$GIT_ROOT/config_root/config/test/test_config.py::***::test1, val_type=str): value2"""
         self._helper(test_config, expected_config)
 
@@ -2078,7 +2082,8 @@ class Test_mark_as_used1(hunitest.TestCase):
             str(actual_value), expected_value, purify_text=True, fuzzy_match=True
         )
         # Test marking the subconfig.
-        expected_config = r"""key1 (marked_as_used=False, writer=None, val_type=int): 1
+        expected_config = r"""
+        key1 (marked_as_used=False, writer=None, val_type=int): 1
         key2 (marked_as_used=False, writer=None, val_type=config_root.config.config_.Config):
         key3 (marked_as_used=True, writer=$GIT_ROOT/config_root/config/test/test_config.py::***::test2, val_type=str): value3"""
         self._helper(test_nested_config, expected_config)
@@ -2099,7 +2104,8 @@ class Test_mark_as_used1(hunitest.TestCase):
             str(actual_value), expected_value, purify_text=True, fuzzy_match=True
         )
         #
-        expected_config = r"""key1 (marked_as_used=False, writer=None, val_type=int): 1
+        expected_config = r"""
+        key1 (marked_as_used=False, writer=None, val_type=int): 1
         key2 (marked_as_used=False, writer=None, val_type=config_root.config.config_.Config):
         key3 (marked_as_used=False, writer=None, val_type=config_root.config.config_.Config):
         key4 (marked_as_used=True, writer=$GIT_ROOT/config_root/config/test/test_config.py::***::test3, val_type=str): value3"""
@@ -2118,11 +2124,14 @@ class Test_mark_as_used1(hunitest.TestCase):
             str(actual_value), expected_value, purify_text=True, fuzzy_match=True
         )
         #
-        expected_config = r"""key1 (marked_as_used=False, writer=None, val_type=int): 1
+        expected_config = r"""
+        key1 (marked_as_used=False, writer=None, val_type=int): 1
         key2 (marked_as_used=True, writer=$GIT_ROOT/config_root/config/test/test_config.py::***::test4, val_type=list): ['value2', 2]"""
         self._helper(test_config, expected_config)
 
-    def _helper(self, actual_config: cconfig.Config, expected_config: str):
+    def _helper(
+        self, actual_config: cconfig.Config, expected_config: str
+    ) -> None:
         """
         Remove line numbers from config string and compare to expected value.
         """
@@ -2221,15 +2230,15 @@ class _Config_execute_stmt_TestCase1(hunitest.TestCase):
     """
 
     def execute_stmt(
-        self, stmt: str, exp: Optional[str], mode: str, globals: Dict
+        self, stmt: str, exp: Optional[str], mode: str, _globals: Dict
     ) -> str:
         """
         - Execute statement stmt
         - Print the resulting config
         - Check that config is what's expected, if exp is not `None`
         """
-        _LOG.debug("\n" + hprint.frame(stmt))
-        exec(stmt, globals)  # pylint: disable=exec-used
+        _LOG.debug("%s", "\n" + hprint.frame(stmt))
+        exec(stmt, _globals)  # pylint: disable=exec-used
         #
         if mode == "str":
             act = str(config)  # pylint: disable=undefined-variable

@@ -73,7 +73,7 @@ def _dassert_setup_consistency() -> None:
 
 # If the env var is not defined then we want to check. The only reason to skip
 # it's if the env var is defined and equal to False.
-check_repo = os.environ.get("AM_REPO_CONFIG_CHECK", "True") != "False"
+check_repo = os.environ.get("CSFY_REPO_CONFIG_CHECK", "True") != "False"
 _is_called = False
 if check_repo:
     if not _is_called:

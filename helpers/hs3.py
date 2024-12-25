@@ -451,7 +451,11 @@ def get_s3_bucket_path(aws_profile: str, add_s3_prefix: bool = True) -> str:
     is usually set to `s3://alphamatic-data`.
     """
     hdbg.dassert_type_is(aws_profile, str)
+    #TODO(Juraj): needed because ENV_VARS are now prefixed with
+    # `CSFY_` and not `CK_` or `AM_`. Proper fix to come in 
+    # CmTask11095.
     prefix = aws_profile.upper()
+    prefix = "CSFY" if aws_profile.upper() in ["AM", "CK"] else aws_profile.upper()
     env_var = f"{prefix}_AWS_S3_BUCKET"
     if env_var in os.environ:
         _LOG.debug("No env var '%s'", env_var)
@@ -545,21 +549,6 @@ def add_s3_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
 # #############################################################################
 
 
-def get_aws_profile(aws_profile: str) -> str:
-    """
-    Return the AWS profile to access S3, based on:
-
-    - argument passed
-    - command line option (i.e., `args.aws_profile`)
-    - env vars (i.e., `CK_AWS_PROFILE`)
-    """
-    hdbg.dassert_type_is(aws_profile, str)
-    prefix = aws_profile.upper()
-    env_var = f"{prefix}_AWS_PROFILE"
-    hdbg.dassert_in(env_var, os.environ)
-    return os.environ[env_var]
-
-
 def _get_aws_config(file_name: str) -> configparser.RawConfigParser:
     """
     Return a parser to the config in `~/.aws/{file_name}`.
@@ -608,7 +597,11 @@ def _get_aws_config_text(aws_profile: str) -> str:
     Generate text for the AWS config file, i.e. ".aws/config".
     """
     # Set which env vars we need to get.
-    profile_prefix = aws_profile.upper()
+    #TODO(Juraj): needed because ENV_VARS are now prefixed with
+    # `CSFY_` and not `CK_` or `AM_`. Proper fix to come in 
+    # CmTask11095.
+    #profile_prefix = aws_profile.upper()
+    profile_prefix = "CSFY" if aws_profile.upper() in ["AM", "CK"] else aws_profile.upper()
     region_env_var = f"{profile_prefix}_AWS_DEFAULT_REGION"
     key_to_env_var = {"region": region_env_var}
     # Check that env vars are set.
@@ -624,7 +617,11 @@ def _get_aws_credentials_text(aws_profile: str) -> str:
     Generate text for the AWS credentials file, i.e. ".aws/credentials".
     """
     # Set which env vars we need to get.
-    profile_prefix = aws_profile.upper()
+    #TODO(Juraj): needed because ENV_VARS are now prefixed with
+    # `CSFY_` and not `CK_` or `AM_`. Proper fix to come in 
+    # CmTask11095.
+    #profile_prefix = aws_profile.upper()
+    profile_prefix = "CSFY" if aws_profile.upper() in ["AM", "CK"] else aws_profile.upper()
     key_to_env_var = {
         "aws_access_key_id": f"{profile_prefix}_AWS_ACCESS_KEY_ID",
         "aws_secret_access_key": f"{profile_prefix}_AWS_SECRET_ACCESS_KEY",
@@ -707,7 +704,7 @@ def generate_aws_files(
 #   - One can specify env vars conditioned to different profiles using the AWS
 #     profile
 #   - E.g., `ck` profile for `AWS_ACCESS_KEY_ID` corresponds to
-#     `CK_AWS_ACCESS_KEY_ID`
+#     `CSFY_AWS_ACCESS_KEY_ID`
 
 
 @functools.lru_cache()
@@ -725,7 +722,11 @@ def get_aws_credentials(
     if aws_profile == "__mock__":
         # `mock` profile is artificial construct used only in tests.
         aws_profile = aws_profile.strip("__")
-    profile_prefix = aws_profile.upper()
+    # TODO(Juraj): needed because ENV_VARS are now prefixed with
+    # `CSFY_` and not `CK_` or `AM_`. Proper fix to come in 
+    # CmTask11095.
+    # profile_prefix = aws_profile.upper()
+    profile_prefix = "CSFY" if aws_profile.upper() in ["AM", "CK"] else aws_profile.upper()
     result: Dict[str, Optional[str]] = {}
     key_to_env_var: Dict[str, str] = {
         "aws_access_key_id": f"{profile_prefix}_AWS_ACCESS_KEY_ID",
@@ -867,7 +868,6 @@ def archive_data_on_s3(
         and it doesn't reuse an S3 fs object
     :param tag: a tag to add to the name of the file
     """
-    aws_profile = get_aws_profile(aws_profile)
     _LOG.info(
         "# Archiving '%s' to '%s' with aws_profile='%s'",
         src_dir,
@@ -1045,7 +1045,7 @@ def get_s3_bucket_from_stage(stage: str, *, add_suffix: str = None) -> str:
     }
     # TODO(Juraj): hack applied until a solution for #CmTask6620 is found.
     # Retrieve the region from the environment variable or use the default region 'eu-north-1'.
-    region = os.environ.get("CK_AWS_DEFAULT_REGION", "eu-north-1")
+    region = os.environ.get("CSFY_AWS_DEFAULT_REGION", "eu-north-1")
     # TODO(Juraj): hack applied until a solution for #CmTask6620 is found.
     if region == "ap-northeast-1":
         _S3_BUCKET_BY_STAGE["preprod"] = "cryptokaizen-data-tokyo.preprod"

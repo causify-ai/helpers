@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import List, Optional
+from typing import Generator, List, Optional
 
 import pytest
 
@@ -182,7 +182,7 @@ class Test_git_repo_name1(hunitest.TestCase):
             return
         mode = "short_name"
         act = hgit.get_all_repo_names(mode)
-        exp = ["amp", "cmamp", "dev_tools", "helpers"]
+        exp = ["amp", "cmamp", "dev_tools", "helpers", "tutorials"]
         self.assert_equal(str(act), str(exp))
 
     # Outside CK infra, the following call hangs, so we skip it.
@@ -200,6 +200,7 @@ class Test_git_repo_name1(hunitest.TestCase):
             "causify-ai/cmamp",
             "causify-ai/dev_tools",
             "causify-ai/helpers",
+            "causify-ai/tutorials",
         ]
         self.assert_equal(str(act), str(exp))
 
@@ -288,7 +289,7 @@ class Test_git_path1(hunitest.TestCase):
 class Test_git_modified_files1(hunitest.TestCase):
     # This will be run before and after each test.
     @pytest.fixture(autouse=True)
-    def setup_teardown_test(self):
+    def setup_teardown_test(self) -> Generator:
         # Run before each test.
         self.set_up_test()
         yield
