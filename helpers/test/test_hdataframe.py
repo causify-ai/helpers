@@ -223,7 +223,7 @@ class TestRemoveDuplicates(hunitest.TestCase):
         df = pd.DataFrame(data=test_data)
         duplicate_columns = ["dummy_value_1", "dummy_value_2"]
         control_column = None
-        actual = hdatafr.remove_duplicates(df, duplicate_columns, control_column)
+        actual = hdatafr._remove_duplicates(df, duplicate_columns, control_column)
         actual = hpandas.df_to_str(actual)
         expected = r"""
                     dummy_value_1 dummy_value_2 knowledge_timestamp end_download_timestamp
@@ -241,7 +241,7 @@ class TestRemoveDuplicates(hunitest.TestCase):
         df = pd.DataFrame(data=test_data)
         duplicate_columns = None
         control_column = "knowledge_timestamp"
-        actual = hdatafr.remove_duplicates(df, duplicate_columns, control_column)
+        actual = hdatafr._remove_duplicates(df, duplicate_columns, control_column)
         actual = hpandas.df_to_str(actual)
         expected = r"""
                     dummy_value_1 dummy_value_2 knowledge_timestamp end_download_timestamp
@@ -260,7 +260,7 @@ class TestRemoveDuplicates(hunitest.TestCase):
         df = pd.DataFrame(data=test_data)
         duplicate_columns = ["dummy_value_1", "dummy_value_2"]
         control_column = "knowledge_timestamp"
-        actual = hdatafr.remove_duplicates(df, duplicate_columns, control_column)
+        actual = hdatafr._remove_duplicates(df, duplicate_columns, control_column)
         actual = hpandas.df_to_str(actual)
         expected = r"""
                     dummy_value_1 dummy_value_2 knowledge_timestamp end_download_timestamp

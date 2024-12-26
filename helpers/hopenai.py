@@ -97,7 +97,7 @@ pricing = {
 }
 
 
-#@functools.lru_cache(maxsize=1024)
+@functools.lru_cache(maxsize=1024)
 def get_completion(
     user: str,
     *,
@@ -383,7 +383,7 @@ def apply_prompt_to_dataframe(df, prompt,
                               model:str, input_col, response_col,
                               chunk_size=50,
                               allow_overwrite: bool = False):
-    _LOG.info(hprint.to_str("prompt model input_col response_col chunk_size"))
+    _LOG.debug(hprint.to_str("prompt model input_col response_col chunk_size"))
     hdbg.dassert_in(input_col, df.columns)
     if not allow_overwrite:
         hdbg.dassert_not_in(response_col, df.columns)
@@ -409,7 +409,7 @@ def apply_prompt_to_dataframe(df, prompt,
         for i in range(len(processed_response)):
             m = re.match(r"\d+: (.*)\s*", processed_response[i])
             hdbg.dassert(m, f"Invalid response: {processed_response[i]}")
-            processed_response[i] = m.group(1)
+            processed_response[i] = m.group(1).rstrip().lstrip()
         _LOG.debug(hprint.to_str("processed_response"))
         response_data.extend(processed_response)
     df[response_col] = response_data
