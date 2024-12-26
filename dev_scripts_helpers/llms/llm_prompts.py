@@ -177,3 +177,31 @@ def apply_prompt(prompt_tag: str, txt: str, model: str) -> str:
     python_cmd = f"{prompt_tag}(txt, model)"
     ret = str(eval(python_cmd))
     return ret
+
+
+def apply_prompt_to_dataframe_columns(df, prompt_template, openai_api_key,
+                                      model:str):
+    processed_columns = {}
+    for column_name in df.columns:
+        column_data = df[column_name].astype(str).tolist()
+        prompt = prompt_template.format(column_name=column_name, column_data="\n".join(column_data))
+
+        try:
+            response = hopenai.get_completion(user, system=system, model=model)
+            # response = openai.ChatCompletion.create(
+            #     model="gpt-4",
+            #     messages=[
+            #         {"role": "system", "content": "You are a helpful assistant."},
+            #         {"role": "user", "content": prompt},
+            #     ]
+            # )
+
+            # Assuming the response content is in `choices[0].message['content']`
+            processed_columns[column_name] = response["choices"][0]["message"]["content"].split("\n")
+
+        except Exception as e:
+            print(f"Error processing column {column_name}: {e}")
+            processed_columns[column_name] = [f"Error: {e}" for _ in column_data]
+
+    # Create a new DataFrame from the processed columns
+    return pd.DataFrame(processed_columns)
