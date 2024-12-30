@@ -742,10 +742,19 @@ def _publish_html_coverage_report_on_s3(aws_profile: str) -> None:
             sudo_prefix = "sudo "
             aws_set_param_cmd = "sudo aws configure set"
             aws_set_profile_cmd = f"--profile {aws_profile}"
+            # TODO(Juraj): needed because ENV_VARS are now prefixed with
+            # `CSFY_` and not `CK_` or `AM_`. Proper fix to come in
+            # CmTask11095.
+            # profile_prefix = aws_profile.upper()
+            profile_prefix = (
+                "CSFY"
+                if aws_profile.upper() in ["AM", "CK"]
+                else aws_profile.upper()
+            )
             aws_set_value_pairs = [
-                f"aws_access_key_id ${aws_profile.upper()}_AWS_ACCESS_KEY_ID",
-                f"aws_secret_access_key ${aws_profile.upper()}_AWS_SECRET_ACCESS_KEY",
-                f"region ${aws_profile.upper()}_AWS_DEFAULT_REGION",
+                f"aws_access_key_id ${profile_prefix}_AWS_ACCESS_KEY_ID",
+                f"aws_secret_access_key ${profile_prefix}_AWS_SECRET_ACCESS_KEY",
+                f"region ${profile_prefix}_AWS_DEFAULT_REGION",
             ]
             aws_config_cmds = [
                 f"{aws_set_param_cmd} {aws_set_value_pair} {aws_set_profile_cmd}"
