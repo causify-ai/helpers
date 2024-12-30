@@ -1233,7 +1233,7 @@ def list_and_merge_pq_files(
             control_column = "volume"
         else:
             hdbg.dfatal("Supported drop duplicates modes: ohlcv, bid_ask")
-        data = hdatafr._remove_duplicates(data, duplicate_columns, control_column)
+        data = hdatafr.remove_duplicates(data, duplicate_columns, control_column)
         # Remove all old files and write the new, merged one.
         if filesystem:
             filesystem.rm(folder, recursive=True)
