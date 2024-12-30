@@ -135,50 +135,6 @@ def lint_check_python_files(  # type: ignore
     hlitauti.run(ctx, cmd)
 
 
-def _parse_linter_output(txt: str) -> str:
-    """
-    Parse the output of the linter and return a file suitable for vim quickfix.
-    """
-    stage: Optional[str] = None
-    output: List[str] = []
-    for i, line in enumerate(txt.split("\n")):
-        _LOG.debug("%d:line='%s'", i + 1, line)
-        # Tabs remover...............................................Passed
-        # isort......................................................Failed
-        # Don't commit to branch...............................^[[42mPassed^[[m
-        m = re.search(r"^(\S.*?)\.{10,}\S+?(Passed|Failed)\S*?$", line)
-        if m:
-            stage = m.group(1)
-            result = m.group(2)
-            _LOG.debug("  -> stage='%s' (%s)", stage, result)
-            continue
-        # The regex only fires when the line starts with an alphabetic character.
-        # In our target case the line starts with the name of the file.
-        # If the line starts with a number (e.g. a timestamp in debug messages,
-        # warnings, etc), there will be no match.
-        # E.g.,
-        # "core/dataflow/nodes.py:601:9: F821 undefined name 'a'" will be matched;
-        # "17:24:53 lib_tasks.py _parse_linter_output:5244" will not be matched.
-        m = re.search(r"^([a-zA-Z]\S+):(\d+)[:\d+:]\s+(.*)$", line)
-        if m:
-            _LOG.debug("  -> Found a lint to parse: '%s'", line)
-            hdbg.dassert_is_not(stage, None)
-            file_name = m.group(1)
-            line_num = int(m.group(2))
-            msg = m.group(3)
-            _LOG.debug(
-                "  -> file_name='%s' line_num=%d msg='%s'",
-                file_name,
-                line_num,
-                msg,
-            )
-            output.append(f"{file_name}:{line_num}:[{stage}] {msg}")
-    # Sort to keep the lints in order of files.
-    output = sorted(output)
-    output_as_str = "\n".join(output)
-    return output_as_str
-
-
 @task
 def lint_detect_cycles(  # type: ignore
     ctx,
@@ -224,196 +180,95 @@ def lint_detect_cycles(  # type: ignore
 @task
 def lint(  # type: ignore
     ctx,
-    modified=False,
-    branch=False,
-    last_commit=False,
-    files="",
-    dir_name="",
-    phases="",
-    only_format=False,
-    only_check=False,
-    fast=False,
-    run_linter_step=True,
-    parse_linter_output=True,
-    run_entrypoint_and_bash=False,
-    run_bash_without_entrypoint=False,
-    # TODO(gp): These params should go earlier, since are more important.
     stage="prod",
     version="",
+    files="",
+    dir_name="",
+    modified=False,
+    last_commit=False,
+    branch=False,
+    only_format=False,
+    only_check=False,
     out_file_name="linter_output.txt",
 ):
     """
     Lint files.
 
     ```
-    # To lint all the files:
+    # To lint specific files:
+    > i lint --files="dir1/file1.py dir2/file2.md"
+
+    # To lint all the files in the current dir using only formatting actions:
     > i lint --dir-name . --only-format
 
-    # To lint only a repo (e.g., lime, lemonade) including `amp` but not `amp` itself:
-    > i lint --files="$(find . -name '*.py' -not -path './compute/*' -not -path './amp/*')"
+    # To lint the files modified in the current git client:
+    > i lint --modified
 
-    # To lint dev_tools:
-    > i lint --files="$(find . -name '*.py' -not -path './amp/*' -not -path './import_check/example/*' -not -path './import_check/test/outcomes/*')"
+    # To exclude certain paths from linting:
+    > i lint --files="$(find . -name '*.py' -not -path './compute/*' -not -path './amp/*')"
     ```
 
-    :param modified: select the files modified in the client
-    :param branch: select the files modified in the current branch
-    :param last_commit: select the files modified in the previous commit
-    :param files: specify a space-separated list of files
-    :param dir_name: process all the files in a dir
-    :param phases: specify the lint phases to execute
-    :param only_format: run only the formatting phases (e.g., black)
-    :param only_check: run only the checking phases (e.g., pylint, mypy) that
-        don't change the code
-    :param fast: run everything but skip `pylint`, since it is often very picky
-        and slow
-    :param run_linter_step: run linter step
-    :param parse_linter_output: parse linter output and generate vim cfile
-    :param run_entrypoint_and_bash: run the entrypoint of the container (which
-        configures the environment) and then `bash`, instead of running the
-        lint command
-    :param run_bash_without_entrypoint: run bash, skipping the entrypoint
-        TODO(gp): This seems to work but have some problems with tty
-    :param stage: the image stage to use
+    :param stage: the image stage to use (e.g., "prod", "dev", "local")
+    :param version: the version of the container to use
+    :param files: specific files to lint (e.g. "dir1/file1.py dir2/file2.md")
+    :param dir_name: name of the dir where all files should be linted 
+    :param modified: lint the files modified in the current git client
+    :param last_commit: lint the files modified in the previous commit
+    :param branch: lint the files modified in the current branch w.r.t. master
+    :param only_format: run only the modifying actions of Linter (e.g., black)
+    :param only_check: run only the non-modifying actions of Linter (e.g., pylint)
     :param out_file_name: name of the file to save the log output in
     """
     hlitauti.report_task()
-    # Remove the file.
     if os.path.exists(out_file_name):
+        # Remove the old log file.
         cmd = f"rm {out_file_name}"
         hlitauti.run(ctx, cmd)
-    # The available phases are:
-    # ```
-    # > i lint -f "foobar.py"
-    # Don't commit to branch...............................................Passed
-    # Check for merge conflicts........................(no files to check)Skipped
-    # Trim Trailing Whitespace.........................(no files to check)Skipped
-    # Fix End of Files.................................(no files to check)Skipped
-    # Check for added large files......................(no files to check)Skipped
-    # CRLF end-lines remover...........................(no files to check)Skipped
-    # Tabs remover.....................................(no files to check)Skipped
-    # autoflake........................................(no files to check)Skipped
-    # add_python_init_files............................(no files to check)Skipped
-    # amp_lint_md......................................(no files to check)Skipped
-    # amp_doc_formatter................................(no files to check)Skipped
-    # amp_isort........................................(no files to check)Skipped
-    # amp_class_method_order...........................(no files to check)Skipped
-    # amp_normalize_import.............................(no files to check)Skipped
-    # amp_format_separating_line.......................(no files to check)Skipped
-    # amp_black........................................(no files to check)Skipped
-    # amp_processjupytext..............................(no files to check)Skipped
-    # amp_check_filename...............................(no files to check)Skipped
-    # amp_warn_incorrectly_formatted_todo..............(no files to check)Skipped
-    # amp_flake8.......................................(no files to check)Skipped
-    # amp_pylint.......................................(no files to check)Skipped
-    # amp_mypy.........................................(no files to check)Skipped
-    # ```
-    if run_bash_without_entrypoint:
-        # Run bash, without the Docker entrypoint.
-        docker_cmd_ = "bash"
-        cmd = hlitadoc._get_lint_docker_cmd(
-            docker_cmd_, stage, version, entrypoint=False
-        )
-        cmd = f"({cmd}) 2>&1 | tee -a {out_file_name}"
-        # Run.
-        hlitauti.run(ctx, cmd)
-        return
-    if run_entrypoint_and_bash:
-        # Run the Docker entrypoint (which configures the environment) and then bash.
-        docker_cmd_ = "bash"
-        cmd = hlitadoc._get_lint_docker_cmd(docker_cmd_, stage, version)
-        cmd = f"({cmd}) 2>&1 | tee -a {out_file_name}"
-        # Run.
-        hlitauti.run(ctx, cmd)
-        return
+    # Verify that the passed options are valid.
+    hdbg.dassert_eq(
+        int(len(files) > 0)
+        + int(len(dir_name) > 0)
+        + int(modified)
+        + int(last_commit)
+        + int(branch),
+        1,
+        msg="Specify exactly one among --files, --dir-name, --modified, --last-commit, --branch")
+    hdbg.dassert_lte(
+        int(only_format)
+        + int(only_check),
+        1,
+        msg="Specify only one among --only-format, --only-check")
+    # Prepare the command line.
+    lint_cmd_opts = []
+    # Add the file selection argument.
+    if len(files):
+        lint_cmd_opts.append(f"--files {files}")
+    elif len(dir_name):
+        lint_cmd_opts.append(f"--dir-name {dir_name}")
+    elif modified:
+        lint_cmd_opts.append(f"--modified")
+    elif last_commit:
+        lint_cmd_opts.append(f"--last-commit")
+    elif branch:
+        lint_cmd_opts.append(f"--branch")
+    else:
+        raise ValueError("No file selection arguments are specified")
+    # Add the action selection argument, if needed.
     if only_format:
-        hdbg.dassert_eq(phases, "")
-        phases = " ".join(
-            [
-                "add_python_init_files",
-                "amp_isort",
-                "amp_class_method_order",
-                "amp_normalize_import",
-                "amp_format_separating_line",
-                "amp_black",
-                "amp_processjupytext",
-                "amp_remove_eof_newlines",
-            ]
-        )
-    if only_check:
-        hdbg.dassert_eq(phases, "")
-        phases = " ".join(
-            [
-                "amp_pylint",
-                "amp_mypy",
-            ]
-        )
-    if run_linter_step:
-        # We don't want to run this all the times.
-        # docker_pull(ctx, stage=stage, images="dev_tools")
-        # Get the files to lint.
-        # TODO(gp): For now we don't support linting the entire tree.
-        all_ = False
-        if dir_name != "":
-            hdbg.dassert_eq(files, "")
-            pattern = "*.py"
-            only_files = True
-            use_relative_paths = False
-            files = hio.listdir(dir_name, pattern, only_files, use_relative_paths)
-            files = " ".join(files)
-        # For linting we can use only files modified in the client, in the branch, or
-        # specified.
-        mutually_exclusive = True
-        # pre-commit doesn't handle directories, but only files.
-        remove_dirs = True
-        files_as_list = hlitauti._get_files_to_process(
-            modified,
-            branch,
-            last_commit,
-            all_,
-            files,
-            mutually_exclusive,
-            remove_dirs,
-        )
-        _LOG.info("Files to lint:\n%s", "\n".join(files_as_list))
-        if not files_as_list:
-            _LOG.warning("Nothing to lint: exiting")
-            return
-        files_as_str = " ".join(files_as_list)
-        phases = phases.split(" ")
-        for phase in phases:
-            # Prepare the command line.
-            precommit_opts = []
-            precommit_opts.extend(
-                [
-                    f"run {phase}",
-                    "-c /app/.pre-commit-config.yaml",
-                    f"--files {files_as_str}",
-                ]
-            )
-            docker_cmd_ = "pre-commit " + hlitauti._to_single_line_cmd(
-                precommit_opts
-            )
-            if fast:
-                docker_cmd_ = "SKIP=amp_pylint " + docker_cmd_
-            cmd = hlitadoc._get_lint_docker_cmd(docker_cmd_, stage, version)
-            cmd = f"({cmd}) 2>&1 | tee -a {out_file_name}"
-            # Run.
-            hlitauti.run(ctx, cmd)
+        lint_cmd_opts.append(f"--only-format")
+    elif only_check:
+        lint_cmd_opts.append(f"--only-check")
     else:
-        _LOG.warning("Skipping linter step, as per user request")
-    #
-    if parse_linter_output:
-        # Parse the linter output into a cfile.
-        _LOG.info("Parsing '%s'", out_file_name)
-        txt = hio.from_file(out_file_name)
-        cfile = _parse_linter_output(txt)
-        cfile_name = "./linter_warnings.txt"
-        hio.to_file(cfile_name, cfile)
-        _LOG.info("Saved cfile in '%s'", cfile_name)
-        print(cfile)
-    else:
-        _LOG.warning("Skipping lint parsing, as per user request")
+        _LOG.info("All Linter actions selected")
+    # Compose the command line.
+    lint_cmd_ = (
+        "/app/linters/base.py "
+        + hlitauti._to_single_line_cmd(lint_cmd_opts)
+    )
+    cmd = hlitadoc._get_lint_docker_cmd(lint_cmd_, stage, version)
+    cmd = f"({cmd}) 2>&1 | tee -a {out_file_name}"
+    # Run.
+    hlitauti.run(ctx, cmd)
 
 
 @task
