@@ -90,7 +90,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     out_txt = hio.from_file(tmp_out_file_name)
     # Note that we need to run this outside the `llm_transform` container to
-    # avoid to do docker in docker in the `llm_transform` container (which
+    # avoid to do docker-in-docker in the `llm_transform` container (which
     # doesn't support that).
     if args.transform in (
         "md_format",

@@ -1706,7 +1706,7 @@ def _main(args: argparse.Namespace) -> int:
     lints.extend(lints_tmp)
     # Sort the errors.
     lints = sorted(lints)
-    lints = hlist.remove_duplicates(lints)
+    lints = hlist._remove_duplicates(lints)
     # Count number of lints.
     num_lints = _count_lints(lints)
     #
