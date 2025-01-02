@@ -12,6 +12,7 @@
   * [Thin environment](#thin-environment)
   * [setenv](#setenv)
   * [devops](#devops)
+  * [Managing common files](#managing-common-files)
   * [Building a Docker container](#building-a-docker-container)
   * [Running a Docker container](#running-a-docker-container)
   * [pytest](#pytest)
@@ -205,6 +206,31 @@ graph TD
 - A `devops` dir contains all the code needed to build and run a container for
   both development, testing, and deployment
 
+## Managing common files
+
+- When creating runnable repos or dirs, many files are copied from the template
+  files in `//helpers`
+- Some of these files are customized; however, many remain unchanged
+- When changes are made to the files in `//helpers`, the corresponding files in
+  their respective runnable repos or dirs need to be identified and replaced
+  with the new copies
+- This manual copying and comparison approach requires a lot of effort and
+  becomes increasingly difficult to maintain as the number of runnable repos and
+  dirs grows
+- There is no way to "source control" shared files because the files themselves
+  are used to create the repos
+
+- The solution is to apply a symlink approach for all common files
+- All the template files are initially copied and customized based on the
+  requirements
+- After customization, those that remain unchanged are deleted and replaced with
+  symbolic links to the corresponding template files in `//helpers`
+- If any changes are made in `//helpers`, those changes are automatically
+  propagated to all the linked files
+- The symlinked files should not be directly editable. If a symlinked file needs
+  to be customized, it should first be staged for modification by replacing the
+  symlink with a copy of the file
+
 ## Building a Docker container
 
 - Code and tests need to be run inside a corresponding Docker container
@@ -293,7 +319,7 @@ graph TD
   ```
 
 - This function is performed automatically by the script `main_pytest.py`
-  ```
+  ```bash
   > main_pytest.py --dir infra
   ```
 
