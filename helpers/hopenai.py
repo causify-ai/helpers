@@ -7,20 +7,23 @@ import helpers.hopenai as hopenai
 import datetime
 import functools
 import logging
+import re
 from typing import Any, Dict, List, Optional
 
 import openai
 from openai import OpenAI
 from openai.types.beta.assistant import Assistant
 from openai.types.beta.threads.message import Message
+from tqdm.notebook import tqdm
 
 import helpers.hdbg as hdbg
+import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
 # hdbg.set_logger_verbosity(logging.DEBUG)
 
-_LOG.debug = _LOG.info
+#_LOG.debug = _LOG.info
 _MODEL = "gpt-4o-mini"
 _TEMPERATURE = 0.1
 
@@ -68,6 +71,32 @@ def _extract(
 # #############################################################################
 
 
+_openai_cost = None
+
+def start_logging_costs():
+    global _openai_cost
+    _openai_cost = 0.0
+
+
+def end_logging_costs():
+    global _openai_cost
+    _openai_cost = None
+
+
+def get_costs():
+    return _openai_cost
+
+
+# https://openai.com/api/pricing/
+# https://gptforwork.com/tools/openai-chatgpt-api-pricing-calculator
+# Cost per 1M tokens.
+pricing = {
+    "gpt-3.5-turbo": {"prompt": 0.5, "completion": 1.5},
+    "gpt-4o-mini": {"prompt": 0.15, "completion": 0.60},
+    "gpt-4o": {"prompt": 5, "completion": 15},
+}
+
+
 @functools.lru_cache(maxsize=1024)
 def get_completion(
     user: str,
@@ -95,6 +124,19 @@ def get_completion(
         ],
         **create_kwargs,
     )
+    global _openai_cost
+    if _openai_cost is not None:
+        # CompletionUsage(completion_tokens=2, prompt_tokens=48, total_tokens=50
+        prompt_tokens = completion.usage.prompt_tokens
+        completion_tokens = completion.usage.completion_tokens
+        # Get the pricing for the selected model
+        model_pricing = pricing[model]
+        # Calculate the cost
+        cost = (
+                (prompt_tokens / 1e6) * model_pricing["prompt"] +
+                (completion_tokens / 1e6) * model_pricing["completion"]
+        )
+        _openai_cost += cost
     return completion.choices[0].message.content
 
 
@@ -301,3 +343,40 @@ def get_query_assistant(assistant: Assistant, question: str) -> List[Message]:
         client.beta.threads.messages.list(thread_id=thread.id, run_id=run.id)
     )
     return messages
+
+
+def apply_prompt_to_dataframe(df, prompt,
+                              model:str, input_col, response_col,
+                              chunk_size=50,
+                              allow_overwrite: bool = False):
+    _LOG.debug(hprint.to_str("prompt model input_col response_col chunk_size"))
+    hdbg.dassert_in(input_col, df.columns)
+    if not allow_overwrite:
+        hdbg.dassert_not_in(response_col, df.columns)
+    response_data = []
+    for start in tqdm(range(0, len(df), chunk_size), desc="Processing chunks"):
+        end = start + chunk_size
+        chunk = df.iloc[start:end]
+        _LOG.debug("chunk.size=%s", chunk.shape[0])
+        data = chunk[input_col].astype(str).tolist()
+        data = ["%s: %s" % (i + 1, val) for i, val in enumerate(data)]
+        user = "\n".join(data)
+        _LOG.debug("user=\n%s", user)
+        try:
+            response = get_completion(user, system=prompt, model=model)
+        except Exception as e:
+            _LOG.error(f"Error processing column {input} in chunk"
+                       f" {start}-{end}: {e}")
+            raise e
+        processed_response = response.split("\n")
+        _LOG.debug(hprint.to_str("processed_response"))
+        _LOG.debug("len(processed_response)=%s", len(processed_response))
+        hdbg.dassert_eq(len(processed_response), chunk.shape[0])
+        for i in range(len(processed_response)):
+            m = re.match(r"\d+: (.*)\s*", processed_response[i])
+            hdbg.dassert(m, f"Invalid response: {processed_response[i]}")
+            processed_response[i] = m.group(1).rstrip().lstrip()
+        _LOG.debug(hprint.to_str("processed_response"))
+        response_data.extend(processed_response)
+    df[response_col] = response_data
+    return df
