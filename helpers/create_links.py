@@ -158,7 +158,8 @@ def _find_common_files(src_dir: str, dst_dir: str) -> List[Tuple[str, str]]:
             # Certain files do not need to be copied, so we skip them.
             if not os.path.exists(dst_file):
                 _LOG.warning(
-                    f"Warning: {dst_file} is missing in the destination directory."
+                    "Warning: %s is missing in the destination directory.", 
+                    dst_file
                 )
                 continue
             # Compare file contents after copying.
