@@ -1888,7 +1888,7 @@ def heatmap_df(df: pd.DataFrame, *, axis: Any = None) -> pd.DataFrame:
     :param axis: along which axis to compute the heatmap
         - 0 colorize along rows
         - 1 colorize along columns
-        - None colorize
+        - None: colorize everything
     """
     # Keep it here to avoid long start up times.
     import seaborn as sns
@@ -1905,10 +1905,10 @@ def compare_nans_in_dataframes(
     Compare equality of DataFrames in terms of NaNs.
 
     For example:
-        - `5 vs np.nan` is a mismatch
-        - `np.nan vs 5` is a mismatch
-        - `np.nan vs np.nan` is a match
-        - `np.nan vs np.inf` is a mismatch
+    - `5 vs np.nan` is a mismatch
+    - `np.nan vs 5` is a mismatch
+    - `np.nan vs np.nan` is a match
+    - `np.nan vs np.inf` is a mismatch
 
     :param df1: dataframe to compare
     :param df2: dataframe to compare with
