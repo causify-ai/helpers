@@ -3,7 +3,7 @@
 """
 Lint md files.
 
-> lint_notes.py -i foo.md -o bar.md
+> lint_notes.py -i foo.md -o bar.md --use_dockerized_prettier
 
 It can be used in vim to prettify a part of the text using stdin /
 stdout. :%!lint_notes.py
@@ -383,6 +383,10 @@ def _parser() -> argparse.ArgumentParser:
         type=int,
         default=None,
     )
+    parser.add_argument(
+         "--use_dockerized_prettier",
+        action="store_true",
+    )
     hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hparser.add_verbosity_arg(parser)
     return parser
@@ -405,7 +409,11 @@ def _main(args: argparse.Namespace) -> None:
     txt = args.infile.read()
     # Process.
     txt = _process(
-        txt, in_file_name, actions=args.action, print_width=args.print_width
+        txt, 
+        in_file_name, 
+        actions=args.action, 
+        print_width=args.print_width,
+        use_dockerized_prettier=args.use_dockerized_prettier,
     )
     # Write output.
     if args.in_place:

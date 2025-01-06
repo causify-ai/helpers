@@ -360,9 +360,12 @@ def _docker_login_ecr() -> None:
     if major_version == 1:
         cmd = f"eval $(aws ecr get-login --profile {profile} --no-include-email --region {region})"
     elif major_version == 2:
-        ecr_base_path = hlitauti.get_default_param(
-            f"{profile.upper()}_ECR_BASE_PATH"
-        )
+        # TODO(gp): Hack
+        if profile == "ck":
+            env_var = f"CSFY_ECR_BASE_PATH"
+        else:
+            env_var = f"{profile.upper()}_ECR_BASE_PATH"
+        ecr_base_path = hlitauti.get_default_param(env_var)
         # TODO(Nikola): Remove `_get_aws_cli_version()` and use only `aws ecr get-login-password`
         #  as it is present in both versions of `awscli`.
         cmd = (
