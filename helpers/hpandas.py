@@ -2486,9 +2486,12 @@ def filter_df(df: pd.DataFrame, col_name: str, value: Any, *,
               invert: bool =False, check_value: bool =True,
               print_info: bool =True) -> pd.DataFrame:
     hdbg.dassert_in(col_name, df.columns)
-    if check_value:
-        hdbg.dassert_in(value, df[col_name].unique())
-    mask = df[col_name] == value
+    if isinstance(value, list):
+        mask = df[col_name].isin(value)
+    else:
+        if check_value:
+            hdbg.dassert_in(value, df[col_name].unique())
+        mask = df[col_name] == value
     if invert:
         mask = ~mask
     if print_info:
