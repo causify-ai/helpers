@@ -3,7 +3,7 @@
 """
 Lint md files.
 
-> lint_notes.py -i foo.md -o bar.md --use_dockerized_prettier
+> lint_notes.py -i foo.md -o bar.md --use_dockerized_prettier --use_dockerized_markdown_toc
 
 It can be used in vim to prettify a part of the text using stdin /
 stdout. :%!lint_notes.py
@@ -249,11 +249,17 @@ def _frame_chapters(txt: str, *, max_lev: int = 4) -> str:
     return txt_new_as_str
 
 
-def _refresh_toc(txt: str) -> str:
+def _refresh_toc(
+    txt: str, 
+    *,
+    use_dockerized_markdown_toc: bool = True,
+) -> str:
     """
     Refresh the table of contents (TOC) in the given text.
 
     :param txt: The text to be processed.
+    :param use_dockerized_markdown_toc: if True, run markdown-toc in a
+        Docker container
     :return: The text with the updated TOC.
     """
     _LOG.debug("txt=%s", txt)
@@ -272,11 +278,22 @@ def _refresh_toc(txt: str) -> str:
     hio.to_file(tmp_file_name, txt)
     # Process TOC.
     cmd_opts: List[str] = []
-    force_rebuild = False
-    use_sudo = hdocker.get_use_sudo()
-    hdocker.run_dockerized_markdown_toc(
-        tmp_file_name, force_rebuild, cmd_opts, use_sudo
-    )
+    if use_dockerized_markdown_toc:
+        # Run `markdown-toc` in a Docker container.
+        force_rebuild = False
+        use_sudo = hdocker.get_use_sudo()
+        hdocker.run_dockerized_markdown_toc(
+            tmp_file_name, force_rebuild, cmd_opts, use_sudo
+        )
+    else:
+        # Run `markdown-toc` installed on the host directly.
+        executable = "markdown-toc"
+        cmd = [executable] + cmd_opts
+        cmd.append("-i " + tmp_file_name)
+        #
+        cmd_as_str = " ".join(cmd)
+        _, output_tmp = hsystem.system_to_string(cmd_as_str, abort_on_error=True)
+        _LOG.debug("output_tmp=%s", output_tmp)
     # Read file.
     txt = hio.from_file(tmp_file_name)
     # Clean up.
@@ -336,7 +353,7 @@ def _process(
     action = "refresh_toc"
     if _to_execute_action(action, actions):
         if is_md_file:
-            txt = _refresh_toc(txt)
+            txt = _refresh_toc(txt, **kwargs)
     return txt
 
 
@@ -387,6 +404,10 @@ def _parser() -> argparse.ArgumentParser:
          "--use_dockerized_prettier",
         action="store_true",
     )
+    parser.add_argument(
+         "--use_dockerized_markdown_toc",
+        action="store_true",
+    )
     hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hparser.add_verbosity_arg(parser)
     return parser
@@ -414,6 +435,7 @@ def _main(args: argparse.Namespace) -> None:
         actions=args.action, 
         print_width=args.print_width,
         use_dockerized_prettier=args.use_dockerized_prettier,
+        use_dockerized_markdown_toc=args.use_dockerized_markdown_toc,
     )
     # Write output.
     if args.in_place:
