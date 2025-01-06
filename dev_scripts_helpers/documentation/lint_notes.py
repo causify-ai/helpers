@@ -124,16 +124,13 @@ def prettier(
             in_file_path, out_file_path, cmd_opts, force_rebuild, use_sudo
         )
     else:
-        # Run `prettier` installed on the host directly.
         executable = "prettier"
         cmd = [executable] + cmd_opts
-        # Workaround for PTask2155.
-        # > (cd /tmp && prettier  ... --tab-width 2 tmpijtkxtrk)
-        cmd.insert(0, f"cd {os.path.dirname(in_file_path)} &&")
         if in_file_path == out_file_path:
             cmd.append("--write")
-        cmd.append(os.path.basename(in_file_path))
-        cmd.append("> " + out_file_path)
+        cmd.append(in_file_path)
+        if in_file_path != out_file_path:
+            cmd.append("> " + out_file_path)
         #
         cmd_as_str = " ".join(cmd)
         _, output_tmp = hsystem.system_to_string(cmd_as_str, abort_on_error=True)
