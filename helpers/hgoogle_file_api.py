@@ -49,7 +49,7 @@ def get_credentials(
     :return: google credentials retrieved.
     """
     if not service_key_path:
-        service_key_path = "service.json"
+        service_key_path = ".google_credentials/service.json"
     service_key_path = os.path.join(os.path.dirname(__file__), service_key_path)
     if not os.path.exists(service_key_path):
         _LOG.info("Failed to read service key file: %s", service_key_path)
