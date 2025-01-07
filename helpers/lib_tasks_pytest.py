@@ -1060,7 +1060,7 @@ def pytest_repro(  # type: ignore
     # targets is a list of tests in the format
     # `helpers/test/test_env.py::Test_env1::test_get_system_signature1`.
     hdbg.dassert_isinstance(targets, list)
-    targets = hlist._remove_duplicates(targets)
+    targets = hlist.remove_duplicates(targets)
     targets = sorted(targets)
     failed_test_output_str = (
         f"Found {len(targets)} failed pytest '{mode}' target(s); "

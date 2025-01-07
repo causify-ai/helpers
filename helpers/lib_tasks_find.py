@@ -240,7 +240,7 @@ def _process_find_results(results: _FindResults, how: str) -> List:
         for result in results:
             (_, _, _, info1, info2) = result
             filtered_results.append((info1, info2))
-        filtered_results = hlist._remove_duplicates(filtered_results)
+        filtered_results = hlist.remove_duplicates(filtered_results)
         filtered_results = sorted(filtered_results)
     elif how == "all":
         filtered_results = sorted(results)
