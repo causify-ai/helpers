@@ -345,6 +345,40 @@ def get_query_assistant(assistant: Assistant, question: str) -> List[Message]:
     return messages
 
 
+# import os
+# import requests
+#
+#
+# def get_openai_usage():
+#     # Define the API endpoint.
+#     endpoint = "https://api.openai.com/v1/organization/costs"
+#     start_date = datetime.datetime.now() - datetime.timedelta(days=10)
+#     start_date = int(start_date.timestamp())
+#     # Request headers.
+#     #api_key = os.environ.get("OPENAI_API_KEY")
+#     headers = {
+#         "Authorization": f"Bearer {api_key}",
+#     }
+#     # Query parameters
+#     params = {
+#         "start_time": start_date,
+#         #"end_date": end_date,
+#     }
+#     # Send the request
+#     response = requests.get(endpoint, headers=headers, params=params)
+#     if response.status_code == 200:
+#         data = response.json()
+#         import pprint
+#         pprint.pprint(data)
+#         total_spent = data.get("total_usage", 0) / 100  # Convert cents to dollars
+#         #print(f"Total spent from {start_date} to {end_date}: "
+#         #       f"${total_spent:.2f}")
+#         return total_spent
+#     else:
+#         print(f"Failed to fetch usage: {response.status_code}, {response.text}")
+#         return None
+#
+
 def apply_prompt_to_dataframe(df, prompt,
                               model:str, input_col, response_col,
                               chunk_size=50,
