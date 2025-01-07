@@ -79,10 +79,9 @@ jobs:
         # To run the linter, fetch the master branch for comparison with the
         # current branch.
         run: |
-          set -o pipefail
-          invoke git_fetch_master
-          invoke lint --branch
-          invoke lint_check_if_it_was_run
+          invoke git_fetch_master || exit 1
+          invoke lint --branch || exit 1
+          invoke lint_check_if_it_was_run || exit 1
 
       - name: Post status if was triggered manually
         if: ${{ always() && github.event_name == 'workflow_dispatch' }}
