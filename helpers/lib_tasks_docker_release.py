@@ -140,8 +140,8 @@ def docker_build_local_image(  # type: ignore
     hlitadoc.dassert_is_image_name_valid(image_local)
     #
     dockerfile = "devops/docker_build/dev.Dockerfile"
-    # Keep relative path instead of an absolute path to ensure it matches files 
-    # inside the tar stream and avoids "file not found" errors.
+    # Keep the relative path instead of an absolute path to ensure it matches 
+    # files inside the tar stream and avoids file not found errors.
     # dockerfile = _to_abs_path(dockerfile)
     opts = "--no-cache" if not cache else ""
     build_args = [
@@ -174,8 +174,9 @@ def docker_build_local_image(  # type: ignore
         """
         hlitauti.run(ctx, cmd)
         # Build.
-        # Compress the current directory (in order to dereferencing symbolic 
+        # Compress the current directory (in order to dereference symbolic 
         # links) into a tar stream and pipes it to the `docker build` command.
+        # See HelpersTask197.
         cmd = rf"""
         tar -czh . | DOCKER_BUILDKIT={DOCKER_BUILDKIT} \
             time \
@@ -196,8 +197,9 @@ def docker_build_local_image(  # type: ignore
         hlitauti.run(ctx, cmd)
     else:
         # Build for a single architecture using `docker build`.
-        # Compress the current directory (in order to dereferencing symbolic 
+        # Compress the current directory (in order to dereference symbolic 
         # links) into a tar stream and pipes it to the `docker build` command.
+        # See HelpersTask197.
         cmd = rf"""
         tar -czh . | DOCKER_BUILDKIT={DOCKER_BUILDKIT} \
             time \
