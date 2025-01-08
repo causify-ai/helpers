@@ -18,7 +18,7 @@ Automate some common workflows with jupytext.
 
 Import as:
 
-import dev_scripts_devto.notebooks.process_jupytext as dsdnprju
+import dev_scripts_helpers.notebooks.process_jupytext as dshnprju
 """
 
 import argparse
