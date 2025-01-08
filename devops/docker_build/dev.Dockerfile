@@ -48,6 +48,10 @@ RUN /bin/bash -c "./install_python_packages.sh"
 COPY devops/docker_build/install_dind.sh .
 RUN /bin/bash -c 'if [[ $INSTALL_DIND == "True" ]]; then ./install_dind.sh; fi;'
 
+## - Install publishing tools.
+COPY devops/docker_build/install_publishing_tools.sh .
+RUN /bin/bash -c "./install_publishing_tools.sh"
+
 # - Create users and set permissions.
 COPY devops/docker_build/create_users.sh .
 RUN /bin/bash -c "./create_users.sh"

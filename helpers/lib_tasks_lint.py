@@ -7,8 +7,6 @@ import helpers.lib_tasks_lint as hlitalin
 import datetime
 import logging
 import os
-import re
-from typing import List, Optional
 
 from invoke import task
 
@@ -180,6 +178,7 @@ def lint_detect_cycles(  # type: ignore
 @task
 def lint(  # type: ignore
     ctx,
+    base_image="",
     stage="prod",
     version="",
     files="",
@@ -189,7 +188,6 @@ def lint(  # type: ignore
     branch=False,
     only_format=False,
     only_check=False,
-    out_file_name="linter_output.txt",
 ):
     """
     Lint files.
@@ -208,22 +206,18 @@ def lint(  # type: ignore
     > i lint --files="$(find . -name '*.py' -not -path './compute/*' -not -path './amp/*')"
     ```
 
+    :param base_image: the base image to run Linter on
     :param stage: the image stage to use (e.g., "prod", "dev", "local")
     :param version: the version of the container to use
     :param files: specific files to lint (e.g. "dir1/file1.py dir2/file2.md")
-    :param dir_name: name of the dir where all files should be linted 
+    :param dir_name: name of the dir where all files should be linted
     :param modified: lint the files modified in the current git client
     :param last_commit: lint the files modified in the previous commit
     :param branch: lint the files modified in the current branch w.r.t. master
     :param only_format: run only the modifying actions of Linter (e.g., black)
     :param only_check: run only the non-modifying actions of Linter (e.g., pylint)
-    :param out_file_name: name of the file to save the log output in
     """
     hlitauti.report_task()
-    if os.path.exists(out_file_name):
-        # Remove the old log file.
-        cmd = f"rm {out_file_name}"
-        hlitauti.run(ctx, cmd)
     # Verify that the passed options are valid.
     hdbg.dassert_eq(
         int(len(files) > 0)
@@ -232,43 +226,45 @@ def lint(  # type: ignore
         + int(last_commit)
         + int(branch),
         1,
-        msg="Specify exactly one among --files, --dir-name, --modified, --last-commit, --branch")
+        msg="Specify exactly one among --files, --dir-name, --modified, --last-commit, --branch",
+    )
     hdbg.dassert_lte(
-        int(only_format)
-        + int(only_check),
+        int(only_format) + int(only_check),
         1,
-        msg="Specify only one among --only-format, --only-check")
+        msg="Specify only one among --only-format, --only-check",
+    )
     # Prepare the command line.
     lint_cmd_opts = []
     # Add the file selection argument.
-    if len(files):
+    if len(files) > 0:
         lint_cmd_opts.append(f"--files {files}")
-    elif len(dir_name):
-        lint_cmd_opts.append(f"--dir-name {dir_name}")
+    elif len(dir_name) > 0:
+        lint_cmd_opts.append(f"--dir_name {dir_name}")
     elif modified:
-        lint_cmd_opts.append(f"--modified")
+        lint_cmd_opts.append("--modified")
     elif last_commit:
-        lint_cmd_opts.append(f"--last-commit")
+        lint_cmd_opts.append("--last_commit")
     elif branch:
-        lint_cmd_opts.append(f"--branch")
+        lint_cmd_opts.append("--branch")
     else:
         raise ValueError("No file selection arguments are specified")
     # Add the action selection argument, if needed.
     if only_format:
-        lint_cmd_opts.append(f"--only-format")
+        lint_cmd_opts.append("--only_format")
     elif only_check:
-        lint_cmd_opts.append(f"--only-check")
+        lint_cmd_opts.append("--only_check")
     else:
         _LOG.info("All Linter actions selected")
     # Compose the command line.
-    lint_cmd_ = (
-        "/app/linters/base.py "
-        + hlitauti._to_single_line_cmd(lint_cmd_opts)
+    lint_cmd_ = "linters/base.py " + hlitauti._to_single_line_cmd(lint_cmd_opts)
+    docker_cmd_ = hlitadoc._get_docker_compose_cmd(
+        base_image=base_image,
+        stage=stage,
+        version=version,
+        cmd=lint_cmd_,
     )
-    cmd = hlitadoc._get_lint_docker_cmd(lint_cmd_, stage, version)
-    cmd = f"({cmd}) 2>&1 | tee -a {out_file_name}"
     # Run.
-    hlitauti.run(ctx, cmd)
+    hlitadoc._docker_cmd(ctx, docker_cmd_)
 
 
 @task
