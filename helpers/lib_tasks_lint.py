@@ -178,7 +178,6 @@ def lint_detect_cycles(  # type: ignore
 @task
 def lint(  # type: ignore
     ctx,
-    base_image="",
     stage="prod",
     version="",
     files="",
@@ -206,7 +205,6 @@ def lint(  # type: ignore
     > i lint --files="$(find . -name '*.py' -not -path './compute/*' -not -path './amp/*')"
     ```
 
-    :param base_image: the base image to run Linter on
     :param stage: the image stage to use (e.g., "prod", "dev", "local")
     :param version: the version of the container to use
     :param files: specific files to lint (e.g. "dir1/file1.py dir2/file2.md")
@@ -256,12 +254,14 @@ def lint(  # type: ignore
     else:
         _LOG.info("All Linter actions selected")
     # Compose the command line.
+    ecr_base_path = os.environ["CSFY_ECR_BASE_PATH"]
+    linter_image = f"{ecr_base_path}/helpers"
     lint_cmd_ = (
         "$(find -wholename '*linters/base.py') "
         + hlitauti._to_single_line_cmd(lint_cmd_opts)
     )
     docker_cmd_ = hlitadoc._get_docker_compose_cmd(
-        base_image=base_image,
+        base_image=linter_image,
         stage=stage,
         version=version,
         cmd=lint_cmd_,
