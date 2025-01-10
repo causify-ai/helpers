@@ -256,7 +256,7 @@ def lint(  # type: ignore
     else:
         _LOG.info("All Linter actions selected")
     # Compose the command line.
-    lint_cmd_ = "linters/base.py " + hlitauti._to_single_line_cmd(lint_cmd_opts)
+    lint_cmd_ = "$(find -wholename '*linters/base.py') " + hlitauti._to_single_line_cmd(lint_cmd_opts)
     docker_cmd_ = hlitadoc._get_docker_compose_cmd(
         base_image=base_image,
         stage=stage,
