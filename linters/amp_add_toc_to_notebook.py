@@ -19,9 +19,15 @@ import linters.utils as liutils
 _LOG = logging.getLogger(__name__)
 
 
+# #############################################################################
+# _AddTOC
+# #############################################################################
+
+
 class _AddTOC(liaction.Action):
+
     def __init__(self) -> None:
-        executable = "dev_scripts_helpers/notebooks/add_toc_to_notebook.py"
+        executable = "$(find -wholename '*dev_scripts_helpers/notebooks/add_toc_to_notebook.py')"
         super().__init__(executable)
 
     def check_if_possible(self) -> bool:
