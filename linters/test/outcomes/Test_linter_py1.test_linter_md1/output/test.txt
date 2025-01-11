@@ -9,7 +9,7 @@ Linting file: '/app/linters/test/outcomes/Test_linter_py1.test_linter_md1/tmp.sc
 file_paths=1 ['/app/linters/test/outcomes/Test_linter_py1.test_linter_md1/tmp.scratch/hello.md']
 actions=21 ['add_python_init_files', 'add_toc_to_notebook', 'fix_md_links', 'lint_md', 'autoflake', 'fix_whitespaces', 'doc_formatter', 'isort', 'class_method_order', 'normalize_imports', 'format_separating_line', 'add_class_frames', 'black', 'process_jupytext', 'check_filename', 'check_merge_conflict', 'check_import', 'warn_incorrectly_formatted_todo', 'flake8', 'pylint', 'mypy']
 ////////////////////////////////////////////////////////////////////////////////
-HH:MM:SS - [36mINFO [0m hdbg.py init_logger:{LINE_NUM}                               > cmd='dev_scripts_helpers/documentation/lint_notes.py -i /app/linters/test/outcomes/Test_linter_py1.test_linter_md1/tmp.scratch/hello.md --in_place' [lint_md]
+HH:MM:SS - [36mINFO [0m hdbg.py init_logger:{LINE_NUM}                               > cmd='./dev_scripts_helpers/documentation/lint_notes.py -i /app/linters/test/outcomes/Test_linter_py1.test_linter_md1/tmp.scratch/hello.md --in_place' [lint_md]
 
 ////////////////////////////////////////////////////////////////////////////////
 
