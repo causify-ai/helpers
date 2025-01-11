@@ -24,9 +24,15 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+# #############################################################################
+# _ProcessJupytext
+# #############################################################################
+
+
 class _ProcessJupytext(liaction.Action):
+
     def __init__(self, jupytext_action: str) -> None:
-        executable = "dev_scripts_helpers/notebooks/process_jupytext.py"
+        executable = "$(find -wholename '*dev_scripts_helpers/notebooks/process_jupytext.py')"
         super().__init__(executable)
         self._jupytext_action = jupytext_action
 
@@ -53,14 +59,31 @@ class _ProcessJupytext(liaction.Action):
         return output
 
 
+# #############################################################################
+# _SyncJupytext
+# #############################################################################
+
+
 class _SyncJupytext(_ProcessJupytext):
+
     def __init__(self) -> None:
         super().__init__("sync")
 
 
+# #############################################################################
+# _TestJupytext
+# #############################################################################
+
+
 class _TestJupytext(_ProcessJupytext):
+
     def __init__(self) -> None:
         super().__init__("test")
+
+
+# #############################################################################
+# _JupytextAction
+# #############################################################################
 
 
 class _JupytextAction(liaction.CompositeAction):

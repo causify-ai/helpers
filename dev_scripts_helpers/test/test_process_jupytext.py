@@ -50,9 +50,9 @@ class Test_process_jupytext(hunitest.TestCase):
         py_text += "\na = 0"
         hio.to_file(file_path, py_text)
         # Run processor.
-        cmd = f"dev_scripts_helpers/notebooks/process_jupytext.py -f {file_path} --action sync 2>&1"
+        cmd = f"$(find -wholename '*dev_scripts_helpers/notebooks/process_jupytext.py') -f {file_path} --action sync 2>&1"
         hsystem.system(cmd)
-        cmd = f"dev_scripts_helpers/notebooks/process_jupytext.py -f {file_path} --action test 2>&1"
+        cmd = f"$(find -wholename '*dev_scripts_helpers/notebooks/process_jupytext.py') -f {file_path} --action test 2>&1"
         hsystem.system(cmd)
         # Check that notebook content was changed.
         new_ipynb_text = hio.from_file(ipynb_path)

@@ -2,7 +2,7 @@
 """
 Fix the formatting of links and file/fig paths in Markdown files.
 
-For more details, see `/docs/coding/all.amp_fix_md_links.explanation.md`.
+For more details, see `/docs/all.amp_fix_md_links.explanation.md`.
 """
 
 import argparse
@@ -20,10 +20,12 @@ import linters.utils as liutils
 
 _LOG = logging.getLogger(__name__)
 
+# Regular expressions for different link types.
 FIG_REGEX_1 = r'<img src="\.{0,2}\w*\/.+?\.(?:jpg|jpeg|png)"'
 FIG_REGEX_2 = r"!\[\w*\]\(\.{0,2}\w*\/.+?\.(?:jpg|jpeg|png)\)"
 FILE_PATH_REGEX = r"\.{0,2}\w*\/.+?\.[\w\.]+"
 LINK_REGEX = r"\[(.+)\]\(((?!#).*)\)"
+HTML_LINK_REGEX = r'(<a href=".*?">.*?</a>)'
 
 
 def _make_path_absolute(path: str) -> str:
@@ -55,7 +57,7 @@ def _make_path_module_agnostic(path: str) -> str:
     return upd_path
 
 
-def _check_link_format(
+def _check_md_link_format(
     link_text: str, link: str, line: str, file_name: str, line_num: int
 ) -> Tuple[str, List[str]]:
     """
@@ -195,6 +197,39 @@ def _check_fig_pointer_format(
     return updated_line, warnings
 
 
+def _check_html_link_format(
+    html_link: str, line: str, file_name: str, line_num: int
+) -> Tuple[str, List[str]]:
+    """
+    Convert HTML-style link (`<a href="...">...</a>`) into a Markdown-style
+    link (`[text](...)`).
+
+    Given HTML link in the form `<a href="link_target">link_text</a>`
+    replace it with the Markdown equivalent `[link_text](link_target)`.
+
+    :param html_link: the original HTML link to validate
+    :param line: the line of text containing the link
+    :param file_name: the name of the Markdown file being processed
+    :param line_num: the line number where the link is located
+    :return:
+        - the updated line with the fixed HTML link (if any fixes were applied)
+        - a list of warnings about issues with the link
+    """
+    warnings: List[str] = []
+    match = re.match(r'<a href="(.*?)">(.*?)</a>', html_link)
+    if match:
+        link_target, original_text = match.groups()
+        # Create the Markdown-style link.
+        converted_link = f"[{original_text}]({link_target})"
+        # Replace the with the Markdown-style link.
+        # `__check_md_link_format` will handle the
+        # check on validity of the link in `fix_links()`
+        line = line.replace(html_link, converted_link)
+    else:
+        warnings.append(f"{file_name}:{line_num}: '{html_link}' does not exist")
+    return line, warnings
+
+
 def fix_links(file_name: str) -> Tuple[List[str], List[str], List[str]]:
     """
     Fix the formatting of links and file/figure paths in a Markdown file.
@@ -204,6 +239,7 @@ def fix_links(file_name: str) -> Tuple[List[str], List[str], List[str]]:
         (incl. when the link text is an empty string).
       - Bare file paths, e.g.'/dir1/dir2/file.py'.
       - Pointers to figures, e.g. '<img src="dir1/dir2/file.png">'.
+      - HTML-style links (`<a href="..."></a>`).
 
     :param file_name: the name of the Markdown file
     :return:
@@ -218,9 +254,16 @@ def fix_links(file_name: str) -> Tuple[List[str], List[str], List[str]]:
         updated_line = line
         # Check the formatting.
         # Links.
+        # HTML-style links.
+        html_link_matches = re.findall(HTML_LINK_REGEX, updated_line)
+        for html_link in html_link_matches:
+            updated_line, line_warnings = _check_html_link_format(
+                html_link, updated_line, file_name, i
+            )
+            warnings.extend(line_warnings)
         link_matches = re.findall(LINK_REGEX, updated_line)
         for link_text, link in link_matches:
-            updated_line, line_warnings = _check_link_format(
+            updated_line, line_warnings = _check_md_link_format(
                 link_text, link, updated_line, file_name, i
             )
             warnings.extend(line_warnings)
@@ -258,6 +301,7 @@ def fix_links(file_name: str) -> Tuple[List[str], List[str], List[str]]:
 
 
 class _LinkFixer(liaction.Action):
+
     def check_if_possible(self) -> bool:
         return True
 
@@ -298,3 +342,4 @@ def _main(parser: argparse.ArgumentParser) -> None:
 
 if __name__ == "__main__":
     _main(_parse())
+

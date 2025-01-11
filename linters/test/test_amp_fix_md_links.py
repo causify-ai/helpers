@@ -10,7 +10,13 @@ import linters.amp_fix_md_links as lafimdli
 _LOG = logging.getLogger(__name__)
 
 
+# #############################################################################
+# Test_fix_links
+# #############################################################################
+
+
 class Test_fix_links(hunitest.TestCase):
+
     @pytest.mark.skip("To keep the build green")
     def test1(self) -> None:
         """
@@ -64,6 +70,43 @@ class Test_fix_links(hunitest.TestCase):
             + ["", "# linted file", ""]
             + updated_lines
         )
+        self.check_string(output)
+
+    def test3(self) -> None:
+        """
+        Test the fix_links function with a mix of Markdown and HTML-style
+        links.
+
+        Ensures that both `_check_md_link_format()` and
+        `_check_html_link_format()` interact correctly.
+        """
+        input_content = """
+    Markdown link: [Valid Markdown Link](docs/markdown_example.md)
+
+    HTML-style link: <a href="docs/html_example.md">Valid HTML Link</a>
+
+    Broken Markdown link: [Broken Markdown Link](missing_markdown.md)
+
+    Broken HTML link: <a href="missing_html.md">Broken HTML Link</a>
+
+    External Markdown link: [External Markdown Link](https://example.com)
+
+    External HTML link: <a href="https://example.com">External HTML Link</a>
+
+    Nested HTML link with Markdown: <a href="[Example](nested.md)">Invalid Nested</a>
+        """
+        file_name = "test_combined.md"
+        file_path = self._write_input_file(input_content, file_name)
+        # Run the fix_links function.
+        _, updated_lines, out_warnings = lafimdli.fix_links(file_path)
+        # Generate output for comparison.
+        output = "\n".join(
+            ["# linter warnings", ""]
+            + out_warnings
+            + ["", "# linted file", ""]
+            + updated_lines
+        )
+        # Assert the output matches the expected result.
         self.check_string(output)
 
     def _get_txt_with_incorrect_links(self) -> str:
@@ -130,3 +173,4 @@ height="1.2303444881889765in"}
         # Create the file.
         hio.to_file(file_path, txt)
         return file_path
+
