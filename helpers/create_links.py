@@ -154,6 +154,14 @@ def _find_common_files(src_dir: str, dst_dir: str) -> List[Tuple[str, str]]:
         for file in files:
             src_file = os.path.join(root, file)
             dst_file = os.path.join(dst_dir, os.path.relpath(src_file, src_dir))
+            # Check if the file exists in the destination folder.
+            # Certain files do not need to be copied, so we skip them.
+            if not os.path.exists(dst_file):
+                _LOG.warning(
+                    "Warning: %s is missing in the destination directory.", 
+                    dst_file
+                )
+                continue
             # Compare file contents after copying.
             if filecmp.cmp(src_file, dst_file, shallow=False):
                 _LOG.info(

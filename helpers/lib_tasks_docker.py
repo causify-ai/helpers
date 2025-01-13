@@ -355,12 +355,12 @@ def _docker_login_ecr() -> None:
     #   -e none \
     #   https://*****.dkr.ecr.us-east-1.amazonaws.com
     # TODO(gp): Move this to var in repo_config.py.
+    # TODO(gp): Hack
     profile = "ck"
     region = hs3.AWS_EUROPE_REGION_1
     if major_version == 1:
         cmd = f"eval $(aws ecr get-login --profile {profile} --no-include-email --region {region})"
     elif major_version == 2:
-        # TODO(gp): Hack
         if profile == "ck":
             env_var = f"CSFY_ECR_BASE_PATH"
         else:
@@ -1302,7 +1302,7 @@ def _get_lint_docker_cmd(
     """
     # Get an image to run the linter on.
     ecr_base_path = os.environ["CSFY_ECR_BASE_PATH"]
-    linter_image = f"{ecr_base_path}/dev_tools"
+    linter_image = f"{ecr_base_path}/helpers"
     # TODO(Grisha): do we need a version? i.e., we can pass `version` to `lint`
     # and run Linter on the specific version, e.g., `1.1.5`.
     # Execute command line.

@@ -1,0 +1,22 @@
+# linter warnings
+
+
+# linted file
+
+
+<!--ts-->
+   * [Best practices for writing plotting functions](#best-practices-for-writing-plotting-functions)
+      * [Cosmetic requirements](#cosmetic-requirements)
+
+<!--te-->
+
+<!-- toc -->
+
+- [Best practices for writing plotting functions](#best-practices-for-writing-plotting-functions)
+  * [Cosmetic requirements](#cosmetic-requirements)
+
+<!-- tocstop -->
+
+
+[Data Availability](#data-availability)
+        
