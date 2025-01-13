@@ -66,7 +66,7 @@ Basic usage example:
 
 Will produce the following output:
 
-![Basic usage output](example/output/basic.png)
+![Basic usage output](/import_check/example/output/basic.png)
 
 ## Visualize dependencies at a directory level
 
@@ -80,7 +80,7 @@ Example:
 
 Output:
 
-![Directory dependencies](example/output/directory_deps.png)
+![Directory dependencies](/import_check/example/output/directory_deps.png)
 
 ## Visualize external dependencies
 
@@ -95,7 +95,7 @@ Example:
 
 Output:
 
-![External dependencies](example/output/external_deps.png)
+![External dependencies](/import_check/example/output/external_deps.png)
 
 ## Visualize level X dependencies
 
@@ -110,7 +110,7 @@ Example:
 
 Output:
 
-![Maximum level dependencies](example/output/max_level_deps.png)
+![Maximum level dependencies](/import_check/example/output/max_level_deps.png)
 
 ## Visualize cyclic dependencies
 
@@ -125,7 +125,7 @@ Example:
 
 Output:
 
-![Cyclic dependencies](example/output/cyclic_deps.png)
+![Cyclic dependencies](/import_check/example/output/cyclic_deps.png)
 
 ## Pydeps-dependent limitations
 
