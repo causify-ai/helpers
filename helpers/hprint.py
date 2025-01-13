@@ -380,8 +380,9 @@ def perc(
     only_perc: bool = False,
     invert: bool = False,
     num_digits: int = 2,
+    use_float: bool = False,
     use_thousands_separator: bool = False,
-) -> str:
+) -> Union[str, float]:
     """
     Calculate percentage a / b as a string.
 
@@ -389,26 +390,34 @@ def perc(
 
     :param a: numerator
     :param b: denominator
-    :param only_perc: return only the percentage, without the original numbers
+    :param only_perc: return only the percentage, without the fraction
+        - E.g., "50.00%" vs "10 / 20 = 50.00%"
     :param invert: assume the fraction is (b - a) / b
         This is useful when we want to compute the complement of a count.
+    :param num_digits: number of digits to represent the percentage
+    :param use_float: return the percentage as a float. It requires
+        `only_perc = True`
     :param use_thousands_separator: report the numbers using thousands separator
     :return: string with a/b
     """
     hdbg.dassert_lte(0, a)
     hdbg.dassert_lte(a, b)
+    if invert:
+        a = b - a
     if use_thousands_separator:
         a_str = str("{0:,}".format(a))
         b_str = str("{0:,}".format(b))
     else:
         a_str = str(a)
         b_str = str(b)
-    if invert:
-        a = b - a
     hdbg.dassert_lte(0, num_digits)
     if only_perc:
-        fmt = "%." + str(num_digits) + "f%%"
+        fmt = "%." + str(num_digits) + "f"
         ret = fmt % (float(a) / b * 100.0)
+        if use_float:
+            ret = float(ret)
+        else:
+            ret = +"%"
     else:
         fmt = "%s / %s = %." + str(num_digits) + "f%%"
         ret = fmt % (a_str, b_str, float(a) / b * 100.0)

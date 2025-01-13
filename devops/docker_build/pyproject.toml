@@ -1,19 +1,36 @@
 [tool.poetry]
-name = "amp"
+name = "helpers"
 version = "0.1.0"
 description = ""
-authors = ["GP Saggese <gp@kaizen-tech.io>"]
+authors = ["Dummy Name <dummy@example.com>"]
+package-mode = false
 
 [tool.poetry.dependencies]
+PyGithub = "1.53"
 async_solipsism = ">= 0.3"
+autoflake = "*"
+# The version of `black` needs to be no lower than 22.3.0 to be compatible
+# with other libs we use, see https://github.com/psf/black/issues/2964.
+black = ">= 22.3.0"
 boto3 = "*"
+docformatter = ">= 1.5.1"
+flake8 = "*"
+graphviz = "*"
+# This is needed for `jupyter` extensions.
+importlib-resources = "*"
 invoke = "*"
+# This is needed in `linters/test/test_isort.py`.
+isort = "*"
 joblib = "*"
 jsonpickle = "*"
 jupyter = "*"
 jupytext = "*"
+libcst = "0.3.13"
 matplotlib = "*"
+more_itertools = "^8.5.0"
 moto = "*"
+#mypy = "^0.782"
+mypy = "*"
 networkx = "*"
 numpy = "*"
 pandas = ">= 2.1.1"
@@ -21,20 +38,31 @@ pandas = ">= 2.1.1"
 psutil = "*"
 psycopg2-binary = "*"
 pyarrow = "*"
-python = ">= 3.12"
+pydeps = "^1.9.9"
+pydocstyle = "*"
+pygithub = "^1.39"
+#pygraphviz = "*"
+pylint = "*"
 pytest = "*"
 pytest-cov = "*"
 pytest-instafail = "*"
 pytest-rerunfailures = "*"
 pytest-timeout = "*"
 pytest-xdist = "*"
+python = ">= 3.12,<4.0"
+python-dateutil = "*"
 python-dotenv = "*"
+pyzenhub = "0.2.1"
 requests = "*"
 s3fs = "*"
-seaborn = "*"
 scikit-learn = "*"
+seaborn = "*"
+setuptools = "*"
 statsmodels = "*"
+# This is needed for `pandas.read_sql()`.
+SQLAlchemy = "*"
 tqdm = "*"
+#typed_ast = ">= 1.5.5"
 
 [tool.poetry.dev-dependencies]
 
