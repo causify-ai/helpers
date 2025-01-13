@@ -284,8 +284,8 @@ to be located directly inside a non-module directory (like
 
 ## Run the tool on our codebase -- pre-docker procedure
 
-- Activate `dev_tools` environment:
-  - From the `dev_tools` root:
+- Activate `helpers` environment:
+  - From the `helpers` root:
     ```bash
     poetry shell; export PYTHONPATH=$PYTHONPATH:$(pwd)
     ```
