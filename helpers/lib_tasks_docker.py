@@ -187,11 +187,6 @@ def docker_kill(  # type: ignore
 # *****.dkr.ecr.us-east-2.amazonaws.com/im          07aea615a2aa9290f7362e99e1cc908876700821   d0889bf972bf   6 minutes ago   684MB
 # *****.dkr.ecr.us-east-2.amazonaws.com/im          rc                                         d0889bf972bf   6 minutes ago   684MB
 # python                                            3.7-slim-buster                            e7d86653f62f   14 hours ago    113MB
-# *****.dkr.ecr.us-east-1.amazonaws.com/dev_tools   ce789e4718175fcdf6e4857581fef1c2a5ee81f3   2f64ade2c048   14 hours ago    2.02GB
-# *****.dkr.ecr.us-east-1.amazonaws.com/dev_tools   local                                      2f64ade2c048   14 hours ago    2.02GB
-# *****.dkr.ecr.us-east-1.amazonaws.com/dev_tools   d401a2a0bef90b9f047c65f8adb53b28ba05d536   1b11bf234c7f   15 hours ago    2.02GB
-# *****.dkr.ecr.us-east-1.amazonaws.com/dev_tools   52ccd63edbc90020f450c074b7c7088a1806c5ac   90b70a55c367   15 hours ago    1.95GB
-# *****.dkr.ecr.us-east-1.amazonaws.com/dev_tools   2995608a7d91157fc1a820869a6d18f018c3c598   0cb3858e85c6   15 hours ago    2.01GB
 # *****.dkr.ecr.us-east-1.amazonaws.com/amp         415376d58001e804e840bf3907293736ad62b232   e6ea837ab97f   18 hours ago    1.65GB
 # *****.dkr.ecr.us-east-1.amazonaws.com/amp         dev                                        e6ea837ab97f   18 hours ago    1.65GB
 # *****.dkr.ecr.us-east-1.amazonaws.com/amp         local                                      e6ea837ab97f   18 hours ago    1.65GB
@@ -253,12 +248,12 @@ def docker_pull(ctx, stage="dev", version=None, skip_pull=False):  # type: ignor
 
 
 @task
-def docker_pull_dev_tools(ctx, stage="prod", version=None):  # type: ignore
+def docker_pull_helpers(ctx, stage="prod", version=None):  # type: ignore
     """
-    Pull latest prod image of `dev_tools` from the registry.
+    Pull latest prod image of `helpers` from the registry.
     """
     hlitauti.report_task()
-    base_image = hlitauti.get_default_param("CSFY_ECR_BASE_PATH") + "/dev_tools"
+    base_image = hlitauti.get_default_param("CSFY_ECR_BASE_PATH") + "/helpers"
     _docker_pull(ctx, base_image, stage, version)
 
 
@@ -462,7 +457,7 @@ def _get_linter_service(stage: str) -> DockerComposeServiceSpec:
         else:
             linter_service_spec["volumes"].append("../../:/app")
     if stage == "prod":
-        # Use the `repo_config.py` inside the dev_tools container instead of
+        # Use the `repo_config.py` inside the helpers container instead of
         # the one in the calling repo.
         linter_service_spec["environment"].append(
             "CSFY_REPO_CONFIG_PATH=/app/repo_config.py"
@@ -768,7 +763,7 @@ def _get_docker_compose_files(
     # Write Docker compose file.
     file_name = get_base_docker_compose_path()
     if service_name == "linter":
-        # Since we are running the prod `dev_tools` container we need to use the
+        # Since we are running the prod `helpers` container we need to use the
         # settings from the `repo_config` from that container, and not the settings
         # launch the container corresponding to this repo.
         enable_privileged_mode = False

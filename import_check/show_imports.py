@@ -200,17 +200,16 @@ class _NodeInfo:
             if not self.path.startswith(reference_path):
                 is_external = True
                 # Temporary fix in order not to mark as external those modules that
-                # have the same names as some modules from `dev_tools`, which have been
+                # have the same names as some modules from `helpers`, which have been
                 # added to PYTHONPATH.
-                dev_tools_modules = [
-                    "documentation",
+                helpers_modules = [
                     "github_labels",
                     "helpers",
                     "import_check",
                     "linters",
                 ]
-                for dev_tools_module in dev_tools_modules:
-                    if dev_tools_module in self.path:
+                for helpers_module in helpers_modules:
+                    if helpers_module in self.path:
                         is_external = False
         self.is_external = is_external
 

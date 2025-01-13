@@ -365,11 +365,6 @@ def is_amp_present(*, dir_name: str = ".") -> bool:
 # rather than their name.
 
 
-def is_dev_tools() -> bool:
-    """
-    Return whether we are inside `dev_tools` repo.
-    """
-    return _is_repo("dev_tools")
 
 
 def is_cmamp() -> bool:
@@ -650,7 +645,6 @@ def _get_repo_short_to_full_name(include_host_name: bool) -> Dict[str, str]:
     # From short name to long name.
     repo_map = {
         "amp": "alphamatic/amp",
-        "dev_tools": "causify-ai/dev_tools",
         "helpers": "causify-ai/helpers",
         "tutorials": "causify-ai/tutorials",
     }
@@ -760,8 +754,6 @@ def get_task_prefix_from_repo_short_name(short_name: str) -> str:
     """
     if short_name == "amp":
         prefix = "AmpTask"
-    elif short_name == "dev_tools":
-        prefix = "DevToolsTask"
     else:
         # We assume that we can build the prefix from the name (e.g., "lm" ->
         # "LmTask").
@@ -1265,7 +1257,7 @@ def git_describe(
 
     If there is no tag, this will return short commit hash.
 
-    :param match: e.g., `dev_tools-*`, only consider tags matching the
+    :param match: e.g., `cmamp-*`, only consider tags matching the
         given glob pattern
     """
     _LOG.debug("# Looking for version ...")

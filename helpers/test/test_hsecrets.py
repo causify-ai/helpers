@@ -3,12 +3,12 @@ _HAS_MOTO = True
 try:
     import moto
 except ImportError:
-    # `moto` is not installed in `dev_tools`, so we skip it (see "DevTools376:
+    # `moto` may not be installed in a non-cmamp repo, so we skip it (see "DevTools376:
     # Break 2022-02-22").
     import helpers.hgit as hgit
 
     assert not hgit.is_cmamp(), (
-        "`cmamp` should have moto, while other repos (e.g., `amp` or `dev_tools`) "
+        "`cmamp` should have moto, while other repos "
         "are allowed to not have it)"
     )
     _HAS_MOTO = False

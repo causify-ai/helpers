@@ -25,7 +25,7 @@ from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=u
     docker_login,
     docker_ps,
     docker_pull,
-    docker_pull_dev_tools,
+    docker_pull_helpers,
     docker_push_dev_image,
     docker_push_prod_candidate_image,
     docker_push_prod_image,
@@ -110,7 +110,7 @@ try:
     )
 except ImportError:
     pass
-# Collect imports that fails due to the `dev_tools` image is not being updated. See CmTask4892 for details.
+# Collect imports that fails due to the `helpers` image is not being updated. See CmTask4892 for details.
 try:
     from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=unused-import
         copy_ecs_task_definition_image_url,
