@@ -162,7 +162,7 @@ def lint_detect_cycles(  # type: ignore
     if debug_tool:
         docker_cmd_opts.append("-v DEBUG")
     docker_cmd_ = (
-        "/app/import_check/detect_import_cycles.py "
+        "$(find -wholename '*import_check/detect_import_cycles.py') "
         + hlitauti._to_single_line_cmd(docker_cmd_opts)
     )
     # Execute command line.
