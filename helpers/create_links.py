@@ -1,18 +1,25 @@
 """
 Usage Example:
 
-Step 1: Replace files in dst_dir with links from src_dir:
+- Using absolute links
 
-    > create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --replace_links
+    Step 1: Replace files in dst_dir with links from src_dir:
 
-Step 2: Stage linked files for modification:
+        > create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --replace_links
 
-    > create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --stage_links
+    Step 2: Stage linked files for modification:
 
-Step 3: After modification, restore the symbolic links:
+        > create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --stage_links
 
-    > create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --replace_links
+    Step 3: After modification, restore the symbolic links:
 
+        > create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --replace_links
+
+- Using relative links
+
+    > create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --replace_links --use_relative_paths
+
+    - Other steps remain same.
 Import as:
 
 import helpers.create_links as hcrelink
@@ -53,7 +60,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     if args.replace_links:
         common_files = _find_common_files(args.src_dir, args.dst_dir)
-        _replace_with_links(common_files)
+        _replace_with_links(common_files, use_relative_paths=args.use_relative_paths)
         _LOG.info("Replaced %d files with symbolic links.", len(common_files))
     elif args.stage_links:
         symlinks = _find_symlinks(args.dst_dir)
@@ -85,6 +92,11 @@ def _parse() -> argparse.ArgumentParser:
         "--stage_links",
         action="store_true",
         help="Replace symbolic links with writable copies.",
+    )
+    parser.add_argument(
+        "--use_relative_paths",
+        action="store_true",
+        help="Use relative paths for symbolic links instead of absolute paths.",
     )
     hparser.add_verbosity_arg(parser)
     return parser
@@ -142,6 +154,14 @@ def _find_common_files(src_dir: str, dst_dir: str) -> List[Tuple[str, str]]:
         for file in files:
             src_file = os.path.join(root, file)
             dst_file = os.path.join(dst_dir, os.path.relpath(src_file, src_dir))
+            # Check if the file exists in the destination folder.
+            # Certain files do not need to be copied, so we skip them.
+            if not os.path.exists(dst_file):
+                _LOG.warning(
+                    "Warning: %s is missing in the destination directory.", 
+                    dst_file
+                )
+                continue
             # Compare file contents after copying.
             if filecmp.cmp(src_file, dst_file, shallow=False):
                 _LOG.info(
@@ -160,45 +180,43 @@ def _find_common_files(src_dir: str, dst_dir: str) -> List[Tuple[str, str]]:
 
 
 def _replace_with_links(
-    common_files: List[Tuple[str, str]], abort_on_first_error: bool = False
+    common_files: List[Tuple[str, str]], use_relative_paths: bool, abort_on_first_error: bool = False
 ) -> None:
     """
     Replace matching files in the destination directory with symbolic links.
 
-    For each pair of matching files, the file in `dst_dir` is replaced by a
-    symbolic link pointing to the corresponding file in `src_dir`. The symbolic
-    links are set to read-only to prevent accidental modifications
-
-    :param common_files: matching file paths from `src_dir` and `dst_dir
+    :param common_files: Matching file paths from `src_dir` and `dst_dir`
+    :param use_relative_paths: If True, create relative symlinks; if False, use absolute paths.
     :param abort_on_first_error: If True, abort on the first error; if False, continue processing
     """
     for src_file, dst_file in common_files:
-        # Ensure src_file exists and is a file before creating a symlink.
         try:
             hdbg.dassert_file_exists(src_file)
         except FileNotFoundError as e:
             _LOG.error("Error: %s", str(e))
             if abort_on_first_error:
-                _LOG.error(
-                    "Aborting because of error: Source file %s doesn't exist or is not a file.",
-                    src_file,
-                )
+                _LOG.error("Aborting: Source file %s doesn't exist.", src_file)
             continue
         if os.path.exists(dst_file):
             os.remove(dst_file)
-        # Create a symbolic link from the source to the destination.
         try:
-            absolute_src_file = os.path.abspath(src_file)
-            os.symlink(absolute_src_file, dst_file)
-            os.chmod(dst_file, 0o444)
-            _LOG.info("Created symlink: %s -> %s", dst_file, absolute_src_file)
+            if use_relative_paths:
+                link_target = os.path.relpath(src_file, os.path.dirname(dst_file))
+            else:
+                link_target = os.path.abspath(src_file)
+            os.symlink(link_target, dst_file)
+            # Make the file read-only in order to prevent accidental 
+            # modifications.
+            # Set file permissions to `0o555` (-r-xr-xr-x): 
+            # - Owner (read, execute)
+            # - Group (read, execute) 
+            # - Others (read, execute)
+            os.chmod(dst_file, 0o555)
+            _LOG.info("Created symlink: %s -> %s", dst_file, link_target)
         except Exception as e:
             _LOG.error("Error creating symlink for %s: %s", dst_file, e)
             if abort_on_first_error:
-                _LOG.critical(
-                    "Aborting because of error: Failed to create symlink for %s.",
-                    dst_file,
-                )
+                _LOG.critical("Aborting: Failed to create symlink for %s.", dst_file)
             continue
 
 
@@ -239,8 +257,12 @@ def _stage_links(symlinks: List[str]) -> None:
             os.remove(link)
             # Copy file to the symlink location.
             shutil.copy2(target_file, link)
-            # Make the file writable.
-            os.chmod(link, 0o644)
+            # Make the file writable to allow for modifications.
+            # Set file permissions to `0o755` (-rwxr-xr-x): 
+            # - Owner (read, write, execute)
+            # - Group (read, execute)
+            # - Others (read, execute)
+            os.chmod(link, 0o755)
             _LOG.info("Staged: %s -> %s", link, target_file)
         except Exception as e:
             _LOG.error("Error staging link %s: %s", link, e)
