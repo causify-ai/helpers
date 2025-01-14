@@ -332,3 +332,35 @@ set_up_docker_aws() {
     fi;
     aws configure --profile am list || true
 }
+
+# #############################################################################
+# Symlink utils.
+# #############################################################################
+
+set_symlink_permissions() {
+    # Set the permissions of all symlinks in the given directory to read and execute only to prevent accidental modifications.
+    # To modify any files, they need to be first be staged for modification first.
+    # See `docs/work_tools/dev_system/all.replace_common_files_with_script_links.md#step-2-stage-files-for-modification` in //helpers.
+    echo "# set_symlink_permissions()"
+    local directory="$1"
+
+    # Check if the given directory is valid.
+    if [ ! -d "$directory" ]; then
+        echo -e "${ERROR}: '$directory' is not a valid directory."
+        return 1
+    fi
+
+    # Find all symlinks in the directory and process them.
+    find "$directory" -type l | while read -r symlink; do
+        # Check if the target of the symlink exists.
+        if [ -e "$symlink" ]; then
+            # Modify the permissions of the symlink to read-only and execute-only.
+            chmod 555 "$symlink"
+            echo -e "${INFO}:Modified permissions for: '$symlink'"
+        else
+            echo -e "${WARNING}: Skipping broken symlink: '$symlink'"
+        fi
+    done
+
+    return 0
+}
