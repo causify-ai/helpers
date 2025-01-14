@@ -1,0 +1,53 @@
+{
+    "__main__": {
+        "bacon": 0,
+        "imported_by": null,
+        "imports": [
+            "input",
+            "input.file1",
+            "input.file2"
+        ],
+        "path": null,
+        "truncated": false,
+        "is_external": false,
+        "is_file": false
+    },
+    "input": {
+        "bacon": 1,
+        "imported_by": [
+            "__main__",
+            "input.file2"
+        ],
+        "imports": null,
+        "path": "/import_check/test/outcomes/Test_show_imports.test1/input/__init__.py",
+        "truncated": false,
+        "is_external": false,
+        "is_file": false
+    },
+    "input.file1": {
+        "bacon": 1,
+        "imported_by": [
+            "__main__",
+            "input.file2"
+        ],
+        "imports": null,
+        "path": "/import_check/test/outcomes/Test_show_imports.test1/input/file1.py",
+        "truncated": false,
+        "is_external": false,
+        "is_file": true
+    },
+    "input.file2": {
+        "bacon": 1,
+        "imported_by": [
+            "__main__"
+        ],
+        "imports": [
+            "input",
+            "input.file1"
+        ],
+        "path": "/import_check/test/outcomes/Test_show_imports.test1/input/file2.py",
+        "truncated": false,
+        "is_external": false,
+        "is_file": true
+    }
+}
