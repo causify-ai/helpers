@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 r"""
-Wrapper for mypy
+Wrapper for mypy.
 
 > amp_mypy.py sample_file1.py sample_file2.py
 
@@ -52,7 +52,13 @@ def _ignore_misc_error(line: str, file_name: str) -> None:
     hio.to_file(file_name, content)
 
 
+# #############################################################################
+# _Mypy
+# #############################################################################
+
+
 class _Mypy(liaction.Action):
+
     def __init__(self) -> None:
         executable = "mypy"
         super().__init__(executable)
@@ -69,7 +75,8 @@ class _Mypy(liaction.Action):
 
         Aborts the script if the file is not found.
         """
-        path: str = "mypy.ini"
+        cmd = "find -name 'mypy.ini'"
+        _, path = hsystem.system_to_string(cmd)
         hdbg.dassert_path_exists(path)
         return path
 
@@ -107,7 +114,10 @@ class _Mypy(liaction.Action):
             if "Slice index must be an integer" in line:
                 _ignore_misc_error(line, file_name)
                 continue
-            if i > 0 and "SyntaxWarning: invalid escape sequence" in output[i-1]:
+            if (
+                i > 0
+                and "SyntaxWarning: invalid escape sequence" in output[i - 1]
+            ):
                 continue
             output_tmp.append(line)
         output = output_tmp
