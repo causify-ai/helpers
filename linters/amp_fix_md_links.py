@@ -132,6 +132,7 @@ def _check_file_path_format(
         - warnings about the issues with the link to the file
     """
     warnings: List[str] = []
+    file_path = re.escape(file_path)
     if not re.search(r'(?<!<img src=")(?<!\[)(?<!\()' + file_path, line):
         # Links and figure pointers are processed separately.
         return line, warnings

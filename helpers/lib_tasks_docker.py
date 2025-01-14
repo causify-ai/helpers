@@ -1305,7 +1305,6 @@ def _get_lint_docker_cmd(
         version,
         docker_cmd_,
         use_entrypoint=use_entrypoint,
-        service_name="linter",
     )
     return cmd
 
