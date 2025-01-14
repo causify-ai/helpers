@@ -11,8 +11,10 @@ import linters.amp_lint_md as lamlimd
 import argparse
 import logging
 import os
-from typing import List
+import re
+from typing import List, Tuple
 
+import helpers.hio as hio
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
@@ -39,6 +41,72 @@ def _check_readme_is_capitalized(file_name: str) -> str:
 
 # #############################################################################
 
+def _fix_md_headers(lines: List[str], file_name: str) -> Tuple[List[str], List[str]]:
+    """
+    Fix header levels in the file content 
+        - Ensure headers start at level 1 and do not skip levels.
+
+    :param file_name: the name of the markdown file being processed
+    :return:
+        - a list of fixed lines 
+        - a list of warnings
+    """
+    fixed_lines = []
+    warnings = []
+    header_pattern = re.compile(r"^(#+)\s+.*")
+    last_header_level = 0
+    for idx, line in enumerate(lines):
+        fixed_line = line
+        match = header_pattern.match(line)
+        if match:
+            current_level = len(match.group(1))
+            if current_level > last_header_level + 1:
+                original_level = "#" * current_level
+                adjusted_level = "#" * (last_header_level + 1)
+                fixed_line = fixed_line.replace(original_level, adjusted_level, 1)
+                warnings.append(
+                    f"{file_name}:{idx}: Header level adjusted from {original_level} to {adjusted_level}."
+                )
+                current_level = last_header_level + 1
+            last_header_level = current_level
+        fixed_lines.append(fixed_line)
+    return fixed_lines, warnings
+
+def _verify_toc_and_warnings_from_lines(lines: List[str], file_name: str) -> List[str]:
+    """
+    Verify that there is no content before the Table of Contents (TOC) in the lines of a file.
+
+    :param lines: The lines of the markdown file.
+    :param file_name: The name of the markdown file being processed.
+    :return: A list of warnings.
+    """
+    warnings = []
+    toc_found = False
+    for idx, line in enumerate(lines, start=1):
+        if not toc_found and line.strip().lower().startswith("table of contents"):
+            toc_found = True
+        if not toc_found and not line.strip().startswith("#") and line.strip():
+            warnings.append(f"{file_name}:{idx}: Content found before Table of Contents (TOC).")
+    return warnings
+
+def process_markdown_file(file_name: str) -> Tuple[List[str], List[str], List[str]]:
+    """
+    Process a markdown file to fix header levels and verify the Table of Contents (TOC).
+
+    :param file_name: The name of the markdown file being processed.
+    :return: A tuple containing original lines, fixed lines, and a combined list of warnings.
+    """
+    # Read file content.
+    lines = hio.from_file(file_name).splitlines("\n")
+    warnings: List[str] = []
+    # Fix headers.
+    fixed_lines, header_warnings = _fix_md_headers(lines, file_name)
+    warnings.append(header_warnings)
+    # Verify TOC.
+    toc_warnings = _verify_toc_and_warnings_from_lines(lines, file_name)
+    warnings.append(toc_warnings)
+    out_warnings = [w for w in warnings if len(w) > 0]
+    return lines, fixed_lines, out_warnings
 
 # #############################################################################
 # _LintMarkdown
@@ -62,6 +130,8 @@ class _LintMarkdown(liaction.Action):
         if ext != ".md":
             _LOG.debug("Skipping file_name='%s' because ext='%s'", file_name, ext)
             return output
+        lines, fixed_lines, warnings = process_markdown_file(file_name)
+        liutils.write_file_back(file_name, lines, fixed_lines)
         # Run lint_notes.py.
         cmd = []
         cmd.append(self._executable)
@@ -73,6 +143,8 @@ class _LintMarkdown(liaction.Action):
         msg = _check_readme_is_capitalized(file_name)
         if msg:
             output.append(msg)
+        # Include the warnings.
+        output.extend(warnings)
         # Remove cruft.
         output = [
             line
