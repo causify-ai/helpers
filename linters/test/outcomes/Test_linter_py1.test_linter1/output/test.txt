@@ -1,0 +1,174 @@
+# linter log
+[0mHH:MM:SS - [36mINFO [0m hdbg.py init_logger:{LINE_NUM}                               > cmd='linters/base.py --files $GIT_ROOT/linters/test/outcomes/Test_linter_py1.test_linter1/tmp.scratch/input.py'
+HH:MM:SS - [36mINFO [0m base.py _run_linter:{LINE_NUM}            Using num_threads='serial' since there is only one file to lint
+HH:MM:SS - [36mINFO [0m base.py _lint:{LINE_NUM}
+Linting file: '$GIT_ROOT/linters/test/outcomes/Test_linter_py1.test_linter1/tmp.scratch/input.py'
+////////////////////////////////////////////////////////////////////////////////
+linter_warnings.txt
+////////////////////////////////////////////////////////////////////////////////
+file_paths=1 ['$GIT_ROOT/linters/test/outcomes/Test_linter_py1.test_linter1/tmp.scratch/input.py']
+actions=21 ['add_python_init_files', 'add_toc_to_notebook', 'fix_md_links', 'lint_md', 'autoflake', 'fix_whitespaces', 'doc_formatter', 'isort', 'class_method_order', 'normalize_imports', 'format_separating_line', 'add_class_frames', 'black', 'process_jupytext', 'check_filename', 'check_merge_conflict', 'check_import', 'warn_incorrectly_formatted_todo', 'flake8', 'pylint', 'mypy']
+////////////////////////////////////////////////////////////////////////////////
+$GIT_ROOT/linters/test/outcomes/Test_linter_py1.test_linter1/tmp.scratch/input.py: 'helpers.hcache' is imported multiple times [normalize_imports]
+$GIT_ROOT/linters/test/outcomes/Test_linter_py1.test_linter1/tmp.scratch/input.py:{LINE_NUM}: SyntaxWarning: invalid escape sequence '\s'm = re.search("\s", txt) [doc_formatter]
+$GIT_ROOT/linters/test/outcomes/Test_linter_py1.test_linter1/tmp.scratch/input.py:{LINE_NUM}: SyntaxWarning: invalid escape sequence '\s' [mypy]
+$GIT_ROOT/linters/test/outcomes/Test_linter_py1.test_linter1/tmp.scratch/input.py:144:{LINE_NUM}: W605 invalid escape sequence '\s' [flake8]
+$GIT_ROOT/linters/test/outcomes/Test_linter_py1.test_linter1/tmp.scratch/input.py:144:{LINE_NUM}: F821 undefined name 're' [flake8]
+$GIT_ROOT/linters/test/outcomes/Test_linter_py1.test_linter1/tmp.scratch/input.py:{LINE_NUM}: in public class `MyClass`:D204: 1 blank line required after class docstring (found 0) [doc_formatter]
+linters/test/outcomes/Test_linter_py1.test_linter1/tmp.scratch/input.py:{LINE_NUM}: [E0602(undefined-variable), ] Undefined variable 're' [pylint]
+linters/test/outcomes/Test_linter_py1.test_linter1/tmp.scratch/input.py:{LINE_NUM}: [W1401(anomalous-backslash-in-string), ] Anomalous backslash in string: '\s'. String constant might be missing an r prefix. [pylint]
+linters/test/outcomes/Test_linter_py1.test_linter1/tmp.scratch/input.py:{LINE_NUM}: error: Name "re" is not defined  [name-defined] [mypy]
+linters/test/outcomes/Test_linter_py1.test_linter1/tmp.scratch/input.py:{LINE_NUM}: error: Explicit "Any" is not allowed  [misc] [mypy]
+linters/test/outcomes/Test_linter_py1.test_linter1/tmp.scratch/input.py:{LINE_NUM}: [W0404(reimported), func] Reimport 'helpers.hcache' (imported line 7) [pylint]
+linters/test/outcomes/Test_linter_py1.test_linter1/tmp.scratch/input.py:{LINE_NUM}: [W0621(redefined-outer-name), func] Redefining name 'hcache' from outer scope (line 7) [pylint]
+linters/test/outcomes/Test_linter_py1.test_linter1/tmp.scratch/input.py:{LINE_NUM}: [C0209(consider-using-f-string), func] Formatting a regular string which could be an f-string [pylint]
+
+////////////////////////////////////////////////////////////////////////////////
+
+# linter file
+from typing import Any, List
+
+import nltk
+import pandas as pd
+import tqdm.autonotebook as tqdm
+
+import helpers.hcache as hcache
+import helpers.hdbg as hdbg
+import helpers.hio as hio
+
+# hcac._get_cache_types()
+hcache._get_cache_types()
+x = "hcac._get_cache_types()"
+
+
+def func(a: str, lst: List[str]) -> Any:
+    """
+    First comment line.
+    """
+    import helpers.hcache as hcache
+
+    hcache._get_cache_types()
+    for i in tqdm.tqdm(lst):
+        a += "string {}".format(i)
+    return a
+
+
+def func2(df: pd.DataFrame, a: str) -> pd.DataFrame:
+    """
+    Generate "random returns". Use lag + noise as predictor.
+
+    ```
+        git@github.com:alphamatic/amp
+        https://github.com/alphamatic/amp
+    ```
+
+    The stage names refer to Node objects, which are not json serializable.
+    We don't use io.dassert_is_valid_file_name().
+
+    E.g.,
+    ```
+    PostgreSQL 11.5 on x86_64-pc-linux-gnu
+        compiled by gcc (GCC) 4.8.3 20140911 (Red Hat 4.8.3-9), 64-bit
+    ```
+    """
+    hio.dassert_is_valid_file_name("test.py")
+    b = """
+    Before separating line.
+    ##########################################################################
+    Comments inside string.
+    ##########################################################################
+    """
+    result_df = df.loc[a + b :]  # type: ignore[misc]
+    return result_df
+
+
+def func3(a: str) -> str:
+    """
+    Generate "random returns".
+
+    Use lag + noise as predictor.
+    """
+    if a is not None:
+        assert isinstance(a, str), (
+            f"You passed '{a}' or type '{type(a)}'" "instead of str"
+        )
+    ## [C0330(bad-continuation), ] Wrong hanging indentation before
+    ##   block (add 4 spaces).
+    return a
+
+
+# #############################################################################
+# MyClass
+# #############################################################################
+
+
+class MyClass:
+    """
+    Contains all of the logic to construct the standard bars from chapter 2.
+    This class shouldn't be used directly. We have added functions to the
+    package such as get_dollar_bars which will create an instance of this class
+    and then construct the standard bars, to return to the user.
+
+    This is because we wanted to simplify the logic as much as possible,
+    for the end user.
+    """
+
+    @staticmethod
+    def _private_static_method(a: str) -> str:
+        """
+        For reference, let.
+
+        - N = 2
+        - M = 3
+        """
+        return a
+
+    def _private_regular_method(self, a: str) -> str:
+        """
+        Read csv file(s) or pd.DataFrame in batches and then constructs the
+        financial data structure in the form of a DataFrame.
+
+        The csv file or
+        DataFrame must have only 3 columns: date_time, price, & volume.
+        """
+        # Returning
+        return a
+
+
+# #############################################################################
+# TestReplaceShortImportInCode
+# #############################################################################
+
+
+class TestReplaceShortImportInCode:
+
+    def test1(self) -> None:
+        """
+        No matches.
+        """
+        code = "import test as te"
+        expected = code
+        self._helper(code, expected)
+
+    def _helper(self, actual: str, expected: str) -> None:
+        """
+        ......
+        """
+        assert expected == actual
+
+
+# #############################################################################
+# TestAnother
+# #############################################################################
+
+
+# Comment before initializing.
+class TestAnother:
+    pass
+
+
+if __name__ == "main":
+    txt = "hello"
+    m = re.search("\s", txt)
+    n = nltk.word_tokenize(txt)
+    hdbg.dassert_path_exists("filename.txt")

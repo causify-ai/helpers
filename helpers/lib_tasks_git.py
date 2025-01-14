@@ -57,20 +57,23 @@ def git_fetch_master(ctx):  # type: ignore
 
 
 @task
-def git_merge_master(ctx, ff_only=False, abort_if_not_clean=True):  # type: ignore
+def git_merge_master(ctx, abort_if_not_ff=True, abort_if_not_clean=True, skip_fetch=False):  # type: ignore
     """
     Merge `origin/master` into the current branch.
 
-    :param ff_only: abort if fast-forward is not possible
+    :param abort_if_not_ff: abort if fast-forward is not possible
+    :param abort_if_not_clean: abort if the client is not clean
+    :param skip_fetch: skip fetching master
     """
     hlitauti.report_task()
     # Check that the Git client is clean.
     hgit.is_client_clean(dir_name=".", abort_if_not_clean=abort_if_not_clean)
-    # Pull master.
-    git_fetch_master(ctx)
+    # Fetch master.
+    if not skip_fetch:
+        git_fetch_master(ctx)
     # Merge master.
     cmd = "git merge master"
-    if ff_only:
+    if not abort_if_not_ff:
         cmd += " --ff-only"
     hlitauti.run(ctx, cmd)
 
