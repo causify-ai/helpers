@@ -119,7 +119,7 @@
   setenv.sh
   ```
 
-- Customize `setenv.py`
+- Customize `setenv.sh`
   - `DIR_TAG`="cmamp_infra"
   - `IS_SUPER_REPO` = 1 (since this runnable directory sits under a super-repo)
     - TODO(heanh): Rename `IS_SUPER_REPO` var (See #135).
