@@ -1,3 +1,7 @@
+# helpers-1.1.0
+- 2025-01-09
+- Move Linter to helpers
+
 # helpers-1.0.0
 - 2024-08-22
 - First release

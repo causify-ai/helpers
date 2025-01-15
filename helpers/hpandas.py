@@ -1888,7 +1888,7 @@ def heatmap_df(df: pd.DataFrame, *, axis: Any = None) -> pd.DataFrame:
     :param axis: along which axis to compute the heatmap
         - 0 colorize along rows
         - 1 colorize along columns
-        - None colorize
+        - None: colorize everything
     """
     # Keep it here to avoid long start up times.
     import seaborn as sns
@@ -1905,10 +1905,10 @@ def compare_nans_in_dataframes(
     Compare equality of DataFrames in terms of NaNs.
 
     For example:
-        - `5 vs np.nan` is a mismatch
-        - `np.nan vs 5` is a mismatch
-        - `np.nan vs np.nan` is a match
-        - `np.nan vs np.inf` is a mismatch
+    - `5 vs np.nan` is a mismatch
+    - `np.nan vs 5` is a mismatch
+    - `np.nan vs np.nan` is a match
+    - `np.nan vs np.inf` is a mismatch
 
     :param df1: dataframe to compare
     :param df2: dataframe to compare with
@@ -2486,9 +2486,12 @@ def filter_df(df: pd.DataFrame, col_name: str, value: Any, *,
               invert: bool =False, check_value: bool =True,
               print_info: bool =True) -> pd.DataFrame:
     hdbg.dassert_in(col_name, df.columns)
-    if check_value:
-        hdbg.dassert_in(value, df[col_name].unique())
-    mask = df[col_name] == value
+    if isinstance(value, list):
+        mask = df[col_name].isin(value)
+    else:
+        if check_value:
+            hdbg.dassert_in(value, df[col_name].unique())
+        mask = df[col_name] == value
     if invert:
         mask = ~mask
     if print_info:

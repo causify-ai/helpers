@@ -1,0 +1,26 @@
+# linter log
+[0mHH:MM:SS - [36mINFO [0m hdbg.py init_logger:{LINE_NUM}                               > cmd='linters/base.py --files $GIT_ROOT/linters/test/outcomes/Test_linter_py1.test_DevToolsTask408/tmp.scratch/input.py'
+HH:MM:SS - [36mINFO [0m base.py _run_linter:{LINE_NUM}            Using num_threads='serial' since there is only one file to lint
+HH:MM:SS - [36mINFO [0m base.py _lint:{LINE_NUM}
+Linting file: '$GIT_ROOT/linters/test/outcomes/Test_linter_py1.test_DevToolsTask408/tmp.scratch/input.py'
+////////////////////////////////////////////////////////////////////////////////
+linter_warnings.txt
+////////////////////////////////////////////////////////////////////////////////
+file_paths=1 ['$GIT_ROOT/linters/test/outcomes/Test_linter_py1.test_DevToolsTask408/tmp.scratch/input.py']
+actions=21 ['add_python_init_files', 'add_toc_to_notebook', 'fix_md_links', 'lint_md', 'autoflake', 'fix_whitespaces', 'doc_formatter', 'isort', 'class_method_order', 'normalize_imports', 'format_separating_line', 'add_class_frames', 'black', 'process_jupytext', 'check_filename', 'check_merge_conflict', 'check_import', 'warn_incorrectly_formatted_todo', 'flake8', 'pylint', 'mypy']
+////////////////////////////////////////////////////////////////////////////////
+linters/test/outcomes/Test_linter_py1.test_DevToolsTask408/tmp.scratch/input.py:{LINE_NUM}: [C0209(consider-using-f-string), ] Formatting a regular string which could be an f-string [pylint]
+
+////////////////////////////////////////////////////////////////////////////////
+
+# linter file
+import logging
+
+import helpers.hdbg as hdbg
+
+_LOG = logging.getLogger(__name__)
+
+s = "hello"
+a = "Checking {}".format(s)
+_LOG.debug("Checking '%s'.", s)
+hdbg.dassert(s.startswith("h"), "Checking '%s'.", s)
