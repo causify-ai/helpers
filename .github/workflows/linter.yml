@@ -79,17 +79,9 @@ jobs:
         # To run the linter, fetch the master branch for comparison with the
         # current branch.
         run: |
-          set -e
-          set -o pipefail
           invoke git_fetch_master
-          EXIT_CODE=$?
-          echo "Exit code: $EXIT_CODE"
           invoke lint --branch
-          EXIT_CODE=$?
-          echo "Exit code: $EXIT_CODE"
           invoke lint_check_if_it_was_run
-          EXIT_CODE=$?
-          echo "Exit code for docker_cmd: $EXIT_CODE"
 
       - name: Post status if was triggered manually
         if: ${{ always() && github.event_name == 'workflow_dispatch' }}
