@@ -9,7 +9,8 @@
     + [2) Copy and customize files in the top dir](#2-copy-and-customize-files-in-the-top-dir)
     + [3) Copy and customize files in `devops`](#3-copy-and-customize-files-in-devops)
     + [4) Copy and customize files in thin_client](#4-copy-and-customize-files-in-thin_client)
-    + [5) Build a container for a runnable dir](#5-build-a-container-for-a-runnable-dir)
+    + [5) Replace files with symbolic links](#5-replace-files-with-symbolic-links)
+    + [6) Build a container for a runnable dir](#6-build-a-container-for-a-runnable-dir)
     + [6) Test the code](#6-test-the-code)
       - [Release the Docker image](#release-the-docker-image)
 
@@ -132,7 +133,21 @@
     ```
     - TODO(heanh): Automatically infer them.
 
-### 5) Build a container for a runnable dir
+### 5) Replace files with symbolic links
+
+- Refer to
+  [Managing common files](/docs/work_tools/dev_system/all.runnable_repo.reference.md#managing-common-files)
+  for explanation
+- Refer to
+  [Managing symbolic links between directories](/docs/work_tools/dev_system/all.replace_common_files_with_script_links.md)
+  for how to use the commands
+
+```bash
+# runnable dir is "ck.infra" in this case.
+python3 ./helpers_root/helpers/create_links.py --src_dir ./helpers_root --dst_dir ./ck.infra --replace_links --use_relative_paths
+```
+
+### 6) Build a container for a runnable dir
 
 - Run the single-arch flow to test the flow
 
@@ -179,28 +194,3 @@
 #### Release the Docker image
 
 - TODO(gp): Add details
-
-
-
-
-# Get fresh copy of the repo and its submodules.
-heanhs@dev1:~/src$ git clone --recursive git@github.com:causify-ai/cmamp.git cmamp2
-
-# Checkout the branch that contains the changes.
-heanhs@dev1:~/src/cmamp2$ git checkout CmampTask10224_Make_infra_dir_releasable_2
-
-# Go to the helpers_root directory.
-heanhs@dev1:~/src/cmamp2$ cd helpers_root/
-
-# Checkout the branch that contains fixes.
-heanhs@dev1:~/src/cmamp2/helpers_root$ git checkout TutorialsTask1_Create_releasable_dir
-
-# Go runnable directory.
-heanhs@dev1:~/src/cmamp2/helpers_root$ cd ..
-heanhs@dev1:~/src/cmamp2$ cd ck.infra/
-
-# Activate the virtual environment.
-heanhs@dev1:~/src/cmamp2/ck.infra$ source devops/setenv.sh
-
-# Run tests from runnable dir.
-(client_venv.helpers) heanhs@dev1:~/src/cmamp2/ck.infra$ i run_fast_tests
