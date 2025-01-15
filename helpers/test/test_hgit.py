@@ -1,10 +1,13 @@
 import logging
 import os
+import tempfile
 from typing import Generator, List, Optional
 
 import pytest
 
 import helpers.hgit as hgit
+import helpers.hio as hio
+import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
@@ -454,3 +457,320 @@ class Test_extract_gh_issue_number_from_branch(hunitest.TestCase):
         act = hgit.extract_gh_issue_number_from_branch(branch_name)
         exp = "None"
         self.assert_equal(str(act), exp)
+
+
+class Test_find_git_root1(hunitest.TestCase):
+    """
+    Check that the function returns the correct git root if:
+    - the repo is a super repo (e.g. //orange)
+    - the repo contains another super repo (e.g. //amp) as submodule (first level)
+    - the first level submodule contains another submodule (e.g. //helpers) (second level)
+
+    Directory structure:
+    orange/
+    |-- .git/
+    `-- amp/
+        |-- .git (points to ../.git/modules/amp)
+        |-- ck.infra/
+        `-- helpers_root/
+            `-- .git (points to ../../.git/modules/amp/modules/helpers_root)
+    """
+
+    def set_up_test(self) -> None:
+        temp_dir = self.get_scratch_space()
+        # Create `orange` repo.
+        self.repo_dir = os.path.join(temp_dir, "orange")
+        hio.create_dir(self.repo_dir, incremental=False)
+        self.git_dir = os.path.join(self.repo_dir, ".git")
+        hio.create_dir(self.git_dir, incremental=False)
+        # Create `amp` submodule under `orange`.
+        self.submodule_dir = os.path.join(self.repo_dir, "amp")
+        hio.create_dir(self.submodule_dir, incremental=False)
+        submodule_git_file = os.path.join(self.submodule_dir, ".git")
+        txt = f"gitdir: ../.git/modules/amp"
+        hio.to_file(submodule_git_file, txt)
+        submodule_git_file_dir = os.path.join(
+            self.repo_dir, ".git", "modules", "amp"
+        )
+        hio.create_dir(submodule_git_file_dir, incremental=False)
+        # Create `helpers_root` submodule under `amp`.
+        self.subsubmodule_dir = os.path.join(self.submodule_dir, "helpers_root")
+        hio.create_dir(self.subsubmodule_dir, incremental=False)
+        subsubmodule_git_file = os.path.join(self.subsubmodule_dir, ".git")
+        txt = f"gitdir: ../../.git/modules/amp/modules/helpers_root"
+        hio.to_file(subsubmodule_git_file, txt)
+        subsubmodule_git_file_dir = os.path.join(
+            self.repo_dir, ".git", "modules", "amp", "modules", "helpers_root"
+        )
+        hio.create_dir(subsubmodule_git_file_dir, incremental=False)
+        # Create `ck.infra` runnable dir under `amp`.
+        self.runnable_dir = os.path.join(self.submodule_dir, "ck.infra")
+        hio.create_dir(self.runnable_dir, incremental=False)
+
+    def test1(self) -> None:
+        """
+        Check that the function returns the correct git root if
+        - the caller is in the super repo (e.g. //orange)
+        """
+        self.set_up_test()
+        with hsystem.cd(self.repo_dir):
+            git_root = hgit.find_git_root(".")
+            self.assert_equal(git_root, self.repo_dir)
+
+    def test2(self) -> None:
+        """
+        Check that the function returns the correct git root if
+        - the caller is in first level submodule (e.g. //amp)
+        """
+        self.set_up_test()
+        with hsystem.cd(self.submodule_dir):
+            git_root = hgit.find_git_root(".")
+            self.assert_equal(git_root, self.repo_dir)
+
+    def test3(self) -> None:
+        """
+        Check that the function returns the correct git root if
+        - the caller is in second level submodule (e.g. //helpers)
+        """
+        self.set_up_test()
+        with hsystem.cd(self.subsubmodule_dir):
+            git_root = hgit.find_git_root(".")
+            self.assert_equal(git_root, self.repo_dir)
+
+    def test4(self) -> None:
+        """
+        Check that the function returns the correct git root if
+        - the caller is in a runnable dir (e.g. ck.infra) under the
+            first level submodule (e.g. //amp)
+        """
+        self.set_up_test()
+        with hsystem.cd(self.runnable_dir):
+            git_root = hgit.find_git_root(".")
+            self.assert_equal(git_root, self.repo_dir)
+
+
+class Test_find_git_root2(hunitest.TestCase):
+    """
+    Check that the function returns the correct git root if:
+    - the repo is a super repo (e.g. //cmamp)
+    - the repo contains //helpers as submodule
+
+    Directory structure:
+    cmamp/
+    |-- .git/
+    |-- ck.infra/
+    `-- helpers_root/
+        `-- .git (points to ../.git/modules/helpers_root)
+    """
+
+    def set_up_test(self) -> None:
+        temp_dir = self.get_scratch_space()
+        # Create `cmamp` repo.
+        self.repo_dir = os.path.join(temp_dir, "cmamp")
+        hio.create_dir(self.repo_dir, incremental=False)
+        self.git_dir = os.path.join(self.repo_dir, ".git")
+        hio.create_dir(self.git_dir, incremental=False)
+        # Create `helpers_root` submodule under `cmamp`.
+        self.submodule_dir = os.path.join(self.repo_dir, "helpers_root")
+        hio.create_dir(self.submodule_dir, incremental=False)
+        submodule_git_file = os.path.join(self.submodule_dir, ".git")
+        txt = f"gitdir: ../.git/modules/helpers_root"
+        hio.to_file(submodule_git_file, txt)
+        submodule_git_file_dir = os.path.join(
+            self.repo_dir, ".git", "modules", "helpers_root"
+        )
+        hio.create_dir(submodule_git_file_dir, incremental=False)
+        # Create `ck.infra` runnable dir under `cmamp`.
+        self.runnable_dir = os.path.join(self.repo_dir, "ck.infra")
+        hio.create_dir(self.runnable_dir, incremental=False)
+
+    def test1(self) -> None:
+        """
+        Check that the function returns the correct git root if
+        - the caller is in the super repo (e.g. //cmamp)
+        """
+        self.set_up_test()
+        with hsystem.cd(self.repo_dir):
+            git_root = hgit.find_git_root(".")
+            self.assert_equal(git_root, self.repo_dir)
+
+    def test2(self) -> None:
+        """
+        Check that the function returns the correct git root if
+        - the caller is the submodule (e.g. //helpers)
+        """
+        self.set_up_test()
+        with hsystem.cd(self.submodule_dir):
+            git_root = hgit.find_git_root(".")
+            self.assert_equal(git_root, self.repo_dir)
+
+    def test3(self) -> None:
+        """
+        Check that the function returns the correct git root if
+        - the caller is in a runnable dir (e.g. ck.infra)
+        """
+        self.set_up_test()
+        with hsystem.cd(self.runnable_dir):
+            git_root = hgit.find_git_root(".")
+            self.assert_equal(git_root, self.repo_dir)
+
+
+class Test_find_git_root3(hunitest.TestCase):
+    """
+    Check that the function returns the correct git root if:
+    - the repo is //helpers
+
+    Directory structure:
+    helpers/
+    |-- .git/
+    `-- arbitrary1/
+        `-- arbitrary1a/
+    """
+
+    def set_up_test(self) -> None:
+        temp_dir = self.get_scratch_space()
+        # Create `helpers` repo.
+        self.repo_dir = os.path.join(temp_dir, "helpers")
+        hio.create_dir(self.repo_dir, incremental=False)
+        self.git_dir = os.path.join(self.repo_dir, ".git")
+        hio.create_dir(self.git_dir, incremental=False)
+        # Create arbitrary directory under `helpers`.
+        self.arbitrary_dir = os.path.join(
+            self.repo_dir, "arbitrary1", "arbitrary1a"
+        )
+        hio.create_dir(self.arbitrary_dir, incremental=False)
+
+    def test1(self) -> None:
+        """
+        Check that the function returns the correct git root if
+        - the caller is the root of repo
+        """
+        self.set_up_test()
+        with hsystem.cd(self.repo_dir):
+            git_root = hgit.find_git_root(".")
+            self.assert_equal(git_root, self.repo_dir)
+
+    def test2(self) -> None:
+        """
+        Check that the function returns the correct git root if
+        - the caller is in an arbitrary directory under the repo
+        """
+        self.set_up_test()
+        with hsystem.cd(self.arbitrary_dir):
+            git_root = hgit.find_git_root(".")
+            self.assert_equal(git_root, self.repo_dir)
+
+
+class Test_find_git_root4(hunitest.TestCase):
+    """
+    Check that the function returns the correct git root if:
+    - the repo is a linked repo
+
+    Directory structure:
+    repo/
+    `-- .git/
+    linked_repo/
+    `-- .git (points to /repo/.git)
+    """
+
+    def set_up_test(self) -> None:
+        temp_dir = self.get_scratch_space()
+        # Create repo.
+        self.repo_dir = os.path.join(temp_dir, "repo")
+        hio.create_dir(self.repo_dir, incremental=False)
+        self.git_dir = os.path.join(self.repo_dir, ".git")
+        hio.create_dir(self.git_dir, incremental=False)
+        # Create linked repo.
+        self.linked_repo_dir = os.path.join(temp_dir, "linked_repo")
+        hio.create_dir(self.linked_repo_dir, incremental=False)
+        # Create pointer from linked repo to the actual repo.
+        linked_git_file = os.path.join(self.linked_repo_dir, ".git")
+        txt = f"gitdir: {self.git_dir}\n"
+        hio.to_file(linked_git_file, txt)
+
+    def test1(self) -> None:
+        """
+        Check that the function returns the correct git root if
+        - the caller is the linked repo
+        """
+        self.set_up_test()
+        with hsystem.cd(self.linked_repo_dir):
+            git_root = hgit.find_git_root(".")
+            self.assert_equal(git_root, self.repo_dir)
+
+
+class Test_find_git_root5(hunitest.TestCase):
+    """
+    Check that the error is raised when no .git directory is found.
+
+    Directory structure:
+    arbitrary_dir/
+    broken_repo/
+    `-- .git (points to /nonexistent/path/to/gitdir)
+    """
+
+    @pytest.fixture(autouse=True)
+    def setup_teardown_test(self):
+        # Run before each test.
+        self.set_up_test()
+        yield
+        # Run after each test.
+        self.tear_down_test()
+
+    def set_up_test(self) -> None:
+        # `self.get_scratch_space()` does not work in the case as it creates
+        # a temp directory within the repo where `.git` exists by default
+        # (e.g. /app/helpers/test/outcomes/Test_find_git_root5.test1/tmp.scratch)
+        # This preventing the exception from being raised.
+        # We need a structure without `.git` for this test.
+        self.temp_dir = tempfile.TemporaryDirectory()
+        # Create arbitrary directory that is not a git repo.
+        self.arbitrary_dir = os.path.join(self.temp_dir.name, "arbitrary_dir")
+        hio.create_dir(self.arbitrary_dir, incremental=False)
+        # Create arbitrary directory that is a submodule or linked repo that
+        #   point to non existing super repo.
+        self.repo_dir = os.path.join(self.temp_dir.name, "broken_repo")
+        hio.create_dir(self.repo_dir, incremental=False)
+        # Create an invalid `.git` file with a non-existent `gitdir`.
+        invalid_git_file = os.path.join(self.repo_dir, ".git")
+        txt = "gitdir: /nonexistent/path/to/gitdir"
+        hio.to_file(invalid_git_file, txt)
+
+    def tear_down_test(self) -> None:
+        self.temp_dir.cleanup()
+
+    def test1(self) -> None:
+        """
+        Check that the error is raised when the caller is in a directory that
+        is not either a git repo or a submodule.
+        """
+        with hsystem.cd(self.arbitrary_dir), self.assertRaises(
+            AssertionError
+        ) as cm:
+            _ = hgit.find_git_root(".")
+        act = str(cm.exception)
+        exp = """
+        * Failed assertion *
+        '/'
+        !=
+        '/'
+        No .git directory or file found in any parent directory.
+        """
+        self.assert_equal(act, exp, purify_text=True, fuzzy_match=True)
+
+    def test2(self) -> None:
+        """
+        Check that the error is raised when the caller is in a submodule or
+        linked repo that points to non existing super repo.
+        """
+        with hsystem.cd(self.repo_dir), self.assertRaises(AssertionError) as cm:
+            _ = hgit.find_git_root(".")
+        act = str(cm.exception)
+        exp = f"""
+        * Failed assertion *
+        '/'
+        !=
+        '/'
+        Top-level .git directory not found.
+        """
+        self.assert_equal(act, exp, purify_text=True, fuzzy_match=True)

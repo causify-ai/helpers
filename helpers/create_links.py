@@ -154,6 +154,14 @@ def _find_common_files(src_dir: str, dst_dir: str) -> List[Tuple[str, str]]:
         for file in files:
             src_file = os.path.join(root, file)
             dst_file = os.path.join(dst_dir, os.path.relpath(src_file, src_dir))
+            # Check if the file exists in the destination folder.
+            # Certain files do not need to be copied, so we skip them.
+            if not os.path.exists(dst_file):
+                _LOG.warning(
+                    "Warning: %s is missing in the destination directory.", 
+                    dst_file
+                )
+                continue
             # Compare file contents after copying.
             if filecmp.cmp(src_file, dst_file, shallow=False):
                 _LOG.info(
@@ -197,7 +205,13 @@ def _replace_with_links(
             else:
                 link_target = os.path.abspath(src_file)
             os.symlink(link_target, dst_file)
-            os.chmod(dst_file, 0o444)
+            # Make the file read-only in order to prevent accidental 
+            # modifications.
+            # Set file permissions to `0o555` (-r-xr-xr-x): 
+            # - Owner (read, execute)
+            # - Group (read, execute) 
+            # - Others (read, execute)
+            os.chmod(dst_file, 0o555)
             _LOG.info("Created symlink: %s -> %s", dst_file, link_target)
         except Exception as e:
             _LOG.error("Error creating symlink for %s: %s", dst_file, e)
@@ -243,8 +257,12 @@ def _stage_links(symlinks: List[str]) -> None:
             os.remove(link)
             # Copy file to the symlink location.
             shutil.copy2(target_file, link)
-            # Make the file writable.
-            os.chmod(link, 0o644)
+            # Make the file writable to allow for modifications.
+            # Set file permissions to `0o755` (-rwxr-xr-x): 
+            # - Owner (read, write, execute)
+            # - Group (read, execute)
+            # - Others (read, execute)
+            os.chmod(link, 0o755)
             _LOG.info("Staged: %s -> %s", link, target_file)
         except Exception as e:
             _LOG.error("Error staging link %s: %s", link, e)
