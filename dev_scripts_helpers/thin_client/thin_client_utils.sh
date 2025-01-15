@@ -338,7 +338,7 @@ set_up_docker_aws() {
 # #############################################################################
 
 set_symlink_permissions() {
-    # Git does not track write permissions. 
+    # Git does not track write permissions.
     # See https://github.com/causify-ai/helpers/issues/188
     # Remove write permissions for symlinked files to prevent accidental modifications before starting to develop.
     # To modify any files, they need to be first be staged for modification first.
