@@ -11,7 +11,7 @@
     + [4) Copy and customize files in thin_client](#4-copy-and-customize-files-in-thin_client)
     + [5) Replace files with symbolic links](#5-replace-files-with-symbolic-links)
     + [6) Build a container for a runnable dir](#6-build-a-container-for-a-runnable-dir)
-    + [6) Test the code](#6-test-the-code)
+    + [7) Test the code](#7-test-the-code)
       - [Release the Docker image](#release-the-docker-image)
 
 <!-- tocstop -->
@@ -174,7 +174,7 @@ python3 ./helpers_root/helpers/create_links.py --src_dir ./helpers_root --dst_di
   > i docker_push_dev_image --version 1.0.0
   ```
 
-### 6) Test the code
+### 7) Test the code
 
 - Run tests from the runnable dir (e.g. `cmamp/ck.infra`)
 
