@@ -1,5 +1,3 @@
-
-
 <!-- toc -->
 
 - [How to create a runnable dir](#how-to-create-a-runnable-dir)
@@ -25,7 +23,7 @@
 - A runnable dir can be
   - A super-repo (e.g. `//cmamp`, `//quant_dashboard`)
     - Follow
-      [all.create_a_super_repo_with_helpers.how_to_guide.md](all.create_a_super_repo_with_helpers.how_to_guide.md)
+      [all.create_a_super_repo_with_helpers.how_to_guide.md](/docs/work_tools/dev_system/all.create_a_super_repo_with_helpers.how_to_guide.md)
       to create a runnable dir that is a super repo
   - A sub directory under a super-repo (e.g. `//cmamp/ck.infra`)
 
@@ -34,7 +32,7 @@
 ### 1) Turn the repo into a super-repo with helpers
 
 - Follow
-  [all.create_a_super_repo_with_helpers.how_to_guide.md](all.create_a_super_repo_with_helpers.how_to_guide.md)
+  [all.create_a_super_repo_with_helpers.how_to_guide.md](/docs/work_tools/dev_system/all.create_a_super_repo_with_helpers.how_to_guide.md)
   to turn the repo into a super-repo with helpers
 - For example, for `//cmamp`, the resulting root directory should have a
   structure like:
