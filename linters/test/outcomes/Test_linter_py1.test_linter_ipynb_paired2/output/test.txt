@@ -1,0 +1,29 @@
+# ---
+# jupyter:
+#   jupytext:
+#     text_representation:
+#       extension: .py
+#       format_name: light
+#       format_version: '1.5'
+#       jupytext_version: 1.16.6
+#   kernelspec:
+#     display_name: Python 3 (ipykernel)
+#     language: python
+#     name: python3
+# ---
+
+# CONTENTS:
+# - [Imports](#imports)
+
+# <a name='imports'></a>
+# # Imports
+
+# +
+import pandas as pd
+import re
+
+# TODO: Fix.
+res = re.findall(r"[a-z]+", "some text")
+
+
+
