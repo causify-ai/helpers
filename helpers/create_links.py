@@ -30,6 +30,7 @@ import filecmp
 import logging
 import os
 import shutil
+import stat
 from typing import List, Tuple
 
 import helpers.hdbg as hdbg
@@ -207,11 +208,12 @@ def _replace_with_links(
             os.symlink(link_target, dst_file)
             # Make the file read-only in order to prevent accidental 
             # modifications.
-            # Set file permissions to `0o555` (-r-xr-xr-x): 
-            # - Owner (read, execute)
-            # - Group (read, execute) 
-            # - Others (read, execute)
-            os.chmod(dst_file, 0o555)
+            # Get the current file permissions.
+            current_permissions = os.stat(dst_file).st_mode
+            # Remove write permissions for the owner, group, and others.
+            new_permissions = current_permissions & ~stat.S_IWUSR & ~stat.S_IWGRP & ~stat.S_IWOTH
+            # Apply the updated permissions.
+            os.chmod(dst_file, new_permissions)
             _LOG.info("Created symlink: %s -> %s", dst_file, link_target)
         except Exception as e:
             _LOG.error("Error creating symlink for %s: %s", dst_file, e)
@@ -258,11 +260,12 @@ def _stage_links(symlinks: List[str]) -> None:
             # Copy file to the symlink location.
             shutil.copy2(target_file, link)
             # Make the file writable to allow for modifications.
-            # Set file permissions to `0o755` (-rwxr-xr-x): 
-            # - Owner (read, write, execute)
-            # - Group (read, execute)
-            # - Others (read, execute)
-            os.chmod(link, 0o755)
+            # Get the current file permissions
+            current_permissions = os.stat(link).st_mode
+            # Add write permissions for the owner, group, and others
+            new_permissions = current_permissions | stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH
+            # Apply the updated permissions
+            os.chmod(link, new_permissions)
             _LOG.info("Staged: %s -> %s", link, target_file)
         except Exception as e:
             _LOG.error("Error staging link %s: %s", link, e)
