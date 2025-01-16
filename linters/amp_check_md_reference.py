@@ -15,62 +15,68 @@ import argparse
 import logging
 import os
 import re
-from typing import List, Tuple
+from typing import List
 
 import helpers.hdbg as hdbg
-import helpers.hparser as hparser
-import helpers.hio as hio
 import helpers.hgit as hgit
+import helpers.hio as hio
+import helpers.hparser as hparser
 import linters.action as liaction
-import linters.utils as liutils
 
 _LOG = logging.getLogger(__name__)
 
 MARKDOWN_EXT = ".md"
 MARKDOWN_LINK_REGEX = r"\[.*?\]\((.*?)\)"
 
-def check_file_reference(readme_path: str, file_name: str) -> Tuple[bool, List[str]]:
+
+def check_file_reference(readme_path: str, file_name: str) -> List[str]:
     """
     Check if the given file is referenced in the README.
 
     :param readme_path: the path to the README file
     :param file_name: the path to the file being linted
-    :return:
-        - a boolean indicating if the file is referenced
-        - a list of warnings
+    :return: warnings
     """
     references = set()
     warnings = []
-    if os.path.exists(readme_path):  
+    if os.path.exists(readme_path):
         lines = hio.from_file(readme_path).split("\n")
-        for line_num, line in enumerate(lines, start=1):
+        for _, line in enumerate(lines, start=1):
             markdown_links = re.findall(MARKDOWN_LINK_REGEX, line)
             references.update(markdown_links)
         normalized_file_name = os.path.normpath(file_name)
         is_referenced = any(
-            os.path.normpath(ref.split("#")[0]) == normalized_file_name for ref in references
+            os.path.normpath(ref.split("#")[0]) == normalized_file_name
+            for ref in references
         )
         if not is_referenced:
-            warnings.append(f"{file_name}: '{file_name}' is not referenced in README.md")
-        else:
-            _LOG.info("%s is correctly referenced in README.md", file_name)
+            warnings.append(
+                f"{file_name}: '{file_name}' is not referenced in README.md"
+            )
     else:
-        warnings = [
-            f"File not found: {readme_path}",
-        ]
-        _LOG.debug("Skipping file_name='%s'", file_name)
-    return  warnings
+        _LOG.warning("README.md not found. Skipping check for '%s'", file_name)
+    return warnings
+
+
+# #############################################################################
+# _ReadmeLinter
+# #############################################################################
 
 
 class _ReadmeLinter(liaction.Action):
     """
     Linter action to check if a Markdown file is referenced in README.
     """
+
     def check_if_possible(self) -> bool:
         return True
 
     def _execute(self, file_name: str, pedantic: int) -> List[str]:
         _ = pedantic
+        if not file_name.endswith(".md"):
+            # Apply only to Markdown files.
+            _LOG.debug("Skipping file_name='%s'", file_name)
+            return []
         # Find the repository root.
         repo_root = hgit.find_git_root()
         # Define the path to README.md.
@@ -81,8 +87,7 @@ class _ReadmeLinter(liaction.Action):
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, 
-        formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument(
         "files",
@@ -99,7 +104,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level)
     action = _ReadmeLinter()
-    action.run(args.files)    
+    action.run(args.files)
 
 
 if __name__ == "__main__":

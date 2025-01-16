@@ -50,6 +50,7 @@ import linters.amp_normalize_import as lamnoimp
 import linters.amp_processjupytext as lampproc
 import linters.amp_pylint as lamppyli
 import linters.amp_warn_incorrectly_formatted_todo as lawifoto
+import linters.amp_check_md_reference as lampmdref
 import linters.utils as liutils
 
 _LOG = logging.getLogger(__name__)
@@ -258,6 +259,11 @@ _NON_MODIFYING_ACTIONS: List[Tuple[str, str, Type[liaction.Action]]] = [
         "mypy",
         "Checks if types and type hints are used correctly",
         lampmypy._Mypy,  # pylint: disable=protected-access
+    ),
+    (
+        "check_readme_reference",
+        "Checks README.md for reference to the current markdown file",
+        lampmdref._ReadmeLinter,  # pylint: disable=protected-access
     ),
 ]
 
