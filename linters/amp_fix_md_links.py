@@ -2,7 +2,7 @@
 """
 Fix the formatting of links and file/fig paths in Markdown files.
 
-For more details, see `/docs/all.amp_fix_md_links.explanation.md`.
+For more details, see `/docs/coding/all.amp_fix_md_links.explanation.md`.
 """
 
 import argparse
@@ -24,8 +24,8 @@ _LOG = logging.getLogger(__name__)
 FIG_REGEX_1 = r'<img src="\.{0,2}\w*\/.+?\.(?:jpg|jpeg|png)"'
 FIG_REGEX_2 = r"!\[\w*\]\(\.{0,2}\w*\/.+?\.(?:jpg|jpeg|png)\)"
 FILE_PATH_REGEX = r"\.{0,2}\w*\/.+?\.[\w\.]+"
-LINK_REGEX = r"\[(.+)\]\(((?!#).*)\)"
 HTML_LINK_REGEX = r'(<a href=".*?">.*?</a>)'
+MD_LINK_REGEX = r"\[(.+)\]\(((?!#).*)\)"
 
 
 def _make_path_absolute(path: str) -> str:
@@ -198,37 +198,25 @@ def _check_fig_pointer_format(
     return updated_line, warnings
 
 
-def _check_html_link_format(
-    html_link: str, line: str, file_name: str, line_num: int
-) -> Tuple[str, List[str]]:
+def _convert_html_link(html_link: str, line: str) -> str:
     """
-    Convert HTML-style link (`<a href="...">...</a>`) into a Markdown-style
-    link (`[text](...)`).
+    Convert an HTML-style link into a Markdown-style link.
 
-    Given HTML link in the form `<a href="link_target">link_text</a>`
+    Given an HTML link in the form `<a href="link_target">link_text</a>`
     replace it with the Markdown equivalent `[link_text](link_target)`.
 
-    :param html_link: the original HTML link to validate
+    :param html_link: the original HTML link
     :param line: the line of text containing the link
-    :param file_name: the name of the Markdown file being processed
-    :param line_num: the line number where the link is located
-    :return:
-        - the updated line with the fixed HTML link (if any fixes were applied)
-        - a list of warnings about issues with the link
+    :return: the updated line with the link converted into a Markdown
+        style
     """
-    warnings: List[str] = []
+    # Extract the link text and the link target.
     match = re.match(r'<a href="(.*?)">(.*?)</a>', html_link)
-    if match:
-        link_target, original_text = match.groups()
-        # Create the Markdown-style link.
-        converted_link = f"[{original_text}]({link_target})"
-        # Replace the with the Markdown-style link.
-        # `__check_md_link_format` will handle the
-        # check on validity of the link in `fix_links()`
-        line = line.replace(html_link, converted_link)
-    else:
-        warnings.append(f"{file_name}:{line_num}: '{html_link}' does not exist")
-    return line, warnings
+    link_target, original_text = match.groups()
+    # Replace the HTML-style link with the Markdown-style link.
+    converted_to_md_link = f"[{original_text}]({link_target})"
+    line = line.replace(html_link, converted_to_md_link)
+    return line
 
 
 def fix_links(file_name: str) -> Tuple[List[str], List[str], List[str]]:
@@ -254,18 +242,15 @@ def fix_links(file_name: str) -> Tuple[List[str], List[str], List[str]]:
     for i, line in enumerate(lines):
         updated_line = line
         # Check the formatting.
-        # Links.
         # HTML-style links.
         html_link_matches = re.findall(HTML_LINK_REGEX, updated_line)
         for html_link in html_link_matches:
-            updated_line, line_warnings = _check_html_link_format(
-                html_link, updated_line, file_name, i
-            )
-            warnings.extend(line_warnings)
-        link_matches = re.findall(LINK_REGEX, updated_line)
-        for link_text, link in link_matches:
+            updated_line = _convert_html_link(html_link, updated_line)
+        # Markdown-style links.
+        md_link_matches = re.findall(MD_LINK_REGEX, updated_line)
+        for md_link_text, md_link in md_link_matches:
             updated_line, line_warnings = _check_md_link_format(
-                link_text, link, updated_line, file_name, i
+                md_link_text, md_link, updated_line, file_name, i
             )
             warnings.extend(line_warnings)
         # File paths.
@@ -343,4 +328,3 @@ def _main(parser: argparse.ArgumentParser) -> None:
 
 if __name__ == "__main__":
     _main(_parse())
-
