@@ -578,12 +578,8 @@ def str_to_timestamp(
     else:
         # Convert using the provided format.
         timestamp = pd.to_datetime(timestamp_as_str, format=datetime_format)
-    if timestamp.tz is None:
-        # Localize the timezone if the timestamp is not timezone-aware.
-        timestamp = timestamp.tz_localize(tz)
-    else:
-        # Convert the timezone if the timestamp is timezone-aware.
-        timestamp = timestamp.tz_convert(tz)
+    # Convert to the specified timezone
+    timestamp = timestamp.tz_localize(tz)
     return timestamp
 
 
