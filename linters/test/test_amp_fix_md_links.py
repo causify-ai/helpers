@@ -74,11 +74,7 @@ class Test_fix_links(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        Test the fix_links function with a mix of Markdown and HTML-style
-        links.
-
-        Ensures that both `_check_md_link_format()` and
-        `_check_html_link_format()` interact correctly.
+        Test the mix of Markdown and HTML-style links.
         """
         input_content = """
     Markdown link: [Valid Markdown Link](docs/markdown_example.md)
@@ -97,16 +93,15 @@ class Test_fix_links(hunitest.TestCase):
         """
         file_name = "test_combined.md"
         file_path = self._write_input_file(input_content, file_name)
-        # Run the fix_links function.
+        # Run.
         _, updated_lines, out_warnings = lafimdli.fix_links(file_path)
-        # Generate output for comparison.
+        # Check.
         output = "\n".join(
             ["# linter warnings", ""]
             + out_warnings
             + ["", "# linted file", ""]
             + updated_lines
         )
-        # Assert the output matches the expected result.
         self.check_string(output)
 
     def _get_txt_with_incorrect_links(self) -> str:
@@ -173,4 +168,3 @@ height="1.2303444881889765in"}
         # Create the file.
         hio.to_file(file_path, txt)
         return file_path
-
