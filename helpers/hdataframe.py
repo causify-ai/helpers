@@ -7,6 +7,7 @@ import helpers.hdataframe as hdatafr
 """
 
 # TODO(gp): Consider merging with `helpers/pandas_helpers.py`.
+# TODO(gp): data -> df
 
 import collections
 import functools
@@ -24,6 +25,21 @@ _LOG = logging.getLogger(__name__)
 
 
 _METHOD_TO_APPLY = Dict[str, Dict[str, Any]]
+
+
+def _combine_masks(
+    masks: pd.DataFrame, mode: str, info: collections.OrderedDict
+) -> pd.Series:
+    if mode == "and":
+        combined_mask = masks.all(axis=1)
+    elif mode == "or":
+        combined_mask = masks.any(axis=1)
+    else:
+        raise ValueError(f"Invalid `mode`='{mode}'")
+    if combined_mask.sum() == 0:
+        _LOG.warning("No data remaining after filtering.")
+    info["nrows_remaining"] = combined_mask.sum()
+    return combined_mask
 
 
 def filter_data_by_values(
@@ -145,19 +161,7 @@ def filter_data_by_method(
     return filtered_data
 
 
-def _combine_masks(
-    masks: pd.DataFrame, mode: str, info: collections.OrderedDict
-) -> pd.Series:
-    if mode == "and":
-        combined_mask = masks.all(axis=1)
-    elif mode == "or":
-        combined_mask = masks.any(axis=1)
-    else:
-        raise ValueError(f"Invalid `mode`='{mode}'")
-    if combined_mask.sum() == 0:
-        _LOG.warning("No data remaining after filtering.")
-    info["nrows_remaining"] = combined_mask.sum()
-    return combined_mask
+# #############################################################################
 
 
 def apply_nan_mode(
@@ -219,6 +223,9 @@ def apply_nan_mode(
     return res
 
 
+# #############################################################################
+
+
 def infer_sampling_points_per_year(data: Union[pd.Series, pd.DataFrame]) -> float:
     """
     Return the number of index time points per year.
@@ -270,6 +277,9 @@ def compute_count_per_year(data: Union[pd.Series, pd.DataFrame]) -> float:
     count_per_year = data.count() / span_in_years
     count_per_year = cast(float, count_per_year)
     return count_per_year
+
+
+# #############################################################################
 
 
 def remove_duplicates(

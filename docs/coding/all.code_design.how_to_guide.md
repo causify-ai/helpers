@@ -240,7 +240,7 @@ Invariants and conventions
 #### Roles and responsibilities
 
 - How to communicate
-  - Telegram for urgent stuff or interactive things (ideally on a small group
+  - Slack for urgent stuff or interactive things (ideally on a small group
     chat)
   - All the action happens in the GH issues
     - Update the Issues multiple times a day
