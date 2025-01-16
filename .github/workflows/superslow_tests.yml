@@ -70,7 +70,7 @@ jobs:
           CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
           CSFY_TELEGRAM_TOKEN: ${{ secrets.CSFY_TELEGRAM_TOKEN }}
-        run: invoke run_superslow_tests
+        run: invoke run_superslow_tests --pytest-opts="amp/helpers_root/helpers/test/test_master_buildmeister_dashboard.py -s --dbg"
 
       # In case of manual run, this workflow step will not be skipped and
       # info in the step will be in format as seen in `with` statement.
