@@ -338,11 +338,8 @@ set_up_docker_aws() {
 # #############################################################################
 
 set_symlink_permissions() {
-    # Git does not track write permissions.
-    # See https://github.com/causify-ai/helpers/issues/188
-    # Remove write permissions for symlinked files to prevent accidental modifications before starting to develop.
-    # To modify any files, they need to be first be staged for modification first.
-    # See `docs/work_tools/dev_system/all.replace_common_files_with_script_links.md#step-2-stage-files-for-modification` in //helpers.
+    # Remove write permissions for symlinked files to prevent accidental
+    # modifications before starting to develop.
     echo "# set_symlink_permissions()"
     local directory="$1"
 
@@ -352,11 +349,9 @@ set_symlink_permissions() {
         return 1
     fi
 
-    # Find all symlinks in the directory and process them.
+    # Find all symlinks in the directory and remove write permissions.
     find "$directory" -type l | while read -r symlink; do
-        # Check if the target of the symlink exists.
         if [ -e "$symlink" ]; then
-            # Remove write permissions for symlinked files.
             chmod a-w "$symlink"
             echo -e "${INFO}:Remove write permissions for: '$symlink'"
         else

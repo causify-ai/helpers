@@ -186,6 +186,7 @@ def _find_common_files(src_dir: str, dst_dir: str) -> List[Tuple[str, str]]:
 def _replace_with_links(
     common_files: List[Tuple[str, str]],
     use_relative_paths: bool,
+    *,
     abort_on_first_error: bool = False,
 ) -> None:
     """
@@ -211,24 +212,21 @@ def _replace_with_links(
             else:
                 link_target = os.path.abspath(src_file)
             os.symlink(link_target, dst_file)
-            # Make the file read-only in order to prevent accidental
+            # Remove write permissions from the file to prevent accidental
             # modifications.
-            # Get the current file permissions.
             current_permissions = os.stat(dst_file).st_mode
-            # Remove write permissions for the owner, group, and others.
             new_permissions = (
                 current_permissions
                 & ~stat.S_IWUSR
                 & ~stat.S_IWGRP
                 & ~stat.S_IWOTH
             )
-            # Apply the updated permissions.
             os.chmod(dst_file, new_permissions)
             _LOG.info("Created symlink: %s -> %s", dst_file, link_target)
         except Exception as e:
             _LOG.error("Error creating symlink for %s: %s", dst_file, e)
             if abort_on_first_error:
-                _LOG.critical(
+                _LOG.warning(
                     "Aborting: Failed to create symlink for %s.", dst_file
                 )
             continue
@@ -272,13 +270,10 @@ def _stage_links(symlinks: List[str]) -> None:
             # Copy file to the symlink location.
             shutil.copy2(target_file, link)
             # Make the file writable to allow for modifications.
-            # Get the current file permissions
             current_permissions = os.stat(link).st_mode
-            # Add write permissions for the owner, group, and others
             new_permissions = (
                 current_permissions | stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH
             )
-            # Apply the updated permissions
             os.chmod(link, new_permissions)
             _LOG.info("Staged: %s -> %s", link, target_file)
         except Exception as e:
