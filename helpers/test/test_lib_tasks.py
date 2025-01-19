@@ -30,7 +30,7 @@ def _get_default_params() -> Dict[str, str]:
     default_params = {
         "CSFY_ECR_BASE_PATH": ecr_base_path,
         "BASE_IMAGE": "amp_test",
-        "DEV_TOOLS_IMAGE_PROD": f"{ecr_base_path}/dev_tools:prod",
+        "HELPERS_IMAGE_PROD": f"{ecr_base_path}/helpers:prod",
     }
     return default_params
 

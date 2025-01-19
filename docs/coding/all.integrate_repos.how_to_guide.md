@@ -266,5 +266,3 @@
 - Check `lime` on dev4
 
 - Check `orange` on dev1
-
-- Check `dev_tools` on dev1

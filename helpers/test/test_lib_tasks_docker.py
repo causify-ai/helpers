@@ -327,10 +327,6 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
         """
         self.check(act, exp)
 
-    # TODO(gp): HelpersTask1
-    #     "DEV_TOOLS_IMAGE_PROD": f"{ecr_base_path}/dev_tools:prod",
-    #                               ^^^^^^^^^^^^^
-    # NameError: name 'ecr_base_path' is not defined
     if False:
 
         @pytest.mark.skipif(
