@@ -66,6 +66,7 @@ def _filter_files(file_paths: List[str]) -> List[str]:
 
     The following files are skipped:
     - Files that do not exist
+    - Non-files (directories)
     - Ipynb checkpoints
     - Input and output files in unit tests
 
@@ -76,6 +77,8 @@ def _filter_files(file_paths: List[str]) -> List[str]:
     for file_path in file_paths:
         # Skip files that do not exist.
         is_valid = os.path.exists(file_path)
+        # Skip non-files.
+        is_valid &= os.path.isfile(file_path)
         # Skip checkpoints.
         is_valid &= ".ipynb_checkpoints/" not in file_path
         # Skip input and output files used in unit tests.
