@@ -1071,3 +1071,57 @@ def run_dockerized_llm_transform(
     )
     # TODO(gp): Note that `suppress_output=False` seems to hang the call.
     hsystem.system(docker_cmd)
+
+
+# #############################################################################
+
+
+def run_dockerized_plantuml(
+    plantuml_cmd: str,
+    force_rebuild: bool = False,
+    use_sudo: bool = False,
+) -> None:
+    """
+    Run `plantUML` in a Docker container.
+
+    :param plantuml_cmd: the plantUML command to render an image
+    :param force_rebuild: whether to force rebuild the Docker container
+    :param use_sudo: whether to use sudo for Docker commands
+    """
+    _LOG.debug(
+        hprint.to_str(
+            "plantuml_cmd force_rebuild use_sudo"
+        )
+    )
+    # Build the container, if needed.
+    container_name = "tmp.plantuml"
+    dockerfile = """
+    APT_GET_OPTS="-y --no-install-recommends"
+
+    # Install plantuml.
+    # Create necessary dir to install plantuml.
+    if [[ ! -d /usr/share/man/man1/ ]]; then
+        mkdir /usr/share/man/man1/
+    fi;
+    apt-get install $APT_GET_OPTS plantuml
+    """
+    container_name = build_container(
+        container_name, dockerfile, force_rebuild, use_sudo
+    )
+    # Convert files to Docker paths.
+    is_caller_host = not hserver.is_inside_docker()
+    use_sibling_container_for_callee = True
+    _, callee_mount_path, mount = get_docker_mount_info(
+        is_caller_host, use_sibling_container_for_callee
+    )
+    executable = get_docker_executable(use_sudo)
+    docker_cmd = (
+        f"{executable} run --rm --user $(id -u):$(id -g)"
+        " --entrypoint ''"
+        f" --workdir {callee_mount_path} --mount {mount}"
+        f" {container_name}"
+        f' bash -c "{plantuml_cmd}"'
+    )
+    hsystem.system(docker_cmd)
+
+

@@ -122,9 +122,9 @@ def _get_render_command(
     hdbg.dassert_in(dst_ext, valid_extensions)
     # Create the command.
     if image_code_type == "plantuml":
-        cmd = f"plantuml -t{dst_ext} -o {abs_img_dir_path} {code_file_path}.puml"
+        cmd = f"plantuml -t{dst_ext} -o {abs_img_dir_path} {code_file_path}"
     elif image_code_type == "mermaid":
-        cmd = f"mmdc -i {code_file_path}.mmd -o {rel_img_path}"
+        cmd = f"mmdc -i {code_file_path} -o {rel_img_path}"
     else:
         raise ValueError(
             f"Invalid type: {image_code_type}; should be one of 'plantuml', 'mermaid'"
@@ -167,6 +167,14 @@ def _render_code(
     )
     # Save the image code to a temporary file.
     code_file_path = os.path.join(tempfile.gettempdir(), code_file_name)
+    if image_code_type == "plantuml":
+        code_file_path = code_file_path + ".puml"
+    elif image_code_type == "mermaid":
+        code_file_path = code_file_path + ".mmd"
+    else:
+        raise ValueError(
+            f"Invalid type: {image_code_type}; should be one of 'plantuml', 'mermaid'"
+        )
     hio.to_file(code_file_path, image_code)
     # Run the rendering.
     cmd = _get_render_command(
