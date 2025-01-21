@@ -86,29 +86,47 @@ def get_cache_perf_stats(func_name: str) -> str:
 # Cache properties.
 
 
+# TODO(gp): We need two different properties: one for the user properties and
+#  one for the system properties.
+# The code is exactly the same, but we need to separate them, by passing
+# _CACHE_PROPERTY_USER and _CACHE_PROPERTY_SYSTEM to the functions and
+# the file
+
+
+_USER_CACHE_PROPERTY_FILE = "cache_property.user.pkl"
+_SYSTEM_CACHE_PROPERTY_FILE = "cache_property.system.pkl"
+
+
 if "_CACHE_PROPERTY" not in globals():
     _LOG.debug("Creating _CACHE_PROPERTY")
-    if os.path.exists("cache_property.pkl"):
-        _LOG.debug("Loading from cache_property.pkl")
-        _CACHE_PROPERTY = pickle.load(open("cache_property.pkl", "rb"))
+    if os.path.exists(_USER_CACHE_PROPERTY_FILE):
+        _LOG.debug("Loading from %s", _USER_CACHE_PROPERTY_FILE)
+        _CACHE_PROPERTY = pickle.load(open(_USER_CACHE_PROPERTY_FILE, "rb"))
     else:
         # func_name -> key -> value properties.
         _CACHE_PROPERTY = {}
 
 
-def _check_valid_cache_property(property_name: str) -> None:
-    valid_properties = [
-        # Abort if there is a cache miss. This is used to make sure everything
-        # is cached.
-        "abort_on_cache_miss",
-        # Report if there is a cache miss and return `_cache_miss_` instead of
-        # accessing the real value.
-        "report_on_cache_miss",
-        # Enable performance stats (e.g., miss, hit, tot for the cache).
-        "enable_perf",
-        # Force to refresh the value.
-        "force_refresh",
-    ]
+def _check_valid_cache_property(type_: str, property_name: str) -> None:
+    if type_ == "user":
+        valid_properties = [
+            # Abort if there is a cache miss. This is used to make sure everything
+            # is cached.
+            "abort_on_cache_miss",
+            # Report if there is a cache miss and return `_cache_miss_` instead of
+            # accessing the real value.
+            "report_on_cache_miss",
+            # Enable performance stats (e.g., miss, hit, tot for the cache).
+            "enable_perf",
+            # Force to refresh the value.
+            "force_refresh",
+            # "force"
+
+        ]
+    elif type_ == "system":
+        valid_property = [
+            "type"
+        ]
     hdbg.dassert_in(property_name, valid_properties)
 
 
@@ -394,7 +412,12 @@ def reset_disk_cache(func_name: str = "") -> None:
 # Decorator
 
 
-def simple_cache(func: Callable[..., Any]) -> Callable[..., Any]:
+def simple_cache(func: Callable[..., Any], *, cache_type: str = "json") -> (
+        Callable)[
+    ...,
+Any]:
+    hdbg.dassert_in(cache_type, ("json", "pickle"))
+
     @functools.wraps(func)
     def wrapper(*args: Any, **kwargs: Any) -> Any:
         # Get the function name.
@@ -402,21 +425,21 @@ def simple_cache(func: Callable[..., Any]) -> Callable[..., Any]:
         if func_name.endswith("_intrinsic"):
             func_name = func_name[: -len("_intrinsic")]
         # Get the cache.
-        cache = hyamm.get_cache(func_name)
+        cache = get_cache(func_name)
         # Get the key.
         # key = (args, frozenset(kwargs.items()))
         key = args
         key = str(key)
         _LOG.debug("key=%s", key)
         # Get the cache properties.
-        cache_perf = hyamm.get_cache_perf(func_name)
+        cache_perf = get_cache_perf(func_name)
         _LOG.debug("cache_perf is None=%s", cache_perf is None)
         # Update the performance stats.
         if cache_perf:
             hdbg.dassert_in("tot", cache_perf)
             cache_perf["tot"] += 1
         # Handle a forced refresh.
-        force_refresh = hyamm.get_cache_property(func_name, "force_refresh")
+        force_refresh = get_cache_property(func_name, "force_refresh")
         _LOG.debug("force_refresh=%s", force_refresh)
         if not force_refresh and key in cache:
             # Update the performance stats.
@@ -429,14 +452,14 @@ def simple_cache(func: Callable[..., Any]) -> Callable[..., Any]:
             if cache_perf:
                 cache_perf["misses"] += 1
             # Abort on cache miss.
-            abort_on_cache_miss = hyamm.get_cache_property(
+            abort_on_cache_miss = get_cache_property(
                 func_name, "abort_on_cache_miss"
             )
             _LOG.debug("abort_on_cache_miss=%s", abort_on_cache_miss)
             if abort_on_cache_miss:
                 raise ValueError("Cache miss for key='%s'" % key)
             # Report on cache miss.
-            report_on_cache_miss = hyamm.get_cache_property(
+            report_on_cache_miss = get_cache_property(
                 func_name, "report_on_cache_miss"
             )
             _LOG.debug("report_on_cache_miss=%s", report_on_cache_miss)
