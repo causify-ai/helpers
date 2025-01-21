@@ -43,7 +43,7 @@ class Test_get_render_command(hunitest.TestCase):
         """
         Check that the plantUML command is constructed correctly.
         """
-        code_file_path = "/a/b/c"
+        code_file_path = "/a/b/c.txt"
         abs_img_dir_path = "/d/e/f"
         rel_img_path = "figs/e.8.png"
         dst_ext = "png"
@@ -61,7 +61,7 @@ class Test_get_render_command(hunitest.TestCase):
         """
         Check that the error is raised if the image extension is unsupported.
         """
-        code_file_path = "/a/b/c"
+        code_file_path = "/a/b/c.txt"
         abs_img_dir_path = "/d/e/f"
         rel_img_path = "figs/e.8.png"
         dst_ext = "bmp"
@@ -81,7 +81,7 @@ class Test_get_render_command(hunitest.TestCase):
         """
         Check that the mermaid command is constructed correctly.
         """
-        code_file_path = "/a/b/c"
+        code_file_path = "/a/b/c.txt"
         abs_img_dir_path = "/d/e/f"
         rel_img_path = "figs/e.8.png"
         image_code_type = "mermaid"
