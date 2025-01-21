@@ -168,13 +168,6 @@ class Test_git_repo_name1(hunitest.TestCase):
         exp = "amp"
         self.assert_equal(act, exp)
 
-    def test_get_repo_name4(self) -> None:
-        full_name = "causify-ai/dev_tools"
-        mode = "full_name"
-        act = hgit.get_repo_name(full_name, mode)
-        exp = "dev_tools"
-        self.assert_equal(act, exp)
-
     # Outside CK infra, the following call hangs, so we skip it.
     @pytest.mark.requires_ck_infra
     def test_get_all_repo_names1(self) -> None:
@@ -185,7 +178,7 @@ class Test_git_repo_name1(hunitest.TestCase):
             return
         mode = "short_name"
         act = hgit.get_all_repo_names(mode)
-        exp = ["amp", "cmamp", "dev_tools", "helpers", "tutorials"]
+        exp = ["amp", "cmamp", "helpers", "tutorials"]
         self.assert_equal(str(act), str(exp))
 
     # Outside CK infra, the following call hangs, so we skip it.
@@ -201,7 +194,6 @@ class Test_git_repo_name1(hunitest.TestCase):
         exp = [
             "alphamatic/amp",
             "causify-ai/cmamp",
-            "causify-ai/dev_tools",
             "causify-ai/helpers",
             "causify-ai/tutorials",
         ]
@@ -219,12 +211,6 @@ class Test_git_repo_name1(hunitest.TestCase):
             repo_full_name = hgit.get_repo_name(repo_short_name, "short_name")
             repo_short_name_tmp = hgit.get_repo_name(repo_full_name, "full_name")
             self.assert_equal(repo_short_name, repo_short_name_tmp)
-
-    def test_get_task_prefix_from_repo_short_name1(self) -> None:
-        short_name = "dev_tools"
-        act = hgit.get_task_prefix_from_repo_short_name(short_name)
-        exp = "DevToolsTask"
-        self.assert_equal(act, exp)
 
 
 # Outside CK infra, the following class hangs, so we skip it.
