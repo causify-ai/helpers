@@ -17,13 +17,13 @@ class Test_check_file_reference(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test for a refernced Markdown file in README.md.
+        Test for a referenced Markdown file in README.md.
         """
         repo_path = self._create_tmp_dir_with_file()
         readme_path = os.path.join(repo_path, "README.md")
         # Test referenced file.
-        warnings1 = lachmdre.check_file_reference(readme_path, "file1.md")
-        self.assertEqual(warnings1, [])
+        warnings = lachmdre.check_file_reference(readme_path, "file1.md")
+        self.assertEqual(warnings, [])
 
     def test2(self) -> None:
         """
@@ -45,19 +45,7 @@ class Test_check_file_reference(hunitest.TestCase):
         repo_path = self.get_scratch_space()
         # Create a README.md file.
         content = """
-        <!--ts-->
-   * [Best practices for writing plotting functions](#best-practices-for-writing-plotting-functions)
-      * [Cosmetic requirements](#cosmetic-requirements)
-
-<!--te-->
-
-<!-- toc -->
-
-- [Best practices for writing plotting functions](#best-practices-for-writing-plotting-functions)
-  * [Cosmetic requirements](#cosmetic-requirements)
-
-<!-- tocstop -->
-
+# README
 
 [Link to referenced file](file1.md)
         """

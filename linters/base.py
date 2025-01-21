@@ -261,7 +261,7 @@ _NON_MODIFYING_ACTIONS: List[Tuple[str, str, Type[liaction.Action]]] = [
         lampmypy._Mypy,  # pylint: disable=protected-access
     ),
     (
-        "check_readme_reference",
+        "check_md_reference",
         "Checks README.md for reference to the current markdown file",
         lampmdref._ReadmeLinter,  # pylint: disable=protected-access
     ),

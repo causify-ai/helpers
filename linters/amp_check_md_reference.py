@@ -73,7 +73,7 @@ class _ReadmeLinter(liaction.Action):
 
     def _execute(self, file_name: str, pedantic: int) -> List[str]:
         _ = pedantic
-        if not file_name.endswith(".md"):
+        if not file_name.endswith(MARKDOWN_EXT):
             # Apply only to Markdown files.
             _LOG.debug("Skipping file_name='%s'", file_name)
             return []
