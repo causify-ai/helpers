@@ -1079,6 +1079,7 @@ def run_dockerized_llm_transform(
 def run_dockerized_plantuml(
     img_dir_path: str,
     code_file_path: str,
+    dst_ext: str,
     force_rebuild: bool = False,
     use_sudo: bool = False,
 ) -> None:
@@ -1087,6 +1088,7 @@ def run_dockerized_plantuml(
 
     :param img_dir_path: path to the dir where the image will be saved
     :param code_file_path: path to the code of the image to render
+    :param dst_ext: extension of the rendered image, e.g., "svg", "png"
     :param force_rebuild: whether to force rebuild the Docker container
     :param use_sudo: whether to use sudo for Docker commands
     """
@@ -1130,7 +1132,7 @@ def run_dockerized_plantuml(
         is_caller_host=is_caller_host,
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
-    plantuml_cmd = f"plantuml -tpng -o {img_dir_path} {code_file_path}"
+    plantuml_cmd = f"plantuml -t{dst_ext} -o {img_dir_path} {code_file_path}"
     executable = get_docker_executable(use_sudo)
     docker_cmd = (
         f"{executable} run --rm --user $(id -u):$(id -g)"
@@ -1169,7 +1171,7 @@ def run_dockerized_mermaid(
     # Install mermaid.
     RUN apt-get update
     RUN apt-get install -y nodejs npm
-    RUN npm install -g puppeteer 
+    RUN npm install -g puppeteer
     RUN npx puppeteer browsers install chrome
     RUN npm install -g mermaid @mermaid-js/mermaid-cli
     """

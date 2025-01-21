@@ -73,7 +73,7 @@ def _get_rendered_file_paths(
     :param image_code_idx: order number of the image code block in the input file
     :param dst_ext: extension of the target image file
     :return:
-        - name of the temporary file with the image code (e.g., `readme.1`)
+        - path to the temporary file with the image code (e.g., `readme.1.txt`)
         - absolute path to the dir with rendered images (e.g., `/usr/docs/figs`)
         - relative path to the image to be rendered (e.g., `figs/readme.1.png`)
     """
@@ -183,7 +183,9 @@ def _render_code(
         if run_dockerized:
             # Run as a dockerized executable.
             if image_code_type == "plantuml":
-                hdocker.run_dockerized_plantuml(abs_img_dir_path, code_file_path)
+                hdocker.run_dockerized_plantuml(
+                    abs_img_dir_path, code_file_path, dst_ext
+                )
             elif image_code_type == "mermaid":
                 hdocker.run_dockerized_mermaid(rel_img_path, code_file_path)
             else:
