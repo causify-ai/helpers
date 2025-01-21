@@ -1,7 +1,9 @@
 A
-# ```mermaid
-# flowchart TD;
-#   A[Start] --> B[End];
-# ```
+
+[//]: # ( ```mermaid)
+[//]: # ( flowchart TD;)
+[//]: # (   A[Start] --> B[End];)
+[//]: # ( ```)
+
 ![](figs/out.1.png)
 B

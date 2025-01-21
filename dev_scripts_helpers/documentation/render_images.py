@@ -235,9 +235,11 @@ def _render_images(
     state = "searching"
     # Define the character that comments out a line depending on the file type.
     if out_file.endswith(".md"):
-        comment_sign = "#"
+        comment_prefix = "[//]: # ("
+        comment_postfix = ")"
     elif out_file.endswith(".tex"):
-        comment_sign = "%"
+        comment_prefix = "%"
+        comment_postfix = ""
     else:
         raise ValueError(
             f"Unsupported file type: {out_file}; should be Markdown (.md) or LaTeX (.tex)"
@@ -258,7 +260,7 @@ def _render_images(
             image_code_type = line.strip(" `")
             _LOG.debug(" -> state=%s", state)
             # Comment out the beginning of the image code.
-            out_lines.append(f"{comment_sign} {line}")
+            out_lines.append(f"\n{comment_prefix} {line}{comment_postfix}")
         elif line.strip() == "```" and state == "found_image_code":
             # Found the end of an image code block.
             # Render the image.
@@ -272,7 +274,7 @@ def _render_images(
                 dry_run=dry_run,
             )
             # Comment out the end of the image code.
-            out_lines.append(f"{comment_sign} {line}")
+            out_lines.append(f"{comment_prefix} {line}{comment_postfix}\n")
             # Add the code that inserts the image in the file.
             if out_file.endswith(".md"):
                 # Use the Markdown syntax.
@@ -295,7 +297,7 @@ def _render_images(
             # Record the line from inside the image code block.
             image_code_lines.append(line)
             # Comment out the inside of the image code.
-            out_lines.append(f"{comment_sign} {line}")
+            out_lines.append(f"{comment_prefix} {line}{comment_postfix}")
         else:
             # Keep a regular line.
             out_lines.append(line)
