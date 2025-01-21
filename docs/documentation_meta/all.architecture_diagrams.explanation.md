@@ -153,7 +153,6 @@
 - Mapped onto a code repository
 - E.g.,
   - `//...` is a system providing data and analytics for commodity
-  - `//pre-commit` is a system implementing a code linter
 
 #### Container (Level 2)
 

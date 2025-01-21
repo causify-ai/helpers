@@ -12,7 +12,13 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+# #############################################################################
+# Test_get_rendered_file_paths
+# #############################################################################
+
+
 class Test_get_rendered_file_paths(hunitest.TestCase):
+
     def test_get_rendered_file_paths1(self) -> None:
         """
         Check generation of file paths for rendering images.
@@ -26,12 +32,18 @@ class Test_get_rendered_file_paths(hunitest.TestCase):
         self.check_string("\n".join(paths))
 
 
+# #############################################################################
+# Test_get_render_command
+# #############################################################################
+
+
 class Test_get_render_command(hunitest.TestCase):
+
     def test_get_render_command1(self) -> None:
         """
         Check that the plantUML command is constructed correctly.
         """
-        code_file_path = "/a/b/c"
+        code_file_path = "/a/b/c.txt"
         abs_img_dir_path = "/d/e/f"
         rel_img_path = "figs/e.8.png"
         dst_ext = "png"
@@ -49,7 +61,7 @@ class Test_get_render_command(hunitest.TestCase):
         """
         Check that the error is raised if the image extension is unsupported.
         """
-        code_file_path = "/a/b/c"
+        code_file_path = "/a/b/c.txt"
         abs_img_dir_path = "/d/e/f"
         rel_img_path = "figs/e.8.png"
         dst_ext = "bmp"
@@ -69,7 +81,7 @@ class Test_get_render_command(hunitest.TestCase):
         """
         Check that the mermaid command is constructed correctly.
         """
-        code_file_path = "/a/b/c"
+        code_file_path = "/a/b/c.txt"
         abs_img_dir_path = "/d/e/f"
         rel_img_path = "figs/e.8.png"
         image_code_type = "mermaid"
@@ -82,6 +94,11 @@ class Test_get_render_command(hunitest.TestCase):
             image_code_type,
         )
         self.check_string(cmd)
+
+
+# #############################################################################
+# Test_render_images
+# #############################################################################
 
 
 class Test_render_images(hunitest.TestCase):
@@ -266,10 +283,15 @@ class Test_render_images(hunitest.TestCase):
         in_lines = hio.from_file(in_file).split("\n")
         out_file = os.path.join(self.get_scratch_space(), file_name)
         dst_ext = "png"
+        run_dockerized = True
         dry_run = True
         # Call function to test.
         out_lines = dshdreim._render_images(
-            in_lines=in_lines, out_file=out_file, dst_ext=dst_ext, dry_run=dry_run
+            in_lines=in_lines,
+            out_file=out_file,
+            dst_ext=dst_ext,
+            run_dockerized=run_dockerized,
+            dry_run=dry_run,
         )
         act = "\n".join(out_lines)
         # Check output.
@@ -285,10 +307,15 @@ class Test_render_images(hunitest.TestCase):
         in_lines = hio.from_file(in_file).split("\n")
         out_file = os.path.join(self.get_scratch_space(), file_name)
         dst_ext = "png"
+        run_dockerized = True
         dry_run = True
         # Call function to test.
         out_lines = dshdreim._render_images(
-            in_lines=in_lines, out_file=out_file, dst_ext=dst_ext, dry_run=dry_run
+            in_lines=in_lines,
+            out_file=out_file,
+            dst_ext=dst_ext,
+            run_dockerized=run_dockerized,
+            dry_run=dry_run,
         )
         act = "\n".join(out_lines)
         # Check output.
@@ -304,10 +331,15 @@ class Test_render_images(hunitest.TestCase):
         in_lines = hio.from_file(in_file).split("\n")
         out_file = os.path.join(self.get_scratch_space(), file_name)
         dst_ext = "png"
+        run_dockerized = True
         dry_run = True
         # Call function to test.
         out_lines = dshdreim._render_images(
-            in_lines=in_lines, out_file=out_file, dst_ext=dst_ext, dry_run=dry_run
+            in_lines=in_lines,
+            out_file=out_file,
+            dst_ext=dst_ext,
+            run_dockerized=run_dockerized,
+            dry_run=dry_run,
         )
         act = "\n".join(out_lines)
         # Check output.
@@ -323,10 +355,15 @@ class Test_render_images(hunitest.TestCase):
         in_lines = hio.from_file(in_file).split("\n")
         out_file = os.path.join(self.get_scratch_space(), file_name)
         dst_ext = "png"
+        run_dockerized = True
         dry_run = True
         # Call function to test.
         out_lines = dshdreim._render_images(
-            in_lines=in_lines, out_file=out_file, dst_ext=dst_ext, dry_run=dry_run
+            in_lines=in_lines,
+            out_file=out_file,
+            dst_ext=dst_ext,
+            run_dockerized=run_dockerized,
+            dry_run=dry_run,
         )
         act = "\n".join(out_lines)
         # Check output.
@@ -342,6 +379,6 @@ class Test_render_images(hunitest.TestCase):
         out_file = os.path.join(self.get_scratch_space(), f"out.{file_ext}")
         dst_ext = "png"
         out_lines = dshdreim._render_images(
-            in_lines, out_file, dst_ext, dry_run=True
+            in_lines, out_file, dst_ext, run_dockerized=True, dry_run=True
         )
         self.check_string("\n".join(out_lines))

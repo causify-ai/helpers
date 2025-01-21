@@ -264,7 +264,6 @@ def git_files(  # type: ignore
     all_ = False
     files = ""
     mutually_exclusive = True
-    # pre-commit doesn't handle directories, but only files.
     remove_dirs = True
     files_as_list = hlitauti._get_files_to_process(
         modified,

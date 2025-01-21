@@ -9,16 +9,16 @@ See `docs/work_tools/documentation_toolchain/all.render_images.explanation.md`.
 Usage:
 
 # Create a new Markdown file with rendered images:
-> render_images.py -i ABC.md -o XYZ.md --action render
+> render_images.py -i ABC.md -o XYZ.md --action render --run_dockerized
 
 # Render images in place in the original Markdown file:
-> render_images.py -i ABC.md --action render
+> render_images.py -i ABC.md --action render --run_dockerized
 
 # Render images in place in the original LaTeX file:
-> render_images.py -i ABC.tex --action render
+> render_images.py -i ABC.tex --action render --run_dockerized
 
 # Open rendered images from a Markdown file in HTML to preview:
-> render_images.py -i ABC.md --action open
+> render_images.py -i ABC.md --action open --run_dockerized
 """
 
 import argparse
@@ -28,6 +28,7 @@ import tempfile
 from typing import List, Tuple
 
 import helpers.hdbg as hdbg
+import helpers.hdocker as hdocker
 import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hprint as hprint
@@ -72,7 +73,7 @@ def _get_rendered_file_paths(
     :param image_code_idx: order number of the image code block in the input file
     :param dst_ext: extension of the target image file
     :return:
-        - name of the temporary file with the image code (e.g., `readme.1`)
+        - path to the temporary file with the image code (e.g., `readme.1.txt`)
         - absolute path to the dir with rendered images (e.g., `/usr/docs/figs`)
         - relative path to the image to be rendered (e.g., `figs/readme.1.png`)
     """
@@ -90,12 +91,10 @@ def _get_rendered_file_paths(
     # Get the relative path to the image.
     # E.g., "figs/readme.1.png".
     rel_img_path = os.path.join(sub_dir, img_name)
-    # Get the name for a temporary file with the image code.
-    # The extension is omitted to support different requirements
-    # of plantUML and mermaid rendering commands.
-    # E.g., "readme.1".
-    code_file_name = f"{out_file_name_body}.{image_code_idx}"
-    return (code_file_name, abs_img_dir_path, rel_img_path)
+    # Get the path to a temporary file with the image code.
+    # E.g., "readme.1.txt".
+    code_file_path = f"{out_file_name_body}.{image_code_idx}.txt"
+    return (code_file_path, abs_img_dir_path, rel_img_path)
 
 
 def _get_render_command(
@@ -122,9 +121,9 @@ def _get_render_command(
     hdbg.dassert_in(dst_ext, valid_extensions)
     # Create the command.
     if image_code_type == "plantuml":
-        cmd = f"plantuml -t{dst_ext} -o {abs_img_dir_path} {code_file_path}.puml"
+        cmd = f"plantuml -t{dst_ext} -o {abs_img_dir_path} {code_file_path}"
     elif image_code_type == "mermaid":
-        cmd = f"mmdc -i {code_file_path}.mmd -o {rel_img_path}"
+        cmd = f"mmdc --puppeteerConfigFile puppeteerConfig.json -i {code_file_path} -o {rel_img_path}"
     else:
         raise ValueError(
             f"Invalid type: {image_code_type}; should be one of 'plantuml', 'mermaid'"
@@ -138,6 +137,7 @@ def _render_code(
     image_code_type: str,
     out_file: str,
     dst_ext: str,
+    run_dockerized: bool,
     dry_run: bool,
 ) -> str:
     """
@@ -151,6 +151,8 @@ def _render_code(
     :param out_file: path to the output file where the image will be
         inserted
     :param dst_ext: extension of the rendered image, e.g., "svg", "png"
+    :param run_dockerized: if True, the command is run as a dockerized
+        executable
     :param dry_run: if True, the rendering command is not executed
     :return: path to the rendered image
     """
@@ -162,11 +164,10 @@ def _render_code(
             image_code = f"{image_code}\n@enduml"
     # Get paths for rendered files.
     hio.create_enclosing_dir(out_file, incremental=True)
-    code_file_name, abs_img_dir_path, rel_img_path = _get_rendered_file_paths(
+    code_file_path, abs_img_dir_path, rel_img_path = _get_rendered_file_paths(
         out_file, image_code_idx, dst_ext
     )
     # Save the image code to a temporary file.
-    code_file_path = os.path.join(tempfile.gettempdir(), code_file_name)
     hio.to_file(code_file_path, image_code)
     # Run the rendering.
     cmd = _get_render_command(
@@ -175,12 +176,36 @@ def _render_code(
     _LOG.info("Creating the image from %s source.", code_file_path)
     _LOG.info("Saving image to %s.", abs_img_dir_path)
     _LOG.info("> %s", cmd)
-    hsystem.system(cmd, dry_run=dry_run)
+    if dry_run:
+        # Do not execute the command.
+        hsystem.system(cmd, dry_run=True)
+    else:
+        if run_dockerized:
+            # Run as a dockerized executable.
+            if image_code_type == "plantuml":
+                hdocker.run_dockerized_plantuml(
+                    abs_img_dir_path, code_file_path, dst_ext
+                )
+            elif image_code_type == "mermaid":
+                hdocker.run_dockerized_mermaid(rel_img_path, code_file_path)
+            else:
+                raise ValueError(
+                    f"Invalid type: {image_code_type}; should be one of 'plantuml', 'mermaid'"
+                )
+        else:
+            # Run the package installed on the host directly.
+            hsystem.system(cmd)
+    # Remove the temp file.
+    os.remove(code_file_path)
     return rel_img_path
 
 
 def _render_images(
-    in_lines: List[str], out_file: str, dst_ext: str, dry_run: bool
+    in_lines: List[str],
+    out_file: str,
+    dst_ext: str,
+    run_dockerized: bool,
+    dry_run: bool,
 ) -> List[str]:
     """
     Insert rendered images instead of image code blocks.
@@ -195,6 +220,7 @@ def _render_images(
     :param in_lines: lines of the input file
     :param out_file: path to the output file
     :param dst_ext: extension for rendered images
+    :param run_dockerized: if True, the image rendering command is run as a dockerized executable
     :param dry_run: if True, the text of the file is updated
         but the images are not actually created
     :return: updated file lines
@@ -209,9 +235,11 @@ def _render_images(
     state = "searching"
     # Define the character that comments out a line depending on the file type.
     if out_file.endswith(".md"):
-        comment_sign = "#"
+        comment_prefix = "[//]: # ("
+        comment_postfix = ")"
     elif out_file.endswith(".tex"):
-        comment_sign = "%"
+        comment_prefix = "%"
+        comment_postfix = ""
     else:
         raise ValueError(
             f"Unsupported file type: {out_file}; should be Markdown (.md) or LaTeX (.tex)"
@@ -232,7 +260,7 @@ def _render_images(
             image_code_type = line.strip(" `")
             _LOG.debug(" -> state=%s", state)
             # Comment out the beginning of the image code.
-            out_lines.append(f"{comment_sign} {line}")
+            out_lines.append(f"\n{comment_prefix} {line}{comment_postfix}")
         elif line.strip() == "```" and state == "found_image_code":
             # Found the end of an image code block.
             # Render the image.
@@ -242,10 +270,11 @@ def _render_images(
                 image_code_type=image_code_type,
                 out_file=out_file,
                 dst_ext=dst_ext,
+                run_dockerized=run_dockerized,
                 dry_run=dry_run,
             )
             # Comment out the end of the image code.
-            out_lines.append(f"{comment_sign} {line}")
+            out_lines.append(f"{comment_prefix} {line}{comment_postfix}\n")
             # Add the code that inserts the image in the file.
             if out_file.endswith(".md"):
                 # Use the Markdown syntax.
@@ -268,7 +297,7 @@ def _render_images(
             # Record the line from inside the image code block.
             image_code_lines.append(line)
             # Comment out the inside of the image code.
-            out_lines.append(f"{comment_sign} {line}")
+            out_lines.append(f"{comment_prefix} {line}{comment_postfix}")
         else:
             # Keep a regular line.
             out_lines.append(line)
@@ -304,6 +333,11 @@ def _parse() -> argparse.ArgumentParser:
     )
     # Add actions arguments.
     hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    # Add runtime arguments.
+    parser.add_argument(
+        "--run_dockerized",
+        action="store_true",
+    )
     # Add an argument for debugging.
     parser.add_argument(
         "--dry_run",
@@ -333,7 +367,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Read the input file.
     in_lines = hio.from_file(in_file).split("\n")
     # Get the updated file lines after rendering.
-    out_lines = _render_images(in_lines, out_file, dst_ext, args.dry_run)
+    out_lines = _render_images(
+        in_lines, out_file, dst_ext, args.run_dockerized, args.dry_run
+    )
     # Save the output into a file.
     hio.to_file(out_file, "\n".join(out_lines))
     # Open if needed.
