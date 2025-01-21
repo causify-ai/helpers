@@ -1093,7 +1093,9 @@ def run_dockerized_plantuml(
     :param use_sudo: whether to use sudo for Docker commands
     """
     _LOG.debug(
-        hprint.to_str("img_dir_path code_file_path force_rebuild use_sudo")
+        hprint.to_str(
+            "img_dir_path code_file_path dst_ext force_rebuild use_sudo"
+        )
     )
     # Build the container, if needed.
     container_name = "tmp.plantuml"
@@ -1164,15 +1166,31 @@ def run_dockerized_mermaid(
     _LOG.debug(hprint.to_str("img_path code_file_path force_rebuild use_sudo"))
     # Build the container, if needed.
     container_name = "tmp.mermaid"
-    dockerfile = """
+    puppeteer_cache_path = """
+    const {join} = require('path');
+
+    /**
+     * @type {import("puppeteer").Configuration}
+     */
+    module.exports = {
+      // Changes the cache location for Puppeteer.
+      cacheDirectory: join(__dirname, '.cache', 'puppeteer'),
+    };
+    """
+    dockerfile = f"""
     # Use a Node.js image.
     FROM node:18
 
     # Install mermaid.
     RUN apt-get update
     RUN apt-get install -y nodejs npm
-    RUN npm install -g puppeteer
-    RUN npx puppeteer browsers install chrome
+
+    RUN cat > .puppeteerrc.cjs <<EOL
+    {puppeteer_cache_path}
+    EOL
+
+    RUN npx puppeteer browsers install chrome-headless-shell
+    RUN apt-get install -y libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libasound2
     RUN npm install -g mermaid @mermaid-js/mermaid-cli
     """
     container_name = build_container(
@@ -1202,7 +1220,16 @@ def run_dockerized_mermaid(
         is_caller_host=is_caller_host,
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
-    mermaid_cmd = f"mmdc -i {code_file_path} -o {img_path}"
+    puppeteer_config_path = convert_caller_to_callee_docker_path(
+        "puppeteerConfig.json",
+        caller_mount_path,
+        callee_mount_path,
+        check_if_exists=True,
+        is_input=False,
+        is_caller_host=is_caller_host,
+        use_sibling_container_for_callee=use_sibling_container_for_callee,
+    )
+    mermaid_cmd = f"mmdc --puppeteerConfigFile {puppeteer_config_path} -i {code_file_path} -o {img_path}"
     executable = get_docker_executable(use_sudo)
     docker_cmd = (
         f"{executable} run --rm --user $(id -u):$(id -g)"

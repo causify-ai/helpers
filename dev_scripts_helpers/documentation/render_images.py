@@ -123,7 +123,7 @@ def _get_render_command(
     if image_code_type == "plantuml":
         cmd = f"plantuml -t{dst_ext} -o {abs_img_dir_path} {code_file_path}"
     elif image_code_type == "mermaid":
-        cmd = f"mmdc -i {code_file_path} -o {rel_img_path}"
+        cmd = f"mmdc --puppeteerConfigFile puppeteerConfig.json -i {code_file_path} -o {rel_img_path}"
     else:
         raise ValueError(
             f"Invalid type: {image_code_type}; should be one of 'plantuml', 'mermaid'"
