@@ -50,6 +50,7 @@ import linters.amp_normalize_import as lamnoimp
 import linters.amp_processjupytext as lampproc
 import linters.amp_pylint as lamppyli
 import linters.amp_warn_incorrectly_formatted_todo as lawifoto
+import linters.amp_check_md_toc_headers as lamchtoch
 import linters.utils as liutils
 
 _LOG = logging.getLogger(__name__)
@@ -217,6 +218,11 @@ _MODIFYING_ACTIONS: List[Tuple[str, str, Type[liaction.Action]]] = [
         "process_jupytext",
         "Keeps paired .ipynb and .py files synchronized",
         lampproc._JupytextAction,  # pylint: disable=protected-access
+    ),
+    (
+        "check_md_toc_header",
+        "Fixes header levels and verifies no content before TOC",
+        lamchtoch._TOCHeaderFixer,  # pylint: disable=protected-access
     ),
 ]
 
