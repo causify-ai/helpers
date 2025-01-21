@@ -1,5 +1,3 @@
-
-
 <!-- toc -->
 
 - [`render_images.py` tool](#render_imagespy-tool)
@@ -19,9 +17,10 @@
 
 ## How to use
 
-1. If you don't include the option `--run_dockerized`, make sure `plantuml` and `mermaid` are installed on your machine. The easiest
-   way is to use the Docker container. All the packages typically needed for
-   development are installed in the container.
+1. If you don't include the option `--run_dockerized`, make sure `plantuml` and
+   `mermaid` are installed on your machine. The easiest way is to use the Docker
+   container. All the packages typically needed for development are installed in
+   the container.
 
 2. How to use:
    ```bash
