@@ -1,5 +1,3 @@
-
-
 <!-- toc -->
 
 - [How to create a super-repo with `helpers`](#how-to-create-a-super-repo-with-helpers)
@@ -15,6 +13,7 @@
   * [3) Copy and customize files in `devops`](#3-copy-and-customize-files-in-devops)
     + [Build a container for a super-repo](#build-a-container-for-a-super-repo)
     + [Check if the regressions are passing](#check-if-the-regressions-are-passing)
+  * [Replace files with symbolic links](#replace-files-with-symbolic-links)
   * [Configure regressions via GitHub actions](#configure-regressions-via-github-actions)
     + [Set repository secrets/variables](#set-repository-secretsvariables)
     + [Create GitHub actions workflow files](#create-github-actions-workflow-files)
@@ -247,6 +246,19 @@ Follow
 doc to confirm.
 
 File a PR with the new files and merge the PR into `master`.
+
+## Replace files with symbolic links
+
+- Refer to
+  [Managing common files](/docs/work_tools/dev_system/all.runnable_repo.reference.md#managing-common-files)
+  for explanation
+- Refer to
+  [Managing symbolic links between directories](/docs/work_tools/dev_system/all.replace_common_files_with_script_links.md)
+  for how to use the commands
+
+```bash
+python3 ./helpers_root/helpers/create_links.py --src_dir ./helpers_root --dst_dir . --replace_links --use_relative_paths
+```
 
 ## Configure regressions via GitHub actions
 

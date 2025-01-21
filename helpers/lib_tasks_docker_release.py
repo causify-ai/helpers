@@ -69,7 +69,7 @@ def _get_dev_version(version: str, container_dir_name: str) -> str:
 #   ```
 #   > i docker_build_local_image
 #   ```
-# - This creates a local image like `dev_tools:local.saggese-1.0.0`
+# - This creates a local image like `helpers:local.saggese-1.0.0`
 # - A qualification process (e.g., running all unit tests and the QA tests) is
 #   performed on the local image (e.g., locally or through GitHub actions)
 # - If the qualification process is passed, the image is released as `dev` on

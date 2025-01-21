@@ -77,7 +77,7 @@ Example:
 ## Update Documentation
 
 - Update the
-  [/docs/dev_tools/thin_env/all.gh_and_thin_env_requirements.reference.md](/docs/dev_tools/thin_env/all.gh_and_thin_env_requirements.reference.md)
+  [/docs/work_tools/thin_environment/all.gh_and_thin_env_requirements.reference.md](/docs/work_tools/thin_environment/all.gh_and_thin_env_requirements.reference.md)
 
 ## Notify Team
 

@@ -30,8 +30,8 @@
 - Along this design philosophy similar to microservices, we want to have a
   Docker container, called `opt` with a Python script that uses some packages
   that are not compatible with `amp` (specifically cvxopt, cvxpy)
-- This is similar to what we do for the `dev_tools`, which is like a
-  containerized Python script for the linter
+- This is similar to what we do for the `helpers`, which is like a
+  containerized Python script for the Linter
 
 ## Build and run a local version of `opt`
 

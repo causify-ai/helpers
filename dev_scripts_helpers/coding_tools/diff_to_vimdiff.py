@@ -284,11 +284,6 @@ def _parse_diff_output(
                 _LOG.debug("  -> Skipping line")
                 skip = True
         elif line.startswith("File "):
-            # File
-            #   /wd/saggese/src/...1/amp/devops/docker_build/fstab
-            # is a regular file while file
-            #   /wd/saggese/src/dev_tools/devops/docker_build/fstab
-            # is a directory
             _LOG.warning(line)
             continue
         else:
