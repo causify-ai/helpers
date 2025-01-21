@@ -7,7 +7,7 @@ Linting file: '$GIT_ROOT/linters/test/outcomes/Test_linter_py1.test_DevToolsTask
 linter_warnings.txt
 ////////////////////////////////////////////////////////////////////////////////
 file_paths=1 ['$GIT_ROOT/linters/test/outcomes/Test_linter_py1.test_DevToolsTask408/tmp.scratch/input.py']
-actions=21 ['add_python_init_files', 'add_toc_to_notebook', 'fix_md_links', 'lint_md', 'autoflake', 'fix_whitespaces', 'doc_formatter', 'isort', 'class_method_order', 'normalize_imports', 'format_separating_line', 'add_class_frames', 'black', 'process_jupytext', 'check_filename', 'check_merge_conflict', 'check_import', 'warn_incorrectly_formatted_todo', 'flake8', 'pylint', 'mypy']
+actions=22 ['add_python_init_files', 'add_toc_to_notebook', 'fix_md_links', 'lint_md', 'autoflake', 'fix_whitespaces', 'doc_formatter', 'isort', 'class_method_order', 'normalize_imports', 'format_separating_line', 'add_class_frames', 'black', 'process_jupytext', 'check_filename', 'check_merge_conflict', 'check_import', 'warn_incorrectly_formatted_todo', 'flake8', 'pylint', 'mypy', 'check_md_reference']
 ////////////////////////////////////////////////////////////////////////////////
 linters/test/outcomes/Test_linter_py1.test_DevToolsTask408/tmp.scratch/input.py:{LINE_NUM}: [C0209(consider-using-f-string), ] Formatting a regular string which could be an f-string [pylint]
 
