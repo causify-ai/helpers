@@ -112,9 +112,9 @@ def fix_md_toc_headers(file_name: str) -> Tuple[List[str], List[str], List[str]]
     lines = hio.from_file(file_name).splitlines()
     warnings: List[str] = []
     # Fix headers.
-    fixed_lines = _fix_md_headers(lines, file_name)
+    fixed_lines = fix_md_headers(lines, file_name)
     # Verify TOC.
-    toc_warnings = _verify_toc_position(fixed_lines, file_name)
+    toc_warnings = verify_toc_position(fixed_lines, file_name)
     warnings.extend(toc_warnings)
     return lines, fixed_lines, warnings
 
@@ -126,13 +126,10 @@ def fix_md_toc_headers(file_name: str) -> Tuple[List[str], List[str], List[str]]
 
 class _TOCHeaderFixer(liaction.Action):
 
-    def __init__(self) -> None:
-        pass
-
     def check_if_possible(self) -> bool:
         return True
 
-    def _execute(self, file_name, pedantic) -> List[str]:
+    def _execute(self, file_name: str, pedantic: int) -> List[str]:
         _ = pedantic
         if not file_name.endswith(".md"):
             # Apply only to Markdown files.
@@ -166,7 +163,7 @@ def _parse() -> argparse.ArgumentParser:
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level)
-    action = _LintMarkdown()
+    action = _TOCHeaderFixer()
     if action.check_if_possible():
         action.run(args.files)
 

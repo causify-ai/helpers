@@ -221,7 +221,7 @@ _MODIFYING_ACTIONS: List[Tuple[str, str, Type[liaction.Action]]] = [
         lampproc._JupytextAction,  # pylint: disable=protected-access
     ),
     (
-        "check_md_toc_header",
+        "check_md_toc_headers",
         "Fixes header levels and verifies no content before TOC",
         lamchtoch._TOCHeaderFixer,  # pylint: disable=protected-access
     ),
