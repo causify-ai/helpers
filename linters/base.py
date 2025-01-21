@@ -36,6 +36,7 @@ import linters.amp_autoflake as lampauto
 import linters.amp_black as lampblac
 import linters.amp_check_filename as lamchfil
 import linters.amp_check_import as lamchimp
+import linters.amp_check_md_reference as lachmdre
 import linters.amp_check_merge_conflict as lachmeco
 import linters.amp_class_method_order as laclmeor
 import linters.amp_doc_formatter as lamdofor
@@ -50,7 +51,6 @@ import linters.amp_normalize_import as lamnoimp
 import linters.amp_processjupytext as lampproc
 import linters.amp_pylint as lamppyli
 import linters.amp_warn_incorrectly_formatted_todo as lawifoto
-import linters.amp_check_md_reference as lampmdref
 import linters.utils as liutils
 
 _LOG = logging.getLogger(__name__)
@@ -263,7 +263,7 @@ _NON_MODIFYING_ACTIONS: List[Tuple[str, str, Type[liaction.Action]]] = [
     (
         "check_md_reference",
         "Checks README.md for reference to the current markdown file",
-        lampmdref._ReadmeLinter,  # pylint: disable=protected-access
+        lachmdre._ReadmeLinter,  # pylint: disable=protected-access
     ),
 ]
 
