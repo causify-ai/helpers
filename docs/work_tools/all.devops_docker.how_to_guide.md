@@ -61,10 +61,8 @@
     + [Connecting to Postgres instance using sibling containers](#connecting-to-postgres-instance-using-sibling-containers)
 - [Release flow](#release-flow)
   * [cmamp](#cmamp)
-  * [dev_tools](#dev_tools)
 - [Design release flow - discussion](#design-release-flow---discussion)
   * [QA flow](#qa-flow)
-- [Dev_tools container](#dev_tools-container)
 - [Optimizer container](#optimizer-container)
   * [Rationale](#rationale)
   * [Build and run a local version of `opt`](#build-and-run-a-local-version-of-opt)
@@ -94,7 +92,7 @@
 
 - We always want to separate things that don't need to run together in different
   containers along repos or "independently runnable / deployable directories"
-  - E.g., `dev / prod cmamp`, `optimizer`, `im`, `oms`, `dev_tools`
+  - E.g., `dev / prod cmamp`, `optimizer`, `im`, `oms`
 
 - The rationale is that when we put too many dependencies in a single container,
   we start having huge containers that are difficult to deploy and are unstable
@@ -151,7 +149,7 @@
 ### Dev
 
 - A `dev` image is used by team members to develop our system
-  - E.g., add new functionalities to the `amp` or `dev_tools` codebase
+  - E.g., add new functionalities to the `cmamp` or `helpers` codebase
 - The source code is mounted through a bind mount in Docker so that one can
   change the code and execute it in Docker, without rebuilding the container
 - A local image is tested, blessed, and released as `dev` so that users and CI
@@ -160,7 +158,7 @@
 ### Prod
 
 - A `prod` image is used to run a system by final users
-  - E.g., the linter inside `dev_tools`, some prod system inside Airflow
+  - E.g., Linter inside `helpers`, some prod system inside Airflow
 - It is self-contained (i.e., it has no dependencies) since it contains
   everything required to run a system
   - E.g., OS, Python packages code, code
@@ -248,7 +246,7 @@
 
 - We try to use the same build/release flow, conventions, and code for all the
   containers
-  (e.g., `amp`, `cmamp`, `dev_tools`, `opt`)
+  (e.g., `amp`, `cmamp`, `helpers`, `opt`)
 
 ## Overview of how to release an image
 
@@ -677,7 +675,7 @@ Check-list:
     - `prod` image requires packages only to run the code
 
 - The recipe to build a `prod` image is in
-  `dev_tools/devops/docker_build/prod.Dockerfile`.
+  `devops/docker_build/prod.Dockerfile`.
 
 - To build the `prod` image run:
   ```bash
@@ -828,49 +826,3 @@ Check-list:
   ```
   > pytest -m qa test --image_stage dev
   ```
-
-The problem is that now the thin client needs to have a bunch of deps (including
-pytest, pandas and so on) which defeats the purpose of the thin env
-
-`dev_scripts_devto/client_setup/`
-
-E.g., `//amp/dev_scripts/client_setup/requirements.txt`
-
-A hack is to
-```
-vimdiff /Users/saggese/src/lemonade2/amp/dev_scripts/client_setup/requirements.txt dev_scripts_devto/client_setup/requirements.txt
-```
-```
-> dev_scripts_devto/client_setup/build.sh
-```
-
-A possible solution is to use Docker-in-Docker
-
-- In this way we don't have to pollute the thin env with a bunch of stuff
-- Talk to Grisha and Vitalii
-
-This works in dev_tools because the code for the import detector is there and we
-are using a dev container which binds the src dir to the container
-```
-  > i lint_detect_cycles --dir-name import_check/test/Test_detect_import_cycles.test1/input/ --stage dev
-```
-
-In all the other repos, one needs to use the prod of dev_tools container (that's
-what the user would do)
-
-Next steps:
-
-- TODO(Sonya + Grisha): release the prod dev_toools container as it is
-- TODO(Sonya + Grisha): document dev_tools, release procedure
-- TODO(Sonya): pull prod dev_tools (i docker_pull_dev_tools) and test that now
-  in cmamp the tool works
-- TODO(gp): figure out the QA workflow (and improve the thin client with dind)
-  - To break the circular dep we release a prod-candidate
-
-## Relevant bugs
-
-- CmampTask1060: Make infra aws tasks invokable #1060
-- CmampTask1038: Tool to extract the dependency from a project #1038
-- CmampTask1026: Create tool for poetry debugging #1026
-- CmampTask1002: Fix tests that fail due to Pandas update and release `cmamp`
-  image #1002

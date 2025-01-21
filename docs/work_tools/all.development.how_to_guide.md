@@ -613,4 +613,3 @@ TODO(gp): How to copy files in vimdiff including last line?
 - IN PROGRESS: Run lemonade on my laptop
 - Run `cmamp` on the dev server
 - Get `cmamp` PR to pass on GH
-- Run dev_tools on the dev server

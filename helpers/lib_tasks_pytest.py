@@ -174,7 +174,7 @@ def _build_run_command_line(
         f'--reruns {num_reruns} --only-rerun "Failed: Timeout"'
     )
     if henv.execute_repo_config_code("skip_submodules_test()"):
-        # For some repos (e.g. `dev_tools`) submodules should be skipped
+        # For some repos submodules should be skipped
         # regardless of the passed value.
         skip_submodules = True
     if skip_submodules:

@@ -149,10 +149,10 @@
 - To skip running tests in submodules, use the `--skip-submodules` option.
 - This option is useful in repos with Git submodules so that you can run only
   the tests specific to the repo, skipping the tests in the submodule
-  - E.g., to run only the tests in `dev_tools` but not in `cmamp` (which is a
+  - E.g., to run only the tests in `cmamp` but not in `helpers` (which is a
     submodule)
     ```bash
-    > cd dev_tools1
+    > cd cmamp1
     > i run_fast_tests --skip-submodules
     ```
 
