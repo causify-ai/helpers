@@ -162,7 +162,7 @@ def lint_detect_cycles(  # type: ignore
     if debug_tool:
         docker_cmd_opts.append("-v DEBUG")
     docker_cmd_ = (
-        "/app/import_check/detect_import_cycles.py "
+        "$(find -wholename '*import_check/detect_import_cycles.py') "
         + hlitauti._to_single_line_cmd(docker_cmd_opts)
     )
     # Execute command line.
@@ -254,20 +254,15 @@ def lint(  # type: ignore
     else:
         _LOG.info("All Linter actions selected")
     # Compose the command line.
-    ecr_base_path = os.environ["CSFY_ECR_BASE_PATH"]
-    linter_image = f"{ecr_base_path}/helpers"
     lint_cmd_ = (
         "$(find -wholename '*linters/base.py') "
         + hlitauti._to_single_line_cmd(lint_cmd_opts)
     )
-    docker_cmd_ = hlitadoc._get_docker_compose_cmd(
-        base_image=linter_image,
-        stage=stage,
-        version=version,
-        cmd=lint_cmd_,
+    docker_cmd_ = hlitadoc._get_lint_docker_cmd(
+        lint_cmd_, stage=stage, version=version
     )
     # Run.
-    hlitadoc._docker_cmd(ctx, docker_cmd_)
+    hlitauti.run(ctx, docker_cmd_)
 
 
 @task
