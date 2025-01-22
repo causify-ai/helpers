@@ -1,37 +1,26 @@
-import glob
-import logging
 import functools
-import time
+import glob
 import json
-import pickle
+import logging
 import os
-import hashlib
-from typing import Any, Callable, Dict, List, Tuple, Union
+import pickle
+import re
+from typing import Any, Callable, Dict, List, Union, cast
 
 import pandas as pd
-import gspread_pandas
-import re
-import numpy as np
-from IPython.display import display
-import numpy as np
-from gspread_pandas import Spread, Client
-
-from tqdm.autonotebook import tqdm
 
 import helpers.hdbg as hdbg
-import helpers.hcache as hcache
-import helpers.hpandas as hpandas
 import helpers.hprint as hprint
-import helpers.hsystem as hsystem
-
 
 _LOG = logging.getLogger(__name__)
 
+# func_name -> key -> value properties.
+_CacheType = Dict[str, Dict[str, Any]]
 
 # Memory cache.
 if "_CACHE" not in globals():
     _LOG.debug("Creating _CACHE")
-    _CACHE = {}
+    _CACHE: _CacheType = {}
 
 
 # #############################################################################
@@ -45,6 +34,7 @@ if "_CACHE_PERF" not in globals():
 
 
 def enable_cache_perf(func_name: str) -> None:
+    global _CACHE_PERF
     _CACHE_PERF[func_name] = {"tot": 0, "hits": 0, "misses": 0}
 
 
@@ -53,6 +43,7 @@ def disable_cache_perf(func_name: str) -> None:
 
 
 def get_cache_perf(func_name: str) -> Union[Dict, None]:
+    global _CACHE_PERF
     if func_name in _CACHE_PERF:
         return _CACHE_PERF[func_name]
     return None
@@ -100,26 +91,26 @@ def get_cache_property_file(type_: str) -> str:
     return val
 
 
-if "_USER_CACHE_PROPERTY" not in globals():
-    _LOG.debug("Creating _USER_CACHE_PROPERTY")
-    file_name = get_cache_property_file("user")
-    if os.path.exists(file_name):
-        _LOG.debug("Loading from %s", file_name)
-        _USER_CACHE_PROPERTY = pickle.load(open(file_name, "rb"))
+def _get_initial_cache_property(type_: str) -> _CacheType:
+    file_name_ = get_cache_property_file(type_)
+    if os.path.exists(file_name_):
+        _LOG.debug("Loading from %s", file_name_)
+        with open(file_name_, "rb") as file:
+            val = pickle.load(file)
     else:
         # func_name -> key -> value properties.
-        _USER_CACHE_PROPERTY = {}
+        val = {}
+    return val
+
+
+if "_USER_CACHE_PROPERTY" not in globals():
+    _LOG.debug("Creating _USER_CACHE_PROPERTY")
+    _USER_CACHE_PROPERTY = _get_initial_cache_property("user")
 
 
 if "_SYSTEM_CACHE_PROPERTY" not in globals():
     _LOG.debug("Creating _SYSTEM_CACHE_PROPERTY")
-    file_name = get_cache_property_file("system")
-    if os.path.exists(file_name):
-        _LOG.debug("Loading from %s", file_name)
-        _SYSTEM_CACHE_PROPERTY = pickle.load(open(file_name, "rb"))
-    else:
-        # func_name -> key -> value properties.
-        _SYSTEM_CACHE_PROPERTY = {}
+    _SYSTEM_CACHE_PROPERTY = _get_initial_cache_property("system")
 
 
 def _check_valid_cache_property(type_: str, property_name: str) -> None:
@@ -142,22 +133,23 @@ def _check_valid_cache_property(type_: str, property_name: str) -> None:
             "type",
         ]
     else:
-        raise ValueError("Invalid type '%s'" % type_)
+        raise ValueError(f"Invalid type '{type_}'")
     hdbg.dassert_in(property_name, valid_properties)
 
 
-def _get_cache_property(type_: str) -> None:
+def _get_cache_property(type_: str) -> Dict[str, Any]:
     if type_ == "user":
         val = _USER_CACHE_PROPERTY
     elif type_ == "system":
         val = _SYSTEM_CACHE_PROPERTY
     else:
-        raise ValueError("Invalid type '%s'" % type_)
+        raise ValueError(f"Invalid type '{type_}'")
     return val
 
 
-def set_cache_property(type_: str, func_name: str, property_name: str,
-                       val: bool) -> None:
+def set_cache_property(
+    type_: str, func_name: str, property_name: str, val: bool
+) -> None:
     """
     Set a property for the cache of a given function name.
 
@@ -175,7 +167,8 @@ def set_cache_property(type_: str, func_name: str, property_name: str,
     # Update values on the disk.
     file_name = get_cache_property_file(type_)
     _LOG.debug("Updating %s", file_name)
-    pickle.dump(cache_property, open(file_name, "wb"))
+    with open(file_name, "wb") as file:
+        pickle.dump(cache_property, file)
 
 
 def get_cache_property(type_: str, func_name: str, property_name: str) -> bool:
@@ -186,24 +179,28 @@ def get_cache_property(type_: str, func_name: str, property_name: str) -> bool:
     # Read data.
     cache_property = _get_cache_property(type_)
     value = cache_property.get(func_name, {}).get(property_name, False)
+    value = cast(bool, value)
     return value
 
 
-def reset_cache_property(type_: str) -> bool:
+def reset_cache_property(type_: str) -> None:
     file_name = get_cache_property_file(type_)
     _LOG.warning("Resetting %s", file_name)
     # Empty the values.
     if type_ == "user":
         global _USER_CACHE_PROPERTY
         _USER_CACHE_PROPERTY = {}
+        cache_property = _USER_CACHE_PROPERTY
     elif type_ == "system":
         global _SYSTEM_CACHE_PROPERTY
         _SYSTEM_CACHE_PROPERTY = {}
+        cache_property = _SYSTEM_CACHE_PROPERTY
     else:
-        raise ValueError("Invalid type '%s'" % type_)
+        raise ValueError(f"Invalid type '{type_}'")
     # Update values on the disk.
     _LOG.debug("Updating %s", file_name)
-    pickle.dump(_CACHE_PROPERTY, open(file_name, "wb"))
+    with open(file_name, "wb") as file:
+        pickle.dump(cache_property, file)
 
 
 def cache_property_to_str(type_: str, func_name: str = "") -> str:
@@ -214,21 +211,20 @@ def cache_property_to_str(type_: str, func_name: str = "") -> str:
         converted.
     :returns: A string representation of the cache properties.
     """
+    txt: List[str] = []
     if func_name == "":
         func_names = get_cache_func_names("all")
-        txt: List[str] = []
-        for func_name in func_names:
-            txt.append(cache_property_to_str(type_, func_name))
+        for func_name_tmp in func_names:
+            txt.append(cache_property_to_str(type_, func_name_tmp))
         txt = "\n".join(txt)
         return txt
     #
-    txt: List[str] = []
-    txt.append("# func_name=%s" % func_name)
+    txt.append(f"# func_name={func_name}")
     cache_property = _get_cache_property(type_)
     _LOG.debug("%s_cache_property=%s", type_, cache_property)
     if func_name in cache_property:
         for k, v in cache_property[func_name].items():
-            txt.append("%s: %s" % (k, v))
+            txt.append(f"{k}: {v}")
     txt = "\n".join(txt)
     return txt
 
@@ -239,7 +235,7 @@ def cache_property_to_str(type_: str, func_name: str = "") -> str:
 
 
 def _get_cache_file_name(func_name: str) -> str:
-    file_name = "cache.%s" % func_name
+    file_name = f"cache.{func_name}"
     cache_type = get_cache_property("system", func_name, "type")
     _LOG.debug(hprint.to_str("cache_type"))
     if cache_type == "pickle":
@@ -247,7 +243,7 @@ def _get_cache_file_name(func_name: str) -> str:
     elif cache_type == "json":
         file_name += ".json"
     else:
-        raise ValueError("Invalid cache type '%s'" % cache_type)
+        raise ValueError(f"Invalid cache type '{cache_type}'")
     return file_name
 
 
@@ -263,10 +259,10 @@ def _save_cache_dict_to_disk(func_name: str, data: Dict) -> None:
         with open(file_name, "wb") as file:
             pickle.dump(data, file)
     elif cache_type == "json":
-        with open(file_name, "w") as file:
+        with open(file_name, "w", encoding="utf-8") as file:
             json.dump(data, file)
     else:
-        raise ValueError("Invalid cache type '%s'" % cache_type)
+        raise ValueError(f"Invalid cache type '{cache_type}'")
 
 
 def get_disk_cache(func_name: str) -> Dict:
@@ -274,7 +270,7 @@ def get_disk_cache(func_name: str) -> Dict:
     # If the disk cache doesn't exist, create it.
     if not os.path.exists(file_name):
         _LOG.debug("No cache from disk")
-        data = {}
+        data: _CacheType = {}
         _save_cache_dict_to_disk(func_name, data)
     # Load data.
     cache_type = get_cache_property("system", func_name, "type")
@@ -283,10 +279,10 @@ def get_disk_cache(func_name: str) -> Dict:
         with open(file_name, "rb") as file:
             data = pickle.load(file)
     elif cache_type == "json":
-        with open(file_name, "r") as file:
+        with open(file_name, "r", encoding="utf-8") as file:
             data = json.load(file)
     else:
-        raise ValueError("Invalid cache type '%s'" % cache_type)
+        raise ValueError(f"Invalid cache type '{cache_type}'")
     return data
 
 
@@ -296,8 +292,8 @@ def force_cache_from_disk(func_name: str = "") -> None:
     """
     if func_name == "":
         _LOG.info("Before:\n%s", cache_stats_to_str())
-        for func_name in get_cache_func_names("all"):
-            force_cache_from_disk(func_name)
+        for func_name_tmp in get_cache_func_names("all"):
+            force_cache_from_disk(func_name_tmp)
         _LOG.info("After:\n%s", cache_stats_to_str())
         return
     _LOG.debug("func_name='%s'", func_name)
@@ -315,8 +311,8 @@ def flush_cache_to_disk(func_name: str = "") -> None:
     """
     if func_name == "":
         _LOG.info("Before:\n%s", cache_stats_to_str())
-        for func_name in get_cache_func_names("all"):
-            flush_cache_to_disk(func_name)
+        for func_name_tmp in get_cache_func_names("all"):
+            flush_cache_to_disk(func_name_tmp)
         _LOG.info("After:\n%s", cache_stats_to_str())
         return
     _LOG.debug("func_name='%s'", func_name)
@@ -350,27 +346,25 @@ def get_cache_func_names(type_: str) -> List[str]:
     if type_ == "all":
         mem_func_names = get_cache_func_names("mem")
         disk_func_names = get_cache_func_names("disk")
-        return sorted(set(mem_func_names + disk_func_names))
+        val = sorted(set(mem_func_names + disk_func_names))
     elif type_ == "mem":
         mem_func_names = sorted(list(_CACHE.keys()))
-        return mem_func_names
+        val = mem_func_names
     elif type_ == "disk":
-        disk_func_names = glob.glob(f"cache.*")
+        disk_func_names = glob.glob("cache.*")
         disk_func_names = [
             re.sub(r"cache\.(.*)\.(json|pkl)", r"\1", cache)
             for cache in disk_func_names
         ]
         disk_func_names = sorted(disk_func_names)
-        return disk_func_names
+        val = disk_func_names
     else:
-        raise ValueError("Invalid type '%s'" % type_)
+        raise ValueError(f"Invalid type '{type_}'")
+    return val
 
 
 def get_mem_cache(func_name: str) -> Dict[str, Any]:
-    if func_name in _CACHE:
-        mem_cache = _CACHE[func_name]
-    else:
-        mem_cache = {}
+    mem_cache = _CACHE.get(func_name, {})
     return mem_cache
 
 
@@ -381,13 +375,13 @@ def get_cache(func_name: str) -> Dict:
     :param func_name: The name of the function whose cache is to be retrieved.
     :return: A dictionary containing the cache data.
     """
-    global _CACHE
     if func_name in _CACHE:
         _LOG.debug("Loading mem cache for '%s'", func_name)
         cache = get_mem_cache(func_name)
     else:
         _LOG.debug("Loading disk cache for '%s'", func_name)
         cache = get_disk_cache(func_name)
+        global _CACHE
         _CACHE[func_name] = cache
     return cache
 
@@ -472,7 +466,9 @@ def reset_cache(func_name: str = "") -> None:
 # #############################################################################
 
 
-def simple_cache(cache_type: str = "json", write_through: bool = False) -> Callable[..., Any]:
+def simple_cache(
+    cache_type: str = "json", write_through: bool = False
+) -> Callable[..., Any]:
 
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         hdbg.dassert_in(cache_type, ("json", "pickle"))
@@ -522,7 +518,7 @@ def simple_cache(cache_type: str = "json", write_through: bool = False) -> Calla
                 )
                 _LOG.debug("abort_on_cache_miss=%s", abort_on_cache_miss)
                 if abort_on_cache_miss:
-                    raise ValueError("Cache miss for key='%s'" % key)
+                    raise ValueError(f"Cache miss for key='{key}'")
                 # Report on cache miss.
                 report_on_cache_miss = get_cache_property(
                     "user", func_name, "report_on_cache_miss"
@@ -541,5 +537,7 @@ def simple_cache(cache_type: str = "json", write_through: bool = False) -> Calla
                     _LOG.debug("Writing through to disk")
                     flush_cache_to_disk(func_name)
             return value
+
         return wrapper
+
     return decorator
