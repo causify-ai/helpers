@@ -5,7 +5,6 @@
   * [How to introduce a new Linter step](#how-to-introduce-a-new-linter-step)
   * [List of Linter scripts](#list-of-linter-scripts)
     + [Bringing the files in accordance with our rules (modifying)](#bringing-the-files-in-accordance-with-our-rules-modifying)
-  * [`amp_check_md_toc_headers.py`](#amp_check_md_toc_headerspy)
     + [Checking if the files are in accordance with our rules (non-modifying)](#checking-if-the-files-are-in-accordance-with-our-rules-non-modifying)
 
 <!-- tocstop -->
@@ -90,7 +89,8 @@
     - Private regular
 
 - `amp_check_md_toc_headers.py`
-  -
+  - Checks that there is no content before TOC and ensure header levles are
+    following hierarchical order without skipping levels.
 
 - `amp_doc_formatter.py`
   - A wrapper around [`docformatter`](https://pypi.org/project/docformatter) and
