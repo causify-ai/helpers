@@ -24,7 +24,7 @@ _LOG = logging.getLogger(__name__)
 
 # Regex to match headers at the start of a line.
 HEADER_REGEX = re.compile(r"^(\s*)(#+)(\s.*)")
-# Define a global variable for the TOC regex.
+# Regex to match TOC markers.
 TOC_REGEX = re.compile(r"<!--\s*toc\s*-->")
 
 
@@ -94,9 +94,9 @@ def verify_toc_position(lines: List[str], file_name: str) -> List[str]:
         # Ignore empty or whitespace-only lines and header lines before TOC.
         if stripped_line and not stripped_line.startswith("#"):
             warnings.append(f"{file_name}:{line_num}: Content found before TOC.")
-    # Return no warnings if the TOC is not found.
+    # Issue no warnings if the TOC is not found.
     if not toc_start_found:
-        _LOG.warning("%s: TOC not found. Skipping file check.", file_name)
+        _LOG.warning("TOC not found. Skipping file_name='%s'.", file_name)
         warnings = []
     return warnings
 

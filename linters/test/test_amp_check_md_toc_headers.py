@@ -151,7 +151,7 @@ class Test_verify_toc_postion(hunitest.TestCase):
         """
         Test that no warnings are issued when TOC is correct.
 
-        - TOC is at the start of the file.
+        - TOC is not at the start of the file.
         - Headers and empty lines before the TOC.
         """
         txt_correct = """
@@ -181,7 +181,7 @@ class Test_verify_toc_postion(hunitest.TestCase):
 
     def test4(self) -> None:
         """
-        Test the no warnings if TOC is not present.
+        Test that no warnings if TOC is not present.
         """
         txt = """
         # Header 1
