@@ -36,6 +36,7 @@ import linters.amp_autoflake as lampauto
 import linters.amp_black as lampblac
 import linters.amp_check_filename as lamchfil
 import linters.amp_check_import as lamchimp
+import linters.amp_check_md_reference as lachmdre
 import linters.amp_check_merge_conflict as lachmeco
 import linters.amp_class_method_order as laclmeor
 import linters.amp_doc_formatter as lamdofor
@@ -66,6 +67,7 @@ def _filter_files(file_paths: List[str]) -> List[str]:
 
     The following files are skipped:
     - Files that do not exist
+    - Non-files (directories)
     - Ipynb checkpoints
     - Input and output files in unit tests
 
@@ -76,6 +78,8 @@ def _filter_files(file_paths: List[str]) -> List[str]:
     for file_path in file_paths:
         # Skip files that do not exist.
         is_valid = os.path.exists(file_path)
+        # Skip non-files.
+        is_valid &= os.path.isfile(file_path)
         # Skip checkpoints.
         is_valid &= ".ipynb_checkpoints/" not in file_path
         # Skip input and output files used in unit tests.
@@ -258,6 +262,11 @@ _NON_MODIFYING_ACTIONS: List[Tuple[str, str, Type[liaction.Action]]] = [
         "mypy",
         "Checks if types and type hints are used correctly",
         lampmypy._Mypy,  # pylint: disable=protected-access
+    ),
+    (
+        "check_md_reference",
+        "Checks README.md for reference to the current markdown file",
+        lachmdre._ReadmeLinter,  # pylint: disable=protected-access
     ),
 ]
 

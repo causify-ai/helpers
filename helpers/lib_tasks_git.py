@@ -73,7 +73,7 @@ def git_merge_master(ctx, abort_if_not_ff=True, abort_if_not_clean=True, skip_fe
         git_fetch_master(ctx)
     # Merge master.
     cmd = "git merge master"
-    if not abort_if_not_ff:
+    if abort_if_not_ff:
         cmd += " --ff-only"
     hlitauti.run(ctx, cmd)
 
@@ -264,7 +264,6 @@ def git_files(  # type: ignore
     all_ = False
     files = ""
     mutually_exclusive = True
-    # pre-commit doesn't handle directories, but only files.
     remove_dirs = True
     files_as_list = hlitauti._get_files_to_process(
         modified,
@@ -589,7 +588,7 @@ def git_branch_copy(  # type: ignore
     hdbg.dassert_ne(curr_branch_name, "master")
     if not skip_git_merge_master:
         # Make sure `old_branch_name` doesn't need to have `master` merged.
-        cmd = "invoke git_merge_master --ff-only"
+        cmd = "invoke git_merge_master --abort-if-not-ff"
         hlitauti.run(ctx, cmd)
     else:
         _LOG.warning("Skipping git_merge_master as requested")

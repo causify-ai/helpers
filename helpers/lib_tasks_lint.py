@@ -19,6 +19,7 @@ import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.lib_tasks_docker as hlitadoc
 import helpers.lib_tasks_utils as hlitauti
+import helpers.hserver as hserver
 
 _LOG = logging.getLogger(__name__)
 
@@ -254,8 +255,12 @@ def lint(  # type: ignore
     else:
         _LOG.info("All Linter actions selected")
     # Compose the command line.
+    if hserver.is_mac():
+        find_cmd = "$(find . -path '*linters/base.py')"
+    else:
+        find_cmd = "$(find -wholename '*linters/base.py')"
     lint_cmd_ = (
-        "$(find -wholename '*linters/base.py') "
+        find_cmd + " "
         + hlitauti._to_single_line_cmd(lint_cmd_opts)
     )
     docker_cmd_ = hlitadoc._get_lint_docker_cmd(

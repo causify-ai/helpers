@@ -77,7 +77,7 @@ Example:
     - Example: `Build fail - Cmamp fast_tests (1442077107)`
   - Paste the URL of the failing run
     - Example:
-      [https://github.com/alphamatic/dev_tools/actions/runs/1497955663](https://github.com/alphamatic/dev_tools/actions/runs/1497955663)
+      [https://github.com/causify-ai/cmamp/actions/runs/12738914526](https://github.com/causify-ai/cmamp/actions/runs/12738914526)
   - Provide as much information as possible to give an understanding of the
     problem
   - List all the tests with FAILED status in a GitHub run, e.g.,
@@ -132,26 +132,23 @@ Example:
 - When your time of the Buildmeister duties is over, confirm the rotation with
   the next responsible person in the related Slack channel.
 
-#### `update_amp_submodule` fails
+#### `update_helpers_submodule` fails
 
-- When this happens, the first thing to do is attempt to update the `amp`
+- When this happens, the first thing to do is attempt to update the `helpers`
   pointer manually
 
 - Instructions:
   ```
-  > cd src/dev_tools1
+  > cd src/cmamp1
   > git checkout master
   > git pull --recurse-submodules
-  > cd amp
+  > cd helpers_root
   > git checkout master
   > git pull origin master
   > cd ..
-  > git add "amp"
-  > git commit -m "Update amp pointer"
+  > git add helpers_root
+  > git commit -m "Update helpers pointer"
   ```
-
-- There is also an invoke target `git_roll_amp_forward` that does an equivalent
-  operation
 
 ## Buildmeister dashboard
 

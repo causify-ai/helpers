@@ -116,7 +116,7 @@ def get_env_vars() -> List[str]:
         "CSFY_HOST_VERSION",
         # Whether to check if certain property of the repo are as expected or not.
         "CSFY_REPO_CONFIG_CHECK",
-        # Path to use for `repo_config.py`. E.g., used when running `dev_tools`
+        # Path to use for `repo_config.py`. E.g., used when running `helpers`
         # container to avoid using the `repo_config.py` corresponding to the
         # container launching the linter.
         "CSFY_REPO_CONFIG_PATH",

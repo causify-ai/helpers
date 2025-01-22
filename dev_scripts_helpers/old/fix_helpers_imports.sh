@@ -5,9 +5,6 @@
 #AMP_DIR=/Users/saggese/src/lemonade2/amp
 #SUPER_DIR=/Users/saggese/src/lemonade2
 
-#AMP_DIR=/Users/saggese/src/dev_tools1/amp
-#SUPER_DIR=/Users/saggese/src/dev_tools1
-
 AMP_DIR=/Users/saggese/src/cmamp1
 
 #(cd $SUPER_DIR; git reset --hard)

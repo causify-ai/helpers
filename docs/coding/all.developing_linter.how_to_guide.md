@@ -134,6 +134,9 @@
   - Confirms that the short import length in `import ... as ...` is no longer
     than 8 symbols
 
+- `amp_check_md_reference.py`
+  - Checks if the markdown file is referenced in README.md
+
 - `amp_check_merge_conflict.py`
   - Checks the file for git merge conflict markers (e.g. "<<<<<<< ")
 
