@@ -24,20 +24,20 @@ _LOG = logging.getLogger(__name__)
 
 # Regex to match headers at the start of a line.
 HEADER_REGEX = re.compile(r"^(\s*)(#+)(\s.*)")
+# Define a global variable for the TOC regex.
+TOC_REGEX = re.compile(r"<!--\s*toc\s*-->")
 
 
-def fix_md_headers(
-    lines: List[str], file_name: str
-) -> Tuple[List[str], List[str]]:
+def fix_md_headers(lines: List[str], file_name: str) -> List[str]:
     """
     Fix header levels in the file content.
 
-    Ensure that header levels in the file start at level 1 and do not skip levels.
+    Ensure that header levels in the file start at level 1 and do not
+    skip levels.
 
     :param lines: the lines of the markdown file being linted
     :param file_name: the name of the markdown file being processed
-    :return:
-        - lines with fixed header levels
+    :return: lines with fixed header levels
     """
     fixed_lines = []
     last_header_level = 0
@@ -57,7 +57,7 @@ def fix_md_headers(
                     f"{leading_spaces}{'#' * adjusted_level}{rest_of_line}"
                 )
                 _LOG.info(
-                    "%s, line%s: Adjusted header level from %s to %s.",
+                    "%s, line %s: Adjusted header level from %s to %s.",
                     file_name,
                     idx + 1,
                     match.group(2),
@@ -78,23 +78,26 @@ def verify_toc_position(lines: List[str], file_name: str) -> List[str]:
     besides optional headers.
 
     :param lines: the lines of the markdown file
-    :param file_name: the name of the markdown file being processed
+    :param file_name: the name of the markdown file being linted
     :return: warnings about the incorrect positioning of the TOC
     """
     warnings = []
     # Check for the start TOC markers.
     toc_start_found: bool = False
     for line_num, line in enumerate(lines):
-        # Check for the start and end of TOC markers.
+        # Check for the start of TOC markers.
         stripped_line = line.strip()
-        if not toc_start_found:
-            if stripped_line == "<!--toc-->":
-                break
-            # Ignore empty or whitespace-only lines and header lines before TOC.
-            if stripped_line and not stripped_line.startswith("#"):
-                warnings.append(
-                    f"{file_name}:{line_num} Content found before TOC."
-                )
+        if TOC_REGEX.match(stripped_line):
+            toc_start_found = True
+            # Exit if the TOC is found.
+            break
+        # Ignore empty or whitespace-only lines and header lines before TOC.
+        if stripped_line and not stripped_line.startswith("#"):
+            warnings.append(f"{file_name}:{line_num}: Content found before TOC.")
+    # Return no warnings if the TOC is not found.
+    if not toc_start_found:
+        _LOG.warning("%s: TOC not found. Skipping file check.", file_name)
+        warnings = []
     return warnings
 
 
@@ -102,21 +105,19 @@ def fix_md_toc_headers(file_name: str) -> Tuple[List[str], List[str], List[str]]
     """
     Fix header levels and verify the Table of Contents.
 
-    :param file_name: path to the markdown file being
+    :param file_name: path to the markdown file being linted
     :return:
         - original lines of file
         - lines after fixing headers
-        - combined warning of header and TOC placements
+        - warnings of TOC placements
     """
     # Read file content.
     lines = hio.from_file(file_name).splitlines()
-    warnings: List[str] = []
     # Fix headers.
     fixed_lines = fix_md_headers(lines, file_name)
     # Verify TOC.
     toc_warnings = verify_toc_position(fixed_lines, file_name)
-    warnings.extend(toc_warnings)
-    return lines, fixed_lines, warnings
+    return lines, fixed_lines, toc_warnings
 
 
 # #############################################################################
