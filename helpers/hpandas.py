@@ -2501,7 +2501,7 @@ def filter_df(df: pd.DataFrame, col_name: str, value: Any, *,
 
 def to_perc(vals: Union[List, pd.Series], **perc_kwargs: Dict[str, Any]) -> str:
     """
-    Convert values to percentages.
+    Report percentage of True for a list / series.
     """
     if isinstance(vals, list):
         vals = pd.Series(vals)
