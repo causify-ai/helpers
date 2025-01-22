@@ -77,6 +77,7 @@ class _Mypy(liaction.Action):
         """
         cmd = "find -name 'mypy.ini'"
         _, path = hsystem.system_to_string(cmd)
+        # Pick the one closer to the current dir.
         path = sorted(path.split("\n"))
         path = path[0]
         hdbg.dassert_path_exists(path)
