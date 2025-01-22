@@ -43,117 +43,121 @@ https://c4model.com/.
 
 ## System context diagram
 
-# ```plantuml
-# @startuml
-# title System Context Diagram
-# 
-# skinparam defaultTextAlignment center
-# skinparam component {
-#     backgroundcolor<<main>> RoyalBlue
-#     FontColor<<main>> white
-# }
-# 
-# component imaster <<main>> [
-# **Instrument Master**
-# 
-# Implements an ETL pipeline that fetches stock data from
-# different vendors, and provides stock data & metadata
-# in standardized formats.
-# ]
-# 
-# component vendors [
-# **Stock Data Vendors**
-# 
-# i.e: Kibot, Eoddata, ...
-# ]
-# 
-# component models [
-# **Data Analysis Models**
-# 
-# ML Models that process the structured data from instrument
-# master and produce insights.
-# ]
-# 
-# imaster -up-> vendors: fetches raw data from
-# imaster <-- models: fetches processed data from
-# @enduml
-# ```
+
+[//]: # ( ```plantuml)
+[//]: # ( @startuml)
+[//]: # ( title System Context Diagram)
+[//]: # ( )
+[//]: # ( skinparam defaultTextAlignment center)
+[//]: # ( skinparam component {)
+[//]: # (     backgroundcolor<<main>> RoyalBlue)
+[//]: # (     FontColor<<main>> white)
+[//]: # ( })
+[//]: # ( )
+[//]: # ( component imaster <<main>> [)
+[//]: # ( **Instrument Master**)
+[//]: # ( )
+[//]: # ( Implements an ETL pipeline that fetches stock data from)
+[//]: # ( different vendors, and provides stock data & metadata)
+[//]: # ( in standardized formats.)
+[//]: # ( ])
+[//]: # ( )
+[//]: # ( component vendors [)
+[//]: # ( **Stock Data Vendors**)
+[//]: # ( )
+[//]: # ( i.e: Kibot, Eoddata, ...)
+[//]: # ( ])
+[//]: # ( )
+[//]: # ( component models [)
+[//]: # ( **Data Analysis Models**)
+[//]: # ( )
+[//]: # ( ML Models that process the structured data from instrument)
+[//]: # ( master and produce insights.)
+[//]: # ( ])
+[//]: # ( )
+[//]: # ( imaster -up-> vendors: fetches raw data from)
+[//]: # ( imaster <-- models: fetches processed data from)
+[//]: # ( @enduml)
+[//]: # ( ```)
+
 ![](figs/im_architecture.1.png)
 
 ## Container Diagram
 
-# ```plantuml
-# @startuml
-# title Container Diagram
-# 
-# skinparam defaultTextAlignment center
-# 
-# package "Instrument Master" {
-#    package "Vendor ETL Pipeline" {
-#       component vextractor [
-#       **Vendor Extractor**
-# 
-#       Extracts data from the vendor
-#       (one for each vendor)
-#       ]
-# 
-#       component vtransformer [
-#       **Vendor Transformer**
-# 
-#       Transforms csv data into standardized pq format
-#       (one for each vendor)
-#       ]
-# 
-#       component vloader [
-#       **Vendor Loader**
-# 
-#       Loads data from standardized pq format
-#       - can perform light transformation
-#       ]
-# 
-#    }
-# 
-#     component loader [
-#     **Loader**
-# 
-#     Loads data from standardized pq format
-#     (not vendor specific)
-#     ]
-# 
-#     database objstore [
-#     **Object Store**
-# 
-#     local file system or s3
-#     ]
-# 
-#     vextractor -down-> objstore: sends extracted data
-#     vtransformer <-right-> objstore: reads extracted data\lwrite transofrmed data
-#     vloader -up-> objstore: read transoformed data
-#     loader -up-> vloader: read standardized (parquet) data
-# 
-#     ' styling
-#     vextractor -[hidden]down- vtransformer
-#     vtransformer -[hidden]down- vloader
-# 
-# }
-# 
-# component vendors [
-# Stock Data Vendors
-# 
-# i.e: Kibot, Eoddata, ...
-# ]
-# 
-# component models [
-# Data analysis models
-# 
-# ML Models that process the structured data from instrument
-# master and produce insights.
-# ]
-# 
-# vendors <-- vextractor: fetches data from
-# loader <-up- models: fetches data from
-# @enduml
-# ```
+
+[//]: # ( ```plantuml)
+[//]: # ( @startuml)
+[//]: # ( title Container Diagram)
+[//]: # ( )
+[//]: # ( skinparam defaultTextAlignment center)
+[//]: # ( )
+[//]: # ( package "Instrument Master" {)
+[//]: # (    package "Vendor ETL Pipeline" {)
+[//]: # (       component vextractor [)
+[//]: # (       **Vendor Extractor**)
+[//]: # ( )
+[//]: # (       Extracts data from the vendor)
+[//]: # (       (one for each vendor))
+[//]: # (       ])
+[//]: # ( )
+[//]: # (       component vtransformer [)
+[//]: # (       **Vendor Transformer**)
+[//]: # ( )
+[//]: # (       Transforms csv data into standardized pq format)
+[//]: # (       (one for each vendor))
+[//]: # (       ])
+[//]: # ( )
+[//]: # (       component vloader [)
+[//]: # (       **Vendor Loader**)
+[//]: # ( )
+[//]: # (       Loads data from standardized pq format)
+[//]: # (       - can perform light transformation)
+[//]: # (       ])
+[//]: # ( )
+[//]: # (    })
+[//]: # ( )
+[//]: # (     component loader [)
+[//]: # (     **Loader**)
+[//]: # ( )
+[//]: # (     Loads data from standardized pq format)
+[//]: # (     (not vendor specific))
+[//]: # (     ])
+[//]: # ( )
+[//]: # (     database objstore [)
+[//]: # (     **Object Store**)
+[//]: # ( )
+[//]: # (     local file system or s3)
+[//]: # (     ])
+[//]: # ( )
+[//]: # (     vextractor -down-> objstore: sends extracted data)
+[//]: # (     vtransformer <-right-> objstore: reads extracted data\lwrite transofrmed data)
+[//]: # (     vloader -up-> objstore: read transoformed data)
+[//]: # (     loader -up-> vloader: read standardized (parquet) data)
+[//]: # ( )
+[//]: # (     ' styling)
+[//]: # (     vextractor -[hidden]down- vtransformer)
+[//]: # (     vtransformer -[hidden]down- vloader)
+[//]: # ( )
+[//]: # ( })
+[//]: # ( )
+[//]: # ( component vendors [)
+[//]: # ( Stock Data Vendors)
+[//]: # ( )
+[//]: # ( i.e: Kibot, Eoddata, ...)
+[//]: # ( ])
+[//]: # ( )
+[//]: # ( component models [)
+[//]: # ( Data analysis models)
+[//]: # ( )
+[//]: # ( ML Models that process the structured data from instrument)
+[//]: # ( master and produce insights.)
+[//]: # ( ])
+[//]: # ( )
+[//]: # ( vendors <-- vextractor: fetches data from)
+[//]: # ( loader <-up- models: fetches data from)
+[//]: # ( @enduml)
+[//]: # ( ```)
+
 ![](figs/im_architecture.2.png)
 
 ### Questions
@@ -185,108 +189,110 @@ single step.
 
 # Data Model
 
-# ```plantuml
-# title Data Model
-# 
-# hide enum methods
-# hide class methods
-# 
-# namespace base {
-#    enum AssetClass {
-#       Futures
-#       Stocks
-#       ETFs
-#    }
-# 
-#    class Exchange {
-#       Name: str
-#    }
-# 
-#    class Symbol {
-#       Code: str
-#       Description: str
-#       AssetClass: AssetClass
-#       Start_date: date
-#       SymbolBase: str
-#    }
-# 
-#    class TradedSymbol {
-#       symbol: Symbol
-#       exchange: Exchange
-#    }
-# 
-#    Symbol -up-> AssetClass: A symbol has\lan asset class
-#    Symbol -up-> TradedSymbol: A symbol can be traded\lin multiple exchanges
-#    Exchange -down-> TradedSymbol: An exchange contains\lmultiple symbols
-# }
-# 
-# namespace data {
-#    class MinuteData {
-#       traded_symbol: TradedSymbol
-#       datetime: datetime
-#       Open: float
-#       High: float
-#       Low: float
-#       Close: float
-#       Volume: int
-#    }
-# 
-#    class TickData {
-#       traded_symbol: TradedSymbol
-#       datetime: datetime
-#       Bid: float
-#       Ask: float
-#       Volume: int
-#    }
-# 
-#    MinuteData -left-> base.TradedSymbol
-#    TickData -left-> base.TradedSymbol
-# 
-# }
-# 
-# namespace metadata {
-#    class SymbolChange {
-#       old_symbol: Symbol
-#       new_symbol: Symbol
-#       datetime: datetime
-#    }
-# 
-#    class TickBidAskContractMetaData {
-#       traded_symbol: TradedSymbol
-#       start_date: date
-#       size: float
-#       Description: str
-#    }
-# 
-#    class MarketSession {
-#       Type: str
-#       Start_time: time
-#       End_time: time
-#       traded_symbol: TradedSymbol
-#    }
-# 
-#    SymbolChange -up-> base.Symbol
-#    TickBidAskContractMetaData -up-> base.TradedSymbol
-#    MarketSession -up-> base.TradedSymbol
-# }
-# 
-# namespace generated {
-#    class AggregateTickData {
-#       traded_symbol: TradedSymbol
-#       data: date
-#       bid_open: float
-#       bid_high: float
-#       bid_low: float
-#       bid_close: float
-#       ask_open: float
-#       ask_high: float
-#       ask_low: float
-#       ask_close: float
-#    }
-# 
-#    AggregateTickData -left-> data.TickData
-# }
-# ```
+
+[//]: # ( ```plantuml)
+[//]: # ( title Data Model)
+[//]: # ( )
+[//]: # ( hide enum methods)
+[//]: # ( hide class methods)
+[//]: # ( )
+[//]: # ( namespace base {)
+[//]: # (    enum AssetClass {)
+[//]: # (       Futures)
+[//]: # (       Stocks)
+[//]: # (       ETFs)
+[//]: # (    })
+[//]: # ( )
+[//]: # (    class Exchange {)
+[//]: # (       Name: str)
+[//]: # (    })
+[//]: # ( )
+[//]: # (    class Symbol {)
+[//]: # (       Code: str)
+[//]: # (       Description: str)
+[//]: # (       AssetClass: AssetClass)
+[//]: # (       Start_date: date)
+[//]: # (       SymbolBase: str)
+[//]: # (    })
+[//]: # ( )
+[//]: # (    class TradedSymbol {)
+[//]: # (       symbol: Symbol)
+[//]: # (       exchange: Exchange)
+[//]: # (    })
+[//]: # ( )
+[//]: # (    Symbol -up-> AssetClass: A symbol has\lan asset class)
+[//]: # (    Symbol -up-> TradedSymbol: A symbol can be traded\lin multiple exchanges)
+[//]: # (    Exchange -down-> TradedSymbol: An exchange contains\lmultiple symbols)
+[//]: # ( })
+[//]: # ( )
+[//]: # ( namespace data {)
+[//]: # (    class MinuteData {)
+[//]: # (       traded_symbol: TradedSymbol)
+[//]: # (       datetime: datetime)
+[//]: # (       Open: float)
+[//]: # (       High: float)
+[//]: # (       Low: float)
+[//]: # (       Close: float)
+[//]: # (       Volume: int)
+[//]: # (    })
+[//]: # ( )
+[//]: # (    class TickData {)
+[//]: # (       traded_symbol: TradedSymbol)
+[//]: # (       datetime: datetime)
+[//]: # (       Bid: float)
+[//]: # (       Ask: float)
+[//]: # (       Volume: int)
+[//]: # (    })
+[//]: # ( )
+[//]: # (    MinuteData -left-> base.TradedSymbol)
+[//]: # (    TickData -left-> base.TradedSymbol)
+[//]: # ( )
+[//]: # ( })
+[//]: # ( )
+[//]: # ( namespace metadata {)
+[//]: # (    class SymbolChange {)
+[//]: # (       old_symbol: Symbol)
+[//]: # (       new_symbol: Symbol)
+[//]: # (       datetime: datetime)
+[//]: # (    })
+[//]: # ( )
+[//]: # (    class TickBidAskContractMetaData {)
+[//]: # (       traded_symbol: TradedSymbol)
+[//]: # (       start_date: date)
+[//]: # (       size: float)
+[//]: # (       Description: str)
+[//]: # (    })
+[//]: # ( )
+[//]: # (    class MarketSession {)
+[//]: # (       Type: str)
+[//]: # (       Start_time: time)
+[//]: # (       End_time: time)
+[//]: # (       traded_symbol: TradedSymbol)
+[//]: # (    })
+[//]: # ( )
+[//]: # (    SymbolChange -up-> base.Symbol)
+[//]: # (    TickBidAskContractMetaData -up-> base.TradedSymbol)
+[//]: # (    MarketSession -up-> base.TradedSymbol)
+[//]: # ( })
+[//]: # ( )
+[//]: # ( namespace generated {)
+[//]: # (    class AggregateTickData {)
+[//]: # (       traded_symbol: TradedSymbol)
+[//]: # (       data: date)
+[//]: # (       bid_open: float)
+[//]: # (       bid_high: float)
+[//]: # (       bid_low: float)
+[//]: # (       bid_close: float)
+[//]: # (       ask_open: float)
+[//]: # (       ask_high: float)
+[//]: # (       ask_low: float)
+[//]: # (       ask_close: float)
+[//]: # (    })
+[//]: # ( )
+[//]: # (    AggregateTickData -left-> data.TickData)
+[//]: # ( })
+[//]: # ( ```)
+
 ![](figs/im_architecture.3.png)
 
 ## Notes
