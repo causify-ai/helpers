@@ -30,20 +30,29 @@ if "_CACHE" not in globals():
 
 if "_CACHE_PERF" not in globals():
     _LOG.debug("Creating _CACHE_PERF")
+    # func_name -> perf properties.
+    # perf properties: tot, hits, misses.
     _CACHE_PERF = {}
 
 
 def enable_cache_perf(func_name: str) -> None:
-    global _CACHE_PERF
+    """
+    Enable cache performance statistics for a given function.
+    """
     _CACHE_PERF[func_name] = {"tot": 0, "hits": 0, "misses": 0}
 
 
 def disable_cache_perf(func_name: str) -> None:
+    """
+    Disable cache performance statistics for a given function.
+    """
     _CACHE_PERF[func_name] = None
 
 
 def get_cache_perf(func_name: str) -> Union[Dict, None]:
-    global _CACHE_PERF
+    """
+    Get the cache performance object for a given function.
+    """
     if func_name in _CACHE_PERF:
         return _CACHE_PERF[func_name]
     return None
@@ -87,7 +96,7 @@ def get_cache_property_file(type_: str) -> str:
     elif type_ == "system":
         val = "cache_property.system.pkl"
     else:
-        raise ValueError("Invalid type '%s'" % type_)
+        raise ValueError(f"Invalid type '{type_}'")
     return val
 
 
@@ -100,6 +109,7 @@ def _get_initial_cache_property(type_: str) -> _CacheType:
     else:
         # func_name -> key -> value properties.
         val = {}
+    val = cast(_CacheType, val)
     return val
 
 
@@ -148,7 +158,7 @@ def _get_cache_property(type_: str) -> Dict[str, Any]:
 
 
 def set_cache_property(
-    type_: str, func_name: str, property_name: str, val: bool
+    type_: str, func_name: str, property_name: str, val: Any
 ) -> None:
     """
     Set a property for the cache of a given function name.
@@ -207,6 +217,7 @@ def cache_property_to_str(type_: str, func_name: str = "") -> str:
     """
     Convert cache properties to a string representation.
 
+    :param type_: The type of cache properties to convert ('user' or 'system').
     :param func_name: The name of the function whose cache properties are to be
         converted.
     :returns: A string representation of the cache properties.
@@ -363,25 +374,25 @@ def get_cache_func_names(type_: str) -> List[str]:
     return val
 
 
-def get_mem_cache(func_name: str) -> Dict[str, Any]:
+def get_mem_cache(func_name: str) -> _CacheType:
     mem_cache = _CACHE.get(func_name, {})
     return mem_cache
 
 
-def get_cache(func_name: str) -> Dict:
+def get_cache(func_name: str) -> _CacheType:
     """
     Retrieve the cache for a given function name.
 
     :param func_name: The name of the function whose cache is to be retrieved.
     :return: A dictionary containing the cache data.
     """
+    global _CACHE
     if func_name in _CACHE:
         _LOG.debug("Loading mem cache for '%s'", func_name)
         cache = get_mem_cache(func_name)
     else:
         _LOG.debug("Loading disk cache for '%s'", func_name)
         cache = get_disk_cache(func_name)
-        global _CACHE
         _CACHE[func_name] = cache
     return cache
 
@@ -434,11 +445,10 @@ def cache_stats_to_str(func_name: str = "") -> pd.DataFrame:
 
 
 def reset_mem_cache(func_name: str = "") -> None:
-    global _CACHE
     if func_name == "":
         _LOG.info("Before:\n%s", cache_stats_to_str())
-        for func_name in get_cache_func_names("all"):
-            reset_mem_cache(func_name)
+        for func_name_tmp in get_cache_func_names("all"):
+            reset_mem_cache(func_name_tmp)
         _LOG.info("After:\n%s", cache_stats_to_str())
         return
     _CACHE[func_name] = {}
@@ -448,7 +458,7 @@ def reset_mem_cache(func_name: str = "") -> None:
 def reset_disk_cache(func_name: str = "") -> None:
     assert 0
     if func_name == "":
-        cache_files = glob.glob(f"cache.*")
+        cache_files = glob.glob("cache.*")
         for file_name in cache_files:
             os.remove(file_name)
         return
