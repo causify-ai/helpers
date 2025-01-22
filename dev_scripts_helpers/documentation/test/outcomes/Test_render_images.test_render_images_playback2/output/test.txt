@@ -89,30 +89,32 @@
   `invoke` workflows)
 - Git repos can include `//helpers` and other ones as sub-repos
 
-# ```mermaid
-# graph TD
-#   runnable_repo[runnable repo 1]
-#   runnable_repo_2[runnable repo 2]
-#   runnable_repo_3[runnable repo 3]
-# 
-#   runnable_repo --> helpers_sub_repo_1[helpers sub-repo]
-#   runnable_repo --> others[...]
-# 
-#   runnable_repo_2 --> helpers_sub_repo_2[helpers sub-repo]
-#   runnable_repo_2 --> others_2[...]
-# 
-#   runnable_repo_3 --> helpers_sub_repo_3[helpers sub-repo]
-#   runnable_repo_3 --> others_3[...]
-# 
-#   helper_repo[helper repo]
-#   helpers_sub_repo_1 -.-> helper_repo
-#   helpers_sub_repo_2 -.-> helper_repo
-#   helpers_sub_repo_3 -.-> helper_repo
-# 
-#   style helpers_sub_repo_1 fill:transparent, stroke-dasharray: 5 5
-#   style helpers_sub_repo_2 fill:transparent, stroke-dasharray: 5 5
-#   style helpers_sub_repo_3 fill:transparent, stroke-dasharray: 5 5
-# ```
+
+[//]: # ( ```mermaid)
+[//]: # ( graph TD)
+[//]: # (   runnable_repo[runnable repo 1])
+[//]: # (   runnable_repo_2[runnable repo 2])
+[//]: # (   runnable_repo_3[runnable repo 3])
+[//]: # ( )
+[//]: # (   runnable_repo --> helpers_sub_repo_1[helpers sub-repo])
+[//]: # (   runnable_repo --> others[...])
+[//]: # ( )
+[//]: # (   runnable_repo_2 --> helpers_sub_repo_2[helpers sub-repo])
+[//]: # (   runnable_repo_2 --> others_2[...])
+[//]: # ( )
+[//]: # (   runnable_repo_3 --> helpers_sub_repo_3[helpers sub-repo])
+[//]: # (   runnable_repo_3 --> others_3[...])
+[//]: # ( )
+[//]: # (   helper_repo[helper repo])
+[//]: # (   helpers_sub_repo_1 -.-> helper_repo)
+[//]: # (   helpers_sub_repo_2 -.-> helper_repo)
+[//]: # (   helpers_sub_repo_3 -.-> helper_repo)
+[//]: # ( )
+[//]: # (   style helpers_sub_repo_1 fill:transparent, stroke-dasharray: 5 5)
+[//]: # (   style helpers_sub_repo_2 fill:transparent, stroke-dasharray: 5 5)
+[//]: # (   style helpers_sub_repo_3 fill:transparent, stroke-dasharray: 5 5)
+[//]: # ( ```)
+
 ![](figs/runnable_repo.1.png)
 
 ## Runnable dir
@@ -123,22 +125,24 @@
 - The code in a runnable directory or in the main repo requires a container that
   is built using the code in the corresponding `devops` dir
 
-# ```mermaid
-# graph TD
-#   runnable_repo[runnable repo]
-#   runnable_repo --> helpers_sub_repo[helpers sub-repo]
-#   runnable_repo --> devops[devops]
-#   runnable_repo --> runnable_dir_1[runnable dir 1]
-#   runnable_repo --> runnable_dir_2[runnable dir 2]
-#   runnable_repo --> runnable_dir_n[runnable dir n]
-#   runnable_repo --> others[...]
-# 
-#   runnable_dir_1 --> runnable_dir_1_devops[devops]
-#   runnable_dir_2 --> runnable_dir_2_devops[devops]
-#   runnable_dir_n --> runnable_dir_3_devops[devops]
-# 
-#   style helpers_sub_repo fill:transparent, stroke-dasharray: 5 5
-# ```
+
+[//]: # ( ```mermaid)
+[//]: # ( graph TD)
+[//]: # (   runnable_repo[runnable repo])
+[//]: # (   runnable_repo --> helpers_sub_repo[helpers sub-repo])
+[//]: # (   runnable_repo --> devops[devops])
+[//]: # (   runnable_repo --> runnable_dir_1[runnable dir 1])
+[//]: # (   runnable_repo --> runnable_dir_2[runnable dir 2])
+[//]: # (   runnable_repo --> runnable_dir_n[runnable dir n])
+[//]: # (   runnable_repo --> others[...])
+[//]: # ( )
+[//]: # (   runnable_dir_1 --> runnable_dir_1_devops[devops])
+[//]: # (   runnable_dir_2 --> runnable_dir_2_devops[devops])
+[//]: # (   runnable_dir_n --> runnable_dir_3_devops[devops])
+[//]: # ( )
+[//]: # (   style helpers_sub_repo fill:transparent, stroke-dasharray: 5 5)
+[//]: # ( ```)
+
 ![](figs/runnable_repo.2.png)
 
 ## Thin environment
@@ -151,35 +155,37 @@
 - A setenv script is used to configure a shell outside and inside a Docker
   container
 
-# ```mermaid
-# graph TD
-#   thin_env[thin environment]
-# 
-#   subgraph repo_1["runnable repo 1"]
-#     runnable_repo_1[runnable repo 1]
-#     runnable_repo_1 --> dev_scripts_repo1[dev_scripts_repo1]
-#     runnable_repo_1 --> others[...]
-#     runnable_repo_1 --> repo_1_runnable_dir
-#     subgraph repo_1_runnable_dir["runnable dir"]
-#       repo_1_runnable_dirs[...]
-#     end
-#   end
-# 
-#   subgraph repo_2["runnable repo 2"]
-#     runnable_repo_2[runnable repo 2]
-#     runnable_repo_2 --> dev_scripts_repo2[dev_scripts_repo2]
-#     runnable_repo_2 --> others_2[...]
-#     runnable_repo_2 --> repo_2_runnable_dir
-#     subgraph repo_2_runnable_dir["runnable dir"]
-#       repo_2_runnable_dirs[...]
-#     end
-#   end
-# 
-#   repo_1 -.-> thin_env
-#   repo_1_runnable_dir -.-> thin_env
-#   repo_2 -.-> thin_env
-#   repo_2_runnable_dir -.-> thin_env
-# ```
+
+[//]: # ( ```mermaid)
+[//]: # ( graph TD)
+[//]: # (   thin_env[thin environment])
+[//]: # ( )
+[//]: # (   subgraph repo_1["runnable repo 1"])
+[//]: # (     runnable_repo_1[runnable repo 1])
+[//]: # (     runnable_repo_1 --> dev_scripts_repo1[dev_scripts_repo1])
+[//]: # (     runnable_repo_1 --> others[...])
+[//]: # (     runnable_repo_1 --> repo_1_runnable_dir)
+[//]: # (     subgraph repo_1_runnable_dir["runnable dir"])
+[//]: # (       repo_1_runnable_dirs[...])
+[//]: # (     end)
+[//]: # (   end)
+[//]: # ( )
+[//]: # (   subgraph repo_2["runnable repo 2"])
+[//]: # (     runnable_repo_2[runnable repo 2])
+[//]: # (     runnable_repo_2 --> dev_scripts_repo2[dev_scripts_repo2])
+[//]: # (     runnable_repo_2 --> others_2[...])
+[//]: # (     runnable_repo_2 --> repo_2_runnable_dir)
+[//]: # (     subgraph repo_2_runnable_dir["runnable dir"])
+[//]: # (       repo_2_runnable_dirs[...])
+[//]: # (     end)
+[//]: # (   end)
+[//]: # ( )
+[//]: # (   repo_1 -.-> thin_env)
+[//]: # (   repo_1_runnable_dir -.-> thin_env)
+[//]: # (   repo_2 -.-> thin_env)
+[//]: # (   repo_2_runnable_dir -.-> thin_env)
+[//]: # ( ```)
+
 ![](figs/runnable_repo.3.png)
 
 ## Building a Docker container
@@ -216,22 +222,24 @@
 - For a runnable dir, the needed container is the one built in that specific
   directory
 
-# ```mermaid
-# graph LR
-#   start((start))
-#   start --> container
-#   subgraph container[container]
-#     direction LR
-#     pytest((pytest))
-#     pytest --> dir_1[dir 1]
-#     dir_1 --> dir_1a[dir 1a]
-#     dir_1a --> dir_1a_others[...]
-#     dir_1 --> dir_1b[dir 1b]
-#     dir_1 --> dir_1_others[...]
-#     pytest --> dir_2[dir 2]
-#     pytest --> dir_others[...]
-#   end
-# ```
+
+[//]: # ( ```mermaid)
+[//]: # ( graph LR)
+[//]: # (   start((start)))
+[//]: # (   start --> container)
+[//]: # (   subgraph container[container])
+[//]: # (     direction LR)
+[//]: # (     pytest((pytest)))
+[//]: # (     pytest --> dir_1[dir 1])
+[//]: # (     dir_1 --> dir_1a[dir 1a])
+[//]: # (     dir_1a --> dir_1a_others[...])
+[//]: # (     dir_1 --> dir_1b[dir 1b])
+[//]: # (     dir_1 --> dir_1_others[...])
+[//]: # (     pytest --> dir_2[dir 2])
+[//]: # (     pytest --> dir_others[...])
+[//]: # (   end)
+[//]: # ( ```)
+
 ![](figs/runnable_repo.4.png)
 
 ## Recursive pytest
@@ -249,52 +257,56 @@
      (cd container; i docker_cmd --cmd pytest)
   ```
 
-# ```mermaid
-# graph LR
-#     start((start))
-#     start --> container_1
-#     start --> container_2
-#     start --> container_3
-#     start --> container_n
-#     subgraph container_1[container 1]
-#         direction LR
-#         pytest_1((pytest)) --> runnable_dir1[runnable dir 1]
-#     end
-#     subgraph container_2[container 2]
-#         direction LR
-#         pytest_2((pytest)) --> runnable_dir2[runnable dir 2]
-#     end
-#     subgraph container_3[container 3]
-#         direction LR
-#         pytest_3((pytest)) --> runnable_dir3[runnable dir 3]
-#     end
-#     subgraph container_n[container n]
-#         direction LR
-#         pytest_n((pytest)) --> runnable_dir_n[runnable dir n]
-#     end
-# ```
+
+[//]: # ( ```mermaid)
+[//]: # ( graph LR)
+[//]: # (     start((start)))
+[//]: # (     start --> container_1)
+[//]: # (     start --> container_2)
+[//]: # (     start --> container_3)
+[//]: # (     start --> container_n)
+[//]: # (     subgraph container_1[container 1])
+[//]: # (         direction LR)
+[//]: # (         pytest_1((pytest)) --> runnable_dir1[runnable dir 1])
+[//]: # (     end)
+[//]: # (     subgraph container_2[container 2])
+[//]: # (         direction LR)
+[//]: # (         pytest_2((pytest)) --> runnable_dir2[runnable dir 2])
+[//]: # (     end)
+[//]: # (     subgraph container_3[container 3])
+[//]: # (         direction LR)
+[//]: # (         pytest_3((pytest)) --> runnable_dir3[runnable dir 3])
+[//]: # (     end)
+[//]: # (     subgraph container_n[container n])
+[//]: # (         direction LR)
+[//]: # (         pytest_n((pytest)) --> runnable_dir_n[runnable dir n])
+[//]: # (     end)
+[//]: # ( ```)
+
 ![](figs/runnable_repo.5.png)
 
 ## Support for docker-in-docker and sibling-containers
 
-# ```mermaid
-# graph TD
-#     host[Host]
-#     docker_engine[docker engine]
-#     subgraph sibling_container["sibling containers"]
-#         container_1[container 1]
-#         container_2[container 2]
-#     end
-#     subgraph children_container["children containers"]
-#         container_1a[container 1a]
-#         container_1b[container 1b]
-#     end
-#     host --> docker_engine
-#     docker_engine --> container_1
-#     docker_engine --> container_2
-#     container_1 --> container_1a
-#     container_1 --> container_1b
-# ```
+
+[//]: # ( ```mermaid)
+[//]: # ( graph TD)
+[//]: # (     host[Host])
+[//]: # (     docker_engine[docker engine])
+[//]: # (     subgraph sibling_container["sibling containers"])
+[//]: # (         container_1[container 1])
+[//]: # (         container_2[container 2])
+[//]: # (     end)
+[//]: # (     subgraph children_container["children containers"])
+[//]: # (         container_1a[container 1a])
+[//]: # (         container_1b[container 1b])
+[//]: # (     end)
+[//]: # (     host --> docker_engine)
+[//]: # (     docker_engine --> container_1)
+[//]: # (     docker_engine --> container_2)
+[//]: # (     container_1 --> container_1a)
+[//]: # (     container_1 --> container_1b)
+[//]: # ( ```)
+
 ![](figs/runnable_repo.6.png)
 
 # Examples

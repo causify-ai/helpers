@@ -1,6 +1,8 @@
-# ```plantuml
-# @startuml
-# Alice --> Bob
-# @enduml
-# ```
+
+[//]: # ( ```plantuml)
+[//]: # ( @startuml)
+[//]: # ( Alice --> Bob)
+[//]: # ( @enduml)
+[//]: # ( ```)
+
 ![](figs/out.1.png)
