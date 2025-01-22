@@ -77,21 +77,23 @@ class _Mypy(liaction.Action):
         """
         cmd = "find -name 'mypy.ini'"
         _, path = hsystem.system_to_string(cmd)
+        # Pick the one closer to the current dir.
+        path = sorted(path.split("\n"))
+        path = path[0]
         hdbg.dassert_path_exists(path)
         return path
 
     def _execute(self, file_name: str, pedantic: int) -> List[str]:
         _ = pedantic
-        # Applicable to only python files, that are not paired with notebooks.
+        # Applicable to only python files that are not paired with notebooks.
         if not liutils.is_py_file(file_name) or liutils.is_paired_jupytext_file(
             file_name
         ):
             _LOG.debug("Skipping file_name='%s'", file_name)
             return []
         # TODO(gp): Convert all these idioms into arrays and joins.
-        cmd = (
-            f"{self._executable} --config-file {self._config_path()} {file_name}"
-        )
+        config_path = self._config_path()
+        cmd = f"{self._executable} --config-file {config_path} {file_name}"
         _, output = liutils.tee(
             cmd,
             self._executable,
