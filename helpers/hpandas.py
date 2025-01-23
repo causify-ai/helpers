@@ -2497,3 +2497,13 @@ def filter_df(df: pd.DataFrame, col_name: str, value: Any, *,
     if print_info:
         _LOG.info("selected=%s", hprint.perc(mask.sum(), df.shape[0]))
     return df[mask]
+
+
+def to_perc(vals: Union[List, pd.Series], **perc_kwargs: Dict[str, Any]) -> str:
+    """
+    Report percentage of True for a list / series.
+    """
+    if isinstance(vals, list):
+        vals = pd.Series(vals)
+    ret = hprint.perc(vals.sum(), len(vals), **perc_kwargs)
+    return ret

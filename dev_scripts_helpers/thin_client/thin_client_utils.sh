@@ -332,3 +332,32 @@ set_up_docker_aws() {
     fi;
     aws configure --profile am list || true
 }
+
+# #############################################################################
+# Symlink utils.
+# #############################################################################
+
+set_symlink_permissions() {
+    # Remove write permissions for symlinked files to prevent accidental
+    # modifications before starting to develop.
+    echo "# set_symlink_permissions()"
+    local directory="$1"
+
+    # Check if the given directory is valid.
+    if [ ! -d "$directory" ]; then
+        echo -e "${ERROR}: '$directory' is not a valid directory."
+        return 1
+    fi
+
+    # Find all symlinks in the directory and remove write permissions.
+    find "$directory" -type l | while read -r symlink; do
+        if [ -e "$symlink" ]; then
+            chmod a-w "$symlink"
+            echo -e "${INFO}:Remove write permissions for: '$symlink'"
+        else
+            echo -e "${WARNING}: Skipping broken symlink: '$symlink'"
+        fi
+    done
+
+    return 0
+}

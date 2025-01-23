@@ -11,7 +11,6 @@ $GIT_ROOT/linters/test/outcomes/Test_linter_py1.test_linter2/tmp.scratch/input.p
 linters/test/outcomes/Test_linter_py1.test_linter2/tmp.scratch/input.py:{LINE_NUM}: [E0602(undefined-variable), ] Undefined variable 're' [pylint]
 linters/test/outcomes/Test_linter_py1.test_linter2/tmp.scratch/input.py:{LINE_NUM}: [W1401(anomalous-backslash-in-string), ] Anomalous backslash in string: '\s'. String constant might be missing an r prefix. [pylint]
 linters/test/outcomes/Test_linter_py1.test_linter2/tmp.scratch/input.py:{LINE_NUM}: error: Name "re" is not defined  [name-defined] [mypy]
-linters/test/outcomes/Test_linter_py1.test_linter2/tmp.scratch/input.py:{LINE_NUM}: error: Explicit "Any" is not allowed  [misc] [mypy]
 linters/test/outcomes/Test_linter_py1.test_linter2/tmp.scratch/input.py:{LINE_NUM}: [W0404(reimported), func] Reimport 'helpers.hcache' (imported line 7) [pylint]
 linters/test/outcomes/Test_linter_py1.test_linter2/tmp.scratch/input.py:{LINE_NUM}: [W0621(redefined-outer-name), func] Redefining name 'hcache' from outer scope (line 7) [pylint]
 linters/test/outcomes/Test_linter_py1.test_linter2/tmp.scratch/input.py:{LINE_NUM}: [C0209(consider-using-f-string), func] Formatting a regular string which could be an f-string [pylint]
