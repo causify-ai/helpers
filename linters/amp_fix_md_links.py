@@ -122,10 +122,7 @@ def _check_md_link_format(
     return updated_line, warnings
 
 
-def _check_file_path_format(
-    file_path: str,
-    line: str,
-) -> str:
+def _check_file_path_format(file_path: str, line: str) -> str:
     """
     Convert the file path into a link in a correct format.
 
@@ -287,10 +284,7 @@ def fix_links(file_name: str) -> Tuple[List[str], List[str], List[str]]:
             if re.match(r"\.[a-zA-Z]", file_path):
                 # Skip if the path is to a hidden file.
                 continue
-            updated_line = _check_file_path_format(
-                file_path,
-                updated_line,
-            )
+            updated_line = _check_file_path_format(file_path, updated_line)
         # Figure pointers.
         fig_pointer_matches = re.findall(
             FIG_REGEX_1 + "|" + FIG_REGEX_2, updated_line
