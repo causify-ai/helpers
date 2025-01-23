@@ -323,7 +323,7 @@ Last review: GP on 2024-05-13
   - So it's easy to find which file is tested were using grep
 - Then split when it becomes too big using `test_$FILENAME.py`
 
-#### Skeleton for unit test
+## Skeleton for unit test
 
 - Interesting unit tests are in `helpers/test`
 - A unit test looks like:
@@ -339,7 +339,7 @@ Last review: GP on 2024-05-13
   unittest.main()
   ```
 
-#### Hierarchical `TestCase` approach
+### Hierarchical `TestCase` approach
 
 - Whenever there is a hierarchy in classes, we also create a hierarchy of test
   classes
@@ -380,14 +380,14 @@ Last review: GP on 2024-05-13
 - As an example, see `im_v2/common/data/client/test/im_client_test_case.py` and
   `im_v2/ccxt/data/client/test/test_ccxt_clients.py`
 
-#### Use the appropriate `self.assert*`
+## Use the appropriate `self.assert*`
 
 - When you get a failure, you don't want to get something like "True is not
   False", rather an informative message like "5 is not < 4"
 - Bad `self.assertTrue(a < b)`
 - Good `self.assertLess(a, b)`
 
-#### Do not use `hdbg.dassert` in testing
+### Do not use `hdbg.dassert` in testing
 
 - `dassert`s are for checking the self-consistency of the code
 - The invariant is that you can remove `dbg.dassert` without changing the code's
@@ -485,7 +485,7 @@ Last review: GP on 2024-05-13
     `super().setUp()`/`super.tearDown()`, then `setUp()`/`tearDown()` can be
     discarded completely.
 
-##### Nested set_up_test / tear_down_test
+## Nested set_up_test / tear_down_test
 
 - When a test class (e.g., TestChild) inherits from another test class (e.g.,
   TestParent), `setUp()`/`tearDown()` methods in the child class normally
@@ -765,7 +765,7 @@ Last review: GP on 2024-05-13
           ...
   ```
 
-#### Use setUpClass / tearDownClass
+## Use setUpClass / tearDownClass
 
 - If you need some expensive code parts to be done once for the whole test
   class, such as opening a database connection, opening a temporary file on the
@@ -898,7 +898,7 @@ It is best to apply on any part that is deemed unnecessary for specific test
   - In case of mismatch, it's easier to update the string with copy-paste rather
     than creating a data structure that matches what was created
 
-#### Use `self.check_string()` for things that we care about not changing (or are too big to have as strings in the code)
+## Use `self.check_string()` for things that we care about not changing (or are too big to have as strings in the code)
 
 - Use `self.assert_equal()` for things that should not change (e.g., 1 + 1 = 2)
 - When using `check_string` still try to add invariants that force the code to
@@ -908,7 +908,7 @@ It is best to apply on any part that is deemed unnecessary for specific test
   timestamps than 0 to avoid the situation where we update the string to
   something malformed
 
-#### Each test method should test a single test case
+### Each test method should test a single test case
 
 - Rationale: we want each test to be clear, simple, fast
 - If there is repeated code we should factor it out (e.g., builders for objects)
@@ -1074,7 +1074,7 @@ class TestCcxtExtractor1(hunitest.TestCase):
   separately. We want to avoid that and only start/stop same patch for each
   test.
 
-### Mocks with specs
+## Mocks with specs
 
 ```python
 ## Regular mock and external library `ccxt` is replaced with `MagicMock`

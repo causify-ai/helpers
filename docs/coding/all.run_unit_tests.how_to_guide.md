@@ -98,7 +98,7 @@
     -v STRING, --version=STRING
   ```
 
-#### Docker image stage and version
+## Docker image stage and version
 
 - To select a specific stage for Docker image use the `--stage` option. E.g.,
   this might be useful when a user wants to run regressions on the local Docker
@@ -115,7 +115,7 @@
     > i run_fast_tests --stage local --version 1.0.4
     ```
 
-#### Specifying `pytest` options
+### Specifying `pytest` options
 
 - With the option `--pytest-opts` it is possible to pass any `pytest` option to
   `invoke`.
@@ -374,7 +374,7 @@
 
   <img src="figs/unit_tests/image_2.png">
 
-#### An example coverage session
+## An example coverage session
 
 - We want to measure the unit test coverage of `oms` component from both fast
   and slow tests
@@ -478,7 +478,7 @@
   Combined data file .coverage_slow_tests
   ```
 
-#### An example with customized `pytest-cov` html run
+## An example with customized `pytest-cov` html run
 
 - We want to measure unit test coverage specifically for one test in
   `im_v2/common/data/transform/` and to save generated `htmlcov` in the same
@@ -508,7 +508,7 @@
   Coverage HTML written to dir im_v2/common/data/transform/htmlcov
   ```
 
-#### Generate coverage report with `invoke`
+### Generate coverage report with `invoke`
 
 - One can compute test coverage for a specified directory and generate text and
   HTML reports automatically using `invoke task run_coverage_report`
@@ -535,7 +535,7 @@
     -t STRING, --target-dir=STRING
   ```
 
-##### Common usage
+#### Common usage
 
 - Compute coverage for `market_data` dir, generate text and HTML reports and
   publish HTML report on S3
@@ -604,9 +604,9 @@
   > pytest --last-failed
   ```
 
-### Custom `pytest` options behaviors
+## Custom `pytest` options behaviors
 
-#### Enable logging
+### Enable logging
 
 - To enable logging of `_LOG.debug` for a single test run:
 
@@ -615,7 +615,7 @@
   > pytest oms/test/test_broker.py::TestSimulatedBroker1 -s --dbg
   ```
 
-#### Update golden outcomes
+## Update golden outcomes
 
 - This switch allows to overwrite the golden outcomes that are used as reference
   in the unit tests to detect failures
@@ -624,7 +624,7 @@
   > pytest --update_outcomes
   ```
 
-#### Incremental test mode
+### Incremental test mode
 
 - This switch allows to reuse artifacts in the test directory and to skip the
   clean up phase
