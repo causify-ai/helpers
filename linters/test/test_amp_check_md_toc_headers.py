@@ -98,11 +98,11 @@ class Test_verify_toc_postion(hunitest.TestCase):
 
         Some introductory content before TOC.
 
-        <!--toc-->
+        <!-- toc -->
 
         - [Header](#header)
 
-        <!--tocstop-->
+        <!-- tocstop -->
 
         # Header
         """
@@ -128,12 +128,12 @@ class Test_verify_toc_postion(hunitest.TestCase):
         - No empty lines and spaces before the TOC
         """
         txt_correct = """
-        <!--toc-->
+        <!-- toc -->
 
         - [Header 1](#header-1)
         - [Header 2](#header-2)
 
-        <!--tocstop-->
+        <!-- tocstop -->
 
         # Header 1
 
@@ -160,12 +160,12 @@ class Test_verify_toc_postion(hunitest.TestCase):
             # Header 2
 
 
-            <!--toc-->
+            <!-- toc -->
 
             - [header 3](#header-3)
             - [header 4](#header-4)
 
-            <!--tocstop-->
+            <!-- tocstop -->
 
             ## Header 3
 
@@ -181,7 +181,7 @@ class Test_verify_toc_postion(hunitest.TestCase):
 
     def test4(self) -> None:
         """
-        Test that no warnings if TOC is not present.
+        Test that no warnings are issued if TOC is not present.
         """
         txt = """
         # Header 1
