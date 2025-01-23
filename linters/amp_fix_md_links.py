@@ -117,7 +117,7 @@ def _check_md_link_format(
     # Check that the file referenced by the link exists.
     link_in_cur_module = _make_path_module_agnostic(link)
     if not os.path.exists(link_in_cur_module):
-        msg = f"{file_name}:{line_num}: '{link}' does not exist MD"
+        msg = f"{file_name}:{line_num}: '{link}' does not exist"
         warnings.append(msg)
     return updated_line, warnings
 
@@ -129,10 +129,11 @@ def _check_file_path_format(
     """
     Convert the file path into a link in a correct format.
 
-    A file path like './dir/file.py' is converted into '[/dir/file.py](/dir/file.py)'.
+    A file path like '`./dir/file.py`' is converted into '[`/dir/file.py`](/dir/file.py)'.
       - The path to the file in the link should be absolute.
+      - Only file paths given in `backticks` are converted, otherwise the risk of a FP is too high.
 
-    If the file is not found, it is not converted into a link in order to avoid
+    If the file is not found, the path is not converted into a link in order to avoid
     introducing unnecessary broken links.
 
     :param file_path: the original file path
@@ -278,7 +279,7 @@ def fix_links(file_name: str) -> Tuple[List[str], List[str], List[str]]:
         for file_path in file_path_matches:
             if i in docstring_line_indices:
                 # Skip if the line is inside a (doc)string where
-                # we don't want to modify given file paths.
+                # we don't want to modify file paths.
                 continue
             if not re.search(r"[a-zA-Z]", file_path):
                 # Skip if there are no letters in the found path.

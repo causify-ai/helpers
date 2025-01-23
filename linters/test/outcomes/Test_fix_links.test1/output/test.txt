@@ -1,7 +1,6 @@
 # linter warnings
 
 /app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:38: '/helpersssss/hhhhgit.py' does not exist
-/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:65: '/helpersssss/hhhhgit.py' does not exist
 /app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:74: 'import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
 /app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:77: 'import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
 /app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:80: '/import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
@@ -81,7 +80,7 @@
   - Code in Markdown/LaTeX files (e.g., mermaid code).
 
 - File path that does not exist
-  - [`/helpersssss/hhhhgit.py`](/helpersssss/hhhhgit.py)
+  - `/helpersssss/hhhhgit.py`
 
 - File path inside triple ticks:
 ```bash
