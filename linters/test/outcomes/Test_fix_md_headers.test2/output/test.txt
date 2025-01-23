@@ -4,11 +4,11 @@
 # linted file
 
 
-        # Given Header level 1; no change 
+# Given Header level 1; no change
 
-        ## Given Header level 3; change to 2
+## Given Header level 3; change to 2
 
-        ## Given Header level 2; no change
+## Given Header level 2; no change
 
-        ### Given Header level 4; change to 3
+### Given Header level 4; change to 3
         

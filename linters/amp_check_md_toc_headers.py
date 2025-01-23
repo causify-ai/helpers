@@ -23,7 +23,7 @@ import linters.utils as liutils
 _LOG = logging.getLogger(__name__)
 
 # Regex to match headers at the start of a line.
-HEADER_REGEX = re.compile(r"^(\s*)(#+)(\s.*)")
+HEADER_REGEX = re.compile(r"^(#+)(\s.*)")
 # Regex to match TOC markers.
 TOC_REGEX = re.compile(r"<!--\s*toc\s*-->")
 
@@ -45,22 +45,19 @@ def fix_md_headers(lines: List[str], file_name: str) -> List[str]:
         fixed_line = line
         match = HEADER_REGEX.match(line)
         if match:
-            leading_spaces = match.group(1)
             # Count the number of leading `#`.
-            current_level = len(match.group(2))
+            current_level = len(match.group(1))
             # Capture the rest of the line (after the initial `#` header).
-            rest_of_line = match.group(3)
+            rest_of_line = match.group(2)
             # Adjust the header level if needed.
             if current_level > last_header_level + 1:
                 adjusted_level = last_header_level + 1
-                fixed_line = (
-                    f"{leading_spaces}{'#' * adjusted_level}{rest_of_line}"
-                )
+                fixed_line = f"{'#' * adjusted_level}{rest_of_line}"
                 _LOG.info(
                     "%s, line %s: Adjusted header level from %s to %s.",
                     file_name,
                     idx + 1,
-                    match.group(2),
+                    match.group(1),
                     "#" * adjusted_level,
                 )
                 current_level = adjusted_level
