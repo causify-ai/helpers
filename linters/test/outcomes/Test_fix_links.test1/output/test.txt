@@ -1,56 +1,118 @@
 # linter warnings
 
-/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:35: 'figs/diataxis/diataxis_summary.png' does not follow the format 'figs/test.md/XYZ'
-/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:35: 'figs/diataxis/diataxis_summary.png' does not exist
-/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:38: 'figs/monitor_system/image1.png' does not follow the format 'figs/test.md/XYZ'
-/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:38: 'figs/monitor_system/image1.png' does not exist
-/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:40: 'docs/datapull/figs/datapull/data_format.png' does not follow the format 'figs/test.md/XYZ'
-/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:42: '../../defi/papers/sorrentum_figs/image14.png' does not follow the format 'figs/test.md/XYZ'
+/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:38: '/helpersssss/hhhhgit.py' does not exist
+/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:74: 'import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
+/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:77: 'import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
+/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:80: '/import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
+/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:83: '/iiimport_check/example/output/basicccc.png' does not follow the format 'figs/test.md/XYZ'
+/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:83: '/iiimport_check/example/output/basicccc.png' does not exist
+/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:86: 'import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
+/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:89: 'import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
+/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:93: '/import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
+/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:96: '../../import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
+/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:99: '/iiimport_check/example/output/basicccc.png' does not follow the format 'figs/test.md/XYZ'
+/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:99: '/iiimport_check/example/output/basicccc.png' does not exist
 
 # linted file
 
 
-A high-level description of KaizenFlow is
-[KaizenFlow White Paper](/papers/DataFlow_stream_computing_framework/DataFlow_stream_computing_framework.pdf)
+- Markdown-style link with a text label
+  - [Here](/helpers/hdbg.py)
 
-- General intro to `DataPull`
-  - [/docs/datapull/ck.datapull.explanation.md](/docs/datapull/ck.datapull.explanation.md)
+- Markdown-style link with a text label in backticks
+  - [`hdbg`](/helpers/hdbg.py)
 
-- Inspect RawData
-  - [/im_v2/common/notebooks/Master_raw_data_gallery.ipynb](/im_v2/common/notebooks/Master_raw_data_gallery.ipynb)
-  - [/im_v2/common/notebooks/Master_raw_data_gallery.ipynb](/im_v2/common/notebooks/Master_raw_data_gallery.ipynb)
-  - `.im_v2/common/data/client/im_raw_data_client.py`
+- Markdown-style link with a path label
+  - [/helpers/hdbg.py](/helpers/hdbg.py)
 
-- Convert data types
-  - `[/im_v2/common/data/transform/convert_csv_to_pq.py](/im_v2/common/data/transform/convert_csv_to_pq.py)`
+- Markdown-style link with a path label in backticks
+  - [`/helpers/hdbg.py`](/helpers/hdbg.py)
 
-- How to QA data
-  - [/im_v2/ccxt/data/qa/notebooks/data_qa_bid_ask.ipynb](/im_v2/ccxt/data/qa/notebooks/data_qa_bid_ask.ipynb)
+- Markdown-style link with a path label with a dot at the start
+  - [/helpers/test/test_hdbg.py](/helpers/test/test_hdbg.py)
 
-- Save PnL and trades
-  - [/dataflow/model/notebooks/Master_save_pnl_and_trades.ipynb](/dataflow/model/notebooks/Master_save_pnl_and_trades.ipynb)
-  - ck.export_alpha_data.explanation.md
+- Markdown-style link with a path label without the slash at the start
+  - [/helpers/test/test_hdbg.py](/helpers/test/test_hdbg.py)
 
-- A list of all the generic notebooks:
-  - [/docs/dataflow/ck.master_notebooks.reference.md](/docs/dataflow/ck.master_notebooks.reference.md)
+- Markdown-style link with a path label in backticks without the slash at the start
+  - [`/helpers/test/test_hdbg.py`](/helpers/test/test_hdbg.py)
 
-- Example: [/docs/datapull/ck.create_airflow_dag.tutorial.md](/docs/datapull/ck.create_airflow_dag.tutorial.md)
+- Markdown-style link with the link only in square brackets
+  - [/helpers/hgit.py](/helpers/hgit.py)
 
-- notebook:
-  [Master_PnL_real_time_observer](/oms/notebooks/Master_PnL_real_time_observer.ipynb)
+- Markdown-style link with an http GH company link
+  - [/helpers/hgit.py](/helpers/hgit.py)
 
-To access the UI, visit [AirFlow UI](http://172.30.2.44:8090/home).
+- Markdown-style link with an http GH company link and a text label
+  - [Here](/helpers/hgit.py)
 
-    - ../../../../amp/helpers:/app/helpers
-      deleted: .github/workflows/build_image.yml.DISABLED
+- Markdown-style link with an http external link
+  - [AirFlow UI](http://172.30.2.44:8090/home).
 
-<img src="figs/diataxis/diataxis_summary.png">
+- Markdown-style link with backticks in the square brackets and external http link
+  - [`cryptokaizen-data-tokyo.preprod`](https://ap-northeast-1.console.aws.amazon.com/s3/buckets/cryptokaizen-data-tokyo.preprod)
 
-- Here is a command for the run, log file path:
-  <img src="figs/monitor_system/image1.png" style="" />
+- Markdown-style link to a file that does not exist
+  - [File not found](/helpersssss/hhhhgit.py)
 
-<img src="docs/datapull/figs/datapull/data_format.png">
+- File path without the backticks
+  - /helpers/test/test_hdbg.py
 
-<img src="../../defi/papers/sorrentum_figs/image14.png">{width="6.854779090113736in"
+- File path with the backticks
+  - [`/helpers/test/test_hdbg.py`](/helpers/test/test_hdbg.py)
+
+- File path with the backticks and a dot at the start
+  - [`/helpers/test/test_hdbg.py`](/helpers/test/test_hdbg.py)
+
+- File path with the backticks and no slash at the start
+  - [`/helpers/test/test_hdbg.py`](/helpers/test/test_hdbg.py)
+
+- File path without the dir
+  - `README.md`
+
+- File path of a hidden file
+  - .github/workflows/build_image.yml.DISABLED
+
+- Non-file path
+  - ../../../../amp/helpers:/app/helpers
+
+- Non-file path text with slashes in it
+  - Code in Markdown/LaTeX files (e.g., mermaid code).
+
+- File path that does not exist
+  - `/helpersssss/hhhhgit.py`
+
+- File path inside triple ticks:
+```bash
+With backticks: `helpers/hgit.py`
+Without backticks: helpers/hgit.py
+```
+
+- HTML-style figure pointer
+  - <img src="import_check/example/output/basic.png">
+
+- HTML-style figure pointer with an attribute
+  <img src="import_check/example/output/basic.png" style="" />
+
+- HTML-style figure pointer with a slash at the start
+  - <img src="/import_check/example/output/basic.png">
+
+- HTML-style figure pointer that does not exist
+  - <img src="/iiimport_check/example/output/basicccc.png">
+
+- Markdown-style figure pointer
+  - <img src="import_check/example/output/basic.png">
+
+- Markdown-style figure pointer with an attribute
+  - <img src="import_check/example/output/basic.png">{width="6.854779090113736in"
 height="1.2303444881889765in"}
+
+- Markdown-style figure pointer with a slash at the start
+  - <img src="/import_check/example/output/basic.png">
+
+- Markdown-style figure pointer with a dir changes at the start
+  - <img src="../../import_check/example/output/basic.png">
+
+- Markdown-style figure pointer that does not exist
+  - <img src="/iiimport_check/example/output/basicccc.png">
         

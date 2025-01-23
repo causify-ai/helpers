@@ -20,14 +20,14 @@ class Test_fix_md_headers(hunitest.TestCase):
         Test that no modifications are made when headers are correct.
         """
         txt_correct = """
-        Table of Contents
+Table of Contents
 
-        - [Header 1](#header-1)
-        - [Header 2](#header-2)
+- [Header 1](#header-1)
+- [Header 2](#header-2)
 
-        # Header 1
+# Header 1
 
-        ## Header 2
+## Header 2
         """
         file_name = "test_correct_toc_and_headers.md"
         file_path = self._write_input_file(txt_correct, file_name)
@@ -42,13 +42,13 @@ class Test_fix_md_headers(hunitest.TestCase):
         Test that header levels are adjusted correctly.
         """
         txt_with_skipped_headers = """
-        # Given Header level 1; no change
+# Given Header level 1; no change
 
-        ### Given Header level 3; change to 2
+### Given Header level 3; change to 2
 
-        ## Given Header level 2; no change
+## Given Header level 2; no change
 
-        #### Given Header level 4; change to 3
+#### Given Header level 4; change to 3
         """
         file_name = "test_header_levels.md"
         file_path = self._write_input_file(txt_with_skipped_headers, file_name)
@@ -63,6 +63,33 @@ class Test_fix_md_headers(hunitest.TestCase):
             + updated_lines
         )
         self.check_string(output)
+
+    def test3(self) -> None:
+        """
+        Test that non-header pound signs do not trigger adjustment.
+        """
+        txt_with_non_header_pound_signs = """
+# Header 1
+
+## Header 2
+
+  ```bash
+  # Comment.
+  > i run_fast_tests
+  ```
+### Header 3
+        """
+        file_name = "test_non_header_pound_signs.md"
+        file_path = self._write_input_file(
+            txt_with_non_header_pound_signs, file_name
+        )
+        # Run.
+        lines = hio.from_file(file_path).splitlines()
+        updated_lines = lacmtohe.fix_md_headers(lines, file_path)
+        # Check.
+        self.assertEqual(
+            updated_lines, txt_with_non_header_pound_signs.splitlines()
+        )
 
     def _write_input_file(self, txt: str, file_name: str) -> str:
         """

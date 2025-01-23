@@ -39,7 +39,7 @@
     existing Linter scripts
 
 - Add the new Action to the list of actions in
-  `[/linters/base.py](/linters/base.py)`
+  [`/linters/base.py`](/linters/base.py)
   - Add to `_MODIFYING_ACTIONS` if it is supposed to modify the files it runs on
     (e.g., fix mistakes, remove or add code)
   - Add to `_NON_MODIFYING_ACTIONS` if it only checks the files and reports the
@@ -53,7 +53,7 @@
   - (Optional) Add some lines that you expect to trigger and not to trigger the
     new Linter step to the string in
     `Test_linter_py1._get_horrible_python_code1()` in
-    `[/linters/test/test_amp_dev_scripts.py](/linters/test/test_amp_dev_scripts.py)`,
+    [`/linters/test/test_amp_dev_scripts.py`](/linters/test/test_amp_dev_scripts.py),
     and verify that your expectations are correct by updating the golden
     outcomes of the tests in this test file
 - Add the new Linter script with a short description to the list below (in
