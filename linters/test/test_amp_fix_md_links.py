@@ -1,8 +1,6 @@
 import logging
 import os
 
-import pytest
-
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
 import linters.amp_fix_md_links as lafimdli
@@ -17,7 +15,6 @@ _LOG = logging.getLogger(__name__)
 
 class Test_fix_links(hunitest.TestCase):
 
-    @pytest.mark.skip("To keep the build green")
     def test1(self) -> None:
         """
         Test fixing link formatting in a Markdown file.
@@ -106,49 +103,105 @@ class Test_fix_links(hunitest.TestCase):
 
     def _get_txt_with_incorrect_links(self) -> str:
         txt_incorrect = r"""
-A high-level description of KaizenFlow is
-[KaizenFlow White Paper](/papers/DataFlow_stream_computing_framework/DataFlow_stream_computing_framework.pdf)
+- Markdown-style link with a text label
+  - [Here](/helpers/hdbg.py)
 
-- General intro to `DataPull`
-  - [/docs/datapull/ck.datapull.explanation.md](/docs/datapull/ck.datapull.explanation.md)
+- Markdown-style link with a text label in backticks
+  - [`hdbg`](/helpers/hdbg.py)
 
-- Inspect RawData
-  - [./im_v2/common/notebooks/Master_raw_data_gallery.ipynb](./im_v2/common/notebooks/Master_raw_data_gallery.ipynb)
-  - ./im_v2/common/notebooks/Master_raw_data_gallery.ipynb
-  - `.im_v2/common/data/client/im_raw_data_client.py`
+- Markdown-style link with a path label
+  - [/helpers/hdbg.py](/helpers/hdbg.py)
 
-- Convert data types
-  - `im_v2/common/data/transform/convert_csv_to_pq.py`
+- Markdown-style link with a path label in backticks
+  - [`/helpers/hdbg.py`](/helpers/hdbg.py)
 
-- How to QA data
-  - im_v2/ccxt/data/qa/notebooks/data_qa_bid_ask.ipynb
+- Markdown-style link with a path label with a dot at the start
+  - [./helpers/test/test_hdbg.py](./helpers/test/test_hdbg.py)
 
-- Save PnL and trades
-  - [/dataflow/model/notebooks/Master_save_pnl_and_trades.ipynb]()
-  - ck.export_alpha_data.explanation.md
+- Markdown-style link with a path label without the slash at the start
+  - [helpers/test/test_hdbg.py](helpers/test/test_hdbg.py)
 
-- A list of all the generic notebooks:
-  - [docs/dataflow/ck.master_notebooks.reference.md](docs/dataflow/ck.master_notebooks.reference.md)
+- Markdown-style link with a path label in backticks without the slash at the start
+  - [`helpers/test/test_hdbg.py`](helpers/test/test_hdbg.py)
 
-- Example: [datapull/ck.create_airflow_dag.tutorial.md](https://github.com/cryptokaizen/cmamp/blob/master/docs/datapull/ck.create_airflow_dag.tutorial.md)
+- Markdown-style link with the link only in square brackets
+  - [/helpers/hgit.py]()
 
-- notebook:
-  [Master_PnL_real_time_observer](https://github.com/cryptokaizen/cmamp/blob/master/oms/notebooks/Master_PnL_real_time_observer.ipynb)
+- Markdown-style link with an http GH company link
+  - [helpers/hgit.py](https://github.com/causify-ai/helpers/blob/master/helpers/hgit.py)
 
-To access the UI, visit [AirFlow UI](http://172.30.2.44:8090/home).
+- Markdown-style link with an http GH company link and a text label
+  - [Here](https://github.com/causify-ai/helpers/blob/master/helpers/hgit.py)
 
-    - ../../../../amp/helpers:/app/helpers
-      deleted: .github/workflows/build_image.yml.DISABLED
+- Markdown-style link with an http external link
+  - [AirFlow UI](http://172.30.2.44:8090/home).
 
-<img src="figs/diataxis/diataxis_summary.png">
+- Markdown-style link with backticks in the square brackets and external http link
+  - [`cryptokaizen-data-tokyo.preprod`](https://ap-northeast-1.console.aws.amazon.com/s3/buckets/cryptokaizen-data-tokyo.preprod)
 
-- Here is a command for the run, log file path:
-  <img src="figs/monitor_system/image1.png" style="" />
+- Markdown-style link to a file that does not exist
+  - [File not found](/helpersssss/hhhhgit.py)
 
-![](docs/datapull/figs/datapull/data_format.png)
+- File path without the backticks
+  - /helpers/test/test_hdbg.py
 
-![](../../defi/papers/sorrentum_figs/image14.png){width="6.854779090113736in"
+- File path with the backticks
+  - `/helpers/test/test_hdbg.py`
+
+- File path with the backticks and a dot at the start
+  - `./helpers/test/test_hdbg.py`
+
+- File path with the backticks and no slash at the start
+  - `helpers/test/test_hdbg.py`
+
+- File path without the dir
+  - `README.md`
+
+- File path of a hidden file
+  - .github/workflows/build_image.yml.DISABLED
+
+- Non-file path
+  - ../../../../amp/helpers:/app/helpers
+
+- Non-file path text with slashes in it
+  - Code in Markdown/LaTeX files (e.g., mermaid code).
+
+- File path that does not exist
+  - `/helpersssss/hhhhgit.py`
+
+- File path inside triple ticks:
+```bash
+With backticks: `helpers/hgit.py`
+Without backticks: helpers/hgit.py
+```
+
+- HTML-style figure pointer
+  - <img src="import_check/example/output/basic.png">
+
+- HTML-style figure pointer with an attribute
+  <img src="import_check/example/output/basic.png" style="" />
+
+- HTML-style figure pointer with a slash at the start
+  - <img src="/import_check/example/output/basic.png">
+
+- HTML-style figure pointer that does not exist
+  - <img src="/iiimport_check/example/output/basicccc.png">
+
+- Markdown-style figure pointer
+  - ![](import_check/example/output/basic.png)
+
+- Markdown-style figure pointer with an attribute
+  - ![](import_check/example/output/basic.png){width="6.854779090113736in"
 height="1.2303444881889765in"}
+
+- Markdown-style figure pointer with a slash at the start
+  - ![](/import_check/example/output/basic.png)
+
+- Markdown-style figure pointer with a dir changes at the start
+  - ![](../../import_check/example/output/basic.png)
+
+- Markdown-style figure pointer that does not exist
+  - ![](/iiimport_check/example/output/basicccc.png)
         """
         return txt_incorrect
 
