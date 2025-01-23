@@ -37,6 +37,7 @@ import linters.amp_black as lampblac
 import linters.amp_check_filename as lamchfil
 import linters.amp_check_import as lamchimp
 import linters.amp_check_md_reference as lachmdre
+import linters.amp_check_md_toc_headers as lacmtohe
 import linters.amp_check_merge_conflict as lachmeco
 import linters.amp_class_method_order as laclmeor
 import linters.amp_doc_formatter as lamdofor
@@ -164,6 +165,11 @@ _MODIFYING_ACTIONS: List[Tuple[str, str, Type[liaction.Action]]] = [
         lamlimd._LintMarkdown,  # pylint: disable=protected-access
     ),
     (
+        "check_md_toc_headers",
+        "Fixes header levels and verifies no content before TOC",
+        lacmtohe._TOCHeaderFixer,  # pylint: disable=protected-access
+    ),
+    (
         "autoflake",
         "Removes unused imports and variables",
         lampauto._Autoflake,  # pylint: disable=protected-access
@@ -249,6 +255,11 @@ _NON_MODIFYING_ACTIONS: List[Tuple[str, str, Type[liaction.Action]]] = [
         lawifoto._WarnIncorrectlyFormattedTodo,  # pylint: disable=protected-access
     ),
     (
+        "check_md_reference",
+        "Checks README.md for reference to the current markdown file",
+        lachmdre._ReadmeLinter,  # pylint: disable=protected-access
+    ),
+    (
         "flake8",
         "Checks if the code conforms to coding style standards according to Flake8",
         lampflak._Flake8,  # pylint: disable=protected-access
@@ -262,11 +273,6 @@ _NON_MODIFYING_ACTIONS: List[Tuple[str, str, Type[liaction.Action]]] = [
         "mypy",
         "Checks if types and type hints are used correctly",
         lampmypy._Mypy,  # pylint: disable=protected-access
-    ),
-    (
-        "check_md_reference",
-        "Checks README.md for reference to the current markdown file",
-        lachmdre._ReadmeLinter,  # pylint: disable=protected-access
     ),
 ]
 

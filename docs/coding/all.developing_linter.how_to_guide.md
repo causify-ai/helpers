@@ -79,6 +79,10 @@
 - `amp_black.py`
   - A wrapper around [`black`](https://black.readthedocs.io)
 
+- `amp_check_md_toc_headers.py`
+  - Checks that there is no content before TOC and ensures header levels are
+    following hierarchical order without skipping levels.
+
 - `amp_class_method_order.py`
   - Sorts methods in classes so that they are in the order of
     - Init

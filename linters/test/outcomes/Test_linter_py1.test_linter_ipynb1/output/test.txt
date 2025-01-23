@@ -7,7 +7,7 @@ Linting file: '$GIT_ROOT/linters/test/outcomes/Test_linter_py1.test_linter_ipynb
 linter_warnings.txt
 ////////////////////////////////////////////////////////////////////////////////
 file_paths=1 ['$GIT_ROOT/linters/test/outcomes/Test_linter_py1.test_linter_ipynb1/tmp.scratch/input.ipynb']
-actions=22 ['add_python_init_files', 'add_toc_to_notebook', 'fix_md_links', 'lint_md', 'autoflake', 'fix_whitespaces', 'doc_formatter', 'isort', 'class_method_order', 'normalize_imports', 'format_separating_line', 'add_class_frames', 'black', 'process_jupytext', 'check_filename', 'check_merge_conflict', 'check_import', 'warn_incorrectly_formatted_todo', 'flake8', 'pylint', 'mypy', 'check_md_reference']
+actions=23 ['add_python_init_files', 'add_toc_to_notebook', 'fix_md_links', 'lint_md', 'check_md_toc_headers', 'autoflake', 'fix_whitespaces', 'doc_formatter', 'isort', 'class_method_order', 'normalize_imports', 'format_separating_line', 'add_class_frames', 'black', 'process_jupytext', 'check_filename', 'check_merge_conflict', 'check_import', 'warn_incorrectly_formatted_todo', 'check_md_reference', 'flake8', 'pylint', 'mypy']
 ////////////////////////////////////////////////////////////////////////////////
 [0mHH:MM:SS - [36mINFO [0m hdbg.py init_logger:{LINE_NUM}                               > cmd='./dev_scripts_helpers/notebooks/add_toc_to_notebook.py --input_files $GIT_ROOT/linters/test/outcomes/Test_linter_py1.test_linter_ipynb1/tmp.scratch/input.ipynb' [add_toc_to_notebook]
 $GIT_ROOT/linters/test/outcomes/Test_linter_py1.test_linter_ipynb1/tmp.scratch/input.ipynb:1: All notebook filenames start with `Master_` or match: `\S+Task\d+_...` [check_filename]
