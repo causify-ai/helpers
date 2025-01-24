@@ -349,6 +349,9 @@ def _lint(
         # Annotate each lint with a [tag] specifying the action name.
         cur_action_lints = [lnt + f" [{action_name}]" for lnt in cur_action_lints]
         lints.extend(cur_action_lints)
+    # Stage the linted file for commit.
+    cmd = f"git add {file_path}"
+    hsystem.system(cmd)
     return lints
 
 
