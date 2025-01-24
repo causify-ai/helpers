@@ -189,7 +189,7 @@
   once
 - There is a
   [way](https://pypi.org/project/pytest-rerunfailures/#re-run-individual-failures)
-  to provide a rerun delay for individual tests. However, we can’t use it for
+  to provide a rerun delay for individual tests. However, we can't use it for
   now due to
   [#693 (comment)](https://github.com/cryptokaizen/cmamp/issues/693#issuecomment-989456031)
 
@@ -368,11 +368,11 @@
   > open htmlcov/index.html
   ```
 
-  ![alt_text](figs/unit_tests/image_1.png)
+  <img src="figs/unit_tests/image_1.png">
 
 - By clicking on a file you can see which lines are not covered
 
-  ![alt_text](figs/unit_tests/image_2.png)
+  <img src="figs/unit_tests/image_2.png">
 
 #### An example coverage session
 
@@ -677,7 +677,7 @@
    ```
    - Note that the indentation matters since it's a YAML file
 
-     ![alt_text](figs/unit_tests/image_3.png)
+     <img src="figs/unit_tests/image_3.png">
    - The `-s --dbg` is to show `_LOG.debug` in case you care about that to get
      more information
 

@@ -34,9 +34,11 @@ import linters.amp_add_class_frames as laadclfr
 import linters.amp_add_toc_to_notebook as laattono
 import linters.amp_autoflake as lampauto
 import linters.amp_black as lampblac
+import linters.amp_check_file_size as lachfisi
 import linters.amp_check_filename as lamchfil
 import linters.amp_check_import as lamchimp
 import linters.amp_check_md_reference as lachmdre
+import linters.amp_check_md_toc_headers as lacmtohe
 import linters.amp_check_merge_conflict as lachmeco
 import linters.amp_class_method_order as laclmeor
 import linters.amp_doc_formatter as lamdofor
@@ -164,6 +166,11 @@ _MODIFYING_ACTIONS: List[Tuple[str, str, Type[liaction.Action]]] = [
         lamlimd._LintMarkdown,  # pylint: disable=protected-access
     ),
     (
+        "check_md_toc_headers",
+        "Fixes header levels and verifies no content before TOC",
+        lacmtohe._TOCHeaderFixer,  # pylint: disable=protected-access
+    ),
+    (
         "autoflake",
         "Removes unused imports and variables",
         lampauto._Autoflake,  # pylint: disable=protected-access
@@ -223,6 +230,11 @@ _MODIFYING_ACTIONS: List[Tuple[str, str, Type[liaction.Action]]] = [
 
 _NON_MODIFYING_ACTIONS: List[Tuple[str, str, Type[liaction.Action]]] = [
     (
+        "check_file_size",
+        "Checks if file size is too large",
+        lachfisi._FileSizeChecker,  # pylint: disable=protected-access
+    ),
+    (
         "check_filename",
         "Checks if file names conform to our standards",
         lamchfil._CheckFilename,  # pylint: disable=protected-access
@@ -249,6 +261,11 @@ _NON_MODIFYING_ACTIONS: List[Tuple[str, str, Type[liaction.Action]]] = [
         lawifoto._WarnIncorrectlyFormattedTodo,  # pylint: disable=protected-access
     ),
     (
+        "check_md_reference",
+        "Checks README.md for reference to the current markdown file",
+        lachmdre._ReadmeLinter,  # pylint: disable=protected-access
+    ),
+    (
         "flake8",
         "Checks if the code conforms to coding style standards according to Flake8",
         lampflak._Flake8,  # pylint: disable=protected-access
@@ -262,11 +279,6 @@ _NON_MODIFYING_ACTIONS: List[Tuple[str, str, Type[liaction.Action]]] = [
         "mypy",
         "Checks if types and type hints are used correctly",
         lampmypy._Mypy,  # pylint: disable=protected-access
-    ),
-    (
-        "check_md_reference",
-        "Checks README.md for reference to the current markdown file",
-        lachmdre._ReadmeLinter,  # pylint: disable=protected-access
     ),
 ]
 
@@ -343,6 +355,9 @@ def _lint(
         # Annotate each lint with a [tag] specifying the action name.
         cur_action_lints = [lnt + f" [{action_name}]" for lnt in cur_action_lints]
         lints.extend(cur_action_lints)
+    # Stage the linted file for commit.
+    cmd = f"git add {file_path}"
+    hsystem.system(cmd)
     return lints
 
 

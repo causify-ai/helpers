@@ -39,7 +39,7 @@
     existing Linter scripts
 
 - Add the new Action to the list of actions in
-  `[/linters/base.py](/linters/base.py)`
+  [`/linters/base.py`](/linters/base.py)
   - Add to `_MODIFYING_ACTIONS` if it is supposed to modify the files it runs on
     (e.g., fix mistakes, remove or add code)
   - Add to `_NON_MODIFYING_ACTIONS` if it only checks the files and reports the
@@ -53,7 +53,7 @@
   - (Optional) Add some lines that you expect to trigger and not to trigger the
     new Linter step to the string in
     `Test_linter_py1._get_horrible_python_code1()` in
-    `[/linters/test/test_amp_dev_scripts.py](/linters/test/test_amp_dev_scripts.py)`,
+    [`/linters/test/test_amp_dev_scripts.py`](/linters/test/test_amp_dev_scripts.py),
     and verify that your expectations are correct by updating the golden
     outcomes of the tests in this test file
 - Add the new Linter script with a short description to the list below (in
@@ -78,6 +78,10 @@
 
 - `amp_black.py`
   - A wrapper around [`black`](https://black.readthedocs.io)
+
+- `amp_check_md_toc_headers.py`
+  - Checks that there is no content before TOC and ensures header levels are
+    following hierarchical order without skipping levels.
 
 - `amp_class_method_order.py`
   - Sorts methods in classes so that they are in the order of
@@ -122,6 +126,9 @@
   - Keeps paired `.ipynb` and `.py` files synchronized
 
 ### Checking if the files are in accordance with our rules (non-modifying)
+
+- `amp_check_file_size.py`
+  - Checks that files do not exceed the maximum size
 
 - `amp_check_filename.py`
   - Checks that test files and notebooks are located in `test`/`notebooks` dirs

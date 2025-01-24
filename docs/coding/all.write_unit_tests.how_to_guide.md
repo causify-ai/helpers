@@ -317,7 +317,7 @@ Last review: GP on 2024-05-13
   comment like:
   ```python
   # ##################
-  # Unit tests for …
+  # Unit tests for ...
   # ##################
   ```
   - So it's easy to find which file is tested were using grep
@@ -828,7 +828,7 @@ It is best to apply on any part that is deemed unnecessary for specific test
   - CCXT
   - AWS
     - S3
-      - See `helpers/hmoto.py` in `cmamp` repo
+      - See [`/helpers/hmoto.py`](/helpers/hmoto.py) in `cmamp` repo
     - Secrets
     - Etc...
 - DB calls
@@ -925,7 +925,7 @@ It is best to apply on any part that is deemed unnecessary for specific test
   you focus on what's important to test and force you to use an iterative
   approach rather than incremental (remember the Monalisa)
 
-  ![alt_image](figs/unit_tests/image_4.png)
+  <img src="figs/unit_tests/image_4.png">
 
 #### Write a skeleton of unit tests and ask for a review if you are not sure how what to test
 
@@ -944,7 +944,7 @@ def test_function_call1(self, mock_get_secret: umock.MagicMock):
 
 - Function `get_secret` in `helpers/hsecret.py` is mocked
   - Pay attention on where is `get_secret` mocked:
-    - It is mocked in im_v2.ccxt.data.extract.extractor as “get_secret” is
+    - It is mocked in im_v2.ccxt.data.extract.extractor as "get_secret" is
       called there in function that is being tested
   - `@umock.patch.object(hsecret, "get_secret")` will not work as mocks are
     applied after all modules are loaded, hence the reason for using exact
