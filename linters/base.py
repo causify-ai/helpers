@@ -34,6 +34,7 @@ import linters.amp_add_class_frames as laadclfr
 import linters.amp_add_toc_to_notebook as laattono
 import linters.amp_autoflake as lampauto
 import linters.amp_black as lampblac
+import linters.amp_check_file_size as lachfisi
 import linters.amp_check_filename as lamchfil
 import linters.amp_check_import as lamchimp
 import linters.amp_check_md_reference as lachmdre
@@ -228,6 +229,11 @@ _MODIFYING_ACTIONS: List[Tuple[str, str, Type[liaction.Action]]] = [
 ]
 
 _NON_MODIFYING_ACTIONS: List[Tuple[str, str, Type[liaction.Action]]] = [
+    (
+        "check_file_size",
+        "Checks if file size is too large",
+        lachfisi._FileSizeChecker,  # pylint: disable=protected-access
+    ),
     (
         "check_filename",
         "Checks if file names conform to our standards",

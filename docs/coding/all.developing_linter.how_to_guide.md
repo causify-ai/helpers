@@ -127,6 +127,9 @@
 
 ### Checking if the files are in accordance with our rules (non-modifying)
 
+- `amp_check_file_size.py`
+  - Checks that files do not exceed the maximum size
+
 - `amp_check_filename.py`
   - Checks that test files and notebooks are located in `test`/`notebooks` dirs
     respectively
