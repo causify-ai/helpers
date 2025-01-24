@@ -51,6 +51,10 @@ class Test_Master_buildmeister_dashboard_notebook(
         not hserver.is_inside_ci(),
         reason="No access to data from `lemonade` repo locally",
     )
+    @pytest.mark.skipif(
+        not hgit.is_in_amp_as_supermodule(),
+        reason="Run only in amp as super-module",
+    )
     def test2(self) -> None:
         """
         Check that we can get status for all the workflows.
