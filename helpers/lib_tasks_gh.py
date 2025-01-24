@@ -4,7 +4,7 @@ Import as:
 import helpers.lib_tasks_gh as hlitagh
 """
 
-import collections 
+import collections
 import json
 import logging
 import os
@@ -612,11 +612,14 @@ def gh_get_details_for_all_workflows(repo_list: List[str]) -> "pd.DataFrame":
         workflow_names = gh_get_workflow_type_names(repo_name)
         # Check for duplicate workflow names.
         workflow_counts = collections.Counter(workflow_names)
-        duplicate_workflows = [name for name, count in workflow_counts.items() if count > 1]
+        duplicate_workflows = [
+            name for name, count in workflow_counts.items() if count > 1
+        ]
         hdbg.dassert_eq(
-            len(duplicate_workflows), 
+            len(duplicate_workflows),
             0,
-            "Found duplicate workflow names for repo '%s': %s" % (repo_name, ", ".join(duplicate_workflows)),
+            "Found duplicate workflow names for repo '%s': %s"
+            % (repo_name, ", ".join(duplicate_workflows)),
         )
         # For each workflow find the last run.
         for workflow_name in workflow_names:
