@@ -67,4 +67,4 @@ class Test_Master_buildmeister_dashboard_notebook(
             "causify-ai/helpers",
             "causify-ai/quant_dashboard",
         ]
-        workflow_df = hlitagh.gh_get_details_for_all_workflows(repo_list)
+        _ = hlitagh.gh_get_details_for_all_workflows(repo_list)
