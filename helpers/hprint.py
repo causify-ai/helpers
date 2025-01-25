@@ -265,8 +265,6 @@ def dedent(txt: str, *, remove_lead_trail_empty_lines_: bool = True) -> str:
     It is the opposite of `indent()`.
 
     :param txt: multi-line string
-    :param txt: multi-line string
-    :param txt: multi-line string
     :param remove_lead_trail_empty_lines_: if True, remove all the
         empty lines at the beginning and at the end
     """
