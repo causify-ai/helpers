@@ -1,7 +1,7 @@
 import logging
 import tempfile
 import time
-from typing import Any, Callable, Tuple
+from typing import Any, Callable, Generator, Tuple
 
 import numpy as np
 import pandas as pd
@@ -63,7 +63,7 @@ class _ResetGlobalCacheHelper(hunitest.TestCase):
 
     # This will be run before and after each test.
     @pytest.fixture(autouse=True)
-    def setup_teardown_test(self):
+    def setup_teardown_test(self) -> Generator:
         # Run before each test.
         self.set_up_test()
         yield
@@ -441,7 +441,7 @@ class TestGlobalCache1(_ResetGlobalCacheHelper):
 class _ResetFunctionSpecificCacheHelper(_ResetGlobalCacheHelper):
     # This will be run before and after each test.
     @pytest.fixture(autouse=True)
-    def setup_teardown_test(self):
+    def setup_teardown_test(self) -> Generator:
         # Run before each test.
         self.set_up_test2()
         yield
@@ -731,7 +731,7 @@ class TestAmpTask1407(_ResetGlobalCacheHelper):
 class TestCachingOnS3(_ResetFunctionSpecificCacheHelper):
     # This will be run before and after each test.
     @pytest.fixture(autouse=True)
-    def setup_teardown_test(self):
+    def setup_teardown_test(self) -> Generator:
         # Run before each test.
         self.set_up_test3()
         yield
@@ -871,6 +871,7 @@ class TestCacheUpdateFunction1(_ResetGlobalCacheHelper):
         # 3) Redefine the function with different code while running.
         _LOG.debug("\n%s", hprint.frame("Update function"))
 
+        # This function is redefined on purpose to test the code.
         def add(x: int, y: int) -> int:  # type: ignore[no-redef]
             add.executed = True  # type: ignore[attr-defined]
             return x * y

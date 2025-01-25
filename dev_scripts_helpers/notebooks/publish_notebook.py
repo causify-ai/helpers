@@ -280,7 +280,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         src_file_name = args.file
         if hs3.is_s3_path(src_file_name):
             # We use AWS CLI to minimize the dependencies from Python packages.
-            aws_profile = hs3.get_aws_profile(args.aws_profile)
+            aws_profile = args.aws_profile
             # Check that the file exists.
             cmd = f"aws s3 ls --profile {aws_profile} {src_file_name}"
             hsystem.system(cmd)

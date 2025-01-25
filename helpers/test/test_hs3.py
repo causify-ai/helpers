@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Tuple
+from typing import Generator, Tuple
 
 import pytest
 
@@ -319,7 +319,7 @@ class TestDu1(hmoto.S3Mock_TestCase):
 class TestGenerateAwsFiles(hunitest.TestCase):
     # This will be run before and after each test.
     @pytest.fixture(autouse=True)
-    def setup_teardown_test(self):
+    def setup_teardown_test(self) -> Generator:
         # Run before each test.
         self.set_up_test()
         yield

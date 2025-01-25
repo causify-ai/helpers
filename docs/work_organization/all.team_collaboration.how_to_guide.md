@@ -1,28 +1,31 @@
+
+
 <!-- toc -->
 
-- [Ask somebody if you have any doubts](#ask-somebody-if-you-have-any-doubts)
-- [Ping Team Leaders when you are out of tasks](#ping-team-leaders-when-you-are-out-of-tasks)
-- [Collaboration](#collaboration)
-  * [Why do we need to follow this handbook?](#why-do-we-need-to-follow-this-handbook)
-    + [Learning from each other](#learning-from-each-other)
-    + [Consistency and process](#consistency-and-process)
-  * [Sync-ups](#sync-ups)
-    + [All-hands meetings](#all-hands-meetings)
-    + [Technical sync-ups](#technical-sync-ups)
-    + [Ad-hoc meetings](#ad-hoc-meetings)
-    + [Org emails](#org-emails)
-    + [Synchronization point](#synchronization-point)
-    + [Morning TODO email](#morning-todo-email)
-  * [Communication](#communication)
-    + [Use the right form of communication](#use-the-right-form-of-communication)
-    + [DRY also applies to documentation](#dry-also-applies-to-documentation)
-    + [Avoid write-once code and research](#avoid-write-once-code-and-research)
-    + [Consistency](#consistency)
-    + [Training period](#training-period)
-    + [Go slowly to go faster](#go-slowly-to-go-faster)
-  * [Vacations/OOTO time](#vacationsooto-time)
-  * [Improve your English!](#improve-your-english)
-    + [Study an English grammar book](#study-an-english-grammar-book)
+- [General Rules of Collaboration](#general-rules-of-collaboration)
+  * [Ask somebody if you have any doubts](#ask-somebody-if-you-have-any-doubts)
+  * [Ping Team Leaders when you are out of tasks](#ping-team-leaders-when-you-are-out-of-tasks)
+  * [Collaboration](#collaboration)
+    + [Why do we need to follow this handbook?](#why-do-we-need-to-follow-this-handbook)
+      - [Learning from each other](#learning-from-each-other)
+      - [Consistency and process](#consistency-and-process)
+    + [Sync-ups](#sync-ups)
+      - [Company town-hall meetings](#company-town-hall-meetings)
+      - [Technical sync-ups](#technical-sync-ups)
+      - [Ad-hoc meetings](#ad-hoc-meetings)
+      - [Org emails](#org-emails)
+      - [Synchronization point](#synchronization-point)
+      - [Morning TODO email](#morning-todo-email)
+    + [Communication](#communication)
+      - [Use the right form of communication](#use-the-right-form-of-communication)
+      - [DRY also applies to documentation](#dry-also-applies-to-documentation)
+      - [Avoid write-once code and research](#avoid-write-once-code-and-research)
+      - [Consistency](#consistency)
+      - [Training period](#training-period)
+      - [Go slowly to go faster](#go-slowly-to-go-faster)
+    + [Vacations/OOTO time](#vacationsooto-time)
+    + [Improve your English!](#improve-your-english)
+      - [Study an English grammar book](#study-an-english-grammar-book)
 
 <!-- tocstop -->
 
@@ -43,16 +46,16 @@
   - Learn
     [how to ask questions](http://www.catb.org/~esr/faqs/smart-questions.html)
     first
-  - Note that often people tell you his / her interpretation or their
-    workaround for a problem, which might not be the best approach, so be
-    careful and always think for yourself
+  - Note that often people tell you his / her interpretation or their workaround
+    for a problem, which might not be the best approach, so be careful and
+    always think for yourself
   - Don't hesitate to ask anyone, including GP & Paul
 
 ## Ping Team Leaders when you are out of tasks
 
 - When you're close to being out of tasks or all your ongoing PRs are waiting
-  for review and are close to being merged, feel free to ping us in the IM
-  and ask for more issues
+  for review and are close to being merged, feel free to ping us in the IM and
+  ask for more issues
 - In this way, Team Leaders can quickly assign you another issue, before you run
   out of work
 - Everyone should have 2 issues to work on at the same time to avoid getting
@@ -129,7 +132,7 @@
   interesting docs that are of general interest and relevance
 - Please make sure to read the docs carefully and internalize what we suggest to
   do and, especially, the rationale of the proposed solutions
-- It's ok to acknowledge the email replying to `all@kaizen-tech.io`
+- It's ok to acknowledge the email replying to `eng@kaizen-tech.io`
 
 #### Synchronization point
 
@@ -145,7 +148,7 @@
   - One of us (e.g., GP or Paul) creates a GitHub task, with:
     - Detailed instructions
     - The list of all of the persons in charge of executing the task
-  - Send a ping with the link on Telegram if the task is urgent
+  - Send a ping with the link on Slack if the task is urgent
   - Everybody does what's asked
   - Mark on the GitHub task your name
 
@@ -159,7 +162,7 @@ The idea is to send a morning TODO email to broadcast:
 
 - E-mail template:
   ```
-  To: all@kaizen-tech.io
+  To: eng@kaizen-tech.io
 
   Subject: TODO
 
@@ -185,7 +188,7 @@ The idea is to send a morning TODO email to broadcast:
 
 - Good example:
   ```
-  To: all@kaizen-tech.io
+  To: eng@kaizen-tech.io
 
   Subject: TODO
 
@@ -210,14 +213,13 @@ The idea is to send a morning TODO email to broadcast:
 
 - Bad example:
   ```
-  To: all@kaizen-tech.io
+  To: eng@kaizen-tech.io
 
   Subject: to-do
 
   Hi all,
 
   Today I am going to work 2-6 hours.
-
   - Calls
   - PR reviews
   - Finish the trading report analysis
@@ -236,7 +238,7 @@ The idea is to send a morning TODO email to broadcast:
   - It is recommended to check the inbox (email, GitHub) first to reflect all
     the update in the plan for the day
 - Send an email to:
-  - For full-time employees/contractors: `all@kaizen-tech.io`
+  - For full-time employees/contractors: `eng@kaizen-tech.io`
   - For interns or collaborators: `contributors@crypto-kaizen.com`
 - Email subject:
   - `TODO` (all caps)
@@ -292,15 +294,15 @@ If you are a collaborator or intern, follow the steps to join the mailing group
     - Work organization tasks
     - Marketing and funding
     - On-boarding process
-- Telegram
+- Slack
   - This is our messenger for tight interaction (like a debug session) or
     immediacy (e.g., "are you ready for the sync up?")
   - Please, avoid discussing anything that can be discussed at GitHub or Asana
     - You often need to reference some comments and ideas in other places like
-      issues or messages and it is impossible to reference a Telegram message
+      issues or messages and it is impossible to reference a Slack message
       outside of it
     - It is much easier for all reviewers to catch up with all the thinking
-      process if it is logged at one place - Telegram is never a place for this
+      process if it is logged at one place - Slack is never a place for this
 - Jupyter notebooks
   - Generally used to implement and describe research in detail
     - `Master` notebooks are intended to be used as tools for demonstrative
@@ -318,7 +320,7 @@ If you are a collaborator or intern, follow the steps to join the mailing group
   - Rarely used for any other purpose
   - Exceptions are to send non-urgent information to everybody
 - There should be little replication among these forms of documentation
-  - It's not ok to file a bug and then ping on Telegram unless it's urgent
+  - It's not ok to file a bug and then ping on Slack unless it's urgent
 - Google Form
   - When you want to ask a question anonymously use
     https://forms.gle/KMQgobqbyxhoTR9n6

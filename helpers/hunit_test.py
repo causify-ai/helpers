@@ -400,7 +400,7 @@ def purify_from_environment(txt: str) -> str:
     # 3) Replace the current user name with `$USER_NAME`.
     user_name = hsystem.get_user_name()
     # Set a regex pattern that finds a user name surrounded by dot, dash or space.
-    # E.g., `IMAGE=$CK_ECR_BASE_PATH/amp_test:local-$USER_NAME-1.0.0`,
+    # E.g., `IMAGE=$CSFY_ECR_BASE_PATH/amp_test:local-$USER_NAME-1.0.0`,
     # `--name $USER_NAME.amp_test.app.app`, `run --rm -l user=$USER_NAME`.
     pattern = rf"([\s\n\-\.\=]|^)+{user_name}+([.\s/-]|$)"
     # Use `\1` and `\2` to preserve specific characters around `$USER_NAME`.
@@ -473,8 +473,8 @@ def purify_file_names(file_names: List[str]) -> List[str]:
 def purify_from_env_vars(txt: str) -> str:
     # TODO(gp): Diff between amp and cmamp.
     for env_var in [
-        "CK_AWS_S3_BUCKET",
-        "CK_ECR_BASE_PATH",
+        "CSFY_AWS_S3_BUCKET",
+        "CSFY_ECR_BASE_PATH",
     ]:
         if env_var in os.environ:
             val = os.environ[env_var]
@@ -888,6 +888,7 @@ def assert_equal(
     test_dir: str,
     *,
     check_string: bool = False,
+    remove_lead_trail_empty_lines: bool = False,
     dedent: bool = False,
     purify_text: bool = False,
     purify_expected_text: bool = False,
@@ -906,9 +907,10 @@ def assert_equal(
     """
     _LOG.debug(
         hprint.to_str(
-            "full_test_name test_dir "
-            "dedent purify_text fuzzy_match ignore_line_breaks "
-            "abort_on_error dst_dir"
+            "full_test_name test_dir"
+            " remove_lead_trail_empty_lines dedent purify_text"
+            " fuzzy_match ignore_line_breaks"
+            " abort_on_error dst_dir"
         )
     )
     # Store a mapping tag after each transformation (e.g., original, sort, ...) to
@@ -929,49 +931,45 @@ def assert_equal(
     expected = purify_white_spaces(expected)
     tag = "purify_white_spaces"
     _append(tag, actual, expected)
+    # Remove empty leading / trailing lines.
+    if remove_lead_trail_empty_lines:
+        tag = "remove_lead_trail_empty_lines"
+        actual = hprint.remove_lead_trail_empty_lines(actual)
+        expected = hprint.remove_lead_trail_empty_lines(expected)
+        _append(tag, actual, expected)
     # Dedent only expected since we often align it to make it look more readable
     # in the Python code, if needed.
     if dedent:
-        _LOG.debug("# dedent")
-        expected = hprint.dedent(expected)
-        _LOG.debug(hprint.to_str("expected"))
         tag = "dedent"
+        expected = hprint.dedent(expected)
         _append(tag, actual, expected)
     # Purify text, if needed.
     if purify_text:
-        _LOG.debug("# purify_text")
+        tag = "purify_text"
         actual = purify_txt_from_client(actual)
         if purify_expected_text:
             expected = purify_txt_from_client(expected)
-        _LOG.debug(hprint.to_str("actual expected"))
-        tag = "purify"
         _append(tag, actual, expected)
     # Ensure that there is a single `\n` at the end of the strings.
     actual = actual.rstrip("\n") + "\n"
     expected = expected.rstrip("\n") + "\n"
     # Sort the lines.
     if sort:
-        _LOG.debug("# sort")
+        tag = "sort"
         actual = _sort_lines(actual)
         expected = _sort_lines(expected)
-        _LOG.debug(hprint.to_str("actual expected"))
-        tag = "sort"
         _append(tag, actual, expected)
     # Fuzzy match, if needed.
     if fuzzy_match:
-        _LOG.debug("# fuzzy_match")
+        tag = "fuzzy_match"
         actual = _fuzzy_clean(actual)
         expected = _fuzzy_clean(expected)
-        _LOG.debug(hprint.to_str("actual expected"))
-        tag = "fuzzy_clean"
         _append(tag, actual, expected)
     # Ignore line breaks, if needed.
     if ignore_line_breaks:
-        _LOG.debug("# ignore_line_breaks")
+        tag = "ignore_line_breaks"
         actual = _ignore_line_breaks(actual)
         expected = _ignore_line_breaks(expected)
-        _LOG.debug(hprint.to_str("actual expected"))
-        tag = "ignore_line_breaks"
         _append(tag, actual, expected)
     # Check.
     _LOG.debug("# final")
@@ -1319,6 +1317,7 @@ class TestCase(unittest.TestCase):
         actual: str,
         expected: str,
         *,
+        remove_lead_trail_empty_lines: bool = False,
         dedent: bool = False,
         purify_text: bool = False,
         purify_expected_text: bool = False,
@@ -1365,6 +1364,7 @@ class TestCase(unittest.TestCase):
             test_name,
             dir_name,
             check_string=False,
+            remove_lead_trail_empty_lines=remove_lead_trail_empty_lines,
             dedent=dedent,
             purify_text=purify_text,
             purify_expected_text=purify_expected_text,
@@ -1408,6 +1408,7 @@ class TestCase(unittest.TestCase):
         self,
         actual: str,
         *,
+        remove_lead_trail_empty_lines: bool = False,
         dedent: bool = False,
         purify_text: bool = False,
         fuzzy_match: bool = False,
@@ -1492,6 +1493,7 @@ class TestCase(unittest.TestCase):
                     test_name,
                     dir_name,
                     check_string=True,
+                    remove_lead_trail_empty_lines=remove_lead_trail_empty_lines,
                     dedent=dedent,
                     # We have handled the purification of the output earlier.
                     purify_text=False,
@@ -1586,6 +1588,7 @@ class TestCase(unittest.TestCase):
                         test_name,
                         dir_name,
                         check_string=True,
+                        remove_lead_trail_empty_lines=False,
                         dedent=dedent,
                         purify_text=False,
                         fuzzy_match=False,

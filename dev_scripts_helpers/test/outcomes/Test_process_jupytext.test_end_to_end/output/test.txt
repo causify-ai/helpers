@@ -1,0 +1,6 @@
+-     "_LOG = logging.getLogger(__name__)"
++     "_LOG = logging.getLogger(__name__)\n",
+?                                        ++ +
+
++     "\n",
++     "a = 0"

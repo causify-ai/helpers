@@ -16,6 +16,7 @@ from typing import Dict, List, Match, Optional, Tuple, cast
 
 import helpers.hdbg as hdbg
 import helpers.henv as henv
+import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
@@ -169,26 +170,120 @@ def get_client_root(super_module: bool) -> str:
     return client_root
 
 
-# TODO(gp): Replace get_client_root with this.
+# TODO(gp): Replace `get_client_root` with this.
 def find_git_root(path: str = ".") -> str:
     """
     Find recursively the dir of the outermost super module.
+
+    This function traverses the directory hierarchy upward from a specified
+    starting path to find the root directory of a Git repository.
+    It supports:
+    - standard git repository: where a `.git` directory exists at the root
+    - submodule: where repository is nested inside another, and the `.git` file contains
+      a `gitdir:` reference to the submodule's actual Git directory
+    - linked repositories: where the `.git` file points to a custom Git directory
+      location, such as in Git worktrees or relocated `.git` directories
+
+    :param path: starting file system path. Defaults to the current directory (".")
+    :return: absolute path to the top-level Git repository directory
     """
     path = os.path.abspath(path)
-    while not os.path.isdir(os.path.join(path, ".git")):
-        git_dir_file = os.path.join(path, ".git")
-        if os.path.isfile(git_dir_file):
-            with open(git_dir_file, "r") as f:
-                for line in f:
-                    if line.startswith("gitdir:"):
-                        git_dir = line.split(":", 1)[1].strip()
-                        return os.path.abspath(
-                            os.path.join(path, git_dir, "..", "..")
+    git_root_dir = None
+    while True:
+        git_dir = os.path.join(path, ".git")
+        _LOG.debug("git_dir=%s", git_dir)
+        # Check if `.git` is a directory which indicates a standard Git repository.
+        if os.path.isdir(git_dir):
+            # Found the Git root directory.
+            git_root_dir = path
+            break
+        # Check if `.git` is a file which indicates submodules or linked setups.
+        if os.path.isfile(git_dir):
+            txt = hio.from_file(git_dir)
+            lines = txt.split("\n")
+            for line in lines:
+                # Look for a `gitdir:` line that specifies the linked directory.
+                # Example: `gitdir: ../.git/modules/helpers_root`.
+                if line.startswith("gitdir:"):
+                    git_dir_path = line.split(":", 1)[1].strip()
+                    _LOG.debug("git_dir_path=%s", git_dir_path)
+                    # Resolve the relative path to the absolute path of the Git directory.
+                    abs_git_dir = os.path.abspath(
+                        os.path.join(path, git_dir_path)
+                    )
+                    # Traverse up to find the top-level `.git` directory.
+                    while True:
+                        # Check if the current directory is a `.git` directory.
+                        if os.path.basename(abs_git_dir) == ".git":
+                            git_root_dir = os.path.dirname(abs_git_dir)
+                            # Found the root.
+                            break
+                        # Move one level up in the directory structure.
+                        parent = os.path.dirname(abs_git_dir)
+                        # Reached the filesystem root without finding the `.git` directory.
+                        hdbg.dassert_ne(
+                            parent,
+                            abs_git_dir,
+                            "Top-level .git directory not found.",
                         )
+                        # Continue traversing up.
+                        abs_git_dir = parent
+                    break
+        # Exit the loop if the Git root directory is found.
+        if git_root_dir is not None:
+            break
+        # Move up one level in the directory hierarchy.
         parent = os.path.dirname(path)
-        hdbg.dassert_ne(parent, path)
+        # Reached the filesystem root without finding `.git`.
+        hdbg.dassert_ne(
+            parent,
+            path,
+            "No .git directory or file found in any parent directory.",
+        )
+        # Update the path to the parent directory for the next iteration.
         path = parent
-    return path
+    return git_root_dir
+
+
+def find_file(file_name: str, *, dir_path: Optional[str] = None) -> str:
+    if dir_path is None:
+        dir_path = find_git_root()
+    cmd = rf"""
+    find {dir_path} -path '.git' -prune -o -type d -name {file_name} -print
+    | grep -v '.git'
+    """
+    cmd = hprint.dedent(cmd, remove_lead_trail_empty_lines_=True)
+    cmd = " ".join(cmd.split())
+    _, res = hsystem.system_to_one_line(cmd)
+    return res
+
+
+def find_helpers_root() -> str:
+    """
+    Find the root directory of the `helpers` repository.
+
+    If the current directory is within the `helpers` repository, the root of the
+    repository is returned. Otherwise, the function searches for the `helpers_root`
+    directory starting from the root of the repository.
+
+    :returns: The absolute path to the `helpers_root` directory.
+    """
+    git_root = find_git_root()
+    if is_helpers():
+        # If we are in `//helpers`, then the helpers root is the root of the
+        # repo.
+        cmd = "git rev-parse --show-toplevel"
+    else:
+        # We need to search for the `helpers_root` dir starting from the root
+        # of the repo.
+        # TODO(gp): Use find_file
+        cmd = rf"find {git_root} -path ./\.git -prune -o -type d -name 'helpers_root' -print | grep -v '\.git'"
+    _, helpers_root = hsystem.system_to_one_line(cmd)
+    helpers_root = os.path.abspath(helpers_root)
+    # Make sure the dir and that `helpers` subdir exists.
+    hdbg.dassert_dir_exists(helpers_root)
+    hdbg.dassert_dir_exists(os.path.join(helpers_root), "helpers")
+    return helpers_root
 
 
 def get_project_dirname(only_index: bool = False) -> str:
@@ -203,7 +298,8 @@ def get_project_dirname(only_index: bool = False) -> str:
     :param only_index: return only the index of the client if possible, e.g.,
         E.g., for `/Users/saggese/src/amp1` it returns the string `1`
     """
-    git_dir = get_client_root(super_module=True)
+    # git_dir = get_client_root(super_module=True)
+    git_dir = find_git_root()
     _LOG.debug("git_dir=%s", git_dir)
     ret = os.path.basename(git_dir)
     if only_index:
@@ -323,11 +419,6 @@ def is_amp_present(*, dir_name: str = ".") -> bool:
 # rather than their name.
 
 
-def is_dev_tools() -> bool:
-    """
-    Return whether we are inside `dev_tools` repo.
-    """
-    return _is_repo("dev_tools")
 
 
 def is_cmamp() -> bool:
@@ -608,8 +699,8 @@ def _get_repo_short_to_full_name(include_host_name: bool) -> Dict[str, str]:
     # From short name to long name.
     repo_map = {
         "amp": "alphamatic/amp",
-        "dev_tools": "causify-ai/dev_tools",
         "helpers": "causify-ai/helpers",
+        "tutorials": "causify-ai/tutorials",
     }
     if include_host_name:
         host_name = "github.com"
@@ -717,8 +808,6 @@ def get_task_prefix_from_repo_short_name(short_name: str) -> str:
     """
     if short_name == "amp":
         prefix = "AmpTask"
-    elif short_name == "dev_tools":
-        prefix = "DevToolsTask"
     else:
         # We assume that we can build the prefix from the name (e.g., "lm" ->
         # "LmTask").
@@ -733,6 +822,7 @@ def get_task_prefix_from_repo_short_name(short_name: str) -> str:
 # #############################################################################
 
 
+# TODO(gp): Use find_file
 @functools.lru_cache()
 def find_file_in_git_tree(
     file_name: str, super_module: bool = True, remove_tmp_base: bool = False
@@ -745,7 +835,7 @@ def find_file_in_git_tree(
     root_dir = get_client_root(super_module=super_module)
     cmd = rf"find {root_dir} -name '{file_name}' -not -path '*/.git/*'"
     if remove_tmp_base:
-        cmd += rf" -not -path '*/tmp\.base/*'"
+        cmd += r" -not -path '*/tmp\.base/*'"
     _, file_name = hsystem.system_to_one_line(cmd)
     _LOG.debug("file_name=%s", file_name)
     hdbg.dassert_ne(
@@ -798,7 +888,7 @@ def get_path_from_git_root(
 
 
 @functools.lru_cache()
-def get_amp_abs_path(remove_tmp_base: bool = True) -> str:
+def get_amp_abs_path() -> str:
     """
     Return the absolute path of `amp` dir.
     """
@@ -1110,7 +1200,7 @@ def git_log(num_commits: int = 5, my_commits: bool = False) -> str:
     cmd = []
     cmd.append("git log --date=local --oneline --graph --date-order --decorate")
     cmd.append(
-        "--pretty=format:" "'%h %<(8)%aN%  %<(65)%s (%>(14)%ar) %ad %<(10)%d'"
+        "--pretty=format:'%h %<(8)%aN%  %<(65)%s (%>(14)%ar) %ad %<(10)%d'"
     )
     cmd.append(f"-{num_commits}")
     if my_commits:
@@ -1221,7 +1311,7 @@ def git_describe(
 
     If there is no tag, this will return short commit hash.
 
-    :param match: e.g., `dev_tools-*`, only consider tags matching the
+    :param match: e.g., `cmamp-*`, only consider tags matching the
         given glob pattern
     """
     _LOG.debug("# Looking for version ...")

@@ -122,6 +122,7 @@ def frame(
     """
     Print a frame around a message.
 
+    :param message: message to print
     :param char1: char for top line of the frame
     :param num_chars: how many chars in each line (by default 80 chars)
     :param char2: char for bottom line of the frame
@@ -243,7 +244,7 @@ def split_lines(func: Callable) -> Callable:
 
 
 @split_lines
-def trim_consecutive_empty_lines(lines: StrOrList) -> StrOrList:
+def remove_lead_trail_empty_lines(lines: StrOrList) -> StrOrList:
     """
     Remove consecutive empty lines only at the beginning / end of a string.
     """
@@ -252,12 +253,11 @@ def trim_consecutive_empty_lines(lines: StrOrList) -> StrOrList:
         lines.pop(0)
     # Remove trailing empty lines.
     while lines and not lines[-1].strip():
-        _LOG.info("Removing '%s'", lines[-1])
         lines.pop()
     return lines
 
 
-def dedent(txt: str, *, remove_empty_leading_trailing_lines: bool = True) -> str:
+def dedent(txt: str, *, remove_lead_trail_empty_lines_: bool = True) -> str:
     """
     Remove from each line the minimum number of spaces to align the text on the
     left.
@@ -265,11 +265,13 @@ def dedent(txt: str, *, remove_empty_leading_trailing_lines: bool = True) -> str
     It is the opposite of `indent()`.
 
     :param txt: multi-line string
-    :param remove_empty_leading_trailing_lines: if True, remove all the
+    :param txt: multi-line string
+    :param txt: multi-line string
+    :param remove_lead_trail_empty_lines_: if True, remove all the
         empty lines at the beginning and at the end
     """
-    if remove_empty_leading_trailing_lines:
-        txt = trim_consecutive_empty_lines(txt)
+    if remove_lead_trail_empty_lines_:
+        txt = remove_lead_trail_empty_lines(txt)
     # Find the minimum number of leading spaces.
     min_num_spaces = None
     for curr_line in txt.split("\n"):
@@ -376,11 +378,13 @@ def perc(
     a: float,
     b: float,
     *,
-    only_perc: bool = False,
     invert: bool = False,
     num_digits: int = 2,
+    only_perc: bool = False,
+    use_float: bool = False,
+    only_fraction: bool = False,
     use_thousands_separator: bool = False,
-) -> str:
+) -> Union[str, float]:
     """
     Calculate percentage a / b as a string.
 
@@ -388,27 +392,45 @@ def perc(
 
     :param a: numerator
     :param b: denominator
-    :param only_perc: return only the percentage, without the original numbers
     :param invert: assume the fraction is (b - a) / b
         This is useful when we want to compute the complement of a count.
+    :param num_digits: number of digits to represent the percentage
+    :param only_perc: return only the percentage, without the fraction
+        - E.g., "50.00%" vs "10 / 20 = 50.00%"
+    :param use_float: return the percentage as a float. It requires
+        `only_perc = True`
+    :param only_fraction: return only the fraction, without the percentage
+        - E.g., "10 / 20" vs "10 / 20 = 50.00%"
     :param use_thousands_separator: report the numbers using thousands separator
     :return: string with a/b
     """
     hdbg.dassert_lte(0, a)
     hdbg.dassert_lte(a, b)
+    if invert:
+        a = b - a
     if use_thousands_separator:
         a_str = str("{0:,}".format(a))
         b_str = str("{0:,}".format(b))
     else:
         a_str = str(a)
         b_str = str(b)
-    if invert:
-        a = b - a
+    #
     hdbg.dassert_lte(0, num_digits)
     if only_perc:
-        fmt = "%." + str(num_digits) + "f%%"
+        fmt = "%." + str(num_digits) + "f"
         ret = fmt % (float(a) / b * 100.0)
+        if use_float:
+            # 57.27
+            ret = float(ret)
+        else:
+            # 57.27%
+            hdbg.dassert_isinstance(ret, str)
+            ret += "%"
+    elif only_fraction:
+        # 4225 / 7377
+        ret = "%s / %s" % (a_str, b_str)
     else:
+        # 4225 / 7377 = 57.27%
         fmt = "%s / %s = %." + str(num_digits) + "f%%"
         ret = fmt % (a_str, b_str, float(a) / b * 100.0)
     return ret
@@ -553,7 +575,7 @@ def to_str2(*variables_values: Any) -> str:
     """
     # Check parameters.
     hdbg.dassert_lte(1, len(variables_values))
-    # Get frame object for the caller’s stack frame.
+    # Get frame object for the caller's stack frame.
     frame_ = inspect.currentframe()
     # Get a list of frame records for a frame and all outer frames.
     frames = inspect.getouterframes(frame_)
@@ -595,6 +617,8 @@ def to_str2(*variables_values: Any) -> str:
 
 def log(logger: logging.Logger, verbosity: int, *vals: Any) -> None:
     """
+    Log at a certain verbosity.
+
     `log(_LOG, logging.DEBUG, "ticker", "exchange")`
 
     is equivalent to statements like:

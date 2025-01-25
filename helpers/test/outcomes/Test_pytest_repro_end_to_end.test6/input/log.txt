@@ -1,5 +1,5 @@
 [0m[36mINFO[0m: > cmd='/local/home/gsaggese/src/venv/amp.client_venv/bin/invoke run_fast_slow_superslow_tests'
->>ENV<<: is_inside_container=False: code_version=1.0.3, container_version=None, is_inside_docker=False, is_inside_ci=False, CI_defined=False, CI='nan'
+>>ENV<<: is_inside_container=False: code_version=1.0.3, container_version=None, is_inside_docker=False, is_inside_ci=False, CI_defined=False, CSFY_CI='nan'
 >>ENV<<: AM_S3_BUCKET=True AWS_ACCESS_KEY_ID=False AWS_DEFAULT_REGION=True AWS_SECRET_ACCESS_KEY=False GH_ACTION_ACCESS_TOKEN=False
 [95m## run_fast_slow_superslow_tests: [0m
 [95m## run_fast_tests: [0m
@@ -82,7 +82,7 @@ collecting 622 items                                                           
 collecting 801 items                                                           [0m[1m
 collecting 1084 items                                                          [0m[1m
 collecting 1419 items                                                          [0m[1m
-collecting 1775 items                                                          [0m>>ENV<<: is_inside_container=True: code_version=1.0.3, container_version=amp-1.0.3, is_inside_docker=True, is_inside_ci=False, CI_defined=True, CI=''
+collecting 1775 items                                                          [0m>>ENV<<: is_inside_container=True: code_version=1.0.3, container_version=amp-1.0.3, is_inside_docker=True, is_inside_ci=False, CI_defined=True, CSFY_CI=''
 >>ENV<<: AM_S3_BUCKET=True AWS_ACCESS_KEY_ID=False AWS_DEFAULT_REGION=True AWS_SECRET_ACCESS_KEY=False GH_ACTION_ACCESS_TOKEN=True
 [31m-----------------------------------------------------------------------------
 This code is not in sync with the container:
@@ -2182,7 +2182,7 @@ collecting 794 items                                                           
 collecting 1037 items                                                          [0m[1m
 collecting 1375 items                                                          [0m[1m
 collecting 1424 items                                                          [0m[1m
-collecting 1775 items                                                          [0m>>ENV<<: is_inside_container=True: code_version=1.0.3, container_version=amp-1.0.3, is_inside_docker=True, is_inside_ci=False, CI_defined=True, CI=''
+collecting 1775 items                                                          [0m>>ENV<<: is_inside_container=True: code_version=1.0.3, container_version=amp-1.0.3, is_inside_docker=True, is_inside_ci=False, CI_defined=True, CSFY_CI=''
 >>ENV<<: AM_S3_BUCKET=True AWS_ACCESS_KEY_ID=False AWS_DEFAULT_REGION=True AWS_SECRET_ACCESS_KEY=False GH_ACTION_ACCESS_TOKEN=True
 [31m-----------------------------------------------------------------------------
 This code is not in sync with the container:
@@ -2443,7 +2443,7 @@ collecting 641 items                                                           
 collecting 801 items                                                           [0m[1m
 collecting 1084 items                                                          [0m[1m
 collecting 1391 items                                                          [0m[1m
-collecting 1671 items                                                          [0m>>ENV<<: is_inside_container=True: code_version=1.0.3, container_version=amp-1.0.3, is_inside_docker=True, is_inside_ci=False, CI_defined=True, CI=''
+collecting 1671 items                                                          [0m>>ENV<<: is_inside_container=True: code_version=1.0.3, container_version=amp-1.0.3, is_inside_docker=True, is_inside_ci=False, CI_defined=True, CSFY_CI=''
 >>ENV<<: AM_S3_BUCKET=True AWS_ACCESS_KEY_ID=False AWS_DEFAULT_REGION=True AWS_SECRET_ACCESS_KEY=False GH_ACTION_ACCESS_TOKEN=True
 [31m-----------------------------------------------------------------------------
 This code is not in sync with the container:

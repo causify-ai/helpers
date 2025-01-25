@@ -69,7 +69,7 @@ def _get_dev_version(version: str, container_dir_name: str) -> str:
 #   ```
 #   > i docker_build_local_image
 #   ```
-# - This creates a local image like `dev_tools:local.saggese-1.0.0`
+# - This creates a local image like `helpers:local.saggese-1.0.0`
 # - A qualification process (e.g., running all unit tests and the QA tests) is
 #   performed on the local image (e.g., locally or through GitHub actions)
 # - If the qualification process is passed, the image is released as `dev` on
@@ -140,7 +140,9 @@ def docker_build_local_image(  # type: ignore
     hlitadoc.dassert_is_image_name_valid(image_local)
     #
     dockerfile = "devops/docker_build/dev.Dockerfile"
-    dockerfile = _to_abs_path(dockerfile)
+    # Keep the relative path instead of an absolute path to ensure it matches 
+    # files inside the tar stream and avoids file not found errors.
+    # dockerfile = _to_abs_path(dockerfile)
     opts = "--no-cache" if not cache else ""
     build_args = [
         ("AM_CONTAINER_VERSION", dev_version),
@@ -172,8 +174,11 @@ def docker_build_local_image(  # type: ignore
         """
         hlitauti.run(ctx, cmd)
         # Build.
+        # Compress the current directory (in order to dereference symbolic 
+        # links) into a tar stream and pipes it to the `docker build` command.
+        # See HelpersTask197.
         cmd = rf"""
-        DOCKER_BUILDKIT={DOCKER_BUILDKIT} \
+        tar -czh . | DOCKER_BUILDKIT={DOCKER_BUILDKIT} \
             time \
             docker buildx build \
             {opts} \
@@ -182,7 +187,7 @@ def docker_build_local_image(  # type: ignore
             {build_args} \
             --tag {image_local} \
             --file {dockerfile} \
-            .
+            -
         """
         hlitauti.run(ctx, cmd)
         # Pull the image from registry.
@@ -192,15 +197,18 @@ def docker_build_local_image(  # type: ignore
         hlitauti.run(ctx, cmd)
     else:
         # Build for a single architecture using `docker build`.
+        # Compress the current directory (in order to dereference symbolic 
+        # links) into a tar stream and pipes it to the `docker build` command.
+        # See HelpersTask197.
         cmd = rf"""
-        DOCKER_BUILDKIT={DOCKER_BUILDKIT} \
+        tar -czh . | DOCKER_BUILDKIT={DOCKER_BUILDKIT} \
             time \
             docker build \
             {opts} \
             {build_args} \
             --tag {image_local} \
             --file {dockerfile} \
-            .
+            -
         """
         hlitauti.run(ctx, cmd)
     # Retrieve the package files, if present.
@@ -611,7 +619,7 @@ def docker_build_prod_image(  # type: ignore
         --tag {image_versioned_prod} \
         --file {dockerfile} \
         --build-arg VERSION={dev_version} \
-        --build-arg ECR_BASE_PATH={os.environ["CK_ECR_BASE_PATH"]} \
+        --build-arg ECR_BASE_PATH={os.environ["CSFY_ECR_BASE_PATH"]} \
         .
     """
     hlitauti.run(ctx, cmd)

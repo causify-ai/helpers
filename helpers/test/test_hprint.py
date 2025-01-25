@@ -327,10 +327,10 @@ class Test_logging1(hunitest.TestCase):
 # #############################################################################
 
 
-class Test_trim_consecutive_empty_lines1(hunitest.TestCase):
+class Test_remove_lead_trail_empty_lines1(hunitest.TestCase):
     def helper(self, input_str: str, expected_output: List[str]) -> None:
         """
-        Test the `trim_consecutive_empty_lines` function.
+        Test the `remove_lead_trail_empty_lines` function.
 
         :param input_str: The input string to be processed.
         :param expected_output: The expected output list of strings.
@@ -340,12 +340,12 @@ class Test_trim_consecutive_empty_lines1(hunitest.TestCase):
             expected_output = ["line1", "", "", "line2"]
         """
         # Test as string.
-        act = hprint.trim_consecutive_empty_lines(input_str)
+        act = hprint.remove_lead_trail_empty_lines(input_str)
         exp = "\n".join(expected_output)
         self.assertEqual(act, exp)
         # Test as list of strings.
         input_str = input_str.splitlines()
-        act = hprint.trim_consecutive_empty_lines(input_str)
+        act = hprint.remove_lead_trail_empty_lines(input_str)
         self.assertEqual(act, expected_output)
 
     def test_empty_string_returns_empty_list(self) -> None:

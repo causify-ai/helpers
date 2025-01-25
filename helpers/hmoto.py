@@ -5,6 +5,7 @@ import helpers.hmoto as hmoto
 """
 
 import unittest.mock as umock
+from typing import Generator
 
 import pytest  # isort:skip # noqa: E402 # pylint: disable=wrong-import-position
 
@@ -16,8 +17,8 @@ moto = pytest.importorskip("moto")
 # If not, boto3 will access real AWS.
 import boto3  # noqa: E402 module level import not at top of file  # pylint: disable=wrong-import-position
 
-import helpers.hdbg as hdbg
-import helpers.hs3 as hs3  # noqa: E402 module level import not at top of file  # pylint: disable=wrong-import-positiona
+import helpers.hdbg as hdbg  # noqa: E402 module level import not at top of file  # pylint: disable=wrong-import-position
+import helpers.hs3 as hs3  # noqa: E402 module level import not at top of file  # pylint: disable=wrong-import-position
 import helpers.hunit_test as hunitest  # noqa: E402 module level import not at top of file  # pylint: disable=wrong-import-position
 
 
@@ -44,7 +45,7 @@ class S3Mock_TestCase(hunitest.TestCase):
 
     # This will be run before and after each test.
     @pytest.fixture(autouse=True)
-    def setup_teardown_test(self):
+    def setup_teardown_test(self) -> Generator:
         # Run before each test.
         self.set_up_test()
         yield

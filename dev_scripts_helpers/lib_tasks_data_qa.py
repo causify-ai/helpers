@@ -46,6 +46,7 @@ import reconciliation.lib_tasks_run_model_experiment_notebooks as rltrmexno
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hs3 as hs3
+import helpers.hgit as hgit
 import oms.lib_tasks_reconcile as olitarec
 
 _LOG = logging.getLogger(__name__)
@@ -228,6 +229,7 @@ def run_single_dataset_qa_notebook(
     bid_ask_frequency_sec="60S",
     s3_publish_dst_dir="s3://cryptokaizen-html/notebooks/data_qa",
     time_diff_threshold_sec=None,
+    region="europe",
 ):
     """
     Run single data QA notebook and store it in a specified location.
@@ -248,6 +250,7 @@ def run_single_dataset_qa_notebook(
         "bid_ask_depth": bid_ask_depth,
         "bid_ask_frequency_sec": bid_ask_frequency_sec,
         "time_diff_threshold_sec": time_diff_threshold_sec,
+        "region": region,
     }
     _ = ctx
     dataset_schema = dsdascut.get_dataset_schema()
