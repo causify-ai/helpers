@@ -21,7 +21,6 @@ Username: sorrentum Email: gp@crypto-kaizen.com
 There are several public images
 
 - Sorrentum/cmamp
-- Sorrentum/dev_tools
 
 Used in DATA605:
 
@@ -44,7 +43,6 @@ https://hub.docker.com/u/sorrentum
 "sorrentum"
 "cmamp"
 "jupyter"
-"dev_tools"
 "defi"
 ```
 

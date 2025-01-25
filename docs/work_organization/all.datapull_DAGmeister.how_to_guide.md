@@ -16,12 +16,12 @@
   - To see who is the DagMeister now refer to
     [DataPull_DagMeister gsheet](https://docs.google.com/spreadsheets/d/1Ab6a3BVeLX1l1B3_A6rNY9pHRsofeoCw2ip2dkQ6SdA/edit#gid=0)
   - Each rotation should be confirmed by a 'handshake' between the outgoing
-    DagMeister and the new one in the related Telegram chat
-    `Kaizen Preprod Datapull Notifications`
+    DagMeister and the new one in the related Slack channel
+    `#notifs-preprod-datapull`
   - Transfer the assignee of
     [#8785](https://github.com/cryptokaizen/cmamp/issues/8785) to new DagMeister
 - The DagMeister is responsible for:
-  - Check the Telegram channel for any failures from preprod DAGs.
+  - Check the Slack channel for any failures from preprod DAGs.
   - Raising the issue on Github for that failure by debugging the root cause of
     the failure.
     - If the issue is already raised, comment the link of the failure in the

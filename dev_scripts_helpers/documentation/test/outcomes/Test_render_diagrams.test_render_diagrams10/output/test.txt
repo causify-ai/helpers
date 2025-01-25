@@ -1,8 +1,0 @@
-% ```plantuml
-% @startuml
-% Alice --> Bob
-% @enduml
-% ```
-\begin{figure}
-  \includegraphics[width=\linewidth]{diagram-images/out.1.png}
-\end{figure}

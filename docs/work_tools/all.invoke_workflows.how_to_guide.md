@@ -102,7 +102,7 @@
   docker_login                                          Log in the target registry and skip if we are in kaizenflow.
   docker_ps                                             List all the running containers.
   docker_pull                                           Pull latest dev image corresponding to the current repo from the registry.
-  docker_pull_dev_tools                                 Pull latest prod image of `dev_tools` from the registry.
+  docker_pull_helpers                                   Pull latest prod image of `helpers` from the registry.
   docker_push_dev_image                                 Push the "dev" image to ECR.
   docker_push_prod_candidate_image                      (ONLY CI/CD) Push the "prod" candidate image to ECR.
   docker_push_prod_image                                Push the "prod" image to ECR.

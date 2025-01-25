@@ -5,7 +5,7 @@
 * [Using playback](#using-playback)
   - [Quick start](#quick-start)
   - [Example 1: testing `get_sum()`](#example-1-testing-get_sum)
-  - [Example 2: testing `_render_plantuml()` from `render_md.py`](#example-2-testing-_render_plantuml-from-render_mdpy)
+  - [Example 2: testing `_render_images()` from `render_images.py`](#example-2-testing-_render_images-from-render_imagespy)
 
 <!-- tocstop -->
 
@@ -149,7 +149,7 @@ def function_under_test(...) -> ...:
           self.assertEqual(act, exp)
   ```
 
-### Example 2: testing `_render_plantuml()` from `render_md.py`
+### Example 2: testing `_render_images()` from `render_images.py`
 
 - Copy real `im_architecture.md` to a test location
 
@@ -159,8 +159,8 @@ def function_under_test(...) -> ...:
   ...
   import helpers.playback as hplayb
   ...
-  def _render_plantuml(
-      in_txt: List[str], out_file: str, extension: str, dry_run: bool
+  def _render_images(
+      in_lines: List[str], out_file: str, dst_ext: str, dry_run: bool
   ) -> List[str]:
       # Generate test.
       playback = hplayb.Playback("check_string")
@@ -169,48 +169,48 @@ def function_under_test(...) -> ...:
   ...
   ```
 
-- Run `render_md.py -i im_architecture.md`
+- Run `render_images.py -i im_architecture.md`
 
 - The following output is prompted:
 
   ```python
-  # Test created for __main__._render_plantuml
+  # Test created for __main__._render_images
   import helpers.unit_test as hut
   import jsonpickle
   import pandas as pd
 
-  class TestRenderPlantuml(hut.TestCase):
+  class TestRenderImages(hut.TestCase):
       def test1(self) -> None:
-          # Define input variables
-          in_txt = ["<!-- toc -->", ..., "", "> **GP:**: Not urgent", ""]
+          # Define input variables.
+          in_lines = ["<!-- toc -->", ..., "", "> **GP:**: Not urgent", ""]
           out_file = "im_architecture.md"
-          extension = "png"
+          dst_ext = "png"
           dry_run = False
-          # Call function to test
-          act = _render_plantuml(in_txt=in_txt, out_file=out_file, extension=extension, dry_run=dry_run)
+          # Call function to test.
+          act = _render_images(in_lines=in_lines, out_file=out_file, dst_ext=dst_ext, dry_run=dry_run)
           act = str(act)
-          # Check output
+          # Check output.
           self.check_string(act)
   ```
 
-- `in_txt` value is too long to keep it in test - needed to be replaced with
+- `in_lines` value is too long to keep it in test - needed to be replaced with
   previously generated file. Also some cosmetic changes are needed and code is
   ready to paste to the existing test:
   ```python
-  def test_render_plantuml_playback1(self) -> None:
+  def test_render_images_playback1(self) -> None:
       """Test real usage for im_architecture.md.test"""
-      # Define input variables
+      # Define input variables.
       file_name = "im_architecture.md.test"
       in_file = os.path.join(self.get_input_dir(), file_name)
-      in_txt = io_.from_file(in_file).split("\n")
+      in_lines = io_.from_file(in_file).split("\n")
       out_file = os.path.join(self.get_scratch_space(), file_name)
-      extension = "png"
+      dst_ext = "png"
       dry_run = True
-      # Call function to test
-      act = rmd._render_plantuml(
-          in_txt=in_txt, out_file=out_file, extension=extension, dry_run=dry_run
+      # Call function to test.
+      act = rmd._render_images(
+          in_lines=in_lines, out_file=out_file, dst_ext=dst_ext, dry_run=dry_run
       )
       act = "\n".join(act)
-      # Check output
+      # Check output.
       self.check_string(act)
   ```

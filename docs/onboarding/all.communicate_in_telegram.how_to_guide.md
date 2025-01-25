@@ -1,5 +1,7 @@
 # Communicate In Telegram
 
+_Note: This is mostly deprecated: we use Slack now_
+
 ## Telegram
 
 <!-- toc -->

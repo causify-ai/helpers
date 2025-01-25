@@ -32,7 +32,7 @@
 
 You will receive an e-mail with a `.zip` file from the IT team containing all
 the information you need to use the system. The ZIP file is encrypted and the
-password is sent to your Telegram direct messages.
+password is sent to your Slack direct messages.
 
 We currently have two VPN servers, one US-based and one EU-based.
 

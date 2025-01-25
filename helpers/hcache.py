@@ -1,5 +1,5 @@
 """
-See `helpers/cache.md` for implementation details.
+See `docs/coding/all.hcache.explanation.md` for implementation details.
 
 Import as:
 
@@ -159,6 +159,8 @@ def _get_global_cache_path(cache_type: str, tag: Optional[str] = None) -> str:
             root_path = "/mnt/tmpfs"
     elif cache_type == "disk":
         root_path = hgit.get_client_root(super_module=True)
+    else:
+        raise ValueError("Invalid cache type '%s'" % cache_type)
     # Compute path.
     file_name = os.path.join(root_path, cache_name)
     file_name = os.path.abspath(file_name)

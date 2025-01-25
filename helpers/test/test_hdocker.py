@@ -6,6 +6,7 @@ from typing import Any, List, Tuple
 import pytest
 
 import helpers.hdocker as hdocker
+import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hserver as hserver
@@ -130,7 +131,8 @@ class Test_convert_to_docker_path1(hunitest.TestCase):
             in_file_path, check_if_exists=True
         )
         # Check.
-        exp_docker_file_path = r"/app/helpers/test/outcomes/Test_convert_to_docker_path1.test2/input/input.md"
+        helpers_root_path = hgit.find_helpers_root()
+        exp_docker_file_path = f"{helpers_root_path}/helpers/test/outcomes/Test_convert_to_docker_path1.test2/input/input.md"
         self.assert_equal(docker_file_path, exp_docker_file_path)
         exp_mount = "type=bind,source=/app,target=/app"
         self.assert_equal(mount, exp_mount)

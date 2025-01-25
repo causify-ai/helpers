@@ -1,5 +1,0 @@
-# ```mermaid
-# flowchart TD;
-#   A[Start] --> B[End];
-# ```
-![](diagram-images/out.1.png)

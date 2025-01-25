@@ -52,8 +52,8 @@ def docker_images_ls_repo(ctx, sudo=False):  # type: ignore
     """
     hlitauti.report_task()
     docker_login(ctx)
-    # TODO(gp): Move this to a var ECR_BASE_PATH="CK_ECR_BASE_PATH" in repo_config.py.
-    ecr_base_path = hlitauti.get_default_param("CK_ECR_BASE_PATH")
+    # TODO(gp): Move this to a var ECR_BASE_PATH="CSFY_ECR_BASE_PATH" in repo_config.py.
+    ecr_base_path = hlitauti.get_default_param("CSFY_ECR_BASE_PATH")
     docker_exec = _get_docker_exec(sudo)
     hlitauti.run(ctx, f"{docker_exec} image ls {ecr_base_path}")
 
@@ -187,11 +187,6 @@ def docker_kill(  # type: ignore
 # *****.dkr.ecr.us-east-2.amazonaws.com/im          07aea615a2aa9290f7362e99e1cc908876700821   d0889bf972bf   6 minutes ago   684MB
 # *****.dkr.ecr.us-east-2.amazonaws.com/im          rc                                         d0889bf972bf   6 minutes ago   684MB
 # python                                            3.7-slim-buster                            e7d86653f62f   14 hours ago    113MB
-# *****.dkr.ecr.us-east-1.amazonaws.com/dev_tools   ce789e4718175fcdf6e4857581fef1c2a5ee81f3   2f64ade2c048   14 hours ago    2.02GB
-# *****.dkr.ecr.us-east-1.amazonaws.com/dev_tools   local                                      2f64ade2c048   14 hours ago    2.02GB
-# *****.dkr.ecr.us-east-1.amazonaws.com/dev_tools   d401a2a0bef90b9f047c65f8adb53b28ba05d536   1b11bf234c7f   15 hours ago    2.02GB
-# *****.dkr.ecr.us-east-1.amazonaws.com/dev_tools   52ccd63edbc90020f450c074b7c7088a1806c5ac   90b70a55c367   15 hours ago    1.95GB
-# *****.dkr.ecr.us-east-1.amazonaws.com/dev_tools   2995608a7d91157fc1a820869a6d18f018c3c598   0cb3858e85c6   15 hours ago    2.01GB
 # *****.dkr.ecr.us-east-1.amazonaws.com/amp         415376d58001e804e840bf3907293736ad62b232   e6ea837ab97f   18 hours ago    1.65GB
 # *****.dkr.ecr.us-east-1.amazonaws.com/amp         dev                                        e6ea837ab97f   18 hours ago    1.65GB
 # *****.dkr.ecr.us-east-1.amazonaws.com/amp         local                                      e6ea837ab97f   18 hours ago    1.65GB
@@ -253,12 +248,12 @@ def docker_pull(ctx, stage="dev", version=None, skip_pull=False):  # type: ignor
 
 
 @task
-def docker_pull_dev_tools(ctx, stage="prod", version=None):  # type: ignore
+def docker_pull_helpers(ctx, stage="prod", version=None):  # type: ignore
     """
-    Pull latest prod image of `dev_tools` from the registry.
+    Pull latest prod image of `helpers` from the registry.
     """
     hlitauti.report_task()
-    base_image = hlitauti.get_default_param("CK_ECR_BASE_PATH") + "/dev_tools"
+    base_image = hlitauti.get_default_param("CSFY_ECR_BASE_PATH") + "/helpers"
     _docker_pull(ctx, base_image, stage, version)
 
 
@@ -355,14 +350,17 @@ def _docker_login_ecr() -> None:
     #   -e none \
     #   https://*****.dkr.ecr.us-east-1.amazonaws.com
     # TODO(gp): Move this to var in repo_config.py.
+    # TODO(gp): Hack
     profile = "ck"
     region = hs3.AWS_EUROPE_REGION_1
     if major_version == 1:
         cmd = f"eval $(aws ecr get-login --profile {profile} --no-include-email --region {region})"
     elif major_version == 2:
-        ecr_base_path = hlitauti.get_default_param(
-            f"{profile.upper()}_ECR_BASE_PATH"
-        )
+        if profile == "ck":
+            env_var = f"CSFY_ECR_BASE_PATH"
+        else:
+            env_var = f"{profile.upper()}_ECR_BASE_PATH"
+        ecr_base_path = hlitauti.get_default_param(env_var)
         # TODO(Nikola): Remove `_get_aws_cli_version()` and use only `aws ecr get-login-password`
         #  as it is present in both versions of `awscli`.
         cmd = (
@@ -421,12 +419,14 @@ def docker_login(ctx, target_registry="aws_ecr.ck"):  # type: ignore
 # TODO(gp): use_privileged_mode -> use_docker_privileged_mode
 #  use_sibling_container -> use_docker_containers_containers
 
+DockerComposeServiceSpec = Dict[str, Union[str, List[str]]]
 
-def _get_linter_service(stage: str) -> Dict[str, Union[str, List[str]]]:
+
+def _get_linter_service(stage: str) -> DockerComposeServiceSpec:
     """
     Get the linter service specification for the `docker-compose.yml` file.
 
-    :return: the text of the linter service specification
+    :return: linter service specification
     """
     superproject_path, submodule_path = hgit.get_path_from_supermodule()
     if superproject_path:
@@ -457,10 +457,10 @@ def _get_linter_service(stage: str) -> Dict[str, Union[str, List[str]]]:
         else:
             linter_service_spec["volumes"].append("../../:/app")
     if stage == "prod":
-        # Use the `repo_config.py` inside the dev_tools container instead of
+        # Use the `repo_config.py` inside the helpers container instead of
         # the one in the calling repo.
         linter_service_spec["environment"].append(
-            "AM_REPO_CONFIG_PATH=/app/repo_config.py"
+            "CSFY_REPO_CONFIG_PATH=/app/repo_config.py"
         )
     return linter_service_spec
 
@@ -493,29 +493,15 @@ def _generate_docker_compose_file(
             "file_name "
         )
     )
-
-    class _Dumper(yaml.Dumper):
-        """
-        A custom YAML Dumper class that adjusts indentation.
-        """
-
-        def increase_indent(self, flow=False, indentless=False) -> Any:
-            """
-            Override the method to modify YAML indentation behavior.
-            """
-            return super(_Dumper, self).increase_indent(
-                flow=False, indentless=False
-            )
-
     # We could pass the env var directly, like:
     # ```
-    # - AM_ENABLE_DIND=$AM_ENABLE_DIND
+    # - CSFY_ENABLE_DIND=$CSFY_ENABLE_DIND
     # ```
     # but we prefer to inline it.
     if use_privileged_mode:
-        am_enable_dind = 1
+        CSFY_ENABLE_DIND = 1
     else:
-        am_enable_dind = 0
+        CSFY_ENABLE_DIND = 0
     # ```
     # sysname='Linux'
     # nodename='cf-spm-dev4'
@@ -523,40 +509,60 @@ def _generate_docker_compose_file(
     # version='#1 SMP Fri Jan 14 13:59:45 UTC 2022'
     # machine='x86_64'
     # ```
-    am_host_os_name = os.uname()[0]
-    am_host_name = os.uname()[1]
-    am_host_version = os.uname()[2]
-    am_host_user_name = getpass.getuser()
-    git_root_path = hgit.find_git_root()
+    csfy_host_os_name = os.uname()[0]
+    csfy_host_name = os.uname()[1]
+    csfy_host_version = os.uname()[2]
+    csfy_host_user_name = getpass.getuser()
+    # The mounting path in the container is `/app`.
+    # So we need to use that as starting point.
+    # e.g. For CSFY_GIT_ROOT_PATH,
+    #   rather than `/data/heanhs/src/cmamp1`, we need to use `/app`.
+    # e.g. For CSFY_HELPERS_ROOT_PATH,
+    #   rather than `/data/heanhs/src/cmamp1/helpers_root`, we need to
+    #   use `/app/helpers_root`.
+    # Find git root path.
+    git_root_path = "/app"
+    # Find helpers root path.
+    helper_dir = hgit.find_helpers_root()
+    git_dir = hgit.find_git_root()
+    helper_relative_path = os.path.relpath(helper_dir, git_dir)
+    helper_root_path = os.path.normpath(
+        os.path.join("/app", helper_relative_path)
+    )
+    # A super repo is a repo that contains helpers as a submodule and
+    # is not a helper itself.
+    is_super_repo = 0 if hgit.is_in_helpers_as_supermodule() else 1
     # We could do the same also with IMAGE for symmetry.
     # Keep the env vars in sync with what we print in `henv.get_env_vars()`.
     # Configure `base_app` service.
     base_app_spec = {
         "cap_add": ["SYS_ADMIN"],
         "environment": [
-            f"AM_ENABLE_DIND={am_enable_dind}",
-            f"AM_FORCE_TEST_FAIL=$AM_FORCE_TEST_FAIL",
-            f"AM_HOST_NAME={am_host_name}",
-            f"AM_HOST_OS_NAME={am_host_os_name}",
-            f"AM_HOST_USER_NAME={am_host_user_name}",
-            f"AM_HOST_VERSION={am_host_version}",
-            "AM_REPO_CONFIG_CHECK=True",
+            f"CSFY_ENABLE_DIND={CSFY_ENABLE_DIND}",
+            f"CSFY_FORCE_TEST_FAIL=$CSFY_FORCE_TEST_FAIL",
+            f"CSFY_HOST_NAME={csfy_host_name}",
+            f"CSFY_HOST_OS_NAME={csfy_host_os_name}",
+            f"CSFY_HOST_USER_NAME={csfy_host_user_name}",
+            f"CSFY_HOST_VERSION={csfy_host_version}",
+            "CSFY_REPO_CONFIG_CHECK=True",
             # Use inferred path for `repo_config.py`.
-            "AM_REPO_CONFIG_PATH=",
-            "CK_AWS_ACCESS_KEY_ID=$CK_AWS_ACCESS_KEY_ID",
-            "CK_AWS_DEFAULT_REGION=$CK_AWS_DEFAULT_REGION",
-            "CK_AWS_PROFILE=$CK_AWS_PROFILE",
-            "CK_AWS_S3_BUCKET=$CK_AWS_S3_BUCKET",
-            "CK_AWS_SECRET_ACCESS_KEY=$CK_AWS_SECRET_ACCESS_KEY",
-            "CK_ECR_BASE_PATH=$CK_ECR_BASE_PATH",
-            f"CK_GIT_ROOT_PATH={git_root_path}",
+            "CSFY_REPO_CONFIG_PATH=",
+            "CSFY_AWS_ACCESS_KEY_ID=$CSFY_AWS_ACCESS_KEY_ID",
+            "CSFY_AWS_DEFAULT_REGION=$CSFY_AWS_DEFAULT_REGION",
+            "CSFY_AWS_PROFILE=$CSFY_AWS_PROFILE",
+            "CSFY_AWS_S3_BUCKET=$CSFY_AWS_S3_BUCKET",
+            "CSFY_AWS_SECRET_ACCESS_KEY=$CSFY_AWS_SECRET_ACCESS_KEY",
+            "CSFY_ECR_BASE_PATH=$CSFY_ECR_BASE_PATH",
+            f"CSFY_GIT_ROOT_PATH={git_root_path}",
+            f"CSFY_HELPERS_ROOT_PATH={helper_root_path}",
+            f"CSFY_IS_SUPER_REPO={is_super_repo}",
             "OPENAI_API_KEY=$OPENAI_API_KEY",
             # - CK_ENABLE_DIND=
             # - CK_FORCE_TEST_FAIL=$CK_FORCE_TEST_FAIL
             # - CK_HOST_NAME=
             # - CK_HOST_OS_NAME=
             # - CK_PUBLISH_NOTEBOOK_LOCAL_PATH=$CK_PUBLISH_NOTEBOOK_LOCAL_PATH
-            "CK_TELEGRAM_TOKEN=$CK_TELEGRAM_TOKEN",
+            "CSFY_TELEGRAM_TOKEN=$CSFY_TELEGRAM_TOKEN",
             # TODO(Vlad): consider removing, locally we use our personal tokens from files and
             # inside GitHub actions we use the `GH_TOKEN` environment variable.
             "GH_ACTION_ACCESS_TOKEN=$GH_ACTION_ACCESS_TOKEN",
@@ -564,7 +570,9 @@ def _generate_docker_compose_file(
             # see https://cli.github.com/manual/gh_auth_login.
             "GH_TOKEN=$GH_ACTION_ACCESS_TOKEN",
             # This env var is used by GH Action to signal that we are inside the CI.
-            "CI=$CI",
+            # It's set up by default by the GH Action runner. See:
+            # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/store-information-in-variables#default-environment-variables
+            "CSFY_CI=$CSFY_CI",
         ],
         "image": "${IMAGE}",
         "restart": "no",
@@ -616,15 +624,21 @@ def _generate_docker_compose_file(
     # Mount `amp` when it is used as submodule. In this case we need to
     # mount the super project in the container (to make git work with the
     # supermodule) and then change dir to `amp`.
-    app_spec = {"extends": "base_app"}
-    if mount_as_submodule:
-        # Move one dir up to include the entire git repo (see AmpTask1017).
-        app_spec["volumes"] = ["../../../:/app"]
-        # Move one dir down to include the entire git repo (see AmpTask1017).
-        app_spec["working_dir"] = "/app/amp"
-    else:
-        # Mount `amp` when it is used as supermodule.
-        app_spec["volumes"] = ["../../:/app"]
+    app_spec = {
+        "extends": "base_app",
+    }
+    # Use absolute path of the dir to mount the volume and set working dir.
+    # The `app_dir` dir points to the root of the repo.
+    # The `working_dir` points to the path of the runnable dir.
+    # - If the runnable dir is the root of the repo, then `working_dir` is `/app`.
+    # - If the runnable dir is a subdirectory of the repo, then `working_dir` is `/app/subdir`.
+    curr_dir = os.getcwd()
+    rel_dir1 = os.path.relpath(curr_dir, git_dir)
+    rel_dir2 = os.path.relpath(git_dir, curr_dir)
+    app_dir = os.path.abspath(os.path.join(curr_dir, rel_dir2))
+    working_dir = os.path.normpath(os.path.join("/app", rel_dir1))
+    app_spec["volumes"] = [f"{app_dir}:/app"]
+    app_spec["working_dir"] = working_dir
     # Configure `linter` service.
     linter_spec = _get_linter_service(stage)
     # Configure `jupyter_server` service.
@@ -673,6 +687,20 @@ def _generate_docker_compose_file(
     # Configure networks.
     if use_main_network:
         docker_compose["networks"] = {"default": {"name": "main_network"}}
+
+    class _Dumper(yaml.Dumper):
+        """
+        A custom YAML Dumper class that adjusts indentation.
+        """
+
+        def increase_indent(self, flow=False, indentless=False) -> Any:
+            """
+            Override the method to modify YAML indentation behavior.
+            """
+            return super(_Dumper, self).increase_indent(
+                flow=False, indentless=False
+            )
+
     # Convert the dictionary to YAML format.
     yaml_str = yaml.dump(
         docker_compose,
@@ -735,7 +763,7 @@ def _get_docker_compose_files(
     # Write Docker compose file.
     file_name = get_base_docker_compose_path()
     if service_name == "linter":
-        # Since we are running the prod `dev_tools` container we need to use the
+        # Since we are running the prod `helpers` container we need to use the
         # settings from the `repo_config` from that container, and not the settings
         # launch the container corresponding to this repo.
         enable_privileged_mode = False
@@ -939,7 +967,7 @@ def _get_base_image(base_image: str) -> str:
     if base_image == "":
         # TODO(gp): Use os.path.join.
         base_image = (
-            hlitauti.get_default_param("CK_ECR_BASE_PATH")
+            hlitauti.get_default_param("CSFY_ECR_BASE_PATH")
             + "/"
             + hlitauti.get_default_param("BASE_IMAGE")
         )
@@ -1268,10 +1296,8 @@ def _get_lint_docker_cmd(
     :return: the full command to run
     """
     # Get an image to run the linter on.
-    ecr_base_path = os.environ["CK_ECR_BASE_PATH"]
-    linter_image = f"{ecr_base_path}/dev_tools"
-    # TODO(Grisha): do we need a version? i.e., we can pass `version` to `lint`
-    # and run Linter on the specific version, e.g., `1.1.5`.
+    ecr_base_path = os.environ["CSFY_ECR_BASE_PATH"]
+    linter_image = f"{ecr_base_path}/helpers"
     # Execute command line.
     cmd: str = _get_docker_compose_cmd(
         linter_image,
@@ -1279,7 +1305,6 @@ def _get_lint_docker_cmd(
         version,
         docker_cmd_,
         use_entrypoint=use_entrypoint,
-        service_name="linter",
     )
     return cmd
 
