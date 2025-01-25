@@ -25,8 +25,6 @@
   * [Render on-line](#render-on-line)
 - [PlantUML](#plantuml)
   * [PlantUML is Markdown](#plantuml-is-markdown)
-    + [`render_md.py` tool](#render_mdpy-tool)
-      - [How to use](#how-to-use)
     + [Our conventions](#our-conventions)
   * [Plotting online](#plotting-online)
 - [UML - Unified Modeling Language](#uml---unified-modeling-language)
@@ -155,7 +153,6 @@
 - Mapped onto a code repository
 - E.g.,
   - `//...` is a system providing data and analytics for commodity
-  - `//pre-commit` is a system implementing a code linter
 
 #### Container (Level 2)
 

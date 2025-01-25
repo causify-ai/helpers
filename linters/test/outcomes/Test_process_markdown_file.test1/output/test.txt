@@ -1,0 +1,15 @@
+# linter warnings
+
+/app/linters/test/outcomes/Test_process_markdown_file.test1/tmp.scratch/test_no_toc.md:4: Content found before Table of Contents (TOC).
+
+# linted file
+
+
+        # Introduction
+
+        Some introductory content before TOC.
+
+        Table of Contents
+
+        - [Introduction](#introduction)
+        

@@ -192,7 +192,7 @@
 
 - [ ] **IT**: Add team member to all GitHub repos:
   - [ ] [Kaizen-ai](https://github.com/causify-ai/kaizenflow)
-  - [ ] [dev_tools](https://github.com/causify-ai/dev_tools)
+  - [ ] [helpers](https://github.com/causify-ai/helpers)
   - [ ] [cmamp](https://github.com/causify-ai/cmamp)
   - [ ] [orange](https://github.com/causify-ai/orange) (On per-need basis)
   - [ ] [UMD_data605](https://github.com/gpsaggese/umd_data605) (On per-need

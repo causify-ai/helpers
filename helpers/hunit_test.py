@@ -400,7 +400,7 @@ def purify_from_environment(txt: str) -> str:
     # 3) Replace the current user name with `$USER_NAME`.
     user_name = hsystem.get_user_name()
     # Set a regex pattern that finds a user name surrounded by dot, dash or space.
-    # E.g., `IMAGE=$CK_ECR_BASE_PATH/amp_test:local-$USER_NAME-1.0.0`,
+    # E.g., `IMAGE=$CSFY_ECR_BASE_PATH/amp_test:local-$USER_NAME-1.0.0`,
     # `--name $USER_NAME.amp_test.app.app`, `run --rm -l user=$USER_NAME`.
     pattern = rf"([\s\n\-\.\=]|^)+{user_name}+([.\s/-]|$)"
     # Use `\1` and `\2` to preserve specific characters around `$USER_NAME`.
@@ -473,8 +473,8 @@ def purify_file_names(file_names: List[str]) -> List[str]:
 def purify_from_env_vars(txt: str) -> str:
     # TODO(gp): Diff between amp and cmamp.
     for env_var in [
-        "CK_AWS_S3_BUCKET",
-        "CK_ECR_BASE_PATH",
+        "CSFY_AWS_S3_BUCKET",
+        "CSFY_ECR_BASE_PATH",
     ]:
         if env_var in os.environ:
             val = os.environ[env_var]

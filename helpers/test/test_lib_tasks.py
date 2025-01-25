@@ -4,6 +4,7 @@
 import logging
 import os
 import re
+import unittest.mock as umock
 from typing import Dict, Generator
 
 import invoke
@@ -25,11 +26,11 @@ def _get_default_params() -> Dict[str, str]:
     Get fake params pointing to a different image so we can test the code
     without affecting the official images.
     """
-    ecr_base_path = os.environ["CK_ECR_BASE_PATH"]
+    ecr_base_path = os.environ["CSFY_ECR_BASE_PATH"]
     default_params = {
-        "CK_ECR_BASE_PATH": ecr_base_path,
+        "CSFY_ECR_BASE_PATH": ecr_base_path,
         "BASE_IMAGE": "amp_test",
-        "DEV_TOOLS_IMAGE_PROD": f"{ecr_base_path}/dev_tools:prod",
+        "HELPERS_IMAGE_PROD": f"{ecr_base_path}/helpers:prod",
     }
     return default_params
 
@@ -298,8 +299,11 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
         reason="Only run in amp as supermodule",
     )
     def test_gh_create_pr1(self) -> None:
-        target = "gh_create_pr(ctx, repo_short_name='amp', title='test')"
-        self._check_output(target)
+        with umock.patch.object(
+            hgit, "get_branch_name", return_value="AmpTask1_test_branch"
+        ):
+            target = "gh_create_pr(ctx, repo_short_name='amp', title='test')"
+            self._check_output(target)
 
     # TODO(ShaopengZ): Outside CK infra, the test hangs, so we skip it.
     @pytest.mark.requires_ck_infra
@@ -308,8 +312,11 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
         reason="Only run in amp as supermodule",
     )
     def test_gh_create_pr2(self) -> None:
-        target = "gh_create_pr(ctx, body='hello_world', repo_short_name='amp', title='test')"
-        self._check_output(target)
+        with umock.patch.object(
+            hgit, "get_branch_name", return_value="AmpTask1_test_branch"
+        ):
+            target = "gh_create_pr(ctx, body='hello_world', repo_short_name='amp', title='test')"
+            self._check_output(target)
 
     # TODO(ShaopengZ): Outside CK infra, the test hangs, so we skip it.
     @pytest.mark.requires_ck_infra
@@ -318,10 +325,11 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
         reason="Only run in amp as supermodule",
     )
     def test_gh_create_pr3(self) -> None:
-        target = (
-            "gh_create_pr(ctx, draft=False, repo_short_name='amp', title='test')"
-        )
-        self._check_output(target)
+        with umock.patch.object(
+            hgit, "get_branch_name", return_value="AmpTask1_test_branch"
+        ):
+            target = "gh_create_pr(ctx, draft=False, repo_short_name='amp', title='test')"
+            self._check_output(target)
 
     def test_gh_issue_title(self) -> None:
         target = "gh_issue_title(ctx, 1)"
@@ -461,9 +469,9 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
 
 class TestFailing(hunitest.TestCase):
     """
-    Run a test that fails based on AM_FORCE_TEST_FAIL environment variable.
+    Run a test that fails based on CSFY_FORCE_TEST_FAIL environment variable.
     """
 
     def test_failing(self) -> None:
-        if os.environ.get("AM_FORCE_TEST_FAIL", "") == "1":
+        if os.environ.get("CSFY_FORCE_TEST_FAIL", "") == "1":
             self.fail("test failed succesfully")

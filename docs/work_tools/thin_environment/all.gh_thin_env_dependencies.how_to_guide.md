@@ -77,11 +77,11 @@ Example:
 ## Update Documentation
 
 - Update the
-  [/docs/dev_tools/thin_env/all.gh_and_thin_env_requirements.reference.md](/docs/dev_tools/thin_env/all.gh_and_thin_env_requirements.reference.md)
+  [/docs/work_tools/thin_environment/all.gh_and_thin_env_requirements.reference.md](/docs/work_tools/thin_environment/all.gh_and_thin_env_requirements.reference.md)
 
 ## Notify Team
 
-In the @all Telegram channel, notify the team about the new package and ask them
+In the `#team-eng` Slack channel, notify the team about the new package and ask them
 to rebuild the thin env.
 
 Example:

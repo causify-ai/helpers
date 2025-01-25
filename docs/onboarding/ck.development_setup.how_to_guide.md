@@ -361,7 +361,7 @@
   HEAD detached at bd69850bb
   nothing to commit, working tree clean
   # In general form.
-  > cd {sumbodule}
+  > cd {submodule}
   > git checkout master
   > git pull
   # Example for `orange` which contains `cmamp` which contains `helpers`.
@@ -388,14 +388,14 @@
   we use the thin environment from the `helpers` repo, i.e. to build one we need
   to run:
   ```bash
-    > cd amp (only if amp is sumbodule)
+    > cd amp (only if amp is submodule)
     > cd helpers_root
     > ./dev_scripts_helpers/thin_client/build.py
   ```
 - This script to build the environment is run rarely when the dependencies are
   changed.
 - This environment is shared by multiple repos (e.g., all the `cmamp` and
-  `dev_tools`), so once you build the environment you can use it for all the
+  `tutorials`), so once you build the environment you can use it for all the
   repos and for multiple clients
 
 ### Activate the thin environment
@@ -498,7 +498,7 @@
 - Conceptually the steps are:
   - Clone a repo in `~/src/...`
     - You can have as many clients as you want (`cmamp1`, `cmamp2`, ...,
-      `dev_tools1`, ...)
+      `helpers1`, ...)
   - Build the "thin" environment:
     - Needs to be done only once for all your clients
       ```bash
@@ -529,11 +529,11 @@
   - Check `docker_bash`:
     ```bash
     > i docker_bash
-    INFO: > cmd='/data/saggese/src/venv/dev_tools.client_venv/bin/invoke docker_bash'
+    INFO: > cmd='/data/saggese/src/venv/helpers.client_venv/bin/invoke docker_bash'
     ## docker_bash:
-    IMAGE=665840871993.dkr.ecr.us-east-1.amazonaws.com/dev_tools:dev \
+    IMAGE=665840871993.dkr.ecr.us-east-1.amazonaws.com/helpers:dev \
             docker-compose \
-            --file /data/saggese/src/dev_tools1/devops/compose/docker-compose.yml \
+            --file /data/saggese/src/helpers1/devops/compose/docker-compose.yml \
             --env-file devops/env/default.env \
             run \
             --rm \

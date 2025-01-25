@@ -72,7 +72,7 @@
 ### Developers
 
 - People on teams working on the same project or on related projects can:
-  1. Work together on the same tasks (you can coordinate on GitHub, Telegram, or
+  1. Work together on the same tasks (you can coordinate on GitHub, Slack, or
      do a Zoom)
   2. Work together and split the work (still you need coordination)
   3. Each can "replicate" the work so that both of you understand (no
@@ -114,9 +114,9 @@
     [General Rules of Collaboration](/docs/work_organization/all.team_collaboration.how_to_guide.md)
     for more details
 
-- Use Telegram chat when you are blocked on something
+- Use Slack channel/DMs when you are blocked on something
   - Try to use GitHub Issues when not urgent to provide context
-  - Don't abuse Telegram, learning what is urgent and what's not
+  - Don't abuse Slack, learning what is urgent and what's not
 
 - On GitHub
   - Provide context about the problem

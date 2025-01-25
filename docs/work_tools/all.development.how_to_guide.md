@@ -196,13 +196,12 @@
 
   ```bash
   > more ~/.aws/credentials
-  [am]
+  [ck]
   aws_access_key_id=**
   aws_secret_access_key=**
-  aws_s3_bucket=alphamatic-data
 
-  > printenv | grep AM_
-  AM_AWS_PROFILE=am
+  > printenv | grep CK_
+  CSFY_AWS_PROFILE=ck
   ```
 
 - If you don't have them, you need to re-run `source dev_scripts/setenv.sh` in
@@ -614,4 +613,3 @@ TODO(gp): How to copy files in vimdiff including last line?
 - IN PROGRESS: Run lemonade on my laptop
 - Run `cmamp` on the dev server
 - Get `cmamp` PR to pass on GH
-- Run dev_tools on the dev server
