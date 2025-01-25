@@ -1,27 +1,27 @@
 #!/usr/bin/env python3
 
 """
-This file contains a script to extract headers from a Markdown file and
-generate a Vim cfile. The script processes the input Markdown file, extracts
-headers up to a specified maximum level, and generates an output file in a
-format that can be used with Vim's quickfix feature.
+Extract headers from a Markdown file and generate a Vim cfile.
 
-Example Usage
-Extract headers from a Markdown file and save to an output file:
-```
+The script processes the input Markdown file, extracts headers up to a
+specified maximum level, and generates an output file in a format that can be
+used with Vim's quickfix feature.
+
+# Extract headers from a Markdown file and save to an output file:
+
 > python process_md_headers.py -i input.md -o output.cfile --max-level 3
-```
+
 This command extracts headers up to level 3 from input.md and saves the output
 to output.cfile.
 
-Extract headers and print to stdout:
-```
+# Extract headers and print to stdout:
+
 > python process_md_headers.py -i input.md -o - --max-level 2
-```
+
 This command extracts headers up to level 2 from input.md and prints the output
 to the console.
 
-Vim Integration
+# Vim Integration
 To use the generated cfile in Vim:
 
 Open Vim and run:

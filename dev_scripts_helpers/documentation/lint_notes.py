@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Lint md files.
+Lint "notes" files.
 
 > lint_notes.py -i foo.md -o bar.md --use_dockerized_prettier --use_dockerized_markdown_toc
 
