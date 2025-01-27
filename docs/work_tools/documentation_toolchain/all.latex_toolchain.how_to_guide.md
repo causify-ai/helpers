@@ -110,8 +110,6 @@
 - In `vim`
   ```bash
   :!helpers_root/dev_scripts_helpers/documentation/process_md_headers.py -i % -m 1
-  ```
-  ```bash
   Probability 1
   Random variables 735
   Mathematical expectation of RVs 1161
@@ -136,7 +134,7 @@
 
 ## List possible LLM transforms
 
-- Use `-t list`
+- Use `llm_transform.py -t list`
   ```bash
   code_comment
   code_docstring
@@ -153,7 +151,7 @@
 
 - Convert notes to slides:
   ```bash
-  > notes_to_pdf.py --input notes/MSML610/Lesson1-Intro.txt --output tmp.pdf -t slides --skip_action copy_to_gdrive --skip_action open --skip_action cleanup_after
+  > notes_to_pdf.py --input notes/MSML610/Lesson1-Intro.txt --output tmp.pdf -t slides
   ```
 
 # Latex Toolchain
