@@ -610,17 +610,6 @@ def gh_get_details_for_all_workflows(repo_list: List[str]) -> "pd.DataFrame":
     for repo_name in repo_list:
         # Get all workflow names for the given repo.
         workflow_names = gh_get_workflow_type_names(repo_name)
-        # Check for duplicate workflow names.
-        workflow_counts = collections.Counter(workflow_names)
-        duplicate_workflows = [
-            name for name, count in workflow_counts.items() if count > 1
-        ]
-        hdbg.dassert_eq(
-            len(duplicate_workflows),
-            0,
-            "Found duplicate workflow names for repo '%s': %s"
-            % (repo_name, ", ".join(duplicate_workflows)),
-        )
         # For each workflow find the last run.
         for workflow_name in workflow_names:
             # Get at least a few runs to compute the status; this is useful when
@@ -710,6 +699,11 @@ def gh_get_workflow_type_names(repo_name: str, *, sort: bool = True) -> List[str
     workflow_names = [workflow["name"] for workflow in workflow_types]
     if sort:
         workflow_names = sorted(workflow_names)
+    # Check for duplicate workflow names.
+    hdbg.dassert_no_duplicates(
+        workflow_names, 
+        "Found duplicate workflow names for repo '%s'" % repo_name
+    )
     return workflow_names
 
 
