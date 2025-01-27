@@ -673,7 +673,7 @@ def check_exec(tool: str) -> bool:
 
 # #############################################################################
 
-# Copied from hprint to avoid import cycles.
+# Copied from hgit to avoid import cycles.
 
 
 def _find_git_root(path: str = ".") -> str:
