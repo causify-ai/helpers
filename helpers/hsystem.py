@@ -38,7 +38,7 @@ _LOG.setLevel(logging.INFO)
 
 
 def get_timestamp() -> str:
-    timestamp = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S')
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
     return timestamp
 
 
@@ -495,7 +495,8 @@ def system_to_files(
     Execute command `cmd` in `dir_name` and return the output as a list of
     strings.
 
-    :param remove_files_non_present: remove files that don't exist on the filesystem
+    :param remove_files_non_present: remove files that don't exist on
+        the filesystem
     :param mode: like in `select_result_file_from_list()`
     """
     if dir_name is None:
@@ -573,7 +574,8 @@ def kill_process(
     """
     Kill all the processes returned by the function `get_pids()`.
 
-    :param timeout_in_secs: how many seconds to wait at most before giving up
+    :param timeout_in_secs: how many seconds to wait at most before
+        giving up
     :param polltime_in_secs: how often to check for dead processes
     """
     import tqdm
@@ -669,15 +671,94 @@ def check_exec(tool: str) -> bool:
     return rc == 0
 
 
+# #############################################################################
+
+# Copied from hgit to avoid import cycles.
+
+
+def _find_git_root(path: str = ".") -> str:
+    """
+    Find recursively the dir of the outermost super module.
+
+    This function traverses the directory hierarchy upward from a specified
+    starting path to find the root directory of a Git repository.
+    It supports:
+    - standard git repository: where a `.git` directory exists at the root
+    - submodule: where repository is nested inside another, and the `.git` file contains
+      a `gitdir:` reference to the submodule's actual Git directory
+    - linked repositories: where the `.git` file points to a custom Git directory
+      location, such as in Git worktrees or relocated `.git` directories
+
+    :param path: starting file system path. Defaults to the current directory (".")
+    :return: absolute path to the top-level Git repository directory
+    """
+    path = os.path.abspath(path)
+    git_root_dir = None
+    while True:
+        git_dir = os.path.join(path, ".git")
+        _LOG.debug("git_dir=%s", git_dir)
+        # Check if `.git` is a directory which indicates a standard Git repository.
+        if os.path.isdir(git_dir):
+            # Found the Git root directory.
+            git_root_dir = path
+            break
+        # Check if `.git` is a file which indicates submodules or linked setups.
+        if os.path.isfile(git_dir):
+            txt = hio.from_file(git_dir)
+            lines = txt.split("\n")
+            for line in lines:
+                # Look for a `gitdir:` line that specifies the linked directory.
+                # Example: `gitdir: ../.git/modules/helpers_root`.
+                if line.startswith("gitdir:"):
+                    git_dir_path = line.split(":", 1)[1].strip()
+                    _LOG.debug("git_dir_path=%s", git_dir_path)
+                    # Resolve the relative path to the absolute path of the Git directory.
+                    abs_git_dir = os.path.abspath(
+                        os.path.join(path, git_dir_path)
+                    )
+                    # Traverse up to find the top-level `.git` directory.
+                    while True:
+                        # Check if the current directory is a `.git` directory.
+                        if os.path.basename(abs_git_dir) == ".git":
+                            git_root_dir = os.path.dirname(abs_git_dir)
+                            # Found the root.
+                            break
+                        # Move one level up in the directory structure.
+                        parent = os.path.dirname(abs_git_dir)
+                        # Reached the filesystem root without finding the `.git` directory.
+                        hdbg.dassert_ne(
+                            parent,
+                            abs_git_dir,
+                            "Top-level .git directory not found.",
+                        )
+                        # Continue traversing up.
+                        abs_git_dir = parent
+                    break
+        # Exit the loop if the Git root directory is found.
+        if git_root_dir is not None:
+            break
+        # Move up one level in the directory hierarchy.
+        parent = os.path.dirname(path)
+        # Reached the filesystem root without finding `.git`.
+        hdbg.dassert_ne(
+            parent,
+            path,
+            "No .git directory or file found in any parent directory.",
+        )
+        # Update the path to the parent directory for the next iteration.
+        path = parent
+    return git_root_dir
+
+
+# End copy.
+
+
 def find_file_in_repo(file_name: str, *, root_dir: Optional[str] = None) -> str:
     """
     Find file in the repo.
     """
     if root_dir is None:
-        # We don't want to introduce a cyclic imports.
-        import helpers.hgit as hgit
-
-        root_dir = hgit.find_git_root()
+        root_dir = _find_git_root()
     _, file_name = system_to_one_line(
         rf"find {root_dir} -name {file_name} -not -path '*/\.git/*'"
     )
