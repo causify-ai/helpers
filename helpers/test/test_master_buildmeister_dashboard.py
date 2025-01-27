@@ -68,4 +68,5 @@ class Test_Master_buildmeister_dashboard_notebook(
             "causify-ai/helpers",
             "causify-ai/quant_dashboard",
         ]
-        hlitagh.gh_get_workflow_type_names(repo_list)
+        for repo_name in repo_list:
+            hlitagh.gh_get_workflow_type_names(repo_name)
