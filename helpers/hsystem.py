@@ -38,7 +38,7 @@ _LOG.setLevel(logging.INFO)
 
 
 def get_timestamp() -> str:
-    timestamp = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S')
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
     return timestamp
 
 
@@ -495,7 +495,8 @@ def system_to_files(
     Execute command `cmd` in `dir_name` and return the output as a list of
     strings.
 
-    :param remove_files_non_present: remove files that don't exist on the filesystem
+    :param remove_files_non_present: remove files that don't exist on
+        the filesystem
     :param mode: like in `select_result_file_from_list()`
     """
     if dir_name is None:
@@ -573,7 +574,8 @@ def kill_process(
     """
     Kill all the processes returned by the function `get_pids()`.
 
-    :param timeout_in_secs: how many seconds to wait at most before giving up
+    :param timeout_in_secs: how many seconds to wait at most before
+        giving up
     :param polltime_in_secs: how often to check for dead processes
     """
     import tqdm
@@ -668,6 +670,7 @@ def check_exec(tool: str) -> bool:
     )
     return rc == 0
 
+
 # #############################################################################
 
 # Copied from hprint to avoid import cycles.
@@ -746,7 +749,9 @@ def _find_git_root(path: str = ".") -> str:
         path = parent
     return git_root_dir
 
+
 # End copy.
+
 
 def find_file_in_repo(file_name: str, *, root_dir: Optional[str] = None) -> str:
     """
