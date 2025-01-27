@@ -4,7 +4,6 @@ Import as:
 import helpers.lib_tasks_gh as hlitagh
 """
 
-import collections
 import json
 import logging
 import os
@@ -701,8 +700,7 @@ def gh_get_workflow_type_names(repo_name: str, *, sort: bool = True) -> List[str
         workflow_names = sorted(workflow_names)
     # Check for duplicate workflow names.
     hdbg.dassert_no_duplicates(
-        workflow_names, 
-        "Found duplicate workflow names for repo '%s'" % repo_name
+        workflow_names, "Found duplicate workflow names in repo '%s'" % repo_name
     )
     return workflow_names
 
