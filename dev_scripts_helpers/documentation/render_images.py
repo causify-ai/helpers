@@ -102,12 +102,13 @@ def _get_puppeteer_config_path() -> str:
     Get the path of the puppeteer config file.
 
     Aborts the script if the file is not found.
+
+    :return: path to the config file
     """
     cmd = "find -name 'puppeteerConfig.json'"
-    _, path = hsystem.system_to_string(cmd)
+    _, paths_out = hsystem.system_to_string(cmd)
     # Pick the one closer to the current dir.
-    path = sorted(path.split("\n"))
-    path = path[0]
+    path = sorted(paths_out.split("\n"))[0]
     hdbg.dassert_path_exists(path)
     return path
 
