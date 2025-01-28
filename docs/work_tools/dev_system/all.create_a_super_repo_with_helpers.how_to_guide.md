@@ -312,7 +312,20 @@ python3 ./helpers_root/helpers/create_links.py --src_dir ./helpers_root --dst_di
        consistency
      - Replace `invoke run_fast_tests` with your desired action
 
-3. TODO(Shayan): #HelpersTask90
+### Configure Gitleaks scan
+
+1. Copy the configuration and workflow files
+
+```bash
+cp ./helpers_root/.github/gitleaks-rules.toml ./.github
+cp ./helpers_root/.github/workflows/gitleaks.yml ./.github/workflows
+```
+
+2. Replace files with symbolic links
+
+```bash
+python3 ./helpers_root/helpers/create_links.py --src_dir ./helpers_root/.github --dst_dir ./.github --replace_links --use_relative_paths
+```
 
 ## Configure GitHub repo
 
