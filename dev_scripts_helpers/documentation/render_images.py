@@ -36,6 +36,7 @@ import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
+
 # #############################################################################
 
 
@@ -173,8 +174,8 @@ def _render_code(
     cmd = _get_render_command(
         code_file_path, abs_img_dir_path, rel_img_path, dst_ext, image_code_type
     )
-    _LOG.info("Creating the image from %s source.", code_file_path)
-    _LOG.info("Saving image to %s.", abs_img_dir_path)
+    _LOG.info("Creating the image from %s source", code_file_path)
+    _LOG.info("Saving image to '%s'", abs_img_dir_path)
     _LOG.info("> %s", cmd)
     if dry_run:
         # Do not execute the command.
@@ -210,8 +211,8 @@ def _render_images(
     """
     Insert rendered images instead of image code blocks.
 
-    Here, "image code" refers to code that defines the content of
-    the image, e.g., plantUML/mermaid code for diagrams.
+    Here, "image code" refers to code that defines the content of the image,
+    e.g., plantUML/mermaid code for diagrams.
     In this method,
     - The image code is commented out.
     - New code is added after the image code block to insert
@@ -239,6 +240,9 @@ def _render_images(
         comment_postfix = ")"
     elif out_file.endswith(".tex"):
         comment_prefix = "%"
+        comment_postfix = ""
+    elif out_file.endswith(".txt"):
+        comment_prefix = "//"
         comment_postfix = ""
     else:
         raise ValueError(
@@ -354,8 +358,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Get the paths to the input and output files.
     in_file, out_file = hparser.parse_input_output_args(args)
     # Verify that the input and output file types are valid and equal.
-    hdbg.dassert_file_extension(in_file, ["md", "tex"])
-    hdbg.dassert_eq(os.path.splitext(in_file)[1], os.path.splitext(out_file)[1])
+    hdbg.dassert_file_extension(in_file, ["md", "tex", "txt"])
+    hdbg.dassert_eq(os.path.splitext(in_file)[1], os.path.splitext(out_file)[1],
+                    msg="Input and output files should have the same extension.")
     # Get the selected actions.
     actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     # Set the extension for the rendered images.
