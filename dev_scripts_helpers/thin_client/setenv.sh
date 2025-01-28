@@ -3,7 +3,7 @@
 #
 # NOTE: This file needs to be sourced and not executed. For this reason doesn't
 # use bash and doesn't have +x permissions.
-# 
+#
 
 DIR_TAG="helpers"
 
@@ -88,6 +88,10 @@ if [[ $IS_SUPER_REPO == 1 ]]; then
     # Print.
     echo "PYTHONPATH=$PYTHONPATH"
 fi;
+
+# Remove write permissions for symlinked files to prevent accidental
+# modifications before starting to develop.
+set_symlink_permissions .
 
 # - Set specific configuration of the project.
 configure_specific_project
