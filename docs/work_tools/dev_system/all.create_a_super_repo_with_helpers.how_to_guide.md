@@ -17,6 +17,7 @@
   * [Configure regressions via GitHub actions](#configure-regressions-via-github-actions)
     + [Set repository secrets/variables](#set-repository-secretsvariables)
     + [Create GitHub actions workflow files](#create-github-actions-workflow-files)
+    + [Configure Gitleaks scan](#configure-gitleaks-scan)
   * [Configure GitHub repo](#configure-github-repo)
 
 <!-- tocstop -->
