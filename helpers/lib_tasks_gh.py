@@ -685,6 +685,7 @@ def gh_get_overall_build_status_for_repo(
 def gh_get_workflow_type_names(repo_name: str, *, sort: bool = True) -> List[str]:
     """
     Get a list of workflow names for a given repo.
+
     :param repo_name: git repo name in the format "organization/repo",
         e.g., "cryptokaizen/cmamp"
     :param sort: if True, sort the list of workflow names
