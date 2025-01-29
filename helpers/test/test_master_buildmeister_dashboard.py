@@ -55,7 +55,7 @@ class Test_Master_buildmeister_dashboard_notebook(
         not hgit.is_in_amp_as_supermodule(),
         reason="Run only in amp as super-module",
     )
-    @pytest.mark.slow("~20 sec.")
+    @pytest.mark.superslow("~30 sec.")
     def test2(self) -> None:
         """
         Check that we can get status for all the workflows.
