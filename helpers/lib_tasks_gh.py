@@ -705,25 +705,33 @@ def gh_get_workflow_type_names(repo_name: str, *, sort: bool = True) -> List[str
     )
     return workflow_names
 
-def gh_get_workflows(repo_name: str, *, sort: bool = True) -> List[Dict[str, str]]:
+
+def gh_get_workflows(
+    repo_name: str, *, sort: bool = True
+) -> List[Dict[str, str]]:
     """
     Get a list of workflow for a given repo.
 
     :param repo_name: git repo name in the format "organization/repo",
         e.g., "cryptokaizen/cmamp"
     :param sort: if True, sort the list of workflow names
-    :return: list of workflows, e.g., [{"id": "12520125", "name": "Fast tests"},  {"id": "12520124", "name": "Slow tests"}]
+    :return: list of workflows, e.g., [{"id": "12520125", "name": "Fast
+        tests"}, {"id": "12520124", "name": "Slow tests"}]
     """
     hdbg.dassert_isinstance(repo_name, str)
     _LOG.debug(hprint.to_str("repo_name"))
     # Get the workflow list.
     cmd = f"gh workflow list --json id,name --repo {repo_name}"
     workflows = _gh_run_and_get_json(cmd)
-    workflows = [{"id": str(workflow["id"]), "name": workflow["name"]} for workflow in workflows]
+    workflows = [
+        {"id": str(workflow["id"]), "name": workflow["name"]}
+        for workflow in workflows
+    ]
     # sort workflow by name
     if sort:
         workflows = sorted(workflows, key=lambda workflow: workflow["name"])
     return workflows
+
 
 def gh_get_workflow_details(
     repo_name: str, workflow_id: str, fields: List[str], limit: int
