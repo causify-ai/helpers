@@ -616,6 +616,7 @@ def gh_get_details_for_all_workflows(repo_list: List[str]) -> "pd.DataFrame":
             # latest one tells the status for a workflow.
             limit = 5
             workflow_id = workflow["id"]
+            workflow_name = workflow["name"]
             workflow_statuses = gh_get_workflow_details(
                 repo_name, workflow_id, gh_cols, limit
             )
