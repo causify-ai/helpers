@@ -13,16 +13,23 @@ import os.path
 from datetime import datetime
 from typing import List, Optional
 
-# TODO(Henry): This package need to be manually installed until they are added
-# to the container.
+
+# This package need to be manually installed until they are added to the
+# container.
 # Run the following line in any notebook would install it:
-# !sudo /bin/bash -c "(source /venv/bin/activate; pip install --upgrade google-api-python-client)"
+# ```
+# > !sudo /bin/bash -c "(source /venv/bin/activate; pip install --upgrade # google-api-python-client)"
+# ```
 # Or run the following part in python:
+# ```
 # import subprocess
 # install_code = subprocess.call(
-# 'sudo /bin/bash -c "(source /venv/bin/activate; pip install --upgrade google-api-python-client)"',
-# shell=True,
+#   'sudo /bin/bash -c "(source /venv/bin/activate; pip install --upgrade google-api-python-client)"',
+#   shell=True,
 # )
+# ```
+
+
 import google.oauth2.service_account as goasea
 import googleapiclient.discovery as godisc
 import googleapiclient.errors as goerro
@@ -30,12 +37,8 @@ import gspread
 import pandas as pd
 from googleapiclient.discovery import build
 
-# Scopes required for making API calls.
+
 _LOG = logging.getLogger(__name__)
-SCOPES = [
-    "https://www.googleapis.com/auth/drive",
-    "https://www.googleapis.com/auth/spreadsheets",
-]
 
 
 def get_credentials(
@@ -46,24 +49,33 @@ def get_credentials(
     Get credentials for Google API with service account key.
 
     :param service_key_path: service account key file path.
-    :return: google credentials retrieved.
+    :return: Google credentials.
     """
+    # TODO(Shaunak): Credentials should be stored in $HOME.
     if not service_key_path:
         service_key_path = ".google_credentials/service.json"
     service_key_path = os.path.join(os.path.dirname(__file__), service_key_path)
-    if not os.path.exists(service_key_path):
-        _LOG.info("Failed to read service key file: %s", service_key_path)
-        raise RuntimeError(
-            "Please download service.json from Google API, "
-            "Then save it as helpers/.google_credentials/service.json\n"
-            "Instructions: https://gspread-pandas.readthedocs.io/en/latest/getting_started.html#client-credentials"
-        )
+    # Download service.json from Google API, then save it as
+    # helpers/.google_credentials/service.json
+    # Instructions: https://gspread-pandas.readthedocs.io/en/latest/getting_started.html#client-credentials"
+    hdbg.dassert_file_exists(service_key_path,
+                             "Failed to read service key file: %s",
+                                       service_key_path)
+    # Scopes required for making API calls.
+    scopes = [
+        "https://www.googleapis.com/auth/drive",
+        "https://www.googleapis.com/auth/spreadsheets",
+    ]
     creds = goasea.Credentials.from_service_account_file(
-        service_key_path, scopes=SCOPES
+        service_key_path, scopes=scopes
     )
     return creds
 
 
+# #############################################################################
+
+
+# TODO(Shaunak): Pass the credentials object and not the path.
 def get_sheets_service(
     *, service_key_path: Optional[str] = None
 ) -> godisc.Resource:
@@ -149,12 +161,13 @@ def freeze_rows(
             }
         ]
     }
+    # Get response.
     response = (
         sheets_service.spreadsheets()
         .batchUpdate(spreadsheetId=sheet_id, body=freeze_request)
         .execute()
     )
-    _LOG.debug("Freeze Response: %s", response)
+    _LOG.debug("response: %s", response)
 
 
 def set_row_height(
@@ -169,17 +182,22 @@ def set_row_height(
     """
     Set the height for rows in the given sheet.
 
-    - If only start_index is provided, applies height to all rows starting from start_index.
-    - If only end_index is provided, applies height to all rows up to end_index.
-    - If both start_index and end_index are provided, applies height to rows between them.
+    - If only `start_index` is provided, applies height to all rows starting from
+        `start_index`
+    - If only ``end_index`` is provided, applies height to all rows up to
+        `end_index`.
+    - If both `start_index` and `end_index` are provided, applies height to rows
+        between them.
     - If neither is provided, applies height to all rows.
 
     :param sheet_id: id of the Google Sheet.
     :param height: height of the rows in pixels.
-    :param start_index: starting index of the rows (zero-based). If None, applies to all rows.
-    :param end_index: ending index of the rows (zero-based). If None, applies to all rows.
-    :param sheet_name: name of the sheet (tab) to set row height in.
-                       Defaults to the first tab if not provided.
+    :param start_index: starting index of the rows (zero-based). If None,
+        applies to all rows.
+    :param end_index: ending index of the rows (zero-based). If None, applies to
+        all rows.
+    :param sheet_name: name of the sheet (tab) to set row height in. Defaults to
+        the first tab if not provided.
     :param service_key_path: the path to the service key file.
     :return: none
     """
@@ -217,6 +235,10 @@ def set_row_height(
         ).get("properties", {})
         grid_properties = sheet_properties.get("gridProperties", {})
         end_index = grid_properties.get("rowCount", 1000)
+    else:
+        raise ValueError(f"Invalid params start_index=${start_index} and "
+                         f"end_index=${end_index}")
+    # Create request.
     set_row_height_request = {
         "requests": [
             {
@@ -233,24 +255,28 @@ def set_row_height(
             }
         ]
     }
+    # Get response.
     response = (
         sheets_service.spreadsheets()
         .batchUpdate(spreadsheetId=sheet_id, body=set_row_height_request)
         .execute()
     )
-    _LOG.debug("Row Height Response: %s", response)
+    _LOG.debug("response: %s", response)
+
+
+# #############################################################################
 
 
 def get_gdrive_service(
     *, service_key_path: Optional[str] = None
 ) -> godisc.Resource:
     """
-    Get Google drive service with current credential.
+    Get Google Drive service with current credentials.
 
     :param service_key_path: The service key path.
         - Will use default service key path in `get_credentials` if None is given.
 
-    :return: the Google drive service instance created.
+    :return: the Google Drive service instance created.
     """
 
     creds = get_credentials(service_key_path=service_key_path)
@@ -260,81 +286,205 @@ def get_gdrive_service(
     return gdrive_service
 
 
+# #############################################################################
+
+
+def _create_new_google_document(
+    doc_name: str, doc_type: str, *, service: godisc.Resource = None
+) -> str:
+    """
+    Create a new Google document (Sheet or Doc).
+
+    :param doc_name: str, the name of the new Google document.
+    :param doc_type: str, the type of the Google document ('sheets' or 'docs').
+    :param service: the Google Drive service instance.
+        - Will auto-choose sheet or doc service as default if None is given.
+    :return: doc_id. The id to the created document in GDrive.
+    """
+    if service is None:
+        creds = get_credentials()
+        service = godisc.build(
+            doc_type,
+            "v4" if doc_type == "sheets" else "v1",
+            credentials=creds,
+            cache_discovery=False,
+        )
+    document = {"properties": {"title": doc_name}}
+    document = (
+        service.spreadsheets()
+        .create(
+            body=document,
+            fields="spreadsheetId" if doc_type == "sheets" else "documentId",
+        )
+        .execute()
+    )
+    doc_id = document.get(
+        "spreadsheetId" if doc_type == "sheets" else "documentId"
+    )
+    return doc_id
+
+
+# TODO(Shaunak): Inline these 2 functions, they are too thin.
+def _create_new_google_sheet(gsheet_name: str) -> str:
+    """
+    Create a new Google sheet.
+    """
+    doc_type = "sheets"
+    return _create_new_google_document(gsheet_name, doc_type)
+
+
+def _create_new_google_doc(gdoc_name: str) -> str:
+    """
+    Create a new Google doc.
+    """
+    doc_type = "docs"
+    return _create_new_google_document(gdoc_name, doc_type)
+
+
+# TODO(Shaunak): pass the service instead of creating on the fly.
+def _move_gfile_to_dir(
+    gfile_id: str, folder_id: str, *, service: godisc.Resource = None
+) -> dict:
+    """
+    Move a Google file to a specified folder in Google Drive.
+
+    :param gfile_id: the id of the Google file.
+    :param folder_id: the id of the folder.
+    :param service: the Google Drive service instance.
+        - Will use GDrive file service as default if None is given.
+    """
+    if service is None:
+        service = get_gdrive_service()
+    res = (
+        service.files()
+        .update(
+            fileId=gfile_id,
+            body={},
+            addParents=folder_id,
+            removeParents="root",
+            supportsAllDrives=True,
+        )
+        .execute()
+    )
+    return res
+
+
+def _move_gfile_to_dir(
+    gfile_id: str, folder_id: str, *, service: godisc.Resource = None
+) -> dict:
+    """
+    Move a Google file to a specified folder in Google Drive.
+
+    :param gfile_id: the id of the Google file.
+    :param folder_id: the id of the folder.
+    :param service: the Google Drive service instance.
+        - Will use GDrive file service as default if None is given.
+    """
+    if service is None:
+        service = get_gdrive_service()
+    res = (
+        service.files()
+        .update(
+            fileId=gfile_id,
+            body={},
+            addParents=folder_id,
+            removeParents="root",
+            supportsAllDrives=True,
+        )
+        .execute()
+    )
+    return res
+
+
 def create_empty_google_file(
     gfile_type: str,
     gfile_name: str,
     gdrive_folder_id: str,
     *,
     user: Optional[str] = None,
-) -> Optional[str]:
+) -> str:
     """
     Create a new Google file (sheet or doc).
 
-    :param gfile_type: str, the type of the Google file ('sheet' or
-        'doc').
-    :param gfile_name: str, the name of the new Google file.
+    :param gfile_type: the type of the Google file ('sheet' or 'doc').
+    :param gfile_name: the name of the new Google file.
     :param gdrive_folder_id: the id of the Google Drive folder.
-    :param user: str, the email address of the user to share the Google
-        file (Optional).
-    :return: str, the ID of the created Google file, or None if an error
-        occurred.
+    :param user: the email address of the user to share the Google file
+    :return: the ID of the created Google file, or None if an error occurred.
     """
-    try:
-        if gfile_type == "sheet":
-            gfile_id = _create_new_google_sheet(gfile_name)
-        elif gfile_type == "doc":
-            gfile_id = _create_new_google_doc(gfile_name)
-        else:
-            _LOG.error("gfile_type must be either 'sheet' or 'doc'.")
-            return None
-        _LOG.info("Created a new Google %s '%s'.", gfile_type, gfile_name)
-
-        # Move the Google file to a Google Drive dir.
-        if gdrive_folder_id:
-            _move_gfile_to_dir(gfile_id, gdrive_folder_id)
-        # Share the Google file to a user and send an email.
-        if user:
-            share_google_file(gfile_id, user)
-            _LOG.info(
-                "The new Google '%s': '%s' is shared to '%s'",
-                gfile_type,
-                gfile_name,
-                user,
-            )
-        return gfile_id  # Return the file ID
-    except goerro.HttpError as err:
-        _LOG.error(err)
-        return None  # Return None if an error occurred
+    if gfile_type == "sheet":
+        gfile_id = _create_new_google_sheet(gfile_name)
+    elif gfile_type == "doc":
+        gfile_id = _create_new_google_doc(gfile_name)
+    else:
+        raise ValueError(f"Invalid gfile_type=${gfile_type}")
+    _LOG.info("Created a new Google %s '%s'.", gfile_type, gfile_name)
+    # Move the Google file to a Google Drive dir.
+    if gdrive_folder_id:
+        _move_gfile_to_dir(gfile_id, gdrive_folder_id)
+    # Share the Google file to a user and send an email.
+    if user:
+        share_google_file(gfile_id, user)
+        _LOG.debug(
+            "The new Google '%s': '%s' is shared to '%s'",
+            gfile_type,
+            gfile_name,
+            user,
+        )
+    # Return the file ID.
+    return gfile_id
 
 
 def create_google_drive_folder(
     folder_name: str,
     parent_folder_id: str,
     *,
-    service: godisc.Resource = None,
+    service: Optional[godisc.Resource] = None,
 ) -> str:
     """
     Create a new Google Drive folder inside the given folder.
 
-    :param folder_name: str, the name of the new Google Drive folder.
-    :param parent_folder_id: str, the id of the parent folder.
-    :param service: the google drive service instance.
+    :param folder_name: the name of the new Google Drive folder.
+    :param parent_folder_id: the id of the parent folder.
+    :param service: the Google Drive service instance.
         - Will use GDrive file service as default if None is given.
     """
-    try:
-        if service is None:
-            service = get_gdrive_service()
-        file_metadata = {
-            "name": folder_name,
-            "mimeType": "application/vnd.google-apps.folder",
-            "parents": [parent_folder_id],
-        }
-        folder = service.files().create(body=file_metadata, fields="id").execute()
-        _LOG.info("Created a new Google Drive folder '%s'.", folder_name)
-        _LOG.info("The new folder id is '%s'.", folder.get("id"))
-    except goerro.HttpError as err:
-        _LOG.error(err)
+    if service is None:
+        service = get_gdrive_service()
+    file_metadata = {
+        "name": folder_name,
+        "mimeType": "application/vnd.google-apps.folder",
+        "parents": [parent_folder_id],
+    }
+    folder = service.files().create(body=file_metadata, fields="id").execute()
+    _LOG.debug("Created a new Google Drive folder '%s'.", folder_name)
+    _LOG.debug("The new folder id is '%s'.", folder.get("id"))
     return folder.get("id")
+
+
+# #############################################################################
+
+
+def _get_folders_in_gdrive(*, service: godisc.Resource = None) -> list:
+    """
+    Get a list of folders in Google Drive.
+
+    :param service: the Google Drive service instance.
+        - Will use GDrive file service as default if None is given.
+    """
+    if service is None:
+        service = get_gdrive_service()
+    response = (
+        service.files()
+        .list(
+            q="mimeType='application/vnd.google-apps.folder' and trashed=false",
+            spaces="drive",
+            fields="nextPageToken, files(id, name)",
+        )
+        .execute()
+    )
+    # Return list of folder id and folder name.
+    return response.get("files")
 
 
 def get_folder_id_by_name(name: str) -> Optional[list]:
@@ -381,9 +531,9 @@ def share_google_file(
     """
     Share a Google file to a user.
 
-    :param gfile_id: str, the id of the Google file.
-    :param user: str, the email address of the user.
-    :param service: the google drive service instance.
+    :param gfile_id: the id of the Google file.
+    :param user: the email address of the user.
+    :param service: the Google Drive service instance.
         - Will use GDrive file service as default if None is given.
     """
     if service is None:
@@ -393,7 +543,7 @@ def share_google_file(
     new_permission = (
         service.permissions().create(fileId=gfile_id, body=parameters).execute()
     )
-    _LOG.info(
+    _LOG.debug(
         "The new permission id of the document is: '%s'",
         new_permission.get("id"),
     )

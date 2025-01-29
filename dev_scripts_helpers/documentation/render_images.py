@@ -97,6 +97,22 @@ def _get_rendered_file_paths(
     return (code_file_path, abs_img_dir_path, rel_img_path)
 
 
+def _get_puppeteer_config_path() -> str:
+    """
+    Get the path of the puppeteer config file.
+
+    Aborts the script if the file is not found.
+
+    :return: path to the config file
+    """
+    cmd = "find -name 'puppeteerConfig.json'"
+    _, paths_out = hsystem.system_to_string(cmd)
+    # Pick the one closer to the current dir.
+    path = sorted(paths_out.split("\n"))[0]
+    hdbg.dassert_path_exists(path)
+    return path
+
+
 def _get_render_command(
     code_file_path: str,
     abs_img_dir_path: str,
@@ -123,7 +139,8 @@ def _get_render_command(
     if image_code_type == "plantuml":
         cmd = f"plantuml -t{dst_ext} -o {abs_img_dir_path} {code_file_path}"
     elif image_code_type == "mermaid":
-        cmd = f"mmdc --puppeteerConfigFile puppeteerConfig.json -i {code_file_path} -o {rel_img_path}"
+        puppeteer_config = _get_puppeteer_config_path()
+        cmd = f"mmdc --puppeteerConfigFile {puppeteer_config} -i {code_file_path} -o {rel_img_path}"
     else:
         raise ValueError(
             f"Invalid type: {image_code_type}; should be one of 'plantuml', 'mermaid'"
@@ -167,6 +184,7 @@ def _render_code(
     code_file_path, abs_img_dir_path, rel_img_path = _get_rendered_file_paths(
         out_file, image_code_idx, dst_ext
     )
+    os.makedirs(abs_img_dir_path, exist_ok=True)
     # Save the image code to a temporary file.
     hio.to_file(code_file_path, image_code)
     # Run the rendering.
