@@ -217,8 +217,10 @@ def set_row_height(
         grid_properties = sheet_properties.get("gridProperties", {})
         end_index = grid_properties.get("rowCount", 1000)
     else:
-        raise ValueError(f"Invalid params start_index=${start_index} and "
-                         f"end_index=${end_index}")
+        raise ValueError(
+            f"Invalid params start_index=${start_index} and "
+            f"end_index=${end_index}"
+        )
     # Create request.
     set_row_height_request = {
         "requests": [
@@ -244,8 +246,7 @@ def set_row_height(
     )
     _LOG.debug("response: %s", response)
 
-
-# #############################################################################
+    # #############################################################################
     _LOG.debug("response: %s", response)
 
 
@@ -374,7 +375,6 @@ def create_empty_google_file(
     *,
     credentials: goasea.Credentials,
     user: Optional[str] = None,
-) -> str:
 ) -> str:
     """
     Create a new Google file (sheet or doc) and move it to a specified folder.
