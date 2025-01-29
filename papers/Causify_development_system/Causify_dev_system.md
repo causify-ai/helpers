@@ -135,8 +135,20 @@ Containerized Development Environments with Runnable Directories
 - Each directory can customize Dockerfiles, scripts, and configurations to align
   with its specific needs​​​.
 
-<img src="/app/Causify_dev_system_figs/image6.png"
-style="width:6.5in;height:2.05556in" />
+```mermaid
+graph TD
+  runnable_repo[runnable repo]
+  runnable_repo --> helpers_sub_repo[helpers sub-repo]
+  runnable_repo --> devops[devops]
+  runnable_repo --> runnable_dir_1[runnable dir 1]
+  runnable_repo --> runnable_dir_2[runnable dir 2]
+  runnable_repo --> runnable_dir_n[runnable dir n]
+  runnable_repo --> others[...]
+  runnable_dir_1 --> runnable_dir_1_devops[devops]
+  runnable_dir_2 --> runnable_dir_2_devops[devops]
+  runnable_dir_n --> runnable_dir_3_devops[devops]
+  style helpers_sub_repo fill:transparent, stroke-dasharray: 5 5
+```
 
 ### Helper submodule
 
@@ -144,8 +156,25 @@ style="width:6.5in;height:2.05556in" />
   toolchains (e.g., thin environment, Docker, setenv, invoke workflows) shared
   by all the repositories.
 
-<img src="/app/Causify_dev_system_figs/image1.png"
-style="width:6.5in;height:2.25in" />
+```mermaid
+graph TD
+  runnable_repo[runnable repo 1]
+  runnable_repo_2[runnable repo 2]
+  runnable_repo_3[runnable repo 3]
+  runnable_repo --> helpers_sub_repo_1[helpers sub-repo]
+  runnable_repo --> others[...]
+  runnable_repo_2 --> helpers_sub_repo_2[helpers sub-repo]
+  runnable_repo_2 --> others_2[...]
+  runnable_repo_3 --> helpers_sub_repo_3[helpers sub-repo]
+  runnable_repo_3 --> others_3[...]
+  helper_repo[helper repo]
+  helpers_sub_repo_1 -.-> helper_repo
+  helpers_sub_repo_2 -.-> helper_repo
+  helpers_sub_repo_3 -.-> helper_repo
+  style helpers_sub_repo_1 fill:transparent, stroke-dasharray: 5 5
+  style helpers_sub_repo_2 fill:transparent, stroke-dasharray: 5 5
+  style helpers_sub_repo_3 fill:transparent, stroke-dasharray: 5 5
+```
 
 ### Thin environment
 
@@ -158,8 +187,32 @@ style="width:6.5in;height:2.25in" />
 - Thin environments can be shared across repositories which minimizes setup
   overhead.
 
-<img src="/app/Causify_dev_system_figs/image2.png"
-style="width:6.5in;height:2.45833in" />
+```mermaid
+graph TD
+  thin_env[thin environment]
+  subgraph repo_1["runnable repo 1"]
+    runnable_repo_1[runnable repo 1]
+    runnable_repo_1 --> dev_scripts_repo1[dev_scripts_repo1]
+    runnable_repo_1 --> others[...]
+    runnable_repo_1 --> repo_1_runnable_dir
+    subgraph repo_1_runnable_dir["runnable dir"]
+      repo_1_runnable_dirs[...]
+    end
+  end
+  subgraph repo_2["runnable repo 2"]
+    runnable_repo_2[runnable repo 2]
+    runnable_repo_2 --> dev_scripts_repo2[dev_scripts_repo2]
+    runnable_repo_2 --> others_2[...]
+    runnable_repo_2 --> repo_2_runnable_dir
+    subgraph repo_2_runnable_dir["runnable dir"]
+      repo_2_runnable_dirs[...]
+    end
+  end
+  repo_1 -.-> thin_env
+  repo_1_runnable_dir -.-> thin_env
+  repo_2 -.-> thin_env
+  repo_2_runnable_dir -.-> thin_env
+```
 
 ### Docker containers
 
@@ -212,14 +265,49 @@ environment to provide comprehensive validation of code and configurations.
 
 Running tests for a runnable repo
 
-<img src="/app/Causify_dev_system_figs/image4.png"
-style="width:3.52083in;height:2.36979in" />
+  ```mermaid
+  graph LR
+    start((start))
+    start --> container
+    subgraph container[Container]
+      direction LR
+      pytest((pytest))
+      pytest --> dir_1[dir 1]
+      dir_1 --> dir_1a[dir 1a]
+      dir_1a --> dir_1a_others[...]
+      dir_1 --> dir_1b[dir 1b]
+      dir_1 --> dir_1_others[...]
+      pytest --> dir_2[dir 2]
+      pytest --> dir_others[...]
+    end
+  ```
 
 Running tests for runnable dirs
 
-<img src="/app/Causify_dev_system_figs/image3.png"
-style="width:2.13889in;height:2.87927in" />
-
+  ```mermaid
+  graph LR
+      start((start))
+      start --> container_1
+      start --> container_2
+      start --> container_3
+      start --> container_n
+      subgraph container_1[container 1]
+          direction LR
+          pytest_1((pytest)) --> runnable_dir1[runnable dir 1]
+      end
+      subgraph container_2[container 2]
+          direction LR
+          pytest_2((pytest)) --> runnable_dir2[runnable dir 2]
+      end
+      subgraph container_3[container 3]
+          direction LR
+          pytest_3((pytest)) --> runnable_dir3[runnable dir 3]
+      end
+      subgraph container_n[container N]
+          direction LR
+          pytest_n((pytest)) --> runnable_dir_n[runnable dir N]
+      end
+  ```
 ## Discussion/Comment
 
 The adoption of a containerized development environment centered around runnable
