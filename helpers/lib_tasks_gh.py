@@ -700,6 +700,10 @@ def gh_get_workflows(repo_name: str, *, sort: bool = True) -> List[Dict[str, str
     # sort workflow by name
     if sort:
         workflows = sorted(workflows, key=lambda workflow: workflow["name"])
+    # Check for duplicate workflow names.
+    hdbg.dassert_no_duplicates(
+        workflow_names, "Found duplicate workflow names in repo '%s'" % repo_name
+    )
     return workflows
 
 
