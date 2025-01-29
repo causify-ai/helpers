@@ -156,11 +156,13 @@ def freeze_rows(
             }
         ]
     }
+    # Get response.
     response = (
         sheets_service.spreadsheets()
         .batchUpdate(spreadsheetId=sheet_id, body=freeze_request)
         .execute()
     )
+    _LOG.debug("response: %s", response)
     _LOG.debug("response: %s", response)
 
 
@@ -214,6 +216,10 @@ def set_row_height(
         ).get("properties", {})
         grid_properties = sheet_properties.get("gridProperties", {})
         end_index = grid_properties.get("rowCount", 1000)
+    else:
+        raise ValueError(f"Invalid params start_index=${start_index} and "
+                         f"end_index=${end_index}")
+    # Create request.
     set_row_height_request = {
         "requests": [
             {
@@ -230,11 +236,16 @@ def set_row_height(
             }
         ]
     }
+    # Get response.
     response = (
         sheets_service.spreadsheets()
         .batchUpdate(spreadsheetId=sheet_id, body=set_row_height_request)
         .execute()
     )
+    _LOG.debug("response: %s", response)
+
+
+# #############################################################################
     _LOG.debug("response: %s", response)
 
 
@@ -364,6 +375,7 @@ def create_empty_google_file(
     credentials: goasea.Credentials,
     user: Optional[str] = None,
 ) -> str:
+) -> str:
     """
     Create a new Google file (sheet or doc) and move it to a specified folder.
 
@@ -437,6 +449,31 @@ def create_google_drive_folder(
     _LOG.debug("Created a new Google Drive folder '%s'.", folder_name)
     _LOG.debug("The new folder id is '%s'.", folder.get("id"))
     return folder.get("id")
+
+
+# #############################################################################
+
+
+def _get_folders_in_gdrive(*, service: godisc.Resource = None) -> list:
+    """
+    Get a list of folders in Google Drive.
+
+    :param service: the Google Drive service instance.
+        - Will use GDrive file service as default if None is given.
+    """
+    if service is None:
+        service = get_gdrive_service()
+    response = (
+        service.files()
+        .list(
+            q="mimeType='application/vnd.google-apps.folder' and trashed=false",
+            spaces="drive",
+            fields="nextPageToken, files(id, name)",
+        )
+        .execute()
+    )
+    # Return list of folder id and folder name.
+    return response.get("files")
 
 
 def get_folder_id_by_name(name: str) -> Optional[list]:

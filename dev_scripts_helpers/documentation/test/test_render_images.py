@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 from typing import List
 
 import dev_scripts_helpers.documentation.render_images as dshdreim
@@ -92,6 +93,10 @@ class Test_get_render_command(hunitest.TestCase):
             rel_img_path,
             dst_ext,
             image_code_type,
+        )
+        # Remove the path to the config file to stabilize the test across repos.
+        cmd = re.sub(
+            r"--puppeteerConfigFile [\w\.\/]+", r"--puppeteerConfigFile <>", cmd
         )
         self.check_string(cmd)
 
