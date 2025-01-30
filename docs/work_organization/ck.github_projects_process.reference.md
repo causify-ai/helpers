@@ -238,9 +238,9 @@ Next steps
 - For more customized automated workflows we use GitHub actions
 
 - A GitHub Action
-  [`sprint_iteration.yml`](/github/workflows/sprint_iteration.yml) is set up to
-  move items in active projects from last sprint to current sprint at the
-  beginning of each sprint.
+  [`sprint_iteration.yml`](https://github.com/causify-ai/cmamp/blob/master/.github/workflows/sprint_iteration.yml) 
+  is set up to move items in active projects from last sprint to current sprint 
+  at the beginning of each sprint.
 
 ## EPICs (AKA parent and sub-issues)
 
