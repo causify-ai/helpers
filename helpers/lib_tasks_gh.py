@@ -607,16 +607,18 @@ def gh_get_details_for_all_workflows(repo_list: List[str]) -> "pd.DataFrame":
 
     repo_dfs = []
     for repo_name in repo_list:
-        # Get all workflow names for the given repo.
-        workflow_names = gh_get_workflow_type_names(repo_name)
+        # Get all workflows for the given repo.
+        workflows = gh_get_workflows(repo_name)
         # For each workflow find the last run.
-        for workflow_name in workflow_names:
+        for workflow in workflows:
             # Get at least a few runs to compute the status; this is useful when
             # the latest run is not completed, in this case the run before the
             # latest one tells the status for a workflow.
             limit = 5
+            workflow_id = workflow["id"]
+            workflow_name = workflow["name"]
             workflow_statuses = gh_get_workflow_details(
-                repo_name, workflow_name, gh_cols, limit
+                repo_name, workflow_id, gh_cols, limit
             )
             if len(workflow_statuses) < limit:
                 # TODO(Grisha): should we just insert empty rows as placeholders so that
@@ -705,15 +707,42 @@ def gh_get_workflow_type_names(repo_name: str, *, sort: bool = True) -> List[str
     return workflow_names
 
 
+def gh_get_workflows(
+    repo_name: str, *, sort: bool = True
+) -> List[Dict[str, str]]:
+    """
+    Get a list of workflows for a given repo.
+
+    :param repo_name: git repo name in the format "organization/repo",
+        e.g., "cryptokaizen/cmamp"
+    :param sort: if True, sort the list of workflow names
+    :return: list of workflows, e.g., [{"id": "12520125", "name": "Fast
+        tests"}, {"id": "12520124", "name": "Slow tests"}]
+    """
+    hdbg.dassert_isinstance(repo_name, str)
+    _LOG.debug(hprint.to_str("repo_name"))
+    # Get the workflow list.
+    cmd = f"gh workflow list --json id,name --repo {repo_name}"
+    workflows = _gh_run_and_get_json(cmd)
+    workflows = [
+        {"id": str(workflow["id"]), "name": workflow["name"]}
+        for workflow in workflows
+    ]
+    # sort workflow by name
+    if sort:
+        workflows = sorted(workflows, key=lambda workflow: workflow["name"])
+    return workflows
+
+
 def gh_get_workflow_details(
-    repo_name: str, workflow_name: str, fields: List[str], limit: int
+    repo_name: str, workflow_id: str, fields: List[str], limit: int
 ) -> List[Dict[str, Any]]:
     """
     Return the stats for a given workflow.
 
     :param repo_name: git repo name in the format "organization/repo",
         e.g., "cryptokaizen/cmamp"
-    :param workflow_name: workflow name, e.g., "Fast tests"
+    :param workflow_id: workflow id, e.g., "12520125"
     :param fields: list of fields to return, e.g., ["workflowName", "status"]
     :param limit: number of runs to return
     :return: workflow stats
@@ -730,9 +759,9 @@ def gh_get_workflow_details(
         ```
     """
     hdbg.dassert_isinstance(repo_name, str)
-    hdbg.dassert_isinstance(workflow_name, str)
+    hdbg.dassert_isinstance(workflow_id, str)
     hdbg.dassert_container_type(fields, List, str)
-    _LOG.debug(hprint.to_str("repo_name workflow_name fields"))
+    _LOG.debug(hprint.to_str("repo_name workflow_id fields"))
     # Fetch the latest `limit` runs for status calculation.
     cmd = f"""
     gh run list \
@@ -740,7 +769,7 @@ def gh_get_workflow_details(
         --repo {repo_name} \
         --branch master \
         --limit {limit} \
-        --workflow "{workflow_name}"
+        --workflow "{workflow_id}"
     """
     workflow_statuses = _gh_run_and_get_json(cmd)
     # We still want to return the statuses even there are less runs than requested. E.g., there is a new workflow with a few runs or there is a workflow that was never run.
