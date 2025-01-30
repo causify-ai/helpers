@@ -121,16 +121,11 @@ class TestGetDocstringLineIndices(hunitest.TestCase):
         actual = [lines[i].strip() for i in actual_idxs]
         self.assertEqual(actual, expected)
 
-    # #############################################################################
-    # TestNewCase
-    # #############################################################################
-
     def test1(self) -> None:
         """
         Test one type of quotes.
         """
         code = """
-class TestNewCase(hunitest.TestCase):
     def test_assert_equal1(self) -> None:
         '''
         Test one.
@@ -151,16 +146,11 @@ class TestNewCase(hunitest.TestCase):
         expected = ["'''", "Test one.", "s = '''", "Inside a string."]
         self.helper(code, expected)
 
-    # #############################################################################
-    # TestNewCase
-    # #############################################################################
-
     def test2(self) -> None:
         """
         Test the second type of quotes.
         """
         code = '''
-class TestNewCase(hunitest.TestCase):
     def test_assert_equal1(self) -> None:
         """
         Test one.
@@ -181,16 +171,11 @@ class TestNewCase(hunitest.TestCase):
         expected = ['"""', "Test one.", 's = """', "Inside a string."]
         self.helper(code, expected)
 
-    # #############################################################################
-    # TestNewCase
-    # #############################################################################
-
     def test3(self) -> None:
         """
         Test quotes within quotes.
         """
         code = """
-class TestNewCase(hunitest.TestCase):
     def test_assert_equal1(self) -> None:
         '''
         Test one.
@@ -240,16 +225,11 @@ class TestGetCodeBlockLineIndices(hunitest.TestCase):
         actual = [lines[i].strip() for i in actual_idxs]
         self.assertEqual(actual, expected)
 
-    # #############################################################################
-    # TestNewCase
-    # #############################################################################
-
     def test1(self) -> None:
         """
         Test getting code block line indices.
         """
         code = """
-class TestNewCase(hunitest.TestCase):
     def test_assert_equal1(self) -> None:
         ```
         Test one.
