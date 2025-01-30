@@ -244,8 +244,24 @@ Key attributes include:
   as the host's Docker daemon, enabling inter-container communication and
   orchestration​​.
 
-<img src="/app/Causify_dev_system_figs/image5.png"
-style="width:4.17361in;height:3.60509in" />
+```mermaid
+graph TD
+    host[Host]
+    docker_engine[Docker Engine]
+    subgraph sibling_container["Sibling Containers"]
+        container_1[Container 1]
+        container_2[Container 2]
+    end
+    subgraph children_container["Children Containers"]
+        container_1a[Container 1a]
+        container_1b[Container 1b]
+    end
+    host --> docker_engine
+    docker_engine --> container_1
+    docker_engine --> container_2
+    container_1 --> container_1a
+    container_1 --> container_1b
+```
 
 ### Executing tests
 
