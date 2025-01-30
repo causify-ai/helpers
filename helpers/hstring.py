@@ -71,36 +71,56 @@ def diff_strings(
     return txt
 
 
-def get_docstring_line_indices(
-    lines: List[str], quotes_type: Optional[str] = None
-) -> List[int]:
+def get_docstring_line_indices(lines: List[str]) -> List[int]:
     """
     Get indices of lines of code that are inside (doc)strings.
 
     :param lines: the code lines to check
-    :param quotes_type: the type of quotes around the (doc)string
-        - if None, use all possible types
     :return: the indices of docstrings
     """
     docstring_line_indices = []
-    if quotes_type is None:
-        # Use all quote types.
-        quotes = {'"""': False, "'''": False, "```": False}
-    else:
-        quotes = {quotes_type: False}
+    quotes = {'"""': False, "'''": False, "```": False}
     for i, line in enumerate(lines):
         # Determine if the current line is inside a (doc)string.
         for quote in quotes:
-            quotes_matched = re.findall(rf"^\s*{quote}", line)
+            quotes_matched = re.findall(quote, line)
             for q in quotes_matched:
                 # Switch the docstring flag.
                 # pylint: disable=modified-iterating-dict
-                q = q.strip()
                 quotes[q] = not quotes[q]
         if any(quotes.values()):
             # Store the index if the quotes have been opened but not closed yet.
             docstring_line_indices.append(i)
     return docstring_line_indices
+
+
+def get_code_block_line_indices(lines: List[str]) -> List[int]:
+    """
+    Get indices of lines that are inside code blocks.
+
+    Code blocks are lines surrounded by triple backticks, e.g.,
+    ```
+    This line.
+    ```
+    Note that the backticks need to be the leftmost element of their line.
+
+    :param lines: the lines to check
+    :return: the indices of code blocks
+    """
+    code_block_line_indices = []
+    quotes = {"```": False}
+    for i, line in enumerate(lines):
+        # Determine if the current line is inside a code block.
+        for quote in quotes:
+            quotes_matched = re.findall(rf"^\s*({quote})", line)
+            for q in quotes_matched:
+                # Switch the flag.
+                # pylint: disable=modified-iterating-dict
+                quotes[q] = not quotes[q]
+        if any(quotes.values()):
+            # Store the index if the quotes have been opened but not closed yet.
+            code_block_line_indices.append(i)
+    return code_block_line_indices
 
 
 def extract_version_from_file_name(file_name: str) -> Tuple[int, int]:

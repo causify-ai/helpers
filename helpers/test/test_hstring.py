@@ -1,16 +1,16 @@
 from typing import List, Tuple
 
-import pytest
-
 import helpers.hstring as hstring
 import helpers.hunit_test as hunitest
 
+
 # #############################################################################
-# TestExtractUniverseVersion1
+# TestExtractVersionFromFileName
 # #############################################################################
 
 
 class TestExtractVersionFromFileName(hunitest.TestCase):
+
     def test_extract_version_from_file_name1(self) -> None:
         """
         Verify function provides expected output on valid input.
@@ -84,7 +84,8 @@ class TestExtractVersionFromFileName(hunitest.TestCase):
         Verify function provides expected output on valid inputs.
 
         :param version: version in string format to input, e.g. 1.0
-        :param expected: expected output version in (major, minor) format
+        :param expected: expected output version in (major, minor)
+            format
         """
         fn = f"/app/im_v2/ccxt/universe/download/universe_v{version}.json"
         self.assertEqual(hstring.extract_version_from_file_name(fn), expected)
@@ -120,6 +121,10 @@ class TestGetDocstringLineIndices(hunitest.TestCase):
         actual = [lines[i].strip() for i in actual_idxs]
         self.assertEqual(actual, expected)
 
+    # #############################################################################
+    # TestNewCase
+    # #############################################################################
+
     def test1(self) -> None:
         """
         Test one type of quotes.
@@ -146,6 +151,10 @@ class TestNewCase(hunitest.TestCase):
         expected = ["'''", "Test one.", "s = '''", "Inside a string."]
         self.helper(code, expected)
 
+    # #############################################################################
+    # TestNewCase
+    # #############################################################################
+
     def test2(self) -> None:
         """
         Test the second type of quotes.
@@ -171,6 +180,10 @@ class TestNewCase(hunitest.TestCase):
         '''
         expected = ['"""', "Test one.", 's = """', "Inside a string."]
         self.helper(code, expected)
+
+    # #############################################################################
+    # TestNewCase
+    # #############################################################################
 
     def test3(self) -> None:
         """
@@ -211,4 +224,40 @@ class TestNewCase(hunitest.TestCase):
             "s = '''",
             "Inside a string.",
         ]
+        self.helper(code, expected)
+
+
+# #############################################################################
+# TestGetCodeBlockLineIndices
+# #############################################################################
+
+
+class TestGetCodeBlockLineIndices(hunitest.TestCase):
+
+    def helper(self, code: str, expected: List[str]) -> None:
+        lines = code.split("\n")
+        actual_idxs = hstring.get_code_block_line_indices(lines)
+        actual = [lines[i].strip() for i in actual_idxs]
+        self.assertEqual(actual, expected)
+
+    # #############################################################################
+    # TestNewCase
+    # #############################################################################
+
+    def test1(self) -> None:
+        """
+        Test getting code block line indices.
+        """
+        code = """
+class TestNewCase(hunitest.TestCase):
+    def test_assert_equal1(self) -> None:
+        ```
+        Test one.
+        ```
+        d = ```Does not count```
+        actual = "hello world"
+        expected = actual
+        self.assert_equal(actual, expected)
+        """
+        expected = ["```", "Test one."]
         self.helper(code, expected)

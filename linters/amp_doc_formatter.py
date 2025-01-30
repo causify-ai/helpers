@@ -103,9 +103,7 @@ class _DocFormatter(liaction.Action):
         """
         lines = hio.from_file(file_name).split("\n")
         # Get lines within triple backticks.
-        code_block_indices = hstring.get_docstring_line_indices(
-            lines, quotes_type="```"
-        )
+        code_block_indices = hstring.get_code_block_line_indices(lines)
         updated_lines: List[str] = []
         skipped_id = 0
         removed_blocks_storage: Dict[str, List[str]] = {}
