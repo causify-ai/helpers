@@ -78,6 +78,8 @@ def get_docstring_line_indices(
     Get indices of lines of code that are inside (doc)strings.
 
     :param lines: the code lines to check
+    :param quotes_type: the type of quotes around the (doc)string
+        - if None, use all possible types
     :return: the indices of docstrings
     """
     docstring_line_indices = []

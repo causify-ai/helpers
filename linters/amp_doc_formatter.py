@@ -75,7 +75,6 @@ class _DocFormatter(liaction.Action):
         [\w\W\v]+?      # Basically, any symbol.
         \1              # Either 3 single or double quotes, whichever was matched before.
         """
-        #
         while True:
             match = re.search(pattern, contents, re.VERBOSE)
             if match is None:
@@ -152,20 +151,21 @@ class _DocFormatter(liaction.Action):
         Restore code blocks that have been previously removed.
 
         :param file_name: file to process
-        :param removed_blocks_storage:
+        :param removed_blocks_storage: original code blocks from the
+            docstring
         """
         lines = hio.from_file(file_name).split("\n")
         updated_lines: List[str] = []
         for line in lines:
             match = re.findall(rf"{'IDSKIP'*10}(\d)", line)
             if match:
-                # Remove the index dummy.
+                # Remove the id dummy.
                 orig_line = line.split("IDSKIP")[0].rstrip()
                 updated_lines.append(orig_line)
                 # Get the id of the removed code block.
                 skipped_id = match[0]
                 for skipped_line in removed_blocks_storage[skipped_id]:
-                    # Restore the previously removed lines.
+                    # Restore the previously removed line.
                     updated_lines.append(skipped_line)
             else:
                 updated_lines.append(line)
