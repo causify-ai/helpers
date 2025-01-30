@@ -571,7 +571,7 @@ def _get_failed_or_successful_workflow_run(
             'status': 'completed',
             'url': 'https://github.com/cryptokaizen/cmamp/actions/runs/8714881296',
             'workflowName': 'Allure fast tests'
-        }    
+        }
         ```
     """
     # We assume that the workflow runs are sorted by time in descending order.
@@ -595,9 +595,9 @@ def gh_get_details_for_all_workflows(repo_list: List[str]) -> "pd.DataFrame":
         ["cryptokaizen/cmamp", "cryptokaizen/orange"]
     :return: a table with the status of all the workflows, e.g.,
     ```
-                    Repo            workflowName                                                url     status
-    0    cryptokaizen/cmamp       Allure fast tests  https://github.com/cryptokaizen/cmamp/actions/...  completed
-    1    cryptokaizen/cmamp       Allure slow tests  https://github.com/cryptokaizen/cmamp/actions/...  completed
+    Repo                workflowName       url                                                status
+    cryptokaizen/cmamp  Allure fast tests  https://github.com/cryptokaizen/cmamp/actions/...  completed
+    cryptokaizen/cmamp  Allure slow tests  https://github.com/cryptokaizen/cmamp/actions/...  completed
     ```
     """
     # TODO(Grisha): expose cols to the interface, i.e. a caller decides what to do.

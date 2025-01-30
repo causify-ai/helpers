@@ -3,6 +3,7 @@ Import as:
 
 import helpers.hstring as hstring
 """
+
 import logging
 import os
 import re
@@ -70,7 +71,9 @@ def diff_strings(
     return txt
 
 
-def get_docstring_line_indices(lines: List[str]) -> List[int]:
+def get_docstring_line_indices(
+    lines: List[str], quotes_type: Optional[str] = None
+) -> List[int]:
     """
     Get indices of lines of code that are inside (doc)strings.
 
@@ -78,14 +81,19 @@ def get_docstring_line_indices(lines: List[str]) -> List[int]:
     :return: the indices of docstrings
     """
     docstring_line_indices = []
-    quotes = {'"""': False, "'''": False, "```": False}
+    if quotes_type is None:
+        # Use all quote types.
+        quotes = {'"""': False, "'''": False, "```": False}
+    else:
+        quotes = {quotes_type: False}
     for i, line in enumerate(lines):
         # Determine if the current line is inside a (doc)string.
         for quote in quotes:
-            quotes_matched = re.findall(quote, line)
+            quotes_matched = re.findall(rf"^\s*{quote}", line)
             for q in quotes_matched:
                 # Switch the docstring flag.
                 # pylint: disable=modified-iterating-dict
+                q = q.strip()
                 quotes[q] = not quotes[q]
         if any(quotes.values()):
             # Store the index if the quotes have been opened but not closed yet.
