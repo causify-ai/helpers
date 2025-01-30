@@ -711,7 +711,7 @@ def gh_get_workflows(
     repo_name: str, *, sort: bool = True
 ) -> List[Dict[str, str]]:
     """
-    Get a list of workflow for a given repo.
+    Get a list of workflows for a given repo.
 
     :param repo_name: git repo name in the format "organization/repo",
         e.g., "cryptokaizen/cmamp"
