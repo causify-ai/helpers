@@ -217,7 +217,7 @@ Follow
 
 - TODO
   - If it's a super-repo container you need to switch in
-    devops/docker_run/docker_setenv.sh grep IS_SUPER_REPO
+    devops/docker_run/docker_setenv.sh grep IS_ONLY_HELPER
 
 - Run the single-arch flow
 
