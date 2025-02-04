@@ -30,7 +30,7 @@ dassert_var_defined "CSFY_IS_ONLY_HELPER"
 dassert_var_defined "CSFY_GIT_ROOT_PATH"
 dassert_var_defined "CSFY_HELPERS_ROOT_PATH"
 
-if [[ $CSFY_IS_ONLY_HELPER == 1 ]]; then
+if [[ $CSFY_IS_ONLY_HELPER == 0 ]]; then
     dassert_dir_exists $CSFY_HELPERS_ROOT_PATH
 fi;
 
@@ -40,7 +40,7 @@ set_path .
 # - PYTHONPATH
 set_pythonpath
 
-if [[ $CSFY_IS_ONLY_HELPER == 1 ]]; then
+if [[ $CSFY_IS_ONLY_HELPER == 0 ]]; then
     # Add helpers.
     dassert_dir_exists $CSFY_HELPERS_ROOT_PATH
     export PYTHONPATH=$CSFY_HELPERS_ROOT_PATH:$PYTHONPATH
