@@ -98,7 +98,7 @@ well if one replaces `helpers` with `cmamp`.
 
 ## 1) Copy and customize files in `thin_client`
 
-- Create the `dev_scripts_XYZ` dir based off the template from `helpers`
+- Create the `dev_script` dir based off the template from `helpers`
 
   ```bash
   # Use a prefix based on the repo name, e.g., `tutorials`, `sports_analytics`.
@@ -109,7 +109,7 @@ well if one replaces `helpers` with `cmamp`.
   > cp -r $SRC_DIR/{build.py,requirements.txt,setenv.sh,tmux.py} $DST_DIR
   ```
 
-- The resulting `dev_scripts_XYZ` should look like:
+- The resulting `dev_script` should look like:
 
   ```bash
   > ls -1 $DST_DIR
@@ -125,7 +125,7 @@ well if one replaces `helpers` with `cmamp`.
   ```
 
 - If we don't need to create a new thin env you can delete the files
-  `dev_scripts_XYZ/thin_client/build.py` and `requirements.txt`
+  `dev_scripts/thin_client/build.py` and `requirements.txt`
 
 ### Build the thin environment
 
@@ -142,7 +142,7 @@ well if one replaces `helpers` with `cmamp`.
   14:37:37 - INFO  build.py _main:100                 /Users/saggese/src/quant_dashboard1/dev_scripts_quant_dashboard/thin_client/build.py successful
   ```
 
-- Customize the `dev_scripts_XYZ` dir, if necessary
+- Customize the `dev_scripts` dir, if necessary
   ```bash
   > vi $DST_DIR/*
   ```
@@ -180,9 +180,25 @@ Follow
   ```bash
   > cp helpers_root/{pytest.ini,repo_config.py,tasks.py} .
   > vim pytest.ini repo_config.py tasks.py
-  ``` 
+  ```
+- Some files are just soft links:
+
+```bash
+   > ln -s helpers_root/conftest.py conftest.py
+   > ln -s helpers_root/invoke.yaml invoke.yaml
+   > ln -s helpers_root/mypy.ini mypy.ini
+   # This is copied from the repo that builds the used container or started from scratch for a new container, e.g., `cmamp` dev image.
+   > ln -s helpers_root/changelog.txt changelog.txt
+```
+
+- You can run to copy/diff the files
+  ```bash
+  > ${TEMPLATE_DIR}/merge.sh
+  ```
 
 ## 3) Copy and customize files in `devops`
+
+### Build a container for a super-repo
 
 - Copy the `devops` template dir
   ```bash
@@ -191,6 +207,7 @@ Follow
   ```
 - If we don't need to build a container and just we can reuse, then we can
   delete the corresponding `build` directory
+
   ```bash
   > rm -rf devops/docker_build
   ```
@@ -198,23 +215,9 @@ Follow
 - Follow the instructions in `docs/work_tools/all.devops_docker.reference.md`
   and `docs/work_tools/all.devops_docker.how_to_guide.md`
 
-## 4) Replace files with symbolic links
-
-- Some common files can be replaced with symbolic links
-  ```bash
-  python3 ./helpers_root/helpers/create_links.py --src_dir ./helpers_root --dst_dir . --replace_links --use_relative_paths
-  ```
-
-- Refer to
-  [Managing common files](/docs/work_tools/dev_system/all.runnable_repo.reference.md#managing-common-files)
-  for explanation
-- Refer to
-  [Managing symbolic links between directories](/docs/work_tools/dev_system/all.replace_common_files_with_script_links.md)
-  for how to use the commands
-
-## 5) Build container and running tests
-
-### Build a container for a super-repo
+- TODO
+  - If it's a super-repo container you need to switch in
+    devops/docker_run/docker_setenv.sh grep IS_SUPER_REPO
 
 - Run the single-arch flow
 
