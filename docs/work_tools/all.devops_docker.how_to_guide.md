@@ -193,16 +193,15 @@
   but for multi-arch image
 
 ## Prod flow
-- `docker_build_prod_image`: build a "prod" image from a dev image
-- `docker_push_prod_image`: push the "prod" image to ECR
-- `docker_push_prod_candidate_image`: push the "prod" candidate image to ECR
-- `docker_release_prod_image`: build, test, and release the "prod" image to ECR 
-- `docker_release_all`: release both the "dev" and "prod" image to ECR
-- `docker_rollback_dev_image`: rollback the version of the "dev" image
-- `docker_rollback_prod_image`: rollback the version of the "prod" image
-- `docker_create_candidate_image`: create a new "prod" candidate image
-- `docker_update_prod_task_definition`: update image in "prod" task definition 
-  to the desired version
+- `docker_build_prod_image`: build a prod image from a dev image
+- `docker_push_prod_image`: 
+- `docker_push_prod_candidate_image`:
+- `docker_release_prod_image`:
+- `docker_release_all`:
+- `docker_rollback_dev_image`:
+- `docker_rollback_prod_image`:
+- `docker_create_candidate_image`:
+- `docker_update_prod_task_definition`:
 
 # How to test a package in a Docker container
 
@@ -235,7 +234,7 @@
 # Release a Docker image
 
 - All the `invoke` tasks to run the release flow are in
-  `//amp/helpers_root/helpers/lib_tasks.py`
+  `//amp/helpers/lib_tasks.py`
 - Depending on the type of changes sometimes one needs to rebuild only the
   `prod` image, other times one needs to rebuild also the `dev` image
 - E.g.,

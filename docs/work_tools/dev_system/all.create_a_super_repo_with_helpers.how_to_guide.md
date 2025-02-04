@@ -119,7 +119,7 @@ well if one replaces `helpers` with `cmamp`.
   tmux.py
   ```
 
-- Customize the files looking for `$DIR_TAG`, `$IS_ONLY_HELPER` and `$DIR_PREFIX`.
+- Customize the files looking for `$DIR_TAG`, `$IS_ONLY_HELPER` and `dir_prefix`.
   ```
   > vi $DST_DIR/*
   ```
@@ -243,6 +243,19 @@ Follow
 doc to confirm.
 
 File a PR with the new files and merge the PR into `master`.
+
+## Replace files with symbolic links
+
+- Refer to
+  [Managing common files](/docs/work_tools/dev_system/all.runnable_repo.reference.md#managing-common-files)
+  for explanation
+- Refer to
+  [Managing symbolic links between directories](/docs/work_tools/dev_system/all.replace_common_files_with_script_links.md)
+  for how to use the commands
+
+```bash
+python3 ./helpers_root/helpers/create_links.py --src_dir ./helpers_root --dst_dir . --replace_links --use_relative_paths
+```
 
 ## Configure regressions via GitHub actions
 

@@ -99,7 +99,8 @@
 
 ### 4) Copy and customize files in thin_client
 
-- Create the `dev_scripts_XYZ` dir based off the template from `helpers`
+- Create the `dev_script` dir based off the template from `helpers`
+
   ```bash
   # Use a prefix based on the repo name and runnable dir name, e.g., `cmamp_infra`.
   > SRC_DIR="helpers_root/dev_scripts_helpers/thin_client"; echo $SRC_DIR
@@ -110,6 +111,7 @@
   ```
 
 - The resulting `dev_script` should look like:
+
   ```bash
   > ls -1 $DST_DIR
   setenv.sh
@@ -117,8 +119,8 @@
 
 - Customize `setenv.sh`
   - `DIR_TAG`="cmamp_infra"
-  - `IS_ONLY_HELPER` = 0 (since this runnable directory sits under a repo that 
-    is not a helper)
+  - `IS_SUPER_REPO` = 1 (since this runnable directory sits under a super-repo)
+    - TODO(heanh): Rename `IS_SUPER_REPO` var (See #135).
   - `VENV_TAG`="helpers" (reuse helpers if the new thin environment is not
     built)
   - Update PATH to the runnable dir
@@ -127,16 +129,9 @@
     SCRIPT_PATH="ck.infra/dev_scripts_${DIR_TAG}/thin_client/setenv.sh"
     DEV_SCRIPT_DIR="${GIT_ROOT_DIR}/ck.infra/dev_scripts_${DIR_TAG}"
     ```
-    - TODO(gp): Use a config file for both Python and shell (HelpersTask88)
-    - TODO(heanh): Automatically infer them (HelpersTask145)
+    - TODO(heanh): Automatically infer them.
 
 ### 5) Replace files with symbolic links
-
-- Some common files can be replaced with symbolic links
-  ```bash
-  # runnable dir is "ck.infra" in this case.
-  python3 ./helpers_root/helpers/create_links.py --src_dir ./helpers_root --dst_dir ./ck.infra --replace_links --use_relative_paths
-  ```
 
 - Refer to
   [Managing common files](/docs/work_tools/dev_system/all.runnable_repo.reference.md#managing-common-files)
@@ -144,6 +139,11 @@
 - Refer to
   [Managing symbolic links between directories](/docs/work_tools/dev_system/all.replace_common_files_with_script_links.md)
   for how to use the commands
+
+```bash
+# runnable dir is "ck.infra" in this case.
+python3 ./helpers_root/helpers/create_links.py --src_dir ./helpers_root --dst_dir ./ck.infra --replace_links --use_relative_paths
+```
 
 ### 6) Build a container for a runnable dir
 
