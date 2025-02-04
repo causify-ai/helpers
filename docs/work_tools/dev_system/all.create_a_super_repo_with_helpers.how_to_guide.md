@@ -174,7 +174,7 @@ Follow
   - `pytest.ini`: configure `pytest` preferences
   - `repo_config.py`: stores information about this specific repo (e.g., name,
     used container)
-    - Change `_REPO_NAME = "orange"` to the current repo name
+    - Change `_REPO_NAME = "<current repo name>"` to the current repo name
   - `tasks.py`: the `invoke` tasks available in this container
     - This needs to be modified
   ```bash

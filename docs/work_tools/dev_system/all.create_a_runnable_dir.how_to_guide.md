@@ -177,9 +177,9 @@
 - Run tests from the runnable dir (e.g. `cmamp/ck.infra`)
 
   ```bash
-  > cd $DST_DIR
-  > i run_fast_tests
-  > i run_slow_tests
+  # If the version of the locally built image is 1.0.0.
+  > i run_fast_tests --version 1.0.0
+  > i run_slow_tests --version 1.0.0
   ```
 
 - Run tests from the root dir (e.g. `cmamp`)
