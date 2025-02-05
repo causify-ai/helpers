@@ -56,12 +56,12 @@ key benefits of this approach include:
 
 - Consistency in environment: with everything housed in one repository, there's
   no risk of projects becoming incompatible due to conflicting versions of
-  third-party packages
+  third-party packages.
 - Simplified version control: there is a single commit history, which makes it
-  easy to track and, if needed, revert changes globally
+  easy to track and, if needed, revert changes globally.
 - Reduced coordination overhead: developers work within the same repository,
   with easy access to all code, shared knowledge, tools and consistent coding
-  standards
+  standards.
 
 However, as monorepo setups scale, users often face significant challenges. A
 major downside is long CI/CD build times, as even small changes can trigger
@@ -87,12 +87,12 @@ codebases.
 
 However, the multi-repo strategy comes with its own set of challenges,
 particularly when it comes to managing dependencies and ensuring version
-compatibility across repositories. For instance, different repos might rely on
-two different versions of a third-party library, or even conflicting libraries,
-making synchronization complex or, in some cases, nearly impossible. In general,
-propagating changes from one repository to another requires careful coordination
-of builds, tests, and deployments. Tools like [Jenkins](https://www.jenkins.io/)
-and [GitHub Actions](https://github.com/features/actions) help streamline CI/CD
+compatibility across repositories. For instance, different repositories might
+rely on two different versions of a third-party library, or even conflicting
+libraries, making synchronization complex or, in some cases, nearly impossible.
+In general, propagating changes from one repository to another requires careful
+coordination. Tools like [Jenkins](https://www.jenkins.io/) and
+[GitHub Actions](https://github.com/features/actions) help streamline CI/CD
 pipelines, but they often struggle when dealing with heterogeneous environments.
 
 ### 2.3. What is needed
@@ -111,7 +111,7 @@ Section 3.
 
 ### 3.1. Runnable directory
 
-The core concept of Causify's approach is a **runnable directory** --- a
+The core concept of Causify's approach is a **runnable directory** — a
 self-contained, independently executable directory with code, equipped with a
 dedicated DevOps setup. A repository is thus a special case of a runnable
 directory. Developers typically work within a single runnable directory for a
@@ -123,7 +123,7 @@ For example, Figure 1 depicts three runnable directories: A, B, and C. Here, A
 and C are repositories, with C incorporated into A as a submodule, while B is a
 subdirectory within A. This setup provides the same accessibility as if all the
 code were hosted in a single monorepo. Note that each of A, B, and C has its own
-DevOps pipeline --- a key feature of our approach, which is discussed further in
+DevOps pipeline — a key feature of our approach, which is discussed further in
 Section 3.2.
 
 ```mermaid
@@ -162,14 +162,14 @@ consistency by isolating the application from variations in the host operating
 system or underlying infrastructure. Second, a specific package (or package
 version) can be added to the container of a particular runnable directory
 without affecting other parts of the codebase. This prevents "bloating" the
-environment with packages required by all applications --- a common issue in
-monorepos --- while also effectively mitigating the risk of conflicting
+environment with packages required by all applications — a common issue in
+monorepos — while also effectively mitigating the risk of conflicting
 dependencies, which can arise in a multi-repo setup.
 
 Our approach supports multiple stages for container release:
 
-- Local: used to develop and test an update to the Docker container; a local
-  container is only accessible by the developer who built it.
+- Local: used to work on updates to the container; accessible only to the
+  developer who built it.
 - Development: used by all team members in day-to-day development of new
   features.
 - Production: used to run the system by end users.
@@ -200,6 +200,9 @@ graph TD
     docker_engine --> container_2
     container_1 --> container_1a
     container_1 --> container_1b
+
+    style sibling_container fill:#FFF3CD,stroke:#9E9D24
+    style children_container fill:#FFF3CD,stroke:#9E9D24
 ```
 
 Figure 2. Docker container flow.
@@ -245,6 +248,7 @@ submodule. This repository contains common utilities and development toolchains,
 such as the thin environment, Linter, Docker, and invoke workflows. By
 centralizing these resources, we eliminate code duplication and ensure that all
 teams, regardless of the project, use the same tools and procedures.
+
 Additionally, it hosts symbolic link targets for files that must technically
 reside in each repository but are identical across all of them (e.g., license
 and certain configuration files). Manually keeping them in sync can be difficult
@@ -304,6 +308,7 @@ graph LR
         dirA1 --> dirA12
     end
 
+style A fill:#FFF3CD,stroke:#9E9D24
 style B font-size:15px
 style C font-size:15px
 ```
@@ -312,7 +317,7 @@ Figure 5. Recursive test execution in dedicated containers.
 
 ## 4. Discussion
 
-Causify's approach presents a robust alternative to existing code organization
+Causify's approach presents a strong alternative to existing code organization
 solutions, offering scalability and efficiency for both small and large systems.
 
 The proposed modular architecture is centered around runnable directories, which
