@@ -74,9 +74,7 @@
     _DOCKER_IMAGE_NAME = "cmamp-infra"
     ```
   - `tasks.py`: the `invoke` tasks available in this container
-    - This needs to be modified
-  - TODO(gp): Some files (e.g., `conftest.py`, `invoke.yaml`) should be links to
-    `helpers`
+    - This can be modified if needed
 
 ### 3) Copy and customize files in `devops`
 
@@ -99,7 +97,7 @@
 
 ### 4) Copy and customize files in thin_client
 
-- Create the `dev_scripts_XYZ` dir based off the template from `helpers`
+- Create the `dev_scripts_xyz` dir based off the template from `helpers`
   ```bash
   # Use a prefix based on the repo name and runnable dir name, e.g., `cmamp_infra`.
   > SRC_DIR="helpers_root/dev_scripts_helpers/thin_client"; echo $SRC_DIR
@@ -123,7 +121,7 @@
     built)
   - Update PATH to the runnable dir
     ```bash
-    # runnable dir is "ck.infra" in this case.
+    # Runnable dir is "ck.infra" in this case.
     SCRIPT_PATH="ck.infra/dev_scripts_${DIR_TAG}/thin_client/setenv.sh"
     DEV_SCRIPT_DIR="${GIT_ROOT_DIR}/ck.infra/dev_scripts_${DIR_TAG}"
     ```
@@ -134,7 +132,7 @@
 
 - Some common files can be replaced with symbolic links
   ```bash
-  # runnable dir is "ck.infra" in this case.
+  # Runnable dir is "ck.infra" in this case.
   python3 ./helpers_root/helpers/create_links.py --src_dir ./helpers_root --dst_dir ./ck.infra --replace_links --use_relative_paths
   ```
 

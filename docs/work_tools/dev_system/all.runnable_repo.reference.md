@@ -136,6 +136,21 @@
 
   ```mermaid
   graph TD
+    runnable_dir[runnable dir]
+    runnable_dir --> helpers_sub_repo[helpers sub-repo]
+    runnable_dir --> devops[devops]
+    runnable_dir --> others[...]
+
+    style helpers_sub_repo fill:transparent, stroke-dasharray: 5 5
+  ```
+
+## Runnable repo
+
+- A runnable repo is a repo that contains a single runnable dir at the top
+- A repo can contain multiple runnable dirs in a hierarchical fashion
+
+  ```mermaid
+  graph TD
     runnable_repo[runnable repo]
     runnable_repo --> helpers_sub_repo[helpers sub-repo]
     runnable_repo --> devops[devops]
@@ -150,13 +165,6 @@
 
     style helpers_sub_repo fill:transparent, stroke-dasharray: 5 5
   ```
-
-## Runnable repo
-
-- A runnable repo is a repo that contains a single runnable dir at the top
-- A repo can contain multiple runnable dirs in a hierarchical fashion
-
-- TODO(gp): Add a graphical depiction
 
 ## Thin environment
 
@@ -250,7 +258,7 @@ graph TD
   - E.g., dependencies to run the unit tests are not needed in a prod container
 - The toolchain to build containers is managed through `invoke` targets
   - It supports versioning
-- The Python dependencies are managed to
+- The Python dependencies are managed through `poetry`
 
 ## Running a Docker container
 

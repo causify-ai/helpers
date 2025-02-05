@@ -98,7 +98,7 @@ well if one replaces `helpers` with `cmamp`.
 
 ## 1) Copy and customize files in `thin_client`
 
-- Create the `dev_scripts_XYZ` dir based off the template from `helpers`
+- Create the `dev_scripts_xyz` dir based off the template from `helpers`
 
   ```bash
   # Use a prefix based on the repo name, e.g., `tutorials`, `sports_analytics`.
@@ -109,7 +109,7 @@ well if one replaces `helpers` with `cmamp`.
   > cp -r $SRC_DIR/{build.py,requirements.txt,setenv.sh,tmux.py} $DST_DIR
   ```
 
-- The resulting `dev_scripts_XYZ` should look like:
+- The resulting `dev_scripts_xyz` should look like:
 
   ```bash
   > ls -1 $DST_DIR
@@ -125,11 +125,9 @@ well if one replaces `helpers` with `cmamp`.
   ```
 
 - If we don't need to create a new thin env you can delete the files
-  `dev_scripts_XYZ/thin_client/build.py` and `requirements.txt`
+  `dev_scripts_xyz/thin_client/build.py` and `requirements.txt`
 
 ### Build the thin environment
-
-> cp -r $SRC_DIR/{build.py,requirements.txt,setenv.sh,tmux.py} $DST_DIR
 
 - Build the thin environment
   ```
@@ -142,7 +140,7 @@ well if one replaces `helpers` with `cmamp`.
   14:37:37 - INFO  build.py _main:100                 /Users/saggese/src/quant_dashboard1/dev_scripts_quant_dashboard/thin_client/build.py successful
   ```
 
-- Customize the `dev_scripts_XYZ` dir, if necessary
+- Customize the `dev_scripts_xyz` dir, if necessary
   ```bash
   > vi $DST_DIR/*
   ```
@@ -176,7 +174,7 @@ Follow
     used container)
     - Change `_REPO_NAME = "<current repo name>"` to the current repo name
   - `tasks.py`: the `invoke` tasks available in this container
-    - This needs to be modified
+    - This can be modified if needed
   ```bash
   > cp helpers_root/{pytest.ini,repo_config.py,tasks.py} .
   > vim pytest.ini repo_config.py tasks.py
@@ -200,7 +198,7 @@ Follow
 
 ## 4) Replace files with symbolic links
 
-- Some common files can be replaced with symbolic links
+- Some common files can be replaced with symbolic links if they remain unchanged
   ```bash
   python3 ./helpers_root/helpers/create_links.py --src_dir ./helpers_root --dst_dir . --replace_links --use_relative_paths
   ```
@@ -217,7 +215,6 @@ Follow
 ### Build a container for a super-repo
 
 - Run the single-arch flow
-
   ```bash
   > i docker_build_local_image --version 1.0.0 && i docker_tag_local_image_as_dev --version 1.0.0
   > i docker_bash --skip-pull
@@ -225,7 +222,6 @@ Follow
   ```
 
 - Run the multi-arch flow
-
   ```bash
   > i docker_build_local_image --version 1.0.0 --multi-arch "linux/amd64,linux/arm64"
   > i docker_tag_local_image_as_dev --version 1.0.0

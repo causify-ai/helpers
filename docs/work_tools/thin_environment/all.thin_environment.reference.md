@@ -15,6 +15,9 @@ Each repo relies on several concept:
 - We add a suffix representing the name of the repo any time we need to
   distinguish different objects
   - E.g., `dev_scripts_helpers` vs `dev_scripts_cmamp`
+- For runnable dirs that are not top level, the suffix includes the name of the 
+  repo followed by the name of the runnable dir
+  - E.g., `dev_scripts_cmamp_infra`, `dev_scripts_tutorial_tensorflow`
 - We can't always use the `.` to separate the fields since `.` creates problems
   when importing Python files, and so we resort to using `_`
 
