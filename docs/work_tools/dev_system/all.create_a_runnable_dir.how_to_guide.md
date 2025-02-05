@@ -84,9 +84,11 @@
   > DST_DIR="ck.infra"; echo $DST_DIR
   > cp -r helpers_root/devops $DST_DIR
   ```
-- Follow the instructions in `docs/work_tools/all.devops_docker.reference.md`
-  and `docs/work_tools/all.devops_docker.how_to_guide.md` to customize the files
-  in order to build the Docker container
+- Follow the instructions in
+  [`/docs/work_tools/all.devops_docker.reference.md`](/docs/work_tools/all.devops_docker.reference.md)
+  and
+  [`/docs/work_tools/all.devops_docker.how_to_guide.md`](/docs/work_tools/all.devops_docker.how_to_guide.md)
+  to customize the files in order to build the Docker container
   - Typically, we might want to customize the following
     - `$DST_DIR/devops/docker_build/dev.Dockerfile`: if we need to use a base
       image with different Linux distro or version
@@ -98,6 +100,7 @@
 ### 4) Copy and customize files in thin_client
 
 - Create the `dev_scripts_xyz` dir based off the template from `helpers`
+
   ```bash
   # Use a prefix based on the repo name and runnable dir name, e.g., `cmamp_infra`.
   > SRC_DIR="helpers_root/dev_scripts_helpers/thin_client"; echo $SRC_DIR
@@ -108,6 +111,7 @@
   ```
 
 - The resulting `dev_script` should look like:
+
   ```bash
   > ls -1 $DST_DIR
   setenv.sh
@@ -131,6 +135,7 @@
 ### 5) Replace files with symbolic links
 
 - Some common files can be replaced with symbolic links
+
   ```bash
   # Runnable dir is "ck.infra" in this case.
   python3 ./helpers_root/helpers/create_links.py --src_dir ./helpers_root --dst_dir ./ck.infra --replace_links --use_relative_paths
