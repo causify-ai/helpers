@@ -745,7 +745,7 @@ Check-list:
 - Do a PR with the change including the updated `changelog.txt`, the poetry
   files (e.g.,
   [`/devops/docker_build/poetry.toml`](/devops/docker_build/poetry.toml),
-  [`/devops/docker_build/poetry.lock`](/devops/docker_build/poetry.lock))
+  [`/devops/docker_build/poetry.lock)`](/devops/docker_build/poetry.lock))
 - Run the release flow manually (or rely on GH Action build workflow to create
   the new image)
 
