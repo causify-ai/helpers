@@ -1,24 +1,26 @@
 import tempfile
 
-import pytest
-
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
 import linters.amp_doc_formatter as lamdofor
 
 
-@pytest.mark.skip(reason="Disabled because of AmpTask508")
+# #############################################################################
+# Test_docformatter
+# #############################################################################
+
+
 class Test_docformatter(hunitest.TestCase):
+
     def test1(self) -> None:
         """
-        Test that module docstring should be dedented.
+        Test that the docstring should be dedented.
         """
         text = '''
 """     Test 1.
 
     Test 2."""
         '''
-
         expected = '''
 """
 Test 1.
@@ -26,48 +28,46 @@ Test 1.
 Test 2.
 """
 '''
-
-        actual = self._docformatter(text=text)
-        self.assertEqual(expected, actual)
+        actual = self._docformatter(text)
+        self.assertEqual(expected.strip(), actual.strip())
 
     def test2(self) -> None:
         """
-        Test that a dot is added at the end.
+        Test docstring transformations.
+
+        - A dot is added at the end
+        - The first word is capitalized
+        - The docstring is moved onto a separate line
         """
         text = '''
 """this is a test"""
         '''
-
         expected = '''
 """
-this is a test.
+This is a test.
 """
 '''
-
-        actual = self._docformatter(text=text)
-        self.assertEqual(expected, actual)
+        actual = self._docformatter(text)
+        self.assertEqual(expected.strip(), actual.strip())
 
     def test3(self) -> None:
         """
-        Tests that single quotes are replaced by double quotes.
+        Test that single quotes are replaced by double quotes.
         """
         text = """
-'''this is a test.'''
+'''This is a test.'''
 """
-
         expected = '''
 """
-this is a test.
+This is a test.
 """
 '''
-
-        actual = self._docformatter(text=text)
-        self.assertEqual(expected, actual)
+        actual = self._docformatter(text)
+        self.assertEqual(expected.strip(), actual.strip())
 
     def test4(self) -> None:
         """
-        Tests that the first line starts after the quotes if it fits in a
-        single line, and no other changes are made.
+        Test a well-formed docstring.
         """
         text = '''
 def sample_method() -> None:
@@ -86,103 +86,83 @@ def sample_method() -> None:
     :return: transformed copy of input series
     """
 '''
-
-        expected = '''
-def sample_method() -> None:
-    """
-    Process NaN values in a series according to the parameters.
-
-    :param srs: pd.Series to process
-    :param mode: method of processing NaNs
-        - None - no transformation
-        - "ignore" - drop all NaNs
-        - "ffill" - forward fill not leading NaNs
-        - "ffill_and_drop_leading" - do ffill and drop leading NaNs
-        - "fill_with_zero" - fill NaNs with 0
-        - "strict" - raise ValueError that NaNs are detected
-    :param info: information storage
-    :return: transformed copy of input series
-    """
-'''
-
-        actual = self._docformatter(text=text)
+        expected = text
+        actual = self._docformatter(text)
         self.assertEqual(expected, actual)
 
     def test5(self) -> None:
         """
-        Tests that multilines with numbered points are not preserved.
+        Test that `# docformatter: ignore` keeps the docstring as-is.
         """
         text = '''
-"""Report information about a user set-up as a function of:
-1) user name
-2) server name
-3) git repository name.
-"""
-'''
+def sample_method1() -> None:
+    # docformatter: ignore
+    """
+    this is a test
+    """
 
+def sample_method2() -> None:
+    """
+    this is a test
+    """
+'''
         expected = '''
-"""
-Report information about a user set-up as a function of:
+def sample_method1() -> None:
+    # docformatter: ignore
+    """
+    this is a test
+    """
 
-1) user name 2) server name 3) git repository name.
-"""
+def sample_method2() -> None:
+    """
+    This is a test.
+    """
 '''
-
-        actual = self._docformatter(text=text)
+        actual = self._docformatter(text)
         self.assertEqual(expected, actual)
 
     def test6(self) -> None:
         """
-        Tests that `# docformatter: ignore` works.
+        Test that code blocks remain as-is.
         """
         text = '''
 def sample_method1() -> None:
-    # docformatter: ignore
-    """Report information about a user set-up as a function of:
-    1) user name
-    2) server name
-    3) git repository name.
+    """
+    Test docstring.
+
+    ```
+    Code block.
+    ```
+
+    Some more text.
     """
 
-def sample_method2() -> None:
-    """Report information about a user set-up as a function of:
-    1) user name
-    2) server name
-    3) git repository name.
+def sample_method2(cmd: str) -> None:
     """
-'''
+    Test docstring.
 
-        expected = '''
-def sample_method1() -> None:
-    # docformatter: ignore
-    """Report information about a user set-up as a function of:
-    1) user name
-    2) server name
-    3) git repository name.
-    """
+    Some more text.
 
-def sample_method2() -> None:
-    """
-    Report information about a user set-up as a function of:
-
-    1) user name 2) server name 3) git repository name.
+    :param cmd: command, e.g.,
+    ```
+    > git pull
+    ```
     """
 '''
-
-        actual = self._docformatter(text=text)
+        expected = text
+        actual = self._docformatter(text)
         self.assertEqual(expected, actual)
 
     def _docformatter(self, text: str) -> str:
         """
-        Create a temporary python file with the 'text', apply docformatter,
-        then return the modified content.
+        Run the docformatter on the temp file.
 
         :param text: content to be formatted
         :return: modified content after formatting
         """
         tmp = tempfile.NamedTemporaryFile(suffix=".py")
-        hio.to_file(file_name=tmp.name, lines=text)
+        hio.to_file(tmp.name, text)
         lamdofor._DocFormatter().execute(file_name=tmp.name, pedantic=0)
-        content: str = hio.from_file(file_name=tmp.name)
+        content: str = hio.from_file(tmp.name)
         tmp.close()
         return content
