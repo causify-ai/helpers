@@ -99,7 +99,7 @@ well if one replaces `helpers` with `cmamp`.
 
 ## 1) Copy and customize files in `thin_client`
 
-- Create the `dev_scripts_xyz` dir based off the template from `helpers`
+- Create the `dev_scripts_{dir_name}` dir based off the template from `helpers`
 
   ```bash
   # Use a prefix based on the repo name, e.g., `tutorials`, `sports_analytics`.
@@ -110,7 +110,7 @@ well if one replaces `helpers` with `cmamp`.
   > cp -r $SRC_DIR/{build.py,requirements.txt,setenv.sh,tmux.py} $DST_DIR
   ```
 
-- The resulting `dev_scripts_xyz` should look like:
+- The resulting `dev_scripts_{dir_name}` should look like:
 
   ```bash
   > ls -1 $DST_DIR
@@ -127,7 +127,7 @@ well if one replaces `helpers` with `cmamp`.
   ```
 
 - If we don't need to create a new thin env you can delete the files
-  `dev_scripts_xyz/thin_client/build.py` and `requirements.txt`
+  `dev_scripts_{dir_name}/thin_client/build.py` and `requirements.txt`
 
 ### Build the thin environment
 
@@ -142,7 +142,7 @@ well if one replaces `helpers` with `cmamp`.
   14:37:37 - INFO  build.py _main:100                 /Users/saggese/src/quant_dashboard1/dev_scripts_quant_dashboard/thin_client/build.py successful
   ```
 
-- Customize the `dev_scripts_xyz` dir, if necessary
+- Customize the `dev_scripts_{dir_name}` dir, if necessary
   ```bash
   > vi $DST_DIR/*
   ```

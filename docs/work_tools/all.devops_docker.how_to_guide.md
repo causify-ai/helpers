@@ -243,7 +243,10 @@
     file to the `[tool.poetry.dependencies]` section
   - E.g., to add `pytest-timeout` do:
     ```markdown
-    [tool.poetry.dependencies] ... pytest-timeout = "\*" ...
+    [tool.poetry.dependencies]
+    ...
+    pytest-timeout = "*"
+    ...
     ```
   - In general we use the latest version of a package `*` whenever possible
     - If the latest package has some problems with our codebase, we freeze the
@@ -329,8 +332,15 @@
 - The command above will generate `./tmp.requirements.txt` with the list of the
   imported packages, e.g.,
   ```markdown
-  amp==1.1.4 async_solipsism==0.3 beautifulsoup4==4.11.1 botocore==1.24.37
-  cvxopt==1.3.0 cvxpy==1.2.0 dill==0.3.4 environs==9.5.0 ...
+  amp==1.1.4
+  async_solipsism==0.3
+  beautifulsoup4==4.11.1
+  botocore==1.24.37
+  cvxopt==1.3.0
+  cvxpy==1.2.0
+  dill==0.3.4
+  environs==9.5.0
+  ...
   ```
 - You can grep for a package name to see where it is used, e.g.,
   ```bash
@@ -348,7 +358,7 @@
 - This Dockerfile runs various scripts to install:
   - OS
   - Python
-  - Venv + Python packages
+  - venv + Python packages
   - Jupyter extensions
   - Application-specific packages (e.g., for the linter)
 

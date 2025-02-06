@@ -134,10 +134,13 @@
 
   ```mermaid
   graph TD
-    runnable_dir[runnable dir]
-    runnable_dir --> helpers_sub_repo[helpers sub-repo]
-    runnable_dir --> devops[devops]
-    runnable_dir --> others[...]
+    runnable_repo["runnable dir<br>(runnable repo)"]
+    runnable_repo --> helpers_sub_repo[helpers sub-repo]
+    runnable_repo --> devops[devops]
+    runnable_repo --> runnable_dir[runnable dir]
+    runnable_repo --> others[...]
+
+    runnable_dir  --> runnable_dir_devops[devops]
 
     style helpers_sub_repo fill:transparent, stroke-dasharray: 5 5
   ```

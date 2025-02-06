@@ -99,7 +99,7 @@
 
 ### 4) Copy and customize files in thin_client
 
-- Create the `dev_scripts_xyz` dir based off the template from `helpers`
+- Create the `dev_scripts_{dir_name}` dir based off the template from `helpers`
 
   ```bash
   # Use a prefix based on the repo name and runnable dir name, e.g., `cmamp_infra`.
