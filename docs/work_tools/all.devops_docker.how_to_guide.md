@@ -540,7 +540,7 @@
   local image by default
 - Images are pushed to the remote registry and pulled for testing and usage
 - To tag the local image as dev and push it to the target registry: e.g.,
-  `aws_ecr.ck` or `dockerhub.sorrentum` , use
+  `aws_ecr.ck` or `dockerhub.kaizenflow` , use
   ```bash
   > i docker_tag_push_multi_build_local_image_as_dev --version <VERSION> --target <TARGET>
   ```
@@ -622,7 +622,7 @@ Check-list:
   where
   - TARGET_REGISTRIES: list of target registries to push the image to. E.g.,
     - `aws_ecr.ck`: private CK AWS Docker registry
-    - `dockerhub.sorrentum`: public Dockerhub registry
+    - `dockerhub.kaizenflow`: public Dockerhub registry
   - All the other options are the same as for the `docker_release_dev_image`
     end-to-end flow.
 
@@ -631,12 +631,12 @@ Check-list:
   > i docker_release_multi_build_dev_image \
       --version 1.6.1 \
       --platform linux/amd64,linux/arm64 \
-      --target-registries aws_ecr.ck,dockerhub.sorrentum
+      --target-registries aws_ecr.ck,dockerhub.kaizenflow
   ```
 
 ### Post-release check-list
 
-- [ ] Make an integration with the `sorrentum` repository in order to copy all
+- [ ] Make an integration with the `kaizenflow` repository in order to copy all
       the changes from the `cmamp` repository
 - [ ] Tag the new `dev` image to GHCR namespace and push it to GHCR registry
 
