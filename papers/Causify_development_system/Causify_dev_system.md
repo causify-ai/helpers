@@ -12,6 +12,7 @@
     + [3.3. Thin environment](#33-thin-environment)
     + [3.4. Submodule of "helpers"](#34-submodule-of-helpers)
     + [3.5. Executing tests](#35-executing-tests)
+    + [3.6. Dockerized executables](#36-dockerized-executables)
   * [4. Discussion](#4-discussion)
   * [Future directions](#future-directions)
   * [References](#references)
@@ -88,8 +89,8 @@ codebases.
 However, the multi-repo strategy comes with its own set of challenges,
 particularly when it comes to managing dependencies and ensuring version
 compatibility across repositories. For instance, different repositories might
-rely on two different versions of a third-party library, or even conflicting
-libraries, making synchronization complex or, in some cases, nearly impossible.
+rely on two different versions of a third-party package, or even conflicting
+packages, making synchronization complex or, in some cases, nearly impossible.
 In general, propagating changes from one repository to another requires careful
 coordination. Tools like [Jenkins](https://www.jenkins.io/) and
 [GitHub Actions](https://github.com/features/actions) help streamline CI/CD
@@ -154,7 +155,7 @@ Figure 1. Sample architecture of Causify's runnable directories.
 
 Docker is the backbone of our containerized development environment. Every
 runnable directory contains Dockerfiles that allow it to build and run its own
-Docker containers, which package the code, its dependencies, and the runtime
+Docker containers, which include the code, its dependencies, and the runtime
 system.
 
 This Docker-based approach addresses two important challenges. First, it ensures
@@ -314,6 +315,19 @@ style C font-size:15px
 ```
 
 Figure 5. Recursive test execution in dedicated containers.
+
+### 3.6. Dockerized executables
+
+Sometimes, installing a package within a development container may not be
+justified, particularly if it is large and will only be used occasionally. In
+such cases, we use _dockerized executables_: when the package is needed, a
+Docker container is dynamically created with only the specific dependencies
+required for its installation. The package is then installed and executed within
+the container, which is discarded once the task is complete. This prevents the
+development environment from becoming bloated with dependencies that are rarely
+used. If necessary, for example during test execution, a dockerized executable
+can be run inside another Docker container, whether using the children or
+sibling container approach, as discussed in Section 3.2.
 
 ## 4. Discussion
 
