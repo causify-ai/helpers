@@ -42,7 +42,7 @@ if [[ 1 == 1 ]]; then
   python3 -m ${ENV_NAME} /${ENV_NAME}
   source /${ENV_NAME}/bin/activate
   #pip3 install wheel
-  poetry install
+  poetry install --no-root
   poetry env list
   # Clean up.
   if [[ $CLEAN_UP_INSTALLATION ]]; then
