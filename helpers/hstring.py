@@ -3,6 +3,7 @@ Import as:
 
 import helpers.hstring as hstring
 """
+
 import logging
 import os
 import re
@@ -91,6 +92,35 @@ def get_docstring_line_indices(lines: List[str]) -> List[int]:
             # Store the index if the quotes have been opened but not closed yet.
             docstring_line_indices.append(i)
     return docstring_line_indices
+
+
+def get_code_block_line_indices(lines: List[str]) -> List[int]:
+    """
+    Get indices of lines that are inside code blocks.
+
+    Code blocks are lines surrounded by triple backticks, e.g.,
+    ```
+    This line.
+    ```
+    Note that the backticks need to be the leftmost element of their line.
+
+    :param lines: the lines to check
+    :return: the indices of code blocks
+    """
+    code_block_line_indices = []
+    quotes = {"```": False}
+    for i, line in enumerate(lines):
+        # Determine if the current line is inside a code block.
+        for quote in quotes:
+            quotes_matched = re.findall(rf"^\s*({quote})", line)
+            for q in quotes_matched:
+                # Switch the flag.
+                # pylint: disable=modified-iterating-dict
+                quotes[q] = not quotes[q]
+        if any(quotes.values()):
+            # Store the index if the quotes have been opened but not closed yet.
+            code_block_line_indices.append(i)
+    return code_block_line_indices
 
 
 def extract_version_from_file_name(file_name: str) -> Tuple[int, int]:
