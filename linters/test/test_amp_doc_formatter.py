@@ -126,7 +126,7 @@ def sample_method2() -> None:
         Test that code blocks remain as-is.
         """
         text = '''
-def sample_method1() -> None:
+def block_in_the_middle() -> None:
     """
     Test docstring.
 
@@ -137,13 +137,55 @@ def sample_method1() -> None:
     Some more text.
     """
 
-def sample_method2(cmd: str) -> None:
+def block_after_param(cmd: str) -> None:
     """
     Test docstring.
 
     Some more text.
 
     :param cmd: command, e.g.,
+    ```
+    > git pull
+    ```
+    """
+
+def block_without_empty_lines(cmd: str) -> None:
+    """
+    Test docstring.
+
+    Text before.
+    ```
+    > git pull
+    ```
+    Text after.
+    """
+
+def two_code_blocks(cmd: str) -> None:
+    """
+    Test docstring.
+
+    ```
+    > git pull
+    ```
+    Text in between.
+    ```
+    > git push
+    ```
+    """
+
+def block_in_second_line(cmd: str) -> None:
+    """
+    Test docstring:
+    ```
+    > git pull
+    ```
+    """
+
+def long_docstring_line(cmd: str) -> None:
+    """
+    Test docstring.
+
+    Very very very very very very very very very very long line.
     ```
     > git pull
     ```
