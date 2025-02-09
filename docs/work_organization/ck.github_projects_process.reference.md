@@ -237,10 +237,10 @@ Next steps
 
 - For more customized automated workflows we use GitHub actions
 
-- TODO(Shayan): once
-  [<u>https://github.com/cryptokaizen/cmamp/issues/10332</u>](https://github.com/cryptokaizen/cmamp/issues/10332)
-  is done
-  - Explain list of actions that is automated (when/how often it is run)
+- A GitHub Action
+  [`sprint_iteration.yml`](https://github.com/causify-ai/cmamp/blob/master/.github/workflows/sprint_iteration.yml) 
+  is set up to move items in active projects from last sprint to current sprint 
+  at the beginning of each sprint.
 
 ## EPICs (AKA parent and sub-issues)
 

@@ -17,11 +17,17 @@ from typing import Dict, List
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
+import helpers.hstring as hstring
 import helpers.hsystem as hsystem
 import linters.action as liaction
 import linters.utils as liutils
 
 _LOG = logging.getLogger(__name__)
+
+
+# #############################################################################
+# _DocFormatter
+# #############################################################################
 
 
 class _DocFormatter(liaction.Action):
@@ -50,7 +56,8 @@ class _DocFormatter(liaction.Action):
         dict with replacements.
 
         :param file_name: file to process
-        :return: dictionary with hash as key and replaced docstring as a value
+        :return: dictionary with hash as key and replaced docstring as a
+            value
         """
         result: Dict[str, str] = {}
         contents = hio.from_file(file_name)
@@ -81,6 +88,49 @@ class _DocFormatter(liaction.Action):
         return result
 
     @staticmethod
+    def _remove_code_blocks(file_name: str) -> Dict[str, List[str]]:
+        """
+        Remove code blocks in triple backticks from docstrings.
+
+        Code blocks such as the one below are temporarily removed.
+        ```
+        ABC
+        ```
+        This is done to preserve them as-is during the run of `docformatter`.
+
+        :param file_name: file to process
+        :return: storage of removed code blocks
+        """
+        lines = hio.from_file(file_name).split("\n")
+        # Get lines within triple backticks.
+        code_block_indices = hstring.get_code_block_line_indices(lines)
+        updated_lines: List[str] = []
+        skipped_id = 0
+        removed_blocks_storage: Dict[str, List[str]] = {}
+        for i, line in enumerate(lines):
+            if i not in code_block_indices and i + 1 in code_block_indices:
+                # Initialize objects for a new code block.
+                skipped_id += 1
+                skipped_lines = []
+                updated_lines.append(line)
+            elif i in code_block_indices or (
+                i - 1 in code_block_indices and line.strip() == "```"
+            ):
+                # Replace the code block line with a placeholder.
+                skipped_lines.append(line)
+                indent = re.findall(r"^[\s]*", line)[0]
+                num_repeat = int(80 - len(indent) / len(f"IDSKIP{skipped_id}"))
+                updated_lines.append(indent + f"IDSKIP{skipped_id}" * num_repeat)
+                if i not in code_block_indices:
+                    # The end of the code block has been reached.
+                    # Store the removed lines for adding them back later.
+                    removed_blocks_storage[str(skipped_id)] = skipped_lines
+            else:
+                updated_lines.append(line)
+        hio.to_file(file_name, "\n".join(updated_lines))
+        return removed_blocks_storage
+
+    @staticmethod
     def _restore_ignored_docstrings(
         file_name: str, store: Dict[str, str]
     ) -> None:
@@ -88,12 +138,42 @@ class _DocFormatter(liaction.Action):
         Restore docstrings that have been previously with unique hashes.
 
         :param file_name: file to process
-        :param store: dictionary with hash as key and replaced docstring as a value
+        :param store: dictionary with hash as key and replaced docstring
+            as a value
         """
         contents = hio.from_file(file_name)
         for key, value in store.items():
             contents = contents.replace(f"# {key}", value)
         hio.to_file(file_name, contents)
+
+    @staticmethod
+    def _restore_removed_code_blocks(
+        file_name: str, removed_blocks_storage: Dict[str, List[str]]
+    ) -> None:
+        """
+        Restore code blocks that have been previously removed.
+
+        :param file_name: file to process
+        :param removed_blocks_storage: original code blocks from the
+            docstring
+        """
+        lines = hio.from_file(file_name).split("\n")
+        updated_lines: List[str] = []
+        restored_ids = []
+        for line in lines:
+            match = re.findall(r"IDSKIP(\d)", line)
+            if match:
+                # Get the id of the removed code block.
+                skipped_id = match[0]
+                if skipped_id in restored_ids:
+                    continue
+                for skipped_line in removed_blocks_storage[skipped_id]:
+                    # Restore the previously removed line.
+                    updated_lines.append(skipped_line)
+                restored_ids.append(skipped_id)
+            else:
+                updated_lines.append(line)
+        hio.to_file(file_name, "\n".join(updated_lines))
 
     def _execute(self, file_name: str, pedantic: int) -> List[str]:
         """
@@ -108,22 +188,30 @@ class _DocFormatter(liaction.Action):
         if not liutils.is_py_file(file_name):
             _LOG.debug("Skipping file_name='%s'", file_name)
             return []
-        # Clear and store ignored docstrings.
+        # Clear and store ignored docstrings and code.
         _ignored_docstrings = self._remove_ignored_docstrings(file_name)
+        _removed_code = self._remove_code_blocks(file_name)
         # Execute docformatter.
         opts = "--make-summary-multi-line --pre-summary-newline --in-place"
         cmd = f"{self._executable} {opts} {file_name}"
-        output: List[str]
+        output: List[str] = []
         _, output = liutils.tee(cmd, self._executable, abort_on_error=False)
-        # Restore ignored docstrings.
+        # Restore ignored docstrings and code.
         self._restore_ignored_docstrings(file_name, _ignored_docstrings)
+        self._restore_removed_code_blocks(file_name, _removed_code)
         return output
 
 
 # #############################################################################
 
 
+# #############################################################################
+# _Pydocstyle
+# #############################################################################
+
+
 class _Pydocstyle(liaction.Action):
+
     def __init__(self) -> None:
         executable = "pydocstyle"
         super().__init__(executable)
@@ -253,9 +341,15 @@ class _Pydocstyle(liaction.Action):
 # #############################################################################
 
 
+# #############################################################################
+# _Pyment
+# #############################################################################
+
+
 # TODO(gp): Fix this.
 # Not installable through conda.
 class _Pyment(liaction.Action):
+
     def __init__(self) -> None:
         executable = "pyment"
         super().__init__(executable)
@@ -287,6 +381,11 @@ class _Pyment(liaction.Action):
         return output
 
 
+# #############################################################################
+
+
+# #############################################################################
+# _DocFormatterAction
 # #############################################################################
 
 
