@@ -529,9 +529,7 @@ def _generate_docker_compose_file(
     helper_root_path = os.path.normpath(
         os.path.join("/app", helper_relative_path)
     )
-    # A super repo is a repo that contains helpers as a submodule and
-    # is not a helper itself.
-    is_super_repo = 0 if hgit.is_in_helpers_as_supermodule() else 1
+    is_only_helper = 1 if hgit.is_in_helpers_as_supermodule() else 0
     # We could do the same also with IMAGE for symmetry.
     # Keep the env vars in sync with what we print in `henv.get_env_vars()`.
     # Configure `base_app` service.
@@ -555,7 +553,7 @@ def _generate_docker_compose_file(
             "CSFY_ECR_BASE_PATH=$CSFY_ECR_BASE_PATH",
             f"CSFY_GIT_ROOT_PATH={git_root_path}",
             f"CSFY_HELPERS_ROOT_PATH={helper_root_path}",
-            f"CSFY_IS_SUPER_REPO={is_super_repo}",
+            f"CSFY_IS_ONLY_HELPER={is_only_helper}",
             "OPENAI_API_KEY=$OPENAI_API_KEY",
             # - CK_ENABLE_DIND=
             # - CK_FORCE_TEST_FAIL=$CK_FORCE_TEST_FAIL

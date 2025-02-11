@@ -2,7 +2,7 @@
 
 set -e
 
-echo "CSFY_IS_SUPER_REPO=$CSFY_IS_SUPER_REPO"
+echo "CSFY_IS_ONLY_HELPER=$CSFY_IS_ONLY_HELPER"
 
 FILE_NAME="devops/docker_run/entrypoint.sh"
 echo "##> $FILE_NAME"
