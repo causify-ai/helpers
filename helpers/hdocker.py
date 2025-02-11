@@ -999,7 +999,7 @@ def run_dockerized_latex(
 def run_dockerized_llm_transform(
     in_file_path: str,
     out_file_path: str,
-    cmd_opts: str,
+    cmd_opts: List[str],
     *,
     return_cmd: bool = False,
     force_rebuild: bool = False,

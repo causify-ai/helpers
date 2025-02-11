@@ -152,7 +152,7 @@ def _render_images(file_: str, prefix: str) -> str:
     exec_file = hgit.find_file("render_images.py")
     file1 = file_
     file2 = f"{prefix}.render_image.txt"
-    cmd = f"{exec_file} --input {file1} --output {file2}"
+    cmd = f"{exec_file} --in_file_name {file1} --out_file_name {file2}"
     _ = _system(cmd)
     file_ = file2
     return file_
