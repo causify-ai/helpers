@@ -109,17 +109,22 @@ class _DocFormatter(liaction.Action):
         removed_blocks_storage: Dict[str, List[str]] = {}
         for i, line in enumerate(lines):
             if i not in code_block_indices and i + 1 in code_block_indices:
-                # Mark the line before the code block with a unique id.
+                # Initialize objects for a new code block.
                 skipped_id += 1
                 skipped_lines = []
-                updated_lines.append(line + f"{'IDSKIP'*10}{skipped_id}")
-            elif i in code_block_indices or i - 1 in code_block_indices:
-                # Remove the code block line.
-                skipped_lines.append(line)
-            elif i - 2 in code_block_indices:
-                # Store the removed lines for adding them back later.
-                removed_blocks_storage[str(skipped_id)] = skipped_lines
                 updated_lines.append(line)
+            elif i in code_block_indices or (
+                i - 1 in code_block_indices and line.strip() == "```"
+            ):
+                # Replace the code block line with a placeholder.
+                skipped_lines.append(line)
+                indent = re.findall(r"^[\s]*", line)[0]
+                num_repeat = int(80 - len(indent) / len(f"IDSKIP{skipped_id}"))
+                updated_lines.append(indent + f"IDSKIP{skipped_id}" * num_repeat)
+                if i not in code_block_indices:
+                    # The end of the code block has been reached.
+                    # Store the removed lines for adding them back later.
+                    removed_blocks_storage[str(skipped_id)] = skipped_lines
             else:
                 updated_lines.append(line)
         hio.to_file(file_name, "\n".join(updated_lines))
@@ -154,17 +159,18 @@ class _DocFormatter(liaction.Action):
         """
         lines = hio.from_file(file_name).split("\n")
         updated_lines: List[str] = []
+        restored_ids = []
         for line in lines:
-            match = re.findall(rf"{'IDSKIP'*10}(\d)", line)
+            match = re.findall(r"IDSKIP(\d)", line)
             if match:
-                # Remove the id dummy.
-                orig_line = line.split("IDSKIP")[0].rstrip()
-                updated_lines.append(orig_line)
                 # Get the id of the removed code block.
                 skipped_id = match[0]
+                if skipped_id in restored_ids:
+                    continue
                 for skipped_line in removed_blocks_storage[skipped_id]:
                     # Restore the previously removed line.
                     updated_lines.append(skipped_line)
+                restored_ids.append(skipped_id)
             else:
                 updated_lines.append(line)
         hio.to_file(file_name, "\n".join(updated_lines))
