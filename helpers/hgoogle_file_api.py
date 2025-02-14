@@ -7,12 +7,10 @@ Import as:
 import helpers.hgoogle_file_api as hgofiapi
 """
 
-
 import logging
 import os.path
 from datetime import datetime
 from typing import List, Optional
-
 
 # This package need to be manually installed until they are added to the
 # container.
@@ -32,11 +30,11 @@ from typing import List, Optional
 
 import google.oauth2.service_account as goasea
 import googleapiclient.discovery as godisc
-import googleapiclient.errors as goerro
 import gspread
 import pandas as pd
 from googleapiclient.discovery import build
 
+import helpers.hdbg as hdbg
 
 _LOG = logging.getLogger(__name__)
 
@@ -53,14 +51,14 @@ def get_credentials(
     """
     # TODO(Shaunak): Credentials should be stored in $HOME.
     if not service_key_path:
-        service_key_path = ".google_credentials/service.json"
+        service_key_path = "/home/.config/gspread_pandas/google_secret.json"
     service_key_path = os.path.join(os.path.dirname(__file__), service_key_path)
     # Download service.json from Google API, then save it as
-    # helpers/.google_credentials/service.json
+    # /home/.config/gspread_pandas/google_secret.json
     # Instructions: https://gspread-pandas.readthedocs.io/en/latest/getting_started.html#client-credentials"
-    hdbg.dassert_file_exists(service_key_path,
-                             "Failed to read service key file: %s",
-                                       service_key_path)
+    hdbg.dassert_file_exists(
+        service_key_path, "Failed to read service key file: %s", service_key_path
+    )
     # Scopes required for making API calls.
     scopes = [
         "https://www.googleapis.com/auth/drive",
@@ -75,19 +73,19 @@ def get_credentials(
 # #############################################################################
 
 
-# TODO(Shaunak): Pass the credentials object and not the path.
-def get_sheets_service(
-    *, service_key_path: Optional[str] = None
-) -> godisc.Resource:
+def get_sheets_service(*, credentials: goasea.Credentials) -> godisc.Resource:
     """
-    Get Google Sheets service with current credentials.
+    Get Google Sheets service with provided credentials.
 
-    :param service_key_path: service key path.
-    :return: google sheets service instance created.
+    :param credentials: Google credentials object.
+    :return: Google Sheets service instance.
     """
-    creds = get_credentials(service_key_path=service_key_path)
+    # Ensure credentials are provided.
+    if not credentials:
+        raise ValueError("The 'credentials' parameter must be provided.")
+    # Build the Sheets service.
     sheets_service = godisc.build(
-        "sheets", "v4", credentials=creds, cache_discovery=False
+        "sheets", "v4", credentials=credentials, cache_discovery=False
     )
     return sheets_service
 
@@ -96,19 +94,19 @@ def get_sheet_id(
     sheet_id: str,
     *,
     sheet_name: Optional[str] = None,
-    service_key_path: Optional[str] = None,
+    credentials: goasea.Credentials,
 ) -> str:
     """
     Get the sheet ID from the sheet name in a Google Sheets document.
 
-    :param sheet_id: id of the Google Sheet document.
-    :param sheet_name: name of the sheet (tab) in the Google Sheets
+    :param sheet_id: ID of the Google Sheet document.
+    :param sheet_name: Name of the sheet (tab) in the Google Sheets
         document.
-    :param service_key_path: path to the service key file.
-    :return: sheet ID of the sheet with the given name or the first
-        sheet if name is not provided.
+    :param credentials: Google credentials object.
+    :return: Sheet ID of the sheet with the given name or the first
+        sheet if the name is not provided.
     """
-    sheets_service = get_sheets_service(service_key_path=service_key_path)
+    sheets_service = get_sheets_service(credentials=credentials)
     sheet_metadata = (
         sheets_service.spreadsheets().get(spreadsheetId=sheet_id).execute()
     )
@@ -129,31 +127,28 @@ def freeze_rows(
     row_indices: List[int],
     *,
     sheet_name: Optional[str] = None,
-    service_key_path: Optional[str] = None,
+    credentials: goasea.Credentials,
 ) -> None:
     """
     Freeze specified rows in the given sheet.
 
-    :param sheet_id: id of the Google Sheet.
-    :param row_indices: rows indices to freeze (zero-based index).
-    :param sheet_name: name of the sheet (tab) to freeze rows in.
+    :param sheet_id: ID of the Google Sheet (spreadsheet ID).
+    :param row_indices: Row indices to freeze (zero-based index).
+    :param sheet_name: Name of the sheet (tab) to freeze rows in.
         Defaults to the first tab if not provided.
-    :param service_key_path: path to the service key file.
+    :param credentials: Google credentials object.
     """
-    sheet_id = get_sheet_id(
-        sheet_id=sheet_id,
-        sheet_name=sheet_name,
-        service_key_path=service_key_path,
+    tab_id = get_sheet_id(
+        sheet_id=sheet_id, sheet_name=sheet_name, credentials=credentials
     )
-    sheets_service = get_sheets_service(service_key_path=service_key_path)
-    # Calculate the number of rows to freeze.
+    sheets_service = get_sheets_service(credentials=credentials)
     num_rows_to_freeze = max(row_indices) + 1
     freeze_request = {
         "requests": [
             {
                 "updateSheetProperties": {
                     "properties": {
-                        "sheetId": sheet_id,
+                        "sheetId": tab_id,
                         "gridProperties": {"frozenRowCount": num_rows_to_freeze},
                     },
                     "fields": "gridProperties.frozenRowCount",
@@ -168,6 +163,7 @@ def freeze_rows(
         .execute()
     )
     _LOG.debug("response: %s", response)
+    _LOG.debug("response: %s", response)
 
 
 def set_row_height(
@@ -177,74 +173,61 @@ def set_row_height(
     start_index: Optional[int] = None,
     end_index: Optional[int] = None,
     sheet_name: Optional[str] = None,
-    service_key_path: Optional[str] = None,
+    credentials: goasea.Credentials,
 ) -> None:
     """
     Set the height for rows in the given sheet.
 
-    - If only `start_index` is provided, applies height to all rows starting from
-        `start_index`
-    - If only ``end_index`` is provided, applies height to all rows up to
-        `end_index`.
-    - If both `start_index` and `end_index` are provided, applies height to rows
-        between them.
-    - If neither is provided, applies height to all rows.
-
-    :param sheet_id: id of the Google Sheet.
-    :param height: height of the rows in pixels.
-    :param start_index: starting index of the rows (zero-based). If None,
+    :param sheet_id: ID of the Google Sheet (spreadsheet ID).
+    :param height: Height of the rows in pixels.
+    :param start_index: Starting index of the rows (zero-based). If
+        None, applies to all rows.
+    :param end_index: Ending index of the rows (zero-based). If None,
         applies to all rows.
-    :param end_index: ending index of the rows (zero-based). If None, applies to
-        all rows.
-    :param sheet_name: name of the sheet (tab) to set row height in. Defaults to
-        the first tab if not provided.
-    :param service_key_path: the path to the service key file.
-    :return: none
+    :param sheet_name: Name of the sheet (tab) to set row height in.
+        Defaults to the first tab if not provided.
+    :param credentials: Google credentials object.
     """
-    sheet_id = get_sheet_id(
-        sheet_id=sheet_id,
-        sheet_name=sheet_name,
-        service_key_path=service_key_path,
+    tab_id = get_sheet_id(
+        sheet_id=sheet_id, sheet_name=sheet_name, credentials=credentials
     )
-    sheets_service = get_sheets_service(service_key_path=service_key_path)
-    # Determine the range of rows to update.
+    sheets_service = get_sheets_service(credentials=credentials)
     if start_index is None and end_index is None:
-        # Fetch the sheet metadata to get the total number of rows.
         sheet_metadata = (
             sheets_service.spreadsheets().get(spreadsheetId=sheet_id).execute()
         )
         sheet_properties = next(
             sheet
             for sheet in sheet_metadata.get("sheets", [])
-            if sheet.get("properties", {}).get("sheetId") == sheet_id
+            if sheet.get("properties", {}).get("sheetId") == tab_id
         ).get("properties", {})
         grid_properties = sheet_properties.get("gridProperties", {})
-        end_index = grid_properties.get("rowCount", 1000)
-        start_index = 0
+        start_index, end_index = 0, grid_properties.get("rowCount", 1000)
     elif start_index is None:
         start_index = 0
     elif end_index is None:
-        # Fetch the sheet metadata to get the total number of rows.
         sheet_metadata = (
             sheets_service.spreadsheets().get(spreadsheetId=sheet_id).execute()
         )
         sheet_properties = next(
             sheet
             for sheet in sheet_metadata.get("sheets", [])
-            if sheet.get("properties", {}).get("sheetId") == sheet_id
+            if sheet.get("properties", {}).get("sheetId") == tab_id
         ).get("properties", {})
         grid_properties = sheet_properties.get("gridProperties", {})
         end_index = grid_properties.get("rowCount", 1000)
     else:
-        raise ValueError(f"Invalid params start_index=${start_index} and "
-                         f"end_index=${end_index}")
+        raise ValueError(
+            f"Invalid params start_index=${start_index} and "
+            f"end_index=${end_index}"
+        )
     # Create request.
     set_row_height_request = {
         "requests": [
             {
                 "updateDimensionProperties": {
                     "range": {
-                        "sheetId": sheet_id,
+                        "sheetId": tab_id,
                         "dimension": "ROWS",
                         "startIndex": start_index,
                         "endIndex": end_index,
@@ -263,25 +246,24 @@ def set_row_height(
     )
     _LOG.debug("response: %s", response)
 
+    # #########################################################################
+    _LOG.debug("response: %s", response)
+
 
 # #############################################################################
 
 
-def get_gdrive_service(
-    *, service_key_path: Optional[str] = None
-) -> godisc.Resource:
+def get_gdrive_service(*, credentials: goasea.Credentials) -> godisc.Resource:
     """
-    Get Google Drive service with current credentials.
+    Get Google Drive service with provided credentials.
 
-    :param service_key_path: The service key path.
-        - Will use default service key path in `get_credentials` if None is given.
-
-    :return: the Google Drive service instance created.
+    :param credentials: Google credentials object.
+    :return: Google Drive service instance.
     """
-
-    creds = get_credentials(service_key_path=service_key_path)
+    if not credentials:
+        raise ValueError("The 'credentials' parameter must be provided.")
     gdrive_service = godisc.build(
-        "drive", "v3", credentials=creds, cache_discovery=False
+        "drive", "v3", credentials=credentials, cache_discovery=False
     )
     return gdrive_service
 
@@ -290,71 +272,58 @@ def get_gdrive_service(
 
 
 def _create_new_google_document(
-    doc_name: str, doc_type: str, *, service: godisc.Resource = None
+    doc_name: str, doc_type: str, *, credentials: goasea.Credentials
 ) -> str:
     """
     Create a new Google document (Sheet or Doc).
 
-    :param doc_name: str, the name of the new Google document.
-    :param doc_type: str, the type of the Google document ('sheets' or 'docs').
-    :param service: the Google Drive service instance.
-        - Will auto-choose sheet or doc service as default if None is given.
-    :return: doc_id. The id to the created document in GDrive.
+    :param doc_name: The name of the new Google document.
+    :param doc_type: The type of the Google document ('sheets' or
+        'docs').
+    :param credentials: Google credentials object.
+    :return: doc_id. The ID of the created document in Google Drive.
     """
-    if service is None:
-        creds = get_credentials()
-        service = godisc.build(
-            doc_type,
-            "v4" if doc_type == "sheets" else "v1",
-            credentials=creds,
-            cache_discovery=False,
-        )
-    document = {"properties": {"title": doc_name}}
-    document = (
-        service.spreadsheets()
-        .create(
-            body=document,
-            fields="spreadsheetId" if doc_type == "sheets" else "documentId",
-        )
-        .execute()
+    if doc_type not in ["sheets", "docs"]:
+        raise ValueError("Invalid doc_type. Must be 'sheets' or 'docs'.")
+    # Build the service for the respective document type.
+    service = godisc.build(
+        doc_type,
+        "v4" if doc_type == "sheets" else "v1",
+        credentials=credentials,
+        cache_discovery=False,
     )
-    doc_id = document.get(
+    # Create the document with the specified name.
+    document = {"properties": {"title": doc_name}}
+    create_method = (
+        service.spreadsheets().create
+        if doc_type == "sheets"
+        else service.documents().create
+    )
+    response = create_method(
+        body=document,
+        fields="spreadsheetId" if doc_type == "sheets" else "documentId",
+    ).execute()
+    # Extract the document ID.
+    doc_id = response.get(
         "spreadsheetId" if doc_type == "sheets" else "documentId"
     )
     return doc_id
 
 
-# TODO(Shaunak): Inline these 2 functions, they are too thin.
-def _create_new_google_sheet(gsheet_name: str) -> str:
-    """
-    Create a new Google sheet.
-    """
-    doc_type = "sheets"
-    return _create_new_google_document(gsheet_name, doc_type)
-
-
-def _create_new_google_doc(gdoc_name: str) -> str:
-    """
-    Create a new Google doc.
-    """
-    doc_type = "docs"
-    return _create_new_google_document(gdoc_name, doc_type)
-
-
-# TODO(Shaunak): pass the service instead of creating on the fly.
-def _move_gfile_to_dir(
-    gfile_id: str, folder_id: str, *, service: godisc.Resource = None
+def move_gfile_to_dir(
+    gfile_id: str, folder_id: str, *, credentials: goasea.Credentials
 ) -> dict:
     """
     Move a Google file to a specified folder in Google Drive.
 
-    :param gfile_id: the id of the Google file.
-    :param folder_id: the id of the folder.
-    :param service: the Google Drive service instance.
-        - Will use GDrive file service as default if None is given.
+    :param gfile_id: The ID of the Google file.
+    :param folder_id: The ID of the folder.
+    :param credentials: Google credentials object.
+    :return: The response from the API after moving the file.
     """
-    if service is None:
-        service = get_gdrive_service()
+    service = godisc.build(
+        "drive", "v3", credentials=credentials, cache_discovery=False
+    )
     res = (
         service.files()
         .update(
@@ -370,18 +339,21 @@ def _move_gfile_to_dir(
 
 
 def _move_gfile_to_dir(
-    gfile_id: str, folder_id: str, *, service: godisc.Resource = None
+    gfile_id: str, folder_id: str, *, credentials: goasea.Credentials
 ) -> dict:
     """
     Move a Google file to a specified folder in Google Drive.
 
-    :param gfile_id: the id of the Google file.
-    :param folder_id: the id of the folder.
-    :param service: the Google Drive service instance.
-        - Will use GDrive file service as default if None is given.
+    :param gfile_id: The ID of the Google file.
+    :param folder_id: The ID of the folder.
+    :param credentials: Google credentials object.
+    :return: The response from the API after moving the file.
     """
-    if service is None:
-        service = get_gdrive_service()
+    # Build the Google Drive service using the provided credentials.
+    service = godisc.build(
+        "drive", "v3", credentials=credentials, cache_discovery=False
+    )
+    # Execute the request to move the file.
     res = (
         service.files()
         .update(
@@ -401,32 +373,44 @@ def create_empty_google_file(
     gfile_name: str,
     gdrive_folder_id: str,
     *,
+    credentials: goasea.Credentials,
     user: Optional[str] = None,
 ) -> str:
     """
-    Create a new Google file (sheet or doc).
+    Create a new Google file (sheet or doc) and move it to a specified folder.
 
     :param gfile_type: the type of the Google file ('sheet' or 'doc').
     :param gfile_name: the name of the new Google file.
-    :param gdrive_folder_id: the id of the Google Drive folder.
-    :param user: the email address of the user to share the Google file
-    :return: the ID of the created Google file, or None if an error occurred.
+    :param gdrive_folder_id: the ID of the Google Drive folder.
+    :param credentials: Google credentials object for API access.
+    :param user: the email address of the user to share the Google file.
+    :return: the ID of the created Google file, or None if an error
+        occurred.
     """
+    # Create the new Google file (either Sheet or Doc).
     if gfile_type == "sheet":
-        gfile_id = _create_new_google_sheet(gfile_name)
+        gfile_id = _create_new_google_document(
+            doc_name=gfile_name,
+            doc_type="sheets",
+            credentials=credentials,
+        )
     elif gfile_type == "doc":
-        gfile_id = _create_new_google_doc(gfile_name)
+        gfile_id = _create_new_google_document(
+            doc_name=gfile_name,
+            doc_type="docs",
+            credentials=credentials,
+        )
     else:
-        raise ValueError(f"Invalid gfile_type=${gfile_type}")
+        raise ValueError(f"Invalid gfile_type={gfile_type}")
     _LOG.info("Created a new Google %s '%s'.", gfile_type, gfile_name)
-    # Move the Google file to a Google Drive dir.
+    # Move the Google file to the specified folder.
     if gdrive_folder_id:
-        _move_gfile_to_dir(gfile_id, gdrive_folder_id)
-    # Share the Google file to a user and send an email.
+        move_gfile_to_dir(gfile_id, gdrive_folder_id, credentials=credentials)
+    # Share the Google file to the user and send an email.
     if user:
         share_google_file(gfile_id, user)
         _LOG.debug(
-            "The new Google '%s': '%s' is shared to '%s'",
+            "The new Google '%s': '%s' is shared with '%s'",
             gfile_type,
             gfile_name,
             user,
@@ -435,28 +419,33 @@ def create_empty_google_file(
     return gfile_id
 
 
+# #############################################################################
+
+
 def create_google_drive_folder(
-    folder_name: str,
-    parent_folder_id: str,
-    *,
-    service: Optional[godisc.Resource] = None,
+    folder_name: str, parent_folder_id: str, *, credentials: goasea.Credentials
 ) -> str:
     """
     Create a new Google Drive folder inside the given folder.
 
     :param folder_name: the name of the new Google Drive folder.
-    :param parent_folder_id: the id of the parent folder.
-    :param service: the Google Drive service instance.
-        - Will use GDrive file service as default if None is given.
+    :param parent_folder_id: the ID of the parent folder.
+    :param credentials: Google credentials object.
+    :return: the ID of the created Google Drive folder.
     """
-    if service is None:
-        service = get_gdrive_service()
+    # Build the Google Drive service using the provided credentials.
+    service = godisc.build(
+        "drive", "v3", credentials=credentials, cache_discovery=False
+    )
+    # Define the metadata for the new folder.
     file_metadata = {
         "name": folder_name,
         "mimeType": "application/vnd.google-apps.folder",
         "parents": [parent_folder_id],
     }
+    # Create the folder in Google Drive.
     folder = service.files().create(body=file_metadata, fields="id").execute()
+    # Log and return the folder ID.
     _LOG.debug("Created a new Google Drive folder '%s'.", folder_name)
     _LOG.debug("The new folder id is '%s'.", folder.get("id"))
     return folder.get("id")
@@ -526,50 +515,50 @@ def get_folder_id_by_name(name: str) -> Optional[list]:
 
 
 def share_google_file(
-    gfile_id: str, user: str, *, service: godisc.Resource = None
+    gfile_id: str, user: str, *, credentials: goasea.Credentials
 ) -> None:
     """
-    Share a Google file to a user.
+    Share a Google file with a user.
 
-    :param gfile_id: the id of the Google file.
-    :param user: the email address of the user.
-    :param service: the Google Drive service instance.
-        - Will use GDrive file service as default if None is given.
+    :param gfile_id: The ID of the Google file.
+    :param user: The email address of the user.
+    :param credentials: Google credentials object.
     """
-    if service is None:
-        service = get_gdrive_service()
+    # Build the Google Drive service using the provided credentials.
+    service = godisc.build(
+        "drive", "v3", credentials=credentials, cache_discovery=False
+    )
     # Create the permission.
     parameters = {"role": "reader", "type": "user", "emailAddress": user}
     new_permission = (
         service.permissions().create(fileId=gfile_id, body=parameters).execute()
     )
     _LOG.debug(
-        "The new permission id of the document is: '%s'",
+        "The new permission ID of the document is: '%s'",
         new_permission.get("id"),
     )
-    _LOG.info("The google file is shared to '%s'.", user)
+    _LOG.info("The Google file is shared with '%s'.", user)
 
 
 def _create_new_google_document(
-    doc_name: str, doc_type: str, *, service: godisc.Resource = None
+    doc_name: str, doc_type: str, *, credentials: goasea.Credentials
 ) -> str:
     """
     Create a new Google document (Sheet or Doc).
 
-    :param doc_name: str, the name of the new Google document.
-    :param doc_type: str, the type of the Google document ('sheets' or 'docs').
-    :param service: the google drive service instance.
-        - Will auto-choose sheet or doc service as default if None is given.
-    :return: doc_id. The id to the created document in GDrive.
+    :param doc_name: The name of the new Google document.
+    :param doc_type: The type of the Google document ('sheets' or
+        'docs').
+    :param credentials: Google credentials object.
+    :return: doc_id. The ID of the created document in Google Drive.
     """
-    if service is None:
-        creds = get_credentials()
-        service = godisc.build(
-            doc_type,
-            "v4" if doc_type == "sheets" else "v1",
-            credentials=creds,
-            cache_discovery=False,
-        )
+    # Build the Google Drive service using the provided credentials.
+    service = godisc.build(
+        doc_type,
+        "v4" if doc_type == "sheets" else "v1",
+        credentials=credentials,
+        cache_discovery=False,
+    )
     document = {"properties": {"title": doc_name}}
     document = (
         service.spreadsheets()
@@ -585,58 +574,19 @@ def _create_new_google_document(
     return doc_id
 
 
-def _create_new_google_sheet(gsheet_name: str) -> str:
+def _get_folders_in_gdrive(*, credentials: goasea.Credentials) -> list:
     """
-    Create a new Google sheet.
-    """
-    doc_type = "sheets"
-    return _create_new_google_document(gsheet_name, doc_type)
+    Get a list of folders in Google Drive.
 
-
-def _create_new_google_doc(gdoc_name: str) -> str:
+    :param credentials: Google credentials object.
+    :return: A list of folders (each containing an ID and name).
     """
-    Create a new Google doc.
-    """
-    doc_type = "docs"
-    return _create_new_google_document(gdoc_name, doc_type)
-
-
-def _move_gfile_to_dir(
-    gfile_id: str, folder_id: str, *, service: godisc.Resource = None
-) -> dict:
-    """
-    Move a Google file to a specified folder in Google Drive.
-
-    :param gfile_id: str, the id of the Google file.
-    :param folder_id: str, the id of the folder.
-    :param service: the google drive service instance.
-        - Will use GDrive file service as default if None is given.
-    """
-    if service is None:
-        service = get_gdrive_service()
-    res = (
-        service.files()
-        .update(
-            fileId=gfile_id,
-            body={},
-            addParents=folder_id,
-            removeParents="root",
-            supportsAllDrives=True,
-        )
-        .execute()
+    # Build the Google Drive service using the provided credentials.
+    service = godisc.build(
+        "drive", "v3", credentials=credentials, cache_discovery=False
     )
-    return res
 
-
-def _get_folders_in_gdrive(*, service: godisc.Resource = None) -> list:
-    """
-    Get a list of folders in Google drive.
-
-    :param service: the google drive service instance.
-        - Will use GDrive file service as default if None is given.
-    """
-    if service is None:
-        service = get_gdrive_service()
+    # Make the API request to list folders.
     response = (
         service.files()
         .list(
@@ -646,14 +596,12 @@ def _get_folders_in_gdrive(*, service: godisc.Resource = None) -> list:
         )
         .execute()
     )
-    # Return list of folder id and folder name.
-    return response.get("files")
+    # Return the list of folders (id and name).
+    return response.get("files", [])
 
 
 def read_google_file(
-    url: str,
-    tab_name: Optional[str] = None,
-    service_key_path: Optional[str] = None,
+    url: str, tab_name: Optional[str] = None, *, credentials: goasea.Credentials
 ) -> pd.DataFrame:
     """
     Read data from a Google Sheets file.
@@ -661,13 +609,11 @@ def read_google_file(
     :param url: URL of the Google Sheets file.
     :param tab_name: Name of the tab to read (default: first sheet if
         not specified).
-    :param service_key_path: Path to the service account key file
-        (default: None).
+    :param credentials: Google credentials object.
     :return: pandas DataFrame with the sheet data.
     """
     try:
-        creds = get_credentials(service_key_path=service_key_path)
-        client = gspread.authorize(creds)
+        client = gspread.authorize(credentials)
         spreadsheet = client.open_by_url(url)
         if tab_name is None:
             worksheet = spreadsheet.get_worksheet(0)
@@ -698,21 +644,20 @@ def write_to_google_sheet(
     df: pd.DataFrame,
     url: str,
     tab_name: Optional[str] = "new data",
-    service_key_path: Optional[str] = None,
+    *,
+    credentials: goasea.Credentials,
 ) -> None:
     """
     Write data to a specified Google Sheet and tab.
 
-    :param df: data to be written.
-    :param url: url of the Google Sheet.
-    :param tab_name: name of the tab where the data will be written
+    :param df: Data to be written.
+    :param url: URL of the Google Sheet.
+    :param tab_name: Name of the tab where the data will be written
         (default: "new data").
-    :param service_key_path: path to the service account key file
-        (default: None).
+    :param credentials: Google credentials object.
     """
     try:
-        creds = get_credentials(service_key_path=service_key_path)
-        client = gspread.authorize(creds)
+        client = gspread.authorize(credentials)
         spreadsheet = client.open_by_url(url)
         try:
             worksheet = spreadsheet.worksheet(tab_name)
@@ -738,29 +683,29 @@ def write_to_google_sheet(
         _LOG.error("An error occurred: %s", str(e))
 
 
-def create_ore_overwrite_with_timestamp(
+def create_or_overwrite_with_timestamp(
     file_name: str,
     folder_id: str,
     file_type: str = "sheets",
     overwrite: bool = False,
-    service_key_path: Optional[str] = None,
+    *,
+    credentials: goasea.Credentials,
 ) -> None:
     """
     Create or overwrite a Google Sheet or Google Doc with a timestamp in a
     specific Google Drive folder.
 
-    :param folder_id: google Drive folder ID where the file will be
+    :param folder_id: Google Drive folder ID where the file will be
         created or updated.
-    :param file_name: name for the file (timestamp will be added).
-    :param file_type: type of file to create ('sheets' or 'docs').
-    :param overwrite: if True, overwrite an existing file. Otherwise,
+    :param file_name: Name for the file (timestamp will be added).
+    :param file_type: Type of file to create ('sheets' or 'docs').
+    :param overwrite: If True, overwrite an existing file. Otherwise,
         create a new file.
-    :param service_key_path: path to the service account key file.
+    :param credentials: Google credentials object.
     """
     try:
-        # Authenticate with Google APIs.
-        creds = get_credentials(service_key_path=service_key_path)
-        drive_service = build("drive", "v3", credentials=creds)
+        # Authenticate with Google APIs using the provided credentials.
+        drive_service = build("drive", "v3", credentials=credentials)
         if file_type == "sheets":
             mime_type = "application/vnd.google-apps.spreadsheet"
         elif file_type == "docs":
