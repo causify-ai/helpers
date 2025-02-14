@@ -86,17 +86,13 @@ def _get_rendered_file_paths(
     out_file_dir, out_file_name = os.path.split(os.path.abspath(out_file))
     # E.g., "readme".
     out_file_name_body = os.path.splitext(out_file_name)[0]
-    # Create the name for the image file.
-    # E.g., "readme.1.png".
+    # Create the name for the image file, e.g., "readme.1.png".
     img_name = f"{out_file_name_body}.{image_code_idx}.{dst_ext}"
-    # Get the absolute path to the dir with images.
-    # E.g., "/usr/docs/figs".
+    # Get the absolute path to the dir with images, e.g., "/usr/docs/figs".
     abs_img_dir_path = os.path.join(out_file_dir, sub_dir)
-    # Get the relative path to the image.
-    # E.g., "figs/readme.1.png".
+    # Get the relative path to the image, e.g., "figs/readme.1.png".
     rel_img_path = os.path.join(sub_dir, img_name)
-    # Get the path to a temporary file with the image code.
-    # E.g., "readme.1.txt".
+    # Get the path to a temporary file with the image code, e.g., "readme.1.txt".
     code_file_path = f"{out_file_name_body}.{image_code_idx}.txt"
     return (code_file_path, abs_img_dir_path, rel_img_path)
 
@@ -209,9 +205,7 @@ def _render_code(
             elif image_code_type == "mermaid":
                 hdocker.run_dockerized_mermaid(rel_img_path, code_file_path)
             else:
-                raise ValueError(
-                    f"Invalid type: {image_code_type}; should be one of 'plantuml', 'mermaid'"
-                )
+                raise ValueError(f"Invalid type: {image_code_type}")
         else:
             # Run the package installed on the host directly.
             hsystem.system(cmd)
@@ -302,7 +296,7 @@ def _render_images(
             # Add the code that inserts the image in the file.
             if out_file.endswith(".md") or out_file.endswith(".txt"):
                 # Use the Markdown syntax.
-                out_lines.append(f"![]({rel_img_path})")
+                out_lines.append(f"![]({rel_img_path})" + "{height=60%}")
             elif out_file.endswith(".tex"):
                 # Use the LaTeX syntax.
                 out_lines.append(r"\begin{figure}")

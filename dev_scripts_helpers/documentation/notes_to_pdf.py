@@ -154,7 +154,12 @@ def _render_images(file_: str, prefix: str) -> str:
     file2 = f"{prefix}.render_image.txt"
     cmd = f"{exec_file} --in_file_name {file1} --out_file_name {file2}"
     _ = _system(cmd)
-    file_ = file2
+    # We need to preprocess the notes again to remove the commented code.
+    exec_file = hgit.find_file("preprocess_notes.py")
+    file3 = f"{prefix}.preprocess_notes2.txt"
+    cmd = f"{exec_file} --input {file2} --output {file3}"
+    _ = _system(cmd)
+    file_ = file3
     return file_
 
 
