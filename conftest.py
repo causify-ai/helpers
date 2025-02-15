@@ -8,7 +8,6 @@ import helpers.hunit_test as hut
 # Hack to workaround pytest not happy with multiple redundant conftest.py
 # (bug #34).
 if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
-
     # import helpers.hversion as hversi
     # hversi.check_version()
 
@@ -34,7 +33,7 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
     import pytest
 
     @pytest.fixture(autouse=True)
-    def populate_globals(capsys):
+    def populate_globals(capsys: Any) -> None:
         hut._GLOBAL_CAPSYS = capsys
 
     # Add custom options.

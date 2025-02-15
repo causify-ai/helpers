@@ -2,9 +2,7 @@
 
 set -e
 
-# IS_SUPER_REPO=1
-IS_SUPER_REPO=0
-echo "IS_SUPER_REPO=$IS_SUPER_REPO"
+echo "CSFY_IS_SUPER_REPO=$CSFY_IS_SUPER_REPO"
 
 FILE_NAME="devops/docker_run/entrypoint.sh"
 echo "##> $FILE_NAME"
@@ -14,15 +12,10 @@ echo "GID="$(id -g)
 
 # - Source `utils.sh`.
 # NOTE: we can't use $0 to find the path since we are sourcing this file.
-GIT_ROOT_DIR=$(pwd)
-echo "GIT_ROOT_DIR=$GIT_ROOT_DIR"
+echo "CSFY_GIT_ROOT_PATH=$CSFY_GIT_ROOT_PATH"
+echo "CSFY_HELPERS_ROOT_PATH=$CSFY_HELPERS_ROOT_PATH"
 
-if [[ $IS_SUPER_ROOT == 1 ]]; then
-    HELPERS_ROOT="${GIT_ROOT_DIR}/helpers_root"
-else
-    HELPERS_ROOT=$GIT_ROOT_DIR
-fi;
-SOURCE_PATH="${HELPERS_ROOT}/dev_scripts_helpers/thin_client/thin_client_utils.sh"
+SOURCE_PATH="${CSFY_HELPERS_ROOT_PATH}/dev_scripts_helpers/thin_client/thin_client_utils.sh"
 echo "> source $SOURCE_PATH ..."
 if [[ ! -f $SOURCE_PATH ]]; then
     echo -e "ERROR: Can't find $SOURCE_PATH"
@@ -41,12 +34,12 @@ source devops/docker_run/docker_setenv.sh
 
 # Configure Docker.
 # Enable dind unless the user specifies otherwise (needed for prod image).
-if [[ -z "$AM_ENABLE_DIND" ]]; then
-    AM_ENABLE_DIND=1
-    echo "AM_ENABLE_DIND=$AM_ENABLE_DIND"
+if [[ -z "$CSFY_ENABLE_DIND" ]]; then
+    CSFY_ENABLE_DIND=1
+    echo "CSFY_ENABLE_DIND=$CSFY_ENABLE_DIND"
 fi;
 
-if [[ $AM_ENABLE_DIND == 1 ]]; then
+if [[ $CSFY_ENABLE_DIND == 1 ]]; then
     set_up_docker_in_docker
 fi;
 
@@ -74,7 +67,7 @@ if [[ $CK_TEST_SETUP ]]; then
     ./devops/docker_run/test_setup.sh
 
     # Test the installed packages.
-    if [[ $AM_ENABLE_DIND == 1 ]]; then
+    if [[ $CSFY_ENABLE_DIND == 1 ]]; then
         VAL=$(docker -v)
         echo "docker -v: $VAL"
         VAL=$(docker-compose -v)

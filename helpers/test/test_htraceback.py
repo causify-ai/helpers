@@ -10,6 +10,41 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_Traceback1(hunitest.TestCase):
+    def test_parse0(self) -> None:
+        txt = """
+
+                TEST
+        Traceback
+            TEST
+        Traceback (most recent call last):
+          File "/app/amp/helpers/test/test_lib_tasks.py", line 27, in test_get_gh_issue_title2
+            act = ltasks._get_gh_issue_title(issue_id, repo)
+          File "/app/amp/helpers/lib_tasks.py", line 1265, in _get_gh_issue_title
+            task_prefix = hgit.get_task_prefix_from_repo_short_name(repo_short_name)
+          File "/app/amp/helpers/git.py", line 397, in get_task_prefix_from_repo_short_name
+            if repo_short_name == "amp":
+        NameError: name 'repo_short_name' is not defined
+            TEST TEST TEST
+        """
+        txt = hprint.dedent(txt)
+        _LOG.debug("txt=\n%s", txt)
+        purify_from_client = False
+        # Run the function under test.
+        act_cfile, act_traceback = htraceb.parse_traceback(
+            txt, purify_from_client=purify_from_client
+        )
+        # Check.
+        exp_traceback = """Traceback (most recent call last):
+  File "/app/amp/helpers/test/test_lib_tasks.py", line 27, in test_get_gh_issue_title2
+    act = ltasks._get_gh_issue_title(issue_id, repo)
+  File "/app/amp/helpers/lib_tasks.py", line 1265, in _get_gh_issue_title
+    task_prefix = hgit.get_task_prefix_from_repo_short_name(repo_short_name)
+  File "/app/amp/helpers/git.py", line 397, in get_task_prefix_from_repo_short_name
+    if repo_short_name == "amp":
+NameError: name 'repo_short_name' is not defined
+    TEST TEST TEST"""
+        self.assertEqual(act_traceback, exp_traceback)
+
     def test_parse1(self) -> None:
         """
         Parse traceback with all files from Docker that actually exist in the
@@ -88,7 +123,7 @@ class Test_Traceback1(hunitest.TestCase):
         """
         Parse a traceback file with both files from Docker and local files.
         """
-        # Use references to this file so that we are independent from the file
+        # Use references to this file so that we are independent of the file
         # layout.
         # pylint: disable=line-too-long
         txt = """
@@ -420,6 +455,7 @@ class Test_Traceback1(hunitest.TestCase):
         # Compare cfile.
         act_cfile = htraceb.cfile_to_str(act_cfile)
         exp_cfile = hprint.dedent(exp_cfile)
+        _LOG.debug(hprint.to_str("exp_cfile act_cfile"))
         self.assert_equal(
             act_cfile, exp_cfile, fuzzy_match=True, purify_text=True
         )
@@ -427,6 +463,7 @@ class Test_Traceback1(hunitest.TestCase):
         # Handle `None`.
         act_traceback = str(act_traceback)
         exp_traceback = hprint.dedent(exp_traceback)
+        _LOG.debug(hprint.to_str("exp_traceback act_traceback"))
         self.assert_equal(
             act_traceback, exp_traceback, fuzzy_match=True, purify_text=True
         )

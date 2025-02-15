@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Instructions at docs/work_tools/all.replace_text.how_to_guide.md.
+Instructions at `docs/work_tools/all.codebase_clean_up.how_to_guide.md`.
 """
 
 import argparse
