@@ -509,6 +509,7 @@ _DEFAULT_ACTIONS = [
     "preprocess_notes",
     "render_images",
     "run_pandoc",
+    "open",
     "cleanup_after",
 ]
 
