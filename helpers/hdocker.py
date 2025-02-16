@@ -30,7 +30,7 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-# TODO(gp): Move to the repo_config.py
+# TODO(gp): Move to the repo_config.py or the config file.
 def get_use_sudo() -> bool:
     """
     Check if Docker commands should be run with sudo.
@@ -43,6 +43,8 @@ def get_use_sudo() -> bool:
     return use_sudo
 
 
+# TODO(gp): use_sudo should be set to None and the correct value inferred from
+#  the repo config.
 def get_docker_executable(use_sudo: bool) -> str:
     executable = "sudo " if use_sudo else ""
     executable += "docker"
@@ -51,7 +53,7 @@ def get_docker_executable(use_sudo: bool) -> str:
 
 def container_exists(container_name: str, use_sudo: bool) -> Tuple[bool, str]:
     """
-    Check if a Docker container is running by running a command like:
+    Check if a Docker container is running by executing a command like:
 
     ```
     > docker container ls --filter=tmp.prettier -aq
@@ -71,7 +73,7 @@ def container_exists(container_name: str, use_sudo: bool) -> Tuple[bool, str]:
 
 def image_exists(image_name: str, use_sudo: bool) -> Tuple[bool, str]:
     """
-    Check if a Docker image already exists by running a command like:
+    Check if a Docker image already exists by executing a command like:
 
     ```
     > docker images tmp.prettier -aq
@@ -204,33 +206,35 @@ def replace_shared_root_path(
 
 
 # #############################################################################
-# Docker-ization API
+# Dockerized executable utils.
 # #############################################################################
 
 
+# TODO(gp): build_container -> build_container_image
+# TODO(gp): containter_name -> image_name
 def build_container(
     container_name: str, dockerfile: str, force_rebuild: bool, use_sudo: bool
 ) -> str:
     """
-    Build a Docker container from a Dockerfile.
+    Build a Docker image from a Dockerfile.
 
     :param container_name: Name of the Docker container to build.
-    :param dockerfile: Content of the Dockerfile to use for building the
-        container.
+    :param dockerfile: Content of the Dockerfile for building the container.
     :param force_rebuild: Whether to force rebuild the Docker container.
     :param use_sudo: Whether to use sudo for Docker commands.
+    :return: Name of the built Docker container.
     :raises AssertionError: If the container ID is not found.
     """
     _LOG.debug(hprint.to_str("container_name use_sudo"))
     dockerfile = hprint.dedent(dockerfile)
     _LOG.debug("Dockerfile:\n%s", dockerfile)
-    # Compute the hash of the dockerfile and append it to the name
-    # to track the content of the container.
+    # Compute the hash of the dockerfile and append it to the name to track the
+    # content of the container.
     sha256_hash = hashlib.sha256(dockerfile.encode()).hexdigest()
     short_hash = sha256_hash[:8]
-    container_name_out = f"{container_name}.{short_hash}"
+    image_name_out = f"{container_name}.{short_hash}"
     # Check if the container already exists. If not, build it.
-    has_container, _ = image_exists(container_name_out, use_sudo)
+    has_container, _ = image_exists(image_name_out, use_sudo)
     _LOG.debug(hprint.to_str("has_container"))
     if force_rebuild:
         _LOG.warning("Forcing to rebuild of container %s", container_name)
@@ -250,30 +254,32 @@ def build_container(
             executable = get_docker_executable(use_sudo)
             cmd = (
                 f"{executable} build -f {temp_dockerfile.name} -t"
-                f" {container_name_out} ."
+                f" {image_name_out} ."
             )
             hsystem.system(cmd)
         _LOG.info("Building Docker container... done")
-    return container_name_out
+    return image_name_out
 
 
 # #############################################################################
 
 
 def get_host_git_root() -> str:
-    hdbg.dassert_in("CSFY_GIT_ROOT_PATH", os.environ)
-    host_git_root_path = os.environ["CSFY_GIT_ROOT_PATH"]
+    """
+    Get the Git root path on the host machine.
+    """
+    hdbg.dassert_in("CSFY_HOST_GIT_ROOT_PATH", os.environ)
+    host_git_root_path = os.environ["CSFY_HOST_GIT_ROOT_PATH"]
     return host_git_root_path
 
 
 # TODO(gp): This can even go to helpers.hdbg.
 def _dassert_valid_path(file_path: str, is_input: bool) -> None:
     """
-    Assert that a file path is valid based on its type (input or output).
+    Assert that a file path is valid, based on it being input or output.
 
-    This function checks if the given file path is valid. For input
-    files, it ensures that the file or directory exists. For output
-    files, it ensures that the directory exists.
+    For input files, it ensures that the file or directory exists.
+    For output files, it ensures that the enclosing directory exists.
     """
     _LOG.debug(hprint.to_str("file_path is_input"))
     if is_input:
@@ -299,6 +305,7 @@ def _dassert_is_path_included(file_path: str, including_path: str) -> None:
     specified including path. If not, it raises an assertion error.
     """
     _LOG.debug(hprint.to_str("file_path including_path"))
+    # TODO(gp): Maybe we need to normalize the paths.
     hdbg.dassert(
         file_path.startswith(including_path),
         "'%s' needs to be underneath '%s'",
@@ -307,6 +314,7 @@ def _dassert_is_path_included(file_path: str, including_path: str) -> None:
     )
 
 
+# See docs/work_tools/docker/all.dockerized_flow.explanation.md for details.
 def get_docker_mount_info(
     is_caller_host: bool, use_sibling_container_for_callee: bool
 ) -> Tuple[str, str, str]:
@@ -316,14 +324,19 @@ def get_docker_mount_info(
     This function determines the appropriate source and target paths for
     mounting a directory in a Docker container.
 
+    Same inputs as `convert_caller_to_callee_docker_path()`.
+
     :return: A tuple containing
-        - caller_mount_path: the mount path on the caller filesystem
-        - callee_mount_path: the mount path inside the called Docker container
+        - caller_mount_path: the mount path on the caller filesystem, e.g.,
+            `/app` or `/Users/.../src/cmamp1`
+        - callee_mount_path: the mount path inside the called Docker container,
+            e.g., `/app`
         - the mount string, e.g.,
                 `source={caller_mount_path},target={callee_mount_path}`
+                type=bind,source=/app,target=/app
     """
     _LOG.debug(hprint.to_str("is_caller_host use_sibling_container_for_callee"))
-    # See docs/work_tools/docker/all.dockerized_flow.explanation.md for details.
+    # Compute the mount path on the caller filesystem.
     if is_caller_host:
         # On the host machine, the mount path is the Git root.
         caller_mount_path = hgit.find_git_root()
@@ -339,7 +352,7 @@ def get_docker_mount_info(
             caller_mount_path = hgit.find_git_root()
     # The target mount path is always `/app` inside the Docker container.
     callee_mount_path = "/app"
-    #
+    # Build the Docker mount string.
     mount = f"type=bind,source={caller_mount_path},target={callee_mount_path}"
     _LOG.debug(hprint.to_str("caller_mount_path callee_mount_path mount"))
     return caller_mount_path, callee_mount_path, mount
@@ -578,9 +591,8 @@ def convert_pandoc_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
     """
     Parse the arguments from a pandoc command.
 
-    We need to parse all the arguments that correspond to files, so that
-    we can convert them to paths that are valid inside the Docker
-    container.
+    We need to parse all the arguments that correspond to files, so that we can
+    convert them to paths that are valid inside the Docker container.
 
     :param cmd: A list of command-line arguments for pandoc.
     :return: A dictionary with the parsed arguments.
@@ -884,7 +896,7 @@ def convert_latex_arguments_to_cmd(
 
 # TODO(gp): Factor out common code between the `run_dockerized_*` functions.
 # E.g., the code calling `convert_caller_to_callee_docker_path()` has a lot
-# of repeatition.
+# of repetition.
 def run_dockerized_latex(
     cmd: str,
     *,

@@ -142,7 +142,10 @@ class Test_markdown_to_latex1(hunitest.TestCase):
         """
         Check the markdown to latex transformation.
         """
+        # 1) Prepare inputs.
         markdown = hprint.dedent(markdown)
+        # 2) Run tests.
         act = hlatex.markdown_list_to_latex(markdown)
+        # 3) Check.
         exp = hprint.dedent(exp)
         self.assert_equal(act, exp)

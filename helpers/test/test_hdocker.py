@@ -82,20 +82,30 @@ class Test_replace_shared_root_path1(hunitest.TestCase):
 
 
 class Test_convert_to_docker_path1(hunitest.TestCase):
+
+    # TODO(gp): -> convert_caller_to_callee_docker_path
     @staticmethod
     def prepare_and_convert_path(
-        in_file_path: str, check_if_exists: bool
+        in_file_path: str,
+        is_caller_host: bool,
+        use_sibling_container_for_callee: bool,
+        check_if_exists: bool
     ) -> Tuple[str, str]:
-        is_caller_host = True
-        use_sibling_container_for_callee = True
+        """
+        Prepare inputs and call the function to convert a file name to Docker paths.
+
+        :return: A tuple containing
+            - docker_file_path: the Docker file path
+            - mount: the Docker mount string
+        """
         (
             source_host_path,
             callee_mount_path,
             mount,
-        ) = hdocker._get_docker_mount_info(
+        ) = hdocker.get_docker_mount_info(
             is_caller_host, use_sibling_container_for_callee
         )
-        docker_file_path = hdocker._convert_caller_to_callee_docker_path(
+        docker_file_path = hdocker.convert_caller_to_callee_docker_path(
             in_file_path,
             source_host_path,
             callee_mount_path,
@@ -107,30 +117,41 @@ class Test_convert_to_docker_path1(hunitest.TestCase):
         return docker_file_path, mount
 
     def test1(self) -> None:
-        # Prepare inputs.
+        """
+        Test converting a file name to Docker paths.
+        """
+        # 1) Prepare inputs.
         in_file_path = "tmp.llm_transform.in.txt"
-        # Call tested function.
+        is_caller_host = True
+        use_sibling_container_for_callee = True
+        check_if_exists = False
+        # 2) Run test.
         docker_file_path, mount = self.prepare_and_convert_path(
-            in_file_path, check_if_exists=False
+            in_file_path, is_caller_host, use_sibling_container_for_callee,
+            check_if_exists
         )
-        # Check.
+        # 3) Check output.
         exp_docker_file_path = "/app/tmp.llm_transform.in.txt"
         self.assert_equal(docker_file_path, exp_docker_file_path)
         exp_mount = "type=bind,source=/app,target=/app"
         self.assert_equal(mount, exp_mount)
 
     def test2(self) -> None:
-        # Prepare inputs.
+        """
+        Test converting a file name of an existing file to a Docker path.
+        """
+        # 1) Prepare inputs.
         dir_name = self.get_input_dir()
+        # Create a file.
         # E.g., in_file_path='/app/helpers/test/outcomes/Test_convert_to_docker_path1.test2/input/input.md'
         in_file_path = os.path.join(dir_name, "input.md")
         hio.to_file(in_file_path, "empty")
         _LOG.debug(hprint.to_str("in_file_path"))
-        # Call tested function.
+        # 2) Run test.
         docker_file_path, mount = self.prepare_and_convert_path(
             in_file_path, check_if_exists=True
         )
-        # Check.
+        # 3) Check output.
         helpers_root_path = hgit.find_helpers_root()
         exp_docker_file_path = f"{helpers_root_path}/helpers/test/outcomes/Test_convert_to_docker_path1.test2/input/input.md"
         self.assert_equal(docker_file_path, exp_docker_file_path)

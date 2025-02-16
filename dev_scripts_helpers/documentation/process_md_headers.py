@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# -> extract_headers_from_markdown.py
+# TODO(gp): -> extract_headers_from_markdown.py
 
 """
 Extract headers from a Markdown file and generate a Vim cfile.

@@ -42,7 +42,7 @@ def markdown_list_to_latex(markdown: str) -> str:
     markdown = hprint.dedent(markdown)
     # Remove the first line if it's a title.
     markdown = markdown.split("\n")
-    m = re.match("^(\*+ )(.*)", markdown[0])
+    m = re.match(r"^(\*+ )(.*)", markdown[0])
     if m:
         title = m.group(2)
         markdown = markdown[1:]
@@ -51,7 +51,7 @@ def markdown_list_to_latex(markdown: str) -> str:
     markdown = "\n".join(markdown)
     # Convert.
     txt = convert_pandoc_md_to_latex(markdown)
-    # Remove \tightlist and empty lines.
+    # Remove `\tightlist` and empty lines.
     lines = txt.splitlines()
     lines = [line for line in lines if "\\tightlist" not in line]
     lines = [line for line in lines if line.strip() != ""]
