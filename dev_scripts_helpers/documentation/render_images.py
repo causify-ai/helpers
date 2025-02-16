@@ -294,7 +294,8 @@ def _render_images(
             # Add the code that inserts the image in the file.
             if out_file.endswith(".md") or out_file.endswith(".txt"):
                 # Use the Markdown syntax.
-                out_lines.append(f"![]({rel_img_path})" + "{height=60%}")
+                out_lines.append(f"![]({rel_img_path})")
+                #out_lines.append(f"![]({rel_img_path})" + "{height=60%}")
             elif out_file.endswith(".tex"):
                 # Use the LaTeX syntax.
                 out_lines.append(r"\begin{figure}")

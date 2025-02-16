@@ -83,9 +83,8 @@ class Test_replace_shared_root_path1(hunitest.TestCase):
 
 class Test_convert_to_docker_path1(hunitest.TestCase):
 
-    # TODO(gp): -> convert_caller_to_callee_docker_path
     @staticmethod
-    def prepare_and_convert_path(
+    def helper(
         in_file_path: str,
         is_caller_host: bool,
         use_sibling_container_for_callee: bool,
@@ -126,7 +125,7 @@ class Test_convert_to_docker_path1(hunitest.TestCase):
         use_sibling_container_for_callee = True
         check_if_exists = False
         # 2) Run test.
-        docker_file_path, mount = self.prepare_and_convert_path(
+        docker_file_path, mount = self.helper(
             in_file_path, is_caller_host, use_sibling_container_for_callee,
             check_if_exists
         )
@@ -148,7 +147,7 @@ class Test_convert_to_docker_path1(hunitest.TestCase):
         hio.to_file(in_file_path, "empty")
         _LOG.debug(hprint.to_str("in_file_path"))
         # 2) Run test.
-        docker_file_path, mount = self.prepare_and_convert_path(
+        docker_file_path, mount = self.helper(
             in_file_path, check_if_exists=True
         )
         # 3) Check output.

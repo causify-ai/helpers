@@ -749,7 +749,7 @@ def run_dockerized_pandoc(
 
 def run_dockerized_markdown_toc(
     in_file_path: str, force_rebuild: bool, cmd_opts: List[str], *,
-        use_sudo: bool
+    use_sudo: bool
 ) -> None:
     """
     Same as `run_dockerized_prettier()` but for `markdown-toc`.
