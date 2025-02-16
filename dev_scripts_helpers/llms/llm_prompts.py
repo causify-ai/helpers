@@ -11,6 +11,7 @@ _LOG = logging.getLogger(__name__)
 
 def _run_all(user: str, system: str, model: str, transforms: Set[str]) -> str:
     _LOG.debug(hprint.to_str("user system model transforms"))
+
     def _to_run(action: str) -> bool:
         if action in transforms:
             transforms.remove(action)

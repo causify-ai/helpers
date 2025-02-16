@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 """
-Convert Docx file to markdown using Dockerized `pandoc` and save the figs
-in a directory
+Convert Docx file to markdown using Dockerized `pandoc` and save the figs in a
+directory.
 
 # Usage:
 

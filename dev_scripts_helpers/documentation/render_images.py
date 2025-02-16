@@ -259,9 +259,7 @@ def _render_images(
         comment_prefix = "//"
         comment_postfix = ""
     else:
-        raise ValueError(
-            f"Unsupported file type: {out_file}"
-        )
+        raise ValueError(f"Unsupported file type: {out_file}")
     for i, line in enumerate(in_lines):
         _LOG.debug("%d: %s -> state=%s", i, line, state)
         # The code should look like:
@@ -305,9 +303,7 @@ def _render_images(
                 )
                 out_lines.append(r"\end{figure}")
             else:
-                raise ValueError(
-                    f"Unsupported file type: {out_file}"
-                )
+                raise ValueError(f"Unsupported file type: {out_file}")
             # Set the parser to search for a new image code block.
             state = "searching"
             _LOG.debug(" -> state=%s", state)
@@ -327,7 +323,7 @@ def _render_images(
 _ACTION_OPEN = "open"
 _ACTION_RENDER = "render"
 _VALID_ACTIONS = [_ACTION_OPEN, _ACTION_RENDER]
-#_DEFAULT_ACTIONS = [_ACTION_OPEN, _ACTION_RENDER]
+# _DEFAULT_ACTIONS = [_ACTION_OPEN, _ACTION_RENDER]
 _DEFAULT_ACTIONS = []
 
 
@@ -374,8 +370,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
     in_file, out_file = hparser.parse_input_output_args(args)
     # Verify that the input and output file types are valid and equal.
     hdbg.dassert_file_extension(in_file, ["md", "tex", "txt"])
-    hdbg.dassert_eq(os.path.splitext(in_file)[1], os.path.splitext(out_file)[1],
-                    msg="Input and output files should have the same extension.")
+    hdbg.dassert_eq(
+        os.path.splitext(in_file)[1],
+        os.path.splitext(out_file)[1],
+        msg="Input and output files should have the same extension.",
+    )
     # Get the selected actions.
     actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     _LOG.info("Selected actions: %s", actions)

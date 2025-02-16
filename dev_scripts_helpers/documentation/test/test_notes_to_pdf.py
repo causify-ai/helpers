@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Any, Optional, Tuple
+from typing import Optional, Tuple
 
 import pytest
 
@@ -15,10 +15,16 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 
+# #############################################################################
+# Test_notes_to_pdf1
+# #############################################################################
+
+
 @pytest.mark.skipif(
     hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
 )
 class Test_notes_to_pdf1(hunitest.TestCase):
+
     def create_in_file(self) -> str:
         txt = """
         # Header1
@@ -41,18 +47,20 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         return in_file
 
     def run_notes_to_pdf(
-            self, in_file: str, type_: str, cmd_opts: str
+        self, in_file: str, type_: str, cmd_opts: str
     ) -> Tuple[Optional[str], Optional[str]]:
         """
         Run the notes_to_pdf script with the specified options.
 
-        This function constructs and executes a command to convert notes to a PDF
-        or HTML file using the notes_to_pdf script.
+        This function constructs and executes a command to convert notes
+        to a PDF or HTML file using the notes_to_pdf script.
 
         :param in_file: Path to the input file containing the notes.
         :param type_: The output format, either 'pdf' or 'html'.
-        :param cmd_opts: Additional command-line options to pass to the script.
-        :returns: A tuple containing the script content and the output content.
+        :param cmd_opts: Additional command-line options to pass to the
+            script.
+        :returns: A tuple containing the script content and the output
+            content.
         """
         # notes_to_pdf.py \
         #   --input notes/MSML610/Lesson1-Intro.txt \

@@ -3,16 +3,15 @@
 """
 Take a screenshot and save it to a file.
 
-The script should be run from the command line outside of a Docker container.
+The script should be run from the command line outside of a Docker
+container.
 """
 
 import argparse
 import datetime
 import logging
-import os
 
 import helpers.hdbg as hdbg
-import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
 
@@ -29,7 +28,6 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument("--filename", action="store", help="File name")
     hparser.add_verbosity_arg(parser)
     return parser
-
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
