@@ -227,7 +227,8 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
         force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
         hdocker.run_dockerized_prettier(
-            in_file_path, out_file_path, cmd_opts, force_rebuild, use_sudo
+            in_file_path, out_file_path, cmd_opts, force_rebuild=force_rebuild,
+            use_sudo=use_sudo
         )
         # Check.
         act = hio.from_file(out_file_path)
