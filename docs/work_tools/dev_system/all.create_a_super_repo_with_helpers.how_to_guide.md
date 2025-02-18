@@ -11,9 +11,10 @@
     + [Maintain the files in sync with the template](#maintain-the-files-in-sync-with-the-template)
   * [2) Copy and customize files in the top dir](#2-copy-and-customize-files-in-the-top-dir)
   * [3) Copy and customize files in `devops`](#3-copy-and-customize-files-in-devops)
+  * [4) Replace files with symbolic links](#4-replace-files-with-symbolic-links)
+  * [5) Build container and running tests](#5-build-container-and-running-tests)
     + [Build a container for a super-repo](#build-a-container-for-a-super-repo)
     + [Check if the regressions are passing](#check-if-the-regressions-are-passing)
-  * [Replace files with symbolic links](#replace-files-with-symbolic-links)
   * [Configure regressions via GitHub actions](#configure-regressions-via-github-actions)
     + [Set repository secrets/variables](#set-repository-secretsvariables)
     + [Create GitHub actions workflow files](#create-github-actions-workflow-files)
@@ -94,12 +95,12 @@ well if one replaces `helpers` with `cmamp`.
   later
 
 - You can follow the directions to perform the step manually or run the script
-  `dev_scripts_helpers/thin_client/sync_super_repo.sh` which allows to vimdiff /
-  cp files across a super-repo and its `helpers` dir
+  [`/dev_scripts_helpers/thin_client/sync_super_repo.sh`](/dev_scripts_helpers/thin_client/sync_super_repo.sh)
+  which allows to vimdiff / cp files across a super-repo and its `helpers` dir
 
 ## 1) Copy and customize files in `thin_client`
 
-- Create the `dev_script` dir based off the template from `helpers`
+- Create the `dev_scripts_{dir_name}` dir based off the template from `helpers`
 
   ```bash
   # Use a prefix based on the repo name, e.g., `tutorials`, `sports_analytics`.
@@ -110,7 +111,7 @@ well if one replaces `helpers` with `cmamp`.
   > cp -r $SRC_DIR/{build.py,requirements.txt,setenv.sh,tmux.py} $DST_DIR
   ```
 
-- The resulting `dev_script` should look like:
+- The resulting `dev_scripts_{dir_name}` should look like:
 
   ```bash
   > ls -1 $DST_DIR
@@ -120,17 +121,16 @@ well if one replaces `helpers` with `cmamp`.
   tmux.py
   ```
 
-- Customize the files looking for `$DIR_TAG`, `$IS_SUPER_REPO` and `dir_prefix`.
+- Customize the files looking for `$DIR_TAG`, `$IS_SUPER_REPO` and
+  `$DIR_PREFIX`.
   ```
   > vi $DST_DIR/*
   ```
 
 - If we don't need to create a new thin env you can delete the files
-  `dev_scripts/thin_client/build.py` and `requirements.txt`
+  `dev_scripts_{dir_name}/thin_client/build.py` and `requirements.txt`
 
 ### Build the thin environment
-
-> cp -r $SRC_DIR/{build.py,requirements.txt,setenv.sh,tmux.py} $DST_DIR
 
 - Build the thin environment
   ```
@@ -143,7 +143,7 @@ well if one replaces `helpers` with `cmamp`.
   14:37:37 - INFO  build.py _main:100                 /Users/saggese/src/quant_dashboard1/dev_scripts_quant_dashboard/thin_client/build.py successful
   ```
 
-- Customize the `dev_scripts` dir, if necessary
+- Customize the `dev_scripts_{dir_name}` dir, if necessary
   ```bash
   > vi $DST_DIR/*
   ```
@@ -175,31 +175,15 @@ Follow
   - `pytest.ini`: configure `pytest` preferences
   - `repo_config.py`: stores information about this specific repo (e.g., name,
     used container)
-    - Change `_REPO_NAME = "orange"` to the current repo name
+    - Change `_REPO_NAME = "<current repo name>"` to the current repo name
   - `tasks.py`: the `invoke` tasks available in this container
-    - This needs to be modified
+    - This can be modified if needed
   ```bash
   > cp helpers_root/{pytest.ini,repo_config.py,tasks.py} .
   > vim pytest.ini repo_config.py tasks.py
   ```
-- Some files are just soft links:
-
-```bash
-   > ln -s helpers_root/conftest.py conftest.py
-   > ln -s helpers_root/invoke.yaml invoke.yaml
-   > ln -s helpers_root/mypy.ini mypy.ini
-   # This is copied from the repo that builds the used container or started from scratch for a new container, e.g., `cmamp` dev image.
-   > ln -s helpers_root/changelog.txt changelog.txt
-```
-
-- You can run to copy/diff the files
-  ```bash
-  > ${TEMPLATE_DIR}/merge.sh
-  ```
 
 ## 3) Copy and customize files in `devops`
-
-### Build a container for a super-repo
 
 - Copy the `devops` template dir
   ```bash
@@ -213,12 +197,29 @@ Follow
   > rm -rf devops/docker_build
   ```
 
-- Follow the instructions in `docs/work_tools/all.devops_docker.reference.md`
-  and `docs/work_tools/all.devops_docker.how_to_guide.md`
+- Follow the instructions in
+  [`/docs/work_tools/all.devops_docker.reference.md`](/docs/work_tools/all.devops_docker.reference.md)
+  and
+  [`/docs/work_tools/all.devops_docker.how_to_guide.md`](/docs/work_tools/all.devops_docker.how_to_guide.md)
 
-- TODO
-  - If it's a super-repo container you need to switch in
-    devops/docker_run/docker_setenv.sh grep IS_SUPER_REPO
+## 4) Replace files with symbolic links
+
+- Some common files can be replaced with symbolic links if they remain unchanged
+
+  ```bash
+  python3 ./helpers_root/helpers/create_links.py --src_dir ./helpers_root --dst_dir . --replace_links --use_relative_paths
+  ```
+
+- Refer to
+  [Managing common files](/docs/work_tools/dev_system/all.runnable_repo.reference.md#managing-common-files)
+  for explanation
+- Refer to
+  [Managing symbolic links between directories](/docs/work_tools/dev_system/all.replace_common_files_with_script_links.md)
+  for how to use the commands
+
+## 5) Build container and running tests
+
+### Build a container for a super-repo
 
 - Run the single-arch flow
 
@@ -247,19 +248,6 @@ Follow
 doc to confirm.
 
 File a PR with the new files and merge the PR into `master`.
-
-## Replace files with symbolic links
-
-- Refer to
-  [Managing common files](/docs/work_tools/dev_system/all.runnable_repo.reference.md#managing-common-files)
-  for explanation
-- Refer to
-  [Managing symbolic links between directories](/docs/work_tools/dev_system/all.replace_common_files_with_script_links.md)
-  for how to use the commands
-
-```bash
-python3 ./helpers_root/helpers/create_links.py --src_dir ./helpers_root --dst_dir . --replace_links --use_relative_paths
-```
 
 ## Configure regressions via GitHub actions
 
@@ -299,7 +287,8 @@ python3 ./helpers_root/helpers/create_links.py --src_dir ./helpers_root --dst_di
         --repo '<ORG_NAME>/<REPO_NAME>'
    ```
 6. Make sure not to commit the raw `vars.json` file or the
-   `dev_scripts_helpers/github/set_secrets_and_variables.py.log` file
+   [`/dev_scripts_helpers/github/set_secrets_and_variables.py.log`](/dev_scripts_helpers/github/set_secrets_and_variables.py.log)
+   file
 
 - Delete those files locally
 

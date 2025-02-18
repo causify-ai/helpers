@@ -1,83 +1,45 @@
 <!-- toc -->
 
-- [Introduction](#introduction)
-- [Concepts](#concepts)
-  * [Docker image](#docker-image)
-  * [Docker container](#docker-container)
-  * [Docker registry](#docker-registry)
 - [High level philosophy](#high-level-philosophy)
+  * [Separate Docker containers](#separate-docker-containers)
+  * [Pre-built vs build-on-the-fly containers](#pre-built-vs-build-on-the-fly-containers)
   * [Thin client](#thin-client)
   * [amp / cmamp container](#amp--cmamp-container)
-  * [Prod container](#prod-container)
-  * [Infra container](#infra-container)
-  * [Relevant bugs](#relevant-bugs)
-- [Poetry](#poetry)
-- [Build a Docker image](#build-a-docker-image)
-  * [General](#general)
-  * [Dockerfile](#dockerfile)
-    + [Base image](#base-image)
-    + [Copy files](#copy-files)
-    + [Install OS packages](#install-os-packages)
-    + [Install Python packages](#install-python-packages)
-  * [Build an image from a Dockerfile](#build-an-image-from-a-dockerfile)
-- [Run multi-container Docker application](#run-multi-container-docker-application)
-  * [Version](#version)
-  * [Images](#images)
-  * [Bind mount](#bind-mount)
-  * [Environment variables](#environment-variables)
-  * [Basic commands](#basic-commands)
-- [How to test a package in a Docker container](#how-to-test-a-package-in-a-docker-container)
-  * [Hacky approach to patch up a container](#hacky-approach-to-patch-up-a-container)
-- [How to release a Docker image](#how-to-release-a-docker-image)
-  * [Multi-architecture build](#multi-architecture-build)
-    + [Run the dev multi-architecture image release end-to-end](#run-the-dev-multi-architecture-image-release-end-to-end)
-      - [Overview](#overview)
-      - [Pre-release check-list](#pre-release-check-list)
-      - [Command to run the release flow:](#command-to-run-the-release-flow)
-      - [Post-release check-list](#post-release-check-list)
   * [Stages](#stages)
     + [Local](#local)
     + [Dev](#dev)
     + [Prod](#prod)
+  * [Registries](#registries)
+- [invoke targets](#invoke-targets)
+  * [Single-arch flow](#single-arch-flow)
+  * [Multi-arch flow](#multi-arch-flow)
+  * [Prod flow](#prod-flow)
+- [How to test a package in a Docker container](#how-to-test-a-package-in-a-docker-container)
+  * [Install a package in a container](#install-a-package-in-a-container)
+  * [Hacky approach to patch up a container](#hacky-approach-to-patch-up-a-container)
+- [Release a Docker image](#release-a-docker-image)
   * [Overview of how to release an image](#overview-of-how-to-release-an-image)
-  * [How to add a Python package to Docker image](#how-to-add-a-python-package-to-docker-image)
+  * [How to add a Python package to dev image](#how-to-add-a-python-package-to-dev-image)
   * [How to find unused packages](#how-to-find-unused-packages)
-    + [Import-based approach using `pipreqs`](#import-based-approach-using-pipreqs)
-      - [How it works](#how-it-works)
-      - [Limitations](#limitations)
-      - [Usage](#usage)
   * [How to build a local image](#how-to-build-a-local-image)
   * [Testing the local image](#testing-the-local-image)
   * [Pass the local image to another user for testing](#pass-the-local-image-to-another-user-for-testing)
   * [Tag `local` image as `dev`](#tag-local-image-as-dev)
   * [Push image](#push-image)
   * [End-to-end flow for `dev` image](#end-to-end-flow-for-dev-image)
+  * [Multi-architecture build](#multi-architecture-build)
+  * [Release a multi-architecture dev image](#release-a-multi-architecture-dev-image)
+    + [Overview](#overview)
+    + [Pre-release check-list](#pre-release-check-list)
+    + [Command to run the release flow](#command-to-run-the-release-flow)
+    + [Post-release check-list](#post-release-check-list)
   * [Build prod image](#build-prod-image)
   * [QA for prod image](#qa-for-prod-image)
   * [End-to-end flow for `prod` image](#end-to-end-flow-for-prod-image)
   * [Flow for both dev and prod images](#flow-for-both-dev-and-prod-images)
-- [Docker-in-docker (dind)](#docker-in-docker-dind)
-  * [Sibling container approach](#sibling-container-approach)
-    + [Connecting to Postgres instance using sibling containers](#connecting-to-postgres-instance-using-sibling-containers)
 - [Release flow](#release-flow)
   * [cmamp](#cmamp)
-- [Design release flow - discussion](#design-release-flow---discussion)
   * [QA flow](#qa-flow)
-- [Optimizer container](#optimizer-container)
-  * [Rationale](#rationale)
-  * [Build and run a local version of `opt`](#build-and-run-a-local-version-of-opt)
-  * [Internals](#internals)
-    + [One container per Git repo](#one-container-per-git-repo)
-    + [Multiple containers per Git repo](#multiple-containers-per-git-repo)
-      - [Mounting only `optimizer` dir inside Docker](#mounting-only-optimizer-dir-inside-docker)
-      - [Mounting the supermodule (e.g., lime, lemonade, amp) inside Docker](#mounting-the-supermodule-eg-lime-lemonade-amp-inside-docker)
-  * [Invariants](#invariants)
-  * [Release and ECR flow](#release-and-ecr-flow)
-  * [Unit testing code inside `opt` container](#unit-testing-code-inside-opt-container)
-    + [Avoid compiling code depending from cvxopt when running amp](#avoid-compiling-code-depending-from-cvxopt-when-running-amp)
-    + [Run optimizer tests in a stand-alone `opt` container](#run-optimizer-tests-in-a-stand-alone-opt-container)
-    + [Run optimizer tests as part of running unit tests for `cmamp`](#run-optimizer-tests-as-part-of-running-unit-tests-for-cmamp)
-  * [Call a Dockerized executable from a container](#call-a-dockerized-executable-from-a-container)
 
 <!-- tocstop -->
 
@@ -86,7 +48,7 @@
 - We use Docker extensively and assume you are familiar with Docker concepts and
   workflows
 - A short tutorial about Docker is
-  [docs/work_tools/all.docker.tutorial.md](/docs/work_tools/all.docker.tutorial.md)
+  [/docs/work_tools/all.docker.tutorial.md](/docs/work_tools/all.docker.tutorial.md)
 
 ## Separate Docker containers
 
@@ -105,9 +67,10 @@
 1. Certain containers that need to be widely available to the team and deployed
    go through the release process and are stored in ECR (AWS and DockerHub)
 
-2. Other containers that are lightweight and used only by one person can be built
-   on the fly using `docker compose` / `docker build`.
-  - E.g., the `infra` container, containers to run a simple tools
+2. Other containers that are lightweight and used only by one person can be
+   built on the fly using `docker compose` / `docker build`.
+
+- E.g., the `infra` container, containers to run a simple tools
 
 3. Sometimes we install a dependency on the fly from inside the code, when it's
    needed only rarely and it doesn't justify being added to the Docker container
@@ -125,8 +88,8 @@
 - The `prod` version is used for deployment as shortcut to creating a smaller
   container with only the strictly needed dependencies
 
-- In order to avoid shipping the monster `cmamp` dev / prod container, we want to
-  start building smaller containers with only the dependencies that specific
+- In order to avoid shipping the monster `cmamp` dev / prod container, we want
+  to start building smaller containers with only the dependencies that specific
   prod scripts need
 
 ## Stages
@@ -178,6 +141,7 @@
 # invoke targets
 
 ## Single-arch flow
+
 - `docker_build_local_image`: build a "local" image, i.e., a release candidate
   for the "dev" image
 - `docker_tag_local_image_as_dev`: promote "local" image to "dev" without
@@ -187,21 +151,24 @@
   ECR
 
 ## Multi-arch flow
+
 - `docker_tag_push_multi_build_local_image_as_dev`: build a "local" multi-arch
   image and tag it as "dev"
-- `docker_release_multi_build_dev_image`: same as `docker_release_dev_image`
-  but for multi-arch image
+- `docker_release_multi_build_dev_image`: same as `docker_release_dev_image` but
+  for multi-arch image
 
 ## Prod flow
-- `docker_build_prod_image`: build a prod image from a dev image
-- `docker_push_prod_image`: 
-- `docker_push_prod_candidate_image`:
-- `docker_release_prod_image`:
-- `docker_release_all`:
-- `docker_rollback_dev_image`:
-- `docker_rollback_prod_image`:
-- `docker_create_candidate_image`:
-- `docker_update_prod_task_definition`:
+
+- `docker_build_prod_image`: build a "prod" image from a dev image
+- `docker_push_prod_image`: push the "prod" image to ECR
+- `docker_push_prod_candidate_image`: push the "prod" candidate image to ECR
+- `docker_release_prod_image`: build, test, and release the "prod" image to ECR
+- `docker_release_all`: release both the "dev" and "prod" image to ECR
+- `docker_rollback_dev_image`: rollback the version of the "dev" image
+- `docker_rollback_prod_image`: rollback the version of the "prod" image
+- `docker_create_candidate_image`: create a new "prod" candidate image
+- `docker_update_prod_task_definition`: update image in "prod" task definition
+  to the desired version
 
 # How to test a package in a Docker container
 
@@ -216,6 +183,7 @@
 ## Hacky approach to patch up a container
 
 - To patch up a container you can use the following instructions
+
   ```bash
   # After changing the container, create a new version of the container.
   > docker commit d2916dd5f122 \
@@ -234,7 +202,7 @@
 # Release a Docker image
 
 - All the `invoke` tasks to run the release flow are in
-  `//amp/helpers/lib_tasks.py`
+  `//amp/helpers_root/helpers/lib_tasks.py`
 - Depending on the type of changes sometimes one needs to rebuild only the
   `prod` image, other times one needs to rebuild also the `dev` image
 - E.g.,
@@ -245,8 +213,7 @@
     `prod` image
 
 - We try to use the same build/release flow, conventions, and code for all the
-  containers
-  (e.g., `amp`, `cmamp`, `helpers`, `opt`)
+  containers (e.g., `amp`, `cmamp`, `helpers`, `opt`)
 
 ## Overview of how to release an image
 
@@ -271,8 +238,9 @@
 
 - To add a new Python package to a Docker image you need to update `poetry`
   files and release a new image:
-  - Add a new package to `devops/docker_build/pyproject.toml` file to the
-    `[tool.poetry.dependencies]` section
+  - Add a new package to
+    [`/devops/docker_build/pyproject.toml`](/devops/docker_build/pyproject.toml)
+    file to the `[tool.poetry.dependencies]` section
   - E.g., to add `pytest-timeout` do:
     ```markdown
     [tool.poetry.dependencies]
@@ -335,7 +303,8 @@
 - While installing Python packages we need to make sure that we do not install
   packages that are not used
 
-- You can use the import-based approach using [`pipreqs`](https://github.com/bndr/pipreqs)
+- You can use the import-based approach using
+  [`pipreqs`](https://github.com/bndr/pipreqs)
   - Under the hood it uses the regex below and `os.walk` for selected dir:
     ```python
     REGEXP = [
@@ -360,8 +329,8 @@
   ```bash
   docker> pipreqs . --savepath ./tmp.requirements.txt
   ```
-- The command above will generate `./tmp.requirements.txt` with the list of
-  the imported packages, e.g.,
+- The command above will generate `./tmp.requirements.txt` with the list of the
+  imported packages, e.g.,
   ```markdown
   amp==1.1.4
   async_solipsism==0.3
@@ -384,7 +353,8 @@
 
 ## How to build a local image
 
-- The `local` image is built using `devops/docker_build/dev.Dockerfile`
+- The `local` image is built using
+  [`/devops/docker_build/dev.Dockerfile`](/devops/docker_build/dev.Dockerfile)
 - This Dockerfile runs various scripts to install:
   - OS
   - Python
@@ -393,6 +363,7 @@
   - Application-specific packages (e.g., for the linter)
 
 - To build a local image run:
+
   ```bash
   > i docker_build_local_image --version 1.0.0
 
@@ -424,6 +395,7 @@
 ## Testing the local image
 
 - Compare the version of the packages in the different images
+
   ```bash
   > i docker_bash
   docker> pip list | tee pip_packages.dev.txt
@@ -485,12 +457,12 @@
 
 - A docker tag is just a way of referring to an image, in the same way Git tags
   refer to a particular commit in your history
-- Basically, tagging is creating a reference from one image
-  (e.g., `local-saggese-1.0.0`) to another (`dev`)
+- Basically, tagging is creating a reference from one image (e.g.,
+  `local-saggese-1.0.0`) to another (`dev`)
 - Once the `local` (e.g., `local-saggese-1.0.0`) image is tagged as `dev`, your
   `dev` image becomes equal to `local-saggese-1.0.0`
-- `dev` image is also tagged with `dev-${version}`, e.g., `dev-1.0.0` to preserve
-  history and allow for quick rollback
+- `dev` image is also tagged with `dev-${version}`, e.g., `dev-1.0.0` to
+  preserve history and allow for quick rollback
 - Locally in Git repository a git tag `${repo_name}-${version}`, e.g.
   `cmamp-1.0.0` is created in order to properly control sync between code and
   container
@@ -510,6 +482,7 @@
 <!-- TODO(gp): Merge with the rest, this is repeated -->
 
 - Conceptually the flow consists of the following phases:
+
   1. Build a local image of docker
      - `i docker_build_local_image --version 1.0.0`
   2. Run fast tests to verify that nothing is broken
@@ -523,6 +496,7 @@
     preferred way to do an image release
 
 - For specific cases that can not be done via GH action see commands below:
+
   ```bash
   # To run the official flow end-to-end:
   > i docker_release_dev_image --version 1.0.0
@@ -548,7 +522,9 @@
 
 ## Multi-architecture build
 
-- We allow to build multi-architecture Docker image using `docker_build_local_image`
+- We allow to build multi-architecture Docker image using
+  `docker_build_local_image`
+
   ```bash
   > i docker_build_local_image --version <VERSION> --multi-arch --platform <PLATFORM NAME>
   ```
@@ -564,7 +540,7 @@
   local image by default
 - Images are pushed to the remote registry and pulled for testing and usage
 - To tag the local image as dev and push it to the target registry: e.g.,
-  `aws_ecr.ck` or `dockerhub.sorrentum` , use
+  `aws_ecr.ck` or `dockerhub.kaizenflow` , use
   ```bash
   > i docker_tag_push_multi_build_local_image_as_dev --version <VERSION> --target <TARGET>
   ```
@@ -608,10 +584,9 @@ Prerequisites:
 
 Check-list:
 
-- Make sure that the regressions are passing when being run using the local image
-  because we run the regressions as part of the official release flow, i.e. via
-  `docker_release_multi_build_dev_image()`.
-
+- Make sure that the regressions are passing when being run using the local
+  image because we run the regressions as part of the official release flow,
+  i.e. via `docker_release_multi_build_dev_image()`.
   - `cmamp`
     - [ ] Update the `changelog.txt` file
     - [ ] Fast tests
@@ -621,7 +596,6 @@ Check-list:
 
 - Running regressions in the `orange` repository is not a part of the official
   image release flow so run them separately.
-
   - `orange`
     - [ ] Update the `changelog.txt` file
     - [ ] Fast tests
@@ -637,17 +611,19 @@ Check-list:
 ### Command to run the release flow
 
 - To run the release flow
+
   ```bash
   > i docker_release_multi_build_dev_image \
       --version <VERSION> \
       --platform <PLATFORM> \
       --target-registries <TARGET_REGISTRIES>
   ```
+
   where
   - TARGET_REGISTRIES: list of target registries to push the image to. E.g.,
     - `aws_ecr.ck`: private CK AWS Docker registry
-    - `dockerhub.sorrentum`: public Dockerhub registry
-  - all the other options are the same as for the `docker_release_dev_image`
+    - `dockerhub.kaizenflow`: public Dockerhub registry
+  - All the other options are the same as for the `docker_release_dev_image`
     end-to-end flow.
 
 - E.g.,
@@ -655,12 +631,12 @@ Check-list:
   > i docker_release_multi_build_dev_image \
       --version 1.6.1 \
       --platform linux/amd64,linux/arm64 \
-      --target-registries aws_ecr.ck,dockerhub.sorrentum
+      --target-registries aws_ecr.ck,dockerhub.kaizenflow
   ```
 
 ### Post-release check-list
 
-- [ ] Make an integration with the `sorrentum` repository in order to copy all
+- [ ] Make an integration with the `kaizenflow` repository in order to copy all
       the changes from the `cmamp` repository
 - [ ] Tag the new `dev` image to GHCR namespace and push it to GHCR registry
 
@@ -675,9 +651,10 @@ Check-list:
     - `prod` image requires packages only to run the code
 
 - The recipe to build a `prod` image is in
-  `devops/docker_build/prod.Dockerfile`.
+  [`/devops/docker_build/prod.Dockerfile`](/devops/docker_build/prod.Dockerfile).
 
 - To build the `prod` image run:
+
   ```bash
   > i docker_build_prod_image --version 1.0.0
 
@@ -728,12 +705,13 @@ Check-list:
    ```
 
 - To run the flow end-to-end do:
+
   ```bash
   > i docker_release_prod_image --version 1.0.0
   ```
 
-- The same options are available as for `i docker_release_dev_image`
-  and you can check them with `i docker_release_prod_image -h`
+- The same options are available as for `i docker_release_dev_image` and you can
+  check them with `i docker_release_prod_image -h`
 
 ## Flow for both dev and prod images
 
@@ -758,26 +736,29 @@ Check-list:
     [semantic versioning](https://semver.org/) convention
     - For example for version `1.2.3`:
       - 1 is major, 2 is minor, 3 is patch
-    - We keep major and minor versions for `dev` and `prod` image in sync,
-      while `prod` gets patches
+    - We keep major and minor versions for `dev` and `prod` image in sync, while
+      `prod` gets patches
       - E.g., go from `prod-1.1.0` to `prod-1.1.1` for a small bug fix
-    - In this manner, it cannot happen we have `dev-1.1.0` and `prod-1.2.0`
-      at any point in time, but `dev-1.1.0` and `prod-1.1.2` are perfectly
-      fine
+    - In this manner, it cannot happen we have `dev-1.1.0` and `prod-1.2.0` at
+      any point in time, but `dev-1.1.0` and `prod-1.1.2` are perfectly fine
 - Test the change using the local release flow
+
   ```bash
   > i docker_build_local_image -v ${version}
   ...
 
   > i run_fast_slow_tests -s local -v ${version}
   ```
+
 - Make sure that the goal of the Issue is achieved
   - E.g., a new package is visible, the package version has been updated
 - Do a PR with the change including the updated `changelog.txt`, the poetry
-  files (e.g., `devops/docker_build/poetry.toml`,
-  `devops/docker_build/poetry.lock`)
+  files (e.g.,
+  [`/devops/docker_build/poetry.toml`](/devops/docker_build/poetry.toml),
+  [`/devops/docker_build/poetry.lock)`](/devops/docker_build/poetry.lock))
 - Run the release flow manually (or rely on GH Action build workflow to create
   the new image)
+
   ```bash
   # Release dev image
   > i docker_release_dev_image --version $version
