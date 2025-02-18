@@ -47,10 +47,10 @@ This contains the absolute minimal amount of info to start developing
   - Extended instructions on how to deploy your working environment and interact
     with it
 
-- [GitHub/ZenHub workflows](/docs/work_organization/all.use_github_and_zenhub.how_to_guide.md)
-  - How to use GitHub and ZenHub, file a PR, review GitHub/ZenHub workflows
+- [GitHub workflows](/docs/work_organization/all.use_github.how_to_guide.md)
+  - How to use GitHub, file a PR, review GitHub workflows
 
-- [Git workflow and best practices](/docs/work_tools/all.git.how_to_guide.md)
+- [Git workflow and best practices](/docs/work_tools/git/all.git.how_to_guide.md)
   - `git` workflows, branch management, troubleshooting, common procedures
 
 - [Documentation about guidelines](/docs/documentation_meta/all.writing_docs.how_to_guide.md)
@@ -67,7 +67,7 @@ This contains the absolute minimal amount of info to start developing
 
 This contains a set of resources that over time will make 10x more productive
 
-- [Docker](/docs/work_tools/all.docker.how_to_guide.md)
+- [Docker](/docs/work_tools/docker/all.docker.tutorial.md)
 
 - [Reading List](/docs/general_background/all.reading_list.reference.md)
 

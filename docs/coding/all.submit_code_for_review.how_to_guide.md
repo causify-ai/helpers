@@ -25,8 +25,8 @@ some helpful tips and resources to guide you through your first review.
 ## Read Python Style Guide
 
 - Before submitting your code for review, we highly recommend that you read the
-  [Python Style Guide](all.coding_style.how_to_guide.md), which outlines the
-  major conventions and best practices for writing Python code.
+  [Python Style Guide](/docs/coding/all.coding_style.how_to_guide.md), which
+  outlines the major conventions and best practices for writing Python code.
 - Adhering to these standards will help ensure that your code is easy to read,
   maintain, and understand for other members of the team.
 
@@ -143,7 +143,7 @@ some helpful tips and resources to guide you through your first review.
   - Press the circling arrows sign next to the Reviewer for the ping
     - <img width="280" alt="" src="https://github.com/kaizen-ai/kaizenflow/assets/31514660/4f924f4f-abab-40be-975d-a4fa81d9af3b">
   - Remove `PR_for_authors` and add `PR_for_reviewers` label (labels
-    [desc](/docs/work_organization/all.use_github_and_zenhub.how_to_guide.md#pr-labels))
+    [desc](/docs/work_organization/all.use_github.how_to_guide.md#pr-labels))
     - <img width="271" alt="" src="https://github.com/kaizen-ai/kaizenflow/assets/31514660/3580bf34-dcba-431b-af5c-5ae65f7597c3">
 
 ### Do not use screenshots

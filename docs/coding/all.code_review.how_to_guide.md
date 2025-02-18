@@ -235,8 +235,8 @@
 ### Workflow of a review in terms of GH labels
 
 - The current meaning of the labels are:
-  - See GitHub ZenHub workflows
-    [doc](https://github.com/cryptokaizen/cmamp/blob/master/docs/work_organization/all.use_github_and_zenhub.how_to_guide.md#pr-labels)
+  - See GitHub workflows
+    [doc](/docs/work_organization/all.use_github.how_to_guide.md#pr-labels)
 
 ### Link PR to GH issue
 
