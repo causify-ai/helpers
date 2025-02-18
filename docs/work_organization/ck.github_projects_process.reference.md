@@ -36,7 +36,7 @@
 - A view can provide a specific perspective on the issues in the project, e.g.,
   filter certain issues by their attributes, visualize them in a board/list
 
-<img src="figs/ck.github_projects_process.reference_figs"
+<img src="figs/ck.github_projects_process.reference_figs/image1.png"
     style="width:6.5in;height:0.31944in" />
 
 - We use a base
