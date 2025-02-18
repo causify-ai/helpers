@@ -33,7 +33,7 @@
 
 ## Notification system
 
-- `@CK_Airflow_bot` notifies the team about breaks via Telegram channel
+- `@CK_Airflow_bot` notifies the team about breaks via Slack channel
   `Kaizen Preprod Datapull Notifications`
 - A notification contains:
   - DAG start timestamp
@@ -68,4 +68,4 @@
       resort! and should oly be done after the approval from the team leader.
 
 - When your time of the DAGMeister duties is over, confirm the rotation with the
-  next responsible person in the related Telegram chat.
+  next responsible person in the related Slack chat.

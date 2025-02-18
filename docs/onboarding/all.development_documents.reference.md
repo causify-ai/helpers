@@ -87,8 +87,6 @@ This contains a set of resources that over time will make 10x more productive
 
 - [Visual Studio Code](/docs/work_tools/all.visual_studio_code.how_to_guide.md)
 
-- [Telegram](/docs/onboarding/all.communicate_in_telegram.how_to_guide.md)
-
 - [Gsheet into pandas](/docs/coding/all.gsheet_into_pandas.how_to_guide.md)
 
 - [Email](/docs/onboarding/all.organize_email.how_to_guide.md)

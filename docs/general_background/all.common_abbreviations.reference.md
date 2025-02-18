@@ -26,7 +26,6 @@
 - Skateboard = getting something working end-to-end even with hacks (as long as
   reversible)
 - TBH = to be honest
-- TG = Telegram
 - TTYL = talk to you later
 - WFH = working from home
 - WIP = work in progress
