@@ -44,5 +44,5 @@
 - Feel free to browse and read them at your leisure
 - If you have a question, first try to find the answer in one of the docs
   - You can, for example, `grep` for relevant keywords
-- If the answer is not in the docs, reach out to your team leader, and, if the
-  question
+- If the answer is not in the docs, reach out to your team leader, and, if it is
+  deemed useful for other (future) team members, file a PR to update the docs
