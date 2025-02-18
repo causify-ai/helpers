@@ -139,7 +139,7 @@
 - [ ] **Team member**:
   - Confirm access to Hubstaff
   - Read
-    [Tools - Hubstaff](https://github.com/causify-ai/helpers/blob/master/docs/onboarding/all.track_time_with_hubstaff.how_to_guide.md)
+    [Tools - Hubstaff](/docs/onboarding/all.track_time_with_hubstaff.how_to_guide.md)
 
 #### IT setup
 
@@ -178,10 +178,10 @@
 - [ ] **Team member**: Confirm access to the company's Slack workspace
 
 - [ ] **Team member**: Set up laptop to connect to the server following:
-  - [VPN and dev server access setup](https://github.com/causify-ai/helpers/blob/master/docs/onboarding/ck.setup_vpn_and_dev_server_access.how_to_guide.md)
+  - [VPN and dev server access setup](/docs/onboarding/ck.setup_vpn_and_dev_server_access.how_to_guide.md)
 
 - [ ] **Team member**: Configure your server environment following:
-  - [Development - Set-up](https://github.com/causify-ai/helpers/blob/master/docs/onboarding/ck.development_setup.how_to_guide.md)
+  - [Development - Set-up](/docs/onboarding/ck.development_setup.how_to_guide.md)
 
 - [ ] **Team member**: We have implemented a self-registration process for our
       Airflow on Kubernetes deployment. Please register and create your personal
@@ -256,7 +256,7 @@
     - There is an extension for VSCode, which allows to develop remotely
       [Remote - SSH](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-ssh)
     - Follow this instruction on how to set it up in your
-      [Visual Studio Code](https://github.com/causify-ai/helpers/blob/master/docs/work_tools/all.visual_studio_code.how_to_guide.md)
+      [Visual Studio Code](/docs/work_tools/all.visual_studio_code.how_to_guide.md)
   - [ ] Run the unit tests and make sure they all pass
   - [ ] Run a docker container
     ```
@@ -264,7 +264,7 @@
     ```
   - [ ] Run a jupyter notebook
     - Follow this
-      [instruction](https://github.com/causify-ai/helpers/blob/master/docs/work_tools/all.visual_studio_code.how_to_guide.md#how-to-access-the-jupyter-server-running-on-the-remote-server-through-your-local-machine)
+      [instruction](/docs/work_tools/all.visual_studio_code.how_to_guide.md#how-to-access-the-jupyter-server-running-on-the-remote-server-through-your-local-machine)
       on how to access the Jupyter server running on the remote server through
       your local machine
     ```
@@ -273,9 +273,10 @@
 
 ### The second day
 
-- [ ] **Team member**: carefully study all the documents in:
-      [docs/onboarding](https://github.com/causify-ai/helpers/tree/master/docs/onboarding)
-  - Read it carefully one by one
+- [ ] **Team member**: carefully study all the documents in
+      [the must-read list](/docs/onboarding/all.must_read_checklist.md)
+  - They will help you get up to speed with our practices and development style
+  - Read them carefully one by one
   - Ask questions
   - Memorize / internalize all the information
   - Take notes
@@ -288,9 +289,9 @@
 - [ ] **Team member**: exercise all the important parts of the systems
   - [ ] Create a GitHub issue
   - [ ] Get familiar with the
-        [GH doc](https://github.com/causify-ai/helpers/blob/master/docs/work_organization/all.use_github_and_zenhub.how_to_guide.md)
+        [GH doc](/docs/work_organization/all.use_github.how_to_guide.md)
   - [ ] Check out the code on server
   - [ ] Run all regressions on server
   - [ ] Create a branch
-  - [ ] Run the linter.py on server
+  - [ ] Run Linter on server (`i lint --files="..."`)
   - [ ] Do a PR
