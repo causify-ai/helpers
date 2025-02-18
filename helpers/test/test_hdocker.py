@@ -84,7 +84,7 @@ class Test_replace_shared_root_path1(hunitest.TestCase):
 class Test_convert_to_docker_path1(hunitest.TestCase):
 
     @staticmethod
-    def helper(
+    def convert_caller_to_callee_docker_path(
         in_file_path: str,
         is_caller_host: bool,
         use_sibling_container_for_callee: bool,
@@ -115,6 +115,30 @@ class Test_convert_to_docker_path1(hunitest.TestCase):
         )
         return docker_file_path, mount
 
+    def helper(self,
+        in_file_path: str,
+        is_caller_host: bool,
+        use_sibling_container_for_callee: bool,
+        check_if_exists: bool,
+        exp_docker_file_path: str,
+        exp_mount: str
+    ) -> None:
+        """
+        Test converting a file name to Docker paths.
+        """
+        # 1) Prepare inputs.
+        #in_file_path = "tmp.llm_transform.in.txt"
+        # 2) Run test.
+        docker_file_path, mount = self.convert_caller_to_callee_docker_path(
+            in_file_path, is_caller_host, use_sibling_container_for_callee,
+            check_if_exists
+        )
+        # 3) Check output.
+        #exp_docker_file_path = "/app/tmp.llm_transform.in.txt"
+        self.assert_equal(docker_file_path, exp_docker_file_path)
+        #exp_mount = "type=bind,source=/app,target=/app"
+        self.assert_equal(mount, exp_mount)
+
     def test1(self) -> None:
         """
         Test converting a file name to Docker paths.
@@ -124,16 +148,23 @@ class Test_convert_to_docker_path1(hunitest.TestCase):
         is_caller_host = True
         use_sibling_container_for_callee = True
         check_if_exists = False
-        # 2) Run test.
-        docker_file_path, mount = self.helper(
-            in_file_path, is_caller_host, use_sibling_container_for_callee,
-            check_if_exists
-        )
-        # 3) Check output.
+        # # 2) Run test.
+        # docker_file_path, mount = self.convert_caller_to_callee_docker_path(
+        #     in_file_path, is_caller_host, use_sibling_container_for_callee,
+        #     check_if_exists
+        # )
+        # # 3) Check output.
         exp_docker_file_path = "/app/tmp.llm_transform.in.txt"
-        self.assert_equal(docker_file_path, exp_docker_file_path)
+        # self.assert_equal(docker_file_path, exp_docker_file_path)
         exp_mount = "type=bind,source=/app,target=/app"
-        self.assert_equal(mount, exp_mount)
+        # self.assert_equal(mount, exp_mount)
+        self.helper(
+            in_file_path,
+            is_caller_host,
+            use_sibling_container_for_callee,
+            check_if_exists,
+            exp_docker_file_path,
+            exp_mount)
 
     def test2(self) -> None:
         """
@@ -143,19 +174,30 @@ class Test_convert_to_docker_path1(hunitest.TestCase):
         dir_name = self.get_input_dir()
         # Create a file.
         # E.g., in_file_path='/app/helpers/test/outcomes/Test_convert_to_docker_path1.test2/input/input.md'
-        in_file_path = os.path.join(dir_name, "input.md")
+        in_file_path = os.path.join(dir_name, "tmp.input.md")
         hio.to_file(in_file_path, "empty")
         _LOG.debug(hprint.to_str("in_file_path"))
-        # 2) Run test.
-        docker_file_path, mount = self.helper(
-            in_file_path, check_if_exists=True
-        )
+        is_caller_host = True
+        use_sibling_container_for_callee = True
+        check_if_exists = True
+        # # 2) Run test.
+        # docker_file_path, mount = self.convert_caller_to_callee_docker_path(
+        #     in_file_path, is_caller_host, use_sibling_container_for_callee,
+        #     check_if_exists
+        # )
         # 3) Check output.
         helpers_root_path = hgit.find_helpers_root()
-        exp_docker_file_path = f"{helpers_root_path}/helpers/test/outcomes/Test_convert_to_docker_path1.test2/input/input.md"
-        self.assert_equal(docker_file_path, exp_docker_file_path)
+        exp_docker_file_path = (f"{helpers_root_path}/helpers/test/outcomes/Test_convert_to_docker_path1.test2/input/tmp.input.md")
+        #self.assert_equal(docker_file_path, exp_docker_file_path)
         exp_mount = "type=bind,source=/app,target=/app"
-        self.assert_equal(mount, exp_mount)
+        #self.assert_equal(mount, exp_mount)
+        self.helper(
+            in_file_path,
+            is_caller_host,
+            use_sibling_container_for_callee,
+            check_if_exists,
+            exp_docker_file_path,
+            exp_mount)
 
 
 # #############################################################################
