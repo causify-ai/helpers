@@ -1287,17 +1287,24 @@ def _get_lint_docker_cmd(
     version: str,
     *,
     use_entrypoint: bool = True,
+    no_dev_server: bool = False,
 ) -> str:
     """
     Create a command to run in the Linter service.
 
     :param docker_cmd_: command to run
     :param stage: the image stage to use
+    :no_dev_server: whether to run on the dev server or not
     :return: the full command to run
     """
     # Get an image to run the linter on.
-    ecr_base_path = os.environ["CSFY_ECR_BASE_PATH"]
-    linter_image = f"{ecr_base_path}/helpers"
+    # For local development we use the image from the Docker Hub.
+    if no_dev_server:
+        # TODO(Vlad): Replace with environment variable.
+        base_path = "sorrentum"
+    else:
+        base_path = os.environ["CSFY_ECR_BASE_PATH"]
+    linter_image = f"{base_path}/helpers"
     # Execute command line.
     cmd: str = _get_docker_compose_cmd(
         linter_image,
