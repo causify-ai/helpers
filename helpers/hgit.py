@@ -252,8 +252,7 @@ def find_file(file_name: str, *, dir_path: Optional[str] = None) -> str:
     if dir_path is None:
         dir_path = find_git_root()
     cmd = rf"""
-    find {dir_path} -path '.git' -prune -o -name {file_name} -print
-    | grep -v '.git' | grep -v '.mypy_cache'
+find {dir_path} \( -path '*/.git' -o -path '*/.mypy_cache' \) -prune -o -name "{file_name}" -print
     """
     cmd = hprint.dedent(cmd, remove_lead_trail_empty_lines_=True)
     cmd = " ".join(cmd.split())
@@ -276,12 +275,11 @@ def find_helpers_root() -> str:
         # If we are in `//helpers`, then the helpers root is the root of the
         # repo.
         cmd = "git rev-parse --show-toplevel"
+        _, helpers_root = hsystem.system_to_one_line(cmd)
     else:
         # We need to search for the `helpers_root` dir starting from the root
         # of the repo.
-        # TODO(gp): Use find_file
-        cmd = rf"find {git_root} -path ./\.git -prune -o -type d -name 'helpers_root' -print | grep -v '\.git'"
-    _, helpers_root = hsystem.system_to_one_line(cmd)
+        helpers_root = find_file("helpers_root", dir_path=git_root)
     helpers_root = os.path.abspath(helpers_root)
     # Make sure the dir and that `helpers` subdir exists.
     hdbg.dassert_dir_exists(helpers_root)

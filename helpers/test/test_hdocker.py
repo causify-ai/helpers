@@ -21,6 +21,7 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_replace_shared_root_path1(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Test replacing shared root path.
@@ -77,7 +78,7 @@ class Test_replace_shared_root_path1(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_convert_file_names_to_docker1
+# Test_convert_to_docker_path1
 # #############################################################################
 
 
@@ -88,10 +89,11 @@ class Test_convert_to_docker_path1(hunitest.TestCase):
         in_file_path: str,
         is_caller_host: bool,
         use_sibling_container_for_callee: bool,
-        check_if_exists: bool
+        check_if_exists: bool,
     ) -> Tuple[str, str]:
         """
-        Prepare inputs and call the function to convert a file name to Docker paths.
+        Prepare inputs and call the function to convert a file name to Docker
+        paths.
 
         :return: A tuple containing
             - docker_file_path: the Docker file path
@@ -115,62 +117,55 @@ class Test_convert_to_docker_path1(hunitest.TestCase):
         )
         return docker_file_path, mount
 
-    def helper(self,
+    def helper(
+        self,
         in_file_path: str,
         is_caller_host: bool,
         use_sibling_container_for_callee: bool,
         check_if_exists: bool,
         exp_docker_file_path: str,
-        exp_mount: str
+        exp_mount: str,
     ) -> None:
         """
         Test converting a file name to Docker paths.
         """
-        # 1) Prepare inputs.
-        #in_file_path = "tmp.llm_transform.in.txt"
-        # 2) Run test.
+        # Run test.
         docker_file_path, mount = self.convert_caller_to_callee_docker_path(
-            in_file_path, is_caller_host, use_sibling_container_for_callee,
-            check_if_exists
+            in_file_path,
+            is_caller_host,
+            use_sibling_container_for_callee,
+            check_if_exists,
         )
-        # 3) Check output.
-        #exp_docker_file_path = "/app/tmp.llm_transform.in.txt"
+        # Check output.
         self.assert_equal(docker_file_path, exp_docker_file_path)
-        #exp_mount = "type=bind,source=/app,target=/app"
         self.assert_equal(mount, exp_mount)
 
     def test1(self) -> None:
         """
         Test converting a file name to Docker paths.
         """
-        # 1) Prepare inputs.
+        # - Prepare inputs.
         in_file_path = "tmp.llm_transform.in.txt"
         is_caller_host = True
         use_sibling_container_for_callee = True
         check_if_exists = False
-        # # 2) Run test.
-        # docker_file_path, mount = self.convert_caller_to_callee_docker_path(
-        #     in_file_path, is_caller_host, use_sibling_container_for_callee,
-        #     check_if_exists
-        # )
-        # # 3) Check output.
+        # - Prepare outputs.
         exp_docker_file_path = "/app/tmp.llm_transform.in.txt"
-        # self.assert_equal(docker_file_path, exp_docker_file_path)
         exp_mount = "type=bind,source=/app,target=/app"
-        # self.assert_equal(mount, exp_mount)
         self.helper(
             in_file_path,
             is_caller_host,
             use_sibling_container_for_callee,
             check_if_exists,
             exp_docker_file_path,
-            exp_mount)
+            exp_mount,
+        )
 
     def test2(self) -> None:
         """
         Test converting a file name of an existing file to a Docker path.
         """
-        # 1) Prepare inputs.
+        # - Prepare inputs.
         dir_name = self.get_input_dir()
         # Create a file.
         # E.g., in_file_path='/app/helpers/test/outcomes/Test_convert_to_docker_path1.test2/input/input.md'
@@ -180,24 +175,18 @@ class Test_convert_to_docker_path1(hunitest.TestCase):
         is_caller_host = True
         use_sibling_container_for_callee = True
         check_if_exists = True
-        # # 2) Run test.
-        # docker_file_path, mount = self.convert_caller_to_callee_docker_path(
-        #     in_file_path, is_caller_host, use_sibling_container_for_callee,
-        #     check_if_exists
-        # )
-        # 3) Check output.
+        # - Prepare outputs.
         helpers_root_path = hgit.find_helpers_root()
-        exp_docker_file_path = (f"{helpers_root_path}/helpers/test/outcomes/Test_convert_to_docker_path1.test2/input/tmp.input.md")
-        #self.assert_equal(docker_file_path, exp_docker_file_path)
+        exp_docker_file_path = f"{helpers_root_path}/helpers/test/outcomes/Test_convert_to_docker_path1.test2/input/tmp.input.md"
         exp_mount = "type=bind,source=/app,target=/app"
-        #self.assert_equal(mount, exp_mount)
         self.helper(
             in_file_path,
             is_caller_host,
             use_sibling_container_for_callee,
             check_if_exists,
             exp_docker_file_path,
-            exp_mount)
+            exp_mount,
+        )
 
 
 # #############################################################################
@@ -211,6 +200,11 @@ def _create_test_file(self_: Any, txt: str, extension: str) -> str:
     _LOG.debug("txt=\n%s", txt)
     hio.to_file(file_path, txt)
     return file_path
+
+
+# #############################################################################
+# Test_run_dockerized_prettier1
+# #############################################################################
 
 
 @pytest.mark.skipif(
@@ -268,8 +262,11 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
         force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
         hdocker.run_dockerized_prettier(
-            in_file_path, out_file_path, cmd_opts, force_rebuild=force_rebuild,
-            use_sudo=use_sudo
+            in_file_path,
+            out_file_path,
+            cmd_opts,
+            force_rebuild=force_rebuild,
+            use_sudo=use_sudo,
         )
         # Check.
         act = hio.from_file(out_file_path)
@@ -284,6 +281,7 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
 
 
 class Test_parse_pandoc_arguments1(hunitest.TestCase):
+
     def test1(self) -> None:
         # Prepare inputs.
         cmd = r"""

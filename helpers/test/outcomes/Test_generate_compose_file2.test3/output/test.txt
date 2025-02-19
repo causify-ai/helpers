@@ -19,9 +19,9 @@ services:
       - CSFY_HELPERS_ROOT_PATH=/app/helpers_root
       - CSFY_IS_SUPER_REPO=1
       - CSFY_TELEGRAM_TOKEN=$CSFY_TELEGRAM_TOKEN
+      - CSFY_CI=$CSFY_CI
       - GH_ACTION_ACCESS_TOKEN=$GH_ACTION_ACCESS_TOKEN
       - GH_TOKEN=$GH_ACTION_ACCESS_TOKEN
-      - CSFY_CI=$CSFY_CI
     image: ${IMAGE}
     restart: 'no'
     volumes:

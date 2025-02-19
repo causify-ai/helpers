@@ -518,7 +518,12 @@ def _generate_docker_compose_file(
     # we would need to distinguish the container style (see
     # docs/work_tools/docker/all.dockerized_flow.explanation.md) to find the
     # outermost Git root.
-    hdbg.dassert(not hserver.is_inside_docker())
+    if not hserver.is_inside_unit_test():
+        hdbg.dassert(not hserver.is_inside_docker())
+    else:
+        # We call this function as part of the unit tests, which we run insider
+        # the container.
+        pass
     git_host_root_path = hgit.find_git_root()
     # Find git root path in the container.
     # The Git root is always mounted in the container at `/app`. So we need to
