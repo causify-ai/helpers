@@ -1294,14 +1294,15 @@ def _get_lint_docker_cmd(
 
     :param docker_cmd_: command to run
     :param stage: the image stage to use
-    :no_dev_server: whether to run on the dev server or not
+    :no_dev_server: True, if running the linter on local machine, else false
+        if on dev server
     :return: the full command to run
     """
     # Get an image to run the linter on.
     # For local development we use the image from the Docker Hub.
     if no_dev_server:
         # TODO(Vlad): Replace with environment variable.
-        base_path = "sorrentum"
+        base_path = "causify"
     else:
         base_path = os.environ["CSFY_ECR_BASE_PATH"]
     linter_image = f"{base_path}/helpers"
