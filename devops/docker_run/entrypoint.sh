@@ -2,17 +2,18 @@
 
 set -e
 
-echo "CSFY_IS_SUPER_REPO=$CSFY_IS_SUPER_REPO"
-
 FILE_NAME="devops/docker_run/entrypoint.sh"
 echo "##> $FILE_NAME"
 
 echo "UID="$(id -u)
 echo "GID="$(id -g)
 
+echo "CSFY_IS_SUPER_REPO=$CSFY_IS_SUPER_REPO"
+echo "CSFY_HOST_GIT_ROOT_PATH=$CSFY_HOST_GIT_ROOT_PATH"
+echo "CSFY_GIT_ROOT_PATH=$CSFY_GIT_ROOT_PATH"
+
 # - Source `utils.sh`.
 # NOTE: we can't use $0 to find the path since we are sourcing this file.
-echo "CSFY_GIT_ROOT_PATH=$CSFY_GIT_ROOT_PATH"
 echo "CSFY_HELPERS_ROOT_PATH=$CSFY_HELPERS_ROOT_PATH"
 
 SOURCE_PATH="${CSFY_HELPERS_ROOT_PATH}/dev_scripts_helpers/thin_client/thin_client_utils.sh"
@@ -81,10 +82,11 @@ if [[ $CK_TEST_SETUP ]]; then
     echo "helpers: $VAL"
 fi;
 
+echo "# invoke print_env"
 invoke print_env
 
 echo "PATH=$PATH"
 echo "PYTHONPATH=$PYTHONPATH"
 
-echo "entrypoint.sh: '$@'"
+echo "# entrypoint.sh: '$@'"
 eval "$@"

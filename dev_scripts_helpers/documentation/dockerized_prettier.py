@@ -67,8 +67,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
         args.input,
         args.output,
         cmd_opts,
-        args.dockerized_force_rebuild,
-        args.dockerized_use_sudo,
+        force_rebuild=args.dockerized_force_rebuild,
+        use_sudo=args.dockerized_use_sudo,
     )
     _LOG.info("Output written to '%s'", args.output)
 
