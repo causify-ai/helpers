@@ -324,7 +324,7 @@ def _docker_login_dockerhub(target_registry: Optional[str] = "dockerhub.sorrentu
     # Map the target registry to the corresponding secret.
     secrets_to_registry = {
         "dockerhub.sorrentum": "sorrentum_dockerhub",
-        "causify_dockerhub": "causify_dockerhub",
+        "dockerhub.causify": "causify_dockerhub",
     }
     secret_id = secrets_to_registry[target_registry]
     secret = hsecret.get_secret(secret_id)
@@ -395,7 +395,7 @@ def docker_login(ctx, target_registry="aws_ecr.ck"):  # type: ignore
     :param ctx: invoke context
     :param target_registry: target Docker image registry to log in to
         - "dockerhub.sorrentum": public Kaizenflow Docker image registry
-        - "causify_dockerhub": public Causify Docker image registry
+        - "dockerhub.causify": public Causify Docker image registry
         - "aws_ecr.ck": private AWS CK ECR
     """
     _ = ctx
@@ -409,7 +409,7 @@ def docker_login(ctx, target_registry="aws_ecr.ck"):  # type: ignore
     # to make the function work as an invoke target.
     if target_registry == "aws_ecr.ck":
         _docker_login_ecr()
-    elif target_registry in ("dockerhub.sorrentum", "causify_dockerhub"):
+    elif target_registry in ("dockerhub.sorrentum", "dockerhub.causify"):
         _docker_login_dockerhub(target_registry=target_registry)
     else:
         raise ValueError(f"Invalid Docker image registry='{target_registry}'")
