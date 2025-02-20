@@ -306,7 +306,7 @@ def _docker_login_dockerhub(target_registry: Optional[str] = "dockerhub.sorrentu
 
     :param target_registry: target DockerHub image registry to log in to
         - "dockerhub.sorrentum": public Kaizenflow Docker image registry
-        - "causify_dockerhub": public Causify Docker image registry
+        - "dockerhub.causify": public Causify Docker image registry
     """
     # Check if we are already logged in to the target registry.
     assert 0, "Find name of the repo"
