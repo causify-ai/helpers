@@ -23,6 +23,7 @@ import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hs3 as hs3
+import helpers.hsecrets as hsecret
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hversion as hversio
@@ -309,7 +310,6 @@ def _docker_login_dockerhub(target_registry: Optional[str] = "dockerhub.sorrentu
         - "dockerhub.causify": public Causify Docker image registry
     """
     # Check if we are already logged in to the target registry.
-    assert 0, "Find name of the repo"
     # TODO(gp): Enable caching https://github.com/causify-ai/helpers/issues/20
     use_cache = False
     if use_cache:
@@ -318,9 +318,6 @@ def _docker_login_dockerhub(target_registry: Optional[str] = "dockerhub.sorrentu
             _LOG.warning("Already logged in to the target registry: skipping")
             return
     _LOG.info("Logging in to the target registry")
-    # TODO(gp): Why here?
-    import helpers.hsecrets as hsecret
-
     # Map the target registry to the corresponding secret.
     secrets_to_registry = {
         "dockerhub.sorrentum": "sorrentum_dockerhub",
