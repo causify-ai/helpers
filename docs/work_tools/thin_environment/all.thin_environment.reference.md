@@ -1,3 +1,17 @@
+<!-- toc -->
+
+- [Basic concepts](#basic-concepts)
+  * [Naming objects composed across repos](#naming-objects-composed-across-repos)
+- [Files](#files)
+  * [General utils](#general-utils)
+  * [Building the thin environment](#building-the-thin-environment)
+  * [Configuring a shell](#configuring-a-shell)
+  * [Tmux session](#tmux-session)
+  * [How to test](#how-to-test)
+  * [Build container](#build-container)
+
+<!-- tocstop -->
+
 # Basic concepts
 
 Each repo relies on several concept:
@@ -7,14 +21,19 @@ Each repo relies on several concept:
 - "set env" script: it is used to configured a shell inside the thin environment
 - "tmux" script: it is used to create a `tmux` session with our standard setup
   for the repo (e.g., multiple windows on different repo and sub-repos)
-- "Docker environment": it contains all the libraries, packages, and dependencies
-  for the actual development (e.g., run the tools, run the unit tests)
+- "Docker environment": it contains all the libraries, packages, and
+  dependencies for the actual development (e.g., run the tools, run the unit
+  tests)
 - "devops": it contains all the code to build containers for the specific repo
 
 ## Naming objects composed across repos
+
 - We add a suffix representing the name of the repo any time we need to
   distinguish different objects
   - E.g., `dev_scripts_helpers` vs `dev_scripts_cmamp`
+- For runnable dirs that are not top level, the suffix includes the name of the
+  repo followed by the name of the runnable dir
+  - E.g., `dev_scripts_cmamp_infra`, `dev_scripts_tutorial_tensorflow`
 - We can't always use the `.` to separate the fields since `.` creates problems
   when importing Python files, and so we resort to using `_`
 
@@ -65,7 +84,9 @@ Each repo relies on several concept:
 
 ## How to test
 
-- The script `dev_scripts_helpers/thin_client/test_helpers.sh` tests `helpers`
+- The script
+  [`/dev_scripts_helpers/thin_client/test_helpers.sh`](/dev_scripts_helpers/thin_client/test_helpers.sh)
+  tests `helpers`
 
 - Build thin environment
   ```bash
@@ -84,6 +105,7 @@ Each repo relies on several concept:
 ## Build container
 
 - Build the container
+
   ```bash
   > i docker_build_local_image --version 1.0.0
   > i docker_tag_local_image_as_dev --version 1.0.0
