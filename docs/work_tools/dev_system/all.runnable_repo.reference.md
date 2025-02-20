@@ -4,7 +4,7 @@
 - [Design goals](#design-goals)
 - [Our previous solution to the development](#our-previous-solution-to-the-development)
 - [Current solution](#current-solution)
-  * [Helper sub-repo](#helper-sub-repo)
+  * [Helper sub-module](#helper-sub-module)
   * [Runnable dir](#runnable-dir)
   * [Runnable repo](#runnable-repo)
   * [Thin environment](#thin-environment)
@@ -16,60 +16,76 @@
   * [pytest](#pytest)
     + [Recursive pytest](#recursive-pytest)
   * [Support for docker-in-docker and sibling-containers](#support-for-docker-in-docker-and-sibling-containers)
-- [Maintaining code across different sub-repos](#maintaining-code-across-different-sub-repos)
+- [Maintaining code across different sub-modules](#maintaining-code-across-different-sub-modules)
 
 <!-- tocstop -->
 
 # Summary
 
-- This document describes the design principles around our approach to create
-  Git repos that contain code that can be:
-  - Composed through different Git sub-repo
+- This document describes the design principles in our approach to create Git
+  repos that contain code that can be:
+  - Composed through different Git sub-module
   - Tested, built, run, and released (on a per-directory basis or not)
 
-# Design goals
+- The technologies that this approach relies on are:
+  - Git for source control
+  - Python virtual environment and `poetry` (or similar) to control Python
+    packages
+  - `pytest` for unit and end-to-end testing
+  - Docker for managing containers
 
-- The development toolchain should support the following functionalities
+- The approach described in this paper is not strictly dependent of the specific
+  package (e.g., `poetry` can be replaced by `Conda` or another package manager)
 
-- Standardize ways of building, testing, retrieving, and deploying containers
-- Bootstrap the development system using a "thin environment", which has the
-  minimum number of dependencies to allow development and deployment in exactly
-  the same way in different setups (e.g., server, personal laptop, CI/CD)
-- Support composing code using a GitHub sub-repo approach
-- Manage dependencies in a way that is uniform across platforms and OSes, using
-  Docker containers
-- Separate the need to:
-  - Build and deploy containers (by devops)
-  - Use containers to develop and test (by developers)
-- Ensure alignment between development environment, deployment, and CI/CD
-  systems (e.g., GitHub Actions)
-- Carefully manage and control dependencies using Python managers (such as
-  `poetry`) and virtual environments
-- Run end-to-end tests using `pytest` by automatically discover tests based on
-  dependencies and test lists, supporting the dependencies needed by different
-  directories
-- Support automatically different stages for container development
-  - E.g., `test` / `local`, `dev`, `prod`
-- A system of makefile-like tools based on Python `invoke` package to create
-  complex workflows (e.g., for testing, building
+## Design goals
+
+The proposed development system supports the following functionalities
+
+### Development functionalities
+- Support composing code using a GitHub sub-module approach
 - Make it easy to add the development tool chain to a "new project" by simply
-  adding a Git sub-repo to the main project and importing all the above
-  functionalities
+  adding the Git sub-module `//helpers` to the project
+- Create complex workflows (e.g., for dev and devops functionalities) using
+  makefile-like tools based on Python `invoke` package
 - Have a simple way to maintain common files across different repos in sync
   through links and automatically diff-ing files
+- Support for both local and remote development using IDEs (e.g., PyCharm,
+  Visual Studio Code)
+
+### Python package management
+- Carefully manage and control dependencies using Python managers (such as
+  `poetry`) and virtual environments
 - Code and containers can be versioned and kept in sync automatically since a
   certain version of the code can require a certain version of the container to
   run properly
   - Code is versioned through Git
   - Each container has a `changelog.txt` that contains the current version and
     the history
+
+### Testing
+- Run end-to-end tests using `pytest` by automatically discover tests based on
+  dependencies and test lists, supporting the dependencies needed by different
+  directories
+- Native support for both children-containers (i.e., Docker-in-Docker) and
+  sibling containers
+
+### DevOps functionalities
+- Support automatically different stages for container development
+  - E.g., `test` / `local`, `dev`, `prod`
+- Standardize ways of building, testing, retrieving, and deploying containers
+- Ensure alignment between development environment, deployment, and CI/CD
+  systems (e.g., GitHub Actions)
+- Bootstrap the development system using a "thin environment", which has the
+  minimum number of dependencies to allow development and deployment in exactly
+  the same way in different setups (e.g., server, personal laptop, CI/CD)
+- Manage dependencies in a way that is uniform across platforms and OSes, using
+  Docker containers
+- Separate the need to:
+  - Build and deploy containers (by devops)
+  - Use containers to develop and test (by developers)
 - Built-in support for multi-architecture builds (e.g, for Intel `x86` and Arm)
   across different OSes supporting containers (e.g., Linux, MacOS, Windows
   Subsystem for Linux WSL)
-- Support for both local and remote development using IDEs (e.g., PyCharm,
-  VSCode)
-- Native support for both children-containers (i.e., Docker-in-Docker) and
-  sibling containers
 - Support for developing, testing, and deploying multi-container applications
 
 # Our previous solution to the development
@@ -92,12 +108,12 @@
 
 - The current solution follows the approach described below
 
-## Helper sub-repo
+## Helper sub-module
 
-- `//helpers` is the sub-repo that contains utilities shared by all the repos
+- `//helpers` is the sub-module that contains utilities shared by all the repos
   and the development toolchain (e.g., thin environment, Docker, `setenv`,
   `invoke` workflows)
-- Git repos can include `//helpers` and other ones as sub-repos
+- Git repos can include `//helpers` and other ones as sub-modules
 
   ```mermaid
   graph TD
@@ -105,13 +121,13 @@
     runnable_repo_2[runnable repo 2]
     runnable_repo_3[runnable repo 3]
 
-    runnable_repo --> helpers_sub_repo_1[helpers sub-repo]
+    runnable_repo --> helpers_sub_repo_1[helpers sub-module]
     runnable_repo --> others[...]
 
-    runnable_repo_2 --> helpers_sub_repo_2[helpers sub-repo]
+    runnable_repo_2 --> helpers_sub_repo_2[helpers sub-module]
     runnable_repo_2 --> others_2[...]
 
-    runnable_repo_3 --> helpers_sub_repo_3[helpers sub-repo]
+    runnable_repo_3 --> helpers_sub_repo_3[helpers sub-module]
     runnable_repo_3 --> others_3[...]
 
     helper_repo[helper repo]
@@ -135,7 +151,7 @@
   ```mermaid
   graph TD
     runnable_repo["runnable dir<br>(runnable repo)"]
-    runnable_repo --> helpers_sub_repo[helpers sub-repo]
+    runnable_repo --> helpers_sub_repo[helpers sub-module]
     runnable_repo --> devops[devops]
     runnable_repo --> runnable_dir[runnable dir]
     runnable_repo --> others[...]
@@ -153,7 +169,7 @@
   ```mermaid
   graph TD
     runnable_repo[runnable repo]
-    runnable_repo --> helpers_sub_repo[helpers sub-repo]
+    runnable_repo --> helpers_sub_repo[helpers sub-module]
     runnable_repo --> devops[devops]
     runnable_repo --> runnable_dir_1[runnable dir 1]
     runnable_repo --> runnable_dir_2[runnable dir 2]
@@ -353,6 +369,6 @@ graph TD
     container_1 --> container_1b
 ```
 
-# Maintaining code across different sub-repos
+# Maintaining code across different sub-modules
 
 - TODO(gp): Explain

@@ -25,7 +25,7 @@
   one. Be patient, ask for help (kindly), and we will get all your problems
   fixed.
 
-## Patching up an existing client on dev1 or dev2
+## Patching up an existing client on a dev server
 
 - You need to patch up your Git client or start from scratch
   ```bash

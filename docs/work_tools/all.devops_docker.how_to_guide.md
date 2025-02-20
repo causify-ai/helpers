@@ -64,18 +64,18 @@
 
 ## Pre-built vs build-on-the-fly containers
 
-1. Certain containers that need to be widely available to the team and deployed
-   go through the release process and are stored in ECR (AWS and DockerHub)
+- Certain containers that need to be widely available to the team and deployed go
+  through the release process and are stored in a container registry (e.g., AWS
+  ECR and DockerHub)
 
-2. Other containers that are lightweight and used only by one person can be
-   built on the fly using `docker compose` / `docker build`.
+- Other containers that are lightweight and used only by one person can be built
+  on the fly using `docker compose` / `docker build`.
+  - E.g., the `infra` container, containers to run a simple tools
 
-- E.g., the `infra` container, containers to run a simple tools
-
-3. Sometimes we install a dependency on the fly from inside the code, when it's
-   needed only rarely and it doesn't justify being added to the Docker container
-   - E.g., when we need to profile Python code, we install the package directly
-     in the container
+- Sometimes we install a dependency on the fly from inside the code, when it's
+  needed only rarely and it doesn't justify being added to the Docker container
+  - E.g., when we need to profile Python code, we install the package directly
+    in the container
 
 ## Thin client
 
@@ -104,8 +104,8 @@
 
 - A `local` image is used to develop and test an update to the Docker container
   - E.g. after updating a package, installing a new package, etc.
-- Local images can only be accessed locally by a developer, i.e. the team
-  members can not / should not use local images
+- Local images can only be accessed locally by a developer, i.e., team members
+  should not use local images
 - In practice `local` images are like `dev` images but private to users and
   servers
 
@@ -121,10 +121,10 @@
 ### Prod
 
 - A `prod` image is used to run a system by final users
-  - E.g., Linter inside `helpers`, some prod system inside Airflow
+  - E.g., linter inside `helpers`, some prod system inside Airflow
 - It is self-contained (i.e., it has no dependencies) since it contains
-  everything required to run a system
-  - E.g., OS, Python packages code, code
+  everything (e.g., OS, Python packages, code) required to run a software
+  component 
 - A `prod` image is typically created from the `dev` image by copying the
   released code inside the `prod` image
 
@@ -135,39 +135,42 @@
   - GHCR (GitHub Container Repo): images are used by the CI systems
   - DockerHub: images are used by developers on the public facing repo
 
-- In practice we mirror the Docker images to make sure they are close to where
-  they need to be used and they minimize downloading costs
+- In practice we copy the Docker images to make sure they are close to where they
+  need to be used and minimize downloading costs
 
 # invoke targets
 
 ## Single-arch flow
 
-- `docker_build_local_image`: build a "local" image, i.e., a release candidate
-  for the "dev" image
-- `docker_tag_local_image_as_dev`: promote "local" image to "dev" without
+- `docker_build_local_image`: build a `local` image, i.e., a release candidate
+  for the `dev` image
+- `docker_tag_local_image_as_dev`: promote `local` image to `dev` without
   pushing it to the remote
 - `docker_push_dev_image`: push image to an image registry
-- `docker_release_dev_image`: build, test the "dev" image and then release it to
-  ECR
+- `docker_release_dev_image`: build, test the `dev` image and then release it to
+  the Docker image registries
 
 ## Multi-arch flow
 
-- `docker_tag_push_multi_build_local_image_as_dev`: build a "local" multi-arch
-  image and tag it as "dev"
+- `docker_tag_push_multi_build_local_image_as_dev`: build a `local` multi-arch
+  image and tag it as `dev`
 - `docker_release_multi_build_dev_image`: same as `docker_release_dev_image` but
   for multi-arch image
 
 ## Prod flow
 
-- `docker_build_prod_image`: build a "prod" image from a dev image
-- `docker_push_prod_image`: push the "prod" image to ECR
-- `docker_push_prod_candidate_image`: push the "prod" candidate image to ECR
-- `docker_release_prod_image`: build, test, and release the "prod" image to ECR
-- `docker_release_all`: release both the "dev" and "prod" image to ECR
-- `docker_rollback_dev_image`: rollback the version of the "dev" image
-- `docker_rollback_prod_image`: rollback the version of the "prod" image
-- `docker_create_candidate_image`: create a new "prod" candidate image
-- `docker_update_prod_task_definition`: update image in "prod" task definition
+- `docker_build_prod_image`: build a `prod` image from a `dev` image
+- `docker_push_prod_image`: push the `prod` image to Docker registries
+- `docker_push_prod_candidate_image`: push the `prod` candidate image to Docker
+  registries
+- `docker_release_prod_image`: build, test, and release the `prod` image to
+  Docker registries
+- `docker_release_all`: release both the `dev` and `prod` image to Docker
+  registries
+- `docker_rollback_dev_image`: rollback the version of the `dev` image
+- `docker_rollback_prod_image`: rollback the version of the `prod` image
+- `docker_create_candidate_image`: create a new `prod` candidate image
+- `docker_update_prod_task_definition`: update image in `prod` task definition
   to the desired version
 
 # How to test a package in a Docker container
@@ -182,7 +185,8 @@
 
 ## Hacky approach to patch up a container
 
-- To patch up a container you can use the following instructions
+- To patch up a container, without going through the entire release process, you
+  can use the following instructions
 
   ```bash
   # After changing the container, create a new version of the container.
@@ -206,8 +210,8 @@
 - Depending on the type of changes sometimes one needs to rebuild only the
   `prod` image, other times one needs to rebuild also the `dev` image
 - E.g.,
-  - If you change Docker build-related things (e.g., add a Python package), you
-    need to rebuild the `dev` image and then the `prod` image from the `dev`
+  - If you change Docker build-related things (e.g., adding a Python package),
+    you need to rebuild the `dev` image and then the `prod` image from the `dev`
     image
   - If you change the code for a production system, you need to create a new
     `prod` image
@@ -218,21 +222,23 @@
 ## Overview of how to release an image
 
 - The release flow consists of the following phases
-  - Make changes to the image
-    - E.g., add Python package through `poetry`, add an OS package, ...
+  - Make changes to the image, e.g.,
+    - add Python package through `poetry`
+    - add an OS package
+    - ...
   - Update the changelog
   - Build a local image
     - Run specific tests (e.g., make sure that the new packages are installed)
     - Run unit tests
     - Run QA tests
   - Tag local image as dev image
-  - Push dev image to ECR, DockerHub, GHCR
+  - Push dev image to the Docker registries (e.g., AWS ECR, DockerHub, GHCR)
 
 - If there is also an associated prod image
   - Build prod image from dev image
     - Run unit tests
     - Run QA tests
-  - Push prod image to ECR, DockerHub, GHCR
+  - Push prod image to the Docker registries (e.g., AWS ECR, DockerHub, GHCR)
 
 ## How to add a Python package to dev image
 
@@ -251,8 +257,8 @@
   - In general we use the latest version of a package `*` whenever possible
     - If the latest package has some problems with our codebase, we freeze the
       version of the problematic packages to a known-good version to get the
-      tests back to green until the problem is solved. We switch back to the
-      latest version once the problem is fixed
+      tests back to green until the problem is solved. Then, we switch back to
+      the latest version once the problem is fixed
     - If you need to put a constraint on the package version, follow the
       [official docs](https://python-poetry.org/docs/dependency-specification/),
       and explain in a comment why this is needed making reference to GitHub
@@ -301,9 +307,9 @@
 ## How to find unused packages
 
 - While installing Python packages we need to make sure that we do not install
-  packages that are not used
+  packages that are not used by the code
 
-- You can use the import-based approach using
+- You can use the import-based approach from
   [`pipreqs`](https://github.com/bndr/pipreqs)
   - Under the hood it uses the regex below and `os.walk` for selected dir:
     ```python
@@ -421,29 +427,29 @@
 
 - Push the local image built by a user to ECR registry
 - For e.g., if the image is built by user `gsaggese`
-  ```
+  ```bash
   > i docker_login
   > i docker push 665840871993.dkr.ecr.us-east-1.amazonaws.com/amp:local-gsaggese-1.1.0
   ```
 
 - From user session who wants to test: pull the local image from ECR
-  ```
+  ```bash
   > i docker pull 665840871993.dkr.ecr.us-east-1.amazonaws.com/amp:local-gsaggese-1.1.0
   ```
 
 - Tag the local image from user `gsaggese`, who built the image, as
   `local-currentuser-1.1.0` for user `currentuser` who wants to test it
-  ```
+  ```bash
   > i docker tag 665840871993.dkr.ecr.us-east-1.amazonaws.com/amp:local-gsaggese-1.1.0 665840871993.dkr.ecr.us-east-1.amazonaws.com/amp:local-currentuser-1.1.0
   ```
 
 - Run any kind of test using the local image. For e.g., to run fast tests
-  ```
+  ```bash
   > i run_fast_tests --stage local --version 1.1.0
   ```
 
 - Check something inside the container
-  ```
+  ```bash
   > i docker_bash --stage local --version 1.1.0
   docker > pip freeze | grep pandas
   ```
