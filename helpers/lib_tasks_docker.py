@@ -465,6 +465,7 @@ def _get_linter_service(stage: str) -> DockerComposeServiceSpec:
     return linter_service_spec
 
 
+# TODO(gp): Remove mount_as_submodule
 def _generate_docker_compose_file(
     stage: str,
     use_privileged_mode: bool,
@@ -513,21 +514,30 @@ def _generate_docker_compose_file(
     csfy_host_name = os.uname()[1]
     csfy_host_version = os.uname()[2]
     csfy_host_user_name = getpass.getuser()
-    # The mounting path in the container is `/app`.
-    # So we need to use that as starting point.
-    # e.g. For CSFY_GIT_ROOT_PATH,
-    #   rather than `/data/heanhs/src/cmamp1`, we need to use `/app`.
-    # e.g. For CSFY_HELPERS_ROOT_PATH,
-    #   rather than `/data/heanhs/src/cmamp1/helpers_root`, we need to
-    #   use `/app/helpers_root`.
-    # Find git root path.
+    # We assume that we don't use this code inside a container, since otherwise
+    # we would need to distinguish the container style (see
+    # docs/work_tools/docker/all.dockerized_flow.explanation.md) to find the
+    # outermost Git root.
+    if not hserver.is_inside_unit_test():
+        hdbg.dassert(not hserver.is_inside_docker())
+    else:
+        # We call this function as part of the unit tests, which we run insider
+        # the container.
+        pass
+    git_host_root_path = hgit.find_git_root()
+    # Find git root path in the container.
+    # The Git root is always mounted in the container at `/app`. So we need to
+    # use that as starting point.
+    # E.g. For CSFY_GIT_ROOT_PATH, we need to use `/app`, rather than
+    # `/data/heanhs/src/cmamp1`.
+    # E.g. For CSFY_HELPERS_ROOT_PATH, we need to use `/app/helpers_root`.
+    # rather than `/data/heanhs/src/cmamp1/helpers_root`.
     git_root_path = "/app"
-    # Find helpers root path.
+    # Find helpers root path in the container.
     helper_dir = hgit.find_helpers_root()
-    git_dir = hgit.find_git_root()
-    helper_relative_path = os.path.relpath(helper_dir, git_dir)
+    helper_relative_path = os.path.relpath(helper_dir, git_host_root_path)
     helper_root_path = os.path.normpath(
-        os.path.join("/app", helper_relative_path)
+        os.path.join(git_root_path, helper_relative_path)
     )
     # A super repo is a repo that contains helpers as a submodule and
     # is not a helper itself.
@@ -553,26 +563,27 @@ def _generate_docker_compose_file(
             "CSFY_AWS_S3_BUCKET=$CSFY_AWS_S3_BUCKET",
             "CSFY_AWS_SECRET_ACCESS_KEY=$CSFY_AWS_SECRET_ACCESS_KEY",
             "CSFY_ECR_BASE_PATH=$CSFY_ECR_BASE_PATH",
+            # The path of the outermost Git root on the host.
+            f"CSFY_HOST_GIT_ROOT_PATH={git_host_root_path}",
+            # The path of the outermost Git root in the Docker container.
             f"CSFY_GIT_ROOT_PATH={git_root_path}",
+            # The path of the helpers dir in the Docker container (e.g.,
+            # `/app`, `/app/helpers_root`)
             f"CSFY_HELPERS_ROOT_PATH={helper_root_path}",
             f"CSFY_IS_SUPER_REPO={is_super_repo}",
-            "OPENAI_API_KEY=$OPENAI_API_KEY",
-            # - CK_ENABLE_DIND=
-            # - CK_FORCE_TEST_FAIL=$CK_FORCE_TEST_FAIL
-            # - CK_HOST_NAME=
-            # - CK_HOST_OS_NAME=
-            # - CK_PUBLISH_NOTEBOOK_LOCAL_PATH=$CK_PUBLISH_NOTEBOOK_LOCAL_PATH
             "CSFY_TELEGRAM_TOKEN=$CSFY_TELEGRAM_TOKEN",
-            # TODO(Vlad): consider removing, locally we use our personal tokens from files and
-            # inside GitHub actions we use the `GH_TOKEN` environment variable.
+            # This env var is used by GH Action to signal that we are inside the
+            # CI. It's set up by default by the GH Action runner. See:
+            # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/store-information-in-variables#default-environment-variables
+            "CSFY_CI=$CSFY_CI",
+            "OPENAI_API_KEY=$OPENAI_API_KEY",
+            # TODO(Vlad): consider removing, locally we use our personal tokens
+            # from files and inside GitHub actions we use the `GH_TOKEN`
+            # environment variable.
             "GH_ACTION_ACCESS_TOKEN=$GH_ACTION_ACCESS_TOKEN",
             # Inside GitHub Actions we use `GH_TOKEN` environment variable,
             # see https://cli.github.com/manual/gh_auth_login.
             "GH_TOKEN=$GH_ACTION_ACCESS_TOKEN",
-            # This env var is used by GH Action to signal that we are inside the CI.
-            # It's set up by default by the GH Action runner. See:
-            # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/store-information-in-variables#default-environment-variables
-            "CSFY_CI=$CSFY_CI",
         ],
         "image": "${IMAGE}",
         "restart": "no",
@@ -633,8 +644,8 @@ def _generate_docker_compose_file(
     # - If the runnable dir is the root of the repo, then `working_dir` is `/app`.
     # - If the runnable dir is a subdirectory of the repo, then `working_dir` is `/app/subdir`.
     curr_dir = os.getcwd()
-    rel_dir1 = os.path.relpath(curr_dir, git_dir)
-    rel_dir2 = os.path.relpath(git_dir, curr_dir)
+    rel_dir1 = os.path.relpath(curr_dir, git_host_root_path)
+    rel_dir2 = os.path.relpath(git_host_root_path, curr_dir)
     app_dir = os.path.abspath(os.path.join(curr_dir, rel_dir2))
     working_dir = os.path.normpath(os.path.join("/app", rel_dir1))
     app_spec["volumes"] = [f"{app_dir}:/app"]

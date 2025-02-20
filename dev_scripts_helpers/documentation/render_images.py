@@ -36,6 +36,7 @@ import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
+
 # #############################################################################
 
 
@@ -63,14 +64,17 @@ def _get_rendered_file_paths(
     """
     Generate paths to files for image rendering.
 
-    The name assigned to the target image is relative to the name of the original
-    file where the image code was extracted from and the order number of
-    that code block in the file. E.g., image rendered from the first image code block
-    in a Markdown file called `readme.md` would be called `figs/readme.1.png`.
-    This way if we update the image, its name does not change.
+    The name assigned to the target image is relative to the name of the
+    original file where the image code was extracted from and the order number
+    of that code block in the file. E.g., image rendered from the first image
+    code block in a Markdown file called `readme.md` would be called
+    `figs/readme.1.png`. This way if we update the image, its name does not
+    change.
 
-    :param out_file: path to the output file where the rendered image should be inserted
-    :param image_code_idx: order number of the image code block in the input file
+    :param out_file: path to the output file where the rendered image should be
+        inserted
+    :param image_code_idx: order number of the image code block in the input
+        file
     :param dst_ext: extension of the target image file
     :return:
         - path to the temporary file with the image code (e.g., `readme.1.txt`)
@@ -82,17 +86,13 @@ def _get_rendered_file_paths(
     out_file_dir, out_file_name = os.path.split(os.path.abspath(out_file))
     # E.g., "readme".
     out_file_name_body = os.path.splitext(out_file_name)[0]
-    # Create the name for the image file.
-    # E.g., "readme.1.png".
+    # Create the name for the image file, e.g., "readme.1.png".
     img_name = f"{out_file_name_body}.{image_code_idx}.{dst_ext}"
-    # Get the absolute path to the dir with images.
-    # E.g., "/usr/docs/figs".
+    # Get the absolute path to the dir with images, e.g., "/usr/docs/figs".
     abs_img_dir_path = os.path.join(out_file_dir, sub_dir)
-    # Get the relative path to the image.
-    # E.g., "figs/readme.1.png".
+    # Get the relative path to the image, e.g., "figs/readme.1.png".
     rel_img_path = os.path.join(sub_dir, img_name)
-    # Get the path to a temporary file with the image code.
-    # E.g., "readme.1.txt".
+    # Get the path to a temporary file with the image code, e.g., "readme.1.txt".
     code_file_path = f"{out_file_name_body}.{image_code_idx}.txt"
     return (code_file_path, abs_img_dir_path, rel_img_path)
 
@@ -105,7 +105,7 @@ def _get_puppeteer_config_path() -> str:
 
     :return: path to the config file
     """
-    cmd = "find -name 'puppeteerConfig.json'"
+    cmd = "find . -name 'puppeteerConfig.json'"
     _, paths_out = hsystem.system_to_string(cmd)
     # Pick the one closer to the current dir.
     path = sorted(paths_out.split("\n"))[0]
@@ -142,9 +142,7 @@ def _get_render_command(
         puppeteer_config = _get_puppeteer_config_path()
         cmd = f"mmdc --puppeteerConfigFile {puppeteer_config} -i {code_file_path} -o {rel_img_path}"
     else:
-        raise ValueError(
-            f"Invalid type: {image_code_type}; should be one of 'plantuml', 'mermaid'"
-        )
+        raise ValueError(f"Invalid type: {image_code_type}")
     return cmd
 
 
@@ -191,8 +189,8 @@ def _render_code(
     cmd = _get_render_command(
         code_file_path, abs_img_dir_path, rel_img_path, dst_ext, image_code_type
     )
-    _LOG.info("Creating the image from %s source.", code_file_path)
-    _LOG.info("Saving image to %s.", abs_img_dir_path)
+    _LOG.info("Creating the image from %s source", code_file_path)
+    _LOG.info("Saving image to '%s'", abs_img_dir_path)
     _LOG.info("> %s", cmd)
     if dry_run:
         # Do not execute the command.
@@ -207,9 +205,7 @@ def _render_code(
             elif image_code_type == "mermaid":
                 hdocker.run_dockerized_mermaid(rel_img_path, code_file_path)
             else:
-                raise ValueError(
-                    f"Invalid type: {image_code_type}; should be one of 'plantuml', 'mermaid'"
-                )
+                raise ValueError(f"Invalid type: {image_code_type}")
         else:
             # Run the package installed on the host directly.
             hsystem.system(cmd)
@@ -228,8 +224,8 @@ def _render_images(
     """
     Insert rendered images instead of image code blocks.
 
-    Here, "image code" refers to code that defines the content of
-    the image, e.g., plantUML/mermaid code for diagrams.
+    Here, "image code" refers to code that defines the content of the image,
+    e.g., plantUML/mermaid code for diagrams.
     In this method,
     - The image code is commented out.
     - New code is added after the image code block to insert
@@ -238,9 +234,10 @@ def _render_images(
     :param in_lines: lines of the input file
     :param out_file: path to the output file
     :param dst_ext: extension for rendered images
-    :param run_dockerized: if True, the image rendering command is run as a dockerized executable
-    :param dry_run: if True, the text of the file is updated
-        but the images are not actually created
+    :param run_dockerized: if True, the image rendering command is run as a
+        dockerized executable
+    :param dry_run: if True, the text of the file is updated but the images are
+        not actually created
     :return: updated file lines
     """
     # Store the output.
@@ -258,10 +255,11 @@ def _render_images(
     elif out_file.endswith(".tex"):
         comment_prefix = "%"
         comment_postfix = ""
+    elif out_file.endswith(".txt"):
+        comment_prefix = "//"
+        comment_postfix = ""
     else:
-        raise ValueError(
-            f"Unsupported file type: {out_file}; should be Markdown (.md) or LaTeX (.tex)"
-        )
+        raise ValueError(f"Unsupported file type: {out_file}")
     for i, line in enumerate(in_lines):
         _LOG.debug("%d: %s -> state=%s", i, line, state)
         # The code should look like:
@@ -294,9 +292,10 @@ def _render_images(
             # Comment out the end of the image code.
             out_lines.append(f"{comment_prefix} {line}{comment_postfix}\n")
             # Add the code that inserts the image in the file.
-            if out_file.endswith(".md"):
+            if out_file.endswith(".md") or out_file.endswith(".txt"):
                 # Use the Markdown syntax.
                 out_lines.append(f"![]({rel_img_path})")
+                #out_lines.append(f"![]({rel_img_path})" + "{height=60%}")
             elif out_file.endswith(".tex"):
                 # Use the LaTeX syntax.
                 out_lines.append(r"\begin{figure}")
@@ -305,9 +304,7 @@ def _render_images(
                 )
                 out_lines.append(r"\end{figure}")
             else:
-                raise ValueError(
-                    f"Unsupported file type: {out_file}; should be Markdown (.md) or LaTeX (.tex)"
-                )
+                raise ValueError(f"Unsupported file type: {out_file}")
             # Set the parser to search for a new image code block.
             state = "searching"
             _LOG.debug(" -> state=%s", state)
@@ -327,7 +324,8 @@ def _render_images(
 _ACTION_OPEN = "open"
 _ACTION_RENDER = "render"
 _VALID_ACTIONS = [_ACTION_OPEN, _ACTION_RENDER]
-_DEFAULT_ACTIONS = [_ACTION_OPEN, _ACTION_RENDER]
+# _DEFAULT_ACTIONS = [_ACTION_OPEN, _ACTION_RENDER]
+_DEFAULT_ACTIONS = []
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -372,14 +370,20 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Get the paths to the input and output files.
     in_file, out_file = hparser.parse_input_output_args(args)
     # Verify that the input and output file types are valid and equal.
-    hdbg.dassert_file_extension(in_file, ["md", "tex"])
-    hdbg.dassert_eq(os.path.splitext(in_file)[1], os.path.splitext(out_file)[1])
+    hdbg.dassert_file_extension(in_file, ["md", "tex", "txt"])
+    hdbg.dassert_eq(
+        os.path.splitext(in_file)[1],
+        os.path.splitext(out_file)[1],
+        msg="Input and output files should have the same extension.",
+    )
     # Get the selected actions.
     actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    _LOG.info("Selected actions: %s", actions)
     # Set the extension for the rendered images.
     dst_ext = "png"
     if actions == [_ACTION_OPEN]:
-        # Set the output file path and image extension used for the preview action.
+        # Set the output file path and image extension used for the preview
+        # action.
         out_file = tempfile.mktemp(suffix="." + in_file.split(".")[-1])
         dst_ext = "svg"
     # Read the input file.
