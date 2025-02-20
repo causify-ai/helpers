@@ -168,8 +168,6 @@
 
 - We use the [`pytest-timeout`](https://pypi.org/project/pytest-timeout/)
   package to limit durations of fast, slow, and superslow tests
-- The timeout durations for each test type are listed
-  [here](#running-unit-tests)
 - The timeout restricts the running time of the test methods, including
   `set_up_test()` and `tear_down_test()` time, if they are run at the
   beginning/end of the methods

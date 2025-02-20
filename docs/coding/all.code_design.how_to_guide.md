@@ -138,7 +138,7 @@
   engineering across projects and even languages. The classical introduction to
   design patterns is the so-called "Gang of Four"
   [book](https://www.amazon.com/Design-Patterns-Object-Oriented-Addison-Wesley-Professional-ebook/dp/B000SEIBB8).
-- A free python-focused reference is available
+- A free Python-focused reference is available
   [here](https://python-3-patterns-idioms-test.readthedocs.io/en/latest/).
 - Expanding your knowledge of design patterns is a worthwhile investment,
   because design patterns

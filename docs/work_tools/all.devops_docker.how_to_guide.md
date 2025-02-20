@@ -48,7 +48,7 @@
 - We use Docker extensively and assume you are familiar with Docker concepts and
   workflows
 - A short tutorial about Docker is
-  [/docs/work_tools/all.docker.tutorial.md](/docs/work_tools/all.docker.tutorial.md)
+  [/docs/work_tools/docker/all.docker.tutorial.md](/docs/work_tools/docker/all.docker.tutorial.md)
 
 ## Separate Docker containers
 
@@ -202,7 +202,7 @@
 # Release a Docker image
 
 - All the `invoke` tasks to run the release flow are in
-  `//amp/helpers_root/helpers/lib_tasks.py`
+  [`/helpers/lib_tasks.py`](/helpers/lib_tasks.py)
 - Depending on the type of changes sometimes one needs to rebuild only the
   `prod` image, other times one needs to rebuild also the `dev` image
 - E.g.,
@@ -243,10 +243,7 @@
     file to the `[tool.poetry.dependencies]` section
   - E.g., to add `pytest-timeout` do:
     ```markdown
-    [tool.poetry.dependencies]
-    ...
-    pytest-timeout = "*"
-    ...
+    [tool.poetry.dependencies] ... pytest-timeout = "\*" ...
     ```
   - In general we use the latest version of a package `*` whenever possible
     - If the latest package has some problems with our codebase, we freeze the
@@ -332,15 +329,8 @@
 - The command above will generate `./tmp.requirements.txt` with the list of the
   imported packages, e.g.,
   ```markdown
-  amp==1.1.4
-  async_solipsism==0.3
-  beautifulsoup4==4.11.1
-  botocore==1.24.37
-  cvxopt==1.3.0
-  cvxpy==1.2.0
-  dill==0.3.4
-  environs==9.5.0
-  ...
+  amp==1.1.4 async_solipsism==0.3 beautifulsoup4==4.11.1 botocore==1.24.37
+  cvxopt==1.3.0 cvxpy==1.2.0 dill==0.3.4 environs==9.5.0 ...
   ```
 - You can grep for a package name to see where it is used, e.g.,
   ```bash
@@ -358,9 +348,9 @@
 - This Dockerfile runs various scripts to install:
   - OS
   - Python
-  - venv + Python packages
+  - Venv + Python packages
   - Jupyter extensions
-  - Application-specific packages (e.g., for the linter)
+  - Application-specific packages (e.g., for Linter)
 
 - To build a local image run:
 
@@ -755,7 +745,7 @@ Check-list:
 - Do a PR with the change including the updated `changelog.txt`, the poetry
   files (e.g.,
   [`/devops/docker_build/poetry.toml`](/devops/docker_build/poetry.toml),
-  [`/devops/docker_build/poetry.lock)`](/devops/docker_build/poetry.lock))
+  [`/devops/docker_build/poetry.lock`](/devops/docker_build/poetry.lock)
 - Run the release flow manually (or rely on GH Action build workflow to create
   the new image)
 

@@ -70,7 +70,7 @@
   - Most Projects are created around software components or user workflows
     (which may cross software components)
 - For more information on GH Projects, see
-  [/docs/work_organization/ck.github_projects_process.reference.md](/docs/work_organization/ck.github_projects_process.reference.md)
+  [ck.github_projects_process.reference.md](/docs/work_organization/ck.github_projects_process.reference.md)
 
 ### Issue
 
@@ -84,7 +84,7 @@
 - An issue may be labeled as "Epic" if it has associated sub-issues.
   - However, this is not a standard in our workflow.
 - See also
-  [/docs/work_organization/ck.issue_workflow.explanation.md](/docs/work_organization/ck.issue_workflow.explanation.md)
+  [ck.issue_workflow.explanation.md](/docs/work_organization/ck.issue_workflow.explanation.md)
   for the description of the concept of Issues as opposed to Ideas/Projects.
 
 ### Label
@@ -253,7 +253,7 @@ stateDiagram
   Issue, change its status to `Done` but do not close it
   - Integrators / team leaders will close it after review
 - If you made specific assumptions, or if there are loose ends, etc., add a
-  `TODO(user) `or file a follow-up Issue
+  `TODO(user)` or file a follow-up Issue
 - Done means that something is "DONE", not "99% done"
   - "DONE" means that the code is tested, readable, and usable by other
     teammates

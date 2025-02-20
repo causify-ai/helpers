@@ -54,7 +54,7 @@
   - [ ] Fork, star, watch the KaizenFlow repo so that GitHub promotes our repo (we gotta work the system)
   - [ ] Learn about the [Morning Email](https://github.com/kaizen-ai/kaizenflow/blob/master/docs/work_organization/all.team_collaboration.how_to_guide.md#morning-email)
   - [ ] How to do a [review](https://github.com/kaizen-ai/kaizenflow/blob/master/docs/coding/all.submit_code_for_review.how_to_guide.md)
-  - [ ] If you are graduating soon and you would like to get a full-time job in one of the companies in the KaizenFlow ecosystem reach out to GP at [gp@kaizen-tech.io](mailto:gp@kaizen-tech.io)
+  - [ ] If you are graduating soon and you would like to get a full-time job in one of the companies in the KaizenFlow ecosystem reach out to GP at [gp@kaizen-tech.io](/mailto:gp@kaizen-tech.io)
   - [ ] Get assigned a warm-up issue
   ```
 
@@ -116,7 +116,7 @@
 ### Suggestions
 
 - In the first couple of weeks we should try to ingrain the following flow into
-  a new team member’s mind
+  a new team member's mind
 - Instead of spending hours coding on their own, apply the following steps:
   1. Identify a problem and describe it in the issue
   2. Design solution or seek guidance from a mentor
@@ -213,12 +213,12 @@ We get candidates in several ways
     - _Goal_: set up candidates to develop on cmamp (only on the server)
     - _Duration_: few days
     - The checklist for onboarding on cmamp is
-      [here](http://docs/onboarding/all.onboarding_checklist.md)
+      [here](/docs/onboarding/all.onboarding_checklist.reference.md)
     - On-boarding GH issue on cmamp
   - **Working on cmamp**
     - _Goal_: learn our development process
     - _Duration_: 1 month
-    - _Type of tasks_: unit tests (stuff that doesn’t require design)
+    - _Type of tasks_: unit tests (stuff that doesn't require design)
     - After that we can assign the best hires to teams
   - **Full-time or interns on probation**
     - _Goal_: contribute to KaizenAI or cmamp
@@ -243,7 +243,7 @@ ready
 
 The scoring process is described here
 
-`docs/work_organization/all.contributor_scoring.how_to_guide.md`
+[`/docs/work_organization/all.contributor_scoring.how_to_guide.md`](/docs/work_organization/all.contributor_scoring.how_to_guide.md)
 
 [Internships - Feedback 2024](https://docs.google.com/spreadsheets/d/1FCuM3dPP3QZCT7iOHSKXls-maSZ0Mwj7BjsbaUq-T0Y/edit?gid=1816709202#gid=1816709202)
 

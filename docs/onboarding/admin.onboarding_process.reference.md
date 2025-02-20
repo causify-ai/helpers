@@ -57,7 +57,7 @@
    - The content of the issue will be the following checklist (note that GitHub
      needs full paths to point to the documentation from an issue)
      ```
-     - [ ] Acknowledge the pledge to put effort and time in the project [here](/README.md#commitment-to-contribute)
+     - [ ] Acknowledge the pledge to put effort and time in the project here
      - [ ] Fork, star, watch the KaizenFlow repo so that GitHub promotes our repo (we gotta spread the work)
      - [ ] Read and execute [set up development environment](/docs/onboarding/kaizenflow.set_up_development_environment.how_to_guide.md)
      - [ ] Read and start internalizing [KaizenFlow Python coding style guide](/docs/coding/all.coding_style.how_to_guide.md)

@@ -274,7 +274,7 @@
 ### The second day
 
 - [ ] **Team member**: carefully study all the documents in
-      [the must-read list](/docs/onboarding/all.must_read_checklist.md)
+      [the must-read list](/docs/onboarding/all.dev_must_read_checklist.reference.md)
   - They will help you get up to speed with our practices and development style
   - Read them carefully one by one
   - Ask questions
