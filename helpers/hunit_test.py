@@ -1,4 +1,4 @@
-"""
+""":
 Import as:
 
 import helpers.hunit_test as hunitest
@@ -894,6 +894,7 @@ def assert_equal(
     purify_expected_text: bool = False,
     fuzzy_match: bool = False,
     ignore_line_breaks: bool = False,
+    split_max_len: Optional[int] = None,
     sort: bool = False,
     abort_on_error: bool = True,
     dst_dir: str = ".",
@@ -907,10 +908,10 @@ def assert_equal(
     """
     _LOG.debug(
         hprint.to_str(
-            "full_test_name test_dir"
-            " remove_lead_trail_empty_lines dedent purify_text"
-            " fuzzy_match ignore_line_breaks"
-            " abort_on_error dst_dir"
+            "full_test_name test_dir "
+            "remove_lead_trail_empty_lines dedent purify_text "
+            "fuzzy_match ignore_line_breaks split_max_len sort "
+            "abort_on_error dst_dir error_msg"
         )
     )
     # Store a mapping tag after each transformation (e.g., original, sort, ...) to
@@ -970,6 +971,12 @@ def assert_equal(
         tag = "ignore_line_breaks"
         actual = _ignore_line_breaks(actual)
         expected = _ignore_line_breaks(expected)
+        _append(tag, actual, expected)
+    # Split the strings into lines of at most `split_max_len` characters.
+    if split_max_len:
+        tag = "split_max_len"
+        actual = hprint.strict_split(actual, split_max_len)
+        expected = hprint.strict_split(expected, split_max_len)
         _append(tag, actual, expected)
     # Check.
     tag = "final"
@@ -1321,6 +1328,7 @@ class TestCase(unittest.TestCase):
         purify_expected_text: bool = False,
         fuzzy_match: bool = False,
         ignore_line_breaks: bool = False,
+        split_max_len: Optional[int] = None,
         sort: bool = False,
         abort_on_error: bool = True,
         dst_dir: str = ".",
@@ -1330,8 +1338,8 @@ class TestCase(unittest.TestCase):
         difference.
 
         Implement a better version of `self.assertEqual()` that reports
-        mismatching strings with sdiff and save them to files for
-        further analysis with vimdiff.
+        mismatching strings with sdiff and save them to files for further
+        analysis with vimdiff.
 
         The interface is similar to `check_string()`.
         """
@@ -1368,6 +1376,7 @@ class TestCase(unittest.TestCase):
             purify_expected_text=purify_expected_text,
             fuzzy_match=fuzzy_match,
             ignore_line_breaks=ignore_line_breaks,
+            split_max_len=split_max_len,
             sort=sort,
             abort_on_error=abort_on_error,
             dst_dir=dst_dir,
@@ -1411,28 +1420,37 @@ class TestCase(unittest.TestCase):
         purify_text: bool = False,
         fuzzy_match: bool = False,
         ignore_line_breaks: bool = False,
+        split_max_len: Optional[int] = None,
         sort: bool = False,
         use_gzip: bool = False,
         tag: str = "test",
         abort_on_error: bool = True,
         action_on_missing_golden: str = _ACTION_ON_MISSING_GOLDEN,
-        test_class_name=None,
+        test_class_name: Optional[str] = None,
     ) -> Tuple[bool, bool, Optional[bool]]:
         """
         Check the actual outcome of a test against the expected outcome
         contained in the file. If `--update_outcomes` is used, updates the
         golden reference file with the actual outcome.
 
+        :param actual: actual outcome of the test
+        :param remove_lead_trail_empty_lines: remove leading and trailing empty
         :param dedent: call `dedent` on the expected string to align it to the
             beginning of the row
-        :param purify_text: remove some artifacts (e.g., user names,
+        :param purify_text: remove some artifacts (e.g., usernames,
             directories, reference to Git client)
         :param fuzzy_match: ignore differences in spaces
         :param ignore_line_breaks: ignore difference due to line breaks
+        :param split_max_len: split the string into lines of at most this length
         :param sort: sort the text and then compare it. In other terms we check
             whether the lines are the same although in different order
-        :param action_on_missing_golden: what to do (e.g., "assert" or "update" when
-            the golden outcome is missing)
+        :param use_gzip: use gzip to compress/decompress the golden outcome
+        :param tag: tag to identify the golden outcome file
+        :param abort_on_error: whether to raise an exception if the outcome is
+            different from the golden outcome
+        :param action_on_missing_golden: what to do (e.g., "assert" or "update"
+            when the golden outcome is missing)
+        :param test_class_name: name of the test class
         :return: outcome_updated, file_exists, is_equal
         :raises: `RuntimeError` if there is a mismatch. If `abort_on_error` is False
             (which should be used only for unit testing) return the result but do not
@@ -1440,8 +1458,9 @@ class TestCase(unittest.TestCase):
         """
         _LOG.debug(
             hprint.to_str(
-                "dedent purify_text fuzzy_match ignore_line_breaks sort "
-                "tag abort_on_error"
+                "remove_lead_trail_empty_lines dedent purify_text fuzzy_match "
+                "ignore_line_breaks split_max_len sort use_gzip tag "
+                "abort_on_error action_on_missing_golden test_class_name"
             )
         )
         hdbg.dassert_in(type(actual), (bytes, str), "actual='%s'", actual)
@@ -1497,6 +1516,7 @@ class TestCase(unittest.TestCase):
                     purify_text=False,
                     fuzzy_match=fuzzy_match,
                     ignore_line_breaks=ignore_line_breaks,
+                    split_max_len=split_max_len,
                     sort=sort,
                     abort_on_error=abort_on_error,
                 )
@@ -1591,6 +1611,8 @@ class TestCase(unittest.TestCase):
                         purify_text=False,
                         fuzzy_match=False,
                         ignore_line_breaks=False,
+                        split_max_len=None,
+                        sort=False,
                         abort_on_error=abort_on_error,
                         error_msg=self._error_msg,
                     )
