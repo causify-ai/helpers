@@ -2,33 +2,33 @@
 
 <!-- toc -->
 
-  * [Conventions](#conventions)
-    + [Make no assumptions on the user's knowledge](#make-no-assumptions-on-the-users-knowledge)
-    + [Verify that things worked](#verify-that-things-worked)
-    + [Always use Linter](#always-use-linter)
-    + [Add a table of contents](#add-a-table-of-contents)
+- [Conventions](#conventions)
+  * [Make no assumptions on the user's knowledge](#make-no-assumptions-on-the-users-knowledge)
+  * [Verify that things worked](#verify-that-things-worked)
+  * [Always use Linter](#always-use-linter)
+  * [Add a table of contents](#add-a-table-of-contents)
 - [Add one level 1 heading](#add-one-level-1-heading)
-  * [Use 80 columns formatting for md files](#use-80-columns-formatting-for-md-files)
-    + [Use good vs bad](#use-good-vs-bad)
-    + [Use an empty line after heading](#use-an-empty-line-after-heading)
-    + [Bullet lists](#bullet-lists)
-    + [Use the right syntax highlighting](#use-the-right-syntax-highlighting)
-    + [Indent `code` style](#indent-code-style)
-    + [Embed screenshots only when strictly necessary](#embed-screenshots-only-when-strictly-necessary)
-    + [Improve your written English](#improve-your-written-english)
-    + [Make sure your markdown looks good](#make-sure-your-markdown-looks-good)
-    + [Do not overcapitalize headings](#do-not-overcapitalize-headings)
-    + [Update the `Last review` tag](#update-the-last-review-tag)
-    + [Comment the code structure](#comment-the-code-structure)
-    + [Convention for file names](#convention-for-file-names)
-    + [Use active voice](#use-active-voice)
-    + [Use simple short sentences](#use-simple-short-sentences)
-    + [Format for easy reading](#format-for-easy-reading)
-    + [Keep it visual](#keep-it-visual)
-    + [Mind your spelling](#mind-your-spelling)
-    + [Be efficient](#be-efficient)
-    + [Do not add fluff](#do-not-add-fluff)
-  * [Resources](#resources)
+- [Use 80 columns formatting for md files](#use-80-columns-formatting-for-md-files)
+  * [Use good vs bad](#use-good-vs-bad)
+  * [Use an empty line after heading](#use-an-empty-line-after-heading)
+  * [Bullet lists](#bullet-lists)
+  * [Use the right syntax highlighting](#use-the-right-syntax-highlighting)
+  * [Indent `code` style](#indent-code-style)
+  * [Embed screenshots only when strictly necessary](#embed-screenshots-only-when-strictly-necessary)
+  * [Improve your written English](#improve-your-written-english)
+  * [Make sure your markdown looks good](#make-sure-your-markdown-looks-good)
+  * [Do not overcapitalize headings](#do-not-overcapitalize-headings)
+  * [Update the `Last review` tag](#update-the-last-review-tag)
+  * [Comment the code structure](#comment-the-code-structure)
+  * [Convention for file names](#convention-for-file-names)
+  * [Use active voice](#use-active-voice)
+  * [Use simple short sentences](#use-simple-short-sentences)
+  * [Format for easy reading](#format-for-easy-reading)
+  * [Keep it visual](#keep-it-visual)
+  * [Mind your spelling](#mind-your-spelling)
+  * [Be efficient](#be-efficient)
+  * [Do not add fluff](#do-not-add-fluff)
+- [Resources](#resources)
 
 <!-- tocstop -->
 
@@ -62,7 +62,7 @@
 - To generate a table of contents, run Linter on the Markdown file, which will
   build the TOC automatically and place it at the top of the file
 
-# Add one level 1 heading
+## Add one level 1 heading
 
 - Make sure the headings structure contains exactly one level 1 heading
   (`# This one`)

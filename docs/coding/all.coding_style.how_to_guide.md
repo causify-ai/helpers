@@ -2024,7 +2024,6 @@
   ```
 - For more information on our testing conventions and guidelines, see
   [`/docs/coding/all.write_unit_tests.how_to_guide.md`](/docs/coding/all.write_unit_tests.how_to_guide.md)
-  c
 
 ### Refactoring
 

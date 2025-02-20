@@ -1,9 +1,15 @@
 <!-- toc -->
 
-- [Other approaches](#other-approaches)
-  * [Markdown -> Gdocs](#markdown---gdocs)
+- [Gdoc Markdown conversion](#gdoc--markdown-conversion)
+  * [Converting Gdocs to Markdown](#converting-gdocs-to-markdown)
+    + [Other approaches](#other-approaches)
+  * [Converting Markdown to Gdoc](#converting-markdown-to-gdoc)
 
 <!-- tocstop -->
+
+# Gdoc <-> Markdown conversion
+
+## Converting Gdocs to Markdown
 
 - Use bullet lists to organize the whole Markdown for consistency with other
   docs. See
@@ -49,7 +55,7 @@
   - Move the gdoc to the
     [\_OLD directory](https://drive.google.com/drive/u/0/folders/1J4B1vq8EwT-q_z7qSLCZ9Tug2CA9f8i7)
 
-# Other approaches
+### Other approaches
 
 - Best for a large document
 - Approach 1 - Chrome Docs to Markdown extension:
@@ -69,7 +75,7 @@
   [Cleaning up converted markdown](#cleaning-up-converted-markdown)
 - You might need to remove artifacts manually
 
-## Markdown -> Gdocs
+## Converting Markdown to Gdoc
 
 - Approach 1:
   - Run

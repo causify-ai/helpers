@@ -70,7 +70,7 @@ Example:
   - If the offender says that it's fixing the bug right away, let him/her do it
   - Otherwise, file a bug to track the issue
 
-- File an Issue in GH to report the failing tests and the errors
+- File an Issue on GH to report the failing tests and the errors
   - Example:
     [https://github.com/cryptokaizen/cmamp/issues/4386](https://github.com/cryptokaizen/cmamp/issues/4386)
   - Issue title template `Build fail - {repo} {test type} ({run number})`

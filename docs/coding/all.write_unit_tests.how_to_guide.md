@@ -239,8 +239,8 @@
 #### Our framework to test using input / output data
 
 - [`/helpers/hunit_test.py`](/helpers/hunit_test.py) has some utilities to
-  create input and output easily dirs storing data for unit tests
-- `hunitest.TestCase` has various methods to help you create
+  easily create input and output dirs storing data for unit tests
+- `hunitest.TestCase` has various methods to help you create dirs
   - `get_input_dir()`: return the name of the dir used to store the inputs
   - `get_scratch_space()`: return the name of a scratch dir to keep artifacts of
     the test
@@ -404,10 +404,10 @@ Last review: GP on 2024-05-13
       )
   act = str(cm.exception)
   exp = r"""
-  ```
 * Failed assertion \* '0' == '1' Specify only one among --modified,
-  --branch, --last-commit """ self.assert_equal(act, exp, fuzzy_match=True) """
-  ```
+  --branch, --last-commit 
+  """ 
+  self.assert_equal(act, exp, fuzzy_match=True)
   ```
 
 #### Interesting testing functions

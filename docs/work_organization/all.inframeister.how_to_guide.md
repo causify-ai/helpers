@@ -172,10 +172,12 @@ control, and specific oversight of infrastructure-related incidents.
 
 #### Filing Infrastructure Issues
 
-- **File and Track Issues:** Use issue
-  [#9606](https://github.com/cryptokaizen/cmamp/issues/9606) as an example
-  template for documenting and filing new infrastructure-related issues to
-  ensure consistency and thoroughness.
+- **File and Track Issues:** Systematically file and track all
+  infrastructure-related issues under the dedicated EPIC
+  [Infrastructure Alert and Failure Resolution #9721](https://github.com/cryptokaizen/cmamp/issues/9721).
+  Use issue [#9606](https://github.com/cryptokaizen/cmamp/issues/9606) as an
+  example template for documenting and filing new issues to ensure consistency
+  and thoroughness.
 - **Incident Report:** Ensure comprehensive report of each incident, including
   its impact assessment, investigative steps, and resolution measures.
 - **Communication and Collaboration:** Work with relevant technical leads to
