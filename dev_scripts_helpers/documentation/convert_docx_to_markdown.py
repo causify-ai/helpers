@@ -1,11 +1,15 @@
 #!/usr/bin/env python
 
 """
-Convert Docx file to Markdown.
+Convert Docx file to markdown using Dockerized `pandoc` and save the figs in a
+directory.
 
-- Download a Google Doc as a docx document
+# Usage:
 
-- Run this command in the same directory as the Markdown file:
+1) Download a Google Doc as a docx document
+
+2) Run this command in the same directory as the Markdown file:
+
 > IN_FILE_NAME="/Users/saggese/Downloads/Blank.docx"; ls $FILE_NAME
 > OUT_FILE_NAME="paper/paper.md"
 > convert_docx_to_markdown.py --docx_file $IN_FILE_NAME --md_file $OUT_FILE_NAME

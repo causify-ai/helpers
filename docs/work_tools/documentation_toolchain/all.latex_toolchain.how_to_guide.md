@@ -34,13 +34,24 @@
   - `convert_docx_to_markdown.py`
     - Convert Docx file to markdown using Dockerized `pandoc` and save the figs
       in a directory
-  - `convert_docx_to_markdown.sh`
-    - Wrapper to simplify calling `convert_docx_to_markdown.py`
+  - `dockerized_pandoc.py`
+    - Run `pandoc` inside a Docker container, building a container if needed
+    - Not tested directly but through `run_dockerized_pandoc()` in
+      `helpers/test/test_hdocker.py`
+  - `dockerized_prettier.py`
+    - Run `prettier` inside a Docker container to ensure consistent formatting
+      across different environments, building a container if needed
+    - Not tested directly but through `run_dockerized_prettier()` in
+      `helpers/test/test_hdocker.py`
   - `generate_latex_sty.py`
-    - One-off script to generate the latex file
+    - One-off script to generate the latex file with abbreviations
   - `generate_script_catalog.py`
     - Generate a markdown file with the docstring for any script in the repo
-    - TODO(gp): Unclear what to do with this
+    - TODO(gp): Unclear what to do with this. This can be a way to create
+      an index of all the scripts, if we use some consistent docstring
+  - `lint_notes.py`
+    - Lint "notes" files.
+    - Tested by `dev_scripts_helpers/documentation/test/test_lint_notes.py`
   - `latex_abbrevs.sty`
     - Latex macros
   - `latexdockercmd.sh`
@@ -52,6 +63,8 @@
   - `lint_latex2.sh`
     - Dockerized linter for Latex using `latexindent.pl`
     - TODO(gp): This is the old flow
+  - `notes_to_pdf.py`
+    - Convert a txt file into a PDF / HTML / slides using `pandoc`
   - `open_md_in_browser.sh`
     - Render a markdown using `pandoc` (installed locally) and then open it in a
       browser
@@ -60,29 +73,28 @@
   - `pandoc.latex`
     - `latex` template used by `notes_to_pdf.py`
   - `preprocess_notes.py`
-    - Convert a text file storing notes into markdown suitable for
-      `notes_to_pdf.py`
-    - The transformations are
-      - Convert the text in pandoc / latex format
-      - Handle banners around chapters
-      - Handle comments
+    - Convert a notes text file into markdown suitable for `notes_to_pdf.py`
   - `notes_to_pdf.py`
     - Convert a `txt` file storing nodes into a PDF / HTML / beamer slides using
       `pandoc`
+  - `open_md_on_github.sh`
+    - Render a markdown using Pandoc and then open it in a browser.
+  - `open_md_on_github.sh`
+    - Open a markdown filename on GitHub.
+  - `process_md_headers.py`
+    - Extract headers from a Markdown file and generate a Vim cfile
+  - `publish_notes.py`
+    - Publish all notes to a Google dir.
   - `render_images.py`
-    - Render images from code (e.g., plantUML, mermaid) in Markdown / LaTeX
-      files
+    - Replace sections of image code with rendered images, commenting out the
+      original code, if needed.
   - `replace_latex.py`, `replace_latex.sh`
     - Scripts for one-off processing of latex files
   - `run_latex.sh`
     - Dockerized latex flow
     - TODO(gp): Convert to Python
-  - `run_notes_to_pdf.py`
-    - Read value from stdin/file
-    - Transform it using `pandoc` according to different transforms (e.g.,
-      `convert_md_to_latex`)
-    - Write the result to stdout/file.
-    - TODO(gp): Is this obsolete?
+  - `run_pandoc.py`
+    - Run pandoc on stdin/file to stdout/file.
   - `test_lint_latex.sh`
     - Run latex linter and check if the file was modified
   - `transform_notes.py`
@@ -98,8 +110,6 @@
 - In `vim`
   ```bash
   :!helpers_root/dev_scripts_helpers/documentation/process_md_headers.py -i % -m 1
-  ```
-  ```bash
   Probability 1
   Random variables 735
   Mathematical expectation of RVs 1161
@@ -124,7 +134,7 @@
 
 ## List possible LLM transforms
 
-- Use `-t list`
+- Use `llm_transform.py -t list`
   ```bash
   code_comment
   code_docstring
@@ -141,7 +151,7 @@
 
 - Convert notes to slides:
   ```bash
-  > notes_to_pdf.py --input notes/MSML610/Lesson1-Intro.txt --output tmp.pdf -t slides --skip_action copy_to_gdrive --skip_action open --skip_action cleanup_after
+  > notes_to_pdf.py --input notes/MSML610/Lesson1-Intro.txt --output tmp.pdf -t slides
   ```
 
 # Latex Toolchain
@@ -172,6 +182,6 @@
   ```
   > papers/DataFlow_stream_computing_framework/lint_latex.sh
   ...
-  + docker run --rm -it --workdir /Users/saggese/src/cmamp1 --mount type=bind,source=/Users/saggese/src/cmamp1,target=/Users/saggese/src/cmamp1 lint_latex:latest sh -c ''\''./tmp.lint_latex.sh'\''' papers/DataFlow_stream_computing_framework/DataFlow_stream_computing_framework.tex
+  > docker run --rm -it --workdir /Users/saggese/src/cmamp1 --mount type=bind,source=/Users/saggese/src/cmamp1,target=/Users/saggese/src/cmamp1 lint_latex:latest sh -c ''\''./tmp.lint_latex.sh'\''' papers/DataFlow_stream_computing_framework/DataFlow_stream_computing_framework.tex
   papers/DataFlow_stream_computing_framework/DataFlow_stream_computing_framework.tex 320ms (unchanged)
   ```

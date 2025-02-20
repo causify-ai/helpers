@@ -4,11 +4,14 @@ from typing import Set
 import helpers.hdbg as hdbg
 import helpers.hmarkdown as hmarkdo
 import helpers.hopenai as hopenai
+import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
 
 def _run_all(user: str, system: str, model: str, transforms: Set[str]) -> str:
+    _LOG.debug(hprint.to_str("user system model transforms"))
+
     def _to_run(action: str) -> bool:
         if action in transforms:
             transforms.remove(action)
@@ -16,6 +19,7 @@ def _run_all(user: str, system: str, model: str, transforms: Set[str]) -> str:
         return False
 
     response = hopenai.get_completion(user, system=system, model=model)
+    _LOG.debug(hprint.to_str("response"))
     ret = hopenai.response_to_txt(response)
     if _to_run("remove_code_delimiters"):
         ret = hmarkdo.remove_code_delimiters(ret)
@@ -26,6 +30,7 @@ def _run_all(user: str, system: str, model: str, transforms: Set[str]) -> str:
     hdbg.dassert_eq(
         len(transforms), 0, "Not all transforms were run: %s", transforms
     )
+    hdbg.dassert_isinstance(ret, str)
     return ret
 
 
@@ -175,5 +180,6 @@ You will use multiple colors using pandoc \textcolor{COLOR}{text} to highlight i
 def apply_prompt(prompt_tag: str, txt: str, model: str) -> str:
     _ = txt, model
     python_cmd = f"{prompt_tag}(txt, model)"
+    _LOG.debug(hprint.to_str("python_cmd"))
     ret = str(eval(python_cmd))
     return ret
