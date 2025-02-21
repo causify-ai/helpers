@@ -301,15 +301,9 @@ def _check_docker_login(repo_name: str) -> bool:
     return is_logged
 
 
-def _docker_login_dockerhub(
-    target_registry: Optional[str] = "dockerhub.sorrentum",
-) -> None:
+def _docker_login_dockerhub() -> None:
     """
     Log into the Docker Hub which is a public Docker image registry.
-
-    :param target_registry: target DockerHub image registry to log in to
-        - "dockerhub.sorrentum": public Kaizenflow Docker image registry
-        - "dockerhub.causify": public Causify Docker image registry
     """
     # Check if we are already logged in to the target registry.
     # TODO(gp): Enable caching https://github.com/causify-ai/helpers/issues/20
@@ -320,12 +314,7 @@ def _docker_login_dockerhub(
             _LOG.warning("Already logged in to the target registry: skipping")
             return
     _LOG.info("Logging in to the target registry")
-    # Map the target registry to the corresponding secret.
-    secrets_to_registry = {
-        "dockerhub.sorrentum": "sorrentum_dockerhub",
-        "dockerhub.causify": "causify_dockerhub",
-    }
-    secret_id = secrets_to_registry[target_registry]
+    secret_id = "causify_dockerhub"
     secret = hsecret.get_secret(secret_id)
     username = hdict.typed_get(secret, "username", expected_type=str)
     password = hdict.typed_get(secret, "password", expected_type=str)
@@ -393,7 +382,6 @@ def docker_login(ctx, target_registry="aws_ecr.ck"):  # type: ignore
 
     :param ctx: invoke context
     :param target_registry: target Docker image registry to log in to
-        - "dockerhub.sorrentum": public Kaizenflow Docker image registry
         - "dockerhub.causify": public Causify Docker image registry
         - "aws_ecr.ck": private AWS CK ECR
     """
@@ -408,8 +396,8 @@ def docker_login(ctx, target_registry="aws_ecr.ck"):  # type: ignore
     # to make the function work as an invoke target.
     if target_registry == "aws_ecr.ck":
         _docker_login_ecr()
-    elif target_registry in ("dockerhub.sorrentum", "dockerhub.causify"):
-        _docker_login_dockerhub(target_registry=target_registry)
+    elif target_registry == "dockerhub.causify":
+        _docker_login_dockerhub()
     else:
         raise ValueError(f"Invalid Docker image registry='{target_registry}'")
 
@@ -1310,11 +1298,12 @@ def _get_lint_docker_cmd(
     no_dev_server: bool = False,
 ) -> str:
     """
-    Create a command to run in the Linter service.
+    Create a command to run in Linter service.
 
     :param docker_cmd_: command to run
-    :param stage: the image stage to use :no_dev_server: True, if
-        running the linter on local machine, else false if on dev server
+    :param stage: the image stage to use
+    :param no_dev_server: True, if running Linter on local machine,
+        else false if on dev server
     :return: the full command to run
     """
     # Get an image to run the linter on.

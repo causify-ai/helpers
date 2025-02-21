@@ -216,7 +216,7 @@ def lint(  # type: ignore
     :param branch: lint the files modified in the current branch w.r.t. master
     :param only_format: run only the modifying actions of Linter (e.g., black)
     :param only_check: run only the non-modifying actions of Linter (e.g., pylint)
-    :param no_dev_server: True, if running the linter on local machine,
+    :param no_dev_server: True, if running Linter on local machine,
         else false if on dev server
     """
     hlitauti.report_task()

@@ -413,7 +413,7 @@ def docker_tag_push_multi_build_local_image_as_dev(  # type: ignore
     :param local_base_image: base name of a local image,
         e.g., *****.dkr.ecr.us-east-1.amazonaws.com/amp
     :param target_registry: target Docker image registry to push the image to
-        - "dockerhub.sorrentum": public Kaizenflow Docker image registry
+        - "dockerhub.causify": public Causify Docker image registry
         - "aws_ecr.ck": private AWS CK ECR
     :param container_dir_name: directory where the Dockerfile is located
     """
@@ -433,7 +433,7 @@ def docker_tag_push_multi_build_local_image_as_dev(  # type: ignore
     if target_registry == "aws_ecr.ck":
         # Use AWS Docker registry.
         dev_base_image = ""
-    elif target_registry == "dockerhub.sorrentum":
+    elif target_registry == "dockerhub.causify":
         # Use public GitHub Docker registry.
         dev_base_image = "sorrentum/cmamp"
     else:
@@ -485,7 +485,7 @@ def docker_release_multi_build_dev_image(  # type: ignore
     :param poetry_mode: update package dependencies using poetry
     :param target_registries: comma separated list of target Docker
         image registries to push the image to. E.g.,
-        "aws_ecr.ck,dockerhub.sorrentum". See `docker_login()` for
+        "aws_ecr.ck,dockerhub.causify". See `docker_login()` for
         details.
     :param container_dir_name: directory where the Dockerfile is located
     """
