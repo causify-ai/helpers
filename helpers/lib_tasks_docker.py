@@ -1302,8 +1302,8 @@ def _get_lint_docker_cmd(
 
     :param docker_cmd_: command to run
     :param stage: the image stage to use
-    :param no_dev_server: True, if running Linter on local machine,
-        else false if on dev server
+    :param no_dev_server: True, if running Linter on local machine, else
+        false if on dev server
     :return: the full command to run
     """
     # Get an image to run the linter on.
