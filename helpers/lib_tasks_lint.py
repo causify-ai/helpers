@@ -16,10 +16,10 @@ import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
+import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.lib_tasks_docker as hlitadoc
 import helpers.lib_tasks_utils as hlitauti
-import helpers.hserver as hserver
 
 _LOG = logging.getLogger(__name__)
 
@@ -259,10 +259,7 @@ def lint(  # type: ignore
         find_cmd = "$(find . -path '*linters/base.py')"
     else:
         find_cmd = "$(find -wholename '*linters/base.py')"
-    lint_cmd_ = (
-        find_cmd + " "
-        + hlitauti._to_single_line_cmd(lint_cmd_opts)
-    )
+    lint_cmd_ = find_cmd + " " + hlitauti._to_single_line_cmd(lint_cmd_opts)
     docker_cmd_ = hlitadoc._get_lint_docker_cmd(
         lint_cmd_, stage=stage, version=version
     )
