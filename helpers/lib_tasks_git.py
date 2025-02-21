@@ -57,7 +57,7 @@ def git_fetch_master(ctx):  # type: ignore
 
 
 @task
-def git_merge_master(ctx, abort_if_not_ff=True, abort_if_not_clean=True, skip_fetch=False):  # type: ignore
+def git_merge_master(ctx, abort_if_not_ff=False, abort_if_not_clean=True, skip_fetch=False):  # type: ignore
     """
     Merge `origin/master` into the current branch.
 

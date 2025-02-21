@@ -2,6 +2,8 @@
 
 # pylint: disable=line-too-long
 """
+Scripts for one-off processing of latex files.
+
 # Replace only:
 
 > scripts/replace_latex.py -a replace --file notes/IN_PROGRESS/finance.portfolio_theory.txt
