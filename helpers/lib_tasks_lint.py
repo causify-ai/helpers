@@ -207,17 +207,17 @@ def lint(  # type: ignore
     > i lint --files="$(find . -name '*.py' -not -path './compute/*' -not -path './amp/*')"
     ```
 
-            :param stage: the image stage to use (e.g., "prod", "dev", "local")
-            :param version: the version of the container to use
-            :param files: specific files to lint (e.g. "dir1/file1.py dir2/file2.md")
-            :param dir_name: name of the dir where all files should be linted
-            :param modified: lint the files modified in the current git client
-            :param last_commit: lint the files modified in the previous commit
-            :param branch: lint the files modified in the current branch w.r.t. master
-            :param only_format: run only the modifying actions of Linter (e.g., black)
-            :param only_check: run only the non-modifying actions of Linter (e.g., pylint)
-            :param no_dev_server: True, if running the linter on local machine,
-                else false if on dev server
+    :param stage: the image stage to use (e.g., "prod", "dev", "local")
+    :param version: the version of the container to use
+    :param files: specific files to lint (e.g. "dir1/file1.py dir2/file2.md")
+    :param dir_name: name of the dir where all files should be linted
+    :param modified: lint the files modified in the current git client
+    :param last_commit: lint the files modified in the previous commit
+    :param branch: lint the files modified in the current branch w.r.t. master
+    :param only_format: run only the modifying actions of Linter (e.g., black)
+    :param only_check: run only the non-modifying actions of Linter (e.g., pylint)
+    :param no_dev_server: True, if running the linter on local machine,
+        else false if on dev server
     """
     hlitauti.report_task()
     # Verify that the passed options are valid.
