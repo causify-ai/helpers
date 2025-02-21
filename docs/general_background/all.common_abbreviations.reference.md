@@ -1,5 +1,3 @@
-
-
 <!-- toc -->
 
 - [Common abbreviations](#common-abbreviations)
@@ -8,7 +6,7 @@
 
 # Common abbreviations
 
-- -> room, -> = "let’s go to the conference room" (typically the one pinned in
+- -> room, -> = "let's go to the conference room" (typically the one pinned in
   the chat)
 - AFAIK = as far as I know
 - AFK, AFTK = away from (the) keyboard
@@ -28,12 +26,10 @@
 - Skateboard = getting something working end-to-end even with hacks (as long as
   reversible)
 - TBH = to be honest
-- TG = Telegram
 - TTYL = talk to you later
 - WFH = working from home
 - WIP = work in progress
 - Windows = the worst OS ever made
-- ZH = ZenHub
 - Np = no problem
 - Sg = sounds good
 - Vim = the best editor ever made

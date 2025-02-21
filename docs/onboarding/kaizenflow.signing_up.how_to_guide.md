@@ -1,5 +1,3 @@
-
-
 <!-- toc -->
 
 - [Signing up to the project](#signing-up-to-the-project)
@@ -18,12 +16,12 @@
 - Fill out the
   [Contributor Info form](https://docs.google.com/forms/d/e/1FAIpQLSf6IogJch1YUMSc_GfRcMIltGEEZ1xTotbRVkwZzWT7eBz_jA/viewform?usp=sf_link).
   - It's meant to just get basic contact info and technical skills about you
-  - Don’t worry: by working with us, you will quickly become a coding machine
+  - Don't worry: by working with us, you will quickly become a coding machine
 
 - Communication with the project teams happens through:
   - GitHub on the [repo](https://github.com/kaizen-ai/kaizenflow) like in any
     open-source development
-  - Telegram IM channel for higher bandwidth discussion
+  - Slack IM channel for higher bandwidth discussion
   - Through the KaizenFlow mailing list
 
 - Accept the invite from GitHub that we will send you
@@ -31,9 +29,6 @@
     GitHub promotes our repo
 
 - Accept the invite to join the Google Drive that we will send you
-
-- Subscribe to the [Telegram channel](https://t.me/+y5dd1qlDqGRjMjMx)
-  - Send a request, you will be added to the group after admin's approval
 
 - On-boarding Tasks
   - Once the invitation is accepted, an issue will be created by the title

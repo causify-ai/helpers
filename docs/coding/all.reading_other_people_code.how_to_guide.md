@@ -119,7 +119,7 @@
 
 - The problem is that code reflects the thought process of the person who wrote
   the code
-  - The goal of the style guide, code writing guide, linter is precisely to push
+  - The goal of the style guide, code writing guide, Linter is precisely to push
     us to write code consistently so that it's less painful to read
 
 - When you write code first hand, you think about it, and you build your mental

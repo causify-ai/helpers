@@ -3,18 +3,18 @@
 <!-- toc -->
 
 - [Read Python Style Guide](#read-python-style-guide)
-- [Run linter](#run-linter)
+- [Run Linter](#run-linter)
 - [Compare your code to example code](#compare-your-code-to-example-code)
 - [Save Reviewer time](#save-reviewer-time)
   * [Assign Reviewers](#assign-reviewers)
   * [Mention the issue](#mention-the-issue)
   * [Resolve conversations](#resolve-conversations)
-  * [Merge master to your branch](#merge-master-to-your-branch)
+  * [Merge master into your branch](#merge-master-into-your-branch)
   * [Ask for reviews](#ask-for-reviews)
   * [Do not use screenshots](#do-not-use-screenshots)
   * [Report bugs correctly](#report-bugs-correctly)
 - [Talk through code and not GitHub](#talk-through-code-and-not-github)
-- [Look at examples of the first reviews](#look-at-examples-of-the-first-reviews)
+- [Look at examples of first reviews](#look-at-examples-of-first-reviews)
 
 <!-- tocstop -->
 
@@ -25,27 +25,19 @@ some helpful tips and resources to guide you through your first review.
 ## Read Python Style Guide
 
 - Before submitting your code for review, we highly recommend that you read the
-  [Python Style Guide](all.coding_style.how_to_guide.md), which outlines the
-  major conventions and best practices for writing Python code.
+  [Python Style Guide](/docs/coding/all.coding_style.how_to_guide.md), which
+  outlines the major conventions and best practices for writing Python code.
 - Adhering to these standards will help ensure that your code is easy to read,
   maintain, and understand for other members of the team.
 
-## Run linter
+## Run Linter
 
 - Linter is a tool that checks (and tries to fix automatically) your code for
   syntax errors, style violations, and other issues.
 - Run it on all the changed files to automatically catch any code issues before
   filing any PR or before requesting a review!
-- To be able to run the linter, you need to you need to set up your client first
-  since you're outside Docker:
-  - The instructions are available at
-    [KaizenFlow_development_setup.md](/docs/onboarding/kaizenflow.set_up_development_environment.how_to_guide.md)
-  - In practice you need to have run
-    ```
-    > source dev_scripts/setenv_amp.sh
-    ```
-- Run the linter with `invoke` command (which is abbreviated as `i`) and pass
-  all the files you need to lint in brackets after the `--files` option,
+- Run Linter with `invoke` command (which is abbreviated as `i`) and pass all
+  the files you need to lint in quotation marks after the `--files` option,
   separated by a space:
   ```
   > i lint --files "defi/tulip/implementation/order.py defi/tulip/implementation/order_matching.py"
@@ -65,34 +57,33 @@ some helpful tips and resources to guide you through your first review.
     ```
 - Fix the lints
   - No need to obsessively fix all of them - just crucial and obvious ones
-  - Post unresolved lints in your PR so Reviewer could see them and know which
-    should be fixed and which are not
-- If we see that people didn't run the linter, we should do a quick PR just
-  running the linter. This type of PR can be merged even without review.
-- If the linter introduces extensive changes in a PR, causing difficulty in
-  reading the diff, a new pull request should be created exclusively for the
-  linter changes, based on the branch of the original PR.
+  - Post unresolved lints in your PR so that Reviewer can see them and know
+    which should be fixed and which are not
+- If we see that people didn't run Linter, we should do a quick PR just running
+  Linter. This type of PR can be merged even without review.
+- If Linter introduces extensive changes in a PR, causing difficulty in reading
+  the diff, a new pull request should be created exclusively for the Linter
+  changes, based on the branch of the original PR.
 
 ## Compare your code to example code
 
 - To get an idea of what well-formatted and well-organized code looks like, we
-  suggest taking a look at some examples of code that adhere to our standards.
+  suggest taking a look at some examples of code that adheres to our standards.
 - We try to maintain universal approaches to all the parts of the code, so when
   looking at a code example, check for:
   - Code style
   - Docstrings and comments
   - Type hints
-  - Containing directory structure
+  - Dir structure
 - Here are some links to example code:
-  - Classes and functions:
-    - `defi/tulip/implementation/order.py`
-    - `defi/tulip/implementation/order_matching.py`
+  - Classes, functions and scripts:
+    - [`/import_check/show_imports.py`](/import_check/show_imports.py)
+    - [`/linters/amp_fix_md_links.py`](/linters/amp_fix_md_links.py)
+    - [`/helpers/lib_tasks_lint.py`](/helpers/lib_tasks_lint.py)
   - Unit tests:
-    - `defi/tulip/test/test_order_matching.py`
-    - `defi/tulip/test/test_optimize.py`
-  - Scripts:
-    - `amp/helpers_root/dev_scripts_helpers/system_tools/replace_text.py`
-    - `dev_scripts/lint_md.sh`
+    - [`/import_check/test/test_show_imports.py`](/import_check/test/test_show_imports.py)
+    - [`/linters/test/test_amp_fix_md_links.py`](/linters/test/test_amp_fix_md_links.py)
+    - [`/helpers/test/test_lib_tasks_lint.py`](/helpers/test/test_lib_tasks_lint.py)
 
 ## Save Reviewer time
 
@@ -104,53 +95,56 @@ some helpful tips and resources to guide you through your first review.
   - Junior contributors should assign Team Leaders (e.g., Grisha, DanY, Samarth,
     ...) to review their PR
     - Team Leaders will assign integrators (GP & Paul) themselves after all
-      their comments are implemented
+      their comments have been addressed
   - Ping the assigned Reviewer in the issue if nothing happens in 24 hours
   - If you want to keep someone notified about changes in the PR but do not want
-    to make him/her a Reviewer, type `FYI @github_name` in a comment section
+    to make him/her a Reviewer, type `FYI @github_name` in the comment section
 
 ### Mention the issue
 
-- Mention the corresponding issue in the PR description to ease the navigation
+- Mention the corresponding issue in the PR description to ease navigation
   - E.g., see an
     [example](https://github.com/kaizen-ai/kaizenflow/pull/288#issue-1729654983)
     - <img width="505" alt="" src="https://github.com/kaizen-ai/kaizenflow/assets/31514660/69fbabec-300c-4f7c-94fc-45c5da5a6817">
 
 ### Resolve conversations
 
-- When you've implemented a comment from a Reviewer, press
-  `Resolve conversation` button so the Reviewer knows that you actually took
-  care of it
+- When you've addressed a comment from a Reviewer, press `Resolve conversation`
+  button so the Reviewer knows that you actually took care of it
   - <img width="328" alt="" src="https://github.com/kaizen-ai/kaizenflow/assets/31514660/a4c79d73-62bd-419b-b3cf-e8011621ba3c">
 
-### Merge master to your branch
+### Merge master into your branch
 
 - Before any PR review request do `i git_merge_master` in order to keep the code
   updated
   - Resolve conflicts if there are any
   - Do not forget to push it since this action is a commit itself
 - Actually, a useful practice is to merge master to your branch every time you
-  to get back to work on it
-  - This way you make sure that your branch is always using a relevant code and
+  get back to work on it
+  - This way you make sure that your branch is always using relevant code and
     avoid huge merge conflicts
 - **NEVER** press `Squash and merge` button yourself
-  - You need to merge master branch to your branch - not vice verca!
-  - This is a strictly Team Leaders and Integrators responsibility
+  - You need to merge master branch into your branch - not vice verca!
+  - This is a strictly Team Leaders' and Integrators' responsibility
 
 ### Ask for reviews
 
-- When you've implemented all the comments and need another round of review:
+- When you've addressed all the comments and need another round of review:
   - Press the circling arrows sign next to the Reviewer for the ping
     - <img width="280" alt="" src="https://github.com/kaizen-ai/kaizenflow/assets/31514660/4f924f4f-abab-40be-975d-a4fa81d9af3b">
-  - Remove `PR_for_authors` and add `PR_for_reviewers` label (labels
-    [desc](/docs/work_organization/all.use_github_and_zenhub.how_to_guide.md#pr-labels))
+  - Remove `PR_for_authors` and add the `PR_for_reviewers` label (see
+    [here](/docs/work_organization/all.use_github.how_to_guide.md#pr-labels) for
+    the description of available labels)
     - <img width="271" alt="" src="https://github.com/kaizen-ai/kaizenflow/assets/31514660/3580bf34-dcba-431b-af5c-5ae65f7597c3">
 
 ### Do not use screenshots
 
-- Stack trace and logs are much more convenient to use for debugging
+- Stack traces and logs are much more convenient to use for debugging
 - Screenshots are often too small to capture both input and return logs while
   consuming a lot of basically useless memory
+- Reviewers and collaborators cannot copy from the screenshot, which means that
+  if they want to reproduce the error, they need to manually type the code shown
+  in the screenshot, which is very inconvenient and error-prone
 - The exceptions are plots and non-code information
 - Examples:
   - _Bad_
@@ -183,7 +177,7 @@ some helpful tips and resources to guide you through your first review.
 
 ### Report bugs correctly
 
-- Whenever you face any errors put as much information about the issue as
+- Whenever you face any errors, put as much information about the problem as
   possible, e.g.,:
   - What you are trying to achieve
   - Command line you ran, e.g.,
@@ -209,15 +203,16 @@ some helpful tips and resources to guide you through your first review.
 
 ## Talk through code and not GitHub
 
-- Authors of the PR should not initiate talking to reviewers through GitHub but
-  only through code
+- PR authors should, as a rule, talk to reviewers not through GitHub but through
+  code
   - E.g., if there is something you want to explain to the reviewers, you should
-    not comment your own PR, but should add comments or improve the code
-  - Everything in GitHub is lost once the PR is closed, so all knowledge needs
+    not comment on your own PR, but instead add comments in the code itself, or
+    improve the code so that it doesn't need explanation
+  - Everything on GitHub is lost once the PR is closed, so all knowledge needs
     to go inside the code or the documentation
-- Of course it's ok to respond to questions in GitHub
+- Of course it's ok to respond to questions on GitHub
 
-## Look at examples of the first reviews
+## Look at examples of first reviews
 
 - It can be helpful to review some examples of previous first reviews to get an
   idea of what common issues are and how to address them.

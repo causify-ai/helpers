@@ -31,7 +31,7 @@
     to make it easier to collaborate and review.
     - What should the code do?
     - What are the functionalities you want to implement?
-    - What are the functionalities you don’t want to implement? (what are you
+    - What are the functionalities you don't want to implement? (what are you
       explicitly considering to be out-of-scope?)
     - What is more important, what is less important? E.g., in terms of P0, P1,
       P2
@@ -50,7 +50,7 @@
     - What is similar to what?
     - ETA: Spend 30 mins thinking
   - Ask for someone to review the plan
-    - Don’t be ashamed of asking for advice
+    - Don't be ashamed of asking for advice
   - Implement a design
     - Transform the plan into high-level code, e.g.,
       - What are the objects / functions involved?
@@ -74,7 +74,7 @@
   - We want to do quick interactions: every day there is communication, update
     and discussion
   - Do not disappear for one week and come back with something that makes sense
-    only to you, or that you didn’t get buy-in from others on
+    only to you, or that you didn't get buy-in from others on
 
 ### Hacker laws
 
@@ -138,7 +138,7 @@
   engineering across projects and even languages. The classical introduction to
   design patterns is the so-called "Gang of Four"
   [book](https://www.amazon.com/Design-Patterns-Object-Oriented-Addison-Wesley-Professional-ebook/dp/B000SEIBB8).
-- A free python-focused reference is available
+- A free Python-focused reference is available
   [here](https://python-3-patterns-idioms-test.readthedocs.io/en/latest/).
 - Expanding your knowledge of design patterns is a worthwhile investment,
   because design patterns
@@ -148,7 +148,7 @@
   - Are widely used and well-known and therefore quickly recognized by skilled
     programmers
 - In other words, by using design patterns, you
-  - Don’t have to re-invent the wheel
+  - Don't have to re-invent the wheel
   - Simplify the high-level picture of your code
   - Make it easier for other people to understand your code
 
@@ -240,8 +240,7 @@ Invariants and conventions
 #### Roles and responsibilities
 
 - How to communicate
-  - Slack for urgent stuff or interactive things (ideally on a small group
-    chat)
+  - Slack for urgent stuff or interactive things (ideally on a small group chat)
   - All the action happens in the GH issues
     - Update the Issues multiple times a day
 
@@ -253,11 +252,11 @@ Invariants and conventions
   - First line of defense for IT / dev issues
     - The best answer to any problem is a link to gdoc with the solution
 
-- Everybody to keep their Issues up to date in ZH and GH
+- Everybody to keep their Issues up to date in GH
   - In the `In progress` and `Sprint Backlog`
   - Each issue has typically:
     - A single assignee
-    - An EPIC
+    - A GH Project
     - Maybe a label
   - Each Git branch should go with the corresponding Issue
     - E.g., `AmpTask2163_Implement_tiled_backtesting`
@@ -275,7 +274,7 @@ Invariants and conventions
   - Why do you think things should work differently?
 
 - "One PR a day keeps the doctor away"
-  - "… keeps investors at bay"
+  - "... keeps investors at bay"
   - At least 1 PR a day
   - Draft architectural PR when in doubt
     <img src="all.code_design.how_to_guide_figs/image2.png" />

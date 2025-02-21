@@ -238,9 +238,9 @@
 
 #### Our framework to test using input / output data
 
-- `helpers/unit_test.py` has some utilities to create input and output easily
-  dirs storing data for unit tests
-- `hut.TestCase` has various methods to help you create
+- [`/helpers/hunit_test.py`](/helpers/hunit_test.py) has some utilities to
+  easily create input and output dirs storing data for unit tests
+- `hunitest.TestCase` has various methods to help you create dirs
   - `get_input_dir()`: return the name of the dir used to store the inputs
   - `get_scratch_space()`: return the name of a scratch dir to keep artifacts of
     the test
@@ -328,8 +328,8 @@ Last review: GP on 2024-05-13
 - Interesting unit tests are in `helpers/test`
 - A unit test looks like:
   ```python
-  import helpers.unit_test as hut
-  class Test...(hut.TestCase):
+  import helpers.hunit_test as hunitest
+  class Test...(hunitest.TestCase):
       def test...(self):
           ...
   ```
@@ -345,8 +345,8 @@ Last review: GP on 2024-05-13
   classes
 - A parent test class looks like:
   ```python
-  import helpers.unit_test as hut
-  class SomeClientTestCase(hut.TestCase):
+  import helpers.hunit_test as hunitest
+  class SomeClientTestCase(hunitest.TestCase):
       def _test...1(self):
           ...
       def _test...2(self):
@@ -404,16 +404,16 @@ Last review: GP on 2024-05-13
       )
   act = str(cm.exception)
   exp = r"""
-  ```
 * Failed assertion \* '0' == '1' Specify only one among --modified,
-  --branch, --last-commit """ self.assert_equal(act, exp, fuzzy_match=True)
-  ```
+  --branch, --last-commit 
+  """ 
+  self.assert_equal(act, exp, fuzzy_match=True)
   ```
 
 #### Interesting testing functions
 
 - List of useful testing functions are:
-  - [General python](https://docs.python.org/2/library/unittest.html#test-cases)
+  - [General Python](https://docs.python.org/2/library/unittest.html#test-cases)
   - [Numpy](https://docs.scipy.org/doc/numpy-1.15.0/reference/routines.testing.html)
   - [Pandas](https://pandas.pydata.org/pandas-docs/version/0.21/api.html#testing-functions)
 
@@ -801,10 +801,9 @@ Last review: GP on 2024-05-13
 
 ## Update test tags
 
-- There are 2 files with the list of tests' tags:
-  - `amp/pytest.ini`
-  - `.../pytest.ini (if `amp` is a submodule)`
-- In order to update the tags (do it in both files):
+- In the root of each repo there is a `pytest.ini` file with the list of tests'
+  tags
+- In order to update the tags:
   - In the `markers` section, add a name of a new tag
   - After a `:` add a short description
   - Keep tags in the alphabetical order
@@ -828,7 +827,7 @@ It is best to apply on any part that is deemed unnecessary for specific test
   - CCXT
   - AWS
     - S3
-      - See [`/helpers/hmoto.py`](/helpers/hmoto.py) in `cmamp` repo
+      - See [`/helpers/hmoto.py`](/helpers/hmoto.py)
     - Secrets
     - Etc...
 - DB calls
@@ -944,7 +943,7 @@ def test_function_call1(self, mock_get_secret: umock.MagicMock):
 
 - Function `get_secret` in `helpers/hsecret.py` is mocked
   - Pay attention on where is `get_secret` mocked:
-    - It is mocked in im_v2.ccxt.data.extract.extractor as "get_secret" is
+    - It is mocked in `im_v2.ccxt.data.extract.extractor` as "get_secret" is
       called there in function that is being tested
   - `@umock.patch.object(hsecret, "get_secret")` will not work as mocks are
     applied after all modules are loaded, hence the reason for using exact
@@ -1068,7 +1067,7 @@ class TestCcxtExtractor1(hunitest.TestCase):
     - `patch.start()` is returning a standard `MagicMock` object we can use to
       check various states as mentioned in previous examples and control return
       values
-      - Call_args, call_count, return_value, side_effect, etc.
+      - `call_args`, `call_count`, `return_value`, `side_effect`, etc.
 - Note: Although patch initialization in static variables belongs to
   `set_up_test()`, when this code is moved there patch is created for each test
   separately. We want to avoid that and only start/stop same patch for each

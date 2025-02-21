@@ -77,7 +77,7 @@
       - There is overhead in organizing and maintaining code in packages and we
         want to pay the overhead only if we get enough benefit from this
   - We specify a short import in the `__init__.py` file for a package manually
-    because the linter cannot do it automatically yet
+    because Linter cannot do it automatically yet
     - We use the first letters to build a short import and try to keep it less
       than 8 chars long, e.g., `im_v2.talos.data.client` -> `itdcl`
     - We insert an import docstring in the `__init__.py` file manually and then
@@ -99,13 +99,13 @@
        package even if it's included
        ```python
        import market_data as mdata
-       … mdata.AbstractMarketData …
+       ... mdata.AbstractMarketData ...
        ```
   2. Import the files directly with the code and not the package
      - E.g.,
        ```python
        import market_data.abstract_market_data as mdabmada
-       … mdabmada.AbstractMarketData …
+       ... mdabmada.AbstractMarketData ...
        ```
 
 - To justify, one can argue that unit tests are clients of the code and should

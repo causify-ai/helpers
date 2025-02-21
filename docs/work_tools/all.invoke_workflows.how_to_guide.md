@@ -85,11 +85,11 @@
 
 - New commands are always being added, but a list of valid tasks is below
 
-  ```bash
+  ````bash
   > invoke --list
   INFO: > cmd='/Users/saggese/src/venv/amp.client_venv/bin/invoke --list'
   Available tasks:
-  copy_ecs_task_definition_image_url                    Copy image URL from one task definition to another.                                                                                                                                 
+  copy_ecs_task_definition_image_url                    Copy image URL from one task definition to another.
 
   docker_bash                                           Start a bash shell inside the container corresponding to a stage.
   docker_build_local_image                              Build a local image, i.e., a release candidate "dev" image.
@@ -158,7 +158,7 @@
   integrate_rsync                                       Use `rsync` to bring two dirs to sync.
 
   lint                                                  Lint files.
-  lint_check_if_it_was_run                              Check if the linter was run in the current branch.
+  lint_check_if_it_was_run                              Check if Linter was run in the current branch.
   lint_check_python_files                               Compile and execute Python files checking for errors.
   lint_check_python_files_in_docker                     Compile and execute Python files checking for errors.
   lint_create_branch                                    Create the branch for linting in the current dir.
@@ -191,7 +191,7 @@
   run_tests                                             :param test_lists: comma separated list with test lists to run (e.g., `fast_test,slow_tests`)
 
   traceback                                             Parse the traceback from Pytest and navigate it with vim.
-  ```
+  ````
 
 ### Getting help for a specific workflow
 
@@ -296,7 +296,7 @@ TODO(gp): Describe
   > i git_merge_master
 
   # Commit and push the changes that you have made to the branch
-  > git commit -m “Initial Changes”
+  > git commit -m "Initial Changes"
   > git push origin CmTask5874_Document_PR_flow
 
   # You can check the git diff between your branch and master using the following command:
@@ -409,7 +409,7 @@ TODO(gp): Describe
 
   # Remove what you don't want to commit.
 
-  # Do not change anything or run the linter otherwise your feature branch will not
+  # Do not change anything or run Linter, otherwise your feature branch will not
   merge easily.
   > git diff
   > git checkout master -- ...
@@ -442,7 +442,8 @@ TODO(gp): Describe
 
 ### Systematic code transformation
 
-- See the help of `amp/helpers_root/dev_scripts_helpers/system_tools/replace_text.py`
+- Can be done with the help of
+  `dev_scripts_helpers/system_tools/replace_text.py`
 
 ### Generate a local `amp` Docker image
 
@@ -556,6 +557,7 @@ TODO(gp): Describe
 ### Capture output of a pytest
 
 - Inside the `dev` container (i.e., docker bash)
+
   ```bash
   docker> pytest_log ...
   ```

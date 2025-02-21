@@ -53,6 +53,3 @@
 - RP (Responsible Party)
   - Someone on the team that helps following our process
   - Aka: tech lead
-
-- ZH (ZenHub)
-  - Our tool for project management

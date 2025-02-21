@@ -109,12 +109,12 @@
       reminders?
   - Follow our PR process
     - Learns from reviews and doesn't make the same mistakes?
-    - Runs linter consistently before each iteration?
+    - Runs Linter consistently before each iteration?
     - Does a PR / day (even draft)?
   - Follow our organizational process
     - Sends a daily TODO email?
     - Updates their issues daily?
-    - Curates GitHub / ZenHub?
+    - Curates GitHub?
   - Team work
     - Helps others on the team when others need help / supervision?
     - Takes the initiative and goes the extra mile when needed?

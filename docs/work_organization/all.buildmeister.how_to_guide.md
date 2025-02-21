@@ -7,7 +7,7 @@
 - [General](#general)
 - [Notification system](#notification-system)
 - [Buildmeister instructions](#buildmeister-instructions)
-    + [`update_amp_submodule` fails](#update_amp_submodule-fails)
+    + [`update_helpers_submodule` fails](#update_helpers_submodule-fails)
 - [Buildmeister dashboard](#buildmeister-dashboard)
 - [Allure Reports Analysis](#allure-reports-analysis)
 - [Post-mortem analysis (TBD)](#post-mortem-analysis-tbd)
@@ -70,7 +70,7 @@ Example:
   - If the offender says that it's fixing the bug right away, let him/her do it
   - Otherwise, file a bug to track the issue
 
-- File an Issue in GH / ZH to report the failing tests and the errors
+- File an Issue on GH to report the failing tests and the errors
   - Example:
     [https://github.com/cryptokaizen/cmamp/issues/4386](https://github.com/cryptokaizen/cmamp/issues/4386)
   - Issue title template `Build fail - {repo} {test type} ({run number})`
@@ -100,9 +100,6 @@ Example:
       dir='/fsx/research/data/kg/releases/timeseries_db/v0.5.2' doesn't exist or
       it's not a dir The requested version 0.5.2 has directory associated with it.
     ```
-  - Add the issue to the
-    [BUILD - Breaks](https://app.zenhub.com/workspaces/cm-615371012ed326001e044788/issues/cryptokaizen/cmamp/167)
-    Epic so that we can track it
   - If the failures are not connected to each other, file separate issues for
     each of the potential root cause
   - Keep issues grouped according to the codebase organization
@@ -123,16 +120,15 @@ Example:
     - IMPORTANT: Disabling a test is not the first choice, it's a measure of
       last resort!
 
-- Regularly check issues that belong to the Epic
-  [BUILD - Breaks](https://app.zenhub.com/workspaces/cm-615371012ed326001e044788/issues/cryptokaizen/cmamp/167).
+- Regularly check issues related to build breaks.
   - You have to update the break issues if the problem was solved or partially
     solved.
-  - Pay special attention to the failures which resulted in disabling tests
+  - Pay special attention to the failures which resulted in disabling tests.
 
 - When your time of the Buildmeister duties is over, confirm the rotation with
   the next responsible person in the related Slack channel.
 
-#### `update_helpers_submodule` fails
+### `update_helpers_submodule` fails
 
 - When this happens, the first thing to do is attempt to update the `helpers`
   pointer manually
@@ -252,7 +248,7 @@ for detailed information.
     - Underlying data changed
 
 - `Issue` column:
-  - Provide the link to the ZH issue with the break description
+  - Provide the link to the GH issue with the break description
 
 - `Solution` column:
   - Provide the solution description of the problem

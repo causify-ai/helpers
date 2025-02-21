@@ -1,5 +1,3 @@
-
-
 <!-- toc -->
 
 - [GitHub Projects process](#github-projects-process)
@@ -12,7 +10,7 @@
   * [Automation](#automation)
     + [Built-in workflows](#built-in-workflows)
     + [Github Actions automations](#github-actions-automations)
-  * [EPICs (AKA parent and sub-issues)](#epics-aka-parent-and-sub-issues)
+  * [Parent and sub-issues](#parent-and-sub-issues)
 
 <!-- tocstop -->
 
@@ -30,8 +28,8 @@
 
 ## GH project structure
 
-- A GH project represents a long-term project that is composed of GH Issues and
-  EPICs, executed by multiple team members according to Sprints
+- A GH project represents a long-term project that is composed of GH Issues,
+  executed by multiple team members according to Sprints
 
 - Each GH project window consists of tabs called "views"
 
@@ -62,7 +60,7 @@
   - **Status** (TODO, In Progress, Done)
     - What phase of the development the issue is in
   - **Estimate** in terms of "uninterrupted hours of work"
-    - What is the issues’ estimated implementation difficulty
+    - What is the issues' estimated implementation difficulty
     - We want to become good at estimating complexity and overcome being
       uncomfortable in providing ETAs
     - Estimating complexity in terms of hours of work is done to the best of our
@@ -74,7 +72,7 @@
   - **Sprint**
     - Which weekly sprint this issue belongs to
 
-- It’s possible to add new fields; the list above includes the agreed upon
+- It's possible to add new fields; the list above includes the agreed upon
   fields shared across all projects
 
 ### How to set up a new project
@@ -90,12 +88,12 @@
 
 - Change the default name `@yourusername untitled project` to a relevant name
   - The name should be short and representative of what needs to be done
-  - Ideally we want to complete a Project in 2-3 months, since we don’t want to
+  - Ideally we want to complete a Project in 2-3 months, since we don't want to
     have long-running projects linger forever on the board. Each project should
     have a clear goal
   - Long-running projects should be broken in smaller projects to show and
     measure progress
-  - If a project can’t be easily described in a phrase starting with a verb, it
+  - If a project can't be easily described in a phrase starting with a verb, it
     means that the scope is too big
   - Good names are:
     - "CustomerXYZ Proof-of-concept", e.g., "ITSavvy Proof-of-concept"
@@ -122,7 +120,7 @@
 - Open Slack and create a channel for the project
   - The naming convention is `proj-<<project-name>>`
   - The Slack channel is used to communicate with the team working on that
-    project, using our conventions of what’s so urgent to require an IM
+    project, using our conventions of what's so urgent to require an IM
   - Click on `Add Canvas` and create a `Channel Overview` canvas
     - Provide a short description (can be the same as in GitHub project)
     - Include links to the GitHub and Asana
@@ -130,26 +128,23 @@
 - Open Asana and create a new project
   - The naming convention is `Proj - <<project name>>`
   - The Asana project is used to
-    - Track non-technical issues (i.e., track work that doesn’t easily map in
+    - Track non-technical issues (i.e., track work that doesn't easily map in
       terms of coding)
-    - To track the project at higher level than GH (e.g., in terms of Asana
-      tasks that are EPICs)
+    - To track the project at higher level than GH
   - The Asana board is typically used by the project Team leader to communicate
     status to the other departments and Team leaders
-  - E.g., on Asana we can do high level planning in terms of broad EPICs and as
-    place-holder for work that is not ready yet to be filed, similar to what we
-    do with Google Docs
-  - TODO(Juraj): not sure what all of the steps for Asana include
+  - E.g., on Asana we can do high level planning and track work that is not
+    ready yet to be filed as GH Issues, similar to what we do with Google Docs
 
 - In general there is not a clear cut distinction between what goes in GH
-  Project, GH Epics, GH Issues, Asana tasks, Google Docs planning
-  - We agree that a GH Project includes many GH Epics and GH Issues
+  Project, GH Issues, Asana tasks, Google Docs planning
+  - We agree that a GH Project includes many GH Issues
   - We agree that things can go in GH Project or in Asana tasks or in a Google
     Doc planning docs
   - We let people a bit of flexibility to do things however they are more
     comfortable
   - E.g., GP likes Google Docs to sketch out a project and track issues, Asana
-    to track at high-level, and one Isssue per "feature" when the Issue is ready
+    to track at high-level, and one Issue per "feature" when the Issue is ready
     to be executed
 
 ### Special types of project
@@ -194,7 +189,7 @@ Summary
 
 - The orderbook related ETL and backtest pipelines encountered some
     unexpected obstacles (code-base related). It took a bit more time
-    than expected to resolve them, but it didn’t take us off track.
+    than expected to resolve them, but it didn't take us off track.
 
 Next steps
 
@@ -238,21 +233,14 @@ Next steps
 - For more customized automated workflows we use GitHub actions
 
 - A GitHub Action
-  [`sprint_iteration.yml`](https://github.com/causify-ai/cmamp/blob/master/.github/workflows/sprint_iteration.yml) 
-  is set up to move items in active projects from last sprint to current sprint 
-  at the beginning of each sprint.
+  [`sprint_iteration.yml`](https://github.com/causify-ai/cmamp/blob/master/.github/workflows/sprint_iteration.yml) is set up to
+  move items in active projects from last sprint to current sprint at the
+  beginning of each sprint.
 
-## EPICs (AKA parent and sub-issues)
-
-_Note: this is currently optional part, but can aid in a more comprehensive
-project management, it’s up to each project owner if they want to use this
-feature_
-
-_Note2: This feature is currently in beta mode, we have been given access to it_
+## Parent and sub-issues
 
 - GitHub offers
   [<u>sub-issues</u>](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/adding-sub-issues)
   to breakdown complex or higher-level task into smaller chunks of works
 
-- Once an issue has been assigned one or more sub-issue it becomes a so called
-  EPIC
+- Our current convention is _not_ to use this feature

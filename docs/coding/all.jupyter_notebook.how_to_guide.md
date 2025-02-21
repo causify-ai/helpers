@@ -42,7 +42,7 @@
   * [Use the right plot](#use-the-right-plot)
 - [Useful plugins](#useful-plugins)
   * [Vim bindings](#vim-bindings)
-  * [Table of content](#table-of-content)
+  * [Table of contents](#table-of-contents)
   * [ExecuteTime](#executetime)
   * [Spellchecker](#spellchecker)
   * [AutoSaveTime](#autosavetime)
@@ -215,9 +215,9 @@
 ### Write beautiful code, even in notebooks
 
 - Follow the conventions and suggestions for
-  [Python code style](Coding_Style_Guide.md)
-- When prototyping with a notebook, the code can be of lower quality than code,
-  but still needs to be readable and robust
+  [Python code style](/docs/coding/all.coding_style.how_to_guide.md)
+- When prototyping with a notebook, the code can be of lower quality than code
+  in a final library, but still needs to be readable and robust
 - In our opinion it's just better to always do write robust and readable code:
   it doesn't buy much time to cut corners
 
@@ -340,8 +340,8 @@
   - You don't ever want to program by coincidence
 - Typically the warnings are informative and tell us what's the issue and how to
   fix it, so please fix your code
-  - If it's not obvious how to interpret or fix a warning file a bug, file a bug
-    reporting clearly a repro case and the error message
+  - If it's not obvious how to interpret or fix a warning, file a bug reporting
+    clearly a repro case and the error message
 
 ### Make cells idempotent
 
@@ -421,7 +421,7 @@
 - It's ok to use functions in notebooks when building the analysis to leverage
   notebook interactivity
 - Once the notebook is "stable", often it's better to move the code in a
-  library, i.e., a python file.
+  library, i.e., a Python file.
 - Make sure you add autoreload modules in `Imports` section
   ```
   %load_ext autoreload
@@ -449,7 +449,7 @@
 
 ### Cons
 
-- One have to scroll back and forth between notebook and the libraries to
+- One has to scroll back and forth between the notebook and the libraries to
   execute the cell with the functions and fix all the possible mistakes
 
 ## Recommendations for plots
@@ -474,7 +474,7 @@
 
 - Try to use same axes for multiple graphs when possible to allow visual
   comparison between graphs
-- If that's not possible or convenient make individual plots with different
+- If that's not possible or convenient, make individual plots with different
   scales and add a plot with multiple graphs inside on the same axis (e.g., with
   y-log)
 
@@ -494,7 +494,7 @@
 - [VIM binding](https://github.com/lambdalisue/jupyter-vim-binding/wiki/Installation)
   will change your life
 
-### Table of content
+### Table of contents
 
 - To see the entire logical flow of the notebook, when you use the headers
   properly
@@ -518,7 +518,8 @@
 ### Jupytext
 
 - We use Jupytext as standard part of our development flow
-- See `docs/work_tools/all.jupytext.how_to_guide.md`
+- See
+  [`all.jupytext.how_to_guide.md`](/docs/work_tools/jupyter_notebooks/all.jupytext.how_to_guide.md)
 
 ### Gspread
 
@@ -528,4 +529,4 @@
 - Useful links:
   - [Examples of gspread Usage](https://docs.gspread.org/en/latest/user-guide.html#examples-of-gspread-usage)
   - [Enabling Gsheet API](https://stackoverflow.com/questions/68721853/how-to-fix-google-sheets-api-has-not-been-used-in-project)
-  - [Adding service email if it’s not working](https://stackoverflow.com/questions/38949318/google-sheets-api-returns-the-caller-does-not-have-permission-when-using-serve)
+  - [Adding service email if it's not working](https://stackoverflow.com/questions/38949318/google-sheets-api-returns-the-caller-does-not-have-permission-when-using-serve)

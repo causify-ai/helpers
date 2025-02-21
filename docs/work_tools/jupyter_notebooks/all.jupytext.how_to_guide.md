@@ -1,5 +1,3 @@
-
-
 <!-- toc -->
 
 - [Jupytext](#jupytext)
@@ -144,10 +142,10 @@
 
 ### Linter
 
-- The linter automatically reformats the `.py` files and then updates the
-  `.ipynb` without losing the formatting
+- Linter automatically reformats the `.py` files and then updates the `.ipynb`
+  without losing the formatting
   ```bash
-  > linter.py --file XYZ.py
+  > i lint --files="XYZ.py"
   > jupytext --sync --to py:percent XYZ.py
   ```
 
