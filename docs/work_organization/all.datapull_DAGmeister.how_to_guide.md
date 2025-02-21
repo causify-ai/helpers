@@ -26,8 +26,6 @@
     the failure.
     - If the issue is already raised, comment the link of the failure in the
       issue citing same reason.
-    - All issues should come under single epic
-      [#8785](https://github.com/cryptokaizen/cmamp/issues/8785)
   - Tag team leader in the issue to confirm if the issue needs to be fixed with
     highest priority or not.
   - All the failures from region `tokyo` are of highest priority and needs to be
@@ -35,7 +33,7 @@
 
 ## Notification system
 
-- `@CK_Airflow_bot` notifies the team about breaks via Telegram channel
+- `@CK_Airflow_bot` notifies the team about breaks via Slack channel
   `Kaizen Preprod Datapull Notifications`
 - A notification contains:
   - DAG start timestamp
@@ -54,16 +52,13 @@
     - There could be multiple failure due to the same reason so just reply with
       same issue number.
 
-- File an Issue in GH / ZH to report the failing tests and the errors
+- File an Issue in GH to report the failing tests and the errors
   - Paste the URL of the failing run
     - Example: [#9110](https://github.com/cryptokaizen/cmamp/issues/9110)
   - Provide as much information as possible to give an understanding of the
     problem
   - Stack trace or part of it (if it's too large)
   - Paste the link of QA notebook if QA failed.
-  - Add the issue to the
-    [DATAPULL- Fix failing DAGs](https://github.com/cryptokaizen/cmamp/issues/8785)
-    Epic so that we can track it
 
 - Fixing the issue
   - If the bug is obvious and can be fixed easily. Fix it with highest priority.
@@ -73,4 +68,4 @@
       resort! and should oly be done after the approval from the team leader.
 
 - When your time of the DAGMeister duties is over, confirm the rotation with the
-  next responsible person in the related Telegram chat.
+  next responsible person in the related Slack chat.
