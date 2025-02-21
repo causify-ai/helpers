@@ -107,7 +107,7 @@
 
 #### Team member info
 
-- [ ] **Team member**: send following information to your team leader
+- [ ] **Team member**: send the following information to your team leader
   - Full name:
   - Aka:
   - Personal email:

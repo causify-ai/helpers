@@ -50,7 +50,7 @@
   - [ ] Read [Quick start for developing](/docs/onboarding/kaizenflow.prepare_for_development.how_to_guide.md)
   - [ ] Set up the [development environment](/docs/onboarding/all.set_up_development_on_laptop.how_to_guide.md)
   - [ ] Make sure the [Docker dev container](/docs/work_tools/all.devops_docker.how_to_guide.md) works
-  - [ ] Make sure the [unit tests](/docs/coding/all.write_unit_tests.how_to_guide.md) run successfully
+  - [ ] Make sure the [unit tests](/docs/coding/all.run_unit_tests.how_to_guide.md) run successfully
   - [ ] Read [KaizenFlow Python coding style guide](/docs/coding/all.coding_style.how_to_guide.md)
   - [ ] Fork, star, watch the KaizenFlow repo so that GitHub promotes our repo (we gotta work the system)
   - [ ] Learn about the [Morning Email](/docs/work_organization/all.team_collaboration.how_to_guide.md#morning-email)

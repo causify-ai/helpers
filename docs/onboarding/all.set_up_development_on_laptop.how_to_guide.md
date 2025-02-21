@@ -89,7 +89,7 @@
 
 ### Supported OS
 
-- Our systems supports Mac (both x86 and Apple Silicon) and Linux Ubuntu
+- Our systems support Mac (both x86 and Apple Silicon) and Linux Ubuntu
 - We do not support Windows and WSL: we have tried several times to port the
   toolchain to it, but there are always subtle incompatible behaviors that drive
   everyone crazy
@@ -205,8 +205,8 @@
   > dev_scripts_{repo_name}/thin_client/tmux.py --create_global_link
   ```
 
-- Create a tmux session. Choose `index` based on folder name, e.g., `--index 1`
-  if repo name is `~/src/tutorials1`.
+- Create a tmux session. Choose `index` based on the dir name, e.g., `--index 1`
+  if the dir name is `~/src/tutorials1`.
 
   ```bash
   > dev_scripts_{repo_name}/thin_client/tmux.py --index 1

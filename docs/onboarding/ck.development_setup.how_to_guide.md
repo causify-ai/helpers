@@ -417,8 +417,8 @@
   > dev_scripts_{repo_name}/thin_client/tmux.py --create_global_link
   ```
 
-- Create a tmux session. Choose `index` based on folder name, e.g., `--index 1`
-  if repo name is `~/src/cmamp1`.
+- Create a tmux session. Choose `index` based on the dir name, e.g., `--index 1`
+  if the dir name is `~/src/cmamp1`.
 
   ```bash
   > dev_scripts_{repo_name}/thin_client/tmux.py --index 1
