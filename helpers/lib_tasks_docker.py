@@ -301,7 +301,9 @@ def _check_docker_login(repo_name: str) -> bool:
     return is_logged
 
 
-def _docker_login_dockerhub(target_registry: Optional[str] = "dockerhub.sorrentum") -> None:
+def _docker_login_dockerhub(
+    target_registry: Optional[str] = "dockerhub.sorrentum",
+) -> None:
     """
     Log into the Docker Hub which is a public Docker image registry.
 
@@ -1300,9 +1302,8 @@ def _get_lint_docker_cmd(
     Create a command to run in the Linter service.
 
     :param docker_cmd_: command to run
-    :param stage: the image stage to use
-    :no_dev_server: True, if running the linter on local machine, else false
-        if on dev server
+    :param stage: the image stage to use :no_dev_server: True, if
+        running the linter on local machine, else false if on dev server
     :return: the full command to run
     """
     # Get an image to run the linter on.
