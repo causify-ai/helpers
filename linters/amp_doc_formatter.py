@@ -121,9 +121,7 @@ class _DocFormatter(liaction.Action):
                 indent_match = re.findall(r"^[\s]*", line)
                 indent = indent_match[0] if len(indent_match[0]) else "    "
                 num_repeat = int((80 - len(indent)) / len(f"IDSKIP{skipped_id}"))
-                updated_lines.append(
-                    indent + (f"IDSKIP{skipped_id}" * num_repeat)
-                )
+                updated_lines.append(indent + f"IDSKIP{skipped_id}" * num_repeat)
                 if i not in code_block_indices:
                     # The end of the code block has been reached.
                     # Store the removed lines for adding them back later.
