@@ -435,7 +435,7 @@ def docker_tag_push_multi_build_local_image_as_dev(  # type: ignore
         dev_base_image = ""
     elif target_registry == "dockerhub.causify":
         # Use public GitHub Docker registry.
-        dev_base_image = "sorrentum/cmamp"
+        dev_base_image = "causify/cmamp"
     else:
         raise ValueError(
             f"Invalid target Docker image registry='{target_registry}'"
