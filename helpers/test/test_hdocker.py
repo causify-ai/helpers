@@ -437,8 +437,9 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
         # Generate the table of contents.
         cmd_opts.append("-s --toc")
         cmd = " ".join(cmd_opts)
+        container_type = "pandoc_only"
         use_sudo = hdocker.get_use_sudo()
-        hdocker.run_dockerized_pandoc(cmd, use_sudo=use_sudo)
+        hdocker.run_dockerized_pandoc(cmd, container_type, use_sudo=use_sudo)
         # Check.
         act = hio.from_file(out_file_path)
         self.assert_equal(

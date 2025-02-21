@@ -142,7 +142,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
         f"pandoc {docx_file} --extract-media {md_file_figs} "
         f"-f docx -t markdown_strict --output {md_file}"
     )
-    hdocker.run_dockerized_pandoc(cmd)
+    container_type = "pandoc_only"
+    hdocker.run_dockerized_pandoc(cmd, container_type)
     _move_media(md_file_figs)
     _clean_up_artifacts(md_file, md_file_figs)
     _LOG.info("Finished converting '%s' to '%s'.", docx_file, md_file)

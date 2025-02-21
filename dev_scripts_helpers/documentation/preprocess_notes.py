@@ -53,7 +53,7 @@ def _process_abbreviations(in_line: str) -> str:
     return line
 
 
-def _process_question(line: str) -> Tuple[bool, str]:
+def _process_question_to_markdown(line: str) -> Tuple[bool, str]:
     """
     Transform `* foo bar` into `- **foo bar**`.
     """
@@ -66,15 +66,32 @@ def _process_question(line: str) -> Tuple[bool, str]:
     regex = r"^(\*|\*\*|\*:)(\s+)(\S.*)\s*$"
     m = re.search(regex, line)
     if m:
-        line = "-%s%s%s%s" % (m.group(2), meta, m.group(3), meta)
+        # TODO(gp): Not sure why we need to use the same number of spaces and
+        # not just one.
+        spaces = m.group(2)
+        tag = m.group(3)
+        line = "-%s%s%s%s" % (spaces, meta, tag, meta)
         do_continue = True
     return do_continue, line
 
 
-# #############################################################################
+def _process_question_to_slides(line: str, *, level: int = 4) -> Tuple[bool, str]:
+    """
+    Transform `* foo bar` into `#### foo bar`.
+    """
+    hdbg.dassert_lte(1, level)
+    prefix = "#" * level
+    do_continue = False
+    regex = r"^(\*|\*\*|\*:)\s+(\S.*)\s*$"
+    m = re.search(regex, line)
+    if m:
+        tag = m.group(2)
+        line = "%s %s" % (prefix, tag)
+        do_continue = True
+    return do_continue, line
 
 
-def _run_all(lines: List[str], *, is_qa: bool = False) -> List[str]:
+def _run_all(lines: List[str], type_: str, *, is_qa: bool = False) -> List[str]:
     """
     Process the notes to convert them into a format suitable for pandoc.
 
@@ -82,10 +99,18 @@ def _run_all(lines: List[str], *, is_qa: bool = False) -> List[str]:
     - prepend some directive for pandoc
     - remove comments
     - expand abbreviations
+    - process questions "* ..."
+    - remove empty lines in the questions and answers
+
+    :param lines: List of lines of the notes.
+    :param type_: Type of output to generate (e.g., `pdf`, `html`, `slides`).
+    :param is_qa: True if the input is a QA file.
+    :return: List of lines of the notes.
     """
     _LOG.debug("_run_all")
     out: List[str] = []
     # a) Prepend some directive for pandoc.
+    # TODO(gp): Add them only if they are not there.
     out.append(r"""\let\emph\textit""")
     out.append(r"""\let\uline\underline""")
     out.append(r"""\let\ul\underline""")
@@ -96,7 +121,7 @@ def _run_all(lines: List[str], *, is_qa: bool = False) -> List[str]:
     in_code_block = False
     for i, line in enumerate(lines):
         _LOG.debug("%s:line=%s", i, line)
-        # 1) Process comment block.
+        # 1) Remove comment block.
         if _TRACE:
             _LOG.debug("# 1) Process comment block.")
         do_continue, in_skip_block = hmarkdo.process_comment_block(
@@ -106,7 +131,7 @@ def _run_all(lines: List[str], *, is_qa: bool = False) -> List[str]:
         #   do_continue, in_skip_block)
         if do_continue:
             continue
-        # 2) Process code block.
+        # 2) Remove code block.
         if _TRACE:
             _LOG.debug("# 2) Process code block.")
         do_continue, in_code_block, out_tmp = hmarkdo.process_code_block(
@@ -115,20 +140,23 @@ def _run_all(lines: List[str], *, is_qa: bool = False) -> List[str]:
         out.extend(out_tmp)
         if do_continue:
             continue
-        # 3) Process single line comment.
+        # 3) Remove single line comment.
         if _TRACE:
             _LOG.debug("# 3) Process single line comment.")
         do_continue = hmarkdo.process_single_line_comment(line)
         if do_continue:
             continue
-        # 4) Process abbreviations.
+        # 4) Expand abbreviations.
         if _TRACE:
             _LOG.debug("# 4) Process abbreviations.")
         line = _process_abbreviations(line)
         # 5) Process question.
         if _TRACE:
             _LOG.debug("# 5) Process question.")
-        do_continue, line = _process_question(line)
+        if type_ == "slides":
+            do_continue, line = _process_question_to_slides(line)
+        else:
+            do_continue, line = _process_question_to_markdown(line)
         if do_continue:
             out.append(line)
             continue
@@ -193,6 +221,13 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument("--input", action="store", type=str, required=True)
     parser.add_argument("--output", action="store", type=str, default=None)
     parser.add_argument(
+        "--type",
+        required=True,
+        choices=["pdf", "html", "slides"],
+        action="store",
+        help="Type of output to generate",
+    )
+    parser.add_argument(
         "--qa", action="store_true", default=None, help="The input file is QA"
     )
     hparser.add_verbosity_arg(parser)
@@ -208,7 +243,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     lines = [l.rstrip("\n") for l in lines]
     out: List[str] = []
     # Transform.
-    out_tmp = _run_all(lines)
+    out_tmp = _run_all(lines, args.type, is_qa=args.qa)
     out.extend(out_tmp)
     # Save results.
     txt = "\n".join(out)

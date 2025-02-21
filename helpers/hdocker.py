@@ -16,6 +16,7 @@ import time
 from typing import Any, Dict, List, Optional, Tuple
 
 import helpers.hdbg as hdbg
+import helpers.hio as hio
 import helpers.henv as henv
 import helpers.hgit as hgit
 import helpers.hprint as hprint
@@ -213,7 +214,9 @@ def replace_shared_root_path(
 # TODO(gp): build_container -> build_container_image
 # TODO(gp): containter_name -> image_name
 def build_container(
-    container_name: str, dockerfile: str, force_rebuild: bool, use_sudo: bool
+    container_name: str, dockerfile: str, force_rebuild: bool, use_sudo: bool,
+    *,
+    incremental: bool = True 
 ) -> str:
     """
     Build a Docker image from a Dockerfile.
@@ -242,21 +245,20 @@ def build_container(
     if not has_container:
         # Create a temporary Dockerfile.
         _LOG.info("Building Docker container...")
+        build_context_dir = "tmp.docker_build"
+        # There might be already some file in the file.
+        hio.create_dir(build_context_dir, incremental=incremental)
         # Delete temp file.
-        delete = False
-        with tempfile.NamedTemporaryFile(
-            suffix=".Dockerfile", delete=delete
-        ) as temp_dockerfile:
-            txt = dockerfile.encode("utf-8")
-            temp_dockerfile.write(txt)
-            temp_dockerfile.flush()
-            # Build the container.
-            executable = get_docker_executable(use_sudo)
-            cmd = (
-                f"{executable} build -f {temp_dockerfile.name} -t"
-                f" {image_name_out} ."
-            )
-            hsystem.system(cmd)
+        temp_dockerfile = os.path.join(build_context_dir, "Dockerfile")
+        #dockerfile = dockerfile.encode("utf-8")
+        hio.to_file(temp_dockerfile, dockerfile)
+        # Build the container.
+        executable = get_docker_executable(use_sudo)
+        cmd = (
+            f"{executable} build -f {temp_dockerfile}"
+            f" -t {image_name_out} {build_context_dir}"
+        )
+        hsystem.system(cmd)
         _LOG.info("Building Docker container... done")
     return image_name_out
 
@@ -455,7 +457,7 @@ def run_dockerized_prettier(
     hdbg.dassert_isinstance(cmd_opts, list)
     # Build the container, if needed.
     container_name = "tmp.prettier"
-    dockerfile = """
+    dockerfile = r"""
     # Use a Node.js image
     FROM node:18
 
@@ -667,8 +669,10 @@ def convert_pandoc_arguments_to_cmd(
 
 def run_dockerized_pandoc(
     cmd: str,
+    container_type: str,
     *,
     return_cmd: bool = False,
+    force_rebuild: bool = False,
     use_sudo: bool = False,
 ) -> Optional[str]:
     """
@@ -677,7 +681,114 @@ def run_dockerized_pandoc(
     Same as `run_dockerized_prettier()` but for `pandoc`.
     """
     _LOG.debug(hprint.to_str("cmd return_cmd use_sudo"))
-    container_name = "pandoc/core"
+    if container_type == "pandoc_only":
+        container_name = "pandoc/core"
+        incremental = False
+    elif container_type == "pandoc_latex":
+        container_name = "tmp.pandoc_latex"
+        # From https://github.com/pandoc/dockerfiles/blob/main/alpine/latex/Dockerfile
+        build_dir = "tmp.docker_build"
+        dir_name = hgit.find_file_in_git_tree("pandoc_docker_files")
+        hio.create_dir(build_dir, incremental=True)
+        cmd = f"cp -r {dir_name}/* tmp.docker_build/common/latex"
+        hsystem.system(cmd)
+        #
+        dockerfile = r"""
+        ARG pandoc_version=edge
+        FROM pandoc/core:${pandoc_version}-alpine
+
+        # NOTE: to maintainers, please keep this listing alphabetical.
+        RUN apk --no-cache add \
+                curl \
+                fontconfig \
+                freetype \
+                gnupg \
+                gzip \
+                perl \
+                tar \
+                wget \
+                xz
+
+        # Installer scripts and config
+        COPY common/latex/texlive.profile    /root/texlive.profile
+        COPY common/latex/install-texlive.sh /root/install-texlive.sh
+        COPY common/latex/packages.txt       /root/packages.txt
+
+        # TeXLive binaries location
+        ARG texlive_bin="/opt/texlive/texdir/bin"
+
+        # TeXLive version to install (leave empty to use the latest version).
+        ARG texlive_version=
+
+        # TeXLive mirror URL (leave empty to use the default mirror).
+        ARG texlive_mirror_url=
+
+        # Modify PATH environment variable, prepending TexLive bin directory
+        ENV PATH="${texlive_bin}/default:${PATH}"
+
+        # Ideally, the image would always install "linuxmusl" binaries. However,
+        # those are not available for aarch64, so we install binaries that have
+        # been built against libc and hope that the compatibility layer works
+        # well enough.
+        RUN cd /root && \
+            ARCH="$(uname -m)" && \
+            case "$ARCH" in \
+                ('x86_64') \
+                    TEXLIVE_ARCH="x86_64-linuxmusl"; \
+                    ;; \
+                (*) echo >&2 "error: unsupported architecture '$ARCH'"; \
+                    exit 1 \
+                    ;; \
+            esac && \
+            mkdir -p ${texlive_bin} && \
+            ln -sf "${texlive_bin}/${TEXLIVE_ARCH}" "${texlive_bin}/default" && \
+            echo "binary_${TEXLIVE_ARCH} 1" >> /root/texlive.profile && \
+            ( \
+            [ -z "$texlive_version"    ] || printf '-t\n%s\n"' "$texlive_version"; \
+            [ -z "$texlive_mirror_url" ] || printf '-m\n%s\n' "$texlive_mirror_url" \
+            ) | xargs /root/install-texlive.sh && \
+            sed -e 's/ *#.*$//' -e '/^ *$/d' /root/packages.txt | \
+                xargs tlmgr install && \
+            rm -f /root/texlive.profile \
+                /root/install-texlive.sh \
+                /root/packages.txt && \
+            TERM=dumb luaotfload-tool --update && \
+            chmod -R o+w /opt/texlive/texdir/texmf-var
+
+        WORKDIR /data
+        """
+        # Since we have already copied the files, we can't remove the directory.
+        incremental = True
+    elif container_type == "pandoc_texlive":
+        container_name = "tmp.pandoc_texlive"
+        dockerfile = r"""
+        FROM texlive/texlive:latest
+
+        # Set environment variables
+        ENV DEBIAN_FRONTEND=noninteractive
+
+        RUN apt-get update && \
+            apt-get -y upgrade
+
+        RUN apt install -y pandoc
+
+        # Verify installation
+        RUN latex --version && pdflatex --version && pandoc --version
+
+        # Set working directory
+        WORKDIR /workspace
+
+        # Default command
+        CMD ["bash"]
+        """
+        incremental = False
+    else:
+        raise ValueError("Unknown container type '%s'" % container_type)
+    # Build container.
+    container_name = build_container(
+        container_name, dockerfile, force_rebuild, use_sudo,
+        incremental=incremental
+    )
     # Convert files to Docker paths.
     is_caller_host = not hserver.is_inside_docker()
     use_sibling_container_for_callee = True
@@ -759,7 +870,7 @@ def run_dockerized_markdown_toc(
     hdbg.dassert_isinstance(cmd_opts, list)
     # Build the container, if needed.
     container_name = "tmp.markdown_toc"
-    dockerfile = """
+    dockerfile = r"""
     # Use a Node.js image
     FROM node:18
 
@@ -852,7 +963,7 @@ def convert_latex_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
     args, unknown_args = parser.parse_known_args(cmd)
     _LOG.debug(hprint.to_str("args unknown_args"))
     # Return all the arguments in a dictionary with names that match the
-    # function signature of `run_dockerized_pandoc`.
+    # function signature of `run_dockerized_pandoc()`.
     in_dir_params: Dict[str, Any] = {}
     return {
         "input": in_file_path,
@@ -911,7 +1022,7 @@ def run_dockerized_latex(
     """
     _LOG.debug(hprint.to_str("cmd return_cmd use_sudo"))
     container_name = "tmp.latex"
-    dockerfile = """
+    dockerfile = r"""
     # Use a lightweight base image
     FROM debian:bullseye-slim
 
@@ -1029,7 +1140,7 @@ def run_dockerized_llm_transform(
     hdbg.dassert_isinstance(cmd_opts, list)
     # Build the container, if needed.
     container_name = "tmp.llm_transform"
-    dockerfile = """
+    dockerfile = r"""
     FROM python:3.12-alpine
 
     # Install Bash.
@@ -1130,7 +1241,7 @@ def run_dockerized_plantuml(
     )
     # Build the container, if needed.
     container_name = "tmp.plantuml"
-    dockerfile = """
+    dockerfile = r"""
     # Use a lightweight base image.
     FROM debian:bullseye-slim
 
@@ -1197,7 +1308,7 @@ def run_dockerized_mermaid(
     _LOG.debug(hprint.to_str("img_path code_file_path force_rebuild use_sudo"))
     # Build the container, if needed.
     container_name = "tmp.mermaid"
-    puppeteer_cache_path = """
+    puppeteer_cache_path = r"""
     const {join} = require('path');
 
     /**
@@ -1208,7 +1319,7 @@ def run_dockerized_mermaid(
       cacheDirectory: join(__dirname, '.cache', 'puppeteer'),
     };
     """
-    dockerfile = f"""
+    dockerfile = rf"""
     # Use a Node.js image.
     FROM node:18
 

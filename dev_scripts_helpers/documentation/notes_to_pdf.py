@@ -37,7 +37,6 @@ import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
-_EXEC_DIR_NAME = os.path.abspath(os.path.dirname(sys.argv[0]))
 
 # #############################################################################
 
@@ -120,18 +119,19 @@ def _filter_by_header(file_: str, header: str, prefix: str) -> str:
 # #############################################################################
 
 
-def _preprocess_notes(file_: str, prefix: str) -> str:
+def _preprocess_notes(file_: str, prefix: str, type_: str) -> str:
     """
     Pre-process the file.
 
     :param file_: The input file to be processed
     :param prefix: The prefix used for the output file (e.g., `tmp.pandoc`)
+    :param type_: Type of output to generate (e.g., `pdf`, `html`, `slides`).
     :return: The path to the processed file
     """
     exec_file = hgit.find_file("preprocess_notes.py")
     file1 = file_
     file2 = f"{prefix}.preprocess_notes.txt"
-    cmd = f"{exec_file} --input {file1} --output {file2}"
+    cmd = f"{exec_file} --input {file1} --output {file2} --type {type_}"
     _ = _system(cmd)
     file_ = file2
     return file_
@@ -140,7 +140,7 @@ def _preprocess_notes(file_: str, prefix: str) -> str:
 # #############################################################################
 
 
-def _render_images(file_: str, prefix: str) -> str:
+def _render_images(file_: str, prefix: str, type_: str) -> str:
     """
     Render images in the file.
 
@@ -155,10 +155,7 @@ def _render_images(file_: str, prefix: str) -> str:
     cmd = f"{exec_file} --in_file_name {file1} --out_file_name {file2}"
     _ = _system(cmd)
     # We need to preprocess the notes again to remove the commented code.
-    exec_file = hgit.find_file("preprocess_notes.py")
-    file3 = f"{prefix}.preprocess_notes2.txt"
-    cmd = f"{exec_file} --input {file2} --output {file3}"
-    _ = _system(cmd)
+    file3 = _preprocess_notes(file2, file2, type_)
     file_ = file3
     return file_
 
@@ -244,7 +241,8 @@ def _run_pandoc_to_pdf(
     cmd = " ".join(cmd)
     _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
     if not args.use_host_tools:
-        cmd = hdocker.run_dockerized_pandoc(cmd, return_cmd=True, use_sudo=False)
+        container_type = "pandoc_texlive"
+        cmd = hdocker.run_dockerized_pandoc(cmd, container_type, return_cmd=True, use_sudo=False)
     _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
     _ = _system(cmd, suppress_output=False)
     file_ = file2
@@ -332,12 +330,15 @@ def _run_pandoc_to_slides(args: argparse.Namespace, file_: str) -> str:
     _ = args
     #
     cmd = []
+    # TODO(gp): We should use the dockerized version of pandoc.
     cmd.append(f"pandoc {file_}")
     #
     cmd.append("-t beamer")
     cmd.append("--slide-level 4")
     cmd.append("-V theme:SimplePlus")
     cmd.append("--include-in-header=latex_abbrevs.sty")
+    #cmd.append("--pdf-engine=lualatex")
+    cmd.append("--pdf-engine=xelatex")
     if not args.no_toc:
         cmd.append("--toc")
         cmd.append("--toc-depth 2")
@@ -345,6 +346,11 @@ def _run_pandoc_to_slides(args: argparse.Namespace, file_: str) -> str:
     cmd.append(f"-o {file_out}")
     #
     cmd = " ".join(cmd)
+    _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
+    if not args.use_host_tools:
+        container_type = "pandoc_texlive"
+        cmd = hdocker.run_dockerized_pandoc(cmd, container_type, return_cmd=True, use_sudo=False)
+    _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
     _ = _system(cmd, suppress_output=False)
     #
     _LOG.debug("file_out=%s", file_out)
@@ -444,12 +450,12 @@ def _run_all(args: argparse.Namespace) -> None:
     action = "preprocess_notes"
     to_execute, actions = _mark_action(action, actions)
     if to_execute:
-        file_ = _preprocess_notes(file_, prefix)
+        file_ = _preprocess_notes(file_, prefix, args.type)
     # - Render_images
     action = "render_images"
     to_execute, actions = _mark_action(action, actions)
     if to_execute:
-        file_ = _render_images(file_, prefix)
+        file_ = _render_images(file_, prefix, args.type)
     # - Run_pandoc
     action = "run_pandoc"
     to_execute, actions = _mark_action(action, actions)
