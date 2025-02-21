@@ -23,7 +23,9 @@ This contains the absolute minimal amount of info to start developing
 
 - [General Rules of Collaboration](/docs/work_organization/all.team_collaboration.how_to_guide.md)
 
-- [Quick start for developing](/docs/onboarding/kaizenflow.set_up_development_environment.how_to_guide.md)
+- [Quick start for developing](/docs/onboarding/kaizenflow.prepare_for_development.how_to_guide.md)
+
+- [Set up the development environment](/docs/onboarding/all.set_up_development_on_laptop.how_to_guide.md)
 
 - [How to organize your work](/docs/work_organization/kaizenflow.organize_your_work.how_to_guide.md)
 
@@ -67,7 +69,7 @@ This contains the absolute minimal amount of info to start developing
 
 This contains a set of resources that over time will make 10x more productive
 
-- [Docker](/docs/work_tools/docker/all.docker.tutorial.md)
+- [Docker](/docs/work_tools/all.devops_docker.how_to_guide.md)
 
 - [Reading List](/docs/general_background/all.reading_list.reference.md)
 
@@ -78,8 +80,6 @@ This contains a set of resources that over time will make 10x more productive
 - [Scrum Methodology](/docs/work_organization/all.scrum.explanation.md)
 
 ## In-depth docs
-
-- [Code organization](/docs/all.code_organization.reference.md)
 
 - [Buildmeister process](/docs/work_organization/all.buildmeister.how_to_guide.md)
 

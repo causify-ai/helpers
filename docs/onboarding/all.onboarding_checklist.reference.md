@@ -92,7 +92,7 @@
 - [ ] **Team leader**: talk to the teams about the new team member joining
 
 - [ ] **Team leader**: Send some information to the new team member as a preview
-  - E.g., some PDFs from amp/documentation/general
+  - E.g., some documentation
 
 - [ ] **Team leader**: establish contact by Slack or email with the new hire
       with a few words about the next steps
@@ -107,7 +107,7 @@
 
 #### Team member info
 
-- [ ] **Team member**: send needed information to your team leader
+- [ ] **Team member**: send following information to your team leader
   - Full name:
   - Aka:
   - Personal email:
@@ -183,16 +183,18 @@
 - [ ] **Team member**: Configure your server environment following:
   - [Development - Set-up](/docs/onboarding/ck.development_setup.how_to_guide.md)
 
-- [ ] **Team member**: We have implemented a self-registration process for our
-      Airflow on Kubernetes deployment. Please register and create your personal
-      accounts as we will no longer be using the shared Airflow Admin user. Make
-      sure to use the same username that you have on the dev servers.
+- [ ] **Team member** (On per-need basis): We have implemented a
+      self-registration process for our Airflow on Kubernetes deployment. Please
+      register and create your personal accounts as we will no longer be using
+      the shared Airflow Admin user. Make sure to use the same username that you
+      have on the dev servers.
   - [Airflow - Registration](http://internal-a97b7f81b909649218c285140e74f68a-1285736094.eu-north-1.elb.amazonaws.com:8080/register/form)
   - TODO(Shayan): Update this
 
 - [ ] **IT**: Add team member to all GitHub repos:
   - [ ] [Kaizen-ai](https://github.com/causify-ai/kaizenflow)
   - [ ] [helpers](https://github.com/causify-ai/helpers)
+  - [ ] [tutorials](https://github.com/causify-ai/tutorials)
   - [ ] [cmamp](https://github.com/causify-ai/cmamp)
   - [ ] [orange](https://github.com/causify-ai/orange) (On per-need basis)
   - [ ] [UMD_data605](https://github.com/gpsaggese/umd_data605) (On per-need
@@ -240,7 +242,7 @@
 - [ ] **Team member**: Confirm you can access the anonymous form to ask anything
       [https://forms.gle/KMQgobqbyxhoTR9n6](https://forms.gle/KMQgobqbyxhoTR9n6)
 
-- [ ] **Team member**: File first Issue on GitHub
+- [ ] **Team member**: File your first Issue on GitHub
   - It should be called "Document review while onboarding $TEAM_MEMBER"
   - Track what is not clear in the onboarding process / documentation and what
     should / could be improved

@@ -245,7 +245,7 @@
     ```markdown
     [tool.poetry.dependencies]
     ...
-    pytest-timeout = "\*"
+    pytest-timeout = "*"
     ...
     ```
   - In general we use the latest version of a package `*` whenever possible

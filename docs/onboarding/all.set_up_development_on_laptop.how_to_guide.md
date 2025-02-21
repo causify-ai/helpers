@@ -1,8 +1,6 @@
 <!-- toc -->
 
-- [Set up KaizenFlow development environment](#set-up-kaizenflow-development-environment)
-  * [Introduction](#introduction)
-  * [Technologies used](#technologies-used)
+- [Set up development environment locally](#set-up-development-environment-locally)
   * [Clone the code](#clone-the-code)
   * [Building the thin environment](#building-the-thin-environment)
   * [Install and test Docker](#install-and-test-docker)
@@ -12,53 +10,26 @@
     + [Docker installation troubleshooting](#docker-installation-troubleshooting)
   * [Tmux](#tmux)
   * [Some useful workflows](#some-useful-workflows)
-  * [Coding Style](#coding-style)
-  * [Linter](#linter)
-    + [Run the linter and check the linter results](#run-the-linter-and-check-the-linter-results)
-  * [Writing and Contributing Code](#writing-and-contributing-code)
 
 <!-- tocstop -->
 
-# Set up KaizenFlow development environment
-
-## Introduction
-
-This document outlines the development set up to be followed by KaizenFlow
-contributors. By documenting the set up, we aim to streamline the information
-flow and make the contribution process seamless by creating a collaborative and
-efficient coding environment for all contributors.
-
-Happy coding!
-
-## Technologies used
-
-- [UMD DATA605 Big Data Systems](https://github.com/gpsaggese/umd_data605)
-  contains
-  [lectures](https://github.com/gpsaggese/umd_data605/tree/main/lectures) and
-  [tutorials](https://github.com/gpsaggese/umd_data605/tree/main/tutorials)
-  about most of the technologies we use in KaizenFlow, e.g., Dask, Docker,
-  Docker Compose, Git, github, Jupyter, MongoDB, Pandas, Postgres, Apache Spark
-- You can go through the lectures and tutorials on a per-need basis, depending
-  on what it's useful for you to develop
-- As an additional resource to become proficient in using Linux and shell, you
-  can refer to
-  [The Missing Semester of Your CS Education](https://missing.csail.mit.edu/)
+# Set up development environment locally
 
 ## Clone the code
 
-- To clone the repo, use the cloning command described in the GitHub official
+- To clone the repo, use the cloning command described in the official GitHub
   documentation
 
-- Example of cloning command:
+- Example of the cloning command:
 
   ```bash
-  > git clone git@github.com:kaizen-ai/kaizenflow.git ~/src/kaizenflow1
+  > git clone --recursive git@github.com:kaizen-ai/tutorials.git ~/src/tutorials1
   ```
-  - The previous command might not work sometimes and an alternative command
-    using HTTP instead of SSH
+  - The previous command might not work sometimes, in which case try the
+    alternative command using HTTP instead of SSH:
 
   ```bash
-  > git clone https://github.com/kaizen-ai/kaizenflow.git ~/src/kaizenflow1
+  > git clone --recursive https://github.com/kaizen-ai/tutorials.git ~/src/tutorials1
   ```
 
 - All the source code should go under `~/src` (e.g., `/Users/<YOUR_USER>/src` on
@@ -71,22 +42,34 @@ Happy coding!
 ## Building the thin environment
 
 - Create the "thin environment" which contains the minimum set of dependencies
-  needed for running the KaizenFlow Dev Docker container
+  needed for running our Dev Docker container
 
 - Build the thin environment; this is done once per client
+  - If you are in the `helpers` repo:
 
-  ```bash
-  > cd $GIT_ROOT
-  > dev_scripts/client_setup/build.sh 2>&1 | tee tmp.build.log
-  ```
+    ```bash
+    > ./dev_scripts_helpers/thin_client/build.py
+    ```
+  - Otherwise:
+
+    ```bash
+    > cd helpers_root
+    > ./dev_scripts_helpers/thin_client/build.py
+    ```
 
 - Activate the thin environment; make sure it is always activated
+
+  ```bash
+  > source dev_scripts_{repo_name}/thin_client/setenv.sh
   ```
-  > source dev_scripts/setenv_amp.sh
+  - E.g.,
+
+  ```bash
+  > source dev_scripts_tutorials/thin_client/setenv.sh
   ```
 
 - If you see output like below, your environment is successfully built!
-  ```
+  ```bash
   ...
   alias sp='echo '\''source ~/.profile'\''; source ~/.profile'
   alias vi='/usr/bin/vi'
@@ -97,18 +80,19 @@ Happy coding!
   ==> SUCCESS <==
   ```
 - If you encounter any issues, please post them by creating a new issue on
-  GitHub and assign it to the `gsaggese`
+  GitHub and assign it to @gpsaggese
   - You should report as much information as possible: what was the command,
-    what is your platform, output of the command
+    what is your platform, output of the command (copy-and-paste, do not use
+    screenshots)
 
 ## Install and test Docker
 
 ### Supported OS
 
-- KaizenFlow supports Mac (both x86 and Apple Silicon) and Linux Ubuntu
+- Our systems supports Mac (both x86 and Apple Silicon) and Linux Ubuntu
 - We do not support Windows and WSL: we have tried several times to port the
-  tool chain to it, but there are always subtle incompatible behaviors that
-  drive everyone crazy
+  toolchain to it, but there are always subtle incompatible behaviors that drive
+  everyone crazy
   - If you are using Windows, we suggest to use dual boot with Linux or use a
     virtual machine with Linux
   - Install VMWare software
@@ -126,7 +110,7 @@ Happy coding!
   https://docs.docker.com/get-started/overview/
 
 - We work in a Docker container that has all the required dependencies installed
-  - You can use PyCharm / VS code on your laptop to edit code, but you want to
+  - You can use PyCharm / VSCode on your laptop to edit code, but you want to
     run code inside the dev container since this makes sure everyone is running
     with the same system, and it makes it easy to share code and reproduce
     problems
@@ -135,9 +119,9 @@ Happy coding!
   - Links:
     - [Mac](https://docs.docker.com/desktop/install/mac-install/)
     - [Linux](https://docs.docker.com/desktop/install/linux-install/)
-    - [Windows](https://docs.docker.com/desktop/install/windows-install/)
 
-- Follow https://docs.docker.com/engine/install/
+- Follow
+  [https://docs.docker.com/engine/install/](https://docs.docker.com/engine/install/)
 
 - For Mac you can also install `docker-cli` without the GUI using
 
@@ -147,7 +131,7 @@ Happy coding!
   > brew install colima
   ```
 
-- After installing make sure Docker works on your laptop (of course the version
+- After installing, make sure Docker works on your laptop (of course the version
   will be newer)
 
   ```bash
@@ -215,26 +199,30 @@ Happy coding!
 
 ## Tmux
 
-- To create the standard tmux view on a cloned environment run
+- Create a soft link. The command below will create a file `~/go_{repo_name}.py`
 
   ```bash
-  > go_amp.sh kaizenflow 1
+  > dev_scripts_{repo_name}/thin_client/tmux.py --create_global_link
   ```
 
-- You need to create the tmux environment once per Git client and then you can
+- Create a tmux session. Choose `index` based on folder name, e.g., `--index 1`
+  if repo name is `~/src/tutorials1`.
+
+  ```bash
+  > dev_scripts_{repo_name}/thin_client/tmux.py --index 1
+  ```
+
+- You need to create the tmux environment once per client and then you can
   re-connect with:
 
   ```bash
   # Check the available environments.
   > tmux ls
-  cmamp1: 4 windows (created Fri Dec  3 18:27:09 2021) (attached)
+  tutorials1: 4 windows (created Fri Dec  3 18:27:09 2021) (attached)
 
   # Attach an environment.
-  > tmux attach -t cmamp1
+  > tmux attach -t tutorials1
   ```
-
-- You can re-run `go_amp.sh` when your tmux gets corrupted and you want to
-  restart. Of course this doesn't impact the underlying Git repo
 
 ## Some useful workflows
 
@@ -245,31 +233,25 @@ Happy coding!
   Using default tag: latest
   ```
 
-- Pull the latest KaizenFlow image; this is done once
+- Pull the latest image; this is done once
 
   ```bash
   > i docker_pull
-  or
-  # TODO(Sameep): Update to kaizenflow once docker is updated.
-  > docker pull sorrentum/cmamp:latest
   ```
 
-- Pull the latest `dev_tools` image containing the linter; this is done once
+- Pull the latest `helpers` image containing Linter; this is done once
 
   ```bash
-  > i docker_pull_dev_tools
-  or
-  # TODO(Sameep): Update to kaizenflow once docker is updated.
-  > docker pull sorrentum/dev_tools:prod
+  > i docker_pull_helpers
   ```
 
 - Get the latest version of `master`
 
   ```bash
-  # To update your feature branch with the latest changes from master run
+  # To update your feature branch with the latest changes from master, run
   # the cmd below from a feature branch, i.e. not from master.
   > i git_merge_master
-  # If you are on `master` just pull the remote changes.
+  # If you are on `master`, just pull the remote changes.
   > i git_pull
   ```
 
@@ -312,45 +294,3 @@ Happy coding!
   - Add the port to the link like so: `http://localhost:10091/` or
     `http://127.0.0.1:10091`
   - Copy-paste the link into a web-browser and update the page
-
-## Coding Style
-
-- Adopt the coding style outlined
-  [here](/docs/coding/all.coding_style.how_to_guide.md)
-
-## Linter
-
-- The linter is in charge of reformatting the code according to our conventions
-  and reporting potential problems
-
-### Run the linter and check the linter results
-
-- Run the linter against the changed files in the PR branch
-
-  ```bash
-  > invoke lint --files "file1 file2..."
-  ```
-
-- More information about Linter -
-  [Link](/docs/build/all.linter_gh_workflow.explanation.md)
-- Internalize the guidelines to maintain code consistency
-
-## Writing and Contributing Code
-
-- If needed, always start with creating an issue first, providing a summary of
-  what you want to implement and assign it to yourself and your team
-- Create a branch of your assigned issues/bugs
-  - E.g., for a GitHub issue with the name: "Expose the linter container to
-    KaizenFlow contributors #63", The GitHub issue and the branch name should be
-    called `SorrTask63_Expose_the_linter_container_to_Kaizenflow_contributors`
-- Implement the code based on the requirements in the assigned issue
-- Run the linter on your code before pushing
-- Do `git commit` and `git push` together so the latest changes are readily
-  visible
-- Make sure your branch is up-to-date with the master branch
-- Create a Pull Request (PR) from your branch
-- Add your assigned reviewers for your PR so that they are informed of your PR
-- After being reviewed, the PR will be merged to the master branch by your
-  reviewers
-- Do not respond to emails for replies to comments in issues or PRs. Use the
-  GitHub GUI instead, as replying through email adds unwanted information.

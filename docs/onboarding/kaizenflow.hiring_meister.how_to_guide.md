@@ -45,15 +45,16 @@
   Please follow this checklist. Mark each item as done once completed.
 
   Post any errors you face in this issue.
-  - [ ] Acknowledge the pledge to put time in the project [here](https://github.com/kaizen-ai/kaizenflow/blob/master/README.md#Important)
-  - [ ] Read [How to organize your work](https://github.com/kaizen-ai/kaizenflow/blob/master/docs/work_organization/kaizenflow.organize_your_work.how_to_guide.md)
-  - [ ] Read [Quick start for developing](https://github.com/kaizen-ai/kaizenflow/blob/master/docs/onboarding/kaizenflow.set_up_development_environment.how_to_guide.md)
-  - [ ] Make sure the [Docker dev container](https://github.com/kaizen-ai/kaizenflow/blob/master/docs/work_tools/all.docker.how_to_guide.md) works
-  - [ ] Make sure the [unit tests](https://github.com/kaizen-ai/kaizenflow/blob/master/docs/coding/all.write_unit_tests.how_to_guide.md) run successfully
-  - [ ] Read [KaizenFlow Python coding style guide](https://github.com/kaizen-ai/kaizenflow/blob/master/docs/coding/all.coding_style.how_to_guide.md)
+  - [ ] Acknowledge the pledge to put time in the project
+  - [ ] Read [How to organize your work](/docs/work_organization/kaizenflow.organize_your_work.how_to_guide.md)
+  - [ ] Read [Quick start for developing](/docs/onboarding/kaizenflow.prepare_for_development.how_to_guide.md)
+  - [ ] Set up the [development environment](/docs/onboarding/all.set_up_development_on_laptop.how_to_guide.md)
+  - [ ] Make sure the [Docker dev container](/docs/work_tools/all.devops_docker.how_to_guide.md) works
+  - [ ] Make sure the [unit tests](/docs/coding/all.write_unit_tests.how_to_guide.md) run successfully
+  - [ ] Read [KaizenFlow Python coding style guide](/docs/coding/all.coding_style.how_to_guide.md)
   - [ ] Fork, star, watch the KaizenFlow repo so that GitHub promotes our repo (we gotta work the system)
-  - [ ] Learn about the [Morning Email](https://github.com/kaizen-ai/kaizenflow/blob/master/docs/work_organization/all.team_collaboration.how_to_guide.md#morning-email)
-  - [ ] How to do a [review](https://github.com/kaizen-ai/kaizenflow/blob/master/docs/coding/all.submit_code_for_review.how_to_guide.md)
+  - [ ] Learn about the [Morning Email](/docs/work_organization/all.team_collaboration.how_to_guide.md#morning-email)
+  - [ ] How to do a [review](/docs/coding/all.submit_code_for_review.how_to_guide.md)
   - [ ] If you are graduating soon and you would like to get a full-time job in one of the companies in the KaizenFlow ecosystem reach out to GP at [gp@kaizen-tech.io](mailto:gp@kaizen-tech.io)
   - [ ] Get assigned a warm-up issue
   ```
