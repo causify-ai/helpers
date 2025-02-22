@@ -11,14 +11,13 @@ import logging
 import os
 import re
 import shlex
-import tempfile
 import time
 from typing import Any, Dict, List, Optional, Tuple
 
 import helpers.hdbg as hdbg
-import helpers.hio as hio
 import helpers.henv as henv
 import helpers.hgit as hgit
+import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
@@ -215,20 +214,24 @@ def replace_shared_root_path(
 # TODO(gp): containter_name -> image_name
 # TODO(gp): Add `use_cache` to the signature to control using Docker cache.
 def build_container(
-    container_name: str, dockerfile: str, force_rebuild: bool, use_sudo: bool,
+    container_name: str,
+    dockerfile: str,
+    force_rebuild: bool,
+    use_sudo: bool,
     *,
-    incremental: bool = True 
+    incremental: bool = True,
 ) -> str:
     """
     Build a Docker image from a Dockerfile.
 
     :param container_name: Name of the Docker container to build.
-    :param dockerfile: Content of the Dockerfile for building the container.
+    :param dockerfile: Content of the Dockerfile for building the
+        container.
     :param force_rebuild: Whether to force rebuild the Docker container.
-        There are two level of caching. The first level of caching is our
-        approach of skipping `docker build` if the image already exists and the
-        Dockerfile hasn't changed. The second level is the Docker cache itself,
-        which is invalidated by `--no-cache`.
+        There are two level of caching. The first level of caching is
+        our approach of skipping `docker build` if the image already
+        exists and the Dockerfile hasn't changed. The second level is
+        the Docker cache itself, which is invalidated by `--no-cache`.
     :param use_sudo: Whether to use sudo for Docker commands.
     :return: Name of the built Docker container.
     :raises AssertionError: If the container ID is not found.
@@ -247,8 +250,9 @@ def build_container(
     use_cache = False
     if force_rebuild:
         assert 0
-        _LOG.warning("Forcing to rebuild of container '%s' without cache",
-                     container_name)
+        _LOG.warning(
+            "Forcing to rebuild of container '%s' without cache", container_name
+        )
         has_container = False
         use_cache = False
     _LOG.debug(hprint.to_str("has_container use_cache"))
@@ -263,9 +267,11 @@ def build_container(
         hio.to_file(temp_dockerfile, dockerfile)
         # Build the container.
         executable = get_docker_executable(use_sudo)
-        cmd = [f"{executable} build",
-               f"-f {temp_dockerfile}",
-               f"-t {image_name_out}"]
+        cmd = [
+            f"{executable} build",
+            f"-f {temp_dockerfile}",
+            f"-t {image_name_out}",
+        ]
         if not use_cache:
             cmd.append("--no-cache")
         cmd.append(build_context_dir)
@@ -292,8 +298,8 @@ def _dassert_valid_path(file_path: str, is_input: bool) -> None:
     """
     Assert that a file path is valid, based on it being input or output.
 
-    For input files, it ensures that the file or directory exists.
-    For output files, it ensures that the enclosing directory exists.
+    For input files, it ensures that the file or directory exists. For
+    output files, it ensures that the enclosing directory exists.
     """
     _LOG.debug(hprint.to_str("file_path is_input"))
     if is_input:
@@ -605,8 +611,9 @@ def convert_pandoc_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
     """
     Parse the arguments from a pandoc command.
 
-    We need to parse all the arguments that correspond to files, so that we can
-    convert them to paths that are valid inside the Docker container.
+    We need to parse all the arguments that correspond to files, so that
+    we can convert them to paths that are valid inside the Docker
+    container.
 
     :param cmd: A list of command-line arguments for pandoc.
     :return: A dictionary with the parsed arguments.
@@ -799,8 +806,11 @@ def run_dockerized_pandoc(
         raise ValueError("Unknown container type '%s'" % container_type)
     # Build container.
     container_name = build_container(
-        container_name, dockerfile, force_rebuild, use_sudo,
-        incremental=incremental
+        container_name,
+        dockerfile,
+        force_rebuild,
+        use_sudo,
+        incremental=incremental,
     )
     # Convert files to Docker paths.
     is_caller_host = not hserver.is_inside_docker()
@@ -872,8 +882,7 @@ def run_dockerized_pandoc(
 
 
 def run_dockerized_markdown_toc(
-    in_file_path: str, force_rebuild: bool, cmd_opts: List[str], *,
-    use_sudo: bool
+    in_file_path: str, force_rebuild: bool, cmd_opts: List[str], *, use_sudo: bool
 ) -> None:
     """
     Same as `run_dockerized_prettier()` but for `markdown-toc`.

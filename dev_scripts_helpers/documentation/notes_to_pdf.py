@@ -242,9 +242,13 @@ def _run_pandoc_to_pdf(
     _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
     if not args.use_host_tools:
         container_type = "pandoc_texlive"
-        cmd = hdocker.run_dockerized_pandoc(cmd, container_type, return_cmd=True,
-                                            force_rebuild=args.docker_force_rebuild,
-                                            use_sudo=args.docker_use_sudo)
+        cmd = hdocker.run_dockerized_pandoc(
+            cmd,
+            container_type,
+            return_cmd=True,
+            force_rebuild=args.docker_force_rebuild,
+            use_sudo=args.docker_use_sudo,
+        )
     _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
     _ = _system(cmd, suppress_output=False)
     file_ = file2
@@ -337,7 +341,7 @@ def _run_pandoc_to_slides(args: argparse.Namespace, file_: str) -> str:
     cmd.append("--slide-level 4")
     cmd.append("-V theme:SimplePlus")
     cmd.append("--include-in-header=latex_abbrevs.sty")
-    #cmd.append("--pdf-engine=lualatex")
+    # cmd.append("--pdf-engine=lualatex")
     cmd.append("--pdf-engine=xelatex")
     if not args.no_toc:
         cmd.append("--toc")
@@ -349,10 +353,13 @@ def _run_pandoc_to_slides(args: argparse.Namespace, file_: str) -> str:
     _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
     if not args.use_host_tools:
         container_type = "pandoc_texlive"
-        cmd = hdocker.run_dockerized_pandoc(cmd, container_type,
-                                            return_cmd=True,
+        cmd = hdocker.run_dockerized_pandoc(
+            cmd,
+            container_type,
+            return_cmd=True,
             force_rebuild=args.docker_force_rebuild,
-            use_sudo=args.docker_use_sudo)
+            use_sudo=args.docker_use_sudo,
+        )
     _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
     _ = _system(cmd, suppress_output=False)
     #
