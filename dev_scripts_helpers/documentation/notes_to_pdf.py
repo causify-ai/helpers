@@ -242,7 +242,9 @@ def _run_pandoc_to_pdf(
     _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
     if not args.use_host_tools:
         container_type = "pandoc_texlive"
-        cmd = hdocker.run_dockerized_pandoc(cmd, container_type, return_cmd=True, use_sudo=False)
+        cmd = hdocker.run_dockerized_pandoc(cmd, container_type, return_cmd=True,
+                                            force_rebuild=args.docker_force_rebuild,
+                                            use_sudo=args.docker_use_sudo)
     _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
     _ = _system(cmd, suppress_output=False)
     file_ = file2
@@ -327,8 +329,6 @@ def _run_pandoc_to_slides(args: argparse.Namespace, file_: str) -> str:
     :param file_: The input file to be converted
     :return: The path to the generated PDF file
     """
-    _ = args
-    #
     cmd = []
     # TODO(gp): We should use the dockerized version of pandoc.
     cmd.append(f"pandoc {file_}")
@@ -349,7 +349,10 @@ def _run_pandoc_to_slides(args: argparse.Namespace, file_: str) -> str:
     _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
     if not args.use_host_tools:
         container_type = "pandoc_texlive"
-        cmd = hdocker.run_dockerized_pandoc(cmd, container_type, return_cmd=True, use_sudo=False)
+        cmd = hdocker.run_dockerized_pandoc(cmd, container_type,
+                                            return_cmd=True,
+            force_rebuild=args.docker_force_rebuild,
+            use_sudo=args.docker_use_sudo)
     _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
     _ = _system(cmd, suppress_output=False)
     #
@@ -586,6 +589,7 @@ def _parse() -> argparse.ArgumentParser:
         help="Directory where to save the output to share on Google Drive",
     )
     hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    hparser.add_dockerized_script_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 

@@ -213,6 +213,7 @@ def replace_shared_root_path(
 
 # TODO(gp): build_container -> build_container_image
 # TODO(gp): containter_name -> image_name
+# TODO(gp): Add `use_cache` to the signature to control using Docker cache.
 def build_container(
     container_name: str, dockerfile: str, force_rebuild: bool, use_sudo: bool,
     *,
@@ -224,11 +225,15 @@ def build_container(
     :param container_name: Name of the Docker container to build.
     :param dockerfile: Content of the Dockerfile for building the container.
     :param force_rebuild: Whether to force rebuild the Docker container.
+        There are two level of caching. The first level of caching is our
+        approach of skipping `docker build` if the image already exists and the
+        Dockerfile hasn't changed. The second level is the Docker cache itself,
+        which is invalidated by `--no-cache`.
     :param use_sudo: Whether to use sudo for Docker commands.
     :return: Name of the built Docker container.
     :raises AssertionError: If the container ID is not found.
     """
-    _LOG.debug(hprint.to_str("container_name use_sudo"))
+    _LOG.debug(hprint.to_str("container_name force_rebuild use_sudo"))
     dockerfile = hprint.dedent(dockerfile)
     _LOG.debug("Dockerfile:\n%s", dockerfile)
     # Compute the hash of the dockerfile and append it to the name to track the
@@ -239,26 +244,33 @@ def build_container(
     # Check if the container already exists. If not, build it.
     has_container, _ = image_exists(image_name_out, use_sudo)
     _LOG.debug(hprint.to_str("has_container"))
+    use_cache = False
     if force_rebuild:
-        _LOG.warning("Forcing to rebuild of container %s", container_name)
+        assert 0
+        _LOG.warning("Forcing to rebuild of container '%s' without cache",
+                     container_name)
         has_container = False
+        use_cache = False
+    _LOG.debug(hprint.to_str("has_container use_cache"))
     if not has_container:
         # Create a temporary Dockerfile.
         _LOG.info("Building Docker container...")
         build_context_dir = "tmp.docker_build"
-        # There might be already some file in the file.
+        # There might be already some file in the build context dir, so the
+        # caller needs to specify `incremental`.
         hio.create_dir(build_context_dir, incremental=incremental)
-        # Delete temp file.
         temp_dockerfile = os.path.join(build_context_dir, "Dockerfile")
-        #dockerfile = dockerfile.encode("utf-8")
         hio.to_file(temp_dockerfile, dockerfile)
         # Build the container.
         executable = get_docker_executable(use_sudo)
-        cmd = (
-            f"{executable} build -f {temp_dockerfile}"
-            f" -t {image_name_out} {build_context_dir}"
-        )
-        hsystem.system(cmd)
+        cmd = [f"{executable} build",
+               f"-f {temp_dockerfile}",
+               f"-t {image_name_out}"]
+        if not use_cache:
+            cmd.append("--no-cache")
+        cmd.append(build_context_dir)
+        cmd = " ".join(cmd)
+        hsystem.system(cmd, suppress_output=False)
         _LOG.info("Building Docker container... done")
     return image_name_out
 
@@ -680,7 +692,7 @@ def run_dockerized_pandoc(
 
     Same as `run_dockerized_prettier()` but for `pandoc`.
     """
-    _LOG.debug(hprint.to_str("cmd return_cmd use_sudo"))
+    _LOG.debug(hprint.to_str("cmd return_cmd force_rebuild use_sudo"))
     if container_type == "pandoc_only":
         container_name = "pandoc/core"
         incremental = False
@@ -764,22 +776,23 @@ def run_dockerized_pandoc(
         dockerfile = r"""
         FROM texlive/texlive:latest
 
-        # Set environment variables
         ENV DEBIAN_FRONTEND=noninteractive
-
         RUN apt-get update && \
             apt-get -y upgrade
 
+        RUN apt install -y sudo
+
         RUN apt install -y pandoc
 
-        # Verify installation
+        # Create a font cache directory usable by non-root users.
+        RUN mkdir -p /root/.cache/fontconfig && \
+            chmod -R 777 /root/.cache/fontconfig
+
+        # Verify installation.
         RUN latex --version && pdflatex --version && pandoc --version
 
-        # Set working directory
-        WORKDIR /workspace
-
-        # Default command
-        CMD ["bash"]
+        # Set the default command.
+        ENTRYPOINT ["pandoc"]
         """
         incremental = False
     else:
