@@ -258,7 +258,7 @@ def build_container(
     _LOG.debug(hprint.to_str("has_container use_cache"))
     if not has_container:
         # Create a temporary Dockerfile.
-        _LOG.info("Building Docker container...")
+        _LOG.warning("Building Docker container...")
         build_context_dir = "tmp.docker_build"
         # There might be already some file in the build context dir, so the
         # caller needs to specify `incremental`.
@@ -792,8 +792,12 @@ def run_dockerized_pandoc(
         RUN apt install -y pandoc
 
         # Create a font cache directory usable by non-root users.
-        RUN mkdir -p /root/.cache/fontconfig && \
-            chmod -R 777 /root/.cache/fontconfig
+        # These fonts don't work with latex and xelatex, and require lualatex.
+        # RUN apt install fonts-noto-color-emoji
+        # RUN apt install fonts-twemoji
+        # RUN mkdir -p /var/cache/fontconfig && \
+        #     chmod -R 777 /var/cache/fontconfig && \
+        #     fc-cache -fv
 
         # Verify installation.
         RUN latex --version && pdflatex --version && pandoc --version

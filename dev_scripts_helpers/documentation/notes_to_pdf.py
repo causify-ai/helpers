@@ -246,8 +246,8 @@ def _run_pandoc_to_pdf(
             cmd,
             container_type,
             return_cmd=True,
-            force_rebuild=args.docker_force_rebuild,
-            use_sudo=args.docker_use_sudo,
+            force_rebuild=args.dockerized_force_rebuild,
+            use_sudo=args.dockerized_use_sudo,
         )
     _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
     _ = _system(cmd, suppress_output=False)
@@ -342,7 +342,7 @@ def _run_pandoc_to_slides(args: argparse.Namespace, file_: str) -> str:
     cmd.append("-V theme:SimplePlus")
     cmd.append("--include-in-header=latex_abbrevs.sty")
     # cmd.append("--pdf-engine=lualatex")
-    cmd.append("--pdf-engine=xelatex")
+    #cmd.append("--pdf-engine=xelatex")
     if not args.no_toc:
         cmd.append("--toc")
         cmd.append("--toc-depth 2")
@@ -357,8 +357,8 @@ def _run_pandoc_to_slides(args: argparse.Namespace, file_: str) -> str:
             cmd,
             container_type,
             return_cmd=True,
-            force_rebuild=args.docker_force_rebuild,
-            use_sudo=args.docker_use_sudo,
+            force_rebuild=args.dockerized_force_rebuild,
+            use_sudo=args.dockerized_use_sudo,
         )
     _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
     _ = _system(cmd, suppress_output=False)
