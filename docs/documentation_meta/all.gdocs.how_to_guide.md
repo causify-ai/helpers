@@ -1,46 +1,48 @@
-
-
 <!-- toc -->
 
-  * [Other approaches](#other-approaches)
-- [Markdown -> Gdocs](#markdown---gdocs)
+- [Gdoc Markdown conversion](#gdoc--markdown-conversion)
+  * [Converting Gdocs to Markdown](#converting-gdocs-to-markdown)
+    + [Other approaches](#other-approaches)
+  * [Converting Markdown to Gdoc](#converting-markdown-to-gdoc)
 
 <!-- tocstop -->
 
-```
-      - Use bullet lists to organize the whole Markdown for consistency with
-        other docs. See
-        [all.coding_style.how_to_guide.md](https://github.com/cryptokaizen/cmamp/blob/master/docs/coding/all.coding_style.how_to_guide.md)
-        or any other published Markdown format as reference
-      - Add missing ``` around code blocks. These could be missing in the
-        original Google doc. Also adjust code block indentations if needed
-      - The generated markdown may convert http links as `html` `<span>`
-        objects. This hinders the readability of the `md` file. In this case,
-        manually convert to a standard `http://` link:
-        - `[<span class="underline">https://www.sorrentum.org/</span>](https://www.sorrentum.org/)`
-          -> `https://www.sorrentum.org/`
-      - Replace the `html` `<img>` tag with a markdown link:
-        - `<img src="docs/work_tools/figs/visual_studio_code/image1.png"/>` ->
-          `![alt_text](docs/work_tools/figs/visual_studio_code/image1.png")`
+# Gdoc <-> Markdown conversion
+
+## Converting Gdocs to Markdown
+
+- Use bullet lists to organize the whole Markdown for consistency with other
+  docs. See
+  [all.coding_style.how_to_guide.md](/docs/coding/all.coding_style.how_to_guide.md)
+  or any other published Markdown format as reference
+- Add missing "```" around code blocks. These could be missing in the original
+  Google doc. Also adjust code block indentations if needed
+- The generated markdown may convert http links as `html` `<span>` objects. This
+  hinders the readability of the `md` file. In this case, manually convert to a
+  standard `http://` link: -
+  `[<span class="underline">https://www.sorrentum.org/</span>](https://www.sorrentum.org/)`
+  -> `https://www.sorrentum.org/`
 
 - Remove empty lines manually
+
   ```markdown
   :'<,'>! perl -ne 'print if /\S/'
   ```
-- Run the `lint_md.sh`
+
+- Run Linter
   - Usage:
     ```bash
-    > dev_scripts/lint_md.sh docs/documentation_meta/all.writing_docs.how_to_guide.md
+    > i lint --files="docs/documentation_meta/all.writing_docs.how_to_guide.md"
     ```
-  - What the linter will do:
+  - What Linter will do:
     - Build TOC automatically
     - Adjust the indentation to improve the Markdown's format (but the
       precondition is that you have properly adjusted the indentation levels).
-    - Remove extra empty lines under headings
-    - Adjust text layout
-  - Do not mix manual edits and linter runs
-  - If the linter messes up the text
-    - File bugs in `amp` with examples what the linter does incorrectly
+    - Remove extra empty lines under headings.
+    - Adjust text layout.
+  - Do not mix manual edits and Linter runs
+  - If Linter messes up the text
+    - File bugs in `helpers` with examples what Linter does incorrectly
 - Last steps
   - Compare the generated markdown file with the original Gdoc from top to
     bottom to ensure accurate rendering.
@@ -53,7 +55,7 @@
   - Move the gdoc to the
     [\_OLD directory](https://drive.google.com/drive/u/0/folders/1J4B1vq8EwT-q_z7qSLCZ9Tug2CA9f8i7)
 
-#### Other approaches
+### Other approaches
 
 - Best for a large document
 - Approach 1 - Chrome Docs to Markdown extension:
@@ -73,7 +75,7 @@
   [Cleaning up converted markdown](#cleaning-up-converted-markdown)
 - You might need to remove artifacts manually
 
-### Markdown -> Gdocs
+## Converting Markdown to Gdoc
 
 - Approach 1:
   - Run

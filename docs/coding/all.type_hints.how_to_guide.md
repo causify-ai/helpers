@@ -34,9 +34,9 @@
 - We expect all new library code (i.e., that is not in a notebook) to have type
   annotations
 - We annotate the function signature
-- We don't annotate the variables inside a function unless mypy reports that it
-  can't infer the type
-- We strive to get no errors / warnings from the linter, including mypy
+- We don't annotate the variables inside a function unless `mypy` reports that
+  it can't infer the type
+- We strive to get no errors / warnings from Linter, including `mypy`
 
 ## Conventions
 
@@ -164,7 +164,7 @@
 ## Disabling `mypy` errors
 
 - If `mypy` reports an error and you don't understand why, please ping one of
-  the python experts asking for help
+  the Python experts asking for help
 - If you are sure that you understand why `mypy` reports and error and that you
   can override it, you disable this `error`
 - When you want to disable an error reported by `mypy`:
@@ -193,7 +193,7 @@
 ## Library without types
 
 - `mypy` is unhappy when a library doesn't have types
-- Lots of libraries are starting to add type hints now that python 2 has been
+- Lots of libraries are starting to add type hints now that Python 2 has been
   deprecated
   ```bash
   *.py:14: error: No library stub file for module 'sklearn.model_selection' [mypy]

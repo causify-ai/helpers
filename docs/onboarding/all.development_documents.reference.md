@@ -23,7 +23,9 @@ This contains the absolute minimal amount of info to start developing
 
 - [General Rules of Collaboration](/docs/work_organization/all.team_collaboration.how_to_guide.md)
 
-- [Quick start for developing](/docs/onboarding/kaizenflow.set_up_development_environment.how_to_guide.md)
+- [Quick start for developing](/docs/onboarding/kaizenflow.prepare_for_development.how_to_guide.md)
+
+- [Set up the development environment](/docs/onboarding/all.set_up_development_on_laptop.how_to_guide.md)
 
 - [How to organize your work](/docs/work_organization/kaizenflow.organize_your_work.how_to_guide.md)
 
@@ -33,7 +35,9 @@ This contains the absolute minimal amount of info to start developing
 
 - [Jupyter notebook best practices](/docs/coding/all.jupyter_notebook.how_to_guide.md)
 
-- [Unit tests](/docs/coding/all.write_unit_tests.how_to_guide.md)
+- [Writing unit tests](/docs/coding/all.write_unit_tests.how_to_guide.md)
+
+- [Running unit tests](/docs/coding/all.run_unit_tests.how_to_guide.md)
 
 ## Project management
 
@@ -47,10 +51,10 @@ This contains the absolute minimal amount of info to start developing
   - Extended instructions on how to deploy your working environment and interact
     with it
 
-- [GitHub/ZenHub workflows](/docs/work_organization/all.use_github_and_zenhub.how_to_guide.md)
-  - How to use GitHub and ZenHub, file a PR, review GitHub/ZenHub workflows
+- [GitHub workflows](/docs/work_organization/all.use_github.how_to_guide.md)
+  - How to use GitHub, file a PR, review GitHub workflows
 
-- [Git workflow and best practices](/docs/work_tools/all.git.how_to_guide.md)
+- [Git workflow and best practices](/docs/work_tools/git/all.git.how_to_guide.md)
   - `git` workflows, branch management, troubleshooting, common procedures
 
 - [Documentation about guidelines](/docs/documentation_meta/all.writing_docs.how_to_guide.md)
@@ -67,7 +71,7 @@ This contains the absolute minimal amount of info to start developing
 
 This contains a set of resources that over time will make 10x more productive
 
-- [Docker](/docs/work_tools/all.docker.how_to_guide.md)
+- [Docker](/docs/work_tools/all.devops_docker.how_to_guide.md)
 
 - [Reading List](/docs/general_background/all.reading_list.reference.md)
 
@@ -79,15 +83,11 @@ This contains a set of resources that over time will make 10x more productive
 
 ## In-depth docs
 
-- [Code organization](/docs/all.code_organization.reference.md)
-
 - [Buildmeister process](/docs/work_organization/all.buildmeister.how_to_guide.md)
 
 - [Profiling](/docs/coding/all.profiling.how_to_guide.md)
 
 - [Visual Studio Code](/docs/work_tools/all.visual_studio_code.how_to_guide.md)
-
-- [Telegram](/docs/onboarding/all.communicate_in_telegram.how_to_guide.md)
 
 - [Gsheet into pandas](/docs/coding/all.gsheet_into_pandas.how_to_guide.md)
 
