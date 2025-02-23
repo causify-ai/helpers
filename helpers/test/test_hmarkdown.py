@@ -106,6 +106,65 @@ class Test_extract_section_from_markdown1(hunitest.TestCase):
         self.assert_equal(actual, expected)
 
 
+# ##############################################################################
+
+
+def get_header_data1() -> hmarkdo.HeaderList:
+    data = [
+    (1, "Chapter 1"),
+    (2, "Section 1.1"),
+    (3, "Subsection 1.1.1"),
+    (3, "Subsection 1.1.2"),
+    (2, "Section 1.2"),
+    (1, "Chapter 2"),
+    (2, "Section 2.1"),
+    (3, "Subsection 2.1.1"),
+    (2, "Section 2.2"),
+    ]
+    return data
+
+def get_header_data2() -> hmarkdo.HeaderList:
+    data = [
+    (1, "Module Alpha"),
+    (2, "Lesson Alpha-1"),
+    (3, "Topic Alpha-1.a"),
+    (3, "Topic Alpha-1.b"),
+    (2, "Lesson Alpha-2"),
+    (3, "Topic Alpha-2.a"),
+    (1, "Module Beta"),
+    (2, "Lesson Beta-1"),
+    (3, "Topic Beta-1.a"),
+    (2, "Lesson Beta-2"),
+    (1, "Module Gamma"),
+    (2, "Lesson Gamma-1"),
+    (3, "Topic Gamma-1.a"),
+    (3, "Topic Gamma-1.b"),
+    ]
+    return data
+
+def get_header_data3() -> hmarkdo.HeaderList:
+    data = [
+        (1, "Topic A"),
+        (2, "Subtopic A.1"),
+        (3, "Detail A.1.i"),
+        (3, "Detail A.1.ii"),
+        (2, "Subtopic A.2"),
+        (1, "Topic B"),
+        (2, "Subtopic B.1"),
+        (3, "Detail B.1.i"),
+        (2, "Subtopic B.2"),
+        (3, "Detail B.2.i"),
+        (3, "Detail B.2.ii"),
+        (2, "Subtopic B.3"),
+        (1, "Topic C"),
+        (2, "Subtopic C.1"),
+        (3, "Detail C.1.i"),
+    ]
+    return data
+
+# ##############################################################################
+
+
 class Test_remove_end_of_line_periods1(hunitest.TestCase):
     def test_standard_case(self) -> None:
         txt = "Hello.\nWorld.\nThis is a test."

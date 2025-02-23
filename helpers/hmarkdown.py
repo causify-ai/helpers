@@ -12,42 +12,190 @@ _LOG = logging.getLogger(__name__)
 #  of strings.
 
 
-# TODO(gp): -> _skip_comments
-def skip_comments(line: str, skip_block: bool) -> Tuple[bool, bool]:
-    """
-    Skip comments in the given line and handle comment blocks.
+# # TODO(gp): -> _skip_comments
+# def skip_comments(line: str, skip_block: bool) -> Tuple[bool, bool]:
+#     """
+#     Skip comments in the given line and handle comment blocks.
 
-    Comments are like:
-    - Single line: %% This is a comment
-    - Block: <!-- This is a comment -->
+#     Comments are like:
+#     - Single line: %% This is a comment
+#     - Block: <!-- This is a comment -->
 
-    :param line: The line of text to check for comments
-    :param skip_block: A flag indicating if currently inside a comment block
-    :return: A tuple containing a flag indicating if the line should be skipped
-        and the updated skip_block flag
+#     :param line: The line of text to check for comments
+#     :param skip_block: A flag indicating if currently inside a comment block
+#     :return: A tuple containing a flag indicating if the line should be skipped
+#         and the updated skip_block flag
+#     """
+#     skip_this_line = False
+#     # Handle comment block.
+#     if line.startswith("<!--"):
+#         # Start skipping comments.
+#         skip_block = True
+#         skip_this_line = True
+#     if skip_block:
+#         skip_this_line = True
+#         if line.startswith("-->"):
+#             # End skipping comments.
+#             skip_block = False
+#         else:
+#             # Skip comment.
+#             _LOG.debug("  -> skip")
+#     else:
+#         # Handle single line comment.
+#         if line.startswith("%%"):
+#             _LOG.debug("  -> skip")
+#             skip_this_line = True
+#     return skip_this_line, skip_block
+
+
+def is_markdown_line_separator(line: str) -> bool:
+    res = (re.match("#+\s*#########+", line)
+        or re.match("#+\s*/////////+", line)
+        or re.match("#+\s*---------+", line)
+        or re.match("#+\s*=========+", line)
+    )
+    return res
+
+
+def process_comment_block(line: str, in_skip_block: bool) -> Tuple[bool, bool]:
     """
-    skip_this_line = False
-    # Handle comment block.
-    if line.startswith("<!--"):
+    Process lines of text to identify blocks that start with '<!--' or '/*' and
+    end with '-->' or '*/'.
+
+    :param line: The current line of text being processed.
+    :param in_skip_block: A flag indicating if the function is currently
+        inside a comment block.
+    :return: A tuple
+        - do_continue: whether to continue processing the current line or skip
+          it
+        - in_skip_block: a boolean indicating whether the function is currently
+          inside a comment block
+    """
+    do_continue = False
+    if line.startswith(r"<!--") or re.search(r"^\s*\/\*", line):
+        hdbg.dassert(not in_skip_block)
         # Start skipping comments.
-        skip_block = True
-        skip_this_line = True
-    if skip_block:
-        skip_this_line = True
-        if line.startswith("-->"):
+        in_skip_block = True
+    if in_skip_block:
+        if line.endswith(r"-->") or re.search(r"^\s*\*\/", line):
             # End skipping comments.
-            skip_block = False
-        else:
-            # Skip comment.
-            _LOG.debug("  -> skip")
-    else:
-        # Handle single line comment.
-        if line.startswith("%%"):
-            _LOG.debug("  -> skip")
-            skip_this_line = True
-    return skip_this_line, skip_block
+            in_skip_block = False
+        # Skip comment.
+        _LOG.debug("  -> skip")
+        do_continue = True
+    return do_continue, in_skip_block
 
 
+def process_code_block(
+    line: str, in_code_block: bool, i: int, lines: List[str]
+) -> Tuple[bool, bool, List[str]]:
+    """
+    Process lines of text to handle code blocks that start and end with '```'.
+
+    :param line: The current line of text being processed.
+    :param in_code_block: A flag indicating if the function is currently
+        inside a code block.
+    :param i: The index of the current line in the list of lines.
+    :param lines: The list of all the lines of text being processed.
+    :return: A tuple
+        - do_continue: whether to continue processing the current line or skip
+          it
+        - in_code_block: a boolean indicating whether the function is currently
+          inside a code block
+        - a list of processed lines of text
+    """
+    out: List[str] = []
+    do_continue = False
+    if re.match(r"^(\s*)```", line):
+        _LOG.debug("  -> code block")
+        in_code_block = not in_code_block
+        # Add empty line.
+        if (
+            in_code_block
+            and (i + 1 < len(lines))
+            and re.match(r"\s*", lines[i + 1])
+        ):
+            out.append("\n")
+        out.append("    " + line)
+        if (
+            not in_code_block
+            and (i + 1 < len(lines))
+            and re.match(r"\s*", lines[i + 1])
+        ):
+            out.append("\n")
+        do_continue = True
+        return do_continue, in_code_block, out
+    if in_code_block:
+        line = line.replace("// ", "# ")
+        out.append("    " + line)
+        # We don't do any of the other post-processing.
+        do_continue = True
+        return do_continue, in_code_block, out
+    return do_continue, in_code_block, out
+
+
+def process_single_line_comment(line: str) -> bool:
+    """
+    Handle single line comment.
+
+    We need to do it after the // in code blocks have been handled.
+    """
+    do_continue = False
+    if line.startswith(r"%%") or line.startswith(r"//"):
+        do_continue = True
+        _LOG.debug("  -> do_continue=True")
+        return do_continue
+    # Skip frame.
+    # TODO(gp): Use is_markdown_line_separator
+    if (
+        re.match(r"\#+ -----", line)
+        or re.match(r"\#+ \#\#\#\#\#", line)
+        or re.match(r"\#+ =====", line)
+        or re.match(r"\#+ \/\/\/\/\/", line)
+    ):
+        do_continue = True
+        _LOG.debug("  -> do_continue=True")
+        return do_continue
+    # Nothing to do.
+    return do_continue
+
+
+# TODO(gp): Create iterator for this and factor out the common code.
+# # True inside a block to skip.
+# in_skip_block = False
+# # True inside a code block.
+# in_code_block = False
+# for i, line in enumerate(lines):
+#     _LOG.debug("%s:line=%s", i, line)
+#     # 1) Remove comment block.
+#     if _TRACE:
+#         _LOG.debug("# 1) Process comment block.")
+#     do_continue, in_skip_block = process_comment_block(
+#         line, in_skip_block
+#     )
+#     # _LOG.debug("  -> do_continue=%s in_skip_block=%s",
+#     #   do_continue, in_skip_block)
+#     if do_continue:
+#         continue
+#     # 2) Remove code block.
+#     if _TRACE:
+#         _LOG.debug("# 2) Process code block.")
+#     do_continue, in_code_block, out_tmp = process_code_block(
+#         line, in_code_block, i, lines
+#     )
+#     out.extend(out_tmp)
+#     if do_continue:
+#         continue
+#     # 3) Remove single line comment.
+#     if _TRACE:
+#         _LOG.debug("# 3) Process single line comment.")
+#     do_continue = process_single_line_comment(line)
+#     if do_continue:
+#         continue
+
+
+# #############################################################################
+# Header processing
 # #############################################################################
 
 
@@ -111,87 +259,125 @@ def extract_section_from_markdown(content: str, header_name: str) -> str:
 
 # #############################################################################
 
+# Store the header level, the description, and the line number in the original
+# file, e.g.,
+# `(1, "Chapter 1", 5)``
+# `(2, "Section 1.1", 10)`
+HeaderInfo = Tuple[int, int, str]
 
-# TODO(gp): -> extract_headers_from_markdown
-def extract_headers(
-    markdown_file: str, input_content: str, *, max_level: int = 6
-) -> str:
+
+HeaderList = List[HeaderInfo]
+
+
+def extract_headers_from_markdown(
+    txt: str, *, max_level: int = 6
+) -> HeaderList:
     """
-    Extract headers from Markdown file and generate Vim cfile to navigate them.
+    Extract headers from Markdown file and return an `HeaderList`.
+
+    :param input_content: content of the input Markdown file.
+    :param max_level: Maximum header levels to parse (1 for `#`, 2 for `##`,
+        etc.).
+    :return: the generated `HeaderList`.
+    """
+    header_list: HeaderList = []
+    # Parse an header like `# Header1` or `## Header2`.
+    header_pattern = re.compile(r"^(#+)\s+(.*)")
+    # Process the input file to extract headers.
+    for line_number, line in enumerate(txt.splitlines(), start=1):
+        # TODO(gp): Use the iterator.
+        # Skip the visual separators.
+        if is_markdown_line_separator(line):
+            continue
+        match = header_pattern.match(line)
+        if match:
+            # The number of '#' determines level.
+            level = len(match.group(1))
+            if level <= max_level:
+                title = match.group(2).strip()
+                header_list.append((level, title, line_number))
+    return header_list
+
+
+def header_list_to_vim_cfile(markdown_file: str, header_list: HeaderList) -> str:
+    """
+    Convert a list of headers into a Vim cfile format.
 
     Use the generated file in Vim as:
         `:cfile <output_file>`
         Use `:cnext` and `:cprev` to navigate between headers.
 
     :param markdown_file: Path to the input Markdown file.
-    :param input_content: Path to the input Markdown file.
-    :param max_level: Maximum header levels to parse (1 for `#`, 2 for `##`,
-        etc.).
-    :return: the generated output file content, e.g.,
-        The generated cfile format:
-            <file path>:<line number>:<header title>
+    :param header_list: List of headers, where each header is a tuple containing
+        the line number, level, and title.
+    :return: The generated cfile content as a string in the format:
+        ```
+        ...
+        <file path>:<line number>:<header title>
+        ...
+        ```
     """
-    summary = []
-    # Find an header like `# Header1` or `## Header2`.
-    header_pattern = re.compile(r"^(#+)\s+(.*)")
-    headers = []
-    # Process the input file to extract headers.
-    for line_number, line in enumerate(input_content.splitlines(), start=1):
-        # Skip the visual separators.
-        if "########################################" in line:
-            continue
-        match = header_pattern.match(line)
-        if match:
-            # Number of '#' determines level.
-            level = len(match.group(1))
-            if level <= max_level:
-                title = match.group(2).strip()
-                headers.append((line_number, level, title))
-                #
-                summary.append("  " * (level - 1) + title + f" {line_number}")
-    # Generate the output file content.
     output_lines = [
         f"{markdown_file}:{line_number}:{title}"
-        for line_number, level, title in headers
+        for level, title, line_number in header_list
     ]
+    _ = level
     output_content = "\n".join(output_lines)
-    print("\n".join(summary))
     return output_content
+
+
+def header_list_to_markdown_list(header_list: HeaderList) -> str:
+    """
+    Convert a list of headers into a Markdown format.
+
+    :param header_list: List of headers, where each header is a tuple containing
+        the line number, level, and title.
+    :return: The generated Markdown content as a string.
+    """
+    output_lines = []
+    for level, title, line_number in header_list:
+        _ = line_number
+        header_prefix = " " * level
+        output_lines.append(f"{header_prefix} {title}")
+    output_content = "\n".join(output_lines)
+    return output_content
+
 
 
 # #############################################################################
 
 
-def table_of_content(file_name: str, max_lev: int) -> None:
-    """
-    Generate a table of contents from the given file, considering the specified
-    maximum level of headings.
+# # TODO(gp): -> header_list_to_markdown
+# def table_of_content(file_name: str, max_lev: int) -> None:
+#     """
+#     Generate a table of contents from the given file, considering the specified
+#     maximum level of headings.
 
-    :param file_name: The name of the file to read and generate the table of
-        contents from
-    :param max_lev: The maximum level of headings to include in the table of
-        contents
-    """
-    skip_block = False
-    txt = hparser.read_file(file_name)
-    for line in txt:
-        # Skip comments.
-        skip_this_line, skip_block = skip_comments(line, skip_block)
-        if False and skip_this_line:
-            continue
-        #
-        for i in range(1, max_lev + 1):
-            if line.startswith("#" * i + " "):
-                if (
-                    ("#########" not in line)
-                    and ("///////" not in line)
-                    and ("-------" not in line)
-                    and ("======" not in line)
-                ):
-                    if i == 1:
-                        print()
-                    print(f"{'    ' * (i - 1)}{line}")
-                break
+#     :param file_name: The name of the file to read and generate the table of
+#         contents from
+#     :param max_lev: The maximum level of headings to include in the table of
+#         contents
+#     """
+#     skip_block = False
+#     txt = hparser.read_file(file_name)
+#     for line in txt:
+#         # Skip comments.
+#         skip_this_line, skip_block = skip_comments(line, skip_block)
+#         if False and skip_this_line:
+#             continue
+#         #
+#         for i in range(1, max_lev + 1):
+#             if line.startswith("#" * i + " "):
+#                 if (
+#                     ("#########" not in line)
+#                     and ("///////" not in line)
+#                     and ("-------" not in line)
+#                     and ("======" not in line)
+#                 ):
+#                     if i == 1:
+#                         print()
+#                     print(f"{'    ' * (i - 1)}{line}")
+#                 break
 
 
 # #############################################################################
@@ -221,6 +407,7 @@ def format_headers(in_file_name: str, out_file_name: str, max_lev: int) -> None:
     txt_tmp = []
     for line in txt:
         # Keep the comments.
+        # TODO(gp): Use is_markdown_line_separator()
         if not (
             re.match("#+ ####+", line)
             or re.match("#+ /////+", line)
@@ -263,6 +450,7 @@ def increase_chapter(in_file_name: str, out_file_name: str) -> None:
     #
     txt_tmp = []
     for line in txt:
+        # TODO(gp): Use the iterator.
         skip_this_line, skip_block = skip_comments(line, skip_block)
         if skip_this_line:
             continue
@@ -280,101 +468,107 @@ def increase_chapter(in_file_name: str, out_file_name: str) -> None:
 # #############################################################################
 
 
-def process_comment_block(line: str, in_skip_block: bool) -> Tuple[bool, bool]:
+# TODO(gp): -> HeaderTreeNode
+class Node:
     """
-    Process lines of text to identify blocks that start with '<!--' or '/*' and
-    end with '-->' or '*/'.
-
-    :param line: The current line of text being processed.
-    :param in_skip_block: A flag indicating if the function is currently
-        inside a comment block.
-    :return: A tuple containing a boolean indicating whether to continue
-        processing the current line and a boolean indicating whether the
-        function is currently inside a comment block.
+    A Node class to build hierarchical tree.
     """
-    do_continue = False
-    if line.startswith(r"<!--") or re.search(r"^\s*\/\*", line):
-        hdbg.dassert(not in_skip_block)
-        # Start skipping comments.
-        in_skip_block = True
-    if in_skip_block:
-        if line.endswith(r"-->") or re.search(r"^\s*\*\/", line):
-            # End skipping comments.
-            in_skip_block = False
-        # Skip comment.
-        _LOG.debug("  -> skip")
-        do_continue = True
-    return do_continue, in_skip_block
+    def __init__(self, level, description):
+        self.level = level
+        self.description = description
+        self.children = []
+
+    def __repr__(self):
+        return f"Node({self.level}, {self.description})"
 
 
-def process_code_block(
-    line: str, in_code_block: bool, i: int, lines: List[str]
-) -> Tuple[bool, bool, List[str]]:
+# TODO(gp): -> _build_tree
+def build_tree(data):
     """
-    Process lines of text to handle code blocks that start and end with '```'.
-
-    :param line: The current line of text being processed.
-    :param in_code_block: A flag indicating if the function is currently
-        inside a code block.
-    :param i: The index of the current line in the list of lines.
-    :param lines: The list of all lines of text being processed.
-    :return: A tuple containing a boolean indicating whether to continue
-        processing the current line, a boolean indicating whether the function
-        is currently inside a code block, and a list of processed lines.
+    Build a tree (list of Node objects) from the flat list.
+    We assume that the level changes never jump by more than 1.
     """
-    out: List[str] = []
-    do_continue = False
-    if re.match(r"^(\s*)```", line):
-        _LOG.debug("  -> code block")
-        in_code_block = not in_code_block
-        # Add empty line.
-        if (
-            in_code_block
-            and (i + 1 < len(lines))
-            and re.match(r"\s*", lines[i + 1])
-        ):
-            out.append("\n")
-        out.append("    " + line)
-        if (
-            not in_code_block
-            and (i + 1 < len(lines))
-            and re.match(r"\s*", lines[i + 1])
-        ):
-            out.append("\n")
-        do_continue = True
-        return do_continue, in_code_block, out
-    if in_code_block:
-        line = line.replace("// ", "# ")
-        out.append("    " + line)
-        # We don't do any of the other post-processing.
-        do_continue = True
-        return do_continue, in_code_block, out
-    return do_continue, in_code_block, out
+    tree = []
+    stack = []
+    for level, description in data:
+        node = Node(level, description)
+        if level == 1:
+            tree.append(node)
+            stack = [node]
+        else:
+            # Pop until we find the proper parent: one with level < current level.
+            while stack and stack[-1].level >= level:
+                stack.pop()
+            if stack:
+                stack[-1].children.append(node)
+            else:
+                tree.append(node)
+            stack.append(node)
+    return tree
 
 
-def process_single_line_comment(line: str) -> bool:
+def find_ancestry(nodes, target_level, target_description):
     """
-    Handle single line comment.
-
-    We need to do it after the // in code blocks have been handled.
+    Recursively search for the node matching (target_level, target_description).
+    If found, return the ancestry as a list from the root down to that node.
+    Otherwise return None.
     """
-    do_continue = False
-    if line.startswith(r"%%") or line.startswith(r"//"):
-        do_continue = True
-        _LOG.debug("  -> do_continue=True")
-        return do_continue
-    # Skip frame.
-    if (
-        re.match(r"\#+ -----", line)
-        or re.match(r"\#+ \#\#\#\#\#", line)
-        or re.match(r"\#+ =====", line)
-        or re.match(r"\#+ \/\/\/\/\/", line)
-    ):
-        do_continue = True
-        _LOG.debug("  -> do_continue=True")
-        return do_continue
-    # Nothing to do.
-    return do_continue
+    for node in nodes:
+        if node.level == target_level and node.description == target_description:
+            return [node]
+        result = find_ancestry(node.children, target_level, target_description)
+        if result:
+            return [node] + result
+    return None
+
+
+def print_tree(nodes, ancestry, indent=0):
+    """
+    Print the tree. Only expand (i.e. recursively print children) for a node
+    if it is part of the ancestry of the selected node.
+    
+    - Nodes not in the ancestry are printed on one line (even if they have children).
+    - The selected node (last in the ancestry) is printed highlighted.
+    """
+    for node in nodes:
+        prefix = "  " * indent + "- "
+        # If this node is the next expected one in the ancestry branch...
+        if ancestry and node is ancestry[0]:
+            # If this is the last in the ancestry, it is the selected node.
+            if len(ancestry) == 1:
+                print(prefix + "*" + node.description + "*")
+            else:
+                print(prefix + node.description)
+            # Expand this node’s children using the rest of the ancestry.
+            print_tree(node.children, ancestry[1:], indent + 1)
+        else:
+            # For nodes not on the selected branch, print them without expanding.
+            print(prefix + node.description)
+
+
+def print_selected_navigation(selected_level, selected_description):
+    """
+    Given a level and description for the selected node, print the navigation.
+    """
+    tree = build_tree(data)
+    ancestry = find_ancestry(tree, selected_level, selected_description)
+    if ancestry is None:
+        print("Selected node not found.")
+    else:
+        print_tree(tree, ancestry)
+
+
+# Example usage with all the test cases:
+if __name__ == "__main__":
+    for level, desc in data:
+        print(f"Input: ({level}, '{desc}')")
+        print_selected_navigation(level, desc)
+        print()
+
+
+# #############################################################################
+# Utils
+# #############################################################################
 
 
 def remove_end_of_line_periods(txt: str) -> str:

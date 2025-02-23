@@ -242,8 +242,8 @@ def dassert_lgt(
     """
     Assert that `lower_bound <= x <= upper_bound`.
 
-    :param lower_bound_closed, upper_bound_closed: control the
-        open-ness/close-ness of the interval extremes.
+    :param lower_bound_closed, upper_bound_closed: control the     open-
+    ness/close-ness of the interval extremes.
     """
     # `lower_bound <= or < x`.
     if lower_bound_closed:
@@ -538,7 +538,9 @@ def dassert_not_intersection(
         txt.append("val1=" + _set_to_str(val1))
         txt.append("has no intersection")
         txt.append("val2=" + _set_to_str(val2))
-        txt.append("val1.intersection(val2)=" + _set_to_str(val1.intersection(val2)))
+        txt.append(
+            "val1.intersection(val2)=" + _set_to_str(val1.intersection(val2))
+        )
         _dfatal(txt, msg, *args, only_warning=only_warning)
 
 
@@ -653,8 +655,8 @@ def dassert_array_has_same_type_element(
     Check that two objects iterables like arrays (e.g., pd.Index) have elements
     of the same type.
 
-    :param only_first_elem: whether to check only the first element or all the
-        elements of the iterable.
+    :param only_first_elem: whether to check only the first element or
+        all the elements of the iterable.
     """
     # Get the types to compare.
     if only_first_elem:
@@ -895,6 +897,7 @@ def dassert_related_params(
 
 # TODO(gp): Move this to helpers/hlogging.py and change all the callers.
 
+
 # TODO(gp): maybe replace "force_verbose_format" and "force_print_format" with
 #  a "mode" in ("auto", "verbose", "print")
 def init_logger(
@@ -1023,8 +1026,8 @@ def set_logger_verbosity(
     """
     Change the verbosity of the logging after the initialization.
 
-    Passing a module_name (e.g., matplotlib) one can change the logging of
-    that specific module.
+    Passing a module_name (e.g., matplotlib) one can change the logging
+    of that specific module.
 
     E.g., set_logger_verbosity(logging.WARNING, "matplotlib")
     """
