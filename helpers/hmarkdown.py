@@ -264,7 +264,7 @@ def extract_section_from_markdown(content: str, header_name: str) -> str:
 # file, e.g.,
 # `(1, "Chapter 1", 5)``
 # `(2, "Section 1.1", 10)`
-HeaderInfo = Tuple[int, int, str]
+HeaderInfo = Tuple[int, str, int]
 
 
 HeaderList = List[HeaderInfo]
@@ -318,25 +318,32 @@ def header_list_to_vim_cfile(markdown_file: str, header_list: HeaderList) -> str
     """
     output_lines = [
         f"{markdown_file}:{line_number}:{title}"
-        for level, title, line_number in header_list
+        for _, title, line_number in header_list
     ]
-    _ = level
     output_content = "\n".join(output_lines)
     return output_content
 
 
-def header_list_to_markdown_list(header_list: HeaderList) -> str:
+def header_list_to_markdown(header_list: HeaderList, mode: str) -> str:
     """
     Convert a list of headers into a Markdown format.
 
     :param header_list: List of headers, where each header is a tuple
-        containing the line number, level, and title.
+        containing the level, title, and line number.
+    :param mode: Specifies the format of the output. 
+        - "list": Indents headers to create a nested list.
+        - "headers": Uses Markdown header syntax (e.g., #, ##, ###).
     :return: The generated Markdown content as a string.
     """
     output_lines = []
     for level, title, line_number in header_list:
         _ = line_number
-        header_prefix = " " * level
+        if mode == "list":
+            header_prefix = " " * level + "-"
+        elif mode == "headers":
+            header_prefix = "#" * level
+        else:
+            raise ValueError(f"Invalid mode '{mode}'")
         output_lines.append(f"{header_prefix} {title}")
     output_content = "\n".join(output_lines)
     return output_content
@@ -381,6 +388,7 @@ def header_list_to_markdown_list(header_list: HeaderList) -> str:
 # #############################################################################
 
 
+# TODO(gp): Add tests.
 def format_headers(in_file_name: str, out_file_name: str, max_lev: int) -> None:
     """
     Format the headers in the input file and write the formatted text to the
@@ -433,6 +441,7 @@ def format_headers(in_file_name: str, out_file_name: str, max_lev: int) -> None:
     hparser.write_file(txt_tmp, out_file_name)
 
 
+# TODO(gp): Add tests.
 # TODO(gp): Generalize this to also decrease the header level
 # TODO(gp): -> modify_header_level
 def increase_chapter(in_file_name: str, out_file_name: str) -> None:
@@ -601,6 +610,7 @@ def remove_empty_lines(txt: str) -> str:
     return txt_out
 
 
+# TODO(gp): Add tests.
 def remove_code_delimiters(text: str) -> str:
     """
     Remove ```python and ``` delimiters from a given text.

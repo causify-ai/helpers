@@ -1,121 +1,16 @@
+from typing import List, Optional, Tuple
+
 import helpers.hmarkdown as hmarkdo
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
 
-# #############################################################################
-# Test_extract_section_from_markdown1
-# #############################################################################
+def _to_header_list(data: List[Tuple[int, str]]) -> hmarkdo.HeaderList:
+    res = [(hmarkdo.Header(level, text, 5 * i) for i, level, text in enumerate(data))]
+    return res
 
 
-class Test_extract_section_from_markdown1(hunitest.TestCase):
-
-    def test1(self) -> None:
-        # Prepare inputs.
-        content = r"""
-        # Header1
-        Content under header 1.
-        ## Header2
-        Content under header 2.
-        # Header3
-        Content under header 3.
-        """
-        # Call functions.
-        content = hprint.dedent(content)
-        act = hmarkdo.extract_section_from_markdown(content, "Header1")
-        # Check output.
-        exp = r"""
-        # Header1
-        Content under header 1.
-        ## Header2
-        Content under header 2.
-        """
-        self.assert_equal(act, exp, dedent=True)
-
-    def test2(self) -> None:
-        # Prepare inputs.
-        content = r"""
-        # Header1
-        Content under header 1.
-        ## Header2
-        Content under header 2.
-        # Header3
-        Content under header 3.
-        """
-        content = hprint.dedent(content)
-        # Call functions.
-        act = hmarkdo.extract_section_from_markdown(content, "Header2")
-        # Check output.
-        exp = r"""
-        ## Header2
-        Content under header 2.
-        """
-        self.assert_equal(act, exp, dedent=True)
-
-    def test3(self) -> None:
-        # Prepare inputs.
-        content = r"""
-        # Header1
-        Content under header 1.
-        ## Header2
-        Content under header 2.
-        # Header3
-        Content under header 3.
-        """
-        content = hprint.dedent(content)
-        # Call tested function.
-        act = hmarkdo.extract_section_from_markdown(content, "Header3")
-        # Check output.
-        exp = r"""
-        # Header3
-        Content under header 3.
-        """
-        self.assert_equal(act, exp, dedent=True)
-
-    def test4(self) -> None:
-        # Prepare inputs.
-        content = r"""
-        # Header1
-        Content under header 1.
-        ## Header2
-        Content under header 2.
-        """
-        content = hprint.dedent(content)
-        # Call function.
-        act = hmarkdo.extract_section_from_markdown(content, "Header1")
-        # Check output.
-        exp = r"""
-        # Header1
-        Content under header 1.
-        ## Header2
-        Content under header 2.
-        """
-        self.assert_equal(act, exp, dedent=True)
-
-    def test_no_header(self) -> None:
-        # Prepare inputs.
-        content = r"""
-        # Header1
-        Content under header 1.
-        ## Header2
-        Content under header 2.
-        # Header3
-        Content under header 3.
-        """
-        # Call tested function.
-        content = hprint.dedent(content)
-        with self.assertRaises(ValueError) as fail:
-            hmarkdo.extract_section_from_markdown(content, "Header4")
-        # Check output.
-        actual = str(fail.exception)
-        expected = r"Header 'Header4' not found"
-        self.assert_equal(actual, expected)
-
-
-# #############################################################################
-
-
-def get_header_data1() -> hmarkdo.HeaderList:
+def get_header_list1() -> hmarkdo.HeaderList:
     data = [
         (1, "Chapter 1"),
         (2, "Section 1.1"),
@@ -127,10 +22,11 @@ def get_header_data1() -> hmarkdo.HeaderList:
         (3, "Subsection 2.1.1"),
         (2, "Section 2.2"),
     ]
-    return data
+    header_list = _to_header_list(data)
+    return header_list
 
 
-def get_header_data2() -> hmarkdo.HeaderList:
+def get_header_list2() -> hmarkdo.HeaderList:
     data = [
         (1, "Module Alpha"),
         (2, "Lesson Alpha-1"),
@@ -147,10 +43,11 @@ def get_header_data2() -> hmarkdo.HeaderList:
         (3, "Topic Gamma-1.a"),
         (3, "Topic Gamma-1.b"),
     ]
-    return data
+    header_list = _to_header_list(data)
+    return header_list
 
 
-def get_header_data3() -> hmarkdo.HeaderList:
+def get_header_list3() -> hmarkdo.HeaderList:
     data = [
         (1, "Topic A"),
         (2, "Subtopic A.1"),
@@ -168,7 +65,308 @@ def get_header_data3() -> hmarkdo.HeaderList:
         (2, "Subtopic C.1"),
         (3, "Detail C.1.i"),
     ]
-    return data
+    header_list = _to_header_list(data)
+    return header_list
+
+
+class Test_header_list_to_vim_cfile1(hunitest.TestCase):
+
+    def test_get_header_list1(self) -> None:
+        # Prepare inputs.
+        file = "test.txt"
+        headers = get_header_list1()
+        # Call function.
+        act = hmarkdo.header_list_to_vim_cfile(headers)
+        # Check output.
+        exp = r"""
+        1 Chapter 1
+        2 Section 1.1
+        3 Subsection 1.1.1
+        3 Subsection 1.1.2
+        2 Section 1.2
+        1 Chapter 2
+        2 Section 2.1
+        3 Subsection 2.1.1
+        2 Section 2.2
+        """
+        self.assert_equal(act, exp, dedent=True)
+
+
+class Test_header_list_to_markdown_list1(hunitest.TestCase):
+
+    def test_mode_1(self) -> None:
+        # Prepare inputs.
+        headers = get_header_list1()
+        mode = "list"
+        # Call function.
+        act = hmarkdo.header_list_to_markdown_list(headers, mode)
+        # Check output.
+        exp = r"""
+        - Chapter 1
+          - Section 1.1
+            - Subsection 1.1.1
+            - Subsection 1.1.2
+          - Section 1.2
+        - Chapter 2
+          - Section 2.1
+            - Subsection 2.1.1
+          - Section 2.2
+        """
+        self.assert_equal(act, exp, dedent=True)
+
+    def test_mode_2(self) -> None:
+        # Prepare inputs.
+        headers = get_header_list1()
+        mode = "headers"
+        # Call function.
+        act = hmarkdo.header_list_to_markdown_list(headers, mode)
+        # Check output.
+        exp = r"""
+        # Chapter 1
+        ## Section 1.1
+        ### Subsection 1.1.1
+        ### Subsection 1.1.2
+        ## Section 1.2
+        # Chapter 2
+        ## Section 2.1
+        ### Subsection 2.1.1
+        ## Section 2.2
+        """
+        self.assert_equal(act, exp, dedent=True)t
+
+
+# #############################################################################
+
+
+
+class Test_is_markdown_line_separator1(hunitest.TestCase):
+
+    def test_valid_separator(self) -> None:
+        # Prepare inputs.
+        line = "-----------------------"
+        # Call function.
+        act = hmarkdo.is_markdown_line_separator(line)
+        # Check output.
+        exp = True
+        self.assertEqual(act, exp)
+
+    def test_invalid_separator(self) -> None:
+        # Prepare inputs.
+        line = "Not a separator"
+        # Call function.
+        act = hmarkdo.is_markdown_line_separator(line)
+        # Check output.
+        exp = False
+        self.assertEqual(act, exp)
+
+# #############################################################################
+# Test_extract_section_from_markdown1
+# #############################################################################
+
+
+def _get_markdown_example1() -> str:
+    content = r"""
+    # Header1
+    Content under header 1.
+    ## Header2
+    Content under subheader 2.
+    # Header3
+    Content under header 3.
+    """
+    content = hprint.dedent(content)
+    return content
+
+def _get_markdown_example2(self) -> str:
+    content = r"""
+    # Header1
+    Content under header 1.
+    ## Header2
+    Content under subheader 2.
+    """
+    content = hprint.dedent(content)
+    return content
+
+
+def _get_markdown_example3(self) -> str:
+    content = r"""
+# Chapter 1
+
+Welcome to the first chapter. This chapter introduces fundamental concepts and
+lays the groundwork for further exploration.
+
+## Section 1.1
+
+This section discusses the initial principles and key ideas that are crucial for
+understanding the topic.
+
+### Subsection 1.1.1
+
+The first subsection dives deeper into the details, providing examples and
+insights that help clarify the concepts.
+
+Example:
+```python
+def greet(name):
+    return f"Hello, {name}!"
+print(greet("World"))
+```
+
+### Subsection 1.1.2
+
+Here, we examine alternative perspectives and additional considerations that
+were not covered in the previous subsection.
+
+- Key Point 1: Understanding different viewpoints enhances comprehension.
+- Key Point 2: Practical application reinforces learning.
+
+## Section 1.2
+
+This section introduces new frameworks and methodologies that build upon the
+foundation established earlier.
+
+> "Knowledge is like a tree, growing stronger with each branch of understanding."
+
+# Chapter 2
+
+Moving forward, this chapter explores advanced topics and real-world
+applications.
+
+## Section 2.1
+
+This section provides an in-depth analysis of core mechanisms that drive the
+subject matter.
+
+### Subsection 2.1.1
+
+A deep dive into specific case studies and empirical evidence that support
+theoretical claims.
+
+- Case Study 1: Implementation in modern industry
+- Case Study 2: Comparative analysis of traditional vs. modern methods
+
+## Section 2.2
+
+The final section of this chapter presents summary conclusions, key takeaways,
+and potential future developments.
+
+```yaml
+future:
+  - AI integration
+  - Process optimization
+  - Sustainable solutions
+```
+
+Stay curious and keep exploring!
+    """
+    content = hprint.dedent(content)
+    return content
+
+
+class Test_extract_section_from_markdown1(hunitest.TestCase):
+
+    # TODO(gp): This doesn't seem correct.
+    def test1(self) -> None:
+        # Prepare inputs.
+        content = _get_markdown_example1()
+        # Call functions.
+        act = hmarkdo.extract_section_from_markdown(content, "Header1")
+        # Check output.
+        exp = r"""
+        # Header1
+        Content under header 1.
+        ## Header2
+        Content under header 2.
+        """
+        self.assert_equal(act, exp, dedent=True)
+
+    def test2(self) -> None:
+        # Prepare inputs.
+        content = _get_markdown_example1()
+        content = hprint.dedent(content)
+        # Call functions.
+        act = hmarkdo.extract_section_from_markdown(content, "Header2")
+        # Check output.
+        exp = r"""
+        ## Header2
+        Content under header 2.
+        """
+        self.assert_equal(act, exp, dedent=True)
+
+    def test3(self) -> None:
+        # Prepare inputs.
+        content = _get_markdown_example1()
+        content = hprint.dedent(content)
+        # Call tested function.
+        act = hmarkdo.extract_section_from_markdown(content, "Header3")
+        # Check output.
+        exp = r"""
+        # Header3
+        Content under header 3.
+        """
+        self.assert_equal(act, exp, dedent=True)
+
+    def test4(self) -> None:
+        # Prepare inputs.
+        content = _get_markdown_example2()
+        # Call function.
+        act = hmarkdo.extract_section_from_markdown(content, "Header1")
+        # Check output.
+        exp = r"""
+        # Header1
+        Content under header 1.
+        ## Header2
+        Content under header 2.
+        """
+        self.assert_equal(act, exp, dedent=True)
+
+    def test_no_header(self) -> None:
+        # Prepare inputs.
+        content = _get_markdown_example1()
+        # Call tested function.
+        with self.assertRaises(ValueError) as fail:
+            hmarkdo.extract_section_from_markdown(content, "Header4")
+        # Check output.
+        actual = str(fail.exception)
+        expected = r"Header 'Header4' not found"
+        self.assert_equal(actual, expected)
+
+
+class Test_extract_headers_from_markdown1(hunitest.TestCase):
+
+    def test_multiple_headers(self) -> None:
+        # Prepare inputs.
+        content = _get_markdown_example1()
+        # Call function.
+        act = hmarkdo.extract_headers_from_markdown(content)
+        # Check output.
+        exp = [
+            (1, "Header1"),
+            (2, "Header2"),
+            (1, "Header3"),
+        ]
+        self.assert_equal(act, exp)
+
+    def test_single_header(self) -> None:
+        # Prepare inputs.
+        content = _get_markdown_example2()
+        # Call function.
+        act = hmarkdo.extract_headers_from_markdown(content)
+        # Check output.
+        exp = [(1, "Header1"), (2, "Header2")]
+        self.assert_equal(act, exp)
+
+    def test_no_headers(self) -> None:
+        # Prepare inputs.
+        content = r"""
+        This is some content without any headers.
+        """
+        content = hprint.dedent(content)
+        # Call function.
+        act = hmarkdo.extract_headers_from_markdown(content)
+        # Check output.
+        exp = []
+        self.assert_equal(act, exp)
+
 
 
 # #############################################################################

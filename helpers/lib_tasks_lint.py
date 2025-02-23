@@ -186,6 +186,7 @@ def lint(  # type: ignore
     modified=False,
     last_commit=False,
     branch=False,
+    # It needs to be a string to allow the user to specify "serial".
     num_threads="-1",
     only_format=False,
     only_check=False,
