@@ -22,6 +22,7 @@ Convert a txt file into a PDF / HTML / slides using `pandoc`.
 import argparse
 import logging
 import os
+import re
 import sys
 from typing import Any, List, Optional, Tuple
 
@@ -324,17 +325,9 @@ def _run_pandoc_to_html(
     hdbg.dassert_path_exists(file_out)
     return file_out
 
-
-def _run_pandoc_to_slides(args: argparse.Namespace, file_: str) -> str:
-    """
-    Convert the input file to PDF slides using Pandoc.
-
-    :param args: The command-line arguments
-    :param file_: The input file to be converted
-    :return: The path to the generated PDF file
-    """
+    
+def _build_pandoc_cmd(args: argparse.Namespace, file_: str, *, use_tex: bool = False) -> None:
     cmd = []
-    # TODO(gp): We should use the dockerized version of pandoc.
     cmd.append(f"pandoc {file_}")
     #
     cmd.append("-t beamer")
@@ -346,7 +339,11 @@ def _run_pandoc_to_slides(args: argparse.Namespace, file_: str) -> str:
     if not args.no_toc:
         cmd.append("--toc")
         cmd.append("--toc-depth 2")
-    file_out = file_.replace(".txt", ".pdf")
+    if use_tex:
+        ext = ".tex"
+    else:
+        ext = ".pdf"
+    file_out = file_.replace(".txt", ext)
     cmd.append(f"-o {file_out}")
     #
     cmd = " ".join(cmd)
@@ -361,7 +358,44 @@ def _run_pandoc_to_slides(args: argparse.Namespace, file_: str) -> str:
             use_sudo=args.dockerized_use_sudo,
         )
     _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
-    _ = _system(cmd, suppress_output=False)
+    return cmd, file_out
+
+
+def _run_pandoc_to_slides(args: argparse.Namespace, file_: str, *, debug: bool = False) -> str:
+    """
+    Convert the input file to PDF slides using Pandoc.
+
+    :param args: The command-line arguments
+    :param file_: The input file to be converted
+    :return: The path to the generated PDF file
+    """
+    cmd, file_out = _build_pandoc_cmd(args, file_)
+    rc, txt = _system_to_string(cmd, abort_on_error=False)
+    print(txt)
+    _LOG.error("Log is in %s", file_out + ".log")
+    #rc = _system(cmd, suppress_output=False)
+    if rc != 0:
+        if debug:
+            _LOG.error("Pandoc failed")
+            # Generate the tex version of the file.
+            cmd, file_out = _build_pandoc_cmd(args, file_, use_tex=True)
+            _system(cmd, abort_on_error=False)
+            # Error producing PDF.
+            # ! Package enumitem Error: 1) undefined.
+
+            # See the enumitem package documentation for explanation.
+            # Type  H <return>  for immediate help.
+            #  ...
+
+            # l.979 \end{frame}
+            for line in txt.split("\n"):
+                _LOG.debug("line=%s", line)
+                m = re.match("^l\.(\d+)", line)
+                if m:
+                    line_num = int(m.group(1))
+                    cmd = "vim %s +%d" % (file_out, line_num)
+                    print(hprint.frame(cmd))
+        raise RuntimeError("Pandoc failed")
     #
     _LOG.debug("file_out=%s", file_out)
     hdbg.dassert_path_exists(file_out)
@@ -475,7 +509,7 @@ def _run_all(args: argparse.Namespace) -> None:
         elif args.type == "html":
             file_out = _run_pandoc_to_html(args, file_, prefix)
         elif args.type == "slides":
-            file_out = _run_pandoc_to_slides(args, file_)
+            file_out = _run_pandoc_to_slides(args, file_, debug=args.debug_on_error)
         else:
             raise ValueError(f"Invalid type='{args.type}'")
     file_in = file_out
@@ -588,6 +622,9 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument("--no_toc", action="store_true", default=False)
     parser.add_argument(
         "--no_run_latex_again", action="store_true", default=False
+    )
+    parser.add_argument(
+        "--debug_on_error", action="store_true", default=False
     )
     parser.add_argument(
         "--gdrive_dir",

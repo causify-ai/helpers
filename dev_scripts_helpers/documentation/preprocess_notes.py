@@ -53,6 +53,14 @@ def _process_abbreviations(in_line: str) -> str:
     return line
 
 
+def _process_enumerated_list(in_line: str) -> str:
+    """
+    Transform `1) foo bar` into `1. foo bar`
+    """
+    line = re.sub(r"^(\s*)(\d+)\)\s", r"\1\2. ", in_line)
+    return line
+
+
 def _process_question_to_markdown(line: str) -> Tuple[bool, str]:
     """
     Transform `* foo bar` into `- **foo bar**`.
@@ -150,6 +158,10 @@ def _run_all(lines: List[str], type_: str, *, is_qa: bool = False) -> List[str]:
         if _TRACE:
             _LOG.debug("# 4) Process abbreviations.")
         line = _process_abbreviations(line)
+        # 5) Process enumerated list.
+        if _TRACE:
+            _LOG.debug("# 5) Process enumerated list.")
+        line = _process_enumerated_list(line)
         # 5) Process question.
         if _TRACE:
             _LOG.debug("# 5) Process question.")
