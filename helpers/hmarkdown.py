@@ -1,6 +1,7 @@
 import logging
 import re
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, NamedTuple
+import dataclasses
 
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
@@ -50,11 +51,12 @@ _LOG = logging.getLogger(__name__)
 
 def is_markdown_line_separator(line: str) -> bool:
     res = (
-        re.match("#+\s*#########+", line)
-        or re.match("#+\s*/////////+", line)
-        or re.match("#+\s*---------+", line)
-        or re.match("#+\s*=========+", line)
+        re.match(r"#*\s*#########+", line)
+        or re.match(r"#*\s*/////////+", line)
+        or re.match(r"#*\s*---------+", line)
+        or re.match(r"#*\s*=========+", line)
     )
+    res = bool(res)
     return res
 
 
@@ -264,7 +266,28 @@ def extract_section_from_markdown(content: str, header_name: str) -> str:
 # file, e.g.,
 # `(1, "Chapter 1", 5)``
 # `(2, "Section 1.1", 10)`
-HeaderInfo = Tuple[int, str, int]
+
+@dataclasses.dataclass
+class HeaderInfo:
+    level: int
+    description: str
+    line_number: int
+
+    def __init__(self, level: int, description: str, line_number: int):
+        hdbg.dassert_isinstance(level, int)   
+        hdbg.dassert_lte(1, level)
+        self.level = level
+        #
+        hdbg.dassert_isinstance(description, str)   
+        self.description = description
+        #
+        hdbg.dassert_isinstance(line_number, int)   
+        hdbg.dassert_lte(1, line_number)
+        self.line_number = line_number
+
+    def as_tuple(self) -> Tuple[int, str, int]:
+        return (self.level, self.description, self.line_number)
+
 
 
 HeaderList = List[HeaderInfo]
@@ -316,9 +339,11 @@ def header_list_to_vim_cfile(markdown_file: str, header_list: HeaderList) -> str
         ...
         ```
     """
+    hdbg.dassert_isinstance(header_list, list)
+    _LOG.debug(hprint.to_str("markdown_file header_list"))
     output_lines = [
-        f"{markdown_file}:{line_number}:{title}"
-        for _, title, line_number in header_list
+        f"{markdown_file}:{header_info.line_number}:{header_info.description}"
+        for header_info in header_list
     ]
     output_content = "\n".join(output_lines)
     return output_content
@@ -335,11 +360,14 @@ def header_list_to_markdown(header_list: HeaderList, mode: str) -> str:
         - "headers": Uses Markdown header syntax (e.g., #, ##, ###).
     :return: The generated Markdown content as a string.
     """
+    hdbg.dassert_isinstance(header_list, list)
+    _LOG.debug(hprint.to_str("header_list mode"))
     output_lines = []
-    for level, title, line_number in header_list:
+    for header_info in header_list:
+        level, title, line_number = header_info.as_tuple()
         _ = line_number
         if mode == "list":
-            header_prefix = " " * level + "-"
+            header_prefix = "  " * (level - 1) + "-"
         elif mode == "headers":
             header_prefix = "#" * level
         else:
@@ -357,7 +385,6 @@ def header_list_to_markdown(header_list: HeaderList, mode: str) -> str:
 #     """
 #     Generate a table of contents from the given file, considering the specified
 #     maximum level of headings.
-
 #     :param file_name: The name of the file to read and generate the table of
 #         contents from
 #     :param max_lev: The maximum level of headings to include in the table of

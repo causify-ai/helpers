@@ -7,7 +7,7 @@ import helpers.hunit_test as hunitest
 
 def _to_header_list(data: List[Tuple[int, str]]) -> hmarkdo.HeaderList:
     res = [
-        (hmarkdo.Header(level, text, 5 * i) for i, level, text in enumerate(data))
+        hmarkdo.HeaderInfo(level, text, 5 * i + 1) for i, (level, text) in enumerate(data)
     ]
     return res
 
@@ -80,37 +80,38 @@ class Test_header_list_to_vim_cfile1(hunitest.TestCase):
 
     def test_get_header_list1(self) -> None:
         # Prepare inputs.
+        markdown_file = "test.py"
         headers = get_header_list1()
         # Call function.
-        act = hmarkdo.header_list_to_vim_cfile(headers)
+        act = hmarkdo.header_list_to_vim_cfile(markdown_file, headers)
         # Check output.
         exp = r"""
-        1 Chapter 1
-        2 Section 1.1
-        3 Subsection 1.1.1
-        3 Subsection 1.1.2
-        2 Section 1.2
-        1 Chapter 2
-        2 Section 2.1
-        3 Subsection 2.1.1
-        2 Section 2.2
+        test.py:1:Chapter 1
+        test.py:6:Section 1.1
+        test.py:11:Subsection 1.1.1
+        test.py:16:Subsection 1.1.2
+        test.py:21:Section 1.2
+        test.py:26:Chapter 2
+        test.py:31:Section 2.1
+        test.py:36:Subsection 2.1.1
+        test.py:41:Section 2.2
         """
         self.assert_equal(act, exp, dedent=True)
 
 
 # #############################################################################
-# Test_header_list_to_markdown_list1
+# Test_header_list_to_markdown1
 # #############################################################################
 
 
-class Test_header_list_to_markdown_list1(hunitest.TestCase):
+class Test_header_list_to_markdown1(hunitest.TestCase):
 
     def test_mode_list1(self) -> None:
         # Prepare inputs.
         headers = get_header_list1()
         mode = "list"
         # Call function.
-        act = hmarkdo.header_list_to_markdown_list(headers, mode)
+        act = hmarkdo.header_list_to_markdown(headers, mode)
         # Check output.
         exp = r"""
         - Chapter 1
@@ -130,7 +131,7 @@ class Test_header_list_to_markdown_list1(hunitest.TestCase):
         headers = get_header_list1()
         mode = "headers"
         # Call function.
-        act = hmarkdo.header_list_to_markdown_list(headers, mode)
+        act = hmarkdo.header_list_to_markdown(headers, mode)
         # Check output.
         exp = r"""
         # Chapter 1
@@ -190,7 +191,7 @@ def _get_markdown_example1() -> str:
     return content
 
 
-def _get_markdown_example2(self) -> str:
+def _get_markdown_example2() -> str:
     content = r"""
     # Header1
     Content under header 1.
@@ -199,9 +200,17 @@ def _get_markdown_example2(self) -> str:
     """
     content = hprint.dedent(content)
     return content
+        
+
+def _get_markdown_example3() -> str:
+    content = r"""
+    This is some content without any headers.
+    """
+    content = hprint.dedent(content)
+    return content
 
 
-def _get_markdown_example3(self) -> str:
+def _get_markdown_example4() -> str:
     content = r"""
 # Chapter 1
 
@@ -294,7 +303,7 @@ class Test_extract_section_from_markdown1(hunitest.TestCase):
         # Header1
         Content under header 1.
         ## Header2
-        Content under header 2.
+        Content under subheader 2.
         """
         self.assert_equal(act, exp, dedent=True)
 
@@ -307,7 +316,7 @@ class Test_extract_section_from_markdown1(hunitest.TestCase):
         # Check output.
         exp = r"""
         ## Header2
-        Content under header 2.
+        Content under subheader 2.
         """
         self.assert_equal(act, exp, dedent=True)
 
@@ -334,13 +343,13 @@ class Test_extract_section_from_markdown1(hunitest.TestCase):
         # Header1
         Content under header 1.
         ## Header2
-        Content under header 2.
+        Content under subheader 2.
         """
         self.assert_equal(act, exp, dedent=True)
 
     def test_no_header(self) -> None:
         # Prepare inputs.
-        content = _get_markdown_example1()
+        content = _get_markdown_example3()
         # Call tested function.
         with self.assertRaises(ValueError) as fail:
             hmarkdo.extract_section_from_markdown(content, "Header4")
@@ -363,12 +372,8 @@ class Test_extract_headers_from_markdown1(hunitest.TestCase):
         # Call function.
         act = hmarkdo.extract_headers_from_markdown(content)
         # Check output.
-        exp = [
-            (1, "Header1"),
-            (2, "Header2"),
-            (1, "Header3"),
-        ]
-        self.assert_equal(act, exp)
+        exp = r"""[(1, 'Header1', 1), (2, 'Header2', 3), (1, 'Header3', 5)]"""
+        self.assert_equal(str(act), exp)
 
     def test_single_header(self) -> None:
         # Prepare inputs.
@@ -376,8 +381,8 @@ class Test_extract_headers_from_markdown1(hunitest.TestCase):
         # Call function.
         act = hmarkdo.extract_headers_from_markdown(content)
         # Check output.
-        exp = [(1, "Header1"), (2, "Header2")]
-        self.assert_equal(act, exp)
+        exp = r"""[(1, 'Header1', 1), (2, 'Header2', 3)]"""
+        self.assert_equal(str(act), exp)
 
     def test_no_headers(self) -> None:
         # Prepare inputs.
@@ -389,7 +394,7 @@ class Test_extract_headers_from_markdown1(hunitest.TestCase):
         act = hmarkdo.extract_headers_from_markdown(content)
         # Check output.
         exp = []
-        self.assert_equal(act, exp)
+        self.assert_equal(str(act), str(exp))
 
 
 # #############################################################################
