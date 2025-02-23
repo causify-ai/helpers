@@ -3,7 +3,13 @@ import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
 
+# #############################################################################
+# Test_extract_section_from_markdown1
+# #############################################################################
+
+
 class Test_extract_section_from_markdown1(hunitest.TestCase):
+
     def test1(self) -> None:
         # Prepare inputs.
         content = r"""
@@ -106,41 +112,43 @@ class Test_extract_section_from_markdown1(hunitest.TestCase):
         self.assert_equal(actual, expected)
 
 
-# ##############################################################################
+# #############################################################################
 
 
 def get_header_data1() -> hmarkdo.HeaderList:
     data = [
-    (1, "Chapter 1"),
-    (2, "Section 1.1"),
-    (3, "Subsection 1.1.1"),
-    (3, "Subsection 1.1.2"),
-    (2, "Section 1.2"),
-    (1, "Chapter 2"),
-    (2, "Section 2.1"),
-    (3, "Subsection 2.1.1"),
-    (2, "Section 2.2"),
+        (1, "Chapter 1"),
+        (2, "Section 1.1"),
+        (3, "Subsection 1.1.1"),
+        (3, "Subsection 1.1.2"),
+        (2, "Section 1.2"),
+        (1, "Chapter 2"),
+        (2, "Section 2.1"),
+        (3, "Subsection 2.1.1"),
+        (2, "Section 2.2"),
     ]
     return data
 
+
 def get_header_data2() -> hmarkdo.HeaderList:
     data = [
-    (1, "Module Alpha"),
-    (2, "Lesson Alpha-1"),
-    (3, "Topic Alpha-1.a"),
-    (3, "Topic Alpha-1.b"),
-    (2, "Lesson Alpha-2"),
-    (3, "Topic Alpha-2.a"),
-    (1, "Module Beta"),
-    (2, "Lesson Beta-1"),
-    (3, "Topic Beta-1.a"),
-    (2, "Lesson Beta-2"),
-    (1, "Module Gamma"),
-    (2, "Lesson Gamma-1"),
-    (3, "Topic Gamma-1.a"),
-    (3, "Topic Gamma-1.b"),
+        (1, "Module Alpha"),
+        (2, "Lesson Alpha-1"),
+        (3, "Topic Alpha-1.a"),
+        (3, "Topic Alpha-1.b"),
+        (2, "Lesson Alpha-2"),
+        (3, "Topic Alpha-2.a"),
+        (1, "Module Beta"),
+        (2, "Lesson Beta-1"),
+        (3, "Topic Beta-1.a"),
+        (2, "Lesson Beta-2"),
+        (1, "Module Gamma"),
+        (2, "Lesson Gamma-1"),
+        (3, "Topic Gamma-1.a"),
+        (3, "Topic Gamma-1.b"),
     ]
     return data
+
 
 def get_header_data3() -> hmarkdo.HeaderList:
     data = [
@@ -162,10 +170,14 @@ def get_header_data3() -> hmarkdo.HeaderList:
     ]
     return data
 
-# ##############################################################################
+
+# #############################################################################
+# Test_remove_end_of_line_periods1
+# #############################################################################
 
 
 class Test_remove_end_of_line_periods1(hunitest.TestCase):
+
     def test_standard_case(self) -> None:
         txt = "Hello.\nWorld.\nThis is a test."
         act = hmarkdo.remove_end_of_line_periods(txt)

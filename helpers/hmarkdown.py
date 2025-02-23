@@ -49,7 +49,8 @@ _LOG = logging.getLogger(__name__)
 
 
 def is_markdown_line_separator(line: str) -> bool:
-    res = (re.match("#+\s*#########+", line)
+    res = (
+        re.match("#+\s*#########+", line)
         or re.match("#+\s*/////////+", line)
         or re.match("#+\s*---------+", line)
         or re.match("#+\s*=========+", line)
@@ -204,10 +205,10 @@ def extract_section_from_markdown(content: str, header_name: str) -> str:
     Extract a section of text from a Markdown document based on the header
     name.
 
-    The function identifies a section by locating the specified header and
-    captures all lines until encountering another header of the same or higher
-    level. Headers are identified by the '#' prefix, and their level is
-    determined by the number of '#' characters.
+    The function identifies a section by locating the specified header
+    and captures all lines until encountering another header of the same
+    or higher level. Headers are identified by the '#' prefix, and their
+    level is determined by the number of '#' characters.
 
     :param content: The markdown content as a single string.
     :param header_name: The exact header name to extract (excluding '#'
@@ -269,9 +270,7 @@ HeaderInfo = Tuple[int, int, str]
 HeaderList = List[HeaderInfo]
 
 
-def extract_headers_from_markdown(
-    txt: str, *, max_level: int = 6
-) -> HeaderList:
+def extract_headers_from_markdown(txt: str, *, max_level: int = 6) -> HeaderList:
     """
     Extract headers from Markdown file and return an `HeaderList`.
 
@@ -330,8 +329,8 @@ def header_list_to_markdown_list(header_list: HeaderList) -> str:
     """
     Convert a list of headers into a Markdown format.
 
-    :param header_list: List of headers, where each header is a tuple containing
-        the line number, level, and title.
+    :param header_list: List of headers, where each header is a tuple
+        containing the line number, level, and title.
     :return: The generated Markdown content as a string.
     """
     output_lines = []
@@ -341,7 +340,6 @@ def header_list_to_markdown_list(header_list: HeaderList) -> str:
         output_lines.append(f"{header_prefix} {title}")
     output_content = "\n".join(output_lines)
     return output_content
-
 
 
 # #############################################################################
@@ -389,10 +387,10 @@ def format_headers(in_file_name: str, out_file_name: str, max_lev: int) -> None:
     output file.
 
     :param in_file_name: The name of the input file to read
-    :param out_file_name: The name of the output file to write the formatted
-        text to
-    :param max_lev: The maximum level of headings to include in the formatted
-        text
+    :param out_file_name: The name of the output file to write the
+        formatted text to
+    :param max_lev: The maximum level of headings to include in the
+        formatted text
     """
     txt = hparser.read_file(in_file_name)
     #
@@ -466,6 +464,8 @@ def increase_chapter(in_file_name: str, out_file_name: str) -> None:
 
 
 # #############################################################################
+# Node
+# #############################################################################
 
 
 # TODO(gp): -> HeaderTreeNode
@@ -473,6 +473,7 @@ class Node:
     """
     A Node class to build hierarchical tree.
     """
+
     def __init__(self, level, description):
         self.level = level
         self.description = description
@@ -486,6 +487,7 @@ class Node:
 def build_tree(data):
     """
     Build a tree (list of Node objects) from the flat list.
+
     We assume that the level changes never jump by more than 1.
     """
     tree = []
@@ -509,9 +511,11 @@ def build_tree(data):
 
 def find_ancestry(nodes, target_level, target_description):
     """
-    Recursively search for the node matching (target_level, target_description).
-    If found, return the ancestry as a list from the root down to that node.
-    Otherwise return None.
+    Recursively search for the node matching (target_level,
+    target_description).
+
+    If found, return the ancestry as a list from the root down to that
+    node. Otherwise return None.
     """
     for node in nodes:
         if node.level == target_level and node.description == target_description:
@@ -524,9 +528,9 @@ def find_ancestry(nodes, target_level, target_description):
 
 def print_tree(nodes, ancestry, indent=0):
     """
-    Print the tree. Only expand (i.e. recursively print children) for a node
-    if it is part of the ancestry of the selected node.
-    
+    Print the tree. Only expand (i.e. recursively print children) for a node if
+    it is part of the ancestry of the selected node.
+
     - Nodes not in the ancestry are printed on one line (even if they have children).
     - The selected node (last in the ancestry) is printed highlighted.
     """

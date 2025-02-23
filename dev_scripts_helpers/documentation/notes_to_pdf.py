@@ -325,8 +325,10 @@ def _run_pandoc_to_html(
     hdbg.dassert_path_exists(file_out)
     return file_out
 
-    
-def _build_pandoc_cmd(args: argparse.Namespace, file_: str, *, use_tex: bool = False) -> None:
+
+def _build_pandoc_cmd(
+    args: argparse.Namespace, file_: str, *, use_tex: bool = False
+) -> None:
     cmd = []
     cmd.append(f"pandoc {file_}")
     #
@@ -335,7 +337,7 @@ def _build_pandoc_cmd(args: argparse.Namespace, file_: str, *, use_tex: bool = F
     cmd.append("-V theme:SimplePlus")
     cmd.append("--include-in-header=latex_abbrevs.sty")
     # cmd.append("--pdf-engine=lualatex")
-    #cmd.append("--pdf-engine=xelatex")
+    # cmd.append("--pdf-engine=xelatex")
     if not args.no_toc:
         cmd.append("--toc")
         cmd.append("--toc-depth 2")
@@ -361,7 +363,9 @@ def _build_pandoc_cmd(args: argparse.Namespace, file_: str, *, use_tex: bool = F
     return cmd, file_out
 
 
-def _run_pandoc_to_slides(args: argparse.Namespace, file_: str, *, debug: bool = False) -> str:
+def _run_pandoc_to_slides(
+    args: argparse.Namespace, file_: str, *, debug: bool = False
+) -> str:
     """
     Convert the input file to PDF slides using Pandoc.
 
@@ -373,7 +377,7 @@ def _run_pandoc_to_slides(args: argparse.Namespace, file_: str, *, debug: bool =
     rc, txt = _system_to_string(cmd, abort_on_error=False)
     print(txt)
     _LOG.error("Log is in %s", file_out + ".log")
-    #rc = _system(cmd, suppress_output=False)
+    # rc = _system(cmd, suppress_output=False)
     if rc != 0:
         if debug:
             _LOG.error("Pandoc failed")
@@ -509,7 +513,9 @@ def _run_all(args: argparse.Namespace) -> None:
         elif args.type == "html":
             file_out = _run_pandoc_to_html(args, file_, prefix)
         elif args.type == "slides":
-            file_out = _run_pandoc_to_slides(args, file_, debug=args.debug_on_error)
+            file_out = _run_pandoc_to_slides(
+                args, file_, debug=args.debug_on_error
+            )
         else:
             raise ValueError(f"Invalid type='{args.type}'")
     file_in = file_out
@@ -623,9 +629,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--no_run_latex_again", action="store_true", default=False
     )
-    parser.add_argument(
-        "--debug_on_error", action="store_true", default=False
-    )
+    parser.add_argument("--debug_on_error", action="store_true", default=False)
     parser.add_argument(
         "--gdrive_dir",
         action="store",
