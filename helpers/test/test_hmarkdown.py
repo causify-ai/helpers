@@ -397,6 +397,12 @@ class Test_extract_headers_from_markdown1(hunitest.TestCase):
         self.assert_equal(str(act), str(exp))
 
 
+    # for level, desc in data:
+    #     print(f"Input: ({level}, '{desc}')")
+    #     print_selected_navigation(level, desc)
+    #     print()
+
+
 # #############################################################################
 # Test_remove_end_of_line_periods1
 # #############################################################################

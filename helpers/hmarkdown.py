@@ -262,13 +262,15 @@ def extract_section_from_markdown(content: str, header_name: str) -> str:
 
 # #############################################################################
 
-# Store the header level, the description, and the line number in the original
-# file, e.g.,
-# `(1, "Chapter 1", 5)``
-# `(2, "Section 1.1", 10)`
-
 @dataclasses.dataclass
 class HeaderInfo:
+    """
+    Store the header level, the description, and the line number in the original
+    file, e.g.,
+    `(1, "Chapter 1", 5)``
+    `(2, "Section 1.1", 10)`
+    """
+
     level: int
     description: str
     line_number: int
@@ -287,7 +289,6 @@ class HeaderInfo:
 
     def as_tuple(self) -> Tuple[int, str, int]:
         return (self.level, self.description, self.line_number)
-
 
 
 HeaderList = List[HeaderInfo]
@@ -504,32 +505,33 @@ def increase_chapter(in_file_name: str, out_file_name: str) -> None:
 # #############################################################################
 
 
-# TODO(gp): -> HeaderTreeNode
-class Node:
+class _HeaderTreeNode:
     """
     A Node class to build hierarchical tree.
     """
 
-    def __init__(self, level, description):
+    def __init__(self, level: int, description: str) -> None:
         self.level = level
         self.description = description
-        self.children = []
+        self.children: List[_HeaderTreeNode] = []
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Node({self.level}, {self.description})"
 
 
-# TODO(gp): -> _build_tree
-def build_tree(data):
+_HeaderTree = List[_HeaderTreeNode]
+
+
+def _build_header_tree(data: List[Tuple[int, str]]) -> _HeaderTree:
     """
     Build a tree (list of Node objects) from the flat list.
 
     We assume that the level changes never jump by more than 1.
     """
-    tree = []
-    stack = []
+    tree: _HeaderTree = []
+    stack: _HeaderTree = []
     for level, description in data:
-        node = Node(level, description)
+        node = _HeaderTreeNode(level, description)
         if level == 1:
             tree.append(node)
             stack = [node]
@@ -545,7 +547,7 @@ def build_tree(data):
     return tree
 
 
-def find_ancestry(nodes, target_level, target_description):
+def _find_header_tree_ancestry(nodes: _HeaderTree, target_level: int, target_description: str) -> Optional[_HeaderTree]:
     """
     Recursively search for the node matching (target_level,
     target_description).
@@ -556,54 +558,50 @@ def find_ancestry(nodes, target_level, target_description):
     for node in nodes:
         if node.level == target_level and node.description == target_description:
             return [node]
-        result = find_ancestry(node.children, target_level, target_description)
+        result = _find_header_tree_ancestry(node.children, target_level, target_description)
         if result:
             return [node] + result
     return None
 
 
-def print_tree(nodes, ancestry, indent=0):
+def header_tree_to_str(nodes: _HeaderTree, ancestry: Optional[_HeaderTree], *, indent: int = 0) -> str:
     """
-    Print the tree. Only expand (i.e. recursively print children) for a node if
-    it is part of the ancestry of the selected node.
+    Return the tree as a string.
+    
+    Only expand (i.e. recursively include children) for a node if it is part of
+    the ancestry of the selected node.
 
-    - Nodes not in the ancestry are printed on one line (even if they have children).
-    - The selected node (last in the ancestry) is printed highlighted.
+    - Nodes not in the ancestry are included on one line (even if they have children).
+    - The selected node (last in the ancestry) is included highlighted.
     """
+    result = []
     for node in nodes:
         prefix = "  " * indent + "- "
         # If this node is the next expected one in the ancestry branch...
         if ancestry and node is ancestry[0]:
             # If this is the last in the ancestry, it is the selected node.
             if len(ancestry) == 1:
-                print(prefix + "*" + node.description + "*")
+                result.append(prefix + "*" + node.description + "*")
             else:
-                print(prefix + node.description)
+                result.append(prefix + node.description)
             # Expand this node’s children using the rest of the ancestry.
-            print_tree(node.children, ancestry[1:], indent + 1)
+            result.append(header_tree_to_str(node.children, ancestry[1:], indent + 1))
         else:
-            # For nodes not on the selected branch, print them without expanding.
-            print(prefix + node.description)
+            # For nodes not on the selected branch, include them without expanding.
+            result.append(prefix + node.description)
+    return "\n".join(result)
 
 
-def print_selected_navigation(selected_level, selected_description):
+def print_selected_navigation(selected_level: int, selected_description: str) -> None:
     """
     Given a level and description for the selected node, print the navigation.
     """
-    tree = build_tree(data)
-    ancestry = find_ancestry(tree, selected_level, selected_description)
+    tree = _build_header_tree(data)
+    ancestry = _find_header_tree_ancestry(tree, selected_level, selected_description)
     if ancestry is None:
         print("Selected node not found.")
     else:
-        print_tree(tree, ancestry)
-
-
-# Example usage with all the test cases:
-if __name__ == "__main__":
-    for level, desc in data:
-        print(f"Input: ({level}, '{desc}')")
-        print_selected_navigation(level, desc)
-        print()
+        header_tree_to_str(tree, ancestry)
 
 
 # #############################################################################
