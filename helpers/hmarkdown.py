@@ -330,7 +330,7 @@ def header_list_to_markdown(header_list: HeaderList, mode: str) -> str:
 
     :param header_list: List of headers, where each header is a tuple
         containing the level, title, and line number.
-    :param mode: Specifies the format of the output. 
+    :param mode: Specifies the format of the output.
         - "list": Indents headers to create a nested list.
         - "headers": Uses Markdown header syntax (e.g., #, ##, ###).
     :return: The generated Markdown content as a string.

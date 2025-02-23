@@ -55,7 +55,9 @@ def _process_abbreviations(in_line: str) -> str:
 
 def _process_enumerated_list(in_line: str) -> str:
     """
-    Transform "1) foo bar" into "1. foo bar".
+    Transform enumerated list with parenthesis to `.`.
+
+    E.g., "1) foo bar" is transformed into "1. foo bar".
     """
     line = re.sub(r"^(\s*)(\d+)\)\s", r"\1\2. ", in_line)
     return line

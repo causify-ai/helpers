@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
 import helpers.hmarkdown as hmarkdo
 import helpers.hprint as hprint
@@ -6,7 +6,9 @@ import helpers.hunit_test as hunitest
 
 
 def _to_header_list(data: List[Tuple[int, str]]) -> hmarkdo.HeaderList:
-    res = [(hmarkdo.Header(level, text, 5 * i) for i, level, text in enumerate(data))]
+    res = [
+        (hmarkdo.Header(level, text, 5 * i) for i, level, text in enumerate(data))
+    ]
     return res
 
 
@@ -69,11 +71,15 @@ def get_header_list3() -> hmarkdo.HeaderList:
     return header_list
 
 
+# #############################################################################
+# Test_header_list_to_vim_cfile1
+# #############################################################################
+
+
 class Test_header_list_to_vim_cfile1(hunitest.TestCase):
 
     def test_get_header_list1(self) -> None:
         # Prepare inputs.
-        file = "test.txt"
         headers = get_header_list1()
         # Call function.
         act = hmarkdo.header_list_to_vim_cfile(headers)
@@ -92,9 +98,14 @@ class Test_header_list_to_vim_cfile1(hunitest.TestCase):
         self.assert_equal(act, exp, dedent=True)
 
 
+# #############################################################################
+# Test_header_list_to_markdown_list1
+# #############################################################################
+
+
 class Test_header_list_to_markdown_list1(hunitest.TestCase):
 
-    def test_mode_1(self) -> None:
+    def test_mode_list1(self) -> None:
         # Prepare inputs.
         headers = get_header_list1()
         mode = "list"
@@ -114,7 +125,7 @@ class Test_header_list_to_markdown_list1(hunitest.TestCase):
         """
         self.assert_equal(act, exp, dedent=True)
 
-    def test_mode_2(self) -> None:
+    def test_mode_headers1(self) -> None:
         # Prepare inputs.
         headers = get_header_list1()
         mode = "headers"
@@ -132,11 +143,12 @@ class Test_header_list_to_markdown_list1(hunitest.TestCase):
         ### Subsection 2.1.1
         ## Section 2.2
         """
-        self.assert_equal(act, exp, dedent=True)t
+        self.assert_equal(act, exp, dedent=True)
 
 
 # #############################################################################
-
+# Test_is_markdown_line_separator1
+# #############################################################################
 
 
 class Test_is_markdown_line_separator1(hunitest.TestCase):
@@ -159,6 +171,7 @@ class Test_is_markdown_line_separator1(hunitest.TestCase):
         exp = False
         self.assertEqual(act, exp)
 
+
 # #############################################################################
 # Test_extract_section_from_markdown1
 # #############################################################################
@@ -175,6 +188,7 @@ def _get_markdown_example1() -> str:
     """
     content = hprint.dedent(content)
     return content
+
 
 def _get_markdown_example2(self) -> str:
     content = r"""
@@ -262,6 +276,11 @@ Stay curious and keep exploring!
     return content
 
 
+# #############################################################################
+# Test_extract_section_from_markdown1
+# #############################################################################
+
+
 class Test_extract_section_from_markdown1(hunitest.TestCase):
 
     # TODO(gp): This doesn't seem correct.
@@ -331,6 +350,11 @@ class Test_extract_section_from_markdown1(hunitest.TestCase):
         self.assert_equal(actual, expected)
 
 
+# #############################################################################
+# Test_extract_headers_from_markdown1
+# #############################################################################
+
+
 class Test_extract_headers_from_markdown1(hunitest.TestCase):
 
     def test_multiple_headers(self) -> None:
@@ -366,7 +390,6 @@ class Test_extract_headers_from_markdown1(hunitest.TestCase):
         # Check output.
         exp = []
         self.assert_equal(act, exp)
-
 
 
 # #############################################################################
