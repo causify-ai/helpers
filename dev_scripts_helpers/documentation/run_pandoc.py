@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 """
+Run pandoc on stdin/file to stdout/file.
+
 - Read value from stdin/file
 - Transform it using Pandoc according to different transforms
   (e.g., `convert_md_to_latex`)
