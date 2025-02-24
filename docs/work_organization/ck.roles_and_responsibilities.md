@@ -1,5 +1,3 @@
-
-
 <!-- toc -->
 
 - [Roles And Responsibilities](#roles-and-responsibilities)
@@ -15,7 +13,6 @@
     + [AsanaMeister](#asanameister)
     + [SimulationMeister](#simulationmeister)
     + [BuildMeister](#buildmeister)
-    + [EpicMeister](#epicmeister)
     + [ExperimentMeister](#experimentmeister)
     + [FeedbackMeister](#feedbackmeister)
     + [HiringMeister](#hiringmeister)
@@ -31,9 +28,10 @@
 - The company has quarterly high-level goals
   - These goals are broken in short term goals (e.g., 1-2-3 weeks) and 2 months
     goals
-  - Each goal is described in terms of a complete list of EPICs in the
+  - Each goal is described in terms of a complete list of Projects in the
     IssueSpecs gdocs
-  - Each EPIC is estimated in length (with or without a detailed list of Issues)
+  - Each Project is estimated in length (with or without a detailed list of
+    Issues)
     - E.g.,
       ```
       Implement XYZ
@@ -47,8 +45,8 @@
     - The purpose is to have a way to track dependencies and have a way to
       measure critical path
     -
-- Each EPIC needs to be completely described in Issues when we start working on
-  it
+- Each Project needs to be completely described in Issues when we start working
+  on it
 
 ## Must-have vs nice-to-have goals
 
@@ -69,7 +67,6 @@
     the team members
 - During Monday's Company meeting we review the weekly progress towards the
   milestones
-  - We use ZenHub to map EPICs to milestones
   - TODO(gp): We need to keep a Gantt diagram to maintain the
 
 ## Meisters
@@ -126,11 +123,6 @@
 
 - Ensure builds are green
 - More info at docs/work_organization/all.buildmeister.how_to_guide.md
-
-### EpicMeister
-
-- Ensure EPICs follow our standards
-- More info at docs/work_organization/all.epicmeister.how_to_guide.md
 
 ### ExperimentMeister
 
