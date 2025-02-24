@@ -1,4 +1,5 @@
 import logging
+import pprint
 from typing import List, Tuple
 
 import helpers.hmarkdown as hmarkdo
@@ -289,6 +290,29 @@ Stay curious and keep exploring!
     return content
 
 
+def _get_markdown_example5() -> str:
+    content = r"""
+    - Functions can be declared in the body of another function
+    - E.g., to hide utility functions in the scope of the function that uses them
+        ```python
+        def print_integers(values):
+
+            def _is_integer(value):
+                try:
+                    return value == int(value)
+                except:
+                    return False
+
+            for v in values:
+                if _is_integer(v):
+                    print(v)
+        ```
+    - Hello
+    """
+    content = hprint.dedent(content)
+    return content
+
+
 # #############################################################################
 # Test_extract_section_from_markdown1
 # #############################################################################
@@ -489,7 +513,6 @@ class Test_process_code_block1(hunitest.TestCase):
         """
         txt_in = hprint.dedent(txt_in, remove_lead_trail_empty_lines_=True)
         act = self.process_code_block(txt_in)
-        exp = ""
         exp = r"""
 - Functions can be declared in the body of another function
 - E.g., to hide utility functions in the scope of the function that uses them
@@ -514,3 +537,81 @@ class Test_process_code_block1(hunitest.TestCase):
         """
         exp = hprint.dedent(exp, remove_lead_trail_empty_lines_=True)
         self.assert_equal(act, exp)
+
+
+# #############################################################################
+# Test_process_lines1
+# #############################################################################
+
+
+class Test_process_lines1(hunitest.TestCase):
+
+    def test1(self) -> None:
+        txt = _get_markdown_example5()
+        lines = txt.split("\n")
+        out = []
+        for i, line in hmarkdo.process_lines(lines):
+            _LOG.debug(hprint.to_str("line"))
+            out.append(f"{i}:{line}")
+        act = "\n".join(out)
+        exp = ""
+        self.assert_equal(act, exp)
+
+
+class Test_selected_navigation_to_str1(hunitest.TestCase):
+
+    def test1(self) -> None:
+        res = []
+        txt = _get_markdown_example4()
+        res.append("txt=\n" + txt)
+        #
+        header_list = hmarkdo.extract_headers_from_markdown(txt)
+        act = pprint.pformat(header_list)
+        #res.append("header_list=\n" + str(header_list))
+        exp = """
+        [(1, 'Chapter 1', 1),
+         (2, 'Section 1.1', 6),
+         (3, 'Subsection 1.1.1', 11),
+         (3, 'Subsection 1.1.2', 23),
+         (2, 'Section 1.2', 31),
+         (1, 'Chapter 2', 38),
+         (2, 'Section 2.1', 43),
+         (3, 'Subsection 2.1.1', 48),
+         (2, 'Section 2.2', 56)]
+        """
+        self.assert_equal(act, exp, dedent=True, remove_lead_trail_empty_lines=True)
+        #
+        tree = hmarkdo.build_header_tree(header_list)
+        act = hmarkdo.header_tree_to_str(tree, ancestry=None)
+        exp = """
+        - Chapter 1
+        - Chapter 2
+        """
+        self.assert_equal(act, exp, dedent=True, remove_lead_trail_empty_lines=True)
+        #
+        level = 3
+        description = "Subsection 1.1.2"
+        act = hmarkdo.selected_navigation_to_str(tree, level, description)
+        exp = """
+        - Chapter 1
+          - Section 1.1
+            - Subsection 1.1.1
+            - *Subsection 1.1.2*
+          - Section 1.2
+        - Chapter 2
+        """
+        self.assert_equal(act, exp, dedent=True, remove_lead_trail_empty_lines=True)
+
+
+    # def test3(self) -> None:
+    #     txt = _get_markdown_example4()
+    #     header_list = hmarkdo.extract_headers_from_markdown(txt)
+    #     tree = hmarkdo.build_header_tree(header_list)
+    #     res = []
+    #     for level, description, _ in header_list:
+    #         res_tmp = hprint.frame(hprint.to_str("level description"))
+    #         res.append(res_tmp)
+    #         res_tmp = hmarkdo.selected_navigation_to_str(tree, level, description)
+    #         res.append(res_tmp)
+    #     act = "\n".join(res)
+    #     self.check_string(act)

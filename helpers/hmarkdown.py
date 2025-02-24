@@ -1,13 +1,15 @@
 import dataclasses
 import logging
 import re
-from typing import List, Optional, Tuple
+from typing import Generator, List, Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
+
+_TRACE = False
 
 # TODO(gp): Add a decorator like in hprint to process both strings and lists
 #  of strings.
@@ -169,7 +171,7 @@ def process_single_line_comment(line: str) -> bool:
     return do_continue
 
 
-def process_lines(lines: List[str]) -> List[str]:
+def process_lines(lines: List[str]) -> Generator[Tuple[int, str], None, None]:
     """
     Process lines of text to handle comment blocks, code blocks, and single
     line comments.
@@ -180,7 +182,6 @@ def process_lines(lines: List[str]) -> List[str]:
     out: List[str] = []
     in_skip_block = False
     in_code_block = False
-
     for i, line in enumerate(lines):
         _LOG.debug("%s:line=%s", i, line)
         # 1) Remove comment block.
@@ -204,7 +205,7 @@ def process_lines(lines: List[str]) -> List[str]:
         do_continue = process_single_line_comment(line)
         if do_continue:
             continue
-        yield line
+        yield i + 1, line
 
 
 # #############################################################################
@@ -297,6 +298,11 @@ class HeaderInfo:
         hdbg.dassert_isinstance(line_number, int)
         hdbg.dassert_lte(1, line_number)
         self.line_number = line_number
+        #
+        self.children: List[_HeaderTreeNode] = []
+
+    def __repr__(self) -> str:
+        return f"Node({self.level}, {self.description}, {self.line_number})"
 
     def as_tuple(self) -> Tuple[int, str, int]:
         return (self.level, self.description, self.line_number)
@@ -529,24 +535,25 @@ def increase_chapter(in_file_name: str, out_file_name: str) -> None:
 # #############################################################################
 
 
-class _HeaderTreeNode:
-    """
-    A Node class to build hierarchical tree.
-    """
+# class _HeaderTreeNode:
+#     """
+#     A Node class to build hierarchical tree.
+#     """
 
-    def __init__(self, level: int, description: str) -> None:
-        self.level = level
-        self.description = description
-        self.children: List[_HeaderTreeNode] = []
+#     def __init__(self, level: int, description: str, line_number: int) -> None:
+#         self.level = level
+#         self.description = description
+#         self.line_number = line_number
+#         self.children: List[_HeaderTreeNode] = []
 
-    def __repr__(self) -> str:
-        return f"Node({self.level}, {self.description})"
-
-
-_HeaderTree = List[_HeaderTreeNode]
+#     def __repr__(self) -> str:
+#         return f"Node({self.level}, {self.description})"
 
 
-def _build_header_tree(data: List[Tuple[int, str]]) -> _HeaderTree:
+_HeaderTree = List[HeaderInfo]
+
+
+def build_header_tree(header_list: HeaderList) -> _HeaderTree:
     """
     Build a tree (list of Node objects) from the flat list.
 
@@ -554,8 +561,8 @@ def _build_header_tree(data: List[Tuple[int, str]]) -> _HeaderTree:
     """
     tree: _HeaderTree = []
     stack: _HeaderTree = []
-    for level, description in data:
-        node = _HeaderTreeNode(level, description)
+    for level, description, line_number in header_list:
+        node = HeaderInfo(level, description, line_number)
         if level == 1:
             tree.append(node)
             stack = [node]
@@ -573,16 +580,15 @@ def _build_header_tree(data: List[Tuple[int, str]]) -> _HeaderTree:
 
 
 def _find_header_tree_ancestry(
-    nodes: _HeaderTree, target_level: int, target_description: str
+    tree: _HeaderTree, target_level: int, target_description: str
 ) -> Optional[_HeaderTree]:
     """
-    Recursively search for the node matching (target_level,
-    target_description).
+    Recursively search for the node matching (target_level, target_description).
 
     If found, return the ancestry as a list from the root down to that
     node. Otherwise return None.
     """
-    for node in nodes:
+    for node in tree:
         if node.level == target_level and node.description == target_description:
             return [node]
         result = _find_header_tree_ancestry(
@@ -594,7 +600,7 @@ def _find_header_tree_ancestry(
 
 
 def header_tree_to_str(
-    nodes: _HeaderTree, ancestry: Optional[_HeaderTree], *, indent: int = 0
+    tree: _HeaderTree, ancestry: Optional[_HeaderTree], *, indent: int = 0
 ) -> str:
     """
     Return the tree as a string.
@@ -606,41 +612,46 @@ def header_tree_to_str(
       children).
     - The selected node (last in the ancestry) is included highlighted.
     """
+    prefix = "  " * indent + "- "
     result = []
-    for node in nodes:
-        prefix = "  " * indent + "- "
-        # If this node is the next expected one in the ancestry branch...
+    for node in tree:
+        _LOG.debug(hprint.to_str("node"))
+        # Check if this node is the next expected one in the ancestry branch.
         if ancestry and node is ancestry[0]:
             # If this is the last in the ancestry, it is the selected node.
             if len(ancestry) == 1:
-                result.append(prefix + "*" + node.description + "*")
+                val = prefix + "*" + node.description + "*"
             else:
-                result.append(prefix + node.description)
+                val = prefix + node.description
+            _LOG.debug("-> " + hprint.to_str("val"))
+            if val:
+                result.append(val)
             # Expand this node’s children using the rest of the ancestry.
-            result.append(
-                header_tree_to_str(node.children, ancestry[1:], indent + 1)
-            )
+            val = header_tree_to_str(node.children, ancestry[1:], indent=indent + 1)
         else:
             # For nodes not on the selected branch, include them without
             # expanding.
-            result.append(prefix + node.description)
+            val = prefix + node.description
+        _LOG.debug("-> " + hprint.to_str("val"))
+        if val:
+            result.append(val)
     return "\n".join(result)
 
 
-def print_selected_navigation(
+def selected_navigation_to_str(
+    tree: _HeaderTree,
     selected_level: int, selected_description: str
 ) -> None:
     """
     Given a level and description for the selected node, print the navigation.
     """
-    tree = _build_header_tree(data)
     ancestry = _find_header_tree_ancestry(
         tree, selected_level, selected_description
     )
-    if ancestry is None:
-        print("Selected node not found.")
-    else:
-        header_tree_to_str(tree, ancestry)
+    hdbg.dassert_ne(ancestry, None, "Node (%s, %s) not found",
+                    selected_level,
+                    selected_description)
+    return header_tree_to_str(tree, ancestry)
 
 
 # #############################################################################
