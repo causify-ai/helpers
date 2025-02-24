@@ -23,6 +23,7 @@ import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hs3 as hs3
+import helpers.hsecrets as hsecret
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hversion as hversio
@@ -305,7 +306,6 @@ def _docker_login_dockerhub() -> None:
     Log into the Docker Hub which is a public Docker image registry.
     """
     # Check if we are already logged in to the target registry.
-    assert 0, "Find name of the repo"
     # TODO(gp): Enable caching https://github.com/causify-ai/helpers/issues/20
     use_cache = False
     if use_cache:
@@ -314,10 +314,7 @@ def _docker_login_dockerhub() -> None:
             _LOG.warning("Already logged in to the target registry: skipping")
             return
     _LOG.info("Logging in to the target registry")
-    # TODO(gp): Why here?
-    import helpers.hsecrets as hsecret
-
-    secret_id = "sorrentum_dockerhub"
+    secret_id = "causify_dockerhub"
     secret = hsecret.get_secret(secret_id)
     username = hdict.typed_get(secret, "username", expected_type=str)
     password = hdict.typed_get(secret, "password", expected_type=str)
@@ -385,7 +382,7 @@ def docker_login(ctx, target_registry="aws_ecr.ck"):  # type: ignore
 
     :param ctx: invoke context
     :param target_registry: target Docker image registry to log in to
-        - "dockerhub.sorrentum": public Kaizenflow Docker image registry
+        - "dockerhub.causify": public Causify Docker image registry
         - "aws_ecr.ck": private AWS CK ECR
     """
     _ = ctx
@@ -399,7 +396,7 @@ def docker_login(ctx, target_registry="aws_ecr.ck"):  # type: ignore
     # to make the function work as an invoke target.
     if target_registry == "aws_ecr.ck":
         _docker_login_ecr()
-    elif target_registry == "dockerhub.sorrentum":
+    elif target_registry == "dockerhub.causify":
         _docker_login_dockerhub()
     else:
         raise ValueError(f"Invalid Docker image registry='{target_registry}'")
@@ -1298,17 +1295,25 @@ def _get_lint_docker_cmd(
     version: str,
     *,
     use_entrypoint: bool = True,
+    no_dev_server: bool = False,
 ) -> str:
     """
-    Create a command to run in the Linter service.
+    Create a command to run in Linter service.
 
     :param docker_cmd_: command to run
     :param stage: the image stage to use
+    :param no_dev_server: True, if running Linter on local machine, else
+        false if on dev server
     :return: the full command to run
     """
     # Get an image to run the linter on.
-    ecr_base_path = os.environ["CSFY_ECR_BASE_PATH"]
-    linter_image = f"{ecr_base_path}/helpers"
+    # For local development we use the image from the Docker Hub.
+    if no_dev_server:
+        # TODO(Vlad): Replace with environment variable.
+        base_path = "causify"
+    else:
+        base_path = os.environ["CSFY_ECR_BASE_PATH"]
+    linter_image = f"{base_path}/helpers"
     # Execute command line.
     cmd: str = _get_docker_compose_cmd(
         linter_image,
