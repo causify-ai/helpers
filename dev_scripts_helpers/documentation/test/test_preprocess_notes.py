@@ -36,6 +36,11 @@ def _run_preprocess_notes(in_file: str, out_file: str) -> str:
     return act  # type: ignore
 
 
+# #############################################################################
+# Test_preprocess_notes1
+# #############################################################################
+
+
 @pytest.mark.skipif(
     hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
 )
@@ -55,6 +60,11 @@ class Test_preprocess_notes1(hunitest.TestCase):
         act = _run_preprocess_notes(in_file, out_file)
         # Check.
         self.check_string(act)
+
+
+# #############################################################################
+# Test_process_question1
+# #############################################################################
 
 
 @pytest.mark.skipif(
@@ -110,6 +120,11 @@ class Test_process_question1(hunitest.TestCase):
         do_continue, act = dshdprno._process_question(txt_in)
         self.assertEqual(do_continue, do_continue_exp)
         self.assert_equal(act, exp)
+
+
+# #############################################################################
+# Test_preprocess_notes3
+# #############################################################################
 
 
 @pytest.mark.skipif(

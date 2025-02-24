@@ -171,7 +171,8 @@ def process_single_line_comment(line: str) -> bool:
 
 def process_lines(lines: List[str]) -> List[str]:
     """
-    Process lines of text to handle comment blocks, code blocks, and single line comments.
+    Process lines of text to handle comment blocks, code blocks, and single
+    line comments.
 
     :param lines: The list of all the lines of text being processed.
     :return: A list of processed lines of text.
@@ -191,7 +192,9 @@ def process_lines(lines: List[str]) -> List[str]:
         # 2) Remove code block.
         if _TRACE:
             _LOG.debug("# 2) Process code block.")
-        do_continue, in_code_block, out_tmp = process_code_block(line, in_code_block, i, lines)
+        do_continue, in_code_block, out_tmp = process_code_block(
+            line, in_code_block, i, lines
+        )
         out.extend(out_tmp)
         if do_continue:
             continue
@@ -304,10 +307,15 @@ HeaderList = List[HeaderInfo]
 
 def _check_header_list(header_list: HeaderList) -> None:
     """
-    Check that consecutive elements in the header list differ by at most one value of level.
+    Check that consecutive elements in the header list differ by at most one
+    value of level.
     """
     for i in range(1, len(header_list)):
-        hdbg.dassert_lte(abs(header_list[i].level - header_list[i - 1].level), 1, "Consecutive headers differ by more than one level")
+        hdbg.dassert_lte(
+            abs(header_list[i].level - header_list[i - 1].level),
+            1,
+            "Consecutive headers differ by more than one level",
+        )
 
 
 def extract_headers_from_markdown(txt: str, *, max_level: int = 6) -> HeaderList:
@@ -538,7 +546,6 @@ class _HeaderTreeNode:
 _HeaderTree = List[_HeaderTreeNode]
 
 
-
 def _build_header_tree(data: List[Tuple[int, str]]) -> _HeaderTree:
     """
     Build a tree (list of Node objects) from the flat list.
@@ -569,10 +576,11 @@ def _find_header_tree_ancestry(
     nodes: _HeaderTree, target_level: int, target_description: str
 ) -> Optional[_HeaderTree]:
     """
-    Recursively search for the node matching (target_level, target_description).
+    Recursively search for the node matching (target_level,
+    target_description).
 
-    If found, return the ancestry as a list from the root down to that node.
-    Otherwise return None.
+    If found, return the ancestry as a list from the root down to that
+    node. Otherwise return None.
     """
     for node in nodes:
         if node.level == target_level and node.description == target_description:

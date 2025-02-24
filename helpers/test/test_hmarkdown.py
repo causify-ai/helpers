@@ -7,6 +7,7 @@ import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
 
+
 def _to_header_list(data: List[Tuple[int, str]]) -> hmarkdo.HeaderList:
     res = [
         hmarkdo.HeaderInfo(level, text, 5 * i + 1)
@@ -443,6 +444,11 @@ class Test_remove_end_of_line_periods1(hunitest.TestCase):
         self.assertEqual(act, exp)
 
 
+# #############################################################################
+# Test_process_code_block1
+# #############################################################################
+
+
 class Test_process_code_block1(hunitest.TestCase):
 
     def process_code_block(self, txt: str) -> str:
@@ -453,7 +459,8 @@ class Test_process_code_block1(hunitest.TestCase):
             _LOG.debug("%s:line=%s", i, line)
             # Process the code block.
             do_continue, in_code_block, out_tmp = hmarkdo.process_code_block(
-                line, in_code_block, i, lines)
+                line, in_code_block, i, lines
+            )
             out.extend(out_tmp)
             if do_continue:
                 continue
@@ -502,7 +509,7 @@ class Test_process_code_block1(hunitest.TestCase):
                     print(v)
         ```
 
-        
+
 - Hello
         """
         exp = hprint.dedent(exp, remove_lead_trail_empty_lines_=True)
