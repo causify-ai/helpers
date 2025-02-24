@@ -190,6 +190,21 @@ def long_docstring_line(cmd: str) -> None:
     > git pull
     ```
     """
+
+def empty_lines_in_code_block(cmd: str) -> None:
+    """
+    Test docstring.
+
+    ```
+    # To lint the files modified in the current git client:
+    > i lint --modified
+
+    # To exclude certain paths from linting:
+    > i lint --files="$(find . -name '*.py' -not -path './compute/*' -not -path './amp/*')"
+    ```
+
+    Text after.
+    """
 '''
         expected = text
         actual = self._docformatter(text)

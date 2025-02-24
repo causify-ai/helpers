@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-# Publish all notes:
+Publish all notes to a Google dir.
 
 > publish_notes.py publish
 

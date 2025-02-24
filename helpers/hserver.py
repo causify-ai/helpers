@@ -50,6 +50,13 @@ def is_inside_docker() -> bool:
     return os.path.exists("/.dockerenv")
 
 
+def is_inside_unit_test() -> bool:
+    """
+    Return whether we are running code insider the regressions.
+    """
+    return "PYTEST_CURRENT_TEST" in os.environ
+
+
 # We can't rely only on the name of the host to infer where we are running,
 # since inside Docker the name of the host is like `01a7e34a82a5`. Of course,
 # there is no way to know anything about the host for security reason, so we

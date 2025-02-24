@@ -14,7 +14,6 @@ from botocore.client import BaseClient
 from botocore.exceptions import ClientError
 
 import helpers.haws as haws
-import helpers.hdatetime as hdateti
 import helpers.hdbg as hdbg
 
 
@@ -33,6 +32,9 @@ def _get_flag_value(flag: str) -> str:
 
     E.g., for flag = 'pytest' return 'pytest_20240619'.
     """
+    # Import here to avoid import extra dependencies in the thin environment.
+    import helpers.hdatetime as hdateti
+
     timestamp = hdateti.get_current_date_as_string("naive_ET")
     updated_flag = "_".join([flag, timestamp])
     return updated_flag

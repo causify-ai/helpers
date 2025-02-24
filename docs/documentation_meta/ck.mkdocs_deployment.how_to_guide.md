@@ -1,5 +1,3 @@
-
-
 <!-- toc -->
 
 - [MkDocs documentation deployment](#mkdocs-documentation-deployment)
@@ -21,10 +19,11 @@
   tool for serving documentation with
   - The choice was made based on native support for markdown files (in contrast
     with ReadTheDocs)
-- The entrypoint for the documentation home page is `docs/README.md`
+- The entrypoint for the documentation home page is
+  [`/docs/README.md`](/docs/README.md)
 - Since MkDocs generates its own (prettier) TOC we filter out the markdown TOC
   before rendering the page to avoid duplicate content
-  - For this we have custom python code `mkdocs/mkdocs-toc-tag-filter`
+  - For this we have custom Python code `mkdocs/mkdocs-toc-tag-filter`
 
 ### Private solution specifics
 
@@ -80,7 +79,7 @@ sudo docker run -d -v /home/ubuntu/mkdocs/cmamp/:/app -w /app -p 8191:8000 --nam
    `docker ps | grep mkdocs`, the output should look something like this (other
    container will be running as well):
 ```
-56740982b0e2   squidfunk/mkdocs-material   "/sbin/tini -- mkdoc…"   9 seconds ago   Up 9 seconds   0.0.0.0:8191->8000/tcp, :::8191->8000/tcp   mkdocs
+56740982b0e2   squidfunk/mkdocs-material   "/sbin/tini -- mkdoc..."   9 seconds ago   Up 9 seconds   0.0.0.0:8191->8000/tcp, :::8191->8000/tcp   mkdocs
 ```
 
 _Note if the output is empty, run `docker ps -a` to get the container ID and
