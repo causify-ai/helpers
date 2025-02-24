@@ -874,10 +874,12 @@ def run_dockerized_pandoc(
         f" {pandoc_cmd}"
     )
     if return_cmd:
-        return docker_cmd
-    # TODO(gp): Note that `suppress_output=False` seems to hang the call.
-    hsystem.system(docker_cmd)
-    return None
+        ret = docker_cmd
+    else:
+        # TODO(gp): Note that `suppress_output=False` seems to hang the call.
+        hsystem.system(docker_cmd)
+        ret = None
+    return ret
 
 
 # #############################################################################
@@ -1134,10 +1136,12 @@ def run_dockerized_latex(
         f" {latex_cmd}"
     )
     if return_cmd:
-        return docker_cmd
-    # TODO(gp): Note that `suppress_output=False` seems to hang the call.
-    hsystem.system(docker_cmd)
-    return None
+        ret = docker_cmd
+    else:
+        # TODO(gp): Note that `suppress_output=False` seems to hang the call.
+        hsystem.system(docker_cmd)
+        ret = None
+    return ret
 
 
 # #############################################################################
@@ -1236,9 +1240,12 @@ def run_dockerized_llm_transform(
         f" {script} -i {in_file_path} -o {out_file_path} {cmd_opts_as_str}"
     )
     if return_cmd:
-        return docker_cmd
-    # TODO(gp): Note that `suppress_output=False` seems to hang the call.
-    hsystem.system(docker_cmd)
+        ret = docker_cmd
+    else:
+        # TODO(gp): Note that `suppress_output=False` seems to hang the call.
+        hsystem.system(docker_cmd)
+        ret = None
+    return ret
 
 
 # #############################################################################

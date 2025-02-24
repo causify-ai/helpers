@@ -328,7 +328,7 @@ def _run_pandoc_to_html(
 
 def _build_pandoc_cmd(
     args: argparse.Namespace, file_: str, *, use_tex: bool = False
-) -> None:
+) -> Tuple[str, str]:
     cmd = []
     cmd.append(f"pandoc {file_}")
     #
@@ -375,6 +375,7 @@ def _run_pandoc_to_slides(
     """
     cmd, file_out = _build_pandoc_cmd(args, file_)
     rc, txt = _system_to_string(cmd, abort_on_error=False)
+    # We want to print to screen.
     print(txt)
     _LOG.error("Log is in %s", file_out + ".log")
     # rc = _system(cmd, suppress_output=False)

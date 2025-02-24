@@ -7,7 +7,8 @@ import helpers.hunit_test as hunitest
 
 def _to_header_list(data: List[Tuple[int, str]]) -> hmarkdo.HeaderList:
     res = [
-        hmarkdo.HeaderInfo(level, text, 5 * i + 1) for i, (level, text) in enumerate(data)
+        hmarkdo.HeaderInfo(level, text, 5 * i + 1)
+        for i, (level, text) in enumerate(data)
     ]
     return res
 
@@ -200,7 +201,7 @@ def _get_markdown_example2() -> str:
     """
     content = hprint.dedent(content)
     return content
-        
+
 
 def _get_markdown_example3() -> str:
     content = r"""
@@ -395,7 +396,6 @@ class Test_extract_headers_from_markdown1(hunitest.TestCase):
         # Check output.
         exp = []
         self.assert_equal(str(act), str(exp))
-
 
     # for level, desc in data:
     #     print(f"Input: ({level}, '{desc}')")

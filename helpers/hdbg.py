@@ -989,7 +989,7 @@ def init_logger(
             if module is None:
                 filename = "none"
             else:
-                filename = module.__file__
+                filename = str(module.__file__)
         else:
             filename = "unknown_module"
         log_filename = os.path.realpath(filename) + ".log"
