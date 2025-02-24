@@ -1,5 +1,3 @@
-
-
 <!-- toc -->
 
 - [General Rules of Collaboration](#general-rules-of-collaboration)
@@ -37,10 +35,10 @@
 ## Ask somebody if you have any doubts
 
 - If you have doubts on how to do something you want to do:
-  - Look in the
-    [documentation](https://github.com/cryptokaizen/cmamp/tree/master/docs) and
-    our
-    [Google drive](https://drive.google.com/drive/u/0/folders/1LXwKpmaFWJI-887IoA50sVC8-dw_1L8I)
+  - Look in the [documentation](/docs) and our Google drive folders
+    [Process](https://drive.google.com/drive/u/1/folders/1sJDqCjM1Q_nq8diyZDiWO8mVBQW5Wg_X)
+    and
+    [Tech](https://drive.google.com/drive/u/1/folders/1zawE6IEBDpWLTbpK-03z75f5pu_T9Jba)
   - Google search is your friend
 - Ask your team-members
   - Learn
@@ -266,17 +264,17 @@ If you are a collaborator or intern, follow the steps to join the mailing group
 
 - Visit the
   [group](https://groups.google.com/a/crypto-kaizen.com/g/contributors/)
-- Click “ask to join group”
+- Click "ask to join group"
 
-  ![alt_text](figs/team_collaboration/1_Visits.png)
+  <img src="figs/team_collaboration/1_Visits.png">
 
 - Choose the following settings
 
-  ![alt_text](figs/team_collaboration/2_Settings.png)
+  <img src="figs/team_collaboration/2_Settings.png">
 
 - Wait for the confirmation e-mail, one for the group managers will approve your
   request. It should look like this:
-  ![alt_text](figs/team_collaboration/3_Request.png)
+  <img src="figs/team_collaboration/3_Request.png">
 
 ### Communication
 

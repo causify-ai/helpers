@@ -1,21 +1,19 @@
-
-
 <!-- toc -->
 
 - [Issue workflow](#issue-workflow)
   * [Idea](#idea)
   * [Project](#project)
-  * [Task](#task)
+  * [Task (Issue)](#task-issue)
 
 <!-- tocstop -->
 
 TODO(Grisha): consider merging the current doc with
-[`/docs/work_organization/all.use_github_and_zenhub.how_to_guide.md`](/docs/work_organization/all.use_github_and_zenhub.how_to_guide.md)
+[`/docs/work_organization/all.use_github.how_to_guide.md`](/docs/work_organization/all.use_github.how_to_guide.md)
 into something like "ck.planning.how_to_guide.md".
 
 # Issue workflow
 ```
-Idea -> Project -> Issue
+Idea -> Project -> Task (Issue)
 ```
 
 ## Idea
@@ -61,8 +59,8 @@ This is helpful because:
 Unlike ideas, projects have clear goals, defined scope, tangible outcomes and
 time constraints.
 
-We use ZenHub Epics to track projects
-[`/docs/work_organization/all.use_github_and_zenhub.how_to_guide.md#epics`](/docs/work_organization/all.use_github_and_zenhub.how_to_guide.md#epics).
+We use GitHub Projects to track projects
+[`/docs/work_organization/all.use_github.how_to_guide.md#projects`](/docs/work_organization/all.use_github.how_to_guide.md#projects).
 
 To go from "idea" to "project" one needs to perform a through analysis:
 
@@ -72,17 +70,16 @@ To go from "idea" to "project" one needs to perform a through analysis:
 - Estimate the complexity
 
 Team leaders are responsible for converting "ideas" into "projects". The outcome
-of the analysis is a ZenHub Epic with clear objectives, start/end dates,
+of the analysis is a GitHub Project with clear objectives, start/end dates,
 assignees and filed GitHub issues.
 
-## Task
+## Task (Issue)
 
 A task is a specific, actionable item that needs to be completed, often as part
 of a project. Tasks are usually smaller in scope and more focused on single
 activities or steps within a project.
 
-We use GitHub Issues to track tasks. Every issue should belong to a project
-ZenHub Epic
-[`/docs/work_organization/all.use_github_and_zenhub.how_to_guide.md#issue`](/docs/work_organization/all.use_github_and_zenhub.how_to_guide.md#issue).
+We use GitHub Issues to track tasks. Every issue should belong to a GH Project
+[`/docs/work_organization/all.use_github.how_to_guide.md#issue`](/docs/work_organization/all.use_github.how_to_guide.md#issue).
 
 Last review: GP on 2024-05-25

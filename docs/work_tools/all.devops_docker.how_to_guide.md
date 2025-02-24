@@ -48,7 +48,7 @@
 - We use Docker extensively and assume you are familiar with Docker concepts and
   workflows
 - A short tutorial about Docker is
-  [/docs/work_tools/all.docker.tutorial.md](/docs/work_tools/all.docker.tutorial.md)
+  [/docs/work_tools/docker/all.docker.tutorial.md](/docs/work_tools/docker/all.docker.tutorial.md)
 
 ## Separate Docker containers
 
@@ -202,7 +202,7 @@
 # Release a Docker image
 
 - All the `invoke` tasks to run the release flow are in
-  `//amp/helpers_root/helpers/lib_tasks.py`
+  [`/helpers/lib_tasks.py`](/helpers/lib_tasks.py)
 - Depending on the type of changes sometimes one needs to rebuild only the
   `prod` image, other times one needs to rebuild also the `dev` image
 - E.g.,
@@ -358,9 +358,9 @@
 - This Dockerfile runs various scripts to install:
   - OS
   - Python
-  - venv + Python packages
+  - `venv` + Python packages
   - Jupyter extensions
-  - Application-specific packages (e.g., for the linter)
+  - Application-specific packages (e.g., for Linter)
 
 - To build a local image run:
 
@@ -755,7 +755,7 @@ Check-list:
 - Do a PR with the change including the updated `changelog.txt`, the poetry
   files (e.g.,
   [`/devops/docker_build/poetry.toml`](/devops/docker_build/poetry.toml),
-  [`/devops/docker_build/poetry.lock)`](/devops/docker_build/poetry.lock))
+  [`/devops/docker_build/poetry.lock`](/devops/docker_build/poetry.lock)
 - Run the release flow manually (or rely on GH Action build workflow to create
   the new image)
 
