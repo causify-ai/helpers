@@ -1,9 +1,11 @@
+import logging
 from typing import List, Tuple
 
 import helpers.hmarkdown as hmarkdo
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
+_LOG = logging.getLogger(__name__)
 
 def _to_header_list(data: List[Tuple[int, str]]) -> hmarkdo.HeaderList:
     res = [
@@ -439,3 +441,69 @@ class Test_remove_end_of_line_periods1(hunitest.TestCase):
         act = hmarkdo.remove_end_of_line_periods(txt)
         exp = ".Line 1\n.Line 2\n..End"
         self.assertEqual(act, exp)
+
+
+class Test_process_code_block1(hunitest.TestCase):
+
+    def process_code_block(self, txt: str) -> str:
+        out: List[str] = []
+        in_code_block = False
+        lines = txt.split("\n")
+        for i, line in enumerate(lines):
+            _LOG.debug("%s:line=%s", i, line)
+            # Process the code block.
+            do_continue, in_code_block, out_tmp = hmarkdo.process_code_block(
+                line, in_code_block, i, lines)
+            out.extend(out_tmp)
+            if do_continue:
+                continue
+            #
+            out.append(line)
+        return "\n".join(out)
+
+    def test1(self) -> None:
+        txt_in = r"""
+- Functions can be declared in the body of another function
+- E.g., to hide utility functions in the scope of the function that uses them
+    ```python
+    def print_integers(values):
+
+        def _is_integer(value):
+            try:
+                return value == int(value)
+            except:
+                return False
+
+        for v in values:
+            if _is_integer(v):
+                print(v)
+    ```
+- Hello
+        """
+        txt_in = hprint.dedent(txt_in, remove_lead_trail_empty_lines_=True)
+        act = self.process_code_block(txt_in)
+        exp = ""
+        exp = r"""
+- Functions can be declared in the body of another function
+- E.g., to hide utility functions in the scope of the function that uses them
+
+
+        ```python
+        def print_integers(values):
+
+            def _is_integer(value):
+                try:
+                    return value == int(value)
+                except:
+                    return False
+
+            for v in values:
+                if _is_integer(v):
+                    print(v)
+        ```
+
+        
+- Hello
+        """
+        exp = hprint.dedent(exp, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(act, exp)

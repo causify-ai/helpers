@@ -41,11 +41,7 @@ def _run_preprocess_notes(in_file: str, out_file: str) -> str:
 )
 class Test_preprocess_notes1(hunitest.TestCase):
     """
-    Check that the output of `preprocess_notes.py` is the expected one.
-
-    using:
-    - an end-to-end flow;
-    - checked in files.
+    Test `preprocess_notes.py` using the executable and checked in files.
     """
 
     def test1(self) -> None:
@@ -64,7 +60,7 @@ class Test_preprocess_notes1(hunitest.TestCase):
 @pytest.mark.skipif(
     hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
 )
-class Test_preprocess_notes2(hunitest.TestCase):
+class Test_process_question1(hunitest.TestCase):
     """
     Check that the output of `preprocess_notes.py` is the expected one calling
     the library function directly.
@@ -114,9 +110,6 @@ class Test_preprocess_notes2(hunitest.TestCase):
         do_continue, act = dshdprno._process_question(txt_in)
         self.assertEqual(do_continue, do_continue_exp)
         self.assert_equal(act, exp)
-
-
-# #############################################################################
 
 
 @pytest.mark.skipif(

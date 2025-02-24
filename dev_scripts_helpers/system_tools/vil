@@ -1,24 +1,5 @@
 #!/bin/bash -e
 
-show_help() {
-    echo "Usage: $(basename "$0") [OPTION]"
-    echo "Options:"
-    echo "  --only-errors   Show only errors from linter_warnings.txt"
-    echo "  -h, --help      Display this help message"
-}
-
-if [ "$1" == "-h" ] || [ "$1" == "--help" ]; then
-    show_help
-    exit -1
-fi;
-
-if [ "$1" == "--only-errors" ]; then
-    \grep -E 'error:' ./linter_warnings.txt > ./filtered_linter_warnings.txt
-    cmd='vim -c "cfile ./filtered_linter_warnings.txt"'
-    echo "> $cmd"
-    eval $cmd
-else
-    cmd='vim -c "cfile ./linter_warnings.txt"'
-    echo "> $cmd"
-    eval $cmd
-fi
+cmd='vim -c "cfile ./linter_warnings.txt"'
+echo "> $cmd"
+eval $cmd

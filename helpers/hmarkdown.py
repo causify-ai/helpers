@@ -95,11 +95,16 @@ def process_code_block(
     """
     Process lines of text to handle code blocks that start and end with '```'.
 
+    The transformation is to:
+    - add an empty line before the start/end of the code
+    - indent the code block with four spaces
+    - replace '//' with '# ' to comment out lines in Python code
+
     :param line: The current line of text being processed.
     :param in_code_block: A flag indicating if the function is currently
         inside a code block.
     :param i: The index of the current line in the list of lines.
-    :param lines: The list of all the lines of text being processed.
+    :param lines: the lines of text to process
     :return: A tuple
         - do_continue: whether to continue processing the current line or skip
           it
@@ -109,10 +114,11 @@ def process_code_block(
     """
     out: List[str] = []
     do_continue = False
+    # Look for a code block.
     if re.match(r"^(\s*)```", line):
         _LOG.debug("  -> code block")
         in_code_block = not in_code_block
-        # Add empty line.
+        # Add empty line before the start of the code block.
         if (
             in_code_block
             and (i + 1 < len(lines))
@@ -163,38 +169,39 @@ def process_single_line_comment(line: str) -> bool:
     return do_continue
 
 
-# TODO(gp): Create iterator for this and factor out the common code.
-# # True inside a block to skip.
-# in_skip_block = False
-# # True inside a code block.
-# in_code_block = False
-# for i, line in enumerate(lines):
-#     _LOG.debug("%s:line=%s", i, line)
-#     # 1) Remove comment block.
-#     if _TRACE:
-#         _LOG.debug("# 1) Process comment block.")
-#     do_continue, in_skip_block = process_comment_block(
-#         line, in_skip_block
-#     )
-#     # _LOG.debug("  -> do_continue=%s in_skip_block=%s",
-#     #   do_continue, in_skip_block)
-#     if do_continue:
-#         continue
-#     # 2) Remove code block.
-#     if _TRACE:
-#         _LOG.debug("# 2) Process code block.")
-#     do_continue, in_code_block, out_tmp = process_code_block(
-#         line, in_code_block, i, lines
-#     )
-#     out.extend(out_tmp)
-#     if do_continue:
-#         continue
-#     # 3) Remove single line comment.
-#     if _TRACE:
-#         _LOG.debug("# 3) Process single line comment.")
-#     do_continue = process_single_line_comment(line)
-#     if do_continue:
-#         continue
+def process_lines(lines: List[str]) -> List[str]:
+    """
+    Process lines of text to handle comment blocks, code blocks, and single line comments.
+
+    :param lines: The list of all the lines of text being processed.
+    :return: A list of processed lines of text.
+    """
+    out: List[str] = []
+    in_skip_block = False
+    in_code_block = False
+
+    for i, line in enumerate(lines):
+        _LOG.debug("%s:line=%s", i, line)
+        # 1) Remove comment block.
+        if _TRACE:
+            _LOG.debug("# 1) Process comment block.")
+        do_continue, in_skip_block = process_comment_block(line, in_skip_block)
+        if do_continue:
+            continue
+        # 2) Remove code block.
+        if _TRACE:
+            _LOG.debug("# 2) Process code block.")
+        do_continue, in_code_block, out_tmp = process_code_block(line, in_code_block, i, lines)
+        out.extend(out_tmp)
+        if do_continue:
+            continue
+        # 3) Remove single line comment.
+        if _TRACE:
+            _LOG.debug("# 3) Process single line comment.")
+        do_continue = process_single_line_comment(line)
+        if do_continue:
+            continue
+        yield line
 
 
 # #############################################################################
@@ -261,9 +268,6 @@ def extract_section_from_markdown(content: str, header_name: str) -> str:
 
 
 # #############################################################################
-
-
-# #############################################################################
 # HeaderInfo
 # #############################################################################
 
@@ -296,6 +300,14 @@ class HeaderInfo:
 
 
 HeaderList = List[HeaderInfo]
+
+
+def _check_header_list(header_list: HeaderList) -> None:
+    """
+    Check that consecutive elements in the header list differ by at most one value of level.
+    """
+    for i in range(1, len(header_list)):
+        hdbg.dassert_lte(abs(header_list[i].level - header_list[i - 1].level), 1, "Consecutive headers differ by more than one level")
 
 
 def extract_headers_from_markdown(txt: str, *, max_level: int = 6) -> HeaderList:
@@ -526,6 +538,7 @@ class _HeaderTreeNode:
 _HeaderTree = List[_HeaderTreeNode]
 
 
+
 def _build_header_tree(data: List[Tuple[int, str]]) -> _HeaderTree:
     """
     Build a tree (list of Node objects) from the flat list.
@@ -540,7 +553,8 @@ def _build_header_tree(data: List[Tuple[int, str]]) -> _HeaderTree:
             tree.append(node)
             stack = [node]
         else:
-            # Pop until we find the proper parent: one with level < current level.
+            # Pop until we find the proper parent: one with level < current
+            # level.
             while stack and stack[-1].level >= level:
                 stack.pop()
             if stack:
@@ -555,11 +569,10 @@ def _find_header_tree_ancestry(
     nodes: _HeaderTree, target_level: int, target_description: str
 ) -> Optional[_HeaderTree]:
     """
-    Recursively search for the node matching (target_level,
-    target_description).
+    Recursively search for the node matching (target_level, target_description).
 
-    If found, return the ancestry as a list from the root down to that
-    node. Otherwise return None.
+    If found, return the ancestry as a list from the root down to that node.
+    Otherwise return None.
     """
     for node in nodes:
         if node.level == target_level and node.description == target_description:
@@ -581,7 +594,8 @@ def header_tree_to_str(
     Only expand (i.e. recursively include children) for a node if it is part of
     the ancestry of the selected node.
 
-    - Nodes not in the ancestry are included on one line (even if they have children).
+    - Nodes not in the ancestry are included on one line (even if they have
+      children).
     - The selected node (last in the ancestry) is included highlighted.
     """
     result = []
@@ -599,7 +613,8 @@ def header_tree_to_str(
                 header_tree_to_str(node.children, ancestry[1:], indent + 1)
             )
         else:
-            # For nodes not on the selected branch, include them without expanding.
+            # For nodes not on the selected branch, include them without
+            # expanding.
             result.append(prefix + node.description)
     return "\n".join(result)
 
