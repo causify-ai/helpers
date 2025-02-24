@@ -317,6 +317,11 @@ cp ./helpers_root/.github/workflows/gitleaks.yml ./.github/workflows
 python3 ./helpers_root/helpers/create_links.py --src_dir ./helpers_root/.github --dst_dir ./.github --replace_links --use_relative_paths
 ```
 
+Note:
+- Only the `gitleaks-rules.toml` file should be replaced with symbolic links.
+- The `gitleaks.yml` file should be copied as is because GitHub Actions is not 
+  able to resolve symbolic link references yet.
+
 ## Configure GitHub repo
 
 **Disclaimer**: the following set-up requires paid GitHub version
