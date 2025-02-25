@@ -217,74 +217,74 @@ def _get_markdown_example3() -> str:
 
 def _get_markdown_example4() -> str:
     content = r"""
-# Chapter 1
+    # Chapter 1
 
-Welcome to the first chapter. This chapter introduces fundamental concepts and
-lays the groundwork for further exploration.
+    Welcome to the first chapter. This chapter introduces fundamental concepts and
+    lays the groundwork for further exploration.
 
-## Section 1.1
+    ## Section 1.1
 
-This section discusses the initial principles and key ideas that are crucial for
-understanding the topic.
+    This section discusses the initial principles and key ideas that are crucial for
+    understanding the topic.
 
-### Subsection 1.1.1
+    ### Subsection 1.1.1
 
-The first subsection dives deeper into the details, providing examples and
-insights that help clarify the concepts.
+    The first subsection dives deeper into the details, providing examples and
+    insights that help clarify the concepts.
 
-Example:
-```python
-def greet(name):
-    return f"Hello, {name}!"
-print(greet("World"))
-```
+    Example:
+    ```python
+    def greet(name):
+        return f"Hello, {name}!"
+    print(greet("World"))
+    ```
 
-### Subsection 1.1.2
+    ### Subsection 1.1.2
 
-Here, we examine alternative perspectives and additional considerations that
-were not covered in the previous subsection.
+    Here, we examine alternative perspectives and additional considerations that
+    were not covered in the previous subsection.
 
-- Key Point 1: Understanding different viewpoints enhances comprehension.
-- Key Point 2: Practical application reinforces learning.
+    - Key Point 1: Understanding different viewpoints enhances comprehension.
+    - Key Point 2: Practical application reinforces learning.
 
-## Section 1.2
+    ## Section 1.2
 
-This section introduces new frameworks and methodologies that build upon the
-foundation established earlier.
+    This section introduces new frameworks and methodologies that build upon the
+    foundation established earlier.
 
-> "Knowledge is like a tree, growing stronger with each branch of understanding."
+    > "Knowledge is like a tree, growing stronger with each branch of understanding."
 
-# Chapter 2
+    # Chapter 2
 
-Moving forward, this chapter explores advanced topics and real-world
-applications.
+    Moving forward, this chapter explores advanced topics and real-world
+    applications.
 
-## Section 2.1
+    ## Section 2.1
 
-This section provides an in-depth analysis of core mechanisms that drive the
-subject matter.
+    This section provides an in-depth analysis of core mechanisms that drive the
+    subject matter.
 
-### Subsection 2.1.1
+    ### Subsection 2.1.1
 
-A deep dive into specific case studies and empirical evidence that support
-theoretical claims.
+    A deep dive into specific case studies and empirical evidence that support
+    theoretical claims.
 
-- Case Study 1: Implementation in modern industry
-- Case Study 2: Comparative analysis of traditional vs. modern methods
+    - Case Study 1: Implementation in modern industry
+    - Case Study 2: Comparative analysis of traditional vs. modern methods
 
-## Section 2.2
+    ## Section 2.2
 
-The final section of this chapter presents summary conclusions, key takeaways,
-and potential future developments.
+    The final section of this chapter presents summary conclusions, key takeaways,
+    and potential future developments.
 
-```yaml
-future:
-  - AI integration
-  - Process optimization
-  - Sustainable solutions
-```
+    ```yaml
+    future:
+    - AI integration
+    - Process optimization
+    - Sustainable solutions
+    ```
 
-Stay curious and keep exploring!
+    Stay curious and keep exploring!
     """
     content = hprint.dedent(content)
     return content
@@ -424,11 +424,6 @@ class Test_extract_headers_from_markdown1(hunitest.TestCase):
         exp = []
         self.assert_equal(str(act), str(exp))
 
-    # for level, desc in data:
-    #     print(f"Input: ({level}, '{desc}')")
-    #     print_selected_navigation(level, desc)
-    #     print()
-
 
 # #############################################################################
 # Test_remove_end_of_line_periods1
@@ -493,50 +488,51 @@ class Test_process_code_block1(hunitest.TestCase):
         return "\n".join(out)
 
     def test1(self) -> None:
-        txt_in = r"""
-- Functions can be declared in the body of another function
-- E.g., to hide utility functions in the scope of the function that uses them
-    ```python
-    def print_integers(values):
+        txt_in = _get_markdown_example5()
+        # txt_in = r"""
+        # - Functions can be declared in the body of another function
+        # - E.g., to hide utility functions in the scope of the function that uses them
+        #     ```python
+        #     def print_integers(values):
 
-        def _is_integer(value):
-            try:
-                return value == int(value)
-            except:
-                return False
+        #         def _is_integer(value):
+        #             try:
+        #                 return value == int(value)
+        #             except:
+        #                 return False
 
-        for v in values:
-            if _is_integer(v):
-                print(v)
-    ```
-- Hello
-        """
+        #         for v in values:
+        #             if _is_integer(v):
+        #                 print(v)
+        #     ```
+        # - Hello
+        # """
         txt_in = hprint.dedent(txt_in, remove_lead_trail_empty_lines_=True)
         act = self.process_code_block(txt_in)
         exp = r"""
-- Functions can be declared in the body of another function
-- E.g., to hide utility functions in the scope of the function that uses them
+        - Functions can be declared in the body of another function
+        - E.g., to hide utility functions in the scope of the function that uses them
 
 
-        ```python
-        def print_integers(values):
+                ```python
+                def print_integers(values):
 
-            def _is_integer(value):
-                try:
-                    return value == int(value)
-                except:
-                    return False
+                    def _is_integer(value):
+                        try:
+                            return value == int(value)
+                        except:
+                            return False
 
-            for v in values:
-                if _is_integer(v):
-                    print(v)
-        ```
+                    for v in values:
+                        if _is_integer(v):
+                            print(v)
+                ```
 
 
-- Hello
+        - Hello
         """
-        exp = hprint.dedent(exp, remove_lead_trail_empty_lines_=True)
-        self.assert_equal(act, exp)
+        #exp = hprint.dedent(exp, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(act, exp, dedent=True, remove_lead_trail_empty_lines=True)
 
 
 # #############################################################################
@@ -554,8 +550,12 @@ class Test_process_lines1(hunitest.TestCase):
             _LOG.debug(hprint.to_str("line"))
             out.append(f"{i}:{line}")
         act = "\n".join(out)
-        exp = ""
-        self.assert_equal(act, exp)
+        exp = """
+        1:- Functions can be declared in the body of another function
+        2:- E.g., to hide utility functions in the scope of the function that uses them
+        16:- Hello
+        """
+        self.assert_equal(act, exp, dedent=True, remove_lead_trail_empty_lines=True)
 
 
 class Test_selected_navigation_to_str1(hunitest.TestCase):
@@ -567,7 +567,6 @@ class Test_selected_navigation_to_str1(hunitest.TestCase):
         #
         header_list = hmarkdo.extract_headers_from_markdown(txt)
         act = pprint.pformat(header_list)
-        #res.append("header_list=\n" + str(header_list))
         exp = """
         [(1, 'Chapter 1', 1),
          (2, 'Section 1.1', 6),
@@ -602,16 +601,18 @@ class Test_selected_navigation_to_str1(hunitest.TestCase):
         """
         self.assert_equal(act, exp, dedent=True, remove_lead_trail_empty_lines=True)
 
-
-    # def test3(self) -> None:
-    #     txt = _get_markdown_example4()
-    #     header_list = hmarkdo.extract_headers_from_markdown(txt)
-    #     tree = hmarkdo.build_header_tree(header_list)
-    #     res = []
-    #     for level, description, _ in header_list:
-    #         res_tmp = hprint.frame(hprint.to_str("level description"))
-    #         res.append(res_tmp)
-    #         res_tmp = hmarkdo.selected_navigation_to_str(tree, level, description)
-    #         res.append(res_tmp)
-    #     act = "\n".join(res)
-    #     self.check_string(act)
+    def test2(self) -> None:
+        res = []
+        txt = _get_markdown_example4()
+        header_list = hmarkdo.extract_headers_from_markdown(txt)
+        tree = hmarkdo.build_header_tree(header_list)
+        # Create a navigation map for any header.
+        for level, description, _ in header_list:
+            res_tmp = hprint.frame(hprint.to_str("level description"))
+            res.append(res_tmp)
+            #
+            res_tmp = hmarkdo.selected_navigation_to_str(tree, level, description)
+            res.append(res_tmp)
+        # Check.
+        act = "\n".join(res)
+        self.check_string(act)
