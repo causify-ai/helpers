@@ -15,40 +15,9 @@ _TRACE = False
 #  of strings.
 
 
-# # TODO(gp): -> _skip_comments
-# def skip_comments(line: str, skip_block: bool) -> Tuple[bool, bool]:
-#     """
-#     Skip comments in the given line and handle comment blocks.
-
-#     Comments are like:
-#     - Single line: %% This is a comment
-#     - Block: <!-- This is a comment -->
-
-#     :param line: The line of text to check for comments
-#     :param skip_block: A flag indicating if currently inside a comment block
-#     :return: A tuple containing a flag indicating if the line should be skipped
-#         and the updated skip_block flag
-#     """
-#     skip_this_line = False
-#     # Handle comment block.
-#     if line.startswith("<!--"):
-#         # Start skipping comments.
-#         skip_block = True
-#         skip_this_line = True
-#     if skip_block:
-#         skip_this_line = True
-#         if line.startswith("-->"):
-#             # End skipping comments.
-#             skip_block = False
-#         else:
-#             # Skip comment.
-#             _LOG.debug("  -> skip")
-#     else:
-#         # Handle single line comment.
-#         if line.startswith("%%"):
-#             _LOG.debug("  -> skip")
-#             skip_this_line = True
-#     return skip_this_line, skip_block
+# #############################################################################
+# Utils
+# #############################################################################
 
 
 def is_markdown_line_separator(line: str) -> bool:
@@ -205,7 +174,49 @@ def process_lines(lines: List[str]) -> Generator[Tuple[int, str], None, None]:
         do_continue = process_single_line_comment(line)
         if do_continue:
             continue
-        yield i + 1, line
+        out.append(line)
+    #
+    for line in enumerate(out):
+        yield line
+
+
+def remove_end_of_line_periods(txt: str) -> str:
+    """
+    Remove periods at the end of each line in the given text.
+
+    :param txt: The input text to process
+    :return: The text with end-of-line periods removed
+    """
+    hdbg.dassert_isinstance(txt, str)
+    txt_out = [line.rstrip(".") for line in txt.split("\n")]
+    txt_out = "\n".join(txt_out)
+    return txt_out
+
+
+def remove_empty_lines(txt: str) -> str:
+    """
+    Remove empty lines from the given text.
+
+    :param txt: The input text to process
+    :return: The text with empty lines removed
+    """
+    hdbg.dassert_isinstance(txt, str)
+    txt_out = [line for line in txt.split("\n") if line != ""]
+    txt_out = "\n".join(txt_out)
+    return txt_out
+
+
+# TODO(gp): Add tests.
+def remove_code_delimiters(text: str) -> str:
+    """
+    Remove ```python and ``` delimiters from a given text.
+
+    :param text: The input text containing code delimiters.
+    :return: The text with the code delimiters removed.
+    """
+    # Replace the ```python and ``` delimiters with empty strings.
+    text = text.replace("```python", "").replace("```", "")
+    return text.strip()
 
 
 # #############################################################################
@@ -280,7 +291,9 @@ def extract_section_from_markdown(content: str, header_name: str) -> str:
 class HeaderInfo:
     """
     Store the header level, the description, and the line number in the
-    original file, e.g., `(1, "Chapter 1", 5)`` `(2, "Section 1.1", 10)`
+    original file.
+
+    E.g., `(1, "Chapter 1", 5)` and `(2, "Section 1.1", 10)`
     """
 
     level: int
@@ -299,10 +312,10 @@ class HeaderInfo:
         hdbg.dassert_lte(1, line_number)
         self.line_number = line_number
         #
-        self.children: List[_HeaderTreeNode] = []
+        self.children: List[HeaderInfo] = []
 
     def __repr__(self) -> str:
-        return f"Node({self.level}, {self.description}, {self.line_number})"
+        return f"Node({self.level}, '{self.description}', {self.line_number})"
 
     def as_tuple(self) -> Tuple[int, str, int]:
         return (self.level, self.description, self.line_number)
@@ -312,15 +325,21 @@ HeaderList = List[HeaderInfo]
 
 
 def _check_header_list(header_list: HeaderList) -> None:
-    """
-    Check that consecutive elements in the header list differ by at most one
-    value of level.
-    """
+    # Check that consecutive elements in the header list differ by at most one
+    # value of level.
     for i in range(1, len(header_list)):
         hdbg.dassert_lte(
             abs(header_list[i].level - header_list[i - 1].level),
             1,
             "Consecutive headers differ by more than one level",
+        )
+    # The first header should be level 1.
+    if header_list and header_list[0].level > 1:
+        _LOG.warning(
+            "First header '%s' at line %s is not level 1, but %s",
+            header_list[0].description,
+            header_list[0].line_number,
+            header_list[0].level,
         )
 
 
@@ -349,6 +368,8 @@ def extract_headers_from_markdown(txt: str, *, max_level: int = 6) -> HeaderList
             if level <= max_level:
                 title = match.group(2).strip()
                 header_list.append((level, title, line_number))
+    # Check the header list.
+    _check_header_list(header_list)
     return header_list
 
 
@@ -406,41 +427,6 @@ def header_list_to_markdown(header_list: HeaderList, mode: str) -> str:
         output_lines.append(f"{header_prefix} {title}")
     output_content = "\n".join(output_lines)
     return output_content
-
-
-# #############################################################################
-
-
-# # TODO(gp): -> header_list_to_markdown
-# def table_of_content(file_name: str, max_lev: int) -> None:
-#     """
-#     Generate a table of contents from the given file, considering the specified
-#     maximum level of headings.
-#     :param file_name: The name of the file to read and generate the table of
-#         contents from
-#     :param max_lev: The maximum level of headings to include in the table of
-#         contents
-#     """
-#     skip_block = False
-#     txt = hparser.read_file(file_name)
-#     for line in txt:
-#         # Skip comments.
-#         skip_this_line, skip_block = skip_comments(line, skip_block)
-#         if False and skip_this_line:
-#             continue
-#         #
-#         for i in range(1, max_lev + 1):
-#             if line.startswith("#" * i + " "):
-#                 if (
-#                     ("#########" not in line)
-#                     and ("///////" not in line)
-#                     and ("-------" not in line)
-#                     and ("======" not in line)
-#                 ):
-#                     if i == 1:
-#                         print()
-#                     print(f"{'    ' * (i - 1)}{line}")
-#                 break
 
 
 # #############################################################################
@@ -510,16 +496,11 @@ def increase_chapter(in_file_name: str, out_file_name: str) -> None:
     :param out_file_name: The name of the output file to write the
         modified text to
     """
-    skip_block = False
     txt = hparser.read_file(in_file_name)
     #
     txt_tmp = []
     for line in txt:
         # TODO(gp): Use the iterator.
-        skip_this_line, skip_block = skip_comments(line, skip_block)
-        if skip_this_line:
-            continue
-        #
         line = line.rstrip(r"\n")
         for i in range(1, 5):
             if line.startswith("#" * i + " "):
@@ -535,21 +516,8 @@ def increase_chapter(in_file_name: str, out_file_name: str) -> None:
 # #############################################################################
 
 
-# class _HeaderTreeNode:
-#     """
-#     A Node class to build hierarchical tree.
-#     """
-
-#     def __init__(self, level: int, description: str, line_number: int) -> None:
-#         self.level = level
-#         self.description = description
-#         self.line_number = line_number
-#         self.children: List[_HeaderTreeNode] = []
-
-#     def __repr__(self) -> str:
-#         return f"Node({self.level}, {self.description})"
-
-
+# This is a different representation of the data than the one in `HeaderList`
+# because it is a tree structure. So we use a different type hint.
 _HeaderTree = List[HeaderInfo]
 
 
@@ -658,47 +626,3 @@ def selected_navigation_to_str(
         selected_description,
     )
     return header_tree_to_str(tree, ancestry)
-
-
-# #############################################################################
-# Utils
-# #############################################################################
-
-
-def remove_end_of_line_periods(txt: str) -> str:
-    """
-    Remove periods at the end of each line in the given text.
-
-    :param txt: The input text to process
-    :return: The text with end-of-line periods removed
-    """
-    hdbg.dassert_isinstance(txt, str)
-    txt_out = [line.rstrip(".") for line in txt.split("\n")]
-    txt_out = "\n".join(txt_out)
-    return txt_out
-
-
-def remove_empty_lines(txt: str) -> str:
-    """
-    Remove empty lines from the given text.
-
-    :param txt: The input text to process
-    :return: The text with empty lines removed
-    """
-    hdbg.dassert_isinstance(txt, str)
-    txt_out = [line for line in txt.split("\n") if line != ""]
-    txt_out = "\n".join(txt_out)
-    return txt_out
-
-
-# TODO(gp): Add tests.
-def remove_code_delimiters(text: str) -> str:
-    """
-    Remove ```python and ``` delimiters from a given text.
-
-    :param text: The input text containing code delimiters.
-    :return: The text with the code delimiters removed.
-    """
-    # Replace the ```python and ``` delimiters with empty strings.
-    text = text.replace("```python", "").replace("```", "")
-    return text.strip()

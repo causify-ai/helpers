@@ -242,8 +242,8 @@ def dassert_lgt(
     """
     Assert that `lower_bound <= x <= upper_bound`.
 
-    :param lower_bound_closed, upper_bound_closed: control the     open-
-    ness/close-ness of the interval extremes.
+    :param lower_bound_closed, upper_bound_closed: control the open-
+        ness/close-ness of the interval extremes.
     """
     # `lower_bound <= or < x`.
     if lower_bound_closed:
@@ -611,7 +611,7 @@ def _get_first_type(obj: Iterable, tag: str) -> Type:
     dassert_eq(
         len(obj_types),
         1,
-        "More than one type for elem of " "%s=%s",
+        "More than one type for elem of %s=%s",
         tag,
         map(str, obj_types),
     )

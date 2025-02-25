@@ -64,7 +64,7 @@ def markdown_list_to_latex(markdown: str) -> str:
 
 
 def remove_latex_formatting(latex_string: str) -> str:
-    """
+    r"""
     Remove LaTeX formatting such as \textcolor{color}{content} and retains only
     the content.
     """

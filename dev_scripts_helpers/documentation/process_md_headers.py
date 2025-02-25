@@ -69,9 +69,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     _LOG.info("Reading file '%s'", args.input)
     input_content = hio.from_file(args.input)
-    output_content = hmarkdo.extract_headers_from_markdown(
-        args.input, input_content, max_level=args.max_level
+    header_list = hmarkdo.extract_headers_from_markdown(
+        input_content, max_level=args.max_level
     )
+    output_content = hmarkdo.extract_headers_from_markdown(
+        args.input, header_list)
     if args.output == "-":
         print(output_content)
     else:

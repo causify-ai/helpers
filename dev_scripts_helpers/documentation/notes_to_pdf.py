@@ -395,10 +395,10 @@ def _run_pandoc_to_slides(
             # l.979 \end{frame}
             for line in txt.split("\n"):
                 _LOG.debug("line=%s", line)
-                m = re.match("^l\.(\d+)", line)
+                m = re.match(r"^l\.(\d+)", line)
                 if m:
                     line_num = int(m.group(1))
-                    cmd = "vim %s +%d" % (file_out, line_num)
+                    cmd = f"vim {file_out} +{line_num}"
                     print(hprint.frame(cmd))
         raise RuntimeError("Pandoc failed")
     #

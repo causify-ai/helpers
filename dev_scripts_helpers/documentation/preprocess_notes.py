@@ -9,12 +9,6 @@ E.g.,
 - handle comments
 """
 
-# TODO(gp):
-#  - Add spaces between lines
-#  - Add index counting the indices
-#  - Convert // comments in code into #
-#  - Fix /* and */
-
 import argparse
 import logging
 import re
@@ -80,7 +74,7 @@ def _process_question_to_markdown(line: str) -> Tuple[bool, str]:
         # not just one.
         spaces = m.group(2)
         tag = m.group(3)
-        line = "-%s%s%s%s" % (spaces, meta, tag, meta)
+        line = f"-{spaces}{meta}{tag}{meta}"
         do_continue = True
     return do_continue, line
 
@@ -96,7 +90,7 @@ def _process_question_to_slides(line: str, *, level: int = 4) -> Tuple[bool, str
     m = re.search(regex, line)
     if m:
         tag = m.group(2)
-        line = "%s %s" % (prefix, tag)
+        line = f"{prefix} {tag}"
         do_continue = True
     return do_continue, line
 
@@ -254,7 +248,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.info("cmd line=%s", hdbg.get_command_line())
     # Slurp file.
     lines = hio.from_file(args.input).split("\n")
-    lines = [l.rstrip("\n") for l in lines]
+    lines = [line.rstrip("\n") for line in lines]
     out: List[str] = []
     # Transform.
     out_tmp = _run_all(lines, args.type, is_qa=args.qa)

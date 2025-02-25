@@ -117,7 +117,7 @@ class Test_process_question1(hunitest.TestCase):
     def _helper_process_question(
         self, txt_in: str, do_continue_exp: bool, exp: str
     ) -> None:
-        do_continue, act = dshdprno._process_question(txt_in)
+        do_continue, act = dshdprno._process_question_to_markdown(txt_in)
         self.assertEqual(do_continue, do_continue_exp)
         self.assert_equal(act, exp)
 
@@ -184,6 +184,8 @@ class Test_preprocess_notes3(hunitest.TestCase):
         self._helper_run_all(txt_in, exp)
 
     def _helper_run_all(self, txt_in: str, exp: str) -> None:
-        act_as_arr = dshdprno._run_all(txt_in.split("\n"), is_qa=False)
+        lines = txt_in.split("\n")
+        type_ = "pdf"
+        act_as_arr = dshdprno._run_all(lines, type_, is_qa=False)
         act = "\n".join(act_as_arr)
         self.assert_equal(act, exp)

@@ -249,7 +249,6 @@ def build_container(
     _LOG.debug(hprint.to_str("has_container"))
     use_cache = False
     if force_rebuild:
-        assert 0
         _LOG.warning(
             "Forcing to rebuild of container '%s' without cache", container_name
         )
@@ -540,9 +539,12 @@ def run_dockerized_prettier(
         f' bash -c "{bash_cmd}"'
     )
     if return_cmd:
-        return docker_cmd
-    # TODO(gp): Note that `suppress_output=False` seems to hang the call.
-    hsystem.system(docker_cmd)
+        ret = docker_cmd
+    else:
+        # TODO(gp): Note that `suppress_output=False` seems to hang the call.
+        hsystem.system(docker_cmd)
+        ret = None
+    return ret
 
 
 # This a different approach I've tried to inject files inside a container
@@ -703,119 +705,120 @@ def run_dockerized_pandoc(
     if container_type == "pandoc_only":
         container_name = "pandoc/core"
         incremental = False
-    elif container_type == "pandoc_latex":
-        container_name = "tmp.pandoc_latex"
-        # From https://github.com/pandoc/dockerfiles/blob/main/alpine/latex/Dockerfile
-        build_dir = "tmp.docker_build"
-        dir_name = hgit.find_file_in_git_tree("pandoc_docker_files")
-        hio.create_dir(build_dir, incremental=True)
-        cmd = f"cp -r {dir_name}/* tmp.docker_build/common/latex"
-        hsystem.system(cmd)
-        #
-        dockerfile = r"""
-        ARG pandoc_version=edge
-        FROM pandoc/core:${pandoc_version}-alpine
-
-        # NOTE: to maintainers, please keep this listing alphabetical.
-        RUN apk --no-cache add \
-                curl \
-                fontconfig \
-                freetype \
-                gnupg \
-                gzip \
-                perl \
-                tar \
-                wget \
-                xz
-
-        # Installer scripts and config
-        COPY common/latex/texlive.profile    /root/texlive.profile
-        COPY common/latex/install-texlive.sh /root/install-texlive.sh
-        COPY common/latex/packages.txt       /root/packages.txt
-
-        # TeXLive binaries location
-        ARG texlive_bin="/opt/texlive/texdir/bin"
-
-        # TeXLive version to install (leave empty to use the latest version).
-        ARG texlive_version=
-
-        # TeXLive mirror URL (leave empty to use the default mirror).
-        ARG texlive_mirror_url=
-
-        # Modify PATH environment variable, prepending TexLive bin directory
-        ENV PATH="${texlive_bin}/default:${PATH}"
-
-        # Ideally, the image would always install "linuxmusl" binaries. However,
-        # those are not available for aarch64, so we install binaries that have
-        # been built against libc and hope that the compatibility layer works
-        # well enough.
-        RUN cd /root && \
-            ARCH="$(uname -m)" && \
-            case "$ARCH" in \
-                ('x86_64') \
-                    TEXLIVE_ARCH="x86_64-linuxmusl"; \
-                    ;; \
-                (*) echo >&2 "error: unsupported architecture '$ARCH'"; \
-                    exit 1 \
-                    ;; \
-            esac && \
-            mkdir -p ${texlive_bin} && \
-            ln -sf "${texlive_bin}/${TEXLIVE_ARCH}" "${texlive_bin}/default" && \
-            echo "binary_${TEXLIVE_ARCH} 1" >> /root/texlive.profile && \
-            ( \
-            [ -z "$texlive_version"    ] || printf '-t\n%s\n"' "$texlive_version"; \
-            [ -z "$texlive_mirror_url" ] || printf '-m\n%s\n' "$texlive_mirror_url" \
-            ) | xargs /root/install-texlive.sh && \
-            sed -e 's/ *#.*$//' -e '/^ *$/d' /root/packages.txt | \
-                xargs tlmgr install && \
-            rm -f /root/texlive.profile \
-                /root/install-texlive.sh \
-                /root/packages.txt && \
-            TERM=dumb luaotfload-tool --update && \
-            chmod -R o+w /opt/texlive/texdir/texmf-var
-
-        WORKDIR /data
-        """
-        # Since we have already copied the files, we can't remove the directory.
-        incremental = True
-    elif container_type == "pandoc_texlive":
-        container_name = "tmp.pandoc_texlive"
-        dockerfile = r"""
-        FROM texlive/texlive:latest
-
-        ENV DEBIAN_FRONTEND=noninteractive
-        RUN apt-get update && \
-            apt-get -y upgrade
-
-        RUN apt install -y sudo
-
-        RUN apt install -y pandoc
-
-        # Create a font cache directory usable by non-root users.
-        # These fonts don't work with latex and xelatex, and require lualatex.
-        # RUN apt install fonts-noto-color-emoji
-        # RUN apt install fonts-twemoji
-        # RUN mkdir -p /var/cache/fontconfig && \
-        #     chmod -R 777 /var/cache/fontconfig && \
-        #     fc-cache -fv
-
-        # Verify installation.
-        RUN latex --version && pdflatex --version && pandoc --version
-
-        # Set the default command.
-        ENTRYPOINT ["pandoc"]
-        """
-        incremental = False
     else:
-        raise ValueError("Unknown container type '%s'" % container_type)
-    # Build container.
-    container_name = build_container(
-        container_name,
-        dockerfile,
-        force_rebuild,
-        use_sudo,
-        incremental=incremental,
-    )
+        if container_type == "pandoc_latex":
+            container_name = "tmp.pandoc_latex"
+            # From https://github.com/pandoc/dockerfiles/blob/main/alpine/latex/Dockerfile
+            build_dir = "tmp.docker_build"
+            dir_name = hgit.find_file_in_git_tree("pandoc_docker_files")
+            hio.create_dir(build_dir, incremental=True)
+            cmd = f"cp -r {dir_name}/* tmp.docker_build/common/latex"
+            hsystem.system(cmd)
+            #
+            dockerfile = r"""
+            ARG pandoc_version=edge
+            FROM pandoc/core:${pandoc_version}-alpine
+
+            # NOTE: to maintainers, please keep this listing alphabetical.
+            RUN apk --no-cache add \
+                    curl \
+                    fontconfig \
+                    freetype \
+                    gnupg \
+                    gzip \
+                    perl \
+                    tar \
+                    wget \
+                    xz
+
+            # Installer scripts and config
+            COPY common/latex/texlive.profile    /root/texlive.profile
+            COPY common/latex/install-texlive.sh /root/install-texlive.sh
+            COPY common/latex/packages.txt       /root/packages.txt
+
+            # TeXLive binaries location
+            ARG texlive_bin="/opt/texlive/texdir/bin"
+
+            # TeXLive version to install (leave empty to use the latest version).
+            ARG texlive_version=
+
+            # TeXLive mirror URL (leave empty to use the default mirror).
+            ARG texlive_mirror_url=
+
+            # Modify PATH environment variable, prepending TexLive bin directory
+            ENV PATH="${texlive_bin}/default:${PATH}"
+
+            # Ideally, the image would always install "linuxmusl" binaries. However,
+            # those are not available for aarch64, so we install binaries that have
+            # been built against libc and hope that the compatibility layer works
+            # well enough.
+            RUN cd /root && \
+                ARCH="$(uname -m)" && \
+                case "$ARCH" in \
+                    ('x86_64') \
+                        TEXLIVE_ARCH="x86_64-linuxmusl"; \
+                        ;; \
+                    (*) echo >&2 "error: unsupported architecture '$ARCH'"; \
+                        exit 1 \
+                        ;; \
+                esac && \
+                mkdir -p ${texlive_bin} && \
+                ln -sf "${texlive_bin}/${TEXLIVE_ARCH}" "${texlive_bin}/default" && \
+                echo "binary_${TEXLIVE_ARCH} 1" >> /root/texlive.profile && \
+                ( \
+                [ -z "$texlive_version"    ] || printf '-t\n%s\n"' "$texlive_version"; \
+                [ -z "$texlive_mirror_url" ] || printf '-m\n%s\n' "$texlive_mirror_url" \
+                ) | xargs /root/install-texlive.sh && \
+                sed -e 's/ *#.*$//' -e '/^ *$/d' /root/packages.txt | \
+                    xargs tlmgr install && \
+                rm -f /root/texlive.profile \
+                    /root/install-texlive.sh \
+                    /root/packages.txt && \
+                TERM=dumb luaotfload-tool --update && \
+                chmod -R o+w /opt/texlive/texdir/texmf-var
+
+            WORKDIR /data
+            """
+            # Since we have already copied the files, we can't remove the directory.
+            incremental = True
+        elif container_type == "pandoc_texlive":
+            container_name = "tmp.pandoc_texlive"
+            dockerfile = r"""
+            FROM texlive/texlive:latest
+
+            ENV DEBIAN_FRONTEND=noninteractive
+            RUN apt-get update && \
+                apt-get -y upgrade
+
+            RUN apt install -y sudo
+
+            RUN apt install -y pandoc
+
+            # Create a font cache directory usable by non-root users.
+            # These fonts don't work with latex and xelatex, and require lualatex.
+            # RUN apt install fonts-noto-color-emoji
+            # RUN apt install fonts-twemoji
+            # RUN mkdir -p /var/cache/fontconfig && \
+            #     chmod -R 777 /var/cache/fontconfig && \
+            #     fc-cache -fv
+
+            # Verify installation.
+            RUN latex --version && pdflatex --version && pandoc --version
+
+            # Set the default command.
+            ENTRYPOINT ["pandoc"]
+            """
+            incremental = False
+        else:
+            raise ValueError(f"Unknown container type '{container_type}'")
+        # Build container.
+        container_name = build_container(
+            container_name,
+            dockerfile,
+            force_rebuild,
+            use_sudo,
+            incremental=incremental,
+        )
     # Convert files to Docker paths.
     is_caller_host = not hserver.is_inside_docker()
     use_sibling_container_for_callee = True
