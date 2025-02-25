@@ -151,7 +151,7 @@
 
 - [ ] **Team leader**: File an issue with this checklist
   - The title is "Onboarding {{Name}}"
-  - Copy paste the following checklist
+  - Copy-and-paste the whole checklist starting from [here](#checklist)
 
 - [ ] **IT**: create account info bundle following
       [New team member addition - admin side tutorial](https://docs.google.com/document/d/1bNzdGvkmayV3IUwlmd-PHK40LNPTdrfdPBgF7-EYnxo/edit#heading=h.44tqkhn6slld)

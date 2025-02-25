@@ -18,7 +18,7 @@
 
 - One only develops locally on their laptop during the intern stage. All
   permanent members of the team should develop on our server. Interns will get
-  access to the server once they "graduate" to the permanent position.
+  access to the server once they "graduate" to a permanent position.
 
 ## Clone the code
 
@@ -309,7 +309,7 @@
 
 ## Hack: use a local container if needed
 
-- If the commands [above](#some-useful-workflows) do not work for you, then, as
+- If [the commands above](#some-useful-workflows) do not work for you, then, as
   a temporary workaround, you can run the commands in a local Docker container
 
 - Build a local container (the version number is not that important but make

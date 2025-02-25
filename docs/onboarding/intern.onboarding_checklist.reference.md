@@ -33,7 +33,7 @@
 
 - [ ] **Team leader**: File an issue with this checklist
   - The title is "Onboarding {{Name}}"
-  - Copy-and-paste this checklist
+  - Copy-and-paste the whole checklist starting from [here](#checklist)
   - The issue should be assigned to the team leader and the intern
 
 - [ ] **Intern**: Update this GitHub issue if you face any problems. If
