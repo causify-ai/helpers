@@ -315,7 +315,7 @@ class HeaderInfo:
         self.children: List[HeaderInfo] = []
 
     def __repr__(self) -> str:
-        return f"Node({self.level}, '{self.description}', {self.line_number})"
+        return f"HeaderInfo({self.level}, '{self.description}', {self.line_number})"
 
     def as_tuple(self) -> Tuple[int, str, int]:
         return (self.level, self.description, self.line_number)
@@ -328,6 +328,8 @@ def _check_header_list(header_list: HeaderList) -> None:
     # Check that consecutive elements in the header list differ by at most one
     # value of level.
     for i in range(1, len(header_list)):
+        hdbg.dassert_isinstance(header_list[i - 1], HeaderInfo)
+        hdbg.dassert_isinstance(header_list[i], HeaderInfo)
         hdbg.dassert_lte(
             abs(header_list[i].level - header_list[i - 1].level),
             1,
@@ -367,7 +369,8 @@ def extract_headers_from_markdown(txt: str, *, max_level: int = 6) -> HeaderList
             level = len(match.group(1))
             if level <= max_level:
                 title = match.group(2).strip()
-                header_list.append((level, title, line_number))
+                header_info = HeaderInfo(level, title, line_number)
+                header_list.append(header_info)
     # Check the header list.
     _check_header_list(header_list)
     return header_list
@@ -529,15 +532,14 @@ def build_header_tree(header_list: HeaderList) -> _HeaderTree:
     """
     tree: _HeaderTree = []
     stack: _HeaderTree = []
-    for level, description, line_number in header_list:
-        node = HeaderInfo(level, description, line_number)
-        if level == 1:
+    for node in header_list:
+        if node.level == 1:
             tree.append(node)
             stack = [node]
         else:
             # Pop until we find the proper parent: one with level < current
             # level.
-            while stack and stack[-1].level >= level:
+            while stack and stack[-1].level >= node.level:
                 stack.pop()
             if stack:
                 stack[-1].children.append(node)
