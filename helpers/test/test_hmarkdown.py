@@ -489,24 +489,6 @@ class Test_process_code_block1(hunitest.TestCase):
 
     def test1(self) -> None:
         txt_in = _get_markdown_example5()
-        # txt_in = r"""
-        # - Functions can be declared in the body of another function
-        # - E.g., to hide utility functions in the scope of the function that uses them
-        #     ```python
-        #     def print_integers(values):
-
-        #         def _is_integer(value):
-        #             try:
-        #                 return value == int(value)
-        #             except:
-        #                 return False
-
-        #         for v in values:
-        #             if _is_integer(v):
-        #                 print(v)
-        #     ```
-        # - Hello
-        # """
         txt_in = hprint.dedent(txt_in, remove_lead_trail_empty_lines_=True)
         act = self.process_code_block(txt_in)
         exp = r"""
@@ -531,8 +513,9 @@ class Test_process_code_block1(hunitest.TestCase):
 
         - Hello
         """
-        #exp = hprint.dedent(exp, remove_lead_trail_empty_lines_=True)
-        self.assert_equal(act, exp, dedent=True, remove_lead_trail_empty_lines=True)
+        self.assert_equal(
+            act, exp, dedent=True, remove_lead_trail_empty_lines=True
+        )
 
 
 # #############################################################################
@@ -555,7 +538,14 @@ class Test_process_lines1(hunitest.TestCase):
         2:- E.g., to hide utility functions in the scope of the function that uses them
         16:- Hello
         """
-        self.assert_equal(act, exp, dedent=True, remove_lead_trail_empty_lines=True)
+        self.assert_equal(
+            act, exp, dedent=True, remove_lead_trail_empty_lines=True
+        )
+
+
+# #############################################################################
+# Test_selected_navigation_to_str1
+# #############################################################################
 
 
 class Test_selected_navigation_to_str1(hunitest.TestCase):
@@ -578,7 +568,9 @@ class Test_selected_navigation_to_str1(hunitest.TestCase):
          (3, 'Subsection 2.1.1', 48),
          (2, 'Section 2.2', 56)]
         """
-        self.assert_equal(act, exp, dedent=True, remove_lead_trail_empty_lines=True)
+        self.assert_equal(
+            act, exp, dedent=True, remove_lead_trail_empty_lines=True
+        )
         #
         tree = hmarkdo.build_header_tree(header_list)
         act = hmarkdo.header_tree_to_str(tree, ancestry=None)
@@ -586,7 +578,9 @@ class Test_selected_navigation_to_str1(hunitest.TestCase):
         - Chapter 1
         - Chapter 2
         """
-        self.assert_equal(act, exp, dedent=True, remove_lead_trail_empty_lines=True)
+        self.assert_equal(
+            act, exp, dedent=True, remove_lead_trail_empty_lines=True
+        )
         #
         level = 3
         description = "Subsection 1.1.2"
@@ -599,7 +593,9 @@ class Test_selected_navigation_to_str1(hunitest.TestCase):
           - Section 1.2
         - Chapter 2
         """
-        self.assert_equal(act, exp, dedent=True, remove_lead_trail_empty_lines=True)
+        self.assert_equal(
+            act, exp, dedent=True, remove_lead_trail_empty_lines=True
+        )
 
     def test2(self) -> None:
         res = []

@@ -583,7 +583,8 @@ def _find_header_tree_ancestry(
     tree: _HeaderTree, target_level: int, target_description: str
 ) -> Optional[_HeaderTree]:
     """
-    Recursively search for the node matching (target_level, target_description).
+    Recursively search for the node matching (target_level,
+    target_description).
 
     If found, return the ancestry as a list from the root down to that
     node. Otherwise return None.
@@ -627,7 +628,9 @@ def header_tree_to_str(
             if val:
                 result.append(val)
             # Expand this node’s children using the rest of the ancestry.
-            val = header_tree_to_str(node.children, ancestry[1:], indent=indent + 1)
+            val = header_tree_to_str(
+                node.children, ancestry[1:], indent=indent + 1
+            )
         else:
             # For nodes not on the selected branch, include them without
             # expanding.
@@ -639,8 +642,7 @@ def header_tree_to_str(
 
 
 def selected_navigation_to_str(
-    tree: _HeaderTree,
-    selected_level: int, selected_description: str
+    tree: _HeaderTree, selected_level: int, selected_description: str
 ) -> None:
     """
     Given a level and description for the selected node, print the navigation.
@@ -648,9 +650,13 @@ def selected_navigation_to_str(
     ancestry = _find_header_tree_ancestry(
         tree, selected_level, selected_description
     )
-    hdbg.dassert_ne(ancestry, None, "Node (%s, %s) not found",
-                    selected_level,
-                    selected_description)
+    hdbg.dassert_ne(
+        ancestry,
+        None,
+        "Node (%s, %s) not found",
+        selected_level,
+        selected_description,
+    )
     return header_tree_to_str(tree, ancestry)
 
 
