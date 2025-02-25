@@ -21,6 +21,7 @@ import helpers.hsystem as hsystem
 import helpers.lib_tasks_docker as hlitadoc
 import helpers.lib_tasks_pytest as hlitapyt
 import helpers.lib_tasks_utils as hlitauti
+import repo_config as rconf
 
 _DEFAULT_TARGET_REGISTRY = "aws_ecr.ck"
 _LOG = logging.getLogger(__name__)
