@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """
-Run `pandoc` inside a Docker container to ensure consistent formatting across
-different environments.
+Run `pandoc` inside a Docker container.
 
 This script builds the container dynamically if necessary.
 

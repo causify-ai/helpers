@@ -118,8 +118,9 @@ class _DocFormatter(liaction.Action):
             ):
                 # Replace the code block line with a placeholder.
                 skipped_lines.append(line)
-                indent = re.findall(r"^[\s]*", line)[0]
-                num_repeat = int(80 - len(indent) / len(f"IDSKIP{skipped_id}"))
+                indent_match = re.findall(r"^[\s]*", line)
+                indent = indent_match[0] if len(indent_match[0]) else "    "
+                num_repeat = int((80 - len(indent)) / len(f"IDSKIP{skipped_id}"))
                 updated_lines.append(indent + f"IDSKIP{skipped_id}" * num_repeat)
                 if i not in code_block_indices:
                     # The end of the code block has been reached.
@@ -184,7 +185,7 @@ class _DocFormatter(liaction.Action):
         :return: lints
         """
         _ = pedantic
-        # Applicable to only python file.
+        # Applicable only to Python files.
         if not liutils.is_py_file(file_name):
             _LOG.debug("Skipping file_name='%s'", file_name)
             return []

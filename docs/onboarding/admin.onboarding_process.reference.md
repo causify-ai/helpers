@@ -57,9 +57,10 @@
    - The content of the issue will be the following checklist (note that GitHub
      needs full paths to point to the documentation from an issue)
      ```
-     - [ ] Acknowledge the pledge to put effort and time in the project [here](/README.md#commitment-to-contribute)
+     - [ ] Acknowledge the pledge to put effort and time in the project
      - [ ] Fork, star, watch the KaizenFlow repo so that GitHub promotes our repo (we gotta spread the work)
-     - [ ] Read and execute [set up development environment](/docs/onboarding/kaizenflow.set_up_development_environment.how_to_guide.md)
+     - [ ] Follow the [quick start for development](/docs/onboarding/kaizenflow.prepare_for_development.how_to_guide.md)
+     - [ ] Set up the [development environment](/docs/onboarding/all.set_up_development_on_laptop.how_to_guide.md)
      - [ ] Read and start internalizing [KaizenFlow Python coding style guide](/docs/coding/all.coding_style.how_to_guide.md)
      - [ ] Read about your [first code review](/docs/coding/all.submit_code_for_review.how_to_guide.md)
      - [ ] Peruse the map of [all the documentation](/docs/onboarding/all.development_documents.reference.md)
@@ -82,8 +83,7 @@ A list of things to do to off-board an intern / collaborator
 1. [ ] Remove from [GitHub](https://github.com/kaizen-ai/kaizenflow)
 2. [ ] Remove from
        [contributors](https://groups.google.com/u/0/a/crypto-kaizen.com/g/contributors/members)@
-3. [ ] Remove from the [TG channel](https://t.me/+f2o-9oR_oH42NGJh)
-  - _Note: we mostly got rid of Telegram usage, maybe there will be a Slack channel for interns/collaborators in the futures_
+3. [ ] Remove from the Slack workspace
 4. [ ] Remove Gdocs access:
    1. [KaizenFlow](https://drive.google.com/drive/folders/1-aaFlPtlbJ-pUL-c5GQbjFgZRp9ZNRUk?usp=sharing)
    2. [Process](https://drive.google.com/drive/folders/1sJDqCjM1Q_nq8diyZDiWO8mVBQW5Wg_X?usp=sharing)

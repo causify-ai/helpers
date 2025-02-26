@@ -11,12 +11,15 @@ _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
+# Test_markdown_to_latex1
+# #############################################################################
 
 
 @pytest.mark.skipif(
     hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
 )
 class Test_markdown_to_latex1(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Test a simple nested list with no frame title.
@@ -142,7 +145,10 @@ class Test_markdown_to_latex1(hunitest.TestCase):
         """
         Check the markdown to latex transformation.
         """
+        # 1) Prepare inputs.
         markdown = hprint.dedent(markdown)
+        # 2) Run tests.
         act = hlatex.markdown_list_to_latex(markdown)
+        # 3) Check.
         exp = hprint.dedent(exp)
         self.assert_equal(act, exp)

@@ -867,6 +867,7 @@ def convert_timestamp_to_unix_epoch(
 
 # TODO(Sameep): Reuse this function across the code base (`jackpy strftime`) when
 # it doesn't make the import graph too complicated.
+# TODO(gp): This seems redundant with get_timestamp() in `hwall_clock_time`.
 def timestamp_to_str(
     timestamp: pd.Timestamp, *, include_msec: bool = False
 ) -> str:

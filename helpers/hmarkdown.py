@@ -12,6 +12,45 @@ _LOG = logging.getLogger(__name__)
 #  of strings.
 
 
+# TODO(gp): -> _skip_comments
+def skip_comments(line: str, skip_block: bool) -> Tuple[bool, bool]:
+    """
+    Skip comments in the given line and handle comment blocks.
+
+    Comments are like:
+    - Single line: %% This is a comment
+    - Block: <!-- This is a comment -->
+
+    :param line: The line of text to check for comments
+    :param skip_block: A flag indicating if currently inside a comment block
+    :return: A tuple containing a flag indicating if the line should be skipped
+        and the updated skip_block flag
+    """
+    skip_this_line = False
+    # Handle comment block.
+    if line.startswith("<!--"):
+        # Start skipping comments.
+        skip_block = True
+        skip_this_line = True
+    if skip_block:
+        skip_this_line = True
+        if line.startswith("-->"):
+            # End skipping comments.
+            skip_block = False
+        else:
+            # Skip comment.
+            _LOG.debug("  -> skip")
+    else:
+        # Handle single line comment.
+        if line.startswith("%%"):
+            _LOG.debug("  -> skip")
+            skip_this_line = True
+    return skip_this_line, skip_block
+
+
+# #############################################################################
+
+
 def extract_section_from_markdown(content: str, header_name: str) -> str:
     """
     Extract a section of text from a Markdown document based on the header
@@ -70,11 +109,19 @@ def extract_section_from_markdown(content: str, header_name: str) -> str:
     return "\n".join(extracted_lines)
 
 
+# #############################################################################
+
+
+# TODO(gp): -> extract_headers_from_markdown
 def extract_headers(
     markdown_file: str, input_content: str, *, max_level: int = 6
 ) -> str:
     """
-    Extract headers from a Markdown file and generate a Vim cfile.
+    Extract headers from Markdown file and generate Vim cfile to navigate them.
+
+    Use the generated file in Vim as:
+        `:cfile <output_file>`
+        Use `:cnext` and `:cprev` to navigate between headers.
 
     :param markdown_file: Path to the input Markdown file.
     :param input_content: Path to the input Markdown file.
@@ -83,16 +130,14 @@ def extract_headers(
     :return: the generated output file content, e.g.,
         The generated cfile format:
             <file path>:<line number>:<header title>
-
-    Usage in Vim:
-        :cfile <output_file>
-        Use :cnext and :cprev to navigate between headers.
     """
     summary = []
+    # Find an header like `# Header1` or `## Header2`.
     header_pattern = re.compile(r"^(#+)\s+(.*)")
     headers = []
     # Process the input file to extract headers.
     for line_number, line in enumerate(input_content.splitlines(), start=1):
+        # Skip the visual separators.
         if "########################################" in line:
             continue
         match = header_pattern.match(line)
@@ -114,39 +159,7 @@ def extract_headers(
     return output_content
 
 
-def skip_comments(line: str, skip_block: bool) -> Tuple[bool, bool]:
-    """
-    Skip comments in the given line and handle comment blocks.
-
-    Comments are like:
-    - Single line: %% This is a comment
-    - Block: <!-- This is a comment -->
-
-    :param line: The line of text to check for comments
-    :param skip_block: A flag indicating if currently inside a comment block
-    :return: A tuple containing a flag indicating if the line should be skipped
-        and the updated skip_block flag
-    """
-    skip_this_line = False
-    # Handle comment block.
-    if line.startswith("<!--"):
-        # Start skipping comments.
-        skip_block = True
-        skip_this_line = True
-    if skip_block:
-        skip_this_line = True
-        if line.startswith("-->"):
-            # End skipping comments.
-            skip_block = False
-        else:
-            # Skip comment.
-            _LOG.debug("  -> skip")
-    else:
-        # Handle single line comment.
-        if line.startswith("%%"):
-            _LOG.debug("  -> skip")
-            skip_this_line = True
-    return skip_this_line, skip_block
+# #############################################################################
 
 
 def table_of_content(file_name: str, max_lev: int) -> None:
@@ -179,6 +192,9 @@ def table_of_content(file_name: str, max_lev: int) -> None:
                         print()
                     print(f"{'    ' * (i - 1)}{line}")
                 break
+
+
+# #############################################################################
 
 
 def format_headers(in_file_name: str, out_file_name: str, max_lev: int) -> None:

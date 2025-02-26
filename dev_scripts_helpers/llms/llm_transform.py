@@ -85,8 +85,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
         tmp_in_file_name,
         tmp_out_file_name,
         cmd_line_opts,
-        args.dockerized_force_rebuild,
-        args.dockerized_use_sudo,
+        return_cmd=False,
+        force_rebuild=args.dockerized_force_rebuild,
+        use_sudo=args.dockerized_use_sudo,
     )
     out_txt = hio.from_file(tmp_out_file_name)
     # Note that we need to run this outside the `llm_transform` container to

@@ -208,6 +208,16 @@ def indent(txt: Optional[str], *, num_spaces: int = 2) -> str:
     return res
 
 
+def strict_split(text: str, max_length: int) -> str:
+    """
+    Split a string into chunks of `max_length` characters.
+    """
+    hdbg.dassert_lte(1, max_length)
+    lines = [text[i:i+max_length] for i in range(0, len(text), max_length)]
+    out = "\n".join(lines)
+    return out
+
+
 StrOrList = Union[str, List[str]]
 
 

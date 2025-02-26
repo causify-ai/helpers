@@ -120,20 +120,46 @@ def _filter_by_header(file_: str, header: str, prefix: str) -> str:
 # #############################################################################
 
 
-def _preprocess_notes(curr_path: str, file_: str, prefix: str) -> str:
+def _preprocess_notes(file_: str, prefix: str) -> str:
     """
     Pre-process the file.
 
-    :param curr_path: The current path where the script is located
     :param file_: The input file to be processed
     :param prefix: The prefix used for the output file (e.g., `tmp.pandoc`)
     :return: The path to the processed file
     """
+    exec_file = hgit.find_file("preprocess_notes.py")
     file1 = file_
     file2 = f"{prefix}.preprocess_notes.txt"
-    cmd = f"{curr_path}/preprocess_notes.py --input {file1} --output {file2}"
+    cmd = f"{exec_file} --input {file1} --output {file2}"
     _ = _system(cmd)
     file_ = file2
+    return file_
+
+
+# #############################################################################
+
+
+def _render_images(file_: str, prefix: str) -> str:
+    """
+    Render images in the file.
+
+    :param file_: The input file to be processed
+    :param prefix: The prefix used for the output file (e.g., `tmp.pandoc`)
+    :return: The path to the processed file
+    """
+    # helpers_root/./dev_scripts_helpers/documentation/render_images.py
+    exec_file = hgit.find_file("render_images.py")
+    file1 = file_
+    file2 = f"{prefix}.render_image.txt"
+    cmd = f"{exec_file} --in_file_name {file1} --out_file_name {file2}"
+    _ = _system(cmd)
+    # We need to preprocess the notes again to remove the commented code.
+    exec_file = hgit.find_file("preprocess_notes.py")
+    file3 = f"{prefix}.preprocess_notes2.txt"
+    cmd = f"{exec_file} --input {file2} --output {file3}"
+    _ = _system(cmd)
+    file_ = file3
     return file_
 
 
@@ -418,7 +444,12 @@ def _run_all(args: argparse.Namespace) -> None:
     action = "preprocess_notes"
     to_execute, actions = _mark_action(action, actions)
     if to_execute:
-        file_ = _preprocess_notes(curr_path, file_, prefix)
+        file_ = _preprocess_notes(file_, prefix)
+    # - Render_images
+    action = "render_images"
+    to_execute, actions = _mark_action(action, actions)
+    if to_execute:
+        file_ = _render_images(file_, prefix)
     # - Run_pandoc
     action = "run_pandoc"
     to_execute, actions = _mark_action(action, actions)
@@ -465,6 +496,7 @@ def _run_all(args: argparse.Namespace) -> None:
 _VALID_ACTIONS = [
     "cleanup_before",
     "preprocess_notes",
+    "render_images",
     "run_pandoc",
     "copy_to_gdrive",
     "open",
@@ -475,7 +507,9 @@ _VALID_ACTIONS = [
 _DEFAULT_ACTIONS = [
     "cleanup_before",
     "preprocess_notes",
+    "render_images",
     "run_pandoc",
+    "open",
     "cleanup_after",
 ]
 

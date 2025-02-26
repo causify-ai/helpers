@@ -318,13 +318,11 @@ set_up_docker_aws() {
     else
         echo "AM_AWS_ACCESS_KEY_ID='$AM_AWS_ACCESS_KEY_ID'"
     fi;
-
     if [[ $AM_AWS_SECRET_ACCESS_KEY == "" ]]; then
         unset AM_AWS_SECRET_ACCESS_KEY
     else
         echo "AM_AWS_SECRET_ACCESS_KEY='***'"
     fi;
-
     if [[ $AM_AWS_DEFAULT_REGION == "" ]]; then
         unset AM_AWS_DEFAULT_REGION
     else

@@ -15,7 +15,6 @@
     + [Always work in a branch](#always-work-in-a-branch)
     + [Keep different changes in separate branches](#keep-different-changes-in-separate-branches)
   * [Pull request (PR) best practices](#pull-request-pr-best-practices)
-  * [Workflow diagram](#workflow-diagram)
   * [Deleting a branch](#deleting-a-branch)
 - [How-to and troubleshooting](#how-to-and-troubleshooting)
   * [Do not mess up your branch](#do-not-mess-up-your-branch)
@@ -39,11 +38,11 @@
   * [Adding a submodule](#adding-a-submodule)
   * [Working in a submodule](#working-in-a-submodule)
   * [Updating a submodule to the latest commit](#updating-a-submodule-to-the-latest-commit)
-  * [To check if supermodule and amp are in sync](#to-check-if-supermodule-and-amp-are-in-sync)
-  * [Roll forward git submodules pointers:](#roll-forward-git-submodules-pointers)
+  * [To check if supermodule and the `amp` submodule are in sync](#to-check-if-supermodule-and-the-amp-submodule-are-in-sync)
+  * [Roll forward pointers to the `amp` submodule:](#roll-forward-pointers-to-the-amp-submodule)
   * [To clean all the repos](#to-clean-all-the-repos)
   * [Pull a branch without checkout](#pull-a-branch-without-checkout)
-  * [To force updating all the submodules](#to-force-updating-all-the-submodules)
+  * [To force update all the submodules](#to-force-update-all-the-submodules)
 
 <!-- tocstop -->
 
@@ -56,7 +55,7 @@
   - You can add a new public key here
     [GH -> Personal settings -> SSH keys](https://github.com/settings/keys)
   - More details about what is public key you can find in
-    [all.ssh.how_to_guide.md](https://github.com/cryptokaizen/cmamp/blob/master/docs/work_tools/all.ssh.how_to_guide.md)
+    [all.ssh.how_to_guide.md](/docs/work_tools/all.ssh.how_to_guide.md)
 
 ### Readings
 
@@ -183,19 +182,17 @@
       > git checkout my_feature
       > git merge origin/master
       ```
-- Repeat Steps 4-7 as needed
 - Request a review of your work by making a pull request (PR)
   - Verify that your work is ready for a review by going through this checklist:
     - The PR is self-contained
     - The latest `master` has been merged into the feature branch
-    - All files in the PR have been linted with `linter.py`
+    - All files in the PR have been linted with our Linter tool
+      (`i lint --files="..."`)
     - All tests pass
   - If your work is ready for review, make a pull request
     - Use the GitHub UI (for now; we may replace with a script). Go to the
       branch on the web interface and push "Compare & pull request"
-    - Make sure that GP and Paul are assigned as reviewers, as well as anyone
-      else who may be interested
-    - Make sure that GP and Paul are assigned as assignees
+    - Assign appropriate people as reviewers (when in doubt, ask your team lead)
   - Follow up on all comments and mark as resolved any requested changes that
     you resolve
 
@@ -224,8 +221,8 @@
   - Changes to master should only happen by pull-request or merge
   - One should avoid working in master except in rare cases, e.g., a simple
     urgent bug-fix needed to unblock people
-  - `master` should be always never broken (all tests are passing and it is
-    deployable)
+  - `master` should never be broken ("green build": all tests are passing and it
+    is deployable)
 
 #### Always work in a branch
 
@@ -268,7 +265,7 @@
 - If you absolutely need changes under review to keep going, create the new
   branch from the old branch rather than from master (less ideal)
   - Try to avoid branching from branches
-    - This creates also dependencies on the order of committing branches
+    - This creates dependencies on the order of committing branches
     - You end up with a spiderweb of branches
 - Frequent small PRs are easier to review
   - You will also experience faster review turnaround
@@ -277,16 +274,16 @@
     exponential)
 - Merging changes frequently means other people can more easily see how the code
   is progressing earlier on in the process, and give you feedback
-  - E.g., "here it is a much simpler way of doing this", or even better "you
-    don't need to write any code, just do &lt;this_and_that>"
-- Merged changes are tested in the Jenkins build
-
-### Workflow diagram
+  - E.g., "here is a much simpler way of doing this", or even better "you don't
+    need to write any code, just do <this_and_that>"
+- Merged changes are tested through GH Actions
 
 ### Deleting a branch
 
-- You can run the script `dev_scripts/git/git_branch.sh` to get all the branches
-  together with some information, e.g., last commit and creator
+- You can run the script
+  [`/dev_scripts_helpers/git/git_branch.sh`](/dev_scripts_helpers/git/git_branch.sh)
+  to get all the branches together with some information, e.g., last commit and
+  creator
 - E.g., let's assume we believe that `PTask354_INFRA_Populate_S3_bucket` is
   obsolete and we want to delete it:
   - Get `master` up to date
@@ -344,7 +341,7 @@
 - A way to check that the branch is sane is the following:
   - Make sure that you don't have extra commits in your branch:
     - The difference between your branch and master
-      `bash > git fetch > git checkout &lt;BRANCH> > git log origin/master..HEAD`
+      `bash > git fetch > git checkout <BRANCH> > git log origin/master..HEAD`
       shows only commits made by you or, if you are not the only one working on
       the branch, only commits belonging to the branch with the same `PTaskXYZ`
     - E.g., if George is working on `PTask275` and sees that something funny is
@@ -354,11 +351,11 @@
       cross-validation
       33a46b2 George, 2 weeks ago : PTask275 Move class attributes docstrings to init, change logging
       ```
-  - Make sure the files modified in your branch are only the file you expect to
+  - Make sure the files modified in your branch are only the files you expect to
     be modified
     ```
     > git fetch
-    > git checkout &lt;BRANCH>
+    > git checkout <BRANCH>
     > git diff --name-only master..HEAD
     ```
   - If you see that there is a problem, don't push upstream (because the branch
@@ -377,7 +374,7 @@
   > git show --name-only 39a9e335298a3fe604896fa19296d20829801cf2
 
   commit 39a9e335298a3fe604896fa19296d20829801cf2
-  Author: Julia &lt;julia@...>
+  Author: Julia <julia@...>
   Date:   Fri Sep 27 11:43:41 2019
 
   PTask274 lint
@@ -394,7 +391,9 @@
   ```
   git diff --name-only --diff-filter=U
   ```
-- This is what the script `git_conflict_files.sh` does
+- This is what the script
+  [`/dev_scripts_helpers/git/git_conflict_files.sh`](/dev_scripts_helpers/git/git_conflict_files.sh)
+  does
 
 #### Accepting "theirs"
 ```
@@ -483,8 +482,8 @@
   a637594 saggese PTask274: Add tag for review ( 3 days ago) Thu Sep 26 17:13:33 2019
   ```
 - To see the actual changes in a branch you can't do (Bad) \
-  `> git diff master..HEAD` since `git diff` compares two commits and not a range
-  of commits like `git log` (yes, Git has a horrible API)
+  `> git diff master..HEAD` since `git diff` compares two commits and not a
+  range of commits like `git log` (yes, Git has a horrible API)
 - What you need to do is to get the first commit in the branch and the last from
   `git log` and compare them:
   ```
@@ -498,13 +497,13 @@
   ```
   > gll ..master
   de51a7c saggese Improve script to help diffing trees in case of difficult merges. Add notes from reviews ( 5 hours ago) Sat Oct 5 11:24:11 2019 (origin/master, origin/HEAD, master)
-  8acd60c saggese Add a basic end-to-end unit test for the linter ( 19 hours ago) Fri Oct 4 21:28:09 2019 …
+  8acd60c saggese Add a basic end-to-end unit test for the linter ( 19 hours ago) Fri Oct 4 21:28:09 2019 ...
   ```
 - You want to `rebase` your feature branch onto `master`
 
 #### Comparing the difference of a directory among branches
 
-- This is useful if we want to focus on changes on a single dir
+- This is useful if we want to focus on changes in a single dir
   ```
   > git ll master..PTask274 vendors/cme
   39a9e33 Julia PTask274 lint ( 2 days ago) Fri Sep 27 11:43:41 2019
@@ -533,7 +532,6 @@
 
 - If your branch lives long, you want to apply changes made on master to show on
   your branch
-- Merge flow
 - Assume your branch is clean
   - E.g., everything is committed, or stashed
 - Pull changes from `master` on the remote repo
@@ -619,22 +617,23 @@
 - After the submodule PR is merged:
   - Checkout the submodule in the master branch and do `git pull`
   - In the main repo, create a branch like `PTask1234_update_submodule`
-  - From the new branch do `git add &lt;submodule_name>`, e.g., `git add amp`
+  - From the new branch do `git add <submodule_name>`, e.g.,
+    `git add helpers_root`
   - Commit changes, push
   - Create a PR
 
-### To check if supermodule and amp are in sync
+### To check if supermodule and the `amp` submodule are in sync
 
 - Run the script:
   ```
-  > dev_scripts/git/git_submodules_are_updated.sh
+  > dev_scripts_helpers/git/git_submodules_are_updated.sh
   ```
 
-### Roll forward git submodules pointers:
+### Roll forward pointers to the `amp` submodule:
 
 - Run the script:
   ```
-  > dev_scripts/git/git_submodules_roll_fwd.sh
+  > dev_scripts_helpers/git/git_submodules_roll_fwd.sh
   ```
 
 ### To clean all the repos
@@ -650,9 +649,9 @@
   > git fetch origin master:master
   ```
 
-### To force updating all the submodules
+### To force update all the submodules
 
-- Run the script `> dev_scripts/git/git_submodules_pull.sh` or
+- Run the script `> dev_scripts_helpers/git/git_submodules_pull.sh` or
   ```
   > git submodule update --init --recursive`
   > git submodule foreach git pull --autostash
