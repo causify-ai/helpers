@@ -25,7 +25,7 @@ This contains the absolute minimal amount of info to start developing
 
 - [Quick start for developing](/docs/onboarding/kaizenflow.prepare_for_development.how_to_guide.md)
 
-- [Set up the development environment](/docs/onboarding/all.set_up_development_on_laptop.how_to_guide.md)
+- [Set up the development environment](/docs/onboarding/intern.set_up_development_on_laptop.how_to_guide.md)
 
 - [How to organize your work](/docs/work_organization/kaizenflow.organize_your_work.how_to_guide.md)
 
