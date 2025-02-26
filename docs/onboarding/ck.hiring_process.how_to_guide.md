@@ -1,4 +1,4 @@
-# Untitled
+# Hiring process
 
 <!-- toc -->
 
@@ -177,7 +177,7 @@ We get candidates in several ways
 ### Mentors
 
 - Hiring Meisters (e.g., Sonaal and Samarth) supervise the hiring process
-  - [docs/onboarding/kaizenflow.hiring_meister.how_to_guide.md](https://github.com/kaizen-ai/kaizenflow/blob/master/docs/onboarding/kaizenflow.hiring_meister.how_to_guide.md)
+  - [docs/onboarding/ck.hiring_process.how_to_guide.md](https://github.com/kaizen-ai/kaizenflow/blob/master/docs/onboarding/ck.hiring_process.how_to_guide.md)
 
 - Coding mentors are:
   - Hiring Meisters
@@ -198,7 +198,7 @@ We get candidates in several ways
     - _Goal_: set up candidates to work on their laptop on KaizenAI
     - _Duration_: few days
     - The checklist for onboarding on KaizenAI is
-      [here](/docs/onboarding/kaizenflow.hiring_meister.how_to_guide.md#on-boarding-bug-creation)
+      [here](/docs/onboarding/ck.hiring_process.how_to_guide.md#on-boarding-bug-creation)
     - Once the checklist is complete, candidates move to the next step
   - **Working on KaizenAI**
     - _Goal_: understand who can/should join the team
