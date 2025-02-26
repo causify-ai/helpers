@@ -1302,7 +1302,7 @@ class TestCase(unittest.TestCase):
     ) -> str:
         import helpers.henv as henv
 
-        s3_bucket = hrecouti.get_repo_config.get_unit_test_bucket_path()
+        s3_bucket = hrecouti.get_repo_config().get_unit_test_bucket_path()
         hdbg.dassert_isinstance(s3_bucket, str)
         # Make the path unique for the test.
         test_path = self.get_input_dir(
