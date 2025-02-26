@@ -29,6 +29,7 @@ import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.htimer as htimer
 import helpers.hwall_clock_time as hwacltim
+import helpers.repo_config_utils as hrecouti
 
 # We use strings as type hints (e.g., 'pd.DataFrame') since we are not sure
 # we have the corresponding libraries installed.
@@ -1301,7 +1302,7 @@ class TestCase(unittest.TestCase):
     ) -> str:
         import helpers.henv as henv
 
-        s3_bucket = henv.execute_repo_config_code("get_unit_test_bucket_path()")
+        s3_bucket = hrecouti.get_repo_config.get_unit_test_bucket_path()
         hdbg.dassert_isinstance(s3_bucket, str)
         # Make the path unique for the test.
         test_path = self.get_input_dir(

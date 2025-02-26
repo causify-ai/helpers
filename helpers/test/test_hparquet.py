@@ -17,6 +17,7 @@ import helpers.hparquet as hparque
 import helpers.hprint as hprint
 import helpers.hs3 as hs3
 import helpers.hunit_test as hunitest
+import helpers.hserver as hserver
 
 _LOG = logging.getLogger(__name__)
 
@@ -1002,7 +1003,7 @@ class TestToPartitionedDataset(hunitest.TestCase):
 @pytest.mark.requires_ck_infra
 @pytest.mark.requires_aws
 @pytest.mark.skipif(
-    not henv.execute_repo_config_code("is_CK_S3_available()"),
+    not hserver.is_CK_S3_available(),
     reason="Run only if CK S3 is available",
 )
 class TestListAndMergePqFiles(hmoto.S3Mock_TestCase):

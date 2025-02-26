@@ -27,6 +27,8 @@ if _HAS_MOTO:
     import helpers.hgit as hgit
     import helpers.hsecrets as hsecret
     import helpers.hunit_test as hunitest
+    import helpers.hserver as hserver
+    import helpers.repo_config_utils as hrecouti
 
     _LOG = logging.getLogger(__name__)
 
@@ -36,7 +38,7 @@ if _HAS_MOTO:
     @pytest.mark.requires_ck_infra
     @pytest.mark.requires_aws
     @pytest.mark.skipif(
-        not henv.execute_repo_config_code("is_CK_S3_available()"),
+        not hserver.is_CK_S3_available(),
         reason="Run only if CK S3 is available",
     )
     class TestCreateClient(hunitest.TestCase):
@@ -50,7 +52,7 @@ if _HAS_MOTO:
     @pytest.mark.requires_ck_infra
     @pytest.mark.requires_aws
     @pytest.mark.skipif(
-        not henv.execute_repo_config_code("is_CK_S3_available()"),
+        not hserver.is_CK_S3_available(),
         reason="Run only if CK S3 is available",
     )
     class TestGetSecret(hunitest.TestCase):
@@ -123,7 +125,7 @@ if _HAS_MOTO:
     @pytest.mark.requires_ck_infra
     @pytest.mark.requires_aws
     @pytest.mark.skipif(
-        not henv.execute_repo_config_code("is_CK_S3_available()"),
+        not hserver.is_CK_S3_available(),
         reason="Run only if CK S3 is available",
     )
     class TestStoreSecret(hunitest.TestCase):
@@ -147,7 +149,7 @@ if _HAS_MOTO:
     @pytest.mark.requires_ck_infra
     @pytest.mark.requires_aws
     @pytest.mark.skipif(
-        not henv.execute_repo_config_code("is_CK_S3_available()"),
+        not hserver.is_CK_S3_available(),
         reason="Run only if CK S3 is available",
     )
     @pytest.mark.skip(reason="TODO(Juraj): Temporarily disabled in #Cmtask10068.")
@@ -176,7 +178,7 @@ if _HAS_MOTO:
     @pytest.mark.requires_ck_infra
     @pytest.mark.requires_aws
     @pytest.mark.skipif(
-        not henv.execute_repo_config_code("is_CK_S3_available()"),
+        not hserver.is_CK_S3_available(), 
         reason="Run only if CK S3 is available",
     )
     @pytest.mark.skip(reason="TODO(Juraj): Temporarily disabled in #Cmtask10068.")

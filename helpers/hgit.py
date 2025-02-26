@@ -20,6 +20,7 @@ import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
+import helpers.repo_config_utils as hrecouti
 
 # This module can depend only on:
 # - Python standard modules
@@ -171,6 +172,7 @@ def get_client_root(super_module: bool) -> str:
 
 
 # TODO(gp): Replace `get_client_root` with this.
+# TODO(gp): -> get_client_root2() or get_outermost_supermodule_root()
 def find_git_root(path: str = ".") -> str:
     """
     Find recursively the dir of the outermost super module.
@@ -292,9 +294,9 @@ def get_project_dirname(only_index: bool = False) -> str:
     Return the name of the project name (e.g., `/Users/saggese/src/amp1` ->
     `amp1`).
 
-    NOTE: this works properly only outside Docker, e.g., when calling from `invoke`.
-    Inside Docker the result might be incorrect since the Git client is mapped on
-    `/app`.
+    NOTE: this works properly only outside Docker, e.g., when calling from
+    `invoke`. Inside Docker the result might be incorrect since the Git client
+    is mapped on `/app`.
 
     :param only_index: return only the index of the client if possible, e.g.,
         E.g., for `/Users/saggese/src/amp1` it returns the string `1`
@@ -354,8 +356,8 @@ def is_helpers() -> bool:
     """
     Return whether we are inside `helpers` repo.
 
-    Either as super module, or a sub module depending on a current
-    working directory.
+    Either as super module, or a sub module depending on a current working
+    directory.
     """
     return _is_repo("helpers")
 
@@ -712,17 +714,9 @@ def _get_repo_short_to_full_name(include_host_name: bool) -> Dict[str, str]:
         pprint.pformat(repo_map),
     )
     # Read the info from the current repo.
-    code = henv._get_repo_config_code()
-    # TODO(gp): make the linter happy creating this symbol that comes from the
-    # `exec()`.
-    exec(code, globals())  # pylint: disable=exec-used
-    current_repo_map = (
-        get_repo_map()  # type: ignore[name-defined]  # noqa: F821  # pylint: disable=undefined-variable
-    )
+    current_repo_map = hrecouti.get_repo_config().get_repo_map()
     if include_host_name:
-        host_name = (
-            get_host_name()  # type: ignore[name-defined]  # noqa: F821  # pylint: disable=undefined-variable
-        )
+        host_name = hrecouti.get_repo_config().get_host_name()
         current_repo_map = _decorate_with_host_name(current_repo_map, host_name)
     _LOG.debug(
         "include_host_name=%s, current_repo_map=\n%s",
@@ -732,7 +726,7 @@ def _get_repo_short_to_full_name(include_host_name: bool) -> Dict[str, str]:
     # Update the map.
     # hdbg.dassert_not_intersection(repo_map.keys(), current_repo_map.keys())
     repo_map.update(
-        get_repo_map()  # type: ignore[name-defined]  # noqa: F821  # pylint: disable=undefined-variable
+        hrecouti.get_repo_config().get_repo_map()
     )
     hdbg.dassert_no_duplicates(repo_map.values())
     _LOG.debug(
@@ -803,6 +797,7 @@ def get_all_repo_names(
     return sorted(list(repo_map.keys()))
 
 
+# TODO(gp): This should be injected from repo_config.py
 def get_task_prefix_from_repo_short_name(short_name: str) -> str:
     """
     Return the task prefix for a repo (e.g., "amp" -> "AmpTask").
@@ -888,21 +883,18 @@ def get_path_from_git_root(
     return ret
 
 
+# TODO(gp): Just do a find.
 @functools.lru_cache()
 def get_amp_abs_path() -> str:
     """
     Return the absolute path of `amp` dir.
     """
     repo_sym_name = get_repo_full_name_from_client(super_module=False)
-    _LOG.debug("repo_sym_name=%s", repo_sym_name)
+    _LOG.info("repo_sym_name=%s", repo_sym_name)
     #
     repo_sym_names = ["alphamatic/amp"]
-    code = "get_extra_amp_repo_sym_name()"
-    try:
-        repo_sym_names.append(henv.execute_repo_config_code(code))
-    except NameError:
-        _LOG.debug("Can't execute the code '%s'", code)
-    _LOG.debug("repo_sym_names=%s", repo_sym_names)
+    repo_sym_names.append(hrecouti.get_repo_config().get_extra_amp_repo_sym_name())
+    _LOG.info("repo_sym_names=%s", repo_sym_names)
     #
     if repo_sym_name in repo_sym_names:
         # If we are in the amp repo, then the git client root is the amp
@@ -935,6 +927,7 @@ def get_repo_dirs() -> List[str]:
     return dir_names
 
 
+# TODO(gp): It should go in hdocker?
 def find_docker_file(
     file_name: str,
     *,
@@ -947,15 +940,15 @@ def find_docker_file(
     Convert a file or dir that was generated inside Docker to a file in the
     current Git client.
 
-    This operation is best effort since it might not be able to find the
+    This operation is best-effort since it might not be able to find the
     corresponding file in the current repo.
 
     E.g.,
-    - A file like '/app/amp/core/dataflow_model/utils.py', in a Docker container with
-      Git root in '/app' becomes 'amp/core/dataflow_model/utils.py'
-    - For a file like '/app/amp/core/dataflow_model/utils.py' outside Docker, we look
-      for the file 'dataflow_model/utils.py' in the current client and then normalize
-      with respect to the
+    - A file like '/app/amp/core/dataflow_model/utils.py', in a Docker container
+      with Git root in '/app' becomes 'amp/core/dataflow_model/utils.py'
+    - For a file like '/app/amp/core/dataflow_model/utils.py' outside Docker, we
+        look for the file 'dataflow_model/utils.py' in the current client and
+        then normalize with respect to the
 
     :param dir_depth: same meaning as in `find_file_with_dir()`
     :param mode: same as `system_interaction.select_result_file_from_list()`

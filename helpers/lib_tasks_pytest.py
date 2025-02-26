@@ -27,6 +27,7 @@ import helpers.hsystem as hsystem
 import helpers.htraceback as htraceb
 import helpers.lib_tasks_docker as hlitadoc
 import helpers.lib_tasks_utils as hlitauti
+import helpers.repo_config_utils as hrecouti
 
 _LOG = logging.getLogger(__name__)
 
@@ -173,7 +174,7 @@ def _build_run_command_line(
     pytest_opts_tmp.append(
         f'--reruns {num_reruns} --only-rerun "Failed: Timeout"'
     )
-    if henv.execute_repo_config_code("skip_submodules_test()"):
+    if hserver.skip_submodules_test(): 
         # For some repos submodules should be skipped
         # regardless of the passed value.
         skip_submodules = True
@@ -724,7 +725,7 @@ def _publish_html_coverage_report_on_s3(aws_profile: str) -> None:
     s3_html_coverage_dir = f"{user}_{branch_name}"
     # Get the full path to the dir.
     s3_html_base_dir = "html_coverage"
-    s3_html_bucket_path = henv.execute_repo_config_code("get_html_bucket_path()")
+    s3_html_bucket_path = hrecouti.get_repo_config().get_html_bucket_path()
     s3_html_coverage_path = os.path.join(
         s3_html_bucket_path, s3_html_base_dir, s3_html_coverage_dir
     )
@@ -833,7 +834,7 @@ def run_coverage_report(  # type: ignore
     if target_dir == ".":
         # Include all dirs.
         include_in_report = "*"
-        if henv.execute_repo_config_code("skip_submodules_test()"):
+        if hserver.skip_submodules_test():
             # Exclude submodules.
             submodule_paths = hgit.get_submodule_paths()
             exclude_from_report = ",".join(

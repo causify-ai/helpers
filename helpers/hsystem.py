@@ -23,6 +23,7 @@ import helpers.hdbg as hdbg
 import helpers.hintrospection as hintros
 import helpers.hlogging as hloggin
 import helpers.hprint as hprint
+import helpers.hio as hio
 
 # This module can depend only on:
 # - Python standard modules

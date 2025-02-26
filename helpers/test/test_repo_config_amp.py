@@ -26,9 +26,8 @@ class TestRepoConfig_Amp(hunitest.TestCase):
         Show that when importing repo_config, one doesn't get necessarily the
         outermost repo_config (e.g., for lime one gets amp.repo_config).
         """
-        import repo_config
 
-        actual = repo_config.get_name()
+        actual = hrecouti.get_repo_config().get_name()
         _LOG.info(
             "actual=%s expected_repo_name=%s", actual, self.expected_repo_name
         )
@@ -41,7 +40,7 @@ class TestRepoConfig_Amp(hunitest.TestCase):
         """
         If //amp is a supermodule, then repo_config should report //amp.
         """
-        actual = henv.execute_repo_config_code("get_name()")
+        actual = hrecouti.get_repo_config().get_name()
         self.assertEqual(actual, self.expected_repo_name)
 
     @pytest.mark.skipif(
@@ -52,11 +51,11 @@ class TestRepoConfig_Amp(hunitest.TestCase):
         If //amp is a supermodule, then repo_config should report something
         different than //amp.
         """
-        actual = henv.execute_repo_config_code("get_name()")
+        actual = hrecouti.get_repo_config().get_name()
         self.assertNotEqual(actual, self.expected_repo_name)
 
     def test_config_func_to_str(self) -> None:
-        _LOG.info(henv.execute_repo_config_code("config_func_to_str()"))
+        _LOG.info(hserver.config_func_to_str())
 
     def test_is_dev4(self) -> None:
         """
@@ -69,7 +68,7 @@ class TestRepoConfig_Amp(hunitest.TestCase):
         When running Amp on dev_ck, the CK bucket should be available.
         """
         if hserver.is_dev_ck():
-            act = henv.execute_repo_config_code("is_CK_S3_available()")
+            act = hserver.is_CK_S3_available()
             exp = True
             self.assertEqual(act, exp)
 
@@ -174,7 +173,7 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
         )
 
     @pytest.mark.skipif(
-        not henv.execute_repo_config_code("get_name()") == "//amp",
+        not hrecouti.get_repo_config().get_name() == "//amp",
         reason="Run only in //amp",
     )
     def test_amp_ci(self) -> None:
@@ -220,7 +219,7 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
         hunteuti.check_env_to_str(self, exp, skip_secrets_vars=skip_secrets_vars)
 
     @pytest.mark.skipif(
-        not henv.execute_repo_config_code("get_name()") == "//cmamp",
+        not hrecouti.get_repo_config().get_name() == "//cmamp",
         reason="Run only in //cmamp",
     )
     def test_cmamp_ci(self) -> None:
