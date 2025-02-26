@@ -643,7 +643,7 @@ def read_google_file(
 def write_to_google_sheet(
     df: pd.DataFrame,
     url: str,
-    tab_name: Optional[str] = "new data",
+    tab_name: Optional[str] = None,
     *,
     credentials: goasea.Credentials,
 ) -> None:
@@ -653,12 +653,14 @@ def write_to_google_sheet(
     :param df: Data to be written.
     :param url: URL of the Google Sheet.
     :param tab_name: Name of the tab where the data will be written
-        (default: "new data").
+        (default: "new_data").
     :param credentials: Google credentials object.
     """
     try:
         client = gspread.authorize(credentials)
         spreadsheet = client.open_by_url(url)
+        if tab_name is None:
+            tab_name = "new_data"
         try:
             worksheet = spreadsheet.worksheet(tab_name)
         except gspread.exceptions.WorksheetNotFound:
