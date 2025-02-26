@@ -233,6 +233,16 @@ class RepoConfig:
         value = self._data["s3_bucket_info"]["html_bucket_name"]
         return value
 
+    def get_html_bucket_path_v2(self) -> str:
+        """
+        Return the path to the bucket with published HTMLs.
+
+        "v2" version allows for the published HTMLs to be browsed.
+        """
+        html_bucket = self.get_html_bucket_path()
+        html_bucket_path = os.path.join(html_bucket, "v2")
+        return html_bucket_path
+
     def get_html_ip(self) -> str:
         """
         Return the IP of the bucket where published HTMLs are stored.
@@ -264,6 +274,7 @@ class RepoConfig:
         ret.append(f"get_docker_base_image_name='{self.get_docker_base_image_name()}'")
         ret.append(f"get_unit_test_bucket_path='{self.get_unit_test_bucket_path()}'")
         ret.append(f"get_html_bucket_path='{self.get_html_bucket_path()}'")
+        ret.append(f"get_html_bucket_path_v2='{self.get_html_bucket_path_v2()}'")
         ret.append(f"get_html_ip='{self.get_html_ip()}'")
         ret.append(f"get_html_dir_to_url_mapping='{self.get_html_dir_to_url_mapping()}'")
         return "# repo_config.config\n" + indent("\n".join(ret))
