@@ -247,8 +247,18 @@ class RepoConfig:
         """
         Return the IP of the bucket where published HTMLs are stored.
         """
-        value = self._data["s3_bucket_info"]["html_bucket_name"]
+        value = self._data["s3_bucket_info"]["html_ip"]
         return value
+    
+    def get_html_ip_v2(self) -> str:
+        """
+        Return the IP of the bucket with published HTMLs.
+
+        "v2" version allows for the published HTMLs to be browsed.
+        """
+        ip = self.get_html_ip()
+        ip_v2 = f"{ip}/v2"
+        return ip_v2
 
     def get_html_dir_to_url_mapping(self) -> Dict[str, str]:
         """
@@ -257,7 +267,10 @@ class RepoConfig:
         This is used when we have web servers serving files from specific
         directories.
         """
-        dir_to_url = {self.get_html_bucket_path(): self.get_html_ip()}
+        dir_to_url = {
+            self.get_html_bucket_path(): self.get_html_ip(),
+            self.get_html_bucket_path_v2(): self.get_html_ip_v2(),
+        }
         return dir_to_url
 
     def config_func_to_str(self) -> str:
@@ -265,18 +278,10 @@ class RepoConfig:
         return the string representation of the config function.
         """
         ret: List[str] = []
-        ret.append(f"get_name='{self.get_name()}'")
-        ret.append(f"get_github_repo_account='{self.get_github_repo_account()}'")
-        ret.append(f"get_repo_map='{self.get_repo_map()}'")
-        ret.append(f"get_extra_amp_repo_sym_name='{self.get_extra_amp_repo_sym_name()}'")
         ret.append(f"get_host_name='{self.get_host_name()}'")
+        ret.append(f"get_html_dir_to_url_mapping='{self.get_html_dir_to_url_mapping()}'")
         ret.append(f"get_invalid_words='{self.get_invalid_words()}'")
         ret.append(f"get_docker_base_image_name='{self.get_docker_base_image_name()}'")
-        ret.append(f"get_unit_test_bucket_path='{self.get_unit_test_bucket_path()}'")
-        ret.append(f"get_html_bucket_path='{self.get_html_bucket_path()}'")
-        ret.append(f"get_html_bucket_path_v2='{self.get_html_bucket_path_v2()}'")
-        ret.append(f"get_html_ip='{self.get_html_ip()}'")
-        ret.append(f"get_html_dir_to_url_mapping='{self.get_html_dir_to_url_mapping()}'")
         return "# repo_config.config\n" + indent("\n".join(ret))
 
     @staticmethod

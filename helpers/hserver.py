@@ -582,9 +582,21 @@ def config_func_to_str() -> str:
     ret: List[str] = []
     #
     function_names = [
+        "get_shared_data_dirs()",
+        "enable_privileged_mode()",
+        "get_docker_shared_group()",
+        "get_docker_user()",
         "is_AM_S3_available()",
-        "is_dev_ck()",
+        "has_dind_support()",
+        "has_docker_sudo()",
+        "is_CK_S3_available()",
+        "run_docker_as_root()",
+        "skip_submodules_test()",
+        "use_docker_db_container_name_to_connect()",
+        "use_docker_network_mode_host()", 
+        "use_docker_sibling_containers()",
         "is_dev4()",
+        "is_dev_ck()",
         "is_inside_ci()",
         "is_inside_docker()",
         "is_mac(version='Catalina')",

@@ -22,8 +22,8 @@ class Test_repo_config1(hunitest.TestCase):
           docker_image_name: helpers
 
         s3_bucket_info:
-          unit_test_bucket_name: s3//cryptokaizen-unit-test
-          html_bucket_name: s3//cryptokaizen-html
+          unit_test_bucket_name: s3://cryptokaizen-unit-test
+          html_bucket_name: s3://cryptokaizen-html
           html_ip: http://172.30.2.44
         """
         yaml_txt = hprint.dedent(yaml_txt)
