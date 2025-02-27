@@ -27,6 +27,7 @@ import helpers.hio as hio
 import helpers.hlist as hlist
 import helpers.hparser as hparser
 import helpers.hprint as hprint
+import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import linters.action as liaction
 import linters.add_python_init_files as lapyinfi
@@ -355,9 +356,10 @@ def _lint(
         # Annotate each lint with a [tag] specifying the action name.
         cur_action_lints = [lnt + f" [{action_name}]" for lnt in cur_action_lints]
         lints.extend(cur_action_lints)
-    # Stage the linted file for commit.
-    cmd = f"git add {file_path}"
-    hsystem.system(cmd)
+    if not hserver.is_inside_ci():
+        # Stage the linted file for commit if Linter was run manually (not within CI).
+        cmd = f"git add {file_path}"
+        hsystem.system(cmd)
     return lints
 
 
