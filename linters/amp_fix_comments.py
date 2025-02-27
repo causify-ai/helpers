@@ -29,6 +29,11 @@ import linters.utils as liutils
 _LOG = logging.getLogger(__name__)
 
 
+# #############################################################################
+# _LinesWithComment
+# #############################################################################
+
+
 @dataclasses.dataclass
 class _LinesWithComment:
     start_line: int
@@ -216,6 +221,11 @@ def _fix_comment_style(lines: List[str]) -> List[str]:
     return _replace_comments_in_lines(lines, comments)
 
 
+# #############################################################################
+# _FixComment
+# #############################################################################
+
+
 class _FixComment(liaction.Action):
     """
     Reflow, capitalize and add punctuation to comments.
@@ -228,7 +238,7 @@ class _FixComment(liaction.Action):
         _ = pedantic
         if not liutils.is_py_file(file_name):
             _LOG.debug("Skipping file_name='%s'", file_name)
-
+            return []
         lines = hio.from_file(file_name).split("\n")
         updated_lines = _reflow_comments_in_lines(lines)
         updated_lines = _fix_comment_style(updated_lines)
