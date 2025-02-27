@@ -2,7 +2,7 @@
 
 - [Set up development environment locally](#set-up-development-environment-locally)
   * [Clone the code](#clone-the-code)
-  * [Building the thin environment](#building-the-thin-environment)
+  * [Build and activate the thin environment](#build-and-activate-the-thin-environment)
   * [Install and test Docker](#install-and-test-docker)
     + [Supported OS](#supported-os)
     + [Install Docker](#install-docker)
@@ -10,10 +10,15 @@
     + [Docker installation troubleshooting](#docker-installation-troubleshooting)
   * [Tmux](#tmux)
   * [Some useful workflows](#some-useful-workflows)
+  * [Hack: use a local container if needed](#hack-use-a-local-container-if-needed)
 
 <!-- tocstop -->
 
 # Set up development environment locally
+
+- One only develops locally on their laptop during the intern stage. All
+  permanent members of the team should develop on our server. Interns will get
+  access to the server once they "graduate" to a permanent position.
 
 ## Clone the code
 
@@ -39,7 +44,9 @@
   - `REPO_NAME` is a name of the repository
   - IDX is an integer
 
-## Building the thin environment
+## Build and activate the thin environment
+
+- NB! This whole section can be skipped if you use [tmux](#tmux)
 
 - Create the "thin environment" which contains the minimum set of dependencies
   needed for running our Dev Docker container
@@ -199,6 +206,11 @@
 
 ## Tmux
 
+- Using [tmux](https://en.wikipedia.org/wiki/Tmux) is optional but recommended
+
+- The [thin environment](#build-and-activate-the-thin-environment) is activated
+  automatically within a tmux session
+
 - Create a soft link. The command below will create a file `~/go_{repo_name}.py`
 
   ```bash
@@ -294,3 +306,30 @@
   - Add the port to the link like so: `http://localhost:10091/` or
     `http://127.0.0.1:10091`
   - Copy-paste the link into a web-browser and update the page
+
+## Hack: use a local container if needed
+
+- If [the commands above](#some-useful-workflows) do not work for you, then, as
+  a temporary workaround, you can run the commands in a local Docker container
+
+- Build a local container (the version number is not that important but make
+  sure it follows the format of `NUM.NUM.NUM`)
+
+```bash
+> i docker_build_local_image --version 1.1.0
+```
+
+- Run all the commands with the flags
+  `--stage local --version <YOUR_VERSION_NUMBER>`, e.g.:
+
+```bash
+# Starting bash in a Docker container.
+> i docker_bash --stage local --version 1.1.0
+# Starting a Jupyter server.
+> i docker_jupyter --stage local --version 1.1.0
+# Running Linter.
+> i lint --stage local --version 1.1.0 --files="file1.py file2.py"
+```
+
+- The hack is only there to unblock you and shouldn't be relied on forever. File
+  an issue to figure out why the commands don't work for you as-is
