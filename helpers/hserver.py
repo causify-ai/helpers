@@ -263,37 +263,56 @@ else:
 # #############################################################################
 
 
-# TODO(gp): -> is_docker_in_docker_supported
+# TODO(gp): -> has_docker_privileged_mode
 @functools.lru_cache()
 def has_dind_support() -> bool:
     """
-    Return whether Docker supports privileged mode to run containers.
+    Return whether the current container supports privileged mode.
 
-    This is need to use Docker-in-Docker (aka "dind").
+    This is need to use Docker-in-Docker.
     """
-    # Test running a Docker container in privileged mode.
-    try:
-        subprocess.run(
-            "docker run --rm --privileged -it hello-world".split(),
-            check=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-    except subprocess.CalledProcessError as e:
-        _LOG.debug("Running privileged containers failed: %s", str(e))
+    _print("is_inside_docker()=%s" % is_inside_docker())
+    if not is_inside_docker():
+        # Outside Docker there is no privileged mode.
+        _print("-> ret = False")
         return False
-    # Test running a Docker dind container.
-    try:
-        subprocess.run(
-            "docker run --privileged -it docker:dind docker --version".split(),
-            check=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-    except subprocess.CalledProcessError as e:
-        _LOG.debug("Running docker:dind failed: %s", str(e))
+    # TODO(gp): Not sure this is really needed since we do this check
+    #  after enable_privileged_mode controls if we have dind or not.
+    if _is_mac_version_with_sibling_containers():
         return False
-    return True
+    # TODO(gp): This part is not multi-process friendly. When multiple
+    #  processes try to run this code they interfere. A solution is to run `ip
+    #  link` in the entrypoint and create a `has_docker_privileged_mode` file
+    #  which contains the value.
+    #  We rely on the approach from https://stackoverflow.com/questions/32144575
+    #  to check if there is support for privileged mode.
+    #  Sometimes there is some state left, so we need to clean it up.
+    # TODO(Juraj): this is slow and inefficient, but works for now.
+    cmd = "sudo docker run hello-world"
+    rc = os.system(cmd)
+    _print("cmd=%s -> rc=%s" % (cmd, rc))
+    has_dind = rc == 0
+    # dind is supported on both Mac and GH Actions.
+    # TODO(Juraj): HelpersTask16.
+    # if check_repo:
+    #    if hserver.is_inside_ci():
+    #        # Docker-in-docker is needed for GH actions. For all other builds is optional.
+    #        assert has_dind, (
+    #            f"Expected privileged mode: has_dind={has_dind}\n"
+    #            + hserver.setup_to_str()
+    #        )
+    #    else:
+    #        only_warning = True
+    #        _raise_invalid_host(only_warning)
+    #        return False
+    # else:
+    #    csfy_repo_config = os.environ.get("CSFY_REPO_CONFIG_CHECK", "True")
+    #    print(
+    #        _WARNING
+    #        + ": Skip checking since CSFY_REPO_CONFIG_CHECK="
+    #        + f"'{csfy_repo_config}'"
+    #    )
+    return has_dind
 
 def _raise_invalid_host(only_warning: bool) -> None:
     host_os_name = os.uname()[0]
