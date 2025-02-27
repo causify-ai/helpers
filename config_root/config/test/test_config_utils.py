@@ -11,6 +11,7 @@ import helpers.hio as hio
 import helpers.hpandas as hpandas
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
+import helpers.hserver as hserver
 
 
 def _get_test_config1() -> cconfig.Config:
@@ -571,8 +572,8 @@ class Test_replace_shared_root_path(hunitest.TestCase):
             "/data/shared2": "/shared_folder2",
         }
         with umock.patch.object(
-            cconfig.hdocker.henv,
-            "execute_repo_config_code",
+            hserver,
+            "get_shared_data_dirs",
             return_value=mock_mapping,
         ):
             # Initial Config.

@@ -50,6 +50,7 @@ import helpers.hprint as hprint
 import helpers.hs3 as hs3
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
+import helpers.repo_config_utils as hrecouti 
 
 _LOG = logging.getLogger(__name__)
 
@@ -313,7 +314,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         _LOG.debug("target_dir='%s'", target_dir)
         aws_profile = args.aws_profile
         _LOG.debug("aws_profile='%s'", aws_profile)
-        html_bucket_path = henv.execute_repo_config_code("get_html_bucket_path()")
+        html_bucket_path = hrecouti.get_repo_config().get_html_bucket_path()
         if target_dir is None:
             # Set defait tatget dir for the notebook publishing.
             target_dir = os.path.join(html_bucket_path, "notebooks")
@@ -342,9 +343,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             print(hprint.dedent(cmd))
             #
             if target_dir.startswith(html_bucket_path):
-                dir_to_url = henv.execute_repo_config_code(
-                    "get_html_dir_to_url_mapping()"
-                )
+                dir_to_url = hrecouti.get_repo_config().get_html_dir_to_url_mapping()
                 url_bucket_path = dir_to_url[html_bucket_path]
                 url = s3_file_name.replace(html_bucket_path, url_bucket_path)
                 cmd = f"""

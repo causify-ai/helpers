@@ -23,6 +23,7 @@ import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.lib_tasks_utils as hlitauti
+import helpers.repo_config_utils as hrecouti
 
 _LOG = logging.getLogger(__name__)
 
@@ -178,7 +179,7 @@ def _print_problems(dir_name: str = ".") -> None:
     """
     _, _, file_to_user_group = _compute_stats_by_user_and_group(dir_name)
     user = hsystem.get_user_name()
-    docker_user = henv.execute_repo_config_code("get_docker_user()")
+    docker_user = hserver.get_docker_user()
     # user_group = f"{user}_g"
     # shared_group = henv.execute_repo_config_code("get_docker_shared_group()")
     files_with_problems = []

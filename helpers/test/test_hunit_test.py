@@ -20,6 +20,7 @@ import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
+import helpers.repo_config_utils as hrecouti
 
 _LOG = logging.getLogger(__name__)
 
@@ -1035,7 +1036,7 @@ class Test_purify_from_env_vars(hunitest.TestCase):
         self.assert_equal(act, exp, fuzzy_match=True)
 
     @pytest.mark.skipif(
-        not henv.execute_repo_config_code("get_name()") == "//cmamp",
+        not hrecouti.get_repo_config().get_name() == "//cmamp",
         reason="Run only in //cmamp",
     )
     def test1(self) -> None:
