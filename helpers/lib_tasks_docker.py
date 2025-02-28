@@ -1225,6 +1225,7 @@ def _get_docker_compose_cmd(
     )
     # - Add the `config` command for debugging purposes.
     docker_config_cmd: List[str] = docker_cmd_[:]
+    # TODO(gp): Use yaml approach like done for other parts of the code.
     docker_config_cmd.append(
         r"""
         config"""
