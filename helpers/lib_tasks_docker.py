@@ -756,7 +756,7 @@ def _get_docker_compose_files(
     :return: list of the Docker compose paths
     """
     docker_compose_files = []
-    # Get the repo short name (e.g., amp).
+    # Get the repo short name (e.g., `amp`).
     dir_name = hgit.get_repo_full_name_from_dirname(".", include_host_name=False)
     repo_short_name = hgit.get_repo_name(dir_name, in_mode="full_name")
     _LOG.debug("repo_short_name=%s", repo_short_name)
