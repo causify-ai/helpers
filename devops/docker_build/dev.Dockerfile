@@ -57,6 +57,9 @@ COPY devops/docker_build/create_users.sh .
 RUN /bin/bash -c "./create_users.sh"
 COPY devops/docker_build/etc_sudoers /etc/sudoers
 
+# - Change the ownership `/etc/sudoers` to root.
+RUN chown root:root /etc/sudoers
+
 # - Mount external filesystems.
 # RUN mkdir -p /s3/alphamatic-data
 # RUN mkdir -p /fsx/research
