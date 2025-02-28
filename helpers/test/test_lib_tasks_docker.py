@@ -158,9 +158,9 @@ class Test_generate_compose_file2(hunitest.TestCase):
         Check that file is generated correctly when the repo is `//cmamp`.
         """
         self.helper(
-            mock_getcwd="/data/heanhs/src/cmamp1",
-            mock_find_git_root="/data/heanhs/src/cmamp1",
-            mock_find_helpers_root="/data/heanhs/src/cmamp1/helpers_root",
+            mock_getcwd="/data/dummy/src/cmamp1",
+            mock_find_git_root="/data/dummy/src/cmamp1",
+            mock_find_helpers_root="/data/dummy/src/cmamp1/helpers_root",
             mock_is_in_helpers_as_supermodule=False,
         )
 
@@ -169,9 +169,9 @@ class Test_generate_compose_file2(hunitest.TestCase):
         Check that file is generated correctly when the repo is `//helpers`.
         """
         self.helper(
-            mock_getcwd="/data/heanhs/src/helpers1",
-            mock_find_git_root="/data/heanhs/src/helpers1",
-            mock_find_helpers_root="/data/heanhs/src/helpers1",
+            mock_getcwd="/data/dummy/src/helpers1",
+            mock_find_git_root="/data/dummy/src/helpers1",
+            mock_find_helpers_root="/data/dummy/src/helpers1",
             mock_is_in_helpers_as_supermodule=True,
         )
 
@@ -181,9 +181,9 @@ class Test_generate_compose_file2(hunitest.TestCase):
         `//cmamp/ck.infra` is a runnable dir.
         """
         self.helper(
-            mock_getcwd="/data/heanhs/src/cmamp1/ck.infra",
-            mock_find_git_root="/data/heanhs/src/cmamp1",
-            mock_find_helpers_root="/data/heanhs/src/cmamp1/helpers_root",
+            mock_getcwd="/data/dummy/src/cmamp1/ck.infra",
+            mock_find_git_root="/data/dummy/src/cmamp1",
+            mock_find_helpers_root="/data/dummy/src/cmamp1/helpers_root",
             mock_is_in_helpers_as_supermodule=False,
         )
 
@@ -192,9 +192,9 @@ class Test_generate_compose_file2(hunitest.TestCase):
         Check that file is generated correctly when the repo is `//orange`.
         """
         self.helper(
-            mock_getcwd="/data/heanhs/src/orange1",
-            mock_find_git_root="/data/heanhs/src/orange1",
-            mock_find_helpers_root="/data/heanhs/src/orange1/amp/helpers_root",
+            mock_getcwd="/data/dummy/src/orange1",
+            mock_find_git_root="/data/dummy/src/orange1",
+            mock_find_helpers_root="/data/dummy/src/orange1/amp/helpers_root",
             mock_is_in_helpers_as_supermodule=False,
         )
 
