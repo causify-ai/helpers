@@ -710,7 +710,6 @@ def docker_multi_build_prod_image(  # type: ignore
     # Use dev version for building prod image.
     dev_version = hlitadoc.to_dev_version(prod_version)
     build_args = [
-        opts,
         f"\n   VERSION={dev_version}",
         f"\n   ECR_BASE_PATH={os.environ['CSFY_ECR_BASE_PATH']}",
     ]
