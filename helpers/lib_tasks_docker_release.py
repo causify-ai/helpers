@@ -773,9 +773,7 @@ def docker_multi_build_push_tag_prod_image(  # type: ignore
     Mark the multi-arch versioned "prod" image as "prod" and push it.
 
     `base_image` and `target_registry` both contain information about the target
-    Docker registry. Docker image registry address in `local_base_image` name
-    is ignored when pushing, instead the `target_registry` param provides a
-    Docker image registry address to push to.
+    Docker registry.
 
     :param ctx: invoke context
     :param version: version to tag the image and code with
