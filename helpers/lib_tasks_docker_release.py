@@ -652,7 +652,7 @@ def docker_multi_build_prod_image(  # type: ignore
     user_tag="",
     container_dir_name=".",
     tag=None,
-    multi_arch=None,
+    multi_arch="linux/amd64,linux/arm64",
 ):
     """
     Build a multi arch. prod image from a dev image.
@@ -665,12 +665,9 @@ def docker_multi_build_prod_image(  # type: ignore
         where hash is the output of `hgit.get_head_hash()`
     :param user_tag: the name of the user building the candidate image
     :param container_dir_name: directory where the Dockerfile is located
-    :param multi_arch:
-        - if not specified, build for the `linux/amd64,linux/arm64`
-        - if specified, build for the specified multiple architectures.
+    :param multi_arch: comma separated list of target architectures to build
+        the image for. E.g., `linux/amd64,linux/arm64`
     """
-    if multi_arch is None:
-        multi_arch = "linux/amd64,linux/arm64"
     hlitauti.report_task(container_dir_name=container_dir_name)
     prod_version = hlitadoc.resolve_version_value(
         version, container_dir_name=container_dir_name
@@ -702,18 +699,6 @@ def docker_multi_build_prod_image(  # type: ignore
             base_image, "prod", prod_version
         )
     hlitadoc.dassert_is_image_name_valid(image_versioned_prod)
-    #
-    dockerfile = "devops/docker_build/prod.Dockerfile"
-    dockerfile = _to_abs_path(dockerfile)
-    #
-    opts = "--no-cache" if not cache else ""
-    # Use dev version for building prod image.
-    dev_version = hlitadoc.to_dev_version(prod_version)
-    build_args = [
-        f"\n   VERSION={dev_version}",
-        f"\n   ECR_BASE_PATH={os.environ['CSFY_ECR_BASE_PATH']}",
-    ]
-    build_args = f"--build-arg {hlitauti.to_multi_line_cmd(build_args)}"
     # Login to AWS ECR because for multi-arch build the image is built locally
     # and pushed to the remote registry automatically.
     hlitadoc.docker_login(ctx)
@@ -734,10 +719,23 @@ def docker_multi_build_prod_image(  # type: ignore
         docker buildx use {platform_builder}
     """
     hlitauti.run(ctx, cmd)
+    # Prepare the build.
+    dockerfile = "devops/docker_build/prod.Dockerfile"
+    dockerfile = _to_abs_path(dockerfile)
+    #
+    opts = "--no-cache" if not cache else ""
+    # Use dev version for building prod image.
+    dev_version = hlitadoc.to_dev_version(prod_version)
+    build_args = [
+        f"\n   VERSION={dev_version}",
+        f"\n   ECR_BASE_PATH={os.environ['CSFY_ECR_BASE_PATH']}",
+    ]
+    #
+    build_args = f"--build-arg {hlitauti.to_multi_line_cmd(build_args)}"
     # Build.
     # Compress the current directory (in order to dereference symbolic
     # links) into a tar stream and pipes it to the `docker build` command.
-    # See HelpersTask197.
+    # See HelpersTask197.    
     cmd = rf"""
     tar -czh . | DOCKER_BUILDKIT={DOCKER_BUILDKIT} \
         time \
