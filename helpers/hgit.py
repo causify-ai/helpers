@@ -890,11 +890,12 @@ def get_amp_abs_path() -> str:
     Return the absolute path of `amp` dir.
     """
     repo_sym_name = get_repo_full_name_from_client(super_module=False)
-    _LOG.info("repo_sym_name=%s", repo_sym_name)
+    _LOG.debug("repo_sym_name=%s", repo_sym_name)
     #
     repo_sym_names = ["alphamatic/amp"]
-    repo_sym_names.append(hrecouti.get_repo_config().get_extra_amp_repo_sym_name())
-    _LOG.info("repo_sym_names=%s", repo_sym_names)
+    extra_amp_repo_sym_name = hrecouti.get_repo_config().get_extra_amp_repo_sym_name()
+    repo_sym_names.append(extra_amp_repo_sym_name)
+    _LOG.debug("repo_sym_names=%s", repo_sym_names)
     #
     if repo_sym_name in repo_sym_names:
         # If we are in the amp repo, then the git client root is the amp

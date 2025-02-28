@@ -212,9 +212,11 @@ def env_to_str(add_system_signature: bool = True) -> str:
     msg = ""
     #
     msg += "# Repo config:\n"
-    msg += hprint.indent(hrecouti.get_repo_config().config_func_to_str())
+    repo_config_str = hrecouti.get_repo_config().config_func_to_str()
+    msg += hprint.indent(repo_config_str)
     msg += "\n"
-    msg += hprint.indent(hserver.config_func_to_str())
+    server_config_str = hserver.config_func_to_str()
+    msg += hprint.indent(server_config_str)
     msg += "\n"
     # System signature.
     if add_system_signature:
