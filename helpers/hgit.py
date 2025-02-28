@@ -699,6 +699,7 @@ def _get_repo_short_to_full_name(include_host_name: bool) -> Dict[str, str]:
     """
     # From short name to long name.
     repo_map = {
+        "msml610": "gpsaggese/notes",
         "amp": "alphamatic/amp",
         "helpers": "causify-ai/helpers",
         "tutorials": "causify-ai/tutorials",
