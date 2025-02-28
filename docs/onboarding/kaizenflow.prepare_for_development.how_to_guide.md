@@ -39,7 +39,7 @@ Happy coding!
 ## Set up the dev environment
 
 - Set up the development environment following the instructions in
-  [`all.set_up_development_on_laptop.how_to_guide.md`](/docs/onboarding/all.set_up_development_on_laptop.how_to_guide.md)
+  [`intern.set_up_development_on_laptop.how_to_guide.md`](/docs/onboarding/intern.set_up_development_on_laptop.how_to_guide.md)
 
 ## Coding style
 

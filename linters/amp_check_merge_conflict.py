@@ -34,6 +34,11 @@ def _check_merge_conflict(file_name: str, line_num: int, line: str) -> str:
     return msg
 
 
+# #############################################################################
+# _CheckMergeConflict
+# #############################################################################
+
+
 class _CheckMergeConflict(liaction.Action):
     """
     Check if there is a git merge conflict marker in the file.
@@ -44,8 +49,12 @@ class _CheckMergeConflict(liaction.Action):
 
     def _execute(self, file_name: str, pedantic: int) -> List[str]:
         _ = pedantic
-        # Read the input file.
-        lines = hio.from_file(file_name).split("\n")
+        try:
+            # Read the input file.
+            lines = hio.from_file(file_name).split("\n")
+        except RuntimeError:
+            _LOG.debug("Cannot read file_name='%s'; skipping", file_name)
+            return []
         output = []
         # Check the file lines for merge conflict markers.
         for i, line in enumerate(lines):
