@@ -435,7 +435,7 @@ def docker_tag_push_multi_build_local_image_as_dev(  # type: ignore
         # Use AWS Docker registry.
         dev_base_image = ""
     elif target_registry == "dockerhub.causify":
-        # Use public GitHub Docker registry.
+        # Use public DockerHub registry.
         base_image_name = henv.execute_repo_config_code(
             "get_docker_base_image_name()"
         )
