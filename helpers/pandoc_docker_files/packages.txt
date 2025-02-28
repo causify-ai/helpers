@@ -1,0 +1,115 @@
+# Packages listed in https://pandoc.org/MANUAL.html#creating-a-pdf
+
+#########################################################################
+### Packages required by pandoc
+amsfonts      # math fonts
+amsmath       # math commands
+babel         # required when pandoc is used with lang
+beamer        # for presentations
+bidi          # used by xelatex if the `dir` variable is set
+bookmark      # bookmarks with hyperref
+booktabs      # nicer-looking tables
+caption       # customize captions in floating envs; required for beamer
+csquotes      # used for typography if the `csquotes` variable is set to true
+euler         # use AMS Euler fonts for math
+eurosym       # Metafont and macros for Euro sign
+fancyvrb      # Verbatim environments for code blocks
+framed        # Needed with certain `--highlight-style` options
+geometry      # required if the `geometry` variable set
+graphics      # required if the document contains images
+hyperref      # hyperlinks
+listings      # if the `--listing` option is used
+lm            # Latin modern fonts
+lm-math       # Latin modern fonts for math
+memoir        # frequently used document class
+multirow      # Tabular cells spanning multiple rows
+pgf           # for TikZ and beamer
+setspace      # required if the `linestretch` variable is used
+soul          # required for underlined text
+subfig        # Figures broken into subfigures
+tools         # the LaTeX standard tools bundle; e.g., calc, longtable
+xcolor        # colors
+
+# Deprecated! Only used by older pandoc versions before 3.0.
+ulem
+
+#########################################################################
+### Semi-optional packages
+#
+# The following packages will be used to improve output quality if
+# present, but pandoc does not require them to be present:
+footnotehyper # to allow footnotes in tables
+microtype     # for better spacing adjustments
+parskip       # for better inter-paragraph spaces
+upquote       # for straight quotes in verbatim environments
+xurl          # for better line breaks in URLs
+
+#########################################################################
+### Intentionally **NOT** installed due to size constraints.
+#
+#xeCJR         # If CJKmainfont is set, xeCJK is needed.
+
+#########################################################################
+### Required when using pandoc-crossref
+cleveref      # Intelligent cross-referencing
+float         # Improved interface for floating objects
+
+#########################################################################
+### Extra engines and packages for XeLaTeX and LuaLaTeX.
+fontspec      # required with xelatex or lualatex
+ifmtarg       # if-then-else commands used in the default template
+iftex         # Checks for the specific LaTeX engine being used
+latexmk
+lua-ul        # LuaLaTeX replacement of soul
+luacode
+luacolor
+lualatex-math # LuaTeX specific math patches
+luatexbase
+mathspec      # used by xelatex if the `mathspec` variable is set
+selnolig      # Used with LuaLaTeX to disable illegal typographic ligatures
+unicode-math  # Unicode math support for XeTeX and LuaTeX
+xetex
+
+#########################################################################
+### Reference management tools
+biber
+biblatex
+bibtex
+natbib
+
+#########################################################################
+### I18n and languages
+#
+# The choice of selected languages is historic, those were the ones
+# installed by TeXLive by default for a long time.
+bidi
+babel-basque
+babel-czech
+babel-danish
+babel-dutch
+babel-english
+babel-finnish
+babel-french
+babel-german
+babel-hungarian
+babel-italian
+babel-norsk
+babel-polish
+babel-portuges
+babel-spanish
+babel-swedish
+hyphen-basque
+hyphen-czech
+hyphen-danish
+hyphen-dutch
+hyphen-english
+hyphen-finnish
+hyphen-french
+hyphen-german
+hyphen-hungarian
+hyphen-italian
+hyphen-norwegian
+hyphen-polish
+hyphen-portuguese
+hyphen-spanish
+hyphen-swedish

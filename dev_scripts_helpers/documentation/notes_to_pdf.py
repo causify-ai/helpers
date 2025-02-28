@@ -22,6 +22,7 @@ Convert a txt file into a PDF / HTML / slides using `pandoc`.
 import argparse
 import logging
 import os
+import re
 import sys
 from typing import Any, List, Optional, Tuple
 
@@ -37,7 +38,6 @@ import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
-_EXEC_DIR_NAME = os.path.abspath(os.path.dirname(sys.argv[0]))
 
 # #############################################################################
 
@@ -120,18 +120,19 @@ def _filter_by_header(file_: str, header: str, prefix: str) -> str:
 # #############################################################################
 
 
-def _preprocess_notes(file_: str, prefix: str) -> str:
+def _preprocess_notes(file_: str, prefix: str, type_: str) -> str:
     """
     Pre-process the file.
 
     :param file_: The input file to be processed
     :param prefix: The prefix used for the output file (e.g., `tmp.pandoc`)
+    :param type_: Type of output to generate (e.g., `pdf`, `html`, `slides`).
     :return: The path to the processed file
     """
     exec_file = hgit.find_file("preprocess_notes.py")
     file1 = file_
     file2 = f"{prefix}.preprocess_notes.txt"
-    cmd = f"{exec_file} --input {file1} --output {file2}"
+    cmd = f"{exec_file} --input {file1} --output {file2} --type {type_}"
     _ = _system(cmd)
     file_ = file2
     return file_
@@ -140,7 +141,7 @@ def _preprocess_notes(file_: str, prefix: str) -> str:
 # #############################################################################
 
 
-def _render_images(file_: str, prefix: str) -> str:
+def _render_images(file_: str, prefix: str, type_: str) -> str:
     """
     Render images in the file.
 
@@ -155,10 +156,7 @@ def _render_images(file_: str, prefix: str) -> str:
     cmd = f"{exec_file} --in_file_name {file1} --out_file_name {file2}"
     _ = _system(cmd)
     # We need to preprocess the notes again to remove the commented code.
-    exec_file = hgit.find_file("preprocess_notes.py")
-    file3 = f"{prefix}.preprocess_notes2.txt"
-    cmd = f"{exec_file} --input {file2} --output {file3}"
-    _ = _system(cmd)
+    file3 = _preprocess_notes(file2, file2, type_)
     file_ = file3
     return file_
 
@@ -244,7 +242,14 @@ def _run_pandoc_to_pdf(
     cmd = " ".join(cmd)
     _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
     if not args.use_host_tools:
-        cmd = hdocker.run_dockerized_pandoc(cmd, return_cmd=True, use_sudo=False)
+        container_type = "pandoc_texlive"
+        cmd = hdocker.run_dockerized_pandoc(
+            cmd,
+            container_type,
+            return_cmd=True,
+            force_rebuild=args.dockerized_force_rebuild,
+            use_sudo=args.dockerized_use_sudo,
+        )
     _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
     _ = _system(cmd, suppress_output=False)
     file_ = file2
@@ -321,16 +326,9 @@ def _run_pandoc_to_html(
     return file_out
 
 
-def _run_pandoc_to_slides(args: argparse.Namespace, file_: str) -> str:
-    """
-    Convert the input file to PDF slides using Pandoc.
-
-    :param args: The command-line arguments
-    :param file_: The input file to be converted
-    :return: The path to the generated PDF file
-    """
-    _ = args
-    #
+def _build_pandoc_cmd(
+    args: argparse.Namespace, file_: str, *, use_tex: bool = False
+) -> Tuple[str, str]:
     cmd = []
     cmd.append(f"pandoc {file_}")
     #
@@ -338,14 +336,71 @@ def _run_pandoc_to_slides(args: argparse.Namespace, file_: str) -> str:
     cmd.append("--slide-level 4")
     cmd.append("-V theme:SimplePlus")
     cmd.append("--include-in-header=latex_abbrevs.sty")
+    # cmd.append("--pdf-engine=lualatex")
+    # cmd.append("--pdf-engine=xelatex")
     if not args.no_toc:
         cmd.append("--toc")
         cmd.append("--toc-depth 2")
-    file_out = file_.replace(".txt", ".pdf")
+    if use_tex:
+        ext = ".tex"
+    else:
+        ext = ".pdf"
+    file_out = file_.replace(".txt", ext)
     cmd.append(f"-o {file_out}")
     #
     cmd = " ".join(cmd)
-    _ = _system(cmd, suppress_output=False)
+    _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
+    if not args.use_host_tools:
+        container_type = "pandoc_texlive"
+        cmd = hdocker.run_dockerized_pandoc(
+            cmd,
+            container_type,
+            return_cmd=True,
+            force_rebuild=args.dockerized_force_rebuild,
+            use_sudo=args.dockerized_use_sudo,
+        )
+    _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
+    return cmd, file_out
+
+
+def _run_pandoc_to_slides(
+    args: argparse.Namespace, file_: str, *, debug: bool = False
+) -> str:
+    """
+    Convert the input file to PDF slides using Pandoc.
+
+    :param args: The command-line arguments
+    :param file_: The input file to be converted
+    :return: The path to the generated PDF file
+    """
+    cmd, file_out = _build_pandoc_cmd(args, file_)
+    rc, txt = _system_to_string(cmd, abort_on_error=False)
+    # We want to print to screen.
+    print(txt)
+    _LOG.error("Log is in %s", file_out + ".log")
+    # rc = _system(cmd, suppress_output=False)
+    if rc != 0:
+        if debug:
+            _LOG.error("Pandoc failed")
+            # Generate the tex version of the file.
+            cmd, file_out = _build_pandoc_cmd(args, file_, use_tex=True)
+            _system(cmd, abort_on_error=False)
+            # Error producing PDF.
+            # ! Package enumitem Error: 1) undefined.
+
+            # See the enumitem package documentation for explanation.
+            # Type  H <return>  for immediate help.
+            #  ...
+
+            # l.979 \end{frame}
+            for line in txt.split("\n"):
+                _LOG.debug("line=%s", line)
+                m = re.match(r"^l\.(\d+)", line)
+                if m:
+                    line_num = int(m.group(1))
+                    cmd = f"vim {file_out} +{line_num}"
+                    print(hprint.frame(cmd))
+        raise RuntimeError("Pandoc failed")
     #
     _LOG.debug("file_out=%s", file_out)
     hdbg.dassert_path_exists(file_out)
@@ -444,12 +499,12 @@ def _run_all(args: argparse.Namespace) -> None:
     action = "preprocess_notes"
     to_execute, actions = _mark_action(action, actions)
     if to_execute:
-        file_ = _preprocess_notes(file_, prefix)
+        file_ = _preprocess_notes(file_, prefix, args.type)
     # - Render_images
     action = "render_images"
     to_execute, actions = _mark_action(action, actions)
     if to_execute:
-        file_ = _render_images(file_, prefix)
+        file_ = _render_images(file_, prefix, args.type)
     # - Run_pandoc
     action = "run_pandoc"
     to_execute, actions = _mark_action(action, actions)
@@ -459,7 +514,9 @@ def _run_all(args: argparse.Namespace) -> None:
         elif args.type == "html":
             file_out = _run_pandoc_to_html(args, file_, prefix)
         elif args.type == "slides":
-            file_out = _run_pandoc_to_slides(args, file_)
+            file_out = _run_pandoc_to_slides(
+                args, file_, debug=args.debug_on_error
+            )
         else:
             raise ValueError(f"Invalid type='{args.type}'")
     file_in = file_out
@@ -573,6 +630,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--no_run_latex_again", action="store_true", default=False
     )
+    parser.add_argument("--debug_on_error", action="store_true", default=False)
     parser.add_argument(
         "--gdrive_dir",
         action="store",
@@ -580,6 +638,7 @@ def _parse() -> argparse.ArgumentParser:
         help="Directory where to save the output to share on Google Drive",
     )
     hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    hparser.add_dockerized_script_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 

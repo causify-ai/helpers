@@ -21,6 +21,7 @@ from typing import Any, Callable, List, Match, Optional, Tuple, Union, cast
 
 import helpers.hdbg as hdbg
 import helpers.hintrospection as hintros
+import helpers.hio as hio
 import helpers.hlogging as hloggin
 import helpers.hprint as hprint
 
@@ -31,7 +32,7 @@ import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
-# Set logging level of this file.
+# Set logging level of this file higher to avoid too much chatter.
 _LOG.setLevel(logging.INFO)
 
 # #############################################################################

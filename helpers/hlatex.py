@@ -25,7 +25,8 @@ def convert_pandoc_md_to_latex(txt: str) -> str:
         f" -o {out_file_name}"
         " --read=markdown --write=latex"
     )
-    hdocker.run_dockerized_pandoc(cmd)
+    container_type = "pandoc_only"
+    hdocker.run_dockerized_pandoc(cmd, container_type)
     # Read tmp file.
     res = hio.from_file(out_file_name)
     return res
@@ -63,7 +64,7 @@ def markdown_list_to_latex(markdown: str) -> str:
 
 
 def remove_latex_formatting(latex_string: str) -> str:
-    """
+    r"""
     Remove LaTeX formatting such as \textcolor{color}{content} and retains only
     the content.
     """

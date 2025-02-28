@@ -65,7 +65,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
         args, clear_screen=True
     )
     if cmd == "toc":
-        hmarkdo.table_of_content(in_file_name, max_lev)
+        txt = hparser.read_file(file_name)
+        header_list = hmarkdo.extract_headers_from_markdown(txt, max_level=max_level)
+        txt_out = hmarkdo.header_list_to_markdown(header_list, mode))
+        hparser.write_file(txt_out, out_file_name)
     elif cmd == "format":
         hmarkdo.format_headers(in_file_name, out_file_name, max_lev)
     elif cmd == "increase":

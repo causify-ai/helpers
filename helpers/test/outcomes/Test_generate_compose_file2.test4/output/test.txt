@@ -38,8 +38,8 @@ services:
   linter:
     extends: base_app
     volumes:
-      - /data/heanhs/src/orange1:/src
-    working_dir: /src
+      - /app:/src
+    working_dir: /src/helpers_root
     environment:
       - MYPYPATH
       - CSFY_REPO_CONFIG_PATH=/app/repo_config.py

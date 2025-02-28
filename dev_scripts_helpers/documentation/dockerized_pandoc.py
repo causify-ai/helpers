@@ -32,7 +32,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument("--input", action="store")
     parser.add_argument("--output", action="store", default="")
     parser.add_argument("--data_dir", action="store")
-    # parser.add_argument("--include_in_header", action="store")
+    parser.add_argument("--container_type", action="store", default="pandoc_only")
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -51,8 +51,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     cmd = "pandoc {args.input} -o {args.output} {cmd_opts}"
     hdocker.run_dockerized_pandoc(
         cmd,
-        args.dockerized_force_rebuild,
-        args.dockerized_use_sudo,
+        args.container_type,
+        force_rebuild=args.dockerized_force_rebuild,
+        use_sudo=args.dockerized_use_sudo,
     )
     _LOG.info("Output written to '%s'", args.output)
 

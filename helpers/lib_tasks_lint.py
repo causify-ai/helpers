@@ -186,6 +186,8 @@ def lint(  # type: ignore
     modified=False,
     last_commit=False,
     branch=False,
+    # It needs to be a string to allow the user to specify "serial".
+    num_threads="-1",
     only_format=False,
     only_check=False,
     no_dev_server=False,
@@ -214,13 +216,16 @@ def lint(  # type: ignore
     :param modified: lint the files modified in the current git client
     :param last_commit: lint the files modified in the previous commit
     :param branch: lint the files modified in the current branch w.r.t. master
+    :param num_threads: number of threads to use ("serial", -1, 0, 1, 2, ...)
     :param only_format: run only the modifying actions of Linter (e.g., black)
     :param only_check: run only the non-modifying actions of Linter (e.g., pylint)
     :param no_dev_server: True, if running Linter on local machine,
         else false if on dev server
     """
     hlitauti.report_task()
-    # Verify that the passed options are valid.
+    # Prepare the command line.
+    lint_cmd_opts = []
+    # Add the file selection argument.
     hdbg.dassert_eq(
         int(len(files) > 0)
         + int(len(dir_name) > 0)
@@ -230,14 +235,6 @@ def lint(  # type: ignore
         1,
         msg="Specify exactly one among --files, --dir-name, --modified, --last-commit, --branch",
     )
-    hdbg.dassert_lte(
-        int(only_format) + int(only_check),
-        1,
-        msg="Specify only one among --only-format, --only-check",
-    )
-    # Prepare the command line.
-    lint_cmd_opts = []
-    # Add the file selection argument.
     if len(files) > 0:
         lint_cmd_opts.append(f"--files {files}")
     elif len(dir_name) > 0:
@@ -250,7 +247,14 @@ def lint(  # type: ignore
         lint_cmd_opts.append("--branch")
     else:
         raise ValueError("No file selection arguments are specified")
+    #
+    lint_cmd_opts.append(f"--num_threads {num_threads}")
     # Add the action selection argument, if needed.
+    hdbg.dassert_lte(
+        int(only_format) + int(only_check),
+        1,
+        msg="Specify only one among --only-format, --only-check",
+    )
     if only_format:
         lint_cmd_opts.append("--only_format")
     elif only_check:
