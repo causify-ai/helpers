@@ -10,14 +10,13 @@ import pyarrow.parquet as parquet
 import pytest
 
 import helpers.hdbg as hdbg
-import helpers.henv as henv
 import helpers.hmoto as hmoto
 import helpers.hpandas as hpandas
 import helpers.hparquet as hparque
 import helpers.hprint as hprint
 import helpers.hs3 as hs3
-import helpers.hunit_test as hunitest
 import helpers.hserver as hserver
+import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
 
@@ -111,7 +110,13 @@ def _compare_dfs(self: Any, df1: pd.DataFrame, df2: pd.DataFrame) -> str:
 # #############################################################################
 
 
+# #############################################################################
+# TestParquet1
+# #############################################################################
+
+
 class TestParquet1(hunitest.TestCase):
+
     def test_get_df1(self) -> None:
         """
         Check the output of `_get_df()`.
@@ -315,6 +320,11 @@ class TestParquet1(hunitest.TestCase):
         self.assert_equal(dtypes_sample, dtypes_actual, fuzzy_match=True)
 
 
+# #############################################################################
+
+
+# #############################################################################
+# TestPartitionedParquet1
 # #############################################################################
 
 
@@ -653,7 +663,13 @@ class TestPartitionedParquet1(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# TestGetParquetFiltersFromTimestampInterval1
+# #############################################################################
+
+
 class TestGetParquetFiltersFromTimestampInterval1(hunitest.TestCase):
+
     def test_no_interval(self) -> None:
         """
         No timestamps provided.
@@ -857,7 +873,13 @@ class TestGetParquetFiltersFromTimestampInterval1(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# TestAddDatePartitionColumns
+# #############################################################################
+
+
 class TestAddDatePartitionColumns(hunitest.TestCase):
+
     def add_date_partition_columns_helper(
         self, partition_mode: str, expected: str
     ) -> None:
@@ -913,7 +935,13 @@ class TestAddDatePartitionColumns(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# TestToPartitionedDataset
+# #############################################################################
+
+
 class TestToPartitionedDataset(hunitest.TestCase):
+
     @staticmethod
     def get_test_data1() -> pd.DataFrame:
         test_data = {
@@ -1000,6 +1028,11 @@ class TestToPartitionedDataset(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# TestListAndMergePqFiles
+# #############################################################################
+
+
 @pytest.mark.requires_ck_infra
 @pytest.mark.requires_aws
 @pytest.mark.skipif(
@@ -1007,6 +1040,7 @@ class TestToPartitionedDataset(hunitest.TestCase):
     reason="Run only if CK S3 is available",
 )
 class TestListAndMergePqFiles(hmoto.S3Mock_TestCase):
+
     def generate_test_data(self) -> hs3.AwsProfile:
         """
         Upload test daily Parquet files for 3 days to the mocked S3 bucket.
@@ -1119,7 +1153,13 @@ class TestListAndMergePqFiles(hmoto.S3Mock_TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# TestListAndMergePqFilesMixedUnits
+# #############################################################################
+
+
 class TestListAndMergePqFilesMixedUnits(hunitest.TestCase):
+
     def test_parquet_files_with_mixed_time_units_1(self) -> None:
         """
         Test merging Parquet files with the `ns` and `us`.
@@ -1185,7 +1225,13 @@ class TestListAndMergePqFilesMixedUnits(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# TestYieldParquetTiles
+# #############################################################################
+
+
 class TestYieldParquetTiles(hunitest.TestCase):
+
     def generate_test_data(self) -> None:
         """
         Generate test data and write it to a scratch dir.
@@ -1290,7 +1336,13 @@ class TestYieldParquetTiles(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# TestBuildFilterWithOnlyEqualities
+# #############################################################################
+
+
 class TestBuildFilterWithOnlyEqualities(hunitest.TestCase):
+
     def test_year_month_day_equality(self) -> None:
         """
         Test interval with same year, month and day.
@@ -1338,6 +1390,11 @@ class TestBuildFilterWithOnlyEqualities(hunitest.TestCase):
         self.assert_equal(actual, expected)
 
 
+# #############################################################################
+
+
+# #############################################################################
+# TestPartitionedParquet2
 # #############################################################################
 
 

@@ -11,7 +11,6 @@ import os
 import pytest
 
 import helpers.hdocker as hdocker
-import helpers.henv as henv
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -19,9 +18,9 @@ import helpers.hserver as hserver
 import helpers.hsql as hsql
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
-import helpers.repo_config_utils as hrecouti
 
 _LOG = logging.getLogger(__name__)
+
 
 # #############################################################################
 # TestDbHelper

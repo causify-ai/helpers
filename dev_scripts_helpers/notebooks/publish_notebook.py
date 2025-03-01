@@ -42,7 +42,6 @@ from typing import BinaryIO, List, Tuple
 import requests
 
 import helpers.hdbg as hdbg
-import helpers.henv as henv
 import helpers.hio as hio
 import helpers.hopen as hopen
 import helpers.hparser as hparser
@@ -50,7 +49,7 @@ import helpers.hprint as hprint
 import helpers.hs3 as hs3
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
-import helpers.repo_config_utils as hrecouti 
+import helpers.repo_config_utils as hrecouti
 
 _LOG = logging.getLogger(__name__)
 
@@ -343,7 +342,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
             print(hprint.dedent(cmd))
             #
             if target_dir.startswith(html_bucket_path):
-                dir_to_url = hrecouti.get_repo_config().get_html_dir_to_url_mapping()
+                dir_to_url = (
+                    hrecouti.get_repo_config().get_html_dir_to_url_mapping()
+                )
                 url_bucket_path = dir_to_url[html_bucket_path]
                 url = s3_file_name.replace(html_bucket_path, url_bucket_path)
                 cmd = f"""

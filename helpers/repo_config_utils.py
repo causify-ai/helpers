@@ -4,14 +4,14 @@ Import as:
 import helpers.repo_config_utils as hrecouti
 """
 
-import functools
 import logging
 import os
-import yaml
 from typing import Any, Dict, List, Optional, Union
 
-import helpers.hio as hio
+import yaml
+
 import helpers.hdbg as hdbg
+import helpers.hio as hio
 
 _LOG = logging.getLogger(__name__)
 
@@ -120,11 +120,12 @@ def indent(txt: str, num_spaces: int = 2) -> str:
 
 # End copy.
 
+
 def _get_env_var(
-        env_name: str,
-        as_bool: bool = False,
-        default_value: Any = None,
-        abort_on_missing: bool = True,
+    env_name: str,
+    as_bool: bool = False,
+    default_value: Any = None,
+    abort_on_missing: bool = True,
 ) -> Union[str, bool]:
     """
     Get an environment variable by name.
@@ -151,6 +152,12 @@ def _get_env_var(
             value = True
     return value
 
+
+# #############################################################################
+# RepoConfig
+# #############################################################################
+
+
 class RepoConfig:
 
     def __init__(self, data: Dict) -> None:
@@ -175,8 +182,11 @@ class RepoConfig:
             with open(file_name, "r") as file:
                 # Use `safe_load()` to avoid executing arbitrary code.
                 data = yaml.safe_load(file)
-                assert isinstance(data, dict), ("data=\n%s\nis not a dict but %s",
-                       str(data), type(data))
+                assert isinstance(data, dict), (
+                    "data=\n%s\nis not a dict but %s",
+                    str(data),
+                    type(data),
+                )
         except Exception as e:
             raise f"Error reading YAML file {file_name}: {e}"
         return cls(data)
@@ -249,7 +259,7 @@ class RepoConfig:
         """
         value = self._data["s3_bucket_info"]["html_ip"]
         return value
-    
+
     def get_html_ip_v2(self) -> str:
         """
         Return the IP of the bucket with published HTMLs.
@@ -264,8 +274,8 @@ class RepoConfig:
         """
         Return a mapping between directories mapped on URLs.
 
-        This is used when we have web servers serving files from specific
-        directories.
+        This is used when we have web servers serving files from
+        specific directories.
         """
         dir_to_url = {
             self.get_html_bucket_path(): self.get_html_ip(),
@@ -275,13 +285,17 @@ class RepoConfig:
 
     def config_func_to_str(self) -> str:
         """
-        return the string representation of the config function.
+        Return the string representation of the config function.
         """
         ret: List[str] = []
         ret.append(f"get_host_name='{self.get_host_name()}'")
-        ret.append(f"get_html_dir_to_url_mapping='{self.get_html_dir_to_url_mapping()}'")
+        ret.append(
+            f"get_html_dir_to_url_mapping='{self.get_html_dir_to_url_mapping()}'"
+        )
         ret.append(f"get_invalid_words='{self.get_invalid_words()}'")
-        ret.append(f"get_docker_base_image_name='{self.get_docker_base_image_name()}'")
+        ret.append(
+            f"get_docker_base_image_name='{self.get_docker_base_image_name()}'"
+        )
         return "# repo_config.config\n" + indent("\n".join(ret))
 
     @staticmethod
@@ -295,7 +309,9 @@ class RepoConfig:
         env_var = "AM_REPO_CONFIG_PATH"
         file_name = _get_env_var(env_var, abort_on_missing=False)
         if file_name:
-            _LOG.warning("Using value '%s' for %s from env var", file_name, env_var)
+            _LOG.warning(
+                "Using value '%s' for %s from env var", file_name, env_var
+            )
         else:
             client_root = _find_git_root()
             _LOG.debug("Reading file_name='%s'", file_name)
@@ -315,4 +331,3 @@ def get_repo_config() -> RepoConfig:
     if _repo_config is None:
         _repo_config = RepoConfig.from_file()
     return _repo_config
-

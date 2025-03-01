@@ -6,11 +6,9 @@ Import as:
 import helpers.hserver as hserver
 """
 
+import functools
 import logging
 import os
-import functools
-import os
-import subprocess
 from typing import Dict, List, Optional
 
 import helpers.repo_config_utils as hrecouti
@@ -314,11 +312,14 @@ def has_dind_support() -> bool:
     #    )
     return has_dind
 
+
 def _raise_invalid_host(only_warning: bool) -> None:
     host_os_name = os.uname()[0]
     am_host_os_name = os.environ.get("AM_HOST_OS_NAME", None)
-    msg = (f"Don't recognize host: host_os_name={host_os_name}, "
-           f"am_host_os_name={am_host_os_name}")
+    msg = (
+        f"Don't recognize host: host_os_name={host_os_name}, "
+        f"am_host_os_name={am_host_os_name}"
+    )
     if only_warning:
         _LOG.warning(msg)
     else:
@@ -612,7 +613,7 @@ def config_func_to_str() -> str:
         "run_docker_as_root()",
         "skip_submodules_test()",
         "use_docker_db_container_name_to_connect()",
-        "use_docker_network_mode_host()", 
+        "use_docker_network_mode_host()",
         "use_docker_sibling_containers()",
         "is_dev4()",
         "is_dev_ck()",

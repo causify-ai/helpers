@@ -22,13 +22,11 @@ if _HAS_MOTO:
     import botocore
     import pytest
 
-    import helpers.hs3 as hs3
-    import helpers.henv as henv
     import helpers.hgit as hgit
+    import helpers.hs3 as hs3
     import helpers.hsecrets as hsecret
-    import helpers.hunit_test as hunitest
     import helpers.hserver as hserver
-    import helpers.repo_config_utils as hrecouti
+    import helpers.hunit_test as hunitest
 
     _LOG = logging.getLogger(__name__)
 
@@ -42,6 +40,7 @@ if _HAS_MOTO:
         reason="Run only if CK S3 is available",
     )
     class TestCreateClient(hunitest.TestCase):
+
         def test_create_client1(self) -> None:
             """
             Simple smoke test to verify connection to AWS.
@@ -56,6 +55,7 @@ if _HAS_MOTO:
         reason="Run only if CK S3 is available",
     )
     class TestGetSecret(hunitest.TestCase):
+
         @moto.mock_aws
         def test_get_secret(self) -> None:
             """
@@ -73,7 +73,9 @@ if _HAS_MOTO:
             self.assertDictEqual(hsecret.get_secret(secret_name), secret)
 
         @moto.mock_aws
-        @pytest.mark.skip(reason="TODO(Juraj): Temporarily disabled in #Cmtask10068.")
+        @pytest.mark.skip(
+            reason="TODO(Juraj): Temporarily disabled in #Cmtask10068."
+        )
         def test_trading_key(self) -> None:
             """
             Verify locking mechanism for trading key is processed correctly.
@@ -96,7 +98,9 @@ if _HAS_MOTO:
                 self.assert_equal(actual, expected, fuzzy_match=True)
 
         @moto.mock_aws
-        @pytest.mark.skip(reason="TODO(Juraj): Temporarily disabled in #Cmtask10068.")
+        @pytest.mark.skip(
+            reason="TODO(Juraj): Temporarily disabled in #Cmtask10068."
+        )
         def test_lock_for_different_script(self) -> None:
             """
             Verify locking mechanism for access to trading key is passed if
@@ -129,6 +133,7 @@ if _HAS_MOTO:
         reason="Run only if CK S3 is available",
     )
     class TestStoreSecret(hunitest.TestCase):
+
         @moto.mock_aws
         def test_store_secret1(self) -> None:
             """
@@ -154,6 +159,7 @@ if _HAS_MOTO:
     )
     @pytest.mark.skip(reason="TODO(Juraj): Temporarily disabled in #Cmtask10068.")
     class TestLockSecret(hunitest.TestCase):
+
         @moto.mock_aws
         def test_lock_secret(self) -> None:
             """
@@ -178,11 +184,12 @@ if _HAS_MOTO:
     @pytest.mark.requires_ck_infra
     @pytest.mark.requires_aws
     @pytest.mark.skipif(
-        not hserver.is_CK_S3_available(), 
+        not hserver.is_CK_S3_available(),
         reason="Run only if CK S3 is available",
     )
     @pytest.mark.skip(reason="TODO(Juraj): Temporarily disabled in #Cmtask10068.")
     class TestUpdateUsedby(hunitest.TestCase):
+
         @moto.mock_aws
         def test1(self) -> None:
             """

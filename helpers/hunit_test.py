@@ -1,4 +1,4 @@
-""":
+"""
 Import as:
 
 import helpers.hunit_test as hunitest
@@ -1070,6 +1070,11 @@ def assert_equal(
 _ACTION_ON_MISSING_GOLDEN = "assert"
 
 
+# #############################################################################
+# TestCase
+# #############################################################################
+
+
 # TODO(gp): Remove all the calls to `dedent()` and use the `dedent` switch.
 class TestCase(unittest.TestCase):
     """
@@ -1300,8 +1305,6 @@ class TestCase(unittest.TestCase):
         test_method_name: Optional[str] = None,
         use_absolute_path: bool = False,
     ) -> str:
-        import helpers.henv as henv
-
         s3_bucket = hrecouti.get_repo_config().get_unit_test_bucket_path()
         hdbg.dassert_isinstance(s3_bucket, str)
         # Make the path unique for the test.
@@ -1339,8 +1342,8 @@ class TestCase(unittest.TestCase):
         difference.
 
         Implement a better version of `self.assertEqual()` that reports
-        mismatching strings with sdiff and save them to files for further
-        analysis with vimdiff.
+        mismatching strings with sdiff and save them to files for
+        further analysis with vimdiff.
 
         The interface is similar to `check_string()`.
         """
@@ -1947,6 +1950,11 @@ class TestCase(unittest.TestCase):
         _LOG.error(msg)
 
 
+# #############################################################################
+
+
+# #############################################################################
+# QaTestCase
 # #############################################################################
 
 

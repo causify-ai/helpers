@@ -9,7 +9,13 @@ import helpers.repo_config_utils as hrecouti
 _LOG = logging.getLogger(__name__)
 
 
+# #############################################################################
+# Test_repo_config1
+# #############################################################################
+
+
 class Test_repo_config1(hunitest.TestCase):
+
     def create_test_file(self) -> str:
         yaml_txt = """
         repo_info:
@@ -27,8 +33,7 @@ class Test_repo_config1(hunitest.TestCase):
           html_ip: http://172.30.2.44
         """
         yaml_txt = hprint.dedent(yaml_txt)
-        file_name = os.path.join(self.get_scratch_space(),
-                                 "yaml.txt")
+        file_name = os.path.join(self.get_scratch_space(), "yaml.txt")
         hio.to_file(file_name, yaml_txt)
         return file_name
 

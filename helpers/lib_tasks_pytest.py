@@ -16,7 +16,6 @@ from invoke import task
 # We want to minimize the dependencies from non-standard Python packages since
 # this code needs to run with minimal dependencies and without Docker.
 import helpers.hdbg as hdbg
-import helpers.henv as henv
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hlist as hlist
@@ -174,7 +173,7 @@ def _build_run_command_line(
     pytest_opts_tmp.append(
         f'--reruns {num_reruns} --only-rerun "Failed: Timeout"'
     )
-    if hserver.skip_submodules_test(): 
+    if hserver.skip_submodules_test():
         # For some repos submodules should be skipped
         # regardless of the passed value.
         skip_submodules = True

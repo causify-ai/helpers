@@ -15,7 +15,6 @@ import string
 from typing import Dict, List, Match, Optional, Tuple, cast
 
 import helpers.hdbg as hdbg
-import helpers.henv as henv
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hserver as hserver
@@ -356,8 +355,8 @@ def is_helpers() -> bool:
     """
     Return whether we are inside `helpers` repo.
 
-    Either as super module, or a sub module depending on a current working
-    directory.
+    Either as super module, or a sub module depending on a current
+    working directory.
     """
     return _is_repo("helpers")
 
@@ -420,8 +419,6 @@ def is_amp_present(*, dir_name: str = ".") -> bool:
 # ```
 #
 # rather than their name.
-
-
 
 
 def is_cmamp() -> bool:
@@ -725,9 +722,8 @@ def _get_repo_short_to_full_name(include_host_name: bool) -> Dict[str, str]:
     )
     # Update the map.
     # hdbg.dassert_not_intersection(repo_map.keys(), current_repo_map.keys())
-    repo_map.update(
-        hrecouti.get_repo_config().get_repo_map()
-    )
+    current_repo_map = hrecouti.get_repo_config().get_repo_map()
+    repo_map.update(current_repo_map)
     hdbg.dassert_no_duplicates(repo_map.values())
     _LOG.debug(
         "include_host_name=%s, repo_map=\n%s",
@@ -893,7 +889,9 @@ def get_amp_abs_path() -> str:
     _LOG.debug("repo_sym_name=%s", repo_sym_name)
     #
     repo_sym_names = ["alphamatic/amp"]
-    extra_amp_repo_sym_name = hrecouti.get_repo_config().get_extra_amp_repo_sym_name()
+    extra_amp_repo_sym_name = (
+        hrecouti.get_repo_config().get_extra_amp_repo_sym_name()
+    )
     repo_sym_names.append(extra_amp_repo_sym_name)
     _LOG.debug("repo_sym_names=%s", repo_sym_names)
     #
@@ -1306,8 +1304,8 @@ def git_describe(
 
     If there is no tag, this will return short commit hash.
 
-    :param match: e.g., `cmamp-*`, only consider tags matching the
-        given glob pattern
+    :param match: e.g., `cmamp-*`, only consider tags matching the given
+        glob pattern
     """
     _LOG.debug("# Looking for version ...")
     cmd = "git describe --tags --always --abbrev=0"
