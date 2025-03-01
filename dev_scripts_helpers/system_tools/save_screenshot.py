@@ -10,6 +10,7 @@ container.
 import argparse
 import datetime
 import logging
+import os
 
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
