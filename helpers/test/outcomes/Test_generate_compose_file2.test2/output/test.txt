@@ -33,12 +33,12 @@ services:
   app:
     extends: base_app
     volumes:
-      - /data/heanhs/src/helpers1:/app
+      - /data/dummy/src/helpers1:/app
     working_dir: /app
   linter:
     extends: base_app
     volumes:
-      - /data/heanhs/src/helpers1:/src
+      - /data/dummy/src/helpers1:/src
     working_dir: /src
     environment:
       - MYPYPATH
