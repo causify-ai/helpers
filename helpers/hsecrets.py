@@ -13,7 +13,7 @@ from typing import Any, Dict, Optional
 from botocore.client import BaseClient
 from botocore.exceptions import ClientError
 
-import helpers.haws as haws
+#import helpers.haws as haws
 import helpers.hdbg as hdbg
 
 

@@ -18,6 +18,7 @@ import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
 import helpers.hparser as hparser
+import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
@@ -115,9 +116,17 @@ def _run_all(lines: List[str], type_: str, *, is_qa: bool = False) -> List[str]:
     out: List[str] = []
     # a) Prepend some directive for pandoc.
     # TODO(gp): Add them only if they are not there.
-    out.append(r"""\let\emph\textit""")
-    out.append(r"""\let\uline\underline""")
-    out.append(r"""\let\ul\underline""")
+    if lines[0] != "---":
+        txt = r"""
+        ---
+        fontsize: 10pt
+        ---
+        \let\emph\textit
+        \let\uline\underline
+        \let\ul\underline
+        """
+        txt = hprint.dedent(txt)
+        out.append(txt)
     # b) Process text.
     # True inside a block to skip.
     in_skip_block = False

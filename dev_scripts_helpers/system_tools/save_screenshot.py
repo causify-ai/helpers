@@ -25,6 +25,7 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument("positional", nargs="*", help="...")
+    parser.add_argument("--dst_dir", action="store", help="Destination directory")
     parser.add_argument("--filename", action="store", help="File name")
     hparser.add_verbosity_arg(parser)
     return parser
@@ -39,6 +40,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     else:
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         filename = "screenshot." + timestamp + ".png"
+    if args.dst_dir:
+        # E.g., notes/MSML610/tutorial_msml610/notebooks/figures
+        filename = os.path.join(args.dst_dir, filename)
     _LOG.info("filename: %s", filename)
     # Take a screenshot to the clipboard.
     _LOG.info("Take screenshot with Command (⌘) + Control + 4 ...")
