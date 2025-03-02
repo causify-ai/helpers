@@ -3,10 +3,16 @@
 """
 Convert a notes text file into markdown suitable for `notes_to_pdf.py`.
 
+The full list of transforms is:
 E.g.,
-- convert the text in pandoc / latex format
 - handle banners around chapters
 - handle comments
+- prepend some directive for pandoc
+- remove comments
+- expand abbreviations
+- process questions "* ..."
+- remove empty lines in the questions and answers
+- Remove all the lines with only spaces.
 """
 
 import argparse
@@ -100,13 +106,6 @@ def _run_all(lines: List[str], type_: str, *, is_qa: bool = False) -> List[str]:
     """
     Process the notes to convert them into a format suitable for pandoc.
 
-    E.g.,
-    - prepend some directive for pandoc
-    - remove comments
-    - expand abbreviations
-    - process questions "* ..."
-    - remove empty lines in the questions and answers
-
     :param lines: List of lines of the notes.
     :param type_: Type of output to generate (e.g., `pdf`, `html`, `slides`).
     :param is_qa: True if the input is a QA file.
@@ -114,8 +113,7 @@ def _run_all(lines: List[str], type_: str, *, is_qa: bool = False) -> List[str]:
     """
     _LOG.debug("_run_all")
     out: List[str] = []
-    # a) Prepend some directive for pandoc.
-    # TODO(gp): Add them only if they are not there.
+    # a) Prepend some directive for pandoc, if they are missing.
     if lines[0] != "---":
         txt = r"""
         ---
