@@ -643,9 +643,10 @@ def read_google_file(
 def write_to_google_sheet(
     df: pd.DataFrame,
     url: str,
-    tab_name: Optional[str] = None,
+    tab_name: Optional[str] = "new_data",
     *,
     credentials: goasea.Credentials,
+    overwrite: bool = False
 ) -> None:
     """
     Write data to a specified Google Sheet and tab.
@@ -659,10 +660,12 @@ def write_to_google_sheet(
     try:
         client = gspread.authorize(credentials)
         spreadsheet = client.open_by_url(url)
-        if tab_name is None:
-            tab_name = "new_data"
         try:
             worksheet = spreadsheet.worksheet(tab_name)
+            #If overwrite=False and tab is not empty, log error and exit
+            if not overwrite and worksheet.get_all_values():
+                _LOG.error("Tab '%s' is not empty. Set `overwrite=True` to overwrite.", tab_name)
+                return
         except gspread.exceptions.WorksheetNotFound:
             _LOG.warning(
                 "Tab '%s' not found, creating a new tab with the name '%s'...",
@@ -672,7 +675,8 @@ def write_to_google_sheet(
             worksheet = spreadsheet.add_worksheet(
                 title=tab_name, rows="100", cols="20"
             )
-        worksheet.clear()
+        if overwrite:
+            worksheet.clear()
         values = [df.columns.values.tolist()] + df.values.tolist()
         worksheet.update("A1", values)
         _LOG.info(
