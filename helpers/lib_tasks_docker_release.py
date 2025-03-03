@@ -665,8 +665,8 @@ def docker_multi_build_prod_image(  # type: ignore
         where hash is the output of `hgit.get_head_hash()`
     :param user_tag: the name of the user building the candidate image
     :param container_dir_name: directory where the Dockerfile is located
-    :param multi_arch: comma separated list of target architectures to build
-        the image for. E.g., `linux/amd64,linux/arm64`
+    :param multi_arch: comma separated list of target architectures to
+        build the image for. E.g., `linux/amd64,linux/arm64`
     """
     hlitauti.report_task(container_dir_name=container_dir_name)
     prod_version = hlitadoc.resolve_version_value(
@@ -735,7 +735,7 @@ def docker_multi_build_prod_image(  # type: ignore
     # Build.
     # Compress the current directory (in order to dereference symbolic
     # links) into a tar stream and pipes it to the `docker build` command.
-    # See HelpersTask197.    
+    # See HelpersTask197.
     cmd = rf"""
     tar -czh . | DOCKER_BUILDKIT={DOCKER_BUILDKIT} \
         time \
@@ -753,7 +753,7 @@ def docker_multi_build_prod_image(  # type: ignore
     cmd = rf"""
     docker pull {image_versioned_prod}
     """
-    hlitauti.run(ctx, cmd)    
+    hlitauti.run(ctx, cmd)
     if candidate:
         _LOG.info("Head hash: %s", head_hash)
     cmd = f"docker image ls {image_versioned_prod}"
