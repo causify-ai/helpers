@@ -369,7 +369,14 @@ function parse_yaml {
     #
     # This function converts YAML files into bash variable declarations.
     # It handles nested structures by concatenating parent keys with underscores.
-
+    #
+    # Args:
+    #   $1 - Path to YAML file
+    #   $2 - Optional prefix for variable names
+    #
+    # Outputs:
+    #   Bash variable declarations (VAR="value")
+    #
     # Usage:
     #   parse_yaml config.yaml [prefix]
     #
@@ -378,17 +385,10 @@ function parse_yaml {
     #   repo_info:
     #       repo_name: cmamp
     #       github_repo_account: causify-ai
-    #   
+    #
     #   Calling: parse_yaml config.yaml "REPO_CONFIG_"
     #   Outputs: REPO_CONFIG_repo_info_repo_name="cmamp"
     #            REPO_CONFIG_repo_info_github_repo_account="causify-ai"
-    # 
-    # Args:
-    #   $1 - Path to YAML file
-    #   $2 - Optional prefix for variable names
-    #
-    # Outputs:
-    #   Bash variable declarations (VAR="value")
     #
     # See https://stackoverflow.com/questions/5014632/how-can-i-parse-a-yaml-file-from-a-linux-shell-script
     local prefix=$2
@@ -397,7 +397,7 @@ function parse_yaml {
     sed -ne "s|^\($s\):|\1|" \
         -e "s|^\($s\)\($w\)$s:$s[\"']\(.*\)[\"']$s\$|\1$fs\2$fs\3|p" \
         -e "s|^\($s\)\($w\)$s:$s\(.*\)$s\$|\1$fs\2$fs\3|p"  $1 |
-    # Transform indented YAML hierarchical structures into flattened bash 
+    # Transform indented YAML hierarchical structures into flattened bash
     # variable assignments.
     awk -F$fs '{
             indent = length($1)/2;
