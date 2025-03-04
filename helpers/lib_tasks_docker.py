@@ -526,9 +526,9 @@ def _generate_docker_compose_file(
     # The Git root is always mounted in the container at `/app`. So we need to
     # use that as starting point.
     # E.g. For CSFY_GIT_ROOT_PATH, we need to use `/app`, rather than
-    # `/data/heanhs/src/cmamp1`.
+    # `/data/dummy/src/cmamp1`.
     # E.g. For CSFY_HELPERS_ROOT_PATH, we need to use `/app/helpers_root`.
-    # rather than `/data/heanhs/src/cmamp1/helpers_root`.
+    # rather than `/data/dummy/src/cmamp1/helpers_root`.
     git_root_path = "/app"
     # Find helpers root path in the container.
     helper_dir = hgit.find_helpers_root()

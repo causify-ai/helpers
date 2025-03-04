@@ -1,3 +1,7 @@
+# helpers-1.2.0
+- 2025-03-03
+- Multi-architecture Docker image
+
 # helpers-1.1.0
 - 2025-01-09
 - Move Linter to helpers

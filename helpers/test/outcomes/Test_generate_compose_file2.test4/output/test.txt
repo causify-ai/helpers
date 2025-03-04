@@ -33,13 +33,13 @@ services:
   app:
     extends: base_app
     volumes:
-      - /data/heanhs/src/orange1:/app
+      - /data/dummy/src/orange1:/app
     working_dir: /app
   linter:
     extends: base_app
     volumes:
-      - /app:/src
-    working_dir: /src/helpers_root
+      - /data/dummy/src/orange1:/src
+    working_dir: /src
     environment:
       - MYPYPATH
       - CSFY_REPO_CONFIG_PATH=/app/repo_config.py

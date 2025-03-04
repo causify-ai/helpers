@@ -18,7 +18,13 @@ _LOG = logging.getLogger(__name__)
 # pylint: disable=protected-access
 
 
+# #############################################################################
+# Test_generate_compose_file1
+# #############################################################################
+
+
 class Test_generate_compose_file1(hunitest.TestCase):
+
     def helper(
         self,
         stage: str,
@@ -94,7 +100,13 @@ class Test_generate_compose_file1(hunitest.TestCase):
         self.helper(stage="dev")
 
 
+# #############################################################################
+# Test_generate_compose_file2
+# #############################################################################
+
+
 class Test_generate_compose_file2(hunitest.TestCase):
+
     def helper(
         self,
         mock_getcwd: str,
@@ -158,9 +170,9 @@ class Test_generate_compose_file2(hunitest.TestCase):
         Check that file is generated correctly when the repo is `//cmamp`.
         """
         self.helper(
-            mock_getcwd="/data/heanhs/src/cmamp1",
-            mock_find_git_root="/data/heanhs/src/cmamp1",
-            mock_find_helpers_root="/data/heanhs/src/cmamp1/helpers_root",
+            mock_getcwd="/data/dummy/src/cmamp1",
+            mock_find_git_root="/data/dummy/src/cmamp1",
+            mock_find_helpers_root="/data/dummy/src/cmamp1/helpers_root",
             mock_is_in_helpers_as_supermodule=False,
         )
 
@@ -169,9 +181,9 @@ class Test_generate_compose_file2(hunitest.TestCase):
         Check that file is generated correctly when the repo is `//helpers`.
         """
         self.helper(
-            mock_getcwd="/data/heanhs/src/helpers1",
-            mock_find_git_root="/data/heanhs/src/helpers1",
-            mock_find_helpers_root="/data/heanhs/src/helpers1",
+            mock_getcwd="/data/dummy/src/helpers1",
+            mock_find_git_root="/data/dummy/src/helpers1",
+            mock_find_helpers_root="/data/dummy/src/helpers1",
             mock_is_in_helpers_as_supermodule=True,
         )
 
@@ -181,9 +193,9 @@ class Test_generate_compose_file2(hunitest.TestCase):
         `//cmamp/ck.infra` is a runnable dir.
         """
         self.helper(
-            mock_getcwd="/data/heanhs/src/cmamp1/ck.infra",
-            mock_find_git_root="/data/heanhs/src/cmamp1",
-            mock_find_helpers_root="/data/heanhs/src/cmamp1/helpers_root",
+            mock_getcwd="/data/dummy/src/cmamp1/ck.infra",
+            mock_find_git_root="/data/dummy/src/cmamp1",
+            mock_find_helpers_root="/data/dummy/src/cmamp1/helpers_root",
             mock_is_in_helpers_as_supermodule=False,
         )
 
@@ -192,13 +204,18 @@ class Test_generate_compose_file2(hunitest.TestCase):
         Check that file is generated correctly when the repo is `//orange`.
         """
         self.helper(
-            mock_getcwd="/data/heanhs/src/orange1",
-            mock_find_git_root="/data/heanhs/src/orange1",
-            mock_find_helpers_root="/data/heanhs/src/orange1/amp/helpers_root",
+            mock_getcwd="/data/dummy/src/orange1",
+            mock_find_git_root="/data/dummy/src/orange1",
+            mock_find_helpers_root="/data/dummy/src/orange1/amp/helpers_root",
             mock_is_in_helpers_as_supermodule=False,
         )
 
 
+# #############################################################################
+
+
+# #############################################################################
+# TestLibTasksGetDockerCmd1
 # #############################################################################
 
 
@@ -397,7 +414,13 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
 # #############################################################################
 
 
+# #############################################################################
+# Test_dassert_is_image_name_valid1
+# #############################################################################
+
+
 class Test_dassert_is_image_name_valid1(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Check that valid images pass the assertion.
@@ -432,7 +455,13 @@ class Test_dassert_is_image_name_valid1(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# Test_dassert_is_base_image_name_valid1
+# #############################################################################
+
+
 class Test_dassert_is_base_image_name_valid1(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Check that valid base images pass the assertion.

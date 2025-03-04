@@ -33,13 +33,13 @@ services:
   app:
     extends: base_app
     volumes:
-      - /data/heanhs/src/cmamp1:/app
+      - /data/dummy/src/cmamp1:/app
     working_dir: /app/ck.infra
   linter:
     extends: base_app
     volumes:
-      - /app:/src
-    working_dir: /src/helpers_root
+      - /data/dummy/src/cmamp1/ck.infra:/src
+    working_dir: /src
     environment:
       - MYPYPATH
       - CSFY_REPO_CONFIG_PATH=/app/repo_config.py
