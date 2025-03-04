@@ -63,7 +63,7 @@ fi;
 # - PATH
 
 # Set vars for this dir.
-DEV_SCRIPT_DIR="${GIT_ROOT_DIR}/dev_scripts_${REPO_CONF_runnable_dir_info_dir_tag}"
+DEV_SCRIPT_DIR="${GIT_ROOT_DIR}/dev_scripts_${REPO_CONF_runnable_dir_info_dir_suffix}"
 echo "DEV_SCRIPT_DIR=$DEV_SCRIPT_DIR"
 dassert_dir_exists $DEV_SCRIPT_DIR
 
@@ -78,7 +78,7 @@ fi;
 # - PYTHONPATH
 set_pythonpath
 
-if [[ $IS_SUPER_REPO == 1 ]]; then
+if [[ $REPO_CONF_runnable_dir_info_use_helpers_as_nested_module == 1 ]]; then
     # Add helpers.
     dassert_dir_exists $HELPERS_ROOT_DIR
     export PYTHONPATH=$HELPERS_ROOT_DIR:$PYTHONPATH

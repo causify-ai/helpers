@@ -220,7 +220,8 @@ class RepoConfig:
         return value
 
     def get_invalid_words(self) -> List[str]:
-        return []
+        value = self._data["repo_info"]["invalid_words"]
+        return value
 
     def get_docker_base_image_name(self) -> str:
         """
