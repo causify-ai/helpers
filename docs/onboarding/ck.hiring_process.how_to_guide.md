@@ -2,252 +2,215 @@
 
 <!-- toc -->
 
-- [General](#general)
-  * [On-boarding issue](#on-boarding-issue)
-  * [Create and Assign warm-up issue](#create-and-assign-warm-up-issue)
-    + [Warm-up tasks](#warm-up-tasks)
-  * [Score candidates](#score-candidates)
-  * [Suggestions](#suggestions)
+- [Hiring stages](#hiring-stages)
 - [HiringMeister](#hiringmeister)
-  * [Find candidates](#find-candidates)
-  * [Initial screening](#initial-screening)
-  * [Hiring committee](#hiring-committee)
-  * [Mentors](#mentors)
-  * [Onboarding pipeline](#onboarding-pipeline)
-  * [Onboarding GH Issues](#onboarding-gh-issues)
-  * [Feedback for interns](#feedback-for-interns)
-  * [Feedback for full-timers](#feedback-for-full-timers)
+- [Step by step](#step-by-step)
+- [Warm-up tasks](#warm-up-tasks)
+- [Suggestions](#suggestions)
+- [Intern scoring](#intern-scoring)
 
 <!-- tocstop -->
 
-## General
+## Hiring stages
 
-- The HiringMeister is responsible for testing prospective candidates for
-  full-time and part-time positions within our organization
-- To see who is the HiringMeister now refer to
+- We separate the hiring process into the following stages:
+- **Intern**
+  - Not a part of the company
+  - Paid, but not through the company payroll
+  - Interns only have access to public repos (e.g., `helpers`, `tutorials`)
+  - Can be full-time or part-time
+    - Since most are students, during summer they can work full-time
+    - In any case we expect at least 20 hrs/week
+  - Interns go through
+    ["light" on-boarding](/docs/onboarding/intern.onboarding_checklist.reference.md)
+    - Read the "must-read" docs about how we do things
+    - Set up for development on their laptops
+  - Interns get simple tasks to work on, so that we can assess how well they can
+    follow directions and work independently
+    - The tasks would be most likely related to Linter, documentation, AI, DS
+    - How to test potential hires to the Infra team? We decide case by case
+  - Ideal goal: minimal effort for us to give a chance to somebody, high
+    probability of failing
+  - Interns are managed only by the hiring team without any input from team
+    leaders
+  - After 1 month, we make a decision whether the intern can move on to the
+    following stage of the hiring pipeline
+- **3-month trial**
+  - Before an intern can turn into a permanent team member, they go through a
+    3-month trial period
+  - At this stage, they work full-time and have all the markings of a Causify
+    team member
+  - They go through
+    [full on-boarding](/docs/onboarding/all.onboarding_checklist.reference.md),
+    receiving company e-mail, server access, access to private repos, etc.
+  - After 3 months, we make a decision whether to make an offer or not
+    - The probability of failing at this stage should be low
+  - This stage is run by the hiring team with some input from team leaders
+  - During this stage, we decide which team they go on: Infra, Dev, DS, AI
+- **Permanent team member**
+  - Successful candidates receive an offer for a permanent full-time position
+    after the 3-month trial
+  - At this point they should already be fully on-boarded and ready to hit the
+    ground running
+  - They get assigned to a particular team/project and start being managed by
+    the corresponding team leader
+  - For now, we don't consider hiring new people to part-time positions since
+    it's too difficult to plan their involvement in projects
+
+## HiringMeister
+
+- Members of the hiring team iterate being the HiringMeister
+- To see who is the HiringMeister now, refer to
   [Rotation Meisters](https://docs.google.com/spreadsheets/d/1Ab6a3BVeLX1l1B3_A6rNY9pHRsofeoCw2ip2dkQ6SdA)
-- The HiringMeister:
-  - Ensures candidate evaluation through PR and pointing them to documentation
-  - Maintains hiring standards
-  - Fosters skill assessment through task assignments
-  - Continuously improves the recruitment process
+- HiringMeister's duties include:
+  - Organizing the hiring and onboarding process (see [below](#step-by-step) for
+    more details)
+  - Supervising interns and people on a 3-month trial period
+  - Keeping all the relevant documentation up-to-date
+  - Improving the process when needed
 
-### On-boarding issue
+## Step by step
 
-- As the invitation to the repo are accepted by the selected candidates, create
-  an `On-boarding` GitHub issue for each candidate
-- The name of the issue must be `On-board <Candidate Name>` and assignee is the
-  GitHub username of the candidate
-- The contents of the issue are
+- We look for candidates based on the specific hiring needs in our
+  teams/projects. There are several avenues:
+  - Emails to CS and related depts
+    - Especially for PhD students
+  - Using our LinkedIn pipeline
+    - We are going to start targeting graduates from top schools
+  - Job postings on LinkedIn
+  - Job postings on Upwork
 
-  ```verbatim
+- HiringMeister: upon receipt of a new application, create a task on Asana in
+  the
+  [Hiring](https://app.asana.com/1/1208196877870190/project/1208280136292379/list/1208280159230261)
+  project
+  - The task goes in the "Candidates" group
+  - The name of the task is the name of the applicant
+  - In the task description, use the following template:
 
-  Please follow this checklist. Mark each item as done once completed.
+    ```verbatim
+    Pronoun:
+    Personal email:
+    Work status (e.g., when graduates):
 
-  Post any errors you face in this issue.
-  - [ ] Acknowledge the pledge to put time in the project
-  - [ ] Read [How to organize your work](/docs/work_organization/kaizenflow.organize_your_work.how_to_guide.md)
-  - [ ] Read [Quick start for developing](/docs/onboarding/kaizenflow.prepare_for_development.how_to_guide.md)
-  - [ ] Set up the [development environment](/docs/onboarding/intern.set_up_development_on_laptop.how_to_guide.md)
-  - [ ] Make sure the [Docker dev container](/docs/work_tools/all.devops_docker.how_to_guide.md) works
-  - [ ] Make sure the [unit tests](/docs/coding/all.run_unit_tests.how_to_guide.md) run successfully
-  - [ ] Read [KaizenFlow Python coding style guide](/docs/coding/all.coding_style.how_to_guide.md)
-  - [ ] Fork, star, watch the KaizenFlow repo so that GitHub promotes our repo (we gotta work the system)
-  - [ ] Learn about the [Morning Email](/docs/work_organization/all.team_collaboration.how_to_guide.md#morning-email)
-  - [ ] How to do a [review](/docs/coding/all.submit_code_for_review.how_to_guide.md)
-  - [ ] If you are graduating soon and you would like to get a full-time job in one of the companies in the KaizenFlow ecosystem reach out to GP at [gp@kaizen-tech.io](mailto:gp@kaizen-tech.io)
-  - [ ] Get assigned a warm-up issue
-  ```
+    Hiring info:
+      Google Form:
+      CV:
+      LinkedIn:
+      GitHub user:
+      TG:
+      Working hours / week:
+      Best piece of code:
+      How good (1-5):
+    ```
+  - We use this Asana task to communicate about the applicant
 
-- A reference issue is
-  [On-boarding](https://github.com/kaizen-ai/kaizenflow/issues/437)
-- Regularly check the updates made by the candidate and help resolving any
-  errors faced by them
+- HiringMeister: send an email to the applicant with a link to the
+  [questionnaire](https://docs.google.com/forms/d/e/1FAIpQLScWAavYiYj1IfWGP1QEv2jqjKvQKnFjseryhzmIIHZKnZ4HkA/viewform)
+  to gather information about them
+  - Responses are available
+    [here](https://docs.google.com/forms/d/1NUsjbTyXBoITQZ6z8nqmTydFPcWl0kWEQZJZzzYXUeM/edit#responses)
+  - Use their responses to update the corresponding Asana task description
 
-### Create and Assign warm-up issue
+- Hiring team: decide whether we take on the applicant as an **intern**
+  - Decided at a review meeting that takes place every 2 weeks
+  - We want to increase the quality of the collaborators, so if there is a red
+    flag (e.g., no GitHub, low GPA, undergrad) we can decide not to offer the
+    internship
+  - The goal is to avoid onboarding people that will likely disappoint us
+  - If we receive a single candidate application and find no red flags in the
+    profile, we should proceed further in the process
+  - It's ok to ask more team members to take a look
+  - If the candidate is a no-go, GP sends an email of rejection
 
-#### Warm-up tasks
+- HiringMeister: create a GitHub issue for onboarding the intern
+  - Follow the instructions in
+    [`intern.onboarding_checklist.reference.md`](/docs/onboarding/intern.onboarding_checklist.reference.md)
 
-- Collaborate with the team to identify potential warm-up tasks for candidates
-  upon completion of their on-boarding process
-- The goal of a warm-up issue is for someone to write a bit of code and show
-  they can follow the process, the goal is not to check if they can solve a
-  complex coding problem
+- HiringMeister: regularly check the updates made by the intern in the
+  onboarding issue and help resolve any errors they face
+  - The onboarding process should take 2-3 days max
+
+- HiringMeister: once the onboarding is complete, assign a
+  [warm-up issue](#warm-up-tasks) to the intern
+  - If an intern shows lack of progress on their assigned warm-up task, ping
+    them twice for updates. If no progress is made, reassign the task to a more
+    promising intern
+  - Once the intern submits a pull request, review it to ensure adherence to our
+    processes. Provide constructive feedback on areas for improvement and
+    ascertain if the task's objectives have been fully met
+  - If the task is completed, assign a new one
+
+- Hiring team: after 1 month, decide whether we should continue to collaborate
+  with the intern or not
+
+- HiringMeister: when the intern moves on to the **3-month trial period**,
+  create a GitHub issue for further onboarding
+  - Follow the instructions in
+    [`all.onboarding_checklist.reference.md`](/docs/onboarding/all.onboarding_checklist.reference.md)
+
+- HiringMeister: once the onboarding is complete, organize more complex tasks to
+  test their development and problem-solving skills
+  - This is done together with team leaders
+
+- Hiring team: after 3 months, decide whether we want to offer a permanent
+  position on the team
+  - If the offer is made, decide which team/project the new team member is
+    joining, based on their background, skills, performance during internship
+    and 3-month trial, and, last but not least, company needs
+
+## Warm-up tasks
+
+- The HiringMeister should collaborate with the team to identify potential
+  warm-up tasks to give to the interns upon completion of their onboarding
+  process
+- The goal of a warm-up issue is to write a bit of code and show they can follow
+  the process, the goal is not to check if they can solve a complex coding
+  problem
 - It should take 1-2 days to get it done
 - This helps us understand if they can
-  - Follow the process (or at least show that they read it and somehow
-    internalized it)
-  - Solve a trivial some problems
+  - Follow the process (or at least show that they have read the docs and
+    somehow internalized them)
+  - Solve some trivial problems
   - Write Python code
   - Interact on GitHub
-  - Interact with the team
-- Ensure that these warm-up tasks are straightforward to integrate, immediately
-  beneficial, unrelated to new features, and do not rely on the `ck`
-  infrastructure
-- As candidates complete their on-boarding checklist, promptly assign them
-  warm-up tasks from the predetermined list
-- Write specs in a manner that is easily understandable by candidates, address
-  any queries they may have regarding the task, and regularly follow up for
-  updates
-- If a candidate shows lack of progress on their assigned warm-up task, ping
-  them twice for updates. If no progress is made, reassign the task to a more
-  promising candidate
-- Upon submission of a pull request by the candidate for the task, review it to
-  ensure adherence to our processes. Provide constructive feedback on areas for
-  improvement and ascertain if the task's objectives have been fully met
-- Before merging the PR on `kaizenflow`, create a similar PR on `cmamp` and
-  merge both of them together
-- Assign more task to the candidate if required to make a final decision
+  - Communicate with the team
+- The warm-up tasks should be straightforward to integrate, immediately
+  beneficial, unrelated to new features, and should not rely on the code in
+  private repos
+- It is important that specs are provided in a manner that is easy to be
+  understood by interns, and any queries they may have regarding the task are
+  addressed quickly by the HiringMeister or another permanent team member
+- Warm-up tasks are collected in advance:
+  - Issues marked with the "good first issue" label on GH
+  - [Outsourceable issues gdoc](https://docs.google.com/document/d/1uuezdmcsV9TG2YwXGvEd0PBgWScCpR-QPOcySI5LPIA/edit#heading=h.vcvkivfud7be)
 
-### Score candidates
-
-- Score the candidates every two weeks and notify all the team members for
-  scoring
-- Scoring criteria and template are defined in details in
-  [this](/docs/work_organization/all.contributor_scoring.how_to_guide.md) doc
-  - Not all the criteria are used for scoring the new candidates
-  - E.g.
-    [Scoring sheet](https://docs.google.com/spreadsheets/d/1eIzQnUZFiCAei4_vYnNWc_wDRfpSHgCdDmIeqnDm78Y)
-- The scoring should be done by all of the members of the hiring team
-- The final score of the candidate includes the average score of all the team
-  members
-- The final scored are delivered to the candidates every two weeks
-- The candidate with low score should be dropped
-
-### Suggestions
+## Suggestions
 
 - In the first couple of weeks we should try to ingrain the following flow into
-  a new team member's mind
+  the intern's mind
 - Instead of spending hours coding on their own, apply the following steps:
   1. Identify a problem and describe it in the issue
-  2. Design solution or seek guidance from a mentor
-  3. Let mentor approve/comment and reach consensus on the solution
+  2. Design solution or seek guidance from a more experienced team member
+  3. Communicate with the team and reach consensus on the solution
   4. Write code
 - Stick to smaller PRs
   - It's very important to push frequently and ask for feedback early to avoid
     large refactoring
 
-## HiringMeister
+## Intern scoring
 
-### Find candidates
-
-We get candidates in several ways
-
-- Send emails to CS and related depts
-  - Especially for PhD students
-
-- Use our LinkedIn pipeline to find candidates
-  - We are going to start targeting graduates from top schools
-
-- Post job on LinkedIn
-
-- Post job on Upwork
-
-### Initial screening
-
-- HiringMeister: upon receipt of applications for new positions, track
-  applicants add task to Asana "Candidates"
-  - For each task description use the template
-    https://app.asana.com/0/1204526145297526/1207748235019119/f
-
-- HiringMeister: send email to gather additional information from candidates
-  - Ask candidates to fill out the questionnaire form
-    [here](https://docs.google.com/forms/d/1-iegytm5t1w-LPs7gm8IuUHTxi3cKI2iqzlPKdanWqY/edit#response=ACYDBNiZxM_bkXREaYEijJzedNrMRFiuzfuGgMQLE2W8qnzXnC1UcYAd8SbnXWHKAA)
-  - Results are
-    [here](https://docs.google.com/spreadsheets/d/13Mxj5ZIydMQHSmJUDCpURB5w-50RPXC0AjgKWYcMZnw/edit?resourcekey#gid=2038824432)
-
-### Hiring committee
-
-- Every 2 weeks the screening committee conducts a meeting to review the
-  applicants
-  - Everyone on the committee collects all the information needed to make a
-    decision
-  - TODO(gp): This needs to be formalized better
-
-- We want to increase the quality of the collaborators, so if there is a red
-  flag (e.g., no GitHub, low GPA, undergrad) we can decide to not on-board
-  - The goal is to avoid on-boarding people that will likely disappoint us
-
-- If we receive a single candidate application and find no red flags in the
-  profile, we should proceed further in the process
-  - It's ok to ask more team members to take a look
-
-- If the candidate is a no-go, GP sends an email of rejection
-
-### Mentors
-
-- Hiring Meisters (e.g., Sonaal and Samarth) supervise the hiring process
-  - [docs/onboarding/ck.hiring_process.how_to_guide.md](https://github.com/kaizen-ai/kaizenflow/blob/master/docs/onboarding/ck.hiring_process.how_to_guide.md)
-
-- Coding mentors are:
-  - Hiring Meisters
-  - Anybody who is not in some critical path (e.g., Dan, Danya, Toma)
-
-### Onboarding pipeline
-
-- Once a candidate is accepted we assign a mentor on Asana
-  - The mentor is in charge to intervene when the candidate is blocked
-  - We track the mentor in Asana
-
-- We use Asana tasks to communicate about the candidates
-
-- There are multiple pipeline stages on Asana that candidates go through
-  - **Candidates**
-    - Anybody who wants to join our project/company
-  - **On-boarding on KaizenAI**
-    - _Goal_: set up candidates to work on their laptop on KaizenAI
-    - _Duration_: few days
-    - The checklist for onboarding on KaizenAI is
-      [here](/docs/onboarding/ck.hiring_process.how_to_guide.md#on-boarding-bug-creation)
-    - Once the checklist is complete, candidates move to the next step
-  - **Working on KaizenAI**
-    - _Goal_: understand who can/should join the team
-    - _Duration_: 1 month
-    - _Type of tasks_: unit tests
-    - Each candidate should work on 2-3 issues to make sure we can judge how
-      good is a candidate
-    - We score candidates every 2 weeks for a few iterations until we can make a
-      decision
-    - Candidates who are good enough can be onboarded on cmamp, otherwise are
-      dropped
-  - **On-boarding on cmamp**
-    - _Goal_: set up candidates to develop on cmamp (only on the server)
-    - _Duration_: few days
-    - The checklist for onboarding on cmamp is
-      [here](/docs/onboarding/all.onboarding_checklist.reference.md)
-    - On-boarding GH issue on cmamp
-  - **Working on cmamp**
-    - _Goal_: learn our development process
-    - _Duration_: 1 month
-    - _Type of tasks_: unit tests (stuff that doesn't require design)
-    - After that we can assign the best hires to teams
-  - **Full-time or interns on probation**
-    - _Goal_: contribute to KaizenAI or cmamp
-    - _Duration_: 3 months
-    - _Type of tasks_: unit test, refactoring, simple non-design tasks
-    - Assign them to teams
-    - Give them more complex task
-  - **Full-time team members**
-    - Normal workflow
-  - **Team leaders**
-    - Type of tasks: in charge of architecture, big picture, real-time systems
-    - For the ones that are able to master the process
-
-### Onboarding GH Issues
-
-We want to have a pipeline of GH Issues to assign people as soon as they are
-ready
-
-- [On-boarding issues](https://docs.google.com/document/d/1uuezdmcsV9TG2YwXGvEd0PBgWScCpR-QPOcySI5LPIA/edit#heading=h.vcvkivfud7be)
-
-### Feedback for interns
-
-The scoring process is described here
-
-[`/docs/work_organization/all.contributor_scoring.how_to_guide.md`](/docs/work_organization/all.contributor_scoring.how_to_guide.md)
-
-[Internships - Feedback 2024](https://docs.google.com/spreadsheets/d/1FCuM3dPP3QZCT7iOHSKXls-maSZ0Mwj7BjsbaUq-T0Y/edit?gid=1816709202#gid=1816709202)
-
-### Feedback for full-timers
-
-[Performance feedback](https://docs.google.com/document/d/1wkG7c8LYhCnBINDRTpWcCLEQ5E9cW_A_bt4jr-Vxy64/edit#heading=h.16akje28vcjx)
+- The interns are scored every two weeks
+- Scoring criteria and template are defined in detail in
+  [this](/docs/work_organization/all.contributor_scoring.how_to_guide.md) doc
+  - Not all the criteria are used for scoring the interns
+  - See, e.g.,
+    [Scoring sheet](https://docs.google.com/spreadsheets/d/1eIzQnUZFiCAei4_vYnNWc_wDRfpSHgCdDmIeqnDm78Y),
+    [Internships - Feedback 2024](https://docs.google.com/spreadsheets/d/1FCuM3dPP3QZCT7iOHSKXls-maSZ0Mwj7BjsbaUq-T0Y/edit?gid=1816709202#gid=1816709202)
+  - See also the guidelines for the
+    [performance feedback for full-time team members](https://docs.google.com/document/d/1wkG7c8LYhCnBINDRTpWcCLEQ5E9cW_A_bt4jr-Vxy64/edit#heading=h.16akje28vcjx),
+    to see what is generally expected of our employees
+- The scoring should be done by all members of the hiring team
+- The final score of the intern is the average score of all the team members
+- The final scores are delivered to the interns every two weeks
+- Interns with a low score should be let go

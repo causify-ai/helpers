@@ -236,8 +236,9 @@ The idea is to send a morning TODO email to broadcast:
   - It is recommended to check the inbox (email, GitHub) first to reflect all
     the update in the plan for the day
 - Send an email to:
-  - For full-time employees/contractors: `eng@kaizen-tech.io`
-  - For interns or collaborators: `contributors@crypto-kaizen.com`
+  - For permanent team members and people on a 3-month trial period:
+    `eng@kaizen-tech.io`
+  - For interns: `contributors@kaizen-tech.io`
 - Email subject:
   - `TODO` (all caps)
   - It easier to filter emails by subject
