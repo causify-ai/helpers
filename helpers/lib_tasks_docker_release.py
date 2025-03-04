@@ -643,7 +643,7 @@ def docker_build_prod_image(  # type: ignore
 
 # TODO(gp): Remove redundancy with docker_build_local_image(), if possible.
 @task
-def docker_multi_build_prod_image(  # type: ignore
+def docker_build_multi_arch_prod_image(  # type: ignore
     ctx,
     version,
     cache=True,
@@ -726,12 +726,6 @@ def docker_multi_build_prod_image(  # type: ignore
     opts = "--no-cache" if not cache else ""
     # Use dev version for building prod image.
     dev_version = hlitadoc.to_dev_version(prod_version)
-    build_args = [
-        f"\n   VERSION={dev_version}",
-        f"\n   ECR_BASE_PATH={os.environ['CSFY_ECR_BASE_PATH']}",
-    ]
-    #
-    build_args = f"--build-arg {hlitauti.to_multi_line_cmd(build_args)}"
     # Build.
     # Compress the current directory (in order to dereference symbolic
     # links) into a tar stream and pipes it to the `docker build` command.
@@ -743,7 +737,8 @@ def docker_multi_build_prod_image(  # type: ignore
         {opts} \
         --push \
         --platform {multi_arch} \
-        {build_args} \
+        --build-arg VERSION={dev_version} \
+        --build-arg ECR_BASE_PATH={os.environ['CSFY_ECR_BASE_PATH']} \
         --tag {image_versioned_prod} \
         --file {dockerfile} \
         -
@@ -761,8 +756,9 @@ def docker_multi_build_prod_image(  # type: ignore
 
 
 # TODO(Vlad): Refactor with the `docker_tag_push_multi_build_local_image_as_dev()`.
+# TODO(Vlad): Add the candidate image support. See HelpersTask338.
 @task
-def docker_multi_build_push_tag_prod_image(  # type: ignore
+def docker_multi_arch_push_tag_prod_image(  # type: ignore
     ctx,
     version,
     base_image="",
@@ -875,6 +871,7 @@ def docker_push_prod_candidate_image(  # type: ignore
 
 
 @task
+# TODO(Vlad): Add the release flow with the multi-arch support.
 def docker_release_prod_image(  # type: ignore
     ctx,
     version,
