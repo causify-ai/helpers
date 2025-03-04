@@ -21,6 +21,7 @@ import helpers.hsystem as hsystem
 import helpers.lib_tasks_docker as hlitadoc
 import helpers.lib_tasks_pytest as hlitapyt
 import helpers.lib_tasks_utils as hlitauti
+import helpers.repo_config_utils as hrecouti
 
 _DEFAULT_TARGET_REGISTRY = "aws_ecr.ck"
 _LOG = logging.getLogger(__name__)
@@ -436,9 +437,7 @@ def docker_tag_push_multi_build_local_image_as_dev(  # type: ignore
         dev_base_image = ""
     elif target_registry == "dockerhub.causify":
         # Use public GitHub Docker registry.
-        base_image_name = henv.execute_repo_config_code(
-            "get_docker_base_image_name()"
-        )
+        base_image_name = hrecouti.get_repo_config().get_docker_base_image_name()
         dev_base_image = f"causify/{base_image_name}"
     else:
         raise ValueError(

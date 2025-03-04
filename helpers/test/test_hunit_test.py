@@ -1105,7 +1105,7 @@ class Test_purify_from_env_vars(hunitest.TestCase):
 
 # TODO(gp): HelpersTask1
 #    @pytest.mark.skipif(
-#        not henv.execute_repo_config_code("get_name()") == "//cmamp",
+#        not hrecouti.get_repo_config().get_name() == "//cmamp",
 #        reason="Run only in //cmamp",
 #    )
 #    def test_end_to_end(self) -> None:

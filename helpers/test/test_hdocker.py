@@ -26,7 +26,7 @@ class Test_replace_shared_root_path1(hunitest.TestCase):
         """
         Test replacing shared root path.
         """
-        # Mock `henv.execute_repo_config_code()` to return a dummy mapping.
+        # Mock `hserver.get_shared_data_dirs()` to return a dummy mapping.
         mock_mapping = {
             "/data/shared1": "/shared_folder1",
             "/data/shared2": "/shared_folder2",
@@ -54,7 +54,7 @@ class Test_replace_shared_root_path1(hunitest.TestCase):
         """
         Test replacing shared root path with the `replace_ecs_tokyo` parameter.
         """
-        # Mock `henv.execute_repo_config_code()` to return a dummy mapping.
+        # Mock `hserver.get_shared_data_dirs()` to return a dummy mapping.
         mock_mapping = {
             "/data/shared": "/shared_folder",
         }

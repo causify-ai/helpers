@@ -574,7 +574,7 @@ class Test_replace_shared_root_path(hunitest.TestCase):
         """
         Test replacing in config all shared root paths with the dummy mapping.
         """
-        # Mock `henv.execute_repo_config_code()` to return a dummy mapping.
+        # Mock `hserver.get_shared_data_dirs()` to return a dummy mapping.
         mock_mapping = {
             "/ecs_tokyo": "/ecs",
             "/data/shared1": "/shared_folder1",

@@ -415,7 +415,7 @@ def is_amp_present(*, dir_name: str = ".") -> bool:
 # on the repo. We should control the tests through what functionalities they have,
 # e.g.,
 # ```
-# henv.execute_repo_config_code("has_dind_support()"),
+# hserver.has_dind_support(),
 # ```
 #
 # rather than their name.
