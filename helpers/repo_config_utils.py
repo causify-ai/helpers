@@ -210,9 +210,11 @@ class RepoConfig:
         return repo_map
 
     def get_extra_amp_repo_sym_name(self) -> str:
-        repo_name = self._data["repo_info"]["repo_name"]
+        # repo_name = self._data["repo_info"]["repo_name"]
+        # return f"{github_repo_account}/{repo_name}"
+        # TODO(Grisha): it should return cmamp name, not the current
         github_repo_account = self._data["repo_info"]["github_repo_account"]
-        return f"{github_repo_account}/{repo_name}"
+        return f"{github_repo_account}/cmamp"
 
     # TODO(gp): -> get_github_host_name
     def get_host_name(self) -> str:
