@@ -872,6 +872,7 @@ def docker_push_prod_candidate_image(  # type: ignore
 
 @task
 # TODO(Vlad): Add the release flow with the multi-arch support.
+# See HelpersTask339.
 def docker_release_prod_image(  # type: ignore
     ctx,
     version,
