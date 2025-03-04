@@ -6,7 +6,7 @@
 - [HiringMeister](#hiringmeister)
 - [Step by step](#step-by-step)
 - [Warm-up tasks](#warm-up-tasks)
-- [Suggestions](#suggestions)
+- [Take-home message for interns](#take-home-message-for-interns)
 - [Intern scoring](#intern-scoring)
 
 <!-- tocstop -->
@@ -185,32 +185,32 @@
   - Issues marked with the "good first issue" label on GH
   - [Outsourceable issues gdoc](https://docs.google.com/document/d/1uuezdmcsV9TG2YwXGvEd0PBgWScCpR-QPOcySI5LPIA/edit#heading=h.vcvkivfud7be)
 
-## Suggestions
+## Take-home message for interns
 
 - In the first couple of weeks we should try to ingrain the following flow into
-  the intern's mind
-- Instead of spending hours coding on their own, apply the following steps:
-  1. Identify a problem and describe it in the issue
-  2. Design solution or seek guidance from a more experienced team member
-  3. Communicate with the team and reach consensus on the solution
-  4. Write code
-- Stick to smaller PRs
-  - It's very important to push frequently and ask for feedback early to avoid
-    large refactoring
+  the intern's mind:
+  - Instead of spending hours coding on their own, apply the following steps:
+    1. Identify a problem and describe it in the issue
+    2. Design solution or seek guidance from a more experienced team member
+    3. Communicate with the team and reach consensus on the solution
+    4. Write code
+  - Stick to smaller PRs
+    - It's very important to push frequently and ask for feedback early to avoid
+      large refactoring
 
 ## Intern scoring
 
-- The interns are scored every two weeks
+- The interns are scored every 2 weeks
 - Scoring criteria and template are defined in detail in
-  [this](/docs/work_organization/all.contributor_scoring.how_to_guide.md) doc
+  [`all.contributor_scoring.how_to_guide.md`](/docs/work_organization/all.contributor_scoring.how_to_guide.md)
   - Not all the criteria are used for scoring the interns
   - See, e.g.,
     [Scoring sheet](https://docs.google.com/spreadsheets/d/1eIzQnUZFiCAei4_vYnNWc_wDRfpSHgCdDmIeqnDm78Y),
     [Internships - Feedback 2024](https://docs.google.com/spreadsheets/d/1FCuM3dPP3QZCT7iOHSKXls-maSZ0Mwj7BjsbaUq-T0Y/edit?gid=1816709202#gid=1816709202)
   - See also the guidelines for the
     [performance feedback for full-time team members](https://docs.google.com/document/d/1wkG7c8LYhCnBINDRTpWcCLEQ5E9cW_A_bt4jr-Vxy64/edit#heading=h.16akje28vcjx),
-    to see what is generally expected of our employees
+    for what is generally expected of our employees
 - The scoring should be done by all members of the hiring team
 - The final score of the intern is the average score of all the team members
-- The final scores are delivered to the interns every two weeks
+- The final scores are delivered to the interns every 2 weeks
 - Interns with a low score should be let go
