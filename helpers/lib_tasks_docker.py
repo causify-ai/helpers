@@ -255,7 +255,6 @@ def docker_pull_helpers(
     """
     Pull latest prod image of `helpers` from the registry.
 
-
     :param ctx: invoke context
     :param stage: stage of the Docker image
     :param version: version of the Docker image
@@ -267,9 +266,7 @@ def docker_pull_helpers(
     if docker_registry == "dockerhub.causify":
         base_image = "causify/helpers"
     elif docker_registry == "aws_ecr.ck":
-        base_image = hlitauti.get_default_param(
-            "CSFY_ECR_BASE_PATH"
-        ) + "/helpers"
+        base_image = hlitauti.get_default_param("CSFY_ECR_BASE_PATH") + "/helpers"
     else:
         raise ValueError(
             f"The Docker image registry='{docker_registry}' is not supported"
