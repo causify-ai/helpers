@@ -25,8 +25,8 @@
     ["light" on-boarding](/docs/onboarding/intern.onboarding_checklist.reference.md)
     - Read the "must-read" docs about how we do things
     - Set up for development on their laptops
-  - Interns get simple tasks to work on, so that we can assess how well they can
-    follow directions and work independently
+  - Interns get [simple tasks](#warm-up-tasks) to work on, so that we can assess
+    how well they can follow directions and work independently
     - The tasks would be most likely related to Linter, documentation, AI, DS
     - How to test potential hires to the Infra team? We decide case by case
   - Ideal goal: minimal effort for us to give a chance to somebody, high
