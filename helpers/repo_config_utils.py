@@ -210,20 +210,26 @@ class RepoConfig:
         return repo_map
 
     def get_extra_amp_repo_sym_name(self) -> str:
-        # repo_name = self._data["repo_info"]["repo_name"]
-        # return f"{github_repo_account}/{repo_name}"
-        # TODO(Grisha): it should return cmamp name, not the current
         github_repo_account = self._data["repo_info"]["github_repo_account"]
-        return f"{github_repo_account}/cmamp"
-
+        repo_name = self._data["repo_info"]["repo_name"]
+        if repo_name in ["orange", "lemonade"]: 
+            # TODO(Grisha): it should return cmamp name, not the current
+            return f"{github_repo_account}/cmamp"
+        else:
+            return f"{github_repo_account}/{repo_name}"
+    
     # TODO(gp): -> get_github_host_name
     def get_host_name(self) -> str:
         value = self._data["repo_info"]["github_host_name"]
         return value
 
     def get_invalid_words(self) -> List[str]:
-        value = self._data["repo_info"]["invalid_words"]
-        return value
+        values = self._data["repo_info"]["invalid_words"]
+        if values is None:
+            invalid_words = []
+        else:
+            invalid_words = values.split(",")
+        return invalid_words
 
     def get_docker_base_image_name(self) -> str:
         """
