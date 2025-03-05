@@ -28,6 +28,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument("positional", nargs="*", help="...")
     parser.add_argument("--dst_dir", action="store", help="Destination directory")
     parser.add_argument("--filename", action="store", help="File name")
+    parser.add_argument("--override", action="store_true", help="Override if file exists")
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -45,6 +46,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
         # E.g., notes/MSML610/tutorial_msml610/notebooks/figures
         filename = os.path.join(args.dst_dir, filename)
     _LOG.info("filename: %s", filename)
+    if not args.override:
+        hdbg.dassert_path_not_exists(filename)
     # Take a screenshot to the clipboard.
     _LOG.info("Take screenshot with Command (⌘) + Control + 4 ...")
     cmd = "screencapture -i -t png %s" % filename

@@ -699,7 +699,7 @@ def _get_repo_short_to_full_name(include_host_name: bool) -> Dict[str, str]:
     """
     # From short name to long name.
     repo_map = {
-        "msml610": "gpsaggese/notes",
+        #"msml610": "gpsaggese/notes",
         "amp": "alphamatic/amp",
         "helpers": "causify-ai/helpers",
         "tutorials": "causify-ai/tutorials",
@@ -735,7 +735,7 @@ def _get_repo_short_to_full_name(include_host_name: bool) -> Dict[str, str]:
     repo_map.update(
         get_repo_map()  # type: ignore[name-defined]  # noqa: F821  # pylint: disable=undefined-variable
     )
-    hdbg.dassert_no_duplicates(repo_map.values())
+    hdbg.dassert_no_duplicates(list(repo_map.values()))
     _LOG.debug(
         "include_host_name=%s, repo_map=\n%s",
         include_host_name,
