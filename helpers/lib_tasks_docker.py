@@ -262,7 +262,7 @@ def docker_pull_helpers(
         - "dockerhub.causify": public Causify Docker image registry
         - "aws_ecr.ck": private AWS CK ECR
     """
-    hlitauti.report_task()
+    hlitauti.report_task(txt=hprint.to_str("docker_registry"))
     if docker_registry == "dockerhub.causify":
         base_image = "causify/helpers"
     elif docker_registry == "aws_ecr.ck":
