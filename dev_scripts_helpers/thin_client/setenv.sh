@@ -5,8 +5,13 @@
 # use bash and doesn't have +x permissions.
 #
 
+# - Source `utils.sh`.
+# NOTE: we can't use $0 to find the path since we are sourcing this file.
+GIT_ROOT_DIR=$(git rev-parse --show-toplevel)
+echo "GIT_ROOT_DIR=$GIT_ROOT_DIR"
+
 # Load thin client utils.
-SOURCE_PATH=$(find . -name "thin_client_utils.sh" -type f 2>/dev/null | head -1)
+SOURCE_PATH=$(find $GIT_ROOT_DIR -name "thin_client_utils.sh" -type f 2>/dev/null | head -1)
 # Check if file was found.
 if [ -n "$SOURCE_PATH" ]; then
     echo "Thin client utils found at: $SOURCE_PATH"
@@ -39,11 +44,6 @@ fi;
 # Give permissions to read / write to user and group.
 umask 002
 
-# - Source `utils.sh`.
-# NOTE: we can't use $0 to find the path since we are sourcing this file.
-GIT_ROOT_DIR=$(git rev-parse --show-toplevel)
-echo "GIT_ROOT_DIR=$GIT_ROOT_DIR"
-
 if [[ $REPO_CONF_runnable_dir_info_use_helpers_as_nested_module == 1 ]]; then
     # For super-repos `GIT_ROOT_DIR` points to the super-repo.
     HELPERS_ROOT_DIR="${GIT_ROOT_DIR}/helpers_root"
@@ -63,7 +63,8 @@ fi;
 # - PATH
 
 # Set vars for this dir.
-DEV_SCRIPT_DIR="${GIT_ROOT_DIR}/dev_scripts_${REPO_CONF_runnable_dir_info_dir_suffix}"
+CURR_DIR=$(pwd)
+DEV_SCRIPT_DIR="${CURR_DIR}/dev_scripts_${REPO_CONF_runnable_dir_info_dir_suffix}"
 echo "DEV_SCRIPT_DIR=$DEV_SCRIPT_DIR"
 dassert_dir_exists $DEV_SCRIPT_DIR
 
