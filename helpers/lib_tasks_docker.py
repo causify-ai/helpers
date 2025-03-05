@@ -1320,7 +1320,7 @@ def _get_lint_docker_cmd(
     """
     # Infer the docker registry based on the environment.
     if docker_registry == "":
-        if hserver.is_dev_ck(): 
+        if hserver.is_dev_ck():
             docker_registry = "aws_ecr.ck"
         else:
             docker_registry = "dockerhub.causify"
