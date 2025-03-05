@@ -655,9 +655,9 @@ def docker_build_multi_arch_prod_image(  # type: ignore
     multi_arch="linux/amd64,linux/arm64",
 ):
     """
-    Build a multi arch. versioned prod image from a dev image.
-        For e.g.: we have the dev image `helpers:dev-1.0.0` and we want to
-        build a prod image `helpers:prod-1.0.0`.
+    Build a multi arch. versioned prod image from a dev image. For e.g.: we
+    have the dev image `helpers:dev-1.0.0` and we want to build a prod image
+    `helpers:prod-1.0.0`.
 
     :param version: version to tag the image and code with
     :param cache: note that often the prod image is just a copy of the
