@@ -760,7 +760,7 @@ def docker_build_multi_arch_prod_image(  # type: ignore
 # TODO(Vlad): Refactor with the `docker_tag_push_multi_build_local_image_as_dev()`.
 # TODO(Vlad): Add the candidate image support. See HelpersTask338.
 @task
-def docker_multi_arch_push_tag_prod_image(  # type: ignore
+def docker_tag_push_multi_arch_prod_image(  # type: ignore
     ctx,
     version,
     base_image="",
