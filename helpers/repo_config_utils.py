@@ -36,12 +36,14 @@ def indent(txt: str, num_spaces: int = 2) -> str:
 
 # End copy.
 
+
 def _find_config_file(file_name: str) -> str:
     """
     Find recursively the dir of config file.
 
-    This function traverses the directory hierarchy upward from a specified
-    starting path to find the directory that contains the config file. 
+    This function traverses the directory hierarchy upward from a
+    specified starting path to find the directory that contains the
+    config file.
 
     :param file_name: name of the file to find
     :return: path to the file
@@ -55,10 +57,12 @@ def _find_config_file(file_name: str) -> str:
         if parent == curr_dir:
             # We cannot use helpers since it creates circular import.
             raise FileNotFoundError(
-                "Could not find '%s' in current directory or any parent directories" % file_name
+                "Could not find '%s' in current directory or any parent directories"
+                % file_name
             )
         curr_dir = parent
     return path
+
 
 def _get_env_var(
     env_name: str,
@@ -151,12 +155,12 @@ class RepoConfig:
     def get_extra_amp_repo_sym_name(self) -> str:
         github_repo_account = self._data["repo_info"]["github_repo_account"]
         repo_name = self._data["repo_info"]["repo_name"]
-        if repo_name in ["orange", "lemonade"]: 
+        if repo_name in ["orange", "lemonade"]:
             # TODO(Grisha): it should return cmamp name, not the current
             return f"{github_repo_account}/cmamp"
         else:
             return f"{github_repo_account}/{repo_name}"
-    
+
     # TODO(gp): -> get_github_host_name
     def get_host_name(self) -> str:
         value = self._data["repo_info"]["github_host_name"]
@@ -262,7 +266,7 @@ class RepoConfig:
             )
         else:
             # client_root = _find_git_root()
-            # We cannot use git root here because the config file doesn't always 
+            # We cannot use git root here because the config file doesn't always
             # reside in the root of the repo (e.g., it can be in subdir such as
             # //cmamp/ck.infra for runnable dir).
             file_path = _find_config_file("repo_config.yaml")
@@ -273,6 +277,7 @@ class RepoConfig:
         if not os.path.exists(file_path):
             raise FileNotFoundError("File '%s' doesn't exist" % file_path)
         return file_path
+
 
 _repo_config = None
 

@@ -21,4 +21,3 @@ runnable_dir_info:
   use_helpers_as_nested_module: 0
   venv_tag: helpers
   dir_suffix: helpers
-  dir_tag: helpers

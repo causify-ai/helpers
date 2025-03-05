@@ -41,7 +41,6 @@ class Test_repo_config1(hunitest.TestCase):
           use_helpers_as_nested_module: 0
           venv_tag: helpers
           dir_suffix: helpers
-          dir_tag: helpers
         """
         yaml_txt = hprint.dedent(yaml_txt)
         file_name = os.path.join(self.get_scratch_space(), "yaml.txt")
