@@ -59,6 +59,6 @@ class Test_repo_config1(hunitest.TestCase):
         repo_config = hrecouti.RepoConfig.from_file(file_name)
         act = repo_config.get_repo_map()
         exp = {
-          "helpers": "causify-ai/helpers",
+            "helpers": "causify-ai/helpers",
         }
         self.assert_equal(str(act), str(exp))
