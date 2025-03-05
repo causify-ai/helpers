@@ -264,7 +264,7 @@ def docker_pull_helpers(  # type: ignore
     :param ctx: invoke context
     :param stage: stage of the Docker image
     :param version: version of the Docker image
-    :param docker_registry: target Docker image registry to log in to
+    :param docker_registry: Docker image registry to pull the image from
         - "dockerhub.causify": public Causify Docker image registry
         - "aws_ecr.ck": private AWS CK ECR
     """
@@ -1308,24 +1308,33 @@ def _get_lint_docker_cmd(
     version: str,
     *,
     use_entrypoint: bool = True,
-    no_dev_server: bool = False,
+    docker_registry: str = "",
 ) -> str:
     """
     Create a command to run in Linter service.
 
     :param docker_cmd_: command to run
     :param stage: the image stage to use
-    :param no_dev_server: True, if running Linter on local machine, else
-        false if on dev server
+    :param docker_registry: see the `lint` invoke target
     :return: the full command to run
     """
+    # Infer the docker registry based on the environment.
+    if docker_registry == "":
+        if hserver.is_dev_ck(): 
+            docker_registry = "aws_ecr.ck"
+        else:
+            docker_registry = "dockerhub.causify"
+        _LOG.warning(
+            "Docker registry is not specified, using %s", docker_registry
+        )
     # Get an image to run the linter on.
-    # For local development we use the image from the Docker Hub.
-    if no_dev_server:
+    if docker_registry == "dockerhub.causify":
         # TODO(Vlad): Replace with environment variable.
         base_path = "causify"
-    else:
+    elif docker_registry == "aws_ecr.ck":
         base_path = os.environ["CSFY_ECR_BASE_PATH"]
+    else:
+        raise ValueError(f"Unknown docker registry: {docker_registry}")
     linter_image = f"{base_path}/helpers"
     # Execute command line.
     cmd: str = _get_docker_compose_cmd(
