@@ -10,91 +10,7 @@ from typing import Any, Dict, List, Optional, Union
 
 import yaml
 
-import helpers.hdbg as hdbg
-import helpers.hio as hio
-
 _LOG = logging.getLogger(__name__)
-
-# #############################################################################
-
-# Copied from hgit to avoid import cycles.
-
-
-def _find_git_root(path: str = ".") -> str:
-    """
-    Find recursively the dir of the outermost super module.
-
-    This function traverses the directory hierarchy upward from a specified
-    starting path to find the root directory of a Git repository.
-    It supports:
-    - standard git repository: where a `.git` directory exists at the root
-    - submodule: where repository is nested inside another, and the `.git` file contains
-      a `gitdir:` reference to the submodule's actual Git directory
-    - linked repositories: where the `.git` file points to a custom Git directory
-      location, such as in Git worktrees or relocated `.git` directories
-
-    :param path: starting file system path. Defaults to the current directory (".")
-    :return: absolute path to the top-level Git repository directory
-    """
-    path = os.path.abspath(path)
-    git_root_dir = None
-    while True:
-        git_dir = os.path.join(path, ".git")
-        _LOG.debug("git_dir=%s", git_dir)
-        # Check if `.git` is a directory which indicates a standard Git repository.
-        if os.path.isdir(git_dir):
-            # Found the Git root directory.
-            git_root_dir = path
-            break
-        # Check if `.git` is a file which indicates submodules or linked setups.
-        if os.path.isfile(git_dir):
-            txt = hio.from_file(git_dir)
-            lines = txt.split("\n")
-            for line in lines:
-                # Look for a `gitdir:` line that specifies the linked directory.
-                # Example: `gitdir: ../.git/modules/helpers_root`.
-                if line.startswith("gitdir:"):
-                    git_dir_path = line.split(":", 1)[1].strip()
-                    _LOG.debug("git_dir_path=%s", git_dir_path)
-                    # Resolve the relative path to the absolute path of the Git directory.
-                    abs_git_dir = os.path.abspath(
-                        os.path.join(path, git_dir_path)
-                    )
-                    # Traverse up to find the top-level `.git` directory.
-                    while True:
-                        # Check if the current directory is a `.git` directory.
-                        if os.path.basename(abs_git_dir) == ".git":
-                            git_root_dir = os.path.dirname(abs_git_dir)
-                            # Found the root.
-                            break
-                        # Move one level up in the directory structure.
-                        parent = os.path.dirname(abs_git_dir)
-                        # Reached the filesystem root without finding the `.git` directory.
-                        hdbg.dassert_ne(
-                            parent,
-                            abs_git_dir,
-                            "Top-level .git directory not found.",
-                        )
-                        # Continue traversing up.
-                        abs_git_dir = parent
-                    break
-        # Exit the loop if the Git root directory is found.
-        if git_root_dir is not None:
-            break
-        # Move up one level in the directory hierarchy.
-        parent = os.path.dirname(path)
-        # Reached the filesystem root without finding `.git`.
-        hdbg.dassert_ne(
-            parent,
-            path,
-            "No .git directory or file found in any parent directory.",
-        )
-        # Update the path to the parent directory for the next iteration.
-        path = parent
-    return git_root_dir
-
-
-# End copy.
 
 # #############################################################################
 
@@ -120,6 +36,29 @@ def indent(txt: str, num_spaces: int = 2) -> str:
 
 # End copy.
 
+def _find_config_file(file_name: str) -> str:
+    """
+    Find recursively the dir of config file.
+
+    This function traverses the directory hierarchy upward from a specified
+    starting path to find the directory that contains the config file. 
+
+    :param file_name: name of the file to find
+    :return: path to the file
+    """
+    curr_dir = os.getcwd()
+    while True:
+        path = os.path.join(curr_dir, file_name)
+        if os.path.exists(path):
+            break
+        parent = os.path.dirname(curr_dir)
+        if parent == curr_dir:
+            # We cannot use helpers since it creates circular import.
+            raise FileNotFoundError(
+                "Could not find '%s' in current directory or any parent directories" % file_name
+            )
+        curr_dir = parent
+    return path
 
 def _get_env_var(
     env_name: str,
@@ -310,24 +249,30 @@ class RepoConfig:
     @staticmethod
     def _get_repo_config_file() -> str:
         """
-        Return the absolute path to `repo_config.py` that should be used.
+        Return the absolute path to `repo_config.yml` that should be used.
 
-        The `repo_config.py` is determined based on an overriding env var or
+        The `repo_config.yml` is determined based on an overriding env var or
         based on the root of the Git path.
         """
-        env_var = "AM_REPO_CONFIG_PATH"
-        file_name = _get_env_var(env_var, abort_on_missing=False)
-        if file_name:
+        env_var = "CSFY_REPO_CONFIG_PATH"
+        file_path = _get_env_var(env_var, abort_on_missing=False)
+        if file_path:
             _LOG.warning(
-                "Using value '%s' for %s from env var", file_name, env_var
+                "Using value '%s' for %s from env var", file_path, env_var
             )
         else:
-            client_root = _find_git_root()
-            _LOG.debug("Reading file_name='%s'", file_name)
-            file_name = os.path.join(client_root, "repo_config.yaml")
-            file_name = os.path.abspath(file_name)
-        return file_name
-
+            # client_root = _find_git_root()
+            # We cannot use git root here because the config file doesn't always 
+            # reside in the root of the repo (e.g., it can be in subdir such as
+            # //cmamp/ck.infra for runnable dir).
+            file_path = _find_config_file("repo_config.yaml")
+            file_path = os.path.abspath(file_path)
+            _LOG.debug("Reading file_name='%s'", file_path)
+        # Check if path exists.
+        # We can't use helpers since it creates circular import.
+        if not os.path.exists(file_path):
+            raise FileNotFoundError("File '%s' doesn't exist" % file_path)
+        return file_path
 
 _repo_config = None
 
