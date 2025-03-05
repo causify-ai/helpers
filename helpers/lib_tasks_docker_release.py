@@ -808,7 +808,10 @@ def docker_tag_push_multi_arch_prod_image(  # type: ignore
             f"Invalid target Docker image registry='{target_registry}'"
         )
     # Tag and push the versioned prod image as prod image.
-    image_prod = hlitadoc.get_image(prod_base_image, "prod")
+    latest_version = None
+    image_prod = hlitadoc.get_image(
+        prod_base_image, "prod", version=latest_version
+    )
     cmd = (
         f"docker buildx imagetools create -t {image_prod} {image_versioned_prod}"
     )

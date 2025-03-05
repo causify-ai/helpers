@@ -15,6 +15,7 @@ from helpers.lib_tasks import (  # This is not an invoke target.
 from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=unused-import
     docker_bash,
     docker_build_local_image,
+    docker_build_multi_arch_prod_image,
     docker_build_prod_image,
     docker_cmd,
     docker_create_candidate_image,
@@ -35,6 +36,7 @@ from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=u
     docker_rollback_prod_image,
     docker_stats,
     docker_tag_local_image_as_dev,  # TODO(gp): -> docker_release_...
+    docker_tag_push_multi_arch_prod_image,
     docker_update_prod_task_definition,
     find,
     find_check_string_output,
