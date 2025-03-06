@@ -275,9 +275,8 @@ def git_files(  # type: ignore
         remove_dirs,
     )
     print("\n".join(sorted(files_as_list)))
-    if pbcopy:
-        res = " ".join(files_as_list)
-        hlitauti._to_pbcopy(res, pbcopy)
+    res = " ".join(files_as_list)
+    hsystem.to_pbcopy(res, pbcopy)
 
 
 @task
@@ -296,7 +295,7 @@ def git_last_commit_files(ctx, pbcopy=True):  # type: ignore
     print(f"\n# The files modified are:\n{txt}")
     # Save to clipboard.
     res = " ".join(files)
-    hlitauti._to_pbcopy(res, pbcopy)
+    hsystem.to_pbcopy(res, pbcopy)
 
 
 @task

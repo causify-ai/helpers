@@ -565,7 +565,7 @@ TODO(gp): Describe
 
 - Get the failed tests (inside or outside the container)
   ```bash
-  [docker]> pytest_log_fail
+  [docker]> i pytest_failed
   dataflow/model/test/test_run_notebooks.py::Test_run_master_research_backtest_analyzer::test_run_notebook1
   dataflow/system/test/test_real_time_runner.py::TestRealTimeDagRunner1::test_simulated_replayed_time1
   dataflow/model/test/test_dataframe_modeler.py::TestDataFrameModeler::test_dump_json1

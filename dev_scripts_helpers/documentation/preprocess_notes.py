@@ -74,7 +74,7 @@ def _process_question(line: str) -> Tuple[bool, str]:
 # #############################################################################
 
 
-def _run_all(lines: List[str], *, is_qa: bool = False) -> List[str]:
+def _transform_lines(lines: List[str], *, is_qa: bool = False) -> List[str]:
     """
     Process the notes to convert them into a format suitable for pandoc.
 
@@ -83,7 +83,6 @@ def _run_all(lines: List[str], *, is_qa: bool = False) -> List[str]:
     - remove comments
     - expand abbreviations
     """
-    _LOG.debug("_run_all")
     out: List[str] = []
     # a) Prepend some directive for pandoc.
     out.append(r"""\let\emph\textit""")
@@ -208,7 +207,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     lines = [l.rstrip("\n") for l in lines]
     out: List[str] = []
     # Transform.
-    out_tmp = _run_all(lines)
+    out_tmp = _transform_lines(lines)
     out.extend(out_tmp)
     # Save results.
     txt = "\n".join(out)

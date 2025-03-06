@@ -1,0 +1,40 @@
+################################################################################
+level=1, description='Models'
+################################################################################
+- *Models*
+  - Naive Bayes
+  - Decision trees
+  - Random forests
+  - Linear models
+################################################################################
+level=2, description='Naive Bayes'
+################################################################################
+- Models
+  - *Naive Bayes*
+  - Decision trees
+  - Random forests
+  - Linear models
+################################################################################
+level=2, description='Decision trees'
+################################################################################
+- Models
+  - Naive Bayes
+  - *Decision trees*
+  - Random forests
+  - Linear models
+################################################################################
+level=2, description='Random forests'
+################################################################################
+- Models
+  - Naive Bayes
+  - Decision trees
+  - *Random forests*
+  - Linear models
+################################################################################
+level=2, description='Linear models'
+################################################################################
+- Models
+  - Naive Bayes
+  - Decision trees
+  - Random forests
+  - *Linear models*

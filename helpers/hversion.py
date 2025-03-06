@@ -42,9 +42,10 @@ def check_version(container_dir_name: str) -> None:
     Check that the code and container code have compatible version, otherwise
     raises `RuntimeError`.
 
-    :param container_dir_name: container directory relative to the root directory
+    :param container_dir_name: container directory relative to the root
+        directory
     """
-    # TODO(gp): -> AM_SKIP_VERSION_CHECK.
+    # TODO(gp): -> CK_SKIP_VERSION_CHECK.
     if "SKIP_VERSION_CHECK" in os.environ:
         # Skip the check altogether.
         return
@@ -123,7 +124,8 @@ def get_changelog_version(container_dir_name: str) -> Optional[str]:
     """
     Return latest version from changelog.txt file.
 
-    :param container_dir_name: container directory relative to the root directory
+    :param container_dir_name: container directory relative to the root
+        directory
     """
     version: Optional[str] = None
     supermodule = True

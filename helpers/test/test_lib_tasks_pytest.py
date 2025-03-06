@@ -21,7 +21,13 @@ _LOG = logging.getLogger(__name__)
 # pylint: disable=protected-access
 
 
+# #############################################################################
+# Test_build_run_command_line1
+# #############################################################################
+
+
 class Test_build_run_command_line1(hunitest.TestCase):
+
     def run_fast_tests1_helper(
         self,
         is_dev_ck_return_value: bool,
@@ -590,7 +596,13 @@ class Test_build_run_command_line1(hunitest.TestCase):
         )
 
 
+# #############################################################################
+# Test_pytest_repro1
+# #############################################################################
+
+
 class Test_pytest_repro1(hunitest.TestCase):
+
     def helper(self, file_name: str, mode: str, exp: List[str]) -> None:
         script_name = os.path.join(
             self.get_scratch_space(), "tmp.pytest_repro.sh"
@@ -822,6 +834,11 @@ class Test_pytest_repro1(hunitest.TestCase):
         return self._build_pytest_filehelper(txt)
 
 
+# #############################################################################
+# Test_pytest_repro_end_to_end
+# #############################################################################
+
+
 @pytest.mark.slow("~6 sec.")
 class Test_pytest_repro_end_to_end(hunitest.TestCase):
     """
@@ -862,10 +879,18 @@ class Test_pytest_repro_end_to_end(hunitest.TestCase):
         # Remove unstable content.
         lines = act.split("\n")
         line_cmd = lines[0]
-        test_output_start = lines.index("## pytest_repro: ")
+        _LOG.debug("%s", "\n".join(lines))
+        for i, line in enumerate(lines):
+            m = re.search("# pytest_repro: ", line)
+            if m:
+                test_output_start = i + 1
+                break
         lines_test_output = lines[test_output_start:]
+        #
         act = "\n".join([line_cmd] + lines_test_output)
-        regex = "(WARN|INFO)\s+hcache.py"
+        regex = "init_logger"
+        act = hunitest.filter_text(regex, act)
+        regex = r"(WARN|INFO)\s+hcache.py"
         act = hunitest.filter_text(regex, act)
         # Check the outcome.
         self.check_string(act, purify_text=True, fuzzy_match=True)

@@ -125,12 +125,18 @@ class TestDryRunTasks1(hunitest.TestCase):
         execute.
         """
         opts = "--dry" if dry_run else ""
+        #
         # TODO(vitalii): While deploying the container versioning
         # we disable the check in the unit tests. Remove `SKIP_VERSION_CHECK=1`
         # after CmampTask570 is fixed.
         cmd = f"SKIP_VERSION_CHECK=1 invoke {opts} {target} | grep -v INFO | grep -v '>>ENV<<:'"
         _, act = hsystem.system_to_string(cmd)
+        #
         act = hprint.remove_non_printable_chars(act)
+        # docker_ps: sudo=False
+        regex = r"# \S+:"
+        act = hunitest.filter_text(regex, act)
+        #
         regex = r"(WARN|INFO)\s+hcache.py"
         act = hunitest.filter_text(regex, act)
         # Filter out `no module` warnings.

@@ -36,16 +36,17 @@ def _run_preprocess_notes(in_file: str, out_file: str) -> str:
     return act  # type: ignore
 
 
+# #############################################################################
+# Test_preprocess_notes1
+# #############################################################################
+
+
 @pytest.mark.skipif(
     hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
 )
 class Test_preprocess_notes1(hunitest.TestCase):
     """
-    Check that the output of `preprocess_notes.py` is the expected one.
-
-    using:
-    - an end-to-end flow;
-    - checked in files.
+    Test `preprocess_notes.py` using the executable and checked in files.
     """
 
     def test1(self) -> None:
@@ -61,10 +62,15 @@ class Test_preprocess_notes1(hunitest.TestCase):
         self.check_string(act)
 
 
+# #############################################################################
+# Test_process_question1
+# #############################################################################
+
+
 @pytest.mark.skipif(
     hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
 )
-class Test_preprocess_notes2(hunitest.TestCase):
+class Test_process_question1(hunitest.TestCase):
     """
     Check that the output of `preprocess_notes.py` is the expected one calling
     the library function directly.
@@ -116,6 +122,8 @@ class Test_preprocess_notes2(hunitest.TestCase):
         self.assert_equal(act, exp)
 
 
+# #############################################################################
+# Test_preprocess_notes3
 # #############################################################################
 
 
@@ -173,9 +181,10 @@ class Test_preprocess_notes3(hunitest.TestCase):
                 ```
         """
         exp = hprint.dedent(exp, remove_lead_trail_empty_lines_=True)
-        self._helper_run_all(txt_in, exp)
+        self._transform_lines_helper(txt_in, exp)
 
-    def _helper_run_all(self, txt_in: str, exp: str) -> None:
-        act_as_arr = dshdprno._run_all(txt_in.split("\n"), is_qa=False)
+    def _transform_lines_helper(self, txt_in: str, exp: str) -> None:
+        lines = txt_in.split("\n")
+        act_as_arr = dshdprno._transform_lines(lines, is_qa=False)
         act = "\n".join(act_as_arr)
         self.assert_equal(act, exp)

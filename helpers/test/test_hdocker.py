@@ -189,11 +189,6 @@ class Test_convert_to_docker_path1(hunitest.TestCase):
         )
 
 
-# #############################################################################
-# Test_run_dockerized_prettier1
-# #############################################################################
-
-
 def _create_test_file(self_: Any, txt: str, extension: str) -> str:
     file_path = os.path.join(self_.get_scratch_space(), f"input.{extension}")
     txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
@@ -437,8 +432,9 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
         # Generate the table of contents.
         cmd_opts.append("-s --toc")
         cmd = " ".join(cmd_opts)
+        container_type = "pandoc_only"
         use_sudo = hdocker.get_use_sudo()
-        hdocker.run_dockerized_pandoc(cmd, use_sudo=use_sudo)
+        hdocker.run_dockerized_pandoc(cmd, container_type, use_sudo=use_sudo)
         # Check.
         act = hio.from_file(out_file_path)
         self.assert_equal(
