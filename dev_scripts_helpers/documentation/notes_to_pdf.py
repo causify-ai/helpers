@@ -120,19 +120,18 @@ def _filter_by_header(file_: str, header: str, prefix: str) -> str:
 # #############################################################################
 
 
-def _preprocess_notes(file_: str, prefix: str, type_: str) -> str:
+def _preprocess_notes(args: argparse.Namespace, file_: str, prefix: str) -> str:
     """
     Pre-process the file.
 
     :param file_: The input file to be processed
     :param prefix: The prefix used for the output file (e.g., `tmp.pandoc`)
-    :param type_: Type of output to generate (e.g., `pdf`, `html`, `slides`).
     :return: The path to the processed file
     """
     exec_file = hgit.find_file("preprocess_notes.py")
     file1 = file_
     file2 = f"{prefix}.preprocess_notes.txt"
-    cmd = f"{exec_file} --input {file1} --output {file2} --type {type_}"
+    cmd = f"{exec_file} --input {file1} --output {file2} --type {args.type} --toc_type {args.toc_type}"
     _ = _system(cmd)
     file_ = file2
     return file_
@@ -141,7 +140,7 @@ def _preprocess_notes(file_: str, prefix: str, type_: str) -> str:
 # #############################################################################
 
 
-def _render_images(file_: str, prefix: str, type_: str) -> str:
+def _render_images(args: argparse.Namespace, file_: str, prefix: str) -> str:
     """
     Render images in the file.
 
@@ -156,7 +155,7 @@ def _render_images(file_: str, prefix: str, type_: str) -> str:
     cmd = f"{exec_file} --in_file_name {file1} --out_file_name {file2}"
     _ = _system(cmd)
     # We need to preprocess the notes again to remove the commented code.
-    file3 = _preprocess_notes(file2, file2, type_)
+    file3 = _preprocess_notes(args, file2, file2)
     file_ = file3
     return file_
 
@@ -232,13 +231,11 @@ def _run_pandoc_to_pdf(
     file2 = f"{prefix}.tex"
     cmd.append(f"-o {file2}")
     #
-    if args.toc == "none":
-        args.no_run_latex_again = True
-    elif args.toc == "pandoc_native":
+    if args.toc_type == "pandoc_native":
         cmd.append("--toc")
         cmd.append("--toc-depth 2")
     else:
-        raise ValueError(f"Invalid toc='{args.toc}'")
+        args.no_run_latex_again = True
     # Doesn't work
     # -f markdown+raw_tex
     cmd = " ".join(cmd)
@@ -316,13 +313,9 @@ def _run_pandoc_to_html(
     #
     file2 = f"{prefix}.html"
     cmd.append(f"-o {file2}")
-    if args.toc == "none":
-        pass
-    elif args.toc == "pandoc_native":
+    if args.toc_type == "pandoc_native":
         cmd.append("--toc")
         cmd.append("--toc-depth 2")
-    else:
-        raise ValueError(f"Invalid toc='{args.toc}'")
     cmd = " ".join(cmd)
     _ = _system(cmd, suppress_output=False)
     #
@@ -344,25 +337,9 @@ def _build_pandoc_cmd(
     cmd.append("--include-in-header=latex_abbrevs.sty")
     # cmd.append("--pdf-engine=lualatex")
     # cmd.append("--pdf-engine=xelatex")
-    if args.toc == "none":
-        pass
-    elif args.toc == "navigation":
-        txt = hio.from_file(file_)
-        #sanity_check = False
-        sanity_check = True
-        header_list = hmarkdo.extract_headers_from_markdown(txt, sanity_check=sanity_check)
-        tree = hmarkdo.build_header_tree(header_list)
-        _LOG.debug("tree=\n%s", tree)
-        level, description, _ = header_list[0].as_tuple()
-        nav_str = hmarkdo.selected_navigation_to_str(tree, level, description)
-        _LOG.debug("nav_str=\n%s", nav_str)
-        args.no_run_latex_again = True
-        assert 0
-    elif args.toc == "pandoc_native":
+    if args.toc_type == "pandoc_native":
         cmd.append("--toc")
         cmd.append("--toc-depth 2")
-    else:
-        raise ValueError(f"Invalid toc='{args.toc}'")
     if use_tex:
         ext = ".tex"
     else:
@@ -521,12 +498,12 @@ def _run_all(args: argparse.Namespace) -> None:
     action = "preprocess_notes"
     to_execute, actions = _mark_action(action, actions)
     if to_execute:
-        file_ = _preprocess_notes(file_, prefix, args.type)
+        file_ = _preprocess_notes(args, file_, prefix)
     # - Render_images
     action = "render_images"
     to_execute, actions = _mark_action(action, actions)
     if to_execute:
-        file_ = _render_images(file_, prefix, args.type)
+        file_ = _render_images(args, file_, prefix)
     # - Run_pandoc
     action = "run_pandoc"
     to_execute, actions = _mark_action(action, actions)
@@ -648,7 +625,7 @@ def _parse() -> argparse.ArgumentParser:
         default=False,
         help="Use the host tools instead of the dockerized ones",
     )
-    parser.add_argument("--toc", action="store", default="none",
+    parser.add_argument("--toc_type", action="store", default="none",
                         choices=["none", "pandoc_native", "navigation"])
     parser.add_argument(
         "--no_run_latex_again", action="store_true", default=False

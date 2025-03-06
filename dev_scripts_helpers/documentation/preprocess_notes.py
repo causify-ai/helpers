@@ -102,7 +102,7 @@ def _process_question_to_slides(line: str, *, level: int = 4) -> Tuple[bool, str
     return do_continue, line
 
 
-def _transform_lines(lines: List[str], type_: str, *, is_qa: bool = False) -> List[str]:
+def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
     """
     Process the notes to convert them into a format suitable for pandoc.
 
@@ -112,6 +112,7 @@ def _transform_lines(lines: List[str], type_: str, *, is_qa: bool = False) -> Li
     :return: List of lines of the notes.
     """
     _LOG.debug("\n%s", hprint.frame("Add navigation slides"))
+    lines = [line.rstrip("\n") for line in txt.split("\n")]
     out: List[str] = []
     # a) Prepend some directive for pandoc, if they are missing.
     if lines[0] != "---":
@@ -223,11 +224,11 @@ def _transform_lines(lines: List[str], type_: str, *, is_qa: bool = False) -> Li
             line = ""
         out_tmp.append(line)
     # Return result.
-    out = out_tmp
+    out = "\n".join(out_tmp)
     return out
 
         
-def _add_navigation_slides(txt: str, max_level: int, *, sanity_check: bool = False) -> None:
+def _add_navigation_slides(txt: str, max_level: int, *, sanity_check: bool = False) -> str:
     """
     Add the navigation slides to the notes.
 
@@ -252,7 +253,7 @@ def _add_navigation_slides(txt: str, max_level: int, *, sanity_check: bool = Fal
             _LOG.debug("nav_str=\n%s", nav_str)
             # Add the navigation slide.
             # TODO(gp): We assume the slide level is 4.
-            line_tmp = "#### \n" + nav_str
+            line_tmp = "#### TOC\n" + nav_str
             out.append(line_tmp)
         out.append(line)
     txt_out = "\n".join(out)
@@ -275,7 +276,7 @@ def _parse() -> argparse.ArgumentParser:
         action="store",
         help="Type of output to generate",
     )
-    parser.add_argument("--toc", action="store", default="none",
+    parser.add_argument("--toc_type", action="store", default="none",
                         choices=["none", "pandoc_native", "navigation"])
     # TODO(gp): Unclear what it doesn.
     parser.add_argument(
@@ -290,19 +291,16 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     _LOG.info("cmd line=%s", hdbg.get_command_line())
     # Read file.
-    lines = hio.from_file(args.input).split("\n")
-    lines = [line.rstrip("\n") for line in lines]
+    txt = hio.from_file(args.input)
     # Apply transformations.
-    out = _transform_lines(lines, args.type, is_qa=args.qa)
+    out = _transform_lines(txt, args.type, is_qa=args.qa)
     # Add TOC, if needed.
-    if args.toc == "navigation":
+    if args.toc_type == "navigation":
         hdbg.dassert_eq(args.type, "slides")
-        txt = "\n".join(out)
         max_level = 3
-        out = _add_navigation_slides(txt, max_level, sanity_check=True)
+        out = _add_navigation_slides(out, max_level, sanity_check=True)
     # Save results.
-    txt = "\n".join(out)
-    hio.to_file(args.output, txt)
+    hio.to_file(args.output, out)
 
 
 if __name__ == "__main__":
