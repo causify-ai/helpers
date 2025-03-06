@@ -14,6 +14,7 @@ import os
 
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
+import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
@@ -54,9 +55,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.info("cmd: %s", cmd)
     hsystem.system(cmd)
     # Print the info about the screenshot.
-    txt = "![Description](%s)" % filename
+    txt = "![](%s)" % filename
     _LOG.info("%s", txt)
     # <img src="image.jpg" alt="A tree" width="300" title="This is a tree">
+    if hserver.is_mac():
+        _LOG.warning("Copied to clipboard")
+        cmd = f"echo '{txt}' | pbcopy"
+        hsystem.system(cmd)
 
 
 if __name__ == "__main__":

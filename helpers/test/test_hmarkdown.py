@@ -1,6 +1,6 @@
 import logging
 import pprint
-from typing import List, Tuple
+from typing import Any, List, Tuple
 
 import helpers.hmarkdown as hmarkdo
 import helpers.hprint as hprint
@@ -313,6 +313,20 @@ def _get_markdown_example5() -> str:
     return content
 
 
+def _get_markdown_example6() -> hmarkdo.HeaderList:
+    content = r"""
+    # Models
+    test
+    ## Naive Bayes
+    test2
+    ## Decision trees
+    test3
+    ## Random forests
+    ## Linear models
+    """
+    content = hprint.dedent(content)
+    return content
+
 # #############################################################################
 # Test_extract_section_from_markdown1
 # #############################################################################
@@ -398,7 +412,7 @@ class Test_extract_headers_from_markdown1(hunitest.TestCase):
         # Prepare inputs.
         content = _get_markdown_example1()
         # Call function.
-        act = hmarkdo.extract_headers_from_markdown(content)
+        act = hmarkdo.extract_headers_from_markdown(content, max_level=3)
         # Check output.
         exp = r"""[HeaderInfo(1, 'Header1', 1), HeaderInfo(2, 'Header2', 3), HeaderInfo(1, 'Header3', 5)]"""
         self.assert_equal(str(act), exp)
@@ -407,7 +421,7 @@ class Test_extract_headers_from_markdown1(hunitest.TestCase):
         # Prepare inputs.
         content = _get_markdown_example2()
         # Call function.
-        act = hmarkdo.extract_headers_from_markdown(content)
+        act = hmarkdo.extract_headers_from_markdown(content, max_level=3)
         # Check output.
         exp = r"""[HeaderInfo(1, 'Header1', 1), HeaderInfo(2, 'Header2', 3)]"""
         self.assert_equal(str(act), exp)
@@ -419,7 +433,7 @@ class Test_extract_headers_from_markdown1(hunitest.TestCase):
         """
         content = hprint.dedent(content)
         # Call function.
-        act = hmarkdo.extract_headers_from_markdown(content)
+        act = hmarkdo.extract_headers_from_markdown(content, max_level=3)
         # Check output.
         exp = []
         self.assert_equal(str(act), str(exp))
@@ -565,17 +579,55 @@ class Test_process_lines1(hunitest.TestCase):
 # Test_selected_navigation_to_str1
 # #############################################################################
 
+        
+def _test_navigation_flow(self_: Any, txt: str, header_list_exp: str, header_tree_exp: str,
+                          level: int, description: str, nav_str_exp: str) -> None:
+    # 1) Extract headers.
+    header_list = hmarkdo.extract_headers_from_markdown(txt, max_level=3)
+    act = pprint.pformat(header_list)
+    self_.assert_equal(
+        act, header_list_exp, dedent=True, remove_lead_trail_empty_lines=True
+    )
+    # 2) Build header tree.
+    tree = hmarkdo.build_header_tree(header_list)
+    act = hmarkdo.header_tree_to_str(tree, ancestry=None)
+    self_.assert_equal(
+        act, header_tree_exp, dedent=True, remove_lead_trail_empty_lines=True
+    )
+    # 3) Compute the navigation bar for a specific header.
+    act = hmarkdo.selected_navigation_to_str(tree, level, description)
+    self_.assert_equal(
+        act, nav_str_exp, dedent=True, remove_lead_trail_empty_lines=True
+    )
+        
+
+def _test_full_navigation_flow(self_: Any, txt: str) -> str:
+    res: List[str] = []
+    # Extract headers.
+    header_list = hmarkdo.extract_headers_from_markdown(txt, max_level=3)
+    # Build header tree.
+    tree = hmarkdo.build_header_tree(header_list)
+    # Create a navigation map for any header.
+    for node in header_list:
+        level, description, _ = node.as_tuple()
+        res_tmp = hprint.frame(hprint.to_str("level description"))
+        res.append(res_tmp)
+        #
+        res_tmp = hmarkdo.selected_navigation_to_str(tree, level, description)
+        res.append(res_tmp)
+    # Check.
+    act = "\n".join(res)
+    self_.check_string(act)
+
 
 class Test_selected_navigation_to_str1(hunitest.TestCase):
 
     def test1(self) -> None:
-        res = []
+        """
+        Create navigation bar from Markdown text `_get_markdown_example4()`.
+        """
         txt = _get_markdown_example4()
-        res.append("txt=\n" + txt)
-        #
-        header_list = hmarkdo.extract_headers_from_markdown(txt)
-        act = pprint.pformat(header_list)
-        exp = """
+        header_list_exp = """
         [HeaderInfo(1, 'Chapter 1', 1),
          HeaderInfo(2, 'Section 1.1', 6),
          HeaderInfo(3, 'Subsection 1.1.1', 11),
@@ -586,24 +638,13 @@ class Test_selected_navigation_to_str1(hunitest.TestCase):
          HeaderInfo(3, 'Subsection 2.1.1', 48),
          HeaderInfo(2, 'Section 2.2', 56)]
         """
-        self.assert_equal(
-            act, exp, dedent=True, remove_lead_trail_empty_lines=True
-        )
-        #
-        tree = hmarkdo.build_header_tree(header_list)
-        act = hmarkdo.header_tree_to_str(tree, ancestry=None)
-        exp = """
+        header_tree_exp = """
         - Chapter 1
         - Chapter 2
         """
-        self.assert_equal(
-            act, exp, dedent=True, remove_lead_trail_empty_lines=True
-        )
-        #
         level = 3
         description = "Subsection 1.1.2"
-        act = hmarkdo.selected_navigation_to_str(tree, level, description)
-        exp = """
+        nav_str_exp = """
         - Chapter 1
           - Section 1.1
             - Subsection 1.1.1
@@ -611,23 +652,43 @@ class Test_selected_navigation_to_str1(hunitest.TestCase):
           - Section 1.2
         - Chapter 2
         """
-        self.assert_equal(
-            act, exp, dedent=True, remove_lead_trail_empty_lines=True
-        )
+        _test_navigation_flow(self, txt, header_list_exp, header_tree_exp,
+                                level, description, nav_str_exp)
 
     def test2(self) -> None:
-        res = []
         txt = _get_markdown_example4()
-        header_list = hmarkdo.extract_headers_from_markdown(txt)
-        tree = hmarkdo.build_header_tree(header_list)
-        # Create a navigation map for any header.
-        for node in header_list:
-            level, description, _ = node.as_tuple()
-            res_tmp = hprint.frame(hprint.to_str("level description"))
-            res.append(res_tmp)
-            #
-            res_tmp = hmarkdo.selected_navigation_to_str(tree, level, description)
-            res.append(res_tmp)
-        # Check.
-        act = "\n".join(res)
-        self.check_string(act)
+        _test_full_navigation_flow(self, txt)
+
+
+class Test_selected_navigation_to_str2(hunitest.TestCase):
+
+    def test1(self) -> None:
+        """
+        Create navigation bar from Markdown text `_get_markdown_example6()`.
+        """
+        txt = _get_markdown_example6()
+        header_list_exp = r"""
+        [HeaderInfo(1, 'Models', 1),
+         HeaderInfo(2, 'Naive Bayes', 3),
+         HeaderInfo(2, 'Decision trees', 5),
+         HeaderInfo(2, 'Random forests', 7),
+         HeaderInfo(2, 'Linear models', 8)]
+        """
+        header_tree_exp = """
+        - Models
+        """
+        level = 2 
+        description = "Decision trees"
+        nav_str_exp = """
+        - Models
+          - Naive Bayes
+          - *Decision trees*
+          - Random forests
+          - Linear models
+        """
+        _test_navigation_flow(self, txt, header_list_exp, header_tree_exp,
+                                level, description, nav_str_exp)
+
+    def test2(self) -> None:
+        txt = _get_markdown_example6()
+        _test_full_navigation_flow(self, txt)

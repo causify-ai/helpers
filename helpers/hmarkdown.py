@@ -31,6 +31,27 @@ def is_markdown_line_separator(line: str) -> bool:
     return res
 
 
+def is_header(line: str) -> Tuple[bool, int, str]:
+    """
+    Check if the given line is a Markdown header.
+
+    :return: A tuple containing:
+        - A boolean indicating if the line is a header
+        - The level of the header (0 if not a header)
+        - The title of the header (empty string if not a header)
+    """
+    hdbg.dassert(not is_markdown_line_separator(line), "line='%s'", line)
+    m = re.match(r"(#+)\s+(.*)", line)
+    is_header_ = bool(m)
+    if m:
+        level = len(m.group(1))
+        title = m.group(2)
+    else:
+        level = 0
+        title = ""
+    return is_header_, level, title
+
+
 def process_comment_block(line: str, in_skip_block: bool) -> Tuple[bool, bool]:
     """
     Process lines of text to identify blocks that start with '<!--' or '/*' and
@@ -333,7 +354,12 @@ def _check_header_list(header_list: HeaderList) -> None:
         hdbg.dassert_lte(
             abs(header_list[i].level - header_list[i - 1].level),
             1,
-            "Consecutive headers differ by more than one level",
+            "Consecutive headers differ by more than one level: %s for '%s', %s for '%s': %s",
+            header_list[i - 1].level,
+            header_list[i - 1].description,
+            header_list[i].level,
+            header_list[i].description,
+            "\n".join([str(x) for x in header_list]),
         )
     # The first header should be level 1.
     if header_list and header_list[0].level > 1:
@@ -345,15 +371,19 @@ def _check_header_list(header_list: HeaderList) -> None:
         )
 
 
-def extract_headers_from_markdown(txt: str, *, max_level: int = 6) -> HeaderList:
+def extract_headers_from_markdown(txt: str, max_level: int, *, sanity_check: bool = True) -> HeaderList:
     """
     Extract headers from Markdown file and return an `HeaderList`.
 
-    :param input_content: content of the input Markdown file.
-    :param max_level: Maximum header levels to parse (1 for `#`, 2 for `##`,
-        etc.).
-    :return: the generated `HeaderList`.
+    :param txt: content of the input Markdown file.
+    :param max_level: Maximum header levels to parse (e.g., 3 parses all levels
+        included `###`, but not `####`)
+    :return: the generated `HeaderList`, e.g.,
+        ```
+        [(1, "Chapter 1", 5), (2, "Section 1.1", 10), ...]
+        ```
     """
+    hdbg.dassert_lte(1, max_level)
     header_list: HeaderList = []
     # Parse an header like `# Header1` or `## Header2`.
     header_pattern = re.compile(r"^(#+)\s+(.*)")
@@ -363,6 +393,7 @@ def extract_headers_from_markdown(txt: str, *, max_level: int = 6) -> HeaderList
         # Skip the visual separators.
         if is_markdown_line_separator(line):
             continue
+        # TODO(gp): Use is_header
         match = header_pattern.match(line)
         if match:
             # The number of '#' determines level.
@@ -372,7 +403,10 @@ def extract_headers_from_markdown(txt: str, *, max_level: int = 6) -> HeaderList
                 header_info = HeaderInfo(level, title, line_number)
                 header_list.append(header_info)
     # Check the header list.
-    _check_header_list(header_list)
+    if sanity_check:
+        _check_header_list(header_list)
+    else:
+        _LOG.warning("Skipping sanity check")
     return header_list
 
 
@@ -546,24 +580,25 @@ def build_header_tree(header_list: HeaderList) -> _HeaderTree:
             else:
                 tree.append(node)
             stack.append(node)
+    # hdbg.dassert_eq(len(header_list), len(tree))
+    # hdbg.dassert_eq(len(stack), 0)
     return tree
 
 
 def _find_header_tree_ancestry(
-    tree: _HeaderTree, target_level: int, target_description: str
+    tree: _HeaderTree, level: int, description: str
 ) -> Optional[_HeaderTree]:
     """
-    Recursively search for the node matching (target_level,
-    target_description).
+    Recursively search for the node matching (level, description).
 
     If found, return the ancestry as a list from the root down to that
     node. Otherwise return None.
     """
     for node in tree:
-        if node.level == target_level and node.description == target_description:
+        if node.level == level and node.description == description:
             return [node]
         result = _find_header_tree_ancestry(
-            node.children, target_level, target_description
+            node.children, level, description
         )
         if result:
             return [node] + result
@@ -612,19 +647,21 @@ def header_tree_to_str(
 
 
 def selected_navigation_to_str(
-    tree: _HeaderTree, selected_level: int, selected_description: str
-) -> None:
+    tree: _HeaderTree, level: int, description: str
+) -> str:
     """
     Given a level and description for the selected node, print the navigation.
     """
     ancestry = _find_header_tree_ancestry(
-        tree, selected_level, selected_description
+        tree, level, description
     )
     hdbg.dassert_ne(
         ancestry,
         None,
-        "Node (%s, %s) not found",
-        selected_level,
-        selected_description,
+        "Node (%s, '%s') not found",
+        level,
+        description,
     )
-    return header_tree_to_str(tree, ancestry)
+    _LOG.debug(hprint.to_str("ancestry"))
+    txt = header_tree_to_str(tree, ancestry)
+    return txt

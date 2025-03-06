@@ -232,11 +232,13 @@ def _run_pandoc_to_pdf(
     file2 = f"{prefix}.tex"
     cmd.append(f"-o {file2}")
     #
-    if not args.no_toc:
+    if args.toc == "none":
+        args.no_run_latex_again = True
+    elif args.toc == "pandoc_native":
         cmd.append("--toc")
         cmd.append("--toc-depth 2")
     else:
-        args.no_run_latex_again = True
+        raise ValueError(f"Invalid toc='{args.toc}'")
     # Doesn't work
     # -f markdown+raw_tex
     cmd = " ".join(cmd)
@@ -314,9 +316,13 @@ def _run_pandoc_to_html(
     #
     file2 = f"{prefix}.html"
     cmd.append(f"-o {file2}")
-    if not args.no_toc:
+    if args.toc == "none":
+        pass
+    elif args.toc == "pandoc_native":
         cmd.append("--toc")
         cmd.append("--toc-depth 2")
+    else:
+        raise ValueError(f"Invalid toc='{args.toc}'")
     cmd = " ".join(cmd)
     _ = _system(cmd, suppress_output=False)
     #
@@ -338,9 +344,25 @@ def _build_pandoc_cmd(
     cmd.append("--include-in-header=latex_abbrevs.sty")
     # cmd.append("--pdf-engine=lualatex")
     # cmd.append("--pdf-engine=xelatex")
-    if not args.no_toc:
+    if args.toc == "none":
+        pass
+    elif args.toc == "navigation":
+        txt = hio.from_file(file_)
+        #sanity_check = False
+        sanity_check = True
+        header_list = hmarkdo.extract_headers_from_markdown(txt, sanity_check=sanity_check)
+        tree = hmarkdo.build_header_tree(header_list)
+        _LOG.debug("tree=\n%s", tree)
+        level, description, _ = header_list[0].as_tuple()
+        nav_str = hmarkdo.selected_navigation_to_str(tree, level, description)
+        _LOG.debug("nav_str=\n%s", nav_str)
+        args.no_run_latex_again = True
+        assert 0
+    elif args.toc == "pandoc_native":
         cmd.append("--toc")
         cmd.append("--toc-depth 2")
+    else:
+        raise ValueError(f"Invalid toc='{args.toc}'")
     if use_tex:
         ext = ".tex"
     else:
@@ -626,7 +648,8 @@ def _parse() -> argparse.ArgumentParser:
         default=False,
         help="Use the host tools instead of the dockerized ones",
     )
-    parser.add_argument("--no_toc", action="store_true", default=False)
+    parser.add_argument("--toc", action="store", default="none",
+                        choices=["none", "pandoc_native", "navigation"])
     parser.add_argument(
         "--no_run_latex_again", action="store_true", default=False
     )

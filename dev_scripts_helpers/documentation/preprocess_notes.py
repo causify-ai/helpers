@@ -1,18 +1,18 @@
 #!/usr/bin/env python
 
 """
-Convert a notes text file into markdown suitable for `notes_to_pdf.py`.
+Convert a "notes" text file into markdown suitable for `notes_to_pdf.py`.
 
-The full list of transforms is:
-E.g.,
-- handle banners around chapters
-- handle comments
-- prepend some directive for pandoc
-- remove comments
-- expand abbreviations
-- process questions "* ..."
+The full list of transformations is:
+- Handle banners around chapters
+- Handle comments
+- Prepend some directive for pandoc
+- Remove comments
+- Expand abbreviations
+- Process questions "* ..."
 - remove empty lines in the questions and answers
-- Remove all the lines with only spaces.
+- Remove all the lines with only spaces
+- Add TOC
 """
 
 import argparse
@@ -102,7 +102,7 @@ def _process_question_to_slides(line: str, *, level: int = 4) -> Tuple[bool, str
     return do_continue, line
 
 
-def _run_all(lines: List[str], type_: str, *, is_qa: bool = False) -> List[str]:
+def _transform_lines(lines: List[str], type_: str, *, is_qa: bool = False) -> List[str]:
     """
     Process the notes to convert them into a format suitable for pandoc.
 
@@ -111,7 +111,7 @@ def _run_all(lines: List[str], type_: str, *, is_qa: bool = False) -> List[str]:
     :param is_qa: True if the input is a QA file.
     :return: List of lines of the notes.
     """
-    _LOG.debug("_run_all")
+    _LOG.debug("\n%s", hprint.frame("Add navigation slides"))
     out: List[str] = []
     # a) Prepend some directive for pandoc, if they are missing.
     if lines[0] != "---":
@@ -183,6 +183,7 @@ def _run_all(lines: List[str], type_: str, *, is_qa: bool = False) -> List[str]:
         else:
             is_empty = line.rstrip(" ").lstrip(" ") == ""
             if not is_empty:
+                # TODO(gp): Use is_header
                 if line.startswith("#"):
                     # It's a chapter.
                     out.append(line)
@@ -225,6 +226,38 @@ def _run_all(lines: List[str], type_: str, *, is_qa: bool = False) -> List[str]:
     out = out_tmp
     return out
 
+        
+def _add_navigation_slides(txt: str, max_level: int, *, sanity_check: bool = False) -> None:
+    """
+    Add the navigation slides to the notes.
+
+    :param txt: The notes text.
+    :param max_level: The maximum level of headers to consider (e.g., 3 create
+        a navigation slide for headers of level 1, 2, and 3).
+    :param sanity_check: If True, perform sanity checks.
+    :return: The notes text with the navigation slides.
+    """
+    _LOG.debug("\n%s", hprint.frame("Add navigation slides"))
+    header_list = hmarkdo.extract_headers_from_markdown(txt, max_level, sanity_check=sanity_check)
+    _LOG.debug("header_list=\n%s", header_list)
+    tree = hmarkdo.build_header_tree(header_list)
+    _LOG.debug("tree=\n%s", tree)
+    out: List[str] = []
+    for line in txt.split("\n"):
+        is_header, level, description = hmarkdo.is_header(line)
+        if is_header and level <= max_level:
+            _LOG.debug(hprint.to_str("line level description"))
+            # Get the navigation string corresponding to the current header.
+            nav_str = hmarkdo.selected_navigation_to_str(tree, level, description)
+            _LOG.debug("nav_str=\n%s", nav_str)
+            # Add the navigation slide.
+            # TODO(gp): We assume the slide level is 4.
+            line_tmp = "#### \n" + nav_str
+            out.append(line_tmp)
+        out.append(line)
+    txt_out = "\n".join(out)
+    return txt_out
+
 
 # #############################################################################
 
@@ -242,6 +275,9 @@ def _parse() -> argparse.ArgumentParser:
         action="store",
         help="Type of output to generate",
     )
+    parser.add_argument("--toc", action="store", default="none",
+                        choices=["none", "pandoc_native", "navigation"])
+    # TODO(gp): Unclear what it doesn.
     parser.add_argument(
         "--qa", action="store_true", default=None, help="The input file is QA"
     )
@@ -253,13 +289,17 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     _LOG.info("cmd line=%s", hdbg.get_command_line())
-    # Slurp file.
+    # Read file.
     lines = hio.from_file(args.input).split("\n")
     lines = [line.rstrip("\n") for line in lines]
-    out: List[str] = []
-    # Transform.
-    out_tmp = _run_all(lines, args.type, is_qa=args.qa)
-    out.extend(out_tmp)
+    # Apply transformations.
+    out = _transform_lines(lines, args.type, is_qa=args.qa)
+    # Add TOC, if needed.
+    if args.toc == "navigation":
+        hdbg.dassert_eq(args.type, "slides")
+        txt = "\n".join(out)
+        max_level = 3
+        out = _add_navigation_slides(txt, max_level, sanity_check=True)
     # Save results.
     txt = "\n".join(out)
     hio.to_file(args.output, txt)

@@ -182,11 +182,11 @@ class Test_preprocess_notes3(hunitest.TestCase):
                 ```
         """
         exp = hprint.dedent(exp, remove_lead_trail_empty_lines_=True)
-        self._helper_run_all(txt_in, exp)
+        self._transform_lines_helper(txt_in, exp)
 
-    def _helper_run_all(self, txt_in: str, exp: str) -> None:
+    def _transform_lines_helper(self, txt_in: str, exp: str) -> None:
         lines = txt_in.split("\n")
         type_ = "pdf"
-        act_as_arr = dshdprno._run_all(lines, type_, is_qa=False)
+        act_as_arr = dshdprno._transform_lines(lines, type_, is_qa=False)
         act = "\n".join(act_as_arr)
         self.assert_equal(act, exp)
