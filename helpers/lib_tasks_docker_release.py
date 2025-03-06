@@ -648,7 +648,6 @@ def docker_build_multi_arch_prod_image(  # type: ignore
     version,
     cache=True,
     base_image="",
-    candidate=False,
     user_tag="",
     container_dir_name=".",
     tag=None,
@@ -663,8 +662,6 @@ def docker_build_multi_arch_prod_image(  # type: ignore
     :param cache: note that often the prod image is just a copy of the
         dev image so caching makes no difference
     :param base_image: e.g., *****.dkr.ecr.us-east-1.amazonaws.com/amp
-    :param candidate: build a prod image with a tag format: prod-{hash}
-        where hash is the output of `hgit.get_head_hash()`
     :param user_tag: the name of the user building the candidate image
     :param container_dir_name: directory where the Dockerfile is located
     :param multi_arch: comma separated list of target architectures to
@@ -680,26 +677,9 @@ def docker_build_multi_arch_prod_image(  # type: ignore
     # TODO(gp): We should do a `i git_clean` to remove artifacts and check that
     #  the client is clean so that we don't release from a dirty client.
     # Build prod image.
-    if candidate:
-        # For candidate prod images which need to be tested on the AWS infra add
-        # a hash identifier.
-        latest_version = None
-        image_versioned_prod = hlitadoc.get_image(
-            base_image, "prod", latest_version
-        )
-        if not tag:
-            head_hash = hgit.get_head_hash(short_hash=True)
-        else:
-            head_hash = tag
-        # Add username to the prod image name.
-        if user_tag:
-            image_versioned_prod += f"-{user_tag}"
-        # Add head hash to the prod image name.
-        image_versioned_prod += f"-{head_hash}"
-    else:
-        image_versioned_prod = hlitadoc.get_image(
-            base_image, "prod", prod_version
-        )
+    image_versioned_prod = hlitadoc.get_image(
+        base_image, "prod", prod_version
+    )
     hlitadoc.dassert_is_image_name_valid(image_versioned_prod)
     # Login to AWS ECR because for multi-arch build the image is built locally
     # and pushed to the remote registry automatically.
@@ -751,8 +731,6 @@ def docker_build_multi_arch_prod_image(  # type: ignore
     docker pull {image_versioned_prod}
     """
     hlitauti.run(ctx, cmd)
-    if candidate:
-        _LOG.info("Head hash: %s", head_hash)
     cmd = f"docker image ls {image_versioned_prod}"
     hlitauti.run(ctx, cmd)
 
