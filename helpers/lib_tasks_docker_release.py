@@ -758,7 +758,6 @@ def docker_build_multi_arch_prod_image(  # type: ignore
 
 
 # TODO(Vlad): Refactor with the `docker_tag_push_multi_build_local_image_as_dev()`.
-# TODO(Vlad): Add the candidate image support. See HelpersTask338.
 @task
 def docker_tag_push_multi_arch_prod_image(  # type: ignore
     ctx,
@@ -768,7 +767,8 @@ def docker_tag_push_multi_arch_prod_image(  # type: ignore
     container_dir_name=".",
 ):
     """
-    Mark the multi-arch versioned "prod" image as "prod" and push it.
+    Mark the multi-arch versioned "prod" image as "prod" and push them to the
+    target registry.
 
     `base_image` and `target_registry` both contain information about the target
     Docker registry.
@@ -788,10 +788,10 @@ def docker_tag_push_multi_arch_prod_image(  # type: ignore
     prod_version = hlitadoc.resolve_version_value(
         version, container_dir_name=container_dir_name
     )
-    image_versioned_prod = hlitadoc.get_image(base_image, "prod", prod_version)
+    aws_image_versioned_prod = hlitadoc.get_image(base_image, "prod", prod_version)
     _LOG.info(
         "Pushing the prod image %s to the target_registry %s",
-        image_versioned_prod,
+        aws_image_versioned_prod,
         target_registry,
     )
     if target_registry == "aws_ecr.ck":
@@ -807,14 +807,26 @@ def docker_tag_push_multi_arch_prod_image(  # type: ignore
         raise ValueError(
             f"Invalid target Docker image registry='{target_registry}'"
         )
+    # Tag and push the versioned prod image. The versioned prod image is
+    # already built in the AWS ECR registry.
+    if target_registry != "aws_ecr.ck":
+        target_image_versioned_prod = hlitadoc.get_image(
+            prod_base_image, "prod", prod_version
+        )
+        cmd = rf"""
+        docker buildx imagetools create \
+            -t {target_image_versioned_prod} {aws_image_versioned_prod}
+        """
+        hlitauti.run(ctx, cmd)
     # Tag and push the versioned prod image as prod image.
     latest_version = None
     image_prod = hlitadoc.get_image(
         prod_base_image, "prod", version=latest_version
     )
-    cmd = (
-        f"docker buildx imagetools create -t {image_prod} {image_versioned_prod}"
-    )
+    cmd = rf"""
+    docker buildx imagetools create \
+        -t {image_prod} {aws_image_versioned_prod}
+    """
     hlitauti.run(ctx, cmd)
 
 
