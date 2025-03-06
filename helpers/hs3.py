@@ -622,11 +622,19 @@ def _get_aws_credentials_text(aws_profile: str) -> str:
     # CmTask11095.
     #profile_prefix = aws_profile.upper()
     profile_prefix = "CSFY" if aws_profile.upper() in ["AM", "CK"] else aws_profile.upper()
-    key_to_env_var = {
-        "aws_access_key_id": f"{profile_prefix}_AWS_ACCESS_KEY_ID",
-        "aws_secret_access_key": f"{profile_prefix}_AWS_SECRET_ACCESS_KEY",
-        "aws_s3_bucket": f"{profile_prefix}_AWS_S3_BUCKET",
-    }
+    if hserver.is_inside_ci():
+        key_to_env_var = {
+            "aws_access_key_id": f"{profile_prefix}_AWS_ACCESS_KEY_ID",
+            "aws_secret_access_key": f"{profile_prefix}_AWS_SECRET_ACCESS_KEY",
+            "aws_s3_bucket": f"{profile_prefix}_AWS_S3_BUCKET",
+            "aws_session_token": f"{profile_prefix}_AWS_SESSION_TOKEN",
+        }
+    else:
+        key_to_env_var = {
+            "aws_access_key_id": f"{profile_prefix}_AWS_ACCESS_KEY_ID",
+            "aws_secret_access_key": f"{profile_prefix}_AWS_SECRET_ACCESS_KEY",
+            "aws_s3_bucket": f"{profile_prefix}_AWS_S3_BUCKET",
+        }
     # Check that env vars are set.
     _dassert_all_env_vars_set(key_to_env_var)
     text = _get_aws_file_text(key_to_env_var)
