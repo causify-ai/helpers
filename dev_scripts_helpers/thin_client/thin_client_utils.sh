@@ -370,12 +370,9 @@ function parse_yaml {
     # This function converts YAML files into bash variable declarations.
     # It handles nested structures by concatenating parent keys with underscores.
     #
-    # Args:
-    #   $1 - Path to YAML file
-    #   $2 - Optional prefix for variable names
-    #
-    # Outputs:
-    #   Bash variable declarations (VAR="value")
+    # :param $1: Path to YAML file
+    # :param $2: Optional prefix for variable names
+    # :return: Bash variable declarations (VAR="value") printed to stdout
     #
     # Usage:
     #   parse_yaml config.yaml [prefix]

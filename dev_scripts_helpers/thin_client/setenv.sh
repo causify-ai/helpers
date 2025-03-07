@@ -19,7 +19,7 @@ else
     echo -e "ERROR: File 'thin_client_utils.sh' not found in current directory" >&2
     kill -INT $$
 fi;
-source $SOURCE_PATH;
+source $SOURCE_PATH
 
 # Parse repo config.
 echo "##> Parsing repo config"
