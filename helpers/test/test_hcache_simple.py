@@ -98,6 +98,18 @@ class BaseCacheTest(hunitest.TestCase):
             except AssertionError:
                 # Reset only the in-memory cache for the function.
                 hcacsimp.reset_mem_cache(func_name)
+        hcacsimp.set_cache_property("system", "_cached_function", "type", "json")
+        hcacsimp.set_cache_property(
+            "system", "_cached_pickle_function", "type", "pickle"
+        )
+        hcacsimp.set_cache_property("system", "_multi_arg_func", "type", "json")
+        hcacsimp.set_cache_property(
+            "system", "_refreshable_function", "type", "json"
+        )
+        hcacsimp.set_cache_property("system", "_kwarg_func", "type", "json")
+        hcacsimp.set_cache_property(
+            "system", "_dummy_cached_function", "type", "json"
+        )
 
     def tearDown(self) -> None:
         # Remove cache files created on disk.
