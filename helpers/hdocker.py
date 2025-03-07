@@ -16,7 +16,6 @@ import time
 from typing import Any, Dict, List, Optional, Tuple
 
 import helpers.hdbg as hdbg
-import helpers.henv as henv
 import helpers.hgit as hgit
 import helpers.hprint as hprint
 import helpers.hserver as hserver
@@ -187,7 +186,7 @@ def replace_shared_root_path(
     # Inside ECS, we keep the original shared data path and replace it only when
     # running inside Docker on the dev server.
     if hserver.is_inside_docker() and not hserver.is_inside_ecs_container():
-        shared_data_dirs = henv.execute_repo_config_code("get_shared_data_dirs()")
+        shared_data_dirs = hserver.get_shared_data_dirs()
         if replace_ecs_tokyo:
             # Make a copy to avoid modifying the original one.
             shared_data_dirs = copy.deepcopy(shared_data_dirs)
@@ -219,7 +218,8 @@ def build_container(
     Build a Docker image from a Dockerfile.
 
     :param container_name: Name of the Docker container to build.
-    :param dockerfile: Content of the Dockerfile for building the container.
+    :param dockerfile: Content of the Dockerfile for building the
+        container.
     :param force_rebuild: Whether to force rebuild the Docker container.
     :param use_sudo: Whether to use sudo for Docker commands.
     :return: Name of the built Docker container.
@@ -278,8 +278,8 @@ def _dassert_valid_path(file_path: str, is_input: bool) -> None:
     """
     Assert that a file path is valid, based on it being input or output.
 
-    For input files, it ensures that the file or directory exists.
-    For output files, it ensures that the enclosing directory exists.
+    For input files, it ensures that the file or directory exists. For
+    output files, it ensures that the enclosing directory exists.
     """
     _LOG.debug(hprint.to_str("file_path is_input"))
     if is_input:
@@ -591,8 +591,9 @@ def convert_pandoc_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
     """
     Parse the arguments from a pandoc command.
 
-    We need to parse all the arguments that correspond to files, so that we can
-    convert them to paths that are valid inside the Docker container.
+    We need to parse all the arguments that correspond to files, so that
+    we can convert them to paths that are valid inside the Docker
+    container.
 
     :param cmd: A list of command-line arguments for pandoc.
     :return: A dictionary with the parsed arguments.
@@ -748,8 +749,7 @@ def run_dockerized_pandoc(
 
 
 def run_dockerized_markdown_toc(
-    in_file_path: str, force_rebuild: bool, cmd_opts: List[str], *,
-    use_sudo: bool
+    in_file_path: str, force_rebuild: bool, cmd_opts: List[str], *, use_sudo: bool
 ) -> None:
     """
     Same as `run_dockerized_prettier()` but for `markdown-toc`.

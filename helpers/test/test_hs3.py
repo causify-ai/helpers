@@ -4,16 +4,22 @@ from typing import Generator, Tuple
 
 import pytest
 
-import helpers.henv as henv
 import helpers.hio as hio
 import helpers.hmoto as hmoto
 import helpers.hs3 as hs3
+import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
 
 
+# #############################################################################
+# TestReplaceStarWithDoubleStar
+# #############################################################################
+
+
 class TestReplaceStarWithDoubleStar(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Test non replacement of a single asterisk at the end of the path.
@@ -56,13 +62,19 @@ class TestReplaceStarWithDoubleStar(hunitest.TestCase):
         self.assert_equal(new_pattern, "s3://bucket/**/*/path/csv*")
 
 
+# #############################################################################
+# TestToFileAndFromFile1
+# #############################################################################
+
+
 @pytest.mark.requires_ck_infra
 @pytest.mark.requires_aws
 @pytest.mark.skipif(
-    not henv.execute_repo_config_code("is_CK_S3_available()"),
+    not hserver.is_CK_S3_available(),
     reason="Run only if CK S3 is available",
 )
 class TestToFileAndFromFile1(hmoto.S3Mock_TestCase):
+
     def write_read_helper(self, file_name: str, force_flush: bool) -> None:
         # Prepare inputs.
         file_content = "line_mock1\nline_mock2\nline_mock3"
@@ -137,13 +149,19 @@ class TestToFileAndFromFile1(hmoto.S3Mock_TestCase):
         self.assert_equal(actual, expected)
 
 
+# #############################################################################
+# TestListdir1
+# #############################################################################
+
+
 @pytest.mark.requires_ck_infra
 @pytest.mark.requires_aws
 @pytest.mark.skipif(
-    not henv.execute_repo_config_code("is_CK_S3_available()"),
+    not hserver.is_CK_S3_available(),
     reason="Run only if CK S3 is available",
 )
 class TestListdir1(hmoto.S3Mock_TestCase):
+
     def prepare_test_data(self) -> Tuple[str, hs3.AwsProfile]:
         bucket_s3_path = f"s3://{self.bucket_name}"
         depth_one_s3_path = f"{bucket_s3_path}/depth_one"
@@ -277,13 +295,19 @@ class TestListdir1(hmoto.S3Mock_TestCase):
         self.assertListEqual(paths, expected_paths)
 
 
+# #############################################################################
+# TestDu1
+# #############################################################################
+
+
 @pytest.mark.requires_ck_infra
 @pytest.mark.requires_aws
 @pytest.mark.skipif(
-    not henv.execute_repo_config_code("is_CK_S3_available()"),
+    not hserver.is_CK_S3_available(),
     reason="Run only if CK S3 is available",
 )
 class TestDu1(hmoto.S3Mock_TestCase):
+
     def test_du1(self) -> None:
         """
         Verify that total file size is returned.
@@ -314,6 +338,11 @@ class TestDu1(hmoto.S3Mock_TestCase):
         size = hs3.du(bucket_s3_path, human_format=True, aws_profile=moto_s3fs)
         expected_size = r"2.9 KB"
         self.assert_equal(size, expected_size)
+
+
+# #############################################################################
+# TestGenerateAwsFiles
+# #############################################################################
 
 
 class TestGenerateAwsFiles(hunitest.TestCase):
@@ -397,7 +426,13 @@ class TestGenerateAwsFiles(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# Test_get_s3_bucket_from_stage
+# #############################################################################
+
+
 class Test_get_s3_bucket_from_stage(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Check for a valid stage.
@@ -441,15 +476,27 @@ class Test_get_s3_bucket_from_stage(hunitest.TestCase):
 _AWS_PROFILE = "ck"
 
 
+# #############################################################################
+# Test_s3_get_credentials1
+# #############################################################################
+
+
 @pytest.mark.requires_aws
 @pytest.mark.requires_ck_infra
 class Test_s3_get_credentials1(hunitest.TestCase):
+
     def test1(self) -> None:
         res = hs3.get_aws_credentials(_AWS_PROFILE)
         _LOG.debug("res=%s", str(res))
 
 
+# #############################################################################
+# Test_s3_functions1
+# #############################################################################
+
+
 class Test_s3_functions1(hunitest.TestCase):
+
     def test_extract_bucket_from_path1(self) -> None:
         path = os.path.join(
             hs3.get_s3_bucket_path_unit_test(_AWS_PROFILE),
@@ -460,9 +507,15 @@ class Test_s3_functions1(hunitest.TestCase):
         self.assert_equal(path, "/tmp/TestCachingOnS3.test_with_caching1/joblib")
 
 
+# #############################################################################
+# Test_s3_1
+# #############################################################################
+
+
 @pytest.mark.requires_aws
 @pytest.mark.requires_ck_infra
 class Test_s3_1(hunitest.TestCase):
+
     def test_ls1(self) -> None:
         file_path = os.path.join(
             hs3.get_s3_bucket_path_unit_test(_AWS_PROFILE),

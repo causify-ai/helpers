@@ -26,13 +26,13 @@ class Test_replace_shared_root_path1(hunitest.TestCase):
         """
         Test replacing shared root path.
         """
-        # Mock `henv.execute_repo_config_code()` to return a dummy mapping.
+        # Mock `hserver.get_shared_data_dirs()` to return a dummy mapping.
         mock_mapping = {
             "/data/shared1": "/shared_folder1",
             "/data/shared2": "/shared_folder2",
         }
         with umock.patch.object(
-            hdocker.henv, "execute_repo_config_code", return_value=mock_mapping
+            hserver, "get_shared_data_dirs", return_value=mock_mapping
         ):
             # Test replacing shared root path.
             path1 = "/data/shared1/asset1"
@@ -54,12 +54,12 @@ class Test_replace_shared_root_path1(hunitest.TestCase):
         """
         Test replacing shared root path with the `replace_ecs_tokyo` parameter.
         """
-        # Mock `henv.execute_repo_config_code()` to return a dummy mapping.
+        # Mock `hserver.get_shared_data_dirs()` to return a dummy mapping.
         mock_mapping = {
             "/data/shared": "/shared_folder",
         }
         with umock.patch.object(
-            hdocker.henv, "execute_repo_config_code", return_value=mock_mapping
+            hserver, "get_shared_data_dirs", return_value=mock_mapping
         ):
             # Test if `ecs_tokyo` is replaced if `replace_ecs_tokyo = True`.
             path1 = 'object("/data/shared/ecs_tokyo/asset2/item")'

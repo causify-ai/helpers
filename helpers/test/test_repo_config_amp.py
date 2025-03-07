@@ -2,7 +2,6 @@ import logging
 
 import pytest
 
-import helpers.henv as henv
 import helpers.hgit as hgit
 import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
@@ -26,9 +25,8 @@ class TestRepoConfig_Amp(hunitest.TestCase):
         Show that when importing repo_config, one doesn't get necessarily the
         outermost repo_config (e.g., for lime one gets amp.repo_config).
         """
-        import repo_config
 
-        actual = repo_config.get_name()
+        actual = hrecouti.get_repo_config().get_name()
         _LOG.info(
             "actual=%s expected_repo_name=%s", actual, self.expected_repo_name
         )
@@ -41,7 +39,7 @@ class TestRepoConfig_Amp(hunitest.TestCase):
         """
         If //amp is a supermodule, then repo_config should report //amp.
         """
-        actual = henv.execute_repo_config_code("get_name()")
+        actual = hrecouti.get_repo_config().get_name()
         self.assertEqual(actual, self.expected_repo_name)
 
     @pytest.mark.skipif(
@@ -52,11 +50,11 @@ class TestRepoConfig_Amp(hunitest.TestCase):
         If //amp is a supermodule, then repo_config should report something
         different than //amp.
         """
-        actual = henv.execute_repo_config_code("get_name()")
+        actual = hrecouti.get_repo_config().get_name()
         self.assertNotEqual(actual, self.expected_repo_name)
 
     def test_config_func_to_str(self) -> None:
-        _LOG.info(henv.execute_repo_config_code("config_func_to_str()"))
+        _LOG.info(hserver.config_func_to_str())
 
     def test_is_dev4(self) -> None:
         """
@@ -69,7 +67,7 @@ class TestRepoConfig_Amp(hunitest.TestCase):
         When running Amp on dev_ck, the CK bucket should be available.
         """
         if hserver.is_dev_ck():
-            act = henv.execute_repo_config_code("is_CK_S3_available()")
+            act = hserver.is_CK_S3_available()
             exp = True
             self.assertEqual(act, exp)
 
@@ -82,7 +80,13 @@ class TestRepoConfig_Amp(hunitest.TestCase):
 # > pytest ./amp/helpers/test/test_repo_config_amp.py
 
 
+# #############################################################################
+# TestRepoConfig_Amp_signature1
+# #############################################################################
+
+
 class TestRepoConfig_Amp_signature1(hunitest.TestCase):
+
     def test_dev_ck_server(self) -> None:
         target_name = "amp"
         hunteuti.execute_only_in_target_repo(target_name)
@@ -174,7 +178,7 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
         )
 
     @pytest.mark.skipif(
-        not henv.execute_repo_config_code("get_name()") == "//amp",
+        not hrecouti.get_repo_config().get_name() == "//amp",
         reason="Run only in //amp",
     )
     def test_amp_ci(self) -> None:
@@ -220,33 +224,28 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
         hunteuti.check_env_to_str(self, exp, skip_secrets_vars=skip_secrets_vars)
 
     @pytest.mark.skipif(
-        not henv.execute_repo_config_code("get_name()") == "//cmamp",
+        not hrecouti.get_repo_config().get_name() == "//cmamp",
         reason="Run only in //cmamp",
     )
     def test_cmamp_ci(self) -> None:
-        #hunteuti.execute_only_on_ci()
+        # hunteuti.execute_only_on_ci()
         #
         exp = r"""
         # Repo config:
           # repo_config.config
-            enable_privileged_mode='True'
-            get_docker_base_image_name='cmamp'
-            get_docker_shared_group=''
-            get_docker_user=''
             get_host_name='github.com'
             get_html_dir_to_url_mapping='{'s3://cryptokaizen-html': 'http://172.30.2.44', 's3://cryptokaizen-html/v2': 'http://172.30.2.44/v2'}'
             get_invalid_words='[]'
-            get_shared_data_dirs='None'
-            has_dind_support='True'
-            has_docker_sudo='False'
-            is_CK_S3_available='True'
-            run_docker_as_root='True'
-            skip_submodules_test='False'
-            use_docker_db_container_name_to_connect='False'
-            use_docker_network_mode_host='False'
-            use_docker_sibling_containers='False'
+            get_docker_base_image_name='cmamp'
             # hserver.config
+              enable_privileged_mode()='True'
+              get_docker_shared_group()=''
+              get_docker_user()=''
+              get_shared_data_dirs()='None'
+              has_dind_support()='True'
+              has_docker_sudo()='False'
               is_AM_S3_available()='True'
+              is_CK_S3_available()='True'
               is_dev4()='False'
               is_dev_ck()='False'
               is_inside_ci()='True'
@@ -254,6 +253,11 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
               is_mac(version='Catalina')='False'
               is_mac(version='Monterey')='False'
               is_mac(version='Ventura')='False'
+              run_docker_as_root()='True'
+              skip_submodules_test()='False'
+              use_docker_db_container_name_to_connect()='False'
+              use_docker_network_mode_host()='False'
+              use_docker_sibling_containers()='False'
         # Env vars:
           CSFY_CI='true'
           CSFY_ECR_BASE_PATH='$CSFY_ECR_BASE_PATH'

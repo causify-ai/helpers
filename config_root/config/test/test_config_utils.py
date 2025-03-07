@@ -4,12 +4,13 @@ import os
 import unittest.mock as umock
 from typing import Any
 
-import config_root.config as cconfig
 import pandas as pd
 
+import config_root.config as cconfig
 import helpers.hio as hio
 import helpers.hpandas as hpandas
 import helpers.hprint as hprint
+import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
 
 
@@ -78,6 +79,7 @@ def _get_test_config4() -> cconfig.Config:
 
 # TODO(gp): -> validate_config_list
 class Test_validate_configs1(hunitest.TestCase):
+
     def test_check_same_configs_error(self) -> None:
         """
         Verify that an error is raised when duplicated configs are encountered.
@@ -115,6 +117,7 @@ class Test_validate_configs1(hunitest.TestCase):
 
 
 class Test_apply_config_overrides_from_command_line1(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Verify that config values are updated correctly.
@@ -163,6 +166,7 @@ class Test_apply_config_overrides_from_command_line1(hunitest.TestCase):
 
 
 class Test_intersect_configs1(hunitest.TestCase):
+
     def test_same_config(self) -> None:
         """
         Verify that intersection of two same configs equals those configs.
@@ -200,6 +204,7 @@ class Test_intersect_configs1(hunitest.TestCase):
 
 
 class Test_subtract_configs1(hunitest.TestCase):
+
     def test_same_config(self) -> None:
         """
         Verify that the difference of two configs is empty.
@@ -289,6 +294,7 @@ class Test_subtract_configs1(hunitest.TestCase):
 
 
 class Test_diff_configs1(hunitest.TestCase):
+
     def test_same_config(self) -> None:
         """
         Verify that the difference of two configs is empty.
@@ -366,6 +372,7 @@ class Test_diff_configs1(hunitest.TestCase):
 
 
 class Test_convert_to_dataframe1(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Compute and verify dataframe with all config parameters.
@@ -397,6 +404,7 @@ class Test_convert_to_dataframe1(hunitest.TestCase):
 
 
 class Test_build_config_diff_dataframe1(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Summarize differences between two different configs.
@@ -459,6 +467,7 @@ class Test_build_config_diff_dataframe1(hunitest.TestCase):
 
 
 class Test_make_hashable(hunitest.TestCase):
+
     def helper(self, obj: Any, is_hashable: bool, expected: str) -> None:
         is_hashable_before = isinstance(obj, collections.abc.Hashable)
         self.assertEqual(is_hashable_before, is_hashable)
@@ -560,19 +569,20 @@ class Test_make_hashable(hunitest.TestCase):
 
 
 class Test_replace_shared_root_path(hunitest.TestCase):
+
     def test_replace_shared_dir_paths(self) -> None:
         """
         Test replacing in config all shared root paths with the dummy mapping.
         """
-        # Mock `henv.execute_repo_config_code()` to return a dummy mapping.
+        # Mock `hserver.get_shared_data_dirs()` to return a dummy mapping.
         mock_mapping = {
             "/ecs_tokyo": "/ecs",
             "/data/shared1": "/shared_folder1",
             "/data/shared2": "/shared_folder2",
         }
         with umock.patch.object(
-            cconfig.hdocker.henv,
-            "execute_repo_config_code",
+            hserver,
+            "get_shared_data_dirs",
             return_value=mock_mapping,
         ):
             # Initial Config.
@@ -611,6 +621,7 @@ class Test_replace_shared_root_path(hunitest.TestCase):
 
 
 class Test_load_config_from_pickle1(hunitest.TestCase):
+
     def helper(
         self, expected_config_version: str, expected_signature: str
     ) -> None:
