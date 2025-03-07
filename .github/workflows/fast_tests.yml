@@ -91,7 +91,7 @@ jobs:
           aws sts get-caller-identity
       - name: Print env.AWS_DEFAULT_REGION
         run: |
-          echo "Region from context: ${{ env.AWS_DEFAULT_REGION }}"
+          echo "Region from context: ${{ env.AWS_SESSION_TOKEN }}"
       - name: Run fast tests
         # https://github.community/t/dont-run-actions-on-draft-pull-requests/16817/19
         # Do not run on draft pull requests.
