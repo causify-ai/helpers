@@ -18,6 +18,8 @@ from invoke import task
 # this code needs to run with minimal dependencies and without Docker.
 import helpers.hdbg as hdbg
 import helpers.hdict as hdict
+import helpers.hdocker as hdocker
+import helpers.henv as henv
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -238,8 +240,10 @@ def docker_pull(ctx, stage="dev", version=None, skip_pull=False):  # type: ignor
 
     :param skip_pull: if True skip pulling the docker image
     """
-    _LOG.info("Pulling the latest version of Docker")
     hlitauti.report_task()
+    if stage == "local":
+        _LOG.warning("Setting skip_pull to True for local stage")
+        skip_pull = True
     if skip_pull:
         _LOG.warning("Skipping pulling docker image as per user request")
         return
@@ -1130,16 +1134,14 @@ def _get_docker_base_cmd(
     :param extra_env_vars: represent vars to add, e.g., `["PORT=9999", "DRY_RUN=1"]`
     :param extra_docker_compose_files: `docker-compose` override files
     """
-    hprint.log(
-        _LOG,
-        logging.DEBUG,
-        "base_image stage version extra_env_vars extra_docker_compose_files",
-    )
+    _LOG.debug(hprint.func_signature_to_str())
     docker_cmd_: List[str] = []
     # - Handle the image.
     image = get_image(base_image, stage, version)
     _LOG.debug("base_image=%s stage=%s -> image=%s", base_image, stage, image)
     dassert_is_image_name_valid(image)
+    # Check image compatibility.
+    hdocker.check_image_compatibility_with_host(image)
     docker_cmd_.append(f"IMAGE={image}")
     # - Handle extra env vars.
     if extra_env_vars:
@@ -1215,12 +1217,7 @@ def _get_docker_compose_cmd(
     :param print_docker_config: print the docker config for debugging purposes
     :param use_bash: run command through a shell
     """
-    hprint.log(
-        _LOG,
-        logging.DEBUG,
-        "cmd extra_docker_run_opts service_name "
-        "use_entrypoint as_user print_docker_config use_bash",
-    )
+    _LOG.debug(hprint.func_signature_to_str())
     # - Get the base Docker command.
     docker_cmd_ = _get_docker_base_cmd(
         base_image,
@@ -1233,6 +1230,7 @@ def _get_docker_compose_cmd(
     )
     # - Add the `config` command for debugging purposes.
     docker_config_cmd: List[str] = docker_cmd_[:]
+    # TODO(gp): Use yaml approach like done for other parts of the code.
     docker_config_cmd.append(
         r"""
         config"""
@@ -1382,6 +1380,7 @@ def docker_bash(  # type: ignore
     :param generate_docker_compose_file: generate the Docker compose file or not
     :param skip_pull: if True skip pulling the docker image
     """
+    _LOG.debug(hprint.func_signature_to_str("ctx"))
     hlitauti.report_task(container_dir_name=container_dir_name)
     #
     cmd = "bash"

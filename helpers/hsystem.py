@@ -21,6 +21,7 @@ from typing import Any, Callable, List, Match, Optional, Tuple, Union, cast
 
 import helpers.hdbg as hdbg
 import helpers.hintrospection as hintros
+import helpers.hio as hio
 import helpers.hlogging as hloggin
 import helpers.hprint as hprint
 
@@ -31,7 +32,7 @@ import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
-# Set logging level of this file.
+# Set logging level of this file higher to avoid too much chatter.
 _LOG.setLevel(logging.INFO)
 
 # #############################################################################
@@ -528,7 +529,7 @@ def system_to_files(
 
 
 def get_process_pids(
-    keep_line: Callable[[str], bool]
+    keep_line: Callable[[str], bool],
 ) -> Tuple[List[int], List[str]]:
     """
     Find all the processes corresponding to `ps ax` filtered line by line with
@@ -670,6 +671,27 @@ def check_exec(tool: str) -> bool:
         log_level=logging.DEBUG,
     )
     return rc == 0
+
+
+def to_pbcopy(txt: str, pbcopy: bool) -> None:
+    """
+    Save the content of txt in the system clipboard.
+    """
+    txt = txt.rstrip("\n")
+    if not pbcopy:
+        print(txt)
+        return
+    if not txt:
+        print("Nothing to copy")
+        return
+    if is_running_on_macos():
+        # -n = no new line
+        cmd = f"echo -n '{txt}' | pbcopy"
+        system(cmd)
+        print(f"\n# Copied to system clipboard:\n{txt}")
+    else:
+        _LOG.warning("pbcopy works only on macOS")
+        print(txt)
 
 
 # #############################################################################

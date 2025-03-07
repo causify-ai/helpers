@@ -879,7 +879,7 @@ def get_path_from_git_root(
     return ret
 
 
-# TODO(gp): Just do a find.
+# TODO(gp): Rewrite this function in a better way.
 @functools.lru_cache()
 def get_amp_abs_path() -> str:
     """

@@ -374,7 +374,7 @@ def gh_issue_title(ctx, issue_id, repo_short_name="current", pbcopy=True):  # ty
     title, url = _get_gh_issue_title(issue_id, repo_short_name)
     # Print or copy to clipboard.
     msg = f"{title}: {url}"
-    hlitauti._to_pbcopy(msg, pbcopy)
+    hsystem.to_pbcopy(msg, pbcopy=True)
 
 
 def _check_if_pr_exists(title: str) -> bool:

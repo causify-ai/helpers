@@ -29,6 +29,7 @@ def _run_preprocess_notes(in_file: str, out_file: str) -> str:
     cmd.append(exec_path)
     cmd.append(f"--input {in_file}")
     cmd.append(f"--output {out_file}")
+    cmd.append("--type pdf")
     cmd_as_str = " ".join(cmd)
     hsystem.system(cmd_as_str)
     # Check.
@@ -36,16 +37,17 @@ def _run_preprocess_notes(in_file: str, out_file: str) -> str:
     return act  # type: ignore
 
 
+# #############################################################################
+# Test_preprocess_notes1
+# #############################################################################
+
+
 @pytest.mark.skipif(
     hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
 )
 class Test_preprocess_notes1(hunitest.TestCase):
     """
-    Check that the output of `preprocess_notes.py` is the expected one.
-
-    using:
-    - an end-to-end flow;
-    - checked in files.
+    Test `preprocess_notes.py` using the executable and checked in files.
     """
 
     def test1(self) -> None:
@@ -61,10 +63,15 @@ class Test_preprocess_notes1(hunitest.TestCase):
         self.check_string(act)
 
 
+# #############################################################################
+# Test_process_question1
+# #############################################################################
+
+
 @pytest.mark.skipif(
     hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
 )
-class Test_preprocess_notes2(hunitest.TestCase):
+class Test_process_question1(hunitest.TestCase):
     """
     Check that the output of `preprocess_notes.py` is the expected one calling
     the library function directly.
@@ -111,11 +118,13 @@ class Test_preprocess_notes2(hunitest.TestCase):
     def _helper_process_question(
         self, txt_in: str, do_continue_exp: bool, exp: str
     ) -> None:
-        do_continue, act = dshdprno._process_question(txt_in)
+        do_continue, act = dshdprno._process_question_to_markdown(txt_in)
         self.assertEqual(do_continue, do_continue_exp)
         self.assert_equal(act, exp)
 
 
+# #############################################################################
+# Test_preprocess_notes3
 # #############################################################################
 
 
@@ -173,9 +182,11 @@ class Test_preprocess_notes3(hunitest.TestCase):
                 ```
         """
         exp = hprint.dedent(exp, remove_lead_trail_empty_lines_=True)
-        self._helper_run_all(txt_in, exp)
+        self._transform_lines_helper(txt_in, exp)
 
-    def _helper_run_all(self, txt_in: str, exp: str) -> None:
-        act_as_arr = dshdprno._run_all(txt_in.split("\n"), is_qa=False)
+    def _transform_lines_helper(self, txt_in: str, exp: str) -> None:
+        lines = txt_in.split("\n")
+        type_ = "pdf"
+        act_as_arr = dshdprno._transform_lines(lines, type_, is_qa=False)
         act = "\n".join(act_as_arr)
         self.assert_equal(act, exp)

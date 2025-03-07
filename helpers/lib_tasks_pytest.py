@@ -9,7 +9,7 @@ import logging
 import os
 import re
 import sys
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Tuple
 
 from invoke import task
 
@@ -117,11 +117,11 @@ def _build_run_command_line(
 
     ```
     pytest -m "optimizer and not slow and not superslow" \
-                . \
-                -o timeout_func_only=true \
-                --timeout 5 \
-                --reruns 2 \
-                --only-rerun "Failed: Timeout"
+        . \
+        -o timeout_func_only=true \
+        --timeout 5 \
+        --reruns 2 \
+        --only-rerun "Failed: Timeout"
     ```
 
     The rest of params are the same as in `run_fast_tests()`.
@@ -476,7 +476,6 @@ def run_fast_tests(  # type: ignore
     :param allure_dir: directory to save allure results to. If specified, allure
         plugin will be installed on-the-fly and results will be generated
         and saved to the specified directory
-    :param kwargs: kwargs for `ctx.run`
     """
     hlitauti.report_task()
     hdbg.dassert(
@@ -1466,5 +1465,79 @@ def pytest_add_untracked_golden_outcomes(ctx):  # type: ignore
 
 
 # #############################################################################
-# TO_ADD
+# pytest_failed
 # #############################################################################
+
+
+def _parse_failed_tests(
+    txt: str, only_file: bool, only_class: bool
+) -> Tuple[List[str], int, int]:
+    """
+    Parse the failed tests from the pytest output.
+
+    :param only_file: return only the file name
+    :param only_class: return only the class name
+    :return:
+        - failed_tests: list of failed tests
+        - num_failed: number of failed tests
+        - num_passed: number of passed tests
+    """
+    hdbg.dassert_lte(only_file + only_class, 1)
+    failed_tests = []
+    num_failed = num_passed = 0
+    for line in txt.split("\n"):
+        # Remove non printable characters.
+        line = re.sub(r"[^\x20-\x7E]", "", line)
+        # FAILED oms/broker/ccxt/test/test_ccxt_execution_quality.py::Test_compute_adj_fill_ecdfs::test3 - RuntimeError:
+        m = re.search(r"^(FAILED|ERROR) (\S+) -", line)
+        if m:
+            test_name = m.group(2)
+            _LOG.debug("line=%s ->\n\ttest_name='%s'", line, test_name)
+            failed_tests.append(test_name)
+        # helpers_root/helpers/test/test_hserver.py::Test_hserver1::test_gp1 (0.00 s) PASSED [ 36%]
+        m = re.search(r"(\S+) \(\S+ s\) (FAILED|ERROR)", line)
+        if m:
+            test_name = m.group(1)
+            _LOG.debug("line=%s ->\n\ttest_name='%s'", line, test_name)
+            failed_tests.append(test_name)
+        # ======================== 4 failed, 43 passed in 40.48s =========================
+        m = re.match(r"=+ (\d+) failed, (\d+) passed in", line)
+        if m:
+            num_failed = int(m.group(1))
+            num_passed = int(m.group(2))
+    failed_tests = sorted(list(set(failed_tests)))
+    #
+    if num_failed and num_passed and num_failed != len(failed_tests):
+        _LOG.warning(
+            "n_failed=%s len(failed_tests)=%s", num_failed, len(failed_tests)
+        )
+    print(f"Failed tests: {num_failed}/{num_passed}")
+    # Filter, if needed.
+    if only_file or only_class:
+        failed_tests_tmp = []
+        for test in failed_tests:
+            # oms/broker/ccxt/test/test_ccxt_execution_quality.py::Test_compute_adj_fill_ecdfs::test3
+            m = re.match(r"(\S+)::(\S+)::\S+$", test)
+            hdbg.dassert(m, f"Can't parse '{test}'")
+            if only_file:
+                failed_tests_tmp.append(m.group(1))
+            elif only_class:
+                failed_tests_tmp.append(m.group(1) + "::" + m.group(2))
+            else:
+                raise RuntimeError("Unexpected")
+        failed_tests = sorted(list(set(failed_tests_tmp)))
+    return failed_tests, num_failed, num_passed
+
+
+@task
+def pytest_failed(ctx, only_file=False, only_class=False, file_name="tmp.pytest_script.txt"):  # type: ignore
+    _ = ctx
+    hlitauti.report_task()
+    # Read file.
+    txt = hio.from_file(file_name)
+    # Extract info.
+    failed_tests, _, _ = _parse_failed_tests(txt, only_file, only_class)
+    print("\n".join(failed_tests))
+    # Save to clipboard.
+    txt = " ".join(failed_tests)
+    hsystem.to_pbcopy(txt, pbcopy=True)

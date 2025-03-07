@@ -51,7 +51,8 @@ _LOG = logging.getLogger(__name__)
 
 def _remove_files(file_name: str, to_ignore_regex: Optional[str]) -> None:
     """
-    Remove certain files (e.g., `.git`, `tmp.`, ...) from the content of a file.
+    Remove certain files (e.g., `.git`, `tmp.`, ...) from the content of a
+    file.
 
     - Read the file name which has one file per line
     - Remove certain files
@@ -62,7 +63,7 @@ def _remove_files(file_name: str, to_ignore_regex: Optional[str]) -> None:
     files = txt.split("\n")
     removed_files = []
     kept_files = []
-    vals = ["\.git\/", "\.git:", "\.idea", "[\/ ]tmp\."]
+    vals = [r"\.git\/", r"\.git:", r"\.idea", r"[\/ ]tmp\."]
     if to_ignore_regex:
         vals.append(to_ignore_regex)
     regex = "|".join(vals)
@@ -84,7 +85,7 @@ def _remove_files(file_name: str, to_ignore_regex: Optional[str]) -> None:
     # print(len(files), len(removed_files), len(kept_files))
 
 
-# ###############################################################################
+# #############################################################################
 
 
 def _compare_file_list(
@@ -95,39 +96,31 @@ def _compare_file_list(
 
     The output looks like:
     ```
-    > sdiff --suppress-common-lines --expand-tabs /tmp/dir1 /tmp/dir2                                                                                                            [244/93661]
-                                                                    > ./.dockerignore
-                                                                    > ./.github.OLD
-                                                                    > ./.github.OLD/gh_requirements.txt
+    > sdiff --suppress-common-lines --expand-tabs /tmp/dir1 /tmp/dir2
+                                          > ./.dockerignore
+                                          > ./.github.OLD
+                                          > ./.github.OLD/gh_requirements.txt
 
-      ./.github/workflows/build_image.cmamp.yml                     <
-      ./.github/workflows/build_image.dev.yml                       <
-      ./.github/workflows/ib_connector.build_image.yml.DISABLED     <
-      ./.github/workflows/import_cycles_detector.yml                <
-      ./dev_scripts/notebooks/test/outcomes/Test_publish_notebook1. | ./dev_scripts/notebooks/test/simple_notebook.ipynb
-      ./dev_scripts/notebooks/test/outcomes/Test_publish_notebook1. | ./dev_scripts/notebooks/test/simple_notebook.py
+      ./.github/workflows/build_image.cma <
+      ./.github/workflows/build_image.dev <
+      ./.github/workflows/ib_connector.bu <
+      ./.github/workflows/import_cycles_d <
+      ./dev_scripts/notebooks/test/outcom | ./dev_scripts/notebooks/test/simple
+      ./dev_scripts/notebooks/test/outcom | ./dev_scripts/notebooks/test/simple
     ```
 
     :param dir1: first dir
     :param dir2: second dir
     :param to_ignore_regex: regex for files to remove
     """
-    print(hprint.frame("Compare file list in dirs '%s' vs '%s'" % (dir1, dir2)))
+    print(hprint.frame(f"Compare file list in dirs '{dir1}' vs '{dir2}'"))
     hdbg.dassert_path_exists(dir1)
     hdbg.dassert_path_exists(dir2)
     # Find all the files in both dirs.
     cmd = ""
     # remove_cmd = "| grep -v \"\.git/\" | grep -v \.idea | grep -v '[/ ]tmp.'"
-    cmd += '(cd %s && find . -name "*" | sort >/tmp/dir1) && ' % (
-        # os.path.dirname(dir1),
-        # os.path.basename(dir1),
-        dir1,
-    )
-    cmd += '(cd %s && find . -name "*" | sort >/tmp/dir2)' % (
-        # os.path.dirname(dir2),
-        # os.path.basename(dir2),
-        dir2,
-    )
+    cmd += f'(cd {dir1} && find . -name "*" | sort >/tmp/dir1) && '
+    cmd += f'(cd {dir2} && find . -name "*" | sort >/tmp/dir2)'
     print(cmd)
     hsystem.system(cmd, abort_on_error=True)
     # Remove files.
@@ -143,7 +136,7 @@ def _compare_file_list(
     hsystem.system(cmd, abort_on_error=False, suppress_output=False)
 
 
-# ###############################################################################
+# #############################################################################
 
 
 def _find_files_to_diff(
@@ -154,7 +147,7 @@ def _find_files_to_diff(
 
     :return: path of the file with the output of `diff -r --brief`
     """
-    print(hprint.frame("Diff dirs '%s' vs '%s'" % (dir1, dir2)))
+    print(hprint.frame(f"Diff dirs '{dir1}' vs '{dir2}'"))
     dst_file = "./tmp.diff_file_listings.txt"
     cmd = f"diff --brief -r {dir1} {dir2} >{dst_file}"
     # We don't abort since rc != 0 in case of differences, which is a valid outcome.
@@ -193,11 +186,11 @@ def _parse_diff_output(
     :param input_file: the output of `diff -r --brief`, e.g.,
         ```
         Only in /Users/saggese/src/amp1/dataflow_amp: features
-        Only in /Users/saggese/src/amp1/dataflow_amp/real_time/test: TestRealTimeReturnPipeline1.test1
+        Only in /Users/saggese/src/amp1/dataflow_amp/real_time/test: TestReal...
         ```
     """
     print(
-        hprint.frame("Compare file content in dirs '%s' vs '%s'" % (dir1, dir2))
+        hprint.frame(f"Compare file content in dirs '{dir1}' vs '{dir2}'")
     )
     # Read the output from `diff -r --brief`.
     hdbg.dassert_path_exists(input_file)
@@ -232,13 +225,13 @@ def _parse_diff_output(
             elif "$DIR2" in dir_:
                 sign = ">"
             else:
-                hdbg.dfatal("Invalid dir_='%s'" % dir_)
+                hdbg.dfatal(f"Invalid dir_='{dir_}'")
             if args.dir1_name is not None:
                 dir_ = dir_.replace("$DIR1", args.dir1_name)
             if args.dir2_name is not None:
                 dir_ = dir_.replace("$DIR2", args.dir2_name)
             comment = line + "\n"
-            comment += "%s: ONLY: %s in '%s'\n" % (sign, file_, dir_)
+            comment += f"{sign}: ONLY: {file_} in '{dir_}'\n"
             # Diff command.
             if args.dir1 in file_name:
                 out_line = "vimdiff %s %s" % (
@@ -263,9 +256,8 @@ def _parse_diff_output(
             # Files
             #   /data/gp_wd/src/deploy_...1/compustat/fiscal_calendar.py and
             #   /data/gp_wd/src/...1/compustat/fiscal_calendar.py differ
-            m = re.match(r"^Files (\S+) and (\S+) differ$", line)
+            m: Match[Any] = re.match(r"^Files (\S+) and (\S+) differ$", line)
             hdbg.dassert(m, "Invalid line='%s'", line)
-            m: Match[Any]
             # Check.
             hdbg.dassert_path_exists(m.group(1))
             hdbg.dassert_path_exists(m.group(2))
@@ -277,7 +269,7 @@ def _parse_diff_output(
             hdbg.dassert_eq(file1, file2)
             sign = "-"
             comment = "\n" + line + "\n"
-            comment += "%s: DIFF: %s" % (sign, file1)
+            comment += f"{sign}: DIFF: {file1}"
             # Diff command.
             out_line = "vimdiff %s %s" % (m.group(1), m.group(2))
             if args.only_different_files:
@@ -287,7 +279,7 @@ def _parse_diff_output(
             _LOG.warning(line)
             continue
         else:
-            hdbg.dfatal("Invalid line='%s'" % line)
+            hdbg.dfatal(f"Invalid line='{line}'")
         #
         if not args.skip_comments:
             if comment:
@@ -308,12 +300,12 @@ def _parse_diff_output(
         # Prepare the diff script.
         _LOG.info("Writing '%s'", output_file)
         hio.to_file(output_file, out)
-        cmd = "chmod +x %s" % output_file
+        cmd = f"chmod +x {output_file}"
         hsystem.system(cmd)
         # Press enter to continue.
         hsystem.press_enter_to_continue()
         # Run the diff script.
-        cmd = "./%s" % output_file
+        cmd = f"./{output_file}"
         print("Run script with:\n> " + cmd)
         #
         # Start the script automatically.
@@ -368,7 +360,7 @@ def _parse() -> argparse.ArgumentParser:
         "--only_different_file_content",
         action="store_true",
         help="Diff content of only files that are present in both dirs but have "
-             "different content",
+        "different content",
     )
     parser.add_argument(
         "--only_different_files",
@@ -380,7 +372,7 @@ def _parse() -> argparse.ArgumentParser:
         action="store",
         default=None,
         help="Specify a file that contains the files to actually consider "
-             "for the diff",
+        "for the diff",
     )
     parser.add_argument(
         "--ignore_files",
@@ -395,18 +387,20 @@ def _parse() -> argparse.ArgumentParser:
         help_="Run automatically the diffing script or not",
     )
     parser.add_argument(
-        "--skip_comments", action="store_true",
-        help="Do not print comments in the diff script"
+        "--skip_comments",
+        action="store_true",
+        help="Do not print comments in the diff script",
     )
     parser.add_argument(
-        "--skip_vim", action="store_true",
-        help="Do not print vim commands in the diff script"
+        "--skip_vim",
+        action="store_true",
+        help="Do not print vim commands in the diff script",
     )
     hparser.add_verbosity_arg(parser)
     return parser
 
 
-# ###############################################################################
+# #############################################################################
 
 
 def _main(parser: argparse.ArgumentParser) -> None:

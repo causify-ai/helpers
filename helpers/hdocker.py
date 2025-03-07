@@ -11,12 +11,12 @@ import logging
 import os
 import re
 import shlex
-import tempfile
 import time
 from typing import Any, Dict, List, Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
+import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
@@ -29,7 +29,8 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-# TODO(gp): Move to the repo_config.py or the config file.
+# TODO(gp): This is a function of the architecture. Move to the repo_config.py
+# or the config file.
 def get_use_sudo() -> bool:
     """
     Check if Docker commands should be run with sudo.
@@ -129,6 +130,49 @@ def volume_rm(volume_name: str, use_sudo: bool) -> None:
     _LOG.debug("docker volume '%s' deleted", volume_name)
 
 
+# #############################################################################
+
+
+def check_image_compatibility_with_host(
+    image_name: str,
+    *,
+    use_sudo: Optional[bool] = None,
+    assert_on_error: bool = True,
+) -> None:
+    _LOG.debug(hprint.to_str("image_name use_sudo assert_on_error"))
+    hdbg.dassert_ne(image_name, "")
+    if use_sudo is None:
+        use_sudo = get_use_sudo()
+    cmd = "uname -m"
+    # arm64
+    _, host_arch = hsystem.system_to_one_line(cmd)
+    _LOG.debug(hprint.to_str("host_arch"))
+    # > docker image inspect \
+    #   623860924167.dkr.ecr.eu-north-1.amazonaws.com/helpers:local-saggese-1.1.0 \
+    #   --format '{{.Architecture}}'
+    # arm64
+    executable = get_docker_executable(use_sudo)
+    cmd = f"{executable} inspect {image_name}" + r" --format '{{.Architecture}}'"
+    _, image_arch = hsystem.system_to_one_line(cmd)
+    _LOG.debug(hprint.to_str("image_arch"))
+    # TODO(gp): Enable this for x86 after testing.
+    if host_arch == "arm64":
+        if host_arch != image_arch:
+            msg = f"Host architecture '{host_arch}' != image architecture '{image_arch}'"
+            if assert_on_error:
+                hdbg.dfatal(msg)
+            else:
+                _LOG.warning(msg)
+    _LOG.debug(
+        "Host architecture '%s' and image architecture '%s' are compatible",
+        host_arch,
+        image_arch,
+    )
+
+
+# #############################################################################
+
+
 def wait_for_file_in_docker(
     container_id: str,
     docker_file_path: str,
@@ -211,8 +255,14 @@ def replace_shared_root_path(
 
 # TODO(gp): build_container -> build_container_image
 # TODO(gp): containter_name -> image_name
+# TODO(gp): Add `use_cache` to the signature to control using Docker cache.
 def build_container(
-    container_name: str, dockerfile: str, force_rebuild: bool, use_sudo: bool
+    container_name: str,
+    dockerfile: str,
+    force_rebuild: bool,
+    use_sudo: bool,
+    *,
+    incremental: bool = True,
 ) -> str:
     """
     Build a Docker image from a Dockerfile.
@@ -221,11 +271,15 @@ def build_container(
     :param dockerfile: Content of the Dockerfile for building the
         container.
     :param force_rebuild: Whether to force rebuild the Docker container.
+        There are two level of caching. The first level of caching is
+        our approach of skipping `docker build` if the image already
+        exists and the Dockerfile hasn't changed. The second level is
+        the Docker cache itself, which is invalidated by `--no-cache`.
     :param use_sudo: Whether to use sudo for Docker commands.
     :return: Name of the built Docker container.
     :raises AssertionError: If the container ID is not found.
     """
-    _LOG.debug(hprint.to_str("container_name use_sudo"))
+    _LOG.debug(hprint.to_str("container_name force_rebuild use_sudo"))
     dockerfile = hprint.dedent(dockerfile)
     _LOG.debug("Dockerfile:\n%s", dockerfile)
     # Compute the hash of the dockerfile and append it to the name to track the
@@ -236,27 +290,35 @@ def build_container(
     # Check if the container already exists. If not, build it.
     has_container, _ = image_exists(image_name_out, use_sudo)
     _LOG.debug(hprint.to_str("has_container"))
+    use_cache = False
     if force_rebuild:
-        _LOG.warning("Forcing to rebuild of container %s", container_name)
+        _LOG.warning(
+            "Forcing to rebuild of container '%s' without cache", container_name
+        )
         has_container = False
+        use_cache = False
+    _LOG.debug(hprint.to_str("has_container use_cache"))
     if not has_container:
         # Create a temporary Dockerfile.
-        _LOG.info("Building Docker container...")
-        # Delete temp file.
-        delete = False
-        with tempfile.NamedTemporaryFile(
-            suffix=".Dockerfile", delete=delete
-        ) as temp_dockerfile:
-            txt = dockerfile.encode("utf-8")
-            temp_dockerfile.write(txt)
-            temp_dockerfile.flush()
-            # Build the container.
-            executable = get_docker_executable(use_sudo)
-            cmd = (
-                f"{executable} build -f {temp_dockerfile.name} -t"
-                f" {image_name_out} ."
-            )
-            hsystem.system(cmd)
+        _LOG.warning("Building Docker container...")
+        build_context_dir = "tmp.docker_build"
+        # There might be already some file in the build context dir, so the
+        # caller needs to specify `incremental`.
+        hio.create_dir(build_context_dir, incremental=incremental)
+        temp_dockerfile = os.path.join(build_context_dir, "Dockerfile")
+        hio.to_file(temp_dockerfile, dockerfile)
+        # Build the container.
+        executable = get_docker_executable(use_sudo)
+        cmd = [
+            f"{executable} build",
+            f"-f {temp_dockerfile}",
+            f"-t {image_name_out}",
+        ]
+        if not use_cache:
+            cmd.append("--no-cache")
+        cmd.append(build_context_dir)
+        cmd = " ".join(cmd)
+        hsystem.system(cmd, suppress_output=False)
         _LOG.info("Building Docker container... done")
     return image_name_out
 
@@ -455,7 +517,7 @@ def run_dockerized_prettier(
     hdbg.dassert_isinstance(cmd_opts, list)
     # Build the container, if needed.
     container_name = "tmp.prettier"
-    dockerfile = """
+    dockerfile = r"""
     # Use a Node.js image
     FROM node:18
 
@@ -520,9 +582,12 @@ def run_dockerized_prettier(
         f' bash -c "{bash_cmd}"'
     )
     if return_cmd:
-        return docker_cmd
-    # TODO(gp): Note that `suppress_output=False` seems to hang the call.
-    hsystem.system(docker_cmd)
+        ret = docker_cmd
+    else:
+        # TODO(gp): Note that `suppress_output=False` seems to hang the call.
+        hsystem.system(docker_cmd)
+        ret = None
+    return ret
 
 
 # This a different approach I've tried to inject files inside a container
@@ -668,8 +733,10 @@ def convert_pandoc_arguments_to_cmd(
 
 def run_dockerized_pandoc(
     cmd: str,
+    container_type: str,
     *,
     return_cmd: bool = False,
+    force_rebuild: bool = False,
     use_sudo: bool = False,
 ) -> Optional[str]:
     """
@@ -677,8 +744,124 @@ def run_dockerized_pandoc(
 
     Same as `run_dockerized_prettier()` but for `pandoc`.
     """
-    _LOG.debug(hprint.to_str("cmd return_cmd use_sudo"))
-    container_name = "pandoc/core"
+    _LOG.debug(hprint.to_str("cmd return_cmd force_rebuild use_sudo"))
+    if container_type == "pandoc_only":
+        container_name = "pandoc/core"
+        incremental = False
+    else:
+        if container_type == "pandoc_latex":
+            container_name = "tmp.pandoc_latex"
+            # From https://github.com/pandoc/dockerfiles/blob/main/alpine/latex/Dockerfile
+            build_dir = "tmp.docker_build"
+            dir_name = hgit.find_file_in_git_tree("pandoc_docker_files")
+            hio.create_dir(build_dir, incremental=True)
+            cmd = f"cp -r {dir_name}/* tmp.docker_build/common/latex"
+            hsystem.system(cmd)
+            #
+            dockerfile = r"""
+            ARG pandoc_version=edge
+            FROM pandoc/core:${pandoc_version}-alpine
+
+            # NOTE: to maintainers, please keep this listing alphabetical.
+            RUN apk --no-cache add \
+                    curl \
+                    fontconfig \
+                    freetype \
+                    gnupg \
+                    gzip \
+                    perl \
+                    tar \
+                    wget \
+                    xz
+
+            # Installer scripts and config
+            COPY common/latex/texlive.profile    /root/texlive.profile
+            COPY common/latex/install-texlive.sh /root/install-texlive.sh
+            COPY common/latex/packages.txt       /root/packages.txt
+
+            # TeXLive binaries location
+            ARG texlive_bin="/opt/texlive/texdir/bin"
+
+            # TeXLive version to install (leave empty to use the latest version).
+            ARG texlive_version=
+
+            # TeXLive mirror URL (leave empty to use the default mirror).
+            ARG texlive_mirror_url=
+
+            # Modify PATH environment variable, prepending TexLive bin directory
+            ENV PATH="${texlive_bin}/default:${PATH}"
+
+            # Ideally, the image would always install "linuxmusl" binaries. However,
+            # those are not available for aarch64, so we install binaries that have
+            # been built against libc and hope that the compatibility layer works
+            # well enough.
+            RUN cd /root && \
+                ARCH="$(uname -m)" && \
+                case "$ARCH" in \
+                    ('x86_64') \
+                        TEXLIVE_ARCH="x86_64-linuxmusl"; \
+                        ;; \
+                    (*) echo >&2 "error: unsupported architecture '$ARCH'"; \
+                        exit 1 \
+                        ;; \
+                esac && \
+                mkdir -p ${texlive_bin} && \
+                ln -sf "${texlive_bin}/${TEXLIVE_ARCH}" "${texlive_bin}/default" && \
+                echo "binary_${TEXLIVE_ARCH} 1" >> /root/texlive.profile && \
+                ( \
+                [ -z "$texlive_version"    ] || printf '-t\n%s\n"' "$texlive_version"; \
+                [ -z "$texlive_mirror_url" ] || printf '-m\n%s\n' "$texlive_mirror_url" \
+                ) | xargs /root/install-texlive.sh && \
+                sed -e 's/ *#.*$//' -e '/^ *$/d' /root/packages.txt | \
+                    xargs tlmgr install && \
+                rm -f /root/texlive.profile \
+                    /root/install-texlive.sh \
+                    /root/packages.txt && \
+                TERM=dumb luaotfload-tool --update && \
+                chmod -R o+w /opt/texlive/texdir/texmf-var
+
+            WORKDIR /data
+            """
+            # Since we have already copied the files, we can't remove the directory.
+            incremental = True
+        elif container_type == "pandoc_texlive":
+            container_name = "tmp.pandoc_texlive"
+            dockerfile = r"""
+            FROM texlive/texlive:latest
+
+            ENV DEBIAN_FRONTEND=noninteractive
+            RUN apt-get update && \
+                apt-get -y upgrade
+
+            RUN apt install -y sudo
+
+            RUN apt install -y pandoc
+
+            # Create a font cache directory usable by non-root users.
+            # These fonts don't work with latex and xelatex, and require lualatex.
+            # RUN apt install fonts-noto-color-emoji
+            # RUN apt install fonts-twemoji
+            # RUN mkdir -p /var/cache/fontconfig && \
+            #     chmod -R 777 /var/cache/fontconfig && \
+            #     fc-cache -fv
+
+            # Verify installation.
+            RUN latex --version && pdflatex --version && pandoc --version
+
+            # Set the default command.
+            ENTRYPOINT ["pandoc"]
+            """
+            incremental = False
+        else:
+            raise ValueError(f"Unknown container type '{container_type}'")
+        # Build container.
+        container_name = build_container(
+            container_name,
+            dockerfile,
+            force_rebuild,
+            use_sudo,
+            incremental=incremental,
+        )
     # Convert files to Docker paths.
     is_caller_host = not hserver.is_inside_docker()
     use_sibling_container_for_callee = True
@@ -737,10 +920,12 @@ def run_dockerized_pandoc(
         f" {pandoc_cmd}"
     )
     if return_cmd:
-        return docker_cmd
-    # TODO(gp): Note that `suppress_output=False` seems to hang the call.
-    hsystem.system(docker_cmd)
-    return None
+        ret = docker_cmd
+    else:
+        # TODO(gp): Note that `suppress_output=False` seems to hang the call.
+        hsystem.system(docker_cmd)
+        ret = None
+    return ret
 
 
 # #############################################################################
@@ -759,7 +944,7 @@ def run_dockerized_markdown_toc(
     hdbg.dassert_isinstance(cmd_opts, list)
     # Build the container, if needed.
     container_name = "tmp.markdown_toc"
-    dockerfile = """
+    dockerfile = r"""
     # Use a Node.js image
     FROM node:18
 
@@ -852,7 +1037,7 @@ def convert_latex_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
     args, unknown_args = parser.parse_known_args(cmd)
     _LOG.debug(hprint.to_str("args unknown_args"))
     # Return all the arguments in a dictionary with names that match the
-    # function signature of `run_dockerized_pandoc`.
+    # function signature of `run_dockerized_pandoc()`.
     in_dir_params: Dict[str, Any] = {}
     return {
         "input": in_file_path,
@@ -911,7 +1096,7 @@ def run_dockerized_latex(
     """
     _LOG.debug(hprint.to_str("cmd return_cmd use_sudo"))
     container_name = "tmp.latex"
-    dockerfile = """
+    dockerfile = r"""
     # Use a lightweight base image
     FROM debian:bullseye-slim
 
@@ -997,10 +1182,12 @@ def run_dockerized_latex(
         f" {latex_cmd}"
     )
     if return_cmd:
-        return docker_cmd
-    # TODO(gp): Note that `suppress_output=False` seems to hang the call.
-    hsystem.system(docker_cmd)
-    return None
+        ret = docker_cmd
+    else:
+        # TODO(gp): Note that `suppress_output=False` seems to hang the call.
+        hsystem.system(docker_cmd)
+        ret = None
+    return ret
 
 
 # #############################################################################
@@ -1029,7 +1216,7 @@ def run_dockerized_llm_transform(
     hdbg.dassert_isinstance(cmd_opts, list)
     # Build the container, if needed.
     container_name = "tmp.llm_transform"
-    dockerfile = """
+    dockerfile = r"""
     FROM python:3.12-alpine
 
     # Install Bash.
@@ -1099,9 +1286,12 @@ def run_dockerized_llm_transform(
         f" {script} -i {in_file_path} -o {out_file_path} {cmd_opts_as_str}"
     )
     if return_cmd:
-        return docker_cmd
-    # TODO(gp): Note that `suppress_output=False` seems to hang the call.
-    hsystem.system(docker_cmd)
+        ret = docker_cmd
+    else:
+        # TODO(gp): Note that `suppress_output=False` seems to hang the call.
+        hsystem.system(docker_cmd)
+        ret = None
+    return ret
 
 
 # #############################################################################
@@ -1130,7 +1320,7 @@ def run_dockerized_plantuml(
     )
     # Build the container, if needed.
     container_name = "tmp.plantuml"
-    dockerfile = """
+    dockerfile = r"""
     # Use a lightweight base image.
     FROM debian:bullseye-slim
 
@@ -1197,7 +1387,7 @@ def run_dockerized_mermaid(
     _LOG.debug(hprint.to_str("img_path code_file_path force_rebuild use_sudo"))
     # Build the container, if needed.
     container_name = "tmp.mermaid"
-    puppeteer_cache_path = """
+    puppeteer_cache_path = r"""
     const {join} = require('path');
 
     /**
@@ -1208,7 +1398,7 @@ def run_dockerized_mermaid(
       cacheDirectory: join(__dirname, '.cache', 'puppeteer'),
     };
     """
-    dockerfile = f"""
+    dockerfile = rf"""
     # Use a Node.js image.
     FROM node:18
 
@@ -1262,7 +1452,8 @@ def run_dockerized_mermaid(
         is_caller_host=is_caller_host,
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
-    mermaid_cmd = f"mmdc --puppeteerConfigFile {puppeteer_config_path} -i {code_file_path} -o {img_path}"
+    mermaid_cmd = (f"mmdc --puppeteerConfigFile {puppeteer_config_path}" +
+        f"-i {code_file_path} -o {img_path}")
     executable = get_docker_executable(use_sudo)
     docker_cmd = (
         f"{executable} run --rm --user $(id -u):$(id -g)"
