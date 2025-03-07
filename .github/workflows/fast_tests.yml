@@ -21,6 +21,9 @@ concurrency:
   cancel-in-progress: true
 env:
   CSFY_CI: true
+permissions:
+  id-token: write
+  contents: read  
 jobs:
   run_fast_tests:
     runs-on: ubuntu-latest
@@ -33,8 +36,8 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets.CSFY_AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.CSFY_AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::623860924167:role/GitHubAction-AssumeRoleWithAction
+          role-session-name: GitHub_to_AWS_via_FederatedOIDC
           aws-region: ${{ vars.CSFY_AWS_DEFAULT_REGION }}
 
       # This is needed to pull the Docker image.
@@ -88,10 +91,11 @@ jobs:
         # Do not run on draft pull requests.
         if: github.event.pull_request.draft == false
         env:
-          CSFY_AWS_ACCESS_KEY_ID: ${{ secrets.CSFY_AWS_ACCESS_KEY_ID }}
-          CSFY_AWS_SECRET_ACCESS_KEY: ${{ secrets.CSFY_AWS_SECRET_ACCESS_KEY }}
-          CSFY_AWS_DEFAULT_REGION: ${{ vars.CSFY_AWS_DEFAULT_REGION }}
-          CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
+          CSFY_AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
+          CSFY_AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
+          CSFY_AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
+          # CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
           # If you prefer pulling the image from ECR, comment out the following line and uncomment the one above.
           # Base path for GHCR registry.
           #CSFY_ECR_BASE_PATH: ghcr.io/cryptokaizen
