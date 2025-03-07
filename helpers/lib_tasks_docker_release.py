@@ -777,9 +777,7 @@ def docker_tag_push_multi_arch_prod_image(  # type: ignore
         prod_base_image = ""
     elif target_registry == "dockerhub.causify":
         # Use public DockerHub registry.
-        base_image_name = henv.execute_repo_config_code(
-            "get_docker_base_image_name()"
-        )
+        base_image_name = hrecouti.get_repo_config().get_docker_base_image_name()
         prod_base_image = f"causify/{base_image_name}"
         # Tag and push the versioned prod image.
         dockerhub_image_versioned_prod = hlitadoc.get_image(
