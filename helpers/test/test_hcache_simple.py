@@ -84,6 +84,12 @@ class BaseCacheTest(hunitest.TestCase):
     def setUp(self) -> None:
         # Reset persistent user cache properties.
         hcacsimp.reset_cache_property("user")
+        try:
+            hcacsimp.reset_cache_property("system")
+        except OSError:
+            system_file = hcacsimp.get_cache_property_file("system")
+            if os.path.exists(system_file):
+                os.remove(system_file)
         # Reset caches for all cached functions using their full names.
         for func_name in [
             "_cached_function",
@@ -131,6 +137,9 @@ class BaseCacheTest(hunitest.TestCase):
             if os.path.exists(fname):
                 # Remove the cache file from disk.
                 os.remove(fname)
+        system_file = hcacsimp.get_cache_property_file("system")
+        if os.path.exists(system_file):
+            os.remove(system_file)
 
 
 # #############################################################################
@@ -451,7 +460,7 @@ class Test_get_cache_func_names(BaseCacheTest):
 
 
 class Test_cache_stats_to_str(BaseCacheTest):
-    # Define the test method.
+
     def test1(self) -> None:
         """
         Verify that cache_stats_to_str returns a DataFrame with 'memory' and
@@ -461,7 +470,7 @@ class Test_cache_stats_to_str(BaseCacheTest):
         _dummy_cached_function(1)
         # Retrieve cache statistics as a DataFrame.
         stats_df: pd.DataFrame = hcacsimp.cache_stats_to_str(
-            "dummy_cached_function"
+            "_dummy_cached_function"
         )
         # Assert that the returned object is a pandas DataFrame.
         self.assertIsInstance(stats_df, pd.DataFrame)
