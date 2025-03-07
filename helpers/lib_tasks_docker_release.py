@@ -14,6 +14,7 @@ from invoke import task
 # We want to minimize the dependencies from non-standard Python packages since
 # this code needs to run with minimal dependencies and without Docker.
 import helpers.hdbg as hdbg
+import helpers.henv as henv
 import helpers.hgit as hgit
 import helpers.hs3 as hs3
 import helpers.hsystem as hsystem
@@ -140,7 +141,7 @@ def docker_build_local_image(  # type: ignore
     hlitadoc.dassert_is_image_name_valid(image_local)
     #
     dockerfile = "devops/docker_build/dev.Dockerfile"
-    # Keep the relative path instead of an absolute path to ensure it matches 
+    # Keep the relative path instead of an absolute path to ensure it matches
     # files inside the tar stream and avoids file not found errors.
     # dockerfile = _to_abs_path(dockerfile)
     opts = "--no-cache" if not cache else ""
@@ -174,7 +175,7 @@ def docker_build_local_image(  # type: ignore
         """
         hlitauti.run(ctx, cmd)
         # Build.
-        # Compress the current directory (in order to dereference symbolic 
+        # Compress the current directory (in order to dereference symbolic
         # links) into a tar stream and pipes it to the `docker build` command.
         # See HelpersTask197.
         cmd = rf"""
@@ -197,7 +198,7 @@ def docker_build_local_image(  # type: ignore
         hlitauti.run(ctx, cmd)
     else:
         # Build for a single architecture using `docker build`.
-        # Compress the current directory (in order to dereference symbolic 
+        # Compress the current directory (in order to dereference symbolic
         # links) into a tar stream and pipes it to the `docker build` command.
         # See HelpersTask197.
         cmd = rf"""
@@ -413,7 +414,7 @@ def docker_tag_push_multi_build_local_image_as_dev(  # type: ignore
     :param local_base_image: base name of a local image,
         e.g., *****.dkr.ecr.us-east-1.amazonaws.com/amp
     :param target_registry: target Docker image registry to push the image to
-        - "dockerhub.sorrentum": public Kaizenflow Docker image registry
+        - "dockerhub.causify": public Causify Docker image registry
         - "aws_ecr.ck": private AWS CK ECR
     :param container_dir_name: directory where the Dockerfile is located
     """
@@ -433,9 +434,12 @@ def docker_tag_push_multi_build_local_image_as_dev(  # type: ignore
     if target_registry == "aws_ecr.ck":
         # Use AWS Docker registry.
         dev_base_image = ""
-    elif target_registry == "dockerhub.sorrentum":
+    elif target_registry == "dockerhub.causify":
         # Use public GitHub Docker registry.
-        dev_base_image = "sorrentum/cmamp"
+        base_image_name = henv.execute_repo_config_code(
+            "get_docker_base_image_name()"
+        )
+        dev_base_image = f"causify/{base_image_name}"
     else:
         raise ValueError(
             f"Invalid target Docker image registry='{target_registry}'"
@@ -485,7 +489,7 @@ def docker_release_multi_build_dev_image(  # type: ignore
     :param poetry_mode: update package dependencies using poetry
     :param target_registries: comma separated list of target Docker
         image registries to push the image to. E.g.,
-        "aws_ecr.ck,dockerhub.sorrentum". See `docker_login()` for
+        "aws_ecr.ck,dockerhub.causify". See `docker_login()` for
         details.
     :param container_dir_name: directory where the Dockerfile is located
     """

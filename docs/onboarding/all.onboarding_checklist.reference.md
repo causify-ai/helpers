@@ -10,6 +10,7 @@
     + [Make on-boarding similar to our work routine](#make-on-boarding-similar-to-our-work-routine)
     + [Improve on-boarding process](#improve-on-boarding-process)
   * [People involved in the on-boarding](#people-involved-in-the-on-boarding)
+- [Checklist](#checklist)
   * [Before the start date](#before-the-start-date)
   * [The first day!](#the-first-day)
     + [Team member info](#team-member-info)
@@ -87,12 +88,17 @@
   - IT (e.g., Shayan)
   - HR (e.g., Rose)
 
+## Checklist
+
+- Source:
+  [`all.onboarding_checklist.reference.md`](https://github.com/causify-ai/helpers/blob/master/docs/onboarding/all.onboarding_checklist.reference.md)
+
 ### Before the start date
 
 - [ ] **Team leader**: talk to the teams about the new team member joining
 
 - [ ] **Team leader**: Send some information to the new team member as a preview
-  - E.g., some PDFs from amp/documentation/general
+  - E.g., some documentation
 
 - [ ] **Team leader**: establish contact by Slack or email with the new hire
       with a few words about the next steps
@@ -107,7 +113,7 @@
 
 #### Team member info
 
-- [ ] **Team member**: send needed information to your team leader
+- [ ] **Team member**: send the following information to your team leader
   - Full name:
   - Aka:
   - Personal email:
@@ -139,13 +145,13 @@
 - [ ] **Team member**:
   - Confirm access to Hubstaff
   - Read
-    [Tools - Hubstaff](https://github.com/causify-ai/helpers/blob/master/docs/onboarding/all.track_time_with_hubstaff.how_to_guide.md)
+    [Instructions for Hubstaff](https://github.com/causify-ai/helpers/blob/master/docs/onboarding/all.track_time_with_hubstaff.how_to_guide.md)
 
 #### IT setup
 
 - [ ] **Team leader**: File an issue with this checklist
   - The title is "Onboarding {{Name}}"
-  - Copy paste the following checklist
+  - Copy-and-paste the whole checklist starting from [here](#checklist)
 
 - [ ] **IT**: create account info bundle following
       [New team member addition - admin side tutorial](https://docs.google.com/document/d/1bNzdGvkmayV3IUwlmd-PHK40LNPTdrfdPBgF7-EYnxo/edit#heading=h.44tqkhn6slld)
@@ -177,22 +183,24 @@
 
 - [ ] **Team member**: Confirm access to the company's Slack workspace
 
-- [ ] **Team member**: Set up laptop to connect to the server following:
-  - [VPN and dev server access setup](https://github.com/causify-ai/helpers/blob/master/docs/onboarding/ck.setup_vpn_and_dev_server_access.how_to_guide.md)
+- [ ] **Team member**: Set up the laptop to connect to the server following
+      [VPN and dev server access setup instructions](https://github.com/causify-ai/helpers/blob/master/docs/onboarding/ck.setup_vpn_and_dev_server_access.how_to_guide.md)
 
-- [ ] **Team member**: Configure your server environment following:
-  - [Development - Set-up](https://github.com/causify-ai/helpers/blob/master/docs/onboarding/ck.development_setup.how_to_guide.md)
+- [ ] **Team member**: Configure your server environment following
+      [Development setup instructions](https://github.com/causify-ai/helpers/blob/master/docs/onboarding/ck.development_setup.how_to_guide.md)
 
-- [ ] **Team member**: We have implemented a self-registration process for our
-      Airflow on Kubernetes deployment. Please register and create your personal
-      accounts as we will no longer be using the shared Airflow Admin user. Make
-      sure to use the same username that you have on the dev servers.
+- [ ] **Team member** (On per-need basis): We have implemented a
+      self-registration process for our Airflow on Kubernetes deployment. Please
+      register and create your personal accounts as we will no longer be using
+      the shared Airflow Admin user. Make sure to use the same username that you
+      have on the dev servers.
   - [Airflow - Registration](http://internal-a97b7f81b909649218c285140e74f68a-1285736094.eu-north-1.elb.amazonaws.com:8080/register/form)
   - TODO(Shayan): Update this
 
 - [ ] **IT**: Add team member to all GitHub repos:
-  - [ ] [Kaizen-ai](https://github.com/causify-ai/kaizenflow)
+  - [ ] [kaizenflow](https://github.com/causify-ai/kaizenflow)
   - [ ] [helpers](https://github.com/causify-ai/helpers)
+  - [ ] [tutorials](https://github.com/causify-ai/tutorials)
   - [ ] [cmamp](https://github.com/causify-ai/cmamp)
   - [ ] [orange](https://github.com/causify-ai/orange) (On per-need basis)
   - [ ] [UMD_data605](https://github.com/gpsaggese/umd_data605) (On per-need
@@ -240,7 +248,7 @@
 - [ ] **Team member**: Confirm you can access the anonymous form to ask anything
       [https://forms.gle/KMQgobqbyxhoTR9n6](https://forms.gle/KMQgobqbyxhoTR9n6)
 
-- [ ] **Team member**: File first Issue on GitHub
+- [ ] **Team member**: File your first Issue on GitHub
   - It should be called "Document review while onboarding $TEAM_MEMBER"
   - Track what is not clear in the onboarding process / documentation and what
     should / could be improved
@@ -255,27 +263,39 @@
   - [ ] Connect to server with VisualStudio Code or PyCharm
     - There is an extension for VSCode, which allows to develop remotely
       [Remote - SSH](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-ssh)
-    - Follow this instruction on how to set it up in your
-      [Visual Studio Code](https://github.com/causify-ai/helpers/blob/master/docs/work_tools/all.visual_studio_code.how_to_guide.md)
+    - Follow
+      [this instruction](https://github.com/causify-ai/helpers/blob/master/docs/work_tools/all.visual_studio_code.how_to_guide.md)
+      on how to set it up in your Visual Studio Code
   - [ ] Run the unit tests and make sure they all pass
   - [ ] Run a docker container
-    ```
+    ```bash
     > i docker_bash
     ```
   - [ ] Run a jupyter notebook
-    - Follow this
-      [instruction](https://github.com/causify-ai/helpers/blob/master/docs/work_tools/all.visual_studio_code.how_to_guide.md#how-to-access-the-jupyter-server-running-on-the-remote-server-through-your-local-machine)
+    - Follow
+      [this instruction](https://github.com/causify-ai/helpers/blob/master/docs/work_tools/all.visual_studio_code.how_to_guide.md#how-to-access-the-jupyter-server-running-on-the-remote-server-through-your-local-machine)
       on how to access the Jupyter server running on the remote server through
       your local machine
-    ```
+    ```bash
     > i docker_jupyter
     ```
 
 ### The second day
 
-- [ ] **Team member**: carefully study all the documents in:
-      [docs/onboarding](https://github.com/causify-ai/helpers/tree/master/docs/onboarding)
-  - Read it carefully one by one
+- [ ] **Team member**: carefully study all the documents in
+      [the must-read list](https://github.com/causify-ai/helpers/blob/master/docs/onboarding/all.dev_must_read_checklist.reference.md)
+  - [ ] [General rules of collaboration](https://github.com/causify-ai/helpers/blob/master/docs/work_organization/all.team_collaboration.how_to_guide.md)
+  - [ ] [Coding style guide](https://github.com/causify-ai/helpers/blob/master/docs/coding/all.coding_style.how_to_guide.md)
+  - [ ] [How to write unit tests](https://github.com/causify-ai/helpers/blob/master/docs/coding/all.write_unit_tests.how_to_guide.md)
+  - [ ] [How to run unit tests](https://github.com/causify-ai/helpers/blob/master/docs/coding/all.run_unit_tests.how_to_guide.md)
+  - [ ] [Creating a Jupyter Notebook](https://github.com/causify-ai/helpers/blob/master/docs/coding/all.jupyter_notebook.how_to_guide.md)
+  - [ ] [What to do before opening a PR](https://github.com/causify-ai/helpers/blob/master/docs/coding/all.submit_code_for_review.how_to_guide.md)
+  - [ ] [Code review process](https://github.com/causify-ai/helpers/blob/master/docs/coding/all.code_review.how_to_guide.md)
+  - [ ] [Git workflows and best practices](https://github.com/causify-ai/helpers/blob/master/docs/work_tools/git/all.git.how_to_guide.md)
+  - [ ] [GitHub organization](https://github.com/causify-ai/helpers/blob/master/docs/work_organization/all.use_github.how_to_guide.md)
+  - [ ] [Tips for writing documentation](https://github.com/causify-ai/helpers/blob/master/docs/documentation_meta/all.writing_docs.how_to_guide.md)
+  - They will help you get up to speed with our practices and development style
+  - Read them carefully one by one
   - Ask questions
   - Memorize / internalize all the information
   - Take notes
@@ -287,10 +307,10 @@
 
 - [ ] **Team member**: exercise all the important parts of the systems
   - [ ] Create a GitHub issue
-  - [ ] Get familiar with the
-        [GH doc](https://github.com/causify-ai/helpers/blob/master/docs/work_organization/all.use_github_and_zenhub.how_to_guide.md)
-  - [ ] Check out the code on server
-  - [ ] Run all regressions on server
+  - [ ] Check out and pull the latest version of the code on the server
   - [ ] Create a branch
-  - [ ] Run the linter.py on server
+  - [ ] Run regressions on the server (`i run_fast_tests`)
+  - [ ] Start a Docker container on the server (`i docker_bash`)
+  - [ ] Start a Jupyter server (`i docker_jupyter`) from the server
+  - [ ] Run Linter on the server (`i lint --files="..."`)
   - [ ] Do a PR

@@ -1,7 +1,3 @@
-# Visual Studio Code
-
-## Visual Studio Code
-
 <!-- toc -->
 
 - [Connecting via VNC](#connecting-via-vnc)
@@ -16,33 +12,7 @@
 
 <!-- tocstop -->
 
-## Connecting via VNC
-
-- Make sure you have a VPN connection.
-
-### Installing VNC
-
-- Install VNC using this link: [<span
-  class="underline">https://www.realvnc.com/en/connect/download/viewer/windows/</span>](https://www.realvnc.com/en/connect/download/viewer/windows/)
-- Sysadmin has sent you:
-  - `os_password.txt`
-  - Your username `$USER`
-  - A key `crypto.pub` that looks like:
-    ```
-    -----BEGIN OPENSSH PRIVATE KEY-----
-    b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAABlwAAAAdzc2gtcn
-    NhAAAAAwEAAQAAAYEA0IQsLy1lL3bhPT+43sht2/m9tqZm8sEQrXMAVtfm4ji/LXMr7094
-    …
-    hakqVTlQ2sr0YTAAAAHnNhZ2dlc2VAZ3BtYWMuZmlvcy1yb3V0ZXIuaG9tZQECAwQ=
-    -----END OPENSSH PRIVATE KEY-----
-    ```
-
-- Let's say you are connected via VNC.
-  - Login into the OS.
-  - Run `pycharm.sh` using terminal (should be there):
-    ```
-    > bash /opt/pycharm-community-2021.2.3/bin/pycharm.sh
-    ```
+# Visual Studio Code
 
 ## Installation of VSCode
 
@@ -55,7 +25,10 @@
 - In the left navigation bar search for extensions ( or use `Ctrl+Shift+X` ) and
   search for "ms-vscode-remote.remote-ssh" and then click on the install button.
   <img src="figs/visual_studio_code/image8.png" style="width:3.13386in;height:1.49306in" />
-- Connect to the VPN.
+
+### Connect to dev server
+
+- Connect to the VPN
 - In bottom left corner click on this green button:
   <img src="figs/visual_studio_code/image3.png" style="width:0.45313in;height:0.41827in" />
 - Then you will see these options on top of the screen, click on "Open SSH
@@ -208,3 +181,31 @@ that runs within a docker container located on a remote server.
    on the remote machine through `http://localhost:10421` on your local machine.
 
 <img src="figs/visual_studio_code/port_fowarding.png" style="width:6.5in;" />
+
+# Connecting via VNC
+
+- Make sure you have a VPN connection.
+
+## Installing VNC
+
+- Install VNC using this link: [<span
+  class="underline">https://www.realvnc.com/en/connect/download/viewer/windows/</span>](https://www.realvnc.com/en/connect/download/viewer/windows/)
+- Sysadmin has sent you:
+  - `os_password.txt`
+  - Your username `$USER`
+  - A key `crypto.pub` that looks like:
+    ```
+    -----BEGIN OPENSSH PRIVATE KEY-----
+    b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAABlwAAAAdzc2gtcn
+    NhAAAAAwEAAQAAAYEA0IQsLy1lL3bhPT+43sht2/m9tqZm8sEQrXMAVtfm4ji/LXMr7094
+    …
+    hakqVTlQ2sr0YTAAAAHnNhZ2dlc2VAZ3BtYWMuZmlvcy1yb3V0ZXIuaG9tZQECAwQ=
+    -----END OPENSSH PRIVATE KEY-----
+    ```
+
+- Let's say you are connected via VNC.
+  - Login into the OS.
+  - Run `pycharm.sh` using terminal (should be there):
+    ```
+    > bash /opt/pycharm-community-2021.2.3/bin/pycharm.sh
+    ```

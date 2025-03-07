@@ -27,6 +27,7 @@ activate_docker_venv
 
 # Check that the required environment vars are defined and non-empty.
 dassert_var_defined "CSFY_IS_SUPER_REPO"
+dassert_var_defined "CSFY_HOST_GIT_ROOT_PATH"
 dassert_var_defined "CSFY_GIT_ROOT_PATH"
 dassert_var_defined "CSFY_HELPERS_ROOT_PATH"
 

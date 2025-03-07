@@ -1,6 +1,35 @@
 # Writing Docs
 
 <!-- toc -->
+
+- [Conventions](#conventions)
+  * [Make no assumptions on the user's knowledge](#make-no-assumptions-on-the-users-knowledge)
+  * [Verify that things worked](#verify-that-things-worked)
+  * [Always use Linter](#always-use-linter)
+  * [Add a table of contents](#add-a-table-of-contents)
+- [Add one level 1 heading](#add-one-level-1-heading)
+- [Use 80 columns formatting for md files](#use-80-columns-formatting-for-md-files)
+  * [Use good vs bad](#use-good-vs-bad)
+  * [Use an empty line after heading](#use-an-empty-line-after-heading)
+  * [Bullet lists](#bullet-lists)
+  * [Use the right syntax highlighting](#use-the-right-syntax-highlighting)
+  * [Indent `code` style](#indent-code-style)
+  * [Embed screenshots only when strictly necessary](#embed-screenshots-only-when-strictly-necessary)
+  * [Improve your written English](#improve-your-written-english)
+  * [Make sure your markdown looks good](#make-sure-your-markdown-looks-good)
+  * [Do not overcapitalize headings](#do-not-overcapitalize-headings)
+  * [Update the `Last review` tag](#update-the-last-review-tag)
+  * [Comment the code structure](#comment-the-code-structure)
+  * [Convention for file names](#convention-for-file-names)
+  * [Use active voice](#use-active-voice)
+  * [Use simple short sentences](#use-simple-short-sentences)
+  * [Format for easy reading](#format-for-easy-reading)
+  * [Keep it visual](#keep-it-visual)
+  * [Mind your spelling](#mind-your-spelling)
+  * [Be efficient](#be-efficient)
+  * [Do not add fluff](#do-not-add-fluff)
+- [Resources](#resources)
+
 <!-- tocstop -->
 
 ## Conventions
@@ -16,28 +45,24 @@
 - Have a trouble-shooting procedure
   - One approach is to always start from scratch
 
-### Always use the linter
+### Always use Linter
 
-- Most cosmetic lints described further can be taken care automatically by our
-  markdown linter, so make sure to run it after implementing the changes
-- Use `i lint`, since `dev_scripts/lint_md.sh` is discontinued
-- Do not mix manual edits and linter runs. Best practice is to run the linter
-  and commit the changes it made as separate commit
-- If the linter messes up the text, file an issue with examples of what the
-  linter does incorrectly
+- Most cosmetic things described further can be taken care of automatically by
+  our Linter, so make sure to run it after implementing the changes
+- Run with `i lint --files="your_file_name"`
+- Do not mix manual edits and Linter runs. Best practice is to run Linter and
+  commit the changes it made as a separate commit
+- If Linter messes up the text, file an issue with examples of what it does
+  incorrectly
 
-### Add a table of content
+### Add a table of contents
 
 - Unfortunately both markdown and GitHub don't support automatically generating
   a TOC for a document
-- To generate a table of content add the following tag at the top of the
-  markdown file:
-  ```markdown
-  <!-- toc -->
-  ```
-  - Run `i lint` to build the TOC automatically
+- To generate a table of contents, run Linter on the Markdown file, which will
+  build the TOC automatically and place it at the top of the file
 
-##
+## Add one level 1 heading
 
 - Make sure the headings structure contains exactly one level 1 heading
   (`# This one`)
@@ -45,7 +70,7 @@
 
 ## Use 80 columns formatting for md files
 
-- Our markdown linter takes care of reflowing the text
+- Our Linter takes care of reflowing the text
 - Vim has a `:gq` command to reflow the comments
 - There are plugins for PyCharm and VisualStudio
 
@@ -84,7 +109,7 @@
   - ... and his big important wheels got STUCK!
   ```
 
-- Our linter automatically takes care of this
+- Our Linter automatically takes care of this
 
 ### Bullet lists
 
@@ -100,7 +125,7 @@
     - But this is even better
   ```
 - We use `-` instead of `*` or circles
-- The linter automatically enforces this
+- Linter automatically enforces this
 
 ### Use the right syntax highlighting
 
@@ -151,10 +176,10 @@
 
 ### Make sure your markdown looks good
 
-- Compare your markdown with other already published
+- Compare your markdown with others already published
 
 - You can:
-  - Check in the code a branch and use GitHub to render it
+  - Check in the code in a branch and use GitHub to render it
   - Use Pycharm to edit, which also renders it side-by-side
 
 ### Do not overcapitalize headings
@@ -199,16 +224,16 @@
   - `component` is one of the software components (e.g., `datapull`, `dataflow`)
   - `audience` is the target audience (e.g., `all`, `ck`)
   - `topic` is the topic of the file
-  - An how to guide should have a verb-object format
+  - The topic of a "how to guide" should have a verb-object format
     - E.g., `docs/oms/broker/ck.generate_broker_test_data.how_to_guide.md`
-  - A reference often has just a name
+  - The topic of a "reference" is often just a name
     - E.g., `docs/oms/broker/ck.binance_terms.reference.md`
 
 // From https://opensource.com/article/20/3/documentation
 
 ### Use active voice
 
-- Use the active voice most of th time and use the passive voice sparingly
+- Use active voice most of the time and use passive voice sparingly
 - Active voice is shorter than passive voice
 - Readers convert passive voice to active voice
 
@@ -249,12 +274,12 @@
 
 - Always point to documentation on the web instead of summarizing it
 - If you want to summarize some doc (e.g., so that people don't have to read too
-  much) add it to a different document instead of mixing with our documentation
+  much), add it to a different document instead of mixing with our documentation
 - Focus on how we do, why we do, rather than writing AI-generated essays
 
 ## Resources
 
-- [https://opensource.com/article/20/3/documentation]
+- [https://opensource.com/article/20/3/documentation](https://opensource.com/article/20/3/documentation)
 - [Markdown cheatsheet](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet)
 - [Google guide to Markdown](https://github.com/google/styleguide/blob/gh-pages/docguide/style.md)
-  - TODO(gp): Make sure it's compatible with our linter
+  - TODO(gp): Make sure it's compatible with our Linter
