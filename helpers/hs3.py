@@ -681,6 +681,7 @@ def generate_aws_files(
     config_file_text = "\n\n".join(config_file_text)
     hio.to_file(config_file_name, config_file_text)
     _LOG.debug("Saved AWS config to %s", config_file_name)
+    hsystem.system_to_string("aws sts get-caller-identity --profile ck")
     #
     credentials_file_text = "\n\n".join(credentials_file_text)
     hio.to_file(credentials_file_name, credentials_file_text)
@@ -729,11 +730,6 @@ def get_aws_credentials(
     :return: a dictionary with `access_key_id`, `aws_secret_access_key`,
         `aws_region` and optionally `aws_session_token`
     """
-    print("stsvar", os.environ.get("CSFY_AWS_DEFAULT_REGION", "None"))
-    _LOG.info("stsvar %s", os.environ.get("CSFY_AWS_DEFAULT_REGION", "None"))
-    _LOG.warning("stsvar %s", os.environ.get("CSFY_AWS_DEFAULT_REGION", "None"))
-    _LOG.debug("stsvar %s", os.environ.get("CSFY_AWS_DEFAULT_REGION", "None"))
-    exit()
     _LOG.debug("Getting credentials for aws_profile='%s'", aws_profile)
     if aws_profile == "__mock__":
         # `mock` profile is artificial construct used only in tests.
