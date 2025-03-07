@@ -677,9 +677,7 @@ def docker_build_multi_arch_prod_image(  # type: ignore
     # TODO(gp): We should do a `i git_clean` to remove artifacts and check that
     #  the client is clean so that we don't release from a dirty client.
     # Build prod image.
-    image_versioned_prod = hlitadoc.get_image(
-        base_image, "prod", prod_version
-    )
+    image_versioned_prod = hlitadoc.get_image(base_image, "prod", prod_version)
     hlitadoc.dassert_is_image_name_valid(image_versioned_prod)
     # Login to AWS ECR because for multi-arch build the image is built locally
     # and pushed to the remote registry automatically.
@@ -766,7 +764,9 @@ def docker_tag_push_multi_arch_prod_image(  # type: ignore
     prod_version = hlitadoc.resolve_version_value(
         version, container_dir_name=container_dir_name
     )
-    aws_image_versioned_prod = hlitadoc.get_image(base_image, "prod", prod_version)
+    aws_image_versioned_prod = hlitadoc.get_image(
+        base_image, "prod", prod_version
+    )
     _LOG.info(
         "Pushing the prod image %s to the target_registry %s",
         aws_image_versioned_prod,
@@ -789,7 +789,7 @@ def docker_tag_push_multi_arch_prod_image(  # type: ignore
         docker buildx imagetools create \
             -t {dockerhub_image_versioned_prod} {aws_image_versioned_prod}
         """
-        hlitauti.run(ctx, cmd)        
+        hlitauti.run(ctx, cmd)
     else:
         raise ValueError(
             f"Invalid target Docker image registry='{target_registry}'"
