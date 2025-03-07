@@ -26,7 +26,7 @@ permissions:
   # This is required for requesting the OIDC JWT.
   id-token: write
   # This is required for actions/checkout.
-  contents: read  
+  contents: read
 jobs:
   run_fast_tests:
     runs-on: ubuntu-latest
