@@ -188,7 +188,6 @@ def lint(  # type: ignore
     branch=False,
     only_format=False,
     only_check=False,
-    docker_registry="",
 ):
     """
     Lint files.
@@ -216,9 +215,6 @@ def lint(  # type: ignore
     :param branch: lint the files modified in the current branch w.r.t. master
     :param only_format: run only the modifying actions of Linter (e.g., black)
     :param only_check: run only the non-modifying actions of Linter (e.g., pylint)
-    :param docker_registry: Docker image registry to pull the helpers image from
-        - "dockerhub.causify": public Causify Docker image registry
-        - "aws_ecr.ck": private AWS CK ECR
     """
     hlitauti.report_task()
     # Verify that the passed options are valid.
@@ -265,7 +261,7 @@ def lint(  # type: ignore
         find_cmd = "$(find -wholename '*linters/base.py')"
     lint_cmd_ = find_cmd + " " + hlitauti._to_single_line_cmd(lint_cmd_opts)
     docker_cmd_ = hlitadoc._get_lint_docker_cmd(
-        lint_cmd_, stage=stage, version=version, docker_registry=docker_registry
+        lint_cmd_, stage=stage, version=version
     )
     # Run.
     hlitauti.run(ctx, docker_cmd_)
