@@ -9,7 +9,7 @@ import logging
 import pprint
 import re
 import sys
-from functools import wraps
+import functools
 from typing import (
     Any,
     Callable,
@@ -214,7 +214,7 @@ def strict_split(text: str, max_length: int) -> str:
     Split a string into chunks of `max_length` characters.
     """
     hdbg.dassert_lte(1, max_length)
-    lines = [text[i:i+max_length] for i in range(0, len(text), max_length)]
+    lines = [text[i : i + max_length] for i in range(0, len(text), max_length)]
     out = "\n".join(lines)
     return out
 
@@ -230,8 +230,8 @@ def split_lines(func: Callable) -> Callable:
     decorated function.
     """
 
-    @wraps(func)
-    def wrapper(txt: StrOrList, *args: Any, **kwargs: Any) -> None:
+    @functools.wraps(func)
+    def wrapper(txt: StrOrList, *args: Any, **kwargs: Any) -> StrOrList:
         if isinstance(txt, str):
             # Split the txt into lines.
             lines = txt.splitlines()
@@ -561,10 +561,11 @@ def to_str(
 _SkipVarsType = Optional[Union[str, List[str]]]
 
 
-def _func_signature_to_str(skip_vars: _SkipVarsType = None,
-                           assert_on_skip_vars_error: bool = True,
-                          frame_level: int = 1,  
-                           ) -> Tuple[str, str]:
+def _func_signature_to_str(
+    skip_vars: _SkipVarsType = None,
+    assert_on_skip_vars_error: bool = True,
+    frame_level: int = 1,
+) -> Tuple[str, str]:
     """
     Return the variables of the caller function as a string.
 
@@ -579,7 +580,7 @@ def _func_signature_to_str(skip_vars: _SkipVarsType = None,
     for _ in range(frame_level):
         caller_frame = caller_frame.f_back
     caller_function_name = caller_frame.f_code.co_name
-    #_LOG.debug("caller_function_name=%s", caller_function_name)
+    # _LOG.debug("caller_function_name=%s", caller_function_name)
     # Retrieve the function object from the caller's frame.
     caller_function = caller_frame.f_globals.get(caller_function_name, None)
     if caller_function:
@@ -589,15 +590,21 @@ def _func_signature_to_str(skip_vars: _SkipVarsType = None,
         if skip_vars:
             if assert_on_skip_vars_error:
                 hdbg.dassert_is_subset(skip_vars, var_names)
-            var_names = [var_name for var_name in var_names if var_name not in skip_vars]
+            var_names = [
+                var_name for var_name in var_names if var_name not in skip_vars
+            ]
         vars_str = " ".join(var_names)
     else:
         raise ValueError("Unable to determine caller function")
-    return  caller_function_name, vars_str
-    
+    return caller_function_name, vars_str
 
-def func_signature_to_str(skip_vars: _SkipVarsType = None, assert_on_skip_vars_error: bool = True, frame_level: int = 2) -> str:
-    """
+
+def func_signature_to_str(
+    skip_vars: _SkipVarsType = None,
+    assert_on_skip_vars_error: bool = True,
+    frame_level: int = 2,
+) -> str:
+    r"""
     Return the variables of the caller function as a string.
 
     Use like:
@@ -612,7 +619,11 @@ def func_signature_to_str(skip_vars: _SkipVarsType = None, assert_on_skip_vars_e
         access the frame of the caller of the caller, so frame_level = 2
     """
     # Get the variables.
-    func_name, func_signature = _func_signature_to_str(skip_vars=skip_vars, assert_on_skip_vars_error=assert_on_skip_vars_error, frame_level=frame_level)
+    func_name, func_signature = _func_signature_to_str(
+        skip_vars=skip_vars,
+        assert_on_skip_vars_error=assert_on_skip_vars_error,
+        frame_level=frame_level,
+    )
     # Get the value of the variables.
     val = to_str(func_signature, frame_level=frame_level)
     val = f"# {func_name}: {val}"

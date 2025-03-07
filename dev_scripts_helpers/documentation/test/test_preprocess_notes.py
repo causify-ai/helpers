@@ -29,7 +29,7 @@ def _run_preprocess_notes(in_file: str, out_file: str) -> str:
     cmd.append(exec_path)
     cmd.append(f"--input {in_file}")
     cmd.append(f"--output {out_file}")
-    cmd.append(f"--type pdf")
+    cmd.append("--type pdf")
     cmd_as_str = " ".join(cmd)
     hsystem.system(cmd_as_str)
     # Check.

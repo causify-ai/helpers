@@ -1468,8 +1468,10 @@ def pytest_add_untracked_golden_outcomes(ctx):  # type: ignore
 # pytest_failed
 # #############################################################################
 
-    
-def _parse_failed_tests(txt: str, only_file: bool, only_class: bool) -> Tuple[List[str], int, int]:
+
+def _parse_failed_tests(
+    txt: str, only_file: bool, only_class: bool
+) -> Tuple[List[str], int, int]:
     """
     Parse the failed tests from the pytest output.
 
@@ -1485,7 +1487,7 @@ def _parse_failed_tests(txt: str, only_file: bool, only_class: bool) -> Tuple[Li
     num_failed = num_passed = 0
     for line in txt.split("\n"):
         # Remove non printable characters.
-        line = re.sub(r'[^\x20-\x7E]', '', line)
+        line = re.sub(r"[^\x20-\x7E]", "", line)
         # FAILED oms/broker/ccxt/test/test_ccxt_execution_quality.py::Test_compute_adj_fill_ecdfs::test3 - RuntimeError:
         m = re.search(r"^(FAILED|ERROR) (\S+) -", line)
         if m:
@@ -1506,7 +1508,9 @@ def _parse_failed_tests(txt: str, only_file: bool, only_class: bool) -> Tuple[Li
     failed_tests = sorted(list(set(failed_tests)))
     #
     if num_failed and num_passed and num_failed != len(failed_tests):
-        _LOG.warning("n_failed=%s len(failed_tests)=%s", num_failed, len(failed_tests))
+        _LOG.warning(
+            "n_failed=%s len(failed_tests)=%s", num_failed, len(failed_tests)
+        )
     print(f"Failed tests: {num_failed}/{num_passed}")
     # Filter, if needed.
     if only_file or only_class:

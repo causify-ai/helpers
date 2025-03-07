@@ -557,7 +557,7 @@ def gh_get_open_prs(repo: str) -> List[Dict[str, Any]]:
 
 
 def _get_failed_or_successful_workflow_run(
-    workflow_runs: List[Dict[str, Any]]
+    workflow_runs: List[Dict[str, Any]],
 ) -> Optional[Dict[str, Any]]:
     """
     Get the most recent successful or failed workflow run.

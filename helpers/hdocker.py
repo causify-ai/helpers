@@ -134,10 +134,12 @@ def volume_rm(volume_name: str, use_sudo: bool) -> None:
 # #############################################################################
 
 
-def check_image_compatibility_with_host(image_name: str,
-                                        *,
-                                        use_sudo: Optional[bool] = None,
-                                        assert_on_error: bool = True) -> None:
+def check_image_compatibility_with_host(
+    image_name: str,
+    *,
+    use_sudo: Optional[bool] = None,
+    assert_on_error: bool = True,
+) -> None:
     _LOG.debug(hprint.to_str("image_name use_sudo assert_on_error"))
     hdbg.dassert_ne(image_name, "")
     if use_sudo is None:
@@ -162,8 +164,11 @@ def check_image_compatibility_with_host(image_name: str,
                 hdbg.dfatal(msg)
             else:
                 _LOG.warning(msg)
-    _LOG.debug("Host architecture '%s' and image architecture '%s' are compatible",
-                host_arch, image_arch)
+    _LOG.debug(
+        "Host architecture '%s' and image architecture '%s' are compatible",
+        host_arch,
+        image_arch,
+    )
 
 
 # #############################################################################
@@ -1448,7 +1453,8 @@ def run_dockerized_mermaid(
         is_caller_host=is_caller_host,
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
-    mermaid_cmd = f"mmdc --puppeteerConfigFile {puppeteer_config_path} -i {code_file_path} -o {img_path}"
+    mermaid_cmd = (f"mmdc --puppeteerConfigFile {puppeteer_config_path}" +
+        f"-i {code_file_path} -o {img_path}")
     executable = get_docker_executable(use_sudo)
     docker_cmd = (
         f"{executable} run --rm --user $(id -u):$(id -g)"

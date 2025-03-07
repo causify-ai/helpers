@@ -529,7 +529,7 @@ def system_to_files(
 
 
 def get_process_pids(
-    keep_line: Callable[[str], bool]
+    keep_line: Callable[[str], bool],
 ) -> Tuple[List[int], List[str]]:
     """
     Find all the processes corresponding to `ps ax` filtered line by line with
@@ -692,6 +692,7 @@ def to_pbcopy(txt: str, pbcopy: bool) -> None:
     else:
         _LOG.warning("pbcopy works only on macOS")
         print(txt)
+
 
 # #############################################################################
 

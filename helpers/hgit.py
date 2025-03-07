@@ -420,8 +420,6 @@ def is_amp_present(*, dir_name: str = ".") -> bool:
 # rather than their name.
 
 
-
-
 def is_cmamp() -> bool:
     """
     Return whether we are inside `cmamp` repo.
@@ -699,7 +697,7 @@ def _get_repo_short_to_full_name(include_host_name: bool) -> Dict[str, str]:
     """
     # From short name to long name.
     repo_map = {
-        #"msml610": "gpsaggese/notes",
+        # "msml610": "gpsaggese/notes",
         "amp": "alphamatic/amp",
         "helpers": "causify-ai/helpers",
         "tutorials": "causify-ai/tutorials",
@@ -889,6 +887,7 @@ def get_path_from_git_root(
     return ret
 
 
+# TODO(gp): Rewrite this function in a better way.
 @functools.lru_cache()
 def get_amp_abs_path() -> str:
     """
@@ -1313,8 +1312,8 @@ def git_describe(
 
     If there is no tag, this will return short commit hash.
 
-    :param match: e.g., `cmamp-*`, only consider tags matching the
-        given glob pattern
+    :param match: e.g., `cmamp-*`, only consider tags matching the given
+        glob pattern
     """
     _LOG.debug("# Looking for version ...")
     cmd = "git describe --tags --always --abbrev=0"

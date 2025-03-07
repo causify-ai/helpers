@@ -336,7 +336,9 @@ class HeaderInfo:
         self.children: List[HeaderInfo] = []
 
     def __repr__(self) -> str:
-        return f"HeaderInfo({self.level}, '{self.description}', {self.line_number})"
+        return (
+            f"HeaderInfo({self.level}, '{self.description}', {self.line_number})"
+        )
 
     def as_tuple(self) -> Tuple[int, str, int]:
         return (self.level, self.description, self.line_number)
@@ -371,7 +373,9 @@ def _check_header_list(header_list: HeaderList) -> None:
         )
 
 
-def extract_headers_from_markdown(txt: str, max_level: int, *, sanity_check: bool = True) -> HeaderList:
+def extract_headers_from_markdown(
+    txt: str, max_level: int, *, sanity_check: bool = True
+) -> HeaderList:
     """
     Extract headers from Markdown file and return an `HeaderList`.
 
@@ -597,9 +601,7 @@ def _find_header_tree_ancestry(
     for node in tree:
         if node.level == level and node.description == description:
             return [node]
-        result = _find_header_tree_ancestry(
-            node.children, level, description
-        )
+        result = _find_header_tree_ancestry(node.children, level, description)
         if result:
             return [node] + result
     return None
@@ -629,7 +631,7 @@ def header_tree_to_str(
                 val = prefix + "*" + node.description + "*"
             else:
                 val = prefix + node.description
-            _LOG.debug("-> " + hprint.to_str("val"))
+            _LOG.debug("-> %s", hprint.to_str("val"))
             if val:
                 result.append(val)
             # Expand this node’s children using the rest of the ancestry.
@@ -640,7 +642,7 @@ def header_tree_to_str(
             # For nodes not on the selected branch, include them without
             # expanding.
             val = prefix + node.description
-        _LOG.debug("-> " + hprint.to_str("val"))
+        _LOG.debug("-> %s", hprint.to_str("val"))
         if val:
             result.append(val)
     return "\n".join(result)
@@ -652,9 +654,7 @@ def selected_navigation_to_str(
     """
     Given a level and description for the selected node, print the navigation.
     """
-    ancestry = _find_header_tree_ancestry(
-        tree, level, description
-    )
+    ancestry = _find_header_tree_ancestry(tree, level, description)
     hdbg.dassert_ne(
         ancestry,
         None,

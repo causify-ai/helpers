@@ -33,6 +33,8 @@ def _make_path_absolute(path: str) -> str:
     """
     Make the file path absolute.
 
+    E.g., './dir/file.py' is converted into '/dir/file.py'.
+
     :param path: the original path
     :return: the absolute path
     """
@@ -45,13 +47,15 @@ def _make_path_module_agnostic(path: str) -> str:
     """
     Make the file path robust to where it is accessed from.
 
-    E.g., when it is accessed from a submodule, it should
-    include the `amp` directory explicitly.
+    E.g., when it is accessed from a submodule, it should include the `amp`
+    directory explicitly.
 
     :param path: the original path
     :return: the module-agnostic path
     """
     # Get the absolute path of the `amp` dir.
+    # TODO(gp): This is not general enough since not all repos have `amp`.
+    # E.g., `//notes``, `//tutorials`.
     amp_path = hgit.get_amp_abs_path()
     # Compile the module-agnostic path.
     upd_path = os.path.join(amp_path, path.lstrip("/"))
@@ -62,13 +66,15 @@ def _check_md_link_format(
     link_text: str, link: str, line: str, file_name: str, line_num: int
 ) -> Tuple[str, List[str]]:
     """
-    Check whether the link is in an appropriate format.
+    Check whether a markdown link is in the appropriate format.
 
     The desired format is '[/dir/file.py](/dir/file.py)':
       - The link text is the same as the link.
-      - The link is an absolute path to the file (not a relative path and not a URL).
+      - The link is an absolute path to the file (not a relative path and not a
+        URL).
 
-    If the original link text is a regular text and not a file path, it should not be updated.
+    If the original link text is a regular text and not a file path, it should
+    not be updated.
     E.g., '[here](/dir/file.py)' remains as is.
 
     :param link_text: the original link text
@@ -234,8 +240,8 @@ def fix_links(file_name: str) -> Tuple[List[str], List[str], List[str]]:
     Fix the formatting of links and file/figure paths in a Markdown file.
 
     The following objects are checked:
-      - Links in the Markdown format, e.g. '[link_text](link)'
-        (incl. when the link text is an empty string).
+      - Links in the Markdown format, e.g. '[link_text](link)' (including when
+        the link text is an empty string).
       - Bare file paths, e.g.'/dir1/dir2/file.py'.
       - Pointers to figures, e.g. '<img src="dir1/dir2/file.png">'.
       - HTML-style links (`<a href="..."></a>`).

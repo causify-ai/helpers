@@ -73,7 +73,7 @@ def _clean_up_artifacts(md_file: str, md_file_figs: str) -> None:
         # Remove the \ before - $ | " _ [ ].
         rf"perl -pi -e 's:\\([-\$|\"\_\]\[\.]):$1:g' {md_file}",
         # \' -> '.
-        r'perl -pi -e "s:\\\':\':g" {}'.format(md_file),
+        rf'perl -pi -e "s:\\\':\':g" {md_file}',
         # \` -> `.
         rf"perl -pi -e 's:\\\`:\`:g' {md_file}",
         # \* -> *.

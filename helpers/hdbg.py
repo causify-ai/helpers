@@ -243,7 +243,7 @@ def dassert_lgt(
     Assert that `lower_bound <= x <= upper_bound`.
 
     :param lower_bound_closed, upper_bound_closed: control the open-
-        ness/close-ness of the interval extremes.
+    ness/close-ness of the interval extremes.
     """
     # `lower_bound <= or < x`.
     if lower_bound_closed:

@@ -327,6 +327,7 @@ def _get_markdown_example6() -> hmarkdo.HeaderList:
     content = hprint.dedent(content)
     return content
 
+
 # #############################################################################
 # Test_extract_section_from_markdown1
 # #############################################################################
@@ -579,9 +580,16 @@ class Test_process_lines1(hunitest.TestCase):
 # Test_selected_navigation_to_str1
 # #############################################################################
 
-        
-def _test_navigation_flow(self_: Any, txt: str, header_list_exp: str, header_tree_exp: str,
-                          level: int, description: str, nav_str_exp: str) -> None:
+
+def _test_navigation_flow(
+    self_: Any,
+    txt: str,
+    header_list_exp: str,
+    header_tree_exp: str,
+    level: int,
+    description: str,
+    nav_str_exp: str,
+) -> None:
     # 1) Extract headers.
     header_list = hmarkdo.extract_headers_from_markdown(txt, max_level=3)
     act = pprint.pformat(header_list)
@@ -599,7 +607,7 @@ def _test_navigation_flow(self_: Any, txt: str, header_list_exp: str, header_tre
     self_.assert_equal(
         act, nav_str_exp, dedent=True, remove_lead_trail_empty_lines=True
     )
-        
+
 
 def _test_full_navigation_flow(self_: Any, txt: str) -> str:
     res: List[str] = []
@@ -618,6 +626,11 @@ def _test_full_navigation_flow(self_: Any, txt: str) -> str:
     # Check.
     act = "\n".join(res)
     self_.check_string(act)
+
+
+# #############################################################################
+# Test_selected_navigation_to_str1
+# #############################################################################
 
 
 class Test_selected_navigation_to_str1(hunitest.TestCase):
@@ -652,12 +665,24 @@ class Test_selected_navigation_to_str1(hunitest.TestCase):
           - Section 1.2
         - Chapter 2
         """
-        _test_navigation_flow(self, txt, header_list_exp, header_tree_exp,
-                                level, description, nav_str_exp)
+        _test_navigation_flow(
+            self,
+            txt,
+            header_list_exp,
+            header_tree_exp,
+            level,
+            description,
+            nav_str_exp,
+        )
 
     def test2(self) -> None:
         txt = _get_markdown_example4()
         _test_full_navigation_flow(self, txt)
+
+
+# #############################################################################
+# Test_selected_navigation_to_str2
+# #############################################################################
 
 
 class Test_selected_navigation_to_str2(hunitest.TestCase):
@@ -677,7 +702,7 @@ class Test_selected_navigation_to_str2(hunitest.TestCase):
         header_tree_exp = """
         - Models
         """
-        level = 2 
+        level = 2
         description = "Decision trees"
         nav_str_exp = """
         - Models
@@ -686,8 +711,15 @@ class Test_selected_navigation_to_str2(hunitest.TestCase):
           - Random forests
           - Linear models
         """
-        _test_navigation_flow(self, txt, header_list_exp, header_tree_exp,
-                                level, description, nav_str_exp)
+        _test_navigation_flow(
+            self,
+            txt,
+            header_list_exp,
+            header_tree_exp,
+            level,
+            description,
+            nav_str_exp,
+        )
 
     def test2(self) -> None:
         txt = _get_markdown_example6()
