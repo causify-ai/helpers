@@ -681,11 +681,12 @@ def generate_aws_files(
     config_file_text = "\n\n".join(config_file_text)
     hio.to_file(config_file_name, config_file_text)
     _LOG.debug("Saved AWS config to %s", config_file_name)
-    hsystem.system_to_string("aws sts get-caller-identity --profile ck")
+    
     #
     credentials_file_text = "\n\n".join(credentials_file_text)
     hio.to_file(credentials_file_name, credentials_file_text)
     _LOG.debug("Saved AWS credentials to %s", credentials_file_name)
+    hsystem.system_to_string("aws sts get-caller-identity --profile ck")
 
 
 # #############################################################################
