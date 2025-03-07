@@ -41,22 +41,19 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
+    hparser.add_input_output_args(parser)
     parser.add_argument(
-        "-i", "--input", type=str, help="Path to the input Markdown file."
-    )
-    parser.add_argument(
-        "-o",
-        "--output",
+        "--mode",
         type=str,
-        default="cfile",
-        help="Path to the output cfile. Use - for stdout",
+        default="list",
+        choices=["list", "headers", "cfile"],
+        help="Output mode",
     )
     parser.add_argument(
-        "-m",
         "--max-level",
         type=int,
-        default=6,
-        help="Maximum header levels to parse (default: 6).",
+        default=3,
+        help="Maximum header levels to parse",
     )
     hparser.add_verbosity_arg(parser)
     return parser
@@ -67,19 +64,23 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(
         verbosity=args.log_level, use_exec_path=True, force_white=False
     )
-    _LOG.info("Reading file '%s'", args.input)
-    input_content = hio.from_file(args.input)
+    in_file_name, out_file_name = hparser.parse_input_output_args(args)
+    input_content = hparser.read_file(in_file_name)
+    input_content = "\n".join(input_content)
+    # We don't want to sanity check 
+    sanity_check = False
     header_list = hmarkdo.extract_headers_from_markdown(
-        input_content, max_level=args.max_level
+        input_content, max_level=args.max_level, sanity_check=sanity_check
     )
-    output_content = hmarkdo.extract_headers_from_markdown(
-        args.input, header_list
-    )
-    if args.output == "-":
-        print(output_content)
+    if args.mode == "cfile":
+        output_content = hmarkdo.header_list_to_vim_cfile(in_file_name, header_list)
     else:
-        hio.to_file(args.output, output_content)
-    _LOG.info("Generated Vim cfile '%s'", args.output)
+        output_content = hmarkdo.header_list_to_markdown(
+            header_list, args.mode
+        )
+    hparser.write_file(output_content, out_file_name)
+    #
+    hmarkdo.check_header_list(header_list)
 
 
 if __name__ == "__main__":
