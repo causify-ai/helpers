@@ -781,21 +781,19 @@ def docker_tag_push_multi_arch_prod_image(  # type: ignore
             "get_docker_base_image_name()"
         )
         prod_base_image = f"causify/{base_image_name}"
-    else:
-        raise ValueError(
-            f"Invalid target Docker image registry='{target_registry}'"
-        )
-    # Tag and push the versioned prod image. The versioned prod image is
-    # already built in the AWS ECR registry.
-    if target_registry != "aws_ecr.ck":
-        target_image_versioned_prod = hlitadoc.get_image(
+        # Tag and push the versioned prod image.
+        dockerhub_image_versioned_prod = hlitadoc.get_image(
             prod_base_image, "prod", prod_version
         )
         cmd = rf"""
         docker buildx imagetools create \
-            -t {target_image_versioned_prod} {aws_image_versioned_prod}
+            -t {dockerhub_image_versioned_prod} {aws_image_versioned_prod}
         """
-        hlitauti.run(ctx, cmd)
+        hlitauti.run(ctx, cmd)        
+    else:
+        raise ValueError(
+            f"Invalid target Docker image registry='{target_registry}'"
+        )
     # Tag and push the versioned prod image as prod image.
     latest_version = None
     image_prod = hlitadoc.get_image(
