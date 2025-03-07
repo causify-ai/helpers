@@ -18,7 +18,6 @@ from invoke import task
 # this code needs to run with minimal dependencies and without Docker.
 import helpers.hdbg as hdbg
 import helpers.hdict as hdict
-import helpers.henv as henv
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -28,6 +27,7 @@ import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hversion as hversio
 import helpers.lib_tasks_utils as hlitauti
+import helpers.repo_config_utils as hrecouti
 
 _LOG = logging.getLogger(__name__)
 
@@ -405,7 +405,7 @@ def docker_login(ctx, target_registry="aws_ecr.ck"):  # type: ignore
     hlitauti.report_task()
     # No login required as kaizenflow container is accessible on the public
     # DockerHub registry.
-    if henv.execute_repo_config_code("get_name()") == "//kaizen":
+    if hrecouti.get_repo_config().get_name() == "//kaizen":
         _LOG.warning("Skipping logging in for Kaizenflow")
         return
     # We run everything using `hsystem.system(...)` but `ctx` is needed
@@ -772,7 +772,7 @@ def _get_docker_compose_files(
     :return: list of the Docker compose paths
     """
     docker_compose_files = []
-    # Get the repo short name (e.g., amp).
+    # Get the repo short name (e.g., `amp`).
     dir_name = hgit.get_repo_full_name_from_dirname(".", include_host_name=False)
     repo_short_name = hgit.get_repo_name(dir_name, in_mode="full_name")
     _LOG.debug("repo_short_name=%s", repo_short_name)
@@ -797,19 +797,11 @@ def _get_docker_compose_files(
         use_main_network = False
     else:
         # Use the settings from the `repo_config` corresponding to this container.
-        enable_privileged_mode = henv.execute_repo_config_code(
-            "enable_privileged_mode()"
-        )
-        use_docker_sibling_containers = henv.execute_repo_config_code(
-            "use_docker_sibling_containers()"
-        )
-        get_shared_data_dirs = henv.execute_repo_config_code(
-            "get_shared_data_dirs()"
-        )
-        use_docker_network_mode_host = henv.execute_repo_config_code(
-            "use_docker_network_mode_host()"
-        )
-        use_main_network = henv.execute_repo_config_code("use_main_network()")
+        enable_privileged_mode = hserver.enable_privileged_mode()
+        use_docker_sibling_containers = hserver.use_docker_sibling_containers()
+        get_shared_data_dirs = hserver.get_shared_data_dirs()
+        use_docker_network_mode_host = hserver.use_docker_network_mode_host()
+        use_main_network = hserver.use_main_network()
     #
     if generate_docker_compose_file:
         _generate_docker_compose_file(
@@ -1063,7 +1055,7 @@ def get_image(
 
 
 def _run_docker_as_user(as_user_from_cmd_line: bool) -> bool:
-    as_root = henv.execute_repo_config_code("run_docker_as_root()")
+    as_root = hserver.run_docker_as_root()
     as_user = as_user_from_cmd_line
     if as_root:
         as_user = False
