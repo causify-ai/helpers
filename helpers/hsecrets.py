@@ -13,7 +13,6 @@ from typing import Any, Dict, Optional
 from botocore.client import BaseClient
 from botocore.exceptions import ClientError
 
-# import helpers.haws as haws
 import helpers.hdbg as hdbg
 
 
@@ -21,6 +20,8 @@ def get_secrets_client(aws_profile: str) -> BaseClient:
     """
     Return client to work with AWS Secrets Manager in the specified region.
     """
+    import helpers.haws as haws
+
     session = haws.get_session(aws_profile)
     client = session.client(service_name="secretsmanager")
     return client

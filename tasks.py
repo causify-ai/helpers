@@ -86,6 +86,7 @@ from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=u
     pytest_clean,
     pytest_collect_only,
     pytest_compare_logs,
+    pytest_failed,
     pytest_find_unused_goldens,
     pytest_rename_test,
     pytest_repro,

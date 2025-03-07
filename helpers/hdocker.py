@@ -290,7 +290,6 @@ def build_container(
     # Check if the container already exists. If not, build it.
     has_container, _ = image_exists(image_name_out, use_sudo)
     _LOG.debug(hprint.to_str("has_container"))
-    use_cache = False
     if force_rebuild:
         _LOG.warning(
             "Forcing to rebuild of container '%s' without cache", container_name
