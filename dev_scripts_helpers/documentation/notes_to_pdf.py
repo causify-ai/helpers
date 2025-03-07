@@ -132,7 +132,7 @@ def _preprocess_notes(args: argparse.Namespace, file_: str, prefix: str) -> str:
     file1 = file_
     file2 = f"{prefix}.preprocess_notes.txt"
     cmd = (f"{exec_file} --input {file1} --output {file2}" +
-        " --type {args.type} --toc_type {args.toc_type}")
+        f" --type {args.type} --toc_type {args.toc_type}")
     _ = _system(cmd)
     file_ = file2
     return file_
