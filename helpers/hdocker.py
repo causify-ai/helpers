@@ -15,7 +15,6 @@ import time
 from typing import Any, Dict, List, Optional, Tuple
 
 import helpers.hdbg as hdbg
-import helpers.henv as henv
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -231,7 +230,7 @@ def replace_shared_root_path(
     # Inside ECS, we keep the original shared data path and replace it only when
     # running inside Docker on the dev server.
     if hserver.is_inside_docker() and not hserver.is_inside_ecs_container():
-        shared_data_dirs = henv.execute_repo_config_code("get_shared_data_dirs()")
+        shared_data_dirs = hserver.get_shared_data_dirs()
         if replace_ecs_tokyo:
             # Make a copy to avoid modifying the original one.
             shared_data_dirs = copy.deepcopy(shared_data_dirs)
