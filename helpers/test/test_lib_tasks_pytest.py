@@ -879,9 +879,17 @@ class Test_pytest_repro_end_to_end(hunitest.TestCase):
         # Remove unstable content.
         lines = act.split("\n")
         line_cmd = lines[0]
-        test_output_start = lines.index("## pytest_repro: ")
+        _LOG.debug("%s", "\n".join(lines))
+        for i, line in enumerate(lines):
+            m = re.search("# pytest_repro: ", line)
+            if m:
+                test_output_start = i + 1
+                break
         lines_test_output = lines[test_output_start:]
+        #
         act = "\n".join([line_cmd] + lines_test_output)
+        regex = "init_logger"
+        act = hunitest.filter_text(regex, act)
         regex = r"(WARN|INFO)\s+hcache.py"
         act = hunitest.filter_text(regex, act)
         # Check the outcome.

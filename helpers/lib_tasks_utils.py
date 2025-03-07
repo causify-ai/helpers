@@ -122,8 +122,6 @@ def report_task(txt: str = "", container_dir_name: str = ".") -> None:
         _WAS_FIRST_CALL_DONE = True
         hversio.check_version(container_dir_name)
     # Print the name of the function.
-    # func_name = hintros.get_function_name(count=1)
-    # msg = f"## {func_name}: {txt}"
     msg = hprint.func_signature_to_str(
         skip_vars="ctx", assert_on_skip_vars_error=False, frame_level=3
     )
