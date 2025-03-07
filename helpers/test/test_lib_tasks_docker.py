@@ -66,7 +66,6 @@ class Test_generate_compose_file1(hunitest.TestCase):
         txt_tmp = hunitest.filter_text("CSFY_HELPERS_ROOT_PATH", txt_tmp)
         txt_tmp = hunitest.filter_text("CSFY_IS_SUPER_REPO", txt_tmp)
         txt_tmp = hunitest.filter_text("OPENAI_API_KEY", txt_tmp)
-        txt_tmp = hunitest.filter_text("CSFY_AWS_SESSION_TOKEN", txt_tmp)
         txt.append(txt_tmp)
         #
         txt = "\n".join(txt)
@@ -161,7 +160,6 @@ class Test_generate_compose_file2(hunitest.TestCase):
         # Remove all the env variables that are function of the host.
         txt_tmp = hunitest.filter_text("CSFY_HOST_", txt_tmp)
         txt_tmp = hunitest.filter_text("OPENAI_API_KEY", txt_tmp)
-        txt_tmp = hunitest.filter_text("CSFY_AWS_SESSION_TOKEN", txt_tmp)
         txt.append(txt_tmp)
         #
         txt = "\n".join(txt)
