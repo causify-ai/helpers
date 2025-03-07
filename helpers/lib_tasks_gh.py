@@ -15,7 +15,6 @@ from invoke import task
 # We want to minimize the dependencies from non-standard Python packages since
 # this code needs to run with minimal dependencies and without Docker.
 import helpers.hdbg as hdbg
-import helpers.henv as henv
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -23,6 +22,7 @@ import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.htable as htable
 import helpers.lib_tasks_utils as hlitauti
+import helpers.repo_config_utils as hrecouti
 
 _LOG = logging.getLogger(__name__)
 
@@ -527,7 +527,7 @@ def gh_publish_buildmeister_dashboard_to_s3(ctx, mark_as_latest=True):  # type: 
     )
     local_html_file = local_html_files[0]
     s3_build_path = os.path.join(
-        henv.execute_repo_config_code("get_html_bucket_path()"),
+        hrecouti.get_repo_config().get_html_bucket_path(),
         "build/buildmeister_dashboard",
     )
     aws_profile = "ck"
@@ -557,7 +557,7 @@ def gh_get_open_prs(repo: str) -> List[Dict[str, Any]]:
 
 
 def _get_failed_or_successful_workflow_run(
-    workflow_runs: List[Dict[str, Any]]
+    workflow_runs: List[Dict[str, Any]],
 ) -> Optional[Dict[str, Any]]:
     """
     Get the most recent successful or failed workflow run.

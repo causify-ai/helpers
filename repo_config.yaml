@@ -1,0 +1,23 @@
+repo_info:
+  repo_name: helpers
+  github_repo_account: causify-ai
+  github_host_name: github.com
+  invalid_words:
+  issue_prefix: HelpersTask
+
+docker_info:
+  docker_image_name: helpers
+
+s3_bucket_info:
+  unit_test_bucket_name: s3://cryptokaizen-unit-test
+  html_bucket_name: s3://cryptokaizen-html
+  html_ip: http://172.30.2.44
+
+container_registry_info:
+  ecr: 623860924167.dkr.ecr.eu-north-1.amazonaws.com
+  ghcr: ghcr.io/cryptokaizen
+
+runnable_dir_info:
+  use_helpers_as_nested_module: 0
+  venv_tag: helpers
+  dir_suffix: helpers
