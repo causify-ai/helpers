@@ -227,19 +227,23 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
     out = "\n".join(out_tmp)
     return out
 
-        
-def _add_navigation_slides(txt: str, max_level: int, *, sanity_check: bool = False) -> str:
+
+def _add_navigation_slides(
+    txt: str, max_level: int, *, sanity_check: bool = False
+) -> str:
     """
     Add the navigation slides to the notes.
 
     :param txt: The notes text.
-    :param max_level: The maximum level of headers to consider (e.g., 3 create
-        a navigation slide for headers of level 1, 2, and 3).
+    :param max_level: The maximum level of headers to consider (e.g., 3
+        create a navigation slide for headers of level 1, 2, and 3).
     :param sanity_check: If True, perform sanity checks.
     :return: The notes text with the navigation slides.
     """
     _LOG.debug("\n%s", hprint.frame("Add navigation slides"))
-    header_list = hmarkdo.extract_headers_from_markdown(txt, max_level, sanity_check=sanity_check)
+    header_list = hmarkdo.extract_headers_from_markdown(
+        txt, max_level, sanity_check=sanity_check
+    )
     _LOG.debug("header_list=\n%s", header_list)
     tree = hmarkdo.build_header_tree(header_list)
     _LOG.debug("tree=\n%s", tree)
@@ -276,8 +280,12 @@ def _parse() -> argparse.ArgumentParser:
         action="store",
         help="Type of output to generate",
     )
-    parser.add_argument("--toc_type", action="store", default="none",
-                        choices=["none", "pandoc_native", "navigation"])
+    parser.add_argument(
+        "--toc_type",
+        action="store",
+        default="none",
+        choices=["none", "pandoc_native", "navigation"],
+    )
     # TODO(gp): Unclear what it doesn.
     parser.add_argument(
         "--qa", action="store_true", default=None, help="The input file is QA"

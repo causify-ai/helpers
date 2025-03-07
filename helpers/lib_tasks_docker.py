@@ -18,6 +18,7 @@ from invoke import task
 # this code needs to run with minimal dependencies and without Docker.
 import helpers.hdbg as hdbg
 import helpers.hdict as hdict
+import helpers.hdocker as hdocker
 import helpers.henv as henv
 import helpers.hgit as hgit
 import helpers.hio as hio
@@ -1146,6 +1147,8 @@ def _get_docker_base_cmd(
     image = get_image(base_image, stage, version)
     _LOG.debug("base_image=%s stage=%s -> image=%s", base_image, stage, image)
     dassert_is_image_name_valid(image)
+    # Check image compatibility.
+    hdocker.check_image_compatibility_with_host(image)
     docker_cmd_.append(f"IMAGE={image}")
     # - Handle extra env vars.
     if extra_env_vars:

@@ -30,7 +30,8 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-# TODO(gp): Move to the repo_config.py or the config file.
+# TODO(gp): This is a function of the architecture. Move to the repo_config.py
+# or the config file.
 def get_use_sudo() -> bool:
     """
     Check if Docker commands should be run with sudo.
@@ -128,6 +129,44 @@ def volume_rm(volume_name: str, use_sudo: bool) -> None:
     cmd = f"{executable} volume rm {volume_name}"
     hsystem.system(cmd)
     _LOG.debug("docker volume '%s' deleted", volume_name)
+
+
+# #############################################################################
+
+
+def check_image_compatibility_with_host(image_name: str,
+                                        *,
+                                        use_sudo: Optional[bool] = None,
+                                        assert_on_error: bool = True) -> None:
+    _LOG.debug(hprint.to_str("image_name use_sudo assert_on_error"))
+    hdbg.dassert_ne(image_name, "")
+    if use_sudo is None:
+        use_sudo = get_use_sudo()
+    cmd = "uname -m"
+    # arm64
+    _, host_arch = hsystem.system_to_one_line(cmd)
+    _LOG.debug(hprint.to_str("host_arch"))
+    # > docker image inspect \
+    #   623860924167.dkr.ecr.eu-north-1.amazonaws.com/helpers:local-saggese-1.1.0 \
+    #   --format '{{.Architecture}}'
+    # arm64
+    executable = get_docker_executable(use_sudo)
+    cmd = f"{executable} inspect {image_name}" + r" --format '{{.Architecture}}'"
+    _, image_arch = hsystem.system_to_one_line(cmd)
+    _LOG.debug(hprint.to_str("image_arch"))
+    # TODO(gp): Enable this for x86 after testing.
+    if host_arch == "arm64":
+        if host_arch != image_arch:
+            msg = f"Host architecture '{host_arch}' != image architecture '{image_arch}'"
+            if assert_on_error:
+                hdbg.dfatal(msg)
+            else:
+                _LOG.warning(msg)
+    _LOG.debug("Host architecture '%s' and image architecture '%s' are compatible",
+                host_arch, image_arch)
+
+
+# #############################################################################
 
 
 def wait_for_file_in_docker(

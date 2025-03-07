@@ -57,7 +57,7 @@ def _clean_up_artifacts(md_file: str, md_file_figs: str) -> None:
     # TODO(gp): Use f-strings to avoid the linter error.
     perl_regex_replacements = [
         # # \# Running PyCharm remotely -> # Running PyCharm remotely.
-        rf"perl -pi -e 's:# (\\#)+ :# :g' {md_file)}",
+        rf"perl -pi -e 's:# (\\#)+ :# :g' {md_file}",
         # \#\# Docker image"  -> ## Docker image.
         rf"perl -pi -e 's:\\#:#:g' {md_file}",
         # **## amp / cmamp container** -> ## amp / cmamp container.
@@ -91,9 +91,7 @@ def _clean_up_artifacts(md_file: str, md_file_figs: str) -> None:
         rf"perl -pi -e 's:\&gt;:\>:g' {md_file}",
         rf"perl -pi -e 's:\<\!\-\-.*\-\-\>::g' {md_file}",
         # Fix image links.
-        rf"perl -pi -e 's:{}/media/:{}/:g' {}".format(
-            md_file_figs, md_file_figs, md_file
-        ),
+        rf"perl -pi -e 's:{md_file_figs}/media/:{md_file_figs}/:g' {md_file}",
         # Remove underling like
         # [<u>Uber: Faster Together: Uber Engineering’s iOS
         #  Monorepo</u>](https://www.uber.com/blog/ios-monorepo/)

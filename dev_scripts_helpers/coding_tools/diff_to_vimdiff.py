@@ -51,7 +51,8 @@ _LOG = logging.getLogger(__name__)
 
 def _remove_files(file_name: str, to_ignore_regex: Optional[str]) -> None:
     """
-    Remove certain files (e.g., `.git`, `tmp.`, ...) from the content of a file.
+    Remove certain files (e.g., `.git`, `tmp.`, ...) from the content of a
+    file.
 
     - Read the file name which has one file per line
     - Remove certain files
@@ -84,7 +85,7 @@ def _remove_files(file_name: str, to_ignore_regex: Optional[str]) -> None:
     # print(len(files), len(removed_files), len(kept_files))
 
 
-# ###############################################################################
+# #############################################################################
 
 
 def _compare_file_list(
@@ -143,7 +144,7 @@ def _compare_file_list(
     hsystem.system(cmd, abort_on_error=False, suppress_output=False)
 
 
-# ###############################################################################
+# #############################################################################
 
 
 def _find_files_to_diff(
@@ -368,7 +369,7 @@ def _parse() -> argparse.ArgumentParser:
         "--only_different_file_content",
         action="store_true",
         help="Diff content of only files that are present in both dirs but have "
-             "different content",
+        "different content",
     )
     parser.add_argument(
         "--only_different_files",
@@ -380,7 +381,7 @@ def _parse() -> argparse.ArgumentParser:
         action="store",
         default=None,
         help="Specify a file that contains the files to actually consider "
-             "for the diff",
+        "for the diff",
     )
     parser.add_argument(
         "--ignore_files",
@@ -395,18 +396,20 @@ def _parse() -> argparse.ArgumentParser:
         help_="Run automatically the diffing script or not",
     )
     parser.add_argument(
-        "--skip_comments", action="store_true",
-        help="Do not print comments in the diff script"
+        "--skip_comments",
+        action="store_true",
+        help="Do not print comments in the diff script",
     )
     parser.add_argument(
-        "--skip_vim", action="store_true",
-        help="Do not print vim commands in the diff script"
+        "--skip_vim",
+        action="store_true",
+        help="Do not print vim commands in the diff script",
     )
     hparser.add_verbosity_arg(parser)
     return parser
 
 
-# ###############################################################################
+# #############################################################################
 
 
 def _main(parser: argparse.ArgumentParser) -> None:

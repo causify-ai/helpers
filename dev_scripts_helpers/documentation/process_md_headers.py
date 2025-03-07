@@ -73,7 +73,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
         input_content, max_level=args.max_level
     )
     output_content = hmarkdo.extract_headers_from_markdown(
-        args.input, header_list)
+        args.input, header_list
+    )
     if args.output == "-":
         print(output_content)
     else:

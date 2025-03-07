@@ -533,14 +533,18 @@ def to_str(
         txt = sep.join(values)
         return txt
     # Certain expressions are evaluated as literals.
-    if expression in ("->", ":", "=", "\n"):
+    if expression in ("", "->", ":", "=", "\n"):
         return expression
     # Evaluate the expression.
     frame_ = sys._getframe(frame_level)  # pylint: disable=protected-access
     ret = ""
     if print_lhs:
         ret += expression + "="
-    eval_ = eval(expression, frame_.f_globals, frame_.f_locals)
+    try:
+        eval_ = eval(expression, frame_.f_globals, frame_.f_locals)
+    except Exception as e:
+        print("expression=''", expression)
+        raise e
     if mode == "str":
         ret += str(eval_)
     elif mode == "repr":
@@ -554,12 +558,17 @@ def to_str(
     return ret
 
 
-def _func_signature_to_str(frame_level: int = 1, skip_vars: Optional[Union[str, List[str]]] = None) -> Tuple[str, str]:
+_SkipVarsType = Optional[Union[str, List[str]]]
+
+
+def _func_signature_to_str(skip_vars: _SkipVarsType = None,
+                           assert_on_skip_vars_error: bool = True,
+                          frame_level: int = 1,  
+                           ) -> Tuple[str, str]:
     """
     Return the variables of the caller function as a string.
 
-    :param frame_level: level of the frame to inspect
-    :param skip_vars: list of variables to skip
+    Same params as `func_signature_to_str()`.
     :return: function name and string with the variables of the caller function
         as `var1 var2 ...`
     """
@@ -578,7 +587,8 @@ def _func_signature_to_str(frame_level: int = 1, skip_vars: Optional[Union[str, 
         sig = inspect.signature(caller_function)
         var_names = list(sig.parameters.keys())
         if skip_vars:
-            hdbg.dassert_is_subset(skip_vars, var_names)
+            if assert_on_skip_vars_error:
+                hdbg.dassert_is_subset(skip_vars, var_names)
             var_names = [var_name for var_name in var_names if var_name not in skip_vars]
         vars_str = " ".join(var_names)
     else:
@@ -586,7 +596,7 @@ def _func_signature_to_str(frame_level: int = 1, skip_vars: Optional[Union[str, 
     return  caller_function_name, vars_str
     
 
-def func_signature_to_str(skip_vars: Optional[List[str]] = None, frame_level: int = 2) -> str:
+def func_signature_to_str(skip_vars: _SkipVarsType = None, assert_on_skip_vars_error: bool = True, frame_level: int = 2) -> str:
     """
     Return the variables of the caller function as a string.
 
@@ -596,11 +606,13 @@ def func_signature_to_str(skip_vars: Optional[List[str]] = None, frame_level: in
     ```
 
     :param skip_vars: list of variables to skip
+    :param assert_on_skip_vars_error: whether to assert if the variables to skip
+        are not found in the function signature
     :param frame_level: level of the frame to inspect. By default we need to
         access the frame of the caller of the caller, so frame_level = 2
     """
     # Get the variables.
-    func_name, func_signature = _func_signature_to_str(frame_level=frame_level, skip_vars=skip_vars)
+    func_name, func_signature = _func_signature_to_str(skip_vars=skip_vars, assert_on_skip_vars_error=assert_on_skip_vars_error, frame_level=frame_level)
     # Get the value of the variables.
     val = to_str(func_signature, frame_level=frame_level)
     val = f"# {func_name}: {val}"
