@@ -782,7 +782,7 @@ def get_aws_credentials(
             hdbg.dassert_in(env_var, os.environ)
             result[key] = os.environ[env_var]
         # TODO(gp): We don't pass this through env var for now.
-        result["aws_session_token"] = None
+        # result["aws_session_token"] = None
     else:
         _LOG.debug("Using AWS credentials from files")
         # > more ~/.aws/credentials
