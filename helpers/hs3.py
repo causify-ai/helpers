@@ -686,7 +686,6 @@ def generate_aws_files(
     credentials_file_text = "\n\n".join(credentials_file_text)
     hio.to_file(credentials_file_name, credentials_file_text)
     _LOG.debug("Saved AWS credentials to %s", credentials_file_name)
-    hsystem.system_to_string("aws sts get-caller-identity --profile ck")
 
 
 # #############################################################################
@@ -765,7 +764,6 @@ def get_aws_credentials(
         (env_var in os.environ and os.environ[env_var] != "")
         for env_var in sorted(key_to_env_var.values())
     ]
-    _LOG.info("set_env_vars=%s", set_env_vars)
     if any(set_env_vars):
         if not all(set_env_vars):
             _LOG.warning(
