@@ -126,6 +126,7 @@ def get_env_vars() -> List[str]:
         "CSFY_AWS_ACCESS_KEY_ID",
         "CSFY_AWS_DEFAULT_REGION",
         "CSFY_AWS_SECRET_ACCESS_KEY",
+        "CSFY_AWS_SESSION_TOKEN",
         # S3 bucket to use for CK.
         "CSFY_AWS_S3_BUCKET",
         # Path to the ECR for the Docker images for CK.
