@@ -37,6 +37,7 @@ _LOG.setLevel(logging.INFO)
 # #############################################################################
 
 
+# TODO(gp): Move to hdatetime.py and maybe merge with `timestamp_to_str()`.
 def get_timestamp() -> str:
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
     return timestamp

@@ -40,13 +40,17 @@ def response_to_txt(response: Any) -> str:
     :return: extracted text contents as a string
     """
     if isinstance(response, openai.types.chat.chat_completion.ChatCompletion):
-        return response.choices[0].message.content
+        ret = response.choices[0].message.content
     elif isinstance(response, openai.pagination.SyncCursorPage):
-        return response.data[0].content[0].text.value
+        ret = response.data[0].content[0].text.value
     elif isinstance(response, openai.types.beta.threads.message.Message):
-        return response.content[0].text.value
+        ret = response.content[0].text.value
+    elif isinstance(response, str):
+        ret = response
     else:
         raise ValueError(f"Unknown response type: {type(response)}")
+    hdbg.dassert_isinstance(ret, str)
+    return ret
 
 
 def _extract(

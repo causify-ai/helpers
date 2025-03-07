@@ -26,7 +26,7 @@ In other terms, instead of install and execute `prettier` on the host
 > prettier ...cmd opts...
 ```
 
-we want to run it in a container with minimal changes to the call:
+we want to run it in a container with minimal changes to the system call:
 
 ```bash
 > dockerized_prettier ...cmd opts...
@@ -52,49 +52,67 @@ we want to run it in a container with minimal changes to the call:
   - `dev_scripts_helpers/documentation/run_latex.sh`
   - TODO(gp): Convert the scripts in Python
 
+## Examples of dockerized executables
+- We support several dockerized executables in `hdocker.py`
+  - prettier
+  - pandoc
+  - markdown-toc
+  - latex
+  - llm_transform (which relies on `hopenai`)
+  - plantuml
+  - mermaid
+
+- Some of these are exposed in the `dev_scripts_helpers` scripts, e.g.,
+  - `./dev_scripts_helpers/dockerize/dockerized_template.py`
+  - `./dev_scripts_helpers/documentation/dockerized_pandoc.py`
+  - `./dev_scripts_helpers/documentation/dockerized_prettier.py`
+
 ## Children- vs Sibling-container
 
 - There are several scenarios when one needs to run a dockerized executable
   inside another docker container, e.g., when running a dockerized executable
-  inside the container for development or unit testing
+  inside the dev container as part of development or unit testing (both CI and
+  not CI)
 
 - In this case we need to use one of the following approaches:
   - **Children-container**:
     - It typically addresses most operational issues, since it runs a Docker
       container in another container, as the outermost container was a host
-    - It requires elevated privileges.
+    - It requires elevated privileges
   - **Sibling-container**:
-    - More efficient and secure compared to Docker-in-Docker.
-    - It comes with greater usage restrictions.
+    - More efficient and secure compared to Docker-in-Docker
+    - It comes with greater usage restrictions
 
-- **Bind mounting a directory from inside the development container**
-  - Caution must be exercised when bind mounting a directory to facilitate file
-    exchange with the dockerized executable.
-  - **Children-container**
-    - In this case, bind mounting a directory does not pose any issues.
-  - **Sibling-container**
-    - The mounted directory must be accessible from the host system.
-    - For instance, when a local directory is mounted within the container at
-      `/src` (which is shared with the host):
-      - The reference name within the container is `/src`, but the corresponding
-        name outside on the host system is different.
-      - This introduces dependencies that can complicate the development
-        environment.
-      - For example, the local directory `/tmp` on the host is not visible from
-        the development container.
+### Bind mounting a directory from inside the development container
+- Caution must be exercised when bind mounting a directory to facilitate file
+  exchange with the dockerized executable
+- **Children-container**
+  - In this case, bind mounting a directory does not pose any issues, since
+    the dockerized executable can use the same filesystem as the hosting
+    container
+- **Sibling-container**
+  - The mounted directory must be accessible from the host system
+  - For instance, when a local directory is mounted within the container at
+    `/src` (which is shared with the host):
+    - The reference name within the container is `/src`, but the corresponding
+      name outside on the host system is different.
+    - This introduces dependencies that can complicate the development
+      environment.
+    - For example, the local directory `/tmp` on the host is not visible from
+      the development container.
 
 # Running a Dockerized executable
 
 - The problem is that files that needs to be processed by dockerized executables
   can be specified as absolute or relative path in the caller file system, and
-  we need to convert them to paths that are valid inside the new Docker
-  container
+  we need to convert them to paths that are valid inside the filesystem of the new
+  Docker container
 
 - We can run a Dockerized executable:
   - On the host; or
   - Inside a Docker container
 
-- The Docker container can be run:
+- The dockerized executables can be run:
   - As children-container (aka docker-in-docker, dind); or
   - As sibling-container
 

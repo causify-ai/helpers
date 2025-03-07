@@ -74,9 +74,7 @@
     _DOCKER_IMAGE_NAME = "cmamp-infra"
     ```
   - `tasks.py`: the `invoke` tasks available in this container
-    - This needs to be modified
-  - TODO(gp): Some files (e.g., `conftest.py`, `invoke.yaml`) should be links to
-    `helpers`
+    - This can be modified if needed
 
 ### 3) Copy and customize files in `devops`
 
@@ -86,9 +84,11 @@
   > DST_DIR="ck.infra"; echo $DST_DIR
   > cp -r helpers_root/devops $DST_DIR
   ```
-- Follow the instructions in `docs/work_tools/all.devops_docker.reference.md`
-  and `docs/work_tools/all.devops_docker.how_to_guide.md` to customize the files
-  in order to build the Docker container
+- Follow the instructions in
+  [`/docs/work_tools/all.devops_docker.reference.md`](/docs/work_tools/all.devops_docker.reference.md)
+  and
+  [`/docs/work_tools/all.devops_docker.how_to_guide.md`](/docs/work_tools/all.devops_docker.how_to_guide.md)
+  to customize the files in order to build the Docker container
   - Typically, we might want to customize the following
     - `$DST_DIR/devops/docker_build/dev.Dockerfile`: if we need to use a base
       image with different Linux distro or version
@@ -99,7 +99,7 @@
 
 ### 4) Copy and customize files in thin_client
 
-- Create the `dev_script` dir based off the template from `helpers`
+- Create the `dev_scripts_{dir_name}` dir based off the template from `helpers`
 
   ```bash
   # Use a prefix based on the repo name and runnable dir name, e.g., `cmamp_infra`.
@@ -125,13 +125,21 @@
     built)
   - Update PATH to the runnable dir
     ```bash
-    # runnable dir is "ck.infra" in this case.
+    # Runnable dir is "ck.infra" in this case.
     SCRIPT_PATH="ck.infra/dev_scripts_${DIR_TAG}/thin_client/setenv.sh"
     DEV_SCRIPT_DIR="${GIT_ROOT_DIR}/ck.infra/dev_scripts_${DIR_TAG}"
     ```
-    - TODO(heanh): Automatically infer them.
+    - TODO(gp): Use a config file for both Python and shell (HelpersTask88)
+    - TODO(heanh): Automatically infer them (HelpersTask145)
 
 ### 5) Replace files with symbolic links
+
+- Some common files can be replaced with symbolic links
+
+  ```bash
+  # Runnable dir is "ck.infra" in this case.
+  python3 ./helpers_root/helpers/create_links.py --src_dir ./helpers_root --dst_dir ./ck.infra --replace_links --use_relative_paths
+  ```
 
 - Refer to
   [Managing common files](/docs/work_tools/dev_system/all.runnable_repo.reference.md#managing-common-files)
@@ -139,11 +147,6 @@
 - Refer to
   [Managing symbolic links between directories](/docs/work_tools/dev_system/all.replace_common_files_with_script_links.md)
   for how to use the commands
-
-```bash
-# runnable dir is "ck.infra" in this case.
-python3 ./helpers_root/helpers/create_links.py --src_dir ./helpers_root --dst_dir ./ck.infra --replace_links --use_relative_paths
-```
 
 ### 6) Build a container for a runnable dir
 
@@ -177,9 +180,9 @@ python3 ./helpers_root/helpers/create_links.py --src_dir ./helpers_root --dst_di
 - Run tests from the runnable dir (e.g. `cmamp/ck.infra`)
 
   ```bash
-  > cd $DST_DIR
-  > i run_fast_tests
-  > i run_slow_tests
+  # If the version of the locally built image is 1.0.0.
+  > i run_fast_tests --version 1.0.0
+  > i run_slow_tests --version 1.0.0
   ```
 
 - Run tests from the root dir (e.g. `cmamp`)

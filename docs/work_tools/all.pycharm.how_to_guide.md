@@ -70,8 +70,6 @@ There are multiple ways to develop on a remote server using PyCharm
     - Cons
       - You can't run / debug remotely
 
-## Current situation
-
 - Approach 1) seems to require lots of memory and CPU and it's not really fast.
 
 - Approach 2) works but it's a pain to set-up and slow.
@@ -226,15 +224,14 @@ There are separate disk images for Intel and Apple Silicon processors.
    Download folder doesn't support file execution:
    ```
    > tar xzf pycharm-*.tar.gz -C <new_archive_folder>
-   ``
    ```
 
-The recommended installation location according to the filesystem hierarchy
-standard (FHS) is `/opt`. To install PyCharm into this directory, enter the
-following command:
-```
-> sudo tar xzf pycharm-\*.tar.gz -C /opt/
-```
+- The recommended installation location according to the filesystem hierarchy
+  standard (FHS) is `/opt`. To install PyCharm into this directory, enter the
+  following command:
+  ```
+  > sudo tar xzf pycharm-\*.tar.gz -C /opt/
+  ```
 
 3. Switch to the **bin** subdirectory:
    ```

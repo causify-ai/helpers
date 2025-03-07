@@ -8,7 +8,7 @@
 - [Disclaimer](#disclaimer)
   * [References](#references)
 - [High-Level Principles](#high-level-principles)
-    + [Follow the [DRY](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself) principle](#follow-the-dryhttpsenwikipediaorgwikidon%2527t_repeat_yourself-principle)
+  * [Follow the DRY principle](#follow-the-dry-principle)
     + [The writer is the reader](#the-writer-is-the-reader)
     + [Encapsulate what changes](#encapsulate-what-changes)
     + [Least surprise principle](#least-surprise-principle)
@@ -44,10 +44,10 @@
     + [Interval notation](#interval-notation)
     + [If you find a bug or obsolete docstring/TODO in the code](#if-you-find-a-bug-or-obsolete-docstringtodo-in-the-code)
   * [Linter](#linter)
-    + [Remove linter messages](#remove-linter-messages)
-    + [When to disable linter messages](#when-to-disable-linter-messages)
-    + [Prefer non-inlined linter comments](#prefer-non-inlined-linter-comments)
-    + [Don't mix real changes with linter changes](#dont-mix-real-changes-with-linter-changes)
+    + [Remove Linter messages](#remove-linter-messages)
+    + [When to disable Linter messages](#when-to-disable-linter-messages)
+    + [Prefer non-inlined Linter comments](#prefer-non-inlined-linter-comments)
+    + [Don't mix real changes with Linter changes](#dont-mix-real-changes-with-linter-changes)
   * [Logging](#logging)
     + [Always use logging instead of prints](#always-use-logging-instead-of-prints)
     + [Our logging idiom](#our-logging-idiom)
@@ -104,18 +104,19 @@
     + [Keep public functions organized in a logical order](#keep-public-functions-organized-in-a-logical-order)
     + [Do not make tiny wrappers](#do-not-make-tiny-wrappers)
     + [Regex](#regex)
-    + [Do not introduce another “concept” unless really needed](#do-not-introduce-another-concept-unless-really-needed)
+    + [Do not introduce another "concept" unless really needed](#do-not-introduce-another-concept-unless-really-needed)
     + [Return `None` or keep one type](#return-none-or-keep-one-type)
     + [Avoid wall-of-text functions](#avoid-wall-of-text-functions)
   * [Writing robust code](#writing-robust-code)
-    + [Don’t let your functions catch the default-itis](#dont-let-your-functions-catch-the-default-itis)
+    + [Don't let your functions catch the default-itis](#dont-let-your-functions-catch-the-default-itis)
     + [Explicitly bind default parameters](#explicitly-bind-default-parameters)
-    + [Don’t hardwire params in a function call](#dont-hardwire-params-in-a-function-call)
+    + [Don't hardwire params in a function call](#dont-hardwire-params-in-a-function-call)
     + [Make `if-elif-else` complete](#make-if-elif-else-complete)
     + [Add TODOs when needed](#add-todos-when-needed)
   * [Common Python mistakes](#common-python-mistakes)
     + [`==` vs `is`](#-vs-is)
     + [`type()` vs `isinstance()`](#type-vs-isinstance)
+  * [Use `helpers`](#use-helpers)
   * [Unit tests](#unit-tests)
   * [Refactoring](#refactoring)
     + [When moving / refactoring code](#when-moving--refactoring-code)
@@ -167,7 +168,7 @@
   [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html),
   therefore, the numbering of chapters sets off where the Style Guide ends. Make
   sure to familiarize yourself with it before proceeding to the rest of the doc,
-  since it is the basis of our team’s code style.
+  since it is the basis of our team's code style.
 - Another important source is
   [The Pragmatic Programmer](https://drive.google.com/file/d/1g0vjtaBVq0dt32thNprBRJpeHJsJSe-Z/view?usp=sharing)
   by David Thomas and Andrew Hunt. While not Python-specific, it provides an
@@ -175,8 +176,8 @@
   (software developer, DevOps or data scientist) should abide. Read it on long
   commutes, during lunch, and treat yourself to a physical copy on Christmas.
   The book is summarized
-  [here](https://github.com/cryptokaizen/cmamp/blob/master/docs/coding/all.code_like_pragmatic_programmer.how_to_guide.md),
-  but do not deprive yourself of the engaging manner in which Thomas & Hunt
+  [here](/docs/coding/all.code_like_pragmatic_programmer.how_to_guide.md), but
+  do not deprive yourself of the engaging manner in which Thomas & Hunt
   elaborate on these points -- on top of it all, it is a very, very enjoyable
   read.
 
@@ -203,7 +204,10 @@
   all the other lower level principles we follow (like a basis for a vector
   space)
 
-#### Follow the [DRY](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself) principle
+### Follow the DRY principle
+
+- DRY =
+  [Don't repeat yourself](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself)
 
 #### The writer is the reader
 
@@ -300,7 +304,7 @@
       """
       Add a timer decorator around a specified function.
       """
-      …
+      ...
   ```
 
 #### Follow spelling rules
@@ -397,9 +401,9 @@
   - Name is `get_git_root_path()`
 
     ```python
-    import helpers.git as git
+    import helpers.hgit as hgit
 
-    ... git.get_git_root_path()
+    ... hgit.get_git_root_path()
     ```
   - You see that the module is already specifying we are talking about Git
 
@@ -407,9 +411,9 @@
   - Name is `get_root_path()`
 
     ```python
-    import helpers.git as git
+    import helpers.hgit as hgit
 
-    ... git.get_root_path()
+    ... hgit.get_root_path()
     ```
   - This is not only aesthetic reason but a bit related to a weak form of DRY
 
@@ -418,21 +422,21 @@
 #### General conventions
 
 - Code needs to be properly commented
-- We follow python standard [PEP 257](https://www.python.org/dev/peps/pep-0257/)
+- We follow Python standard [PEP 257](https://www.python.org/dev/peps/pep-0257/)
   for commenting
   - PEP 257 standardizes what comments should express and how they should do it
     (e.g., use triple quotes for commenting a function), but does not specify
     what markup syntax should be used to describe comments
 - Different conventions have been developed for documenting interfaces
   - ReST
-  - Google (which is cross-language, e.g., C++, python, ...)
+  - Google (which is cross-language, e.g., C++, Python, ...)
   - Epytext
   - Numpydoc
 
 #### Descriptive vs imperative style
 
 - We decided to use imperative style for our comments and docstrings
-  - Pylint and other python QA tools favor an imperative style
+  - Pylint and other Python QA tools favor an imperative style
   - From [PEP 257](https://www.python.org/dev/peps/pep-0257/)
     ```
     The docstring is a phrase ending in a period. It prescribes the function or
@@ -443,11 +447,11 @@
 #### Docstrings style
 
 - We follow ReST (aka re-Structured Text) style for docstrings which is:
-  - The most widely supported in the python community
+  - The most widely supported in the Python community
   - Supported by all doc generation tools (e.g., epydoc, sphinx)
   - Default in Pycharm
-  - Default in pyment
-  - Supported by pydocstyle (which does not support Google style as explained
+  - Default in `pyment`
+  - Supported by `pydocstyle` (which does not support Google style as explained
     [here](https://github.com/PyCQA/pydocstyle/issues/275))
 - Example of a function definition with ReST styled docstring:
 
@@ -462,7 +466,7 @@
         and what the user should know to use the function and not how the
         function is implemented.
 
-        :param param1: this is a first param
+        :param param1: this is the first param
         :return: this is a description of what is returned
         """
   ```
@@ -496,7 +500,7 @@
     This is our approach.
     """
     ```
-- [More examples of and discussions on python docstrings](https://stackoverflow.com/questions/3898572)
+- [More examples of and discussions on Python docstrings](https://stackoverflow.com/questions/3898572)
 
 #### Comments style
 
@@ -692,8 +696,8 @@
   - See [PEP 484](https://www.python.org/dev/peps/pep-0484/)
   - [Type hints cheat sheet](https://mypy.readthedocs.io/en/latest/cheat_sheet_py3.html)
 - At some point we will start adding type hints to old code
-- We plan to start using static analyzers (e.g., `mypy`) to check for bugs from
-  type mistakes and to enforce type hints at run-time, whenever possible
+- We use `mypy` to check for type mistakes and to enforce type hints as part of
+  the [Linter](#linter) flow
 
 #### Interval notation
 
@@ -713,36 +717,35 @@
 
 ### Linter
 
-- The linter is in charge of reformatting the code according to our conventions
-  and reporting potential problems
-- You can find instructions on how to run linter at the
-  [First review process](First_review_process.md) doc
+- Linter is in charge of reformatting the code according to our conventions and
+  reporting potential problems
+- You can find instructions on how to run Linter
+  [here](/docs/coding/all.submit_code_for_review.how_to_guide.md#run-linter)
 
-#### Remove linter messages
+#### Remove Linter messages
 
-- When the linter reports a problem:
-  - We assume that linter messages are correct, until the linter is proven wrong
-  - We try to understand what is the rationale for the linter's complaints
-  - We then change the code to follow the linter's suggestion and remove the
-    lint
+- When Linter reports a problem:
+  - We assume that Linter messages are correct, until it is proven wrong
+  - We try to understand what is the rationale for Linter's complaints
+  - We then change the code to follow Linter's suggestions and remove the lint
 - If you think a message is too pedantic, please file a bug with the example and
   as a team we will consider whether to exclude that message from our list of
-  linter suggestions
+  Linter suggestions
 - If you think the message is a false positive, then try to change the code to
-  make the linter happy
-  - E.g., if the code depends on some run-time behavior that the linter can't
-    infer, then you should question whether that behavior is really needed
-  - A human reader would probably be as confused as the linter is
+  make Linter happy
+  - E.g., if the code depends on some run-time behavior that Linter can't infer,
+    then you should question whether that behavior is really needed
+  - A human reader would probably be as confused as Linter is
 
-#### When to disable linter messages
+#### When to disable Linter messages
 
-- If you really believe you should override the linter in this particular case,
-  then use something like:
+- If you really believe you should override Linter in this particular case, then
+  use something like:
   ```python
   # pylint: disable=some-message,another-one
   ```
-  - You then need to explain in a comment why you are overriding the linter.
-  - Don't use linter code numbers, but the
+  - You then need to explain in a comment why you are overriding Linter.
+  - Don't use Linter code numbers, but the
     [symbolic name](https://github.com/josherickson/pylint-symbolic-names)
     whenever possible:
     - _Bad_
@@ -758,11 +761,11 @@
       import config.logging_settings
       ```
 
-#### Prefer non-inlined linter comments
+#### Prefer non-inlined Linter comments
 
-- As for the general comments, we prefer make linter comments non-inlined
-- However, sometimes there is no other choice than an inlined comment to get the
-  linter to understand which line we are referring to, so in rare cases it is
+- As for the general comments, we prefer to make Linter comments non-inlined
+- However, sometimes there is no other choice than an inlined comment to get
+  Linter to understand which line we are referring to, so in rare cases it is
   OK:
   - _Bad_ but ok if needed
     ```python
@@ -780,28 +783,27 @@
       # pylint: enable=line-too-long
     ```
 
-#### Don't mix real changes with linter changes
+#### Don't mix real changes with Linter changes
 
-- We don't commit changes that modify the code together with linter
-  reformatting, unless the linting is applied to the changes we just made
-  - The reason for not mixing real and linter changes is that for a PR or to
+- We don't commit changes that modify the code together with Linter
+  reformatting, unless linting is applied to the changes we just made
+  - The reason for not mixing real and Linter changes is that for a PR or to
     just read the code it is difficult to understand what really changed vs what
     was just a cosmetic modification
-- If you are worried the linter might change your code in a way you don't like,
+- If you are worried Linter might change your code in a way you don't like,
   e.g.,
   - Screwing up some formatting you care about for some reason, or
   - Suggesting changes that you are worried might introduce bugs you can commit
     your code and then do a "lint commit" with a message "CMTaskXYZ: Lint"
   - In this way you have a backup state that you can rollback to, if you want
-- If you run the linter and see that the linter is reformatting / modifying
-  pieces of code you din't change, it means that our team mate forgot to lint
-  their code
+- If you run Linter and see that it is reformatting / modifying pieces of code
+  you didn't change, it means that our teammate forgot to lint their code
   - `git blame` can figure out the culprit
   - You can send him / her a ping to remind her to lint, so you don't have to
     clean after him / her
   - In this case, the suggested approach is:
     - Commit your change to a branch / stash
-    - Run the linter by itself on the files that need to be cleaned, without any
+    - Run Linter by itself on the files that need to be cleaned, without any
       change
     - Run the unit tests to make sure nothing is breaking
     - You can fix lints or just do formatting: it's up to you
@@ -916,7 +918,7 @@
 - If you know that if there is a warning then there are going to be many many
   warnings
   - Print the first warning
-  - Send the rest to warnings.log
+  - Send the rest to `warnings.log`
   - At the end of the run, reports "there are warnings in warnings.log"
 
 ### Assertions
@@ -948,8 +950,8 @@
 
 #### Encode the assumptions using assertions
 
-- If your code makes an assumption don’t just write a comment, but implement an
-  assertion so the code can’t be executed if the assertion is not verified
+- If your code makes an assumption don't just write a comment, but implement an
+  assertion so the code can't be executed if the assertion is not verified
   (instead of failing silently)
   ```python
   hdbg.dassert_lt(start_date, end_date)
@@ -996,11 +998,11 @@
 - Do not use in notebooks or code the evil `import *`
   - _Bad_
     ```python
-    from helpers.sql import *
+    from helpers.hsql import *
     ```
   - _Good_
     ```python
-    import helpers.sql as hsql
+    import helpers.hsql as hsql
     ```
 - The `from ... import *`:
   - Pollutes the namespace with the symbols and spreads over everywhere, making
@@ -1016,7 +1018,7 @@
     - Find & replace (e.g., using jupytext and Pycharm)
     - Change the import and run one cell at the time
   - For code
-    - Change the import and use linter on file to find all the problematic spots
+    - Change the import and use Linter on file to find all the problematic spots
 - One of the few spots where the evil `import *` is ok is in the `__init__.py`
   to tweak the path of symbols exported by a library
   - This is an advanced topic and you should rarely use it
@@ -1033,12 +1035,12 @@
   before every code object that does not belong to the file:
   - _Bad_
     ```python
-    from helpers.sql import get_connection, get_connection_from_env_vars, \
+    from helpers.hsql import get_connection, get_connection_from_env_vars, \
         DBConnection, wait_connection_from_db, execute_insert_query
     ```
   - _Good_
     ```python
-    import helpers.sql as hsql
+    import helpers.hsql as hsql
     ...
     ... hsql.get_connection()
     ```
@@ -1094,7 +1096,7 @@
 - The import abbreviations are called 'short imports' and usually consist of 7-9
   first letters of all the words that comprise path to file
 - **DO NOT** simply give a random short import name
-  - Run linter to generate short import for a file automatically
+  - Run Linter to generate short import for a file automatically
 - For some most files we specify short imorts by hand so thay may contain less
   symbols, e.g., `hdbg`
 - The goal is to have always the same imports so it's easy to move code around,
@@ -1134,7 +1136,7 @@
 
 #### Use Python and not bash for scripting
 
-- We prefer to use python instead of bash scripts with very few exceptions
+- We prefer to use Python instead of bash scripts with very few exceptions
   - E.g., scripts that need to modify the environment by setting env vars, like
     `setenv.sh`
 - The problem with bash scripts is that it's too easy to put together a sequence
@@ -1147,22 +1149,25 @@
 - Thus you need to use the more complex features of bash scripting and bash
   scripting is absolutely horrible, much worse than perl (e.g., just think of
   `if [ ... ]` vs `if [[ ... ]]`)
-- Our approach is to make simple to create scripts in python that are equivalent
+- Our approach is to make simple to create scripts in Python that are equivalent
   to sequencing shell commands, so that can evolve in complex scripts
 
 #### Skeleton for a script
 
 - The ingredients are:
-  - `amp/helpers_root/dev_scripts_helpers/coding_tools/script_skeleton.py`: a template to write simple scripts you can
-    copy and modify it
-  - `amp/helpers_root/helpers/hsystem.py`: a set of utilities that make simple to run shell
-    commands (e.g., capturing their output, breaking on error or not, tee-ing to
-    file, logging, ...)
+  - [`/dev_scripts_helpers/coding_tools/script_skeleton.py`](/dev_scripts_helpers/coding_tools/script_skeleton.py):
+    a template to write simple scripts you can copy and modify it
+  - [`/helpers/hsystem.py`](/helpers/hsystem.py): a set of utilities that make
+    simple to run shell commands (e.g., capturing their output, breaking on
+    error or not, tee-ing to file, logging, ...)
   - `helpers` has lots of useful libraries
-- The official reference for a script is `amp/helpers_root/dev_scripts_helpers/coding_tools/script_skeleton.py`
+- The official reference for a script is
+  [`/dev_scripts_helpers/coding_tools/script_skeleton.py`](/dev_scripts_helpers/coding_tools/script_skeleton.py)
   - You can copy this file and change it
-  - A simple example is: `amp/helpers_root/dev_scripts_helpers/git/gup.py`
-  - A complex example is: `amp/helpers_root/dev_scripts_helpers/system_tools/replace_text.py`
+  - A simple example is:
+    [`/dev_scripts_helpers/git/gup.py`](/dev_scripts_helpers/git/gup.py)
+  - A complex example is:
+    [`/dev_scripts_helpers/system_tools/replace_text.py`](/dev_scripts_helpers/system_tools/replace_text.py)
 
 #### Some useful patterns
 
@@ -1191,18 +1196,18 @@
 
 #### Follow the same structure
 
-- All python scripts that are meant to be executed directly should:
+- All Python scripts that are meant to be executed directly should:
 
   1. Be marked as executable files with:
      ```
      > chmod +x foo_bar.py
      ```
-  2. Have the python code should start with the standard Unix shebang notation:
+  2. Have the Python code should start with the standard Unix shebang notation:
      ```python
      #!/usr/bin/env python
      ```
   - This line tells the shell to use the `python` defined in the environment
-  - In this way you can execute directly without prepending with python
+  - In this way you can execute directly without prepending with "python"
 
   3. Have a:
      ```python
@@ -1375,7 +1380,7 @@
     interface
 - Enforcing these rules is based on best effort
 - Pycharm is helpful when changing order of parameters
-- Use linter to check consistency of types between function definition and
+- Use Linter to check consistency of types between function definition and
   invocation
 
 #### Style for default parameter
@@ -1579,8 +1584,8 @@
 - E.g., keep code that computes data close to the code that uses it.
 - This holds also for notebooks: do not compute all the data structure and then
   analyze them.
-- It’s better to keep the section that “reads data” close to the section that
-  “processes it”. In this way it’s easier to see “blocks” of code that are
+- It's better to keep the section that "reads data" close to the section that
+  "processes it". In this way it's easier to see "blocks" of code that are
   dependent from each other, and run only a cluster of cells.
 
 #### Order functions in topological order
@@ -1600,7 +1605,7 @@
   from notebooks
 - Use private functions like `_foo_bar()` when a function is a helper of another
   private or public function
-- Also follow the “keep related code close” close by keeping the private
+- Also follow the "keep related code close" close by keeping the private
   functions close to the functions (private or public) that are using them
 - Some references:
   - [StackOverflow](https://stackoverflow.com/questions/1641219/does-python-have-private-variables-in-classes?noredirect=1&lq=1)
@@ -1616,7 +1621,7 @@
 - You can use banners to separate layers of the code. Use the banner long 80
   cols (e.g., I have a vim macro to create banners that always look the same)
   and be consistent with empty lines before / empty and so on.
-- The banner is a way of saying “all these functions belong together”.
+- The banner is a way of saying "all these functions belong together".
 
   ```python
   # #############################################################################
@@ -1643,28 +1648,28 @@
   ```
 
 - Ideally each section of code should use only sections above, and be used by
-  sections below (aka “Unix layer approach”).
+  sections below (aka "Unix layer approach").
 - If you find yourself using too many banners this is in indication that code
   might need to be split into different classes or files
-  - Although we don’t have agreed upon rules, it might be ok to have large files
-    as long as they are well organized. E.g., in pandas code base, all the code
-    for DataFrame is in a single file long many thousands of lines (!), but it
-    is nicely separated in sections that make easy to navigate the code
+  - Although we don't have agreed upon rules, it might be ok to have large files
+    as long as they are well organized. E.g., in `pandas` code base, all the
+    code for DataFrame is in a single file long many thousands of lines (!), but
+    it is nicely separated in sections that make easy to navigate the code
   - Too many files can become problematic, since one needs to start jumping
     across many files: in other words it is possible to organize the code too
     much (e.g. what if each function is in a single module?)
-  - Let’s try to find the right balance.
+  - Let's try to find the right balance.
 - It might be a good idea to use classes to split the code, but also OOP can
   have a dark side
   - E.g., using OOP only to reorganize the code instead of introducing
-    “concepts”
-  - IMO the worst issue is that they don’t play super-well with Jupyter
+    "concepts"
+  - IMO the worst issue is that they don't play super-well with Jupyter
     autoreload
 
 #### Do not make tiny wrappers
 
 - Examples of horrible functions:
-  - How many characters do we really saved? If typing is a problem, learn to
+  - How many characters did we really save? If typing is a problem, learn to
     touch type.
     ```python
     def is_exists(path: str) -> None:
@@ -1692,7 +1697,7 @@
   only if it's called more than once, otherwise the overhead of compilation and
   creating another var is not justified
 
-#### Do not introduce another “concept” unless really needed
+#### Do not introduce another "concept" unless really needed
 
 - We want to introduce degrees of freedom and indirection only when we think
   this can be useful to make the code easy to maintain, read, and expand.
@@ -1816,7 +1821,7 @@
 
 ### Writing robust code
 
-#### Don’t let your functions catch the default-itis
+#### Don't let your functions catch the default-itis
 
 - Default-itis is a disease of a function that manifests itself by getting too
   many default parameters.
@@ -1830,8 +1835,8 @@
 
 #### Explicitly bind default parameters
 
-- It’s best to explicitly bind functions with the default params so that if the
-  function signature changes, your functions doesn’t confuse a default param was
+- It's best to explicitly bind functions with the default params so that if the
+  function signature changes, your functions doesn't confuse a default param was
   a positional one.
   - _Bad_
     ```python
@@ -1848,14 +1853,14 @@
     )
     ```
 
-#### Don’t hardwire params in a function call
+#### Don't hardwire params in a function call
 
 - _Bad_
   ```python
   esa_df = universe.get_esa_universe_mapped(False, True)
   ```
   - It is difficult to read and understand without looking for the invoked
-    function (aka write-only code) and it’s brittle since a change in the
+    function (aka write-only code) and it's brittle since a change in the
     function params goes unnoticed.
 - _Good_
   ```python
@@ -1863,7 +1868,7 @@
   cik = True
   esa_df = universe.get_esa_universe_mapped(gvkey, cik)
   ```
-  - It’s better to be explicit (as usual)
+  - It's better to be explicit (as usual)
   - This solution is robust since it will work as long as gvkey and cik are the
     only needed params, which is as much as we can require from the called
     function.
@@ -1906,12 +1911,12 @@
 
 #### Add TODOs when needed
 
-- When there is something that you know you should have done, but you didn’t
+- When there is something that you know you should have done, but you didn't
   have time to do, add a TODO, possibly using your github name e.g.,
   ```python
-  # TODO(gp): …
+  # TODO(gp): ...
   ```
-  - In this way it’s easy to grep for your TODOs, which becomes complicated when
+  - In this way it's easy to grep for your TODOs, which becomes complicated when
     using different names.
 - Be clear on the meaning of TODO
   - A `TODO(Batman): clean this up` can be interpreted as
@@ -1934,10 +1939,10 @@
 - You can create a TODO for somebody else, or you can create a Upsource comment
   / review or Github bug, depending on how important the issue is
 - If the TODO is general, e.g., anybody can fix it, then you can avoid to put a
-  name. This should not be abused since it creates a culture when people don’t
+  name. This should not be abused since it creates a culture when people don't
   take responsibility for their mistakes.
 - You can use P1, P2 to indicate if the issue is critical or not. E.g., P0 is
-  the default for saying this is important, P1 is more of a “nice to have”.
+  the default for saying this is important, P1 is more of a "nice to have".
   ```python
   # TODO(Sergey): P1 This can be implemented in pandas using a range generation.
   ```
@@ -1954,7 +1959,7 @@
     ```python
     if var == None:
     ```
-  - \_Good\_\_
+  - _Good_
     ```python
     if var is None:
     ```
@@ -1963,7 +1968,7 @@
     ```python
     if unit is "minute":
     ```
-  - \_Good\_\_
+  - _Good_
     ```python
     if unit == "minute":
     ```
@@ -1982,20 +1987,32 @@
     ```python
     if type(obj) is list:
     ```
-  - \_Good\_\_
+  - _Good_
     ```python
     if isinstance(obj, list):
     ```
 - For more info check
   [here](https://stackoverflow.com/questions/1549801/what-are-the-differences-between-type-and-isinstance)
 
+### Use `helpers`
+
+- The `helpers` dir contains libraries with a lot of useful code
+- If you find yourself in need of a general-purpose/basic functionality, chances
+  are, it already exists in one of the `helpers` libraries. E.g.:
+  - For anything related to filesystem operations, see
+    [`/helpers/hio.py`](/helpers/hio.py)
+  - For constructing assertions, see [`/helpers/hdbg.py`](/helpers/hdbg.py)
+  - For handling printing, see [`/helpers/hprint.py`](/helpers/hprint.py)
+  - For working with `pandas` dataframes, see
+    [`/helpers/hpandas.py`](/helpers/hpandas.py)
+  - Etc etc
+- Before implementing something, always check first if it is already available
+  in `helpers`
+- Do not reinvent the wheel
+
 ### Unit tests
 
-- Provide a minimal end-to-end unit testing (which creates a conda environment
-  and then run a few unit tests)
-- Use
-  - Pytest <https://docs.pytest.org/en/latest/>
-  - `unittest` library
+- Provide minimal end-to-end unit testing
 - Usually we are happy with
   - Lightly testing the tricky functions
   - Some end-to-end test to make sure the code is working
@@ -2006,7 +2023,7 @@
   > pytest datetime_utils_test.py -x -s
   ```
 - For more information on our testing conventions and guidelines, see
-  `docs/coding/all.unit_tests.how_to_guide.md`
+  [`/docs/coding/all.write_unit_tests.how_to_guide.md`](/docs/coding/all.write_unit_tests.how_to_guide.md)
 
 ### Refactoring
 
@@ -2017,13 +2034,13 @@
   - Documentation is updated (this is difficult, so best effort is enough)
 - If the change you made is renaming a function:
   - Check all calls made to that function, but if it is in notebooks, update
-    ONLY in Master notebooks (name starts from Master\_...)
-  - Double check that changes are done both in .ipynb and .py versions
+    ONLY in Master notebooks (name starts from `Master_...`)
+  - Double check that changes are done both in `.ipynb` and `.py` versions
   - If you make changes directly in jupyter version, they will be automatically
-    pulled to its python copy
-  - If you make changes in pyhton copy of the notebook, you'd have to pull
-    changes to related jupyter notebook with a script: > jupytext --to ipynb
-    {notebook name}.py
+    pulled to its Python copy
+  - If you make changes in Python copy of the notebook, you'd have to pull
+    changes to related jupyter notebook with a script:
+    `> jupytext --to ipynb {notebook name}.py`
 
 - For code find all the places that have been modified
   ```
@@ -2035,23 +2052,23 @@
 - Or if you use mighty Pycharm, Ctrl + Mouse Left Click (Shows you all places
   where this function or variable was used) and try to fix them, at least to
   give your best shot at making things work
-  - You can edit directly the notebooks without opening, or open and fix it.
-- Good examples how you can safely rename anything for Pycharm users:
+  - You can edit the notebooks directly without opening, or open and fix it.
+- Good examples of how you can safely rename anything for Pycharm users:
   <https://www.jetbrains.com/help/Pycharm/rename-refactorings.html>
 - But remember, you must know how to do it without fancy IDE like Pycharm.
-- If it’s important code:
+- If it's important code:
   - Run unit tests
-  - Run notebooks (see
-    [here](https://n-xovwktmtjsnaxyc2mwes2xu7pohqedmdm6zjw5q-0lu-script.googleusercontent.com/userCodeAppPanel#))
+  - Run notebooks
 
 #### Write script for renamings
 
 - When you need to rename any code object that is being used in many files, use
-  `amp/helpers_root/dev_scripts_helpers/system_tools/replace_text.py` to write a script that will implement your task
+  [`/dev_scripts_helpers/system_tools/replace_text.py`](/dev_scripts_helpers/system_tools/replace_text.py)
+  to write a script that will implement your task
   - Read the script docstring for detailed information about how to use it
 - You DO NOT use `replace_text.py` directly. Instead, create an executable `.sh`
   script that uses `replace_text.py`
-  - Look for examples at `amp/helpers_root/dev_scripts_helpers/cleanup_scripts`
+  - Look for examples at `dev_scripts_helpers/cleanup_scripts`
   - Commit the created script to the mentioned folder so then your team members
     can use it to implement renaming in other libs
 
@@ -2067,7 +2084,7 @@
   - Thoroughly reviewed
   - Good design
   - Comprehensive unit tests
-- Research code in notebook and python can follow slightly looser standards,
+- Research code in notebook and Python can follow slightly looser standards,
   e.g.,
   - Sprinkled with some TODOs
   - Not perfectly general
@@ -2152,7 +2169,7 @@
 - Ideally one would always prefer to run the pipeline from scratch, but
   sometimes the stages are too expensive to compute over and over, so using
   chunks of the pipeline is better
-- This can also mixed with the “incremental mode”, so that if one stage has
+- This can also mixed with the "incremental mode", so that if one stage has
   already been run and the intermediate data has been generated, that stage is
   skipped
   - Each stage can save files in a `tmp_dir/stage_name`
@@ -2214,11 +2231,11 @@
   parallelism) which handle data of the corresponding period
   - If `--incremental` is set and output file already exists then skip the
     computation and report
-    - Log.info(“Skipping processing file %s as requested”, …)
+    - `_LOG.info("Skipping processing file %s as requested", ...)`
   - If `--incremental` is not set
-    - If output file exists then we issue a log.warn and abort the process
-    - If output file exists and param `--force`, then report a log.warn and
-      rewrite output file
+    - If output file exists then we issue a `_LOG.warning` and abort the process
+    - If output file exists and param `--force`, then report a `_LOG.warning`
+      and rewrite output file
 
 #### Run end-to-end
 
@@ -2286,17 +2303,15 @@
 - There is no right or wrong: that's why it's a convention and not a law of
   nature
   - On the flip-side, if there is a right and wrong, then what we are discussing
-    probably shouldn’t be considered as a convention
+    probably shouldn't be considered as a convention
 - We don't want to spend time discussing inconsequential points
 - We don't want reviewers to pick lints instead of focusing on architectural
   issues and potential bugs
 - Remove cognitive burden of being distracted by "this is an annoying lint" (or
   at least perceived lint)
-- Once a convention is stable, we would like to automate enforcing it by the
-  linter
-  - Ideally the linter should fix our mistakes so we don't even have to think
-    about them, and reviewers don't have to be distracted with pointing out the
-    lints
+- Once a convention is stable, we would like to automate enforcing it by Linter
+  - Ideally Linter should fix our mistakes so we don't even have to think about
+    them, and reviewers don't have to be distracted with pointing out the lints
 
 ### Keep the rules simple
 
@@ -2306,10 +2321,10 @@
   - Python is written capitalized (this is what Python documentation suggests)
   - `pandas` is written lowercase, unless it is a beginning of the line in which
     case it's capitalized, but it's better to try to avoid to start a sentence
-    with it (this is what pandas + English convention seems to suggest)
+    with it (this is what `pandas` + English convention seems to suggest)
   - Any other library could suggest a different convention based on the
     preference of its author, who tries to finally force people to follow his /
-    her convention …)
+    her convention ...)
 - All these rules require mental energy to be followed and readers will spend
   time checking that these rules are enforced, rather than focusing on bugs and
   architecture.
@@ -2325,7 +2340,7 @@
   positives.
 - Then we always want to permit disabling the automatic checks / fixes e.g., by
   using directives in comments or special syntax (e.g., anything in a `...` or
-  `…` block should be leaved untouched)
+  `...` block should be leaved untouched)
 - It can be tricky determining when an exception is really needed and when
   overriding the tool becomes a slippery slope for ignoring the rules.
 - Patience and flexibility is advised here.

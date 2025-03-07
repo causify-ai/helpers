@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 """
+One off-script to generate a Latex file with abbreviations.
+
 Import as:
 
 import documentation_devto.scripts.generate_latex_sty as ddsglast
