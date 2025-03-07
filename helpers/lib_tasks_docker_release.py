@@ -701,7 +701,9 @@ def docker_build_multi_arch_prod_image(  # type: ignore
     hlitauti.run(ctx, cmd)
     # Prepare the build.
     dockerfile = "devops/docker_build/prod.Dockerfile"
-    dockerfile = _to_abs_path(dockerfile)
+    # Keep the relative path instead of an absolute path to ensure it matches
+    # files inside the tar stream and avoids file not found errors.    
+    # dockerfile = _to_abs_path(dockerfile)
     #
     opts = "--no-cache" if not cache else ""
     # Use dev version for building prod image.
