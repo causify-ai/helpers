@@ -729,6 +729,11 @@ def get_aws_credentials(
     :return: a dictionary with `access_key_id`, `aws_secret_access_key`,
         `aws_region` and optionally `aws_session_token`
     """
+    print("stsvar", os.environ.get("CSFY_AWS_DEFAULT_REGION", "None"))
+    _LOG.info("stsvar %s", os.environ.get("CSFY_AWS_DEFAULT_REGION", "None"))
+    _LOG.warning("stsvar %s", os.environ.get("CSFY_AWS_DEFAULT_REGION", "None"))
+    _LOG.debug("stsvar %s", os.environ.get("CSFY_AWS_DEFAULT_REGION", "None"))
+    exit()
     _LOG.debug("Getting credentials for aws_profile='%s'", aws_profile)
     if aws_profile == "__mock__":
         # `mock` profile is artificial construct used only in tests.
@@ -763,6 +768,7 @@ def get_aws_credentials(
         (env_var in os.environ and os.environ[env_var] != "")
         for env_var in sorted(key_to_env_var.values())
     ]
+    _LOG.info("set_env_vars=%s", set_env_vars)
     if any(set_env_vars):
         if not all(set_env_vars):
             _LOG.warning(
