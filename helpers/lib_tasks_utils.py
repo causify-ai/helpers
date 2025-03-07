@@ -109,15 +109,22 @@ def parse_command_line() -> None:
 _WAS_FIRST_CALL_DONE = False
 
 
+# TODO(gp): This can be part of the @task
 def report_task(txt: str = "", container_dir_name: str = ".") -> None:
-    # On the first invocation report the version.
+    """
+    Print the task description.
+
+    Each task should call this function at the beginning to print the task name.
+    """
+    # On the first invocation check the version of the container.
     global _WAS_FIRST_CALL_DONE
     if not _WAS_FIRST_CALL_DONE:
         _WAS_FIRST_CALL_DONE = True
         hversio.check_version(container_dir_name)
     # Print the name of the function.
-    func_name = hintros.get_function_name(count=1)
-    msg = f"## {func_name}: {txt}"
+    #func_name = hintros.get_function_name(count=1)
+    #msg = f"## {func_name}: {txt}"
+    msg = hprint.func_signature_to_str("ctx", frame_level=3)
     print(hprint.color_highlight(msg, color="purple"))
 
 
@@ -228,28 +235,6 @@ def run(
             result = ctx.run(cmd, *args, **ctx_run_kwargs)
             res = result.return_code
     return res
-
-
-# TODO(gp): -> system_interaction.py ?
-def _to_pbcopy(txt: str, pbcopy: bool) -> None:
-    """
-    Save the content of txt in the system clipboard.
-    """
-    txt = txt.rstrip("\n")
-    if not pbcopy:
-        print(txt)
-        return
-    if not txt:
-        print("Nothing to copy")
-        return
-    if hsystem.is_running_on_macos():
-        # -n = no new line
-        cmd = f"echo -n '{txt}' | pbcopy"
-        hsystem.system(cmd)
-        print(f"\n# Copied to system clipboard:\n{txt}")
-    else:
-        _LOG.warning("pbcopy works only on macOS")
-        print(txt)
 
 
 # TODO(gp): We should factor out the meaning of the params in a string and add it

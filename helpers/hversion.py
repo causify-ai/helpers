@@ -44,7 +44,7 @@ def check_version(container_dir_name: str) -> None:
 
     :param container_dir_name: container directory relative to the root directory
     """
-    # TODO(gp): -> AM_SKIP_VERSION_CHECK.
+    # TODO(gp): -> CK_SKIP_VERSION_CHECK.
     if "SKIP_VERSION_CHECK" in os.environ:
         # Skip the check altogether.
         return

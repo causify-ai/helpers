@@ -673,6 +673,26 @@ def check_exec(tool: str) -> bool:
     return rc == 0
 
 
+def to_pbcopy(txt: str, pbcopy: bool) -> None:
+    """
+    Save the content of txt in the system clipboard.
+    """
+    txt = txt.rstrip("\n")
+    if not pbcopy:
+        print(txt)
+        return
+    if not txt:
+        print("Nothing to copy")
+        return
+    if is_running_on_macos():
+        # -n = no new line
+        cmd = f"echo -n '{txt}' | pbcopy"
+        system(cmd)
+        print(f"\n# Copied to system clipboard:\n{txt}")
+    else:
+        _LOG.warning("pbcopy works only on macOS")
+        print(txt)
+
 # #############################################################################
 
 # Copied from hgit to avoid import cycles.

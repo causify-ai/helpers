@@ -238,8 +238,10 @@ def docker_pull(ctx, stage="dev", version=None, skip_pull=False):  # type: ignor
 
     :param skip_pull: if True skip pulling the docker image
     """
-    _LOG.info("Pulling the latest version of Docker")
     hlitauti.report_task()
+    if stage == "local":
+        _LOG.warning("Setting skip_pull to True for local stage")
+        skip_pull = True
     if skip_pull:
         _LOG.warning("Skipping pulling docker image as per user request")
         return
@@ -1138,11 +1140,7 @@ def _get_docker_base_cmd(
     :param extra_env_vars: represent vars to add, e.g., `["PORT=9999", "DRY_RUN=1"]`
     :param extra_docker_compose_files: `docker-compose` override files
     """
-    hprint.log(
-        _LOG,
-        logging.DEBUG,
-        "base_image stage version extra_env_vars extra_docker_compose_files",
-    )
+    _LOG.debug(hprint.func_signature_to_str())
     docker_cmd_: List[str] = []
     # - Handle the image.
     image = get_image(base_image, stage, version)
@@ -1223,12 +1221,7 @@ def _get_docker_compose_cmd(
     :param print_docker_config: print the docker config for debugging purposes
     :param use_bash: run command through a shell
     """
-    hprint.log(
-        _LOG,
-        logging.DEBUG,
-        "cmd extra_docker_run_opts service_name "
-        "use_entrypoint as_user print_docker_config use_bash",
-    )
+    _LOG.debug(hprint.func_signature_to_str())
     # - Get the base Docker command.
     docker_cmd_ = _get_docker_base_cmd(
         base_image,
@@ -1365,7 +1358,7 @@ def _docker_cmd(
         # Generate files with the AWS settings that are missing when running
         # inside CI.
         hs3.generate_aws_files()
-    docker_pull(ctx, skip_pull=skip_pull)
+    #docker_pull(ctx, skip_pull=skip_pull)
     _LOG.debug("cmd=%s", docker_cmd_)
     rc: Optional[int] = hlitauti.run(ctx, docker_cmd_, pty=True, **ctx_run_kwargs)
     return rc
@@ -1391,6 +1384,7 @@ def docker_bash(  # type: ignore
     :param generate_docker_compose_file: generate the Docker compose file or not
     :param skip_pull: if True skip pulling the docker image
     """
+    _LOG.debug(hprint.func_signature_to_str("ctx"))
     hlitauti.report_task(container_dir_name=container_dir_name)
     #
     cmd = "bash"

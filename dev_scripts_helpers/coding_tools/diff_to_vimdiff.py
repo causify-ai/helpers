@@ -62,7 +62,7 @@ def _remove_files(file_name: str, to_ignore_regex: Optional[str]) -> None:
     files = txt.split("\n")
     removed_files = []
     kept_files = []
-    vals = ["\.git\/", "\.git:", "\.idea", "[\/ ]tmp\."]
+    vals = [r"\.git\/", r"\.git:", r"\.idea", r"[\/ ]tmp\."]
     if to_ignore_regex:
         vals.append(to_ignore_regex)
     regex = "|".join(vals)
