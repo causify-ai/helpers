@@ -86,6 +86,9 @@ jobs:
 
       # Run the `invoke` target `run_fast_tests` to run tests that are under 5 seconds.
       # See the corresponding documentation for more information.
+      - name: Sts GetCallerIdentity
+        run: |
+          aws sts get-caller-identity
       - name: Run fast tests
         # https://github.community/t/dont-run-actions-on-draft-pull-requests/16817/19
         # Do not run on draft pull requests.
