@@ -627,13 +627,15 @@ def _get_aws_credentials_text(aws_profile: str) -> str:
         key_to_env_var = {
             "aws_access_key_id": f"{profile_prefix}_AWS_ACCESS_KEY_ID",
             "aws_secret_access_key": f"{profile_prefix}_AWS_SECRET_ACCESS_KEY",
-            "aws_s3_bucket": f"{profile_prefix}_AWS_S3_BUCKET",
             "aws_session_token": f"{profile_prefix}_AWS_SESSION_TOKEN",
+            # TODO(heanh): Is this needed?
+            "aws_s3_bucket": f"{profile_prefix}_AWS_S3_BUCKET",
         }
     else:
         key_to_env_var = {
             "aws_access_key_id": f"{profile_prefix}_AWS_ACCESS_KEY_ID",
             "aws_secret_access_key": f"{profile_prefix}_AWS_SECRET_ACCESS_KEY",
+            # TODO(heanh): Is this needed?
             "aws_s3_bucket": f"{profile_prefix}_AWS_S3_BUCKET",
         }
     # Check that env vars are set.
@@ -737,13 +739,23 @@ def get_aws_credentials(
     # profile_prefix = aws_profile.upper()
     profile_prefix = "CSFY" if aws_profile.upper() in ["AM", "CK"] else aws_profile.upper()
     result: Dict[str, Optional[str]] = {}
-    key_to_env_var: Dict[str, str] = {
-        "aws_access_key_id": f"{profile_prefix}_AWS_ACCESS_KEY_ID",
-        "aws_secret_access_key": f"{profile_prefix}_AWS_SECRET_ACCESS_KEY",
-        # TODO(gp): AWS_DEFAULT_REGION -> AWS_REGION so we can use the invariant
-        #  that the var is simply the capitalized version of the key.
-        "aws_region": f"{profile_prefix}_AWS_DEFAULT_REGION",
-    }
+    if f"{profile_prefix}_AWS_SESSION_TOKEN" in os.environ: 
+        key_to_env_var: Dict[str, str] = {
+            "aws_access_key_id": f"{profile_prefix}_AWS_ACCESS_KEY_ID",
+            "aws_secret_access_key": f"{profile_prefix}_AWS_SECRET_ACCESS_KEY",
+            "aws_session_token": f"{profile_prefix}_AWS_SESSION_TOKEN",
+            # TODO(gp): AWS_DEFAULT_REGION -> AWS_REGION so we can use the invariant
+            #  that the var is simply the capitalized version of the key.
+            "aws_region": f"{profile_prefix}_AWS_DEFAULT_REGION",
+        }
+    else:
+        key_to_env_var: Dict[str, str] = {
+            "aws_access_key_id": f"{profile_prefix}_AWS_ACCESS_KEY_ID",
+            "aws_secret_access_key": f"{profile_prefix}_AWS_SECRET_ACCESS_KEY",
+            # TODO(gp): AWS_DEFAULT_REGION -> AWS_REGION so we can use the invariant
+            #  that the var is simply the capitalized version of the key.
+            "aws_region": f"{profile_prefix}_AWS_DEFAULT_REGION",
+        }
     # If all the AWS credentials are passed through env vars, they override the
     # config file.
     env_var_override = False
