@@ -702,7 +702,7 @@ def docker_build_multi_arch_prod_image(  # type: ignore
     # Prepare the build.
     dockerfile = "devops/docker_build/prod.Dockerfile"
     # Keep the relative path instead of an absolute path to ensure it matches
-    # files inside the tar stream and avoids file not found errors.    
+    # files inside the tar stream and avoids file not found errors.
     # dockerfile = _to_abs_path(dockerfile)
     #
     opts = "--no-cache" if not cache else ""
