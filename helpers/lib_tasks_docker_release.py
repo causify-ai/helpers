@@ -435,7 +435,7 @@ def docker_tag_push_multi_build_local_image_as_dev(  # type: ignore
         # Use AWS Docker registry.
         dev_base_image = ""
     elif target_registry == "dockerhub.causify":
-        # Use public GitHub Docker registry.
+        # Use public DockerHub registry.
         base_image_name = henv.execute_repo_config_code(
             "get_docker_base_image_name()"
         )
@@ -641,6 +641,171 @@ def docker_build_prod_image(  # type: ignore
     hlitauti.run(ctx, cmd)
 
 
+# TODO(gp): Remove redundancy with docker_build_local_image(), if possible.
+@task
+def docker_build_multi_arch_prod_image(  # type: ignore
+    ctx,
+    version,
+    cache=True,
+    base_image="",
+    user_tag="",
+    container_dir_name=".",
+    tag=None,
+    multi_arch="linux/amd64,linux/arm64",
+):
+    """
+    Build a multi arch. versioned prod image from a dev image. For e.g.: we
+    have the dev image `helpers:dev-1.0.0` and we want to build a prod image
+    `helpers:prod-1.0.0`.
+
+    :param version: version to tag the image and code with
+    :param cache: note that often the prod image is just a copy of the
+        dev image so caching makes no difference
+    :param base_image: e.g., *****.dkr.ecr.us-east-1.amazonaws.com/amp
+    :param user_tag: the name of the user building the candidate image
+    :param container_dir_name: directory where the Dockerfile is located
+    :param multi_arch: comma separated list of target architectures to
+        build the image for. E.g., `linux/amd64,linux/arm64`
+    """
+    hlitauti.report_task(container_dir_name=container_dir_name)
+    prod_version = hlitadoc.resolve_version_value(
+        version, container_dir_name=container_dir_name
+    )
+    # Prepare `.dockerignore`.
+    docker_ignore = "devops/docker_build/dockerignore.prod"
+    _prepare_docker_ignore(ctx, docker_ignore)
+    # TODO(gp): We should do a `i git_clean` to remove artifacts and check that
+    #  the client is clean so that we don't release from a dirty client.
+    # Build prod image.
+    image_versioned_prod = hlitadoc.get_image(base_image, "prod", prod_version)
+    hlitadoc.dassert_is_image_name_valid(image_versioned_prod)
+    # Login to AWS ECR because for multi-arch build the image is built locally
+    # and pushed to the remote registry automatically.
+    hlitadoc.docker_login(ctx)
+    # Create a multi-arch builder.
+    platform_builder = "multiarch_builder"
+    cmd = rf"""
+    docker buildx rm {platform_builder}
+    """
+    # We do not abort on error since the platform builder might be present
+    # or not from previous executions.
+    hsystem.system(cmd, abort_on_error=False)
+    cmd = rf"""
+    docker buildx create \
+        --name {platform_builder} \
+        --driver docker-container \
+        --bootstrap \
+        && \
+        docker buildx use {platform_builder}
+    """
+    hlitauti.run(ctx, cmd)
+    # Prepare the build.
+    dockerfile = "devops/docker_build/prod.Dockerfile"
+    dockerfile = _to_abs_path(dockerfile)
+    #
+    opts = "--no-cache" if not cache else ""
+    # Use dev version for building prod image.
+    dev_version = hlitadoc.to_dev_version(prod_version)
+    # Build.
+    # Compress the current directory (in order to dereference symbolic
+    # links) into a tar stream and pipes it to the `docker build` command.
+    # See HelpersTask197.
+    cmd = rf"""
+    tar -czh . | DOCKER_BUILDKIT={DOCKER_BUILDKIT} \
+        time \
+        docker buildx build \
+        {opts} \
+        --push \
+        --platform {multi_arch} \
+        --build-arg VERSION={dev_version} \
+        --build-arg ECR_BASE_PATH={os.environ['CSFY_ECR_BASE_PATH']} \
+        --tag {image_versioned_prod} \
+        --file {dockerfile} \
+        -
+    """
+    hlitauti.run(ctx, cmd)
+    # Pull the image from registry.
+    cmd = rf"""
+    docker pull {image_versioned_prod}
+    """
+    hlitauti.run(ctx, cmd)
+    cmd = f"docker image ls {image_versioned_prod}"
+    hlitauti.run(ctx, cmd)
+
+
+# TODO(Vlad): Refactor with the `docker_tag_push_multi_build_local_image_as_dev()`.
+@task
+def docker_tag_push_multi_arch_prod_image(  # type: ignore
+    ctx,
+    version,
+    base_image="",
+    target_registry=_DEFAULT_TARGET_REGISTRY,
+    container_dir_name=".",
+):
+    """
+    Mark the multi-arch versioned "prod" image as "prod" and push them to the
+    target registry.
+
+    `base_image` and `target_registry` both contain information about the target
+    Docker registry.
+
+    :param ctx: invoke context
+    :param version: version to tag the image and code with
+    :param base_image: e.g., *****.dkr.ecr.us-east-1.amazonaws.com/amp
+    :param target_registry: target Docker image registry to push the image to
+        - "dockerhub.causify": public Causify Docker image registry
+        - "aws_ecr.ck": private AWS CK ECR
+    :param container_dir_name: directory where the Dockerfile is located
+    """
+    hlitauti.report_task(container_dir_name=container_dir_name)
+    #
+    hlitadoc.docker_login(ctx, target_registry)
+    #
+    prod_version = hlitadoc.resolve_version_value(
+        version, container_dir_name=container_dir_name
+    )
+    aws_image_versioned_prod = hlitadoc.get_image(
+        base_image, "prod", prod_version
+    )
+    _LOG.info(
+        "Pushing the prod image %s to the target_registry %s",
+        aws_image_versioned_prod,
+        target_registry,
+    )
+    if target_registry == "aws_ecr.ck":
+        # Use AWS Docker registry.
+        prod_base_image = ""
+    elif target_registry == "dockerhub.causify":
+        # Use public DockerHub registry.
+        base_image_name = henv.execute_repo_config_code(
+            "get_docker_base_image_name()"
+        )
+        prod_base_image = f"causify/{base_image_name}"
+        # Tag and push the versioned prod image.
+        dockerhub_image_versioned_prod = hlitadoc.get_image(
+            prod_base_image, "prod", prod_version
+        )
+        cmd = rf"""
+        docker buildx imagetools create \
+            -t {dockerhub_image_versioned_prod} {aws_image_versioned_prod}
+        """
+        hlitauti.run(ctx, cmd)
+    else:
+        raise ValueError(
+            f"Invalid target Docker image registry='{target_registry}'"
+        )
+    # Tag and push the versioned prod image as prod image.
+    latest_version = None
+    image_prod = hlitadoc.get_image(
+        prod_base_image, "prod", version=latest_version
+    )
+    cmd = rf"""
+    docker buildx imagetools create \
+        -t {image_prod} {aws_image_versioned_prod}
+    """
+    hlitauti.run(ctx, cmd)
+
+
 @task
 def docker_push_prod_image(  # type: ignore
     ctx,
@@ -699,6 +864,8 @@ def docker_push_prod_candidate_image(  # type: ignore
 
 
 @task
+# TODO(Vlad): Add the release flow with the multi-arch support.
+# See HelpersTask339.
 def docker_release_prod_image(  # type: ignore
     ctx,
     version,
@@ -762,6 +929,77 @@ def docker_release_prod_image(  # type: ignore
         )
     else:
         _LOG.warning("Skipping pushing image to repo_short_name as requested")
+    _LOG.info("==> SUCCESS <==")
+
+
+
+@task(iterable=["target_registries"])
+def docker_release_multi_arch_prod_image(
+        ctx,
+        version,
+        cache=True,
+        skip_tests=False,
+        fast_tests=True,
+        slow_tests=True,
+        superslow_tests=False,
+        qa_tests=True,        
+        docker_registries=None,
+        container_dir_name=".",
+    ):
+    """
+    Build, test, and release to Docker registries the multi-aech prod image.
+
+    :param ctx: invoke context
+    :param version: version to tag the image and code with
+    :param cache: use the cache
+    :param skip_tests: skip all the tests
+    :param fast_tests: run fast tests, unless all tests skipped
+    :param slow_tests: run slow tests, unless all tests skipped
+    :param superslow_tests: run superslow tests, unless all tests skipped
+    :param qa_tests: run QA tests (e.g., end-to-end linter tests)
+    :param docker_registries: list of Docker image registries to push the image to
+    :param container_dir_name: directory where the Dockerfile is located
+    """
+    hlitauti.report_task()
+    if docker_registries is None:
+        docker_registries = [_DEFAULT_TARGET_REGISTRY]
+        _LOG.warning(
+            "No Docker registries provided, using default: %s",
+            docker_registries
+        )
+    # 1) Build prod image.
+    docker_build_multi_arch_prod_image(
+        ctx,
+        version,
+        cache=cache,
+        container_dir_name=container_dir_name,
+        multi_arch="linux/amd64,linux/arm64"
+    )
+    # 2) Run tests.
+    if skip_tests:
+        _LOG.warning("Skipping all tests and releasing")
+        fast_tests = False
+        slow_tests = False
+        superslow_tests = False
+        qa_tests = False
+    stage = "prod"
+    if fast_tests:
+        hlitapyt.run_fast_tests(ctx, stage=stage, version=version)
+    if slow_tests:
+        hlitapyt.run_slow_tests(ctx, stage=stage, version=version)
+    if superslow_tests:
+        hlitapyt.run_superslow_tests(ctx, stage=stage, version=version)   
+    # 3) Run QA tests.
+    if qa_tests:
+        hlitapyt.run_qa_tests(ctx, stage=stage, version=version)
+    # 4) Push prod image.
+    for target_registry in docker_registries:
+        docker_tag_push_multi_arch_prod_image(
+            ctx,
+            version=version,
+            target_registry=docker_registries,
+            container_dir_name=container_dir_name,
+        )
     _LOG.info("==> SUCCESS <==")
 
 
