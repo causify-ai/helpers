@@ -255,19 +255,19 @@ def docker_pull(  # type: ignore
 
 
 @task
-def docker_pull_helpers(  # type: ignore
-    ctx, stage="prod", version=None, docker_registry="aws_ecr.ck"
-):
+def docker_pull_helpers(ctx, stage="prod", version=None):  # type: ignore
     """
     Pull latest prod image of `helpers` from the registry.
 
     :param ctx: invoke context
     :param stage: stage of the Docker image
     :param version: version of the Docker image
-    :param docker_registry: Docker image registry to pull the image from
-        - "dockerhub.causify": public Causify Docker image registry
-        - "aws_ecr.ck": private AWS CK ECR
     """
+    # Infer the Docker registry from the environment.
+    if hserver.is_dev_ck():
+        docker_registry = "aws_ecr.ck"
+    else:
+        docker_registry = "dockerhub.causify"
     hlitauti.report_task(txt=hprint.to_str("docker_registry"))
     if docker_registry == "dockerhub.causify":
         base_image = "causify/helpers"
@@ -1308,25 +1308,20 @@ def _get_lint_docker_cmd(
     version: str,
     *,
     use_entrypoint: bool = True,
-    docker_registry: str = "",
 ) -> str:
     """
     Create a command to run in Linter service.
 
     :param docker_cmd_: command to run
     :param stage: the image stage to use
-    :param docker_registry: see the `lint` invoke target
     :return: the full command to run
     """
     # Infer the docker registry based on the environment.
-    if docker_registry == "":
-        if hserver.is_dev_ck():
-            docker_registry = "aws_ecr.ck"
-        else:
-            docker_registry = "dockerhub.causify"
-        _LOG.warning(
-            "Docker registry is not specified, using %s", docker_registry
-        )
+    if hserver.is_dev_ck():
+        docker_registry = "aws_ecr.ck"
+    else:
+        docker_registry = "dockerhub.causify"
+    _LOG.debug("Using docker registry: %s", docker_registry)
     # Get an image to run the linter on.
     if docker_registry == "dockerhub.causify":
         # TODO(Vlad): Replace with environment variable.
