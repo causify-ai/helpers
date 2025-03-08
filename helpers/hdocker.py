@@ -687,7 +687,7 @@ def convert_pandoc_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
     args, unknown_args = parser.parse_known_args(cmd)
     _LOG.debug(hprint.to_str("args unknown_args"))
     # Return all the arguments in a dictionary with names that match the
-    # function signature of `run_dockerized_pandoc`.
+    # function signature of `run_dockerized_pandoc()`.
     in_dir_params = {
         "data-dir": args.data_dir,
         "template": args.template,

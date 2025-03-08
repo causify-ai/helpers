@@ -610,6 +610,7 @@ def _generate_docker_compose_file(
             "~/.aws:/home/.aws",
             "~/.config/gspread_pandas/:/home/.config/gspread_pandas/",
             "~/.config/gh:/home/.config/gh",
+            "~/.ssh:/home/.ssh",
         ],
     }
     if use_privileged_mode:
