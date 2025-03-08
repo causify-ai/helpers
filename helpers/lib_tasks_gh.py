@@ -74,6 +74,9 @@ def gh_login(  # type: ignore
         hlitauti.run(ctx, cmd)
 
 
+# #############################################################################
+
+
 def _get_branch_name(branch_mode: str) -> Optional[str]:
     if branch_mode == "current_branch":
         branch_name: Optional[str] = hgit.get_branch_name()
@@ -109,9 +112,12 @@ def _get_workflow_table() -> htable.TableType:
     num_cols = len(first_line.split("\t"))
     _LOG.debug(hprint.to_str("first_line num_cols"))
     cols = [
-        "completed",  # E.g., completed, in_progress
-        "status",  # E.g., success, failure
-        "name",  # Aka title
+        # E.g., completed, in_progress.
+        "completed",
+        # E.g., success, failure.
+        "status",
+        # Aka title.
+        "name",
         "workflow",
         "branch",
         "event",
@@ -124,6 +130,16 @@ def _get_workflow_table() -> htable.TableType:
     table = htable.Table.from_text(cols, txt, delimiter="\t")
     _LOG.debug(hprint.to_str("table"))
     return table
+        
+
+def _print_table(table: htable.TableType) -> None:
+    table_str = str(table)
+    # Colorize the table.
+    color_map = {"success": "green", "failure": "red", "in progress": "yellow"}
+    for status, color in color_map.items():
+        table_str = table_str.replace(status, hprint.color_highlight(status, color))
+    # Report the full status.
+    print(table_str)
 
 
 # TODO(Grisha): seems like GH changed the output format, we should update accordingly,
@@ -135,6 +151,7 @@ def gh_workflow_list(  # type: ignore
     filter_by_completed="all",
     report_only_status=True,
     show_stack_trace=False,
+    print_table=False,
 ):
     """
     Report the status of the GH workflows.
@@ -145,8 +162,10 @@ def gh_workflow_list(  # type: ignore
         - `all` for all branches
     :param filter_by_completed: filter table by the status of the workflow
         - E.g., "failure", "success"
+    :param report_only_status: if True, report only the status of the workflows
     :param show_stack_trace: in case of error run `pytest_repro` reporting also
         the stack trace
+    :param print_table: if True, print the table with the status of the workflows
     """
     hlitauti.report_task(
         txt=hprint.to_str("filter_by_branch filter_by_completed")
@@ -171,17 +190,17 @@ def gh_workflow_list(  # type: ignore
         filter_by_branch not in ("current_branch", "master")
         or not report_only_status
     ):
-        print(str(table))
+        _print_table(table)
         return
     # For each workflow find the last success.
     branch_name = hgit.get_branch_name()
     workflows = table.unique("workflow")
     print(f"workflows={workflows}")
     for workflow in workflows:
-        print(hprint.frame(workflow))
         table_tmp = table.filter_rows("workflow", workflow)
-        # Report the full status.
-        print(table_tmp)
+        if print_table:
+            print(hprint.frame(workflow))
+            _print_table(table_tmp)
         # Find the first success.
         num_rows = table.size()[0]
         _LOG.debug("num_rows=%s", num_rows)
@@ -272,6 +291,9 @@ def gh_workflow_run(ctx, branch="current_branch", workflows="all"):  # type: ign
         hlitauti.run(ctx, cmd)
 
 
+# #############################################################################
+
+
 def _get_repo_full_name_from_cmd(repo_short_name: str) -> Tuple[str, str]:
     """
     Convert the `repo_short_name` from command line (e.g., "current", "amp",
@@ -308,9 +330,6 @@ def _get_repo_full_name_from_cmd(repo_short_name: str) -> Tuple[str, str]:
         ret_repo_short_name,
     )
     return repo_full_name_with_host, ret_repo_short_name
-
-
-# #############################################################################
 
 
 def _get_gh_issue_title(issue_id: int, repo_short_name: str) -> Tuple[str, str]:
@@ -382,6 +401,9 @@ def gh_issue_title(ctx, issue_id, repo_short_name="current", pbcopy=True):  # ty
     # Print or copy to clipboard.
     msg = f"{title}: {url}"
     hsystem.to_pbcopy(msg, pbcopy=pbcopy)
+
+
+# #############################################################################
 
 
 def _check_if_pr_exists(title: str) -> bool:
