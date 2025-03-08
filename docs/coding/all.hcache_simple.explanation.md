@@ -16,6 +16,15 @@
 This document explains the design and flow of a caching system implemented in
 [`/helpers/hcache_simple.py`](/helpers/hcache_simple.py).
 
+`hcache_simple` is a lightweight, decorator-based module designed for individual
+function caching, offering basic in‑memory and disk storage (via JSON or pickle)
+with manual management and simple performance tracking.In contrast to `hcache`
+which is a robust, global caching solution that supports tagged caches,
+automatic invalidation, and shared cache directories across multiple functions
+and users, using advanced tools. Use `hcache` for robust, global caching in
+complex projects, and `hcache_simple` for lightweight, function-specific caching
+in simpler applications or notebooks.
+
 ## Overview
 
 - The caching system supports two main storage layers:
