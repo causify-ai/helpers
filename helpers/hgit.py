@@ -345,18 +345,19 @@ def is_inside_submodule(git_dir: str = ".") -> bool:
 
 def _is_repo(repo_short_name: str) -> bool:
     """
-    Return whether we are inside `amp` and `amp` is a submodule.
+    Return whether we are inside the module `repo_short_name`.
     """
-    repo_full_name = get_repo_full_name_from_dirname(".", include_host_name=False)
-    return get_repo_name(repo_full_name, in_mode="full_name") == repo_short_name
+    #repo_full_name = get_repo_full_name_from_dirname(".", include_host_name=False)
+    curr_repo_short_name = hrecouti.get_repo_config().get_repo_short_name()
+    return curr_repo_short_name == repo_short_name
 
 
 def is_helpers() -> bool:
     """
     Return whether we are inside `helpers` repo.
 
-    Either as super module, or a sub module depending on a current
-    working directory.
+    Either as super module, or a sub module depending on a current working
+    directory.
     """
     return _is_repo("helpers")
 
@@ -365,8 +366,8 @@ def is_amp() -> bool:
     """
     Return whether we are inside `amp` repo.
 
-    Either as super module, or a sub module depending on a current
-    working directory.
+    Either as super module or a sub module depending on a current working
+    directory.
     """
     return _is_repo("amp") or _is_repo("cmamp") or _is_repo("sorr")
 
@@ -633,13 +634,16 @@ def get_repo_full_name_from_dirname(
     dir_name: str, include_host_name: bool
 ) -> str:
     """
-    Return the full name of the repo in `git_dir`, e.g., "alphamatic/amp".
+    Return the full name of the repo in `git_dir`.
+    
+    E.g., "alphamatic/amp", "github.com/alphamatic/amp".
 
     This function relies on `git remote` to gather the required information.
 
     :param include_hostname: prepend also the GitHub hostname, e.g., returning
         "github.com/alphamatic/amp"
-    :return: the full name of the repo in `git_dir`, e.g., "alphamatic/amp".
+    :return: the full name of the repo in `git_dir`
+        - E.g., "alphamatic/amp", "github.com/alphamatic/amp".
     """
     hdbg.dassert_path_exists(dir_name)
     #
@@ -696,6 +700,7 @@ def _get_repo_short_to_full_name(include_host_name: bool) -> Dict[str, str]:
     Return the map from short name (e.g., "amp") to full name (e.g.,
     "alphamatic/amp") using the information in `repo_config.py`
     """
+    assert 0
     # From short name to long name.
     repo_map = {
         # "msml610": "gpsaggese/notes",
@@ -738,77 +743,63 @@ def _get_repo_short_to_full_name(include_host_name: bool) -> Dict[str, str]:
 # /////////////////////////////////////////////////////////////////////////
 
 
-def get_complete_repo_map(
-    in_mode: str, include_host_name: bool = False
-) -> Dict[str, str]:
-    """
-    Return the full / short name of a Git repo based on the alternative name.
+# def get_complete_repo_map(
+#     in_mode: str, include_host_name: bool = False
+# ) -> Dict[str, str]:
+#     """
+#     Return the full / short name of a Git repo based on the alternative name.
 
-    :param in_mode: the values `full_name` or `short_name` determine how to interpret
-        `name`
-    """
-    repo_map = _get_repo_short_to_full_name(include_host_name)
-    if in_mode == "full_name":
-        # Compute the reverse map.
-        repo_map = {v: k for (k, v) in repo_map.items()}
-    elif in_mode == "short_name":
-        pass
-    else:
-        raise ValueError(f"Invalid in_mode='{in_mode}'")
-    _LOG.debug(
-        "For in_mode=%s, include_host_name=%s, repo_map=\n%s",
-        in_mode,
-        include_host_name,
-        pprint.pformat(repo_map),
-    )
-    return repo_map
-
-
-def get_repo_name(
-    name: str, in_mode: str, include_host_name: bool = False
-) -> str:
-    """
-    Return the full/short name of a Git repo based on the other name.
-
-    :param in_mode: the values `full_name` or `short_name` determine how to interpret
-        `name`
-    """
-    repo_map = get_complete_repo_map(in_mode, include_host_name)
-    hdbg.dassert_in(
-        name, repo_map, "Invalid name='%s' for in_mode='%s'", name, in_mode
-    )
-    ret = repo_map[name]
-    return ret
+#     :param in_mode: the values `full_name` or `short_name` determine how to interpret
+#         `name`
+#     """
+#     repo_map = _get_repo_short_to_full_name(include_host_name)
+#     if in_mode == "full_name":
+#         # Compute the reverse map.
+#         repo_map = {v: k for (k, v) in repo_map.items()}
+#     elif in_mode == "short_name":
+#         pass
+#     else:
+#         raise ValueError(f"Invalid in_mode='{in_mode}'")
+#     _LOG.debug(
+#         "For in_mode=%s, include_host_name=%s, repo_map=\n%s",
+#         in_mode,
+#         include_host_name,
+#         pprint.pformat(repo_map),
+#     )
+#     return repo_map
 
 
-def get_all_repo_names(
-    in_mode: str, include_host_name: bool = False
-) -> List[str]:
-    """
-    Return the names (full or short depending on `mode`) of all the Git repos.
+## TODO(gp): We should not pass name.
+#def get_repo_name(
+#    name: str, in_mode: str, include_host_name: bool = False
+#) -> str:
+#    """
+#    Return the full/short name of a Git repo based on the other name.
+#
+#    :param in_mode: the values `full_name` or `short_name` determine how to interpret
+#        `name`
+#    """
+#    repo_map = get_complete_repo_map(in_mode, include_host_name)
+#    hdbg.dassert_in(
+#        name, repo_map, "Invalid name='%s' for in_mode='%s'", name, in_mode
+#    )
+#    ret = repo_map[name]
+#    return ret
 
-    :param in_mode: if "full_name" return the full names (e.g.,
-        "alphamatic/amp") if "short_name" return the short names (e.g.,
-        "amp")
-    """
-    repo_map = get_complete_repo_map(in_mode, include_host_name)
-    return sorted(list(repo_map.keys()))
 
+# # TODO(gp): This should not be needed.
+# def get_all_repo_names(
+#     in_mode: str, include_host_name: bool = False
+# ) -> List[str]:
+#     """
+#     Return the names (full or short depending on `mode`) of all the Git repos.
 
-# TODO(gp): This should be injected from repo_config.py
-def get_task_prefix_from_repo_short_name(short_name: str) -> str:
-    """
-    Return the task prefix for a repo (e.g., "amp" -> "AmpTask").
-    """
-    if short_name == "amp":
-        prefix = "AmpTask"
-    else:
-        # We assume that we can build the prefix from the name (e.g., "lm" ->
-        # "LmTask").
-        # TODO(gp): A more general approach is to save this information inside
-        #  `repo_config.py`.
-        prefix = short_name.capitalize() + "Task"
-    return prefix
+#     :param in_mode: if "full_name" return the full names (e.g.,
+#         "alphamatic/amp") if "short_name" return the short names (e.g.,
+#         "amp")
+#     """
+#     repo_map = get_complete_repo_map(in_mode, include_host_name)
+#     return sorted(list(repo_map.keys()))
 
 
 # #############################################################################
