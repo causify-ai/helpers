@@ -286,6 +286,7 @@ def _get_repo_full_name_from_cmd(repo_short_name: str) -> Tuple[str, str]:
         hdbg.dassert_eq(
             repo_full_name_with_host,
             hrecouti.get_repo_config().get_repo_full_name_with_hostname())
+        ret_repo_short_name = hrecouti.get_repo_config().get_repo_short_name()
     else:
         hdbg.dfatal("This code path is obsolete")
     _LOG.debug(
