@@ -29,7 +29,6 @@ def _run_preprocess_notes(in_file: str, out_file: str) -> str:
     cmd.append(exec_path)
     cmd.append(f"--input {in_file}")
     cmd.append(f"--output {out_file}")
-    cmd.append("--type pdf")
     cmd_as_str = " ".join(cmd)
     hsystem.system(cmd_as_str)
     # Check.
@@ -118,7 +117,7 @@ class Test_process_question1(hunitest.TestCase):
     def _helper_process_question(
         self, txt_in: str, do_continue_exp: bool, exp: str
     ) -> None:
-        do_continue, act = dshdprno._process_question_to_markdown(txt_in)
+        do_continue, act = dshdprno._process_question(txt_in)
         self.assertEqual(do_continue, do_continue_exp)
         self.assert_equal(act, exp)
 
@@ -186,7 +185,6 @@ class Test_preprocess_notes3(hunitest.TestCase):
 
     def _transform_lines_helper(self, txt_in: str, exp: str) -> None:
         lines = txt_in.split("\n")
-        type_ = "pdf"
-        act_as_arr = dshdprno._transform_lines(lines, type_, is_qa=False)
+        act_as_arr = dshdprno._transform_lines(lines, is_qa=False)
         act = "\n".join(act_as_arr)
         self.assert_equal(act, exp)

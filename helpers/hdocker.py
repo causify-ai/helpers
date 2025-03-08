@@ -255,13 +255,14 @@ def replace_shared_root_path(
 
 # TODO(gp): build_container -> build_container_image
 # TODO(gp): containter_name -> image_name
-# TODO(gp): Add `use_cache` to the signature to control using Docker cache.
+# TODO(gp): Pass `use_cache` to control using Docker cache.
 def build_container(
     container_name: str,
     dockerfile: str,
     force_rebuild: bool,
     use_sudo: bool,
     *,
+    use_cache: bool = True,
     incremental: bool = True,
 ) -> str:
     """
