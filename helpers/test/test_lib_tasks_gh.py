@@ -36,6 +36,7 @@ class TestLibTasks1(hunitest.TestCase):
     def test_get_gh_issue_title4(self) -> None:
         cmd = "invoke gh_login"
         hsystem.system(cmd)
+        #
         issue_id = 1
         repo = "current"
         _ = hlitagh._get_gh_issue_title(issue_id, repo)

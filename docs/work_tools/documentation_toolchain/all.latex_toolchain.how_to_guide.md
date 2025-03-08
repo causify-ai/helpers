@@ -21,9 +21,11 @@
 
 - Notes files can be converted to:
   - PDF (through a conversion to an intermediate Latex file)
-  - HTML
   - Slides (through beamer)
+  - HTML
   - Questions / answers (through Anki)
+
+# Typical use
 
 # Files
 ```

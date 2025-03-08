@@ -1501,7 +1501,7 @@ def _parse_failed_tests(
             _LOG.debug("line=%s ->\n\ttest_name='%s'", line, test_name)
             failed_tests.append(test_name)
         # ======================== 4 failed, 43 passed in 40.48s =========================
-        m = re.match(r"=+ (\d+) failed, (\d+) passed in", line)
+        m = re.search(r"=+ (\d+) failed, (\d+) passed in", line)
         if m:
             num_failed = int(m.group(1))
             num_passed = int(m.group(2))
