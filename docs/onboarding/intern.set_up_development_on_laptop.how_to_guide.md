@@ -267,6 +267,12 @@
   > i git_pull
   ```
 
+- Run Linter
+
+  ```bash
+  > i lint --files="dir1/file1.py dir2/file2.py"
+  ```
+
 - Start a Docker container
 
   ```bash
@@ -328,7 +334,7 @@
 # Starting a Jupyter server.
 > i docker_jupyter --stage local --version 1.1.0
 # Running Linter.
-> i lint --stage local --version 1.1.0 --files="file1.py file2.py"
+> i lint --stage local --version 1.1.0 --files="dir1/file1.py dir2/file2.py"
 ```
 
 - The hack is only there to unblock you and shouldn't be relied on forever. File
