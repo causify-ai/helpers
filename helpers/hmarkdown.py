@@ -347,22 +347,7 @@ class HeaderInfo:
 HeaderList = List[HeaderInfo]
 
 
-def _check_header_list(header_list: HeaderList) -> None:
-    # Check that consecutive elements in the header list differ by at most one
-    # value of level.
-    for i in range(1, len(header_list)):
-        hdbg.dassert_isinstance(header_list[i - 1], HeaderInfo)
-        hdbg.dassert_isinstance(header_list[i], HeaderInfo)
-        hdbg.dassert_lte(
-            abs(header_list[i].level - header_list[i - 1].level),
-            1,
-            "Consecutive headers differ by more than one level: %s for '%s', %s for '%s': %s",
-            header_list[i - 1].level,
-            header_list[i - 1].description,
-            header_list[i].level,
-            header_list[i].description,
-            "\n".join([str(x) for x in header_list]),
-        )
+def check_header_list(header_list: HeaderList) -> None:
     # The first header should be level 1.
     if header_list and header_list[0].level > 1:
         _LOG.warning(
@@ -371,6 +356,19 @@ def _check_header_list(header_list: HeaderList) -> None:
             header_list[0].line_number,
             header_list[0].level,
         )
+    # Check that consecutive elements in the header list differ by at most one
+    # value of level.
+    if len(header_list) > 1:
+        for i in range(1, len(header_list)):
+            hdbg.dassert_isinstance(header_list[i - 1], HeaderInfo)
+            hdbg.dassert_isinstance(header_list[i], HeaderInfo)
+            if abs(header_list[i].level - header_list[i - 1].level) > 1:
+                msg = []
+                msg.append("Consecutive headers differ by more than one level:")
+                msg.append(f"  {header_list[i - 1]}")
+                msg.append(f"  {header_list[i]}")
+                msg = "\n".join(msg)
+                raise ValueError(msg)
 
 
 def extract_headers_from_markdown(
@@ -387,6 +385,7 @@ def extract_headers_from_markdown(
         [(1, "Chapter 1", 5), (2, "Section 1.1", 10), ...]
         ```
     """
+    hdbg.dassert_isinstance(txt, str)
     hdbg.dassert_lte(1, max_level)
     header_list: HeaderList = []
     # Parse an header like `# Header1` or `## Header2`.
@@ -408,9 +407,9 @@ def extract_headers_from_markdown(
                 header_list.append(header_info)
     # Check the header list.
     if sanity_check:
-        _check_header_list(header_list)
+        check_header_list(header_list)
     else:
-        _LOG.warning("Skipping sanity check")
+        _LOG.debug("Skipping sanity check")
     return header_list
 
 

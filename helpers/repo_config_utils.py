@@ -115,7 +115,7 @@ class RepoConfig:
     @classmethod
     def from_file(cls, file_name: Optional[str] = None) -> "RepoConfig":
         """
-        Return the text of the code stored in `repo_config.py`.
+        Return the text of the code stored in `repo_config.yaml`.
         """
         if file_name is None:
             file_name = RepoConfig._get_repo_config_file()
@@ -134,24 +134,82 @@ class RepoConfig:
             raise f"Error reading YAML file {file_name}: {e}"
         return cls(data)
 
+    # TODO(gp): -> __str__?
+    def config_func_to_str(self) -> str:
+        """
+        Return the string representation of the config function.
+        """
+        ret: List[str] = []
+        ret.append(f"get_host_name='{self.get_host_name()}'")
+        ret.append(
+            f"get_html_dir_to_url_mapping='{self.get_html_dir_to_url_mapping()}'"
+        )
+        ret.append(f"get_invalid_words='{self.get_invalid_words()}'")
+        ret.append(
+            f"get_docker_base_image_name='{self.get_docker_base_image_name()}'"
+        )
+        return "# repo_config.config\n" + indent("\n".join(ret))
+
+    # repo_info
+
     # TODO(gp): -> get_repo_name
     def get_name(self) -> str:
+        """
+        Return the name of the repo, e.g., `//amp`.
+        """
         value = self._data["repo_info"]["repo_name"]
         return f"//{value}"
 
     def get_github_repo_account(self) -> str:
+        """
+        Return the account name of the repo on GitHub, e.g., `github.com`.
+        """
         value = self._data["repo_info"]["github_repo_account"]
         return value
 
+    def get_repo_short_name(self) -> str:
+        """
+        Return the short name of the repo, e.g., `amp`.
+        """
+        value = self._data["repo_info"]["repo_name"]
+        return value
+        
+    def get_repo_full_name(self) -> str:
+        """
+        Return the full name of the repo, e.g., `causify-ai/amp`, `gpsaggese/notes`.
+        """
+        github_repo_account = self._data["repo_info"]["github_repo_account"]
+        repo_name = self._data["repo_info"]["repo_name"]
+        value = f"{github_repo_account}/{repo_name}"
+        return value
+
+    def get_repo_full_name_with_hostname(self) -> str:
+        """
+        Return the full name of the repo, e.g., `github.com/causify-ai/amp`.
+        """
+        repo_full_name = self.get_repo_full_name()
+        host_name = self.get_host_name()
+        value = f"{host_name}/{repo_full_name}"
+        return value
+
+    # TODO(gp): We should replace this with `get_full_repo_name()`, since
+    # the mapping is not needed.
     def get_repo_map(self) -> Dict[str, str]:
         """
         Return a mapping of short repo name -> long repo name.
+
+        E.g.,
+        ```
+        {"amp": "causify-ai/amp"}
+        {"helpers": "causify-ai/helpers"}
+        ```
         """
         repo_name = self._data["repo_info"]["repo_name"]
         github_repo_account = self._data["repo_info"]["github_repo_account"]
         repo_map = {repo_name: f"{github_repo_account}/{repo_name}"}
         return repo_map
 
+    # TODO(gp): Is this needed?
     def get_extra_amp_repo_sym_name(self) -> str:
         github_repo_account = self._data["repo_info"]["github_repo_account"]
         repo_name = self._data["repo_info"]["repo_name"]
@@ -163,10 +221,16 @@ class RepoConfig:
 
     # TODO(gp): -> get_github_host_name
     def get_host_name(self) -> str:
+        """
+        Return the host name of the repo, e.g., `github.com`.
+        """
         value = self._data["repo_info"]["github_host_name"]
         return value
 
     def get_invalid_words(self) -> List[str]:
+        """
+        Return a list of words that are considered invalid in the repo.
+        """
         values = self._data["repo_info"]["invalid_words"]
         if values is None:
             invalid_words = []
@@ -174,12 +238,23 @@ class RepoConfig:
             invalid_words = values.split(",")
         return invalid_words
 
+    def get_issue_prefix(self) -> str:
+        """
+        Return the prefix for the issue, e.g., `CmampTask`, `HelpersTask`.
+        """
+        value = self._data["repo_info"]["issue_prefix"]
+        return value
+
+    # docker_info
+
     def get_docker_base_image_name(self) -> str:
         """
-        Return a base name for docker image.
+        Return a base name for docker image.  E.g., `helpers`.
         """
         value = self._data["docker_info"]["docker_image_name"]
         return value
+
+    # s3_bucket_info
 
     def get_unit_test_bucket_path(self) -> str:
         """
@@ -235,20 +310,9 @@ class RepoConfig:
         }
         return dir_to_url
 
-    def config_func_to_str(self) -> str:
-        """
-        Return the string representation of the config function.
-        """
-        ret: List[str] = []
-        ret.append(f"get_host_name='{self.get_host_name()}'")
-        ret.append(
-            f"get_html_dir_to_url_mapping='{self.get_html_dir_to_url_mapping()}'"
-        )
-        ret.append(f"get_invalid_words='{self.get_invalid_words()}'")
-        ret.append(
-            f"get_docker_base_image_name='{self.get_docker_base_image_name()}'"
-        )
-        return "# repo_config.config\n" + indent("\n".join(ret))
+    # TODO(gp): Add functions for container_registry_info.
+
+    # Utils.
 
     @staticmethod
     def _get_repo_config_file() -> str:
@@ -279,14 +343,14 @@ class RepoConfig:
         return file_path
 
 
-_repo_config = None
+_REPO_CONFIG = None
 
 
 def get_repo_config() -> RepoConfig:
     """
     Return the repo config object.
     """
-    global _repo_config
-    if _repo_config is None:
-        _repo_config = RepoConfig.from_file()
-    return _repo_config
+    global _REPO_CONFIG
+    if _REPO_CONFIG is None:
+        _REPO_CONFIG = RepoConfig.from_file()
+    return _REPO_CONFIG
