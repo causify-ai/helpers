@@ -155,8 +155,19 @@ def _render_images(args: argparse.Namespace, file_: str, prefix: str) -> str:
     file2 = f"{prefix}.render_image.txt"
     cmd = f"{exec_file} --in_file_name {file1} --out_file_name {file2}"
     _ = _system(cmd)
-    # We need to preprocess the notes again to remove the commented code.
-    file3 = _preprocess_notes(args, file2, file2)
+    # Remove the commented code introduced by `render_image.py`.
+    txt = hio.from_file(file2)
+    out = []
+    for i, line in enumerate(txt.split("\n")):
+        _LOG.debug("%s:line=%s", i, line)
+        do_continue = hmarkdo.process_single_line_comment(line)
+        if do_continue:
+            continue
+        out.append(line)
+    out = "\n".join(out)
+    file3 = f"{prefix}.render_image2.txt"
+    hio.to_file(file3, out)
+    #
     file_ = file3
     return file_
 

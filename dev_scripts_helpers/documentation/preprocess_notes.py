@@ -255,11 +255,15 @@ def _add_navigation_slides(
             # Get the navigation string corresponding to the current header.
             nav_str = hmarkdo.selected_navigation_to_str(tree, level, description)
             _LOG.debug("nav_str=\n%s", nav_str)
-            # Add the navigation slide.
+            # Replace the header slide with the navigation slide.
             # TODO(gp): We assume the slide level is 4.
-            line_tmp = "#### TOC\n" + nav_str
+            line_tmp = f"#### {description}\n" + nav_str
+            # Add an extra newline to avoid to have the next title adjacent,
+            # confusing pandoc.
+            line_tmp += "\n"
             out.append(line_tmp)
-        out.append(line)
+        else:
+            out.append(line)
     txt_out = "\n".join(out)
     return txt_out
 
@@ -305,7 +309,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Add TOC, if needed.
     if args.toc_type == "navigation":
         hdbg.dassert_eq(args.type, "slides")
-        max_level = 3
+        max_level = 2
         out = _add_navigation_slides(out, max_level, sanity_check=True)
     # Save results.
     hio.to_file(args.output, out)

@@ -619,6 +619,8 @@ def header_tree_to_str(
       children).
     - The selected node (last in the ancestry) is included highlighted.
     """
+    # Bold.
+    current_slide_style = "**"
     prefix = "  " * indent + "- "
     result = []
     for node in tree:
@@ -626,10 +628,11 @@ def header_tree_to_str(
         # Check if this node is the next expected one in the ancestry branch.
         if ancestry and node is ancestry[0]:
             # If this is the last in the ancestry, it is the selected node.
+            val = prefix
             if len(ancestry) == 1:
-                val = prefix + "*" + node.description + "*"
+                val += current_slide_style + node.description + current_slide_style
             else:
-                val = prefix + node.description
+                val += node.description
             _LOG.debug("-> %s", hprint.to_str("val"))
             if val:
                 result.append(val)
