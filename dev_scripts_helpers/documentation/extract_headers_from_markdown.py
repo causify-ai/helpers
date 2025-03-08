@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 
-# TODO(gp): -> extract_headers_from_markdown.py
 """
 Extract headers from a Markdown file and generate a Vim cfile.
 
-The script
+The script:
 - processes the input Markdown file
 - extracts headers up to a specified maximum level
 - prints a human-readable header map
@@ -12,10 +11,10 @@ The script
   feature.
 
 # Extract headers up to level 3 from a Markdown file and save to an output file:
-> python process_md_headers.py -i input.md -o cfile --max-level 3
+> extract_headers_from_markdown.py -i input.md -o cfile --mode cfile --max-level 3
 
 # Extract headers up to level 2 and print to stdout:
-> python process_md_headers.py -i input.md -o - --max-level 2
+> extract_headers_from_markdown.py -i input.md -o - --mode headers
 
 # To use the generated cfile in Vim:
 - Open Vim and run `:cfile output.cfile`
@@ -67,7 +66,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     in_file_name, out_file_name = hparser.parse_input_output_args(args)
     input_content = hparser.read_file(in_file_name)
     input_content = "\n".join(input_content)
-    # We don't want to sanity check 
+    # We don't want to sanity check since we want to show the headers, even
+    # if malformed.
     sanity_check = False
     header_list = hmarkdo.extract_headers_from_markdown(
         input_content, max_level=args.max_level, sanity_check=sanity_check
