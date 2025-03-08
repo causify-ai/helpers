@@ -347,7 +347,6 @@ def _is_repo(repo_short_name: str) -> bool:
     """
     Return whether we are inside the module `repo_short_name`.
     """
-    #repo_full_name = get_repo_full_name_from_dirname(".", include_host_name=False)
     curr_repo_short_name = hrecouti.get_repo_config().get_repo_short_name()
     return curr_repo_short_name == repo_short_name
 
@@ -679,127 +678,6 @@ def get_repo_full_name_from_client(super_module: bool) -> str:
     git_dir = get_client_root(super_module)
     repo_name = get_repo_full_name_from_dirname(git_dir, include_host_name=False)
     return repo_name
-
-
-# /////////////////////////////////////////////////////////////////////////
-
-
-def _decorate_with_host_name(
-    dict_: Dict[str, str], host_name: str
-) -> Dict[str, str]:
-    """
-    Prepend the host name to all the values of the passed dictionary.
-    """
-    res = {k: f"{host_name}/{v}" for k, v in dict_.items()}
-    return res
-
-
-@functools.lru_cache()
-def _get_repo_short_to_full_name(include_host_name: bool) -> Dict[str, str]:
-    """
-    Return the map from short name (e.g., "amp") to full name (e.g.,
-    "alphamatic/amp") using the information in `repo_config.py`
-    """
-    assert 0
-    # From short name to long name.
-    repo_map = {
-        # "msml610": "gpsaggese/notes",
-        "amp": "alphamatic/amp",
-        "helpers": "causify-ai/helpers",
-        "tutorials": "causify-ai/tutorials",
-    }
-    if include_host_name:
-        host_name = "github.com"
-        repo_map = _decorate_with_host_name(repo_map, host_name)
-    _LOG.debug(
-        "include_host_name=%s, repo_map=\n%s",
-        include_host_name,
-        pprint.pformat(repo_map),
-    )
-    # Read the info from the current repo.
-    current_repo_map = hrecouti.get_repo_config().get_repo_map()
-    if include_host_name:
-        host_name = hrecouti.get_repo_config().get_host_name()
-        current_repo_map = _decorate_with_host_name(current_repo_map, host_name)
-    _LOG.debug(
-        "include_host_name=%s, current_repo_map=\n%s",
-        include_host_name,
-        pprint.pformat(current_repo_map),
-    )
-    # Update the map.
-    # hdbg.dassert_not_intersection(repo_map.keys(), current_repo_map.keys())
-    repo_map.update(
-        get_repo_map()  # type: ignore[name-defined]  # noqa: F821  # pylint: disable=undefined-variable
-    )
-    hdbg.dassert_no_duplicates(list(repo_map.values()))
-    _LOG.debug(
-        "include_host_name=%s, repo_map=\n%s",
-        include_host_name,
-        pprint.pformat(repo_map),
-    )
-    return repo_map
-
-
-# /////////////////////////////////////////////////////////////////////////
-
-
-# def get_complete_repo_map(
-#     in_mode: str, include_host_name: bool = False
-# ) -> Dict[str, str]:
-#     """
-#     Return the full / short name of a Git repo based on the alternative name.
-
-#     :param in_mode: the values `full_name` or `short_name` determine how to interpret
-#         `name`
-#     """
-#     repo_map = _get_repo_short_to_full_name(include_host_name)
-#     if in_mode == "full_name":
-#         # Compute the reverse map.
-#         repo_map = {v: k for (k, v) in repo_map.items()}
-#     elif in_mode == "short_name":
-#         pass
-#     else:
-#         raise ValueError(f"Invalid in_mode='{in_mode}'")
-#     _LOG.debug(
-#         "For in_mode=%s, include_host_name=%s, repo_map=\n%s",
-#         in_mode,
-#         include_host_name,
-#         pprint.pformat(repo_map),
-#     )
-#     return repo_map
-
-
-## TODO(gp): We should not pass name.
-#def get_repo_name(
-#    name: str, in_mode: str, include_host_name: bool = False
-#) -> str:
-#    """
-#    Return the full/short name of a Git repo based on the other name.
-#
-#    :param in_mode: the values `full_name` or `short_name` determine how to interpret
-#        `name`
-#    """
-#    repo_map = get_complete_repo_map(in_mode, include_host_name)
-#    hdbg.dassert_in(
-#        name, repo_map, "Invalid name='%s' for in_mode='%s'", name, in_mode
-#    )
-#    ret = repo_map[name]
-#    return ret
-
-
-# # TODO(gp): This should not be needed.
-# def get_all_repo_names(
-#     in_mode: str, include_host_name: bool = False
-# ) -> List[str]:
-#     """
-#     Return the names (full or short depending on `mode`) of all the Git repos.
-
-#     :param in_mode: if "full_name" return the full names (e.g.,
-#         "alphamatic/amp") if "short_name" return the short names (e.g.,
-#         "amp")
-#     """
-#     repo_map = get_complete_repo_map(in_mode, include_host_name)
-#     return sorted(list(repo_map.keys()))
 
 
 # #############################################################################

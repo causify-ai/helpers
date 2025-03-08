@@ -25,6 +25,7 @@ services:
       - ~/.aws:/home/.aws
       - ~/.config/gspread_pandas/:/home/.config/gspread_pandas/
       - ~/.config/gh:/home/.config/gh
+      - ~/.ssh:/home/.ssh
     privileged: true
     network_mode: ${NETWORK_MODE:-host}
   app:

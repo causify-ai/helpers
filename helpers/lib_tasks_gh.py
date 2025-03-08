@@ -294,6 +294,7 @@ def gh_workflow_run(ctx, branch="current_branch", workflows="all"):  # type: ign
 # #############################################################################
 
 
+# TODO(gp): Remove repo_short_name.
 def _get_repo_full_name_from_cmd(repo_short_name: str) -> Tuple[str, str]:
     """
     Convert the `repo_short_name` from command line (e.g., "current", "amp",
@@ -308,21 +309,9 @@ def _get_repo_full_name_from_cmd(repo_short_name: str) -> Tuple[str, str]:
         hdbg.dassert_eq(
             repo_full_name_with_host,
             hrecouti.get_repo_config().get_repo_full_name_with_hostname())
-        # # Compute the short repo name corresponding to "current".
-        # repo_full_name = hgit.get_repo_full_name_from_dirname(
-        #     ".", include_host_name=False
-        # )
         ret_repo_short_name = hrecouti.get_repo_config().get_repo_short_name()
-        #ret_repo_short_name = hgit.get_repo_name(
-       #     repo_full_name, in_mode="full_name", include_host_name=False
-        #)
     else:
         hdbg.dfatal("This code path is obsolete")
-        ## Get the repo name using the short -> full name mapping.
-        #repo_full_name_with_host = hgit.get_repo_name(
-        #    repo_short_name, in_mode="short_name", include_host_name=True
-        #)
-        #ret_repo_short_name = repo_short_name
     _LOG.debug(
         "repo_short_name=%s -> repo_full_name_with_host=%s ret_repo_short_name=%s",
         repo_short_name,
