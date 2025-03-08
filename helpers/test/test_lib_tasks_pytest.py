@@ -987,7 +987,7 @@ class Test_pytest_failed1(hunitest.TestCase):
         FAILED helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3::test_run_all1 - AttributeError: 'list' object has no attribute 'split'
         FAILED helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test2 - RuntimeError: cmd='(/app/helpers_root/dev_scripts_helpers/documentation/notes_to_pdf.py --input /app/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_notes
 
-            # ======================== 4 failed, 43 passed in 40.48s =========================
+        ======================== 4 failed, 43 passed in 40.48s =========================
         """
         txt = hprint.dedent(txt)
         return txt
@@ -997,26 +997,29 @@ class Test_pytest_failed1(hunitest.TestCase):
         txt: str,
         only_file: bool,
         only_class: bool,
-        exp_failed_tests: List[str],
+        exp_failed_tests: str,
         exp_num_failed: int,
         exp_num_passed: int,
     ) -> None:
         act_failed_tests, act_num_failed, act_num_passed = (
-            hlitapyt._get_failed_tests(txt, only_file, only_class)
+            hlitapyt._parse_failed_tests(txt, only_file, only_class)
         )
-        self.assert_equal(act_failed_tests, exp_failed_tests)
-        self.assert_equal(act_num_failed, exp_num_failed)
-        self.assert_equal(act_num_passed, exp_num_passed)
+        act_failed_tests = "\n".join(act_failed_tests)
+        self.assert_equal(act_failed_tests, exp_failed_tests, dedent=True,
+            remove_lead_trail_empty_lines=True)
+        self.assertEqual(act_num_failed, exp_num_failed)
+        self.assertEqual(act_num_passed, exp_num_passed)
 
     def test1(self) -> None:
         # Prepare inputs and outputs.
-        txt = self.get_pytest_text()
+        txt = self.get_pytest_text1()
         only_file = False
         only_class = False
-        exp_failed_tests = [
-            "helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3::test_run_all1",
-            "helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test2",
-        ]
+        exp_failed_tests = """
+        helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test2
+        helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes1::test1
+        helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3::test_run_all1
+        """
         exp_num_failed = 4
         exp_num_passed = 43
         # Check.
@@ -1031,13 +1034,13 @@ class Test_pytest_failed1(hunitest.TestCase):
 
     def test2(self) -> None:
         # Prepare inputs and outputs.
-        txt = self.get_pytest_text()
+        txt = self.get_pytest_text1()
         only_file = True
         only_class = False
-        exp_failed_tests = [
-            "helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3::test_run_all1",
-            "helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test2",
-        ]
+        exp_failed_tests = """
+        helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py
+        helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py
+        """
         exp_num_failed = 4
         exp_num_passed = 43
         # Check.
@@ -1052,13 +1055,14 @@ class Test_pytest_failed1(hunitest.TestCase):
 
     def test3(self) -> None:
         # Prepare inputs and outputs.
-        txt = self.get_pytest_text()
+        txt = self.get_pytest_text1()
         only_file = False
         only_class = True
-        exp_failed_tests = [
-            "helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3::test_run_all1",
-            "helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test2",
-        ]
+        exp_failed_tests = """
+        helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1
+        helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes1
+        helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3
+        """
         exp_num_failed = 4
         exp_num_passed = 43
         # Check.
