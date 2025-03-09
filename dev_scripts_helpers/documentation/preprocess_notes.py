@@ -248,16 +248,22 @@ def _add_navigation_slides(
     tree = hmarkdo.build_header_tree(header_list)
     _LOG.debug("tree=\n%s", tree)
     out: List[str] = []
+    open_modifier = r"**\textcolor{purple}{"
+    close_modifier = r"}**"
     for line in txt.split("\n"):
         is_header, level, description = hmarkdo.is_header(line)
         if is_header and level <= max_level:
             _LOG.debug(hprint.to_str("line level description"))
             # Get the navigation string corresponding to the current header.
-            nav_str = hmarkdo.selected_navigation_to_str(tree, level, description)
+            nav_str = hmarkdo.selected_navigation_to_str(tree, level, description,
+                                                            open_modifier=open_modifier, close_modifier=close_modifier)
             _LOG.debug("nav_str=\n%s", nav_str)
             # Replace the header slide with the navigation slide.
             # TODO(gp): We assume the slide level is 4.
-            line_tmp = f"#### {description}\n" + nav_str
+            line_tmp = f"#### {description}\n"
+            #line_tmp += '<span style="color:blue">\n' + nav_str
+            line_tmp += nav_str
+            #line_tmp += "\n</span>\n"
             # Add an extra newline to avoid to have the next title adjacent,
             # confusing pandoc.
             line_tmp += "\n"

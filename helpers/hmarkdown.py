@@ -607,7 +607,9 @@ def _find_header_tree_ancestry(
 
 
 def header_tree_to_str(
-    tree: _HeaderTree, ancestry: Optional[_HeaderTree], *, indent: int = 0
+    tree: _HeaderTree, ancestry: Optional[_HeaderTree], *, 
+    open_modifier: str = "**", close_modifier: str = "**",
+    indent: int = 0
 ) -> str:
     """
     Return the tree as a string.
@@ -619,8 +621,6 @@ def header_tree_to_str(
       children).
     - The selected node (last in the ancestry) is included highlighted.
     """
-    # Bold.
-    current_slide_style = "**"
     prefix = "  " * indent + "- "
     result = []
     for node in tree:
@@ -630,7 +630,7 @@ def header_tree_to_str(
             # If this is the last in the ancestry, it is the selected node.
             val = prefix
             if len(ancestry) == 1:
-                val += current_slide_style + node.description + current_slide_style
+                val += open_modifier + node.description + close_modifier
             else:
                 val += node.description
             _LOG.debug("-> %s", hprint.to_str("val"))
@@ -651,7 +651,9 @@ def header_tree_to_str(
 
 
 def selected_navigation_to_str(
-    tree: _HeaderTree, level: int, description: str
+    tree: _HeaderTree, level: int, description: str,
+    *,
+    open_modifier: str = "**", close_modifier: str = "**",
 ) -> str:
     """
     Given a level and description for the selected node, print the navigation.
@@ -665,5 +667,39 @@ def selected_navigation_to_str(
         description,
     )
     _LOG.debug(hprint.to_str("ancestry"))
-    txt = header_tree_to_str(tree, ancestry)
+    txt = header_tree_to_str(tree, ancestry, open_modifier=open_modifier, close_modifier=close_modifier)
     return txt
+
+
+# #############################################################################
+
+
+def colorize_first_level_bullets(markdown_text: str) -> str:
+    # Define the colors to use.
+    colors = ["red", "orange", "green", "teal", "cyan", "blue", "violet", "brown"]
+    # Find all first-level bullet points (lines starting with "- " after any whitespace).
+    lines = markdown_text.split("\n")
+    color_index = 0
+    result = []
+    for line in lines:
+        # Check if this is a first-level bullet point.
+        if re.match(r"^\s*- ", line):
+            # Only color first-level bullets (those with minimal indentation).
+            indentation = len(line) - len(line.lstrip())
+            if indentation == 0:
+                # First-level bullet.
+                color = colors[color_index % len(colors)]
+                # Replace the bullet with a colored version.
+                # - \textcolor{red}{Linear models}
+                colored_line = re.sub(
+                    r"^(\s*-\s+)(.*)", 
+                    r"\1\\textcolor{" + color + r"}{\2}", 
+                    line
+                )
+                result.append(colored_line)
+                color_index += 1
+            else:
+                result.append(line)
+        else:
+            result.append(line)
+    return "\n".join(result)

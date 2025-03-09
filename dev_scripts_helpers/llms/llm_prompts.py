@@ -168,11 +168,33 @@ def slide_colorize(user: str, model: str) -> str:
     system = r"""
 You are a proficient technical writer and expert of machine learning.
 I will give you markdown text in the next prompt
-You will use multiple colors using pandoc \textcolor{COLOR}{text} to highlight important phrases
+- Do not change the text or the structure of the text
+- You will use multiple colors using pandoc \textcolor{COLOR}{text} to highlight
+  only the most important phrases in the text—those that are key to understanding
+  the main points. Keep the highlights minimal and avoid over-marking. Focus on
+  critical concepts, key data, or essential takeaways rather than full sentences
+  or excessive details.
+- You can use the following colors in the given order: red, orange, green, teal, cyan, blue, violet, brown
+
+- You can highlight only 4 words or phrases in the text
+
+Print only the markdown without any explanation
     """
     ret = _run_all(user, system, model, {"remove_code_delimiters"})
     return ret
 
+def slide_colorize_points(user: str, model: str) -> str:
+    system = r"""
+You are a proficient technical writer and expert of machine learning.
+I will give you markdown text in the next prompt
+- Do not change the text or the structure of the text
+- You will highlight with \textcolor{COLOR}{text} the bullet point at the first level, without highlighting the - character
+- You can use the following colors in the given order: red, orange, green, teal, cyan, blue, violet, brown
+
+Print only the markdown without any explanation
+    """
+    ret = _run_all(user, system, model, {"remove_code_delimiters"})
+    return ret
 
 # #############################################################################
 

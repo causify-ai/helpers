@@ -724,3 +724,30 @@ class Test_selected_navigation_to_str2(hunitest.TestCase):
     def test2(self) -> None:
         txt = _get_markdown_example6()
         _test_full_navigation_flow(self, txt)
+
+
+# #############################################################################
+
+
+class Test_colorize_first_level_bullets1(hunitest.TestCase):
+    def test1(self) -> None:
+        # Prepare inputs.
+        content = r"""
+        - Item 1
+          - Subitem 1.1
+          - Subitem 1.2
+        - Item 2
+          - Subitem 2.1
+        """
+        content = hprint.dedent(content)
+        # Call tested function.
+        act = hmarkdo.colorize_first_level_bullets(content)
+        # Check output.
+        exp = r"""
+        - \textcolor{red}{Item 1}
+          - Subitem 1.1
+          - Subitem 1.2
+        - \textcolor{orange}{Item 2}
+          - Subitem 2.1
+        """
+        self.assert_equal(act, exp, dedent=True)
