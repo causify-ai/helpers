@@ -638,7 +638,8 @@ def header_tree_to_str(
                 result.append(val)
             # Expand this node’s children using the rest of the ancestry.
             val = header_tree_to_str(
-                node.children, ancestry[1:], indent=indent + 1
+                node.children, ancestry[1:], indent=indent + 1,
+                open_modifier=open_modifier, close_modifier=close_modifier
             )
         else:
             # For nodes not on the selected branch, include them without
