@@ -28,7 +28,6 @@ import argparse
 import logging
 
 import helpers.hdbg as hdbg
-import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
 import helpers.hparser as hparser
 
@@ -73,11 +72,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
         input_content, max_level=args.max_level, sanity_check=sanity_check
     )
     if args.mode == "cfile":
-        output_content = hmarkdo.header_list_to_vim_cfile(in_file_name, header_list)
-    else:
-        output_content = hmarkdo.header_list_to_markdown(
-            header_list, args.mode
+        output_content = hmarkdo.header_list_to_vim_cfile(
+            in_file_name, header_list
         )
+    else:
+        output_content = hmarkdo.header_list_to_markdown(header_list, args.mode)
     hparser.write_file(output_content, out_file_name)
     #
     hmarkdo.check_header_list(header_list)

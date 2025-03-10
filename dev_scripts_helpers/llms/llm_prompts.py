@@ -1,5 +1,5 @@
 import logging
-from typing import Set
+from typing import cast, Set
 
 import helpers.hdbg as hdbg
 import helpers.hmarkdown as hmarkdo
@@ -31,6 +31,7 @@ def _run_all(user: str, system: str, model: str, transforms: Set[str]) -> str:
         len(transforms), 0, "Not all transforms were run: %s", transforms
     )
     hdbg.dassert_isinstance(ret, str)
+    ret = cast(str, ret)
     return ret
 
 
@@ -183,6 +184,7 @@ Print only the markdown without any explanation
     ret = _run_all(user, system, model, {"remove_code_delimiters"})
     return ret
 
+
 def slide_colorize_points(user: str, model: str) -> str:
     system = r"""
 You are a proficient technical writer and expert of machine learning.
@@ -195,6 +197,7 @@ Print only the markdown without any explanation
     """
     ret = _run_all(user, system, model, {"remove_code_delimiters"})
     return ret
+
 
 # #############################################################################
 

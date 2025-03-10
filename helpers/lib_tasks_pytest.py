@@ -9,7 +9,7 @@ import logging
 import os
 import re
 import sys
-from typing import Any, List, Optional, Tuple
+from typing import cast, Any, List, Optional, Tuple
 
 from invoke import task
 
@@ -1301,6 +1301,8 @@ def _run(
         output_file=output_file,
         tee=tee,
     )
+    # TODO(gp): Understand why linter is unhappy.
+    rc = cast(int, rc)
     return rc
 
 

@@ -1005,8 +1005,12 @@ class Test_pytest_failed1(hunitest.TestCase):
             hlitapyt._parse_failed_tests(txt, only_file, only_class)
         )
         act_failed_tests = "\n".join(act_failed_tests)
-        self.assert_equal(act_failed_tests, exp_failed_tests, dedent=True,
-            remove_lead_trail_empty_lines=True)
+        self.assert_equal(
+            act_failed_tests,
+            exp_failed_tests,
+            dedent=True,
+            remove_lead_trail_empty_lines=True,
+        )
         self.assertEqual(act_num_failed, exp_num_failed)
         self.assertEqual(act_num_passed, exp_num_passed)
 

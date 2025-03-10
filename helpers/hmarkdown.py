@@ -285,6 +285,8 @@ def extract_section_from_markdown(content: str, header_name: str) -> str:
             # Handle the end of the desired section when encountering another
             # header.
             if inside_section:
+                hdbg.dassert_is_not(current_level, None)
+                current_level = cast(int, current_level)
                 if header_level <= current_level:
                     break
             # Check if the current line is the desired header.
@@ -607,9 +609,12 @@ def _find_header_tree_ancestry(
 
 
 def header_tree_to_str(
-    tree: _HeaderTree, ancestry: Optional[_HeaderTree], *, 
-    open_modifier: str = "**", close_modifier: str = "**",
-    indent: int = 0
+    tree: _HeaderTree,
+    ancestry: Optional[_HeaderTree],
+    *,
+    open_modifier: str = "**",
+    close_modifier: str = "**",
+    indent: int = 0,
 ) -> str:
     """
     Return the tree as a string.
@@ -638,8 +643,11 @@ def header_tree_to_str(
                 result.append(val)
             # Expand this node’s children using the rest of the ancestry.
             val = header_tree_to_str(
-                node.children, ancestry[1:], indent=indent + 1,
-                open_modifier=open_modifier, close_modifier=close_modifier
+                node.children,
+                ancestry[1:],
+                indent=indent + 1,
+                open_modifier=open_modifier,
+                close_modifier=close_modifier,
             )
         else:
             # For nodes not on the selected branch, include them without
@@ -652,9 +660,12 @@ def header_tree_to_str(
 
 
 def selected_navigation_to_str(
-    tree: _HeaderTree, level: int, description: str,
+    tree: _HeaderTree,
+    level: int,
+    description: str,
     *,
-    open_modifier: str = "**", close_modifier: str = "**",
+    open_modifier: str = "**",
+    close_modifier: str = "**",
 ) -> str:
     """
     Given a level and description for the selected node, print the navigation.
@@ -668,7 +679,9 @@ def selected_navigation_to_str(
         description,
     )
     _LOG.debug(hprint.to_str("ancestry"))
-    txt = header_tree_to_str(tree, ancestry, open_modifier=open_modifier, close_modifier=close_modifier)
+    txt = header_tree_to_str(
+        tree, ancestry, open_modifier=open_modifier, close_modifier=close_modifier
+    )
     return txt
 
 
@@ -693,9 +706,7 @@ def colorize_first_level_bullets(markdown_text: str) -> str:
                 # Replace the bullet with a colored version.
                 # - \textcolor{red}{Linear models}
                 colored_line = re.sub(
-                    r"^(\s*-\s+)(.*)", 
-                    r"\1\\textcolor{" + color + r"}{\2}", 
-                    line
+                    r"^(\s*-\s+)(.*)", r"\1\\textcolor{" + color + r"}{\2}", line
                 )
                 result.append(colored_line)
                 color_index += 1

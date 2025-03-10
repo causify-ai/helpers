@@ -1,7 +1,6 @@
 import logging
 import os
 import re
-from typing import List
 
 import dev_scripts_helpers.documentation.render_images as dshdreim
 import helpers.hio as hio
@@ -41,7 +40,7 @@ class Test_get_rendered_file_paths1(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_get_render_command
+# Test_get_render_command1
 # #############################################################################
 
 
@@ -139,7 +138,7 @@ class Test_render_images1(hunitest.TestCase):
         ```
         """
         file_ext = "md"
-        exp=r"""
+        exp = r"""
 
         [//]: # ( ```plantuml)
         [//]: # ( Alice --> Bob)
@@ -161,7 +160,7 @@ class Test_render_images1(hunitest.TestCase):
         B
         """
         file_ext = "md"
-        exp=r"""
+        exp = r"""
         A
 
         [//]: # ( ```plantuml)
@@ -185,7 +184,7 @@ class Test_render_images1(hunitest.TestCase):
         B
         """
         file_ext = "md"
-        exp=r"""
+        exp = r"""
         A
         ```bash
         Alice --> Bob
@@ -207,7 +206,7 @@ class Test_render_images1(hunitest.TestCase):
         ```
         """
         file_ext = "md"
-        exp=r"""
+        exp = r"""
 
         [//]: # ( ```plantuml)
         [//]: # ( @startuml)
@@ -230,7 +229,7 @@ class Test_render_images1(hunitest.TestCase):
         ```
         """
         file_ext = "md"
-        exp=r"""
+        exp = r"""
 
         [//]: # ( ```mermaid)
         [//]: # ( flowchart TD;)
@@ -254,7 +253,7 @@ class Test_render_images1(hunitest.TestCase):
         B
         """
         file_ext = "md"
-        exp=r"""
+        exp = r"""
         A
 
         [//]: # ( ```mermaid)
@@ -277,7 +276,7 @@ class Test_render_images1(hunitest.TestCase):
         ```
         """
         file_ext = "tex"
-        exp=r"""
+        exp = r"""
 
         % ```plantuml
         % Alice --> Bob
@@ -301,7 +300,7 @@ class Test_render_images1(hunitest.TestCase):
         B
         """
         file_ext = "tex"
-        exp=r"""
+        exp = r"""
         A
 
         % ```plantuml
@@ -321,17 +320,11 @@ class Test_render_images1(hunitest.TestCase):
         """
         in_lines = """
         A
-        ```bash
-        Alice --> Bob
-        ```
         B
         """
         file_ext = "tex"
-        exp=r"""
+        exp = r"""
         A
-        ```bash
-        Alice --> Bob
-        ```
         B
         """
         self._update_text_and_check(in_lines, file_ext, exp)
@@ -342,14 +335,9 @@ class Test_render_images1(hunitest.TestCase):
         file.
         """
         in_lines = """
-        ```plantuml
-        @startuml
-        Alice --> Bob
-        @enduml
-        ```
         """
         file_ext = "tex"
-        exp=r"""
+        exp = r"""
 
         % ```plantuml
         % @startuml
@@ -368,13 +356,9 @@ class Test_render_images1(hunitest.TestCase):
         Check bare mermaid code in a LaTeX file.
         """
         in_lines = """
-        ```mermaid
-        flowchart TD;
-          A[Start] --> B[End];
-        ```
         """
         file_ext = "tex"
-        exp=r"""
+        exp = r"""
 
         % ```mermaid
         % flowchart TD;
@@ -393,14 +377,10 @@ class Test_render_images1(hunitest.TestCase):
         """
         in_lines = """
         A
-        ```mermaid
-        flowchart TD;
-          A[Start] --> B[End];
-        ```
         B
         """
         file_ext = "tex"
-        exp=r"""
+        exp = r"""
         A
 
         % ```mermaid

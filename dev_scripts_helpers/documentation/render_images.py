@@ -25,7 +25,7 @@ import argparse
 import logging
 import os
 import tempfile
-from typing import List, Tuple
+from typing import cast, List, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
@@ -92,6 +92,7 @@ def _get_puppeteer_config_path() -> str:
     # Pick the one closer to the current dir.
     path = sorted(paths_out.split("\n"))[0]
     hdbg.dassert_path_exists(path)
+    path = cast(str, path)
     return path
 
 
@@ -106,8 +107,8 @@ def _get_render_command(
     Create the command for rendering the image.
 
     :param code_file_path: path to the file with the image code
-    :param abs_img_dir_path: absolute path to the dir where the image will
-        be saved
+    :param abs_img_dir_path: absolute path to the dir where the image
+        will be saved
     :param rel_img_path: relative path to the image to be rendered
     :param dst_ext: extension of the rendered image, e.g., "svg", "png"
     :param image_code_type: type of the image code according to its
@@ -277,7 +278,7 @@ def _render_images(
             if out_file.endswith(".md") or out_file.endswith(".txt"):
                 # Use the Markdown syntax.
                 out_lines.append(f"![]({rel_img_path})")
-                #out_lines.append(f"![]({rel_img_path})" + "{height=60%}")
+                # out_lines.append(f"![]({rel_img_path})" + "{height=60%}")
             elif out_file.endswith(".tex"):
                 # Use the LaTeX syntax.
                 out_lines.append(r"\begin{figure}")
@@ -328,7 +329,7 @@ _ACTION_OPEN = "open"
 _ACTION_RENDER = "render"
 _VALID_ACTIONS = [_ACTION_OPEN, _ACTION_RENDER]
 # _DEFAULT_ACTIONS = [_ACTION_OPEN, _ACTION_RENDER]
-_DEFAULT_ACTIONS = []
+_DEFAULT_ACTIONS: List[str] = []
 
 
 def _parse() -> argparse.ArgumentParser:

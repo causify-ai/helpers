@@ -1453,8 +1453,10 @@ def run_dockerized_mermaid(
         is_caller_host=is_caller_host,
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
-    mermaid_cmd = (f"mmdc --puppeteerConfigFile {puppeteer_config_path}" +
-        f"-i {code_file_path} -o {img_path}")
+    mermaid_cmd = (
+        f"mmdc --puppeteerConfigFile {puppeteer_config_path}"
+        + f"-i {code_file_path} -o {img_path}"
+    )
     executable = get_docker_executable(use_sudo)
     docker_cmd = (
         f"{executable} run --rm --user $(id -u):$(id -g)"

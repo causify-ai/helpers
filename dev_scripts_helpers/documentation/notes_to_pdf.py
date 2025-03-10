@@ -131,8 +131,10 @@ def _preprocess_notes(args: argparse.Namespace, file_: str, prefix: str) -> str:
     exec_file = hgit.find_file("preprocess_notes.py")
     file1 = file_
     file2 = f"{prefix}.preprocess_notes.txt"
-    cmd = (f"{exec_file} --input {file1} --output {file2}" +
-        f" --type {args.type} --toc_type {args.toc_type}")
+    cmd = (
+        f"{exec_file} --input {file1} --output {file2}"
+        + f" --type {args.type} --toc_type {args.toc_type}"
+    )
     _ = _system(cmd)
     file_ = file2
     return file_
@@ -550,6 +552,8 @@ def _run_all(args: argparse.Namespace) -> None:
         _cleanup_after(prefix)
     # Save script, if needed.
     if args.script:
+        hdbg.dassert_is_not(_SCRIPT, None)
+        _SCRIPT = cast(List[str], _SCRIPT)
         txt = "\n".join(_SCRIPT)
         hio.to_file(args.script, txt)
         _LOG.info("Saved script into '%s'", args.script)

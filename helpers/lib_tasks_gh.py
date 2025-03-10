@@ -130,14 +130,16 @@ def _get_workflow_table() -> htable.TableType:
     table = htable.Table.from_text(cols, txt, delimiter="\t")
     _LOG.debug(hprint.to_str("table"))
     return table
-        
+
 
 def _print_table(table: htable.TableType) -> None:
     table_str = str(table)
     # Colorize the table.
     color_map = {"success": "green", "failure": "red", "in progress": "yellow"}
     for status, color in color_map.items():
-        table_str = table_str.replace(status, hprint.color_highlight(status, color))
+        table_str = table_str.replace(
+            status, hprint.color_highlight(status, color)
+        )
     # Report the full status.
     print(table_str)
 
@@ -308,7 +310,8 @@ def _get_repo_full_name_from_cmd(repo_short_name: str) -> Tuple[str, str]:
         )
         hdbg.dassert_eq(
             repo_full_name_with_host,
-            hrecouti.get_repo_config().get_repo_full_name_with_hostname())
+            hrecouti.get_repo_config().get_repo_full_name_with_hostname(),
+        )
         ret_repo_short_name = hrecouti.get_repo_config().get_repo_short_name()
     else:
         hdbg.dfatal("This code path is obsolete")
@@ -358,7 +361,7 @@ def _get_gh_issue_title(issue_id: int, repo_short_name: str) -> Tuple[str, str]:
         title = title.replace(char, "_")
     # Add the prefix `AmpTaskXYZ_...`
     task_prefix = hrecouti.get_repo_config().get_issue_prefix()
-    #task_prefix = hgit.get_task_prefix_from_repo_short_name(repo_short_name)
+    # task_prefix = hgit.get_task_prefix_from_repo_short_name(repo_short_name)
     _LOG.debug("task_prefix=%s", task_prefix)
     title = f"{task_prefix}{issue_id}_{title}"
     return title, url
@@ -808,4 +811,5 @@ def _gh_run_and_get_json(cmd: str) -> List[Dict[str, Any]]:
         # Remove the colors from the text.
         _txt = re.sub(r"\x1b\[((1;)*[0-9]{2})*m", "", _txt)
     _LOG.debug(hprint.to_str("_txt"))
-    return json.loads(_txt)
+    ret: List[Dict[str, Any]] = json.loads(_txt)
+    return ret

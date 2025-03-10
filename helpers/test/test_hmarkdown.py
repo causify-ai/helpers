@@ -436,7 +436,7 @@ class Test_extract_headers_from_markdown1(hunitest.TestCase):
         # Call function.
         act = hmarkdo.extract_headers_from_markdown(content, max_level=3)
         # Check output.
-        exp = []
+        exp: List[str] = []
         self.assert_equal(str(act), str(exp))
 
 
@@ -609,7 +609,7 @@ def _test_navigation_flow(
     )
 
 
-def _test_full_navigation_flow(self_: Any, txt: str) -> str:
+def _test_full_navigation_flow(self_: Any, txt: str) -> None:
     res: List[str] = []
     # Extract headers.
     header_list = hmarkdo.extract_headers_from_markdown(txt, max_level=3)
@@ -727,9 +727,12 @@ class Test_selected_navigation_to_str2(hunitest.TestCase):
 
 
 # #############################################################################
+# Test_colorize_first_level_bullets1
+# #############################################################################
 
 
 class Test_colorize_first_level_bullets1(hunitest.TestCase):
+
     def test1(self) -> None:
         # Prepare inputs.
         content = r"""
