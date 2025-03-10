@@ -16,6 +16,7 @@ import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 import helpers.lib_tasks as hlibtask
+import helpers.lib_tasks_gh as hlitagh
 import helpers.lib_tasks_utils as hlitauti
 
 _LOG = logging.getLogger(__name__)
@@ -307,8 +308,11 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
     def test_gh_create_pr1(self) -> None:
         with umock.patch.object(
             hgit, "get_branch_name", return_value="AmpTask1_test_branch"
+        ), umock.patch.object(
+            hlitagh, "_get_repo_full_name_from_cmd", 
+            return_value=("github.com/alphamatic/amp","amp")
         ):
-            target = "gh_create_pr(ctx, repo_short_name='amp', title='test')"
+            target = "gh_create_pr(ctx, title='test')"
             self._check_output(target)
 
     # TODO(ShaopengZ): Outside CK infra, the test hangs, so we skip it.
@@ -320,8 +324,11 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
     def test_gh_create_pr2(self) -> None:
         with umock.patch.object(
             hgit, "get_branch_name", return_value="AmpTask1_test_branch"
+        ), umock.patch.object(
+            hlitagh, "_get_repo_full_name_from_cmd", 
+            return_value=("github.com/alphamatic/amp","amp")
         ):
-            target = "gh_create_pr(ctx, body='hello_world', repo_short_name='amp', title='test')"
+            target = "gh_create_pr(ctx, body='hello_world', title='test')"
             self._check_output(target)
 
     # TODO(ShaopengZ): Outside CK infra, the test hangs, so we skip it.
@@ -333,8 +340,11 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
     def test_gh_create_pr3(self) -> None:
         with umock.patch.object(
             hgit, "get_branch_name", return_value="AmpTask1_test_branch"
+        ), umock.patch.object(
+            hlitagh, "_get_repo_full_name_from_cmd", 
+            return_value=("github.com/alphamatic/amp","amp")
         ):
-            target = "gh_create_pr(ctx, draft=False, repo_short_name='amp', title='test')"
+            target = "gh_create_pr(ctx, draft=False, title='test')"
             self._check_output(target)
 
     def test_gh_issue_title(self) -> None:
@@ -372,7 +382,7 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
     def test_git_branch_create2(self) -> None:
         # Difference between `cmamp` and `kaizenflow`.
         target = (
-            "git_branch_create(ctx, issue_id=1, repo_short_name='cmamp', "
+            "git_branch_create(ctx, issue_id=1, "
             "only_branch_from_master=False)"
         )
         self._check_output(target)
