@@ -579,8 +579,8 @@ def _get_aws_file_text(key_to_env_var: Dict[str, str]) -> List[str]:
 
     E.g.:
     ```
-    aws_access_key_id=***                   #gitleaks:allow
-    aws_secret_access_key=***               #gitleaks:allow  
+    aws_access_key_id=***                   # gitleaks:allow
+    aws_secret_access_key=***               # gitleaks:allow
     aws_s3_bucket=***
     ```
     :param key_to_env_var: aws settings names to the corresponding env
@@ -631,16 +631,16 @@ def _get_aws_credentials_text(aws_profile: str) -> str:
     # Check if AWS session token is set in environment variable.
     if f"{profile_prefix}_AWS_SESSION_TOKEN" in os.environ:
         key_to_env_var = {
-            "aws_access_key_id": f"{profile_prefix}_AWS_ACCESS_KEY_ID", #gitleaks:allow
-            "aws_secret_access_key": f"{profile_prefix}_AWS_SECRET_ACCESS_KEY", #gitleaks:allow
+            "aws_access_key_id": f"{profile_prefix}_AWS_ACCESS_KEY_ID",  # gitleaks:allow
+            "aws_secret_access_key": f"{profile_prefix}_AWS_SECRET_ACCESS_KEY",  # gitleaks:allow
             "aws_session_token": f"{profile_prefix}_AWS_SESSION_TOKEN",
             # TODO(heanh): Is this needed?
             "aws_s3_bucket": f"{profile_prefix}_AWS_S3_BUCKET",
         }
     else:
         key_to_env_var = {
-            "aws_access_key_id": f"{profile_prefix}_AWS_ACCESS_KEY_ID", #gitleaks:allow
-            "aws_secret_access_key": f"{profile_prefix}_AWS_SECRET_ACCESS_KEY", #gitleaks:allow
+            "aws_access_key_id": f"{profile_prefix}_AWS_ACCESS_KEY_ID",  # gitleaks:allow
+            "aws_secret_access_key": f"{profile_prefix}_AWS_SECRET_ACCESS_KEY",  # gitleaks:allow
             # TODO(heanh): Is this needed?
             "aws_s3_bucket": f"{profile_prefix}_AWS_S3_BUCKET",
         }
@@ -750,8 +750,8 @@ def get_aws_credentials(
     result: Dict[str, Optional[str]] = {}
     if f"{profile_prefix}_AWS_SESSION_TOKEN" in os.environ:
         key_to_env_var: Dict[str, str] = {
-            "aws_access_key_id": f"{profile_prefix}_AWS_ACCESS_KEY_ID", #gitleaks:allow
-            "aws_secret_access_key": f"{profile_prefix}_AWS_SECRET_ACCESS_KEY", #gitleaks:allow
+            "aws_access_key_id": f"{profile_prefix}_AWS_ACCESS_KEY_ID",  # gitleaks:allow
+            "aws_secret_access_key": f"{profile_prefix}_AWS_SECRET_ACCESS_KEY",  # gitleaks:allow
             "aws_session_token": f"{profile_prefix}_AWS_SESSION_TOKEN",
             # TODO(gp): AWS_DEFAULT_REGION -> AWS_REGION so we can use the invariant
             #  that the var is simply the capitalized version of the key.
@@ -759,8 +759,8 @@ def get_aws_credentials(
         }
     else:
         key_to_env_var: Dict[str, str] = {
-            "aws_access_key_id": f"{profile_prefix}_AWS_ACCESS_KEY_ID", #gitleaks:allow
-            "aws_secret_access_key": f"{profile_prefix}_AWS_SECRET_ACCESS_KEY", #gitleaks:allow
+            "aws_access_key_id": f"{profile_prefix}_AWS_ACCESS_KEY_ID",  # gitleaks:allow
+            "aws_secret_access_key": f"{profile_prefix}_AWS_SECRET_ACCESS_KEY",  # gitleaks:allow
             # TODO(gp): AWS_DEFAULT_REGION -> AWS_REGION so we can use the invariant
             #  that the var is simply the capitalized version of the key.
             "aws_region": f"{profile_prefix}_AWS_DEFAULT_REGION",
