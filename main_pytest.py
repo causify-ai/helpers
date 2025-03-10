@@ -93,10 +93,12 @@ def _run_test(runnable_dir: str, command: str) -> None:
     # devops and helpers directory.
     env = os.environ.copy()
     env["HELPERS_ROOT_DIR"] = os.path.join(os.getcwd(), "helpers_root")
-    env[
-        "PYTHONPATH"
-    ] = f"{os.path.join(os.getcwd(), runnable_dir)}:{env['HELPERS_ROOT_DIR']}"
-    result = subprocess.run(f"invoke {command}", shell=True, env=env, cwd=runnable_dir)
+    env["PYTHONPATH"] = (
+        f"{os.path.join(os.getcwd(), runnable_dir)}:{env['HELPERS_ROOT_DIR']}"
+    )
+    result = subprocess.run(
+        f"invoke {command}", shell=True, env=env, cwd=runnable_dir
+    )
     if result.returncode != 0:
         sys.exit(result.returncode)
 
