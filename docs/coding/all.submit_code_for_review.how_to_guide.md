@@ -13,6 +13,7 @@
   * [Ask for reviews](#ask-for-reviews)
   * [Do not use screenshots](#do-not-use-screenshots)
   * [Report bugs correctly](#report-bugs-correctly)
+  * [Stick to smaller PRs](#stick-to-smaller-prs)
 - [Talk through code and not GitHub](#talk-through-code-and-not-github)
 - [Look at examples of first reviews](#look-at-examples-of-first-reviews)
 
@@ -202,6 +203,11 @@ some helpful tips and resources to guide you through your first review.
   - Why the outcome is different from what you expected
   - E.g. on how to report any issues
     - Https://github.com/kaizen-ai/kaizenflow/issues/370#issue-1782574355
+
+### Stick to smaller PRs
+
+- It's better to push frequently and ask for feedback early to avoid large
+  refactoring
 
 ## Talk through code and not GitHub
 

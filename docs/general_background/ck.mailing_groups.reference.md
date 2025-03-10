@@ -32,11 +32,9 @@ For managing these mailing groups, please visit the Google Admin console
   - For engaging with contributors external to the company
   - It is moderated to ensure only relevant updates and communications are
     shared
-  - TODO emails from interns should be directed to this mailing group
 - `eng@kaizen-tech.io`
   - For the internal tech team coordination
-  - TODO emails from permanent team members and people on a 3-month trial period
-    should be directed to this mailing group
+  - All TODO emails should be directed to this mailing group
 - `hr@kaizen-tech.io`
   - For HR department for internal communications and announcements
 - `info@kaizen-tech.io`

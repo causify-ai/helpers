@@ -6,7 +6,6 @@
 - [HiringMeister](#hiringmeister)
 - [Step by step](#step-by-step)
 - [Warm-up tasks](#warm-up-tasks)
-- [Take-home message for interns](#take-home-message-for-interns)
 - [Intern scoring](#intern-scoring)
 
 <!-- tocstop -->
@@ -33,7 +32,10 @@
     probability of failing
   - Interns are managed only by the hiring team without any input from team
     leaders
-  - After 1 month, we make a decision whether the intern can move on to the
+  - Interns receive feedback on various skills every 2 weeks (see more
+    [below](#intern-scoring))
+  - After 1-2 months (or whenever we feel we have enough information to make an
+    informed decision), we decide whether the intern can move on to the
     following stage of the hiring pipeline
 - **3-month trial**
   - Before an intern can turn into a permanent team member, they go through a
@@ -43,6 +45,8 @@
   - They go through
     [full on-boarding](/docs/onboarding/all.onboarding_checklist.reference.md),
     receiving company e-mail, server access, access to private repos, etc.
+  - They receive feedback on various skills every month to make sure they are
+    adapting and improving in the way we expect
   - After 3 months, we make a decision whether to make an offer or not
     - The probability of failing at this stage should be low
   - This stage is run by the hiring team with some input from team leaders
@@ -59,15 +63,19 @@
 
 ## HiringMeister
 
-- Members of the hiring team iterate being the HiringMeister
+- Members of the hiring team alternate being the HiringMeister for 2 weeks
 - To see who is the HiringMeister now, refer to
   [Rotation Meisters](https://docs.google.com/spreadsheets/d/1Ab6a3BVeLX1l1B3_A6rNY9pHRsofeoCw2ip2dkQ6SdA)
 - HiringMeister's duties include:
   - Organizing the hiring and onboarding process (see [below](#step-by-step) for
     more details)
+  - Communicating with applicants by email
   - Supervising interns and people on a 3-month trial period
   - Keeping all the relevant documentation up-to-date
   - Improving the process when needed
+  - Managing the hiring project on Asana
+- In other words, HiringMeister is the first point of contact for triaging,
+  making sure nothing falls through the cracks
 
 ## Step by step
 
@@ -129,7 +137,10 @@
 
 - HiringMeister: regularly check the updates made by the intern in the
   onboarding issue and help resolve any errors they face
-  - The onboarding process should take 2-3 days max
+  - This "light" onboarding process should take 2-3 days max
+  - The goal is to make sure that all the mechanisms for developing are tested
+    and working, so that we can focus on the next stages ("can the intern fix a
+    simple bug?", "can the intern write more complex code?", etc.)
 
 - HiringMeister: once the onboarding is complete, assign a
   [warm-up issue](#warm-up-tasks) to the intern
@@ -149,8 +160,8 @@
   - Follow the instructions in
     [`all.onboarding_checklist.reference.md`](/docs/onboarding/all.onboarding_checklist.reference.md)
 
-- HiringMeister: once the onboarding is complete, organize more complex tasks to
-  test their development and problem-solving skills
+- HiringMeister: once the full onboarding is complete, organize more complex
+  tasks to test their development and problem-solving skills
   - This is done together with team leaders
 
 - Hiring team: after 3 months, decide whether we want to offer a permanent
@@ -183,20 +194,14 @@
   addressed quickly by the HiringMeister or another permanent team member
 - Warm-up tasks are collected in advance:
   - Issues marked with the "good first issue" label on GH
+    - Extremely simple (e.g., changing a few lines of code, converting Gdoc to
+      Markdown...)
+    - The goal is to practice following our procedure
+  - Issues marked with the "good second issue" label on GH
+    - Still simple but require a little bit more coding than the first issue
+    - The goal is to start testing the skills as well as confirm the
+      understanding of our process
   - [Outsourceable issues gdoc](https://docs.google.com/document/d/1uuezdmcsV9TG2YwXGvEd0PBgWScCpR-QPOcySI5LPIA/edit#heading=h.vcvkivfud7be)
-
-## Take-home message for interns
-
-- In the first couple of weeks we should try to ingrain the following flow into
-  the intern's mind:
-  - Instead of spending hours coding on their own, apply the following steps:
-    1. Identify a problem and describe it in the issue
-    2. Design solution or seek guidance from a more experienced team member
-    3. Communicate with the team and reach consensus on the solution
-    4. Write code
-  - Stick to smaller PRs
-    - It's very important to push frequently and ask for feedback early to avoid
-      large refactoring
 
 ## Intern scoring
 
