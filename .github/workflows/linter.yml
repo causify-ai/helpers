@@ -58,6 +58,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r .github/gh_requirements.txt
 
+      # Pull the `helpers:prod` Linter image to run the regressions with it.
+      - name: Pull helpers:prod image
+        if: github.event.pull_request.draft == false
+        env:
+          CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
+        run: invoke docker_pull_helpers
+
       # Run the linter, then check if any file was changed after that. If so,
       # fail the job.
       - name: Check if the Linter was run
@@ -79,7 +86,6 @@ jobs:
         # To run the linter, fetch the master branch for comparison with the
         # current branch.
         run: |
-          invoke docker_pull_helpers
           invoke git_fetch_master
           invoke lint --branch
           invoke lint_check_if_it_was_run
