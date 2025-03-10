@@ -8,6 +8,7 @@ import argparse
 import logging
 import os
 import subprocess
+import sys
 
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
@@ -95,7 +96,9 @@ def _run_test(runnable_dir: str, command: str) -> None:
     env[
         "PYTHONPATH"
     ] = f"{os.path.join(os.getcwd(), runnable_dir)}:{env['HELPERS_ROOT_DIR']}"
-    subprocess.run(f"invoke {command}", shell=True, env=env, cwd=runnable_dir)
+    result = subprocess.run(f"invoke {command}", shell=True, env=env, cwd=runnable_dir)
+    if result.returncode != 0:
+        sys.exit(result.returncode)
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
