@@ -24,7 +24,7 @@ import logging
 import os
 import re
 import sys
-from typing import Any, List, Optional, Tuple
+from typing import cast, Any, List, Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
@@ -79,7 +79,7 @@ def _mark_action(action: str, actions: List[str]) -> Tuple[bool, List[str]]:
     _report_phase(action)
     to_execute, actions = hparser.mark_action(action, actions)
     if not to_execute:
-        _append_script("# Skip")
+        _append_script("## skipping this action")
     return to_execute, actions
 
 
@@ -120,6 +120,7 @@ def _filter_by_header(file_: str, header: str, prefix: str) -> str:
 # #############################################################################
 
 
+# TODO(gp): Pass what's needed instead of args.
 def _preprocess_notes(args: argparse.Namespace, file_: str, prefix: str) -> str:
     """
     Pre-process the file.
@@ -143,6 +144,7 @@ def _preprocess_notes(args: argparse.Namespace, file_: str, prefix: str) -> str:
 # #############################################################################
 
 
+# TODO(gp): Pass what's needed instead of args.
 def _render_images(args: argparse.Namespace, file_: str, prefix: str) -> str:
     """
     Render images in the file.
@@ -218,6 +220,7 @@ _COMMON_PANDOC_OPTS = [
 # --filter pandoc-imagine
 
 
+# TODO(gp): Pass what's needed instead of args.
 def _run_pandoc_to_pdf(
     args: argparse.Namespace, curr_path: str, file_: str, prefix: str
 ) -> str:
@@ -225,11 +228,17 @@ def _run_pandoc_to_pdf(
     Convert the input file to PDF using Pandoc.
 
     :param args: The command-line arguments
-    :param curr_path: The current path where the script is located
+    :param curr_path: The current path where the script is located. 
+        E.g., '/app/helpers_root/dev_scripts_helpers/documentation'
+        This is used to reference files with respect to the script location
+        (e.g., `pandoc.latex`)
     :param file_: The input file to be converted
+        E.g., '/app/helpers_root/tmp.notes_to_pdf.render_image2.txt'
     :param prefix: The prefix used for the output file
+        E.g., '/app/helpers_root/tmp.notes_to_pdf'
     :return: The path to the generated PDF file
     """
+    _LOG.debug(hprint.func_signature_to_str("args"))
     file1 = file_
     # - Run pandoc.
     cmd = []
@@ -281,13 +290,15 @@ def _run_pandoc_to_pdf(
     _ = _system(cmd)
     #
     cmd = ""
+    # There is a horrible bug in pdflatex that if the input file is not the last
+    # one the output directory is not recognized.
     cmd += (
         "pdflatex"
-        + f" {file_}"
         + f" -output-directory {out_dir}"
         + " -interaction=nonstopmode"
         + " -halt-on-error"
         + " -shell-escape"
+        + f" {file_}"
     )
     _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
     if not args.use_host_tools:
@@ -298,11 +309,13 @@ def _run_pandoc_to_pdf(
     _report_phase("latex again")
     if not args.no_run_latex_again:
         _ = _system(cmd, suppress_output=False)
-        # _run_latex(cmd, file_, out_dir)
     else:
         _LOG.warning("Skipping: run latex again")
-    #
+    # Remove `latex_abbrevs.sty`.
+    os.remove("latex_abbrevs.sty")
+    # Get the path of the output file created by Latex.
     file_out = os.path.basename(file_).replace(".tex", ".pdf")
+    file_out = os.path.join(out_dir, file_out)
     _LOG.debug("file_out=%s", file_out)
     hdbg.dassert_path_exists(file_out)
     return file_out
@@ -339,6 +352,7 @@ def _run_pandoc_to_html(
     return file_out
 
 
+# TODO(gp): Pass what's needed instead of args.
 def _build_pandoc_cmd(
     args: argparse.Namespace, file_: str, *, use_tex: bool = False
 ) -> Tuple[str, str]:
@@ -376,6 +390,7 @@ def _build_pandoc_cmd(
     return cmd, file_out
 
 
+# TODO(gp): Pass what's needed instead of args.
 def _run_pandoc_to_slides(
     args: argparse.Namespace, file_: str, *, debug: bool = False
 ) -> str:
@@ -423,6 +438,7 @@ def _run_pandoc_to_slides(
 # #############################################################################
 
 
+# TODO(gp): Pass what's needed instead of args.
 def _copy_to_output(args: argparse.Namespace, file_in: str, prefix: str) -> str:
     """
     Copy the processed file to the output location.
@@ -436,6 +452,7 @@ def _copy_to_output(args: argparse.Namespace, file_in: str, prefix: str) -> str:
         _LOG.debug("Using file_out from command line")
         file_out = args.output
     else:
+        assert 0
         _LOG.debug("Leaving file_out in the tmp dir")
         file_out = f"{prefix}.{os.path.basename(args.input)}.{args.type}"
     _LOG.debug("file_out=%s", file_out)
@@ -444,6 +461,7 @@ def _copy_to_output(args: argparse.Namespace, file_in: str, prefix: str) -> str:
     return file_out  # type: ignore
 
 
+# TODO(gp): Pass what's needed instead of args.
 def _copy_to_gdrive(args: argparse.Namespace, file_name: str, ext: str) -> None:
     """
     Copy the processed file to Google Drive.
@@ -488,7 +506,7 @@ def _run_all(args: argparse.Namespace) -> None:
     _LOG.info("\n%s", actions_as_str)
     if args.preview_actions:
         return
-    #
+    # E.g., curr_path='/app/helpers_root/dev_scripts_helpers/documentation'
     curr_path = os.path.abspath(os.path.dirname(sys.argv[0]))
     _LOG.debug("curr_path=%s", curr_path)
     #
@@ -499,7 +517,11 @@ def _run_all(args: argparse.Namespace) -> None:
     #
     file_ = args.input
     hdbg.dassert_path_exists(file_)
-    prefix = os.path.abspath("tmp.notes_to_pdf")
+    # E.g., prefix='/app/helpers_root/tmp.notes_to_pdf'
+    out_dir = os.path.abspath(os.path.dirname(args.output))
+    hio.create_dir(out_dir, incremental=True)
+    prefix = os.path.join(out_dir, "tmp.notes_to_pdf")
+    _LOG.debug("prefix=%s", prefix)
     # - Cleanup_before
     action = "cleanup_before"
     to_execute, actions = _mark_action(action, actions)
@@ -508,6 +530,7 @@ def _run_all(args: argparse.Namespace) -> None:
     # - Filter
     if args.filter_by_header:
         file_ = _filter_by_header(file_, args.filter_by_header, prefix)
+    # E.g., file_='/app/helpers_root/tmp.notes_to_pdf.render_image2.txt'
     # - Preprocess_notes
     action = "preprocess_notes"
     to_execute, actions = _mark_action(action, actions)
@@ -596,17 +619,19 @@ def _parse() -> argparse.ArgumentParser:
         "--output",
         action="store",
         type=str,
-        default=None,
+        required=True,
         help="Output file",
     )
+    # # TODO(gp): Remove this. We want to save the tmp files in the output dir.
+    # parser.add_argument(
+    #     "--tmp_dir",
+    #     action="store",
+    #     type=str,
+    #     default="tmp.notes_to_pdf",
+    #     help="Directory where to save artifacts",
+    # )
     parser.add_argument(
-        "--tmp_dir",
-        action="store",
-        type=str,
-        default="tmp.notes_to_pdf",
-        help="Directory where to save artifacts",
-    )
-    parser.add_argument(
+        # TODO(gp): Remove this.
         "-t",
         "--type",
         required=True,
@@ -618,28 +643,22 @@ def _parse() -> argparse.ArgumentParser:
         "-f", "--filter_by_header", action="store", help="Filter by header"
     )
     parser.add_argument(
-        "-n",
         "--filter_by_lines",
         action="store",
         help="Filter by lines (e.g., `1-10`)",
     )
+    # TODO(gp): -> out_action_script
     parser.add_argument(
         "--script",
         action="store",
         default="tmp.notes_to_pdf.sh",
-        help="Bash script to generate",
+        help="Bash script to generate with all the executed sub-commands",
     )
     parser.add_argument(
         "--preview_actions",
         action="store_true",
         default=False,
         help="Print the actions and exit",
-    )
-    parser.add_argument(
-        "--use_host_tools",
-        action="store_true",
-        default=False,
-        help="Use the host tools instead of the dockerized ones",
     )
     parser.add_argument(
         "--toc_type",
@@ -656,6 +675,12 @@ def _parse() -> argparse.ArgumentParser:
         action="store",
         default=None,
         help="Directory where to save the output to share on Google Drive",
+    )
+    parser.add_argument(
+        "--use_host_tools",
+        action="store_true",
+        default=False,
+        help="Use the host tools instead of the dockerized ones",
     )
     hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hparser.add_dockerized_script_arg(parser)

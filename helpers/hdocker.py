@@ -1020,12 +1020,12 @@ def convert_latex_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
     # The first option is the executable.
     hdbg.dassert_eq(cmd[0], "pdflatex")
     # We assume that the first option is always the input file.
-    in_file_path = cmd[1]
+    in_file_path = cmd[-1]
     hdbg.dassert(
         not in_file_path.startswith("-"), "Invalid input file '%s'", in_file_path
     )
     hdbg.dassert_file_exists(in_file_path)
-    cmd = cmd[2:]
+    cmd = cmd[1:-1]
     _LOG.debug(hprint.to_str("cmd"))
     #
     parser = argparse.ArgumentParser()
@@ -1054,7 +1054,7 @@ def convert_latex_arguments_to_cmd(
     """
     Convert parsed pandoc arguments back to a command string.
 
-    This function takes the parsed pandoc arguments and converts them
+    This function takes the parsed latex arguments and converts them
     back into a command string that can be executed directly or in a
     Dockerized container.
 
@@ -1064,7 +1064,6 @@ def convert_latex_arguments_to_cmd(
     hdbg.dassert_is_subset(
         params.keys(), ["input", "output-directory", "in_dir_params", "cmd_opts"]
     )
-    cmd.append(f'{params["input"]}')
     key = "output-directory"
     value = params[key]
     cmd.append(f"-{key} {value}")
@@ -1074,6 +1073,9 @@ def convert_latex_arguments_to_cmd(
     #
     hdbg.dassert_isinstance(params["cmd_opts"], list)
     cmd.append(" ".join(params["cmd_opts"]))
+    # The input needs to be last to work around the bug in pdflatex where the
+    # options before the input file are not always parsed correctly.
+    cmd.append(f'{params["input"]}')
     #
     cmd = " ".join(cmd)
     _LOG.debug(hprint.to_str("cmd"))
