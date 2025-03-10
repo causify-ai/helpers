@@ -3,6 +3,7 @@ import os
 import re
 
 import dev_scripts_helpers.documentation.render_images as dshdreim
+import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
@@ -132,7 +133,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         Check bare plantUML code in a Markdown file.
         """
-        in_lines = """
+        in_lines = r"""
         ```plantuml
         Alice --> Bob
         ```
@@ -146,13 +147,13 @@ class Test_render_images1(hunitest.TestCase):
 
         ![](figs/out.1.png)
         """
-        self._update_text_and_check(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, exp)
 
     def test2(self) -> None:
         """
         Check plantUML code within other text in a Markdown file.
         """
-        in_lines = """
+        in_lines = r"""
         A
         ```plantuml
         Alice --> Bob
@@ -170,13 +171,13 @@ class Test_render_images1(hunitest.TestCase):
         ![](figs/out.1.png)
         B
         """
-        self._update_text_and_check(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, exp)
 
     def test3(self) -> None:
         """
         Check text without image code in a Markdown file.
         """
-        in_lines = """
+        in_lines = r"""
         A
         ```bash
         Alice --> Bob
@@ -191,14 +192,14 @@ class Test_render_images1(hunitest.TestCase):
         ```
         B
         """
-        self._update_text_and_check(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, exp)
 
     def test4(self) -> None:
         """
         Check plantUML code that is already correctly formatted in a Markdown
         file.
         """
-        in_lines = """
+        in_lines = r"""
         ```plantuml
         @startuml
         Alice --> Bob
@@ -216,13 +217,13 @@ class Test_render_images1(hunitest.TestCase):
 
         ![](figs/out.1.png)
         """
-        self._update_text_and_check(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, exp)
 
     def test5(self) -> None:
         """
         Check bare mermaid code in a Markdown file.
         """
-        in_lines = """
+        in_lines = r"""
         ```mermaid
         flowchart TD;
           A[Start] --> B[End];
@@ -238,13 +239,13 @@ class Test_render_images1(hunitest.TestCase):
 
         ![](figs/out.1.png)
         """
-        self._update_text_and_check(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, exp)
 
     def test6(self) -> None:
         """
         Check mermaid code within other text in a Markdown file.
         """
-        in_lines = """
+        in_lines = r"""
         A
         ```mermaid
         flowchart TD;
@@ -264,13 +265,13 @@ class Test_render_images1(hunitest.TestCase):
         ![](figs/out.1.png)
         B
         """
-        self._update_text_and_check(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, exp)
 
     def test7(self) -> None:
         """
         Check bare plantUML code in a LaTeX file.
         """
-        in_lines = """
+        in_lines = r"""
         ```plantuml
         Alice --> Bob
         ```
@@ -286,13 +287,13 @@ class Test_render_images1(hunitest.TestCase):
           \includegraphics[width=\linewidth]{figs/out.1.png}
         \end{figure}
         """
-        self._update_text_and_check(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, exp)
 
     def test8(self) -> None:
         """
         Check plantUML code within other text in a LaTeX file.
         """
-        in_lines = """
+        in_lines = r"""
         A
         ```plantuml
         Alice --> Bob
@@ -312,13 +313,13 @@ class Test_render_images1(hunitest.TestCase):
         \end{figure}
         B
         """
-        self._update_text_and_check(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, exp)
 
     def test9(self) -> None:
         """
         Check text without image code in a LaTeX file.
         """
-        in_lines = """
+        in_lines = r"""
         A
         B
         """
@@ -327,14 +328,19 @@ class Test_render_images1(hunitest.TestCase):
         A
         B
         """
-        self._update_text_and_check(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, exp)
 
     def test10(self) -> None:
         """
         Check plantUML code that is already correctly formatted in a LaTeX
         file.
         """
-        in_lines = """
+        in_lines = r"""
+        ```plantuml
+        @startuml
+        Alice --> Bob
+        @enduml
+        ```
         """
         file_ext = "tex"
         exp = r"""
@@ -349,13 +355,17 @@ class Test_render_images1(hunitest.TestCase):
           \includegraphics[width=\linewidth]{figs/out.1.png}
         \end{figure}
         """
-        self._update_text_and_check(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, exp)
 
     def test11(self) -> None:
         """
         Check bare mermaid code in a LaTeX file.
         """
-        in_lines = """
+        in_lines = r"""
+        ```mermaid
+        flowchart TD;
+          A[Start] --> B[End];
+        ```
         """
         file_ext = "tex"
         exp = r"""
@@ -369,14 +379,18 @@ class Test_render_images1(hunitest.TestCase):
           \includegraphics[width=\linewidth]{figs/out.1.png}
         \end{figure}
         """
-        self._update_text_and_check(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, exp)
 
     def test12(self) -> None:
         """
         Check mermaid code within other text in a LaTeX file.
         """
-        in_lines = """
+        in_lines = r"""
         A
+        ```mermaid
+        flowchart TD;
+          A[Start] --> B[End];
+        ```
         B
         """
         file_ext = "tex"
@@ -393,11 +407,11 @@ class Test_render_images1(hunitest.TestCase):
         \end{figure}
         B
         """
-        self._update_text_and_check(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, exp)
 
     # ///////////////////////////////////////////////////////////////////////////
 
-    def _update_text_and_check(self, txt: str, file_ext: str, exp: str) -> None:
+    def helper(self, txt: str, file_ext: str, exp: str) -> None:
         """
         Check that the text is updated correctly.
 
@@ -414,6 +428,7 @@ class Test_render_images1(hunitest.TestCase):
         )
         # Check output.
         act = "\n".join(out_lines)
+        hdbg.dassert_ne(act, "")
         exp = hprint.dedent(exp)
         self.assert_equal(act, exp, remove_lead_trail_empty_lines=True)
 
