@@ -449,80 +449,31 @@ class Test_render_images2(hunitest.TestCase):
         """
         Test running on a real Markdown file with plantUML code.
         """
-        # Define input variables.
-        file_name = "im_architecture.md"
-        in_file = os.path.join(self.get_input_dir(), file_name)
-        in_lines = hio.from_file(in_file).split("\n")
-        out_file = os.path.join(self.get_scratch_space(), file_name)
-        dst_ext = "png"
-        run_dockerized = True
-        dry_run = True
-        # Call function to test.
-        out_lines = dshdreim._render_images(
-            in_lines=in_lines,
-            out_file=out_file,
-            dst_ext=dst_ext,
-            run_dockerized=run_dockerized,
-            dry_run=dry_run,
-        )
-        act = "\n".join(out_lines)
-        # Check output.
-        self.check_string(act)
+        self._test_render_images("im_architecture.md")
 
     def test2(self) -> None:
         """
         Test running on a real Markdown file with mermaid code.
         """
-        # Define input variables.
-        file_name = "runnable_repo.md"
-        in_file = os.path.join(self.get_input_dir(), file_name)
-        in_lines = hio.from_file(in_file).split("\n")
-        out_file = os.path.join(self.get_scratch_space(), file_name)
-        dst_ext = "png"
-        run_dockerized = True
-        dry_run = True
-        # Call function to test.
-        out_lines = dshdreim._render_images(
-            in_lines=in_lines,
-            out_file=out_file,
-            dst_ext=dst_ext,
-            run_dockerized=run_dockerized,
-            dry_run=dry_run,
-        )
-        act = "\n".join(out_lines)
-        # Check output.
-        self.check_string(act)
+        self._test_render_images("runnable_repo.md")
 
     def test3(self) -> None:
         """
         Test running on a full LaTeX file with plantUML code.
         """
-        # Define input variables.
-        file_name = "sample_file_plantuml.tex"
-        in_file = os.path.join(self.get_input_dir(), file_name)
-        in_lines = hio.from_file(in_file).split("\n")
-        out_file = os.path.join(self.get_scratch_space(), file_name)
-        dst_ext = "png"
-        run_dockerized = True
-        dry_run = True
-        # Call function to test.
-        out_lines = dshdreim._render_images(
-            in_lines=in_lines,
-            out_file=out_file,
-            dst_ext=dst_ext,
-            run_dockerized=run_dockerized,
-            dry_run=dry_run,
-        )
-        act = "\n".join(out_lines)
-        # Check output.
-        self.check_string(act)
+        self._test_render_images("sample_file_plantuml.tex")
 
     def test4(self) -> None:
         """
         Test running on a full LaTeX file with mermaid code.
         """
+        self._test_render_images("sample_file_mermaid.tex")
+
+    def _test_render_images(self, file_name: str) -> None:
+        """
+        Helper function to test rendering images from a file.
+        """
         # Define input variables.
-        file_name = "sample_file_mermaid.tex"
         in_file = os.path.join(self.get_input_dir(), file_name)
         in_lines = hio.from_file(in_file).split("\n")
         out_file = os.path.join(self.get_scratch_space(), file_name)
@@ -531,12 +482,12 @@ class Test_render_images2(hunitest.TestCase):
         dry_run = True
         # Call function to test.
         out_lines = dshdreim._render_images(
-            in_lines=in_lines,
-            out_file=out_file,
-            dst_ext=dst_ext,
-            run_dockerized=run_dockerized,
-            dry_run=dry_run,
+            in_lines,
+            out_file,
+            dst_ext,
+            run_dockerized,
+            dry_run,
         )
         act = "\n".join(out_lines)
         # Check output.
-        self.assert_equal(act)
+        self.check_string(act)
