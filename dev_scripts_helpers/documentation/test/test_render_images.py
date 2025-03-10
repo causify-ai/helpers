@@ -12,13 +12,13 @@ _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
-# Test_get_rendered_file_paths
+# Test_get_rendered_file_paths1
 # #############################################################################
 
 
-class Test_get_rendered_file_paths(hunitest.TestCase):
+class Test_get_rendered_file_paths1(hunitest.TestCase):
 
-    def test_get_rendered_file_paths1(self) -> None:
+    def test1(self) -> None:
         """
         Check generation of file paths for rendering images.
         """
@@ -35,8 +35,9 @@ class Test_get_rendered_file_paths(hunitest.TestCase):
         exp = """
         e.8.txt
         /a/b/c/d/figs
-        figs/e.8.png"""
-        self.assert_equal(act, exp)
+        figs/e.8.png
+        """
+        self.assert_equal(act, exp, dedent=True)
 
 
 # #############################################################################
@@ -44,7 +45,7 @@ class Test_get_rendered_file_paths(hunitest.TestCase):
 # #############################################################################
 
 
-class Test_get_render_command(hunitest.TestCase):
+class Test_get_render_command1(hunitest.TestCase):
 
     def test1(self) -> None:
         """
@@ -65,7 +66,7 @@ class Test_get_render_command(hunitest.TestCase):
             image_code_type,
         )
         # Check output.
-        exp = ""
+        exp = r"""plantuml -t png -o /d/e/f /a/b/c.txt"""
         self.assert_equal(cmd, exp)
 
     def test2(self) -> None:
@@ -113,7 +114,7 @@ class Test_get_render_command(hunitest.TestCase):
         cmd = re.sub(
             r"--puppeteerConfigFile [\w\.\/]+", r"--puppeteerConfigFile <>", cmd
         )
-        exp = ""
+        exp = r"""mmdc --puppeteerConfigFile <> -i /a/b/c.txt -o figs/e.8.png"""
         self.assert_equal(cmd, exp)
 
 
@@ -138,7 +139,15 @@ class Test_render_images1(hunitest.TestCase):
         ```
         """
         file_ext = "md"
-        self._update_text_and_check(in_lines, file_ext)
+        exp=r"""
+
+        [//]: # ( ```plantuml)
+        [//]: # ( Alice --> Bob)
+        [//]: # ( ```)
+
+        ![](figs/out.1.png)
+        """
+        self._update_text_and_check(in_lines, file_ext, exp)
 
     def test2(self) -> None:
         """
@@ -152,7 +161,17 @@ class Test_render_images1(hunitest.TestCase):
         B
         """
         file_ext = "md"
-        self._update_text_and_check(in_lines, file_ext)
+        exp=r"""
+        A
+
+        [//]: # ( ```plantuml)
+        [//]: # ( Alice --> Bob)
+        [//]: # ( ```)
+
+        ![](figs/out.1.png)
+        B
+        """
+        self._update_text_and_check(in_lines, file_ext, exp)
 
     def test3(self) -> None:
         """
@@ -166,7 +185,14 @@ class Test_render_images1(hunitest.TestCase):
         B
         """
         file_ext = "md"
-        self._update_text_and_check(in_lines, file_ext)
+        exp=r"""
+        A
+        ```bash
+        Alice --> Bob
+        ```
+        B
+        """
+        self._update_text_and_check(in_lines, file_ext, exp)
 
     def test4(self) -> None:
         """
@@ -181,7 +207,17 @@ class Test_render_images1(hunitest.TestCase):
         ```
         """
         file_ext = "md"
-        self._update_text_and_check(in_lines, file_ext)
+        exp=r"""
+
+        [//]: # ( ```plantuml)
+        [//]: # ( @startuml)
+        [//]: # ( Alice --> Bob)
+        [//]: # ( @enduml)
+        [//]: # ( ```)
+
+        ![](figs/out.1.png)
+        """
+        self._update_text_and_check(in_lines, file_ext, exp)
 
     def test5(self) -> None:
         """
@@ -194,7 +230,16 @@ class Test_render_images1(hunitest.TestCase):
         ```
         """
         file_ext = "md"
-        self._update_text_and_check(in_lines, file_ext)
+        exp=r"""
+
+        [//]: # ( ```mermaid)
+        [//]: # ( flowchart TD;)
+        [//]: # (   A[Start] --> B[End];)
+        [//]: # ( ```)
+
+        ![](figs/out.1.png)
+        """
+        self._update_text_and_check(in_lines, file_ext, exp)
 
     def test6(self) -> None:
         """
@@ -209,7 +254,18 @@ class Test_render_images1(hunitest.TestCase):
         B
         """
         file_ext = "md"
-        self._update_text_and_check(in_lines, file_ext)
+        exp=r"""
+        A
+
+        [//]: # ( ```mermaid)
+        [//]: # ( flowchart TD;)
+        [//]: # (   A[Start] --> B[End];)
+        [//]: # ( ```)
+
+        ![](figs/out.1.png)
+        B
+        """
+        self._update_text_and_check(in_lines, file_ext, exp)
 
     def test7(self) -> None:
         """
@@ -221,7 +277,17 @@ class Test_render_images1(hunitest.TestCase):
         ```
         """
         file_ext = "tex"
-        self._update_text_and_check(in_lines, file_ext)
+        exp=r"""
+
+        % ```plantuml
+        % Alice --> Bob
+        % ```
+
+        \begin{figure}
+          \includegraphics[width=\linewidth]{figs/out.1.png}
+        \end{figure}
+        """
+        self._update_text_and_check(in_lines, file_ext, exp)
 
     def test8(self) -> None:
         """
@@ -235,7 +301,19 @@ class Test_render_images1(hunitest.TestCase):
         B
         """
         file_ext = "tex"
-        self._update_text_and_check(in_lines, file_ext)
+        exp=r"""
+        A
+
+        % ```plantuml
+        % Alice --> Bob
+        % ```
+
+        \begin{figure}
+          \includegraphics[width=\linewidth]{figs/out.1.png}
+        \end{figure}
+        B
+        """
+        self._update_text_and_check(in_lines, file_ext, exp)
 
     def test9(self) -> None:
         """
@@ -249,7 +327,14 @@ class Test_render_images1(hunitest.TestCase):
         B
         """
         file_ext = "tex"
-        self._update_text_and_check(in_lines, file_ext)
+        exp=r"""
+        A
+        ```bash
+        Alice --> Bob
+        ```
+        B
+        """
+        self._update_text_and_check(in_lines, file_ext, exp)
 
     def test10(self) -> None:
         """
@@ -264,7 +349,19 @@ class Test_render_images1(hunitest.TestCase):
         ```
         """
         file_ext = "tex"
-        self._update_text_and_check(in_lines, file_ext)
+        exp=r"""
+
+        % ```plantuml
+        % @startuml
+        % Alice --> Bob
+        % @enduml
+        % ```
+
+        \begin{figure}
+          \includegraphics[width=\linewidth]{figs/out.1.png}
+        \end{figure}
+        """
+        self._update_text_and_check(in_lines, file_ext, exp)
 
     def test11(self) -> None:
         """
@@ -277,7 +374,18 @@ class Test_render_images1(hunitest.TestCase):
         ```
         """
         file_ext = "tex"
-        self._update_text_and_check(in_lines, file_ext)
+        exp=r"""
+
+        % ```mermaid
+        % flowchart TD;
+        %   A[Start] --> B[End];
+        % ```
+
+        \begin{figure}
+          \includegraphics[width=\linewidth]{figs/out.1.png}
+        \end{figure}
+        """
+        self._update_text_and_check(in_lines, file_ext, exp)
 
     def test12(self) -> None:
         """
@@ -292,11 +400,24 @@ class Test_render_images1(hunitest.TestCase):
         B
         """
         file_ext = "tex"
-        self._update_text_and_check(in_lines, file_ext)
+        exp=r"""
+        A
+
+        % ```mermaid
+        % flowchart TD;
+        %   A[Start] --> B[End];
+        % ```
+
+        \begin{figure}
+          \includegraphics[width=\linewidth]{figs/out.1.png}
+        \end{figure}
+        B
+        """
+        self._update_text_and_check(in_lines, file_ext, exp)
 
     # ///////////////////////////////////////////////////////////////////////////
 
-    def _update_text_and_check(self, txt: str, file_ext: str) -> None:
+    def _update_text_and_check(self, txt: str, file_ext: str, exp: str) -> None:
         """
         Check that the text is updated correctly.
 
@@ -313,7 +434,8 @@ class Test_render_images1(hunitest.TestCase):
         )
         # Check output.
         act = "\n".join(out_lines)
-        self.check_string(act)
+        exp = hprint.dedent(exp)
+        self.assert_equal(act, exp, remove_lead_trail_empty_lines=True)
 
 
 # #############################################################################
@@ -417,4 +539,4 @@ class Test_render_images2(hunitest.TestCase):
         )
         act = "\n".join(out_lines)
         # Check output.
-        self.check_string(act)
+        self.assert_equal(act)

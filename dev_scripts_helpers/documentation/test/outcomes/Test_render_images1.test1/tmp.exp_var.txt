@@ -1,0 +1,6 @@
+exp = r"""
+[//]: # ( ```plantuml)
+[//]: # ( Alice --> Bob)
+[//]: # ( ```)
+
+![](figs/out.1.png)"""
