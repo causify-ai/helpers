@@ -36,6 +36,11 @@ def _get_default_params() -> Dict[str, str]:
     return default_params
 
 
+# #############################################################################
+# _LibTasksTestCase
+# #############################################################################
+
+
 class _LibTasksTestCase(hunitest.TestCase):
     """
     Test class injecting default parameters in the `lib_tasks` singleton in
@@ -72,6 +77,11 @@ def _build_mock_context_returning_ok() -> invoke.MockContext:
     return ctx
 
 
+# #############################################################################
+# _CheckDryRunTestCase
+# #############################################################################
+
+
 class _CheckDryRunTestCase(hunitest.TestCase):
     """
     Test class running an invoke target with/without dry-run and checking that
@@ -106,6 +116,11 @@ class _CheckDryRunTestCase(hunitest.TestCase):
 # TODO(gp): We should group the tests by what is tested and not how it's
 # tested. E.g. TestDryRunTasks1::test_print_setup and
 # TestDryRunTasks2::test_print_setup should go together in a class.
+
+
+# #############################################################################
+# TestDryRunTasks1
+# #############################################################################
 
 
 class TestDryRunTasks1(hunitest.TestCase):
@@ -223,6 +238,11 @@ class TestDryRunTasks1(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# TestDryRunTasks2
+# #############################################################################
+
+
 # Outside CK infra, the class hangs, so we skip it.
 @pytest.mark.requires_ck_infra
 @pytest.mark.slow(reason="Around 7s")
@@ -309,8 +329,9 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
         with umock.patch.object(
             hgit, "get_branch_name", return_value="AmpTask1_test_branch"
         ), umock.patch.object(
-            hlitagh, "_get_repo_full_name_from_cmd", 
-            return_value=("github.com/alphamatic/amp","amp")
+            hlitagh,
+            "_get_repo_full_name_from_cmd",
+            return_value=("github.com/alphamatic/amp", "amp"),
         ):
             target = "gh_create_pr(ctx, title='test')"
             self._check_output(target)
@@ -325,8 +346,9 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
         with umock.patch.object(
             hgit, "get_branch_name", return_value="AmpTask1_test_branch"
         ), umock.patch.object(
-            hlitagh, "_get_repo_full_name_from_cmd", 
-            return_value=("github.com/alphamatic/amp","amp")
+            hlitagh,
+            "_get_repo_full_name_from_cmd",
+            return_value=("github.com/alphamatic/amp", "amp"),
         ):
             target = "gh_create_pr(ctx, body='hello_world', title='test')"
             self._check_output(target)
@@ -341,8 +363,9 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
         with umock.patch.object(
             hgit, "get_branch_name", return_value="AmpTask1_test_branch"
         ), umock.patch.object(
-            hlitagh, "_get_repo_full_name_from_cmd", 
-            return_value=("github.com/alphamatic/amp","amp")
+            hlitagh,
+            "_get_repo_full_name_from_cmd",
+            return_value=("github.com/alphamatic/amp", "amp"),
         ):
             target = "gh_create_pr(ctx, draft=False, title='test')"
             self._check_output(target)
@@ -382,8 +405,7 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
     def test_git_branch_create2(self) -> None:
         # Difference between `cmamp` and `kaizenflow`.
         target = (
-            "git_branch_create(ctx, issue_id=1, "
-            "only_branch_from_master=False)"
+            "git_branch_create(ctx, issue_id=1, " "only_branch_from_master=False)"
         )
         self._check_output(target)
 
@@ -480,6 +502,11 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
 # - lint
 
 
+# #############################################################################
+
+
+# #############################################################################
+# TestFailing
 # #############################################################################
 
 
