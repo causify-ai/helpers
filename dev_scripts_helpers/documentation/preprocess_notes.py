@@ -112,6 +112,7 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
     :return: List of lines of the notes.
     """
     _LOG.debug("\n%s", hprint.frame("Add navigation slides"))
+    hdbg.dassert_isinstance(txt, str)
     lines = [line.rstrip("\n") for line in txt.split("\n")]
     out: List[str] = []
     # a) Prepend some directive for pandoc, if they are missing.
@@ -241,6 +242,7 @@ def _add_navigation_slides(
     :return: The notes text with the navigation slides.
     """
     _LOG.debug("\n%s", hprint.frame("Add navigation slides"))
+    hdbg.dassert_isinstance(txt, str)
     header_list = hmarkdo.extract_headers_from_markdown(
         txt, max_level, sanity_check=sanity_check
     )
