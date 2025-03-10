@@ -58,7 +58,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r .github/gh_requirements.txt
 
-      # Pull the `helpers:prod` Linter image to run the regressions with it.
+      # Pull the `helpers:prod` image to run the Linter on it.
       - name: Pull helpers:prod image
         if: github.event.pull_request.draft == false
         env:
