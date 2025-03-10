@@ -265,6 +265,7 @@ def mark_action(action: str, actions: List[str]) -> Tuple[bool, List[str]]:
 
 def add_input_output_args(
     parser: argparse.ArgumentParser,
+    *,
     in_default: Optional[str] = None,
     out_default: Optional[str] = None,
 ) -> argparse.ArgumentParser:
@@ -313,7 +314,7 @@ def parse_input_output_args(
     return in_file_name, out_file_name
 
 
-# TODO(gp): -> from_file for symmetry for jio
+# TODO(gp): -> from_file for symmetry for hio.
 def read_file(file_name: str) -> List[str]:
     """
     Read file or stdin (represented by `-`), returning an array of lines.
@@ -333,7 +334,7 @@ def read_file(file_name: str) -> List[str]:
     return txt
 
 
-# TODO(gp): -> to_file for symmetry for jio
+# TODO(gp): -> to_file for symmetry for hio.
 def write_file(txt: Union[str, List[str]], file_name: str) -> None:
     """
     Write txt in a file or stdout (represented by `-`).

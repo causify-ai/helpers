@@ -23,13 +23,6 @@ Perform one of several transformations on a txt file, e.g.,
   same as the input
 """
 
-# TODO(gp):
-#  - Compute index number
-#  - Separate code into a library
-#  - Add unit tests
-#  - Make functions private
-
-
 import argparse
 import logging
 
@@ -65,7 +58,14 @@ def _main(parser: argparse.ArgumentParser) -> None:
         args, clear_screen=True
     )
     if cmd == "toc":
-        hmarkdo.table_of_content(in_file_name, max_lev)
+        txt = hparser.read_file(in_file_name)
+        max_level = 3
+        header_list = hmarkdo.extract_headers_from_markdown(
+            txt, max_level=max_level
+        )
+        mode = "list"
+        txt_out = hmarkdo.header_list_to_markdown(header_list, mode)
+        hparser.write_file(txt_out, out_file_name)
     elif cmd == "format":
         hmarkdo.format_headers(in_file_name, out_file_name, max_lev)
     elif cmd == "increase":

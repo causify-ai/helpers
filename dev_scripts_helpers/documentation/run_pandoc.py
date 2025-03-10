@@ -20,7 +20,7 @@ import argparse
 import logging
 
 import helpers.hdbg as hdbg
-import helpers.hpandoc as hpandoc
+import helpers.hlatex as hlatex
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -54,7 +54,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Transform.
     txt_tmp = "\n".join(txt)
     if args.action == "convert_md_to_latex":
-        txt_out = hpandoc.convert_pandoc_md_to_latex(txt_tmp)
+        txt_out = hlatex.convert_pandoc_md_to_latex(txt_tmp)
     else:
         hdbg.dfatal("Invalid action='%s'", args.action)
     # Write file.

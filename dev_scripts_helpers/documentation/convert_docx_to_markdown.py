@@ -57,47 +57,45 @@ def _clean_up_artifacts(md_file: str, md_file_figs: str) -> None:
     # TODO(gp): Use f-strings to avoid the linter error.
     perl_regex_replacements = [
         # # \# Running PyCharm remotely -> # Running PyCharm remotely.
-        r"perl -pi -e 's:# (\\#)+ :# :g' {}".format(md_file),
+        rf"perl -pi -e 's:# (\\#)+ :# :g' {md_file}",
         # \#\# Docker image"  -> ## Docker image.
-        r"perl -pi -e 's:\\#:#:g' {}".format(md_file),
+        rf"perl -pi -e 's:\\#:#:g' {md_file}",
         # **## amp / cmamp container** -> ## amp / cmamp container.
-        r"perl -pi -e 's:\*\*#(.*?)\*\*:#$1:g' {}".format(md_file),
+        rf"perl -pi -e 's:\*\*#(.*?)\*\*:#$1:g' {md_file}",
         # -  Typically instructions include information about which packages and
         #    > their versions to install, e.g. list of python packages and their
         #    > corresponding versions
-        r"perl -pi -e 's:^(\s+)> :$1:g' {}".format(md_file),
+        rf"perl -pi -e 's:^(\s+)> :$1:g' {md_file}",
         # >
         # > botocore==1.24.37
         # >
-        r"perl -pi -e 's:^>: :g' {}".format(md_file),
+        rf"perl -pi -e 's:^>: :g' {md_file}",
         # Remove the \ before - $ | " _ [ ].
-        r"perl -pi -e 's:\\([-\$|\"\_\]\[\.]):$1:g' {}".format(md_file),
+        rf"perl -pi -e 's:\\([-\$|\"\_\]\[\.]):$1:g' {md_file}",
         # \' -> '.
-        r'perl -pi -e "s:\\\':\':g" {}'.format(md_file),
+        rf'perl -pi -e "s:\\\':\':g" {md_file}',
         # \` -> `.
-        r"perl -pi -e 's:\\\`:\`:g' {}".format(md_file),
+        rf"perl -pi -e 's:\\\`:\`:g' {md_file}",
         # \* -> *.
-        r"perl -pi -e 's:\\\*:\*:g' {}".format(md_file),
+        rf"perl -pi -e 's:\\\*:\*:g' {md_file}",
         # “ -> ".
-        r"perl -pi -e 's:“:\":g' {}".format(md_file),
+        rf"perl -pi -e 's:“:\":g' {md_file}",
         # ” -> ".
-        r"perl -pi -e 's:”:\":g' {}".format(md_file),
+        rf"perl -pi -e 's:”:\":g' {md_file}",
         # Remove trailing \.
-        r"perl -pi -e 's:\\$::g' {}".format(md_file),
+        rf"perl -pi -e 's:\\$::g' {md_file}",
         # Remove ========= and --------.
-        r"perl -pi -e 's:======+::g' {}".format(md_file),
-        r"perl -pi -e 's:------+::g' {}".format(md_file),
+        rf"perl -pi -e 's:======+::g' {md_file}",
+        rf"perl -pi -e 's:------+::g' {md_file}",
         # Translate HTML elements.
-        r"perl -pi -e 's:\&gt;:\>:g' {}".format(md_file),
-        r"perl -pi -e 's:\<\!\-\-.*\-\-\>::g' {}".format(md_file),
+        rf"perl -pi -e 's:\&gt;:\>:g' {md_file}",
+        rf"perl -pi -e 's:\<\!\-\-.*\-\-\>::g' {md_file}",
         # Fix image links.
-        r"perl -pi -e 's:{}/media/:{}/:g' {}".format(
-            md_file_figs, md_file_figs, md_file
-        ),
+        rf"perl -pi -e 's:{md_file_figs}/media/:{md_file_figs}/:g' {md_file}",
         # Remove underling like
         # [<u>Uber: Faster Together: Uber Engineering’s iOS
         #  Monorepo</u>](https://www.uber.com/blog/ios-monorepo/)
-        r"perl -pi -e 's/<\/?u>//g' {}".format(md_file),
+        rf"perl -pi -e 's/<\/?u>//g' {md_file}",
     ]
     # Run the commands.
     for clean_cmd in perl_regex_replacements:
@@ -142,7 +140,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
         f"pandoc {docx_file} --extract-media {md_file_figs} "
         f"-f docx -t markdown_strict --output {md_file}"
     )
-    hdocker.run_dockerized_pandoc(cmd)
+    container_type = "pandoc_only"
+    hdocker.run_dockerized_pandoc(cmd, container_type)
     _move_media(md_file_figs)
     _clean_up_artifacts(md_file, md_file_figs)
     _LOG.info("Finished converting '%s' to '%s'.", docx_file, md_file)

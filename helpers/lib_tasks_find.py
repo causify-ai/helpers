@@ -138,7 +138,7 @@ def find_test_class(ctx, class_name, dir_name=".", pbcopy=True, exact_match=Fals
     res = _find_test_class(class_name, file_names, exact_match)
     res = " ".join(res)
     # Print or copy to clipboard.
-    hlitauti._to_pbcopy(res, pbcopy)
+    hsystem.to_pbcopy(res, pbcopy=True)
 
 
 # //////////////////////////////////////////////////////////////////////////////////
@@ -427,7 +427,7 @@ def find_check_string_output(  # type: ignore
     else:
         output = txt
     # Print or copy to clipboard.
-    hlitauti._to_pbcopy(output, pbcopy)
+    hsystem.to_pbcopy(output, pbcopy=True)
     return output
 
 

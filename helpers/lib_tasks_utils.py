@@ -17,7 +17,6 @@ from typing import Any, Dict, List, Optional, Union
 # this code needs to run with minimal dependencies and without Docker.
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
-import helpers.hintrospection as hintros
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
@@ -109,15 +108,23 @@ def parse_command_line() -> None:
 _WAS_FIRST_CALL_DONE = False
 
 
+# TODO(gp): This can be part of the @task
 def report_task(txt: str = "", container_dir_name: str = ".") -> None:
-    # On the first invocation report the version.
+    """
+    Print the task description.
+
+    Each task should call this function at the beginning to print the
+    task name.
+    """
+    # On the first invocation check the version of the container.
     global _WAS_FIRST_CALL_DONE
     if not _WAS_FIRST_CALL_DONE:
         _WAS_FIRST_CALL_DONE = True
         hversio.check_version(container_dir_name)
     # Print the name of the function.
-    func_name = hintros.get_function_name(count=1)
-    msg = f"## {func_name}: {txt}"
+    msg = hprint.func_signature_to_str(
+        skip_vars="ctx", assert_on_skip_vars_error=False, frame_level=3
+    )
     print(hprint.color_highlight(msg, color="purple"))
 
 

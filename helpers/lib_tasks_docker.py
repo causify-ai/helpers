@@ -18,6 +18,7 @@ from invoke import task
 # this code needs to run with minimal dependencies and without Docker.
 import helpers.hdbg as hdbg
 import helpers.hdict as hdict
+import helpers.hdocker as hdocker
 import helpers.henv as henv
 import helpers.hgit as hgit
 import helpers.hio as hio
@@ -28,6 +29,7 @@ import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hversion as hversio
 import helpers.lib_tasks_utils as hlitauti
+import helpers.repo_config_utils as hrecouti
 
 _LOG = logging.getLogger(__name__)
 
@@ -238,8 +240,10 @@ def docker_pull(ctx, stage="dev", version=None, skip_pull=False):  # type: ignor
 
     :param skip_pull: if True skip pulling the docker image
     """
-    _LOG.info("Pulling the latest version of Docker")
     hlitauti.report_task()
+    if stage == "local":
+        _LOG.warning("Setting skip_pull to True for local stage")
+        skip_pull = True
     if skip_pull:
         _LOG.warning("Skipping pulling docker image as per user request")
         return
@@ -249,12 +253,28 @@ def docker_pull(ctx, stage="dev", version=None, skip_pull=False):  # type: ignor
 
 
 @task
-def docker_pull_helpers(ctx, stage="prod", version=None):  # type: ignore
+def docker_pull_helpers(
+    ctx, stage="prod", version=None, docker_registry="aws_ecr.ck"
+):  # type: ignore
     """
     Pull latest prod image of `helpers` from the registry.
+
+    :param ctx: invoke context
+    :param stage: stage of the Docker image
+    :param version: version of the Docker image
+    :param docker_registry: target Docker image registry to log in to
+        - "dockerhub.causify": public Causify Docker image registry
+        - "aws_ecr.ck": private AWS CK ECR
     """
-    hlitauti.report_task()
-    base_image = hlitauti.get_default_param("CSFY_ECR_BASE_PATH") + "/helpers"
+    hlitauti.report_task(txt=hprint.to_str("docker_registry"))
+    if docker_registry == "dockerhub.causify":
+        base_image = "causify/helpers"
+    elif docker_registry == "aws_ecr.ck":
+        base_image = hlitauti.get_default_param("CSFY_ECR_BASE_PATH") + "/helpers"
+    else:
+        raise ValueError(
+            f"The Docker image registry='{docker_registry}' is not supported"
+        )
     _docker_pull(ctx, base_image, stage, version)
 
 
@@ -389,7 +409,7 @@ def docker_login(ctx, target_registry="aws_ecr.ck"):  # type: ignore
     hlitauti.report_task()
     # No login required as kaizenflow container is accessible on the public
     # DockerHub registry.
-    if henv.execute_repo_config_code("get_name()") == "//kaizen":
+    if hrecouti.get_repo_config().get_name() == "//kaizen":
         _LOG.warning("Skipping logging in for Kaizenflow")
         return
     # We run everything using `hsystem.system(...)` but `ctx` is needed
@@ -590,6 +610,7 @@ def _generate_docker_compose_file(
             "~/.aws:/home/.aws",
             "~/.config/gspread_pandas/:/home/.config/gspread_pandas/",
             "~/.config/gh:/home/.config/gh",
+            "~/.ssh:/home/.ssh",
         ],
     }
     if use_privileged_mode:
@@ -756,9 +777,8 @@ def _get_docker_compose_files(
     :return: list of the Docker compose paths
     """
     docker_compose_files = []
-    # Get the repo short name (e.g., amp).
-    dir_name = hgit.get_repo_full_name_from_dirname(".", include_host_name=False)
-    repo_short_name = hgit.get_repo_name(dir_name, in_mode="full_name")
+    # Get the repo short name (e.g., `amp`).
+    repo_short_name = hrecouti.get_repo_config().get_repo_short_name()
     _LOG.debug("repo_short_name=%s", repo_short_name)
     # Check submodule status, if needed.
     mount_as_submodule = False
@@ -781,19 +801,11 @@ def _get_docker_compose_files(
         use_main_network = False
     else:
         # Use the settings from the `repo_config` corresponding to this container.
-        enable_privileged_mode = henv.execute_repo_config_code(
-            "enable_privileged_mode()"
-        )
-        use_docker_sibling_containers = henv.execute_repo_config_code(
-            "use_docker_sibling_containers()"
-        )
-        get_shared_data_dirs = henv.execute_repo_config_code(
-            "get_shared_data_dirs()"
-        )
-        use_docker_network_mode_host = henv.execute_repo_config_code(
-            "use_docker_network_mode_host()"
-        )
-        use_main_network = henv.execute_repo_config_code("use_main_network()")
+        enable_privileged_mode = hserver.enable_privileged_mode()
+        use_docker_sibling_containers = hserver.use_docker_sibling_containers()
+        get_shared_data_dirs = hserver.get_shared_data_dirs()
+        use_docker_network_mode_host = hserver.use_docker_network_mode_host()
+        use_main_network = hserver.use_main_network()
     #
     if generate_docker_compose_file:
         _generate_docker_compose_file(
@@ -1047,7 +1059,7 @@ def get_image(
 
 
 def _run_docker_as_user(as_user_from_cmd_line: bool) -> bool:
-    as_root = henv.execute_repo_config_code("run_docker_as_root()")
+    as_root = hserver.run_docker_as_root()
     as_user = as_user_from_cmd_line
     if as_root:
         as_user = False
@@ -1122,16 +1134,14 @@ def _get_docker_base_cmd(
     :param extra_env_vars: represent vars to add, e.g., `["PORT=9999", "DRY_RUN=1"]`
     :param extra_docker_compose_files: `docker-compose` override files
     """
-    hprint.log(
-        _LOG,
-        logging.DEBUG,
-        "base_image stage version extra_env_vars extra_docker_compose_files",
-    )
+    _LOG.debug(hprint.func_signature_to_str())
     docker_cmd_: List[str] = []
     # - Handle the image.
     image = get_image(base_image, stage, version)
     _LOG.debug("base_image=%s stage=%s -> image=%s", base_image, stage, image)
     dassert_is_image_name_valid(image)
+    # Check image compatibility.
+    hdocker.check_image_compatibility_with_host(image)
     docker_cmd_.append(f"IMAGE={image}")
     # - Handle extra env vars.
     if extra_env_vars:
@@ -1207,12 +1217,7 @@ def _get_docker_compose_cmd(
     :param print_docker_config: print the docker config for debugging purposes
     :param use_bash: run command through a shell
     """
-    hprint.log(
-        _LOG,
-        logging.DEBUG,
-        "cmd extra_docker_run_opts service_name "
-        "use_entrypoint as_user print_docker_config use_bash",
-    )
+    _LOG.debug(hprint.func_signature_to_str())
     # - Get the base Docker command.
     docker_cmd_ = _get_docker_base_cmd(
         base_image,
@@ -1225,6 +1230,7 @@ def _get_docker_compose_cmd(
     )
     # - Add the `config` command for debugging purposes.
     docker_config_cmd: List[str] = docker_cmd_[:]
+    # TODO(gp): Use yaml approach like done for other parts of the code.
     docker_config_cmd.append(
         r"""
         config"""
@@ -1374,6 +1380,7 @@ def docker_bash(  # type: ignore
     :param generate_docker_compose_file: generate the Docker compose file or not
     :param skip_pull: if True skip pulling the docker image
     """
+    _LOG.debug(hprint.func_signature_to_str("ctx"))
     hlitauti.report_task(container_dir_name=container_dir_name)
     #
     cmd = "bash"
