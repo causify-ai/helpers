@@ -1,7 +1,7 @@
 import dataclasses
 import logging
 import re
-from typing import Generator, List, Optional, Tuple
+from typing import cast, Generator, List, Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
