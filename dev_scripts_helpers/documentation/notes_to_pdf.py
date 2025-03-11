@@ -143,7 +143,8 @@ def _preprocess_notes(type_: str, toc_type: str, file_: str, prefix: str) -> str
 # #############################################################################
 
 
-def _render_images(file_: str, prefix: str) -> str:
+# TODO(gp): Pass what's needed instead of args.
+def _render_images(args: argparse.Namespace, file_: str, prefix: str) -> str:
     """
     Render images in the file.
 
@@ -539,7 +540,7 @@ def _run_all(args: argparse.Namespace) -> None:
     action = "render_images"
     to_execute, actions = _mark_action(action, actions)
     if to_execute:
-        file_ = _render_images(file_, prefix)
+        file_ = _render_images(args, file_, prefix)
     # - Run_pandoc
     action = "run_pandoc"
     to_execute, actions = _mark_action(action, actions)
