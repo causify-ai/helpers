@@ -153,7 +153,7 @@ def gh_workflow_list(  # type: ignore
     filter_by_completed="all",
     report_only_status=True,
     show_stack_trace=False,
-    print_table=False,
+    print_table=True,
 ):
     """
     Report the status of the GH workflows.
