@@ -8,6 +8,14 @@ on:
 
 env:
   CSFY_CI: true
+
+# Set up permissions for OIDC authentication.
+permissions:
+  # This is required for requesting the OIDC JWT.
+  id-token: write
+  # This is required for actions/checkout.
+  contents: read
+
 jobs:
   run_superslow_tests:
     runs-on: ubuntu-latest
@@ -18,8 +26,8 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets.CSFY_AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.CSFY_AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ vars.GH_ACTION_AWS_ROLE_ARN }}
+          role-session-name: ${{ vars.GH_ACTION_AWS_SESSION_NAME }}
           aws-region: ${{ vars.CSFY_AWS_DEFAULT_REGION }}
 
       # This is needed to pull the Docker image.
@@ -63,10 +71,10 @@ jobs:
       - name: Run superslow tests
         env:
           GH_ACTION_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-          CSFY_AWS_ACCESS_KEY_ID: ${{ secrets.CSFY_AWS_ACCESS_KEY_ID }}
-          CSFY_AWS_SECRET_ACCESS_KEY: ${{ secrets.CSFY_AWS_SECRET_ACCESS_KEY }}
-          CSFY_AWS_DEFAULT_REGION: ${{ vars.CSFY_AWS_DEFAULT_REGION }}
+          CSFY_AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
+          CSFY_AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          CSFY_AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
+          CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
           CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
           CSFY_TELEGRAM_TOKEN: ${{ secrets.CSFY_TELEGRAM_TOKEN }}

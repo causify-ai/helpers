@@ -573,6 +573,7 @@ def _generate_docker_compose_file(
             "CSFY_AWS_PROFILE=$CSFY_AWS_PROFILE",
             "CSFY_AWS_S3_BUCKET=$CSFY_AWS_S3_BUCKET",
             "CSFY_AWS_SECRET_ACCESS_KEY=$CSFY_AWS_SECRET_ACCESS_KEY",
+            "CSFY_AWS_SESSION_TOKEN=$CSFY_AWS_SESSION_TOKEN",
             "CSFY_ECR_BASE_PATH=$CSFY_ECR_BASE_PATH",
             # The path of the outermost Git root on the host.
             f"CSFY_HOST_GIT_ROOT_PATH={git_host_root_path}",
