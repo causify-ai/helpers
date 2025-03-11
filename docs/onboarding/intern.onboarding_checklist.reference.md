@@ -40,14 +40,14 @@
       applicable, do a PR proposing improvements to the checklist (or any other
       docs), since this will allow us to improve the process as we move forward
 
-- [ ] **HiringMeister**: Establish contact by email or Telegram with the
-      intern with a few words about the next steps
+- [ ] **HiringMeister**: Establish contact by email or Telegram with the intern
+      with a few words about the next steps
 
 - [ ] **Intern**: Send the following information to your point of contact
   - Full name:
   - Aka:
   - Personal email:
-  - Telegram username/telephone number: 
+  - Telegram username/number:
   - Github user:
   - Laptop OS: Windows, Linux, or Mac
   - Physical location and timezone

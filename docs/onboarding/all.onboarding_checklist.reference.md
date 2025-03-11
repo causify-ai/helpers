@@ -100,7 +100,8 @@
 - [ ] **Team leader**: Send some information to the new team member as a preview
   - E.g., some documentation
 
-- [ ] **Team leader**: establish contact with the new hire with a few words about the next steps
+- [ ] **Team leader**: establish contact with the new hire with a few words
+      about the next steps
 
 - [ ] **Team leader**: do a proper intro with an email to the team:
   - "Hi team, please join me in welcoming XYZ to the team"
@@ -295,7 +296,7 @@
   - [ ] [Git workflows and best practices](https://github.com/causify-ai/helpers/blob/master/docs/work_tools/git/all.git.how_to_guide.md)
   - [ ] [GitHub organization](https://github.com/causify-ai/helpers/blob/master/docs/work_organization/all.use_github.how_to_guide.md)
   - [ ] [Tips for writing documentation](https://github.com/causify-ai/helpers/blob/master/docs/documentation_meta/all.writing_docs.how_to_guide.md)
-  - They will help you get up to speed with our practices and development style
+c  - They will help you get up to speed with our practices and development style
   - Read them carefully one by one
   - Ask questions
   - Memorize / internalize all the information
