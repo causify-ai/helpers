@@ -52,7 +52,7 @@
   ```bash
   > (cd helpers_root; git pull)
   > DST_DIR="ck.infra"; echo $DST_DIR
-  > cp helpers_root/{changelog.txt,conftest.py,pytest.ini,invoke.yaml,repo_config.py,tasks.py} $DST_DIR
+  > cp helpers_root/{changelog.txt,conftest.py,pytest.ini,invoke.yaml,repo_config.yaml,tasks.py} $DST_DIR
   ```
   - `changelog.txt`: this is copied from the repo that builds the used container
     or started from scratch for a new container
@@ -65,13 +65,20 @@
   - `conftest.py`: needed to configure `pytest`
   - `pytest.ini`: needed to configure `pytest` preferences
   - `invoke.yaml`: needed configure `invoke`
-  - `repo_config.py`: store information about this specific repo (e.g., name,
+  - `repo_config.yaml`: store information about this specific repo (e.g., name,
     used container)
     - This needs to be modified
-    ```python
-    _REPO_NAME = "cmamp"
+    ```yaml
+    repo_info:
+      repo_name: cmamp
     ...
-    _DOCKER_IMAGE_NAME = "cmamp-infra"
+    docker_info:
+      docker_image_name: cmamp-infra
+    ...
+    runnable_dir_info:
+      use_helpers_as_nested_module: 1
+      ...
+      dir_suffix: cmamp_infra
     ```
   - `tasks.py`: the `invoke` tasks available in this container
     - This can be modified if needed
@@ -102,10 +109,10 @@
 - Create the `dev_scripts_{dir_name}` dir based off the template from `helpers`
 
   ```bash
-  # Use a prefix based on the repo name and runnable dir name, e.g., `cmamp_infra`.
-  > SRC_DIR="helpers_root/dev_scripts_helpers/thin_client"; echo $SRC_DIR
-  > DST_PREFIX="cmamp_infra"
-  > DST_DIR="dev_scripts_${DST_PREFIX}/thin_client"; echo $DST_DIR
+  # Use a suffix based on the repo name and runnable dir name, e.g., `cmamp_infra`.
+  > SRC_DIR="./helpers_root/dev_scripts_helpers/thin_client"; echo $SRC_DIR
+  > DST_SUFFIX="cmamp_infra"
+  > DST_DIR="./ck.infra/dev_scripts_${DST_SUFFIX}/thin_client"; echo $DST_DIR
   > mkdir -p $DST_DIR
   > cp "$SRC_DIR/setenv.sh" $DST_DIR
   ```
@@ -117,19 +124,15 @@
   setenv.sh
   ```
 
-- Customize `setenv.sh`
-  - `DIR_TAG`="cmamp_infra"
-  - `USE_HELPERS_AS_NESTED_MODULE` = 1
-  - `VENV_TAG`="helpers" (reuse helpers if the new thin environment is not
-    built)
-  - Update PATH to the runnable dir
-    ```bash
-    # Runnable dir is "ck.infra" in this case.
-    SCRIPT_PATH="ck.infra/dev_scripts_${DIR_TAG}/thin_client/setenv.sh"
-    DEV_SCRIPT_DIR="${GIT_ROOT_DIR}/ck.infra/dev_scripts_${DIR_TAG}"
-    ```
-    - TODO(gp): Use a config file for both Python and shell (HelpersTask88)
-    - TODO(heanh): Automatically infer them (HelpersTask145)
+- Replace file with symbolic links
+
+  ```bash
+  > echo $SRC_DIR
+  ./helpers_root/dev_scripts_helpers/thin_client
+  > echo $DST_DIR
+  ./ck.infra/dev_scripts_cmamp_infra/thin_client
+  > ./helpers_root/helpers/create_links.py --src_dir $SRC_DIR --dst_dir $DST_DIR --replace_links --use_relative_paths
+  ```
 
 ### 5) Replace files with symbolic links
 
@@ -137,7 +140,7 @@
 
   ```bash
   # Runnable dir is "ck.infra" in this case.
-  python3 ./helpers_root/helpers/create_links.py --src_dir ./helpers_root --dst_dir ./ck.infra --replace_links --use_relative_paths
+  ./helpers_root/helpers/create_links.py --src_dir ./helpers_root --dst_dir ./ck.infra --replace_links --use_relative_paths
   ```
 
 - Refer to
@@ -153,9 +156,9 @@
 
   ```bash
   > DST_DIR="ck.infra"
-  > DST_PREFIX="cmamp_infra"
+  > DST_SUFFIX="cmamp_infra"
   > cd $DST_DIR
-  > source dev_scripts_${DST_PREFIX}/thin_client/setenv.sh
+  > source dev_scripts_${DST_SUFFIX}/thin_client/setenv.sh
   > i docker_build_local_image --version 1.0.0 --container-dir-name $DST_DIR
   > i docker_tag_local_image_as_dev --version 1.0.0
   > i docker_bash --skip-pull --version 1.0.0
@@ -165,9 +168,9 @@
 - Run the multi-arch flow
   ```bash
   > DST_DIR="ck.infra"
-  > DST_PREFIX="cmamp_infra"
+  > DST_SUFFIX="cmamp_infra"
   > cd $DST_DIR
-  > source dev_scripts_${DST_PREFIX}/thin_client/setenv.sh
+  > source dev_scripts_${DST_SUFFIX}/thin_client/setenv.sh
   > i docker_build_local_image --version 1.0.0 --container-dir-name $DST_DIR --multi-arch "linux/amd64,linux/arm64"
   > i docker_tag_local_image_as_dev --version 1.0.0
   > i docker_bash --skip-pull --version 1.0.0
