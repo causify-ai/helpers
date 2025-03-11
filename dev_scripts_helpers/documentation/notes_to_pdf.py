@@ -452,6 +452,7 @@ def _copy_to_output(args: argparse.Namespace, file_in: str, prefix: str) -> str:
         _LOG.debug("Using file_out from command line")
         file_out = args.output
     else:
+        # TODO(gp): Remove this code path.
         assert 0
         _LOG.debug("Leaving file_out in the tmp dir")
         file_out = f"{prefix}.{os.path.basename(args.input)}.{args.type}"
