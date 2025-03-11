@@ -1389,6 +1389,10 @@ def docker_bash(  # type: ignore
     """
     _LOG.debug(hprint.func_signature_to_str("ctx"))
     hlitauti.report_task(container_dir_name=container_dir_name)
+    # Pull the image.
+    # TODO(Vlad): Make sure that we need `docker_pull()` in the `_docker_cmd()`.
+    image = stage
+    docker_pull(ctx, image)    
     #
     cmd = "bash"
     docker_cmd_ = _get_docker_compose_cmd(
