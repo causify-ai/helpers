@@ -296,7 +296,7 @@
   - [ ] [Git workflows and best practices](https://github.com/causify-ai/helpers/blob/master/docs/work_tools/git/all.git.how_to_guide.md)
   - [ ] [GitHub organization](https://github.com/causify-ai/helpers/blob/master/docs/work_organization/all.use_github.how_to_guide.md)
   - [ ] [Tips for writing documentation](https://github.com/causify-ai/helpers/blob/master/docs/documentation_meta/all.writing_docs.how_to_guide.md)
-c  - They will help you get up to speed with our practices and development style
+  - They will help you get up to speed with our practices and development style
   - Read them carefully one by one
   - Ask questions
   - Memorize / internalize all the information
