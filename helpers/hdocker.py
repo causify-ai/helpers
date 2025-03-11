@@ -151,9 +151,9 @@ def check_image_compatibility_with_host(
     #   623860924167.dkr.ecr.eu-north-1.amazonaws.com/helpers:local-saggese-1.1.0 \
     #   --format '{{.Architecture}}'
     # arm64
-    # Check and pull the image.
-    image_exist, _ = image_exists(image_name)
-    if not image_exist: 
+    # Check and pull the image if needed.
+    has_image, _ = image_exists(image_name, use_sudo)
+    if not has_image: 
         cmd = f"docker pull {image_name}"
         hsystem.system(cmd)
     executable = get_docker_executable(use_sudo)
