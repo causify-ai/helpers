@@ -153,7 +153,7 @@ def check_image_compatibility_with_host(
     # arm64
     # Check and pull the image if needed.
     has_image, _ = image_exists(image_name, use_sudo)
-    if not has_image: 
+    if not has_image:
         cmd = f"docker pull {image_name}"
         hsystem.system(cmd)
     executable = get_docker_executable(use_sudo)
