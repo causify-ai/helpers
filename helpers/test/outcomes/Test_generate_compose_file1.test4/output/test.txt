@@ -35,7 +35,7 @@ services:
     extends: base_app
     volumes:
       - /app:/src
-      - ../../../:/app
+      - ../../:/app
     environment:
       - MYPYPATH
   jupyter_server:

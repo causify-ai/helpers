@@ -1361,7 +1361,7 @@ def _docker_cmd(
         # Generate files with the AWS settings that are missing when running
         # inside CI.
         hs3.generate_aws_files()
-    # docker_pull(ctx, skip_pull=skip_pull)
+    docker_pull(ctx, skip_pull=skip_pull)
     _LOG.debug("cmd=%s", docker_cmd_)
     rc: Optional[int] = hlitauti.run(ctx, docker_cmd_, pty=True, **ctx_run_kwargs)
     return rc
