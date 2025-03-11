@@ -57,8 +57,7 @@ def _parse() -> argparse.ArgumentParser:
     return parser
 
 
-def _main(parser: argparse.ArgumentParser) -> None:
-    args = parser.parse_args()
+def _main(args: argparse.Namespace) -> None:
     hdbg.init_logger(
         verbosity=args.log_level, use_exec_path=True, force_white=False
     )
@@ -83,4 +82,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
 
 
 if __name__ == "__main__":
-    _main(_parse())
+    parser = _parse()
+    args = parser.parse_args()
+    _main(args)
