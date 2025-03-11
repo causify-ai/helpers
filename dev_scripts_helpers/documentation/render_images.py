@@ -193,7 +193,7 @@ def _render_code(
             elif image_code_type == "mermaid":
                 hdocker.run_dockerized_mermaid(rel_img_path, code_file_path)
             elif image_code_type == "tikz":
-                hdocker.run_dockerized_tikz(rel_img_path, code_file_path)
+                hdocker.tikz_to_bitmap(rel_img_path, code_file_path)
             elif image_code_type == "graphviz":
                 # TODO(gp): Implement this.
                 hdocker.run_dockerized_graphviz(rel_img_path, code_file_path)
@@ -206,6 +206,44 @@ def _render_code(
     os.remove(code_file_path)
     return rel_img_path
 
+
+def _comment_out_line(line: str, extension: str) -> str:
+    # Define the character that comments out a line depending on the file type.
+    if extension == ".md":
+        comment_prefix = "[//]: # ("
+        comment_postfix = ")"
+    elif extension == ".tex":
+        comment_prefix = "%"
+        comment_postfix = ""
+    elif extension == ".txt":
+        comment_prefix = "//"
+        comment_postfix = ""
+    else:
+        raise ValueError(f"Unsupported file type: {extension}")
+    return f"{comment_prefix} {line}{comment_postfix}"
+
+                
+def _insert_image_code(extension: str, rel_img_path: str) -> str:
+    """
+    Insert the code to display the image in the output file.
+    
+    """
+    # Add the code to insert the image in the file.
+    if extension in (".md", ".txt"):
+        # Use the Markdown syntax.
+        txt = f"![]({rel_img_path})"
+        # f"![]({rel_img_path})" + "{height=60%}"
+    elif extension == ".tex":
+        # Use the LaTeX syntax.
+        txt = rf"""
+        \begin{{figure}}
+          \includegraphics[width=\linewidth]{{{rel_img_path}}}
+        \end{{figure}}"""
+        txt = hprint.dedent(txt)
+    else:
+        raise ValueError(f"Unsupported file extension: {extension}")
+    return txt
+    
 
 def _render_images(
     in_lines: List[str],
@@ -239,74 +277,64 @@ def _render_images(
     image_code_lines: List[str] = []
     # Store the order number of the current image code block.
     image_code_idx = 0
+    # Image name explicitly set by the user with `plantuml(...)` syntax.
+    user_rel_img_path = ""
     # Store the state of the parser.
     state = "searching"
-    # Define the character that comments out a line depending on the file type.
-    if out_file.endswith(".md"):
-        comment_prefix = "[//]: # ("
-        comment_postfix = ")"
-    elif out_file.endswith(".tex"):
-        comment_prefix = "%"
-        comment_postfix = ""
-    elif out_file.endswith(".txt"):
-        comment_prefix = "//"
-        comment_postfix = ""
-    else:
-        raise ValueError(f"Unsupported file type: {out_file}")
+    # Get the extension of the output file.
+    extension = os.path.splitext(out_file)[1]
     for i, line in enumerate(in_lines):
-        _LOG.debug("%d: %s -> state=%s", i, line, state)
+        _LOG.debug("%d@%s: %s", i, state, line)
         # The code should look like:
         # ```plantuml
         #    ...
         # ```
-        # Or the same with "mermaid" instead of "plantuml".
-        m = re.search("^```(plantuml|mermaid)\((.*)\)$", line)
+        m = re.search(r"^\s*```(plantuml|mermaid|tikz|graphviz*)((\((.*)\)))?\s*$", line)
         if m:
             # Found the beginning of an image code block.
             hdbg.dassert_eq(state, "searching")
+            state = "found_image_code"
+            _LOG.debug(" -> state=%s", state)
             image_code_lines = []
             image_code_idx += 1
-            state = "found_image_code"
-            image_code_type = line.strip(" `")
-            _LOG.debug(" -> state=%s", state)
+            # E.g., "plantuml" or "mermaid".
+            image_code_type = m.group(1)
+            if m.group(2):
+                hdbg.dassert_eq(user_rel_img_path, "")
+                user_rel_img_path = m.group(3)
+                _LOG.debug(hprint.to_str("user_rel_img_path"))
             # Comment out the beginning of the image code.
-            out_lines.append(f"\n{comment_prefix} {line}{comment_postfix}")
-        elif line.strip() == "```" and state == "found_image_code":
-            # Found the end of an image code block.
-            # Render the image.
-            rel_img_path = _render_code(
-                image_code="\n".join(image_code_lines),
-                image_code_idx=image_code_idx,
-                image_code_type=image_code_type,
-                out_file=out_file,
-                dst_ext=dst_ext,
-                run_dockerized=run_dockerized,
-                dry_run=dry_run,
-            )
-            # Comment out the end of the image code.
-            out_lines.append(f"{comment_prefix} {line}{comment_postfix}\n")
-            # Add the code that inserts the image in the file.
-            if out_file.endswith(".md") or out_file.endswith(".txt"):
-                # Use the Markdown syntax.
-                out_lines.append(f"![]({rel_img_path})")
-                # out_lines.append(f"![]({rel_img_path})" + "{height=60%}")
-            elif out_file.endswith(".tex"):
-                # Use the LaTeX syntax.
-                out_lines.append(r"\begin{figure}")
-                out_lines.append(
-                    rf"  \includegraphics[width=\linewidth]{{{rel_img_path}}}"
+            out_lines.append(_comment_out_line(line, extension))
+        elif state == "found_image_code":
+            if line.strip() == "```":
+                # Found the end of an image code block.
+                # Render the image.
+                image_code_txt = "\n".join(image_code_lines)
+                rel_img_path = _render_code(
+                    image_code_txt,
+                    image_code_idx,
+                    image_code_type,
+                    out_file,
+                    dst_ext,
+                    run_dockerized,
+                    dry_run,
                 )
-                out_lines.append(r"\end{figure}")
+                # Override the image name if explicitly set by the user.
+                if user_rel_img_path != "":
+                    rel_img_path = user_rel_img_path
+                    user_rel_img_path = ""
+                # Comment out the end of the image code.
+                out_lines.append(_comment_out_line(line, extension))
+                out_lines.append(_insert_image_code(extension, rel_img_path))
+                # Set the parser to search for a new image code block.
+                state = "searching"
+                _LOG.debug(" -> state=%s", state)
             else:
-                raise ValueError(f"Unsupported file type: {out_file}")
-            # Set the parser to search for a new image code block.
-            state = "searching"
-            _LOG.debug(" -> state=%s", state)
-        elif line.strip != "```" and state == "found_image_code":
-            # Record the line from inside the image code block.
-            image_code_lines.append(line)
-            # Comment out the inside of the image code.
-            out_lines.append(f"{comment_prefix} {line}{comment_postfix}")
+                # Record the line from inside the image code block.
+                image_code_lines.append(line)
+                # Comment out the inside of the image code.
+                #out_lines.append(f"{comment_prefix} {line}{comment_postfix}")
+                out_lines.append(_comment_out_line(line, extension))
         else:
             # Keep a regular line.
             out_lines.append(line)

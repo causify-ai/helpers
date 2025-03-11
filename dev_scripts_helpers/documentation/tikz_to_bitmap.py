@@ -36,7 +36,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(
         verbosity=args.log_level, use_exec_path=True, force_white=False
     )
-    hdocker.tikz_to_pdf(
+    hdocker.tikz_to_bitmap(
         args.input,
         cmd_opts,
         args.output,

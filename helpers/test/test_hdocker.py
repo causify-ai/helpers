@@ -640,7 +640,7 @@ class Test_tikz_to_png1(hunitest.TestCase):
         \end{document}
         """
         in_file_path = _create_test_file(self, txt, extension="tex")
-        out_file_path = os.path.join(self.get_scratch_space(), "output.pdf")
+        out_file_path = os.path.join(self.get_scratch_space(), "output.png")
         return in_file_path, out_file_path
 
     def test1(self) -> None:
@@ -653,7 +653,7 @@ class Test_tikz_to_png1(hunitest.TestCase):
         force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
         # Run function.
-        hdocker.tikz_to_pdf(
+        hdocker.tikz_to_bitmap(
             in_file_path,
             cmd_opts,
             out_file_path,

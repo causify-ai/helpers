@@ -152,7 +152,9 @@ def check_image_compatibility_with_host(
     #   --format '{{.Architecture}}'
     # arm64
     executable = get_docker_executable(use_sudo)
-    cmd = f"{executable} inspect {image_name}" + r" --format '{{.Architecture}}'"
+    cmd = (
+        f"{executable} inspect {image_name}" + r" --format '{{.Architecture}}'"
+    )
     _, image_arch = hsystem.system_to_one_line(cmd)
     _LOG.debug(hprint.to_str("image_arch"))
     # TODO(gp): Enable this for x86 after testing.
@@ -294,7 +296,8 @@ def build_container(
     use_cache = False
     if force_rebuild:
         _LOG.warning(
-            "Forcing to rebuild of container '%s' without cache", container_name
+            "Forcing to rebuild of container '%s' without cache",
+            container_name,
         )
         has_container = False
         use_cache = False
@@ -929,7 +932,11 @@ def run_dockerized_pandoc(
 
 
 def run_dockerized_markdown_toc(
-    in_file_path: str, force_rebuild: bool, cmd_opts: List[str], *, use_sudo: bool
+    in_file_path: str,
+    force_rebuild: bool,
+    cmd_opts: List[str],
+    *,
+    use_sudo: bool,
 ) -> None:
     """
     Run `markdown-toc` in a Docker container.
@@ -974,7 +981,9 @@ def run_dockerized_markdown_toc(
     #     tmp.markdown_toc \
     #     -i ./test.md
     executable = get_docker_executable(use_sudo)
-    bash_cmd = f"/usr/local/bin/markdown-toc {cmd_opts_as_str} -i {in_file_path}"
+    bash_cmd = (
+        f"/usr/local/bin/markdown-toc {cmd_opts_as_str} -i {in_file_path}"
+    )
     docker_cmd = (
         f"{executable} run --rm --user $(id -u):$(id -g)"
         f" --workdir {callee_mount_path} --mount {mount}"
@@ -1015,7 +1024,9 @@ def convert_latex_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
     # We assume that the first option is always the input file.
     in_file_path = cmd[-1]
     hdbg.dassert(
-        not in_file_path.startswith("-"), "Invalid input file '%s'", in_file_path
+        not in_file_path.startswith("-"),
+        "Invalid input file '%s'",
+        in_file_path,
     )
     hdbg.dassert_file_exists(in_file_path)
     cmd = cmd[1:-1]
@@ -1055,7 +1066,8 @@ def convert_latex_arguments_to_cmd(
     """
     cmd = []
     hdbg.dassert_is_subset(
-        params.keys(), ["input", "output-directory", "in_dir_params", "cmd_opts"]
+        params.keys(),
+        ["input", "output-directory", "in_dir_params", "cmd_opts"],
     )
     key = "output-directory"
     value = params[key]
@@ -1187,13 +1199,16 @@ def run_dockerized_latex(
         ret = None
     return ret
 
-    
-def run_basic_latex(input_file_name: str, cmd_opts: List[str],
-                    run_latex_again: bool, output_file_name: str, 
+
+def run_basic_latex(
+    input_file_name: str,
+    cmd_opts: List[str],
+    run_latex_again: bool,
+    output_file_name: str,
     *,
     force_rebuild: bool = False,
     use_sudo: bool = False,
-                    ) -> None:
+) -> None:
     """
     Run a basic Latex command.
     """
@@ -1210,7 +1225,8 @@ def run_basic_latex(input_file_name: str, cmd_opts: List[str],
         + " -interaction=nonstopmode"
         + " -halt-on-error"
         + " -shell-escape"
-        + " " + " ".join(cmd_opts)
+        + " "
+        + " ".join(cmd_opts)
         + f" {input_file_name}"
     )
     run_dockerized_latex(
@@ -1300,9 +1316,7 @@ def run_dockerized_imagemagick(
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
     cmd_opts_as_str = " ".join(cmd_opts)
-    cmd = (
-        f"magick {cmd_opts_as_str} {in_file_path} {out_file_path}"
-    )
+    cmd = f"magick {cmd_opts_as_str} {in_file_path} {out_file_path}"
     executable = get_docker_executable(use_sudo)
     docker_cmd = (
         f"{executable} run --rm --user $(id -u):$(id -g)"
@@ -1321,17 +1335,28 @@ def run_dockerized_imagemagick(
     return ret
 
 
-def tikz_to_pdf(in_file_path: str, cmd_opts: List[str], out_file_path: str, 
+def tikz_to_bitmap(
+    in_file_path: str,
+    cmd_opts: List[str],
+    out_file_path: str,
     *,
     force_rebuild: bool = False,
     use_sudo: bool = False,
-                ) -> None:
+) -> None:
+    """
+    Convert a TikZ file to a PDF file.
+    """
     latex_cmd_opts = []
     run_latex_again = False
     file_out = os.path.basename(in_file_path).replace(".tex", ".pdf")
-    run_basic_latex(in_file_path, latex_cmd_opts, run_latex_again, file_out,
-                            force_rebuild=force_rebuild,
-                            use_sudo=use_sudo)
+    run_basic_latex(
+        in_file_path,
+        latex_cmd_opts,
+        run_latex_again,
+        file_out,
+        force_rebuild=force_rebuild,
+        use_sudo=use_sudo,
+    )
     run_dockerized_imagemagick(
         file_out,
         out_file_path,

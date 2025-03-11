@@ -143,11 +143,9 @@ class Test_render_images1(hunitest.TestCase):
         """
         file_ext = "md"
         exp = r"""
-
         [//]: # ( ```plantuml)
         [//]: # ( Alice --> Bob)
         [//]: # ( ```)
-
         ![](figs/out.1.png)
         """
         self.helper(in_lines, file_ext, exp)
@@ -166,11 +164,9 @@ class Test_render_images1(hunitest.TestCase):
         file_ext = "md"
         exp = r"""
         A
-
         [//]: # ( ```plantuml)
         [//]: # ( Alice --> Bob)
         [//]: # ( ```)
-
         ![](figs/out.1.png)
         B
         """
@@ -211,13 +207,11 @@ class Test_render_images1(hunitest.TestCase):
         """
         file_ext = "md"
         exp = r"""
-
         [//]: # ( ```plantuml)
         [//]: # ( @startuml)
         [//]: # ( Alice --> Bob)
         [//]: # ( @enduml)
         [//]: # ( ```)
-
         ![](figs/out.1.png)
         """
         self.helper(in_lines, file_ext, exp)
@@ -234,12 +228,10 @@ class Test_render_images1(hunitest.TestCase):
         """
         file_ext = "md"
         exp = r"""
-
         [//]: # ( ```mermaid)
         [//]: # ( flowchart TD;)
         [//]: # (   A[Start] --> B[End];)
         [//]: # ( ```)
-
         ![](figs/out.1.png)
         """
         self.helper(in_lines, file_ext, exp)
@@ -259,12 +251,10 @@ class Test_render_images1(hunitest.TestCase):
         file_ext = "md"
         exp = r"""
         A
-
         [//]: # ( ```mermaid)
         [//]: # ( flowchart TD;)
         [//]: # (   A[Start] --> B[End];)
         [//]: # ( ```)
-
         ![](figs/out.1.png)
         B
         """
@@ -281,11 +271,9 @@ class Test_render_images1(hunitest.TestCase):
         """
         file_ext = "tex"
         exp = r"""
-
         % ```plantuml
         % Alice --> Bob
         % ```
-
         \begin{figure}
           \includegraphics[width=\linewidth]{figs/out.1.png}
         \end{figure}
@@ -306,11 +294,9 @@ class Test_render_images1(hunitest.TestCase):
         file_ext = "tex"
         exp = r"""
         A
-
         % ```plantuml
         % Alice --> Bob
         % ```
-
         \begin{figure}
           \includegraphics[width=\linewidth]{figs/out.1.png}
         \end{figure}
@@ -347,13 +333,11 @@ class Test_render_images1(hunitest.TestCase):
         """
         file_ext = "tex"
         exp = r"""
-
         % ```plantuml
         % @startuml
         % Alice --> Bob
         % @enduml
         % ```
-
         \begin{figure}
           \includegraphics[width=\linewidth]{figs/out.1.png}
         \end{figure}
@@ -377,7 +361,6 @@ class Test_render_images1(hunitest.TestCase):
         % flowchart TD;
         %   A[Start] --> B[End];
         % ```
-
         \begin{figure}
           \includegraphics[width=\linewidth]{figs/out.1.png}
         \end{figure}
@@ -399,12 +382,10 @@ class Test_render_images1(hunitest.TestCase):
         file_ext = "tex"
         exp = r"""
         A
-
         % ```mermaid
         % flowchart TD;
         %   A[Start] --> B[End];
         % ```
-
         \begin{figure}
           \includegraphics[width=\linewidth]{figs/out.1.png}
         \end{figure}
