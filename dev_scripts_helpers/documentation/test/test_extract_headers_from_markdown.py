@@ -1,3 +1,4 @@
+import argparse
 import logging
 
 import dev_scripts_helpers.documentation.extract_headers_from_markdown as dshdehfma
@@ -27,19 +28,25 @@ class Test_extract_headers_from_markdown1(hunitest.TestCase):
         output_file = self.get_scratch_space() + "/output.md"
         hio.to_file(input_file, content)
         # Call tested function.
-        parser = dshdehfma._parse()
-        args = parser.parse_args(
-            [
-                "-i",
-                input_file,
-                "-o",
-                output_file,
-                "--mode",
-                "headers",
-                "--max-level",
-                "3",
-            ]
-        )
+        args = argparse.Namespace(
+            i=input_file,
+            o=output_file,
+            mode="headers",
+            max_level="3")
+    # )
+    #     parser = dshdehfma._parse()
+    #     args = parser.parse_args(
+    #         [
+    #             "-i",
+    #             input_file,
+    #             "-o",
+    #             output_file,
+    #             "--mode",
+    #             "headers",
+    #             "--max-level",
+    #             "3",
+    #         ]
+    #     )
         dshdehfma._main(args)
         # Check output.
         act = hio.from_file(output_file)

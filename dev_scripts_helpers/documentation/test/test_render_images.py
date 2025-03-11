@@ -8,6 +8,9 @@ import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
+import helpers_root.dev_scripts_helpers.documentation.render_images as hdl
+
+
 _LOG = logging.getLogger(__name__)
 
 
@@ -440,31 +443,7 @@ class Test_render_images1(hunitest.TestCase):
 
 class Test_render_images2(hunitest.TestCase):
 
-    def test1(self) -> None:
-        """
-        Test running on a real Markdown file with plantUML code.
-        """
-        self._test_render_images("im_architecture.md")
-
-    def test2(self) -> None:
-        """
-        Test running on a real Markdown file with mermaid code.
-        """
-        self._test_render_images("runnable_repo.md")
-
-    def test3(self) -> None:
-        """
-        Test running on a full LaTeX file with plantUML code.
-        """
-        self._test_render_images("sample_file_plantuml.tex")
-
-    def test4(self) -> None:
-        """
-        Test running on a full LaTeX file with mermaid code.
-        """
-        self._test_render_images("sample_file_mermaid.tex")
-
-    def _test_render_images(self, file_name: str) -> None:
+    def helper(self, file_name: str) -> None:
         """
         Helper function to test rendering images from a file.
         """
@@ -486,3 +465,33 @@ class Test_render_images2(hunitest.TestCase):
         act = "\n".join(out_lines)
         # Check output.
         self.check_string(act)
+
+    def test1(self) -> None:
+        """
+        Test running on a real Markdown file with plantUML code.
+        """
+        self.helper("im_architecture.md")
+
+    def test2(self) -> None:
+        """
+        Test running on a real Markdown file with mermaid code.
+        """
+        self.helper("runnable_repo.md")
+
+    def test3(self) -> None:
+        """
+        Test running on a full LaTeX file with plantUML code.
+        """
+        self.helper("sample_file_plantuml.tex")
+
+    def test4(self) -> None:
+        """
+        Test running on a full LaTeX file with mermaid code.
+        """
+        self.helper("sample_file_mermaid.tex")
+
+    # def test_cmd1(self) -> None:
+    #     """
+    #     Test running on a real Markdown file with plantUML code.
+    #     """
+    #     self.helper("im_architecture.md")

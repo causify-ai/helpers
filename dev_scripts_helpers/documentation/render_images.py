@@ -190,9 +190,9 @@ def _render_code(
             elif image_code_type == "mermaid":
                 hdocker.run_dockerized_mermaid(rel_img_path, code_file_path)
             elif image_code_type == "tikz":
-                hdocker.run_dockerized_latex(rel_img_path, code_file_path)
-            # elif image_code_type == "graphviz":
-            #     run_dockerized_latex
+                hdocker.run_dockerized_tikz(rel_img_path, code_file_path)
+            elif image_code_type == "graphviz":
+                #run_dockerized_latex
             else:
                 raise ValueError(f"Invalid type: {image_code_type}")
         else:

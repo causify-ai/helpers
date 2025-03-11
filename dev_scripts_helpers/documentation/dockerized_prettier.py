@@ -45,9 +45,9 @@ def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
-    hparser.add_dockerized_script_arg(parser)
     parser.add_argument("-i", "--input", action="store", required=True)
     parser.add_argument("-o", "--output", action="store", default="")
+    hparser.add_dockerized_script_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 

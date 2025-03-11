@@ -1002,8 +1002,7 @@ def convert_latex_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
     > pdflatex \
         tmp.scratch/tmp.pandoc.tex \
         -output-directory tmp.scratch \
-        -interaction=nonstopmode -halt-on-error -shell-escape
-    ```
+        -interaction=nonstopmode -halt-on-error -shell-escape ```
 
     :param cmd: A list of command-line arguments for pandoc.
     :return: A dictionary with the parsed arguments.
@@ -1030,7 +1029,7 @@ def convert_latex_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
     # replace `-XYZ` with `--XYZ`.
     cmd = [re.sub(r"^-", r"--", cmd_opts) for cmd_opts in cmd]
     _LOG.debug(hprint.to_str("cmd"))
-    # Parse known arguments and capture the rest.
+    # # Parse known arguments and capture the rest.
     args, unknown_args = parser.parse_known_args(cmd)
     _LOG.debug(hprint.to_str("args unknown_args"))
     # Return all the arguments in a dictionary with names that match the
@@ -1213,7 +1212,7 @@ def run_basic_latex(input_file_name: str, cmd_opts: List[str],
         + " -interaction=nonstopmode"
         + " -halt-on-error"
         + " -shell-escape"
-        + " ".join(cmd_opts)
+        + " " + " ".join(cmd_opts)
         + f" {input_file_name}"
     )
     run_dockerized_latex(
@@ -1232,8 +1231,9 @@ def run_basic_latex(input_file_name: str, cmd_opts: List[str],
     _LOG.debug("file_out=%s", file_out)
     hdbg.dassert_path_exists(file_out)
     # Move to the proper output location.
-    cmd = "mv %s %s" % (file_out, output_file_name)
-    hsystem.system(cmd)
+    if file_out != output_file_name:
+        cmd = "mv %s %s" % (file_out, output_file_name)
+        hsystem.system(cmd)
 
 
 # #############################################################################
@@ -1321,6 +1321,26 @@ def run_dockerized_imagemagick(
         hsystem.system(docker_cmd)
         ret = None
     return ret
+
+
+def tikz_to_pdf(in_file_path: str, cmd_opts: List[str], out_file_path: str, 
+    *,
+    force_rebuild: bool = False,
+    use_sudo: bool = False,
+                ) -> None:
+    latex_cmd_opts = []
+    run_latex_again = False
+    file_out = os.path.basename(in_file_path).replace(".tex", ".pdf")
+    run_basic_latex(in_file_path, latex_cmd_opts, run_latex_again, file_out,
+                            force_rebuild=force_rebuild,
+                            use_sudo=use_sudo)
+    run_dockerized_imagemagick(
+        file_out,
+        out_file_path,
+        cmd_opts,
+        force_rebuild=force_rebuild,
+        use_sudo=use_sudo,
+    )
 
 
 # #############################################################################

@@ -14,7 +14,6 @@ import os
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hparser as hparser
-import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
@@ -26,12 +25,12 @@ def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
-    hparser.add_dockerized_script_arg(parser)
     parser.add_argument("-i", "--input", action="store", required=True)
     parser.add_argument("-o", "--output", action="store", required=True)
     parser.add_argument(
         "--run_latex_again", action="store_true", default=False
     )
+    hparser.add_dockerized_script_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -44,8 +43,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(
         verbosity=args.log_level, use_exec_path=True, force_white=False
     )
-    run_latex_again = True
-    hdocker.run_basic_latex(args.input, cmd_opts, run_latex_again, args.output,
+    hdocker.run_basic_latex(args.input, cmd_opts, args.run_latex_again, args.output,
                             force_rebuild=args.dockerized_force_rebuild,
                             use_sudo=args.dockerized_use_sudo)
     _LOG.info("Output written to '%s'", args.output)
