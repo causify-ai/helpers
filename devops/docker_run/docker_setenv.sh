@@ -45,7 +45,7 @@ if [[ $CSFY_IS_SUPER_REPO == 1 ]]; then
     # Add helpers.
     dassert_dir_exists $CSFY_HELPERS_ROOT_PATH
     # Give priority to the current repo.
-    export PYTHONPATH=$PYTHONPATH:$CSFY_HELPERS_ROOT_PATH    
+    export PYTHONPATH=$PYTHONPATH:$CSFY_HELPERS_ROOT_PATH
 fi;
 
 # - Configure environment.
