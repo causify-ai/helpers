@@ -9,7 +9,7 @@ import getpass
 import logging
 import os
 import re
-from typing import Any, Dict, List, Match, Optional, Union, cast
+from typing import cast, Any, Dict, List, Match, Optional, Union
 
 # TODO(gp): We should use `pip install types-PyYAML` to get the mypy stubs.
 import yaml
@@ -234,7 +234,9 @@ def _docker_pull(
 
 
 @task
-def docker_pull(ctx, stage="dev", version=None, skip_pull=False):  # type: ignore
+def docker_pull(  # type: ignore
+        ctx, stage="dev", version=None, skip_pull=False
+):
     """
     Pull latest dev image corresponding to the current repo from the registry.
 
@@ -480,7 +482,9 @@ def _get_linter_service(stage: str) -> DockerComposeServiceSpec:
         # Use the `repo_config.py` inside the helpers container instead of
         # the one in the calling repo.
         environment = cast(List[str], linter_service_spec["environment"])
-        environment.append("CSFY_REPO_CONFIG_PATH=/app/repo_config.py")
+        environment.append(
+            "CSFY_REPO_CONFIG_PATH=/app/repo_config.py"
+        )
     return linter_service_spec
 
 
@@ -1385,10 +1389,6 @@ def docker_bash(  # type: ignore
     """
     _LOG.debug(hprint.func_signature_to_str("ctx"))
     hlitauti.report_task(container_dir_name=container_dir_name)
-    # Pull the image.
-    # TODO(Vlad): Make sure that we need `docker_pull()` in the `_docker_cmd()`.
-    image = stage
-    docker_pull(ctx, image)
     #
     cmd = "bash"
     docker_cmd_ = _get_docker_compose_cmd(
@@ -1496,11 +1496,6 @@ def docker_jupyter(  # type: ignore
     :param skip_pull: if True skip pulling the docker image
     """
     hlitauti.report_task(container_dir_name=container_dir_name)
-    # Pull the image.
-    # TODO(Vlad): Make sure that we need `docker_pull()` in the `_docker_cmd()`.
-    image = stage
-    docker_pull(ctx, image)
-    #
     if port is None:
         if auto_assign_port:
             uid = os.getuid()
