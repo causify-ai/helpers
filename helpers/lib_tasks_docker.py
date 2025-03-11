@@ -1318,18 +1318,11 @@ def _get_lint_docker_cmd(
     """
     # Infer the docker registry based on the environment.
     if hserver.is_dev_ck():
-        docker_registry = "aws_ecr.ck"
-    else:
-        docker_registry = "dockerhub.causify"
-    _LOG.debug("Using docker registry: %s", docker_registry)
-    # Get an image to run the linter on.
-    if docker_registry == "dockerhub.causify":
-        # TODO(Vlad): Replace with environment variable.
-        base_path = "causify"
-    elif docker_registry == "aws_ecr.ck":
         base_path = os.environ["CSFY_ECR_BASE_PATH"]
     else:
-        raise ValueError(f"Unknown docker registry: {docker_registry}")
+        base_path = "causify"
+    _LOG.debug("base_path=%s", base_path)
+    # Get an image to run the linter on.
     linter_image = f"{base_path}/helpers"
     # Execute command line.
     cmd: str = _get_docker_compose_cmd(
