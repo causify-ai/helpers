@@ -4,12 +4,10 @@ Run `latex` inside a Docker container.
 
 This script builds the container dynamically if necessary and formats the
 specified file using the provided `prettier` options.
-
 """
 
 import argparse
 import logging
-import os
 
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
@@ -27,9 +25,7 @@ def _parse() -> argparse.ArgumentParser:
     )
     parser.add_argument("-i", "--input", action="store", required=True)
     parser.add_argument("-o", "--output", action="store", required=True)
-    parser.add_argument(
-        "--run_latex_again", action="store_true", default=False
-    )
+    parser.add_argument("--run_latex_again", action="store_true", default=False)
     hparser.add_dockerized_script_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
@@ -43,9 +39,14 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(
         verbosity=args.log_level, use_exec_path=True, force_white=False
     )
-    hdocker.run_basic_latex(args.input, cmd_opts, args.run_latex_again, args.output,
-                            force_rebuild=args.dockerized_force_rebuild,
-                            use_sudo=args.dockerized_use_sudo)
+    hdocker.run_basic_latex(
+        args.input,
+        cmd_opts,
+        args.run_latex_again,
+        args.output,
+        force_rebuild=args.dockerized_force_rebuild,
+        use_sudo=args.dockerized_use_sudo,
+    )
     _LOG.info("Output written to '%s'", args.output)
 
 

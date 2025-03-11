@@ -13,9 +13,6 @@ import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
-import helpers_root.dev_scripts_helpers.documentation.dockerized_latex as hdl
-import helpers_root.dev_scripts_helpers.documentation.tikz_to_png as hdl2
-
 _LOG = logging.getLogger(__name__)
 
 
@@ -522,7 +519,7 @@ class Test_run_markdown_toc1(hunitest.TestCase):
     hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
 )
 class Test_dockerized_latex1(hunitest.TestCase):
-        
+
     def create_input_file(self) -> Tuple[str, str]:
         txt = r"""
         \documentclass{article}
@@ -548,11 +545,19 @@ class Test_dockerized_latex1(hunitest.TestCase):
         force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
         # Run function.
-        hdocker.run_basic_latex(in_file_path, cmd_opts, run_latex_again, out_file_path,
-                                force_rebuild=force_rebuild,
-                                use_sudo=use_sudo)
+        hdocker.run_basic_latex(
+            in_file_path,
+            cmd_opts,
+            run_latex_again,
+            out_file_path,
+            force_rebuild=force_rebuild,
+            use_sudo=use_sudo,
+        )
         # Check output.
-        self.assertTrue(os.path.exists(out_file_path), msg=f"Output file {out_file_path} not found")
+        self.assertTrue(
+            os.path.exists(out_file_path),
+            msg=f"Output file {out_file_path} not found",
+        )
 
     def test2(self) -> None:
         """
@@ -566,7 +571,10 @@ class Test_dockerized_latex1(hunitest.TestCase):
         cmd = f"{exec_path} -i {in_file_path} -o {out_file_path}"
         hsystem.system(cmd)
         # Check output.
-        self.assertTrue(os.path.exists(out_file_path), msg=f"Output file {out_file_path} not found")
+        self.assertTrue(
+            os.path.exists(out_file_path),
+            msg=f"Output file {out_file_path} not found",
+        )
 
     # TODO(gp): This doesn't work since:
     # 1) `convert_latex_cmd_to_arguments()` is monkey patching with parsing the
@@ -596,8 +604,9 @@ class Test_dockerized_latex1(hunitest.TestCase):
     #     # Check output.
     #     self.assertTrue(os.path.exists(out_file_path), msg=f"Output file {out_file_path} not found")
 
+
 # #############################################################################
-# Test_dockerized_latex1
+# Test_tikz_to_png1
 # #############################################################################
 
 
@@ -605,7 +614,7 @@ class Test_dockerized_latex1(hunitest.TestCase):
     hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
 )
 class Test_tikz_to_png1(hunitest.TestCase):
-        
+
     def create_input_file(self) -> Tuple[str, str]:
         txt = r"""
         \documentclass[tikz, border=10pt]{standalone}
@@ -644,11 +653,18 @@ class Test_tikz_to_png1(hunitest.TestCase):
         force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
         # Run function.
-        hdocker.tikz_to_pdf(in_file_path, cmd_opts, out_file_path,
-                            force_rebuild=force_rebuild,
-                            use_sudo=use_sudo)
+        hdocker.tikz_to_pdf(
+            in_file_path,
+            cmd_opts,
+            out_file_path,
+            force_rebuild=force_rebuild,
+            use_sudo=use_sudo,
+        )
         # Check output.
-        self.assertTrue(os.path.exists(out_file_path), msg=f"Output file {out_file_path} not found")
+        self.assertTrue(
+            os.path.exists(out_file_path),
+            msg=f"Output file {out_file_path} not found",
+        )
 
     def test2(self) -> None:
         """
@@ -661,4 +677,7 @@ class Test_tikz_to_png1(hunitest.TestCase):
         cmd = f"{exec_path} -i {in_file_path} -o {out_file_path} -density 300 -quality 10"
         hsystem.system(cmd)
         # Check output.
-        self.assertTrue(os.path.exists(out_file_path), msg=f"Output file {out_file_path} not found")
+        self.assertTrue(
+            os.path.exists(out_file_path),
+            msg=f"Output file {out_file_path} not found",
+        )

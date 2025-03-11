@@ -6,12 +6,10 @@ Convert a TikZ file to a PNG image using a dockerized version of `pdflatex` and
 
 import argparse
 import logging
-import os
 
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hparser as hparser
-import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
@@ -38,9 +36,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(
         verbosity=args.log_level, use_exec_path=True, force_white=False
     )
-    hdocker.tikz_to_pdf(args.input, cmd_opts, args.output,
-                            force_rebuild=args.dockerized_force_rebuild,
-                            use_sudo=args.dockerized_use_sudo)
+    hdocker.tikz_to_pdf(
+        args.input,
+        cmd_opts,
+        args.output,
+        force_rebuild=args.dockerized_force_rebuild,
+        use_sudo=args.dockerized_use_sudo,
+    )
     _LOG.info("Output written to '%s'", args.output)
 
 

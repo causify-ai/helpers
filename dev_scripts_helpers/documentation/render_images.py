@@ -26,7 +26,7 @@ import logging
 import os
 import re
 import tempfile
-from typing import cast, List, Tuple
+from typing import List, Tuple, cast
 
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
@@ -174,8 +174,11 @@ def _render_code(
     cmd = _get_render_command(
         code_file_path, abs_img_dir_path, rel_img_path, dst_ext, image_code_type
     )
-    _LOG.info("Creating the image from '%s' source and saving image to '%s'", code_file_path,
-    abs_img_dir_path)
+    _LOG.info(
+        "Creating the image from '%s' source and saving image to '%s'",
+        code_file_path,
+        abs_img_dir_path,
+    )
     _LOG.info("> %s", cmd)
     if dry_run:
         # Do not execute the command.
@@ -192,7 +195,8 @@ def _render_code(
             elif image_code_type == "tikz":
                 hdocker.run_dockerized_tikz(rel_img_path, code_file_path)
             elif image_code_type == "graphviz":
-                #run_dockerized_latex
+                # TODO(gp): Implement this.
+                hdocker.run_dockerized_graphviz(rel_img_path, code_file_path)
             else:
                 raise ValueError(f"Invalid type: {image_code_type}")
         else:
