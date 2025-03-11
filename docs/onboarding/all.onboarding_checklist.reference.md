@@ -100,8 +100,8 @@
 - [ ] **Team leader**: Send some information to the new team member as a preview
   - E.g., some documentation
 
-- [ ] **Team leader**: establish contact by Slack or email with the new hire
-      with a few words about the next steps
+- [ ] **Team leader**: establish contact with the new hire with a few words
+      about the next steps
 
 - [ ] **Team leader**: do a proper intro with an email to the team:
   - "Hi team, please join me in welcoming XYZ to the team"
@@ -171,6 +171,10 @@
 
 - [ ] **Team member**: Confirm receipt of emails to `@all`
 
+- [ ] **IT**: Add the team member to the company's Slack workspace
+
+- [ ] **Team member**: Confirm access to the company's Slack workspace
+
 - [ ] **Team member**: Confirm monthly all-hands meeting (usually on Monday
       morning)
   - This happens automatically through `all@kaizen-tech.io`
@@ -180,8 +184,6 @@
   - This should be automatically granted as being in `all@kaizen-tech.io`
   - [Crypto-tech](https://drive.google.com/drive/u/1/folders/1zawE6IEBDpWLTbpK-03z75f5pu_T9Jba)
   - [Process](https://drive.google.com/drive/u/1/folders/1sJDqCjM1Q_nq8diyZDiWO8mVBQW5Wg_X)
-
-- [ ] **Team member**: Confirm access to the company's Slack workspace
 
 - [ ] **Team member**: Set up the laptop to connect to the server following
       [VPN and dev server access setup instructions](https://github.com/causify-ai/helpers/blob/master/docs/onboarding/ck.setup_vpn_and_dev_server_access.how_to_guide.md)
