@@ -1500,6 +1500,11 @@ def docker_jupyter(  # type: ignore
     :param skip_pull: if True skip pulling the docker image
     """
     hlitauti.report_task(container_dir_name=container_dir_name)
+    # Pull the image.
+    # TODO(Vlad): Make sure that we need `docker_pull()` in the `_docker_cmd()`.
+    image = stage
+    docker_pull(ctx, image)
+    #
     if port is None:
         if auto_assign_port:
             uid = os.getuid()
