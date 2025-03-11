@@ -1,3 +1,0 @@
-e.8.txt
-/a/b/c/d/figs
-figs/e.8.png

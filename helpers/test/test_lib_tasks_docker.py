@@ -64,7 +64,9 @@ class Test_generate_compose_file1(hunitest.TestCase):
         txt_tmp = hunitest.filter_text("CSFY_HOST_", txt_tmp)
         txt_tmp = hunitest.filter_text("CSFY_GIT_ROOT_PATH", txt_tmp)
         txt_tmp = hunitest.filter_text("CSFY_HELPERS_ROOT_PATH", txt_tmp)
-        txt_tmp = hunitest.filter_text("CSFY_IS_SUPER_REPO", txt_tmp)
+        txt_tmp = hunitest.filter_text(
+            "CSFY_USE_HELPERS_AS_NESTED_MODULE", txt_tmp
+        )
         txt_tmp = hunitest.filter_text("OPENAI_API_KEY", txt_tmp)
         txt.append(txt_tmp)
         #

@@ -25,7 +25,7 @@ _LOG = logging.getLogger(__name__)
 )
 class Test_notes_to_pdf1(hunitest.TestCase):
 
-    def create_in_file(self) -> str:
+    def create_input_file(self) -> str:
         txt = """
         # Header1
 
@@ -46,14 +46,15 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         hio.to_file(in_file, txt)
         return in_file
 
+    # TODO(gp): Run this calling directly the code and not executing the script.
     def run_notes_to_pdf(
         self, in_file: str, type_: str, cmd_opts: str
     ) -> Tuple[Optional[str], Optional[str]]:
         """
-        Run the notes_to_pdf script with the specified options.
+        Run the `notes_to_pdf.py` script with the specified options.
 
         This function constructs and executes a command to convert notes
-        to a PDF or HTML file using the notes_to_pdf script.
+        to a PDF or HTML file using the `notes_to_pdf.py` script.
 
         :param in_file: Path to the input file containing the notes.
         :param type_: The output format, either 'pdf' or 'html'.
@@ -75,22 +76,30 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         cmd.append(exec_path)
         cmd.append(f"--input {in_file}")
         cmd.append(f"--type {type_}")
-        tmp_dir = self.get_scratch_space()
-        cmd.append(f"--tmp_dir {tmp_dir}")
-        script_file = os.path.join(tmp_dir, "script.sh")
+        #tmp_dir = self.get_scratch_space()
+        out_dir = self.get_scratch_space()
+        #cmd.append(f"--tmp_dir {tmp_dir}")
+        # Save a script file to store the commands.
+        script_file = os.path.join(out_dir, "script.sh")
         cmd.append(f"--script {script_file}")
         hdbg.dassert_in(type_, ["pdf", "html"])
-        out_file = os.path.join(tmp_dir, f"output.{type_}")
+        out_file = os.path.join(out_dir, f"output.{type_}")
         cmd.append(f"--output {out_file}")
         cmd.append(cmd_opts)
-        #
+        # The command line looks like:
+        # /app/helpers_root/dev_scripts_helpers/documentation/notes_to_pdf.py \
+        #   --input /app/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test2/tmp.scratch/input.md \
+        #   --type pdf \
+        #   --tmp_dir /app/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test2/tmp.scratch \
+        #   --script /app/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test2/tmp.scratch/script.sh \
+        #   --output /app/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test2/tmp.scratch/output.pdf
         cmd = " ".join(cmd)
         hsystem.system(cmd)
         # Check that the file exists.
         if type_ == "pdf":
-            out_file = os.path.join(tmp_dir, "tmp.pandoc.tex")
+            out_file = os.path.join(out_dir, "tmp.pandoc.tex")
         elif type_ == "html":
-            out_file = os.path.join(tmp_dir, "tmp.pandoc.html")
+            out_file = os.path.join(out_dir, "tmp.pandoc.html")
         else:
             raise ValueError(f"Invalid type_='{type_}'")
         # Check the content of the file, if needed.
@@ -103,14 +112,20 @@ class Test_notes_to_pdf1(hunitest.TestCase):
             script_txt = hio.from_file(script_file)
         return script_txt, output_txt
 
+    # ///////////////////////////////////////////////////////////////////////////
+
     def test1(self) -> None:
         """
         Run:
         > notes_to_pdf.py --input input.md -t pdf --preview
         """
-        in_file = self.create_in_file()
+        # Prepare inputs.
+        in_file = self.create_input_file()
+        type_ = "pdf"
         cmd_opts = "--preview_actions"
-        script_txt, output_txt = self.run_notes_to_pdf(in_file, "pdf", cmd_opts)
+        # Run the script.
+        script_txt, output_txt = self.run_notes_to_pdf(in_file, type_, cmd_opts)
+        # Check.
         self.assertEqual(script_txt, None)
         self.assertEqual(output_txt, None)
 
@@ -119,10 +134,13 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         Run:
         > notes_to_pdf.py --input input.md -t pdf
         """
-        in_file = self.create_in_file()
+        # Prepare inputs.
+        in_file = self.create_input_file()
+        type_ = "pdf"
         cmd_opts = ""
-        script_txt, output_txt = self.run_notes_to_pdf(in_file, "pdf", cmd_opts)
-        #
+        # Run the script.
+        script_txt, output_txt = self.run_notes_to_pdf(in_file, type_, cmd_opts)
+        # Check.
         txt = "script_txt:\n%s\n" % script_txt
         txt += "output_txt:\n%s\n" % output_txt
         self.check_string(txt)
@@ -132,10 +150,13 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         Run:
         > notes_to_pdf.py --input input.md -t pdf --filter_by_header Header2
         """
-        in_file = self.create_in_file()
+        # Prepare inputs.
+        in_file = self.create_input_file()
+        type_ = "pdf"
         cmd_opts = "--filter_by_header Header2"
-        script_txt, output_txt = self.run_notes_to_pdf(in_file, "pdf", cmd_opts)
-        #
+        # Run the script.
+        script_txt, output_txt = self.run_notes_to_pdf(in_file, type_, cmd_opts)
+        # Check.
         txt = "script_txt:\n%s\n" % script_txt
         txt += "output_txt:\n%s\n" % output_txt
         self.check_string(txt)

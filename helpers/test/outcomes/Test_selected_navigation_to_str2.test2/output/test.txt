@@ -1,7 +1,7 @@
 ################################################################################
 level=1, description='Models'
 ################################################################################
-- *Models*
+- **Models**
   - Naive Bayes
   - Decision trees
   - Random forests
@@ -10,7 +10,7 @@ level=1, description='Models'
 level=2, description='Naive Bayes'
 ################################################################################
 - Models
-  - *Naive Bayes*
+  - **Naive Bayes**
   - Decision trees
   - Random forests
   - Linear models
@@ -19,7 +19,7 @@ level=2, description='Decision trees'
 ################################################################################
 - Models
   - Naive Bayes
-  - *Decision trees*
+  - **Decision trees**
   - Random forests
   - Linear models
 ################################################################################
@@ -28,7 +28,7 @@ level=2, description='Random forests'
 - Models
   - Naive Bayes
   - Decision trees
-  - *Random forests*
+  - **Random forests**
   - Linear models
 ################################################################################
 level=2, description='Linear models'
@@ -37,4 +37,4 @@ level=2, description='Linear models'
   - Naive Bayes
   - Decision trees
   - Random forests
-  - *Linear models*
+  - **Linear models**
