@@ -283,19 +283,12 @@ def _get_repo_full_name_from_cmd(repo_short_name: str) -> Tuple[str, str]:
         repo_full_name_with_host = hgit.get_repo_full_name_from_dirname(
             ".", include_host_name=True
         )
-        # Compute the short repo name corresponding to "current".
-        repo_full_name = hgit.get_repo_full_name_from_dirname(
-            ".", include_host_name=False
-        )
-        ret_repo_short_name = hgit.get_repo_name(
-            repo_full_name, in_mode="full_name", include_host_name=False
-        )
+        hdbg.dassert_eq(
+            repo_full_name_with_host,
+            hrecouti.get_repo_config().get_repo_full_name_with_hostname())
+        ret_repo_short_name = hrecouti.get_repo_config().get_repo_short_name()
     else:
-        # Get the repo name using the short -> full name mapping.
-        repo_full_name_with_host = hgit.get_repo_name(
-            repo_short_name, in_mode="short_name", include_host_name=True
-        )
-        ret_repo_short_name = repo_short_name
+        hdbg.dfatal("This code path is obsolete")
     _LOG.debug(
         "repo_short_name=%s -> repo_full_name_with_host=%s ret_repo_short_name=%s",
         repo_short_name,
@@ -312,9 +305,12 @@ def _get_gh_issue_title(issue_id: int, repo_short_name: str) -> Tuple[str, str]:
     """
     Get the title of a GitHub issue.
 
-    :param repo_short_name: `current` refer to the repo_short_name where we are,
-        otherwise a repo_short_name short name (e.g., "amp")
+    :param repo_short_name: `current` refer to the repo where we are in,
+        otherwise a `repo_short_name` (e.g., "amp")
     """
+    # TODO(gp): I don't see applications where we need to pass the repo_short_name.
+    # One should always operate in the dir corresponding to a repo.
+    hdbg.dassert_eq(repo_short_name, "current")
     repo_full_name_with_host, repo_short_name = _get_repo_full_name_from_cmd(
         repo_short_name
     )
@@ -336,14 +332,13 @@ def _get_gh_issue_title(issue_id: int, repo_short_name: str) -> Tuple[str, str]:
         title = title.replace(char, "")
     # Replace multiple spaces with one.
     title = re.sub(r"\s+", " ", title)
-    #
     title = title.replace(" ", "_")
-    title = title.replace("-", "_")
-    title = title.replace("'", "_")
-    title = title.replace("`", "_")
-    title = title.replace('"', "_")
+    # Remove some annoying chars.
+    for char in "- ' ` \"".split():
+        title = title.replace(char, "_")
     # Add the prefix `AmpTaskXYZ_...`
-    task_prefix = hgit.get_task_prefix_from_repo_short_name(repo_short_name)
+    task_prefix = hrecouti.get_repo_config().get_issue_prefix()
+    #task_prefix = hgit.get_task_prefix_from_repo_short_name(repo_short_name)
     _LOG.debug("task_prefix=%s", task_prefix)
     title = f"{task_prefix}{issue_id}_{title}"
     return title, url
@@ -374,7 +369,7 @@ def gh_issue_title(ctx, issue_id, repo_short_name="current", pbcopy=True):  # ty
     title, url = _get_gh_issue_title(issue_id, repo_short_name)
     # Print or copy to clipboard.
     msg = f"{title}: {url}"
-    hsystem.to_pbcopy(msg, pbcopy=True)
+    hsystem.to_pbcopy(msg, pbcopy=pbcopy)
 
 
 def _check_if_pr_exists(title: str) -> bool:

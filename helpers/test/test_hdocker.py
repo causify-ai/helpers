@@ -189,11 +189,6 @@ class Test_convert_to_docker_path1(hunitest.TestCase):
         )
 
 
-# #############################################################################
-# Test_run_dockerized_prettier1
-# #############################################################################
-
-
 def _create_test_file(self_: Any, txt: str, extension: str) -> str:
     file_path = os.path.join(self_.get_scratch_space(), f"input.{extension}")
     txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)

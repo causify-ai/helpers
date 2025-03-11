@@ -610,6 +610,7 @@ def _generate_docker_compose_file(
             "~/.aws:/home/.aws",
             "~/.config/gspread_pandas/:/home/.config/gspread_pandas/",
             "~/.config/gh:/home/.config/gh",
+            "~/.ssh:/home/.ssh",
         ],
     }
     if use_privileged_mode:
@@ -777,8 +778,7 @@ def _get_docker_compose_files(
     """
     docker_compose_files = []
     # Get the repo short name (e.g., `amp`).
-    dir_name = hgit.get_repo_full_name_from_dirname(".", include_host_name=False)
-    repo_short_name = hgit.get_repo_name(dir_name, in_mode="full_name")
+    repo_short_name = hrecouti.get_repo_config().get_repo_short_name()
     _LOG.debug("repo_short_name=%s", repo_short_name)
     # Check submodule status, if needed.
     mount_as_submodule = False
@@ -1141,7 +1141,7 @@ def _get_docker_base_cmd(
     _LOG.debug("base_image=%s stage=%s -> image=%s", base_image, stage, image)
     dassert_is_image_name_valid(image)
     # Check image compatibility.
-    #hdocker.check_image_compatibility_with_host(image)
+    hdocker.check_image_compatibility_with_host(image)
     docker_cmd_.append(f"IMAGE={image}")
     # - Handle extra env vars.
     if extra_env_vars:

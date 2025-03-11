@@ -262,9 +262,11 @@ def _system(
         # Report the first `num_error_lines` of the output.
         num_error_lines = num_error_lines or 30
         output_error = "\n".join(output.split("\n")[:num_error_lines])
-        raise RuntimeError(
-            f"cmd='{cmd}' failed with rc='{rc}'\ntruncated output=\n{output_error}"
-        )
+        msg = f"_system failed: cmd='{cmd}'"
+        msg = ("\n" +
+               hprint.frame(msg, char1="%", thickness=2) + "\n" +
+                f"truncated output=\n{output_error}")
+        raise RuntimeError(msg)
     # hdbg.dassert_type_in(output, (str, ))
     return rc, output
 

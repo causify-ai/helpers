@@ -3,6 +3,7 @@ import logging
 import pytest
 
 import helpers.hgit as hgit
+import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 import helpers.lib_tasks_gh as hlitagh
 
@@ -33,6 +34,8 @@ class TestLibTasks1(hunitest.TestCase):
             passes in fast tests super-repo run. See CmTask10845.""",
     )
     def test_get_gh_issue_title4(self) -> None:
+        cmd = "invoke gh_login"
+        hsystem.system(cmd)
         issue_id = 1
         repo = "current"
         _ = hlitagh._get_gh_issue_title(issue_id, repo)

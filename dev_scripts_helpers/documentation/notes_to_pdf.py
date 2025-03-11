@@ -244,7 +244,8 @@ def _run_pandoc_to_pdf(
     cmd = " ".join(cmd)
     _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
     if not args.use_host_tools:
-        cmd = hdocker.run_dockerized_pandoc(cmd, return_cmd=True, use_sudo=False)
+        container_type = "pandoc_texlive"
+        cmd = hdocker.run_dockerized_pandoc(cmd, container_type, return_cmd=True, use_sudo=False)
     _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
     _ = _system(cmd, suppress_output=False)
     file_ = file2

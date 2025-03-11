@@ -46,7 +46,7 @@ def _cmd_open_html(file_name: str, os_name: str) -> Optional[str]:
     return full_cmd
 
 
-def _cmd_open_pdf(file_name: str, os_name: str) -> str:
+def _cmd_open_pdf(file_name: str, os_name: str) -> Optional[str]:
     """
     Get OS-specific command to open a PDF file.
     """
@@ -64,8 +64,12 @@ def _cmd_open_pdf(file_name: str, os_name: str) -> str:
             "EOF\n"
         )
     }
-    hdbg.dassert_in(os_name, os_cmds)
-    return os_cmds[os_name]
+    if os_name not in os_cmds:
+        _LOG.warning(f"Opening PDF files on '{os_name}' is not supported yet")
+        full_cmd = None
+    else:
+        full_cmd = os_cmds[os_name]
+    return full_cmd
 
 
 def open_file(file_name: str) -> None:
