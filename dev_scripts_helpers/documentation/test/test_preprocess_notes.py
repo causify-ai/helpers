@@ -15,6 +15,7 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 
+# TODO(gp): Pass through the function and not only executable.
 def _run_preprocess_notes(in_file: str, out_file: str) -> str:
     """
     Execute the end-to-end flow for `preprocess_notes.py` returning the output

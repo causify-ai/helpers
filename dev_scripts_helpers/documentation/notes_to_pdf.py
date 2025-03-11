@@ -24,7 +24,7 @@ import logging
 import os
 import re
 import sys
-from typing import cast, Any, List, Optional, Tuple
+from typing import Any, List, Optional, Tuple, cast
 
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
@@ -120,8 +120,7 @@ def _filter_by_header(file_: str, header: str, prefix: str) -> str:
 # #############################################################################
 
 
-# TODO(gp): Pass what's needed instead of args.
-def _preprocess_notes(args: argparse.Namespace, file_: str, prefix: str) -> str:
+def _preprocess_notes(file_: str, prefix: str, type_: str, toc_type: str) -> str:
     """
     Pre-process the file.
 
@@ -134,7 +133,7 @@ def _preprocess_notes(args: argparse.Namespace, file_: str, prefix: str) -> str:
     file2 = f"{prefix}.preprocess_notes.txt"
     cmd = (
         f"{exec_file} --input {file1} --output {file2}"
-        + f" --type {args.type} --toc_type {args.toc_type}"
+        + f" --type {type_} --toc_type {toc_type}"
     )
     _ = _system(cmd)
     file_ = file2
@@ -144,8 +143,7 @@ def _preprocess_notes(args: argparse.Namespace, file_: str, prefix: str) -> str:
 # #############################################################################
 
 
-# TODO(gp): Pass what's needed instead of args.
-def _render_images(args: argparse.Namespace, file_: str, prefix: str) -> str:
+def _render_images(file_: str, prefix: str) -> str:
     """
     Render images in the file.
 
@@ -179,31 +177,31 @@ def _render_images(args: argparse.Namespace, file_: str, prefix: str) -> str:
 # #############################################################################
 
 
-def _run_latex(cmd: str, file_: str) -> None:
-    """
-    Run the LaTeX command and handle errors.
+# def _run_latex(cmd: str, file_: str) -> None:
+#     """
+#     Run the LaTeX command and handle errors.
 
-    :param cmd: The LaTeX command to be executed
-    :param file_: The file to be processed by LaTeX
-    """
-    data: Tuple[int, str] = _system_to_string(cmd, abort_on_error=False)
-    rc, txt = data
-    log_file = file_ + ".latex1.log"
-    hio.to_file(log_file, txt)
-    if rc != 0:
-        txt_as_arr: List[str] = txt.split("\n")
-        for i, line in enumerate(txt_as_arr):
-            if line.startswith("!"):
-                break
-        # pylint: disable=undefined-loop-variable
-        txt_as_arr = [
-            line for i in range(max(i - 10, 0), min(i + 10, len(txt_as_arr)))
-        ]
-        txt = "\n".join(txt_as_arr)
-        _LOG.error(txt)
-        _LOG.error("Log is in %s", log_file)
-        _LOG.error("\n%s", hprint.frame(f"cmd is:\n> {cmd}"))
-        raise RuntimeError("Latex failed")
+#     :param cmd: The LaTeX command to be executed
+#     :param file_: The file to be processed by LaTeX
+#     """
+#     data: Tuple[int, str] = _system_to_string(cmd, abort_on_error=False)
+#     rc, txt = data
+#     log_file = file_ + ".latex1.log"
+#     hio.to_file(log_file, txt)
+#     if rc != 0:
+#         txt_as_arr: List[str] = txt.split("\n")
+#         for i, line in enumerate(txt_as_arr):
+#             if line.startswith("!"):
+#                 break
+#         # pylint: disable=undefined-loop-variable
+#         txt_as_arr = [
+#             line for i in range(max(i - 10, 0), min(i + 10, len(txt_as_arr)))
+#         ]
+#         txt = "\n".join(txt_as_arr)
+#         _LOG.error(txt)
+#         _LOG.error("Log is in %s", log_file)
+#         _LOG.error("\n%s", hprint.frame(f"cmd is:\n> {cmd}"))
+#         raise RuntimeError("Latex failed")
 
 
 _COMMON_PANDOC_OPTS = [
@@ -220,15 +218,20 @@ _COMMON_PANDOC_OPTS = [
 # --filter pandoc-imagine
 
 
-# TODO(gp): Pass what's needed instead of args.
 def _run_pandoc_to_pdf(
-    args: argparse.Namespace, curr_path: str, file_: str, prefix: str
+    curr_path: str,
+    file_: str,
+    prefix: str,
+    toc_type: str,
+    no_run_latex_again: bool,
+    use_host_tools: bool,
+    dockerized_force_rebuild: bool,
+    dockerized_use_sudo: bool,
 ) -> str:
     """
     Convert the input file to PDF using Pandoc.
 
-    :param args: The command-line arguments
-    :param curr_path: The current path where the script is located. 
+    :param curr_path: The current path where the script is located.
         E.g., '/app/helpers_root/dev_scripts_helpers/documentation'
         This is used to reference files with respect to the script location
         (e.g., `pandoc.latex`)
@@ -238,7 +241,7 @@ def _run_pandoc_to_pdf(
         E.g., '/app/helpers_root/tmp.notes_to_pdf'
     :return: The path to the generated PDF file
     """
-    _LOG.debug(hprint.func_signature_to_str("args"))
+    _LOG.debug(hprint.func_signature_to_str())
     file1 = file_
     # - Run pandoc.
     cmd = []
@@ -254,23 +257,23 @@ def _run_pandoc_to_pdf(
     file2 = f"{prefix}.tex"
     cmd.append(f"-o {file2}")
     #
-    if args.toc_type == "pandoc_native":
+    if toc_type == "pandoc_native":
         cmd.append("--toc")
         cmd.append("--toc-depth 2")
     else:
-        args.no_run_latex_again = True
+        no_run_latex_again = True
     # Doesn't work
     # -f markdown+raw_tex
     cmd = " ".join(cmd)
     _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
-    if not args.use_host_tools:
+    if not use_host_tools:
         container_type = "pandoc_texlive"
         cmd = hdocker.run_dockerized_pandoc(
             cmd,
             container_type,
             return_cmd=True,
-            force_rebuild=args.dockerized_force_rebuild,
-            use_sudo=args.dockerized_use_sudo,
+            force_rebuild=dockerized_force_rebuild,
+            use_sudo=dockerized_use_sudo,
         )
     _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
     _ = _system(cmd, suppress_output=False)
@@ -301,13 +304,13 @@ def _run_pandoc_to_pdf(
         + f" {file_}"
     )
     _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
-    if not args.use_host_tools:
+    if not use_host_tools:
         cmd = hdocker.run_dockerized_latex(cmd, return_cmd=True, use_sudo=False)
     _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
     _ = _system(cmd, suppress_output=False)
     # - Run latex again.
     _report_phase("latex again")
-    if not args.no_run_latex_again:
+    if not no_run_latex_again:
         _ = _system(cmd, suppress_output=False)
     else:
         _LOG.warning("Skipping: run latex again")
@@ -322,12 +325,13 @@ def _run_pandoc_to_pdf(
 
 
 def _run_pandoc_to_html(
-    args: argparse.Namespace, file_in: str, prefix: str
+    file_in: str,
+    prefix: str,
+    toc_type: str,
 ) -> str:
     """
     Convert the input file to HTML using Pandoc.
 
-    :param args: The command-line arguments
     :param file_in: The input file to be converted
     :param prefix: The prefix used for the output file
     :return: The path to the generated HTML file
@@ -340,7 +344,7 @@ def _run_pandoc_to_html(
     #
     file2 = f"{prefix}.html"
     cmd.append(f"-o {file2}")
-    if args.toc_type == "pandoc_native":
+    if toc_type == "pandoc_native":
         cmd.append("--toc")
         cmd.append("--toc-depth 2")
     cmd = " ".join(cmd)
@@ -352,9 +356,14 @@ def _run_pandoc_to_html(
     return file_out
 
 
-# TODO(gp): Pass what's needed instead of args.
 def _build_pandoc_cmd(
-    args: argparse.Namespace, file_: str, *, use_tex: bool = False
+    file_: str,
+    toc_type: str,
+    use_host_tools: bool,
+    dockerized_force_rebuild: bool,
+    dockerized_use_sudo: bool,
+    *,
+    use_tex: bool = False,
 ) -> Tuple[str, str]:
     cmd = []
     cmd.append(f"pandoc {file_}")
@@ -365,7 +374,7 @@ def _build_pandoc_cmd(
     cmd.append("--include-in-header=latex_abbrevs.sty")
     # cmd.append("--pdf-engine=lualatex")
     # cmd.append("--pdf-engine=xelatex")
-    if args.toc_type == "pandoc_native":
+    if toc_type == "pandoc_native":
         cmd.append("--toc")
         cmd.append("--toc-depth 2")
     if use_tex:
@@ -377,31 +386,42 @@ def _build_pandoc_cmd(
     #
     cmd = " ".join(cmd)
     _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
-    if not args.use_host_tools:
+    if not use_host_tools:
         container_type = "pandoc_texlive"
         cmd = hdocker.run_dockerized_pandoc(
             cmd,
             container_type,
             return_cmd=True,
-            force_rebuild=args.dockerized_force_rebuild,
-            use_sudo=args.dockerized_use_sudo,
+            force_rebuild=dockerized_force_rebuild,
+            use_sudo=dockerized_use_sudo,
         )
     _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
     return cmd, file_out
 
 
-# TODO(gp): Pass what's needed instead of args.
 def _run_pandoc_to_slides(
-    args: argparse.Namespace, file_: str, *, debug: bool = False
+    file_: str,
+    toc_type: str,
+    use_host_tools: bool,
+    dockerized_force_rebuild: bool,
+    dockerized_use_sudo: bool,
+    *,
+    debug: bool = False,
 ) -> str:
     """
     Convert the input file to PDF slides using Pandoc.
 
-    :param args: The command-line arguments
     :param file_: The input file to be converted
     :return: The path to the generated PDF file
     """
-    cmd, file_out = _build_pandoc_cmd(args, file_)
+    cmd, file_out = _build_pandoc_cmd(
+        file_,
+        toc_type,
+        use_host_tools,
+        dockerized_force_rebuild,
+        dockerized_use_sudo,
+    )
+
     rc, txt = _system_to_string(cmd, abort_on_error=False)
     # We want to print to screen.
     print(txt)
@@ -411,7 +431,15 @@ def _run_pandoc_to_slides(
         if debug:
             _LOG.error("Pandoc failed")
             # Generate the tex version of the file.
-            cmd, file_out = _build_pandoc_cmd(args, file_, use_tex=True)
+            cmd, file_out = _build_pandoc_cmd(
+                file_,
+                toc_type,
+                use_host_tools,
+                dockerized_force_rebuild,
+                dockerized_use_sudo,
+                use_tex=True,
+            )
+
             _system(cmd, abort_on_error=False)
             # Error producing PDF.
             # ! Package enumitem Error: 1) undefined.
@@ -438,48 +466,38 @@ def _run_pandoc_to_slides(
 # #############################################################################
 
 
-# TODO(gp): Pass what's needed instead of args.
-def _copy_to_output(args: argparse.Namespace, file_in: str, prefix: str) -> str:
+def _copy_to_output(file_in: str, output: str) -> str:
     """
     Copy the processed file to the output location.
 
-    :param args: The command-line arguments
     :param file_in: The input file to be copied
     :param prefix: The prefix used for the output file
     :return: The path to the copied output file
     """
-    if args.output is not None:
-        _LOG.debug("Using file_out from command line")
-        file_out = args.output
-    else:
-        # TODO(gp): Remove this code path.
-        assert 0
-        _LOG.debug("Leaving file_out in the tmp dir")
-        file_out = f"{prefix}.{os.path.basename(args.input)}.{args.type}"
+    hdbg.dassert_is_not(output, None)
+    file_out = output
     _LOG.debug("file_out=%s", file_out)
     cmd = rf"\cp -af {file_in} {file_out}"
     _ = _system(cmd)
-    return file_out  # type: ignore
+    return file_out
 
 
-# TODO(gp): Pass what's needed instead of args.
-def _copy_to_gdrive(args: argparse.Namespace, file_name: str, ext: str) -> None:
+def _copy_to_gdrive(
+    file_name: str, ext: str, input_: str, gdrive_dir: str
+) -> None:
     """
     Copy the processed file to Google Drive.
 
-    :param args: The command-line arguments
     :param file_name: The name of the file to be copied
     :param ext: The extension of the file to be copied
     """
     hdbg.dassert(not ext.startswith("."), "Invalid file_name='%s'", file_name)
-    if args.gdrive_dir is not None:
-        gdrive_dir = args.gdrive_dir
-    else:
+    if gdrive_dir is None:
         gdrive_dir = "/Users/saggese/GoogleDrive/pdf_notes"
     # Copy.
     hdbg.dassert_dir_exists(gdrive_dir)
     _LOG.debug("gdrive_dir=%s", gdrive_dir)
-    basename = os.path.basename(args.input).replace(".txt", "." + ext)
+    basename = os.path.basename(input_).replace(".txt", "." + ext)
     _LOG.debug("basename=%s", basename)
     dst_file = os.path.join(gdrive_dir, basename)
     cmd = rf"\cp -af {file_name} {dst_file}"
@@ -536,34 +554,52 @@ def _run_all(args: argparse.Namespace) -> None:
     action = "preprocess_notes"
     to_execute, actions = _mark_action(action, actions)
     if to_execute:
-        file_ = _preprocess_notes(args, file_, prefix)
+        file_ = _preprocess_notes(file_, prefix, args.type, args.toc_type)
     # - Render_images
     action = "render_images"
     to_execute, actions = _mark_action(action, actions)
     if to_execute:
-        file_ = _render_images(args, file_, prefix)
+        file_ = _render_images(file_, prefix)
     # - Run_pandoc
     action = "run_pandoc"
     to_execute, actions = _mark_action(action, actions)
     if to_execute:
         if args.type == "pdf":
-            file_out = _run_pandoc_to_pdf(args, curr_path, file_, prefix)
+            file_out = _run_pandoc_to_pdf(
+                curr_path,
+                file_,
+                prefix,
+                args.toc_type,
+                args.no_run_latex_again,
+                args.use_host_tools,
+                args.dockerized_force_rebuild,
+                args.dockerized_use_sudo,
+            )
         elif args.type == "html":
-            file_out = _run_pandoc_to_html(args, file_, prefix)
+            file_out = _run_pandoc_to_html(
+                file_,
+                prefix,
+                args.toc_type,
+            )
         elif args.type == "slides":
             file_out = _run_pandoc_to_slides(
-                args, file_, debug=args.debug_on_error
+                file_,
+                args.toc_type,
+                args.use_host_tools,
+                args.dockerized_force_rebuild,
+                args.dockerized_use_sudo,
+                debug=args.debug_on_error,
             )
         else:
             raise ValueError(f"Invalid type='{args.type}'")
-    file_in = file_out
-    file_final = _copy_to_output(args, file_in, prefix)
+    file_in = file_out  # pylint: disable=possibly-used-before-assignment
+    file_final = _copy_to_output(file_in, args.output)
     # - Copy_to_gdrive
     action = "copy_to_gdrive"
     to_execute, actions = _mark_action(action, actions)
     if to_execute:
         ext = args.type
-        _copy_to_gdrive(args, file_final, ext)
+        _copy_to_gdrive(file_final, ext, args.input, args.gdrive_dir)
     # - Open
     action = "open"
     to_execute, actions = _mark_action(action, actions)
@@ -623,17 +659,7 @@ def _parse() -> argparse.ArgumentParser:
         required=True,
         help="Output file",
     )
-    # # TODO(gp): Remove this. We want to save the tmp files in the output dir.
-    # parser.add_argument(
-    #     "--tmp_dir",
-    #     action="store",
-    #     type=str,
-    #     default="tmp.notes_to_pdf",
-    #     help="Directory where to save artifacts",
-    # )
     parser.add_argument(
-        # TODO(gp): Remove this.
-        "-t",
         "--type",
         required=True,
         choices=["pdf", "html", "slides"],
