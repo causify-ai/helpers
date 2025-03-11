@@ -265,18 +265,10 @@ def docker_pull_helpers(ctx, stage="prod", version=None):  # type: ignore
     """
     # Infer the Docker registry from the environment.
     if hserver.is_dev_ck():
-        docker_registry = "aws_ecr.ck"
-    else:
-        docker_registry = "dockerhub.causify"
-    hlitauti.report_task(txt=hprint.to_str("docker_registry"))
-    if docker_registry == "dockerhub.causify":
-        base_image = "causify/helpers"
-    elif docker_registry == "aws_ecr.ck":
         base_image = hlitauti.get_default_param("CSFY_ECR_BASE_PATH") + "/helpers"
     else:
-        raise ValueError(
-            f"The Docker image registry='{docker_registry}' is not supported"
-        )
+        base_image = "causify/helpers"
+    _LOG.debug("base_image=%s", base_image)
     _docker_pull(ctx, base_image, stage, version)
 
 
