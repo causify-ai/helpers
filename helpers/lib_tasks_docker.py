@@ -9,7 +9,7 @@ import getpass
 import logging
 import os
 import re
-from typing import cast, Any, Dict, List, Match, Optional, Union
+from typing import Any, Dict, List, Match, Optional, Union, cast
 
 # TODO(gp): We should use `pip install types-PyYAML` to get the mypy stubs.
 import yaml
@@ -234,9 +234,7 @@ def _docker_pull(
 
 
 @task
-def docker_pull(  # type: ignore
-        ctx, stage="dev", version=None, skip_pull=False
-):
+def docker_pull(ctx, stage="dev", version=None, skip_pull=False):  # type: ignore
     """
     Pull latest dev image corresponding to the current repo from the registry.
 
@@ -482,9 +480,7 @@ def _get_linter_service(stage: str) -> DockerComposeServiceSpec:
         # Use the `repo_config.py` inside the helpers container instead of
         # the one in the calling repo.
         environment = cast(List[str], linter_service_spec["environment"])
-        environment.append(
-            "CSFY_REPO_CONFIG_PATH=/app/repo_config.py"
-        )
+        environment.append("CSFY_REPO_CONFIG_PATH=/app/repo_config.py")
     return linter_service_spec
 
 
