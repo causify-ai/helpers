@@ -120,8 +120,7 @@ def _filter_by_header(file_: str, header: str, prefix: str) -> str:
 # #############################################################################
 
 
-# TODO(gp): Pass what's needed instead of args.
-def _preprocess_notes(args: argparse.Namespace, file_: str, prefix: str) -> str:
+def _preprocess_notes(type_: str, toc_type: str, file_: str, prefix: str) -> str:
     """
     Pre-process the file.
 
@@ -134,7 +133,7 @@ def _preprocess_notes(args: argparse.Namespace, file_: str, prefix: str) -> str:
     file2 = f"{prefix}.preprocess_notes.txt"
     cmd = (
         f"{exec_file} --input {file1} --output {file2}"
-        + f" --type {args.type} --toc_type {args.toc_type}"
+        + f" --type {type_} --toc_type {toc_type}"
     )
     _ = _system(cmd)
     file_ = file2
@@ -144,8 +143,7 @@ def _preprocess_notes(args: argparse.Namespace, file_: str, prefix: str) -> str:
 # #############################################################################
 
 
-# TODO(gp): Pass what's needed instead of args.
-def _render_images(args: argparse.Namespace, file_: str, prefix: str) -> str:
+def _render_images(file_: str, prefix: str) -> str:
     """
     Render images in the file.
 
@@ -179,31 +177,31 @@ def _render_images(args: argparse.Namespace, file_: str, prefix: str) -> str:
 # #############################################################################
 
 
-def _run_latex(cmd: str, file_: str) -> None:
-    """
-    Run the LaTeX command and handle errors.
+# def _run_latex(cmd: str, file_: str) -> None:
+#     """
+#     Run the LaTeX command and handle errors.
 
-    :param cmd: The LaTeX command to be executed
-    :param file_: The file to be processed by LaTeX
-    """
-    data: Tuple[int, str] = _system_to_string(cmd, abort_on_error=False)
-    rc, txt = data
-    log_file = file_ + ".latex1.log"
-    hio.to_file(log_file, txt)
-    if rc != 0:
-        txt_as_arr: List[str] = txt.split("\n")
-        for i, line in enumerate(txt_as_arr):
-            if line.startswith("!"):
-                break
-        # pylint: disable=undefined-loop-variable
-        txt_as_arr = [
-            line for i in range(max(i - 10, 0), min(i + 10, len(txt_as_arr)))
-        ]
-        txt = "\n".join(txt_as_arr)
-        _LOG.error(txt)
-        _LOG.error("Log is in %s", log_file)
-        _LOG.error("\n%s", hprint.frame(f"cmd is:\n> {cmd}"))
-        raise RuntimeError("Latex failed")
+#     :param cmd: The LaTeX command to be executed
+#     :param file_: The file to be processed by LaTeX
+#     """
+#     data: Tuple[int, str] = _system_to_string(cmd, abort_on_error=False)
+#     rc, txt = data
+#     log_file = file_ + ".latex1.log"
+#     hio.to_file(log_file, txt)
+#     if rc != 0:
+#         txt_as_arr: List[str] = txt.split("\n")
+#         for i, line in enumerate(txt_as_arr):
+#             if line.startswith("!"):
+#                 break
+#         # pylint: disable=undefined-loop-variable
+#         txt_as_arr = [
+#             line for i in range(max(i - 10, 0), min(i + 10, len(txt_as_arr)))
+#         ]
+#         txt = "\n".join(txt_as_arr)
+#         _LOG.error(txt)
+#         _LOG.error("Log is in %s", log_file)
+#         _LOG.error("\n%s", hprint.frame(f"cmd is:\n> {cmd}"))
+#         raise RuntimeError("Latex failed")
 
 
 _COMMON_PANDOC_OPTS = [
@@ -536,12 +534,12 @@ def _run_all(args: argparse.Namespace) -> None:
     action = "preprocess_notes"
     to_execute, actions = _mark_action(action, actions)
     if to_execute:
-        file_ = _preprocess_notes(args, file_, prefix)
+        file_ = _preprocess_notes(args.type, args.toc_type, file_, prefix)
     # - Render_images
     action = "render_images"
     to_execute, actions = _mark_action(action, actions)
     if to_execute:
-        file_ = _render_images(args, file_, prefix)
+        file_ = _render_images(file_, prefix)
     # - Run_pandoc
     action = "run_pandoc"
     to_execute, actions = _mark_action(action, actions)
@@ -623,17 +621,7 @@ def _parse() -> argparse.ArgumentParser:
         required=True,
         help="Output file",
     )
-    # # TODO(gp): Remove this. We want to save the tmp files in the output dir.
-    # parser.add_argument(
-    #     "--tmp_dir",
-    #     action="store",
-    #     type=str,
-    #     default="tmp.notes_to_pdf",
-    #     help="Directory where to save artifacts",
-    # )
     parser.add_argument(
-        # TODO(gp): Remove this.
-        "-t",
         "--type",
         required=True,
         choices=["pdf", "html", "slides"],
