@@ -119,8 +119,7 @@
 
 - Customize `setenv.sh`
   - `DIR_TAG`="cmamp_infra"
-  - `IS_SUPER_REPO` = 1 (since this runnable directory sits under a super-repo)
-    - TODO(heanh): Rename `IS_SUPER_REPO` var (See #135).
+  - `USE_HELPERS_AS_NESTED_MODULE` = 1
   - `VENV_TAG`="helpers" (reuse helpers if the new thin environment is not
     built)
   - Update PATH to the runnable dir

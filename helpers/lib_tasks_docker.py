@@ -9,7 +9,7 @@ import getpass
 import logging
 import os
 import re
-from typing import cast, Any, Dict, List, Match, Optional, Union
+from typing import Any, Dict, List, Match, Optional, Union, cast
 
 # TODO(gp): We should use `pip install types-PyYAML` to get the mypy stubs.
 import yaml
@@ -234,9 +234,7 @@ def _docker_pull(
 
 
 @task
-def docker_pull(  # type: ignore
-        ctx, stage="dev", version=None, skip_pull=False
-):
+def docker_pull(ctx, stage="dev", version=None, skip_pull=False):  # type: ignore
     """
     Pull latest dev image corresponding to the current repo from the registry.
 
@@ -482,9 +480,7 @@ def _get_linter_service(stage: str) -> DockerComposeServiceSpec:
         # Use the `repo_config.py` inside the helpers container instead of
         # the one in the calling repo.
         environment = cast(List[str], linter_service_spec["environment"])
-        environment.append(
-            "CSFY_REPO_CONFIG_PATH=/app/repo_config.py"
-        )
+        environment.append("CSFY_REPO_CONFIG_PATH=/app/repo_config.py")
     return linter_service_spec
 
 
@@ -564,7 +560,7 @@ def _generate_docker_compose_file(
     )
     # A super repo is a repo that contains helpers as a submodule and
     # is not a helper itself.
-    is_super_repo = 0 if hgit.is_in_helpers_as_supermodule() else 1
+    use_helpers_as_nested_module = 0 if hgit.is_in_helpers_as_supermodule() else 1
     # We could do the same also with IMAGE for symmetry.
     # Keep the env vars in sync with what we print in `henv.get_env_vars()`.
     # Configure `base_app` service.
@@ -593,7 +589,7 @@ def _generate_docker_compose_file(
             # The path of the helpers dir in the Docker container (e.g.,
             # `/app`, `/app/helpers_root`)
             f"CSFY_HELPERS_ROOT_PATH={helper_root_path}",
-            f"CSFY_IS_SUPER_REPO={is_super_repo}",
+            f"CSFY_USE_HELPERS_AS_NESTED_MODULE={use_helpers_as_nested_module}",
             "CSFY_TELEGRAM_TOKEN=$CSFY_TELEGRAM_TOKEN",
             # This env var is used by GH Action to signal that we are inside the
             # CI. It's set up by default by the GH Action runner. See:
