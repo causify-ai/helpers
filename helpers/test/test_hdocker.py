@@ -10,6 +10,7 @@ import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hserver as hserver
+import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
@@ -202,6 +203,7 @@ def _create_test_file(self_: Any, txt: str, extension: str) -> str:
 # #############################################################################
 
 
+# TODO(gp): -> Test_dockerized_prettier1
 @pytest.mark.skipif(
     hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
 )
@@ -379,6 +381,7 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(gp): -> Test_dockerized_pandoc1
 @pytest.mark.skipif(
     hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
 )
@@ -447,6 +450,7 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(gp): -> Test_dockerized_markdown_toc1
 @pytest.mark.skipif(
     hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
 )
@@ -504,3 +508,54 @@ class Test_run_markdown_toc1(hunitest.TestCase):
         self.assert_equal(
             act, exp, dedent=True, remove_lead_trail_empty_lines=True
         )
+
+
+# #############################################################################
+# Test_dockerized_latex1
+# #############################################################################
+
+
+@pytest.mark.skipif(
+    hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
+)
+class Test_dockerized_latex1(hunitest.TestCase):
+    """
+    Test running the `markdown-toc` command inside a Docker container.
+    """
+        
+    def create_input_file(self) -> str:
+        txt = r"""
+        \documentclass{article}
+
+        \begin{document}
+
+        Hello, World!
+
+        \end{document}
+        """
+        in_file_path = _create_test_file(self, txt, extension="tex")
+        return in_file_path
+
+    def test1(self) -> None:
+        in_file_path = self.create_input_file()
+        #
+        cmd_opts = []
+        run_latex_again = True
+        out_file_path = os.path.join(self.get_scratch_space(), "output.pdf")
+        force_rebuild = False
+        use_sudo = hdocker.get_use_sudo()
+        hdocker.run_basic_latex(in_file_path, cmd_opts, run_latex_again, out_file_path,
+                                force_rebuild=force_rebuild,
+                                use_sudo=use_sudo)
+        #
+        self.assertTrue(os.path.exists(out_file_path), msg=f"Output file {out_file_path} not found")
+
+    def test2(self) -> None:
+        in_file_path = self.create_input_file()
+        #
+        exec_path = hgit.find_file_in_git_tree("dockerized_latex.py")
+        out_file_path = os.path.join(self.get_scratch_space(), "output.pdf")
+        cmd = f"{exec_path} -i {in_file_path} -o {out_file_path}"
+        hsystem.system(cmd)
+        #
+        self.assertTrue(os.path.exists(out_file_path), msg=f"Output file {out_file_path} not found")

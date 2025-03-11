@@ -24,6 +24,7 @@ Usage:
 import argparse
 import logging
 import os
+import re
 import tempfile
 from typing import cast, List, Tuple
 
@@ -154,6 +155,7 @@ def _render_code(
     :param dry_run: if True, the rendering command is not executed
     :return: path to the rendered image
     """
+    # TODO(gp): Is this the script responsibility or the user's?
     if image_code_type == "plantuml":
         # Ensure the plantUML code is in the correct format to render.
         if not image_code.startswith("@startuml"):
@@ -172,8 +174,8 @@ def _render_code(
     cmd = _get_render_command(
         code_file_path, abs_img_dir_path, rel_img_path, dst_ext, image_code_type
     )
-    _LOG.info("Creating the image from %s source", code_file_path)
-    _LOG.info("Saving image to '%s'", abs_img_dir_path)
+    _LOG.info("Creating the image from '%s' source and saving image to '%s'", code_file_path,
+    abs_img_dir_path)
     _LOG.info("> %s", cmd)
     if dry_run:
         # Do not execute the command.
@@ -187,6 +189,10 @@ def _render_code(
                 )
             elif image_code_type == "mermaid":
                 hdocker.run_dockerized_mermaid(rel_img_path, code_file_path)
+            elif image_code_type == "tikz":
+                hdocker.run_dockerized_latex(rel_img_path, code_file_path)
+            # elif image_code_type == "graphviz":
+            #     run_dockerized_latex
             else:
                 raise ValueError(f"Invalid type: {image_code_type}")
         else:
@@ -250,7 +256,8 @@ def _render_images(
         #    ...
         # ```
         # Or the same with "mermaid" instead of "plantuml".
-        if line.strip() in ["```plantuml", "```mermaid"]:
+        m = re.search("^```(plantuml|mermaid)\((.*)\)$", line)
+        if m:
             # Found the beginning of an image code block.
             hdbg.dassert_eq(state, "searching")
             image_code_lines = []

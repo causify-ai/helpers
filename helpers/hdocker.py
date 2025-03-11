@@ -510,11 +510,7 @@ def run_dockerized_prettier(
     :param force_rebuild: Whether to force rebuild the Docker container.
     :param use_sudo: Whether to use sudo for Docker commands.
     """
-    _LOG.debug(
-        hprint.to_str(
-            "in_file_path out_file_path cmd_opts force_rebuild use_sudo"
-        )
-    )
+    _LOG.debug(hprint.func_signature_to_str())
     hdbg.dassert_isinstance(cmd_opts, list)
     # Build the container, if needed.
     container_name = "tmp.prettier"
@@ -745,7 +741,7 @@ def run_dockerized_pandoc(
 
     Same as `run_dockerized_prettier()` but for `pandoc`.
     """
-    _LOG.debug(hprint.to_str("cmd return_cmd force_rebuild use_sudo"))
+    _LOG.debug(hprint.func_signature_to_str())
     if container_type == "pandoc_only":
         container_name = "pandoc/core"
         incremental = False
@@ -940,8 +936,8 @@ def run_dockerized_markdown_toc(
     """
     Same as `run_dockerized_prettier()` but for `markdown-toc`.
     """
+    _LOG.debug(hprint.func_signature_to_str())
     # https://github.com/jonschlinkert/markdown-toc
-    _LOG.debug(hprint.to_str("cmd_opts in_file_path force_rebuild use_sudo"))
     hdbg.dassert_isinstance(cmd_opts, list)
     # Build the container, if needed.
     container_name = "tmp.markdown_toc"
@@ -1094,37 +1090,38 @@ def run_dockerized_latex(
 ) -> Optional[str]:
     """
     Run `latex` in a Docker container.
-
-    Same as `run_dockerized_prettier()` but for `pandoc`.
     """
-    _LOG.debug(hprint.to_str("cmd return_cmd use_sudo"))
+    _LOG.debug(hprint.func_signature_to_str())
     container_name = "tmp.latex"
     dockerfile = r"""
-    # Use a lightweight base image
+    # Use a lightweight base image.
     FROM debian:bullseye-slim
 
-    # Set environment variables to avoid interactive prompts
+    # Set environment variables to avoid interactive prompts.
     ENV DEBIAN_FRONTEND=noninteractive
 
-    # Update and install only the minimal TeX Live packages
-    RUN apt-get update && \
-        apt-get install -y --no-install-recommends \
+    # Update.
+    RUN apt-get update
+
+    # Install only the minimal TeX Live packages.
+    RUN apt-get install -y --no-install-recommends \
         texlive-latex-base \
         texlive-latex-recommended \
         texlive-fonts-recommended \
         texlive-latex-extra \
         lmodern \
-        tikzit \
-        && apt-get clean && \
-        rm -rf /var/lib/apt/lists/*
+        tikzit
+        
+    RUN rm -rf /var/lib/apt/lists/* \
+        && apt-get clean
 
-    # Verify LaTeX is installed
+    # Verify LaTeX is installed.
     RUN latex --version
 
-    # Set working directory
+    # Set working directory.
     WORKDIR /workspace
 
-    # Default command
+    # Default command.
     CMD [ "bash" ]
     """
     container_name = build_container(
@@ -1184,6 +1181,139 @@ def run_dockerized_latex(
         f" {container_name}"
         f" {latex_cmd}"
     )
+    # TODO(gp): Factor this out.
+    if return_cmd:
+        ret = docker_cmd
+    else:
+        # TODO(gp): Note that `suppress_output=False` seems to hang the call.
+        hsystem.system(docker_cmd)
+        ret = None
+    return ret
+
+    
+def run_basic_latex(input_file_name: str, cmd_opts: List[str],
+                    run_latex_again: bool, output_file_name: str, 
+    *,
+    force_rebuild: bool = False,
+    use_sudo: bool = False,
+                    ) -> None:
+    """
+    Run a basic Latex command.
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    #
+    hdbg.dassert_file_extension(input_file_name, "tex")
+    hdbg.dassert_file_exists(input_file_name, "tex")
+    hdbg.dassert_file_extension(output_file_name, "pdf")
+    # There is a horrible bug in pdflatex that if the input file is not the last
+    # one the output directory is not recognized.
+    cmd = (
+        "pdflatex"
+        + " -output-directory=."
+        + " -interaction=nonstopmode"
+        + " -halt-on-error"
+        + " -shell-escape"
+        + " ".join(cmd_opts)
+        + f" {input_file_name}"
+    )
+    run_dockerized_latex(
+        cmd,
+        force_rebuild=force_rebuild,
+        use_sudo=use_sudo,
+    )
+    if run_latex_again:
+        run_dockerized_latex(
+            cmd,
+            force_rebuild=force_rebuild,
+            use_sudo=use_sudo,
+        )
+    # Get the path of the output file created by Latex.
+    file_out = os.path.basename(input_file_name).replace(".tex", ".pdf")
+    _LOG.debug("file_out=%s", file_out)
+    hdbg.dassert_path_exists(file_out)
+    # Move to the proper output location.
+    cmd = "mv %s %s" % (file_out, output_file_name)
+    hsystem.system(cmd)
+
+
+# #############################################################################
+# Dockerized ImageMagick.
+# #############################################################################
+
+
+def run_dockerized_imagemagick(
+    in_file_path: str,
+    out_file_path: str,
+    cmd_opts: List[str],
+    *,
+    return_cmd: bool = False,
+    force_rebuild: bool = False,
+    use_sudo: bool = False,
+) -> Optional[str]:
+    """
+    Run `ImageMagick` in a Docker container.
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    container_name = "tmp.imagemagick"
+    dockerfile = r"""
+    FROM alpine:latest
+
+    # Install Bash.
+    RUN apk add --no-cache bash
+    # Set Bash as the default shell.
+    SHELL ["/bin/bash", "-c"]
+
+    RUN apk add --no-cache imagemagick ghostscript
+
+    # Set working directory
+    WORKDIR /workspace
+
+    RUN magick --version
+    RUN gs --version
+
+    # Default command
+    CMD [ "bash" ]
+    """
+    container_name = build_container(
+        container_name, dockerfile, force_rebuild, use_sudo
+    )
+    # Convert files to Docker paths.
+    is_caller_host = not hserver.is_inside_docker()
+    use_sibling_container_for_callee = True
+    caller_mount_path, callee_mount_path, mount = get_docker_mount_info(
+        is_caller_host, use_sibling_container_for_callee
+    )
+    in_file_path = convert_caller_to_callee_docker_path(
+        in_file_path,
+        caller_mount_path,
+        callee_mount_path,
+        check_if_exists=True,
+        is_input=True,
+        is_caller_host=is_caller_host,
+        use_sibling_container_for_callee=use_sibling_container_for_callee,
+    )
+    out_file_path = convert_caller_to_callee_docker_path(
+        out_file_path,
+        caller_mount_path,
+        callee_mount_path,
+        check_if_exists=False,
+        is_input=False,
+        is_caller_host=is_caller_host,
+        use_sibling_container_for_callee=use_sibling_container_for_callee,
+    )
+    cmd_opts_as_str = " ".join(cmd_opts)
+    cmd = (
+        f"magick {cmd_opts_as_str} {in_file_path} {out_file_path}"
+    )
+    executable = get_docker_executable(use_sudo)
+    docker_cmd = (
+        f"{executable} run --rm --user $(id -u):$(id -g)"
+        " --entrypoint ''"
+        f" --workdir {callee_mount_path} --mount {mount}"
+        f" {container_name}"
+        f' bash -c "{cmd}"'
+    )
+    # TODO(gp): Factor this out.
     if return_cmd:
         ret = docker_cmd
     else:
@@ -1210,11 +1340,7 @@ def run_dockerized_llm_transform(
     """
     Run _llm_transform.py in a Docker container with all its dependencies.
     """
-    _LOG.debug(
-        hprint.to_str(
-            "in_file_path out_file_path cmd_opts force_rebuild use_sudo"
-        )
-    )
+    _LOG.debug(hprint.func_signature_to_str())
     hdbg.dassert_in("OPENAI_API_KEY", os.environ)
     hdbg.dassert_isinstance(cmd_opts, list)
     # Build the container, if needed.
@@ -1304,6 +1430,7 @@ def run_dockerized_plantuml(
     img_dir_path: str,
     code_file_path: str,
     dst_ext: str,
+    *,
     force_rebuild: bool = False,
     use_sudo: bool = False,
 ) -> None:
@@ -1316,11 +1443,7 @@ def run_dockerized_plantuml(
     :param force_rebuild: whether to force rebuild the Docker container
     :param use_sudo: whether to use sudo for Docker commands
     """
-    _LOG.debug(
-        hprint.to_str(
-            "img_dir_path code_file_path dst_ext force_rebuild use_sudo"
-        )
-    )
+    _LOG.debug(hprint.func_signature_to_str())
     # Build the container, if needed.
     container_name = "tmp.plantuml"
     dockerfile = r"""
@@ -1376,6 +1499,7 @@ def run_dockerized_plantuml(
 def run_dockerized_mermaid(
     img_path: str,
     code_file_path: str,
+    *,
     force_rebuild: bool = False,
     use_sudo: bool = False,
 ) -> None:
@@ -1387,7 +1511,7 @@ def run_dockerized_mermaid(
     :param force_rebuild: whether to force rebuild the Docker container
     :param use_sudo: whether to use sudo for Docker commands
     """
-    _LOG.debug(hprint.to_str("img_path code_file_path force_rebuild use_sudo"))
+    _LOG.debug(hprint.func_signature_to_str())
     # Build the container, if needed.
     container_name = "tmp.mermaid"
     puppeteer_cache_path = r"""

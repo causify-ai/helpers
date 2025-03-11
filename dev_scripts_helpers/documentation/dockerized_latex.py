@@ -1,39 +1,20 @@
 #!/usr/bin/env python
 """
-Run `prettier` inside a Docker container to ensure consistent formatting across
-different environments.
+Run `latex` inside a Docker container.
 
 This script builds the container dynamically if necessary and formats the
 specified file using the provided `prettier` options.
 
-Examples
-# Basic usage:
-> dockerized_prettier.py --parser markdown --prose-wrap always --write \
-    --tab-width 2 test.md
-
-# Use sudo for Docker commands:
-> dockerized_prettier.py --use_sudo --parser markdown --prose-wrap always \
-    --write --tab-width 2 test.md
-
-# Set logging verbosity:
-> dockerized_prettier.py -v DEBUG --parser markdown --prose-wrap always \
-    --write --tab-width 2 test.md </pre>
-
-# Process a file:
-> cat test.md
-- a
-  - b
-        - c
-> dockerized_prettier.py --parser markdown --prose-wrap always \
-    --write --tab-width 2 test.md
 """
 
 import argparse
 import logging
+import os
 
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hparser as hparser
+import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
@@ -47,7 +28,10 @@ def _parse() -> argparse.ArgumentParser:
     )
     hparser.add_dockerized_script_arg(parser)
     parser.add_argument("-i", "--input", action="store", required=True)
-    parser.add_argument("-o", "--output", action="store", default="")
+    parser.add_argument("-o", "--output", action="store", required=True)
+    parser.add_argument(
+        "--run_latex_again", action="store_true", default=False
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -60,16 +44,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(
         verbosity=args.log_level, use_exec_path=True, force_white=False
     )
-    _LOG.debug("cmd_opts: %s", cmd_opts)
-    if not args.output:
-        args.output = args.input
-    hdocker.run_dockerized_prettier(
-        args.input,
-        args.output,
-        cmd_opts,
-        force_rebuild=args.dockerized_force_rebuild,
-        use_sudo=args.dockerized_use_sudo,
-    )
+    run_latex_again = True
+    hdocker.run_basic_latex(args.input, cmd_opts, run_latex_again, args.output,
+                            force_rebuild=args.dockerized_force_rebuild,
+                            use_sudo=args.dockerized_use_sudo)
     _LOG.info("Output written to '%s'", args.output)
 
 
