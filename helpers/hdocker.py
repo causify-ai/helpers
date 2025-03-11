@@ -291,6 +291,7 @@ def build_container(
     # Check if the container already exists. If not, build it.
     has_container, _ = image_exists(image_name_out, use_sudo)
     _LOG.debug(hprint.to_str("has_container"))
+    use_cache = False
     if force_rebuild:
         _LOG.warning(
             "Forcing to rebuild of container '%s' without cache", container_name
@@ -1019,12 +1020,12 @@ def convert_latex_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
     # The first option is the executable.
     hdbg.dassert_eq(cmd[0], "pdflatex")
     # We assume that the first option is always the input file.
-    in_file_path = cmd[1]
+    in_file_path = cmd[-1]
     hdbg.dassert(
         not in_file_path.startswith("-"), "Invalid input file '%s'", in_file_path
     )
     hdbg.dassert_file_exists(in_file_path)
-    cmd = cmd[2:]
+    cmd = cmd[1:-1]
     _LOG.debug(hprint.to_str("cmd"))
     #
     parser = argparse.ArgumentParser()
@@ -1053,7 +1054,7 @@ def convert_latex_arguments_to_cmd(
     """
     Convert parsed pandoc arguments back to a command string.
 
-    This function takes the parsed pandoc arguments and converts them
+    This function takes the parsed latex arguments and converts them
     back into a command string that can be executed directly or in a
     Dockerized container.
 
@@ -1063,7 +1064,6 @@ def convert_latex_arguments_to_cmd(
     hdbg.dassert_is_subset(
         params.keys(), ["input", "output-directory", "in_dir_params", "cmd_opts"]
     )
-    cmd.append(f'{params["input"]}')
     key = "output-directory"
     value = params[key]
     cmd.append(f"-{key} {value}")
@@ -1073,6 +1073,9 @@ def convert_latex_arguments_to_cmd(
     #
     hdbg.dassert_isinstance(params["cmd_opts"], list)
     cmd.append(" ".join(params["cmd_opts"]))
+    # The input needs to be last to work around the bug in pdflatex where the
+    # options before the input file are not always parsed correctly.
+    cmd.append(f'{params["input"]}')
     #
     cmd = " ".join(cmd)
     _LOG.debug(hprint.to_str("cmd"))
@@ -1452,8 +1455,10 @@ def run_dockerized_mermaid(
         is_caller_host=is_caller_host,
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
-    mermaid_cmd = (f"mmdc --puppeteerConfigFile {puppeteer_config_path}" +
-        f"-i {code_file_path} -o {img_path}")
+    mermaid_cmd = (
+        f"mmdc --puppeteerConfigFile {puppeteer_config_path}"
+        + f"-i {code_file_path} -o {img_path}"
+    )
     executable = get_docker_executable(use_sudo)
     docker_cmd = (
         f"{executable} run --rm --user $(id -u):$(id -g)"
