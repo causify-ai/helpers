@@ -9,8 +9,9 @@ import getpass
 import logging
 import os
 import re
-from typing import Any, Dict, List, Match, Optional, Union
+from typing import cast, Any, Dict, List, Match, Optional, Union
 
+# TODO(gp): We should use `pip install types-PyYAML` to get the mypy stubs.
 import yaml
 from invoke import task
 
@@ -19,7 +20,6 @@ from invoke import task
 import helpers.hdbg as hdbg
 import helpers.hdict as hdict
 import helpers.hdocker as hdocker
-import helpers.henv as henv
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -234,7 +234,9 @@ def _docker_pull(
 
 
 @task
-def docker_pull(ctx, stage="dev", version=None, skip_pull=False):  # type: ignore
+def docker_pull(  # type: ignore
+        ctx, stage="dev", version=None, skip_pull=False
+):
     """
     Pull latest dev image corresponding to the current repo from the registry.
 
@@ -253,9 +255,9 @@ def docker_pull(ctx, stage="dev", version=None, skip_pull=False):  # type: ignor
 
 
 @task
-def docker_pull_helpers(
+def docker_pull_helpers(  # type: ignore
     ctx, stage="prod", version=None, docker_registry="aws_ecr.ck"
-):  # type: ignore
+):
     """
     Pull latest prod image of `helpers` from the registry.
 
@@ -317,7 +319,7 @@ def _check_docker_login(repo_name: str) -> bool:
     #         },
     # ```
     _LOG.debug("json_data=%s", json_data)
-    is_logged = [repo_name in val for val in json_data["auths"].keys()]
+    is_logged = any(repo_name in val for val in json_data["auths"].keys())
     return is_logged
 
 
@@ -453,6 +455,8 @@ def _get_linter_service(stage: str) -> DockerComposeServiceSpec:
     else:
         work_dir = "/src"
         repo_root = os.getcwd()
+    # TODO(gp): To avoid linter getting confused between `Sequence[str]` and
+    # `List[str]`, we should assign one element at the time.
     linter_service_spec = {
         "extends": "base_app",
         "volumes": [
@@ -467,16 +471,18 @@ def _get_linter_service(stage: str) -> DockerComposeServiceSpec:
         # When we run a development Linter container, we need to mount the
         # Linter repo under `/app`. For prod container instead we copy / freeze
         # the repo code in `/app`, so we should not mount it.
+        volumes = cast(List[str], linter_service_spec["volumes"])
         if superproject_path:
             # When running in a Git submodule we need to go one extra level up.
             # TODO(*): Clean up the indentation, #2242 (also below).
-            linter_service_spec["volumes"].append("../../../:/app")
+            volumes.append("../../../:/app")
         else:
-            linter_service_spec["volumes"].append("../../:/app")
+            volumes.append("../../:/app")
     if stage == "prod":
         # Use the `repo_config.py` inside the helpers container instead of
         # the one in the calling repo.
-        linter_service_spec["environment"].append(
+        environment = cast(List[str], linter_service_spec["environment"])
+        environment.append(
             "CSFY_REPO_CONFIG_PATH=/app/repo_config.py"
         )
     return linter_service_spec
@@ -722,11 +728,11 @@ def _generate_docker_compose_file(
         A custom YAML Dumper class that adjusts indentation.
         """
 
-        def increase_indent(self, flow=False, indentless=False) -> Any:
+        def increase_indent(self_: Any, flow=False, indentless=False) -> Any:
             """
             Override the method to modify YAML indentation behavior.
             """
-            return super(_Dumper, self).increase_indent(
+            return super(_Dumper, self_).increase_indent(
                 flow=False, indentless=False
             )
 
@@ -738,6 +744,7 @@ def _generate_docker_compose_file(
         indent=2,
         sort_keys=False,
     )
+    yaml_str = cast(str, yaml_str)
     # Save YAML to file if file_name is specified.
     if file_name:
         if os.path.exists(file_name) and hserver.is_inside_ci():

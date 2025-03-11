@@ -31,19 +31,19 @@
 
 ### Org
 
-- [ ] **Team leader**: File an issue with this checklist
+- [ ] **HiringMeister**: File an issue with this checklist
   - The title is "Onboarding {{Name}}"
   - Copy-and-paste the whole checklist starting from [here](#checklist)
-  - The issue should be assigned to the team leader and the intern
+  - The issue should be assigned to the intern
 
 - [ ] **Intern**: Update this GitHub issue if you face any problems. If
       applicable, do a PR proposing improvements to the checklist (or any other
       docs), since this will allow us to improve the process as we move forward
 
-- [ ] **Team leader**: Establish contact by Slack or email with the intern with
-      a few words about the next steps
+- [ ] **HiringMeister**: Establish contact by email (or other means) with the
+      intern with a few words about the next steps
 
-- [ ] **Intern**: Send the following information to your team leader
+- [ ] **Intern**: Send the following information to your point of contact
   - Full name:
   - Aka:
   - Personal email:
@@ -57,9 +57,12 @@
   - [ ] [helpers](https://github.com/causify-ai/helpers)
   - [ ] [tutorials](https://github.com/causify-ai/tutorials)
 
-- [ ] **Team leader**: Add the intern to the Slack workspace
+- [ ] **IT**: Add the intern to the Slack workspace
 
 - [ ] **Intern**: Confirm access to the Slack workspace
+
+- [ ] **IT**: Add the intern to the mailing group so that they can send
+      [morning TODO emails](https://github.com/causify-ai/helpers/blob/master/docs/work_organization/all.team_collaboration.how_to_guide.md#morning-todo-email)
 
 ### IT setup
 

@@ -9,7 +9,7 @@ import logging
 import os
 import re
 import sys
-from typing import Any, List, Optional, Tuple
+from typing import cast, Any, List, Optional, Tuple
 
 from invoke import task
 
@@ -1301,6 +1301,8 @@ def _run(
         output_file=output_file,
         tee=tee,
     )
+    # TODO(gp): Understand why linter is unhappy.
+    rc = cast(int, rc)
     return rc
 
 
@@ -1500,8 +1502,9 @@ def _parse_failed_tests(
             test_name = m.group(1)
             _LOG.debug("line=%s ->\n\ttest_name='%s'", line, test_name)
             failed_tests.append(test_name)
+        # ============ 11 failed, 917 passed, 113 skipped in 64.57s (0:01:04) ============
         # ======================== 4 failed, 43 passed in 40.48s =========================
-        m = re.match(r"=+ (\d+) failed, (\d+) passed in", line)
+        m = re.search(r"=+\s+(\d+)\s+failed,\s+(\d+)\s+passed.*", line)
         if m:
             num_failed = int(m.group(1))
             num_passed = int(m.group(2))

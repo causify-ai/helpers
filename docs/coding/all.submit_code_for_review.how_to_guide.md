@@ -13,6 +13,7 @@
   * [Ask for reviews](#ask-for-reviews)
   * [Do not use screenshots](#do-not-use-screenshots)
   * [Report bugs correctly](#report-bugs-correctly)
+  * [Stick to smaller PRs](#stick-to-smaller-prs)
 - [Talk through code and not GitHub](#talk-through-code-and-not-github)
 - [Look at examples of first reviews](#look-at-examples-of-first-reviews)
 
@@ -38,16 +39,18 @@ some helpful tips and resources to guide you through your first review.
   filing any PR or before requesting a review!
 - Run Linter with `invoke` command (which is abbreviated as `i`) and pass all
   the files you need to lint in quotation marks after the `--files` option,
-  separated by a space:
+  separated by a space
+- The command should be run from the root of the repo you are developing in
+- The file paths should be relative to the repo root
+  - Command example:
   ```
-  > i lint --files "defi/tulip/implementation/order.py defi/tulip/implementation/order_matching.py"
+  > i lint --files="docs/coding/all.str_to_df.how_to_guide.md linters/utils.py"
   ```
   - Output example:
     ```
-    defi/tulip/implementation/order_matching.py:14: error: Cannot find implementation or library stub for module named 'defi.dao_cross'  [import]
-    defi/tulip/implementation/order_matching.py:69: error: Need type annotation for 'buy_heap' (hint: "buy_heap: List[<type>] = ...")  [var-annotated]
-    defi/tulip/implementation/order_matching.py:70: error: Need type annotation for 'sell_heap' (hint: "sell_heap: List[<type>] = ...")  [var-annotated]
-    ...
+    docs/coding/all.str_to_df.how_to_guide.md: 'docs/coding/all.str_to_df.how_to_guide.md' is not referenced in README.md [check_md_reference]
+    docs/coding/all.str_to_df.how_to_guide.md:79: 'figs/str_to_df/image1.png' does not follow the format 'figs/all.str_to_df.how_to_guide.md/XYZ' [fix_md_links]
+    linters/utils.py:294: [R0916(too-many-boolean-expressions), get_dirs_with_missing_init] Too many boolean expressions in if statement (6/5) [pylint]
     ```
   - `i lint` has options for many workflows. E.g., you can automatically lint
     all the files that you touched in your PR with `--branch`, the files in the
@@ -200,6 +203,11 @@ some helpful tips and resources to guide you through your first review.
   - Why the outcome is different from what you expected
   - E.g. on how to report any issues
     - Https://github.com/kaizen-ai/kaizenflow/issues/370#issue-1782574355
+
+### Stick to smaller PRs
+
+- It's better to push frequently and ask for feedback early to avoid large
+  refactoring
 
 ## Talk through code and not GitHub
 

@@ -3,6 +3,7 @@
 - [General Rules of Collaboration](#general-rules-of-collaboration)
   * [Ask somebody if you have any doubts](#ask-somebody-if-you-have-any-doubts)
   * [Ping Team Leaders when you are out of tasks](#ping-team-leaders-when-you-are-out-of-tasks)
+  * [Do not be an island](#do-not-be-an-island)
   * [Collaboration](#collaboration)
     + [Why do we need to follow this handbook?](#why-do-we-need-to-follow-this-handbook)
       - [Learning from each other](#learning-from-each-other)
@@ -58,6 +59,14 @@
   out of work
 - Everyone should have 2 issues to work on at the same time to avoid getting
   blocked on others
+
+## Do not be an island
+
+- Instead of spending hours coding on your own, apply the following steps:
+  1. Identify a problem and describe it in the issue
+  2. Design solution or seek guidance from a more experienced team member
+  3. Communicate with the team and reach consensus on the solution
+  4. Write code
 
 ## Collaboration
 
@@ -235,9 +244,7 @@ The idea is to send a morning TODO email to broadcast:
   - Within the first hour of beginning the day
   - It is recommended to check the inbox (email, GitHub) first to reflect all
     the update in the plan for the day
-- Send an email to:
-  - For full-time employees/contractors: `eng@kaizen-tech.io`
-  - For interns or collaborators: `contributors@crypto-kaizen.com`
+- Send an email to `eng@kaizen-tech.io`
 - Email subject:
   - `TODO` (all caps)
   - It easier to filter emails by subject
