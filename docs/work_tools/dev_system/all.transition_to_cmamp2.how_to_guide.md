@@ -154,14 +154,14 @@
   WARN[0000] The "CSFY_TELEGRAM_TOKEN" variable is not set. Defaulting to a blank string.
   WARN[0000] /data/saggese/src/cmamp1/devops/compose/docker-compose.yml: `version` is obsolete
   WARN[0000] Found orphan containers ([compose-im_postgres3923-1 compose-im_postgres5173-1]) for this project. If you removed or renamed this service in your compose file, you can run this command with the --remove-orphans flag to clean it up.
-  IS_SUPER_REPO=1
+  USE_HELPERS_AS_NESTED_MODULE=1
   ##> devops/docker_run/entrypoint.sh
   UID=501
   GID=20
   GIT_ROOT_DIR=/app
   > source /app/helpers_root/dev_scripts_helpers/thin_client/thin_client_utils.sh ...
   AM_CONTAINER_VERSION='2.0.0'
-  IS_SUPER_REPO=1
+  USE_HELPERS_AS_NESTED_MODULE=1
   ##> devops/docker_run/docker_setenv.sh
   GIT_ROOT_DIR=/app
   > source /app/helpers_root/dev_scripts_helpers/thin_client/thin_client_utils.sh ...
