@@ -661,7 +661,7 @@ class Test_selected_navigation_to_str1(hunitest.TestCase):
         - Chapter 1
           - Section 1.1
             - Subsection 1.1.1
-            - *Subsection 1.1.2*
+            - **Subsection 1.1.2**
           - Section 1.2
         - Chapter 2
         """
@@ -707,7 +707,7 @@ class Test_selected_navigation_to_str2(hunitest.TestCase):
         nav_str_exp = """
         - Models
           - Naive Bayes
-          - *Decision trees*
+          - **Decision trees**
           - Random forests
           - Linear models
         """
