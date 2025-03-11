@@ -1,1 +1,0 @@
-mmdc --puppeteerConfigFile <> -i /a/b/c.txt -o figs/e.8.png
