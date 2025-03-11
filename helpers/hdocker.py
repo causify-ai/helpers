@@ -738,8 +738,6 @@ def run_dockerized_pandoc(
 ) -> Optional[str]:
     """
     Run `pandoc` in a Docker container.
-
-    Same as `run_dockerized_prettier()` but for `pandoc`.
     """
     _LOG.debug(hprint.func_signature_to_str())
     if container_type == "pandoc_only":
@@ -934,7 +932,7 @@ def run_dockerized_markdown_toc(
     in_file_path: str, force_rebuild: bool, cmd_opts: List[str], *, use_sudo: bool
 ) -> None:
     """
-    Same as `run_dockerized_prettier()` but for `markdown-toc`.
+    Run `markdown-toc` in a Docker container.
     """
     _LOG.debug(hprint.func_signature_to_str())
     # https://github.com/jonschlinkert/markdown-toc

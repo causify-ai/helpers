@@ -540,7 +540,7 @@ class Test_dockerized_latex1(hunitest.TestCase):
         """
         # Prepare inputs.
         in_file_path, out_file_path = self.create_input_file()
-        cmd_opts = []
+        cmd_opts: List[str] = []
         run_latex_again = True
         force_rebuild = False
         use_sudo = hdocker.get_use_sudo()

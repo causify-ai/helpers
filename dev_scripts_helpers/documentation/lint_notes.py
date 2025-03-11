@@ -3,8 +3,9 @@
 """
 Lint "notes" files.
 
-> lint_notes.py -i foo.md -o bar.md --use_dockerized_prettier
---use_dockerized_markdown_toc
+> lint_notes.py -i foo.md -o bar.md \
+        --use_dockerized_prettier \
+        --use_dockerized_markdown_toc
 
 It can be used in vim to prettify a part of the text using stdin /
 stdout. :%!lint_notes.py
