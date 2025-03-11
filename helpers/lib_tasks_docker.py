@@ -552,7 +552,7 @@ def _generate_docker_compose_file(
     )
     # A super repo is a repo that contains helpers as a submodule and
     # is not a helper itself.
-    is_super_repo = 0 if hgit.is_in_helpers_as_supermodule() else 1
+    use_helpers_as_nested_module = 0 if hgit.is_in_helpers_as_supermodule() else 1
     # We could do the same also with IMAGE for symmetry.
     # Keep the env vars in sync with what we print in `henv.get_env_vars()`.
     # Configure `base_app` service.
@@ -581,7 +581,7 @@ def _generate_docker_compose_file(
             # The path of the helpers dir in the Docker container (e.g.,
             # `/app`, `/app/helpers_root`)
             f"CSFY_HELPERS_ROOT_PATH={helper_root_path}",
-            f"CSFY_IS_SUPER_REPO={is_super_repo}",
+            f"CSFY_USE_HELPERS_AS_NESTED_MODULE={use_helpers_as_nested_module}",
             "CSFY_TELEGRAM_TOKEN=$CSFY_TELEGRAM_TOKEN",
             # This env var is used by GH Action to signal that we are inside the
             # CI. It's set up by default by the GH Action runner. See:

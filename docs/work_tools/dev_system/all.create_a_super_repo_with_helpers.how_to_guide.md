@@ -121,8 +121,8 @@ well if one replaces `helpers` with `cmamp`.
   tmux.py
   ```
 
-- Customize the files looking for `$DIR_TAG`, `$IS_SUPER_REPO` and
-  `$DIR_PREFIX`.
+- Customize the files looking for `$DIR_TAG`, `$USE_HELPERS_AS_NESTED_MODULE`
+  and `$DIR_PREFIX`.
   ```
   > vi $DST_DIR/*
   ```

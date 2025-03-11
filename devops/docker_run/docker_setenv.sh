@@ -6,7 +6,7 @@
 
 set -e
 
-echo "CSFY_IS_SUPER_REPO=$CSFY_IS_SUPER_REPO"
+echo "CSFY_USE_HELPERS_AS_NESTED_MODULE=$CSFY_USE_HELPERS_AS_NESTED_MODULE"
 
 SCRIPT_PATH="devops/docker_run/docker_setenv.sh"
 echo "##> $SCRIPT_PATH"
@@ -26,12 +26,12 @@ source $SOURCE_PATH
 activate_docker_venv
 
 # Check that the required environment vars are defined and non-empty.
-dassert_var_defined "CSFY_IS_SUPER_REPO"
+dassert_var_defined "CSFY_USE_HELPERS_AS_NESTED_MODULE"
 dassert_var_defined "CSFY_HOST_GIT_ROOT_PATH"
 dassert_var_defined "CSFY_GIT_ROOT_PATH"
 dassert_var_defined "CSFY_HELPERS_ROOT_PATH"
 
-if [[ $CSFY_IS_SUPER_REPO == 1 ]]; then
+if [[ $CSFY_USE_HELPERS_AS_NESTED_MODULE == 1 ]]; then
     dassert_dir_exists $CSFY_HELPERS_ROOT_PATH
 fi;
 
@@ -41,10 +41,11 @@ set_path .
 # - PYTHONPATH
 set_pythonpath
 
-if [[ $CSFY_IS_SUPER_REPO == 1 ]]; then
+if [[ $CSFY_USE_HELPERS_AS_NESTED_MODULE == 1 ]]; then
     # Add helpers.
     dassert_dir_exists $CSFY_HELPERS_ROOT_PATH
-    export PYTHONPATH=$CSFY_HELPERS_ROOT_PATH:$PYTHONPATH
+    # Give priority to the current repo.
+    export PYTHONPATH=$PYTHONPATH:$CSFY_HELPERS_ROOT_PATH
 fi;
 
 # - Configure environment.
