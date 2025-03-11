@@ -1,9 +1,0 @@
-
-% ```mermaid
-% flowchart TD;
-%   A[Start] --> B[End];
-% ```
-
-\begin{figure}
-  \includegraphics[width=\linewidth]{figs/out.1.png}
-\end{figure}

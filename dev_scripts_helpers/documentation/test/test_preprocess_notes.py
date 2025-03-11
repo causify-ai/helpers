@@ -15,6 +15,7 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 
+# TODO(gp): Pass through the function and not only executable.
 def _run_preprocess_notes(in_file: str, out_file: str) -> str:
     """
     Execute the end-to-end flow for `preprocess_notes.py` returning the output
@@ -29,6 +30,7 @@ def _run_preprocess_notes(in_file: str, out_file: str) -> str:
     cmd.append(exec_path)
     cmd.append(f"--input {in_file}")
     cmd.append(f"--output {out_file}")
+    cmd.append("--type pdf")
     cmd_as_str = " ".join(cmd)
     hsystem.system(cmd_as_str)
     # Check.
@@ -117,7 +119,7 @@ class Test_process_question1(hunitest.TestCase):
     def _helper_process_question(
         self, txt_in: str, do_continue_exp: bool, exp: str
     ) -> None:
-        do_continue, act = dshdprno._process_question(txt_in)
+        do_continue, act = dshdprno._process_question_to_markdown(txt_in)
         self.assertEqual(do_continue, do_continue_exp)
         self.assert_equal(act, exp)
 
@@ -137,6 +139,7 @@ class Test_preprocess_notes3(hunitest.TestCase):
     """
 
     def test_run_all1(self) -> None:
+        # Prepare inputs.
         txt_in = r"""
         # #############################################################################
         # Python: nested functions
@@ -158,7 +161,14 @@ class Test_preprocess_notes3(hunitest.TestCase):
             ```
         """
         txt_in = hprint.dedent(txt_in, remove_lead_trail_empty_lines_=True)
+        # Execute function.
+        type_ = "pdf"
+        act = dshdprno._transform_lines(txt_in, type_, is_qa=False)
+        # Check.
         exp = r"""
+        ---
+        fontsize: 10pt
+        ---
         \let\emph\textit
         \let\uline\underline
         \let\ul\underline
@@ -181,10 +191,4 @@ class Test_preprocess_notes3(hunitest.TestCase):
                 ```
         """
         exp = hprint.dedent(exp, remove_lead_trail_empty_lines_=True)
-        self._transform_lines_helper(txt_in, exp)
-
-    def _transform_lines_helper(self, txt_in: str, exp: str) -> None:
-        lines = txt_in.split("\n")
-        act_as_arr = dshdprno._transform_lines(lines, is_qa=False)
-        act = "\n".join(act_as_arr)
         self.assert_equal(act, exp)

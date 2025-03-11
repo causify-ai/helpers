@@ -12,6 +12,11 @@ _LOG = logging.getLogger(__name__)
 # pylint: disable=protected-access
 
 
+# #############################################################################
+# TestLibTasks1
+# #############################################################################
+
+
 class TestLibTasks1(hunitest.TestCase):
     """
     Test some auxiliary functions, e.g., `_get_gh_issue_title()`.
@@ -36,6 +41,7 @@ class TestLibTasks1(hunitest.TestCase):
     def test_get_gh_issue_title4(self) -> None:
         cmd = "invoke gh_login"
         hsystem.system(cmd)
+        #
         issue_id = 1
         repo = "current"
         _ = hlitagh._get_gh_issue_title(issue_id, repo)

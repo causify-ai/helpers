@@ -1,17 +1,29 @@
+<!-- toc -->
+
+- [How to switch to cmamp-v2.0](#how-to-switch-to-cmamp-v20)
+  * [Patching up an existing client on dev1 or dev2](#patching-up-an-existing-client-on-dev1-or-dev2)
+  * [Clone Git client from scratch](#clone-git-client-from-scratch)
+  * [Fix all env vars](#fix-all-env-vars)
+  * [Restart tmux system](#restart-tmux-system)
+  * [Check that the new Docker container works](#check-that-the-new-docker-container-works)
+
+<!-- tocstop -->
+
 # How to switch to cmamp-v2.0
 
 - `cmamp-2.0` brings major changes to our dev and deployment flow
 
 - Changelog
-  - Made repos composable by using git subrepos instead of the mono-repo approach
-    used until now
+  - Made repos composable by using git subrepos instead of the mono-repo
+    approach used until now
     - E.g., `//helpers` is now a subrepo and not a normal dir
     - In this way we can separate multiple applications in different composable
       repos
   - Improved Docker flow where repos and dirs can run in different containers
   - Improved Docker container building flow
     - Switched to Python 3.12
-    - Brought all the packages to the newest version, including pandas, numpy, etc.
+    - Brought all the packages to the newest version, including pandas, numpy,
+      etc.
   - Improved thin client flow and tmux flow
     - It has been almost completely re-written in Python from Bash
   - Improved documentation
@@ -28,6 +40,7 @@
 ## Patching up an existing client on dev1 or dev2
 
 - You need to patch up your Git client or start from scratch
+
   ```bash
   > cd /data/saggese/src/cmamp1
 
@@ -62,7 +75,7 @@
   road and create a new repo
 
 - Push all your local branches remotely, since the Git clients might have issues
-- I suggest to rename your Git client to `.old`, e.g., 
+- I suggest to rename your Git client to `.old`, e.g.,
   ```
   > mv /data/saggese/cmamp1 /data/saggese/cmamp1.old
   ```
@@ -154,14 +167,14 @@
   WARN[0000] The "CSFY_TELEGRAM_TOKEN" variable is not set. Defaulting to a blank string.
   WARN[0000] /data/saggese/src/cmamp1/devops/compose/docker-compose.yml: `version` is obsolete
   WARN[0000] Found orphan containers ([compose-im_postgres3923-1 compose-im_postgres5173-1]) for this project. If you removed or renamed this service in your compose file, you can run this command with the --remove-orphans flag to clean it up.
-  IS_SUPER_REPO=1
+  USE_HELPERS_AS_NESTED_MODULE=1
   ##> devops/docker_run/entrypoint.sh
   UID=501
   GID=20
   GIT_ROOT_DIR=/app
   > source /app/helpers_root/dev_scripts_helpers/thin_client/thin_client_utils.sh ...
   AM_CONTAINER_VERSION='2.0.0'
-  IS_SUPER_REPO=1
+  USE_HELPERS_AS_NESTED_MODULE=1
   ##> devops/docker_run/docker_setenv.sh
   GIT_ROOT_DIR=/app
   > source /app/helpers_root/dev_scripts_helpers/thin_client/thin_client_utils.sh ...
@@ -178,6 +191,7 @@
   PYTHONPATH=/app/helpers_root:/app:
   entrypoint.sh: 'bash'
   ```
+
 - Note that starting a container should be much faster than what it used to
 
 - Run `pytest`
