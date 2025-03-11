@@ -63,7 +63,7 @@ jobs:
       - name: Run superslow tests
         env:
           GH_ACTION_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
+
           CSFY_AWS_ACCESS_KEY_ID: ${{ secrets.CSFY_AWS_ACCESS_KEY_ID }}
           CSFY_AWS_SECRET_ACCESS_KEY: ${{ secrets.CSFY_AWS_SECRET_ACCESS_KEY }}
           CSFY_AWS_DEFAULT_REGION: ${{ vars.CSFY_AWS_DEFAULT_REGION }}
@@ -86,21 +86,24 @@ jobs:
           sha: ${{ github.sha }}
           target_url: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
-      # Notify the team via Telegram in case of failure.
-      - name: Send Telegram notification for failure
+      # Notify the team via Slack in case of failure.
+      - name: Send Slack notification on failure
         # Need to use ref_name as it contains the branch that triggered the
         # workflow run.
         # Alternative, head_ref is only available when the event that triggers a
         # workflow run is either pull_request or pull_request_target.
         if: ${{ failure() && github.ref_name == 'master' }}
-        uses: appleboy/telegram-action@master
+        uses: slackapi/slack-github-action@v1.27.0
         with:
-          to: ${{ secrets.CK_TG_BUILDBOT_CHATID }}
-          token: ${{ secrets.CK_TG_BUILDBOT_TOKEN }}
-          message: |
+          # You can pass in multiple channels to post to by providing a comma-delimited list of channel IDs:
+          # 'CHANNEL_ID,ANOTHER_CHANNEL_ID'
+          channel-id: ${{ vars.SLACK_BUILD_NOTIF_CHANNEL_ID }}
+          slack-message: |
             💣 SUPERSLOW TESTS FAILED
             Build failure '${{ github.workflow }}'
             Repo: '${{ github.repository }}'
             Branch: '${{ github.ref_name }}'
             Event: '${{ github.event_name }}'
             https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
