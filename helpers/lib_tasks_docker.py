@@ -253,28 +253,20 @@ def docker_pull(ctx, stage="dev", version=None, skip_pull=False):  # type: ignor
 
 
 @task
-def docker_pull_helpers(  # type: ignore
-    ctx, stage="prod", version=None, docker_registry="aws_ecr.ck"
-):
+def docker_pull_helpers(ctx, stage="prod", version=None):  # type: ignore
     """
     Pull latest prod image of `helpers` from the registry.
 
     :param ctx: invoke context
     :param stage: stage of the Docker image
     :param version: version of the Docker image
-    :param docker_registry: target Docker image registry to log in to
-        - "dockerhub.causify": public Causify Docker image registry
-        - "aws_ecr.ck": private AWS CK ECR
     """
-    hlitauti.report_task(txt=hprint.to_str("docker_registry"))
-    if docker_registry == "dockerhub.causify":
-        base_image = "causify/helpers"
-    elif docker_registry == "aws_ecr.ck":
+    # Infer the Docker registry from the environment.
+    if hserver.is_dev_ck():
         base_image = hlitauti.get_default_param("CSFY_ECR_BASE_PATH") + "/helpers"
     else:
-        raise ValueError(
-            f"The Docker image registry='{docker_registry}' is not supported"
-        )
+        base_image = "causify/helpers"
+    _LOG.debug("base_image=%s", base_image)
     _docker_pull(ctx, base_image, stage, version)
 
 
@@ -1305,24 +1297,21 @@ def _get_lint_docker_cmd(
     version: str,
     *,
     use_entrypoint: bool = True,
-    no_dev_server: bool = False,
 ) -> str:
     """
     Create a command to run in Linter service.
 
     :param docker_cmd_: command to run
     :param stage: the image stage to use
-    :param no_dev_server: True, if running Linter on local machine, else
-        false if on dev server
     :return: the full command to run
     """
-    # Get an image to run the linter on.
-    # For local development we use the image from the Docker Hub.
-    if no_dev_server:
-        # TODO(Vlad): Replace with environment variable.
-        base_path = "causify"
-    else:
+    # Infer the docker registry based on the environment.
+    if hserver.is_dev_ck():
         base_path = os.environ["CSFY_ECR_BASE_PATH"]
+    else:
+        base_path = "causify"
+    _LOG.debug("base_path=%s", base_path)
+    # Get an image to run the linter on.
     linter_image = f"{base_path}/helpers"
     # Execute command line.
     cmd: str = _get_docker_compose_cmd(
