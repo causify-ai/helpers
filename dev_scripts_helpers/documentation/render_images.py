@@ -26,7 +26,7 @@ import logging
 import os
 import re
 import tempfile
-from typing import List, Tuple, cast
+from typing import List, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
@@ -91,6 +91,7 @@ def _get_puppeteer_config_path() -> str:
     return path
 
 
+# TODO(gp): Not sure we should support running without Docker.
 def _get_render_command(
     code_file_path: str,
     abs_img_dir_path: str,
@@ -119,6 +120,8 @@ def _get_render_command(
     elif image_code_type == "mermaid":
         puppeteer_config = _get_puppeteer_config_path()
         cmd = f"mmdc --puppeteerConfigFile {puppeteer_config} -i {code_file_path} -o {rel_img_path}"
+    elif image_code_type == "tikz":
+        hdbg.dfatal("Not implemented yet")
     else:
         raise ValueError(f"Invalid type: {image_code_type}")
     return cmd
@@ -149,13 +152,22 @@ def _render_code(
     :param dry_run: if True, the rendering command is not executed
     :return: path to the rendered image
     """
-    # TODO(gp): Is this the script responsibility or the user's?
     if image_code_type == "plantuml":
-        # Ensure the plantUML code is in the correct format to render.
+        # TODO(gp): we should always add the start and end tags.
         if not image_code.startswith("@startuml"):
             image_code = f"@startuml\n{image_code}"
         if not image_code.endswith("@enduml"):
             image_code = f"{image_code}\n@enduml"
+    elif image_code_type == "tikz":
+        image_code_tmp = r"""
+        \documentclass[tikz, border=10pt]{standalone}
+        \usepackage{tikz}
+        \begin{document}
+        """
+        image_code_tmp = hprint.dedent(image_code_tmp)
+        image_code_tmp += image_code
+        image_code_tmp += r"\end{document}"
+        image_code = image_code_tmp
     # Get paths for rendered files.
     hio.create_enclosing_dir(out_file, incremental=True)
     code_file_path, abs_img_dir_path, rel_img_path = _get_rendered_file_paths(
@@ -165,42 +177,38 @@ def _render_code(
     # Save the image code to a temporary file.
     hio.to_file(code_file_path, image_code)
     # Run the rendering.
-    cmd = _get_render_command(
-        code_file_path, abs_img_dir_path, rel_img_path, dst_ext, image_code_type
-    )
     _LOG.info(
         "Creating the image from '%s' source and saving image to '%s'",
         code_file_path,
         abs_img_dir_path,
     )
-    _LOG.info("> %s", cmd)
-    if dry_run:
-        # Do not execute the command.
-        hsystem.system(cmd, dry_run=True)
-    else:
-        if run_dockerized:
-            # Run as a dockerized executable.
-            if image_code_type == "plantuml":
-                hdocker.run_dockerized_plantuml(
-                    abs_img_dir_path, code_file_path, dst_ext
-                )
-            elif image_code_type == "mermaid":
-                hdocker.run_dockerized_mermaid(rel_img_path, code_file_path)
-            elif image_code_type == "tikz":
-                hdocker.tikz_to_bitmap(rel_img_path, code_file_path)
-            elif image_code_type == "graphviz":
-                # TODO(gp): Implement this.
-                hdocker.run_dockerized_graphviz(rel_img_path, code_file_path)
-            else:
-                raise ValueError(f"Invalid type: {image_code_type}")
+    if run_dockerized:
+        # Run as a dockerized executable.
+        if image_code_type == "plantuml":
+            hdocker.run_dockerized_plantuml(
+                abs_img_dir_path, code_file_path, dst_ext
+            )
+        elif image_code_type == "mermaid":
+            hdocker.run_dockerized_mermaid(rel_img_path, code_file_path)
+        elif image_code_type == "tikz":
+            cmd_opts = []
+            hdocker.tikz_to_bitmap(code_file_path, cmd_opts, rel_img_path)
+        elif image_code_type == "graphviz":
+            # TODO(gp): Implement this.
+            hdocker.run_dockerized_graphviz(rel_img_path, code_file_path)
         else:
-            # Run the package installed on the host directly.
-            hsystem.system(cmd)
+            raise ValueError(f"Invalid type: {image_code_type}")
+    else:
+        # Run the package installed on the host directly.
+        cmd = _get_render_command(
+            code_file_path, abs_img_dir_path, rel_img_path, dst_ext, image_code_type
+        )
+        hsystem.system(cmd, dry_run=dry_run)
     # Remove the temp file.
     os.remove(code_file_path)
     return rel_img_path
 
-    
+
 def _get_comment_prefix_postfix(extension: str) -> Tuple[str, str]:
     # Define the character that comments out a line depending on the file type.
     if extension == ".md":
@@ -220,7 +228,6 @@ def _get_comment_prefix_postfix(extension: str) -> Tuple[str, str]:
 def _insert_image_code(extension: str, rel_img_path: str) -> str:
     """
     Insert the code to display the image in the output file.
-    
     """
     # Add the code to insert the image in the file.
     if extension in (".md", ".txt"):
@@ -235,14 +242,16 @@ def _insert_image_code(extension: str, rel_img_path: str) -> str:
     else:
         raise ValueError(f"Unsupported file extension: {extension}")
     return txt
-    
-                
-def _comment_if_needed(state: str, line: str, comment_prefix: str, comment_postfix: str) -> str:
+
+
+def _comment_if_needed(
+    state: str, line: str, comment_prefix: str, comment_postfix: str
+) -> str:
     if state == "found_image_code":
         ret = f"{comment_prefix} {line}{comment_postfix}"
-    else:   
+    else:
         ret = line
-    return ret 
+    return ret
 
 
 def _render_images(
@@ -299,7 +308,7 @@ def _render_images(
         (\((.*)\))?         # Optional user-specified image name in parentheses
         \s*$                # Any trailing whitespace and end of the line
         """,
-        re.VERBOSE
+        re.VERBOSE,
     )
     end_regex = re.compile(
         rf"""
@@ -308,7 +317,7 @@ def _render_images(
         \s*```              # Opening backticks for code block
         \s*$                # Any trailing whitespace and end of the line
         """,
-        re.VERBOSE
+        re.VERBOSE,
     )
     for i, line in enumerate(in_lines):
         _LOG.debug("%d %s: %s", i, state, line)
@@ -330,12 +339,13 @@ def _render_images(
                 user_rel_img_path = m.group(4)
                 _LOG.debug(hprint.to_str("user_rel_img_path"))
             # Comment out the beginning of the image code.
-            out_lines.append(_comment_if_needed(state, line, comment_prefix, comment_postfix))
+            out_lines.append(
+                _comment_if_needed(state, line, comment_prefix, comment_postfix)
+            )
         elif state in ("found_image_code", "found_commented_image_code"):
             m = end_regex.search(line)
             if m:
                 # Found the end of an image code block.
-                # Render the image.
                 image_code_txt = "\n".join(image_code_lines)
                 rel_img_path = _render_code(
                     image_code_txt,
@@ -351,7 +361,11 @@ def _render_images(
                     rel_img_path = user_rel_img_path
                     user_rel_img_path = ""
                 # Comment out the end of the image code, if needed.
-                out_lines.append(_comment_if_needed(state, line, comment_prefix, comment_postfix))
+                out_lines.append(
+                    _comment_if_needed(
+                        state, line, comment_prefix, comment_postfix
+                    )
+                )
                 out_lines.append(_insert_image_code(extension, rel_img_path))
                 # Set the parser to search for a new image code block.
                 if state == "found_image_code":
@@ -363,7 +377,11 @@ def _render_images(
                 # Record the line from inside the image code block.
                 image_code_lines.append(line)
                 # Comment out the inside of the image code.
-                out_lines.append(_comment_if_needed(state, line, comment_prefix, comment_postfix))
+                out_lines.append(
+                    _comment_if_needed(
+                        state, line, comment_prefix, comment_postfix
+                    )
+                )
         elif state == "replace_image_code":
             if line.rstrip().lstrip() != "":
                 # Replace the line.

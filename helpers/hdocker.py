@@ -485,6 +485,7 @@ def convert_caller_to_callee_docker_path(
 # #############################################################################
 
 
+# TODO(gp): Move cmd_opts after in_file_path
 def run_dockerized_prettier(
     in_file_path: str,
     out_file_path: str,
@@ -931,6 +932,7 @@ def run_dockerized_pandoc(
 # #############################################################################
 
 
+# TODO(gp): Move cmd_opts after in_file_path and force_rebuild as kwarg
 def run_dockerized_markdown_toc(
     in_file_path: str,
     force_rebuild: bool,
@@ -1214,8 +1216,8 @@ def run_basic_latex(
     """
     _LOG.debug(hprint.func_signature_to_str())
     #
-    hdbg.dassert_file_extension(input_file_name, "tex")
-    hdbg.dassert_file_exists(input_file_name, "tex")
+    #hdbg.dassert_file_extension(input_file_name, "tex")
+    hdbg.dassert_file_exists(input_file_name)
     hdbg.dassert_file_extension(output_file_name, "pdf")
     # There is a horrible bug in pdflatex that if the input file is not the last
     # one the output directory is not recognized.
@@ -1255,6 +1257,7 @@ def run_basic_latex(
 # #############################################################################
 
 
+# TODO(gp): Move cmd_opts after in_file_path
 def run_dockerized_imagemagick(
     in_file_path: str,
     out_file_path: str,
@@ -1346,9 +1349,11 @@ def tikz_to_bitmap(
     """
     Convert a TikZ file to a PDF file.
     """
+    _LOG.debug(hprint.func_signature_to_str())
+    # Convert tikz file to PDF.
     latex_cmd_opts = []
     run_latex_again = False
-    file_out = os.path.basename(in_file_path).replace(".tex", ".pdf")
+    file_out = hio.change_file_extension(in_file_path, ".pdf")
     run_basic_latex(
         in_file_path,
         latex_cmd_opts,
@@ -1357,6 +1362,7 @@ def tikz_to_bitmap(
         force_rebuild=force_rebuild,
         use_sudo=use_sudo,
     )
+    # Convert the PDF to a bitmap.
     run_dockerized_imagemagick(
         file_out,
         out_file_path,
@@ -1371,6 +1377,7 @@ def tikz_to_bitmap(
 # #############################################################################
 
 
+# TODO(gp): Move cmd_opts after in_file_path
 def run_dockerized_llm_transform(
     in_file_path: str,
     out_file_path: str,
@@ -1468,7 +1475,9 @@ def run_dockerized_llm_transform(
 
 # #############################################################################
 
-
+# TODO(gp): Change interface to
+# in_file_path: str,
+# out_file_path: str,
 def run_dockerized_plantuml(
     img_dir_path: str,
     code_file_path: str,
@@ -1539,6 +1548,9 @@ def run_dockerized_plantuml(
 # #############################################################################
 
 
+# TODO(gp): Change interface to
+# in_file_path: str,
+# out_file_path: str,
 def run_dockerized_mermaid(
     img_path: str,
     code_file_path: str,

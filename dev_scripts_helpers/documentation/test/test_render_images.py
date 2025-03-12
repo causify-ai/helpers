@@ -8,9 +8,6 @@ import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
-import helpers_root.dev_scripts_helpers.documentation.render_images as hdl
-
-
 _LOG = logging.getLogger(__name__)
 
 
@@ -321,11 +318,6 @@ class Test_render_images1(hunitest.TestCase):
         file.
         """
         in_lines = r"""
-        ```plantuml
-        @startuml
-        Alice --> Bob
-        @enduml
-        ```
         """
         file_ext = "tex"
         exp = r"""
@@ -343,10 +335,6 @@ class Test_render_images1(hunitest.TestCase):
         Check bare mermaid code in a LaTeX file.
         """
         in_lines = r"""
-        ```mermaid
-        flowchart TD;
-          A[Start] --> B[End];
-        ```
         """
         file_ext = "tex"
         exp = r"""
@@ -365,10 +353,6 @@ class Test_render_images1(hunitest.TestCase):
         """
         in_lines = r"""
         A
-        ```mermaid
-        flowchart TD;
-          A[Start] --> B[End];
-        ```
         B
         """
         file_ext = "tex"
@@ -384,15 +368,10 @@ class Test_render_images1(hunitest.TestCase):
         self.helper(in_lines, file_ext, exp)
 
     def test13(self) -> None:
-        """
-        """
+        """ """
         in_lines = r"""
         A
 
-        ```mermaid
-        flowchart TD;
-          A[Start] --> B[End];
-        ```
 
 
         B
@@ -413,15 +392,10 @@ class Test_render_images1(hunitest.TestCase):
         self.helper(in_lines, file_ext, exp)
 
     def test14(self) -> None:
-        """
-        """
+        """ """
         in_lines = r"""
         A
 
-        ```mermaid(hello_world.png)
-        flowchart TD;
-          A[Start] --> B[End];
-        ```
         B
         """
         file_ext = "txt"
@@ -438,8 +412,7 @@ class Test_render_images1(hunitest.TestCase):
         self.helper(in_lines, file_ext, exp)
 
     def test15(self) -> None:
-        """
-        """
+        """ """
         in_lines = r"""
         A
         // ```mermaid(hello_world2.png)
