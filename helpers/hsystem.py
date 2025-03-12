@@ -21,7 +21,6 @@ from typing import Any, Callable, List, Match, Optional, Tuple, Union, cast
 
 import helpers.hdbg as hdbg
 import helpers.hintrospection as hintros
-import helpers.hio as hio
 import helpers.hlogging as hloggin
 import helpers.hprint as hprint
 
@@ -729,6 +728,9 @@ def _find_git_root(path: str = ".") -> str:
             break
         # Check if `.git` is a file which indicates submodules or linked setups.
         if os.path.isfile(git_dir):
+            # Local import to avoid circular dependency.
+            import helpers.hio as hio
+
             txt = hio.from_file(git_dir)
             lines = txt.split("\n")
             for line in lines:
