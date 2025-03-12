@@ -239,8 +239,8 @@
 
 ## Shell support
 
-- We only support bash, no other shells like zsh, etc.
-- We recommended that you make bash the default shell on your system, to avoid
+- We only support `bash`, no other shells like `zsh`, etc.
+- We recommended that you make `bash` the default shell on your system, to avoid
   possible compatibility issues
 
 ## Some useful workflows
