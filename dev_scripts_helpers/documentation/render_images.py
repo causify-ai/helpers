@@ -87,13 +87,7 @@ def _get_puppeteer_config_path() -> str:
     :return: path to the config file
     """
     cmd = "find . -name 'puppeteerConfig.json'"
-    _, paths_out = hsystem.system_to_string(cmd)
-    # TODO(gp): We expect only one file.
-    hdbg.dassert_eq(len(paths_out.split("\n")), 1)
-    # Pick the one closer to the current dir.
-    path = sorted(paths_out.split("\n"))[0]
-    hdbg.dassert_path_exists(path)
-    path = cast(str, path)
+    _, path = hsystem.system_to_one_line(cmd)
     return path
 
 
@@ -206,8 +200,8 @@ def _render_code(
     os.remove(code_file_path)
     return rel_img_path
 
-
-def _comment_out_line(line: str, extension: str) -> str:
+    
+def _get_comment_prefix_postfix(extension: str) -> Tuple[str, str]:
     # Define the character that comments out a line depending on the file type.
     if extension == ".md":
         comment_prefix = "[//]: # ("
@@ -220,9 +214,9 @@ def _comment_out_line(line: str, extension: str) -> str:
         comment_postfix = ""
     else:
         raise ValueError(f"Unsupported file type: {extension}")
-    return f"{comment_prefix} {line}{comment_postfix}"
+    return comment_prefix, comment_postfix
 
-                
+
 def _insert_image_code(extension: str, rel_img_path: str) -> str:
     """
     Insert the code to display the image in the output file.
@@ -235,15 +229,21 @@ def _insert_image_code(extension: str, rel_img_path: str) -> str:
         # f"![]({rel_img_path})" + "{height=60%}"
     elif extension == ".tex":
         # Use the LaTeX syntax.
-        txt = rf"""
-        \begin{{figure}}
-          \includegraphics[width=\linewidth]{{{rel_img_path}}}
-        \end{{figure}}"""
-        txt = hprint.dedent(txt)
+        # We need to leave it on a single line to make it easy to find and
+        # replace it.
+        txt = rf"""\begin{{figure}} \includegraphics[width=\linewidth]{{{rel_img_path}}} \end{{figure}}"""
     else:
         raise ValueError(f"Unsupported file extension: {extension}")
     return txt
     
+                
+def _comment_if_needed(state: str, line: str, comment_prefix: str, comment_postfix: str) -> str:
+    if state == "found_image_code":
+        ret = f"{comment_prefix} {line}{comment_postfix}"
+    else:   
+        ret = line
+    return ret 
+
 
 def _render_images(
     in_lines: List[str],
@@ -271,6 +271,10 @@ def _render_images(
         not actually created
     :return: updated file lines
     """
+    # Get the extension of the output file.
+    extension = os.path.splitext(out_file)[1]
+    #
+    comment_prefix, comment_postfix = _get_comment_prefix_postfix(extension)
     # Store the output.
     out_lines: List[str] = []
     # Store the image code found in the file.
@@ -280,33 +284,56 @@ def _render_images(
     # Image name explicitly set by the user with `plantuml(...)` syntax.
     user_rel_img_path = ""
     # Store the state of the parser.
-    state = "searching"
-    # Get the extension of the output file.
-    extension = os.path.splitext(out_file)[1]
+    state = "search_image_code"
+    # The code should look like:
+    # ```plantuml
+    #    ...
+    # ```
+    comment = re.escape(comment_prefix)
+    start_regex = re.compile(
+        rf"""
+        ^\s*                # Start of the line and any leading whitespace
+        ({comment})?        # Optional comment prefix
+        \s*```              # Opening backticks for code block
+        (plantuml|mermaid|tikz|graphviz*)  # Image code type
+        (\((.*)\))?         # Optional user-specified image name in parentheses
+        \s*$                # Any trailing whitespace and end of the line
+        """,
+        re.VERBOSE
+    )
+    end_regex = re.compile(
+        rf"""
+        ^\s*                # Start of the line and any leading whitespace
+        ({comment})?        # Optional comment prefix
+        \s*```              # Opening backticks for code block
+        \s*$                # Any trailing whitespace and end of the line
+        """,
+        re.VERBOSE
+    )
     for i, line in enumerate(in_lines):
-        _LOG.debug("%d@%s: %s", i, state, line)
-        # The code should look like:
-        # ```plantuml
-        #    ...
-        # ```
-        m = re.search(r"^\s*```(plantuml|mermaid|tikz|graphviz*)((\((.*)\)))?\s*$", line)
+        _LOG.debug("%d %s: %s", i, state, line)
+        m = start_regex.search(line)
         if m:
             # Found the beginning of an image code block.
-            hdbg.dassert_eq(state, "searching")
-            state = "found_image_code"
+            hdbg.dassert_eq(state, "search_image_code")
+            if m.group(1):
+                state = "found_commented_image_code"
+            else:
+                state = "found_image_code"
             _LOG.debug(" -> state=%s", state)
             image_code_lines = []
             image_code_idx += 1
             # E.g., "plantuml" or "mermaid".
-            image_code_type = m.group(1)
-            if m.group(2):
+            image_code_type = m.group(2)
+            if m.group(3):
                 hdbg.dassert_eq(user_rel_img_path, "")
-                user_rel_img_path = m.group(3)
+                user_rel_img_path = m.group(4)
                 _LOG.debug(hprint.to_str("user_rel_img_path"))
             # Comment out the beginning of the image code.
-            out_lines.append(_comment_out_line(line, extension))
-        elif state == "found_image_code":
-            if line.strip() == "```":
+            out_lines.append(_comment_if_needed(state, line, comment_prefix, comment_postfix))
+        elif state in ("found_image_code", "found_commented_image_code"):
+            m = end_regex.search(line)
+            if m:
                 # Found the end of an image code block.
                 # Render the image.
                 image_code_txt = "\n".join(image_code_lines)
@@ -323,18 +350,25 @@ def _render_images(
                 if user_rel_img_path != "":
                     rel_img_path = user_rel_img_path
                     user_rel_img_path = ""
-                # Comment out the end of the image code.
-                out_lines.append(_comment_out_line(line, extension))
+                # Comment out the end of the image code, if needed.
+                out_lines.append(_comment_if_needed(state, line, comment_prefix, comment_postfix))
                 out_lines.append(_insert_image_code(extension, rel_img_path))
                 # Set the parser to search for a new image code block.
-                state = "searching"
+                if state == "found_image_code":
+                    state = "search_image_code"
+                else:
+                    state = "replace_image_code"
                 _LOG.debug(" -> state=%s", state)
             else:
                 # Record the line from inside the image code block.
                 image_code_lines.append(line)
                 # Comment out the inside of the image code.
-                #out_lines.append(f"{comment_prefix} {line}{comment_postfix}")
-                out_lines.append(_comment_out_line(line, extension))
+                out_lines.append(_comment_if_needed(state, line, comment_prefix, comment_postfix))
+        elif state == "replace_image_code":
+            if line.rstrip().lstrip() != "":
+                # Replace the line.
+                state = "search_image_code"
+                _LOG.debug(" -> state=%s", state)
         else:
             # Keep a regular line.
             out_lines.append(line)

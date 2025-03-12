@@ -274,9 +274,7 @@ class Test_render_images1(hunitest.TestCase):
         % ```plantuml
         % Alice --> Bob
         % ```
-        \begin{figure}
-          \includegraphics[width=\linewidth]{figs/out.1.png}
-        \end{figure}
+        \begin{figure} \includegraphics[width=\linewidth]{figs/out.1.png} \end{figure}
         """
         self.helper(in_lines, file_ext, exp)
 
@@ -297,9 +295,7 @@ class Test_render_images1(hunitest.TestCase):
         % ```plantuml
         % Alice --> Bob
         % ```
-        \begin{figure}
-          \includegraphics[width=\linewidth]{figs/out.1.png}
-        \end{figure}
+        \begin{figure} \includegraphics[width=\linewidth]{figs/out.1.png} \end{figure}
         B
         """
         self.helper(in_lines, file_ext, exp)
@@ -338,9 +334,7 @@ class Test_render_images1(hunitest.TestCase):
         % Alice --> Bob
         % @enduml
         % ```
-        \begin{figure}
-          \includegraphics[width=\linewidth]{figs/out.1.png}
-        \end{figure}
+        \begin{figure} \includegraphics[width=\linewidth]{figs/out.1.png} \end{figure}
         """
         self.helper(in_lines, file_ext, exp)
 
@@ -361,9 +355,7 @@ class Test_render_images1(hunitest.TestCase):
         % flowchart TD;
         %   A[Start] --> B[End];
         % ```
-        \begin{figure}
-          \includegraphics[width=\linewidth]{figs/out.1.png}
-        \end{figure}
+        \begin{figure} \includegraphics[width=\linewidth]{figs/out.1.png} \end{figure}
         """
         self.helper(in_lines, file_ext, exp)
 
@@ -386,9 +378,83 @@ class Test_render_images1(hunitest.TestCase):
         % flowchart TD;
         %   A[Start] --> B[End];
         % ```
-        \begin{figure}
-          \includegraphics[width=\linewidth]{figs/out.1.png}
-        \end{figure}
+        \begin{figure} \includegraphics[width=\linewidth]{figs/out.1.png} \end{figure}
+        B
+        """
+        self.helper(in_lines, file_ext, exp)
+
+    def test13(self) -> None:
+        """
+        """
+        in_lines = r"""
+        A
+
+        ```mermaid
+        flowchart TD;
+          A[Start] --> B[End];
+        ```
+
+
+        B
+        """
+        file_ext = "txt"
+        exp = r"""
+        A
+
+        // ```mermaid
+        // flowchart TD;
+        //   A[Start] --> B[End];
+        // ```
+        ![](figs/out.1.png)
+
+
+        B
+        """
+        self.helper(in_lines, file_ext, exp)
+
+    def test14(self) -> None:
+        """
+        """
+        in_lines = r"""
+        A
+
+        ```mermaid(hello_world.png)
+        flowchart TD;
+          A[Start] --> B[End];
+        ```
+        B
+        """
+        file_ext = "txt"
+        exp = r"""
+        A
+
+        // ```mermaid(hello_world.png)
+        // flowchart TD;
+        //   A[Start] --> B[End];
+        // ```
+        ![](hello_world.png)
+        B
+        """
+        self.helper(in_lines, file_ext, exp)
+
+    def test15(self) -> None:
+        """
+        """
+        in_lines = r"""
+        A
+        // ```mermaid(hello_world2.png)
+        // flowchart TD;
+        // ```
+        ![](hello_world.png)
+        B
+        """
+        file_ext = "txt"
+        exp = r"""
+        A
+        // ```mermaid(hello_world2.png)
+        // flowchart TD;
+        // ```
+        ![](hello_world2.png)
         B
         """
         self.helper(in_lines, file_ext, exp)
