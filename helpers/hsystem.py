@@ -728,10 +728,8 @@ def _find_git_root(path: str = ".") -> str:
             break
         # Check if `.git` is a file which indicates submodules or linked setups.
         if os.path.isfile(git_dir):
-            # Local import to avoid circular dependency.
-            import helpers.hio as hio
-
-            txt = hio.from_file(git_dir)
+            with open(git_dir, "r") as f:
+                txt = f.read()
             lines = txt.split("\n")
             for line in lines:
                 # Look for a `gitdir:` line that specifies the linked directory.
