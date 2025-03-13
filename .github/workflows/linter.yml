@@ -66,6 +66,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r .github/gh_requirements.txt
 
+      # Ssh
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
+        env:
+          CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
+
       # Pull the `helpers:prod` image to run the Linter on it.
       - name: Pull helpers:prod image
         if: github.event.pull_request.draft == false
