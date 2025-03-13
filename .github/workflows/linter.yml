@@ -42,6 +42,7 @@ jobs:
         if: github.event.pull_request.draft == false
         run: docker login ghcr.io -u gpsaggese -p ${{ secrets.GITHUB_TOKEN }}
 
+        
       # Make everything accessible by any user to avoid permission errors.
       - name: Cleanup
         if: github.event.pull_request.draft == false
