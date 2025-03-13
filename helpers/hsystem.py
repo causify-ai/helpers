@@ -21,7 +21,6 @@ from typing import Any, Callable, List, Match, Optional, Tuple, Union, cast
 
 import helpers.hdbg as hdbg
 import helpers.hintrospection as hintros
-import helpers.hio as hio
 import helpers.hlogging as hloggin
 import helpers.hprint as hprint
 
@@ -263,9 +262,12 @@ def _system(
         num_error_lines = num_error_lines or 30
         output_error = "\n".join(output.split("\n")[:num_error_lines])
         msg = f"_system failed: cmd='{cmd}'"
-        msg = ("\n" +
-               hprint.frame(msg, char1="%", thickness=2) + "\n" +
-                f"truncated output=\n{output_error}")
+        msg = (
+            "\n"
+            + hprint.frame(msg, char1="%", thickness=2)
+            + "\n"
+            + f"truncated output=\n{output_error}"
+        )
         raise RuntimeError(msg)
     # hdbg.dassert_type_in(output, (str, ))
     return rc, output
@@ -729,7 +731,9 @@ def _find_git_root(path: str = ".") -> str:
             break
         # Check if `.git` is a file which indicates submodules or linked setups.
         if os.path.isfile(git_dir):
-            txt = hio.from_file(git_dir)
+            # Using the `open()` to avoid import cycles with the `hio` module.
+            with open(git_dir, "r") as f:
+                txt = f.read()
             lines = txt.split("\n")
             for line in lines:
                 # Look for a `gitdir:` line that specifies the linked directory.
