@@ -38,10 +38,16 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Perform docker login
-        if: github.event.pull_request.draft == false
-        run: docker login ghcr.io -u gpsaggese -p ${{ secrets.GITHUB_TOKEN }}
+      # - name: Perform docker login
+      #   if: github.event.pull_request.draft == false
+      #   run: docker login ghcr.io -u gpsaggese -p ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: gpsaggese
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: ghcr.io
 
       # Make everything accessible by any user to avoid permission errors.
       - name: Cleanup
