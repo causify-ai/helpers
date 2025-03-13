@@ -728,6 +728,7 @@ def _find_git_root(path: str = ".") -> str:
             break
         # Check if `.git` is a file which indicates submodules or linked setups.
         if os.path.isfile(git_dir):
+            # Using the `open()` to avoid import cycles with the `hio` module.
             with open(git_dir, "r") as f:
                 txt = f.read()
             lines = txt.split("\n")
