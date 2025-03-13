@@ -264,8 +264,6 @@ def docker_pull_helpers(ctx, stage="prod", version=None):  # type: ignore
     # Infer the Docker registry from the environment.
     if hserver.is_dev_ck():
         base_image = hlitauti.get_default_param("CSFY_ECR_BASE_PATH") + "/helpers"
-    elif hserver.is_inside_ci():
-        base_image = "ghcr.io/causify-ai/helpers"
     else:
         base_image = "causify/helpers"
     _LOG.debug("base_image=%s", base_image)
