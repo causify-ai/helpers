@@ -257,3 +257,15 @@
 - This invokes a different service
 - To disable vim go to Settings -> Enable Vim Mode
 - We use the percent format for Jupytext
+
+## Docker Image Tags and Registries matrix
+
+| Image Tag           | AWS ECR | Dockerhub | GHCR |
+|---------------------|---------|-----------|------|
+| cmamp:dev           | [+]     | [-]       | [-]  |
+| cmamp:prod          | [+]     | [-]       | [-]  |
+| helpers:dev         | [+]     | [+]       | [+]  |
+| helpers:prod        | [+]     | [+]       | [+]  |
+| quant_dashboard:dev | [+]     | [-]       | [-]  |
+| dev_tools:prod      | [+]     | [-]       | [-]  |
+| dev_tools:dev       | [+]     | [-]       | [-]  |
