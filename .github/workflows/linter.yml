@@ -80,18 +80,11 @@ jobs:
         # Do not run on draft pull requests.
         if: github.event.pull_request.draft == false
         env:
-          # CSFY_AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
-          # CSFY_AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
-          # CSFY_AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
-          # CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
           # Base path for ECR registry.
           # CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
           # If you prefer pulling the image from GHCR, uncomment out the following line and comment the one above.
           # Base path for GHCR registry.
           CSFY_ECR_BASE_PATH: ghcr.io/causify-ai
-          # CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
-          # CSFY_TELEGRAM_TOKEN: ${{ secrets.CSFY_TELEGRAM_TOKEN }}
-          # GH_ACTION_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         # To run the linter, fetch the master branch for comparison with the
         # current branch.
         run: |
