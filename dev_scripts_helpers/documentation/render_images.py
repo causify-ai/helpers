@@ -25,7 +25,7 @@ import argparse
 import logging
 import os
 import tempfile
-from typing import List, Tuple
+from typing import cast, List, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
@@ -38,24 +38,6 @@ _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
-
-
-def _open_html(out_file: str) -> None:
-    """
-    Convert the output file to HTML using `notes_to_pdf.py` and open it.
-
-    :param out_file: path to the output file to open
-    """
-    _LOG.info("\n%s", hprint.frame("Convert file to HTML using notes_to_pdf.py"))
-    # Compose the command.
-    cur_path = os.path.abspath(os.path.dirname(__file__))
-    tmp_dir = os.path.split(out_file)[0]
-    cmd = (
-        f"{cur_path}/notes_to_pdf.py -t html -i {out_file} --skip_action "
-        f"copy_to_gdrive --skip_action cleanup_after --tmp_dir {tmp_dir}"
-    )
-    # Run.
-    hsystem.system(cmd)
 
 
 def _get_rendered_file_paths(
@@ -101,15 +83,16 @@ def _get_puppeteer_config_path() -> str:
     """
     Get the path of the puppeteer config file.
 
-    Aborts the script if the file is not found.
-
     :return: path to the config file
     """
     cmd = "find . -name 'puppeteerConfig.json'"
     _, paths_out = hsystem.system_to_string(cmd)
+    # TODO(gp): We expect only one file.
+    hdbg.dassert_eq(len(paths_out.split("\n")), 1)
     # Pick the one closer to the current dir.
     path = sorted(paths_out.split("\n"))[0]
     hdbg.dassert_path_exists(path)
+    path = cast(str, path)
     return path
 
 
@@ -124,8 +107,8 @@ def _get_render_command(
     Create the command for rendering the image.
 
     :param code_file_path: path to the file with the image code
-    :param abs_img_dir_path: absolute path to a dir where the image will
-        be saved
+    :param abs_img_dir_path: absolute path to the dir where the image
+        will be saved
     :param rel_img_path: relative path to the image to be rendered
     :param dst_ext: extension of the rendered image, e.g., "svg", "png"
     :param image_code_type: type of the image code according to its
@@ -137,7 +120,7 @@ def _get_render_command(
     hdbg.dassert_in(dst_ext, valid_extensions)
     # Create the command.
     if image_code_type == "plantuml":
-        cmd = f"plantuml -t{dst_ext} -o {abs_img_dir_path} {code_file_path}"
+        cmd = f"plantuml -t {dst_ext} -o {abs_img_dir_path} {code_file_path}"
     elif image_code_type == "mermaid":
         puppeteer_config = _get_puppeteer_config_path()
         cmd = f"mmdc --puppeteerConfigFile {puppeteer_config} -i {code_file_path} -o {rel_img_path}"
@@ -295,7 +278,7 @@ def _render_images(
             if out_file.endswith(".md") or out_file.endswith(".txt"):
                 # Use the Markdown syntax.
                 out_lines.append(f"![]({rel_img_path})")
-                #out_lines.append(f"![]({rel_img_path})" + "{height=60%}")
+                # out_lines.append(f"![]({rel_img_path})" + "{height=60%}")
             elif out_file.endswith(".tex"):
                 # Use the LaTeX syntax.
                 out_lines.append(r"\begin{figure}")
@@ -321,11 +304,32 @@ def _render_images(
 
 # #############################################################################
 
+
+def _open_html(out_file: str) -> None:
+    """
+    Convert the output file to HTML using `notes_to_pdf.py` and open it.
+
+    :param out_file: path to the output file to open
+    """
+    _LOG.info("\n%s", hprint.frame("Convert file to HTML"))
+    # Compose the command.
+    cur_path = os.path.abspath(os.path.dirname(__file__))
+    tmp_dir = os.path.split(out_file)[0]
+    cmd = (
+        f"{cur_path}/notes_to_pdf.py -t html -i {out_file} --skip_action "
+        f"copy_to_gdrive --skip_action cleanup_after --tmp_dir {tmp_dir}"
+    )
+    # Run.
+    hsystem.system(cmd)
+
+
+# #############################################################################
+
 _ACTION_OPEN = "open"
 _ACTION_RENDER = "render"
 _VALID_ACTIONS = [_ACTION_OPEN, _ACTION_RENDER]
 # _DEFAULT_ACTIONS = [_ACTION_OPEN, _ACTION_RENDER]
-_DEFAULT_ACTIONS = []
+_DEFAULT_ACTIONS: List[str] = []
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -384,7 +388,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     if actions == [_ACTION_OPEN]:
         # Set the output file path and image extension used for the preview
         # action.
-        out_file = tempfile.mktemp(suffix="." + in_file.split(".")[-1])
+        in_file_ext = os.path.splitext(in_file)[1]
+        out_file = tempfile.mktemp(suffix="." + in_file_ext)
         dst_ext = "svg"
     # Read the input file.
     in_lines = hio.from_file(in_file).split("\n")

@@ -15,11 +15,11 @@ import string
 from typing import Dict, List, Match, Optional, Tuple, cast
 
 import helpers.hdbg as hdbg
-import helpers.henv as henv
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
+import helpers.repo_config_utils as hrecouti
 
 # This module can depend only on:
 # - Python standard modules
@@ -171,6 +171,7 @@ def get_client_root(super_module: bool) -> str:
 
 
 # TODO(gp): Replace `get_client_root` with this.
+# TODO(gp): -> get_client_root2() or get_outermost_supermodule_root()
 def find_git_root(path: str = ".") -> str:
     """
     Find recursively the dir of the outermost super module.
@@ -292,9 +293,9 @@ def get_project_dirname(only_index: bool = False) -> str:
     Return the name of the project name (e.g., `/Users/saggese/src/amp1` ->
     `amp1`).
 
-    NOTE: this works properly only outside Docker, e.g., when calling from `invoke`.
-    Inside Docker the result might be incorrect since the Git client is mapped on
-    `/app`.
+    NOTE: this works properly only outside Docker, e.g., when calling from
+    `invoke`. Inside Docker the result might be incorrect since the Git client
+    is mapped on `/app`.
 
     :param only_index: return only the index of the client if possible, e.g.,
         E.g., for `/Users/saggese/src/amp1` it returns the string `1`
@@ -344,18 +345,18 @@ def is_inside_submodule(git_dir: str = ".") -> bool:
 
 def _is_repo(repo_short_name: str) -> bool:
     """
-    Return whether we are inside `amp` and `amp` is a submodule.
+    Return whether we are inside the module `repo_short_name`.
     """
-    repo_full_name = get_repo_full_name_from_dirname(".", include_host_name=False)
-    return get_repo_name(repo_full_name, in_mode="full_name") == repo_short_name
+    curr_repo_short_name = hrecouti.get_repo_config().get_repo_short_name()
+    return curr_repo_short_name == repo_short_name
 
 
 def is_helpers() -> bool:
     """
     Return whether we are inside `helpers` repo.
 
-    Either as super module, or a sub module depending on a current
-    working directory.
+    Either as super module, or a sub module depending on a current working
+    directory.
     """
     return _is_repo("helpers")
 
@@ -364,8 +365,8 @@ def is_amp() -> bool:
     """
     Return whether we are inside `amp` repo.
 
-    Either as super module, or a sub module depending on a current
-    working directory.
+    Either as super module or a sub module depending on a current working
+    directory.
     """
     return _is_repo("amp") or _is_repo("cmamp") or _is_repo("sorr")
 
@@ -414,12 +415,10 @@ def is_amp_present(*, dir_name: str = ".") -> bool:
 # on the repo. We should control the tests through what functionalities they have,
 # e.g.,
 # ```
-# henv.execute_repo_config_code("has_dind_support()"),
+# hserver.has_dind_support(),
 # ```
 #
 # rather than their name.
-
-
 
 
 def is_cmamp() -> bool:
@@ -634,13 +633,16 @@ def get_repo_full_name_from_dirname(
     dir_name: str, include_host_name: bool
 ) -> str:
     """
-    Return the full name of the repo in `git_dir`, e.g., "alphamatic/amp".
+    Return the full name of the repo in `git_dir`.
+    
+    E.g., "alphamatic/amp", "github.com/alphamatic/amp".
 
     This function relies on `git remote` to gather the required information.
 
     :param include_hostname: prepend also the GitHub hostname, e.g., returning
         "github.com/alphamatic/amp"
-    :return: the full name of the repo in `git_dir`, e.g., "alphamatic/amp".
+    :return: the full name of the repo in `git_dir`
+        - E.g., "alphamatic/amp", "github.com/alphamatic/amp".
     """
     hdbg.dassert_path_exists(dir_name)
     #
@@ -676,146 +678,6 @@ def get_repo_full_name_from_client(super_module: bool) -> str:
     git_dir = get_client_root(super_module)
     repo_name = get_repo_full_name_from_dirname(git_dir, include_host_name=False)
     return repo_name
-
-
-# /////////////////////////////////////////////////////////////////////////
-
-
-def _decorate_with_host_name(
-    dict_: Dict[str, str], host_name: str
-) -> Dict[str, str]:
-    """
-    Prepend the host name to all the values of the passed dictionary.
-    """
-    res = {k: f"{host_name}/{v}" for k, v in dict_.items()}
-    return res
-
-
-@functools.lru_cache()
-def _get_repo_short_to_full_name(include_host_name: bool) -> Dict[str, str]:
-    """
-    Return the map from short name (e.g., "amp") to full name (e.g.,
-    "alphamatic/amp") using the information in `repo_config.py`
-    """
-    # From short name to long name.
-    repo_map = {
-        "amp": "alphamatic/amp",
-        "helpers": "causify-ai/helpers",
-        "tutorials": "causify-ai/tutorials",
-    }
-    if include_host_name:
-        host_name = "github.com"
-        repo_map = _decorate_with_host_name(repo_map, host_name)
-    _LOG.debug(
-        "include_host_name=%s, repo_map=\n%s",
-        include_host_name,
-        pprint.pformat(repo_map),
-    )
-    # Read the info from the current repo.
-    code = henv._get_repo_config_code()
-    # TODO(gp): make the linter happy creating this symbol that comes from the
-    # `exec()`.
-    exec(code, globals())  # pylint: disable=exec-used
-    current_repo_map = (
-        get_repo_map()  # type: ignore[name-defined]  # noqa: F821  # pylint: disable=undefined-variable
-    )
-    if include_host_name:
-        host_name = (
-            get_host_name()  # type: ignore[name-defined]  # noqa: F821  # pylint: disable=undefined-variable
-        )
-        current_repo_map = _decorate_with_host_name(current_repo_map, host_name)
-    _LOG.debug(
-        "include_host_name=%s, current_repo_map=\n%s",
-        include_host_name,
-        pprint.pformat(current_repo_map),
-    )
-    # Update the map.
-    # hdbg.dassert_not_intersection(repo_map.keys(), current_repo_map.keys())
-    repo_map.update(
-        get_repo_map()  # type: ignore[name-defined]  # noqa: F821  # pylint: disable=undefined-variable
-    )
-    hdbg.dassert_no_duplicates(repo_map.values())
-    _LOG.debug(
-        "include_host_name=%s, repo_map=\n%s",
-        include_host_name,
-        pprint.pformat(repo_map),
-    )
-    return repo_map
-
-
-# /////////////////////////////////////////////////////////////////////////
-
-
-def get_complete_repo_map(
-    in_mode: str, include_host_name: bool = False
-) -> Dict[str, str]:
-    """
-    Return the full / short name of a Git repo based on the alternative name.
-
-    :param in_mode: the values `full_name` or `short_name` determine how to interpret
-        `name`
-    """
-    repo_map = _get_repo_short_to_full_name(include_host_name)
-    if in_mode == "full_name":
-        # Compute the reverse map.
-        repo_map = {v: k for (k, v) in repo_map.items()}
-    elif in_mode == "short_name":
-        pass
-    else:
-        raise ValueError(f"Invalid in_mode='{in_mode}'")
-    _LOG.debug(
-        "For in_mode=%s, include_host_name=%s, repo_map=\n%s",
-        in_mode,
-        include_host_name,
-        pprint.pformat(repo_map),
-    )
-    return repo_map
-
-
-def get_repo_name(
-    name: str, in_mode: str, include_host_name: bool = False
-) -> str:
-    """
-    Return the full/short name of a Git repo based on the other name.
-
-    :param in_mode: the values `full_name` or `short_name` determine how to interpret
-        `name`
-    """
-    repo_map = get_complete_repo_map(in_mode, include_host_name)
-    hdbg.dassert_in(
-        name, repo_map, "Invalid name='%s' for in_mode='%s'", name, in_mode
-    )
-    ret = repo_map[name]
-    return ret
-
-
-def get_all_repo_names(
-    in_mode: str, include_host_name: bool = False
-) -> List[str]:
-    """
-    Return the names (full or short depending on `mode`) of all the Git repos.
-
-    :param in_mode: if "full_name" return the full names (e.g.,
-        "alphamatic/amp") if "short_name" return the short names (e.g.,
-        "amp")
-    """
-    repo_map = get_complete_repo_map(in_mode, include_host_name)
-    return sorted(list(repo_map.keys()))
-
-
-def get_task_prefix_from_repo_short_name(short_name: str) -> str:
-    """
-    Return the task prefix for a repo (e.g., "amp" -> "AmpTask").
-    """
-    if short_name == "amp":
-        prefix = "AmpTask"
-    else:
-        # We assume that we can build the prefix from the name (e.g., "lm" ->
-        # "LmTask").
-        # TODO(gp): A more general approach is to save this information inside
-        #  `repo_config.py`.
-        prefix = short_name.capitalize() + "Task"
-    return prefix
 
 
 # #############################################################################
@@ -888,6 +750,7 @@ def get_path_from_git_root(
     return ret
 
 
+# TODO(gp): Rewrite this function in a better way.
 @functools.lru_cache()
 def get_amp_abs_path() -> str:
     """
@@ -897,11 +760,10 @@ def get_amp_abs_path() -> str:
     _LOG.debug("repo_sym_name=%s", repo_sym_name)
     #
     repo_sym_names = ["alphamatic/amp"]
-    code = "get_extra_amp_repo_sym_name()"
-    try:
-        repo_sym_names.append(henv.execute_repo_config_code(code))
-    except NameError:
-        _LOG.debug("Can't execute the code '%s'", code)
+    extra_amp_repo_sym_name = (
+        hrecouti.get_repo_config().get_extra_amp_repo_sym_name()
+    )
+    repo_sym_names.append(extra_amp_repo_sym_name)
     _LOG.debug("repo_sym_names=%s", repo_sym_names)
     #
     if repo_sym_name in repo_sym_names:
@@ -935,6 +797,7 @@ def get_repo_dirs() -> List[str]:
     return dir_names
 
 
+# TODO(gp): It should go in hdocker?
 def find_docker_file(
     file_name: str,
     *,
@@ -947,15 +810,15 @@ def find_docker_file(
     Convert a file or dir that was generated inside Docker to a file in the
     current Git client.
 
-    This operation is best effort since it might not be able to find the
+    This operation is best-effort since it might not be able to find the
     corresponding file in the current repo.
 
     E.g.,
-    - A file like '/app/amp/core/dataflow_model/utils.py', in a Docker container with
-      Git root in '/app' becomes 'amp/core/dataflow_model/utils.py'
-    - For a file like '/app/amp/core/dataflow_model/utils.py' outside Docker, we look
-      for the file 'dataflow_model/utils.py' in the current client and then normalize
-      with respect to the
+    - A file like '/app/amp/core/dataflow_model/utils.py', in a Docker container
+      with Git root in '/app' becomes 'amp/core/dataflow_model/utils.py'
+    - For a file like '/app/amp/core/dataflow_model/utils.py' outside Docker, we
+        look for the file 'dataflow_model/utils.py' in the current client and
+        then normalize with respect to the
 
     :param dir_depth: same meaning as in `find_file_with_dir()`
     :param mode: same as `system_interaction.select_result_file_from_list()`
@@ -1312,8 +1175,8 @@ def git_describe(
 
     If there is no tag, this will return short commit hash.
 
-    :param match: e.g., `cmamp-*`, only consider tags matching the
-        given glob pattern
+    :param match: e.g., `cmamp-*`, only consider tags matching the given
+        glob pattern
     """
     _LOG.debug("# Looking for version ...")
     cmd = "git describe --tags --always --abbrev=0"

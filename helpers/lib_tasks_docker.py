@@ -9,8 +9,9 @@ import getpass
 import logging
 import os
 import re
-from typing import Any, Dict, List, Match, Optional, Union
+from typing import Any, Dict, List, Match, Optional, Union, cast
 
+# TODO(gp): We should use `pip install types-PyYAML` to get the mypy stubs.
 import yaml
 from invoke import task
 
@@ -18,7 +19,7 @@ from invoke import task
 # this code needs to run with minimal dependencies and without Docker.
 import helpers.hdbg as hdbg
 import helpers.hdict as hdict
-import helpers.henv as henv
+import helpers.hdocker as hdocker
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -28,6 +29,7 @@ import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hversion as hversio
 import helpers.lib_tasks_utils as hlitauti
+import helpers.repo_config_utils as hrecouti
 
 _LOG = logging.getLogger(__name__)
 
@@ -238,8 +240,10 @@ def docker_pull(ctx, stage="dev", version=None, skip_pull=False):  # type: ignor
 
     :param skip_pull: if True skip pulling the docker image
     """
-    _LOG.info("Pulling the latest version of Docker")
     hlitauti.report_task()
+    if stage == "local":
+        _LOG.warning("Setting skip_pull to True for local stage")
+        skip_pull = True
     if skip_pull:
         _LOG.warning("Skipping pulling docker image as per user request")
         return
@@ -252,9 +256,17 @@ def docker_pull(ctx, stage="dev", version=None, skip_pull=False):  # type: ignor
 def docker_pull_helpers(ctx, stage="prod", version=None):  # type: ignore
     """
     Pull latest prod image of `helpers` from the registry.
+
+    :param ctx: invoke context
+    :param stage: stage of the Docker image
+    :param version: version of the Docker image
     """
-    hlitauti.report_task()
-    base_image = hlitauti.get_default_param("CSFY_ECR_BASE_PATH") + "/helpers"
+    # Infer the Docker registry from the environment.
+    if hserver.is_dev_ck():
+        base_image = hlitauti.get_default_param("CSFY_ECR_BASE_PATH") + "/helpers"
+    else:
+        base_image = "causify/helpers"
+    _LOG.debug("base_image=%s", base_image)
     _docker_pull(ctx, base_image, stage, version)
 
 
@@ -297,7 +309,7 @@ def _check_docker_login(repo_name: str) -> bool:
     #         },
     # ```
     _LOG.debug("json_data=%s", json_data)
-    is_logged = [repo_name in val for val in json_data["auths"].keys()]
+    is_logged = any(repo_name in val for val in json_data["auths"].keys())
     return is_logged
 
 
@@ -389,7 +401,7 @@ def docker_login(ctx, target_registry="aws_ecr.ck"):  # type: ignore
     hlitauti.report_task()
     # No login required as kaizenflow container is accessible on the public
     # DockerHub registry.
-    if henv.execute_repo_config_code("get_name()") == "//kaizen":
+    if hrecouti.get_repo_config().get_name() == "//kaizen":
         _LOG.warning("Skipping logging in for Kaizenflow")
         return
     # We run everything using `hsystem.system(...)` but `ctx` is needed
@@ -433,6 +445,8 @@ def _get_linter_service(stage: str) -> DockerComposeServiceSpec:
     else:
         work_dir = "/src"
         repo_root = os.getcwd()
+    # TODO(gp): To avoid linter getting confused between `Sequence[str]` and
+    # `List[str]`, we should assign one element at the time.
     linter_service_spec = {
         "extends": "base_app",
         "volumes": [
@@ -447,18 +461,18 @@ def _get_linter_service(stage: str) -> DockerComposeServiceSpec:
         # When we run a development Linter container, we need to mount the
         # Linter repo under `/app`. For prod container instead we copy / freeze
         # the repo code in `/app`, so we should not mount it.
+        volumes = cast(List[str], linter_service_spec["volumes"])
         if superproject_path:
             # When running in a Git submodule we need to go one extra level up.
             # TODO(*): Clean up the indentation, #2242 (also below).
-            linter_service_spec["volumes"].append("../../../:/app")
+            volumes.append("../../../:/app")
         else:
-            linter_service_spec["volumes"].append("../../:/app")
+            volumes.append("../../:/app")
     if stage == "prod":
         # Use the `repo_config.py` inside the helpers container instead of
         # the one in the calling repo.
-        linter_service_spec["environment"].append(
-            "CSFY_REPO_CONFIG_PATH=/app/repo_config.py"
-        )
+        environment = cast(List[str], linter_service_spec["environment"])
+        environment.append("CSFY_REPO_CONFIG_PATH=/app/repo_config.py")
     return linter_service_spec
 
 
@@ -526,9 +540,9 @@ def _generate_docker_compose_file(
     # The Git root is always mounted in the container at `/app`. So we need to
     # use that as starting point.
     # E.g. For CSFY_GIT_ROOT_PATH, we need to use `/app`, rather than
-    # `/data/heanhs/src/cmamp1`.
+    # `/data/dummy/src/cmamp1`.
     # E.g. For CSFY_HELPERS_ROOT_PATH, we need to use `/app/helpers_root`.
-    # rather than `/data/heanhs/src/cmamp1/helpers_root`.
+    # rather than `/data/dummy/src/cmamp1/helpers_root`.
     git_root_path = "/app"
     # Find helpers root path in the container.
     helper_dir = hgit.find_helpers_root()
@@ -538,7 +552,7 @@ def _generate_docker_compose_file(
     )
     # A super repo is a repo that contains helpers as a submodule and
     # is not a helper itself.
-    is_super_repo = 0 if hgit.is_in_helpers_as_supermodule() else 1
+    use_helpers_as_nested_module = 0 if hgit.is_in_helpers_as_supermodule() else 1
     # We could do the same also with IMAGE for symmetry.
     # Keep the env vars in sync with what we print in `henv.get_env_vars()`.
     # Configure `base_app` service.
@@ -559,6 +573,7 @@ def _generate_docker_compose_file(
             "CSFY_AWS_PROFILE=$CSFY_AWS_PROFILE",
             "CSFY_AWS_S3_BUCKET=$CSFY_AWS_S3_BUCKET",
             "CSFY_AWS_SECRET_ACCESS_KEY=$CSFY_AWS_SECRET_ACCESS_KEY",
+            "CSFY_AWS_SESSION_TOKEN=$CSFY_AWS_SESSION_TOKEN",
             "CSFY_ECR_BASE_PATH=$CSFY_ECR_BASE_PATH",
             # The path of the outermost Git root on the host.
             f"CSFY_HOST_GIT_ROOT_PATH={git_host_root_path}",
@@ -567,7 +582,7 @@ def _generate_docker_compose_file(
             # The path of the helpers dir in the Docker container (e.g.,
             # `/app`, `/app/helpers_root`)
             f"CSFY_HELPERS_ROOT_PATH={helper_root_path}",
-            f"CSFY_IS_SUPER_REPO={is_super_repo}",
+            f"CSFY_USE_HELPERS_AS_NESTED_MODULE={use_helpers_as_nested_module}",
             "CSFY_TELEGRAM_TOKEN=$CSFY_TELEGRAM_TOKEN",
             # This env var is used by GH Action to signal that we are inside the
             # CI. It's set up by default by the GH Action runner. See:
@@ -590,6 +605,7 @@ def _generate_docker_compose_file(
             "~/.aws:/home/.aws",
             "~/.config/gspread_pandas/:/home/.config/gspread_pandas/",
             "~/.config/gh:/home/.config/gh",
+            "~/.ssh:/home/.ssh",
         ],
     }
     if use_privileged_mode:
@@ -701,11 +717,11 @@ def _generate_docker_compose_file(
         A custom YAML Dumper class that adjusts indentation.
         """
 
-        def increase_indent(self, flow=False, indentless=False) -> Any:
+        def increase_indent(self_: Any, flow=False, indentless=False) -> Any:
             """
             Override the method to modify YAML indentation behavior.
             """
-            return super(_Dumper, self).increase_indent(
+            return super(_Dumper, self_).increase_indent(
                 flow=False, indentless=False
             )
 
@@ -717,6 +733,7 @@ def _generate_docker_compose_file(
         indent=2,
         sort_keys=False,
     )
+    yaml_str = cast(str, yaml_str)
     # Save YAML to file if file_name is specified.
     if file_name:
         if os.path.exists(file_name) and hserver.is_inside_ci():
@@ -756,9 +773,8 @@ def _get_docker_compose_files(
     :return: list of the Docker compose paths
     """
     docker_compose_files = []
-    # Get the repo short name (e.g., amp).
-    dir_name = hgit.get_repo_full_name_from_dirname(".", include_host_name=False)
-    repo_short_name = hgit.get_repo_name(dir_name, in_mode="full_name")
+    # Get the repo short name (e.g., `amp`).
+    repo_short_name = hrecouti.get_repo_config().get_repo_short_name()
     _LOG.debug("repo_short_name=%s", repo_short_name)
     # Check submodule status, if needed.
     mount_as_submodule = False
@@ -781,19 +797,11 @@ def _get_docker_compose_files(
         use_main_network = False
     else:
         # Use the settings from the `repo_config` corresponding to this container.
-        enable_privileged_mode = henv.execute_repo_config_code(
-            "enable_privileged_mode()"
-        )
-        use_docker_sibling_containers = henv.execute_repo_config_code(
-            "use_docker_sibling_containers()"
-        )
-        get_shared_data_dirs = henv.execute_repo_config_code(
-            "get_shared_data_dirs()"
-        )
-        use_docker_network_mode_host = henv.execute_repo_config_code(
-            "use_docker_network_mode_host()"
-        )
-        use_main_network = henv.execute_repo_config_code("use_main_network()")
+        enable_privileged_mode = hserver.enable_privileged_mode()
+        use_docker_sibling_containers = hserver.use_docker_sibling_containers()
+        get_shared_data_dirs = hserver.get_shared_data_dirs()
+        use_docker_network_mode_host = hserver.use_docker_network_mode_host()
+        use_main_network = hserver.use_main_network()
     #
     if generate_docker_compose_file:
         _generate_docker_compose_file(
@@ -1047,7 +1055,7 @@ def get_image(
 
 
 def _run_docker_as_user(as_user_from_cmd_line: bool) -> bool:
-    as_root = henv.execute_repo_config_code("run_docker_as_root()")
+    as_root = hserver.run_docker_as_root()
     as_user = as_user_from_cmd_line
     if as_root:
         as_user = False
@@ -1122,16 +1130,14 @@ def _get_docker_base_cmd(
     :param extra_env_vars: represent vars to add, e.g., `["PORT=9999", "DRY_RUN=1"]`
     :param extra_docker_compose_files: `docker-compose` override files
     """
-    hprint.log(
-        _LOG,
-        logging.DEBUG,
-        "base_image stage version extra_env_vars extra_docker_compose_files",
-    )
+    _LOG.debug(hprint.func_signature_to_str())
     docker_cmd_: List[str] = []
     # - Handle the image.
     image = get_image(base_image, stage, version)
     _LOG.debug("base_image=%s stage=%s -> image=%s", base_image, stage, image)
     dassert_is_image_name_valid(image)
+    # Check image compatibility.
+    hdocker.check_image_compatibility_with_host(image)
     docker_cmd_.append(f"IMAGE={image}")
     # - Handle extra env vars.
     if extra_env_vars:
@@ -1207,12 +1213,7 @@ def _get_docker_compose_cmd(
     :param print_docker_config: print the docker config for debugging purposes
     :param use_bash: run command through a shell
     """
-    hprint.log(
-        _LOG,
-        logging.DEBUG,
-        "cmd extra_docker_run_opts service_name "
-        "use_entrypoint as_user print_docker_config use_bash",
-    )
+    _LOG.debug(hprint.func_signature_to_str())
     # - Get the base Docker command.
     docker_cmd_ = _get_docker_base_cmd(
         base_image,
@@ -1225,6 +1226,7 @@ def _get_docker_compose_cmd(
     )
     # - Add the `config` command for debugging purposes.
     docker_config_cmd: List[str] = docker_cmd_[:]
+    # TODO(gp): Use yaml approach like done for other parts of the code.
     docker_config_cmd.append(
         r"""
         config"""
@@ -1295,24 +1297,21 @@ def _get_lint_docker_cmd(
     version: str,
     *,
     use_entrypoint: bool = True,
-    no_dev_server: bool = False,
 ) -> str:
     """
     Create a command to run in Linter service.
 
     :param docker_cmd_: command to run
     :param stage: the image stage to use
-    :param no_dev_server: True, if running Linter on local machine, else
-        false if on dev server
     :return: the full command to run
     """
-    # Get an image to run the linter on.
-    # For local development we use the image from the Docker Hub.
-    if no_dev_server:
-        # TODO(Vlad): Replace with environment variable.
-        base_path = "causify"
-    else:
+    # Infer the docker registry based on the environment.
+    if hserver.is_dev_ck():
         base_path = os.environ["CSFY_ECR_BASE_PATH"]
+    else:
+        base_path = "causify"
+    _LOG.debug("base_path=%s", base_path)
+    # Get an image to run the linter on.
     linter_image = f"{base_path}/helpers"
     # Execute command line.
     cmd: str = _get_docker_compose_cmd(
@@ -1374,6 +1373,7 @@ def docker_bash(  # type: ignore
     :param generate_docker_compose_file: generate the Docker compose file or not
     :param skip_pull: if True skip pulling the docker image
     """
+    _LOG.debug(hprint.func_signature_to_str("ctx"))
     hlitauti.report_task(container_dir_name=container_dir_name)
     #
     cmd = "bash"

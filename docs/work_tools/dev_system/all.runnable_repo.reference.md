@@ -11,6 +11,7 @@
   * [setenv](#setenv)
   * [devops](#devops)
   * [Managing common files](#managing-common-files)
+  * [Managing repo configurations](#managing-repo-configurations)
   * [Building a Docker container](#building-a-docker-container)
   * [Running a Docker container](#running-a-docker-container)
   * [pytest](#pytest)
@@ -239,6 +240,20 @@ graph TD
 - The symlinked files should not be directly editable. If a symlinked file needs
   to be customized, it should first be staged for modification by replacing the
   symlink with a copy of the file
+
+## Managing repo configurations
+
+- Centralizing configurations eliminates duplication, reduces maintenance
+  overhead, and ensures consistency across different components of the system
+- When configuration parameters need to be modified, changes only need to be
+  made in one location rather than across multiple files
+- YAML file format is preferred for its better support for nested structures and
+  complex data types
+
+- All repo configurations are stored in a central `repo_config.yaml` file
+- The configurations are used by both Python and shell scripts
+- The configurations may contain repo identifiers, docker container information,
+  runnable repo or runnable directory configs, thin environments used....etc
 
 ## Building a Docker container
 

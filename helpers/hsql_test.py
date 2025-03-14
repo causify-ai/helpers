@@ -11,7 +11,6 @@ import os
 import pytest
 
 import helpers.hdocker as hdocker
-import helpers.henv as henv
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -22,6 +21,7 @@ import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
 
+
 # #############################################################################
 # TestDbHelper
 # #############################################################################
@@ -31,8 +31,8 @@ _LOG = logging.getLogger(__name__)
 @pytest.mark.requires_ck_infra
 @pytest.mark.requires_docker_in_docker
 @pytest.mark.skipif(
-    not henv.execute_repo_config_code("has_dind_support()")
-    and not henv.execute_repo_config_code("use_docker_sibling_containers()"),
+    not hserver.has_dind_support()
+    and not hserver.use_docker_sibling_containers(),
     reason="Need docker children / sibling support",
 )
 class TestDbHelper(hunitest.TestCase, abc.ABC):
@@ -116,7 +116,7 @@ class TestDbHelper(hunitest.TestCase, abc.ABC):
         _LOG.info("\n%s", hprint.frame("tearDown"))
         docker_compose_cleanup = cls.bring_down_db
         if docker_compose_cleanup:
-            if henv.execute_repo_config_code("use_main_network()"):
+            if hserver.use_main_network():
                 # When using sibling containers `docker-compose down` tries to shut
                 # down also the `main_network`, while it is attached to the Docker
                 # container running the tests
@@ -221,10 +221,7 @@ services:
     image: postgres:13
     restart: "no"
     environment:"""
-        #
-        if not henv.execute_repo_config_code(
-            "use_docker_db_container_name_to_connect()"
-        ):
+        if not hserver.use_docker_db_container_name_to_connect():
             # Use the port to connect.
             txt += f"""
       - POSTGRES_HOST=${{POSTGRES_HOST}}
@@ -258,9 +255,7 @@ networks:
         hio.to_file(compose_file_name, txt)
         # Create env file.
         txt = []
-        if not henv.execute_repo_config_code(
-            "use_docker_db_container_name_to_connect()"
-        ):
+        if not hserver.use_docker_db_container_name_to_connect():
             if hserver.is_dev4():
                 host = "cf-spm-dev4"
             else:
@@ -272,9 +267,7 @@ networks:
         postgres_db = cls._get_postgres_db()
         txt.append(f"POSTGRES_HOST={host}")
         txt.append(f"POSTGRES_DB={postgres_db}")
-        if not henv.execute_repo_config_code(
-            "use_docker_db_container_name_to_connect()"
-        ):
+        if not hserver.use_docker_db_container_name_to_connect():
             txt.append(f"POSTGRES_PORT={host_port}")
         txt.append("POSTGRES_USER=aljsdalsd")
         txt.append("POSTGRES_PASSWORD=alsdkqoen")

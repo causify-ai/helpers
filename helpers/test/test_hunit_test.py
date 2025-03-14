@@ -14,12 +14,12 @@ import pandas as pd
 import pytest
 
 import helpers.hdbg as hdbg
-import helpers.henv as henv
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
+import helpers.repo_config_utils as hrecouti
 
 _LOG = logging.getLogger(__name__)
 
@@ -56,6 +56,11 @@ def _to_skip_on_update_outcomes() -> bool:
     return to_skip
 
 
+# #############################################################################
+
+
+# #############################################################################
+# TestTestCase1
 # #############################################################################
 
 
@@ -246,7 +251,13 @@ class TestTestCase1(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# Test_AssertEqual1
+# #############################################################################
+
+
 class Test_AssertEqual1(hunitest.TestCase):
+
     def test_equal1(self) -> None:
         """
         Matching act and exp without fuzzy matching.
@@ -367,7 +378,13 @@ end
 # #############################################################################
 
 
+# #############################################################################
+# TestCheckString1
+# #############################################################################
+
+
 class TestCheckString1(hunitest.TestCase):
+
     def test_check_string1(self) -> None:
         """
         Compare the actual value to a matching golden outcome.
@@ -570,6 +587,11 @@ class TestCheckString1(hunitest.TestCase):
         self.assertEqual(new_golden, "hello world")
 
 
+# #############################################################################
+
+
+# #############################################################################
+# TestCheckDataFrame1
 # #############################################################################
 
 
@@ -854,7 +876,13 @@ class TestCheckDataFrame1(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# Test_check_string_debug1
+# #############################################################################
+
+
 class Test_check_string_debug1(hunitest.TestCase):
+
     def test1(self) -> None:
         act = "hello"
         # action_on_missing_golden = "assert"
@@ -873,7 +901,13 @@ class Test_check_string_debug1(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# Test_unit_test1
+# #############################################################################
+
+
 class Test_unit_test1(hunitest.TestCase):
+
     def test_purify_txt_from_client1(self) -> None:
         super_module_path = hgit.get_client_root(super_module=True)
         # TODO(gp): We should remove the current path.
@@ -919,7 +953,13 @@ dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py:3: error: Nam
 # #############################################################################
 
 
+# #############################################################################
+# Test_unit_test2
+# #############################################################################
+
+
 class Test_unit_test2(hunitest.TestCase):
+
     def test_purify_parquet_file_names1(self) -> None:
         """
         Test purification of Parquet file names with the path.
@@ -955,7 +995,13 @@ class Test_unit_test2(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# Test_get_dir_signature1
+# #############################################################################
+
+
 class Test_get_dir_signature1(hunitest.TestCase):
+
     def helper(self, include_file_content: bool) -> str:
         in_dir = self.get_input_dir()
         act = hunitest.get_dir_signature(
@@ -999,7 +1045,13 @@ class Test_get_dir_signature1(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# Test_purify_txt_from_client1
+# #############################################################################
+
+
 class Test_purify_txt_from_client1(hunitest.TestCase):
+
     def helper(self, txt: str, exp: str) -> None:
         act = hunitest.purify_txt_from_client(txt)
         self.assert_equal(act, exp)
@@ -1020,6 +1072,11 @@ class Test_purify_txt_from_client1(hunitest.TestCase):
         self.helper(txt, exp)
 
 
+# #############################################################################
+# Test_purify_from_env_vars
+# #############################################################################
+
+
 # TODO(ShaopengZ): numerical issue. (arm vs x86)
 @pytest.mark.requires_ck_infra
 class Test_purify_from_env_vars(hunitest.TestCase):
@@ -1035,7 +1092,7 @@ class Test_purify_from_env_vars(hunitest.TestCase):
         self.assert_equal(act, exp, fuzzy_match=True)
 
     @pytest.mark.skipif(
-        not henv.execute_repo_config_code("get_name()") == "//cmamp",
+        not hrecouti.get_repo_config().get_name() == "//cmamp",
         reason="Run only in //cmamp",
     )
     def test1(self) -> None:
@@ -1048,7 +1105,7 @@ class Test_purify_from_env_vars(hunitest.TestCase):
 
 # TODO(gp): HelpersTask1
 #    @pytest.mark.skipif(
-#        not henv.execute_repo_config_code("get_name()") == "//cmamp",
+#        not hrecouti.get_repo_config().get_name() == "//cmamp",
 #        reason="Run only in //cmamp",
 #    )
 #    def test_end_to_end(self) -> None:
@@ -1073,6 +1130,7 @@ class Test_purify_from_env_vars(hunitest.TestCase):
 
 
 class Test_purify_object_representation1(hunitest.TestCase):
+
     def helper(self, txt: str, exp: str) -> None:
         txt = hprint.dedent(txt)
         act = hunitest.purify_object_representation(txt)
@@ -1174,7 +1232,13 @@ class Test_purify_object_representation1(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# Test_purify_amp_reference1
+# #############################################################################
+
+
 class Test_purify_amp_reference1(hunitest.TestCase):
+
     def helper(self, txt: str, exp: str) -> None:
         txt = hprint.dedent(txt)
         act = hunitest.purify_amp_references(txt)
@@ -1201,7 +1265,13 @@ class Test_purify_amp_reference1(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# Test_purify_from_environment1
+# #############################################################################
+
+
 class Test_purify_from_environment1(hunitest.TestCase):
+
     def check_helper(self, input_: str, exp: str) -> None:
         """
         Check that the text is purified from environment variables correctly.
@@ -1252,6 +1322,11 @@ class Test_purify_from_environment1(hunitest.TestCase):
         self.check_helper(input_, exp)
 
 
+# #############################################################################
+
+
+# #############################################################################
+# Test_purify_line_number
 # #############################################################################
 
 

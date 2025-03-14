@@ -21,7 +21,13 @@ _LOG = logging.getLogger(__name__)
 # pylint: disable=protected-access
 
 
+# #############################################################################
+# Test_build_run_command_line1
+# #############################################################################
+
+
 class Test_build_run_command_line1(hunitest.TestCase):
+
     def run_fast_tests1_helper(
         self,
         is_dev_ck_return_value: bool,
@@ -590,7 +596,13 @@ class Test_build_run_command_line1(hunitest.TestCase):
         )
 
 
+# #############################################################################
+# Test_pytest_repro1
+# #############################################################################
+
+
 class Test_pytest_repro1(hunitest.TestCase):
+
     def helper(self, file_name: str, mode: str, exp: List[str]) -> None:
         script_name = os.path.join(
             self.get_scratch_space(), "tmp.pytest_repro.sh"
@@ -822,6 +834,11 @@ class Test_pytest_repro1(hunitest.TestCase):
         return self._build_pytest_filehelper(txt)
 
 
+# #############################################################################
+# Test_pytest_repro_end_to_end
+# #############################################################################
+
+
 @pytest.mark.slow("~6 sec.")
 class Test_pytest_repro_end_to_end(hunitest.TestCase):
     """
@@ -862,10 +879,18 @@ class Test_pytest_repro_end_to_end(hunitest.TestCase):
         # Remove unstable content.
         lines = act.split("\n")
         line_cmd = lines[0]
-        test_output_start = lines.index("## pytest_repro: ")
+        _LOG.debug("%s", "\n".join(lines))
+        for i, line in enumerate(lines):
+            m = re.search("# pytest_repro: ", line)
+            if m:
+                test_output_start = i + 1
+                break
         lines_test_output = lines[test_output_start:]
+        #
         act = "\n".join([line_cmd] + lines_test_output)
-        regex = "(WARN|INFO)\s+hcache.py"
+        regex = "init_logger"
+        act = hunitest.filter_text(regex, act)
+        regex = r"(WARN|INFO)\s+hcache.py"
         act = hunitest.filter_text(regex, act)
         # Check the outcome.
         self.check_string(act, purify_text=True, fuzzy_match=True)
@@ -936,3 +961,120 @@ class Test_pytest_repro_end_to_end(hunitest.TestCase):
         file_name = f"{self.get_input_dir()}/log.txt"
         cmd = f"invoke pytest_repro --file-name='{file_name}' --show-stacktrace"
         self.helper(cmd)
+
+
+# #############################################################################
+# Test_pytest_failed1
+# #############################################################################
+
+
+class Test_pytest_failed1(hunitest.TestCase):
+
+    def get_pytest_text1(self) -> str:
+        txt = """
+        20:48:15 - ^[[36mINFO ^[[0m hdbg.py init_logger:1018                               > cmd='/venv/bin/pytest helpers_root/dev_scripts_helpers/documentation/'
+        collected 47 items
+
+        helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes1::test1 (2.07 s) FAILED [  2%]
+        helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question1 (0.00 s) PASSED [  4%]
+        helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question2 (0.00 s) PASSED [  6%]
+        helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_process_question1::test_process_question3 (0.00 s) PASSED [  8%]
+
+
+        =================================== FAILURES ===================================
+        _________________________ Test_preprocess_notes1.test1 _________________________
+
+        FAILED helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3::test_run_all1 - AttributeError: 'list' object has no attribute 'split'
+        FAILED helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test2 - RuntimeError: cmd='(/app/helpers_root/dev_scripts_helpers/documentation/notes_to_pdf.py --input /app/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_notes
+
+        ======================== 4 failed, 43 passed in 40.48s =========================
+        """
+        txt = hprint.dedent(txt)
+        return txt
+
+    def helper(
+        self,
+        txt: str,
+        only_file: bool,
+        only_class: bool,
+        exp_failed_tests: str,
+        exp_num_failed: int,
+        exp_num_passed: int,
+    ) -> None:
+        act_failed_tests, act_num_failed, act_num_passed = (
+            hlitapyt._parse_failed_tests(txt, only_file, only_class)
+        )
+        act_failed_tests = "\n".join(act_failed_tests)
+        self.assert_equal(
+            act_failed_tests,
+            exp_failed_tests,
+            dedent=True,
+            remove_lead_trail_empty_lines=True,
+        )
+        self.assertEqual(act_num_failed, exp_num_failed)
+        self.assertEqual(act_num_passed, exp_num_passed)
+
+    def test1(self) -> None:
+        # Prepare inputs and outputs.
+        txt = self.get_pytest_text1()
+        only_file = False
+        only_class = False
+        exp_failed_tests = """
+        helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1::test2
+        helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes1::test1
+        helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3::test_run_all1
+        """
+        exp_num_failed = 4
+        exp_num_passed = 43
+        # Check.
+        self.helper(
+            txt,
+            only_file,
+            only_class,
+            exp_failed_tests,
+            exp_num_failed,
+            exp_num_passed,
+        )
+
+    def test2(self) -> None:
+        # Prepare inputs and outputs.
+        txt = self.get_pytest_text1()
+        only_file = True
+        only_class = False
+        exp_failed_tests = """
+        helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py
+        helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py
+        """
+        exp_num_failed = 4
+        exp_num_passed = 43
+        # Check.
+        self.helper(
+            txt,
+            only_file,
+            only_class,
+            exp_failed_tests,
+            exp_num_failed,
+            exp_num_passed,
+        )
+
+    def test3(self) -> None:
+        # Prepare inputs and outputs.
+        txt = self.get_pytest_text1()
+        only_file = False
+        only_class = True
+        exp_failed_tests = """
+        helpers_root/dev_scripts_helpers/documentation/test/test_notes_to_pdf.py::Test_notes_to_pdf1
+        helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes1
+        helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py::Test_preprocess_notes3
+        """
+        exp_num_failed = 4
+        exp_num_passed = 43
+        # Check.
+        self.helper(
+            txt,
+            only_file,
+            only_class,
+            exp_failed_tests,
+            exp_num_failed,
+            exp_num_passed,
+        )

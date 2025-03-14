@@ -78,9 +78,21 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hio.to_file(tmp_in_file_name, in_txt)
     #
     tmp_out_file_name = "tmp.llm_transform.out.txt"
+    # TODO(gp): We should just automatically pass-through the options.
     cmd_line_opts = [f"-t {args.transform}", f"-v {args.log_level}"]
+    if args.fast_model:
+        cmd_line_opts.append("--fast_model")
     if args.debug:
         cmd_line_opts.append("-d")
+    # cmd_line_opts = []
+    # for arg in vars(args):
+    #     if arg not in ["input", "output"]:
+    #         value = getattr(args, arg)
+    #         if isinstance(value, bool):
+    #             if value:
+    #                 cmd_line_opts.append(f"--{arg.replace('_', '-')}")
+    #         else:
+    #             cmd_line_opts.append(f"--{arg.replace('_', '-')} {value}")
     hdocker.run_dockerized_llm_transform(
         tmp_in_file_name,
         tmp_out_file_name,

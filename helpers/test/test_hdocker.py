@@ -26,13 +26,13 @@ class Test_replace_shared_root_path1(hunitest.TestCase):
         """
         Test replacing shared root path.
         """
-        # Mock `henv.execute_repo_config_code()` to return a dummy mapping.
+        # Mock `hserver.get_shared_data_dirs()` to return a dummy mapping.
         mock_mapping = {
             "/data/shared1": "/shared_folder1",
             "/data/shared2": "/shared_folder2",
         }
         with umock.patch.object(
-            hdocker.henv, "execute_repo_config_code", return_value=mock_mapping
+            hserver, "get_shared_data_dirs", return_value=mock_mapping
         ):
             # Test replacing shared root path.
             path1 = "/data/shared1/asset1"
@@ -54,12 +54,12 @@ class Test_replace_shared_root_path1(hunitest.TestCase):
         """
         Test replacing shared root path with the `replace_ecs_tokyo` parameter.
         """
-        # Mock `henv.execute_repo_config_code()` to return a dummy mapping.
+        # Mock `hserver.get_shared_data_dirs()` to return a dummy mapping.
         mock_mapping = {
             "/data/shared": "/shared_folder",
         }
         with umock.patch.object(
-            hdocker.henv, "execute_repo_config_code", return_value=mock_mapping
+            hserver, "get_shared_data_dirs", return_value=mock_mapping
         ):
             # Test if `ecs_tokyo` is replaced if `replace_ecs_tokyo = True`.
             path1 = 'object("/data/shared/ecs_tokyo/asset2/item")'
@@ -187,11 +187,6 @@ class Test_convert_to_docker_path1(hunitest.TestCase):
             exp_docker_file_path,
             exp_mount,
         )
-
-
-# #############################################################################
-# Test_run_dockerized_prettier1
-# #############################################################################
 
 
 def _create_test_file(self_: Any, txt: str, extension: str) -> str:
@@ -437,8 +432,9 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
         # Generate the table of contents.
         cmd_opts.append("-s --toc")
         cmd = " ".join(cmd_opts)
+        container_type = "pandoc_only"
         use_sudo = hdocker.get_use_sudo()
-        hdocker.run_dockerized_pandoc(cmd, use_sudo=use_sudo)
+        hdocker.run_dockerized_pandoc(cmd, container_type, use_sudo=use_sudo)
         # Check.
         act = hio.from_file(out_file_path)
         self.assert_equal(
