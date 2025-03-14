@@ -37,8 +37,8 @@ For managing these mailing groups, please visit the Google Admin console
       can see TODO emails from the interns, but not vice versa
 - `eng@causify.ai`
   - For the internal tech team coordination
-  - TODO emails from permanent team members and people on the 3-month trial
-    should be directed to this mailing group
+  - TODO emails from permanent team members and people on a 3-month trial should
+    be directed to this mailing group
 - `hr@causify.ai`
   - For HR department for internal communications and announcements
 - `info@causify.ai`
