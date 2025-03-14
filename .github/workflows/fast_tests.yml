@@ -32,7 +32,7 @@ permissions:
 jobs:
   run_fast_tests:
     container:
-      image: ghcr.io/causify-ai/cmamp/cmamp:dev
+      image: ghcr.io/causify-ai/cmamp:dev
       credentials:
         username: gpsaggese
         password: ${{ secrets.GITHUB_TOKEN }}    
