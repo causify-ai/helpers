@@ -85,6 +85,9 @@ jobs:
       #     CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
       #   run: invoke docker_pull
 
+      - name: ssh
+        uses: lhotari/action-upterm@v1
+
       # Pull the latest Docker image from GHCR registry instead of ECR for cost saving purposes to run the regressions on.
       - name: Pull image
         if: github.event.pull_request.draft == false
