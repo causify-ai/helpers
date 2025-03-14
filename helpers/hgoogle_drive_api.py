@@ -7,22 +7,26 @@ Import as:
 import helpers.hgoogle_file_api as hgofiapi
 """
 
+import datetime as dt
 import logging
 import os.path
-from datetime import datetime
-from typing import List, Optional
+from typing import Any, Dict, List, Optional, cast
+
+import google.auth as auth
 
 # This package need to be manually installed until they are added to the
 # container.
 # Run the following line in any notebook would install it:
 # ```
-# > !sudo /bin/bash -c "(source /venv/bin/activate; pip install --upgrade # google-api-python-client)"
+# > !sudo /bin/bash -c "(source /venv/bin/activate;
+# pip install --upgrade # google-api-python-client)"
 # ```
 # Or run the following part in python:
 # ```
 # import subprocess
 # install_code = subprocess.call(
-#   'sudo /bin/bash -c "(source /venv/bin/activate; pip install --upgrade google-api-python-client)"',
+#   'sudo /bin/bash -c "(source /venv/bin/activate;
+# pip install --upgrade google-api-python-client)"',
 #   shell=True,
 # )
 # ```
@@ -32,7 +36,6 @@ import google.oauth2.service_account as goasea
 import googleapiclient.discovery as godisc
 import gspread
 import pandas as pd
-from googleapiclient.discovery import build
 
 import helpers.hdbg as hdbg
 
@@ -55,7 +58,8 @@ def get_credentials(
     service_key_path = os.path.join(os.path.dirname(__file__), service_key_path)
     # Download service.json from Google API, then save it as
     # /home/.config/gspread_pandas/google_secret.json
-    # Instructions: https://gspread-pandas.readthedocs.io/en/latest/getting_started.html#client-credentials"
+    # Instructions:
+    # https://gspread-pandas.readthedocs.io/en/latest/getting_started.html#client-credentials"
     hdbg.dassert_file_exists(
         service_key_path, "Failed to read service key file: %s", service_key_path
     )
@@ -115,11 +119,11 @@ def get_sheet_id(
         for sheet in sheets:
             properties = sheet.get("properties", {})
             if properties.get("title") == sheet_name:
-                return properties.get("sheetId")
+                return str(properties.get("sheetId"))
         raise ValueError(f"Sheet with name '{sheet_name}' not found.")
     # Return the ID of the first sheet if no sheet name is provided.
     first_sheet_id = sheets[0].get("properties", {}).get("sheetId")
-    return first_sheet_id
+    return str(first_sheet_id)
 
 
 def freeze_rows(
@@ -307,12 +311,12 @@ def _create_new_google_document(
     doc_id = response.get(
         "spreadsheetId" if doc_type == "sheets" else "documentId"
     )
-    return doc_id
+    return str(doc_id)
 
 
 def move_gfile_to_dir(
     gfile_id: str, folder_id: str, *, credentials: goasea.Credentials
-) -> dict:
+) -> Dict[Any, Any]:
     """
     Move a Google file to a specified folder in Google Drive.
 
@@ -335,12 +339,12 @@ def move_gfile_to_dir(
         )
         .execute()
     )
-    return res
+    return dict(res)
 
 
 def _move_gfile_to_dir(
     gfile_id: str, folder_id: str, *, credentials: goasea.Credentials
-) -> dict:
+) -> Dict[Any, Any]:
     """
     Move a Google file to a specified folder in Google Drive.
 
@@ -365,7 +369,7 @@ def _move_gfile_to_dir(
         )
         .execute()
     )
-    return res
+    return dict(res)
 
 
 def create_empty_google_file(
@@ -408,7 +412,7 @@ def create_empty_google_file(
         move_gfile_to_dir(gfile_id, gdrive_folder_id, credentials=credentials)
     # Share the Google file to the user and send an email.
     if user:
-        share_google_file(gfile_id, user)
+        share_google_file(gfile_id, user, credentials=credentials)
         _LOG.debug(
             "The new Google '%s': '%s' is shared with '%s'",
             gfile_type,
@@ -448,13 +452,17 @@ def create_google_drive_folder(
     # Log and return the folder ID.
     _LOG.debug("Created a new Google Drive folder '%s'.", folder_name)
     _LOG.debug("The new folder id is '%s'.", folder.get("id"))
-    return folder.get("id")
+    return str(folder.get("id"))
 
 
 # #############################################################################
 
 
-def _get_folders_in_gdrive(*, service: godisc.Resource = None) -> list:
+def _get_folders_in_gdrive_service(
+    *,
+    credentials: auth.credentials.Credentials,
+    service: Optional[godisc.Resource] = None,
+) -> List[Dict[str, Any]]:
     """
     Get a list of folders in Google Drive.
 
@@ -462,7 +470,7 @@ def _get_folders_in_gdrive(*, service: godisc.Resource = None) -> list:
         - Will use GDrive file service as default if None is given.
     """
     if service is None:
-        service = get_gdrive_service()
+        service = get_gdrive_service(credentials=credentials)
     response = (
         service.files()
         .list(
@@ -472,18 +480,25 @@ def _get_folders_in_gdrive(*, service: godisc.Resource = None) -> list:
         )
         .execute()
     )
+    # Get files and ensure it's a list of dictionaries
+    files = response.get("files", [])
+    # Ensure the returned value is a list of dicts
+    if not isinstance(files, list):
+        raise ValueError("Expected 'files' to be a list of dictionaries")
     # Return list of folder id and folder name.
-    return response.get("files")
+    return cast(List[Dict[str, Any]], files)
 
 
-def get_folder_id_by_name(name: str) -> Optional[list]:
+def get_folder_id_by_name(
+    credentials: auth.credentials.Credentials, name: str
+) -> Optional[List[Dict[str, Any]]]:
     """
     Get the folder id by the folder name.
 
-    :param name: str, the name of the folder.
-    :return: list, the list of the folder id and folder name.
+    :param name: str, the name of the folder
+    :return: list, the list of the folder id and folder name
     """
-    folders = _get_folders_in_gdrive()
+    folders = _get_folders_in_gdrive(credentials=credentials)
     folder_list = []
     #
     for folder in folders:
@@ -511,7 +526,7 @@ def get_folder_id_by_name(name: str) -> Optional[list]:
     else:
         _LOG.error("Can't find the folder '%s'.", name)
         return None
-    return folder_list[0]
+    return [folder_list[0]]
 
 
 def share_google_file(
@@ -540,41 +555,43 @@ def share_google_file(
     _LOG.info("The Google file is shared with '%s'.", user)
 
 
-def _create_new_google_document(
-    doc_name: str, doc_type: str, *, credentials: goasea.Credentials
-) -> str:
-    """
-    Create a new Google document (Sheet or Doc).
+# def _create_new_google_document(
+#    doc_name: str, doc_type: str, *, credentials: goasea.Credentials
+# ) -> str:
+#    """
+#    Create a new Google document (Sheet or Doc).
 
-    :param doc_name: The name of the new Google document.
-    :param doc_type: The type of the Google document ('sheets' or
-        'docs').
-    :param credentials: Google credentials object.
-    :return: doc_id. The ID of the created document in Google Drive.
-    """
-    # Build the Google Drive service using the provided credentials.
-    service = godisc.build(
-        doc_type,
-        "v4" if doc_type == "sheets" else "v1",
-        credentials=credentials,
-        cache_discovery=False,
-    )
-    document = {"properties": {"title": doc_name}}
-    document = (
-        service.spreadsheets()
-        .create(
-            body=document,
-            fields="spreadsheetId" if doc_type == "sheets" else "documentId",
-        )
-        .execute()
-    )
-    doc_id = document.get(
-        "spreadsheetId" if doc_type == "sheets" else "documentId"
-    )
-    return doc_id
+#    :param doc_name: The name of the new Google document.
+#    :param doc_type: The type of the Google document ('sheets' or
+#        'docs').
+#    :param credentials: Google credentials object.
+#    :return: doc_id. The ID of the created document in Google Drive.
+#    """
+# Build the Google Drive service using the provided credentials.
+#    service = godisc.build(
+#        doc_type,
+#        "v4" if doc_type == "sheets" else "v1",
+#        credentials=credentials,
+#        cache_discovery=False,
+#    )
+#    document = {"properties": {"title": doc_name}}
+#    document = (
+#        service.spreadsheets()
+#        .create(
+#            body=document,
+#            fields="spreadsheetId" if doc_type == "sheets" else "documentId",
+#        )
+#        .execute()
+#    )
+#    doc_id = document.get(
+#        "spreadsheetId" if doc_type == "sheets" else "documentId"
+#    )
+#    return str(doc_id)
 
 
-def _get_folders_in_gdrive(*, credentials: goasea.Credentials) -> list:
+def _get_folders_in_gdrive(
+    *, credentials: goasea.Credentials
+) -> List[Dict[str, Any]]:
     """
     Get a list of folders in Google Drive.
 
@@ -597,7 +614,8 @@ def _get_folders_in_gdrive(*, credentials: goasea.Credentials) -> list:
         .execute()
     )
     # Return the list of folders (id and name).
-    return response.get("files", [])
+    files = response.get("files", [])
+    return cast(List[Dict[str, Any]], files)
 
 
 def read_google_file(
@@ -625,19 +643,22 @@ def read_google_file(
                     "Tab with name '%s' not found in the spreadsheet.", tab_name
                 )
                 raise RuntimeError(
-                    "Tab with name '%s' not found in the spreadsheet." % tab_name
-                )
+                    f"Tab with name '{tab_name}' not found in the spreadsheet."
+                    % tab_name
+                ) from None
         data = worksheet.get_all_records()
         if not data:
             _LOG.warning("Warning: The sheet '%s' is empty.", tab_name)
-            return pd.DataFrame()
+            return pd.DataFrame(data)
         df = pd.DataFrame(data)
         _LOG.info("Data fetched....")
         return df
     except gspread.exceptions.SpreadsheetNotFound:
         _LOG.error("Spreadsheet with URL '%s' not found.", url)
-    except Exception as e:
-        _LOG.error("An error occurred: '%s'", str(e))
+        return pd.DataFrame()
+    except (ValueError, TypeError) as e:
+        _LOG.error("An error occurred: %s", str(e))
+        return pd.DataFrame()
 
 
 def write_to_google_sheet(
@@ -646,25 +667,28 @@ def write_to_google_sheet(
     tab_name: Optional[str] = "new_data",
     *,
     credentials: goasea.Credentials,
-    overwrite: bool = False
+    overwrite: bool = False,
 ) -> None:
     """
     Write data to a specified Google Sheet and tab.
 
-    :param df: Data to be written.
-    :param url: URL of the Google Sheet.
+    :param df: Data to be written
+    :param url: URL of the Google Sheet
     :param tab_name: Name of the tab where the data will be written
-        (default: "new_data").
-    :param credentials: Google credentials object.
+        (default: "new_data")
+    :param credentials: Google credentials object
     """
     try:
         client = gspread.authorize(credentials)
         spreadsheet = client.open_by_url(url)
         try:
             worksheet = spreadsheet.worksheet(tab_name)
-            #If overwrite=False and tab is not empty, log error and exit
+            # If overwrite=False and tab is not empty, log error and exit
             if not overwrite and worksheet.get_all_values():
-                _LOG.error("Tab '%s' is not empty. Set `overwrite=True` to overwrite.", tab_name)
+                _LOG.error(
+                    "Tab '%s' is not empty. Set `overwrite=True` to overwrite.",
+                    tab_name,
+                )
                 return
         except gspread.exceptions.WorksheetNotFound:
             _LOG.warning(
@@ -685,7 +709,7 @@ def write_to_google_sheet(
         )
     except gspread.exceptions.SpreadsheetNotFound:
         _LOG.error("Spreadsheet with URL '%s' not found.", url)
-    except Exception as e:
+    except (ValueError, TypeError) as e:
         _LOG.error("An error occurred: %s", str(e))
 
 
@@ -696,7 +720,7 @@ def create_or_overwrite_with_timestamp(
     overwrite: bool = False,
     *,
     credentials: goasea.Credentials,
-) -> None:
+) -> str:
     """
     Create or overwrite a Google Sheet or Google Doc with a timestamp in a
     specific Google Drive folder.
@@ -711,7 +735,7 @@ def create_or_overwrite_with_timestamp(
     """
     try:
         # Authenticate with Google APIs using the provided credentials.
-        drive_service = build("drive", "v3", credentials=credentials)
+        service = godisc.build("drive", "v3", credentials=credentials)
         if file_type == "sheets":
             mime_type = "application/vnd.google-apps.spreadsheet"
         elif file_type == "docs":
@@ -723,7 +747,7 @@ def create_or_overwrite_with_timestamp(
             f" and name contains '{file_name}'"
         )
         response = (
-            drive_service.files()
+            service.files()
             .list(
                 q=query,
                 fields="files(id, name)",
@@ -737,7 +761,7 @@ def create_or_overwrite_with_timestamp(
             file_id = files[0]["id"]
             _LOG.info("Overwriting existing file '%s'.", files[0]["name"])
         else:
-            timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            timestamp = dt.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
             new_file_name = f"{file_name}_{timestamp}"
             file_metadata = {
                 "name": new_file_name,
@@ -745,7 +769,7 @@ def create_or_overwrite_with_timestamp(
                 "parents": [folder_id],
             }
             file = (
-                drive_service.files()
+                service.files()
                 .create(body=file_metadata, fields="id", supportsAllDrives=True)
                 .execute()
             )
@@ -755,7 +779,7 @@ def create_or_overwrite_with_timestamp(
                 new_file_name,
                 folder_id,
             )
-        return file_id
+        return str(file_id)
     except Exception as e:
         _LOG.error("An error occurred: %s", str(e))
         raise
