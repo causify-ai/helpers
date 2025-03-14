@@ -31,6 +31,8 @@ permissions:
   packages: read  
 jobs:
   run_fast_tests:
+    permissions:
+      packages: read
     runs-on: ubuntu-latest
 
     steps:
