@@ -68,7 +68,7 @@
      - [ ] Get assigned a warm-up issue
      - If you are graduating soon and you would like to get a full-time job in
        one of the companies in the KaizenFlow ecosystem reach out to GP at
-       gp@kaizen-tech.io
+       gp@causify.ai
      ```
    - Admins need to keep track on the progress being made by the collaborator.
 

@@ -20,8 +20,8 @@
 
 ## Mailing lists
 
-- `@all` is the mailing list with everybody at the company
-- `@contributors` is the mailing list with every open-source contributor
+- `all@` is the mailing list with everybody at the company
+- `contributors@` is the mailing list with every open-source contributor/intern
 
 ## Organizing email flow
 

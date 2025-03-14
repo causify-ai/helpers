@@ -58,7 +58,8 @@
   - [ ] [helpers](https://github.com/causify-ai/helpers)
   - [ ] [tutorials](https://github.com/causify-ai/tutorials)
 
-- [ ] **IT**: Add the intern to the mailing group so that they can send
+- [ ] **IT**: Add the intern to the mailing group `contributors@causify.ai` so
+      that they can send
       [morning TODO emails](https://github.com/causify-ai/helpers/blob/master/docs/work_organization/all.team_collaboration.how_to_guide.md#morning-todo-email)
 
 ### IT setup
