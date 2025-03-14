@@ -261,11 +261,7 @@ def docker_pull_helpers(ctx, stage="prod", version=None):  # type: ignore
     :param stage: stage of the Docker image
     :param version: version of the Docker image
     """
-    # Infer the Docker registry from the environment.
-    if hserver.is_dev_ck():
-        base_image = hlitauti.get_default_param("CSFY_ECR_BASE_PATH") + "/helpers"
-    else:
-        base_image = "causify/helpers"
+    base_image = hlitauti.get_default_param("CSFY_ECR_BASE_PATH") + "/helpers"
     _LOG.debug("base_image=%s", base_image)
     _docker_pull(ctx, base_image, stage, version)
 
@@ -1305,11 +1301,7 @@ def _get_lint_docker_cmd(
     :param stage: the image stage to use
     :return: the full command to run
     """
-    # Infer the docker registry based on the environment.
-    if hserver.is_dev_ck():
-        base_path = os.environ["CSFY_ECR_BASE_PATH"]
-    else:
-        base_path = "causify"
+    base_path = os.environ["CSFY_ECR_BASE_PATH"]
     _LOG.debug("base_path=%s", base_path)
     # Get an image to run the linter on.
     linter_image = f"{base_path}/helpers"
