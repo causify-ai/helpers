@@ -28,10 +28,6 @@ For managing these mailing groups, please visit the Google Admin console
       of the planned activity for the given day. It has been replaced by `eng@`
 - `business@causify.ai`
   - For business-related discussions and inquiries
-- `eng@causify.ai`
-  - For the internal tech team coordination
-  - TODO emails from permanent team members and people on the 3-month trial
-    should be directed to this mailing group
 - `contributors@causify.ai`
   - For engaging with contributors external to the company
   - It is moderated to ensure only relevant updates and communications are
@@ -39,6 +35,10 @@ For managing these mailing groups, please visit the Google Admin console
   - TODO emails from interns should be directed to this mailing group
     - Emails sent to this group also land in `eng@`, so permanent team members
       can see TODO emails from the interns, but not vice versa
+- `eng@causify.ai`
+  - For the internal tech team coordination
+  - TODO emails from permanent team members and people on the 3-month trial
+    should be directed to this mailing group
 - `hr@causify.ai`
   - For HR department for internal communications and announcements
 - `info@causify.ai`
