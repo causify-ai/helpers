@@ -9,7 +9,7 @@ import getpass
 import logging
 import os
 import re
-from typing import cast, Any, Dict, List, Match, Optional, Union
+from typing import Any, Dict, List, Match, Optional, Union, cast
 
 # TODO(gp): We should use `pip install types-PyYAML` to get the mypy stubs.
 import yaml
@@ -234,9 +234,7 @@ def _docker_pull(
 
 
 @task
-def docker_pull(  # type: ignore
-        ctx, stage="dev", version=None, skip_pull=False
-):
+def docker_pull(ctx, stage="dev", version=None, skip_pull=False):  # type: ignore
     """
     Pull latest dev image corresponding to the current repo from the registry.
 
@@ -255,28 +253,20 @@ def docker_pull(  # type: ignore
 
 
 @task
-def docker_pull_helpers(  # type: ignore
-    ctx, stage="prod", version=None, docker_registry="aws_ecr.ck"
-):
+def docker_pull_helpers(ctx, stage="prod", version=None):  # type: ignore
     """
     Pull latest prod image of `helpers` from the registry.
 
     :param ctx: invoke context
     :param stage: stage of the Docker image
     :param version: version of the Docker image
-    :param docker_registry: target Docker image registry to log in to
-        - "dockerhub.causify": public Causify Docker image registry
-        - "aws_ecr.ck": private AWS CK ECR
     """
-    hlitauti.report_task(txt=hprint.to_str("docker_registry"))
-    if docker_registry == "dockerhub.causify":
-        base_image = "causify/helpers"
-    elif docker_registry == "aws_ecr.ck":
+    # Infer the Docker registry from the environment.
+    if hserver.is_dev_ck():
         base_image = hlitauti.get_default_param("CSFY_ECR_BASE_PATH") + "/helpers"
     else:
-        raise ValueError(
-            f"The Docker image registry='{docker_registry}' is not supported"
-        )
+        base_image = "causify/helpers"
+    _LOG.debug("base_image=%s", base_image)
     _docker_pull(ctx, base_image, stage, version)
 
 
@@ -482,9 +472,7 @@ def _get_linter_service(stage: str) -> DockerComposeServiceSpec:
         # Use the `repo_config.py` inside the helpers container instead of
         # the one in the calling repo.
         environment = cast(List[str], linter_service_spec["environment"])
-        environment.append(
-            "CSFY_REPO_CONFIG_PATH=/app/repo_config.py"
-        )
+        environment.append("CSFY_REPO_CONFIG_PATH=/app/repo_config.py")
     return linter_service_spec
 
 
@@ -564,7 +552,7 @@ def _generate_docker_compose_file(
     )
     # A super repo is a repo that contains helpers as a submodule and
     # is not a helper itself.
-    is_super_repo = 0 if hgit.is_in_helpers_as_supermodule() else 1
+    use_helpers_as_nested_module = 0 if hgit.is_in_helpers_as_supermodule() else 1
     # We could do the same also with IMAGE for symmetry.
     # Keep the env vars in sync with what we print in `henv.get_env_vars()`.
     # Configure `base_app` service.
@@ -585,6 +573,7 @@ def _generate_docker_compose_file(
             "CSFY_AWS_PROFILE=$CSFY_AWS_PROFILE",
             "CSFY_AWS_S3_BUCKET=$CSFY_AWS_S3_BUCKET",
             "CSFY_AWS_SECRET_ACCESS_KEY=$CSFY_AWS_SECRET_ACCESS_KEY",
+            "CSFY_AWS_SESSION_TOKEN=$CSFY_AWS_SESSION_TOKEN",
             "CSFY_ECR_BASE_PATH=$CSFY_ECR_BASE_PATH",
             # The path of the outermost Git root on the host.
             f"CSFY_HOST_GIT_ROOT_PATH={git_host_root_path}",
@@ -593,7 +582,7 @@ def _generate_docker_compose_file(
             # The path of the helpers dir in the Docker container (e.g.,
             # `/app`, `/app/helpers_root`)
             f"CSFY_HELPERS_ROOT_PATH={helper_root_path}",
-            f"CSFY_IS_SUPER_REPO={is_super_repo}",
+            f"CSFY_USE_HELPERS_AS_NESTED_MODULE={use_helpers_as_nested_module}",
             "CSFY_TELEGRAM_TOKEN=$CSFY_TELEGRAM_TOKEN",
             # This env var is used by GH Action to signal that we are inside the
             # CI. It's set up by default by the GH Action runner. See:
@@ -1308,24 +1297,21 @@ def _get_lint_docker_cmd(
     version: str,
     *,
     use_entrypoint: bool = True,
-    no_dev_server: bool = False,
 ) -> str:
     """
     Create a command to run in Linter service.
 
     :param docker_cmd_: command to run
     :param stage: the image stage to use
-    :param no_dev_server: True, if running Linter on local machine, else
-        false if on dev server
     :return: the full command to run
     """
-    # Get an image to run the linter on.
-    # For local development we use the image from the Docker Hub.
-    if no_dev_server:
-        # TODO(Vlad): Replace with environment variable.
-        base_path = "causify"
-    else:
+    # Infer the docker registry based on the environment.
+    if hserver.is_dev_ck():
         base_path = os.environ["CSFY_ECR_BASE_PATH"]
+    else:
+        base_path = "causify"
+    _LOG.debug("base_path=%s", base_path)
+    # Get an image to run the linter on.
     linter_image = f"{base_path}/helpers"
     # Execute command line.
     cmd: str = _get_docker_compose_cmd(

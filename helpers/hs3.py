@@ -451,11 +451,13 @@ def get_s3_bucket_path(aws_profile: str, add_s3_prefix: bool = True) -> str:
     is usually set to `s3://alphamatic-data`.
     """
     hdbg.dassert_type_is(aws_profile, str)
-    #TODO(Juraj): needed because ENV_VARS are now prefixed with
-    # `CSFY_` and not `CK_` or `AM_`. Proper fix to come in 
+    # TODO(Juraj): needed because ENV_VARS are now prefixed with
+    # `CSFY_` and not `CK_` or `AM_`. Proper fix to come in
     # CmTask11095.
     prefix = aws_profile.upper()
-    prefix = "CSFY" if aws_profile.upper() in ["AM", "CK"] else aws_profile.upper()
+    prefix = (
+        "CSFY" if aws_profile.upper() in ["AM", "CK"] else aws_profile.upper()
+    )
     env_var = f"{prefix}_AWS_S3_BUCKET"
     if env_var in os.environ:
         _LOG.debug("No env var '%s'", env_var)
@@ -575,11 +577,11 @@ def _get_aws_file_text(key_to_env_var: Dict[str, str]) -> List[str]:
     """
     Generate text from env vars for AWS files.
 
-    E.g.: 
-    ``` 
-    aws_access_key_id=*** 
-    aws_secret_access_key=***
-    aws_s3_bucket=*** 
+    E.g.:
+    ```
+    aws_access_key_id=***                   # gitleaks:allow
+    aws_secret_access_key=***               # gitleaks:allow
+    aws_s3_bucket=***
     ```
     :param key_to_env_var: aws settings names to the corresponding env
         var names mapping
@@ -597,11 +599,13 @@ def _get_aws_config_text(aws_profile: str) -> str:
     Generate text for the AWS config file, i.e. ".aws/config".
     """
     # Set which env vars we need to get.
-    #TODO(Juraj): needed because ENV_VARS are now prefixed with
-    # `CSFY_` and not `CK_` or `AM_`. Proper fix to come in 
+    # TODO(Juraj): needed because ENV_VARS are now prefixed with
+    # `CSFY_` and not `CK_` or `AM_`. Proper fix to come in
     # CmTask11095.
-    #profile_prefix = aws_profile.upper()
-    profile_prefix = "CSFY" if aws_profile.upper() in ["AM", "CK"] else aws_profile.upper()
+    # profile_prefix = aws_profile.upper()
+    profile_prefix = (
+        "CSFY" if aws_profile.upper() in ["AM", "CK"] else aws_profile.upper()
+    )
     region_env_var = f"{profile_prefix}_AWS_DEFAULT_REGION"
     key_to_env_var = {"region": region_env_var}
     # Check that env vars are set.
@@ -617,16 +621,29 @@ def _get_aws_credentials_text(aws_profile: str) -> str:
     Generate text for the AWS credentials file, i.e. ".aws/credentials".
     """
     # Set which env vars we need to get.
-    #TODO(Juraj): needed because ENV_VARS are now prefixed with
-    # `CSFY_` and not `CK_` or `AM_`. Proper fix to come in 
+    # TODO(Juraj): needed because ENV_VARS are now prefixed with
+    # `CSFY_` and not `CK_` or `AM_`. Proper fix to come in
     # CmTask11095.
-    #profile_prefix = aws_profile.upper()
-    profile_prefix = "CSFY" if aws_profile.upper() in ["AM", "CK"] else aws_profile.upper()
-    key_to_env_var = {
-        "aws_access_key_id": f"{profile_prefix}_AWS_ACCESS_KEY_ID",
-        "aws_secret_access_key": f"{profile_prefix}_AWS_SECRET_ACCESS_KEY",
-        "aws_s3_bucket": f"{profile_prefix}_AWS_S3_BUCKET",
-    }
+    # profile_prefix = aws_profile.upper()
+    profile_prefix = (
+        "CSFY" if aws_profile.upper() in ["AM", "CK"] else aws_profile.upper()
+    )
+    # Check if AWS session token is set in environment variable.
+    if f"{profile_prefix}_AWS_SESSION_TOKEN" in os.environ:
+        key_to_env_var = {
+            "aws_access_key_id": f"{profile_prefix}_AWS_ACCESS_KEY_ID",  # gitleaks:allow
+            "aws_secret_access_key": f"{profile_prefix}_AWS_SECRET_ACCESS_KEY",  # gitleaks:allow
+            "aws_session_token": f"{profile_prefix}_AWS_SESSION_TOKEN",
+            # TODO(heanh): Is this needed?
+            "aws_s3_bucket": f"{profile_prefix}_AWS_S3_BUCKET",
+        }
+    else:
+        key_to_env_var = {
+            "aws_access_key_id": f"{profile_prefix}_AWS_ACCESS_KEY_ID",  # gitleaks:allow
+            "aws_secret_access_key": f"{profile_prefix}_AWS_SECRET_ACCESS_KEY",  # gitleaks:allow
+            # TODO(heanh): Is this needed?
+            "aws_s3_bucket": f"{profile_prefix}_AWS_S3_BUCKET",
+        }
     # Check that env vars are set.
     _dassert_all_env_vars_set(key_to_env_var)
     text = _get_aws_file_text(key_to_env_var)
@@ -670,6 +687,7 @@ def generate_aws_files(
     config_file_text = "\n\n".join(config_file_text)
     hio.to_file(config_file_name, config_file_text)
     _LOG.debug("Saved AWS config to %s", config_file_name)
+
     #
     credentials_file_text = "\n\n".join(credentials_file_text)
     hio.to_file(credentials_file_name, credentials_file_text)
@@ -723,18 +741,30 @@ def get_aws_credentials(
         # `mock` profile is artificial construct used only in tests.
         aws_profile = aws_profile.strip("__")
     # TODO(Juraj): needed because ENV_VARS are now prefixed with
-    # `CSFY_` and not `CK_` or `AM_`. Proper fix to come in 
+    # `CSFY_` and not `CK_` or `AM_`. Proper fix to come in
     # CmTask11095.
     # profile_prefix = aws_profile.upper()
-    profile_prefix = "CSFY" if aws_profile.upper() in ["AM", "CK"] else aws_profile.upper()
+    profile_prefix = (
+        "CSFY" if aws_profile.upper() in ["AM", "CK"] else aws_profile.upper()
+    )
     result: Dict[str, Optional[str]] = {}
-    key_to_env_var: Dict[str, str] = {
-        "aws_access_key_id": f"{profile_prefix}_AWS_ACCESS_KEY_ID",
-        "aws_secret_access_key": f"{profile_prefix}_AWS_SECRET_ACCESS_KEY",
-        # TODO(gp): AWS_DEFAULT_REGION -> AWS_REGION so we can use the invariant
-        #  that the var is simply the capitalized version of the key.
-        "aws_region": f"{profile_prefix}_AWS_DEFAULT_REGION",
-    }
+    if f"{profile_prefix}_AWS_SESSION_TOKEN" in os.environ:
+        key_to_env_var: Dict[str, str] = {
+            "aws_access_key_id": f"{profile_prefix}_AWS_ACCESS_KEY_ID",  # gitleaks:allow
+            "aws_secret_access_key": f"{profile_prefix}_AWS_SECRET_ACCESS_KEY",  # gitleaks:allow
+            "aws_session_token": f"{profile_prefix}_AWS_SESSION_TOKEN",
+            # TODO(gp): AWS_DEFAULT_REGION -> AWS_REGION so we can use the invariant
+            #  that the var is simply the capitalized version of the key.
+            "aws_region": f"{profile_prefix}_AWS_DEFAULT_REGION",
+        }
+    else:
+        key_to_env_var: Dict[str, str] = {
+            "aws_access_key_id": f"{profile_prefix}_AWS_ACCESS_KEY_ID",  # gitleaks:allow
+            "aws_secret_access_key": f"{profile_prefix}_AWS_SECRET_ACCESS_KEY",  # gitleaks:allow
+            # TODO(gp): AWS_DEFAULT_REGION -> AWS_REGION so we can use the invariant
+            #  that the var is simply the capitalized version of the key.
+            "aws_region": f"{profile_prefix}_AWS_DEFAULT_REGION",
+        }
     # If all the AWS credentials are passed through env vars, they override the
     # config file.
     env_var_override = False
@@ -760,8 +790,12 @@ def get_aws_credentials(
             )
             hdbg.dassert_in(env_var, os.environ)
             result[key] = os.environ[env_var]
-        # TODO(gp): We don't pass this through env var for now.
-        result["aws_session_token"] = None
+        if f"{profile_prefix}_AWS_SESSION_TOKEN" in os.environ:
+            result["aws_session_token"] = os.environ[
+                f"{profile_prefix}_AWS_SESSION_TOKEN"
+            ]
+        else:
+            result["aws_session_token"] = None
     else:
         _LOG.debug("Using AWS credentials from files")
         # > more ~/.aws/credentials

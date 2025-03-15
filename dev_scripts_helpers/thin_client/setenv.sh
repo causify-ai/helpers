@@ -26,7 +26,7 @@ echo "##> Parsing repo config"
 echo $(pwd)
 eval $(parse_yaml repo_config.yaml "REPO_CONF_")
 for var in $(compgen -v | grep "^REPO_CONF_"); do
-  echo "$var=${!var}"
+  eval "echo \"$var=\$$var\""
 done;
 
 # NOTE: We can't use $0 to find out in which file we are in, since this file is
