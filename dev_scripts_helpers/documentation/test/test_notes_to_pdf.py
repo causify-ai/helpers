@@ -143,7 +143,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         # Check.
         txt = "script_txt:\n%s\n" % script_txt
         txt += "output_txt:\n%s\n" % output_txt
-        self.check_string(txt)
+        self.check_string(txt, purify_text=True)
 
     def test3(self) -> None:
         """
@@ -159,4 +159,4 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         # Check.
         txt = "script_txt:\n%s\n" % script_txt
         txt += "output_txt:\n%s\n" % output_txt
-        self.check_string(txt)
+        self.check_string(txt, purify_text=True)

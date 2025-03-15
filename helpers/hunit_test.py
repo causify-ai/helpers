@@ -561,8 +561,10 @@ def purify_parquet_file_names(txt: str) -> str:
         ```
     """
     pattern = r"""
-        [0-9a-f]{32}-[0-9].* # GUID pattern.
-        (?=\.parquet) # positive lookahead assertion that matches a position followed by ".parquet" without consuming it.
+        [0-9a-f]{32}-[0-9].*    # GUID pattern.
+        (?=\.parquet)           # positive lookahead assertion that matches a
+                                # position followed by ".parquet" without
+                                # consuming it.
     """
     # TODO(Vlad): Need to change the replacement to `$FILE_NAME` as in the
     # `purify_from_environment()` function. For now, some tests are expecting
@@ -590,6 +592,16 @@ def purify_helpers(txt: str) -> str:
     return txt
 
 
+def purify_docker_image_name(txt: str) -> str:
+    """
+    Remove temporary docker image name that are function of their content.
+    """
+    # In a command like:
+    # > docker run --rm ...  tmp.latex.edb567be ..
+    txt = re.sub(r"^(.*docker.*tmp\.\S+\.)[a-z0-9]{8}(.*)$", "\1xxxxxxxx\2", txt)
+    return txt
+
+
 def purify_txt_from_client(txt: str) -> str:
     """
     Remove from a string all the information of a specific run.
@@ -603,6 +615,7 @@ def purify_txt_from_client(txt: str) -> str:
     txt = purify_white_spaces(txt)
     txt = purify_parquet_file_names(txt)
     txt = purify_helpers(txt)
+    txt = purify_docker_image_name(txt)
     return txt
 
 
@@ -612,6 +625,7 @@ def purify_txt_from_client(txt: str) -> str:
 def diff_files(
     file_name1: str,
     file_name2: str,
+    *,
     tag: Optional[str] = None,
     abort_on_exit: bool = True,
     dst_dir: str = ".",
@@ -625,7 +639,7 @@ def diff_files(
     :param abort_on_exit: whether to assert or not
     :param dst_dir: dir where to save the comparing script
     """
-    _LOG.debug(hprint.to_str("tag abort_on_exit dst_dir"))
+    _LOG.debug(hprint.function_to_str())
     file_name1 = os.path.relpath(file_name1, os.getcwd())
     file_name2 = os.path.relpath(file_name2, os.getcwd())
     msg = []
@@ -641,15 +655,17 @@ def diff_files(
     msg.append(res)
     # Save a script to diff.
     diff_script = os.path.join(dst_dir, "tmp_diff.sh")
-    vimdiff_cmd = f"""#!/bin/bash
-if [[ $1 == "wrap" ]]; then
-    cmd='vimdiff -c "windo set wrap"'
-else
-    cmd='vimdiff'
-fi;
-cmd="$cmd {file_name1} {file_name2}"
-eval $cmd
-"""
+    vimdiff_cmd = f"""
+    #!/bin/bash
+    if [[ $1 == "wrap" ]]; then
+        cmd='vimdiff -c "windo set wrap"'
+    else
+        cmd='vimdiff'
+    fi;
+    cmd="$cmd {file_name1} {file_name2}"
+    eval $cmd
+    """
+    vimdiff_cmd = hprint.dedent(vimdiff_cmd)
     # TODO(gp): Use hio.create_executable_script().
     hio.to_file(diff_script, vimdiff_cmd)
     cmd = "chmod +x " + diff_script
@@ -679,6 +695,7 @@ eval $cmd
 def diff_strings(
     string1: str,
     string2: str,
+    *,
     tag: Optional[str] = None,
     abort_on_exit: bool = True,
     dst_dir: str = ".",
@@ -710,6 +727,7 @@ def diff_strings(
 
 def diff_df_monotonic(
     df: "pd.DataFrame",
+    *,
     tag: Optional[str] = None,
     abort_on_exit: bool = True,
     dst_dir: str = ".",
@@ -907,14 +925,7 @@ def assert_equal(
     :param full_test_name: e.g., `TestRunNotebook1.test2`
     :param check_string: if it was invoked by `check_string()` or directly
     """
-    _LOG.debug(
-        hprint.to_str(
-            "full_test_name test_dir "
-            "remove_lead_trail_empty_lines dedent purify_text "
-            "fuzzy_match ignore_line_breaks split_max_len sort "
-            "abort_on_error dst_dir error_msg"
-        )
-    )
+    _LOG.debug(hprint.func_signature_to_str("actual expected"))
     # Store a mapping tag after each transformation (e.g., original, sort, ...) to
     # (actual, expected).
     values: Dict[str, str] = collections.OrderedDict()
@@ -1063,8 +1074,6 @@ def assert_equal(
     return is_equal
 
 
-# #############################################################################
-
 # If a golden outcome is missing asserts (instead of updating golden and adding
 # it to Git repo, corresponding to "update").
 _ACTION_ON_MISSING_GOLDEN = "assert"
@@ -1181,6 +1190,7 @@ class TestCase(unittest.TestCase):
 
     def get_input_dir(
         self,
+        *,
         use_only_test_class: bool = False,
         test_class_name: Optional[str] = None,
         test_method_name: Optional[str] = None,
@@ -1235,6 +1245,7 @@ class TestCase(unittest.TestCase):
     # TODO(gp): -> get_scratch_dir().
     def get_scratch_space(
         self,
+        *,
         test_class_name: Optional[str] = None,
         test_method_name: Optional[str] = None,
         use_absolute_path: bool = True,
@@ -1264,6 +1275,7 @@ class TestCase(unittest.TestCase):
 
     def get_s3_scratch_dir(
         self,
+        *,
         test_class_name: Optional[str] = None,
         test_method_name: Optional[str] = None,
     ) -> str:

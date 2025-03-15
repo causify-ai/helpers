@@ -24,8 +24,9 @@ Usage:
 import argparse
 import logging
 import os
+import re
 import tempfile
-from typing import cast, List, Tuple
+from typing import List, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
@@ -86,16 +87,11 @@ def _get_puppeteer_config_path() -> str:
     :return: path to the config file
     """
     cmd = "find . -name 'puppeteerConfig.json'"
-    _, paths_out = hsystem.system_to_string(cmd)
-    # TODO(gp): We expect only one file.
-    hdbg.dassert_eq(len(paths_out.split("\n")), 1)
-    # Pick the one closer to the current dir.
-    path = sorted(paths_out.split("\n"))[0]
-    hdbg.dassert_path_exists(path)
-    path = cast(str, path)
+    _, path = hsystem.system_to_one_line(cmd)
     return path
 
 
+# TODO(gp): Not sure we should support running without Docker.
 def _get_render_command(
     code_file_path: str,
     abs_img_dir_path: str,
@@ -124,6 +120,8 @@ def _get_render_command(
     elif image_code_type == "mermaid":
         puppeteer_config = _get_puppeteer_config_path()
         cmd = f"mmdc --puppeteerConfigFile {puppeteer_config} -i {code_file_path} -o {rel_img_path}"
+    elif image_code_type == "tikz":
+        hdbg.dfatal("Not implemented yet")
     else:
         raise ValueError(f"Invalid type: {image_code_type}")
     return cmd
@@ -154,12 +152,23 @@ def _render_code(
     :param dry_run: if True, the rendering command is not executed
     :return: path to the rendered image
     """
+    _LOG.debug(hprint.func_signature_to_str("image_code"))
     if image_code_type == "plantuml":
-        # Ensure the plantUML code is in the correct format to render.
+        # TODO(gp): we should always add the start and end tags.
         if not image_code.startswith("@startuml"):
             image_code = f"@startuml\n{image_code}"
         if not image_code.endswith("@enduml"):
             image_code = f"{image_code}\n@enduml"
+    elif image_code_type == "tikz":
+        image_code_tmp = r"""
+        \documentclass[tikz, border=10pt]{standalone}
+        \usepackage{tikz}
+        \begin{document}
+        """
+        image_code_tmp = hprint.dedent(image_code_tmp)
+        image_code_tmp += image_code
+        image_code_tmp += r"\end{document}"
+        image_code = image_code_tmp
     # Get paths for rendered files.
     hio.create_enclosing_dir(out_file, incremental=True)
     code_file_path, abs_img_dir_path, rel_img_path = _get_rendered_file_paths(
@@ -169,29 +178,37 @@ def _render_code(
     # Save the image code to a temporary file.
     hio.to_file(code_file_path, image_code)
     # Run the rendering.
-    cmd = _get_render_command(
-        code_file_path, abs_img_dir_path, rel_img_path, dst_ext, image_code_type
+    _LOG.info(
+        "Creating the image from '%s' source and saving image to '%s'",
+        code_file_path,
+        abs_img_dir_path,
     )
-    _LOG.info("Creating the image from %s source", code_file_path)
-    _LOG.info("Saving image to '%s'", abs_img_dir_path)
-    _LOG.info("> %s", cmd)
-    if dry_run:
-        # Do not execute the command.
-        hsystem.system(cmd, dry_run=True)
-    else:
-        if run_dockerized:
-            # Run as a dockerized executable.
-            if image_code_type == "plantuml":
-                hdocker.run_dockerized_plantuml(
-                    abs_img_dir_path, code_file_path, dst_ext
-                )
-            elif image_code_type == "mermaid":
-                hdocker.run_dockerized_mermaid(rel_img_path, code_file_path)
-            else:
-                raise ValueError(f"Invalid type: {image_code_type}")
+    if run_dockerized:
+        # Run as a dockerized executable.
+        if image_code_type == "plantuml":
+            hdocker.run_dockerized_plantuml(
+                code_file_path, abs_img_dir_path, dst_ext
+            )
+        elif image_code_type == "mermaid":
+            hdocker.run_dockerized_mermaid(code_file_path, rel_img_path)
+        elif image_code_type == "tikz":
+            cmd_opts = []
+            hdocker.tikz_to_bitmap(code_file_path, cmd_opts, rel_img_path)
+        elif image_code_type == "graphviz":
+            # TODO(gp): Implement this.
+            hdocker.run_dockerized_graphviz(rel_img_path, code_file_path)
         else:
-            # Run the package installed on the host directly.
-            hsystem.system(cmd)
+            raise ValueError(f"Invalid type: {image_code_type}")
+    else:
+        # Run the package installed on the host directly.
+        cmd = _get_render_command(
+            code_file_path,
+            abs_img_dir_path,
+            rel_img_path,
+            dst_ext,
+            image_code_type,
+        )
+        hsystem.system(cmd, dry_run=dry_run)
     # Remove the temp file.
     os.remove(code_file_path)
     return rel_img_path
