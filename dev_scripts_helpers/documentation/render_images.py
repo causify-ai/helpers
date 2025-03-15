@@ -152,6 +152,7 @@ def _render_code(
     :param dry_run: if True, the rendering command is not executed
     :return: path to the rendered image
     """
+    _LOG.debug(hprint.func_signature_to_str("image_code"))
     if image_code_type == "plantuml":
         # TODO(gp): we should always add the start and end tags.
         if not image_code.startswith("@startuml"):
@@ -186,10 +187,10 @@ def _render_code(
         # Run as a dockerized executable.
         if image_code_type == "plantuml":
             hdocker.run_dockerized_plantuml(
-                abs_img_dir_path, code_file_path, dst_ext
+                code_file_path, abs_img_dir_path, dst_ext
             )
         elif image_code_type == "mermaid":
-            hdocker.run_dockerized_mermaid(rel_img_path, code_file_path)
+            hdocker.run_dockerized_mermaid(code_file_path, rel_img_path)
         elif image_code_type == "tikz":
             cmd_opts = []
             hdocker.tikz_to_bitmap(code_file_path, cmd_opts, rel_img_path)
@@ -280,6 +281,7 @@ def _render_images(
         not actually created
     :return: updated file lines
     """
+    _LOG.debug(hprint.func_signature_to_str("in_lines"))
     # Get the extension of the output file.
     extension = os.path.splitext(out_file)[1]
     #

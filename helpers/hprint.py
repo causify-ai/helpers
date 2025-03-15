@@ -600,7 +600,9 @@ def _func_signature_to_str(
 
 
 def func_signature_to_str(
+    # We don't use * since we want to keep it simple to call this function.
     skip_vars: _SkipVarsType = None,
+    *,
     assert_on_skip_vars_error: bool = True,
     frame_level: int = 2,
 ) -> str:

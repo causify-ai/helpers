@@ -65,8 +65,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
         args.output = args.input
     hdocker.run_dockerized_prettier(
         args.input,
-        args.output,
         cmd_opts,
+        args.output,
         force_rebuild=args.dockerized_force_rebuild,
         use_sudo=args.dockerized_use_sudo,
     )

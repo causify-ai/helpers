@@ -124,8 +124,8 @@ def prettier(
         use_sudo = hdocker.get_use_sudo()
         hdocker.run_dockerized_prettier(
             in_file_path,
-            out_file_path,
             cmd_opts,
+            out_file_path,
             force_rebuild=force_rebuild,
             use_sudo=use_sudo,
         )
@@ -286,10 +286,10 @@ def _refresh_toc(
     cmd_opts: List[str] = []
     if use_dockerized_markdown_toc:
         # Run `markdown-toc` in a Docker container.
-        force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
+        force_rebuild = False
         hdocker.run_dockerized_markdown_toc(
-            tmp_file_name, force_rebuild, cmd_opts, use_sudo=use_sudo
+            tmp_file_name, cmd_opts, use_sudo=use_sudo, force_rebuild=force_rebuild
         )
     else:
         # Run `markdown-toc` installed on the host directly.
