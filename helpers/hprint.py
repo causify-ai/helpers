@@ -484,9 +484,10 @@ def round_digits(
 _VarNamesType = Optional[Union[str, List[str]]]
 
 
-def _to_var_list(expression: str) -> List[str]:
+def _to_var_list(expression: _VarNamesType) -> List[str]:
     if isinstance(expression, List):
         return expression
+    hdbg.dassert_isinstance(expression, str)
     # If expression is a list of space-separated expressions, convert each in a
     # string.
     exprs = [v.lstrip().rstrip() for v in expression.split(" ")]
@@ -570,6 +571,7 @@ def to_str(
     return ret
 
 
+# TODO(gp): Extend this to work on class methods, static and not.
 def _func_signature_to_str(
     skip_vars: _VarNamesType,
     assert_on_skip_vars_error: bool,
@@ -582,7 +584,8 @@ def _func_signature_to_str(
     :return: function name and string with the variables of the caller function
         as `var1 var2 ...`
     """
-    skip_vars = _to_var_list(skip_vars)
+    if skip_vars is not None:
+        skip_vars = _to_var_list(skip_vars)
     # Get the caller's frame (i.e., the function that called this function).
     caller_frame = inspect.currentframe()
     for _ in range(frame_level):
@@ -638,6 +641,9 @@ def func_signature_to_str(
     val = to_str(func_signature, frame_level=frame_level)
     val = f"# {func_name}: {val}"
     return val
+
+
+# #############################################################################
 
 
 def log(logger: logging.Logger, verbosity: int, *vals: Any) -> None:

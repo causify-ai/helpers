@@ -639,7 +639,7 @@ def diff_files(
     :param abort_on_exit: whether to assert or not
     :param dst_dir: dir where to save the comparing script
     """
-    _LOG.debug(hprint.function_to_str())
+    _LOG.debug(hprint.func_signature_to_str())
     file_name1 = os.path.relpath(file_name1, os.getcwd())
     file_name2 = os.path.relpath(file_name2, os.getcwd())
     msg = []

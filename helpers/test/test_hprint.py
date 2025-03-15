@@ -80,6 +80,61 @@ class Test_to_str1(hunitest.TestCase):
 
 # #############################################################################
 
+def example_func1(x: int, y: str) -> None:
+    _ = x, y
+    ret = hprint.func_signature_to_str()
+    return ret
+
+def example_func2() -> None:
+    ret = hprint.func_signature_to_str()
+    return ret
+
+def example_func3(x: int, y: str) -> None:
+    _ = x, y
+    ret = hprint.func_signature_to_str("y")
+    return ret
+
+def example_func4(x: int, y: str, z: float) -> None:
+    _ = x, y, z
+    ret = hprint.func_signature_to_str("x z")
+    return ret
+
+def example_func5(x: int, y: str, z: float) -> None:
+    _ = x, y, z
+    ret = hprint.func_signature_to_str(["y", "z"])
+    return ret
+
+
+
+class Test_func_signature_to_str1(hunitest.TestCase):
+
+
+    def test1(self) -> None:
+        act = example_func1(1, "hello")
+        exp = "# example_func1: x=1, y='hello'"
+        self.assert_equal(act, exp)
+    
+    def test2(self) -> None:
+        act = example_func2()
+        exp = "# example_func2:"
+        self.assert_equal(act, exp)
+
+    def test3(self) -> None:
+        act = example_func3(1, "hello")
+        exp = "# example_func3: x=1"
+        self.assert_equal(act, exp)
+
+    def test4(self) -> None:
+        act = example_func4(1, "hello", 3.14)
+        exp = "# example_func4: y='hello'"
+        self.assert_equal(act, exp)
+
+    def test5(self) -> None:
+        act = example_func5(1, "hello", 3.14)
+        exp = "# example_func5: x=1"
+        self.assert_equal(act, exp)
+
+# ###########################################################################
 
 class Test_log(hunitest.TestCase):
     def test2(self) -> None:
