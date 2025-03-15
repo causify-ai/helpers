@@ -479,7 +479,7 @@ def round_digits(
 
 # https://stackoverflow.com/questions/2749796 has some solutions to find the
 # name of variables from the caller.
-        
+
 
 _VarNamesType = Optional[Union[str, List[str]]]
 
