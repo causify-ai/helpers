@@ -33,7 +33,7 @@ RUN apt-get install -y curl pandoc && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 """
-    container_name = hdocker.build_container(container_name, txt)
+    container_name = hdocker.build_container_image(container_name, txt)
     return container_name
 
 

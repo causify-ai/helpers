@@ -89,7 +89,6 @@
   `invoke` workflows)
 - Git repos can include `//helpers` and other ones as sub-repos
 
-
 [//]: # ( ```mermaid)
 [//]: # ( graph TD)
 [//]: # (   runnable_repo[runnable repo 1])
@@ -114,7 +113,6 @@
 [//]: # (   style helpers_sub_repo_2 fill:transparent, stroke-dasharray: 5 5)
 [//]: # (   style helpers_sub_repo_3 fill:transparent, stroke-dasharray: 5 5)
 [//]: # ( ```)
-
 ![](figs/runnable_repo.1.png)
 
 ## Runnable dir
@@ -124,7 +122,6 @@
   - E.g., `//cmamp/optimizer`, `//cmamp/infra`
 - The code in a runnable directory or in the main repo requires a container that
   is built using the code in the corresponding `devops` dir
-
 
 [//]: # ( ```mermaid)
 [//]: # ( graph TD)
@@ -142,7 +139,6 @@
 [//]: # ( )
 [//]: # (   style helpers_sub_repo fill:transparent, stroke-dasharray: 5 5)
 [//]: # ( ```)
-
 ![](figs/runnable_repo.2.png)
 
 ## Thin environment
@@ -154,7 +150,6 @@
   containers are common
 - A setenv script is used to configure a shell outside and inside a Docker
   container
-
 
 [//]: # ( ```mermaid)
 [//]: # ( graph TD)
@@ -185,7 +180,6 @@
 [//]: # (   repo_2 -.-> thin_env)
 [//]: # (   repo_2_runnable_dir -.-> thin_env)
 [//]: # ( ```)
-
 ![](figs/runnable_repo.3.png)
 
 ## Building a Docker container
@@ -222,7 +216,6 @@
 - For a runnable dir, the needed container is the one built in that specific
   directory
 
-
 [//]: # ( ```mermaid)
 [//]: # ( graph LR)
 [//]: # (   start((start)))
@@ -239,7 +232,6 @@
 [//]: # (     pytest --> dir_others[...])
 [//]: # (   end)
 [//]: # ( ```)
-
 ![](figs/runnable_repo.4.png)
 
 ## Recursive pytest
@@ -256,7 +248,6 @@
   for container in containers:
      (cd container; i docker_cmd --cmd pytest)
   ```
-
 
 [//]: # ( ```mermaid)
 [//]: # ( graph LR)
@@ -282,11 +273,9 @@
 [//]: # (         pytest_n((pytest)) --> runnable_dir_n[runnable dir n])
 [//]: # (     end)
 [//]: # ( ```)
-
 ![](figs/runnable_repo.5.png)
 
 ## Support for docker-in-docker and sibling-containers
-
 
 [//]: # ( ```mermaid)
 [//]: # ( graph TD)
@@ -306,7 +295,6 @@
 [//]: # (     container_1 --> container_1a)
 [//]: # (     container_1 --> container_1b)
 [//]: # ( ```)
-
 ![](figs/runnable_repo.6.png)
 
 # Examples

@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-\grep -E 'error:' ./linter_warnings.txt > ./filtered_linter_warnings.txt
+\grep -E '(\[E|error:)' ./linter_warnings.txt > ./filtered_linter_warnings.txt
 cmd='vim -c "cfile ./filtered_linter_warnings.txt"'
 echo "> $cmd"
 eval $cmd

@@ -10,6 +10,7 @@ import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hserver as hserver
+import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
@@ -202,6 +203,7 @@ def _create_test_file(self_: Any, txt: str, extension: str) -> str:
 # #############################################################################
 
 
+# TODO(gp): -> Test_dockerized_prettier1
 @pytest.mark.skipif(
     hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
 )
@@ -210,35 +212,7 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
     Test running the `prettier` command inside a Docker container.
     """
 
-    def test1(self) -> None:
-        txt = """
-        - A
-          - B
-              - C
-                """
-        exp = """
-        - A
-          - B
-            - C
-        """
-        self.run_prettier(txt, exp)
-
-    def test2(self) -> None:
-        txt = r"""
-        *  Good time management
-
-        1. choose the right tasks
-            -   avoid non-essential tasks
-        """
-        exp = r"""
-        - Good time management
-
-        1. choose the right tasks
-           - avoid non-essential tasks
-        """
-        self.run_prettier(txt, exp)
-
-    def run_prettier(self, txt: str, exp: str) -> None:
+    def helper(self, txt: str, exp: str) -> None:
         """
         Test running the `prettier` command in a Docker container.
 
@@ -258,8 +232,8 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
         use_sudo = hdocker.get_use_sudo()
         hdocker.run_dockerized_prettier(
             in_file_path,
-            out_file_path,
             cmd_opts,
+            out_file_path,
             force_rebuild=force_rebuild,
             use_sudo=use_sudo,
         )
@@ -268,6 +242,34 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
         self.assert_equal(
             act, exp, dedent=True, remove_lead_trail_empty_lines=True
         )
+
+    def test1(self) -> None:
+        txt = """
+        - A
+          - B
+              - C
+                """
+        exp = """
+        - A
+          - B
+            - C
+        """
+        self.helper(txt, exp)
+
+    def test2(self) -> None:
+        txt = r"""
+        *  Good time management
+
+        1. choose the right tasks
+            -   avoid non-essential tasks
+        """
+        exp = r"""
+        - Good time management
+
+        1. choose the right tasks
+           - avoid non-essential tasks
+        """
+        self.helper(txt, exp)
 
 
 # #############################################################################
@@ -379,6 +381,7 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(gp): -> Test_dockerized_pandoc1
 @pytest.mark.skipif(
     hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
 )
@@ -447,6 +450,7 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(gp): -> Test_dockerized_markdown_toc1
 @pytest.mark.skipif(
     hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
 )
@@ -494,13 +498,189 @@ class Test_run_markdown_toc1(hunitest.TestCase):
         cmd_opts: List[str] = []
         # Run `markdown-toc` in a Docker container.
         in_file_path = _create_test_file(self, txt, extension="md")
-        force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
+        force_rebuild = False
         hdocker.run_dockerized_markdown_toc(
-            in_file_path, force_rebuild, cmd_opts, use_sudo=use_sudo
+            in_file_path,
+            cmd_opts,
+            use_sudo=use_sudo,
+            force_rebuild=force_rebuild,
         )
         # Check.
         act = hio.from_file(in_file_path)
         self.assert_equal(
             act, exp, dedent=True, remove_lead_trail_empty_lines=True
+        )
+
+
+# #############################################################################
+# Test_dockerized_latex1
+# #############################################################################
+
+
+@pytest.mark.skipif(
+    hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
+)
+class Test_dockerized_latex1(hunitest.TestCase):
+
+    def create_input_file(self) -> Tuple[str, str]:
+        txt = r"""
+        \documentclass{article}
+
+        \begin{document}
+
+        Hello, World!
+
+        \end{document}
+        """
+        in_file_path = _create_test_file(self, txt, extension="tex")
+        out_file_path = os.path.join(self.get_scratch_space(), "output.pdf")
+        return in_file_path, out_file_path
+
+    def test1(self) -> None:
+        """
+        Test the code to run `latex` inside a Docker container.
+        """
+        # Prepare inputs.
+        in_file_path, out_file_path = self.create_input_file()
+        cmd_opts: List[str] = []
+        run_latex_again = True
+        force_rebuild = False
+        use_sudo = hdocker.get_use_sudo()
+        # Run function.
+        hdocker.run_basic_latex(
+            in_file_path,
+            cmd_opts,
+            run_latex_again,
+            out_file_path,
+            force_rebuild=force_rebuild,
+            use_sudo=use_sudo,
+        )
+        # Check output.
+        self.assertTrue(
+            os.path.exists(out_file_path),
+            msg=f"Output file {out_file_path} not found",
+        )
+
+    def test2(self) -> None:
+        """
+        Test the code to run `latex` using the command line.
+        """
+        # Prepare inputs.
+        exec_path = hgit.find_file_in_git_tree("dockerized_latex.py")
+        in_file_path, out_file_path = self.create_input_file()
+        out_file_path = os.path.join(self.get_scratch_space(), "output.pdf")
+        # Run function.
+        cmd = f"{exec_path} -i {in_file_path} -o {out_file_path}"
+        hsystem.system(cmd)
+        # Check output.
+        self.assertTrue(
+            os.path.exists(out_file_path),
+            msg=f"Output file {out_file_path} not found",
+        )
+
+    # TODO(gp): This doesn't work since:
+    # 1) `convert_latex_cmd_to_arguments()` is monkey patching with parsing the
+    # arguments. Maybe we need to pass multiple arguments to the mocking since
+    # it's called multiple times.
+    # 2) we re-execute `hdbg.init_logger()` which messes up the global state.
+    # def test3(self) -> None:
+    #     """
+    #     Test the code to run `latex` using the parser.
+    #     """
+    #     from unittest.mock import patch
+    #     import argparse
+    #     # Prepare inputs.
+    #     in_file_path = self.create_input_file()
+    #     out_file_path = os.path.join(self.get_scratch_space(), "output.pdf")
+    #     # Run function.
+    #     mock_args = argparse.Namespace(
+    #             input=in_file_path,
+    #             output=out_file_path,
+    #             run_latex_again=False,
+    #             dockerized_force_rebuild=False,
+    #             dockerized_use_sudo=hdocker.get_use_sudo(),
+    #             log_level=logging.INFO
+    #     )
+    #     with patch("argparse.ArgumentParser.parse_known_args", return_value=(mock_args, [])):
+    #         hdl._main(hdl._parse())
+    #     # Check output.
+    #     self.assertTrue(os.path.exists(out_file_path), msg=f"Output file {out_file_path} not found")
+
+
+# #############################################################################
+# Test_tikz_to_png1
+# #############################################################################
+
+
+@pytest.mark.skipif(
+    hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
+)
+class Test_tikz_to_png1(hunitest.TestCase):
+
+    def create_input_file(self) -> Tuple[str, str]:
+        txt = r"""
+        \documentclass[tikz, border=10pt]{standalone}
+        \usepackage{tikz}
+
+        \begin{document}
+
+        \begin{tikzpicture}[scale=0.8]
+            % Define the sets as circles with transparency
+            \draw[thick, fill=blue!20, opacity=0.6] (0,0) circle (1.5cm);
+            \node at (0,0) {$A$};
+
+            \draw[thick, fill=red!20, opacity=0.6] (4,0) circle (1.5cm);
+            \node at (4,0) {$B$};
+
+            \draw[thick, fill=green!20, opacity=0.6] (2,3.5) circle (1.5cm);
+            \node at (2,3.5) {$C$};
+            % Add a title
+            \node[font=\bfseries] at (2,-2.5) {Pairwise Exclusive Sets};
+            \node[align=center] at (2,-3.3) {No overlap between any pair of sets};
+        \end{tikzpicture}
+
+        \end{document}
+        """
+        in_file_path = _create_test_file(self, txt, extension="tex")
+        out_file_path = os.path.join(self.get_scratch_space(), "output.png")
+        return in_file_path, out_file_path
+
+    def test1(self) -> None:
+        """
+        Test the code to run `latex` inside a Docker container.
+        """
+        # Prepare inputs.
+        in_file_path, out_file_path = self.create_input_file()
+        cmd_opts = ["-density 300", "-quality 10"]
+        force_rebuild = False
+        use_sudo = hdocker.get_use_sudo()
+        # Run function.
+        hdocker.tikz_to_bitmap(
+            in_file_path,
+            cmd_opts,
+            out_file_path,
+            force_rebuild=force_rebuild,
+            use_sudo=use_sudo,
+        )
+        # Check output.
+        self.assertTrue(
+            os.path.exists(out_file_path),
+            msg=f"Output file {out_file_path} not found",
+        )
+
+    def test2(self) -> None:
+        """
+        Test the code to run `latex` using the command line.
+        """
+        # Prepare inputs.
+        exec_path = hgit.find_file_in_git_tree("tikz_to_png.py")
+        in_file_path, out_file_path = self.create_input_file()
+        # Run function.
+        cmd = f"{exec_path} -i {in_file_path} -o {out_file_path} -density 300 -quality 10"
+        hsystem.system(cmd)
+        # Check output.
+        self.assertTrue(
+            os.path.exists(out_file_path),
+            msg=f"Output file {out_file_path} not found",
         )

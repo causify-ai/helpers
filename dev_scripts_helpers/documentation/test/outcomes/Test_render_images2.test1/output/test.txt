@@ -43,7 +43,6 @@ https://c4model.com/.
 
 ## System context diagram
 
-
 [//]: # ( ```plantuml)
 [//]: # ( @startuml)
 [//]: # ( title System Context Diagram)
@@ -79,11 +78,9 @@ https://c4model.com/.
 [//]: # ( imaster <-- models: fetches processed data from)
 [//]: # ( @enduml)
 [//]: # ( ```)
-
 ![](figs/im_architecture.1.png)
 
 ## Container Diagram
-
 
 [//]: # ( ```plantuml)
 [//]: # ( @startuml)
@@ -157,7 +154,6 @@ https://c4model.com/.
 [//]: # ( loader <-up- models: fetches data from)
 [//]: # ( @enduml)
 [//]: # ( ```)
-
 ![](figs/im_architecture.2.png)
 
 ### Questions
@@ -188,7 +184,6 @@ help mitigate these costier steps, and transformation doesn't need to be a
 single step.
 
 # Data Model
-
 
 [//]: # ( ```plantuml)
 [//]: # ( title Data Model)
@@ -292,7 +287,6 @@ single step.
 [//]: # (    AggregateTickData -left-> data.TickData)
 [//]: # ( })
 [//]: # ( ```)
-
 ![](figs/im_architecture.3.png)
 
 ## Notes

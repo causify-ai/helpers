@@ -45,9 +45,9 @@ def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
+    parser.add_argument("-i", "--input", action="store", required=True)
+    parser.add_argument("-o", "--output", action="store", default="")
     hparser.add_dockerized_script_arg(parser)
-    parser.add_argument("--input", action="store")
-    parser.add_argument("--output", action="store", default="")
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -65,8 +65,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
         args.output = args.input
     hdocker.run_dockerized_prettier(
         args.input,
-        args.output,
         cmd_opts,
+        args.output,
         force_rebuild=args.dockerized_force_rebuild,
         use_sudo=args.dockerized_use_sudo,
     )

@@ -1,14 +1,9 @@
 #!/usr/bin/env python
 """
-Run `pandoc` inside a Docker container.
+Run `latex` inside a Docker container.
 
-This script builds the container dynamically if necessary.
-
-> pandoc tmp.pandoc.no_spaces.txt \
-    -t beamer --slide-level 4 -V theme:SimplePlus \
-    --include-in-header=latex_abbrevs.sty \
-    --toc --toc-depth 2 \
-    -o tmp.pandoc.no_spaces.pdf
+This script builds the container dynamically if necessary and formats the
+specified file using the provided `prettier` options.
 """
 
 import argparse
@@ -28,11 +23,10 @@ def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
+    parser.add_argument("-i", "--input", action="store", required=True)
+    parser.add_argument("-o", "--output", action="store", required=True)
+    parser.add_argument("--run_latex_again", action="store_true", default=False)
     hparser.add_dockerized_script_arg(parser)
-    parser.add_argument("--input", action="store")
-    parser.add_argument("--output", action="store", default="")
-    parser.add_argument("--data_dir", action="store")
-    parser.add_argument("--container_type", action="store", default="pandoc_only")
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -45,13 +39,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(
         verbosity=args.log_level, use_exec_path=True, force_white=False
     )
-    _LOG.debug("cmd_opts: %s", cmd_opts)
-    if not args.output:
-        args.output = args.input
-    cmd = "pandoc {args.input} -o {args.output} {cmd_opts}"
-    hdocker.run_dockerized_pandoc(
-        cmd,
-        args.container_type,
+    hdocker.run_basic_latex(
+        args.input,
+        cmd_opts,
+        args.run_latex_again,
+        args.output,
         force_rebuild=args.dockerized_force_rebuild,
         use_sudo=args.dockerized_use_sudo,
     )
