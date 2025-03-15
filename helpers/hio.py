@@ -644,10 +644,7 @@ def rename_file_if_exists(
         os.rename(file_path, new_file_path)
 
 
-def change_file_extension(
-    file_path: str,
-    new_extension: str
-) -> str:
+def change_file_extension(file_path: str, new_extension: str) -> str:
     """
     Change the extension of a file path.
 
@@ -656,7 +653,9 @@ def change_file_extension(
     :return: The new file path with the new extension.
     """
     # Make sure the new extension starts with a dot
-    hdbg.dassert(new_extension.startswith("."), "Invalid extension='%s'", new_extension)
+    hdbg.dassert(
+        new_extension.startswith("."), "Invalid extension='%s'", new_extension
+    )
     # Split the file path into root and extension
     file_name, _ = os.path.splitext(file_path)
     # Create the new file path

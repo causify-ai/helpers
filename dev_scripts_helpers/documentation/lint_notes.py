@@ -289,7 +289,10 @@ def _refresh_toc(
         use_sudo = hdocker.get_use_sudo()
         force_rebuild = False
         hdocker.run_dockerized_markdown_toc(
-            tmp_file_name, cmd_opts, use_sudo=use_sudo, force_rebuild=force_rebuild
+            tmp_file_name,
+            cmd_opts,
+            use_sudo=use_sudo,
+            force_rebuild=force_rebuild,
         )
     else:
         # Run `markdown-toc` installed on the host directly.

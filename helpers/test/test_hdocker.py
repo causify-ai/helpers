@@ -501,7 +501,10 @@ class Test_run_markdown_toc1(hunitest.TestCase):
         use_sudo = hdocker.get_use_sudo()
         force_rebuild = False
         hdocker.run_dockerized_markdown_toc(
-            in_file_path, cmd_opts, use_sudo=use_sudo, force_rebuild=force_rebuild,
+            in_file_path,
+            cmd_opts,
+            use_sudo=use_sudo,
+            force_rebuild=force_rebuild,
         )
         # Check.
         act = hio.from_file(in_file_path)

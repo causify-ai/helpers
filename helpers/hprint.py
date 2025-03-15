@@ -4,12 +4,12 @@ Import as:
 import helpers.hprint as hprint
 """
 
+import functools
 import inspect
 import logging
 import pprint
 import re
 import sys
-import functools
 from typing import (
     Any,
     Callable,

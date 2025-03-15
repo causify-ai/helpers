@@ -202,7 +202,11 @@ def _render_code(
     else:
         # Run the package installed on the host directly.
         cmd = _get_render_command(
-            code_file_path, abs_img_dir_path, rel_img_path, dst_ext, image_code_type
+            code_file_path,
+            abs_img_dir_path,
+            rel_img_path,
+            dst_ext,
+            image_code_type,
         )
         hsystem.system(cmd, dry_run=dry_run)
     # Remove the temp file.
