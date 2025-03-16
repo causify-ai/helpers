@@ -143,6 +143,19 @@ def get_current_arch() -> str:
     return current_arch
 
 
+def _is_compatible_arch(val1: str, val2: str) -> bool:
+    valid_arch = ["x86_64", "amd64", "aarch64", "arm64"]
+    hdbg.dassert_in(val1, valid_arch)
+    hdbg.dassert_in(val2, valid_arch)
+    if val1 == val2:
+        return True
+    compatible_sets = [{'x86', 'amd64'}, {'aarch64', 'arm64'}]
+    for comp_set in compatible_sets:
+        if {val1, val2}.issubset(comp_set):
+            return True
+    return False
+
+
 def check_image_compatibility_with_current_arch(
     image_name: str,
     *,
@@ -186,10 +199,7 @@ def check_image_compatibility_with_current_arch(
     _, image_arch = hsystem.system_to_one_line(cmd)
     _LOG.debug(hprint.to_str("image_arch"))
     # Check architecture compatibility.
-    valid_arch = ["x86_64", "amd64", "aarch64", "arm64"]
-    hdbg.dassert_in(current_arch, valid_arch)
-    hdbg.dassert_in(image_arch, valid_arch)
-    if current_arch != image_arch:
+    if not _is_compatible_arch(current_arch, image_arch):
         msg = f"Running architecture '{current_arch}' != image architecture '{image_arch}'"
         if assert_on_error:
             hdbg.dfatal(msg)

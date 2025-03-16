@@ -62,7 +62,7 @@ class Test_llm_transform1(hunitest.TestCase):
         # the code.
         prompt_tag = "md_format"
         # prompt_tag = "improve_markdown_slide"
-        cmd = f"{script} -i {in_file_name} -o {out_file_name}" f" -t {prompt_tag}"
+        cmd = f"{script} -i {in_file_name} -o {out_file_name} -t {prompt_tag}"
         hsystem.system(cmd)
         # Check.
         act = hio.from_file(out_file_name)
