@@ -598,7 +598,8 @@ def purify_docker_image_name(txt: str) -> str:
     """
     # In a command like:
     # > docker run --rm ...  tmp.latex.edb567be ..
-    txt = re.sub(r"^(.*docker.*tmp\.\S+\.)[a-z0-9]{8}(.*)$", "\1xxxxxxxx\2", txt)
+    txt = re.sub(r"^(.*docker.*\s+tmp\.\S+\.)[a-z0-9]{8}(\s+.*)$", r"\1xxxxxxxx\2", txt
+            , flags=re.MULTILINE)
     return txt
 
 
