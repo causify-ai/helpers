@@ -60,7 +60,7 @@ def container_exists(container_name: str, use_sudo: bool) -> Tuple[bool, str]:
     aed8a5ce33a9
     ```
     """
-    _LOG.debug(hprint.to_str("container_name use_sudo"))
+    _LOG.debug(hprint.func_signature_to_str())
     #
     executable = get_docker_executable(use_sudo)
     cmd = f"{executable} container ls --filter name=/{container_name} -aq"
@@ -80,7 +80,7 @@ def image_exists(image_name: str, use_sudo: bool) -> Tuple[bool, str]:
     aed8a5ce33a9
     ```
     """
-    _LOG.debug(hprint.to_str("image_name use_sudo"))
+    _LOG.debug(hprint.func_signature_to_str())
     #
     executable = get_docker_executable(use_sudo)
     cmd = f"{executable} image ls --filter reference={image_name} -q"
@@ -99,7 +99,7 @@ def container_rm(container_name: str, use_sudo: bool) -> None:
     :param use_sudo: Whether to use sudo for Docker commands.
     :raises AssertionError: If the container ID is not found.
     """
-    _LOG.debug(hprint.to_str("container_name use_sudo"))
+    _LOG.debug(hprint.func_signature_to_str())
     #
     executable = get_docker_executable(use_sudo)
     # Find the container ID from the name.
@@ -122,7 +122,7 @@ def volume_rm(volume_name: str, use_sudo: bool) -> None:
     :param volume_name: Name of the Docker volume to remove.
     :param use_sudo: Whether to use sudo for Docker commands.
     """
-    _LOG.debug(hprint.to_str("volume_name use_sudo"))
+    _LOG.debug(hprint.func_signature_to_str())
     #
     executable = get_docker_executable(use_sudo)
     cmd = f"{executable} volume rm {volume_name}"
@@ -149,7 +149,7 @@ def _is_compatible_arch(val1: str, val2: str) -> bool:
     hdbg.dassert_in(val2, valid_arch)
     if val1 == val2:
         return True
-    compatible_sets = [{'x86', 'amd64'}, {'aarch64', 'arm64'}]
+    compatible_sets = [{'x86_64', 'amd64'}, {'aarch64', 'arm64'}]
     for comp_set in compatible_sets:
         if {val1, val2}.issubset(comp_set):
             return True
@@ -390,7 +390,7 @@ def _dassert_valid_path(file_path: str, is_input: bool) -> None:
     For input files, it ensures that the file or directory exists. For
     output files, it ensures that the enclosing directory exists.
     """
-    _LOG.debug(hprint.to_str("file_path is_input"))
+    _LOG.debug(hprint.func_signature_to_str())
     if is_input:
         # If it's an input file, then `file_path` must exist as a file or a dir.
         hdbg.dassert_path_exists(file_path)
@@ -415,7 +415,7 @@ def _dassert_is_path_included(file_path: str, including_path: str) -> None:
     This function checks if the given file path starts with the
     specified including path. If not, it raises an assertion error.
     """
-    _LOG.debug(hprint.to_str("file_path including_path"))
+    _LOG.debug(hprint.func_signature_to_str())
     # TODO(gp): Maybe we need to normalize the paths.
     hdbg.dassert(
         file_path.startswith(including_path),
@@ -1414,11 +1414,10 @@ def tikz_to_bitmap(
 # #############################################################################
 
 
-# TODO(gp): Move cmd_opts after in_file_path
 def run_dockerized_llm_transform(
     in_file_path: str,
-    out_file_path: str,
     cmd_opts: List[str],
+    out_file_path: str,
     *,
     return_cmd: bool = False,
     force_rebuild: bool = False,
@@ -1513,6 +1512,7 @@ def run_dockerized_llm_transform(
 
 # #############################################################################
 
+
 def run_dockerized_plantuml(
     in_file_path: str,
     out_file_path: str,
@@ -1599,6 +1599,7 @@ def run_dockerized_mermaid(
     :param use_sudo: whether to use sudo for Docker commands
     """
     _LOG.debug(hprint.func_signature_to_str())
+    _ = force_rebuild
     # Build the container, if needed.
     container_image = "minlag/mermaid-cli"
     # Convert files to Docker paths.
