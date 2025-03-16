@@ -290,7 +290,7 @@ def _render_images(
                 dry_run=dry_run,
             )
             # Comment out the end of the image code.
-            out_lines.append(f"{comment_prefix} {line}{comment_postfix}\n")
+            out_lines.append(f"{comment_prefix} {line}{comment_postfix}")
             # Add the code that inserts the image in the file.
             if out_file.endswith(".md") or out_file.endswith(".txt"):
                 # Use the Markdown syntax.
@@ -298,11 +298,10 @@ def _render_images(
                 # out_lines.append(f"![]({rel_img_path})" + "{height=60%}")
             elif out_file.endswith(".tex"):
                 # Use the LaTeX syntax.
-                out_lines.append(r"\begin{figure}")
                 out_lines.append(
-                    rf"  \includegraphics[width=\linewidth]{{{rel_img_path}}}"
-                )
-                out_lines.append(r"\end{figure}")
+                    r"\begin{figure}" +
+                    rf" \includegraphics[width=\linewidth]{{{rel_img_path}}}" +
+                    r" \end{figure}\n")
             else:
                 raise ValueError(f"Unsupported file type: {out_file}")
             # Set the parser to search for a new image code block.

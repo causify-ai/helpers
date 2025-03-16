@@ -358,11 +358,13 @@ def _dassert_valid_path(file_path: str, is_input: bool) -> None:
         # If it's an output, we might be writing a file that doesn't exist yet,
         # but we assume that at the least the directory should be already
         # present.
+        dir_name = os.path.dirname(file_path)
+        hio.create_dir(dir_name, incremental=True) 
         hdbg.dassert(
             os.path.exists(file_path)
-            or os.path.exists(os.path.dirname(file_path)),
-            "Invalid path: %s",
-            file_path,
+            or os.path.exists(dir_name),
+            "Invalid path: '%s' and '%s' don't exist",
+            file_path, dir_name
         )
 
 
@@ -1596,21 +1598,21 @@ def run_dockerized_mermaid(
     caller_mount_path, callee_mount_path, mount = get_docker_mount_info(
         is_caller_host, use_sibling_container_for_callee
     )
-    out_file_path = convert_caller_to_callee_docker_path(
-        out_file_path,
-        caller_mount_path,
-        callee_mount_path,
-        check_if_exists=True,
-        is_input=False,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
-    )
     in_file_path = convert_caller_to_callee_docker_path(
         in_file_path,
         caller_mount_path,
         callee_mount_path,
         check_if_exists=True,
         is_input=True,
+        is_caller_host=is_caller_host,
+        use_sibling_container_for_callee=use_sibling_container_for_callee,
+    )
+    out_file_path = convert_caller_to_callee_docker_path(
+        out_file_path,
+        caller_mount_path,
+        callee_mount_path,
+        check_if_exists=True,
+        is_input=False,
         is_caller_host=is_caller_host,
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
@@ -1625,7 +1627,7 @@ def run_dockerized_mermaid(
     )
     mermaid_cmd = (
         f"mmdc --puppeteerConfigFile {puppeteer_config_path}"
-        + f"-i {in_file_path} -o {out_file_path}"
+        + f" -i {in_file_path} -o {out_file_path}"
     )
     executable = get_docker_executable(use_sudo)
     docker_cmd = (
