@@ -276,7 +276,7 @@ def _render_images(
             image_code_type = line.strip(" `")
             _LOG.debug(" -> state=%s", state)
             # Comment out the beginning of the image code.
-            out_lines.append(f"\n{comment_prefix} {line}{comment_postfix}")
+            out_lines.append(f"{comment_prefix} {line}{comment_postfix}")
         elif line.strip() == "```" and state == "found_image_code":
             # Found the end of an image code block.
             # Render the image.
@@ -301,7 +301,7 @@ def _render_images(
                 out_lines.append(
                     r"\begin{figure}" +
                     rf" \includegraphics[width=\linewidth]{{{rel_img_path}}}" +
-                    r" \end{figure}\n")
+                    r" \end{figure}")
             else:
                 raise ValueError(f"Unsupported file type: {out_file}")
             # Set the parser to search for a new image code block.
