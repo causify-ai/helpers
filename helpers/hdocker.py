@@ -186,7 +186,7 @@ def check_image_compatibility_with_current_arch(
     _, image_arch = hsystem.system_to_one_line(cmd)
     _LOG.debug(hprint.to_str("image_arch"))
     # Check architecture compatibility.
-    valid_arch = ["x86_64", "aarch64", "arm64"]
+    valid_arch = ["x86_64", "amd64", "aarch64", "arm64"]
     hdbg.dassert_in(current_arch, valid_arch)
     hdbg.dassert_in(image_arch, valid_arch)
     if current_arch != image_arch:
