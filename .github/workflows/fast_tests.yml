@@ -45,10 +45,10 @@ jobs:
           role-session-name: ${{ vars.GH_ACTION_AWS_SESSION_NAME }}
           aws-region: ${{ vars.CSFY_AWS_DEFAULT_REGION }}
 
-      # # This is needed to pull the Docker image.
-      # - name: Login to Amazon ECR
-      #   id: login-ecr
-      #   uses: aws-actions/amazon-ecr-login@v1
+      # This is needed to pull the Docker image.
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
 
       - name: Perform GHCR registry login
         if: github.event.pull_request.draft == false
