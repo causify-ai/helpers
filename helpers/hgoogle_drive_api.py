@@ -1,10 +1,10 @@
 """
 Documentation for this module is at
-docs/coding/all.hgoogle_file_api.explanation.md.
+docs/coding/all.hgoogle_drive_api.explanation.md.
 
 Import as:
 
-import helpers.hgoogle_file_api as hgofiapi
+import helpers.hgoogle_drive_api as hgda
 """
 
 import datetime as dt
