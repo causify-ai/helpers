@@ -94,9 +94,9 @@ jobs:
       # Run the `invoke` target `run_fast_tests` to run tests that are under 5 seconds.
       # See the corresponding documentation for more information.
       - name: Run fast tests
-        # https://github.community/t/dont-run-actions-on-draft-pull-requests/16817/19
-        # Do not run on draft pull requests.
         if: github.event.pull_request.draft == false
+      # https://github.community/t/dont-run-actions-on-draft-pull-requests/16817/19
+        # Do not run on draft pull requests.
         env:
           CSFY_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           CSFY_AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
