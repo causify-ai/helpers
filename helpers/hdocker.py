@@ -196,9 +196,6 @@ def check_image_compatibility_with_current_arch(
     cmd = (
         f"{executable} inspect {image_name}" + r" --format '{{.Architecture}}'"
     )
-    cmd = (
-        f"{executable} inspect {image_name}" + r" --format '{{.Architecture}}'"
-    )
     _, image_arch = hsystem.system_to_one_line(cmd)
     _LOG.debug(hprint.to_str("image_arch"))
     # Check architecture compatibility.
@@ -1417,7 +1414,6 @@ def tikz_to_bitmap(
 # #############################################################################
 
 
-# TODO(gp): Move cmd_opts after in_file_path
 def run_dockerized_llm_transform(
     in_file_path: str,
     cmd_opts: List[str],
@@ -1515,6 +1511,7 @@ def run_dockerized_llm_transform(
 
 
 # #############################################################################
+
 
 def run_dockerized_plantuml(
     in_file_path: str,

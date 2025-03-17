@@ -1,4 +1,3 @@
-import argparse
 import logging
 
 import dev_scripts_helpers.documentation.extract_headers_from_markdown as dshdehfma

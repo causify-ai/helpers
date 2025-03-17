@@ -391,6 +391,11 @@ class Test_render_images1(hunitest.TestCase):
         in_lines = r"""
         A
 
+         ```mermaid
+        flowchart TD;
+          A[Start] --> B[End];
+        ```
+        ![](figs/out.1.png)
 
 
         B
@@ -414,6 +419,11 @@ class Test_render_images1(hunitest.TestCase):
         """ """
         in_lines = r"""
         A
+        ```mermaid(hello_world.png)
+        flowchart TD;
+          A[Start] --> B[End];
+        ```
+        ![](hello_world.png)
 
         B
         """
