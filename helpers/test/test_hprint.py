@@ -93,30 +93,30 @@ class Test_to_str1(hunitest.TestCase):
 def example_func1(x: int, y: str) -> str:
     _ = x, y
     ret = hprint.func_signature_to_str()
-    return ret
+    return ret  # type: ignore[no-any-return]
 
 
 def example_func2() -> str:
     ret = hprint.func_signature_to_str()
-    return ret
+    return ret  # type: ignore[no-any-return]
 
 
 def example_func3(x: int, y: str) -> str:
     _ = x, y
     ret = hprint.func_signature_to_str("y")
-    return ret
+    return ret  # type: ignore[no-any-return]
 
 
 def example_func4(x: int, y: str, z: float) -> str:
     _ = x, y, z
     ret = hprint.func_signature_to_str("x z")
-    return ret
+    return ret  # type: ignore[no-any-return]
 
 
 def example_func5(x: int, y: str, z: float) -> str:
     _ = x, y, z
     ret = hprint.func_signature_to_str(["y", "z"])
-    return ret
+    return ret  # type: ignore[no-any-return]
 
 
 # #############################################################################

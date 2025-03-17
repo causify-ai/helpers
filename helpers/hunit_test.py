@@ -403,10 +403,10 @@ def purify_from_environment(txt: str) -> str:
     # Set a regex pattern that finds a user name surrounded by dot, dash or space.
     # E.g., `IMAGE=$CSFY_ECR_BASE_PATH/amp_test:local-$USER_NAME-1.0.0`,
     # `--name $USER_NAME.amp_test.app.app`, `run --rm -l user=$USER_NAME`.
-    pattern = rf"([\s\n\-\.\=]|^)+{user_name}+([.\s/-]|$)"
+    regex = rf"([\s\n\-\.\=]|^)+{user_name}+([.\s/-]|$)"
     # Use `\1` and `\2` to preserve specific characters around `$USER_NAME`.
     target = r"\1$USER_NAME\2"
-    txt = re.sub(pattern, target, txt)
+    txt = re.sub(regex, target, txt)
     _LOG.debug("After %s: txt='\n%s'", hintros.get_function_name(), txt)
     return txt
 
@@ -1326,10 +1326,10 @@ class TestCase(unittest.TestCase):
         hdbg.dassert_isinstance(s3_bucket, str)
         # Make the path unique for the test.
         test_path = self.get_input_dir(
-            use_only_test_class,
-            test_class_name,
-            test_method_name,
-            use_absolute_path,
+            use_only_test_class=use_only_test_class,
+            test_class_name=test_class_name,
+            test_method_name=test_method_name,
+            use_absolute_path=use_absolute_path,
         )
         hdbg.dassert_isinstance(test_path, str)
         # Assemble everything in a single path.

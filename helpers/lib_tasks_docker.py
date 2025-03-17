@@ -362,6 +362,7 @@ def _docker_login_ecr() -> None:
     # TODO(gp): Hack
     profile = "ck"
     region = hs3.AWS_EUROPE_REGION_1
+    cmd = ""
     if major_version == 1:
         cmd = f"eval $(aws ecr get-login --profile {profile} --no-include-email --region {region})"
     elif major_version == 2:
