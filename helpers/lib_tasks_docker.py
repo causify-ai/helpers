@@ -1136,8 +1136,8 @@ def _get_docker_base_cmd(
     image = get_image(base_image, stage, version)
     _LOG.debug("base_image=%s stage=%s -> image=%s", base_image, stage, image)
     dassert_is_image_name_valid(image)
-    # The check is mainly for developers to avoid to use the wrong image (e.g., 
-    # an x86 on arm, since the result it's just no warning and super slow 
+    # The check is mainly for developers to avoid to use the wrong image (e.g.,
+    # an x86 on arm, since the result it's just no warning and super slow
     # execution).
     # We can skip the image compatibility check during the CI.
     if not hserver.is_inside_ci():
