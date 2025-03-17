@@ -38,12 +38,12 @@ jobs:
       # pulling the image from ECR, enable this.
       # Pass AWS credentials via GH secrets. This is needed to pull the Docker image
       # that will be used to run the action.
-      # - name: Configure AWS credentials
-      #   uses: aws-actions/configure-aws-credentials@v1
-      #   with:
-      #     role-to-assume: ${{ vars.GH_ACTION_AWS_ROLE_ARN }}
-      #     role-session-name: ${{ vars.GH_ACTION_AWS_SESSION_NAME }}
-      #     aws-region: ${{ vars.CSFY_AWS_DEFAULT_REGION }}
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ vars.GH_ACTION_AWS_ROLE_ARN }}
+          role-session-name: ${{ vars.GH_ACTION_AWS_SESSION_NAME }}
+          aws-region: ${{ vars.CSFY_AWS_DEFAULT_REGION }}
 
       # # This is needed to pull the Docker image.
       # - name: Login to Amazon ECR
@@ -93,9 +93,7 @@ jobs:
         
       # Run the `invoke` target `run_fast_tests` to run tests that are under 5 seconds.
       # See the corresponding documentation for more information.
-      # - name: Run fast tests
-      - name: ssh
-        uses: lhotari/action-upterm@v1
+      - name: Run fast tests
         if: github.event.pull_request.draft == false
       # https://github.community/t/dont-run-actions-on-draft-pull-requests/16817/19
         # Do not run on draft pull requests.
@@ -115,7 +113,7 @@ jobs:
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
           CSFY_TELEGRAM_TOKEN: ${{ secrets.CSFY_TELEGRAM_TOKEN }}
           GH_ACTION_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        # run: invoke run_fast_tests
+        run: invoke run_fast_tests
         # TODO(gp): Run a single test. You need to disable the `push` on master.
         #run: invoke run_fast_tests --pytest-opts="./helpers/test/test_lib_tasks.py::TestGhLogin1 -s --dbg"
         #run: invoke run_fast_tests --pytest-opts="helpers/test/test_git.py::Test_git_modified_files1::test_get_modified_files_in_branch1 -s --dbg"
