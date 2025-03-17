@@ -2,6 +2,8 @@ import logging
 import os
 import re
 
+import pytest
+
 import dev_scripts_helpers.documentation.render_images as dshdreim
 import helpers.hdbg as hdbg
 import helpers.hio as hio
