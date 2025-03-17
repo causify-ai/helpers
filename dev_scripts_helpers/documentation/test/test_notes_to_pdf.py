@@ -76,9 +76,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         cmd.append(exec_path)
         cmd.append(f"--input {in_file}")
         cmd.append(f"--type {type_}")
-        #tmp_dir = self.get_scratch_space()
         out_dir = self.get_scratch_space()
-        #cmd.append(f"--tmp_dir {tmp_dir}")
         # Save a script file to store the commands.
         script_file = os.path.join(out_dir, "script.sh")
         cmd.append(f"--script {script_file}")

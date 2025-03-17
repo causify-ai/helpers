@@ -24,7 +24,6 @@ Usage:
 import argparse
 import logging
 import os
-import re
 import tempfile
 from typing import List, Tuple
 
@@ -299,9 +298,10 @@ def _render_images(
             elif out_file.endswith(".tex"):
                 # Use the LaTeX syntax.
                 out_lines.append(
-                    r"\begin{figure}" +
-                    rf" \includegraphics[width=\linewidth]{{{rel_img_path}}}" +
-                    r" \end{figure}")
+                    r"\begin{figure}"
+                    + rf" \includegraphics[width=\linewidth]{{{rel_img_path}}}"
+                    + r" \end{figure}"
+                )
             else:
                 raise ValueError(f"Unsupported file type: {out_file}")
             # Set the parser to search for a new image code block.

@@ -35,7 +35,10 @@ _LOG = logging.getLogger(__name__)
 
 
 def _extract_headers_from_markdown(
-    in_file_name: str, mode: str, max_level: int, out_file_name: str, 
+    in_file_name: str,
+    mode: str,
+    max_level: int,
+    out_file_name: str,
 ) -> None:
     input_content = hparser.read_file(in_file_name)
     input_content = "\n".join(input_content)
@@ -87,7 +90,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     in_file_name, out_file_name = hparser.parse_input_output_args(args)
     #
-    _extract_headers_from_markdown(in_file_name, args.mode, args.max_level, out_file_name)
+    _extract_headers_from_markdown(
+        in_file_name, args.mode, args.max_level, out_file_name
+    )
 
 
 if __name__ == "__main__":

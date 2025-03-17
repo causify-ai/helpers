@@ -81,7 +81,8 @@ class TestTestCase1(hunitest.TestCase):
         test_method_name = "test_method"
         act = self.get_input_dir(
             use_only_test_class=use_only_test_class,
-            test_class_name=test_class_name, test_method_name=test_method_name
+            test_class_name=test_class_name,
+            test_method_name=test_method_name,
         )
         act = hunitest.purify_txt_from_client(act)
         #
@@ -93,8 +94,9 @@ class TestTestCase1(hunitest.TestCase):
         test_class_name = None
         test_method_name = None
         act = self.get_input_dir(
-                 use_only_test_class=use_only_test_class,
- test_class_name=test_class_name, test_method_name=test_method_name
+            use_only_test_class=use_only_test_class,
+            test_class_name=test_class_name,
+            test_method_name=test_method_name,
         )
         act = hunitest.purify_txt_from_client(act)
         #
@@ -106,8 +108,9 @@ class TestTestCase1(hunitest.TestCase):
         test_class_name = None
         test_method_name = None
         act = self.get_input_dir(
-                 use_only_test_class=use_only_test_class,
- test_class_name=test_class_name, test_method_name=test_method_name
+            use_only_test_class=use_only_test_class,
+            test_class_name=test_class_name,
+            test_method_name=test_method_name,
         )
         act = hunitest.purify_txt_from_client(act)
         #
@@ -139,8 +142,8 @@ class TestTestCase1(hunitest.TestCase):
         test_class_name = "test_class"
         test_method_name = "test_method"
         act = self.get_scratch_space(
-
-                test_class_name=test_class_name, test_method_name=test_method_name)
+            test_class_name=test_class_name, test_method_name=test_method_name
+        )
         act = hunitest.purify_txt_from_client(act)
         exp = "$GIT_ROOT/helpers/test/outcomes/test_class.test_method/tmp.scratch"
         self.assertEqual(act, exp)
@@ -150,8 +153,9 @@ class TestTestCase1(hunitest.TestCase):
         test_method_name = "test_method"
         use_absolute_path = False
         act = self.get_scratch_space(
- test_class_name=test_class_name, test_method_name=test_method_name,
-             use_absolute_path =use_absolute_path,
+            test_class_name=test_class_name,
+            test_method_name=test_method_name,
+            use_absolute_path=use_absolute_path,
         )
         act = hunitest.purify_txt_from_client(act)
         exp = "outcomes/test_class.test_method/tmp.scratch"
@@ -165,7 +169,9 @@ class TestTestCase1(hunitest.TestCase):
     def test_get_s3_scratch_dir2(self) -> None:
         test_class_name = "test_class"
         test_method_name = "test_method"
-        act = self.get_s3_scratch_dir(test_class_name=test_class_name, test_method_name=test_method_name)
+        act = self.get_s3_scratch_dir(
+            test_class_name=test_class_name, test_method_name=test_method_name
+        )
         _LOG.debug("act=%s", act)
         # It is difficult to test, so we just execute.
 
@@ -1296,7 +1302,7 @@ class Test_purify_from_environment1(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_purify_line_number
+# Test_purify_line_number1
 # #############################################################################
 
 
