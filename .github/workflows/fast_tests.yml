@@ -89,6 +89,8 @@ jobs:
       #   run: invoke docker_pull
 
       - name: ssh
+        env:
+          GH_ACTION_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         uses: lhotari/action-upterm@v1
 
       # Pull the latest Docker image from GHCR registry instead of ECR for cost saving purposes to run the regressions on.
