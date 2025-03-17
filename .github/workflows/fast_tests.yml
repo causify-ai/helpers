@@ -31,11 +31,6 @@ permissions:
   packages: read  
 jobs:
   run_fast_tests:
-    container:
-      image: ghcr.io/causify-ai/cmamp:dev
-      credentials:
-        username: gpsaggese
-        password: ${{ secrets.GITHUB_TOKEN }}    
     permissions:
       packages: read
     runs-on: ubuntu-latest
