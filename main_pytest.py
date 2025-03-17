@@ -103,7 +103,7 @@ def _run_test(runnable_dir: str, command: str) -> None:
     result = subprocess.run(
         f"invoke {command}", shell=True, env=env, cwd=runnable_dir
     )
-    # Error code is not propagated upward to the parent process causing the 
+    # Error code is not propagated upward to the parent process causing the
     # GH actions to not fail the pipeline (See CmampTask11449).
     # We need to explicitly exit with the return code of the subprocess.
     if result.returncode != 0:
