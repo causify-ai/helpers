@@ -8,16 +8,25 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 
+# #############################################################################
+# Test_printing1
+# #############################################################################
+
+
 class Test_printing1(hunitest.TestCase):
+
     def test_color_highlight1(self) -> None:
         for c in hprint._COLOR_MAP:
             _LOG.debug(hprint.color_highlight(c, c))
 
 
 # #############################################################################
+# Test_to_str1
+# #############################################################################
 
 
 class Test_to_str1(hunitest.TestCase):
+
     def test1(self) -> None:
         x = 1
         # To disable linter complaints.
@@ -81,7 +90,75 @@ class Test_to_str1(hunitest.TestCase):
 # #############################################################################
 
 
+def example_func1(x: int, y: str) -> str:
+    _ = x, y
+    ret = hprint.func_signature_to_str()
+    return ret  # type: ignore[no-any-return]
+
+
+def example_func2() -> str:
+    ret = hprint.func_signature_to_str()
+    return ret  # type: ignore[no-any-return]
+
+
+def example_func3(x: int, y: str) -> str:
+    _ = x, y
+    ret = hprint.func_signature_to_str("y")
+    return ret  # type: ignore[no-any-return]
+
+
+def example_func4(x: int, y: str, z: float) -> str:
+    _ = x, y, z
+    ret = hprint.func_signature_to_str("x z")
+    return ret  # type: ignore[no-any-return]
+
+
+def example_func5(x: int, y: str, z: float) -> str:
+    _ = x, y, z
+    ret = hprint.func_signature_to_str(["y", "z"])
+    return ret  # type: ignore[no-any-return]
+
+
+# #############################################################################
+# Test_func_signature_to_str1
+# #############################################################################
+
+
+class Test_func_signature_to_str1(hunitest.TestCase):
+
+    def test1(self) -> None:
+        act = example_func1(1, "hello")
+        exp = "# example_func1: x=1, y='hello'"
+        self.assert_equal(act, exp)
+
+    def test2(self) -> None:
+        act = example_func2()
+        exp = "# example_func2:"
+        self.assert_equal(act, exp)
+
+    def test3(self) -> None:
+        act = example_func3(1, "hello")
+        exp = "# example_func3: x=1"
+        self.assert_equal(act, exp)
+
+    def test4(self) -> None:
+        act = example_func4(1, "hello", 3.14)
+        exp = "# example_func4: y='hello'"
+        self.assert_equal(act, exp)
+
+    def test5(self) -> None:
+        act = example_func5(1, "hello", 3.14)
+        exp = "# example_func5: x=1"
+        self.assert_equal(act, exp)
+
+
+# #############################################################################
+# Test_log
+# #############################################################################
+
+
 class Test_log(hunitest.TestCase):
+
     def test2(self) -> None:
         x = 1
         # To disable linter complaints.
@@ -118,9 +195,12 @@ class Test_log(hunitest.TestCase):
 
 
 # #############################################################################
+# Test_sort_dictionary
+# #############################################################################
 
 
 class Test_sort_dictionary(hunitest.TestCase):
+
     def test1(self) -> None:
         dict_ = {
             "tool": {
@@ -172,40 +252,46 @@ class Test_sort_dictionary(hunitest.TestCase):
 
 
 # #############################################################################
+# Test_indent1
+# #############################################################################
 
 
 class Test_indent1(hunitest.TestCase):
+
     def test1(self) -> None:
         txt = """foo
 
-class TestHelloWorld(hunitest.TestCase):
+klass TestHelloWorld(hunitest.TestCase):
     bar
 """
         num_spaces = 2
         act = hprint.indent(txt, num_spaces=num_spaces)
         exp = """  foo
 
-  class TestHelloWorld(hunitest.TestCase):
+  klass TestHelloWorld(hunitest.TestCase):
       bar
 """
         self.assert_equal(act, exp, fuzzy_match=False)
 
 
 # #############################################################################
+# Test_dedent1
+# #############################################################################
 
 
 class Test_dedent1(hunitest.TestCase):
+
     def test1(self) -> None:
         txt = """
         foo
 
-        class TestHelloWorld(hunitest.TestCase):
+        klass TestHelloWorld(hunitest.TestCase):
             bar
 """
         act = hprint.dedent(txt)
         exp = """foo
 
-class TestHelloWorld(hunitest.TestCase):
+klass TestHelloWorld(hunitest.TestCase):
     bar"""
         self.assert_equal(act, exp, fuzzy_match=False)
 
@@ -234,6 +320,10 @@ zscore:
         """
         txt1 = """foo
 
+# #############################################################################
+# TestHelloWorld
+# #############################################################################
+
 class TestHelloWorld(hunitest.TestCase):
     bar"""
         num_spaces = 3
@@ -243,28 +333,34 @@ class TestHelloWorld(hunitest.TestCase):
 
 
 # #############################################################################
+# Test_align_on_left1
+# #############################################################################
 
 
 class Test_align_on_left1(hunitest.TestCase):
+
     def test1(self) -> None:
         txt = """foo
 
-class TestHelloWorld(hunitest.TestCase):
+klass TestHelloWorld(hunitest.TestCase):
     bar
 """
         act = hprint.align_on_left(txt)
         exp = """foo
 
-class TestHelloWorld(hunitest.TestCase):
+klass TestHelloWorld(hunitest.TestCase):
 bar
 """
         self.assert_equal(act, exp, fuzzy_match=False)
 
 
 # #############################################################################
+# Test_logging1
+# #############################################################################
 
 
 class Test_logging1(hunitest.TestCase):
+
     def test_log_frame1(self) -> None:
         hprint.log_frame(_LOG, "%s %s", "hello", "world")
 
@@ -276,9 +372,12 @@ class Test_logging1(hunitest.TestCase):
 
 
 # #############################################################################
+# Test_remove_lead_trail_empty_lines1
+# #############################################################################
 
 
 class Test_remove_lead_trail_empty_lines1(hunitest.TestCase):
+
     def helper(self, input_str: str, expected_output: List[str]) -> None:
         """
         Test the `remove_lead_trail_empty_lines` function.
@@ -336,7 +435,7 @@ class Test_remove_lead_trail_empty_lines1(hunitest.TestCase):
 
     def test_only_empty_lines_returns_empty_list(self) -> None:
         input_str: str = "\n\n\n"
-        expected_output = []
+        expected_output: List[str] = []
         self.helper(input_str, expected_output)
 
     def test_mixed_content_with_leading_trailing_and_middle_empty_lines(
@@ -348,7 +447,7 @@ class Test_remove_lead_trail_empty_lines1(hunitest.TestCase):
 
     def test_single_empty_line_returns_empty_list(self) -> None:
         input_str: str = "\n"
-        expected_output = []
+        expected_output: List[str] = []
         self.helper(input_str, expected_output)
 
     def test_multiple_consecutive_empty_lines_at_beginning_and_end(self) -> None:

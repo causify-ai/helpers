@@ -16,6 +16,7 @@ import logging
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hparser as hparser
+import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
@@ -23,17 +24,21 @@ _LOG = logging.getLogger(__name__)
 
 def _build_container() -> str:
     container_name = "convert_docx_to_markdown"
-    txt = b"""
-FROM ubuntu:latest
+    txt = r"""
+    FROM ubuntu:latest
 
-RUN apt-get update && \
-    apt-get -y upgrade
+    RUN apt-get update && \
+        apt-get -y upgrade
 
-RUN apt-get install -y curl pandoc && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-"""
-    container_name = hdocker.build_container(container_name, txt)
+    RUN apt-get install -y curl pandoc && \
+        apt-get clean && \
+        rm -rf /var/lib/apt/lists/*
+    """
+    txt = hprint.dedent()
+    force_rebuild = False
+    use_sudo = False
+    container_name = hdocker.build_container_image(container_name, txt,
+                                                   force_rebuild, use_sudo)
     return container_name
 
 
@@ -82,6 +87,7 @@ def _parse() -> argparse.ArgumentParser:
         type=str,
         help="The output Markdown file",
     )
+    hparser.add_dockerized_script_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 
