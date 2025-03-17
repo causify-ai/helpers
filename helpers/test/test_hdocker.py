@@ -202,6 +202,7 @@ def _create_test_file(self_: Any, txt: str, extension: str) -> str:
 # #############################################################################
 
 
+# TODO(gp): -> Test_dockerized_prettier1
 @pytest.mark.skipif(
     hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
 )
@@ -210,35 +211,7 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
     Test running the `prettier` command inside a Docker container.
     """
 
-    def test1(self) -> None:
-        txt = """
-        - A
-          - B
-              - C
-                """
-        exp = """
-        - A
-          - B
-            - C
-        """
-        self.run_prettier(txt, exp)
-
-    def test2(self) -> None:
-        txt = r"""
-        *  Good time management
-
-        1. choose the right tasks
-            -   avoid non-essential tasks
-        """
-        exp = r"""
-        - Good time management
-
-        1. choose the right tasks
-           - avoid non-essential tasks
-        """
-        self.run_prettier(txt, exp)
-
-    def run_prettier(self, txt: str, exp: str) -> None:
+    def helper(self, txt: str, exp: str) -> None:
         """
         Test running the `prettier` command in a Docker container.
 
@@ -258,8 +231,8 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
         use_sudo = hdocker.get_use_sudo()
         hdocker.run_dockerized_prettier(
             in_file_path,
-            out_file_path,
             cmd_opts,
+            out_file_path,
             force_rebuild=force_rebuild,
             use_sudo=use_sudo,
         )
@@ -268,6 +241,34 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
         self.assert_equal(
             act, exp, dedent=True, remove_lead_trail_empty_lines=True
         )
+
+    def test1(self) -> None:
+        txt = """
+        - A
+          - B
+              - C
+                """
+        exp = """
+        - A
+          - B
+            - C
+        """
+        self.helper(txt, exp)
+
+    def test2(self) -> None:
+        txt = r"""
+        *  Good time management
+
+        1. choose the right tasks
+            -   avoid non-essential tasks
+        """
+        exp = r"""
+        - Good time management
+
+        1. choose the right tasks
+           - avoid non-essential tasks
+        """
+        self.helper(txt, exp)
 
 
 # #############################################################################
@@ -379,6 +380,7 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(gp): -> Test_dockerized_pandoc1
 @pytest.mark.skipif(
     hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
 )
@@ -447,6 +449,7 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(gp): -> Test_dockerized_markdown_toc1
 @pytest.mark.skipif(
     hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
 )
@@ -494,10 +497,13 @@ class Test_run_markdown_toc1(hunitest.TestCase):
         cmd_opts: List[str] = []
         # Run `markdown-toc` in a Docker container.
         in_file_path = _create_test_file(self, txt, extension="md")
-        force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
+        force_rebuild = False
         hdocker.run_dockerized_markdown_toc(
-            in_file_path, force_rebuild, cmd_opts, use_sudo=use_sudo
+            in_file_path,
+            cmd_opts,
+            use_sudo=use_sudo,
+            force_rebuild=force_rebuild,
         )
         # Check.
         act = hio.from_file(in_file_path)

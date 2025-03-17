@@ -4,12 +4,12 @@ Import as:
 import helpers.hprint as hprint
 """
 
+import functools
 import inspect
 import logging
 import pprint
 import re
 import sys
-import functools
 from typing import (
     Any,
     Callable,
@@ -481,6 +481,23 @@ def round_digits(
 # name of variables from the caller.
 
 
+_VarNamesType = Optional[Union[str, List[str]]]
+
+
+def _to_var_list(expression: _VarNamesType) -> List[str]:
+    if isinstance(expression, List):
+        return expression
+    hdbg.dassert_isinstance(expression, str)
+    # If expression is a list of space-separated expressions, convert each in a
+    # string.
+    exprs = [v.lstrip().rstrip() for v in expression.split(" ")]
+    # Remove empty var names.
+    exprs = [v for v in exprs if v.strip().rstrip() != ""]
+    hdbg.dassert_isinstance(exprs, list)
+    hdbg.dassert_lte(1, len(exprs))
+    return exprs
+
+
 def to_str(
     expression: str,
     *,
@@ -511,7 +528,7 @@ def to_str(
     :param frame_level: level of the frame to inspect
     :param print_lhs: whether we want to print the left hand side (i.e., `exp1`)
     :param char_separator: separator between the values of the expressions
-        (e.g., `,`)
+        when printed (e.g., `,`)
     :param mode: select how to print the value of the expressions (e.g., `str`,
         `repr`, `pprint`, `pprint_color`)
     """
@@ -519,11 +536,7 @@ def to_str(
     # E.g., https://github.com/pwwang/python-varname
     hdbg.dassert_isinstance(expression, str)
     if " " in expression:
-        # If expression is a list of space-separated expression, convert each in a
-        # string.
-        exprs = [v.lstrip().rstrip() for v in expression.split(" ")]
-        # Remove empty names.
-        exprs = [v for v in exprs if v.strip().rstrip() != ""]
+        exprs = _to_var_list(expression)
         # Convert each expression into a value.
         _to_str = lambda x: to_str(x, frame_level=frame_level + 2)
         values = list(map(_to_str, exprs))
@@ -558,13 +571,11 @@ def to_str(
     return ret
 
 
-_SkipVarsType = Optional[Union[str, List[str]]]
-
-
+# TODO(gp): Extend this to work on class methods, static and not.
 def _func_signature_to_str(
-    skip_vars: _SkipVarsType = None,
-    assert_on_skip_vars_error: bool = True,
-    frame_level: int = 1,
+    skip_vars: _VarNamesType,
+    assert_on_skip_vars_error: bool,
+    frame_level: int,
 ) -> Tuple[str, str]:
     """
     Return the variables of the caller function as a string.
@@ -573,8 +584,8 @@ def _func_signature_to_str(
     :return: function name and string with the variables of the caller function
         as `var1 var2 ...`
     """
-    if isinstance(skip_vars, str):
-        skip_vars = [skip_vars]
+    if skip_vars is not None:
+        skip_vars = _to_var_list(skip_vars)
     # Get the caller's frame (i.e., the function that called this function).
     caller_frame = inspect.currentframe()
     for _ in range(frame_level):
@@ -600,7 +611,9 @@ def _func_signature_to_str(
 
 
 def func_signature_to_str(
-    skip_vars: _SkipVarsType = None,
+    # We don't use * since we want to keep it simple to call this function.
+    skip_vars: _VarNamesType = None,
+    *,
     assert_on_skip_vars_error: bool = True,
     frame_level: int = 2,
 ) -> str:
@@ -620,14 +633,17 @@ def func_signature_to_str(
     """
     # Get the variables.
     func_name, func_signature = _func_signature_to_str(
-        skip_vars=skip_vars,
-        assert_on_skip_vars_error=assert_on_skip_vars_error,
-        frame_level=frame_level,
+        skip_vars,
+        assert_on_skip_vars_error,
+        frame_level,
     )
     # Get the value of the variables.
     val = to_str(func_signature, frame_level=frame_level)
     val = f"# {func_name}: {val}"
     return val
+
+
+# #############################################################################
 
 
 def log(logger: logging.Logger, verbosity: int, *vals: Any) -> None:
