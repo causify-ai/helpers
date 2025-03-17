@@ -1133,8 +1133,11 @@ def _get_docker_base_cmd(
     image = get_image(base_image, stage, version)
     _LOG.debug("base_image=%s stage=%s -> image=%s", base_image, stage, image)
     dassert_is_image_name_valid(image)
-    # Check image compatibility.
-    hdocker.check_image_compatibility_with_current_arch(image)
+    # The check is mainly for developers to avoid using the wrong image (e.g.,
+    # an x86 vs ARM architecture).
+    # We can skip the image compatibility check during the CI.
+    if not hserver.is_inside_ci():
+        hdocker.check_image_compatibility_with_current_arch(image)
     docker_cmd_.append(f"IMAGE={image}")
     # - Handle extra env vars.
     if extra_env_vars:
