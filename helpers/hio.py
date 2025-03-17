@@ -666,7 +666,7 @@ def change_file_extension(file_path: str, new_extension: str) -> str:
 def wait_for_file(
     file_path: str,
     *,
-    check_interval_in_secs: int = 0.5,
+    check_interval_in_secs: float = 0.5,
     timeout_in_secs: int = 10,
 ) -> None:
     """

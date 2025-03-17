@@ -362,6 +362,7 @@ def _docker_login_ecr() -> None:
     # TODO(gp): Hack
     profile = "ck"
     region = hs3.AWS_EUROPE_REGION_1
+    cmd = ""
     if major_version == 1:
         cmd = f"eval $(aws ecr get-login --profile {profile} --no-include-email --region {region})"
     elif major_version == 2:
@@ -1137,7 +1138,7 @@ def _get_docker_base_cmd(
     _LOG.debug("base_image=%s stage=%s -> image=%s", base_image, stage, image)
     dassert_is_image_name_valid(image)
     # Check image compatibility.
-    hdocker.check_image_compatibility_with_host(image)
+    hdocker.check_image_compatibility_with_current_arch(image)
     docker_cmd_.append(f"IMAGE={image}")
     # - Handle extra env vars.
     if extra_env_vars:

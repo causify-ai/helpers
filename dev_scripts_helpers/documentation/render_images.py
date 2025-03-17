@@ -115,6 +115,7 @@ def _get_render_command(
     valid_extensions = ["svg", "png"]
     hdbg.dassert_in(dst_ext, valid_extensions)
     # Create the command.
+    cmd = ""
     if image_code_type == "plantuml":
         cmd = f"plantuml -t {dst_ext} -o {abs_img_dir_path} {code_file_path}"
     elif image_code_type == "mermaid":
@@ -192,7 +193,7 @@ def _render_code(
         elif image_code_type == "mermaid":
             hdocker.run_dockerized_mermaid(code_file_path, rel_img_path)
         elif image_code_type == "tikz":
-            cmd_opts = []
+            cmd_opts: List[str] = []
             hdocker.tikz_to_bitmap(code_file_path, cmd_opts, rel_img_path)
         elif image_code_type == "graphviz":
             # TODO(gp): Implement this.

@@ -57,9 +57,6 @@ def _to_skip_on_update_outcomes() -> bool:
 
 
 # #############################################################################
-
-
-# #############################################################################
 # TestTestCase1
 # #############################################################################
 
@@ -83,7 +80,9 @@ class TestTestCase1(hunitest.TestCase):
         test_class_name = "test_class"
         test_method_name = "test_method"
         act = self.get_input_dir(
-            use_only_test_class, test_class_name, test_method_name
+            use_only_test_class=use_only_test_class,
+            test_class_name=test_class_name,
+            test_method_name=test_method_name,
         )
         act = hunitest.purify_txt_from_client(act)
         #
@@ -95,7 +94,9 @@ class TestTestCase1(hunitest.TestCase):
         test_class_name = None
         test_method_name = None
         act = self.get_input_dir(
-            use_only_test_class, test_class_name, test_method_name
+            use_only_test_class=use_only_test_class,
+            test_class_name=test_class_name,
+            test_method_name=test_method_name,
         )
         act = hunitest.purify_txt_from_client(act)
         #
@@ -107,7 +108,9 @@ class TestTestCase1(hunitest.TestCase):
         test_class_name = None
         test_method_name = None
         act = self.get_input_dir(
-            use_only_test_class, test_class_name, test_method_name
+            use_only_test_class=use_only_test_class,
+            test_class_name=test_class_name,
+            test_method_name=test_method_name,
         )
         act = hunitest.purify_txt_from_client(act)
         #
@@ -138,7 +141,9 @@ class TestTestCase1(hunitest.TestCase):
     def test_get_scratch_space2(self) -> None:
         test_class_name = "test_class"
         test_method_name = "test_method"
-        act = self.get_scratch_space(test_class_name, test_method_name)
+        act = self.get_scratch_space(
+            test_class_name=test_class_name, test_method_name=test_method_name
+        )
         act = hunitest.purify_txt_from_client(act)
         exp = "$GIT_ROOT/helpers/test/outcomes/test_class.test_method/tmp.scratch"
         self.assertEqual(act, exp)
@@ -148,7 +153,9 @@ class TestTestCase1(hunitest.TestCase):
         test_method_name = "test_method"
         use_absolute_path = False
         act = self.get_scratch_space(
-            test_class_name, test_method_name, use_absolute_path
+            test_class_name=test_class_name,
+            test_method_name=test_method_name,
+            use_absolute_path=use_absolute_path,
         )
         act = hunitest.purify_txt_from_client(act)
         exp = "outcomes/test_class.test_method/tmp.scratch"
@@ -162,7 +169,9 @@ class TestTestCase1(hunitest.TestCase):
     def test_get_s3_scratch_dir2(self) -> None:
         test_class_name = "test_class"
         test_method_name = "test_method"
-        act = self.get_s3_scratch_dir(test_class_name, test_method_name)
+        act = self.get_s3_scratch_dir(
+            test_class_name=test_class_name, test_method_name=test_method_name
+        )
         _LOG.debug("act=%s", act)
         # It is difficult to test, so we just execute.
 
@@ -199,7 +208,7 @@ class TestTestCase1(hunitest.TestCase):
         len(file_names)=1
         file_names=$TMP_DIR/tmp_diff.sh
         # $TMP_DIR/tmp_diff.sh
-        num_lines=9
+        num_lines=8
         '''
         #!/bin/bash
         if [[ $1 == "wrap" ]]; then
@@ -246,9 +255,6 @@ class TestTestCase1(hunitest.TestCase):
         # #####################################################################
         """
         self.assert_equal(act, exp, fuzzy_match=False)
-
-
-# #############################################################################
 
 
 # #############################################################################
@@ -373,9 +379,6 @@ end
 """
         exp = "hello"
         self.assert_equal(act, exp, fuzzy_match=False)
-
-
-# #############################################################################
 
 
 # #############################################################################
@@ -585,9 +588,6 @@ class TestCheckString1(hunitest.TestCase):
         self.assertFalse(is_equal)
         #
         self.assertEqual(new_golden, "hello world")
-
-
-# #############################################################################
 
 
 # #############################################################################
@@ -874,9 +874,6 @@ class TestCheckDataFrame1(hunitest.TestCase):
 
 
 # #############################################################################
-
-
-# #############################################################################
 # Test_check_string_debug1
 # #############################################################################
 
@@ -896,9 +893,6 @@ class Test_check_string_debug1(hunitest.TestCase):
         self.check_dataframe(
             act, action_on_missing_golden=action_on_missing_golden
         )
-
-
-# #############################################################################
 
 
 # #############################################################################
@@ -951,9 +945,6 @@ dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py:3: error: Nam
 
 
 # #############################################################################
-
-
-# #############################################################################
 # Test_unit_test2
 # #############################################################################
 
@@ -990,9 +981,6 @@ class Test_unit_test2(hunitest.TestCase):
         """
         act = hunitest.purify_parquet_file_names(txt)
         hdbg.dassert_eq(act, exp)
-
-
-# #############################################################################
 
 
 # #############################################################################
@@ -1040,9 +1028,6 @@ class Test_get_dir_signature1(hunitest.TestCase):
         act = self.helper(include_file_content)
         # The golden outcome is long and uninteresting so we use check_string.
         self.check_string(act, fuzzy_match=True)
-
-
-# #############################################################################
 
 
 # #############################################################################
@@ -1230,9 +1215,6 @@ class Test_purify_object_representation1(hunitest.TestCase):
 
 
 # #############################################################################
-
-
-# #############################################################################
 # Test_purify_amp_reference1
 # #############################################################################
 
@@ -1260,9 +1242,6 @@ class Test_purify_amp_reference1(hunitest.TestCase):
             of class '_Man' is not a subclass of '<class 'int'>'
         """
         self.helper(txt, exp)
-
-
-# #############################################################################
 
 
 # #############################################################################
@@ -1323,17 +1302,11 @@ class Test_purify_from_environment1(hunitest.TestCase):
 
 
 # #############################################################################
-
-
-# #############################################################################
-# Test_purify_line_number
+# Test_purify_line_number1
 # #############################################################################
 
 
-class Test_purify_line_number(hunitest.TestCase):
-    """
-    Check that `purify_line_number` is working as expected.
-    """
+class Test_purify_line_number1(hunitest.TestCase):
 
     def test1(self) -> None:
         """
@@ -1350,4 +1323,22 @@ class Test_purify_line_number(hunitest.TestCase):
         out_col_group (marked_as_used=True, writer=$GIT_ROOT/dataflow/system/system_builder_utils.py::$LINE_NUMBER::apply_history_lookback, val_type=tuple): ()
         """
         actual = hunitest.purify_line_number(txt)
+        self.assert_equal(actual, expected, fuzzy_match=True)
+
+
+# #############################################################################
+# Test_purify_docker_image_name1
+# #############################################################################
+
+
+class Test_purify_docker_image_name1(hunitest.TestCase):
+
+    def test1(self) -> None:
+        txt = r"""
+        docker run --rm --user $(id -u):$(id -g) --workdir $GIT_ROOT --mount type=bind,source=/Users/saggese/src/helpers1,target=$GIT_ROOT tmp.latex.edb567be pdflatex -output-directory
+        """
+        expected = r"""
+        docker run --rm --user $(id -u):$(id -g) --workdir $GIT_ROOT --mount type=bind,source=/Users/saggese/src/helpers1,target=$GIT_ROOT tmp.latex.xxxxxxxx pdflatex -output-directory
+        """
+        actual = hunitest.purify_docker_image_name(txt)
         self.assert_equal(actual, expected, fuzzy_match=True)

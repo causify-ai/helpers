@@ -161,15 +161,15 @@
   - Linux user: name + first letter of last name
   - Send the account info bundle
 
-- [ ] **IT**: create company email `@kaizen-tech.io`
+- [ ] **IT**: create company email `@causify.ai`
   - Exchange username and password
 
 - [ ] **IT**: Add team member to mailing lists
-  - `all@kaizen-tech.io` mailing lists
+  - `all@causify.ai` mailing lists
     - [https://groups.google.com/my-groups](https://groups.google.com/my-groups)
     - [https://admin.google.com/ac/groups/01qoc8b13iwic0z/info](https://admin.google.com/ac/groups/01qoc8b13iwic0z/info)
 
-- [ ] **Team member**: Confirm receipt of emails to `@all`
+- [ ] **Team member**: Confirm receipt of emails to `all@`/`eng@`
 
 - [ ] **IT**: Add the team member to the company's Slack workspace
 
@@ -177,11 +177,11 @@
 
 - [ ] **Team member**: Confirm monthly all-hands meeting (usually on Monday
       morning)
-  - This happens automatically through `all@kaizen-tech.io`
+  - This happens automatically through `all@causify.ai`
   - [https://calendar.google.com/calendar/u/0/r](https://calendar.google.com/calendar/u/0/r)
 
 - [ ] **Team member**: Confirm access to the Google Drive documentation
-  - This should be automatically granted as being in `all@kaizen-tech.io`
+  - This should be automatically granted as being in `all@causify.ai`
   - [Crypto-tech](https://drive.google.com/drive/u/1/folders/1zawE6IEBDpWLTbpK-03z75f5pu_T9Jba)
   - [Process](https://drive.google.com/drive/u/1/folders/1sJDqCjM1Q_nq8diyZDiWO8mVBQW5Wg_X)
 

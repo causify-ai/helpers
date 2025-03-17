@@ -60,7 +60,7 @@ def container_exists(container_name: str, use_sudo: bool) -> Tuple[bool, str]:
     aed8a5ce33a9
     ```
     """
-    _LOG.debug(hprint.to_str("container_name use_sudo"))
+    _LOG.debug(hprint.func_signature_to_str())
     #
     executable = get_docker_executable(use_sudo)
     cmd = f"{executable} container ls --filter name=/{container_name} -aq"
@@ -80,7 +80,7 @@ def image_exists(image_name: str, use_sudo: bool) -> Tuple[bool, str]:
     aed8a5ce33a9
     ```
     """
-    _LOG.debug(hprint.to_str("image_name use_sudo"))
+    _LOG.debug(hprint.func_signature_to_str())
     #
     executable = get_docker_executable(use_sudo)
     cmd = f"{executable} image ls --filter reference={image_name} -q"
@@ -99,7 +99,7 @@ def container_rm(container_name: str, use_sudo: bool) -> None:
     :param use_sudo: Whether to use sudo for Docker commands.
     :raises AssertionError: If the container ID is not found.
     """
-    _LOG.debug(hprint.to_str("container_name use_sudo"))
+    _LOG.debug(hprint.func_signature_to_str())
     #
     executable = get_docker_executable(use_sudo)
     # Find the container ID from the name.
@@ -122,7 +122,7 @@ def volume_rm(volume_name: str, use_sudo: bool) -> None:
     :param volume_name: Name of the Docker volume to remove.
     :param use_sudo: Whether to use sudo for Docker commands.
     """
-    _LOG.debug(hprint.to_str("volume_name use_sudo"))
+    _LOG.debug(hprint.func_signature_to_str())
     #
     executable = get_docker_executable(use_sudo)
     cmd = f"{executable} volume rm {volume_name}"
@@ -132,21 +132,53 @@ def volume_rm(volume_name: str, use_sudo: bool) -> None:
 
 # #############################################################################
 
+    
+def get_current_arch() -> str:
+    """
+    Return the architecture that we are running on (e.g., arm64, aarch64, x86_64).
+    """
+    cmd = "uname -m"
+    _, current_arch = hsystem.system_to_one_line(cmd)
+    _LOG.debug(hprint.to_str("current_arch"))
+    return current_arch
 
-def check_image_compatibility_with_host(
+
+def _is_compatible_arch(val1: str, val2: str) -> bool:
+    valid_arch = ["x86_64", "amd64", "aarch64", "arm64"]
+    hdbg.dassert_in(val1, valid_arch)
+    hdbg.dassert_in(val2, valid_arch)
+    if val1 == val2:
+        return True
+    compatible_sets = [{'x86_64', 'amd64'}, {'aarch64', 'arm64'}]
+    for comp_set in compatible_sets:
+        if {val1, val2}.issubset(comp_set):
+            return True
+    return False
+
+
+def check_image_compatibility_with_current_arch(
     image_name: str,
     *,
     use_sudo: Optional[bool] = None,
+    pull_image_if_needed: bool = True,
     assert_on_error: bool = True,
 ) -> None:
-    _LOG.debug(hprint.to_str("image_name use_sudo assert_on_error"))
+    """
+    Check if the Docker image is compatible with the current architecture.
+
+    :param image_name: Name of the Docker image to check.
+    :param use_sudo: Whether to use sudo for Docker commands.
+    :param pull_image_if_needed: Whether to pull the image if it doesn't
+        exist.
+    :param assert_on_error: Whether to raise an error if the image is not
+        compatible with the current architecture.
+    """
+    _LOG.debug(hprint.func_signature_to_str())
     hdbg.dassert_ne(image_name, "")
     if use_sudo is None:
         use_sudo = get_use_sudo()
-    cmd = "uname -m"
-    # arm64
-    _, host_arch = hsystem.system_to_one_line(cmd)
-    _LOG.debug(hprint.to_str("host_arch"))
+    # Get the architecture that we are running on.
+    current_arch = get_current_arch()
     # > docker image inspect \
     #   623860924167.dkr.ecr.eu-north-1.amazonaws.com/helpers:local-saggese-1.1.0 \
     #   --format '{{.Architecture}}'
@@ -154,25 +186,31 @@ def check_image_compatibility_with_host(
     # Check and pull the image if needed.
     has_image, _ = image_exists(image_name, use_sudo)
     if not has_image:
-        cmd = f"docker pull {image_name}"
-        hsystem.system(cmd)
+        if pull_image_if_needed:
+            cmd = f"docker pull {image_name}"
+            hsystem.system(cmd)
+        else:
+            hdbg.dfatal("Image '%s' not found", image_name)
+    # Check the image architecture.
     executable = get_docker_executable(use_sudo)
+    cmd = (
+        f"{executable} inspect {image_name}" + r" --format '{{.Architecture}}'"
+    )
     cmd = (
         f"{executable} inspect {image_name}" + r" --format '{{.Architecture}}'"
     )
     _, image_arch = hsystem.system_to_one_line(cmd)
     _LOG.debug(hprint.to_str("image_arch"))
-    # TODO(gp): Enable this for x86 after testing.
-    if host_arch == "arm64":
-        if host_arch != image_arch:
-            msg = f"Host architecture '{host_arch}' != image architecture '{image_arch}'"
-            if assert_on_error:
-                hdbg.dfatal(msg)
-            else:
-                _LOG.warning(msg)
+    # Check architecture compatibility.
+    if not _is_compatible_arch(current_arch, image_arch):
+        msg = f"Running architecture '{current_arch}' != image architecture '{image_arch}'"
+        if assert_on_error:
+            hdbg.dfatal(msg)
+        else:
+            _LOG.warning(msg)
     _LOG.debug(
-        "Host architecture '%s' and image architecture '%s' are compatible",
-        host_arch,
+        "Running architecture '%s' and image architecture '%s' are compatible",
+        current_arch,
         image_arch,
     )
 
@@ -286,13 +324,17 @@ def build_container_image(
     :raises AssertionError: If the container ID is not found.
     """
     _LOG.debug(hprint.func_signature_to_str("dockerfile"))
+    #
     dockerfile = hprint.dedent(dockerfile)
     _LOG.debug("Dockerfile:\n%s", dockerfile)
+    # Get the current architecture.
+    current_arch = get_current_arch()
     # Compute the hash of the dockerfile and append it to the name to track the
     # content of the container.
     sha256_hash = hashlib.sha256(dockerfile.encode()).hexdigest()
     short_hash = sha256_hash[:8]
-    image_name_out = f"{image_name}.{short_hash}"
+    # Build the name of the container image.
+    image_name_out = f"{image_name}.{current_arch}.{short_hash}"
     # Check if the container already exists. If not, build it.
     has_container, _ = image_exists(image_name_out, use_sudo)
     _LOG.debug(hprint.to_str("has_container"))
@@ -320,6 +362,7 @@ def build_container_image(
             f"{executable} build",
             f"-f {temp_dockerfile}",
             f"-t {image_name_out}",
+            #"--platform linux/aarch64",
         ]
         if not use_cache:
             cmd.append("--no-cache")
@@ -350,7 +393,7 @@ def _dassert_valid_path(file_path: str, is_input: bool) -> None:
     For input files, it ensures that the file or directory exists. For
     output files, it ensures that the enclosing directory exists.
     """
-    _LOG.debug(hprint.to_str("file_path is_input"))
+    _LOG.debug(hprint.func_signature_to_str())
     if is_input:
         # If it's an input file, then `file_path` must exist as a file or a dir.
         hdbg.dassert_path_exists(file_path)
@@ -358,11 +401,13 @@ def _dassert_valid_path(file_path: str, is_input: bool) -> None:
         # If it's an output, we might be writing a file that doesn't exist yet,
         # but we assume that at the least the directory should be already
         # present.
+        dir_name = os.path.normpath(os.path.dirname(file_path))
+        hio.create_dir(dir_name, incremental=True) 
         hdbg.dassert(
             os.path.exists(file_path)
-            or os.path.exists(os.path.dirname(file_path)),
-            "Invalid path: %s",
-            file_path,
+            or os.path.exists(dir_name),
+            "Invalid path: '%s' and '%s' don't exist",
+            file_path, dir_name
         )
 
 
@@ -373,7 +418,7 @@ def _dassert_is_path_included(file_path: str, including_path: str) -> None:
     This function checks if the given file path starts with the
     specified including path. If not, it raises an assertion error.
     """
-    _LOG.debug(hprint.to_str("file_path including_path"))
+    _LOG.debug(hprint.func_signature_to_str())
     # TODO(gp): Maybe we need to normalize the paths.
     hdbg.dassert(
         file_path.startswith(including_path),
@@ -571,6 +616,7 @@ def run_dockerized_prettier(
     bash_cmd = f"/usr/local/bin/prettier {cmd_opts_as_str} {in_file_path}"
     if out_file_path != in_file_path:
         bash_cmd += f" > {out_file_path}"
+    # Build the Docker command.
     docker_cmd = (
         f"{executable} run --rm --user $(id -u):$(id -g)"
         " --entrypoint ''"
@@ -1374,8 +1420,8 @@ def tikz_to_bitmap(
 # TODO(gp): Move cmd_opts after in_file_path
 def run_dockerized_llm_transform(
     in_file_path: str,
-    out_file_path: str,
     cmd_opts: List[str],
+    out_file_path: str,
     *,
     return_cmd: bool = False,
     force_rebuild: bool = False,
@@ -1556,6 +1602,71 @@ def run_dockerized_mermaid(
     :param use_sudo: whether to use sudo for Docker commands
     """
     _LOG.debug(hprint.func_signature_to_str())
+    _ = force_rebuild
+    # Build the container, if needed.
+    container_image = "minlag/mermaid-cli"
+    # Convert files to Docker paths.
+    is_caller_host = not hserver.is_inside_docker()
+    use_sibling_container_for_callee = True
+    caller_mount_path, callee_mount_path, mount = get_docker_mount_info(
+        is_caller_host, use_sibling_container_for_callee
+    )
+    in_file_path = convert_caller_to_callee_docker_path(
+        in_file_path,
+        caller_mount_path,
+        callee_mount_path,
+        check_if_exists=True,
+        is_input=True,
+        is_caller_host=is_caller_host,
+        use_sibling_container_for_callee=use_sibling_container_for_callee,
+    )
+    out_file_path = convert_caller_to_callee_docker_path(
+        out_file_path,
+        caller_mount_path,
+        callee_mount_path,
+        check_if_exists=True,
+        is_input=False,
+        is_caller_host=is_caller_host,
+        use_sibling_container_for_callee=use_sibling_container_for_callee,
+    )
+    puppeteer_config_path = convert_caller_to_callee_docker_path(
+        "puppeteerConfig.json",
+        caller_mount_path,
+        callee_mount_path,
+        check_if_exists=True,
+        is_input=False,
+        is_caller_host=is_caller_host,
+        use_sibling_container_for_callee=use_sibling_container_for_callee,
+    )
+    mermaid_cmd = (
+        f" -i {in_file_path} -o {out_file_path}"
+    )
+    executable = get_docker_executable(use_sudo)
+    docker_cmd = (
+        f"{executable} run --rm --user $(id -u):$(id -g)"
+        f" --workdir {callee_mount_path} --mount {mount}"
+        f" {container_image}"
+        f" {mermaid_cmd}"
+    )
+    hsystem.system(docker_cmd)
+
+
+def run_dockerized_mermaid2(
+    in_file_path: str,
+    out_file_path: str,
+    *,
+    force_rebuild: bool = False,
+    use_sudo: bool = False,
+) -> None:
+    """
+    Run `mermaid` in a Docker container.
+
+    :param in_file_path: path to the code of the image to render
+    :param out_file_path: path to the image to be created
+    :param force_rebuild: whether to force rebuild the Docker container
+    :param use_sudo: whether to use sudo for Docker commands
+    """
+    _LOG.debug(hprint.func_signature_to_str())
     # Build the container, if needed.
     container_image = "tmp.mermaid"
     puppeteer_cache_path = r"""
@@ -1596,21 +1707,21 @@ def run_dockerized_mermaid(
     caller_mount_path, callee_mount_path, mount = get_docker_mount_info(
         is_caller_host, use_sibling_container_for_callee
     )
-    out_file_path = convert_caller_to_callee_docker_path(
-        out_file_path,
-        caller_mount_path,
-        callee_mount_path,
-        check_if_exists=True,
-        is_input=False,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
-    )
     in_file_path = convert_caller_to_callee_docker_path(
         in_file_path,
         caller_mount_path,
         callee_mount_path,
         check_if_exists=True,
         is_input=True,
+        is_caller_host=is_caller_host,
+        use_sibling_container_for_callee=use_sibling_container_for_callee,
+    )
+    out_file_path = convert_caller_to_callee_docker_path(
+        out_file_path,
+        caller_mount_path,
+        callee_mount_path,
+        check_if_exists=True,
+        is_input=False,
         is_caller_host=is_caller_host,
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
@@ -1625,7 +1736,7 @@ def run_dockerized_mermaid(
     )
     mermaid_cmd = (
         f"mmdc --puppeteerConfigFile {puppeteer_config_path}"
-        + f"-i {in_file_path} -o {out_file_path}"
+        + f" -i {in_file_path} -o {out_file_path}"
     )
     executable = get_docker_executable(use_sudo)
     docker_cmd = (

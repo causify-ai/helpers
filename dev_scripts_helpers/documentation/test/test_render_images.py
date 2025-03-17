@@ -2,10 +2,13 @@ import logging
 import os
 import re
 
+import pytest
+
 import dev_scripts_helpers.documentation.render_images as dshdreim
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hprint as hprint
+import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
@@ -123,6 +126,9 @@ class Test_get_render_command1(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.skipif(
+    hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
+)
 class Test_render_images1(hunitest.TestCase):
     """
     Test _render_images() with dry run enabled (updating file text without
@@ -474,6 +480,9 @@ class Test_render_images1(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.skipif(
+    hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
+)
 class Test_render_images2(hunitest.TestCase):
 
     def helper(self, file_name: str) -> None:
@@ -522,9 +531,3 @@ class Test_render_images2(hunitest.TestCase):
         Test running on a full LaTeX file with mermaid code.
         """
         self.helper("sample_file_mermaid.tex")
-
-    # def test_cmd1(self) -> None:
-    #     """
-    #     Test running on a real Markdown file with plantUML code.
-    #     """
-    #     self.helper("im_architecture.md")
