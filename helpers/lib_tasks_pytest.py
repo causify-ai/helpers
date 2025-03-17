@@ -9,7 +9,7 @@ import logging
 import os
 import re
 import sys
-from typing import cast, Any, List, Optional, Tuple
+from typing import Any, List, Optional, Tuple, cast
 
 from invoke import task
 
@@ -753,15 +753,15 @@ def _publish_html_coverage_report_on_s3(aws_profile: str) -> None:
             # Check if AWS session token is set in environment variable.
             if f"{profile_prefix}_AWS_SESSION_TOKEN" in os.environ:
                 aws_set_value_pairs = [
-                    f"aws_access_key_id ${profile_prefix}_AWS_ACCESS_KEY_ID", # gitleaks:allow
-                    f"aws_secret_access_key ${profile_prefix}_AWS_SECRET_ACCESS_KEY", # gitleaks:allow
+                    f"aws_access_key_id ${profile_prefix}_AWS_ACCESS_KEY_ID",  # gitleaks:allow
+                    f"aws_secret_access_key ${profile_prefix}_AWS_SECRET_ACCESS_KEY",  # gitleaks:allow
                     f"aws_session_token ${profile_prefix}_AWS_SESSION_TOKEN",
                     f"region ${profile_prefix}_AWS_DEFAULT_REGION",
                 ]
             else:
                 aws_set_value_pairs = [
-                    f"aws_access_key_id ${profile_prefix}_AWS_ACCESS_KEY_ID", # gitleaks:allow
-                    f"aws_secret_access_key ${profile_prefix}_AWS_SECRET_ACCESS_KEY", # gitleaks:allow
+                    f"aws_access_key_id ${profile_prefix}_AWS_ACCESS_KEY_ID",  # gitleaks:allow
+                    f"aws_secret_access_key ${profile_prefix}_AWS_SECRET_ACCESS_KEY",  # gitleaks:allow
                     f"region ${profile_prefix}_AWS_DEFAULT_REGION",
                 ]
             aws_config_cmds = [
