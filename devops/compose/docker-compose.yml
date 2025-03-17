@@ -1,0 +1,66 @@
+version: '3'
+services:
+  base_app:
+    cap_add:
+      - SYS_ADMIN
+    environment:
+      - CSFY_ENABLE_DIND=0
+      - CSFY_FORCE_TEST_FAIL=$CSFY_FORCE_TEST_FAIL
+      - CSFY_HOST_NAME=Sumedhas-MacBook-Air.local
+      - CSFY_HOST_OS_NAME=Darwin
+      - CSFY_HOST_USER_NAME=sumedhavadlamani
+      - CSFY_HOST_VERSION=24.3.0
+      - CSFY_REPO_CONFIG_CHECK=True
+      - CSFY_REPO_CONFIG_PATH=
+      - CSFY_AWS_ACCESS_KEY_ID=$CSFY_AWS_ACCESS_KEY_ID
+      - CSFY_AWS_DEFAULT_REGION=$CSFY_AWS_DEFAULT_REGION
+      - CSFY_AWS_PROFILE=$CSFY_AWS_PROFILE
+      - CSFY_AWS_S3_BUCKET=$CSFY_AWS_S3_BUCKET
+      - CSFY_AWS_SECRET_ACCESS_KEY=$CSFY_AWS_SECRET_ACCESS_KEY
+      - CSFY_AWS_SESSION_TOKEN=$CSFY_AWS_SESSION_TOKEN
+      - CSFY_ECR_BASE_PATH=$CSFY_ECR_BASE_PATH
+      - CSFY_HOST_GIT_ROOT_PATH=/Users/sumedhavadlamani/src/helpers1
+      - CSFY_GIT_ROOT_PATH=/app
+      - CSFY_HELPERS_ROOT_PATH=/app
+      - CSFY_USE_HELPERS_AS_NESTED_MODULE=1
+      - CSFY_TELEGRAM_TOKEN=$CSFY_TELEGRAM_TOKEN
+      - CSFY_CI=$CSFY_CI
+      - OPENAI_API_KEY=$OPENAI_API_KEY
+      - GH_ACTION_ACCESS_TOKEN=$GH_ACTION_ACCESS_TOKEN
+      - GH_TOKEN=$GH_ACTION_ACCESS_TOKEN
+    image: ${IMAGE}
+    restart: 'no'
+    volumes:
+      - ~/.aws:/home/.aws
+      - ~/.config/gspread_pandas/:/home/.config/gspread_pandas/
+      - ~/.config/gh:/home/.config/gh
+      - ~/.ssh:/home/.ssh
+  app:
+    extends: base_app
+    volumes:
+      - /Users/sumedhavadlamani/src/helpers1:/app
+    working_dir: /app
+  linter:
+    extends: base_app
+    volumes:
+      - /Users/sumedhavadlamani/src/helpers1:/src
+    working_dir: /src
+    environment:
+      - MYPYPATH
+      - CSFY_REPO_CONFIG_PATH=/app/repo_config.py
+  jupyter_server:
+    command: devops/docker_run/run_jupyter_server.sh
+    environment:
+      - PORT=${PORT}
+    extends: app
+    network_mode: ${NETWORK_MODE:-bridge}
+    ports:
+      - ${PORT}:${PORT}
+  jupyter_server_test:
+    command: jupyter notebook -h 2>&1 >/dev/null
+    environment:
+      - PORT=${PORT}
+    extends: app
+    network_mode: ${NETWORK_MODE:-bridge}
+    ports:
+      - ${PORT}:${PORT}
