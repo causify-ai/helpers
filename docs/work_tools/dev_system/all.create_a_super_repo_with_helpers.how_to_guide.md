@@ -4,12 +4,12 @@
   * [Create a new (super) repo in the desired organization](#create-a-new-super-repo-in-the-desired-organization)
   * [Add helpers sub-repo](#add-helpers-sub-repo)
   * [Copy and customize files](#copy-and-customize-files)
-  * [1) Copy and customize files in `thin_client`](#1-copy-and-customize-files-in-thin_client)
+  * [1) Copy and customize files in the top dir](#1-copy-and-customize-files-in-the-top-dir)
+  * [2) Copy and customize files in `thin_client`](#2-copy-and-customize-files-in-thin_client)
     + [Build the thin environment](#build-the-thin-environment)
     + [Test the thin environment](#test-the-thin-environment)
     + [Create the tmux links](#create-the-tmux-links)
     + [Maintain the files in sync with the template](#maintain-the-files-in-sync-with-the-template)
-  * [2) Copy and customize files in the top dir](#2-copy-and-customize-files-in-the-top-dir)
   * [3) Copy and customize files in `devops`](#3-copy-and-customize-files-in-devops)
   * [4) Replace files with symbolic links](#4-replace-files-with-symbolic-links)
   * [5) Build container and running tests](#5-build-container-and-running-tests)
@@ -98,15 +98,42 @@ well if one replaces `helpers` with `cmamp`.
   [`/dev_scripts_helpers/thin_client/sync_super_repo.sh`](/dev_scripts_helpers/thin_client/sync_super_repo.sh)
   which allows to vimdiff / cp files across a super-repo and its `helpers` dir
 
-## 1) Copy and customize files in `thin_client`
+## 1) Copy and customize files in the top dir
+
+- Some files need to be copied from `helpers` to the root of the super-repo to
+  configure various tools (e.g., dev container workflow, `pytest`, `invoke`)
+  - `pytest.ini`: configure `pytest` preferences
+  - `repo_config.yaml`: stores information about this specific repo (e.g., name,
+    used container, runnable dir config)
+    - This needs to be modified
+    ```yaml
+    repo_info:
+      repo_name: cmamp
+    ...
+    docker_info:
+      docker_image_name: cmamp
+    ...
+    runnable_dir_info:
+      use_helpers_as_nested_module: 1
+      ...
+      dir_suffix: cmamp
+    ```
+  - `tasks.py`: the `invoke` tasks available in this container
+    - This can be modified if needed
+  ```bash
+  > cp helpers_root/{pytest.ini,repo_config.yaml,tasks.py} .
+  > vim pytest.ini repo_config.yaml tasks.py
+  ```
+
+## 2) Copy and customize files in `thin_client`
 
 - Create the `dev_scripts_{dir_name}` dir based off the template from `helpers`
 
   ```bash
-  # Use a prefix based on the repo name, e.g., `tutorials`, `sports_analytics`.
-  > SRC_DIR="helpers_root/dev_scripts_helpers/thin_client"; ls $SRC_DIR
-  > DST_PREFIX="xyz"
-  > DST_DIR="dev_scripts_${DST_PREFIX}/thin_client"; echo $DST_DIR
+  # Use a suffix based on the repo name, e.g., `tutorials`, `sports_analytics`.
+  > SRC_DIR="./helpers_root/dev_scripts_helpers/thin_client"; ls $SRC_DIR
+  > DST_SUFFIX="xyz"
+  > DST_DIR="dev_scripts_${DST_SUFFIX}/thin_client"; echo $DST_DIR
   > mkdir -p $DST_DIR
   > cp -r $SRC_DIR/{build.py,requirements.txt,setenv.sh,tmux.py} $DST_DIR
   ```
@@ -121,14 +148,18 @@ well if one replaces `helpers` with `cmamp`.
   tmux.py
   ```
 
-- Customize the files looking for `$DIR_TAG`, `$USE_HELPERS_AS_NESTED_MODULE`
-  and `$DIR_PREFIX`.
-  ```
-  > vi $DST_DIR/*
-  ```
-
 - If we don't need to create a new thin env you can delete the files
   `dev_scripts_{dir_name}/thin_client/build.py` and `requirements.txt`
+
+- Replace file with symbolic links
+
+  ```bash
+  > echo $SRC_DIR
+  ./helpers_root/dev_scripts_helpers/thin_client
+  > echo $DST_DIR
+  ./dev_scripts_xyz/thin_client
+  > ./helpers_root/helpers/create_links.py --src_dir $SRC_DIR --dst_dir $DST_DIR --replace_links --use_relative_paths
+  ```
 
 ### Build the thin environment
 
@@ -142,14 +173,6 @@ well if one replaces `helpers` with `cmamp`.
   https://github.com/cli/cli/releases/tag/v2.58.0
   14:37:37 - INFO  build.py _main:100                 /Users/saggese/src/quant_dashboard1/dev_scripts_quant_dashboard/thin_client/build.py successful
   ```
-
-- Customize the `dev_scripts_{dir_name}` dir, if necessary
-  ```bash
-  > vi $DST_DIR/*
-  ```
-  - Customize `DIR_TAG`
-  - Set `VENV_TAG` to create a new thin environment or reuse an existing one
-    (e.g., `helpers`)
 
 ### Test the thin environment
 
@@ -166,21 +189,6 @@ Follow
 - Check the difference between the super-repo and `helpers`
   ```bash
   > helpers_root/dev_scripts_helpers/thin_client/sync_super_repo.sh
-  ```
-
-## 2) Copy and customize files in the top dir
-
-- Some files need to be copied from `helpers` to the root of the super-repo to
-  configure various tools (e.g., dev container workflow, `pytest`, `invoke`)
-  - `pytest.ini`: configure `pytest` preferences
-  - `repo_config.py`: stores information about this specific repo (e.g., name,
-    used container)
-    - Change `_REPO_NAME = "<current repo name>"` to the current repo name
-  - `tasks.py`: the `invoke` tasks available in this container
-    - This can be modified if needed
-  ```bash
-  > cp helpers_root/{pytest.ini,repo_config.py,tasks.py} .
-  > vim pytest.ini repo_config.py tasks.py
   ```
 
 ## 3) Copy and customize files in `devops`
@@ -207,7 +215,7 @@ Follow
 - Some common files can be replaced with symbolic links if they remain unchanged
 
   ```bash
-  python3 ./helpers_root/helpers/create_links.py --src_dir ./helpers_root --dst_dir . --replace_links --use_relative_paths
+  ./helpers_root/helpers/create_links.py --src_dir ./helpers_root --dst_dir . --replace_links --use_relative_paths
   ```
 
 - Refer to
@@ -314,7 +322,7 @@ cp ./helpers_root/.github/workflows/gitleaks.yml ./.github/workflows
 2. Replace files with symbolic links
 
 ```bash
-python3 ./helpers_root/helpers/create_links.py --src_dir ./helpers_root/.github --dst_dir ./.github --replace_links --use_relative_paths
+./helpers_root/helpers/create_links.py --src_dir ./helpers_root/.github --dst_dir ./.github --replace_links --use_relative_paths
 ```
 
 Note:

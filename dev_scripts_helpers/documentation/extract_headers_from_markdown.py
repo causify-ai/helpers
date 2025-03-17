@@ -34,6 +34,32 @@ import helpers.hparser as hparser
 _LOG = logging.getLogger(__name__)
 
 
+def _extract_headers_from_markdown(
+    in_file_name: str,
+    mode: str,
+    max_level: int,
+    out_file_name: str,
+) -> None:
+    input_content = hparser.read_file(in_file_name)
+    input_content = "\n".join(input_content)
+    # We don't want to sanity check since we want to show the headers, even
+    # if malformed.
+    sanity_check = False
+    header_list = hmarkdo.extract_headers_from_markdown(
+        input_content, max_level=max_level, sanity_check=sanity_check
+    )
+    if mode == "cfile":
+        output_content = hmarkdo.header_list_to_vim_cfile(
+            in_file_name, header_list
+        )
+    else:
+        output_content = hmarkdo.header_list_to_markdown(header_list, mode)
+    hparser.write_file(output_content, out_file_name)
+    #
+    hmarkdo.check_header_list(header_list)
+
+
+# TODO(gp): _parse() -> _build_parser() everywhere.
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
@@ -57,31 +83,17 @@ def _parse() -> argparse.ArgumentParser:
     return parser
 
 
-def _main(args: argparse.Namespace) -> None:
+def _main(parser: argparse.ArgumentParser) -> None:
+    args = parser.parse_args()
     hdbg.init_logger(
         verbosity=args.log_level, use_exec_path=True, force_white=False
     )
     in_file_name, out_file_name = hparser.parse_input_output_args(args)
-    input_content = hparser.read_file(in_file_name)
-    input_content = "\n".join(input_content)
-    # We don't want to sanity check since we want to show the headers, even
-    # if malformed.
-    sanity_check = False
-    header_list = hmarkdo.extract_headers_from_markdown(
-        input_content, max_level=args.max_level, sanity_check=sanity_check
-    )
-    if args.mode == "cfile":
-        output_content = hmarkdo.header_list_to_vim_cfile(
-            in_file_name, header_list
-        )
-    else:
-        output_content = hmarkdo.header_list_to_markdown(header_list, args.mode)
-    hparser.write_file(output_content, out_file_name)
     #
-    hmarkdo.check_header_list(header_list)
+    _extract_headers_from_markdown(
+        in_file_name, args.mode, args.max_level, out_file_name
+    )
 
 
 if __name__ == "__main__":
-    parser = _parse()
-    args = parser.parse_args()
-    _main(args)
+    _main(_parse())

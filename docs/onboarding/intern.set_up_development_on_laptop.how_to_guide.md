@@ -9,6 +9,7 @@
     + [Checking Docker installation](#checking-docker-installation)
     + [Docker installation troubleshooting](#docker-installation-troubleshooting)
   * [Tmux](#tmux)
+  * [Shell support](#shell-support)
   * [Some useful workflows](#some-useful-workflows)
   * [Hack: use a local container if needed](#hack-use-a-local-container-if-needed)
 
@@ -235,6 +236,12 @@
   # Attach an environment.
   > tmux attach -t tutorials1
   ```
+
+## Shell support
+
+- We only support `bash`, no other shells like `zsh`, etc.
+- We recommended that you make `bash` the default shell on your system, to avoid
+  possible compatibility issues
 
 ## Some useful workflows
 

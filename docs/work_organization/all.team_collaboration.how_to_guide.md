@@ -139,7 +139,7 @@
   interesting docs that are of general interest and relevance
 - Please make sure to read the docs carefully and internalize what we suggest to
   do and, especially, the rationale of the proposed solutions
-- It's ok to acknowledge the email replying to `eng@kaizen-tech.io`
+- It's ok to acknowledge the email replying to `eng@causify.ai`
 
 #### Synchronization point
 
@@ -169,7 +169,7 @@ The idea is to send a morning TODO email to broadcast:
 
 - E-mail template:
   ```
-  To: eng@kaizen-tech.io
+  To: eng@causify.ai
 
   Subject: TODO
 
@@ -195,7 +195,7 @@ The idea is to send a morning TODO email to broadcast:
 
 - Good example:
   ```
-  To: eng@kaizen-tech.io
+  To: eng@causify.ai
 
   Subject: TODO
 
@@ -220,7 +220,7 @@ The idea is to send a morning TODO email to broadcast:
 
 - Bad example:
   ```
-  To: eng@kaizen-tech.io
+  To: eng@causify.ai
 
   Subject: to-do
 
@@ -244,7 +244,9 @@ The idea is to send a morning TODO email to broadcast:
   - Within the first hour of beginning the day
   - It is recommended to check the inbox (email, GitHub) first to reflect all
     the update in the plan for the day
-- Send an email to `eng@kaizen-tech.io`
+- Send an email to:
+  - For permanent team members/people on a 3-month trial: `eng@causify.ai`
+  - For interns or collaborators: `contributors@causify.ai`
 - Email subject:
   - `TODO` (all caps)
   - It easier to filter emails by subject

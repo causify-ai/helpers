@@ -253,28 +253,16 @@ def docker_pull(ctx, stage="dev", version=None, skip_pull=False):  # type: ignor
 
 
 @task
-def docker_pull_helpers(  # type: ignore
-    ctx, stage="prod", version=None, docker_registry="aws_ecr.ck"
-):
+def docker_pull_helpers(ctx, stage="prod", version=None):  # type: ignore
     """
     Pull latest prod image of `helpers` from the registry.
 
     :param ctx: invoke context
     :param stage: stage of the Docker image
     :param version: version of the Docker image
-    :param docker_registry: target Docker image registry to log in to
-        - "dockerhub.causify": public Causify Docker image registry
-        - "aws_ecr.ck": private AWS CK ECR
     """
-    hlitauti.report_task(txt=hprint.to_str("docker_registry"))
-    if docker_registry == "dockerhub.causify":
-        base_image = "causify/helpers"
-    elif docker_registry == "aws_ecr.ck":
-        base_image = hlitauti.get_default_param("CSFY_ECR_BASE_PATH") + "/helpers"
-    else:
-        raise ValueError(
-            f"The Docker image registry='{docker_registry}' is not supported"
-        )
+    base_image = hlitauti.get_default_param("CSFY_ECR_BASE_PATH") + "/helpers"
+    _LOG.debug("base_image=%s", base_image)
     _docker_pull(ctx, base_image, stage, version)
 
 
@@ -370,6 +358,7 @@ def _docker_login_ecr() -> None:
     # TODO(gp): Hack
     profile = "ck"
     region = hs3.AWS_EUROPE_REGION_1
+    cmd = ""
     if major_version == 1:
         cmd = f"eval $(aws ecr get-login --profile {profile} --no-include-email --region {region})"
     elif major_version == 2:
@@ -1145,7 +1134,7 @@ def _get_docker_base_cmd(
     _LOG.debug("base_image=%s stage=%s -> image=%s", base_image, stage, image)
     dassert_is_image_name_valid(image)
     # Check image compatibility.
-    hdocker.check_image_compatibility_with_host(image)
+    hdocker.check_image_compatibility_with_current_arch(image)
     docker_cmd_.append(f"IMAGE={image}")
     # - Handle extra env vars.
     if extra_env_vars:
@@ -1305,24 +1294,17 @@ def _get_lint_docker_cmd(
     version: str,
     *,
     use_entrypoint: bool = True,
-    no_dev_server: bool = False,
 ) -> str:
     """
     Create a command to run in Linter service.
 
     :param docker_cmd_: command to run
     :param stage: the image stage to use
-    :param no_dev_server: True, if running Linter on local machine, else
-        false if on dev server
     :return: the full command to run
     """
+    base_path = os.environ["CSFY_ECR_BASE_PATH"]
+    _LOG.debug("base_path=%s", base_path)
     # Get an image to run the linter on.
-    # For local development we use the image from the Docker Hub.
-    if no_dev_server:
-        # TODO(Vlad): Replace with environment variable.
-        base_path = "causify"
-    else:
-        base_path = os.environ["CSFY_ECR_BASE_PATH"]
     linter_image = f"{base_path}/helpers"
     # Execute command line.
     cmd: str = _get_docker_compose_cmd(

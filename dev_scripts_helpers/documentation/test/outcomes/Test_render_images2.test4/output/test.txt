@@ -13,7 +13,6 @@
 
 Here is the beginning.
 
-
 % ```mermaid
 % graph TD
 %   runnable_repo[runnable repo 1]
@@ -38,13 +37,9 @@ Here is the beginning.
 %   style helpers_sub_repo_2 fill:transparent, stroke-dasharray: 5 5
 %   style helpers_sub_repo_3 fill:transparent, stroke-dasharray: 5 5
 % ```
-
-\begin{figure}
-  \includegraphics[width=\linewidth]{figs/sample_file_mermaid.1.png}
-\end{figure}
+\begin{figure} \includegraphics[width=\linewidth]{figs/sample_file_mermaid.1.png} \end{figure}
 
 Another one:
-
 
 % ```mermaid
 % graph TD
@@ -62,10 +57,7 @@ Another one:
 % 
 %   style helpers_sub_repo fill:transparent, stroke-dasharray: 5 5
 % ```
-
-\begin{figure}
-  \includegraphics[width=\linewidth]{figs/sample_file_mermaid.2.png}
-\end{figure}
+\begin{figure} \includegraphics[width=\linewidth]{figs/sample_file_mermaid.2.png} \end{figure}
 
 Not a diagram:
 
