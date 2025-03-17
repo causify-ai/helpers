@@ -31,6 +31,7 @@ if False:
     import sys
 
     sys.path.insert(0, "/Users/saggese/src/notes1/helpers_root")
+
 # pylint: disable=wrong-import-position
 import dev_scripts_helpers.documentation.lint_notes as dshdlino
 import dev_scripts_helpers.llms.llm_prompts_utils as dshllprut
@@ -95,8 +96,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     #             cmd_line_opts.append(f"--{arg.replace('_', '-')} {value}")
     hdocker.run_dockerized_llm_transform(
         tmp_in_file_name,
-        tmp_out_file_name,
         cmd_line_opts,
+        tmp_out_file_name,
         return_cmd=False,
         force_rebuild=args.dockerized_force_rebuild,
         use_sudo=args.dockerized_use_sudo,

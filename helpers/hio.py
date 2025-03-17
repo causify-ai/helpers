@@ -633,7 +633,7 @@ def rename_file_if_exists(
             # Add a suffix before an extension, e.g., `file.suffix.csv`.
             dir_path, file_name = os.path.split(file_path)
             file_name, ext = os.path.splitext(file_name)
-            hdbg.dassert(ext.startswith("."))
+            hdbg.dassert(ext.startswith("."), "Invalid extension='%s'", ext)
             new_file_path = f"{file_name}.{suffix}{ext}"
             new_file_path = os.path.join(dir_path, new_file_path)
         else:
@@ -644,10 +644,29 @@ def rename_file_if_exists(
         os.rename(file_path, new_file_path)
 
 
+def change_file_extension(file_path: str, new_extension: str) -> str:
+    """
+    Change the extension of a file path.
+
+    :param file_path: The path of the file to change the extension of.
+    :param new_extension: The new extension to use, starting with `.`
+    :return: The new file path with the new extension.
+    """
+    # Make sure the new extension starts with a dot
+    hdbg.dassert(
+        new_extension.startswith("."), "Invalid extension='%s'", new_extension
+    )
+    # Split the file path into root and extension
+    file_name, _ = os.path.splitext(file_path)
+    # Create the new file path
+    new_file_path = file_name + new_extension
+    return new_file_path
+
+
 def wait_for_file(
     file_path: str,
     *,
-    check_interval_in_secs: int = 0.5,
+    check_interval_in_secs: float = 0.5,
     timeout_in_secs: int = 10,
 ) -> None:
     """

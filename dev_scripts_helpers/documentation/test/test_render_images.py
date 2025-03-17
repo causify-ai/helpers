@@ -2,10 +2,13 @@ import logging
 import os
 import re
 
+import pytest
+
 import dev_scripts_helpers.documentation.render_images as dshdreim
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hprint as hprint
+import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
@@ -123,6 +126,9 @@ class Test_get_render_command1(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.skipif(
+    hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
+)
 class Test_render_images1(hunitest.TestCase):
     """
     Test _render_images() with dry run enabled (updating file text without
@@ -140,11 +146,9 @@ class Test_render_images1(hunitest.TestCase):
         """
         file_ext = "md"
         exp = r"""
-
         [//]: # ( ```plantuml)
         [//]: # ( Alice --> Bob)
         [//]: # ( ```)
-
         ![](figs/out.1.png)
         """
         self.helper(in_lines, file_ext, exp)
@@ -163,11 +167,9 @@ class Test_render_images1(hunitest.TestCase):
         file_ext = "md"
         exp = r"""
         A
-
         [//]: # ( ```plantuml)
         [//]: # ( Alice --> Bob)
         [//]: # ( ```)
-
         ![](figs/out.1.png)
         B
         """
@@ -208,13 +210,11 @@ class Test_render_images1(hunitest.TestCase):
         """
         file_ext = "md"
         exp = r"""
-
         [//]: # ( ```plantuml)
         [//]: # ( @startuml)
         [//]: # ( Alice --> Bob)
         [//]: # ( @enduml)
         [//]: # ( ```)
-
         ![](figs/out.1.png)
         """
         self.helper(in_lines, file_ext, exp)
@@ -231,12 +231,10 @@ class Test_render_images1(hunitest.TestCase):
         """
         file_ext = "md"
         exp = r"""
-
         [//]: # ( ```mermaid)
         [//]: # ( flowchart TD;)
         [//]: # (   A[Start] --> B[End];)
         [//]: # ( ```)
-
         ![](figs/out.1.png)
         """
         self.helper(in_lines, file_ext, exp)
@@ -256,12 +254,10 @@ class Test_render_images1(hunitest.TestCase):
         file_ext = "md"
         exp = r"""
         A
-
         [//]: # ( ```mermaid)
         [//]: # ( flowchart TD;)
         [//]: # (   A[Start] --> B[End];)
         [//]: # ( ```)
-
         ![](figs/out.1.png)
         B
         """
@@ -278,14 +274,10 @@ class Test_render_images1(hunitest.TestCase):
         """
         file_ext = "tex"
         exp = r"""
-
         % ```plantuml
         % Alice --> Bob
         % ```
-
-        \begin{figure}
-          \includegraphics[width=\linewidth]{figs/out.1.png}
-        \end{figure}
+        \begin{figure} \includegraphics[width=\linewidth]{figs/out.1.png} \end{figure}
         """
         self.helper(in_lines, file_ext, exp)
 
@@ -303,14 +295,10 @@ class Test_render_images1(hunitest.TestCase):
         file_ext = "tex"
         exp = r"""
         A
-
         % ```plantuml
         % Alice --> Bob
         % ```
-
-        \begin{figure}
-          \includegraphics[width=\linewidth]{figs/out.1.png}
-        \end{figure}
+        \begin{figure} \includegraphics[width=\linewidth]{figs/out.1.png} \end{figure}
         B
         """
         self.helper(in_lines, file_ext, exp)
@@ -344,16 +332,12 @@ class Test_render_images1(hunitest.TestCase):
         """
         file_ext = "tex"
         exp = r"""
-
         % ```plantuml
         % @startuml
         % Alice --> Bob
         % @enduml
         % ```
-
-        \begin{figure}
-          \includegraphics[width=\linewidth]{figs/out.1.png}
-        \end{figure}
+        \begin{figure} \includegraphics[width=\linewidth]{figs/out.1.png} \end{figure}
         """
         self.helper(in_lines, file_ext, exp)
 
@@ -374,10 +358,7 @@ class Test_render_images1(hunitest.TestCase):
         % flowchart TD;
         %   A[Start] --> B[End];
         % ```
-
-        \begin{figure}
-          \includegraphics[width=\linewidth]{figs/out.1.png}
-        \end{figure}
+        \begin{figure} \includegraphics[width=\linewidth]{figs/out.1.png} \end{figure}
         """
         self.helper(in_lines, file_ext, exp)
 
@@ -396,15 +377,11 @@ class Test_render_images1(hunitest.TestCase):
         file_ext = "tex"
         exp = r"""
         A
-
         % ```mermaid
         % flowchart TD;
         %   A[Start] --> B[End];
         % ```
-
-        \begin{figure}
-          \includegraphics[width=\linewidth]{figs/out.1.png}
-        \end{figure}
+        \begin{figure} \includegraphics[width=\linewidth]{figs/out.1.png} \end{figure}
         B
         """
         self.helper(in_lines, file_ext, exp)
@@ -438,33 +415,12 @@ class Test_render_images1(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.skipif(
+    hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
+)
 class Test_render_images2(hunitest.TestCase):
 
-    def test1(self) -> None:
-        """
-        Test running on a real Markdown file with plantUML code.
-        """
-        self._test_render_images("im_architecture.md")
-
-    def test2(self) -> None:
-        """
-        Test running on a real Markdown file with mermaid code.
-        """
-        self._test_render_images("runnable_repo.md")
-
-    def test3(self) -> None:
-        """
-        Test running on a full LaTeX file with plantUML code.
-        """
-        self._test_render_images("sample_file_plantuml.tex")
-
-    def test4(self) -> None:
-        """
-        Test running on a full LaTeX file with mermaid code.
-        """
-        self._test_render_images("sample_file_mermaid.tex")
-
-    def _test_render_images(self, file_name: str) -> None:
+    def helper(self, file_name: str) -> None:
         """
         Helper function to test rendering images from a file.
         """
@@ -486,3 +442,33 @@ class Test_render_images2(hunitest.TestCase):
         act = "\n".join(out_lines)
         # Check output.
         self.check_string(act)
+
+    def test1(self) -> None:
+        """
+        Test running on a real Markdown file with plantUML code.
+        """
+        self.helper("im_architecture.md")
+
+    def test2(self) -> None:
+        """
+        Test running on a real Markdown file with mermaid code.
+        """
+        self.helper("runnable_repo.md")
+
+    def test3(self) -> None:
+        """
+        Test running on a full LaTeX file with plantUML code.
+        """
+        self.helper("sample_file_plantuml.tex")
+
+    def test4(self) -> None:
+        """
+        Test running on a full LaTeX file with mermaid code.
+        """
+        self.helper("sample_file_mermaid.tex")
+
+    # def test_cmd1(self) -> None:
+    #     """
+    #     Test running on a real Markdown file with plantUML code.
+    #     """
+    #     self.helper("im_architecture.md")
