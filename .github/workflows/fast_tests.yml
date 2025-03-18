@@ -34,14 +34,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # # Pass AWS credentials via GH secrets. This is needed to pull the Docker image
-      # # that will be used to run the action.
-      # - name: Configure AWS credentials
-      #   uses: aws-actions/configure-aws-credentials@v1
-      #   with:
-      #     role-to-assume: ${{ vars.GH_ACTION_AWS_ROLE_ARN }}
-      #     role-session-name: ${{ vars.GH_ACTION_AWS_SESSION_NAME }}
-      #     aws-region: ${{ vars.CSFY_AWS_DEFAULT_REGION }}
+      # Pass AWS credentials via GH secrets. This is needed to pull the Docker image
+      # and in case the tests need to access AWS resources.
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ vars.GH_ACTION_AWS_ROLE_ARN }}
+          role-session-name: ${{ vars.GH_ACTION_AWS_SESSION_NAME }}
+          aws-region: ${{ vars.CSFY_AWS_DEFAULT_REGION }}
 
       # # To optimize costs, the image is fetched from GHCR registry by default.
       # # If you prefer pulling the image from ECR, enable this.
