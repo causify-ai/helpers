@@ -76,6 +76,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     if platform.system() == "Darwin" or (
         platform.system() == "Linux" and not hserver.is_dev_ck()
     ):
+        # Pinning down the package version for running locally on Mac and Linux,
+        # see HelpersTask377.
         with open(tmp_requirements_path, "a") as f:
             f.write("pyyaml == 5.3.1\n")
     _system(f"{activate_cmd} && python3 -m pip install --upgrade pip")

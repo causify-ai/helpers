@@ -159,6 +159,19 @@ def is_mac(*, version: Optional[str] = None) -> bool:
     return is_mac_
 
 
+def is_external_linux() -> bool:
+    """
+    Detect whether we are running on a non-server Linux machine.
+
+    :return: whether an external Linux system is running
+    """
+    host_os_name = os.uname()[0]
+    if host_os_name == "Linux" and not is_dev_ck():
+        # Running a Linux system but not on a dev server.
+        return True
+    return False
+
+
 def is_cmamp_prod() -> bool:
     """
     Detect whether we are running in a CK production container.
@@ -228,6 +241,7 @@ def _dassert_setup_consistency() -> None:
     is_ig_prod_ = is_ig_prod()
     is_inside_ci_ = is_inside_ci()
     is_mac_ = is_mac()
+    is_external_linux_ = is_external_linux()
     # One and only one set-up should be true.
     sum_ = sum(
         [
@@ -235,6 +249,7 @@ def _dassert_setup_consistency() -> None:
             is_dev_ck_,
             is_inside_ci_,
             is_mac_,
+            is_external_linux_,
             is_cmamp_prod_,
             is_ig_prod_,
         ]
