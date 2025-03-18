@@ -31,7 +31,7 @@ permissions:
   # This is required for actions/checkout.
   contents: read
   # This is required for pulling the Docker image from GHCR.
-  packages: read  
+  packages: read
 
 jobs:
   run_slow_tests:
@@ -114,7 +114,7 @@ jobs:
       # info in the step will be in format as seen in `with` statement.
       # Blank with no info and skipped otherwise.
       - name: Post status if was triggered manually
-        if: ${{ always() && github.event_name == 'workflow_dispatch' }}      
+        if: ${{ always() && github.event_name == 'workflow_dispatch' }}
         uses: Sibz/github-status-action@v1
         with:
           authToken: ${{ secrets.GITHUB_TOKEN }}
