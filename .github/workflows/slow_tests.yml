@@ -35,7 +35,7 @@ permissions:
 
 jobs:
   run_slow_tests:
-    # Do not run on draft pull requests or when the workflow is triggered manually.    
+    # Do not run on draft pull requests or when the workflow is triggered manually.
     if: ${{ github.event.pull_request.draft == false || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
 
