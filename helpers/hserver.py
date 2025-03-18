@@ -227,6 +227,9 @@ def setup_to_str() -> str:
     is_mac_ = is_mac()
     txt.append(f"is_mac={is_mac_}")
     #
+    is_external_linux_ = is_external_linux()
+    txt.append(f"is_external_linux={is_external_linux_}")
+    #
     txt = "\n".join(txt)
     return txt
 
