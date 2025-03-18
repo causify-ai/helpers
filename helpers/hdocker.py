@@ -1756,8 +1756,17 @@ def run_dockerized_graphviz_dot(
     """
     _LOG.debug(hprint.func_signature_to_str())
     # Get the container image.
-    _ = force_rebuild
-    container_image = "graphviz/graphviz"
+    #container_image = "graphviz/graphviz"
+    # container_image = "nshine/dot"
+    container_image = "tmp.graphviz"
+    dockerfile = rf"""
+    FROM alpine:latest
+
+    RUN apk add --no-cache graphviz
+    """
+    container_image = build_container_image(
+        container_image, dockerfile, force_rebuild, use_sudo
+    )
     # Convert files to Docker paths.
     is_caller_host = not hserver.is_inside_docker()
     use_sibling_container_for_callee = True
@@ -1784,6 +1793,7 @@ def run_dockerized_graphviz_dot(
     )
     cmd_opts = " ".join(cmd_opts)
     graphviz_cmd = [
+        "dot"
         f"{cmd_opts}",
         f"-o {out_file_path}",
         in_file_path
