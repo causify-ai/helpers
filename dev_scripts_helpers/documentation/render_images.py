@@ -80,62 +80,16 @@ def _get_rendered_file_paths(
     return (code_file_path, abs_img_dir_path, rel_img_path)
 
 
-def _get_puppeteer_config_path() -> str:
-    """
-    Get the path of the puppeteer config file.
-
-    :return: path to the config file
-    """
-    cmd = "find . -name 'puppeteerConfig.json'"
-    _, path = hsystem.system_to_one_line(cmd)
-    return path
-
-
-# TODO(gp): Not sure we should support running without Docker.
-def _get_render_command(
-    code_file_path: str,
-    abs_img_dir_path: str,
-    rel_img_path: str,
-    dst_ext: str,
-    image_code_type: str,
-) -> str:
-    """
-    Create the command for rendering the image.
-
-    :param code_file_path: path to the file with the image code
-    :param abs_img_dir_path: absolute path to the dir where the image
-        will be saved
-    :param rel_img_path: relative path to the image to be rendered
-    :param dst_ext: extension of the rendered image, e.g., "svg", "png"
-    :param image_code_type: type of the image code according to its
-        language, e.g., "plantuml", "mermaid"
-    :return: rendering command
-    """
-    # Verify that the image file extension is valid.
-    valid_extensions = ["svg", "png"]
-    hdbg.dassert_in(dst_ext, valid_extensions)
-    # Create the command.
-    cmd = ""
-    if image_code_type == "plantuml":
-        cmd = f"plantuml -t {dst_ext} -o {abs_img_dir_path} {code_file_path}"
-    elif image_code_type == "mermaid":
-        puppeteer_config = _get_puppeteer_config_path()
-        cmd = f"mmdc --puppeteerConfigFile {puppeteer_config} -i {code_file_path} -o {rel_img_path}"
-    elif image_code_type == "tikz":
-        hdbg.dfatal("Not implemented yet")
-    else:
-        raise ValueError(f"Invalid type: {image_code_type}")
-    return cmd
-
-
 def _render_code(
     image_code: str,
     image_code_idx: int,
     image_code_type: str,
     out_file: str,
     dst_ext: str,
-    run_dockerized: bool,
-    dry_run: bool,
+    *,
+    force_rebuild: bool = False,
+    use_sudo: bool = False,
+    dry_run: bool = False,
 ) -> str:
     """
     Render the image code into an image file.
@@ -148,8 +102,6 @@ def _render_code(
     :param out_file: path to the output file where the image will be
         inserted
     :param dst_ext: extension of the rendered image, e.g., "svg", "png"
-    :param run_dockerized: if True, the command is run as a dockerized
-        executable
     :param dry_run: if True, the rendering command is not executed
     :return: path to the rendered image
     """
@@ -172,47 +124,43 @@ def _render_code(
         image_code = image_code_tmp
     # Get paths for rendered files.
     hio.create_enclosing_dir(out_file, incremental=True)
-    code_file_path, abs_img_dir_path, rel_img_path = _get_rendered_file_paths(
+    in_code_file_path, abs_img_dir_path, out_img_file_path = _get_rendered_file_paths(
         out_file, image_code_idx, dst_ext
     )
-    os.makedirs(abs_img_dir_path, exist_ok=True)
+    hio.create_dir(abs_img_dir_path, incremental=True)
     # Save the image code to a temporary file.
-    hio.to_file(code_file_path, image_code)
+    hio.to_file(in_code_file_path, image_code)
     # Run the rendering.
     _LOG.info(
         "Creating the image from '%s' source and saving image to '%s'",
-        code_file_path,
+        in_code_file_path,
         abs_img_dir_path,
     )
-    if run_dockerized:
-        # Run as a dockerized executable.
+    # Run as a dockerized executable.
+    if dry_run:
+        _LOG.warning("Skipping image generation because dry_run is set")
+    else:
         if image_code_type == "plantuml":
             hdocker.run_dockerized_plantuml(
-                code_file_path, abs_img_dir_path, dst_ext
+                in_code_file_path, abs_img_dir_path, dst_ext,
+                force_rebuild=force_rebuild, use_sudo=use_sudo
             )
         elif image_code_type == "mermaid":
-            hdocker.run_dockerized_mermaid(code_file_path, rel_img_path)
+            hdocker.run_dockerized_mermaid(in_code_file_path, out_img_file_path,
+                force_rebuild=force_rebuild, use_sudo=use_sudo)
         elif image_code_type == "tikz":
             cmd_opts: List[str] = []
-            hdocker.dockerized_tikz_to_bitmap(code_file_path, cmd_opts, rel_img_path)
-        elif image_code_type == "graphviz":
-            # TODO(gp): Implement this.
-            hdocker.run_dockerized_graphviz(rel_img_path, code_file_path)
+            hdocker.dockerized_tikz_to_bitmap(in_code_file_path, cmd_opts, out_img_file_path,
+                force_rebuild=force_rebuild, use_sudo=use_sudo)
+        elif image_code_type == "graphviz_dot":
+            cmd_opts: List[str] = []
+            hdocker.run_dockerized_graphviz_dot(in_code_file_path, cmd_opts, out_img_file_path,
+                force_rebuild=force_rebuild, use_sudo=use_sudo)
         else:
             raise ValueError(f"Invalid type: {image_code_type}")
-    else:
-        # Run the package installed on the host directly.
-        cmd = _get_render_command(
-            code_file_path,
-            abs_img_dir_path,
-            rel_img_path,
-            dst_ext,
-            image_code_type,
-        )
-        hsystem.system(cmd, dry_run=dry_run)
     # Remove the temp file.
-    os.remove(code_file_path)
-    return rel_img_path
+    os.remove(in_code_file_path)
+    return out_img_file_path
 
 
 def _get_comment_prefix_postfix(extension: str) -> Tuple[str, str]:
@@ -264,8 +212,10 @@ def _render_images(
     in_lines: List[str],
     out_file: str,
     dst_ext: str,
-    run_dockerized: bool,
-    dry_run: bool,
+    *,
+    force_rebuild: bool = False,
+    use_sudo: bool = False,
+    dry_run: bool = False,
 ) -> List[str]:
     """
     Insert rendered images instead of image code blocks.
@@ -280,11 +230,9 @@ def _render_images(
     :param in_lines: lines of the input file
     :param out_file: path to the output file
     :param dst_ext: extension for rendered images
-    :param run_dockerized: if True, the image rendering command is run as a
-        dockerized executable
     :param dry_run: if True, the text of the file is updated but the images are
         not actually created
-    :return: updated file lines
+    :return: updated lines of the file
     """
     _LOG.debug(hprint.func_signature_to_str("in_lines"))
     # Get the extension of the output file.
@@ -360,8 +308,9 @@ def _render_images(
                     image_code_type,
                     out_file,
                     dst_ext,
-                    run_dockerized,
-                    dry_run,
+                    force_rebuild=force_rebuild,
+                    use_sudo=use_sudo,
+                    dry_run=dry_run,
                 )
                 # Override the image name if explicitly set by the user.
                 if user_rel_img_path != "":
@@ -390,6 +339,8 @@ def _render_images(
                     )
                 )
         elif state == "replace_image_code":
+            # Replace the line with the image code, which should be the next
+            # line.
             if line.rstrip().lstrip() != "":
                 # Replace the line.
                 state = "search_image_code"
@@ -451,17 +402,13 @@ def _parse() -> argparse.ArgumentParser:
     )
     # Add actions arguments.
     hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
-    # Add runtime arguments.
-    parser.add_argument(
-        "--run_dockerized",
-        action="store_true",
-    )
     # Add an argument for debugging.
     parser.add_argument(
         "--dry_run",
         action="store_true",
         help="Update the file but do not render images",
     )
+    hparser.add_dockerized_script_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -493,7 +440,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     in_lines = hio.from_file(in_file).split("\n")
     # Get the updated file lines after rendering.
     out_lines = _render_images(
-        in_lines, out_file, dst_ext, args.run_dockerized, args.dry_run
+        in_lines, out_file, dst_ext, 
+        force_rebuild=args.dockerized_force_rebuild,
+        use_sudo=args.dockerized_use_sudo,
+        dry_run=args.dry_run
     )
     # Save the output into a file.
     hio.to_file(out_file, "\n".join(out_lines))

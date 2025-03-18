@@ -151,7 +151,8 @@ class Test_convert_to_docker_path1(hunitest.TestCase):
         use_sibling_container_for_callee = True
         check_if_exists = False
         # - Prepare outputs.
-        exp_docker_file_path = "/app/tmp.llm_transform.in.txt"
+        helpers_root_path = hgit.find_helpers_root()
+        exp_docker_file_path = f"{helpers_root_path}/tmp.llm_transform.in.txt"
         exp_mount = "type=bind,source=/app,target=/app"
         self.helper(
             in_file_path,

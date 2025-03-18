@@ -1375,7 +1375,7 @@ def run_dockerized_imagemagick(
     return ret
 
 
-def tikz_to_bitmap(
+def dockerized_tikz_to_bitmap(
     in_file_path: str,
     cmd_opts: List[str],
     out_file_path: str,
