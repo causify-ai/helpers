@@ -194,7 +194,7 @@ def _render_code(
             hdocker.run_dockerized_mermaid(code_file_path, rel_img_path)
         elif image_code_type == "tikz":
             cmd_opts: List[str] = []
-            hdocker.tikz_to_bitmap(code_file_path, cmd_opts, rel_img_path)
+            hdocker.dockerized_tikz_to_bitmap(code_file_path, cmd_opts, rel_img_path)
         elif image_code_type == "graphviz":
             # TODO(gp): Implement this.
             hdocker.run_dockerized_graphviz(rel_img_path, code_file_path)

@@ -699,14 +699,14 @@ def find_file_in_git_tree(
     cmd = rf"find {root_dir} -name '{file_name}' -not -path '*/.git/*'"
     if remove_tmp_base:
         cmd += r" -not -path '*/tmp\.base/*'"
-    _, file_name = hsystem.system_to_one_line(cmd)
-    _LOG.debug("file_name=%s", file_name)
+    _, file_name_out = hsystem.system_to_one_line(cmd)
+    _LOG.debug(hprint.to_str("file_name_out"))
     hdbg.dassert_ne(
-        file_name, "", "Can't find file '%s' in dir '%s'", file_name, root_dir
+        file_name_out, "", "Can't find file '%s' in dir '%s'", file_name, root_dir
     )
-    file_name: str = os.path.abspath(file_name)
-    hdbg.dassert_path_exists(file_name)
-    return file_name
+    file_name_out: str = os.path.abspath(file_name_out)
+    hdbg.dassert_path_exists(file_name_out)
+    return file_name_out
 
 
 def get_path_from_git_root(

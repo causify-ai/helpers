@@ -390,6 +390,31 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
     Test running the `pandoc` command inside a Docker container.
     """
 
+    def run_pandoc(self, txt: str, exp: str) -> None:
+        """
+        Test running the `pandoc` command in a Docker container.
+
+        This test creates a test file, runs the command inside a Docker
+        container with specified command options, and checks if the
+        output matches the expected result.
+        """
+        cmd_opts = ["pandoc"]
+        in_file_path = _create_test_file(self, txt, extension="md")
+        cmd_opts.append(f"{in_file_path}")
+        out_file_path = os.path.join(self.get_scratch_space(), "output.md")
+        cmd_opts.append(f"-o {out_file_path}")
+        # Generate the table of contents.
+        cmd_opts.append("-s --toc")
+        cmd = " ".join(cmd_opts)
+        container_type = "pandoc_only"
+        use_sudo = hdocker.get_use_sudo()
+        hdocker.run_dockerized_pandoc(cmd, container_type, use_sudo=use_sudo)
+        # Check.
+        act = hio.from_file(out_file_path)
+        self.assert_equal(
+            act, exp, dedent=True, remove_lead_trail_empty_lines=True
+        )
+
     def test1(self) -> None:
         txt = """
         # Good
@@ -419,31 +444,6 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
         """
         self.run_pandoc(txt, exp)
 
-    def run_pandoc(self, txt: str, exp: str) -> None:
-        """
-        Test running the `pandoc` command in a Docker container.
-
-        This test creates a test file, runs the command inside a Docker
-        container with specified command options, and checks if the
-        output matches the expected result.
-        """
-        cmd_opts = ["pandoc"]
-        in_file_path = _create_test_file(self, txt, extension="md")
-        cmd_opts.append(f"{in_file_path}")
-        out_file_path = os.path.join(self.get_scratch_space(), "output.md")
-        cmd_opts.append(f"-o {out_file_path}")
-        # Generate the table of contents.
-        cmd_opts.append("-s --toc")
-        cmd = " ".join(cmd_opts)
-        container_type = "pandoc_only"
-        use_sudo = hdocker.get_use_sudo()
-        hdocker.run_dockerized_pandoc(cmd, container_type, use_sudo=use_sudo)
-        # Check.
-        act = hio.from_file(out_file_path)
-        self.assert_equal(
-            act, exp, dedent=True, remove_lead_trail_empty_lines=True
-        )
-
 
 # #############################################################################
 # Test_run_markdown_toc1
@@ -455,11 +455,32 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
     hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
 )
 class Test_run_markdown_toc1(hunitest.TestCase):
-    """
-    Test running the `markdown-toc` command inside a Docker container.
-    """
+
+    def run_markdown_toc(self, txt: str, exp: str) -> None:
+        """
+        Test running the `markdown-toc` command in a Docker container.
+        """
+        cmd_opts: List[str] = []
+        # Run `markdown-toc` in a Docker container.
+        in_file_path = _create_test_file(self, txt, extension="md")
+        use_sudo = hdocker.get_use_sudo()
+        force_rebuild = False
+        hdocker.run_dockerized_markdown_toc(
+            in_file_path,
+            cmd_opts,
+            use_sudo=use_sudo,
+            force_rebuild=force_rebuild,
+        )
+        # Check.
+        act = hio.from_file(in_file_path)
+        self.assert_equal(
+            act, exp, dedent=True, remove_lead_trail_empty_lines=True
+        )
 
     def test1(self) -> None:
+        """
+        Test running the `markdown-toc` command inside a Docker container.
+        """
         txt = """
         <!-- toc -->
 
@@ -491,27 +512,6 @@ class Test_run_markdown_toc1(hunitest.TestCase):
         """
         self.run_markdown_toc(txt, exp)
 
-    def run_markdown_toc(self, txt: str, exp: str) -> None:
-        """
-        Test running the `markdown-toc` command in a Docker container.
-        """
-        cmd_opts: List[str] = []
-        # Run `markdown-toc` in a Docker container.
-        in_file_path = _create_test_file(self, txt, extension="md")
-        use_sudo = hdocker.get_use_sudo()
-        force_rebuild = False
-        hdocker.run_dockerized_markdown_toc(
-            in_file_path,
-            cmd_opts,
-            use_sudo=use_sudo,
-            force_rebuild=force_rebuild,
-        )
-        # Check.
-        act = hio.from_file(in_file_path)
-        self.assert_equal(
-            act, exp, dedent=True, remove_lead_trail_empty_lines=True
-        )
-
 
 # #############################################################################
 # Test_dockerized_latex1
@@ -537,9 +537,9 @@ class Test_dockerized_latex1(hunitest.TestCase):
         out_file_path = os.path.join(self.get_scratch_space(), "output.pdf")
         return in_file_path, out_file_path
 
-    def test1(self) -> None:
+    def test_dockerized1(self) -> None:
         """
-        Test the code to run `latex` inside a Docker container.
+        Run `latex` inside a Docker container.
         """
         # Prepare inputs.
         in_file_path, out_file_path = self.create_input_file()
@@ -562,9 +562,10 @@ class Test_dockerized_latex1(hunitest.TestCase):
             msg=f"Output file {out_file_path} not found",
         )
 
-    def test2(self) -> None:
+    # TODO(gp): In theory this should go in test_dockerized_latex.py
+    def test_cmd_line1(self) -> None:
         """
-        Test the code to run `latex` using the command line.
+        Run `latex` using the command line.
         """
         # Prepare inputs.
         exec_path = hgit.find_file_in_git_tree("dockerized_latex.py")
@@ -609,14 +610,14 @@ class Test_dockerized_latex1(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_tikz_to_png1
+# Test_dockerized_tikz_to_bitmap1
 # #############################################################################
 
 
 @pytest.mark.skipif(
     hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
 )
-class Test_tikz_to_png1(hunitest.TestCase):
+class Test_dockerized_tikz_to_bitmap1(hunitest.TestCase):
 
     def create_input_file(self) -> Tuple[str, str]:
         txt = r"""
@@ -646,9 +647,9 @@ class Test_tikz_to_png1(hunitest.TestCase):
         out_file_path = os.path.join(self.get_scratch_space(), "output.png")
         return in_file_path, out_file_path
 
-    def test1(self) -> None:
+    def test_dockerized1(self) -> None:
         """
-        Test the code to run `latex` inside a Docker container.
+        Run `tikz_to_bitmap` inside a Docker container.
         """
         # Prepare inputs.
         in_file_path, out_file_path = self.create_input_file()
@@ -656,7 +657,7 @@ class Test_tikz_to_png1(hunitest.TestCase):
         force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
         # Run function.
-        hdocker.tikz_to_bitmap(
+        hdocker.dockerized_tikz_to_bitmap(
             in_file_path,
             cmd_opts,
             out_file_path,
@@ -669,15 +670,82 @@ class Test_tikz_to_png1(hunitest.TestCase):
             msg=f"Output file {out_file_path} not found",
         )
 
-    def test2(self) -> None:
+    # TODO(gp): In theory this should go in test_tikz_to_png.py
+    def test_command_line1(self) -> None:
         """
-        Test the code to run `latex` using the command line.
+        Run `dockerized_tikz_to_bitmap` through the command line.
         """
         # Prepare inputs.
-        exec_path = hgit.find_file_in_git_tree("tikz_to_png.py")
+        exec_path = hgit.find_file_in_git_tree("dockerized_tikz_to_bitmap.py")
         in_file_path, out_file_path = self.create_input_file()
         # Run function.
         cmd = f"{exec_path} -i {in_file_path} -o {out_file_path} -density 300 -quality 10"
+        hsystem.system(cmd)
+        # Check output.
+        self.assertTrue(
+            os.path.exists(out_file_path),
+            msg=f"Output file {out_file_path} not found",
+        )
+
+
+# #############################################################################
+# Test_dockerized_graphviz_dot1
+# #############################################################################
+
+
+@pytest.mark.skipif(
+    hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
+)
+class Test_dockerized_graphviz_dot1(hunitest.TestCase):
+
+    def create_input_file(self) -> Tuple[str, str]:
+        txt = r"""
+        digraph {
+            a -> b[label="0.2",weight="0.2"];
+            a -> c[label="0.4",weight="0.4"];
+            c -> b[label="0.6",weight="0.6"];
+            c -> e[label="0.6",weight="0.6"];
+            e -> e[label="0.1",weight="0.1"];
+            e -> b[label="0.7",weight="0.7"];
+        }
+        """
+        in_file_path = _create_test_file(self, txt, extension="dot")
+        out_file_path = os.path.join(self.get_scratch_space(), "output.png")
+        return in_file_path, out_file_path
+
+    def test_dockerized1(self) -> None:
+        """
+        Run `graphviz_dot` inside a Docker container.
+        """
+        # Prepare inputs.
+        in_file_path, out_file_path = self.create_input_file()
+        cmd_opts = []
+        force_rebuild = False
+        use_sudo = hdocker.get_use_sudo()
+        # Run function.
+        hdocker.run_dockerized_graphviz_dot(
+            in_file_path,
+            cmd_opts,
+            out_file_path,
+            force_rebuild=force_rebuild,
+            use_sudo=use_sudo,
+        )
+        # Check output.
+        self.assertTrue(
+            os.path.exists(out_file_path),
+            msg=f"Output file {out_file_path} not found",
+        )
+
+    # TODO(gp): In theory this should go in test_dockerized_graphviz_dot.py
+    def test_command_line1(self) -> None:
+        """
+        Run `dockerized_graphviz_dot` through the command line.
+        """
+        # Prepare inputs.
+        exec_path = hgit.find_file_in_git_tree("dockerized_graphviz_dot.py")
+        in_file_path, out_file_path = self.create_input_file()
+        # Run function.
+        cmd = f"{exec_path} -i {in_file_path} -o {out_file_path}"
         hsystem.system(cmd)
         # Check output.
         self.assertTrue(

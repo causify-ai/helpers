@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """
-Convert a TikZ file to a PNG image using a dockerized version of `pdflatex` and
-`imagemagick`.
+Convert a Graphviz dot file to a PNG image.
 """
 
 import argparse
@@ -31,12 +30,10 @@ def _parse() -> argparse.ArgumentParser:
 def _main(parser: argparse.ArgumentParser) -> None:
     # Parse everything that can be parsed and returns the rest.
     args, cmd_opts = parser.parse_known_args()
-    if not cmd_opts:
-        cmd_opts = ["-density 300", "-quality 10"]
     hdbg.init_logger(
         verbosity=args.log_level, use_exec_path=True, force_white=False
     )
-    hdocker.tikz_to_bitmap(
+    hdocker.run_dockerized_graphivz_dot(
         args.input,
         cmd_opts,
         args.output,
