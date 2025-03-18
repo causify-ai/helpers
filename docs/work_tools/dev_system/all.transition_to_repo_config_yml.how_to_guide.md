@@ -7,7 +7,7 @@
 
 # How to switch from `repo_config.py` to `repo_config.yml`
 
-- Design goal is discussed in
+- Design choice is discussed in
   [Managing repo configurations](/docs/work_tools/dev_system/all.runnable_repo.reference.md#managing-repo-configurations)
 
 - Changelog
