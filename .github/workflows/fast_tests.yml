@@ -73,21 +73,18 @@ jobs:
 
       # Install packages that are required to run the job via GH.
       - name: Install dependencies
-        if: github.event.pull_request.draft == false
         run: |
           python -m pip install --upgrade pip
           pip install -r .github/gh_requirements.txt
 
       # # Pull the latest Docker image from the AWS ECR to run the regressions on.
       # - name: Pull image from AWS ECR
-      #   if: github.event.pull_request.draft == false
       #   env:
       #     CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
       #   run: invoke docker_pull
 
       # Pull the latest Docker image from the GHCR registry instead of ECR for cost saving purposes to run the regressions on.
       - name: Pull image from GHCR
-        if: github.event.pull_request.draft == false
         run: docker pull ghcr.io/${{ github.repository }}:dev
 
       # Run the `invoke` target `run_fast_tests` to run tests that are under 5 seconds.
