@@ -8,6 +8,7 @@ import argparse
 import logging
 import os
 import subprocess
+import sys
 
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
@@ -92,10 +93,21 @@ def _run_test(runnable_dir: str, command: str) -> None:
     # devops and helpers directory.
     env = os.environ.copy()
     env["HELPERS_ROOT_DIR"] = os.path.join(os.getcwd(), "helpers_root")
-    env[
-        "PYTHONPATH"
-    ] = f"{os.path.join(os.getcwd(), runnable_dir)}:{env['HELPERS_ROOT_DIR']}"
-    subprocess.run(f"invoke {command}", shell=True, env=env, cwd=runnable_dir)
+    # Give priority to the current runnable directory over helpers.
+    env["PYTHONPATH"] = (
+        f"{os.path.join(os.getcwd(), runnable_dir)}:{env['HELPERS_ROOT_DIR']}"
+    )
+    # TODO(heanh): Use hsystem.
+    # We cannot use `hsystem.system` because it does not support passing of env
+    # variables yet.
+    result = subprocess.run(
+        f"invoke {command}", shell=True, env=env, cwd=runnable_dir
+    )
+    # Error code is not propagated upward to the parent process causing the
+    # GH actions to not fail the pipeline (See CmampTask11449).
+    # We need to explicitly exit with the return code of the subprocess.
+    if result.returncode != 0:
+        sys.exit(result.returncode)
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
