@@ -47,8 +47,8 @@
 - Replace `setenv.sh` file with symoblic link reference to the file in //helpers
   - Except for when amp is the first level submodule (instead of //helpers). See
     CmampTask11623
-  - TODO (heanh): Generalize amp path resolution in setenv.sh when amp is the
-    first level submodule (CmampTask11623)
+    - TODO (heanh): Generalize amp path resolution in setenv.sh when amp is the 
+      first level submodule (CmampTask11623)
 
   ```bash
   python3 ./helpers_root/helpers/create_links.py --src_dir ./helpers_root/dev_scripts_helpers/thin_client --dst_dir ./dev_scripts_cmamp/thin_client --replace_links --use_relative_paths
@@ -68,7 +68,7 @@
     ```bash
     > dev_scripts_helpers/cleanup_scripts/HelpersTask88_Improve_repo_config.sh
     ```
-  - Import statements in the modified files may need to be added or updated as
+  - Import statements in the modified files will need to be added or updated as
     well
 
 - Rename `IS_SUPER_REPO` to `USE_HELPERS_AS_NESTED_MODULE`
