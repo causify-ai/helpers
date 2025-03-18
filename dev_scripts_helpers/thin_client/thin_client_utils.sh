@@ -206,13 +206,37 @@ set_pythonpath() {
 }
 
 
+is_dev_ck() {
+    # Check if we are running on the dev servers.
+    # Get the host name.
+    host_name=$(uname -n)
+    host_names=("dev1" "dev2" "dev3")
+    # Get the host name from the environment variable.
+    csfy_host_name="${CSFY_HOST_NAME:-}"
+    echo "host_name=$host_name csfy_host_name=$csfy_host_name"
+    if [[ " ${host_names[@]} " =~ " $host_name " ]] || [[ " ${host_names[@]} " =~ " $csfy_host_name " ]]; then
+        # Returns true, running the setup from dev servers.
+        return 0
+    else
+        # Running the setup from local machine.
+        return 1
+    fi
+}
+
 configure_specific_project() {
     echo "# configure_specific_project()"
     # AWS profiles which are propagated to Docker.
     export CSFY_AWS_PROFILE="ck"
 
     # These variables are propagated to Docker.
-    export CSFY_ECR_BASE_PATH="623860924167.dkr.ecr.eu-north-1.amazonaws.com"
+    if is_dev_ck; then
+        # Private ECR registry base path.
+        export CSFY_ECR_BASE_PATH="623860924167.dkr.ecr.eu-north-1.amazonaws.com"
+    else
+        # Public dockerhub registry base path.
+        export CSFY_ECR_BASE_PATH="causify"
+    fi
+
     export CSFY_AWS_S3_BUCKET="cryptokaizen-data"
 
     export DEV1="172.30.2.136"
