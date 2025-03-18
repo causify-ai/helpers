@@ -34,8 +34,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # To optimize costs, the image is fetched from GHCR registry by default. If you prefer
-      # pulling the image from ECR, enable this.
       # Pass AWS credentials via GH secrets. This is needed to pull the Docker image
       # that will be used to run the action.
       - name: Configure AWS credentials
@@ -45,12 +43,13 @@ jobs:
           role-session-name: ${{ vars.GH_ACTION_AWS_SESSION_NAME }}
           aws-region: ${{ vars.CSFY_AWS_DEFAULT_REGION }}
 
-      # # This is needed to pull the Docker image.
-      # - name: Login to Amazon ECR
+      # # To optimize costs, the image is fetched from GHCR registry by default. 
+      # # If you prefer pulling the image from ECR, enable this.
+      # - name: Login to AWS ECR
       #   id: login-ecr
       #   uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Perform GHCR registry login
+      - name: Login to GHCR
         if: github.event.pull_request.draft == false
         run: docker login ghcr.io -u gpsaggese -p ${{ secrets.GITHUB_TOKEN }}
 
@@ -79,14 +78,14 @@ jobs:
           pip install -r .github/gh_requirements.txt
 
       # # Pull the latest Docker image to run the regressions on.
-      # - name: Pull image
+      # - name: Pull image from AWS ECR
       #   if: github.event.pull_request.draft == false
       #   env:
       #     CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
       #   run: invoke docker_pull
 
       # Pull the latest Docker image from GHCR registry instead of ECR for cost saving purposes to run the regressions on.
-      - name: Pull image
+      - name: Pull image from GHCR
         if: github.event.pull_request.draft == false
         run: docker pull ghcr.io/causify-ai/helpers:dev
 
