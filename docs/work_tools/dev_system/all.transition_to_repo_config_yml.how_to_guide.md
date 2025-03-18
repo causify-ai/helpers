@@ -47,7 +47,7 @@
 - Replace `setenv.sh` file with symoblic link reference to the file in //helpers
   - Except for when amp is the first level submodule (instead of //helpers). See
     CmampTask11623
-    - TODO (heanh): Generalize amp path resolution in setenv.sh when amp is the 
+    - TODO (heanh): Generalize amp path resolution in setenv.sh when amp is the
       first level submodule (CmampTask11623)
 
   ```bash
