@@ -31,6 +31,8 @@ permissions:
   packages: read
 jobs:
   run_fast_tests:
+    # Do not run on draft pull requests or when the workflow is triggered manually.
+    if: ${{ github.event.pull_request.draft == false || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -86,15 +88,11 @@ jobs:
       # Pull the latest Docker image from the GHCR registry instead of ECR for cost saving purposes to run the regressions on.
       - name: Pull image from GHCR
         if: github.event.pull_request.draft == false
-        run: docker pull ghcr.io/causify-ai/helpers:dev
-
+        run: docker pull ghcr.io/${{ github.repository }}:dev
 
       # Run the `invoke` target `run_fast_tests` to run tests that are under 5 seconds.
       # See the corresponding documentation for more information.
       - name: Run fast tests
-        if: github.event.pull_request.draft == false
-      # https://github.community/t/dont-run-actions-on-draft-pull-requests/16817/19
-        # Do not run on draft pull requests.
         env:
           CSFY_AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
           CSFY_AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}

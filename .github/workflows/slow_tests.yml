@@ -35,6 +35,7 @@ permissions:
 
 jobs:
   run_slow_tests:
+    # Do not run on draft pull requests or when the workflow is triggered manually.    
     if: ${{ github.event.pull_request.draft == false || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
 
@@ -106,8 +107,6 @@ jobs:
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
           CSFY_TELEGRAM_TOKEN: ${{ secrets.CSFY_TELEGRAM_TOKEN }}
           GH_ACTION_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        # https://github.community/t/dont-run-actions-on-draft-pull-requests/16817/19
-        # Do not run on draft pull requests.
         run: invoke run_slow_tests
 
       # In case of manual run, this workflow step will not be skipped and
