@@ -50,7 +50,6 @@ jobs:
       #   uses: aws-actions/amazon-ecr-login@v1
 
       - name: Login to GHCR
-        if: github.event.pull_request.draft == false
         run: docker login ghcr.io -u gpsaggese -p ${{ secrets.GITHUB_TOKEN }}
 
       # Make everything accessible by any user to avoid permission errors.
@@ -77,14 +76,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r .github/gh_requirements.txt
 
-      # # Pull the latest Docker image to run the regressions on.
+      # # Pull the latest Docker image from the AWS ECR to run the regressions on.
       # - name: Pull image from AWS ECR
       #   if: github.event.pull_request.draft == false
       #   env:
       #     CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
       #   run: invoke docker_pull
 
-      # Pull the latest Docker image from GHCR registry instead of ECR for cost saving purposes to run the regressions on.
+      # Pull the latest Docker image from the GHCR registry instead of ECR for cost saving purposes to run the regressions on.
       - name: Pull image from GHCR
         if: github.event.pull_request.draft == false
         run: docker pull ghcr.io/causify-ai/helpers:dev
