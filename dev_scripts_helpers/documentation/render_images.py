@@ -202,7 +202,10 @@ def _comment_if_needed(
     state: str, line: str, comment_prefix: str, comment_postfix: str
 ) -> str:
     if state == "found_image_code":
-        ret = f"{comment_prefix} {line}{comment_postfix}"
+        if line.startswith(comment_prefix):
+            ret = line
+        else:
+            ret = f"{comment_prefix} {line}{comment_postfix}"
     else:
         ret = line
     return ret
@@ -257,8 +260,8 @@ def _render_images(
     start_regex = re.compile(
         rf"""
         ^\s*                # Start of the line and any leading whitespace
-        ({comment})?        # Optional comment prefix
-        \s*```              # Opening backticks for code block
+        ({comment}\s*)?     # Optional comment prefix
+        ```                 # Opening backticks for code block
         (plantuml|mermaid|tikz|graphviz*)  # Image code type
         (\((.*)\))?         # Optional user-specified image name in parentheses
         \s*$                # Any trailing whitespace and end of the line
@@ -268,14 +271,14 @@ def _render_images(
     end_regex = re.compile(
         rf"""
         ^\s*                # Start of the line and any leading whitespace
-        ({comment})?        # Optional comment prefix
-        \s*```              # Opening backticks for code block
+        ({comment}\s*)?     # Optional comment prefix
+        ```                 # Opening backticks for code block
         \s*$                # Any trailing whitespace and end of the line
         """,
         re.VERBOSE,
     )
     for i, line in enumerate(in_lines):
-        _LOG.debug("%d %s: %s", i, state, line)
+        _LOG.debug("%d %s: '%s'", i, state, line)
         m = start_regex.search(line)
         if m:
             # Found the beginning of an image code block.
