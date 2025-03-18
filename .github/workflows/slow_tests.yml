@@ -114,6 +114,7 @@ jobs:
       # info in the step will be in format as seen in `with` statement.
       # Blank with no info and skipped otherwise.
       - name: Post status if was triggered manually
+        if: ${{ always() && github.event_name == 'workflow_dispatch' }}      
         uses: Sibz/github-status-action@v1
         with:
           authToken: ${{ secrets.GITHUB_TOKEN }}
