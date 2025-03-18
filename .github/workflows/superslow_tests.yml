@@ -16,7 +16,7 @@ permissions:
   # This is required for actions/checkout.
   contents: read
   # This is required for pulling the Docker image from GHCR.
-  packages: read  
+  packages: read
 
 jobs:
   run_superslow_tests:
@@ -40,7 +40,7 @@ jobs:
 
       - name: Login to GHCR
         run: docker login ghcr.io -u gpsaggese -p ${{ secrets.GITHUB_TOKEN }}
-      
+
       # Make everything accessible by any user to avoid permission errors.
       - name: Cleanup
         run: sudo chmod 777 -R .
@@ -72,7 +72,7 @@ jobs:
 
       # Pull the latest Docker image from the GHCR registry instead of ECR for cost saving purposes to run the regressions on.
       - name: Pull image from GHCR
-        run: docker pull ghcr.io/${{ github.repository }}:dev        
+        run: docker pull ghcr.io/${{ github.repository }}:dev
 
       # Run the `invoke` target `run_superslow_tests` to run tests that are over 30 seconds.
       # See the corresponding documentation for more information.
