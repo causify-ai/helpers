@@ -28,7 +28,7 @@ permissions:
   # This is required for actions/checkout.
   contents: read
   # This is required for pulling the Docker image from GHCR.
-  packages: read  
+  packages: read
 jobs:
   run_fast_tests:
     runs-on: ubuntu-latest
@@ -43,7 +43,7 @@ jobs:
           role-session-name: ${{ vars.GH_ACTION_AWS_SESSION_NAME }}
           aws-region: ${{ vars.CSFY_AWS_DEFAULT_REGION }}
 
-      # # To optimize costs, the image is fetched from GHCR registry by default. 
+      # # To optimize costs, the image is fetched from GHCR registry by default.
       # # If you prefer pulling the image from ECR, enable this.
       # - name: Login to AWS ECR
       #   id: login-ecr
@@ -89,7 +89,7 @@ jobs:
         if: github.event.pull_request.draft == false
         run: docker pull ghcr.io/causify-ai/helpers:dev
 
-        
+
       # Run the `invoke` target `run_fast_tests` to run tests that are under 5 seconds.
       # See the corresponding documentation for more information.
       - name: Run fast tests
