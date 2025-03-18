@@ -102,13 +102,9 @@ jobs:
           CSFY_AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
           CSFY_AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
           CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
-          # Base path for ECR registry.
           # CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
+          # CSFY_ECR_BASE_PATH is the source path for fetching the image.
           # If you prefer pulling the image from ECR, comment out the following line and uncomment the one above.
-          # Base path for GHCR registry.
-          # Although the env name has ECR but the value is set to GHCR registry.
-          # This env variable is used inside invokes for fetching the image.
-          # We are overriding ECR base path with GHCR base path in order to download image from GHCR.
           CSFY_ECR_BASE_PATH: ghcr.io/causify-ai
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
           CSFY_TELEGRAM_TOKEN: ${{ secrets.CSFY_TELEGRAM_TOKEN }}
