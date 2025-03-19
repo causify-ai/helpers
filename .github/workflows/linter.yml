@@ -73,8 +73,6 @@ jobs:
       # Run the linter, then check if any file was changed after that. If so,
       # fail the job.
       - name: Check if the Linter was run
-        # https://github.community/t/dont-run-actions-on-draft-pull-requests/16817/19
-        # Do not run on draft pull requests.
         env:
           # Base path for ECR registry.
           # CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
