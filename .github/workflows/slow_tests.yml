@@ -103,6 +103,7 @@ jobs:
           # CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
           # CSFY_ECR_BASE_PATH is the source path for fetching the image.
           # If you prefer pulling the image from ECR, comment out the following line and uncomment the one above.
+          # TODO(Vlad): Rename the variable to CSFY_CR_BASE_PATH since it can be either GHCR or ECR.
           CSFY_ECR_BASE_PATH: ghcr.io/${{ github.repository_owner }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
           CSFY_TELEGRAM_TOKEN: ${{ secrets.CSFY_TELEGRAM_TOKEN }}
