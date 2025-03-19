@@ -38,11 +38,11 @@ jobs:
       #     aws-region: ${{ vars.CSFY_AWS_DEFAULT_REGION }}
 
       # # # This is needed to pull the Docker image.
-      # - name: Login to Amazon ECR
+      # - name: Login to AWS ECR
       #   id: login-ecr
       #   uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Perform GHCR registry login
+      - name: Login to GHCR
         run: docker login ghcr.io -u gpsaggese -p ${{ secrets.GITHUB_TOKEN }}
 
       # Make everything accessible by any user to avoid permission errors.
