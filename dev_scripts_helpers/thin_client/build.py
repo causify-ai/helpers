@@ -15,6 +15,7 @@ import thin_client_utils as tcu
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 import helpers.hprint as hprint
+import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
@@ -72,7 +73,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
     requirements_path = os.path.join(thin_environ_dir, "requirements.txt")
     tmp_requirements_path = os.path.join(thin_environ_dir, "tmp.requirements.txt")
     shutil.copy(requirements_path, tmp_requirements_path)
-    if platform.system() == "Darwin":
+    if platform.system() == "Darwin" or (
+        platform.system() == "Linux" and not hserver.is_dev_ck()
+    ):
+        # Pinning down the package version for running locally on Mac and Linux,
+        # see HelpersTask377.
         with open(tmp_requirements_path, "a") as f:
             f.write("pyyaml == 5.3.1\n")
     _system(f"{activate_cmd} && python3 -m pip install --upgrade pip")
