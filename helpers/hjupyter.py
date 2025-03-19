@@ -12,8 +12,7 @@ from typing import Dict, List, Tuple
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hsystem as hsystem
-# TODO(gp): no need to abbreviate
-import nbconvert as nbc
+import nbconvert
 import nbformat
 
 _LOG = logging.getLogger(__name__)
@@ -35,8 +34,6 @@ def run_notebook(
     :param scratch_dir: temporary dir storing the output
     :param pre_cmd:
     """
-    import helpers.hgit as hgit
-
     file_name = os.path.abspath(file_name)
     hdbg.dassert_path_exists(file_name)
     hio.create_dir(scratch_dir, incremental=True)
@@ -82,6 +79,8 @@ def build_run_notebook_cmd(
     :param extra_opts: options for "run_notebook.py", e.g., "--
         publish_notebook"
     """
+    # Importing inside func to avoid error while creating dockerized executable.
+    # TODO(shaunak) -> debug why?
     import helpers.hgit as hgit
 
     # TODO(Vlad): Factor out common code with the
@@ -126,21 +125,40 @@ class NotebookImageExtractor:
         ...
         # end_extract
         ```
-        For each region found, it collects the cells between these markers. Each
-        region is returned as a tuple containing the extraction mode, the output
-        filename (as specified in the marker), and the list of cells for that
-        region.
+        Example:
+
+         1. To extract only the input code:
+            # start_extract(only_input) =  input_code.py
+            ```python
+            def test_func():
+                return "Test"
+            ```
+            # end_extract
+
+        2. To extract only the output of code:
+            # start_extract(only_output)=output.png
+            ```python
+            print("This is the output")
+            ```
+            # end_extract
+
+        3. To extract both code and output:
+            # start_extract(all)  =full_output.html
+            ```python
+            print("This is both code and output")
+            ```
+            # end_extract
 
         :return: tuples (mode, out_filename, region_cells) for each extraction region.
-        # TODO: Add some examples of outputs
         """
         # Read notebook.
         nb = nbformat.read(self.notebook_path, as_version=4)
-        # Define regular expressions for the start and end markers.
+        # TODO: -> start_marker_regex
         start_re = re.compile(
             r"#\s*start_extract\(\s*(only_input|only_output|all)\s*\)\s*=\s*(\S+)"
         )
-        end_re = re.compile(r"#\s*end_extract")
+        # TODO: -> end_marker_regex
+        end_re = re.compile(r"#\s*end_extract\s*") 
         regions = []
         in_extract = False
         current_mode = None
@@ -149,17 +167,17 @@ class NotebookImageExtractor:
         for cell in nb.cells:
             if cell.cell_type != "code":
                 continue
-            # Instead of asserting that an end marker isn't present when not in extract mode,
-            # we simply ignore end markers when not in extraction mode.
             if not in_extract:
                 m = start_re.search(cell.source)
                 if m:
+                    # A start marker was found. Capture the mode and output filename
                     current_mode = m.group(1)
                     current_out_filename = m.group(2)
                     in_extract = True
                     # Remove the start marker from the cell.
                     cell.source = start_re.sub("", cell.source).strip()
-                    # If the end marker exists in the same cell, remove it and finish the region.
+                    ## TODO: How can this happen? For me this is an error.
+                    # If there's also an end marker in this cell, complete the extraction region.
                     if end_re.search(cell.source):
                         cell.source = end_re.sub("", cell.source).strip()
                         current_cells.append(cell)
@@ -174,7 +192,7 @@ class NotebookImageExtractor:
                     # If there's an end marker without a corresponding start, ignore it.
                     pass
             else:
-                # Already in an extraction region.
+                # We are inside an extraction region, so continue adding cells to the region.
                 if end_re.search(cell.source):
                     cell.source = end_re.sub("", cell.source).strip()
                     current_cells.append(cell)
@@ -184,6 +202,7 @@ class NotebookImageExtractor:
                     current_cells = []
                     in_extract = False
                 else:
+                    # If there's no end marker, just keep adding cells to the current region.
                     current_cells.append(cell)
         if not regions:
             raise ValueError("No extraction markers found in the notebook.")
@@ -198,7 +217,7 @@ class NotebookImageExtractor:
         :param nb: notebook object containing the extracted cells.
         :param output_html: filename for the temporary HTML output.
         """
-        html_exporter = nbc.HTMLExporter()
+        html_exporter = nbconvert.HTMLExporter()
         body, _ = html_exporter.from_notebook_node(nb)
         with open(output_html, "w", encoding="utf-8") as f:
             f.write(body)

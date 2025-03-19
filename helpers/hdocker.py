@@ -978,8 +978,6 @@ def run_dockerized_notebook_image_extractor(
     """
     Run NotebookImageExtractor in a Docker container.
 
-    This function reuses the built container image (unless force_rebuild is True)
-    and runs a one-shot command to extract images from the given notebook.
     """
     _LOG.debug(hprint.func_signature_to_str())
     # Build the container image, if needed.
@@ -1016,13 +1014,10 @@ def run_dockerized_notebook_image_extractor(
     # Create the directory for Playwright browsers and ensure it's writable.
     RUN mkdir -p /ms-playwright && chmod -R 777 /ms-playwright
 
-    # Install Python dependencies.
     RUN pip install nbconvert nbformat playwright pyyaml
 
-    # Install Playwright browsers into the specified directory.
     RUN python -m playwright install
 
-    # Set a working directory inside the container.
     WORKDIR /app
     """
     container_image = build_container_image(
@@ -1052,8 +1047,6 @@ def run_dockerized_notebook_image_extractor(
         is_caller_host=is_caller_host,
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
-    # Construct the inner command.
-    # We wrap the python command in single quotes and escape double quotes for the file paths.
     bash_cmd = (
         "python -c 'from helpers.hjupyter import NotebookImageExtractor; "
         "extractor = NotebookImageExtractor(\\\"{}\\\", \\\"{}\\\"); "
