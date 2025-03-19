@@ -307,6 +307,14 @@
   - pull the latest container with `invoke docker_pull`
   ```
 
+- If you are prompted to enter sudo password, do not enter anything and press
+  Ctrl-C to resolve
+
+  ```bash
+  WARN  hserver.py _raise_invalid_host:342   Don't recognize host: host_os_name=Linux, am_host_os_name=None
+  [sudo] password for ubuntu:
+  ```
+
 - Start a Jupyter server
 
   ```bash

@@ -396,10 +396,13 @@ def docker_login(ctx, target_registry="aws_ecr.ck"):  # type: ignore
     """
     _ = ctx
     hlitauti.report_task()
-    # No login required as kaizenflow container is accessible on the public
-    # DockerHub registry.
-    if hrecouti.get_repo_config().get_name() == "//kaizen":
-        _LOG.warning("Skipping logging in for Kaizenflow")
+    # No login required as the `helpers` container is accessible on
+    # the public DockerHub registry.
+    if (
+        not hserver.is_dev_ck()
+        and hrecouti.get_repo_config().get_name() == "//helpers"
+    ):
+        _LOG.warning("Skipping logging in for Helpers")
         return
     # We run everything using `hsystem.system(...)` but `ctx` is needed
     # to make the function work as an invoke target.
