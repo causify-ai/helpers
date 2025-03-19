@@ -68,7 +68,9 @@ jobs:
 
       # Pull the `helpers:prod` image to run the Linter on it.
       - name: Pull Linter image
-        run: docker pull ghcr.io/causify-ai/helpers:prod
+        env:
+          CSFY_ECR_BASE_PATH: ghcr.io/causify-ai
+        run: invoke docker_pull_helpers
 
       # Run the linter, then check if any file was changed after that. If so,
       # fail the job.
