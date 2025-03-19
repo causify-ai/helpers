@@ -21,6 +21,8 @@ permissions:
 jobs:
 
   Run_linter:
+    # Do not run on draft pull requests or when the workflow is triggered manually.
+    if: ${{ github.event.pull_request.draft == false || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -41,18 +43,15 @@ jobs:
       #   uses: aws-actions/amazon-ecr-login@v1
 
       - name: Perform GHCR registry login
-        if: github.event.pull_request.draft == false
         run: docker login ghcr.io -u gpsaggese -p ${{ secrets.GITHUB_TOKEN }}
 
       # Make everything accessible by any user to avoid permission errors.
       - name: Cleanup
-        if: github.event.pull_request.draft == false
         run: sudo chmod 777 -R .
 
       # Check out the code from GitHub so that we can run the action inside
       # the Docker container.
       - name: Checkout code
-        if: github.event.pull_request.draft == false
         uses: actions/checkout@v2
         with:
           # The `lint` invoke target needs to have the full history of commits
@@ -63,14 +62,12 @@ jobs:
 
       # Install packages that are required to run the job via GH.
       - name: Install dependencies
-        if: github.event.pull_request.draft == false
         run: |
           python -m pip install --upgrade pip
           pip install -r .github/gh_requirements.txt
 
       # Pull the `helpers:prod` image to run the Linter on it.
       - name: Pull Linter image
-        if: github.event.pull_request.draft == false
         run: docker pull ghcr.io/causify-ai/helpers:prod
 
       # Run the linter, then check if any file was changed after that. If so,
@@ -78,7 +75,6 @@ jobs:
       - name: Check if the Linter was run
         # https://github.community/t/dont-run-actions-on-draft-pull-requests/16817/19
         # Do not run on draft pull requests.
-        if: github.event.pull_request.draft == false
         env:
           # Base path for ECR registry.
           # CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
