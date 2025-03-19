@@ -37,8 +37,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Pass AWS credentials via GH secrets. This is needed to pull the Docker image
-      # and in case the tests need to access AWS resources.
+      # Pass AWS credentials via GH secrets. This is needed to pull the Docker
+      # image and in case the tests need to access AWS resources.
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -78,18 +78,20 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r .github/gh_requirements.txt
 
-      # # Pull the latest Docker image from the AWS ECR to run the regressions on.
+      # # Pull the latest Docker image from the AWS ECR to run the regressions
+      # # on.
       # - name: Pull image from AWS ECR
       #   env:
       #     CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
       #   run: invoke docker_pull
 
-      # Pull the latest Docker image from the GHCR registry instead of ECR for cost saving purposes to run the regressions on.
+      # Pull the latest Docker image from the GHCR registry instead of ECR for
+      # cost saving purposes to run the regressions on.
       - name: Pull image from GHCR
         run: docker pull ghcr.io/${{ github.repository }}:dev
 
-      # Run the `invoke` target `run_fast_tests` to run tests that are under 5 seconds.
-      # See the corresponding documentation for more information.
+      # Run the `invoke` target `run_fast_tests` to run tests that are under 5
+      # seconds. See the corresponding documentation for more information.
       - name: Run fast tests
         env:
           CSFY_AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
@@ -98,11 +100,12 @@ jobs:
           CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
           # CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
           # CSFY_ECR_BASE_PATH is the source path for fetching the image.
-          # If you prefer pulling the image from ECR, comment out the following line and uncomment the one above.
-          # TODO(Vlad): Rename the variable to CSFY_CR_BASE_PATH since it can be either GHCR or ECR.
+          # If you prefer pulling the image from ECR, comment out the following
+          # line and uncomment the one above.
+          # TODO(Vlad): Rename the variable to CSFY_CR_BASE_PATH since it can be
+          # either GHCR or ECR.
           CSFY_ECR_BASE_PATH: ghcr.io/${{ github.repository_owner }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
-          CSFY_TELEGRAM_TOKEN: ${{ secrets.CSFY_TELEGRAM_TOKEN }}
           GH_ACTION_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: invoke run_fast_tests
         # TODO(gp): Run a single test. You need to disable the `push` on master.
@@ -131,8 +134,8 @@ jobs:
         if: ${{ failure() && github.ref_name == 'master' }}
         uses: slackapi/slack-github-action@v1.27.0
         with:
-          # You can pass in multiple channels to post to by providing a comma-delimited list of channel IDs:
-          # 'CHANNEL_ID,ANOTHER_CHANNEL_ID'
+          # You can pass in multiple channels to post to by providing a
+          # comma-delimited list of channel IDs: 'CHANNEL_ID,ANOTHER_CHANNEL_ID'
           channel-id: ${{ vars.SLACK_BUILD_NOTIF_CHANNEL_ID }}
           slack-message: |
             💣 FAST TESTS FAILED

@@ -27,10 +27,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # To optimize costs, the image is fetched from GHCR registry by default. If you prefer
-      # pulling the image from ECR, enable this.
-      # # Pass AWS credentials via GH secrets. This is needed to pull the Docker image
-      # # that will be used to run the action.
+      # To optimize costs, the image is fetched from GHCR registry by default.
+      # If you prefer pulling the image from ECR, enable this.
+      # # Pass AWS credentials via GH secrets. This is needed to pull the Docker
+      # # image that will be used to run the action.
       # - name: Configure AWS credentials
       #   uses: aws-actions/configure-aws-credentials@v1
       #   with:
@@ -79,8 +79,10 @@ jobs:
         env:
           # CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
           # CSFY_ECR_BASE_PATH is the source path for fetching the image.
-          # If you prefer pulling the image from ECR, comment out the following line and uncomment the one above.
-          # TODO(Vlad): Rename the variable to CSFY_CR_BASE_PATH since it can be either GHCR or ECR.
+          # If you prefer pulling the image from ECR, comment out the following
+          # line and uncomment the one above.
+          # TODO(Vlad): Rename the variable to CSFY_CR_BASE_PATH since it can be
+          # either GHCR or ECR.
           CSFY_ECR_BASE_PATH: ghcr.io/${{ github.repository_owner }}
         # To run the linter, fetch the master branch for comparison with the
         # current branch.
