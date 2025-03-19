@@ -74,13 +74,9 @@ jobs:
       # fail the job.
       - name: Check if the Linter was run
         env:
-          # Base path for ECR registry.
           # CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
+          # CSFY_ECR_BASE_PATH is the source path for fetching the image.
           # If you prefer pulling the image from ECR, comment out the following line and uncomment the one above.
-          # Base path for GHCR registry.
-          # Although the env name has ECR but the value is set to GHCR registry.
-          # This env variable is used inside invokes for fetching the image.
-          # We are overriding ECR base path with GHCR base path in order to download image from GHCR.
           CSFY_ECR_BASE_PATH: ghcr.io/causify-ai
         # To run the linter, fetch the master branch for comparison with the
         # current branch.
