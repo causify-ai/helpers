@@ -103,7 +103,7 @@ jobs:
           # CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
           # CSFY_ECR_BASE_PATH is the source path for fetching the image.
           # If you prefer pulling the image from ECR, comment out the following line and uncomment the one above.
-          CSFY_ECR_BASE_PATH: ghcr.io/causify-ai
+          CSFY_ECR_BASE_PATH: ghcr.io/${{ github.repository_owner }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
           CSFY_TELEGRAM_TOKEN: ${{ secrets.CSFY_TELEGRAM_TOKEN }}
           GH_ACTION_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
