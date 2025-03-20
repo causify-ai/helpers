@@ -34,8 +34,8 @@ jobs:
     
     # Execute this step only if the pull request is not in the draft state or if
     # the workflow is triggered manually.
-    # if: ${{ github.event.pull_request.draft == false }}
-    if: ${{ github.event.pull_request.draft == false || github.event_name == 'workflow_dispatch' }}
+    if: ${{ github.event.pull_request.draft == false }}
+    # if: ${{ github.event.pull_request.draft == false || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
 
     steps:
