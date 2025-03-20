@@ -40,27 +40,27 @@
       applicable, do a PR proposing improvements to the checklist (or any other
       docs), since this will allow us to improve the process as we move forward
 
+- [ ] **Intern**: Join the Telegram channel - https://t.me/+DXZXsWoEHR1mNWIx
+
 - [ ] **HiringMeister**: Establish contact by email or Telegram with the intern
       with a few words about the next steps
 
+- [ ] **Intern**: Post your laptop's OS (Windows, Linux, Mac) in the comments of
+      this issue
+
 - [ ] **Intern**: Send the following information to your point of contact
-  - Full name:
-  - Aka:
-  - Personal email:
-  - Telegram username/number:
-  - Github user:
-  - Laptop OS: Windows, Linux, or Mac
-  - Physical location and timezone
-  - User's SSH public key
 
 - [ ] **Intern**: Confirm access to the public GH repos
   - [ ] [kaizenflow](https://github.com/causify-ai/kaizenflow)
   - [ ] [helpers](https://github.com/causify-ai/helpers)
   - [ ] [tutorials](https://github.com/causify-ai/tutorials)
 
-- [ ] **IT**: Add the intern to the mailing group `contributors@causify.ai` so
-      that they can send
+- [ ] **IT**: @Shayawnn Add the intern to the mailing group
+      `contributors@causify.ai` so that they can send
       [morning TODO emails](https://github.com/causify-ai/helpers/blob/master/docs/work_organization/all.team_collaboration.how_to_guide.md#morning-todo-email)
+  - The intern's personal e-mail address can be found in the corresponding Asana
+    task in the
+    [Hiring](https://app.asana.com/0/1208280136292379/1208280159230261) project
 
 ### IT setup
 
