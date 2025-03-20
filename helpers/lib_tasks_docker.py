@@ -396,10 +396,13 @@ def docker_login(ctx, target_registry="aws_ecr.ck"):  # type: ignore
     """
     _ = ctx
     hlitauti.report_task()
-    # No login required as kaizenflow container is accessible on the public
-    # DockerHub registry.
-    if hrecouti.get_repo_config().get_name() == "//kaizen":
-        _LOG.warning("Skipping logging in for Kaizenflow")
+    # No login required as the `helpers` container is accessible on
+    # the public DockerHub registry.
+    if (
+        not hserver.is_dev_ck()
+        and hrecouti.get_repo_config().get_name() == "//helpers"
+    ):
+        _LOG.warning("Skipping logging in for Helpers")
         return
     # We run everything using `hsystem.system(...)` but `ctx` is needed
     # to make the function work as an invoke target.
@@ -1133,8 +1136,11 @@ def _get_docker_base_cmd(
     image = get_image(base_image, stage, version)
     _LOG.debug("base_image=%s stage=%s -> image=%s", base_image, stage, image)
     dassert_is_image_name_valid(image)
-    # Check image compatibility.
-    hdocker.check_image_compatibility_with_current_arch(image)
+    # The check is mainly for developers to avoid using the wrong image (e.g.,
+    # an x86 vs ARM architecture).
+    # We can skip the image compatibility check during the CI.
+    if not hserver.is_inside_ci():
+        hdocker.check_image_compatibility_with_current_arch(image)
     docker_cmd_.append(f"IMAGE={image}")
     # - Handle extra env vars.
     if extra_env_vars:

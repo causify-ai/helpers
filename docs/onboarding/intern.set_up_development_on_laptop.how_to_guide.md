@@ -29,13 +29,13 @@
 - Example of the cloning command:
 
   ```bash
-  > git clone --recursive git@github.com:kaizen-ai/tutorials.git ~/src/tutorials1
+  > git clone --recursive git@github.com:causify-ai/{repo_name}.git ~/src/{repo_name}1
   ```
   - The previous command might not work sometimes, in which case try the
     alternative command using HTTP instead of SSH:
 
   ```bash
-  > git clone --recursive https://github.com/kaizen-ai/tutorials.git ~/src/tutorials1
+  > git clone --recursive https://github.com/causify-ai/{repo_name}.git ~/src/{repo_name}1
   ```
 
 - All the source code should go under `~/src` (e.g., `/Users/<YOUR_USER>/src` on
@@ -305,6 +305,14 @@
   You need to:
   - merge origin/master into your branch with `invoke git_merge_master`
   - pull the latest container with `invoke docker_pull`
+  ```
+
+- If you are prompted to enter sudo password, do not enter anything and press
+  Ctrl-C to resolve
+
+  ```bash
+  WARN  hserver.py _raise_invalid_host:342   Don't recognize host: host_os_name=Linux, am_host_os_name=None
+  [sudo] password for ubuntu:
   ```
 
 - Start a Jupyter server
