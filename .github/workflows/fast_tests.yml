@@ -32,14 +32,17 @@ permissions:
 jobs:
   run_fast_tests:
     
-    
     # Execute this step only if the pull request is not in the draft state or if
     # the workflow is triggered manually.
-    if: ${{ github.event.pull_request.draft == false }}
+    # if: ${{ github.event.pull_request.draft == false }}
     # if: ${{ github.event.pull_request.draft == false || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
 
     steps:
+      - name: test if evaluation
+        run: |
+          echo "if: ${{ github.event.pull_request.draft == false }}"
+          echo "draft: ${{ github.event.pull_request.draft }}"
       # Pass AWS credentials via GH secrets. This is needed to pull the Docker
       # image and in case the tests need to access AWS resources.
       - name: Configure AWS credentials
