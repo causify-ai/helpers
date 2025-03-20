@@ -1,6 +1,6 @@
 #!/bin/bash -xe
 
-# We need to execlude the file that we are running this script on, 
+# We need to execlude the file that we are running this script on,
 # otherwise it will be replaced with the new values.
 find . -type f \( -name "*.py" -o -name "*.sh" \) -not -name "HelpersTask135_Rename_IS_SUPER_REPO_var.sh" -exec perl -i -pe '
 s/(\$|\w+_)IS_SUPER_REPO/$1USE_HELPERS_AS_NESTED_MODULE/g;

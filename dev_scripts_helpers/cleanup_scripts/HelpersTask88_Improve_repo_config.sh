@@ -27,7 +27,7 @@
 # henv.execute_repo_config_code("_is_mac_version_with_sibling_containers()") -> hserver._is_mac_version_with_sibling_containers()
 # henv.execute_repo_config_code("run_docker_as_root()") -> hserver.run_docker_as_root()
 
-# We need to execlude the file that we are running this script on, 
+# We need to execlude the file that we are running this script on,
 # otherwise it will be replaced with the new values.
 find . -type f \( -name "*.py" -o -name "*.sh" \) -not -name "HelpersTask88_Improve_repo_config.sh" -exec perl -i -pe '
 s/rconf\.get_docker_base_image_name\(\)/hrecouti.get_repo_config().get_docker_base_image_name()/g;
