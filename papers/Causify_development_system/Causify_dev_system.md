@@ -181,6 +181,11 @@ graph RL
 
 Figure 1. Sample architecture of Causify's runnable directories.
 
+Each runnable directory contains a YAML file that defines its configuration
+parameters: identifiers, Docker container details (see Section 3.3), Amazon S3
+storage information, etc. These parameters are readily accessible by the code
+within the directory, if needed.
+
 ### 3.3. Docker
 
 #### 3.3.1. Container-driven environment
