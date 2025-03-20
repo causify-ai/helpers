@@ -248,7 +248,7 @@ The idea is to send a morning TODO email to broadcast:
   - For permanent team members/people on a 3-month trial: `eng@causify.ai`
   - For interns or collaborators: `contributors@causify.ai`
 - Email subject:
-  - "TODO" (all caps)
+  - `TODO` (all caps)
   - It makes it easier to filter emails by subject
 - Reply to your previous TODO email so that at least last week of TODOs is
   included
