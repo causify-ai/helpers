@@ -29,13 +29,13 @@
 - Example of the cloning command:
 
   ```bash
-  > git clone --recursive git@github.com:kaizen-ai/tutorials.git ~/src/tutorials1
+  > git clone --recursive git@github.com:causify-ai/{repo_name}.git ~/src/{repo_name}1
   ```
   - The previous command might not work sometimes, in which case try the
     alternative command using HTTP instead of SSH:
 
   ```bash
-  > git clone --recursive https://github.com/kaizen-ai/tutorials.git ~/src/tutorials1
+  > git clone --recursive https://github.com/causify-ai/{repo_name}.git ~/src/{repo_name}1
   ```
 
 - All the source code should go under `~/src` (e.g., `/Users/<YOUR_USER>/src` on
