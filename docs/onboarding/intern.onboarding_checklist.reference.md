@@ -58,6 +58,9 @@
 - [ ] **IT**: @Shayawnn Add the intern to the mailing group
       `contributors@causify.ai` so that they can send
       [morning TODO emails](https://github.com/causify-ai/helpers/blob/master/docs/work_organization/all.team_collaboration.how_to_guide.md#morning-todo-email)
+  - The intern's personal e-mail address can be found in the corresponding Asana
+    task in the
+    [Hiring](https://app.asana.com/0/1208280136292379/1208280159230261) project
 
 ### IT setup
 
