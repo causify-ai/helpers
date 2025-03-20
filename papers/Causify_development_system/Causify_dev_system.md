@@ -6,13 +6,17 @@
     + [2.1. Monorepo](#21-monorepo)
     + [2.2. Multi-repo](#22-multi-repo)
     + [2.3. What is needed](#23-what-is-needed)
-  * [3. Causify's solution](#3-causifys-solution)
-    + [3.1. Runnable directory](#31-runnable-directory)
-    + [3.2. Docker](#32-docker)
-    + [3.3. Thin environment](#33-thin-environment)
-    + [3.4. Submodule of "helpers"](#34-submodule-of-helpers)
-    + [3.5. Executing tests](#35-executing-tests)
-    + [3.6. Dockerized executables](#36-dockerized-executables)
+  * [3. Proposed approach](#3-proposed-approach)
+    + [3.1. Overview](#31-overview)
+    + [3.2. Runnable directory](#32-runnable-directory)
+    + [3.3. Docker](#33-docker)
+      - [3.3.1. Container-driven environment](#331-container-driven-environment)
+      - [3.3.2. Stages of container development](#332-stages-of-container-development)
+      - [3.3.3. Container interaction](#333-container-interaction)
+    + [3.4. Thin environment](#34-thin-environment)
+    + [3.5. Submodule of "helpers"](#35-submodule-of-helpers)
+    + [3.6. Executing tests](#36-executing-tests)
+    + [3.7. Dockerized executables](#37-dockerized-executables)
   * [4. Discussion](#4-discussion)
   * [Future directions](#future-directions)
   * [References](#references)
@@ -33,10 +37,10 @@ scalability and maintainability issues. Conversely, multi-repos store the code
 in logically separated repositories, easier to manage and deploy but more
 difficult to keep in sync.
 
-In this paper, we propose Causify dev system, an alternative hybrid solution: a
-modular system architecture built around _runnable directories_. Although
-independent, these directories maintain cohesion through shared tooling and
-environments, offering a straightforward and scalable way to organize the
+In this paper, we present **Causify dev system**, an alternative hybrid
+solution: a modular system architecture built around _runnable directories_.
+Although independent, these directories maintain cohesion through shared tooling
+and environments, offering a straightforward and scalable way to organize the
 codebase while ensuring reliability in development, testing, and deployment.
 
 In this paper, we first outline the current state-of-the-art (Section 2), then
@@ -50,10 +54,10 @@ presenting potential avenues for future improvement (Section 5).
 ### 2.1. Monorepo
 
 The monorepo approach involves storing all code for multiple applications within
-a single repository. This strategy has been popularized by large tech companies like
-Google[2], Meta[3], Microsoft[4] and Uber[5], proving that even codebases with
-billions of lines of code can be effectively managed in a single repository. The
-key benefits of this approach include:
+a single repository. This strategy has been popularized by large tech companies
+like Google[2], Meta[3], Microsoft[4] and Uber[5], proving that even codebases
+with billions of lines of code can be effectively managed in a single
+repository. The key benefits of this approach include:
 
 - Consistency in environment: with everything housed in one repository, there's
   no risk of projects becoming incompatible due to conflicting versions of
@@ -106,82 +110,41 @@ An ideal strategy would combine the best of both worlds:
   prevent errors that arise from executing code in misaligned environments.
 
 Both are achieved through the hybrid approach proposed in this paper, which will
-be discussed in Section 3.
+be discussed further in Section 3.
 
-## 3. Proposed solution
+## 3. Proposed approach
 
-- This section describes the design principles in our approach to create Git
-  repos that contain code that can be:
-  - Composed through different Git sub-module
-  - Tested, built, run, and released (on a per-directory basis or not)
+### 3.1. Overview
 
-- The technologies that this approach relies on are:
-  - Git for source control
-  - Python virtual environment and `poetry` (or similar) to control Python
-    packages
-  - `pytest` for unit and end-to-end testing
-  - Docker for managing containers
+In this section, we describe the design principles of our development system and
+its supported functionalities:
 
-- The approach described in this paper is not strictly dependent of the specific
-  package (e.g., `poetry` can be replaced by `Conda` or another package manager)
+- Runnable directories with code (Section 3.2) hosted on GitHub, with Git used
+  for version control
+- Shareable environments encapsulated in Docker containers (Section 3.3),
+  ensuring alignment between development, deployment, and CI/CD systems, across
+  various platforms and OSes
+- A common lightweight (thin) virtual Python environment (Section 3.4) that
+  packages essential dependencies to bootstrap workflows
+- Composing code through Git submodules, including a specialized "helpers"
+  submodule (Section 3.5) that provides a uniform development toolchain for all
+  projects
+- Maintaining shared files across separate repositories by utilizing symbolic
+  links (Section 3.5) and automatic diffing
+- Pipelines for extensive testing (Section 3.6) that adjust to the dependencies
+  required by different directories
+- "One-off" Docker containers created for running specific packages, referred to
+  as "dockerized executables" (Section 3.7)
 
-## Design goals
+Many aspects of our approach are flexible and not strictly tied to particular
+tools. For example, we use `poetry` for dependency management, but it can easily
+be replaced with `conda` or another package manager.
 
-The proposed development system supports the following functionalities
-
-### Development functionalities
-- Support composing code using a GitHub sub-module approach
-- Make it easy to add the development tool chain to a "new project" by simply
-  adding the Git sub-module `//helpers` to the project
-- Create complex workflows (e.g., for dev and devops functionalities) using
-  makefile-like tools based on Python `invoke` package
-- Have a simple way to maintain common files across different repos in sync
-  through links and automatically diff-ing files
-- Support for both local and remote development using IDEs (e.g., PyCharm,
-  Visual Studio Code)
-
-### Python package management
-- Carefully manage and control dependencies using Python managers (such as
-  `poetry`) and virtual environments
-- Code and containers can be versioned and kept in sync automatically since a
-  certain version of the code can require a certain version of the container to
-  run properly
-  - Code is versioned through Git
-  - Each container has a `changelog.txt` that contains the current version and
-    the history
-
-### Testing
-- Run end-to-end tests using `pytest` by automatically discover tests based on
-  dependencies and test lists, supporting the dependencies needed by different
-  directories
-- Native support for both children-containers (i.e., Docker-in-Docker) and
-  sibling containers
-
-### DevOps functionalities
-- Support automatically different stages for container development
-  - E.g., `test` / `local`, `dev`, `prod`
-- Standardize ways of building, testing, retrieving, and deploying containers
-- Ensure alignment between development environment, deployment, and CI/CD
-  systems (e.g., GitHub Actions)
-- Bootstrap the development system using a "thin environment", which has the
-  minimum number of dependencies to allow development and deployment in exactly
-  the same way in different setups (e.g., server, personal laptop, CI/CD)
-- Manage dependencies in a way that is uniform across platforms and OSes, using
-  Docker containers
-- Separate the need to:
-  - Build and deploy containers (by devops)
-  - Use containers to develop and test (by developers)
-- Built-in support for multi-architecture builds (e.g, for Intel `x86` and Arm)
-  across different OSes supporting containers (e.g., Linux, MacOS, Windows
-  Subsystem for Linux WSL)
-- Support for developing, testing, and deploying multi-container applications
-
-
-### 3.1. Runnable directory
+### 3.2. Runnable directory
 
 The core concept of the proposed approach is a **runnable directory** — a
 self-contained, independently executable directory with code, equipped with a
-dedicated DevOps setup. A repository is thus a special case of a runnable
+dedicated DevOps setup. A GitHub repository is thus a special case of a runnable
 directory. Developers typically work within a single runnable directory for a
 given application, enabling them to test and deploy code without affecting other
 parts of the codebase.
@@ -190,9 +153,9 @@ A runnable directory can contain other runnable directories as subdirectories.
 For example, Figure 1 depicts three runnable directories: `A`, `B`, and `C`.
 Here, `A` and `C` are repositories, with `C` incorporated into `A` as a
 submodule, while `B` is a subdirectory within `A`. This setup provides the same
-accessibility as if all the code were hosted in a single monorepo. Note that each
-of `A`, `B`, and `C` has its own DevOps pipeline — a key feature of our approach,
-which is discussed further in Section 3.2.
+accessibility as if all the code were hosted in a single monorepo. Note that
+each of `A`, `B`, and `C` has its own DevOps pipeline — a key feature of our
+approach, which is discussed in more detail in Section 3.3.
 
 ```mermaid
 graph RL
@@ -218,21 +181,32 @@ graph RL
 
 Figure 1. Sample architecture of Causify's runnable directories.
 
-### 3.2. Docker
+### 3.3. Docker
+
+#### 3.3.1. Container-driven environment
 
 Docker is the backbone of our containerized development environment. Every
 runnable directory contains Dockerfiles that allow it to build and run its own
 Docker containers, which include the code, its dependencies, and the runtime
-system.
+system. All of our Docker containers are versioned, with their version history
+stored in changelog files.
 
 This Docker-based approach addresses two important challenges. First, it ensures
 consistency by isolating the application from variations in the host operating
-system or underlying infrastructure. Second, a specific package (or package
-version) can be added to the container of a particular runnable directory
-without affecting other parts of the codebase. This prevents "bloating" the
-environment with packages required by all applications — a common issue in
-monorepos — while also effectively mitigating the risk of conflicting
+system or underlying infrastructure. Our containers are compatible with
+different OSes (Linux, macOS, Windows Subsystem for Linux) and support
+multi-architecture builds (e.g., `x86` and `ARM`). Second, a specific package
+(or package version) can be added to the container of a particular runnable
+directory without affecting other parts of the codebase. This prevents
+"bloating" the environment with packages required by all applications — a common
+issue in monorepos — while also effectively mitigating the risk of conflicting
 dependencies, which can arise in a multi-repo setup.
+
+We simplify and standardize all workflows associated with containers — including
+building, testing, retrieving, and deploying — by introducing Makefile-like
+tools based on the Python `invoke` package.
+
+#### 3.3.2. Stages of container development
 
 Our approach supports multiple stages for container release:
 
@@ -245,11 +219,16 @@ Our approach supports multiple stages for container release:
 This multi-stage workflow enables seamless progression from testing to system
 deployment.
 
-It is also possible to run a container within another container's environment in
-a Docker-in-Docker setup. In this case, children containers are started directly
-inside a parent container, allowing nested workflows or builds. Alternatively,
-sibling containers can run side by side and share resources such as the host's
-Docker daemon, enabling inter-container communication and orchestration.
+#### 3.3.3. Container interaction
+
+Our systems ensure smooth interaction between different containers in our
+infrastructure. Thus, development, testing, and deployment of multi-container
+applications are supported through Docker Compose. It is also possible to run a
+container within another container's environment in a Docker-in-Docker setup. In
+this case, children containers are started directly inside a parent container,
+allowing nested workflows or builds. Alternatively, sibling containers can run
+side by side and share resources such as the host's Docker daemon, enabling
+inter-container communication and orchestration.
 
 ```mermaid
 graph TD
@@ -275,7 +254,7 @@ graph TD
 
 Figure 2. Docker container flow.
 
-### 3.3. Thin environment
+### 3.4. Thin environment
 
 To bootstrap development workflows, we use a thin client that installs a minimal
 set of essential dependencies, such as Docker and invoke, in a lightweight
@@ -309,7 +288,7 @@ graph RL
 
 Figure 3. Thin environment shared across multiple runnable directories.
 
-### 3.4. Submodule of "helpers"
+### 3.5. Submodule of "helpers"
 
 All Causify repositories include a dedicated "helpers" repository as a
 submodule. This repository contains common utilities and development toolchains,
@@ -343,17 +322,19 @@ graph RL
 
 Figure 4. "Helpers" submodule integrated into a repository.
 
-### 3.5. Executing tests
+### 3.6. Executing tests
 
-Our system supports robust testing workflows that leverage the containerized
-environment for comprehensive code validation. Tests are executed inside Docker
-containers to ensure consistency across development and production environments,
-preventing discrepancies caused by variations in host system configurations. In
-the case of nested runnable directories, tests are executed recursively within
-each directory's corresponding container, which is automatically identified (see
-Figure 5). As a result, the entire test suite can be run with a single command,
-while still allowing tests in subdirectories to use dependencies that may not be
-compatible with the parent directory's environment.
+Our system features robust testing workflows that leverage the containerized
+environment for comprehensive code validation. End-to-end and unit tests are
+executed by `pytest` inside Docker containers to ensure consistency across
+development and production environments, preventing discrepancies caused by
+variations in host system configurations. Both Docker-in-Docker and sibling
+container setup are supported. In the case of nested runnable directories, tests
+are executed recursively within each directory's corresponding container, which
+is automatically identified (see Figure 5). As a result, the entire test suite
+can be run with a single command, while still allowing tests in subdirectories
+to use dependencies that may not be compatible with the parent directory's
+environment.
 
 ```mermaid
 graph LR
@@ -383,7 +364,7 @@ style C font-size:15px
 
 Figure 5. Recursive test execution in dedicated containers.
 
-### 3.6. Dockerized executables
+### 3.7. Dockerized executables
 
 Sometimes, installing a package within a development container may not be
 justified, particularly if it is large and will only be used occasionally. In
@@ -394,7 +375,7 @@ the container, which is discarded once the task is complete. This prevents the
 development environment from becoming bloated with dependencies that are rarely
 used. If necessary, for example during test execution, a dockerized executable
 can be run inside another Docker container, whether using the children or
-sibling container approach, as discussed in Section 3.2.
+sibling container approach.
 
 ## 4. Discussion
 
