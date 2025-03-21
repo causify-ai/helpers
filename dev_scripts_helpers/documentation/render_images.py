@@ -24,6 +24,7 @@ Usage:
 import argparse
 import logging
 import os
+import re
 import tempfile
 from typing import List, Tuple
 
@@ -79,62 +80,16 @@ def _get_rendered_file_paths(
     return (code_file_path, abs_img_dir_path, rel_img_path)
 
 
-def _get_puppeteer_config_path() -> str:
-    """
-    Get the path of the puppeteer config file.
-
-    :return: path to the config file
-    """
-    cmd = "find . -name 'puppeteerConfig.json'"
-    _, path = hsystem.system_to_one_line(cmd)
-    return path
-
-
-# TODO(gp): Not sure we should support running without Docker.
-def _get_render_command(
-    code_file_path: str,
-    abs_img_dir_path: str,
-    rel_img_path: str,
-    dst_ext: str,
-    image_code_type: str,
-) -> str:
-    """
-    Create the command for rendering the image.
-
-    :param code_file_path: path to the file with the image code
-    :param abs_img_dir_path: absolute path to the dir where the image
-        will be saved
-    :param rel_img_path: relative path to the image to be rendered
-    :param dst_ext: extension of the rendered image, e.g., "svg", "png"
-    :param image_code_type: type of the image code according to its
-        language, e.g., "plantuml", "mermaid"
-    :return: rendering command
-    """
-    # Verify that the image file extension is valid.
-    valid_extensions = ["svg", "png"]
-    hdbg.dassert_in(dst_ext, valid_extensions)
-    # Create the command.
-    cmd = ""
-    if image_code_type == "plantuml":
-        cmd = f"plantuml -t {dst_ext} -o {abs_img_dir_path} {code_file_path}"
-    elif image_code_type == "mermaid":
-        puppeteer_config = _get_puppeteer_config_path()
-        cmd = f"mmdc --puppeteerConfigFile {puppeteer_config} -i {code_file_path} -o {rel_img_path}"
-    elif image_code_type == "tikz":
-        hdbg.dfatal("Not implemented yet")
-    else:
-        raise ValueError(f"Invalid type: {image_code_type}")
-    return cmd
-
-
 def _render_code(
     image_code: str,
     image_code_idx: int,
     image_code_type: str,
     out_file: str,
     dst_ext: str,
-    run_dockerized: bool,
-    dry_run: bool,
+    *,
+    force_rebuild: bool = False,
+    use_sudo: bool = False,
+    dry_run: bool = False,
 ) -> str:
     """
     Render the image code into an image file.
@@ -147,8 +102,6 @@ def _render_code(
     :param out_file: path to the output file where the image will be
         inserted
     :param dst_ext: extension of the rendered image, e.g., "svg", "png"
-    :param run_dockerized: if True, the command is run as a dockerized
-        executable
     :param dry_run: if True, the rendering command is not executed
     :return: path to the rendered image
     """
@@ -171,55 +124,101 @@ def _render_code(
         image_code = image_code_tmp
     # Get paths for rendered files.
     hio.create_enclosing_dir(out_file, incremental=True)
-    code_file_path, abs_img_dir_path, rel_img_path = _get_rendered_file_paths(
+    in_code_file_path, abs_img_dir_path, out_img_file_path = _get_rendered_file_paths(
         out_file, image_code_idx, dst_ext
     )
-    os.makedirs(abs_img_dir_path, exist_ok=True)
+    hio.create_dir(abs_img_dir_path, incremental=True)
     # Save the image code to a temporary file.
-    hio.to_file(code_file_path, image_code)
+    hio.to_file(in_code_file_path, image_code)
     # Run the rendering.
     _LOG.info(
         "Creating the image from '%s' source and saving image to '%s'",
-        code_file_path,
+        in_code_file_path,
         abs_img_dir_path,
     )
-    if run_dockerized:
-        # Run as a dockerized executable.
+    # Run as a dockerized executable.
+    if dry_run:
+        _LOG.warning("Skipping image generation because dry_run is set")
+    else:
         if image_code_type == "plantuml":
             hdocker.run_dockerized_plantuml(
-                code_file_path, abs_img_dir_path, dst_ext
+                in_code_file_path, abs_img_dir_path, dst_ext,
+                force_rebuild=force_rebuild, use_sudo=use_sudo
             )
         elif image_code_type == "mermaid":
-            hdocker.run_dockerized_mermaid(code_file_path, rel_img_path)
+            hdocker.run_dockerized_mermaid(in_code_file_path, out_img_file_path,
+                force_rebuild=force_rebuild, use_sudo=use_sudo)
         elif image_code_type == "tikz":
             cmd_opts: List[str] = []
-            hdocker.tikz_to_bitmap(code_file_path, cmd_opts, rel_img_path)
-        elif image_code_type == "graphviz":
-            # TODO(gp): Implement this.
-            hdocker.run_dockerized_graphviz(rel_img_path, code_file_path)
+            hdocker.dockerized_tikz_to_bitmap(in_code_file_path, cmd_opts, out_img_file_path,
+                force_rebuild=force_rebuild, use_sudo=use_sudo)
+        elif image_code_type == "graphviz_dot":
+            cmd_opts: List[str] = []
+            hdocker.run_dockerized_graphviz_dot(in_code_file_path, cmd_opts, out_img_file_path,
+                force_rebuild=force_rebuild, use_sudo=use_sudo)
         else:
             raise ValueError(f"Invalid type: {image_code_type}")
-    else:
-        # Run the package installed on the host directly.
-        cmd = _get_render_command(
-            code_file_path,
-            abs_img_dir_path,
-            rel_img_path,
-            dst_ext,
-            image_code_type,
-        )
-        hsystem.system(cmd, dry_run=dry_run)
     # Remove the temp file.
-    os.remove(code_file_path)
-    return rel_img_path
+    os.remove(in_code_file_path)
+    return out_img_file_path
+
+
+def _get_comment_prefix_postfix(extension: str) -> Tuple[str, str]:
+    # Define the character that comments out a line depending on the file type.
+    if extension == ".md":
+        comment_prefix = "[//]: # ("
+        comment_postfix = ")"
+    elif extension == ".tex":
+        comment_prefix = "%"
+        comment_postfix = ""
+    elif extension == ".txt":
+        comment_prefix = "//"
+        comment_postfix = ""
+    else:
+        raise ValueError(f"Unsupported file type: {extension}")
+    return comment_prefix, comment_postfix
+
+
+def _insert_image_code(extension: str, rel_img_path: str) -> str:
+    """
+    Insert the code to display the image in the output file.
+    """
+    # Add the code to insert the image in the file.
+    if extension in (".md", ".txt"):
+        # Use the Markdown syntax.
+        txt = f"![]({rel_img_path})"
+        # f"![]({rel_img_path})" + "{height=60%}"
+    elif extension == ".tex":
+        # Use the LaTeX syntax.
+        # We need to leave it on a single line to make it easy to find and
+        # replace it.
+        txt = rf"""\begin{{figure}} \includegraphics[width=\linewidth]{{{rel_img_path}}} \end{{figure}}"""
+    else:
+        raise ValueError(f"Unsupported file extension: {extension}")
+    return txt
+
+
+def _comment_if_needed(
+    state: str, line: str, comment_prefix: str, comment_postfix: str
+) -> str:
+    if state == "found_image_code":
+        if line.startswith(comment_prefix):
+            ret = line
+        else:
+            ret = f"{comment_prefix} {line}{comment_postfix}"
+    else:
+        ret = line
+    return ret
 
 
 def _render_images(
     in_lines: List[str],
     out_file: str,
     dst_ext: str,
-    run_dockerized: bool,
-    dry_run: bool,
+    *,
+    force_rebuild: bool = False,
+    use_sudo: bool = False,
+    dry_run: bool = False,
 ) -> List[str]:
     """
     Insert rendered images instead of image code blocks.
@@ -234,85 +233,121 @@ def _render_images(
     :param in_lines: lines of the input file
     :param out_file: path to the output file
     :param dst_ext: extension for rendered images
-    :param run_dockerized: if True, the image rendering command is run as a
-        dockerized executable
     :param dry_run: if True, the text of the file is updated but the images are
         not actually created
-    :return: updated file lines
+    :return: updated lines of the file
     """
+    _LOG.debug(hprint.func_signature_to_str("in_lines"))
+    # Get the extension of the output file.
+    extension = os.path.splitext(out_file)[1]
+    #
+    comment_prefix, comment_postfix = _get_comment_prefix_postfix(extension)
     # Store the output.
     out_lines: List[str] = []
     # Store the image code found in the file.
     image_code_lines: List[str] = []
     # Store the order number of the current image code block.
     image_code_idx = 0
+    # Image name explicitly set by the user with `plantuml(...)` syntax.
+    user_rel_img_path = ""
     # Store the state of the parser.
-    state = "searching"
-    # Define the character that comments out a line depending on the file type.
-    if out_file.endswith(".md"):
-        comment_prefix = "[//]: # ("
-        comment_postfix = ")"
-    elif out_file.endswith(".tex"):
-        comment_prefix = "%"
-        comment_postfix = ""
-    elif out_file.endswith(".txt"):
-        comment_prefix = "//"
-        comment_postfix = ""
-    else:
-        raise ValueError(f"Unsupported file type: {out_file}")
+    state = "search_image_code"
+    # The code should look like:
+    # ```plantuml
+    #    ...
+    # ```
+    comment = re.escape(comment_prefix)
+    start_regex = re.compile(
+        rf"""
+        ^\s*                # Start of the line and any leading whitespace
+        ({comment}\s*)?     # Optional comment prefix
+        ```                 # Opening backticks for code block
+        (plantuml|mermaid|tikz|graphviz*)  # Image code type
+        (\((.*)\))?         # Optional user-specified image name in parentheses
+        \s*$                # Any trailing whitespace and end of the line
+        """,
+        re.VERBOSE,
+    )
+    end_regex = re.compile(
+        rf"""
+        ^\s*                # Start of the line and any leading whitespace
+        ({comment}\s*)?     # Optional comment prefix
+        ```                 # Opening backticks for code block
+        \s*$                # Any trailing whitespace and end of the line
+        """,
+        re.VERBOSE,
+    )
     for i, line in enumerate(in_lines):
-        _LOG.debug("%d: %s -> state=%s", i, line, state)
-        # The code should look like:
-        # ```plantuml
-        #    ...
-        # ```
-        # Or the same with "mermaid" instead of "plantuml".
-        if line.strip() in ["```plantuml", "```mermaid"]:
+        _LOG.debug("%d %s: '%s'", i, state, line)
+        m = start_regex.search(line)
+        if m:
             # Found the beginning of an image code block.
-            hdbg.dassert_eq(state, "searching")
+            hdbg.dassert_eq(state, "search_image_code")
+            if m.group(1):
+                state = "found_commented_image_code"
+            else:
+                state = "found_image_code"
+            _LOG.debug(" -> state=%s", state)
             image_code_lines = []
             image_code_idx += 1
-            state = "found_image_code"
-            image_code_type = line.strip(" `")
-            _LOG.debug(" -> state=%s", state)
+            # E.g., "plantuml" or "mermaid".
+            image_code_type = m.group(2)
+            if m.group(3):
+                hdbg.dassert_eq(user_rel_img_path, "")
+                user_rel_img_path = m.group(4)
+                _LOG.debug(hprint.to_str("user_rel_img_path"))
             # Comment out the beginning of the image code.
-            out_lines.append(f"{comment_prefix} {line}{comment_postfix}")
-        elif line.strip() == "```" and state == "found_image_code":
-            # Found the end of an image code block.
-            # Render the image.
-            rel_img_path = _render_code(
-                image_code="\n".join(image_code_lines),
-                image_code_idx=image_code_idx,
-                image_code_type=image_code_type,
-                out_file=out_file,
-                dst_ext=dst_ext,
-                run_dockerized=run_dockerized,
-                dry_run=dry_run,
+            out_lines.append(
+                _comment_if_needed(state, line, comment_prefix, comment_postfix)
             )
-            # Comment out the end of the image code.
-            out_lines.append(f"{comment_prefix} {line}{comment_postfix}")
-            # Add the code that inserts the image in the file.
-            if out_file.endswith(".md") or out_file.endswith(".txt"):
-                # Use the Markdown syntax.
-                out_lines.append(f"![]({rel_img_path})")
-                # out_lines.append(f"![]({rel_img_path})" + "{height=60%}")
-            elif out_file.endswith(".tex"):
-                # Use the LaTeX syntax.
-                out_lines.append(
-                    r"\begin{figure}"
-                    + rf" \includegraphics[width=\linewidth]{{{rel_img_path}}}"
-                    + r" \end{figure}"
+        elif state in ("found_image_code", "found_commented_image_code"):
+            m = end_regex.search(line)
+            if m:
+                # Found the end of an image code block.
+                image_code_txt = "\n".join(image_code_lines)
+                rel_img_path = _render_code(
+                    image_code_txt,
+                    image_code_idx,
+                    image_code_type,
+                    out_file,
+                    dst_ext,
+                    force_rebuild=force_rebuild,
+                    use_sudo=use_sudo,
+                    dry_run=dry_run,
                 )
+                # Override the image name if explicitly set by the user.
+                if user_rel_img_path != "":
+                    rel_img_path = user_rel_img_path
+                    user_rel_img_path = ""
+                # Comment out the end of the image code, if needed.
+                out_lines.append(
+                    _comment_if_needed(
+                        state, line, comment_prefix, comment_postfix
+                    )
+                )
+                out_lines.append(_insert_image_code(extension, rel_img_path))
+                # Set the parser to search for a new image code block.
+                if state == "found_image_code":
+                    state = "search_image_code"
+                else:
+                    state = "replace_image_code"
+                _LOG.debug(" -> state=%s", state)
             else:
-                raise ValueError(f"Unsupported file type: {out_file}")
-            # Set the parser to search for a new image code block.
-            state = "searching"
-            _LOG.debug(" -> state=%s", state)
-        elif line.strip != "```" and state == "found_image_code":
-            # Record the line from inside the image code block.
-            image_code_lines.append(line)
-            # Comment out the inside of the image code.
-            out_lines.append(f"{comment_prefix} {line}{comment_postfix}")
+                # Record the line from inside the image code block.
+                image_code_lines.append(line)
+                # Comment out the inside of the image code.
+                out_lines.append(
+                    _comment_if_needed(
+                        state, line, comment_prefix, comment_postfix
+                    )
+                )
+        elif state == "replace_image_code":
+            # Replace the line with the image code, which should be the next
+            # line.
+            if line.rstrip().lstrip() != "":
+                # Replace the line.
+                state = "search_image_code"
+                _LOG.debug(" -> state=%s", state)
         else:
             # Keep a regular line.
             out_lines.append(line)
@@ -370,17 +405,13 @@ def _parse() -> argparse.ArgumentParser:
     )
     # Add actions arguments.
     hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
-    # Add runtime arguments.
-    parser.add_argument(
-        "--run_dockerized",
-        action="store_true",
-    )
     # Add an argument for debugging.
     parser.add_argument(
         "--dry_run",
         action="store_true",
         help="Update the file but do not render images",
     )
+    hparser.add_dockerized_script_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -412,7 +443,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     in_lines = hio.from_file(in_file).split("\n")
     # Get the updated file lines after rendering.
     out_lines = _render_images(
-        in_lines, out_file, dst_ext, args.run_dockerized, args.dry_run
+        in_lines, out_file, dst_ext, 
+        force_rebuild=args.dockerized_force_rebuild,
+        use_sudo=args.dockerized_use_sudo,
+        dry_run=args.dry_run
     )
     # Save the output into a file.
     hio.to_file(out_file, "\n".join(out_lines))
