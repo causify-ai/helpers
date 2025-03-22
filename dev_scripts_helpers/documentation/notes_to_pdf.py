@@ -101,21 +101,47 @@ def _cleanup_before(prefix: str) -> None:
 
 def _filter_by_header(file_: str, header: str, prefix: str) -> str:
     """
-    Pre-process the file.
+    Extract a specific header from a file
 
     :param file_: The input file to be processed
     :param header: The header to filter by (e.g., `# Introduction`)
     :param prefix: The prefix used for the output file (e.g., `tmp.pandoc`)
     :return: The path to the processed file
     """
+    # Read the file.
     txt = hio.from_file(file_)
     # Filter by header.
     txt = hmarkdo.extract_section_from_markdown(txt, header)
-    #
+    # Save the file.
     file_out = f"{prefix}.filter_by_header.txt"
     hio.to_file(file_out, txt)
     return file_out
 
+
+def _filter_by_lines(file_: str, start_line: Optional[int], end_line: Optional[int],
+                     prefix: str) -> str:
+    """
+    Pre-process the file.
+
+    :param file_: The input file to be processed
+    :param start_line: The starting line number (e.g., `1`)
+
+
+
+    :param prefix: The prefix used for the output file (e.g., `tmp.pandoc`)
+    :return: The path to the processed file
+    """
+    # Read the file.
+    txt = hio.from_file(file_)
+    # Filter by header.
+    if start_line is None:
+        start_line = 0
+    txt = hmarkdo.extract_lines_from_markdown(txt, start_line, end_line)
+
+    #
+    file_out = f"{prefix}.filter_by_header.txt"
+    hio.to_file(file_out, txt)
+    return file_out
 
 # #############################################################################
 
@@ -549,6 +575,8 @@ def _run_all(args: argparse.Namespace) -> None:
     # - Filter
     if args.filter_by_header:
         file_ = _filter_by_header(file_, args.filter_by_header, prefix)
+    if args.filter_by_lines:
+        file_ = _filter_by_lines(file_, args.filter_by_lines)
     # E.g., file_='/app/helpers_root/tmp.notes_to_pdf.render_image2.txt'
     # - Preprocess_notes
     action = "preprocess_notes"

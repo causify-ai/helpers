@@ -111,7 +111,8 @@ def is_mac(*, version: Optional[str] = None) -> bool:
     _LOG.debug("version=%s", version)
     host_os_name = os.uname()[0]
     _LOG.debug("os.uname()=%s", str(os.uname()))
-    csfy_host_os_name = os.environ.get("CSFY_HOST_OS_NAME", None)
+    #csfy_host_os_name = os.environ.get("CSFY_HOST_OS_NAME", None)
+    csfy_host_os_name = ""
     _LOG.debug(
         "host_os_name=%s csfy_host_os_name=%s", host_os_name, csfy_host_os_name
     )
@@ -218,6 +219,9 @@ def setup_to_str() -> str:
     is_dev_ck_ = is_dev_ck()
     txt.append(f"is_dev_ck={is_dev_ck_}")
     #
+    is_external_linux_ = is_external_linux()
+    txt.append(f"is_external_linux={is_external_linux_}")
+    #
     is_ig_prod_ = is_ig_prod()
     txt.append(f"is_ig_prod={is_ig_prod_}")
     #
@@ -226,9 +230,6 @@ def setup_to_str() -> str:
     #
     is_mac_ = is_mac()
     txt.append(f"is_mac={is_mac_}")
-    #
-    is_external_linux_ = is_external_linux()
-    txt.append(f"is_external_linux={is_external_linux_}")
     #
     txt = "\n".join(txt)
     return txt
@@ -241,20 +242,20 @@ def _dassert_setup_consistency() -> None:
     is_cmamp_prod_ = is_cmamp_prod()
     is_dev4_ = is_dev4()
     is_dev_ck_ = is_dev_ck()
+    is_external_linux_ = is_external_linux()
     is_ig_prod_ = is_ig_prod()
     is_inside_ci_ = is_inside_ci()
     is_mac_ = is_mac()
-    is_external_linux_ = is_external_linux()
     # One and only one set-up should be true.
     sum_ = sum(
         [
+            is_cmamp_prod_,
             is_dev4_,
             is_dev_ck_,
+            is_external_linux_,
+            is_ig_prod_,
             is_inside_ci_,
             is_mac_,
-            is_external_linux_,
-            is_cmamp_prod_,
-            is_ig_prod_,
         ]
     )
     if sum_ != 1:
