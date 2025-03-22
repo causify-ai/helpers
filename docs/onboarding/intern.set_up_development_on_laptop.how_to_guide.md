@@ -261,7 +261,7 @@
 - Pull the latest `helpers` image containing Linter; this is done once
 
   ```bash
-  > i docker_pull_helpers --docker-registry dockerhub.causify
+  > i docker_pull_helpers
   ```
 
 - Get the latest version of `master`
