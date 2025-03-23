@@ -257,6 +257,12 @@
   ```bash
   > i docker_pull
   ```
+- If you get an error (Linux) ```permission denied while trying to connect to the Docker daemon socket```, you have to grant permission to your user account to interact with Docker. Adding user to the ```docker group``` grants permission to use Docker without ```sudo```:
+  ```bash
+  > sudo usermod -aG docker $USER
+  # log out and log back in after executing this command.
+  ```
+  
 
 - Pull the latest `helpers` image containing Linter; this is done once
 
