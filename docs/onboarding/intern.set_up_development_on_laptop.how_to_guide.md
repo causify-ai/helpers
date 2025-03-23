@@ -262,7 +262,10 @@
   > sudo usermod -aG docker $USER
   # log out and log back in after executing this command.
   ```
-  
+- Verify Access:
+  ```bash
+  docker run hello-world  # Should work without "permission denied"
+  ```
 
 - Pull the latest `helpers` image containing Linter; this is done once
 
