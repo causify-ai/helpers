@@ -118,28 +118,37 @@ def _filter_by_header(file_: str, header: str, prefix: str) -> str:
     return file_out
 
 
-def _filter_by_lines(file_: str, start_line: Optional[int], end_line: Optional[int],
+def _filter_by_lines(file_: str, filter_by_lines: str,
                      prefix: str) -> str:
     """
-    Pre-process the file.
+    Filter the lines of a file in [start_line, end_line[.
 
     :param file_: The input file to be processed
-    :param start_line: The starting line number (e.g., `1`)
-
-
-
+    :param filter_by_lines: a string like `1:10` or `1:None` or `None:10`
     :param prefix: The prefix used for the output file (e.g., `tmp.pandoc`)
     :return: The path to the processed file
     """
     # Read the file.
     txt = hio.from_file(file_)
+    txt = txt.split("\n")
+    # E.g., filter_by_lines='1:10'.
+    m = re.match(r"^(\S+):(\S+)$", filter_by_lines)
+    hdbg.dassert(m, "Invalid filter_by_lines='%s'", filter_by_lines)
+    start_line, end_line = m.group(1), m.group(2)
+    if start_line.lower() == "none":
+        start_line = 1
+    else:
+        start_line = int(start_line)
+    if end_line.lower() == "none":
+        end_line = len(txt) + 1
+    else:
+        end_line = int(end_line)
     # Filter by header.
-    if start_line is None:
-        start_line = 0
-    txt = hmarkdo.extract_lines_from_markdown(txt, start_line, end_line)
-
+    hdbg.dassert_lte(start_line, end_line)
+    txt = txt[start_line - 1:end_line - 1]
+    txt = "\n".join(txt)
     #
-    file_out = f"{prefix}.filter_by_header.txt"
+    file_out = f"{prefix}.filter_by_lines.txt"
     hio.to_file(file_out, txt)
     return file_out
 
@@ -201,33 +210,6 @@ def _render_images(file_: str, prefix: str) -> str:
 
 
 # #############################################################################
-
-
-# def _run_latex(cmd: str, file_: str) -> None:
-#     """
-#     Run the LaTeX command and handle errors.
-
-#     :param cmd: The LaTeX command to be executed
-#     :param file_: The file to be processed by LaTeX
-#     """
-#     data: Tuple[int, str] = _system_to_string(cmd, abort_on_error=False)
-#     rc, txt = data
-#     log_file = file_ + ".latex1.log"
-#     hio.to_file(log_file, txt)
-#     if rc != 0:
-#         txt_as_arr: List[str] = txt.split("\n")
-#         for i, line in enumerate(txt_as_arr):
-#             if line.startswith("!"):
-#                 break
-#         # pylint: disable=undefined-loop-variable
-#         txt_as_arr = [
-#             line for i in range(max(i - 10, 0), min(i + 10, len(txt_as_arr)))
-#         ]
-#         txt = "\n".join(txt_as_arr)
-#         _LOG.error(txt)
-#         _LOG.error("Log is in %s", log_file)
-#         _LOG.error("\n%s", hprint.frame(f"cmd is:\n> {cmd}"))
-#         raise RuntimeError("Latex failed")
 
 
 _COMMON_PANDOC_OPTS = [
@@ -576,7 +558,7 @@ def _run_all(args: argparse.Namespace) -> None:
     if args.filter_by_header:
         file_ = _filter_by_header(file_, args.filter_by_header, prefix)
     if args.filter_by_lines:
-        file_ = _filter_by_lines(file_, args.filter_by_lines)
+        file_ = _filter_by_lines(file_, args.filter_by_lines, prefix)
     # E.g., file_='/app/helpers_root/tmp.notes_to_pdf.render_image2.txt'
     # - Preprocess_notes
     action = "preprocess_notes"
@@ -700,7 +682,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--filter_by_lines",
         action="store",
-        help="Filter by lines (e.g., `1-10`)",
+        help="Filter by lines (e.g., `0:10`, `1:None`, `None:10`)",
     )
     # TODO(gp): -> out_action_script
     parser.add_argument(
