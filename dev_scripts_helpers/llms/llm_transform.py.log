@@ -1,0 +1,11 @@
+21:50:24 hsystem.py _system:211                              > (uname -m) 2>&1
+21:50:24 hsystem.py _system:211                              > (docker image ls --filter reference=tmp.llm_transform.aarch64.b24cf6a4 -q) 2>&1
+21:50:24 - [41mERROR[0m hsystem.py _system:260             
+################################################################################
+cmd='(docker image ls --filter reference=tmp.llm_transform.aarch64.b24cf6a4 -q) 2>&1' failed with rc='1'
+################################################################################
+Output of the failing command is:
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<

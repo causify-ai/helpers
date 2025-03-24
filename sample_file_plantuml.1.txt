@@ -1,0 +1,33 @@
+@startuml
+title System Context Diagram
+
+skinparam defaultTextAlignment center
+skinparam component {
+    backgroundcolor<<main>> RoyalBlue
+    FontColor<<main>> white
+}
+
+component imaster <<main>> [
+**Instrument Master**
+
+Implements an ETL pipeline that fetches stock data from
+different vendors, and provides stock data & metadata
+in standardized formats.
+]
+
+component vendors [
+**Stock Data Vendors**
+
+i.e: Kibot, Eoddata, ...
+]
+
+component models [
+**Data Analysis Models**
+
+ML Models that process the structured data from instrument
+master and produce insights.
+]
+
+imaster -up-> vendors: fetches raw data from
+imaster <-- models: fetches processed data from
+@enduml
