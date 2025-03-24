@@ -1,3 +1,0 @@
-- If there is no pattern we can try learning, measure if learning works and, in the worst case, conclude that it does not work
-- If we can find the solution in one step or program the solution, machine learning is not the recommended technique, but it still works
-- Without data we cannot do anything: data is all that matters

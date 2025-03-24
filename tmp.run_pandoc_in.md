@@ -1,7 +1,0 @@
-- Item 1
-  - Subitem 1.1
-    - Subitem 1.1.1
-  - Subitem 1.2
-- Item 2
-  - Ordered Subitem 2.1
-  - Ordered Subitem 2.2
