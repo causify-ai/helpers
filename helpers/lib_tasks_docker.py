@@ -402,7 +402,7 @@ def docker_login(ctx, target_registry="aws_ecr.ck"):  # type: ignore
         not hserver.is_dev_ck()
         and hrecouti.get_repo_config().get_name() in ["//helpers", "//tutorials"]
     ):
-        _LOG.warning("Skipping logging in for Helpers")
+        _LOG.warning("Skipping Docker login process for Helpers or Tutorials")
         return
     # We run everything using `hsystem.system(...)` but `ctx` is needed
     # to make the function work as an invoke target.
