@@ -38,6 +38,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Pass AWS credentials via GH secrets. This is needed to pull the Docker
+      # image and in case the tests need to access AWS resources.
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
