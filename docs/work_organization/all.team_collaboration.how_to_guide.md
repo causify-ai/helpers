@@ -235,7 +235,8 @@ The idea is to send a morning TODO email to broadcast:
 - The goal is:
   - Think about what you are going to work on for the day, so you have a clear
     plan
-  - Let Team Leaders know that you're going work today and what is your workload
+  - Let Team Leaders know that you're going to work today and what is your
+    workload
   - Make sure people blocked on your tasks know that / whether you are working
     on those tasks
   - Broadcast if you are blocked or if you don't have tasks
