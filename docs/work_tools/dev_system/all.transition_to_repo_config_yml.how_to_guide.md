@@ -66,7 +66,7 @@
   - While the following script helps automate the replacement, it's worth to
     double check that all the references are correctly replaced.
     ```bash
-    > dev_scripts_helpers/cleanup_scripts/HelpersTask88_Improve_repo_config.sh
+    > ./helpers_root/dev_scripts_helpers/cleanup_scripts/HelpersTask88_Improve_repo_config.sh
     ```
   - Import statements in the modified files will need to be added or updated as
     well
@@ -75,5 +75,10 @@
   - While the following script helps automate the replacement, it's worth to
     double check that all the references are correctly replaced.
     ```bash
-    > dev_scripts_helpers/cleanup_scripts/HelpersTask135_Rename_IS_SUPER_REPO_var.sh
+    > ./helpers_root/dev_scripts_helpers/cleanup_scripts/HelpersTask135_Rename_IS_SUPER_REPO_var.sh
     ```
+
+- Replace identical files with symbolic links to their counterparts in //helpers
+  ```bash
+  python3 ./helpers_root/helpers/create_links.py --src_dir ./helpers_root/ --dst_dir . --replace_links --use_relative_paths
+  ```
