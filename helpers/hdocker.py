@@ -1738,7 +1738,7 @@ def run_dockerized_mermaid2(
 # #############################################################################
 
 
-def run_dockerized_graphviz_dot(
+def run_dockerized_graphviz(
     in_file_path: str,
     cmd_opts: List[str],
     out_file_path: str,
@@ -1756,7 +1756,8 @@ def run_dockerized_graphviz_dot(
     """
     _LOG.debug(hprint.func_signature_to_str())
     # Get the container image.
-    #container_image = "graphviz/graphviz"
+    # These containers don't work so we install it in a custom container.
+    # container_image = "graphviz/graphviz"
     # container_image = "nshine/dot"
     container_image = "tmp.graphviz"
     dockerfile = rf"""

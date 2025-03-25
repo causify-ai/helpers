@@ -690,14 +690,14 @@ class Test_dockerized_tikz_to_bitmap1(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_dockerized_graphviz_dot1
+# Test_dockerized_graphviz1
 # #############################################################################
 
 
 @pytest.mark.skipif(
     hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
 )
-class Test_dockerized_graphviz_dot1(hunitest.TestCase):
+class Test_dockerized_graphviz1(hunitest.TestCase):
 
     def create_input_file(self) -> Tuple[str, str]:
         txt = r"""
@@ -716,7 +716,7 @@ class Test_dockerized_graphviz_dot1(hunitest.TestCase):
 
     def test_dockerized1(self) -> None:
         """
-        Run `graphviz_dot` inside a Docker container.
+        Run `graphviz` inside a Docker container.
         """
         # Prepare inputs.
         in_file_path, out_file_path = self.create_input_file()
@@ -724,7 +724,7 @@ class Test_dockerized_graphviz_dot1(hunitest.TestCase):
         force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
         # Run function.
-        hdocker.run_dockerized_graphviz_dot(
+        hdocker.run_dockerized_graphviz(
             in_file_path,
             cmd_opts,
             out_file_path,
@@ -737,13 +737,13 @@ class Test_dockerized_graphviz_dot1(hunitest.TestCase):
             msg=f"Output file {out_file_path} not found",
         )
 
-    # TODO(gp): In theory this should go in test_dockerized_graphviz_dot.py
+    # TODO(gp): In theory this should go in test_dockerized_graphviz.py
     def test_command_line1(self) -> None:
         """
-        Run `dockerized_graphviz_dot` through the command line.
+        Run `dockerized_graphviz` through the command line.
         """
         # Prepare inputs.
-        exec_path = hgit.find_file_in_git_tree("dockerized_graphviz_dot.py")
+        exec_path = hgit.find_file_in_git_tree("dockerized_graphviz.py")
         in_file_path, out_file_path = self.create_input_file()
         # Run function.
         cmd = f"{exec_path} -i {in_file_path} -o {out_file_path}"

@@ -152,9 +152,9 @@ def _render_code(
             cmd_opts: List[str] = []
             hdocker.dockerized_tikz_to_bitmap(in_code_file_path, cmd_opts, out_img_file_path,
                 force_rebuild=force_rebuild, use_sudo=use_sudo)
-        elif image_code_type == "graphviz_dot":
+        elif image_code_type == "graphviz":
             cmd_opts: List[str] = []
-            hdocker.run_dockerized_graphviz_dot(in_code_file_path, cmd_opts, out_img_file_path,
+            hdocker.run_dockerized_graphviz(in_code_file_path, cmd_opts, out_img_file_path,
                 force_rebuild=force_rebuild, use_sudo=use_sudo)
         else:
             raise ValueError(f"Invalid type: {image_code_type}")

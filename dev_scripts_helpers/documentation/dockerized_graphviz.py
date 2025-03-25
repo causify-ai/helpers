@@ -33,7 +33,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(
         verbosity=args.log_level, use_exec_path=True, force_white=False
     )
-    hdocker.run_dockerized_graphviz_dot(
+    hdocker.run_dockerized_graphviz(
         args.input,
         cmd_opts,
         args.output,
