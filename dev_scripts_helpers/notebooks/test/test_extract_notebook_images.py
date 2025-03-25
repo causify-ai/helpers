@@ -1,15 +1,10 @@
 import logging
 import os
 import pathlib
-import re
 import shutil
 import typing
 
-import pytest
-
 import helpers.hdocker as hdocker
-import helpers.hio as hio
-import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
@@ -21,61 +16,8 @@ _LOG = logging.getLogger(__name__)
 
 
 class TestNotebookImageExtractor(hunitest.TestCase):
-    """
-    Test for the dockerized notebook image extractor module.
-    """
 
     original_build_container_image = hdocker.build_container_image
-    original_system = hsystem.system
-
-    @pytest.fixture(autouse=True)
-    def setup_teardown_test(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> typing.Generator[None, None, None]:
-        """
-        Set up and tear down the test environment for each test.
-
-        Monkey-patch the build_container_image function and the system
-        command to remove any problematic '--platform' flags, then clean
-        up the injected test notebook file from the build context after
-        the test runs.
-
-        :param monkeypatch: pytest monkeypatch fixture
-        :return: None
-        """
-        self.set_up_test(monkeypatch)
-        yield
-        self.tear_down_test(monkeypatch)
-        # Remove the copied test notebook from the current working directory (build context).
-        test_file = os.path.join(os.getcwd(), "test_images.ipynb")
-        if os.path.exists(test_file):
-            os.remove(test_file)
-
-    def set_up_test(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """
-        Set up per-test monkey-patching of functions.
-
-        Monkey-patches:
-          - helpers.hdocker.build_container_image to use _patched_build_container_image.
-          - hsystem.system to use _patched_system.
-
-        :param monkeypatch: The pytest monkeypatch fixture
-        :return: None
-        """
-        monkeypatch.setattr(
-            "helpers.hdocker.build_container_image",
-            self._patched_build_container_image,
-        )
-        monkeypatch.setattr(hsystem, "system", self._patched_system)
-
-    def tear_down_test(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """
-        Restore any monkey-patched attributes.
-
-        :param monkeypatch: The pytest monkeypatch fixture
-        :return: None
-        """
-        monkeypatch.undo()
 
     def test_run_dockerized_notebook_image_extractor(self) -> None:
         """
@@ -90,8 +32,7 @@ class TestNotebookImageExtractor(hunitest.TestCase):
 
         :return: None
         """
-        hio.create_dir("output", incremental=True)
-        output_dir = pathlib.Path("output")
+        output_dir = pathlib.Path(self.get_output_dir())
         dir_name = self.get_input_dir()
         src_test_notebook = os.path.join(dir_name, "test_images.ipynb")
         # Copy the test notebook into the current working directory (build context).
@@ -109,7 +50,7 @@ class TestNotebookImageExtractor(hunitest.TestCase):
         # Check output.
         expected_files = ["test.png", "test2.png", "test3.png"]
         for filename in expected_files:
-            expected_file = os.path.join(str(output_dir), filename)
+            expected_file = output_dir / filename
             self.assertTrue(
                 os.path.exists(expected_file),
                 f"Expected file '{expected_file}' not found!",
@@ -132,10 +73,10 @@ class TestNotebookImageExtractor(hunitest.TestCase):
         modified_dockerfile = dockerfile + extra_layer
         _LOG.info("Modified Dockerfile for testing:\n%s", modified_dockerfile)
         # Copy the test file into the build context.
-        build_context = "tmp.docker_build"
-        if os.path.isdir(build_context):
-            src_file = os.path.join(os.getcwd(), "test_images.ipynb")
-            dst_file = os.path.join(build_context, "test_images.ipynb")
+        build_context = pathlib.Path("tmp.docker_build")
+        if build_context.is_dir():
+            src_file = pathlib.Path(os.getcwd()) / "test_images.ipynb"
+            dst_file = build_context / "test_images.ipynb"
             _LOG.info(
                 "Copying test file from %s to build context %s",
                 src_file,
@@ -149,20 +90,4 @@ class TestNotebookImageExtractor(hunitest.TestCase):
             TestNotebookImageExtractor.original_build_container_image(
                 image_name, modified_dockerfile, force_rebuild, use_sudo
             ),
-        )
-
-    @staticmethod
-    def _patched_system(cmd: str, suppress_output: bool = False) -> typing.Any:
-        """
-        Remove any '--platform' flag from the docker build command.
-
-        :param cmd: original system command
-        :param suppress_output: if True, suppresses command output
-        :return: result of executing the patched command
-        """
-        # Some hosts find `--platform ` problematic.
-        patched_cmd = re.sub(r"\s*--platform(?:=|\s+)\S+", "", cmd)
-        _LOG.info("Patched system command:\n%s", patched_cmd)
-        return TestNotebookImageExtractor.original_system(
-            patched_cmd, suppress_output=suppress_output
         )
