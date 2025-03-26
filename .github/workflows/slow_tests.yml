@@ -30,16 +30,20 @@ permissions:
   id-token: write
   # This is required for actions/checkout.
   contents: read
+  # This is required for pulling the Docker image from GHCR.
+  packages: read
 
 jobs:
   run_slow_tests:
+    # We expect user to not execute manual run in a draft PR.
+    # The reason is `github.event.pull_request.draft` is evaluated as empty
+    # string and the condition is always true which is not the right state.
+    if: ${{ github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
 
     steps:
-      # To optimize costs, the image is fetched from GHCR registry by default. If you prefer
-      # pulling the image from ECR, enable this.
-      # Pass AWS credentials via GH secrets. This is needed to pull the Docker image
-      # that will be used to run the action.
+      # Pass AWS credentials via GH secrets. This is needed to pull the Docker
+      # image and in case the tests need to access AWS resources.
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -47,13 +51,15 @@ jobs:
           role-session-name: ${{ vars.GH_ACTION_AWS_SESSION_NAME }}
           aws-region: ${{ vars.CSFY_AWS_DEFAULT_REGION }}
 
+      # To optimize costs, the image is fetched from GHCR registry by default.
+      # If you prefer pulling the image from ECR, enable this.
       # This is needed to pull the Docker image.
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+      # - name: Login to AWS ECR
+      #   id: login-ecr
+      #   uses: aws-actions/amazon-ecr-login@v1
 
-      #- name: Perform docker login
-      #  run: docker login ghcr.io -u gpsaggese -p ${{ secrets.GITHUB_TOKEN }}
+      - name: Login to GHCR
+        run: docker login ghcr.io -u gpsaggese -p ${{ secrets.GITHUB_TOKEN }}
 
       # Make everything accessible by any user to avoid permission errors.
       - name: Cleanup
@@ -74,24 +80,24 @@ jobs:
 
       # Install packages that are required to run the job via GH.
       - name: Install dependencies
-        if: github.event.pull_request.draft == false
         run: |
           python -m pip install --upgrade pip
           pip install -r .github/gh_requirements.txt
 
-      # Pull the latest Docker image to run the regressions on.
-      - name: Pull image
-        if: github.event.pull_request.draft == false
-        env:
-          CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
-        run: invoke docker_pull
+      # # Pull the latest Docker image from the AWS ECR to run the regressions
+      # # on.
+      # - name: Pull image from AWS ECR
+      #   env:
+      #     CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
+      #   run: invoke docker_pull
 
-      # Pull the latest Docker image from GHCR registry instead of ECR for cost saving purposes to run the regressions on.
-      #- name: Pull image
-      #  if: github.event.pull_request.draft == false
-      #  run: docker pull ghcr.io/cryptokaizen/cmamp:dev
+      # Pull the latest Docker image from the GHCR registry instead of ECR for
+      # cost saving purposes to run the regressions on.
+      - name: Pull image from GHCR
+        run: docker pull ghcr.io/${{ github.repository }}:dev
 
-      # Run the `invoke` target `run_slow_tests` to run tests that are over 5 seconds.
+      # Run the `invoke` target `run_slow_tests` to run tests that are over 5
+      # seconds.
       # See the corresponding documentation for more information.
       - name: Run slow tests
         env:
@@ -99,16 +105,15 @@ jobs:
           CSFY_AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
           CSFY_AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
           CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
-          CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
-          # If you prefer pulling the image from ECR, comment out the following line and uncomment the one above.
-          # Base path for GHCR registry.
-          #CSFY_ECR_BASE_PATH: ghcr.io/cryptokaizen
+          # CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
+          # CSFY_ECR_BASE_PATH is the source path for fetching the image.
+          # If you prefer pulling the image from ECR, comment out the following
+          # line and uncomment the one above.
+          # TODO(Vlad): Rename the variable to CSFY_CR_BASE_PATH since it can be
+          # either GHCR or ECR.
+          CSFY_ECR_BASE_PATH: ghcr.io/${{ github.repository_owner }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
-          CSFY_TELEGRAM_TOKEN: ${{ secrets.CSFY_TELEGRAM_TOKEN }}
           GH_ACTION_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        # https://github.community/t/dont-run-actions-on-draft-pull-requests/16817/19
-        # Do not run on draft pull requests.
-        if: github.event.pull_request.draft == false
         run: invoke run_slow_tests
 
       # In case of manual run, this workflow step will not be skipped and
@@ -133,8 +138,8 @@ jobs:
         if: ${{ failure() && github.ref_name == 'master' }}
         uses: slackapi/slack-github-action@v1.27.0
         with:
-          # You can pass in multiple channels to post to by providing a comma-delimited list of channel IDs:
-          # 'CHANNEL_ID,ANOTHER_CHANNEL_ID'
+          # You can pass in multiple channels to post to by providing a
+          # comma-delimited list of channel IDs: 'CHANNEL_ID,ANOTHER_CHANNEL_ID'
           channel-id: ${{ vars.SLACK_BUILD_NOTIF_CHANNEL_ID }}
           slack-message: |
             💣 SLOW TESTS FAILED
