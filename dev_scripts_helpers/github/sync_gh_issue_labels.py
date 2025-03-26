@@ -184,6 +184,9 @@ def load_manifest_to_labels(path: str) -> List[Label]:
 def save_labels_to_manifest(labels: List[Label], path: str) -> None:
     """
     Save label configurations to YAML file.
+
+    :param labels: List of Label objects
+    :param path: path to save the YAML file to
     """
     try:
         with open(path, "w") as file:
