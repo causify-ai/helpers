@@ -233,7 +233,7 @@ def sync_labels(
                 # Label exists but needs update.
                 client.update_label(owner, repo, label)
             else:
-                # Label exists and is identical
+                # Label exists and is identical.
                 _LOG.info("Label not changed: %s", label)
         except Exception as e:
             _LOG.error("Error processing label %s: %s", label.name, e)
