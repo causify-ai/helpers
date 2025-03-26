@@ -221,7 +221,9 @@ def sync_labels(
                 try:
                     client.delete_label(owner, repo, current_label.name)
                 except Exception as e:
-                    _LOG.error("Error deleting label %s: %s", current_label.name, e)
+                    _LOG.error(
+                        "Error deleting label %s: %s", current_label.name, e
+                    )
     # Create or update labels.
     for label in labels:
         current_label = current_label_map.get(label.name)
