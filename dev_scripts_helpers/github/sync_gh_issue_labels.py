@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Synchronize GitHub issue labels from a YAML configuration file.
+Synchronize GitHub issue labels from a label inventory manifest file.
 
 Examples
 
@@ -40,9 +40,9 @@ class Label:
         """
         Initialize the label with name, description, and color.
 
-        :param name: Label name
-        :param description: Label description
-        :param color: Label color in hex format
+        :param name: label name
+        :param description: label description
+        :param color: label color in hex format
         """
         self.name = name
         self.description = description
@@ -78,7 +78,7 @@ class GitHubClient:
 
         :param owner: GitHub repository owner/organization
         :param repo: GitHub repository name
-        :return: List of Label objects
+        :return: label objects
         """
         url = f"https://api.github.com/repos/{owner}/{repo}/labels"
         labels = []
@@ -114,7 +114,7 @@ class GitHubClient:
 
         :param owner: GitHub repository owner/organization
         :param repo: GitHub repository name
-        :param label: Label object to create
+        :param label: label object to create
         """
         url = f"https://api.github.com/repos/{owner}/{repo}/labels"
         data = {
@@ -132,7 +132,7 @@ class GitHubClient:
 
         :param owner: GitHub repository owner/organization
         :param repo: GitHub repository name
-        :param label: Label object to update
+        :param label: label object to update
         """
         url = f"https://api.github.com/repos/{owner}/{repo}/labels/{label.name}"
         data = {
@@ -150,7 +150,7 @@ class GitHubClient:
 
         :param owner: GitHub repository owner/organization
         :param repo: GitHub repository name
-        :param name: Label name to delete
+        :param name: label name to delete
         """
         url = f"https://api.github.com/repos/{owner}/{repo}/labels/{name}"
         response = requests.delete(url, headers=self.headers)
@@ -158,11 +158,12 @@ class GitHubClient:
         _LOG.info("Label deleted: %s", name)
 
 
-def load_manifest_to_labels(path: str) -> List[Label]:
+def load_labels(path: str) -> List[Label]:
     """
-    Load label configurations from YAML file.
+    Load labels from label inventory manifest file.
 
-    :param path: path to YAML file
+    :param path: path to label inventory manifest file
+    :return: label objects
     """
     try:
         with open(path, "r") as file:
@@ -177,16 +178,16 @@ def load_manifest_to_labels(path: str) -> List[Label]:
             ]
             return labels
     except Exception as e:
-        _LOG.error("Error loading YAML file: %s", str(e))
+        _LOG.error("Error loading label inventory manifest file: %s", str(e))
         sys.exit(1)
 
 
-def save_labels_to_manifest(labels: List[Label], path: str) -> None:
+def save_labels(labels: List[Label], path: str) -> None:
     """
-    Save label configurations to YAML file.
+    Save labels to the label inventory manifest file.
 
-    :param labels: List of Label objects
-    :param path: path to save the YAML file to
+    :param labels: label objects
+    :param path: path to save the label inventory manifest file to
     """
     try:
         with open(path, "w") as file:
@@ -200,7 +201,7 @@ def save_labels_to_manifest(labels: List[Label], path: str) -> None:
             ]
             yaml.dump(yaml_data, file, default_flow_style=False, sort_keys=False)
     except Exception as e:
-        _LOG.error("Error saving YAML file: %s", str(e))
+        _LOG.error("Error saving label inventory manifest file: %s", str(e))
         sys.exit(1)
 
 
@@ -209,6 +210,13 @@ def sync_labels(
 ) -> None:
     """
     Synchronize labels between config and repository.
+
+    :param client: GitHub client
+    :param owner: GitHub repository owner/organization
+    :param repo: GitHub repository name
+    :param labels: label objects
+    :param prune: delete labels that exist in the repo but not in the
+        label inventory manifest file
     """
     # Build maps for efficient lookup.
     label_map = {label.name: label for label in labels}
@@ -253,7 +261,7 @@ def _parse() -> argparse.ArgumentParser:
         "--yaml",
         "-y",
         required=True,
-        help="Path to YAML file with label definitions",
+        help="Path to label inventory manifest file",
     )
     parser.add_argument(
         "--owner",
@@ -271,7 +279,7 @@ def _parse() -> argparse.ArgumentParser:
         "--prune",
         "-p",
         action="store_true",
-        help="Delete labels that exist in the repo but not in the YAML file",
+        help="Delete labels that exist in the repo but not in the label inventory manifest file",
     )
     parser.add_argument(
         "--dry_run",
@@ -283,7 +291,7 @@ def _parse() -> argparse.ArgumentParser:
         "--backup",
         "-b",
         action="store_true",
-        help="Backup current labels to YAML file",
+        help="Backup current labels to a label inventory manifest file",
     )
     return parser
 
@@ -291,8 +299,8 @@ def _parse() -> argparse.ArgumentParser:
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    # Load labels from YAML file.
-    labels = load_manifest_to_labels(args.yaml)
+    # Load labels from label inventory manifest file.
+    labels = load_labels(args.yaml)
     if args.dry_run:
         for label in labels:
             _LOG.info(label)
@@ -304,7 +312,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         dst_dir = f"{root_dir}/dev_scripts_helpers/github/labels/backup"
         file_name = f"labels.{args.owner}.{args.repo}.yaml"
         file_path = f"{dst_dir}/{file_name}"
-        save_labels_to_manifest(current_labels, file_path)
+        save_labels(current_labels, file_path)
         _LOG.info("Labels backed up to %s", file_path)
     hsystem.query_yes_no(
         "Are you sure you want to synchronize labels?", abort_on_no=True
