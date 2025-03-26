@@ -1,6 +1,6 @@
 """
-Usecase for this module is at
-helpers/notebooks/Master_how_to_use_hgoogle_frive_api.ipynb
+use case for this module is at
+helpers/notebooks/Master_how_to_use_hgoogle_drive_api.ipynb
 
 Import as:
 
@@ -648,11 +648,10 @@ def write_to_google_sheet(
     """
     Write data to a specified Google Sheet and tab.
 
-    :param df: Data to be written.
-    :param url: URL of the Google Sheet.
-    :param tab_name: Name of the tab where the data will be written
-        (default: "new_data").
-    :param credentials: Google credentials object.
+    :param df: data to be written
+    :param url: url of the Google Sheet
+    :param tab_name: name of the tab where the data will be written
+    :param credentials: google credentials object
     """
     try:
         client = gspread.authorize(credentials)
