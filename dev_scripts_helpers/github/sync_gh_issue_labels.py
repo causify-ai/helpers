@@ -64,7 +64,7 @@ class GitHubClient:
         """
         Initialize the client with a personal access token.
 
-        :param token: GitHub personal access
+        :param token: GitHub personal access token
         """
         self.token = token
         self.headers = {
@@ -197,7 +197,7 @@ def save_labels_to_manifest(labels: List[Label], path: str) -> None:
             ]
             yaml.dump(yaml_data, file, default_flow_style=False, sort_keys=False)
     except Exception as e:
-        print(f"Error saving YAML file: {e}")
+        _LOG.error("Error saving YAML file: %s", str(e))
         sys.exit(1)
 
 
@@ -218,7 +218,7 @@ def sync_labels(
                 try:
                     client.delete_label(owner, repo, current_label.name)
                 except Exception as e:
-                    print(f"Error deleting label {current_label.name}: {e}")
+                    _LOG.error("Error deleting label %s: %s", current_label.name, e)
     # Create or update labels.
     for label in labels:
         current_label = current_label_map.get(label.name)
