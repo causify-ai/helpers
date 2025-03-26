@@ -27,7 +27,9 @@
 # henv.execute_repo_config_code("_is_mac_version_with_sibling_containers()") -> hserver._is_mac_version_with_sibling_containers()
 # henv.execute_repo_config_code("run_docker_as_root()") -> hserver.run_docker_as_root()
 
-find . -type f -name "*.py" -o -name "*.sh" -o -name "*.cpp" -o -name "*.h" -exec perl -i -pe '
+# We need to execlude the file that we are running this script on,
+# otherwise it will be replaced with the new values.
+find . -type f \( -name "*.py" -o -name "*.sh" \) -not -name "HelpersTask88_Improve_repo_config.sh" -exec perl -i -pe '
 s/rconf\.get_docker_base_image_name\(\)/hrecouti.get_repo_config().get_docker_base_image_name()/g;
 s/henv\.execute_repo_config_code\("get_name\(\)"\)/hrecouti.get_repo_config().get_name()/g;
 s/henv\.execute_repo_config_code\("get_html_bucket_path\(\)"\)/hrecouti.get_repo_config().get_html_bucket_path()/g;
@@ -52,5 +54,6 @@ s/henv\.execute_repo_config_code\("is_CK_S3_available\(\)"\)/hserver.is_CK_S3_av
 s/henv\.execute_repo_config_code\("config_func_to_str\(\)"\)/hserver.config_func_to_str()/g;
 s/henv\.execute_repo_config_code\("has_docker_sudo\(\)"\)/hserver.has_docker_sudo()/g;
 s/henv\.execute_repo_config_code\("_is_mac_version_with_sibling_containers\(\)"\)/hserver._is_mac_version_with_sibling_containers()/g;
-s/henv\.execute_repo_config_code\("run_docker_as_root\(\)"\)/hserver.run_docker_as_root()/g
+s/henv\.execute_repo_config_code\("run_docker_as_root\(\)"\)/hserver.run_docker_as_root()/g;
+s/^import repo_config as rconf\s*$//g
 ' {} \;

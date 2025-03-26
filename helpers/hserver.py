@@ -165,11 +165,18 @@ def is_external_linux() -> bool:
 
     :return: whether an external Linux system is running
     """
-    host_os_name = os.uname()[0]
-    if host_os_name == "Linux" and not (is_dev_ck() or is_inside_ci()):
-        # Running a Linux system but not on a dev server and not within CI flow.
-        return True
-    return False
+    # CI and dev servers are not considered external Linux systems.
+    if is_dev_ck() or is_inside_ci():
+        is_external_linux_ = False
+    # If we are inside a Docker container, we need to check the host OS.
+    elif is_inside_docker():
+        csfy_host_os_name = os.environ.get("CSFY_HOST_OS_NAME", None)
+        is_external_linux_ = csfy_host_os_name == "Linux"
+    # If we are not inside a Docker container, we can check the host OS directly.
+    else:
+        host_os_name = os.uname()[0]
+        is_external_linux_ = host_os_name == "Linux"
+    return is_external_linux_
 
 
 def is_cmamp_prod() -> bool:

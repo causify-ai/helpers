@@ -48,10 +48,7 @@
 - [ ] **Intern**: Post your laptop's OS (Windows, Linux, Mac) in the comments of
       this issue
 
-- [ ] **Intern**: Send the following information to your point of contact
-
 - [ ] **Intern**: Confirm access to the public GH repos
-  - [ ] [kaizenflow](https://github.com/causify-ai/kaizenflow)
   - [ ] [helpers](https://github.com/causify-ai/helpers)
   - [ ] [tutorials](https://github.com/causify-ai/tutorials)
 
