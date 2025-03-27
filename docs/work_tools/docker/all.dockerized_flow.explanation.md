@@ -214,6 +214,10 @@ we want to run it in a container with minimal changes to the system call:
     `dockerized_latex.py`) that serve as the entry point for users
     - Core functionalities for the module can be placed in separate files. For
       example, image extraction logic might reside in `helpers/hjupyter`
+  - Naming Convention:`dockerized_*` are just wrappers around the corresponding
+    tools, while the others (example: `extract_notebook_images.py`)
+     are just scripts that perform some function and happen to use docker to
+    achieve it.
 
 # Testing a dockerized executable
 
