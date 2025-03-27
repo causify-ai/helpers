@@ -1796,6 +1796,8 @@ def run_dockerized_graphviz(
     graphviz_cmd = [
         "dot"
         f"{cmd_opts}",
+        "-T png",
+        "-Gdpi=300",
         f"-o {out_file_path}",
         in_file_path
     ]

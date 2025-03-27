@@ -26,7 +26,10 @@ import logging
 import os
 import re
 import tempfile
-from typing import List, Tuple
+import hashlib
+import json
+from functools import wraps
+from typing import List, Tuple, Callable, Optional
 
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
@@ -76,8 +79,132 @@ def _get_rendered_file_paths(
     # Get the relative path to the image, e.g., "figs/readme.1.png".
     rel_img_path = os.path.join(sub_dir, img_name)
     # Get the path to a temporary file with the image code, e.g., "readme.1.txt".
-    code_file_path = f"{out_file_name_body}.{image_code_idx}.txt"
+    dir_name = "tmp.render_images"
+    code_file_path = f"{dir_name}/{out_file_name_body}.{image_code_idx}.txt"
     return (code_file_path, abs_img_dir_path, rel_img_path)
+
+
+# #############################################################################
+
+
+class ImageHashCache:
+    """
+    Class for managing image hash caching.
+
+    The cache is a JSON storing the hash of the image code and type as the key
+
+    E.g.,
+    ```
+    {
+        "a1b2c3...": {
+            "image_code_hash": "a1b2c3...",
+            "image_code_type": "graphviz",
+            "out_file": "/path/to/rendered/image1.png",
+        }
+        ...
+    }
+    ```
+    """
+
+    def __init__(self, cache_file: str):
+        """
+        Initialize the ImageHashCache.
+
+        :param cache_file: Path to the cache file
+        """
+        self.cache_file = cache_file
+        if os.path.exists(self.cache_file):
+            _LOG.debug("Loading cache from %s", self.cache_file)
+            self.cache = self.load()
+        else:
+            _LOG.debug("No cache file found at %s", self.cache_file)
+            self.cache = {}
+
+    def compute_hash(self, image_code: str, image_code_type: str, out_file: str) -> Tuple[str, dict]:
+        """
+        Compute a hash of the image code and type.
+        
+        :param image_code: The code of the image
+        :param image_code_type: Type of the image code (e.g., "plantuml", "mermaid")
+        :param out_file: Path to the output file where the image will be saved
+        :return: A hash string
+        """
+        image_code_hash = hashlib.sha256(image_code.encode()).hexdigest()
+        # Create a dictionary with the inputs
+        entry = {
+            "image_code_hash": image_code_hash,
+            "image_code_type": image_code_type,
+            "out_file": out_file,
+        }
+        # Convert to JSON string to ensure consistent serialization
+        json_str = json.dumps(entry, sort_keys=True)
+        # Compute hash of the entry.
+        entry_key = hashlib.sha256(json_str.encode()).hexdigest()
+        return entry_key, entry
+
+    def update_cache(self, entry_key: str, entry_value: str) -> None:
+        """
+        Update the cache with a new entry.
+        """
+        hdbg.dassert_not_in(entry_key, self.cache)  
+        self.cache[entry_key] = entry_value
+
+    def __contains__(self, entry_key: str) -> bool:
+        """
+        Check if an entry is in the cache.
+        """
+        return entry_key in self.cache
+
+    def load(self) -> dict:
+        """
+        Load the hash cache from a file.
+        
+        :return: Dictionary mapping image hashes to rendered file paths
+        """
+        hdbg.dassert_file_exists(self.cache_file)
+        return hio.from_json(self.cache_file)
+
+    def save(self) -> None:
+        """
+        Save the hash cache to a file.
+        """
+        hio.to_json(self.cache_file, self.cache)
+
+
+# #############################################################################
+
+
+def cache_image_renders(cache_file: Optional[str],
+        image_code: str,
+        image_code_type: str,
+        out_file: str,
+        *,
+        force_rebuild: bool = False,
+                        
+                        
+                        ) -> bool:
+    """
+    Decorator that caches image renders based on the hash of the image code and type.
+
+    The cache is a JSON file mapping image hashes to rendered file paths.
+    
+    Example cache file (.image_cache.json):
+    {
+        "a1b2c3...": "/path/to/rendered/image1.png",
+        "d4e5f6...": "/path/to/rendered/image2.svg"
+    }
+    
+    where the keys are SHA-256 hashes of the image code and type, and the values
+    are absolute paths to the rendered image files.
+
+    The cache is stored in a JSON file in the same directory as the output file.
+    """
+    @wraps(func)
+    def wrapper(
+    ) -> str:
+        
+        return rendered_path
+    return wrapper
 
 
 def _render_code(
@@ -90,6 +217,8 @@ def _render_code(
     force_rebuild: bool = False,
     use_sudo: bool = False,
     dry_run: bool = False,
+    use_cache: bool = True,
+    cache_file: Optional[str] = None,
 ) -> str:
     """
     Render the image code into an image file.
@@ -123,10 +252,22 @@ def _render_code(
         image_code_tmp += r"\end{document}"
         image_code = image_code_tmp
     # Get paths for rendered files.
-    hio.create_enclosing_dir(out_file, incremental=True)
+    #hio.create_enclosing_dir(out_file, incremental=True)
     in_code_file_path, abs_img_dir_path, out_img_file_path = _get_rendered_file_paths(
         out_file, image_code_idx, dst_ext
     )
+    # Initialize cache handler.
+    cache_file = cache_file or "tmp.render_images.cache.json"
+    _LOG.debug(hprint.to_str("cache_file"))
+    cache = ImageHashCache(cache_file)
+    # Compute hash of inputs
+    image_hash = cache.compute_hash(image_code, image_code_type, out_file)
+    # Check if the image is cached.
+    if use_cache and image_hash in cache:
+        # The image is cached, return the path.
+        hdbg.dassert_file_exists(out_file)
+        return out_img_file_path
+    # No cache hit, render the image and update the cache.
     hio.create_dir(abs_img_dir_path, incremental=True)
     # Save the image code to a temporary file.
     hio.to_file(in_code_file_path, image_code)
@@ -160,6 +301,10 @@ def _render_code(
             raise ValueError(f"Invalid type: {image_code_type}")
     # Remove the temp file.
     os.remove(in_code_file_path)
+    #
+    if use_cache:
+        cache.update_cache(image_hash, out_img_file_path)
+        cache.save()
     return out_img_file_path
 
 
@@ -223,12 +368,13 @@ def _render_images(
     """
     Insert rendered images instead of image code blocks.
 
-    Here, "image code" refers to code that defines the content of the image,
-    e.g., plantUML/mermaid code for diagrams.
-    In this method,
-    - The image code is commented out.
-    - New code is added after the image code block to insert
-      the rendered image.
+    "image code" refers to code that defines the content of the image, e.g.,
+    plantUML/mermaid code for diagrams.
+
+    This method:
+    - comments out the image code if it is not already commented out
+    - renders the image code into an image file
+    - inserts the include for the rendered image after the image code block
 
     :param in_lines: lines of the input file
     :param out_file: path to the output file
@@ -242,7 +388,7 @@ def _render_images(
     extension = os.path.splitext(out_file)[1]
     #
     comment_prefix, comment_postfix = _get_comment_prefix_postfix(extension)
-    # Store the output.
+    # Store the output of the code
     out_lines: List[str] = []
     # Store the image code found in the file.
     image_code_lines: List[str] = []
