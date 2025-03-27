@@ -1,10 +1,10 @@
 """
-Documentation for this module is at
-docs/coding/all.hgoogle_file_api.explanation.md.
+use case for this module is at
+helpers/notebooks/Master_how_to_use_hgoogle_drive_api.ipynb
 
 Import as:
 
-import helpers.hgoogle_file_api as hgofiapi
+import helpers.hgoogle_drive_api as hgodrapi
 """
 
 import logging
@@ -192,6 +192,7 @@ def set_row_height(
         sheet_id=sheet_id, sheet_name=sheet_name, credentials=credentials
     )
     sheets_service = get_sheets_service(credentials=credentials)
+
     if start_index is None and end_index is None:
         sheet_metadata = (
             sheets_service.spreadsheets().get(spreadsheetId=sheet_id).execute()
@@ -216,11 +217,11 @@ def set_row_height(
         ).get("properties", {})
         grid_properties = sheet_properties.get("gridProperties", {})
         end_index = grid_properties.get("rowCount", 1000)
-    else:
+    elif start_index >= end_index:
         raise ValueError(
-            f"Invalid params start_index=${start_index} and "
-            f"end_index=${end_index}"
+            f"Invalid params: start_index ({start_index}) must be less than end_index ({end_index})."
         )
+
     # Create request.
     set_row_height_request = {
         "requests": [
@@ -244,9 +245,6 @@ def set_row_height(
         .batchUpdate(spreadsheetId=sheet_id, body=set_row_height_request)
         .execute()
     )
-    _LOG.debug("response: %s", response)
-
-    # #########################################################################
     _LOG.debug("response: %s", response)
 
 
@@ -643,18 +641,17 @@ def read_google_file(
 def write_to_google_sheet(
     df: pd.DataFrame,
     url: str,
-    tab_name: Optional[str] = "new data",
+    tab_name: Optional[str] = "new_data",
     *,
     credentials: goasea.Credentials,
 ) -> None:
     """
     Write data to a specified Google Sheet and tab.
 
-    :param df: Data to be written.
-    :param url: URL of the Google Sheet.
-    :param tab_name: Name of the tab where the data will be written
-        (default: "new data").
-    :param credentials: Google credentials object.
+    :param df: data to be written
+    :param url: url of the Google Sheet
+    :param tab_name: name of the tab where the data will be written
+    :param credentials: google credentials object
     """
     try:
         client = gspread.authorize(credentials)
