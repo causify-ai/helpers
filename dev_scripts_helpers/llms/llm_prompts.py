@@ -223,7 +223,12 @@ def _convert_to_vim_cfile_str(txt: str, in_file_name: str) -> str:
     """
     ret_out = []
     for line in txt.split("\n"):
+        _LOG.debug(hprint.to_str("line"))
+        if line.strip() == "":
+            continue
+        # ```
         # 57: The docstring should use more detailed type annotations for clarity, e.g., `List[str]`, `int`, etc.
+        # ```
         regex = re.compile(r"""
             ^(\d+):         # Line number followed by colon
             \s*             # Space
@@ -234,33 +239,42 @@ def _convert_to_vim_cfile_str(txt: str, in_file_name: str) -> str:
             line_number = match.group(1)
             description = match.group(2)
         else:
+            # ```
             # 98-104: Simplify the hash computation logic with a helper function to avoid redundant steps.
+            # ```
             regex = re.compile(r"""
                 ^(\d+)-\d+:    # Line number(s) followed by colon
                 \s*                 # Space
                 (.*)$               # Rest of line
                 """, re.VERBOSE)
             match = regex.match(line)
-            hdbg.dassert(match, "Can't parse line: '%s'", line)
+        if match:
             line_number = match.group(1)
             description = match.group(2)
+        else:
+            _LOG.warning("Can't parse line: '%s'", line)
+            continue
         ret_out.append(f"{in_file_name}:{line_number}: {description}")
     # Save the output.
     txt_out = "\n".join(ret_out)
     return txt_out
 
 
-def _convert_to_vim_cfile(txt: str, in_file_name: str, out_file_name: str) -> None:
+def _convert_to_vim_cfile(txt: str, in_file_name: str, out_file_name: str) -> str:
     """
     Convert the text passed to a vim cfile.
+
+    in_file_name: path to the file to convert to a vim cfile (e.g.,
+        `/app/helpers_root/tmp.llm_transform.in.txt`)
     """
+    _LOG.debug(hprint.to_str("txt in_file_name out_file_name"))
+    hdbg.dassert_file_exists(in_file_name)
+    #
     txt_out = _convert_to_vim_cfile_str(txt, in_file_name)
     #
-    if out_file_name != "cfile":
+    if "cfile" not in out_file_name:
         _LOG.warning("Invalid out_file_name '%s', using 'cfile'", out_file_name)
-    out_file_name = "cfile"
-    hio.to_file(out_file_name, txt_out)
-    print("Saved file in %s", out_file_name)
+    return txt_out
 
 
 # #############################################################################
@@ -282,6 +296,13 @@ def run_prompt(prompt_tag: str, txt: str, model: str, in_file_name: str, out_fil
     hdbg.dassert_isinstance(transforms, set)
     #
     system_prompt = hprint.dedent(system_prompt)
+
+    # Add line numbers to each line of text.
+    lines = txt.split("\n")
+    numbered_lines = []
+    for i, line in enumerate(lines, 1):
+        numbered_lines.append(f"{i}: {line}")
+    txt = "\n".join(numbered_lines)
 
     # We need to import this here since we have this package only when running
     # inside a Dockerized executable. We don't want an import to this file
@@ -306,8 +327,7 @@ def run_prompt(prompt_tag: str, txt: str, model: str, in_file_name: str, out_fil
     if _to_run("remove_empty_lines"):
         txt_out = hmarkdo.remove_empty_lines(txt_out)
     if _to_run("convert_to_vim_cfile"):
-        _convert_to_vim_cfile(txt_out, in_file_name, out_file_name)
-        txt_out = None
+        txt_out = _convert_to_vim_cfile(txt_out, in_file_name, out_file_name)
     hdbg.dassert_eq(
         len(transforms), 0, "Not all transforms were run: %s", transforms
     )
@@ -319,9 +339,9 @@ def run_prompt(prompt_tag: str, txt: str, model: str, in_file_name: str, out_fil
 
 def get_prompt_tags() -> List[str]:
     """
-    Return the list of functions in this file that can be called.
+    Return the list of functions in this file that can be called as a prompt.
     """
-    # Find file path of the llm_prompts.py file.
+    # Read current file.
     curr_path = os.path.abspath(__file__)
     file_content = hio.from_file(curr_path)
     #
@@ -331,7 +351,7 @@ def get_prompt_tags() -> List[str]:
     # Iterate through all function definitions in the AST.
     for node in ast.walk(tree):
         if isinstance(node, ast.FunctionDef):
-            # Check function arguments and return type that match:
+            # Check function arguments and return type that match the signature:
             # ```
             # def xyz() -> Tuple[str, Set[str]]:
             # ```

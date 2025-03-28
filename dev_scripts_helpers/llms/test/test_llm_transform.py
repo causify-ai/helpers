@@ -4,7 +4,7 @@ from typing import Tuple
 
 import pytest
 
-import dev_scripts_helpers.llms.llm_prompts_utils as dshllprut
+import dev_scripts_helpers.llms.llm_prompts as dshllprut
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hprint as hprint

@@ -25,6 +25,7 @@ Examples
 
 import argparse
 import logging
+import re
 
 if False:
     # Hardwire path when we are calling from a different dir.
@@ -39,6 +40,7 @@ import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hio as hio
 import helpers.hparser as hparser
+import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
@@ -52,7 +54,7 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     hparser.add_input_output_args(parser)
-    hparser.add_transform_arg(parser)
+    hparser.add_prompt_arg(parser)
     hparser.add_dockerized_script_arg(parser)
     # Use CRITICAL to avoid logging anything.
     hparser.add_verbosity_arg(parser, log_level="CRITICAL")
@@ -64,23 +66,26 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(
         verbosity=args.log_level, use_exec_path=True, force_white=False
     )
-    if args.transform == "list":
+    if args.prompt == "list":
         print("# Available prompt tags:")
         print("\n".join(dshllprut.get_prompt_tags()))
         return
     # Parse files.
     in_file_name, out_file_name = hparser.parse_input_output_args(args)
     _ = in_file_name, out_file_name
-    # Since we need to call a container and passing stdin/stdout is tricky
+    # Since we need to call a container and passing stdin/stdout is tricky,
     # we read the input and save it in a temporary file.
     in_lines = hparser.read_file(in_file_name)
-    tmp_in_file_name = "tmp.llm_transform.in.txt"
-    in_txt = "\n".join(in_lines)
-    hio.to_file(tmp_in_file_name, in_txt)
+    if in_file_name == "-":
+        tmp_in_file_name = "tmp.llm_transform.in.txt"
+        in_txt = "\n".join(in_lines)
+        hio.to_file(tmp_in_file_name, in_txt)
+    else:
+        tmp_in_file_name = in_file_name
     #
     tmp_out_file_name = "tmp.llm_transform.out.txt"
     # TODO(gp): We should just automatically pass-through the options.
-    cmd_line_opts = [f"-t {args.transform}", f"-v {args.log_level}"]
+    cmd_line_opts = [f"-p {args.prompt}", f"-v {args.log_level}"]
     if args.fast_model:
         cmd_line_opts.append("--fast_model")
     if args.debug:
@@ -102,11 +107,30 @@ def _main(parser: argparse.ArgumentParser) -> None:
         force_rebuild=args.dockerized_force_rebuild,
         use_sudo=args.dockerized_use_sudo,
     )
-    out_txt = hio.from_file(tmp_out_file_name)
+    # 
+    if args.prompt == "code_review":
+        # We need to convert the files from inside the container to outside
+        # Replace the name of the file inside the container (e.g.,
+        # `/app/helpers_root/tmp.llm_transform.in.txt`) with the name of the
+        # file outside the container.
+        txt_out = []
+        txt = hio.from_file(tmp_out_file_name)
+        for line in txt.split("\n"):
+            if line.strip() == "":
+                continue
+            # E.g., the format is like 
+            # /app/helpers_root/r.py:1: Change the shebang line to `#!/usr/bin/env python3` to e
+            _LOG.debug("before: " + hprint.to_str("line in_file_name"))
+            line = re.sub(r"^.*(:\d+:.*)$", rf"{in_file_name}\1", line)
+            _LOG.debug("after: " + hprint.to_str("line"))
+            txt_out.append(line)
+        txt_out = "\n".join(txt_out)
+        hio.to_file(tmp_out_file_name, txt_out)
     # Note that we need to run this outside the `llm_transform` container to
     # avoid to do docker-in-docker in the `llm_transform` container (which
     # doesn't support that).
-    if args.transform in (
+    out_txt = hio.from_file(tmp_out_file_name)
+    if args.prompt in (
         "md_format",
         "md_summarize_short",
         "slide_improve",
