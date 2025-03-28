@@ -7,7 +7,6 @@ import re
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
-import helpers.hopenai as hopenai
 import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
@@ -237,7 +236,7 @@ def _convert_to_vim_cfile_str(txt: str, in_file_name: str) -> str:
         else:
             # 98-104: Simplify the hash computation logic with a helper function to avoid redundant steps.
             regex = re.compile(r"""
-                ^(\d+):\d+:    # Line number(s) followed by colon
+                ^(\d+)-\d+:    # Line number(s) followed by colon
                 \s*                 # Space
                 (.*)$               # Rest of line
                 """, re.VERBOSE)
@@ -283,6 +282,12 @@ def run_prompt(prompt_tag: str, txt: str, model: str, in_file_name: str, out_fil
     hdbg.dassert_isinstance(transforms, set)
     #
     system_prompt = hprint.dedent(system_prompt)
+
+    # We need to import this here since we have this package only when running
+    # inside a Dockerized executable. We don't want an import to this file
+    # assert since openai is not available in the local dev environment.
+    import helpers.hopenai as hopenai
+
     response = hopenai.get_completion(txt, system_prompt=system_prompt, model=model, print_cost=True)
     #_LOG.debug(hprint.to_str("response"))
     txt_out = hopenai.response_to_txt(response)
@@ -331,10 +336,21 @@ def get_prompt_tags() -> List[str]:
             # def xyz() -> Tuple[str, Set[str]]:
             # ```
             args = [arg.arg for arg in node.args.args]
+            _LOG.debug(hprint.to_str("node.name args"))
             if (
-                args == ["user", "model"]
-                and isinstance(node.returns, ast.Name)
-                and node.returns.id == "str"
+                len(args) == 0
+                and isinstance(node.returns, ast.Subscript)
+                and isinstance(node.returns.value, ast.Name)
+                and node.returns.value.id == "Tuple"
+                and isinstance(node.returns.slice, ast.Tuple)
+                and len(node.returns.slice.elts) == 2
+                and isinstance(node.returns.slice.elts[0], ast.Name)
+                and node.returns.slice.elts[0].id == "str"
+                and isinstance(node.returns.slice.elts[1], ast.Subscript)
+                and isinstance(node.returns.slice.elts[1].value, ast.Name)
+                and node.returns.slice.elts[1].value.id == "Set"
+                and isinstance(node.returns.slice.elts[1].slice, ast.Name)
+                and node.returns.slice.elts[1].slice.id == "str"
             ):
                 matched_functions.append(node.name)
     matched_functions = sorted(matched_functions)

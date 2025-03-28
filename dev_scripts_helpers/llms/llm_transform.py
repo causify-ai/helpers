@@ -34,7 +34,7 @@ if False:
 
 # pylint: disable=wrong-import-position
 import dev_scripts_helpers.documentation.lint_notes as dshdlino
-import dev_scripts_helpers.llms.llm_prompts_utils as dshllprut
+import dev_scripts_helpers.llms.llm_prompts as dshllprut
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hio as hio
@@ -65,8 +65,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
         verbosity=args.log_level, use_exec_path=True, force_white=False
     )
     if args.transform == "list":
-        print("# Available transformations:")
-        print("\n".join(dshllprut.get_transforms()))
+        print("# Available prompt tags:")
+        print("\n".join(dshllprut.get_prompt_tags()))
         return
     # Parse files.
     in_file_name, out_file_name = hparser.parse_input_output_args(args)
