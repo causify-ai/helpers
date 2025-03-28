@@ -47,15 +47,16 @@ def _main(parser: argparse.ArgumentParser) -> None:
         model = "gpt-4o-mini"
     else:
         model = "gpt-4o"
-    txt_tmp = dshlllpr.apply_prompt(transform, txt_tmp, model)
-    # Write file.
-    res = []
-    if args.debug:
-        res.append("# Before:")
-        res.extend(txt)
-        res.append("# After:")
-    res.extend(txt_tmp.split("\n"))
-    hparser.write_file(res, out_file_name)
+    txt_tmp = dshlllpr.run_prompt(transform, txt_tmp, model, in_file_name, out_file_name)
+    if txt_tmp is not None:
+        # Write file, if needed.
+        res = []
+        if args.debug:
+            res.append("# Before:")
+            res.extend(txt)
+            res.append("# After:")
+        res.extend(txt_tmp.split("\n"))
+        hparser.write_file(res, out_file_name)
 
 
 if __name__ == "__main__":

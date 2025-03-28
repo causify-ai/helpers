@@ -1505,7 +1505,7 @@ def run_dockerized_llm_transform(
         ret = docker_cmd
     else:
         # TODO(gp): Note that `suppress_output=False` seems to hang the call.
-        hsystem.system(docker_cmd)
+        hsystem.system(docker_cmd, suppress_output=False)
         ret = None
     return ret
 

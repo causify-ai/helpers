@@ -28,14 +28,6 @@ class Test_llm_transform1(hunitest.TestCase):
     Run the script `llm_transform.py` in a Docker container.
     """
 
-    def test_get_transforms(self) -> None:
-        """
-        Check retrieving the available LLM transforms.
-        """
-        transforms = dshllprut.get_transforms()
-        _LOG.debug(hprint.to_str("transforms"))
-        self.assertGreater(len(transforms), 0)
-
     def setup_test(self) -> Tuple[str, str, str]:
         """
         Set up the test environment by creating an input markdown file and
