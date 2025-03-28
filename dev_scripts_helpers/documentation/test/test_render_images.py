@@ -1,6 +1,6 @@
 import logging
 import os
-import re
+import pprint
 
 import pytest
 
@@ -36,10 +36,112 @@ class Test_get_rendered_file_paths1(hunitest.TestCase):
         # Check output.
         act = "\n".join(paths)
         exp = """
-        e.8.txt
+        tmp.render_images/e.8.txt
         /a/b/c/d/figs
         figs/e.8.png
         """
+        self.assert_equal(act, exp, dedent=True)
+
+
+# #############################################################################
+# Test_ImageHashCache1
+# #############################################################################
+
+
+class Test_ImageHashCache1(hunitest.TestCase):
+    def test1(self) -> None:
+        """
+        Test basic functionality of ImageHashCache.
+        """
+        # Create a temporary cache file.
+        cache_file = os.path.join(self.get_scratch_space(), "image_hash_cache.json")
+        # Initialize cache.
+        cache = dshdreim.ImageHashCache(cache_file)
+        # Test initial state.
+        self.assertEqual(cache.cache, {})
+        # Test computing hash.
+        image_code = "digraph { A -> B }"
+        image_code_type = "graphviz"
+        out_file = "/tmp/test.png"
+        hash_key, cache_value = cache.compute_hash(image_code, image_code_type, out_file)
+        # Verify the cache value structure.
+        act = pprint.pformat(cache_value)
+        exp = """
+        {'image_code_hash': 'f068f0efa138e56c739c1b9f8456c312f714f96488204242c73f4ce457236f88',
+         'image_code_type': 'graphviz',
+         'out_file': '/tmp/test.png'}
+        """
+        self.assert_equal(act, exp, dedent=True)
+        # Update the cache.
+        cache_updated = cache.update_cache(hash_key, cache_value)
+        # There should be an update since the cache is empty.
+        self.assertTrue(cache_updated)
+        # Check the content of the cache file.
+        act = hio.from_file(cache_file)
+        exp = r"""
+        {
+            "/tmp/test.png": {
+                "image_code_hash": "f068f0efa138e56c739c1b9f8456c312f714f96488204242c73f4ce457236f88",
+                "image_code_type": "graphviz",
+                "out_file": "/tmp/test.png"
+            }
+        }"""
+        self.assert_equal(act, exp, dedent=True)
+        # 2) Perform a second update without changing the cache value.
+        cache_updated = cache.update_cache(hash_key, cache_value)
+        # No update should happen since the value is the same.
+        self.assertFalse(cache_updated)
+        # 3) Perform a third update with a different cache value.
+        image_code = "new image code"
+        image_code_type = "graphviz"
+        out_file = "/tmp/test.png"
+        hash_key, cache_value = cache.compute_hash(image_code, image_code_type, out_file)
+        # Verify the cache value structure.
+        act = pprint.pformat(cache_value)
+        exp = """
+        {'image_code_hash': 'e28869819b0fb5b24a37cec1f0f05190b622d1c696fdc43de5c79026f07bb869',
+         'image_code_type': 'graphviz',
+         'out_file': '/tmp/test.png'}
+        """
+        self.assert_equal(act, exp, dedent=True)
+        # Update the cache.
+        cache_updated = cache.update_cache(hash_key, cache_value)
+        self.assertTrue(cache_updated)
+        # Check the content of the cache file.
+        act = hio.from_file(cache_file)
+        exp = r"""
+        {
+            "/tmp/test.png": {
+                "image_code_hash": "e28869819b0fb5b24a37cec1f0f05190b622d1c696fdc43de5c79026f07bb869",
+                "image_code_type": "graphviz",
+                "out_file": "/tmp/test.png"
+            }
+        }"""
+        self.assert_equal(act, exp, dedent=True)
+        # 4) Update the cache with a different key.
+        image_code = "new image code 2"
+        image_code_type = "graphviz"
+        out_file = "/tmp/test2.png"
+        hash_key, cache_value = cache.compute_hash(image_code, image_code_type, out_file)
+        # Update the cache.
+        cache_updated = cache.update_cache(hash_key, cache_value)
+        # There should be an update since the cache is empty.
+        self.assertTrue(cache_updated)
+        # Check the content of the cache file.
+        act = hio.from_file(cache_file)
+        exp = r"""
+        {
+            "/tmp/test.png": {
+                "image_code_hash": "e28869819b0fb5b24a37cec1f0f05190b622d1c696fdc43de5c79026f07bb869",
+                "image_code_type": "graphviz",
+                "out_file": "/tmp/test.png"
+            },
+            "/tmp/test2.png": {
+                "image_code_hash": "ffc71f5ebd6f0df6d0fafe70a87413096d5498f90353c0f8a1908e18656b8de9",
+                "image_code_type": "graphviz",
+                "out_file": "/tmp/test2.png"
+            }
+        }""" 
         self.assert_equal(act, exp, dedent=True)
 
 
