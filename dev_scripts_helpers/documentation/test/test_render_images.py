@@ -1,6 +1,7 @@
 import logging
 import os
 import pprint
+from typing import Tuple
 
 import pytest
 
@@ -129,8 +130,7 @@ class Test_ImageHashCache1(hunitest.TestCase):
         self.assertTrue(cache_updated)
         # Check the content of the cache file.
         act = hio.from_file(cache_file)
-        exp = r"""
-        {
+        exp = r"""{
             "/tmp/test.png": {
                 "image_code_hash": "e28869819b0fb5b24a37cec1f0f05190b622d1c696fdc43de5c79026f07bb869",
                 "image_code_type": "graphviz",
@@ -144,6 +144,146 @@ class Test_ImageHashCache1(hunitest.TestCase):
         }""" 
         self.assert_equal(act, exp, dedent=True)
 
+
+# #############################################################################
+# Test_render_image_code1
+# #############################################################################
+
+
+class Test_render_image_code1(hunitest.TestCase):
+
+    def _get_test_render_image_code_inputs1(self, use_cache: bool) -> bool:
+        """
+        Run `render_image_code()` function.
+        """
+        # Prepare inputs.
+        image_code = "digraph { A -> B }"
+        image_code_idx = 1
+        image_code_type = "graphviz"
+        template_out_file = os.path.join(self.get_scratch_space(), "test.md")
+        dst_ext = "png"
+        cache_file = os.path.join(self.get_scratch_space(), "image_hash_cache.json")
+        # Run function.
+        rel_img_path, is_cache_hit = dshdreim._render_image_code(
+            image_code,
+            image_code_idx,
+            image_code_type,
+            template_out_file,
+            dst_ext,
+            use_cache=use_cache,
+            cache_file=cache_file
+        )
+        # Check output.
+        self.assertEqual(rel_img_path, "figs/test.1.png")
+        return is_cache_hit
+
+    def _get_test_render_image_code_inputs2(self, use_cache: bool) -> bool:
+        """
+        Same file as `example1` but different image code.
+        """
+        # Prepare inputs.
+        image_code = "digraph { B -> A }"
+        image_code_idx = 1
+        image_code_type = "graphviz"
+        template_out_file = os.path.join(self.get_scratch_space(), "test.md")
+        dst_ext = "png"
+        cache_file = os.path.join(self.get_scratch_space(), "image_hash_cache.json")
+        # Run function.
+        rel_img_path, is_cache_hit = dshdreim._render_image_code(
+            image_code,
+            image_code_idx,
+            image_code_type,
+            template_out_file,
+            dst_ext,
+            use_cache=use_cache,
+            cache_file=cache_file
+        )
+        # Check output.
+        self.assertEqual(rel_img_path, "figs/test.1.png")
+        return is_cache_hit
+
+    def _get_test_render_image_code_inputs3(self, use_cache: bool) -> bool:
+        """
+        Different file than `example1` and `example2`.
+        """
+        # Prepare inputs.
+        image_code = "digraph { A -> B }"
+        image_code_idx = 1
+        image_code_type = "graphviz"
+        template_out_file = os.path.join(self.get_scratch_space(), "test2.md")
+        dst_ext = "png"
+        cache_file = os.path.join(self.get_scratch_space(), "image_hash_cache.json")
+        # Run function.
+        rel_img_path, is_cache_hit = dshdreim._render_image_code(
+            image_code,
+            image_code_idx,
+            image_code_type,
+            template_out_file,
+            dst_ext,
+            use_cache=use_cache,
+            cache_file=cache_file
+        )
+        # Check output.
+        self.assertEqual(rel_img_path, "figs/test2.1.png")
+        return is_cache_hit
+
+    def test1(self) -> None:
+        """
+        Test rendering a basic image code block.
+        """
+        is_cache_hit = self._get_test_render_image_code_inputs1(use_cache=True)
+        # Check output.
+        self.assertFalse(is_cache_hit)
+
+    def test2(self) -> None:
+        """
+        Test rendering with cache.
+        """
+        # 1) New computation -> cache miss.
+        is_cache_hit = self._get_test_render_image_code_inputs1(use_cache=True)
+        self.assertFalse(is_cache_hit)
+        # 2) Same as 1) -> cache hit.
+        is_cache_hit = self._get_test_render_image_code_inputs1(use_cache=True)
+        self.assertTrue(is_cache_hit)
+        # 3) Different image code -> cache miss.
+        is_cache_hit = self._get_test_render_image_code_inputs2(use_cache=True)
+        self.assertTrue(is_cache_hit)
+        # 4) Different file -> cache miss.
+        is_cache_hit = self._get_test_render_image_code_inputs3(use_cache=True)
+        # Check output.
+        self.assertFalse(is_cache_hit)
+        # 5) Same as 3) -> cache hit.
+        is_cache_hit = self._get_test_render_image_code_inputs2(use_cache=True)
+        self.assertTrue(is_cache_hit)
+        # 6) Same as 4) -> cache hit.
+        is_cache_hit = self._get_test_render_image_code_inputs3(use_cache=True)
+        self.assertTrue(is_cache_hit)
+
+    def test3(self) -> None:
+        """
+        Test rendering without cache.
+
+        There are only cache misses when rendering without cache.
+        """
+        # 1) New computation.
+        is_cache_hit = self._get_test_render_image_code_inputs1(use_cache=False)
+        self.assertFalse(is_cache_hit)
+        # 2) Same as 1).
+        is_cache_hit = self._get_test_render_image_code_inputs1(use_cache=False)
+        self.assertFalse(is_cache_hit)
+        # 3) Different image code.
+        is_cache_hit = self._get_test_render_image_code_inputs2(use_cache=False)
+        self.assertFalse(is_cache_hit)
+        # 4) Different file.
+        is_cache_hit = self._get_test_render_image_code_inputs3(use_cache=False)
+        # Check output.
+        self.assertFalse(is_cache_hit)
+        # 5) Same as 3).
+        is_cache_hit = self._get_test_render_image_code_inputs2(use_cache=False)
+        self.assertFalse(is_cache_hit)
+        # 6) Same as 4).
+        is_cache_hit = self._get_test_render_image_code_inputs3(use_cache=False)
+        self.assertFalse(is_cache_hit)
 
 # #############################################################################
 # Test_render_images1

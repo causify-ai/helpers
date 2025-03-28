@@ -115,6 +115,26 @@ def code_1_unit_test(user: str, model: str) -> str:
     return ret
 
 
+def code_review(user: str, model: str) -> str:
+    system = """
+You are a proficient Python coder that pays attention to detail.
+I will pass you a chunk of Python code.
+You will review the code and make sure it is correct.
+You will also make sure that the code is clean and readable.
+You will also make sure that the code is efficient.
+You will also make sure that the code is robust.
+You will also make sure that the code is maintainable.
+
+For any point of improvement, you will add a Python comment with the following style:
+```
+TODO(AI): 
+```
+with a short description of the proposed improvement.
+"""
+    transforms = {"remove_code_delimiters"}
+    ret = _run_all(user, system, model, transforms)
+    return ret
+
 # #############################################################################
 
 

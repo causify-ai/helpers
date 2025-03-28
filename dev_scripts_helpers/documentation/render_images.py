@@ -45,7 +45,7 @@ _LOG = logging.getLogger(__name__)
 
 
 def _get_rendered_file_paths(
-    out_file: str, image_code_idx: int, dst_ext: str
+    template_out_file: str, image_code_idx: int, dst_ext: str
 ) -> Tuple[str, str, str]:
     """
     Generate paths to files for image rendering.
@@ -57,8 +57,8 @@ def _get_rendered_file_paths(
     `figs/readme.1.png`. This way if we update the image, its name does not
     change.
 
-    :param out_file: path to the output file where the rendered image should be
-        inserted
+    :param template_out_file: template of the path to the output file where the
+        rendered image should be inserted (e.g., `docs/readme.md`)
     :param image_code_idx: order number of the image code block in the input
         file
     :param dst_ext: extension of the target image file
@@ -69,7 +69,7 @@ def _get_rendered_file_paths(
     """
     sub_dir = "figs"
     # E.g., "docs/readme.md" -> "/usr/docs", "readme.md".
-    out_file_dir, out_file_name = os.path.split(os.path.abspath(out_file))
+    out_file_dir, out_file_name = os.path.split(os.path.abspath(template_out_file))
     # E.g., "readme".
     out_file_name_body = os.path.splitext(out_file_name)[0]
     # Create the name for the image file, e.g., "readme.1.png".
@@ -88,6 +88,9 @@ def _get_rendered_file_paths(
 
 
 # TODO(gp): This can be generalized to compute the hash of a general computation.
+# TODO(gp): In practice this is simple_cache.py but without storting the output
+# but only returning if the function was already called with the same arguments
+# or not. See if we can merge the two.
 class ImageHashCache:
     """
     Class for managing image hash caching.
@@ -127,7 +130,7 @@ class ImageHashCache:
         # cache.
         if os.path.exists(self.cache_file):
             _LOG.debug("Loading cache from %s", self.cache_file)
-            self.cache = self.load()
+            self.cache = self._load()
         else:
             _LOG.debug("No cache file found at %s", self.cache_file)
             self.cache = {}
@@ -164,7 +167,7 @@ class ImageHashCache:
         if cache_updated:
             self.cache[cache_key] = cache_value
             # Save the cache to the file.
-            self.save()
+            self._save()
         return cache_updated
 
     def __contains__(self, entry_key: str) -> bool:
@@ -173,7 +176,7 @@ class ImageHashCache:
         """
         return entry_key in self.cache
 
-    def load(self) -> dict:
+    def _load(self) -> dict:
         """
         Load the hash cache from a file.
         
@@ -182,7 +185,7 @@ class ImageHashCache:
         hdbg.dassert_file_exists(self.cache_file)
         return hio.from_json(self.cache_file)
 
-    def save(self) -> None:
+    def _save(self) -> None:
         """
         Save the hash cache to a file.
         """
@@ -192,19 +195,18 @@ class ImageHashCache:
 # #############################################################################
 
 
-def _render_code(
+def _render_image_code(
     image_code: str,
     image_code_idx: int,
     image_code_type: str,
     out_file: str,
     dst_ext: str,
+    use_cache: bool,
     *,
     force_rebuild: bool = False,
     use_sudo: bool = False,
     dry_run: bool = False,
-    #use_cache: bool = True,
-    use_cache: bool = False,
-    cache_file: Optional[str] = None,
+    cache_file: str = "tmp.render_images.cache.json",
 ) -> Tuple[str, bool]:
     """
     Render the image code into an image file.
@@ -240,24 +242,27 @@ def _render_code(
         image_code = image_code_tmp
     # Get paths for rendered files.
     #hio.create_enclosing_dir(out_file, incremental=True)
+    # TODO(gp): The fact that we compute the image file path here makes it
+    # not possible to use a decorator to implement the caching.
     in_code_file_path, abs_img_dir_path, out_img_file_path = _get_rendered_file_paths(
         out_file, image_code_idx, dst_ext
     )
-    # Initialize cache handler.
-    cache_file = cache_file or "tmp.render_images.cache.json"
-    _LOG.debug(hprint.to_str("cache_file"))
-    cache = ImageHashCache(cache_file)
-    # Compute hash of inputs
-    cache_key, cache_value = cache.compute_hash(image_code, image_code_type, out_file)
-    # Check if the image is cached.
     cache_hit = False
-    if use_cache and cache_key in cache:
-        # The image is cached, return the path.
-        _LOG.debug("Cache hit for image %s", out_img_file_path)
-        hdbg.dassert_file_exists(out_file)
-        cache_hit = True
-        return out_img_file_path, cache_hit
-    # No cache hit, render the image and update the cache.
+    if use_cache:
+        # Initialize cache handler.
+        cache_file = cache_file or "tmp.render_images.cache.json"
+        _LOG.debug(hprint.to_str("cache_file"))
+        cache = ImageHashCache(cache_file)
+        # Compute hash of inputs.
+        cache_key, cache_value = cache.compute_hash(image_code, image_code_type, out_img_file_path)
+        # Check if the image is cached.
+        if cache_key in cache:
+            # The image is cached, return the path.
+            _LOG.debug("Cache hit for image %s", out_img_file_path)
+            hdbg.dassert_file_exists(out_img_file_path)
+            cache_hit = True
+            return out_img_file_path, cache_hit
+        # No cache hit, render the image and update the cache.
     hio.create_dir(abs_img_dir_path, incremental=True)
     # Save the image code to a temporary file.
     hio.to_file(in_code_file_path, image_code)
@@ -439,7 +444,7 @@ def _render_images(
             if m:
                 # Found the end of an image code block.
                 image_code_txt = "\n".join(image_code_lines)
-                rel_img_path = _render_code(
+                rel_img_path, is_cache_hit = _render_image_code(
                     image_code_txt,
                     image_code_idx,
                     image_code_type,
@@ -449,6 +454,7 @@ def _render_images(
                     use_sudo=use_sudo,
                     dry_run=dry_run,
                 )
+                _ = is_cache_hit
                 # Override the image name if explicitly set by the user.
                 if user_rel_img_path != "":
                     rel_img_path = user_rel_img_path
