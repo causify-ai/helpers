@@ -48,33 +48,38 @@
 
 ## Set up GitHub SSH access and personal access token (PAT)
 
-- To generate a new SSH key, follow the official [GitHub instructions](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent)
+- To generate a new SSH key, follow the official
+  [GitHub instructions](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent)
 
-- Ensure that you save the SSH key with the below name format and at the specified location
+- Ensure that you save the SSH key with the below name format and at the
+  specified location
 
   **File location:** `~/.ssh/id_rsa.causify.github`
 
-    **Example command to generate SSH key:**
-    ```bash
-    ssh-keygen -t ed25519 -C "your_email@example.com" -f ~/.ssh/id_rsa.causify.github
-    ```
+  **Example command to generate SSH key:**
 
-- To create a **Personal Access Token (classic)** with necessary scopes like `repo`, `workflow`, etc., 
-  go to [https://github.com/settings/tokens](https://github.com/settings/tokens) and click **"Generate new token (classic)"**.
+  ```bash
+  ssh-keygen -t ed25519 -C "your_email@example.com" -f ~/.ssh/id_rsa.causify.github
+  ```
 
-- After obtaining the token, store it in a file named `github_pat.causify-ai.txt` at the specified path
+- To create a **Personal Access Token (classic)** with necessary scopes like
+  `repo`, `workflow`, etc., go to
+  [https://github.com/settings/tokens](https://github.com/settings/tokens) and
+  click **"Generate new token (classic)"**.
 
-    **File location:** `~/.ssh/github_pat.causify-ai.txt`
+- After obtaining the token, store it in a file named
+  `github_pat.causify-ai.txt` at the specified path
 
-    **Steps to save using `vim`:**
+  **File location:** `~/.ssh/github_pat.causify-ai.txt`
 
-    ```bash
-    vim ~/.ssh/github_pat.causify-ai.txt
-    ```
+  **Steps to save using `vim`:**
 
-    - Press `i` to enter **Insert mode**
-    - Paste your token (Right-click or `Ctrl+Shift+V` or `Cmd + V` in terminal)
-    - Press `Esc`, then type `:wq` and hit `Enter` to save and exit
+  ```bash
+  vim ~/.ssh/github_pat.causify-ai.txt
+  ```
+  - Press `i` to enter **Insert mode**
+  - Paste your token (Right-click or `Ctrl+Shift+V` or `Cmd + V` in terminal)
+  - Press `Esc`, then type `:wq` and hit `Enter` to save and exit
 
 ## Build and activate the thin environment
 
@@ -95,7 +100,9 @@
     > cd helpers_root
     > ./dev_scripts_helpers/thin_client/build.py
     ```
-- While building the thin environment, the [GitHub CLI](https://github.com/cli/cli/) will also be installed system-wide
+
+- While building the thin environment, the
+  [GitHub CLI](https://github.com/cli/cli/) will also be installed system-wide
 
 - Activate the thin environment; make sure it is always activated
 
