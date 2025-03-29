@@ -28,7 +28,7 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     hparser.add_input_output_args(parser)
-    hparser.add_transform_arg(parser)
+    hparser.add_prompt_arg(parser)
     hparser.add_verbosity_arg(parser, log_level="CRITICAL")
     return parser
 
@@ -42,20 +42,21 @@ def _main(parser: argparse.ArgumentParser) -> None:
     txt = hparser.read_file(in_file_name)
     # Transform with LLM.
     txt_tmp = "\n".join(txt)
-    transform = args.transform
+    prompt_tag = args.prompt
     if args.fast_model:
         model = "gpt-4o-mini"
     else:
         model = "gpt-4o"
-    txt_tmp = dshlllpr.apply_prompt(transform, txt_tmp, model)
-    # Write file.
-    res = []
-    if args.debug:
-        res.append("# Before:")
-        res.extend(txt)
-        res.append("# After:")
-    res.extend(txt_tmp.split("\n"))
-    hparser.write_file(res, out_file_name)
+    txt_tmp = dshlllpr.run_prompt(prompt_tag, txt_tmp, model, in_file_name, out_file_name)
+    if txt_tmp is not None:
+        # Write file, if needed.
+        res = []
+        if args.debug:
+            res.append("# Before:")
+            res.extend(txt)
+            res.append("# After:")
+        res.extend(txt_tmp.split("\n"))
+        hparser.write_file(res, out_file_name)
 
 
 if __name__ == "__main__":

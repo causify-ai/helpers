@@ -18,6 +18,7 @@ from tqdm.notebook import tqdm
 
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
+import helpers.htimer as htimer
 
 _LOG = logging.getLogger(__name__)
 
@@ -103,43 +104,53 @@ pricing = {
 
 @functools.lru_cache(maxsize=1024)
 def get_completion(
-    user: str,
+    user_prompt: str,
     *,
-    system: str = "",
+    system_prompt: str = "",
     model: Optional[str] = None,
+    print_cost: bool = False,
     **create_kwargs,
 ) -> str:
     """
     Generate a completion using OpenAI's chat API.
 
-    :param user: user input message
-    :param system: system instruction
+    :param user_prompt: user input message
+    :param system_prompt: system instruction
     :param model: OpenAI model to use
     :param create_kwargs: additional params for the API call
+    :param report_progress: whether to report progress running the API call
     :return: completion text
     """
     model = _MODEL if model is None else model
     client = OpenAI()
+    print("OpenAI API call ... ")
+    memento = htimer.dtimer_start(logging.DEBUG, "OpenAI API call")
     completion = client.chat.completions.create(
         model=model,
         messages=[
-            {"role": "system", "content": system},
-            {"role": "user", "content": user},
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
         ],
         **create_kwargs,
     )
+    msg, _ = htimer.dtimer_stop(memento)
+    print(msg)
+    # CompletionUsage(completion_tokens=2, prompt_tokens=48, total_tokens=50
+    prompt_tokens = completion.usage.prompt_tokens
+    completion_tokens = completion.usage.completion_tokens
+    # Get the pricing for the selected model
+    model_pricing = pricing[model]
+    # Calculate the cost
+    cost = (
+            (prompt_tokens / 1e6) * model_pricing["prompt"] +
+            (completion_tokens / 1e6) * model_pricing["completion"]
+    )
+    _LOG.debug(hprint.to_str("prompt_tokens completion_tokens cost"))
+    if print_cost:
+        print(f"cost=${cost:.2f} / " + hprint.to_str("prompt_tokens completion_tokens"))
+    # Accumulate the cost.
     global _openai_cost
     if _openai_cost is not None:
-        # CompletionUsage(completion_tokens=2, prompt_tokens=48, total_tokens=50
-        prompt_tokens = completion.usage.prompt_tokens
-        completion_tokens = completion.usage.completion_tokens
-        # Get the pricing for the selected model
-        model_pricing = pricing[model]
-        # Calculate the cost
-        cost = (
-                (prompt_tokens / 1e6) * model_pricing["prompt"] +
-                (completion_tokens / 1e6) * model_pricing["completion"]
-        )
         _openai_cost += cost
     return completion.choices[0].message.content
 

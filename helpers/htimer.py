@@ -24,7 +24,7 @@ class Timer:
     Measure time elapsed in one or more intervals.
     """
 
-    def __init__(self, start_on_creation: bool = True):
+    def __init__(self, *, start_on_creation: bool = True):
         """
         Create a timer.
 
@@ -107,7 +107,7 @@ class Timer:
             self.stop()
         return self._total_elapsed
 
-    def accumulate(self, timer: "Timer") -> None:
+    def accumulate(self, *, timer: str = "Timer") -> None:
         """
         Accumulate the value of a timer to the current object.
         """

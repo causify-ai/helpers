@@ -560,7 +560,7 @@ def add_dockerized_script_arg(
     return parser
 
 
-def add_transform_arg(
+def add_prompt_arg(
     parser: argparse.ArgumentParser,
 ) -> argparse.ArgumentParser:
     """
@@ -573,7 +573,7 @@ def add_transform_arg(
         help="Print before/after the transform",
     )
     parser.add_argument(
-        "-t", "--transform", required=True, type=str, help="Type of transform"
+        "-p", "--prompt", required=True, type=str, help="Prompt to apply"
     )
     parser.add_argument(
         "-f",

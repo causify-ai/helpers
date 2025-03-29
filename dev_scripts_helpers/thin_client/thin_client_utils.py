@@ -122,6 +122,7 @@ def _create_new_window(
     cmd = f"tmux send-keys '{color}; cd {dir_name} && {tmux_cmd}' C-m C-m"
     hsystem.system(cmd)
 
+
 def _create_repo_windows(
     git_dir: str, setenv_path: str, module_name: str, is_submodule: bool
 ) -> None:

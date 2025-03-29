@@ -67,7 +67,7 @@ except ImportError as e:
 _LOG = logging.getLogger(__name__)
 
 # Mute this module unless we want to debug it.
-_LOG.setLevel(logging.INFO)
+#_LOG.setLevel(logging.INFO)
 
 # #############################################################################
 
@@ -394,11 +394,14 @@ def purify_from_environment(txt: str) -> str:
         else:
             # If the git path is `/` then we don't need to do anything.
             pass
-    # 2) Replace the path of current working dir with `$PWD`
+    # 2) Remove CSFY_GIT_ROOT_PATH
+    val = os.environ.get("CSFY_HOST_GIT_ROOT_PATH")
+    txt = re.sub(val, "$CSFY_HOST_GIT_ROOT_PATH", txt, flags=re.MULTILINE)
+    # 3) Replace the path of current working dir with `$PWD`.
     pwd = os.getcwd()
     pattern = re.compile(f"{pwd}{dir_pattern}")
     txt = pattern.sub("$PWD", txt)
-    # 3) Replace the current user name with `$USER_NAME`.
+    # 4) Replace the current user name with `$USER_NAME`.
     user_name = hsystem.get_user_name()
     # Set a regex pattern that finds a user name surrounded by dot, dash or space.
     # E.g., `IMAGE=$CSFY_ECR_BASE_PATH/amp_test:local-$USER_NAME-1.0.0`,
@@ -1788,6 +1791,7 @@ class TestCase(unittest.TestCase):
         """
         Add to git repo `file_name`, if needed.
         """
+        return
         _LOG.debug(hprint.to_str("file_name"))
         if self._git_add:
             # Find the file relative to here.
