@@ -19,8 +19,6 @@ import helpers.hparser as hparser
 _LOG = logging.getLogger(__name__)
 
 
-# TODO(gp): Rename -> dockerized_llm_transform.py
-
 # #############################################################################
 
 

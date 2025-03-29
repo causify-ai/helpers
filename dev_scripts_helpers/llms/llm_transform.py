@@ -5,7 +5,7 @@ Read input from either stdin or a file, apply a specified transformation using
 an LLM, and then write the output to either stdout or a file. It is
 particularly useful for integrating with editors like Vim.
 
-The script `_llm_transform.py` is executed within a Docker container to ensure
+The script `dockerized_llm_transform.py` is executed within a Docker container to ensure
 all dependencies are met. The Docker container is built dynamically if
 necessary. The script requires an OpenAI API key to be set in the environment.
 
@@ -47,7 +47,7 @@ _LOG = logging.getLogger(__name__)
 
 def _parse() -> argparse.ArgumentParser:
     """
-    Same interface as `_llm_transform.py`.
+    Same interface as `dockerized_llm_transform.py`.
     """
     parser = argparse.ArgumentParser(
         description=__doc__,

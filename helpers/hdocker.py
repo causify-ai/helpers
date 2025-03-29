@@ -1424,7 +1424,7 @@ def run_dockerized_llm_transform(
     use_sudo: bool = False,
 ) -> Optional[str]:
     """
-    Run _llm_transform.py in a Docker container with all its dependencies.
+    Run dockerized_llm_transform.py in a Docker container with all its dependencies.
     """
     _LOG.debug(hprint.func_signature_to_str())
     #
@@ -1482,7 +1482,7 @@ def run_dockerized_llm_transform(
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
     git_root = hgit.find_git_root()
-    script = hsystem.find_file_in_repo("_llm_transform.py", root_dir=git_root)
+    script = hsystem.find_file_in_repo("dockerized_llm_transform.py", root_dir=git_root)
     script = convert_caller_to_callee_docker_path(
         script,
         caller_mount_path,

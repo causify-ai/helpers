@@ -31,8 +31,9 @@ def code_comment() -> Tuple[str, Set[str]]:
     # Do not comment every single line of code and especially logging statements.
     # Each comment should be in imperative form, a full English phrase, and end
     # with a period.
-    transforms = {"remove_code_delimiters"}
-    return system, transforms
+    pre_transforms = {}
+    post_transforms = {"remove_code_delimiters"}
+    return system, pre_transforms, post_transforms
 
 
 def code_docstring() -> Tuple[str, Set[str]]:
@@ -43,8 +44,9 @@ def code_docstring() -> Tuple[str, Set[str]]:
     The first comment should be in imperative mode and fit in a single line of less than 80 characters.
     To describe the parameters use the REST style, which requires each parameter to be prepended with :param
     """
-    transforms = {"remove_code_delimiters"}
-    return system, transforms
+    pre_transforms = {}
+    post_transforms = {"remove_code_delimiters"}
+    return system, pre_transforms, post_transforms
 
 
 def code_type_hints() -> Tuple[str, Set[str]]:
@@ -52,8 +54,9 @@ def code_type_hints() -> Tuple[str, Set[str]]:
     You are a proficient Python coder.
     Add type hints to the function passed.
     """
-    transforms = {"remove_code_delimiters"}
-    return system, transforms
+    pre_transforms = {}
+    post_transforms = {"remove_code_delimiters"}
+    return system, pre_transforms, post_transforms
 
 
 def _get_code_unit_test_prompt(num_tests: int) -> str:
@@ -77,14 +80,16 @@ def _get_code_unit_test_prompt(num_tests: int) -> str:
 
 def code_unit_test() -> Tuple[str, Set[str]]:
     system = _get_code_unit_test_prompt(5)
-    transforms = {"remove_code_delimiters"}
-    return system, transforms
+    pre_transforms = {}
+    post_transforms = {"remove_code_delimiters"}
+    return system, pre_transforms, post_transforms
 
 
 def code_1_unit_test() -> Tuple[str, Set[str]]:
     system = _get_code_unit_test_prompt(1)
-    transforms = {"remove_code_delimiters"}
-    return system, transforms
+    pre_transforms = {}
+    post_transforms = {"remove_code_delimiters"}
+    return system, pre_transforms, post_transforms
 
 
 def code_review() -> Tuple[str, Set[str]]:
@@ -101,8 +106,9 @@ def code_review() -> Tuple[str, Set[str]]:
     print the line number and the proposed improvement in the following style:
     <line_number>: <short description of the proposed improvement>
     """
-    transforms = {"convert_to_vim_cfile"}
-    return system, transforms
+    pre_transforms = {}
+    post_transforms = {"convert_to_vim_cfile"}
+    return system, pre_transforms, post_transforms
 
 
 def code_review_and_improve() -> Tuple[str, Set[str]]:
@@ -118,8 +124,9 @@ def code_review_and_improve() -> Tuple[str, Set[str]]:
     You will print the code with the proposed improvements, minimizing the number of
     changes to the code that are not needed.
     """
-    transforms = {}
-    return system, transforms
+    pre_transforms = {}
+    post_transforms = {"convert_to_vim_cfile"}
+    return system, pre_transforms, post_transforms
 
 
 def code_propose_refactoring() -> Tuple[str, Set[str]]:
@@ -132,8 +139,9 @@ def code_propose_refactoring() -> Tuple[str, Set[str]]:
     print the line number and the proposed improvement in the following style:
     <line_number>: <short description of the proposed improvement>
     """
-    transforms = {}
-    return system, transforms
+    pre_transforms = {}
+    post_transforms = {"convert_to_vim_cfile"}
+    return system, pre_transforms, post_transforms
 
 
 # #############################################################################
@@ -147,8 +155,9 @@ def md_rewrite() -> Tuple[str, Set[str]]:
     Maintain the structure of the text as much as possible, in terms of bullet
     points and their indentation
     """
-    transforms = {"remove_code_delimiters"}
-    return system, transforms
+    pre_transforms = {}
+    post_transforms = {"remove_code_delimiters"}
+    return system, pre_transforms, post_transforms
 
 
 def md_summarize_short() -> Tuple[str, Set[str]]:
@@ -156,8 +165,9 @@ def md_summarize_short() -> Tuple[str, Set[str]]:
     You are a proficient technical writer.
     Summarize the text in less than 30 words.
     """
-    transforms = {"remove_code_delimiters"}
-    return system, transforms
+    pre_transforms = {}
+    post_transforms = {"remove_code_delimiters"}
+    return system, pre_transforms, post_transforms
 
 
 # #############################################################################
@@ -170,12 +180,13 @@ def slide_improve() -> Tuple[str, Set[str]]:
     You will convert the following markdown text into bullet points
     Make sure that the text is clean and readable
     """
+    pre_transforms = {}
     transforms = {
         "remove_code_delimiters",
         "remove_end_of_line_periods",
         "remove_empty_lines",
     }
-    return system, transforms
+    return system, pre_transforms, post_transforms
 
 
 def slide_colorize() -> Tuple[str, Set[str]]:
@@ -194,8 +205,9 @@ def slide_colorize() -> Tuple[str, Set[str]]:
 
     Print only the markdown without any explanation
     """
-    transforms = {"remove_code_delimiters"}
-    return system, transforms
+    pre_transforms = {}
+    post_transforms = {"remove_code_delimiters"}
+    return system, pre_transforms, post_transforms
 
 
 def slide_colorize_points() -> Tuple[str, Set[str]]:
@@ -208,8 +220,9 @@ def slide_colorize_points() -> Tuple[str, Set[str]]:
 
     Print only the markdown without any explanation
     """
-    transforms = {"remove_code_delimiters"}
-    return system, transforms
+    pre_transforms = {}
+    post_transforms = {"remove_code_delimiters"}
+    return system, pre_transforms, post_transforms
 
 
 # #############################################################################
@@ -291,12 +304,21 @@ def run_prompt(prompt_tag: str, txt: str, model: str, in_file_name: str, out_fil
     prompt_tags = get_prompt_tags()
     hdbg.dassert_in(prompt_tag, prompt_tags)
     python_cmd = f"{prompt_tag}()"
-    system_prompt, transforms = eval(python_cmd)
+    system_prompt, pre_transforms, post_transforms = eval(python_cmd)
     hdbg.dassert_isinstance(system_prompt, str)
-    hdbg.dassert_isinstance(transforms, set)
+    hdbg.dassert_isinstance(pre_transforms, set)
+    hdbg.dassert_isinstance(post_transforms, set)
     #
     system_prompt = hprint.dedent(system_prompt)
 
+    # Apply transforms to the response.
+    def _to_run(action: str) -> bool:
+        if action in transforms:
+            transforms.remove(action)
+            return True
+        return False
+
+    if prompt_tag == "code_review":
     # Add line numbers to each line of text.
     lines = txt.split("\n")
     numbered_lines = []
@@ -314,12 +336,6 @@ def run_prompt(prompt_tag: str, txt: str, model: str, in_file_name: str, out_fil
     txt_out = hopenai.response_to_txt(response)
     hdbg.dassert_isinstance(txt_out, str)
 
-    # Apply transforms to the response.
-    def _to_run(action: str) -> bool:
-        if action in transforms:
-            transforms.remove(action)
-            return True
-        return False
     if _to_run("remove_code_delimiters"):
         txt_out = hmarkdo.remove_code_delimiters(txt_out)
     if _to_run("remove_end_of_line_periods"):
