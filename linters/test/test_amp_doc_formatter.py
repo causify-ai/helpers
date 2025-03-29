@@ -4,6 +4,9 @@ import helpers.hio as hio
 import helpers.hunit_test as hunitest
 import linters.amp_doc_formatter as lamdofor
 
+import os
+import uuid
+
 
 # #############################################################################
 # Test_docformatter
@@ -212,14 +215,18 @@ def empty_lines_in_code_block(cmd: str) -> None:
 
     def _docformatter(self, text: str) -> str:
         """
-        Run the docformatter on the temp file.
+        Run the docformatter on the temp file in scratch space.
 
         :param text: content to be formatted
         :return: modified content after formatting
         """
-        tmp = tempfile.NamedTemporaryFile(suffix=".py")
-        hio.to_file(tmp.name, text)
-        lamdofor._DocFormatter().execute(file_name=tmp.name, pedantic=0)
-        content: str = hio.from_file(tmp.name)
-        tmp.close()
+        scratch_dir = self.get_scratch_space()
+        temp_file = os.path.join(scratch_dir, f"temp_{uuid.uuid4().hex}.py")
+        hio.to_file(temp_file, text)
+        lamdofor._DocFormatter().execute(file_name=temp_file, pedantic=0)
+        content: str = hio.from_file(temp_file)
+        
+        # Removing temp file after use
+        if os.path.exists(temp_file):
+            os.remove(temp_file)
         return content
