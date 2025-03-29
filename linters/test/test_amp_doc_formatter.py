@@ -1,5 +1,4 @@
 import os
-import uuid
 
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
@@ -219,12 +218,8 @@ def empty_lines_in_code_block(cmd: str) -> None:
         :return: modified content after formatting
         """
         scratch_dir = self.get_scratch_space()
-        temp_file = os.path.join(scratch_dir, f"temp_{uuid.uuid4().hex}.py")
+        temp_file = os.path.join(scratch_dir, "temp_file.py")
         hio.to_file(temp_file, text)
         lamdofor._DocFormatter().execute(file_name=temp_file, pedantic=0)
         content: str = hio.from_file(temp_file)
-
-        # Removing temp file after use
-        if os.path.exists(temp_file):
-            os.remove(temp_file)
         return content
