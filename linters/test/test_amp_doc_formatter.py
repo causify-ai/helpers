@@ -1,11 +1,9 @@
-import tempfile
+import os
+import uuid
 
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
 import linters.amp_doc_formatter as lamdofor
-
-import os
-import uuid
 
 
 # #############################################################################
@@ -225,7 +223,7 @@ def empty_lines_in_code_block(cmd: str) -> None:
         hio.to_file(temp_file, text)
         lamdofor._DocFormatter().execute(file_name=temp_file, pedantic=0)
         content: str = hio.from_file(temp_file)
-        
+
         # Removing temp file after use
         if os.path.exists(temp_file):
             os.remove(temp_file)
