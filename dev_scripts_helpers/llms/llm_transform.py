@@ -11,20 +11,21 @@ necessary. The script requires an OpenAI API key to be set in the environment.
 
 Examples
 # Basic Usage
-> llm_transform.py -i input.txt -o output.txt -t uppercase
+> llm_transform.py -i input.txt -o output.txt -p uppercase
 
 # List of transforms
-> llm_transform.py -i input.txt -o output.txt -t list
+> llm_transform.py -i input.txt -o output.txt -p list
 
-# Force rebuild Docker container
-> llm_transform.py -i input.txt -o output.txt -t uppercase --dockerized-force-rebuild
+# Code review
+> llm_transform.py -i dev_scripts_helpers/documentation/render_images.py -o cfile -p code_propose_refactoring
 
-# Set logging verbosity
-> llm_transform.py -i input.txt -o output.txt -t uppercase -v DEBUG
+# Propose refactoring
+> llm_transform.py -i dev_scripts_helpers/documentation/render_images.py -o cfile -p code_propose_refactoring
 """
 
 import argparse
 import logging
+import os
 import re
 
 if False:
@@ -59,6 +60,30 @@ def _parse() -> argparse.ArgumentParser:
     # Use CRITICAL to avoid logging anything.
     hparser.add_verbosity_arg(parser, log_level="CRITICAL")
     return parser
+        
+
+def _convert_file_names(in_file_name: str, out_file_name: str) -> str:
+    """
+    Convert the files from inside the container to outside.
+
+    Replace the name of the file inside the container (e.g.,
+    `/app/helpers_root/tmp.llm_transform.in.txt`) with the name of the
+    file outside the container.
+    """
+    # TODO(gp): We should use the `convert_caller_to_callee_docker_path`
+    txt_out = []
+    txt = hio.from_file(out_file_name)
+    for line in txt.split("\n"):
+        if line.strip() == "":
+            continue
+        # E.g., the format is like 
+        # /app/helpers_root/r.py:1: Change the shebang line to `#!/usr/bin/env python3` to e
+        _LOG.debug("before: " + hprint.to_str("line in_file_name"))
+        line = re.sub(r"^.*(:\d+:.*)$", rf"{in_file_name}\1", line)
+        _LOG.debug("after: " + hprint.to_str("line"))
+        txt_out.append(line)
+    txt_out = "\n".join(txt_out)
+    hio.to_file(out_file_name, txt_out)
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
@@ -107,28 +132,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
         force_rebuild=args.dockerized_force_rebuild,
         use_sudo=args.dockerized_use_sudo,
     )
-    # 
-    if args.prompt == "code_review":
-        # We need to convert the files from inside the container to outside
-        # Replace the name of the file inside the container (e.g.,
-        # `/app/helpers_root/tmp.llm_transform.in.txt`) with the name of the
-        # file outside the container.
-        txt_out = []
-        txt = hio.from_file(tmp_out_file_name)
-        for line in txt.split("\n"):
-            if line.strip() == "":
-                continue
-            # E.g., the format is like 
-            # /app/helpers_root/r.py:1: Change the shebang line to `#!/usr/bin/env python3` to e
-            _LOG.debug("before: " + hprint.to_str("line in_file_name"))
-            line = re.sub(r"^.*(:\d+:.*)$", rf"{in_file_name}\1", line)
-            _LOG.debug("after: " + hprint.to_str("line"))
-            txt_out.append(line)
-        txt_out = "\n".join(txt_out)
-        hio.to_file(tmp_out_file_name, txt_out)
-    # Note that we need to run this outside the `llm_transform` container to
-    # avoid to do docker-in-docker in the `llm_transform` container (which
-    # doesn't support that).
+    # Post transforms outside the container.
+    if args.prompt in ("code_review", "code_propose_refactoring"):
+        _convert_file_names(in_file_name, tmp_out_file_name)
     out_txt = hio.from_file(tmp_out_file_name)
     if args.prompt in (
         "md_format",
@@ -136,10 +142,16 @@ def _main(parser: argparse.ArgumentParser) -> None:
         "slide_improve",
         "slide_colorize",
     ):
+        # Note that we need to run this outside the `llm_transform` container to
+        # avoid to do docker-in-docker in the `llm_transform` container (which
+        # doesn't support that).
         out_txt = dshdlino.prettier_on_str(out_txt)
     # Read the output from the container and write it to the output file from
     # command line (e.g., `-` for stdout).
     hparser.write_file(out_txt, out_file_name)
+    #
+    if os.path.basename(out_file_name) == "cfile":
+        print(out_txt)
 
 
 if __name__ == "__main__":

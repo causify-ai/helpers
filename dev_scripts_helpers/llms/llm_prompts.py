@@ -17,7 +17,10 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-def code_comment() -> Tuple[str, Set[str]]:
+_PROMPT_OUT = Tuple[str, Set[str], Set[str]]
+
+
+def code_comment() -> _PROMPT_OUT:
     system = r"""
     You are a proficient Python coder.
     I will pass you a chunk of Python code.
@@ -36,7 +39,7 @@ def code_comment() -> Tuple[str, Set[str]]:
     return system, pre_transforms, post_transforms
 
 
-def code_docstring() -> Tuple[str, Set[str]]:
+def code_docstring() -> _PROMPT_OUT:
     system = r"""
     You are a proficient Python coder.
     I will pass you a chunk of Python code.
@@ -49,7 +52,7 @@ def code_docstring() -> Tuple[str, Set[str]]:
     return system, pre_transforms, post_transforms
 
 
-def code_type_hints() -> Tuple[str, Set[str]]:
+def code_type_hints() -> _PROMPT_OUT:
     system = r"""
     You are a proficient Python coder.
     Add type hints to the function passed.
@@ -78,23 +81,23 @@ def _get_code_unit_test_prompt(num_tests: int) -> str:
     return system
 
 
-def code_unit_test() -> Tuple[str, Set[str]]:
+def code_unit_test() -> _PROMPT_OUT:
     system = _get_code_unit_test_prompt(5)
     pre_transforms = {}
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
 
 
-def code_1_unit_test() -> Tuple[str, Set[str]]:
+def code_1_unit_test() -> _PROMPT_OUT:
     system = _get_code_unit_test_prompt(1)
     pre_transforms = {}
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
 
 
-def code_review() -> Tuple[str, Set[str]]:
+def code_review() -> _PROMPT_OUT:
     system = r"""
-    You are a proficient Python coder that pays attention to detail.
+    You are a proficient Python coder who pays attention to detail.
     I will pass you Python code.
     You will review the code and make sure it is correct.
     You will also make sure that the code is clean and readable.
@@ -106,32 +109,28 @@ def code_review() -> Tuple[str, Set[str]]:
     print the line number and the proposed improvement in the following style:
     <line_number>: <short description of the proposed improvement>
     """
-    pre_transforms = {}
+    pre_transforms = {"add_line_numbers"}
     post_transforms = {"convert_to_vim_cfile"}
     return system, pre_transforms, post_transforms
 
 
-def code_review_and_improve() -> Tuple[str, Set[str]]:
+def code_review_and_improve() -> _PROMPT_OUT:
     system = r"""
-    You are a proficient Python coder that pays attention to detail.
+    You are a proficient Python coder who pays attention to detail.
     I will pass you Python code.
-    You will review the code and make sure it is correct.
-    You will also make sure that the code is clean and readable.
-    You will also make sure that the code is efficient.
-    You will also make sure that the code is robust.
-    You will also make sure that the code is maintainable.
+    You will review the code and make sure it is correct and readable.
 
-    You will print the code with the proposed improvements, minimizing the number of
-    changes to the code that are not needed.
+    You will print the code with the proposed improvements, minimizing the
+    number of changes to the code that are not needed.
     """
-    pre_transforms = {}
+    pre_transforms = {"add_line_numbers"}
     post_transforms = {"convert_to_vim_cfile"}
     return system, pre_transforms, post_transforms
 
 
-def code_propose_refactoring() -> Tuple[str, Set[str]]:
+def code_propose_refactoring() -> _PROMPT_OUT:
     system = r"""
-    You are a proficient Python coder that pays attention to detail.
+    You are a proficient Python coder who pays attention to detail.
     I will pass you Python code.
     You will review the code and look for opportunities to refactor the code.
 
@@ -139,15 +138,26 @@ def code_propose_refactoring() -> Tuple[str, Set[str]]:
     print the line number and the proposed improvement in the following style:
     <line_number>: <short description of the proposed improvement>
     """
-    pre_transforms = {}
+    pre_transforms = {"add_line_numbers"}
     post_transforms = {"convert_to_vim_cfile"}
     return system, pre_transforms, post_transforms
 
 
+def code_apply_refactoring() -> _PROMPT_OUT:
+    system = r"""
+    You are a proficient Python coder who pays attention to detail.
+    I will pass you Python code.
+    You will review the code and apply refactoring to remove redundancy in the
+    code, minimizing the number of changes to the code that are not needed.
+    """
+    pre_transforms = {}
+    post_transforms = {}
+    return system, pre_transforms, post_transforms
+
 # #############################################################################
 
 
-def md_rewrite() -> Tuple[str, Set[str]]:
+def md_rewrite() -> _PROMPT_OUT:
     system = r"""
     You are a proficient technical writer.
     Rewrite the text passed as if you were writing a technical document to increase
@@ -160,7 +170,7 @@ def md_rewrite() -> Tuple[str, Set[str]]:
     return system, pre_transforms, post_transforms
 
 
-def md_summarize_short() -> Tuple[str, Set[str]]:
+def md_summarize_short() -> _PROMPT_OUT:
     system = r"""
     You are a proficient technical writer.
     Summarize the text in less than 30 words.
@@ -173,7 +183,7 @@ def md_summarize_short() -> Tuple[str, Set[str]]:
 # #############################################################################
 
 
-def slide_improve() -> Tuple[str, Set[str]]:
+def slide_improve() -> _PROMPT_OUT:
     system = r"""
     You are a proficient technical writer and expert of machine learning.
     I will give you markdown text in the next prompt
@@ -181,7 +191,7 @@ def slide_improve() -> Tuple[str, Set[str]]:
     Make sure that the text is clean and readable
     """
     pre_transforms = {}
-    transforms = {
+    post_transforms = {
         "remove_code_delimiters",
         "remove_end_of_line_periods",
         "remove_empty_lines",
@@ -189,7 +199,7 @@ def slide_improve() -> Tuple[str, Set[str]]:
     return system, pre_transforms, post_transforms
 
 
-def slide_colorize() -> Tuple[str, Set[str]]:
+def slide_colorize() -> _PROMPT_OUT:
     system = r"""
     You are a proficient technical writer and expert of machine learning.
     I will give you markdown text in the next prompt
@@ -210,7 +220,7 @@ def slide_colorize() -> Tuple[str, Set[str]]:
     return system, pre_transforms, post_transforms
 
 
-def slide_colorize_points() -> Tuple[str, Set[str]]:
+def slide_colorize_points() -> _PROMPT_OUT:
     system = r"""
     You are a proficient technical writer and expert of machine learning.
     I will give you markdown text in the next prompt
@@ -295,37 +305,35 @@ def _convert_to_vim_cfile(txt: str, in_file_name: str, out_file_name: str) -> st
 # #############################################################################
 
 
+# Apply transforms to the response.
+def _to_run(action: str, transforms: Set[str]) -> bool:
+    if action in transforms:
+        transforms.remove(action)
+        return True
+    return False
+
+
 def run_prompt(prompt_tag: str, txt: str, model: str, in_file_name: str, out_file_name: str) -> Optional[str]:
     """
     Run the prompt passed and apply the transforms to the response.
     """
     _LOG.debug(hprint.to_str("prompt_tag model in_file_name out_file_name"))
-    #
+    # Get the info corresponding to the prompt tag.
     prompt_tags = get_prompt_tags()
+    _LOG.debug(hprint.to_str("prompt_tags"))
     hdbg.dassert_in(prompt_tag, prompt_tags)
     python_cmd = f"{prompt_tag}()"
     system_prompt, pre_transforms, post_transforms = eval(python_cmd)
     hdbg.dassert_isinstance(system_prompt, str)
     hdbg.dassert_isinstance(pre_transforms, set)
     hdbg.dassert_isinstance(post_transforms, set)
-    #
     system_prompt = hprint.dedent(system_prompt)
-
-    # Apply transforms to the response.
-    def _to_run(action: str) -> bool:
-        if action in transforms:
-            transforms.remove(action)
-            return True
-        return False
-
-    if prompt_tag == "code_review":
-    # Add line numbers to each line of text.
-    lines = txt.split("\n")
-    numbered_lines = []
-    for i, line in enumerate(lines, 1):
-        numbered_lines.append(f"{i}: {line}")
-    txt = "\n".join(numbered_lines)
-
+    # Run pre-transforms.
+    if _to_run("add_line_numbers", pre_transforms):
+        txt = hmarkdo.add_line_numbers(txt)
+    hdbg.dassert_eq(
+        len(pre_transforms), 0, "Not all pre_transforms were run: %s", pre_transforms
+    )
     # We need to import this here since we have this package only when running
     # inside a Dockerized executable. We don't want an import to this file
     # assert since openai is not available in the local dev environment.
@@ -335,17 +343,17 @@ def run_prompt(prompt_tag: str, txt: str, model: str, in_file_name: str, out_fil
     #_LOG.debug(hprint.to_str("response"))
     txt_out = hopenai.response_to_txt(response)
     hdbg.dassert_isinstance(txt_out, str)
-
-    if _to_run("remove_code_delimiters"):
-        txt_out = hmarkdo.remove_code_delimiters(txt_out)
-    if _to_run("remove_end_of_line_periods"):
-        txt_out = hmarkdo.remove_end_of_line_periods(txt_out)
-    if _to_run("remove_empty_lines"):
-        txt_out = hmarkdo.remove_empty_lines(txt_out)
-    if _to_run("convert_to_vim_cfile"):
+    # Run post-transforms.
+    if _to_run("remove_code_delimiters", post_transforms):
+        txt_out = hmarkdo.remove_code_delimiters(txt_out, post_transforms)
+    if _to_run("remove_end_of_line_periods", post_transforms):
+        txt_out = hmarkdo.remove_end_of_line_periods(txt_out, post_transforms)
+    if _to_run("remove_empty_lines", post_transforms):
+        txt_out = hmarkdo.remove_empty_lines(txt_out, post_transforms)
+    if _to_run("convert_to_vim_cfile", post_transforms):
         txt_out = _convert_to_vim_cfile(txt_out, in_file_name, out_file_name)
     hdbg.dassert_eq(
-        len(transforms), 0, "Not all transforms were run: %s", transforms
+        len(post_transforms), 0, "Not all post_transforms were run: %s", post_transforms
     )
     # Return.
     if txt_out is not None:
@@ -365,6 +373,15 @@ def get_prompt_tags() -> List[str]:
     # Parse the file content into an AST.
     tree = ast.parse(file_content)
     # Iterate through all function definitions in the AST.
+    def _get_return_type_str(node: ast.AST) -> str:
+        """
+        Convert AST return type annotation to string representation.
+        """
+        if not hasattr(node, "returns") or node.returns is None:
+            return ""
+        
+        # Convert the AST to source code
+        return ast.unparse(node.returns)
     for node in ast.walk(tree):
         if isinstance(node, ast.FunctionDef):
             # Check function arguments and return type that match the signature:
@@ -372,22 +389,14 @@ def get_prompt_tags() -> List[str]:
             # def xyz() -> Tuple[str, Set[str]]:
             # ```
             args = [arg.arg for arg in node.args.args]
-            _LOG.debug(hprint.to_str("node.name args"))
-            if (
-                len(args) == 0
-                and isinstance(node.returns, ast.Subscript)
-                and isinstance(node.returns.value, ast.Name)
-                and node.returns.value.id == "Tuple"
-                and isinstance(node.returns.slice, ast.Tuple)
-                and len(node.returns.slice.elts) == 2
-                and isinstance(node.returns.slice.elts[0], ast.Name)
-                and node.returns.slice.elts[0].id == "str"
-                and isinstance(node.returns.slice.elts[1], ast.Subscript)
-                and isinstance(node.returns.slice.elts[1].value, ast.Name)
-                and node.returns.slice.elts[1].value.id == "Set"
-                and isinstance(node.returns.slice.elts[1].slice, ast.Name)
-                and node.returns.slice.elts[1].slice.id == "str"
-            ):
+            has_no_args = len(args) == 0
+            if not hasattr(node, "returns") or node.returns is None:
+                return_type_str = ""
+            else:
+                return_type_str = ast.unparse(node.returns)
+            _LOG.debug(hprint.to_str("node.name args return_type_str"))
+            if has_no_args and return_type_str == "_PROMPT_OUT":
+                _LOG.debug("  -> matched")
                 matched_functions.append(node.name)
     matched_functions = sorted(matched_functions)
     return matched_functions
