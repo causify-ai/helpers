@@ -73,8 +73,8 @@ def filter_data_by_values(
         masks.append(mask)
     masks = pd.concat(masks, axis=1)
     combined_mask = _combine_masks(masks, mode, info)
-    filtered_data = df.loc[combined_mask].copy()
-    return filtered_data
+    filtered_df = df.loc[combined_mask].copy()
+    return filtered_df
 
 
 def filter_data_by_comparison(
@@ -120,8 +120,8 @@ def filter_data_by_comparison(
             masks.append(mask)
     masks = pd.concat(masks, axis=1)
     combined_mask = _combine_masks(masks, mode, info)
-    filtered_data = df.loc[combined_mask].copy()
-    return filtered_data
+    filtered_df = df.loc[combined_mask].copy()
+    return filtered_df
 
 
 def filter_data_by_method(
@@ -157,8 +157,8 @@ def filter_data_by_method(
             masks.append(mask)
     masks = pd.concat(masks, axis=1)
     combined_mask = _combine_masks(masks, mode, info)
-    filtered_data = df.loc[combined_mask].copy()
-    return filtered_data
+    filtered_df = df.loc[combined_mask].copy()
+    return filtered_df
 
 
 # #############################################################################
@@ -233,7 +233,7 @@ def infer_sampling_points_per_year(df: Union[pd.Series, pd.DataFrame]) -> float:
     TODO(*): Consider extending to all frequencies and count points by
         explicitly building indices of the given frequency.
 
-    :param data: series or dataframe with non-null `data.index.freq`
+    :param df: series or dataframe with non-null `df.index.freq`
     :return: number of time points per year (approximate)
     """
     hdbg.dassert(df.index.freq)
@@ -266,7 +266,7 @@ def compute_points_per_year_for_given_freq(freq: str) -> float:
 
 def compute_count_per_year(df: Union[pd.Series, pd.DataFrame]) -> float:
     """
-    Return df.count() divided by the length of `data` in years.
+    Return df.count() divided by the length of `df` in years.
     """
     freq = df.index.freq
     hdbg.dassert(freq, msg="`df` must have a `DatetimeIndex` with a `freq`")
