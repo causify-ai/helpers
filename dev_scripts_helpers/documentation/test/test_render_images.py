@@ -159,6 +159,9 @@ class Test_ImageHashCache1(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.skipif(
+    hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
+)
 class Test_render_image_code1(hunitest.TestCase):
 
     def test1(self) -> None:
