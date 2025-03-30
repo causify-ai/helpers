@@ -67,7 +67,7 @@ def _is_runnable_dir(runnable_dir: str) -> bool:
     - changelog.txt: store the changelog
     - devops: dir with all the Docker files needed to build and run a container
 
-    :param runnable_dir: nme of the runnable directory
+    :param runnable_dir: name of the runnable directory
     :return: True if the directory is a runnable directory, False otherwise
     """
     changelog_path = os.path.join(runnable_dir, "changelog.txt")
@@ -97,12 +97,15 @@ def _run_test(runnable_dir: str, command: str) -> None:
     env["PYTHONPATH"] = (
         f"{os.path.join(os.getcwd(), runnable_dir)}:{env['HELPERS_ROOT_DIR']}"
     )
-    # TODO(heanh): Use hsystem.
+    # TODO: Use hsystem.
     # We cannot use `hsystem.system` because it does not support passing of env
     # variables yet.
     result = subprocess.run(
-        f"invoke {command}", shell=True, env=env, cwd=runnable_dir
+        f"invoke {command}", shell=True, env=env, cwd=runnable_dir,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
     )
+    _LOG.info(f"stdout: {result.stdout}")
+    _LOG.error(f"stderr: {result.stderr}")
     # Error code is not propagated upward to the parent process causing the
     # GH actions to not fail the pipeline (See CmampTask11449).
     # We need to explicitly exit with the return code of the subprocess.
@@ -149,7 +152,14 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 _run_test(runnable_dir, command)
     else:
         _LOG.error("Invalid command.")
+        parser.print_help()
 
 
 if __name__ == "__main__":
     _main(_parse())
+    """
+    New Changes: 
+    Subprocess execution now captures and logs both stdout and stderr.
+The typo in the docstring has been corrected.
+Invalid commands now trigger the printing of help information to guide the user.
+    """
