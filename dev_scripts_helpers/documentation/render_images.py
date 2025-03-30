@@ -196,7 +196,7 @@ class ImageHashCache:
 
 
 def _render_image_code(
-    image_code: str,
+    image_code_txt: str,
     image_code_idx: int,
     image_code_type: str,
     out_file: str,
@@ -211,7 +211,7 @@ def _render_image_code(
     """
     Render the image code into an image file.
 
-    :param image_code: the code of the image
+    :param image_code_txt: the code of the image
     :param image_code_idx: order number of the image code block in the
         file
     :param image_code_type: type of the image code according to its
@@ -226,10 +226,10 @@ def _render_image_code(
     _LOG.debug(hprint.func_signature_to_str("image_code"))
     if image_code_type == "plantuml":
         # TODO(gp): we should always add the start and end tags.
-        if not image_code.startswith("@startuml"):
-            image_code = f"@startuml\n{image_code}"
-        if not image_code.endswith("@enduml"):
-            image_code = f"{image_code}\n@enduml"
+        if not image_code_txt.startswith("@startuml"):
+            image_code_txt = f"@startuml\n{image_code_txt}"
+        if not image_code_txt.endswith("@enduml"):
+            image_code_txt = f"{image_code_txt}\n@enduml"
     elif image_code_type == "tikz":
         image_code_tmp = r"""
         \documentclass[tikz, border=10pt]{standalone}
@@ -237,11 +237,10 @@ def _render_image_code(
         \begin{document}
         """
         image_code_tmp = hprint.dedent(image_code_tmp)
-        image_code_tmp += image_code
+        image_code_tmp += image_code_txt
         image_code_tmp += r"\end{document}"
-        image_code = image_code_tmp
+        image_code_txt = image_code_tmp
     # Get paths for rendered files.
-    #hio.create_enclosing_dir(out_file, incremental=True)
     # TODO(gp): The fact that we compute the image file path here makes it
     # not possible to use a decorator to implement the caching.
     in_code_file_path, abs_img_dir_path, out_img_file_path = _get_rendered_file_paths(
@@ -254,7 +253,7 @@ def _render_image_code(
         _LOG.debug(hprint.to_str("cache_file"))
         cache = ImageHashCache(cache_file)
         # Compute hash of inputs.
-        cache_key, cache_value = cache.compute_hash(image_code, image_code_type, out_img_file_path)
+        cache_key, cache_value = cache.compute_hash(image_code_txt, image_code_type, out_img_file_path)
         # Check if the image is cached.
         if cache_key in cache:
             # The image is cached, return the path.
@@ -265,7 +264,7 @@ def _render_image_code(
         # No cache hit, render the image and update the cache.
     hio.create_dir(abs_img_dir_path, incremental=True)
     # Save the image code to a temporary file.
-    hio.to_file(in_code_file_path, image_code)
+    hio.to_file(in_code_file_path, image_code_txt)
     # Run the rendering.
     _LOG.info(
         "Creating the image from '%s' source and saving image to '%s'",
@@ -444,12 +443,14 @@ def _render_images(
             if m:
                 # Found the end of an image code block.
                 image_code_txt = "\n".join(image_code_lines)
+                use_cache = True
                 rel_img_path, is_cache_hit = _render_image_code(
                     image_code_txt,
                     image_code_idx,
                     image_code_type,
                     out_file,
                     dst_ext,
+                    use_cache,
                     force_rebuild=force_rebuild,
                     use_sudo=use_sudo,
                     dry_run=dry_run,
