@@ -495,6 +495,9 @@ def convert_caller_to_callee_docker_path(
     :return: The converted file path inside the Docker container.
     """
     _LOG.debug(hprint.func_signature_to_str())
+    hdbg.dassert_ne(caller_file_path, "")
+    hdbg.dassert_ne(caller_mount_path, "")
+    hdbg.dassert_ne(callee_mount_path, "")
     if check_if_exists:
         _dassert_valid_path(caller_file_path, is_input)
     # Make the path absolute with respect to the (current) caller filesystem.
@@ -509,6 +512,7 @@ def convert_caller_to_callee_docker_path(
     _ = use_sibling_container_for_callee
     _dassert_is_path_included(abs_caller_file_path, caller_mount_point)
     # Make the path relative to the caller mount point.
+    _LOG.debug(hprint.to_str("caller_file_path caller_mount_point"))
     rel_path = os.path.relpath(caller_file_path, caller_mount_point)
     docker_path = os.path.join(callee_mount_path, rel_path)
     docker_path = os.path.normpath(docker_path)
@@ -1580,7 +1584,7 @@ def run_dockerized_llm_transform(
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
     git_root = hgit.find_git_root()
-    script = hsystem.find_file_in_repo("_llm_transform.py", root_dir=git_root)
+    script = hsystem.find_file_in_repo("dockerized_llm_transform.py", root_dir=git_root)
     script = convert_caller_to_callee_docker_path(
         script,
         caller_mount_path,
