@@ -4,7 +4,7 @@ from typing import Tuple
 
 import pytest
 
-import dev_scripts_helpers.llms.llm_prompts_utils as dshllprut
+import dev_scripts_helpers.llms.llm_prompts as dshlllpr
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -27,14 +27,6 @@ class Test_llm_transform1(hunitest.TestCase):
     """
     Run the script `llm_transform.py` in a Docker container.
     """
-
-    def test_get_transforms(self) -> None:
-        """
-        Check retrieving the available LLM transforms.
-        """
-        transforms = dshllprut.get_transforms()
-        _LOG.debug(hprint.to_str("transforms"))
-        self.assertGreater(len(transforms), 0)
 
     def setup_test(self) -> Tuple[str, str, str]:
         """
@@ -88,7 +80,7 @@ class Test_llm_transform1(hunitest.TestCase):
         """
         script, in_file_name, out_file_name = self.setup_test()
         # Run test.
-        transforms = dshllprut.get_transforms()
+        transforms = dshlllpr.get_transforms()
         for prompt_tag in transforms:
             # Remove the output file.
             cmd = "rm -f " + out_file_name

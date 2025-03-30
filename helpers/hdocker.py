@@ -359,7 +359,7 @@ def build_container_image(
             f"{executable} build",
             f"-f {temp_dockerfile}",
             f"-t {image_name_out}",
-            "--platform linux/aarch64",
+            #"--platform linux/aarch64",
         ]
         if not use_cache:
             cmd.append("--no-cache")
@@ -1477,7 +1477,7 @@ def run_dockerized_imagemagick(
     return ret
 
 
-def tikz_to_bitmap(
+def dockerized_tikz_to_bitmap(
     in_file_path: str,
     cmd_opts: List[str],
     out_file_path: str,
@@ -1526,7 +1526,7 @@ def run_dockerized_llm_transform(
     use_sudo: bool = False,
 ) -> Optional[str]:
     """
-    Run _llm_transform.py in a Docker container with all its dependencies.
+    Run dockerized_llm_transform.py in a Docker container with all its dependencies.
     """
     _LOG.debug(hprint.func_signature_to_str())
     #
@@ -1607,7 +1607,7 @@ def run_dockerized_llm_transform(
         ret = docker_cmd
     else:
         # TODO(gp): Note that `suppress_output=False` seems to hang the call.
-        hsystem.system(docker_cmd)
+        hsystem.system(docker_cmd, suppress_output=False)
         ret = None
     return ret
 
@@ -1701,8 +1701,8 @@ def run_dockerized_mermaid(
     :param use_sudo: whether to use sudo for Docker commands
     """
     _LOG.debug(hprint.func_signature_to_str())
+    # Get the container image.
     _ = force_rebuild
-    # Build the container, if needed.
     container_image = "minlag/mermaid-cli"
     # Convert files to Docker paths.
     is_caller_host = not hserver.is_inside_docker()
@@ -1728,15 +1728,6 @@ def run_dockerized_mermaid(
         is_caller_host=is_caller_host,
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
-    puppeteer_config_path = convert_caller_to_callee_docker_path(
-        "puppeteerConfig.json",
-        caller_mount_path,
-        callee_mount_path,
-        check_if_exists=True,
-        is_input=False,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
-    )
     mermaid_cmd = (
         f" -i {in_file_path} -o {out_file_path}"
     )
@@ -1750,6 +1741,7 @@ def run_dockerized_mermaid(
     hsystem.system(docker_cmd)
 
 
+# TODO(gp): Factor out the common code with `run_dockerized_mermaid()`.
 def run_dockerized_mermaid2(
     in_file_path: str,
     out_file_path: str,
@@ -1758,12 +1750,8 @@ def run_dockerized_mermaid2(
     use_sudo: bool = False,
 ) -> None:
     """
-    Run `mermaid` in a Docker container.
-
-    :param in_file_path: path to the code of the image to render
-    :param out_file_path: path to the image to be created
-    :param force_rebuild: whether to force rebuild the Docker container
-    :param use_sudo: whether to use sudo for Docker commands
+    Run `mermaid` in a Docker container, building the container from scratch and
+    using a puppeteer config.
     """
     _LOG.debug(hprint.func_signature_to_str())
     # Build the container, if needed.
@@ -1837,6 +1825,7 @@ def run_dockerized_mermaid2(
         f"mmdc --puppeteerConfigFile {puppeteer_config_path}"
         + f" -i {in_file_path} -o {out_file_path}"
     )
+    # TODO(gp): Factor out building the docker cmd.
     executable = get_docker_executable(use_sudo)
     docker_cmd = (
         f"{executable} run --rm --user $(id -u):$(id -g)"
@@ -1844,5 +1833,82 @@ def run_dockerized_mermaid2(
         f" --workdir {callee_mount_path} --mount {mount}"
         f" {container_image}"
         f' bash -c "{mermaid_cmd}"'
+    )
+    hsystem.system(docker_cmd)
+
+
+# #############################################################################
+
+
+def run_dockerized_graphviz(
+    in_file_path: str,
+    cmd_opts: List[str],
+    out_file_path: str,
+    *,
+    force_rebuild: bool = False,
+    use_sudo: bool = False,
+) -> None:
+    """
+    Run `graphviz` in a Docker container.
+
+    :param in_file_path: path to the code of the image to render
+    :param out_file_path: path to the image to be created
+    :param force_rebuild: whether to force rebuild the Docker container
+    :param use_sudo: whether to use sudo for Docker commands
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    # Get the container image.
+    # These containers don't work so we install it in a custom container.
+    # container_image = "graphviz/graphviz"
+    # container_image = "nshine/dot"
+    container_image = "tmp.graphviz"
+    dockerfile = rf"""
+    FROM alpine:latest
+
+    RUN apk add --no-cache graphviz
+    """
+    container_image = build_container_image(
+        container_image, dockerfile, force_rebuild, use_sudo
+    )
+    # Convert files to Docker paths.
+    is_caller_host = not hserver.is_inside_docker()
+    use_sibling_container_for_callee = True
+    caller_mount_path, callee_mount_path, mount = get_docker_mount_info(
+        is_caller_host, use_sibling_container_for_callee
+    )
+    in_file_path = convert_caller_to_callee_docker_path(
+        in_file_path,
+        caller_mount_path,
+        callee_mount_path,
+        check_if_exists=True,
+        is_input=True,
+        is_caller_host=is_caller_host,
+        use_sibling_container_for_callee=use_sibling_container_for_callee,
+    )
+    out_file_path = convert_caller_to_callee_docker_path(
+        out_file_path,
+        caller_mount_path,
+        callee_mount_path,
+        check_if_exists=True,
+        is_input=False,
+        is_caller_host=is_caller_host,
+        use_sibling_container_for_callee=use_sibling_container_for_callee,
+    )
+    cmd_opts = " ".join(cmd_opts)
+    graphviz_cmd = [
+        "dot"
+        f"{cmd_opts}",
+        "-T png",
+        "-Gdpi=300",
+        f"-o {out_file_path}",
+        in_file_path
+    ]
+    graphviz_cmd = " ".join(graphviz_cmd)
+    executable = get_docker_executable(use_sudo)
+    docker_cmd = (
+        f"{executable} run --rm --user $(id -u):$(id -g)"
+        f" --workdir {callee_mount_path} --mount {mount}"
+        f" {container_image}"
+        f" {graphviz_cmd}"
     )
     hsystem.system(docker_cmd)

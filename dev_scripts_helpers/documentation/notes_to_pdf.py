@@ -99,17 +99,17 @@ def _cleanup_before(prefix: str) -> None:
 # #############################################################################
 
 
-def _filter_by_header(file_: str, header: str, prefix: str) -> str:
+def _filter_by_header(file_name: str, header: str, prefix: str) -> str:
     """
     Extract a specific header from a file.
 
-    :param file_: The input file to be processed
+    :param file_name: The input file to be processed
     :param header: The header to filter by (e.g., `# Introduction`)
     :param prefix: The prefix used for the output file (e.g., `tmp.pandoc`)
     :return: The path to the processed file
     """
     # Read the file.
-    txt = hio.from_file(file_)
+    txt = hio.from_file(file_name)
     # Filter by header.
     txt = hmarkdo.extract_section_from_markdown(txt, header)
     # Save the file.
@@ -118,17 +118,17 @@ def _filter_by_header(file_: str, header: str, prefix: str) -> str:
     return file_out
 
 
-def _filter_by_lines(file_: str, filter_by_lines: str, prefix: str) -> str:
+def _filter_by_lines(file_name: str, filter_by_lines: str, prefix: str) -> str:
     """
     Filter the lines of a file in [start_line, end_line[.
 
-    :param file_: The input file to be processed
+    :param file_name: The input file to be processed
     :param filter_by_lines: a string like `1:10` or `1:None` or `None:10`
     :param prefix: The prefix used for the output file (e.g., `tmp.pandoc`)
     :return: The path to the processed file
     """
     # Read the file.
-    txt = hio.from_file(file_)
+    txt = hio.from_file(file_name)
     txt = txt.split("\n")
     # E.g., filter_by_lines='1:10'.
     m = re.match(r"^(\S+):(\S+)$", filter_by_lines)
@@ -155,40 +155,40 @@ def _filter_by_lines(file_: str, filter_by_lines: str, prefix: str) -> str:
 # #############################################################################
 
 
-def _preprocess_notes(file_: str, prefix: str, type_: str, toc_type: str) -> str:
+def _preprocess_notes(file_name: str, prefix: str, type_: str, toc_type: str) -> str:
     """
     Pre-process the file.
 
-    :param file_: The input file to be processed
+    :param file_name: The input file to be processed
     :param prefix: The prefix used for the output file (e.g., `tmp.pandoc`)
     :return: The path to the processed file
     """
     exec_file = hgit.find_file("preprocess_notes.py")
-    file1 = file_
+    file1 = file_name
     file2 = f"{prefix}.preprocess_notes.txt"
     cmd = (
         f"{exec_file} --input {file1} --output {file2}"
         + f" --type {type_} --toc_type {toc_type}"
     )
     _ = _system(cmd)
-    file_ = file2
-    return file_
+    file_name = file2
+    return file_name
 
 
 # #############################################################################
 
 
-def _render_images(file_: str, prefix: str) -> str:
+def _render_images(file_name: str, prefix: str) -> str:
     """
     Render images in the file.
 
-    :param file_: The input file to be processed
+    :param file_name: The input file to be processed
     :param prefix: The prefix used for the output file (e.g., `tmp.pandoc`)
     :return: The path to the processed file
     """
     # helpers_root/./dev_scripts_helpers/documentation/render_images.py
     exec_file = hgit.find_file("render_images.py")
-    file1 = file_
+    file1 = file_name
     file2 = f"{prefix}.render_image.txt"
     cmd = f"{exec_file} --in_file_name {file1} --out_file_name {file2}"
     _ = _system(cmd)
@@ -205,8 +205,8 @@ def _render_images(file_: str, prefix: str) -> str:
     file3 = f"{prefix}.render_image2.txt"
     hio.to_file(file3, out)
     #
-    file_ = file3
-    return file_
+    file_out = file3
+    return file_out
 
 
 # #############################################################################
@@ -228,7 +228,7 @@ _COMMON_PANDOC_OPTS = [
 
 def _run_pandoc_to_pdf(
     curr_path: str,
-    file_: str,
+    file_name: str,
     prefix: str,
     toc_type: str,
     no_run_latex_again: bool,
@@ -243,14 +243,14 @@ def _run_pandoc_to_pdf(
         E.g., '/app/helpers_root/dev_scripts_helpers/documentation'
         This is used to reference files with respect to the script location
         (e.g., `pandoc.latex`)
-    :param file_: The input file to be converted
+    :param file_name: The input file to be converted
         E.g., '/app/helpers_root/tmp.notes_to_pdf.render_image2.txt'
     :param prefix: The prefix used for the output file
         E.g., '/app/helpers_root/tmp.notes_to_pdf'
     :return: The path to the generated PDF file
     """
     _LOG.debug(hprint.func_signature_to_str())
-    file1 = file_
+    file1 = file_name
     # - Run pandoc.
     cmd = []
     cmd.append(f"pandoc {file1}")
@@ -285,12 +285,12 @@ def _run_pandoc_to_pdf(
         )
     _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
     _ = _system(cmd, suppress_output=False)
-    file_ = file2
+    file_name = file2
     # - Run latex.
     _report_phase("latex")
     # pdflatex needs to run in the same dir of latex_abbrevs.sty so we copy
     # all the needed files.
-    out_dir = os.path.dirname(file_)
+    out_dir = os.path.dirname(file_name)
     latex_file = os.path.join(
         hgit.find_file("dev_scripts_helpers"),
         "documentation",
@@ -309,7 +309,7 @@ def _run_pandoc_to_pdf(
         + " -interaction=nonstopmode"
         + " -halt-on-error"
         + " -shell-escape"
-        + f" {file_}"
+        + f" {file_name}"
     )
     _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
     if not use_host_tools:
@@ -325,7 +325,7 @@ def _run_pandoc_to_pdf(
     # Remove `latex_abbrevs.sty`.
     os.remove("latex_abbrevs.sty")
     # Get the path of the output file created by Latex.
-    file_out = os.path.basename(file_).replace(".tex", ".pdf")
+    file_out = os.path.basename(file_name).replace(".tex", ".pdf")
     file_out = os.path.join(out_dir, file_out)
     _LOG.debug("file_out=%s", file_out)
     hdbg.dassert_path_exists(file_out)
@@ -365,7 +365,7 @@ def _run_pandoc_to_html(
 
 
 def _build_pandoc_cmd(
-    file_: str,
+    file_name: str,
     toc_type: str,
     use_host_tools: bool,
     dockerized_force_rebuild: bool,
@@ -374,7 +374,7 @@ def _build_pandoc_cmd(
     use_tex: bool = False,
 ) -> Tuple[str, str]:
     cmd = []
-    cmd.append(f"pandoc {file_}")
+    cmd.append(f"pandoc {file_name}")
     #
     cmd.append("-t beamer")
     cmd.append("--slide-level 4")
@@ -389,7 +389,7 @@ def _build_pandoc_cmd(
         ext = ".tex"
     else:
         ext = ".pdf"
-    file_out = file_.replace(".txt", ext)
+    file_out = file_name.replace(".txt", ext)
     cmd.append(f"-o {file_out}")
     #
     cmd = " ".join(cmd)
@@ -408,7 +408,7 @@ def _build_pandoc_cmd(
 
 
 def _run_pandoc_to_slides(
-    file_: str,
+    file_name: str,
     toc_type: str,
     use_host_tools: bool,
     dockerized_force_rebuild: bool,
@@ -419,17 +419,16 @@ def _run_pandoc_to_slides(
     """
     Convert the input file to PDF slides using Pandoc.
 
-    :param file_: The input file to be converted
+    :param file_name: The input file to be converted
     :return: The path to the generated PDF file
     """
     cmd, file_out = _build_pandoc_cmd(
-        file_,
+        file_name,
         toc_type,
         use_host_tools,
         dockerized_force_rebuild,
         dockerized_use_sudo,
     )
-
     rc, txt = _system_to_string(cmd, abort_on_error=False)
     # We want to print to screen.
     print(txt)
@@ -440,7 +439,7 @@ def _run_pandoc_to_slides(
             _LOG.error("Pandoc failed")
             # Generate the tex version of the file.
             cmd, file_out = _build_pandoc_cmd(
-                file_,
+                file_name,
                 toc_type,
                 use_host_tools,
                 dockerized_force_rebuild,
@@ -542,8 +541,8 @@ def _run_all(args: argparse.Namespace) -> None:
         global _SCRIPT
         _SCRIPT = ["#/bin/bash -xe"]
     #
-    file_ = args.input
-    hdbg.dassert_path_exists(file_)
+    file_name = args.input
+    hdbg.dassert_path_exists(file_name)
     # E.g., prefix='/app/helpers_root/tmp.notes_to_pdf'
     out_dir = os.path.abspath(os.path.dirname(args.output))
     hio.create_dir(out_dir, incremental=True)
@@ -556,20 +555,20 @@ def _run_all(args: argparse.Namespace) -> None:
         _cleanup_before(prefix)
     # - Filter
     if args.filter_by_header:
-        file_ = _filter_by_header(file_, args.filter_by_header, prefix)
+        file_name = _filter_by_header(file_name, args.filter_by_header, prefix)
     if args.filter_by_lines:
-        file_ = _filter_by_lines(file_, args.filter_by_lines, prefix)
+        file_name = _filter_by_lines(file_name, args.filter_by_lines, prefix)
     # E.g., file_='/app/helpers_root/tmp.notes_to_pdf.render_image2.txt'
     # - Preprocess_notes
     action = "preprocess_notes"
     to_execute, actions = _mark_action(action, actions)
     if to_execute:
-        file_ = _preprocess_notes(file_, prefix, args.type, args.toc_type)
+        file_name = _preprocess_notes(file_name, prefix, args.type, args.toc_type)
     # - Render_images
     action = "render_images"
     to_execute, actions = _mark_action(action, actions)
     if to_execute:
-        file_ = _render_images(file_, prefix)
+        file_name = _render_images(file_name, prefix)
     # - Run_pandoc
     action = "run_pandoc"
     to_execute, actions = _mark_action(action, actions)
@@ -577,7 +576,7 @@ def _run_all(args: argparse.Namespace) -> None:
         if args.type == "pdf":
             file_out = _run_pandoc_to_pdf(
                 curr_path,
-                file_,
+                file_name,
                 prefix,
                 args.toc_type,
                 args.no_run_latex_again,
@@ -587,13 +586,13 @@ def _run_all(args: argparse.Namespace) -> None:
             )
         elif args.type == "html":
             file_out = _run_pandoc_to_html(
-                file_,
+                file_name,
                 prefix,
                 args.toc_type,
             )
         elif args.type == "slides":
             file_out = _run_pandoc_to_slides(
-                file_,
+                file_name,
                 args.toc_type,
                 args.use_host_tools,
                 args.dockerized_force_rebuild,
