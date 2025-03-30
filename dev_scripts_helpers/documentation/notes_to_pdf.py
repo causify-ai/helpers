@@ -683,7 +683,6 @@ def _parse() -> argparse.ArgumentParser:
         "--filter_by_lines",
         action="store",
         help="Filter by lines (e.g., `0:10`, `1:None`, `None:10`)",
-        help="Filter by lines (e.g., `0:10`, `1:None`, `None:10`)",
     )
     # TODO(gp): -> out_action_script
     parser.add_argument(
