@@ -1162,11 +1162,16 @@ class TestCase(unittest.TestCase):
             plt.close()
             plt.clf()
         # Delete the scratch dir, if needed.
-        # TODO(gp): We would like to keep this if the test failed.
-        #  I can't find an easy way to detect this situation.
-        #  For now just re-run with --incremental.
         if self._scratch_dir and os.path.exists(self._scratch_dir):
-            if get_incremental_tests():
+            # We would like to keep this if the test failed, as an alternative
+            # to just re-running with --incremental.
+            result = self._outcome.result
+            # From https://stackoverflow.com/questions/4414234/getting-pythons-unittest-results-in-a-teardown-method
+            # https://github.com/pytest-dev/pytest/issues/10631
+            # This doesn't work any longer.
+            # has_error = test_result.failures or test_result.errors
+            has_error = result._excinfo is not None
+            if has_error or get_incremental_tests():
                 _LOG.warning("Skipping deleting %s", self._scratch_dir)
             else:
                 _LOG.debug("Deleting %s", self._scratch_dir)
@@ -1276,7 +1281,8 @@ class TestCase(unittest.TestCase):
             # Add `tmp.scratch` to the dir.
             dir_name = os.path.join(dir_name, "tmp.scratch")
             # On the first invocation create the dir.
-            hio.create_dir(dir_name, incremental=get_incremental_tests())
+            incremental = get_incremental_tests()
+            hio.create_dir(dir_name, incremental=incremental)
             # Store the value.
             self._scratch_dir = dir_name
         return self._scratch_dir

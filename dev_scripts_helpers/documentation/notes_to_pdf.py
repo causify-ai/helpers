@@ -113,6 +113,7 @@ def _filter_by_header(file_name: str, header: str, prefix: str) -> str:
     # Filter by header.
     txt = hmarkdo.extract_section_from_markdown(txt, header)
     # Save the file.
+    # Save the file.
     file_out = f"{prefix}.filter_by_header.txt"
     hio.to_file(file_out, txt)
     return file_out
@@ -681,6 +682,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--filter_by_lines",
         action="store",
+        help="Filter by lines (e.g., `0:10`, `1:None`, `None:10`)",
         help="Filter by lines (e.g., `0:10`, `1:None`, `None:10`)",
     )
     # TODO(gp): -> out_action_script

@@ -793,10 +793,11 @@ def find_file_in_repo(file_name: str, *, root_dir: Optional[str] = None) -> str:
     """
     if root_dir is None:
         root_dir = _find_git_root()
-    _, file_name = system_to_one_line(
+    _, file_name_out = system_to_one_line(
         rf"find {root_dir} -name {file_name} -not -path '*/\.git/*'"
     )
-    return file_name
+    hdbg.dassert_ne(file_name_out, "", "File not found in repo: '%s'", file_name)
+    return file_name_out
 
 
 # TODO(Nikola): Use filesystem's `du` and move to `hio` instead?
