@@ -15,42 +15,45 @@ permissions:
   id-token: write
   # This is required for actions/checkout.
   contents: read
+  # This is required for pulling the Docker image from GHCR.
+  packages: read
 
 jobs:
 
   Run_linter:
+    # We expect user to not execute manual run in a draft PR.
+    # The reason is `github.event.pull_request.draft` is evaluated as empty
+    # string and the condition is always true which is not the right state.
+    if: ${{ github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
 
     steps:
-      # To optimize costs, the image is fetched from GHCR registry by default. If you prefer
-      # pulling the image from ECR, enable this.
-      # # Pass AWS credentials via GH secrets. This is needed to pull the Docker image
-      # # that will be used to run the action.
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          role-to-assume: ${{ vars.GH_ACTION_AWS_ROLE_ARN }}
-          role-session-name: ${{ vars.GH_ACTION_AWS_SESSION_NAME }}
-          aws-region: ${{ vars.CSFY_AWS_DEFAULT_REGION }}
+      # To optimize costs, the image is fetched from GHCR registry by default.
+      # If you prefer pulling the image from ECR, enable this.
+      # # Pass AWS credentials via GH secrets. This is needed to pull the Docker
+      # # image that will be used to run the action.
+      # - name: Configure AWS credentials
+      #   uses: aws-actions/configure-aws-credentials@v1
+      #   with:
+      #     role-to-assume: ${{ vars.GH_ACTION_AWS_ROLE_ARN }}
+      #     role-session-name: ${{ vars.GH_ACTION_AWS_SESSION_NAME }}
+      #     aws-region: ${{ vars.CSFY_AWS_DEFAULT_REGION }}
 
-      # # This is needed to pull the Docker image.
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+      # # # This is needed to pull the Docker image.
+      # - name: Login to AWS ECR
+      #   id: login-ecr
+      #   uses: aws-actions/amazon-ecr-login@v1
 
-      #- name: Perform docker login
-      #  if: github.event.pull_request.draft == false
-      #  run: docker login ghcr.io -u gpsaggese -p ${{ secrets.GITHUB_TOKEN }}
+      - name: Login to GHCR
+        run: docker login ghcr.io -u gpsaggese -p ${{ secrets.GITHUB_TOKEN }}
 
       # Make everything accessible by any user to avoid permission errors.
       - name: Cleanup
-        if: github.event.pull_request.draft == false
         run: sudo chmod 777 -R .
 
       # Check out the code from GitHub so that we can run the action inside
       # the Docker container.
       - name: Checkout code
-        if: github.event.pull_request.draft == false
         uses: actions/checkout@v2
         with:
           # The `lint` invoke target needs to have the full history of commits
@@ -61,37 +64,27 @@ jobs:
 
       # Install packages that are required to run the job via GH.
       - name: Install dependencies
-        if: github.event.pull_request.draft == false
         run: |
           python -m pip install --upgrade pip
           pip install -r .github/gh_requirements.txt
 
       # Pull the `helpers:prod` image to run the Linter on it.
-      - name: Pull helpers:prod image
-        if: github.event.pull_request.draft == false
+      - name: Pull Linter image
         env:
-          CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
+          CSFY_ECR_BASE_PATH: ghcr.io/causify-ai
         run: invoke docker_pull_helpers
 
       # Run the linter, then check if any file was changed after that. If so,
       # fail the job.
       - name: Check if the Linter was run
-        # https://github.community/t/dont-run-actions-on-draft-pull-requests/16817/19
-        # Do not run on draft pull requests.
-        if: github.event.pull_request.draft == false
         env:
-          CSFY_AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
-          CSFY_AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
-          CSFY_AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
-          CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
-          # Base path for ECR registry.
-          CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
-          # If you prefer pulling the image from GHCR, uncomment out the following line and comment the one above.
-          # Base path for GHCR registry.
-          # CSFY_ECR_BASE_PATH: ghcr.io/cryptokaizen
-          CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
-          CSFY_TELEGRAM_TOKEN: ${{ secrets.CSFY_TELEGRAM_TOKEN }}
-          GH_ACTION_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
+          # CSFY_ECR_BASE_PATH is the source path for fetching the image.
+          # If you prefer pulling the image from ECR, comment out the following
+          # line and uncomment the one above.
+          # TODO(Vlad): Rename the variable to CSFY_CR_BASE_PATH since it can be
+          # either GHCR or ECR.
+          CSFY_ECR_BASE_PATH: ghcr.io/${{ github.repository_owner }}
         # To run the linter, fetch the master branch for comparison with the
         # current branch.
         run: |
