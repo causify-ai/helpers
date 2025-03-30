@@ -223,7 +223,7 @@ def _render_image_code(
     :return: path to the rendered image and a boolean indicating if the cache
         was hit
     """
-    _LOG.debug(hprint.func_signature_to_str("image_code"))
+    _LOG.debug(hprint.func_signature_to_str("image_code_txt"))
     if image_code_type == "plantuml":
         # TODO(gp): we should always add the start and end tags.
         if not image_code_txt.startswith("@startuml"):

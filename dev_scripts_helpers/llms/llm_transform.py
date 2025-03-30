@@ -135,15 +135,23 @@ def _main(parser: argparse.ArgumentParser) -> None:
         use_sudo=args.dockerized_use_sudo,
     )
     # Post transforms outside the container.
-    if args.prompt in ("code_review", "code_propose_refactoring"):
+    valid_prompts = dshlllpr.get_prompt_tags()
+    prompts = ["code_review", "code_propose_refactoring"]
+    for prompt in prompts:
+        hdbg.dassert_in(prompt, valid_prompts)
+    if args.prompt in prompts:
         _convert_file_names(in_file_name, tmp_out_file_name)
+    #
     out_txt = hio.from_file(tmp_out_file_name)
-    if args.prompt in (
-        "md_format",
+    prompts = [
+        "md_rewrite",
         "md_summarize_short",
         "slide_improve",
         "slide_colorize",
-    ):
+    ]
+    for prompt in prompts:
+        hdbg.dassert_in(prompt, valid_prompts)
+    if args.prompt in prompts:
         # Note that we need to run this outside the `llm_transform` container to
         # avoid to do docker-in-docker in the `llm_transform` container (which
         # doesn't support that).

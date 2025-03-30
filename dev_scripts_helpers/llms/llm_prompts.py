@@ -359,11 +359,11 @@ def run_prompt(
     hdbg.dassert_isinstance(txt_out, str)
     # Run post-transforms.
     if _to_run("remove_code_delimiters", post_transforms):
-        txt_out = hmarkdo.remove_code_delimiters(txt_out, post_transforms)
+        txt_out = hmarkdo.remove_code_delimiters(txt_out)
     if _to_run("remove_end_of_line_periods", post_transforms):
-        txt_out = hmarkdo.remove_end_of_line_periods(txt_out, post_transforms)
+        txt_out = hmarkdo.remove_end_of_line_periods(txt_out)
     if _to_run("remove_empty_lines", post_transforms):
-        txt_out = hmarkdo.remove_empty_lines(txt_out, post_transforms)
+        txt_out = hmarkdo.remove_empty_lines(txt_out)
     if _to_run("convert_to_vim_cfile", post_transforms):
         txt_out = _convert_to_vim_cfile(txt_out, in_file_name, out_file_name)
     hdbg.dassert_eq(
