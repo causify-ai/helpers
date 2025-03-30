@@ -138,7 +138,8 @@ class Test_ImageHashCache1(hunitest.TestCase):
         self.assertTrue(cache_updated)
         # Check the content of the cache file.
         act = hio.from_file(cache_file)
-        exp = r"""{
+        exp = r"""
+        {
             "/tmp/test.png": {
                 "image_code_hash": "e28869819b0fb5b24a37cec1f0f05190b622d1c696fdc43de5c79026f07bb869",
                 "image_code_type": "graphviz",
