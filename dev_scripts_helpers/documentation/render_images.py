@@ -125,6 +125,8 @@ class ImageHashCache:
 
         :param cache_file: Path to the cache file
         """
+        hdbg.dassert_isinstance(cache_file, str)
+        hdbg.dassert_ne(cache_file, "")
         self.cache_file = cache_file
         # Load the cache from the file, if it exists, or start with an empty
         # cache.
@@ -206,7 +208,7 @@ def _render_image_code(
     force_rebuild: bool = False,
     use_sudo: bool = False,
     dry_run: bool = False,
-    cache_file: str = "tmp.render_images.cache.json",
+    cache_file: Optional[str] = None,
 ) -> Tuple[str, bool]:
     """
     Render the image code into an image file.
@@ -249,7 +251,7 @@ def _render_image_code(
     cache_hit = False
     if use_cache:
         # Initialize cache handler.
-        cache_file = cache_file or "tmp.render_images.cache.json"
+        cache_file = cache_file or "./tmp.render_images.cache.json"
         _LOG.debug(hprint.to_str("cache_file"))
         cache = ImageHashCache(cache_file)
         # Compute hash of inputs.
@@ -356,6 +358,7 @@ def _render_images(
     force_rebuild: bool = False,
     use_sudo: bool = False,
     dry_run: bool = False,
+    cache_file: Optional[str] = None,
 ) -> List[str]:
     """
     Insert rendered images instead of image code blocks.
@@ -454,6 +457,7 @@ def _render_images(
                     force_rebuild=force_rebuild,
                     use_sudo=use_sudo,
                     dry_run=dry_run,
+                    cache_file=cache_file
                 )
                 _ = is_cache_hit
                 # Override the image name if explicitly set by the user.
@@ -587,7 +591,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         in_lines, out_file, dst_ext, 
         force_rebuild=args.dockerized_force_rebuild,
         use_sudo=args.dockerized_use_sudo,
-        dry_run=args.dry_run
+        dry_run=args.dry_run,
     )
     # Save the output into a file.
     hio.to_file(out_file, "\n".join(out_lines))
