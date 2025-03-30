@@ -1,7 +1,7 @@
 import dataclasses
 import logging
 import re
-from typing import cast, Generator, List, Optional, Tuple
+from typing import Generator, List, Optional, Tuple, cast
 
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
@@ -240,7 +240,7 @@ def remove_code_delimiters(txt: str) -> str:
     txt_out = txt_out.strip()
     return txt_out
 
-        
+
 def add_line_numbers(txt: str) -> str:
     """
     Add line numbers to each line of text.

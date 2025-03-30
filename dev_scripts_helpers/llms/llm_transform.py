@@ -36,7 +36,7 @@ if False:
 
 # pylint: disable=wrong-import-position
 import dev_scripts_helpers.documentation.lint_notes as dshdlino
-import dev_scripts_helpers.llms.llm_prompts as dshllprut
+import dev_scripts_helpers.llms.llm_prompts as dshlllpr
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hio as hio
@@ -60,7 +60,7 @@ def _parse() -> argparse.ArgumentParser:
     # Use CRITICAL to avoid logging anything.
     hparser.add_verbosity_arg(parser, log_level="CRITICAL")
     return parser
-        
+
 
 def _convert_file_names(in_file_name: str, out_file_name: str) -> str:
     """
@@ -76,8 +76,10 @@ def _convert_file_names(in_file_name: str, out_file_name: str) -> str:
     for line in txt.split("\n"):
         if line.strip() == "":
             continue
-        # E.g., the format is like 
+        # E.g., the format is like
+        # ```
         # /app/helpers_root/r.py:1: Change the shebang line to `#!/usr/bin/env python3` to e
+        # ```
         _LOG.debug("before: " + hprint.to_str("line in_file_name"))
         line = re.sub(r"^.*(:\d+:.*)$", rf"{in_file_name}\1", line)
         _LOG.debug("after: " + hprint.to_str("line"))
@@ -93,7 +95,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     if args.prompt == "list":
         print("# Available prompt tags:")
-        print("\n".join(dshllprut.get_prompt_tags()))
+        print("\n".join(dshlllpr.get_prompt_tags()))
         return
     # Parse files.
     in_file_name, out_file_name = hparser.parse_input_output_args(args)

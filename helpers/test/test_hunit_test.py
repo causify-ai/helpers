@@ -842,7 +842,7 @@ class TestCheckDataFrame1(hunitest.TestCase):
             new_golden = pd.read_csv(file_name, index_col=0)
         finally:
             # Clean up.
-            #hio.delete_file(file_name)
+            # hio.delete_file(file_name)
             pass
         # Expected outcome doesn't exists and it was not updated.
         self.assertTrue(outcome_updated)
@@ -1301,7 +1301,9 @@ class Test_purify_from_environment1(hunitest.TestCase):
         exp = "$GIT_ROOT"
         self.check_helper(input_, exp)
 
-    @pytest.mark.skipif(not hgit.is_inside_submodule(), reason="Run only in submodule")
+    @pytest.mark.skipif(
+        not hgit.is_inside_submodule(), reason="Run only in submodule"
+    )
     def test8(self) -> None:
         # /Users/saggese/src/notes1
         input_ = os.path.join(os.environ.get("CSFY_HOST_GIT_ROOT_PATH"), "hello")

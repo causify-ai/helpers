@@ -111,7 +111,7 @@ def is_mac(*, version: Optional[str] = None) -> bool:
     _LOG.debug("version=%s", version)
     host_os_name = os.uname()[0]
     _LOG.debug("os.uname()=%s", str(os.uname()))
-    #csfy_host_os_name = os.environ.get("CSFY_HOST_OS_NAME", None)
+    # csfy_host_os_name = os.environ.get("CSFY_HOST_OS_NAME", None)
     csfy_host_os_name = ""
     _LOG.debug(
         "host_os_name=%s csfy_host_os_name=%s", host_os_name, csfy_host_os_name

@@ -38,6 +38,11 @@ def _run_preprocess_notes(in_file: str, out_file: str) -> str:
     return act  # type: ignore
 
 
+# #############################################################################
+# Test_process_color_commands1
+# #############################################################################
+
+
 class Test_process_color_commands1(hunitest.TestCase):
 
     def test_text_content1(self) -> None:

@@ -1,7 +1,6 @@
 import logging
 import os
 import pprint
-from typing import Tuple
 
 import pytest
 
@@ -50,12 +49,15 @@ class Test_get_rendered_file_paths1(hunitest.TestCase):
 
 
 class Test_ImageHashCache1(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Test basic functionality of ImageHashCache.
         """
         # Create a temporary cache file.
-        cache_file = os.path.join(self.get_scratch_space(), "image_hash_cache.json")
+        cache_file = os.path.join(
+            self.get_scratch_space(), "image_hash_cache.json"
+        )
         # Initialize cache.
         cache = dshdreim.ImageHashCache(cache_file)
         # Test initial state.
@@ -64,7 +66,9 @@ class Test_ImageHashCache1(hunitest.TestCase):
         image_code = "digraph { A -> B }"
         image_code_type = "graphviz"
         out_file = "/tmp/test.png"
-        hash_key, cache_value = cache.compute_hash(image_code, image_code_type, out_file)
+        hash_key, cache_value = cache.compute_hash(
+            image_code, image_code_type, out_file
+        )
         # Verify the cache value structure.
         act = pprint.pformat(cache_value)
         exp = """
@@ -96,7 +100,9 @@ class Test_ImageHashCache1(hunitest.TestCase):
         image_code = "new image code"
         image_code_type = "graphviz"
         out_file = "/tmp/test.png"
-        hash_key, cache_value = cache.compute_hash(image_code, image_code_type, out_file)
+        hash_key, cache_value = cache.compute_hash(
+            image_code, image_code_type, out_file
+        )
         # Verify the cache value structure.
         act = pprint.pformat(cache_value)
         exp = """
@@ -123,7 +129,9 @@ class Test_ImageHashCache1(hunitest.TestCase):
         image_code = "new image code 2"
         image_code_type = "graphviz"
         out_file = "/tmp/test2.png"
-        hash_key, cache_value = cache.compute_hash(image_code, image_code_type, out_file)
+        hash_key, cache_value = cache.compute_hash(
+            image_code, image_code_type, out_file
+        )
         # Update the cache.
         cache_updated = cache.update_cache(hash_key, cache_value)
         # There should be an update since the cache is empty.
@@ -141,7 +149,7 @@ class Test_ImageHashCache1(hunitest.TestCase):
                 "image_code_type": "graphviz",
                 "out_file": "/tmp/test2.png"
             }
-        }""" 
+        }"""
         self.assert_equal(act, exp, dedent=True)
 
 
@@ -151,81 +159,6 @@ class Test_ImageHashCache1(hunitest.TestCase):
 
 
 class Test_render_image_code1(hunitest.TestCase):
-
-    def _get_test_render_image_code_inputs1(self, use_cache: bool) -> bool:
-        """
-        Run `render_image_code()` function.
-        """
-        # Prepare inputs.
-        image_code = "digraph { A -> B }"
-        image_code_idx = 1
-        image_code_type = "graphviz"
-        template_out_file = os.path.join(self.get_scratch_space(), "test.md")
-        dst_ext = "png"
-        cache_file = os.path.join(self.get_scratch_space(), "image_hash_cache.json")
-        # Run function.
-        rel_img_path, is_cache_hit = dshdreim._render_image_code(
-            image_code,
-            image_code_idx,
-            image_code_type,
-            template_out_file,
-            dst_ext,
-            use_cache=use_cache,
-            cache_file=cache_file
-        )
-        # Check output.
-        self.assertEqual(rel_img_path, "figs/test.1.png")
-        return is_cache_hit
-
-    def _get_test_render_image_code_inputs2(self, use_cache: bool) -> bool:
-        """
-        Same file as `example1` but different image code.
-        """
-        # Prepare inputs.
-        image_code = "digraph { B -> A }"
-        image_code_idx = 1
-        image_code_type = "graphviz"
-        template_out_file = os.path.join(self.get_scratch_space(), "test.md")
-        dst_ext = "png"
-        cache_file = os.path.join(self.get_scratch_space(), "image_hash_cache.json")
-        # Run function.
-        rel_img_path, is_cache_hit = dshdreim._render_image_code(
-            image_code,
-            image_code_idx,
-            image_code_type,
-            template_out_file,
-            dst_ext,
-            use_cache=use_cache,
-            cache_file=cache_file
-        )
-        # Check output.
-        self.assertEqual(rel_img_path, "figs/test.1.png")
-        return is_cache_hit
-
-    def _get_test_render_image_code_inputs3(self, use_cache: bool) -> bool:
-        """
-        Different file than `example1` and `example2`.
-        """
-        # Prepare inputs.
-        image_code = "digraph { A -> B }"
-        image_code_idx = 1
-        image_code_type = "graphviz"
-        template_out_file = os.path.join(self.get_scratch_space(), "test2.md")
-        dst_ext = "png"
-        cache_file = os.path.join(self.get_scratch_space(), "image_hash_cache.json")
-        # Run function.
-        rel_img_path, is_cache_hit = dshdreim._render_image_code(
-            image_code,
-            image_code_idx,
-            image_code_type,
-            template_out_file,
-            dst_ext,
-            use_cache=use_cache,
-            cache_file=cache_file
-        )
-        # Check output.
-        self.assertEqual(rel_img_path, "figs/test2.1.png")
-        return is_cache_hit
 
     def test1(self) -> None:
         """
@@ -285,6 +218,88 @@ class Test_render_image_code1(hunitest.TestCase):
         is_cache_hit = self._get_test_render_image_code_inputs3(use_cache=False)
         self.assertFalse(is_cache_hit)
 
+    def _get_test_render_image_code_inputs1(self, use_cache: bool) -> bool:
+        """
+        Run `render_image_code()` function.
+        """
+        # Prepare inputs.
+        image_code = "digraph { A -> B }"
+        image_code_idx = 1
+        image_code_type = "graphviz"
+        template_out_file = os.path.join(self.get_scratch_space(), "test.md")
+        dst_ext = "png"
+        cache_file = os.path.join(
+            self.get_scratch_space(), "image_hash_cache.json"
+        )
+        # Run function.
+        rel_img_path, is_cache_hit = dshdreim._render_image_code(
+            image_code,
+            image_code_idx,
+            image_code_type,
+            template_out_file,
+            dst_ext,
+            use_cache=use_cache,
+            cache_file=cache_file,
+        )
+        # Check output.
+        self.assertEqual(rel_img_path, "figs/test.1.png")
+        return is_cache_hit
+
+    def _get_test_render_image_code_inputs2(self, use_cache: bool) -> bool:
+        """
+        Same file as `example1` but different image code.
+        """
+        # Prepare inputs.
+        image_code = "digraph { B -> A }"
+        image_code_idx = 1
+        image_code_type = "graphviz"
+        template_out_file = os.path.join(self.get_scratch_space(), "test.md")
+        dst_ext = "png"
+        cache_file = os.path.join(
+            self.get_scratch_space(), "image_hash_cache.json"
+        )
+        # Run function.
+        rel_img_path, is_cache_hit = dshdreim._render_image_code(
+            image_code,
+            image_code_idx,
+            image_code_type,
+            template_out_file,
+            dst_ext,
+            use_cache=use_cache,
+            cache_file=cache_file,
+        )
+        # Check output.
+        self.assertEqual(rel_img_path, "figs/test.1.png")
+        return is_cache_hit
+
+    def _get_test_render_image_code_inputs3(self, use_cache: bool) -> bool:
+        """
+        Different file than `example1` and `example2`.
+        """
+        # Prepare inputs.
+        image_code = "digraph { A -> B }"
+        image_code_idx = 1
+        image_code_type = "graphviz"
+        template_out_file = os.path.join(self.get_scratch_space(), "test2.md")
+        dst_ext = "png"
+        cache_file = os.path.join(
+            self.get_scratch_space(), "image_hash_cache.json"
+        )
+        # Run function.
+        rel_img_path, is_cache_hit = dshdreim._render_image_code(
+            image_code,
+            image_code_idx,
+            image_code_type,
+            template_out_file,
+            dst_ext,
+            use_cache=use_cache,
+            cache_file=cache_file,
+        )
+        # Check output.
+        self.assertEqual(rel_img_path, "figs/test2.1.png")
+        return is_cache_hit
+
+
 # #############################################################################
 # Test_render_images1
 # #############################################################################
@@ -311,9 +326,7 @@ class Test_render_images1(hunitest.TestCase):
         out_file = os.path.join(self.get_scratch_space(), f"out.{file_ext}")
         dst_ext = "png"
         # Render images.
-        out_lines = dshdreim._render_images(
-            txt, out_file, dst_ext, dry_run=True
-        )
+        out_lines = dshdreim._render_images(txt, out_file, dst_ext, dry_run=True)
         # Check output.
         act = "\n".join(out_lines)
         hdbg.dassert_ne(act, "")
@@ -476,7 +489,7 @@ class Test_render_images1(hunitest.TestCase):
         \begin{figure} \includegraphics[width=\linewidth]{figs/out.1.png} \end{figure}
         """
         self.helper(in_lines, file_ext, exp)
-    
+
     # ///////////////////////////////////////////////////////////////////////////
 
     def test_mermaid1(self) -> None:

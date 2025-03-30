@@ -101,7 +101,7 @@ def _cleanup_before(prefix: str) -> None:
 
 def _filter_by_header(file_: str, header: str, prefix: str) -> str:
     """
-    Extract a specific header from a file
+    Extract a specific header from a file.
 
     :param file_: The input file to be processed
     :param header: The header to filter by (e.g., `# Introduction`)
@@ -118,8 +118,7 @@ def _filter_by_header(file_: str, header: str, prefix: str) -> str:
     return file_out
 
 
-def _filter_by_lines(file_: str, filter_by_lines: str,
-                     prefix: str) -> str:
+def _filter_by_lines(file_: str, filter_by_lines: str, prefix: str) -> str:
     """
     Filter the lines of a file in [start_line, end_line[.
 
@@ -145,12 +144,13 @@ def _filter_by_lines(file_: str, filter_by_lines: str,
         end_line = int(end_line)
     # Filter by header.
     hdbg.dassert_lte(start_line, end_line)
-    txt = txt[start_line - 1:end_line - 1]
+    txt = txt[start_line - 1 : end_line - 1]
     txt = "\n".join(txt)
     #
     file_out = f"{prefix}.filter_by_lines.txt"
     hio.to_file(file_out, txt)
     return file_out
+
 
 # #############################################################################
 

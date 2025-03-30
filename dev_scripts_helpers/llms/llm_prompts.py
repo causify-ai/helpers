@@ -1,8 +1,8 @@
-from typing import List, Optional, Set, Tuple
 import ast
 import logging
 import os
 import re
+from typing import List, Optional, Set, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -34,7 +34,7 @@ def code_comment() -> _PROMPT_OUT:
     # Do not comment every single line of code and especially logging statements.
     # Each comment should be in imperative form, a full English phrase, and end
     # with a period.
-    pre_transforms = {}
+    pre_transforms = set()
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
 
@@ -47,7 +47,7 @@ def code_docstring() -> _PROMPT_OUT:
     The first comment should be in imperative mode and fit in a single line of less than 80 characters.
     To describe the parameters use the REST style, which requires each parameter to be prepended with :param
     """
-    pre_transforms = {}
+    pre_transforms = set()
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
 
@@ -57,7 +57,7 @@ def code_type_hints() -> _PROMPT_OUT:
     You are a proficient Python coder.
     Add type hints to the function passed.
     """
-    pre_transforms = {}
+    pre_transforms = set()
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
 
@@ -83,14 +83,14 @@ def _get_code_unit_test_prompt(num_tests: int) -> str:
 
 def code_unit_test() -> _PROMPT_OUT:
     system = _get_code_unit_test_prompt(5)
-    pre_transforms = {}
+    pre_transforms = set()
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
 
 
 def code_1_unit_test() -> _PROMPT_OUT:
     system = _get_code_unit_test_prompt(1)
-    pre_transforms = {}
+    pre_transforms = set()
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
 
@@ -150,9 +150,10 @@ def code_apply_refactoring() -> _PROMPT_OUT:
     You will review the code and apply refactoring to remove redundancy in the
     code, minimizing the number of changes to the code that are not needed.
     """
-    pre_transforms = {}
-    post_transforms = {}
+    pre_transforms = set()
+    post_transforms = set()
     return system, pre_transforms, post_transforms
+
 
 # #############################################################################
 
@@ -165,7 +166,7 @@ def md_rewrite() -> _PROMPT_OUT:
     Maintain the structure of the text as much as possible, in terms of bullet
     points and their indentation
     """
-    pre_transforms = {}
+    pre_transforms = set()
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
 
@@ -175,7 +176,7 @@ def md_summarize_short() -> _PROMPT_OUT:
     You are a proficient technical writer.
     Summarize the text in less than 30 words.
     """
-    pre_transforms = {}
+    pre_transforms = set()
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
 
@@ -190,7 +191,7 @@ def slide_improve() -> _PROMPT_OUT:
     You will convert the following markdown text into bullet points
     Make sure that the text is clean and readable
     """
-    pre_transforms = {}
+    pre_transforms = set()
     post_transforms = {
         "remove_code_delimiters",
         "remove_end_of_line_periods",
@@ -215,7 +216,7 @@ def slide_colorize() -> _PROMPT_OUT:
 
     Print only the markdown without any explanation
     """
-    pre_transforms = {}
+    pre_transforms = set()
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
 
@@ -230,7 +231,7 @@ def slide_colorize_points() -> _PROMPT_OUT:
 
     Print only the markdown without any explanation
     """
-    pre_transforms = {}
+    pre_transforms = set()
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
 
@@ -252,11 +253,14 @@ def _convert_to_vim_cfile_str(txt: str, in_file_name: str) -> str:
         # ```
         # 57: The docstring should use more detailed type annotations for clarity, e.g., `List[str]`, `int`, etc.
         # ```
-        regex = re.compile(r"""
+        regex = re.compile(
+            r"""
             ^(\d+):         # Line number followed by colon
             \s*             # Space
             (.*)$           # Rest of line
-            """, re.VERBOSE)
+            """,
+            re.VERBOSE,
+        )
         match = regex.match(line)
         if match:
             line_number = match.group(1)
@@ -265,11 +269,14 @@ def _convert_to_vim_cfile_str(txt: str, in_file_name: str) -> str:
             # ```
             # 98-104: Simplify the hash computation logic with a helper function to avoid redundant steps.
             # ```
-            regex = re.compile(r"""
+            regex = re.compile(
+                r"""
                 ^(\d+)-\d+:    # Line number(s) followed by colon
                 \s*                 # Space
                 (.*)$               # Rest of line
-                """, re.VERBOSE)
+                """,
+                re.VERBOSE,
+            )
             match = regex.match(line)
         if match:
             line_number = match.group(1)
@@ -313,7 +320,9 @@ def _to_run(action: str, transforms: Set[str]) -> bool:
     return False
 
 
-def run_prompt(prompt_tag: str, txt: str, model: str, in_file_name: str, out_file_name: str) -> Optional[str]:
+def run_prompt(
+    prompt_tag: str, txt: str, model: str, in_file_name: str, out_file_name: str
+) -> Optional[str]:
     """
     Run the prompt passed and apply the transforms to the response.
     """
@@ -332,15 +341,20 @@ def run_prompt(prompt_tag: str, txt: str, model: str, in_file_name: str, out_fil
     if _to_run("add_line_numbers", pre_transforms):
         txt = hmarkdo.add_line_numbers(txt)
     hdbg.dassert_eq(
-        len(pre_transforms), 0, "Not all pre_transforms were run: %s", pre_transforms
+        len(pre_transforms),
+        0,
+        "Not all pre_transforms were run: %s",
+        pre_transforms,
     )
     # We need to import this here since we have this package only when running
     # inside a Dockerized executable. We don't want an import to this file
     # assert since openai is not available in the local dev environment.
     import helpers.hopenai as hopenai
 
-    response = hopenai.get_completion(txt, system_prompt=system_prompt, model=model, print_cost=True)
-    #_LOG.debug(hprint.to_str("response"))
+    response = hopenai.get_completion(
+        txt, system_prompt=system_prompt, model=model, print_cost=True
+    )
+    # _LOG.debug(hprint.to_str("response"))
     txt_out = hopenai.response_to_txt(response)
     hdbg.dassert_isinstance(txt_out, str)
     # Run post-transforms.
@@ -353,7 +367,10 @@ def run_prompt(prompt_tag: str, txt: str, model: str, in_file_name: str, out_fil
     if _to_run("convert_to_vim_cfile", post_transforms):
         txt_out = _convert_to_vim_cfile(txt_out, in_file_name, out_file_name)
     hdbg.dassert_eq(
-        len(post_transforms), 0, "Not all post_transforms were run: %s", post_transforms
+        len(post_transforms),
+        0,
+        "Not all post_transforms were run: %s",
+        post_transforms,
     )
     # Return.
     if txt_out is not None:
@@ -372,6 +389,7 @@ def get_prompt_tags() -> List[str]:
     matched_functions = []
     # Parse the file content into an AST.
     tree = ast.parse(file_content)
+
     # Iterate through all function definitions in the AST.
     def _get_return_type_str(node: ast.AST) -> str:
         """
@@ -379,9 +397,10 @@ def get_prompt_tags() -> List[str]:
         """
         if not hasattr(node, "returns") or node.returns is None:
             return ""
-        
+
         # Convert the AST to source code
         return ast.unparse(node.returns)
+
     for node in ast.walk(tree):
         if isinstance(node, ast.FunctionDef):
             # Check function arguments and return type that match the signature:

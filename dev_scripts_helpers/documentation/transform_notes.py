@@ -22,8 +22,6 @@ Perform one of several transformations on a txt file, e.g.,
     :!transform_notes.py -a md_list_to_latex -i %
     :%!transform_notes.py -a md_list_to_latex -i -
 
-5) 
-
 - The input or output can be filename or stdin (represented by '-')
 - If output file is not specified then we assume that the output file is the
   same as the input
@@ -86,11 +84,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
         txt = hparser.read_file(in_file_name)
         txt = "\n".join(txt)
         # Replace bold markdown syntax with plain text.
-        txt = re.sub(r'\*\*(.*?)\*\*', r'\1', txt)
+        txt = re.sub(r"\*\*(.*?)\*\*", r"\1", txt)
         # Replace italic markdown syntax with plain text.
-        txt = re.sub(r'\*(.*?)\*', r'\1', txt)
+        txt = re.sub(r"\*(.*?)\*", r"\1", txt)
         # Replace \( ... \) math syntax with $ ... $.
-        txt = re.sub(r'\\\(\s*(.*?)\s*\\\)', r'$\1$', txt)
+        txt = re.sub(r"\\\(\s*(.*?)\s*\\\)", r"$\1$", txt)
         hparser.write_file(txt, out_file_name)
     else:
         assert 0, f"Invalid cmd='{cmd}'"

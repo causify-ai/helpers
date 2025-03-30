@@ -230,7 +230,7 @@ def create_tmux_session(
     script_path: str,
     dir_prefix: str,
     setenv_path: str,
-    #TODO(Juraj): deprecate the var, the behavior is now inferred.
+    # TODO(Juraj): deprecate the var, the behavior is now inferred.
     has_subrepo: bool,
 ) -> None:
     """
@@ -315,7 +315,9 @@ def create_tmux_session(
     # compatible with the existing flow in `lemonade`.
     src_vc_dir = os.environ.get("AM_SRC_DIR", None)
     # Use encrypted dir path if specified, otherwise use the conventional `src`.
-    src_dir = src_vc_dir if src_vc_dir is not None else os.path.join(home_dir, "src")
+    src_dir = (
+        src_vc_dir if src_vc_dir is not None else os.path.join(home_dir, "src")
+    )
     git_root_dir = os.path.join(src_dir, tmux_name)
     _LOG.info("git_root_dir=%s", git_root_dir)
     # Create the tmux session.

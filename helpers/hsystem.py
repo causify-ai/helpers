@@ -462,8 +462,9 @@ def remove_dirs(files: List[str]) -> List[str]:
     return files_tmp
 
 
-def select_result_file_from_list(files: List[str], mode: str,
-                                 file_name: str) -> List[str]:
+def select_result_file_from_list(
+    files: List[str], mode: str, file_name: str
+) -> List[str]:
     """
     Select a file from a list according to various approaches encoded in
     `mode`.
@@ -483,8 +484,9 @@ def select_result_file_from_list(files: List[str], mode: str,
             hdbg.dfatal(f"mode={mode}: didn't find file {file_name}")
         elif len(files) > 1:
             hdbg.dfatal(
-                "mode=%s: found multiple files:\n%s\n" % (
-                    mode, "\n".join(files), file_name))
+                "mode=%s: found multiple files:\n%s\n"
+                % (mode, "\n".join(files), file_name)
+            )
         res = [files[0]]
     elif mode == "return_all_results":
         # Return all files.

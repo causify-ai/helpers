@@ -56,10 +56,11 @@ def _process_abbreviations(in_line: str) -> str:
 
 def _process_color_commands(in_line: str) -> str:
     r"""
-    Transform color commands like \red{xyz}, \blue{xyz}, etc. into proper LaTeX syntax.
-    
+    Transform color commands like \red{xyz}, \blue{xyz}, etc. into proper LaTeX
+    syntax.
+
     If the content is text (not math), wraps it in \text{}.
-    
+
     E.g.:
     - \red{abc} -> \textcolor{red}{\text{abc}}
     - \blue{x + y} -> \textcolor{blue}{x + y}
@@ -77,7 +78,7 @@ def _process_color_commands(in_line: str) -> str:
             """,
             re.VERBOSE,
         )
-        
+
         def _replacement(match: re.Match, value: str) -> str:
             content = match.group(1)
             # Check if content appears to be math expression.
@@ -86,9 +87,9 @@ def _process_color_commands(in_line: str) -> str:
                 return rf"\textcolor{{{value}}}{{{content}}}"
             else:
                 return rf"\textcolor{{{value}}}{{\text{{{content}}}}}"
-        
+
         in_line = re.sub(pattern, lambda m: _replacement(m, value), in_line)
-    
+
     return in_line
 
 
