@@ -72,7 +72,7 @@ class Test_Pandoc_Cmd_Conversion(hunitest.TestCase):
 
 class Test_run_dockerized_pandoc(hunitest.TestCase):
 
-    @pytest.mark.timeout(500)
+    @pytest.mark.timeout(10)
     def test1(self) -> None:
         """
         Test Dockerized Pandoc reads an externally provided input file,
@@ -82,9 +82,9 @@ class Test_run_dockerized_pandoc(hunitest.TestCase):
         output_dir = self.get_output_dir()
         hio.create_dir(output_dir, incremental=True)
         input_file = os.path.join(input_dir, "input.md")
-        output_file = os.path.join(output_dir, "sample.pdf")
+        output_file = os.path.join(output_dir, "sample.html")
         # Build the pandoc command string.
-        cmd = f"pandoc {input_file} -o {output_file} --toc"
+        cmd = f"pandoc {input_file} -o {output_file} --to=html --toc"
         # Call the function.
         hdocker.run_dockerized_pandoc(
             cmd,
