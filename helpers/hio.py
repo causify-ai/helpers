@@ -455,6 +455,7 @@ def _raise_file_decode_error(error: Exception, file_name: str) -> None:
 
 def from_file(
     file_name: str,
+    *,
     encoding: Optional[Any] = None,
 ) -> str:
     """

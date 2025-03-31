@@ -1,7 +1,7 @@
 import dataclasses
 import logging
 import re
-from typing import cast, Generator, List, Optional, Tuple
+from typing import Generator, List, Optional, Tuple, cast
 
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
@@ -228,7 +228,7 @@ def remove_empty_lines(txt: str) -> str:
 
 
 # TODO(gp): Add tests.
-def remove_code_delimiters(text: str) -> str:
+def remove_code_delimiters(txt: str) -> str:
     """
     Remove ```python and ``` delimiters from a given text.
 
@@ -236,8 +236,21 @@ def remove_code_delimiters(text: str) -> str:
     :return: The text with the code delimiters removed.
     """
     # Replace the ```python and ``` delimiters with empty strings.
-    text = text.replace("```python", "").replace("```", "")
-    return text.strip()
+    txt_out = txt.replace("```python", "").replace("```", "")
+    txt_out = txt_out.strip()
+    return txt_out
+
+
+def add_line_numbers(txt: str) -> str:
+    """
+    Add line numbers to each line of text.
+    """
+    lines = txt.split("\n")
+    numbered_lines = []
+    for i, line in enumerate(lines, 1):
+        numbered_lines.append(f"{i}: {line}")
+    txt_out = "\n".join(numbered_lines)
+    return txt_out
 
 
 # #############################################################################
