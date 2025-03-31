@@ -6,9 +6,6 @@ on:
             description: 'Name of the test to run. Example: run_fast_tests.'
             required: true
             type: string
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 env:
   CSFY_CI: true
 # Set up permissions for OIDC authentication.
