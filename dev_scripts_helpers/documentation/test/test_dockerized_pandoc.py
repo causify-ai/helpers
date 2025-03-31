@@ -3,6 +3,7 @@ import os
 import pytest
 
 import helpers.hdocker as hdocker
+import helpers.hio as hio
 import helpers.hunit_test as hunitest
 
 
@@ -79,6 +80,7 @@ class Test_run_dockerized_pandoc(hunitest.TestCase):
         """
         input_dir = self.get_input_dir()
         output_dir = self.get_output_dir()
+        hio.create_dir(output_dir, incremental=True)
         input_file = os.path.join(input_dir, "input.md")
         output_file = os.path.join(output_dir, "sample.pdf")
         # Build the pandoc command string.
@@ -87,7 +89,7 @@ class Test_run_dockerized_pandoc(hunitest.TestCase):
         hdocker.run_dockerized_pandoc(
             cmd,
             container_type="pandoc_texlive",
-            force_rebuild=True,
+            force_rebuild=False,
             use_sudo=False,
         )
         # Check output.
