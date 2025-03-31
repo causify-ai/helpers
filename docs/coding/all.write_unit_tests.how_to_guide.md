@@ -419,20 +419,21 @@ test code.
 
 #### Always explain `self.assertRaises`
 
-- Testing for an assertion needs to always be done with the following idiom to
-  explain exactly what we are catching and why
-  ```python
-  with self.assertRaises(AssertionError) as cm:
-      hlitagit.git_patch_create(
-          ctx, mode, modified, branch, last_commit, files
-      )
-  act = str(cm.exception)
-  exp = r"""
-  ```
-* Failed assertion \* '0' == '1' Specify only one among --modified,
-  --branch, --last-commit """ self.assert_equal(act, exp, fuzzy_match=True)
-  ```
-  ```
+- When testing for an assertion, always use the following idiom to clearly
+  explain what exception is expected and why:
+
+```python
+with self.assertRaises(AssertionError) as cm:
+    hlitagit.git_patch_create(
+        ctx, mode, modified, branch, last_commit, files
+    )
+act = str(cm.exception)
+exp = r"""
+* Failed assertion * '0' == '1' Specify only one among --modified,
+  --branch, --last-commit
+"""
+self.assert_equal(act, exp, fuzzy_match=True)
+```
 
 #### Interesting testing functions
 
