@@ -107,7 +107,8 @@ def filter_data_by_comparison(
     masks = []
     for col_name, tuple_ in filters.items():
         if not isinstance(tuple_[0], tuple):
-            tuple_ = (tuple_,)  # type: ignore
+            hdbg.dassert_isinstance(tuple_, tuple)
+            tuple_ = (tuple_,)
         for comparison_method, val in tuple_:
             hdbg.dassert_in(
                 comparison_method, ("eq", "ne", "le", "lt", "ge", "gt")
