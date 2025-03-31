@@ -72,7 +72,7 @@ class Test_Pandoc_Cmd_Conversion(hunitest.TestCase):
 
 class Test_run_dockerized_pandoc(hunitest.TestCase):
 
-    @pytest.mark.timeout(30)
+    @pytest.mark.timeout(500)
     def test1(self) -> None:
         """
         Test Dockerized Pandoc reads an externally provided input file,
@@ -89,7 +89,7 @@ class Test_run_dockerized_pandoc(hunitest.TestCase):
         hdocker.run_dockerized_pandoc(
             cmd,
             container_type="pandoc_texlive",
-            force_rebuild=False,
+            force_rebuild=True,
             use_sudo=False,
         )
         # Check output.
