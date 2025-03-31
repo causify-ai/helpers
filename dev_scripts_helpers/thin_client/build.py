@@ -100,6 +100,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Linux specific updates.
     if platform.system() == "Linux":
         # Install GitHub CLI on linux ubuntu system using apt.
+        # Installation instructions based on the official GitHub CLI documentation:
+        # https://github.com/cli/cli/blob/trunk/docs/install_linux.md
         commands = [
             "type -p wget >/dev/null || (sudo apt update && sudo apt-get install wget -y)",
             "sudo mkdir -p -m 755 /etc/apt/keyrings",
