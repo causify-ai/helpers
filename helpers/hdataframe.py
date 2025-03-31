@@ -107,7 +107,7 @@ def filter_data_by_comparison(
     masks = []
     for col_name, tuple_ in filters.items():
         if isinstance(tuple_, tuple) and isinstance(tuple_[0], str):
-            comparisons = (cast(Tuple[str, Any], tuple_),)
+            comparisons: Tuple[Tuple[str, Any], ...] = (cast(Tuple[str, Any], tuple_),)
         else:
             comparisons = cast(Tuple[Tuple[str, Any], ...], tuple_)
         for comparison_method, val in comparisons:
