@@ -206,8 +206,8 @@ def _render_images(file_name: str, prefix: str) -> str:
     file3 = f"{prefix}.render_image2.txt"
     hio.to_file(file3, out)
     #
-    file_name = file3
-    return file_name
+    file_out = file3
+    return file_out
 
 
 # #############################################################################

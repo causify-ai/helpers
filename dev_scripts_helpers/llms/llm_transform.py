@@ -6,25 +6,34 @@ an LLM, and then write the output to either stdout or a file. It is
 particularly useful for integrating with editors like Vim.
 
 The script `dockerized_llm_transform.py` is executed within a Docker container to ensure
+The script `dockerized_llm_transform.py` is executed within a Docker container to ensure
 all dependencies are met. The Docker container is built dynamically if
 necessary. The script requires an OpenAI API key to be set in the environment.
 
 Examples
 # Basic Usage
 > llm_transform.py -i input.txt -o output.txt -p uppercase
+> llm_transform.py -i input.txt -o output.txt -p uppercase
 
 # List of transforms
+> llm_transform.py -i input.txt -o output.txt -p list
 > llm_transform.py -i input.txt -o output.txt -p list
 
 # Code review
 > llm_transform.py -i dev_scripts_helpers/documentation/render_images.py -o cfile -p code_propose_refactoring
+# Code review
+> llm_transform.py -i dev_scripts_helpers/documentation/render_images.py -o cfile -p code_propose_refactoring
 
+# Propose refactoring
+> llm_transform.py -i dev_scripts_helpers/documentation/render_images.py -o cfile -p code_propose_refactoring
 # Propose refactoring
 > llm_transform.py -i dev_scripts_helpers/documentation/render_images.py -o cfile -p code_propose_refactoring
 """
 
 import argparse
 import logging
+import os
+import re
 import os
 import re
 
@@ -37,10 +46,12 @@ if False:
 # pylint: disable=wrong-import-position
 import dev_scripts_helpers.documentation.lint_notes as dshdlino
 import dev_scripts_helpers.llms.llm_prompts as dshlllpr
+import dev_scripts_helpers.llms.llm_prompts as dshlllpr
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hio as hio
 import helpers.hparser as hparser
+import helpers.hprint as hprint
 import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
@@ -48,6 +59,7 @@ _LOG = logging.getLogger(__name__)
 
 def _parse() -> argparse.ArgumentParser:
     """
+    Same interface as `dockerized_llm_transform.py`.
     Same interface as `dockerized_llm_transform.py`.
     """
     parser = argparse.ArgumentParser(
@@ -60,6 +72,32 @@ def _parse() -> argparse.ArgumentParser:
     # Use CRITICAL to avoid logging anything.
     hparser.add_verbosity_arg(parser, log_level="CRITICAL")
     return parser
+
+
+def _convert_file_names(in_file_name: str, out_file_name: str) -> str:
+    """
+    Convert the files from inside the container to outside.
+
+    Replace the name of the file inside the container (e.g.,
+    `/app/helpers_root/tmp.llm_transform.in.txt`) with the name of the
+    file outside the container.
+    """
+    # TODO(gp): We should use the `convert_caller_to_callee_docker_path`
+    txt_out = []
+    txt = hio.from_file(out_file_name)
+    for line in txt.split("\n"):
+        if line.strip() == "":
+            continue
+        # E.g., the format is like
+        # ```
+        # /app/helpers_root/r.py:1: Change the shebang line to `#!/usr/bin/env python3` to e
+        # ```
+        _LOG.debug("before: " + hprint.to_str("line in_file_name"))
+        line = re.sub(r"^.*(:\d+:.*)$", rf"{in_file_name}\1", line)
+        _LOG.debug("after: " + hprint.to_str("line"))
+        txt_out.append(line)
+    txt_out = "\n".join(txt_out)
+    hio.to_file(out_file_name, txt_out)
 
 
 def _convert_file_names(in_file_name: str, out_file_name: str) -> str:
@@ -137,13 +175,24 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Post transforms outside the container.
     if args.prompt in ("code_review", "code_propose_refactoring"):
         _convert_file_names(in_file_name, tmp_out_file_name)
+    # Post transforms outside the container.
+    valid_prompts = dshlllpr.get_prompt_tags()
+    prompts = ["code_review", "code_propose_refactoring"]
+    for prompt in prompts:
+        hdbg.dassert_in(prompt, valid_prompts)
+    if args.prompt in prompts:
+        _convert_file_names(in_file_name, tmp_out_file_name)
+    #
     out_txt = hio.from_file(tmp_out_file_name)
-    if args.prompt in (
-        "md_format",
+    prompts = [
+        "md_rewrite",
         "md_summarize_short",
         "slide_improve",
         "slide_colorize",
-    ):
+    ]
+    for prompt in prompts:
+        hdbg.dassert_in(prompt, valid_prompts)
+    if args.prompt in prompts:
         # Note that we need to run this outside the `llm_transform` container to
         # avoid to do docker-in-docker in the `llm_transform` container (which
         # doesn't support that).
