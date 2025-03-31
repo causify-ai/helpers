@@ -110,7 +110,7 @@ class TestFilterDataByMethod(hunitest.TestCase):
         info: collections.OrderedDict = collections.OrderedDict()
         # Call function to test.
         act = hdatafr.filter_data_by_method(
-            data=data, filters=filters, mode=mode, info=info
+            df=data, filters=filters, mode=mode, info=info
         )
         act = hpandas.df_to_str(act, precision=3)
         # Check output.
