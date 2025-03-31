@@ -54,32 +54,29 @@
 - Ensure that you save the SSH key with the below name format and at the
   specified location
 
-  **File location:** `~/.ssh/id_rsa.causify.github`
+  File location: `~/.ssh/id_rsa.causify-ai.github`
 
-  **Example command to generate SSH key:**
+  Example command to generate SSH key:
 
   ```bash
-  ssh-keygen -t ed25519 -C "your_email@example.com" -f ~/.ssh/id_rsa.causify.github
+  > ssh-keygen -t ed25519 -C "your_email@example.com" -f ~/.ssh/id_rsa.causify-ai.github
   ```
 
-- To create a **Personal Access Token (classic)** with necessary scopes like
-  `repo`, `workflow`, etc., go to
+- To create a Personal Access Token (classic) with necessary scopes like `repo`,
+  `workflow`, etc., go to
   [https://github.com/settings/tokens](https://github.com/settings/tokens) and
-  click **"Generate new token (classic)"**.
+  click "Generate new token (classic)".
 
 - After obtaining the token, store it in a file named
   `github_pat.causify-ai.txt` at the specified path
 
-  **File location:** `~/.ssh/github_pat.causify-ai.txt`
+  File location: `~/.ssh/github_pat.causify-ai.txt`
 
-  **Steps to save using `vim`:**
+  Example command to save using `vim`:
 
   ```bash
-  vim ~/.ssh/github_pat.causify-ai.txt
+  > vim ~/.ssh/github_pat.causify-ai.txt
   ```
-  - Press `i` to enter **Insert mode**
-  - Paste your token (Right-click or `Ctrl+Shift+V` or `Cmd + V` in terminal)
-  - Press `Esc`, then type `:wq` and hit `Enter` to save and exit
 
 ## Build and activate the thin environment
 
