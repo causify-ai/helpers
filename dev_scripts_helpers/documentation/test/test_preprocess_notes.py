@@ -39,6 +39,59 @@ def _run_preprocess_notes(in_file: str, out_file: str) -> str:
 
 
 # #############################################################################
+# Test_process_color_commands1
+# #############################################################################
+
+
+class Test_process_color_commands1(hunitest.TestCase):
+
+    def test_text_content1(self) -> None:
+        """
+        Test with plain text content.
+        """
+        txt_in = r"\red{Hello world}"
+        exp = r"\textcolor{red}{\text{Hello world}}"
+        act = dshdprno._process_color_commands(txt_in)
+        self.assert_equal(act, exp)
+
+    def test_math_content1(self) -> None:
+        """
+        Test color command with mathematical content.
+        """
+        txt_in = r"\blue{x + y = z}"
+        exp = r"\textcolor{blue}{x + y = z}"
+        act = dshdprno._process_color_commands(txt_in)
+        self.assert_equal(act, exp)
+
+    def test_multiple_colors1(self) -> None:
+        """
+        Test multiple color commands in the same line.
+        """
+        txt_in = r"The \red{quick} \blue{fox} \green{jumps}"
+        exp = r"The \textcolor{red}{\text{quick}} \textcolor{blue}{\text{fox}} \textcolor{darkgreen}{\text{jumps}}"
+        act = dshdprno._process_color_commands(txt_in)
+        self.assert_equal(act, exp)
+
+    def test_mixed_content1(self) -> None:
+        """
+        Test color commands with both text and math content.
+        """
+        txt_in = r"\red{Result: x^2 + y^2}"
+        exp = r"\textcolor{red}{Result: x^2 + y^2}"
+        act = dshdprno._process_color_commands(txt_in)
+        self.assert_equal(act, exp)
+
+    def test_nested_braces1(self) -> None:
+        """
+        Test color command with nested braces.
+        """
+        txt_in = r"\blue{f(x) = {x + 1}}"
+        exp = r"\textcolor{blue}{f(x) = {x + 1}}"
+        act = dshdprno._process_color_commands(txt_in)
+        self.assert_equal(act, exp)
+
+
+# #############################################################################
 # Test_preprocess_notes1
 # #############################################################################
 
