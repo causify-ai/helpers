@@ -1,5 +1,7 @@
 import os
 
+import pytest
+
 import helpers.hdocker as hdocker
 import helpers.hunit_test as hunitest
 
@@ -69,6 +71,7 @@ class Test_Pandoc_Cmd_Conversion(hunitest.TestCase):
 
 class Test_run_dockerized_pandoc(hunitest.TestCase):
 
+    @pytest.mark.timeout(30)
     def test1(self) -> None:
         """
         Test Dockerized Pandoc reads an externally provided input file,
