@@ -146,13 +146,14 @@ class Test_convert_to_docker_path1(hunitest.TestCase):
         Test converting a file name to Docker paths.
         """
         # - Prepare inputs.
-        in_file_path = "tmp.llm_transform.in.txt"
+        dir_name = self.get_input_dir()
+        in_file_path = os.path.join(dir_name, "tmp.llm_transform.in.txt")
         is_caller_host = True
         use_sibling_container_for_callee = True
         check_if_exists = False
         # - Prepare outputs.
         helpers_root_path = hgit.find_helpers_root()
-        exp_docker_file_path = f"{helpers_root_path}/tmp.llm_transform.in.txt"
+        exp_docker_file_path = f"{helpers_root_path}/helpers/test/outcomes/Test_convert_to_docker_path1.test1/input/tmp.llm_transform.in.txt"
         exp_mount = "type=bind,source=/app,target=/app"
         self.helper(
             in_file_path,
