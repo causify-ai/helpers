@@ -67,7 +67,7 @@ except ImportError as e:
 _LOG = logging.getLogger(__name__)
 
 # Mute this module unless we want to debug it.
-_LOG.setLevel(logging.INFO)
+# _LOG.setLevel(logging.INFO)
 
 # #############################################################################
 
@@ -394,11 +394,14 @@ def purify_from_environment(txt: str) -> str:
         else:
             # If the git path is `/` then we don't need to do anything.
             pass
-    # 2) Replace the path of current working dir with `$PWD`
+    # 2) Remove CSFY_GIT_ROOT_PATH
+    val = os.environ.get("CSFY_HOST_GIT_ROOT_PATH")
+    txt = re.sub(val, "$CSFY_HOST_GIT_ROOT_PATH", txt, flags=re.MULTILINE)
+    # 3) Replace the path of current working dir with `$PWD`.
     pwd = os.getcwd()
     pattern = re.compile(f"{pwd}{dir_pattern}")
     txt = pattern.sub("$PWD", txt)
-    # 3) Replace the current user name with `$USER_NAME`.
+    # 4) Replace the current user name with `$USER_NAME`.
     user_name = hsystem.get_user_name()
     # Set a regex pattern that finds a user name surrounded by dot, dash or space.
     # E.g., `IMAGE=$CSFY_ECR_BASE_PATH/amp_test:local-$USER_NAME-1.0.0`,
@@ -1159,11 +1162,16 @@ class TestCase(unittest.TestCase):
             plt.close()
             plt.clf()
         # Delete the scratch dir, if needed.
-        # TODO(gp): We would like to keep this if the test failed.
-        #  I can't find an easy way to detect this situation.
-        #  For now just re-run with --incremental.
         if self._scratch_dir and os.path.exists(self._scratch_dir):
-            if get_incremental_tests():
+            # We would like to keep this if the test failed, as an alternative
+            # to just re-running with --incremental.
+            result = self._outcome.result
+            # From https://stackoverflow.com/questions/4414234/getting-pythons-unittest-results-in-a-teardown-method
+            # https://github.com/pytest-dev/pytest/issues/10631
+            # This doesn't work any longer.
+            # has_error = test_result.failures or test_result.errors
+            has_error = result._excinfo is not None
+            if has_error or get_incremental_tests():
                 _LOG.warning("Skipping deleting %s", self._scratch_dir)
             else:
                 _LOG.debug("Deleting %s", self._scratch_dir)
@@ -1273,7 +1281,8 @@ class TestCase(unittest.TestCase):
             # Add `tmp.scratch` to the dir.
             dir_name = os.path.join(dir_name, "tmp.scratch")
             # On the first invocation create the dir.
-            hio.create_dir(dir_name, incremental=get_incremental_tests())
+            incremental = get_incremental_tests()
+            hio.create_dir(dir_name, incremental=incremental)
             # Store the value.
             self._scratch_dir = dir_name
         return self._scratch_dir

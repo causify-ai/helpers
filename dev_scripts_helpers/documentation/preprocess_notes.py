@@ -54,6 +54,45 @@ def _process_abbreviations(in_line: str) -> str:
     return line
 
 
+def _process_color_commands(in_line: str) -> str:
+    r"""
+    Transform color commands like \red{xyz}, \blue{xyz}, etc. into proper LaTeX
+    syntax.
+
+    If the content is text (not math), wraps it in \text{}.
+
+    E.g.:
+    - \red{abc} -> \textcolor{red}{\text{abc}}
+    - \blue{x + y} -> \textcolor{blue}{x + y}
+    """
+    # Define supported colors
+    colors = {"red": "red", "blue": "blue", "green": "darkgreen"}
+    for color, value in colors.items():
+        # This regex matches LaTeX color commands like \red{content}, \blue{content}, etc.
+        pattern = re.compile(
+            rf"""
+            \\{color}    # Match the color command (e.g., \red, \blue, etc.).
+            \{{          # Match the opening curly brace.
+            ([^}}]*)     # Capture everything inside the curly braces.
+            \}}          # Match the closing curly brace.
+            """,
+            re.VERBOSE,
+        )
+
+        def _replacement(match: re.Match, value: str) -> str:
+            content = match.group(1)
+            # Check if content appears to be math expression.
+            is_math = any(c in content for c in "+-*/=<>{}[]()^_")
+            if is_math:
+                return rf"\textcolor{{{value}}}{{{content}}}"
+            else:
+                return rf"\textcolor{{{value}}}{{\text{{{content}}}}}"
+
+        in_line = re.sub(pattern, lambda m: _replacement(m, value), in_line)
+
+    return in_line
+
+
 def _process_enumerated_list(in_line: str) -> str:
     """
     Transform enumerated list with parenthesis to `.`.
@@ -167,9 +206,13 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
         if _TRACE:
             _LOG.debug("# 5) Process enumerated list.")
         line = _process_enumerated_list(line)
-        # 5) Process question.
+        # 6) Process color commands.
         if _TRACE:
-            _LOG.debug("# 5) Process question.")
+            _LOG.debug("# 6) Process color commands.")
+        line = _process_color_commands(line)
+        # 7) Process question.
+        if _TRACE:
+            _LOG.debug("# 7) Process question.")
         if type_ == "slides":
             do_continue, line = _process_question_to_slides(line)
         else:
@@ -177,9 +220,9 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
         if do_continue:
             out.append(line)
             continue
-        # 6) Process empty lines in the questions and answers.
+        # 8) Process empty lines in the questions and answers.
         if _TRACE:
-            _LOG.debug("# 6) Process empty lines in the questions and answers.")
+            _LOG.debug("# 8) Process empty lines in the questions and answers.")
         if not is_qa:
             out.append(line)
         else:

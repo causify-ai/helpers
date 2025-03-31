@@ -1300,6 +1300,15 @@ class Test_purify_from_environment1(hunitest.TestCase):
         exp = "$GIT_ROOT"
         self.check_helper(input_, exp)
 
+    @pytest.mark.skipif(
+        not hgit.is_inside_submodule(), reason="Run only in submodule"
+    )
+    def test8(self) -> None:
+        # /Users/saggese/src/notes1
+        input_ = os.path.join(os.environ.get("CSFY_HOST_GIT_ROOT_PATH"), "hello")
+        exp = "$CSFY_HOST_GIT_ROOT_PATH/hello"
+        self.check_helper(input_, exp)
+
 
 # #############################################################################
 # Test_purify_line_number1
