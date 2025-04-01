@@ -113,7 +113,6 @@ def _filter_by_header(file_name: str, header: str, prefix: str) -> str:
     # Filter by header.
     txt = hmarkdo.extract_section_from_markdown(txt, header)
     # Save the file.
-    # Save the file.
     file_out = f"{prefix}.filter_by_header.txt"
     hio.to_file(file_out, txt)
     return file_out

@@ -22,10 +22,6 @@ Perform one of several transformations on a txt file, e.g.,
     :!transform_notes.py -a md_list_to_latex -i %
     :%!transform_notes.py -a md_list_to_latex -i -
 
-4) `md_list_to_latex`: convert a markdown list to a latex list
-    :!transform_notes.py -a md_list_to_latex -i %
-    :%!transform_notes.py -a md_list_to_latex -i -
-
 - The input or output can be filename or stdin (represented by '-')
 - If output file is not specified then we assume that the output file is the
   same as the input
@@ -33,7 +29,6 @@ Perform one of several transformations on a txt file, e.g.,
 
 import argparse
 import logging
-import re
 import re
 
 import helpers.hdbg as hdbg
