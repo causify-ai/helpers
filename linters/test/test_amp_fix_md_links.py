@@ -142,6 +142,9 @@ class Test_fix_links(hunitest.TestCase):
 - Markdown-style link to a file that does not exist
   - [File not found](/helpersssss/hhhhgit.py)
 
+- Markdown-style link with a directory beginning with a dot
+  - [`sprint_iteration.yml`](/.github/workflows/sprint_iteration.yml)
+
 - File path without the backticks
   - /helpers/test/test_hdbg.py
 
