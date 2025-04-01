@@ -11,7 +11,7 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  run_fast_tests:
+  run_superslow_tests:
     uses: ./.github/workflows/tests.yml
     with:
       test-name: run_superslow_tests
