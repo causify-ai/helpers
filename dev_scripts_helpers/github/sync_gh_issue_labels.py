@@ -23,7 +23,7 @@ import yaml
 
 try:
     import github
-except ImportError:
+except ModuleNotFoundError:
     subprocess.call(["sudo", "/venv/bin/pip", "install", "pygithub"])
     import github
 
