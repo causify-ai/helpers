@@ -101,6 +101,17 @@ class Test_fix_links(hunitest.TestCase):
         )
         self.check_string(output)
 
+    def test4(self) -> None:
+        """
+        Test file path to retain directory name beginning with a dot.
+        """
+        file_path = "/.github/workflows/sprint_iteration.yml"
+        expected_path = "/.github/workflows/sprint_iteration.yml"
+        # Run.
+        actual_path = lafimdli._make_path_absolute(file_path)
+        # Check.
+        self.assertEqual(actual_path, expected_path)
+
     def _get_txt_with_incorrect_links(self) -> str:
         txt_incorrect = r"""
 - Markdown-style link with a text label
