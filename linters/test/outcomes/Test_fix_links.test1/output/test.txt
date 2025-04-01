@@ -1,17 +1,17 @@
 # linter warnings
 
 /app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:38: '/helpersssss/hhhhgit.py' does not exist
-/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:74: 'import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
 /app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:77: 'import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
-/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:80: '/import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
-/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:83: '/iiimport_check/example/output/basicccc.png' does not follow the format 'figs/test.md/XYZ'
-/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:83: '/iiimport_check/example/output/basicccc.png' does not exist
-/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:86: 'import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
+/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:80: 'import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
+/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:83: '/import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
+/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:86: '/iiimport_check/example/output/basicccc.png' does not follow the format 'figs/test.md/XYZ'
+/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:86: '/iiimport_check/example/output/basicccc.png' does not exist
 /app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:89: 'import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
-/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:93: '/import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
-/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:96: '../../import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
-/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:99: '/iiimport_check/example/output/basicccc.png' does not follow the format 'figs/test.md/XYZ'
-/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:99: '/iiimport_check/example/output/basicccc.png' does not exist
+/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:92: 'import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
+/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:96: '/import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
+/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:99: '../../import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
+/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:102: '/iiimport_check/example/output/basicccc.png' does not follow the format 'figs/test.md/XYZ'
+/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:102: '/iiimport_check/example/output/basicccc.png' does not exist
 
 # linted file
 
@@ -54,6 +54,9 @@
 
 - Markdown-style link to a file that does not exist
   - [File not found](/helpersssss/hhhhgit.py)
+
+- Markdown-style link with a directory beginning with a dot
+  - [`fast_tests.yml`](/.github/workflows/fast_tests.yml)
 
 - File path without the backticks
   - /helpers/test/test_hdbg.py

@@ -1,12 +1,15 @@
-
-
 <!-- toc -->
 
 - [The concept of "dockerized" executables](#the-concept-of-dockerized-executables)
+  * [Examples of dockerized executables](#examples-of-dockerized-executables)
   * [Children- vs Sibling-container](#children--vs-sibling-container)
+    + [Bind mounting a directory from inside the development container](#bind-mounting-a-directory-from-inside-the-development-container)
 - [Running a Dockerized executable](#running-a-dockerized-executable)
+- [Directory & Module Structure](#directory--module-structure)
 - [Testing a dockerized executable](#testing-a-dockerized-executable)
-- [Example](#example)
+- [Examples](#examples)
+  * [Example 1: Notebook Image Extraction](#example-1-notebook-image-extraction)
+  * [Example 2: llm_transform](#example-2-llm_transform)
 
 <!-- tocstop -->
 
@@ -33,39 +36,40 @@ we want to run it in a container with minimal changes to the system call:
 ```
 
 - There are two template for dockerized scripts:
-  - `dev_scripts_helpers/dockerize/dockerized_template.py`
+  - [`/dev_scripts_helpers/dockerize/dockerized_template.py`](/dev_scripts_helpers/dockerize/dockerized_template.py)
     - TODO(gp): This is not the most updated
-  - `dev_scripts_helpers/dockerize/dockerized_template.sh`
+  - [`/dev_scripts_helpers/dockerize/dockerized_template.sh`](/dev_scripts_helpers/dockerize/dockerized_template.sh)
     - We prefer to use Python, instead of shell scripts
 
 - Examples of dockerized Python scripts are:
-  - `dev_scripts_helpers/llms/llm_transform.py`
+  - [`/dev_scripts_helpers/llms/llm_transform.py`](/dev_scripts_helpers/llms/llm_transform.py)
     - Run a Python script using `helpers` in a container with `openai` packages
-  - `dev_scripts_helpers/documentation/dockerized_prettier.py`
+  - [`/dev_scripts_helpers/documentation/dockerized_prettier.py`](/dev_scripts_helpers/documentation/dockerized_prettier.py)
     - Run `prettier` in a container
-  - `dev_scripts_helpers/documentation/convert_docx_to_markdown.py`
+  - [`/dev_scripts_helpers/documentation/convert_docx_to_markdown.py`](/dev_scripts_helpers/documentation/convert_docx_to_markdown.py)
     - Run `pandoc` in a container
 
 - Examples of dockerized shell scripts are:
-  - `dev_scripts_helpers/documentation/lint_latex.sh`
-  - `dev_scripts_helpers/documentation/latexdockercmd.sh`
-  - `dev_scripts_helpers/documentation/run_latex.sh`
+  - [`/dev_scripts_helpers/documentation/lint_latex.sh`](/dev_scripts_helpers/documentation/lint_latex.sh)
+  - [`/dev_scripts_helpers/documentation/latexdockercmd.sh`](/dev_scripts_helpers/documentation/latexdockercmd.sh)
+  - [`/dev_scripts_helpers/documentation/run_latex.sh`](/dev_scripts_helpers/documentation/run_latex.sh)
   - TODO(gp): Convert the scripts in Python
 
 ## Examples of dockerized executables
+
 - We support several dockerized executables in `hdocker.py`
-  - prettier
-  - pandoc
-  - markdown-toc
-  - latex
-  - llm_transform (which relies on `hopenai`)
-  - plantuml
-  - mermaid
+  - Prettier
+  - Pandoc
+  - Markdown-toc
+  - Latex
+  - Llm_transform (which relies on `hopenai`)
+  - Plantuml
+  - Mermaid
 
 - Some of these are exposed in the `dev_scripts_helpers` scripts, e.g.,
-  - `./dev_scripts_helpers/dockerize/dockerized_template.py`
-  - `./dev_scripts_helpers/documentation/dockerized_pandoc.py`
-  - `./dev_scripts_helpers/documentation/dockerized_prettier.py`
+  - [`/dev_scripts_helpers/dockerize/dockerized_template.py`](/dev_scripts_helpers/dockerize/dockerized_template.py)
+  - [`/dev_scripts_helpers/documentation/dockerized_pandoc.py`](/dev_scripts_helpers/documentation/dockerized_pandoc.py)
+  - [`/dev_scripts_helpers/documentation/dockerized_prettier.py`](/dev_scripts_helpers/documentation/dockerized_prettier.py)
 
 ## Children- vs Sibling-container
 
@@ -84,12 +88,12 @@ we want to run it in a container with minimal changes to the system call:
     - It comes with greater usage restrictions
 
 ### Bind mounting a directory from inside the development container
+
 - Caution must be exercised when bind mounting a directory to facilitate file
   exchange with the dockerized executable
 - **Children-container**
-  - In this case, bind mounting a directory does not pose any issues, since
-    the dockerized executable can use the same filesystem as the hosting
-    container
+  - In this case, bind mounting a directory does not pose any issues, since the
+    dockerized executable can use the same filesystem as the hosting container
 - **Sibling-container**
   - The mounted directory must be accessible from the host system
   - For instance, when a local directory is mounted within the container at
@@ -105,8 +109,8 @@ we want to run it in a container with minimal changes to the system call:
 
 - The problem is that files that needs to be processed by dockerized executables
   can be specified as absolute or relative path in the caller file system, and
-  we need to convert them to paths that are valid inside the filesystem of the new
-  Docker container
+  we need to convert them to paths that are valid inside the filesystem of the
+  new Docker container
 
 - We can run a Dockerized executable:
   - On the host; or
@@ -201,6 +205,20 @@ we want to run it in a container with minimal changes to the system call:
   - Compute the path as relative to the mount point of the caller
   - Use the mount point of the caller container
 
+# Directory & Module Structure
+
+- Directory Organization:
+  - `helpers/hdocker`: Contains functions managing Docker operations (e.g.,
+    `run_dockerized_notebook_image_extractor()`)
+  - `dockerized_*`: Houses executable scripts (`extract_notebook_images.py` or
+    `dockerized_latex.py`) that serve as the entry point for users
+    - Core functionalities for the module can be placed in separate files. For
+      example, image extraction logic might reside in `helpers/hjupyter`
+  - Naming Convention:`dockerized_*` are just wrappers around the corresponding
+    tools, while the others (example: `extract_notebook_images.py`)
+     are just scripts that perform some function and happen to use docker to
+    achieve it.
+
 # Testing a dockerized executable
 
 - Testing a dockerized executable can be complex, since in our development
@@ -214,19 +232,10 @@ we want to run it in a container with minimal changes to the system call:
       - `pytest`
         - `dockerized executable`
 
-- One potential solution is to execute tests for dockerized executables outside
-  of the development container.
-  - This approach generalizes the process of running pytest across "runnable
-    directories."
-  - However, it necessitates increased complexity within the pytest
-    infrastructure.
-
-- An alternative, less intrusive solution involves injecting files into the
-  image or container.
-  - However, this process can be complex and may not be straightforward to
-    implement.
-  - Approach 1)
-    - We could overwrite the entrypoint with something like:
+- Existing Approaches:
+  - Approach 1:
+    - Overwrite the entrypoint to wait for an injected file, then run the
+      container's main command:
 
       ```bash
       #!/bin/bash
@@ -237,69 +246,126 @@ we want to run it in a container with minimal changes to the system call:
         sleep 1
       done
 
-      # Run the container’s main command
+      # Run the container's main command
       exec "$@"
       ```
     - Then write files in the running container
-
-- Approach 2:
-  - The selected method involves the following steps:
+  - Approach 2:
     - Inject files into the Docker image by creating an additional layer using a
-      Dockerfile.
-    - Execute the test to process the input file that has been copied into the
-      image.
-    - Pause the container.
-    - Transfer the output file from the container to the host system.
-    - Terminate the container.
-  - This approach demonstrates versatility and is applicable to a range of
-    similar scenarios.
-    - It operates effectively using both the docker-in-docker method.
-    - It also functions efficiently with the sibling-container method.
+      Dockerfile:
+      - Build an image with the test files injected.
+      - Execute the test inside the container processing the input file.
+      - Pause the container.
+      - Transfer the output file from the container to the host system.
+      - Terminate the container.
 
-# Example
+- Preferred Approach: Simulated Usage Testing
 
-##
+  Instead of modifying the build context or patching the Dockerfile, we prefer
+  to simulate real-world usage by testing the dockerized executable exactly as
+  it will be used in production. This approach involves:
+  - Using the `hdocker` Module Directly:
 
-    is_caller_host = True
-    use_sibling_container_for_callee = True
+    Run the container using the helper function (e.g.,
+    run_dockerized_notebook_image_extractor()) as-is, without any additional
+    file injection or Dockerfile modifications.
+  - Realistic Environment Simulation:
 
-> llm_transform.py -i input.md -o - -t md_rewrite
- 
-caller_file_path='tmp.llm_transform.in.txt', caller_mount_path='/Users/saggese/src/helpers1', callee_mount_path='/app', check_if_exists=True, is_input=True, is_caller_host=True, use_sibling_container_for_callee=True
-  Converted tmp.llm_transform.in.txt -> tmp.llm_transform.in.txt -> /app/tmp.llm_transform.in.txt
+    The container is executed with its standard entrypoint and configuration,
+    mimicking the actual user invocation.
+  - Output Verification:
 
-caller_file_path='tmp.llm_transform.out.txt', caller_mount_path='/Users/saggese/src/helpers1', callee_mount_path='/app', check_if_exists=False, is_input=False, is_caller_host=True, use_sibling_container_for_callee=True
-  Converted tmp.llm_transform.out.txt -> tmp.llm_transform.out.txt -> /app/tmp.llm_transform.out.txt
+    After execution, assert the presence and correctness of output files or log
+    messages. If needed, you can verify the file system or container logs to
+    confirm that the expected actions were performed.
 
-caller_file_path='/Users/saggese/src/helpers1', caller_mount_path='/Users/saggese/src/helpers1', callee_mount_path='/app', check_if_exists=True, is_input=False, is_caller_host=True, use_sibling_container_for_callee=True
-  Converted /Users/saggese/src/helpers1 -> . -> /app
+  Benefits
+  - Simplifies the testing setup by reducing pytest configuration complexity
+  - Ensures that tests mirror the actual behavior of the dockerized executable
+    in production
+  - Avoids the overhead of additional layers or entrypoint modifications
 
-caller_file_path='/Users/saggese/src/helpers1/dev_scripts_helpers/llms/_llm_transform.py', caller_mount_path='/Users/saggese/src/helpers1', callee_mount_path='/app', check_if_exists=True, is_input=True, is_caller_host=True, use_sibling_container_for_callee=True
-  Converted /Users/saggese/src/helpers1/dev_scripts_helpers/llms/_llm_transform.py -> dev_scripts_helpers/llms/_llm_transform.py -> /app/dev_scripts_helpers/llms/_llm_transform.py
+  Example: `dev_scripts_helpers/notebooks/test/test_extract_notebook_images.py`
 
-> (docker run --rm --user $(id -u):$(id -g) -e OPENAI_API_KEY -e PYTHONPATH=/app --workdir //app --mount type=bind,source=/Users/saggese/src/helpers1,target=/app tmp.llm_transform.b24cf6a4 /app/dev_scripts_helpers/llms/_llm_transform.py -i /app/tmp.llm_transform.in.txt -o /app/tmp.llm_transform.out.txt -t md_rewrite -v DEBUG) 2>&1
+# Examples
 
-##
-    is_caller_host = False
-    use_sibling_container_for_callee = True
+## Example 1: Notebook Image Extraction
 
-user_501@90607cb8df65:/app$ ./dev_scripts_helpers/llms/llm_transform.py -i
-input.md -o - -t md_rewrite -v DEBUG
+- Executable Script:
+  - Location:[`/dev_scripts_helpers/notebooks/extract_notebook_images.py`](/dev_scripts_helpers/notebooks/extract_notebook_images.py)
+  - Role: Acts as the entry point for users. It parses command-line arguments
+    and orchestrates the workflow by invoking Docker operations from the
+    helpers/`hdocker` module
 
-source_file_path='tmp.llm_transform.in.txt', source_host_path='/app', target_docker_path='/src', check_if_exists=True, is_input=True
-Converted tmp.llm_transform.in.txt -> tmp.llm_transform.in.txt -> /src/tmp.llm_transform.in.txt
+- Core Functionalities:
+  - Location: `helpers/hjupyter`
+  - Role: Contains the logic for extracting images from Jupyter notebooks. This
+    module implements the actual image extraction process used by the executable
+    script
 
-source_file_path='tmp.llm_transform.out.txt', source_host_path='/app', target_docker_path='/src', check_if_exists=False, is_input=False
-Converted tmp.llm_transform.out.txt -> tmp.llm_transform.out.txt -> /src/tmp.llm_transform.out.txt
+- Docker Management:
+  - Location: `helpers/hdocker`
+  - Role: Encapsulates all Docker-related operations such as building the
+    container, defining Docker commands, and running the container. This module
+    provides the function (e.g., `run_dockerized_notebook_image_extractor()`)
+    that the executable script calls to execute the image extraction inside a
+    Docker container
 
-source_file_path='/app', source_host_path='/app', target_docker_path='/src', check_if_exists=True, is_input=False
-Converted /app -> . -> /src/.
+- Testing:
+  - Location:
+    `dev_scripts_helpers/notebooks/test/test_extract_notebook_images.py`
+  - Role: Contains tests for the dockerized executable. The tests simulate
+    real-world usage by invoking the Docker container using the standard process
+    defined in `helpers/hdocker`, and then asserting that the expected output
+    (such as extracted images) is produced
 
-source_file_path='/app/dev_scripts_helpers/llms/_llm_transform.py', source_host_path='/app', target_docker_path='/src', check_if_exists=True, is_input=True
-Converted /app/dev_scripts_helpers/llms/_llm_transform.py -> dev_scripts_helpers/llms/_llm_transform.py -> /src/dev_scripts_helpers/llms/_llm_transform.py
+## Example 2: llm_transform
 
-> (docker run --rm --user $(id -u):$(id -g) -e OPENAI_API_KEY -e
-PYTHONPATH=/src/. --workdir /src --mount type=bind,source=/app,target=/src
-tmp.llm_transform.b24cf6a4 /src/dev_scripts_helpers/llms/_llm_transform.py -i
-/src/tmp.llm_transform.in.txt -o /src/tmp.llm_transform.out.txt -t md_rewrite -v
-DEBUG) 2>&1
+The example illustrates how the dockerized executable for llm_transform manages
+file path conversions and container invocation in two different scenarios.
+Here's a breakdown:
+
+- Overview
+
+  The tool (`llm_transform.py`) transforms a markdown file based on a given type
+  (here, md_rewrite) and supports two configurations controlled by:
+  - `is_caller_host`: Determines if the command is initiated from the host.
+  - `use_sibling_container_for_callee`: Indicates if a sibling container is used
+    to execute the transformation.
+
+- How File Paths Are Managed
+
+  When you run the command, the tool converts file paths from the caller's
+  context (either the host or within a container) to the paths that will be
+  valid inside the target container. For instance:
+  - Input File Conversion: The caller's `tmp.llm_transform.in.txt` is mapped to
+    `/app/tmp.llm_transform.in.txt` in the container
+  - Output File Conversion: Similarly, `tmp.llm_transform.out.txt` is mapped to
+    `/app/tmp.llm_transform.out.txt`
+
+- Script and Directory Conversion: The script located at
+  [`/dev_scripts_helpers/llms/_llm_transform.py`](/dev_scripts_helpers/llms/_llm_transform.py)
+  is converted to `/app/dev_scripts_helpers/llms/_llm_transform.py` so that it
+  can be accessed inside the container.
+
+- Docker Run Command Construction
+
+  After converting the file paths, the system constructs a docker run command.
+  - For the first scenario (when `is_caller_host = True`):
+    - Mounting: The host directory (eg: `/Users/saggese/src/helpers1`) is
+      mounted into the container at `/app`
+    - Environment and Working Directory: Environment variables (like
+      `OPENAI_API_KEY`) are passed, and the working directory is set to `/app`
+    - Command Execution:
+
+    The container then executes the transformed script
+    (`/app/dev_scripts_helpers/llms/_llm_transform.py`) with the converted input
+    and output paths and additional flags (e.g.,
+    `transformation type -t md_rewrite and verbosity -v DEBUG`).
+  - For the second scenario (when `is_caller_host = False`):
+    - The conversion adjusts for the fact that the command is executed inside
+      the container.
+    - The mount paths and target paths differ (e.g., the container might mount
+      `/app` to `/src`), but the concept remains the same: ensure that the file
+      paths used in the command correspond correctly to those inside the
+      container.
