@@ -101,50 +101,6 @@ class Test_fix_links(hunitest.TestCase):
         )
         self.check_string(output)
 
-    def test4(self) -> None:
-        """
-        Test file path to retain directory name beginning with a dot.
-        """
-        file_path = "/.github/workflows/sprint_iteration.yml"
-        expected_path = "/.github/workflows/sprint_iteration.yml"
-        # Run.
-        actual_path = lafimdli._make_path_absolute(file_path)
-        # Check.
-        self.assertEqual(actual_path, expected_path)
-
-    def test5(self) -> None:
-        """
-        Test to make file path absolute.
-        """
-        file_path = "./.github/workflows/sprint_iteration.yml"
-        expected_path = "/.github/workflows/sprint_iteration.yml"
-        # Run.
-        actual_path = lafimdli._make_path_absolute(file_path)
-        # Check.
-        self.assertEqual(actual_path, expected_path)
-
-    def test6(self) -> None:
-        """
-        Test to make file path absolute.
-        """
-        file_path = "../.github/workflows/sprint_iteration.yml"
-        expected_path = "/.github/workflows/sprint_iteration.yml"
-        # Run.
-        actual_path = lafimdli._make_path_absolute(file_path)
-        # Check.
-        self.assertEqual(actual_path, expected_path)
-
-    def test7(self) -> None:
-        """
-        Test to make file path absolute.
-        """
-        file_path = "../../.github/workflows/sprint_iteration.yml"
-        expected_path = "/.github/workflows/sprint_iteration.yml"
-        # Run.
-        actual_path = lafimdli._make_path_absolute(file_path)
-        # Check.
-        self.assertEqual(actual_path, expected_path)
-
     def _get_txt_with_incorrect_links(self) -> str:
         txt_incorrect = r"""
 - Markdown-style link with a text label
@@ -265,3 +221,55 @@ height="1.2303444881889765in"}
         # Create the file.
         hio.to_file(file_path, txt)
         return file_path
+
+
+# #############################################################################
+# Test_make_path_absolute
+# #############################################################################
+
+
+class Test_make_path_absolute(hunitest.TestCase):
+
+    def test_make_path_absolute1(self) -> None:
+        """
+        Test file path to retain directory name beginning with a dot.
+        """
+        file_path = "/.github/workflows/sprint_iteration.yml"
+        expected = "/.github/workflows/sprint_iteration.yml"
+        # Run.
+        actual = lafimdli._make_path_absolute(file_path)
+        # Check.
+        self.assertEqual(actual, expected)
+
+    def test_make_path_absolute2(self) -> None:
+        """
+        Test to make file path absolute.
+        """
+        file_path = "./.github/workflows/sprint_iteration.yml"
+        expected = "/.github/workflows/sprint_iteration.yml"
+        # Run.
+        actual = lafimdli._make_path_absolute(file_path)
+        # Check.
+        self.assertEqual(actual, expected)
+
+    def test_make_path_absolute3(self) -> None:
+        """
+        Test to make file path absolute.
+        """
+        file_path = "../.github/workflows/sprint_iteration.yml"
+        expected = "/.github/workflows/sprint_iteration.yml"
+        # Run.
+        actual = lafimdli._make_path_absolute(file_path)
+        # Check.
+        self.assertEqual(actual, expected)
+
+    def test_make_path_absolute4(self) -> None:
+        """
+        Test to make file path absolute.
+        """
+        file_path = "../../.github/workflows/sprint_iteration.yml"
+        expected = "/.github/workflows/sprint_iteration.yml"
+        # Run.
+        actual = lafimdli._make_path_absolute(file_path)
+        # Check.
+        self.assertEqual(actual, expected)
