@@ -116,7 +116,7 @@ def _save_labels(labels: List[Label], path: str) -> None:
     try:
         with open(path, "w") as file:
             labels_data = [label.to_dict() for label in labels]
-            # Set `default_flow_style=False` to uses block style instead of
+            # Set `default_flow_style=False` to use block style instead of
             # flow style for better readability.
             yaml.dump(
                 labels_data, file, default_flow_style=False, sort_keys=False
