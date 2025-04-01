@@ -2120,7 +2120,7 @@ def list_to_str(
     """
     Convert a list of values into a formatted string representation.
 
-    E.g., [1, "two", 3, 4, 5] -> "5 ['1', "two", '3', '4', '5']"
+    E.g., [1, "two", 3, 4, 5] -> "5 ['1', 'two', '3', '4', '5']"
 
     :param vals: values to be converted
     :param sep_char: separator to use between elements
