@@ -1,92 +1,66 @@
 #!/usr/bin/env python
-
 """
-Convert Docx file to Markdown.
+Dockerized DOCX-to-Markdown Converter Template.
 
-- Download a Google Doc as a docx document
+This script converts a DOCX file to Markdown using a Dockerized pandoc environment.
+It is intended as a template to explain the process.
 
-- Run this command in the same directory as the Markdown file:
-> FILE_NAME="tmp"; ls $FILE_NAME
-> dev_scripts/convert_docx_to_markdown.py --docx_file $FILE_NAME.docx --md_file $FILE_NAME.md
+Usage Instructions:
+
+  1. In your working directory, ensure you have your DOCX file ready (e.g., my_document.docx).
+     Then run the script with the appropriate arguments. For example:
+       dev_scripts_helpers/dockerize/dockerized_template/dockerized_template.py \
+           --docx_file my_document.docx \
+           --md_file my_document.md
+
+  2. The script will:
+       - Convert the input DOCX file to a Markdown file.
+       - Extract any embedded media (e.g., images) into a folder derived from the Markdown file name
+         (e.g., "my_document.md" -> "my_document_figs").
+       - Execute pandoc within a Docker container for a consistent conversion environment.
+
+Notes:
+  - Docker-specific options (such as forcing a rebuild or using sudo) are supported via the helper functions.
+  - The pandoc command is constructed to always start with the token "pandoc" to ensure proper parsing by the helper routines.
+  - Any line marked with "FILL THIS LIKE:" is a placeholder that you can customize to suit your needs.
 """
 
 import argparse
 import logging
 
 import helpers.hdbg as hdbg
-import helpers.hdocker as hdocker
 import helpers.hparser as hparser
-import helpers.hprint as hprint
-import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
 
-def _build_container() -> str:
-    container_name = "convert_docx_to_markdown"
-    txt = r"""
-    FROM ubuntu:latest
-
-    RUN apt-get update && \
-        apt-get -y upgrade
-
-    RUN apt-get install -y curl pandoc && \
-        apt-get clean && \
-        rm -rf /var/lib/apt/lists/*
-    """
-    txt = hprint.dedent()
-    force_rebuild = False
-    use_sudo = False
-    container_name = hdocker.build_container_image(container_name, txt,
-                                                   force_rebuild, use_sudo)
-    return container_name
-
-
-def _convert_docx_to_markdown(
-    docx_file: str, md_file: str, md_file_figs: str
-) -> None:
-    """
-    Convert Docx file to Markdown.
-
-    :param docx_file: path to the Docx file
-    :param md_file: path to the Markdown file
-    :param md_file_figs: the folder containing the figures for Markdown
-        file
-    """
-    _LOG.info("Converting Docx to Markdown...")
-    hdbg.dassert_file_exists(docx_file)
-    # Create the Markdown file.
-    hsystem.system(f"touch {md_file}")
-    docker_container_name = _build_container()
-    # Run Docker container.
-    cmd = f"rm -rf {md_file_figs}"
-    hsystem.system(cmd)
-    # Convert from Docx to Markdown.
-    cmd = f"pandoc --extract-media {md_file_figs} -f docx -t markdown_strict -{md_file} {docx_file}"
-    hdocker.run_container(docker_container_name, cmd)
-
-
-# #############################################################################
-
-
 def _parse() -> argparse.ArgumentParser:
+    """
+    Parse command-line arguments for the conversion script.
+
+    The script expects:
+      --docx_file: Path to the input DOCX file.
+      --md_file:   Path to the output Markdown file.
+    """
+    # Create an ArgumentParser instance with the provided docstring.
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
+    # FILL THIS LIKE: Required argument for the DOCX file (input).
     parser.add_argument(
         "--docx_file",
-        action="store",
         required=True,
         type=str,
-        help="The Docx file that needs to be converted to Markdown",
+        help="Path to the DOCX file to convert.",
     )
+    # FILL THIS LIKE: Required argument for the Markdown file (output).
     parser.add_argument(
         "--md_file",
-        action="store",
         required=True,
         type=str,
-        help="The output Markdown file",
+        help="Path to the output Markdown file.",
     )
+    # Add Docker-specific arguments (e.g., --dockerized_force_rebuild, --dockerized_use_sudo).
     hparser.add_dockerized_script_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
@@ -94,13 +68,41 @@ def _parse() -> argparse.ArgumentParser:
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    docx_file = args.docx_file
-    md_file = args.md_file
-    # The folder for the figures.
-    md_file_figs = md_file.replace(".md", "_figs")
-    _convert_docx_to_markdown(docx_file, md_file, md_file_figs)
-    _LOG.info("Finished converting '%s' to '%s'.", docx_file, md_file)
+    hdbg.init_logger(
+        verbosity=args.log_level, use_exec_path=True, force_white=False
+    )
+    # FILL THIS LIKE: Define folder for extracted media (e.g., images) by replacing ".md" with "_figs".
+    md_file_figs = args.md_file.replace(".md", "_figs")
+    _LOG.info("Converting '%s' to Markdown '%s'...", args.docx_file, args.md_file)
+    # FILL THIS LIKE: Build the pandoc command. IMPORTANT: The command string must start with 'pandoc'.
+    pandoc_cmd = (
+        # FILL THIS LIKE: 'pandoc' executable token.
+        "pandoc "
+        +
+        # FILL THIS LIKE: Input DOCX file.
+        f"{args.docx_file} "
+        +
+        # FILL THIS LIKE: Flag to extract embedded media to the specified folder.
+        f"--extract-media {md_file_figs} "
+        +
+        # FILL THIS LIKE: Conversion: input format DOCX, output format strict Markdown.
+        "-f docx -t markdown_strict "
+        +
+        # FILL THIS LIKE: Specify output Markdown file with '-o'.
+        f"-o {args.md_file}"
+    )
+    _LOG.debug("Pandoc command: %s", pandoc_cmd)
+    # FILL THIS LIKE: Run pandoc within a Docker container using our helper function.
+    # This function will handle:
+    #   - Converting host file paths to Docker container paths.
+    #   - Executing the command in a reproducible Docker environment.
+    # hdocker.run_dockerized_pandoc(
+    #     pandoc_cmd,
+    #     container_type="pandoc_only",
+    #     force_rebuild=args.dockerized_force_rebuild,
+    #     use_sudo=args.dockerized_use_sudo,
+    # )
+    _LOG.info("Finished converting '%s' to '%s'.", args.docx_file, args.md_file)
 
 
 if __name__ == "__main__":
