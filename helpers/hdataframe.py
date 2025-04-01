@@ -104,10 +104,10 @@ def filter_data_by_comparison(
     # Create filter masks for each column.
     masks = []
     for col_name, tuple_ in filters.items():
-        if isinstance(tuple_, tuple) and isinstance(tuple_[0], str):
-            comparisons: Tuple[Tuple[str, Any], ...] = (cast(Tuple[str, Any], tuple_),)
-        else:
-            comparisons = cast(Tuple[Tuple[str, Any], ...], tuple_)
+        hdbg.dassert_isinstance(tuple_, tuple)
+        if tuple_ and isinstance(tuple_[0], str):
+            tuple_ = (tuple_, )
+        comparisons = cast(Tuple[Tuple[str, Any], ...], tuple_)
         for comparison_method, val in comparisons:
             hdbg.dassert_in(comparison_method, ("eq", "ne", "le", "lt", "ge", "gt"))
             mask = getattr(df[col_name], comparison_method)(val)
