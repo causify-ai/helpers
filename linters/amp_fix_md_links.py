@@ -38,7 +38,11 @@ def _make_path_absolute(path: str) -> str:
     :param path: the original path
     :return: the absolute path
     """
-    abs_path = path.lstrip(".")
+    if path.startswith("./"):
+        abs_path = path[2:]
+    else:
+        abs_path = path.lstrip("/")
+    abs_path = "/" + abs_path
     return abs_path
 
 
