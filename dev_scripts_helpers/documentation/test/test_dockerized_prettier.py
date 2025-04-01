@@ -1,5 +1,7 @@
 import os
 
+import pytest
+
 import helpers.hdocker as hdocker
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
@@ -12,6 +14,7 @@ import helpers.hunit_test as hunitest
 
 class Test_run_dockerized_prettier(hunitest.TestCase):
 
+    @pytest.mark.superslow
     def test1(self) -> None:
         """
         Test that Dockerized Prettier reads an input file, formats it, and
@@ -20,10 +23,9 @@ class Test_run_dockerized_prettier(hunitest.TestCase):
         input_dir = self.get_input_dir()
         output_dir = self.get_output_dir()
         hio.create_dir(output_dir, incremental=True)
-
         input_file_path = os.path.join(input_dir, "input.md")
         output_file_path = os.path.join(output_dir, "output.md")
-        # Command options.
+        # Prepare input command options.
         cmd_opts = [
             "--parser",
             "markdown",
@@ -38,7 +40,7 @@ class Test_run_dockerized_prettier(hunitest.TestCase):
             cmd_opts,
             output_file_path,
             return_cmd=False,
-            force_rebuild=True,
+            force_rebuild=False,
             use_sudo=False,
         )
         # Check output.
