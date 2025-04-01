@@ -85,7 +85,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Show the package list.
     _system("pip3 list")
     # Darwin specific updates.
-    if platform.system() == "Darwin":
+    if hserver.is_mac():
         _system("brew update")
         _, brew_ver = hsystem.system_to_string("brew --version")
         _LOG.info("# brew version=%s", brew_ver)
@@ -98,7 +98,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         # dive_ver = run_command("dive --version")
         # _LOG.info("dive version=%s", dive_ver)
     # Linux specific updates.
-    if platform.system() == "Linux":
+    if hserver.is_external_linux():
         # Install GitHub CLI on linux ubuntu system using apt.
         # Installation instructions based on the official GitHub CLI documentation:
         # https://github.com/cli/cli/blob/trunk/docs/install_linux.md
