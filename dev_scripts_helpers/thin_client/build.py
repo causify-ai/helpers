@@ -97,7 +97,31 @@ def _main(parser: argparse.ArgumentParser) -> None:
         # run_command("brew install dive")
         # dive_ver = run_command("dive --version")
         # _LOG.info("dive version=%s", dive_ver)
-    #
+    # Linux specific updates.
+    if platform.system() == "Linux":
+        # Install GitHub CLI on linux ubuntu system using apt.
+        # Installation instructions based on the official GitHub CLI documentation:
+        # https://github.com/cli/cli/blob/trunk/docs/install_linux.md
+        commands = [
+            "type -p wget >/dev/null || (sudo apt update && sudo apt-get install wget -y)",
+            "sudo mkdir -p -m 755 /etc/apt/keyrings",
+            (
+                "out=$(mktemp) && wget -nv -O$out https://cli.github.com/packages/githubcli-archive-keyring.gpg "
+                "&& cat $out | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null"
+            ),
+            "sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg",
+            (
+                'echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] '
+                'https://cli.github.com/packages stable main" | '
+                "sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null"
+            ),
+            "sudo apt update",
+            "sudo apt install gh -y",
+        ]
+        for command in commands:
+            _system(command)
+        _, gh_ver = hsystem.system_to_string("gh --version")
+        _LOG.info("# gh version=%s", gh_ver)
     _LOG.info("%s successful", SCRIPT_PATH)
 
 

@@ -25,6 +25,7 @@
     + [Use `self.assert_equal()`](#use-selfassert_equal)
     + [How to split unit test code in files](#how-to-split-unit-test-code-in-files)
     + [Skeleton for unit test](#skeleton-for-unit-test)
+    + [Use consistent comments in test methods](#use-consistent-comments-in-test-methods)
     + [Hierarchical `TestCase` approach](#hierarchical-testcase-approach)
     + [Use the appropriate `self.assert*`](#use-the-appropriate-selfassert)
     + [Do not use `hdbg.dassert` in testing](#do-not-use-hdbgdassert-in-testing)
@@ -339,6 +340,29 @@ Last review: GP on 2024-05-13
   unittest.main()
   ```
 
+#### Use consistent comments in test methods
+
+We strongly encourage adding short, consistent comments at the start of each
+main action within your test methods to establish a unified structure:
+
+```python
+import helpers.hunit_test as hunitest
+
+class TestFooBar1(hunitest.TestCase):
+    def test_method_a(self):
+        # Prepare inputs.
+        input_value = 42
+        # Run.
+        actual = foo_bar_function(input_value)
+        # Check.
+        expected = "some_expected_value"
+        self.assert_equal(str(actual), expected)
+```
+
+This makes it easy to scan what the test is doing and quickly understand its
+three core steps. It also improves readability and consistency across all our
+test code.
+
 #### Hierarchical `TestCase` approach
 
 - Whenever there is a hierarchy in classes, we also create a hierarchy of test
@@ -395,20 +419,21 @@ Last review: GP on 2024-05-13
 
 #### Always explain `self.assertRaises`
 
-- Testing for an assertion needs to always be done with the following idiom to
-  explain exactly what we are catching and why
-  ```python
-  with self.assertRaises(AssertionError) as cm:
-      hlitagit.git_patch_create(
-          ctx, mode, modified, branch, last_commit, files
-      )
-  act = str(cm.exception)
-  exp = r"""
-* Failed assertion \* '0' == '1' Specify only one among --modified,
-  --branch, --last-commit 
-  """ 
-  self.assert_equal(act, exp, fuzzy_match=True)
-  ```
+- When testing for an assertion, always use the following idiom to clearly
+  explain what exception is expected and why:
+
+```python
+with self.assertRaises(AssertionError) as cm:
+    hlitagit.git_patch_create(
+        ctx, mode, modified, branch, last_commit, files
+    )
+act = str(cm.exception)
+exp = r"""
+* Failed assertion * '0' == '1' Specify only one among --modified,
+  --branch, --last-commit
+"""
+self.assert_equal(act, exp, fuzzy_match=True)
+```
 
 #### Interesting testing functions
 
