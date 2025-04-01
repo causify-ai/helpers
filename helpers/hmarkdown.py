@@ -147,13 +147,7 @@ def process_single_line_comment(line: str) -> bool:
         _LOG.debug("  -> do_continue=True")
         return do_continue
     # Skip frame.
-    # TODO(gp): Use is_markdown_line_separator
-    if (
-        re.match(r"\#+ -----", line)
-        or re.match(r"\#+ \#\#\#\#\#", line)
-        or re.match(r"\#+ =====", line)
-        or re.match(r"\#+ \/\/\/\/\/", line)
-    ):
+    if is_markdown_line_separator(line):
         do_continue = True
         _LOG.debug("  -> do_continue=True")
         return do_continue
@@ -512,13 +506,7 @@ def format_headers(in_file_name: str, out_file_name: str, max_lev: int) -> None:
     txt_tmp = []
     for line in txt:
         # Keep the comments.
-        # TODO(gp): Use is_markdown_line_separator()
-        if not (
-            re.match("#+ ####+", line)
-            or re.match("#+ /////+", line)
-            or re.match("#+ ------+", line)
-            or re.match("#+ ======+", line)
-        ):
+        if not is_markdown_line_separator(line):
             txt_tmp.append(line)
     txt = txt_tmp[:]
     # Add proper heading of the correct length.
