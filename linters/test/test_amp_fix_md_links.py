@@ -143,7 +143,7 @@ class Test_fix_links(hunitest.TestCase):
   - [File not found](/helpersssss/hhhhgit.py)
 
 - Markdown-style link with a directory beginning with a dot
-  - [`sprint_iteration.yml`](/.github/workflows/sprint_iteration.yml)
+  - [`fast_tests.yml`](/.github/workflows/fast_tests.yml)
 
 - File path without the backticks
   - /helpers/test/test_hdbg.py

@@ -1,7 +1,6 @@
 # linter warnings
 
 /app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:38: '/helpersssss/hhhhgit.py' does not exist
-/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:41: '/.github/workflows/sprint_iteration.yml' does not exist
 /app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:77: 'import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
 /app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:80: 'import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
 /app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:83: '/import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
