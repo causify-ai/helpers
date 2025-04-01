@@ -6,321 +6,231 @@ Examples
 
 # Basic usage:
 > sync_gh_issue_labels.py \
-    --yaml ./labels/gh_issues_labels.yml \
-    --owner causify-ai \
-    --repo tutorials \
-    --token *** \
-    --backup
+	--yaml ./labels/gh_issues_labels.yml \
+	--owner causify-ai \
+	--repo tutorials \
+	--token *** \
+	--backup
 """
 
 import argparse
 import logging
 import sys
-from typing import List
+import subprocess
+from typing import Dict, List
 
-import requests
 import yaml
+
+try:
+	import github
+except ImportError:
+	subprocess.call(["sudo", "/venv/bin/pip", "install", "pygithub"])
+	import github
 
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
+import helpers.hdbg as hdbg
 
 _LOG = logging.getLogger(__name__)
 
-
-# #############################################################################
-# Label
-# #############################################################################
-
-
 class Label:
 
-    def __init__(self, name: str, description: str, color: str):
-        """
-        Initialize the label with name, description, and color.
+	def __init__(self, name: str, description: str, color: str):
+		"""
+		Initialize the label with name, description, and color.
 
-        :param name: label name
-        :param description: label description
-        :param color: label color in hex format
-        """
-        self.name = name
-        self.description = description
-        # Remove # prefix if present.
-        self.color = color.lstrip("#")
+		:param name: label name
+		:param description: label description
+		:param color: label color in hex format
+		"""
+		self._name = name
+		self._description = description
+		# Remove '#' prefix from hex code if present.
+		self._color = color.lstrip("#")
 
-    def __repr__(self):
-        return f"Label(name='{self.name}', description='{self.description}', color='{self.color}')"
+	@property
+	def name(self) -> str:
+		return self._name
 
+	@property
+	def description(self) -> str:
+		return self._description
+	
+	@property
+	def color(self) -> str:
+		return self._color
 
-# #############################################################################
-# GitHubClient
-# #############################################################################
+	def __repr__(self):
+		return f"label(name='{self.name}', description='{self.description}', color='{self.color}')"
 
+	def to_dict(self) -> Dict[str, str]:
+		"""
+		Return label as a dictionary.
+		
+		:return: label as a dictionary
+		"""
+		return {
+			"name": self._name,
+			"description": self._description,
+			"color": self._color,
+		}
 
-class GitHubClient:
+def _load_labels(path: str) -> List[Label]:
+	"""
+	Load labels from label inventory manifest file.
 
-    def __init__(self, token: str):
-        """
-        Initialize the client with a personal access token.
+	:param path: path to label inventory manifest file
+	:return: label objects
+	"""
+	try:
+		with open(path, "r") as file:
+			yaml_data = yaml.safe_load(file)
+			labels = [
+				Label(
+					name=item["name"],
+					description=item["description"],
+					color=item["color"],
+				)
+				for item in yaml_data
+			]
+			return labels
+	except Exception as e:
+		_LOG.error("Error loading label inventory manifest file: %s", str(e))
+		raise e
+		
+def _save_labels(labels: List[Label], path: str) -> None:
+	"""
+	Save labels to the label inventory manifest file.
 
-        :param token: GitHub personal access token
-        """
-        self.token = token
-        self.headers = {
-            "Authorization": f"token {token}",
-            "Accept": "application/vnd.github.v3+json",
-        }
-
-    def get_labels(self, owner: str, repo: str) -> List[Label]:
-        """
-        Get all labels from a repository.
-
-        :param owner: GitHub repository owner/organization
-        :param repo: GitHub repository name
-        :return: label objects
-        """
-        url = f"https://api.github.com/repos/{owner}/{repo}/labels"
-        labels = []
-        page = 1
-        per_page = 50
-        while True:
-            response = requests.get(
-                url,
-                headers=self.headers,
-                params={"page": page, "per_page": per_page},
-            )
-            response.raise_for_status()
-            page_labels = response.json()
-            if not page_labels:
-                break
-            for label_data in page_labels:
-                labels.append(
-                    Label(
-                        name=label_data["name"],
-                        description=label_data.get("description", ""),
-                        color=label_data["color"],
-                    )
-                )
-            # Check if we've retrieved all pages.
-            if len(page_labels) < per_page:
-                break
-            page += 1
-        return labels
-
-    def create_label(self, owner: str, repo: str, label: Label) -> None:
-        """
-        Create a new label in the repository.
-
-        :param owner: GitHub repository owner/organization
-        :param repo: GitHub repository name
-        :param label: label object to create
-        """
-        url = f"https://api.github.com/repos/{owner}/{repo}/labels"
-        data = {
-            "name": label.name,
-            "description": label.description,
-            "color": label.color,
-        }
-        response = requests.post(url, headers=self.headers, json=data)
-        response.raise_for_status()
-        _LOG.info("Label created: %s", label)
-
-    def update_label(self, owner: str, repo: str, label: Label) -> None:
-        """
-        Update an existing label in the repository.
-
-        :param owner: GitHub repository owner/organization
-        :param repo: GitHub repository name
-        :param label: label object to update
-        """
-        url = f"https://api.github.com/repos/{owner}/{repo}/labels/{label.name}"
-        data = {
-            "name": label.name,
-            "description": label.description,
-            "color": label.color,
-        }
-        response = requests.patch(url, headers=self.headers, json=data)
-        response.raise_for_status()
-        _LOG.info("Label updated: %s", label)
-
-    def delete_label(self, owner: str, repo: str, name: str) -> None:
-        """
-        Delete a label from the repository.
-
-        :param owner: GitHub repository owner/organization
-        :param repo: GitHub repository name
-        :param name: label name to delete
-        """
-        url = f"https://api.github.com/repos/{owner}/{repo}/labels/{name}"
-        response = requests.delete(url, headers=self.headers)
-        response.raise_for_status()
-        _LOG.info("Label deleted: %s", name)
-
-
-def load_labels(path: str) -> List[Label]:
-    """
-    Load labels from label inventory manifest file.
-
-    :param path: path to label inventory manifest file
-    :return: label objects
-    """
-    try:
-        with open(path, "r") as file:
-            yaml_data = yaml.safe_load(file)
-            labels = [
-                Label(
-                    name=item["name"],
-                    description=item["description"],
-                    color=item["color"],
-                )
-                for item in yaml_data
-            ]
-            return labels
-    except Exception as e:
-        _LOG.error("Error loading label inventory manifest file: %s", str(e))
-        sys.exit(1)
-
-
-def save_labels(labels: List[Label], path: str) -> None:
-    """
-    Save labels to the label inventory manifest file.
-
-    :param labels: label objects
-    :param path: path to save the label inventory manifest file to
-    """
-    try:
-        with open(path, "w") as file:
-            yaml_data = [
-                {
-                    "name": label.name,
-                    "description": label.description,
-                    "color": f"#{label.color}",
-                }
-                for label in labels
-            ]
-            yaml.dump(yaml_data, file, default_flow_style=False, sort_keys=False)
-    except Exception as e:
-        _LOG.error("Error saving label inventory manifest file: %s", str(e))
-        sys.exit(1)
-
-
-def sync_labels(
-    client: GitHubClient, owner: str, repo: str, labels: List[Label], prune: bool
-) -> None:
-    """
-    Synchronize labels between config and repository.
-
-    :param client: GitHub client
-    :param owner: GitHub repository owner/organization
-    :param repo: GitHub repository name
-    :param labels: label objects
-    :param prune: delete labels that exist in the repo but not in the
-        label inventory manifest file
-    """
-    # Build maps for efficient lookup.
-    label_map = {label.name: label for label in labels}
-    current_labels = client.get_labels(owner, repo)
-    current_label_map = {label.name: label for label in current_labels}
-    # Delete labels if pruning is enabled.
-    if prune:
-        for current_label in current_labels:
-            if current_label.name not in label_map:
-                try:
-                    client.delete_label(owner, repo, current_label.name)
-                except Exception as e:
-                    _LOG.error(
-                        "Error deleting label %s: %s", current_label.name, e
-                    )
-    # Create or update labels.
-    for label in labels:
-        current_label = current_label_map.get(label.name)
-        try:
-            if current_label is None:
-                # Label doesn't exist, create it.
-                client.create_label(owner, repo, label)
-            elif (
-                current_label.description != label.description
-                or current_label.color != label.color
-            ):
-                # Label exists but needs update.
-                client.update_label(owner, repo, label)
-            else:
-                # Label exists and is identical.
-                _LOG.info("Label not changed: %s", label)
-        except Exception as e:
-            _LOG.error("Error processing label %s: %s", label.name, e)
-
+	:param labels: label objects
+	:param path: path to save the label inventory manifest file to
+	"""
+	try:
+		with open(path, "w") as file:
+			labels_data = [label.to_dict() for label in labels]
+			# Set `default_flow_style=False` to uses block style instead of 
+			# flow style for better readability.
+			yaml.dump(labels_data, file, default_flow_style=False, sort_keys=False)
+	except Exception as e:
+		_LOG.error("Error saving label inventory manifest file: %s", str(e))
+		raise e
 
 def _parse() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
-    )
-    hparser.add_verbosity_arg(parser)
-    parser.add_argument(
-        "--yaml",
-        "-y",
-        required=True,
-        help="Path to label inventory manifest file",
-    )
-    parser.add_argument(
-        "--owner",
-        "-o",
-        required=True,
-        help="GitHub repository owner/organization",
-    )
-    parser.add_argument(
-        "--repo", "-r", required=True, help="GitHub repository name"
-    )
-    parser.add_argument(
-        "--token", "-t", required=True, help="GitHub personal access token"
-    )
-    parser.add_argument(
-        "--prune",
-        "-p",
-        action="store_true",
-        help="Delete labels that exist in the repo but not in the label inventory manifest file",
-    )
-    parser.add_argument(
-        "--dry_run",
-        "-d",
-        action="store_true",
-        help="Print out the labels and exits immediately",
-    )
-    parser.add_argument(
-        "--backup",
-        "-b",
-        action="store_true",
-        help="Backup current labels to a label inventory manifest file",
-    )
-    return parser
+	parser = argparse.ArgumentParser(
+		description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+	)
+	hparser.add_verbosity_arg(parser)
+	parser.add_argument(
+		"--yaml",
+		"-y",
+		required=True,
+		help="Path to label inventory manifest file",
+	)
+	parser.add_argument(
+		"--owner",
+		"-o",
+		required=True,
+		help="GitHub repository owner/organization",
+	)
+	parser.add_argument(
+		"--repo", "-r", required=True, help="GitHub repository name"
+	)
+	parser.add_argument(
+		"--token", "-t", required=True, help="GitHub personal access token"
+	)
+	parser.add_argument(
+		"--prune",
+		"-p",
+		action="store_true",
+		help="Delete labels that exist in the repo but not in the label inventory manifest file",
+	)
+	parser.add_argument(
+		"--dry_run",
+		"-d",
+		action="store_true",
+		help="Print out the labels and exits immediately",
+	)
+	parser.add_argument(
+		"--backup",
+		"-b",
+		action="store_true",
+		help="Backup current labels to a label inventory manifest file",
+	)
+	return parser
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
-    args = parser.parse_args()
-    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    # Load labels from label inventory manifest file.
-    labels = load_labels(args.yaml)
-    if args.dry_run:
-        for label in labels:
-            _LOG.info(label)
-        sys.exit(0)
-    client = GitHubClient(args.token)
-    if args.backup:
-        current_labels = client.get_labels(args.owner, args.repo)
-        root_dir = hgit.get_client_root(False)
-        dst_dir = f"{root_dir}/dev_scripts_helpers/github/labels/backup"
-        file_name = f"labels.{args.owner}.{args.repo}.yaml"
-        file_path = f"{dst_dir}/{file_name}"
-        save_labels(current_labels, file_path)
-        _LOG.info("Labels backed up to %s", file_path)
-    hsystem.query_yes_no(
-        "Are you sure you want to synchronize labels?", abort_on_no=True
-    )
-    # Sync labels.
-    sync_labels(client, args.owner, args.repo, labels, args.prune)
-    _LOG.info("Label synchronization completed!")
+	args = parser.parse_args()
+	hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+	# Load labels from label inventory manifest file.
+	labels = _load_labels(args.yaml)
+	labels_map = {label.name: label for label in labels}
+	# Initialize GH client.
+	client = github.Github(args.token)
+	repo = client.get_repo(f"{args.owner}/{args.repo}")
+	# Build maps for efficient lookup.
+	current_labels = repo.get_labels()
+	current_labels_data = []
+	for label in current_labels:
+		current_labels_data.append(Label(
+			name=label.name,
+			description=label.description if label.description else None,
+			color=label.color
+		))
+	current_labels_map = {label.name: label for label in current_labels_data}
+	# Save the labels if backup is enabled.
+	if args.backup:
+		root_dir = hgit.get_client_root(False)
+		dst_dir = f"{root_dir}/dev_scripts_helpers/github/labels/backup"
+		file_name = f"labels.{args.owner}.{args.repo}.yaml"
+		file_path = f"{dst_dir}/{file_name}"
+		_save_labels(current_labels_data, file_path)
+		_LOG.info("Labels backed up to %s", file_path)
+	# Show the labels and exit if dry run is enabled.
+	if args.dry_run:
+		for label in labels:
+			_LOG.info(label)
+		sys.exit(0)
+	# Confirm label synchronization. 
+	hsystem.query_yes_no(
+		"Are you sure you want to synchronize labels?", abort_on_no=True
+	)
+	# Delete labels if pruning is enabled.
+	if args.prune:
+		for current_label in current_labels:
+			if current_label.name not in labels_map:
+				current_label.delete()
+				_LOG.info("Label deleted: %s", current_label.name)
+	# Sync labels.
+	# Create or update labels.
+	for label in labels:
+		current_label = current_labels_map.get(label.name)
+		if current_label is None:
+			# Label doesn't exist, create it.
+			repo.create_label(
+				name=label.name,
+				color=label.color,
+				description=label.description
+			)
+			_LOG.info("Label created: %s", label.name)
+		elif (
+			current_label.description != label.description
+			or current_label.color != label.color
+		):
+			# Label exists but needs update.
+			current_label.edit(
+				name=label.name,
+				color=label.color,
+				description=label.description
+			)
+			_LOG.info("Label updated: %s", label.name)
+		else:
+			# Label exists and is identical.
+			_LOG.info("Label not changed: %s", label)
+	_LOG.info("Label synchronization completed!")
 
 
 if __name__ == "__main__":
-    _main(_parse())
+	_main(_parse())
