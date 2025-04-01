@@ -125,9 +125,9 @@ def sample_method2() -> None:
         """
         Test that code blocks remain as-is.
         """
-        text = hio.from_file(
-            "linters/test/outcomes/Test_docformatter.test6/input/test.txt"
-        )
+        test6_input_dir = self.get_input_dir()
+        text_file_path = os.path.join(test6_input_dir, "test.txt")
+        text = hio.from_file(text_file_path)
         expected = text
         actual = self._docformatter(text)
         self.assertEqual(expected, actual)
