@@ -1,4 +1,5 @@
 import os
+import pprint
 
 import pytest
 
@@ -25,19 +26,17 @@ class Test_Pandoc_Cmd_Conversion(hunitest.TestCase):
             "--template default --extract-media media -- --verbose --extra"
         )
         # Call function to test.
-        result = hdocker.convert_pandoc_cmd_to_arguments(cmd)
-        expected = {
-            "input": "sample.md",
-            "output": "output.md",
-            "in_dir_params": {
-                "data-dir": "data",
-                "template": "default",
-                "extract-media": "media",
-            },
-            "cmd_opts": ["--verbose", "--extra"],
-        }
+        act = pprint.pformat(hdocker.convert_pandoc_cmd_to_arguments(cmd))
+        exp = """
+        {'cmd_opts': ['--verbose', '--extra'],
+        'in_dir_params': {'data-dir': 'data',
+                        'extract-media': 'media',
+                        'template': 'default'},
+        'input': 'sample.md',
+        'output': 'output.md'}
+        """
         # Check output.
-        self.assertEqual(result, expected)
+        self.assert_equal(act, exp, fuzzy_match=True)
 
     def test2(self) -> None:
         """
@@ -56,13 +55,13 @@ class Test_Pandoc_Cmd_Conversion(hunitest.TestCase):
             "cmd_opts": ["--verbose", "--extra"],
         }
         # Call function to test.
-        cmd = hdocker.convert_pandoc_arguments_to_cmd(params)
-        expected_cmd = (
-            "sample.md --output output.md --data-dir data --template default "
-            "--extract-media media --verbose --extra"
-        )
+        act = pprint.pformat(hdocker.convert_pandoc_arguments_to_cmd(params))
+        exp = """
+        ('sample.md --output output.md --data-dir data --template default '
+        '--extract-media media --verbose --extra')"""
+        print("Actual...", act)
         # Check output.
-        self.assertEqual(cmd, expected_cmd)
+        self.assert_equal(act, exp, fuzzy_match=True)
 
 
 # #############################################################################
@@ -89,7 +88,7 @@ class Test_run_dockerized_pandoc(hunitest.TestCase):
         hdocker.run_dockerized_pandoc(
             cmd,
             container_type="pandoc_texlive",
-            force_rebuild=True,
+            force_rebuild=False,
             use_sudo=False,
         )
         # Check output.
