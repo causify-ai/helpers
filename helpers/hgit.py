@@ -8,11 +8,10 @@ import collections
 import functools
 import logging
 import os
-import pprint
 import random
 import re
 import string
-from typing import Dict, List, Match, Optional, Tuple, cast
+from typing import List, Match, Optional, Tuple, cast
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -355,8 +354,8 @@ def is_helpers() -> bool:
     """
     Return whether we are inside `helpers` repo.
 
-    Either as super module, or a sub module depending on a current working
-    directory.
+    Either as super module, or a sub module depending on a current
+    working directory.
     """
     return _is_repo("helpers")
 
@@ -365,8 +364,8 @@ def is_amp() -> bool:
     """
     Return whether we are inside `amp` repo.
 
-    Either as super module or a sub module depending on a current working
-    directory.
+    Either as super module or a sub module depending on a current
+    working directory.
     """
     return _is_repo("amp") or _is_repo("cmamp") or _is_repo("sorr")
 
@@ -634,7 +633,7 @@ def get_repo_full_name_from_dirname(
 ) -> str:
     """
     Return the full name of the repo in `git_dir`.
-    
+
     E.g., "alphamatic/amp", "github.com/alphamatic/amp".
 
     This function relies on `git remote` to gather the required information.
@@ -699,14 +698,14 @@ def find_file_in_git_tree(
     cmd = rf"find {root_dir} -name '{file_name}' -not -path '*/.git/*'"
     if remove_tmp_base:
         cmd += r" -not -path '*/tmp\.base/*'"
-    _, file_name = hsystem.system_to_one_line(cmd)
-    _LOG.debug("file_name=%s", file_name)
+    _, file_name_out = hsystem.system_to_one_line(cmd)
+    _LOG.debug(hprint.to_str("file_name_out"))
     hdbg.dassert_ne(
-        file_name, "", "Can't find file '%s' in dir '%s'", file_name, root_dir
+        file_name_out, "", "Can't find file '%s' in dir '%s'", file_name, root_dir
     )
-    file_name: str = os.path.abspath(file_name)
-    hdbg.dassert_path_exists(file_name)
-    return file_name
+    file_name_out: str = os.path.abspath(file_name_out)
+    hdbg.dassert_path_exists(file_name_out)
+    return file_name_out
 
 
 def get_path_from_git_root(

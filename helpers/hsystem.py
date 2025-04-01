@@ -462,11 +462,15 @@ def remove_dirs(files: List[str]) -> List[str]:
     return files_tmp
 
 
-def select_result_file_from_list(files: List[str], mode: str) -> List[str]:
+def select_result_file_from_list(
+    files: List[str], mode: str, file_name: str
+) -> List[str]:
     """
     Select a file from a list according to various approaches encoded in
     `mode`.
 
+    :param files: list of files to select from
+    :param file_name: name of the file we are looking for
     :param mode:
         - "return_all_results": return the list of files, whatever it is
         - "assert_unless_one_result": assert unless there is a single file and return
@@ -477,10 +481,11 @@ def select_result_file_from_list(files: List[str], mode: str) -> List[str]:
     if mode == "assert_unless_one_result":
         # Expect to have a single result and return that.
         if len(files) == 0:
-            hdbg.dfatal(f"mode={mode}: didn't find file")
+            hdbg.dfatal(f"mode={mode}: didn't find file {file_name}")
         elif len(files) > 1:
             hdbg.dfatal(
-                "mode=%s: found multiple files:\n%s" % (mode, "\n".join(files))
+                "mode=%s: found multiple files:\n%s\n"
+                % (mode, "\n".join(files), file_name)
             )
         res = [files[0]]
     elif mode == "return_all_results":
@@ -523,7 +528,7 @@ def system_to_files(
     if remove_files_non_present:
         files = _remove_files_non_present(files)
     # Process output.
-    files = select_result_file_from_list(files, mode)
+    files = select_result_file_from_list(files, mode, cmd)
     return files
 
 
@@ -788,10 +793,11 @@ def find_file_in_repo(file_name: str, *, root_dir: Optional[str] = None) -> str:
     """
     if root_dir is None:
         root_dir = _find_git_root()
-    _, file_name = system_to_one_line(
+    _, file_name_out = system_to_one_line(
         rf"find {root_dir} -name {file_name} -not -path '*/\.git/*'"
     )
-    return file_name
+    hdbg.dassert_ne(file_name_out, "", "File not found in repo: '%s'", file_name)
+    return file_name_out
 
 
 # TODO(Nikola): Use filesystem's `du` and move to `hio` instead?
@@ -848,7 +854,7 @@ def _compute_file_signature(file_name: str, dir_depth: int) -> Optional[List]:
     return signature
 
 
-# TODO(gp): -> io_.py
+# TODO(gp): -> hio.py
 def find_file_with_dir(
     file_name: str,
     *,
@@ -912,7 +918,7 @@ def find_file_with_dir(
         "Found %d files:\n%s", len(matching_files), "\n".join(matching_files)
     )
     # Select the result based on mode.
-    res = select_result_file_from_list(matching_files, mode)
+    res = select_result_file_from_list(matching_files, mode, file_name)
     _LOG.debug("-> res=%s", str(res))
     return res
 

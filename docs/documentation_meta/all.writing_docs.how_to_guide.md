@@ -243,7 +243,7 @@
 
 **Bad**
 
-- There configurations can be changed by ...
+- These configurations can be changed by ...
 
 ### Use simple short sentences
 

@@ -2,6 +2,7 @@
 
 - [Set up development environment locally](#set-up-development-environment-locally)
   * [Clone the code](#clone-the-code)
+  * [Set up GitHub SSH access and personal access token (PAT)](#set-up-github-ssh-access-and-personal-access-token-pat)
   * [Build and activate the thin environment](#build-and-activate-the-thin-environment)
   * [Install and test Docker](#install-and-test-docker)
     + [Supported OS](#supported-os)
@@ -45,6 +46,38 @@
   - `REPO_NAME` is a name of the repository
   - IDX is an integer
 
+## Set up GitHub SSH access and personal access token (PAT)
+
+- To generate a new SSH key, follow the official
+  [GitHub instructions](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent)
+
+- Ensure that you save the SSH key with the below name format and at the
+  specified location
+
+  File location: `~/.ssh/id_rsa.causify-ai.github`
+
+  Example command to generate SSH key:
+
+  ```bash
+  > ssh-keygen -t ed25519 -C "your_email@example.com" -f ~/.ssh/id_rsa.causify-ai.github
+  ```
+
+- To create a Personal Access Token (classic) with necessary scopes like `repo`,
+  `workflow`, etc., go to
+  [https://github.com/settings/tokens](https://github.com/settings/tokens) and
+  click "Generate new token (classic)".
+
+- After obtaining the token, store it in a file named
+  `github_pat.causify-ai.txt` at the specified path
+
+  File location: `~/.ssh/github_pat.causify-ai.txt`
+
+  Example command to save using `vim`:
+
+  ```bash
+  > vim ~/.ssh/github_pat.causify-ai.txt
+  ```
+
 ## Build and activate the thin environment
 
 - NB! This whole section can be skipped if you use [tmux](#tmux)
@@ -64,6 +97,9 @@
     > cd helpers_root
     > ./dev_scripts_helpers/thin_client/build.py
     ```
+
+- While building the thin environment, the
+  [GitHub CLI](https://github.com/cli/cli/) will also be installed system-wide
 
 - Activate the thin environment; make sure it is always activated
 

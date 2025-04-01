@@ -2340,7 +2340,7 @@
   positives.
 - Then we always want to permit disabling the automatic checks / fixes e.g., by
   using directives in comments or special syntax (e.g., anything in a `...` or
-  `...` block should be leaved untouched)
+  `...` block should be left untouched)
 - It can be tricky determining when an exception is really needed and when
   overriding the tool becomes a slippery slope for ignoring the rules.
 - Patience and flexibility is advised here.
