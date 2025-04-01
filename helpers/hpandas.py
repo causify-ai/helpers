@@ -2120,24 +2120,14 @@ def list_to_str(
     """
     Convert a list of values into a formatted string representation.
 
-    This function takes a sequence of items and produces a formatted string. Each item is
-    converted to a string, optionally wrapped with a specific character, and then joined using a
-    chosen separator. The resulting string starts with the total count of items, followed by a
-    bracketed list of the formatted items. If the sequence exceeds a certain length, the output is
-    shortened by displaying only the beginning and ending segments, with an ellipsis ("...") in
-    the middle to indicate omitted items.
+    E.g., [1, 'two', 3, 4, 5] -> "5 ['1', 'two', '3', '4', '5']"
 
-    E.g., [1, 'two', 3, 4, 5] -> '5 ['1', 'two', '3', '4', '5']'
-
-    :param vals: List of values to be converted.
-    :param sep_char: Separator to use between elements. Defaults to ", ".
-    :param enclose_str_char: Character to enclose each element's string representation.
-                             If empty, elements are not enclosed. Defaults to "'".
-    :param max_num: Maximum number of elements to display in the output. If the total
-                    number of elements exceeds this value, only the first and last
-                    segments (each of length max_num/2) are shown with an ellipsis in
-                    between. Defaults to 10.
-    :return: A string representing the list in a formatted and optionally truncated manner.
+    :param vals: values to be converted
+    :param sep_char: separator to use between elements. Defaults to ", "
+    :param enclose_str_char: character to enclose each element's string representation
+        if empty, elements are not enclosed
+    :param max_num: maximum number of elements to display in the output 
+    :return: the formatted string representing the list
     """
     vals_as_str = list(map(str, vals))
     # Add a str around.
