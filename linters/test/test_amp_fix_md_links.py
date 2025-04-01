@@ -112,6 +112,39 @@ class Test_fix_links(hunitest.TestCase):
         # Check.
         self.assertEqual(actual_path, expected_path)
 
+    def test5(self) -> None:
+        """
+        Test to make file path absolute.
+        """
+        file_path = "./.github/workflows/sprint_iteration.yml"
+        expected_path = "/.github/workflows/sprint_iteration.yml"
+        # Run.
+        actual_path = lafimdli._make_path_absolute(file_path)
+        # Check.
+        self.assertEqual(actual_path, expected_path)
+
+    def test6(self) -> None:
+        """
+        Test to make file path absolute.
+        """
+        file_path = "../.github/workflows/sprint_iteration.yml"
+        expected_path = "/.github/workflows/sprint_iteration.yml"
+        # Run.
+        actual_path = lafimdli._make_path_absolute(file_path)
+        # Check.
+        self.assertEqual(actual_path, expected_path)
+
+    def test7(self) -> None:
+        """
+        Test to make file path absolute.
+        """
+        file_path = "../../.github/workflows/sprint_iteration.yml"
+        expected_path = "/.github/workflows/sprint_iteration.yml"
+        # Run.
+        actual_path = lafimdli._make_path_absolute(file_path)
+        # Check.
+        self.assertEqual(actual_path, expected_path)
+
     def _get_txt_with_incorrect_links(self) -> str:
         txt_incorrect = r"""
 - Markdown-style link with a text label
