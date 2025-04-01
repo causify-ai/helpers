@@ -259,7 +259,7 @@ def _render_image_code(
         # Check if the image is cached.
         if cache_key in cache:
             # The image is cached, return the path.
-            _LOG.debug("Cache hit for image %s", out_img_file_path)
+            _LOG.info("Cache hit for image '%s'", out_img_file_path)
             hdbg.dassert_file_exists(out_img_file_path)
             cache_hit = True
             return out_img_file_path, cache_hit

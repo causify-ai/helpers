@@ -61,14 +61,14 @@ def _log_system(cmd: str) -> None:
     _append_script(cmd)
 
 
-def _system(cmd: str, log_level: int = logging.DEBUG, **kwargs: Any) -> int:
+def _system(cmd: str, *, log_level: int = logging.DEBUG, **kwargs: Any) -> int:
     _log_system(cmd)
-    rc = hsystem.system(cmd, log_level=log_level, **kwargs)
+    rc = hsystem.system(cmd, log_level=log_level, suppress_output=False, **kwargs)
     return rc  # type: ignore
 
 
 def _system_to_string(
-    cmd: str, log_level: int = logging.DEBUG, **kwargs: Any
+    cmd: str, *, log_level: int = logging.DEBUG, **kwargs: Any
 ) -> Tuple[int, str]:
     _log_system(cmd)
     rc, txt = hsystem.system_to_string(cmd, log_level=log_level, **kwargs)
@@ -432,9 +432,9 @@ def _run_pandoc_to_slides(
     rc, txt = _system_to_string(cmd, abort_on_error=False)
     # We want to print to screen.
     print(txt)
-    _LOG.error("Log is in %s", file_out + ".log")
     # rc = _system(cmd, suppress_output=False)
     if rc != 0:
+        _LOG.error("Log is in %s", file_out + ".log")
         if debug:
             _LOG.error("Pandoc failed")
             # Generate the tex version of the file.

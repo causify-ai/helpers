@@ -3,9 +3,7 @@
 """
 Lint "notes" files.
 
-> lint_notes.py -i foo.txt -o bar.txt \
-    --use_dockerized_prettier \
-    --use_dockerized_markdown_toc
+> lint_notes.py -i foo.txt -o bar.txt
 
 It can be used in vim to prettify a part of the text using stdin / stdout.
 ```
@@ -161,18 +159,18 @@ def _postprocess(txt: str, in_file_name: str) -> str:
     """
     _LOG.debug("txt=%s", txt)
     # Remove empty lines before ```.
-    txt = re.sub(r"^\s*\n(\s*```)$", r"\1", txt, 0, flags=re.MULTILINE)
+    txt = re.sub(r"^\s*\n(\s*```)$", r"\1", txt, count=0, flags=re.MULTILINE)
     # Remove empty lines before higher level bullets, but not chapters.
-    txt = re.sub(r"^\s*\n(\s+-\s+.*)$", r"\1", txt, 0, flags=re.MULTILINE)
+    txt = re.sub(r"^\s*\n(\s+-\s+.*)$", r"\1", txt, count=0, flags=re.MULTILINE)
     # True if one is in inside a ``` .... ``` block.
     in_triple_tick_block: bool = False
     txt_new: List[str] = []
     for i, line in enumerate(txt.split("\n")):
         # Undo the transformation `* -> STAR`.
-        line = re.sub(r"^\-(\s*)STAR", r"*\1", line, 0)
-        line = re.sub(r"^\-(\s*)SSTAR", r"**\1", line, 0)
+        line = re.sub(r"^\-(\s*)STAR", r"*\1", line, count=0)
+        line = re.sub(r"^\-(\s*)SSTAR", r"**\1", line, count=0)
         # Remove empty lines.
-        line = re.sub(r"^\s*\n(\s*\$\$)", r"\1", line, 0, flags=re.MULTILINE)
+        line = re.sub(r"^\s*\n(\s*\$\$)", r"\1", line, count=0, flags=re.MULTILINE)
         # Handle ``` block.
         m = re.match(r"^\s*```(.*)\s*$", line)
         if m:
@@ -279,7 +277,7 @@ def _refresh_toc(
 # #############################################################################
 
 
-def _to_execute_action(action: str, *, actions: Optional[List[str]] = None) -> bool:
+def _to_execute_action(action: str, actions: List[str]) -> bool:
     to_execute = actions is None or action in actions
     if not to_execute:
         _LOG.debug("Skipping %s", action)
@@ -395,7 +393,6 @@ def _main(args: argparse.Namespace) -> None:
         txt,
         in_file_name,
         actions=args.action,
-        print_width=args.print_width,
     )
     # Write output.
     if args.in_place:
