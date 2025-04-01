@@ -79,9 +79,7 @@ def filter_data_by_values(
 
 def filter_data_by_comparison(
     df: pd.DataFrame,
-    filters: Dict[
-        Union[int, str], Union[Tuple[str, Any], Tuple[Tuple[str, Any], ...]]
-    ],
+    filters: Dict[Union[int, str], Union[Tuple[str, Any], Tuple[Tuple[str, Any], ...]]],
     mode: str,
     info: Optional[collections.OrderedDict] = None,
 ) -> pd.DataFrame:
@@ -111,9 +109,7 @@ def filter_data_by_comparison(
         else:
             comparisons = cast(Tuple[Tuple[str, Any], ...], tuple_)
         for comparison_method, val in comparisons:
-            hdbg.dassert_in(
-                comparison_method, ("eq", "ne", "le", "lt", "ge", "gt")
-            )
+            hdbg.dassert_in(comparison_method, ("eq", "ne", "le", "lt", "ge", "gt"))
             mask = getattr(df[col_name], comparison_method)(val)
             info[f"n_{col_name}_{comparison_method}_{val}"] = mask.sum()
             info[f"perc_{col_name}_{comparison_method}_{val}"] = hprint.perc(
@@ -213,9 +209,7 @@ def apply_nan_mode(
         info["num_elems_before"] = len(srs)
         info["num_nans_before"] = np.isnan(srs).sum()
         info["num_elems_removed"] = len(srs) - len(res)
-        info["num_nans_imputed"] = (
-            info["num_nans_before"] - info["num_elems_removed"]
-        )
+        info["num_nans_imputed"] = info["num_nans_before"] - info["num_elems_removed"]
         info["percentage_elems_removed"] = (
             100.0 * info["num_elems_removed"] / info["num_elems_before"]
         )

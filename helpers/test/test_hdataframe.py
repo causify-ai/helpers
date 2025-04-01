@@ -60,9 +60,7 @@ class Test_filter_data_by_comparison(hunitest.TestCase):
         data = data.add_prefix("col_")
         filters = {"col_0": (("gt", 1), ("lt", 7)), "col_1": ("eq", 5)}
         info: collections.OrderedDict = collections.OrderedDict()
-        filtered_data = hdatafr.filter_data_by_comparison(
-            data, filters, "and", info
-        )
+        filtered_data = hdatafr.filter_data_by_comparison(data, filters, "and", info)
         str_output = (
             f"{hprint.frame('data')}\n"
             f"{hpandas.df_to_str(data)}\n"
@@ -78,9 +76,7 @@ class Test_filter_data_by_comparison(hunitest.TestCase):
         data = data.add_prefix("col_")
         filters = {"col_0": ("gt", 2), "col_1": ("eq", 5)}
         info: collections.OrderedDict = collections.OrderedDict()
-        filtered_data = hdatafr.filter_data_by_comparison(
-            data, filters, "or", info
-        )
+        filtered_data = hdatafr.filter_data_by_comparison(data, filters, "or", info)
         str_output = (
             f"{hprint.frame('data')}\n"
             f"{hpandas.df_to_str(data)}\n"
