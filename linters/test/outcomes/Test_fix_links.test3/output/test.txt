@@ -1,10 +1,10 @@
 # linter warnings
 
-/Users/allenmathews/src/helpers1/linters/test/outcomes/Test_fix_links.test3/tmp.scratch/test_combined.md:1: '/docs/markdown_example.md' does not exist
-/Users/allenmathews/src/helpers1/linters/test/outcomes/Test_fix_links.test3/tmp.scratch/test_combined.md:3: '/docs/html_example.md' does not exist
-/Users/allenmathews/src/helpers1/linters/test/outcomes/Test_fix_links.test3/tmp.scratch/test_combined.md:5: '/missing_markdown.md' does not exist
-/Users/allenmathews/src/helpers1/linters/test/outcomes/Test_fix_links.test3/tmp.scratch/test_combined.md:7: '/missing_html.md' does not exist
-/Users/allenmathews/src/helpers1/linters/test/outcomes/Test_fix_links.test3/tmp.scratch/test_combined.md:13: '/nested.md)' does not exist
+/app/linters/test/outcomes/Test_fix_links.test3/tmp.scratch/test_combined.md:1: '/docs/markdown_example.md' does not exist
+/app/linters/test/outcomes/Test_fix_links.test3/tmp.scratch/test_combined.md:3: '/docs/html_example.md' does not exist
+/app/linters/test/outcomes/Test_fix_links.test3/tmp.scratch/test_combined.md:5: '/missing_markdown.md' does not exist
+/app/linters/test/outcomes/Test_fix_links.test3/tmp.scratch/test_combined.md:7: '/missing_html.md' does not exist
+/app/linters/test/outcomes/Test_fix_links.test3/tmp.scratch/test_combined.md:13: '/nested.md)' does not exist
 
 # linted file
 
