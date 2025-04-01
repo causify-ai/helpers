@@ -7,7 +7,6 @@ import helpers.hdataframe as hdatafr
 """
 
 # TODO(gp): Consider merging with `helpers/pandas_helpers.py`.
-# TODO(gp): data -> df
 
 import collections
 import functools
