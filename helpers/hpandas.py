@@ -2118,7 +2118,26 @@ def list_to_str(
     max_num: Optional[int] = 10,
 ) -> str:
     """
-    TODO(gp): Add docstring.
+    Convert a list of values into a formatted string representation.
+
+    This function takes a sequence of items and produces a formatted string. Each item is
+    converted to a string, optionally wrapped with a specific character, and then joined using a
+    chosen separator. The resulting string starts with the total count of items, followed by a
+    bracketed list of the formatted items. If the sequence exceeds a certain length, the output is
+    shortened by displaying only the beginning and ending segments, with an ellipsis ("...") in
+    the middle to indicate omitted items.
+
+    E.g., [1, 'two', 3, 4, 5] -> '5 ['1', 'two', '3', '4', '5']'
+
+    :param vals: List of values to be converted.
+    :param sep_char: Separator to use between elements. Defaults to ", ".
+    :param enclose_str_char: Character to enclose each element's string representation.
+                             If empty, elements are not enclosed. Defaults to "'".
+    :param max_num: Maximum number of elements to display in the output. If the total
+                    number of elements exceeds this value, only the first and last
+                    segments (each of length max_num/2) are shown with an ellipsis in
+                    between. Defaults to 10.
+    :return: A string representing the list in a formatted and optionally truncated manner.
     """
     vals_as_str = list(map(str, vals))
     # Add a str around.
@@ -2370,7 +2389,7 @@ def to_gsheet(
 
 
 # #############################################################################
-# CheckSummary
+# _SummaryRow
 # #############################################################################
 
 
@@ -2386,6 +2405,11 @@ class _SummaryRow:
     comment: str
     # Whether the check was successful or not.
     is_ok: bool
+
+
+# #############################################################################
+# CheckSummary
+# #############################################################################
 
 
 class CheckSummary:
@@ -2482,9 +2506,15 @@ def add_end_download_timestamp(
     return obj
 
 
-def filter_df(df: pd.DataFrame, col_name: str, value: Any, *,
-              invert: bool =False, check_value: bool =True,
-              print_info: bool =True) -> pd.DataFrame:
+def filter_df(
+    df: pd.DataFrame,
+    col_name: str,
+    value: Any,
+    *,
+    invert: bool = False,
+    check_value: bool = True,
+    print_info: bool = True,
+) -> pd.DataFrame:
     hdbg.dassert_in(col_name, df.columns)
     if isinstance(value, list):
         mask = df[col_name].isin(value)
