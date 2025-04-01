@@ -1,3 +1,9 @@
+"""
+Import as:
+
+import helpers.hmarkdown as hmarkdo
+"""
+
 import dataclasses
 import logging
 import re
@@ -191,8 +197,7 @@ def process_lines(lines: List[str]) -> Generator[Tuple[int, str], None, None]:
             continue
         out.append(line)
     #
-    for line in enumerate(out):
-        yield line
+    yield from enumerate(out)
 
 
 def remove_end_of_line_periods(txt: str) -> str:
