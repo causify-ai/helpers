@@ -824,3 +824,27 @@ class Test_increase_chapter1(hunitest.TestCase):
         # Check output.
         expected = ["Paragraph 1\n", "Paragraph 2"]
         mock_write_file.assert_called_once_with(expected, "out_file.txt")
+
+    # Mock the input and the output files.
+    @umock.patch("helpers.hmarkdown.hparser.read_file")
+    @umock.patch("helpers.hmarkdown.hparser.write_file")
+    def test5(self, mock_write_file, mock_read_file) -> None:
+        # Prepare inputs.
+        mock_read_file.return_value = [
+            "# Chapter 1\n",
+            "##### Sub-sub-subsection 1.1.1.1.1\n",
+            "# Chapter 2\n",
+            "### Subsection 2.1\n",
+            "# Chapter 3",
+        ]
+        # Call tested function.
+        hmarkdo.increase_chapter("in_file.txt", "out_file.txt")
+        # Check output.
+        expected = [
+            "## Chapter 1\n",
+            "##### Sub-sub-subsection 1.1.1.1.1\n",
+            "## Chapter 2\n",
+            "#### Subsection 2.1\n",
+            "## Chapter 3",
+        ]
+        mock_write_file.assert_called_once_with(expected, "out_file.txt")
