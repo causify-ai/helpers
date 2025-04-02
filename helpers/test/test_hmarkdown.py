@@ -772,7 +772,13 @@ class Test_increase_chapter1(hunitest.TestCase):
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         read_file = os.path.join(scratch_dir, "read_file.txt")
-        input_text = "# Chapter 1\n## Section 1.1\n### Subsection 1.1.1\n#### Sub-subsection 1.1.1.1"
+        input_text = [
+            "# Chapter 1",
+            "## Section 1.1",
+            "### Subsection 1.1.1",
+            "#### Sub-subsection 1.1.1.1",
+        ]
+        input_text = "\n".join(input_text)
         hio.to_file(read_file, input_text)
         # Call tested function.
         write_file = os.path.join(scratch_dir, "write_file.txt")
@@ -789,7 +795,8 @@ class Test_increase_chapter1(hunitest.TestCase):
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         read_file = os.path.join(scratch_dir, "read_file.txt")
-        input_text = "# Chapter 1\n##### Sub-sub-subsection 1.1.1.1.1"
+        input_text = ["# Chapter 1", "##### Sub-sub-subsection 1.1.1.1.1"]
+        input_text = "\n".join(input_text)
         hio.to_file(read_file, input_text)
         # Call tested function.
         write_file = os.path.join(scratch_dir, "write_file.txt")
@@ -801,12 +808,13 @@ class Test_increase_chapter1(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        Test inputs including a paragraph which remain unchanged.
+        Test inputs including a paragraph which remains unchanged.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         read_file = os.path.join(scratch_dir, "read_file.txt")
-        input_text = "# Chapter 1\nParagraph 1"
+        input_text = ["# Chapter 1", "Paragraph 1"]
+        input_text = "\n".join(input_text)
         hio.to_file(read_file, input_text)
         # Call tested function.
         write_file = os.path.join(scratch_dir, "write_file.txt")
@@ -818,12 +826,13 @@ class Test_increase_chapter1(hunitest.TestCase):
 
     def test4(self) -> None:
         """
-        Test inputs of paragraphs which remains unchanged.
+        Test inputs of paragraphs which remain unchanged.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         read_file = os.path.join(scratch_dir, "read_file.txt")
-        input_text = "Paragraph 1\nParagraph 2"
+        input_text = ["Paragraph 1", "Paragraph 2"]
+        input_text = "\n".join(input_text)
         hio.to_file(read_file, input_text)
         # Call tested function.
         write_file = os.path.join(scratch_dir, "write_file.txt")
@@ -840,7 +849,14 @@ class Test_increase_chapter1(hunitest.TestCase):
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         read_file = os.path.join(scratch_dir, "read_file.txt")
-        input_text = "# Chapter 1\n##### Sub-sub-subsection 1.1.1.1.1\n# Chapter 2\n### Subsection 2.1\n# Chapter 3"
+        input_text = [
+            "# Chapter 1",
+            "##### Sub-sub-subsection 1.1.1.1.1",
+            "# Chapter 2",
+            "### Subsection 2.1",
+            "# Chapter 3",
+        ]
+        input_text = "\n".join(input_text)
         hio.to_file(read_file, input_text)
         # Call tested function.
         write_file = os.path.join(scratch_dir, "write_file.txt")
