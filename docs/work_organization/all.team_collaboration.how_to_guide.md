@@ -30,7 +30,7 @@
 
 # General Rules of Collaboration
 
-- We are not going to discuss and debate the rationale of the following
+- We are not going to discuss and debate the rationale behind the following
   suggestions, but we assume that all is self-evident truth
 
 ## Ask somebody if you have any doubts
