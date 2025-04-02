@@ -19,7 +19,8 @@ class Test_convert_csv_to_dict(hunitest.TestCase):
             "col2": ["a", "b"],
             "col3": ["a", "b", "c"],
         }
-        self.assertEqual(actual_result, expected_result)
+        self.assertEqual(0, 1)
+        # self.assertEqual(actual_result, expected_result)
 
 
 class Test_from_typed_csv(hunitest.TestCase):
