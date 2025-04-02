@@ -114,7 +114,7 @@ class Test_fix_links(hunitest.TestCase):
 
 ## Introduction
 
-What we call "rules" are actually just a convention.
+A test introduction in the reference file.
 
 ## Usage
         """
