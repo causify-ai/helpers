@@ -19,7 +19,13 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 
+# #############################################################################
+# Test_filter_data_by_values1
+# #############################################################################
+
+
 class Test_filter_data_by_values1(hunitest.TestCase):
+
     def test_conjunction1(self) -> None:
         data = pd.DataFrame([[1, 2, 3], [4, 5, 6]])
         data = data.add_prefix("col_")
@@ -54,7 +60,13 @@ class Test_filter_data_by_values1(hunitest.TestCase):
         self.check_string(str_output)
 
 
+# #############################################################################
+# Test_filter_data_by_comparison
+# #############################################################################
+
+
 class Test_filter_data_by_comparison(hunitest.TestCase):
+
     def test_conjunction1(self) -> None:
         data = pd.DataFrame([[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]])
         data = data.add_prefix("col_")
@@ -92,6 +104,11 @@ class Test_filter_data_by_comparison(hunitest.TestCase):
         self.check_string(str_output)
 
 
+# #############################################################################
+# TestFilterDataByMethod
+# #############################################################################
+
+
 class TestFilterDataByMethod(hunitest.TestCase):
     """
     Test was generated automatically with Playback.
@@ -110,14 +127,20 @@ class TestFilterDataByMethod(hunitest.TestCase):
         info: collections.OrderedDict = collections.OrderedDict()
         # Call function to test.
         act = hdatafr.filter_data_by_method(
-            data=data, filters=filters, mode=mode, info=info
+            df=data, filters=filters, mode=mode, info=info
         )
         act = hpandas.df_to_str(act, precision=3)
         # Check output.
         self.check_string(act, fuzzy_match=True)
 
 
+# #############################################################################
+# Test_apply_nan_mode
+# #############################################################################
+
+
 class Test_apply_nan_mode(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Test for `mode=leave_unchanged`.
@@ -182,7 +205,13 @@ class Test_apply_nan_mode(hunitest.TestCase):
         return series
 
 
+# #############################################################################
+# Test_compute_points_per_year_for_given_freq
+# #############################################################################
+
+
 class Test_compute_points_per_year_for_given_freq(hunitest.TestCase):
+
     def test1(self) -> None:
         actual = hdatafr.compute_points_per_year_for_given_freq("T")
         np.testing.assert_equal(actual, 525780.125)
@@ -212,7 +241,13 @@ class Test_compute_points_per_year_for_given_freq(hunitest.TestCase):
         np.testing.assert_equal(actual, 0.0)
 
 
+# #############################################################################
+# TestRemoveDuplicates
+# #############################################################################
+
+
 class TestRemoveDuplicates(hunitest.TestCase):
+
     def test_remove_duplicates1(self) -> None:
         test_data = {
             "dummy_value_1": [1, 2, 1],

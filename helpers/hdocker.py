@@ -729,6 +729,9 @@ def convert_pandoc_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
     # Parse known arguments and capture the rest.
     args, unknown_args = parser.parse_known_args(cmd)
     _LOG.debug(hprint.to_str("args unknown_args"))
+    # Filter out the option terminator if present.
+    # Remove the `--` option terminator to treat `--option-after-terminator` as a regular argument, not as an option. 
+    unknown_args = [arg for arg in unknown_args if arg != "--"]
     # Return all the arguments in a dictionary with names that match the
     # function signature of `run_dockerized_pandoc()`.
     in_dir_params = {
