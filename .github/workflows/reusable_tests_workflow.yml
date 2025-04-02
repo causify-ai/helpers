@@ -1,4 +1,4 @@
-name: tests
+name: Reusable Tests Workflow
 on:
     workflow_call:
         inputs:
@@ -35,6 +35,7 @@ jobs:
       #   id: login-ecr
       #   uses: aws-actions/amazon-ecr-login@v1
 
+      # This is needed to pull the docker image from GHCR.
       - name: Login to GHCR
         run: docker login ghcr.io -u gpsaggese -p ${{ secrets.GITHUB_TOKEN }}
 
@@ -70,8 +71,15 @@ jobs:
 
       # Pull the latest Docker image from the GHCR registry instead of ECR for
       # cost saving purposes to run the regressions on.
+      # To fetch the image from ECR, uncomment the line 
+      # `CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}`
+      # and comment out the next line. This way ECR base path will be set for
+      # image registry.
       - name: Pull image from GHCR
-        run: docker pull ghcr.io/${{ github.repository }}:dev
+        env:
+          # CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
+          CSFY_ECR_BASE_PATH: ghcr.io/${{ github.repository_owner }}
+        run: invoke docker_pull
 
       - name: Run tests
         env:
