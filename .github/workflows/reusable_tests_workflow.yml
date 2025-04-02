@@ -117,8 +117,7 @@ jobs:
         # workflow run.
         # Alternative, head_ref is only available when the event that triggers a
         # workflow run is either pull_request or pull_request_target.
-        if: ${{ failure() }}
-        # if: ${{ failure() && github.ref_name == 'master' }}
+        if: ${{ failure() && github.ref_name == 'master' }}
         uses: slackapi/slack-github-action@v1.27.0
         with:
           # You can pass in multiple channels to post to by providing a
