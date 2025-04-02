@@ -4526,6 +4526,7 @@ class Test_compute_weighted_sum(hunitest.TestCase):
 
 # #############################################################################
 
+
 # #############################################################################
 # Test_list_to_str
 # #############################################################################
@@ -4538,11 +4539,11 @@ class Test_list_to_str(hunitest.TestCase):
         Check that a list is converted to string correctly.
         """
         # Prepare inputs
-        input = []
+        input = [1, "two", 3, 4, "five"]
         # Run
-        actual = hpandas.list_to_str(input)
+        actual = hpandas.list_to_str(input, enclose_str_char="|", sep_char=" ; ")
         # Check
-        expected = "0 []"
+        expected = f"5 [|1| ; |two| ; |3| ; |4| ; |five|]"
         self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test2(self) -> None:
