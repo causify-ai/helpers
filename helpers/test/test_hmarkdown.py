@@ -1,5 +1,6 @@
 import logging
 import pprint
+import unittest.mock as umock
 from typing import Any, List, Tuple
 
 import helpers.hmarkdown as hmarkdo
@@ -754,3 +755,72 @@ class Test_colorize_first_level_bullets1(hunitest.TestCase):
           - Subitem 2.1
         """
         self.assert_equal(act, exp, dedent=True)
+
+
+# #############################################################################
+# Test_increase_chapter1
+# #############################################################################
+
+
+class Test_increase_chapter1(hunitest.TestCase):
+
+    # Mock the input and the output files.
+    @umock.patch("helpers.hmarkdown.hparser.read_file")
+    @umock.patch("helpers.hmarkdown.hparser.write_file")
+    def test1(self, mock_write_file, mock_read_file) -> None:
+        # Prepare inputs.
+        mock_read_file.return_value = [
+            "# Chapter 1\n",
+            "## Section 1.1\n",
+            "### Subsection 1.1.1\n",
+            "#### Sub-subsection 1.1.1.1",
+        ]
+        # Call tested function.
+        hmarkdo.increase_chapter("in_file.txt", "out_file.txt")
+        # Check output.
+        expected = [
+            "## Chapter 1\n",
+            "### Section 1.1\n",
+            "#### Subsection 1.1.1\n",
+            "##### Sub-subsection 1.1.1.1",
+        ]
+        mock_write_file.assert_called_once_with(expected, "out_file.txt")
+
+    # Mock the input and the output files.
+    @umock.patch("helpers.hmarkdown.hparser.read_file")
+    @umock.patch("helpers.hmarkdown.hparser.write_file")
+    def test2(self, mock_write_file, mock_read_file) -> None:
+        # Prepare inputs.
+        mock_read_file.return_value = [
+            "# Chapter 1\n",
+            "##### Sub-sub-subsection 1.1.1.1.1",
+        ]
+        # Call tested function.
+        hmarkdo.increase_chapter("in_file.txt", "out_file.txt")
+        # Check output.
+        expected = ["## Chapter 1\n", "##### Sub-sub-subsection 1.1.1.1.1"]
+        mock_write_file.assert_called_once_with(expected, "out_file.txt")
+
+    # Mock the input and the output files.
+    @umock.patch("helpers.hmarkdown.hparser.read_file")
+    @umock.patch("helpers.hmarkdown.hparser.write_file")
+    def test3(self, mock_write_file, mock_read_file) -> None:
+        # Prepare inputs.
+        mock_read_file.return_value = ["# Chapter 1\n", "Paragraph 1"]
+        # Call tested function.
+        hmarkdo.increase_chapter("in_file.txt", "out_file.txt")
+        # Check output.
+        expected = ["## Chapter 1\n", "Paragraph 1"]
+        mock_write_file.assert_called_once_with(expected, "out_file.txt")
+
+    # Mock the input and the output files.
+    @umock.patch("helpers.hmarkdown.hparser.read_file")
+    @umock.patch("helpers.hmarkdown.hparser.write_file")
+    def test4(self, mock_write_file, mock_read_file) -> None:
+        # Prepare inputs.
+        mock_read_file.return_value = ["Paragraph 1\n", "Paragraph 2"]
+        # Call tested function.
+        hmarkdo.increase_chapter("in_file.txt", "out_file.txt")
+        # Check output.
+        expected = ["Paragraph 1\n", "Paragraph 2"]
+        mock_write_file.assert_called_once_with(expected, "out_file.txt")
