@@ -1,6 +1,6 @@
 import logging
+import os
 import pprint
-import unittest.mock as umock
 from typing import Any, List, Tuple
 
 import helpers.hmarkdown as hmarkdo
@@ -764,19 +764,24 @@ class Test_colorize_first_level_bullets1(hunitest.TestCase):
 
 class Test_increase_chapter1(hunitest.TestCase):
 
-    # Mock the input and the output files.
-    @umock.patch("helpers.hmarkdown.hparser.read_file")
-    @umock.patch("helpers.hmarkdown.hparser.write_file")
-    def test1(self, mock_write_file, mock_read_file) -> None:
+    def test1(self) -> None:
+        """
+        Test the inputs to increase chapters.
+        """
         # Prepare inputs.
-        mock_read_file.return_value = [
+        scratch_dir = self.get_scratch_space()
+        read_file = os.path.join(scratch_dir, "read_file.txt")
+        input_text = [
             "# Chapter 1\n",
             "## Section 1.1\n",
             "### Subsection 1.1.1\n",
             "#### Sub-subsection 1.1.1.1",
         ]
+        with open(read_file, "w") as f:
+            f.writelines(input_text)
         # Call tested function.
-        hmarkdo.increase_chapter("in_file.txt", "out_file.txt")
+        write_file = os.path.join(scratch_dir, "write_file.txt")
+        hmarkdo.increase_chapter(read_file, write_file)
         # Check output.
         expected = [
             "## Chapter 1\n",
@@ -784,61 +789,89 @@ class Test_increase_chapter1(hunitest.TestCase):
             "#### Subsection 1.1.1\n",
             "##### Sub-subsection 1.1.1.1",
         ]
-        mock_write_file.assert_called_once_with(expected, "out_file.txt")
+        with open(write_file, "r") as f:
+            actual = f.readlines()
+        self.assertEqual(actual, expected)
 
-    # Mock the input and the output files.
-    @umock.patch("helpers.hmarkdown.hparser.read_file")
-    @umock.patch("helpers.hmarkdown.hparser.write_file")
-    def test2(self, mock_write_file, mock_read_file) -> None:
+    def test2(self) -> None:
+        """
+        Test inputs with more than four hashes which remain unchanged.
+        """
         # Prepare inputs.
-        mock_read_file.return_value = [
+        scratch_dir = self.get_scratch_space()
+        read_file = os.path.join(scratch_dir, "read_file.txt")
+        input_text = [
             "# Chapter 1\n",
             "##### Sub-sub-subsection 1.1.1.1.1",
         ]
+        with open(read_file, "w") as f:
+            f.writelines(input_text)
         # Call tested function.
-        hmarkdo.increase_chapter("in_file.txt", "out_file.txt")
+        write_file = os.path.join(scratch_dir, "write_file.txt")
+        hmarkdo.increase_chapter(read_file, write_file)
         # Check output.
         expected = ["## Chapter 1\n", "##### Sub-sub-subsection 1.1.1.1.1"]
-        mock_write_file.assert_called_once_with(expected, "out_file.txt")
+        with open(write_file, "r") as f:
+            actual = f.readlines()
+        self.assertEqual(actual, expected)
 
-    # Mock the input and the output files.
-    @umock.patch("helpers.hmarkdown.hparser.read_file")
-    @umock.patch("helpers.hmarkdown.hparser.write_file")
-    def test3(self, mock_write_file, mock_read_file) -> None:
+    def test3(self) -> None:
+        """
+        Test inputs including a paragraph which remain unchanged.
+        """
         # Prepare inputs.
-        mock_read_file.return_value = ["# Chapter 1\n", "Paragraph 1"]
+        scratch_dir = self.get_scratch_space()
+        read_file = os.path.join(scratch_dir, "read_file.txt")
+        input_text = ["# Chapter 1\n", "Paragraph 1"]
+        with open(read_file, "w") as f:
+            f.writelines(input_text)
         # Call tested function.
-        hmarkdo.increase_chapter("in_file.txt", "out_file.txt")
+        write_file = os.path.join(scratch_dir, "write_file.txt")
+        hmarkdo.increase_chapter(read_file, write_file)
         # Check output.
         expected = ["## Chapter 1\n", "Paragraph 1"]
-        mock_write_file.assert_called_once_with(expected, "out_file.txt")
+        with open(write_file, "r") as f:
+            actual = f.readlines()
+        self.assertEqual(actual, expected)
 
-    # Mock the input and the output files.
-    @umock.patch("helpers.hmarkdown.hparser.read_file")
-    @umock.patch("helpers.hmarkdown.hparser.write_file")
-    def test4(self, mock_write_file, mock_read_file) -> None:
+    def test4(self) -> None:
+        """
+        Test inputs of paragraphs which remain unchanged.
+        """
         # Prepare inputs.
-        mock_read_file.return_value = ["Paragraph 1\n", "Paragraph 2"]
+        scratch_dir = self.get_scratch_space()
+        read_file = os.path.join(scratch_dir, "read_file.txt")
+        input_text = ["Paragraph 1\n", "Paragraph 2"]
+        with open(read_file, "w") as f:
+            f.writelines(input_text)
         # Call tested function.
-        hmarkdo.increase_chapter("in_file.txt", "out_file.txt")
+        write_file = os.path.join(scratch_dir, "write_file.txt")
+        hmarkdo.increase_chapter(read_file, write_file)
         # Check output.
         expected = ["Paragraph 1\n", "Paragraph 2"]
-        mock_write_file.assert_called_once_with(expected, "out_file.txt")
+        with open(write_file, "r") as f:
+            actual = f.readlines()
+        self.assertEqual(actual, expected)
 
-    # Mock the input and the output files.
-    @umock.patch("helpers.hmarkdown.hparser.read_file")
-    @umock.patch("helpers.hmarkdown.hparser.write_file")
-    def test5(self, mock_write_file, mock_read_file) -> None:
+    def test5(self) -> None:
+        """
+        Test to modify multiple headings with less than five hashes.
+        """
         # Prepare inputs.
-        mock_read_file.return_value = [
+        scratch_dir = self.get_scratch_space()
+        read_file = os.path.join(scratch_dir, "read_file.txt")
+        input_text = [
             "# Chapter 1\n",
             "##### Sub-sub-subsection 1.1.1.1.1\n",
             "# Chapter 2\n",
             "### Subsection 2.1\n",
             "# Chapter 3",
         ]
+        with open(read_file, "w") as f:
+            f.writelines(input_text)
         # Call tested function.
-        hmarkdo.increase_chapter("in_file.txt", "out_file.txt")
+        write_file = os.path.join(scratch_dir, "write_file.txt")
+        hmarkdo.increase_chapter(read_file, write_file)
         # Check output.
         expected = [
             "## Chapter 1\n",
@@ -847,4 +880,6 @@ class Test_increase_chapter1(hunitest.TestCase):
             "#### Subsection 2.1\n",
             "## Chapter 3",
         ]
-        mock_write_file.assert_called_once_with(expected, "out_file.txt")
+        with open(write_file, "r") as f:
+            actual = f.readlines()
+        self.assertEqual(actual, expected)
