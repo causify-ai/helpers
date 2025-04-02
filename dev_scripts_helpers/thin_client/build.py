@@ -99,7 +99,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
         # _LOG.info("dive version=%s", dive_ver)
     elif hserver.is_external_linux():
         # Linux specific updates.
-
         # Install GitHub CLI on linux ubuntu system using apt.
         # Installation instructions based on the official GitHub CLI documentation:
         # https://github.com/cli/cli/blob/trunk/docs/install_linux.md
