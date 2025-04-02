@@ -6,7 +6,16 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
     branches:
       - master
+  # Run for every change in master.
+  push:
+    branches:
+      # Comment this out to run when committing on the branch.
+      - master
+  # Run manually.
   workflow_dispatch:
+  schedule:
+    # Run this once a day even if there are no commits.
+    - cron:  '0 0 */1 * *'
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true

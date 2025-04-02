@@ -71,7 +71,7 @@ jobs:
 
       # Pull the latest Docker image from the GHCR registry instead of ECR for
       # cost saving purposes to run the regressions on.
-      # To fetch the image from ECR, uncomment the line 
+      # To fetch the image from ECR, uncomment the line
       # `CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}`
       # and comment out the next line. This way ECR base path will be set for
       # image registry.

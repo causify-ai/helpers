@@ -1,12 +1,10 @@
-name: Super Slow tests
+name: Superslow tests
 on:
-  # Run on every PR to master that is ready to review (i.e., not draft).
-  pull_request:
-    # https://github.community/t/dont-run-actions-on-draft-pull-requests/16817/19
-    types: [opened, synchronize, reopened, ready_for_review]
-    branches:
-      - master
+  # Run manually.
   workflow_dispatch:
+  schedule:
+    # Run this everyday even if there are no commits.
+    - cron:  '0 0 * * *'
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
