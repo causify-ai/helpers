@@ -110,7 +110,7 @@ class Test_fix_links(hunitest.TestCase):
 # Reference test file
 
 - [Introduction](#introduction)
-  - [Usage](#usage)
+- [Usage](#usage)
 
 ## Introduction
 
