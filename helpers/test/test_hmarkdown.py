@@ -3,6 +3,7 @@ import os
 import pprint
 from typing import Any, List, Tuple
 
+import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
@@ -771,26 +772,14 @@ class Test_increase_chapter1(hunitest.TestCase):
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         read_file = os.path.join(scratch_dir, "read_file.txt")
-        input_text = [
-            "# Chapter 1\n",
-            "## Section 1.1\n",
-            "### Subsection 1.1.1\n",
-            "#### Sub-subsection 1.1.1.1",
-        ]
-        with open(read_file, "w") as f:
-            f.writelines(input_text)
+        input_text = "# Chapter 1\n## Section 1.1\n### Subsection 1.1.1\n#### Sub-subsection 1.1.1.1"
+        hio.to_file(read_file, input_text)
         # Call tested function.
         write_file = os.path.join(scratch_dir, "write_file.txt")
         hmarkdo.increase_chapter(read_file, write_file)
         # Check output.
-        expected = [
-            "## Chapter 1\n",
-            "### Section 1.1\n",
-            "#### Subsection 1.1.1\n",
-            "##### Sub-subsection 1.1.1.1",
-        ]
-        with open(write_file, "r") as f:
-            actual = f.readlines()
+        expected = "## Chapter 1\n### Section 1.1\n#### Subsection 1.1.1\n##### Sub-subsection 1.1.1.1"
+        actual = hio.from_file(write_file)
         self.assertEqual(actual, expected)
 
     def test2(self) -> None:
@@ -800,19 +789,14 @@ class Test_increase_chapter1(hunitest.TestCase):
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         read_file = os.path.join(scratch_dir, "read_file.txt")
-        input_text = [
-            "# Chapter 1\n",
-            "##### Sub-sub-subsection 1.1.1.1.1",
-        ]
-        with open(read_file, "w") as f:
-            f.writelines(input_text)
+        input_text = "# Chapter 1\n##### Sub-sub-subsection 1.1.1.1.1"
+        hio.to_file(read_file, input_text)
         # Call tested function.
         write_file = os.path.join(scratch_dir, "write_file.txt")
         hmarkdo.increase_chapter(read_file, write_file)
         # Check output.
-        expected = ["## Chapter 1\n", "##### Sub-sub-subsection 1.1.1.1.1"]
-        with open(write_file, "r") as f:
-            actual = f.readlines()
+        expected = "## Chapter 1\n##### Sub-sub-subsection 1.1.1.1.1"
+        actual = hio.from_file(write_file)
         self.assertEqual(actual, expected)
 
     def test3(self) -> None:
@@ -822,35 +806,31 @@ class Test_increase_chapter1(hunitest.TestCase):
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         read_file = os.path.join(scratch_dir, "read_file.txt")
-        input_text = ["# Chapter 1\n", "Paragraph 1"]
-        with open(read_file, "w") as f:
-            f.writelines(input_text)
+        input_text = "# Chapter 1\nParagraph 1"
+        hio.to_file(read_file, input_text)
         # Call tested function.
         write_file = os.path.join(scratch_dir, "write_file.txt")
         hmarkdo.increase_chapter(read_file, write_file)
         # Check output.
-        expected = ["## Chapter 1\n", "Paragraph 1"]
-        with open(write_file, "r") as f:
-            actual = f.readlines()
+        expected = "## Chapter 1\nParagraph 1"
+        actual = hio.from_file(write_file)
         self.assertEqual(actual, expected)
 
     def test4(self) -> None:
         """
-        Test inputs of paragraphs which remain unchanged.
+        Test inputs of paragraphs which remains unchanged.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         read_file = os.path.join(scratch_dir, "read_file.txt")
-        input_text = ["Paragraph 1\n", "Paragraph 2"]
-        with open(read_file, "w") as f:
-            f.writelines(input_text)
+        input_text = "Paragraph 1\nParagraph 2"
+        hio.to_file(read_file, input_text)
         # Call tested function.
         write_file = os.path.join(scratch_dir, "write_file.txt")
         hmarkdo.increase_chapter(read_file, write_file)
         # Check output.
-        expected = ["Paragraph 1\n", "Paragraph 2"]
-        with open(write_file, "r") as f:
-            actual = f.readlines()
+        expected = "Paragraph 1\nParagraph 2"
+        actual = hio.from_file(write_file)
         self.assertEqual(actual, expected)
 
     def test5(self) -> None:
@@ -860,26 +840,12 @@ class Test_increase_chapter1(hunitest.TestCase):
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         read_file = os.path.join(scratch_dir, "read_file.txt")
-        input_text = [
-            "# Chapter 1\n",
-            "##### Sub-sub-subsection 1.1.1.1.1\n",
-            "# Chapter 2\n",
-            "### Subsection 2.1\n",
-            "# Chapter 3",
-        ]
-        with open(read_file, "w") as f:
-            f.writelines(input_text)
+        input_text = "# Chapter 1\n##### Sub-sub-subsection 1.1.1.1.1\n# Chapter 2\n### Subsection 2.1\n# Chapter 3"
+        hio.to_file(read_file, input_text)
         # Call tested function.
         write_file = os.path.join(scratch_dir, "write_file.txt")
         hmarkdo.increase_chapter(read_file, write_file)
         # Check output.
-        expected = [
-            "## Chapter 1\n",
-            "##### Sub-sub-subsection 1.1.1.1.1\n",
-            "## Chapter 2\n",
-            "#### Subsection 2.1\n",
-            "## Chapter 3",
-        ]
-        with open(write_file, "r") as f:
-            actual = f.readlines()
+        expected = "## Chapter 1\n##### Sub-sub-subsection 1.1.1.1.1\n## Chapter 2\n#### Subsection 2.1\n## Chapter 3"
+        actual = hio.from_file(write_file)
         self.assertEqual(actual, expected)
