@@ -62,6 +62,30 @@ def _make_path_module_agnostic(path: str) -> str:
     upd_path = os.path.join(amp_path, path.lstrip("/"))
     return upd_path
 
+def _check_md_section_exists(link_in_cur_module: str, section: str, link_path: str, file_name: str, line_num: int) -> str | None:
+    """
+    Check if a section or heading exists in the markdown file.
+
+    Searches the specified file for a Markdown-style section that
+    matches the provided section name. Returns a warning message if the
+    section is not found.
+
+    :param link_in_cur_module: the path to the Markdown file to check
+    :param section: the heading text to look for in the file
+    :param file_name: the original file with the link
+    :param line_num: the number of the line in the file
+    :return: a warning message if the referenced markdown section is
+        missing, or None if found
+    """
+    with open(link_in_cur_module, 'r', encoding='utf-8') as file:
+        content = file.read()
+    section_pattern = re.compile(r'\[.*?\]\((.*?)\)', re.MULTILINE)
+    matches = section_pattern.findall(content)
+    if f"#{section}" in matches:
+        # Return None if the specified section is found.
+        return None
+    warning = f"{file_name}:{line_num}: The section '{section}' does not exist in the '{link_path}'"
+    return warning
 
 def _check_md_link_format(
     link_text: str, link: str, line: str, file_name: str, line_num: int
@@ -121,11 +145,17 @@ def _check_md_link_format(
     # Replace the link in the line with its updated version.
     new_link_txt = f"[{link_text}]({link})"
     updated_line = line.replace(old_link_txt, new_link_txt)
-    # Check that the file referenced by the link exists.
-    link_in_cur_module = _make_path_module_agnostic(link)
+    link_path, _, section = link.partition("#")
+    link_in_cur_module = _make_path_module_agnostic(link_path)
     if not os.path.exists(link_in_cur_module):
-        msg = f"{file_name}:{line_num}: '{link}' does not exist"
+        # Check if the file referenced by the link does not exist.
+        msg = f"{file_name}:{line_num}: '{link_path}' does not exist"
         warnings.append(msg)
+    elif section:
+        # Check that the section referenced by the link exists.
+        msg = _check_md_section_exists(link_in_cur_module, section, link_path, file_name, line_num)
+        if msg is not None:
+            warnings.append(msg)
     return updated_line, warnings
 
 

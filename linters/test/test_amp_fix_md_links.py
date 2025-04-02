@@ -101,6 +101,49 @@ class Test_fix_links(hunitest.TestCase):
         )
         self.check_string(output)
 
+    def test4(self) -> None:
+        """
+        Test Markdown file references to another Markdown file and it's
+        section.
+        """
+        reference_file_md_content = """
+# Reference test file
+
+- [Introduction](#introduction)
+  - [Usage](#usage)
+
+## Introduction
+
+What we call "rules" are actually just a convention.
+
+## Usage
+        """
+        reference_file_name = "reference.md"
+        reference_file_link = self._write_input_file(
+            reference_file_md_content, reference_file_name
+        )
+        # Remove '/app' prefix from the file path
+        reference_file_link = reference_file_link.removeprefix("/app")
+        test_md_content = f"""
+    Markdown link: [Valid Markdown and section Link]({reference_file_link}#introduction)
+
+    Markdown link: [InValid Markdown Link](docs/markdown_exam.md#introduction)
+
+    Markdown link: [Invalid section in the Markdown Link]({reference_file_link}#introduce)
+        """
+        test_file_name = "valid_section_test.md"
+        test_file_link = self._write_input_file(test_md_content, test_file_name)
+        # Run.
+        _, updated_lines, out_warnings = lafimdli.fix_links(test_file_link)
+        # Check.
+        output = "\n".join(
+            ["# linter warnings", ""]
+            + out_warnings
+            + ["", "# linted file", ""]
+            + updated_lines
+        )
+        self.check_string(output)
+
     def _get_txt_with_incorrect_links(self) -> str:
         txt_incorrect = r"""
 - Markdown-style link with a text label
