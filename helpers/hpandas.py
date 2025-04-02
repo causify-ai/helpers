@@ -2118,7 +2118,16 @@ def list_to_str(
     max_num: Optional[int] = 10,
 ) -> str:
     """
-    TODO(gp): Add docstring.
+    Convert a list of values into a formatted string representation.
+
+    E.g., [1, "two", 3, 4, 5] -> "5 ['1', 'two', '3', '4', '5']"
+
+    :param vals: values to be converted
+    :param sep_char: separator to use between elements
+    :param enclose_str_char: character to enclose each element's string
+        representation; if empty, elements are not enclosed
+    :param max_num: maximum number of elements to display in the output
+    :return: the formatted string representing the list
     """
     vals_as_str = list(map(str, vals))
     # Add a str around.
@@ -2370,7 +2379,7 @@ def to_gsheet(
 
 
 # #############################################################################
-# CheckSummary
+# _SummaryRow
 # #############################################################################
 
 
@@ -2386,6 +2395,11 @@ class _SummaryRow:
     comment: str
     # Whether the check was successful or not.
     is_ok: bool
+
+
+# #############################################################################
+# CheckSummary
+# #############################################################################
 
 
 class CheckSummary:
@@ -2482,9 +2496,15 @@ def add_end_download_timestamp(
     return obj
 
 
-def filter_df(df: pd.DataFrame, col_name: str, value: Any, *,
-              invert: bool =False, check_value: bool =True,
-              print_info: bool =True) -> pd.DataFrame:
+def filter_df(
+    df: pd.DataFrame,
+    col_name: str,
+    value: Any,
+    *,
+    invert: bool = False,
+    check_value: bool = True,
+    print_info: bool = True,
+) -> pd.DataFrame:
     hdbg.dassert_in(col_name, df.columns)
     if isinstance(value, list):
         mask = df[col_name].isin(value)
