@@ -784,7 +784,13 @@ class Test_increase_chapter1(hunitest.TestCase):
         write_file = os.path.join(scratch_dir, "write_file.txt")
         hmarkdo.increase_chapter(read_file, write_file)
         # Check output.
-        expected = "## Chapter 1\n### Section 1.1\n#### Subsection 1.1.1\n##### Sub-subsection 1.1.1.1"
+        expected = [
+            "## Chapter 1",
+            "### Section 1.1",
+            "#### Subsection 1.1.1",
+            "##### Sub-subsection 1.1.1.1",
+        ]
+        expected = "\n".join(expected)
         actual = hio.from_file(write_file)
         self.assertEqual(actual, expected)
 
@@ -802,7 +808,8 @@ class Test_increase_chapter1(hunitest.TestCase):
         write_file = os.path.join(scratch_dir, "write_file.txt")
         hmarkdo.increase_chapter(read_file, write_file)
         # Check output.
-        expected = "## Chapter 1\n##### Sub-sub-subsection 1.1.1.1.1"
+        expected = ["## Chapter 1", "##### Sub-sub-subsection 1.1.1.1.1"]
+        expected = "\n".join(expected)
         actual = hio.from_file(write_file)
         self.assertEqual(actual, expected)
 
@@ -820,7 +827,8 @@ class Test_increase_chapter1(hunitest.TestCase):
         write_file = os.path.join(scratch_dir, "write_file.txt")
         hmarkdo.increase_chapter(read_file, write_file)
         # Check output.
-        expected = "## Chapter 1\nParagraph 1"
+        expected = ["## Chapter 1", "Paragraph 1"]
+        expected = "\n".join(expected)
         actual = hio.from_file(write_file)
         self.assertEqual(actual, expected)
 
@@ -838,7 +846,8 @@ class Test_increase_chapter1(hunitest.TestCase):
         write_file = os.path.join(scratch_dir, "write_file.txt")
         hmarkdo.increase_chapter(read_file, write_file)
         # Check output.
-        expected = "Paragraph 1\nParagraph 2"
+        expected = ["Paragraph 1", "Paragraph 2"]
+        expected = "\n".join(expected)
         actual = hio.from_file(write_file)
         self.assertEqual(actual, expected)
 
@@ -862,6 +871,13 @@ class Test_increase_chapter1(hunitest.TestCase):
         write_file = os.path.join(scratch_dir, "write_file.txt")
         hmarkdo.increase_chapter(read_file, write_file)
         # Check output.
-        expected = "## Chapter 1\n##### Sub-sub-subsection 1.1.1.1.1\n## Chapter 2\n#### Subsection 2.1\n## Chapter 3"
+        expected = [
+            "## Chapter 1",
+            "##### Sub-sub-subsection 1.1.1.1.1",
+            "## Chapter 2",
+            "#### Subsection 2.1",
+            "## Chapter 3",
+        ]
+        expected = "\n".join(expected)
         actual = hio.from_file(write_file)
         self.assertEqual(actual, expected)
