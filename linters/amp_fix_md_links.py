@@ -85,12 +85,13 @@ def _check_md_header_exists(
     """
     with open(markdown_link_path, "r", encoding="utf-8") as file:
         content = file.read()
-
-    headers = hmarkdo.extract_headers_from_markdown(content, level)
+    # Get the headers of the markdown file.
+    headers_md = hmarkdo.extract_headers_from_markdown(content, level)
+    # Replace '-' with a white space, if it exists.
     header = header.replace("-", " ").lower()
-    found = any(header == h.description.lower() for h in headers)
+    # Check if the header matches any extracted header of the markdown file.
+    found = any(header == h.description.lower() for h in headers_md)
     return found
-
 
 def _check_md_link_format(
     link_text: str, link: str, line: str, file_name: str, line_num: int
