@@ -38,8 +38,9 @@ def _make_path_absolute(path: str) -> str:
     :param path: the original path
     :return: the absolute path
     """
-    abs_path = path.lstrip("./")
-    abs_path = "/" + abs_path
+    # Transform paths that begin with './', '../', '../../'.
+    abs_path = re.sub(r"^(\./|\.\./|\.\./\.\./)*", "", path)
+    abs_path = "/" + abs_path.lstrip("/")
     return abs_path
 
 

@@ -142,6 +142,9 @@ class Test_fix_links(hunitest.TestCase):
 - Markdown-style link to a file that does not exist
   - [File not found](/helpersssss/hhhhgit.py)
 
+- Markdown-style link with a directory beginning with a dot
+  - [`fast_tests.yml`](/.github/workflows/fast_tests.yml)
+
 - File path without the backticks
   - /helpers/test/test_hdbg.py
 
@@ -221,3 +224,55 @@ height="1.2303444881889765in"}
         # Create the file.
         hio.to_file(file_path, txt)
         return file_path
+
+
+# #############################################################################
+# Test_make_path_absolute
+# #############################################################################
+
+
+class Test_make_path_absolute(hunitest.TestCase):
+
+    def test_make_path_absolute1(self) -> None:
+        """
+        Test file path to retain directory name beginning with a dot.
+        """
+        file_path = "/.github/workflows/sprint_iteration.yml"
+        expected = "/.github/workflows/sprint_iteration.yml"
+        # Run.
+        actual = lafimdli._make_path_absolute(file_path)
+        # Check.
+        self.assertEqual(actual, expected)
+
+    def test_make_path_absolute2(self) -> None:
+        """
+        Test to make file path absolute.
+        """
+        file_path = "./.github/workflows/sprint_iteration.yml"
+        expected = "/.github/workflows/sprint_iteration.yml"
+        # Run.
+        actual = lafimdli._make_path_absolute(file_path)
+        # Check.
+        self.assertEqual(actual, expected)
+
+    def test_make_path_absolute3(self) -> None:
+        """
+        Test to make file path absolute.
+        """
+        file_path = "../.github/workflows/sprint_iteration.yml"
+        expected = "/.github/workflows/sprint_iteration.yml"
+        # Run.
+        actual = lafimdli._make_path_absolute(file_path)
+        # Check.
+        self.assertEqual(actual, expected)
+
+    def test_make_path_absolute4(self) -> None:
+        """
+        Test to make file path absolute.
+        """
+        file_path = "../../.github/workflows/sprint_iteration.yml"
+        expected = "/.github/workflows/sprint_iteration.yml"
+        # Run.
+        actual = lafimdli._make_path_absolute(file_path)
+        # Check.
+        self.assertEqual(actual, expected)

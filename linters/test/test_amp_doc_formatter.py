@@ -125,87 +125,9 @@ def sample_method2() -> None:
         """
         Test that code blocks remain as-is.
         """
-        text = '''
-def block_in_the_middle() -> None:
-    """
-    Test docstring.
-
-    ```
-    Code block.
-    ```
-
-    Some more text.
-    """
-
-def block_after_param(cmd: str) -> None:
-    """
-    Test docstring.
-
-    Some more text.
-
-    :param cmd: command, e.g.,
-    ```
-    > git pull
-    ```
-    """
-
-def block_without_empty_lines(cmd: str) -> None:
-    """
-    Test docstring.
-
-    Text before.
-    ```
-    > git pull
-    ```
-    Text after.
-    """
-
-def two_code_blocks(cmd: str) -> None:
-    """
-    Test docstring.
-
-    ```
-    > git pull
-    ```
-    Text in between.
-    ```
-    > git push
-    ```
-    """
-
-def block_in_second_line(cmd: str) -> None:
-    """
-    Test docstring:
-    ```
-    > git pull
-    ```
-    """
-
-def long_docstring_line(cmd: str) -> None:
-    """
-    Test docstring.
-
-    Very very very very very very very very very very long line.
-    ```
-    > git pull
-    ```
-    """
-
-def empty_lines_in_code_block(cmd: str) -> None:
-    """
-    Test docstring.
-
-    ```
-    # To lint the files modified in the current git client:
-    > i lint --modified
-
-    # To exclude certain paths from linting:
-    > i lint --files="$(find . -name '*.py' -not -path './compute/*' -not -path './amp/*')"
-    ```
-
-    Text after.
-    """
-'''
+        test6_input_dir = self.get_input_dir()
+        text_file_path = os.path.join(test6_input_dir, "test.txt")
+        text = hio.from_file(text_file_path)
         expected = text
         actual = self._docformatter(text)
         self.assertEqual(expected, actual)
