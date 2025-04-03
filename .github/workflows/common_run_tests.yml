@@ -1,4 +1,4 @@
-name: Reusable Tests Workflow
+name: Common Run Tests
 on:
     workflow_call:
         inputs:
@@ -8,6 +8,13 @@ on:
             type: string
 env:
   CSFY_CI: true
+  # CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
+  # CSFY_ECR_BASE_PATH is the source path for fetching the image.
+  # If you prefer pulling the image from ECR, comment out the following
+  # line and uncomment the one above.
+  # TODO(Vlad): Rename the variable to CSFY_CR_BASE_PATH since it can be
+  # either GHCR or ECR.
+  CSFY_ECR_BASE_PATH: ghcr.io/${{ github.repository_owner }}  
 # Set up permissions for OIDC authentication.
 permissions:
   # This is required for requesting the OIDC JWT.
@@ -69,20 +76,11 @@ jobs:
       # # Pull the latest Docker image from the AWS ECR to run the regressions
       # # on.
       # - name: Pull image from AWS ECR
-      #   env:
-      #     CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
       #   run: invoke docker_pull
 
       # Pull the latest Docker image from the GHCR registry instead of ECR for
       # cost saving purposes to run the regressions on.
-      # To fetch the image from ECR, uncomment the line
-      # `CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}`
-      # and comment out the next line. This way ECR base path will be set for
-      # image registry.
       - name: Pull image from GHCR
-        env:
-          # CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
-          CSFY_ECR_BASE_PATH: ghcr.io/${{ github.repository_owner }}
         run: invoke docker_pull
 
       - name: Run tests
@@ -91,13 +89,6 @@ jobs:
           CSFY_AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
           CSFY_AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
           CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
-          # CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
-          # CSFY_ECR_BASE_PATH is the source path for fetching the image.
-          # If you prefer pulling the image from ECR, comment out the following
-          # line and uncomment the one above.
-          # TODO(Vlad): Rename the variable to CSFY_CR_BASE_PATH since it can be
-          # either GHCR or ECR.
-          CSFY_ECR_BASE_PATH: ghcr.io/${{ github.repository_owner }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
           GH_ACTION_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: invoke ${{ inputs.test-name }}

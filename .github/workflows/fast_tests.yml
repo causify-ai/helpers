@@ -21,7 +21,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   run_fast_tests:
-    uses: ./.github/workflows/reusable_tests_workflow.yml
+    uses: ./.github/workflows/common_run_tests.yml
     with:
       test-name: run_fast_tests
     secrets: inherit
