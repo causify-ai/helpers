@@ -233,8 +233,8 @@
     > docker pull hello-world
     Error response from daemon: net/http: request canceled while waiting for connection (Client.Timeout exceeded while awaiting headers)
     ```
-  - Linux sudo problem, see
-    [here](https://stackoverflow.com/questions/48568172/docker-sock-permission-denied)
+  - Linux sudo permission denied problem, see
+    [here](https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user)
     for the solution
     ```bash
     > docker pull hello-world
