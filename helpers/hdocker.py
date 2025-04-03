@@ -10,6 +10,7 @@ import hashlib
 import logging
 import os
 import re
+import json
 import shlex
 import time
 from typing import Any, Dict, List, Optional, Tuple
@@ -990,6 +991,7 @@ def run_dockerized_notebook_image_extractor(
     # Build the container image, if needed.
     container_image = "tmp.notebook_image_extractor"
     dockerfile = r"""
+    # TODO(gp): This might be problematic on MacOS / ARM.
     FROM --platform=linux/amd64 python:3.10-slim
 
     # Install required system libraries for Chromium and Playwright.
@@ -1054,20 +1056,22 @@ def run_dockerized_notebook_image_extractor(
         is_caller_host=is_caller_host,
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
-    bash_cmd = (
-        "python -c 'from helpers.hjupyter import NotebookImageExtractor; "
-        "extractor = NotebookImageExtractor(\\\"{}\\\", \\\"{}\\\"); "
-        "extractor.extract_and_capture()'".format(notebook_path, output_dir)
-    )
     executable = get_docker_executable(use_sudo)
-    # Build the Docker command.
+    python_code = (
+        "from helpers.hjupyter import NotebookImageExtractor; "
+        "extractor = NotebookImageExtractor({}, {}); "
+        "extractor._extract_and_capture()"
+    ).format(json.dumps(notebook_path), json.dumps(output_dir))
+    inner_cmd = f"python -c {json.dumps(python_code)}"
     docker_cmd = (
         f"{executable} run --rm --user $(id -u):$(id -g) "
-        f"-e PLAYWRIGHT_BROWSERS_PATH=/ms-playwright "  
+        f"-e PLAYWRIGHT_BROWSERS_PATH=/ms-playwright "
         f"--workdir {callee_mount_path} --mount {mount} "
         f"{container_image} "
-        f'bash -c "{bash_cmd}"'
+        f'bash -c {json.dumps(inner_cmd)}'
     )
+
+    hsystem.system(docker_cmd)
     hsystem.system(docker_cmd)
 
 # #############################################################################
