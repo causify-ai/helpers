@@ -233,8 +233,8 @@
     > docker pull hello-world
     Error response from daemon: net/http: request canceled while waiting for connection (Client.Timeout exceeded while awaiting headers)
     ```
-  - Linux sudo problem, see
-    [here](https://stackoverflow.com/questions/48568172/docker-sock-permission-denied)
+  - Linux sudo permission denied problem, see
+    [here](https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user)
     for the solution
     ```bash
     > docker pull hello-world
@@ -292,23 +292,6 @@
 
   ```bash
   > i docker_pull
-  ```
-
-- For Linux users: If you get the error
-  `permission denied while trying to connect to the Docker daemon socket`, you
-  have to grant permission to your user account to interact with Docker. Adding
-  your user to the `docker` group grants permission to use Docker without
-  `sudo`.
-
-  ```bash
-  > sudo usermod -aG docker $USER
-  # Log out and log back in after executing this command.
-  ```
-  - Verify access:
-
-  ```bash
-  > docker run hello-world
-  # Should work without "permission denied".
   ```
 
 - Pull the latest `helpers` image containing Linter; this is done once
