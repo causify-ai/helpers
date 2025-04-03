@@ -754,3 +754,68 @@ class Test_colorize_first_level_bullets1(hunitest.TestCase):
           - Subitem 2.1
         """
         self.assert_equal(act, exp, dedent=True)
+
+
+
+class Test_fix_chatgpt_math_syntax1(hunitest.TestCase):
+
+    def test1(self) -> None:
+        # Prepare inputs.
+        txt = r"""
+        **States**:
+        - \( S = \{\text{Sunny}, \text{Rainy}\} \)
+        **Observations**:
+        - \( O = \{\text{Yes}, \text{No}\} \) (umbrella)
+
+        ### Initial Probabilities:
+        \[
+        P(\text{Sunny}) = 0.6, \quad P(\text{Rainy}) = 0.4
+        \]
+
+        ### Transition Probabilities:
+        \[
+        \begin{aligned}
+        P(\text{Sunny} \to \text{Sunny}) &= 0.7, \quad P(\text{Sunny} \to \text{Rainy}) = 0.3 \\
+        P(\text{Rainy} \to \text{Sunny}) &= 0.4, \quad P(\text{Rainy} \to \text{Rainy}) = 0.6
+        \end{aligned}
+        \]
+
+        ### Observation (Emission) Probabilities:
+        \[
+        \begin{aligned}
+        P(\text{Yes} \mid \text{Sunny}) &= 0.1, \quad P(\text{No} \mid \text{Sunny}) = 0.9 \\
+        P(\text{Yes} \mid \text{Rainy}) &= 0.8, \quad P(\text{No} \mid \text{Rainy}) = 0.2
+        \end{aligned}
+        \]
+        """
+        txt = hprint.dedent(txt)
+        act = hmarkdo.fix_chatgpt_math_syntax(txt)
+        act = hprint.dedent(act)
+        exp = r"""
+        **States**:
+        - \( S = \{\text{Sunny}, \text{Rainy}\} \)
+        **Observations**:
+        - \( O = \{\text{Yes}, \text{No}\} \) (umbrella)
+
+        ### Initial Probabilities:
+        \[
+        P(\text{Sunny}) = 0.6, \quad P(\text{Rainy}) = 0.4
+        \]
+
+        ### Transition Probabilities:
+        \[
+        \begin{aligned}
+        P(\text{Sunny} \to \text{Sunny}) &= 0.7, \quad P(\text{Sunny} \to \text{Rainy}) = 0.3 \\
+        P(\text{Rainy} \to \text{Sunny}) &= 0.4, \quad P(\text{Rainy} \to \text{Rainy}) = 0.6
+        \end{aligned}
+        \]
+
+        ### Observation (Emission) Probabilities:
+        \[
+        \begin{aligned}
+        P(\text{Yes} \mid \text{Sunny}) &= 0.1, \quad P(\text{No} \mid \text{Sunny}) = 0.9 \\
+        P(\text{Yes} \mid \text{Rainy}) &= 0.8, \quad P(\text{No} \mid \text{Rainy}) = 0.2
+        \end{aligned}
+        \]
+        """
+        self.assert_equal(act, exp, dedent=True)

@@ -66,7 +66,27 @@ def _process_color_commands(in_line: str) -> str:
     - \blue{x + y} -> \textcolor{blue}{x + y}
     """
     # Define supported colors
-    colors = {"red": "red", "blue": "blue", "green": "darkgreen"}
+    colors = {
+"red": "red",
+"orange": "orange",
+"yellow": "yellow",
+"lime": "lime",
+"green": "darkgreen",
+"teal": "teal",
+"cyan": "cyan",
+"blue": "blue",
+"purple": "purple",
+"violet": "violet",
+"magenta": "magenta",
+"pink": "pink",
+"brown": "brown",
+"olive": "olive",
+"gray": "gray",
+"darkgray": "darkgray",
+"lightgray": "lightgray",
+"black": "black",
+"white": "white",
+    }
     for color, value in colors.items():
         # This regex matches LaTeX color commands like \red{content}, \blue{content}, etc.
         pattern = re.compile(

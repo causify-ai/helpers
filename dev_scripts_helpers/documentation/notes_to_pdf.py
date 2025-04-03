@@ -676,7 +676,7 @@ def _parse() -> argparse.ArgumentParser:
         help="Type of output to generate",
     )
     parser.add_argument(
-        "-f", "--filter_by_header", action="store", help="Filter by header"
+        "--filter_by_header", action="store", help="Filter by header"
     )
     parser.add_argument(
         "--filter_by_lines",

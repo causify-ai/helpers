@@ -6,26 +6,19 @@ an LLM, and then write the output to either stdout or a file. It is
 particularly useful for integrating with editors like Vim.
 
 The script `dockerized_llm_transform.py` is executed within a Docker container to ensure
-The script `dockerized_llm_transform.py` is executed within a Docker container to ensure
 all dependencies are met. The Docker container is built dynamically if
 necessary. The script requires an OpenAI API key to be set in the environment.
 
 Examples
 # Basic Usage
 > llm_transform.py -i input.txt -o output.txt -p uppercase
-> llm_transform.py -i input.txt -o output.txt -p uppercase
 
 # List of transforms
 > llm_transform.py -i input.txt -o output.txt -p list
-> llm_transform.py -i input.txt -o output.txt -p list
 
 # Code review
 > llm_transform.py -i dev_scripts_helpers/documentation/render_images.py -o cfile -p code_propose_refactoring
-# Code review
-> llm_transform.py -i dev_scripts_helpers/documentation/render_images.py -o cfile -p code_propose_refactoring
 
-# Propose refactoring
-> llm_transform.py -i dev_scripts_helpers/documentation/render_images.py -o cfile -p code_propose_refactoring
 # Propose refactoring
 > llm_transform.py -i dev_scripts_helpers/documentation/render_images.py -o cfile -p code_propose_refactoring
 """
