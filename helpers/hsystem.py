@@ -55,11 +55,6 @@ def is_running_in_ipynb() -> bool:
     return res
 
 
-# TODO(gp): Use is_mac()
-def is_mac() -> bool:
-    return get_os_name() == "Darwin"
-
-
 # #############################################################################
 
 _USER_NAME = None
