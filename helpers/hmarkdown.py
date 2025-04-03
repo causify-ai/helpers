@@ -28,7 +28,7 @@ _TRACE = False
 
 def is_markdown_line_separator(line: str) -> bool:
     """
-    Check if the given line is a Markdown separator
+    Check if the given line is a Markdown separator.
 
     :return: A boolean if the line is a separator
     """
