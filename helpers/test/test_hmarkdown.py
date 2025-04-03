@@ -179,7 +179,7 @@ class Test_is_markdown_line_separator1(hunitest.TestCase):
 
     def test_valid_separator3(self) -> None:
         # Prepare inputs.
-        line = "# #####"
+        line = "# #########"
         # Call function.
         act = hmarkdo.is_markdown_line_separator(line)
         # Check output.
@@ -188,7 +188,7 @@ class Test_is_markdown_line_separator1(hunitest.TestCase):
 
     def test_valid_separator4(self) -> None:
         # Prepare inputs.
-        line = "# ====="
+        line = "### ====="
         # Call function.
         act = hmarkdo.is_markdown_line_separator(line)
         # Check output.
@@ -197,7 +197,16 @@ class Test_is_markdown_line_separator1(hunitest.TestCase):
 
     def test_valid_separator5(self) -> None:
         # Prepare inputs.
-        line = "# //////"
+        line = "#//////"
+        # Call function.
+        act = hmarkdo.is_markdown_line_separator(line)
+        # Check output.
+        exp = True
+        self.assertEqual(act, exp)
+
+    def test_valid_separator6(self) -> None:
+        # Prepare inputs.
+        line = "#  //////"
         # Call function.
         act = hmarkdo.is_markdown_line_separator(line)
         # Check output.
@@ -215,7 +224,7 @@ class Test_is_markdown_line_separator1(hunitest.TestCase):
 
     def test_invalid_separator2(self) -> None:
         # Prepare inputs.
-        line = "#-----"
+        line = "# ----"
         # Call function.
         act = hmarkdo.is_markdown_line_separator(line)
         # Check output.
@@ -224,7 +233,7 @@ class Test_is_markdown_line_separator1(hunitest.TestCase):
 
     def test_invalid_separator3(self) -> None:
         # Prepare inputs.
-        line = "# #####"
+        line = "# ###---"
         # Call function.
         act = hmarkdo.is_markdown_line_separator(line)
         # Check output.
@@ -233,7 +242,7 @@ class Test_is_markdown_line_separator1(hunitest.TestCase):
 
     def test_invalid_separator4(self) -> None:
         # Prepare inputs.
-        line = "# ="
+        line = "==="
         # Call function.
         act = hmarkdo.is_markdown_line_separator(line)
         # Check output.
@@ -242,7 +251,7 @@ class Test_is_markdown_line_separator1(hunitest.TestCase):
 
     def test_invalid_separator5(self) -> None:
         # Prepare inputs.
-        line = "//////"
+        line = "- //////"
         # Call function.
         act = hmarkdo.is_markdown_line_separator(line)
         # Check output.
