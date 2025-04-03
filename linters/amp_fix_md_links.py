@@ -65,7 +65,7 @@ def _make_path_module_agnostic(path: str) -> str:
 
 
 def _check_md_header_exists(
-    link_in_cur_module: str, header: str, level: int = 6
+    markdown_link_path: str, header: str, level: int = 6
 ) -> bool:
     """
     Check if a header or heading exists in the markdown file.
@@ -77,13 +77,13 @@ def _check_md_header_exists(
     E.g., return True if a header like '#test' or '##test-two' exists in the markdown file,
     otherwise return False.
 
-    :param link_in_cur_module: the path to the Markdown file in which the header will be looked up.
+    :param markdown_link_path: the path to the Markdown file in which the header will be looked up.
     :param header: the heading text to look for in the file
     :param level: the maximum depth of headers to extract (Markdown supports levels 1 to 6)
         - "E.g., level 2 matches only '##' and '#' headers, not '###' or deeper."
     :return: True if the header is found, False if not found.
     """
-    with open(link_in_cur_module, "r", encoding="utf-8") as file:
+    with open(markdown_link_path, "r", encoding="utf-8") as file:
         content = file.read()
 
     headers = hmarkdo.extract_headers_from_markdown(content, level)
@@ -344,10 +344,10 @@ def fix_links(file_name: str) -> Tuple[List[str], List[str], List[str]]:
     return lines, updated_lines, out_warnings
 
 
+
 # #############################################################################
 # _LinkFixer
 # #############################################################################
-
 
 class _LinkFixer(liaction.Action):
 
