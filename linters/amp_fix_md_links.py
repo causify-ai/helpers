@@ -62,7 +62,14 @@ def _make_path_module_agnostic(path: str) -> str:
     upd_path = os.path.join(amp_path, path.lstrip("/"))
     return upd_path
 
-def _check_md_section_exists(link_in_cur_module: str, section: str, link_path: str, file_name: str, line_num: int) -> str | None:
+
+def _check_md_section_exists(
+    link_in_cur_module: str,
+    section: str,
+    link_path: str,
+    file_name: str,
+    line_num: int,
+) -> str | None:
     """
     Check if a section or heading exists in the markdown file.
 
@@ -77,15 +84,16 @@ def _check_md_section_exists(link_in_cur_module: str, section: str, link_path: s
     :return: a warning message if the referenced markdown section is
         missing, or None if found
     """
-    with open(link_in_cur_module, 'r', encoding='utf-8') as file:
+    with open(link_in_cur_module, "r", encoding="utf-8") as file:
         content = file.read()
-    section_pattern = re.compile(r'\[.*?\]\((.*?)\)', re.MULTILINE)
+    section_pattern = re.compile(r"\[.*?\]\((.*?)\)", re.MULTILINE)
     matches = section_pattern.findall(content)
     if f"#{section}" in matches:
         # Return None if the specified section is found.
         return None
     warning = f"{file_name}:{line_num}: The section '{section}' does not exist in the '{link_path}'"
     return warning
+
 
 def _check_md_link_format(
     link_text: str, link: str, line: str, file_name: str, line_num: int
@@ -153,7 +161,9 @@ def _check_md_link_format(
         warnings.append(msg)
     elif section:
         # Check that the section referenced by the link exists.
-        msg = _check_md_section_exists(link_in_cur_module, section, link_path, file_name, line_num)
+        msg = _check_md_section_exists(
+            link_in_cur_module, section, link_path, file_name, line_num
+        )
         if msg is not None:
             warnings.append(msg)
     return updated_line, warnings
