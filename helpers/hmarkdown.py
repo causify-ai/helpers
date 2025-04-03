@@ -557,7 +557,7 @@ def modify_header_level(
     :param out_file_name: The name of the output file to write the
         modified text to
     :param signal: An integer indicating the increase (1) or decrease
-        (-1) of the header level.
+        (-1) of the header level
     """
     txt = hparser.read_file(in_file_name)
     #

@@ -945,14 +945,14 @@ class Test_modify_header_level1(hunitest.TestCase):
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         read_file = os.path.join(scratch_dir, "read_file.txt")
-        input_text = ["Paragraph 1", "Paragraph 2"]
+        input_text = ["Paragraph 1", "Paragraph 2", "Paragraph 3"]
         input_text = "\n".join(input_text)
         hio.to_file(read_file, input_text)
         # Call tested function.
         write_file = os.path.join(scratch_dir, "write_file.txt")
         hmarkdo.modify_header_level(read_file, write_file, -1)
         # Check output.
-        expected = ["Paragraph 1", "Paragraph 2"]
+        expected = ["Paragraph 1", "Paragraph 2", "Paragraph 3"]
         expected = "\n".join(expected)
         actual = hio.from_file(write_file)
         self.assertEqual(actual, expected)
