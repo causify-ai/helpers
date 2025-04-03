@@ -28,10 +28,10 @@ _TRACE = False
 
 def is_markdown_line_separator(line: str) -> bool:
     res = (
-        re.match(r"#*\s*#########+", line)
-        or re.match(r"#*\s*/////////+", line)
-        or re.match(r"#*\s*---------+", line)
-        or re.match(r"#*\s*=========+", line)
+        re.match(r"#*\s*#####+", line)
+        or re.match(r"#*\s*/////+", line)
+        or re.match(r"#*\s*-----+", line)
+        or re.match(r"#*\s*=====+", line)
     )
     res = bool(res)
     return res
