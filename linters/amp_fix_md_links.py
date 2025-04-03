@@ -93,6 +93,7 @@ def _check_md_header_exists(
     found = any(header == h.description.lower() for h in headers_md)
     return found
 
+
 def _check_md_link_format(
     link_text: str, link: str, line: str, file_name: str, line_num: int
 ) -> Tuple[str, List[str]]:
@@ -345,10 +346,10 @@ def fix_links(file_name: str) -> Tuple[List[str], List[str], List[str]]:
     return lines, updated_lines, out_warnings
 
 
-
 # #############################################################################
 # _LinkFixer
 # #############################################################################
+
 
 class _LinkFixer(liaction.Action):
 
