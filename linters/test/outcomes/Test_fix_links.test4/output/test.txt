@@ -1,13 +1,15 @@
 # linter warnings
 
-/app/linters/test/outcomes/Test_fix_links.test4/tmp.scratch/valid_section_test.md:3: '/docs/markdown_exam.md' does not exist
-/app/linters/test/outcomes/Test_fix_links.test4/tmp.scratch/valid_section_test.md:5: The section 'introduce' does not exist in the '/linters/test/outcomes/Test_fix_links.test4/tmp.scratch/reference.md'
+/app/linters/test/outcomes/Test_fix_links.test4/tmp.scratch/valid_header_test.md:3: '/docs/markdown_exam.md' does not exist
+/app/linters/test/outcomes/Test_fix_links.test4/tmp.scratch/valid_header_test.md:5: header 'introduce' does not exist in '/linters/test/outcomes/Test_fix_links.test4/tmp.scratch/reference.md'
 
 # linted file
 
 
-    Markdown link: [Valid Markdown and section Link](/linters/test/outcomes/Test_fix_links.test4/tmp.scratch/reference.md#introduction)
+    Markdown link: [Valid Markdown and header Link](/linters/test/outcomes/Test_fix_links.test4/tmp.scratch/reference.md#introduction)
 
     Markdown link: [InValid Markdown Link](/docs/markdown_exam.md#introduction)
 
-    Markdown link: [Invalid section in the Markdown Link](/linters/test/outcomes/Test_fix_links.test4/tmp.scratch/reference.md#introduce)
+    Markdown link: [Invalid header in the Markdown Link](/linters/test/outcomes/Test_fix_links.test4/tmp.scratch/reference.md#introduce)
+
+    Markdown link: [Valid Markdown and header Link](/linters/test/outcomes/Test_fix_links.test4/tmp.scratch/reference.md#hyphen-test)

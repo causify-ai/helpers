@@ -103,35 +103,38 @@ class Test_fix_links(hunitest.TestCase):
 
     def test4(self) -> None:
         """
-        Test Markdown file references to another Markdown file and it's
-        section.
+        Test Markdown file references to another Markdown file and its header.
         """
         reference_file_md_content = """
 # Reference test file
 
 - [Introduction](#introduction)
-- [Usage](#usage)
+- [Hyphen test](#hyphen-test)
 
 ## Introduction
 
-A test introduction in the reference file.
+A test header with one word in the reference file.
 
-## Usage
+## Hyphen test
+
+A test to check two words header in the reference file.
         """
         reference_file_name = "reference.md"
         reference_file_link = self._write_input_file(
             reference_file_md_content, reference_file_name
         )
-        # Remove '/app' prefix from the file path
+        # Remove '/app' prefix from the file path.
         reference_file_link = reference_file_link.removeprefix("/app")
         test_md_content = f"""
-    Markdown link: [Valid Markdown and section Link]({reference_file_link}#introduction)
+    Markdown link: [Valid Markdown and header Link]({reference_file_link}#introduction)
 
     Markdown link: [InValid Markdown Link](docs/markdown_exam.md#introduction)
 
-    Markdown link: [Invalid section in the Markdown Link]({reference_file_link}#introduce)
+    Markdown link: [Invalid header in the Markdown Link]({reference_file_link}#introduce)
+
+    Markdown link: [Valid Markdown and header Link]({reference_file_link}#hyphen-test)
         """
-        test_file_name = "valid_section_test.md"
+        test_file_name = "valid_header_test.md"
         test_file_link = self._write_input_file(test_md_content, test_file_name)
         # Run.
         _, updated_lines, out_warnings = lafimdli.fix_links(test_file_link)

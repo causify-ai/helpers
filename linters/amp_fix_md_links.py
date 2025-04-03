@@ -14,6 +14,7 @@ from typing import List, Tuple
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
+import helpers.hmarkdown as hmarkdo
 import helpers.hparser as hparser
 import helpers.hstring as hstring
 import linters.action as liaction
@@ -63,36 +64,32 @@ def _make_path_module_agnostic(path: str) -> str:
     return upd_path
 
 
-def _check_md_section_exists(
-    link_in_cur_module: str,
-    section: str,
-    link_path: str,
-    file_name: str,
-    line_num: int,
-) -> str | None:
+def _check_md_header_exists(
+    link_in_cur_module: str, header: str, level: int = 6
+) -> bool:
     """
-    Check if a section or heading exists in the markdown file.
+    Check if a header or heading exists in the markdown file.
 
-    Searches the specified file for a Markdown-style section that
-    matches the provided section name. Returns a warning message if the
-    section is not found.
+    Search the specified file for a Markdown-style header that
+    matches the provided header name. Return True if the header is
+    found, otherwise return False.
 
-    :param link_in_cur_module: the path to the Markdown file to check
-    :param section: the heading text to look for in the file
-    :param file_name: the original file with the link
-    :param line_num: the number of the line in the file
-    :return: a warning message if the referenced markdown section is
-        missing, or None if found
+    E.g., return True if a header like '#test' or '##test-two' exists in the markdown file,
+    otherwise return False.
+
+    :param link_in_cur_module: the path to the Markdown file in which the header will be looked up.
+    :param header: the heading text to look for in the file
+    :param level: the maximum depth of headers to extract (Markdown supports levels 1 to 6)
+        - "E.g., level 2 matches only '##' and '#' headers, not '###' or deeper."
+    :return: True if the header is found, False if not found.
     """
     with open(link_in_cur_module, "r", encoding="utf-8") as file:
         content = file.read()
-    section_pattern = re.compile(r"\[.*?\]\((.*?)\)", re.MULTILINE)
-    matches = section_pattern.findall(content)
-    if f"#{section}" in matches:
-        # Return None if the specified section is found.
-        return None
-    warning = f"{file_name}:{line_num}: The section '{section}' does not exist in the '{link_path}'"
-    return warning
+
+    headers = hmarkdo.extract_headers_from_markdown(content, level)
+    header = header.replace("-", " ").lower()
+    found = any(header == h.description.lower() for h in headers)
+    return found
 
 
 def _check_md_link_format(
@@ -153,18 +150,18 @@ def _check_md_link_format(
     # Replace the link in the line with its updated version.
     new_link_txt = f"[{link_text}]({link})"
     updated_line = line.replace(old_link_txt, new_link_txt)
-    link_path, _, section = link.partition("#")
+    # Split the link into file path and header using the '#' delimiter if exist.
+    link_path, _, header = link.partition("#")
     link_in_cur_module = _make_path_module_agnostic(link_path)
     if not os.path.exists(link_in_cur_module):
-        # Check if the file referenced by the link does not exist.
+        # Warn that the file referenced by the link does not exist.
         msg = f"{file_name}:{line_num}: '{link_path}' does not exist"
         warnings.append(msg)
-    elif section:
-        # Check that the section referenced by the link exists.
-        msg = _check_md_section_exists(
-            link_in_cur_module, section, link_path, file_name, line_num
-        )
-        if msg is not None:
+    elif header:
+        # Check if the header referenced by the link exists.
+        header_exists = _check_md_header_exists(link_in_cur_module, header)
+        if not header_exists:
+            msg = f"{file_name}:{line_num}: Header '{header}' does not exist in '{link_path}'"
             warnings.append(msg)
     return updated_line, warnings
 
