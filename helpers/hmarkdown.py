@@ -30,7 +30,7 @@ def is_markdown_line_separator(line: str) -> bool:
     """
     Check if the given line is a Markdown separator.
 
-    :param line: the current line of text being processed.
+    :param line: the current line of text being processed
     :return: true if the line is a separator
     """
     res = (
