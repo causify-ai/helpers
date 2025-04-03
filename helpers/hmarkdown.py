@@ -1,3 +1,9 @@
+"""
+Import as:
+
+import helpers.hmarkdown as hmarkdo
+"""
+
 import dataclasses
 import logging
 import re
@@ -21,11 +27,17 @@ _TRACE = False
 
 
 def is_markdown_line_separator(line: str) -> bool:
+    """
+    Check if the given line is a Markdown separator.
+
+    :param line: the current line of text being processed
+    :return: true if the line is a separator
+    """
     res = (
-        re.match(r"#*\s*#########+", line)
-        or re.match(r"#*\s*/////////+", line)
-        or re.match(r"#*\s*---------+", line)
-        or re.match(r"#*\s*=========+", line)
+        re.match(r"#*\s*#####+", line)
+        or re.match(r"#*\s*/////+", line)
+        or re.match(r"#*\s*-----+", line)
+        or re.match(r"#*\s*=====+", line)
     )
     res = bool(res)
     return res
@@ -147,13 +159,7 @@ def process_single_line_comment(line: str) -> bool:
         _LOG.debug("  -> do_continue=True")
         return do_continue
     # Skip frame.
-    # TODO(gp): Use is_markdown_line_separator
-    if (
-        re.match(r"\#+ -----", line)
-        or re.match(r"\#+ \#\#\#\#\#", line)
-        or re.match(r"\#+ =====", line)
-        or re.match(r"\#+ \/\/\/\/\/", line)
-    ):
+    if is_markdown_line_separator(line):
         do_continue = True
         _LOG.debug("  -> do_continue=True")
         return do_continue
@@ -197,8 +203,7 @@ def process_lines(lines: List[str]) -> Generator[Tuple[int, str], None, None]:
             continue
         out.append(line)
     #
-    for line in enumerate(out):
-        yield line
+    yield from enumerate(out)
 
 
 def remove_end_of_line_periods(txt: str) -> str:
@@ -512,13 +517,7 @@ def format_headers(in_file_name: str, out_file_name: str, max_lev: int) -> None:
     txt_tmp = []
     for line in txt:
         # Keep the comments.
-        # TODO(gp): Use is_markdown_line_separator()
-        if not (
-            re.match("#+ ####+", line)
-            or re.match("#+ /////+", line)
-            or re.match("#+ ------+", line)
-            or re.match("#+ ======+", line)
-        ):
+        if not is_markdown_line_separator(line):
             txt_tmp.append(line)
     txt = txt_tmp[:]
     # Add proper heading of the correct length.
