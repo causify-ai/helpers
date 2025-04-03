@@ -87,7 +87,7 @@ def _check_md_header_exists(
         content = file.read()
     # Get the headers of the markdown file.
     headers_md = hmarkdo.extract_headers_from_markdown(content, level)
-    # Replace '-' with a white space, if it exists.
+    # Replace '-' with a white space, if '-' exists.
     header = header.replace("-", " ").lower()
     # Check if the header matches any extracted header of the markdown file.
     found = any(header == h.description.lower() for h in headers_md)
