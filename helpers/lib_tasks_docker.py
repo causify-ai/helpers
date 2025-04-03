@@ -1304,36 +1304,6 @@ def _get_docker_compose_cmd(
     return docker_cmd_
 
 
-# TODO(gp): Move to `lib_tasks_lint.py`.
-def _get_lint_docker_cmd(
-    docker_cmd_: str,
-    stage: str,
-    version: str,
-    *,
-    use_entrypoint: bool = True,
-) -> str:
-    """
-    Create a command to run in Linter service.
-
-    :param docker_cmd_: command to run
-    :param stage: the image stage to use
-    :return: the full command to run
-    """
-    base_path = os.environ["CSFY_ECR_BASE_PATH"]
-    _LOG.debug("base_path=%s", base_path)
-    # Get an image to run the linter on.
-    linter_image = f"{base_path}/helpers"
-    # Execute command line.
-    cmd: str = _get_docker_compose_cmd(
-        linter_image,
-        stage,
-        version,
-        docker_cmd_,
-        use_entrypoint=use_entrypoint,
-    )
-    return cmd
-
-
 # ////////////////////////////////////////////////////////////////////////////////
 # bash and cmd.
 # ////////////////////////////////////////////////////////////////////////////////
