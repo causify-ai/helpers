@@ -848,7 +848,7 @@ class Test_modify_header_level1(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test the inputs to increase chapters.
+        Test the inputs to increase headings.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
@@ -863,7 +863,7 @@ class Test_modify_header_level1(hunitest.TestCase):
         hio.to_file(read_file, input_text)
         # Call tested function.
         write_file = os.path.join(scratch_dir, "write_file.txt")
-        hmarkdo.modify_header_level(read_file, write_file, 1)
+        hmarkdo.modify_header_level(read_file, write_file)
         # Check output.
         expected = [
             "## Chapter 1",
@@ -877,7 +877,7 @@ class Test_modify_header_level1(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        Test inputs to increase chapters with more than four hashes which
+        Test inputs to increase headings with more than four hashes which
         remain unchanged.
         """
         # Prepare inputs.
@@ -888,7 +888,7 @@ class Test_modify_header_level1(hunitest.TestCase):
         hio.to_file(read_file, input_text)
         # Call tested function.
         write_file = os.path.join(scratch_dir, "write_file.txt")
-        hmarkdo.modify_header_level(read_file, write_file, 1)
+        hmarkdo.modify_header_level(read_file, write_file)
         # Check output.
         expected = ["## Chapter 1", "##### Sub-sub-subsection 1.1.1.1.1"]
         expected = "\n".join(expected)
@@ -897,7 +897,7 @@ class Test_modify_header_level1(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        Test inputs to increase chapters including a paragraph which remains
+        Test inputs to increase headings including a paragraph which remains
         unchanged.
         """
         # Prepare inputs.
@@ -908,7 +908,7 @@ class Test_modify_header_level1(hunitest.TestCase):
         hio.to_file(read_file, input_text)
         # Call tested function.
         write_file = os.path.join(scratch_dir, "write_file.txt")
-        hmarkdo.modify_header_level(read_file, write_file, 1)
+        hmarkdo.modify_header_level(read_file, write_file)
         # Check output.
         expected = ["## Chapter 1", "Paragraph 1"]
         expected = "\n".join(expected)
@@ -927,7 +927,7 @@ class Test_modify_header_level1(hunitest.TestCase):
         hio.to_file(read_file, input_text)
         # Call tested function.
         write_file = os.path.join(scratch_dir, "write_file.txt")
-        hmarkdo.modify_header_level(read_file, write_file, 1)
+        hmarkdo.modify_header_level(read_file, write_file)
         # Check output.
         expected = ["Paragraph 1", "Paragraph 2"]
         expected = "\n".join(expected)
@@ -936,7 +936,7 @@ class Test_modify_header_level1(hunitest.TestCase):
 
     def test5(self) -> None:
         """
-        Test to increase chapters with less than five hashes.
+        Test to increase headings with less than five hashes.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
@@ -952,7 +952,7 @@ class Test_modify_header_level1(hunitest.TestCase):
         hio.to_file(read_file, input_text)
         # Call tested function.
         write_file = os.path.join(scratch_dir, "write_file.txt")
-        hmarkdo.modify_header_level(read_file, write_file, 1)
+        hmarkdo.modify_header_level(read_file, write_file)
         # Check output.
         expected = [
             "## Chapter 1",
@@ -967,7 +967,7 @@ class Test_modify_header_level1(hunitest.TestCase):
 
     def test6(self) -> None:
         """
-        Test the inputs to decrease chapters.
+        Test the inputs to decrease headings.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
@@ -982,7 +982,7 @@ class Test_modify_header_level1(hunitest.TestCase):
         hio.to_file(read_file, input_text)
         # Call tested function.
         write_file = os.path.join(scratch_dir, "write_file.txt")
-        hmarkdo.modify_header_level(read_file, write_file, -1)
+        hmarkdo.modify_header_level(read_file, write_file, False)
         # Check output.
         expected = [
             "# Section 1.1",
@@ -996,7 +996,7 @@ class Test_modify_header_level1(hunitest.TestCase):
 
     def test7(self) -> None:
         """
-        Test inputs to decrease chapters with one hash which remains unchanged.
+        Test inputs to decrease headings with one hash which remains unchanged.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
@@ -1009,7 +1009,7 @@ class Test_modify_header_level1(hunitest.TestCase):
         hio.to_file(read_file, input_text)
         # Call tested function.
         write_file = os.path.join(scratch_dir, "write_file.txt")
-        hmarkdo.modify_header_level(read_file, write_file, -1)
+        hmarkdo.modify_header_level(read_file, write_file, False)
         # Check output.
         expected = [
             "# Chapter 1",
@@ -1031,7 +1031,7 @@ class Test_modify_header_level1(hunitest.TestCase):
         hio.to_file(read_file, input_text)
         # Call tested function.
         write_file = os.path.join(scratch_dir, "write_file.txt")
-        hmarkdo.modify_header_level(read_file, write_file, -1)
+        hmarkdo.modify_header_level(read_file, write_file, False)
         # Check output.
         expected = ["Paragraph 1", "Paragraph 2", "Paragraph 3"]
         expected = "\n".join(expected)

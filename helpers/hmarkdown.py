@@ -539,18 +539,11 @@ def format_headers(in_file_name: str, out_file_name: str, max_lev: int) -> None:
     hparser.write_file(txt_tmp, out_file_name)
 
 
-# TODO(gp): Add tests.
-# TODO(gp): Generalize this to also decrease the header level
-# TODO(gp): -> modify_header_level
 def modify_header_level(
-    in_file_name: str, out_file_name: str, signal: int
+    in_file_name: str, out_file_name: str, increase: bool = True
 ) -> None:
     """
-    Increase or decrease the level of chapters by one for text in stdin.
-
-    The function reads the input file, adjusts the chapter header levels
-    by one step based on the provided signal, and writes the modified
-    content to the output file.
+    Increase or decrease the level of headings by one for text in stdin.
 
     :param in_file_name: The name of the input file to read.
     :param out_file_name: The name of the output file to write the
@@ -561,13 +554,16 @@ def modify_header_level(
     txt = hparser.read_file(in_file_name)
     #
     txt_tmp = []
+    increase_level = 1
     for line in txt:
         # TODO(gp): Use the iterator.
         line = line.rstrip(r"\n")
-        for i in range(1, 7):
+        for i in range(1, 6):
             if line.startswith("#" * i + " "):
-                modified_level = signal + i
-                if (signal == 1 and i > 4) or (signal == -1 and i == 1):
+                if increase == False:
+                    increase_level = -1
+                modified_level = increase_level + i
+                if (increase == True and i > 4) or (increase == False and i == 1):
                     # Handle edge cases for reducing (1 hash) and increasing (5 hashes)
                     # heading levels.
                     modified_level = i
