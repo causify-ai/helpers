@@ -4,6 +4,7 @@ import pytest
 
 import helpers.hdocker as hdocker
 import helpers.hio as hio
+import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
 
 
@@ -14,7 +15,9 @@ import helpers.hunit_test as hunitest
 
 class Test_run_dockerized_prettier(hunitest.TestCase):
 
-    @pytest.mark.superslow
+    @pytest.mark.skipif(
+        hserver.is_inside_ci(), reason="Disabled because of HelpersTask484"
+    )
     def test1(self) -> None:
         """
         Test that Dockerized Prettier reads an input file, formats it, and
