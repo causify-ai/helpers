@@ -1,7 +1,7 @@
 # linter warnings
 
 /app/linters/test/outcomes/Test_fix_links.test4/tmp.scratch/valid_header_test.md:3: '/docs/markdown_exam.md' does not exist
-/app/linters/test/outcomes/Test_fix_links.test4/tmp.scratch/valid_header_test.md:5: header 'introduce' does not exist in '/linters/test/outcomes/Test_fix_links.test4/tmp.scratch/reference.md'
+/app/linters/test/outcomes/Test_fix_links.test4/tmp.scratch/valid_header_test.md:5: Header 'introduce' does not exist in '/linters/test/outcomes/Test_fix_links.test4/tmp.scratch/reference.md'
 
 # linted file
 
