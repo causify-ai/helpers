@@ -4538,24 +4538,35 @@ class Test_list_to_str(hunitest.TestCase):
         """
         Check that a list is converted to string correctly.
         """
-        # Prepare inputs
+        # Prepare inputs.
         input = [1, "two", 3, 4, "five"]
-        # Run
+        # Run.
         actual = hpandas.list_to_str(input, enclose_str_char="|", sep_char=" ; ")
-        # Check
+        # Check.
         expected = f"5 [|1| ; |two| ; |3| ; |4| ; |five|]"
-        self.assert_equal(actual, expected, fuzzy_match=True)
+        self.assert_equal(actual, expected)
 
     def test2(self) -> None:
         """
-        Check that a list is converted to string correctly.
+        Check that a list is converted to string and truncated correctly.
         """
-        # Prepare inputs
+        # Prepare inputs.
         input = list(range(15))
-        # Run
+        # Run.
         actual = hpandas.list_to_str(input, enclose_str_char="", sep_char=" - ")
-        # Check
-        first_half = " - ".join([f"{i}" for i in range(5)])
-        last_half = " - ".join([f"{i}" for i in range(10, 15)])
-        expected = f"15 [{first_half} - ... - {last_half}]"
-        self.assert_equal(actual, expected, fuzzy_match=True)
+        # Check.
+        expected = f"15 [0 - 1 - 2 - 3 - 4 - ... - 10 - 11 - 12 - 13 - 14]"
+        self.assert_equal(actual, expected)
+
+    def test3(self) -> None:
+        """
+        Check that a list is converted to string correctly, without additional
+        parameters.
+        """
+        # Prepare inputs.
+        input = [1, 2, 3, 4, "five"]
+        # Run.
+        actual = hpandas.list_to_str(input)
+        # Check.
+        expected = f"5 ['1', '2', '3', '4', 'five']"
+        self.assert_equal(actual, expected)
