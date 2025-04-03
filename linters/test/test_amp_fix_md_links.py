@@ -101,6 +101,36 @@ class Test_fix_links(hunitest.TestCase):
         )
         self.check_string(output)
 
+    def test4(self):
+        """
+        Test links with a filepath with a tag ("/image.png") to check for its
+        preservation.
+        """
+        # Prepare inputs.
+        input_content = """
+- Each GH project window consists of tabs called "views"
+
+- A view can provide a specific perspective on the issues in the project, e.g.,
+  filter certain issues by their attributes, visualize them in a board/list
+
+<img src="figs/ck.github_projects_process.reference_figs/image1.png"
+    style="width:6.5in;height:0.31944in" />
+
+- We use a base
+  [<u>template</u>](https://github.com/cryptokaizen/cmamp/projects?query=is%3Aopen+is%3Atemplate)
+  for all of our projects to ensure consistency between projects
+        """
+        file_name = "test_excerpt.md"
+        file_path = self._write_input_file(input_content, file_name)
+        # Run.
+        _, updated_lines, out_warnings = lafimdli.fix_links(file_path)
+        # Check.
+        actual = "\n".join(updated_lines)
+        expected = """
+        - Each GH project window consists of tabs called "views"\n\n- A view can provide a specific perspective on the issues in the project, e.g.,\n  filter certain issues by their attributes, visualize them in a board/list\n\n<img src="figs/ck.github_projects_process.reference_figs/image1.png"\n    style="width:6.5in;height:0.31944in" />\n\n- We use a base\n  [<u>template</u>](https://github.com/cryptokaizen/cmamp/projects?query=is%3Aopen+is%3Atemplate)\n  for all of our projects to ensure consistency between projects\n
+        """
+        self.assert_equal(actual, expected, fuzzy_match=True)
+
     def _get_txt_with_incorrect_links(self) -> str:
         txt_incorrect = r"""
 - Markdown-style link with a text label

@@ -24,7 +24,7 @@ _LOG = logging.getLogger(__name__)
 # Regular expressions for different link types.
 FIG_REGEX_1 = r'<img src="\.{0,2}\w*\/\S+?\.(?:jpg|jpeg|png)"'
 FIG_REGEX_2 = r"!\[\w*\]\(\.{0,2}\w*\/\S+?\.(?:jpg|jpeg|png)\)"
-FILE_PATH_REGEX = r"\.{0,2}\w*\/\S+?\.[\w\.]+"
+FILE_PATH_REGEX = r"\.{0,2}\w*\/\S+\.[\w\.]+"
 HTML_LINK_REGEX = r'(<a href=".*?">.*?</a>)'
 MD_LINK_REGEX = r"\[(.+)\]\(((?!#).*)\)"
 
