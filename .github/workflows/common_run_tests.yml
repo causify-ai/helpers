@@ -14,7 +14,7 @@ env:
   # line and uncomment the one above.
   # TODO(Vlad): Rename the variable to CSFY_CR_BASE_PATH since it can be
   # either GHCR or ECR.
-  CSFY_ECR_BASE_PATH: ghcr.io/${{ github.repository_owner }}  
+  CSFY_ECR_BASE_PATH: ghcr.io/${{ github.repository_owner }}
 # Set up permissions for OIDC authentication.
 permissions:
   # This is required for requesting the OIDC JWT.
