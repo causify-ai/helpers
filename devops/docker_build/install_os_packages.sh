@@ -18,8 +18,9 @@ DEBIAN_FRONTEND=noninteractive
 
 APT_GET_OPTS="-y --no-install-recommends"
 
-#apt-get update
-#apt-get upgrade -y
+# - Update the packages.
+apt-get update
+apt-get upgrade -y
 
 # - Install sudo.
 apt-get install $APT_GET_OPTS sudo
