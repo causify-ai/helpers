@@ -101,6 +101,32 @@ class Test_fix_links(hunitest.TestCase):
         )
         self.check_string(output)
 
+    def test4(self):
+        """
+        Test links with a filepath with a tag ("/image.png") to check for its
+        preservation.
+        """
+        # Prepare inputs.
+        input_content = """
+
+<img src="figs/ck.github_projects_process.reference_figs/image1.png"
+    style="width:6.5in;height:0.31944in" />
+
+        """
+        file_name = "test_excerpt.md"
+        file_path = self._write_input_file(input_content, file_name)
+        # Run.
+        _, updated_lines, _ = lafimdli.fix_links(file_path)
+        # Check.
+        actual = "\n".join(updated_lines)
+        expected = """
+
+<img src="figs/ck.github_projects_process.reference_figs/image1.png"
+    style="width:6.5in;height:0.31944in" />
+
+        """
+        self.assert_equal(actual, expected, fuzzy_match=True)
+
     def _get_txt_with_incorrect_links(self) -> str:
         txt_incorrect = r"""
 - Markdown-style link with a text label
