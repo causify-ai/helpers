@@ -863,7 +863,7 @@ class Test_modify_header_level1(hunitest.TestCase):
         hio.to_file(read_file, input_text)
         # Call tested function.
         write_file = os.path.join(scratch_dir, "write_file.txt")
-        hmarkdo.modify_header_level(read_file, write_file)
+        hmarkdo.modify_header_level(read_file, write_file, "increase")
         # Check output.
         expected = [
             "## Chapter 1",
@@ -888,7 +888,7 @@ class Test_modify_header_level1(hunitest.TestCase):
         hio.to_file(read_file, input_text)
         # Call tested function.
         write_file = os.path.join(scratch_dir, "write_file.txt")
-        hmarkdo.modify_header_level(read_file, write_file)
+        hmarkdo.modify_header_level(read_file, write_file, "increase")
         # Check output.
         expected = ["## Chapter 1", "##### Sub-sub-subsection 1.1.1.1.1"]
         expected = "\n".join(expected)
@@ -908,7 +908,7 @@ class Test_modify_header_level1(hunitest.TestCase):
         hio.to_file(read_file, input_text)
         # Call tested function.
         write_file = os.path.join(scratch_dir, "write_file.txt")
-        hmarkdo.modify_header_level(read_file, write_file)
+        hmarkdo.modify_header_level(read_file, write_file, "increase")
         # Check output.
         expected = ["## Chapter 1", "Paragraph 1"]
         expected = "\n".join(expected)
@@ -927,7 +927,7 @@ class Test_modify_header_level1(hunitest.TestCase):
         hio.to_file(read_file, input_text)
         # Call tested function.
         write_file = os.path.join(scratch_dir, "write_file.txt")
-        hmarkdo.modify_header_level(read_file, write_file)
+        hmarkdo.modify_header_level(read_file, write_file, "increase")
         # Check output.
         expected = ["Paragraph 1", "Paragraph 2"]
         expected = "\n".join(expected)
@@ -952,7 +952,7 @@ class Test_modify_header_level1(hunitest.TestCase):
         hio.to_file(read_file, input_text)
         # Call tested function.
         write_file = os.path.join(scratch_dir, "write_file.txt")
-        hmarkdo.modify_header_level(read_file, write_file)
+        hmarkdo.modify_header_level(read_file, write_file, "increase")
         # Check output.
         expected = [
             "## Chapter 1",
@@ -982,7 +982,7 @@ class Test_modify_header_level1(hunitest.TestCase):
         hio.to_file(read_file, input_text)
         # Call tested function.
         write_file = os.path.join(scratch_dir, "write_file.txt")
-        hmarkdo.modify_header_level(read_file, write_file, False)
+        hmarkdo.modify_header_level(read_file, write_file, "decrease")
         # Check output.
         expected = [
             "# Section 1.1",
@@ -1009,7 +1009,7 @@ class Test_modify_header_level1(hunitest.TestCase):
         hio.to_file(read_file, input_text)
         # Call tested function.
         write_file = os.path.join(scratch_dir, "write_file.txt")
-        hmarkdo.modify_header_level(read_file, write_file, False)
+        hmarkdo.modify_header_level(read_file, write_file, "decrease")
         # Check output.
         expected = [
             "# Chapter 1",
@@ -1031,7 +1031,7 @@ class Test_modify_header_level1(hunitest.TestCase):
         hio.to_file(read_file, input_text)
         # Call tested function.
         write_file = os.path.join(scratch_dir, "write_file.txt")
-        hmarkdo.modify_header_level(read_file, write_file, False)
+        hmarkdo.modify_header_level(read_file, write_file, "decrease")
         # Check output.
         expected = ["Paragraph 1", "Paragraph 2", "Paragraph 3"]
         expected = "\n".join(expected)
