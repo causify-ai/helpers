@@ -6,7 +6,13 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 
+# #############################################################################
+# Test_hserver1
+# #############################################################################
+
+
 class Test_hserver1(hunitest.TestCase):
+
     def test_is_inside_ci1(self) -> None:
         is_inside_ci_ = hserver.is_inside_ci()
         if is_inside_ci_:
@@ -20,9 +26,9 @@ class Test_hserver1(hunitest.TestCase):
     def test_is_dev_ck1(self) -> None:
         _ = hserver.is_dev_ck()
 
-    def test_is_cmamp_prod1(self) -> None:
-        is_cmamp_prod = hserver.is_cmamp_prod()
-        if is_cmamp_prod:
+    def test_is_prod_csfy1(self) -> None:
+        is_prod_csfy = hserver.is_prod_csfy()
+        if is_prod_csfy:
             # Prod runs inside Docker.
             self.assertTrue(hserver.is_inside_docker())
 
