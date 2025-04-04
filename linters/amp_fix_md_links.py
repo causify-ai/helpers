@@ -73,7 +73,7 @@ def _check_md_header_exists(
     :param markdown_link_path: the path to the Markdown file in which the header will be looked up
     :param header: the heading text to look for in the file, e.g., `test`, `test-two`
     :param level: the maximum depth of headers to extract (Markdown supports levels 1 to 6)
-        - E.g., level 2 matches only '##' and '#' headers, not '###' or deeper
+        - E.g., level 2 matches only `##` and `#` headers, not `###` or deeper
     :return: True if the header is found, False if not found
     """
     with open(markdown_link_path, "r", encoding="utf-8") as file:
