@@ -840,15 +840,15 @@ class Test_colorize_first_level_bullets1(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_increase_chapter1
+# Test_modify_header_level1
 # #############################################################################
 
 
-class Test_increase_chapter1(hunitest.TestCase):
+class Test_modify_header_level1(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test the inputs to increase chapters.
+        Test the inputs to increase headings.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
@@ -863,7 +863,7 @@ class Test_increase_chapter1(hunitest.TestCase):
         hio.to_file(read_file, input_text)
         # Call tested function.
         write_file = os.path.join(scratch_dir, "write_file.txt")
-        hmarkdo.increase_chapter(read_file, write_file)
+        hmarkdo.modify_header_level(read_file, write_file, "increase")
         # Check output.
         expected = [
             "## Chapter 1",
@@ -877,7 +877,8 @@ class Test_increase_chapter1(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        Test inputs with more than four hashes which remain unchanged.
+        Test inputs to increase headings with more than four hashes which
+        remain unchanged.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
@@ -887,7 +888,7 @@ class Test_increase_chapter1(hunitest.TestCase):
         hio.to_file(read_file, input_text)
         # Call tested function.
         write_file = os.path.join(scratch_dir, "write_file.txt")
-        hmarkdo.increase_chapter(read_file, write_file)
+        hmarkdo.modify_header_level(read_file, write_file, "increase")
         # Check output.
         expected = ["## Chapter 1", "##### Sub-sub-subsection 1.1.1.1.1"]
         expected = "\n".join(expected)
@@ -896,7 +897,8 @@ class Test_increase_chapter1(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        Test inputs including a paragraph which remains unchanged.
+        Test inputs to increase headings including a paragraph which remains
+        unchanged.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
@@ -906,7 +908,7 @@ class Test_increase_chapter1(hunitest.TestCase):
         hio.to_file(read_file, input_text)
         # Call tested function.
         write_file = os.path.join(scratch_dir, "write_file.txt")
-        hmarkdo.increase_chapter(read_file, write_file)
+        hmarkdo.modify_header_level(read_file, write_file, "increase")
         # Check output.
         expected = ["## Chapter 1", "Paragraph 1"]
         expected = "\n".join(expected)
@@ -925,7 +927,7 @@ class Test_increase_chapter1(hunitest.TestCase):
         hio.to_file(read_file, input_text)
         # Call tested function.
         write_file = os.path.join(scratch_dir, "write_file.txt")
-        hmarkdo.increase_chapter(read_file, write_file)
+        hmarkdo.modify_header_level(read_file, write_file, "increase")
         # Check output.
         expected = ["Paragraph 1", "Paragraph 2"]
         expected = "\n".join(expected)
@@ -934,7 +936,7 @@ class Test_increase_chapter1(hunitest.TestCase):
 
     def test5(self) -> None:
         """
-        Test to modify multiple headings with less than five hashes.
+        Test to increase headings with less than five hashes.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
@@ -950,7 +952,7 @@ class Test_increase_chapter1(hunitest.TestCase):
         hio.to_file(read_file, input_text)
         # Call tested function.
         write_file = os.path.join(scratch_dir, "write_file.txt")
-        hmarkdo.increase_chapter(read_file, write_file)
+        hmarkdo.modify_header_level(read_file, write_file, "increase")
         # Check output.
         expected = [
             "## Chapter 1",
@@ -959,6 +961,79 @@ class Test_increase_chapter1(hunitest.TestCase):
             "#### Subsection 2.1",
             "## Chapter 3",
         ]
+        expected = "\n".join(expected)
+        actual = hio.from_file(write_file)
+        self.assertEqual(actual, expected)
+
+    def test6(self) -> None:
+        """
+        Test the inputs to decrease headings.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        read_file = os.path.join(scratch_dir, "read_file.txt")
+        input_text = [
+            "## Section 1.1",
+            "### Subsection 1.1.1",
+            "#### Sub-subsection 1.1.1.1",
+            "##### Sub-sub-subsection 1.1.1.1.1",
+        ]
+        input_text = "\n".join(input_text)
+        hio.to_file(read_file, input_text)
+        # Call tested function.
+        write_file = os.path.join(scratch_dir, "write_file.txt")
+        hmarkdo.modify_header_level(read_file, write_file, "decrease")
+        # Check output.
+        expected = [
+            "# Section 1.1",
+            "## Subsection 1.1.1",
+            "### Sub-subsection 1.1.1.1",
+            "#### Sub-sub-subsection 1.1.1.1.1",
+        ]
+        expected = "\n".join(expected)
+        actual = hio.from_file(write_file)
+        self.assertEqual(actual, expected)
+
+    def test7(self) -> None:
+        """
+        Test inputs to decrease headings with one hash which remains unchanged.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        read_file = os.path.join(scratch_dir, "read_file.txt")
+        input_text = [
+            "# Chapter 1",
+            "##### Sub-subsection 1.1.1.1",
+        ]
+        input_text = "\n".join(input_text)
+        hio.to_file(read_file, input_text)
+        # Call tested function.
+        write_file = os.path.join(scratch_dir, "write_file.txt")
+        hmarkdo.modify_header_level(read_file, write_file, "decrease")
+        # Check output.
+        expected = [
+            "# Chapter 1",
+            "#### Sub-subsection 1.1.1.1",
+        ]
+        expected = "\n".join(expected)
+        actual = hio.from_file(write_file)
+        self.assertEqual(actual, expected)
+
+    def test8(self) -> None:
+        """
+        Test inputs of paragraphs which remain unchanged.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        read_file = os.path.join(scratch_dir, "read_file.txt")
+        input_text = ["Paragraph 1", "Paragraph 2", "Paragraph 3"]
+        input_text = "\n".join(input_text)
+        hio.to_file(read_file, input_text)
+        # Call tested function.
+        write_file = os.path.join(scratch_dir, "write_file.txt")
+        hmarkdo.modify_header_level(read_file, write_file, "decrease")
+        # Check output.
+        expected = ["Paragraph 1", "Paragraph 2", "Paragraph 3"]
         expected = "\n".join(expected)
         actual = hio.from_file(write_file)
         self.assertEqual(actual, expected)
