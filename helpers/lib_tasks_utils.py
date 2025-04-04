@@ -19,6 +19,7 @@ import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
+import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hversion as hversio
 
@@ -249,7 +250,7 @@ def _to_pbcopy(txt: str, pbcopy: bool) -> None:
     if not txt:
         print("Nothing to copy")
         return
-    if hsystem.is_running_on_macos():
+    if hserver.is_mac():
         # -n = no new line
         cmd = f"echo -n '{txt}' | pbcopy"
         hsystem.system(cmd)

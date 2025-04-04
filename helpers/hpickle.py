@@ -106,11 +106,7 @@ def to_pickle(
             else:
                 raise ValueError(f"Invalid backend='{backend}'")
         elif backend == "pickle_gzip":
-            # TODO(gp): Use `dassert_file_extension` if possible.
-            hdbg.dassert(
-                file_name.endswith(".pkl.gz"),
-                msg=f"Invalid file_name={file_name}",
-            )
+            hdbg.dassert_file_extension(file_name, "pkl.gz")
             with gzip.open(file_name, "wb") as zfd:
                 pickler = pickle.Pickler(zfd, pickle.HIGHEST_PROTOCOL)
                 pickler.fast = True
@@ -154,11 +150,7 @@ def from_pickle(
             else:
                 raise ValueError(f"Invalid backend='{backend}'")
         elif backend == "pickle_gzip":
-            # TODO(gp): Use `dassert_file_extension` if possible.
-            hdbg.dassert(
-                file_name.endswith(".pkl.gz"),
-                msg=f"Invalid file_name={file_name}",
-            )
+            hdbg.dassert_file_extension(file_name, "pkl.gz")
             with gzip.open(file_name, "rb") as zfd:
                 unpickler = pickle.Unpickler(zfd)
                 obj = unpickler.load()

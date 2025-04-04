@@ -34,7 +34,7 @@ def is_markdown_line_separator(line: str) -> bool:
     :return: true if the line is a separator
     """
     res = (
-        re.match(r"#*\s*#####+", line)
+        re.match(r"#*\s*######+", line)
         or re.match(r"#*\s*/////+", line)
         or re.match(r"#*\s*-----+", line)
         or re.match(r"#*\s*=====+", line)
@@ -539,27 +539,37 @@ def format_headers(in_file_name: str, out_file_name: str, max_lev: int) -> None:
     hparser.write_file(txt_tmp, out_file_name)
 
 
-# TODO(gp): Add tests.
-# TODO(gp): Generalize this to also decrease the header level
-# TODO(gp): -> modify_header_level
-def increase_chapter(in_file_name: str, out_file_name: str) -> None:
+def modify_header_level(in_file_name: str, out_file_name: str, mode: str) -> None:
     """
-    Increase the level of chapters by one for text in stdin.
+    Increase or decrease the level of headings by one for text in stdin.
 
-    :param in_file_name: The name of the input file to read
-    :param out_file_name: The name of the output file to write the
+    :param in_file_name: the name of the input file to read
+    :param out_file_name: the name of the output file to write the
         modified text to
+    :param mode: indicates the increase or decrease of the header level
     """
     txt = hparser.read_file(in_file_name)
     #
     txt_tmp = []
+    if mode == "increase":
+        mode_level = 1
+    elif mode == "decrease":
+        mode_level = -1
+    else:
+        raise ValueError(f"Unsupported mode='{mode}'")
     for line in txt:
         # TODO(gp): Use the iterator.
         line = line.rstrip(r"\n")
-        for i in range(1, 5):
-            if line.startswith("#" * i + " "):
-                line = line.replace("#" * i + " ", "#" * (i + 1) + " ")
-                break
+        is_header_, level, title = is_header(line)
+        if is_header_:
+            modified_level = level + mode_level
+            if (mode_level == 1 and level > 4) or (
+                mode_level == -1 and level == 1
+            ):
+                # Handle edge cases for reducing (1 hash) and increasing (5 hashes)
+                # heading levels.
+                modified_level = level
+            line = "#" * modified_level + " " + title
         txt_tmp.append(line)
     #
     hparser.write_file(txt_tmp, out_file_name)
