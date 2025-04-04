@@ -101,6 +101,34 @@ class Test_fix_links(hunitest.TestCase):
         )
         self.check_string(output)
 
+    def test4(self) -> None:
+        """
+        Test the URI links are not incorrectly prefixed with a '/'.
+        """
+        input_content = """
+        Website: [Website](http://example.com)
+
+        Secure site: [Secure](https://example.com)
+
+        Email: [Email](mailto:user@example.com)
+
+        FTP: [FTP](ftp://files.example.com)
+
+        Tel: [Call](tel:+1234567890)
+        """
+        file_name = "test_links.md"
+        file_path = self._write_input_file(input_content, file_name)
+        # Run.
+        _, updated_lines, out_warnings = lafimdli.fix_links(file_path)
+        # Check.
+        output = "\n".join(
+            ["# linter warnings", ""]
+            + out_warnings
+            + ["", "# linted file", ""]
+            + updated_lines
+        )
+        self.check_string(output)
+
     def _get_txt_with_incorrect_links(self) -> str:
         txt_incorrect = r"""
 - Markdown-style link with a text label
