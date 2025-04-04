@@ -546,8 +546,7 @@ def modify_header_level(in_file_name: str, out_file_name: str, mode: str) -> Non
     :param in_file_name: the name of the input file to read
     :param out_file_name: the name of the output file to write the
         modified text to
-    :param mode: a string indicating the increase or decrease of the
-        header level
+    :param mode: indicates the increase or decrease of the header level
     """
     txt = hparser.read_file(in_file_name)
     #

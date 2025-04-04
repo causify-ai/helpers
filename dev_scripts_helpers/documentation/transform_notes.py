@@ -74,7 +74,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     elif cmd == "format":
         hmarkdo.format_headers(in_file_name, out_file_name, max_lev)
     elif cmd == "increase":
-        hmarkdo.modify_header_level(in_file_name, out_file_name, cmd)
+        hmarkdo.modify_header_level(in_file_name, out_file_name, mode="increase")
     elif cmd == "md_list_to_latex":
         txt = hparser.read_file(in_file_name)
         txt = "\n".join(txt)
