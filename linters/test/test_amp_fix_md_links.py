@@ -103,7 +103,7 @@ class Test_fix_links(hunitest.TestCase):
 
     def test4(self) -> None:
         """
-        Test Markdown file references to another Markdown file and its header.
+        Test Markdown file references to another Markdown file and its headers.
         """
         reference_file_md_content = """
 # Reference test file

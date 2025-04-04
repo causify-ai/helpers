@@ -68,26 +68,19 @@ def _check_md_header_exists(
     markdown_link_path: str, header: str, level: int = 6
 ) -> bool:
     """
-    Check if a header or heading exists in the markdown file.
+    Check if a header exists in the markdown file.
 
-    Search the specified file for a Markdown-style header that
-    matches the provided header name. Return True if the header is
-    found, otherwise return False.
-
-    E.g., return True if a header like '#test' or '##test-two' exists in the markdown file,
-    otherwise return False.
-
-    :param markdown_link_path: the path to the Markdown file in which the header will be looked up.
-    :param header: the heading text to look for in the file
+    :param markdown_link_path: the path to the Markdown file in which the header will be looked up
+    :param header: the heading text to look for in the file, e.g., `test`, `test-two` 
     :param level: the maximum depth of headers to extract (Markdown supports levels 1 to 6)
-        - "E.g., level 2 matches only '##' and '#' headers, not '###' or deeper."
-    :return: True if the header is found, False if not found.
+        - E.g., level 2 matches only '##' and '#' headers, not '###' or deeper
+    :return: True if the header is found, False if not found
     """
     with open(markdown_link_path, "r", encoding="utf-8") as file:
         content = file.read()
     # Get the headers of the markdown file.
     headers_md = hmarkdo.extract_headers_from_markdown(content, level)
-    # Replace '-' with a white space, if '-' exists.
+    # Replace '-' with a white space.
     header = header.replace("-", " ").lower()
     # Check if the header matches any extracted header of the markdown file.
     found = any(header == h.description.lower() for h in headers_md)
@@ -152,7 +145,7 @@ def _check_md_link_format(
     # Replace the link in the line with its updated version.
     new_link_txt = f"[{link_text}]({link})"
     updated_line = line.replace(old_link_txt, new_link_txt)
-    # Split the link into file path and header using the '#' delimiter if exist.
+    # Split the link into file path and header using the '#' delimiter.
     link_path, _, header = link.partition("#")
     link_in_cur_module = _make_path_module_agnostic(link_path)
     if not os.path.exists(link_in_cur_module):
