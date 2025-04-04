@@ -350,6 +350,13 @@ def _is_repo(repo_short_name: str) -> bool:
     return curr_repo_short_name == repo_short_name
 
 
+def is_repo(repo_short_name: str) -> bool:
+    """
+    Return whether we are inside the module `repo_short_name`.
+    """
+    return _is_repo(repo_short_name)
+
+
 def is_helpers() -> bool:
     """
     Return whether we are inside `helpers` repo.
@@ -626,6 +633,22 @@ def _parse_github_repo_name(repo_name: str) -> Tuple[str, str]:
     if repo_name.endswith(suffix_to_remove):
         repo_name = repo_name[: -len(suffix_to_remove)]
     return host_name, repo_name
+
+
+def extract_github_repo_short_name(url: str) -> str:
+    """
+    Extract the short name of a github URL from a github repository link.
+    E.g., `https://github.com/causify-ai/helpers/blob/master/linters/amp_fix_md_links.py` -> `helpers`
+
+    :param url: github URL to be parsed
+    :return: the short name string
+    """
+    # Extract the URL upto the repo name; e.g., `https://github.com/causify-ai/helpers`
+    repo_url = url.split("blob/master")[0][:-1]
+    # Extract the {organization}/{repo} part of the link and finally return the {repo} bit
+    repo = _parse_github_repo_name(repo_url)[1]
+    repo_short_name = repo.split("/")[-1]
+    return repo_short_name
 
 
 def get_repo_full_name_from_dirname(
