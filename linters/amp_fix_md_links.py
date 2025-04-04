@@ -153,7 +153,9 @@ def _check_file_path_format(file_path: str, line: str) -> str:
     ):
         # Ignore links and figure pointers, which are processed separately.
         return line
-    if not re.search(r"(?<!http:)(?<!https:)(?<!mailto:)(?<!ftp:)(?<!tel:)" + file_path, line):
+    if not re.search(
+        r"(?<!http:)(?<!https:)(?<!mailto:)(?<!ftp:)(?<!tel:)" + file_path, line
+    ):
         # Ignore URLs.
         return line
     # Make the file path absolute.
