@@ -12,4 +12,4 @@ jobs:
     # string and the condition is always true which is not the right state.
     if: ${{ github.event.pull_request.draft == false }}
     uses: ./.github/workflows/common_linter.yml
-    secrets: inherit    
+    secrets: inherit
