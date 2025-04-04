@@ -398,7 +398,7 @@ def docker_login(ctx, target_registry="aws_ecr.ck"):  # type: ignore
     hlitauti.report_task()
     # No login required as the `helpers` and `tutorials` images are accessible
     # on the public DockerHub registry.
-    if not hserver.is_dev_ck() and hrecouti.get_repo_config().get_name() in [
+    if not hserver.is_dev_csfy() and hrecouti.get_repo_config().get_name() in [
         "//helpers",
         "//tutorials",
     ]:
