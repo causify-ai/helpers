@@ -557,11 +557,11 @@
     ```
   - Tag the `dev` image to the GHCR namespace:
     ```bash
-    > docker tag 623860924167.dkr.ecr.eu-north-1.amazonaws.com/cmamp:dev ghcr.io/cryptokaizen/cmamp:dev
+    > docker tag 623860924167.dkr.ecr.eu-north-1.amazonaws.com/cmamp:dev ghcr.io/causify-ai/cmamp:dev
     ```
   - Push the tagged image to the GHCR registry:
     ```bash
-    > docker push ghcr.io/cryptokaizen/cmamp:dev
+    > docker push ghcr.io/causify-ai/cmamp:dev
     ```
 
 ## Release a multi-architecture dev image
@@ -775,11 +775,11 @@ Check-list:
     ```
   - Tag the `dev` image to the GHCR namespace:
     ```bash
-    > docker tag 623860924167.dkr.ecr.eu-north-1.amazonaws.com/cmamp:dev ghcr.io/cryptokaizen/cmamp:dev
+    > docker tag 623860924167.dkr.ecr.eu-north-1.amazonaws.com/cmamp:dev ghcr.io/causify-ai/cmamp:dev
     ```
   - Push the tagged image to the GHCR registry:
     ```bash
-    > docker push ghcr.io/cryptokaizen/cmamp:dev
+    > docker push ghcr.io/causify-ai/cmamp:dev
     ```
 
 - Send a message on the `all@` chat telling people that a new version of the
