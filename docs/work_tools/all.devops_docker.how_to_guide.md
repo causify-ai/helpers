@@ -243,10 +243,7 @@
     file to the `[tool.poetry.dependencies]` section
   - E.g., to add `pytest-timeout` do:
     ```markdown
-    [tool.poetry.dependencies]
-    ...
-    pytest-timeout = "*"
-    ...
+    [tool.poetry.dependencies] ... pytest-timeout = "\*" ...
     ```
   - In general we use the latest version of a package `*` whenever possible
     - If the latest package has some problems with our codebase, we freeze the
@@ -332,15 +329,8 @@
 - The command above will generate `./tmp.requirements.txt` with the list of the
   imported packages, e.g.,
   ```markdown
-  amp==1.1.4
-  async_solipsism==0.3
-  beautifulsoup4==4.11.1
-  botocore==1.24.37
-  cvxopt==1.3.0
-  cvxpy==1.2.0
-  dill==0.3.4
-  environs==9.5.0
-  ...
+  amp==1.1.4 async_solipsism==0.3 beautifulsoup4==4.11.1 botocore==1.24.37
+  cvxopt==1.3.0 cvxpy==1.2.0 dill==0.3.4 environs==9.5.0 ...
   ```
 - You can grep for a package name to see where it is used, e.g.,
   ```bash
@@ -557,11 +547,11 @@
     ```
   - Tag the `dev` image to the GHCR namespace:
     ```bash
-    > docker tag 623860924167.dkr.ecr.eu-north-1.amazonaws.com/cmamp:dev ghcr.io/cryptokaizen/cmamp:dev
+    > docker tag 623860924167.dkr.ecr.eu-north-1.amazonaws.com/cmamp:dev ghcr.io/causify-ai/cmamp:dev
     ```
   - Push the tagged image to the GHCR registry:
     ```bash
-    > docker push ghcr.io/cryptokaizen/cmamp:dev
+    > docker push ghcr.io/causify-ai/cmamp:dev
     ```
 
 ## Release a multi-architecture dev image
@@ -775,11 +765,11 @@ Check-list:
     ```
   - Tag the `dev` image to the GHCR namespace:
     ```bash
-    > docker tag 623860924167.dkr.ecr.eu-north-1.amazonaws.com/cmamp:dev ghcr.io/cryptokaizen/cmamp:dev
+    > docker tag 623860924167.dkr.ecr.eu-north-1.amazonaws.com/cmamp:dev ghcr.io/causify-ai/cmamp:dev
     ```
   - Push the tagged image to the GHCR registry:
     ```bash
-    > docker push ghcr.io/cryptokaizen/cmamp:dev
+    > docker push ghcr.io/causify-ai/cmamp:dev
     ```
 
 - Send a message on the `all@` chat telling people that a new version of the
