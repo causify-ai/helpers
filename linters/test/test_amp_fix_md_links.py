@@ -101,7 +101,7 @@ class Test_fix_links(hunitest.TestCase):
         )
         self.check_string(output)
 
-    def test4(self):
+    def test4(self) -> None:
         """
         Test links with a filepath with a tag ("/image.png") to check for its
         preservation.
