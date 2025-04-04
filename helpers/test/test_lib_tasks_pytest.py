@@ -30,15 +30,15 @@ class Test_build_run_command_line1(hunitest.TestCase):
 
     def run_fast_tests1_helper(
         self,
-        is_dev_ck_return_value: bool,
+        is_dev_csfy_return_value: bool,
         is_inside_ci_return_value: bool,
         exp: str,
     ) -> None:
         """
         Basic run fast tests.
 
-        :param is_dev_ck_return_value: mocking the return_value of
-            `hserver.is_dev_ck()`
+        :param is_dev_csfy_return_value: mocking the return_value of
+            `hserver.is_dev_csfy()`
         :param is_inside_ci_return_value: mocking the return_value of
             `hserver.is_inside_ci()`
         :param exp: expected output string
@@ -52,7 +52,7 @@ class Test_build_run_command_line1(hunitest.TestCase):
         n_threads = "1"
         #
         with umock.patch.object(
-            hserver, "is_dev_ck", return_value=is_dev_ck_return_value
+            hserver, "is_dev_csfy", return_value=is_dev_csfy_return_value
         ), umock.patch.object(
             hserver, "is_inside_ci", return_value=is_inside_ci_return_value
         ):
@@ -77,10 +77,10 @@ class Test_build_run_command_line1(hunitest.TestCase):
             "-o timeout_func_only=true --timeout 5 --reruns 2 "
             '--only-rerun "Failed: Timeout" -n 1'
         )
-        is_dev_ck_return_value = True
+        is_dev_csfy_return_value = True
         is_inside_ci_return_value = True
         self.run_fast_tests1_helper(
-            is_dev_ck_return_value, is_inside_ci_return_value, exp
+            is_dev_csfy_return_value, is_inside_ci_return_value, exp
         )
 
     def test_run_fast_tests1_inside_ci(self) -> None:
@@ -92,10 +92,10 @@ class Test_build_run_command_line1(hunitest.TestCase):
             "-o timeout_func_only=true --timeout 5 --reruns 2 "
             '--only-rerun "Failed: Timeout" -n 1'
         )
-        is_dev_ck_return_value = False
+        is_dev_csfy_return_value = False
         is_inside_ci_return_value = True
         self.run_fast_tests1_helper(
-            is_dev_ck_return_value, is_inside_ci_return_value, exp
+            is_dev_csfy_return_value, is_inside_ci_return_value, exp
         )
 
     def test_run_fast_tests1_outside_ck_infra(self) -> None:
@@ -108,14 +108,14 @@ class Test_build_run_command_line1(hunitest.TestCase):
             '--only-rerun "Failed: Timeout" -n 1'
         )
         is_inside_ci_return_value = False
-        is_dev_ck_return_value = False
+        is_dev_csfy_return_value = False
         self.run_fast_tests1_helper(
-            is_dev_ck_return_value, is_inside_ci_return_value, exp
+            is_dev_csfy_return_value, is_inside_ci_return_value, exp
         )
 
     def run_fast_tests2_helper(
         self,
-        is_dev_ck_return_value: bool,
+        is_dev_csfy_return_value: bool,
         is_inside_ci_return_value: bool,
         exp: str,
     ) -> None:
@@ -133,7 +133,7 @@ class Test_build_run_command_line1(hunitest.TestCase):
         n_threads = "1"
         #
         with umock.patch.object(
-            hserver, "is_dev_ck", return_value=is_dev_ck_return_value
+            hserver, "is_dev_csfy", return_value=is_dev_csfy_return_value
         ), umock.patch.object(
             hserver, "is_inside_ci", return_value=is_inside_ci_return_value
         ):
@@ -161,10 +161,10 @@ class Test_build_run_command_line1(hunitest.TestCase):
             r" --cov-branch --cov-report term-missing --cov-report html "
             r"--collect-only -n 1"
         )
-        is_dev_ck_return_value = True
+        is_dev_csfy_return_value = True
         is_inside_ci_return_value = True
         self.run_fast_tests2_helper(
-            is_dev_ck_return_value, is_inside_ci_return_value, exp
+            is_dev_csfy_return_value, is_inside_ci_return_value, exp
         )
 
     def test_run_fast_tests2_inside_ci(self) -> None:
@@ -176,10 +176,10 @@ class Test_build_run_command_line1(hunitest.TestCase):
             "-o timeout_func_only=true --timeout 5 --reruns 2 "
             '--only-rerun "Failed: Timeout" -n 1'
         )
-        is_dev_ck_return_value = False
+        is_dev_csfy_return_value = False
         is_inside_ci_return_value = True
         self.run_fast_tests1_helper(
-            is_dev_ck_return_value, is_inside_ci_return_value, exp
+            is_dev_csfy_return_value, is_inside_ci_return_value, exp
         )
 
     def test_run_fast_tests2_outside_ck_infra(self) -> None:
@@ -193,10 +193,10 @@ class Test_build_run_command_line1(hunitest.TestCase):
             r" --cov-branch --cov-report term-missing --cov-report html "
             r"--collect-only -n 1"
         )
-        is_dev_ck_return_value = False
+        is_dev_csfy_return_value = False
         is_inside_ci_return_value = False
         self.run_fast_tests2_helper(
-            is_dev_ck_return_value, is_inside_ci_return_value, exp
+            is_dev_csfy_return_value, is_inside_ci_return_value, exp
         )
 
     @pytest.mark.skip(reason="Fix support for pytest_mark")
@@ -257,13 +257,13 @@ class Test_build_run_command_line1(hunitest.TestCase):
 
     def run_fast_tests5_helper(
         self,
-        is_dev_ck_return_value: bool,
+        is_dev_csfy_return_value: bool,
         is_inside_ci_return_value: bool,
         exp: str,
     ) -> None:
         """
         Basic run fast tests tee-ing to a file. Mock depending on
-        `is_dev_ck_return_value`.
+        `is_dev_csfy_return_value`.
 
         See `run_fast_tests1_helper()` for params description.
         """
@@ -276,7 +276,7 @@ class Test_build_run_command_line1(hunitest.TestCase):
         n_threads = "1"
         #
         with umock.patch.object(
-            hserver, "is_dev_ck", return_value=is_dev_ck_return_value
+            hserver, "is_dev_csfy", return_value=is_dev_csfy_return_value
         ), umock.patch.object(
             hserver, "is_inside_ci", return_value=is_inside_ci_return_value
         ):
@@ -302,10 +302,10 @@ class Test_build_run_command_line1(hunitest.TestCase):
             '--only-rerun "Failed: Timeout" -n 1 2>&1'
             " | tee tmp.pytest.fast_tests.log"
         )
-        is_dev_ck_return_value = True
+        is_dev_csfy_return_value = True
         is_inside_ci_return_value = True
         self.run_fast_tests5_helper(
-            is_dev_ck_return_value, is_inside_ci_return_value, exp
+            is_dev_csfy_return_value, is_inside_ci_return_value, exp
         )
 
     def test_run_fast_tests5_inside_ci(self) -> None:
@@ -317,10 +317,10 @@ class Test_build_run_command_line1(hunitest.TestCase):
             "-o timeout_func_only=true --timeout 5 --reruns 2 "
             '--only-rerun "Failed: Timeout" -n 1'
         )
-        is_dev_ck_return_value = False
+        is_dev_csfy_return_value = False
         is_inside_ci_return_value = True
         self.run_fast_tests1_helper(
-            is_dev_ck_return_value, is_inside_ci_return_value, exp
+            is_dev_csfy_return_value, is_inside_ci_return_value, exp
         )
 
     def test_run_fast_tests5_outside_ck_infra(self) -> None:
@@ -333,15 +333,15 @@ class Test_build_run_command_line1(hunitest.TestCase):
             '--only-rerun "Failed: Timeout" -n 1 2>&1'
             " | tee tmp.pytest.fast_tests.log"
         )
-        is_dev_ck_return_value = False
+        is_dev_csfy_return_value = False
         is_inside_ci_return_value = False
         self.run_fast_tests5_helper(
-            is_dev_ck_return_value, is_inside_ci_return_value, exp
+            is_dev_csfy_return_value, is_inside_ci_return_value, exp
         )
 
     def run_fast_tests6_helper(
         self,
-        is_dev_ck_return_value: bool,
+        is_dev_csfy_return_value: bool,
         is_inside_ci_return_value: bool,
         exp: str,
     ) -> None:
@@ -359,7 +359,7 @@ class Test_build_run_command_line1(hunitest.TestCase):
         n_threads = "1"
         #
         with umock.patch.object(
-            hserver, "is_dev_ck", return_value=is_dev_ck_return_value
+            hserver, "is_dev_csfy", return_value=is_dev_csfy_return_value
         ), umock.patch.object(
             hserver, "is_inside_ci", return_value=is_inside_ci_return_value
         ):
@@ -384,10 +384,10 @@ class Test_build_run_command_line1(hunitest.TestCase):
             "-o timeout_func_only=true --timeout 5 --reruns 2 "
             '--only-rerun "Failed: Timeout" -n 1'
         )
-        is_dev_ck_return_value = True
+        is_dev_csfy_return_value = True
         is_inside_ci_return_value = True
         self.run_fast_tests6_helper(
-            is_dev_ck_return_value, is_inside_ci_return_value, exp
+            is_dev_csfy_return_value, is_inside_ci_return_value, exp
         )
 
     def test_run_fast_tests6_inside_ci(self) -> None:
@@ -399,10 +399,10 @@ class Test_build_run_command_line1(hunitest.TestCase):
             "-o timeout_func_only=true --timeout 5 --reruns 2 "
             '--only-rerun "Failed: Timeout" -n 1'
         )
-        is_dev_ck_return_value = False
+        is_dev_csfy_return_value = False
         is_inside_ci_return_value = True
         self.run_fast_tests1_helper(
-            is_dev_ck_return_value, is_inside_ci_return_value, exp
+            is_dev_csfy_return_value, is_inside_ci_return_value, exp
         )
 
     def test_run_fast_tests6_outside_ck_infra(self) -> None:
@@ -414,15 +414,15 @@ class Test_build_run_command_line1(hunitest.TestCase):
             "-o timeout_func_only=true --timeout 50 --reruns 2 "
             '--only-rerun "Failed: Timeout" -n 1'
         )
-        is_dev_ck_return_value = False
+        is_dev_csfy_return_value = False
         is_inside_ci_return_value = False
         self.run_fast_tests6_helper(
-            is_dev_ck_return_value, is_inside_ci_return_value, exp
+            is_dev_csfy_return_value, is_inside_ci_return_value, exp
         )
 
     def run_fast_tests7_helper(
         self,
-        is_dev_ck_return_value: bool,
+        is_dev_csfy_return_value: bool,
         is_inside_ci_return_value: bool,
         exp: str,
     ) -> None:
@@ -440,7 +440,7 @@ class Test_build_run_command_line1(hunitest.TestCase):
         n_threads = "auto"
         #
         with umock.patch.object(
-            hserver, "is_dev_ck", return_value=is_dev_ck_return_value
+            hserver, "is_dev_csfy", return_value=is_dev_csfy_return_value
         ), umock.patch.object(
             hserver, "is_inside_ci", return_value=is_inside_ci_return_value
         ):
@@ -465,10 +465,10 @@ class Test_build_run_command_line1(hunitest.TestCase):
             "-o timeout_func_only=true --timeout 5 --reruns 2 "
             '--only-rerun "Failed: Timeout" -n auto'
         )
-        is_dev_ck_return_value = True
+        is_dev_csfy_return_value = True
         is_inside_ci_return_value = True
         self.run_fast_tests7_helper(
-            is_dev_ck_return_value, is_inside_ci_return_value, exp
+            is_dev_csfy_return_value, is_inside_ci_return_value, exp
         )
 
     def test_run_fast_tests7_inside_ci(self) -> None:
@@ -480,10 +480,10 @@ class Test_build_run_command_line1(hunitest.TestCase):
             "-o timeout_func_only=true --timeout 5 --reruns 2 "
             '--only-rerun "Failed: Timeout" -n 1'
         )
-        is_dev_ck_return_value = False
+        is_dev_csfy_return_value = False
         is_inside_ci_return_value = True
         self.run_fast_tests1_helper(
-            is_dev_ck_return_value, is_inside_ci_return_value, exp
+            is_dev_csfy_return_value, is_inside_ci_return_value, exp
         )
 
     def test_run_fast_tests7_outside_ck_infra(self) -> None:
@@ -495,17 +495,17 @@ class Test_build_run_command_line1(hunitest.TestCase):
             "-o timeout_func_only=true --timeout 50 --reruns 2 "
             '--only-rerun "Failed: Timeout" -n auto'
         )
-        is_dev_ck_return_value = False
+        is_dev_csfy_return_value = False
         is_inside_ci_return_value = False
         self.run_fast_tests7_helper(
-            is_dev_ck_return_value, is_inside_ci_return_value, exp
+            is_dev_csfy_return_value, is_inside_ci_return_value, exp
         )
 
     def get_custom_marker_helper(
         self,
         run_only_test_list: str,
         skip_test_list: str,
-        is_dev_ck_return_value: bool,
+        is_dev_csfy_return_value: bool,
         is_inside_ci_return_value: bool,
         exp: str,
     ) -> None:
@@ -516,7 +516,7 @@ class Test_build_run_command_line1(hunitest.TestCase):
             to run
         :param skip_test_list: a string of comma-separated markers to
             skip
-        :param is_dev_ck_return_value: see `run_fast_tests1_helper()`
+        :param is_dev_csfy_return_value: see `run_fast_tests1_helper()`
         :param is_inside_ci_return_value: see `run_fast_tests1_helper()`
         :param exp: expected output string
         """
@@ -529,7 +529,7 @@ class Test_build_run_command_line1(hunitest.TestCase):
         n_threads = "1"
         # Mock test.
         with umock.patch.object(
-            hserver, "is_dev_ck", return_value=is_dev_ck_return_value
+            hserver, "is_dev_csfy", return_value=is_dev_csfy_return_value
         ), umock.patch.object(
             hserver, "is_inside_ci", return_value=is_inside_ci_return_value
         ):
@@ -553,7 +553,7 @@ class Test_build_run_command_line1(hunitest.TestCase):
         # Input params.
         run_only_test_list = "run_marker_1,run_marker_2"
         skip_test_list = "skip_marker_1,skip_marker_2"
-        is_dev_ck_return_value = False
+        is_dev_csfy_return_value = False
         is_inside_ci_return_value = False
         # Expected output.
         exp = (
@@ -569,7 +569,7 @@ class Test_build_run_command_line1(hunitest.TestCase):
         self.get_custom_marker_helper(
             run_only_test_list,
             skip_test_list,
-            is_dev_ck_return_value,
+            is_dev_csfy_return_value,
             is_inside_ci_return_value,
             exp,
         )
@@ -578,7 +578,7 @@ class Test_build_run_command_line1(hunitest.TestCase):
         # Input params.
         run_only_test_list = ""
         skip_test_list = ""
-        is_dev_ck_return_value = True
+        is_dev_csfy_return_value = True
         is_inside_ci_return_value = True
         # Expected output.
         exp = (
@@ -590,7 +590,7 @@ class Test_build_run_command_line1(hunitest.TestCase):
         self.get_custom_marker_helper(
             run_only_test_list,
             skip_test_list,
-            is_dev_ck_return_value,
+            is_dev_csfy_return_value,
             is_inside_ci_return_value,
             exp,
         )

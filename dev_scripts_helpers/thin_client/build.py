@@ -74,7 +74,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     tmp_requirements_path = os.path.join(thin_environ_dir, "tmp.requirements.txt")
     shutil.copy(requirements_path, tmp_requirements_path)
     if platform.system() == "Darwin" or (
-        platform.system() == "Linux" and not hserver.is_dev_ck()
+        platform.system() == "Linux" and not hserver.is_dev_csfy()
     ):
         # Pinning down the package version for running locally on Mac and Linux,
         # see HelpersTask377.

@@ -66,7 +66,7 @@ class TestRepoConfig_Amp(hunitest.TestCase):
         """
         When running Amp on dev_ck, the CK bucket should be available.
         """
-        if hserver.is_dev_ck():
+        if hserver.is_dev_csfy():
             act = hserver.is_CK_S3_available()
             exp = True
             self.assertEqual(act, exp)
@@ -114,7 +114,7 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
             # hserver.config
               is_AM_S3_available()='True'
               is_dev4()='False'
-              is_dev_ck()='True'
+              is_dev_csfy()='True'
               is_inside_ci()='False'
               is_inside_docker()='True'
               is_mac(version='Catalina')='False'
@@ -157,7 +157,7 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
             # hserver.config
               is_AM_S3_available='True'
               is_dev4='False'
-              is_dev_ck='False'
+              is_dev_csfy='False'
               is_inside_ci='False'
               is_inside_docker='True'
               is_mac='True'
@@ -205,7 +205,7 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
             # hserver.config
               is_AM_S3_available()='True'
               is_dev4()='False'
-              is_dev_ck()='False'
+              is_dev_csfy()='False'
               is_inside_ci()='True'
               is_inside_docker()='True'
               is_mac(version='Catalina')='False'
@@ -247,7 +247,7 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
               is_AM_S3_available()='True'
               is_CK_S3_available()='True'
               is_dev4()='False'
-              is_dev_ck()='False'
+              is_dev_csfy()='False'
               is_inside_ci()='True'
               is_inside_docker()='True'
               is_mac(version='Catalina')='False'

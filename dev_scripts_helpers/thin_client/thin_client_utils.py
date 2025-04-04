@@ -309,7 +309,7 @@ def create_tmux_session(
     if hserver.is_mac() or hserver.is_external_linux():
         _LOG.info("Inferred external setup")
         home_dir = get_home_dir()
-    elif hserver.is_dev_ck():
+    elif hserver.is_dev_csfy():
         _LOG.info("Inferred server setup")
         server_name = hsystem.get_server_name()
         hdbg.dassert_in(server_name, ["dev1", "dev2", "dev3"])
