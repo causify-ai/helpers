@@ -23,6 +23,7 @@ import helpers.hdbg as hdbg
 import helpers.hintrospection as hintros
 import helpers.hlogging as hloggin
 import helpers.hprint as hprint
+import helpers.hserver as hserver
 
 # This module can depend only on:
 # - Python standard modules
@@ -52,11 +53,6 @@ def is_running_in_ipynb() -> bool:
     except NameError:
         res = False
     return res
-
-
-# TODO(gp): Use is_mac()
-def is_running_on_macos() -> bool:
-    return get_os_name() == "Darwin"
 
 
 # #############################################################################
@@ -693,7 +689,7 @@ def to_pbcopy(txt: str, pbcopy: bool) -> None:
     if not txt:
         print("Nothing to copy")
         return
-    if is_running_on_macos():
+    if hserver.is_mac():
         # -n = no new line
         cmd = f"echo -n '{txt}' | pbcopy"
         system(cmd)
