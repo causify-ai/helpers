@@ -403,7 +403,7 @@ def _render_images(
         ^\s*                # Start of the line and any leading whitespace
         ({comment}\s*)?     # Optional comment prefix
         ```                 # Opening backticks for code block
-        (plantuml|mermaid|tikz|graphviz*)  # Image code type
+        (\S+)               # Image code type
         (\((.*)\))?         # Optional user-specified image name in parentheses
         \s*$                # Any trailing whitespace and end of the line
         """,
@@ -433,6 +433,7 @@ def _render_images(
             image_code_idx += 1
             # E.g., "plantuml" or "mermaid".
             image_code_type = m.group(2)
+            hdbg.dassert_in(image_code_type, ["plantuml", "mermaid", "tikz", "graphviz"])
             if m.group(3):
                 hdbg.dassert_eq(user_rel_img_path, "")
                 user_rel_img_path = m.group(4)

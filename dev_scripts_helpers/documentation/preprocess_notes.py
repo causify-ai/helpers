@@ -56,10 +56,9 @@ def _process_abbreviations(in_line: str) -> str:
 
 def _process_color_commands(in_line: str) -> str:
     r"""
-    Transform color commands like \red{xyz}, \blue{xyz}, etc. into proper LaTeX
-    syntax.
+    Transform color commands like `\red{xyz}` into valid LaTeX syntax.
 
-    If the content is text (not math), wraps it in \text{}.
+    If the content is text (not math), wraps it in `\text{}`.
 
     E.g.:
     - \red{abc} -> \textcolor{red}{\text{abc}}
@@ -67,25 +66,25 @@ def _process_color_commands(in_line: str) -> str:
     """
     # Define supported colors
     colors = {
-"red": "red",
-"orange": "orange",
-"yellow": "yellow",
-"lime": "lime",
-"green": "darkgreen",
-"teal": "teal",
-"cyan": "cyan",
-"blue": "blue",
-"purple": "purple",
-"violet": "violet",
-"magenta": "magenta",
-"pink": "pink",
-"brown": "brown",
-"olive": "olive",
-"gray": "gray",
-"darkgray": "darkgray",
-"lightgray": "lightgray",
-"black": "black",
-"white": "white",
+        "red": "red",
+        "orange": "orange",
+        "yellow": "yellow",
+        "lime": "lime",
+        "green": "darkgreen",
+        "teal": "teal",
+        "cyan": "cyan",
+        "blue": "blue",
+        "purple": "purple",
+        "violet": "violet",
+        "magenta": "magenta",
+        "pink": "pink",
+        "brown": "brown",
+        "olive": "olive",
+        "gray": "gray",
+        "darkgray": "darkgray",
+        "lightgray": "lightgray",
+        "black": "black",
+        "white": "white",
     }
     for color, value in colors.items():
         # This regex matches LaTeX color commands like \red{content}, \blue{content}, etc.
@@ -108,8 +107,8 @@ def _process_color_commands(in_line: str) -> str:
             else:
                 return rf"\textcolor{{{value}}}{{\text{{{content}}}}}"
 
+        # Replace the color command with the LaTeX color command.
         in_line = re.sub(pattern, lambda m: _replacement(m, value), in_line)
-
     return in_line
 
 
