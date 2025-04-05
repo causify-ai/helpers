@@ -9,7 +9,7 @@ import helpers.hserver as hserver
 import functools
 import logging
 import os
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 import helpers.repo_config_utils as hrecouti
 
@@ -168,7 +168,7 @@ def is_mac(*, version: Optional[str] = None) -> bool:
         csfy_host_os_version,
     )
     is_mac_ = macos_tag in host_os_version or macos_tag in csfy_host_os_version
-    _LOG.debug("is_mac_=%s", is_mac_)
+    _LOG.debug("  -> is_mac_=%s", is_mac_)
     return is_mac_
 
 
@@ -178,21 +178,42 @@ def is_external_linux() -> bool:
     """
     Detect whether we are running on a non-server/non-CI Linux machine.
 
-    :return: whether an external Linux system is running
+    This is true when we run on the machine of an intern, a student, or a
+    non-CSFY contributor.
     """
     if is_dev_ck() or is_inside_ci():
         # CI and dev servers are not considered external Linux systems.
-        is_external_linux_ = False
+        res = False
     elif is_inside_docker():
         # If we are inside a Docker container, we need to check the host OS.
         csfy_host_os_name = os.environ.get("CSFY_HOST_OS_NAME", None)
-        is_external_linux_ = csfy_host_os_name == "Linux"
+        res = csfy_host_os_name == "Linux"
     else:
         # If we are not inside a Docker container, we can check the host OS
         # directly.
         host_os_name = os.uname()[0]
-        is_external_linux_ = host_os_name == "Linux"
-    return is_external_linux_
+        res = host_os_name == "Linux"
+    _LOG.debug("  -> is_external_linux=%s", res)
+    return res
+
+
+def is_csfy_or_external_container() -> bool:
+    """
+    Detect whether we are running on a container in a CSFY or external system.
+
+    This is true for dockerized executables.
+    """
+    res = False
+    if is_inside_ci():
+        # CI servers are not considered external or CSFY systems.
+        res = False
+    elif not is_inside_docker():
+        # Outside Docker there is no container.
+        res = False
+    else:
+        res = is_inside_docker()
+    _LOG.debug("  -> is_csfy_or_external_container=%s", res)
+    return res
 
 
 def is_prod_csfy() -> bool:
@@ -231,14 +252,9 @@ def is_inside_ecs_container() -> bool:
     return ret
 
 
-def setup_to_str() -> str:
-    """
-    Return a string representation of the current server setup configuration.
-
-    :return: string with each setting on a new line, aligned with padding
-    """
+def _get_setup_settings() -> List[Tuple[str, bool]]:
     # Store name-value pairs as tuples.
-    settings = [
+    setups = [
         ("is_prod_csfy", is_prod_csfy()),
         ("is_dev4", is_dev4()),
         ("is_dev_ck", is_dev_ck()),
@@ -246,12 +262,22 @@ def setup_to_str() -> str:
         ("is_inside_ci", is_inside_ci()),
         ("is_mac", is_mac()),
         ("is_external_linux", is_external_linux()),
+        ("is_csfy_or_external_container", is_csfy_or_external_container()),
     ]
+    return setups
+
+
+def _setup_to_str(setups: List[Tuple[str, bool]]) -> str:
+    """
+    Return a string representation of the current server setup configuration.
+
+    :return: string with each setting on a new line, aligned with padding
+    """
     # Find maximum length of setting names.
-    max_len = max(len(name) for name, _ in settings) + 1
+    max_len = max(len(name) for name, _ in setups) + 1
     # Format each line with computed padding.
     txt = []
-    for name, value in settings:
+    for name, value in setups:
         txt.append(f"{name:<{max_len}}{value}")
     return "\n".join(txt)
 
@@ -260,27 +286,11 @@ def _dassert_setup_consistency() -> None:
     """
     Check that one and only one server config is true.
     """
-    is_prod_csfy_ = is_prod_csfy()
-    is_dev4_ = is_dev4()
-    is_dev_ck_ = is_dev_ck()
-    is_ig_prod_ = is_ig_prod()
-    is_inside_ci_ = is_inside_ci()
-    is_mac_ = is_mac()
-    is_external_linux_ = is_external_linux()
+    setups = _get_setup_settings()
     # One and only one set-up should be true.
-    sum_ = sum(
-        [
-            is_dev4_,
-            is_dev_ck_,
-            is_inside_ci_,
-            is_mac_,
-            is_external_linux_,
-            is_prod_csfy_,
-            is_ig_prod_,
-        ]
-    )
+    sum_ = sum( [ value for _, value in setups ])
     if sum_ != 1:
-        msg = "One and only one set-up config should be true:\n" + setup_to_str()
+        msg = "One and only one set-up config should be true:\n" + _setup_to_str(setups)
         raise ValueError(msg)
 
 
@@ -289,6 +299,12 @@ def _dassert_setup_consistency() -> None:
 check_repo = os.environ.get("CSFY_REPO_CONFIG_CHECK", "True") != "False"
 _is_called = False
 if check_repo:
+    # The repo check is executed at import time, before the logger is initialized.
+    # To debug the repo check, enable the following block.
+    if False:
+        import helpers.hdbg as hdbg
+        hdbg.init_logger(verbosity=logging.DEBUG)
+    # Compute and cache the result.
     if not _is_called:
         _dassert_setup_consistency()
         _is_called = True

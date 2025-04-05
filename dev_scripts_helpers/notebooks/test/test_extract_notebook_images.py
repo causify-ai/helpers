@@ -13,23 +13,23 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-class TestNotebookImageExtractor(hunitest.TestCase):
+class TestNotebookImageExtractor1(hunitest.TestCase):
 
     def test_run_dockerized_notebook_image_extractor(self) -> None:
         """
         Test the `run_dockerized_notebook_image_extractor` function.
 
-        Obtain the test notebook ('test_images.ipynb') from the input
-        directory, run the Docker container to extract images, and
-        verify that the expected output files are produced.
+        Get the test notebook ('test_images.ipynb') from the input directory,
+        run the Docker container to extract images, and verify that the expected
+        output files are produced.
         """
-        output_dir = pathlib.Path(self.get_output_dir())
         input_dir = self.get_input_dir()
         src_test_notebook = os.path.join(input_dir, "test_images.ipynb")
+        output_dir = self.get_output_dir()
         # Run the container.
         hdocker.run_dockerized_notebook_image_extractor(
             notebook_path=src_test_notebook,
-            output_dir=str(output_dir),
+            output_dir=output_dir,
             force_rebuild=True,
             use_sudo=False,
         )

@@ -147,15 +147,16 @@ def _run_dockerized_extract_notebook_images(
     )
     # Build the command.
     git_root = hgit.find_git_root()
-    script = hsystem.find_file_in_repo("dockerized_extract_notebook_images.py", root_dir=git_root)
+    docker_executable = "dockerized_extract_notebook_images.py"
+    script = hsystem.find_file_in_repo(docker_executable, root_dir=git_root)
     script = hdocker.convert_caller_to_callee_docker_path(
-    script,
-    caller_mount_path,
-    callee_mount_path,
-    check_if_exists=True,
-    is_input=True,
-    is_caller_host=is_caller_host,
-    use_sibling_container_for_callee=use_sibling_container_for_callee,
+        script,
+        caller_mount_path,
+        callee_mount_path,
+        check_if_exists=True,
+        is_input=True,
+        is_caller_host=is_caller_host,
+        use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
     cmd = [script,
            f"--in_notebook_filename {notebook_path}",
@@ -163,15 +164,15 @@ def _run_dockerized_extract_notebook_images(
     ]
     cmd = " ".join(cmd)
     # Build the Docker command.
-    executable = hdocker.get_docker_executable(use_sudo)
-    docker_cmd = [
-        f"{executable} run --rm --user $(id -u):$(id -g)",
+    docker_executable = hdocker.get_docker_executable(use_sudo)
+    docker_cmd = hdocker.get_docker_base_cmd(use_sudo)
+    docker_cmd.extend([
         f"-e PLAYWRIGHT_BROWSERS_PATH=/ms-playwright",
         f"-e PYTHONPATH={helpers_root}",
         f"--workdir {callee_mount_path} --mount {mount}",
-        f"{container_image}",
-        f"{cmd}",
-    ]
+        container_image,
+        cmd
+    ])
     docker_cmd = " ".join(docker_cmd)
     hsystem.system(docker_cmd)
 
@@ -187,7 +188,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         force_rebuild=args.dockerized_force_rebuild,
         use_sudo=args.dockerized_use_sudo,
     )
-    _LOG.info("Extraction completed. Images saved in '%s'", args.output)
+    _LOG.info("Extraction completed. Images saved in '%s'", args.out_image_dir)
 
 
 if __name__ == "__main__":

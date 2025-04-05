@@ -142,14 +142,16 @@ def _run_dockerized_llm_transform(
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
     cmd_opts_as_str = " ".join(cmd_opts)
-    executable = hdocker.get_docker_executable(use_sudo)
-    docker_cmd = (
-        f"{executable} run --rm --user $(id -u):$(id -g)"
-        f" -e OPENAI_API_KEY -e PYTHONPATH={helpers_root}"
-        f" --workdir {callee_mount_path} --mount {mount}"
-        f" {container_image}"
-        f" {script} -i {in_file_path} -o {out_file_path} {cmd_opts_as_str}"
-    )
+    cmd = f" {script} -i {in_file_path} -o {out_file_path} {cmd_opts_as_str}"
+    docker_cmd = hdocker.get_docker_base_cmd(use_sudo)
+    docker_cmd.extend([
+        f"-e PYTHONPATH={helpers_root}",
+        f"--workdir {callee_mount_path}",
+        f"--mount {mount}",
+        container_image,
+        cmd
+    ])
+    docker_cmd = " ".join(docker_cmd)
     if return_cmd:
         ret = docker_cmd
     else:
@@ -157,6 +159,7 @@ def _run_dockerized_llm_transform(
         hsystem.system(docker_cmd, suppress_output=False)
         ret = None
     return ret
+
 
 def _convert_file_names(in_file_name: str, out_file_name: str) -> str:
     """
