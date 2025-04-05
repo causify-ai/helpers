@@ -15,11 +15,11 @@ directory.
 """
 
 import argparse
-import json
 import logging
 
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
+import helpers.hgit as hgit
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hserver as hserver
@@ -28,7 +28,28 @@ import helpers.hsystem as hsystem
 _LOG = logging.getLogger(__name__)
 
 
-def run_dockerized_notebook_image_extractor(
+def _parse() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    parser.add_argument(
+        "--in_notebook_filename",
+        required=True,
+        type=str,
+        help="Input notebook filename"
+    )
+    parser.add_argument(
+        "--out_image_dir",
+        required=True,
+        type=str,
+        help="Output image directory",
+    )
+    hparser.add_dockerized_script_arg(parser)
+    hparser.add_verbosity_arg(parser)
+    return parser
+
+
+def _run_dockerized_extract_notebook_images(
     notebook_path: str,
     output_dir: str,
     *,
@@ -36,14 +57,18 @@ def run_dockerized_notebook_image_extractor(
     use_sudo: bool = False,
 ) -> None:
     """
-    Run NotebookImageExtractor in a Docker container.
+    Run `NotebookImageExtractor` in a Docker container.
+
+    :param notebook_path: Path to the input Jupyter notebook
+    :param output_dir: Directory for output images
+    :param force_rebuild: If True, rebuild the container image
+    :param use_sudo: If True, run the container with sudo
     """
     _LOG.debug(hprint.func_signature_to_str())
     # Build the container image, if needed.
-    container_image = "tmp.notebook_image_extractor"
+    container_image = "tmp.extract_notebook_images"
     dockerfile = r"""
-    # TODO(gp): This might be problematic on MacOS / ARM.
-    FROM --platform=linux/amd64 python:3.10-slim
+    FROM python:3.10-slim
 
     # Install required system libraries for Chromium and Playwright.
     RUN apt-get update && apt-get install -y \
@@ -68,14 +93,17 @@ def run_dockerized_notebook_image_extractor(
         libcairo2 \
         && rm -rf /var/lib/apt/lists/*
 
-    # Set the environment variable for Playwright to install browsers in a known location.
+    # Set the environment variable for Playwright to install browsers in a known
+    # location.
     ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
     # Create the directory for Playwright browsers and ensure it's writable.
     RUN mkdir -p /ms-playwright && chmod -R 777 /ms-playwright
 
+    # Install required packages.
     RUN pip install nbconvert nbformat playwright pyyaml
 
+    # Install Playwright browsers.
     RUN python -m playwright install
 
     WORKDIR /app
@@ -107,44 +135,45 @@ def run_dockerized_notebook_image_extractor(
         is_caller_host=is_caller_host,
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
+    helpers_root = hgit.find_helpers_root()
+    helpers_root = hdocker.convert_caller_to_callee_docker_path(
+        helpers_root,
+        caller_mount_path,
+        callee_mount_path,
+        check_if_exists=True,
+        is_input=False,
+        is_caller_host=is_caller_host,
+        use_sibling_container_for_callee=use_sibling_container_for_callee,
+    )
+    # Build the command.
+    git_root = hgit.find_git_root()
+    script = hsystem.find_file_in_repo("dockerized_extract_notebook_images.py", root_dir=git_root)
+    script = hdocker.convert_caller_to_callee_docker_path(
+    script,
+    caller_mount_path,
+    callee_mount_path,
+    check_if_exists=True,
+    is_input=True,
+    is_caller_host=is_caller_host,
+    use_sibling_container_for_callee=use_sibling_container_for_callee,
+    )
+    cmd = [script,
+           f"--in_notebook_filename {notebook_path}",
+           f"--out_image_dir {output_dir}",
+    ]
+    cmd = " ".join(cmd)
+    # Build the Docker command.
     executable = hdocker.get_docker_executable(use_sudo)
-    python_code = (
-        "from helpers.hjupyter import NotebookImageExtractor; "
-        "extractor = NotebookImageExtractor({}, {}); "
-        "extractor._extract_and_capture()"
-    ).format(json.dumps(notebook_path), json.dumps(output_dir))
-    inner_cmd = f"python -c {json.dumps(python_code)}"
-    docker_cmd = (
-        f"{executable} run --rm --user $(id -u):$(id -g) "
-        f"-e PLAYWRIGHT_BROWSERS_PATH=/ms-playwright "
-        f"--workdir {callee_mount_path} --mount {mount} "
-        f"{container_image} "
-        f'bash -c {json.dumps(inner_cmd)}'
-    )
+    docker_cmd = [
+        f"{executable} run --rm --user $(id -u):$(id -g)",
+        f"-e PLAYWRIGHT_BROWSERS_PATH=/ms-playwright",
+        f"-e PYTHONPATH={helpers_root}",
+        f"--workdir {callee_mount_path} --mount {mount}",
+        f"{container_image}",
+        f"{cmd}",
+    ]
+    docker_cmd = " ".join(docker_cmd)
     hsystem.system(docker_cmd)
-
-
-def _parse() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
-    )
-    parser.add_argument(
-        "-i",
-        "--input",
-        action="store",
-        required=True,
-        help="Path to the input Jupyter notebook",
-    )
-    parser.add_argument(
-        "-o",
-        "--output",
-        action="store",
-        required=True,
-        help="Directory for output images",
-    )
-    hparser.add_dockerized_script_arg(parser)
-    hparser.add_verbosity_arg(parser)
-    return parser
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
@@ -152,9 +181,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(
         verbosity=args.log_level, use_exec_path=True, force_white=False
     )
-    hdocker.run_dockerized_notebook_image_extractor(
-        args.input,
-        args.output,
+    _run_dockerized_extract_notebook_images(
+        args.in_notebook_filename,
+        args.out_image_dir,
         force_rebuild=args.dockerized_force_rebuild,
         use_sudo=args.dockerized_use_sudo,
     )
