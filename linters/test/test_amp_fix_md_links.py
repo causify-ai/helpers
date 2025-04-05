@@ -348,3 +348,54 @@ class Test_make_path_absolute(hunitest.TestCase):
         actual = lafimdli._make_path_absolute(file_path)
         # Check.
         self.assertEqual(actual, expected)
+
+
+# #############################################################################
+# Test_check_md_link_format
+# #############################################################################
+
+
+class Test_check_md_link_format(hunitest.TestCase):
+
+    def test1(self) -> None:
+        """
+        Test if in-repo links are parsed correctly.
+        """
+        # Prepare inputs.
+        link_text = "Fix Markdown links"
+        link = "https://github.com/causify-ai/helpers/blob/master/linters/amp_fix_md_links.py"
+        line = "[Fix Markdown links](https://github.com/causify-ai/helpers/blob/master/linters/amp_fix_md_links.py)"
+        file_name = (
+            "linters/test/outcomes/Test_check_md_link_format.test1/input/test.md"
+        )
+        line_num = 16
+        # Run.
+        actual = lafimdli._check_md_link_format(
+            link_text, link, line, file_name, line_num
+        )
+        # Check.
+        expected = ("[Fix Markdown links](/linters/amp_fix_md_links.py)", [])
+        self.assertEqual(actual, expected)
+
+    def test2(self) -> None:
+        """
+        Test if in-repo links are parsed correctly.
+        """
+        # Prepare inputs.
+        link_text = "LLM Tutorial"
+        link = "https://github.com/causify-ai/tutorials/blob/master/llms/tutorial-openai_new.ipynb"
+        line = "[LLM Tutorial](https://github.com/causify-ai/tutorials/blob/master/llms/tutorial-openai_new.ipynb)"
+        file_name = (
+            "linters/test/outcomes/Test_check_md_link_format.test2/input/test.md"
+        )
+        line_num = 20
+        # Run.
+        actual = lafimdli._check_md_link_format(
+            link_text, link, line, file_name, line_num
+        )
+        # Check.
+        expected = (
+            "[LLM Tutorial](https://github.com/causify-ai/tutorials/blob/master/llms/tutorial-openai_new.ipynb)",
+            [],
+        )
+        self.assertEqual(actual, expected)

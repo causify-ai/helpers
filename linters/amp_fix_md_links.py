@@ -134,7 +134,11 @@ def _check_md_link_format(
             # The link is not to a file (but, for example, to an issue);
             # update is not needed.
             return line, warnings
-        # Leave only the path to the file in the link.
+        link_repo_short_name = hgit.extract_github_repo_short_name(link)
+        if not hgit.is_repo(link_repo_short_name):
+            # The link points to another repo;
+            # update is not needed.
+            return line, warnings
         link = link.split("blob/master")[-1]
     # Make the path in the link absolute.
     link = _make_path_absolute(link)
