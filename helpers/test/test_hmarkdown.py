@@ -1129,9 +1129,7 @@ class Test_format_headers1(hunitest.TestCase):
         ]
         hio.to_file(read_file, "\n".join(input_text))
         write_file = os.path.join(scratch_dir, "output.txt")
-        hmarkdo.format_headers(
-            read_file, write_file, max_lev=1
-        )  # Should be overridden
+        hmarkdo.format_headers(read_file, write_file, max_lev=1)
         expected = [
             "# #############################################################################",
             "# Chapter 1",
