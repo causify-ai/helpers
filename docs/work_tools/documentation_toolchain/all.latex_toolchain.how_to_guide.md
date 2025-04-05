@@ -21,9 +21,11 @@
 
 - Notes files can be converted to:
   - PDF (through a conversion to an intermediate Latex file)
-  - HTML
   - Slides (through beamer)
+  - HTML
   - Questions / answers (through Anki)
+
+# Typical use
 
 # Files
 ```
@@ -58,10 +60,10 @@
     - Wrapper for Latex docker container
     - TODO(gp): probably obsolete
   - `lint_latex.sh`
-    - Dockerized linter for Latex using `prettier`
+    - Dockerized Linter for Latex using `prettier`
     - TODO(gp): This is the new flow, but it needs to be converted in Python
   - `lint_latex2.sh`
-    - Dockerized linter for Latex using `latexindent.pl`
+    - Dockerized Linter for Latex using `latexindent.pl`
     - TODO(gp): This is the old flow
   - `notes_to_pdf.py`
     - Convert a txt file into a PDF / HTML / slides using `pandoc`
@@ -96,7 +98,7 @@
   - `run_pandoc.py`
     - Run pandoc on stdin/file to stdout/file.
   - `test_lint_latex.sh`
-    - Run latex linter and check if the file was modified
+    - Run latex Linter and check if the file was modified
   - `transform_notes.py`
     - Perform one of several transformations on a text file, e.g.,
       1. `toc`: create table of context from the current file, with 1 level

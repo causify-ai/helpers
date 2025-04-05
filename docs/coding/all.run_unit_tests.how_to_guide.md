@@ -21,6 +21,7 @@
       - [Common usage](#common-usage)
     + [Publishing HTML report on S3](#publishing-html-report-on-s3)
 - [Running `pytest` directly](#running-pytest-directly)
+  * [Basic rules](#basic-rules)
   * [Usage and Invocations reference](#usage-and-invocations-reference)
   * [Custom `pytest` options behaviors](#custom-pytest-options-behaviors)
     + [Enable logging](#enable-logging)
@@ -168,8 +169,6 @@
 
 - We use the [`pytest-timeout`](https://pypi.org/project/pytest-timeout/)
   package to limit durations of fast, slow, and superslow tests
-- The timeout durations for each test type are listed
-  [here](#running-unit-tests)
 - The timeout restricts the running time of the test methods, including
   `set_up_test()` and `tear_down_test()` time, if they are run at the
   beginning/end of the methods
@@ -572,7 +571,18 @@
 
 ## Running `pytest` directly
 
-### Usage and Invocations reference
+### Basic rules
+
+- Always run `pytest` from the Docker container to ensure consistency in our
+  environments
+
+```bash
+> i docker_bash
+# Then from Docker, run pytest.
+docker > pytest <test_file_name>
+```
+
+## Usage and Invocations reference
 
 - See [`pytest` documentation](http://doc.pytest.org/en/latest/usage.html)
 - Some examples of useful command lines:
@@ -581,11 +591,14 @@
   # Stop at first failure
   > pytest -x
 
-  # Run a single class
+  # Run a single test class
   > pytest -k TestPcaFactorComputer1
 
   # Run a single test method
   > pytest core/test/test_core.py::TestPcaFactorComputer1::test_linearize_eigval_eigvec
+
+    # Run all tests in a file
+  > pytest core/test/test_core.py
 
   # Remove cache artifacts
 

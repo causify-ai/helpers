@@ -4,12 +4,12 @@ Import as:
 import helpers.hprint as hprint
 """
 
+import functools
 import inspect
 import logging
 import pprint
 import re
 import sys
-from functools import wraps
 from typing import (
     Any,
     Callable,
@@ -18,6 +18,7 @@ from typing import (
     List,
     Match,
     Optional,
+    Tuple,
     Union,
     cast,
 )
@@ -208,6 +209,16 @@ def indent(txt: Optional[str], *, num_spaces: int = 2) -> str:
     return res
 
 
+def strict_split(text: str, max_length: int) -> str:
+    """
+    Split a string into chunks of `max_length` characters.
+    """
+    hdbg.dassert_lte(1, max_length)
+    lines = [text[i : i + max_length] for i in range(0, len(text), max_length)]
+    out = "\n".join(lines)
+    return out
+
+
 StrOrList = Union[str, List[str]]
 
 
@@ -219,8 +230,8 @@ def split_lines(func: Callable) -> Callable:
     decorated function.
     """
 
-    @wraps(func)
-    def wrapper(txt: StrOrList, *args: Any, **kwargs: Any) -> None:
+    @functools.wraps(func)
+    def wrapper(txt: StrOrList, *args: Any, **kwargs: Any) -> StrOrList:
         if isinstance(txt, str):
             # Split the txt into lines.
             lines = txt.splitlines()
@@ -470,10 +481,27 @@ def round_digits(
 # name of variables from the caller.
 
 
+_VarNamesType = Optional[Union[str, List[str]]]
+
+
+def _to_var_list(expression: _VarNamesType) -> List[str]:
+    if isinstance(expression, List):
+        return expression
+    hdbg.dassert_isinstance(expression, str)
+    # If expression is a list of space-separated expressions, convert each in a
+    # string.
+    exprs = [v.lstrip().rstrip() for v in expression.split(" ")]
+    # Remove empty var names.
+    exprs = [v for v in exprs if v.strip().rstrip() != ""]
+    hdbg.dassert_isinstance(exprs, list)
+    hdbg.dassert_lte(1, len(exprs))
+    return exprs
+
+
 def to_str(
     expression: str,
     *,
-    frame_lev: int = 1,
+    frame_level: int = 1,
     print_lhs: bool = True,
     char_separator: str = ",",
     mode: str = "repr",
@@ -493,12 +521,14 @@ def to_str(
     x+1=2
     ```
 
-    :param expression: the variable / expression to evaluate and print. E.g.,
-        `to_str("exp1")` is converted into `exp1=val1`.
+    :param expression: the variable / expression to evaluate and print.
+        E.g., `to_str("exp1")` is converted into `exp1=val1`.
         If expression is a space-separated compound expression, e.g.,
-        `to_str("exp1 exp2 ...")`, it is converted into:
-        `exp1=val1, exp2=val2, ...`
+        `to_str("exp1 exp2 ...")`, it is converted into `exp1=val1, exp2=val2, ...`
+    :param frame_level: level of the frame to inspect
     :param print_lhs: whether we want to print the left hand side (i.e., `exp1`)
+    :param char_separator: separator between the values of the expressions
+        when printed (e.g., `,`)
     :param mode: select how to print the value of the expressions (e.g., `str`,
         `repr`, `pprint`, `pprint_color`)
     """
@@ -506,13 +536,9 @@ def to_str(
     # E.g., https://github.com/pwwang/python-varname
     hdbg.dassert_isinstance(expression, str)
     if " " in expression:
-        # If expression is a list of space-separated expression, convert each in a
-        # string.
-        exprs = [v.lstrip().rstrip() for v in expression.split(" ")]
-        # Remove empty names.
-        exprs = [v for v in exprs if v.strip().rstrip() != ""]
+        exprs = _to_var_list(expression)
         # Convert each expression into a value.
-        _to_str = lambda x: to_str(x, frame_lev=frame_lev + 2)
+        _to_str = lambda x: to_str(x, frame_level=frame_level + 2)
         values = list(map(_to_str, exprs))
         # Assemble in a return value.
         hdbg.dassert_lte(len(char_separator), 1)
@@ -520,14 +546,18 @@ def to_str(
         txt = sep.join(values)
         return txt
     # Certain expressions are evaluated as literals.
-    if expression in ("->", ":", "=", "\n"):
+    if expression in ("", "->", ":", "=", "\n"):
         return expression
     # Evaluate the expression.
-    frame_ = sys._getframe(frame_lev)  # pylint: disable=protected-access
+    frame_ = sys._getframe(frame_level)  # pylint: disable=protected-access
     ret = ""
     if print_lhs:
         ret += expression + "="
-    eval_ = eval(expression, frame_.f_globals, frame_.f_locals)
+    try:
+        eval_ = eval(expression, frame_.f_globals, frame_.f_locals)
+    except Exception as e:
+        print("expression=''", expression)
+        raise e
     if mode == "str":
         ret += str(eval_)
     elif mode == "repr":
@@ -541,77 +571,79 @@ def to_str(
     return ret
 
 
-# TODO(timurg): In order to replace `hprint.to_str` function, `frame level`(see
-#  `hprint.to_str`) should be implemented, otherwise
-#  `helpers/test/test_printing.py::Test_log::test2-4` will fail, see CmTask
-#  #1554.
-
-
-def to_str2(*variables_values: Any) -> str:
+# TODO(gp): Extend this to work on class methods, static and not.
+def _func_signature_to_str(
+    skip_vars: _VarNamesType,
+    assert_on_skip_vars_error: bool,
+    frame_level: int,
+) -> Tuple[str, str]:
     """
-    Return a string with name and value of variables passed to the function as
-    `name=value`.
+    Return the variables of the caller function as a string.
 
-    E.g.,:
-    ```
-    a = 5
-    b = "hello"
-    n = 2
-    to_str2(a, b, n+1)
-    ```
-    returns a string "a=5, b=hello, n+1=2".
-
-    Limitations: can't work with an argument that contains parenthesis,
-    e.g.,: `to_str(to_str(a, b), c)`.
-
-    Dependencies: function call index depends on the Python version, `frame.lineno`
-        is:
-       - Last argument line in Python >=3.6 and < 3.9
-       - Function call line in Python 3.9 and above
-
-    :param variables_values: variables to convert into "name=value" string
-    :return: resulting string, e.g., `a=1, b=2`
+    Same params as `func_signature_to_str()`.
+    :return: function name and string with the variables of the caller function
+        as `var1 var2 ...`
     """
-    # Check parameters.
-    hdbg.dassert_lte(1, len(variables_values))
-    # Get frame object for the caller's stack frame.
-    frame_ = inspect.currentframe()
-    # Get a list of frame records for a frame and all outer frames.
-    frames = inspect.getouterframes(frame_)
-    # Get first outer frame - from where function was called, and the current one.
-    frame_above, current_frame = frames[1], frames[0]
-    # Get source code starting from line where current function was called.
-    source_code_lines, _ = inspect.findsource(frame_above.frame)
-    # Line number start from 1, while index starts with 0.
-    call_line_index = frame_above.lineno - 1
-    stripped_code_lines = [
-        line.strip() for line in source_code_lines[call_line_index:]
-    ]
-    source_code_string = "".join(stripped_code_lines)
-    # Find the name of the current function in the code.
-    regex = rf"{current_frame.function}\((.*?)\)"
-    matches = re.findall(regex, source_code_string)
-    hdbg.dassert_ne(
-        len(matches),
-        0,
-        "No arguments found in the source code for %s",
-        str(current_frame.function),
+    if skip_vars is not None:
+        skip_vars = _to_var_list(skip_vars)
+    # Get the caller's frame (i.e., the function that called this function).
+    caller_frame = inspect.currentframe()
+    for _ in range(frame_level):
+        caller_frame = caller_frame.f_back
+    caller_function_name = caller_frame.f_code.co_name
+    # _LOG.debug("caller_function_name=%s", caller_function_name)
+    # Retrieve the function object from the caller's frame.
+    caller_function = caller_frame.f_globals.get(caller_function_name, None)
+    if caller_function:
+        # Get the function's signature
+        sig = inspect.signature(caller_function)
+        var_names = list(sig.parameters.keys())
+        if skip_vars:
+            if assert_on_skip_vars_error:
+                hdbg.dassert_is_subset(skip_vars, var_names)
+            var_names = [
+                var_name for var_name in var_names if var_name not in skip_vars
+            ]
+        vars_str = " ".join(var_names)
+    else:
+        raise ValueError("Unable to determine caller function")
+    return caller_function_name, vars_str
+
+
+def func_signature_to_str(
+    # We don't use * since we want to keep it simple to call this function.
+    skip_vars: _VarNamesType = None,
+    *,
+    assert_on_skip_vars_error: bool = True,
+    frame_level: int = 2,
+) -> str:
+    r"""
+    Return the variables of the caller function as a string.
+
+    Use like:
+    ```
+    _LOG.debug("\n%s", hprint.func_signature_to_str())
+    ```
+
+    :param skip_vars: list of variables to skip
+    :param assert_on_skip_vars_error: whether to assert if the variables to skip
+        are not found in the function signature
+    :param frame_level: level of the frame to inspect. By default we need to
+        access the frame of the caller of the caller, so frame_level = 2
+    """
+    # Get the variables.
+    func_name, func_signature = _func_signature_to_str(
+        skip_vars,
+        assert_on_skip_vars_error,
+        frame_level,
     )
-    # Only fist match from regex is needed.
-    variables_names_str = matches[0]
-    variables_names = variables_names_str.split(",")
-    hdbg.dassert_eq(
-        len(variables_names),
-        len(variables_values),
-        "Number of vars and values is not equal: var_names=%s, val_names=%s",
-        str(variables_names),
-        str(variables_values),
-    )
-    # Package the name and the value of the variables in the return string.
-    output = []
-    for name, value in zip(variables_names, variables_values):
-        output.append(f"{name.strip()}={value}")
-    return ", ".join(output)
+    # Get the value of the variables.
+    val = to_str(func_signature, frame_level=frame_level)
+    val = f"# {func_name}: {val}"
+    return val
+
+
+# #############################################################################
 
 
 def log(logger: logging.Logger, verbosity: int, *vals: Any) -> None:
@@ -633,7 +665,7 @@ def log(logger: logging.Logger, verbosity: int, *vals: Any) -> None:
     # expressions only if we are going to print.
     if verbosity >= logger_verbosity:
         # We need to increment frame_lev since we are 2 levels deeper in the stack.
-        _to_str = lambda x: to_str(x, frame_lev=3)
+        _to_str = lambda x: to_str(x, frame_level=3)
         num_vals = len(vals)
         if num_vals == 1:
             fstring = "%s"

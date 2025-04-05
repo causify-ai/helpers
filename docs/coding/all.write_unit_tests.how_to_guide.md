@@ -25,6 +25,7 @@
     + [Use `self.assert_equal()`](#use-selfassert_equal)
     + [How to split unit test code in files](#how-to-split-unit-test-code-in-files)
     + [Skeleton for unit test](#skeleton-for-unit-test)
+    + [Use consistent comments in test methods](#use-consistent-comments-in-test-methods)
     + [Hierarchical `TestCase` approach](#hierarchical-testcase-approach)
     + [Use the appropriate `self.assert*`](#use-the-appropriate-selfassert)
     + [Do not use `hdbg.dassert` in testing](#do-not-use-hdbgdassert-in-testing)
@@ -238,9 +239,9 @@
 
 #### Our framework to test using input / output data
 
-- `helpers/unit_test.py` has some utilities to create input and output easily
-  dirs storing data for unit tests
-- `hut.TestCase` has various methods to help you create
+- [`/helpers/hunit_test.py`](/helpers/hunit_test.py) has some utilities to
+  easily create input and output dirs storing data for unit tests
+- `hunitest.TestCase` has various methods to help you create dirs
   - `get_input_dir()`: return the name of the dir used to store the inputs
   - `get_scratch_space()`: return the name of a scratch dir to keep artifacts of
     the test
@@ -328,8 +329,8 @@ Last review: GP on 2024-05-13
 - Interesting unit tests are in `helpers/test`
 - A unit test looks like:
   ```python
-  import helpers.unit_test as hut
-  class Test...(hut.TestCase):
+  import helpers.hunit_test as hunitest
+  class Test...(hunitest.TestCase):
       def test...(self):
           ...
   ```
@@ -339,14 +340,37 @@ Last review: GP on 2024-05-13
   unittest.main()
   ```
 
+#### Use consistent comments in test methods
+
+We strongly encourage adding short, consistent comments at the start of each
+main action within your test methods to establish a unified structure:
+
+```python
+import helpers.hunit_test as hunitest
+
+class TestFooBar1(hunitest.TestCase):
+    def test_method_a(self):
+        # Prepare inputs.
+        input_value = 42
+        # Run.
+        actual = foo_bar_function(input_value)
+        # Check.
+        expected = "some_expected_value"
+        self.assert_equal(str(actual), expected)
+```
+
+This makes it easy to scan what the test is doing and quickly understand its
+three core steps. It also improves readability and consistency across all our
+test code.
+
 #### Hierarchical `TestCase` approach
 
 - Whenever there is a hierarchy in classes, we also create a hierarchy of test
   classes
 - A parent test class looks like:
   ```python
-  import helpers.unit_test as hut
-  class SomeClientTestCase(hut.TestCase):
+  import helpers.hunit_test as hunitest
+  class SomeClientTestCase(hunitest.TestCase):
       def _test...1(self):
           ...
       def _test...2(self):
@@ -395,25 +419,26 @@ Last review: GP on 2024-05-13
 
 #### Always explain `self.assertRaises`
 
-- Testing for an assertion needs to always be done with the following idiom to
-  explain exactly what we are catching and why
-  ```python
-  with self.assertRaises(AssertionError) as cm:
-      hlitagit.git_patch_create(
-          ctx, mode, modified, branch, last_commit, files
-      )
-  act = str(cm.exception)
-  exp = r"""
-  ```
-* Failed assertion \* '0' == '1' Specify only one among --modified,
-  --branch, --last-commit """ self.assert_equal(act, exp, fuzzy_match=True)
-  ```
-  ```
+- When testing for an assertion, always use the following idiom to clearly
+  explain what exception is expected and why:
+
+```python
+with self.assertRaises(AssertionError) as cm:
+    hlitagit.git_patch_create(
+        ctx, mode, modified, branch, last_commit, files
+    )
+act = str(cm.exception)
+exp = r"""
+* Failed assertion * '0' == '1' Specify only one among --modified,
+  --branch, --last-commit
+"""
+self.assert_equal(act, exp, fuzzy_match=True)
+```
 
 #### Interesting testing functions
 
 - List of useful testing functions are:
-  - [General python](https://docs.python.org/2/library/unittest.html#test-cases)
+  - [General Python](https://docs.python.org/2/library/unittest.html#test-cases)
   - [Numpy](https://docs.scipy.org/doc/numpy-1.15.0/reference/routines.testing.html)
   - [Pandas](https://pandas.pydata.org/pandas-docs/version/0.21/api.html#testing-functions)
 
@@ -801,10 +826,9 @@ Last review: GP on 2024-05-13
 
 ## Update test tags
 
-- There are 2 files with the list of tests' tags:
-  - `amp/pytest.ini`
-  - `.../pytest.ini (if `amp` is a submodule)`
-- In order to update the tags (do it in both files):
+- In the root of each repo there is a `pytest.ini` file with the list of tests'
+  tags
+- In order to update the tags:
   - In the `markers` section, add a name of a new tag
   - After a `:` add a short description
   - Keep tags in the alphabetical order
@@ -828,7 +852,7 @@ It is best to apply on any part that is deemed unnecessary for specific test
   - CCXT
   - AWS
     - S3
-      - See [`/helpers/hmoto.py`](/helpers/hmoto.py) in `cmamp` repo
+      - See [`/helpers/hmoto.py`](/helpers/hmoto.py)
     - Secrets
     - Etc...
 - DB calls
@@ -944,7 +968,7 @@ def test_function_call1(self, mock_get_secret: umock.MagicMock):
 
 - Function `get_secret` in `helpers/hsecret.py` is mocked
   - Pay attention on where is `get_secret` mocked:
-    - It is mocked in im_v2.ccxt.data.extract.extractor as "get_secret" is
+    - It is mocked in `im_v2.ccxt.data.extract.extractor` as "get_secret" is
       called there in function that is being tested
   - `@umock.patch.object(hsecret, "get_secret")` will not work as mocks are
     applied after all modules are loaded, hence the reason for using exact
@@ -1068,7 +1092,7 @@ class TestCcxtExtractor1(hunitest.TestCase):
     - `patch.start()` is returning a standard `MagicMock` object we can use to
       check various states as mentioned in previous examples and control return
       values
-      - Call_args, call_count, return_value, side_effect, etc.
+      - `call_args`, `call_count`, `return_value`, `side_effect`, etc.
 - Note: Although patch initialization in static variables belongs to
   `set_up_test()`, when this code is moved there patch is created for each test
   separately. We want to avoid that and only start/stop same patch for each

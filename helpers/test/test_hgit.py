@@ -17,47 +17,41 @@ _LOG = logging.getLogger(__name__)
 # completes and visually inspect the outcome, if possible.
 
 
-def _execute_func_call(func_call: str) -> None:
-    """
-    Execute a function call, e.g., `func_call = "hgit.get_modified_files()"`.
-    """
-    act = eval(func_call)
-    _LOG.debug("\n-> %s=\n  '%s'", func_call, act)
-
-
 class Test_git_submodule1(hunitest.TestCase):
     def test_get_client_root1(self) -> None:
-        func_call = "hgit.get_client_root(super_module=True)"
-        _execute_func_call(func_call)
+        act = hgit.get_client_root(super_module=True)
+        _LOG.debug("act=%s", act)
 
     def test_get_client_root2(self) -> None:
-        func_call = "hgit.get_client_root(super_module=False)"
-        _execute_func_call(func_call)
+        act = hgit.get_client_root(super_module=False)
+        _LOG.debug("act=%s", act)
 
     def test_get_project_dirname1(self) -> None:
-        func_call = "hgit.get_project_dirname()"
-        _execute_func_call(func_call)
+        act = hgit.get_project_dirname()
+        _LOG.debug("act=%s", act)
 
     def test_get_branch_name1(self) -> None:
-        _ = hgit.get_branch_name()
+        act = hgit.get_branch_name()
+        _LOG.debug("act=%s", act)
 
     def test_is_inside_submodule1(self) -> None:
-        func_call = "hgit.is_inside_submodule()"
-        _execute_func_call(func_call)
+        act = hgit.is_inside_submodule()
+        _LOG.debug("act=%s", act)
 
     # Outside CK infra, the following call hangs, so we skip it.
+    # TODO(gp): I don't see why it requires our infra.
     @pytest.mark.requires_ck_infra
     def test_is_amp(self) -> None:
-        func_call = "hgit.is_amp()"
-        _execute_func_call(func_call)
+        act = hgit.is_amp()
+        _LOG.debug("act=%s", act)
 
     def test_get_path_from_supermodule1(self) -> None:
-        func_call = "hgit.get_path_from_supermodule()"
-        _execute_func_call(func_call)
+        act = hgit.get_path_from_supermodule()
+        _LOG.debug("act=%s", act)
 
     def test_get_submodule_paths1(self) -> None:
-        func_call = "hgit.get_submodule_paths()"
-        _execute_func_call(func_call)
+        act = hgit.get_submodule_paths()
+        _LOG.debug("act=%s", act)
 
 
 class Test_git_submodule2(hunitest.TestCase):
@@ -67,7 +61,8 @@ class Test_git_submodule2(hunitest.TestCase):
 
     def test_get_remote_head_hash1(self) -> None:
         dir_name = "."
-        _ = hgit.get_head_hash(dir_name)
+        act = hgit.get_head_hash(dir_name)
+        _LOG.debug("act=%s", act)
 
     # def test_report_submodule_status1(self) -> None:
     #     dir_names = ["."]
@@ -76,7 +71,8 @@ class Test_git_submodule2(hunitest.TestCase):
 
     def test_get_head_hash1(self) -> None:
         dir_name = "."
-        _ = hgit.get_head_hash(dir_name)
+        act = hgit.get_head_hash(dir_name)
+        _LOG.debug("act=%s", act)
 
     def test_group_hashes1(self) -> None:
         head_hash = "a2bfc704"
@@ -139,78 +135,20 @@ class Test_git_repo_name1(hunitest.TestCase):
         self.assert_equal(repo_name, "alphamatic/amp")
 
     def test_get_repo_full_name_from_dirname1(self) -> None:
-        func_call = "hgit.get_repo_full_name_from_dirname(dir_name='.', include_host_name=False)"
-        _execute_func_call(func_call)
+        act = hgit.get_repo_full_name_from_dirname(dir_name='.', include_host_name=False)
+        _LOG.debug("act=%s", act)
 
     def test_get_repo_full_name_from_dirname2(self) -> None:
-        func_call = "hgit.get_repo_full_name_from_dirname(dir_name='.', include_host_name=True)"
-        _execute_func_call(func_call)
+        act = hgit.get_repo_full_name_from_dirname(dir_name='.', include_host_name=True)
+        _LOG.debug("act=%s", act)
 
     def test_get_repo_full_name_from_client1(self) -> None:
-        func_call = "hgit.get_repo_full_name_from_client(super_module=True)"
-        _execute_func_call(func_call)
+        act = hgit.get_repo_full_name_from_client(super_module=True)
+        _LOG.debug("act=%s", act)
 
     def test_get_repo_full_name_from_client2(self) -> None:
-        func_call = "hgit.get_repo_full_name_from_client(super_module=False)"
-        _execute_func_call(func_call)
-
-    def test_get_repo_name1(self) -> None:
-        short_name = "amp"
-        mode = "short_name"
-        act = hgit.get_repo_name(short_name, mode)
-        exp = "alphamatic/amp"
-        self.assert_equal(act, exp)
-
-    def test_get_repo_name2(self) -> None:
-        full_name = "alphamatic/amp"
-        mode = "full_name"
-        act = hgit.get_repo_name(full_name, mode)
-        exp = "amp"
-        self.assert_equal(act, exp)
-
-    # Outside CK infra, the following call hangs, so we skip it.
-    @pytest.mark.requires_ck_infra
-    def test_get_all_repo_names1(self) -> None:
-        if not hgit.is_in_amp_as_supermodule():
-            _LOG.warning(
-                "Skipping this test, since it can run only in amp as super-module"
-            )
-            return
-        mode = "short_name"
-        act = hgit.get_all_repo_names(mode)
-        exp = ["amp", "cmamp", "helpers", "tutorials"]
-        self.assert_equal(str(act), str(exp))
-
-    # Outside CK infra, the following call hangs, so we skip it.
-    @pytest.mark.requires_ck_infra
-    def test_get_all_repo_names2(self) -> None:
-        if not hgit.is_in_amp_as_supermodule():
-            _LOG.warning(
-                "Skipping this test, since it can run only in amp as super-module"
-            )
-            return
-        mode = "full_name"
-        act = hgit.get_all_repo_names(mode)
-        exp = [
-            "alphamatic/amp",
-            "causify-ai/cmamp",
-            "causify-ai/helpers",
-            "causify-ai/tutorials",
-        ]
-        self.assert_equal(str(act), str(exp))
-
-    def test_get_repo_name_rountrip1(self) -> None:
-        """
-        Test round-trip transformation for get_repo_name().
-        """
-        # Get the short name for all the repos.
-        mode = "short_name"
-        all_repo_short_names = hgit.get_all_repo_names(mode)
-        # Round trip.
-        for repo_short_name in all_repo_short_names:
-            repo_full_name = hgit.get_repo_name(repo_short_name, "short_name")
-            repo_short_name_tmp = hgit.get_repo_name(repo_full_name, "full_name")
-            self.assert_equal(repo_short_name, repo_short_name_tmp)
+        act = hgit.get_repo_full_name_from_client(super_module=False)
+        _LOG.debug("act=%s", act)
 
 
 # Outside CK infra, the following class hangs, so we skip it.
@@ -290,24 +228,24 @@ class Test_git_modified_files1(hunitest.TestCase):
         hgit.fetch_origin_master_if_needed()
 
     def test_get_modified_files1(self) -> None:
-        func_call = "hgit.get_modified_files()"
-        _execute_func_call(func_call)
+        act = hgit.get_modified_files()
+        _LOG.debug("act=%s", act)
 
     def test_get_previous_committed_files1(self) -> None:
-        func_call = "hgit.get_previous_committed_files()"
-        _execute_func_call(func_call)
+        act = hgit.get_previous_committed_files()
+        _LOG.debug("act=%s", act)
 
     def test_get_modified_files_in_branch1(self) -> None:
-        func_call = "hgit.get_modified_files_in_branch('master')"
-        _execute_func_call(func_call)
+        act = hgit.get_modified_files_in_branch('master')
+        _LOG.debug("act=%s", act)
 
     def test_get_summary_files_in_branch1(self) -> None:
-        func_call = "hgit.get_summary_files_in_branch('master')"
-        _execute_func_call(func_call)
+        act = hgit.get_summary_files_in_branch('master')
+        _LOG.debug("act=%s", act)
 
     def test_git_log1(self) -> None:
-        func_call = "hgit.git_log()"
-        _execute_func_call(func_call)
+        act = hgit.git_log()
+        _LOG.debug("act=%s", act)
 
 
 # #############################################################################

@@ -13,12 +13,18 @@ def _check(self: Any, str_to_eval: str, exp_val: str) -> None:
     Evaluate `str_to_eval` and compare it to expected value `exp_val`.
     """
     # The variable lives 3 levels in the stack trace from here.
-    act_val = hprint.to_str(str_to_eval, frame_lev=3)
+    act_val = hprint.to_str(str_to_eval, frame_level=3)
     _LOG.debug("%s", act_val)
     self.assert_equal(act_val, exp_val, purify_text=True)
 
 
+# #############################################################################
+# _Class
+# #############################################################################
+
+
 class _Class:
+
     def __init__(self) -> None:
         self.a = 3
         self.b = 14
@@ -30,7 +36,13 @@ class _Class:
         return self.b
 
 
+# #############################################################################
+# _TestCase
+# #############################################################################
+
+
 class _TestCase(hunitest.TestCase):
+
     def check(self, *args, **kwargs) -> None:
         _check(self, *args, **kwargs)
 
@@ -57,6 +69,11 @@ class _TestCase(hunitest.TestCase):
 # umock.Mockspec
 # :param spec: specification for the mock object, e.g., using a class to create
 #   the proper interface
+
+
+# #############################################################################
+# Test_Mock1
+# #############################################################################
 
 
 class Test_Mock1(_TestCase):
@@ -173,6 +190,7 @@ class Test_MagicMock1(_TestCase):
 
 
 class Test_Mock_Class1(_TestCase):
+
     def test_without_mock1(self) -> None:
         obj = _Class()
         self.assertEqual(obj.get_a(), 3)
@@ -212,7 +230,13 @@ class Test_Mock_Class1(_TestCase):
 # on the object "target" with a mock object.
 
 
+# #############################################################################
+# Test_Mock_Class_with_decorator1
+# #############################################################################
+
+
 class Test_Mock_Class_with_decorator1(_TestCase):
+
     @umock.patch.object(_Class, "get_a", return_value=4)
     def test1(self, mock_method: umock.MagicMock) -> None:
         """
@@ -233,6 +257,7 @@ class Test_Mock_Class_with_decorator1(_TestCase):
 
 
 class Test_Mock_Class_with_context_manager1(_TestCase):
+
     def test1(self) -> None:
         """
         Patch an object method using a context manager.

@@ -9,14 +9,13 @@ import logging
 import os
 import re
 import sys
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Tuple, cast
 
 from invoke import task
 
 # We want to minimize the dependencies from non-standard Python packages since
 # this code needs to run with minimal dependencies and without Docker.
 import helpers.hdbg as hdbg
-import helpers.henv as henv
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hlist as hlist
@@ -27,6 +26,7 @@ import helpers.hsystem as hsystem
 import helpers.htraceback as htraceb
 import helpers.lib_tasks_docker as hlitadoc
 import helpers.lib_tasks_utils as hlitauti
+import helpers.repo_config_utils as hrecouti
 
 _LOG = logging.getLogger(__name__)
 
@@ -117,11 +117,11 @@ def _build_run_command_line(
 
     ```
     pytest -m "optimizer and not slow and not superslow" \
-                . \
-                -o timeout_func_only=true \
-                --timeout 5 \
-                --reruns 2 \
-                --only-rerun "Failed: Timeout"
+        . \
+        -o timeout_func_only=true \
+        --timeout 5 \
+        --reruns 2 \
+        --only-rerun "Failed: Timeout"
     ```
 
     The rest of params are the same as in `run_fast_tests()`.
@@ -173,7 +173,7 @@ def _build_run_command_line(
     pytest_opts_tmp.append(
         f'--reruns {num_reruns} --only-rerun "Failed: Timeout"'
     )
-    if henv.execute_repo_config_code("skip_submodules_test()"):
+    if hserver.skip_submodules_test():
         # For some repos submodules should be skipped
         # regardless of the passed value.
         skip_submodules = True
@@ -476,7 +476,6 @@ def run_fast_tests(  # type: ignore
     :param allure_dir: directory to save allure results to. If specified, allure
         plugin will be installed on-the-fly and results will be generated
         and saved to the specified directory
-    :param kwargs: kwargs for `ctx.run`
     """
     hlitauti.report_task()
     hdbg.dassert(
@@ -724,7 +723,7 @@ def _publish_html_coverage_report_on_s3(aws_profile: str) -> None:
     s3_html_coverage_dir = f"{user}_{branch_name}"
     # Get the full path to the dir.
     s3_html_base_dir = "html_coverage"
-    s3_html_bucket_path = henv.execute_repo_config_code("get_html_bucket_path()")
+    s3_html_bucket_path = hrecouti.get_repo_config().get_html_bucket_path()
     s3_html_coverage_path = os.path.join(
         s3_html_bucket_path, s3_html_base_dir, s3_html_coverage_dir
     )
@@ -751,11 +750,20 @@ def _publish_html_coverage_report_on_s3(aws_profile: str) -> None:
                 if aws_profile.upper() in ["AM", "CK"]
                 else aws_profile.upper()
             )
-            aws_set_value_pairs = [
-                f"aws_access_key_id ${profile_prefix}_AWS_ACCESS_KEY_ID",
-                f"aws_secret_access_key ${profile_prefix}_AWS_SECRET_ACCESS_KEY",
-                f"region ${profile_prefix}_AWS_DEFAULT_REGION",
-            ]
+            # Check if AWS session token is set in environment variable.
+            if f"{profile_prefix}_AWS_SESSION_TOKEN" in os.environ:
+                aws_set_value_pairs = [
+                    f"aws_access_key_id ${profile_prefix}_AWS_ACCESS_KEY_ID",  # gitleaks:allow
+                    f"aws_secret_access_key ${profile_prefix}_AWS_SECRET_ACCESS_KEY",  # gitleaks:allow
+                    f"aws_session_token ${profile_prefix}_AWS_SESSION_TOKEN",
+                    f"region ${profile_prefix}_AWS_DEFAULT_REGION",
+                ]
+            else:
+                aws_set_value_pairs = [
+                    f"aws_access_key_id ${profile_prefix}_AWS_ACCESS_KEY_ID",  # gitleaks:allow
+                    f"aws_secret_access_key ${profile_prefix}_AWS_SECRET_ACCESS_KEY",  # gitleaks:allow
+                    f"region ${profile_prefix}_AWS_DEFAULT_REGION",
+                ]
             aws_config_cmds = [
                 f"{aws_set_param_cmd} {aws_set_value_pair} {aws_set_profile_cmd}"
                 for aws_set_value_pair in aws_set_value_pairs
@@ -833,7 +841,7 @@ def run_coverage_report(  # type: ignore
     if target_dir == ".":
         # Include all dirs.
         include_in_report = "*"
-        if henv.execute_repo_config_code("skip_submodules_test()"):
+        if hserver.skip_submodules_test():
             # Exclude submodules.
             submodule_paths = hgit.get_submodule_paths()
             exclude_from_report = ",".join(
@@ -1302,6 +1310,8 @@ def _run(
         output_file=output_file,
         tee=tee,
     )
+    # TODO(gp): Understand why linter is unhappy.
+    rc = cast(int, rc)
     return rc
 
 
@@ -1466,5 +1476,80 @@ def pytest_add_untracked_golden_outcomes(ctx):  # type: ignore
 
 
 # #############################################################################
-# TO_ADD
+# pytest_failed
 # #############################################################################
+
+
+def _parse_failed_tests(
+    txt: str, only_file: bool, only_class: bool
+) -> Tuple[List[str], int, int]:
+    """
+    Parse the failed tests from the pytest output.
+
+    :param only_file: return only the file name
+    :param only_class: return only the class name
+    :return:
+        - failed_tests: list of failed tests
+        - num_failed: number of failed tests
+        - num_passed: number of passed tests
+    """
+    hdbg.dassert_lte(only_file + only_class, 1)
+    failed_tests = []
+    num_failed = num_passed = 0
+    for line in txt.split("\n"):
+        # Remove non printable characters.
+        line = re.sub(r"[^\x20-\x7E]", "", line)
+        # FAILED oms/broker/ccxt/test/test_ccxt_execution_quality.py::Test_compute_adj_fill_ecdfs::test3 - RuntimeError:
+        m = re.search(r"^(FAILED|ERROR) (\S+) -", line)
+        if m:
+            test_name = m.group(2)
+            _LOG.debug("line=%s ->\n\ttest_name='%s'", line, test_name)
+            failed_tests.append(test_name)
+        # helpers_root/helpers/test/test_hserver.py::Test_hserver1::test_gp1 (0.00 s) PASSED [ 36%]
+        m = re.search(r"(\S+) \(\S+ s\) (FAILED|ERROR)", line)
+        if m:
+            test_name = m.group(1)
+            _LOG.debug("line=%s ->\n\ttest_name='%s'", line, test_name)
+            failed_tests.append(test_name)
+        # ============ 11 failed, 917 passed, 113 skipped in 64.57s (0:01:04) ============
+        # ======================== 4 failed, 43 passed in 40.48s =========================
+        m = re.search(r"=+\s+(\d+)\s+failed,\s+(\d+)\s+passed.*", line)
+        if m:
+            num_failed = int(m.group(1))
+            num_passed = int(m.group(2))
+    failed_tests = sorted(list(set(failed_tests)))
+    #
+    if num_failed and num_passed and num_failed != len(failed_tests):
+        _LOG.warning(
+            "n_failed=%s len(failed_tests)=%s", num_failed, len(failed_tests)
+        )
+    print(f"Failed tests: {num_failed}/{num_passed}")
+    # Filter, if needed.
+    if only_file or only_class:
+        failed_tests_tmp = []
+        for test in failed_tests:
+            # oms/broker/ccxt/test/test_ccxt_execution_quality.py::Test_compute_adj_fill_ecdfs::test3
+            m = re.match(r"(\S+)::(\S+)::\S+$", test)
+            hdbg.dassert(m, f"Can't parse '{test}'")
+            if only_file:
+                failed_tests_tmp.append(m.group(1))
+            elif only_class:
+                failed_tests_tmp.append(m.group(1) + "::" + m.group(2))
+            else:
+                raise RuntimeError("Unexpected")
+        failed_tests = sorted(list(set(failed_tests_tmp)))
+    return failed_tests, num_failed, num_passed
+
+
+@task
+def pytest_failed(ctx, only_file=False, only_class=False, file_name="tmp.pytest_script.txt"):  # type: ignore
+    _ = ctx
+    hlitauti.report_task()
+    # Read file.
+    txt = hio.from_file(file_name)
+    # Extract info.
+    failed_tests, _, _ = _parse_failed_tests(txt, only_file, only_class)
+    print("\n".join(failed_tests))
+    # Save to clipboard.
+    txt = " ".join(failed_tests)
+    hsystem.to_pbcopy(txt, pbcopy=True)

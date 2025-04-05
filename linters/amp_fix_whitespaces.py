@@ -65,6 +65,11 @@ def _format_end_of_file(lines: List[str]) -> List[str]:
     return lines_end_formatted
 
 
+# #############################################################################
+# _FixWhitespaces
+# #############################################################################
+
+
 class _FixWhitespaces(liaction.Action):
     """
     Fix irregularities with whitespace characters.
@@ -79,8 +84,12 @@ class _FixWhitespaces(liaction.Action):
 
     def _execute(self, file_name: str, pedantic: int) -> List[str]:
         _ = pedantic
-        # Read the input file.
-        lines = hio.from_file(file_name).split("\n")
+        try:
+            # Read the input file.
+            lines = hio.from_file(file_name).split("\n")
+        except RuntimeError:
+            _LOG.debug("Cannot read file_name='%s'; skipping", file_name)
+            return []
         updated_lines = []
         # Process the lines.
         for line in lines:

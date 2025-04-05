@@ -57,6 +57,11 @@ COPY devops/docker_build/create_users.sh .
 RUN /bin/bash -c "./create_users.sh"
 COPY devops/docker_build/etc_sudoers /etc/sudoers
 
+# When building for the `arm64` architecture, root permissions are not
+# propagated to the files in the container. This is a workaround to fix the
+# behavior.
+RUN chown root:root /etc/sudoers
+
 # - Mount external filesystems.
 # RUN mkdir -p /s3/alphamatic-data
 # RUN mkdir -p /fsx/research

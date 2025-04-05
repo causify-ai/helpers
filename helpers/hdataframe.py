@@ -7,7 +7,6 @@ import helpers.hdataframe as hdatafr
 """
 
 # TODO(gp): Consider merging with `helpers/pandas_helpers.py`.
-# TODO(gp): data -> df
 
 import collections
 import functools
@@ -43,7 +42,7 @@ def _combine_masks(
 
 
 def filter_data_by_values(
-    data: pd.DataFrame,
+    df: pd.DataFrame,
     filters: Dict[Union[int, str], Tuple[Any, ...]],
     mode: str,
     info: Optional[collections.OrderedDict] = None,
@@ -51,7 +50,7 @@ def filter_data_by_values(
     """
     Filter dataframe rows based on column values.
 
-    :param data: dataframe
+    :param df: dataframe
     :param filters: `{col_name: (possible_values)}`
     :param mode: `and` for conjunction and `or` for disjunction of filters
     :param info: information storage
@@ -59,26 +58,26 @@ def filter_data_by_values(
     """
     if info is None:
         info = collections.OrderedDict()
-    info["nrows"] = data.shape[0]
+    info["nrows"] = df.shape[0]
     if not filters:
-        info["nrows_remaining"] = data.shape[0]
-        return data.copy()
+        info["nrows_remaining"] = df.shape[0]
+        return df.copy()
     # Create filter masks for each column.
     masks = []
     for col_name, vals in filters.items():
         hdbg.dassert_isinstance(vals, tuple)
-        mask = data[col_name].isin(vals)
+        mask = df[col_name].isin(vals)
         info[f"n_{col_name}"] = mask.sum()
-        info[f"perc_{col_name}"] = hprint.perc(mask.sum(), data.shape[0])
+        info[f"perc_{col_name}"] = hprint.perc(mask.sum(), df.shape[0])
         masks.append(mask)
     masks = pd.concat(masks, axis=1)
     combined_mask = _combine_masks(masks, mode, info)
-    filtered_data = data.loc[combined_mask].copy()
-    return filtered_data
+    filtered_df = df.loc[combined_mask].copy()
+    return filtered_df
 
 
 def filter_data_by_comparison(
-    data: pd.DataFrame,
+    df: pd.DataFrame,
     filters: Dict[
         Union[int, str], Union[Tuple[str, Any], Tuple[Tuple[str, Any], ...]]
     ],
@@ -88,7 +87,7 @@ def filter_data_by_comparison(
     """
     Filter dataframe by comparing columns to values.
 
-    :param data: dataframe
+    :param df: dataframe
     :param filters: `{col_name: (comparison_method, value)}` or
         `{col_name: ((comparison_method_i, value_i))}`.
         `comparison_method` is one of the ("eq", "ne", "le", "lt", "ge", "gt")
@@ -99,10 +98,10 @@ def filter_data_by_comparison(
     """
     if info is None:
         info = collections.OrderedDict()
-    info["nrows"] = data.shape[0]
+    info["nrows"] = df.shape[0]
     if not filters:
-        info["nrows_remaining"] = data.shape[0]
-        return data.copy()
+        info["nrows_remaining"] = df.shape[0]
+        return df.copy()
     # Create filter masks for each column.
     masks = []
     for col_name, tuple_ in filters.items():
@@ -112,20 +111,20 @@ def filter_data_by_comparison(
             hdbg.dassert_in(
                 comparison_method, ("eq", "ne", "le", "lt", "ge", "gt")
             )
-            mask = getattr(data[col_name], comparison_method)(val)
+            mask = getattr(df[col_name], comparison_method)(val)
             info[f"n_{col_name}_{comparison_method}_{val}"] = mask.sum()
             info[f"perc_{col_name}_{comparison_method}_{val}"] = hprint.perc(
-                mask.sum(), data.shape[0]
+                mask.sum(), df.shape[0]
             )
             masks.append(mask)
     masks = pd.concat(masks, axis=1)
     combined_mask = _combine_masks(masks, mode, info)
-    filtered_data = data.loc[combined_mask].copy()
-    return filtered_data
+    filtered_df = df.loc[combined_mask].copy()
+    return filtered_df
 
 
 def filter_data_by_method(
-    data: pd.DataFrame,
+    df: pd.DataFrame,
     filters: Dict[Union[int, str], _METHOD_TO_APPLY],
     mode: str,
     info: Optional[collections.OrderedDict] = None,
@@ -133,7 +132,7 @@ def filter_data_by_method(
     """
     Filter dataframe by calling a method specified for each column.
 
-    :param data: dataframe
+    :param df: dataframe
     :param filters: `{col_name: {method: kwargs}}`, where `method` is the
         method called on the dataframe column, e.g. "isin" or "str.contains",
         and `kwargs` are the kwargs for this method
@@ -143,22 +142,22 @@ def filter_data_by_method(
     """
     if info is None:
         info = collections.OrderedDict()
-    info["nrows"] = data.shape[0]
+    info["nrows"] = df.shape[0]
     if not filters:
-        info["nrows_remaining"] = data.shape[0]
-        return data.copy()
+        info["nrows_remaining"] = df.shape[0]
+        return df.copy()
     # Create filter masks for each column.
     masks = []
     for col_name, method_dict in filters.items():
         for method, kwargs in method_dict.items():
-            mask = operator.attrgetter(method)(data[col_name])(**kwargs)
+            mask = operator.attrgetter(method)(df[col_name])(**kwargs)
             info[f"n_{col_name}"] = mask.sum()
-            info[f"perc_{col_name}"] = hprint.perc(mask.sum(), data.shape[0])
+            info[f"perc_{col_name}"] = hprint.perc(mask.sum(), df.shape[0])
             masks.append(mask)
     masks = pd.concat(masks, axis=1)
     combined_mask = _combine_masks(masks, mode, info)
-    filtered_data = data.loc[combined_mask].copy()
-    return filtered_data
+    filtered_df = df.loc[combined_mask].copy()
+    return filtered_df
 
 
 # #############################################################################
@@ -226,18 +225,18 @@ def apply_nan_mode(
 # #############################################################################
 
 
-def infer_sampling_points_per_year(data: Union[pd.Series, pd.DataFrame]) -> float:
+def infer_sampling_points_per_year(df: Union[pd.Series, pd.DataFrame]) -> float:
     """
     Return the number of index time points per year.
 
     TODO(*): Consider extending to all frequencies and count points by
         explicitly building indices of the given frequency.
 
-    :param data: series or dataframe with non-null `data.index.freq`
+    :param df: series or dataframe with non-null `df.index.freq`
     :return: number of time points per year (approximate)
     """
-    hdbg.dassert(data.index.freq)
-    freq = data.index.freq
+    hdbg.dassert(df.index.freq)
+    freq = df.index.freq
     # TODO(*): Make start, end dates parameters that can be passed in.
     return compute_points_per_year_for_given_freq(freq)
 
@@ -264,17 +263,17 @@ def compute_points_per_year_for_given_freq(freq: str) -> float:
         return 0.0
 
 
-def compute_count_per_year(data: Union[pd.Series, pd.DataFrame]) -> float:
+def compute_count_per_year(df: Union[pd.Series, pd.DataFrame]) -> float:
     """
-    Return data.count() divided by the length of `data` in years.
+    Return df.count() divided by the length of `df` in years.
     """
-    freq = data.index.freq
-    hdbg.dassert(freq, msg="`data` must have a `DatetimeIndex` with a `freq`")
-    # Calculate the time span of `data` in years.
+    freq = df.index.freq
+    hdbg.dassert(freq, msg="`df` must have a `DatetimeIndex` with a `freq`")
+    # Calculate the time span of `df` in years.
     points_per_year = compute_points_per_year_for_given_freq(freq)
-    span_in_years = data.size / points_per_year
+    span_in_years = df.size / points_per_year
     # Determine the number of non-NaN/inf/etc. data points per year.
-    count_per_year = data.count() / span_in_years
+    count_per_year = df.count() / span_in_years
     count_per_year = cast(float, count_per_year)
     return count_per_year
 
@@ -283,23 +282,24 @@ def compute_count_per_year(data: Union[pd.Series, pd.DataFrame]) -> float:
 
 
 def remove_duplicates(
-    data: pd.DataFrame,
+    df: pd.DataFrame,
     duplicate_columns: Optional[List[str]],
     control_column: Optional[str],
 ) -> pd.DataFrame:
     """
     Remove duplicates from DataFrame.
 
-    :param data: DataFrame to process
+    :param df: DataFrame to process
     :param duplicate_columns: subset of column names, None for all
-    :param control_column: column max value of which determines the kept row
+    :param control_column: column max value of which determines the kept
+        row
     :return: DataFrame with removed duplicates
     """
     # Fix maximum value of control column at the bottom.
     if control_column:
-        data = data.sort_values(by=control_column)
-    duplicate_columns = duplicate_columns or data.columns
-    data = data.drop_duplicates(subset=duplicate_columns)
+        df = df.sort_values(by=control_column)
+    duplicate_columns = duplicate_columns or df.columns
+    df = df.drop_duplicates(subset=duplicate_columns)
     # Sort by index to return to original view.
-    data = data.sort_index()
-    return data
+    df = df.sort_index()
+    return df

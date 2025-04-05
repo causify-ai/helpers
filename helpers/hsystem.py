@@ -23,6 +23,7 @@ import helpers.hdbg as hdbg
 import helpers.hintrospection as hintros
 import helpers.hlogging as hloggin
 import helpers.hprint as hprint
+import helpers.hserver as hserver
 
 # This module can depend only on:
 # - Python standard modules
@@ -31,7 +32,7 @@ import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
-# Set logging level of this file.
+# Set logging level of this file higher to avoid too much chatter.
 _LOG.setLevel(logging.INFO)
 
 # #############################################################################
@@ -52,11 +53,6 @@ def is_running_in_ipynb() -> bool:
     except NameError:
         res = False
     return res
-
-
-# TODO(gp): Use is_mac()
-def is_running_on_macos() -> bool:
-    return get_os_name() == "Darwin"
 
 
 # #############################################################################
@@ -261,9 +257,14 @@ def _system(
         # Report the first `num_error_lines` of the output.
         num_error_lines = num_error_lines or 30
         output_error = "\n".join(output.split("\n")[:num_error_lines])
-        raise RuntimeError(
-            f"cmd='{cmd}' failed with rc='{rc}'\ntruncated output=\n{output_error}"
+        msg = f"_system failed: cmd='{cmd}'"
+        msg = (
+            "\n"
+            + hprint.frame(msg, char1="%", thickness=2)
+            + "\n"
+            + f"truncated output=\n{output_error}"
         )
+        raise RuntimeError(msg)
     # hdbg.dassert_type_in(output, (str, ))
     return rc, output
 
@@ -457,11 +458,15 @@ def remove_dirs(files: List[str]) -> List[str]:
     return files_tmp
 
 
-def select_result_file_from_list(files: List[str], mode: str) -> List[str]:
+def select_result_file_from_list(
+    files: List[str], mode: str, file_name: str
+) -> List[str]:
     """
     Select a file from a list according to various approaches encoded in
     `mode`.
 
+    :param files: list of files to select from
+    :param file_name: name of the file we are looking for
     :param mode:
         - "return_all_results": return the list of files, whatever it is
         - "assert_unless_one_result": assert unless there is a single file and return
@@ -472,10 +477,11 @@ def select_result_file_from_list(files: List[str], mode: str) -> List[str]:
     if mode == "assert_unless_one_result":
         # Expect to have a single result and return that.
         if len(files) == 0:
-            hdbg.dfatal(f"mode={mode}: didn't find file")
+            hdbg.dfatal(f"mode={mode}: didn't find file {file_name}")
         elif len(files) > 1:
             hdbg.dfatal(
-                "mode=%s: found multiple files:\n%s" % (mode, "\n".join(files))
+                "mode=%s: found multiple files:\n%s\n"
+                % (mode, "\n".join(files), file_name)
             )
         res = [files[0]]
     elif mode == "return_all_results":
@@ -518,7 +524,7 @@ def system_to_files(
     if remove_files_non_present:
         files = _remove_files_non_present(files)
     # Process output.
-    files = select_result_file_from_list(files, mode)
+    files = select_result_file_from_list(files, mode, cmd)
     return files
 
 
@@ -528,7 +534,7 @@ def system_to_files(
 
 
 def get_process_pids(
-    keep_line: Callable[[str], bool]
+    keep_line: Callable[[str], bool],
 ) -> Tuple[List[int], List[str]]:
     """
     Find all the processes corresponding to `ps ax` filtered line by line with
@@ -672,6 +678,27 @@ def check_exec(tool: str) -> bool:
     return rc == 0
 
 
+def to_pbcopy(txt: str, pbcopy: bool) -> None:
+    """
+    Save the content of txt in the system clipboard.
+    """
+    txt = txt.rstrip("\n")
+    if not pbcopy:
+        print(txt)
+        return
+    if not txt:
+        print("Nothing to copy")
+        return
+    if hserver.is_mac():
+        # -n = no new line
+        cmd = f"echo -n '{txt}' | pbcopy"
+        system(cmd)
+        print(f"\n# Copied to system clipboard:\n{txt}")
+    else:
+        _LOG.warning("pbcopy works only on macOS")
+        print(txt)
+
+
 # #############################################################################
 
 # Copied from hgit to avoid import cycles.
@@ -705,7 +732,9 @@ def _find_git_root(path: str = ".") -> str:
             break
         # Check if `.git` is a file which indicates submodules or linked setups.
         if os.path.isfile(git_dir):
-            txt = hio.from_file(git_dir)
+            # Using the `open()` to avoid import cycles with the `hio` module.
+            with open(git_dir, "r") as f:
+                txt = f.read()
             lines = txt.split("\n")
             for line in lines:
                 # Look for a `gitdir:` line that specifies the linked directory.
@@ -760,10 +789,11 @@ def find_file_in_repo(file_name: str, *, root_dir: Optional[str] = None) -> str:
     """
     if root_dir is None:
         root_dir = _find_git_root()
-    _, file_name = system_to_one_line(
+    _, file_name_out = system_to_one_line(
         rf"find {root_dir} -name {file_name} -not -path '*/\.git/*'"
     )
-    return file_name
+    hdbg.dassert_ne(file_name_out, "", "File not found in repo: '%s'", file_name)
+    return file_name_out
 
 
 # TODO(Nikola): Use filesystem's `du` and move to `hio` instead?
@@ -820,7 +850,7 @@ def _compute_file_signature(file_name: str, dir_depth: int) -> Optional[List]:
     return signature
 
 
-# TODO(gp): -> io_.py
+# TODO(gp): -> hio.py
 def find_file_with_dir(
     file_name: str,
     *,
@@ -884,7 +914,7 @@ def find_file_with_dir(
         "Found %d files:\n%s", len(matching_files), "\n".join(matching_files)
     )
     # Select the result based on mode.
-    res = select_result_file_from_list(matching_files, mode)
+    res = select_result_file_from_list(matching_files, mode, file_name)
     _LOG.debug("-> res=%s", str(res))
     return res
 
