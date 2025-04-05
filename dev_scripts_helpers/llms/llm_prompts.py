@@ -155,7 +155,7 @@ def code_apply_refactoring() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms
 
 
-def code_apply_refactoring() -> _PROMPT_OUT:
+def code_apply_linter_issues() -> _PROMPT_OUT:
     system = r"""
     You are a proficient Python coder who pays attention to detail.
     I will pass you Python code and a list of linting errors in the format
