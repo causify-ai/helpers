@@ -66,6 +66,16 @@ def is_inside_unit_test() -> bool:
 # pass this value from the external environment to the container, through env
 # vars (e.g., `CSFY_HOST_NAME`, `CSFY_HOST_OS_NAME`).
 
+# TODO(gp): The confusion is that we want to determine on which "setup" we are
+# running. We do this both inside container and outside container.
+#
+# Sometimes we want to know if:
+# - the processor is x86_64 or arm64
+# - the host is Mac or Linux
+# - we are running on a Causify machine or on an external machine
+# - we are inside CI or not
+# We should grep all the use cases in the codebase and use the right function.
+
 
 def is_dev_ck() -> bool:
     # TODO(gp): Update to use dev1 values.
@@ -83,6 +93,7 @@ def is_dev_ck() -> bool:
     return is_dev_ck_
 
 
+# TODO(gp): This is obsolete and should be removed.
 def is_dev4() -> bool:
     """
     Return whether it's running on dev4.
@@ -100,6 +111,7 @@ def is_dev4() -> bool:
     return is_dev4_
 
 
+# TODO(gp): This should be called is_host_mac().
 def is_mac(*, version: Optional[str] = None) -> bool:
     """
     Return whether we are running on macOS and, optionally, on a specific
@@ -115,6 +127,7 @@ def is_mac(*, version: Optional[str] = None) -> bool:
     _LOG.debug(
         "host_os_name=%s csfy_host_os_name=%s", host_os_name, csfy_host_os_name
     )
+    #
     is_mac_ = host_os_name == "Darwin" or csfy_host_os_name == "Darwin"
     if version is None:
         # The user didn't request a specific version, so we return whether we
@@ -159,21 +172,24 @@ def is_mac(*, version: Optional[str] = None) -> bool:
     return is_mac_
 
 
+# TODO(gp): -> is_not_dev_csfy_linux: are we running on a host which is not a
+# Causify machine?
 def is_external_linux() -> bool:
     """
     Detect whether we are running on a non-server/non-CI Linux machine.
 
     :return: whether an external Linux system is running
     """
-    # CI and dev servers are not considered external Linux systems.
     if is_dev_ck() or is_inside_ci():
+        # CI and dev servers are not considered external Linux systems.
         is_external_linux_ = False
-    # If we are inside a Docker container, we need to check the host OS.
     elif is_inside_docker():
+        # If we are inside a Docker container, we need to check the host OS.
         csfy_host_os_name = os.environ.get("CSFY_HOST_OS_NAME", None)
         is_external_linux_ = csfy_host_os_name == "Linux"
-    # If we are not inside a Docker container, we can check the host OS directly.
     else:
+        # If we are not inside a Docker container, we can check the host OS
+        # directly.
         host_os_name = os.uname()[0]
         is_external_linux_ = host_os_name == "Linux"
     return is_external_linux_
@@ -181,13 +197,15 @@ def is_external_linux() -> bool:
 
 def is_prod_csfy() -> bool:
     """
-    Detect whether we are running in a CK production container.
+    Detect whether we are running in a Causify production container.
 
     This env var is set inside `devops/docker_build/prod.Dockerfile`.
     """
+    # TODO(gp): CK -> CSFY
     return bool(os.environ.get("CK_IN_PROD_CMAMP_CONTAINER", False))
 
 
+# TODO(gp): Obsolete.
 def is_ig_prod() -> bool:
     """
     Detect whether we are running in an IG production container.
@@ -214,31 +232,28 @@ def is_inside_ecs_container() -> bool:
 
 
 def setup_to_str() -> str:
+    """
+    Return a string representation of the current server setup configuration.
+
+    :return: string with each setting on a new line, aligned with padding
+    """
+    # Store name-value pairs as tuples.
+    settings = [
+        ("is_prod_csfy", is_prod_csfy()),
+        ("is_dev4", is_dev4()),
+        ("is_dev_ck", is_dev_ck()),
+        ("is_ig_prod", is_ig_prod()),
+        ("is_inside_ci", is_inside_ci()),
+        ("is_mac", is_mac()),
+        ("is_external_linux", is_external_linux()),
+    ]
+    # Find maximum length of setting names.
+    max_len = max(len(name) for name, _ in settings) + 1
+    # Format each line with computed padding.
     txt = []
-    #
-    is_prod_csfy_ = is_prod_csfy()
-    txt.append(f"is_prod_csfy={is_prod_csfy_}")
-    #
-    is_dev4_ = is_dev4()
-    txt.append(f"is_dev4={is_dev4_}")
-    #
-    is_dev_ck_ = is_dev_ck()
-    txt.append(f"is_dev_ck={is_dev_ck_}")
-    #
-    is_ig_prod_ = is_ig_prod()
-    txt.append(f"is_ig_prod={is_ig_prod_}")
-    #
-    is_inside_ci_ = is_inside_ci()
-    txt.append(f"is_inside_ci={is_inside_ci_}")
-    #
-    is_mac_ = is_mac()
-    txt.append(f"is_mac={is_mac_}")
-    #
-    is_external_linux_ = is_external_linux()
-    txt.append(f"is_external_linux={is_external_linux_}")
-    #
-    txt = "\n".join(txt)
-    return txt
+    for name, value in settings:
+        txt.append(f"{name:<{max_len}}{value}")
+    return "\n".join(txt)
 
 
 def _dassert_setup_consistency() -> None:
@@ -304,12 +319,12 @@ def has_dind_support() -> bool:
     if _is_mac_version_with_sibling_containers():
         return False
     # TODO(gp): This part is not multi-process friendly. When multiple
-    #  processes try to run this code they interfere. A solution is to run `ip
-    #  link` in the entrypoint and create a `has_docker_privileged_mode` file
-    #  which contains the value.
-    #  We rely on the approach from https://stackoverflow.com/questions/32144575
-    #  to check if there is support for privileged mode.
-    #  Sometimes there is some state left, so we need to clean it up.
+    # processes try to run this code they interfere. A solution is to run `ip
+    # link` in the entrypoint and create a `has_docker_privileged_mode` file
+    # which contains the value.
+    # We rely on the approach from https://stackoverflow.com/questions/32144575
+    # to check if there is support for privileged mode.
+    # Sometimes there is some state left, so we need to clean it up.
     # TODO(Juraj): this is slow and inefficient, but works for now.
     cmd = "sudo docker run hello-world"
     rc = os.system(cmd)

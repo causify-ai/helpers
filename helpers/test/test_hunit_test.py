@@ -842,7 +842,8 @@ class TestCheckDataFrame1(hunitest.TestCase):
             new_golden = pd.read_csv(file_name, index_col=0)
         finally:
             # Clean up.
-            hio.delete_file(file_name)
+            # hio.delete_file(file_name)
+            pass
         # Expected outcome doesn't exists and it was not updated.
         self.assertTrue(outcome_updated)
         self.assertFalse(file_exists)

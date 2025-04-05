@@ -1797,6 +1797,7 @@ class TestCase(unittest.TestCase):
         """
         Add to git repo `file_name`, if needed.
         """
+        return
         _LOG.debug(hprint.to_str("file_name"))
         if self._git_add:
             # Find the file relative to here.
