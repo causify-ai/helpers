@@ -290,6 +290,39 @@ def is_inside_ecs_container() -> bool:
     return ret
 
 
+# #############################################################################
+
+
+def _get_setup_signature() -> str:
+    """
+    Dump all the variables that are used to make a decision about the values
+    of the functions in `_get_setup_settings()`.
+    """
+    cmds = []
+    # is_prod_csfy()
+    cmds = 'os.environ.get("CK_IN_PROD_CMAMP_CONTAINER", "undef")'
+    # is_dev4()
+    # is_dev_ck()
+    # is_ig_prod()
+    cmds.append('os.environ.get("CSFY_HOST_NAME", "undef")')
+    # is_inside_ci()
+    cmds.append('os.environ.get("CSFY_CI", "undef")')
+    # is_mac()
+    cmds.append('os.uname()[0]')
+    cmds.append('os.uname()[2]')
+    # is_external_linux()
+    cmds.append('os.environ.get("CSFY_HOST_OS_NAME", "undef")')
+    # is_csfy_or_external_container()
+    # Build an array of strings with the results of executing the commands.
+    results = []
+    for cmd in cmds:
+        result_tmp = cmd + "=" + str(eval(cmd))
+        results.append(result_tmp)
+    # Join the results into a single string.
+    result = "\n".join(results)
+    return result
+
+
 def _get_setup_settings() -> List[Tuple[str, bool]]:
     # Store name-value pairs as tuples.
     setups = [
@@ -329,6 +362,7 @@ def _dassert_setup_consistency() -> None:
     sum_ = sum( [ value for _, value in setups ])
     if sum_ != 1:
         msg = "One and only one set-up config should be true:\n" + _setup_to_str(setups)
+        msg += "_get_setup_signature() returns:\n" + _get_setup_signature()
         raise ValueError(msg)
 
 
@@ -689,43 +723,51 @@ def indent(txt: str, *, num_spaces: int = 2) -> str:
 # End copy.
 
 
+# grep "def " helpers/hserver.py | sort
 def config_func_to_str() -> str:
     """
     Print the value of all the config functions.
     """
     ret: List[str] = []
-    #
+    # Get the functions with:
+    # grep "def " helpers/hserver.py | sort | awk '{ print $2 }' | perl -i -ne 'print "$1\n" if /^([^\(]+)/'
     function_names = [
-        "get_shared_data_dirs()",
-        "enable_privileged_mode()",
-        "get_docker_shared_group()",
-        "get_docker_user()",
-        "is_AM_S3_available()",
-        "has_dind_support()",
-        "has_docker_sudo()",
-        "is_CK_S3_available()",
-        "run_docker_as_root()",
-        "skip_submodules_test()",
-        "use_docker_db_container_name_to_connect()",
-        "use_docker_network_mode_host()",
-        "use_docker_sibling_containers()",
-        "is_dev4()",
-        "is_dev_ck()",
-        "is_inside_ci()",
-        "is_inside_docker()",
-        "is_mac(version='Catalina')",
-        "is_mac(version='Monterey')",
-        "is_mac(version='Ventura')",
+        "enable_privileged_mode",
+        "get_docker_shared_group",
+        "get_docker_user", 
+        "get_host_user_name",
+        "get_shared_data_dirs",
+        "has_dind_support",
+        "has_docker_sudo",
+        "is_AM_S3_available",
+        "is_CK_S3_available",
+        "is_csfy_or_external_container",
+        "is_dev4",
+        "is_dev_ck",
+        "is_external_linux",
+        "is_host_mac",
+        "is_ig_prod",
+        "is_inside_ci",
+        "is_inside_docker",
+        "is_inside_ecs_container",
+        "is_inside_unit_test",
+        "is_mac",
+        "is_prod_csfy",
+        "run_docker_as_root",
+        "skip_submodules_test",
+        "use_docker_db_container_name_to_connect",
+        "use_docker_network_mode_host",
+        "use_docker_sibling_containers",
+        "use_main_network",
     ]
     for func_name in sorted(function_names):
         try:
             _LOG.debug("func_name=%s", func_name)
-            func_value = eval(func_name)
+            func_value = eval(func_name + "()")
         except NameError:
             func_value = "*undef*"
         msg = f"{func_name}='{func_value}'"
         ret.append(msg)
-        # _print(msg)
     # Package.
     ret: str = "# hserver.config\n" + indent("\n".join(ret))
     return ret
