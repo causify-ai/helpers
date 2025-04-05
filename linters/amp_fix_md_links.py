@@ -351,9 +351,8 @@ class _LinkFixer(liaction.Action):
 
     def _execute(self, file_name: str, pedantic: int) -> List[str]:
         _ = pedantic
-        if not file_name.endswith(".md"):
-            # Apply only to Markdown files.
-            _LOG.debug("Skipping file_name='%s'", file_name)
+        skip_file = self.skip_if_not_markdown(file_name)
+        if skip_file is True:
             return []
         # Fix links in the file.
         lines, updated_lines, warnings = fix_links(file_name)

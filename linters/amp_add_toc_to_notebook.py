@@ -36,9 +36,8 @@ class _AddTOC(liaction.Action):
 
     def _execute(self, file_name: str, pedantic: int) -> List[str]:
         _ = pedantic
-        if not file_name.endswith(".ipynb"):
-            # Apply only to ipynb files.
-            _LOG.debug("Skipping file_name='%s'", file_name)
+        skip_file = self.skip_if_not_ipynb(file_name)
+        if skip_file is True:
             return []
         output: List[str] = []
         # Run the script that adds a TOC to a notebook.

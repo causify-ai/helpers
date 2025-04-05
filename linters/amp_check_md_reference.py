@@ -73,9 +73,8 @@ class _ReadmeLinter(liaction.Action):
 
     def _execute(self, file_name: str, pedantic: int) -> List[str]:
         _ = pedantic
-        if not file_name.endswith(MARKDOWN_EXT):
-            # Apply only to Markdown files.
-            _LOG.debug("Skipping file_name='%s'", file_name)
+        skip_file = self.skip_if_not_markdown(file_name)
+        if skip_file is True:
             return []
         # Find the repository root.
         repo_root = hgit.find_git_root()

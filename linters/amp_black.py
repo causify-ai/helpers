@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 r"""
-Wrapper for black
+Wrapper for black.
 
 > amp_black.py sample_file1.py sample_file2.py
 
@@ -25,6 +25,11 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+# #############################################################################
+# _Black
+# #############################################################################
+
+
 class _Black(liaction.Action):
     """
     Apply black code formatter.
@@ -41,8 +46,8 @@ class _Black(liaction.Action):
     def _execute(self, file_name: str, pedantic: int) -> List[str]:
         _ = pedantic
         # Applicable to only python file.
-        if not liutils.is_py_file(file_name):
-            _LOG.debug("Skipping file_name='%s'", file_name)
+        skip_file = self.skip_if_not_py(file_name)
+        if skip_file is True:
             return []
         #
         opts = "--line-length 82"
