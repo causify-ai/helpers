@@ -111,36 +111,13 @@ def is_dev4() -> bool:
     return is_dev4_
 
 
-# TODO(gp): This should be called is_host_mac().
-def is_mac(*, version: Optional[str] = None) -> bool:
+def _get_macos_tag(version: str) -> str:
     """
-    Return whether we are running on macOS and, optionally, on a specific
-    version.
+    Get the macOS version tag based on the version name.
 
-    :param version: check whether we are running on a certain macOS version (e.g.,
-        `Catalina`, `Monterey`)
+    :param version: macOS version name (e.g. "Catalina", "Monterey", "Ventura")
+    :return: Version tag string
     """
-    _LOG.debug("version=%s", version)
-    host_os_name = os.uname()[0]
-    _LOG.debug("os.uname()=%s", str(os.uname()))
-    csfy_host_os_name = os.environ.get("CSFY_HOST_OS_NAME", None)
-    _LOG.debug(
-        "host_os_name=%s csfy_host_os_name=%s", host_os_name, csfy_host_os_name
-    )
-    #
-    is_mac_ = host_os_name == "Darwin" or csfy_host_os_name == "Darwin"
-    if version is None:
-        # The user didn't request a specific version, so we return whether we
-        # are running on a Mac or not.
-        _LOG.debug("is_mac_=%s", is_mac_)
-        return is_mac_
-    else:
-        # The user specified a version: if we are not running on a Mac then we
-        # return False, since we don't even have to check the macOS version.
-        if not is_mac_:
-            _LOG.debug("is_mac_=%s", is_mac_)
-            return False
-    # Check the macOS version we are running.
     if version == "Catalina":
         # Darwin gpmac.fios-router.home 19.6.0 Darwin Kernel Version 19.6.0:
         # Mon Aug 31 22:12:52 PDT 2020; root:xnu-6153.141.2~1/RELEASE_X86_64 x86_64
@@ -158,16 +135,77 @@ def is_mac(*, version: Optional[str] = None) -> bool:
     else:
         raise ValueError(f"Invalid version='{version}'")
     _LOG.debug("macos_tag=%s", macos_tag)
+    return macos_tag
+
+
+def is_mac(*, version: Optional[str] = None) -> bool:
+    """
+    Return whether we are running on macOS and, optionally, on a specific
+    version.
+
+    :param version: check whether we are running on a certain macOS version (e.g.,
+        `Catalina`, `Monterey`)
+    """
+    if is_inside_docker():
+        return False
+    _LOG.debug("version=%s", version)
+    #
+    host_os_name = os.uname()[0]
+    _LOG.debug("host_os_name=%s", host_os_name)
+    #
+    is_mac_ = host_os_name == "Darwin"
+    if version is None:
+        # The user didn't request a specific version, so we return whether we
+        # are running on a Mac or not.
+        _LOG.debug("is_mac_=%s", is_mac_)
+        return is_mac_
+    else:
+        # The user specified a version: if we are not running on a Mac then we
+        # return False, since we don't even have to check the macOS version.
+        if not is_mac_:
+            _LOG.debug("is_mac_=%s", is_mac_)
+            return False
+    macos_tag = _get_macos_tag(version)
     host_os_version = os.uname()[2]
+    _LOG.debug("host_os_version=%s", host_os_version)
+    is_mac_ = macos_tag in host_os_version
+    _LOG.debug("  -> is_mac_=%s", is_mac_)
+    return is_mac_
+
+
+def is_host_mac(*, version: Optional[str] = None) -> bool:
+    """
+    Return whether the host on which we are running a container is macOS.
+
+    :param version: check whether we are running on a certain macOS version (e.g.,
+        `Catalina`, `Monterey`)
+    """
+    assert is_inside_docker(), "You can call `is_host_mac()` only from inside a container"
+    _LOG.debug("version=%s", version)
+    #
+    csfy_host_os_name = os.environ.get("CSFY_HOST_OS_NAME", None)
+    _LOG.debug("csfy_host_os_name=%s", csfy_host_os_name)
+    #
+    is_mac_ = csfy_host_os_name == "Darwin"
+    if version is None:
+        # The user didn't request a specific version, so we return whether we
+        # are running on a Mac or not.
+        _LOG.debug("is_mac_=%s", is_mac_)
+        return is_mac_
+    else:
+        # The user specified a version: if we are not running on a Mac then we
+        # return False, since we don't even have to check the macOS version.
+        if not is_mac_:
+            _LOG.debug("is_mac_=%s", is_mac_)
+            return False
+    macos_tag = _get_macos_tag(version)
     # 'Darwin Kernel Version 19.6.0: Mon Aug 31 22:12:52 PDT 2020;
     #   root:xnu-6153.141.2~1/RELEASE_X86_64'
     csfy_host_os_version = os.environ.get("CSFY_HOST_VERSION", "")
     _LOG.debug(
-        "host_os_version=%s csfy_host_os_version=%s",
-        host_os_version,
-        csfy_host_os_version,
+        "csfy_host_os_version=%s", csfy_host_os_version,
     )
-    is_mac_ = macos_tag in host_os_version or macos_tag in csfy_host_os_version
+    is_mac_ = macos_tag in csfy_host_os_version
     _LOG.debug("  -> is_mac_=%s", is_mac_)
     return is_mac_
 
