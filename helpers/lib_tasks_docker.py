@@ -433,7 +433,7 @@ DockerComposeServiceSpec = Dict[str, Union[str, List[str]]]
 
 def _get_linter_service(stage: str) -> DockerComposeServiceSpec:
     """
-    Get the linter service specification for the `docker-compose.yml` file.
+    Get the linter service specification for the `tmp.docker-compose.yml` file.
 
     :return: linter service specification
     """
@@ -488,14 +488,13 @@ def _generate_docker_compose_file(
     file_name: Optional[str],
 ) -> str:
     """
-    Generate `docker-compose.yml` file and save it.
+    Generate `tmp.docker-compose.yml` file and save it.
 
     :param shared_data_dirs: data directory in the host filesystem to mount
         inside the container. `None` means no dir sharing
     :param use_main_network: use `main_network` as default network
     """
-    _LOG.debug(
-        hprint.to_str(
+    _LOG.debug(hprint.to_str(
             "use_privileged_mode "
             "use_sibling_container "
             "shared_data_dirs "
@@ -749,12 +748,12 @@ def get_base_docker_compose_path() -> str:
     """
     Return the absolute path to the Docker compose file.
 
-    E.g., `devops/compose/docker-compose.yml`.
+    E.g., `devops/compose/tmp.docker-compose.yml`.
     """
     # Add the default path.
     dir_name = "devops/compose"
     # TODO(gp): Factor out the piece below.
-    docker_compose_path = "docker-compose.yml"
+    docker_compose_path = "tmp.docker-compose.yml"
     docker_compose_path = os.path.join(dir_name, docker_compose_path)
     docker_compose_path = os.path.abspath(docker_compose_path)
     return docker_compose_path
@@ -1123,8 +1122,8 @@ def _get_docker_base_cmd(
     ```
     ['IMAGE=*****.dkr.ecr.us-east-1.amazonaws.com/amp:dev',
         '\n        docker-compose',
-        '\n        --file amp/devops/compose/docker-compose.yml',
-        '\n        --file amp/devops/compose/docker-compose_as_submodule.yml',
+        '\n        --file amp/devops/compose/tmp.docker-compose.yml',
+        '\n        --file amp/devops/compose/tmp.docker-compose_as_submodule.yml',
         '\n        --env-file devops/env/default.env']
     ```
     :param generate_docker_compose_file: whether to generate or reuse the existing
@@ -1206,7 +1205,7 @@ def _get_docker_compose_cmd(
     ```
     IMAGE=*****..dkr.ecr.us-east-1.amazonaws.com/amp:dev \
         docker-compose \
-        --file /amp/devops/compose/docker-compose.yml \
+        --file /amp/devops/compose/tmp.docker-compose.yml \
         --env-file devops/env/default.env \
         run \
         --rm \
