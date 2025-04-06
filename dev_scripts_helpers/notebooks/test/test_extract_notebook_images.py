@@ -5,6 +5,7 @@ import pytest
 import helpers.hunit_test as hunitest
 import helpers.hserver as hserver
 import dev_scripts_helpers.notebooks.extract_notebook_images as dshnbe
+import dev_scripts_helpers.notebooks.dockerized_extract_notebook_images as dshndb
 
 _LOG = logging.getLogger(__name__)
 
@@ -18,9 +19,9 @@ _LOG = logging.getLogger(__name__)
     hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
 )
 @pytest.mark.superslow("~42 sec.")
-class TestNotebookImageExtractor1(hunitest.TestCase):
+class Test_run_dockerized_notebook_image_extractor1(hunitest.TestCase):
 
-    def test_run_dockerized_notebook_image_extractor(self) -> None:
+    def test1(self) -> None:
         """
         Test the `run_dockerized_notebook_image_extractor` function.
 

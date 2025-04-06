@@ -30,7 +30,7 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-class NotebookImageExtractor:
+class _NotebookImageExtractor:
     """
     Extract marked regions from a Jupyter notebook, convert them to HTML and
     captures screenshots.
@@ -41,7 +41,8 @@ class NotebookImageExtractor:
         self.notebook_path = notebook_path
         self.output_dir = output_dir
 
-    def _extract_regions_from_notebook(self) -> List[Tuple[str, str, List]]:
+    @staticmethod
+    def _extract_regions_from_notebook(notebook_path: str) -> List[Tuple[str, str, List]]:
         """
         Extract regions from a notebook based on extraction markers.
 
@@ -80,7 +81,7 @@ class NotebookImageExtractor:
         region.
         """
         # Read notebook.
-        nb = nbformat.read(self.notebook_path, as_version=4)
+        nb = nbformat.read(notebook_path, as_version=4)
         # Define the regex for the start / endmarker.
         start_marker_regex = re.compile(
             r"""
@@ -283,13 +284,13 @@ def _parse() -> argparse.ArgumentParser:
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    extractor = NotebookImageExtractor(
+    _LOG.info("Extracting images from notebook %s", args.in_notebook_filename)
+    extractor = _NotebookImageExtractor(
         args.in_notebook_filename,
         args.out_image_dir,
     )
     extractor.extract_and_capture()
-
+    _LOG.info("Extraction completed. Images saved in '%s'", args.out_image_dir)
 
 if __name__ == "__main__":
     _main(_parse())
-
