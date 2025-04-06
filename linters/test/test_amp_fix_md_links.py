@@ -95,7 +95,7 @@ class Test_fix_links(hunitest.TestCase):
           - [AirFlow UI](http://172.30.2.44:8090/home).
 
         - Markdown-style link with backticks in the square brackets and external http link
-          - [`cryptokaizen-data`](https://ap-northeast-1.console.aws.amazon.com/s3/buckets/foobar)
+          - [`foobar`](https://ap-northeast-1.console.aws.amazon.com/s3/buckets/foobar)
 
         - Markdown-style link to a file that does not exist
           - [File not found](/helpersssss/hhhhgit.py)
