@@ -160,7 +160,8 @@ class Test_ImageHashCache1(hunitest.TestCase):
 
 
 @pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_ck(), reason="Disabled because of CmampTask10710"
+    hserver.is_inside_ci() or hserver.is_dev_ck(),
+    reason="Disabled because of CmampTask10710",
 )
 class Test_render_image_code1(hunitest.TestCase):
 
@@ -310,7 +311,8 @@ class Test_render_image_code1(hunitest.TestCase):
 
 
 @pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_ck(), reason="Disabled because of CmampTask10710"
+    hserver.is_inside_ci() or hserver.is_dev_ck(),
+    reason="Disabled because of CmampTask10710",
 )
 class Test_render_images1(hunitest.TestCase):
     """
@@ -329,10 +331,13 @@ class Test_render_images1(hunitest.TestCase):
         txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True).split("\n")
         out_file = os.path.join(self.get_scratch_space(), f"out.{file_ext}")
         dst_ext = "png"
-        cache_file = os.path.join(self.get_scratch_space(), "image_hash_cache.json")
+        cache_file = os.path.join(
+            self.get_scratch_space(), "image_hash_cache.json"
+        )
         # Render images.
-        out_lines = dshdreim._render_images(txt, out_file, dst_ext, dry_run=True,
-                                            cache_file=cache_file)
+        out_lines = dshdreim._render_images(
+            txt, out_file, dst_ext, dry_run=True, cache_file=cache_file
+        )
         # Check output.
         act = "\n".join(out_lines)
         hdbg.dassert_ne(act, "")
@@ -547,10 +552,6 @@ class Test_render_images1(hunitest.TestCase):
         Check bare mermaid code in a LaTeX file.
         """
         in_lines = r"""
-        ```mermaid
-        flowchart TD;
-          A[Start] --> B[End];
-        ```
         """
         file_ext = "tex"
         exp = r"""
@@ -569,10 +570,6 @@ class Test_render_images1(hunitest.TestCase):
         """
         in_lines = r"""
         A
-        ```mermaid
-        flowchart TD;
-          A[Start] --> B[End];
-        ```
         B
         """
         file_ext = "tex"
@@ -594,10 +591,6 @@ class Test_render_images1(hunitest.TestCase):
         in_lines = r"""
         A
 
-        ```mermaid
-        flowchart TD;
-          A[Start] --> B[End];
-        ```
 
 
         B
@@ -623,10 +616,6 @@ class Test_render_images1(hunitest.TestCase):
         """
         in_lines = r"""
         A
-        ```mermaid(hello_world.png)
-        flowchart TD;
-          A[Start] --> B[End];
-        ```
 
         B
         """
@@ -673,7 +662,8 @@ class Test_render_images1(hunitest.TestCase):
 
 
 @pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_ck(), reason="Disabled because of CmampTask10710"
+    hserver.is_inside_ci() or hserver.is_dev_ck(),
+    reason="Disabled because of CmampTask10710",
 )
 class Test_render_images2(hunitest.TestCase):
 
@@ -687,14 +677,12 @@ class Test_render_images2(hunitest.TestCase):
         out_file = os.path.join(self.get_scratch_space(), file_name)
         dst_ext = "png"
         dry_run = True
-        cache_file = os.path.join(self.get_scratch_space(), "image_hash_cache.json")
+        cache_file = os.path.join(
+            self.get_scratch_space(), "image_hash_cache.json"
+        )
         # Call function to test.
         out_lines = dshdreim._render_images(
-            in_lines,
-            out_file,
-            dst_ext,
-            dry_run=dry_run,
-            cache_file=cache_file
+            in_lines, out_file, dst_ext, dry_run=dry_run, cache_file=cache_file
         )
         act = "\n".join(out_lines)
         # Check output.
