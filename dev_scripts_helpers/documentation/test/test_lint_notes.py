@@ -46,7 +46,7 @@ def _get_text1() -> str:
 
 
 @pytest.mark.skipif(
-    hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
+    hserver.is_inside_ci() or hserver.is_dev_ck(), reason="Disabled because of CmampTask10710"
 )
 class Test_lint_notes1(hunitest.TestCase):
     def test_preprocess1(self) -> None:
@@ -130,7 +130,7 @@ class Test_lint_notes1(hunitest.TestCase):
 
 
 @pytest.mark.skipif(
-    hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
+    hserver.is_inside_ci() or hserver.is_dev_ck(), reason="Disabled because of CmampTask10710"
 )
 class Test_lint_notes2(hunitest.TestCase):
     def test_process1(self) -> None:

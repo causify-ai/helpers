@@ -19,7 +19,7 @@
             "input.file2"
         ],
         "imports": null,
-        "path": "/app/import_check/test/outcomes/Test_show_imports.test1/input/__init__.py",
+        "path": "/app/helpers_root/import_check/test/outcomes/Test_show_imports.test1/input/__init__.py",
         "truncated": false,
         "is_external": false,
         "is_file": false
@@ -31,7 +31,7 @@
             "input.file2"
         ],
         "imports": null,
-        "path": "/app/import_check/test/outcomes/Test_show_imports.test1/input/file1.py",
+        "path": "/app/helpers_root/import_check/test/outcomes/Test_show_imports.test1/input/file1.py",
         "truncated": false,
         "is_external": false,
         "is_file": true
@@ -45,7 +45,7 @@
             "input",
             "input.file1"
         ],
-        "path": "/app/import_check/test/outcomes/Test_show_imports.test1/input/file2.py",
+        "path": "/app/helpers_root/import_check/test/outcomes/Test_show_imports.test1/input/file2.py",
         "truncated": false,
         "is_external": false,
         "is_file": true
