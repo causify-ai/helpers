@@ -14,6 +14,7 @@ _LOG = logging.getLogger(__name__)
 # Test_fix_links
 # #############################################################################
 
+
 def _get_output_string(out_warnings: List[str], updated_lines: List[str]) -> str:
     """
     Get the canonical output string for a test.
@@ -26,8 +27,13 @@ def _get_output_string(out_warnings: List[str], updated_lines: List[str]) -> str
 
 # linted file
 {lines}"""
-    output = hprint.dedent(output)
+    output: str = hprint.dedent(output)
     return output
+
+
+# #############################################################################
+# Test_fix_links
+# #############################################################################
 
 
 class Test_fix_links(hunitest.TestCase):
@@ -291,6 +297,7 @@ class Test_fix_links(hunitest.TestCase):
         # Check.
         output = _get_output_string(out_warnings, updated_lines)
         self.check_string(output, purify_text=True)
+
 
 # #############################################################################
 # Test_make_path_absolute
