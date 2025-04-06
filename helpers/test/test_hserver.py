@@ -33,9 +33,6 @@ class Test_hserver1(hunitest.TestCase):
             self.assertTrue(hserver.is_inside_docker())
 
     def test_consistency1(self) -> None:
-        """
-        One and only one set up config should be true.
-        """
         hserver._dassert_setup_consistency()
 
     def test_get_setup_signature1(self) -> None:
@@ -50,3 +47,7 @@ class Test_hserver1(hunitest.TestCase):
     def test_config_func_to_str1(self) -> None:
         val = hserver.config_func_to_str()
         _LOG.info("val=\n%s", val)
+
+    # TODO(gp): Add test mocking the environment variables in _get_setup_signature.
+    # We should have one class for each set up (e.g., outside Mac, outside Linux,
+    # inside Docker, inside CI, etc.)
