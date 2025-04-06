@@ -839,6 +839,10 @@ class Test_colorize_first_level_bullets1(hunitest.TestCase):
         self.assert_equal(act, exp, dedent=True)
 
 
+# #############################################################################
+# Test_fix_chatgpt_math_syntax1
+# #############################################################################
+
 
 class Test_fix_chatgpt_math_syntax1(hunitest.TestCase):
 

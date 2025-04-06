@@ -27,9 +27,7 @@ import os
 import re
 import tempfile
 import hashlib
-import json
-from functools import wraps
-from typing import List, Tuple, Callable, Optional
+from typing import List, Tuple, Optional
 
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
@@ -98,16 +96,16 @@ class ImageHashCache:
     The cache is a JSON storing from hash of the requested computation to the
     hash of the image code
     E.g.,
-    ```
-    {
-        "a1b2c3...": {
-            "image_code_hash": "d4e5f6...",
-            "image_code_type": "graphviz",
-            "out_file": "/path/to/rendered/image1.png",
-        }
-        ...
-    }
-    ```
+    IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1
+    IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1
+        IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1
+            IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1
+            IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1
+            IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1
+        IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1
+        IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1
+    IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1
+    IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1
 
     Given a certain computation we want to check if the image code has changed
     since the last time we computed the hash of the image code. If it has not
@@ -115,7 +113,7 @@ class ImageHashCache:
 
     In practice, we could use a set of hashes of the computation, but we store
     also the information of the hash to make it easier to debug.
-    If we want to invalidate the cache for one figure, we can do it by removing 
+    If we want to invalidate the cache for one figure, we can do it by removing
     the entry corresponding to that hash.
     """
 
@@ -140,10 +138,12 @@ class ImageHashCache:
     def compute_hash(self, image_code: str, image_code_type: str, out_file: str) -> Tuple[str, dict]:
         """
         Compute a hash of the needed computation inputs.
-        
+
         :param image_code: The code of the image
-        :param image_code_type: Type of the image code (e.g., "plantuml", "mermaid")
-        :param out_file: Path to the output file where the image will be saved
+        :param image_code_type: Type of the image code (e.g.,
+            "plantuml", "mermaid")
+        :param out_file: Path to the output file where the image will be
+            saved
         :return: The hash of the inputs and the inputs
         """
         # Compute the hash of the image code.
@@ -164,7 +164,7 @@ class ImageHashCache:
         Update the cache with a new entry.
         """
         if assert_no_key:
-            hdbg.dassert_not_in(cache_key, self.cache)  
+            hdbg.dassert_not_in(cache_key, self.cache)
         cache_updated = cache_key not in self.cache or self.cache[cache_key] != cache_value
         if cache_updated:
             self.cache[cache_key] = cache_value
@@ -181,7 +181,7 @@ class ImageHashCache:
     def _load(self) -> dict:
         """
         Load the hash cache from a file.
-        
+
         :return: Dictionary mapping image hashes to rendered file paths
         """
         hdbg.dassert_file_exists(self.cache_file)
@@ -222,8 +222,8 @@ def _render_image_code(
         inserted
     :param dst_ext: extension of the rendered image, e.g., "svg", "png"
     :param dry_run: if True, the rendering command is not executed
-    :return: path to the rendered image and a boolean indicating if the cache
-        was hit
+    :return: path to the rendered image and a boolean indicating if the
+        cache was hit
     """
     _LOG.debug(hprint.func_signature_to_str("image_code_txt"))
     if image_code_type == "plantuml":
@@ -402,17 +402,17 @@ def _render_images(
         rf"""
         ^\s*                # Start of the line and any leading whitespace
         ({comment}\s*)?     # Optional comment prefix
-        ```                 # Opening backticks for code block
-        (\S+)               # Image code type
-        (\((.*)\))?         # Optional user-specified image name in parentheses
-        \s*$                # Any trailing whitespace and end of the line
-        """,
-        re.VERBOSE,
-    )
-    end_regex = re.compile(
-        rf"""
-        ^\s*                # Start of the line and any leading whitespace
-        ({comment}\s*)?     # Optional comment prefix
+        IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2
+        IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2
+        IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2
+        IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2
+        IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2
+        IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2
+    IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2
+    IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2
+        IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2
+        IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2
+        IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2
         ```                 # Opening backticks for code block
         \s*$                # Any trailing whitespace and end of the line
         """,
@@ -589,7 +589,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     in_lines = hio.from_file(in_file).split("\n")
     # Get the updated file lines after rendering.
     out_lines = _render_images(
-        in_lines, out_file, dst_ext, 
+        in_lines, out_file, dst_ext,
         force_rebuild=args.dockerized_force_rebuild,
         use_sudo=args.dockerized_use_sudo,
         dry_run=args.dry_run,

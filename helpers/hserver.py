@@ -115,7 +115,8 @@ def _get_macos_tag(version: str) -> str:
     """
     Get the macOS version tag based on the version name.
 
-    :param version: macOS version name (e.g. "Catalina", "Monterey", "Ventura")
+    :param version: macOS version name (e.g. "Catalina", "Monterey",
+        "Ventura")
     :return: Version tag string
     """
     if version == "Catalina":
@@ -180,7 +181,9 @@ def is_host_mac(*, version: Optional[str] = None) -> bool:
     :param version: check whether we are running on a certain macOS version (e.g.,
         `Catalina`, `Monterey`)
     """
-    assert is_inside_docker(), "You can call `is_host_mac()` only from inside a container"
+    assert (
+        is_inside_docker()
+    ), "You can call `is_host_mac()` only from inside a container"
     _LOG.debug("version=%s", version)
     #
     csfy_host_os_name = os.environ.get("CSFY_HOST_OS_NAME", None)
@@ -203,7 +206,8 @@ def is_host_mac(*, version: Optional[str] = None) -> bool:
     #   root:xnu-6153.141.2~1/RELEASE_X86_64'
     csfy_host_os_version = os.environ.get("CSFY_HOST_VERSION", "")
     _LOG.debug(
-        "csfy_host_os_version=%s", csfy_host_os_version,
+        "csfy_host_os_version=%s",
+        csfy_host_os_version,
     )
     is_mac_ = macos_tag in csfy_host_os_version
     _LOG.debug("  -> is_mac_=%s", is_mac_)
@@ -216,8 +220,8 @@ def is_external_linux() -> bool:
     """
     Detect whether we are running on a non-server/non-CI Linux machine.
 
-    This is true when we run on the machine of an intern, a student, or a
-    non-CSFY contributor.
+    This is true when we run on the machine of an intern, a student, or
+    a non-CSFY contributor.
     """
     if is_dev_ck() or is_inside_ci():
         # CI and dev servers are not considered external Linux systems.
@@ -295,8 +299,8 @@ def is_inside_ecs_container() -> bool:
 
 def _get_setup_signature() -> str:
     """
-    Dump all the variables that are used to make a decision about the values
-    of the functions in `_get_setup_settings()`.
+    Dump all the variables that are used to make a decision about the values of
+    the functions in `_get_setup_settings()`.
     """
     cmds = []
     # is_prod_csfy()
@@ -308,8 +312,8 @@ def _get_setup_signature() -> str:
     # is_inside_ci()
     cmds.append('os.environ.get("CSFY_CI", "undef")')
     # is_mac()
-    cmds.append('os.uname()[0]')
-    cmds.append('os.uname()[2]')
+    cmds.append("os.uname()[0]")
+    cmds.append("os.uname()[2]")
     # is_external_linux()
     cmds.append('os.environ.get("CSFY_HOST_OS_NAME", "undef")')
     # is_csfy_or_external_container()
@@ -342,7 +346,8 @@ def _setup_to_str(setups: List[Tuple[str, bool]]) -> str:
     """
     Return a string representation of the current server setup configuration.
 
-    :return: string with each setting on a new line, aligned with padding
+    :return: string with each setting on a new line, aligned with
+        padding
     """
     # Find maximum length of setting names.
     max_len = max(len(name) for name, _ in setups) + 1
@@ -359,9 +364,11 @@ def _dassert_setup_consistency() -> None:
     """
     setups = _get_setup_settings()
     # One and only one set-up should be true.
-    sum_ = sum( [ value for _, value in setups ])
+    sum_ = sum([value for _, value in setups])
     if sum_ != 1:
-        msg = "One and only one set-up config should be true:\n" + _setup_to_str(setups)
+        msg = "One and only one set-up config should be true:\n" + _setup_to_str(
+            setups
+        )
         msg += "_get_setup_signature() returns:\n" + _get_setup_signature()
         raise ValueError(msg)
 
@@ -375,6 +382,7 @@ if check_repo:
     # To debug the repo check, enable the following block.
     if False:
         import helpers.hdbg as hdbg
+
         hdbg.init_logger(verbosity=logging.DEBUG)
     # Compute and cache the result.
     if not _is_called:
@@ -734,7 +742,7 @@ def config_func_to_str() -> str:
     function_names = [
         "enable_privileged_mode",
         "get_docker_shared_group",
-        "get_docker_user", 
+        "get_docker_user",
         "get_host_user_name",
         "get_shared_data_dirs",
         "has_dind_support",

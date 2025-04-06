@@ -494,7 +494,8 @@ def _generate_docker_compose_file(
         inside the container. `None` means no dir sharing
     :param use_main_network: use `main_network` as default network
     """
-    _LOG.debug(hprint.to_str(
+    _LOG.debug(
+        hprint.to_str(
             "use_privileged_mode "
             "use_sibling_container "
             "shared_data_dirs "
@@ -1110,7 +1111,7 @@ def _get_docker_base_cmd(
     generate_docker_compose_file: bool,
     extra_env_vars: Optional[List[str]],
     extra_docker_compose_files: Optional[List[str]],
-    skip_docker_image_compatibility_check: bool
+    skip_docker_image_compatibility_check: bool,
 ) -> List[str]:
     r"""
     Get base `docker-compose` command encoded as a list of strings.

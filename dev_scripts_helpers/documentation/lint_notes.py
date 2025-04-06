@@ -26,7 +26,6 @@ import helpers.hdocker as hdocker
 import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hprint as hprint
-import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
@@ -170,7 +169,9 @@ def _postprocess(txt: str, in_file_name: str) -> str:
         line = re.sub(r"^\-(\s*)STAR", r"*\1", line, count=0)
         line = re.sub(r"^\-(\s*)SSTAR", r"**\1", line, count=0)
         # Remove empty lines.
-        line = re.sub(r"^\s*\n(\s*\$\$)", r"\1", line, count=0, flags=re.MULTILINE)
+        line = re.sub(
+            r"^\s*\n(\s*\$\$)", r"\1", line, count=0, flags=re.MULTILINE
+        )
         # Handle ``` block.
         m = re.match(r"^\s*```(.*)\s*$", line)
         if m:

@@ -264,18 +264,19 @@ def remove_formatting(txt: str) -> str:
     # Replace italic markdown syntax with plain text.
     txt = re.sub(r"\*(.*?)\*", r"\1", txt)
     return txt
-        
+
 
 def fix_chatgpt_math_syntax(txt: str) -> str:
     # Replace \( ... \) math syntax with $ ... $.
     txt = re.sub(r"\\\(\s*(.*?)\s*\\\)", r"$\1$", txt)
     # Replace \[ ... \] math syntax with $$ ... $$, handling multiline equations.
-    txt = re.sub(r"\\\[(.*?)\\\]", r"$$\1$$", txt, flags=re.DOTALL)#
+    txt = re.sub(r"\\\[(.*?)\\\]", r"$$\1$$", txt, flags=re.DOTALL)
     # Replace `P(.)`` with `\Pr(.)`.
     txt = re.sub(r"P\((.*?)\)", r"\\Pr(\1)", txt)
     # Replace \mid with `|`.
     txt = re.sub(r"\\mid", r"|", txt)
     return txt
+
 
 # #############################################################################
 # Header processing
