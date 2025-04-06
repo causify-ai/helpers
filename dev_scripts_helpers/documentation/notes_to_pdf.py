@@ -155,7 +155,9 @@ def _filter_by_lines(file_name: str, filter_by_lines: str, prefix: str) -> str:
 # #############################################################################
 
 
-def _preprocess_notes(file_name: str, prefix: str, type_: str, toc_type: str) -> str:
+def _preprocess_notes(
+    file_name: str, prefix: str, type_: str, toc_type: str
+) -> str:
     """
     Pre-process the file.
 

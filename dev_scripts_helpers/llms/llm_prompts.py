@@ -20,12 +20,14 @@ _LOG = logging.getLogger(__name__)
 _PROMPT_OUT = Tuple[str, Set[str], Set[str]]
 
 _CONTEXT = r"""
-You are a proficient Python coder.
+You are a proficient Python coder who pays attention to detail.
 I will pass you a chunk of Python code.
 """
 
+
 def code_comment() -> _PROMPT_OUT:
-    system = _CONTEXT + r"""
+    system = _CONTEXT
+    system += r"""
     Every 10 lines of code add comment explaining the code.
     Comments should go before the logical chunk of code they describe.
     Comments should be in imperative form, a full English phrase, and end with a period.
@@ -42,7 +44,8 @@ def code_comment() -> _PROMPT_OUT:
 
 
 def code_docstring() -> _PROMPT_OUT:
-    system = _CONTEXT + r"""
+    system = _CONTEXT
+    system += r"""
     Add a docstring to the function passed.
     The first comment should be in imperative mode and fit in a single line of less than 80 characters.
     To describe the parameters use the REST style, which requires each parameter to be prepended with :param
@@ -53,7 +56,8 @@ def code_docstring() -> _PROMPT_OUT:
 
 
 def code_type_hints() -> _PROMPT_OUT:
-    system = _CONTEXT + r"""
+    system = _CONTEXT
+    system += r"""
     You will add type hints to the function passed.
     """
     pre_transforms = set()
@@ -62,7 +66,8 @@ def code_type_hints() -> _PROMPT_OUT:
 
 
 def _get_code_unit_test_prompt(num_tests: int) -> str:
-    system = rf"""
+    system = _CONTEXT
+    system += r"""
     You will write a unit test suite for the function passed.
 
     Write {num_tests} unit tests for the function passed
@@ -93,10 +98,8 @@ def code_1_unit_test() -> _PROMPT_OUT:
 
 
 def code_review() -> _PROMPT_OUT:
-    system = r"""
-    You are a proficient Python coder who pays attention to detail.
-    I will pass you Python code.
-
+    system = _CONTEXT
+    system += r"""
     You will review the code and make sure it is correct.
     You will also make sure that the code is clean and readable.
     You will also make sure that the code is efficient.
@@ -113,7 +116,8 @@ def code_review() -> _PROMPT_OUT:
 
 
 def code_review_and_fix() -> _PROMPT_OUT:
-    system = _CONTEXT + r"""
+    system = _CONTEXT
+    system += r"""
     You will review the code and make sure it is correct and readable.
 
     You will print the code with the proposed improvements, minimizing the
@@ -125,7 +129,8 @@ def code_review_and_fix() -> _PROMPT_OUT:
 
 
 def code_propose_refactoring() -> _PROMPT_OUT:
-    system = _CONTEXT + r"""
+    system = _CONTEXT
+    system += r"""
     You will review the code and look for opportunities to refactor the code,
     by removing redundancy and copy-paste code.
 
@@ -139,7 +144,8 @@ def code_propose_refactoring() -> _PROMPT_OUT:
 
 
 def code_refactor_and_fix() -> _PROMPT_OUT:
-    system = _CONTEXT + r"""
+    system = _CONTEXT
+    system += r"""
     You will review the code and look for opportunities to refactor the code,
     by removing redundancy and copy-paste code, and apply refactoring to remove
     redundancy in the code, minimizing the number of changes to the code that
@@ -151,8 +157,8 @@ def code_refactor_and_fix() -> _PROMPT_OUT:
 
 
 def code_apply_linter_issues() -> _PROMPT_OUT:
-    system = r"""
-    You are a proficient Python coder who pays attention to detail.
+    system = _CONTEXT
+    system += r"""
     I will pass you Python code and a list of linting errors in the format
     <file_name>:<line_number>:<error_code>:<error_message>
 

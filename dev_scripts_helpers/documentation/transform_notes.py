@@ -29,7 +29,6 @@ Perform one of several transformations on a txt file, e.g.,
 
 import argparse
 import logging
-import re
 
 import helpers.hdbg as hdbg
 import helpers.hlatex as hlatex

@@ -36,7 +36,7 @@ def _parse() -> argparse.ArgumentParser:
         "--in_notebook_filename",
         required=True,
         type=str,
-        help="Input notebook filename"
+        help="Input notebook filename",
     )
     parser.add_argument(
         "--out_image_dir",
@@ -158,21 +158,24 @@ def _run_dockerized_extract_notebook_images(
         is_caller_host=is_caller_host,
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
-    cmd = [script,
-           f"--in_notebook_filename {notebook_path}",
-           f"--out_image_dir {output_dir}",
+    cmd = [
+        script,
+        f"--in_notebook_filename {notebook_path}",
+        f"--out_image_dir {output_dir}",
     ]
     cmd = " ".join(cmd)
     # Build the Docker command.
     docker_executable = hdocker.get_docker_executable(use_sudo)
     docker_cmd = hdocker.get_docker_base_cmd(use_sudo)
-    docker_cmd.extend([
-        f"-e PLAYWRIGHT_BROWSERS_PATH=/ms-playwright",
-        f"-e PYTHONPATH={helpers_root}",
-        f"--workdir {callee_mount_path} --mount {mount}",
-        container_image,
-        cmd
-    ])
+    docker_cmd.extend(
+        [
+            f"-e PLAYWRIGHT_BROWSERS_PATH=/ms-playwright",
+            f"-e PYTHONPATH={helpers_root}",
+            f"--workdir {callee_mount_path} --mount {mount}",
+            container_image,
+            cmd,
+        ]
+    )
     docker_cmd = " ".join(docker_cmd)
     hsystem.system(docker_cmd)
 

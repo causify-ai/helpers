@@ -1073,7 +1073,7 @@ def run_dockerized_markdown_toc(
         f"{container_image}",
         f'bash -c "{bash_cmd}"'
     ])
-    docker_cmd = " ".join(dock)
+    docker_cmd = " ".join(docker_cmd)
     # TODO(gp): Note that `suppress_output=False` seems to hang the call.
     hsystem.system(docker_cmd)
 

@@ -1,6 +1,5 @@
 import logging
 import os
-import pathlib
 
 import helpers.hdocker as hdocker
 import helpers.hunit_test as hunitest
@@ -9,7 +8,7 @@ _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
-# TestNotebookImageExtractor
+# TestNotebookImageExtractor1
 # #############################################################################
 
 
@@ -19,9 +18,9 @@ class TestNotebookImageExtractor1(hunitest.TestCase):
         """
         Test the `run_dockerized_notebook_image_extractor` function.
 
-        Get the test notebook ('test_images.ipynb') from the input directory,
-        run the Docker container to extract images, and verify that the expected
-        output files are produced.
+        Get the test notebook ('test_images.ipynb') from the input
+        directory, run the Docker container to extract images, and
+        verify that the expected output files are produced.
         """
         input_dir = self.get_input_dir()
         src_test_notebook = os.path.join(input_dir, "test_images.ipynb")

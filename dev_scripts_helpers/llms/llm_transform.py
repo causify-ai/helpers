@@ -59,7 +59,6 @@ def _parse() -> argparse.ArgumentParser:
     return parser
 
 
-
 def _run_dockerized_llm_transform(
     in_file_path: str,
     cmd_opts: List[str],
@@ -70,7 +69,8 @@ def _run_dockerized_llm_transform(
     use_sudo: bool = False,
 ) -> Optional[str]:
     """
-    Run dockerized_llm_transform.py in a Docker container with all its dependencies.
+    Run dockerized_llm_transform.py in a Docker container with all its
+    dependencies.
     """
     _LOG.debug(hprint.func_signature_to_str())
     #
@@ -131,7 +131,9 @@ def _run_dockerized_llm_transform(
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
     git_root = hgit.find_git_root()
-    script = hsystem.find_file_in_repo("dockerized_llm_transform.py", root_dir=git_root)
+    script = hsystem.find_file_in_repo(
+        "dockerized_llm_transform.py", root_dir=git_root
+    )
     script = hdocker.convert_caller_to_callee_docker_path(
         script,
         caller_mount_path,
@@ -144,13 +146,15 @@ def _run_dockerized_llm_transform(
     cmd_opts_as_str = " ".join(cmd_opts)
     cmd = f" {script} -i {in_file_path} -o {out_file_path} {cmd_opts_as_str}"
     docker_cmd = hdocker.get_docker_base_cmd(use_sudo)
-    docker_cmd.extend([
-        f"-e PYTHONPATH={helpers_root}",
-        f"--workdir {callee_mount_path}",
-        f"--mount {mount}",
-        container_image,
-        cmd
-    ])
+    docker_cmd.extend(
+        [
+            f"-e PYTHONPATH={helpers_root}",
+            f"--workdir {callee_mount_path}",
+            f"--mount {mount}",
+            container_image,
+            cmd,
+        ]
+    )
     docker_cmd = " ".join(docker_cmd)
     if return_cmd:
         ret = docker_cmd
