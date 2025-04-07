@@ -52,6 +52,7 @@ jobs:
           # in order to compare the current branch with the master branch.
           # The `0` means unlimited depth.
           fetch-depth: 0
+          submodules: true
           token: ${{ secrets.GITHUB_TOKEN }}
 
       # Install packages that are required to run the job via GH.
