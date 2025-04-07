@@ -558,7 +558,7 @@ def skip_submodules_test() -> bool:
 # TODO(gp): Remove this comment.
 # # This function can't be in `helpers.hserver` since it creates circular import
 # # and `helpers.hserver` should not depend on anything.
-def test_is_CK_S3_available() -> bool:
+def is_CK_S3_available() -> bool:
     val = True
     if is_inside_ci():
         repo_name = hrecouti.get_repo_config().get_name()
@@ -634,7 +634,7 @@ def config_func_to_str() -> str:
         "is_AM_S3_available()",
         "has_dind_support()",
         "has_docker_sudo()",
-        "test_is_CK_S3_available()",
+        "is_CK_S3_available()",
         "run_docker_as_root()",
         "skip_submodules_test()",
         "use_docker_db_container_name_to_connect()",
