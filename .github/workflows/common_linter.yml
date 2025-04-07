@@ -13,6 +13,10 @@ permissions:
   packages: read
 jobs:
   Run_linter:
+    # We expect user to not execute manual run in a draft PR.
+    # The reason is `github.event.pull_request.draft` is evaluated as empty
+    # string and the condition is always true which is not the right state.
+    if: ${{ github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
     steps:
       # To optimize costs, the image is fetched from GHCR registry by default.

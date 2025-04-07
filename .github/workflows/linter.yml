@@ -7,9 +7,5 @@ on:
   workflow_dispatch:
 jobs:
   Run_linter:
-    # We expect user to not execute manual run in a draft PR.
-    # The reason is `github.event.pull_request.draft` is evaluated as empty
-    # string and the condition is always true which is not the right state.
-    if: ${{ github.event.pull_request.draft == false }}
     uses: ./.github/workflows/common_linter.yml
     secrets: inherit
