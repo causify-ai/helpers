@@ -492,7 +492,6 @@ def header_list_to_markdown(header_list: HeaderList, mode: str) -> str:
 # #############################################################################
 
 
-# TODO(gp): Add tests.
 def format_headers(in_file_name: str, out_file_name: str, max_lev: int) -> None:
     """
     Format the headers in the input file and write the formatted text to the
