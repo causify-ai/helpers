@@ -1134,16 +1134,15 @@ class Test_format_headers1(hunitest.TestCase):
         self._helper_process(input_text, expected, max_lev=3)
 
     def _helper_process(
-        self, input_text: list[str], expected: list[str], max_lev: int
+        self, input_text: List[str], expected: List[str], max_lev: int
     ) -> None:
         """
-        Helper function to process the given text with a specified maximum
-        level and compare the result with the expected output.
+        Process the given text with a specified maximum level and compare the
+        result with the expected output.
 
-        :param input_text: The text to be processed
-        :param expected: The expected output after processing the text
-        :param max_lev: The maximum heading level to be formatted
-        :return: None
+        :param input_text: the text to be processed
+        :param expected: the expected output after processing the text
+        :param max_lev: the maximum heading level to be formatted
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
