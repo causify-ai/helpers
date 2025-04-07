@@ -115,7 +115,7 @@ def _check_md_link_format(
     old_link_txt = f"[{link_text}]({link})"
     if link == "" and (
         re.match(r"^{}$".format(FILE_PATH_REGEX), link_text)
-        or link_text.startswith("http")
+        or link_text.startswith(("http", "mailto", "ftp", "tel"))
     ):
         # Fill in the empty link with the file path or URL from the link text.
         link = link_text
@@ -123,7 +123,7 @@ def _check_md_link_format(
         # The link is empty and there is no indication of how it should be filled;
         # update is impossible.
         return line, warnings
-    if link.startswith("http"):
+    if link.startswith(("http", "mailto", "ftp", "tel")):
         if not any(
             x in link
             for x in ["://github.com/cryptokaizen", "://github.com/causify-ai"]
@@ -185,7 +185,9 @@ def _check_file_path_format(file_path: str, line: str) -> str:
     ):
         # Ignore links and figure pointers, which are processed separately.
         return line
-    if not re.search(r"(?<!http:)(?<!https:)" + file_path, line):
+    if not re.search(
+        r"(?<!http:)(?<!https:)(?<!mailto:)(?<!ftp:)(?<!tel:)" + file_path, line
+    ):
         # Ignore URLs.
         return line
     # Make the file path absolute.
