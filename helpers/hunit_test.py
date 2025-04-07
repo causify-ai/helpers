@@ -1163,14 +1163,22 @@ class TestCase(unittest.TestCase):
             plt.clf()
         # Delete the scratch dir, if needed.
         if self._scratch_dir and os.path.exists(self._scratch_dir):
-            # We would like to keep this if the test failed, as an alternative
-            # to just re-running with --incremental.
-            result = self._outcome.result
-            # From https://stackoverflow.com/questions/4414234/getting-pythons-unittest-results-in-a-teardown-method
-            # https://github.com/pytest-dev/pytest/issues/10631
-            # This doesn't work any longer.
-            # has_error = test_result.failures or test_result.errors
-            has_error = result._excinfo is not None
+            if False:
+                # We want to keep this if the test failed, as an alternative
+                # to just re-running with --incremental.
+                result = self._outcome.result
+                # From https://stackoverflow.com/questions/4414234/getting-pythons-unittest-results-in-a-teardown-method
+                # https://github.com/pytest-dev/pytest/issues/10631
+                # This doesn't work any longer.
+                # has_error = test_result.failures or test_result.errors
+                has_error = result._excinfo is not None
+            else:
+                # TODO(gp): The problem is that when there is a failure during
+                # the regressions, having artifacts in the scratch dir causes
+                # more tests to fail (especially the ones in the cycle detector).
+                # We need to make tests more robust to this and then we can enable
+                # the logic to keep files for the failed tests in the scratch dir.
+                has_error = False
             if has_error or get_incremental_tests():
                 _LOG.warning("Skipping deleting %s", self._scratch_dir)
             else:

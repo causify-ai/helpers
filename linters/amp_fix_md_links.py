@@ -14,6 +14,7 @@ from typing import List, Tuple
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
+import helpers.hmarkdown as hmarkdo
 import helpers.hparser as hparser
 import helpers.hstring as hstring
 import linters.action as liaction
@@ -61,6 +62,29 @@ def _make_path_module_agnostic(path: str) -> str:
     # Compile the module-agnostic path.
     upd_path = os.path.join(amp_path, path.lstrip("/"))
     return upd_path
+
+
+def _check_md_header_exists(
+    markdown_link_path: str, header: str, level: int = 6
+) -> bool:
+    """
+    Check if a header exists in the markdown file.
+
+    :param markdown_link_path: the path to the Markdown file in which the header will be looked up
+    :param header: the heading text to look for in the file, e.g., `test`, `test-two`
+    :param level: the maximum depth of headers to extract (Markdown supports levels 1 to 6)
+        - E.g., level 2 matches only `##` and `#` headers, not `###` or deeper
+    :return: True if the header is found, False if not found
+    """
+    with open(markdown_link_path, "r", encoding="utf-8") as file:
+        content = file.read()
+    # Get the headers of the markdown file.
+    headers_md = hmarkdo.extract_headers_from_markdown(content, level)
+    # Replace '-' with a white space.
+    header = header.replace("-", " ").lower()
+    # Check if the header matches any extracted header of the markdown file.
+    found = any(header == h.description.lower() for h in headers_md)
+    return found
 
 
 def _check_md_link_format(
@@ -121,11 +145,19 @@ def _check_md_link_format(
     # Replace the link in the line with its updated version.
     new_link_txt = f"[{link_text}]({link})"
     updated_line = line.replace(old_link_txt, new_link_txt)
-    # Check that the file referenced by the link exists.
-    link_in_cur_module = _make_path_module_agnostic(link)
+    # Split the link into file path and header using the '#' delimiter.
+    link_path, _, header = link.partition("#")
+    link_in_cur_module = _make_path_module_agnostic(link_path)
     if not os.path.exists(link_in_cur_module):
-        msg = f"{file_name}:{line_num}: '{link}' does not exist"
+        # Warn that the file referenced by the link does not exist.
+        msg = f"{file_name}:{line_num}: '{link_path}' does not exist"
         warnings.append(msg)
+    elif header:
+        # Check if the header referenced by the link exists.
+        header_exists = _check_md_header_exists(link_in_cur_module, header)
+        if not header_exists:
+            msg = f"{file_name}:{line_num}: Header '{header}' does not exist in '{link_path}'"
+            warnings.append(msg)
     return updated_line, warnings
 
 
