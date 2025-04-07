@@ -548,8 +548,8 @@
   registries, the subsequent step involves pushing the `dev` image to GHCR
   registry. However, this action currently requires manual execution due to
   restricted access
-  - Access to the `cryptokaizen` packages is limited. To gain access, kindly
-    reach out to GP or Juraj
+  - Access to the `causify-ai` packages is limited. To gain access, kindly
+    reach out to GP, Samarth or Vlad
   - To proceed, perform a Docker login using your GitHub username and PAT
     (Personal Access Token):
     ```bash
