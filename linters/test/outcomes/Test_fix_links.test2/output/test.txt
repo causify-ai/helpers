@@ -2,10 +2,8 @@
 
 
 # linted file
-
-
 <!--ts-->
-   * [Best practices for writing plotting functions](#best-practices-for-writing-plotting-functions)
+  * [Best practices for writing plotting functions](#best-practices-for-writing-plotting-functions)
       * [Cosmetic requirements](#cosmetic-requirements)
 
 <!--te-->
@@ -19,4 +17,3 @@
 
 
 [Data Availability](#data-availability)
-        
