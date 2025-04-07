@@ -115,7 +115,7 @@ def _check_md_link_format(
     old_link_txt = f"[{link_text}]({link})"
     if link == "" and (
         re.match(r"^{}$".format(FILE_PATH_REGEX), link_text)
-        or link_text.startswith(("http", "https", "mailto", "ftp", "tel"))
+        or link_text.startswith(("http", "mailto", "ftp", "tel"))
     ):
         # Fill in the empty link with the file path or URL from the link text.
         link = link_text
@@ -123,7 +123,7 @@ def _check_md_link_format(
         # The link is empty and there is no indication of how it should be filled;
         # update is impossible.
         return line, warnings
-    if link.startswith(("http", "https", "mailto", "ftp", "tel")):
+    if link.startswith(("http", "mailto", "ftp", "tel")):
         if not any(
             x in link
             for x in ["://github.com/cryptokaizen", "://github.com/causify-ai"]
