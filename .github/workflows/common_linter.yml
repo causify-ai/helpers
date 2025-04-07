@@ -83,14 +83,3 @@ jobs:
           invoke git_fetch_master
           invoke lint --branch
           invoke lint_check_if_it_was_run
-
-      - name: Post status if was triggered manually
-        if: ${{ always() && github.event_name == 'workflow_dispatch' }}
-        uses: Sibz/github-status-action@v1
-        with:
-          authToken: ${{ secrets.GITHUB_TOKEN }}
-          context: "Run_linter"
-          description: 'Job is done (manual run)'
-          state: ${{ job.status }}
-          sha: ${{ github.sha }}
-          target_url: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
