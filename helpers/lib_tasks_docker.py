@@ -1107,9 +1107,11 @@ def _get_docker_base_cmd(
     stage: str,
     version: str,
     service_name: str,
+    # Params from `_get_docker_compose_cmd()`.
     generate_docker_compose_file: bool,
     extra_env_vars: Optional[List[str]],
     extra_docker_compose_files: Optional[List[str]],
+    skip_docker_image_compatibility_check: bool
 ) -> List[str]:
     r"""
     Get base `docker-compose` command encoded as a list of strings.
@@ -1129,6 +1131,8 @@ def _get_docker_base_cmd(
         Docker compose file
     :param extra_env_vars: represent vars to add, e.g., `["PORT=9999", "DRY_RUN=1"]`
     :param extra_docker_compose_files: `docker-compose` override files
+    :param skip_docker_image_compatibility_check: if True, skip checking image
+        architecture compatibility
     """
     _LOG.debug(hprint.func_signature_to_str())
     docker_cmd_: List[str] = []
@@ -1138,9 +1142,12 @@ def _get_docker_base_cmd(
     dassert_is_image_name_valid(image)
     # The check is mainly for developers to avoid using the wrong image (e.g.,
     # an x86 vs ARM architecture).
-    # We can skip the image compatibility check during the CI.
-    if not hserver.is_inside_ci():
+    # We can skip the image compatibility check during the CI or when
+    # explicitly skipped.
+    if not (hserver.is_inside_ci() or skip_docker_image_compatibility_check):
         hdocker.check_image_compatibility_with_current_arch(image)
+    else:
+        _LOG.warning("Skipping docker image compatibility check")
     docker_cmd_.append(f"IMAGE={image}")
     # - Handle extra env vars.
     if extra_env_vars:
@@ -1190,6 +1197,7 @@ def _get_docker_compose_cmd(
     as_user: bool = True,
     print_docker_config: bool = False,
     use_bash: bool = False,
+    skip_docker_image_compatibility_check: bool = False,
 ) -> str:
     """
     Get `docker-compose` run command.
@@ -1215,6 +1223,7 @@ def _get_docker_compose_cmd(
     :param as_user: pass the user / group id or not
     :param print_docker_config: print the docker config for debugging purposes
     :param use_bash: run command through a shell
+    :param skip_docker_image_compatibility_check: if True, skip checking image architecture compatibility
     """
     _LOG.debug(hprint.func_signature_to_str())
     # - Get the base Docker command.
@@ -1226,6 +1235,7 @@ def _get_docker_compose_cmd(
         generate_docker_compose_file,
         extra_env_vars,
         extra_docker_compose_files,
+        skip_docker_image_compatibility_check,
     )
     # - Add the `config` command for debugging purposes.
     docker_config_cmd: List[str] = docker_cmd_[:]
@@ -1294,35 +1304,6 @@ def _get_docker_compose_cmd(
     return docker_cmd_
 
 
-def _get_lint_docker_cmd(
-    docker_cmd_: str,
-    stage: str,
-    version: str,
-    *,
-    use_entrypoint: bool = True,
-) -> str:
-    """
-    Create a command to run in Linter service.
-
-    :param docker_cmd_: command to run
-    :param stage: the image stage to use
-    :return: the full command to run
-    """
-    base_path = os.environ["CSFY_ECR_BASE_PATH"]
-    _LOG.debug("base_path=%s", base_path)
-    # Get an image to run the linter on.
-    linter_image = f"{base_path}/helpers"
-    # Execute command line.
-    cmd: str = _get_docker_compose_cmd(
-        linter_image,
-        stage,
-        version,
-        docker_cmd_,
-        use_entrypoint=use_entrypoint,
-    )
-    return cmd
-
-
 # ////////////////////////////////////////////////////////////////////////////////
 # bash and cmd.
 # ////////////////////////////////////////////////////////////////////////////////
@@ -1363,6 +1344,7 @@ def docker_bash(  # type: ignore
     generate_docker_compose_file=True,
     container_dir_name=".",
     skip_pull=False,
+    skip_docker_image_compatibility_check=False,
 ):
     """
     Start a bash shell inside the container corresponding to a stage.
@@ -1384,6 +1366,7 @@ def docker_bash(  # type: ignore
         generate_docker_compose_file=generate_docker_compose_file,
         use_entrypoint=use_entrypoint,
         as_user=as_user,
+        skip_docker_image_compatibility_check=skip_docker_image_compatibility_check,
     )
     _LOG.debug("docker_cmd_=%s", docker_cmd_)
     _docker_cmd(ctx, docker_cmd_, skip_pull=skip_pull)

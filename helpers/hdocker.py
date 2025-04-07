@@ -187,6 +187,7 @@ def check_image_compatibility_with_current_arch(
     # Check and pull the image if needed.
     has_image, _ = image_exists(image_name, use_sudo)
     if not has_image:
+        _LOG.warning("Image '%s' not found: trying to pull it", image_name)
         if pull_image_if_needed:
             cmd = f"docker pull {image_name}"
             hsystem.system(cmd)

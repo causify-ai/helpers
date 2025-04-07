@@ -155,6 +155,23 @@ def code_apply_refactoring() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms
 
 
+def code_apply_linter_issues() -> _PROMPT_OUT:
+    system = r"""
+    You are a proficient Python coder who pays attention to detail.
+    I will pass you Python code and a list of linting errors in the format
+    <file_name>:<line_number>:<error_code>:<error_message>
+
+    You will fix the code according to the linting errors passed, minimizing the
+    number of changes to the code that are not needed.
+
+tutorial_github/github_utils.py:105: [W0718(broad-exception-caught), get_github_contributors] Catching too general exception Exception [pylint]
+tutorial_github/github_utils.py:106: [W1203(logging-fstring-interpolation), get_github_contributors] Use lazy % formatting in logging functions [pylint]
+    """
+    pre_transforms = set()
+    post_transforms = set()
+    return system, pre_transforms, post_transforms
+
+
 # #############################################################################
 
 
@@ -389,18 +406,6 @@ def get_prompt_tags() -> List[str]:
     matched_functions = []
     # Parse the file content into an AST.
     tree = ast.parse(file_content)
-
-    # Iterate through all function definitions in the AST.
-    def _get_return_type_str(node: ast.AST) -> str:
-        """
-        Convert AST return type annotation to string representation.
-        """
-        if not hasattr(node, "returns") or node.returns is None:
-            return ""
-
-        # Convert the AST to source code
-        return ast.unparse(node.returns)
-
     for node in ast.walk(tree):
         if isinstance(node, ast.FunctionDef):
             # Check function arguments and return type that match the signature:
