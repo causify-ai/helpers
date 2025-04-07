@@ -64,10 +64,10 @@ class TestRepoConfig_Amp(hunitest.TestCase):
 
     def test_is_CK_S3_available(self) -> None:
         """
-        When running Amp on dev_ck, the CK bucket should be available.
+        When running Amp on dev_csfy, the CSFY bucket should be available.
         """
         if hserver.is_dev_csfy():
-            act = hserver.is_CK_S3_available()
+            act = hserver.is_CSFY_S3_available()
             exp = True
             self.assertEqual(act, exp)
 
@@ -87,11 +87,11 @@ class TestRepoConfig_Amp(hunitest.TestCase):
 
 class TestRepoConfig_Amp_signature1(hunitest.TestCase):
 
-    def test_dev_ck_server(self) -> None:
+    def test_dev_csfy_server(self) -> None:
         target_name = "amp"
         hunteuti.execute_only_in_target_repo(target_name)
         #
-        hunteuti.execute_only_on_dev_ck()
+        hunteuti.execute_only_on_dev_csfy()
         #
         exp = r"""
         # Repo config:

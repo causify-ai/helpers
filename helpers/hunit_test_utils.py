@@ -460,10 +460,10 @@ def execute_only_on_dev4() -> None:
         pytest.skip("Only run on dev4")
 
 
-def execute_only_on_dev_ck() -> None:
+def execute_only_on_dev_csfy() -> None:
     is_dev_csfy_ = hserver.is_dev_csfy()
     if not is_dev_csfy_:
-        pytest.skip("Only run on dev CK")
+        pytest.skip("Only run on dev CSFY")
 
 
 def execute_only_on_mac(*, version: Optional[str] = None) -> None:
