@@ -107,6 +107,7 @@ class Action:
 
         :param file_name: name of the file to check
         :param condition: indicate if the file should be skipped
+        :return: True if the file should be skipped, False otherwise
         """
         if condition:
             _LOG.debug("Skipping file_name='%s'", file_name)
@@ -118,6 +119,7 @@ class Action:
         Check if the file is a Python file.
 
         :param file_name: name of the file to process
+        :return: True if the file should be skipped, False otherwise
         """
         return self.skip_file_on_mismatch(
             file_name, not liutils.is_py_file(file_name)
@@ -128,6 +130,7 @@ class Action:
         Check if the file is a Python notebook.
 
         :param file_name: name of the file to process
+        :return: True if the file should be skipped, False otherwise
         """
         return self.skip_file_on_mismatch(
             file_name, not file_name.endswith(".ipynb")
@@ -138,6 +141,7 @@ class Action:
         Check if the file is a Markdown file.
 
         :param file_name: name of the file to process
+        :return: True if the file should be skipped, False otherwise
         """
         return self.skip_file_on_mismatch(
             file_name, not file_name.endswith(".md")
@@ -148,6 +152,7 @@ class Action:
         Check if the file is a Python file or a Python notebook.
 
         :param file_name: name of the file to process
+        :return: True if the file should be skipped, False otherwise
         """
         return self.skip_file_on_mismatch(
             file_name,

@@ -43,8 +43,8 @@ class _Autoflake(liaction.Action):
 
     def _execute(self, file_name: str, pedantic: int) -> List[str]:
         _ = pedantic
-        skip_file = self.skip_if_not_py_or_ipynb(file_name)
-        if skip_file is True:
+        if self.skip_if_not_py_or_ipynb(file_name) is True:
+            # Apply only to Python files or Ipynb notebooks.
             return []
         # Make changes to files instead of printing diffs.
         in_place_arg = "--in-place"

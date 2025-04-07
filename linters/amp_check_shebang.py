@@ -60,8 +60,8 @@ class _CheckShebang(liaction.Action):
 
     def _execute(self, file_name: str, pedantic: int) -> List[str]:
         _ = pedantic
-        skip_file = self.skip_if_not_py_or_ipynb(file_name)
-        if skip_file is True:
+        if self.skip_if_not_py_or_ipynb(file_name) is True:
+            # Apply only to Python files or Ipynb notebooks.
             return []
         lines = hio.from_file(file_name).split("\n")
         out = _check_shebang(file_name, lines)

@@ -50,8 +50,8 @@ class _Flake8(liaction.Action):
     def _execute(self, file_name: str, pedantic: int) -> List[str]:
         _ = pedantic
         # Applicable to only python file.
-        skip_file = self.skip_if_not_py(file_name)
-        if skip_file is True:
+        if self.skip_if_not_py(file_name) is True:
+            # Apply only to Python files.
             return []
         # TODO(gp): Check if -j 4 helps.
         opts = "--exit-zero --doctests --max-line-length=82 -j 4"

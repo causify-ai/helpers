@@ -1009,8 +1009,8 @@ class _NormalizeImports(liaction.Action):
         :return: list of strings representing the output
         """
         _ = pedantic
-        skip_file = self.skip_if_not_py(file_name)
-        if skip_file is True:
+        if self.skip_if_not_py(file_name) is True:
+            # Apply only to Python files.
             return []
         #
         if os.path.basename(file_name) in liutils.FILES_TO_EXCLUDE:
