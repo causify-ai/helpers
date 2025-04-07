@@ -29,6 +29,7 @@ import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.htimer as htimer
 import helpers.hwall_clock_time as hwacltim
+import helpers.repo_config_utils as hrecouti
 
 # We use strings as type hints (e.g., 'pd.DataFrame') since we are not sure
 # we have the corresponding libraries installed.
@@ -66,7 +67,7 @@ except ImportError as e:
 _LOG = logging.getLogger(__name__)
 
 # Mute this module unless we want to debug it.
-_LOG.setLevel(logging.INFO)
+# _LOG.setLevel(logging.INFO)
 
 # #############################################################################
 
@@ -393,19 +394,22 @@ def purify_from_environment(txt: str) -> str:
         else:
             # If the git path is `/` then we don't need to do anything.
             pass
-    # 2) Replace the path of current working dir with `$PWD`
+    # 2) Remove CSFY_GIT_ROOT_PATH
+    val = os.environ.get("CSFY_HOST_GIT_ROOT_PATH")
+    txt = re.sub(val, "$CSFY_HOST_GIT_ROOT_PATH", txt, flags=re.MULTILINE)
+    # 3) Replace the path of current working dir with `$PWD`.
     pwd = os.getcwd()
     pattern = re.compile(f"{pwd}{dir_pattern}")
     txt = pattern.sub("$PWD", txt)
-    # 3) Replace the current user name with `$USER_NAME`.
+    # 4) Replace the current user name with `$USER_NAME`.
     user_name = hsystem.get_user_name()
     # Set a regex pattern that finds a user name surrounded by dot, dash or space.
     # E.g., `IMAGE=$CSFY_ECR_BASE_PATH/amp_test:local-$USER_NAME-1.0.0`,
     # `--name $USER_NAME.amp_test.app.app`, `run --rm -l user=$USER_NAME`.
-    pattern = rf"([\s\n\-\.\=]|^)+{user_name}+([.\s/-]|$)"
+    regex = rf"([\s\n\-\.\=]|^)+{user_name}+([.\s/-]|$)"
     # Use `\1` and `\2` to preserve specific characters around `$USER_NAME`.
     target = r"\1$USER_NAME\2"
-    txt = re.sub(pattern, target, txt)
+    txt = re.sub(regex, target, txt)
     _LOG.debug("After %s: txt='\n%s'", hintros.get_function_name(), txt)
     return txt
 
@@ -560,8 +564,10 @@ def purify_parquet_file_names(txt: str) -> str:
         ```
     """
     pattern = r"""
-        [0-9a-f]{32}-[0-9].* # GUID pattern.
-        (?=\.parquet) # positive lookahead assertion that matches a position followed by ".parquet" without consuming it.
+        [0-9a-f]{32}-[0-9].*    # GUID pattern.
+        (?=\.parquet)           # positive lookahead assertion that matches a
+                                # position followed by ".parquet" without
+                                # consuming it.
     """
     # TODO(Vlad): Need to change the replacement to `$FILE_NAME` as in the
     # `purify_from_environment()` function. For now, some tests are expecting
@@ -589,6 +595,21 @@ def purify_helpers(txt: str) -> str:
     return txt
 
 
+def purify_docker_image_name(txt: str) -> str:
+    """
+    Remove temporary docker image name that are function of their content.
+    """
+    # In a command like:
+    # > docker run --rm ...  tmp.latex.edb567be ..
+    txt = re.sub(
+        r"^(.*docker.*\s+tmp\.\S+\.)[a-z0-9]{8}(\s+.*)$",
+        r"\1xxxxxxxx\2",
+        txt,
+        flags=re.MULTILINE,
+    )
+    return txt
+
+
 def purify_txt_from_client(txt: str) -> str:
     """
     Remove from a string all the information of a specific run.
@@ -602,6 +623,7 @@ def purify_txt_from_client(txt: str) -> str:
     txt = purify_white_spaces(txt)
     txt = purify_parquet_file_names(txt)
     txt = purify_helpers(txt)
+    txt = purify_docker_image_name(txt)
     return txt
 
 
@@ -611,6 +633,7 @@ def purify_txt_from_client(txt: str) -> str:
 def diff_files(
     file_name1: str,
     file_name2: str,
+    *,
     tag: Optional[str] = None,
     abort_on_exit: bool = True,
     dst_dir: str = ".",
@@ -624,7 +647,7 @@ def diff_files(
     :param abort_on_exit: whether to assert or not
     :param dst_dir: dir where to save the comparing script
     """
-    _LOG.debug(hprint.to_str("tag abort_on_exit dst_dir"))
+    _LOG.debug(hprint.func_signature_to_str())
     file_name1 = os.path.relpath(file_name1, os.getcwd())
     file_name2 = os.path.relpath(file_name2, os.getcwd())
     msg = []
@@ -640,15 +663,17 @@ def diff_files(
     msg.append(res)
     # Save a script to diff.
     diff_script = os.path.join(dst_dir, "tmp_diff.sh")
-    vimdiff_cmd = f"""#!/bin/bash
-if [[ $1 == "wrap" ]]; then
-    cmd='vimdiff -c "windo set wrap"'
-else
-    cmd='vimdiff'
-fi;
-cmd="$cmd {file_name1} {file_name2}"
-eval $cmd
-"""
+    vimdiff_cmd = f"""
+    #!/bin/bash
+    if [[ $1 == "wrap" ]]; then
+        cmd='vimdiff -c "windo set wrap"'
+    else
+        cmd='vimdiff'
+    fi;
+    cmd="$cmd {file_name1} {file_name2}"
+    eval $cmd
+    """
+    vimdiff_cmd = hprint.dedent(vimdiff_cmd)
     # TODO(gp): Use hio.create_executable_script().
     hio.to_file(diff_script, vimdiff_cmd)
     cmd = "chmod +x " + diff_script
@@ -678,6 +703,7 @@ eval $cmd
 def diff_strings(
     string1: str,
     string2: str,
+    *,
     tag: Optional[str] = None,
     abort_on_exit: bool = True,
     dst_dir: str = ".",
@@ -709,6 +735,7 @@ def diff_strings(
 
 def diff_df_monotonic(
     df: "pd.DataFrame",
+    *,
     tag: Optional[str] = None,
     abort_on_exit: bool = True,
     dst_dir: str = ".",
@@ -894,6 +921,7 @@ def assert_equal(
     purify_expected_text: bool = False,
     fuzzy_match: bool = False,
     ignore_line_breaks: bool = False,
+    split_max_len: Optional[int] = None,
     sort: bool = False,
     abort_on_error: bool = True,
     dst_dir: str = ".",
@@ -905,14 +933,7 @@ def assert_equal(
     :param full_test_name: e.g., `TestRunNotebook1.test2`
     :param check_string: if it was invoked by `check_string()` or directly
     """
-    _LOG.debug(
-        hprint.to_str(
-            "full_test_name test_dir"
-            " remove_lead_trail_empty_lines dedent purify_text"
-            " fuzzy_match ignore_line_breaks"
-            " abort_on_error dst_dir"
-        )
-    )
+    _LOG.debug(hprint.func_signature_to_str("actual expected"))
     # Store a mapping tag after each transformation (e.g., original, sort, ...) to
     # (actual, expected).
     values: Dict[str, str] = collections.OrderedDict()
@@ -970,6 +991,12 @@ def assert_equal(
         tag = "ignore_line_breaks"
         actual = _ignore_line_breaks(actual)
         expected = _ignore_line_breaks(expected)
+        _append(tag, actual, expected)
+    # Split the strings into lines of at most `split_max_len` characters.
+    if split_max_len:
+        tag = "split_max_len"
+        actual = hprint.strict_split(actual, split_max_len)
+        expected = hprint.strict_split(expected, split_max_len)
         _append(tag, actual, expected)
     # Check.
     tag = "final"
@@ -1055,11 +1082,14 @@ def assert_equal(
     return is_equal
 
 
-# #############################################################################
-
 # If a golden outcome is missing asserts (instead of updating golden and adding
 # it to Git repo, corresponding to "update").
 _ACTION_ON_MISSING_GOLDEN = "assert"
+
+
+# #############################################################################
+# TestCase
+# #############################################################################
 
 
 # TODO(gp): Remove all the calls to `dedent()` and use the `dedent` switch.
@@ -1132,11 +1162,24 @@ class TestCase(unittest.TestCase):
             plt.close()
             plt.clf()
         # Delete the scratch dir, if needed.
-        # TODO(gp): We would like to keep this if the test failed.
-        #  I can't find an easy way to detect this situation.
-        #  For now just re-run with --incremental.
         if self._scratch_dir and os.path.exists(self._scratch_dir):
-            if get_incremental_tests():
+            if False:
+                # We want to keep this if the test failed, as an alternative
+                # to just re-running with --incremental.
+                result = self._outcome.result
+                # From https://stackoverflow.com/questions/4414234/getting-pythons-unittest-results-in-a-teardown-method
+                # https://github.com/pytest-dev/pytest/issues/10631
+                # This doesn't work any longer.
+                # has_error = test_result.failures or test_result.errors
+                has_error = result._excinfo is not None
+            else:
+                # TODO(gp): The problem is that when there is a failure during
+                # the regressions, having artifacts in the scratch dir causes
+                # more tests to fail (especially the ones in the cycle detector).
+                # We need to make tests more robust to this and then we can enable
+                # the logic to keep files for the failed tests in the scratch dir.
+                has_error = False
+            if has_error or get_incremental_tests():
                 _LOG.warning("Skipping deleting %s", self._scratch_dir)
             else:
                 _LOG.debug("Deleting %s", self._scratch_dir)
@@ -1168,6 +1211,7 @@ class TestCase(unittest.TestCase):
 
     def get_input_dir(
         self,
+        *,
         use_only_test_class: bool = False,
         test_class_name: Optional[str] = None,
         test_method_name: Optional[str] = None,
@@ -1222,6 +1266,7 @@ class TestCase(unittest.TestCase):
     # TODO(gp): -> get_scratch_dir().
     def get_scratch_space(
         self,
+        *,
         test_class_name: Optional[str] = None,
         test_method_name: Optional[str] = None,
         use_absolute_path: bool = True,
@@ -1244,13 +1289,15 @@ class TestCase(unittest.TestCase):
             # Add `tmp.scratch` to the dir.
             dir_name = os.path.join(dir_name, "tmp.scratch")
             # On the first invocation create the dir.
-            hio.create_dir(dir_name, incremental=get_incremental_tests())
+            incremental = get_incremental_tests()
+            hio.create_dir(dir_name, incremental=incremental)
             # Store the value.
             self._scratch_dir = dir_name
         return self._scratch_dir
 
     def get_s3_scratch_dir(
         self,
+        *,
         test_class_name: Optional[str] = None,
         test_method_name: Optional[str] = None,
     ) -> str:
@@ -1292,16 +1339,14 @@ class TestCase(unittest.TestCase):
         test_method_name: Optional[str] = None,
         use_absolute_path: bool = False,
     ) -> str:
-        import helpers.henv as henv
-
-        s3_bucket = henv.execute_repo_config_code("get_unit_test_bucket_path()")
+        s3_bucket = hrecouti.get_repo_config().get_unit_test_bucket_path()
         hdbg.dassert_isinstance(s3_bucket, str)
         # Make the path unique for the test.
         test_path = self.get_input_dir(
-            use_only_test_class,
-            test_class_name,
-            test_method_name,
-            use_absolute_path,
+            use_only_test_class=use_only_test_class,
+            test_class_name=test_class_name,
+            test_method_name=test_method_name,
+            use_absolute_path=use_absolute_path,
         )
         hdbg.dassert_isinstance(test_path, str)
         # Assemble everything in a single path.
@@ -1321,6 +1366,7 @@ class TestCase(unittest.TestCase):
         purify_expected_text: bool = False,
         fuzzy_match: bool = False,
         ignore_line_breaks: bool = False,
+        split_max_len: Optional[int] = None,
         sort: bool = False,
         abort_on_error: bool = True,
         dst_dir: str = ".",
@@ -1368,6 +1414,7 @@ class TestCase(unittest.TestCase):
             purify_expected_text=purify_expected_text,
             fuzzy_match=fuzzy_match,
             ignore_line_breaks=ignore_line_breaks,
+            split_max_len=split_max_len,
             sort=sort,
             abort_on_error=abort_on_error,
             dst_dir=dst_dir,
@@ -1411,28 +1458,37 @@ class TestCase(unittest.TestCase):
         purify_text: bool = False,
         fuzzy_match: bool = False,
         ignore_line_breaks: bool = False,
+        split_max_len: Optional[int] = None,
         sort: bool = False,
         use_gzip: bool = False,
         tag: str = "test",
         abort_on_error: bool = True,
         action_on_missing_golden: str = _ACTION_ON_MISSING_GOLDEN,
-        test_class_name=None,
+        test_class_name: Optional[str] = None,
     ) -> Tuple[bool, bool, Optional[bool]]:
         """
         Check the actual outcome of a test against the expected outcome
         contained in the file. If `--update_outcomes` is used, updates the
         golden reference file with the actual outcome.
 
+        :param actual: actual outcome of the test
+        :param remove_lead_trail_empty_lines: remove leading and trailing empty
         :param dedent: call `dedent` on the expected string to align it to the
             beginning of the row
-        :param purify_text: remove some artifacts (e.g., user names,
+        :param purify_text: remove some artifacts (e.g., usernames,
             directories, reference to Git client)
         :param fuzzy_match: ignore differences in spaces
         :param ignore_line_breaks: ignore difference due to line breaks
+        :param split_max_len: split the string into lines of at most this length
         :param sort: sort the text and then compare it. In other terms we check
             whether the lines are the same although in different order
-        :param action_on_missing_golden: what to do (e.g., "assert" or "update" when
-            the golden outcome is missing)
+        :param use_gzip: use gzip to compress/decompress the golden outcome
+        :param tag: tag to identify the golden outcome file
+        :param abort_on_error: whether to raise an exception if the outcome is
+            different from the golden outcome
+        :param action_on_missing_golden: what to do (e.g., "assert" or "update"
+            when the golden outcome is missing)
+        :param test_class_name: name of the test class
         :return: outcome_updated, file_exists, is_equal
         :raises: `RuntimeError` if there is a mismatch. If `abort_on_error` is False
             (which should be used only for unit testing) return the result but do not
@@ -1440,8 +1496,9 @@ class TestCase(unittest.TestCase):
         """
         _LOG.debug(
             hprint.to_str(
-                "dedent purify_text fuzzy_match ignore_line_breaks sort "
-                "tag abort_on_error"
+                "remove_lead_trail_empty_lines dedent purify_text fuzzy_match "
+                "ignore_line_breaks split_max_len sort use_gzip tag "
+                "abort_on_error action_on_missing_golden test_class_name"
             )
         )
         hdbg.dassert_in(type(actual), (bytes, str), "actual='%s'", actual)
@@ -1497,6 +1554,7 @@ class TestCase(unittest.TestCase):
                     purify_text=False,
                     fuzzy_match=fuzzy_match,
                     ignore_line_breaks=ignore_line_breaks,
+                    split_max_len=split_max_len,
                     sort=sort,
                     abort_on_error=abort_on_error,
                 )
@@ -1591,6 +1649,8 @@ class TestCase(unittest.TestCase):
                         purify_text=False,
                         fuzzy_match=False,
                         ignore_line_breaks=False,
+                        split_max_len=None,
+                        sort=False,
                         abort_on_error=abort_on_error,
                         error_msg=self._error_msg,
                     )
@@ -1924,6 +1984,11 @@ class TestCase(unittest.TestCase):
         _LOG.error(msg)
 
 
+# #############################################################################
+
+
+# #############################################################################
+# QaTestCase
 # #############################################################################
 
 

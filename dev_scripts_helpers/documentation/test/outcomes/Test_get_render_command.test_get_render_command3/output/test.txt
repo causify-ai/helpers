@@ -1,1 +1,0 @@
-mmdc -i /a/b/c.mmd -o figs/e.8.png

@@ -59,12 +59,12 @@
 
 ### Pull request
 
-- Our usual review process is to work in a branch and create a pull request
-  - See the
-    [Git](https://docs.google.com/document/u/0/d/1zahC8uDnFGYRSgkBrQRgg3W3ZmDjZZJj6yln6YeuHq4/edit)
-    notes for details
-  - The name of the pull request is generated with ghi_show.py and looks like
-    PTask2704 make exchange contracts get contracts applicable to series
+- Our usual review process is to work in a branch and create a pull request (PR)
+  - See our [Git](/docs/work_tools/git/all.git.how_to_guide.md) doc for details
+  - The name of the pull request should be based on the name of the branch,
+    which in turn should reference the issue repo, number and title. The PR name
+    is generally generated automatically, e.g.,
+    `PTask2704 make exchange contracts get contracts applicable to series`.
 
 ## From the code author point of view
 
@@ -122,7 +122,7 @@
   - Do not abuse asking for a quick review
   - All code is important and we do our best to review code quickly and
     carefully
-  - If it\'s blocking a ping on IM is a good idea
+  - If it\'s blocking a ping on Slack is a good idea
 
 ### Do not mix changes and refactoring / shuffling code
 
@@ -150,7 +150,7 @@
     from `gp_scratch` to `TaskXYZ_do_this_and_that`
   - Edit the files to make the PR self-consistent
   - Do a PR for `TaskXYZ_do_this_and_that`
-  - Keep working in gp_scratch while the review is moving forward
+  - Keep working in `gp_scratch` while the review is moving forward
   - Make changes to the `TaskXYZ_do_this_and_that` as requested
   - Merge `TaskXYZ_do_this_and_that` to master
   - Merge `master` back into `gp_scratch` and keep moving
@@ -235,8 +235,8 @@
 ### Workflow of a review in terms of GH labels
 
 - The current meaning of the labels are:
-  - See GitHub ZenHub workflows
-    [doc](https://github.com/cryptokaizen/cmamp/blob/master/docs/work_organization/all.use_github_and_zenhub.how_to_guide.md#pr-labels)
+  - See GitHub workflows
+    [doc](/docs/work_organization/all.use_github.how_to_guide.md#pr-labels)
 
 ### Link PR to GH issue
 
@@ -267,36 +267,35 @@
   - File bugs for the more involved changes
 
 - Try to get a top to bottom review of a component once every N weeks (N = 2, 3)
-  - Sometimes the structure of the
 
 ### Close the PR and delete the branch
 
-- When code is merged into master by one of the reviewers through the UI one can
-  select the delete branch option
+- When code is merged into master by one of the reviewers through the UI, one
+  can select the "delete branch" option (usually it is done automatically)
 
 - Otherwise you can delete the branch using the procedure in
-  [Git](https://docs.google.com/document/u/0/d/1zahC8uDnFGYRSgkBrQRgg3W3ZmDjZZJj6yln6YeuHq4/edit)
+  [Git](/docs/work_tools/git/all.git.how_to_guide.md#deleting-a-branch)
 
 ### Give priority to code review
 
 - We target to give feedback on a PR within 24hr so that the author is not
   blocked for too long
-  - Usually we respond in few hours
+  - Usually we respond in a few hours
 
 ### Multiple reviewers problem
 
-- When there are multiple reviewers for the same PR there can be some problem
+- When there are multiple reviewers for the same PR there can be some problems
 
 - Ok to keep moving fast and avoid blocking
   - Block only if it is controversial
 
-- Merge when we are confident that the other is ok
-  - The other can catch up with post-commit review
+- Merge when we are confident that the other is ok with it
+  - The other can catch up with a post-commit review
   - A good approach is to monitor recently merged PRs in GH to catch up
 
 ### Remember "small steps ahead"
 
-- Follow the Google approach of merging a PR that is a strict improvement.
+- Follow the Google approach of merging a PR that is a strict improvement
 
 ### Nothing is too small
 
@@ -306,8 +305,8 @@
   - Not all of those comments might not be implemented by the author
 
 - Of course if different approaches are really equivalent but reviewers have
-  their own stylistic preference, this should not be pointed, unless it's a
-  matter of consistency or leave the choice to the author
+  their own stylistic preference, this should not be pointed out, unless it's a
+  matter of consistency or the choice is left to the author
 
 ### Final GH comment
 
@@ -326,13 +325,13 @@
 
 - We use the 3 possible options in the following way:
   - Comment
-    - When reviewers want the changes to be applies and then look at the
+    - When reviewers want the changes to be applied and will then look at the
       resulting changes to decide the next steps
     - In practice this means "make the changes and then we'll discuss more"
     - E.g., this is of course the right choice for a pre-PR
   - Approve
     - No more changes: time to merge!
-    - Often it is accompanied with the comment "LGMT" (Looks Good To Me)
+    - Often it is accompanied by the comment "LGTM" (= "Looks Good To Me")
   - Request changes
     - This typically means "if you address the comments we can merge"
     - In practice this is more or less equivalent to "Comment"

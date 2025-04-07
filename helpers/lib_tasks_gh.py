@@ -15,7 +15,6 @@ from invoke import task
 # We want to minimize the dependencies from non-standard Python packages since
 # this code needs to run with minimal dependencies and without Docker.
 import helpers.hdbg as hdbg
-import helpers.henv as henv
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -23,6 +22,7 @@ import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.htable as htable
 import helpers.lib_tasks_utils as hlitauti
+import helpers.repo_config_utils as hrecouti
 
 _LOG = logging.getLogger(__name__)
 
@@ -74,6 +74,9 @@ def gh_login(  # type: ignore
         hlitauti.run(ctx, cmd)
 
 
+# #############################################################################
+
+
 def _get_branch_name(branch_mode: str) -> Optional[str]:
     if branch_mode == "current_branch":
         branch_name: Optional[str] = hgit.get_branch_name()
@@ -109,9 +112,12 @@ def _get_workflow_table() -> htable.TableType:
     num_cols = len(first_line.split("\t"))
     _LOG.debug(hprint.to_str("first_line num_cols"))
     cols = [
-        "completed",  # E.g., completed, in_progress
-        "status",  # E.g., success, failure
-        "name",  # Aka title
+        # E.g., completed, in_progress.
+        "completed",
+        # E.g., success, failure.
+        "status",
+        # Aka title.
+        "name",
         "workflow",
         "branch",
         "event",
@@ -126,6 +132,18 @@ def _get_workflow_table() -> htable.TableType:
     return table
 
 
+def _print_table(table: htable.TableType) -> None:
+    table_str = str(table)
+    # Colorize the table.
+    color_map = {"success": "green", "failure": "red", "in progress": "yellow"}
+    for status, color in color_map.items():
+        table_str = table_str.replace(
+            status, hprint.color_highlight(status, color)
+        )
+    # Report the full status.
+    print(table_str)
+
+
 # TODO(Grisha): seems like GH changed the output format, we should update accordingly,
 # see CmTask #4672 "Slow tests fail (9835540316)" for details.
 @task
@@ -135,6 +153,7 @@ def gh_workflow_list(  # type: ignore
     filter_by_completed="all",
     report_only_status=True,
     show_stack_trace=False,
+    print_table=True,
 ):
     """
     Report the status of the GH workflows.
@@ -145,8 +164,10 @@ def gh_workflow_list(  # type: ignore
         - `all` for all branches
     :param filter_by_completed: filter table by the status of the workflow
         - E.g., "failure", "success"
+    :param report_only_status: if True, report only the status of the workflows
     :param show_stack_trace: in case of error run `pytest_repro` reporting also
         the stack trace
+    :param print_table: if True, print the table with the status of the workflows
     """
     hlitauti.report_task(
         txt=hprint.to_str("filter_by_branch filter_by_completed")
@@ -171,17 +192,17 @@ def gh_workflow_list(  # type: ignore
         filter_by_branch not in ("current_branch", "master")
         or not report_only_status
     ):
-        print(str(table))
+        _print_table(table)
         return
     # For each workflow find the last success.
     branch_name = hgit.get_branch_name()
     workflows = table.unique("workflow")
     print(f"workflows={workflows}")
     for workflow in workflows:
-        print(hprint.frame(workflow))
         table_tmp = table.filter_rows("workflow", workflow)
-        # Report the full status.
-        print(table_tmp)
+        if print_table:
+            print(hprint.frame(workflow))
+            _print_table(table_tmp)
         # Find the first success.
         num_rows = table.size()[0]
         _LOG.debug("num_rows=%s", num_rows)
@@ -272,6 +293,10 @@ def gh_workflow_run(ctx, branch="current_branch", workflows="all"):  # type: ign
         hlitauti.run(ctx, cmd)
 
 
+# #############################################################################
+
+
+# TODO(gp): Remove repo_short_name.
 def _get_repo_full_name_from_cmd(repo_short_name: str) -> Tuple[str, str]:
     """
     Convert the `repo_short_name` from command line (e.g., "current", "amp",
@@ -283,19 +308,13 @@ def _get_repo_full_name_from_cmd(repo_short_name: str) -> Tuple[str, str]:
         repo_full_name_with_host = hgit.get_repo_full_name_from_dirname(
             ".", include_host_name=True
         )
-        # Compute the short repo name corresponding to "current".
-        repo_full_name = hgit.get_repo_full_name_from_dirname(
-            ".", include_host_name=False
+        hdbg.dassert_eq(
+            repo_full_name_with_host,
+            hrecouti.get_repo_config().get_repo_full_name_with_hostname(),
         )
-        ret_repo_short_name = hgit.get_repo_name(
-            repo_full_name, in_mode="full_name", include_host_name=False
-        )
+        ret_repo_short_name = hrecouti.get_repo_config().get_repo_short_name()
     else:
-        # Get the repo name using the short -> full name mapping.
-        repo_full_name_with_host = hgit.get_repo_name(
-            repo_short_name, in_mode="short_name", include_host_name=True
-        )
-        ret_repo_short_name = repo_short_name
+        hdbg.dfatal("This code path is obsolete")
     _LOG.debug(
         "repo_short_name=%s -> repo_full_name_with_host=%s ret_repo_short_name=%s",
         repo_short_name,
@@ -305,16 +324,16 @@ def _get_repo_full_name_from_cmd(repo_short_name: str) -> Tuple[str, str]:
     return repo_full_name_with_host, ret_repo_short_name
 
 
-# #############################################################################
-
-
 def _get_gh_issue_title(issue_id: int, repo_short_name: str) -> Tuple[str, str]:
     """
     Get the title of a GitHub issue.
 
-    :param repo_short_name: `current` refer to the repo_short_name where we are,
-        otherwise a repo_short_name short name (e.g., "amp")
+    :param repo_short_name: `current` refer to the repo where we are in,
+        otherwise a `repo_short_name` (e.g., "amp")
     """
+    # TODO(gp): I don't see applications where we need to pass the repo_short_name.
+    # One should always operate in the dir corresponding to a repo.
+    hdbg.dassert_eq(repo_short_name, "current")
     repo_full_name_with_host, repo_short_name = _get_repo_full_name_from_cmd(
         repo_short_name
     )
@@ -336,14 +355,13 @@ def _get_gh_issue_title(issue_id: int, repo_short_name: str) -> Tuple[str, str]:
         title = title.replace(char, "")
     # Replace multiple spaces with one.
     title = re.sub(r"\s+", " ", title)
-    #
     title = title.replace(" ", "_")
-    title = title.replace("-", "_")
-    title = title.replace("'", "_")
-    title = title.replace("`", "_")
-    title = title.replace('"', "_")
+    # Remove some annoying chars.
+    for char in "- ' ` \"".split():
+        title = title.replace(char, "_")
     # Add the prefix `AmpTaskXYZ_...`
-    task_prefix = hgit.get_task_prefix_from_repo_short_name(repo_short_name)
+    task_prefix = hrecouti.get_repo_config().get_issue_prefix()
+    # task_prefix = hgit.get_task_prefix_from_repo_short_name(repo_short_name)
     _LOG.debug("task_prefix=%s", task_prefix)
     title = f"{task_prefix}{issue_id}_{title}"
     return title, url
@@ -374,7 +392,10 @@ def gh_issue_title(ctx, issue_id, repo_short_name="current", pbcopy=True):  # ty
     title, url = _get_gh_issue_title(issue_id, repo_short_name)
     # Print or copy to clipboard.
     msg = f"{title}: {url}"
-    hlitauti._to_pbcopy(msg, pbcopy)
+    hsystem.to_pbcopy(msg, pbcopy=pbcopy)
+
+
+# #############################################################################
 
 
 def _check_if_pr_exists(title: str) -> bool:
@@ -527,7 +548,7 @@ def gh_publish_buildmeister_dashboard_to_s3(ctx, mark_as_latest=True):  # type: 
     )
     local_html_file = local_html_files[0]
     s3_build_path = os.path.join(
-        henv.execute_repo_config_code("get_html_bucket_path()"),
+        hrecouti.get_repo_config().get_html_bucket_path(),
         "build/buildmeister_dashboard",
     )
     aws_profile = "ck"
@@ -557,7 +578,7 @@ def gh_get_open_prs(repo: str) -> List[Dict[str, Any]]:
 
 
 def _get_failed_or_successful_workflow_run(
-    workflow_runs: List[Dict[str, Any]]
+    workflow_runs: List[Dict[str, Any]],
 ) -> Optional[Dict[str, Any]]:
     """
     Get the most recent successful or failed workflow run.
@@ -571,7 +592,7 @@ def _get_failed_or_successful_workflow_run(
             'status': 'completed',
             'url': 'https://github.com/cryptokaizen/cmamp/actions/runs/8714881296',
             'workflowName': 'Allure fast tests'
-        }    
+        }
         ```
     """
     # We assume that the workflow runs are sorted by time in descending order.
@@ -595,9 +616,9 @@ def gh_get_details_for_all_workflows(repo_list: List[str]) -> "pd.DataFrame":
         ["cryptokaizen/cmamp", "cryptokaizen/orange"]
     :return: a table with the status of all the workflows, e.g.,
     ```
-                    Repo            workflowName                                                url     status
-    0    cryptokaizen/cmamp       Allure fast tests  https://github.com/cryptokaizen/cmamp/actions/...  completed
-    1    cryptokaizen/cmamp       Allure slow tests  https://github.com/cryptokaizen/cmamp/actions/...  completed
+    Repo                workflowName       url                                                status
+    cryptokaizen/cmamp  Allure fast tests  https://github.com/cryptokaizen/cmamp/actions/...  completed
+    cryptokaizen/cmamp  Allure slow tests  https://github.com/cryptokaizen/cmamp/actions/...  completed
     ```
     """
     # TODO(Grisha): expose cols to the interface, i.e. a caller decides what to do.
@@ -607,16 +628,18 @@ def gh_get_details_for_all_workflows(repo_list: List[str]) -> "pd.DataFrame":
 
     repo_dfs = []
     for repo_name in repo_list:
-        # Get all workflow names for the given repo.
-        workflow_names = gh_get_workflow_type_names(repo_name)
+        # Get all workflows for the given repo.
+        workflows = gh_get_workflows(repo_name)
         # For each workflow find the last run.
-        for workflow_name in workflow_names:
+        for workflow in workflows:
             # Get at least a few runs to compute the status; this is useful when
             # the latest run is not completed, in this case the run before the
             # latest one tells the status for a workflow.
             limit = 5
+            workflow_id = workflow["id"]
+            workflow_name = workflow["name"]
             workflow_statuses = gh_get_workflow_details(
-                repo_name, workflow_name, gh_cols, limit
+                repo_name, workflow_id, gh_cols, limit
             )
             if len(workflow_statuses) < limit:
                 # TODO(Grisha): should we just insert empty rows as placeholders so that
@@ -698,18 +721,49 @@ def gh_get_workflow_type_names(repo_name: str, *, sort: bool = True) -> List[str
     workflow_names = [workflow["name"] for workflow in workflow_types]
     if sort:
         workflow_names = sorted(workflow_names)
+    # Check for duplicate workflow names.
+    hdbg.dassert_no_duplicates(
+        workflow_names, "Found duplicate workflow names in repo '%s'" % repo_name
+    )
     return workflow_names
 
 
+def gh_get_workflows(
+    repo_name: str, *, sort: bool = True
+) -> List[Dict[str, str]]:
+    """
+    Get a list of workflows for a given repo.
+
+    :param repo_name: git repo name in the format "organization/repo",
+        e.g., "cryptokaizen/cmamp"
+    :param sort: if True, sort the list of workflow names
+    :return: list of workflows, e.g., [{"id": "12520125", "name": "Fast
+        tests"}, {"id": "12520124", "name": "Slow tests"}]
+    """
+    hdbg.dassert_isinstance(repo_name, str)
+    _LOG.debug(hprint.to_str("repo_name"))
+    # Get the workflow list.
+    cmd = f"gh workflow list --json id,name --repo {repo_name}"
+    workflows = _gh_run_and_get_json(cmd)
+    workflows = [
+        {"id": str(workflow["id"]), "name": workflow["name"]}
+        for workflow in workflows
+    ]
+    # sort workflow by name
+    if sort:
+        workflows = sorted(workflows, key=lambda workflow: workflow["name"])
+    return workflows
+
+
 def gh_get_workflow_details(
-    repo_name: str, workflow_name: str, fields: List[str], limit: int
+    repo_name: str, workflow_id: str, fields: List[str], limit: int
 ) -> List[Dict[str, Any]]:
     """
     Return the stats for a given workflow.
 
     :param repo_name: git repo name in the format "organization/repo",
         e.g., "cryptokaizen/cmamp"
-    :param workflow_name: workflow name, e.g., "Fast tests"
+    :param workflow_id: workflow id, e.g., "12520125"
     :param fields: list of fields to return, e.g., ["workflowName", "status"]
     :param limit: number of runs to return
     :return: workflow stats
@@ -726,9 +780,9 @@ def gh_get_workflow_details(
         ```
     """
     hdbg.dassert_isinstance(repo_name, str)
-    hdbg.dassert_isinstance(workflow_name, str)
+    hdbg.dassert_isinstance(workflow_id, str)
     hdbg.dassert_container_type(fields, List, str)
-    _LOG.debug(hprint.to_str("repo_name workflow_name fields"))
+    _LOG.debug(hprint.to_str("repo_name workflow_id fields"))
     # Fetch the latest `limit` runs for status calculation.
     cmd = f"""
     gh run list \
@@ -736,7 +790,7 @@ def gh_get_workflow_details(
         --repo {repo_name} \
         --branch master \
         --limit {limit} \
-        --workflow "{workflow_name}"
+        --workflow "{workflow_id}"
     """
     workflow_statuses = _gh_run_and_get_json(cmd)
     # We still want to return the statuses even there are less runs than requested. E.g., there is a new workflow with a few runs or there is a workflow that was never run.
@@ -757,4 +811,5 @@ def _gh_run_and_get_json(cmd: str) -> List[Dict[str, Any]]:
         # Remove the colors from the text.
         _txt = re.sub(r"\x1b\[((1;)*[0-9]{2})*m", "", _txt)
     _LOG.debug(hprint.to_str("_txt"))
-    return json.loads(_txt)
+    ret: List[Dict[str, Any]] = json.loads(_txt)
+    return ret

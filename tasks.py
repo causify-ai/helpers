@@ -2,7 +2,7 @@ import logging
 import os
 from typing import Any
 
-import repo_config as rconf
+import helpers.repo_config_utils as hrecouti
 
 # Expose the pytest targets.
 # Extract with:
@@ -15,6 +15,7 @@ from helpers.lib_tasks import (  # This is not an invoke target.
 from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=unused-import
     docker_bash,
     docker_build_local_image,
+    docker_build_multi_arch_prod_image,
     docker_build_prod_image,
     docker_cmd,
     docker_create_candidate_image,
@@ -25,7 +26,7 @@ from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=u
     docker_login,
     docker_ps,
     docker_pull,
-    docker_pull_dev_tools,
+    docker_pull_helpers,
     docker_push_dev_image,
     docker_push_prod_candidate_image,
     docker_push_prod_image,
@@ -35,6 +36,7 @@ from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=u
     docker_rollback_prod_image,
     docker_stats,
     docker_tag_local_image_as_dev,  # TODO(gp): -> docker_release_...
+    docker_tag_push_multi_arch_prod_image,
     docker_update_prod_task_definition,
     find,
     find_check_string_output,
@@ -84,6 +86,7 @@ from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=u
     pytest_clean,
     pytest_collect_only,
     pytest_compare_logs,
+    pytest_failed,
     pytest_find_unused_goldens,
     pytest_rename_test,
     pytest_repro,
@@ -110,7 +113,7 @@ try:
     )
 except ImportError:
     pass
-# Collect imports that fails due to the `dev_tools` image is not being updated. See CmTask4892 for details.
+# Collect imports that fails due to the `helpers` image is not being updated. See CmTask4892 for details.
 try:
     from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=unused-import
         copy_ecs_task_definition_image_url,
@@ -149,7 +152,6 @@ _LOG = logging.getLogger(__name__)
 
 # TODO(gp): Move it to lib_tasks.
 ECR_BASE_PATH = os.environ["CSFY_ECR_BASE_PATH"]
-DOCKER_BASE_IMAGE_NAME = rconf.get_docker_base_image_name()
 
 
 def _run_qa_tests(ctx: Any, stage: str, version: str) -> bool:
@@ -177,7 +179,7 @@ default_params = {
     # When testing a change to the build system in a branch you can use a different
     # image, e.g., `XYZ_tmp` to not interfere with the prod system.
     # "BASE_IMAGE": "amp_tmp",
-    "BASE_IMAGE": DOCKER_BASE_IMAGE_NAME,
+    "BASE_IMAGE": hrecouti.get_repo_config().get_docker_base_image_name(),
     "QA_TEST_FUNCTION": _run_qa_tests,
 }
 

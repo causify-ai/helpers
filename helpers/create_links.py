@@ -20,6 +20,7 @@ Usage Example:
     > create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --replace_links --use_relative_paths
 
     - Other steps remain same.
+
 Import as:
 
 import helpers.create_links as hcrelink
@@ -30,6 +31,7 @@ import filecmp
 import logging
 import os
 import shutil
+import stat
 from typing import List, Tuple
 
 import helpers.hdbg as hdbg
@@ -60,7 +62,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     if args.replace_links:
         common_files = _find_common_files(args.src_dir, args.dst_dir)
-        _replace_with_links(common_files, use_relative_paths=args.use_relative_paths)
+        _replace_with_links(
+            common_files, use_relative_paths=args.use_relative_paths
+        )
         _LOG.info("Replaced %d files with symbolic links.", len(common_files))
     elif args.stage_links:
         symlinks = _find_symlinks(args.dst_dir)
@@ -158,8 +162,8 @@ def _find_common_files(src_dir: str, dst_dir: str) -> List[Tuple[str, str]]:
             # Certain files do not need to be copied, so we skip them.
             if not os.path.exists(dst_file):
                 _LOG.warning(
-                    "Warning: %s is missing in the destination directory.", 
-                    dst_file
+                    "Warning: %s is missing in the destination directory.",
+                    dst_file,
                 )
                 continue
             # Compare file contents after copying.
@@ -180,7 +184,10 @@ def _find_common_files(src_dir: str, dst_dir: str) -> List[Tuple[str, str]]:
 
 
 def _replace_with_links(
-    common_files: List[Tuple[str, str]], use_relative_paths: bool, abort_on_first_error: bool = False
+    common_files: List[Tuple[str, str]],
+    use_relative_paths: bool,
+    *,
+    abort_on_first_error: bool = False,
 ) -> None:
     """
     Replace matching files in the destination directory with symbolic links.
@@ -205,18 +212,23 @@ def _replace_with_links(
             else:
                 link_target = os.path.abspath(src_file)
             os.symlink(link_target, dst_file)
-            # Make the file read-only in order to prevent accidental 
+            # Remove write permissions from the file to prevent accidental
             # modifications.
-            # Set file permissions to `0o555` (-r-xr-xr-x): 
-            # - Owner (read, execute)
-            # - Group (read, execute) 
-            # - Others (read, execute)
-            os.chmod(dst_file, 0o555)
+            current_permissions = os.stat(dst_file).st_mode
+            new_permissions = (
+                current_permissions
+                & ~stat.S_IWUSR
+                & ~stat.S_IWGRP
+                & ~stat.S_IWOTH
+            )
+            os.chmod(dst_file, new_permissions)
             _LOG.info("Created symlink: %s -> %s", dst_file, link_target)
         except Exception as e:
             _LOG.error("Error creating symlink for %s: %s", dst_file, e)
             if abort_on_first_error:
-                _LOG.critical("Aborting: Failed to create symlink for %s.", dst_file)
+                _LOG.warning(
+                    "Aborting: Failed to create symlink for %s.", dst_file
+                )
             continue
 
 
@@ -258,11 +270,11 @@ def _stage_links(symlinks: List[str]) -> None:
             # Copy file to the symlink location.
             shutil.copy2(target_file, link)
             # Make the file writable to allow for modifications.
-            # Set file permissions to `0o755` (-rwxr-xr-x): 
-            # - Owner (read, write, execute)
-            # - Group (read, execute)
-            # - Others (read, execute)
-            os.chmod(link, 0o755)
+            current_permissions = os.stat(link).st_mode
+            new_permissions = (
+                current_permissions | stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH
+            )
+            os.chmod(link, new_permissions)
             _LOG.info("Staged: %s -> %s", link, target_file)
         except Exception as e:
             _LOG.error("Error staging link %s: %s", link, e)

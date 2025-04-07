@@ -1,3 +1,9 @@
+"""
+Import as:
+
+import dev_scripts_helpers.thin_client.thin_client_utils as dshtctcut
+"""
+
 import argparse
 import logging
 import os
@@ -11,6 +17,7 @@ sys.path.append(
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 import helpers.hprint as hprint
+import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
@@ -122,6 +129,7 @@ def _create_new_window(
     cmd = f"tmux send-keys '{color}; cd {dir_name} && {tmux_cmd}' C-m C-m"
     hsystem.system(cmd)
 
+
 def _create_repo_windows(
     git_dir: str, setenv_path: str, module_name: str, is_submodule: bool
 ) -> None:
@@ -229,7 +237,7 @@ def create_tmux_session(
     script_path: str,
     dir_prefix: str,
     setenv_path: str,
-    #TODO(Juraj): deprecate the var, the behavior is now inferred.
+    # TODO(Juraj): deprecate the var, the behavior is now inferred.
     has_subrepo: bool,
 ) -> None:
     """
@@ -298,15 +306,14 @@ def create_tmux_session(
     _LOG.info("The tmux session doesn't exist, creating it")
     # Make sure we are outside a tmux session.
     dassert_not_inside_tmux()
-    os_name = hsystem.get_os_name()
-    user_name = hsystem.get_user_name()
-    if os_name == "Darwin":
-        _LOG.info("Inferred MacOS setup")
+    if hserver.is_mac() or hserver.is_external_linux():
+        _LOG.info("Inferred external setup")
         home_dir = get_home_dir()
-    elif os_name == "Linux":
+    elif hserver.is_dev_ck():
         _LOG.info("Inferred server setup")
         server_name = hsystem.get_server_name()
         hdbg.dassert_in(server_name, ["dev1", "dev2", "dev3"])
+        user_name = hsystem.get_user_name()
         home_dir = f"/data/{user_name}"
     hdbg.dassert_ne(home_dir, "")
     _LOG.info("home_dir=%s", home_dir)
@@ -314,7 +321,9 @@ def create_tmux_session(
     # compatible with the existing flow in `lemonade`.
     src_vc_dir = os.environ.get("AM_SRC_DIR", None)
     # Use encrypted dir path if specified, otherwise use the conventional `src`.
-    src_dir = src_vc_dir if src_vc_dir is not None else os.path.join(home_dir, "src")
+    src_dir = (
+        src_vc_dir if src_vc_dir is not None else os.path.join(home_dir, "src")
+    )
     git_root_dir = os.path.join(src_dir, tmux_name)
     _LOG.info("git_root_dir=%s", git_root_dir)
     # Create the tmux session.

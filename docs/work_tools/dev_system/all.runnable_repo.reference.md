@@ -1,5 +1,3 @@
-
-
 <!-- toc -->
 
 - [Summary](#summary)
@@ -13,6 +11,7 @@
   * [setenv](#setenv)
   * [devops](#devops)
   * [Managing common files](#managing-common-files)
+  * [Managing repo configurations](#managing-repo-configurations)
   * [Building a Docker container](#building-a-docker-container)
   * [Running a Docker container](#running-a-docker-container)
   * [pytest](#pytest)
@@ -136,6 +135,24 @@
 
   ```mermaid
   graph TD
+    runnable_repo["runnable dir<br>(runnable repo)"]
+    runnable_repo --> helpers_sub_repo[helpers sub-repo]
+    runnable_repo --> devops[devops]
+    runnable_repo --> runnable_dir[runnable dir]
+    runnable_repo --> others[...]
+
+    runnable_dir  --> runnable_dir_devops[devops]
+
+    style helpers_sub_repo fill:transparent, stroke-dasharray: 5 5
+  ```
+
+## Runnable repo
+
+- A runnable repo is a repo that contains a single runnable dir at the top
+- A repo can contain multiple runnable dirs in a hierarchical fashion
+
+  ```mermaid
+  graph TD
     runnable_repo[runnable repo]
     runnable_repo --> helpers_sub_repo[helpers sub-repo]
     runnable_repo --> devops[devops]
@@ -150,13 +167,6 @@
 
     style helpers_sub_repo fill:transparent, stroke-dasharray: 5 5
   ```
-
-## Runnable repo
-
-- A runnable repo is a repo that contains a single runnable dir at the top
-- A repo can contain multiple runnable dirs in a hierarchical fashion
-
-- TODO(gp): Add a graphical depiction
 
 ## Thin environment
 
@@ -231,6 +241,20 @@ graph TD
   to be customized, it should first be staged for modification by replacing the
   symlink with a copy of the file
 
+## Managing repo configurations
+
+- Centralizing configurations eliminates duplication, reduces maintenance
+  overhead, and ensures consistency across different components of the system
+- When configuration parameters need to be modified, changes only need to be
+  made in one location rather than across multiple files
+- YAML file format is preferred for its better support for nested structures and
+  complex data types
+
+- All repo configurations are stored in a central `repo_config.yaml` file
+- The configurations are used by both Python and shell scripts
+- The configurations may contain repo identifiers, docker container information,
+  runnable repo or runnable directory configs, thin environments used....etc
+
 ## Building a Docker container
 
 - Code and tests need to be run inside a corresponding Docker container
@@ -250,7 +274,7 @@ graph TD
   - E.g., dependencies to run the unit tests are not needed in a prod container
 - The toolchain to build containers is managed through `invoke` targets
   - It supports versioning
-- The Python dependencies are managed to
+- The Python dependencies are managed through `poetry`
 
 ## Running a Docker container
 

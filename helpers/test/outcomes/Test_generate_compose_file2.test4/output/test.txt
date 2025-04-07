@@ -14,31 +14,33 @@ services:
       - CSFY_AWS_PROFILE=$CSFY_AWS_PROFILE
       - CSFY_AWS_S3_BUCKET=$CSFY_AWS_S3_BUCKET
       - CSFY_AWS_SECRET_ACCESS_KEY=$CSFY_AWS_SECRET_ACCESS_KEY
+      - CSFY_AWS_SESSION_TOKEN=$CSFY_AWS_SESSION_TOKEN
       - CSFY_ECR_BASE_PATH=$CSFY_ECR_BASE_PATH
       - CSFY_GIT_ROOT_PATH=/app
       - CSFY_HELPERS_ROOT_PATH=/app/amp/helpers_root
-      - CSFY_IS_SUPER_REPO=1
+      - CSFY_USE_HELPERS_AS_NESTED_MODULE=1
       - CSFY_TELEGRAM_TOKEN=$CSFY_TELEGRAM_TOKEN
+      - CSFY_CI=$CSFY_CI
       - GH_ACTION_ACCESS_TOKEN=$GH_ACTION_ACCESS_TOKEN
       - GH_TOKEN=$GH_ACTION_ACCESS_TOKEN
-      - CSFY_CI=$CSFY_CI
     image: ${IMAGE}
     restart: 'no'
     volumes:
       - ~/.aws:/home/.aws
       - ~/.config/gspread_pandas/:/home/.config/gspread_pandas/
       - ~/.config/gh:/home/.config/gh
+      - ~/.ssh:/home/.ssh
     privileged: true
     network_mode: ${NETWORK_MODE:-host}
   app:
     extends: base_app
     volumes:
-      - /data/heanhs/src/orange1:/app
+      - /data/dummy/src/orange1:/app
     working_dir: /app
   linter:
     extends: base_app
     volumes:
-      - /data/heanhs/src/orange1:/src
+      - /data/dummy/src/orange1:/src
     working_dir: /src
     environment:
       - MYPYPATH

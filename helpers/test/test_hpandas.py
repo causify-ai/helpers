@@ -22,7 +22,13 @@ _LOG = logging.getLogger(__name__)
 _AWS_PROFILE = "ck"
 
 
+# #############################################################################
+# Test_dassert_is_unique1
+# #############################################################################
+
+
 class Test_dassert_is_unique1(hunitest.TestCase):
+
     def get_df1(self) -> pd.DataFrame:
         """
         Return a df without duplicated index.
@@ -95,7 +101,13 @@ class Test_dassert_is_unique1(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# Test_to_series1
+# #############################################################################
+
+
 class Test_to_series1(hunitest.TestCase):
+
     def helper(self, n: int, exp: str) -> None:
         vals = list(range(n))
         df = pd.DataFrame([vals], columns=[f"a{i}" for i in vals])
@@ -135,7 +147,13 @@ class Test_to_series1(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# Test_dassert_valid_remap
+# #############################################################################
+
+
 class Test_dassert_valid_remap(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Check that the function works with correct inputs.
@@ -239,7 +257,13 @@ class Test_dassert_valid_remap(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# Test_trim_df1
+# #############################################################################
+
+
 class Test_trim_df1(hunitest.TestCase):
+
     def get_df(self, *args: Any, **kwargs: Any) -> pd.DataFrame:
         """
         Return a df where the CSV txt is read verbatim without inferring dates.
@@ -741,6 +765,11 @@ class Test_trim_df1(hunitest.TestCase):
         )
 
 
+# #############################################################################
+# Test_trim_df2
+# #############################################################################
+
+
 @pytest.mark.skip(
     "Used for comparing speed of different trimming methods (CmTask1404)."
 )
@@ -1089,7 +1118,13 @@ class Test_trim_df2(Test_trim_df1):
 # #############################################################################
 
 
+# #############################################################################
+# Test_df_to_str
+# #############################################################################
+
+
 class Test_df_to_str(hunitest.TestCase):
+
     @staticmethod
     def get_test_data() -> pd.DataFrame:
         test_data = {
@@ -1279,6 +1314,11 @@ class Test_df_to_str(hunitest.TestCase):
         self.assert_equal(actual, expected, fuzzy_match=True)
 
 
+# #############################################################################
+# Test_assemble_df_rows
+# #############################################################################
+
+
 class Test_assemble_df_rows(hunitest.TestCase):
     """
     Test assembing df values into a column-row structure.
@@ -1422,6 +1462,11 @@ class Test_assemble_df_rows(hunitest.TestCase):
         self.assertListEqual(actual, expected)
 
 
+# #############################################################################
+# Test_str_to_df
+# #############################################################################
+
+
 class Test_str_to_df(hunitest.TestCase):
     """
     Test converting a string representation of a dataframe into a Pandas df.
@@ -1499,7 +1544,13 @@ class Test_str_to_df(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# TestDataframeToJson
+# #############################################################################
+
+
 class TestDataframeToJson(hunitest.TestCase):
+
     def test_dataframe_to_json(self) -> None:
         """
         Verify correctness of dataframe to JSON transformation.
@@ -1578,7 +1629,13 @@ class TestDataframeToJson(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# TestFindGapsInDataframes
+# #############################################################################
+
+
 class TestFindGapsInDataframes(hunitest.TestCase):
+
     def test_find_gaps_in_dataframes(self) -> None:
         """
         Verify that gaps are caught.
@@ -1607,7 +1664,13 @@ class TestFindGapsInDataframes(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# TestCompareDataframeRows
+# #############################################################################
+
+
 class TestCompareDataframeRows(hunitest.TestCase):
+
     def get_test_data(self) -> pd.DataFrame:
         test_data = {
             "dummy_value_1": [0, 1, 3, 2, 0],
@@ -1668,9 +1731,15 @@ class TestCompareDataframeRows(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# TestReadDataFromS3
+# #############################################################################
+
+
 @pytest.mark.requires_ck_infra
 @pytest.mark.requires_aws
 class TestReadDataFromS3(hunitest.TestCase):
+
     def test_read_csv1(self) -> None:
         s3fs = hs3.get_s3fs(_AWS_PROFILE)
         file_name = os.path.join(
@@ -1696,7 +1765,13 @@ class TestReadDataFromS3(hunitest.TestCase):
         hpandas.read_parquet_to_df(stream, **kwargs)
 
 
+# #############################################################################
+# TestSubsetDf1
+# #############################################################################
+
+
 class TestSubsetDf1(hunitest.TestCase):
+
     def test1(self) -> None:
         # Generate some random data.
         np.random.seed(42)
@@ -1720,7 +1795,13 @@ class TestSubsetDf1(hunitest.TestCase):
         self.assert_equal(actual, expected, fuzzy_match=True)
 
 
+# #############################################################################
+# TestDropNa
+# #############################################################################
+
+
 class TestDropNa(hunitest.TestCase):
+
     def test_dropna1(self) -> None:
         """
         Test if all types of NaNs are dropped.
@@ -1778,7 +1859,13 @@ class TestDropNa(hunitest.TestCase):
         hunitest.compare_df(actual, expected)
 
 
+# #############################################################################
+# TestDropAxisWithAllNans
+# #############################################################################
+
+
 class TestDropAxisWithAllNans(hunitest.TestCase):
+
     def test_drop_rows1(self) -> None:
         """
         Test if row full of nans is dropped.
@@ -1879,6 +1966,11 @@ class TestDropAxisWithAllNans(hunitest.TestCase):
         expected = pd.DataFrame(data=expected)
         # Check.
         hunitest.compare_df(actual, expected)
+
+
+# #############################################################################
+# TestDropDuplicates
+# #############################################################################
 
 
 class TestDropDuplicates(hunitest.TestCase):
@@ -1999,6 +2091,11 @@ class TestDropDuplicates(hunitest.TestCase):
         self.assert_equal(no_duplicates_df, expected_signature, fuzzy_match=True)
 
 
+# #############################################################################
+# TestCheckAndFilterMatchingColumns
+# #############################################################################
+
+
 class TestCheckAndFilterMatchingColumns(hunitest.TestCase):
     """
     Test that matching columns are filtered correctly.
@@ -2082,6 +2179,11 @@ class TestCheckAndFilterMatchingColumns(hunitest.TestCase):
         self.assert_equal(str(actual_columns), str(expected_columns))
 
 
+# #############################################################################
+
+
+# #############################################################################
+# Test_merge_dfs1
 # #############################################################################
 
 
@@ -2297,6 +2399,11 @@ class Test_merge_dfs1(hunitest.TestCase):
             )
 
 
+# #############################################################################
+
+
+# #############################################################################
+# Test_compare_dfs
 # #############################################################################
 
 
@@ -2835,6 +2942,11 @@ class Test_compare_dfs(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# Test_subset_multiindex_df
+# #############################################################################
+
+
 class Test_subset_multiindex_df(hunitest.TestCase):
     """
     Filter Multiindex DataFrame with 2 column levels.
@@ -3071,6 +3183,11 @@ class Test_subset_multiindex_df(hunitest.TestCase):
             )
 
 
+# #############################################################################
+
+
+# #############################################################################
+# Test_compare_multiindex_dfs
 # #############################################################################
 
 
@@ -3353,6 +3470,11 @@ class Test_compare_multiindex_dfs(hunitest.TestCase):
         )
 
 
+# #############################################################################
+# Test_compute_duration_df
+# #############################################################################
+
+
 class Test_compute_duration_df(hunitest.TestCase):
     """
     Compute timestamp stats from dfs and check the intersection.
@@ -3491,7 +3613,13 @@ class Test_compute_duration_df(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# Test_compare_nans_in_dataframes
+# #############################################################################
+
+
 class Test_compare_nans_in_dataframes(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Check that NaN differences are identified correctly.
@@ -3524,7 +3652,13 @@ class Test_compare_nans_in_dataframes(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# Test_dassert_increasing_index
+# #############################################################################
+
+
 class Test_dassert_increasing_index(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Check that a monotonically increasing index passes the assert.
@@ -3589,7 +3723,13 @@ class Test_dassert_increasing_index(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# Test_dassert_strictly_increasing_index
+# #############################################################################
+
+
 class Test_dassert_strictly_increasing_index(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Check that unique and monotonically increasing index passes the assert.
@@ -3663,7 +3803,13 @@ class Test_dassert_strictly_increasing_index(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# Test_apply_index_mode
+# #############################################################################
+
+
 class Test_apply_index_mode(hunitest.TestCase):
+
     @staticmethod
     def get_test_data() -> Tuple[pd.DataFrame, pd.DataFrame]:
         """
@@ -3750,6 +3896,11 @@ class Test_apply_index_mode(hunitest.TestCase):
         self.check_string(act)
 
 
+# #############################################################################
+
+
+# #############################################################################
+# Test_apply_column_mode
 # #############################################################################
 
 
@@ -3846,7 +3997,13 @@ class Test_apply_column_mode(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# Test_get_df_from_iterator
+# #############################################################################
+
+
 class Test_get_df_from_iterator(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Check that a dataframe is correctly built from an iterator of
@@ -3883,7 +4040,13 @@ class Test_get_df_from_iterator(hunitest.TestCase):
         self.assert_equal(actual_signature, expected_signature, fuzzy_match=True)
 
 
+# #############################################################################
+# Test_multiindex_df_info1
+# #############################################################################
+
+
 class Test_multiindex_df_info1(hunitest.TestCase):
+
     @staticmethod
     def get_multiindex_df_with_datetime_index() -> pd.DataFrame:
         datetime_index = [
@@ -4021,6 +4184,11 @@ class Test_multiindex_df_info1(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# Test_cast_series_to_type
+# #############################################################################
+
+
 class Test_cast_series_to_type(hunitest.TestCase):
     """
     Test converting a series into a given type.
@@ -4062,14 +4230,20 @@ class Test_cast_series_to_type(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# Test_dassert_index_is_datetime
+# #############################################################################
+
+
 class Test_dassert_index_is_datetime(hunitest.TestCase):
+
     @staticmethod
     def get_multiindex_df(
         index_is_datetime: bool,
     ) -> pd.DataFrame:
         """
-        Helper function to get test multi-index dataframe.
-        Example of dataframe returned when `index_is_datetime = True`:
+        Helper function to get test multi-index dataframe. Example of dataframe
+        returned when `index_is_datetime = True`:
 
         ```
                                             column1     column2
@@ -4158,7 +4332,13 @@ class Test_dassert_index_is_datetime(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# Test_dassert_approx_eq1
+# #############################################################################
+
+
 class Test_dassert_approx_eq1(hunitest.TestCase):
+
     def test1(self) -> None:
         hpandas.dassert_approx_eq(1, 1.0000001)
 
@@ -4171,7 +4351,13 @@ class Test_dassert_approx_eq1(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# Test_CheckSummary
+# #############################################################################
+
+
 class Test_CheckSummary(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         All the tests have passed.
@@ -4228,7 +4414,13 @@ class Test_CheckSummary(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# Test_compute_weighted_sum
+# #############################################################################
+
+
 class Test_compute_weighted_sum(hunitest.TestCase):
+
     def helper(
         self,
         index1: List[int],
@@ -4330,3 +4522,51 @@ class Test_compute_weighted_sum(hunitest.TestCase):
             dictionary of dfs must be nonempty
             """
         self.assert_equal(actual_signature, expected_signature, fuzzy_match=True)
+
+
+# #############################################################################
+
+
+# #############################################################################
+# Test_list_to_str
+# #############################################################################
+
+
+class Test_list_to_str(hunitest.TestCase):
+
+    def test1(self) -> None:
+        """
+        Check that a list is converted to string correctly.
+        """
+        # Prepare inputs.
+        input = [1, "two", 3, 4, "five"]
+        # Run.
+        actual = hpandas.list_to_str(input, enclose_str_char="|", sep_char=" ; ")
+        # Check.
+        expected = f"5 [|1| ; |two| ; |3| ; |4| ; |five|]"
+        self.assert_equal(actual, expected)
+
+    def test2(self) -> None:
+        """
+        Check that a list is converted to string and truncated correctly.
+        """
+        # Prepare inputs.
+        input = list(range(15))
+        # Run.
+        actual = hpandas.list_to_str(input, enclose_str_char="", sep_char=" - ")
+        # Check.
+        expected = f"15 [0 - 1 - 2 - 3 - 4 - ... - 10 - 11 - 12 - 13 - 14]"
+        self.assert_equal(actual, expected)
+
+    def test3(self) -> None:
+        """
+        Check that a list is converted to string correctly, without additional
+        parameters.
+        """
+        # Prepare inputs.
+        input = [1, 2, 3, 4, "five"]
+        # Run.
+        actual = hpandas.list_to_str(input)
+        # Check.
+        expected = f"5 ['1', '2', '3', '4', 'five']"
+        self.assert_equal(actual, expected)

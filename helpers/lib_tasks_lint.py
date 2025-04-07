@@ -16,6 +16,7 @@ import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
+import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.lib_tasks_docker as hlitadoc
 import helpers.lib_tasks_utils as hlitauti
@@ -178,6 +179,7 @@ def lint_detect_cycles(  # type: ignore
 @task
 def lint(  # type: ignore
     ctx,
+    base_image="",
     stage="prod",
     version="",
     files="",
@@ -185,6 +187,8 @@ def lint(  # type: ignore
     modified=False,
     last_commit=False,
     branch=False,
+    # It needs to be a string to allow the user to specify "serial".
+    num_threads="-1",
     only_format=False,
     only_check=False,
 ):
@@ -212,11 +216,14 @@ def lint(  # type: ignore
     :param modified: lint the files modified in the current git client
     :param last_commit: lint the files modified in the previous commit
     :param branch: lint the files modified in the current branch w.r.t. master
+    :param num_threads: number of threads to use ("serial", -1, 0, 1, 2, ...)
     :param only_format: run only the modifying actions of Linter (e.g., black)
     :param only_check: run only the non-modifying actions of Linter (e.g., pylint)
     """
     hlitauti.report_task()
-    # Verify that the passed options are valid.
+    # Prepare the command line.
+    lint_cmd_opts = []
+    # Add the file selection argument.
     hdbg.dassert_eq(
         int(len(files) > 0)
         + int(len(dir_name) > 0)
@@ -226,14 +233,6 @@ def lint(  # type: ignore
         1,
         msg="Specify exactly one among --files, --dir-name, --modified, --last-commit, --branch",
     )
-    hdbg.dassert_lte(
-        int(only_format) + int(only_check),
-        1,
-        msg="Specify only one among --only-format, --only-check",
-    )
-    # Prepare the command line.
-    lint_cmd_opts = []
-    # Add the file selection argument.
     if len(files) > 0:
         lint_cmd_opts.append(f"--files {files}")
     elif len(dir_name) > 0:
@@ -246,7 +245,14 @@ def lint(  # type: ignore
         lint_cmd_opts.append("--branch")
     else:
         raise ValueError("No file selection arguments are specified")
+    #
+    lint_cmd_opts.append(f"--num_threads {num_threads}")
     # Add the action selection argument, if needed.
+    hdbg.dassert_lte(
+        int(only_format) + int(only_check),
+        1,
+        msg="Specify only one among --only-format, --only-check",
+    )
     if only_format:
         lint_cmd_opts.append("--only_format")
     elif only_check:
@@ -254,12 +260,13 @@ def lint(  # type: ignore
     else:
         _LOG.info("All Linter actions selected")
     # Compose the command line.
-    lint_cmd_ = (
-        "$(find -wholename '*linters/base.py') "
-        + hlitauti._to_single_line_cmd(lint_cmd_opts)
-    )
-    docker_cmd_ = hlitadoc._get_lint_docker_cmd(
-        lint_cmd_, stage=stage, version=version
+    if hserver.is_mac():
+        find_cmd = "$(find . -path '*linters/base.py')"
+    else:
+        find_cmd = "$(find -wholename '*linters/base.py')"
+    lint_cmd_ = find_cmd + " " + hlitauti._to_single_line_cmd(lint_cmd_opts)
+    docker_cmd_ = _get_lint_docker_cmd(
+        base_image, lint_cmd_, stage=stage, version=version
     )
     # Run.
     hlitauti.run(ctx, docker_cmd_)
@@ -293,3 +300,36 @@ def lint_create_branch(ctx, dry_run=False):  # type: ignore
     _LOG.info("Creating branch '%s'", branch_name)
     cmd = f"invoke git_branch_create -b '{branch_name}'"
     hlitauti.run(ctx, cmd, dry_run=dry_run)
+
+
+def _get_lint_docker_cmd(
+    base_image: str,
+    docker_cmd_: str,
+    stage: str,
+    version: str,
+    *,
+    use_entrypoint: bool = True,
+) -> str:
+    """
+    Create a command to run in Linter service.
+
+    :param docker_cmd_: command to run
+    :param stage: the image stage to use
+    :return: the full command to run
+    """
+    if base_image == "":
+        base_path = os.environ["CSFY_ECR_BASE_PATH"]
+        # Get an image to run the linter on.
+        linter_image = f"{base_path}/helpers"
+    else:
+        linter_image = base_image
+    _LOG.debug(hprint.to_str("linter_image"))
+    # Execute command line.
+    cmd: str = hlitadoc._get_docker_compose_cmd(
+        linter_image,
+        stage,
+        version,
+        docker_cmd_,
+        use_entrypoint=use_entrypoint,
+    )
+    return cmd

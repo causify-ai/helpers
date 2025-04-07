@@ -38,7 +38,8 @@
 ### Solution: script approach
 
 - Create a shell `sh` script that applies the correct changes to all the repos
-  using `amp/helpers_root/dev_scripts_helpers/system_tools/replace_text.py`
+  using
+  [`/dev_scripts_helpers/system_tools/replace_text.py`](/dev_scripts_helpers/system_tools/replace_text.py)
 - For more complex problems we can extend `replace_text.py` with custom
   regex-based operations
 
@@ -135,7 +136,7 @@
 - There is an option `--revert_all` to apply this before the script
   ```bash
   > gs -s | \
-      grep -v amp/helpers_root/dev_scripts_helpers/system_tools/replace_text.py | \
+      grep -v dev_scripts_helpers/system_tools/replace_text.py | \
       grep -v "\?" | \
       awk '{print $2}' | \
       xargs git checkout --
@@ -156,12 +157,13 @@
 
 - See [SorrIssue259](https://github.com/sorrentum/sorrentum/issues/259) and the
   related [PR](https://github.com/sorrentum/sorrentum/pull/336) for reference
-  - We wanted to make `_to_multiline_cmd()` from `helpers/lib_tasks_utils.py` a
-    public function
+  - We wanted to make `_to_multiline_cmd()` from
+    [`/helpers/lib_tasks_utils.py`](/helpers/lib_tasks_utils.py) a public
+    function
   - This would require to rename `_to_multiline_cmd()` to `to_multiline_cmd()`
     with the script
   - This
-    [script](https://github.com/cryptokaizen/cmamp/blob/master/dev_scripts/cleanup_scripts/SorrTask259_Make_to_multi_line_cmd_public.sh)
+    [script](/dev_scripts_helpers/cleanup_scripts/SorrTask259_Make_to_multi_line_cmd_public.sh)
     will make the replacement smoothly everywhere in the code except for the
     dirs specified `--exclude_dirs` flag.
 

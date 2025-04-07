@@ -69,23 +69,23 @@
   [PuTTY Download Page](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html)
 
 - Open `PuTTYgen` and click on the load button
-  ![alt_text](figs/development_setup/Fig1_puttygen.png)
+  <img src="figs/development_setup/Fig1_puttygen.png">
 
 - Locate the private SSH key that you have downloaded
 
 - Click the Save private key button to create the ppk file
-  ![alt_text](figs/development_setup/Fig2_puttygen.png)
+  <img src="figs/development_setup/Fig2_puttygen.png">
 
 - Open `PuTTY`, under Session, enter your Hostname i.e. our server IP:
   172.30.2.136
 
-  ![alt_text](figs/development_setup/Fig3_putty.png)
+  <img src="figs/development_setup/Fig3_putty.png">
 
 - Under Connection, click Data and Enter your username as the Auto-login
-  username ![alt_text](figs/development_setup/Fig4_putty.png)
+  username <img src="figs/development_setup/Fig4_putty.png">
 
 - Under SSH, choose 2 from the Preferred SSH Protocol Version
-  ![alt_text](figs/development_setup/Fig5_putty.png)
+  <img src="figs/development_setup/Fig5_putty.png">
 
 - Under SSH -> Auth -> Credentials, you will need to specify where your private
   key can be found
@@ -93,7 +93,7 @@
 - Remember, this is the ppk file you generated using `PuTTygen` earlier
 
 - Click the Browse to locate the file on your computer
-  ![alt_text](figs/development_setup/Fig6_putty.png)
+  <img src="figs/development_setup/Fig6_putty.png">
 
 - Under Sessions, type a name (such as "my site") in the Saved Sessions box and
   then click Save. Hit Open to Run the session
@@ -111,7 +111,7 @@
   laptop> chmod 600 ~/.ssh/cryptomatic.pem
   ```
 - Now you can connect to the server through a VPN (see
-  `docs/onboarding/ck.setup_vpn_and_dev_server_access.how_to_guide.md`)
+  [`/docs/onboarding/ck.setup_vpn_and_dev_server_access.how_to_guide.md`](/docs/onboarding/ck.setup_vpn_and_dev_server_access.how_to_guide.md))
 
   ```bash
   laptop> ssh -i $CM_SSH_KEY $CM_USER@$CM_IP
@@ -327,9 +327,9 @@
 
 - For hub you can use your key otherwise you can generate an ssh key for hub
 - Note:
-  - You can use any SSH key, even a “personal” one that one uses for his/her
+  - You can use any SSH key, even a "personal" one that one uses for his/her
     projects
-  - In practice, the logic is “user authenticates with GH, we tell GH to grant
+  - In practice, the logic is "user authenticates with GH, we tell GH to grant
     access to a private repo, GH is happy"
 - Typically you can save the Hub authentication in `~/.ssh/id_rsa` and
   `~/.ssh/id_rsa.pub`
@@ -361,7 +361,7 @@
   HEAD detached at bd69850bb
   nothing to commit, working tree clean
   # In general form.
-  > cd {sumbodule}
+  > cd {submodule}
   > git checkout master
   > git pull
   # Example for `orange` which contains `cmamp` which contains `helpers`.
@@ -388,14 +388,14 @@
   we use the thin environment from the `helpers` repo, i.e. to build one we need
   to run:
   ```bash
-    > cd amp (only if amp is sumbodule)
+    > cd amp (only if amp is submodule)
     > cd helpers_root
     > ./dev_scripts_helpers/thin_client/build.py
   ```
 - This script to build the environment is run rarely when the dependencies are
   changed.
 - This environment is shared by multiple repos (e.g., all the `cmamp` and
-  `dev_tools`), so once you build the environment you can use it for all the
+  `tutorials`), so once you build the environment you can use it for all the
   repos and for multiple clients
 
 ### Activate the thin environment
@@ -417,8 +417,8 @@
   > dev_scripts_{repo_name}/thin_client/tmux.py --create_global_link
   ```
 
-- Create a tmux session. Choose `index` based on folder name, e.g., `--index 1`
-  if repo name is `~/src/cmamp1`.
+- Create a tmux session. Choose `index` based on the dir name, e.g., `--index 1`
+  if the dir name is `~/src/cmamp1`.
 
   ```bash
   > dev_scripts_{repo_name}/thin_client/tmux.py --index 1
@@ -442,7 +442,7 @@
   - Create a Personal Access Token (classic) on Hub following the official guide
   - Put the following permissions:
 
-    ![alt_text](figs/development_setup/Fig2_gh.png)
+    <img src="figs/development_setup/Fig2_gh.png">
 
 - Create personal access token (aka PAT) as done above and save it to
   `~/hub_pat.txt`
@@ -488,7 +488,7 @@
   - Change dir using `cd ~/.config`
   - Run `sudo chown -R username:username gh` where username is your username
     inside the container, e.g. `user_1022:user_1022`
-  - Run `ls -l gh | grep root` if nothing, it’s a good sign
+  - Run `ls -l gh | grep root` if nothing, it's a good sign
   - Close container printing `exit` or ctrl+D
   - Log in again using `gh auth login` and follow the instructions above
   - Check your auth status using `gh auth status`
@@ -498,7 +498,7 @@
 - Conceptually the steps are:
   - Clone a repo in `~/src/...`
     - You can have as many clients as you want (`cmamp1`, `cmamp2`, ...,
-      `dev_tools1`, ...)
+      `helpers1`, ...)
   - Build the "thin" environment:
     - Needs to be done only once for all your clients
       ```bash
@@ -529,11 +529,11 @@
   - Check `docker_bash`:
     ```bash
     > i docker_bash
-    INFO: > cmd='/data/saggese/src/venv/dev_tools.client_venv/bin/invoke docker_bash'
+    INFO: > cmd='/data/saggese/src/venv/helpers.client_venv/bin/invoke docker_bash'
     ## docker_bash:
-    IMAGE=665840871993.dkr.ecr.us-east-1.amazonaws.com/dev_tools:dev \
+    IMAGE=665840871993.dkr.ecr.us-east-1.amazonaws.com/helpers:dev \
             docker-compose \
-            --file /data/saggese/src/dev_tools1/devops/compose/docker-compose.yml \
+            --file /data/saggese/src/helpers1/devops/compose/docker-compose.yml \
             --env-file devops/env/default.env \
             run \
             --rm \

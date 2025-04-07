@@ -2,7 +2,7 @@
 """
 Fix the formatting of links and file/fig paths in Markdown files.
 
-For more details, see `/docs/all.amp_fix_md_links.explanation.md`.
+For more details, see `/docs/coding/all.amp_fix_md_links.explanation.md`.
 """
 
 import argparse
@@ -14,29 +14,34 @@ from typing import List, Tuple
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
+import helpers.hmarkdown as hmarkdo
 import helpers.hparser as hparser
+import helpers.hstring as hstring
 import linters.action as liaction
 import linters.utils as liutils
 
 _LOG = logging.getLogger(__name__)
 
 # Regular expressions for different link types.
-FIG_REGEX_1 = r'<img src="\.{0,2}\w*\/.+?\.(?:jpg|jpeg|png)"'
-FIG_REGEX_2 = r"!\[\w*\]\(\.{0,2}\w*\/.+?\.(?:jpg|jpeg|png)\)"
-FILE_PATH_REGEX = r"\.{0,2}\w*\/.+?\.[\w\.]+"
-LINK_REGEX = r"\[(.+)\]\(((?!#).*)\)"
+FIG_REGEX_1 = r'<img src="\.{0,2}\w*\/\S+?\.(?:jpg|jpeg|png)"'
+FIG_REGEX_2 = r"!\[\w*\]\(\.{0,2}\w*\/\S+?\.(?:jpg|jpeg|png)\)"
+FILE_PATH_REGEX = r"\.{0,2}\w*\/\S+\.[\w\.]+"
 HTML_LINK_REGEX = r'(<a href=".*?">.*?</a>)'
+MD_LINK_REGEX = r"\[(.+)\]\(((?!#).*)\)"
 
 
 def _make_path_absolute(path: str) -> str:
     """
     Make the file path absolute.
 
+    E.g., './dir/file.py' is converted into '/dir/file.py'.
+
     :param path: the original path
     :return: the absolute path
     """
-    abs_path = path.lstrip("./")
-    abs_path = "/" + abs_path
+    # Transform paths that begin with './', '../', '../../'.
+    abs_path = re.sub(r"^(\./|\.\./|\.\./\.\./)*", "", path)
+    abs_path = "/" + abs_path.lstrip("/")
     return abs_path
 
 
@@ -44,30 +49,57 @@ def _make_path_module_agnostic(path: str) -> str:
     """
     Make the file path robust to where it is accessed from.
 
-    E.g., when it is accessed from a submodule, it should
-    include the `amp` directory explicitly.
+    E.g., when it is accessed from a submodule, it should include the `amp`
+    directory explicitly.
 
     :param path: the original path
     :return: the module-agnostic path
     """
     # Get the absolute path of the `amp` dir.
+    # TODO(gp): This is not general enough since not all repos have `amp`.
+    # E.g., `//notes``, `//tutorials`.
     amp_path = hgit.get_amp_abs_path()
     # Compile the module-agnostic path.
     upd_path = os.path.join(amp_path, path.lstrip("/"))
     return upd_path
 
 
+def _check_md_header_exists(
+    markdown_link_path: str, header: str, level: int = 6
+) -> bool:
+    """
+    Check if a header exists in the markdown file.
+
+    :param markdown_link_path: the path to the Markdown file in which the header will be looked up
+    :param header: the heading text to look for in the file, e.g., `test`, `test-two`
+    :param level: the maximum depth of headers to extract (Markdown supports levels 1 to 6)
+        - E.g., level 2 matches only `##` and `#` headers, not `###` or deeper
+    :return: True if the header is found, False if not found
+    """
+    with open(markdown_link_path, "r", encoding="utf-8") as file:
+        content = file.read()
+    # Get the headers of the markdown file.
+    headers_md = hmarkdo.extract_headers_from_markdown(content, level)
+    # Replace '-' with a white space.
+    header = header.replace("-", " ").lower()
+    # Check if the header matches any extracted header of the markdown file.
+    found = any(header == h.description.lower() for h in headers_md)
+    return found
+
+
 def _check_md_link_format(
     link_text: str, link: str, line: str, file_name: str, line_num: int
 ) -> Tuple[str, List[str]]:
     """
-    Check whether the link is in an appropriate format.
+    Check whether a markdown link is in the appropriate format.
 
     The desired format is '[/dir/file.py](/dir/file.py)':
       - The link text is the same as the link.
-      - The link is an absolute path to the file (not a relative path and not a URL).
+      - The link is an absolute path to the file (not a relative path and not a
+        URL).
 
-    If the original link text is a regular text and not a file path, it should not be updated.
+    If the original link text is a regular text and not a file path, it should
+    not be updated.
     E.g., '[here](/dir/file.py)' remains as is.
 
     :param link_text: the original link text
@@ -83,7 +115,7 @@ def _check_md_link_format(
     old_link_txt = f"[{link_text}]({link})"
     if link == "" and (
         re.match(r"^{}$".format(FILE_PATH_REGEX), link_text)
-        or link_text.startswith("http")
+        or link_text.startswith(("http", "mailto", "ftp", "tel"))
     ):
         # Fill in the empty link with the file path or URL from the link text.
         link = link_text
@@ -91,65 +123,84 @@ def _check_md_link_format(
         # The link is empty and there is no indication of how it should be filled;
         # update is impossible.
         return line, warnings
-    if link.startswith("http"):
-        if not any(x in link for x in ["cryptokaizen", "kaizen-ai"]):
+    if link.startswith(("http", "mailto", "ftp", "tel")):
+        if not any(
+            x in link
+            for x in ["://github.com/cryptokaizen", "://github.com/causify-ai"]
+        ):
             # The link is to an external resource; update is not needed.
+            return line, warnings
+        if "blob/master" not in link:
+            # The link is not to a file (but, for example, to an issue);
+            # update is not needed.
             return line, warnings
         # Leave only the path to the file in the link.
         link = link.split("blob/master")[-1]
     # Make the path in the link absolute.
     link = _make_path_absolute(link)
     # Update the link text.
-    if re.match(r"^{}$".format(FILE_PATH_REGEX), link_text):
+    if re.match(r"^`?{}`?$".format(FILE_PATH_REGEX), link_text):
         # Make the link text the same as link if the link text is a file path.
-        link_text = link
+        link_text = f"`{link}`" if link_text.startswith("`") else link
     # Replace the link in the line with its updated version.
     new_link_txt = f"[{link_text}]({link})"
     updated_line = line.replace(old_link_txt, new_link_txt)
-    # Check that the file referenced by the link exists.
-    link_in_cur_module = _make_path_module_agnostic(link)
+    # Split the link into file path and header using the '#' delimiter.
+    link_path, _, header = link.partition("#")
+    link_in_cur_module = _make_path_module_agnostic(link_path)
     if not os.path.exists(link_in_cur_module):
-        msg = f"{file_name}:{line_num}: '{link}' does not exist"
+        # Warn that the file referenced by the link does not exist.
+        msg = f"{file_name}:{line_num}: '{link_path}' does not exist"
         warnings.append(msg)
+    elif header:
+        # Check if the header referenced by the link exists.
+        header_exists = _check_md_header_exists(link_in_cur_module, header)
+        if not header_exists:
+            msg = f"{file_name}:{line_num}: Header '{header}' does not exist in '{link_path}'"
+            warnings.append(msg)
     return updated_line, warnings
 
 
-def _check_file_path_format(
-    file_path: str, line: str, file_name: str, line_num: int
-) -> Tuple[str, List[str]]:
+def _check_file_path_format(file_path: str, line: str) -> str:
     """
     Convert the file path into a link in a correct format.
 
-    A file path like './dir/file.py' is converted into '[/dir/file.py](/dir/file.py)'.
+    A file path like '`./dir/file.py`' is converted into '[`/dir/file.py`](/dir/file.py)'.
       - The path to the file in the link should be absolute.
+      - Only file paths given in `backticks` are converted, otherwise the risk of a FP is too high.
+
+    If the file is not found, the path is not converted into a link in order to avoid
+    introducing unnecessary broken links.
 
     :param file_path: the original file path
     :param line: the original line with the file path
-    :param file_name: the name of the Markdown file where the line is from
-    :param line_num: the number of the line in the file
-    :return:
-        - the updated line with the link to the file in the correct format
-        - warnings about the issues with the link to the file
+    :return: the updated line with the link to the file in the correct format
     """
-    warnings: List[str] = []
-    file_path = re.escape(file_path)
-    if not re.search(r'(?<!<img src=")(?<!\[)(?<!\()' + file_path, line):
-        # Links and figure pointers are processed separately.
-        return line, warnings
-    if not re.search(r"(?<!http:)(?<!https:)" + file_path, line):
+    if (
+        f'<img src="{file_path}' in line
+        or f"[{file_path}]" in line
+        or f"[`{file_path}`]" in line
+        or f"({file_path})" in line
+        or f"(`{file_path}`)" in line
+    ):
+        # Ignore links and figure pointers, which are processed separately.
+        return line
+    if not re.search(
+        r"(?<!http:)(?<!https:)(?<!mailto:)(?<!ftp:)(?<!tel:)" + file_path, line
+    ):
         # Ignore URLs.
-        return line, warnings
+        return line
     # Make the file path absolute.
     abs_file_path = _make_path_absolute(file_path)
-    # Replace the bare file path in the line with the link to the file.
-    link_with_file_path = f"[{abs_file_path}]({abs_file_path})"
-    updated_line = line.replace(file_path, link_with_file_path)
-    # Check that the file referenced by the link exists.
+    # Check if the file referenced by the path exists.
     abs_file_path_in_cur_module = _make_path_module_agnostic(abs_file_path)
     if not os.path.exists(abs_file_path_in_cur_module):
-        msg = f"{file_name}:{line_num}: '{abs_file_path}' does not exist"
-        warnings.append(msg)
-    return updated_line, warnings
+        # If there is no file, do not turn the path into a link.
+        return line
+    # Replace the bare file path in the line with the link to the file.
+    link_with_file_path = f"[`{abs_file_path}`]({abs_file_path})"
+    updated_line = line.replace(f"`{file_path}`", link_with_file_path)
+    return updated_line
 
 
 def _check_fig_pointer_format(
@@ -198,37 +249,25 @@ def _check_fig_pointer_format(
     return updated_line, warnings
 
 
-def _check_html_link_format(
-    html_link: str, line: str, file_name: str, line_num: int
-) -> Tuple[str, List[str]]:
+def _convert_html_link(html_link: str, line: str) -> str:
     """
-    Convert HTML-style link (`<a href="...">...</a>`) into a Markdown-style
-    link (`[text](...)`).
+    Convert an HTML-style link into a Markdown-style link.
 
-    Given HTML link in the form `<a href="link_target">link_text</a>`
+    Given an HTML link in the form `<a href="link_target">link_text</a>`
     replace it with the Markdown equivalent `[link_text](link_target)`.
 
-    :param html_link: the original HTML link to validate
+    :param html_link: the original HTML link
     :param line: the line of text containing the link
-    :param file_name: the name of the Markdown file being processed
-    :param line_num: the line number where the link is located
-    :return:
-        - the updated line with the fixed HTML link (if any fixes were applied)
-        - a list of warnings about issues with the link
+    :return: the updated line with the link converted into a Markdown
+        style
     """
-    warnings: List[str] = []
+    # Extract the link text and the link target.
     match = re.match(r'<a href="(.*?)">(.*?)</a>', html_link)
-    if match:
-        link_target, original_text = match.groups()
-        # Create the Markdown-style link.
-        converted_link = f"[{original_text}]({link_target})"
-        # Replace the with the Markdown-style link.
-        # `__check_md_link_format` will handle the
-        # check on validity of the link in `fix_links()`
-        line = line.replace(html_link, converted_link)
-    else:
-        warnings.append(f"{file_name}:{line_num}: '{html_link}' does not exist")
-    return line, warnings
+    link_target, original_text = match.groups()
+    # Replace the HTML-style link with the Markdown-style link.
+    converted_to_md_link = f"[{original_text}]({link_target})"
+    line = line.replace(html_link, converted_to_md_link)
+    return line
 
 
 def fix_links(file_name: str) -> Tuple[List[str], List[str], List[str]]:
@@ -236,8 +275,8 @@ def fix_links(file_name: str) -> Tuple[List[str], List[str], List[str]]:
     Fix the formatting of links and file/figure paths in a Markdown file.
 
     The following objects are checked:
-      - Links in the Markdown format, e.g. '[link_text](link)'
-        (incl. when the link text is an empty string).
+      - Links in the Markdown format, e.g. '[link_text](link)' (including when
+        the link text is an empty string).
       - Bare file paths, e.g.'/dir1/dir2/file.py'.
       - Pointers to figures, e.g. '<img src="dir1/dir2/file.png">'.
       - HTML-style links (`<a href="..."></a>`).
@@ -249,38 +288,44 @@ def fix_links(file_name: str) -> Tuple[List[str], List[str], List[str]]:
         - the warnings about incorrectly formatted links/links to non-existent files
     """
     lines = hio.from_file(file_name).split("\n")
+    # Detect (doc)strings in the file so that certain transformations
+    # can be skipped there.
+    docstring_line_indices = hstring.get_docstring_line_indices(lines)
     updated_lines: List[str] = []
     warnings: List[str] = []
     for i, line in enumerate(lines):
         updated_line = line
         # Check the formatting.
-        # Links.
         # HTML-style links.
         html_link_matches = re.findall(HTML_LINK_REGEX, updated_line)
         for html_link in html_link_matches:
-            updated_line, line_warnings = _check_html_link_format(
-                html_link, updated_line, file_name, i
-            )
-            warnings.extend(line_warnings)
-        link_matches = re.findall(LINK_REGEX, updated_line)
-        for link_text, link in link_matches:
+            updated_line = _convert_html_link(html_link, updated_line)
+        # Markdown-style links.
+        md_link_matches = re.findall(MD_LINK_REGEX, updated_line)
+        for md_link_text, md_link in md_link_matches:
+            if re.match(FIG_REGEX_2, f"![{md_link_text}]({md_link})"):
+                # Skip links to figures as they are processed separately.
+                continue
             updated_line, line_warnings = _check_md_link_format(
-                link_text, link, updated_line, file_name, i
+                md_link_text, md_link, updated_line, file_name, i
             )
             warnings.extend(line_warnings)
         # File paths.
-        file_path_matches = re.findall(FILE_PATH_REGEX, updated_line)
+        file_path_matches = re.findall(
+            r"`({})`".format(FILE_PATH_REGEX), updated_line
+        )
         for file_path in file_path_matches:
+            if i in docstring_line_indices:
+                # Skip if the line is inside a (doc)string where
+                # we don't want to modify file paths.
+                continue
             if not re.search(r"[a-zA-Z]", file_path):
                 # Skip if there are no letters in the found path.
                 continue
             if re.match(r"\.[a-zA-Z]", file_path):
                 # Skip if the path is to a hidden file.
                 continue
-            updated_line, line_warnings = _check_file_path_format(
-                file_path, updated_line, file_name, i
-            )
-            warnings.extend(line_warnings)
+            updated_line = _check_file_path_format(file_path, updated_line)
         # Figure pointers.
         fig_pointer_matches = re.findall(
             FIG_REGEX_1 + "|" + FIG_REGEX_2, updated_line
@@ -343,4 +388,3 @@ def _main(parser: argparse.ArgumentParser) -> None:
 
 if __name__ == "__main__":
     _main(_parse())
-

@@ -1,3 +1,6 @@
+---
+fontsize: 10pt
+---
 \let\emph\textit
 \let\uline\underline
 \let\ul\underline

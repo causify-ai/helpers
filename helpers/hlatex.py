@@ -25,7 +25,8 @@ def convert_pandoc_md_to_latex(txt: str) -> str:
         f" -o {out_file_name}"
         " --read=markdown --write=latex"
     )
-    hdocker.run_dockerized_pandoc(cmd)
+    container_type = "pandoc_only"
+    hdocker.run_dockerized_pandoc(cmd, container_type)
     # Read tmp file.
     res = hio.from_file(out_file_name)
     return res
@@ -42,7 +43,7 @@ def markdown_list_to_latex(markdown: str) -> str:
     markdown = hprint.dedent(markdown)
     # Remove the first line if it's a title.
     markdown = markdown.split("\n")
-    m = re.match("^(\*+ )(.*)", markdown[0])
+    m = re.match(r"^(\*+ )(.*)", markdown[0])
     if m:
         title = m.group(2)
         markdown = markdown[1:]
@@ -51,7 +52,7 @@ def markdown_list_to_latex(markdown: str) -> str:
     markdown = "\n".join(markdown)
     # Convert.
     txt = convert_pandoc_md_to_latex(markdown)
-    # Remove \tightlist and empty lines.
+    # Remove `\tightlist` and empty lines.
     lines = txt.splitlines()
     lines = [line for line in lines if "\\tightlist" not in line]
     lines = [line for line in lines if line.strip() != ""]
@@ -63,7 +64,7 @@ def markdown_list_to_latex(markdown: str) -> str:
 
 
 def remove_latex_formatting(latex_string: str) -> str:
-    """
+    r"""
     Remove LaTeX formatting such as \textcolor{color}{content} and retains only
     the content.
     """

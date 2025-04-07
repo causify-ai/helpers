@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 
 """
-Lint md files.
+Lint "notes" files.
 
-> lint_notes.py -i foo.md -o bar.md --use_dockerized_prettier --use_dockerized_markdown_toc
+> lint_notes.py -i foo.md -o bar.md \
+        --use_dockerized_prettier \
+        --use_dockerized_markdown_toc
 
 It can be used in vim to prettify a part of the text using stdin /
 stdout. :%!lint_notes.py
@@ -121,7 +123,11 @@ def prettier(
         force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
         hdocker.run_dockerized_prettier(
-            in_file_path, out_file_path, cmd_opts, force_rebuild, use_sudo
+            in_file_path,
+            cmd_opts,
+            out_file_path,
+            force_rebuild=force_rebuild,
+            use_sudo=use_sudo,
         )
     else:
         # Run `prettier` installed on the host directly.
@@ -249,7 +255,7 @@ def _frame_chapters(txt: str, *, max_lev: int = 4) -> str:
 
 
 def _refresh_toc(
-    txt: str, 
+    txt: str,
     *,
     use_dockerized_markdown_toc: bool = True,
     **kwargs: Any,
@@ -280,10 +286,13 @@ def _refresh_toc(
     cmd_opts: List[str] = []
     if use_dockerized_markdown_toc:
         # Run `markdown-toc` in a Docker container.
-        force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
+        force_rebuild = False
         hdocker.run_dockerized_markdown_toc(
-            tmp_file_name, force_rebuild, cmd_opts, use_sudo
+            tmp_file_name,
+            cmd_opts,
+            use_sudo=use_sudo,
+            force_rebuild=force_rebuild,
         )
     else:
         # Run `markdown-toc` installed on the host directly.
@@ -401,11 +410,11 @@ def _parser() -> argparse.ArgumentParser:
         default=None,
     )
     parser.add_argument(
-         "--use_dockerized_prettier",
+        "--use_dockerized_prettier",
         action="store_true",
     )
     parser.add_argument(
-         "--use_dockerized_markdown_toc",
+        "--use_dockerized_markdown_toc",
         action="store_true",
     )
     hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
@@ -430,9 +439,9 @@ def _main(args: argparse.Namespace) -> None:
     txt = args.infile.read()
     # Process.
     txt = _process(
-        txt, 
-        in_file_name, 
-        actions=args.action, 
+        txt,
+        in_file_name,
+        actions=args.action,
         print_width=args.print_width,
         use_dockerized_prettier=args.use_dockerized_prettier,
         use_dockerized_markdown_toc=args.use_dockerized_markdown_toc,

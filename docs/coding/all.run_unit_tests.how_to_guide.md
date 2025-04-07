@@ -21,6 +21,7 @@
       - [Common usage](#common-usage)
     + [Publishing HTML report on S3](#publishing-html-report-on-s3)
 - [Running `pytest` directly](#running-pytest-directly)
+  * [Basic rules](#basic-rules)
   * [Usage and Invocations reference](#usage-and-invocations-reference)
   * [Custom `pytest` options behaviors](#custom-pytest-options-behaviors)
     + [Enable logging](#enable-logging)
@@ -149,10 +150,10 @@
 - To skip running tests in submodules, use the `--skip-submodules` option.
 - This option is useful in repos with Git submodules so that you can run only
   the tests specific to the repo, skipping the tests in the submodule
-  - E.g., to run only the tests in `dev_tools` but not in `cmamp` (which is a
+  - E.g., to run only the tests in `cmamp` but not in `helpers` (which is a
     submodule)
     ```bash
-    > cd dev_tools1
+    > cd cmamp1
     > i run_fast_tests --skip-submodules
     ```
 
@@ -168,8 +169,6 @@
 
 - We use the [`pytest-timeout`](https://pypi.org/project/pytest-timeout/)
   package to limit durations of fast, slow, and superslow tests
-- The timeout durations for each test type are listed
-  [here](#running-unit-tests)
 - The timeout restricts the running time of the test methods, including
   `set_up_test()` and `tear_down_test()` time, if they are run at the
   beginning/end of the methods
@@ -189,7 +188,7 @@
   once
 - There is a
   [way](https://pypi.org/project/pytest-rerunfailures/#re-run-individual-failures)
-  to provide a rerun delay for individual tests. However, we can’t use it for
+  to provide a rerun delay for individual tests. However, we can't use it for
   now due to
   [#693 (comment)](https://github.com/cryptokaizen/cmamp/issues/693#issuecomment-989456031)
 
@@ -368,11 +367,11 @@
   > open htmlcov/index.html
   ```
 
-  ![alt_text](figs/unit_tests/image_1.png)
+  <img src="figs/unit_tests/image_1.png">
 
 - By clicking on a file you can see which lines are not covered
 
-  ![alt_text](figs/unit_tests/image_2.png)
+  <img src="figs/unit_tests/image_2.png">
 
 #### An example coverage session
 
@@ -572,7 +571,18 @@
 
 ## Running `pytest` directly
 
-### Usage and Invocations reference
+### Basic rules
+
+- Always run `pytest` from the Docker container to ensure consistency in our
+  environments
+
+```bash
+> i docker_bash
+# Then from Docker, run pytest.
+docker > pytest <test_file_name>
+```
+
+## Usage and Invocations reference
 
 - See [`pytest` documentation](http://doc.pytest.org/en/latest/usage.html)
 - Some examples of useful command lines:
@@ -581,11 +591,14 @@
   # Stop at first failure
   > pytest -x
 
-  # Run a single class
+  # Run a single test class
   > pytest -k TestPcaFactorComputer1
 
   # Run a single test method
   > pytest core/test/test_core.py::TestPcaFactorComputer1::test_linearize_eigval_eigvec
+
+    # Run all tests in a file
+  > pytest core/test/test_core.py
 
   # Remove cache artifacts
 
@@ -677,7 +690,7 @@
    ```
    - Note that the indentation matters since it's a YAML file
 
-     ![alt_text](figs/unit_tests/image_3.png)
+     <img src="figs/unit_tests/image_3.png">
    - The `-s --dbg` is to show `_LOG.debug` in case you care about that to get
      more information
 
