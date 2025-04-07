@@ -16,6 +16,8 @@ import helpers.hdbg as hdbg
 import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
+
+# Mute this module unless we want to debug it.
 _LOG.setLevel(logging.INFO)
 
 
