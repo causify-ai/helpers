@@ -67,7 +67,7 @@ class TestRepoConfig_Amp(hunitest.TestCase):
         When running Amp on dev_csfy, the CSFY bucket should be available.
         """
         if hserver.is_dev_csfy():
-            act = hserver.is_CSFY_S3_available()
+            act = hserver.test_is_CK_S3_available()
             exp = True
             self.assertEqual(act, exp)
 
