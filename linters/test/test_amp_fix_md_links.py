@@ -314,7 +314,7 @@ class Test_fix_links(hunitest.TestCase):
         Tel: [Call](tel:+1234567890)
         """
         file_name = "test_links.md"
-        file_path = self._write_input_file(input_content, file_name)
+        file_path = self.write_input_file(input_content, file_name)
         # Run.
         _, updated_lines, out_warnings = lafimdli.fix_links(file_path)
         # Check.
