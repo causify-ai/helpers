@@ -1,21 +1,18 @@
 # linter warnings
-
-/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:38: '/helpersssss/hhhhgit.py' does not exist
-/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:77: 'import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
-/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:80: 'import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
-/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:83: '/import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
-/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:86: '/iiimport_check/example/output/basicccc.png' does not follow the format 'figs/test.md/XYZ'
-/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:86: '/iiimport_check/example/output/basicccc.png' does not exist
-/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:89: 'import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
-/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:92: 'import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
-/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:96: '/import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
-/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:99: '../../import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
-/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:102: '/iiimport_check/example/output/basicccc.png' does not follow the format 'figs/test.md/XYZ'
-/app/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:102: '/iiimport_check/example/output/basicccc.png' does not exist
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:37: '/helpersssss/hhhhgit.py' does not exist
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:76: 'import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:79: 'import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:82: '/import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:85: '/iiimport_check/example/output/basicccc.png' does not follow the format 'figs/test.md/XYZ'
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:85: '/iiimport_check/example/output/basicccc.png' does not exist
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:88: 'import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:91: 'import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:95: '/import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:98: '../../import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:101: '/iiimport_check/example/output/basicccc.png' does not follow the format 'figs/test.md/XYZ'
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:101: '/iiimport_check/example/output/basicccc.png' does not exist
 
 # linted file
-
-
 - Markdown-style link with a text label
   - [Here](/helpers/hdbg.py)
 
@@ -50,7 +47,7 @@
   - [AirFlow UI](http://172.30.2.44:8090/home).
 
 - Markdown-style link with backticks in the square brackets and external http link
-  - [`cryptokaizen-data-tokyo.preprod`](https://ap-northeast-1.console.aws.amazon.com/s3/buckets/cryptokaizen-data-tokyo.preprod)
+  - [`foobar`](https://ap-northeast-1.console.aws.amazon.com/s3/buckets/foobar)
 
 - Markdown-style link to a file that does not exist
   - [File not found](/helpersssss/hhhhgit.py)
@@ -77,7 +74,7 @@
   - .github/workflows/build_image.yml.DISABLED
 
 - Non-file path
-  - ../../../../amp/helpers:/app/helpers
+  - ../../../../helpers:$GIT_ROOT/helpers
 
 - Non-file path text with slashes in it
   - Code in Markdown/LaTeX files (e.g., mermaid code).
@@ -118,4 +115,3 @@ height="1.2303444881889765in"}
 
 - Markdown-style figure pointer that does not exist
   - <img src="/iiimport_check/example/output/basicccc.png">
-        
