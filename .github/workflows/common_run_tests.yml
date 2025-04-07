@@ -62,10 +62,10 @@ jobs:
           submodules: true
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      # To see the modules in `amp`, PYTHONPATH needs to include `amp` in the
-      # same way we do in `setenv.sh`.
+      # To see the modules in `amp` and `helpers_root`, PYTHONPATH needs to
+      # include them in the same way we do in `setenv.sh`.
       - name: Update PYTHONPATH
-        run: echo "PYTHONPATH=.:amp" >> $GITHUB_ENV
+        run: echo "PYTHONPATH=.:helpers_root:amp" >> $GITHUB_ENV
 
       # Install packages that are required to run the job via GH.
       - name: Install dependencies
