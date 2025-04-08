@@ -406,7 +406,7 @@ class Test_extract_repo_name(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test _extract_repo_name() function.
+        Check that tutorials repo name is extracted correctly.
         """
         # Prepare input.
         input = "https://github.com/causify-ai/tutorials/blob/master/llms/tutorial-openai_new.ipynb"
@@ -418,7 +418,7 @@ class Test_extract_repo_name(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        Test _extract_repo_name() function.
+        Check that helpers repo name is extracted correctly.
         """
         # Prepare input.
         input = "https://github.com/causify-ai/helpers/blob/master/linters/amp_fix_md_links.py"

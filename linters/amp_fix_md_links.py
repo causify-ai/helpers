@@ -91,16 +91,16 @@ def _check_md_header_exists(
 def _extract_repo_name(url: str) -> str:
     """
     Extract repo name from the github file link.
-    E.g., `https://github.com/causify-ai/helpers/blob/master/linters/amp_fix_md_links.py` -> `helpers`
+    E.g., `https://github.com/causify-ai/helpers/blob/master/linters/amp_fix_md_links.py` -> `helpers`.
 
     :param url: github URL to be parsed
     :return: repo name
     """
-    # Extract the URL upto the repo name; e.g., `https://github.com/causify-ai/helpers`
-    repo_url = url.split("blob/master")[0][:-1]
-    # Extract the {organization}/{repo} part of the link and finally return the {repo} bit
+    # Extract the URL upto the repo name; e.g., `https://github.com/causify-ai/helpers`.
+    repo_url = url.split("/blob/master")[0]
+    # Extract the {organization}/{repo} part of the link and finally return the {repo} bit.
     repo = hgit._parse_github_repo_name(repo_url)[1]
-    repo_short_name = repo.split("/")[-1]
+    repo_short_name = repo.split("causify-ai/")[-1]
     return repo_short_name
 
 
@@ -156,8 +156,7 @@ def _check_md_link_format(
             hrecouti.get_repo_config().get_repo_short_name()
             != link_repo_short_name
         ):
-            # The link points to another repo;
-            # update is not needed.
+            # The link points to another repo; update is not needed.
             return line, warnings
         # Leave only the path to the file in the link.
         link = link.split("blob/master")[-1]
