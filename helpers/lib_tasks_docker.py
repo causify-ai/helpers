@@ -1111,7 +1111,7 @@ def _get_docker_base_cmd(
     generate_docker_compose_file: bool,
     extra_env_vars: Optional[List[str]],
     extra_docker_compose_files: Optional[List[str]],
-    skip_docker_image_compatibility_check: bool
+    skip_docker_image_compatibility_check: bool = False,
 ) -> List[str]:
     r"""
     Get base `docker-compose` command encoded as a list of strings.
