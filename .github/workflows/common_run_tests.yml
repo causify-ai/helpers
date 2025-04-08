@@ -6,6 +6,10 @@ on:
             description: 'Name of the test to run. Example: run_fast_tests.'
             required: true
             type: string
+          enable-ssh:
+            description: 'Run ssh step'
+            required: false
+            type: string
 env:
   CSFY_CI: true
   # CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
@@ -83,6 +87,17 @@ jobs:
       # cost saving purposes to run the regressions on.
       - name: Pull image from GHCR
         run: invoke docker_pull
+
+      - name: Run tests
+        if: ${{ inputs.enable-ssh == 'true' }}
+        uses: lhotari/action-upterm@v1
+        env:
+          CSFY_AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
+          CSFY_AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          CSFY_AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
+          CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
+          CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
+          GH_ACTION_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run tests
         env:
