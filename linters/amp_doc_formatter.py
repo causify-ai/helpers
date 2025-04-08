@@ -185,9 +185,8 @@ class _DocFormatter(liaction.Action):
         :return: lints
         """
         _ = pedantic
-        # Applicable only to Python files.
-        if not liutils.is_py_file(file_name):
-            _LOG.debug("Skipping file_name='%s'", file_name)
+        if self.skip_if_not_py(file_name):
+            # Apply only to Python files.
             return []
         # Clear and store ignored docstrings and code.
         _ignored_docstrings = self._remove_ignored_docstrings(file_name)
@@ -232,9 +231,8 @@ class _Pydocstyle(liaction.Action):
         :param pedantic: level of scrutiny in checking
         :return: lints
         """
-        # Applicable to only python file.
-        if not liutils.is_py_file(file_name):
-            _LOG.debug("Skipping file_name='%s'", file_name)
+        if self.skip_if_not_py(file_name):
+            # Apply only to Python files.
             return []
         ignore = []
         # Error codes: http://www.pydocstyle.org/en/2.1.1/error_codes.html.
@@ -371,9 +369,8 @@ class _Pyment(liaction.Action):
         :return: lints
         """
         _ = pedantic
-        # Applicable to only python file.
-        if not liutils.is_py_file(file_name):
-            _LOG.debug("Skipping file_name='%s'", file_name)
+        if self.skip_if_not_py(file_name):
+            # Apply only to Python files.
             return []
         opts = "-w --first-line False -o reST"
         cmd = self._executable + f" {opts} {file_name}"
