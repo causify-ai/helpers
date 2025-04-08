@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 r"""
-Wrapper for isort
+Wrapper for isort.
 
 > amp_isort.py sample_file1.py sample_file2.py
 
@@ -25,6 +25,11 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+# #############################################################################
+# _ISort
+# #############################################################################
+
+
 class _ISort(liaction.Action):
     """
     Apply isort code formatter.
@@ -40,9 +45,8 @@ class _ISort(liaction.Action):
 
     def _execute(self, file_name: str, pedantic: int) -> List[str]:
         _ = pedantic
-        # Applicable to only python file.
-        if not liutils.is_py_file(file_name):
-            _LOG.debug("Skipping file_name='%s'", file_name)
+        if self.skip_if_not_py(file_name):
+            # Apply only to Python files.
             return []
         # Use `--treat-all-comment-as-code` switch to ensure that `isort`
         # doesn't move comments between imports, like
