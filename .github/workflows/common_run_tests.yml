@@ -10,6 +10,9 @@ on:
             description: 'Run ssh step'
             required: false
             type: string
+        secrets:
+          CALLER_GITHUB_TOKEN:
+            required: false
 env:
   CSFY_CI: true
   # CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
@@ -97,7 +100,7 @@ jobs:
           CSFY_AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
           CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
-          GH_ACTION_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_ACTION_ACCESS_TOKEN: ${{ secrets.CALLER_GITHUB_TOKEN }}
 
       - name: Run tests
         env:
