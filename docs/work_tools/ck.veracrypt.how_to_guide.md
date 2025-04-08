@@ -39,9 +39,9 @@
    style="width:6.5in;height:4.06944in" />
 
 4. Create a name and select a location to save the VeraCrypt volume that you
-   will be creating and select "Next."
-   NOTE: It is helpful if you create a volume name that ends with `.vc`. This
-   will associate the volume with the VeraCrypt application.
+   will be creating and select "Next." NOTE: It is helpful if you create a
+   volume name that ends with `.vc`. This will associate the volume with the
+   VeraCrypt application.
 
 <img
 src="figs/veracrypt/image2.png"
@@ -75,16 +75,13 @@ src="figs/veracrypt/image4.png"
 style="width:6.5in;height:4.06944in" />
 
 8. Select the file system and click "Next". The default is suitable in most
-   cases.
-   Then you should move your mouse to get randomness in Pool but feel free to
-   click "Format".
-   Note: You do not need to move your cursor that much as this server is behind
-   VPN.
+   cases. Then you should move your mouse to get randomness in Pool but feel
+   free to click "Format". Note: You do not need to move your cursor that much
+   as this server is behind VPN.
 
 <img
 src="figs/veracrypt/image10.png"
-style="width:6.5in;height:4.06944in" />
-<img
+style="width:6.5in;height:4.06944in" /> <img
 src="figs/veracrypt/image9.png"
 style="width:6.5in;height:4.06944in" />
 
