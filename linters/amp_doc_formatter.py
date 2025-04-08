@@ -185,8 +185,7 @@ class _DocFormatter(liaction.Action):
         :return: lints
         """
         _ = pedantic
-        # Applicable only to Python files.
-        if self.skip_if_not_py(file_name) is True:
+        if self.skip_if_not_py(file_name):
             # Apply only to Python files.
             return []
         # Clear and store ignored docstrings and code.
@@ -232,8 +231,7 @@ class _Pydocstyle(liaction.Action):
         :param pedantic: level of scrutiny in checking
         :return: lints
         """
-        # Applicable to only python file.
-        if self.skip_if_not_py(file_name) is True:
+        if self.skip_if_not_py(file_name):
             # Apply only to Python files.
             return []
         ignore = []
@@ -371,8 +369,7 @@ class _Pyment(liaction.Action):
         :return: lints
         """
         _ = pedantic
-        # Applicable to only python file.
-        if self.skip_if_not_py(file_name) is True:
+        if self.skip_if_not_py(file_name):
             # Apply only to Python files.
             return []
         opts = "-w --first-line False -o reST"

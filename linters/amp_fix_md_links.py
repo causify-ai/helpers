@@ -353,7 +353,7 @@ class _LinkFixer(liaction.Action):
 
     def _execute(self, file_name: str, pedantic: int) -> List[str]:
         _ = pedantic
-        if self.skip_if_not_markdown(file_name) is True:
+        if self.skip_if_not_markdown(file_name):
             # Apply only to Markdown files.
             return []
         # Fix links in the file.

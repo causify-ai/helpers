@@ -36,7 +36,7 @@ class _AddTOC(liaction.Action):
 
     def _execute(self, file_name: str, pedantic: int) -> List[str]:
         _ = pedantic
-        if self.skip_if_not_ipynb(file_name) is True:
+        if self.skip_if_not_ipynb(file_name):
             # Apply only to Ipynb notebooks.
             return []
         output: List[str] = []

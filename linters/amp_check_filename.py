@@ -92,7 +92,7 @@ class _CheckFilename(liaction.Action):
         - check that test files are under `test` dir
         """
         _ = pedantic
-        if self.skip_if_not_py_or_ipynb(file_name) is True:
+        if self.skip_if_not_py_or_ipynb(file_name):
             # Apply only to Python files or Ipynb notebooks.
             return []
         FilePathCheck = Callable[[str], str]

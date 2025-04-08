@@ -1009,7 +1009,7 @@ class _NormalizeImports(liaction.Action):
         :return: list of strings representing the output
         """
         _ = pedantic
-        if self.skip_if_not_py(file_name) is True:
+        if self.skip_if_not_py(file_name):
             # Apply only to Python files.
             return []
         #

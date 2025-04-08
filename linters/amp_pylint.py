@@ -41,8 +41,7 @@ class _Pylint(liaction.Action):
         return check
 
     def _execute(self, file_name: str, pedantic: int) -> List[str]:
-        # Applicable to only python file.
-        if self.skip_if_not_py(file_name) is True:
+        if self.skip_if_not_py(file_name):
             # Apply only to Python files.
             return []
         #

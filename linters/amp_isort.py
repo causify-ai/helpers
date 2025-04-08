@@ -45,8 +45,7 @@ class _ISort(liaction.Action):
 
     def _execute(self, file_name: str, pedantic: int) -> List[str]:
         _ = pedantic
-        # Applicable to only python file.
-        if self.skip_if_not_py(file_name) is True:
+        if self.skip_if_not_py(file_name):
             # Apply only to Python files.
             return []
         # Use `--treat-all-comment-as-code` switch to ensure that `isort`

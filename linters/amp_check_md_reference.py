@@ -25,7 +25,6 @@ import linters.action as liaction
 
 _LOG = logging.getLogger(__name__)
 
-MARKDOWN_EXT = ".md"
 MARKDOWN_LINK_REGEX = r"\[.*?\]\((.*?)\)"
 
 
@@ -73,7 +72,7 @@ class _ReadmeLinter(liaction.Action):
 
     def _execute(self, file_name: str, pedantic: int) -> List[str]:
         _ = pedantic
-        if self.skip_if_not_markdown(file_name) is True:
+        if self.skip_if_not_markdown(file_name):
             # Apply only to Markdown files.
             return []
         # Find the repository root.

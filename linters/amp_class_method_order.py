@@ -141,7 +141,7 @@ class _ClassMethodOrder(liaction.Action):
 
     def _execute(self, file_name: str, pedantic: int) -> List[str]:
         _ = pedantic
-        if self.skip_if_not_py(file_name) is True:
+        if self.skip_if_not_py(file_name):
             # Apply only to Python files.
             return []
         txt = hio.from_file(file_name)
