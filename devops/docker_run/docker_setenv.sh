@@ -37,8 +37,8 @@ dassert_dir_exists $CSFY_HELPERS_ROOT_PATH
 # - PATH
 set_path .
 
-# Give permissions to read / write to user and group.
-umask 002
+# - Git.
+set_up_docker_git
 
 # - PYTHONPATH
 set_pythonpath $CSFY_HELPERS_ROOT_PATH
