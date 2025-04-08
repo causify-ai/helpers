@@ -89,7 +89,7 @@ jobs:
         run: invoke docker_pull
 
       - name: ssh
-        if: ${{ inputs.enable-ssh == 'true' }}
+        if: ${{ inputs.enable-ssh == 'enable' }}
         uses: lhotari/action-upterm@v1
         env:
           CSFY_AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
