@@ -317,7 +317,7 @@ class Test_fix_links(hunitest.TestCase):
             "- [LLM Tutorial](https://github.com/causify-ai/tutorials/blob/master/llms/tutorial-openai_new.ipynb)",
         ]
         self.assertEqual(expected, updated_lines)
-        
+
     def test7(self) -> None:
         """
         Test the URI links are not incorrectly prefixed with a '/'.
