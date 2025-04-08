@@ -213,6 +213,7 @@ set_pythonpath() {
         current_path="$helpers_root_abs_path"
         while true; do
             echo "Adding $current_path to PYTHONPATH"
+            # Give priority to higher level directories.
             export PYTHONPATH="$current_path:$PYTHONPATH"
             # Break if we've reached the project root.
             if [[ $current_path == $git_root_dir ]]; then
