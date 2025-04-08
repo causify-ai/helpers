@@ -1065,19 +1065,6 @@ def _get_markdown_example8() -> str:
     return content
 
 
-def _get_markdown_example9() -> str:
-    content = r"""
-
-    ```python
-    def hello_world():
-        print("```python  Python start and Delimiters in code```")
-    ```
-
-    """
-    content = hprint.dedent(content)
-    return content
-
-
 def _example4_removed_code_delimiters() -> str:
     content = r"""
     # Chapter 1
@@ -1153,15 +1140,6 @@ def _example4_removed_code_delimiters() -> str:
     return content
 
 
-def _get_markdown_example10() -> str:
-    content = r"""
-    def no_start_python():
-        print("No mention of python at the start")```
-    """
-    content = hprint.dedent(content)
-    return content
-
-
 # #############################################################################
 # Test_remove_code_delimiters1
 # #############################################################################
@@ -1205,7 +1183,15 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
         Test example with a code block or caret and ```python inside code.
         """
         # Prepare inputs.
-        content = _get_markdown_example9()
+        content = r"""
+
+        ```python
+        def hello_world():
+            print("```python  Python start and Delimiters in code```")
+        ```
+
+        """
+        content = hprint.dedent(content)
         # Call function.
         act = hmarkdo.remove_code_delimiters(content)
         # Check output.
@@ -1274,9 +1260,16 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
         Test a code block with no starting python code delimiters.
         """
         # Prepare inputs.
-        content = _get_markdown_example10()
+        content = r"""
+        def no_start_python():
+            print("No mention of python at the start")```
+        """
+        content = hprint.dedent(content)
         # Call function.
         act = hmarkdo.remove_code_delimiters(content)
         # Check output.
-        exp = content.strip()
+        exp = r"""
+        def no_start_python():
+            print("No mention of python at the start")```
+        """
         self.assert_equal(str(act), exp, dedent=True)
