@@ -23,8 +23,8 @@ class Test_hserver1(hunitest.TestCase):
         # We always run tests inside Docker.
         self.assertTrue(hserver.is_inside_docker())
 
-    def test_is_dev_ck1(self) -> None:
-        _ = hserver.is_dev_ck()
+    def test_is_dev_csfy1(self) -> None:
+        _ = hserver.is_dev_csfy()
 
     def test_is_prod_csfy1(self) -> None:
         is_prod_csfy = hserver.is_prod_csfy()

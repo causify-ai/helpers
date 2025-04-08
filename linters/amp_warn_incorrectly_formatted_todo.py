@@ -44,6 +44,11 @@ def _warn_incorrectly_formatted_todo(
     return msg
 
 
+# #############################################################################
+# _WarnIncorrectlyFormattedTodo
+# #############################################################################
+
+
 class _WarnIncorrectlyFormattedTodo(liaction.Action):
     """
     Apply specific lints.
@@ -54,13 +59,11 @@ class _WarnIncorrectlyFormattedTodo(liaction.Action):
 
     def _execute(self, file_name: str, pedantic: int) -> List[str]:
         _ = pedantic
-        if not liutils.is_py_file(file_name):
-            _LOG.debug("Skipping file_name='%s'", file_name)
+        if self.skip_if_not_py(file_name):
+            # Apply only to Python files.
             return []
-
         lines = hio.from_file(file_name).split("\n")
         output = []
-
         for i, line in enumerate(lines):
             msg = _warn_incorrectly_formatted_todo(file_name, i, line)
             if msg:

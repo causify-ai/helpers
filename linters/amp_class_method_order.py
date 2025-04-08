@@ -65,9 +65,15 @@ def _sorting_key(node: Union[cst.ClassDef, cst.FunctionDef]) -> int:
     return sorting_num
 
 
+# #############################################################################
+# _OrderMethods
+# #############################################################################
+
+
 class _OrderMethods(
     codemod.ContextAwareTransformer
 ):  # pylint: disable=too-many-ancestors
+
     def leave_ClassDef(
         self, original_node: cst.ClassDef, updated_node: cst.ClassDef
     ) -> Union[cst.BaseStatement, cst.RemovalSentinel]:
@@ -120,6 +126,11 @@ def order_methods(txt: str) -> str:
     return res_code
 
 
+# #############################################################################
+# _ClassMethodOrder
+# #############################################################################
+
+
 class _ClassMethodOrder(liaction.Action):
     """
     Put the class methods in the correct order.
@@ -130,8 +141,8 @@ class _ClassMethodOrder(liaction.Action):
 
     def _execute(self, file_name: str, pedantic: int) -> List[str]:
         _ = pedantic
-        if not liutils.is_py_file(file_name):
-            _LOG.debug("Skipping file_name='%s'", file_name)
+        if self.skip_if_not_py(file_name):
+            # Apply only to Python files.
             return []
         txt = hio.from_file(file_name)
         # Apply transformation.
