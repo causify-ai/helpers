@@ -20,47 +20,46 @@
 
 1.  Connect to VPN
 
-2.  Connect to one of dev server via **VNC** that you want to have or
-    already have encrypted folder
+2.  Connect to one of dev server via **VNC** that you want to have or already
+    have encrypted folder
 
 3.  In CLI, type veracrypt or via application menu open veracrypt
 
 ## Creating a VeraCrypt Volume
 
 1. Open up the VeraCrypt application and select "Create Volume".<img
-src="figs/veracrypt/image8.png"
-style="width:4.71354in;height:4.49844in" />  
+   src="figs/veracrypt/image8.png"
+   style="width:4.71354in;height:4.49844in" />
 2. Select "Create an encrypted file container" and click "Next".<img
-src="figs/veracrypt/image6.png"
-style="width:6.5in;height:4.06944in" />
+   src="figs/veracrypt/image6.png"
+   style="width:6.5in;height:4.06944in" />
 
 3. Then choose if you want hidden or standard volume<img
-src="figs/veracrypt/image5.png"
-style="width:6.5in;height:4.06944in" />
+   src="figs/veracrypt/image5.png"
+   style="width:6.5in;height:4.06944in" />
 
-4. Create a name and select a location to save the VeraCrypt volume that
-you will be creating and select "Next."  
-NOTE: It is helpful if you create a volume name that ends with `.vc`.
-This will associate the volume with the VeraCrypt application.
+4. Create a name and select a location to save the VeraCrypt volume that you
+   will be creating and select "Next."
+   NOTE: It is helpful if you create a volume name that ends with `.vc`. This
+   will associate the volume with the VeraCrypt application.
 
 <img
 src="figs/veracrypt/image2.png"
 style="width:6.5in;height:4.06944in" />
 
-5. VeraCrypt provides some options for encryption. Select the desired
-encryption algorithms and select "Next". VeraCrypt uses the AES
-algorithm by default and is recommended for selection.
-  
-    Note: In most cases a 500mb size volume is suitable. However this
-    depends on the user's need and should be adjusted accordingly.
+5.  VeraCrypt provides some options for encryption. Select the desired
+    encryption algorithms and select "Next". VeraCrypt uses the AES algorithm by
+    default and is recommended for selection.
+
+        Note: In most cases a 500mb size volume is suitable. However this
+        depends on the user's need and should be adjusted accordingly.
 
 <img
 src="figs/veracrypt/image13.png"
 style="width:6.5in;height:4.06944in" />
 
-6. Create the size of the volume that you would like to create. Click
-"Next".  
-NOTE: Set the volume to have appropriate size.
+6. Create the size of the volume that you would like to create. Click "Next".
+   NOTE: Set the volume to have appropriate size.
 
 <img
 src="figs/veracrypt/image11.png"
@@ -68,29 +67,28 @@ style="width:6.5in;height:4.06944in" />
 
 7. Create a password for your encrypted volume. Click "Next".
 
-    Note: The longer the password the better it is. It is important to not
-    lose your password. A lost password will make the data unrecoverable.
+   Note: The longer the password the better it is. It is important to not lose
+   your password. A lost password will make the data unrecoverable.
 
 <img
 src="figs/veracrypt/image4.png"
 style="width:6.5in;height:4.06944in" />
 
-8. Select the file system and click "Next". The default is suitable in
-most cases.  
-Then you should move your mouse to get randomness in Pool but feel free
-to click "Format".  
-Note: You do not need to move your cursor that much as this server is
-behind VPN.
+8. Select the file system and click "Next". The default is suitable in most
+   cases.
+   Then you should move your mouse to get randomness in Pool but feel free to
+   click "Format".
+   Note: You do not need to move your cursor that much as this server is behind
+   VPN.
 
 <img
 src="figs/veracrypt/image10.png"
-style="width:6.5in;height:4.06944in" />  
+style="width:6.5in;height:4.06944in" />
 <img
 src="figs/veracrypt/image9.png"
 style="width:6.5in;height:4.06944in" />
 
-9. Your volume has been created. Click "Exit" or X button in top right
-corner.
+9. Your volume has been created. Click "Exit" or X button in top right corner.
 
 <img
 src="figs/veracrypt/image1.png"
@@ -98,8 +96,8 @@ style="width:5.59375in;height:3.59375in" alt="vc8" />
 
 ## Mounting a VeraCrypt Volume
 
-1. Select the VeraCrypt volume that you would like to mount. Select the
-letter drive location you would like to use. Click "Mount".
+1. Select the VeraCrypt volume that you would like to mount. Select the letter
+   drive location you would like to use. Click "Mount".
 
 <img
 src="figs/veracrypt/image7.png"
@@ -111,9 +109,9 @@ style="width:6.5in;height:6.16667in" />
 src="figs/veracrypt/image12.png"
 style="width:5.32292in;height:2.5625in" />
 
-3. The drive is now unencrypted and ready for use at the Mount
-Directory (`/media/veracrypt<slotnumber>`). Save files and documents
-as you would normally do with a mounted drive.
+3. The drive is now unencrypted and ready for use at the Mount Directory
+   (`/media/veracrypt<slotnumber>`). Save files and documents as you would
+   normally do with a mounted drive.
 
 <img
 src="figs/veracrypt/image3.png"
@@ -125,8 +123,7 @@ style="width:5.17188in;height:4.85948in" />
 src="figs/veracrypt/image3.png"
 style="width:5.17188in;height:4.85948in" />
 
-You can Encrypt files by Dismounting Volume, Select Slot and press
-Dismount
+You can Encrypt files by Dismounting Volume, Select Slot and press Dismount
 
 # Using CLI
 
@@ -134,15 +131,15 @@ Dismount
 
 Note: If you need help use `veracrypt -h` there is everything you need
 
-Note: If it asks this: (Enter your user password or administrator
-password:) use your os_password or type sudo before the command.
+Note: If it asks this: (Enter your user password or administrator password:) use
+your os_password or type sudo before the command.
 
-Be careful in not deleting the file that VeraCrypt uses to store the
-data (e.g., `/data/saggese/.src_vc_DO_NOT_OVERWRITE`)
+Be careful in not deleting the file that VeraCrypt uses to store the data (e.g.,
+`/data/saggese/.src_vc_DO_NOT_OVERWRITE`)
 
-Go to the server in your home and create a Veracrypt dir under your
-`$HOME`. Since the directory typically stores code, we assume that it's in
-parallel to `$HOME` like `/data/saggese/src_vc_encrypted`
+Go to the server in your home and create a Veracrypt dir under your `$HOME`.
+Since the directory typically stores code, we assume that it's in parallel to
+`$HOME` like `/data/saggese/src_vc_encrypted`
 
 ```bash
 > sudo veracrypt -t -c
@@ -195,11 +192,10 @@ Filesystem:
 Select [2]: 5
 ```
 
-From Grisha: avoid using "FAT" as it does not support symbolic links,
-meaning that files such as `invoke.yaml`, `conftest.py` (hence `i
-docker_bash`, `i run_fast_tests`) won’t work, because in
-`lemonade` they are symbolic links to the corresponding files in
-`amp`. Use Linux Ext4 (!)
+From Grisha: avoid using "FAT" as it does not support symbolic links, meaning
+that files such as `invoke.yaml`, `conftest.py` (hence `i docker_bash`,
+`i run_fast_tests`) won't work, because in `lemonade` they are symbolic links to
+the corresponding files in `amp`. Use Linux Ext4 (!)
 
 ```bash
 Enter password: Password123
@@ -217,7 +213,7 @@ Enter keyfile path [none]: none
 Note: it interprets "none" as a literal path, instead just press Enter to proceed
 
 Please type at least 320 randomly chosen characters and then press
-Enter: aksjdhqhhaskfjjhcb,anbowquehjkashdbncakh…
+Enter: aksjdhqhhaskfjjhcb,anbowquehjkashdbncakh...
 
 Done: 100.000% Speed: 123 MiB/s Left: 0 s
 
@@ -234,14 +230,14 @@ The VeraCrypt volume has been successfully created.
 -k "" --random-source=/dev/urandom
 ```
 
-You need to use the same PIM (personal iterations multipliers) that you
-used to create the volume
+You need to use the same PIM (personal iterations multipliers) that you used to
+create the volume
 
 ## Mounting a VeraCrypt Volume
 
-Note: it seems that this operation can be performed only by a "sudoer",
-refer to [https://github.com/veracrypt/VeraCrypt/issues/496](https://github.com/veracrypt/VeraCrypt/issues/496). Check with
-the infra team if there are any problems.
+Note: it seems that this operation can be performed only by a "sudoer", refer to
+[https://github.com/veracrypt/VeraCrypt/issues/496](https://github.com/veracrypt/VeraCrypt/issues/496).
+Check with the infra team if there are any problems.
 
 To mount without user prompts
 
@@ -249,7 +245,9 @@ To mount without user prompts
 > sudo veracrypt /data/$USER/.src_vc_DO_NOT_OVERWRITE
 /data/$USER/src_vc --pim=1 --protect-hidden=no -k ""
 ```
+
 To mount an encrypted dir (e.g., `/data/richard/vc`)
+
 ```bash
 # Create the mount point if it doesn't exist
 > mkdir /data/$USER/src_vc
@@ -261,16 +259,16 @@ Enter keyfile [none]: none (i.e. press Enter without typing anything)
 Protect hidden volume (if any)? (y=Yes/n=No) [No]: No
 ```
 
-\# Change ownership of the `src_vc` folder. When using Linux Ext4
-filesystem, it creates a `lost+found` folder inside `src_vc` owned
-by `root` and then the entire `src_vc` is owned by `root`.
-Meaning that you cannot create a dir (e.g., `lemonade1` to clone the
-repo to) inside `src_vc` as long as it is owned by `root`. Perhaps,
-you may need to ask the infra team to run the cmd for you.
+\# Change ownership of the `src_vc` folder. When using Linux Ext4 filesystem, it
+creates a `lost+found` folder inside `src_vc` owned by `root` and then the
+entire `src_vc` is owned by `root`. Meaning that you cannot create a dir (e.g.,
+`lemonade1` to clone the repo to) inside `src_vc` as long as it is owned by
+`root`. Perhaps, you may need to ask the infra team to run the cmd for you.
 
 ```bash
 >sudo chown -R $USER:$USER /data/$USER/src_vc
 ```
+
 To check what dirs are mounted by Veracrypt
 
 ```bash
@@ -286,16 +284,19 @@ Dismount a volume:
 ```bash
 > sudo veracrypt -d /data/$USER/src_vc
 ```
+
 Umount all mounted volumes:
 
 ```bash
 > sudo veracrypt -d
 ```
+
 # How to use a Git client under an encrypted volume
 
 TODO(gp): Move somewhere else
 
 ## Mount
+
 ```bash
 > sudo veracrypt -l
 1: /data/saggese/.src_vc_DO_NOT_OVERWRITE /dev/mapper/veracrypt1
@@ -325,14 +326,15 @@ TODO(gp): Move somewhere else
 > git submodule update
 ```
 
-No need to build a thin environment. We need to re-use the helpers venv
-which is located under `src`. For example:
+No need to build a thin environment. We need to re-use the helpers venv which is
+located under `src`. For example:
 `venv_dir=/data/grisha/src/venv/client_venv.helpers`
 
-Assumption: the helpers virtual environment was already built under
-`src` when setting up a different repo.
+Assumption: the helpers virtual environment was already built under `src` when
+setting up a different repo.
 
 ## Create the tmux env
+
 ```bash
 # Create a soft link. The cmd creates a file `~/go_lemonade.py`
 # which creates a tmux session.
