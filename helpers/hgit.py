@@ -350,7 +350,6 @@ def _is_repo(repo_short_name: str) -> bool:
     return curr_repo_short_name == repo_short_name
 
 
-
 def is_helpers() -> bool:
     """
     Return whether we are inside `helpers` repo.
@@ -627,9 +626,6 @@ def _parse_github_repo_name(repo_name: str) -> Tuple[str, str]:
     if repo_name.endswith(suffix_to_remove):
         repo_name = repo_name[: -len(suffix_to_remove)]
     return host_name, repo_name
-
-
-
 
 
 def get_repo_full_name_from_dirname(
