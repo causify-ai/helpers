@@ -20,7 +20,7 @@ def _transform(string: str) -> str:
     for v in ("'", "-", '"', ",", ":"):
         string = string.replace(v, " ")
     # TODO(gp): Use regex.
-    string = re.sub("\s+", "_", string)
+    string = re.sub(r"\s+", "_", string)
     return string
 
 

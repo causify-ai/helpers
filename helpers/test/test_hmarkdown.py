@@ -1,7 +1,9 @@
 import logging
+import os
 import pprint
 from typing import Any, List, Tuple
 
+import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
@@ -159,7 +161,7 @@ class Test_header_list_to_markdown1(hunitest.TestCase):
 
 class Test_is_markdown_line_separator1(hunitest.TestCase):
 
-    def test_valid_separator(self) -> None:
+    def test_valid_separator1(self) -> None:
         # Prepare inputs.
         line = "-----------------------"
         # Call function.
@@ -168,9 +170,90 @@ class Test_is_markdown_line_separator1(hunitest.TestCase):
         exp = True
         self.assertEqual(act, exp)
 
-    def test_invalid_separator(self) -> None:
+    def test_valid_separator2(self) -> None:
+        # Prepare inputs.
+        line = "# -----"
+        # Call function.
+        act = hmarkdo.is_markdown_line_separator(line)
+        # Check output.
+        exp = True
+        self.assertEqual(act, exp)
+
+    def test_valid_separator3(self) -> None:
+        # Prepare inputs.
+        line = "# #########"
+        # Call function.
+        act = hmarkdo.is_markdown_line_separator(line)
+        # Check output.
+        exp = True
+        self.assertEqual(act, exp)
+
+    def test_valid_separator4(self) -> None:
+        # Prepare inputs.
+        line = "### ====="
+        # Call function.
+        act = hmarkdo.is_markdown_line_separator(line)
+        # Check output.
+        exp = True
+        self.assertEqual(act, exp)
+
+    def test_valid_separator5(self) -> None:
+        # Prepare inputs.
+        line = "#//////"
+        # Call function.
+        act = hmarkdo.is_markdown_line_separator(line)
+        # Check output.
+        exp = True
+        self.assertEqual(act, exp)
+
+    def test_valid_separator6(self) -> None:
+        # Prepare inputs.
+        line = "#  //////"
+        # Call function.
+        act = hmarkdo.is_markdown_line_separator(line)
+        # Check output.
+        exp = True
+        self.assertEqual(act, exp)
+
+    def test_invalid_separator1(self) -> None:
         # Prepare inputs.
         line = "Not a separator"
+        # Call function.
+        act = hmarkdo.is_markdown_line_separator(line)
+        # Check output.
+        exp = False
+        self.assertEqual(act, exp)
+
+    def test_invalid_separator2(self) -> None:
+        # Prepare inputs.
+        line = "# ----"
+        # Call function.
+        act = hmarkdo.is_markdown_line_separator(line)
+        # Check output.
+        exp = False
+        self.assertEqual(act, exp)
+
+    def test_invalid_separator3(self) -> None:
+        # Prepare inputs.
+        line = "# ###---"
+        # Call function.
+        act = hmarkdo.is_markdown_line_separator(line)
+        # Check output.
+        exp = False
+        self.assertEqual(act, exp)
+
+    def test_invalid_separator4(self) -> None:
+        # Prepare inputs.
+        line = "==="
+        # Call function.
+        act = hmarkdo.is_markdown_line_separator(line)
+        # Check output.
+        exp = False
+        self.assertEqual(act, exp)
+
+    def test_invalid_separator5(self) -> None:
+        # Prepare inputs.
+        line = "- //////"
         # Call function.
         act = hmarkdo.is_markdown_line_separator(line)
         # Check output.
@@ -754,3 +837,320 @@ class Test_colorize_first_level_bullets1(hunitest.TestCase):
           - Subitem 2.1
         """
         self.assert_equal(act, exp, dedent=True)
+
+
+# #############################################################################
+# Test_modify_header_level1
+# #############################################################################
+
+
+class Test_modify_header_level1(hunitest.TestCase):
+
+    def test1(self) -> None:
+        """
+        Test the inputs to increase headings.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        read_file = os.path.join(scratch_dir, "read_file.txt")
+        input_text = [
+            "# Chapter 1",
+            "## Section 1.1",
+            "### Subsection 1.1.1",
+            "#### Sub-subsection 1.1.1.1",
+        ]
+        input_text = "\n".join(input_text)
+        hio.to_file(read_file, input_text)
+        # Call tested function.
+        write_file = os.path.join(scratch_dir, "write_file.txt")
+        hmarkdo.modify_header_level(read_file, write_file, "increase")
+        # Check output.
+        expected = [
+            "## Chapter 1",
+            "### Section 1.1",
+            "#### Subsection 1.1.1",
+            "##### Sub-subsection 1.1.1.1",
+        ]
+        expected = "\n".join(expected)
+        actual = hio.from_file(write_file)
+        self.assertEqual(actual, expected)
+
+    def test2(self) -> None:
+        """
+        Test inputs to increase headings with more than four hashes which
+        remain unchanged.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        read_file = os.path.join(scratch_dir, "read_file.txt")
+        input_text = ["# Chapter 1", "##### Sub-sub-subsection 1.1.1.1.1"]
+        input_text = "\n".join(input_text)
+        hio.to_file(read_file, input_text)
+        # Call tested function.
+        write_file = os.path.join(scratch_dir, "write_file.txt")
+        hmarkdo.modify_header_level(read_file, write_file, "increase")
+        # Check output.
+        expected = ["## Chapter 1", "##### Sub-sub-subsection 1.1.1.1.1"]
+        expected = "\n".join(expected)
+        actual = hio.from_file(write_file)
+        self.assertEqual(actual, expected)
+
+    def test3(self) -> None:
+        """
+        Test inputs to increase headings including a paragraph which remains
+        unchanged.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        read_file = os.path.join(scratch_dir, "read_file.txt")
+        input_text = ["# Chapter 1", "Paragraph 1"]
+        input_text = "\n".join(input_text)
+        hio.to_file(read_file, input_text)
+        # Call tested function.
+        write_file = os.path.join(scratch_dir, "write_file.txt")
+        hmarkdo.modify_header_level(read_file, write_file, "increase")
+        # Check output.
+        expected = ["## Chapter 1", "Paragraph 1"]
+        expected = "\n".join(expected)
+        actual = hio.from_file(write_file)
+        self.assertEqual(actual, expected)
+
+    def test4(self) -> None:
+        """
+        Test inputs of paragraphs which remain unchanged.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        read_file = os.path.join(scratch_dir, "read_file.txt")
+        input_text = ["Paragraph 1", "Paragraph 2"]
+        input_text = "\n".join(input_text)
+        hio.to_file(read_file, input_text)
+        # Call tested function.
+        write_file = os.path.join(scratch_dir, "write_file.txt")
+        hmarkdo.modify_header_level(read_file, write_file, "increase")
+        # Check output.
+        expected = ["Paragraph 1", "Paragraph 2"]
+        expected = "\n".join(expected)
+        actual = hio.from_file(write_file)
+        self.assertEqual(actual, expected)
+
+    def test5(self) -> None:
+        """
+        Test to increase headings with less than five hashes.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        read_file = os.path.join(scratch_dir, "read_file.txt")
+        input_text = [
+            "# Chapter 1",
+            "##### Sub-sub-subsection 1.1.1.1.1",
+            "# Chapter 2",
+            "### Subsection 2.1",
+            "# Chapter 3",
+        ]
+        input_text = "\n".join(input_text)
+        hio.to_file(read_file, input_text)
+        # Call tested function.
+        write_file = os.path.join(scratch_dir, "write_file.txt")
+        hmarkdo.modify_header_level(read_file, write_file, "increase")
+        # Check output.
+        expected = [
+            "## Chapter 1",
+            "##### Sub-sub-subsection 1.1.1.1.1",
+            "## Chapter 2",
+            "#### Subsection 2.1",
+            "## Chapter 3",
+        ]
+        expected = "\n".join(expected)
+        actual = hio.from_file(write_file)
+        self.assertEqual(actual, expected)
+
+    def test6(self) -> None:
+        """
+        Test the inputs to decrease headings.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        read_file = os.path.join(scratch_dir, "read_file.txt")
+        input_text = [
+            "## Section 1.1",
+            "### Subsection 1.1.1",
+            "#### Sub-subsection 1.1.1.1",
+            "##### Sub-sub-subsection 1.1.1.1.1",
+        ]
+        input_text = "\n".join(input_text)
+        hio.to_file(read_file, input_text)
+        # Call tested function.
+        write_file = os.path.join(scratch_dir, "write_file.txt")
+        hmarkdo.modify_header_level(read_file, write_file, "decrease")
+        # Check output.
+        expected = [
+            "# Section 1.1",
+            "## Subsection 1.1.1",
+            "### Sub-subsection 1.1.1.1",
+            "#### Sub-sub-subsection 1.1.1.1.1",
+        ]
+        expected = "\n".join(expected)
+        actual = hio.from_file(write_file)
+        self.assertEqual(actual, expected)
+
+    def test7(self) -> None:
+        """
+        Test inputs to decrease headings with one hash which remains unchanged.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        read_file = os.path.join(scratch_dir, "read_file.txt")
+        input_text = [
+            "# Chapter 1",
+            "##### Sub-subsection 1.1.1.1",
+        ]
+        input_text = "\n".join(input_text)
+        hio.to_file(read_file, input_text)
+        # Call tested function.
+        write_file = os.path.join(scratch_dir, "write_file.txt")
+        hmarkdo.modify_header_level(read_file, write_file, "decrease")
+        # Check output.
+        expected = [
+            "# Chapter 1",
+            "#### Sub-subsection 1.1.1.1",
+        ]
+        expected = "\n".join(expected)
+        actual = hio.from_file(write_file)
+        self.assertEqual(actual, expected)
+
+    def test8(self) -> None:
+        """
+        Test inputs of paragraphs which remain unchanged.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        read_file = os.path.join(scratch_dir, "read_file.txt")
+        input_text = ["Paragraph 1", "Paragraph 2", "Paragraph 3"]
+        input_text = "\n".join(input_text)
+        hio.to_file(read_file, input_text)
+        # Call tested function.
+        write_file = os.path.join(scratch_dir, "write_file.txt")
+        hmarkdo.modify_header_level(read_file, write_file, "decrease")
+        # Check output.
+        expected = ["Paragraph 1", "Paragraph 2", "Paragraph 3"]
+        expected = "\n".join(expected)
+        actual = hio.from_file(write_file)
+        self.assertEqual(actual, expected)
+
+
+# #############################################################################
+# Test_format_headers1
+# #############################################################################
+
+
+class Test_format_headers1(hunitest.TestCase):
+
+    def test1(self) -> None:
+        """
+        Test the inputs to check the basic formatting of headings.
+        """
+        input_text = [
+            "# Chapter 1",
+            "section text",
+        ]
+        expected = [
+            "# #############################################################################",
+            "# Chapter 1",
+            "# #############################################################################",
+            "section text",
+        ]
+        self._helper_process(input_text, expected, max_lev=1)
+
+    def test2(self) -> None:
+        """
+        Test inputs with headings beyond the maximum level to ensure they are
+        ignored during formatting.
+        """
+        input_text = [
+            "# Chapter 1",
+            "## Section 1.1",
+            "### Section 1.1.1",
+        ]
+        expected = [
+            "# #############################################################################",
+            "# Chapter 1",
+            "# #############################################################################",
+            "## ############################################################################",
+            "## Section 1.1",
+            "## ############################################################################",
+            "### Section 1.1.1",
+        ]
+        self._helper_process(input_text, expected, max_lev=2)
+
+    def test3(self) -> None:
+        """
+        Test the inputs to check that markdown line separators are removed.
+        """
+        input_text = [
+            "# Chapter 1",
+            "-----------------",
+            "Text",
+            "############",
+        ]
+        expected = [
+            "# #############################################################################",
+            "# Chapter 1",
+            "# #############################################################################",
+            "Text",
+        ]
+        self._helper_process(input_text, expected, max_lev=1)
+
+    def test4(self) -> None:
+        """
+        Test inputs where max_level is inferred from the file content.
+        """
+        input_text = [
+            "# Chapter 1",
+            "max_level=1",
+            "## Section 1.1",
+        ]
+        expected = [
+            "# #############################################################################",
+            "# Chapter 1",
+            "# #############################################################################",
+            "max_level=1",
+            "## Section 1.1",
+        ]
+        self._helper_process(input_text, expected, max_lev=2)
+
+    def test5(self) -> None:
+        """
+        Test inputs with no headers to ensure they remain unchanged.
+        """
+        input_text = [
+            "Only text",
+            "No headings",
+        ]
+        expected = [
+            "Only text",
+            "No headings",
+        ]
+        self._helper_process(input_text, expected, max_lev=3)
+
+    def _helper_process(
+        self, input_text: List[str], expected: List[str], max_lev: int
+    ) -> None:
+        """
+        Process the given text with a specified maximum level and compare the
+        result with the expected output.
+
+        :param input_text: the text to be processed
+        :param expected: the expected output after processing the text
+        :param max_lev: the maximum heading level to be formatted
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        read_file = os.path.join(scratch_dir, "read_file.txt")
+        write_file = os.path.join(scratch_dir, "write_file.txt")
+        hio.to_file(read_file, "\n".join(input_text))
+        # Call tested function.
+        hmarkdo.format_headers(read_file, write_file, max_lev=max_lev)
+        # Check output.
+        actual = hio.from_file(write_file)
+        self.assertEqual(actual, "\n".join(expected))
