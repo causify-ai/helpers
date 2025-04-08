@@ -69,7 +69,7 @@ if [[ $REPO_CONF_runnable_dir_info_use_helpers_as_nested_module == 1 ]]; then
 fi;
 
 # #############################################################################
-# dev_script_XYZ path.
+# dev_scripts_XYZ path.
 # #############################################################################
 
 CURR_DIR=$(pwd)

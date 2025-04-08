@@ -201,7 +201,7 @@ set_pythonpath() {
     echo "# set_pythonpath()"
     # Check if the helpers root directory is provided.
     if [[ -n "$helpers_root_dir" ]]; then
-        # If provided, recursively add the helpers root directory and its 
+        # If provided, recursively add the helpers root directory and its
         # parents to PYTHONPATH.
         # For example, if the helpers root directory is `/data/dummy/src/orange2/amp/helpers_root`,
         # the PYTHONPATH will be set to:
