@@ -15,6 +15,7 @@ import thin_client_utils as tcu
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 import helpers.hprint as hprint
+import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
@@ -72,15 +73,19 @@ def _main(parser: argparse.ArgumentParser) -> None:
     requirements_path = os.path.join(thin_environ_dir, "requirements.txt")
     tmp_requirements_path = os.path.join(thin_environ_dir, "tmp.requirements.txt")
     shutil.copy(requirements_path, tmp_requirements_path)
-    if platform.system() == "Darwin":
+    if platform.system() == "Darwin" or (
+        platform.system() == "Linux" and not hserver.is_dev_ck()
+    ):
+        # Pinning down the package version for running locally on Mac and Linux,
+        # see HelpersTask377.
         with open(tmp_requirements_path, "a") as f:
             f.write("pyyaml == 5.3.1\n")
     _system(f"{activate_cmd} && python3 -m pip install --upgrade pip")
     _system(f"{activate_cmd} && pip3 install -r {tmp_requirements_path}")
     # Show the package list.
     _system("pip3 list")
-    # Darwin specific updates.
-    if platform.system() == "Darwin":
+    if hserver.is_mac():
+        # Darwin specific updates.
         _system("brew update")
         _, brew_ver = hsystem.system_to_string("brew --version")
         _LOG.info("# brew version=%s", brew_ver)
@@ -92,7 +97,31 @@ def _main(parser: argparse.ArgumentParser) -> None:
         # run_command("brew install dive")
         # dive_ver = run_command("dive --version")
         # _LOG.info("dive version=%s", dive_ver)
-    #
+    elif hserver.is_external_linux():
+        # Linux specific updates.
+        # Install GitHub CLI on linux ubuntu system using apt.
+        # Installation instructions based on the official GitHub CLI documentation:
+        # https://github.com/cli/cli/blob/trunk/docs/install_linux.md
+        commands = [
+            "type -p wget >/dev/null || (sudo apt update && sudo apt-get install wget -y)",
+            "sudo mkdir -p -m 755 /etc/apt/keyrings",
+            (
+                "out=$(mktemp) && wget -nv -O$out https://cli.github.com/packages/githubcli-archive-keyring.gpg "
+                "&& cat $out | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null"
+            ),
+            "sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg",
+            (
+                'echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] '
+                'https://cli.github.com/packages stable main" | '
+                "sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null"
+            ),
+            "sudo apt update",
+            "sudo apt install gh -y",
+        ]
+        for command in commands:
+            _system(command)
+        _, gh_ver = hsystem.system_to_string("gh --version")
+        _LOG.info("# gh version=%s", gh_ver)
     _LOG.info("%s successful", SCRIPT_PATH)
 
 

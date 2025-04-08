@@ -11,19 +11,20 @@ import re
 from typing import Any, Dict, List, Optional
 
 import openai
+import tqdm
 from openai import OpenAI
 from openai.types.beta.assistant import Assistant
 from openai.types.beta.threads.message import Message
-from tqdm.notebook import tqdm
 
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
+import helpers.htimer as htimer
 
 _LOG = logging.getLogger(__name__)
 
 # hdbg.set_logger_verbosity(logging.DEBUG)
 
-#_LOG.debug = _LOG.info
+# _LOG.debug = _LOG.info
 _MODEL = "gpt-4o-mini"
 _TEMPERATURE = 0.1
 
@@ -75,73 +76,135 @@ def _extract(
 # #############################################################################
 
 
-_openai_cost = None
+_CURRENT_OPENAI_COST = None
+
 
 def start_logging_costs():
-    global _openai_cost
-    _openai_cost = 0.0
+    global _CURRENT_OPENAI_COST
+    _CURRENT_OPENAI_COST = 0.0
 
 
 def end_logging_costs():
-    global _openai_cost
-    _openai_cost = None
+    global _CURRENT_OPENAI_COST
+    _CURRENT_OPENAI_COST = None
 
 
-def get_costs():
-    return _openai_cost
+def _accumulate_cost_if_needed(cost: float):
+    # Accumulate the cost.
+    global _CURRENT_OPENAI_COST
+    if _CURRENT_OPENAI_COST is not None:
+        _CURRENT_OPENAI_COST += cost
 
 
-# https://openai.com/api/pricing/
-# https://gptforwork.com/tools/openai-chatgpt-api-pricing-calculator
-# Cost per 1M tokens.
-pricing = {
-    "gpt-3.5-turbo": {"prompt": 0.5, "completion": 1.5},
-    "gpt-4o-mini": {"prompt": 0.15, "completion": 0.60},
-    "gpt-4o": {"prompt": 5, "completion": 15},
-}
+def get_current_cost():
+    return _CURRENT_OPENAI_COST
+
+
+def _calculate_cost(
+    completion: openai.types.chat.chat_completion.ChatCompletion,
+    model: str,
+    print_cost: bool = False,
+) -> float:
+    """
+    Calculate the cost of an OpenAI API call.
+
+    :param completion: The completion response from OpenAI
+    :param model: The model used for the completion
+    :param print_cost: Whether to print the cost details
+    :return: The calculated cost in dollars
+    """
+    prompt_tokens = completion.usage.prompt_tokens
+    completion_tokens = completion.usage.completion_tokens
+    # Get the pricing for the selected model.
+    # https://openai.com/api/pricing/
+    # https://gptforwork.com/tools/openai-chatgpt-api-pricing-calculator
+    # Cost per 1M tokens.
+    pricing = {
+        "gpt-3.5-turbo": {"prompt": 0.5, "completion": 1.5},
+        "gpt-4o-mini": {"prompt": 0.15, "completion": 0.60},
+        "gpt-4o": {"prompt": 5, "completion": 15},
+    }
+    hdbg.dassert_in(model, pricing)
+    model_pricing = pricing[model]
+    # Calculate the cost.
+    cost = (prompt_tokens / 1e6) * model_pricing["prompt"] + (
+        completion_tokens / 1e6
+    ) * model_pricing["completion"]
+    _LOG.debug(hprint.to_str("prompt_tokens completion_tokens cost"))
+    if print_cost:
+        print(
+            f"cost=${cost:.2f} / "
+            + hprint.to_str("prompt_tokens completion_tokens")
+        )
+    return cost
 
 
 @functools.lru_cache(maxsize=1024)
 def get_completion(
-    user: str,
+    user_prompt: str,
     *,
-    system: str = "",
+    system_prompt: str = "",
     model: Optional[str] = None,
+    report_progress: bool = False,
+    print_cost: bool = False,
     **create_kwargs,
 ) -> str:
     """
     Generate a completion using OpenAI's chat API.
 
-    :param user: user input message
-    :param system: system instruction
+    :param user_prompt: user input message
+    :param system_prompt: system instruction
     :param model: OpenAI model to use
     :param create_kwargs: additional params for the API call
+    :param report_progress: whether to report progress running the API
+        call
     :return: completion text
     """
     model = _MODEL if model is None else model
     client = OpenAI()
-    completion = client.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": system},
-            {"role": "user", "content": user},
-        ],
-        **create_kwargs,
-    )
-    global _openai_cost
-    if _openai_cost is not None:
-        # CompletionUsage(completion_tokens=2, prompt_tokens=48, total_tokens=50
-        prompt_tokens = completion.usage.prompt_tokens
-        completion_tokens = completion.usage.completion_tokens
-        # Get the pricing for the selected model
-        model_pricing = pricing[model]
-        # Calculate the cost
-        cost = (
-                (prompt_tokens / 1e6) * model_pricing["prompt"] +
-                (completion_tokens / 1e6) * model_pricing["completion"]
+    print("OpenAI API call ... ")
+    memento = htimer.dtimer_start(logging.DEBUG, "OpenAI API call")
+    if not report_progress:
+        completion = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            **create_kwargs,
         )
-        _openai_cost += cost
-    return completion.choices[0].message.content
+        response = completion.choices[0].message.content
+    else:
+        # TODO(gp): This is not working. It doesn't show the progress and it
+        # doesn't show the cost.
+        # Create a stream to show progress.
+        completion = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            stream=True,  # Enable streaming
+            **create_kwargs,
+        )
+        # Initialize response storage
+        collected_messages = []
+        # Process the stream with progress bar
+        for chunk in tqdm.tqdm(
+            completion, desc="Generating completion", unit=" chunks"
+        ):
+            if chunk.choices[0].delta.content is not None:
+                collected_messages.append(chunk.choices[0].delta.content)
+        # Combine chunks into final completion
+        response = "".join(collected_messages)
+    # Report the time taken.
+    msg, _ = htimer.dtimer_stop(memento)
+    print(msg)
+    # Calculate and accumulate the cost
+    cost = _calculate_cost(completion, model, print_cost)
+    # Accumulate the cost.
+    _accumulate_cost_if_needed(cost)
+    return response
 
 
 def file_to_info(file: openai.types.file_object.FileObject) -> Dict[str, Any]:
@@ -383,10 +446,16 @@ def get_query_assistant(assistant: Assistant, question: str) -> List[Message]:
 #         return None
 #
 
-def apply_prompt_to_dataframe(df, prompt,
-                              model:str, input_col, response_col,
-                              chunk_size=50,
-                              allow_overwrite: bool = False):
+
+def apply_prompt_to_dataframe(
+    df,
+    prompt,
+    model: str,
+    input_col,
+    response_col,
+    chunk_size=50,
+    allow_overwrite: bool = False,
+):
     _LOG.debug(hprint.to_str("prompt model input_col response_col chunk_size"))
     hdbg.dassert_in(input_col, df.columns)
     if not allow_overwrite:
@@ -403,8 +472,9 @@ def apply_prompt_to_dataframe(df, prompt,
         try:
             response = get_completion(user, system=prompt, model=model)
         except Exception as e:
-            _LOG.error(f"Error processing column {input} in chunk"
-                       f" {start}-{end}: {e}")
+            _LOG.error(
+                f"Error processing column {input} in chunk" f" {start}-{end}: {e}"
+            )
             raise e
         processed_response = response.split("\n")
         _LOG.debug(hprint.to_str("processed_response"))

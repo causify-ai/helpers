@@ -1,7 +1,13 @@
+"""
+Import as:
+
+import helpers.hmarkdown as hmarkdo
+"""
+
 import dataclasses
 import logging
 import re
-from typing import cast, Generator, List, Optional, Tuple
+from typing import Generator, List, Optional, Tuple, cast
 
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
@@ -21,11 +27,17 @@ _TRACE = False
 
 
 def is_markdown_line_separator(line: str) -> bool:
+    """
+    Check if the given line is a Markdown separator.
+
+    :param line: the current line of text being processed
+    :return: true if the line is a separator
+    """
     res = (
-        re.match(r"#*\s*#########+", line)
-        or re.match(r"#*\s*/////////+", line)
-        or re.match(r"#*\s*---------+", line)
-        or re.match(r"#*\s*=========+", line)
+        re.match(r"#*\s*######+", line)
+        or re.match(r"#*\s*/////+", line)
+        or re.match(r"#*\s*-----+", line)
+        or re.match(r"#*\s*=====+", line)
     )
     res = bool(res)
     return res
@@ -147,13 +159,7 @@ def process_single_line_comment(line: str) -> bool:
         _LOG.debug("  -> do_continue=True")
         return do_continue
     # Skip frame.
-    # TODO(gp): Use is_markdown_line_separator
-    if (
-        re.match(r"\#+ -----", line)
-        or re.match(r"\#+ \#\#\#\#\#", line)
-        or re.match(r"\#+ =====", line)
-        or re.match(r"\#+ \/\/\/\/\/", line)
-    ):
+    if is_markdown_line_separator(line):
         do_continue = True
         _LOG.debug("  -> do_continue=True")
         return do_continue
@@ -197,8 +203,7 @@ def process_lines(lines: List[str]) -> Generator[Tuple[int, str], None, None]:
             continue
         out.append(line)
     #
-    for line in enumerate(out):
-        yield line
+    yield from enumerate(out)
 
 
 def remove_end_of_line_periods(txt: str) -> str:
@@ -228,7 +233,7 @@ def remove_empty_lines(txt: str) -> str:
 
 
 # TODO(gp): Add tests.
-def remove_code_delimiters(text: str) -> str:
+def remove_code_delimiters(txt: str) -> str:
     """
     Remove ```python and ``` delimiters from a given text.
 
@@ -236,8 +241,21 @@ def remove_code_delimiters(text: str) -> str:
     :return: The text with the code delimiters removed.
     """
     # Replace the ```python and ``` delimiters with empty strings.
-    text = text.replace("```python", "").replace("```", "")
-    return text.strip()
+    txt_out = txt.replace("```python", "").replace("```", "")
+    txt_out = txt_out.strip()
+    return txt_out
+
+
+def add_line_numbers(txt: str) -> str:
+    """
+    Add line numbers to each line of text.
+    """
+    lines = txt.split("\n")
+    numbered_lines = []
+    for i, line in enumerate(lines, 1):
+        numbered_lines.append(f"{i}: {line}")
+    txt_out = "\n".join(numbered_lines)
+    return txt_out
 
 
 # #############################################################################
@@ -474,7 +492,6 @@ def header_list_to_markdown(header_list: HeaderList, mode: str) -> str:
 # #############################################################################
 
 
-# TODO(gp): Add tests.
 def format_headers(in_file_name: str, out_file_name: str, max_lev: int) -> None:
     """
     Format the headers in the input file and write the formatted text to the
@@ -499,13 +516,7 @@ def format_headers(in_file_name: str, out_file_name: str, max_lev: int) -> None:
     txt_tmp = []
     for line in txt:
         # Keep the comments.
-        # TODO(gp): Use is_markdown_line_separator()
-        if not (
-            re.match("#+ ####+", line)
-            or re.match("#+ /////+", line)
-            or re.match("#+ ------+", line)
-            or re.match("#+ ======+", line)
-        ):
+        if not is_markdown_line_separator(line):
             txt_tmp.append(line)
     txt = txt_tmp[:]
     # Add proper heading of the correct length.
@@ -527,27 +538,37 @@ def format_headers(in_file_name: str, out_file_name: str, max_lev: int) -> None:
     hparser.write_file(txt_tmp, out_file_name)
 
 
-# TODO(gp): Add tests.
-# TODO(gp): Generalize this to also decrease the header level
-# TODO(gp): -> modify_header_level
-def increase_chapter(in_file_name: str, out_file_name: str) -> None:
+def modify_header_level(in_file_name: str, out_file_name: str, mode: str) -> None:
     """
-    Increase the level of chapters by one for text in stdin.
+    Increase or decrease the level of headings by one for text in stdin.
 
-    :param in_file_name: The name of the input file to read
-    :param out_file_name: The name of the output file to write the
+    :param in_file_name: the name of the input file to read
+    :param out_file_name: the name of the output file to write the
         modified text to
+    :param mode: indicates the increase or decrease of the header level
     """
     txt = hparser.read_file(in_file_name)
     #
     txt_tmp = []
+    if mode == "increase":
+        mode_level = 1
+    elif mode == "decrease":
+        mode_level = -1
+    else:
+        raise ValueError(f"Unsupported mode='{mode}'")
     for line in txt:
         # TODO(gp): Use the iterator.
         line = line.rstrip(r"\n")
-        for i in range(1, 5):
-            if line.startswith("#" * i + " "):
-                line = line.replace("#" * i + " ", "#" * (i + 1) + " ")
-                break
+        is_header_, level, title = is_header(line)
+        if is_header_:
+            modified_level = level + mode_level
+            if (mode_level == 1 and level > 4) or (
+                mode_level == -1 and level == 1
+            ):
+                # Handle edge cases for reducing (1 hash) and increasing (5 hashes)
+                # heading levels.
+                modified_level = level
+            line = "#" * modified_level + " " + title
         txt_tmp.append(line)
     #
     hparser.write_file(txt_tmp, out_file_name)

@@ -2,6 +2,7 @@
 
 - [Set up development environment locally](#set-up-development-environment-locally)
   * [Clone the code](#clone-the-code)
+  * [Set up GitHub SSH access and personal access token (PAT)](#set-up-github-ssh-access-and-personal-access-token-pat)
   * [Build and activate the thin environment](#build-and-activate-the-thin-environment)
   * [Install and test Docker](#install-and-test-docker)
     + [Supported OS](#supported-os)
@@ -29,13 +30,13 @@
 - Example of the cloning command:
 
   ```bash
-  > git clone --recursive git@github.com:kaizen-ai/tutorials.git ~/src/tutorials1
+  > git clone --recursive git@github.com:causify-ai/{repo_name}.git ~/src/{repo_name}1
   ```
   - The previous command might not work sometimes, in which case try the
     alternative command using HTTP instead of SSH:
 
   ```bash
-  > git clone --recursive https://github.com/kaizen-ai/tutorials.git ~/src/tutorials1
+  > git clone --recursive https://github.com/causify-ai/{repo_name}.git ~/src/{repo_name}1
   ```
 
 - All the source code should go under `~/src` (e.g., `/Users/<YOUR_USER>/src` on
@@ -44,6 +45,38 @@
   `~/src/{REPO_NAME}{IDX}` where
   - `REPO_NAME` is a name of the repository
   - IDX is an integer
+
+## Set up GitHub SSH access and personal access token (PAT)
+
+- To generate a new SSH key, follow the official
+  [GitHub instructions](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent)
+
+- Ensure that you save the SSH key with the below name format and at the
+  specified location
+
+  File location: `~/.ssh/id_rsa.causify-ai.github`
+
+  Example command to generate SSH key:
+
+  ```bash
+  > ssh-keygen -t ed25519 -C "your_email@example.com" -f ~/.ssh/id_rsa.causify-ai.github
+  ```
+
+- To create a Personal Access Token (classic) with necessary scopes like `repo`,
+  `workflow`, etc., go to
+  [https://github.com/settings/tokens](https://github.com/settings/tokens) and
+  click "Generate new token (classic)".
+
+- After obtaining the token, store it in a file named
+  `github_pat.causify-ai.txt` at the specified path
+
+  File location: `~/.ssh/github_pat.causify-ai.txt`
+
+  Example command to save using `vim`:
+
+  ```bash
+  > vim ~/.ssh/github_pat.causify-ai.txt
+  ```
 
 ## Build and activate the thin environment
 
@@ -64,6 +97,9 @@
     > cd helpers_root
     > ./dev_scripts_helpers/thin_client/build.py
     ```
+
+- While building the thin environment, the
+  [GitHub CLI](https://github.com/cli/cli/) will also be installed system-wide
 
 - Activate the thin environment; make sure it is always activated
 
@@ -197,8 +233,8 @@
     > docker pull hello-world
     Error response from daemon: net/http: request canceled while waiting for connection (Client.Timeout exceeded while awaiting headers)
     ```
-  - Linux sudo problem, see
-    [here](https://stackoverflow.com/questions/48568172/docker-sock-permission-denied)
+  - Linux sudo permission denied problem, see
+    [here](https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user)
     for the solution
     ```bash
     > docker pull hello-world
@@ -261,7 +297,7 @@
 - Pull the latest `helpers` image containing Linter; this is done once
 
   ```bash
-  > i docker_pull_helpers --docker-registry dockerhub.causify
+  > i docker_pull_helpers
   ```
 
 - Get the latest version of `master`
@@ -305,6 +341,14 @@
   You need to:
   - merge origin/master into your branch with `invoke git_merge_master`
   - pull the latest container with `invoke docker_pull`
+  ```
+
+- If you are prompted to enter sudo password, do not enter anything and press
+  Ctrl-C to resolve
+
+  ```bash
+  WARN  hserver.py _raise_invalid_host:342   Don't recognize host: host_os_name=Linux, am_host_os_name=None
+  [sudo] password for ubuntu:
   ```
 
 - Start a Jupyter server

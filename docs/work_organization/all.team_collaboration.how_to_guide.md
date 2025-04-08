@@ -30,7 +30,7 @@
 
 # General Rules of Collaboration
 
-- We are not going to discuss and debate the rationale of the following
+- We are not going to discuss and debate the rationale behind the following
   suggestions, but we assume that all is self-evident truth
 
 ## Ask somebody if you have any doubts
@@ -235,7 +235,8 @@ The idea is to send a morning TODO email to broadcast:
 - The goal is:
   - Think about what you are going to work on for the day, so you have a clear
     plan
-  - Let Team Leaders know that you're going work today and what is your workload
+  - Let Team Leaders know that you're going to work today and what is your
+    workload
   - Make sure people blocked on your tasks know that / whether you are working
     on those tasks
   - Broadcast if you are blocked or if you don't have tasks
@@ -249,7 +250,7 @@ The idea is to send a morning TODO email to broadcast:
   - For interns or collaborators: `contributors@causify.ai`
 - Email subject:
   - `TODO` (all caps)
-  - It easier to filter emails by subject
+  - It makes it easier to filter emails by subject
 - Reply to your previous TODO email so that at least last week of TODOs is
   included
 - Specify how many hours are you going to work today
@@ -261,29 +262,13 @@ The idea is to send a morning TODO email to broadcast:
     <img width="381" alt="Снимок экрана 2023-05-29 в 02 59 55" src="https://github.com/sorrentum/sorrentum/assets/31514660/0d2fbba4-1e6c-4c39-9c04-7ffc4acdde81">
   - For each task provide an ETA
     - No reason to be optimistic: complex things take time to be done correctly
-    - Use a date in the usual format, e.g. 2023-05-10
+    - Use a date in the usual format, e.g. 2023-05-20
     - Add "today", "yesterday", "tomorrow", "end of week" so that it's easier to
       parse
     - If your original ETA needs to be updated (e.g., you thought that you would
       have finished a task by yesterday, but it's taking longer) keep the older
       ETA and add the new one
 - Report the PR/issue blocked
-
-If you are a collaborator or intern, follow the steps to join the mailing group
-
-- Visit the
-  [group](https://groups.google.com/a/crypto-kaizen.com/g/contributors/)
-- Click "ask to join group"
-
-  <img src="figs/team_collaboration/1_Visits.png">
-
-- Choose the following settings
-
-  <img src="figs/team_collaboration/2_Settings.png">
-
-- Wait for the confirmation e-mail, one for the group managers will approve your
-  request. It should look like this:
-  <img src="figs/team_collaboration/3_Request.png">
 
 ### Communication
 
