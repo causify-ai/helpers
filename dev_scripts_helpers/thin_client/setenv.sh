@@ -55,7 +55,7 @@ activate_venv $VENV_TAG
 # #############################################################################
 
 if [[ $REPO_CONF_runnable_dir_info_use_helpers_as_nested_module == 1 ]]; then
-    HELPERS_ROOT_DIR=$(find . \( -path '*/.git' -o -path '*/.mypy_cache' \) -prune -o -name "helpers_root" -print | head -n 1)
+    HELPERS_ROOT_DIR=$(find ${GIT_ROOT_DIR} \( -path '*/.git' -o -path '*/.mypy_cache' \) -prune -o -name "helpers_root" -print | head -n 1)
 else
     HELPERS_ROOT_DIR="${GIT_ROOT_DIR}"
 fi;
