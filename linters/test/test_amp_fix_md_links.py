@@ -392,38 +392,3 @@ class Test_make_path_absolute(hunitest.TestCase):
         actual = lafimdli._make_path_absolute(file_path)
         # Check.
         self.assertEqual(actual, expected)
-
-
-# #############################################################################
-# Test_extract_repo_name
-# #############################################################################
-
-
-class Test_extract_repo_name(hunitest.TestCase):
-    """
-    Test _extract_repo_name() function.
-    """
-
-    def test1(self) -> None:
-        """
-        Check that tutorials repo name is extracted correctly.
-        """
-        # Prepare input.
-        input = "https://github.com/causify-ai/tutorials/blob/master/llms/tutorial-openai_new.ipynb"
-        # Run.
-        actual = lafimdli._extract_repo_name(input)
-        # Check.
-        expected = "tutorials"
-        self.assert_equal(actual, expected)
-
-    def test2(self) -> None:
-        """
-        Check that helpers repo name is extracted correctly.
-        """
-        # Prepare input.
-        input = "https://github.com/causify-ai/helpers/blob/master/linters/amp_fix_md_links.py"
-        # Run.
-        actual = lafimdli._extract_repo_name(input)
-        # Check.
-        expected = "helpers"
-        self.assert_equal(actual, expected)

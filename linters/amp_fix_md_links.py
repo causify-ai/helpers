@@ -88,22 +88,6 @@ def _check_md_header_exists(
     return found
 
 
-def _extract_repo_name(url: str) -> str:
-    """
-    Extract repo name from the github file link.
-    E.g., `https://github.com/causify-ai/helpers/blob/master/linters/amp_fix_md_links.py` -> `helpers`.
-
-    :param url: github URL to be parsed
-    :return: repo name
-    """
-    # Extract the URL upto the repo name; e.g., `https://github.com/causify-ai/helpers`.
-    repo_url = url.split("/blob/master")[0]
-    # Extract the {organization}/{repo} part of the link and finally return the {repo} bit.
-    repo = hgit._parse_github_repo_name(repo_url)[1]
-    repo_short_name = repo.split("causify-ai/")[-1]
-    return repo_short_name
-
-
 def _check_md_link_format(
     link_text: str, link: str, line: str, file_name: str, line_num: int
 ) -> Tuple[str, List[str]]:
@@ -151,7 +135,9 @@ def _check_md_link_format(
             # The link is not to a file (but, for example, to an issue);
             # update is not needed.
             return line, warnings
-        link_repo_short_name = _extract_repo_name(link)
+        link_repo_short_name = link.split("/blob/master")[0].split(
+            "/causify-ai/"
+        )[-1]
         if (
             hrecouti.get_repo_config().get_repo_short_name()
             != link_repo_short_name
