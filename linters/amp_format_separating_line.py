@@ -27,8 +27,8 @@ def _format_separating_line(
     Transform a line into a separating line if more than 6 # are found.
 
     :param line: line to format
-    :param min_num_chars: minimum number of # to match after '# ' to decide
-        this is a seperator line
+    :param min_num_chars: minimum number of # to match after '# ' to
+        decide this is a seperator line
     :param line_width: desired width for the seperator line
     :return: modified line
     """
@@ -41,6 +41,11 @@ def _format_separating_line(
     return line
 
 
+# #############################################################################
+# _FormatSeparatingLine
+# #############################################################################
+
+
 class _FormatSeparatingLine(liaction.Action):
     """
     Format separating lines.
@@ -51,10 +56,9 @@ class _FormatSeparatingLine(liaction.Action):
 
     def _execute(self, file_name: str, pedantic: int) -> List[str]:
         _ = pedantic
-        if not liutils.is_py_file(file_name):
-            _LOG.debug("Skipping file_name='%s'", file_name)
+        if self.skip_if_not_py(file_name):
+            # Apply only to Python files.
             return []
-
         lines = hio.from_file(file_name).split("\n")
         updated_lines = []
         docstring_line_indices = hstring.get_docstring_line_indices(lines)
