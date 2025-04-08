@@ -22,12 +22,23 @@ Import as:
 
 import linters.action as liaction
 """
+
+import logging
 import os
 import sys
 from typing import List, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
+import linters.utils as liutils
+
+_LOG = logging.getLogger(__name__)
+
+
+# #############################################################################
+# Action
+# #############################################################################
+
 
 # TODO(gp): joblib asserts when using abstract classes:
 #   AttributeError: '_BasicHygiene' object has no attribute '_executable'
@@ -90,6 +101,65 @@ class Action:
             hgit.git_add_update(file_list=file_names)
             sys.exit(0)
 
+    def skip_file_on_mismatch(self, file_name: str, condition: bool) -> bool:
+        """
+        Check if the file should be skipped based on the condition.
+
+        :param file_name: name of the file to check
+        :param condition: indicate if the file should be skipped
+        :return: True if the file should be skipped, False otherwise
+        """
+        if condition:
+            _LOG.debug("Skipping file_name='%s'", file_name)
+            return True
+        return False
+
+    def skip_if_not_py(self, file_name: str) -> bool:
+        """
+        Check if the file is a Python file.
+
+        :param file_name: name of the file to process
+        :return: True if the file should be skipped, False otherwise
+        """
+        return self.skip_file_on_mismatch(
+            file_name, not liutils.is_py_file(file_name)
+        )
+
+    def skip_if_not_ipynb(self, file_name: str) -> bool:
+        """
+        Check if the file is a Python notebook.
+
+        :param file_name: name of the file to process
+        :return: True if the file should be skipped, False otherwise
+        """
+        return self.skip_file_on_mismatch(
+            file_name, not file_name.endswith(".ipynb")
+        )
+
+    def skip_if_not_markdown(self, file_name: str) -> bool:
+        """
+        Check if the file is a Markdown file.
+
+        :param file_name: name of the file to process
+        :return: True if the file should be skipped, False otherwise
+        """
+        return self.skip_file_on_mismatch(
+            file_name, not file_name.endswith(".md")
+        )
+
+    def skip_if_not_py_or_ipynb(self, file_name: str) -> bool:
+        """
+        Check if the file is a Python file or a Python notebook.
+
+        :param file_name: name of the file to process
+        :return: True if the file should be skipped, False otherwise
+        """
+        return self.skip_file_on_mismatch(
+            file_name,
+            not liutils.is_py_file(file_name)
+            and not file_name.endswith(".ipynb"),
+        )
+
     @staticmethod
     def _get_ownership(file_name: str) -> Tuple[int, int]:
         """
@@ -123,7 +193,13 @@ class Action:
         raise NotImplementedError
 
 
+# #############################################################################
+# CompositeAction
+# #############################################################################
+
+
 class CompositeAction(Action):
+
     def __init__(self, actions: List[Action]) -> None:
         super().__init__()
         self._actions = actions

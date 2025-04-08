@@ -197,8 +197,39 @@ set_path() {
 
 
 set_pythonpath() {
+    local helpers_root_dir="$1"
     echo "# set_pythonpath()"
-    export PYTHONPATH=$(pwd):$PYTHONPATH
+    # Check if the helpers root directory is provided.
+    if [[ -n "$helpers_root_dir" ]]; then
+        # If provided, recursively add the helpers root directory and its
+        # parents to PYTHONPATH.
+        # For example, if the helpers root directory is `/data/dummy/src/orange2/amp/helpers_root`,
+        # the PYTHONPATH will be set to:
+        # /data/dummy/src/orange2:/data/dummy/src/orange2/amp:/data/dummy/src/orange2/amp/helpers_root
+        dassert_dir_exists $helpers_root_dir
+        git_root_dir=$(git rev-parse --show-toplevel)
+        helpers_root_abs_path=$(realpath "$helpers_root_dir")
+        # Start with the helpers root directory.
+        current_path="$helpers_root_abs_path"
+        while true; do
+            echo "Adding $current_path to PYTHONPATH"
+            # Give priority to higher level directories.
+            export PYTHONPATH="$current_path:$PYTHONPATH"
+            # Break if we've reached the project root.
+            if [[ $current_path == $git_root_dir ]]; then
+                break
+            fi
+            # Break if we've reached the filesystem root.
+            if [[ $current_path == "/" ]]; then
+                break
+            fi
+            # Move up one directory.
+            current_path=$(dirname "$current_path")
+        done
+    else
+        # If not, just add the current directory.
+        export PYTHONPATH=$(pwd):$PYTHONPATH
+    fi
     # Remove duplicates.
     export PYTHONPATH=$(remove_dups $PYTHONPATH)
     # Print.
