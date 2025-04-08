@@ -9,15 +9,15 @@
 
 ## ## Creating a VeraCrypt Volume
 
-1. Open up the VeraCrypt application and select "Create
-Volume".<img src="/app/docs/how_to_use_veracrypt_figs/image8.png"
+1. Open up the VeraCrypt application and select "Create Volume".<img
+src="/app/docs/work_tools/veracrypt/image8.png"
 style="width:4.71354in;height:4.49844in" />  
-2. Select "Create an encrypted file container" and click
-"Next".<img src="/app/docs/how_to_use_veracrypt_figs/image6.png"
+2. Select "Create an encrypted file container" and click "Next".<img
+src="/app/docs/work_tools/veracrypt/image6.png"
 style="width:6.5in;height:4.06944in" />
 
-3. Then choose if you want hidden or standard
-volume<img src="/app/docs/how_to_use_veracrypt_figs/image5.png"
+3. Then choose if you want hidden or standard volume<img
+src="/app/docs/work_tools/veracrypt/image5.png"
 style="width:6.5in;height:4.06944in" />
 
 4.Create a name and select a location to save the VeraCrypt volume that
@@ -25,7 +25,8 @@ you will be creating and select "Next."
 NOTE: It is helpful if you create a volume name that ends with ".vc".
 This will associate the volume with the VeraCrypt application.
 
-<img src="/app/docs/how_to_use_veracrypt_figs/image2.png"
+<img
+src="/app/docs/work_tools/veracrypt/image2.png"
 style="width:6.5in;height:4.06944in" />
 
 5. VeraCrypt provides some options for encryption. Select the desired
@@ -35,14 +36,16 @@ algorithm by default and is recommended for selection.
 Note: In most cases a 500mb size volume is suitable. However this
 depends on the user's need and should be adjusted accordingly.
 
-<img src="/app/docs/how_to_use_veracrypt_figs/image13.png"
+<img
+src="/app/docs/work_tools/veracrypt/image13.png"
 style="width:6.5in;height:4.06944in" />
 
 6. Create the size of the volume that you would like to create. Click
 "Next".  
 NOTE: Set the volume to have appropriate size.
 
-<img src="/app/docs/how_to_use_veracrypt_figs/image11.png"
+<img
+src="/app/docs/work_tools/veracrypt/image11.png"
 style="width:6.5in;height:4.06944in" />
 
 7. Create a password for your encrypted volume. Click "Next".
@@ -50,7 +53,8 @@ style="width:6.5in;height:4.06944in" />
 Note: The longer the password the better it is. It is important to not
 lose your password. A lost password will make the data unrecoverable.
 
-<img src="/app/docs/how_to_use_veracrypt_figs/image4.png"
+<img
+src="/app/docs/work_tools/veracrypt/image4.png"
 style="width:6.5in;height:4.06944in" />
 
 8. Select the file system and click "Next". The default is suitable in
@@ -60,15 +64,18 @@ to click "Format".
 Note: You do not need to move your cursor that much as this server is
 behind VPN.
 
-<img src="/app/docs/how_to_use_veracrypt_figs/image10.png"
+<img
+src="/app/docs/work_tools/veracrypt/image10.png"
 style="width:6.5in;height:4.06944in" />  
-<img src="/app/docs/how_to_use_veracrypt_figs/image9.png"
+<img
+src="/app/docs/work_tools/veracrypt/image9.png"
 style="width:6.5in;height:4.06944in" />
 
 9. Your volume has been created. Click "Exit" or X button in top right
 corner.
 
-<img src="/app/docs/how_to_use_veracrypt_figs/image1.png"
+<img
+src="/app/docs/work_tools/veracrypt/image1.png"
 style="width:5.59375in;height:3.59375in" alt="vc8" />
 
 ## ## Mounting a VeraCrypt Volume
@@ -76,24 +83,28 @@ style="width:5.59375in;height:3.59375in" alt="vc8" />
 1. Select the VeraCrypt volume that you would like to mount. Select the
 letter drive location you would like to use. Click "Mount".
 
-<img src="/app/docs/how_to_use_veracrypt_figs/image7.png"
+<img
+src="/app/docs/work_tools/veracrypt/image7.png"
 style="width:6.5in;height:6.16667in" />
 
 2. Enter your password for the VeraCrypt volume. Click "OK".
 
-<img src="/app/docs/how_to_use_veracrypt_figs/image12.png"
+<img
+src="/app/docs/work_tools/veracrypt/image12.png"
 style="width:5.32292in;height:2.5625in" />
 
 3. The drive is now unencrypted and ready for use at the Mount
 Directory (/media/veracrypt&lt;slotnumber>). Save files and documents
 as you would normally do with a mounted drive.
 
-<img src="/app/docs/how_to_use_veracrypt_figs/image3.png"
+<img
+src="/app/docs/work_tools/veracrypt/image3.png"
 style="width:5.17188in;height:4.85948in" />
 
 ## ## Unmounting a VeraCrypt Volume
 
-<img src="/app/docs/how_to_use_veracrypt_figs/image3.png"
+<img
+src="/app/docs/work_tools/veracrypt/image3.png"
 style="width:5.17188in;height:4.85948in" />
 
 You can Encrypt files by Dismounting Volume, Select Slot and press
