@@ -37,6 +37,9 @@ dassert_dir_exists $CSFY_HELPERS_ROOT_PATH
 # - PATH
 set_path .
 
+# Give permissions to read / write to user and group.
+umask 002
+
 # - PYTHONPATH
 set_pythonpath $CSFY_HELPERS_ROOT_PATH
 
