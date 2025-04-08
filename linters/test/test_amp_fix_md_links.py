@@ -298,6 +298,26 @@ class Test_fix_links(hunitest.TestCase):
         output = _get_output_string(out_warnings, updated_lines)
         self.check_string(output, purify_text=True)
 
+    def test6(self) -> None:
+        """
+        Test if in-repo and out-of-repo links are parsed correctly.
+        """
+        # Prepare inputs.
+        txt_incorrect = r"""
+            - [Fix Markdown links](https://github.com/causify-ai/helpers/blob/master/linters/amp_fix_md_links.py)
+            - [LLM Tutorial](https://github.com/causify-ai/tutorials/blob/master/llms/tutorial-openai_new.ipynb)
+        """
+        file_name = "test.md"
+        file_path = self.write_input_file(txt_incorrect, file_name)
+        # Run.
+        _, updated_lines, _ = lafimdli.fix_links(file_path)
+        # Check.
+        expected = [
+            "- [Fix Markdown links](/linters/amp_fix_md_links.py)",
+            "- [LLM Tutorial](https://github.com/causify-ai/tutorials/blob/master/llms/tutorial-openai_new.ipynb)",
+        ]
+        self.assertEqual(expected, updated_lines)
+
 
 # #############################################################################
 # Test_make_path_absolute
@@ -352,51 +372,35 @@ class Test_make_path_absolute(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_check_md_link_format
+# Test_extract_repo_name
 # #############################################################################
 
 
-class Test_check_md_link_format(hunitest.TestCase):
+class Test_extract_repo_name(hunitest.TestCase):
+    """
+    Test _extract_repo_name() function.
+    """
 
     def test1(self) -> None:
         """
-        Test if in-repo links are parsed correctly.
+        Test _extract_repo_name() function.
         """
-        # Prepare inputs.
-        link_text = "Fix Markdown links"
-        link = "https://github.com/causify-ai/helpers/blob/master/linters/amp_fix_md_links.py"
-        line = "[Fix Markdown links](https://github.com/causify-ai/helpers/blob/master/linters/amp_fix_md_links.py)"
-        file_name = (
-            "linters/test/outcomes/Test_check_md_link_format.test1/input/test.md"
-        )
-        line_num = 16
+        # Prepare input.
+        input = "https://github.com/causify-ai/tutorials/blob/master/llms/tutorial-openai_new.ipynb"
         # Run.
-        actual = lafimdli._check_md_link_format(
-            link_text, link, line, file_name, line_num
-        )
+        actual = lafimdli._extract_repo_name(input)
         # Check.
-        expected = ("[Fix Markdown links](/linters/amp_fix_md_links.py)", [])
-        self.assertEqual(actual, expected)
+        expected = "tutorials"
+        self.assert_equal(actual, expected)
 
     def test2(self) -> None:
         """
-        Test if in-repo links are parsed correctly.
+        Test _extract_repo_name() function.
         """
-        # Prepare inputs.
-        link_text = "LLM Tutorial"
-        link = "https://github.com/causify-ai/tutorials/blob/master/llms/tutorial-openai_new.ipynb"
-        line = "[LLM Tutorial](https://github.com/causify-ai/tutorials/blob/master/llms/tutorial-openai_new.ipynb)"
-        file_name = (
-            "linters/test/outcomes/Test_check_md_link_format.test2/input/test.md"
-        )
-        line_num = 20
+        # Prepare input.
+        input = "https://github.com/causify-ai/helpers/blob/master/linters/amp_fix_md_links.py"
         # Run.
-        actual = lafimdli._check_md_link_format(
-            link_text, link, line, file_name, line_num
-        )
+        actual = lafimdli._extract_repo_name(input)
         # Check.
-        expected = (
-            "[LLM Tutorial](https://github.com/causify-ai/tutorials/blob/master/llms/tutorial-openai_new.ipynb)",
-            [],
-        )
-        self.assertEqual(actual, expected)
+        expected = "helpers"
+        self.assert_equal(actual, expected)

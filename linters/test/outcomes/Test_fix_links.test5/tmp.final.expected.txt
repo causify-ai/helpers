@@ -1,0 +1,15 @@
+# linter warnings
+
+/app/linters/test/outcomes/Test_fix_links.test5/tmp.scratch/valid_header_test.md:3: '/docs/markdown_exam.md' does not exist
+/app/linters/test/outcomes/Test_fix_links.test5/tmp.scratch/valid_header_test.md:5: Header 'introduce' does not exist in '/linters/test/outcomes/Test_fix_links.test5/tmp.scratch/reference.md'
+
+# linted file
+
+
+    Markdown link: [Valid Markdown and header Link](/linters/test/outcomes/Test_fix_links.test5/tmp.scratch/reference.md#introduction)
+
+    Markdown link: [InValid Markdown Link](/docs/markdown_exam.md#introduction)
+
+    Markdown link: [Invalid header in the Markdown Link](/linters/test/outcomes/Test_fix_links.test5/tmp.scratch/reference.md#introduce)
+
+    Markdown link: [Valid Markdown and header Link](/linters/test/outcomes/Test_fix_links.test5/tmp.scratch/reference.md#hyphen-test)
