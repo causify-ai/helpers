@@ -88,7 +88,7 @@ jobs:
       - name: Pull image from GHCR
         run: invoke docker_pull
 
-      - name: Run tests
+      - name: ssh
         if: ${{ inputs.enable-ssh == 'true' }}
         uses: lhotari/action-upterm@v1
         env:
@@ -99,7 +99,7 @@ jobs:
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
           GH_ACTION_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: ssh
+      - name: Run tests
         env:
           CSFY_AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
           CSFY_AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
