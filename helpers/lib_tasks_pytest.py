@@ -25,6 +25,7 @@ import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.htraceback as htraceb
 import helpers.lib_tasks_docker as hlitadoc
+import helpers.lib_tasks_lint as hlitalin
 import helpers.lib_tasks_utils as hlitauti
 import helpers.repo_config_utils as hrecouti
 
@@ -1213,7 +1214,8 @@ def pytest_find_unused_goldens(  # type: ignore
         docker_cmd_opts
     )
     # Execute command line.
-    cmd = hlitadoc._get_lint_docker_cmd(docker_cmd_, stage, version)
+    base_image = ""
+    cmd = hlitalin._get_lint_docker_cmd(base_image, docker_cmd_, stage, version)
     cmd = f"({cmd}) 2>&1 | tee -a {out_file_name}"
     # Run.
     hlitauti.run(ctx, cmd)
