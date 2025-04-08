@@ -223,7 +223,7 @@ set_pythonpath() {
             if [[ $current_path == "/" ]]; then
                 break
             fi
-            # Move up one directory
+            # Move up one directory.
             current_path=$(dirname "$current_path")
         done
     else
