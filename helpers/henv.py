@@ -93,6 +93,8 @@ def get_env_var(
     return value
 
 
+# TODO(gp): Extract all the env vars that start with AM_, CK_, CSFY_ and make
+# sure they have a description here.
 def get_env_vars() -> List[str]:
     """
     Return all the env vars that are expected to be set in Docker.
@@ -212,7 +214,7 @@ def env_to_str(add_system_signature: bool = True) -> str:
     msg += "# Repo config:\n"
     repo_config_str = hrecouti.get_repo_config().config_func_to_str()
     msg += hprint.indent(repo_config_str)
-    msg += "\n"
+    msg += "# hserver config:\n"
     server_config_str = hserver.config_func_to_str()
     msg += hprint.indent(server_config_str)
     msg += "\n"

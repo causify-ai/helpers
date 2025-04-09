@@ -29,7 +29,6 @@ Perform one of several transformations on a txt file, e.g.,
 
 import argparse
 import logging
-import re
 
 import helpers.hdbg as hdbg
 import helpers.hlatex as hlatex
@@ -82,14 +81,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
         hparser.write_file(txt, out_file_name)
     elif cmd == "md_remove_formatting":
         txt = hparser.read_file(in_file_name)
-        # TODO(gp): Move to hmarkdo
         txt = "\n".join(txt)
-        # Replace bold markdown syntax with plain text.
-        txt = re.sub(r"\*\*(.*?)\*\*", r"\1", txt)
-        # Replace italic markdown syntax with plain text.
-        txt = re.sub(r"\*(.*?)\*", r"\1", txt)
-        # Replace \( ... \) math syntax with $ ... $.
-        txt = re.sub(r"\\\(\s*(.*?)\s*\\\)", r"$\1$", txt)
+        txt = hmarkdo.remove_formatting(txt)
+        hparser.write_file(txt, out_file_name)
+    elif cmd == "md_fix_chatgpt_math_syntax":
+        txt = hparser.read_file(in_file_name)
+        txt = "\n".join(txt)
+        txt = hmarkdo.fix_chatgpt_math_syntax(txt)
         hparser.write_file(txt, out_file_name)
     else:
         assert 0, f"Invalid cmd='{cmd}'"
