@@ -80,12 +80,11 @@ def generate_markdown_index(
 
 def generate_summary_for_file(file_path: str) -> str:
     """
-    Generate a two-line summary for the given Markdown file.
+    Generate a two-line summary for the given Markdown content.
 
-    :param file_path: path to the Markdown file
+    :param content: full Markdown file content string
     :return: a generated summary string
     """
-    content = hio.from_file(file_path)
     prompt = f"Summarize the following content into two lines:\n\n{content}"
     summary = hopenai.get_completion(user=prompt, model="gpt-4o-mini")
     return summary.strip()
@@ -105,7 +104,7 @@ def check_and_generate_summaries(repo_path: str, markdown_files: Set[str], updat
         if "## Summary" not in content or update:
             action = "Updating" if update else "Generating"
             _LOG.info("%s summary for %s...", action, rel_path)
-            summary = generate_summary_for_file(file_path)
+            summary = generate_summary_for_file(content)
             if "## Summary" in content:
                 # Update existing summary.
                 content = content.split("## Summary")[0].strip()
