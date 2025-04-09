@@ -316,7 +316,7 @@ def _get_setup_signature() -> str:
     # is_prod_csfy()
     cmds = 'os.environ.get("CK_IN_PROD_CMAMP_CONTAINER", "undef")'
     # is_dev4()
-    # is_dev_ck()
+    # is_dev_csfy()
     # is_ig_prod()
     cmds.append('os.environ.get("CSFY_HOST_NAME", "undef")')
     # is_inside_ci()
@@ -342,7 +342,7 @@ def _get_setup_settings() -> List[Tuple[str, bool]]:
     setups = [
         ("is_prod_csfy", is_prod_csfy()),
         ("is_dev4", is_dev4()),
-        ("is_dev_ck", is_dev_ck()),
+        ("is_dev_csfy", is_dev_csfy()),
         ("is_ig_prod", is_ig_prod()),
         ("is_inside_ci", is_inside_ci()),
         ("is_mac", is_mac()),
@@ -761,7 +761,7 @@ def config_func_to_str() -> str:
         "is_CK_S3_available",
         "is_csfy_or_external_container",
         "is_dev4",
-        "is_dev_ck",
+        "is_dev_csfy",
         "is_external_linux",
         "is_host_mac",
         "is_ig_prod",
