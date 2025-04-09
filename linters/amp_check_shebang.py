@@ -45,6 +45,11 @@ def _check_shebang(file_name: str, lines: List[str]) -> str:
     return msg
 
 
+# #############################################################################
+# _CheckShebang
+# #############################################################################
+
+
 class _CheckShebang(liaction.Action):
     """
     Check if executables start with a shebang.
@@ -55,13 +60,9 @@ class _CheckShebang(liaction.Action):
 
     def _execute(self, file_name: str, pedantic: int) -> List[str]:
         _ = pedantic
-
-        if not liutils.is_py_file(file_name) and not liutils.is_ipynb_file(
-            file_name
-        ):
-            _LOG.debug("Skipping file_name='%s'", file_name)
+        if self.skip_if_not_py_or_ipynb(file_name):
+            # Apply only to Python files or Ipynb notebooks.
             return []
-
         lines = hio.from_file(file_name).split("\n")
         out = _check_shebang(file_name, lines)
         return [out] if out else []

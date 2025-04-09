@@ -25,6 +25,7 @@ import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.htraceback as htraceb
 import helpers.lib_tasks_docker as hlitadoc
+import helpers.lib_tasks_lint as hlitalin
 import helpers.lib_tasks_utils as hlitauti
 import helpers.repo_config_utils as hrecouti
 
@@ -149,7 +150,7 @@ def _build_run_command_line(
     timeout_in_sec = _TEST_TIMEOUTS_IN_SECS[test_list_name]
     # Detect if we are running on a CK dev server / inside CI
     # or a laptop outside the CK infra.
-    is_outside_ck_infra = not hserver.is_dev_ck() and not hserver.is_inside_ci()
+    is_outside_ck_infra = not hserver.is_dev_csfy() and not hserver.is_inside_ci()
     if is_outside_ck_infra:
         timeout_multiplier = 10
         _LOG.warning(
@@ -400,7 +401,7 @@ def _get_custom_marker(
     """
     # If we are running outside the CK server / CI, tests requiring CK infra
     # should be automatically skipped.
-    is_outside_ck_infra = not hserver.is_dev_ck() and not hserver.is_inside_ci()
+    is_outside_ck_infra = not hserver.is_dev_csfy() and not hserver.is_inside_ci()
     # Skip tests that requires CK infra.
     if is_outside_ck_infra:
         _LOG.warning(
@@ -1213,7 +1214,8 @@ def pytest_find_unused_goldens(  # type: ignore
         docker_cmd_opts
     )
     # Execute command line.
-    cmd = hlitadoc._get_lint_docker_cmd(docker_cmd_, stage, version)
+    base_image = ""
+    cmd = hlitalin._get_lint_docker_cmd(base_image, docker_cmd_, stage, version)
     cmd = f"({cmd}) 2>&1 | tee -a {out_file_name}"
     # Run.
     hlitauti.run(ctx, cmd)

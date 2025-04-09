@@ -76,8 +76,18 @@ def is_inside_unit_test() -> bool:
 # - we are inside CI or not
 # We should grep all the use cases in the codebase and use the right function.
 
+# TODO(gp): The confusion is that we want to determine on which "setup" we are
+# running. We do this both inside container and outside container.
+#
+# Sometimes we want to know if:
+# - the processor is x86_64 or arm64
+# - the host is Mac or Linux
+# - we are running on a Causify machine or on an external machine
+# - we are inside CI or not
+# We should grep all the use cases in the codebase and use the right function.
 
-def is_dev_ck() -> bool:
+
+def is_dev_csfy() -> bool:
     # TODO(gp): Update to use dev1 values.
     # sysname='Darwin'
     # nodename='gpmac.lan'
@@ -89,8 +99,8 @@ def is_dev_ck() -> bool:
     host_names = ("dev1", "dev2", "dev3")
     csfy_host_name = os.environ.get("CSFY_HOST_NAME", "")
     _LOG.debug("host_name=%s csfy_host_name=%s", host_name, csfy_host_name)
-    is_dev_ck_ = host_name in host_names or csfy_host_name in host_names
-    return is_dev_ck_
+    is_dev_csfy_ = host_name in host_names or csfy_host_name in host_names
+    return is_dev_csfy_
 
 
 # TODO(gp): This is obsolete and should be removed.
@@ -223,7 +233,7 @@ def is_external_linux() -> bool:
     This is true when we run on the machine of an intern, a student, or
     a non-CSFY contributor.
     """
-    if is_dev_ck() or is_inside_ci():
+    if is_dev_csfy() or is_inside_ci():
         # CI and dev servers are not considered external Linux systems.
         res = False
     elif is_inside_docker():
@@ -473,7 +483,7 @@ def enable_privileged_mode() -> bool:
         ret = False
     else:
         # Keep this in alphabetical order.
-        if is_dev_ck():
+        if is_dev_csfy():
             ret = True
         elif is_inside_ci():
             ret = True
@@ -498,7 +508,7 @@ def has_docker_sudo() -> bool:
     Return whether Docker commands should be run with `sudo` or not.
     """
     # Keep this in alphabetical order.
-    if is_dev_ck():
+    if is_dev_csfy():
         ret = True
     elif is_inside_ci():
         ret = False
@@ -552,7 +562,7 @@ def get_shared_data_dirs() -> Optional[Dict[str, str]]:
             "/local/home/share/cache": "/cache",
             "/local/home/share/data": "/data",
         }
-    elif is_dev_ck():
+    elif is_dev_csfy():
         shared_data_dirs = {
             "/data/shared": "/shared_data",
             "/data/shared2": "/shared_data2",
@@ -569,7 +579,7 @@ def get_shared_data_dirs() -> Optional[Dict[str, str]]:
 def use_docker_network_mode_host() -> bool:
     # TODO(gp): Not sure this is needed any more, since we typically run in
     # bridge mode.
-    ret = is_mac() or is_dev_ck()
+    ret = is_mac() or is_dev_csfy()
     ret = False
     if ret:
         assert use_docker_sibling_containers()
@@ -605,7 +615,7 @@ def run_docker_as_root() -> bool:
         # //lime runs on a system with Docker remap which assumes we don't
         # specify user credentials.
         ret = True
-    elif is_dev_ck():
+    elif is_dev_csfy():
         # On dev1 / dev2 we run as users specifying the user / group id as
         # outside.
         ret = False

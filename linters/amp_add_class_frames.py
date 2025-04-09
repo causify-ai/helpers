@@ -178,14 +178,14 @@ def update_class_frames(file_content: str) -> List[str]:
 
 
 class _ClassFramer(liaction.Action):
+
     def check_if_possible(self) -> bool:
         return True
 
     def _execute(self, file_name: str, pedantic: int) -> List[str]:
         _ = pedantic
-        if not liutils.is_py_file(file_name):
+        if self.skip_if_not_py(file_name):
             # Apply only to Python files.
-            _LOG.debug("Skipping file_name='%s'", file_name)
             return []
         # Update class frames in the file.
         file_content = hio.from_file(file_name)

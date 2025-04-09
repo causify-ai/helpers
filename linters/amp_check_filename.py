@@ -55,7 +55,9 @@ def _check_test_file_dir(file_name: str) -> str:
 
 
 def _check_notebook_filename(file_name: str) -> str:
-    r"""Check notebook filenames start with `Master_` or match: `\S+Task\d+_...`"""
+    r"""
+    Check notebook filenames start with `Master_` or match: `\S+Task\d+_...`
+    """
     msg = ""
 
     basename = os.path.basename(file_name)
@@ -67,6 +69,11 @@ def _check_notebook_filename(file_name: str) -> str:
             r"All notebook filenames start with `Master_` or match: `\S+Task\d+_...`"
         )
     return msg
+
+
+# #############################################################################
+# _CheckFilename
+# #############################################################################
 
 
 class _CheckFilename(liaction.Action):
@@ -85,12 +92,9 @@ class _CheckFilename(liaction.Action):
         - check that test files are under `test` dir
         """
         _ = pedantic
-        if not liutils.is_py_file(file_name) and not liutils.is_ipynb_file(
-            file_name
-        ):
-            _LOG.debug("Skipping file_name='%s'", file_name)
+        if self.skip_if_not_py_or_ipynb(file_name):
+            # Apply only to Python files or Ipynb notebooks.
             return []
-
         FilePathCheck = Callable[[str], str]
         FILE_PATH_CHECKS: List[FilePathCheck] = [
             _check_notebook_dir,
