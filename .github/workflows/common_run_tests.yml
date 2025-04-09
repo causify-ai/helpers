@@ -97,14 +97,15 @@ jobs:
         if: ${{ inputs.enable-ssh == 'enable' }}
         uses: lhotari/action-upterm@v1
         env:
-          CSFY_AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
-          CSFY_AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
-          CSFY_AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
-          CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
-          CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
-          GH_ACTION_ACCESS_TOKEN: ${{ secrets.CALLER_GITHUB_TOKEN }}
-          GH2_ACTION_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH3_ACTION_ACCESS_TOKEN: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
+          ${{ insert }}: ${{ secrets }}          
+          # CSFY_AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
+          # CSFY_AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          # CSFY_AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
+          # CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
+          # CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
+          # GH_ACTION_ACCESS_TOKEN: ${{ secrets.CALLER_GITHUB_TOKEN }}
+          # GH2_ACTION_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # GH3_ACTION_ACCESS_TOKEN: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
 
       - name: Run tests
         env:
