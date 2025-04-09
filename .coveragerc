@@ -6,3 +6,4 @@ source = helpers
 # Glob pattern(s) of files to omit from the report.
 omit =
     */devops/compose/*
+    */helpers/test/outcomes/*/tmp.scratch/*
