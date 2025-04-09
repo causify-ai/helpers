@@ -97,7 +97,7 @@ class Test_process_color_commands1(hunitest.TestCase):
 
 
 @pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_ck(),
+    hserver.is_inside_ci() or hserver.is_dev_csfy(),
     reason="Disabled because of CmampTask10710",
 )
 class Test_preprocess_notes1(hunitest.TestCase):
@@ -124,7 +124,7 @@ class Test_preprocess_notes1(hunitest.TestCase):
 
 
 @pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_ck(),
+    hserver.is_inside_ci() or hserver.is_dev_csfy(),
     reason="Disabled because of CmampTask10710",
 )
 class Test_process_question1(hunitest.TestCase):
@@ -185,7 +185,7 @@ class Test_process_question1(hunitest.TestCase):
 
 
 @pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_ck(),
+    hserver.is_inside_ci() or hserver.is_dev_csfy(),
     reason="Disabled because of CmampTask10710",
 )
 class Test_preprocess_notes3(hunitest.TestCase):
