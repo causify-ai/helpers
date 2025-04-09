@@ -24,7 +24,7 @@ def update_function_blocks(file_content: str) -> List[str]:
     Remove empty lines in functions.
 
     :param file_content: file to process
-    :return: formatted file without empty lines in functions
+    :return: formatted file without empty lines in function blocks
     """
     #TODO(allenmatt10): Insert code here after approval.
     return []
