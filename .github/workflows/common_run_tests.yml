@@ -13,6 +13,8 @@ on:
         secrets:
           CALLER_GITHUB_TOKEN:
             required: false
+          CALLER_GITHUB_TOKEN2:
+            required: false
 env:
   CSFY_CI: true
   # CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
