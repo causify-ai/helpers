@@ -258,6 +258,26 @@ def add_line_numbers(txt: str) -> str:
     return txt_out
 
 
+def remove_formatting(txt: str) -> str:
+    # Replace bold markdown syntax with plain text.
+    txt = re.sub(r"\*\*(.*?)\*\*", r"\1", txt)
+    # Replace italic markdown syntax with plain text.
+    txt = re.sub(r"\*(.*?)\*", r"\1", txt)
+    return txt
+
+
+def fix_chatgpt_math_syntax(txt: str) -> str:
+    # Replace \( ... \) math syntax with $ ... $.
+    txt = re.sub(r"\\\(\s*(.*?)\s*\\\)", r"$\1$", txt)
+    # Replace \[ ... \] math syntax with $$ ... $$, handling multiline equations.
+    txt = re.sub(r"\\\[(.*?)\\\]", r"$$\1$$", txt, flags=re.DOTALL)
+    # Replace `P(.)`` with `\Pr(.)`.
+    txt = re.sub(r"P\((.*?)\)", r"\\Pr(\1)", txt)
+    # Replace \mid with `|`.
+    txt = re.sub(r"\\mid", r"|", txt)
+    return txt
+
+
 # #############################################################################
 # Header processing
 # #############################################################################
@@ -492,7 +512,6 @@ def header_list_to_markdown(header_list: HeaderList, mode: str) -> str:
 # #############################################################################
 
 
-# TODO(gp): Add tests.
 def format_headers(in_file_name: str, out_file_name: str, max_lev: int) -> None:
     """
     Format the headers in the input file and write the formatted text to the

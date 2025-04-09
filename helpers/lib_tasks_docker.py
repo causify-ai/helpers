@@ -398,7 +398,7 @@ def docker_login(ctx, target_registry="aws_ecr.ck"):  # type: ignore
     hlitauti.report_task()
     # No login required as the `helpers` and `tutorials` images are accessible
     # on the public DockerHub registry.
-    if not hserver.is_dev_ck() and hrecouti.get_repo_config().get_name() in [
+    if not hserver.is_dev_csfy() and hrecouti.get_repo_config().get_name() in [
         "//helpers",
         "//tutorials",
     ]:
@@ -433,7 +433,7 @@ DockerComposeServiceSpec = Dict[str, Union[str, List[str]]]
 
 def _get_linter_service(stage: str) -> DockerComposeServiceSpec:
     """
-    Get the linter service specification for the `docker-compose.yml` file.
+    Get the linter service specification for the `tmp.docker-compose.yml` file.
 
     :return: linter service specification
     """
@@ -488,7 +488,7 @@ def _generate_docker_compose_file(
     file_name: Optional[str],
 ) -> str:
     """
-    Generate `docker-compose.yml` file and save it.
+    Generate `tmp.docker-compose.yml` file and save it.
 
     :param shared_data_dirs: data directory in the host filesystem to mount
         inside the container. `None` means no dir sharing
@@ -749,12 +749,12 @@ def get_base_docker_compose_path() -> str:
     """
     Return the absolute path to the Docker compose file.
 
-    E.g., `devops/compose/docker-compose.yml`.
+    E.g., `devops/compose/tmp.docker-compose.yml`.
     """
     # Add the default path.
     dir_name = "devops/compose"
     # TODO(gp): Factor out the piece below.
-    docker_compose_path = "docker-compose.yml"
+    docker_compose_path = "tmp.docker-compose.yml"
     docker_compose_path = os.path.join(dir_name, docker_compose_path)
     docker_compose_path = os.path.abspath(docker_compose_path)
     return docker_compose_path
@@ -1107,9 +1107,11 @@ def _get_docker_base_cmd(
     stage: str,
     version: str,
     service_name: str,
+    # Params from `_get_docker_compose_cmd()`.
     generate_docker_compose_file: bool,
     extra_env_vars: Optional[List[str]],
     extra_docker_compose_files: Optional[List[str]],
+    skip_docker_image_compatibility_check: bool,
 ) -> List[str]:
     r"""
     Get base `docker-compose` command encoded as a list of strings.
@@ -1121,14 +1123,16 @@ def _get_docker_base_cmd(
     ```
     ['IMAGE=*****.dkr.ecr.us-east-1.amazonaws.com/amp:dev',
         '\n        docker-compose',
-        '\n        --file amp/devops/compose/docker-compose.yml',
-        '\n        --file amp/devops/compose/docker-compose_as_submodule.yml',
+        '\n        --file amp/devops/compose/tmp.docker-compose.yml',
+        '\n        --file amp/devops/compose/tmp.docker-compose_as_submodule.yml',
         '\n        --env-file devops/env/default.env']
     ```
     :param generate_docker_compose_file: whether to generate or reuse the existing
         Docker compose file
     :param extra_env_vars: represent vars to add, e.g., `["PORT=9999", "DRY_RUN=1"]`
     :param extra_docker_compose_files: `docker-compose` override files
+    :param skip_docker_image_compatibility_check: if True, skip checking image
+        architecture compatibility
     """
     _LOG.debug(hprint.func_signature_to_str())
     docker_cmd_: List[str] = []
@@ -1138,9 +1142,12 @@ def _get_docker_base_cmd(
     dassert_is_image_name_valid(image)
     # The check is mainly for developers to avoid using the wrong image (e.g.,
     # an x86 vs ARM architecture).
-    # We can skip the image compatibility check during the CI.
-    if not hserver.is_inside_ci():
+    # We can skip the image compatibility check during the CI or when
+    # explicitly skipped.
+    if not (hserver.is_inside_ci() or skip_docker_image_compatibility_check):
         hdocker.check_image_compatibility_with_current_arch(image)
+    else:
+        _LOG.warning("Skipping docker image compatibility check")
     docker_cmd_.append(f"IMAGE={image}")
     # - Handle extra env vars.
     if extra_env_vars:
@@ -1190,6 +1197,7 @@ def _get_docker_compose_cmd(
     as_user: bool = True,
     print_docker_config: bool = False,
     use_bash: bool = False,
+    skip_docker_image_compatibility_check: bool = False,
 ) -> str:
     """
     Get `docker-compose` run command.
@@ -1198,7 +1206,7 @@ def _get_docker_compose_cmd(
     ```
     IMAGE=*****..dkr.ecr.us-east-1.amazonaws.com/amp:dev \
         docker-compose \
-        --file /amp/devops/compose/docker-compose.yml \
+        --file /amp/devops/compose/tmp.docker-compose.yml \
         --env-file devops/env/default.env \
         run \
         --rm \
@@ -1215,6 +1223,7 @@ def _get_docker_compose_cmd(
     :param as_user: pass the user / group id or not
     :param print_docker_config: print the docker config for debugging purposes
     :param use_bash: run command through a shell
+    :param skip_docker_image_compatibility_check: if True, skip checking image architecture compatibility
     """
     _LOG.debug(hprint.func_signature_to_str())
     # - Get the base Docker command.
@@ -1226,6 +1235,7 @@ def _get_docker_compose_cmd(
         generate_docker_compose_file,
         extra_env_vars,
         extra_docker_compose_files,
+        skip_docker_image_compatibility_check,
     )
     # - Add the `config` command for debugging purposes.
     docker_config_cmd: List[str] = docker_cmd_[:]
@@ -1294,35 +1304,6 @@ def _get_docker_compose_cmd(
     return docker_cmd_
 
 
-def _get_lint_docker_cmd(
-    docker_cmd_: str,
-    stage: str,
-    version: str,
-    *,
-    use_entrypoint: bool = True,
-) -> str:
-    """
-    Create a command to run in Linter service.
-
-    :param docker_cmd_: command to run
-    :param stage: the image stage to use
-    :return: the full command to run
-    """
-    base_path = os.environ["CSFY_ECR_BASE_PATH"]
-    _LOG.debug("base_path=%s", base_path)
-    # Get an image to run the linter on.
-    linter_image = f"{base_path}/helpers"
-    # Execute command line.
-    cmd: str = _get_docker_compose_cmd(
-        linter_image,
-        stage,
-        version,
-        docker_cmd_,
-        use_entrypoint=use_entrypoint,
-    )
-    return cmd
-
-
 # ////////////////////////////////////////////////////////////////////////////////
 # bash and cmd.
 # ////////////////////////////////////////////////////////////////////////////////
@@ -1363,6 +1344,7 @@ def docker_bash(  # type: ignore
     generate_docker_compose_file=True,
     container_dir_name=".",
     skip_pull=False,
+    skip_docker_image_compatibility_check=False,
 ):
     """
     Start a bash shell inside the container corresponding to a stage.
@@ -1384,6 +1366,7 @@ def docker_bash(  # type: ignore
         generate_docker_compose_file=generate_docker_compose_file,
         use_entrypoint=use_entrypoint,
         as_user=as_user,
+        skip_docker_image_compatibility_check=skip_docker_image_compatibility_check,
     )
     _LOG.debug("docker_cmd_=%s", docker_cmd_)
     _docker_cmd(ctx, docker_cmd_, skip_pull=skip_pull)
