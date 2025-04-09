@@ -268,7 +268,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
         exp = r"""
         IMAGE=$CSFY_ECR_BASE_PATH/amp_test:dev-1.0.0 \
             docker compose \
-            --file $GIT_ROOT/devops/compose/docker-compose.yml \
+            --file $GIT_ROOT/devops/compose/tmp.docker-compose.yml \
             --env-file devops/env/default.env \
             run \
             --rm \
@@ -300,7 +300,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
         )
         exp = r"""IMAGE=$CSFY_ECR_BASE_PATH/amp_test:local-$USER_NAME-1.0.0 \
                 docker compose \
-                --file $GIT_ROOT/devops/compose/docker-compose.yml \
+                --file $GIT_ROOT/devops/compose/tmp.docker-compose.yml \
                 --env-file devops/env/default.env \
                 run \
                 --rm \
@@ -336,7 +336,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
         PORT=9999 \
         SKIP_RUN=1 \
             docker compose \
-            --file $GIT_ROOT/devops/compose/docker-compose.yml \
+            --file $GIT_ROOT/devops/compose/tmp.docker-compose.yml \
             --env-file devops/env/default.env \
             run \
             --rm \
@@ -370,7 +370,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
             exp = r"""
             IMAGE=$CSFY_ECR_BASE_PATH/amp_test:dev-1.0.0 \
             docker compose \
-            --file $GIT_ROOT/devops/compose/docker-compose.yml \
+            --file $GIT_ROOT/devops/compose/tmp.docker-compose.yml \
             --env-file devops/env/default.env \
             run \
             --rm \
@@ -402,7 +402,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
         IMAGE=$CSFY_ECR_BASE_PATH/amp_test:dev-1.0.0 \
         PORT=9999 \
             docker compose \
-            --file $GIT_ROOT/devops/compose/docker-compose.yml \
+            --file $GIT_ROOT/devops/compose/tmp.docker-compose.yml \
             --env-file devops/env/default.env \
             run \
             --rm \

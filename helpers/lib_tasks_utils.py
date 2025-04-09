@@ -19,6 +19,7 @@ import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
+import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hversion as hversio
 
@@ -139,8 +140,8 @@ def _to_single_line_cmd(cmd: Union[str, List[str]]) -> str:
         ```
         IMAGE=.../amp:dev \
             docker-compose \
-            --file devops/compose/docker-compose.yml \
-            --file devops/compose/docker-compose_as_submodule.yml \
+            --file devops/compose/tmp.docker-compose.yml \
+            --file devops/compose/tmp.docker-compose_as_submodule.yml \
             --env-file devops/env/default.env
         ```
     into
@@ -170,16 +171,16 @@ def to_multi_line_cmd(docker_cmd_: List[str]) -> str:
     ```
         ['IMAGE=*****.dkr.ecr.us-east-1.amazonaws.com/amp:dev',
             '\n        docker-compose',
-            '\n        --file amp/devops/compose/docker-compose.yml',
-            '\n        --file amp/devops/compose/docker-compose_as_submodule.yml',
+            '\n        --file amp/devops/compose/tmp.docker-compose.yml',
+            '\n        --file amp/devops/compose/tmp.docker-compose_as_submodule.yml',
             '\n        --env-file devops/env/default.env']
         ```
     into
         ```
         IMAGE=*****.dkr.ecr.us-east-1.amazonaws.com/amp:dev \
             docker-compose \
-            --file devops/compose/docker-compose.yml \
-            --file devops/compose/docker-compose_as_submodule.yml \
+            --file devops/compose/tmp.docker-compose.yml \
+            --file devops/compose/tmp.docker-compose_as_submodule.yml \
             --env-file devops/env/default.env
         ```
     """
@@ -249,7 +250,7 @@ def _to_pbcopy(txt: str, pbcopy: bool) -> None:
     if not txt:
         print("Nothing to copy")
         return
-    if hsystem.is_running_on_macos():
+    if hserver.is_mac():
         # -n = no new line
         cmd = f"echo -n '{txt}' | pbcopy"
         hsystem.system(cmd)

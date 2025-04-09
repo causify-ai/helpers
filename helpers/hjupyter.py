@@ -9,11 +9,12 @@ import os
 import re
 from typing import Dict, List, Tuple
 
+import nbconvert
+import nbformat
+
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hsystem as hsystem
-import nbconvert
-import nbformat
 
 _LOG = logging.getLogger(__name__)
 
@@ -67,7 +68,7 @@ def build_run_notebook_cmd(
     config_builder: str, dst_dir: str, notebook_path: str, *, extra_opts: str = ""
 ) -> str:
     """
-    Constructs a command string to run dev_scripts/notebooks/run_notebook.py
+    Construct a command string to run dev_scripts/notebooks/run_notebook.py
     with specified configurations.
 
     :param config_builder: the configuration builder to use for the
@@ -80,7 +81,7 @@ def build_run_notebook_cmd(
         publish_notebook"
     """
     # Importing inside func to avoid error while creating dockerized executable.
-    # TODO(shaunak) -> debug why?
+    # TODO(Shaunak): debug why.
     import helpers.hgit as hgit
 
     # TODO(Vlad): Factor out common code with the
@@ -104,8 +105,8 @@ def build_run_notebook_cmd(
 
 class NotebookImageExtractor:
     """
-    Extract marked regions from a Jupyter notebook,
-    convert them to HTML and captures screenshots.
+    Extract marked regions from a Jupyter notebook, convert them to HTML and
+    captures screenshots.
 
     Initialize with input notebook path and output directory.
     """
@@ -153,12 +154,24 @@ class NotebookImageExtractor:
         """
         # Read notebook.
         nb = nbformat.read(self.notebook_path, as_version=4)
-        # TODO: -> start_marker_regex
-        start_re = re.compile(
-            r"#\s*start_extract\(\s*(only_input|only_output|all)\s*\)\s*=\s*(\S+)"
+        start_marker_regex = re.compile(
+            r"""
+            \#               # Match the literal '#' character (comment indicator)
+            \s*              # Allow optional whitespace after the '#'
+            start_extract    # Match the literal text 'start_extract'
+            \(               # Match the literal '(' (escaped since it's a special character)
+            \s*              # Allow optional whitespace after '('
+            (only_input|only_output|all)  # Capture the extraction mode (one of: only_input, only_output, or all)
+            \s*              # Allow optional whitespace after the extraction mode
+            \)               # Match the literal ')' (escaped)
+            \s*              # Allow optional whitespace after ')'
+            =                # Match the literal '=' sign
+            \s*              # Allow optional whitespace after '='
+            (\S+)            # Capture the output filename (one or more non-whitespace characters)
+             """,
+            re.VERBOSE,
         )
-        # TODO: -> end_marker_regex
-        end_re = re.compile(r"#\s*end_extract\s*") 
+        end_marker_regex = re.compile(r"#\s*end_extract\s*")
         regions = []
         in_extract = False
         current_mode = None
@@ -168,18 +181,20 @@ class NotebookImageExtractor:
             if cell.cell_type != "code":
                 continue
             if not in_extract:
-                m = start_re.search(cell.source)
+                m = start_marker_regex.search(cell.source)
                 if m:
                     # A start marker was found. Capture the mode and output filename
                     current_mode = m.group(1)
                     current_out_filename = m.group(2)
                     in_extract = True
                     # Remove the start marker from the cell.
-                    cell.source = start_re.sub("", cell.source).strip()
+                    cell.source = start_marker_regex.sub("", cell.source).strip()
                     ## TODO: How can this happen? For me this is an error.
                     # If there's also an end marker in this cell, complete the extraction region.
-                    if end_re.search(cell.source):
-                        cell.source = end_re.sub("", cell.source).strip()
+                    if end_marker_regex.search(cell.source):
+                        cell.source = end_marker_regex.sub(
+                            "", cell.source
+                        ).strip()
                         current_cells.append(cell)
                         regions.append(
                             (current_mode, current_out_filename, current_cells)
@@ -193,8 +208,8 @@ class NotebookImageExtractor:
                     pass
             else:
                 # We are inside an extraction region, so continue adding cells to the region.
-                if end_re.search(cell.source):
-                    cell.source = end_re.sub("", cell.source).strip()
+                if end_marker_regex.search(cell.source):
+                    cell.source = end_marker_regex.sub("", cell.source).strip()
                     current_cells.append(cell)
                     regions.append(
                         (current_mode, current_out_filename, current_cells)
@@ -240,7 +255,7 @@ class NotebookImageExtractor:
         """
         # Import playwright only when this function is called.
         from playwright.sync_api import sync_playwright
-        
+
         file_url = "file:///" + os.path.abspath(html_file)
         with sync_playwright() as p:
             # Launch a headless Chromium browser.
@@ -254,7 +269,7 @@ class NotebookImageExtractor:
             page.screenshot(path=screenshot_path)
             browser.close()
 
-    def extract_and_capture(self) -> list:
+    def _extract_and_capture(self) -> list:
         """
         Extract notebook regions, convert each to HTML, and capture separate
         screenshots.
@@ -275,7 +290,7 @@ class NotebookImageExtractor:
         screenshot_files = []
         # Create screenshots folder if it doesn't exist.
         screenshots_folder = self.output_dir
-        os.makedirs(screenshots_folder, exist_ok=True)
+        hio.create_dir(screenshots_folder, incremental=True)
         # Keep track of filename usage to handle duplicates.
         filename_counter: Dict[str, int] = {}
         # Process each region.

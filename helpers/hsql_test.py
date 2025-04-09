@@ -57,7 +57,7 @@ class TestDbHelper(hunitest.TestCase, abc.ABC):
       - A user can create a persistent local DB in the Docker container, e.g. for OMS:
         ```
         docker> (cd oms; sudo docker-compose \
-                    --file /app/oms/devops/compose/docker-compose.yml up \
+                    --file /app/oms/devops/compose/tmp.docker-compose.yml up \
                     -d \
                     oms_postgres)
         ```
