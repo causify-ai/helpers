@@ -31,22 +31,17 @@ dassert_var_defined "CSFY_HOST_GIT_ROOT_PATH"
 dassert_var_defined "CSFY_GIT_ROOT_PATH"
 dassert_var_defined "CSFY_HELPERS_ROOT_PATH"
 
-if [[ $CSFY_USE_HELPERS_AS_NESTED_MODULE == 1 ]]; then
-    dassert_dir_exists $CSFY_HELPERS_ROOT_PATH
-fi;
+# Check that helpers_root path exists.
+dassert_dir_exists $CSFY_HELPERS_ROOT_PATH
 
 # - PATH
 set_path .
 
-# - PYTHONPATH
-set_pythonpath
+# - Git.
+set_up_docker_git
 
-if [[ $CSFY_USE_HELPERS_AS_NESTED_MODULE == 1 ]]; then
-    # Add helpers.
-    dassert_dir_exists $CSFY_HELPERS_ROOT_PATH
-    # Give priority to the current repo.
-    export PYTHONPATH=$PYTHONPATH:$CSFY_HELPERS_ROOT_PATH
-fi;
+# - PYTHONPATH
+set_pythonpath $CSFY_HELPERS_ROOT_PATH
 
 # - Configure environment.
 echo "# Configure env"

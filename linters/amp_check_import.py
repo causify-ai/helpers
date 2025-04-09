@@ -52,18 +52,22 @@ def _check_import(file_name: str, line_num: int, line: str) -> str:
     return msg
 
 
+# #############################################################################
+# _CheckImport
+# #############################################################################
+
+
 class _CheckImport(liaction.Action):
+
     def check_if_possible(self) -> bool:
         return True
 
     def _execute(self, file_name: str, pedantic: int) -> List[str]:
         _ = pedantic
-        if not liutils.is_py_file(file_name):
-            _LOG.debug("Skipping file_name='%s'", file_name)
+        if self.skip_if_not_py(file_name):
+            # Apply only to Python files.
             return []
-
         output = []
-
         lines = hio.from_file(file_name).split("\n")
         for i, line in enumerate(lines):
             msg = _check_import(file_name, i, line)
