@@ -40,7 +40,7 @@ def generate_markdown_index(
     :param `markdown_files`: a set of markdown file paths (relative to repo_path)
     :param `readme_file_name`: the name of the README file (default is "README.md")
     """
-    # Build a dictionary of directory -> list of (filename, relative_path)
+    # Build a mapping from each directory to its Markdown files
     directory_map = defaultdict(list)
     for md_file in markdown_files:
         directory = os.path.dirname(md_file)
