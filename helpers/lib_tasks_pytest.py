@@ -864,6 +864,8 @@ def run_coverage_report(  # type: ignore
         if exclude_from_report is not None:
             report_html_cmd += f" --omit={exclude_from_report}"
         report_cmd.append(report_html_cmd)
+    # Generate an XML report for Codecov.
+    report_cmd.append("coverage xml -o coverage.xml")
     # Execute commands above one-by-one inside docker. Coverage tool is not
     # installed outside docker.
     full_report_cmd = " && ".join(report_cmd)
