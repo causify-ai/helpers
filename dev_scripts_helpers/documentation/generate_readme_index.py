@@ -31,12 +31,14 @@ def generate_markdown_index(
     repo_path: str, markdown_files: Set[str], readme_file_name: str = "README.md"
 ) -> None:
     """
-    Generate or update a README file listing all markdown files in the repository,
-    organized hierarchically by directory, along with basic metadata.
+    Generate or update a README index of Markdown files.
 
-    :param repo_path: The root path of the repository
-    :param markdown_files: A set of markdown file paths (relative to repo_path)
-    :param readme_file_name: The name of the README file (default is "README.md")
+    The function lists all Markdown files in the repository, organized hierarchically by
+    directory, and appends this index to the README along with basic metadata.
+
+    :param repo_path: the root path of the repository
+    :param markdown_files: a set of markdown file paths (relative to repo_path)
+    :param readme_file_name: the name of the README file (default is "README.md")
     """
     # Build a dictionary of directory -> list of (filename, relative_path)
     directory_map = defaultdict(list)
@@ -73,15 +75,15 @@ def generate_markdown_index(
     updated_content = existing_content.strip() + "\n\n" + "\n".join(lines)
     # Write the updated README.
     hio.to_file(readme_file_path, updated_content)
-    print(f"README updated with Markdown index at '{readme_file_path}'.")
+    _LOG.info("README updated with Markdown index at '%s'.", readme_file_path)
 
 
 def generate_summary_for_file(file_path: str) -> str:
     """
     Generate a two-line summary for the given Markdown file.
 
-    :param file_path: Path to the Markdown file
-    :return: A generated summary string
+    :param file_path: path to the Markdown file
+    :return: a generated summary string
     """
     content = hio.from_file(file_path)
     prompt = f"Summarize the following content into two lines:\n\n{content}"
@@ -93,27 +95,31 @@ def check_and_generate_summaries(repo_path: str, markdown_files: Set[str], updat
     """
     Check each Markdown file for a summary, and generate or update one if required.
 
-    :param repo_path: Root path of the repository
-    :param markdown_files: Set of Markdown file paths relative to repo_path
-    :param update: Whether to update summaries for all files
+    :param repo_path: root path of the repository
+    :param markdown_files: set of Markdown file paths relative to repo_path
+    :param update: whether to update summaries for all files
     """
     for rel_path in markdown_files:
         file_path = os.path.join(repo_path, rel_path)
         content = hio.from_file(file_path)
         if "## Summary" not in content or update:
             action = "Updating" if update else "Generating"
-            print(f"{action} summary for {rel_path}...")
+            _LOG.info("%s summary for %s...", action, rel_path)
             summary = generate_summary_for_file(file_path)
             if "## Summary" in content:
                 # Update existing summary.
                 content = content.split("## Summary")[0].strip()
             hio.to_file(file_path, content + "\n\n## Summary\n" + summary)
-            print(f"Summary {'updated' if update else 'added'} to {rel_path}.")
+            _LOG.info("Summary %s to %s.", "updated" if update else "added", rel_path)
 
 
-# Utility to list Markdown files.
 def list_markdown_files(repo_path: str) -> Set[str]:
-    """List all Markdown files in the given repository path."""
+    """
+    List all Markdown files in the given repository path.
+
+    :param repo_path: root path of the repository
+    :return: a set containing the relative paths of all `.md` files found
+    """
     markdown_files = set()
     for root, _, files in os.walk(repo_path):
         for file in files:
@@ -144,7 +150,7 @@ def _main() -> None:
         if args.generate_summary or args.update_summary:
             check_and_generate_summaries(repo_path, markdown_files, update=args.update_summary)
     else:
-        print("No Markdown files found; skipping index generation.")
+        _LOG.debug("No Markdown files found; skipping index generation.")
 
 
 if __name__ == "__main__":
