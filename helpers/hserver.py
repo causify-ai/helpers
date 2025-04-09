@@ -219,7 +219,8 @@ def is_external_dev() -> bool:
 
     This includes macOS and non-server/non-CI Linux machines.
     """
-    return is_mac() or is_external_linux()
+    is_external_dev_ = is_mac() or is_external_linux()
+    return is_external_dev_
 
 
 def setup_to_str() -> str:
