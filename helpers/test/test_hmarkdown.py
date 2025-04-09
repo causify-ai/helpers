@@ -880,31 +880,30 @@ class Test_fix_chatgpt_math_syntax1(hunitest.TestCase):
         act = hprint.dedent(act)
         exp = r"""
         **States**:
-        - \( S = \{\text{Sunny}, \text{Rainy}\} \)
+        - $S = \{\text{Sunny}, \text{Rainy}\}$
         **Observations**:
-        - \( O = \{\text{Yes}, \text{No}\} \) (umbrella)
+        - $O = \{\text{Yes}, \text{No}\}$ (umbrella)
 
         ### Initial Probabilities:
-        \[
-        P(\text{Sunny}) = 0.6, \quad P(\text{Rainy}) = 0.4
-        \]
+        $$
+        \Pr(\text{Sunny}) = 0.6, \quad \Pr(\text{Rainy}) = 0.4
+        $$
 
         ### Transition Probabilities:
-        \[
+        $$
         \begin{aligned}
-        P(\text{Sunny} \to \text{Sunny}) &= 0.7, \quad P(\text{Sunny} \to \text{Rainy}) = 0.3 \\
-        P(\text{Rainy} \to \text{Sunny}) &= 0.4, \quad P(\text{Rainy} \to \text{Rainy}) = 0.6
+        \Pr(\text{Sunny} \to \text{Sunny}) &= 0.7, \quad \Pr(\text{Sunny} \to \text{Rainy}) = 0.3 \\
+        \Pr(\text{Rainy} \to \text{Sunny}) &= 0.4, \quad \Pr(\text{Rainy} \to \text{Rainy}) = 0.6
         \end{aligned}
-        \]
+        $$
 
         ### Observation (Emission) Probabilities:
-        \[
+        $$
         \begin{aligned}
-        P(\text{Yes} \mid \text{Sunny}) &= 0.1, \quad P(\text{No} \mid \text{Sunny}) = 0.9 \\
-        P(\text{Yes} \mid \text{Rainy}) &= 0.8, \quad P(\text{No} \mid \text{Rainy}) = 0.2
+        \Pr(\text{Yes} | \text{Sunny}) &= 0.1, \quad \Pr(\text{No} | \text{Sunny}) = 0.9 \\
+        \Pr(\text{Yes} | \text{Rainy}) &= 0.8, \quad \Pr(\text{No} | \text{Rainy}) = 0.2
         \end{aligned}
-        \]
-        """
+        $$"""
         self.assert_equal(act, exp, dedent=True)
 
 
