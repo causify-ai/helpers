@@ -111,6 +111,7 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
             use_docker_db_container_name_to_connect='False'
             use_docker_network_mode_host='False'
             use_docker_sibling_containers='False'
+            # Server config:
             # hserver.config
               is_AM_S3_available()='True'
               is_dev4()='False'
