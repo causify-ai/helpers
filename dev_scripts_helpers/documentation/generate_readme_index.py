@@ -36,9 +36,9 @@ def generate_markdown_index(
     The function lists all Markdown files in the repository, organized hierarchically by
     directory, and appends this index to the README along with basic metadata.
 
-    :param repo_path: the root path of the repository
-    :param markdown_files: a set of markdown file paths (relative to repo_path)
-    :param readme_file_name: the name of the README file (default is "README.md")
+    :param `repo_path`: the root path of the repository
+    :param `markdown_files`: a set of markdown file paths (relative to repo_path)
+    :param `readme_file_name`: the name of the README file (default is "README.md")
     """
     # Build a dictionary of directory -> list of (filename, relative_path)
     directory_map = defaultdict(list)
@@ -78,11 +78,11 @@ def generate_markdown_index(
     _LOG.info("README updated with Markdown index at '%s'.", readme_file_path)
 
 
-def generate_summary_for_file(file_path: str) -> str:
+def generate_summary_for_file(content: str) -> str:
     """
     Generate a two-line summary for the given Markdown content.
 
-    :param content: full Markdown file content string
+    :param `content`: full Markdown file content string
     :return: a generated summary string
     """
     prompt = f"Summarize the following content into two lines:\n\n{content}"
@@ -94,9 +94,9 @@ def check_and_generate_summaries(repo_path: str, markdown_files: Set[str], updat
     """
     Check each Markdown file for a summary, and generate or update one if required.
 
-    :param repo_path: root path of the repository
-    :param markdown_files: set of Markdown file paths relative to repo_path
-    :param update: whether to update summaries for all files
+    :param `repo_path`: root path of the repository
+    :param `markdown_files`: set of Markdown file paths relative to repo_path
+    :param `update`: whether to update summaries for all files
     """
     for rel_path in markdown_files:
         file_path = os.path.join(repo_path, rel_path)
@@ -116,7 +116,7 @@ def list_markdown_files(repo_path: str) -> Set[str]:
     """
     List all Markdown files in the given repository path.
 
-    :param repo_path: root path of the repository
+    :param `repo_path`: root path of the repository
     :return: a set containing the relative paths of all `.md` files found
     """
     markdown_files = set()
