@@ -213,6 +213,15 @@ def is_inside_ecs_container() -> bool:
     return ret
 
 
+def is_external_dev() -> bool:
+    """
+    Detect whether we are running in an external system.
+
+    This includes macOS and non-server/non-CI Linux machines.
+    """
+    return is_mac() or is_external_linux()
+
+
 def setup_to_str() -> str:
     txt = []
     #
