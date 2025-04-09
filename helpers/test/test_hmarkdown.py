@@ -840,6 +840,74 @@ class Test_colorize_first_level_bullets1(hunitest.TestCase):
 
 
 # #############################################################################
+# Test_fix_chatgpt_math_syntax1
+# #############################################################################
+
+
+class Test_fix_chatgpt_math_syntax1(hunitest.TestCase):
+
+    def test1(self) -> None:
+        # Prepare inputs.
+        txt = r"""
+        **States**:
+        - \( S = \{\text{Sunny}, \text{Rainy}\} \)
+        **Observations**:
+        - \( O = \{\text{Yes}, \text{No}\} \) (umbrella)
+
+        ### Initial Probabilities:
+        \[
+        P(\text{Sunny}) = 0.6, \quad P(\text{Rainy}) = 0.4
+        \]
+
+        ### Transition Probabilities:
+        \[
+        \begin{aligned}
+        P(\text{Sunny} \to \text{Sunny}) &= 0.7, \quad P(\text{Sunny} \to \text{Rainy}) = 0.3 \\
+        P(\text{Rainy} \to \text{Sunny}) &= 0.4, \quad P(\text{Rainy} \to \text{Rainy}) = 0.6
+        \end{aligned}
+        \]
+
+        ### Observation (Emission) Probabilities:
+        \[
+        \begin{aligned}
+        P(\text{Yes} \mid \text{Sunny}) &= 0.1, \quad P(\text{No} \mid \text{Sunny}) = 0.9 \\
+        P(\text{Yes} \mid \text{Rainy}) &= 0.8, \quad P(\text{No} \mid \text{Rainy}) = 0.2
+        \end{aligned}
+        \]
+        """
+        txt = hprint.dedent(txt)
+        act = hmarkdo.fix_chatgpt_math_syntax(txt)
+        act = hprint.dedent(act)
+        exp = r"""
+        **States**:
+        - $S = \{\text{Sunny}, \text{Rainy}\}$
+        **Observations**:
+        - $O = \{\text{Yes}, \text{No}\}$ (umbrella)
+
+        ### Initial Probabilities:
+        $$
+        \Pr(\text{Sunny}) = 0.6, \quad \Pr(\text{Rainy}) = 0.4
+        $$
+
+        ### Transition Probabilities:
+        $$
+        \begin{aligned}
+        \Pr(\text{Sunny} \to \text{Sunny}) &= 0.7, \quad \Pr(\text{Sunny} \to \text{Rainy}) = 0.3 \\
+        \Pr(\text{Rainy} \to \text{Sunny}) &= 0.4, \quad \Pr(\text{Rainy} \to \text{Rainy}) = 0.6
+        \end{aligned}
+        $$
+
+        ### Observation (Emission) Probabilities:
+        $$
+        \begin{aligned}
+        \Pr(\text{Yes} | \text{Sunny}) &= 0.1, \quad \Pr(\text{No} | \text{Sunny}) = 0.9 \\
+        \Pr(\text{Yes} | \text{Rainy}) &= 0.8, \quad \Pr(\text{No} | \text{Rainy}) = 0.2
+        \end{aligned}
+        $$"""
+        self.assert_equal(act, exp, dedent=True)
+
+
+# #############################################################################
 # Test_modify_header_level1
 # #############################################################################
 
@@ -1037,3 +1105,120 @@ class Test_modify_header_level1(hunitest.TestCase):
         expected = "\n".join(expected)
         actual = hio.from_file(write_file)
         self.assertEqual(actual, expected)
+
+
+# #############################################################################
+# Test_format_headers1
+# #############################################################################
+
+
+class Test_format_headers1(hunitest.TestCase):
+
+    def test1(self) -> None:
+        """
+        Test the inputs to check the basic formatting of headings.
+        """
+        input_text = [
+            "# Chapter 1",
+            "section text",
+        ]
+        expected = [
+            "# #############################################################################",
+            "# Chapter 1",
+            "# #############################################################################",
+            "section text",
+        ]
+        self._helper_process(input_text, expected, max_lev=1)
+
+    def test2(self) -> None:
+        """
+        Test inputs with headings beyond the maximum level to ensure they are
+        ignored during formatting.
+        """
+        input_text = [
+            "# Chapter 1",
+            "## Section 1.1",
+            "### Section 1.1.1",
+        ]
+        expected = [
+            "# #############################################################################",
+            "# Chapter 1",
+            "# #############################################################################",
+            "## ############################################################################",
+            "## Section 1.1",
+            "## ############################################################################",
+            "### Section 1.1.1",
+        ]
+        self._helper_process(input_text, expected, max_lev=2)
+
+    def test3(self) -> None:
+        """
+        Test the inputs to check that markdown line separators are removed.
+        """
+        input_text = [
+            "# Chapter 1",
+            "-----------------",
+            "Text",
+            "############",
+        ]
+        expected = [
+            "# #############################################################################",
+            "# Chapter 1",
+            "# #############################################################################",
+            "Text",
+        ]
+        self._helper_process(input_text, expected, max_lev=1)
+
+    def test4(self) -> None:
+        """
+        Test inputs where max_level is inferred from the file content.
+        """
+        input_text = [
+            "# Chapter 1",
+            "max_level=1",
+            "## Section 1.1",
+        ]
+        expected = [
+            "# #############################################################################",
+            "# Chapter 1",
+            "# #############################################################################",
+            "max_level=1",
+            "## Section 1.1",
+        ]
+        self._helper_process(input_text, expected, max_lev=2)
+
+    def test5(self) -> None:
+        """
+        Test inputs with no headers to ensure they remain unchanged.
+        """
+        input_text = [
+            "Only text",
+            "No headings",
+        ]
+        expected = [
+            "Only text",
+            "No headings",
+        ]
+        self._helper_process(input_text, expected, max_lev=3)
+
+    def _helper_process(
+        self, input_text: List[str], expected: List[str], max_lev: int
+    ) -> None:
+        """
+        Process the given text with a specified maximum level and compare the
+        result with the expected output.
+
+        :param input_text: the text to be processed
+        :param expected: the expected output after processing the text
+        :param max_lev: the maximum heading level to be formatted
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        read_file = os.path.join(scratch_dir, "read_file.txt")
+        write_file = os.path.join(scratch_dir, "write_file.txt")
+        hio.to_file(read_file, "\n".join(input_text))
+        # Call tested function.
+        hmarkdo.format_headers(read_file, write_file, max_lev=max_lev)
+        # Check output.
+        actual = hio.from_file(write_file)
+        self.assertEqual(actual, "\n".join(expected))

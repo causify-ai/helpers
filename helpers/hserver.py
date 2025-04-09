@@ -67,7 +67,7 @@ def is_inside_unit_test() -> bool:
 # vars (e.g., `CSFY_HOST_NAME`, `CSFY_HOST_OS_NAME`).
 
 
-def is_dev_ck() -> bool:
+def is_dev_csfy() -> bool:
     # TODO(gp): Update to use dev1 values.
     # sysname='Darwin'
     # nodename='gpmac.lan'
@@ -79,8 +79,8 @@ def is_dev_ck() -> bool:
     host_names = ("dev1", "dev2", "dev3")
     csfy_host_name = os.environ.get("CSFY_HOST_NAME", "")
     _LOG.debug("host_name=%s csfy_host_name=%s", host_name, csfy_host_name)
-    is_dev_ck_ = host_name in host_names or csfy_host_name in host_names
-    return is_dev_ck_
+    is_dev_csfy_ = host_name in host_names or csfy_host_name in host_names
+    return is_dev_csfy_
 
 
 def is_dev4() -> bool:
@@ -166,7 +166,7 @@ def is_external_linux() -> bool:
     :return: whether an external Linux system is running
     """
     # CI and dev servers are not considered external Linux systems.
-    if is_dev_ck() or is_inside_ci():
+    if is_dev_csfy() or is_inside_ci():
         is_external_linux_ = False
     # If we are inside a Docker container, we need to check the host OS.
     elif is_inside_docker():
@@ -222,8 +222,8 @@ def setup_to_str() -> str:
     is_dev4_ = is_dev4()
     txt.append(f"is_dev4={is_dev4_}")
     #
-    is_dev_ck_ = is_dev_ck()
-    txt.append(f"is_dev_ck={is_dev_ck_}")
+    is_dev_csfy_ = is_dev_csfy()
+    txt.append(f"is_dev_csfy={is_dev_csfy_}")
     #
     is_ig_prod_ = is_ig_prod()
     txt.append(f"is_ig_prod={is_ig_prod_}")
@@ -247,7 +247,7 @@ def _dassert_setup_consistency() -> None:
     """
     is_prod_csfy_ = is_prod_csfy()
     is_dev4_ = is_dev4()
-    is_dev_ck_ = is_dev_ck()
+    is_dev_csfy_ = is_dev_csfy()
     is_ig_prod_ = is_ig_prod()
     is_inside_ci_ = is_inside_ci()
     is_mac_ = is_mac()
@@ -256,7 +256,7 @@ def _dassert_setup_consistency() -> None:
     sum_ = sum(
         [
             is_dev4_,
-            is_dev_ck_,
+            is_dev_csfy_,
             is_inside_ci_,
             is_mac_,
             is_external_linux_,
@@ -362,7 +362,7 @@ def enable_privileged_mode() -> bool:
         ret = False
     else:
         # Keep this in alphabetical order.
-        if is_dev_ck():
+        if is_dev_csfy():
             ret = True
         elif is_inside_ci():
             ret = True
@@ -387,7 +387,7 @@ def has_docker_sudo() -> bool:
     Return whether Docker commands should be run with `sudo` or not.
     """
     # Keep this in alphabetical order.
-    if is_dev_ck():
+    if is_dev_csfy():
         ret = True
     elif is_inside_ci():
         ret = False
@@ -441,7 +441,7 @@ def get_shared_data_dirs() -> Optional[Dict[str, str]]:
             "/local/home/share/cache": "/cache",
             "/local/home/share/data": "/data",
         }
-    elif is_dev_ck():
+    elif is_dev_csfy():
         shared_data_dirs = {
             "/data/shared": "/shared_data",
             "/data/shared2": "/shared_data2",
@@ -458,7 +458,7 @@ def get_shared_data_dirs() -> Optional[Dict[str, str]]:
 def use_docker_network_mode_host() -> bool:
     # TODO(gp): Not sure this is needed any more, since we typically run in
     # bridge mode.
-    ret = is_mac() or is_dev_ck()
+    ret = is_mac() or is_dev_csfy()
     ret = False
     if ret:
         assert use_docker_sibling_containers()
@@ -494,7 +494,7 @@ def run_docker_as_root() -> bool:
         # //lime runs on a system with Docker remap which assumes we don't
         # specify user credentials.
         ret = True
-    elif is_dev_ck():
+    elif is_dev_csfy():
         # On dev1 / dev2 we run as users specifying the user / group id as
         # outside.
         ret = False
@@ -641,7 +641,7 @@ def config_func_to_str() -> str:
         "use_docker_network_mode_host()",
         "use_docker_sibling_containers()",
         "is_dev4()",
-        "is_dev_ck()",
+        "is_dev_csfy()",
         "is_inside_ci()",
         "is_inside_docker()",
         "is_mac(version='Catalina')",
