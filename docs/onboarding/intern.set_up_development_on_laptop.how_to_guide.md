@@ -80,8 +80,6 @@
 
 ## Build and activate the thin environment
 
-- NB! This whole section can be skipped if you use [tmux](#tmux)
-
 - Create the "thin environment" which contains the minimum set of dependencies
   needed for running our Dev Docker container
 
@@ -100,6 +98,8 @@
 
 - While building the thin environment, the
   [GitHub CLI](https://github.com/cli/cli/) will also be installed system-wide
+
+- NB! You can skip the rest of this section if you use [tmux](#tmux).
 
 - Activate the thin environment; make sure it is always activated
 
@@ -246,7 +246,10 @@
 - Using [tmux](https://en.wikipedia.org/wiki/Tmux) is optional but recommended
 
 - The [thin environment](#build-and-activate-the-thin-environment) is activated
-  automatically within a tmux session
+  automatically within a tmux session. Ensure you have already run the
+  [`/dev_scripts_helpers/thin_client/build.py`](/dev_scripts_helpers/thin_client/build.py)
+  command as outlined in the
+  [thin environment setup](#build-and-activate-the-thin-environment)
 
 - Create a soft link. The command below will create a file `~/go_{repo_name}.py`
 
