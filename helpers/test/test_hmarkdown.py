@@ -1222,3 +1222,234 @@ class Test_format_headers1(hunitest.TestCase):
         # Check output.
         actual = hio.from_file(write_file)
         self.assertEqual(actual, "\n".join(expected))
+
+
+def _get_markdown_example7() -> str:
+    content = r"""
+    ```python
+    def hello_world():
+        print("Hello, World!")
+    ```
+    """
+    content = hprint.dedent(content)
+    return content
+
+
+def _get_markdown_example8() -> str:
+    content = r"""
+
+    ```python
+
+    def check_empty_lines():
+        print("Check empty lines are present!")
+
+    ```
+
+    """
+    content = hprint.dedent(content)
+    return content
+
+
+def _example4_removed_code_delimiters() -> str:
+    content = r"""
+    # Chapter 1
+
+    Welcome to the first chapter. This chapter introduces fundamental concepts and
+    lays the groundwork for further exploration.
+
+    ## Section 1.1
+
+    This section discusses the initial principles and key ideas that are crucial for
+    understanding the topic.
+
+    ### Subsection 1.1.1
+
+    The first subsection dives deeper into the details, providing examples and
+    insights that help clarify the concepts.
+
+    Example:
+
+    def greet(name):
+        return f"Hello, {name}!"
+    print(greet("World"))
+
+
+    ### Subsection 1.1.2
+
+    Here, we examine alternative perspectives and additional considerations that
+    were not covered in the previous subsection.
+
+    - Key Point 1: Understanding different viewpoints enhances comprehension.
+    - Key Point 2: Practical application reinforces learning.
+
+    ## Section 1.2
+
+    This section introduces new frameworks and methodologies that build upon the
+    foundation established earlier.
+
+    > "Knowledge is like a tree, growing stronger with each branch of understanding."
+
+    # Chapter 2
+
+    Moving forward, this chapter explores advanced topics and real-world
+    applications.
+
+    ## Section 2.1
+
+    This section provides an in-depth analysis of core mechanisms that drive the
+    subject matter.
+
+    ### Subsection 2.1.1
+
+    A deep dive into specific case studies and empirical evidence that support
+    theoretical claims.
+
+    - Case Study 1: Implementation in modern industry
+    - Case Study 2: Comparative analysis of traditional vs. modern methods
+
+    ## Section 2.2
+
+    The final section of this chapter presents summary conclusions, key takeaways,
+    and potential future developments.
+
+    yaml
+    future:
+    - AI integration
+    - Process optimization
+    - Sustainable solutions
+
+
+    Stay curious and keep exploring!
+    """
+    content = hprint.dedent(content)
+    return content
+
+
+def _get_markdown_example9() -> str:
+    content = r"""
+    ```
+    def no_start_python():
+        print("No mention of python at the start")```
+    ```
+
+    ```
+        A markdown paragraph contains
+        delimiters that needs to be removed.
+    ```
+    """
+    content = hprint.dedent(content)
+    return content
+
+
+# #############################################################################
+# Test_remove_code_delimiters1
+# #############################################################################
+
+
+class Test_remove_code_delimiters1(hunitest.TestCase):
+
+    def test1(self) -> None:
+        """
+        Test a basic example.
+        """
+        # Prepare inputs.
+        content = _get_markdown_example7()
+        content = hprint.dedent(content)
+        # Call function.
+        act = hmarkdo.remove_code_delimiters(content)
+        # Check output.
+        exp = r"""
+        def hello_world():
+            print("Hello, World!")
+        """
+        self.assert_equal(str(act), exp, dedent=True)
+
+    def test2(self) -> None:
+        """
+        Test an example with empty lines at the start and end.
+        """
+        # Prepare inputs.
+        content = _get_markdown_example8()
+        # Call function.
+        act = hmarkdo.remove_code_delimiters(content)
+        # Check output.
+        exp = r"""
+        def check_empty_lines():
+            print("Check empty lines are present!")
+        """
+        self.assert_equal(str(act), exp, dedent=True)
+
+    def test3(self) -> None:
+        """
+        Test a markdown with headings, python and yaml blocks.
+        """
+        # Prepare inputs.
+        content = _get_markdown_example4()
+        # Call function.
+        act = hmarkdo.remove_code_delimiters(content)
+        # Check output.
+        exp = _example4_removed_code_delimiters()
+        self.assert_equal(str(act), exp, dedent=True)
+
+    def test4(self) -> None:
+        """
+        Test another markdown with headings and python blocks.
+        """
+        # Prepare inputs.
+        content = _get_markdown_example5()
+        content = hprint.dedent(content)
+        # Call function.
+        act = hmarkdo.remove_code_delimiters(content)
+        # Check output.
+        exp = r"""
+        - Functions can be declared in the body of another function
+        - E.g., to hide utility functions in the scope of the function that uses them
+
+            def print_integers(values):
+
+                def _is_integer(value):
+                    try:
+                        return value == int(value)
+                    except:
+                        return False
+
+                for v in values:
+                    if _is_integer(v):
+                        print(v)
+
+        - Hello
+        """
+        self.assert_equal(str(act), exp, dedent=True)
+
+    def test5(self) -> None:
+        """
+        Test an empty string.
+        """
+        # Prepare inputs.
+        content = ""
+        # Call function.
+        act = hmarkdo.remove_code_delimiters(content)
+        # Check output.
+        exp = ""
+        self.assert_equal(str(act), exp, dedent=True)
+
+    def test6(self) -> None:
+        """
+        Test a markdown & code block with no python code delimiters.
+        """
+        # Prepare inputs.
+        content = _get_markdown_example9()
+        content = hprint.dedent(content)
+        # Call function.
+        act = hmarkdo.remove_code_delimiters(content)
+        # Check output.
+        exp = r"""
+        def no_start_python():
+            print("No mention of python at the start")
+
+
+
+            A markdown paragraph contains
+            delimiters that needs to be removed.
+        """
+        self.assert_equal(str(act), exp, dedent=True)
