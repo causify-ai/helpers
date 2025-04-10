@@ -236,9 +236,9 @@ def obj_to_str(
             dunder_mode,
             attr_names_to_skip,
         )
-        _LOG.debug(
-            "attr_name=%s attr_value=%s -> skip", attr_name, attr_value, skip
-        )
+        # `attr_value` can be callable object and needs to be properly handled 
+        # for string conversion and formatting.
+        _LOG.debug(hprint.to_str("attr_name attr_value skip"))
         if skip:
             continue
         #
