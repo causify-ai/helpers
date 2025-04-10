@@ -289,7 +289,7 @@ def _get_setup_settings() -> List[Tuple[str, bool]]:
         ("is_inside_ci", is_inside_ci()),
         ("is_mac", is_mac()),
         ("is_external_linux", is_external_linux()),
-        #("is_csfy_or_external_container", is_csfy_or_external_container()),
+        # ("is_csfy_or_external_container", is_csfy_or_external_container()),
     ]
     return setups
 
