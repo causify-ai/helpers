@@ -154,7 +154,6 @@ def no_closing_backticks():
         expected = f"{temp_file}:2: Found misplaced or unbalanced triple backticks"
         self.assertEqual(actual, expected)
 
-    def test8(self) -> None:
         # Balanced backticks. 
         # Prepare inputs.
         text='''content = r"""
@@ -173,6 +172,8 @@ def no_closing_backticks():
         expected = []
         self.assertEqual(actual, expected)
 
+
+        
 
     def _docformatter(self, text: str) -> str:
         """

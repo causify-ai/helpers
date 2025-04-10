@@ -224,7 +224,7 @@ class _DocFormatter(liaction.Action):
         misplaced_warning=""
         has_misplaced, line_no = self._has_misplaced_triple_backticks(file_name)
         if has_misplaced:
-            # Misplaced backticks detected; don't remove any code blocks.
+            # Do not remove any codeblocks as misplaced/unbalanced backticks detected.
             misplaced_warning = (f"{file_name}:{line_no}: Found misplaced or unbalanced triple backticks")
             _removed_code = {}  
         else:
@@ -236,11 +236,10 @@ class _DocFormatter(liaction.Action):
         _, output = liutils.tee(cmd, self._executable, abort_on_error=False)
         # Restore ignored docstrings and code.
         self._restore_ignored_docstrings(file_name, _ignored_docstrings)
-        # Restore removed code blocks only if any were removed.
         if _removed_code:
             self._restore_removed_code_blocks(file_name, _removed_code)
-        # Prepend the warning to the output if it was generated.
         if misplaced_warning:
+            # Prepend generated warnings.
             output.insert(0, misplaced_warning)
         return output
 
