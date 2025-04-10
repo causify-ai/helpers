@@ -314,7 +314,7 @@ def _get_setup_signature() -> str:
     """
     cmds = []
     # is_prod_csfy()
-    cmds = 'os.environ.get("CK_IN_PROD_CMAMP_CONTAINER", "undef")'
+    cmds.append('os.environ.get("CK_IN_PROD_CMAMP_CONTAINER", "undef")')
     # is_dev4()
     # is_dev_csfy()
     # is_ig_prod()
