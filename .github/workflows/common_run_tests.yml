@@ -91,7 +91,9 @@ jobs:
           CSFY_AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
           CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
-          GH_ACTION_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TEST_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TEST_GH_ACTION_ACCESS_TOKEN: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
+
 
       # - name: Run tests
       #   env:
