@@ -96,16 +96,16 @@ class ImageHashCache:
     The cache is a JSON storing from hash of the requested computation to the
     hash of the image code
     E.g.,
-    IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1
-    IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1
-        IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1
-            IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1
-            IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1
-            IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1
-        IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1
-        IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1
-    IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1
-    IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1IDSKIP1
+    ```
+    {
+        "a1b2c3...": {
+            "image_code_hash": "d4e5f6...",
+            "image_code_type": "graphviz",
+            "out_file": "/path/to/rendered/image1.png",
+        }
+        ...
+    }
+    ```
 
     Given a certain computation we want to check if the image code has changed
     since the last time we computed the hash of the image code. If it has not
@@ -402,17 +402,17 @@ def _render_images(
         rf"""
         ^\s*                # Start of the line and any leading whitespace
         ({comment}\s*)?     # Optional comment prefix
-        IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2
-        IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2
-        IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2
-        IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2
-        IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2
-        IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2
-    IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2
-    IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2
-        IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2
-        IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2
-        IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2IDSKIP2
+        ```                 # Opening backticks for code block
+        (plantuml|mermaid|tikz|graphviz*)  # Image code type
+        (\((.*)\))?         # Optional user-specified image name in parentheses
+        \s*$                # Any trailing whitespace and end of the line
+        """,
+        re.VERBOSE,
+    )
+    end_regex = re.compile(
+        rf"""
+        ^\s*                # Start of the line and any leading whitespace
+        ({comment}\s*)?     # Optional comment prefix
         ```                 # Opening backticks for code block
         \s*$                # Any trailing whitespace and end of the line
         """,
