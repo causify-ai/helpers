@@ -43,6 +43,7 @@ import linters.amp_check_md_toc_headers as lacmtohe
 import linters.amp_check_merge_conflict as lachmeco
 import linters.amp_class_method_order as laclmeor
 import linters.amp_doc_formatter as lamdofor
+import linters.amp_fix_empty_lines as lafiemli
 import linters.amp_fix_md_links as lafimdli
 import linters.amp_fix_whitespaces as lamfiwhi
 import linters.amp_flake8 as lampflak
@@ -226,6 +227,11 @@ _MODIFYING_ACTIONS: List[Tuple[str, str, Type[liaction.Action]]] = [
         "process_jupytext",
         "Keeps paired .ipynb and .py files synchronized",
         lampproc._JupytextAction,  # pylint: disable=protected-access
+    ),
+    (
+        "fix_empty_lines",
+        "Remove empty lines within function blocks",
+        lafiemli._FixEmptyLines,  # pylint: disable=protected-access
     ),
 ]
 
