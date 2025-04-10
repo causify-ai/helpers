@@ -236,7 +236,7 @@ def obj_to_str(
             dunder_mode,
             attr_names_to_skip,
         )
-        # `attr_value` can be callable object and needs to be properly handled 
+        # `attr_value` can be callable object and needs to be properly handled
         # for string conversion and formatting.
         _LOG.debug(hprint.to_str("attr_name attr_value skip"))
         if skip:
@@ -344,7 +344,7 @@ def obj_to_repr(
             dunder_mode,
             attr_names_to_skip,
         )
-        # `attr_value` can be callable object and needs to be properly handled 
+        # `attr_value` can be callable object and needs to be properly handled
         # for string conversion and formatting.
         _LOG.info(hprint.to_str("attr_name attr_value skip"))
         if skip:
