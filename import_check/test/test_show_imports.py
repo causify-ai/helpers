@@ -78,7 +78,7 @@ class Test_show_imports(hunitest.TestCase):
         # Check the outcome.
         if check_graph_source:
             script_output = hio.from_file(f"{out_dir}/output")
-            self.check_string(script_output)
+            self.check_string(script_output, purify_text=True)
         else:
             script_output = hio.from_file(script_output_filename)
             # Transform the output from the script by removing the dependencies
