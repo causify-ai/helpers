@@ -47,7 +47,9 @@ def func1(a:str)->str:
 fun1("demo")
 
 print("Outside function")'''
+        # Run.
         actual = lafiemli.update_function_blocks(text)
+        # Check.
         self.assertEqual(expected, actual)
 
     def test2(self) -> None:
@@ -148,7 +150,9 @@ fun1("demo")
 
 print("Outside class")
 '''
+        # Run.
         actual = lafiemli.update_function_blocks(text)
+        # Check.
         self.assertEqual(expected, actual)
 
     def test3(self) -> None:
@@ -321,5 +325,7 @@ def func6(a:str)->str:
     """
     print(a)
     return a'''
+        # Run.
         actual = lafiemli.update_function_blocks(text)
+        # Check.
         self.assertEqual(expected, actual)
