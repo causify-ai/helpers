@@ -237,7 +237,7 @@ set_pythonpath() {
 }
 
 
-is_dev_ck() {
+is_dev_csfy() {
     # Check if we are running on the dev servers.
     # Get the host name.
     host_name=$(uname -n)
@@ -260,7 +260,7 @@ configure_specific_project() {
     export CSFY_AWS_PROFILE="ck"
 
     # These variables are propagated to Docker.
-    if is_dev_ck; then
+    if is_dev_csfy; then
         # Private ECR registry base path.
         export CSFY_ECR_BASE_PATH="623860924167.dkr.ecr.eu-north-1.amazonaws.com"
     else
