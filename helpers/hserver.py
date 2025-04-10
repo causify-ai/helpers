@@ -121,34 +121,14 @@ def is_dev4() -> bool:
     return is_dev4_
 
 
-def is_mac(*, version: Optional[str] = None) -> bool:
+def _get_macos_tag(version: str) -> str:
     """
-    Return whether we are running on macOS and, optionally, on a specific
-    version.
+    Get the macOS version tag based on the version name.
 
-    :param version: check whether we are running on a certain macOS version (e.g.,
-        `Catalina`, `Monterey`)
+    :param version: macOS version name (e.g. "Catalina", "Monterey",
+        "Ventura")
+    :return: Version tag string
     """
-    _LOG.debug("version=%s", version)
-    host_os_name = os.uname()[0]
-    _LOG.debug("os.uname()=%s", str(os.uname()))
-    csfy_host_os_name = os.environ.get("CSFY_HOST_OS_NAME", None)
-    _LOG.debug(
-        "host_os_name=%s csfy_host_os_name=%s", host_os_name, csfy_host_os_name
-    )
-    is_mac_ = host_os_name == "Darwin" or csfy_host_os_name == "Darwin"
-    if version is None:
-        # The user didn't request a specific version, so we return whether we
-        # are running on a Mac or not.
-        _LOG.debug("is_mac_=%s", is_mac_)
-        return is_mac_
-    else:
-        # The user specified a version: if we are not running on a Mac then we
-        # return False, since we don't even have to check the macOS version.
-        if not is_mac_:
-            _LOG.debug("is_mac_=%s", is_mac_)
-            return False
-    # Check the macOS version we are running.
     if version == "Catalina":
         # Darwin gpmac.fios-router.home 19.6.0 Darwin Kernel Version 19.6.0:
         # Mon Aug 31 22:12:52 PDT 2020; root:xnu-6153.141.2~1/RELEASE_X86_64 x86_64
@@ -166,38 +146,126 @@ def is_mac(*, version: Optional[str] = None) -> bool:
     else:
         raise ValueError(f"Invalid version='{version}'")
     _LOG.debug("macos_tag=%s", macos_tag)
+    return macos_tag
+
+
+def is_mac(*, version: Optional[str] = None) -> bool:
+    """
+    Return whether we are running on macOS and, optionally, on a specific
+    version.
+
+    :param version: check whether we are running on a certain macOS version (e.g.,
+        `Catalina`, `Monterey`)
+    """
+    if is_inside_docker():
+        return False
+    _LOG.debug("version=%s", version)
+    #
+    host_os_name = os.uname()[0]
+    _LOG.debug("host_os_name=%s", host_os_name)
+    #
+    is_mac_ = host_os_name == "Darwin"
+    if version is None:
+        # The user didn't request a specific version, so we return whether we
+        # are running on a Mac or not.
+        _LOG.debug("is_mac_=%s", is_mac_)
+        return is_mac_
+    else:
+        # The user specified a version: if we are not running on a Mac then we
+        # return False, since we don't even have to check the macOS version.
+        if not is_mac_:
+            _LOG.debug("is_mac_=%s", is_mac_)
+            return False
+    macos_tag = _get_macos_tag(version)
     host_os_version = os.uname()[2]
+    _LOG.debug("host_os_version=%s", host_os_version)
+    is_mac_ = macos_tag in host_os_version
+    _LOG.debug("  -> is_mac_=%s", is_mac_)
+    return is_mac_
+
+
+def is_host_mac(*, version: Optional[str] = None) -> bool:
+    """
+    Return whether the host on which we are running a container is macOS.
+
+    :param version: check whether we are running on a certain macOS version (e.g.,
+        `Catalina`, `Monterey`)
+    """
+    assert (
+        is_inside_docker()
+    ), "You can call `is_host_mac()` only from inside a container"
+    _LOG.debug("version=%s", version)
+    #
+    csfy_host_os_name = os.environ.get("CSFY_HOST_OS_NAME", None)
+    _LOG.debug("csfy_host_os_name=%s", csfy_host_os_name)
+    #
+    is_mac_ = csfy_host_os_name == "Darwin"
+    if version is None:
+        # The user didn't request a specific version, so we return whether we
+        # are running on a Mac or not.
+        _LOG.debug("is_mac_=%s", is_mac_)
+        return is_mac_
+    else:
+        # The user specified a version: if we are not running on a Mac then we
+        # return False, since we don't even have to check the macOS version.
+        if not is_mac_:
+            _LOG.debug("is_mac_=%s", is_mac_)
+            return False
+    macos_tag = _get_macos_tag(version)
     # 'Darwin Kernel Version 19.6.0: Mon Aug 31 22:12:52 PDT 2020;
     #   root:xnu-6153.141.2~1/RELEASE_X86_64'
     csfy_host_os_version = os.environ.get("CSFY_HOST_VERSION", "")
     _LOG.debug(
-        "host_os_version=%s csfy_host_os_version=%s",
-        host_os_version,
+        "csfy_host_os_version=%s",
         csfy_host_os_version,
     )
-    is_mac_ = macos_tag in host_os_version or macos_tag in csfy_host_os_version
-    _LOG.debug("is_mac_=%s", is_mac_)
+    is_mac_ = macos_tag in csfy_host_os_version
+    _LOG.debug("  -> is_mac_=%s", is_mac_)
     return is_mac_
 
 
+# TODO(gp): -> is_not_dev_csfy_linux: are we running on a host which is not a
+# Causify machine?
 def is_external_linux() -> bool:
     """
     Detect whether we are running on a non-server/non-CI Linux machine.
 
-    :return: whether an external Linux system is running
+    This is true when we run on the machine of an intern, a student, or
+    a non-CSFY contributor.
     """
-    # CI and dev servers are not considered external Linux systems.
     if is_dev_csfy() or is_inside_ci():
-        is_external_linux_ = False
-    # If we are inside a Docker container, we need to check the host OS.
+        # CI and dev servers are not considered external Linux systems.
+        res = False
     elif is_inside_docker():
+        # If we are inside a Docker container, we need to check the host OS.
         csfy_host_os_name = os.environ.get("CSFY_HOST_OS_NAME", None)
-        is_external_linux_ = csfy_host_os_name == "Linux"
-    # If we are not inside a Docker container, we can check the host OS directly.
+        res = csfy_host_os_name == "Linux"
     else:
+        # If we are not inside a Docker container, we can check the host OS
+        # directly.
         host_os_name = os.uname()[0]
-        is_external_linux_ = host_os_name == "Linux"
-    return is_external_linux_
+        res = host_os_name == "Linux"
+    _LOG.debug("  -> is_external_linux=%s", res)
+    return res
+
+
+def is_csfy_or_external_container() -> bool:
+    """
+    Detect whether we are running on a container in a CSFY or external system.
+
+    This is true for dockerized executables.
+    """
+    res = False
+    if is_inside_ci():
+        # CI servers are not considered external or CSFY systems.
+        res = False
+    elif not is_inside_docker():
+        # Outside Docker there is no container.
+        res = False
+    else:
+        res = is_inside_docker()
+    _LOG.debug("  -> is_csfy_or_external_container=%s", res)
+    return res
 
 
 def is_prod_csfy() -> bool:
@@ -279,7 +347,7 @@ def _get_setup_settings() -> List[Tuple[str, bool]]:
         ("is_inside_ci", is_inside_ci()),
         ("is_mac", is_mac()),
         ("is_external_linux", is_external_linux()),
-        #("is_csfy_or_external_container", is_csfy_or_external_container()),
+        ("is_csfy_or_external_container", is_csfy_or_external_container()),
     ]
     return setups
 
@@ -673,6 +741,7 @@ def indent(txt: str, *, num_spaces: int = 2) -> str:
 # End copy.
 
 
+# grep "def " helpers/hserver.py | sort
 def config_func_to_str() -> str:
     """
     Print the value of all the config functions.
@@ -681,31 +750,38 @@ def config_func_to_str() -> str:
     # Get the functions with:
     # grep "def " helpers/hserver.py | sort | awk '{ print $2 }' | perl -i -ne 'print "$1\n" if /^([^\(]+)/'
     function_names = [
-        "get_shared_data_dirs()",
-        "enable_privileged_mode()",
-        "get_docker_shared_group()",
-        "get_docker_user()",
-        "is_AM_S3_available()",
-        "has_dind_support()",
-        "has_docker_sudo()",
-        "is_CK_S3_available()",
-        "run_docker_as_root()",
-        "skip_submodules_test()",
-        "use_docker_db_container_name_to_connect()",
-        "use_docker_network_mode_host()",
-        "use_docker_sibling_containers()",
-        "is_dev4()",
-        "is_dev_csfy()",
-        "is_inside_ci()",
-        "is_inside_docker()",
-        "is_mac(version='Catalina')",
-        "is_mac(version='Monterey')",
-        "is_mac(version='Ventura')",
+        "enable_privileged_mode",
+        "get_docker_shared_group",
+        "get_docker_user",
+        "get_host_user_name",
+        "get_shared_data_dirs",
+        "has_dind_support",
+        "has_docker_sudo",
+        "is_AM_S3_available",
+        "is_CK_S3_available",
+        "is_csfy_or_external_container",
+        "is_dev4",
+        "is_dev_csfy",
+        "is_external_linux",
+        "is_host_mac",
+        "is_ig_prod",
+        "is_inside_ci",
+        "is_inside_docker",
+        "is_inside_ecs_container",
+        "is_inside_unit_test",
+        "is_mac",
+        "is_prod_csfy",
+        "run_docker_as_root",
+        "skip_submodules_test",
+        "use_docker_db_container_name_to_connect",
+        "use_docker_network_mode_host",
+        "use_docker_sibling_containers",
+        "use_main_network",
     ]
     for func_name in sorted(function_names):
         try:
             _LOG.debug("func_name=%s", func_name)
-            func_value = eval(func_name)
+            func_value = eval(func_name + "()")
         except NameError:
             func_value = "*undef*"
         msg = f"{func_name}='{func_value}'"

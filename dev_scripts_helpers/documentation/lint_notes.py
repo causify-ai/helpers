@@ -3,12 +3,12 @@
 """
 Lint "notes" files.
 
-> lint_notes.py -i foo.md -o bar.md \
-        --use_dockerized_prettier \
-        --use_dockerized_markdown_toc
+> lint_notes.py -i foo.txt -o bar.txt
 
-It can be used in vim to prettify a part of the text using stdin /
-stdout. :%!lint_notes.py
+It can be used in vim to prettify a part of the text using stdin / stdout.
+```
+:%!lint_notes.py
+```
 """
 
 # TODO(gp): -> lint_md.py
@@ -26,7 +26,6 @@ import helpers.hdocker as hdocker
 import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hprint as hprint
-import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
@@ -97,16 +96,12 @@ def prettier(
     out_file_path: str,
     *,
     print_width: int = 80,
-    use_dockerized_prettier: bool = True,
-    **kwargs: Any,
 ) -> None:
     """
     Format the given text using Prettier.
 
     :param print_width: The maximum line width for the formatted text.
         If None, the default width is used.
-    :param use_dockerized_prettier: Whether to use a Dockerized version
-        of Prettier.
     :return: The formatted text.
     """
     cmd_opts: List[str] = []
@@ -118,30 +113,16 @@ def prettier(
         hdbg.dassert_lte(1, print_width)
         cmd_opts.append(f"--print-width {print_width}")
     #
-    if use_dockerized_prettier:
-        # Run `prettier` in a Docker container.
-        force_rebuild = False
-        use_sudo = hdocker.get_use_sudo()
-        hdocker.run_dockerized_prettier(
-            in_file_path,
-            cmd_opts,
-            out_file_path,
-            force_rebuild=force_rebuild,
-            use_sudo=use_sudo,
-        )
-    else:
-        # Run `prettier` installed on the host directly.
-        executable = "prettier"
-        cmd = [executable] + cmd_opts
-        if in_file_path == out_file_path:
-            cmd.append("--write")
-        cmd.append(in_file_path)
-        if in_file_path != out_file_path:
-            cmd.append("> " + out_file_path)
-        #
-        cmd_as_str = " ".join(cmd)
-        _, output_tmp = hsystem.system_to_string(cmd_as_str, abort_on_error=True)
-        _LOG.debug("output_tmp=%s", output_tmp)
+    # Run `prettier` in a Docker container.
+    force_rebuild = False
+    use_sudo = hdocker.get_use_sudo()
+    hdocker.run_dockerized_prettier(
+        in_file_path,
+        cmd_opts,
+        out_file_path,
+        force_rebuild=force_rebuild,
+        use_sudo=use_sudo,
+    )
 
 
 # TODO(gp): Convert this into a decorator to adapt operations that work on
@@ -156,14 +137,7 @@ def prettier_on_str(
     """
     _LOG.debug("txt=\n%s", txt)
     # Save string as input.
-    debug = False
-    if not debug:
-        # We need to use the current dir since the file needs to be in the
-        # container build context.
-        curr_dir = os.getcwd()
-        tmp_file_name = tempfile.NamedTemporaryFile(dir=curr_dir).name
-    else:
-        tmp_file_name = "/tmp/tmp_prettier.txt"
+    tmp_file_name = "tmp.lint_notes.prettier.txt"
     hio.to_file(tmp_file_name, txt)
     # Call `prettier` in-place.
     prettier(tmp_file_name, tmp_file_name, *args, **kwargs)
@@ -184,18 +158,20 @@ def _postprocess(txt: str, in_file_name: str) -> str:
     """
     _LOG.debug("txt=%s", txt)
     # Remove empty lines before ```.
-    txt = re.sub(r"^\s*\n(\s*```)$", r"\1", txt, 0, flags=re.MULTILINE)
+    txt = re.sub(r"^\s*\n(\s*```)$", r"\1", txt, count=0, flags=re.MULTILINE)
     # Remove empty lines before higher level bullets, but not chapters.
-    txt = re.sub(r"^\s*\n(\s+-\s+.*)$", r"\1", txt, 0, flags=re.MULTILINE)
+    txt = re.sub(r"^\s*\n(\s+-\s+.*)$", r"\1", txt, count=0, flags=re.MULTILINE)
     # True if one is in inside a ``` .... ``` block.
     in_triple_tick_block: bool = False
     txt_new: List[str] = []
     for i, line in enumerate(txt.split("\n")):
         # Undo the transformation `* -> STAR`.
-        line = re.sub(r"^\-(\s*)STAR", r"*\1", line, 0)
-        line = re.sub(r"^\-(\s*)SSTAR", r"**\1", line, 0)
+        line = re.sub(r"^\-(\s*)STAR", r"*\1", line, count=0)
+        line = re.sub(r"^\-(\s*)SSTAR", r"**\1", line, count=0)
         # Remove empty lines.
-        line = re.sub(r"^\s*\n(\s*\$\$)", r"\1", line, 0, flags=re.MULTILINE)
+        line = re.sub(
+            r"^\s*\n(\s*\$\$)", r"\1", line, count=0, flags=re.MULTILINE
+        )
         # Handle ``` block.
         m = re.match(r"^\s*```(.*)\s*$", line)
         if m:
@@ -256,9 +232,6 @@ def _frame_chapters(txt: str, *, max_lev: int = 4) -> str:
 
 def _refresh_toc(
     txt: str,
-    *,
-    use_dockerized_markdown_toc: bool = True,
-    **kwargs: Any,
 ) -> str:
     """
     Refresh the table of contents (TOC) in the given text.
@@ -284,25 +257,15 @@ def _refresh_toc(
     hio.to_file(tmp_file_name, txt)
     # Process TOC.
     cmd_opts: List[str] = []
-    if use_dockerized_markdown_toc:
-        # Run `markdown-toc` in a Docker container.
-        use_sudo = hdocker.get_use_sudo()
-        force_rebuild = False
-        hdocker.run_dockerized_markdown_toc(
-            tmp_file_name,
-            cmd_opts,
-            use_sudo=use_sudo,
-            force_rebuild=force_rebuild,
-        )
-    else:
-        # Run `markdown-toc` installed on the host directly.
-        executable = "markdown-toc"
-        cmd = [executable] + cmd_opts
-        cmd.append("-i " + tmp_file_name)
-        #
-        cmd_as_str = " ".join(cmd)
-        _, output_tmp = hsystem.system_to_string(cmd_as_str, abort_on_error=True)
-        _LOG.debug("output_tmp=%s", output_tmp)
+    # Run `markdown-toc` in a Docker container.
+    use_sudo = hdocker.get_use_sudo()
+    force_rebuild = False
+    hdocker.run_dockerized_markdown_toc(
+        tmp_file_name,
+        cmd_opts,
+        use_sudo=use_sudo,
+        force_rebuild=force_rebuild,
+    )
     # Read file.
     txt = hio.from_file(tmp_file_name)
     # Clean up.
@@ -315,7 +278,7 @@ def _refresh_toc(
 # #############################################################################
 
 
-def _to_execute_action(action: str, actions: Optional[List[str]] = None) -> bool:
+def _to_execute_action(action: str, actions: List[str]) -> bool:
     to_execute = actions is None or action in actions
     if not to_execute:
         _LOG.debug("Skipping %s", action)
@@ -327,7 +290,6 @@ def _process(
     in_file_name: str,
     *,
     actions: Optional[List[str]] = None,
-    **kwargs: Any,
 ) -> str:
     """
     Process the given text by applying a series of actions.
@@ -336,8 +298,6 @@ def _process(
     :param in_file_name: The name of the input file.
     :param actions: A list of actions to be performed on the text. If
         None, all default actions are performed.
-    :param kwargs: Additional keyword arguments to be passed to the
-        actions.
     :return: The processed text.
     """
     is_md_file = in_file_name.endswith(".md")
@@ -348,7 +308,7 @@ def _process(
     # Prettify.
     action = "prettier"
     if _to_execute_action(action, actions):
-        txt = prettier_on_str(txt, **kwargs)
+        txt = prettier_on_str(txt)
     # Post-process text.
     action = "postprocess"
     if _to_execute_action(action, actions):
@@ -362,7 +322,7 @@ def _process(
     action = "refresh_toc"
     if _to_execute_action(action, actions):
         if is_md_file:
-            txt = _refresh_toc(txt, **kwargs)
+            txt = _refresh_toc(txt)
     return txt
 
 
@@ -409,14 +369,6 @@ def _parser() -> argparse.ArgumentParser:
         type=int,
         default=None,
     )
-    parser.add_argument(
-        "--use_dockerized_prettier",
-        action="store_true",
-    )
-    parser.add_argument(
-        "--use_dockerized_markdown_toc",
-        action="store_true",
-    )
     hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hparser.add_verbosity_arg(parser)
     return parser
@@ -442,9 +394,6 @@ def _main(args: argparse.Namespace) -> None:
         txt,
         in_file_name,
         actions=args.action,
-        print_width=args.print_width,
-        use_dockerized_prettier=args.use_dockerized_prettier,
-        use_dockerized_markdown_toc=args.use_dockerized_markdown_toc,
     )
     # Write output.
     if args.in_place:

@@ -4,6 +4,8 @@ import os
 import pytest
 import helpers.hunit_test as hunitest
 import helpers.hserver as hserver
+import dev_scripts_helpers.notebooks.extract_notebook_images as dshnbe
+import dev_scripts_helpers.notebooks.dockerized_extract_notebook_images as dshndb
 
 _LOG = logging.getLogger(__name__)
 
@@ -31,10 +33,10 @@ class Test_run_dockerized_notebook_image_extractor1(hunitest.TestCase):
         src_test_notebook = os.path.join(input_dir, "test_images.ipynb")
         output_dir = self.get_output_dir()
         # Run the container.
-        hdocker.run_dockerized_notebook_image_extractor(
+        dshnbe._run_dockerized_extract_notebook_images(
             notebook_path=src_test_notebook,
-            output_dir=str(output_dir),
-            force_rebuild=True,
+            output_dir=output_dir,
+            force_rebuild=False,
             use_sudo=False,
         )
         for item in output_dir.iterdir():
