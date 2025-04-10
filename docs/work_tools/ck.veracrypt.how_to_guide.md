@@ -8,13 +8,13 @@
   * [Unmounting a VeraCrypt Volume](#unmounting-a-veracrypt-volume)
 - [Using CLI](#using-cli)
   * [Creating a VeraCrypt volume with interactive mode](#creating-a-veracrypt-volume-with-interactive-mode)
-- [Create a VeraCrypt volume with non-interactive mode](#create-a-veracrypt-volume-with-non-interactive-mode)
+  * [Create a VeraCrypt volume with non-interactive mode](#create-a-veracrypt-volume-with-non-interactive-mode)
   * [Mounting a VeraCrypt Volume](#mounting-a-veracrypt-volume-1)
 - [Unmounting a VeraCrypt Volume](#unmounting-a-veracrypt-volume-1)
 - [How to use a Git client under an encrypted volume](#how-to-use-a-git-client-under-an-encrypted-volume)
   * [Mount](#mount)
-- [One time set-up](#one-time-set-up)
-- [Create the tmux env](#create-the-tmux-env)
+  * [One time set-up](#one-time-set-up)
+  * [Create the tmux env](#create-the-tmux-env)
 
 <!-- tocstop -->
 
@@ -211,7 +211,7 @@ Done: 100.000% Speed: 123 MiB/s Left: 0 s
 The VeraCrypt volume has been successfully created.
 ```
 
-## Create a VeraCrypt volume with non-interactive mode
+### Create a VeraCrypt volume with non-interactive mode
 
 ```bash
 > sudo veracrypt -t -c --volume-type=normal
@@ -297,7 +297,7 @@ TODO(gp): Move somewhere else
 > cd ~/src_vc/lemonade1/
 ```
 
-## One time set-up
+### One time set-up
 
 ```bash
 # Clone the code
@@ -317,7 +317,7 @@ TODO(gp): Move somewhere else
 - Assumption: the helpers virtual environment was already built under `src` when
   setting up a different repo.
 
-## Create the tmux env
+### Create the tmux env
 
 ```bash
 # Create a soft link. The cmd creates a file `~/go_lemonade.py` which creates a tmux session.
