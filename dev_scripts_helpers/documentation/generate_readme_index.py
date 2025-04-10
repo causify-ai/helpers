@@ -28,7 +28,7 @@ import helpers.hio as hio
 _LOG = logging.getLogger(__name__)
 
 def generate_markdown_index(
-    repo_path: str, markdown_files: Set[str], readme_file_name: str = "README.md"
+    repo_path: str, markdown_files: Set[str], readme_file_name: str = "README.md", summaries: Dict[str, str]
 ) -> None:
     """
     Generate or update a README index of Markdown files.
@@ -39,6 +39,7 @@ def generate_markdown_index(
     :param `repo_path`: the root path of the repository
     :param `markdown_files`: a set of markdown file paths (relative to repo_path)
     :param `readme_file_name`: the name of the README file (default is "README.md")
+    :param `summaries`: a dictionary containing generated summaries for each markdown file
     """
     # Build a mapping from each directory to its Markdown files
     directory_map = defaultdict(list)
@@ -63,6 +64,7 @@ def generate_markdown_index(
             lines.append(
                 f"- **File Name**: {filename}  \n"
                 f"  **Relative Path**: [{rel_path}]({rel_path})"
+                f"  **Summary**: {summary}"
             )
         lines.append("")
     # Read existing README or create a new one.
@@ -89,8 +91,27 @@ def generate_summary_for_file(content: str) -> str:
     summary = hopenai.get_completion(user=prompt, model="gpt-4o-mini")
     return summary.strip()
 
+def get_summaries_for_markdown_files(
+    repo_path: str, markdown_files: Set[str], update: bool = False
+) -> dict:
+    """
+    Generate or update summaries in-memory for Markdown files.
 
-def check_and_generate_summaries(repo_path: str, markdown_files: Set[str], update: bool = False) -> None:
+    :param `repo_path`: root path of the repository
+    :param `markdown_files`: set of Markdown file paths relative to repo_path
+    :param `update`: whether to update summaries for all files
+    :return: dict mapping relative file paths to summaries
+    """
+    summaries = {}
+    for rel_path in markdown_files:
+        file_path = os.path.join(repo_path, rel_path)
+        content = hio.from_file(file_path)
+        if update or True:
+            summary = generate_summary_for_file(content)
+            summaries[rel_path] = summary
+    return summaries
+
+#def check_and_generate_summaries(repo_path: str, markdown_files: Set[str], update: bool = False) -> None:
     """
     Check each Markdown file for a summary, and generate or update one if required.
 
@@ -98,18 +119,18 @@ def check_and_generate_summaries(repo_path: str, markdown_files: Set[str], updat
     :param `markdown_files`: set of Markdown file paths relative to repo_path
     :param `update`: whether to update summaries for all files
     """
-    for rel_path in markdown_files:
-        file_path = os.path.join(repo_path, rel_path)
-        content = hio.from_file(file_path)
-        if "## Summary" not in content or update:
-            action = "Updating" if update else "Generating"
-            _LOG.info("%s summary for %s...", action, rel_path)
-            summary = generate_summary_for_file(content)
-            if "## Summary" in content:
-                # Update existing summary.
-                content = content.split("## Summary")[0].strip()
-            hio.to_file(file_path, content + "\n\n## Summary\n" + summary)
-            _LOG.info("Summary %s to %s.", "updated" if update else "added", rel_path)
+#    for rel_path in markdown_files:
+#        file_path = os.path.join(repo_path, rel_path)
+#        content = hio.from_file(file_path)
+#        if "## Summary" not in content or update:
+#            action = "Updating" if update else "Generating"
+#            _LOG.info("%s summary for %s...", action, rel_path)
+#            summary = generate_summary_for_file(content)
+#            if "## Summary" in content:
+#                # Update existing summary.
+#                content = content.split("## Summary")[0].strip()
+#            hio.to_file(file_path, content + "\n\n## Summary\n" + summary)
+#            _LOG.info("Summary %s to %s.", "updated" if update else "added", rel_path)
 
 
 def list_markdown_files(repo_path: str) -> Set[str]:
@@ -145,9 +166,12 @@ def _main() -> None:
     # Fetch all Markdown files in the repository.
     markdown_files = list_markdown_files(repo_path)
     if markdown_files:
-        generate_markdown_index(repo_path, markdown_files)
+        summaries = None
         if args.generate_summary or args.update_summary:
-            check_and_generate_summaries(repo_path, markdown_files, update=args.update_summary)
+            summaries = get_summaries_for_markdown_files(
+                repo_path, markdown_files, update=args.update_summary
+            )
+        generate_markdown_index(repo_path, markdown_files, summaries=summaries)
     else:
         _LOG.debug("No Markdown files found; skipping index generation.")
 
