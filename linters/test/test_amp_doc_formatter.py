@@ -132,6 +132,48 @@ def sample_method2() -> None:
         actual = self._docformatter(text)
         self.assertEqual(expected, actual)
 
+    def test7(self) -> None:
+        """
+        Test that unbalanced/misplaced backticks are correctly flagged.
+        """
+        # Unbalanced backticks.
+        # Prepare inputs.
+        text='''content = r"""
+```python
+def no_closing_backticks():
+    print("No below delimiters are present")
+
+"""
+'''
+        scratch_dir = self.get_scratch_space()
+        temp_file = os.path.join(scratch_dir, "temp_file.py")
+        hio.to_file(temp_file, text)
+        # Run.
+        actual = lamdofor._DocFormatter().execute(file_name=temp_file, pedantic=0)[0]
+        # Check.
+        expected = f"{temp_file}:2: Found misplaced or unbalanced triple backticks"
+        self.assertEqual(actual, expected)
+
+    def test8(self) -> None:
+        # Balanced backticks. 
+        # Prepare inputs.
+        text='''content = r"""
+```python
+def no_closing_backticks():
+    print("No below delimiters are present")
+```
+"""
+'''
+        scratch_dir = self.get_scratch_space()
+        temp_file = os.path.join(scratch_dir, "temp_file.py")
+        hio.to_file(temp_file, text)
+        # Run.
+        actual = lamdofor._DocFormatter().execute(file_name=temp_file, pedantic=1)
+        # Check.
+        expected = []
+        self.assertEqual(actual, expected)
+
+
     def _docformatter(self, text: str) -> str:
         """
         Run the docformatter on the temp file in scratch space.

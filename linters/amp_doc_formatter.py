@@ -48,6 +48,36 @@ class _DocFormatter(liaction.Action):
         """
         check: bool = hsystem.check_exec(self._executable)
         return check
+    
+    @staticmethod
+    def _has_misplaced_triple_backticks(file_name: str) -> tuple[bool, int]:
+        """
+        Check if the file contains triple backticks that are either unbalanced or misplaced.
+        
+        :param file_name: file to process
+        :return: true if misplaced/unbalanced backticks are detected, line where first issue occurs
+        """
+        contents = hio.from_file(file_name)
+        lines = contents.splitlines()
+        # Filter out single comment lines.
+        non_comment_lines = [line for line in lines if not line.lstrip().startswith("#")]
+        # Count triple backticks from non-comment lines.
+        backticks = []
+        for line in non_comment_lines:
+            backticks.extend(re.findall(r'```', line))
+        if len(backticks) % 2 != 0:
+            # Unbalanced backticks. 
+            # Locate first non-comment line with triple backticks.
+            for i, line in enumerate(lines, start=1):
+                if not line.lstrip().startswith("#") and '```' in line:
+                    return True, i
+        # Check each non-comment line for misplaced triple backticks.
+        for i, line in enumerate(lines, start=1):
+            if line.lstrip().startswith("#"):
+                continue
+            if '```' in line and not line.lstrip().startswith("```"):
+                return True, i
+        return False, 0
 
     @staticmethod
     def _remove_ignored_docstrings(file_name: str) -> Dict[str, str]:
@@ -190,7 +220,15 @@ class _DocFormatter(liaction.Action):
             return []
         # Clear and store ignored docstrings and code.
         _ignored_docstrings = self._remove_ignored_docstrings(file_name)
-        _removed_code = self._remove_code_blocks(file_name)
+        # Check for misplaced backticks
+        misplaced_warning=""
+        has_misplaced, line_no = self._has_misplaced_triple_backticks(file_name)
+        if has_misplaced:
+            # Misplaced backticks detected; don't remove any code blocks.
+            misplaced_warning = (f"{file_name}:{line_no}: Found misplaced or unbalanced triple backticks")
+            _removed_code = {}  
+        else:
+            _removed_code = self._remove_code_blocks(file_name)
         # Execute docformatter.
         opts = "--make-summary-multi-line --pre-summary-newline --in-place"
         cmd = f"{self._executable} {opts} {file_name}"
@@ -198,7 +236,12 @@ class _DocFormatter(liaction.Action):
         _, output = liutils.tee(cmd, self._executable, abort_on_error=False)
         # Restore ignored docstrings and code.
         self._restore_ignored_docstrings(file_name, _ignored_docstrings)
-        self._restore_removed_code_blocks(file_name, _removed_code)
+        # Restore removed code blocks only if any were removed.
+        if _removed_code:
+            self._restore_removed_code_blocks(file_name, _removed_code)
+        # Prepend the warning to the output if it was generated.
+        if misplaced_warning:
+            output.insert(0, misplaced_warning)
         return output
 
 
