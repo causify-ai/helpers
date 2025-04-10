@@ -187,7 +187,10 @@ Filesystem:
 8) Btrfs
 Select [2]: 5
 
-# Avoid using "FAT" as it does not support symbolic links, meaning that files such as `invoke.yaml`, `conftest.py` (hence `i docker_bash`, `i run_fast_tests`) won't work, because in `lemonade` they are symbolic links to the corresponding files in `amp`. Use Linux Ext4 (!)
+# Avoid using "FAT" as it does not support symbolic links, meaning that
+# files such as `invoke.yaml`, `conftest.py` (hence `i docker_bash`,
+# `i run_fast_tests`) won't work, because in `lemonade` they are symbolic
+# links to the corresponding files in `amp`. Use Linux Ext4 (!)
 
 Enter password: Password123
 WARNING: Short passwords are easy to crack using brute force techniques!
@@ -249,7 +252,12 @@ Enter PIM for /data/$USER/Desktop/test.vc: 1
 Enter keyfile [none]: none (i.e. press Enter without typing anything)
 Protect hidden volume (if any)? (y=Yes/n=No) [No]: No
 
-# Change ownership of the `src_vc` folder. When using Linux Ext4 filesystem, it creates a `lost+found` folder inside `src_vc` owned by `root` and then the entire `src_vc` is owned by `root`. Meaning that you cannot create a dir (e.g., `lemonade1` to clone the repo to) inside `src_vc` as long as it is owned by `root`. Perhaps, you may need to ask the infra team to run the cmd for you.
+# Change ownership of the `src_vc` folder. When using Linux Ext4 filesystem,
+# it creates a `lost+found` folder inside `src_vc` owned by `root` and then
+# the entire `src_vc` is owned by `root`. Meaning that you cannot create a
+# dir (e.g., `lemonade1` to clone the repo to) inside `src_vc` as long as
+# it is owned by `root`. Perhaps, you may need to ask the infra team to run
+# the cmd for you.
 > sudo chown -R $USER:$USER /data/$USER/src_vc
 ```
 
