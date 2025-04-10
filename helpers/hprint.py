@@ -197,6 +197,9 @@ def indent(txt: Optional[str], *, num_spaces: int = 2) -> str:
     """
     if txt is None:
         return ""
+    hdbg.dassert_isinstance(txt, str)
+    hdbg.dassert_isinstance(num_spaces, int)
+    hdbg.dassert_lte(0, num_spaces)
     spaces = " " * num_spaces
     txt_out = []
     for curr_line in txt.split("\n"):
@@ -339,6 +342,7 @@ def remove_empty_lines(txt: str) -> str:
     """
     Remove empty lines from a multi-line string.
     """
+    hdbg.dassert_isinstance(txt, str)
     arr = txt.split("\n")
     arr = remove_empty_lines_from_string_list(arr)
     txt = "\n".join(arr)

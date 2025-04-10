@@ -658,5 +658,5 @@ def config_func_to_str() -> str:
         ret.append(msg)
         # _print(msg)
     # Package.
-    ret: str = "# hserver.config\n" + indent("\n".join(ret))
+    ret = "\n".join(ret)
     return ret

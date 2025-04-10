@@ -151,7 +151,8 @@ class RepoConfig:
         ret.append(
             f"get_docker_base_image_name='{self.get_docker_base_image_name()}'"
         )
-        return "# repo_config.config\n" + indent("\n".join(ret))
+        txt = "\n".join(ret)
+        return txt
 
     # repo_info
 
@@ -263,7 +264,7 @@ class RepoConfig:
         
         This is used in unit tests to test dockerized executables.
         """
-        value = self._data["docker_info"]["use_sibling_container"])
+        value = self._data["docker_info"]["use_sibling_container"]
         assert value in ["True", "False"], f"Invalid boolen value: {value}"
         return value == "True"
 
