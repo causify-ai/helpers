@@ -8,13 +8,13 @@
   * [Unmounting a VeraCrypt Volume](#unmounting-a-veracrypt-volume)
 - [Using CLI](#using-cli)
   * [Creating a VeraCrypt volume with interactive mode](#creating-a-veracrypt-volume-with-interactive-mode)
-  * [Create a VeraCrypt volume with non-interactive mode](#create-a-veracrypt-volume-with-non-interactive-mode)
+- [Create a VeraCrypt volume with non-interactive mode](#create-a-veracrypt-volume-with-non-interactive-mode)
   * [Mounting a VeraCrypt Volume](#mounting-a-veracrypt-volume-1)
 - [Unmounting a VeraCrypt Volume](#unmounting-a-veracrypt-volume-1)
 - [How to use a Git client under an encrypted volume](#how-to-use-a-git-client-under-an-encrypted-volume)
   * [Mount](#mount)
-  * [One time set-up](#one-time-set-up)
-  * [Create the tmux env](#create-the-tmux-env)
+- [One time set-up](#one-time-set-up)
+- [Create the tmux env](#create-the-tmux-env)
 
 <!-- tocstop -->
 
@@ -120,7 +120,7 @@ style="width:5.17188in;height:4.85948in" />
 src="figs/veracrypt/image3.png"
 style="width:5.17188in;height:4.85948in" />
 
-You can Encrypt files by Dismounting Volume, Select Slot and press Dismount
+- You can Encrypt files by Dismounting Volume, Select Slot and press Dismount
 
 ## Using CLI
 
@@ -148,6 +148,7 @@ Select [1]: 1
 Enter volume path: /data/$USER/.src_vc_DO_NOT_OVERWRITE
 
 # An orange client is around 350M, so you can create 2GB worth of encrypted dir
+
 Enter volume size (sizeK/size[M]/sizeG): 2G
 
 Encryption Algorithm:
@@ -319,8 +320,7 @@ TODO(gp): Move somewhere else
 ## Create the tmux env
 
 ```bash
-# Create a soft link. The cmd creates a file `~/go_lemonade.py`
-# which creates a tmux session.
+# Create a soft link. The cmd creates a file `~/go_lemonade.py` which creates a tmux session.
 > dev_scripts_lemonade/thin_client/tmux.py --create_global_link
 
 # Export encrypted dir path before creating a tmux session.
