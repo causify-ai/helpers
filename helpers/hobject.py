@@ -344,9 +344,7 @@ def obj_to_repr(
             dunder_mode,
             attr_names_to_skip,
         )
-        _LOG.debug(
-            "attr_name=%s attr_value=%s -> skip", attr_name, attr_value, skip
-        )
+        _LOG.debug(hprint.to_str("attr_name attr_value skip"))
         if skip:
             continue
         #
