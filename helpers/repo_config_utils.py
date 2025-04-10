@@ -37,6 +37,9 @@ def indent(txt: str, num_spaces: int = 2) -> str:
 # End copy.
 
 
+# #############################################################################
+
+
 def _find_config_file(file_name: str) -> str:
     """
     Find recursively the dir of config file.
@@ -155,14 +158,14 @@ class RepoConfig:
     # TODO(gp): -> get_repo_name
     def get_name(self) -> str:
         """
-        Return the name of the repo, e.g., `//amp`.
+        Return the name of the repo, e.g., in `//amp`.
         """
         value = self._data["repo_info"]["repo_name"]
         return f"//{value}"
 
     def get_github_repo_account(self) -> str:
         """
-        Return the account name of the repo on GitHub, e.g., `github.com`.
+        Return the account name of the repo on GitHub, e.g., `causify-ai`, `gpsaggese`.
         """
         value = self._data["repo_info"]["github_repo_account"]
         return value
@@ -253,6 +256,16 @@ class RepoConfig:
         """
         value = self._data["docker_info"]["docker_image_name"]
         return value
+
+    def get_use_sibling_container(self) -> bool:
+        """
+        Return whether to use a sibling container or a chilren docker-in-docker approach.
+        
+        This is used in unit tests to test dockerized executables.
+        """
+        value = self._data["docker_info"]["use_sibling_container"])
+        assert value in ["True", "False"], f"Invalid boolen value: {value}"
+        return value == "True"
 
     # s3_bucket_info
 
