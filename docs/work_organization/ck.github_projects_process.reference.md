@@ -40,10 +40,11 @@
     style="width:6.5in;height:0.31944in" />
 
 - We use a base
-  [<u>template</u>](https://github.com/cryptokaizen/cmamp/projects?query=is%3Aopen+is%3Atemplate)
+  [<u>template</u>](https://github.com/orgs/causify-ai/projects?query=is%3Aopen+is%3Atemplate)
   for all of our projects to ensure consistency between projects
 
 - The base template consists of the following views:
+  - All issues - provides a kanban board of all issues present in the project
   - Current sprint - provides a kanban board of issues in the currently running
     sprint
   - Next sprint - provides a kanban board of issues in the next sprint
@@ -51,14 +52,16 @@
     assigned
   - Team capacity - aggregates "estimate point" for each collaborator in the
     project
-  - Issue list - a "warehouse" to preview all of the project issues regardless
-    of its status
 
 ### Issue fields
 
 - Each issue within a project contains specific fields:
+  - **Assignee**
+    - Names of people the issue is assigned to
   - **Status** (TODO, In Progress, Done)
     - What phase of the development the issue is in
+  - **Label** (Bug, P0, P1)
+    - Label assigned to the specific issue
   - **Estimate** in terms of "uninterrupted hours of work"
     - What is the issues' estimated implementation difficulty
     - We want to become good at estimating complexity and overcome being
@@ -71,6 +74,8 @@
       our expectations, so that we can learn and improve
   - **Sprint**
     - Which weekly sprint this issue belongs to
+  - **Linked Pull Request**
+    - The pull requests linked to the specific issue
 
 - It's possible to add new fields; the list above includes the agreed upon
   fields shared across all projects
@@ -83,8 +88,8 @@
 - Click on the green `New Project` button
 
 - A new window with a pop-up should appear, in the pop-up choose
-  `Project templates` > `From your organization` and choose **[TEMPLATE] Kaizen
-  Project**
+  `Project templates` > `From your organization` and choose ** [TEMPLATE]
+  Causify Project**
 
 - Change the default name `@yourusername untitled project` to a relevant name
   - The name should be short and representative of what needs to be done
@@ -233,9 +238,9 @@ Next steps
 - For more customized automated workflows we use GitHub actions
 
 - A GitHub Action
-  [`sprint_iteration.yml`](https://github.com/causify-ai/cmamp/blob/master/.github/workflows/sprint_iteration.yml) is set up to
-  move items in active projects from last sprint to current sprint at the
-  beginning of each sprint.
+  [`sprint_iteration.yml`](https://github.com/causify-ai/cmamp/blob/master/.github/workflows/sprint_iteration.yml)
+  is set up to move items in active projects from last sprint to current sprint
+  at the beginning of each sprint.
 
 ## Parent and sub-issues
 
