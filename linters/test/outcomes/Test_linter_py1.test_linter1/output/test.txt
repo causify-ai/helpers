@@ -45,7 +45,6 @@ def func(a: str, lst: List[str]) -> Any:
     First comment line.
     """
     import helpers.hcache as hcache
-
     hcache._get_cache_types()
     for i in tqdm.tqdm(lst):
         a += "string {}".format(i)

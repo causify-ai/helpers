@@ -54,7 +54,7 @@ print("Outside function")'''
 
     def test2(self) -> None:
         """
-        Test cleaning empty lines in functions nested inside a class.
+        Test cleaning empty lines in methods inside a class.
         """
         text = '''import os
 import numpy as np
@@ -157,7 +157,7 @@ print("Outside class")
 
     def test3(self) -> None:
         """
-        Test cleaning empty lines in functions inside and outside a class.
+        Test cleaning empty lines in methods and functions.
         """
         text = '''import os
 import numpy as np
