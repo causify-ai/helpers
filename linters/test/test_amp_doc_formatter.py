@@ -138,7 +138,7 @@ def sample_method2() -> None:
         """
         # Unbalanced backticks.
         # Prepare inputs.
-        text='''content = r"""
+        text = '''content = r"""
 ```python
 def no_closing_backticks():
     print("No below delimiters are present")
@@ -149,14 +149,18 @@ def no_closing_backticks():
         temp_file = os.path.join(scratch_dir, "temp_file.py")
         hio.to_file(temp_file, text)
         # Run.
-        actual = lamdofor._DocFormatter().execute(file_name=temp_file, pedantic=0)[0]
+        actual = lamdofor._DocFormatter().execute(
+            file_name=temp_file, pedantic=0
+        )[0]
         # Check.
-        expected = f"{temp_file}:2: Found misplaced or unbalanced triple backticks"
+        expected = (
+            f"{temp_file}:2: Found misplaced or unbalanced triple backticks"
+        )
         self.assertEqual(actual, expected)
 
-        # Balanced backticks. 
+        # Balanced backticks.
         # Prepare inputs.
-        text='''content = r"""
+        text = '''content = r"""
 ```python
 def no_closing_backticks():
     print("No below delimiters are present")
@@ -171,9 +175,6 @@ def no_closing_backticks():
         # Check.
         expected = []
         self.assertEqual(actual, expected)
-
-
-        
 
     def _docformatter(self, text: str) -> str:
         """

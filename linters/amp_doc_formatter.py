@@ -48,34 +48,39 @@ class _DocFormatter(liaction.Action):
         """
         check: bool = hsystem.check_exec(self._executable)
         return check
-    
+
     @staticmethod
     def _has_misplaced_triple_backticks(file_name: str) -> tuple[bool, int]:
         """
-        Check if the file contains triple backticks that are either unbalanced or misplaced.
-        
+        Check if the file contains triple backticks that are either unbalanced
+        or misplaced.
+
         :param file_name: file to process
-        :return: true if misplaced/unbalanced backticks are detected, line where first issue occurs
+        :return: true if misplaced/unbalanced backticks are detected,
+            line where first issue occurs
         """
         contents = hio.from_file(file_name)
         lines = contents.splitlines()
         # Filter out single comment lines.
-        non_comment_lines = [line for line in lines if not line.lstrip().startswith("#")]
+        non_comment_lines = [
+            line for line in lines if not line.lstrip().startswith("#")
+        ]
         # Count triple backticks from non-comment lines.
         backticks = []
         for line in non_comment_lines:
-            backticks.extend(re.findall(r'```', line))
+            backticks.extend(re.findall(r"```", line))
         if len(backticks) % 2 != 0:
-            # Unbalanced backticks. 
+            # Unbalanced backticks.
             # Locate first non-comment line with triple backticks.
             for i, line in enumerate(lines, start=1):
-                if not line.lstrip().startswith("#") and '```' in line:
+                if not line.lstrip().startswith("#") and "```" in line:
+                    print(True, i)
                     return True, i
         # Check each non-comment line for misplaced triple backticks.
         for i, line in enumerate(lines, start=1):
             if line.lstrip().startswith("#"):
                 continue
-            if '```' in line and not line.lstrip().startswith("```"):
+            if "```" in line and not line.lstrip().startswith("```"):
                 return True, i
         return False, 0
 
@@ -218,15 +223,18 @@ class _DocFormatter(liaction.Action):
         if self.skip_if_not_py(file_name):
             # Apply only to Python files.
             return []
+        # Check for misplaced backticks
+        misplaced_warning = ""
+        has_misplaced, line_no = self._has_misplaced_triple_backticks(file_name)
         # Clear and store ignored docstrings and code.
         _ignored_docstrings = self._remove_ignored_docstrings(file_name)
-        # Check for misplaced backticks
-        misplaced_warning=""
-        has_misplaced, line_no = self._has_misplaced_triple_backticks(file_name)
         if has_misplaced:
             # Do not remove any codeblocks as misplaced/unbalanced backticks detected.
-            misplaced_warning = (f"{file_name}:{line_no}: Found misplaced or unbalanced triple backticks")
-            _removed_code = {}  
+            misplaced_warning = (
+                f"{file_name}:{line_no}: "
+                "Found misplaced or unbalanced triple backticks"
+            )
+            _removed_code = {}
         else:
             _removed_code = self._remove_code_blocks(file_name)
         # Execute docformatter.
