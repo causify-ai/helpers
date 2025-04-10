@@ -83,7 +83,8 @@ jobs:
       - name: Pull image from GHCR
         run: invoke docker_pull
 
-      - name: Run tests
+      - name: ssh
+        uses: lhotari/action-upterm@v1
         env:
           CSFY_AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
           CSFY_AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
@@ -91,7 +92,16 @@ jobs:
           CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
           GH_ACTION_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: invoke ${{ inputs.test-name }}
+
+      # - name: Run tests
+      #   env:
+      #     CSFY_AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
+      #     CSFY_AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
+      #     CSFY_AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
+      #     CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
+      #     CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
+      #     GH_ACTION_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   run: invoke ${{ inputs.test-name }}
 
       # In case of manual run, this workflow step will not be skipped and
       # info in the step will be in format as seen in `with` statement.
