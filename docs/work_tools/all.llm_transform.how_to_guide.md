@@ -1,0 +1,15 @@
+# Available prompt tags:
+code_1_unit_test
+code_apply_refactoring
+code_comment
+code_docstring
+code_propose_refactoring
+code_review
+code_review_and_improve
+code_type_hints
+code_unit_test
+md_rewrite
+md_summarize_short
+slide_colorize
+slide_colorize_points
+slide_improve

@@ -111,6 +111,7 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
             use_docker_db_container_name_to_connect='False'
             use_docker_network_mode_host='False'
             use_docker_sibling_containers='False'
+            # Server config:
             # hserver.config
               is_AM_S3_available()='True'
               is_dev4()='False'
@@ -154,6 +155,7 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
             use_docker_db_container_name_to_connect='True'
             use_docker_network_mode_host='False'
             use_docker_sibling_containers='True'
+            # Server config:
             # hserver.config
               is_AM_S3_available='True'
               is_dev4='False'
@@ -202,6 +204,7 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
             use_docker_db_container_name_to_connect='False'
             use_docker_network_mode_host='False'
             use_docker_sibling_containers='False'
+            # Server config:
             # hserver.config
               is_AM_S3_available()='True'
               is_dev4()='False'
@@ -237,6 +240,7 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
             get_html_dir_to_url_mapping='{'s3://cryptokaizen-html': 'http://172.30.2.44', 's3://cryptokaizen-html/v2': 'http://172.30.2.44/v2'}'
             get_invalid_words='[]'
             get_docker_base_image_name='cmamp'
+            # Server config:
             # hserver.config
               enable_privileged_mode()='True'
               get_docker_shared_group()=''
