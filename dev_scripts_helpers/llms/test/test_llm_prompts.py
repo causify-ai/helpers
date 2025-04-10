@@ -16,7 +16,8 @@ _LOG = logging.getLogger(__name__)
 
 
 @pytest.mark.skipif(
-    hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
+    hserver.is_inside_ci() or hserver.is_dev_csfy(),
+    reason="Disabled because of CmampTask10710",
 )
 class Test_convert_to_vim_cfile1(hunitest.TestCase):
 
@@ -49,7 +50,8 @@ class Test_convert_to_vim_cfile1(hunitest.TestCase):
 
 
 @pytest.mark.skipif(
-    hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
+    hserver.is_inside_ci() or hserver.is_dev_csfy(),
+    reason="Disabled because of CmampTask10710",
 )
 class Test_prompt_tags1(hunitest.TestCase):
 

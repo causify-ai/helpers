@@ -33,7 +33,7 @@ import helpers.hserver as hserver
 _LOG = logging.getLogger(__name__)
 
 # Set logging level of this file higher to avoid too much chatter.
-_LOG.setLevel(logging.INFO)
+#_LOG.setLevel(logging.INFO)
 
 # #############################################################################
 
@@ -138,13 +138,8 @@ def _system(
 
     See `system()` for options.
     """
+    _LOG.debug(hprint.func_signature_to_str())
     _LOG.debug("##> %s", cmd)
-    _LOG.debug(
-        hprint.to_str(
-            "abort_on_error suppress_error suppress_output "
-            "blocking wrapper output_file num_error_lines tee dry_run log_level"
-        )
-    )
     orig_cmd = cmd[:]
     _LOG.debug("orig_cmd=%s", orig_cmd)
     # Handle `suppress_output`.
@@ -203,8 +198,10 @@ def _system(
         stderr = subprocess.STDOUT
         # We want to print the command line even if this module logging is disabled.
         # print("  ==> cmd=%s" % cmd)
-        with hloggin.set_level(_LOG, logging.DEBUG):
-            _LOG.debug("> %s", cmd)
+        # TODO(gp): This seems not working properly and getting the logging
+        # verbosity stuck.
+        # with hloggin.set_level(_LOG, logging.DEBUG):
+        #     _LOG.debug("> %s", cmd)
         with subprocess.Popen(
             cmd, shell=True, executable="/bin/bash", stdout=stdout, stderr=stderr
         ) as p:
@@ -520,6 +517,7 @@ def system_to_files(
     # Convert to normalized paths.
     files = [os.path.join(dir_name, f) for f in files]
     files: List[str] = list(map(os.path.normpath, files))  # type: ignore
+    _LOG.debug(hprint.to_str("files"))
     # Remove non-existent files, if needed.
     if remove_files_non_present:
         files = _remove_files_non_present(files)
@@ -876,7 +874,7 @@ def find_file_with_dir(
         mocking
     :return: list of files found
     """
-    _LOG.debug(hprint.to_str("file_name root_dir dir_depth mode"))
+    _LOG.debug(hprint.func_signature_to_str())
     # Find all the files in the dir with the same basename.
     if candidate_files is None:
         base_name = os.path.basename(file_name)
