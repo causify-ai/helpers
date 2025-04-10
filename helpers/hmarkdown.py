@@ -26,20 +26,28 @@ _TRACE = False
 # #############################################################################
 
 
-def is_markdown_line_separator(line: str) -> bool:
+def is_markdown_line_separator(line: str, min_repeats: int = 5) -> bool:
     """
     Check if the given line is a Markdown separator.
 
     :param line: the current line of text being processed
+    :param min_repeats: the minimum number of times the characters are
+        repeated  (`#`, `/`, `-`, `=`) to be considered a separator
+        - E.g., min_repeats = 2 classifies `##`, `###`, `//` as line seperator, but not `#`, `/`
     :return: true if the line is a separator
     """
-    res = (
-        re.match(r"#*\s*######+", line)
-        or re.match(r"#*\s*/////+", line)
-        or re.match(r"#*\s*-----+", line)
-        or re.match(r"#*\s*=====+", line)
-    )
-    res = bool(res)
+    line_pattern = rf"""
+        \#*  # Optional leading hash character.
+        \s*  # Optional whitespace.
+        (?:
+        # Match one of the below characters which is repeated at least `min_repeats` times.
+        \#{{{min_repeats},}}
+        |/{{{min_repeats},}}
+        |-{{{min_repeats},}}
+        |={{{min_repeats},}}
+        )
+    """
+    res = bool(re.match(line_pattern, line, re.VERBOSE))
     return res
 
 
