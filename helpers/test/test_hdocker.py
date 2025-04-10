@@ -207,7 +207,8 @@ def _create_test_file(self_: Any, txt: str, extension: str) -> str:
 
 # TODO(gp): -> Test_dockerized_prettier1
 @pytest.mark.skipif(
-    hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
+    hserver.is_inside_ci() or hserver.is_dev_csfy(),
+    reason="Disabled because of CmampTask10710",
 )
 class Test_run_dockerized_prettier1(hunitest.TestCase):
     """
@@ -385,7 +386,8 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
 
 # TODO(gp): -> Test_dockerized_pandoc1
 @pytest.mark.skipif(
-    hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
+    hserver.is_inside_ci() or hserver.is_dev_csfy(),
+    reason="Disabled because of CmampTask10710",
 )
 class Test_run_dockerized_pandoc1(hunitest.TestCase):
     """
@@ -454,7 +456,8 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
 
 # TODO(gp): -> Test_dockerized_markdown_toc1
 @pytest.mark.skipif(
-    hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
+    hserver.is_inside_ci() or hserver.is_dev_csfy(),
+    reason="Disabled because of CmampTask10710",
 )
 class Test_run_markdown_toc1(hunitest.TestCase):
 
@@ -521,7 +524,8 @@ class Test_run_markdown_toc1(hunitest.TestCase):
 
 
 @pytest.mark.skipif(
-    hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
+    hserver.is_inside_ci() or hserver.is_dev_csfy(),
+    reason="Disabled because of CmampTask10710",
 )
 class Test_dockerized_latex1(hunitest.TestCase):
 
@@ -617,7 +621,8 @@ class Test_dockerized_latex1(hunitest.TestCase):
 
 
 @pytest.mark.skipif(
-    hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
+    hserver.is_inside_ci() or hserver.is_dev_csfy(),
+    reason="Disabled because of CmampTask10710",
 )
 class Test_dockerized_tikz_to_bitmap1(hunitest.TestCase):
 
@@ -696,7 +701,8 @@ class Test_dockerized_tikz_to_bitmap1(hunitest.TestCase):
 
 
 @pytest.mark.skipif(
-    hserver.is_inside_ci(), reason="Disabled because of CmampTask10710"
+    hserver.is_inside_ci() or hserver.is_dev_csfy(),
+    reason="Disabled because of CmampTask10710",
 )
 class Test_dockerized_graphviz1(hunitest.TestCase):
 

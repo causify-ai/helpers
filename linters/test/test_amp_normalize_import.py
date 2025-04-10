@@ -1470,7 +1470,7 @@ class TestEndToEnd(hunitest.TestCase):
         action._execute(file_path, pedantic=0)
         actual_code = hio.from_file(file_path)
         # Compare with the golden outcome.
-        self.check_string(actual_code)
+        self.check_string(actual_code, purify_text=True)
 
 
 class TestEndToEndShortImports(hunitest.TestCase):
@@ -1508,7 +1508,7 @@ class TestEndToEndShortImports(hunitest.TestCase):
         )
         # Convert dict to JSON string and compare it with golden outcome.
         actual = pd.Series(short_import_names).to_json(indent=4)
-        self.check_string(actual)
+        self.check_string(actual, purify_text=True)
 
     def _get_file_path(self) -> str:
         """

@@ -19,11 +19,15 @@ _LOG = logging.getLogger(__name__)
 
 _PROMPT_OUT = Tuple[str, Set[str], Set[str]]
 
+_CONTEXT = r"""
+You are a proficient Python coder who pays attention to detail.
+I will pass you a chunk of Python code.
+"""
+
 
 def code_comment() -> _PROMPT_OUT:
-    system = r"""
-    You are a proficient Python coder.
-    I will pass you a chunk of Python code.
+    system = _CONTEXT
+    system += r"""
     Every 10 lines of code add comment explaining the code.
     Comments should go before the logical chunk of code they describe.
     Comments should be in imperative form, a full English phrase, and end with a period.
@@ -40,9 +44,8 @@ def code_comment() -> _PROMPT_OUT:
 
 
 def code_docstring() -> _PROMPT_OUT:
-    system = r"""
-    You are a proficient Python coder.
-    I will pass you a chunk of Python code.
+    system = _CONTEXT
+    system += r"""
     Add a docstring to the function passed.
     The first comment should be in imperative mode and fit in a single line of less than 80 characters.
     To describe the parameters use the REST style, which requires each parameter to be prepended with :param
@@ -53,9 +56,9 @@ def code_docstring() -> _PROMPT_OUT:
 
 
 def code_type_hints() -> _PROMPT_OUT:
-    system = r"""
-    You are a proficient Python coder.
-    Add type hints to the function passed.
+    system = _CONTEXT
+    system += r"""
+    You will add type hints to the function passed.
     """
     pre_transforms = set()
     post_transforms = {"remove_code_delimiters"}
@@ -63,10 +66,9 @@ def code_type_hints() -> _PROMPT_OUT:
 
 
 def _get_code_unit_test_prompt(num_tests: int) -> str:
-    system = rf"""
-    You are a world-class Python developer with an eagle eye for unintended bugs and edge cases.
-
-    I will pass you Python code and you will write a unit test suite for the function.
+    system = _CONTEXT
+    system += r"""
+    You will write a unit test suite for the function passed.
 
     Write {num_tests} unit tests for the function passed
     Just output the Python code
@@ -96,9 +98,8 @@ def code_1_unit_test() -> _PROMPT_OUT:
 
 
 def code_review() -> _PROMPT_OUT:
-    system = r"""
-    You are a proficient Python coder who pays attention to detail.
-    I will pass you Python code.
+    system = _CONTEXT
+    system += r"""
     You will review the code and make sure it is correct.
     You will also make sure that the code is clean and readable.
     You will also make sure that the code is efficient.
@@ -114,14 +115,13 @@ def code_review() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms
 
 
-def code_review_and_improve() -> _PROMPT_OUT:
-    system = r"""
-    You are a proficient Python coder who pays attention to detail.
-    I will pass you Python code.
+def code_review_and_fix() -> _PROMPT_OUT:
+    system = _CONTEXT
+    system += r"""
     You will review the code and make sure it is correct and readable.
 
     You will print the code with the proposed improvements, minimizing the
-    number of changes to the code that are not needed.
+    number of changes to the code that are not strictly needed.
     """
     pre_transforms = {"add_line_numbers"}
     post_transforms = {"convert_to_vim_cfile"}
@@ -129,10 +129,10 @@ def code_review_and_improve() -> _PROMPT_OUT:
 
 
 def code_propose_refactoring() -> _PROMPT_OUT:
-    system = r"""
-    You are a proficient Python coder who pays attention to detail.
-    I will pass you Python code.
-    You will review the code and look for opportunities to refactor the code.
+    system = _CONTEXT
+    system += r"""
+    You will review the code and look for opportunities to refactor the code,
+    by removing redundancy and copy-paste code.
 
     Do not print any comment, besides for each point of improvement, you will
     print the line number and the proposed improvement in the following style:
@@ -143,12 +143,13 @@ def code_propose_refactoring() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms
 
 
-def code_apply_refactoring() -> _PROMPT_OUT:
-    system = r"""
-    You are a proficient Python coder who pays attention to detail.
-    I will pass you Python code.
-    You will review the code and apply refactoring to remove redundancy in the
-    code, minimizing the number of changes to the code that are not needed.
+def code_refactor_and_fix() -> _PROMPT_OUT:
+    system = _CONTEXT
+    system += r"""
+    You will review the code and look for opportunities to refactor the code,
+    by removing redundancy and copy-paste code, and apply refactoring to remove
+    redundancy in the code, minimizing the number of changes to the code that
+    are not needed.
     """
     pre_transforms = set()
     post_transforms = set()
@@ -156,8 +157,8 @@ def code_apply_refactoring() -> _PROMPT_OUT:
 
 
 def code_apply_linter_issues() -> _PROMPT_OUT:
-    system = r"""
-    You are a proficient Python coder who pays attention to detail.
+    system = _CONTEXT
+    system += r"""
     I will pass you Python code and a list of linting errors in the format
     <file_name>:<line_number>:<error_code>:<error_message>
 
@@ -178,6 +179,7 @@ tutorial_github/github_utils.py:106: [W1203(logging-fstring-interpolation), get_
 def md_rewrite() -> _PROMPT_OUT:
     system = r"""
     You are a proficient technical writer.
+
     Rewrite the text passed as if you were writing a technical document to increase
     clarity and readability.
     Maintain the structure of the text as much as possible, in terms of bullet
@@ -191,6 +193,7 @@ def md_rewrite() -> _PROMPT_OUT:
 def md_summarize_short() -> _PROMPT_OUT:
     system = r"""
     You are a proficient technical writer.
+
     Summarize the text in less than 30 words.
     """
     pre_transforms = set()
@@ -204,6 +207,7 @@ def md_summarize_short() -> _PROMPT_OUT:
 def slide_improve() -> _PROMPT_OUT:
     system = r"""
     You are a proficient technical writer and expert of machine learning.
+
     I will give you markdown text in the next prompt
     You will convert the following markdown text into bullet points
     Make sure that the text is clean and readable
@@ -220,6 +224,7 @@ def slide_improve() -> _PROMPT_OUT:
 def slide_colorize() -> _PROMPT_OUT:
     system = r"""
     You are a proficient technical writer and expert of machine learning.
+
     I will give you markdown text in the next prompt
     - Do not change the text or the structure of the text
     - You will use multiple colors using pandoc \textcolor{COLOR}{text} to highlight
@@ -241,6 +246,7 @@ def slide_colorize() -> _PROMPT_OUT:
 def slide_colorize_points() -> _PROMPT_OUT:
     system = r"""
     You are a proficient technical writer and expert of machine learning.
+
     I will give you markdown text in the next prompt
     - Do not change the text or the structure of the text
     - You will highlight with \textcolor{COLOR}{text} the bullet point at the first level, without highlighting the - character

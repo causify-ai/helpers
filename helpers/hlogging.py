@@ -744,6 +744,7 @@ def set_v2_formatter(
     return formatter
 
 
+# TODO(gp): Not sure it works properly.
 @contextlib.contextmanager
 def set_level(logger: Any, level: int) -> None:
     """

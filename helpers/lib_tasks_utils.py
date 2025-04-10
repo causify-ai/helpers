@@ -140,8 +140,8 @@ def _to_single_line_cmd(cmd: Union[str, List[str]]) -> str:
         ```
         IMAGE=.../amp:dev \
             docker-compose \
-            --file devops/compose/docker-compose.yml \
-            --file devops/compose/docker-compose_as_submodule.yml \
+            --file devops/compose/tmp.docker-compose.yml \
+            --file devops/compose/tmp.docker-compose_as_submodule.yml \
             --env-file devops/env/default.env
         ```
     into
@@ -171,16 +171,16 @@ def to_multi_line_cmd(docker_cmd_: List[str]) -> str:
     ```
         ['IMAGE=*****.dkr.ecr.us-east-1.amazonaws.com/amp:dev',
             '\n        docker-compose',
-            '\n        --file amp/devops/compose/docker-compose.yml',
-            '\n        --file amp/devops/compose/docker-compose_as_submodule.yml',
+            '\n        --file amp/devops/compose/tmp.docker-compose.yml',
+            '\n        --file amp/devops/compose/tmp.docker-compose_as_submodule.yml',
             '\n        --env-file devops/env/default.env']
         ```
     into
         ```
         IMAGE=*****.dkr.ecr.us-east-1.amazonaws.com/amp:dev \
             docker-compose \
-            --file devops/compose/docker-compose.yml \
-            --file devops/compose/docker-compose_as_submodule.yml \
+            --file devops/compose/tmp.docker-compose.yml \
+            --file devops/compose/tmp.docker-compose_as_submodule.yml \
             --env-file devops/env/default.env
         ```
     """

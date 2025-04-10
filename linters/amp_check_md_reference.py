@@ -25,7 +25,6 @@ import linters.action as liaction
 
 _LOG = logging.getLogger(__name__)
 
-MARKDOWN_EXT = ".md"
 MARKDOWN_LINK_REGEX = r"\[.*?\]\((.*?)\)"
 
 
@@ -73,9 +72,8 @@ class _ReadmeLinter(liaction.Action):
 
     def _execute(self, file_name: str, pedantic: int) -> List[str]:
         _ = pedantic
-        if not file_name.endswith(MARKDOWN_EXT):
+        if self.skip_if_not_markdown(file_name):
             # Apply only to Markdown files.
-            _LOG.debug("Skipping file_name='%s'", file_name)
             return []
         # Find the repository root.
         repo_root = hgit.find_git_root()
