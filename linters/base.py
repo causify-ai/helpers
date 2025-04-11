@@ -53,6 +53,7 @@ import linters.amp_mypy as lampmypy
 import linters.amp_normalize_import as lamnoimp
 import linters.amp_processjupytext as lampproc
 import linters.amp_pylint as lamppyli
+import linters.amp_remove_empty_lines as lareemli
 import linters.amp_warn_incorrectly_formatted_todo as lawifoto
 import linters.utils as liutils
 
@@ -217,6 +218,11 @@ _MODIFYING_ACTIONS: List[Tuple[str, str, Type[liaction.Action]]] = [
     #    "Reflows, capitalizes and adds punctuation to comment lines",
     #    lamficom._FixComment,  # pylint: disable=protected-access
     # ),
+    (
+        "remove_empty_lines",
+        "Removes empty lines in functions",
+        lareemli._RemoveEmptyLines,  # pylint: disable=protected-access
+    ),
     (
         "black",
         "Runs `black` to format the code",

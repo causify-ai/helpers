@@ -1,0 +1,24 @@
+import os
+import numpy as np
+import pandas as pd
+
+from typing import List, Tuple
+
+def add(a: int, b: int) -> int:
+    """
+    Return the sum of 2 numbers.
+
+    :param a: first number
+    :param b: second number
+    :return: sum of 2 numbers
+    """
+
+    print("Inside function add()")
+
+    return a + b
+
+
+result = add(2, 3)
+
+print("Result: ", result)
+print("Outside function")
