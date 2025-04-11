@@ -1,16 +1,18 @@
 import os
-import logging
 import sys
 
+import dev_scripts_helpers.documentation.generate_readme_index as dshdgrein
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
-from dev_scripts_helpers.documentation import generate_readme_index as gri
+
 
 # #############################################################################
 # Test_generate_readme_index
 # #############################################################################
 
+
 class Test_generate_readme_index(hunitest.TestCase):
+
     def write_input_file(self, txt: str, file_name: str) -> str:
         """
         Write test content to a file in the scratch space.
@@ -30,7 +32,7 @@ class Test_generate_readme_index(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Tests for README file generation with one markdown document
+        Tests for README file generation with one markdown document.
         """
         # Sample markdown content
         content = """
@@ -49,10 +51,11 @@ class Test_generate_readme_index(hunitest.TestCase):
         # Simulate CLI call
         sys.argv = [
             "generate_readme_index.py",
-            "--repo_path", repo_path,
+            "--repo_path",
+            repo_path,
             "--use_placeholder_summary",
         ]
-        gri._main()
+        dshdgrein._main()
 
         # Read the generated README.md
         readme_path = os.path.join(repo_path, "README.md")
@@ -63,7 +66,7 @@ class Test_generate_readme_index(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        Tests for README file generation with nested document
+        Tests for README file generation with nested document.
         """
         # Sample nested documents
         file_structure = {
@@ -78,10 +81,11 @@ class Test_generate_readme_index(hunitest.TestCase):
         # Simulate CLI call
         sys.argv = [
             "generate_readme_index.py",
-            "--repo_path", repo_path,
+            "--repo_path",
+            repo_path,
             "--use_placeholder_summary",
         ]
-        gri._main()
+        dshdgrein._main()
         # Read
         readme_path = os.path.join(repo_path, "README.md")
         readme_content = hio.from_file(readme_path)
@@ -90,16 +94,17 @@ class Test_generate_readme_index(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        Test for REAME file generation on an empty directory
+        Test for REAME file generation on an empty directory.
         """
         repo_path = self.get_scratch_space()
         # Simulate CLI call
         sys.argv = [
             "generate_readme_index.py",
-            "--repo_path", repo_path,
+            "--repo_path",
+            repo_path,
             "--use_placeholder_summary",
         ]
-        gri._main()
+        dshdgrein._main()
         # Assert README was not created
         readme_path = os.path.join(repo_path, "README.md")
         existence = os.path.exists(readme_path)

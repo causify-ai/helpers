@@ -7,24 +7,54 @@ Usage:
     generate_readme_index.py [--repo_path REPO_PATH] [--use_placeholder_summary]
 
 This script locates the root of a Git repository, finds all Markdown files,
-and creates a README file, appending a list of Markdown files organized hierarchically by directory.
+and creates a README file, appending a list of Markdown files organized 
+hierarchically by directory.
+
+Example output:
+
+# Repository README
+
+## Markdown Index
+
+This section lists all Markdown files in the repository.
+
+### git.root
+
+- **File Name**: welcome.md
+  **Relative Path**: [welcome.md](welcome.md)
+  **Summary**: Introduces the repository, its purpose, and how to navigate the documentation.
+  Serves as the landing page for new contributors and users.
+
+### docs
+
+- **File Name**: intro.md
+  **Relative Path**: [docs/intro.md](docs/intro.md)
+  **Summary**: Provides an overview of the project’s architecture and core concepts.
+  Useful for understanding the big picture before diving into the codebase.
+
+### docs/guide
+
+- **File Name**: setup.md
+  **Relative Path**: [docs/guide/setup.md](docs/guide/setup.md)
+  **Summary**: Placeholder summary for setup.md
 
 Options:
     --repo_path REPO_PATH           Path to the target directory. Defaults to Git repo root.
     --use_placeholder_summary       Use a placeholder summary instead of calling OpenAI.
 """
 
-import os
-import logging
 import argparse
+import logging
+import os
 from collections import defaultdict
 from typing import Set
 
 import helpers.hgit as hgit
-import helpers.hopenai as hopenai
 import helpers.hio as hio
+import helpers.hopenai as hopenai
 
 _LOG = logging.getLogger(__name__)
+
 
 def list_markdown_files(repo_path: str) -> Set[str]:
     """
@@ -37,10 +67,15 @@ def list_markdown_files(repo_path: str) -> Set[str]:
     for root, _, files in os.walk(repo_path):
         for file in files:
             if file.endswith(".md") and file.lower() != "readme.md":
-                markdown_files.add(os.path.relpath(os.path.join(root, file), repo_path))
+                markdown_files.add(
+                    os.path.relpath(os.path.join(root, file), repo_path)
+                )
     return markdown_files
 
-def generate_summary_for_file(file_path: str, use_placeholder: bool = False) -> str:
+
+def generate_summary_for_file(
+    file_path: str, use_placeholder: bool = False
+) -> str:
     """
     Generate a two-line summary for a given Markdown file.
 
@@ -51,14 +86,23 @@ def generate_summary_for_file(file_path: str, use_placeholder: bool = False) -> 
     if use_placeholder:
         _LOG.debug("Using placeholder summary for %s", file_path)
         return f"Placeholder summary for {os.path.basename(file_path)}"
-    
+
     _LOG.debug("Generating real summary for: %s", file_path)
     content = hio.from_file(file_path)
-    prompt = f"Summarize the following content into two lines:\n\n{content}"
-    summary = hopenai.get_completion(user=prompt, model="gpt-4o-mini")
-    return summary.strip()
+    prompt = (
+        "Summarize the following content in exactly two lines. "
+        "Do not include any introduction or list markers. "
+        "Just return the summary itself, nothing else.\n\n"
+        f"{content}"
+    )
+    summary = hopenai.get_completion(user_prompt=prompt, model="gpt-4o-mini")
+    summary = str(summary.strip())
+    return summary
 
-def generate_markdown_index(repo_path: str, markdown_files: Set[str], use_placeholder: bool) -> None:
+
+def generate_markdown_index(
+    repo_path: str, markdown_files: Set[str], use_placeholder: bool
+) -> None:
     """
     Generate a README index of Markdown files.
 
@@ -74,7 +118,9 @@ def generate_markdown_index(repo_path: str, markdown_files: Set[str], use_placeh
     summaries = {}
     for rel_path in markdown_files:
         file_path = os.path.join(repo_path, rel_path)
-        summaries[rel_path] = generate_summary_for_file(file_path, use_placeholder)
+        summaries[rel_path] = generate_summary_for_file(
+            file_path, use_placeholder
+        )
     # Build directory map
     directory_map = defaultdict(list)
     for md_file in markdown_files:
@@ -102,20 +148,26 @@ def generate_markdown_index(repo_path: str, markdown_files: Set[str], use_placeh
         lines.append("")
         # Summary block generation
         for filename, rel_path in sorted(directory_map[directory]):
-            summary = summaries.get(rel_path, f"No summary available for {rel_path}.")
-            _LOG.debug("Adding entry for file: %s with summary: %s", rel_path, summary)
+            summary = summaries.get(
+                rel_path, f"No summary available for {rel_path}."
+            )
+            _LOG.debug(
+                "Adding entry for file: %s with summary: %s", rel_path, summary
+            )
             lines.append(
                 f"- **File Name**: {filename}  \n"
                 f"  **Relative Path**: [{rel_path}]({rel_path})  \n"
                 f"  **Summary**: {summary}  \n"
-                )
+            )
     updated_content = "\n".join(lines)
     hio.to_file(readme_file_path, updated_content)
-    _LOG.debug(f"README updated with Markdown index at '{readme_file_path}'.")
+    _LOG.debug("README updated at: %s", readme_file_path)
 
 
 def _main() -> None:
-    parser = argparse.ArgumentParser(description="Generate or update a Markdown index in the README file.")
+    parser = argparse.ArgumentParser(
+        description="Generate or update a Markdown index in the README file."
+    )
     parser.add_argument(
         "--repo_path",
         type=str,
@@ -138,6 +190,7 @@ def _main() -> None:
         generate_markdown_index(repo_path, markdown_files, use_placeholder)
     else:
         _LOG.debug("No Markdown files found; skipping index generation.")
+
 
 if __name__ == "__main__":
     _main()
