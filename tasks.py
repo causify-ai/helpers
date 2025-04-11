@@ -92,6 +92,7 @@ from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=u
     pytest_repro,
     run_blank_tests,
     run_coverage_report,
+    run_separate_and_combined_coverage,
     run_fast_slow_superslow_tests,
     run_fast_slow_tests,
     run_fast_tests,

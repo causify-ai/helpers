@@ -798,17 +798,18 @@ def run_coverage_report(  # type: ignore
     Compute test coverage stats.
 
     The flow is:
-       - Run tests and compute coverage stats for each test type
+       - Run tests and compute coverage stats for each test type (fast and slow)
        - Combine coverage stats in a single file
        - Generate a text report
        - Generate a HTML report (optional)
           - Post it on S3 (optional)
 
-    :param target_dir: directory to compute coverage stats for
-        - "." for all the dirs in the current working directory
-    :param generate_html_report: whether to generate HTML coverage report or not
-    :param publish_html_on_s3: whether to publish HTML coverage report or not
-    :param aws_profile: the AWS profile to use for publishing HTML report
+    :param ctx: Invoke context.
+    :param target_dir: Directory to compute coverage stats for.
+         Use "." for all the dirs in the current working directory.
+    :param generate_html_report: Whether to generate an HTML coverage report or not.
+    :param publish_html_on_s3: Whether to publish the HTML coverage report on S3 or not.
+    :param aws_profile: The AWS profile to use for publishing the HTML report.
     """
     # TODO(Grisha): allow user to specify which tests to run.
     # Run fast tests for the target dir and collect coverage results.
@@ -873,6 +874,108 @@ def run_coverage_report(  # type: ignore
     hlitauti.run(ctx, docker_cmd_)
     if publish_html_on_s3:
         # Publish HTML report on S3.
+        _publish_html_coverage_report_on_s3(aws_profile)
+
+
+@task
+def run_separate_and_combined_coverage(
+    ctx,
+    target_dir,
+    generate_html_report=True,
+    publish_html_on_s3=True,
+    aws_profile="ck",
+):
+    """
+    Compute test coverage stats.
+
+    The flow is:
+       - Run tests and compute coverage stats for each test type (fast and slow)
+       - Preserve each coverage data file by renaming the default .coverage file
+       - Generate separate XML (and optionally HTML) reports for each test suite
+       - Combine the separate coverage files into a single file
+       - Generate a combined text report, and optionally an HTML and XML report
+          - Optionally publish the combined HTML report on S3
+
+    :param ctx: Invoke context.
+    :param target_dir: Directory to compute coverage stats for.
+         Use "." for all the dirs in the current working directory.
+    :param generate_html_report: Whether to generate an HTML coverage report or not.
+    :param publish_html_on_s3: Whether to publish the HTML coverage report on S3 or not.
+    :param aws_profile: The AWS profile to use for publishing the HTML report.
+    """
+    # --- Step 1: Fast Tests ---
+    # Run fast tests with coverage.
+    fast_cmd = f"invoke run_fast_tests --coverage -p {target_dir}"
+    hlitauti.run(ctx, fast_cmd, use_system=False)
+    # Rename the default .coverage file to preserve fast test data.
+    hsystem.system("mv .coverage .coverage_fast")
+    hdbg.dassert_file_exists(".coverage_fast")
+    # Generate an XML report for fast tests by telling Coverage where to find its data.
+    # Using the COVERAGE_FILE env var instead of --data-file avoids the absolute path issues.
+    hsystem.system(
+        "COVERAGE_FILE=.coverage_fast coverage xml --ignore-errors -o coverage_fast.xml"
+    )
+    if generate_html_report:
+        hsystem.system(
+            "COVERAGE_FILE=.coverage_fast coverage html --ignore-errors -d htmlcov_fast"
+        )
+    # Erase any leftover default data.
+    hsystem.system("coverage erase")
+    # --- Step 2: Slow Tests ---
+    # Run slow tests with coverage.
+    slow_cmd = f"invoke run_slow_tests --coverage -p {target_dir}"
+    hlitauti.run(ctx, slow_cmd, use_system=False)
+    # Rename the default .coverage file to preserve slow test data.
+    hsystem.system("mv .coverage .coverage_slow")
+    hdbg.dassert_file_exists(".coverage_slow")
+    # Generate an XML report for slow tests.
+    hsystem.system(
+        "COVERAGE_FILE=.coverage_slow coverage xml --ignore-errors -o coverage_slow.xml"
+    )
+    if generate_html_report:
+        hsystem.system(
+            "COVERAGE_FILE=.coverage_slow coverage html --ignore-errors -d htmlcov_slow"
+        )
+    # Erase the default coverage data again.
+    hsystem.system("coverage erase")
+    # --- Step 3: Combine Coverage Data and Generate Combined Reports ---
+    # Combine the separate coverage files into one unified file (the default .coverage).
+    hsystem.system("coverage combine --keep .coverage_fast .coverage_slow")
+    hsystem.system("coverage erase")
+    # Determine include/exclude settings based on the target directory.
+    if target_dir == ".":
+        include_in_report = "*"
+        exclude_from_report = None
+        if hserver.skip_submodules_test():
+            submodule_paths = hgit.get_submodule_paths()
+            exclude_from_report = ",".join(
+                path + "/*" for path in submodule_paths
+            )
+    else:
+        include_in_report = f"*/{target_dir}/*"
+        exclude_from_report = None
+    combined_cmds = []
+    # Generate a combined text report.
+    report_text_cmd = (
+        f"coverage report --include={include_in_report} --sort=Cover"
+    )
+    if exclude_from_report:
+        report_text_cmd += f" --omit={exclude_from_report}"
+    combined_cmds.append(report_text_cmd)
+    # Optionally generate a combined HTML report.
+    if generate_html_report:
+        report_html_cmd = f"coverage html --include={include_in_report}"
+        if exclude_from_report:
+            report_html_cmd += f" --omit={exclude_from_report}"
+        combined_cmds.append(report_html_cmd)
+    # Generate the combined XML report.
+    combined_cmds.append("coverage xml -o coverage.xml")
+    # Join the combined commands to be executed in a single shell call (inside Docker).
+    full_combined_cmd = " && ".join(combined_cmds)
+    docker_cmd = f"invoke docker_cmd --use-bash --cmd '{full_combined_cmd}'"
+    hlitauti.run(ctx, docker_cmd)
+    # Optionally publish the combined HTML report on S3.
+    if publish_html_on_s3:
         _publish_html_coverage_report_on_s3(aws_profile)
 
 
