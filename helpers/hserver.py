@@ -304,6 +304,16 @@ def is_inside_ecs_container() -> bool:
     return ret
 
 
+def is_external_dev() -> bool:
+    """
+    Detect whether we are running in an external system.
+
+    This includes macOS and non-server/non-CI Linux machines.
+    """
+    is_external_dev_ = is_mac() or is_external_linux()
+    return is_external_dev_
+
+
 # #############################################################################
 
 
@@ -510,6 +520,8 @@ def has_docker_sudo() -> bool:
     # Keep this in alphabetical order.
     if is_dev_csfy():
         ret = True
+    elif is_external_linux():
+        ret = True
     elif is_inside_ci():
         ret = False
     elif is_mac():
@@ -567,7 +579,7 @@ def get_shared_data_dirs() -> Optional[Dict[str, str]]:
             "/data/shared": "/shared_data",
             "/data/shared2": "/shared_data2",
         }
-    elif is_mac() or is_inside_ci() or is_prod_csfy():
+    elif is_external_dev() or is_inside_ci() or is_prod_csfy():
         shared_data_dirs = None
     else:
         shared_data_dirs = None
@@ -618,6 +630,8 @@ def run_docker_as_root() -> bool:
     elif is_dev_csfy():
         # On dev1 / dev2 we run as users specifying the user / group id as
         # outside.
+        ret = False
+    elif is_external_linux():
         ret = False
     elif is_inside_ci():
         # When running as user in GH action we get an error:
