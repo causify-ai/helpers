@@ -346,7 +346,7 @@ def obj_to_repr(
         )
         # `attr_value` can be callable object and needs to be properly handled
         # for string conversion and formatting.
-        _LOG.info(hprint.to_str("attr_name attr_value skip"))
+        _LOG.debug(hprint.to_str("attr_name attr_value skip"))
         if skip:
             continue
         #
