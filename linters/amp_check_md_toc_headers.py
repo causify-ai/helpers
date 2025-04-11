@@ -26,6 +26,30 @@ _LOG = logging.getLogger(__name__)
 HEADER_REGEX = re.compile(r"^(#+)(\s.*)")
 # Regex to match TOC markers.
 TOC_REGEX = re.compile(r"<!--\s*toc\s*-->")
+# Code block boundary regex
+CODE_BOUNDARY_REGEX = re.compile(r"^```")
+
+
+def _is_code_block_boundary(line: str) -> bool:
+    """
+    Check if the line is a code block boundary in markdown.
+
+    :param line: the line to check
+    :return: True if the line is a code boundary, False otherwise
+
+    Examples:
+        >>> _is_code_block_boundary("```")
+        True
+        >>> _is_code_block_boundary("```python")
+        True
+        >>> _is_code_block_boundary("``` python")
+        False
+        >>> _is_code_block_boundary("  ```python")
+        False
+        >>> _is_code_block_boundary("Some text")
+        False
+    """
+    return CODE_BOUNDARY_REGEX.match(line.strip()) and len(line.split()) == 1
 
 
 def fix_md_headers(lines: List[str], file_name: str) -> List[str]:
@@ -41,10 +65,15 @@ def fix_md_headers(lines: List[str], file_name: str) -> List[str]:
     """
     fixed_lines = []
     last_header_level = 0
+    inside_code_block = False
     for idx, line in enumerate(lines):
         fixed_line = line
+        # Toggle the inside_code_block flag if we find a code block boundary.
+        if _is_code_block_boundary(line):
+            inside_code_block = not inside_code_block
         match = HEADER_REGEX.match(line)
-        if match:
+        # If we are inside a code block, no change in header levels.
+        if match and not inside_code_block:
             # Count the number of leading `#`.
             current_level = len(match.group(1))
             # Capture the rest of the line (after the initial `#` header).
