@@ -14,6 +14,7 @@ import subprocess
 from typing import Dict, List, Optional, Tuple
 
 import helpers.repo_config_utils as hrecouti
+import helpers.hprint as hprint
 
 # This module should depend only on:
 # - Python standard modules
@@ -84,16 +85,6 @@ def is_inside_unit_test() -> bool:
 # there is no way to know anything about the host for security reason, so we
 # pass this value from the external environment to the container, through env
 # vars (e.g., `CSFY_HOST_NAME`, `CSFY_HOST_OS_NAME`).
-
-# TODO(gp): The confusion is that we want to determine on which "setup" we are
-# running. We do this both inside container and outside container.
-#
-# Sometimes we want to know if:
-# - the processor is x86_64 or arm64
-# - the host is Mac or Linux
-# - we are running on a Causify machine or on an external machine
-# - we are inside CI or not
-# We should grep all the use cases in the codebase and use the right function.
 
 # TODO(gp): The confusion is that we want to determine on which "setup" we are
 # running. We do this both inside container and outside container.
@@ -195,6 +186,19 @@ def is_mac(*, version: Optional[str] = None) -> bool:
     is_mac_ = macos_tag in host_os_version or macos_tag in csfy_host_os_version
     _LOG.debug("is_mac_=%s", is_mac_)
     return is_mac_
+
+
+# The valid set ups are:
+# - Running on dev1, dev2, dev3 server
+#   - Container
+#   - Host
+# - External Mac (GP, Paul, interns, contributors)
+#   - Container
+#   - Host
+# - External Linux (interns, contributors)
+#   - Container
+#   - Host
+# - prod container on Linux
 
 
 def is_external_linux() -> bool:
@@ -335,10 +339,10 @@ def _dassert_setup_consistency() -> None:
     # One and only one set-up should be true.
     sum_ = sum([value for _, value in setups])
     if sum_ != 1:
-        msg = "One and only one set-up config should be true:\n" + _setup_to_str(
-            setups
-        )
-        msg += "_get_setup_signature() returns:\n" + _get_setup_signature()
+        msg = "One and only one set-up config should be true:\n"
+        msg += _setup_to_str(setups) + "\n"
+        msg += "_get_setup_signature() returns:\n"
+        msg += hprint.indent(_get_setup_signature())
         raise ValueError(msg)
 
 
