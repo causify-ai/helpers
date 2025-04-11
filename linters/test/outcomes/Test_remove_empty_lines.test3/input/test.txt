@@ -23,10 +23,6 @@ def check_largest(a: int, b: int) -> None:
 
         print("Both are same")
 
-# #############################################################################
-# Calculator
-# #############################################################################
-
 class Calculator:
 
     def add(self, a: int, b: int) -> int:
