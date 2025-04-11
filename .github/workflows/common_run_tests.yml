@@ -59,7 +59,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
-          submodules: true
+          submodules: recursive
           fetch-depth: 0
           token: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
 
