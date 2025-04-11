@@ -286,7 +286,7 @@ def _run_pandoc_to_pdf(
             use_sudo=dockerized_use_sudo,
         )
     _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
-    _ = _system(cmd, suppress_output=False)
+    _ = _system(cmd)
     file_name = file2
     # - Run latex.
     _report_phase("latex")
@@ -299,7 +299,8 @@ def _run_pandoc_to_pdf(
         "latex_abbrevs.sty",
     )
     hdbg.dassert_file_exists(latex_file)
-    cmd = f"cp -f {latex_file} ."
+    #cmd = f"cp -f {latex_file} ."
+    cmd = f"cp -f {latex_file} {out_dir}"
     _ = _system(cmd)
     #
     cmd = ""
@@ -317,15 +318,15 @@ def _run_pandoc_to_pdf(
     if not use_host_tools:
         cmd = hdocker.run_dockerized_latex(cmd, return_cmd=True, use_sudo=False)
     _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
-    _ = _system(cmd, suppress_output=False)
+    _ = _system(cmd)
     # - Run latex again.
     _report_phase("latex again")
     if not no_run_latex_again:
-        _ = _system(cmd, suppress_output=False)
+        _ = _system(cmd)
     else:
         _LOG.warning("Skipping: run latex again")
     # Remove `latex_abbrevs.sty`.
-    os.remove("latex_abbrevs.sty")
+    #os.remove("latex_abbrevs.sty")
     # Get the path of the output file created by Latex.
     file_out = os.path.basename(file_name).replace(".tex", ".pdf")
     file_out = os.path.join(out_dir, file_out)
@@ -358,7 +359,7 @@ def _run_pandoc_to_html(
         cmd.append("--toc")
         cmd.append("--toc-depth 2")
     cmd = " ".join(cmd)
-    _ = _system(cmd, suppress_output=False)
+    _ = _system(cmd)
     #
     file_out = os.path.abspath(file2.replace(".tex", ".html"))
     _LOG.debug("file_out=%s", file_out)
@@ -434,7 +435,7 @@ def _run_pandoc_to_slides(
     rc, txt = _system_to_string(cmd, abort_on_error=False)
     # We want to print to screen.
     print(txt)
-    # rc = _system(cmd, suppress_output=False)
+    # rc = _system(cmd)
     if rc != 0:
         _LOG.error("Log is in %s", file_out + ".log")
         if debug:

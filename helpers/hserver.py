@@ -85,6 +85,26 @@ def is_inside_unit_test() -> bool:
 # pass this value from the external environment to the container, through env
 # vars (e.g., `CSFY_HOST_NAME`, `CSFY_HOST_OS_NAME`).
 
+# TODO(gp): The confusion is that we want to determine on which "setup" we are
+# running. We do this both inside container and outside container.
+#
+# Sometimes we want to know if:
+# - the processor is x86_64 or arm64
+# - the host is Mac or Linux
+# - we are running on a Causify machine or on an external machine
+# - we are inside CI or not
+# We should grep all the use cases in the codebase and use the right function.
+
+# TODO(gp): The confusion is that we want to determine on which "setup" we are
+# running. We do this both inside container and outside container.
+#
+# Sometimes we want to know if:
+# - the processor is x86_64 or arm64
+# - the host is Mac or Linux
+# - we are running on a Causify machine or on an external machine
+# - we are inside CI or not
+# We should grep all the use cases in the codebase and use the right function.
+
 
 def is_dev_csfy() -> bool:
     # TODO(gp): Update to use dev1 values.
@@ -102,6 +122,7 @@ def is_dev_csfy() -> bool:
     return is_dev_csfy_
 
 
+# TODO(gp): This is obsolete and should be removed.
 def is_dev4() -> bool:
     """
     Return whether it's running on dev4.
@@ -148,19 +169,19 @@ def is_mac(*, version: Optional[str] = None) -> bool:
             return False
     # Check the macOS version we are running.
     if version == "Catalina":
-        # Darwin gpmac.fios-router.home 19.6.0 Darwin Kernel Version 19.6.0:
-        # Mon Aug 31 22:12:52 PDT 2020; root:xnu-6153.141.2~1/RELEASE_X86_64 x86_64
+        # Darwin gpmac.local 19.6.0 Darwin Kernel Version 19.6.0:
+        # root:xnu-6153.141.2~1/RELEASE_X86_64 x86_64
         macos_tag = "19.6"
     elif version == "Monterey":
         # Darwin alpha.local 21.5.0 Darwin Kernel Version 21.5.0:
-        # Tue Apr 26 21:08:37 PDT 2022;
-        #   root:xnu-8020.121.3~4/RELEASE_ARM64_T6000 arm64```
+        # root:xnu-8020.121.3~4/RELEASE_ARM64_T6000 arm64
         macos_tag = "21."
     elif version == "Ventura":
-        # Darwin alpha.local 21.5.0 Darwin Kernel Version 21.5.0:
-        # Tue Apr 26 21:08:37 PDT 2022;
-        #   root:xnu-8020.121.3~4/RELEASE_ARM64_T6000 arm64```
         macos_tag = "22."
+    elif version == "Sequoia":
+        # Darwin gpmac.local 24.4.0 Darwin Kernel Version 24.4.0:
+        # root:xnu-11417.101.15~1/RELEASE_ARM64_T8112 arm64
+        macos_tag = "24."
     else:
         raise ValueError(f"Invalid version='{version}'")
     _LOG.debug("macos_tag=%s", macos_tag)
@@ -200,13 +221,15 @@ def is_external_linux() -> bool:
 
 def is_prod_csfy() -> bool:
     """
-    Detect whether we are running in a CK production container.
+    Detect whether we are running in a Causify production container.
 
     This env var is set inside `devops/docker_build/prod.Dockerfile`.
     """
+    # TODO(gp): CK -> CSFY
     return bool(os.environ.get("CK_IN_PROD_CMAMP_CONTAINER", False))
 
 
+# TODO(gp): Obsolete.
 def is_ig_prod() -> bool:
     """
     Detect whether we are running in an IG production container.
@@ -232,59 +255,92 @@ def is_inside_ecs_container() -> bool:
     return ret
 
 
-def setup_to_str() -> str:
+def is_external_dev() -> bool:
+    """
+    Detect whether we are running in an external system.
+
+    This includes macOS and non-server/non-CI Linux machines.
+    """
+    is_external_dev_ = is_mac() or is_external_linux()
+    return is_external_dev_
+
+
+# #############################################################################
+
+
+def _get_setup_signature() -> str:
+    """
+    Dump all the variables that are used to make a decision about the values of
+    the functions in `_get_setup_settings()`.
+    """
+    cmds = []
+    # is_prod_csfy()
+    cmds.append('os.environ.get("CK_IN_PROD_CMAMP_CONTAINER", "undef")')
+    # is_dev4()
+    # is_dev_csfy()
+    # is_ig_prod()
+    cmds.append('os.environ.get("CSFY_HOST_NAME", "undef")')
+    # is_inside_ci()
+    cmds.append('os.environ.get("CSFY_CI", "undef")')
+    # is_mac()
+    cmds.append("os.uname()[0]")
+    cmds.append("os.uname()[2]")
+    # is_external_linux()
+    cmds.append('os.environ.get("CSFY_HOST_OS_NAME", "undef")')
+    # is_csfy_or_external_container()
+    # Build an array of strings with the results of executing the commands.
+    results = []
+    for cmd in cmds:
+        result_tmp = cmd + "=" + str(eval(cmd))
+        results.append(result_tmp)
+    # Join the results into a single string.
+    result = "\n".join(results)
+    return result
+
+
+def _get_setup_settings() -> List[Tuple[str, bool]]:
+    # Store name-value pairs as tuples.
+    setups = [
+        ("is_prod_csfy", is_prod_csfy()),
+        ("is_dev4", is_dev4()),
+        ("is_dev_csfy", is_dev_csfy()),
+        ("is_ig_prod", is_ig_prod()),
+        ("is_inside_ci", is_inside_ci()),
+        ("is_mac", is_mac()),
+        ("is_external_linux", is_external_linux()),
+        # ("is_csfy_or_external_container", is_csfy_or_external_container()),
+    ]
+    return setups
+
+
+def _setup_to_str(setups: List[Tuple[str, bool]]) -> str:
+    """
+    Return a string representation of the current server setup configuration.
+
+    :return: string with each setting on a new line, aligned with
+        padding
+    """
+    # Find maximum length of setting names.
+    max_len = max(len(name) for name, _ in setups) + 1
+    # Format each line with computed padding.
     txt = []
-    #
-    is_prod_csfy_ = is_prod_csfy()
-    txt.append(f"is_prod_csfy={is_prod_csfy_}")
-    #
-    is_dev4_ = is_dev4()
-    txt.append(f"is_dev4={is_dev4_}")
-    #
-    is_dev_csfy_ = is_dev_csfy()
-    txt.append(f"is_dev_csfy={is_dev_csfy_}")
-    #
-    is_ig_prod_ = is_ig_prod()
-    txt.append(f"is_ig_prod={is_ig_prod_}")
-    #
-    is_inside_ci_ = is_inside_ci()
-    txt.append(f"is_inside_ci={is_inside_ci_}")
-    #
-    is_mac_ = is_mac()
-    txt.append(f"is_mac={is_mac_}")
-    #
-    is_external_linux_ = is_external_linux()
-    txt.append(f"is_external_linux={is_external_linux_}")
-    #
-    txt = "\n".join(txt)
-    return txt
+    for name, value in setups:
+        txt.append(f"{name:<{max_len}}{value}")
+    return "\n".join(txt)
 
 
 def _dassert_setup_consistency() -> None:
     """
     Check that one and only one server config is true.
     """
-    is_prod_csfy_ = is_prod_csfy()
-    is_dev4_ = is_dev4()
-    is_dev_csfy_ = is_dev_csfy()
-    is_ig_prod_ = is_ig_prod()
-    is_inside_ci_ = is_inside_ci()
-    is_mac_ = is_mac()
-    is_external_linux_ = is_external_linux()
+    setups = _get_setup_settings()
     # One and only one set-up should be true.
-    sum_ = sum(
-        [
-            is_dev4_,
-            is_dev_csfy_,
-            is_inside_ci_,
-            is_mac_,
-            is_external_linux_,
-            is_prod_csfy_,
-            is_ig_prod_,
-        ]
-    )
+    sum_ = sum([value for _, value in setups])
     if sum_ != 1:
-        msg = "One and only one set-up config should be true:\n" + setup_to_str()
+        msg = "One and only one set-up config should be true:\n" + _setup_to_str(
+            setups
+        )
+        msg += "_get_setup_signature() returns:\n" + _get_setup_signature()
         raise ValueError(msg)
 
 
@@ -293,6 +349,13 @@ def _dassert_setup_consistency() -> None:
 check_repo = os.environ.get("CSFY_REPO_CONFIG_CHECK", "True") != "False"
 _is_called = False
 if check_repo:
+    # The repo check is executed at import time, before the logger is initialized.
+    # To debug the repo check, enable the following block.
+    if False:
+        import helpers.hdbg as hdbg
+
+        hdbg.init_logger(verbosity=logging.DEBUG)
+    # Compute and cache the result.
     if not _is_called:
         _dassert_setup_consistency()
         _is_called = True
@@ -345,12 +408,12 @@ def has_dind_support() -> bool:
     if _is_mac_version_with_sibling_containers():
         return False
     # TODO(gp): This part is not multi-process friendly. When multiple
-    #  processes try to run this code they interfere. A solution is to run `ip
-    #  link` in the entrypoint and create a `has_docker_privileged_mode` file
-    #  which contains the value.
-    #  We rely on the approach from https://stackoverflow.com/questions/32144575
-    #  to check if there is support for privileged mode.
-    #  Sometimes there is some state left, so we need to clean it up.
+    # processes try to run this code they interfere. A solution is to run `ip
+    # link` in the entrypoint and create a `has_docker_privileged_mode` file
+    # which contains the value.
+    # We rely on the approach from https://stackoverflow.com/questions/32144575
+    # to check if there is support for privileged mode.
+    # Sometimes there is some state left, so we need to clean it up.
     # TODO(Juraj): this is slow and inefficient, but works for now.
     cmd = "sudo docker run hello-world"
     rc = os.system(cmd)
@@ -410,8 +473,8 @@ def enable_privileged_mode() -> bool:
         elif is_mac(version="Catalina"):
             # Docker for macOS Catalina supports dind.
             ret = True
-        elif is_mac(version="Monterey") or is_mac(version="Ventura"):
-            # Docker for macOS Monterey doesn't seem to support dind.
+        elif is_mac(version="Monterey") or is_mac(version="Ventura") or is_mac(version="Sequoia"):
+            # Docker doesn't seem to support dind for these versions of macOS.
             ret = False
         elif is_prod_csfy():
             ret = False
@@ -430,6 +493,8 @@ def has_docker_sudo() -> bool:
     # Keep this in alphabetical order.
     if is_dev_csfy():
         ret = True
+    elif is_external_linux():
+        ret = True
     elif is_inside_ci():
         ret = False
     elif is_mac():
@@ -446,7 +511,7 @@ def has_docker_sudo() -> bool:
 
 
 def _is_mac_version_with_sibling_containers() -> bool:
-    return is_mac(version="Monterey") or is_mac(version="Ventura")
+    return is_mac(version="Monterey") or is_mac(version="Ventura") or is_mac(version="Sequoia")
 
 
 # TODO(gp): -> use_docker_sibling_container_support
@@ -487,7 +552,7 @@ def get_shared_data_dirs() -> Optional[Dict[str, str]]:
             "/data/shared": "/shared_data",
             "/data/shared2": "/shared_data2",
         }
-    elif is_mac() or is_inside_ci() or is_prod_csfy():
+    elif is_external_dev() or is_inside_ci() or is_prod_csfy():
         shared_data_dirs = None
     else:
         shared_data_dirs = None
@@ -538,6 +603,8 @@ def run_docker_as_root() -> bool:
     elif is_dev_csfy():
         # On dev1 / dev2 we run as users specifying the user / group id as
         # outside.
+        ret = False
+    elif is_external_linux():
         ret = False
     elif is_inside_ci():
         # When running as user in GH action we get an error:
@@ -666,7 +733,8 @@ def config_func_to_str() -> str:
     Print the value of all the config functions.
     """
     ret: List[str] = []
-    #
+    # Get the functions with:
+    # grep "def " helpers/hserver.py | sort | awk '{ print $2 }' | perl -i -ne 'print "$1\n" if /^([^\(]+)/'
     function_names = [
         "get_shared_data_dirs()",
         "enable_privileged_mode()",
@@ -688,6 +756,7 @@ def config_func_to_str() -> str:
         "is_mac(version='Catalina')",
         "is_mac(version='Monterey')",
         "is_mac(version='Ventura')",
+        "is_mac(version='Sequoia')",
     ]
     for func_name in sorted(function_names):
         try:
@@ -697,7 +766,6 @@ def config_func_to_str() -> str:
             func_value = "*undef*"
         msg = f"{func_name}='{func_value}'"
         ret.append(msg)
-        # _print(msg)
     # Package.
     ret = "\n".join(ret)
     return ret
