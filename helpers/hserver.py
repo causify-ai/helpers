@@ -9,6 +9,7 @@ import helpers.hserver as hserver
 import functools
 import logging
 import os
+import subprocess
 from typing import Dict, List, Optional
 
 import helpers.repo_config_utils as hrecouti
@@ -27,6 +28,16 @@ def _print(msg: str) -> None:
     # _LOG.info(msg)
     if False:
         print(msg)
+
+
+def _system_to_string(cmd: str) -> Tuple[int, str]:
+    result = subprocess.run(
+                cmd, stdout=subprocess.PIPE,
+                # Redirect stderr to stdout.
+                stderr=subprocess.STDOUT, text=True)
+    rc = result.returncode
+    output = result.stdout
+    return rc, output
 
 
 # #############################################################################
@@ -284,6 +295,28 @@ else:
 # #############################################################################
 # Docker
 # #############################################################################
+
+
+def has_docker() -> bool:
+    """
+    Return whether we have Docker installed.
+    """
+    return shutil.which("docker") is not None
+
+
+def docker_needs_sudo() -> bool:
+    """
+    Return whether Docker commands need to be run with sudo.
+    """
+    # groups | grep docker
+    return not has_docker()
+
+
+def has_docker_privileged_mode() -> bool:
+    cmd = "docker run hello-world"
+    rc = os.system(cmd)
+    _print("cmd=%s -> rc=%s" % (cmd, rc))
+    has_dind = rc == 0
 
 
 # TODO(gp): -> has_docker_privileged_mode

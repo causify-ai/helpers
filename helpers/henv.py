@@ -493,6 +493,15 @@ def _get_git_info(git_commit_type: str) -> str:
     return txt
 
 
+def _get_docker_info() -> str:
+    txt_tmp: List[str] = []
+    has_docker = hserver.has_docker()
+    txt_tmp.append(f"docker installed={has_docker}")
+    rc, docker_version = hsystem.system_to_string(r"docker version --format '{{.Server.Version}}'")
+    txt_tmp.append(f"docker_version='{docker_version}'")
+    return txt_tmp
+
+
 def get_system_signature(git_commit_type: str = "all") -> Tuple[str, int]:
     """
     Return a string with the system signature.
