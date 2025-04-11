@@ -9,7 +9,7 @@ Examples
     --input_file ./dev_scripts_helpers/github/labels/gh_issues_labels.yml \
     --owner causify-ai \
     --repo tutorials \
-    --token GITHUB_TOKEN \
+    --token_env_var GITHUB_TOKEN \
     --dry_run \
     --backup
 """
