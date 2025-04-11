@@ -21,6 +21,7 @@ import helpers.lib_tasks_docker as hlitadoc
 import helpers.lib_tasks_pytest as hlitapyt
 import helpers.lib_tasks_utils as hlitauti
 import helpers.repo_config_utils as hrecouti
+import helpers.hio as hio
 
 _DEFAULT_TARGET_REGISTRY = "aws_ecr.ck"
 _LOG = logging.getLogger(__name__)
@@ -613,6 +614,19 @@ def docker_build_prod_image(  # type: ignore
     opts = "--no-cache" if not cache else ""
     # Use dev version for building prod image.
     dev_version = hlitadoc.to_dev_version(prod_version)
+    # Copy source code.
+    current_dir = _to_abs_path(".")
+    helpers_root = hgit.find_helpers_root()
+    helpers_dir = _to_abs_path(helpers_root)
+    deployment_dir = "tmp.deployment"
+    hio.create_dir(deployment_dir, incremental=False)
+    # Copy the source code and deference all the symbolic links.
+    cmd = f"rsync -rL --exclude='{deployment_dir}' {current_dir}/* ./{deployment_dir}"
+    hsystem.system_to_string(cmd)
+    # Copy helpers.
+    cmd = f"cp -rL {helpers_dir}/helpers ./tmp.deployment/"
+    hsystem.system_to_string(cmd)
+    #
     cmd = rf"""
     DOCKER_BUILDKIT={DOCKER_BUILDKIT} \
     time \
@@ -637,6 +651,8 @@ def docker_build_prod_image(  # type: ignore
         #
         cmd = f"docker image ls {image_prod}"
     hlitauti.run(ctx, cmd)
+    # Delete the temporary deployment directory.
+    hio.delete_dir(deployment_dir)
 
 
 # TODO(gp): Remove redundancy with docker_build_local_image(), if possible.
