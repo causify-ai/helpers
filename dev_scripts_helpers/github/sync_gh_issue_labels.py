@@ -6,10 +6,10 @@ Examples
 
 # Basic usage:
 > sync_gh_issue_labels.py \
-    --yaml ./labels/gh_issues_labels.yml \
+    --input_file ./labels/gh_issues_labels.yml \
     --owner causify-ai \
     --repo tutorials \
-    --token *** \
+    --token GITHUB_TOKEN \
     --backup
 """
 
@@ -18,6 +18,7 @@ import logging
 import subprocess
 import sys
 from typing import Dict, List
+import os
 
 import yaml
 
@@ -133,38 +134,37 @@ def _parse() -> argparse.ArgumentParser:
     )
     hparser.add_verbosity_arg(parser)
     parser.add_argument(
-        "--yaml",
-        "-y",
+        "--input_file",
         required=True,
         help="Path to label inventory manifest file",
     )
     parser.add_argument(
         "--owner",
-        "-o",
         required=True,
         help="GitHub repository owner/organization",
     )
     parser.add_argument(
-        "--repo", "-r", required=True, help="GitHub repository name"
+        "--repo",
+        required=True, 
+        help="GitHub repository name"
     )
     parser.add_argument(
-        "--token", "-t", required=True, help="GitHub personal access token"
+        "--token_env_var",
+        required=True,
+        help="Name of the environment variable containing the GitHub token",
     )
     parser.add_argument(
         "--prune",
-        "-p",
         action="store_true",
         help="Delete labels that exist in the repo but not in the label inventory manifest file",
     )
     parser.add_argument(
         "--dry_run",
-        "-d",
         action="store_true",
-        help="Print out the labels and exits immediately",
+        help="Print out the actions that would be taken without executing them",
     )
     parser.add_argument(
         "--backup",
-        "-b",
         action="store_true",
         help="Backup current labels to a label inventory manifest file",
     )
@@ -175,10 +175,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Load labels from label inventory manifest file.
-    labels = _load_labels(args.yaml)
+    labels = _load_labels(args.input_file)
     labels_map = {label.name: label for label in labels}
+    token = os.environ.get(args.token_env_var)
     # Initialize GH client.
-    client = github.Github(args.token)
+    client = github.Github(token)
     repo = client.get_repo(f"{args.owner}/{args.repo}")
     # Build maps for efficient lookup.
     current_labels = repo.get_labels()
@@ -192,19 +193,17 @@ def _main(parser: argparse.ArgumentParser) -> None:
             )
         )
     current_labels_map = {label.name: label for label in current_labels_data}
+    # Execute code if not in dry run mode.
+    execute = not args.dry_run
     # Save the labels if backup is enabled.
     if args.backup:
         root_dir = hgit.get_client_root(False)
         dst_dir = f"{root_dir}/dev_scripts_helpers/github/labels/backup"
-        file_name = f"labels.{args.owner}.{args.repo}.yaml"
+        file_name = f"tmp.labels.{args.owner}.{args.repo}.yaml"
         file_path = f"{dst_dir}/{file_name}"
-        _save_labels(current_labels_data, file_path)
+        if execute:
+            _save_labels(current_labels_data, file_path)
         _LOG.info("Labels backed up to %s", file_path)
-    # Show the labels and exit if dry run is enabled.
-    if args.dry_run:
-        for label in labels:
-            _LOG.info(label)
-        sys.exit(0)
     # Confirm label synchronization.
     hsystem.query_yes_no(
         "Are you sure you want to synchronize labels?", abort_on_no=True
@@ -213,7 +212,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     if args.prune:
         for current_label in current_labels:
             if current_label.name not in labels_map:
-                current_label.delete()
+                if execute:
+                    current_label.delete()
                 _LOG.info("Label deleted: %s", current_label.name)
     # Sync labels.
     # Create or update labels.
@@ -221,18 +221,24 @@ def _main(parser: argparse.ArgumentParser) -> None:
         current_label = current_labels_map.get(label.name)
         if current_label is None:
             # Label doesn't exist, create it.
-            repo.create_label(
-                name=label.name, color=label.color, description=label.description
-            )
+            if execute:
+                repo.create_label(
+                    name=label.name, 
+                    color=label.color, 
+                    description=label.description
+                )
             _LOG.info("Label created: %s", label.name)
         elif (
             current_label.description != label.description
             or current_label.color != label.color
         ):
             # Label exists but needs update.
-            current_label.edit(
-                name=label.name, color=label.color, description=label.description
-            )
+            if execute:
+                current_label.edit(
+                    name=label.name, 
+                    color=label.color, 
+                    description=label.description
+                )
             _LOG.info("Label updated: %s", label.name)
         else:
             # Label exists and is identical.
