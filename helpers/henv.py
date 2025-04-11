@@ -379,7 +379,7 @@ def _get_platform_info() -> str:
     #
     txt = _to_info("Platform info", txt_tmp)
     return txt
-    
+
 
 def _get_psutil_info() -> str:
     """
@@ -391,7 +391,7 @@ def _get_psutil_info() -> str:
     except ModuleNotFoundError as e:
         _LOG.warning("psutil is not installed: %s", str(e))
         has_psutil = False
-    
+
     txt_tmp = []
     if has_psutil:
         txt_tmp.append(f"cpu count={psutil.cpu_count()}")
@@ -410,7 +410,7 @@ def _get_psutil_info() -> str:
 
 def _get_package_info() -> Tuple[List[str], int]:
     """Get package version information.
-    
+
     Returns:
         Tuple containing:
         - List of strings with package info
@@ -425,7 +425,7 @@ def _get_package_info() -> Tuple[List[str], int]:
     # print(sys.version)
     libs = [
         "cvxopt",
-        "cvxpy", 
+        "cvxpy",
         "gluonnlp",
         "gluonts",
         "joblib",
@@ -461,7 +461,7 @@ def _get_package_info() -> Tuple[List[str], int]:
 # Get container info.
 # #############################################################################
 
-    
+
 def _get_container_version() -> str:
     txt_tmp: List[str] = []
     #

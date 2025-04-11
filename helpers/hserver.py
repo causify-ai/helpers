@@ -9,8 +9,9 @@ import helpers.hserver as hserver
 import functools
 import logging
 import os
+import shutil
 import subprocess
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 import helpers.repo_config_utils as hrecouti
 
@@ -30,11 +31,18 @@ def _print(msg: str) -> None:
         print(msg)
 
 
+# We can't use `hsystem` to avoid import cycles.
 def _system_to_string(cmd: str) -> Tuple[int, str]:
+    """
+    Run a command and return the output and the return code.
+
+    :param cmd: command to run
+    :return: tuple of (return code, output)
+    """
     result = subprocess.run(
-                cmd, stdout=subprocess.PIPE,
-                # Redirect stderr to stdout.
-                stderr=subprocess.STDOUT, text=True)
+        cmd, stdout=subprocess.PIPE,
+        # Redirect stderr to stdout.
+        stderr=subprocess.STDOUT, text=True)
     rc = result.returncode
     output = result.stdout
     return rc, output
