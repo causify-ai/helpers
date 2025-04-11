@@ -41,11 +41,14 @@ def is_markdown_line_separator(line: str, min_repeats: int = 5) -> bool:
         \s*  # Optional whitespace.
         (?:
         # Match one of the below characters which is repeated at least `min_repeats` times.
-        \#{{{min_repeats},}}
-        |/{{{min_repeats},}}
-        |-{{{min_repeats},}}
-        |={{{min_repeats},}}
+         \#{{{min_repeats},}}
+          | /{{{min_repeats},}}
+          | -{{{min_repeats},}}
+          | ={{{min_repeats},}}
         )
+        (?![a-zA-Z0-9])  # No alphanumeric after the repeated characters.
+        [\s#/\-=]*       # Allow any amount of space or `#` `/` `-` `=`.
+        $
     """
     res = bool(re.match(line_pattern, line, re.VERBOSE))
     return res
