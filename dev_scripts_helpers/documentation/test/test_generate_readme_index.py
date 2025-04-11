@@ -1,11 +1,16 @@
 import os
 import logging
+import sys
 
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
 from dev_scripts_helpers.documentation import generate_readme_index as gri
 
-class TestGenerateReadmeIndex(hunitest.TestCase):
+# #############################################################################
+# Test_generate_readme_index
+# #############################################################################
+
+class Test_generate_readme_index(hunitest.TestCase):
     def write_input_file(self, txt: str, file_name: str) -> str:
         """
         Write test content to a file in the scratch space.
@@ -17,12 +22,16 @@ class TestGenerateReadmeIndex(hunitest.TestCase):
         txt = txt.strip()
         # Get file path to write.
         dir_name = self.get_scratch_space()
-        file_path = os.path.abspath(os.path.join(dir_name, file_name))
+        file_path = os.path.join(dir_name, file_name)
+        file_path = os.path.abspath(file_path)
         # Create the file.
         hio.to_file(file_path, txt)
         return file_path
 
     def test1(self) -> None:
+        """
+        Tests for README file generation with one markdown document
+        """
         # Sample markdown content
         content = """
         # Sample Markdown Document
@@ -34,26 +43,64 @@ class TestGenerateReadmeIndex(hunitest.TestCase):
         It should be detected in the index and updated with a summary if needed.
         """
         file_name = "sample.md"
-        file_path = md_file_path = self.write_input_file(content, file_name)
-        # Set cwd to the scratch space to simulate repo root
         repo_path = self.get_scratch_space()
-        old_cwd = os.getcwd()
-        os.chdir(repo_path)
-        try:
-            # Simulate command line call
-            sys.argv = ["generate_readme_index.py"]
+        self.write_input_file(content, file_name)
 
-            # Run main function
-            script._main()
+        # Simulate CLI call
+        sys.argv = [
+            "generate_readme_index.py",
+            "--repo_path", repo_path,
+            "--use_placeholder_summary",
+        ]
+        gri._main()
 
-            # Check if README is created
-            readme_path = os.path.join(repo_path, "README.md")
-            self.assertTrue(os.path.exists(readme_path), "README.md not created.")
+        # Read the generated README.md
+        readme_path = os.path.join(repo_path, "README.md")
+        readme_content = hio.from_file(readme_path)
 
-            # Check content
-            readme_content = hio.from_file(readme_path)
-            self.assertIn("## Markdown Index", readme_content)
-            self.assertIn("sample.md", readme_content)
-            self.assertNotIn("README.md", readme_content)
-        finally:
-            os.chdir(old_cwd)
+        # Check
+        self.check_string(readme_content, tag="README.md")
+
+    def test2(self) -> None:
+        """
+        Tests for README file generation with nested document
+        """
+        # Sample nested documents
+        file_structure = {
+            "welcome.md": "# welcome page",
+            "docs/intro.md": "# Introduction",
+            "docs/guide/setup.md": "# Setup Guide",
+            "docs/guide/usage.md": "# Usage Guide",
+        }
+        repo_path = self.get_scratch_space()
+        for path, content in file_structure.items():
+            self.write_input_file(content, path)
+        # Simulate CLI call
+        sys.argv = [
+            "generate_readme_index.py",
+            "--repo_path", repo_path,
+            "--use_placeholder_summary",
+        ]
+        gri._main()
+        # Read
+        readme_path = os.path.join(repo_path, "README.md")
+        readme_content = hio.from_file(readme_path)
+        # Check
+        self.check_string(readme_content, tag="README.md")
+
+    def test3(self) -> None:
+        """
+        Test for REAME file generation on an empty directory
+        """
+        repo_path = self.get_scratch_space()
+        # Simulate CLI call
+        sys.argv = [
+            "generate_readme_index.py",
+            "--repo_path", repo_path,
+            "--use_placeholder_summary",
+        ]
+        gri._main()
+        # Assert README was not created
+        readme_path = os.path.join(repo_path, "README.md")
+        existence = os.path.exists(readme_path)
+        self.assertFalse(existence)
