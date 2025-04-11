@@ -62,7 +62,7 @@ Table of Contents
             + ["", "# linted file", ""]
             + updated_lines
         )
-        self.check_string(output)
+        self.check_string(output, purify_text=True)
 
     def test3(self) -> None:
         """

@@ -57,7 +57,7 @@ jobs:
 
       # This is needed to pull the docker image from GHCR.
       - name: Login to GHCR
-        run: docker login ghcr.io -u gpsaggese -p ${{ secrets.GITHUB_TOKEN }}
+        run: docker login ghcr.io -u gpsaggese -p ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
 
       # Make everything accessible by any user to avoid permission errors.
       - name: Cleanup
@@ -70,7 +70,7 @@ jobs:
         with:
           submodules: true
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
 
       # To see the modules in `amp` and `helpers_root`, PYTHONPATH needs to
       # include them in the same way we do in `setenv.sh`.
@@ -114,7 +114,7 @@ jobs:
           CSFY_AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
           CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
-          GH_ACTION_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_ACTION_ACCESS_TOKEN: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
         run: invoke ${{ inputs.test-name }}
 
       # In case of manual run, this workflow step will not be skipped and
@@ -124,7 +124,7 @@ jobs:
         if: ${{ always() && github.event_name == 'workflow_dispatch' }}
         uses: Sibz/github-status-action@v1
         with:
-          authToken: ${{ secrets.GITHUB_TOKEN }}
+          authToken: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
           context: ${{ inputs.test-name }}
           description: 'Job is done (manual run)'
           state: ${{ job.status }}

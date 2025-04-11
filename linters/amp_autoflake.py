@@ -20,6 +20,11 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+# #############################################################################
+# _Autoflake
+# #############################################################################
+
+
 class _Autoflake(liaction.Action):
     """
     Run the `autoflake` code formatter.
@@ -38,9 +43,8 @@ class _Autoflake(liaction.Action):
 
     def _execute(self, file_name: str, pedantic: int) -> List[str]:
         _ = pedantic
-        if not liutils.is_py_file(file_name) and not file_name.endswith(".ipynb"):
-            # Applicable only to Python files and Ipynb notebooks.
-            _LOG.debug("Skipping file_name='%s'", file_name)
+        if self.skip_if_not_py_or_ipynb(file_name):
+            # Apply only to Python files or Ipynb notebooks.
             return []
         # Make changes to files instead of printing diffs.
         in_place_arg = "--in-place"

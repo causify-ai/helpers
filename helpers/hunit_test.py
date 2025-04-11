@@ -1809,19 +1809,24 @@ class TestCase(unittest.TestCase):
         if self._git_add:
             # Find the file relative to here.
             mode = "assert_unless_one_result"
-            file_names_tmp = hgit.find_docker_file(file_name, mode=mode)
+            # The problem is that when we run from an included repo, we look
+            # for files like:
+            # ```
+            # helpers_root/helpers/test/outcomes/TestCheckString1.test_check_string_missing3/output/test.txt
+            # ```
+            # but in our directory we find files like:
+            # ```
+            # helpers/test/outcomes/TestCheckString1.test_check_string_missing3/output/test.txt
+            # ```
+            # so we need to make the file relative to the innermost repo.
+            git_root = hgit.get_client_root(super_module=False)
+            rel_file_name = os.path.relpath(file_name, git_root)
+            _LOG.debug(hprint.to_str("rel_file_name"))
+            file_names_tmp = hgit.find_docker_file(rel_file_name, mode=mode)
+            hdbg.dassert_eq(len(file_names_tmp), 1)
             file_name_tmp = file_names_tmp[0]
-            _LOG.debug(hprint.to_str("file_name file_name_tmp"))
-            if file_name_tmp.startswith("amp"):
-                # To add a file like
-                # amp/core/test/TestCheckSameConfigs.test_check_same_configs_error/output/test.txt
-                # we need to descend into `amp`.
-                # TODO(gp): This needs to be generalized to `lm`. We should `cd`
-                # in the dir of the repo that includes the file.
-                file_name_in_amp = os.path.relpath(file_name_tmp, "amp")
-                cmd = f"cd amp; git add -u {file_name_in_amp}"
-            else:
-                cmd = f"git add -u {file_name_tmp}"
+            _LOG.debug(hprint.to_str("file_name_tmp"))
+            cmd = f"cd amp; git add -u {file_name_tmp}"
             rc = hsystem.system(cmd, abort_on_error=False)
             if rc:
                 pytest_warning(
