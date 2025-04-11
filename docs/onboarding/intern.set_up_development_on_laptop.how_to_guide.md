@@ -138,11 +138,10 @@
   toolchain to it, but there are always subtle incompatible behaviors that drive
   everyone crazy
   - If you are using Windows, we suggest to use dual boot with Linux or use a
-    virtual machine with Linux
+    [virtual machine with Linux](/docs/onboarding/intern.running_causify_on_virtual_machine.how_to_guide.md)
   - Install VMWare software
-  - Reference video for installing
-    [ubuntu](https://www.youtube.com/watch?v=NhlhJFKmzpk&ab_channel=ProgrammingKnowledge)
-    on VMWare software
+  - Reference [video](https://www.youtube.com/watch?v=cCLjS-gaI38) for
+    installing Ubuntu on VMWare software
   - Make sure you set up your git and github
   - Install
     [docker](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository)
