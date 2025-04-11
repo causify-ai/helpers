@@ -67,9 +67,7 @@ jobs:
       # include them in the same way we do in `setenv.sh`.
       - name: Update PYTHONPATH
         run: | 
-          PYTHONPATH="$(realpath $START_DIR)"
-          # Move into root to properly resolve submodules.
-          cd "$START_DIR" || { echo "❌ Failed to change directory to $START_DIR"; exit 1; }
+          PYTHONPATH="$(realpath .)"
           # Add all submodule paths (recursively).
           SUBMODULES_PATHS=$(git submodule foreach --quiet --recursive 'echo $(pwd)' | paste -sd:)
           PYTHONPATH="$PYTHONPATH:$SUBMODULES_PATHS"
