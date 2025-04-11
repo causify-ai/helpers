@@ -66,7 +66,7 @@ jobs:
       # To see the modules in `amp` and `helpers_root`, PYTHONPATH needs to
       # include them in the same way we do in `setenv.sh`.
       - name: Update PYTHONPATH
-        run: | 
+        run: |
           PYTHONPATH="$(realpath .)"
           # Add all submodule paths (recursively).
           SUBMODULES_PATHS=$(git submodule foreach --quiet --recursive 'echo $(pwd)' | paste -sd:)
