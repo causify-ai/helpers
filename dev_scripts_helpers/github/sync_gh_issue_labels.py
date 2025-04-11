@@ -5,20 +5,20 @@ Synchronize GitHub issue labels from a label inventory manifest file.
 Examples
 
 # Basic usage:
-> sync_gh_issue_labels.py \
-    --input_file ./labels/gh_issues_labels.yml \
+> ./dev_scripts_helpers/github/sync_gh_issue_labels.py \
+    --input_file ./dev_scripts_helpers/github/labels/gh_issues_labels.yml \
     --owner causify-ai \
     --repo tutorials \
     --token GITHUB_TOKEN \
+    --dry_run \
     --backup
 """
 
 import argparse
 import logging
-import subprocess
-import sys
-from typing import Dict, List
 import os
+import subprocess
+from typing import Dict, List
 
 import yaml
 
@@ -117,7 +117,13 @@ def _save_labels(labels: List[Label], path: str) -> None:
     """
     try:
         with open(path, "w") as file:
-            labels_data = [label.to_dict() for label in labels]
+            labels_data = [
+                Label(
+                    name=label.name,
+                    description=label.description if label.description else None,
+                    color=label.color,
+                ).to_dict() for label in labels
+            ]
             # Set `default_flow_style=False` to use block style instead of
             # flow style for better readability.
             yaml.dump(
@@ -143,11 +149,7 @@ def _parse() -> argparse.ArgumentParser:
         required=True,
         help="GitHub repository owner/organization",
     )
-    parser.add_argument(
-        "--repo",
-        required=True, 
-        help="GitHub repository name"
-    )
+    parser.add_argument("--repo", required=True, help="GitHub repository name")
     parser.add_argument(
         "--token_env_var",
         required=True,
@@ -181,18 +183,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Initialize GH client.
     client = github.Github(token)
     repo = client.get_repo(f"{args.owner}/{args.repo}")
-    # Build maps for efficient lookup.
+    # Get current labels from the repo.
     current_labels = repo.get_labels()
-    current_labels_data = []
-    for label in current_labels:
-        current_labels_data.append(
-            Label(
-                name=label.name,
-                description=label.description if label.description else None,
-                color=label.color,
-            )
-        )
-    current_labels_map = {label.name: label for label in current_labels_data}
+    current_labels_map = {label.name: label for label in current_labels}
     # Execute code if not in dry run mode.
     execute = not args.dry_run
     # Save the labels if backup is enabled.
@@ -202,7 +195,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         file_name = f"tmp.labels.{args.owner}.{args.repo}.yaml"
         file_path = f"{dst_dir}/{file_name}"
         if execute:
-            _save_labels(current_labels_data, file_path)
+            _save_labels(current_labels, file_path)
         _LOG.info("Labels backed up to %s", file_path)
     # Confirm label synchronization.
     hsystem.query_yes_no(
@@ -223,9 +216,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
             # Label doesn't exist, create it.
             if execute:
                 repo.create_label(
-                    name=label.name, 
-                    color=label.color, 
-                    description=label.description
+                    name=label.name,
+                    color=label.color,
+                    description=label.description,
                 )
             _LOG.info("Label created: %s", label.name)
         elif (
@@ -235,9 +228,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
             # Label exists but needs update.
             if execute:
                 current_label.edit(
-                    name=label.name, 
-                    color=label.color, 
-                    description=label.description
+                    name=label.name,
+                    color=label.color,
+                    description=label.description,
                 )
             _LOG.info("Label updated: %s", label.name)
         else:
