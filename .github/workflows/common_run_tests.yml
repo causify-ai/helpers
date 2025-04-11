@@ -6,15 +6,6 @@ on:
             description: 'Name of the test to run. Example: run_fast_tests.'
             required: true
             type: string
-          enable-ssh:
-            description: 'Run ssh step'
-            required: false
-            type: string
-        secrets:
-          CALLER_GITHUB_TOKEN:
-            required: false
-          CALLER_GITHUB_TOKEN2:
-            required: false
 env:
   CSFY_CI: true
   # CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
@@ -57,7 +48,7 @@ jobs:
 
       # This is needed to pull the docker image from GHCR.
       - name: Login to GHCR
-        run: docker login ghcr.io -u gpsaggese -p ${{ secrets.GITHUB_TOKEN }}
+        run: docker login ghcr.io -u gpsaggese -p ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
 
       # Make everything accessible by any user to avoid permission errors.
       - name: Cleanup
@@ -70,7 +61,7 @@ jobs:
         with:
           submodules: true
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
 
       # To see the modules in `amp` and `helpers_root`, PYTHONPATH needs to
       # include them in the same way we do in `setenv.sh`.
@@ -93,20 +84,6 @@ jobs:
       - name: Pull image from GHCR
         run: invoke docker_pull
 
-      - name: ssh
-        if: ${{ inputs.enable-ssh == 'enable' }}
-        uses: lhotari/action-upterm@v1
-        env:
-          ${{ insert }}: ${{ secrets }}          
-          # CSFY_AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
-          # CSFY_AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
-          # CSFY_AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
-          # CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
-          # CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
-          # GH_ACTION_ACCESS_TOKEN: ${{ secrets.CALLER_GITHUB_TOKEN }}
-          # GH2_ACTION_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # GH3_ACTION_ACCESS_TOKEN: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
-
       - name: Run tests
         env:
           CSFY_AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
@@ -114,7 +91,7 @@ jobs:
           CSFY_AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
           CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
-          GH_ACTION_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_ACTION_ACCESS_TOKEN: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
         run: invoke ${{ inputs.test-name }}
 
       # In case of manual run, this workflow step will not be skipped and
@@ -124,7 +101,7 @@ jobs:
         if: ${{ always() && github.event_name == 'workflow_dispatch' }}
         uses: Sibz/github-status-action@v1
         with:
-          authToken: ${{ secrets.GITHUB_TOKEN }}
+          authToken: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
           context: ${{ inputs.test-name }}
           description: 'Job is done (manual run)'
           state: ${{ job.status }}
