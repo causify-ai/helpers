@@ -142,7 +142,7 @@ def sample_method2() -> None:
     First function.
 
     ```
-    Valid backticks. 
+    Valid backticks.
     ```
     """
 
@@ -174,10 +174,14 @@ def func3():
         actual_content: str = hio.from_file(temp_file)
         # Check.
         expected_warnings = (
-            f"{temp_file}:12: Found unbalanced triple backticks; make sure both opening and closing backticks are the leftmost element of their line"
-            f"\n{temp_file}:21: Found unbalanced triple backticks; make sure both opening and closing backticks are the leftmost element of their line"
+            f"{temp_file}:12: Found unbalanced triple backticks; "
+            f"make sure both opening and closing backticks are the "
+            f"leftmost element of their line"
+            f"\n{temp_file}:21: Found unbalanced triple backticks; "
+            f"make sure both opening and closing backticks are the "
+            f"leftmost element of their line"
         )
-        self.assertEqual(actual_warnings, expected_warnings) 
+        self.assertEqual(actual_warnings, expected_warnings)
         self.assert_equal(actual_content, text, fuzzy_match=True)
 
     def test8(self) -> None:
@@ -215,9 +219,11 @@ def func3():
         actual_content: str = hio.from_file(temp_file)
         # Check.
         expected_warnings = (
-            f"{temp_file}:1: Found unbalanced triple backticks; make sure both opening and closing backticks are the leftmost element of their line"
+            f"{temp_file}:1: Found unbalanced triple backticks; "
+            f"make sure both opening and closing backticks are "
+            f"the leftmost element of their line"
         )
-        self.assertEqual(actual_warnings, expected_warnings) 
+        self.assertEqual(actual_warnings, expected_warnings)
         self.assert_equal(actual_content, text, fuzzy_match=True)
 
     def _docformatter(self, text: str) -> str:

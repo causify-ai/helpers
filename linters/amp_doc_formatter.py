@@ -50,12 +50,12 @@ class _DocFormatter(liaction.Action):
         return check
 
     @staticmethod
-    def _has_unbalanced_triple_backticks(contents: str) -> Tuple[bool, int]:
+    def _has_unbalanced_triple_backticks(contents: str) -> Tuple[bool, List]:
         """
         Check if the file contains triple backticks that are unbalanced.
 
         :param contents: contents of the file to process
-        :return: 
+        :return:
             - whether there are unbalanced backticks
             - all the starting indices of docstrings where the flagged backticks exist
         """
@@ -72,7 +72,7 @@ class _DocFormatter(liaction.Action):
                 else:
                     chunks.append(current_chunk)
                     current_chunk = [idx]
-            chunks.append(current_chunk)  
+            chunks.append(current_chunk)
         issues = []
         # Process each chunk.
         for chunk in chunks:
@@ -82,16 +82,17 @@ class _DocFormatter(liaction.Action):
                     # Count this triple backticks at the leftmost position.
                     leftmost_count += 1
             if leftmost_count % 2 != 0:
-                # Flag the chunk. 
+                # Flag the chunk.
                 # Convert zero-indexed numbers to one-indexed line numbers.
                 issues.append(chunk[0] + 1)
         if issues:
             return True, issues
-        else:
-            return False, []
+        return False, []
 
     @staticmethod
-    def _remove_ignored_docstrings(contents: str, file_name: str) -> Dict[str, str]:
+    def _remove_ignored_docstrings(
+        contents: str, file_name: str
+    ) -> Dict[str, str]:
         """
         Replace ignored docstrings from the file with unique hashes and return
         dict with replacements.
@@ -190,13 +191,15 @@ class _DocFormatter(liaction.Action):
 
     @staticmethod
     def _restore_removed_code_blocks(
-        contents: str, file_name: str, removed_blocks_storage: Dict[str, List[str]]
+        contents: str,
+        file_name: str,
+        removed_blocks_storage: Dict[str, List[str]],
     ) -> None:
         """
         Restore code blocks that have been previously removed.
 
         :param contents: contents of the file to process
-        :param file_name: file to write to 
+        :param file_name: file to write to
         :param removed_blocks_storage: original code blocks from the
             docstring
         """
@@ -241,7 +244,8 @@ class _DocFormatter(liaction.Action):
             # Do not remove any codeblocks as unbalanced backticks detected.
             unbalanced_backtick_warning = "\n".join(
                 f"{file_name}:{start}: Found unbalanced triple backticks; "
-                f"make sure both opening and closing backticks are the leftmost element of their line"
+                f"make sure both opening and closing backticks "
+                f"are the leftmost element of their line"
                 for start in issues
             )
             _removed_code = {}
