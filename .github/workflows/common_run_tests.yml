@@ -61,7 +61,7 @@ jobs:
         with:
           submodules: true
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
 
       # To see the modules in `amp` and `helpers_root`, PYTHONPATH needs to
       # include them in the same way we do in `setenv.sh`.
