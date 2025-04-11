@@ -500,8 +500,8 @@ def enable_privileged_mode() -> bool:
         elif is_mac(version="Catalina"):
             # Docker for macOS Catalina supports dind.
             ret = True
-        elif is_mac(version="Monterey") or is_mac(version="Ventura"):
-            # Docker for macOS Monterey doesn't seem to support dind.
+        elif is_mac(version="Monterey") or is_mac(version="Ventura") or is_mac(version="Sequoia"):
+            # Docker doesn't seem to support dind for these versions of macOS.
             ret = False
         elif is_prod_csfy():
             ret = False
@@ -538,7 +538,7 @@ def has_docker_sudo() -> bool:
 
 
 def _is_mac_version_with_sibling_containers() -> bool:
-    return is_mac(version="Monterey") or is_mac(version="Ventura")
+    return is_mac(version="Monterey") or is_mac(version="Ventura") or is_mac(version="Sequoia")
 
 
 # TODO(gp): -> use_docker_sibling_container_support
@@ -755,7 +755,6 @@ def indent(txt: str, *, num_spaces: int = 2) -> str:
 # End copy.
 
 
-# grep "def " helpers/hserver.py | sort
 def config_func_to_str() -> str:
     """
     Print the value of all the config functions.
