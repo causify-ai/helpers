@@ -371,7 +371,7 @@ def fix_perms(  # type: ignore
         hsystem.system(cmd)
         cmd = f"sudo chown -R {user}:{group} .pytest_cache"
         hsystem.system(cmd, abort_on_error=False)
-    elif hserver.is_mac():
+    elif hserver.is_external_dev():
         # Nothing to do.
         pass
     else:
