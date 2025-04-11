@@ -43,7 +43,6 @@ import linters.amp_check_md_toc_headers as lacmtohe
 import linters.amp_check_merge_conflict as lachmeco
 import linters.amp_class_method_order as laclmeor
 import linters.amp_doc_formatter as lamdofor
-import linters.amp_fix_empty_lines as lafiemli
 import linters.amp_fix_md_links as lafimdli
 import linters.amp_fix_whitespaces as lamfiwhi
 import linters.amp_flake8 as lampflak
@@ -54,6 +53,7 @@ import linters.amp_mypy as lampmypy
 import linters.amp_normalize_import as lamnoimp
 import linters.amp_processjupytext as lampproc
 import linters.amp_pylint as lamppyli
+import linters.amp_remove_empty_lines as lareemli
 import linters.amp_warn_incorrectly_formatted_todo as lawifoto
 import linters.utils as liutils
 
@@ -219,6 +219,11 @@ _MODIFYING_ACTIONS: List[Tuple[str, str, Type[liaction.Action]]] = [
     #    lamficom._FixComment,  # pylint: disable=protected-access
     # ),
     (
+        "remove_empty_lines",
+        "Removes empty lines in functions",
+        lareemli._RemoveEmptyLines,  # pylint: disable=protected-access
+    ),
+    (
         "black",
         "Runs `black` to format the code",
         lampblac._Black,  # pylint: disable=protected-access
@@ -227,11 +232,6 @@ _MODIFYING_ACTIONS: List[Tuple[str, str, Type[liaction.Action]]] = [
         "process_jupytext",
         "Keeps paired .ipynb and .py files synchronized",
         lampproc._JupytextAction,  # pylint: disable=protected-access
-    ),
-    (
-        "fix_empty_lines",
-        "Remove empty lines within function blocks",
-        lafiemli._FixEmptyLines,  # pylint: disable=protected-access
     ),
 ]
 
