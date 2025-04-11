@@ -122,7 +122,8 @@ def _save_labels(labels: List[Label], path: str) -> None:
                     name=label.name,
                     description=label.description if label.description else None,
                     color=label.color,
-                ).to_dict() for label in labels
+                ).to_dict()
+                for label in labels
             ]
             # Set `default_flow_style=False` to use block style instead of
             # flow style for better readability.
