@@ -7,7 +7,7 @@ Usage:
     generate_readme_index.py [--repo_path REPO_PATH] [--use_placeholder_summary]
 
 This script locates the root of a Git repository, finds all Markdown files,
-and creates a README file, appending a list of Markdown files organized 
+and creates a README file, appending a list of Markdown files organized
 hierarchically by directory.
 
 Example output:
@@ -85,19 +85,21 @@ def generate_summary_for_file(
     """
     if use_placeholder:
         _LOG.debug("Using placeholder summary for %s", file_path)
-        return f"Placeholder summary for {os.path.basename(file_path)}"
-
-    _LOG.debug("Generating real summary for: %s", file_path)
-    content = hio.from_file(file_path)
-    prompt = (
-        "Summarize the following content in exactly two lines. "
-        "Do not include any introduction or list markers. "
-        "Just return the summary itself, nothing else.\n\n"
-        f"{content}"
-    )
-    summary = hopenai.get_completion(user_prompt=prompt, model="gpt-4o-mini")
-    summary = str(summary.strip())
-    return summary
+        file_name = os.path.basename(file_path)
+        summary = f"Placeholder summary for {file_name}"
+        return summary
+    else:
+        _LOG.debug("Generating real summary for: %s", file_path)
+        content = hio.from_file(file_path)
+        prompt = (
+            "Summarize the following content in exactly two lines. "
+            "Do not include any introduction or list markers. "
+            "Just return the summary itself, nothing else.\n\n"
+            f"{content}"
+        )
+        summary = hopenai.get_completion(user_prompt=prompt, model="gpt-4o-mini")
+        summary = str(summary.strip())
+        return summary
 
 
 def generate_markdown_index(
