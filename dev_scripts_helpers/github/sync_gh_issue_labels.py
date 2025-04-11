@@ -180,7 +180,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Load labels from label inventory manifest file.
     labels = _load_labels(args.input_file)
     labels_map = {label.name: label for label in labels}
-    token = os.environ.get(args.token_env_var)
+    token = os.environ.get(args.token_env_var, None)
+    hdbg.dassert(token)
     # Initialize GH client.
     client = github.Github(token)
     repo = client.get_repo(f"{args.owner}/{args.repo}")
