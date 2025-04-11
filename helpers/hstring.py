@@ -88,6 +88,10 @@ def get_docstring_line_indices(lines: List[str]) -> List[int]:
                 # Switch the docstring flag.
                 # pylint: disable=modified-iterating-dict
                 quotes[q] = not quotes[q]
+                if q in ('"""', "'''") and not quotes[q]:
+                    # A triple-quote has just been closed.
+                    # Reset the triple backticks flag.
+                    quotes["```"] = False
         if any(quotes.values()):
             # Store the index if the quotes have been opened but not closed yet.
             docstring_line_indices.append(i)

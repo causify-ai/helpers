@@ -134,47 +134,91 @@ def sample_method2() -> None:
 
     def test7(self) -> None:
         """
-        Test that unbalanced/misplaced backticks are correctly flagged.
+        Test that unbalanced backticks are correctly flagged.
         """
-        # Unbalanced backticks.
         # Prepare inputs.
-        text = '''content = r"""
-```python
-def no_closing_backticks():
-    print("No below delimiters are present")
+        text = '''def func1():
+    """
+    First function.
 
-"""
+    ```
+    Valid backticks. 
+    ```
+    """
+
+
+def func2():
+    """
+    Second function.
+
+    ```
+    Missing closing backticks.
+    """
+
+
+def func3():
+    """
+    Third function.
+
+    ```
+    Missing closing backticks.
+    """
 '''
         scratch_dir = self.get_scratch_space()
         temp_file = os.path.join(scratch_dir, "temp_file.py")
         hio.to_file(temp_file, text)
         # Run.
-        actual = lamdofor._DocFormatter().execute(
+        actual_warnings = lamdofor._DocFormatter().execute(
             file_name=temp_file, pedantic=0
         )[0]
+        actual_content: str = hio.from_file(temp_file)
         # Check.
-        expected = (
-            f"{temp_file}:2: Found misplaced or unbalanced triple backticks"
+        expected_warnings = (
+            f"{temp_file}:12: Found unbalanced triple backticks; make sure both opening and closing backticks are the leftmost element of their line"
+            f"\n{temp_file}:21: Found unbalanced triple backticks; make sure both opening and closing backticks are the leftmost element of their line"
         )
-        self.assertEqual(actual, expected)
+        self.assertEqual(actual_warnings, expected_warnings) 
+        self.assert_equal(actual_content, text, fuzzy_match=True)
 
-        # Balanced backticks.
+    def test8(self) -> None:
+        """
+        Test that unbalanced backticks are correctly flagged.
+        """
         # Prepare inputs.
-        text = '''content = r"""
-```python
-def no_closing_backticks():
-    print("No below delimiters are present")
-```
-"""
+        text = '''   """
+    E.g., ```
+
+    # Find all the dependency of a module from itself
+    > i find_dependency --module-name "amp.dataflow.model" --mode "find_lev2_deps" --ignore-helpers --only-module dataflow
+    amp/dataflow/model/stats_computer.py:16 dataflow.core
+    amp/dataflow/model/model_plotter.py:4   dataflow.model
+    ```
+
+    :param module_name: the module path to analyze (e.g., `amp.dataflow.model`)
+    :param mode:
+        - `print_deps`: print the result of grepping for imports
+        - `find_deps`: find all the dependencies
+        - `find_lev1_deps`, `find_lev2_deps`: find all the dependencies
+    :param only_module: keep only imports containing a certain module (e.g., `dataflow`)
+    :param ignore_standard_libs: ignore the Python standard libs (e.g., `os`, `...`)
+    :param ignore_helpers: ignore the `helper` lib
+    :param remove_dups: remove the duplicated imports
+    """
 '''
         scratch_dir = self.get_scratch_space()
         temp_file = os.path.join(scratch_dir, "temp_file.py")
         hio.to_file(temp_file, text)
         # Run.
-        actual = lamdofor._DocFormatter().execute(file_name=temp_file, pedantic=1)
+        actual_warnings = lamdofor._DocFormatter().execute(
+            file_name=temp_file, pedantic=0
+        )[0]
+        actual_content: str = hio.from_file(temp_file)
         # Check.
-        expected = []
-        self.assertEqual(actual, expected)
+        expected_warnings = (
+            f"{temp_file}:1: Found unbalanced triple backticks; make sure both opening and closing backticks are the leftmost element of their line"
+        )
+        self.assertEqual(actual_warnings, expected_warnings) 
+        self.assert_equal(actual_content, text, fuzzy_match=True)
 
     def _docformatter(self, text: str) -> str:
         """

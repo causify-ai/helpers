@@ -12,7 +12,7 @@ import argparse
 import logging
 import re
 import uuid
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -50,52 +50,58 @@ class _DocFormatter(liaction.Action):
         return check
 
     @staticmethod
-    def _has_misplaced_triple_backticks(file_name: str) -> tuple[bool, int]:
+    def _has_unbalanced_triple_backticks(contents: str) -> Tuple[bool, int]:
         """
-        Check if the file contains triple backticks that are either unbalanced
-        or misplaced.
+        Check if the file contains triple backticks that are unbalanced.
 
-        :param file_name: file to process
-        :return: true if misplaced/unbalanced backticks are detected,
-            line where first issue occurs
+        :param contents: contents of the file to process
+        :return: 
+            - whether there are unbalanced backticks
+            - all the starting indices of docstrings where the flagged backticks exist
         """
-        contents = hio.from_file(file_name)
         lines = contents.splitlines()
-        # Filter out single comment lines.
-        non_comment_lines = [
-            line for line in lines if not line.lstrip().startswith("#")
-        ]
-        # Count triple backticks from non-comment lines.
-        backticks = []
-        for line in non_comment_lines:
-            backticks.extend(re.findall(r"```", line))
-        if len(backticks) % 2 != 0:
-            # Unbalanced backticks.
-            # Locate first non-comment line with triple backticks.
-            for i, line in enumerate(lines, start=1):
-                if not line.lstrip().startswith("#") and "```" in line:
-                    print(True, i)
-                    return True, i
-        # Check each non-comment line for misplaced triple backticks.
-        for i, line in enumerate(lines, start=1):
-            if line.lstrip().startswith("#"):
-                continue
-            if "```" in line and not line.lstrip().startswith("```"):
-                return True, i
-        return False, 0
+        # Get indices (zero-indexed) of lines that are within docstrings.
+        doc_indices = hstring.get_docstring_line_indices(lines)
+        # Group the docstring indices into consecutive chunks.
+        chunks = []
+        if doc_indices:
+            current_chunk = [doc_indices[0]]
+            for idx in doc_indices[1:]:
+                if idx == current_chunk[-1] + 1:
+                    current_chunk.append(idx)
+                else:
+                    chunks.append(current_chunk)
+                    current_chunk = [idx]
+            chunks.append(current_chunk)  
+        issues = []
+        # Process each chunk.
+        for chunk in chunks:
+            leftmost_count = 0
+            for idx in chunk:
+                if lines[idx].lstrip().startswith("```"):
+                    # Count this triple backticks at the leftmost position.
+                    leftmost_count += 1
+            if leftmost_count % 2 != 0:
+                # Flag the chunk. 
+                # Convert zero-indexed numbers to one-indexed line numbers.
+                issues.append(chunk[0] + 1)
+        if issues:
+            return True, issues
+        else:
+            return False, []
 
     @staticmethod
-    def _remove_ignored_docstrings(file_name: str) -> Dict[str, str]:
+    def _remove_ignored_docstrings(contents: str, file_name: str) -> Dict[str, str]:
         """
         Replace ignored docstrings from the file with unique hashes and return
         dict with replacements.
 
+        :param contents: contents of the file to process
         :param file_name: file to process
         :return: dictionary with hash as key and replaced docstring as a
             value
         """
         result: Dict[str, str] = {}
-        contents = hio.from_file(file_name)
         # Example of text that is matched by the below pattern:
         # # docformatter: ignore
         # """Some comment."""
@@ -184,16 +190,17 @@ class _DocFormatter(liaction.Action):
 
     @staticmethod
     def _restore_removed_code_blocks(
-        file_name: str, removed_blocks_storage: Dict[str, List[str]]
+        contents: str, file_name: str, removed_blocks_storage: Dict[str, List[str]]
     ) -> None:
         """
         Restore code blocks that have been previously removed.
 
-        :param file_name: file to process
+        :param contents: contents of the file to process
+        :param file_name: file to write to 
         :param removed_blocks_storage: original code blocks from the
             docstring
         """
-        lines = hio.from_file(file_name).split("\n")
+        lines = contents.split("\n")
         updated_lines: List[str] = []
         restored_ids = []
         for line in lines:
@@ -223,16 +230,19 @@ class _DocFormatter(liaction.Action):
         if self.skip_if_not_py(file_name):
             # Apply only to Python files.
             return []
-        # Check for misplaced backticks
-        misplaced_warning = ""
-        has_misplaced, line_no = self._has_misplaced_triple_backticks(file_name)
+        # Extract content.
+        contents = hio.from_file(file_name)
+        # Check for unbalanced backticks.
+        unbalanced_backtick_warning = ""
+        has_misplaced, issues = self._has_unbalanced_triple_backticks(contents)
         # Clear and store ignored docstrings and code.
-        _ignored_docstrings = self._remove_ignored_docstrings(file_name)
+        _ignored_docstrings = self._remove_ignored_docstrings(contents, file_name)
         if has_misplaced:
-            # Do not remove any codeblocks as misplaced/unbalanced backticks detected.
-            misplaced_warning = (
-                f"{file_name}:{line_no}: "
-                "Found misplaced or unbalanced triple backticks"
+            # Do not remove any codeblocks as unbalanced backticks detected.
+            unbalanced_backtick_warning = "\n".join(
+                f"{file_name}:{start}: Found unbalanced triple backticks; "
+                f"make sure both opening and closing backticks are the leftmost element of their line"
+                for start in issues
             )
             _removed_code = {}
         else:
@@ -245,10 +255,10 @@ class _DocFormatter(liaction.Action):
         # Restore ignored docstrings and code.
         self._restore_ignored_docstrings(file_name, _ignored_docstrings)
         if _removed_code:
-            self._restore_removed_code_blocks(file_name, _removed_code)
-        if misplaced_warning:
+            self._restore_removed_code_blocks(contents, file_name, _removed_code)
+        if unbalanced_backtick_warning:
             # Prepend generated warnings.
-            output.insert(0, misplaced_warning)
+            output.insert(0, unbalanced_backtick_warning)
         return output
 
 
