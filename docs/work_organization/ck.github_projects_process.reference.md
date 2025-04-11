@@ -22,7 +22,7 @@
   components/products/services
 
 - The entrypoint to preview available projects is
-  [<u>https://github.com/orgs/cryptokaizen/projects</u>](https://github.com/orgs/cryptokaizen/projects) -
+  [cryptokaizen GitHub Projects](https://github.com/orgs/cryptokaizen/projects)
   TODO(Juraj): this link will work only for people who are directly members of
   the organization (not collaborators)
 
@@ -36,21 +36,20 @@
 - A view can provide a specific perspective on the issues in the project, e.g.,
   filter certain issues by their attributes, visualize them in a board/list
 
-<img src="figs/ck.github_projects_process.reference_figs/image1.png"
-    style="width:6.5in;height:0.31944in" />
+<img src="figs/ck.github_projects_process.reference_figs/image1.png" style="width:6.5in;height:0.31944in" />
 
 - We use a base
-  [<u>template</u>](https://github.com/orgs/causify-ai/projects?query=is%3Aopen+is%3Atemplate)
+  [template](https://github.com/orgs/causify-ai/projects?query=is%3Aopen+is%3Atemplate)
   for all of our projects to ensure consistency between projects
 
 - The base template consists of the following views:
-  - All issues - provides a kanban board of all issues present in the project
-  - Current sprint - provides a kanban board of issues in the currently running
+  - All issues: provides a table view of all issues present in the project
+  - Current sprint: provides a table view of issues in the currently running
     sprint
-  - Next sprint - provides a kanban board of issues in the next sprint
-  - Backlog - list of a non-finished issues in a given project without a sprint
+  - Next sprint: provides a table view of issues in the next sprint
+  - Backlog: list of a non-finished issues in a given project without a sprint
     assigned
-  - Team capacity - aggregates "estimate point" for each collaborator in the
+  - Team capacity: aggregates "estimate point" for each collaborator in the
     project
 
 ### Issue fields
@@ -83,7 +82,7 @@
 ### How to set up a new project
 
 - Click on `Projects` tab in the desired repository, e.g.
-  [<u>https://github.com/cryptokaizen/cmamp</u>](https://github.com/cryptokaizen/cmamp)
+  [cryptokaizen/cmamp](https://github.com/cryptokaizen/cmamp)
 
 - Click on the green `New Project` button
 
@@ -220,7 +219,7 @@ Next steps
 ### Built-in workflows
 
 - GitHub offers a handful of
-  [<u>built-in workflows</u>](https://docs.github.com/en/issues/planning-and-tracking-with-projects/automating-your-project/using-the-built-in-automations)
+  [built-in workflows](https://docs.github.com/en/issues/planning-and-tracking-with-projects/automating-your-project/using-the-built-in-automations)
   to automate frequently run actions within projects
   - For example: when an issue is closed, set the status to done
 
@@ -228,10 +227,10 @@ Next steps
   corner of the project view and select "Workflows"
 
 - In our
-  [<u>base template</u>](https://github.com/cryptokaizen/cmamp/projects?query=is%3Aopen+is%3Atemplate)
+  [base template](https://github.com/cryptokaizen/cmamp/projects?query=is%3Aopen+is%3Atemplate)
   we currently use
-  [<u>these</u>](https://github.com/orgs/cryptokaizen/projects/18/workflows)
-  automated workflows
+  [these](https://github.com/orgs/cryptokaizen/projects/18/workflows) automated
+  workflows
 
 ### Github Actions automations
 
@@ -245,7 +244,7 @@ Next steps
 ## Parent and sub-issues
 
 - GitHub offers
-  [<u>sub-issues</u>](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/adding-sub-issues)
+  [sub-issues](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/adding-sub-issues)
   to breakdown complex or higher-level task into smaller chunks of works
 
 - Our current convention is _not_ to use this feature
