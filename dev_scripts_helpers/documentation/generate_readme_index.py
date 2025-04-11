@@ -51,7 +51,6 @@ from typing import Set
 
 import helpers.hgit as hgit
 import helpers.hio as hio
-import helpers.hopenai as hopenai
 
 _LOG = logging.getLogger(__name__)
 
@@ -88,18 +87,20 @@ def generate_summary_for_file(
         file_name = os.path.basename(file_path)
         summary = f"Placeholder summary for {file_name}"
         return summary
-    else:
-        _LOG.debug("Generating real summary for: %s", file_path)
-        content = hio.from_file(file_path)
-        prompt = (
-            "Summarize the following content in exactly two lines. "
-            "Do not include any introduction or list markers. "
-            "Just return the summary itself, nothing else.\n\n"
-            f"{content}"
-        )
-        summary = hopenai.get_completion(user_prompt=prompt, model="gpt-4o-mini")
-        summary = str(summary.strip())
-        return summary
+    # Prevents hopenai to be imported when not needed
+    import helpers.hopenai as hopenai
+
+    _LOG.debug("Generating real summary for: %s", file_path)
+    content = hio.from_file(file_path)
+    prompt = (
+        "Summarize the following content in exactly two lines. "
+        "Do not include any introduction or list markers. "
+        "Just return the summary itself, nothing else.\n\n"
+        f"{content}"
+    )
+    summary = hopenai.get_completion(user_prompt=prompt, model="gpt-4o-mini")
+    summary = str(summary.strip())
+    return summary
 
 
 def generate_markdown_index(
