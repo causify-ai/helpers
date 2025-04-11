@@ -26,7 +26,7 @@ _TRACE = False
 # #############################################################################
 
 
-def is_markdown_line_separator(line: str, min_repeats: int = 5) -> bool:
+def is_markdown_line_separator(line: str, min_repeats: int = 3) -> bool:
     """
     Check if the given line is a Markdown separator.
 
@@ -37,18 +37,11 @@ def is_markdown_line_separator(line: str, min_repeats: int = 5) -> bool:
     :return: true if the line is a separator
     """
     line_pattern = rf"""
-        \#*  # Optional leading hash character.
-        \s*  # Optional whitespace.
-        (?:
-        # Match one of the below characters which is repeated at least `min_repeats` times.
-         \#{{{min_repeats},}}
-          | /{{{min_repeats},}}
-          | -{{{min_repeats},}}
-          | ={{{min_repeats},}}
-        )
-        (?![a-zA-Z0-9])  # No alphanumeric after the repeated characters.
-        [\s#/\-=]*       # Allow any amount of space or `#` `/` `-` `=`.
-        $
+    \#*\s*  # Optional leading `#` and whitespace.
+    ([#/=\-])\1{{{min_repeats - 1},}}  # Capture a character, then repeat it (`min_repeats` - 1) times.
+    (?![a-zA-Z0-9])  # Ensure no alphanumeric characters follow the repeated characters.
+    [ \t]*  #  Allow only trailing spaces or tabs.
+    $
     """
     res = bool(re.match(line_pattern, line, re.VERBOSE))
     return res
