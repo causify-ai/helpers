@@ -126,7 +126,7 @@
   - Keeps paired `.ipynb` and `.py` files synchronized
 
 - `amp_remove_empty_lines.py`
-  - Cleans up empty lines inside functions and methods.
+  - Cleans up empty lines inside functions and methods
 
 ### Checking if the files are in accordance with our rules (non-modifying)
 
