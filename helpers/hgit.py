@@ -679,6 +679,10 @@ def get_repo_full_name_from_client(super_module: bool) -> str:
     return repo_name
 
 
+def is_cwd_git_repo():
+    return os.path.exists(".git")
+
+
 # #############################################################################
 # Git path
 # #############################################################################
