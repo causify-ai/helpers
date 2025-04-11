@@ -150,19 +150,19 @@ def is_mac(*, version: Optional[str] = None) -> bool:
             return False
     # Check the macOS version we are running.
     if version == "Catalina":
-        # Darwin gpmac.fios-router.home 19.6.0 Darwin Kernel Version 19.6.0:
-        # Mon Aug 31 22:12:52 PDT 2020; root:xnu-6153.141.2~1/RELEASE_X86_64 x86_64
+        # Darwin gpmac.local 19.6.0 Darwin Kernel Version 19.6.0:
+        # root:xnu-6153.141.2~1/RELEASE_X86_64 x86_64
         macos_tag = "19.6"
     elif version == "Monterey":
         # Darwin alpha.local 21.5.0 Darwin Kernel Version 21.5.0:
-        # Tue Apr 26 21:08:37 PDT 2022;
-        #   root:xnu-8020.121.3~4/RELEASE_ARM64_T6000 arm64```
+        # root:xnu-8020.121.3~4/RELEASE_ARM64_T6000 arm64
         macos_tag = "21."
     elif version == "Ventura":
-        # Darwin alpha.local 21.5.0 Darwin Kernel Version 21.5.0:
-        # Tue Apr 26 21:08:37 PDT 2022;
-        #   root:xnu-8020.121.3~4/RELEASE_ARM64_T6000 arm64```
         macos_tag = "22."
+    elif version == "Sequoia":
+        # Darwin gpmac.local 24.4.0 Darwin Kernel Version 24.4.0:
+        # root:xnu-11417.101.15~1/RELEASE_ARM64_T8112 arm64
+        macos_tag = "24."
     else:
         raise ValueError(f"Invalid version='{version}'")
     _LOG.debug("macos_tag=%s", macos_tag)
@@ -432,8 +432,8 @@ def enable_privileged_mode() -> bool:
         elif is_mac(version="Catalina"):
             # Docker for macOS Catalina supports dind.
             ret = True
-        elif is_mac(version="Monterey") or is_mac(version="Ventura"):
-            # Docker for macOS Monterey doesn't seem to support dind.
+        elif is_mac(version="Monterey") or is_mac(version="Ventura") or is_mac(version="Sequoia"):
+            # Docker doesn't seem to support dind for these versions of macOS.
             ret = False
         elif is_prod_csfy():
             ret = False
@@ -470,7 +470,7 @@ def has_docker_sudo() -> bool:
 
 
 def _is_mac_version_with_sibling_containers() -> bool:
-    return is_mac(version="Monterey") or is_mac(version="Ventura")
+    return is_mac(version="Monterey") or is_mac(version="Ventura") or is_mac(version="Sequoia")
 
 
 # TODO(gp): -> use_docker_sibling_container_support
@@ -715,6 +715,7 @@ def config_func_to_str() -> str:
         "is_mac(version='Catalina')",
         "is_mac(version='Monterey')",
         "is_mac(version='Ventura')",
+        "is_mac(version='Sequoia')",
     ]
     for func_name in sorted(function_names):
         try:
