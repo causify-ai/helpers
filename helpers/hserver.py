@@ -364,10 +364,11 @@ else:
 
 
 # #############################################################################
-# Docker
+# Detect Docker functionalities.
 # #############################################################################
 
 
+@functools.lru_cache()
 def has_docker() -> bool:
     """
     Return whether we have Docker installed.
@@ -375,19 +376,72 @@ def has_docker() -> bool:
     return shutil.which("docker") is not None
 
 
+@functools.lru_cache()
 def docker_needs_sudo() -> bool:
     """
     Return whether Docker commands need to be run with sudo.
     """
-    # groups | grep docker
-    return not has_docker()
+    if not has_docker():
+        return False
+    # Another way to check is to see if your user is in the docker group:
+    # > groups | grep docker
+    rc = os.system("docker run hello-world 2>&1 >/dev/null")
+    if rc == 0:
+        return False
+    #
+    rc = os.system("sudo docker run hello-world 2>&1 >/dev/null")
+    if rc == 0:
+        return True
+    assert False, "Failed to run docker"
 
 
+@functools.lru_cache()
 def has_docker_privileged_mode() -> bool:
-    cmd = "docker run hello-world"
+    """
+    Return whether the current container supports privileged mode.
+    
+    Docker privileged mode gives containers nearly all the same capabilities as
+    the host system's kernel.
+    Privileged mode allows to:
+    - run Docker-in-Docker
+    - mount filesystems
+    """
+    cmd = "docker run --privileged hello-world 2>&1 >/dev/null"
     rc = os.system(cmd)
     _print("cmd=%s -> rc=%s" % (cmd, rc))
-    has_dind = rc == 0
+    has_privileged_mode = rc == 0
+    return has_privileged_mode
+
+
+def has_sibling_containers_support() -> bool:
+    # We need to be inside a container to run sibling containers.
+    if not is_inside_docker():
+        return False
+    # We assume that if the socket exists then we can run sibling containers.
+    if os.path.exists("/var/run/docker.sock"):
+        return True
+    return False
+
+
+def has_docker_dind_support() -> bool:
+    """
+    Return whether the current container supports Docker-in-Docker.
+    """
+    # We need to be inside a container to run docker-in-docker.
+    if not is_inside_docker():
+        return False
+    # We assume that if we have privileged mode then we can run docker-in-docker.
+    return has_docker_privileged_mode()
+
+
+# #############################################################################
+# Detect Docker functionalities, based on the set-up.
+# #############################################################################
+
+
+# TODO(gp): These approach is sub-optimal. We deduce what we can do based on the
+# name of the set-up. We should base our decisions on the actual capabilities of
+# the system.
 
 
 # TODO(gp): -> has_docker_privileged_mode
@@ -396,7 +450,7 @@ def has_dind_support() -> bool:
     """
     Return whether the current container supports privileged mode.
 
-    This is need to use Docker-in-Docker.
+    This is needed to use Docker-in-Docker.
     """
     _print("is_inside_docker()=%s" % is_inside_docker())
     if not is_inside_docker():
@@ -625,6 +679,7 @@ def run_docker_as_root() -> bool:
     return ret
 
 
+# TODO(gp): Probably obsolete
 def get_docker_user() -> str:
     """
     Return the user that runs Docker, if any.
@@ -636,6 +691,7 @@ def get_docker_user() -> str:
     return val
 
 
+# TODO(gp): Probably obsolete
 def get_docker_shared_group() -> str:
     """
     Return the group of the user running Docker, if any.
@@ -663,9 +719,18 @@ def skip_submodules_test() -> bool:
     return False
 
 
-# TODO(gp): Remove this comment.
-# # This function can't be in `helpers.hserver` since it creates circular import
-# # and `helpers.hserver` should not depend on anything.
+# #############################################################################
+# S3 buckets.
+# #############################################################################
+
+
+def is_AM_S3_available() -> bool:
+    # AM bucket is always available.
+    val = True
+    _LOG.debug("val=%s", val)
+    return val
+
+
 def is_CK_S3_available() -> bool:
     val = True
     if is_inside_ci():
@@ -681,18 +746,6 @@ def is_CK_S3_available() -> bool:
     elif is_dev4():
         # CK bucket is not available on dev4.
         val = False
-    _LOG.debug("val=%s", val)
-    return val
-
-
-# #############################################################################
-# S3 buckets.
-# #############################################################################
-
-
-def is_AM_S3_available() -> bool:
-    # AM bucket is always available.
-    val = True
     _LOG.debug("val=%s", val)
     return val
 

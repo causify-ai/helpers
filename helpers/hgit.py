@@ -411,13 +411,8 @@ def is_amp_present(*, dir_name: str = ".") -> bool:
 
 
 # Using these functions is the last resort to skip / change the tests depending
-# on the repo. We should control the tests through what functionalities they have,
-# e.g.,
-# ```
-# hserver.has_dind_support(),
-# ```
-#
-# rather than their name.
+# on the repo. We should control the tests through what functionalities they
+# have, rather than the name of the repo.
 
 
 def is_cmamp() -> bool:

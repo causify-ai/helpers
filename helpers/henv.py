@@ -96,7 +96,7 @@ def _to_info(tag: str, txt: Union[str, List[str]]) -> str:
 
 
 # #############################################################################
-# Print the env vars.
+# Get env vars info.
 # #############################################################################
 
 
@@ -222,7 +222,7 @@ def env_vars_to_string() -> str:
     Return a string with the signature of all the expected env vars (including
     the secret ones).
     """
-    msg = []
+    txt: List[str] = []
     # Get the expected env vars and the secret ones.
     env_vars = get_env_vars()
     secret_env_vars = get_secret_env_vars()
@@ -231,37 +231,24 @@ def env_vars_to_string() -> str:
         is_defined = env_name in os.environ
         is_empty = is_defined and os.environ[env_name] == ""
         if not is_defined:
-            msg.append(f"{env_name}=undef")
+            txt.append(f"{env_name}=undef")
         else:
             if env_name in secret_env_vars:
                 # Secret env var: print if it's empty or not.
                 if is_empty:
-                    msg.append(f"{env_name}=empty")
+                    txt.append(f"{env_name}=empty")
                 else:
-                    msg.append(f"{env_name}=***")
+                    txt.append(f"{env_name}=***")
             else:
                 # Not a secret var: print the value.
-                msg.append(f"{env_name}='{os.environ[env_name]}'")
-    msg = "\n".join(msg)
-    return msg
+                txt.append(f"{env_name}='{os.environ[env_name]}'")
+    txt = "\n".join(txt)
+    return txt
 
 
 # #############################################################################
-# Print the library versions.
+# Get Git info.
 # #############################################################################
-
-
-def _get_library_version(lib_name: str) -> str:
-    try:
-        cmd = f"import {lib_name}"
-        # pylint: disable=exec-used
-        exec(cmd)
-    except ImportError:
-        version = "?"
-    else:
-        cmd = f"{lib_name}.__version__"
-        version = eval(cmd)
-    return version
 
 
 # Copied from helpers.hgit to avoid circular dependencies.
@@ -299,33 +286,33 @@ def _get_git_signature(git_commit_type: str = "all") -> str:
     """
     Get information about current branch and latest commits.
     """
-    txt_tmp: List[str] = []
+    txt: List[str] = []
     # Get the branch name.
     cmd = "git branch --show-current"
     _, branch_name = hsystem.system_to_one_line(cmd)
-    txt_tmp.append(f"branch_name='{branch_name}'")
+    txt.append(f"branch_name='{branch_name}'")
     # Get the short Git hash of the current branch.
     cmd = "git rev-parse --short HEAD"
     _, hash_ = hsystem.system_to_one_line(cmd)
-    txt_tmp.append(f"hash='{hash_}'")
+    txt.append(f"hash='{hash_}'")
     # Add info about the latest commits.
     num_commits = 3
     if git_commit_type == "all":
-        txt_tmp.append("# Last commits:")
+        txt.append("# Last commits:")
         log_txt = _git_log(num_commits=num_commits, my_commits=False)
-        txt_tmp.append(hprint.indent(log_txt))
+        txt.append(hprint.indent(log_txt))
     elif git_commit_type == "mine":
-        txt_tmp.append("# Your last commits:")
+        txt.append("# Your last commits:")
         log_txt = _git_log(num_commits=num_commits, my_commits=True)
-        txt_tmp.append(hprint.indent(log_txt))
+        txt.append(hprint.indent(log_txt))
     elif git_commit_type == "none":
         pass
     else:
         raise ValueError(f"Invalid value='{git_commit_type}'")
     #
-    txt_tmp = "\n".join(txt_tmp) + "\n"
-    hdbg.dassert(txt_tmp.endswith("\n"), f"txt_tmp='%s'", txt_tmp)
-    return txt_tmp
+    txt = "\n".join(txt) + "\n"
+    hdbg.dassert(txt.endswith("\n"), f"txt_tmp='%s'", txt)
+    return txt
 
 
 # def _get_submodule_signature(
@@ -358,8 +345,9 @@ def _get_git_signature(git_commit_type: str = "all") -> str:
 #     hdbg.dassert(txt_tmp.endswith("\n"), f"txt_tmp='%s'", txt_tmp)
 #     return signature
 
+
 # #############################################################################
-# Print the system info.
+# Get system info.
 # #############################################################################
 
 
@@ -399,13 +387,29 @@ def _get_psutil_info() -> str:
         # TODO(gp): Report in MB or GB.
         txt_tmp.append(f"memory={str(psutil.virtual_memory())}")
         txt_tmp.append(f"disk usage={str(psutil.disk_usage('/'))}")
-    txt = _to_info("Psutils info", txt_tmp)
+    else:
+        txt_tmp.append("psutil is not installed")
+    #
+    txt = _to_info("psutils info", txt_tmp)
     return txt
 
 
 # #############################################################################
-# Print the package info.
+# Get package info.
 # #############################################################################
+
+
+def _get_library_version(lib_name: str) -> str:
+    try:
+        cmd = f"import {lib_name}"
+        # pylint: disable=exec-used
+        exec(cmd)
+    except ImportError:
+        version = "?"
+    else:
+        cmd = f"{lib_name}.__version__"
+        version = eval(cmd)
+    return version
 
 
 def _get_package_info() -> Tuple[List[str], int]:
@@ -458,8 +462,6 @@ def _get_package_info() -> Tuple[List[str], int]:
 
 
 # #############################################################################
-# Get container info.
-# #############################################################################
 
 
 def _get_container_version() -> str:
@@ -472,13 +474,8 @@ def _get_container_version() -> str:
     changelog_version = str(hversio.get_changelog_version(container_dir_name))
     txt_tmp.append(f"changelog_version='{changelog_version}'")
     #
-    txt_tmp = _to_info("Container version", txt_tmp)
-    return txt_tmp
-
-
-# #############################################################################
-# Get the system signature.
-# #############################################################################
+    txt = _to_info("Container version", txt_tmp)
+    return txt
 
 
 def _get_git_info(git_commit_type: str) -> str:
@@ -488,18 +485,46 @@ def _get_git_info(git_commit_type: str) -> str:
         # If there are any submodules, fetch their git signature.
         # txt_tmp.append(_get_submodule_signature(txt_tmp, git_commit_type))
     except RuntimeError as e:
-        _LOG.error(str(e))
+        _LOG.warning(str(e))
+        txt_tmp.append("No git info")
+    #
     txt = _to_info("Git info", txt_tmp)
     return txt
 
 
 def _get_docker_info() -> str:
     txt_tmp: List[str] = []
+    #
     has_docker = hserver.has_docker()
-    txt_tmp.append(f"docker installed={has_docker}")
-    rc, docker_version = hsystem.system_to_string(r"docker version --format '{{.Server.Version}}'")
+    txt_tmp.append(f"has_docker={has_docker}")
+    #
+    cmd = r"docker version --format '{{.Server.Version}}'"
+    _, docker_version = hsystem.system_to_string(cmd)
     txt_tmp.append(f"docker_version='{docker_version}'")
-    return txt_tmp
+    #
+    docker_needs_sudo = hserver.docker_needs_sudo()
+    txt_tmp.append(f"docker_needs_sudo={docker_needs_sudo}")
+    #
+    has_privileged_mode = hserver.has_docker_privileged_mode()
+    txt_tmp.append(f"has_privileged_mode={has_privileged_mode}")
+    #
+    is_inside_docker = hserver.is_inside_docker()
+    txt_tmp.append(f"is_inside_docker={is_inside_docker}")
+    #
+    if is_inside_docker:
+        has_sibling_containers_support = hserver.has_sibling_containers_support()
+        txt_tmp.append(f"has_sibling_containers_support={has_sibling_containers_support}")
+        #
+        has_docker_dind_support = hserver.has_docker_dind_support()
+        txt_tmp.append(f"has_docker_dind_support={has_docker_dind_support}")
+    #
+    txt = _to_info("Docker info", txt_tmp)
+    return txt
+
+
+# #############################################################################
+# Get system signature.
+# #############################################################################
 
 
 def get_system_signature(git_commit_type: str = "all") -> Tuple[str, int]:
@@ -515,7 +540,7 @@ def get_system_signature(git_commit_type: str = "all") -> Tuple[str, int]:
     txt_tmp = _get_container_version()
     _dassert_one_trailing_newline(txt_tmp)
     txt.append(txt_tmp)
-    # Add git signature.
+    # Add Git signature.
     txt_tmp = _get_git_info(git_commit_type)
     _dassert_one_trailing_newline(txt_tmp)
     txt.append(txt_tmp)
@@ -525,6 +550,10 @@ def get_system_signature(git_commit_type: str = "all") -> Tuple[str, int]:
     txt.append(txt_tmp)
     # Add psutil info.
     txt_tmp = _get_psutil_info()
+    _dassert_one_trailing_newline(txt_tmp)
+    txt.append(txt_tmp)
+    # Add Docker info.
+    txt_tmp = _get_docker_info()
     _dassert_one_trailing_newline(txt_tmp)
     txt.append(txt_tmp)
     # Add package info.
