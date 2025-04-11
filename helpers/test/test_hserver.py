@@ -1,5 +1,7 @@
 import logging
 
+import pytest
+
 import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
 
@@ -11,6 +13,10 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+@pytest.mark.skipif(
+    not hserver.is_inside_docker(),
+    reason="This test should be run inside a Docker container",
+)
 class Test_hserver1(hunitest.TestCase):
 
     def test_is_inside_ci1(self) -> None:
@@ -48,6 +54,100 @@ class Test_hserver1(hunitest.TestCase):
         val = hserver.config_func_to_str()
         _LOG.info("val=\n%s", val)
 
-    # TODO(gp): Add test mocking the environment variables in _get_setup_signature.
-    # We should have one class for each set up (e.g., outside Mac, outside Linux,
-    # inside Docker, inside CI, etc.)
+
+# #############################################################################
+# Test_hserver2
+# #############################################################################
+
+
+@pytest.mark.skipif(
+    hserver.is_inside_docker(),
+    reason="This test should be run outside a Docker container",
+)
+class Test_hserver2(hunitest.TestCase):
+
+    def test_consistency1(self) -> None:
+        hserver._dassert_setup_consistency()
+
+    def test_get_setup_signature1(self) -> None:
+        val = hserver._get_setup_signature()
+        _LOG.info("val=\n%s", val)
+
+    def test_get_setup_settings1(self) -> None:
+        setups = hserver._get_setup_settings()
+        val = hserver._setup_to_str(setups)
+        _LOG.info("val=\n%s", val)
+
+    def test_config_func_to_str1(self) -> None:
+        val = hserver.config_func_to_str()
+        _LOG.info("val=\n%s", val)
+
+
+# #############################################################################
+# Test_hserver_dev_csfy1
+# #############################################################################
+
+
+@pytest.mark.skipif(
+    hserver.is_inside_docker() or not hserver.is_dev_csfy(),
+    reason="This test should be run on one of Causify dev machines",
+)
+class Test_hserver3(hunitest.TestCase):
+
+    def test_consistency1(self) -> None:
+        hserver._dassert_setup_consistency()
+
+    def test_get_setup_signature1(self) -> None:
+        act = hserver._get_setup_signature()
+        exp = ""
+        self.assert_equal(act, dev)
+
+    def test_get_setup_settings1(self) -> None:
+        setups = hserver._get_setup_settings()
+        act = hserver._setup_to_str(setups)
+        exp = ""
+        self.assert_equal(act, exp)
+
+    def test_config_func_to_str1(self) -> None:
+        act = hserver.config_func_to_str()
+        exp = ""
+        self.assert_equal(act, exp)
+
+
+# #############################################################################
+# Test_hserver_gp_mac1
+# #############################################################################
+
+
+@pytest.mark.skipif(
+    hserver.is_inside_docker() or not hserver.is_dev_csfy(),
+    reason="This test should be run on one of Causify dev machines",
+)
+class Test_hserver_gp_mac1(hunitest.TestCase):
+
+    def test_consistency1(self) -> None:
+        hserver._dassert_setup_consistency()
+
+    def test_get_setup_signature1(self) -> None:
+        act = hserver._get_setup_signature()
+        exp = ""
+        self.assert_equal(act, dev)
+
+    def test_get_setup_settings1(self) -> None:
+        setups = hserver._get_setup_settings()
+        act = hserver._setup_to_str(setups)
+        exp = ""
+        self.assert_equal(act, exp)
+
+    def test_config_func_to_str1(self) -> None:
+        act = hserver.config_func_to_str()
+        exp = ""
+        self.assert_equal(act, exp)
+
+
+# #############################################################################
+
+
+# TODO(gp): Add test mocking the environment variables in _get_setup_signature.
+# We should have one class for each set up (e.g., outside Mac, outside Linux,
+# inside Docker, inside CI, etc.)

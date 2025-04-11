@@ -107,12 +107,10 @@ def is_inside_unit_test() -> bool:
 
 
 def is_dev_csfy() -> bool:
-    # TODO(gp): Update to use dev1 values.
-    # sysname='Darwin'
-    # nodename='gpmac.lan'
-    # release='19.6.0'
-    # version='Darwin Kernel Version 19.6.0: Mon Aug 31 22:12:52 PDT 2020;
-    #   root:xnu-6153.141.2~1/RELEASE_X86_64'
+    # sysname='Linux'
+    # nodename='dev1'
+    # release='5.15.0-1081-aws',
+    # version='#88~20.04.1-Ubuntu SMP Fri Mar 28 14:17:22 UTC 2025',
     # machine='x86_64'
     host_name = os.uname()[1]
     host_names = ("dev1", "dev2", "dev3")
