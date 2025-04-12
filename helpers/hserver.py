@@ -143,7 +143,7 @@ def _get_host_os_version() -> str:
     return host_os_version
 
 
-def is_host_dev_csfy() -> bool:
+def is_host_csfy_server() -> bool:
     """
     Return whether we are running on a Causify dev server.
     """
@@ -411,15 +411,23 @@ def _get_setup_signature() -> str:
 # - Prod container on Linux
 
 
-def is_docker_container_on_csfy_server() -> bool:
+def is_inside_docker_container_on_csfy_server() -> bool:
     """
     Return whether we are running on a Docker container on a Causify server.
     """
-    ret = is_inside_docker() and is_host_dev_csfy()
+    ret = is_inside_docker() and is_host_csfy_server()
     return ret
 
 
-def is_docker_container_on_mac_host() -> bool:
+def is_outside_docker_container_on_csfy_server() -> bool:
+    """
+    Return whether we are running on a Docker container on a Causify server.
+    """
+    ret = not is_inside_docker() and is_host_csfy_server()
+    return ret
+
+
+def is_inside_docker_container_on_host_mac() -> bool:
     """
     Return whether we are running on a Docker container on a Mac host.
     """
@@ -427,7 +435,15 @@ def is_docker_container_on_mac_host() -> bool:
     return ret
 
 
-def is_docker_container_on_external_linux() -> bool:
+def is_outside_docker_container_on_host_mac() -> bool:
+    """
+    Return whether we are running on a Docker container on a Mac host.
+    """
+    ret = not is_inside_docker() and is_host_mac()
+    return ret
+
+
+def is_inside_docker_container_on_external_linux() -> bool:
     """
     Return whether we are running on a Docker container on an external Linux.   
     """
@@ -435,26 +451,37 @@ def is_docker_container_on_external_linux() -> bool:
     return ret
 
 
+def is_outside_docker_container_on_external_linux() -> bool:
+    """
+    Return whether we are running on a Docker container on an external Linux.   
+    """
+    ret = not is_inside_docker() and is_external_linux()
+    return ret
+
+
 def _get_setup_settings() -> List[Tuple[str, bool]]:
     """
     Return a list of tuples with the name and value of the current server setup.
     """
-    # Store name-value pairs as tuples.
-    setups = [
-        ("is_docker_container_on_csfy_server", is_docker_container_on_csfy_server()),
-        ("is_host_dev_csfy", is_host_dev_csfy()),
+    func_names = [
+        "is_inside_docker_container_on_csfy_server",
+        "is_outside_docker_container_on_csfy_server",
         #
-        ("is_docker_container_on_mac_host", is_docker_container_on_mac_host()),
-        ("is_host_mac", is_host_mac()),
+        "is_inside_docker_container_on_host_mac",
+        "is_outside_docker_container_on_host_mac",
         #
-        ("is_docker_container_on_external_linux", is_docker_container_on_external_linux()),
-        ("is_external_linux", is_external_linux()),
+        "is_inside_docker_container_on_external_linux",
+        "is_outside_docker_container_on_external_linux",
         #
-        ("is_dev4", is_dev4()),
-        ("is_ig_prod", is_ig_prod()),
-        ("is_inside_ci", is_inside_ci()),
-        ("is_prod_csfy", is_prod_csfy()),
+        "is_dev4",
+        "is_ig_prod",
+        "is_prod_csfy",
     ]
+    # Store function name / value pairs as tuples.
+    setups = []
+    for func_name in func_names:
+        val = eval(f"{func_name}()")
+        setups.append((func_name, val))
     return setups
 
 
@@ -480,6 +507,21 @@ def _dassert_setup_consistency() -> None:
     This is used to ensure that the setup configuration is one of the expected
     ones and uniquely defined.
     """
+    def _indent(txt: str, *, num_spaces: int = 2) -> str:
+        """
+        Add `num_spaces` spaces before each line of the passed string.
+        """
+        spaces = " " * num_spaces
+        txt_out = []
+        for curr_line in txt.split("\n"):
+            if curr_line.lstrip().rstrip() == "":
+                # Do not prepend any space to a line with only white characters.
+                txt_out.append("")
+                continue
+            txt_out.append(spaces + curr_line)
+        res = "\n".join(txt_out)
+        return res
+
     setups = _get_setup_settings()
     # One and only one set-up should be true.
     sum_ = sum([value for _, value in setups])

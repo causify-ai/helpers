@@ -9,7 +9,7 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 
-class GP_TestCase1(hunitest.TestCase):
+class _TestCase1:
 
     # def test_config_func_to_str1(self) -> None:
     #     val = hserver.config_func_to_str()
@@ -19,6 +19,12 @@ class GP_TestCase1(hunitest.TestCase):
 
     def test_consistency1(self) -> None:
         hserver._dassert_setup_consistency()
+
+    def test_is_dev_csfy1(self) -> None:
+        val = hserver.is_dev_csfy()
+        _LOG.info("val=\n%s", val)
+        if self.exp_is_dev_csfy is not None:
+            self.assertEqual(val, self.exp_is_dev_csfy)
 
     def test_get_setup_settings1(self) -> None:
         setups = hserver._get_setup_settings()
@@ -33,12 +39,6 @@ class GP_TestCase1(hunitest.TestCase):
     #     if self.exp_get_setup_signature is not None:
     #         self.assert_equal(val, self.exp_get_setup_signature)
 
-    def test_is_dev_csfy1(self) -> None:
-        val = hserver.is_dev_csfy()
-        _LOG.info("val=\n%s", val)
-        if self.exp_is_dev_csfy is not None:
-            self.assertEqual(val, self.exp_is_dev_csfy)
-
     def test_is_inside_ci1(self) -> None:
         val = hserver.is_inside_ci()
         _LOG.info("val=\n%s", val)
@@ -50,7 +50,7 @@ class GP_TestCase1(hunitest.TestCase):
 # #############################################################################
 
 
-class Test_hserver1(GP_TestCase1):
+class Test_hserver1(_TestCase1, hunitest.TestCase):
     """
     Smoke test without checking anything.
     """
@@ -73,7 +73,7 @@ class Test_hserver1(GP_TestCase1):
     not hserver.is_inside_ci(),
     reason="Config not matching",
 )
-class Test_hserver_inside_ci1(GP_TestCase1):
+class Test_hserver_inside_ci1(_TestCase1, hunitest.TestCase):
     """
     Run tests inside CI.
     """
@@ -93,10 +93,10 @@ class Test_hserver_inside_ci1(GP_TestCase1):
 
 
 @pytest.mark.skipif(
-    not hserver.is_docker_container_on_csfy_server(),
+    not hserver.is_inside_docker_container_on_csfy_server(),
     reason="Config not matching",
 )
-class Test_hserver_inside_docker_container_on_csfy_server1(GP_TestCase1):
+class Test_hserver_inside_docker_container_on_csfy_server1(_TestCase1, hunitest.TestCase):
     """
     Run tests inside Docker container on a Causify dev server.
     """
@@ -104,22 +104,32 @@ class Test_hserver_inside_docker_container_on_csfy_server1(GP_TestCase1):
     def setUp(self) -> None:
         super().setUp()
         self.exp_config_func_to_str = ""
-        self.exp_get_setup_settings = ""
+        self.exp_get_setup_settings = hprint.dedent(r"""
+            is_inside_docker_container_on_csfy_server     True
+            is_outside_docker_container_on_csfy_server    False
+            is_inside_docker_container_on_host_mac        False
+            is_outside_docker_container_on_host_mac       False
+            is_inside_docker_container_on_external_linux  False
+            is_outside_docker_container_on_external_linux False
+            is_dev4                                       False
+            is_ig_prod                                    False
+            is_prod_csfy                                  False
+            """)
         self.exp_get_setup_signature = ""
         self.exp_is_dev_csfy = True
         self.exp_is_inside_ci = True
 
 
 # #############################################################################
-# Test_hserver_dev_csfy1
+# Test_hserver_outside_docker_container_on_csfy_server1
 # #############################################################################
 
 
 @pytest.mark.skipif(
-    not (not hserver.is_inside_docker() and hserver.is_host_dev_csfy()),
+    not hserver.is_outside_docker_container_on_csfy_server(),
     reason="Config not matching",
 )
-class Test_hserver_outside_docker_container_on_csfy_server1(GP_TestCase1):
+class Test_hserver_outside_docker_container_on_csfy_server1(_TestCase1, hunitest.TestCase):
     """
     Run tests outside Docker container on a Causify dev server.
     """
@@ -127,18 +137,16 @@ class Test_hserver_outside_docker_container_on_csfy_server1(GP_TestCase1):
     def setUp(self) -> None:
         super().setUp()
         self.exp_config_func_to_str = ""
-        self.exp_get_setup_settings = hprint.dedent(
-            r"""
-            is_docker_container_on_csfy_server    False
-            is_host_dev_csfy                      True
-            is_docker_container_on_mac_host       False
-            is_host_mac                           False
-            is_docker_container_on_external_linux False
-            is_external_linux                     False
-            is_dev4                               False
-            is_ig_prod                            False
-            is_inside_ci                          False
-            is_prod_csfy                          False
+        self.exp_get_setup_settings = hprint.dedent(r"""
+            is_inside_docker_container_on_csfy_server     False
+            is_outside_docker_container_on_csfy_server    True
+            is_inside_docker_container_on_host_mac        False
+            is_outside_docker_container_on_host_mac       False
+            is_inside_docker_container_on_external_linux  False
+            is_outside_docker_container_on_external_linux False
+            is_dev4                                       False
+            is_ig_prod                                    False
+            is_prod_csfy                                  False
             """)
         self.exp_get_setup_signature = ""
         self.exp_is_dev_csfy = True
@@ -146,7 +154,7 @@ class Test_hserver_outside_docker_container_on_csfy_server1(GP_TestCase1):
 
 
 # #############################################################################
-# Test_hserver_docker_container_on_mac_host1
+# Test_hserver_inside_docker_container_on_mac_host1
 # #############################################################################
 
 
@@ -154,7 +162,7 @@ class Test_hserver_outside_docker_container_on_csfy_server1(GP_TestCase1):
     not (not hserver.is_inside_docker() and hserver.is_host_gp_mac()),
     reason="Config not matching",
 )
-class Test_hserver_inside_docker_container_on_mac_host1(GP_TestCase1):
+class Test_hserver_inside_docker_container_on_mac_host1(_TestCase1, hunitest.TestCase):
     """
     Run tests inside Docker container on a GP's Mac.
     """
@@ -169,7 +177,7 @@ class Test_hserver_inside_docker_container_on_mac_host1(GP_TestCase1):
 
 
 # #############################################################################
-# Test_hserver_gp_mac1
+# Test_hserver_outside_docker_container_on_gp_mac1
 # #############################################################################
 
 
@@ -177,7 +185,7 @@ class Test_hserver_inside_docker_container_on_mac_host1(GP_TestCase1):
     not (not hserver.is_inside_docker() and hserver.is_host_gp_mac()),
     reason="Config not matching",
 )
-class Test_hserver_outside_docker_container_on_gp_mac1(GP_TestCase1):
+class Test_hserver_outside_docker_container_on_gp_mac1(_TestCase1, hunitest.TestCase):
     """
     Run tests outside Docker container on a GP's Mac.
     """
