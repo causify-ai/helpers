@@ -306,7 +306,7 @@ def create_tmux_session(
     _LOG.info("The tmux session doesn't exist, creating it")
     # Make sure we are outside a tmux session.
     dassert_not_inside_tmux()
-    if hserver.is_mac() or hserver.is_external_linux():
+    if hserver.is_external_dev():
         _LOG.info("Inferred external setup")
         home_dir = get_home_dir()
     elif hserver.is_dev_csfy():

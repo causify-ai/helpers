@@ -27,7 +27,6 @@ class Test_fix_comment_style(hunitest.TestCase):
         """
         lines = ["# do this."]
         expected = ["# Do this."]
-
         actual = lamficom._fix_comment_style(lines)
         self.assertEqual(expected, actual)
 
@@ -41,7 +40,6 @@ class Test_fix_comment_style(hunitest.TestCase):
         """
         lines = ["# Do this"]
         expected = ["# Do this."]
-
         actual = lamficom._fix_comment_style(lines)
         self.assertEqual(expected, actual)
 
@@ -61,7 +59,6 @@ class Test_fix_comment_style(hunitest.TestCase):
         """
         lines = ["test.method() # do this"]
         expected = ["test.method() # Do this."]
-
         actual = lamficom._fix_comment_style(lines)
         self.assertEqual(expected, actual)
 
@@ -77,7 +74,6 @@ class Test_fix_comment_style(hunitest.TestCase):
         """
         lines = ["#Do this"]
         expected = ["#Do this."]
-
         actual = lamficom._fix_comment_style(lines)
         self.assertEqual(expected, actual)
 
@@ -90,7 +86,6 @@ class Test_fix_comment_style(hunitest.TestCase):
         - Then line is not updated
         """
         lines = expected = ["#!/usr/bin/env python"]
-
         actual = lamficom._fix_comment_style(lines)
         self.assertEqual(expected, actual)
 
@@ -103,7 +98,6 @@ class Test_fix_comment_style(hunitest.TestCase):
         - Then line is not updated
         """
         lines = expected = [r'comment_regex = r"(.*)#\s*(.*)\s*"']
-
         actual = lamficom._fix_comment_style(lines)
         self.assertEqual(expected, actual)
 
@@ -116,7 +110,6 @@ class Test_fix_comment_style(hunitest.TestCase):
         - Then line is not updated
         """
         lines = expected = ['line = f"{match.group(1)}# {comment}"']
-
         actual = lamficom._fix_comment_style(lines)
         self.assertEqual(expected, actual)
 
@@ -131,7 +124,6 @@ class Test_fix_comment_style(hunitest.TestCase):
         lines = expected = [
             "# #############################################################################"
         ]
-
         actual = lamficom._fix_comment_style(lines)
         self.assertEqual(expected, actual)
 
@@ -226,7 +218,6 @@ class Test_fix_comment_style(hunitest.TestCase):
         statements.
         """
         lines = expected = ["# print('hello')"]
-
         actual = lamficom._fix_comment_style(lines)
         self.assertEqual(expected, actual)
 
@@ -399,7 +390,6 @@ class Test_replace_comments_in_lines(hunitest.TestCase):
                 start_line=2, end_line=2, multi_line_comment=[new_comment]
             )
         ]
-
         expected = [code_line, new_comment]
         actual = lamficom._replace_comments_in_lines(
             lines=lines, comments=updated_comments
