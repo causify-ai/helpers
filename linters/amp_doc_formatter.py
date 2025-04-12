@@ -50,7 +50,7 @@ class _DocFormatter(liaction.Action):
         return check
 
     @staticmethod
-    def _has_unbalanced_triple_backticks(contents: str) -> Tuple[bool, List]:
+    def _has_unbalanced_triple_backticks(file_name: str) -> Tuple[bool, List]:
         """
         Check if the file contains triple backticks that are unbalanced.
 
@@ -59,6 +59,7 @@ class _DocFormatter(liaction.Action):
             - whether there are unbalanced backticks
             - all the starting indices of docstrings where the flagged backticks exist
         """
+        contents = hio.from_file(file_name)
         lines = contents.splitlines()
         # Get indices (zero-indexed) of lines that are within docstrings.
         doc_indices = hstring.get_docstring_line_indices(lines)
@@ -90,9 +91,7 @@ class _DocFormatter(liaction.Action):
         return False, []
 
     @staticmethod
-    def _remove_ignored_docstrings(
-        contents: str, file_name: str
-    ) -> Dict[str, str]:
+    def _remove_ignored_docstrings(file_name: str) -> Dict[str, str]:
         """
         Replace ignored docstrings from the file with unique hashes and return
         dict with replacements.
@@ -103,6 +102,7 @@ class _DocFormatter(liaction.Action):
             value
         """
         result: Dict[str, str] = {}
+        contents = hio.from_file(file_name)
         # Example of text that is matched by the below pattern:
         # # docformatter: ignore
         # """Some comment."""
@@ -191,7 +191,6 @@ class _DocFormatter(liaction.Action):
 
     @staticmethod
     def _restore_removed_code_blocks(
-        contents: str,
         file_name: str,
         removed_blocks_storage: Dict[str, List[str]],
     ) -> None:
@@ -203,7 +202,7 @@ class _DocFormatter(liaction.Action):
         :param removed_blocks_storage: original code blocks from the
             docstring
         """
-        lines = contents.split("\n")
+        lines = hio.from_file(file_name).split("\n")
         updated_lines: List[str] = []
         restored_ids = []
         for line in lines:
@@ -233,13 +232,11 @@ class _DocFormatter(liaction.Action):
         if self.skip_if_not_py(file_name):
             # Apply only to Python files.
             return []
-        # Extract content.
-        contents = hio.from_file(file_name)
         # Check for unbalanced backticks.
         unbalanced_backtick_warning = ""
-        has_misplaced, issues = self._has_unbalanced_triple_backticks(contents)
+        has_misplaced, issues = self._has_unbalanced_triple_backticks(file_name)
         # Clear and store ignored docstrings and code.
-        _ignored_docstrings = self._remove_ignored_docstrings(contents, file_name)
+        _ignored_docstrings = self._remove_ignored_docstrings(file_name)
         if has_misplaced:
             # Do not remove any codeblocks as unbalanced backticks detected.
             unbalanced_backtick_warning = "\n".join(
@@ -259,7 +256,7 @@ class _DocFormatter(liaction.Action):
         # Restore ignored docstrings and code.
         self._restore_ignored_docstrings(file_name, _ignored_docstrings)
         if _removed_code:
-            self._restore_removed_code_blocks(contents, file_name, _removed_code)
+            self._restore_removed_code_blocks(file_name, _removed_code)
         if unbalanced_backtick_warning:
             # Prepend generated warnings.
             output.insert(0, unbalanced_backtick_warning)
