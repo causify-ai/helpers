@@ -35,7 +35,7 @@ def has_module(module: str) -> bool:
     """
     Return whether a Python module can be imported or not.
     """
-    if module == "gluonts" and hserver.is_mac():
+    if module == "gluonts" and hserver.is_host_mac():
         # Gluonts and mxnet modules are not properly supported on the ARM
         # architecture yet, see CmTask4886 for details.
         return False

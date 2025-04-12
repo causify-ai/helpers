@@ -166,8 +166,8 @@ def is_host_mac() -> bool:
     """
     host_os_name = _get_host_os_name()
     #
-    is_mac_ = host_os_name == "Darwin"
-    return is_mac_
+    ret = host_os_name == "Darwin"
+    return ret
 
 
 def get_host_mac_version() -> str:
