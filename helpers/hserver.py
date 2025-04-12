@@ -415,18 +415,18 @@ def _get_setup_signature() -> str:
     """
     cmds = []
     # is_prod_csfy()
-    cmds.append('os.environ.get("CK_IN_PROD_CMAMP_CONTAINER", "undef")')
+    cmds.append('os.environ.get("CK_IN_PROD_CMAMP_CONTAINER", "*undef*")')
     # is_dev4()
     # is_dev_csfy()
     # is_ig_prod()
-    cmds.append('os.environ.get("CSFY_HOST_NAME", "undef")')
+    cmds.append('os.environ.get("CSFY_HOST_NAME", "*undef*")')
     # is_inside_ci()
-    cmds.append('os.environ.get("CSFY_CI", "undef")')
+    cmds.append('os.environ.get("CSFY_CI", "*undef*")')
     # is_mac()
     cmds.append("os.uname()[0]")
     cmds.append("os.uname()[2]")
     # is_external_linux()
-    cmds.append('os.environ.get("CSFY_HOST_OS_NAME", "undef")')
+    cmds.append('os.environ.get("CSFY_HOST_OS_NAME", "*undef*")')
     # Build an array of strings with the results of executing the commands.
     results = []
     for cmd in cmds:
@@ -683,10 +683,12 @@ def get_docker_info() -> str:
     #
     if is_inside_docker_:
         has_sibling_containers_support_ = has_sibling_containers_support()
-        txt_tmp.append(f"has_sibling_containers_support={has_sibling_containers_support_}")
-        #
         has_docker_dind_support_ = has_docker_dind_support()
-        txt_tmp.append(f"has_docker_dind_support={has_docker_dind_support_}")
+    else:
+        has_sibling_containers_support_ = "*undef*"
+        has_docker_dind_support_ = "*undef*"
+    txt_tmp.append(f"has_sibling_containers_support={has_sibling_containers_support_}")
+    txt_tmp.append(f"has_docker_dind_support={has_docker_dind_support_}")
     #
     txt = hprint.to_info("Docker info", txt_tmp)
     return txt

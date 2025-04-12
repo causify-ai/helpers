@@ -26,11 +26,17 @@ class _TestCase1:
         if self.exp_is_host_csfy_server is not None:
             self.assertEqual(val, self.exp_is_host_csfy_server)
 
-    def test_is_host_max(self) -> None:
+    def test_is_host_mac1(self) -> None:
         val = hserver.is_host_mac()
         _LOG.info("val=\n%s", val)
         if self.exp_is_host_mac is not None:
             self.assertEqual(val, self.exp_is_host_mac)
+
+    def test_get_docker_info1(self) -> None:
+        val = hserver.get_docker_info()
+        _LOG.info("val=\n%s", val)
+        if self.exp_get_docker_info is not None:
+            self.assert_equal(val, self.exp_get_docker_info)
 
     def test_get_setup_settings1(self) -> None:
         setups = hserver._get_setup_settings()
@@ -51,6 +57,7 @@ class _TestCase1:
         if self.exp_is_inside_ci is not None:
             self.assertEqual(val, self.exp_is_inside_ci)
 
+
 # #############################################################################
 # Test_hserver1
 # #############################################################################
@@ -64,9 +71,11 @@ class Test_hserver1(_TestCase1, hunitest.TestCase):
     def setUp(self) -> None:
         super().setUp()
         self.exp_config_func_to_str = None
+        self.exp_get_docker_info = None
         self.exp_get_setup_settings = None
         self.exp_get_setup_signature = None
         self.exp_is_host_csfy_server = None
+        self.exp_is_host_mac = None
         self.exp_is_inside_ci = None
 
 
@@ -87,6 +96,7 @@ class Test_hserver_inside_ci1(_TestCase1, hunitest.TestCase):
     def setUp(self) -> None:
         super().setUp()
         self.exp_config_func_to_str = None
+        self.exp_get_docker_info = None
         self.exp_get_setup_settings = None
         self.exp_get_setup_signature = None
         self.exp_is_host_csfy_server = False
@@ -110,6 +120,15 @@ class Test_hserver_inside_docker_container_on_csfy_server1(_TestCase1, hunitest.
     def setUp(self) -> None:
         super().setUp()
         self.exp_config_func_to_str = ""
+        self.exp_get_docker_info = hprint.dedent(r"""
+            # Docker info
+              has_docker=True
+              docker_version='28.0.4'
+              docker_needs_sudo=False
+              has_privileged_mode=True
+              is_inside_docker=True
+              has_sibling_containers_support=True
+              has_docker_dind_support=True""")
         self.exp_get_setup_settings = hprint.dedent(r"""
             is_inside_docker_container_on_csfy_server     True
             is_outside_docker_container_on_csfy_server    False
@@ -123,6 +142,7 @@ class Test_hserver_inside_docker_container_on_csfy_server1(_TestCase1, hunitest.
             """)
         self.exp_get_setup_signature = ""
         self.exp_is_host_csfy_server = True
+        self.exp_is_host_mac = False
         self.exp_is_inside_ci = False
 
 
@@ -143,6 +163,15 @@ class Test_hserver_outside_docker_container_on_csfy_server1(_TestCase1, hunitest
     def setUp(self) -> None:
         super().setUp()
         self.exp_config_func_to_str = ""
+        self.exp_get_docker_info = hprint.dedent(r"""
+            # Docker info
+              has_docker=True
+              docker_version='28.0.4'
+              docker_needs_sudo=False
+              has_privileged_mode=True
+              is_inside_docker=True
+              has_sibling_containers_support=True
+              has_docker_dind_support=True""")
         self.exp_get_setup_settings = hprint.dedent(r"""
             is_inside_docker_container_on_csfy_server     False
             is_outside_docker_container_on_csfy_server    True
@@ -176,7 +205,15 @@ class Test_hserver_inside_docker_container_on_gp_mac1(_TestCase1, hunitest.TestC
     def setUp(self) -> None:
         super().setUp()
         self.exp_config_func_to_str = ""
-        self.exp_get_setup_settings = ""
+        self.exp_get_docker_info = hprint.dedent(r"""
+            # Docker info
+              has_docker=True
+              docker_version='28.0.4'
+              docker_needs_sudo=False
+              has_privileged_mode=True
+              is_inside_docker=True
+              has_sibling_containers_support=True
+              has_docker_dind_support=True""")
         self.exp_get_setup_settings = hprint.dedent(r"""
             is_inside_docker_container_on_csfy_server     False
             is_outside_docker_container_on_csfy_server    False
@@ -187,8 +224,9 @@ class Test_hserver_inside_docker_container_on_gp_mac1(_TestCase1, hunitest.TestC
             is_dev4                                       False
             is_ig_prod                                    False
             is_prod_csfy                                  False""")
-        self.exp_is_host_csfy_server = True
-        self.exp_is_inside_ci = True
+        self.exp_is_host_csfy_server = False
+        self.exp_is_host_mac = True
+        self.exp_is_inside_ci = False
 
 
 # #############################################################################
@@ -208,10 +246,20 @@ class Test_hserver_outside_docker_container_on_gp_mac1(_TestCase1, hunitest.Test
     def setUp(self) -> None:
         super().setUp()
         self.exp_config_func_to_str = ""
+        self.exp_get_docker_info = hprint.dedent(r"""
+            # Docker info
+              has_docker=True
+              docker_version='28.0.4'
+              docker_needs_sudo=False
+              has_privileged_mode=True
+              is_inside_docker=True
+              has_sibling_containers_support=True
+              has_docker_dind_support=True""")
         self.exp_get_setup_settings = ""
         self.exp_get_setup_signature = ""
-        self.exp_is_host_csfy_server = True
-        self.exp_is_inside_ci = True
+        self.exp_is_host_csfy_server = False
+        self.exp_is_host_mac = True
+        self.exp_is_inside_ci = False
 
 
 # #############################################################################
