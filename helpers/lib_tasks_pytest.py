@@ -886,12 +886,28 @@ def run_fast_coverage(ctx, target_dir, generate_html_report=True):
     fast_tests_coverage_file = ".coverage_fast_tests"
     create_fast_tests_file_cmd = f"mv .coverage {fast_tests_coverage_file}"
     hsystem.system(create_fast_tests_file_cmd)
+    report_cmd.append("coverage erase")
     # Specify the dirs to include and exclude in the report.
     exclude_from_report = None
     if target_dir == ".":
         # Include all dirs.
         include_in_report = "*"
         if hserver.skip_submodules_test():
+            submodule_paths = hgit.get_submodule_paths()
+            exclude_from_report = ",".join(
+                path + "/*" for path in submodule_paths
+            )
+    else:
+        # Include only the target dir.
+        include_in_report = f"*/{target_dir}/*"
+    report_cmd.append(f"coverage combine --keep {fast_tests_coverage_file}")
+    # Specify the dirs to include and exclude in the report.
+    exclude_from_report = None
+    if target_dir == ".":
+        # Include all dirs.
+        include_in_report = "*"
+        if hserver.skip_submodules_test():
+            # Exclude submodules.
             submodule_paths = hgit.get_submodule_paths()
             exclude_from_report = ",".join(
                 path + "/*" for path in submodule_paths
@@ -914,11 +930,11 @@ def run_fast_coverage(ctx, target_dir, generate_html_report=True):
         report_cmd.append(report_html_cmd)
     # Generate an XML report for Codecov.
     report_cmd.append("coverage xml -o coverage.xml")
-    # Join and execute the commands in Docker (assuming Coverage is installed in Docker).
+    # Execute commands above one-by-one inside docker. Coverage tool is not
+    # installed outside docker.
     full_report_cmd = " && ".join(report_cmd)
     docker_cmd_ = f"invoke docker_cmd --use-bash --cmd '{full_report_cmd}'"
     hlitauti.run(ctx, docker_cmd_)
-    # Return the file name if needed for subsequent tasks.
     return fast_tests_coverage_file
 
 
