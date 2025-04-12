@@ -26,6 +26,12 @@ class _TestCase1:
         if self.exp_is_host_csfy_server is not None:
             self.assertEqual(val, self.exp_is_host_csfy_server)
 
+    def test_is_host_max(self) -> None:
+        val = hserver.is_host_mac()
+        _LOG.info("val=\n%s", val)
+        if self.exp_is_host_mac is not None:
+            self.assertEqual(val, self.exp_is_host_mac)
+
     def test_get_setup_settings1(self) -> None:
         setups = hserver._get_setup_settings()
         val = hserver._setup_to_str(setups)
@@ -154,15 +160,15 @@ class Test_hserver_outside_docker_container_on_csfy_server1(_TestCase1, hunitest
 
 
 # #############################################################################
-# Test_hserver_inside_docker_container_on_mac_host1
+# Test_hserver_inside_docker_container_on_gp_mac1
 # #############################################################################
 
 
 @pytest.mark.skipif(
-    not (not hserver.is_inside_docker() and hserver.is_host_gp_mac()),
+    not (hserver.is_inside_docker() and hserver.is_host_gp_mac()),
     reason="Config not matching",
 )
-class Test_hserver_inside_docker_container_on_mac_host1(_TestCase1, hunitest.TestCase):
+class Test_hserver_inside_docker_container_on_gp_mac1(_TestCase1, hunitest.TestCase):
     """
     Run tests inside Docker container on a GP's Mac.
     """
@@ -171,7 +177,16 @@ class Test_hserver_inside_docker_container_on_mac_host1(_TestCase1, hunitest.Tes
         super().setUp()
         self.exp_config_func_to_str = ""
         self.exp_get_setup_settings = ""
-        self.exp_get_setup_signature = ""
+        self.exp_get_setup_settings = hprint.dedent(r"""
+            is_inside_docker_container_on_csfy_server     False
+            is_outside_docker_container_on_csfy_server    False
+            is_inside_docker_container_on_host_mac        True
+            is_outside_docker_container_on_host_mac       False
+            is_inside_docker_container_on_external_linux  False
+            is_outside_docker_container_on_external_linux False
+            is_dev4                                       False
+            is_ig_prod                                    False
+            is_prod_csfy                                  False""")
         self.exp_is_host_csfy_server = True
         self.exp_is_inside_ci = True
 

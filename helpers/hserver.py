@@ -14,6 +14,7 @@ import subprocess
 from typing import Dict, List, Optional, Tuple
 
 import helpers.repo_config_utils as hrecouti
+import helpers.hprint as hprint
 
 # This module should depend only on:
 # - Python standard modules
@@ -40,11 +41,15 @@ def _system_to_string(cmd: str) -> Tuple[int, str]:
     :return: tuple of (return code, output)
     """
     result = subprocess.run(
-        cmd, stdout=subprocess.PIPE,
+        cmd,
+        stdout=subprocess.PIPE,
         # Redirect stderr to stdout.
-        stderr=subprocess.STDOUT, text=True)
+        stderr=subprocess.STDOUT,
+        shell=True,
+        text=True)
     rc = result.returncode
     output = result.stdout
+    output = output.strip()
     return rc, output
 
 
@@ -657,6 +662,37 @@ def has_docker_dind_support() -> bool:
     return has_docker_privileged_mode()
 
 
+def get_docker_info() -> str:
+    txt_tmp: List[str] = []
+    #
+    has_docker_ = has_docker()
+    txt_tmp.append(f"has_docker={has_docker_}")
+    #
+    cmd = r"docker version --format '{{.Server.Version}}'"
+    _, docker_version = _system_to_string(cmd)
+    txt_tmp.append(f"docker_version='{docker_version}'")
+    #
+    docker_needs_sudo_ = docker_needs_sudo()
+    txt_tmp.append(f"docker_needs_sudo={docker_needs_sudo_}")
+    #
+    has_privileged_mode_ = has_docker_privileged_mode()
+    txt_tmp.append(f"has_privileged_mode={has_privileged_mode_}")
+    #
+    is_inside_docker_ = is_inside_docker()
+    txt_tmp.append(f"is_inside_docker={is_inside_docker_}")
+    #
+    if is_inside_docker_:
+        has_sibling_containers_support_ = has_sibling_containers_support()
+        txt_tmp.append(f"has_sibling_containers_support={has_sibling_containers_support_}")
+        #
+        has_docker_dind_support_ = has_docker_dind_support()
+        txt_tmp.append(f"has_docker_dind_support={has_docker_dind_support_}")
+    #
+    txt = hprint.to_info("Docker info", txt_tmp)
+    return txt
+
+
+
 # #############################################################################
 # Detect Docker functionalities, based on the set-up.
 # #############################################################################
@@ -1038,7 +1074,7 @@ def config_func_to_str() -> str:
     for func_name in sorted(function_names):
         try:
             _LOG.debug("func_name=%s", func_name)
-            func_value = eval(func_name)
+            func_value = eval(f"{func_name}()")
         except NameError:
             func_value = "*undef*"
         msg = f"{func_name}='{func_value}'"

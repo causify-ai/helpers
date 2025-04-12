@@ -60,39 +60,10 @@ def has_module(module: str) -> bool:
     return has_module_
 
 
-# #############################################################################
-# Utility functions.
-# #############################################################################
-
-
 # All printing functions should:
 # - Return a string and not a list of strings
 # - Add a newline at the end of the string (i.e., the string should end with
 #   `\n`)
-
-
-def _dassert_one_trailing_newline(txt: str) -> None:
-    num_newlines = len(re.search(r'\n*$', txt).group())
-    hdbg.dassert_eq(num_newlines, 0, "num_newlines='%s' txt='%s'", num_newlines, txt)
-
-
-def _to_info(tag: str, txt: Union[str, List[str]]) -> str:
-    hdbg.dassert_isinstance(tag, str)
-    hdbg.dassert_isinstance(txt, (str, list))
-    txt_tmp = ""
-    txt_tmp += "# " + tag + "\n"
-    # Indent the text.
-    if not isinstance(txt, str):
-        for t in txt:
-            hdbg.dassert_isinstance(t, str)
-        txt = "\n".join(txt)
-    txt_tmp += hprint.indent(txt)
-    # Ensure that there is a single trailing newline.
-    txt_tmp = txt_tmp.rstrip("\n")
-    # txt_tmp += "\n"
-    # _dassert_one_trailing_newline(txt_tmp)
-    _LOG.debug("'%s'", txt_tmp)
-    return txt_tmp
 
 
 # #############################################################################
@@ -365,7 +336,7 @@ def _get_platform_info() -> str:
     txt_tmp.append(f"machine={uname.machine}")
     txt_tmp.append(f"processor={uname.processor}")
     #
-    txt = _to_info("Platform info", txt_tmp)
+    txt = hprint.to_info("Platform info", txt_tmp)
     return txt
 
 
@@ -390,7 +361,7 @@ def _get_psutil_info() -> str:
     else:
         txt_tmp.append("psutil is not installed")
     #
-    txt = _to_info("psutils info", txt_tmp)
+    txt = hprint.to_info("psutils info", txt_tmp)
     return txt
 
 
@@ -457,25 +428,11 @@ def _get_package_info() -> Tuple[List[str], int]:
         packages.append((lib, version))
     txt_tmp.extend([f"{l}: {v}" for (l, v) in packages])
     #
-    txt = _to_info("Packages", txt_tmp)
+    txt = hprint.to_info("Packages", txt_tmp)
     return txt, failed_imports
 
 
 # #############################################################################
-
-
-def _get_container_version() -> str:
-    txt_tmp: List[str] = []
-    #
-    container_version = str(hversio.get_container_version())
-    txt_tmp.append(f"container_version='{container_version}'")
-    #
-    container_dir_name = "."
-    changelog_version = str(hversio.get_changelog_version(container_dir_name))
-    txt_tmp.append(f"changelog_version='{changelog_version}'")
-    #
-    txt = _to_info("Container version", txt_tmp)
-    return txt
 
 
 def _get_git_info(git_commit_type: str) -> str:
@@ -488,37 +445,7 @@ def _get_git_info(git_commit_type: str) -> str:
         _LOG.warning(str(e))
         txt_tmp.append("No git info")
     #
-    txt = _to_info("Git info", txt_tmp)
-    return txt
-
-
-def _get_docker_info() -> str:
-    txt_tmp: List[str] = []
-    #
-    has_docker = hserver.has_docker()
-    txt_tmp.append(f"has_docker={has_docker}")
-    #
-    cmd = r"docker version --format '{{.Server.Version}}'"
-    _, docker_version = hsystem.system_to_string(cmd)
-    txt_tmp.append(f"docker_version='{docker_version}'")
-    #
-    docker_needs_sudo = hserver.docker_needs_sudo()
-    txt_tmp.append(f"docker_needs_sudo={docker_needs_sudo}")
-    #
-    has_privileged_mode = hserver.has_docker_privileged_mode()
-    txt_tmp.append(f"has_privileged_mode={has_privileged_mode}")
-    #
-    is_inside_docker = hserver.is_inside_docker()
-    txt_tmp.append(f"is_inside_docker={is_inside_docker}")
-    #
-    if is_inside_docker:
-        has_sibling_containers_support = hserver.has_sibling_containers_support()
-        txt_tmp.append(f"has_sibling_containers_support={has_sibling_containers_support}")
-        #
-        has_docker_dind_support = hserver.has_docker_dind_support()
-        txt_tmp.append(f"has_docker_dind_support={has_docker_dind_support}")
-    #
-    txt = _to_info("Docker info", txt_tmp)
+    txt = hprint.to_info("Git info", txt_tmp)
     return txt
 
 
@@ -537,31 +464,31 @@ def get_system_signature(git_commit_type: str = "all") -> Tuple[str, int]:
     """
     txt: List[str] = []
     # Add container version.
-    txt_tmp = _get_container_version()
-    _dassert_one_trailing_newline(txt_tmp)
+    txt_tmp = hversio.get_container_version_info()
+    hprint.dassert_one_trailing_newline(txt_tmp)
     txt.append(txt_tmp)
     # Add Git signature.
     txt_tmp = _get_git_info(git_commit_type)
-    _dassert_one_trailing_newline(txt_tmp)
+    hprint.dassert_one_trailing_newline(txt_tmp)
     txt.append(txt_tmp)
     # Add platform info.
     txt_tmp = _get_platform_info()
-    _dassert_one_trailing_newline(txt_tmp)
+    hprint.dassert_one_trailing_newline(txt_tmp)
     txt.append(txt_tmp)
     # Add psutil info.
     txt_tmp = _get_psutil_info()
-    _dassert_one_trailing_newline(txt_tmp)
+    hprint.dassert_one_trailing_newline(txt_tmp)
     txt.append(txt_tmp)
     # Add Docker info.
-    txt_tmp = _get_docker_info()
-    _dassert_one_trailing_newline(txt_tmp)
+    txt_tmp = hserver.get_docker_info()
+    hprint.dassert_one_trailing_newline(txt_tmp)
     txt.append(txt_tmp)
     # Add package info.
     txt_tmp, failed_imports = _get_package_info()
-    _dassert_one_trailing_newline(txt_tmp)
+    hprint.dassert_one_trailing_newline(txt_tmp)
     txt.append(txt_tmp)
     #
-    txt = _to_info("System signature", txt)
+    txt = hprint.to_info("System signature", txt)
     return txt, failed_imports
 
 
@@ -583,16 +510,16 @@ def env_to_str(
     #
     if repo_config:
         repo_config_str = hrecouti.get_repo_config().config_func_to_str()
-        msg += _to_info("Repo config", repo_config_str) + "\n"
+        msg += hprint.to_info("Repo config", repo_config_str) + "\n"
     #
     if server_config:
         server_config_str = hserver.config_func_to_str()
-        msg += _to_info("Server config", server_config_str) + "\n"
+        msg += hprint.to_info("Server config", server_config_str) + "\n"
     #
     if system_signature:
         msg += get_system_signature()[0] + "\n"
     #
     if env_vars:
         env_vars_str = env_vars_to_string()
-        msg += _to_info("Env vars", env_vars_str) + "\n"
+        msg += hprint.to_info("Env vars", env_vars_str) + "\n"
     return msg

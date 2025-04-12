@@ -972,6 +972,30 @@ def filter_text(regex: str, txt: str) -> str:
     return txt
 
 
+def dassert_one_trailing_newline(txt: str) -> None:
+    num_newlines = len(re.search(r'\n*$', txt).group())
+    hdbg.dassert_eq(num_newlines, 0, "num_newlines='%s' txt='%s'", num_newlines, txt)
+
+
+def to_info(tag: str, txt: Union[str, List[str]]) -> str:
+    hdbg.dassert_isinstance(tag, str)
+    hdbg.dassert_isinstance(txt, (str, list))
+    txt_tmp = ""
+    txt_tmp += "# " + tag + "\n"
+    # Indent the text.
+    if not isinstance(txt, str):
+        for t in txt:
+            hdbg.dassert_isinstance(t, str)
+        txt = "\n".join(txt)
+    txt_tmp += indent(txt)
+    # Ensure that there is a single trailing newline.
+    txt_tmp = txt_tmp.rstrip("\n")
+    # txt_tmp += "\n"
+    # _dassert_one_trailing_newline(txt_tmp)
+    _LOG.debug("'%s'", txt_tmp)
+    return txt_tmp
+
+
 # #############################################################################
 # Notebook output
 # #############################################################################
@@ -1033,3 +1057,6 @@ def config_notebook(sns_set: bool = True) -> None:
 
     # Force the linter to keep this import.
     _ = hwarnin
+
+
+# 
