@@ -63,12 +63,16 @@ jobs:
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
         run: invoke run_fast_coverage .
 
+      - name: Rename Fast Test Coverage report
+        if: always()
+        run: mv ./coverage.xml ./coverage_fast.xml
+
       - name: Upload Fast Test Coverage to Codecov
         if: always()
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage.xml
+          files: ./coverage_fast.xml
           flags: fast
           name: fast-test-coverage
           fail_ci_if_error: true
