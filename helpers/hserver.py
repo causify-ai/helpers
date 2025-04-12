@@ -238,19 +238,19 @@ def is_inside_unit_test() -> bool:
     return ret
 
 
-# # TODO(gp): Remove!
-# def is_dev_csfy() -> bool:
-#     # sysname='Linux'
-#     # nodename='dev1'
-#     # release='5.15.0-1081-aws',
-#     # version='#88~20.04.1-Ubuntu SMP Fri Mar 28 14:17:22 UTC 2025',
-#     # machine='x86_64'
-#     host_name = os.uname()[1]
-#     host_names = ("dev1", "dev2", "dev3")
-#     csfy_host_name = os.environ.get("CSFY_HOST_NAME", "")
-#     _LOG.debug("host_name=%s csfy_host_name=%s", host_name, csfy_host_name)
-#     is_dev_csfy_ = host_name in host_names or csfy_host_name in host_names
-#     return is_dev_csfy_
+# TODO(gp): Remove!
+def is_dev_csfy() -> bool:
+    # sysname='Linux'
+    # nodename='dev1'
+    # release='5.15.0-1081-aws',
+    # version='#88~20.04.1-Ubuntu SMP Fri Mar 28 14:17:22 UTC 2025',
+    # machine='x86_64'
+    host_name = os.uname()[1]
+    host_names = ("dev1", "dev2", "dev3")
+    csfy_host_name = os.environ.get("CSFY_HOST_NAME", "")
+    _LOG.debug("host_name=%s csfy_host_name=%s", host_name, csfy_host_name)
+    is_dev_csfy_ = host_name in host_names or csfy_host_name in host_names
+    return is_dev_csfy_
 
 
 # TODO(gp): This is obsolete and should be removed.
@@ -269,6 +269,66 @@ def is_dev4() -> bool:
         _LOG.debug("host_name=%s csfy_host_name=%s", host_name, csfy_host_name)
         is_dev4_ = dev4 in (host_name, csfy_host_name)
     return is_dev4_
+
+
+# TODO(gp): Remove.
+def is_mac(*, version: Optional[str] = None) -> bool:
+    """
+    Return whether we are running on macOS and, optionally, on a specific
+    version.
+
+    :param version: check whether we are running on a certain macOS version (e.g.,
+        `Catalina`, `Monterey`)
+    """
+    _LOG.debug("version=%s", version)
+    host_os_name = os.uname()[0]
+    _LOG.debug("os.uname()=%s", str(os.uname()))
+    csfy_host_os_name = os.environ.get("CSFY_HOST_OS_NAME", None)
+    _LOG.debug(
+        "host_os_name=%s csfy_host_os_name=%s", host_os_name, csfy_host_os_name
+    )
+    is_mac_ = host_os_name == "Darwin" or csfy_host_os_name == "Darwin"
+    if version is None:
+        # The user didn't request a specific version, so we return whether we
+        # are running on a Mac or not.
+        _LOG.debug("is_mac_=%s", is_mac_)
+        return is_mac_
+    else:
+        # The user specified a version: if we are not running on a Mac then we
+        # return False, since we don't even have to check the macOS version.
+        if not is_mac_:
+            _LOG.debug("is_mac_=%s", is_mac_)
+            return False
+    # Check the macOS version we are running.
+    if version == "Catalina":
+        # Darwin gpmac.local 19.6.0 Darwin Kernel Version 19.6.0:
+        # root:xnu-6153.141.2~1/RELEASE_X86_64 x86_64
+        macos_tag = "19.6"
+    elif version == "Monterey":
+        # Darwin alpha.local 21.5.0 Darwin Kernel Version 21.5.0:
+        # root:xnu-8020.121.3~4/RELEASE_ARM64_T6000 arm64
+        macos_tag = "21."
+    elif version == "Ventura":
+        macos_tag = "22."
+    elif version == "Sequoia":
+        # Darwin gpmac.local 24.4.0 Darwin Kernel Version 24.4.0:
+        # root:xnu-11417.101.15~1/RELEASE_ARM64_T8112 arm64
+        macos_tag = "24."
+    else:
+        raise ValueError(f"Invalid version='{version}'")
+    _LOG.debug("macos_tag=%s", macos_tag)
+    host_os_version = os.uname()[2]
+    # 'Darwin Kernel Version 19.6.0: Mon Aug 31 22:12:52 PDT 2020;
+    #   root:xnu-6153.141.2~1/RELEASE_X86_64'
+    csfy_host_os_version = os.environ.get("CSFY_HOST_VERSION", "")
+    _LOG.debug(
+        "host_os_version=%s csfy_host_os_version=%s",
+        host_os_version,
+        csfy_host_os_version,
+    )
+    is_mac_ = macos_tag in host_os_version or macos_tag in csfy_host_os_version
+    _LOG.debug("is_mac_=%s", is_mac_)
+    return is_mac_
 
 
 def is_prod_csfy() -> bool:
