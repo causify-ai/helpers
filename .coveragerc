@@ -5,10 +5,5 @@ source = helpers
 [report]
 # Glob pattern(s) of files to omit from the report.
 omit =
-    /app/__init__.py
-    /app/conftest.py
-    */conftest.py
-    /app/config_root/*
-    /app/dev_scripts_helpers/__init__.py
     */devops/compose/*
     */helpers/test/outcomes/*/tmp.scratch/*

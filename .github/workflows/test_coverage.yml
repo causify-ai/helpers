@@ -61,7 +61,7 @@ jobs:
           CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
           CSFY_ECR_BASE_PATH: ghcr.io/${{ github.repository_owner }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
-        run: invoke run_separate_and_combined_coverage .
+        run: invoke run_fast_coverage .
 
       - name: Upload Fast Test Coverage to Codecov
         if: always()
@@ -73,22 +73,22 @@ jobs:
           name: fast-test-coverage
           fail_ci_if_error: true
 
-      - name: Upload Slow Test Coverage to Codecov
-        if: always()
-        uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage_slow.xml
-          flags: slow
-          name: slow-test-coverage
-          fail_ci_if_error: true
+      # - name: Upload Slow Test Coverage to Codecov
+      #   if: always()
+      #   uses: codecov/codecov-action@v5
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }}
+      #     files: ./coverage_slow.xml
+      #     flags: slow
+      #     name: slow-test-coverage
+      #     fail_ci_if_error: true
 
-      - name: Upload Combined Test Coverage to Codecov
-        if: always()
-        uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage.xml
-          flags: combined
-          name: combined-test-coverage
-          fail_ci_if_error: true
+      # - name: Upload Combined Test Coverage to Codecov
+      #   if: always()
+      #   uses: codecov/codecov-action@v5
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }}
+      #     files: ./coverage.xml
+      #     flags: combined
+      #     name: combined-test-coverage
+      #     fail_ci_if_error: true

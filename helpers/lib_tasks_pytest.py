@@ -878,7 +878,87 @@ def run_coverage_report(  # type: ignore
 
 
 @task
-def run_separate_and_combined_coverage(
+def run_fast_coverage(ctx, target_dir, generate_html_report=True):
+    report_cmd: List[str] = []
+    # Run fast tests and collect coverage data.
+    fast_tests_cmd = f"invoke run_fast_tests --coverage -p {target_dir}"
+    hlitauti.run(ctx, fast_tests_cmd, use_system=False)
+    fast_tests_coverage_file = ".coverage_fast_tests"
+    create_fast_tests_file_cmd = f"mv .coverage {fast_tests_coverage_file}"
+    hsystem.system(create_fast_tests_file_cmd)
+    # Specify the dirs to include and exclude in the report.
+    exclude_from_report = None
+    if target_dir == ".":
+        # Include all dirs.
+        include_in_report = "*"
+        if hserver.skip_submodules_test():
+            # Exclude submodules.
+            submodule_paths = hgit.get_submodule_paths()
+            exclude_from_report = ",".join(
+                path + "/*" for path in submodule_paths
+            )
+    else:
+        # Include only the target dir.
+        include_in_report = f"*/{target_dir}/*"
+    # Generate text report with the coverage stats.
+    report_stats_cmd = (
+        f"coverage report --include={include_in_report} --sort=Cover"
+    )
+    if exclude_from_report is not None:
+        report_stats_cmd += f" --omit={exclude_from_report}"
+    report_cmd.append(report_stats_cmd)
+    if generate_html_report:
+        # Generate HTML report with the coverage stats.
+        report_html_cmd = f"coverage html --include={include_in_report}"
+        if exclude_from_report is not None:
+            report_html_cmd += f" --omit={exclude_from_report}"
+        report_cmd.append(report_html_cmd)
+    # Generate an XML report for Codecov.
+    report_cmd.append("coverage xml -o coverage.xml")
+    return fast_tests_coverage_file
+
+
+@task
+def run_slow_coverage(ctx, target_dir):
+    """
+    Run slow tests with coverage and generate an XML report for Codecov.
+
+    The task:
+      - Runs slow tests with coverage enabled in parallel mode.
+      - Combines any generated parallel coverage files.
+      - Outputs an XML report (e.g., coverage_slow.xml) to be sent to Codecov.
+
+    :param ctx: Invoke context.
+    :param target_dir: Directory to compute coverage stats for.
+         Use "." for all directories in the current working directory.
+    """
+    report_cmd: List[str] = []
+    # report_cmd.append("coverage erase")
+    slow_tests_cmd = f"invoke run_slow_tests --coverage -p {target_dir}"
+    hlitauti.run(ctx, slow_tests_cmd, use_system=False)
+    slow_tests_coverage_file = ".coverage_slow_tests"
+    create_slow_tests_file_cmd = f"mv .coverage {slow_tests_coverage_file}"
+    hsystem.system(create_slow_tests_file_cmd)
+    # Specify the dirs to include and exclude in the report.
+    exclude_from_report = None
+    if target_dir == ".":
+        # Include all dirs.
+        if hserver.skip_submodules_test():
+            # Exclude submodules.
+            submodule_paths = hgit.get_submodule_paths()
+            exclude_from_report = ",".join(
+                path + "/*" for path in submodule_paths
+            )
+    else:
+        # Include only the target dir.
+        f"*/{target_dir}/*"
+    # Check that coverage files are present for both fast and slow tests.
+    hdbg.dassert_file_exists(slow_tests_coverage_file)
+    return slow_tests_coverage_file
+
+
+@task
+def run_combined_coverage(
     ctx,
     target_dir,
     generate_html_report=True,
@@ -886,96 +966,71 @@ def run_separate_and_combined_coverage(
     aws_profile="ck",
 ):
     """
-    Compute test coverage stats.
+    Combine fast and slow tests coverage, generate a combined XML report for
+    Codecov, and optionally generate and publish an HTML report.
 
     The flow is:
-       - Run tests and compute coverage stats for each test type (fast and slow)
-       - Preserve each coverage data file by renaming the default .coverage file
-       - Generate separate XML (and optionally HTML) reports for each test suite
-       - Combine the separate coverage files into a single file
-       - Generate a combined text report, and optionally an HTML and XML report
-          - Optionally publish the combined HTML report on S3
+      - Erase any previous coverage data to ensure a clean state.
+      - Combine all individual (parallel-mode) coverage files from both fast and slow tests.
+      - Generate a text report (with include/omit configuration).
+      - Optionally generate an HTML report.
+      - Generate an XML report for the combined coverage (e.g., coverage_combined.xml).
 
     :param ctx: Invoke context.
     :param target_dir: Directory to compute coverage stats for.
-         Use "." for all the dirs in the current working directory.
-    :param generate_html_report: Whether to generate an HTML coverage report or not.
-    :param publish_html_on_s3: Whether to publish the HTML coverage report on S3 or not.
+         Use "." for all directories in the current working directory.
+    :param generate_html_report: Whether to generate an HTML coverage report.
+    :param publish_html_on_s3: Whether to publish the HTML coverage report on S3.
     :param aws_profile: The AWS profile to use for publishing the HTML report.
     """
-    # --- Step 1: Fast Tests ---
-    # Run fast tests with coverage.
-    fast_cmd = f"invoke run_fast_tests --coverage -p {target_dir}"
-    hlitauti.run(ctx, fast_cmd, use_system=False)
-    # Rename the default .coverage file to preserve fast test data.
-    hsystem.system("mv .coverage .coverage_fast")
-    hdbg.dassert_file_exists(".coverage_fast")
-    # Generate an XML report for fast tests by telling Coverage where to find its data.
-    # Using the COVERAGE_FILE env var instead of --data-file avoids the absolute path issues.
-    hsystem.system(
-        "COVERAGE_FILE=.coverage_fast coverage xml --ignore-errors -o coverage_fast.xml"
+    fast_tests_coverage_file = run_fast_coverage(ctx, target_dir)
+    slow_tests_coverage_file = run_slow_coverage(ctx, target_dir)
+    report_cmd: List[str] = []
+    # Clean the previous coverage results. For some docker-specific reasons
+    # command which combines stats does not work when being run first in
+    # the chain `bash -c "cmd1 && cmd2 && cmd3"`. So `erase` command which
+    # does not affect the coverage results was added as a workaround.
+    report_cmd.append("coverage erase")
+    # Merge stats for fast and slow tests into single dir.
+    report_cmd.append(
+        f"coverage combine --keep {fast_tests_coverage_file} {slow_tests_coverage_file}"
     )
-    if generate_html_report:
-        hsystem.system(
-            "COVERAGE_FILE=.coverage_fast coverage html --ignore-errors -d htmlcov_fast"
-        )
-    # Erase any leftover default data.
-    hsystem.system("coverage erase")
-    # --- Step 2: Slow Tests ---
-    # Run slow tests with coverage.
-    slow_cmd = f"invoke run_slow_tests --coverage -p {target_dir}"
-    hlitauti.run(ctx, slow_cmd, use_system=False)
-    # Rename the default .coverage file to preserve slow test data.
-    hsystem.system("mv .coverage .coverage_slow")
-    hdbg.dassert_file_exists(".coverage_slow")
-    # Generate an XML report for slow tests.
-    hsystem.system(
-        "COVERAGE_FILE=.coverage_slow coverage xml --ignore-errors -o coverage_slow.xml"
-    )
-    if generate_html_report:
-        hsystem.system(
-            "COVERAGE_FILE=.coverage_slow coverage html --ignore-errors -d htmlcov_slow"
-        )
-    # Erase the default coverage data again.
-    hsystem.system("coverage erase")
-    # --- Step 3: Combine Coverage Data and Generate Combined Reports ---
-    # Combine the separate coverage files into one unified file (the default .coverage).
-    hsystem.system("coverage combine --keep .coverage_fast .coverage_slow")
-    hsystem.system("coverage erase")
-    # Determine include/exclude settings based on the target directory.
+    # Specify the dirs to include and exclude in the report.
+    exclude_from_report = None
     if target_dir == ".":
+        # Include all dirs.
         include_in_report = "*"
-        exclude_from_report = None
         if hserver.skip_submodules_test():
+            # Exclude submodules.
             submodule_paths = hgit.get_submodule_paths()
             exclude_from_report = ",".join(
                 path + "/*" for path in submodule_paths
             )
     else:
+        # Include only the target dir.
         include_in_report = f"*/{target_dir}/*"
-        exclude_from_report = None
-    combined_cmds = []
-    # Generate a combined text report.
-    report_text_cmd = (
+    # Generate text report with the coverage stats.
+    report_stats_cmd = (
         f"coverage report --include={include_in_report} --sort=Cover"
     )
-    if exclude_from_report:
-        report_text_cmd += f" --omit={exclude_from_report}"
-    combined_cmds.append(report_text_cmd)
-    # Optionally generate a combined HTML report.
+    if exclude_from_report is not None:
+        report_stats_cmd += f" --omit={exclude_from_report}"
+    report_cmd.append(report_stats_cmd)
     if generate_html_report:
+        # Generate HTML report with the coverage stats.
         report_html_cmd = f"coverage html --include={include_in_report}"
-        if exclude_from_report:
+        if exclude_from_report is not None:
             report_html_cmd += f" --omit={exclude_from_report}"
-        combined_cmds.append(report_html_cmd)
-    # Generate the combined XML report.
-    combined_cmds.append("coverage xml -o coverage.xml")
-    # Join the combined commands to be executed in a single shell call (inside Docker).
-    full_combined_cmd = " && ".join(combined_cmds)
-    docker_cmd = f"invoke docker_cmd --use-bash --cmd '{full_combined_cmd}'"
-    hlitauti.run(ctx, docker_cmd)
-    # Optionally publish the combined HTML report on S3.
+        report_cmd.append(report_html_cmd)
+    # Generate an XML report for Codecov.
+    report_cmd.append("coverage xml -o coverage.xml")
+    # Execute commands above one-by-one inside docker. Coverage tool is not
+    # installed outside docker.
+    full_report_cmd = " && ".join(report_cmd)
+    docker_cmd_ = f"invoke docker_cmd --use-bash --cmd '{full_report_cmd}'"
+    hlitauti.run(ctx, docker_cmd_)
     if publish_html_on_s3:
+        # Publish HTML report on S3.
         _publish_html_coverage_report_on_s3(aws_profile)
 
 
@@ -1493,7 +1548,6 @@ def pytest_buildmeister(  # type: ignore
     ```
     > pytest_buildmeister --pytest-opts "--update_outcomes"
     ```
-
     :param docker_clean: remove all dead Docker instances
     :param opts: options to pass to the invoke (e.g., `--version 1.2.0` to test
         a specific version of the Docker container)
