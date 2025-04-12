@@ -472,8 +472,8 @@ class PrintableMixin:
 # #############################################################################
 
 
-# TODO(gp): CleanUp. This is for testing and should be in hobject_test.py.
-# TODO(gp): -> check_object_signature
+# TODO(gp): GSI. This is for testing and should be in hobject_test.py.
+# TODO(gp): GSI -> check_object_signature
 def test_object_signature(
     self_: Any, obj: Any, *, remove_lines_regex: Optional[str] = None
 ) -> None:

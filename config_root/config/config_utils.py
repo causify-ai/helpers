@@ -86,7 +86,7 @@ def replace_shared_dir_paths(
     return new_config
 
 
-# TODO(gp): Add unit tests.
+# TODO(gp): GSI: Add unit tests.
 def sort_config_string(txt: str) -> str:
     """
     Sort a string representing a Config in alphabetical order by the first
@@ -475,7 +475,7 @@ def diff_configs(configs: Iterable[crococon.Config]) -> List[crococon.Config]:
 # #############################################################################
 
 
-# TODO(gp): Is this private?
+# TODO(gp): GFI: Is this private?
 def convert_to_series(config: crococon.Config) -> pd.Series:
     """
     Convert a config into a flattened series representation.
@@ -501,7 +501,7 @@ def convert_to_series(config: crococon.Config) -> pd.Series:
     return srs
 
 
-# TODO(gp): Is this private?
+# TODO(gp): GFI: Is this private?
 def convert_to_dataframe(configs: Iterable[crococon.Config]) -> pd.DataFrame:
     """
     Convert multiple configs into flattened dataframe representation.

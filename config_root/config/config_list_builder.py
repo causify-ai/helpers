@@ -63,7 +63,7 @@ def get_universe_top_n(universe: List[Any], n: Optional[int]) -> List[Any]:
 # #############################################################################
 
 
-# TODO(gp): -> get_time_interval
+# TODO(gp): GFI -> get_time_interval
 def get_period(period: str) -> Tuple[pd.Timestamp, pd.Timestamp]:
     """
     Get start and end timestamps from the specified period.
@@ -193,11 +193,11 @@ def build_config_list_varying_asset_id(
 # #############################################################################
 
 
-# TODO(gp): -> ...varying_asset_tiles
+# TODO(gp): GFI -> ...varying_asset_tiles
 def build_config_list_varying_universe_tiles(
     config_list: cconfig.ConfigList,
     universe_tile_id: cconfig.CompoundKey,
-    # TODO(gp): -> asset_tiles
+    # TODO(gp): GFI -> asset_tiles
     universe_tiles: List[List[int]],
 ) -> cconfig.ConfigList:
     """
@@ -226,7 +226,7 @@ def build_config_list_varying_universe_tiles(
     return config_list_out
 
 
-# TODO(gp): -> ...varying_period_tiles
+# TODO(gp): GFI -> ...varying_period_tiles
 def build_config_list_varying_tiled_periods(
     config_list: cconfig.ConfigList,
     start_timestamp: pd.Timestamp,
@@ -255,7 +255,7 @@ def build_config_list_varying_tiled_periods(
     hdateti.dassert_has_tz(start_timestamp)
     hdateti.dassert_has_tz(end_timestamp)
     hdbg.dassert_lte(start_timestamp, end_timestamp)
-    # TODO(gp): Check that the lookback is > 0.
+    # TODO(gp): GFI Check that the lookback is > 0.
     lookback = pd.Timedelta(lookback_as_pd_str)
     #
     configs = []
@@ -311,7 +311,7 @@ def build_config_list_varying_tiled_periods(
 # #############################################################################
 
 
-# TODO(gp): -> build_config_list_using_equal_asset_tiles
+# TODO(gp): GFI -> build_config_list_using_equal_asset_tiles
 def build_config_list_with_tiled_universe(
     config_list: cconfig.ConfigList, asset_ids: List[int]
 ) -> cconfig.ConfigList:
@@ -367,7 +367,7 @@ def apply_build_config_list(
     return config_list_out
 
 
-# TODO(gp): -> build_config_list_using_equal_asset_and_period_tiles
+# TODO(gp): GFI -> build_config_list_using_equal_asset_and_period_tiles
 def build_config_list_with_tiled_universe_and_periods(
     config_list: cconfig.ConfigList,
 ) -> cconfig.ConfigList:

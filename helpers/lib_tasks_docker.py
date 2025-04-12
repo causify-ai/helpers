@@ -675,7 +675,7 @@ def _generate_docker_compose_file(
         ],
         "extends": "app",
         "network_mode": "${NETWORK_MODE:-bridge}",
-        # TODO(gp): Rename `AM_PORT`.
+        # TODO(gp): Rename `CSFY_PORT`.
         "ports": [
             "${PORT}:${PORT}",
         ],
@@ -981,7 +981,7 @@ def _get_base_image(base_image: str) -> str:
     :return: e.g., *****.dkr.ecr.us-east-1.amazonaws.com/amp
     """
     if base_image == "":
-        # TODO(gp): Use os.path.join.
+        # TODO(gp): GFI. Use os.path.join.
         base_image = (
             hlitauti.get_default_param("CSFY_ECR_BASE_PATH")
             + "/"
@@ -1008,8 +1008,8 @@ def _get_base_image(base_image: str) -> str:
 #      return tag_name
 
 
-# TODO(gp): Consider using a token "latest" in version, so that it's always a
-#  string and we avoid a special behavior encoded in None.
+# TODO(gp): GSI: Consider using a token "latest" in version, so that it's
+# always a string and we avoid a special behavior encoded in None.
 def get_image(
     base_image: str,
     stage: str,

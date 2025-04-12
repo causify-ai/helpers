@@ -77,7 +77,7 @@ def _get_test_config4() -> cconfig.Config:
 # #############################################################################
 
 
-# TODO(gp): -> validate_config_list
+# TODO(gp): GFI -> validate_config_list?
 class Test_validate_configs1(hunitest.TestCase):
 
     def test_check_same_configs_error(self) -> None:

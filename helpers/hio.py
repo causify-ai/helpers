@@ -79,7 +79,7 @@ def listdir(
         cmd.append(r'-not -path "*/\.git/*"')
     cmd = " ".join(cmd)
     _, output = hsystem.system_to_string(cmd)
-    # TODO(gp): -> system_to_files
+    # TODO(gp): GSI -> system_to_files
     paths = [path for path in output.split("\n") if path != ""]
     _LOG.debug("Found %s paths in %s", len(paths), dir_name)
     _LOG.debug("\n".join(paths))
