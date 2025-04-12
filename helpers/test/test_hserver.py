@@ -8,79 +8,104 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 
+class _Test_hserver1(hunitest.TestCase):
+
+    def test_is_inside_ci1(self) -> None:
+        val = hserver.is_inside_ci()
+        _LOG.info("val=\n%s", val)
+        if self.exp_is_inside_ci is not None:
+            self.assert_equal(val, self.exp_is_inside_ci)
+
+    def test_is_dev_csfy1(self) -> None:
+        val = hserver.is_dev_csfy()
+        _LOG.info("val=\n%s", val)
+        if self.exp_is_dev_csfy is not None:
+            self.assert_equal(val, self.exp_is_dev_csfy)
+
+    def test_consistency1(self) -> None:
+        hserver._dassert_setup_consistency()
+
+    def test_get_setup_signature1(self) -> None:
+        val = hserver._get_setup_signature()
+        _LOG.info("val=\n%s", val)
+        if self.exp_get_setup_signature is not None:
+            self.assert_equal(val, self.exp_get_setup_signature)
+
+    def test_get_setup_settings1(self) -> None:
+        setups = hserver._get_setup_settings()
+        val = hserver._setup_to_str(setups)
+        _LOG.info("val=\n%s", val)
+        if self.exp_get_setup_settings is not None:
+            self.assert_equal(val, self.exp_get_setup_settings)
+
+    def test_config_func_to_str1(self) -> None:
+        val = hserver.config_func_to_str()
+        _LOG.info("val=\n%s", val)
+        if self.exp_config_func_to_str is not None:
+            self.assert_equal(val, self.exp_config_func_to_str)
+
+
 # #############################################################################
 # Test_hserver1
 # #############################################################################
 
 
-@pytest.mark.skipif(
-    not hserver.is_inside_docker(),
-    reason="This test should be run inside a Docker container",
-)
-class Test_hserver1(hunitest.TestCase):
+class Test_hserver1(_Test_hserver1):
+    """
+    Smoke test without checking anything.
+    """
 
-    def test_is_inside_ci1(self) -> None:
-        is_inside_ci_ = hserver.is_inside_ci()
-        if is_inside_ci_:
-            # Inside CI we expect to run inside Docker.
-            self.assertTrue(hserver.is_inside_docker())
-
-    def test_is_inside_docker1(self) -> None:
-        # We always run tests inside Docker.
-        self.assertTrue(hserver.is_inside_docker())
-
-    def test_is_dev_csfy1(self) -> None:
-        _ = hserver.is_dev_csfy()
-
-    def test_is_prod_csfy1(self) -> None:
-        is_prod_csfy = hserver.is_prod_csfy()
-        if is_prod_csfy:
-            # Prod runs inside Docker.
-            self.assertTrue(hserver.is_inside_docker())
-
-    def test_consistency1(self) -> None:
-        hserver._dassert_setup_consistency()
-
-    def test_get_setup_signature1(self) -> None:
-        val = hserver._get_setup_signature()
-        _LOG.info("val=\n%s", val)
-
-    def test_get_setup_settings1(self) -> None:
-        setups = hserver._get_setup_settings()
-        val = hserver._setup_to_str(setups)
-        _LOG.info("val=\n%s", val)
-
-    def test_config_func_to_str1(self) -> None:
-        val = hserver.config_func_to_str()
-        _LOG.info("val=\n%s", val)
+    def setUp(self) -> None:
+        super().setUp()
+        self.exp_is_inside_ci = None
+        self.exp_is_dev_csfy = None
+        self.exp_get_setup_signature = None
+        self.exp_get_setup_settings = None
+        self.exp_config_func_to_str = None
 
 
 # #############################################################################
-# Test_hserver2
+# Test_hserver_inside_ci
 # #############################################################################
 
 
 @pytest.mark.skipif(
-    hserver.is_inside_docker(),
-    reason="This test should be run outside a Docker container",
+    not hserver.is_inside_ci(),
 )
-class Test_hserver2(hunitest.TestCase):
+class Test_hserver_inside_ci1(_Test_hserver1):
+    """
+    Run tests inside CI.
+    """
 
-    def test_consistency1(self) -> None:
-        hserver._dassert_setup_consistency()
+    def setUp(self) -> None:
+        super().setUp()
+        self.exp_is_inside_ci = True
+        self.exp_is_dev_csfy = True
+        self.exp_get_setup_signature = ""
+        self.exp_get_setup_settings = ""
+        self.exp_config_func_to_str = ""
 
-    def test_get_setup_signature1(self) -> None:
-        val = hserver._get_setup_signature()
-        _LOG.info("val=\n%s", val)
 
-    def test_get_setup_settings1(self) -> None:
-        setups = hserver._get_setup_settings()
-        val = hserver._setup_to_str(setups)
-        _LOG.info("val=\n%s", val)
+# #############################################################################
+# Test_hserver_docker_container_on_csfy_server1
+# #############################################################################
 
-    def test_config_func_to_str1(self) -> None:
-        val = hserver.config_func_to_str()
-        _LOG.info("val=\n%s", val)
+
+@pytest.mark.skipif(
+    not hserver.is_docker_container_on_csfy_server(),
+)
+class Test_hserver_inside_docker_container_on_csfy_server1(_Test_hserver1):
+    """
+    Run tests inside Docker container on a Causify dev server.
+    """
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.exp_is_inside_ci = True
+        self.exp_is_dev_csfy = True
+        self.exp_get_setup_signature = ""
+        self.exp_get_setup_settings = ""
+        self.exp_config_func_to_str = ""
 
 
 # #############################################################################
@@ -89,30 +114,42 @@ class Test_hserver2(hunitest.TestCase):
 
 
 @pytest.mark.skipif(
-    hserver.is_inside_docker() or not hserver.is_dev_csfy(),
-    reason="This test should be run on one of Causify dev machines",
+    not (not hserver.is_inside_docker() and hserver.is_host_dev_csfy()),
 )
-class Test_hserver3(hunitest.TestCase):
+class Test_hserver_outside_docker_container_on_csfy_server1(hunitest.TestCase):
+    """
+    Run tests outside Docker container on a Causify dev server.
+    """
 
-    def test_consistency1(self) -> None:
-        hserver._dassert_setup_consistency()
+    def setUp(self) -> None:
+        super().setUp()
+        self.exp_is_inside_ci = False
+        self.exp_is_dev_csfy = True
+        self.exp_get_setup_signature = ""
+        self.exp_get_setup_settings = ""
+        self.exp_config_func_to_str = ""
 
-    def test_get_setup_signature1(self) -> None:
-        act = hserver._get_setup_signature()
-        exp = ""
-        self.assert_equal(act, dev)
 
-    def test_get_setup_settings1(self) -> None:
-        setups = hserver._get_setup_settings()
-        act = hserver._setup_to_str(setups)
-        exp = ""
-        self.assert_equal(act, exp)
+# #############################################################################
+# Test_hserver_docker_container_on_mac_host1
+# #############################################################################
 
-    def test_config_func_to_str1(self) -> None:
-        act = hserver.config_func_to_str()
-        exp = ""
-        self.assert_equal(act, exp)
 
+@pytest.mark.skipif(
+    not (not hserver.is_inside_docker() and hserver.is_host_gp_mac()),
+)
+class Test_hserver_inside_docker_container_on_mac_host1(hunitest.TestCase):
+    """
+    Run tests inside Docker container on a GP's Mac.
+    """
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.exp_is_inside_ci = True
+        self.exp_is_dev_csfy = True
+        self.exp_get_setup_signature = ""
+        self.exp_get_setup_settings = ""
+        self.exp_config_func_to_str = ""
 
 # #############################################################################
 # Test_hserver_gp_mac1
@@ -120,29 +157,20 @@ class Test_hserver3(hunitest.TestCase):
 
 
 @pytest.mark.skipif(
-    hserver.is_inside_docker() or not hserver.is_dev_csfy(),
-    reason="This test should be run on one of Causify dev machines",
+    not (not hserver.is_inside_docker() and hserver.is_host_gp_mac()),
 )
-class Test_hserver_gp_mac1(hunitest.TestCase):
+class Test_hserver_outside_docker_container_on_gp_mac1(hunitest.TestCase):
+    """
+    Run tests outside Docker container on a GP's Mac.
+    """
 
-    def test_consistency1(self) -> None:
-        hserver._dassert_setup_consistency()
-
-    def test_get_setup_signature1(self) -> None:
-        act = hserver._get_setup_signature()
-        exp = ""
-        self.assert_equal(act, dev)
-
-    def test_get_setup_settings1(self) -> None:
-        setups = hserver._get_setup_settings()
-        act = hserver._setup_to_str(setups)
-        exp = ""
-        self.assert_equal(act, exp)
-
-    def test_config_func_to_str1(self) -> None:
-        act = hserver.config_func_to_str()
-        exp = ""
-        self.assert_equal(act, exp)
+    def setUp(self) -> None:
+        super().setUp()
+        self.exp_is_inside_ci = True
+        self.exp_is_dev_csfy = True
+        self.exp_get_setup_signature = ""
+        self.exp_get_setup_settings = ""
+        self.exp_config_func_to_str = ""
 
 
 # #############################################################################
