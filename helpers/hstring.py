@@ -94,6 +94,7 @@ def get_docstring_line_indices(lines: List[str]) -> List[int]:
     return docstring_line_indices
 
 
+# TODO(allenmatt10): Add tests.
 def get_function_indices(lines: List[str]) -> List[int]:
     """
     Get indices of lines of code that are inside functions and methods.
@@ -115,14 +116,14 @@ def get_function_indices(lines: List[str]) -> List[int]:
             while i < n:
                 current_line = lines[i]
                 if current_line.strip() == "":
-                    # Skip empty line inside the function or method.
+                    # Register empty lines that are inside the function.
                     i += 1
                     continue
                 current_indent = len(current_line) - len(current_line.lstrip())
                 if current_indent <= base_indent:
+                    # Exit if current line is indented at or below base level as function ends.
                     while True:
-                        # Empty lines after the function is included in the function
-                        # so it must be removed.
+                        # Do not register empty lines that follow the function.
                         if lines[i - 1] == "":
                             i -= 1
                         else:
