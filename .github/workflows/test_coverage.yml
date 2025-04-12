@@ -52,7 +52,7 @@ jobs:
       - name: Pull image from GHCR
         run: docker pull ghcr.io/${{ github.repository }}:dev
 
-      - name: Run tests and generate separate and combined coverage XML inside Docker
+      - name: Run Fast test and generate report
         env:
           GH_ACTION_ACCESS_TOKEN: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
           CSFY_AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
@@ -73,6 +73,31 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage_fast.xml
+          flags: fast
+          name: fast-test-coverage
+          fail_ci_if_error: true
+
+      - name: Run Slow test and generate report
+        env:
+          GH_ACTION_ACCESS_TOKEN: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
+          CSFY_AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
+          CSFY_AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          CSFY_AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
+          CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
+          CSFY_ECR_BASE_PATH: ghcr.io/${{ github.repository_owner }}
+          CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
+        run: invoke run_fast_coverage .
+
+      - name: Rename Slow Test Coverage report
+        if: always()
+        run: mv ./coverage.xml ./coverage_slow.xml
+
+      - name: Upload Slow Test Coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage_slow.xml
           flags: fast
           name: fast-test-coverage
           fail_ci_if_error: true
