@@ -68,7 +68,7 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage_fast.xml
+          files: ./coverage.xml
           flags: fast
           name: fast-test-coverage
           fail_ci_if_error: true
