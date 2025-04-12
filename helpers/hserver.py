@@ -238,19 +238,19 @@ def is_inside_unit_test() -> bool:
     return ret
 
 
-# TODO(gp): Remove!
-def is_dev_csfy() -> bool:
-    # sysname='Linux'
-    # nodename='dev1'
-    # release='5.15.0-1081-aws',
-    # version='#88~20.04.1-Ubuntu SMP Fri Mar 28 14:17:22 UTC 2025',
-    # machine='x86_64'
-    host_name = os.uname()[1]
-    host_names = ("dev1", "dev2", "dev3")
-    csfy_host_name = os.environ.get("CSFY_HOST_NAME", "")
-    _LOG.debug("host_name=%s csfy_host_name=%s", host_name, csfy_host_name)
-    is_dev_csfy_ = host_name in host_names or csfy_host_name in host_names
-    return is_dev_csfy_
+# # TODO(gp): Remove!
+# def is_dev_csfy() -> bool:
+#     # sysname='Linux'
+#     # nodename='dev1'
+#     # release='5.15.0-1081-aws',
+#     # version='#88~20.04.1-Ubuntu SMP Fri Mar 28 14:17:22 UTC 2025',
+#     # machine='x86_64'
+#     host_name = os.uname()[1]
+#     host_names = ("dev1", "dev2", "dev3")
+#     csfy_host_name = os.environ.get("CSFY_HOST_NAME", "")
+#     _LOG.debug("host_name=%s csfy_host_name=%s", host_name, csfy_host_name)
+#     is_dev_csfy_ = host_name in host_names or csfy_host_name in host_names
+#     return is_dev_csfy_
 
 
 # TODO(gp): This is obsolete and should be removed.
@@ -316,39 +316,14 @@ def is_external_linux() -> bool:
     This is true when we run on the machine of an intern, or a non-CSFY
     contributor.
     """
-    if is_dev_csfy() or is_inside_ci():
-        # CI and dev servers are not considered external Linux systems.
+    if is_host_csfy_server() or is_inside_ci():
+        # Dev servers and CI are not external Linux systems.
         ret = False
-    elif is_inside_docker():
-        # If we are inside a Docker container, we need to check the host OS.
-        csfy_host_os_name = os.environ.get("CSFY_HOST_OS_NAME", None)
-        ret = csfy_host_os_name == "Linux"
     else:
-        # If we are not inside a Docker container, we can check the host OS
-        # directly.
-        host_os_name = os.uname()[0]
+        # We need to check the host OS directly.
+        host_os_name = _get_host_os_name()
         ret = host_os_name == "Linux"
     return ret
-
-
-# TODO(gp): When is this used?
-def is_csfy_or_external_container() -> bool:
-    """
-    Detect whether we are running on a container in a CSFY or external system.
-
-    This is true for dockerized executables.
-    """
-    res = False
-    if is_inside_ci():
-        # CI servers are not considered external or CSFY systems.
-        res = False
-    elif not is_inside_docker():
-        # Outside Docker there is no container.
-        res = False
-    else:
-        res = is_inside_docker()
-    _LOG.debug("  -> is_csfy_or_external_container=%s", res)
-    return res
 
 
 def is_external_dev() -> bool:
@@ -356,8 +331,8 @@ def is_external_dev() -> bool:
     Detect whether we are running on an system outside of Causify system
     (e.g., a contributor's laptop, an intern's laptop, a non-CSFY machine).
     """
-    is_external_dev_ = is_host_mac() or is_external_linux()
-    return is_external_dev_
+    ret = is_host_mac() or is_external_linux()
+    return ret
 
 
 # #############################################################################
@@ -387,7 +362,6 @@ def _get_setup_signature() -> str:
     cmds.append("os.uname()[2]")
     # is_external_linux()
     cmds.append('os.environ.get("CSFY_HOST_OS_NAME", "undef")')
-    # is_csfy_or_external_container()
     # Build an array of strings with the results of executing the commands.
     results = []
     for cmd in cmds:
@@ -983,7 +957,6 @@ def config_func_to_str() -> str:
         "has_docker_sudo",
         "is_AM_S3_available",
         "is_CK_S3_available",
-        "is_csfy_or_external_container",
         "is_dev4",
         "is_dev_csfy",
         "is_external_linux",

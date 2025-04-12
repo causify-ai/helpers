@@ -20,11 +20,11 @@ class _TestCase1:
     def test_consistency1(self) -> None:
         hserver._dassert_setup_consistency()
 
-    def test_is_dev_csfy1(self) -> None:
-        val = hserver.is_dev_csfy()
+    def test_is_host_csfy_server1(self) -> None:
+        val = hserver.is_host_csfy_server()
         _LOG.info("val=\n%s", val)
-        if self.exp_is_dev_csfy is not None:
-            self.assertEqual(val, self.exp_is_dev_csfy)
+        if self.exp_is_host_csfy_server is not None:
+            self.assertEqual(val, self.exp_is_host_csfy_server)
 
     def test_get_setup_settings1(self) -> None:
         setups = hserver._get_setup_settings()
@@ -60,7 +60,7 @@ class Test_hserver1(_TestCase1, hunitest.TestCase):
         self.exp_config_func_to_str = None
         self.exp_get_setup_settings = None
         self.exp_get_setup_signature = None
-        self.exp_is_dev_csfy = None
+        self.exp_is_host_csfy_server = None
         self.exp_is_inside_ci = None
 
 
@@ -83,8 +83,8 @@ class Test_hserver_inside_ci1(_TestCase1, hunitest.TestCase):
         self.exp_config_func_to_str = None
         self.exp_get_setup_settings = None
         self.exp_get_setup_signature = None
-        self.exp_is_dev_csfy = None
-        self.exp_is_inside_ci = None
+        self.exp_is_host_csfy_server = False
+        self.exp_is_inside_ci = True
 
 
 # #############################################################################
@@ -116,8 +116,8 @@ class Test_hserver_inside_docker_container_on_csfy_server1(_TestCase1, hunitest.
             is_prod_csfy                                  False
             """)
         self.exp_get_setup_signature = ""
-        self.exp_is_dev_csfy = True
-        self.exp_is_inside_ci = True
+        self.exp_is_host_csfy_server = True
+        self.exp_is_inside_ci = False
 
 
 # #############################################################################
@@ -149,7 +149,7 @@ class Test_hserver_outside_docker_container_on_csfy_server1(_TestCase1, hunitest
             is_prod_csfy                                  False
             """)
         self.exp_get_setup_signature = ""
-        self.exp_is_dev_csfy = True
+        self.exp_is_host_csfy_server = True
         self.exp_is_inside_ci = False
 
 
@@ -172,7 +172,7 @@ class Test_hserver_inside_docker_container_on_mac_host1(_TestCase1, hunitest.Tes
         self.exp_config_func_to_str = ""
         self.exp_get_setup_settings = ""
         self.exp_get_setup_signature = ""
-        self.exp_is_dev_csfy = True
+        self.exp_is_host_csfy_server = True
         self.exp_is_inside_ci = True
 
 
@@ -195,7 +195,7 @@ class Test_hserver_outside_docker_container_on_gp_mac1(_TestCase1, hunitest.Test
         self.exp_config_func_to_str = ""
         self.exp_get_setup_settings = ""
         self.exp_get_setup_signature = ""
-        self.exp_is_dev_csfy = True
+        self.exp_is_host_csfy_server = True
         self.exp_is_inside_ci = True
 
 
