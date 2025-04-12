@@ -892,7 +892,6 @@ def run_fast_coverage(ctx, target_dir, generate_html_report=True):
         # Include all dirs.
         include_in_report = "*"
         if hserver.skip_submodules_test():
-            # Exclude submodules.
             submodule_paths = hgit.get_submodule_paths()
             exclude_from_report = ",".join(
                 path + "/*" for path in submodule_paths
@@ -915,6 +914,11 @@ def run_fast_coverage(ctx, target_dir, generate_html_report=True):
         report_cmd.append(report_html_cmd)
     # Generate an XML report for Codecov.
     report_cmd.append("coverage xml -o coverage.xml")
+    # Join and execute the commands in Docker (assuming Coverage is installed in Docker).
+    full_report_cmd = " && ".join(report_cmd)
+    docker_cmd_ = f"invoke docker_cmd --use-bash --cmd '{full_report_cmd}'"
+    hlitauti.run(ctx, docker_cmd_)
+    # Return the file name if needed for subsequent tasks.
     return fast_tests_coverage_file
 
 
