@@ -28,9 +28,9 @@
 
 ## Why Do We Need This Approach?
 
-- In our codebases, it is common to have duplicate files or files
-  that are identical between two directories. Maintaining these files manually
-  can lead to inefficiencies and errors:
+- In our codebases, it is common to have files that are identical between two
+  directories. Maintaining these files manually can lead to inefficiencies and
+  errors:
   - Synchronization: If changes are made in one location, they may not reflect
     in the other, leading to inconsistencies
   - Accidental Modifications: Directly modifying files that should remain
@@ -38,12 +38,31 @@
 
 - With our approach:
   - We avoid file duplication by creating links that point to the original files
-  - Links in the destination directory remain read-only, reducing the risk of
-    accidental changes
+  - Links in the destination directory are marked as read-only, reducing the
+    risk of accidental changes
   - If modifications are needed, the "staging process" ensures you can work
     safely on copies without altering the original source files
   - After the code has been developed, one can then convert copies of files, back
     to links
+
+## Nomenclature
+
+- Links are often confusing since it's not clear what is linked to and what is
+  linked from, e.g.,
+  - `ln -s foo bar` creates a symbolic link named `foo` that points to `bar`
+    ```bash
+    foo -> bar
+    ```
+  - This convention seems the opposite of `cp foo bar` where a new file called
+    `bar` is created with the content of `foo`
+  
+- Also referring to "source" and "destination" is confusing since it is unclear
+  if "destination" is the "destination" of the link (i.e., the head of the arrow)
+  or the "destination" of the operation of copy (the tail of the arrow)
+  
+- In the rest of this document we will refer to the file being created as
+  "destination" 
+  - E.g., `ln -s new_file old_file`
 
 ## Workflow and Commands
 
@@ -55,7 +74,7 @@
   links to the corresponding files in `src_dir`
 
   Command:
-  ```
+  ```bash
   > create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --replace_links
   ```
 
@@ -76,9 +95,13 @@
 - If you want to edit the files in `dst_dir` (which are currently symbolic
   links), use `stage_linked_file.py` to stage them. Staging replaces the
   symbolic links with writable copies of the original files
+- At this point, you can just modify the files in `dst_dir` to achieve the
+  desired goal, without worries of altering the source files
+  - Often you don't know which files need to be changed and how to change files
+    so all the files are staged for modification
 
 - Command:
-  ```
+  ```bash
   > stage_linked_file.py --dst_dir /path/to/dst
   ```
 
@@ -99,7 +122,7 @@
   by running `create_links.py` again with the `--replace_links` flag
 
 - Command:
-  ```
+  ```bash
   > create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --replace_links
   ```
 
@@ -115,19 +138,19 @@
 
 ### Workflow Summary
 
-- Set up `symbolic links`:
-  ```
+1. Set up symbolic links:
+  ```bash
   > create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --replace_links
   ```
 
-- Stage `symbolic links` for modification:
+2. Stage symbolic links for modification:
   ```
   > stage_linked_file.py --dst_dir /path/to/dst
   ```
 
-- Modify files as required
+3. Modify files as required
 
-- After modifications, restore the `symbolic links`:
+4. After modifications, restore the symbolic links:
   ```
   > create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --replace_links
   ```
