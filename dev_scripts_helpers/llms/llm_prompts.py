@@ -334,11 +334,12 @@ def code_apply_csfy_style1() -> _PROMPT_OUT:
     system += fr"""
     Apply the style described below to the Python code without changing the
     behavior of the code.
-    Do not print any comment, just the converted code.
-
     ```
     {file_content}
     ```
+    Do not remove any code, just format the existing code using the style.
+
+    Do not report any explanation of what you did, just the converted code.
     """
     pre_transforms = set()
     post_transforms = {"remove_code_delimiters"}
