@@ -91,7 +91,7 @@ def get_env_var(
     """
     if env_name not in os.environ:
         if abort_on_missing:
-            hdbg.dassert_in(env_name, os.environ, f"Can't find env var '{env_name}' in '{str(os.environ)}'")
+            hdbg.dassert_in(env_name, os.environ, "Can't find env var '%s' in '%s'", env_name, str(os.environ))
         else:
             return default_value
     value = os.environ[env_name]
@@ -184,8 +184,7 @@ def check_env_vars() -> None:
     """
     env_vars = get_env_vars()
     for env_var in env_vars:
-        # TODO(gp): GFI. Use %s instead of str().
-        hdbg.dassert_in(env_var, os.environ, f"env_var='{str(env_var)}' is not in env_vars='{str(os.environ.keys())}''")
+        hdbg.dassert_in(env_var, os.environ, "env_var='%s' is not in env_vars='%s'", env_var, str(os.environ.keys()))
 
 
 def env_vars_to_string() -> str:
@@ -384,7 +383,8 @@ def _get_library_version(lib_name: str) -> str:
 
 
 def _get_package_info() -> Tuple[List[str], int]:
-    """Get package version information.
+    """
+    Get package version information.
 
     Returns:
         Tuple containing:
