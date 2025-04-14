@@ -25,6 +25,7 @@ _LOG = logging.getLogger(__name__)
 def _find_function_indices(text: List[str]) -> List[int]:
     """
     Get indices of lines of code that are inside functions and methods.
+
     For example:
         Input: [
             "import os",
@@ -57,9 +58,8 @@ def _find_function_indices(text: List[str]) -> List[int]:
         base_indent = len(match.group(1))
         start = i
         _LOG.debug(
-            "Function header found at line ",
+            "Function header found at line %d with base indentation %d",
             i,
-            " with base indentation ",
             base_indent,
         )
         i += 1
@@ -67,7 +67,7 @@ def _find_function_indices(text: List[str]) -> List[int]:
             # Process each line inside the function.
             current_line = text[i]
             if current_line.strip() == "":
-                _LOG.debug("Empty line found at ", i, " inside function.")
+                _LOG.debug("Empty line found at %d inside function.", i)
                 # Register empty lines that are inside the function.
                 i += 1
                 continue
@@ -77,7 +77,7 @@ def _find_function_indices(text: List[str]) -> List[int]:
                 while text[i - 1] == "":
                     # Do not register empty lines that follow the function.
                     i -= 1
-                _LOG.debug("Function block ends at line ", i)
+                _LOG.debug("Function block ends at line %d", i)
                 break
             i += 1
         function_line_indices.extend(range(start, i))

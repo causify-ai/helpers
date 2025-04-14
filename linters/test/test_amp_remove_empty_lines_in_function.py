@@ -39,8 +39,9 @@ class Test_remove_empty_lines(hunitest.TestCase):
 
     def _run_test(self) -> None:
         """
-        Prepare inputs.
+        Helper to run test cases.
         """
+        # Prepare inputs.
         test_input_dir = self.get_input_dir()
         text_file_path = os.path.join(test_input_dir, "test.txt")
         text = hio.from_file(text_file_path)
