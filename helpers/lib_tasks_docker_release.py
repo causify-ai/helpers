@@ -616,14 +616,14 @@ def docker_build_prod_image(  # type: ignore
     dev_version = hlitadoc.to_dev_version(prod_version)
     # Copy source code.
     current_dir = _to_abs_path(".")
-    helpers_root = hgit.find_helpers_root()
-    helpers_dir = _to_abs_path(helpers_root)
     tmp_dir = "tmp.docker_build_prod_image"
     hio.create_dir(tmp_dir, incremental=False)
     # Copy the source code and deference all the symbolic links.
     cmd = f"rsync -rL --exclude='{tmp_dir}' {current_dir}/* ./{tmp_dir}"
     hsystem.system(cmd)
     # Copy helpers.
+    helpers_root = hgit.find_helpers_root()
+    helpers_dir = _to_abs_path(helpers_root)
     cmd = f"cp -rL {helpers_dir}/helpers ./{tmp_dir}/"
     hsystem.system(cmd)
     #
