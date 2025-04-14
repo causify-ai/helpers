@@ -172,7 +172,7 @@ class Test_is_markdown_line_separator1(hunitest.TestCase):
 
     def test_valid_separator2(self) -> None:
         # Prepare inputs.
-        line = "# -----"
+        line = "# ---"
         # Call function.
         act = hmarkdo.is_markdown_line_separator(line)
         # Check output.
@@ -226,7 +226,7 @@ class Test_is_markdown_line_separator1(hunitest.TestCase):
 
     def test_invalid_separator2(self) -> None:
         # Prepare inputs.
-        line = "# ----"
+        line = "# --"
         # Call function.
         act = hmarkdo.is_markdown_line_separator(line)
         # Check output.
@@ -244,7 +244,7 @@ class Test_is_markdown_line_separator1(hunitest.TestCase):
 
     def test_invalid_separator4(self) -> None:
         # Prepare inputs.
-        line = "==="
+        line = "=="
         # Call function.
         act = hmarkdo.is_markdown_line_separator(line)
         # Check output.
@@ -254,6 +254,24 @@ class Test_is_markdown_line_separator1(hunitest.TestCase):
     def test_invalid_separator5(self) -> None:
         # Prepare inputs.
         line = "- //////"
+        # Call function.
+        act = hmarkdo.is_markdown_line_separator(line)
+        # Check output.
+        exp = False
+        self.assertEqual(act, exp)
+
+    def test_invalid_separator6(self) -> None:
+        # Prepare inputs.
+        line = "=== Not a seperator"
+        # Call function.
+        act = hmarkdo.is_markdown_line_separator(line)
+        # Check output.
+        exp = False
+        self.assertEqual(act, exp)
+
+    def test_invalid_separator7(self) -> None:
+        # Prepare inputs.
+        line = "--- Not a seperator ---"
         # Call function.
         act = hmarkdo.is_markdown_line_separator(line)
         # Check output.
