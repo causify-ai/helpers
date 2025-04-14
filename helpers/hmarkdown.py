@@ -34,7 +34,7 @@ def is_markdown_line_separator(line: str, min_repeats: int = 3) -> bool:
     that would indicate a markdown separator.
 
     :param line: the current line of text being processed
-    :param min_repeats: the minimum number of times the characters are repeated to be
+    :param min_repeats: the minimum number of times the characters have to be repeated to be
         considered a separator, e.g., if `min_repeats` = 2, then `##`, `###`, `//` are
         considered to be line separators, but `#`, `/` are not
     :return: true if the line is a separator
