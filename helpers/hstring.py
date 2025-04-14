@@ -94,48 +94,6 @@ def get_docstring_line_indices(lines: List[str]) -> List[int]:
     return docstring_line_indices
 
 
-# TODO(allenmatt10): Add tests.
-def get_function_indices(lines: List[str]) -> List[int]:
-    """
-    Get indices of lines of code that are inside functions and methods.
-
-    :param lines: the code lines to check
-    :return: the indices of function lines
-    """
-    function_line_indices = []
-    i = 0
-    n = len(lines)
-    while i < n:
-        # Process each line to find function header.
-        line = lines[i]
-        match = re.match(r"(\s*)def\s+\w+", line)
-        if match:
-            base_indent = len(match.group(1))
-            start = i
-            i += 1
-            while i < n:
-                current_line = lines[i]
-                if current_line.strip() == "":
-                    # Register empty lines that are inside the function.
-                    i += 1
-                    continue
-                current_indent = len(current_line) - len(current_line.lstrip())
-                if current_indent <= base_indent:
-                    # Exit if current line is indented at or below base level as function ends.
-                    while True:
-                        # Do not register empty lines that follow the function.
-                        if lines[i - 1] == "":
-                            i -= 1
-                        else:
-                            break
-                    break
-                i += 1
-            function_line_indices.extend(range(start, i))
-        else:
-            i += 1
-    return function_line_indices
-
-
 def get_code_block_line_indices(lines: List[str]) -> List[int]:
     """
     Get indices of lines that are inside code blocks.

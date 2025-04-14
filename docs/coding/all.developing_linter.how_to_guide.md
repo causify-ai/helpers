@@ -125,7 +125,7 @@
   - A wrapper around [`jupytext`](https://jupytext.readthedocs.io)
   - Keeps paired `.ipynb` and `.py` files synchronized
 
-- `amp_remove_empty_lines.py`
+- `amp_remove_empty_lines_in_function.py`
   - Cleans up empty lines inside functions and methods
 
 ### Checking if the files are in accordance with our rules (non-modifying)
