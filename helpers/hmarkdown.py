@@ -37,11 +37,9 @@ def is_markdown_line_separator(line: str, min_repeats: int = 3) -> bool:
     :return: true if the line is a separator
     """
     line_pattern = rf"""
-    \#*\s*  # Optional leading `#` and whitespace.
+    \#*\s*  # Allow optional leading `#` and whitespace.
     ([#/=\-])\1{{{min_repeats - 1},}}  # Capture a character, then repeat it (`min_repeats` - 1) times.
-    (?![a-zA-Z0-9])  # Ensure no alphanumeric characters follow the repeated characters.
-    [ \t]*  #  Allow only trailing spaces or tabs.
-    $
+    \s*$ # Match only whitespace characters until the end of the line.
     """
     res = bool(re.match(line_pattern, line, re.VERBOSE))
     return res
