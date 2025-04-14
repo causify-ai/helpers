@@ -1364,7 +1364,6 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
         """
         # Prepare inputs.
         content = _get_markdown_example5()
-        content = hprint.dedent(content)
         # Call function.
         act = hmarkdo.remove_code_delimiters(content)
         # Check output.
