@@ -12,7 +12,7 @@ import argparse
 import logging
 import re
 import uuid
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -50,56 +50,70 @@ class _DocFormatter(liaction.Action):
         return check
 
     @staticmethod
-    def _has_unbalanced_triple_backticks(file_name: str) -> Tuple[bool, List]:
+    def _get_docstring_lines(lines: List[str]) -> List[List[int]]:
         """
-        Check if the file contains triple backticks that are unbalanced.
+        Return the line indices that are within docstrings.
+
+        :param lines: lines from the file to process
+        :return: lines within docstrings
+        """
+        # Get indices of lines that are within docstrings.
+        doc_indices = hstring.get_docstring_line_indices(lines)
+        # Group these indices into consecutive docstrings.
+        docstrings = []
+        if doc_indices:
+            current_docstring = [doc_indices[0]]
+            for idx in doc_indices[1:]:
+                if idx == current_docstring[-1] + 1:
+                    current_docstring.append(idx)
+                else:
+                    docstrings.append(current_docstring)
+                    current_docstring = [idx]
+            docstrings.append(current_docstring)
+        return docstrings
+
+    @staticmethod
+    def _find_unbalanced_triple_backticks(file_name: str) -> List[int]:
+        """
+        Check if the file contains contains docstrings with unbalanced triple
+        backticks.
 
         E.g., '''
-            ```
-            ^ Unbalanced backticks here. You'd normally expect it to be
-            closed below.
-            '''
+        ```
+        ^ Unbalanced backticks here. You'd normally expect it to be
+        closed below.
+        '''
 
-        This function is called to decide whether the linter can temporarily
-        remove python code expected to be contained within backticks
-        while formatting.
+        If the docstring contains triple backticks that are unbalanced (opened but not closed),
+        the whole docstring should be passed to docformatter without removing the code block
+        wrapped in those backticks
 
         :param file_name: file to process
         :return:
             - whether there are unbalanced backticks
             - all the starting indices of docstrings where the
-            unbalanced backticks exist
+              unbalanced backticks exist
         """
         contents = hio.from_file(file_name)
         lines = contents.splitlines()
-        # Get indices (zero-indexed) of lines that are within docstrings.
-        doc_indices = hstring.get_docstring_line_indices(lines)
-        # Group the docstring indices into consecutive chunks.
-        chunks = []
-        if doc_indices:
-            current_chunk = [doc_indices[0]]
-            for idx in doc_indices[1:]:
-                if idx == current_chunk[-1] + 1:
-                    current_chunk.append(idx)
-                else:
-                    chunks.append(current_chunk)
-                    current_chunk = [idx]
-            chunks.append(current_chunk)
-        issues = []
-        # Process each chunk.
-        for chunk in chunks:
-            leftmost_count = 0
-            for idx in chunk:
+        # Get lines that are within docstrings.
+        docstrings = _DocFormatter._get_docstring_lines(lines)
+        idxs_docstrings_with_unbalanced_backticks = []
+        # Process each docstring.
+        for docstring in docstrings:
+            leftmost_triple_backticks_count = 0
+            for idx in docstring:
                 if lines[idx].lstrip().startswith("```"):
                     # Count this triple backticks at the leftmost position.
-                    leftmost_count += 1
-            if leftmost_count % 2 != 0:
-                # Flag the chunk.
+                    leftmost_triple_backticks_count += 1
+            if leftmost_triple_backticks_count % 2 != 0:
+                # Odd number of leftomost triple backticks in this docstring.
+                # Append the docstring that has unbalanced triple backticks.
                 # Convert zero-indexed numbers to one-indexed line numbers.
-                issues.append(chunk[0] + 1)
-        if issues:
-            return True, issues
-        return False, []
+                # This would accurately link it to the part of the code;
+                # Where the docstring starts on code editors.
+                idxs_docstrings_with_unbalanced_backticks.append(docstring[0] + 1)
+        return idxs_docstrings_with_unbalanced_backticks
 
     @staticmethod
     def _remove_ignored_docstrings(file_name: str) -> Dict[str, str]:
@@ -242,18 +256,12 @@ class _DocFormatter(liaction.Action):
             # Apply only to Python files.
             return []
         # Check for unbalanced backticks.
-        unbalanced_backtick_warning = ""
-        is_unbalanced, issues = self._has_unbalanced_triple_backticks(file_name)
+        idxs_docstrings_with_unbalanced_backticks = (
+            self._find_unbalanced_triple_backticks(file_name)
+        )
         # Clear and store ignored docstrings and code.
         _ignored_docstrings = self._remove_ignored_docstrings(file_name)
-        if is_unbalanced:
-            # Do not remove any codeblocks as unbalanced backticks detected.
-            unbalanced_backtick_warning = "\n".join(
-                f"{file_name}:{start}: Found unbalanced triple backticks; "
-                f"make sure both opening and closing backticks "
-                f"are the leftmost element of their line"
-                for start in issues
-            )
+        if idxs_docstrings_with_unbalanced_backticks:
             _removed_code = {}
         else:
             _removed_code = self._remove_code_blocks(file_name)
@@ -266,9 +274,14 @@ class _DocFormatter(liaction.Action):
         self._restore_ignored_docstrings(file_name, _ignored_docstrings)
         if _removed_code:
             self._restore_removed_code_blocks(file_name, _removed_code)
-        if unbalanced_backtick_warning:
-            # Prepend generated warnings.
-            output.insert(0, unbalanced_backtick_warning)
+        if idxs_docstrings_with_unbalanced_backticks:
+            # Append generated warnings.
+            for start_idx in idxs_docstrings_with_unbalanced_backticks:
+                output.append(
+                    f"{file_name}:{start_idx}: Found unbalanced triple backticks; "
+                    f"make sure both opening and closing backticks are the leftmost"
+                    f" element of their line"
+                )
         return output
 
 
