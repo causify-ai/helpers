@@ -33,7 +33,7 @@ import helpers.hserver as hserver
 _LOG = logging.getLogger(__name__)
 
 # Set logging level of this file higher to avoid too much chatter.
-#_LOG.setLevel(logging.INFO)
+_LOG.setLevel(logging.INFO)
 
 # #############################################################################
 
