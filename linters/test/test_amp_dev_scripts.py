@@ -74,7 +74,9 @@ class Test_linter_py1(hunitest.TestCase):
         return output
 
     # #########################################################################
-
+    @pytest.mark.skip(
+        "Skip due to issue related to dockerized executable. See HelpersTask553."
+    )
     @pytest.mark.slow("About 24 sec")
     def test_linter1(self) -> None:
         """
@@ -88,6 +90,9 @@ class Test_linter_py1(hunitest.TestCase):
         # Check.
         self.check_string(output, purify_text=True)
 
+    @pytest.mark.skip(
+        "Skip due to issue related to dockerized executable. See HelpersTask553."
+    )
     @pytest.mark.slow("About 18 sec")
     def test_linter2(self) -> None:
         """
