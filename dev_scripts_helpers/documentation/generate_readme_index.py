@@ -83,6 +83,8 @@ def _get_existing_summaries(
         if rel_path in markdown_files:
             # Filter out deleted files
             summaries[rel_path] = summary
+        else:
+            _LOG.debug("Deleting summary for %s", rel_path)
     return summaries
 
 
@@ -96,6 +98,10 @@ def _generate_summary_for_file(
     :param model: model identifier (e.g., "placeholder", "gpt-4o-mini")
     :return: a short summary of a file
     """
+    if model is None:
+        raise ValueError(
+            "`model` must be specified (e.g., 'placeholder' or a valid ChatGPT model)."
+        )
     if model == "placeholder":
         # Skip OpenAI API usage.
         _LOG.debug("Using placeholder summary for %s", file_path)
