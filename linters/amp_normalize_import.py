@@ -78,8 +78,9 @@ _CUSTOM_SHORT_IMPORTS = {
     # "core.config_builders": "ccbuild",
 }
 
+
 # #############################################################################
-# Generate long-to-short import mappings
+# LongToShortImportGenerator
 # #############################################################################
 
 
@@ -92,8 +93,8 @@ class LongToShortImportGenerator:
         """
         Init the long-to-short import generator.
 
-        :param use_special_abbreviations: whether to override certain import
-            chunks or not
+        :param use_special_abbreviations: whether to override certain
+            import chunks or not
         :return:
         """
         self.use_special_abbreviations = use_special_abbreviations
@@ -130,12 +131,13 @@ class LongToShortImportGenerator:
         """
         Shorten the imports for provided filenames.
 
-        If it is impossible to create a unique short import for a filename,
-        skip it.
+        If it is impossible to create a unique short import for a
+        filename, skip it.
 
         :param py_files: list of Python files' paths
         :return: long import to short import mappings, e.g.
-            `{"long_import1": "short_import1", "long_import2": "short_import1"}`
+            `{"long_import1": "short_import1", "long_import2":
+            "short_import1"}`
         """
         # Report the Python files.
         _LOG.debug("Python files=\n%s", "\n".join(py_files))
@@ -178,10 +180,11 @@ class LongToShortImportGenerator:
         """
         Find the long imports that have the same short name.
 
-        :param short_import_to_long: short import to long import mappings, e.g.
-            `{"sh_i1": ["l_i1", "l_i2"], "sh_i2": ["l_i3"]}`
-        :return: short imports that have multiple long import mappings, e.g.
-            `{"sh_i1": ["l_i1", "l_i2"]}`
+        :param short_import_to_long: short import to long import
+            mappings, e.g. `{"sh_i1": ["l_i1", "l_i2"], "sh_i2":
+            ["l_i3"]}`
+        :return: short imports that have multiple long import mappings,
+            e.g. `{"sh_i1": ["l_i1", "l_i2"]}`
         """
         collisions: Collisions = {}
         for value, keys in short_import_to_long.items():
@@ -200,8 +203,8 @@ class LongToShortImportGenerator:
         Override certain chunks and their lengths using a predefined
         dictionary.
 
-        :param chunks: long import chunks, e.g. `["dataflow", "amp", "real",
-            "time", "pipeline"]`
+        :param chunks: long import chunks, e.g. `["dataflow", "amp",
+            "real", "time", "pipeline"]`
         :param chunk_lengths: max chunk lengths, e.g. `[1, 1, 2, 3, 3]`
         :return: chunks and their lengths updated from dictionary
         """
@@ -233,8 +236,8 @@ class LongToShortImportGenerator:
         Compute the short import from the chunks and the desired length for
         each chunk.
 
-        :param chunks: long import chunks, e.g. `["dataflow", "amp", "real",
-            "time", "pipeline"]`
+        :param chunks: long import chunks, e.g. `["dataflow", "amp",
+            "real", "time", "pipeline"]`
         :param chunk_lengths: max chunk lengths, e.g. `[1, 1, 2, 3, 3]`
         :return: short import, e.g. "daretimpip"
         """
@@ -312,9 +315,10 @@ class LongToShortImportGenerator:
         """
         Convert a long import into import chunks, breaking on `_` and `.`.
 
-        :param long_import: long import, e.g. "dataflow_amp.real_time.pipeline"
-        :return: long import split in chunks, e.g. `["dataflow", "amp", "real",
-            "time", "pipeline"]`
+        :param long_import: long import, e.g.
+            "dataflow_amp.real_time.pipeline"
+        :return: long import split in chunks, e.g. `["dataflow", "amp",
+            "real", "time", "pipeline"]`
         """
         _LOG.debug("long_import=%s", long_import)
         chunks = long_import.replace("_", ".").split(".")
@@ -330,8 +334,10 @@ class LongToShortImportGenerator:
         Print a mapping from long import (e.g. "linter.amp_black") to short
         import (e.g. "lambla").
 
-        :param long_import_to_short: long import to short import mappings
-        :return: prettified long import to short import mappings for printing
+        :param long_import_to_short: long import to short import
+            mappings
+        :return: prettified long import to short import mappings for
+            printing
         """
         res = []
         for key in sorted(long_import_to_short.keys()):
@@ -347,8 +353,10 @@ class LongToShortImportGenerator:
         Print a mapping from short import (e.g. "lambla") to long import (e.g.
         "linter.amp_black").
 
-        :param short_import_to_long: short import to long import mappings
-        :return: prettified short import to long import mappings for printing
+        :param short_import_to_long: short import to long import
+            mappings
+        :return: prettified short import to long import mappings for
+            printing
         """
         res = []
         for value in sorted(short_import_to_long.keys()):
@@ -365,9 +373,11 @@ class LongToShortImportGenerator:
         Shorten an import if it is possible.
 
         :param long_import: long import
-        :param long_import_to_short: existing long import to short import mappings
-        :return: short import or None if it was not possible to shorten the long import
-            (e.g., due to collision or a not supported name)
+        :param long_import_to_short: existing long import to short
+            import mappings
+        :return: short import or None if it was not possible to shorten
+            the long import (e.g., due to collision or a not supported
+            name)
         """
         _LOG.debug("long_import=%s", long_import)
         # Apply custom mapping to the corresponding long imports.
@@ -506,7 +516,7 @@ class LongToShortImportGenerator:
 
 
 # #############################################################################
-# Replace imports in code
+# CodeImportNormalizer
 # #############################################################################
 
 
@@ -615,7 +625,8 @@ class CodeImportNormalizer:
         """
         Replace an old short import with a new short import in the code.
 
-        The import is not replaced if it is in a comment or a (doc)string.
+        The import is not replaced if it is in a comment or a
+        (doc)string.
 
         :param code: Python code
         :param old_short_import: short import to be replaced
@@ -702,7 +713,8 @@ class CodeImportNormalizer:
 
         :param code: file content
         :param short_import: short import to check
-        :param long_import: the long import that the short import is linked to
+        :param long_import: the long import that the short import is
+            linked to
         :return: True if short import is used
         """
         # Make sure that this short import is not used with a different long import.
@@ -744,9 +756,9 @@ class CodeImportNormalizer:
         If the same import is found multiple times, a warning is returned.
 
         :param code: content of the file
-        :return: 
+        :return:
             - long-to-short import mappings from the code
-            - warnings about non-unique imports, if any 
+            - warnings about non-unique imports, if any
         """
         # List of modules to exclude from import transformation.
         _EXCLUDED_IMPORT_REGEX = [r"IPython\.", r"notebook\."]
@@ -764,12 +776,14 @@ class CodeImportNormalizer:
                 # Keep only unique matches, preserving the order.
                 unique_matches.append(match)
             else:
-                warnings.append(f"Found the same import `import {match[0]} as {match[1]}` multiple times")
+                warnings.append(
+                    f"Found the same import `import {match[0]} as {match[1]}` multiple times"
+                )
         return unique_matches, warnings
 
 
 # #############################################################################
-# Generate import docstring
+# ImportDocstringGenerator
 # #############################################################################
 
 
@@ -813,7 +827,8 @@ class ImportDocstringGenerator:
         missing.
 
         :param code: the text of the file
-        :return: the code with the empty docstring at the beginning of the file
+        :return: the code with the empty docstring at the beginning of
+            the file
         """
         if (
             "Import as:\n\nimport" in code
@@ -949,7 +964,7 @@ class ImportDocstringGenerator:
 
 
 # #############################################################################
-# Normalize imports end-to-end
+# _NormalizeImports
 # #############################################################################
 
 
@@ -989,13 +1004,13 @@ class _NormalizeImports(liaction.Action):
         Execute the action.
 
         :param file_name: path to the file to process
-        :param pedantic: 1 if it needs to be run in angry mode, 0 otherwise
+        :param pedantic: 1 if it needs to be run in angry mode, 0
+            otherwise
         :return: list of strings representing the output
         """
         _ = pedantic
-        if not liutils.is_py_file(file_name):
-            # Skip a file if it is not a Python file.
-            _LOG.debug("Skipping file='%s'", file_name)
+        if self.skip_if_not_py(file_name):
+            # Apply only to Python files.
             return []
         #
         if os.path.basename(file_name) in liutils.FILES_TO_EXCLUDE:

@@ -17,7 +17,13 @@ _LOG = logging.getLogger(__name__)
 # completes and visually inspect the outcome, if possible.
 
 
+# #############################################################################
+# Test_git_submodule1
+# #############################################################################
+
+
 class Test_git_submodule1(hunitest.TestCase):
+
     def test_get_client_root1(self) -> None:
         act = hgit.get_client_root(super_module=True)
         _LOG.debug("act=%s", act)
@@ -52,6 +58,11 @@ class Test_git_submodule1(hunitest.TestCase):
     def test_get_submodule_paths1(self) -> None:
         act = hgit.get_submodule_paths()
         _LOG.debug("act=%s", act)
+
+
+# #############################################################################
+# Test_git_submodule2
+# #############################################################################
 
 
 class Test_git_submodule2(hunitest.TestCase):
@@ -108,7 +119,13 @@ class Test_git_submodule2(hunitest.TestCase):
         self.assert_equal(act, exp, fuzzy_match=True)
 
 
+# #############################################################################
+# Test_git_repo_name1
+# #############################################################################
+
+
 class Test_git_repo_name1(hunitest.TestCase):
+
     def test_parse_github_repo_name1(self) -> None:
         repo_name = "git@github.com:alphamatic/amp"
         host_name, repo_name = hgit._parse_github_repo_name(repo_name)
@@ -135,11 +152,15 @@ class Test_git_repo_name1(hunitest.TestCase):
         self.assert_equal(repo_name, "alphamatic/amp")
 
     def test_get_repo_full_name_from_dirname1(self) -> None:
-        act = hgit.get_repo_full_name_from_dirname(dir_name='.', include_host_name=False)
+        act = hgit.get_repo_full_name_from_dirname(
+            dir_name=".", include_host_name=False
+        )
         _LOG.debug("act=%s", act)
 
     def test_get_repo_full_name_from_dirname2(self) -> None:
-        act = hgit.get_repo_full_name_from_dirname(dir_name='.', include_host_name=True)
+        act = hgit.get_repo_full_name_from_dirname(
+            dir_name=".", include_host_name=True
+        )
         _LOG.debug("act=%s", act)
 
     def test_get_repo_full_name_from_client1(self) -> None:
@@ -151,9 +172,15 @@ class Test_git_repo_name1(hunitest.TestCase):
         _LOG.debug("act=%s", act)
 
 
+# #############################################################################
+# Test_git_path1
+# #############################################################################
+
+
 # Outside CK infra, the following class hangs, so we skip it.
 @pytest.mark.requires_ck_infra
 class Test_git_path1(hunitest.TestCase):
+
     @pytest.mark.skipif(
         not hgit.is_in_amp_as_supermodule(),
         reason="Run only in amp as super-module",
@@ -206,6 +233,11 @@ class Test_git_path1(hunitest.TestCase):
             )
 
 
+# #############################################################################
+# Test_git_modified_files1
+# #############################################################################
+
+
 # Outside CK infra, the following class hangs, so we skip it.
 @pytest.mark.requires_ck_infra
 @pytest.mark.slow(reason="Around 7s")
@@ -236,11 +268,11 @@ class Test_git_modified_files1(hunitest.TestCase):
         _LOG.debug("act=%s", act)
 
     def test_get_modified_files_in_branch1(self) -> None:
-        act = hgit.get_modified_files_in_branch('master')
+        act = hgit.get_modified_files_in_branch("master")
         _LOG.debug("act=%s", act)
 
     def test_get_summary_files_in_branch1(self) -> None:
-        act = hgit.get_summary_files_in_branch('master')
+        act = hgit.get_summary_files_in_branch("master")
         _LOG.debug("act=%s", act)
 
     def test_git_log1(self) -> None:
@@ -251,9 +283,15 @@ class Test_git_modified_files1(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# Test_find_docker_file1
+# #############################################################################
+
+
 # Outside CK infra, the following class hangs, so we skip it.
 @pytest.mark.requires_ck_infra
 class Test_find_docker_file1(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Test for a file `amp/helpers/test/test_hgit.py` that is not from Docker
@@ -345,7 +383,13 @@ class Test_find_docker_file1(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# Test_extract_gh_issue_number_from_branch
+# #############################################################################
+
+
 class Test_extract_gh_issue_number_from_branch(hunitest.TestCase):
+
     def test_extract_gh_issue_number_from_branch1(self) -> None:
         """
         Tests extraction from a branch name with a specific format.
@@ -381,6 +425,11 @@ class Test_extract_gh_issue_number_from_branch(hunitest.TestCase):
         act = hgit.extract_gh_issue_number_from_branch(branch_name)
         exp = "None"
         self.assert_equal(str(act), exp)
+
+
+# #############################################################################
+# Test_find_git_root1
+# #############################################################################
 
 
 class Test_find_git_root1(hunitest.TestCase):
@@ -473,6 +522,11 @@ class Test_find_git_root1(hunitest.TestCase):
             self.assert_equal(git_root, self.repo_dir)
 
 
+# #############################################################################
+# Test_find_git_root2
+# #############################################################################
+
+
 class Test_find_git_root2(hunitest.TestCase):
     """
     Check that the function returns the correct git root if:
@@ -539,6 +593,11 @@ class Test_find_git_root2(hunitest.TestCase):
             self.assert_equal(git_root, self.repo_dir)
 
 
+# #############################################################################
+# Test_find_git_root3
+# #############################################################################
+
+
 class Test_find_git_root3(hunitest.TestCase):
     """
     Check that the function returns the correct git root if:
@@ -585,6 +644,11 @@ class Test_find_git_root3(hunitest.TestCase):
             self.assert_equal(git_root, self.repo_dir)
 
 
+# #############################################################################
+# Test_find_git_root4
+# #############################################################################
+
+
 class Test_find_git_root4(hunitest.TestCase):
     """
     Check that the function returns the correct git root if:
@@ -621,6 +685,11 @@ class Test_find_git_root4(hunitest.TestCase):
         with hsystem.cd(self.linked_repo_dir):
             git_root = hgit.find_git_root(".")
             self.assert_equal(git_root, self.repo_dir)
+
+
+# #############################################################################
+# Test_find_git_root5
+# #############################################################################
 
 
 class Test_find_git_root5(hunitest.TestCase):
