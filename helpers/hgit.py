@@ -679,6 +679,13 @@ def get_repo_full_name_from_client(super_module: bool) -> str:
     return repo_name
 
 
+def is_cwd_git_repo():
+    """
+    Return whether the current working directory is a Git repo root.
+    """
+    return os.path.exists(".git")
+
+
 # #############################################################################
 # Git path
 # #############################################################################
@@ -797,6 +804,8 @@ def get_repo_dirs() -> List[str]:
 
 
 # TODO(gp): It should go in hdocker?
+# TODO(gp): There are functions in hdocker.py that might be more general than
+# this.
 def find_docker_file(
     file_name: str,
     *,
@@ -825,7 +834,7 @@ def find_docker_file(
         test mocking
     :return: the best guess for the file name corresponding to `file_name`
     """
-    _LOG.debug("# Processing file_name='%s'", file_name)
+    _LOG.debug(hprint.func_signature_to_str())
     hdbg.dassert_isinstance(file_name, str)
     # Clean up file name.
     file_name = os.path.normpath(file_name)
