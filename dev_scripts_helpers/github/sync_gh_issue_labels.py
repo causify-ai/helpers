@@ -87,7 +87,8 @@ class Label:
             "color": self._color,
         }
 
-# TODO(*): GFI. Move to `Label` class as static method. 
+
+# TODO(*): GFI. Move to `Label` class as static method.
 def _load_labels(path: str) -> List[Label]:
     """
     Load labels from label inventory manifest file.
@@ -107,7 +108,8 @@ def _load_labels(path: str) -> List[Label]:
         ]
         return labels
 
-# TODO(*): GFI. Move to `Label` class as static method. 
+
+# TODO(*): GFI. Move to `Label` class as static method.
 def _save_labels(labels: List[Label], path: str) -> None:
     """
     Save labels to the label inventory manifest file.
@@ -120,15 +122,13 @@ def _save_labels(labels: List[Label], path: str) -> None:
             Label(
                 name=label.name,
                 description=label.description if label.description else None,
-                color= label.color,
+                color=label.color,
             ).to_dict()
             for label in labels
         ]
         # Set `default_flow_style=False` to use block style instead of
         # flow style for better readability.
-        yaml.dump(
-            labels_data, file, default_flow_style=False, sort_keys=False
-        )
+        yaml.dump(labels_data, file, default_flow_style=False, sort_keys=False)
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -215,7 +215,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
                     current_label.delete()
                     _LOG.info("Label '%s' deleted", current_label.name)
                 else:
-                    _LOG.info("Label '%s' will be deleted without --dry_run", current_label.name)
+                    _LOG.info(
+                        "Label '%s' will be deleted without --dry_run",
+                        current_label.name,
+                    )
     # Sync labels.
     # Create or update labels.
     for label in labels:
@@ -230,7 +233,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 )
                 _LOG.info("Label '%s' created", label.name)
             else:
-                _LOG.info("Label '%s' will be created without --dry_run", label.name)
+                _LOG.info(
+                    "Label '%s' will be created without --dry_run", label.name
+                )
         elif (
             current_label.description != label.description
             or current_label.color != label.color
