@@ -20,7 +20,13 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+# #############################################################################
+# Test_linter_py1
+# #############################################################################
+
+
 class Test_linter_py1(hunitest.TestCase):
+
     def write_input_file(self, txt: str, file_name: str) -> Tuple[str, str]:
         """
         Write test content to the file.
@@ -97,9 +103,11 @@ class Test_linter_py1(hunitest.TestCase):
 
     # #########################################################################
 
-    # TODO(heanh): Remove the skip when the dockerized. 
+    # TODO(heanh): Remove the skip when the dockerized executable issue is resolved.
     @pytest.mark.slow("About 6 sec")
-    @pytest.mark.skip("Skip due to issue related to dockerized executable. See HelpersTask553.")
+    @pytest.mark.skip(
+        "Skip due to issue related to dockerized executable. See HelpersTask553."
+    )
     def test_linter_md1(self) -> None:
         """
         Run Linter as executable on Markdown.
@@ -342,10 +350,10 @@ def func3(a: str) -> str:
     return a
 
 
-# #############################################################################
-# New part.
-# #############################################################################
 
+# #############################################################################
+# MyClass
+# #############################################################################
 
 class MyClass:
     """
@@ -380,6 +388,10 @@ class MyClass:
 # New part 2.
 ##############################################################################
 
+# #############################################################################
+# TestReplaceShortImportInCode
+# #############################################################################
+
 class TestReplaceShortImportInCode:
     def _helper(self, actual: str, expected: str) -> None:
         """
@@ -394,6 +406,10 @@ class TestReplaceShortImportInCode:
         code = "import test as te"
         expected = code
         self._helper(code, expected)
+
+# #############################################################################
+# TestAnother
+# #############################################################################
 
 # Comment before initializing.
 class TestAnother():
