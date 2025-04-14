@@ -260,6 +260,24 @@ class Test_is_markdown_line_separator1(hunitest.TestCase):
         exp = False
         self.assertEqual(act, exp)
 
+    def test_invalid_separator6(self) -> None:
+        # Prepare inputs.
+        line = "=== Not a seperator"
+        # Call function.
+        act = hmarkdo.is_markdown_line_separator(line)
+        # Check output.
+        exp = False
+        self.assertEqual(act, exp)
+
+    def test_invalid_separator7(self) -> None:
+        # Prepare inputs.
+        line = "--- Not a seperator ---"
+        # Call function.
+        act = hmarkdo.is_markdown_line_separator(line)
+        # Check output.
+        exp = False
+        self.assertEqual(act, exp)
+
 
 # #############################################################################
 # Test_extract_section_from_markdown1
