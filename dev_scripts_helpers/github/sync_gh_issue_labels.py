@@ -17,16 +17,20 @@ Examples
 import argparse
 import logging
 import os
-import subprocess
 from typing import Dict, List
 
 import yaml
 
+# TODO(gp): Use hdbg.WARNING
+_WARNING = "\033[33mWARNING\033[0m"
+
+# TODO(*): outsourceable. Convert to dockerized executable.
 try:
     import github
 except ModuleNotFoundError:
-    subprocess.call(["sudo", "/venv/bin/pip", "install", "pygithub"])
-    import github
+    _module = "pygithub"
+    print(_WARNING + f": Can't find {_module}: continuing")
+
 
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
@@ -83,7 +87,7 @@ class Label:
             "color": self._color,
         }
 
-
+# TODO(*): GFI. Move to `Label` class as static method. 
 def _load_labels(path: str) -> List[Label]:
     """
     Load labels from label inventory manifest file.
@@ -91,23 +95,19 @@ def _load_labels(path: str) -> List[Label]:
     :param path: path to label inventory manifest file
     :return: label objects
     """
-    try:
-        with open(path, "r") as file:
-            yaml_data = yaml.safe_load(file)
-            labels = [
-                Label(
-                    name=item["name"],
-                    description=item["description"],
-                    color=item["color"],
-                )
-                for item in yaml_data
-            ]
-            return labels
-    except Exception as e:
-        _LOG.error("Error loading label inventory manifest file: %s", str(e))
-        raise e
+    with open(path, "r") as file:
+        yaml_data = yaml.safe_load(file)
+        labels = [
+            Label(
+                name=item["name"],
+                description=item["description"],
+                color=item["color"],
+            )
+            for item in yaml_data
+        ]
+        return labels
 
-
+# TODO(*): GFI. Move to `Label` class as static method. 
 def _save_labels(labels: List[Label], path: str) -> None:
     """
     Save labels to the label inventory manifest file.
@@ -115,24 +115,20 @@ def _save_labels(labels: List[Label], path: str) -> None:
     :param labels: label objects
     :param path: path to save the label inventory manifest file to
     """
-    try:
-        with open(path, "w") as file:
-            labels_data = [
-                Label(
-                    name=label.name,
-                    description=label.description if label.description else None,
-                    color=label.color,
-                ).to_dict()
-                for label in labels
-            ]
-            # Set `default_flow_style=False` to use block style instead of
-            # flow style for better readability.
-            yaml.dump(
-                labels_data, file, default_flow_style=False, sort_keys=False
-            )
-    except Exception as e:
-        _LOG.error("Error saving label inventory manifest file: %s", str(e))
-        raise e
+    with open(path, "w") as file:
+        labels_data = [
+            Label(
+                name=label.name,
+                description=label.description if label.description else None,
+                color= label.color,
+            ).to_dict()
+            for label in labels
+        ]
+        # Set `default_flow_style=False` to use block style instead of
+        # flow style for better readability.
+        yaml.dump(
+            labels_data, file, default_flow_style=False, sort_keys=False
+        )
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -171,6 +167,11 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Backup current labels to a label inventory manifest file",
     )
+    parser.add_argument(
+        "--no_interactive",
+        action="store_true",
+        help="Do not prompt for confirmation before executing actions",
+    )
     return parser
 
 
@@ -180,7 +181,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Load labels from label inventory manifest file.
     labels = _load_labels(args.input_file)
     labels_map = {label.name: label for label in labels}
-    token = os.environ.get(args.token_env_var, None)
+    token = os.environ[args.token_env_var]
     hdbg.dassert(token)
     # Initialize GH client.
     client = github.Github(token)
@@ -192,24 +193,29 @@ def _main(parser: argparse.ArgumentParser) -> None:
     execute = not args.dry_run
     # Save the labels if backup is enabled.
     if args.backup:
-        root_dir = hgit.get_client_root(False)
-        dst_dir = f"{root_dir}/dev_scripts_helpers/github/labels/backup"
+        git_root_dir = hgit.get_client_root(False)
         file_name = f"tmp.labels.{args.owner}.{args.repo}.yaml"
-        file_path = f"{dst_dir}/{file_name}"
-        if execute:
-            _save_labels(current_labels, file_path)
+        file_path = f"{git_root_dir}/{file_name}"
+        _save_labels(current_labels, file_path)
         _LOG.info("Labels backed up to %s", file_path)
+    else:
+        _LOG.warning("Skipping saving labels as per user request")
     # Confirm label synchronization.
-    hsystem.query_yes_no(
-        "Are you sure you want to synchronize labels?", abort_on_no=True
-    )
+    if not args.no_interactive:
+        hsystem.query_yes_no(
+            "Are you sure you want to synchronize labels?", abort_on_no=True
+        )
+    else:
+        _LOG.warning("Running in non-interactive mode, skipping confirmation")
     # Delete labels if pruning is enabled.
     if args.prune:
         for current_label in current_labels:
             if current_label.name not in labels_map:
                 if execute:
                     current_label.delete()
-                _LOG.info("Label deleted: %s", current_label.name)
+                    _LOG.info("Label '%s' deleted", current_label.name)
+                else:
+                    _LOG.info("Label '%s' will be deleted without --dry_run", current_label.name)
     # Sync labels.
     # Create or update labels.
     for label in labels:
@@ -222,7 +228,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
                     color=label.color,
                     description=label.description,
                 )
-            _LOG.info("Label created: %s", label.name)
+                _LOG.info("Label '%s' created", label.name)
+            else:
+                _LOG.info("Label '%s' will be created without --dry_run", label.name)
         elif (
             current_label.description != label.description
             or current_label.color != label.color
@@ -234,10 +242,15 @@ def _main(parser: argparse.ArgumentParser) -> None:
                     color=label.color,
                     description=label.description,
                 )
-            _LOG.info("Label updated: %s", label.name)
+                _LOG.info("Label '%s' updated", label.name)
+            else:
+                _LOG.warning(
+                    "Label '%s' will be updated without --dry_run",
+                    label.name,
+                )
         else:
             # Label exists and is identical.
-            _LOG.info("Label not changed: %s", label)
+            _LOG.info("Label '%s' not changed", label.name)
     _LOG.info("Label synchronization completed!")
 
 

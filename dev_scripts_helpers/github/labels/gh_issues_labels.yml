@@ -37,13 +37,13 @@
   description: Reading a book, article and getting familiar with code
   color: "#cd9be1"
 # Pull Request Guidelines.
-- name: PR_for_authors
+- name: PR for authors
   description: The PR needs changes
   color: "#eb35f3"
-- name: PR_for_integrators
+- name: PR for integrators
   description: The PR needs to be reviewed and possibly merged
   color: "#fac906"
-- name: PR_for_reviewers
+- name: PR for reviewers
   description: The PR needs to be reviewed by RPs
   color: "#006b75"
 # Issue Status.
@@ -54,15 +54,15 @@
   description: An issue can be potentially closed
   color: "#e6e6e6"
 # Contribution Types.
-- name: good first issue
+- name: Good first issue
   description: Simple tasks for newcomers
   color: "#7057ff"
-- name: good second issue
+- name: Good second issue
   description: Slightly more demanding tasks for newcomers
   color: '#5F5187'
 - name: Outsource
   description: Anybody can do it
   color: "#919ebe"
-- name: help wanted
-  description: Extra attention is needed
+- name: Bounty
+  description: Help wanted
   color: '#008672'
