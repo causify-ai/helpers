@@ -11,6 +11,8 @@ permissions:
   contents: read
   # This is required for pulling the Docker image from GHCR.
   packages: read
+  # This is required for posting the status of the job when triggered manually.
+  statuses: write  
 jobs:
   Run_linter:
     # We expect user to not execute manual run in a draft PR.
