@@ -431,20 +431,20 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
             - World
         """
         exp = r"""
-        -   [Good](#good){#toc-good}
-            -   [Bad](#bad){#toc-bad}
+        - [Good](#good){#toc-good}
+          - [Bad](#bad){#toc-bad}
 
         # Good
 
-        -   Good time management
-            1.  choose the right tasks
+        - Good time management
+          1.  choose the right tasks
 
-            -   Avoid non-essential tasks
+          - Avoid non-essential tasks
 
         ## Bad
 
-        -   Hello
-            -   World
+        - Hello
+          - World
         """
         self.run_pandoc(txt, exp)
 
