@@ -81,7 +81,7 @@ def _get_existing_summaries(
         rel_path = match.group("rel_path").strip()
         summary = match.group("summary").strip().replace("\n", " ")
         if rel_path in markdown_files:
-            # Filter out deleted files
+            # Filter out deleted files.
             summaries[rel_path] = summary
     return summaries
 
@@ -226,7 +226,7 @@ def _main() -> None:
     # Fetch all Markdown files in the repository.
     markdown_files = list_markdown_files(args.dir_path)
     if markdown_files:
-        # Skip if no markdown files in directory
+        # Skip if no markdown files in directory.
         readme_path = os.path.join(args.dir_path, "README.md")
         content = generate_markdown_index(
             readme_path=readme_path,
