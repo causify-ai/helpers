@@ -4,17 +4,9 @@ This section lists all Markdown files in the repository.
 
 ## Markdown Index
 
-- **File Name**: docs/guide/new_file.md  
-  **Relative Path**: [docs/guide/new_file.md](docs/guide/new_file.md)  
-  **Summary**: Placeholder summary for docs/guide/new_file.md  
-
 - **File Name**: docs/guide/setup.md  
   **Relative Path**: [docs/guide/setup.md](docs/guide/setup.md)  
   **Summary**: Provides step-by-step instructions to set up the development environment. Essential for onboarding new contributors and initializing project dependencies.  
-
-- **File Name**: docs/guide/usage.md  
-  **Relative Path**: [docs/guide/usage.md](docs/guide/usage.md)  
-  **Summary**: Describes how to use the project's key features and available commands. Helps users understand how to interact with the system effectively.  
 
 - **File Name**: docs/intro.md  
   **Relative Path**: [docs/intro.md](docs/intro.md)  

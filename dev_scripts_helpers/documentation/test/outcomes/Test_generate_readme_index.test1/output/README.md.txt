@@ -1,11 +1,21 @@
 # Repository README
 
-## Markdown Index
-
 This section lists all Markdown files in the repository.
 
-### tmp.scratch
+## Markdown Index
 
-- **File Name**: sample.md  
-  **Relative Path**: [sample.md](sample.md)  
-  **Summary**: Placeholder summary for sample.md  
+- **File Name**: docs/guide/setup.md  
+  **Relative Path**: [docs/guide/setup.md](docs/guide/setup.md)  
+  **Summary**: Placeholder summary for docs/guide/setup.md  
+
+- **File Name**: docs/guide/usage.md  
+  **Relative Path**: [docs/guide/usage.md](docs/guide/usage.md)  
+  **Summary**: Placeholder summary for docs/guide/usage.md  
+
+- **File Name**: docs/intro.md  
+  **Relative Path**: [docs/intro.md](docs/intro.md)  
+  **Summary**: Placeholder summary for docs/intro.md  
+
+- **File Name**: welcome.md  
+  **Relative Path**: [welcome.md](welcome.md)  
+  **Summary**: Placeholder summary for welcome.md  
