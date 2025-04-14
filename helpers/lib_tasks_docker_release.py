@@ -652,7 +652,7 @@ def docker_build_prod_image(  # type: ignore
         cmd = f"docker image ls {image_prod}"
     hlitauti.run(ctx, cmd)
     # Delete the temporary deployment directory.
-    hio.delete_dir(deployment_dir)
+    hio.delete_dir(tmp_dir)
 
 
 # TODO(gp): Remove redundancy with docker_build_local_image(), if possible.
