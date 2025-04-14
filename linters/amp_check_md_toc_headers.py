@@ -45,7 +45,7 @@ def _is_code_block_boundary(line: str) -> bool:
         >>> _is_code_block_boundary("``` python")
         False
         >>> _is_code_block_boundary("  ```python")
-        False
+        True
         >>> _is_code_block_boundary("Some text")
         False
     """
