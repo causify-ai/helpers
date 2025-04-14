@@ -71,6 +71,7 @@ def diff_strings(
     return txt
 
 
+# TODO(gp): GFI. Move to hpython_code.py
 def get_docstring_line_indices(lines: List[str]) -> List[int]:
     """
     Get indices of lines of code that are inside (doc)strings.
@@ -94,6 +95,7 @@ def get_docstring_line_indices(lines: List[str]) -> List[int]:
     return docstring_line_indices
 
 
+# TODO(gp): GFI. Move to hpython_code.py
 def get_code_block_line_indices(lines: List[str]) -> List[int]:
     """
     Get indices of lines that are inside code blocks.
@@ -125,9 +127,12 @@ def get_code_block_line_indices(lines: List[str]) -> List[int]:
 
 def extract_version_from_file_name(file_name: str) -> Tuple[int, int]:
     """
-    Extract version number from filename_vXX.json file. e.g.
-    'universe_v3.1.json' -> (3, 1) 'universe_v1.json' -> (1, 0)
-    'dataset_schema_v3.json' -> (3, 0)
+    Extract version number from filename_vXX.json file.
+
+    E.g.
+    - 'universe_v3.1.json' -> (3, 1)
+    - 'universe_v1.json' -> (1, 0)
+    - 'dataset_schema_v3.json' -> (3, 0)
 
     Currently only JSON file extension is supported.
 
@@ -144,5 +149,4 @@ def extract_version_from_file_name(file_name: str) -> Tuple[int, int]:
     # Groups return tuple.
     version = m.groups(1)[0].split(".")  # type: ignore[arg-type, union-attr]
     major, minor = int(version[0]), 0 if len(version) == 1 else int(version[1])
-
     return major, minor
