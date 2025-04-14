@@ -618,14 +618,14 @@ def docker_build_prod_image(  # type: ignore
     current_dir = _to_abs_path(".")
     helpers_root = hgit.find_helpers_root()
     helpers_dir = _to_abs_path(helpers_root)
-    deployment_dir = "tmp.deployment"
-    hio.create_dir(deployment_dir, incremental=False)
+    tmp_dir = "tmp.docker_build_prod_image"
+    hio.create_dir(tmp_dir, incremental=False)
     # Copy the source code and deference all the symbolic links.
-    cmd = f"rsync -rL --exclude='{deployment_dir}' {current_dir}/* ./{deployment_dir}"
-    hsystem.system_to_string(cmd)
+    cmd = f"rsync -rL --exclude='{tmp_dir}' {current_dir}/* ./{tmp_dir}"
+    hsystem.system(cmd)
     # Copy helpers.
-    cmd = f"cp -rL {helpers_dir}/helpers ./tmp.deployment/"
-    hsystem.system_to_string(cmd)
+    cmd = f"cp -rL {helpers_dir}/helpers ./{tmp_dir}/"
+    hsystem.system(cmd)
     #
     cmd = rf"""
     DOCKER_BUILDKIT={DOCKER_BUILDKIT} \

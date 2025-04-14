@@ -117,12 +117,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     command = args.command
     # TODO(heanh): We don't want one repo to depend on another repo.
     # Ideally, we want the runnable directories to be discovered automatically
-    # so the tests will be skipped in the global pytest but will be executed in 
+    # so the tests will be skipped in the global pytest but will be executed in
     # the local runnables dirs from the CI.
-    runnable_dirs = [
-        "ck.infra",
-        "ck_web_apps/itsavvy"
-    ]
+    runnable_dirs = ["ck.infra", "ck_web_apps/itsavvy"]
     if command == "run_fast_tests":
         runnable_dir = args.dir
         if runnable_dir:
