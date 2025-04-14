@@ -63,8 +63,8 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
 
-      # To see the modules in `amp` and `helpers_root`, PYTHONPATH needs to
-      # include them in the same way we do in `setenv.sh`.
+      # To access modules in `amp` and `helpers_root`, make sure PYTHONPATH includes
+      # them, just as it's set in `setenv.sh`.
       - name: Update PYTHONPATH
         run: |
           PYTHONPATH="$(realpath .)"
