@@ -54,10 +54,21 @@ class _DocFormatter(liaction.Action):
         """
         Check if the file contains triple backticks that are unbalanced.
 
-        :param contents: contents of the file to process
+        E.g., '''
+            ```
+            ^ Unbalanced backticks here. You'd normally expect it to be
+            closed below.
+            '''
+
+        This function is called to decide whether the linter can temporarily
+        remove python code expected to be contained within backticks
+        while formatting.
+
+        :param file_name: file to process
         :return:
             - whether there are unbalanced backticks
-            - all the starting indices of docstrings where the flagged backticks exist
+            - all the starting indices of docstrings where the
+            unbalanced backticks exist
         """
         contents = hio.from_file(file_name)
         lines = contents.splitlines()
@@ -96,7 +107,6 @@ class _DocFormatter(liaction.Action):
         Replace ignored docstrings from the file with unique hashes and return
         dict with replacements.
 
-        :param contents: contents of the file to process
         :param file_name: file to process
         :return: dictionary with hash as key and replaced docstring as a
             value
@@ -197,8 +207,7 @@ class _DocFormatter(liaction.Action):
         """
         Restore code blocks that have been previously removed.
 
-        :param contents: contents of the file to process
-        :param file_name: file to write to
+        :param file_name: file to process
         :param removed_blocks_storage: original code blocks from the
             docstring
         """
@@ -234,10 +243,10 @@ class _DocFormatter(liaction.Action):
             return []
         # Check for unbalanced backticks.
         unbalanced_backtick_warning = ""
-        has_misplaced, issues = self._has_unbalanced_triple_backticks(file_name)
+        is_unbalanced, issues = self._has_unbalanced_triple_backticks(file_name)
         # Clear and store ignored docstrings and code.
         _ignored_docstrings = self._remove_ignored_docstrings(file_name)
-        if has_misplaced:
+        if is_unbalanced:
             # Do not remove any codeblocks as unbalanced backticks detected.
             unbalanced_backtick_warning = "\n".join(
                 f"{file_name}:{start}: Found unbalanced triple backticks; "
