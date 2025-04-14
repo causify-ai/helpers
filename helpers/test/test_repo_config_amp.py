@@ -259,6 +259,7 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
               is_mac(version='Catalina')='False'
               is_mac(version='Monterey')='False'
               is_mac(version='Ventura')='False'
+              is_mac(version='Sequoia')='False'
               run_docker_as_root()='True'
               skip_submodules_test()='False'
               use_docker_db_container_name_to_connect()='False'
