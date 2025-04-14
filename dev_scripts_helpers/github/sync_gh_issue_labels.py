@@ -88,7 +88,7 @@ class Label:
         }
 
 
-# TODO(*): GFI. Move to `Label` class as static method.
+# TODO(*): GSI. Move to `Label` class as static method.
 def _load_labels(path: str) -> List[Label]:
     """
     Load labels from label inventory manifest file.
@@ -109,7 +109,7 @@ def _load_labels(path: str) -> List[Label]:
         return labels
 
 
-# TODO(*): GFI. Move to `Label` class as static method.
+# TODO(*): GSI. Move to `Label` class as static method.
 def _save_labels(labels: List[Label], path: str) -> None:
     """
     Save labels to the label inventory manifest file.
