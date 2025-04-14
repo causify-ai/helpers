@@ -53,6 +53,7 @@ class Test_repo_config1(hunitest.TestCase):
         act = repo_config.get_name()
         exp = "//helpers"
         self.assert_equal(act, exp)
+        self.assert_equal(1, 0)
 
     def test2(self) -> None:
         file_name = self.create_test_file()
