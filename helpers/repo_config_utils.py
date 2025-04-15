@@ -262,17 +262,6 @@ class RepoConfig:
         value = self._data["docker_info"]["docker_image_name"]
         return value
 
-    def get_use_sibling_container(self) -> bool:
-        """
-        Return whether to use a sibling container or a chilren docker-in-docker
-        approach.
-
-        This is used in unit tests to test dockerized executables.
-        """
-        value = self._data["docker_info"]["use_sibling_container"]
-        assert value in ["True", "False"], f"Invalid boolen value: {value}"
-        return value == "True"
-
     # s3_bucket_info
 
     def get_unit_test_bucket_path(self) -> str:

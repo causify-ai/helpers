@@ -11,8 +11,6 @@ import logging
 import os
 import shutil
 import subprocess
-import shutil
-import subprocess
 from typing import Dict, List, Optional, Tuple
 
 import helpers.hprint as hprint
@@ -408,7 +406,6 @@ def is_inside_ci() -> bool:
     return ret
 
 
-# TODO(gp): -> is_inside_docker_container()
 # TODO(gp): -> is_inside_docker_container()
 def is_inside_docker() -> bool:
     """
