@@ -124,11 +124,12 @@ class Test_hserver_inside_ci1(_TestCase1, hunitest.TestCase):
             is_dev4                                       False
             is_ig_prod                                    False
             is_prod_csfy                                  False
-            is_inside_ci                                  False
+            is_inside_ci                                  True
             """
         )
         self.exp_get_setup_signature = None
         self.exp_is_host_csfy_server = False
+        self.exp_is_host_mac = False
         self.exp_is_inside_ci = True
 
 
@@ -227,6 +228,7 @@ class Test_hserver_outside_docker_container_on_csfy_server1(
         )
         self.exp_get_setup_signature = ""
         self.exp_is_host_csfy_server = True
+        self.exp_is_host_mac = False
         self.exp_is_inside_ci = False
 
 
@@ -273,6 +275,7 @@ class Test_hserver_inside_docker_container_on_gp_mac1(
             is_inside_ci                                  False
             """
         )
+        self.exp_get_setup_signature = ""
         self.exp_is_host_csfy_server = False
         self.exp_is_host_mac = True
         self.exp_is_inside_ci = False
