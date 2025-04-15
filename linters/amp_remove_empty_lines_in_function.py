@@ -41,6 +41,11 @@ def _remove_empty_lines(text: str) -> List[str]:
         if match:
             inside_function = True
             base_indent = len(match.group(1))
+            _LOG.debug(
+                "Function header found at line %d with base indentation %d",
+                i,
+                base_indent,
+            )
         current_indent = len(line) - len(line.lstrip())
         if inside_function and i in docstring_indices and stripped == "":
             # Keep empty lines inside the docstring.
@@ -48,6 +53,7 @@ def _remove_empty_lines(text: str) -> List[str]:
             continue
         if inside_function and stripped == "":
             # Skip empty lines inside the function.
+            _LOG.debug("Removing empty line found at line %d inside function.", i)
             continue
         if inside_function and stripped != "" and current_indent <= base_indent:
             # Retain trailing empty lines after the function,
