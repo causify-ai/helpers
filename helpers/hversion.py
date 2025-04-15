@@ -20,7 +20,6 @@ from typing import List, Optional, cast
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
-import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 
@@ -223,4 +222,3 @@ def get_container_version_info() -> str:
     #
     txt = hprint.to_info("Container version", txt_tmp)
     return txt
-

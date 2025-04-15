@@ -1057,6 +1057,3 @@ def config_notebook(sns_set: bool = True) -> None:
 
     # Force the linter to keep this import.
     _ = hwarnin
-
-
-# 
