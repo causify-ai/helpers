@@ -1,10 +1,14 @@
+# This workflow runs test coverage reports for both fast and slow tests and uploads the results to Codecov.
 name: Test coverage
 
 on:
   push:
     branches:
+      # Trigger on push to the specific branch (testing branch).
       - HelpersTask487_Add_Git_actions_for_Codecov_3
+  # Allow manual triggering via GitHub's workflow_dispatch.
   workflow_dispatch: {}
+  # Schedule the workflow to run at 00:00 every Monday (UTC).
   schedule:
     - cron: '0 0 * * 1'
 
@@ -21,6 +25,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Step: Configure AWS credentials.
+      # This step configures AWS credentials needed for roles and accessing AWS resources.
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -28,12 +34,18 @@ jobs:
           role-session-name: ${{ vars.GH_ACTION_AWS_SESSION_NAME }}
           aws-region: ${{ vars.CSFY_AWS_DEFAULT_REGION }}
 
+      # Step: Login to GitHub Container Registry (GHCR).
+      # This step logs into GHCR to pull Docker images.
       - name: Login to GHCR
         run: docker login ghcr.io -u gpsaggese -p ${{ secrets.GITHUB_TOKEN }}
 
+      # Step: Cleanup.
+      # This step sets permissions to allow write operations on all files.
       - name: Cleanup
         run: sudo chmod 777 -R .
 
+      # Step: Checkout the repository.
+      # This step checks out the code including its submodules with full history.
       - name: Checkout code
         uses: actions/checkout@v2
         with:
@@ -41,17 +53,25 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      # Step: Update PYTHONPATH.
+      # This step updates the PYTHONPATH environment variable to include the current directory and the helpers directory.
       - name: Update PYTHONPATH
         run: echo "PYTHONPATH=.:helpers" >> $GITHUB_ENV
 
+      # Step: Install dependencies.
+      # This step upgrades pip and installs required dependencies defined in .github/gh_requirements.txt.
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r .github/gh_requirements.txt
 
+      # Step: Pull Docker image from GHCR.
+      # This ensures the required Docker image is present locally before running tests.
       - name: Pull image from GHCR
         run: docker pull ghcr.io/${{ github.repository }}:dev
 
+      # Step: Run Fast test and generate report.
+      # This step triggers the fast test coverage generation using the invoke task.
       - name: Run Fast test and generate report
         env:
           GH_ACTION_ACCESS_TOKEN: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
@@ -63,11 +83,18 @@ jobs:
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
         run: invoke run_fast_coverage .
 
+      # Step: Rename Fast Test Coverage report.
+      # After the test run, rename the generated coverage.xml to coverage_fast.xml.
       - name: Rename Fast Test Coverage report
         if: always()
         run: mv ./coverage.xml ./coverage_fast.xml
 
+      # Step: Upload Fast Test Coverage to Codecov.
+      # This step uploads the fast test coverage report file to Codecov.
       - name: Upload Fast Test Coverage to Codecov
+        # "if: always()" ensures this step runs regardless of prior failures.
+        # It is used here to always attempt uploading the coverage report,
+        # even if earlier steps have failed.
         if: always()
         uses: codecov/codecov-action@v5
         with:
@@ -75,8 +102,12 @@ jobs:
           files: ./coverage_fast.xml
           flags: fast
           name: fast-test-coverage
+          # "fail_ci_if_error: true" instructs the action to mark the CI as failed
+          # if there is any error during the upload to Codecov.
           fail_ci_if_error: true
 
+      # Step: Run Slow test and generate report.
+      # This step triggers the slow test coverage generation using the invoke task.
       - name: Run Slow test and generate report
         env:
           GH_ACTION_ACCESS_TOKEN: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
@@ -88,11 +119,16 @@ jobs:
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
         run: invoke run_slow_coverage .
 
+      # Step: Rename Slow Test Coverage report.
+      # Rename the slow test coverage report to avoid conflict with the fast tests coverage file.
       - name: Rename Slow Test Coverage report
         if: always()
         run: mv ./coverage.xml ./coverage_slow.xml
 
+      # Step: Upload Slow Test Coverage to Codecov.
+      # This step uploads the slow test coverage report file to Codecov.
       - name: Upload Slow Test Coverage to Codecov
+        # "if: always()" ensures this step is executed regardless of previous outcomes.
         if: always()
         uses: codecov/codecov-action@v5
         with:
@@ -100,24 +136,6 @@ jobs:
           files: ./coverage_slow.xml
           flags: slow
           name: slow-test-coverage
+          # "fail_ci_if_error: true" causes the job to fail if the upload to Codecov fails,
+          # helping to catch issues with the coverage reporting.
           fail_ci_if_error: true
-
-      # - name: Upload Slow Test Coverage to Codecov
-      #   if: always()
-      #   uses: codecov/codecov-action@v5
-      #   with:
-      #     token: ${{ secrets.CODECOV_TOKEN }}
-      #     files: ./coverage_slow.xml
-      #     flags: slow
-      #     name: slow-test-coverage
-      #     fail_ci_if_error: true
-
-      # - name: Upload Combined Test Coverage to Codecov
-      #   if: always()
-      #   uses: codecov/codecov-action@v5
-      #   with:
-      #     token: ${{ secrets.CODECOV_TOKEN }}
-      #     files: ./coverage.xml
-      #     flags: combined
-      #     name: combined-test-coverage
-      #     fail_ci_if_error: true
