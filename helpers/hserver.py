@@ -13,8 +13,8 @@ import shutil
 import subprocess
 from typing import Dict, List, Optional, Tuple
 
-import helpers.repo_config_utils as hrecouti
 import helpers.hprint as hprint
+import helpers.repo_config_utils as hrecouti
 
 # This module should depend only on:
 # - Python standard modules
@@ -46,7 +46,8 @@ def _system_to_string(cmd: str) -> Tuple[int, str]:
         # Redirect stderr to stdout.
         stderr=subprocess.STDOUT,
         shell=True,
-        text=True)
+        text=True,
+    )
     rc = result.returncode
     output = result.stdout
     output = output.strip()
@@ -87,7 +88,7 @@ def get_dev_csfy_host_names() -> List[str]:
     host_names = ("dev1", "dev2", "dev3")
     return host_names
 
-    
+
 def _get_host_name() -> str:
     """
     Return the name of the host (not the machine) on which we are running.
@@ -110,7 +111,8 @@ def _get_host_name() -> str:
 
 def _get_host_os_name() -> str:
     """
-    Return the name of the OS on which we are running (e.g., "Linux", "Darwin").
+    Return the name of the OS on which we are running (e.g., "Linux",
+    "Darwin").
 
     If we are inside a Docker container, we use the name of the OS passed
     through the `CSFY_HOST_OS_NAME` env var.
@@ -155,7 +157,7 @@ def is_host_csfy_server() -> bool:
     host_name = _get_host_name()
     ret = host_name in get_dev_csfy_host_names()
     return ret
-    
+
 
 _MAC_OS_VERSION_MAPPING = {
     "Catalina": "19.",
@@ -185,7 +187,7 @@ def get_host_mac_version() -> str:
             return version
     raise ValueError(f"Invalid host_os_version='{host_os_version}'")
 
-    
+
 def is_host_mac_version(version: str) -> bool:
     """
     Return whether we are running on a Mac with a specific version (e.g.,
@@ -201,8 +203,8 @@ def is_host_gp_mac() -> bool:
     """
     Return whether we are running on a Mac owned by GP.
 
-    This is used to check if we can use a specific feature before releasing
-    it to all the users.
+    This is used to check if we can use a specific feature before
+    releasing it to all the users.
     """
     host_name = _get_host_name()
     ret = host_name.startswith("gpmac.")
@@ -392,8 +394,8 @@ def is_external_linux() -> bool:
 
 def is_external_dev() -> bool:
     """
-    Detect whether we are running on an system outside of Causify system
-    (e.g., a contributor's laptop, an intern's laptop, a non-CSFY machine).
+    Detect whether we are running on an system outside of Causify system (e.g.,
+    a contributor's laptop, an intern's laptop, a non-CSFY machine).
     """
     ret = is_host_mac() or is_external_linux()
     return ret
@@ -410,7 +412,8 @@ def _get_setup_signature() -> str:
     Dump all the variables that are used to make a decision about the values of
     the functions in `_get_setup_settings()`.
 
-    This function is used to mock the state of the system for testing purposes.
+    This function is used to mock the state of the system for testing
+    purposes.
     """
     cmds = []
     # is_prod_csfy()
@@ -483,7 +486,7 @@ def is_outside_docker_container_on_host_mac() -> bool:
 
 def is_inside_docker_container_on_external_linux() -> bool:
     """
-    Return whether we are running on a Docker container on an external Linux.   
+    Return whether we are running on a Docker container on an external Linux.
     """
     ret = is_inside_docker() and is_external_linux()
     return ret
@@ -491,7 +494,7 @@ def is_inside_docker_container_on_external_linux() -> bool:
 
 def is_outside_docker_container_on_external_linux() -> bool:
     """
-    Return whether we are running on a Docker container on an external Linux.   
+    Return whether we are running on a Docker container on an external Linux.
     """
     ret = not is_inside_docker() and is_external_linux()
     return ret
@@ -499,7 +502,8 @@ def is_outside_docker_container_on_external_linux() -> bool:
 
 def _get_setup_settings() -> List[Tuple[str, bool]]:
     """
-    Return a list of tuples with the name and value of the current server setup.
+    Return a list of tuples with the name and value of the current server
+    setup.
     """
     func_names = [
         "is_inside_docker_container_on_csfy_server",
@@ -527,7 +531,8 @@ def _setup_to_str(setups: List[Tuple[str, bool]]) -> str:
     """
     Return a string representation of the current server setup configuration.
 
-    :return: string with each setting on a new line, aligned with padding
+    :return: string with each setting on a new line, aligned with
+        padding
     """
     # Find maximum length of setting names.
     max_len = max(len(name) for name, _ in setups) + 1
@@ -542,9 +547,10 @@ def _dassert_setup_consistency() -> None:
     """
     Check that one and only one setup configuration is true.
 
-    This is used to ensure that the setup configuration is one of the expected
-    ones and uniquely defined.
+    This is used to ensure that the setup configuration is one of the
+    expected ones and uniquely defined.
     """
+
     def _indent(txt: str, *, num_spaces: int = 2) -> str:
         """
         Add `num_spaces` spaces before each line of the passed string.
@@ -626,7 +632,7 @@ def docker_needs_sudo() -> bool:
 def has_docker_privileged_mode() -> bool:
     """
     Return whether the current container supports privileged mode.
-    
+
     Docker privileged mode gives containers nearly all the same capabilities as
     the host system's kernel.
     Privileged mode allows to:
@@ -686,12 +692,13 @@ def get_docker_info() -> str:
     else:
         has_sibling_containers_support_ = "*undef*"
         has_docker_dind_support_ = "*undef*"
-    txt_tmp.append(f"has_sibling_containers_support={has_sibling_containers_support_}")
+    txt_tmp.append(
+        f"has_sibling_containers_support={has_sibling_containers_support_}"
+    )
     txt_tmp.append(f"has_docker_dind_support={has_docker_dind_support_}")
     #
     txt = hprint.to_info("Docker info", txt_tmp)
     return txt
-
 
 
 # #############################################################################
@@ -787,7 +794,11 @@ def enable_privileged_mode() -> bool:
         elif is_host_mac(version="Catalina"):
             # Docker for macOS Catalina supports dind.
             ret = True
-        elif is_host_mac(version="Monterey") or is_host_mac(version="Ventura") or is_host_mac(version="Sequoia"):
+        elif (
+            is_host_mac(version="Monterey")
+            or is_host_mac(version="Ventura")
+            or is_host_mac(version="Sequoia")
+        ):
             # Docker doesn't seem to support dind for these versions of macOS.
             ret = False
         elif is_prod_csfy():
@@ -825,7 +836,11 @@ def has_docker_sudo() -> bool:
 
 
 def _is_mac_version_with_sibling_containers() -> bool:
-    return is_host_mac(version="Monterey") or is_host_mac(version="Ventura") or is_host_mac(version="Sequoia")
+    return (
+        is_host_mac(version="Monterey")
+        or is_host_mac(version="Ventura")
+        or is_host_mac(version="Sequoia")
+    )
 
 
 # TODO(gp): -> use_docker_sibling_container_support

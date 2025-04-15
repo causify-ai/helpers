@@ -1,18 +1,15 @@
-
-
 <!-- toc -->
 
 - [Managing Symbolic Links Between Directories](#managing-symbolic-links-between-directories)
-  * [Define](#define)
+  * [Summary](#summary)
   * [Why Do We Need This Approach?](#why-do-we-need-this-approach)
+  * [Nomenclature](#nomenclature)
   * [Workflow and Commands](#workflow-and-commands)
     + [Step 1: Replace Files with Symbolic Links](#step-1-replace-files-with-symbolic-links)
     + [Step 2: Stage Files for Modification](#step-2-stage-files-for-modification)
     + [Step 3: Restore Symbolic Links After Modifications](#step-3-restore-symbolic-links-after-modifications)
     + [Workflow Summary](#workflow-summary)
     + [Example Directory Structure](#example-directory-structure)
-    + [Notes and Best Practices](#notes-and-best-practices)
-    + [Conclusion](#conclusion)
 
 <!-- tocstop -->
 
@@ -21,8 +18,8 @@
 ## Summary
 
 - This document describes two scripts, `create_links.py` and
-  `stage_linked_file.py` used to manage symbolic links between a
-  source directory and a destination directory
+  `stage_linked_file.py` used to manage symbolic links between a source
+  directory and a destination directory
 - These tools simplify workflows where you want to create read-only symbolic
   links for files, stage modifications, and later restore the links
 
@@ -42,8 +39,8 @@
     risk of accidental changes
   - If modifications are needed, the "staging process" ensures you can work
     safely on copies without altering the original source files
-  - After the code has been developed, one can then convert copies of files, back
-    to links
+  - After the code has been developed, one can then convert copies of files,
+    back to links
 
 ## Nomenclature
 
@@ -55,13 +52,13 @@
     ```
   - This convention seems the opposite of `cp foo bar` where a new file called
     `bar` is created with the content of `foo`
-  
+
 - Also referring to "source" and "destination" is confusing since it is unclear
-  if "destination" is the "destination" of the link (i.e., the head of the arrow)
-  or the "destination" of the operation of copy (the tail of the arrow)
-  
+  if "destination" is the "destination" of the link (i.e., the head of the
+  arrow) or the "destination" of the operation of copy (the tail of the arrow)
+
 - In the rest of this document we will refer to the file being created as
-  "destination" 
+  "destination"
   - E.g., `ln -s new_file old_file`
 
 ## Workflow and Commands
@@ -74,6 +71,7 @@
   links to the corresponding files in `src_dir`
 
   Command:
+
   ```bash
   > create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --replace_links
   ```
@@ -101,14 +99,14 @@
     so all the files are staged for modification
 
 - Command:
+
   ```bash
   > stage_linked_file.py --dst_dir /path/to/dst
   ```
 
 - What it does:
   - Finds all the symbolic links in `dst_dir`
-  - Replaces each symbolic link with a writable copy of the file it points
-    to
+  - Replaces each symbolic link with a writable copy of the file it points to
   - Sets file permissions to `644` (writable)
 
 - Why it is important:
@@ -118,10 +116,11 @@
 
 ### Step 3: Restore Symbolic Links After Modifications
 
-- Once you’ve finished modifying the files, you can restore the symbolic links
+- Once you've finished modifying the files, you can restore the symbolic links
   by running `create_links.py` again with the `--replace_links` flag
 
 - Command:
+
   ```bash
   > create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --replace_links
   ```
@@ -139,21 +138,21 @@
 ### Workflow Summary
 
 1. Set up symbolic links:
-  ```bash
-  > create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --replace_links
-  ```
+   ```bash
+   > create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --replace_links
+   ```
 
 2. Stage symbolic links for modification:
-  ```
-  > stage_linked_file.py --dst_dir /path/to/dst
-  ```
+   ```
+   > stage_linked_file.py --dst_dir /path/to/dst
+   ```
 
 3. Modify files as required
 
 4. After modifications, restore the symbolic links:
-  ```
-  > create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --replace_links
-  ```
+   ```
+   > create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --replace_links
+   ```
 
 ### Example Directory Structure
 

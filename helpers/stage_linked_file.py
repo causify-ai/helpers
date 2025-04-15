@@ -7,9 +7,6 @@ Usage
 
 import argparse
 import logging
-import os
-import shutil
-from typing import List
 
 _LOG = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)

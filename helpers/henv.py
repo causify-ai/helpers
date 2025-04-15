@@ -6,7 +6,6 @@ import helpers.henv as henv
 
 import logging
 import os
-import re
 from typing import Any, Dict, List, Tuple, Union
 
 import helpers.hdbg as hdbg
@@ -91,7 +90,13 @@ def get_env_var(
     """
     if env_name not in os.environ:
         if abort_on_missing:
-            hdbg.dassert_in(env_name, os.environ, "Can't find env var '%s' in '%s'", env_name, str(os.environ))
+            hdbg.dassert_in(
+                env_name,
+                os.environ,
+                "Can't find env var '%s' in '%s'",
+                env_name,
+                str(os.environ),
+            )
         else:
             return default_value
     value = os.environ[env_name]
@@ -147,7 +152,12 @@ def get_env_vars() -> List[str]:
     ]
     # No duplicates.
     # TODO(gp): GFI. Use `hdbg.dassert_no_duplicates()` instead.
-    hdbg.dassert_eq(len(set(env_var_names)),len(env_var_names), f"There are duplicates", str(env_var_names))
+    hdbg.dassert_eq(
+        len(set(env_var_names)),
+        len(env_var_names),
+        f"There are duplicates",
+        str(env_var_names),
+    )
     # Sort.
     env_var_names = sorted(env_var_names)
     return env_var_names
@@ -165,7 +175,12 @@ def get_secret_env_vars() -> List[str]:
     ]
     # No duplicates.
     # TODO(gp): GFI. Use `hdbg.dassert_no_duplicates()` instead.
-    hdbg.dassert_eq(len(set(secret_env_var_names)), len(secret_env_var_names), f"There are duplicates", str(secret_env_var_names))
+    hdbg.dassert_eq(
+        len(set(secret_env_var_names)),
+        len(secret_env_var_names),
+        f"There are duplicates",
+        str(secret_env_var_names),
+    )
     # Secret env vars are a subset of the env vars.
     env_vars = get_env_vars()
     # TODO(gp): GFI. Use `hdbg.dassert_issubset()` instead.
@@ -184,7 +199,13 @@ def check_env_vars() -> None:
     """
     env_vars = get_env_vars()
     for env_var in env_vars:
-        hdbg.dassert_in(env_var, os.environ, "env_var='%s' is not in env_vars='%s'", env_var, str(os.environ.keys()))
+        hdbg.dassert_in(
+            env_var,
+            os.environ,
+            "env_var='%s' is not in env_vars='%s'",
+            env_var,
+            str(os.environ.keys()),
+        )
 
 
 def env_vars_to_string() -> str:
@@ -326,6 +347,7 @@ def _get_platform_info() -> str:
     Get platform information as a list of strings.
     """
     import platform
+
     txt_tmp: List[str] = []
     uname = platform.uname()
     txt_tmp.append(f"system={uname.system}")
@@ -345,6 +367,7 @@ def _get_psutil_info() -> str:
     """
     try:
         import psutil
+
         has_psutil = True
     except ModuleNotFoundError as e:
         _LOG.warning("psutil is not installed: %s", str(e))
@@ -501,7 +524,8 @@ def env_to_str(
     repo_config: bool = True,
     server_config: bool = True,
     system_signature: bool = True,
-    env_vars: bool = True) -> str:
+    env_vars: bool = True,
+) -> str:
     """
     Package all the information into a string.
     """

@@ -34,7 +34,6 @@ import stat
 from typing import List, Tuple
 
 import helpers.hdbg as hdbg
-import helpers.hio as hio
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -127,14 +126,21 @@ def _find_common_files(src_dir: str, dst_dir: str) -> List[Tuple[str, str]]:
     return common_files
 
 
-def _create_single_link(src_file: str, dst_file: str, use_relative_paths: bool, abort_on_first_error: bool) -> None:
+def _create_single_link(
+    src_file: str,
+    dst_file: str,
+    use_relative_paths: bool,
+    abort_on_first_error: bool,
+) -> None:
     """
     Create a single symbolic link from dst_file to src_file.
 
     :param src_file: Source file path
     :param dst_file: Destination file path where symlink will be created
-    :param use_relative_paths: If True, create relative symlinks; if False, use absolute paths
-    :param abort_on_first_error: If True, abort on the first error; if False, continue processing
+    :param use_relative_paths: If True, create relative symlinks; if
+        False, use absolute paths
+    :param abort_on_first_error: If True, abort on the first error; if
+        False, continue processing
     """
     hdbg.dassert_file_exists(src_file)
     hdbg.dassert_file_exists(dst_file)
@@ -150,15 +156,16 @@ def _create_single_link(src_file: str, dst_file: str, use_relative_paths: bool, 
         # modifications.
         current_permissions = os.stat(dst_file).st_mode
         new_permissions = (
-            current_permissions
-            & ~stat.S_IWUSR
-            & ~stat.S_IWGRP
-            & ~stat.S_IWOTH
+            current_permissions & ~stat.S_IWUSR & ~stat.S_IWGRP & ~stat.S_IWOTH
         )
         os.chmod(dst_file, new_permissions)
         _LOG.debug("Created symlink: %s -> %s", dst_file, link_target)
     except Exception as e:
-        msg = "Failed to create symlink %s -> %s with error %s" % (dst_file, link_target, str(e))
+        msg = "Failed to create symlink %s -> %s with error %s" % (
+            dst_file,
+            link_target,
+            str(e),
+        )
         if abort_on_first_error:
             raise RuntimeError(msg)
         else:
@@ -184,7 +191,9 @@ def _replace_with_links(
     """
     for src_file, dst_file in common_files:
 
-        _create_single_link(src_file, dst_file, use_relative_paths, abort_on_first_error)
+        _create_single_link(
+            src_file, dst_file, use_relative_paths, abort_on_first_error
+        )
 
 
 # #############################################################################
@@ -206,17 +215,20 @@ def _find_symlinks(dst_dir: str) -> List[str]:
             if os.path.islink(file_path):
                 symlinks.append(file_path)
     return symlinks
-        
 
-def _stage_single_link(link: str, target_file: str, abort_on_first_error: bool, dry_run: bool) -> None:
+
+def _stage_single_link(
+    link: str, target_file: str, abort_on_first_error: bool, dry_run: bool
+) -> None:
     """
     Replace a single symlink with a writable copy of the linked file.
 
     :param link: The symlink to replace.
     :param target_file: The file to copy to the symlink location.
-    :param abort_on_first_error: If True, abort on the first error; if False,
-        continue processing
-    :param dry_run: If True, print what will be done without actually doing it.
+    :param abort_on_first_error: If True, abort on the first error; if
+        False, continue processing
+    :param dry_run: If True, print what will be done without actually
+        doing it.
     """
     # Resolve the original file the symlink points to.
     target_file = os.readlink(link)
@@ -246,7 +258,9 @@ def _stage_single_link(link: str, target_file: str, abort_on_first_error: bool, 
             _LOG.warning(msg)
 
 
-def _stage_links(symlinks: List[str], abort_on_first_error: bool, dry_run: bool) -> None:
+def _stage_links(
+    symlinks: List[str], abort_on_first_error: bool, dry_run: bool
+) -> None:
     """
     Replace symbolic links with writable copies of the linked files.
 
@@ -254,7 +268,6 @@ def _stage_links(symlinks: List[str], abort_on_first_error: bool, dry_run: bool)
     """
     for link in symlinks:
         _stage_single_link(link, abort_on_first_error, dry_run)
-
 
 
 # #############################################################################
@@ -301,7 +314,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.dassert_dir_exists(args.src_dir)
     hdbg.dassert_dir_exists(args.dst_dir)
     #
-    hdbg.dassert_eq(sum([args.replace_links, args.stage_links, args.compare_files]), 1, "You must specify exactly one of --replace_links, --stage_links, or --compare_files.")
+    hdbg.dassert_eq(
+        sum([args.replace_links, args.stage_links, args.compare_files]),
+        1,
+        "You must specify exactly one of --replace_links, --stage_links, or --compare_files.",
+    )
     if args.compare_files:
         # Compare files.
         common_files = _find_common_files(args.src_dir, args.dst_dir)

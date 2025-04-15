@@ -9,6 +9,11 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 
+# #############################################################################
+# _TestCase1
+# #############################################################################
+
+
 class _TestCase1:
 
     # def test_config_func_to_str1(self) -> None:
@@ -82,7 +87,7 @@ class Test_hserver1(_TestCase1, hunitest.TestCase):
 
 
 # #############################################################################
-# Test_hserver_inside_ci
+# Test_hserver_inside_ci1
 # #############################################################################
 
 
@@ -98,7 +103,8 @@ class Test_hserver_inside_ci1(_TestCase1, hunitest.TestCase):
     def setUp(self) -> None:
         super().setUp()
         self.exp_config_func_to_str = None
-        self.exp_get_docker_info = hprint.dedent(r"""
+        self.exp_get_docker_info = hprint.dedent(
+            r"""
             # Docker info
               has_docker=True
               docker_version='28.0.4'
@@ -106,8 +112,10 @@ class Test_hserver_inside_ci1(_TestCase1, hunitest.TestCase):
               has_privileged_mode=True
               is_inside_docker=True
               has_sibling_containers_support=True
-              has_docker_dind_support=True""")
-        self.exp_get_setup_settings = hprint.dedent(r"""
+              has_docker_dind_support=True"""
+        )
+        self.exp_get_setup_settings = hprint.dedent(
+            r"""
             is_inside_docker_container_on_csfy_server     True
             is_outside_docker_container_on_csfy_server    False
             is_inside_docker_container_on_host_mac        False
@@ -117,14 +125,15 @@ class Test_hserver_inside_ci1(_TestCase1, hunitest.TestCase):
             is_dev4                                       False
             is_ig_prod                                    False
             is_prod_csfy                                  False
-            """)
+            """
+        )
         self.exp_get_setup_signature = None
         self.exp_is_host_csfy_server = False
         self.exp_is_inside_ci = True
 
 
 # #############################################################################
-# Test_hserver_docker_container_on_csfy_server1
+# Test_hserver_inside_docker_container_on_csfy_server1
 # #############################################################################
 
 
@@ -132,7 +141,9 @@ class Test_hserver_inside_ci1(_TestCase1, hunitest.TestCase):
     not hserver.is_inside_docker_container_on_csfy_server(),
     reason="Config not matching",
 )
-class Test_hserver_inside_docker_container_on_csfy_server1(_TestCase1, hunitest.TestCase):
+class Test_hserver_inside_docker_container_on_csfy_server1(
+    _TestCase1, hunitest.TestCase
+):
     """
     Run tests inside Docker container on a Causify dev server.
     """
@@ -140,7 +151,8 @@ class Test_hserver_inside_docker_container_on_csfy_server1(_TestCase1, hunitest.
     def setUp(self) -> None:
         super().setUp()
         self.exp_config_func_to_str = ""
-        self.exp_get_docker_info = hprint.dedent(r"""
+        self.exp_get_docker_info = hprint.dedent(
+            r"""
             # Docker info
               has_docker=True
               docker_version='28.0.4'
@@ -148,8 +160,10 @@ class Test_hserver_inside_docker_container_on_csfy_server1(_TestCase1, hunitest.
               has_privileged_mode=True
               is_inside_docker=True
               has_sibling_containers_support=True
-              has_docker_dind_support=True""")
-        self.exp_get_setup_settings = hprint.dedent(r"""
+              has_docker_dind_support=True"""
+        )
+        self.exp_get_setup_settings = hprint.dedent(
+            r"""
             is_inside_docker_container_on_csfy_server     True
             is_outside_docker_container_on_csfy_server    False
             is_inside_docker_container_on_host_mac        False
@@ -159,7 +173,8 @@ class Test_hserver_inside_docker_container_on_csfy_server1(_TestCase1, hunitest.
             is_dev4                                       False
             is_ig_prod                                    False
             is_prod_csfy                                  False
-            """)
+            """
+        )
         self.exp_get_setup_signature = ""
         self.exp_is_host_csfy_server = True
         self.exp_is_host_mac = False
@@ -175,7 +190,9 @@ class Test_hserver_inside_docker_container_on_csfy_server1(_TestCase1, hunitest.
     not hserver.is_outside_docker_container_on_csfy_server(),
     reason="Config not matching",
 )
-class Test_hserver_outside_docker_container_on_csfy_server1(_TestCase1, hunitest.TestCase):
+class Test_hserver_outside_docker_container_on_csfy_server1(
+    _TestCase1, hunitest.TestCase
+):
     """
     Run tests outside Docker container on a Causify dev server.
     """
@@ -183,7 +200,8 @@ class Test_hserver_outside_docker_container_on_csfy_server1(_TestCase1, hunitest
     def setUp(self) -> None:
         super().setUp()
         self.exp_config_func_to_str = ""
-        self.exp_get_docker_info = hprint.dedent(r"""
+        self.exp_get_docker_info = hprint.dedent(
+            r"""
             # Docker info
               has_docker=True
               docker_version='28.0.4'
@@ -191,8 +209,10 @@ class Test_hserver_outside_docker_container_on_csfy_server1(_TestCase1, hunitest
               has_privileged_mode=True
               is_inside_docker=True
               has_sibling_containers_support=True
-              has_docker_dind_support=True""")
-        self.exp_get_setup_settings = hprint.dedent(r"""
+              has_docker_dind_support=True"""
+        )
+        self.exp_get_setup_settings = hprint.dedent(
+            r"""
             is_inside_docker_container_on_csfy_server     False
             is_outside_docker_container_on_csfy_server    True
             is_inside_docker_container_on_host_mac        False
@@ -202,7 +222,8 @@ class Test_hserver_outside_docker_container_on_csfy_server1(_TestCase1, hunitest
             is_dev4                                       False
             is_ig_prod                                    False
             is_prod_csfy                                  False
-            """)
+            """
+        )
         self.exp_get_setup_signature = ""
         self.exp_is_host_csfy_server = True
         self.exp_is_inside_ci = False
@@ -217,7 +238,9 @@ class Test_hserver_outside_docker_container_on_csfy_server1(_TestCase1, hunitest
     not (hserver.is_inside_docker() and hserver.is_host_gp_mac()),
     reason="Config not matching",
 )
-class Test_hserver_inside_docker_container_on_gp_mac1(_TestCase1, hunitest.TestCase):
+class Test_hserver_inside_docker_container_on_gp_mac1(
+    _TestCase1, hunitest.TestCase
+):
     """
     Run tests inside Docker container on GP's Mac.
     """
@@ -225,15 +248,18 @@ class Test_hserver_inside_docker_container_on_gp_mac1(_TestCase1, hunitest.TestC
     def setUp(self) -> None:
         super().setUp()
         self.exp_config_func_to_str = ""
-        self.exp_get_docker_info = hprint.dedent(r"""
+        self.exp_get_docker_info = hprint.dedent(
+            r"""
             # Docker info
               has_docker=True
               docker_needs_sudo=False
               has_privileged_mode=True
               is_inside_docker=True
               has_sibling_containers_support=True
-              has_docker_dind_support=True""")
-        self.exp_get_setup_settings = hprint.dedent(r"""
+              has_docker_dind_support=True"""
+        )
+        self.exp_get_setup_settings = hprint.dedent(
+            r"""
             is_inside_docker_container_on_csfy_server     False
             is_outside_docker_container_on_csfy_server    False
             is_inside_docker_container_on_host_mac        True
@@ -242,7 +268,8 @@ class Test_hserver_inside_docker_container_on_gp_mac1(_TestCase1, hunitest.TestC
             is_outside_docker_container_on_external_linux False
             is_dev4                                       False
             is_ig_prod                                    False
-            is_prod_csfy                                  False""")
+            is_prod_csfy                                  False"""
+        )
         self.exp_is_host_csfy_server = False
         self.exp_is_host_mac = True
         self.exp_is_inside_ci = False
@@ -257,7 +284,9 @@ class Test_hserver_inside_docker_container_on_gp_mac1(_TestCase1, hunitest.TestC
     not (not hserver.is_inside_docker() and hserver.is_host_gp_mac()),
     reason="Config not matching",
 )
-class Test_hserver_outside_docker_container_on_gp_mac1(_TestCase1, hunitest.TestCase):
+class Test_hserver_outside_docker_container_on_gp_mac1(
+    _TestCase1, hunitest.TestCase
+):
     """
     Run tests outside Docker container on GP's Mac.
     """
@@ -265,15 +294,18 @@ class Test_hserver_outside_docker_container_on_gp_mac1(_TestCase1, hunitest.Test
     def setUp(self) -> None:
         super().setUp()
         self.exp_config_func_to_str = ""
-        self.exp_get_docker_info = hprint.dedent(r"""
+        self.exp_get_docker_info = hprint.dedent(
+            r"""
             # Docker info
               has_docker=True
               docker_needs_sudo=False
               has_privileged_mode=True
               is_inside_docker=False
               has_sibling_containers_support=*undef*
-              has_docker_dind_support=*undef*""")
-        self.exp_get_setup_settings = hprint.dedent(r"""
+              has_docker_dind_support=*undef*"""
+        )
+        self.exp_get_setup_settings = hprint.dedent(
+            r"""
             is_inside_docker_container_on_csfy_server     False
             is_outside_docker_container_on_csfy_server    False
             is_inside_docker_container_on_host_mac        False
@@ -282,7 +314,8 @@ class Test_hserver_outside_docker_container_on_gp_mac1(_TestCase1, hunitest.Test
             is_outside_docker_container_on_external_linux False
             is_dev4                                       False
             is_ig_prod                                    False
-            is_prod_csfy                                  False""")
+            is_prod_csfy                                  False"""
+        )
         self.exp_get_setup_signature = ""
         self.exp_is_host_csfy_server = False
         self.exp_is_host_mac = True

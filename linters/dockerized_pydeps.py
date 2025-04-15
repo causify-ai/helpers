@@ -10,9 +10,9 @@ import logging
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hparser as hparser
-import helpers.hsystem as hsystem
-import helpers.hserver as hserver
 import helpers.hprint as hprint
+import helpers.hserver as hserver
+import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
@@ -78,10 +78,7 @@ def _run_dockerized_pydeps(
         is_caller_host=is_caller_host,
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
-    cmd = [
-        "pydeps"
-        f"{in_file_path}"
-    ]
+    cmd = ["pydeps" f"{in_file_path}"]
     cmd = " ".join(cmd)
     executable = hdocker.get_docker_executable(use_sudo)
     docker_cmd = (
