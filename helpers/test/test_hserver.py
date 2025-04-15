@@ -111,7 +111,8 @@ class Test_hserver_inside_ci1(_TestCase1, hunitest.TestCase):
               has_privileged_mode=True
               is_inside_docker=True
               has_sibling_containers_support=True
-              has_docker_dind_support=True"""
+              has_docker_dind_support=True
+            """
         )
         self.exp_get_setup_settings = hprint.dedent(
             r"""
@@ -156,12 +157,12 @@ class Test_hserver_inside_docker_container_on_csfy_server1(
             r"""
             # Docker info
               has_docker=True
-              docker_version='28.0.4'
               docker_needs_sudo=False
               has_privileged_mode=True
               is_inside_docker=True
               has_sibling_containers_support=True
-              has_docker_dind_support=True"""
+              has_docker_dind_support=True
+            """
         )
         self.exp_get_setup_settings = hprint.dedent(
             r"""
@@ -174,7 +175,7 @@ class Test_hserver_inside_docker_container_on_csfy_server1(
             is_dev4                                       False
             is_ig_prod                                    False
             is_prod_csfy                                  False
-            is_inside_ci                                  True
+            is_inside_ci                                  False
             """
         )
         self.exp_get_setup_signature = ""
@@ -208,9 +209,10 @@ class Test_hserver_outside_docker_container_on_csfy_server1(
               has_docker=True
               docker_needs_sudo=False
               has_privileged_mode=True
-              is_inside_docker=True
-              has_sibling_containers_support=True
-              has_docker_dind_support=True"""
+              is_inside_docker=False
+              has_sibling_containers_support=*undef*
+              has_docker_dind_support=*undef*
+            """
         )
         self.exp_get_setup_settings = hprint.dedent(
             r"""
@@ -259,7 +261,8 @@ class Test_hserver_inside_docker_container_on_gp_mac1(
               has_privileged_mode=True
               is_inside_docker=True
               has_sibling_containers_support=True
-              has_docker_dind_support=True"""
+              has_docker_dind_support=True
+            """
         )
         self.exp_get_setup_settings = hprint.dedent(
             r"""
@@ -308,7 +311,8 @@ class Test_hserver_outside_docker_container_on_gp_mac1(
               has_privileged_mode=True
               is_inside_docker=False
               has_sibling_containers_support=*undef*
-              has_docker_dind_support=*undef*"""
+              has_docker_dind_support=*undef*
+            """
         )
         self.exp_get_setup_settings = hprint.dedent(
             r"""
