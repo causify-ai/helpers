@@ -77,12 +77,25 @@ def print_tasks(ctx, as_code=False):  # type: ignore
 
 
 @task
-def print_env(ctx):  # type: ignore
+def print_env(
+    ctx,
+    repo_config=True,
+    server_config=True,
+    system_signature=True,
+    env_vars=True,
+):  # type: ignore
     """
     Print the repo configuration.
     """
     _ = ctx
-    print(henv.env_to_str())
+    print(
+        henv.env_to_str(
+            repo_config=repo_config,
+            server_config=server_config,
+            system_signature=system_signature,
+            env_vars=env_vars,
+        )
+    )
 
 
 # TODO(gp):

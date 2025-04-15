@@ -1,4 +1,5 @@
 import ast
+import functools
 import logging
 import os
 import re
@@ -10,6 +11,68 @@ import helpers.hmarkdown as hmarkdo
 import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
+
+
+@functools.lru_cache(maxsize=1)
+def get_prompt_tags() -> List[str]:
+    """
+    Return the list of functions in this file that can be called as a prompt.
+    """
+    # Read current file.
+    curr_path = os.path.abspath(__file__)
+    file_content = hio.from_file(curr_path)
+    #
+    matched_functions = []
+    # Parse the file content into an AST.
+    tree = ast.parse(file_content)
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef):
+            # Check function arguments and return type that match the signature:
+            # ```
+            # def xyz() -> Tuple[str, Set[str]]:
+            # ```
+            args = [arg.arg for arg in node.args.args]
+            has_no_args = len(args) == 0
+            if not hasattr(node, "returns") or node.returns is None:
+                return_type_str = ""
+            else:
+                return_type_str = ast.unparse(node.returns)
+            _LOG.debug(hprint.to_str("node.name args return_type_str"))
+            if has_no_args and return_type_str == "_PROMPT_OUT":
+                _LOG.debug("  -> matched")
+                matched_functions.append(node.name)
+    matched_functions = sorted(matched_functions)
+    return matched_functions
+
+# Store the prompts that need a certain post-transforms to be applied outside
+# the container.
+OUTSIDE_CONTAINER_POST_TRANSFORMS = {}
+
+if not OUTSIDE_CONTAINER_POST_TRANSFORMS:
+    OUTSIDE_CONTAINER_POST_TRANSFORMS = {
+        # These are all the prompts with post_transforms with
+        # `convert_to_vim_cfile`.
+        "convert_file_names":
+            ["code_review",
+            "code_review_and_find_missing_docstrings",
+            "code_propose_refactoring",
+             ],
+        "prettier_on_str":
+        ["md_rewrite",
+        "md_summarize_short",
+        "slide_improve",
+        "slide_colorize",
+    ]
+    }
+    valid_prompts = get_prompt_tags()
+    for _, prompts in OUTSIDE_CONTAINER_POST_TRANSFORMS.items():
+        for prompt in prompts:
+            hdbg.dassert_in(prompt, valid_prompts)
+
+
+def get_outside_container_post_transforms(transform_name: str) -> Set[str]:
+    hdbg.dassert_in(transform_name, OUTSIDE_CONTAINER_POST_TRANSFORMS.keys())
+    return OUTSIDE_CONTAINER_POST_TRANSFORMS[transform_name]
 
 
 # #############################################################################
@@ -26,11 +89,15 @@ I will pass you a chunk of Python code.
 
 
 def code_comment() -> _PROMPT_OUT:
+    """
+    Add comments to Python code.
+    """
     system = _CONTEXT
     system += r"""
-    Every 10 lines of code add comment explaining the code.
+    Every a chunk of 4 or 5 lines of code add comment explaining the code.
     Comments should go before the logical chunk of code they describe.
-    Comments should be in imperative form, a full English phrase, and end with a period.
+    Comments should be in imperative form, a full English phrase, and end with a
+    period.
     """
     # You are a proficient Python coder and write English very well.
     # Given the Python code passed below, improve or add comments to the code.
@@ -44,11 +111,16 @@ def code_comment() -> _PROMPT_OUT:
 
 
 def code_docstring() -> _PROMPT_OUT:
+    """
+    Add a REST docstring to Python code.
+    """
     system = _CONTEXT
     system += r"""
     Add a docstring to the function passed.
-    The first comment should be in imperative mode and fit in a single line of less than 80 characters.
-    To describe the parameters use the REST style, which requires each parameter to be prepended with :param
+    - The first comment should be in imperative mode and fit in a single line of
+      less than 80 characters.
+    - To describe the parameters use the REST style, which requires each
+      parameter to be prepended with :param
     """
     pre_transforms = set()
     post_transforms = {"remove_code_delimiters"}
@@ -115,17 +187,34 @@ def code_review() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms
 
 
-def code_review_and_fix() -> _PROMPT_OUT:
+# TODO(gp): This is kind of expensive and we should use a linter stage.
+def code_review_and_find_missing_docstrings() -> _PROMPT_OUT:
+    """
+    Find missing docstrings in Python code.
+    """
     system = _CONTEXT
     system += r"""
-    You will review the code and make sure it is correct and readable.
+    You will review the code and find missing docstrings.
 
-    You will print the code with the proposed improvements, minimizing the
-    number of changes to the code that are not strictly needed.
+    Do not print any comment, only print the line number in the following style:
+    <line_number>: <short description of the proposed improvement>
     """
     pre_transforms = {"add_line_numbers"}
     post_transforms = {"convert_to_vim_cfile"}
     return system, pre_transforms, post_transforms
+
+
+# def code_review_and_fix() -> _PROMPT_OUT:
+#     system = _CONTEXT
+#     system += r"""
+#     You will review the code and make sure it is correct and readable.
+
+#     You will print the code with the proposed improvements, minimizing the
+#     number of changes to the code that are not strictly needed.
+#     """
+#     pre_transforms = {"add_line_numbers"}
+#     post_transforms = {"convert_to_vim_cfile"}
+#     return system, pre_transforms, post_transforms
 
 
 def code_propose_refactoring() -> _PROMPT_OUT:
@@ -171,6 +260,107 @@ tutorial_github/github_utils.py:106: [W1203(logging-fstring-interpolation), get_
     pre_transforms = set()
     post_transforms = set()
     return system, pre_transforms, post_transforms
+
+
+def code_fix_string() -> _PROMPT_OUT:
+    """
+    Fix the log statements to use % formatting.
+    """
+    system = _CONTEXT
+    system += r"""
+    Use % formatting instead of f-strings (formatted string literals).
+    Do not print any comment, just the converted code.
+
+    For instance, convert:
+    _LOG.info(f"env_var='{str(env_var)}' is not in env_vars='{str(os.environ.keys())}'")
+    to
+    _LOG.info("env_var='%s' is not in env_vars='%s'", env_var, str(os.environ.keys()))
+
+    For instance, convert:
+    hdbg.dassert_in(env_var, os.environ, f"env_var='{str(env_var)}' is not in env_vars='{str(os.environ.keys())}''")
+    to
+    hdbg.dassert_in(env_var, os.environ, "env_var='%s' is not in env_vars='%s'", env_var, str(os.environ.keys()))
+    """
+    pre_transforms = set()
+    post_transforms = {"remove_code_delimiters"}
+    return system, pre_transforms, post_transforms
+
+
+def code_use_f_strings() -> _PROMPT_OUT:
+    """
+    Use f-strings, like `f"Hello, {name}. You are {age} years old."`.
+    """
+    system = _CONTEXT
+    system += r"""
+    Use f-strings (formatted string literals) instead of % formatting and format
+    strings. Do not print any comment, just the converted code.
+    
+    For instance, convert:
+    "Hello, %s. You are %d years old." % (name, age)
+    to
+    f"Hello, {name}. You are {age} years old."
+    """
+    pre_transforms = set()
+    post_transforms = {"remove_code_delimiters"}
+    return system, pre_transforms, post_transforms
+
+
+def code_use_perc_strings() -> _PROMPT_OUT:
+    """
+    Use % formatting, like `"Hello, %s. You are %d years old." % (name, age)`.
+    """
+    system = _CONTEXT
+    system += r"""
+    Use % formatting instead of f-strings (formatted string literals).
+    Do not print any comment, just the converted code.
+
+    For instance, convert:
+    f"Hello, {name}. You are {age} years old."
+    to
+    "Hello, %s. You are %d years old." % (name, age)
+    """
+    pre_transforms = set()
+    post_transforms = {"remove_code_delimiters"}
+    return system, pre_transforms, post_transforms
+
+
+def code_apply_csfy_style1() -> _PROMPT_OUT:
+    """
+    Apply the csfy style to the code.
+    """
+    system = _CONTEXT
+    file_name = "template_code.py"
+    file_content = hio.from_file(file_name)
+    system += fr"""
+    Apply the style described below to the Python code without changing the
+    behavior of the code.
+    ```
+    {file_content}
+    ```
+    Do not remove any code, just format the existing code using the style.
+
+    Do not report any explanation of what you did, just the converted code.
+    """
+    pre_transforms = set()
+    post_transforms = {"remove_code_delimiters"}
+    return system, pre_transforms, post_transforms
+
+
+def code_apply_csfy_style2() -> _PROMPT_OUT:
+    """
+    Apply the csfy style to the code.
+    """
+    system = _CONTEXT
+    system += r"""
+    Apply the following style to the code:
+    - Convert docstrings into REST docstrings
+    - Always use imperative in comments
+    - Remove empty spaces in functions
+    - Add type hints, when missing
+    - Use * before mandatory parameters 
+    - Make local functions private
+    - Convert .format() to f-string unless it’s a _LOG
+    """
 
 
 # #############################################################################
@@ -274,7 +464,7 @@ def _convert_to_vim_cfile_str(txt: str, in_file_name: str) -> str:
         if line.strip() == "":
             continue
         # ```
-        # 57: The docstring should use more detailed type annotations for clarity, e.g., `List[str]`, `int`, etc.
+        # 57: The docstring should use more detailed type annotations for ...
         # ```
         regex = re.compile(
             r"""
@@ -290,7 +480,7 @@ def _convert_to_vim_cfile_str(txt: str, in_file_name: str) -> str:
             description = match.group(2)
         else:
             # ```
-            # 98-104: Simplify the hash computation logic with a helper function to avoid redundant steps.
+            # 98-104: Simplify the hash computation logic with a helper ...
             # ```
             regex = re.compile(
                 r"""
@@ -316,6 +506,9 @@ def _convert_to_vim_cfile_str(txt: str, in_file_name: str) -> str:
 def _convert_to_vim_cfile(txt: str, in_file_name: str, out_file_name: str) -> str:
     """
     Convert the text passed to a vim cfile.
+
+    This is used to convert the results of the LLM into something that vim can
+    use to open the files and jump to the correct lines.
 
     in_file_name: path to the file to convert to a vim cfile (e.g.,
         `/app/helpers_root/tmp.llm_transform.in.txt`)
@@ -399,34 +592,3 @@ def run_prompt(
     if txt_out is not None:
         hdbg.dassert_isinstance(txt_out, str)
     return txt_out
-
-
-def get_prompt_tags() -> List[str]:
-    """
-    Return the list of functions in this file that can be called as a prompt.
-    """
-    # Read current file.
-    curr_path = os.path.abspath(__file__)
-    file_content = hio.from_file(curr_path)
-    #
-    matched_functions = []
-    # Parse the file content into an AST.
-    tree = ast.parse(file_content)
-    for node in ast.walk(tree):
-        if isinstance(node, ast.FunctionDef):
-            # Check function arguments and return type that match the signature:
-            # ```
-            # def xyz() -> Tuple[str, Set[str]]:
-            # ```
-            args = [arg.arg for arg in node.args.args]
-            has_no_args = len(args) == 0
-            if not hasattr(node, "returns") or node.returns is None:
-                return_type_str = ""
-            else:
-                return_type_str = ast.unparse(node.returns)
-            _LOG.debug(hprint.to_str("node.name args return_type_str"))
-            if has_no_args and return_type_str == "_PROMPT_OUT":
-                _LOG.debug("  -> matched")
-                matched_functions.append(node.name)
-    matched_functions = sorted(matched_functions)
-    return matched_functions
