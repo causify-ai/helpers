@@ -336,7 +336,7 @@ def get_dir_signature(
     return txt
 
 
-# TODO(gp): @all Use the copy in helpers/print.py.
+# TODO(gp): GSI. Use the copy in helpers/hprint.py
 def filter_text(regex: str, txt: str) -> str:
     """
     Remove lines in `txt` that match the regex `regex`.

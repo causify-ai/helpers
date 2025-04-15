@@ -180,6 +180,23 @@ activate_venv() {
 }
 
 
+set_csfy_env_vars() {
+    echo "# set_csfy_env_vars()"
+    #
+    export CSFY_HOST_NAME=$(hostname)
+    echo "CSFY_HOST_NAME=$CSFY_HOST_NAME"
+    #
+    export CSFY_HOST_OS_NAME=$(uname)
+    echo "CSFY_HOST_OS_NAME=$CSFY_HOST_OS_NAME"
+    #
+    export CSFY_HOST_USER_NAME=$(whoami)
+    echo "CSFY_HOST_USER_NAME=$CSFY_HOST_USER_NAME"
+    #
+    export CSFY_HOST_OS_VERSION=$(uname -r)
+    echo "CSFY_HOST_OS_VERSION=$CSFY_HOST_OS_VERSION"
+}
+
+
 set_path() {
     echo "# set_path()"
     local dev_script_dir=$1
@@ -253,6 +270,7 @@ is_dev_csfy() {
         return 1
     fi
 }
+
 
 configure_specific_project() {
     echo "# configure_specific_project()"
