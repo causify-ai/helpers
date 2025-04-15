@@ -57,20 +57,16 @@
   - Follows our
     [formatting requirements](/docs/work_organization/all.team_collaboration.how_to_guide.md#morning-todo-email)
   - Sets realistic ETAs
-
 - Reads docs with attention
   - Internalizes our conventions described in the docs
-
 - Able to follow procedures
   - Issue and PR-related workflows
   - Org processes
-
 - Independence
   - Provides solutions rather than questions
   - Doesn't need a lot of guidance
   - Asks only "good" questions (not something that they should be able to solve
     on their own)
-
 - Attention to detail
   - Doesn't forget to do small things, including but not limited to:
     - Follow style conventions
@@ -78,13 +74,10 @@
     - Keep the branch up to date
     - Make sure there are no tmp files checked in
   - Thinks about corner cases while writing code and tests
-
 - Git / GitHub knowledge
   - Doesn't run into problems with branches/PRs
-
 - Python knowledge / coding ability
   - Writes effective and beautiful code
-
 - Commitment to the project
   - Puts in the hours
     - This is a minor point: the number of hours doesn't really matter as long
@@ -93,10 +86,8 @@
       stuff done, it can become a problem
   - Willing to learn and contribute
   - Willing to solve problems
-
 - Productivity
   - Quick to successfully complete tasks
-
 - Learns from reviews
   - Doesn't repeat the same mistake twice
 
