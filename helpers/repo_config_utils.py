@@ -166,7 +166,8 @@ class RepoConfig:
 
     def get_github_repo_account(self) -> str:
         """
-        Return the account name of the repo on GitHub, e.g., `causify-ai`, `gpsaggese`.
+        Return the account name of the repo on GitHub, e.g., `causify-ai`,
+        `gpsaggese`.
         """
         value = self._data["repo_info"]["github_repo_account"]
         return value
@@ -177,10 +178,11 @@ class RepoConfig:
         """
         value = self._data["repo_info"]["repo_name"]
         return value
-        
+
     def get_repo_full_name(self) -> str:
         """
-        Return the full name of the repo, e.g., `causify-ai/amp`, `gpsaggese/notes`.
+        Return the full name of the repo, e.g., `causify-ai/amp`,
+        `gpsaggese/notes`.
         """
         github_repo_account = self._data["repo_info"]["github_repo_account"]
         repo_name = self._data["repo_info"]["repo_name"]
@@ -253,7 +255,9 @@ class RepoConfig:
 
     def get_docker_base_image_name(self) -> str:
         """
-        Return a base name for docker image.  E.g., `helpers`.
+        Return a base name for docker image.
+
+        E.g., `helpers`.
         """
         value = self._data["docker_info"]["docker_image_name"]
         return value
@@ -317,6 +321,7 @@ class RepoConfig:
     def get_dir_suffix(self) -> str:
         """
         Return the suffix of the dev_scripts_{dir_suffix} dir for the repo.
+
         E.g., `helpers` for `dev_scripts_helpers` in //helpers repo.
         """
         value = self._data["runnable_dir_info"]["dir_suffix"]
@@ -326,7 +331,9 @@ class RepoConfig:
         """
         Return whether the helpers repo is used as a nested module.
         """
-        value = self._data["runnable_dir_info"]["use_helpers_as_nested_module"]
+        value = bool(
+            self._data["runnable_dir_info"]["use_helpers_as_nested_module"]
+        )
         return value
 
     # TODO(gp): Add functions for container_registry_info.

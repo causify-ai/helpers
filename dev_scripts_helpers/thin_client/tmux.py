@@ -12,6 +12,7 @@ _LOG = logging.getLogger(__name__)
 # We need to tweak `PYTHONPATH` directly since we are bootstrapping the system.
 sys.path.append("helpers_root/dev_scripts_helpers/thin_client")
 import thin_client_utils as tcu
+
 sys.path.append("helpers_root/helpers")
 import helpers.repo_config_utils as hrecouti
 
@@ -26,8 +27,9 @@ if _HAS_SUBREPO:
 if __name__ == "__main__":
     parser = tcu.create_parser(__doc__)
     dir_suffix = hrecouti.get_repo_config().get_dir_suffix()
-    setenv_path = os.path.join(f"dev_scripts_{dir_suffix}", "thin_client",
-                               "setenv.sh")
+    setenv_path = os.path.join(
+        f"dev_scripts_{dir_suffix}", "thin_client", "setenv.sh"
+    )
     tcu.create_tmux_session(
         parser, _SCRIPT_PATH, dir_suffix, setenv_path, _HAS_SUBREPO
     )
