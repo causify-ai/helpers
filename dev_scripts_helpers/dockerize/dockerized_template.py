@@ -3,8 +3,8 @@
 """
 Dockerized template.
 
-This script is a template for creating a Dockerized script.
-It is intended as a template to explain the process.
+This script is a template for creating a Dockerized script. It is
+intended as a template to explain the process.
 """
 
 import argparse
@@ -41,8 +41,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         verbosity=args.log_level, use_exec_path=True, force_white=False
     )
     # FILL THIS.
-    cmd = (
-    )
+    cmd = ()
     _LOG.debug("Command: %s", cmd)
     hdocker.run_dockerized_pandoc(
         pandoc_cmd,
