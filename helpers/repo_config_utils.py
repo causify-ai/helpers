@@ -314,6 +314,14 @@ class RepoConfig:
         }
         return dir_to_url
 
+    def get_dir_suffix(self) -> str:
+        """
+        Return the suffix of the dev_scripts_{dir_suffix} dir for the repo.
+        E.g., `helpers` for `dev_scripts_helpers` in //helpers repo.
+        """
+        value = self._data["runnable_dir_info"]["dir_suffix"]
+        return value
+
     # TODO(gp): Add functions for container_registry_info.
 
     # Utils.
