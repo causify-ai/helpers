@@ -52,7 +52,7 @@ def _remove_empty_lines(text: str) -> List[str]:
             cleaned_file.append("")
             continue
         if inside_function and stripped == "":
-            # Skip empty lines inside the function.
+            # Remove empty lines inside the function.
             _LOG.debug("Removing empty line found at line %d inside function.", i)
             continue
         if inside_function and stripped != "" and current_indent <= base_indent:
