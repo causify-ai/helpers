@@ -28,6 +28,3 @@ class Test_env1(hunitest.TestCase):
         Check that the function returns false for the non-existing package.
         """
         self.assertFalse(henv.has_module("no_such_module"))
-
-
-# #############################################################################

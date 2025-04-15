@@ -16,7 +16,7 @@ class TestVersioning1(hunitest.TestCase):
         _LOG.debug("code_version=%s", code_version)
 
     def test_get_container_version1(self) -> None:
-        container_version = hversio._get_container_version()
+        container_version = hversio.get_container_version()
         _LOG.debug("container_version=%s", container_version)
 
     def test_check_version1(self) -> None:

@@ -37,6 +37,9 @@ def indent(txt: str, num_spaces: int = 2) -> str:
 # End copy.
 
 
+# #############################################################################
+
+
 def _find_config_file(file_name: str) -> str:
     """
     Find recursively the dir of config file.
@@ -148,21 +151,22 @@ class RepoConfig:
         ret.append(
             f"get_docker_base_image_name='{self.get_docker_base_image_name()}'"
         )
-        return "# repo_config.config\n" + indent("\n".join(ret))
+        txt = "\n".join(ret)
+        return txt
 
     # repo_info
 
     # TODO(gp): -> get_repo_name
     def get_name(self) -> str:
         """
-        Return the name of the repo, e.g., `//amp`.
+        Return the name of the repo, e.g., in `//amp`.
         """
         value = self._data["repo_info"]["repo_name"]
         return f"//{value}"
 
     def get_github_repo_account(self) -> str:
         """
-        Return the account name of the repo on GitHub, e.g., `github.com`.
+        Return the account name of the repo on GitHub, e.g., `causify-ai`, `gpsaggese`.
         """
         value = self._data["repo_info"]["github_repo_account"]
         return value
