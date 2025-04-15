@@ -450,7 +450,9 @@ def _get_setup_signature() -> str:
 #   - Container
 #   - Host
 # - Prod container on Linux
-
+#   - Container
+# - CI
+#   - Container
 
 def is_inside_docker_container_on_csfy_server() -> bool:
     """
@@ -518,6 +520,7 @@ def _get_setup_settings() -> List[Tuple[str, bool]]:
         "is_dev4",
         "is_ig_prod",
         "is_prod_csfy",
+        "is_inside_ci",
     ]
     # Store function name / value pairs as tuples.
     setups = []
