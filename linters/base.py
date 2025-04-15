@@ -433,12 +433,6 @@ def _parse() -> argparse.ArgumentParser:
         "-f", "--files", nargs="+", type=str, help="Files to process"
     )
     parser.add_argument(
-        "--skip_files",
-        nargs="+",
-        type=str,
-        help="Files to skip from linting"
-    )
-    parser.add_argument(
         "-d",
         "--dir_name",
         action="store",
@@ -458,6 +452,12 @@ def _parse() -> argparse.ArgumentParser:
         "--branch",
         action="store_true",
         help="Select files modified in the current branch with respect to master",
+    )
+    parser.add_argument(
+        "--skip_files",
+        nargs="+",
+        type=str,
+        help="Files to skip from linting"
     )
     # Action selection.
     parser.add_argument(
