@@ -6,8 +6,10 @@ import helpers.henv as henv
 
 import logging
 import os
+import re
 from typing import Any, Dict, List, Tuple, Union
 
+import helpers.hdbg as hdbg
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
@@ -28,22 +30,24 @@ _LOG = logging.getLogger(__name__)
 _WARNING = "\033[33mWARNING\033[0m"
 
 
+# TODO(gp): Is this the right place for this function?
 def has_module(module: str) -> bool:
     """
     Return whether a Python module can be imported or not.
     """
-    if module == "gluonts" and hserver.is_mac():
+    if module == "gluonts" and hserver.is_host_mac():
         # Gluonts and mxnet modules are not properly supported on the ARM
         # architecture yet, see CmTask4886 for details.
         return False
     code = f"""
-try:
-    import {module}
-    has_module_ = True
-except ImportError as e:
-    _LOG.warning("%s: %s", _WARNING, str(e))
-    has_module_ = False
-"""
+    try:
+        import {module}
+        has_module_ = True
+    except ImportError as e:
+        _LOG.warning("%s: %s", _WARNING, str(e))
+        has_module_ = False
+    """
+    code = hprint.dedent(code)
     # To make the linter happy.
     has_module_ = True
     locals_: Dict[str, Any] = {}
@@ -56,13 +60,20 @@ except ImportError as e:
     return has_module_
 
 
+# All printing functions should:
+# - Return a string and not a list of strings
+# - Add a newline at the end of the string (i.e., the string should end with
+#   `\n`)
+
+
 # #############################################################################
-# Print the env vars.
+# Get env vars info.
 # #############################################################################
 
 
 def get_env_var(
     env_name: str,
+    *,
     as_bool: bool = False,
     default_value: Any = None,
     abort_on_missing: bool = True,

@@ -448,6 +448,7 @@ def execute_only_in_target_repo(target_name: str) -> None:
         pytest.skip(f"Only run on {target_name} and not {repo_short_name}")
 
 
+# TODO(gp): Remove and use pytest.skipif().
 def execute_only_on_ci() -> None:
     is_inside_ci_ = hserver.is_inside_ci()
     if not is_inside_ci_:
@@ -467,8 +468,8 @@ def execute_only_on_dev_csfy() -> None:
 
 
 def execute_only_on_mac(*, version: Optional[str] = None) -> None:
-    is_mac_ = hserver.is_mac(version=version)
-    if not is_mac_:
+    is_host_mac_ = hserver.is_host_mac(version=version)
+    if not is_host_mac_:
         pytest.skip(f"Only run on Mac with version={version}")
 
 
