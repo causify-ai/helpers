@@ -41,7 +41,7 @@ This contains the absolute minimal amount of info to start developing
 
 ## Project management
 
-- [Contributor Scoring](/docs/work_organization/all.contributor_scoring.how_to_guide.md)
+- [Contributor Feedback](/docs/work_organization/all.contributor_feedback.how_to_guide.md)
   - How we give feedback to contributors
 
 - [Code review](/docs/coding/all.code_review.how_to_guide.md)
