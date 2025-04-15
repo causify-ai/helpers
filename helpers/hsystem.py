@@ -21,7 +21,6 @@ from typing import Any, Callable, List, Match, Optional, Tuple, Union, cast
 
 import helpers.hdbg as hdbg
 import helpers.hintrospection as hintros
-import helpers.hlogging as hloggin
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 
@@ -33,7 +32,7 @@ import helpers.hserver as hserver
 _LOG = logging.getLogger(__name__)
 
 # Set logging level of this file higher to avoid too much chatter.
-#_LOG.setLevel(logging.INFO)
+_LOG.setLevel(logging.INFO)
 
 # #############################################################################
 
@@ -687,7 +686,7 @@ def to_pbcopy(txt: str, pbcopy: bool) -> None:
     if not txt:
         print("Nothing to copy")
         return
-    if hserver.is_mac():
+    if hserver.is_host_mac():
         # -n = no new line
         cmd = f"echo -n '{txt}' | pbcopy"
         system(cmd)

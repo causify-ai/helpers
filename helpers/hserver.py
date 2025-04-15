@@ -121,7 +121,7 @@ def is_dev4() -> bool:
     return is_dev4_
 
 
-def is_mac(*, version: Optional[str] = None) -> bool:
+def is_host_mac(*, version: Optional[str] = None) -> bool:
     """
     Return whether we are running on macOS and, optionally, on a specific
     version.
@@ -242,7 +242,7 @@ def is_external_dev() -> bool:
 
     This includes macOS and non-server/non-CI Linux machines.
     """
-    is_external_dev_ = is_mac() or is_external_linux()
+    is_external_dev_ = is_host_mac() or is_external_linux()
     return is_external_dev_
 
 
@@ -287,7 +287,7 @@ def _get_setup_settings() -> List[Tuple[str, bool]]:
         ("is_dev_csfy", is_dev_csfy()),
         ("is_ig_prod", is_ig_prod()),
         ("is_inside_ci", is_inside_ci()),
-        ("is_mac", is_mac()),
+        ("is_mac", is_host_mac()),
         ("is_external_linux", is_external_linux()),
         # ("is_csfy_or_external_container", is_csfy_or_external_container()),
     ]
@@ -429,10 +429,10 @@ def enable_privileged_mode() -> bool:
             ret = True
         elif is_inside_ci():
             ret = True
-        elif is_mac(version="Catalina"):
+        elif is_host_mac(version="Catalina"):
             # Docker for macOS Catalina supports dind.
             ret = True
-        elif is_mac(version="Monterey") or is_mac(version="Ventura") or is_mac(version="Sequoia"):
+        elif is_host_mac(version="Monterey") or is_host_mac(version="Ventura") or is_host_mac(version="Sequoia"):
             # Docker doesn't seem to support dind for these versions of macOS.
             ret = False
         elif is_prod_csfy():
@@ -456,7 +456,7 @@ def has_docker_sudo() -> bool:
         ret = True
     elif is_inside_ci():
         ret = False
-    elif is_mac():
+    elif is_host_mac():
         # macOS runs Docker with sudo by default.
         # TODO(gp): This is not true.
         ret = True
@@ -470,7 +470,7 @@ def has_docker_sudo() -> bool:
 
 
 def _is_mac_version_with_sibling_containers() -> bool:
-    return is_mac(version="Monterey") or is_mac(version="Ventura") or is_mac(version="Sequoia")
+    return is_host_mac(version="Monterey") or is_host_mac(version="Ventura") or is_host_mac(version="Sequoia")
 
 
 # TODO(gp): -> use_docker_sibling_container_support
@@ -523,7 +523,7 @@ def get_shared_data_dirs() -> Optional[Dict[str, str]]:
 def use_docker_network_mode_host() -> bool:
     # TODO(gp): Not sure this is needed any more, since we typically run in
     # bridge mode.
-    ret = is_mac() or is_dev_csfy()
+    ret = is_host_mac() or is_dev_csfy()
     ret = False
     if ret:
         assert use_docker_sibling_containers()
@@ -573,7 +573,7 @@ def run_docker_as_root() -> bool:
         # see https://github.com/alphamatic/amp/issues/1864
         # So we run as root in GH actions.
         ret = True
-    elif is_mac():
+    elif is_host_mac():
         ret = False
     elif is_prod_csfy():
         ret = False

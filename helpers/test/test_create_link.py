@@ -25,8 +25,6 @@ class Test_create_links(hunitest.TestCase):
 
         Create two directories, each containing identical files,
         and checks that the `_find_common_files` function identifies these files.
-
-        :return: None
         """
         base_dir: pathlib.Path = pathlib.Path(self.get_scratch_space())
         src_dir: pathlib.Path = base_dir / "test_src_dir"
@@ -50,8 +48,6 @@ class Test_create_links(hunitest.TestCase):
         Create identical files in two directories and replace the files
         in the destination directory with absolute symbolic links
         pointing to the source files.
-
-        :return: None
         """
         base_dir: pathlib.Path = pathlib.Path(self.get_scratch_space())
         src_dir: pathlib.Path = base_dir / "test_src_dir"
@@ -75,8 +71,6 @@ class Test_create_links(hunitest.TestCase):
         Create identical files in two directories and replace the files
         in the destination directory with relative symbolic links
         pointing to the source files.
-
-        :return: None
         """
         base_dir: pathlib.Path = pathlib.Path(self.get_scratch_space())
         src_dir: pathlib.Path = base_dir / "test_src_dir"
@@ -103,8 +97,6 @@ class Test_create_links(hunitest.TestCase):
         Create symbolic links in a directory and then stage them by
         replacing each link with a copy of the original file it points
         to.
-
-        :return: None
         """
         base_dir: pathlib.Path = pathlib.Path(self.get_scratch_space())
         src_dir: pathlib.Path = base_dir / "test_src_dir"

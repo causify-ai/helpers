@@ -1,10 +1,9 @@
 import logging
-from typing import Any, Dict, List, Optional, Union
+from typing import Dict, Optional
 
 import pandas as pd
 
 import helpers.hdbg as hdbg
-import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
@@ -35,7 +34,7 @@ def _format_greeting(name: str, *, greeting: str = DEFAULT_GREETING) -> str:
 
 
 # #############################################################################
-# Main functionality
+# Greeter
 # #############################################################################
 
 
@@ -52,7 +51,9 @@ class Greeter:
         """
         self._greeting_cache: Dict[str, str] = {}
         self._default_greeting = default_greeting
-        _LOG.debug("Initialized Greeter with default greeting='%s'", default_greeting)
+        _LOG.debug(
+            "Initialized Greeter with default greeting='%s'", default_greeting
+        )
 
     def greet(self, name: str, *, greeting: Optional[str] = None) -> str:
         """
@@ -84,7 +85,9 @@ class Greeter:
         """
         stats = {
             "total_greetings": len(self._greeting_cache),
-            "unique_names": len(set(k.split("_")[0] for k in self._greeting_cache.keys())),
+            "unique_names": len(
+                set(k.split("_")[0] for k in self._greeting_cache.keys())
+            ),
         }
         return pd.Series(stats).to_frame().T
 
@@ -92,6 +95,7 @@ class Greeter:
 # #############################################################################
 # Example usage
 # #############################################################################
+
 
 def main() -> None:
     """
@@ -109,4 +113,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
