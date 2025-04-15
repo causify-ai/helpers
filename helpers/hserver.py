@@ -454,6 +454,7 @@ def _get_setup_signature() -> str:
 # - CI
 #   - Container
 
+
 def is_inside_docker_container_on_csfy_server() -> bool:
     """
     Return whether we are running on a Docker container on a Causify server.
