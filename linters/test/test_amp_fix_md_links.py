@@ -383,8 +383,7 @@ class Test_fix_links(hunitest.TestCase):
 
     def test10(self) -> None:
         """
-        Test if bare links in a Markdown file are converted to Markdown-style
-        links.
+        Test multiple bare links conversion to Markdown-style links.
         """
         # Prepare inputs.
         text = r"""
