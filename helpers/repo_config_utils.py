@@ -322,6 +322,13 @@ class RepoConfig:
         value = self._data["runnable_dir_info"]["dir_suffix"]
         return value
 
+    def use_helpers_as_nested_module(self) -> bool:
+        """
+        Return whether the helpers repo is used as a nested module.
+        """
+        value = self._data["runnable_dir_info"]["use_helpers_as_nested_module"]
+        return value
+
     # TODO(gp): Add functions for container_registry_info.
 
     # Utils.
