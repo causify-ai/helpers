@@ -21,69 +21,6 @@ import linters.utils as liutils
 _LOG = logging.getLogger(__name__)
 
 
-# TODO(allenmatt10): Add tests.
-def _find_function_indices(text: List[str]) -> List[int]:
-    """
-    Get indices of lines of code that are inside functions and methods.
-
-    For example:
-        Input: [
-            "import os",
-            "",
-            "def func1(x: int) -> None:",
-            "",
-            "    print('Inside function')",
-            "    print(x)",
-            "",
-            "func1(10)",
-            "print('Outside function')"
-        ]
-        Output: [2, 3, 4, 5]
-
-    :param text: the code lines to check
-    :return: the indices of function lines
-    """
-    function_line_indices = []
-    i = 0
-    n = len(text)
-    while i < n:
-        # Process each line to find function header.
-        line = text[i]
-        # Match lines that define a function, for example, 'def func1():' or 'def func2(a, b):'.
-        match = re.match(r"(\s*)def\s+\w+", line)
-        if not match:
-            # Ignore lines outside the functions.
-            i += 1
-            continue
-        base_indent = len(match.group(1))
-        start = i
-        _LOG.debug(
-            "Function header found at line %d with base indentation %d",
-            i,
-            base_indent,
-        )
-        i += 1
-        while i < n:
-            # Process each line inside the function.
-            current_line = text[i]
-            if current_line.strip() == "":
-                _LOG.debug("Empty line found at %d inside function.", i)
-                # Register empty lines that are inside the function.
-                i += 1
-                continue
-            current_indent = len(current_line) - len(current_line.lstrip())
-            if current_indent <= base_indent:
-                # Exit if current line is indented at or below base level as function ends.
-                while text[i - 1] == "":
-                    # Do not register empty lines that follow the function.
-                    i -= 1
-                _LOG.debug("Function block ends at line %d", i)
-                break
-            i += 1
-        function_line_indices.extend(range(start, i))
-    return function_line_indices
-
-
 def _remove_empty_lines(text: str) -> List[str]:
     """
     Process file to remove empty lines in functions.
@@ -92,19 +29,50 @@ def _remove_empty_lines(text: str) -> List[str]:
     :return: formatted file without empty lines in functions
     """
     lines = text.splitlines()
-    # Extract indices of docstrings and functions.
+    # Extract indices of docstrings.
     docstring_indices = set(hstring.get_docstring_line_indices(lines))
-    function_indices = set(_find_function_indices(lines))
     cleaned_file = []
+    inside_function = False
+    base_indent = 0
     for i, line in enumerate(lines):
-        # Skip empty lines, except in docstrings.
         stripped = line.strip()
-        if (
-            i in function_indices
-            and i not in docstring_indices
-            and stripped == ""
-        ):
+        # Match lines that define a function, for example, 'def func1():' or 'def func2(a, b):'.
+        match = re.match(r"(\s*)def\s+\w+", line)
+        if match:
+            inside_function = True
+            base_indent = len(match.group(1))
+        current_indent = len(line) - len(line.lstrip())
+        if inside_function and i in docstring_indices and stripped == "":
+            # Keep empty lines inside the docstring.
+            cleaned_file.append("")
             continue
+        if inside_function and stripped == "":
+            # Skip empty lines inside the function.
+            continue
+        if inside_function and stripped != "" and current_indent <= base_indent:
+            # Retain trailing empty lines after the function,
+            # as Python doesn't distinguish between indented and non-indented empty lines,
+            # so we preserve them manually to avoid accidental removal.
+            if match:
+                # Retain empty lines between the previous function and the current function.
+                k = len(cleaned_file)
+                while lines[i - 1] == "":
+                    if cleaned_file[k - 1] == "":
+                        # Check if no functions precede the current one,
+                        # then the empty lines are already retained.
+                        i -= 1
+                        k -= 1
+                    else:
+                        # Retain empty lines between two functions.
+                        cleaned_file.append("")
+                        i -= 1
+            else:
+                # Retain empty lines between the previous function and the surrounding code.
+                while lines[i - 1] == "":
+                    cleaned_file.append("")
+                    i -= 1
+                inside_function = False
+                base_indent = 0
         cleaned_file.append(line)
     return cleaned_file
 
