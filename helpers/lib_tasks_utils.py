@@ -250,7 +250,7 @@ def _to_pbcopy(txt: str, pbcopy: bool) -> None:
     if not txt:
         print("Nothing to copy")
         return
-    if hserver.is_mac():
+    if hserver.is_host_mac():
         # -n = no new line
         cmd = f"echo -n '{txt}' | pbcopy"
         hsystem.system(cmd)

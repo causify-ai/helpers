@@ -6,7 +6,8 @@
 #
 
 # Print the script path.
-echo "##> $(realpath "${BASH_SOURCE[0]:-$0}")"
+SCRIPT_PATH=$(realpath "${BASH_SOURCE[0]:-$0}")
+echo "##> $SCRIPT_PATH"
 
 GIT_ROOT_DIR=$(git rev-parse --show-toplevel)
 echo "GIT_ROOT_DIR=$GIT_ROOT_DIR"
@@ -83,7 +84,6 @@ set_path $DEV_SCRIPT_DIR
 # PYTHONPATH.
 # #############################################################################
 
-# Set PYTHONPATH.
 set_pythonpath $HELPERS_ROOT_DIR
 
 # #############################################################################
@@ -101,7 +101,10 @@ set_symlink_permissions .
 # Project configuration.
 # #############################################################################
 
-# - Set specific configuration of the project.
+# Set CSFY environment variables.
+set_csfy_env_vars
+
+# Set specific configuration of the project.
 configure_specific_project
 
 print_env_signature
