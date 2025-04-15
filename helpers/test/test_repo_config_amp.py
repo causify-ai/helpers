@@ -233,7 +233,7 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
         reason="Run only in //cmamp",
     )
     def test_cmamp_ci(self) -> None:
-        # hunteuti.execute_only_on_ci()
+        hunteuti.execute_only_on_ci()
         #
         exp = r"""
         # Repo config
@@ -245,7 +245,7 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
               enable_privileged_mode='True'
               get_docker_shared_group=''
               get_docker_user=''
-              get_host_user_name=''
+              get_host_user_name='runner'
               get_shared_data_dirs='None'
               has_dind_support='True'
               has_docker_sudo='False'
