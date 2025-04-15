@@ -1403,11 +1403,11 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
 
     def test6(self) -> None:
         """
-        Test a markdown and code block with no Python code delimiters.
+        Test a Python and immediate markdown code block.
         """
         # Prepare inputs.
         content = r"""
-        ```
+        ```python
         def no_start_python():
             print("No mention of python at the start")```
         ```
