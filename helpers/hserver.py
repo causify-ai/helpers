@@ -11,6 +11,8 @@ import logging
 import os
 import shutil
 import subprocess
+import shutil
+import subprocess
 from typing import Dict, List, Optional, Tuple
 
 import helpers.hprint as hprint
@@ -211,6 +213,185 @@ def is_host_gp_mac() -> bool:
     return ret
 
 
+# We can't use `hsystem` to avoid import cycles.
+def _system_to_string(cmd: str) -> Tuple[int, str]:
+    """
+    Run a command and return the output and the return code.
+
+    :param cmd: command to run
+    :return: tuple of (return code, output)
+    """
+    result = subprocess.run(
+        cmd,
+        stdout=subprocess.PIPE,
+        # Redirect stderr to stdout.
+        stderr=subprocess.STDOUT,
+        shell=True,
+        text=True,
+    )
+    rc = result.returncode
+    output = result.stdout
+    output = output.strip()
+    return rc, output
+
+
+# #############################################################################
+# Host
+# #############################################################################
+
+
+# We can't rely only on the name / version of the host to infer where we are
+# running, since inside Docker the name of the host is like `01a7e34a82a5`. Of
+# course, there is no way to know anything about the host for security reason,
+# so we pass this value from the external environment to the container, through
+# env vars (e.g., `CSFY_HOST_NAME`, `CSFY_HOST_OS_NAME`, `CSFY_HOST_VERSION`).
+
+
+# Sometimes we want to know if:
+# - The processor is x86_64 or arm64
+# - The host is Mac or Linux
+# - We are running on a Causify machine or on an external machine
+# - We are inside CI or not
+# TODO(gp): Grep all the use cases in the codebase and use the right function.
+
+
+def get_host_user_name() -> Optional[str]:
+    """
+    Return the name of the user running the host.
+    """
+    return os.environ.get("CSFY_HOST_USER_NAME", None)
+
+
+def get_dev_csfy_host_names() -> List[str]:
+    """
+    Return the names of the Causify dev servers.
+    """
+    host_names = ("dev1", "dev2", "dev3")
+    return host_names
+
+
+def _get_host_name() -> str:
+    """
+    Return the name of the host (not the machine) on which we are running.
+
+    If we are inside a Docker container, we use the name of the host passed
+    through the `CSFY_HOST_NAME` env var.
+    """
+    if is_inside_docker():
+        host_name = os.environ["CSFY_HOST_NAME"]
+    else:
+        # sysname='Linux'
+        # nodename='dev1'
+        # release='5.15.0-1081-aws'
+        # version='#88~20.04.1-Ubuntu SMP Fri Mar 28 14:17:22 UTC 2025'
+        # machine='x86_64'
+        host_name = os.uname()[1]
+    _LOG.debug("host_name=%s", host_name)
+    return host_name
+
+
+def _get_host_os_name() -> str:
+    """
+    Return the name of the OS on which we are running (e.g., "Linux",
+    "Darwin").
+
+    If we are inside a Docker container, we use the name of the OS passed
+    through the `CSFY_HOST_OS_NAME` env var.
+    """
+    if is_inside_docker():
+        host_os_name = os.environ["CSFY_HOST_OS_NAME"]
+    else:
+        # sysname='Linux'
+        # nodename='dev1'
+        # release='5.15.0-1081-aws'
+        # version='#88~20.04.1-Ubuntu SMP Fri Mar 28 14:17:22 UTC 2025'
+        # machine='x86_64'
+        host_os_name = os.uname()[0]
+    _LOG.debug("host_os_name=%s", host_os_name)
+    return host_os_name
+
+
+def _get_host_os_version() -> str:
+    """
+    Return the version of the OS on which we are running.
+
+    If we are inside a Docker container, we use the version of the OS passed
+    through the `CSFY_HOST_OS_VERSION` env var.
+    """
+    if is_inside_docker():
+        host_os_version = os.environ["CSFY_HOST_OS_VERSION"]
+    else:
+        # sysname='Linux'
+        # nodename='dev1'
+        # release='5.15.0-1081-aws'
+        # version='#88~20.04.1-Ubuntu SMP Fri Mar 28 14:17:22 UTC 2025'
+        # machine='x86_64'
+        host_os_version = os.uname()[2]
+    _LOG.debug("host_os_version=%s", host_os_version)
+    return host_os_version
+
+
+def is_host_csfy_server() -> bool:
+    """
+    Return whether we are running on a Causify dev server.
+    """
+    host_name = _get_host_name()
+    ret = host_name in get_dev_csfy_host_names()
+    return ret
+
+
+_MAC_OS_VERSION_MAPPING = {
+    "Catalina": "19.",
+    "Monterey": "21.",
+    "Ventura": "22.",
+    "Sequoia": "24.",
+}
+
+
+def is_host_mac() -> bool:
+    """
+    Return whether we are running on macOS.
+    """
+    host_os_name = _get_host_os_name()
+    #
+    ret = host_os_name == "Darwin"
+    return ret
+
+
+def get_host_mac_version() -> str:
+    """
+    Get the macOS version (e.g., "Catalina", "Monterey", "Ventura").
+    """
+    host_os_version = _get_host_os_version()
+    for version, tag in _MAC_OS_VERSION_MAPPING.items():
+        if tag in host_os_version:
+            return version
+    raise ValueError(f"Invalid host_os_version='{host_os_version}'")
+
+
+def is_host_mac_version(version: str) -> bool:
+    """
+    Return whether we are running on a Mac with a specific version (e.g.,
+    "Catalina", "Monterey", "Ventura").
+    """
+    assert version in _MAC_OS_VERSION_MAPPING, f"Invalid version='{version}'"
+    host_mac_version = get_host_mac_version()
+    ret = version.lower() == host_mac_version.lower()
+    return ret
+
+
+def is_host_gp_mac() -> bool:
+    """
+    Return whether we are running on a Mac owned by GP.
+
+    This is used to check if we can use a specific feature before
+    releasing it to all the users.
+    """
+    host_name = _get_host_name()
+    ret = host_name.startswith("gpmac.")
+    return ret
+
+
 # #############################################################################
 # Detect server.
 # #############################################################################
@@ -227,6 +408,7 @@ def is_inside_ci() -> bool:
     return ret
 
 
+# TODO(gp): -> is_inside_docker_container()
 # TODO(gp): -> is_inside_docker_container()
 def is_inside_docker() -> bool:
     """
@@ -450,7 +632,9 @@ def _get_setup_signature() -> str:
 #   - Container
 #   - Host
 # - Prod container on Linux
-
+#   - Container
+# - CI
+#   - Container
 
 def is_inside_docker_container_on_csfy_server() -> bool:
     """
@@ -518,6 +702,7 @@ def _get_setup_settings() -> List[Tuple[str, bool]]:
         "is_dev4",
         "is_ig_prod",
         "is_prod_csfy",
+        "is_inside_ci",
     ]
     # Store function name / value pairs as tuples.
     setups = []

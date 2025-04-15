@@ -239,6 +239,7 @@ def env_vars_to_string() -> str:
 
 # #############################################################################
 # Get Git info.
+# Get Git info.
 # #############################################################################
 
 
@@ -311,9 +312,8 @@ def _get_git_signature(git_commit_type: str = "all") -> str:
 # ) -> str:
 #     """
 #     Add git signature for all submodules.
-
-#     :paramp partial_signature: the signature to append to
-#         :git_commit_type: the type of git commit to include in the
+#     :param partial_signature: the signature to append to
+#         `git_commit_type` the type of git commit to include in the
 #         signature
 #     :return: system signature enhanced by git submodule info
 #     """
