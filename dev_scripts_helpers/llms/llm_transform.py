@@ -67,6 +67,7 @@ def _run_dockerized_llm_transform(
     return_cmd: bool = False,
     force_rebuild: bool = False,
     use_sudo: bool = False,
+    suppress_output: bool = False,
 ) -> Optional[str]:
     """
     Run dockerized_llm_transform.py in a Docker container with all its
@@ -160,7 +161,7 @@ def _run_dockerized_llm_transform(
         ret = docker_cmd
     else:
         # TODO(gp): Note that `suppress_output=False` seems to hang the call.
-        hsystem.system(docker_cmd, suppress_output=False)
+        hsystem.system(docker_cmd, suppress_output=suppress_output)
         ret = None
     return ret
 
@@ -202,7 +203,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
         return
     # Parse files.
     in_file_name, out_file_name = hparser.parse_input_output_args(args)
-    _ = in_file_name, out_file_name
     # Since we need to call a container and passing stdin/stdout is tricky,
     # we read the input and save it in a temporary file.
     in_lines = hparser.read_file(in_file_name)
@@ -229,6 +229,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     #                 cmd_line_opts.append(f"--{arg.replace('_', '-')}")
     #         else:
     #             cmd_line_opts.append(f"--{arg.replace('_', '-')} {value}")
+    # For stdin/stdout, suppress the output of the container.
+    suppress_output = in_file_name == "-" or out_file_name == "-"
     _run_dockerized_llm_transform(
         tmp_in_file_name,
         cmd_line_opts,
@@ -236,24 +238,16 @@ def _main(parser: argparse.ArgumentParser) -> None:
         return_cmd=False,
         force_rebuild=args.dockerized_force_rebuild,
         use_sudo=args.dockerized_use_sudo,
+        suppress_output=suppress_output,
     )
     # Run post-transforms outside the container.
-    valid_prompts = dshlllpr.get_prompt_tags()
-    prompts = ["code_review", "code_propose_refactoring"]
-    for prompt in prompts:
-        hdbg.dassert_in(prompt, valid_prompts)
+    # 1) _convert_file_names().
+    prompts = dshlllpr.get_outside_container_post_transforms("convert_file_names")
     if args.prompt in prompts:
         _convert_file_names(in_file_name, tmp_out_file_name)
-    #
+    # 2) prettier_on_str().
     out_txt = hio.from_file(tmp_out_file_name)
-    prompts = [
-        "md_rewrite",
-        "md_summarize_short",
-        "slide_improve",
-        "slide_colorize",
-    ]
-    for prompt in prompts:
-        hdbg.dassert_in(prompt, valid_prompts)
+    prompts = dshlllpr.get_outside_container_post_transforms("prettier_on_str")
     if args.prompt in prompts:
         # Note that we need to run this outside the `llm_transform` container to
         # avoid to do docker-in-docker in the `llm_transform` container (which
