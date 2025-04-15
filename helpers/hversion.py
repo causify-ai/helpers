@@ -208,3 +208,17 @@ def _check_version(code_version: str, container_version: str) -> bool:
         print(msg)
         # raise RuntimeError(msg)
     return is_ok
+
+
+def get_container_version_info() -> str:
+    txt_tmp: List[str] = []
+    #
+    container_version = str(get_container_version())
+    txt_tmp.append(f"container_version='{container_version}'")
+    #
+    container_dir_name = "."
+    changelog_version = str(get_changelog_version(container_dir_name))
+    txt_tmp.append(f"changelog_version='{changelog_version}'")
+    #
+    txt = hprint.to_info("Container version", txt_tmp)
+    return txt
