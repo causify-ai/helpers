@@ -26,20 +26,28 @@ _TRACE = False
 # #############################################################################
 
 
-def is_markdown_line_separator(line: str) -> bool:
+def is_markdown_line_separator(line: str, min_repeats: int = 3) -> bool:
     """
     Check if the given line is a Markdown separator.
 
+    This function determines if a line consists of repeated characters (`#`, `/`, `-`, `=`)
+    that would indicate a markdown separator.
+
     :param line: the current line of text being processed
+    :param min_repeats: the minimum number of times the characters have to be repeated to be
+        considered a separator, e.g., if `min_repeats` = 2, then `##`, `###`, `//` are
+        considered to be line separators, but `#`, `/` are not
     :return: true if the line is a separator
     """
-    res = (
-        re.match(r"#*\s*######+", line)
-        or re.match(r"#*\s*/////+", line)
-        or re.match(r"#*\s*-----+", line)
-        or re.match(r"#*\s*=====+", line)
-    )
-    res = bool(res)
+    separator_pattern = rf"""
+    # Allow optional leading `#` and whitespace.
+    \#*\s*
+    # Capture a character, then repeat it (`min_repeats` - 1) times.
+    ([#/=\-])\1{{{min_repeats - 1},}}
+    # Match only whitespace characters until the end of the line.
+    \s*$
+    """
+    res = bool(re.match(separator_pattern, line, re.VERBOSE))
     return res
 
 
@@ -256,6 +264,26 @@ def add_line_numbers(txt: str) -> str:
         numbered_lines.append(f"{i}: {line}")
     txt_out = "\n".join(numbered_lines)
     return txt_out
+
+
+def remove_formatting(txt: str) -> str:
+    # Replace bold markdown syntax with plain text.
+    txt = re.sub(r"\*\*(.*?)\*\*", r"\1", txt)
+    # Replace italic markdown syntax with plain text.
+    txt = re.sub(r"\*(.*?)\*", r"\1", txt)
+    return txt
+
+
+def fix_chatgpt_math_syntax(txt: str) -> str:
+    # Replace \( ... \) math syntax with $ ... $.
+    txt = re.sub(r"\\\(\s*(.*?)\s*\\\)", r"$\1$", txt)
+    # Replace \[ ... \] math syntax with $$ ... $$, handling multiline equations.
+    txt = re.sub(r"\\\[(.*?)\\\]", r"$$\1$$", txt, flags=re.DOTALL)
+    # Replace `P(.)`` with `\Pr(.)`.
+    txt = re.sub(r"P\((.*?)\)", r"\\Pr(\1)", txt)
+    # Replace \mid with `|`.
+    txt = re.sub(r"\\mid", r"|", txt)
+    return txt
 
 
 # #############################################################################
@@ -486,7 +514,6 @@ def header_list_to_markdown(header_list: HeaderList, mode: str) -> str:
 # #############################################################################
 
 
-# TODO(gp): Add tests.
 def format_headers(in_file_name: str, out_file_name: str, max_lev: int) -> None:
     """
     Format the headers in the input file and write the formatted text to the

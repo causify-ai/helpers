@@ -364,14 +364,14 @@ def fix_perms(  # type: ignore
         #
         cmd = f"To compare run:\n> vimdiff {file_name1} {file_name2}"
         print(cmd)
-    elif hserver.is_dev_ck():
+    elif hserver.is_dev_csfy():
         user = hsystem.get_user_name()
         group = user
         cmd = f"sudo chown -R {user}:{group} *"
         hsystem.system(cmd)
         cmd = f"sudo chown -R {user}:{group} .pytest_cache"
         hsystem.system(cmd, abort_on_error=False)
-    elif hserver.is_mac():
+    elif hserver.is_external_dev():
         # Nothing to do.
         pass
     else:

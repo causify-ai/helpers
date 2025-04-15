@@ -79,7 +79,6 @@ class Test_linter_py1(hunitest.TestCase):
         file_name = "input.py"
         as_system_call = True
         output = self.run_linter(txt, file_name, as_system_call)
-        # //////////////
         # Check.
         self.check_string(output, purify_text=True)
 
@@ -93,13 +92,16 @@ class Test_linter_py1(hunitest.TestCase):
         file_name = "input.py"
         as_system_call = False
         output = self.run_linter(txt, file_name, as_system_call)
-        # //////////////
         # Check.
         self.check_string(output, purify_text=True)
 
     # #########################################################################
 
+    # TODO(heanh): Remove the skip when the dockerized executable issue is resolved.
     @pytest.mark.slow("About 6 sec")
+    @pytest.mark.skip(
+        "Skip due to issue related to dockerized executable. See HelpersTask553."
+    )
     def test_linter_md1(self) -> None:
         """
         Run Linter as executable on Markdown.
@@ -121,9 +123,8 @@ class Test_linter_py1(hunitest.TestCase):
         # Remove the line:
         # '12-16_14:59 ^[[33mWARNING^[[0m: _refresh_toc   :138 : No tags for table'
         output = hunitest.filter_text("No tags for table", output)
-        # //////////////
         # Check.
-        self.check_string(output)
+        self.check_string(output, purify_text=True)
 
     def test_linter_txt1(self) -> None:
         """
@@ -154,9 +155,8 @@ class Test_linter_py1(hunitest.TestCase):
         # Remove the line:
         # '12-16_14:59 ^[[33mWARNING^[[0m: _refresh_toc   :138 : No tags for table'
         output = hunitest.filter_text("No tags for table", output)
-        # //////////////
         # Check.
-        self.check_string(output)
+        self.check_string(output, purify_text=True)
 
     def test_linter_txt2(self) -> None:
         """
@@ -180,9 +180,8 @@ class Test_linter_py1(hunitest.TestCase):
         # Remove the line:
         # '12-16_14:59 ^[[33mWARNING^[[0m: _refresh_toc   :138 : No tags for table'
         output = hunitest.filter_text("No tags for table", output)
-        # //////////////
         # Check.
-        self.check_string(output)
+        self.check_string(output, purify_text=True)
 
     @pytest.mark.slow("About 14 sec")
     def test_DevToolsTask408(self) -> None:

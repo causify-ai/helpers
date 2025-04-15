@@ -1,0 +1,14 @@
+# linter warnings
+
+
+# linted file
+Website: [Website](http://example.com)
+
+Secure site: [Secure](https://example.com)
+
+Email: [Email](mailto:user@example.com)
+
+FTP: [FTP](ftp://files.example.com)
+
+Tel: [Call](tel:+1234567890)
+        

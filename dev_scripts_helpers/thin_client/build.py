@@ -74,7 +74,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     tmp_requirements_path = os.path.join(thin_environ_dir, "tmp.requirements.txt")
     shutil.copy(requirements_path, tmp_requirements_path)
     if platform.system() == "Darwin" or (
-        platform.system() == "Linux" and not hserver.is_dev_ck()
+        platform.system() == "Linux" and not hserver.is_dev_csfy()
     ):
         # Pinning down the package version for running locally on Mac and Linux,
         # see HelpersTask377.
@@ -84,7 +84,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _system(f"{activate_cmd} && pip3 install -r {tmp_requirements_path}")
     # Show the package list.
     _system("pip3 list")
-    if hserver.is_mac():
+    if hserver.is_host_mac():
         # Darwin specific updates.
         _system("brew update")
         _, brew_ver = hsystem.system_to_string("brew --version")

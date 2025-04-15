@@ -25,6 +25,11 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 
+# #############################################################################
+# UnitTestRenamer
+# #############################################################################
+
+
 class UnitTestRenamer:
     """
     Rename a unit test in Python code and the corresponding directories
@@ -381,6 +386,11 @@ def get_test_directories(root_dir: str) -> List[str]:
 # #############################################################################
 
 
+# #############################################################################
+# Obj_to_str_TestCase
+# #############################################################################
+
+
 class Obj_to_str_TestCase(abc.ABC):
     """
     Test case for testing `obj_to_str()` and `obj_to_repr()`.
@@ -438,6 +448,7 @@ def execute_only_in_target_repo(target_name: str) -> None:
         pytest.skip(f"Only run on {target_name} and not {repo_short_name}")
 
 
+# TODO(gp): Remove and use pytest.skipif().
 def execute_only_on_ci() -> None:
     is_inside_ci_ = hserver.is_inside_ci()
     if not is_inside_ci_:
@@ -450,15 +461,15 @@ def execute_only_on_dev4() -> None:
         pytest.skip("Only run on dev4")
 
 
-def execute_only_on_dev_ck() -> None:
-    is_dev_ck_ = hserver.is_dev_ck()
-    if not is_dev_ck_:
-        pytest.skip("Only run on dev CK")
+def execute_only_on_dev_csfy() -> None:
+    is_dev_csfy_ = hserver.is_dev_csfy()
+    if not is_dev_csfy_:
+        pytest.skip("Only run on dev CSFY")
 
 
 def execute_only_on_mac(*, version: Optional[str] = None) -> None:
-    is_mac_ = hserver.is_mac(version=version)
-    if not is_mac_:
+    is_host_mac_ = hserver.is_host_mac(version=version)
+    if not is_host_mac_:
         pytest.skip(f"Only run on Mac with version={version}")
 
 

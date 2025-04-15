@@ -167,7 +167,8 @@ def lint_detect_cycles(  # type: ignore
         + hlitauti._to_single_line_cmd(docker_cmd_opts)
     )
     # Execute command line.
-    cmd = hlitadoc._get_lint_docker_cmd(docker_cmd_, stage, version)
+    base_image = ""
+    cmd = _get_lint_docker_cmd(base_image, docker_cmd_, stage, version)
     # Use `PIPESTATUS` otherwise the exit status of the pipe is always 0
     # because writing to a file succeeds.
     cmd = f"({cmd}) 2>&1 | tee -a {out_file_name}; exit $PIPESTATUS"
@@ -220,6 +221,11 @@ def lint(  # type: ignore
     :param only_format: run only the modifying actions of Linter (e.g., black)
     :param only_check: run only the non-modifying actions of Linter (e.g., pylint)
     """
+    # Check if the user is in a repo root.
+    hdbg.dassert(
+        hgit.is_cwd_git_repo(),
+        msg="Linter should run from repo root",
+    )
     hlitauti.report_task()
     # Prepare the command line.
     lint_cmd_opts = []
@@ -260,7 +266,7 @@ def lint(  # type: ignore
     else:
         _LOG.info("All Linter actions selected")
     # Compose the command line.
-    if hserver.is_mac():
+    if hserver.is_host_mac():
         find_cmd = "$(find . -path '*linters/base.py')"
     else:
         find_cmd = "$(find -wholename '*linters/base.py')"

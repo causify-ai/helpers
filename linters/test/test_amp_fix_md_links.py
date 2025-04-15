@@ -55,6 +55,8 @@ class Test_fix_links(hunitest.TestCase):
         hio.to_file(file_path, txt)
         return file_path
 
+    # TODO(gp): To outsource. Break into smaller tests. If one of these fails,
+    # it's hard to debug.
     def test1(self) -> None:
         """
         Test fixing link formatting in a Markdown file.
@@ -203,6 +205,8 @@ class Test_fix_links(hunitest.TestCase):
         output = _get_output_string(out_warnings, updated_lines)
         self.check_string(output, purify_text=True)
 
+    # TODO(gp): To outsource. Break into smaller tests. If one of these fails,
+    # it's hard to debug.
     def test3(self) -> None:
         """
         Test the mix of Markdown and HTML-style links.
@@ -297,6 +301,49 @@ class Test_fix_links(hunitest.TestCase):
         # Check.
         output = _get_output_string(out_warnings, updated_lines)
         self.check_string(output, purify_text=True)
+
+    def test6(self) -> None:
+        """
+        Test the URI links are not incorrectly prefixed with a '/'.
+        """
+        input_content = """
+          Website: [Website](http://example.com)
+
+          Secure site: [Secure](https://example.com)
+
+          Email: [Email](mailto:user@example.com)
+
+          FTP: [FTP](ftp://files.example.com)
+
+          Tel: [Call](tel:+1234567890)
+          """
+        file_name = "test_links.md"
+        file_path = self.write_input_file(input_content, file_name)
+        # Run.
+        _, updated_lines, out_warnings = lafimdli.fix_links(file_path)
+        # Check.
+        output = _get_output_string(out_warnings, updated_lines)
+        self.check_string(output, purify_text=True)
+
+    def test7(self) -> None:
+        """
+        Test if in-repo and out-of-repo links are parsed correctly.
+        """
+        # Prepare inputs.
+        txt_incorrect = r"""
+            - [Fix Markdown links](https://github.com/causify-ai/helpers/blob/master/linters/amp_fix_md_links.py)
+            - [LLM Tutorial](https://github.com/causify-ai/tutorials/blob/master/llms/tutorial-openai_new.ipynb)
+        """
+        file_name = "test.md"
+        file_path = self.write_input_file(txt_incorrect, file_name)
+        # Run.
+        _, updated_lines, _ = lafimdli.fix_links(file_path)
+        # Check.
+        expected = [
+            "- [Fix Markdown links](/linters/amp_fix_md_links.py)",
+            "- [LLM Tutorial](https://github.com/causify-ai/tutorials/blob/master/llms/tutorial-openai_new.ipynb)",
+        ]
+        self.assertEqual(expected, updated_lines)
 
 
 # #############################################################################

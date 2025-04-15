@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 r"""
-Wrapper for flake8
+Wrapper for flake8.
 
 > amp_flake8.py sample_file1.py sample_file2.py
 
@@ -24,6 +24,11 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+# #############################################################################
+# _Flake8
+# #############################################################################
+
+
 class _Flake8(liaction.Action):
     """
     Look for formatting and semantic issues in code and docstrings. It relies
@@ -44,9 +49,8 @@ class _Flake8(liaction.Action):
 
     def _execute(self, file_name: str, pedantic: int) -> List[str]:
         _ = pedantic
-        # Applicable to only python file.
-        if not liutils.is_py_file(file_name):
-            _LOG.debug("Skipping file_name='%s'", file_name)
+        if self.skip_if_not_py(file_name):
+            # Apply only to Python files.
             return []
         # TODO(gp): Check if -j 4 helps.
         opts = "--exit-zero --doctests --max-line-length=82 -j 4"

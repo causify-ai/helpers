@@ -10,7 +10,6 @@ import hashlib
 import logging
 import os
 import re
-import json
 import shlex
 import time
 from typing import Any, Dict, List, Optional, Tuple
@@ -297,6 +296,43 @@ def replace_shared_root_path(
 # #############################################################################
 
 
+def get_docker_base_cmd(use_sudo: bool) -> List[str]:
+    """
+    Get the base command for running a Docker container.
+
+    E.g.,
+    ```
+    docker run --rm --user $(id -u):$(id -g) \
+        -e CSFY_AWS_PROFILE -e CSFY_ECR_BASE_PATH \
+        ...
+        -e OPENAI_API_KEY
+    ```
+
+    :param use_sudo: Whether to use sudo for Docker commands.
+    :return: The base command for running a Docker container.
+    """
+    docker_executable = get_docker_executable(use_sudo)
+    # Get all the environment variables that start with `AM_`, `CK_`, `CSFY_`.
+    vars_to_pass = [
+        v for v in os.environ.keys() if
+            # TODO(gp): We should only pass the `CSFY_` vars.
+            v.startswith("AM_") or 
+            v.startswith("CK_") or
+            v.startswith("CSFY_")
+    ]
+    vars_to_pass.append("OPENAI_API_KEY")
+    vars_to_pass = sorted(vars_to_pass)
+    vars_to_pass_as_str = " ".join(f"-e {v}" for v in vars_to_pass)
+    # Build the command as a list.
+    docker_cmd = [
+        docker_executable,
+        "run --rm",
+        "--user $(id -u):$(id -g)",
+        vars_to_pass_as_str
+    ]
+    return docker_cmd
+
+
 # TODO(gp): Pass `use_cache` to control using Docker cache.
 def build_container_image(
     image_name: str,
@@ -356,9 +392,9 @@ def build_container_image(
         temp_dockerfile = os.path.join(build_context_dir, "Dockerfile")
         hio.to_file(temp_dockerfile, dockerfile)
         # Build the container.
-        executable = get_docker_executable(use_sudo)
+        docker_executable = get_docker_executable(use_sudo)
         cmd = [
-            f"{executable} build",
+            f"{docker_executable} build",
             f"-f {temp_dockerfile}",
             f"-t {image_name_out}",
             #"--platform linux/aarch64",
@@ -580,6 +616,8 @@ def run_dockerized_prettier(
     )
     # Convert files to Docker paths.
     is_caller_host = not hserver.is_inside_docker()
+    # TODO(gp): After fix for CmampTask10710 enable this.
+    # use_sibling_container_for_callee = hserver.use_docker_sibling_containers()
     use_sibling_container_for_callee = True
     caller_mount_path, callee_mount_path, mount = get_docker_mount_info(
         is_caller_host, use_sibling_container_for_callee
@@ -615,18 +653,18 @@ def run_dockerized_prettier(
     #     tmp.prettier \
     #     --parser markdown --prose-wrap always --write --tab-width 2 \
     #     ./test.md
-    executable = get_docker_executable(use_sudo)
     bash_cmd = f"/usr/local/bin/prettier {cmd_opts_as_str} {in_file_path}"
     if out_file_path != in_file_path:
         bash_cmd += f" > {out_file_path}"
     # Build the Docker command.
-    docker_cmd = (
-        f"{executable} run --rm --user $(id -u):$(id -g)"
-        " --entrypoint ''"
-        f" --workdir {callee_mount_path} --mount {mount}"
-        f" {container_image}"
-        f' bash -c "{bash_cmd}"'
-    )
+    docker_cmd = get_docker_base_cmd(use_sudo)
+    docker_cmd.extend([
+        " --entrypoint ''",
+        f"--workdir {callee_mount_path} --mount {mount}",
+        f"{container_image}",
+        f'bash -c "{bash_cmd}"'
+    ])
+    docker_cmd = " ".join(docker_cmd)
     if return_cmd:
         ret = docker_cmd
     else:
@@ -958,13 +996,13 @@ def run_dockerized_pandoc(
     #     pandoc/core \
     #     input.md -o output.md \
     #     -s --toc
-    executable = get_docker_executable(use_sudo)
-    docker_cmd = (
-        f"{executable} run --rm --user $(id -u):$(id -g)"
-        f" --workdir {callee_mount_path} --mount {mount}"
-        f" {container_image}"
-        f" {pandoc_cmd}"
-    )
+    docker_cmd = get_docker_base_cmd(use_sudo)
+    docker_cmd.extend([
+        f"--workdir {callee_mount_path} --mount {mount}",
+        f"{container_image}",
+        f"{pandoc_cmd}",
+    ])
+    docker_cmd = " ".join(docker_cmd)
     if return_cmd:
         ret = docker_cmd
     else:
@@ -973,107 +1011,6 @@ def run_dockerized_pandoc(
         ret = None
     return ret
 
-# #############################################################################
-# Dockerized extract_notebook_images.
-# #############################################################################
-
-def run_dockerized_notebook_image_extractor(
-    notebook_path: str,
-    output_dir: str,
-    *,
-    force_rebuild: bool = False,
-    use_sudo: bool = False,
-) -> None:
-    """
-    Run NotebookImageExtractor in a Docker container.
-
-    """
-    _LOG.debug(hprint.func_signature_to_str())
-    # Build the container image, if needed.
-    container_image = "tmp.notebook_image_extractor"
-    dockerfile = r"""
-    # TODO(gp): This might be problematic on MacOS / ARM.
-    FROM --platform=linux/amd64 python:3.10-slim
-
-    # Install required system libraries for Chromium and Playwright.
-    RUN apt-get update && apt-get install -y \
-        libglib2.0-0 \
-        libnss3 \
-        libnspr4 \
-        libdbus-1-3 \
-        libatk1.0-0 \
-        libatk-bridge2.0-0 \
-        libexpat1 \
-        libatspi2.0-0 \
-        libdbus-glib-1-2 \
-        libxcomposite1 \
-        libxdamage1 \
-        libxfixes3 \
-        libxrandr2 \
-        libgbm1 \
-        libxkbcommon0 \
-        libasound2 \
-        libcups2 \
-        libpango-1.0-0 \
-        libcairo2 \
-        && rm -rf /var/lib/apt/lists/*
-
-    # Set the environment variable for Playwright to install browsers in a known location.
-    ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
-
-    # Create the directory for Playwright browsers and ensure it's writable.
-    RUN mkdir -p /ms-playwright && chmod -R 777 /ms-playwright
-
-    RUN pip install nbconvert nbformat playwright pyyaml
-
-    RUN python -m playwright install
-
-    WORKDIR /app
-    """
-    container_image = build_container_image(
-        container_image, dockerfile, force_rebuild, use_sudo
-    )
-    # Convert file paths to Docker paths.
-    is_caller_host = not hserver.is_inside_docker()
-    use_sibling_container_for_callee = True
-    caller_mount_path, callee_mount_path, mount = get_docker_mount_info(
-        is_caller_host, use_sibling_container_for_callee
-    )
-    notebook_path = convert_caller_to_callee_docker_path(
-        notebook_path,
-        caller_mount_path,
-        callee_mount_path,
-        check_if_exists=True,
-        is_input=True,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
-    )
-    output_dir = convert_caller_to_callee_docker_path(
-        output_dir,
-        caller_mount_path,
-        callee_mount_path,
-        check_if_exists=False,
-        is_input=False,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
-    )
-    executable = get_docker_executable(use_sudo)
-    python_code = (
-        "from helpers.hjupyter import NotebookImageExtractor; "
-        "extractor = NotebookImageExtractor({}, {}); "
-        "extractor._extract_and_capture()"
-    ).format(json.dumps(notebook_path), json.dumps(output_dir))
-    inner_cmd = f"python -c {json.dumps(python_code)}"
-    docker_cmd = (
-        f"{executable} run --rm --user $(id -u):$(id -g) "
-        f"-e PLAYWRIGHT_BROWSERS_PATH=/ms-playwright "
-        f"--workdir {callee_mount_path} --mount {mount} "
-        f"{container_image} "
-        f'bash -c {json.dumps(inner_cmd)}'
-    )
-
-    hsystem.system(docker_cmd)
-    hsystem.system(docker_cmd)
 
 # #############################################################################
 # Dockerized markdown_toc.
@@ -1110,6 +1047,8 @@ def run_dockerized_markdown_toc(
     )
     # Convert files to Docker paths.
     is_caller_host = not hserver.is_inside_docker()
+    # TODO(gp): After fix for CmampTask10710 enable this.
+    # use_sibling_container_for_callee = hserver.use_docker_sibling_containers()
     use_sibling_container_for_callee = True
     caller_mount_path, callee_mount_path, mount = get_docker_mount_info(
         is_caller_host, use_sibling_container_for_callee
@@ -1129,16 +1068,16 @@ def run_dockerized_markdown_toc(
     #     --workdir /app --mount type=bind,source=.,target=/app \
     #     tmp.markdown_toc \
     #     -i ./test.md
-    executable = get_docker_executable(use_sudo)
     bash_cmd = (
         f"/usr/local/bin/markdown-toc {cmd_opts_as_str} -i {in_file_path}"
     )
-    docker_cmd = (
-        f"{executable} run --rm --user $(id -u):$(id -g)"
-        f" --workdir {callee_mount_path} --mount {mount}"
-        f" {container_image}"
-        f' bash -c "{bash_cmd}"'
-    )
+    docker_cmd = get_docker_base_cmd(use_sudo)
+    docker_cmd.extend([
+        f"--workdir {callee_mount_path} --mount {mount}",
+        f"{container_image}",
+        f'bash -c "{bash_cmd}"'
+    ])
+    docker_cmd = " ".join(docker_cmd)
     # TODO(gp): Note that `suppress_output=False` seems to hang the call.
     hsystem.system(docker_cmd)
 
@@ -1332,13 +1271,13 @@ def run_dockerized_latex(
     latex_cmd = "pdflatex " + latex_cmd
     _LOG.debug(hprint.to_str("latex_cmd"))
     #
-    executable = get_docker_executable(use_sudo)
-    docker_cmd = (
-        f"{executable} run --rm --user $(id -u):$(id -g)"
-        f" --workdir {callee_mount_path} --mount {mount}"
-        f" {container_image}"
-        f" {latex_cmd}"
-    )
+    docker_cmd = get_docker_base_cmd(use_sudo)
+    docker_cmd.extend([
+        f"--workdir {callee_mount_path} --mount {mount}",
+        f"{container_image}",
+        f"{latex_cmd}"
+    ])
+    docker_cmd = " ".join(docker_cmd)
     # TODO(gp): Factor this out.
     if return_cmd:
         ret = docker_cmd
@@ -1467,14 +1406,14 @@ def run_dockerized_imagemagick(
     )
     cmd_opts_as_str = " ".join(cmd_opts)
     cmd = f"magick {cmd_opts_as_str} {in_file_path} {out_file_path}"
-    executable = get_docker_executable(use_sudo)
-    docker_cmd = (
-        f"{executable} run --rm --user $(id -u):$(id -g)"
-        " --entrypoint ''"
-        f" --workdir {callee_mount_path} --mount {mount}"
-        f" {container_image}"
-        f' bash -c "{cmd}"'
-    )
+    docker_cmd = get_docker_base_cmd(use_sudo)
+    docker_cmd.extend([
+        "--entrypoint ''",
+        f"--workdir {callee_mount_path} --mount {mount}",
+        container_image,
+        f'bash -c "{cmd}"'
+    ])
+    docker_cmd = " ".join(docker_cmd)
     # TODO(gp): Factor this out.
     if return_cmd:
         ret = docker_cmd
@@ -1517,107 +1456,6 @@ def dockerized_tikz_to_bitmap(
         force_rebuild=force_rebuild,
         use_sudo=use_sudo,
     )
-
-
-# #############################################################################
-# Dockerized llm_transform.
-# #############################################################################
-
-
-def run_dockerized_llm_transform(
-    in_file_path: str,
-    cmd_opts: List[str],
-    out_file_path: str,
-    *,
-    return_cmd: bool = False,
-    force_rebuild: bool = False,
-    use_sudo: bool = False,
-) -> Optional[str]:
-    """
-    Run dockerized_llm_transform.py in a Docker container with all its dependencies.
-    """
-    _LOG.debug(hprint.func_signature_to_str())
-    #
-    hdbg.dassert_in("OPENAI_API_KEY", os.environ)
-    hdbg.dassert_isinstance(cmd_opts, list)
-    # Build the container, if needed.
-    container_image = "tmp.llm_transform"
-    dockerfile = r"""
-    FROM python:3.12-alpine
-
-    # Install Bash.
-    #RUN apk add --no-cache bash
-
-    # Set Bash as the default shell.
-    #SHELL ["/bin/bash", "-c"]
-
-    # Install pip packages.
-    RUN pip install --no-cache-dir openai
-    """
-    container_image = build_container_image(
-        container_image, dockerfile, force_rebuild, use_sudo
-    )
-    # Convert files to Docker paths.
-    is_caller_host = not hserver.is_inside_docker()
-    use_sibling_container_for_callee = True
-    caller_mount_path, callee_mount_path, mount = get_docker_mount_info(
-        is_caller_host, use_sibling_container_for_callee
-    )
-    in_file_path = convert_caller_to_callee_docker_path(
-        in_file_path,
-        caller_mount_path,
-        callee_mount_path,
-        check_if_exists=True,
-        is_input=True,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
-    )
-    out_file_path = convert_caller_to_callee_docker_path(
-        out_file_path,
-        caller_mount_path,
-        callee_mount_path,
-        check_if_exists=False,
-        is_input=False,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
-    )
-    helpers_root = hgit.find_helpers_root()
-    helpers_root = convert_caller_to_callee_docker_path(
-        helpers_root,
-        caller_mount_path,
-        callee_mount_path,
-        check_if_exists=True,
-        is_input=False,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
-    )
-    git_root = hgit.find_git_root()
-    script = hsystem.find_file_in_repo("dockerized_llm_transform.py", root_dir=git_root)
-    script = convert_caller_to_callee_docker_path(
-        script,
-        caller_mount_path,
-        callee_mount_path,
-        check_if_exists=True,
-        is_input=True,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
-    )
-    cmd_opts_as_str = " ".join(cmd_opts)
-    executable = get_docker_executable(use_sudo)
-    docker_cmd = (
-        f"{executable} run --rm --user $(id -u):$(id -g)"
-        f" -e OPENAI_API_KEY -e PYTHONPATH={helpers_root}"
-        f" --workdir {callee_mount_path} --mount {mount}"
-        f" {container_image}"
-        f" {script} -i {in_file_path} -o {out_file_path} {cmd_opts_as_str}"
-    )
-    if return_cmd:
-        ret = docker_cmd
-    else:
-        # TODO(gp): Note that `suppress_output=False` seems to hang the call.
-        hsystem.system(docker_cmd, suppress_output=False)
-        ret = None
-    return ret
 
 
 # #############################################################################
@@ -1679,14 +1517,14 @@ def run_dockerized_plantuml(
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
     plantuml_cmd = f"plantuml -t{dst_ext} -o {out_file_path} {in_file_path}"
-    executable = get_docker_executable(use_sudo)
-    docker_cmd = (
-        f"{executable} run --rm --user $(id -u):$(id -g)"
-        " --entrypoint ''"
-        f" --workdir {callee_mount_path} --mount {mount}"
-        f" {container_image}"
-        f' bash -c "{plantuml_cmd}"'
-    )
+    docker_cmd = get_docker_base_cmd(use_sudo)
+    docker_cmd.extend([
+        " --entrypoint ''",
+        f"--workdir {callee_mount_path} --mount {mount}",
+        f"{container_image}",
+        f'bash -c "{plantuml_cmd}"'
+    ])
+    docker_cmd = " ".join(docker_cmd)
     hsystem.system(docker_cmd)
 
 
@@ -1739,13 +1577,13 @@ def run_dockerized_mermaid(
     mermaid_cmd = (
         f" -i {in_file_path} -o {out_file_path}"
     )
-    executable = get_docker_executable(use_sudo)
-    docker_cmd = (
-        f"{executable} run --rm --user $(id -u):$(id -g)"
-        f" --workdir {callee_mount_path} --mount {mount}"
-        f" {container_image}"
-        f" {mermaid_cmd}"
-    )
+    docker_cmd = get_docker_base_cmd(use_sudo)
+    docker_cmd.extend([
+        f"--workdir {callee_mount_path} --mount {mount}",
+        container_image,
+        mermaid_cmd,
+    ])
+    docker_cmd = " ".join(docker_cmd)
     hsystem.system(docker_cmd)
 
 
@@ -1834,14 +1672,14 @@ def run_dockerized_mermaid2(
         + f" -i {in_file_path} -o {out_file_path}"
     )
     # TODO(gp): Factor out building the docker cmd.
-    executable = get_docker_executable(use_sudo)
-    docker_cmd = (
-        f"{executable} run --rm --user $(id -u):$(id -g)"
-        " --entrypoint ''"
-        f" --workdir {callee_mount_path} --mount {mount}"
-        f" {container_image}"
-        f' bash -c "{mermaid_cmd}"'
-    )
+    docker_cmd = get_docker_base_cmd(use_sudo)
+    docker_cmd.extend([
+        "--entrypoint ''",
+        f"--workdir {callee_mount_path} --mount {mount}",
+        container_image,
+        f'bash -c "{mermaid_cmd}"'
+    ])
+    docker_cmd = " ".join(docker_cmd)
     hsystem.system(docker_cmd)
 
 
@@ -1912,11 +1750,11 @@ def run_dockerized_graphviz(
         in_file_path
     ]
     graphviz_cmd = " ".join(graphviz_cmd)
-    executable = get_docker_executable(use_sudo)
-    docker_cmd = (
-        f"{executable} run --rm --user $(id -u):$(id -g)"
-        f" --workdir {callee_mount_path} --mount {mount}"
-        f" {container_image}"
-        f" {graphviz_cmd}"
-    )
+    docker_cmd = get_docker_base_cmd(use_sudo)
+    docker_cmd.extend([
+        f"--workdir {callee_mount_path} --mount {mount}",
+        container_image,
+        graphviz_cmd,
+    ])
+    docker_cmd = " ".join(docker_cmd)
     hsystem.system(docker_cmd)
