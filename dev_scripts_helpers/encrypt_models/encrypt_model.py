@@ -73,7 +73,7 @@ def _encrypt_input_dir(
     # Create temporary Dockerfile.
     temp_dockerfile_path = "./tmp.encrypt_model.Dockerfile"
     with open(temp_dockerfile_path, "w") as temp_dockerfile:
-        if hserver.is_mac():
+        if hserver.is_host_mac():
             temp_dockerfile.write(
                 f"""
                     FROM python:{exp_python_version}

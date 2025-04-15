@@ -1,12 +1,19 @@
 repo_info:
+  # Name of the repo, like in `//helpers`, `//amp`.
   repo_name: helpers
+  # Account name of the repo on GitHub, e.g., `causify-ai`, `gpsaggese`.
   github_repo_account: causify-ai
+  # Host name of the repo on GitHub, e.g., `github.com`.
   github_host_name: github.com
+  # List of words that are not allowed in the repo for security reasons.
   invalid_words:
+  # Prefix of the issue in the repo, e.g., `HelpersTask`, `CmampTask`.
   issue_prefix: HelpersTask
 
 docker_info:
+  # Base name of the docker image, e.g., `helpers`.
   docker_image_name: helpers
+  use_sibling_container_in_unit_tests: True
 
 s3_bucket_info:
   unit_test_bucket_name: s3://cryptokaizen-unit-test
