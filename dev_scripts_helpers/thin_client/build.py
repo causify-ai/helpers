@@ -43,8 +43,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
         raise RuntimeError(
             "AWS CLI is not installed. Please install it and try again."
         )
-    # Create the virtual environment.
     dir_suffix = hrecouti.get_repo_config().get_dir_suffix()
+    # Create the virtual environment.
     venv_dir = tcu.get_venv_dir(dir_suffix)
     # Double check that the dir is in home.
     hdbg.dassert(
@@ -67,7 +67,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
     activate_cmd = f"source {venv_dir}/bin/activate"
     _system(activate_cmd)
     # Install the requirements.
-    dir_suffix = hrecouti.get_repo_config().get_dir_suffix()
     thin_environ_dir = tcu.get_thin_environment_dir(dir_suffix)
     requirements_path = os.path.join(thin_environ_dir, "requirements.txt")
     tmp_requirements_path = os.path.join(thin_environ_dir, "tmp.requirements.txt")
