@@ -9,8 +9,11 @@ import helpers.hserver as hserver
 import functools
 import logging
 import os
+import shutil
+import subprocess
 from typing import Dict, List, Optional, Tuple
 
+import helpers.hprint as hprint
 import helpers.repo_config_utils as hrecouti
 
 # This module should depend only on:
@@ -29,6 +32,185 @@ def _print(msg: str) -> None:
         print(msg)
 
 
+# We can't use `hsystem` to avoid import cycles.
+def _system_to_string(cmd: str) -> Tuple[int, str]:
+    """
+    Run a command and return the output and the return code.
+
+    :param cmd: command to run
+    :return: tuple of (return code, output)
+    """
+    result = subprocess.run(
+        cmd,
+        stdout=subprocess.PIPE,
+        # Redirect stderr to stdout.
+        stderr=subprocess.STDOUT,
+        shell=True,
+        text=True,
+    )
+    rc = result.returncode
+    output = result.stdout
+    output = output.strip()
+    return rc, output
+
+
+# #############################################################################
+# Host
+# #############################################################################
+
+
+# We can't rely only on the name / version of the host to infer where we are
+# running, since inside Docker the name of the host is like `01a7e34a82a5`. Of
+# course, there is no way to know anything about the host for security reason,
+# so we pass this value from the external environment to the container, through
+# env vars (e.g., `CSFY_HOST_NAME`, `CSFY_HOST_OS_NAME`, `CSFY_HOST_VERSION`).
+
+
+# Sometimes we want to know if:
+# - The processor is x86_64 or arm64
+# - The host is Mac or Linux
+# - We are running on a Causify machine or on an external machine
+# - We are inside CI or not
+# TODO(gp): Grep all the use cases in the codebase and use the right function.
+
+
+def get_host_user_name() -> Optional[str]:
+    """
+    Return the name of the user running the host.
+    """
+    return os.environ.get("CSFY_HOST_USER_NAME", None)
+
+
+def get_dev_csfy_host_names() -> List[str]:
+    """
+    Return the names of the Causify dev servers.
+    """
+    host_names = ("dev1", "dev2", "dev3")
+    return host_names
+
+
+def _get_host_name() -> str:
+    """
+    Return the name of the host (not the machine) on which we are running.
+
+    If we are inside a Docker container, we use the name of the host passed
+    through the `CSFY_HOST_NAME` env var.
+    """
+    if is_inside_docker():
+        host_name = os.environ["CSFY_HOST_NAME"]
+    else:
+        # sysname='Linux'
+        # nodename='dev1'
+        # release='5.15.0-1081-aws'
+        # version='#88~20.04.1-Ubuntu SMP Fri Mar 28 14:17:22 UTC 2025'
+        # machine='x86_64'
+        host_name = os.uname()[1]
+    _LOG.debug("host_name=%s", host_name)
+    return host_name
+
+
+def _get_host_os_name() -> str:
+    """
+    Return the name of the OS on which we are running (e.g., "Linux",
+    "Darwin").
+
+    If we are inside a Docker container, we use the name of the OS passed
+    through the `CSFY_HOST_OS_NAME` env var.
+    """
+    if is_inside_docker():
+        host_os_name = os.environ["CSFY_HOST_OS_NAME"]
+    else:
+        # sysname='Linux'
+        # nodename='dev1'
+        # release='5.15.0-1081-aws'
+        # version='#88~20.04.1-Ubuntu SMP Fri Mar 28 14:17:22 UTC 2025'
+        # machine='x86_64'
+        host_os_name = os.uname()[0]
+    _LOG.debug("host_os_name=%s", host_os_name)
+    return host_os_name
+
+
+def _get_host_os_version() -> str:
+    """
+    Return the version of the OS on which we are running.
+
+    If we are inside a Docker container, we use the version of the OS passed
+    through the `CSFY_HOST_OS_VERSION` env var.
+    """
+    if is_inside_docker():
+        host_os_version = os.environ["CSFY_HOST_OS_VERSION"]
+    else:
+        # sysname='Linux'
+        # nodename='dev1'
+        # release='5.15.0-1081-aws'
+        # version='#88~20.04.1-Ubuntu SMP Fri Mar 28 14:17:22 UTC 2025'
+        # machine='x86_64'
+        host_os_version = os.uname()[2]
+    _LOG.debug("host_os_version=%s", host_os_version)
+    return host_os_version
+
+
+def is_host_csfy_server() -> bool:
+    """
+    Return whether we are running on a Causify dev server.
+    """
+    host_name = _get_host_name()
+    ret = host_name in get_dev_csfy_host_names()
+    return ret
+
+
+_MAC_OS_VERSION_MAPPING = {
+    "Catalina": "19.",
+    "Monterey": "21.",
+    "Ventura": "22.",
+    "Sequoia": "24.",
+}
+
+
+def is_host_mac() -> bool:
+    """
+    Return whether we are running on macOS.
+    """
+    host_os_name = _get_host_os_name()
+    #
+    ret = host_os_name == "Darwin"
+    return ret
+
+
+def get_host_mac_version() -> str:
+    """
+    Get the macOS version (e.g., "Catalina", "Monterey", "Ventura").
+    """
+    host_os_version = _get_host_os_version()
+    for version, tag in _MAC_OS_VERSION_MAPPING.items():
+        if tag in host_os_version:
+            return version
+    raise ValueError(f"Invalid host_os_version='{host_os_version}'")
+
+
+def is_host_mac_version(version: str) -> bool:
+    """
+    Return whether we are running on a Mac with a specific version (e.g.,
+    "Catalina", "Monterey", "Ventura").
+    """
+    assert version in _MAC_OS_VERSION_MAPPING, f"Invalid version='{version}'"
+    host_mac_version = get_host_mac_version()
+    ret = version.lower() == host_mac_version.lower()
+    return ret
+
+
+def is_host_gp_mac() -> bool:
+    """
+    Return whether we are running on a Mac owned by GP.
+
+    This is used to check if we can use a specific feature before
+    releasing it to all the users.
+    """
+    host_name = _get_host_name()
+    ret = host_name.startswith("gpmac.")
+    return ret
+
+
 # #############################################################################
 # Detect server.
 # #############################################################################
@@ -45,55 +227,30 @@ def is_inside_ci() -> bool:
     return ret
 
 
+# TODO(gp): -> is_inside_docker_container()
 def is_inside_docker() -> bool:
     """
     Return whether we are inside a container or not.
     """
     # From https://stackoverflow.com/questions/23513045
-    return os.path.exists("/.dockerenv")
+    ret = os.path.exists("/.dockerenv")
+    return ret
 
 
 def is_inside_unit_test() -> bool:
     """
     Return whether we are running code insider the regressions.
     """
-    return "PYTEST_CURRENT_TEST" in os.environ
+    ret = "PYTEST_CURRENT_TEST" in os.environ
+    return ret
 
 
-# We can't rely only on the name of the host to infer where we are running,
-# since inside Docker the name of the host is like `01a7e34a82a5`. Of course,
-# there is no way to know anything about the host for security reason, so we
-# pass this value from the external environment to the container, through env
-# vars (e.g., `CSFY_HOST_NAME`, `CSFY_HOST_OS_NAME`).
-
-# TODO(gp): The confusion is that we want to determine on which "setup" we are
-# running. We do this both inside container and outside container.
-#
-# Sometimes we want to know if:
-# - the processor is x86_64 or arm64
-# - the host is Mac or Linux
-# - we are running on a Causify machine or on an external machine
-# - we are inside CI or not
-# We should grep all the use cases in the codebase and use the right function.
-
-# TODO(gp): The confusion is that we want to determine on which "setup" we are
-# running. We do this both inside container and outside container.
-#
-# Sometimes we want to know if:
-# - the processor is x86_64 or arm64
-# - the host is Mac or Linux
-# - we are running on a Causify machine or on an external machine
-# - we are inside CI or not
-# We should grep all the use cases in the codebase and use the right function.
-
-
+# TODO(gp): Remove!
 def is_dev_csfy() -> bool:
-    # TODO(gp): Update to use dev1 values.
-    # sysname='Darwin'
-    # nodename='gpmac.lan'
-    # release='19.6.0'
-    # version='Darwin Kernel Version 19.6.0: Mon Aug 31 22:12:52 PDT 2020;
-    #   root:xnu-6153.141.2~1/RELEASE_X86_64'
+    # sysname='Linux'
+    # nodename='dev1'
+    # release='5.15.0-1081-aws',
+    # version='#88~20.04.1-Ubuntu SMP Fri Mar 28 14:17:22 UTC 2025',
     # machine='x86_64'
     host_name = os.uname()[1]
     host_names = ("dev1", "dev2", "dev3")
@@ -180,26 +337,6 @@ def is_host_mac(*, version: Optional[str] = None) -> bool:
     return is_mac_
 
 
-def is_external_linux() -> bool:
-    """
-    Detect whether we are running on a non-server/non-CI Linux machine.
-
-    :return: whether an external Linux system is running
-    """
-    # CI and dev servers are not considered external Linux systems.
-    if is_dev_csfy() or is_inside_ci():
-        is_external_linux_ = False
-    # If we are inside a Docker container, we need to check the host OS.
-    elif is_inside_docker():
-        csfy_host_os_name = os.environ.get("CSFY_HOST_OS_NAME", None)
-        is_external_linux_ = csfy_host_os_name == "Linux"
-    # If we are not inside a Docker container, we can check the host OS directly.
-    else:
-        host_os_name = os.uname()[0]
-        is_external_linux_ = host_os_name == "Linux"
-    return is_external_linux_
-
-
 def is_prod_csfy() -> bool:
     """
     Detect whether we are running in a Causify production container.
@@ -227,48 +364,71 @@ def is_ig_prod() -> bool:
 def is_inside_ecs_container() -> bool:
     """
     Detect whether we are running in an ECS container.
-
-    When deploying jobs via ECS the container obtains credentials based
-    on passed task role specified in the ECS task-definition, refer to:
-    https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html.
     """
+    # When deploying jobs via ECS the container obtains credentials based
+    # on passed task role specified in the ECS task-definition, refer to:
+    # https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html
     ret = "AWS_CONTAINER_CREDENTIALS_RELATIVE_URI" in os.environ
     return ret
-
-
-def is_external_dev() -> bool:
-    """
-    Detect whether we are running in an external system.
-
-    This includes macOS and non-server/non-CI Linux machines.
-    """
-    is_external_dev_ = is_host_mac() or is_external_linux()
-    return is_external_dev_
 
 
 # #############################################################################
 
 
+def is_external_linux() -> bool:
+    """
+    Detect whether we are running on a non-server/non-CI Linux machine.
+
+    This is true when we run on the machine of an intern, or a non-CSFY
+    contributor.
+    """
+    if is_host_csfy_server() or is_inside_ci():
+        # Dev servers and CI are not external Linux systems.
+        ret = False
+    else:
+        # We need to check the host OS directly.
+        host_os_name = _get_host_os_name()
+        ret = host_os_name == "Linux"
+    return ret
+
+
+def is_external_dev() -> bool:
+    """
+    Detect whether we are running on an system outside of Causify system (e.g.,
+    a contributor's laptop, an intern's laptop, a non-CSFY machine).
+    """
+    ret = is_host_mac() or is_external_linux()
+    return ret
+
+
+# #############################################################################
+# Set up consistency.
+# #############################################################################
+
+
+# TODO(gp): Update this.
 def _get_setup_signature() -> str:
     """
     Dump all the variables that are used to make a decision about the values of
     the functions in `_get_setup_settings()`.
+
+    This function is used to mock the state of the system for testing
+    purposes.
     """
     cmds = []
     # is_prod_csfy()
-    cmds.append('os.environ.get("CK_IN_PROD_CMAMP_CONTAINER", "undef")')
+    cmds.append('os.environ.get("CK_IN_PROD_CMAMP_CONTAINER", "*undef*")')
     # is_dev4()
     # is_dev_csfy()
     # is_ig_prod()
-    cmds.append('os.environ.get("CSFY_HOST_NAME", "undef")')
+    cmds.append('os.environ.get("CSFY_HOST_NAME", "*undef*")')
     # is_inside_ci()
-    cmds.append('os.environ.get("CSFY_CI", "undef")')
+    cmds.append('os.environ.get("CSFY_CI", "*undef*")')
     # is_mac()
     cmds.append("os.uname()[0]")
     cmds.append("os.uname()[2]")
     # is_external_linux()
-    cmds.append('os.environ.get("CSFY_HOST_OS_NAME", "undef")')
-    # is_csfy_or_external_container()
+    cmds.append('os.environ.get("CSFY_HOST_OS_NAME", "*undef*")')
     # Build an array of strings with the results of executing the commands.
     results = []
     for cmd in cmds:
@@ -279,18 +439,94 @@ def _get_setup_signature() -> str:
     return result
 
 
+# The valid set ups are:
+# - Running on a Causify server (e.g., `dev1`, `dev2`, `dev3`)
+#   - Container
+#   - Host
+# - External Mac (GP, Paul, interns, contributors)
+#   - Container
+#   - Host
+# - External Linux (interns, contributors)
+#   - Container
+#   - Host
+# - Prod container on Linux
+#   - Container
+# - CI
+#   - Container
+
+def is_inside_docker_container_on_csfy_server() -> bool:
+    """
+    Return whether we are running on a Docker container on a Causify server.
+    """
+    ret = is_inside_docker() and is_host_csfy_server()
+    return ret
+
+
+def is_outside_docker_container_on_csfy_server() -> bool:
+    """
+    Return whether we are running on a Docker container on a Causify server.
+    """
+    ret = not is_inside_docker() and is_host_csfy_server()
+    return ret
+
+
+def is_inside_docker_container_on_host_mac() -> bool:
+    """
+    Return whether we are running on a Docker container on a Mac host.
+    """
+    ret = is_inside_docker() and is_host_mac()
+    return ret
+
+
+def is_outside_docker_container_on_host_mac() -> bool:
+    """
+    Return whether we are running on a Docker container on a Mac host.
+    """
+    ret = not is_inside_docker() and is_host_mac()
+    return ret
+
+
+def is_inside_docker_container_on_external_linux() -> bool:
+    """
+    Return whether we are running on a Docker container on an external Linux.
+    """
+    ret = is_inside_docker() and is_external_linux()
+    return ret
+
+
+def is_outside_docker_container_on_external_linux() -> bool:
+    """
+    Return whether we are running on a Docker container on an external Linux.
+    """
+    ret = not is_inside_docker() and is_external_linux()
+    return ret
+
+
 def _get_setup_settings() -> List[Tuple[str, bool]]:
-    # Store name-value pairs as tuples.
-    setups = [
-        ("is_prod_csfy", is_prod_csfy()),
-        ("is_dev4", is_dev4()),
-        ("is_dev_csfy", is_dev_csfy()),
-        ("is_ig_prod", is_ig_prod()),
-        ("is_inside_ci", is_inside_ci()),
-        ("is_mac", is_host_mac()),
-        ("is_external_linux", is_external_linux()),
-        # ("is_csfy_or_external_container", is_csfy_or_external_container()),
+    """
+    Return a list of tuples with the name and value of the current server
+    setup.
+    """
+    func_names = [
+        "is_inside_docker_container_on_csfy_server",
+        "is_outside_docker_container_on_csfy_server",
+        #
+        "is_inside_docker_container_on_host_mac",
+        "is_outside_docker_container_on_host_mac",
+        #
+        "is_inside_docker_container_on_external_linux",
+        "is_outside_docker_container_on_external_linux",
+        #
+        "is_dev4",
+        "is_ig_prod",
+        "is_prod_csfy",
+        "is_inside_ci",
     ]
+    # Store function name / value pairs as tuples.
+    setups = []
+    for func_name in func_names:
+        val = eval(f"{func_name}()")
+        setups.append((func_name, val))
     return setups
 
 
@@ -312,16 +548,35 @@ def _setup_to_str(setups: List[Tuple[str, bool]]) -> str:
 
 def _dassert_setup_consistency() -> None:
     """
-    Check that one and only one server config is true.
+    Check that one and only one setup configuration is true.
+
+    This is used to ensure that the setup configuration is one of the
+    expected ones and uniquely defined.
     """
+
+    def _indent(txt: str, *, num_spaces: int = 2) -> str:
+        """
+        Add `num_spaces` spaces before each line of the passed string.
+        """
+        spaces = " " * num_spaces
+        txt_out = []
+        for curr_line in txt.split("\n"):
+            if curr_line.lstrip().rstrip() == "":
+                # Do not prepend any space to a line with only white characters.
+                txt_out.append("")
+                continue
+            txt_out.append(spaces + curr_line)
+        res = "\n".join(txt_out)
+        return res
+
     setups = _get_setup_settings()
     # One and only one set-up should be true.
     sum_ = sum([value for _, value in setups])
     if sum_ != 1:
-        msg = "One and only one set-up config should be true:\n" + _setup_to_str(
-            setups
-        )
-        msg += "_get_setup_signature() returns:\n" + _get_setup_signature()
+        msg = "One and only one set-up config should be true:\n"
+        msg += _setup_to_str(setups) + "\n"
+        msg += "_get_setup_signature() returns:\n"
+        msg += _indent(_get_setup_signature())
         raise ValueError(msg)
 
 
@@ -345,8 +600,118 @@ else:
 
 
 # #############################################################################
-# Docker
+# Detect Docker functionalities.
 # #############################################################################
+
+
+@functools.lru_cache()
+def has_docker() -> bool:
+    """
+    Return whether we have Docker installed.
+    """
+    return shutil.which("docker") is not None
+
+
+@functools.lru_cache()
+def docker_needs_sudo() -> bool:
+    """
+    Return whether Docker commands need to be run with sudo.
+    """
+    if not has_docker():
+        return False
+    # Another way to check is to see if your user is in the docker group:
+    # > groups | grep docker
+    rc = os.system("docker run hello-world 2>&1 >/dev/null")
+    if rc == 0:
+        return False
+    #
+    rc = os.system("sudo docker run hello-world 2>&1 >/dev/null")
+    if rc == 0:
+        return True
+    assert False, "Failed to run docker"
+
+
+@functools.lru_cache()
+def has_docker_privileged_mode() -> bool:
+    """
+    Return whether the current container supports privileged mode.
+
+    Docker privileged mode gives containers nearly all the same capabilities as
+    the host system's kernel.
+    Privileged mode allows to:
+    - run Docker-in-Docker
+    - mount filesystems
+    """
+    cmd = "docker run --privileged hello-world 2>&1 >/dev/null"
+    rc = os.system(cmd)
+    _print("cmd=%s -> rc=%s" % (cmd, rc))
+    has_privileged_mode = rc == 0
+    return has_privileged_mode
+
+
+def has_sibling_containers_support() -> bool:
+    # We need to be inside a container to run sibling containers.
+    if not is_inside_docker():
+        return False
+    # We assume that if the socket exists then we can run sibling containers.
+    if os.path.exists("/var/run/docker.sock"):
+        return True
+    return False
+
+
+def has_docker_dind_support() -> bool:
+    """
+    Return whether the current container supports Docker-in-Docker.
+    """
+    # We need to be inside a container to run docker-in-docker.
+    if not is_inside_docker():
+        return False
+    # We assume that if we have privileged mode then we can run docker-in-docker.
+    return has_docker_privileged_mode()
+
+
+def get_docker_info() -> str:
+    txt_tmp: List[str] = []
+    #
+    has_docker_ = has_docker()
+    txt_tmp.append(f"has_docker={has_docker_}")
+    #
+    cmd = r"docker version --format '{{.Server.Version}}'"
+    _, docker_version = _system_to_string(cmd)
+    txt_tmp.append(f"docker_version='{docker_version}'")
+    #
+    docker_needs_sudo_ = docker_needs_sudo()
+    txt_tmp.append(f"docker_needs_sudo={docker_needs_sudo_}")
+    #
+    has_privileged_mode_ = has_docker_privileged_mode()
+    txt_tmp.append(f"has_privileged_mode={has_privileged_mode_}")
+    #
+    is_inside_docker_ = is_inside_docker()
+    txt_tmp.append(f"is_inside_docker={is_inside_docker_}")
+    #
+    if is_inside_docker_:
+        has_sibling_containers_support_ = has_sibling_containers_support()
+        has_docker_dind_support_ = has_docker_dind_support()
+    else:
+        has_sibling_containers_support_ = "*undef*"
+        has_docker_dind_support_ = "*undef*"
+    txt_tmp.append(
+        f"has_sibling_containers_support={has_sibling_containers_support_}"
+    )
+    txt_tmp.append(f"has_docker_dind_support={has_docker_dind_support_}")
+    #
+    txt = hprint.to_info("Docker info", txt_tmp)
+    return txt
+
+
+# #############################################################################
+# Detect Docker functionalities, based on the set-up.
+# #############################################################################
+
+
+# TODO(gp): These approach is sub-optimal. We deduce what we can do based on the
+# name of the set-up. We should base our decisions on the actual capabilities of
+# the system.
 
 
 # TODO(gp): -> has_docker_privileged_mode
@@ -355,7 +720,7 @@ def has_dind_support() -> bool:
     """
     Return whether the current container supports privileged mode.
 
-    This is need to use Docker-in-Docker.
+    This is needed to use Docker-in-Docker.
     """
     _print("is_inside_docker()=%s" % is_inside_docker())
     if not is_inside_docker():
@@ -432,7 +797,11 @@ def enable_privileged_mode() -> bool:
         elif is_host_mac(version="Catalina"):
             # Docker for macOS Catalina supports dind.
             ret = True
-        elif is_host_mac(version="Monterey") or is_host_mac(version="Ventura") or is_host_mac(version="Sequoia"):
+        elif (
+            is_host_mac(version="Monterey")
+            or is_host_mac(version="Ventura")
+            or is_host_mac(version="Sequoia")
+        ):
             # Docker doesn't seem to support dind for these versions of macOS.
             ret = False
         elif is_prod_csfy():
@@ -470,7 +839,11 @@ def has_docker_sudo() -> bool:
 
 
 def _is_mac_version_with_sibling_containers() -> bool:
-    return is_host_mac(version="Monterey") or is_host_mac(version="Ventura") or is_host_mac(version="Sequoia")
+    return (
+        is_host_mac(version="Monterey")
+        or is_host_mac(version="Ventura")
+        or is_host_mac(version="Sequoia")
+    )
 
 
 # TODO(gp): -> use_docker_sibling_container_support
@@ -584,6 +957,7 @@ def run_docker_as_root() -> bool:
     return ret
 
 
+# TODO(gp): Probably obsolete
 def get_docker_user() -> str:
     """
     Return the user that runs Docker, if any.
@@ -595,6 +969,7 @@ def get_docker_user() -> str:
     return val
 
 
+# TODO(gp): Probably obsolete
 def get_docker_shared_group() -> str:
     """
     Return the group of the user running Docker, if any.
@@ -622,9 +997,18 @@ def skip_submodules_test() -> bool:
     return False
 
 
-# TODO(gp): Remove this comment.
-# # This function can't be in `helpers.hserver` since it creates circular import
-# # and `helpers.hserver` should not depend on anything.
+# #############################################################################
+# S3 buckets.
+# #############################################################################
+
+
+def is_AM_S3_available() -> bool:
+    # AM bucket is always available.
+    val = True
+    _LOG.debug("val=%s", val)
+    return val
+
+
 def is_CK_S3_available() -> bool:
     val = True
     if is_inside_ci():
@@ -645,22 +1029,6 @@ def is_CK_S3_available() -> bool:
 
 
 # #############################################################################
-# S3 buckets.
-# #############################################################################
-
-
-def is_AM_S3_available() -> bool:
-    # AM bucket is always available.
-    val = True
-    _LOG.debug("val=%s", val)
-    return val
-
-
-def get_host_user_name() -> Optional[str]:
-    return os.environ.get("CSFY_HOST_USER_NAME", None)
-
-
-# #############################################################################
 # Functions.
 # #############################################################################
 
@@ -668,7 +1036,7 @@ def get_host_user_name() -> Optional[str]:
 # Copied from hprint to avoid import cycles.
 
 
-def indent(txt: str, *, num_spaces: int = 2) -> str:
+def _indent(txt: str, *, num_spaces: int = 2) -> str:
     """
     Add `num_spaces` spaces before each line of the passed string.
     """
@@ -695,36 +1063,41 @@ def config_func_to_str() -> str:
     # Get the functions with:
     # grep "def " helpers/hserver.py | sort | awk '{ print $2 }' | perl -i -ne 'print "$1\n" if /^([^\(]+)/'
     function_names = [
-        "get_shared_data_dirs()",
-        "enable_privileged_mode()",
-        "get_docker_shared_group()",
-        "get_docker_user()",
-        "is_AM_S3_available()",
-        "has_dind_support()",
-        "has_docker_sudo()",
-        "is_CK_S3_available()",
-        "run_docker_as_root()",
-        "skip_submodules_test()",
-        "use_docker_db_container_name_to_connect()",
-        "use_docker_network_mode_host()",
-        "use_docker_sibling_containers()",
-        "is_dev4()",
-        "is_dev_csfy()",
-        "is_inside_ci()",
-        "is_inside_docker()",
-        "is_mac(version='Catalina')",
-        "is_mac(version='Monterey')",
-        "is_mac(version='Ventura')",
-        "is_mac(version='Sequoia')",
+        "enable_privileged_mode",
+        "get_docker_shared_group",
+        "get_docker_user",
+        "get_host_user_name",
+        "get_shared_data_dirs",
+        "has_dind_support",
+        "has_docker_sudo",
+        "is_AM_S3_available",
+        "is_CK_S3_available",
+        "is_dev4",
+        "is_dev_csfy",
+        "is_external_linux",
+        "is_host_mac",
+        "is_ig_prod",
+        "is_inside_ci",
+        "is_inside_docker",
+        "is_inside_ecs_container",
+        "is_inside_unit_test",
+        "is_mac",
+        "is_prod_csfy",
+        "run_docker_as_root",
+        "skip_submodules_test",
+        "use_docker_db_container_name_to_connect",
+        "use_docker_network_mode_host",
+        "use_docker_sibling_containers",
+        "use_main_network",
     ]
     for func_name in sorted(function_names):
         try:
             _LOG.debug("func_name=%s", func_name)
-            func_value = eval(func_name)
+            func_value = eval(f"{func_name}()")
         except NameError:
             func_value = "*undef*"
         msg = f"{func_name}='{func_value}'"
         ret.append(msg)
     # Package.
-    ret: str = "# hserver.config\n" + indent("\n".join(ret))
+    ret = "\n".join(ret)
     return ret
