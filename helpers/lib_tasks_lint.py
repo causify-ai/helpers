@@ -221,6 +221,11 @@ def lint(  # type: ignore
     :param only_format: run only the modifying actions of Linter (e.g., black)
     :param only_check: run only the non-modifying actions of Linter (e.g., pylint)
     """
+    # Check if the user is in a repo root.
+    hdbg.dassert(
+        hgit.is_cwd_git_repo(),
+        msg="Linter should run from repo root",
+    )
     hlitauti.report_task()
     # Prepare the command line.
     lint_cmd_opts = []
