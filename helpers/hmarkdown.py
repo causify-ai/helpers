@@ -414,9 +414,9 @@ def extract_headers_from_markdown(
         # Skip the visual separators.
         if is_markdown_line_separator(line):
             continue
-        # Get the level and title from is_header
-        is_header_bool, level, title = is_header(line)
-        if is_header_bool and level <= max_level:
+        # Get the header level and title.
+        is_header_, level, title = is_header(line)
+        if is_header_ and level <= max_level:
             header_info = HeaderInfo(level, title, line_number)
             header_list.append(header_info)
     # Check the header list.
