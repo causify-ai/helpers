@@ -16,7 +16,7 @@ import functools
 import logging
 import os
 import re
-from typing import Optional, cast
+from typing import List, Optional, cast
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -51,7 +51,7 @@ def check_version(container_dir_name: str) -> None:
         return
     # Get code version.
     code_version = get_changelog_version(container_dir_name)
-    container_version = _get_container_version()
+    container_version = get_container_version()
     # Check version, if possible.
     if container_version is None:
         # No need to check.
@@ -142,7 +142,7 @@ def get_changelog_version(container_dir_name: str) -> Optional[str]:
     return version
 
 
-def _get_container_version() -> Optional[str]:
+def get_container_version() -> Optional[str]:
     """
     Return the container version.
 
@@ -193,16 +193,32 @@ def _check_version(code_version: str, container_version: str) -> bool:
     is_ok = container_version == code_version
     if not is_ok:
         msg = f"""
------------------------------------------------------------------------------
-This code is not in sync with the container:
-code_version='{code_version}' != container_version='{container_version}'
------------------------------------------------------------------------------
-You need to:
-- merge origin/master into your branch with `invoke git_merge_master`
-- pull the latest container with `invoke docker_pull`
-"""
+        -----------------------------------------------------------------------------
+        This code is not in sync with the container:
+        code_version='{code_version}' != container_version='{container_version}'
+        -----------------------------------------------------------------------------
+        You need to:
+        - merge origin/master into your branch with `invoke git_merge_master`
+        - pull the latest container with `invoke docker_pull`
+        """
+        # Can't use `hprint.indent()` to avoid a dependency on `hprint`.
+        msg = "\n".join(line.lstrip() for line in msg.split("\n"))
         msg = msg.rstrip().lstrip()
         msg = f"\033[31m{msg}\033[0m"
         print(msg)
         # raise RuntimeError(msg)
     return is_ok
+
+
+def get_container_version_info() -> str:
+    txt_tmp: List[str] = []
+    #
+    container_version = str(get_container_version())
+    txt_tmp.append(f"container_version='{container_version}'")
+    #
+    container_dir_name = "."
+    changelog_version = str(get_changelog_version(container_dir_name))
+    txt_tmp.append(f"changelog_version='{changelog_version}'")
+    #
+    txt = hprint.to_info("Container version", txt_tmp)
+    return txt

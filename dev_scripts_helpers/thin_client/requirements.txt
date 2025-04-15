@@ -14,3 +14,4 @@ tqdm
 # On Mac and locally on Linux there is an issue related to this package
 # (see HelpersTask377), so we might want to pin it down.
 # pyyaml == 5.3.1
+pyyaml

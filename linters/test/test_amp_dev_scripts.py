@@ -97,7 +97,11 @@ class Test_linter_py1(hunitest.TestCase):
 
     # #########################################################################
 
+    # TODO(heanh): Remove the skip when the dockerized executable issue is resolved.
     @pytest.mark.slow("About 6 sec")
+    @pytest.mark.skip(
+        "Skip due to issue related to dockerized executable. See HelpersTask553."
+    )
     def test_linter_md1(self) -> None:
         """
         Run Linter as executable on Markdown.
