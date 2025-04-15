@@ -24,7 +24,7 @@ SCRIPT_PATH = os.path.abspath(__file__)
 
 # This is specific of this repo.
 # To customize: xyz
-DIR_PREFIX = "helpers"
+DIR_SUFFIX = "helpers"
 
 
 def _system(cmd: str) -> None:
@@ -47,7 +47,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             "AWS CLI is not installed. Please install it and try again."
         )
     # Create the virtual environment.
-    venv_dir = tcu.get_venv_dir(DIR_PREFIX)
+    venv_dir = tcu.get_venv_dir(DIR_SUFFIX)
     # Double check that the dir is in home.
     hdbg.dassert(
         venv_dir.startswith(os.environ["HOME"] + "/src/venv"),
@@ -69,7 +69,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     activate_cmd = f"source {venv_dir}/bin/activate"
     _system(activate_cmd)
     # Install the requirements.
-    thin_environ_dir = tcu.get_thin_environment_dir(DIR_PREFIX)
+    thin_environ_dir = tcu.get_thin_environment_dir(DIR_SUFFIX)
     requirements_path = os.path.join(thin_environ_dir, "requirements.txt")
     tmp_requirements_path = os.path.join(thin_environ_dir, "tmp.requirements.txt")
     shutil.copy(requirements_path, tmp_requirements_path)

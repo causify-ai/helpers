@@ -32,12 +32,12 @@ if __name__ == "__main__":
     parser = tcu.create_parser(__doc__)
     if _HAS_SUBREPO:
         # To customize: xyz
-        dir_prefix = "xyz"
+        dir_suffix = "xyz"
     else:
         # `helpers` has no super-repo.
-        dir_prefix = "helpers"
-    setenv_path = os.path.join(f"dev_scripts_{dir_prefix}", "thin_client",
+        dir_suffix = "helpers"
+    setenv_path = os.path.join(f"dev_scripts_{dir_suffix}", "thin_client",
                                "setenv.sh")
     tcu.create_tmux_session(
-        parser, _SCRIPT_PATH, dir_prefix, setenv_path, _HAS_SUBREPO
+        parser, _SCRIPT_PATH, dir_suffix, setenv_path, _HAS_SUBREPO
     )
