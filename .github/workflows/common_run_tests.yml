@@ -75,11 +75,6 @@ jobs:
           echo "PYTHONPATH=$PYTHONPATH"
           echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
 
-      # # To see the modules in `amp` and `helpers_root`, PYTHONPATH needs to
-      # # include them in the same way we do in `setenv.sh`.
-      # - name: Update PYTHONPATH
-      #   run: echo "PYTHONPATH=.:helpers_root:amp" >> $GITHUB_ENV
-
       # Install packages that are required to run the job via GH.
       - name: Install dependencies
         run: |
