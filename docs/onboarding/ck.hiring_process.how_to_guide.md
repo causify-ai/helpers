@@ -6,7 +6,7 @@
 - [HiringMeister](#hiringmeister)
 - [Step by step](#step-by-step)
 - [Warm-up tasks](#warm-up-tasks)
-- [Giving feedback to the interns](#giving-feedback-to-the-interns)
+- [Giving feedback](#giving-feedback)
 
 <!-- tocstop -->
 
@@ -203,7 +203,7 @@
       understanding of our process
   - [Outsourceable issues gdoc](https://docs.google.com/document/d/1uuezdmcsV9TG2YwXGvEd0PBgWScCpR-QPOcySI5LPIA/edit#heading=h.vcvkivfud7be)
 
-## Giving feedback to the interns
+## Giving feedback
 
 - Every 2 weeks interns are provided feedback that includes scores given to
   their skills and performance

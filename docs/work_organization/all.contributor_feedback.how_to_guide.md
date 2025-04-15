@@ -15,7 +15,7 @@
 ## Feedback principles
 
 - We want to evaluate and provide feedback to our contributors on different
-  aspects of their work.
+  aspects of their work
 
 - As a way to formalize giving feedback, we assign numerical scores on a variety
   of [metrics](#scoring-metrics)
@@ -25,7 +25,7 @@
     to improve
 
 - We don't take non-perfect scores personally but just as a way to understand
-  what to improve.
+  what to improve
 
 - Scoring is anonymous
 
@@ -72,12 +72,11 @@
     on their own)
 
 - Attention to detail
-  - Doesn't forget to do small things
+  - Doesn't forget to do small things, including but not limited to:
     - Follow style conventions
     - Apply fixes everywhere appropriate
-    - Keep the branch up-to-date
+    - Keep the branch up to date
     - Make sure there are no tmp files checked in
-    - Etc, etc
   - Thinks about corner cases while writing code and tests
 
 - Git / GitHub knowledge
@@ -190,7 +189,7 @@
 
 ## Scoring process
 
-- The process is guided by
+- The process is organized and guided by
   - HiringMeister for interns
   - FeedbackMeister for permanent team members
 
