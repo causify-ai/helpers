@@ -346,10 +346,10 @@ def fix_links(file_name: str) -> Tuple[List[str], List[str], List[str]]:
                 fig_pointer, updated_line, file_name, i
             )
             warnings.extend(line_warnings)
-        # Bare links to Markdown-style links.
+        # Bare URLs.
         bare_link_matches = re.findall(BARE_LINK_REGEX, updated_line)
         for bare_link in bare_link_matches:
-            # Replace capitalized letter in bare link.
+            # Convert bare URLs to Markdown-style links.
             new_bare_link = bare_link.replace("Http://", "http://").replace(
                 "Https://", "https://"
             )
