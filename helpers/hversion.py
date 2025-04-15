@@ -16,7 +16,7 @@ import functools
 import logging
 import os
 import re
-from typing import Optional, cast, List
+from typing import List, Optional, cast
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
