@@ -96,7 +96,7 @@ Table of Contents
 
     def test4(self) -> None:
         """
-        Test that python and bash code along with headers.
+        Test Python and bash code along with headers.
         """
         txt_with_python_and_bash_code = """
 # Header 1
