@@ -160,7 +160,7 @@ def prettier_on_str(
     """
     _LOG.debug("txt=\n%s", txt)
     # Save string as input.
-    tmp_file_name = "tmp.lint_notes.prettier.txt"
+    tmp_file_name = f"{os.getcwd()}/tmp.lint_notes.prettier.txt"
     hio.to_file(tmp_file_name, txt)
     # Call `prettier` in-place.
     prettier(tmp_file_name, tmp_file_name, *args, **kwargs)

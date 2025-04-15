@@ -20,6 +20,7 @@ from typing import List, Optional, cast
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
+import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 
@@ -201,12 +202,13 @@ def _check_version(code_version: str, container_version: str) -> bool:
         - merge origin/master into your branch with `invoke git_merge_master`
         - pull the latest container with `invoke docker_pull`
         """
-        # Can't use `hprint.indent()` to avoid a dependency on `hprint`.
-        msg = "\n".join(line.lstrip() for line in msg.split("\n"))
-        msg = msg.rstrip().lstrip()
+        msg = hprint.dedent(msg)
+        # Highlight in red.
+        # TODO(gp): Use the proper function, if dependencies allow it.
         msg = f"\033[31m{msg}\033[0m"
         print(msg)
-        # raise RuntimeError(msg)
+        if False:
+            raise RuntimeError(msg)
     return is_ok
 
 
