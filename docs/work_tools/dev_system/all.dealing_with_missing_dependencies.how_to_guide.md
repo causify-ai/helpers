@@ -8,7 +8,7 @@
   * [Long term solution](#long-term-solution)
     + [Add the dependency to the Docker image](#add-the-dependency-to-the-docker-image)
     + [Create "dockerized" executable](#create-dockerized-executable)
-    + [Create runnable directory](#create-runnable-directory)
+    + [Create "runnable" directory](#create-runnable-directory)
 
 <!-- tocstop -->
 
@@ -137,7 +137,7 @@
   - `dockerized_mermaid`
   - `dockerized_extract_notebook_images`
 
-### Create runnable directory
+### Create "runnable" directory
 
 - We can create a "runnable" directory that contains all the code and a `devops`
   directory so it can build its own container with all the dependencies needed
@@ -147,6 +147,7 @@
   components that have a large number of dependencies
 - The image can be built and stored in the container registry
 - Some examples of runnable directories:
-  - `ck.infra`
+  - `infra`
+  - `optimizer`
+  - `sports_analytics`
   - `tutorial_langchain`
-  - `itsavvy`
