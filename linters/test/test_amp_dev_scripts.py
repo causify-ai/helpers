@@ -20,7 +20,13 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+# #############################################################################
+# Test_linter_py1
+# #############################################################################
+
+
 class Test_linter_py1(hunitest.TestCase):
+
     def write_input_file(self, txt: str, file_name: str) -> Tuple[str, str]:
         """
         Write test content to the file.
@@ -115,6 +121,31 @@ class Test_linter_py1(hunitest.TestCase):
 ## Bad
 -  Hello
     - World
+        """
+        # Run.
+        file_name = "hello.md"
+        as_system_call = True
+        output = self.run_linter(txt, file_name, as_system_call)
+        # Remove the line:
+        # '12-16_14:59 ^[[33mWARNING^[[0m: _refresh_toc   :138 : No tags for table'
+        output = hunitest.filter_text("No tags for table", output)
+        # Check.
+        self.check_string(output, purify_text=True)
+
+    @pytest.mark.slow("About 6 sec")
+    @pytest.mark.skip(
+        "Skip due to issue related to dockerized executable. See HelpersTask553."
+    )
+    def test_linter_md2(self) -> None:
+        """
+        Run Linter as executable on Markdown file with a fenced block.
+        """
+        txt = r"""
+# Header1
+```text
+test text
+nothing should be changed
+```
         """
         # Run.
         file_name = "hello.md"
@@ -344,10 +375,10 @@ def func3(a: str) -> str:
     return a
 
 
-# #############################################################################
-# New part.
-# #############################################################################
 
+# #############################################################################
+# MyClass
+# #############################################################################
 
 class MyClass:
     """
@@ -382,6 +413,10 @@ class MyClass:
 # New part 2.
 ##############################################################################
 
+# #############################################################################
+# TestReplaceShortImportInCode
+# #############################################################################
+
 class TestReplaceShortImportInCode:
     def _helper(self, actual: str, expected: str) -> None:
         """
@@ -396,6 +431,10 @@ class TestReplaceShortImportInCode:
         code = "import test as te"
         expected = code
         self._helper(code, expected)
+
+# #############################################################################
+# TestAnother
+# #############################################################################
 
 # Comment before initializing.
 class TestAnother():
