@@ -17,6 +17,7 @@ from typing import List, Tuple
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
+import helpers.hstring as hstring
 import linters.action as liaction
 import linters.utils as liutils
 
@@ -41,10 +42,12 @@ def fix_md_headers(lines: List[str], file_name: str) -> List[str]:
     """
     fixed_lines = []
     last_header_level = 0
+    # Get code block indices to exclude comment symbols from header processing.
+    code_line_indices = hstring.get_code_block_line_indices(lines)
     for idx, line in enumerate(lines):
         fixed_line = line
         match = HEADER_REGEX.match(line)
-        if match:
+        if match and idx not in code_line_indices:
             # Count the number of leading `#`.
             current_level = len(match.group(1))
             # Capture the rest of the line (after the initial `#` header).

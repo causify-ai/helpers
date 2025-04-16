@@ -56,13 +56,16 @@ Table of Contents
         lines = hio.from_file(file_path).splitlines()
         updated_lines = lacmtohe.fix_md_headers(lines, file_path)
         # Check.
-        output = "\n".join(
-            ["# linter warnings", ""]
-            + []
-            + ["", "# linted file", ""]
-            + updated_lines
-        )
-        self.check_string(output, purify_text=True)
+        output = """
+# Given Header level 1; no change
+
+## Given Header level 3; change to 2
+
+## Given Header level 2; no change
+
+### Given Header level 4; change to 3
+        """
+        self.assertEqual(updated_lines, output.splitlines())
 
     def test3(self) -> None:
         """
@@ -89,6 +92,41 @@ Table of Contents
         # Check.
         self.assertEqual(
             updated_lines, txt_with_non_header_pound_signs.splitlines()
+        )
+
+    def test4(self) -> None:
+        """
+        Test Python and bash code along with headers.
+        """
+        txt_with_python_and_bash_code = """
+# Header 1
+
+## Header 2
+
+  ```bash
+# Comment.
+  > i run_fast_tests
+  ```
+### Side heading 1
+
+```python
+# Comment.
+for i in range(10):
+    print(i)
+```
+
+### Side heading 2
+        """
+        file_name = "txt_with_python_and_bash_code.md"
+        file_path = self._write_input_file(
+            txt_with_python_and_bash_code, file_name
+        )
+        # Run.
+        lines = hio.from_file(file_path).splitlines()
+        updated_lines = lacmtohe.fix_md_headers(lines, file_path)
+        # Check.
+        self.assertEqual(
+            updated_lines, txt_with_python_and_bash_code.splitlines()
         )
 
     def _write_input_file(self, txt: str, file_name: str) -> str:
