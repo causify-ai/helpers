@@ -1131,7 +1131,6 @@ def config_func_to_str() -> str:
         "is_inside_docker",
         "is_inside_ecs_container",
         "is_inside_unit_test",
-        "is_mac",
         "is_prod_csfy",
         "run_docker_as_root",
         "skip_submodules_test",
