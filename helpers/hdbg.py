@@ -1010,7 +1010,7 @@ def init_logger(
         root_logger.addHandler(file_handler)
         file_handler.setFormatter(formatter)
         #
-        _LOG.info("Saving log to file '%s'", {log_filename})
+        _LOG.info("Saving log to file '%s'", log_filename)
     #
     _LOG.debug("Effective logging level=%s", _LOG.getEffectiveLevel())
     # Shut up chatty modules.

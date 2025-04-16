@@ -266,7 +266,7 @@ def lint(  # type: ignore
     else:
         _LOG.info("All Linter actions selected")
     # Compose the command line.
-    if hserver.is_mac():
+    if hserver.is_host_mac():
         find_cmd = "$(find . -path '*linters/base.py')"
     else:
         find_cmd = "$(find -wholename '*linters/base.py')"
