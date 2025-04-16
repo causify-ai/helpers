@@ -136,7 +136,7 @@ def _get_files_to_lint(args: argparse.Namespace) -> List[str]:
         # Get and validate the files to skip that were explicitly specified.
         file_paths_to_skip = _filter_files(args.skip_files)
     # Remove files that should not be linted.
-    file_paths = _filter_files(file_paths, file_paths_to_skip)
+    file_paths = _filter_files(file_paths, file_paths_to_skip=file_paths_to_skip)
     if len(file_paths) < 1:
         _LOG.warning("No files that can be linted were found")
     return file_paths
