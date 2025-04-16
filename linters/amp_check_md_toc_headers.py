@@ -42,6 +42,7 @@ def fix_md_headers(lines: List[str], file_name: str) -> List[str]:
     """
     fixed_lines = []
     last_header_level = 0
+    # Get indices of lines that are inside code blocks.
     code_line_indices = hstring.get_code_block_line_indices(lines)
     for idx, line in enumerate(lines):
         fixed_line = line
