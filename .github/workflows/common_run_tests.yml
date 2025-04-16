@@ -50,7 +50,7 @@ jobs:
 
       # This is needed to pull the docker image from GHCR.
       - name: Login to GHCR
-        run: docker login ghcr.io -u gpsaggese -p ${{ secrets.GITHUB_TOKEN }}
+        run: docker login ghcr.io -u gpsaggese -p ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
 
       # Make everything accessible by any user to avoid permission errors.
       - name: Cleanup
@@ -61,13 +61,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
-          submodules: true
-          token: ${{ secrets.GITHUB_TOKEN }}
+          submodules: recursive
+          fetch-depth: 0
+          token: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
 
-      # To see the modules in `amp`, PYTHONPATH needs to include `amp` in the
-      # same way we do in `setenv.sh`.
+      # To access modules in `amp` and `helpers_root`, make sure PYTHONPATH includes
+      # them, just as it's set in `setenv.sh`.
       - name: Update PYTHONPATH
-        run: echo "PYTHONPATH=.:amp" >> $GITHUB_ENV
+        run: |
+          PYTHONPATH="$(realpath .)"
+          # Add all submodule paths (recursively).
+          SUBMODULES_PATHS=$(git submodule foreach --quiet --recursive 'echo $(pwd)' | paste -sd:)
+          PYTHONPATH="$PYTHONPATH:$SUBMODULES_PATHS"
+          # Export final PYTHONPATH to the environment.
+          echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
 
       # Install packages that are required to run the job via GH.
       - name: Install dependencies
@@ -92,7 +99,7 @@ jobs:
           CSFY_AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
           CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
-          GH_ACTION_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_ACTION_ACCESS_TOKEN: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
         run: invoke ${{ inputs.test-name }}
 
       # In case of manual run, this workflow step will not be skipped and
@@ -102,7 +109,7 @@ jobs:
         if: ${{ always() && github.event_name == 'workflow_dispatch' }}
         uses: guibranco/github-status-action-v2@main
         with:
-          authToken: ${{ secrets.GITHUB_TOKEN }}
+          authToken: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
           context: ${{ inputs.test-name }}
           description: 'Job is done (manual run)'
           state: ${{ job.status }}
