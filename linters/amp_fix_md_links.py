@@ -29,6 +29,7 @@ FIG_REGEX_2 = r"!\[\w*\]\(\.{0,2}\w*\/\S+?\.(?:jpg|jpeg|png)\)"
 FILE_PATH_REGEX = r"\.{0,2}\w*\/\S+\.[\w\.]+"
 HTML_LINK_REGEX = r'(<a href=".*?">.*?</a>)'
 MD_LINK_REGEX = r"\[(.+)\]\(((?!#).*)\)"
+BARE_LINK_REGEX = r"(?<!\[)(?<!\]\()(?<!href=\")([Hh]ttps?://[^\s<>()]+)"
 
 
 def _make_path_absolute(path: str) -> str:
@@ -345,6 +346,16 @@ def fix_links(file_name: str) -> Tuple[List[str], List[str], List[str]]:
                 fig_pointer, updated_line, file_name, i
             )
             warnings.extend(line_warnings)
+        # Bare URLs.
+        bare_link_matches = re.findall(BARE_LINK_REGEX, updated_line)
+        for bare_link in bare_link_matches:
+            # Convert bare URLs to Markdown-style links.
+            new_bare_link = bare_link.replace("Http://", "http://").replace(
+                "Https://", "https://"
+            )
+            updated_line = updated_line.replace(
+                bare_link, f"[{new_bare_link}]({new_bare_link})"
+            )
         # Store the updated line.
         updated_lines.append(updated_line)
     out_warnings = [w for w in warnings if len(w)]
