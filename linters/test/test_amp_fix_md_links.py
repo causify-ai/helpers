@@ -55,8 +55,6 @@ class Test_fix_links(hunitest.TestCase):
         hio.to_file(file_path, txt)
         return file_path
 
-    # TODO(gp): To outsource. Break into smaller tests. If one of these fails,
-    # it's hard to debug.
     def test1(self) -> None:
         """
         Test fixing link formatting in a Markdown file.
@@ -83,9 +81,37 @@ class Test_fix_links(hunitest.TestCase):
 
         - Markdown-style link with a path label in backticks without the slash at the start
           - [`helpers/test/test_hdbg.py`](helpers/test/test_hdbg.py)
+        
+        - Markdown-style link with a directory beginning with a dot
+          - [`fast_tests.yml`](/.github/workflows/fast_tests.yml)  
 
+        Markdown link: [Valid Markdown Link](docs/markdown_example.md)      
+        """
+        """
+        Test broken files, links and paths.
+        """
+        txt_incorrect = r"""
         - Markdown-style link with the link only in square brackets
           - [/helpers/hgit.py]()
+        
+        - Markdown-style link to a file that does not exist
+          - [File not found](/helpersssss/hhhhgit.py)
+        
+        - Non-file path
+          - ../../../../amp/helpers:/app/helpers
+
+        - Non-file path text with slashes in it
+          - Code in Markdown/LaTeX files (e.g., mermaid code).
+
+        - File path that does not exist
+          - `/helpersssss/hhhhgit.py`
+        
+        Broken Markdown link: [Broken Markdown Link](missing_markdown.md)
+        """
+        """
+        Test Markdown files with external links.
+        """
+        txt_incorrect = r"""
 
         - Markdown-style link with an http GH company link
           - [helpers/hgit.py](https://github.com/causify-ai/helpers/blob/master/helpers/hgit.py)
@@ -98,13 +124,13 @@ class Test_fix_links(hunitest.TestCase):
 
         - Markdown-style link with backticks in the square brackets and external http link
           - [`foobar`](https://ap-northeast-1.console.aws.amazon.com/s3/buckets/foobar)
-
-        - Markdown-style link to a file that does not exist
-          - [File not found](/helpersssss/hhhhgit.py)
-
-        - Markdown-style link with a directory beginning with a dot
-          - [`fast_tests.yml`](/.github/workflows/fast_tests.yml)
-
+        
+        External Markdown link: [External Markdown Link](https://example.com)
+        """
+        """
+        Test files without Markdown hyperlinks.
+        """
+        txt_incorrect = r"""
         - File path without the backticks
           - /helpers/test/test_hdbg.py
 
@@ -122,21 +148,21 @@ class Test_fix_links(hunitest.TestCase):
 
         - File path of a hidden file
           - .github/workflows/build_image.yml.DISABLED
-
-        - Non-file path
-          - ../../../../amp/helpers:/app/helpers
-
-        - Non-file path text with slashes in it
-          - Code in Markdown/LaTeX files (e.g., mermaid code).
-
-        - File path that does not exist
-          - `/helpersssss/hhhhgit.py`
-
+        """
+        """
+        Test Markdown files in triple backticks.
+        """
+        txt_incorrect = r"""
         - File path inside triple ticks:
         ```bash
         With backticks: `helpers/hgit.py`
         Without backticks: helpers/hgit.py
         ```
+        """
+        """
+        Test HTML style image links.
+        """
+        txt_incorrect = r"""
 
         - HTML-style figure pointer
           - <img src="import_check/example/output/basic.png">
@@ -149,6 +175,11 @@ class Test_fix_links(hunitest.TestCase):
 
         - HTML-style figure pointer that does not exist
           - <img src="/iiimport_check/example/output/basicccc.png">
+        """
+        """
+        Test Markdown style image links.
+        """
+        txt_incorrect = r"""
 
         - Markdown-style figure pointer
           - ![](import_check/example/output/basic.png)
@@ -205,23 +236,15 @@ class Test_fix_links(hunitest.TestCase):
         output = _get_output_string(out_warnings, updated_lines)
         self.check_string(output, purify_text=True)
 
-    # TODO(gp): To outsource. Break into smaller tests. If one of these fails,
-    # it's hard to debug.
     def test3(self) -> None:
         """
-        Test the mix of Markdown and HTML-style links.
+        Test the mix of Markdown and HTML-style links with anchor tags.
         """
         # Prepare inputs.
         input_content = r"""
-        Markdown link: [Valid Markdown Link](docs/markdown_example.md)
-
         HTML-style link: <a href="docs/html_example.md">Valid HTML Link</a>
 
-        Broken Markdown link: [Broken Markdown Link](missing_markdown.md)
-
         Broken HTML link: <a href="missing_html.md">Broken HTML Link</a>
-
-        External Markdown link: [External Markdown Link](https://example.com)
 
         External HTML link: <a href="https://example.com">External HTML Link</a>
 
