@@ -32,7 +32,7 @@ def _build_test_config_list(
 # #############################################################################
 
 
-# TODO(gp): -> Test_get_config_list_from_builder1
+# TODO(gp): GFI -> Test_get_config_list_from_builder1
 class TestGetConfigsFromBuilder1(hunitest.TestCase):
     def test1(self) -> None:
         """
@@ -49,7 +49,7 @@ class TestGetConfigsFromBuilder1(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(gp): -> Test_get_config_from_env1
+# TODO(gp): GFI -> Test_get_config_from_env1
 class TestGetConfigFromEnv(hunitest.TestCase):
     def test_no_env_variables(self) -> None:
         """

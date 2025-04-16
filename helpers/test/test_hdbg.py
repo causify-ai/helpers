@@ -12,8 +12,8 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-# TODO(gp): Use a self.assert_equal() instead of a check_string() since this
-#  code needs to be stable.
+# TODO(gp): GSI: Use a self.assert_equal() instead of a check_string() since
+# this code needs to be stable.
 class Test_dassert1(hunitest.TestCase):
     """
     Test `dassert()`.

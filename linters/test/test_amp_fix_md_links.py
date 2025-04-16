@@ -55,8 +55,8 @@ class Test_fix_links(hunitest.TestCase):
         hio.to_file(file_path, txt)
         return file_path
 
-    # TODO(gp): To outsource. Break into smaller tests. If one of these fails,
-    # it's hard to debug.
+    # TODO(gp): GSI. Break into smaller tests. If one of these fails, it's hard
+    # to debug.
     def test1(self) -> None:
         """
         Test fixing link formatting in a Markdown file.
@@ -205,8 +205,8 @@ class Test_fix_links(hunitest.TestCase):
         output = _get_output_string(out_warnings, updated_lines)
         self.check_string(output, purify_text=True)
 
-    # TODO(gp): To outsource. Break into smaller tests. If one of these fails,
-    # it's hard to debug.
+    # TODO(gp): GSI. Break into smaller tests. If one of these fails, it's hard
+    # to debug.
     def test3(self) -> None:
         """
         Test the mix of Markdown and HTML-style links.

@@ -141,7 +141,7 @@ def dassert_unique_index(
         hdbg.dassert(index.is_unique, msg=msg, *args)
 
 
-# TODO(gp): @all Add unit tests.
+# TODO(gp): GSI. Add unit tests.
 def dassert_increasing_index(
     obj: Union[pd.Index, pd.DataFrame, pd.Series],
     msg: Optional[str] = None,
@@ -181,7 +181,7 @@ def dassert_increasing_index(
         hdbg.dassert(index.is_monotonic_increasing, msg=msg, *args)
 
 
-# TODO(gp): @all Add more info in case of failures and unit tests.
+# TODO(gp): GSI. Add more info in case of failures and unit tests.
 def dassert_strictly_increasing_index(
     obj: Union[pd.Index, pd.DataFrame, pd.Series],
     msg: Optional[str] = None,
@@ -210,7 +210,7 @@ def dassert_monotonic_index(
     hdbg.dassert(cond, msg=msg, *args)
 
 
-# TODO(Paul): @gp -> dassert_datetime_indexed_df
+# TODO(Paul): GSI -> dassert_datetime_indexed_df
 def dassert_time_indexed_df(
     df: pd.DataFrame, allow_empty: bool, strictly_increasing: bool
 ) -> None:
@@ -1776,11 +1776,11 @@ def get_random_df(
 
 # #############################################################################
 
-# TODO(gp): -> AxisNameSet
+# TODO(gp): GSI -> AxisNameSet
 ColumnSet = Optional[Union[str, List[str]]]
 
 
-# TODO(gp): -> _resolve_axis_names
+# TODO(gp): GSI -> _resolve_axis_names
 def _resolve_column_names(
     column_set: ColumnSet,
     columns: Union[List[str], pd.Index],

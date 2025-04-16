@@ -15,9 +15,6 @@ import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
 
-# TODO(gp): Do not commit this.
-# _LOG.debug = _LOG.info
-
 
 # TODO(gp): Use hprint.log_frame
 def _LOG_frame(txt: str) -> None:
