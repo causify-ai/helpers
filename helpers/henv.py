@@ -6,7 +6,6 @@ import helpers.henv as henv
 
 import logging
 import os
-import re
 from typing import Any, Dict, List, Tuple, Union
 
 import helpers.hdbg as hdbg
@@ -91,7 +90,13 @@ def get_env_var(
     """
     if env_name not in os.environ:
         if abort_on_missing:
-            assert 0, f"Can't find env var '{env_name}' in '{str(os.environ)}'"
+            hdbg.dassert_in(
+                env_name,
+                os.environ,
+                "Can't find env var '%s' in '%s'",
+                env_name,
+                str(os.environ),
+            )
         else:
             return default_value
     value = os.environ[env_name]
@@ -146,9 +151,13 @@ def get_env_vars() -> List[str]:
         "CSFY_ECR_BASE_PATH",
     ]
     # No duplicates.
-    assert len(set(env_var_names)) == len(
-        env_var_names
-    ), f"There are duplicates: {str(env_var_names)}"
+    # TODO(gp): GFI. Use `hdbg.dassert_no_duplicates()` instead.
+    hdbg.dassert_eq(
+        len(set(env_var_names)),
+        len(env_var_names),
+        f"There are duplicates",
+        str(env_var_names),
+    )
     # Sort.
     env_var_names = sorted(env_var_names)
     return env_var_names
@@ -165,11 +174,16 @@ def get_secret_env_vars() -> List[str]:
         "GH_ACTION_ACCESS_TOKEN",
     ]
     # No duplicates.
-    assert len(set(secret_env_var_names)) == len(
-        secret_env_var_names
-    ), f"There are duplicates: {str(secret_env_var_names)}"
+    # TODO(gp): GFI. Use `hdbg.dassert_no_duplicates()` instead.
+    hdbg.dassert_eq(
+        len(set(secret_env_var_names)),
+        len(secret_env_var_names),
+        f"There are duplicates",
+        str(secret_env_var_names),
+    )
     # Secret env vars are a subset of the env vars.
     env_vars = get_env_vars()
+    # TODO(gp): GFI. Use `hdbg.dassert_issubset()` instead.
     if not set(secret_env_var_names).issubset(set(env_vars)):
         diff = set(secret_env_var_names).difference(set(env_vars))
         cmd = f"Secret vars in `{str(diff)} are not in '{str(env_vars)}'"
@@ -185,9 +199,13 @@ def check_env_vars() -> None:
     """
     env_vars = get_env_vars()
     for env_var in env_vars:
-        assert (
-            env_var in os.environ
-        ), f"env_var='{str(env_var)}' is not in env_vars='{str(os.environ.keys())}''"
+        hdbg.dassert_in(
+            env_var,
+            os.environ,
+            "env_var='%s' is not in env_vars='%s'",
+            env_var,
+            str(os.environ.keys()),
+        )
 
 
 def env_vars_to_string() -> str:
@@ -195,7 +213,7 @@ def env_vars_to_string() -> str:
     Return a string with the signature of all the expected env vars (including
     the secret ones).
     """
-    msg = []
+    txt: List[str] = []
     # Get the expected env vars and the secret ones.
     env_vars = get_env_vars()
     secret_env_vars = get_secret_env_vars()
@@ -204,74 +222,24 @@ def env_vars_to_string() -> str:
         is_defined = env_name in os.environ
         is_empty = is_defined and os.environ[env_name] == ""
         if not is_defined:
-            msg.append(f"{env_name}=undef")
+            txt.append(f"{env_name}=undef")
         else:
             if env_name in secret_env_vars:
                 # Secret env var: print if it's empty or not.
                 if is_empty:
-                    msg.append(f"{env_name}=empty")
+                    txt.append(f"{env_name}=empty")
                 else:
-                    msg.append(f"{env_name}=***")
+                    txt.append(f"{env_name}=***")
             else:
                 # Not a secret var: print the value.
-                msg.append(f"{env_name}='{os.environ[env_name]}'")
-    msg = "\n".join(msg)
-    return msg
-
-
-def env_to_str(add_system_signature: bool = True) -> str:
-    msg = ""
-    #
-    msg += "# Repo config:\n"
-    repo_config_str = hrecouti.get_repo_config().config_func_to_str()
-    msg += hprint.indent(repo_config_str)
-    msg += "\n"
-    msg += "# Server config:\n"
-    server_config_str = hserver.config_func_to_str()
-    msg += hprint.indent(server_config_str)
-    msg += "\n"
-    # System signature.
-    if add_system_signature:
-        msg += "# System signature:\n"
-        msg += hprint.indent(get_system_signature()[0])
-        msg += "\n"
-    # Check which env vars are defined.
-    msg += "# Env vars:\n"
-    msg += hprint.indent(env_vars_to_string())
-    msg += "\n"
-    return msg
+                txt.append(f"{env_name}='{os.environ[env_name]}'")
+    txt = "\n".join(txt)
+    return txt
 
 
 # #############################################################################
-# Print the library versions.
+# Get Git info.
 # #############################################################################
-
-
-def _get_library_version(lib_name: str) -> str:
-    try:
-        cmd = f"import {lib_name}"
-        # pylint: disable=exec-used
-        exec(cmd)
-    except ImportError:
-        version = "?"
-    else:
-        cmd = f"{lib_name}.__version__"
-        version = eval(cmd)
-    return version
-
-
-def _append(
-    txt: List[str], to_add: List[str], num_spaces: int = 2
-) -> Tuple[List[str], List[str]]:
-    txt.extend(
-        [
-            " " * num_spaces + line
-            for txt_tmp in to_add
-            for line in txt_tmp.split("\n")
-        ]
-    )
-    to_add: List[str] = []
-    return txt, to_add
 
 
 # Copied from helpers.hgit to avoid circular dependencies.
@@ -305,87 +273,81 @@ def _git_log(num_commits: int = 5, my_commits: bool = False) -> str:
 # End copy.
 
 
-def _get_git_signature(git_commit_type: str = "all") -> List[str]:
+def _get_git_signature(git_commit_type: str = "all") -> str:
     """
     Get information about current branch and latest commits.
     """
-    txt_tmp: List[str] = []
+    txt: List[str] = []
     # Get the branch name.
     cmd = "git branch --show-current"
     _, branch_name = hsystem.system_to_one_line(cmd)
-    txt_tmp.append(f"branch_name='{branch_name}'")
+    txt.append(f"branch_name='{branch_name}'")
     # Get the short Git hash of the current branch.
     cmd = "git rev-parse --short HEAD"
     _, hash_ = hsystem.system_to_one_line(cmd)
-    txt_tmp.append(f"hash='{hash_}'")
+    txt.append(f"hash='{hash_}'")
     # Add info about the latest commits.
     num_commits = 3
     if git_commit_type == "all":
-        txt_tmp.append("# Last commits:")
+        txt.append("# Last commits:")
         log_txt = _git_log(num_commits=num_commits, my_commits=False)
-        txt_tmp.append(hprint.indent(log_txt))
+        txt.append(hprint.indent(log_txt))
     elif git_commit_type == "mine":
-        txt_tmp.append("# Your last commits:")
+        txt.append("# Your last commits:")
         log_txt = _git_log(num_commits=num_commits, my_commits=True)
-        txt_tmp.append(hprint.indent(log_txt))
+        txt.append(hprint.indent(log_txt))
     elif git_commit_type == "none":
         pass
     else:
         raise ValueError(f"Invalid value='{git_commit_type}'")
-    return txt_tmp
-
-
-def _get_submodule_signature(
-    partial_signature: List[str], git_commit_type: str = "all"
-) -> List[str]:
-    """
-    Add git signature for all submodules.
-
-    :paramp partial_signature: the signature to append to
-        :git_commit_type: the type of git commit to include in the
-        signature
-    :return: system signature enhanced by git submodule info
-    """
-    # TODO(Juraj): Think of a better generalisation rather listing all the options.
-    submodule_options = ["amp", "amp/helpers_root", "helpers_root"]
-    signature = partial_signature
-    prev_cwd = os.getcwd()
-    for submodule in submodule_options:
-        if os.path.exists(submodule):
-            try:
-                # Temporarily descend into submodule.
-                os.chdir(submodule)
-                signature.append(f"# Git {submodule}")
-                git_amp_sig = _get_git_signature(git_commit_type)
-                signature, _ = _append(signature, git_amp_sig)
-            # In case there is a runtime error we want to end up in a consistent state
-            # (the original path).
-            finally:
-                os.chdir(prev_cwd)
-    return signature
-
-
-def get_system_signature(git_commit_type: str = "all") -> Tuple[str, int]:
-    # TODO(gp): This should return a string that we append to the rest.
-    container_dir_name = "."
-    hversio.check_version(container_dir_name)
     #
-    txt: List[str] = []
-    # Add git signature.
-    txt.append("# Git")
-    txt_tmp: List[str] = []
-    try:
-        txt_tmp += _get_git_signature(git_commit_type)
-        # If there are any submodules, fetch their git signature.
-        txt_tmp = _get_submodule_signature(txt_tmp, git_commit_type)
-    except RuntimeError as e:
-        _LOG.error(str(e))
-    txt, txt_tmp = _append(txt, txt_tmp)
-    # Add processor info.
-    txt.append("# Machine info")
-    txt_tmp: List[str] = []
+    txt = "\n".join(txt) + "\n"
+    hdbg.dassert(txt.endswith("\n"), f"txt_tmp='%s'", txt)
+    return txt
+
+
+# def _get_submodule_signature(
+#     partial_signature: List[str], *, git_commit_type: str = "all"
+# ) -> str:
+#     """
+#     Add git signature for all submodules.
+#     :param partial_signature: the signature to append to
+#         `git_commit_type` the type of git commit to include in the
+#         signature
+#     :return: system signature enhanced by git submodule info
+#     """
+#     # TODO(Juraj): Think of a better generalisation rather listing all the options.
+#     submodule_options = ["amp", "amp/helpers_root", "helpers_root"]
+#     signature = partial_signature
+#     prev_cwd = os.getcwd()
+#     for submodule in submodule_options:
+#         if os.path.exists(submodule):
+#             try:
+#                 # Temporarily descend into submodule.
+#                 os.chdir(submodule)
+#                 signature.append(f"# Git {submodule}")
+#                 git_amp_sig = _get_git_signature(git_commit_type)
+#                 signature = _append(signature, git_amp_sig)
+#             # In case there is a runtime error we want to end up in a consistent
+#             # state (the original path).
+#             finally:
+#                 os.chdir(prev_cwd)
+#     hdbg.dassert(txt_tmp.endswith("\n"), f"txt_tmp='%s'", txt_tmp)
+#     return signature
+
+
+# #############################################################################
+# Get system info.
+# #############################################################################
+
+
+def _get_platform_info() -> str:
+    """
+    Get platform information as a list of strings.
+    """
     import platform
 
+    txt_tmp: List[str] = []
     uname = platform.uname()
     txt_tmp.append(f"system={uname.system}")
     txt_tmp.append(f"node name={uname.node}")
@@ -393,22 +355,67 @@ def get_system_signature(git_commit_type: str = "all") -> Tuple[str, int]:
     txt_tmp.append(f"version={uname.version}")
     txt_tmp.append(f"machine={uname.machine}")
     txt_tmp.append(f"processor={uname.processor}")
+    #
+    txt = hprint.to_info("Platform info", txt_tmp)
+    return txt
+
+
+def _get_psutil_info() -> str:
+    """
+    Get system resource information using psutil.
+    """
     try:
         import psutil
 
         has_psutil = True
     except ModuleNotFoundError as e:
-        print(e)
+        _LOG.warning("psutil is not installed: %s", str(e))
         has_psutil = False
+
+    txt_tmp = []
     if has_psutil:
         txt_tmp.append(f"cpu count={psutil.cpu_count()}")
         txt_tmp.append(f"cpu freq={str(psutil.cpu_freq())}")
         # TODO(gp): Report in MB or GB.
         txt_tmp.append(f"memory={str(psutil.virtual_memory())}")
         txt_tmp.append(f"disk usage={str(psutil.disk_usage('/'))}")
-        txt, txt_tmp = _append(txt, txt_tmp)
-    # Add package info.
-    txt.append("# Packages")
+    else:
+        txt_tmp.append("psutil is not installed")
+    #
+    txt = hprint.to_info("psutils info", txt_tmp)
+    return txt
+
+
+# #############################################################################
+# Get package info.
+# #############################################################################
+
+
+def _get_library_version(lib_name: str) -> str:
+    try:
+        cmd = f"import {lib_name}"
+        # pylint: disable=exec-used
+        exec(cmd)
+    except ImportError:
+        version = "?"
+    else:
+        cmd = f"{lib_name}.__version__"
+        version = eval(cmd)
+    return version
+
+
+def _get_package_info() -> Tuple[List[str], int]:
+    """
+    Get package version information.
+
+    Returns:
+        Tuple containing:
+        - List of strings with package info
+        - Number of failed imports
+    """
+    import platform
+
+    txt_tmp = []
     packages = []
     packages.append(("python", platform.python_version()))
     # import sys
@@ -442,7 +449,100 @@ def get_system_signature(git_commit_type: str = "all") -> Tuple[str, int]:
             failed_imports += 1
         packages.append((lib, version))
     txt_tmp.extend([f"{l}: {v}" for (l, v) in packages])
-    txt, txt_tmp = _append(txt, txt_tmp)
     #
-    txt = "\n".join(txt)
+    txt = hprint.to_info("Packages", txt_tmp)
     return txt, failed_imports
+
+
+# #############################################################################
+
+
+def _get_git_info(git_commit_type: str) -> str:
+    txt_tmp: List[str] = []
+    try:
+        txt_tmp.append(_get_git_signature(git_commit_type))
+        # If there are any submodules, fetch their git signature.
+        # txt_tmp.append(_get_submodule_signature(txt_tmp, git_commit_type))
+    except RuntimeError as e:
+        _LOG.warning(str(e))
+        txt_tmp.append("No git info")
+    #
+    txt = hprint.to_info("Git info", txt_tmp)
+    return txt
+
+
+# #############################################################################
+# Get system signature.
+# #############################################################################
+
+
+def get_system_signature(git_commit_type: str = "all") -> Tuple[str, int]:
+    """
+    Return a string with the system signature.
+
+    :param git_commit_type: the type of git commit to include in the
+        signature
+    :return: the system signature and the number of failed imports
+    """
+    txt: List[str] = []
+    # Add container version.
+    txt_tmp = hversio.get_container_version_info()
+    hprint.dassert_one_trailing_newline(txt_tmp)
+    txt.append(txt_tmp)
+    # Add Git signature.
+    txt_tmp = _get_git_info(git_commit_type)
+    hprint.dassert_one_trailing_newline(txt_tmp)
+    txt.append(txt_tmp)
+    # Add platform info.
+    txt_tmp = _get_platform_info()
+    hprint.dassert_one_trailing_newline(txt_tmp)
+    txt.append(txt_tmp)
+    # Add psutil info.
+    txt_tmp = _get_psutil_info()
+    hprint.dassert_one_trailing_newline(txt_tmp)
+    txt.append(txt_tmp)
+    # Add Docker info.
+    txt_tmp = hserver.get_docker_info()
+    hprint.dassert_one_trailing_newline(txt_tmp)
+    txt.append(txt_tmp)
+    # Add package info.
+    txt_tmp, failed_imports = _get_package_info()
+    hprint.dassert_one_trailing_newline(txt_tmp)
+    txt.append(txt_tmp)
+    #
+    txt = hprint.to_info("System signature", txt)
+    return txt, failed_imports
+
+
+# #############################################################################
+# Package all the information into a string.
+# #############################################################################
+
+
+def env_to_str(
+    repo_config: bool = True,
+    server_config: bool = True,
+    system_signature: bool = True,
+    env_vars: bool = True,
+) -> str:
+    """
+    Package all the information into a string.
+    """
+    #
+    msg = ""
+    #
+    if repo_config:
+        repo_config_str = hrecouti.get_repo_config().config_func_to_str()
+        msg += hprint.to_info("Repo config", repo_config_str) + "\n"
+    #
+    if server_config:
+        server_config_str = hserver.config_func_to_str()
+        msg += hprint.to_info("Server config", server_config_str) + "\n"
+    #
+    if system_signature:
+        msg += get_system_signature()[0] + "\n"
+    #
+    if env_vars:
+        env_vars_str = env_vars_to_string()
+        msg += hprint.to_info("Env vars", env_vars_str) + "\n"
+    return msg
