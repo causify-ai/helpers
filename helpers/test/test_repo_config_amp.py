@@ -228,6 +228,7 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
         skip_secrets_vars = True
         hunteuti.check_env_to_str(self, exp, skip_secrets_vars=skip_secrets_vars)
 
+    @pytest.mark.skip(reason="See CmampTask11907")
     @pytest.mark.skipif(
         not hrecouti.get_repo_config().get_name() == "//cmamp",
         reason="Run only in //cmamp",
