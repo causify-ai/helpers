@@ -1240,3 +1240,194 @@ class Test_format_headers1(hunitest.TestCase):
         # Check output.
         actual = hio.from_file(write_file)
         self.assertEqual(actual, "\n".join(expected))
+
+
+# #############################################################################
+# Test_remove_code_delimiters1
+# #############################################################################
+
+
+class Test_remove_code_delimiters1(hunitest.TestCase):
+
+    def test1(self) -> None:
+        """
+        Test a basic example.
+        """
+        # Prepare inputs.
+        content = r"""
+        ```python
+        def hello_world():
+            print("Hello, World!")
+        ```
+        """
+        content = hprint.dedent(content)
+        # Call function.
+        act = hmarkdo.remove_code_delimiters(content)
+        # Check output.
+        exp = r"""
+        def hello_world():
+            print("Hello, World!")
+        """
+        self.assert_equal(str(act), exp, dedent=True)
+
+    def test2(self) -> None:
+        """
+        Test an example with empty lines at the start and end.
+        """
+        # Prepare inputs.
+        content = r"""
+
+        ```python
+
+        def check_empty_lines():
+            print("Check empty lines are present!")
+
+        ```
+
+        """
+        content = hprint.dedent(content)
+        # Call function.
+        act = hmarkdo.remove_code_delimiters(content)
+        # Check output.
+        exp = r"""
+        def check_empty_lines():
+            print("Check empty lines are present!")
+        """
+        self.assert_equal(str(act), exp, dedent=True)
+
+    def test3(self) -> None:
+        """
+        Test a markdown with headings, Python and yaml blocks.
+        """
+        # Prepare inputs.
+        content = r"""
+        # Section 1
+
+        This section contains comment and python code.
+
+        > "Knowledge is like a tree, growing stronger with each branch of understanding."
+
+        ```python
+        def greet(name):
+            return f"Hello, {name}!"
+        print(greet("World"))
+        ```
+
+        # Section 2
+
+        Key points below.
+
+        - Case Study 1: Implementation in modern industry
+        - Case Study 2: Comparative analysis of traditional vs. modern methods
+
+        ```yaml
+        future:
+        - AI integration
+        - Process optimization
+        - Sustainable solutions
+        ```
+        """
+        content = hprint.dedent(content)
+        # Call function.
+        act = hmarkdo.remove_code_delimiters(content)
+        # Check output.
+        exp = r"""
+        # Section 1
+
+        This section contains comment and python code.
+
+        > "Knowledge is like a tree, growing stronger with each branch of understanding."
+
+
+        def greet(name):
+            return f"Hello, {name}!"
+        print(greet("World"))
+
+
+        # Section 2
+
+        Key points below.
+
+        - Case Study 1: Implementation in modern industry
+        - Case Study 2: Comparative analysis of traditional vs. modern methods
+
+        yaml
+        future:
+        - AI integration
+        - Process optimization
+        - Sustainable solutions
+
+        """
+        self.assert_equal(str(act), exp, dedent=True)
+
+    def test4(self) -> None:
+        """
+        Test another markdown with headings and multiple indent Python blocks.
+        """
+        # Prepare inputs.
+        content = _get_markdown_example5()
+        # Call function.
+        act = hmarkdo.remove_code_delimiters(content)
+        # Check output.
+        exp = r"""
+        - Functions can be declared in the body of another function
+        - E.g., to hide utility functions in the scope of the function that uses them
+
+            def print_integers(values):
+
+                def _is_integer(value):
+                    try:
+                        return value == int(value)
+                    except:
+                        return False
+
+                for v in values:
+                    if _is_integer(v):
+                        print(v)
+
+        - Hello
+        """
+        self.assert_equal(str(act), exp, dedent=True)
+
+    def test5(self) -> None:
+        """
+        Test an empty string.
+        """
+        # Prepare inputs.
+        content = ""
+        # Call function.
+        act = hmarkdo.remove_code_delimiters(content)
+        # Check output.
+        exp = ""
+        self.assert_equal(str(act), exp, dedent=True)
+
+    def test6(self) -> None:
+        """
+        Test a Python and immediate markdown code block.
+        """
+        # Prepare inputs.
+        content = r"""
+        ```python
+        def no_start_python():
+            print("No mention of python at the start")```
+        ```
+
+        ```
+            A markdown paragraph contains
+            delimiters that needs to be removed.
+        ```
+        """
+        content = hprint.dedent(content)
+        # Call function.
+        act = hmarkdo.remove_code_delimiters(content)
+        # Check output.
+        exp = r"""
+        def no_start_python():
+            print("No mention of python at the start")
+
+
+
+            A markdown paragraph contains
+            delimiters that needs to be removed.
+        """
+        self.assert_equal(str(act), exp, dedent=True)
