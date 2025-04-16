@@ -6,6 +6,24 @@ import helpers.hunit_test as hunitest
 import linters.amp_doc_formatter as lamdofor
 
 
+def _docformatter(text: str, scratch_dir: str) -> Tuple[str, List[str], str]:
+    """
+    Run the docformatter on the temp file in scratch space.
+
+    :param text: content to be formatted
+    :param scratch_dir: directory for temp files
+    :return:
+        - modified content after formatting
+        - warnings
+        - filepath for temporary file
+    """
+    temp_file = os.path.join(scratch_dir, "temp_file.py")
+    hio.to_file(temp_file, text)
+    warnings = lamdofor._DocFormatter().execute(file_name=temp_file, pedantic=0)
+    content: str = hio.from_file(temp_file)
+    return content, warnings, temp_file
+
+
 # #############################################################################
 # Test_docformatter
 # #############################################################################
@@ -29,7 +47,7 @@ Test 1.
 Test 2.
 """
 '''
-        actual, _, _ = self._docformatter(text)
+        actual, _, _ = _docformatter(text, self.get_scratch_space())
         self.assertEqual(expected.strip(), actual.strip())
 
     def test2(self) -> None:
@@ -48,7 +66,7 @@ Test 2.
 This is a test.
 """
 '''
-        actual, _, _ = self._docformatter(text)
+        actual, _, _ = _docformatter(text, self.get_scratch_space())
         self.assertEqual(expected.strip(), actual.strip())
 
     def test3(self) -> None:
@@ -63,7 +81,7 @@ This is a test.
 This is a test.
 """
 '''
-        actual, _, _ = self._docformatter(text)
+        actual, _, _ = _docformatter(text, self.get_scratch_space())
         self.assertEqual(expected.strip(), actual.strip())
 
     def test4(self) -> None:
@@ -88,7 +106,7 @@ def sample_method() -> None:
     """
 '''
         expected = text
-        actual, _, _ = self._docformatter(text)
+        actual, _, _ = _docformatter(text, self.get_scratch_space())
         self.assertEqual(expected, actual)
 
     def test5(self) -> None:
@@ -119,7 +137,7 @@ def sample_method2() -> None:
     This is a test.
     """
 '''
-        actual, _, _ = self._docformatter(text)
+        actual, _, _ = _docformatter(text, self.get_scratch_space())
         self.assertEqual(expected, actual)
 
     def test6(self) -> None:
@@ -130,34 +148,13 @@ def sample_method2() -> None:
         text_file_path = os.path.join(test6_input_dir, "test.txt")
         text = hio.from_file(text_file_path)
         expected = text
-        actual, _, _ = self._docformatter(text)
+        actual, _, _ = _docformatter(text, self.get_scratch_space())
         self.assertEqual(expected, actual)
-
-    def test_get_docstring_lines(self) -> None:
-        """
-        Test that unbalanced backticks are correctly flagged.
-        """
-        # Prepare inputs.
-        test_get_docstring_lines_input_dir = self.get_input_dir()
-        text_file_path = os.path.join(
-            test_get_docstring_lines_input_dir, "test.txt"
-        )
-        text = hio.from_file(text_file_path)
-        lines = text.splitlines()
-        # Run.
-        actual = lamdofor._DocFormatter._get_docstring_lines(lines)
-        # Check.
-        expected = [
-            [1, 2, 3, 4, 5, 6],
-            [11, 12, 13, 14, 15],
-            [20, 21, 22, 23, 24],
-        ]
-        self.assertEqual(actual, expected)
 
     def test_find_unbalanced_triple_backticks(self) -> None:
         """
-        Test that the starting idx of docstrings with unbalanced backticks are
-        correctly returned.
+        Test that the starting indices of docstrings with unbalanced backticks
+        are correctly returned.
         """
         # Prepare inputs.
         test_get_docstring_lines_input_dir = self.get_input_dir()
@@ -175,11 +172,18 @@ def sample_method2() -> None:
         Test that unbalanced backticks are correctly warned of.
         """
         # Prepare inputs.
-        test9_input_dir = self.get_input_dir()
-        text_file_path = os.path.join(test9_input_dir, "test.txt")
-        text = hio.from_file(text_file_path)
+        text = '''
+"""
+E.g., ```
+foo
+```
+:param x: a parameter that the function takes in
+"""
+        '''
         # Run.
-        actual_content, actual_warning_list, temp_file = self._docformatter(text)
+        actual_content, actual_warning_list, temp_file = _docformatter(
+            text, self.get_scratch_space()
+        )
         actual_warnings = "\n".join(actual_warning_list)
         expected_warnings = (
             f"{temp_file}:2: Found unbalanced triple backticks; "
@@ -189,22 +193,3 @@ def sample_method2() -> None:
         # Check.
         self.assertEqual(actual_warnings, expected_warnings)
         self.assert_equal(actual_content, text, fuzzy_match=True)
-
-    def _docformatter(self, text: str) -> Tuple[str, List[str], str]:
-        """
-        Run the docformatter on the temp file in scratch space.
-
-        :param text: content to be formatted
-        :return:
-            - modified content after formatting
-            - warnings array
-            - filepath for temporary file
-        """
-        scratch_dir = self.get_scratch_space()
-        temp_file = os.path.join(scratch_dir, "temp_file.py")
-        hio.to_file(temp_file, text)
-        warnings = lamdofor._DocFormatter().execute(
-            file_name=temp_file, pedantic=0
-        )
-        content: str = hio.from_file(temp_file)
-        return content, warnings, temp_file

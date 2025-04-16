@@ -50,29 +50,6 @@ class _DocFormatter(liaction.Action):
         return check
 
     @staticmethod
-    def _get_docstring_lines(lines: List[str]) -> List[List[int]]:
-        """
-        Return the line indices that are within docstrings.
-
-        :param lines: lines from the file to process
-        :return: lines within docstrings
-        """
-        # Get indices of lines that are within docstrings.
-        doc_indices = hstring.get_docstring_line_indices(lines)
-        # Group these indices into consecutive docstrings.
-        docstrings = []
-        if doc_indices:
-            current_docstring = [doc_indices[0]]
-            for idx in doc_indices[1:]:
-                if idx == current_docstring[-1] + 1:
-                    current_docstring.append(idx)
-                else:
-                    docstrings.append(current_docstring)
-                    current_docstring = [idx]
-            docstrings.append(current_docstring)
-        return docstrings
-
-    @staticmethod
     def _find_unbalanced_triple_backticks(file_name: str) -> List[int]:
         """
         Check if the file contains contains docstrings with unbalanced triple
@@ -85,19 +62,18 @@ class _DocFormatter(liaction.Action):
         '''
 
         If the docstring contains triple backticks that are unbalanced (opened but not closed),
-        the whole docstring should be passed to docformatter without removing the code block
-        wrapped in those backticks
+        the whole docstring should be passed to `docformatter` without removing the code block
+        wrapped in those backticks.
 
         :param file_name: file to process
         :return:
-            - whether there are unbalanced backticks
             - all the starting indices of docstrings where the
               unbalanced backticks exist
         """
         contents = hio.from_file(file_name)
         lines = contents.splitlines()
         # Get lines that are within docstrings.
-        docstrings = _DocFormatter._get_docstring_lines(lines)
+        docstrings = hstring.get_docstrings(lines)
         idxs_docstrings_with_unbalanced_backticks = []
         # Process each docstring.
         for docstring in docstrings:
@@ -107,7 +83,7 @@ class _DocFormatter(liaction.Action):
                     # Count this triple backticks at the leftmost position.
                     leftmost_triple_backticks_count += 1
             if leftmost_triple_backticks_count % 2 != 0:
-                # Odd number of leftomost triple backticks in this docstring.
+                # Odd number of leftmost triple backticks in this docstring.
                 # Append the docstring that has unbalanced triple backticks.
                 # Convert zero-indexed numbers to one-indexed line numbers.
                 # This would accurately link it to the part of the code;
