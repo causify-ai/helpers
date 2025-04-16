@@ -184,6 +184,7 @@ def lint(  # type: ignore
     stage="prod",
     version="",
     files="",
+    skip_files="",
     dir_name="",
     modified=False,
     last_commit=False,
@@ -200,6 +201,9 @@ def lint(  # type: ignore
     # To lint specific files:
     > i lint --files="dir1/file1.py dir2/file2.md"
 
+    # To lint the files changed in the last commit, excluding specific files:
+    > i lint --last_commit --skip_files="dir1/file1.py dir2/file2.md"
+
     # To lint all the files in the current dir using only formatting actions:
     > i lint --dir-name . --only-format
 
@@ -213,6 +217,7 @@ def lint(  # type: ignore
     :param stage: the image stage to use (e.g., "prod", "dev", "local")
     :param version: the version of the container to use
     :param files: specific files to lint (e.g. "dir1/file1.py dir2/file2.md")
+    :param skip_files: specific files to skip lint (e.g. "dir1/file1.py dir2/file2.md")
     :param dir_name: name of the dir where all files should be linted
     :param modified: lint the files modified in the current git client
     :param last_commit: lint the files modified in the previous commit
@@ -229,13 +234,26 @@ def lint(  # type: ignore
     hlitauti.report_task()
     # Prepare the command line.
     lint_cmd_opts = []
-    # Add the file selection argument.
-    hdbg.dassert_eq(
+    # Enumerate file flags for assertion
+    file_flags_set =(
         int(len(files) > 0)
         + int(len(dir_name) > 0)
         + int(modified)
         + int(last_commit)
-        + int(branch),
+        + int(branch)
+    )
+    # Add the file selection argument when using `--skip_files`.
+    hdbg.dassert_imply(
+        int(len(skip_files) > 0),
+        int(file_flags_set > 0),
+        msg=(
+            "--skip_files requires a file selection flag, specify exactly one among --files, "
+            "--dir-name, --modified, --last-commit, or --branch"
+        ),
+    )
+    # Add the file selection argument.
+    hdbg.dassert_eq(
+        file_flags_set,
         1,
         msg="Specify exactly one among --files, --dir-name, --modified, --last-commit, --branch",
     )
@@ -251,6 +269,8 @@ def lint(  # type: ignore
         lint_cmd_opts.append("--branch")
     else:
         raise ValueError("No file selection arguments are specified")
+    if len(skip_files) > 0:
+        lint_cmd_opts.append(f"--skip_files {skip_files}")
     #
     lint_cmd_opts.append(f"--num_threads {num_threads}")
     # Add the action selection argument, if needed.
