@@ -502,7 +502,10 @@ def get_system_signature(git_commit_type: str = "all") -> Tuple[str, int]:
     hprint.dassert_one_trailing_newline(txt_tmp)
     txt.append(txt_tmp)
     # Add Docker info.
-    txt_tmp = hserver.get_docker_info()
+    if hserver.is_external_dev():
+        txt_tmp = "External dev: skipping Docker check"
+    else:
+        txt_tmp = hserver.get_docker_info()
     hprint.dassert_one_trailing_newline(txt_tmp)
     txt.append(txt_tmp)
     # Add package info.
