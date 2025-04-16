@@ -93,14 +93,10 @@ jobs:
         run: invoke docker_pull
 
       - name: ssh
-        uses: lhotari/action-upterm@v1
+        uses: mxschmitt/action-tmate@v3
+        timeout-minutes: 15
         with:
-          ## limits ssh access and adds the ssh public key for the user which triggered the workflow.
           limit-access-to-actor: true
-          ## limits ssh access and adds the ssh public keys of the listed GitHub users.
-          limit-access-to-users: heanhsok
-          ## If no one connects after 60 minutes, shut down server.
-          wait-timeout-minutes: 60
         env:
           CSFY_AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
           CSFY_AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
