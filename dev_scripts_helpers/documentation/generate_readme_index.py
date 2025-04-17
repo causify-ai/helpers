@@ -4,16 +4,16 @@
 Generate a Markdown index in the README file.
 
 Usage:
-    generate_readme_index.py --index_mode {generate,refresh} [--target_path TARGET_PATH] [--model MODEL]
+    generate_readme_index.py --index_mode {generate,refresh} [--dir_path DIR_PATH] [--model MODEL]
 
 This script creates or updates a README file with an index of Markdown files in a given directory, 
 including their relative paths and summaries.
 
 Example output
 
-# README for `target_path`
+# README for `dir_path`
 
-Below is a list of all Markdown files found under `target_path`.
+Below is a list of all Markdown files found under `dir_path`.
 
 ## Markdown Index
 
@@ -34,8 +34,8 @@ Below is a list of all Markdown files found under `target_path`.
 Options:
     --index_mode {generate,refresh}
         Choose to either generate summaries from scratch or refresh only new files.
-    --target_path TARGET_PATH
-        Path to the target directory. Defaults to the Git repository root.
+    --dir_path DIR_PATH
+        Path to the given directory. Defaults to the Git repository root.
     --model MODEL
         Specify the summarization model. Use 'placeholder' to skip OpenAI API usage.
 """
@@ -54,18 +54,18 @@ _LOG = logging.getLogger(__name__)
 
 
 def _get_existing_summaries(
-    target_path: str, markdown_files: List[str]
+    dir_path: str, markdown_files: List[str]
 ) -> Dict[str, str]:
     """
     Extract and filter summaries from the existing README file.
 
     Only summaries for Markdown files that still exist in the codebase are retained.
 
-    :param target_path: target path where README.md file is located
+    :param dir_path: directory path where README.md file is located
     :param markdown_files: all Markdown file paths
     :return: summaries of existing files
     """
-    readme_path = os.path.join(target_path, "README.md")
+    readme_path = os.path.join(dir_path, "README.md")
     content = hio.from_file(readme_path)
     content = content.strip()
     pattern = re.compile(
@@ -120,7 +120,7 @@ def _generate_summary_for_file(
 
 
 def _build_index_lines(
-    target_path: str,
+    dir_path: str,
     markdown_files: List[str],
     summaries: Dict[str, str],
     model: str
@@ -128,7 +128,7 @@ def _build_index_lines(
     """
     Construct the Markdown index content to write into README.
 
-    :param target_path: target path to label README
+    :param dir_path: directory path for labelling README
     :param markdown_files: all Markdown file paths
     :param summaries: Markdown file paths and their summaries
     :param model: name of the model for summary generation, e.g. "placeholder", "gpt-4o-mini"
@@ -136,14 +136,14 @@ def _build_index_lines(
     :return: formatted Markdown files index
     """
     # File starter.
-    if target_path == hgit.find_git_root():
+    if dir_path == hgit.find_git_root():
         lines = [
             "# README for the repository",
             "",
             "Below is a list of all Markdown files found in the repository.",
         ]
     else:
-        rel_path = os.path.relpath(target_path)
+        rel_path = os.path.relpath(dir_path)
         lines = [
             f"# README for `{rel_path}`",
             "",
@@ -170,26 +170,26 @@ def _build_index_lines(
     return content
 
 
-def list_markdown_files(target_path: str) -> List[str]:
+def list_markdown_files(dir_path: str) -> List[str]:
     """
     List all Markdown files in the given directory.
 
-    :param target_path: target path to search
+    :param dir_path: directory path to search
     :return: the full paths of all Markdown files found
     """
     markdown_files = []
-    for root, _, files in os.walk(target_path):
+    for root, _, files in os.walk(dir_path):
         for file in files:
             if file.endswith(".md") and file.lower() != "readme.md":
                 # Get markdown files and ignore README.md.
-                rel_path = os.path.relpath(os.path.join(root, file), target_path)
+                rel_path = os.path.relpath(os.path.join(root, file), dir_path)
                 markdown_files.append(rel_path)
     markdown_files = sorted(markdown_files)
     return markdown_files
 
 
 def generate_markdown_index(
-    target_path: str,
+    dir_path: str,
     markdown_files: List[str],
     index_mode: str,
     *,
@@ -202,7 +202,7 @@ def generate_markdown_index(
     for all Markdown files (`generate`) or only for newly added ones (`refresh`).
     Summaries are created using a provided model or a placeholder string.
 
-    :param target_path: target path to index Markdown files
+    :param dir_path: directory path to index Markdown files
     :param markdown_files: all Markdown file paths
     :param index_mode: method of dealing with the existing README file
         - "generate": overwrite with the index generated from scratch
@@ -215,10 +215,10 @@ def generate_markdown_index(
         summaries = {}
     elif index_mode == "refresh":
         # Retrieves summaries from existing README.
-        summaries = _get_existing_summaries(target_path, markdown_files)
+        summaries = _get_existing_summaries(dir_path, markdown_files)
     else:
         raise ValueError(f"Invalid index_mode='{index_mode}'. Expected 'generate' or 'refresh'.")
-    content = _build_index_lines(target_path, markdown_files, model=model, summaries=summaries)
+    content = _build_index_lines(dir_path, markdown_files, model=model, summaries=summaries)
     return content
 
 
@@ -233,10 +233,10 @@ def _main() -> None:
         help="Choose execute index mode: generate or refresh",
     )
     parser.add_argument(
-        "--target_path",
+        "--dir_path",
         type=str,
         default=hgit.find_git_root(),
-        help="Path to target folder. Defaults to Git root.",
+        help="Path to directory folder. Defaults to Git root.",
     )
     parser.add_argument(
         "--model",
@@ -245,20 +245,20 @@ def _main() -> None:
         help="LLM model to use for summarization. Defaults to 'placeholder', which creates a dummy summary.",
     )
     args = parser.parse_args()
-    # Fetch all Markdown files in the target path.
-    markdown_files = list_markdown_files(args.target_path)
+    # Fetch all Markdown files in the directory.
+    markdown_files = list_markdown_files(args.dir_path)
     if markdown_files:
         content = generate_markdown_index(
-            target_path=args.target_path,
+            dir_path=args.dir_path,
             markdown_files=markdown_files,
             index_mode=args.index_mode,
             model=args.model,
         )
         # Write content to README.
-        readme_path = os.path.join(args.target_path, "README.md")
+        readme_path = os.path.join(args.dir_path, "README.md")
         hio.to_file(readme_path, content)
     else:
-        # Skip if no Markdown files in directory.
+        # Skip if no Markdown files in the directory.
         _LOG.debug("No Markdown files found; skipping index generation.")
 
 
