@@ -242,7 +242,7 @@
     [`/devops/docker_build/pyproject.toml`](/devops/docker_build/pyproject.toml)
     file to the `[tool.poetry.dependencies]` section
   - E.g., to add `pytest-timeout` do:
-    ```markdown
+    ```text
     [tool.poetry.dependencies]
     ...
     pytest-timeout = "*"
@@ -331,7 +331,7 @@
   ```
 - The command above will generate `./tmp.requirements.txt` with the list of the
   imported packages, e.g.,
-  ```markdown
+  ```text
   amp==1.1.4
   async_solipsism==0.3
   beautifulsoup4==4.11.1
@@ -548,8 +548,8 @@
   registries, the subsequent step involves pushing the `dev` image to GHCR
   registry. However, this action currently requires manual execution due to
   restricted access
-  - Access to the `causify-ai` packages is limited. To gain access, kindly
-    reach out to GP, Samarth or Vlad
+  - Access to the `causify-ai` packages is limited. To gain access, kindly reach
+    out to GP, Samarth or Vlad
   - To proceed, perform a Docker login using your GitHub username and PAT
     (Personal Access Token):
     ```bash
