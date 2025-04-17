@@ -146,7 +146,7 @@ class Test_generate_readme_index(hunitest.TestCase):
         Test generating README from scratch using placeholder summary.
         """
         # Prepare inputs.
-        target_path = self.get_scratch_space()
+        dir_path = self.get_scratch_space()
         markdown_files = [
             "docs/guide/setup.md",
             "docs/guide/usage.md",
@@ -157,7 +157,7 @@ class Test_generate_readme_index(hunitest.TestCase):
         model="placeholder"
         # Run.
         actual = dshdgrein.generate_markdown_index(
-            target_path=target_path,
+            dir_path=dir_path,
             markdown_files=markdown_files,
             index_mode=index_mode,
             model=model,
@@ -194,7 +194,7 @@ class Test_generate_readme_index(hunitest.TestCase):
         **Summary**: Welcomes readers to the repository and outlines the structure of documentation. Encourages contributors to explore and engage with the content.
 
         """
-        target_path = self._write_readme(existing_content)
+        dir_path = self._write_readme(existing_content)
         markdown_files = [
             "docs/guide/new_file.md",
             "docs/guide/setup.md",
@@ -206,7 +206,7 @@ class Test_generate_readme_index(hunitest.TestCase):
         model="placeholder"
         # Run.
         actual = dshdgrein.generate_markdown_index(
-            target_path=target_path,
+            dir_path=dir_path,
             markdown_files=markdown_files,
             index_mode=index_mode,
             model=model
@@ -243,13 +243,13 @@ class Test_generate_readme_index(hunitest.TestCase):
         **Summary**: Welcomes readers to the repository and outlines the structure of documentation. Encourages contributors to explore and engage with the content.
 
         """
-        target_path = self._write_readme(existing_content)
+        dir_path = self._write_readme(existing_content)
         markdown_files = ["docs/guide/setup.md", "docs/intro.md", "welcome.md"]
         index_mode="refresh"
         model="placeholder"
         # Run.
         actual = dshdgrein.generate_markdown_index(
-            target_path=target_path,
+            dir_path=dir_path,
             markdown_files=markdown_files,
             index_mode=index_mode,
             model=model
@@ -286,7 +286,7 @@ class Test_generate_readme_index(hunitest.TestCase):
         **Summary**: Welcomes readers to the repository and outlines the structure of documentation. Encourages contributors to explore and engage with the content.
 
         """
-        target_path = self._write_readme(existing_content)
+        dir_path = self._write_readme(existing_content)
         markdown_files = [
             "docs/guide/new_file.md",
             "docs/guide/usage.md",
@@ -297,7 +297,7 @@ class Test_generate_readme_index(hunitest.TestCase):
         model="placeholder"
         # Run.
         actual = dshdgrein.generate_markdown_index(
-            target_path=target_path,
+            dir_path=dir_path,
             markdown_files=markdown_files,
             index_mode=index_mode,
             model=model
