@@ -17,7 +17,7 @@ import argparse
 import itertools
 import logging
 import os
-from typing import List, Tuple, Type, Optional
+from typing import List, Tuple, Type
 
 import joblib
 
