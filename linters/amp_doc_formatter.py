@@ -50,6 +50,47 @@ class _DocFormatter(liaction.Action):
         return check
 
     @staticmethod
+    def _find_unbalanced_triple_backticks(file_name: str) -> List[int]:
+        """
+        Check if the file contains contains docstrings with unbalanced triple
+        backticks.
+
+        E.g., '''
+        ```
+        ^ Unbalanced backticks here. You'd normally expect it to be
+        closed below.
+        '''
+
+        If the docstring contains triple backticks that are unbalanced (opened but not closed),
+        the whole docstring should be passed to `docformatter` without removing the code block
+        wrapped in those backticks.
+
+        :param file_name: file to process
+        :return: all the starting indices of docstrings where the
+            unbalanced backticks exist
+        """
+        contents = hio.from_file(file_name)
+        lines = contents.splitlines()
+        # Get lines that are within docstrings.
+        docstrings = hstring.get_docstrings(lines)
+        idxs_docstrings_with_unbalanced_backticks = []
+        # Process each docstring.
+        for docstring in docstrings:
+            leftmost_triple_backticks_count = 0
+            for idx in docstring:
+                if lines[idx].lstrip().startswith("```"):
+                    # Count this triple backticks at the leftmost position.
+                    leftmost_triple_backticks_count += 1
+            if leftmost_triple_backticks_count % 2 != 0:
+                # Odd number of leftmost triple backticks in this docstring.
+                # Append the docstring that has unbalanced triple backticks.
+                # Convert zero-indexed numbers to one-indexed line numbers.
+                # This would accurately link it to the part of the code;
+                # Where the docstring starts on code editors.
+                idxs_docstrings_with_unbalanced_backticks.append(docstring[0] + 1)
+        return idxs_docstrings_with_unbalanced_backticks
+
+    @staticmethod
     def _remove_ignored_docstrings(file_name: str) -> Dict[str, str]:
         """
         Replace ignored docstrings from the file with unique hashes and return
@@ -149,7 +190,8 @@ class _DocFormatter(liaction.Action):
 
     @staticmethod
     def _restore_removed_code_blocks(
-        file_name: str, removed_blocks_storage: Dict[str, List[str]]
+        file_name: str,
+        removed_blocks_storage: Dict[str, List[str]],
     ) -> None:
         """
         Restore code blocks that have been previously removed.
@@ -188,9 +230,16 @@ class _DocFormatter(liaction.Action):
         if self.skip_if_not_py(file_name):
             # Apply only to Python files.
             return []
+        # Check for unbalanced backticks.
+        idxs_docstrings_with_unbalanced_backticks = (
+            self._find_unbalanced_triple_backticks(file_name)
+        )
         # Clear and store ignored docstrings and code.
         _ignored_docstrings = self._remove_ignored_docstrings(file_name)
-        _removed_code = self._remove_code_blocks(file_name)
+        if idxs_docstrings_with_unbalanced_backticks:
+            _removed_code = {}
+        else:
+            _removed_code = self._remove_code_blocks(file_name)
         # Execute docformatter.
         opts = "--make-summary-multi-line --pre-summary-newline --in-place"
         cmd = f"{self._executable} {opts} {file_name}"
@@ -198,7 +247,16 @@ class _DocFormatter(liaction.Action):
         _, output = liutils.tee(cmd, self._executable, abort_on_error=False)
         # Restore ignored docstrings and code.
         self._restore_ignored_docstrings(file_name, _ignored_docstrings)
-        self._restore_removed_code_blocks(file_name, _removed_code)
+        if _removed_code:
+            self._restore_removed_code_blocks(file_name, _removed_code)
+        if idxs_docstrings_with_unbalanced_backticks:
+            # Append generated warnings.
+            for start_idx in idxs_docstrings_with_unbalanced_backticks:
+                output.append(
+                    f"{file_name}:{start_idx}: Found unbalanced triple backticks; "
+                    f"make sure both opening and closing backticks are the leftmost"
+                    f" element of their line"
+                )
         return output
 
 
