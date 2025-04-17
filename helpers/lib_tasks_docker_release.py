@@ -962,8 +962,7 @@ def docker_release_multi_arch_prod_image(
     :param container_dir_name: directory where the Dockerfile is located
     """
     hlitauti.report_task()
-    # When not given at all, the default value for iterative task parameter 
-    # will be an empty list.
+    # The default value for iterative task parameter will be an empty list.
     # https://docs.pyinvoke.org/en/stable/concepts/invoking-tasks.html#iterable-flag-values
     if len(docker_registries) == 0:
         docker_registries = [_DEFAULT_TARGET_REGISTRY]
@@ -972,21 +971,13 @@ def docker_release_multi_arch_prod_image(
             docker_registries
         )
     # 1) Build prod image.
-    _LOG.info("""docker_build_multi_arch_prod_image(
+    docker_build_multi_arch_prod_image(
         ctx,
         version,
         cache=cache,
         container_dir_name=container_dir_name,
         multi_arch="linux/amd64,linux/arm64"
-    )"""
     )
-    # docker_build_multi_arch_prod_image(
-    #     ctx,
-    #     version,
-    #     cache=cache,
-    #     container_dir_name=container_dir_name,
-    #     multi_arch="linux/amd64,linux/arm64"
-    # )
     # 2) Run tests.
     if skip_tests:
         _LOG.warning("Skipping all tests and releasing")
@@ -996,33 +987,22 @@ def docker_release_multi_arch_prod_image(
         qa_tests = False
     stage = "prod"
     if fast_tests:
-        _LOG.info("""hlitapyt.run_fast_tests(ctx, stage=stage, version=version)""")
-        # hlitapyt.run_fast_tests(ctx, stage=stage, version=version)
+        hlitapyt.run_fast_tests(ctx, stage=stage, version=version)
     if slow_tests:
-        _LOG.info("""hlitapyt.run_slow_tests(ctx, stage=stage, version=version)""")
-        # hlitapyt.run_slow_tests(ctx, stage=stage, version=version)
+        hlitapyt.run_slow_tests(ctx, stage=stage, version=version)
     if superslow_tests:
-        _LOG.info("""hlitapyt.run_superslow_tests(ctx, stage=stage, version=version)""")
-        # hlitapyt.run_superslow_tests(ctx, stage=stage, version=version)   
+        hlitapyt.run_superslow_tests(ctx, stage=stage, version=version)   
     # 3) Run QA tests.
     if qa_tests:
-        _LOG.info("""hlitapyt.run_qa_tests(ctx, stage=stage, version=version)""")
-        # hlitapyt.run_qa_tests(ctx, stage=stage, version=version)
+        hlitapyt.run_qa_tests(ctx, stage=stage, version=version)
     # 4) Push prod image.
     for target_registry in docker_registries:
-        _LOG.info("""docker_tag_push_multi_arch_prod_image(
+        docker_tag_push_multi_arch_prod_image(
             ctx,
             version=version,
             target_registry=docker_registries,
             container_dir_name=container_dir_name,
         )
-        """)
-        # docker_tag_push_multi_arch_prod_image(
-        #     ctx,
-        #     version=version,
-        #     target_registry=docker_registries,
-        #     container_dir_name=container_dir_name,
-        # )
     _LOG.info("==> SUCCESS <==")
 
 
