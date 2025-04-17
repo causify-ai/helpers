@@ -954,17 +954,25 @@ def docker_release_multi_arch_prod_image(
     :param superslow_tests: run superslow tests, unless all tests skipped
     :param qa_tests: run QA tests (e.g., end-to-end linter tests)
     :param docker_registries: list of Docker image registries to push the image to
+        Example usage:
+        > invoke docker_release_multi_arch_prod_image \
+            --version 1.2.0
+            --docker-registries dockerhub.causify \
+            --docker-registries aws_ecr.ck
     :param container_dir_name: directory where the Dockerfile is located
     """
     hlitauti.report_task()
-    if docker_registries is None:
+    # When not given at all, the default value for iterative task parameter 
+    # will be an empty list.
+    # https://docs.pyinvoke.org/en/stable/concepts/invoking-tasks.html#iterable-flag-values
+    if len(docker_registries) == 0:
         docker_registries = [_DEFAULT_TARGET_REGISTRY]
         _LOG.warning(
             "No Docker registries provided, using default: %s",
             docker_registries
         )
     # 1) Build prod image.
-    _LOG.warning("""docker_build_multi_arch_prod_image(
+    _LOG.info("""docker_build_multi_arch_prod_image(
         ctx,
         version,
         cache=cache,
