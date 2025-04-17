@@ -9,11 +9,11 @@ Usage:
 This script creates or updates a README file with an index of Markdown files in a given directory, 
 including their relative paths and summaries.
 
-Example output:
+Example output
 
-# Repository README
+# README for `target_path`
 
-This section lists all Markdown files in the repository.
+Below is a list of all Markdown files found under `target_path`.
 
 ## Markdown Index
 
