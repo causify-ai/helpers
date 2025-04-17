@@ -673,7 +673,7 @@ Check-list:
   > docker run --rm -t --workdir=/app 665840871993.dkr.ecr.us-east-1.amazonaws.com/cmamp:prod-1.0.3 "python /app/im_v2/ccxt/data/extract/download_realtime.py --to_datetime '20211204-194432' --from_datetime '20211204-193932' --dst_dir 'test/ccxt_test' --data_type 'ohlcv' --api_keys 'API_keys.json' --universe 'v03'"
   ```
 
-## QA for prod image
+### QA for prod image
 
 - In dev_scripts repo test:
   ```
@@ -684,7 +684,7 @@ Check-list:
   > i lint -f "helpers/dbg.py"
   ```
 
-## End-to-end flow for `prod` image
+### End-to-end flow for `prod` image
 
 1. Build docker `prod` image
    ```bash
@@ -710,6 +710,16 @@ Check-list:
 
 - The same options are available as for `i docker_release_dev_image` and you can
   check them with `i docker_release_prod_image -h`
+
+## Release a multi-architecture prod image
+
+### Overview
+
+- Build `prod` versioned image remotely in the CK AWS ECR registry and pull once
+  it is built
+- Run the `cmamp` regressions using a versioned `prod` image
+- Tag the versioned `prod` image as `prod` image and push it to the Docker registries
+- Tag the new `prod` image to GHCR namespace and push it to GHCR registry
 
 ## Flow for both dev and prod images
 
