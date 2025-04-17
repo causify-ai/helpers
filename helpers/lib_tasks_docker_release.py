@@ -62,6 +62,278 @@ def _get_dev_version(version: str, container_dir_name: str) -> str:
     return dev_version
 
 
+def _resolve_image_version_and_prepare(
+    ctx: Any,
+    version: str,
+    container_dir_name: str,
+    stage: str,
+    poetry_mode: str = "update",
+    just_do_it: bool = False,
+) -> str:
+    """
+    Resolve image version and prepare build environment.
+
+    :param ctx: invoke context
+    :param version: version to tag the image with
+    :param container_dir_name: directory where the Dockerfile is located
+    :param stage: image stage ("local", "dev", "prod")
+    :param docker_ignore: path to the `.dockerignore` file
+    :param poetry_mode: update package dependencies using poetry
+    :param just_do_it: execute the action ignoring the checks
+    :return: resolved version
+    """
+    hlitauti.report_task(container_dir_name=container_dir_name)
+    # Assert that stage is either "local" or "prod".
+    hdbg.dassert_in(stage, ("local", "prod"), only_warning=False)
+    if stage == "local":
+        # For poetry_mode="update", the `poetry.lock` file is updated and saved as
+        # `/install/poetry.lock.out` to the container.
+        # For poetry_mode="no_update", the `poetry.lock` file from the repo is used,
+        # and it's passed as `/install/poetry.lock.in` to the container.
+        hdbg.dassert_in(poetry_mode, ("update", "no_update"))
+        if just_do_it:
+            _LOG.warning("Skipping subsequent version check")
+        else:
+            hlitadoc.dassert_is_subsequent_version(
+                version, container_dir_name=container_dir_name
+            )
+        image_version = _get_dev_version(version, container_dir_name)
+    else:
+        image_version = hlitadoc.resolve_version_value(
+            version, container_dir_name=container_dir_name
+        )
+    # Prepare `.dockerignore`.
+    docker_ignore = f"devops/docker_build/dockerignore.{stage}"
+    _prepare_docker_ignore(ctx, docker_ignore)
+    return image_version
+
+
+def _setup_multiarch_builder(
+    ctx: Any,
+    opts: str,
+    multi_arch: str,
+    build_args: str,
+    image_local: str,
+    dockerfile: str,
+) -> None:
+    """
+    Set up a multi-arch builder and build the image for multiple architectures.
+
+    :param ctx: invoke context
+    :param opts: build options (e.g., --no-cache)
+    :param multi_arch: target architectures to build for
+    :param build_args: build arguments for the Docker build command
+    :param image_local: name of the local image to build
+    :param dockerfile: path to the Dockerfile to use for building
+    """
+    # Login to AWS ECR because for multi-arch we need to build the local
+    # image remotely.
+    hlitadoc.docker_login(ctx)
+    # Create a multi-arch builder.
+    platform_builder = "multiarch_builder"
+    cmd = rf"""
+    docker buildx rm {platform_builder}
+    """
+    # We do not abort on error since the platform builder might be present
+    # or not from previous executions.
+    hsystem.system(cmd, abort_on_error=False)
+    cmd = rf"""
+    docker buildx create \
+        --name {platform_builder} \
+        --driver docker-container \
+        --bootstrap \
+        && \
+        docker buildx use {platform_builder}
+    """
+    hlitauti.run(ctx, cmd)
+    # Build.
+    # Compress the current directory (in order to dereference symbolic
+    # links) into a tar stream and pipes it to the `docker build` command.
+    # See HelpersTask197.
+    cmd = rf"""
+    tar -czh . | DOCKER_BUILDKIT={DOCKER_BUILDKIT} \
+        time \
+        docker buildx build \
+        {opts} \
+        --push \
+        --platform {multi_arch} \
+        {build_args} \
+        --tag {image_local} \
+        --file {dockerfile} \
+        -
+    """
+    hlitauti.run(ctx, cmd)
+    # Pull the image from registry.
+    cmd = rf"""
+    docker pull {image_local}
+    """
+    hlitauti.run(ctx, cmd)
+
+
+def _list_image(ctx: Any, image_versioned: str) -> None:
+    """
+    List the image with the given version.
+
+    :param ctx: invoke context
+    :param image_versioned: image with the given version
+    """
+    cmd = f"docker image ls {image_versioned}"
+    hlitauti.run(ctx, cmd)
+
+
+def _run_tests(
+    ctx: Any,
+    stage: str,
+    version: str,
+    skip_tests: bool = False,
+    fast_tests: bool = False,
+    slow_tests: bool = False,
+    superslow_tests: bool = False,
+    qa_tests: bool = False,
+) -> None:
+    """
+    Run tests for a given stage and version.
+
+    :params ctx: invoke context
+    :params stage: image stage ("local", "dev", "prod")
+    :params version: version to test
+    :params skip_tests: skip all tests if True
+    :params fast_tests: run fast tests
+    :params slow_tests: run slow tests
+    :params superslow_tests: run superslow tests
+    :params qa_tests: run QA tests
+    """
+    if skip_tests:
+        _LOG.warning("Skipping all tests and releasing")
+        return
+    if fast_tests:
+        hlitapyt.run_fast_tests(ctx, stage=stage, version=version)
+    if slow_tests:
+        hlitapyt.run_slow_tests(ctx, stage=stage, version=version)
+    if superslow_tests:
+        hlitapyt.run_superslow_tests(ctx, stage=stage, version=version)
+    if qa_tests:
+        hlitapyt.run_qa_tests(ctx, stage=stage, version=version)
+
+
+def _push_image(
+    ctx: Any,
+    image_version: str,
+    stage: str,
+    container_dir_name: str = ".",
+    push_to_repo: bool = True,
+) -> None:
+    """
+    Push an image to the registry.
+
+    :param ctx: invoke context
+    :param image_version: image version
+    :param stage: image stage ("dev" or "prod")
+    :param container_dir_name: directory where Dockerfile is located
+    :param push_to_repo: push to registry if True
+    """
+    if push_to_repo:
+        docker_push_prod_image(
+            ctx, version=image_version, container_dir_name=container_dir_name
+        )
+    else:
+        _LOG.warning("Skipping pushing %s image to repo as requested", stage)
+
+
+def _docker_tag_and_push_multi_arch_image(
+    ctx: Any,
+    version: str,
+    base_image: str,
+    target_registry: str,
+    container_dir_name: str,
+    stage: str,
+    target_stage: str,
+) -> None:
+    """
+    Tag and push a multi-arch image to the target registry using `docker buildx
+    imagetools`.
+
+    :params ctx: invoke context
+    :params version: version to tag the image with
+    :params base_image: base name of the image
+    :params target_registry: target Docker registry to push to (e.g.,
+        "aws_ecr.ck" or "dockerhub.causify")
+    :params container_dir_name: directory where Dockerfile is located
+    :params stage: source stage of the image ("local" or "prod")
+    :params target_stage: target stage to push the image as ("dev" or
+        "prod")
+    """
+    hlitauti.report_task(container_dir_name=container_dir_name)
+    hlitadoc.docker_login(ctx, target_registry)
+    # Get version string.
+    if stage == "local":
+        image_stage_version = _get_dev_version(version, container_dir_name)
+    else:
+        image_stage_version = hlitadoc.resolve_version_value(
+            version, container_dir_name
+        )
+
+    image_version = hlitadoc.get_image(base_image, stage, image_stage_version)
+    _LOG.info(
+        "Pushing the %s image %s to the target_registry %s ",
+        stage,
+        image_version,
+        target_registry,
+    )
+    if target_registry == "aws_ecr.ck":
+        # Use AWS Docker registry.
+        target_base_image = ""
+    elif target_registry == "dockerhub.causify":
+        # Use public GitHub Docker registry.
+        base_image_name = hrecouti.get_repo_config().get_docker_base_image_name()
+        target_base_image = f"causify/{base_image_name}"
+    else:
+        raise ValueError(
+            f"Invalid target Docker image registry='{target_registry}'"
+        )
+    # Tag and push the base image as versioned target image
+    target_versioned_image = hlitadoc.get_image(
+        target_base_image, target_stage, image_stage_version
+    )
+    cmd = f"docker buildx imagetools create -t {target_versioned_image} {image_version}"
+    hlitauti.run(ctx, cmd)
+    # Tag and push the base image as target image.
+    latest_version = None
+    latest_image = hlitadoc.get_image(
+        target_base_image, target_stage, version=latest_version
+    )
+    cmd = f"docker buildx imagetools create -t {latest_image} {image_version}"
+    hlitauti.run(ctx, cmd)
+
+
+def _rollback_image(
+    ctx: Any, version: str, push_to_repo: bool, stage: str
+) -> None:
+    """
+    Rollback an image to a specific version and optionally push it to the
+    registry.
+
+    :param ctx: invoke context
+    :param version: version to rollback to
+    :param push_to_repo: whether to push the rolled back image to the
+        registry
+    :param stage: image stage to rollback ("dev" or "prod")
+    """
+    hlitauti.report_task()
+    # 1) Ensure that version of the image exists locally
+    hlitadoc._docker_pull(ctx, base_image="", stage=stage, version=version)
+    # 2) Promote requested image to target stage
+    _docker_rollback_image(ctx, base_image="", stage=stage, version=version)
+    # 3) Push the image to ECR
+    if push_to_repo:
+        if stage == "dev":
+            docker_push_dev_image(ctx, version=version)
+        else:
+            docker_push_prod_image(ctx, version=version)
+    else:
+        _LOG.warning("Skipping pushing %s image to ECR, as requested", stage)
+
+
 # #############################################################################
 # Local/Dev image flow
 # #############################################################################
@@ -119,26 +391,12 @@ def docker_build_local_image(  # type: ignore
     :param cleanup_installation: force clean up Docker installation. This can
         be disabled to speed up the build process
     """
-    hlitauti.report_task(container_dir_name=container_dir_name)
-    # For poetry_mode="update", the `poetry.lock` file is updated and saved as
-    # `/install/poetry.lock.out` to the container.
-    # For poetry_mode="no_update", the `poetry.lock` file from the repo is used,
-    # and it's passed as `/install/poetry.lock.in` to the container.
-    hdbg.dassert_in(poetry_mode, ("update", "no_update"))
-    if just_do_it:
-        _LOG.warning("Skipping subsequent version check")
-    else:
-        hlitadoc.dassert_is_subsequent_version(
-            version, container_dir_name=container_dir_name
-        )
-    dev_version = _get_dev_version(version, container_dir_name)
-    # Prepare `.dockerignore`.
-    docker_ignore = "devops/docker_build/dockerignore.dev"
-    _prepare_docker_ignore(ctx, docker_ignore)
     # Build the local image.
     stage = "local"
+    dev_version = _resolve_image_version_and_prepare(
+        ctx, version, container_dir_name, stage, poetry_mode, just_do_it
+    )
     image_local = hlitadoc.get_image(base_image, stage, dev_version)
-    hlitadoc.dassert_is_image_name_valid(image_local)
     #
     dockerfile = "devops/docker_build/dev.Dockerfile"
     # Keep the relative path instead of an absolute path to ensure it matches
@@ -151,51 +409,12 @@ def docker_build_local_image(  # type: ignore
         ("POETRY_MODE", poetry_mode),
         ("CLEAN_UP_INSTALLATION", cleanup_installation),
     ]
-    build_args = " ".join("--build-arg %s=%s" % (k, v) for k, v in build_args)
+    build_args = " ".join(f"--build-arg {k}={v}" for k, v in build_args)
     # Build for both a single arch or multi-arch.
     if multi_arch:
-        # Login to AWS ECR because for multi-arch we need to build the local
-        # image remotely.
-        hlitadoc.docker_login(ctx)
-        # Create a multi-arch builder.
-        platform_builder = "multiarch_builder"
-        cmd = rf"""
-        docker buildx rm {platform_builder}
-        """
-        # We do not abort on error since the platform builder might be present
-        # or not from previous executions.
-        hsystem.system(cmd, abort_on_error=False)
-        cmd = rf"""
-        docker buildx create \
-            --name {platform_builder} \
-            --driver docker-container \
-            --bootstrap \
-            && \
-            docker buildx use {platform_builder}
-        """
-        hlitauti.run(ctx, cmd)
-        # Build.
-        # Compress the current directory (in order to dereference symbolic
-        # links) into a tar stream and pipes it to the `docker build` command.
-        # See HelpersTask197.
-        cmd = rf"""
-        tar -czh . | DOCKER_BUILDKIT={DOCKER_BUILDKIT} \
-            time \
-            docker buildx build \
-            {opts} \
-            --push \
-            --platform {multi_arch} \
-            {build_args} \
-            --tag {image_local} \
-            --file {dockerfile} \
-            -
-        """
-        hlitauti.run(ctx, cmd)
-        # Pull the image from registry.
-        cmd = rf"""
-        docker pull {image_local}
-        """
-        hlitauti.run(ctx, cmd)
+        _setup_multiarch_builder(
+            ctx, opts, multi_arch, build_args, image_local, dockerfile
+        )
     else:
         # Build for a single architecture using `docker build`.
         # Compress the current directory (in order to dereference symbolic
@@ -235,8 +454,7 @@ def docker_build_local_image(  # type: ignore
         cmd = f"cp -f pip_list.txt {dst_dir}/pip_list.txt"
         hlitauti.run(ctx, cmd)
     # Check image and report stats.
-    cmd = f"docker image ls {image_local}"
-    hlitauti.run(ctx, cmd)
+    _list_image(ctx, image_local)
 
 
 @task
@@ -343,45 +561,41 @@ def docker_release_dev_image(  # type: ignore
     # 1) Build "local" image.
     docker_build_local_image(
         ctx,
+        version,
         cache=cache,
         poetry_mode=poetry_mode,
-        version=version,
         container_dir_name=container_dir_name,
     )
     # Run resolve after `docker_build_local_image` so that a proper check
     # for subsequent version can be made in case `FROM_CHANGELOG` token
     # is used.
     dev_version = _get_dev_version(version, container_dir_name)
-    # 2) Run tests for the "local" image.
-    if skip_tests:
-        _LOG.warning("Skipping all tests and releasing")
-        fast_tests = False
-        slow_tests = False
-        superslow_tests = False
-        qa_tests = False
     stage = "local"
-    if fast_tests:
-        hlitapyt.run_fast_tests(ctx, stage=stage, version=dev_version)
-    if slow_tests:
-        hlitapyt.run_slow_tests(ctx, stage=stage, version=dev_version)
-    if superslow_tests:
-        hlitapyt.run_superslow_tests(ctx, stage=stage, version=dev_version)
-    # 3) Promote the "local" image to "dev".
+    # 2) Run tests for the "local" image
+    _run_tests(
+        ctx,
+        stage,
+        dev_version,
+        skip_tests,
+        fast_tests,
+        slow_tests,
+        superslow_tests,
+        qa_tests,
+    )
+    # 3) Promote the "local" image to "dev"
     docker_tag_local_image_as_dev(
         ctx, dev_version, container_dir_name=container_dir_name
     )
-    # 4) Run QA tests for the (local version) of the dev image.
-    if qa_tests:
-        hlitapyt.run_qa_tests(ctx, stage="dev", version=dev_version)
-    # 5) Push the "dev" image to ECR.
-    if push_to_repo:
-        docker_push_dev_image(
-            ctx, dev_version, container_dir_name=container_dir_name
-        )
-    else:
-        _LOG.warning(
-            "Skipping pushing dev image to repo_short_name, as requested"
-        )
+    stage = "dev"
+    _run_tests(ctx, stage, dev_version, qa_tests=qa_tests)
+    # 4) Push prod image
+    _push_image(
+        ctx,
+        dev_version,
+        stage,
+        container_dir_name,
+        push_to_repo=push_to_repo,
+    )
     _LOG.info("==> SUCCESS <==")
 
 
@@ -390,11 +604,8 @@ def docker_release_dev_image(  # type: ignore
 # /////////////////////////////////////////////////////////////////////////////
 
 
-# TODO(gp): multi_build -> multi_arch
-
-
 @task
-def docker_tag_push_multi_build_local_image_as_dev(  # type: ignore
+def docker_tag_push_multi_arch_local_image_as_dev(  # type: ignore
     ctx,
     version,
     local_base_image="",
@@ -418,41 +629,15 @@ def docker_tag_push_multi_build_local_image_as_dev(  # type: ignore
         - "aws_ecr.ck": private AWS CK ECR
     :param container_dir_name: directory where the Dockerfile is located
     """
-    hlitauti.report_task(container_dir_name=container_dir_name)
-    #
-    hlitadoc.docker_login(ctx, target_registry)
-    #
-    dev_version = _get_dev_version(version, container_dir_name)
-    image_versioned_local = hlitadoc.get_image(
-        local_base_image, "local", dev_version
-    )
-    _LOG.info(
-        "Pushing the local dev image %s to the target_registry %s",
-        image_versioned_local,
+    _docker_tag_and_push_multi_arch_image(
+        ctx,
+        version,
+        local_base_image,
         target_registry,
+        container_dir_name,
+        stage="local",
+        target_stage="dev",
     )
-    if target_registry == "aws_ecr.ck":
-        # Use AWS Docker registry.
-        dev_base_image = ""
-    elif target_registry == "dockerhub.causify":
-        # Use public GitHub Docker registry.
-        base_image_name = hrecouti.get_repo_config().get_docker_base_image_name()
-        dev_base_image = f"causify/{base_image_name}"
-    else:
-        raise ValueError(
-            f"Invalid target Docker image registry='{target_registry}'"
-        )
-    # Tag and push the local image as versioned dev image (e.g., `dev-1.0.0`).
-    image_versioned_dev = hlitadoc.get_image(dev_base_image, "dev", dev_version)
-    cmd = f"docker buildx imagetools create -t {image_versioned_dev} {image_versioned_local}"
-    hlitauti.run(ctx, cmd)
-    # Tag and push local image as dev image.
-    latest_version = None
-    image_dev = hlitadoc.get_image(dev_base_image, "dev", latest_version)
-    cmd = (
-        f"docker buildx imagetools create -t {image_dev} {image_versioned_local}"
-    )
-    hlitauti.run(ctx, cmd)
 
 
 # TODO(gp): This needs to be merged with docker_release_dev_image.
@@ -508,28 +693,23 @@ def docker_release_multi_build_dev_image(  # type: ignore
     # is used.
     dev_version = _get_dev_version(version, container_dir_name)
     # 2) Run tests for the "local" image.
-    if skip_tests:
-        _LOG.warning("Skipping all tests and releasing")
-        fast_tests = False
-        slow_tests = False
-        superslow_tests = False
-        qa_tests = False
-    stage = "local"
-    if fast_tests:
-        hlitapyt.run_fast_tests(ctx, stage=stage, version=dev_version)
-    if slow_tests:
-        hlitapyt.run_slow_tests(ctx, stage=stage, version=dev_version)
-    if superslow_tests:
-        hlitapyt.run_superslow_tests(ctx, stage=stage, version=dev_version)
     # 3) Run QA tests using the local version of an image.
     # Use the local image because it is not possible to tag a multi-arch
     # image as dev without releasing (pushing) it.
     # The difference between a local and a dev image is just a tag.
-    if qa_tests:
-        hlitapyt.run_qa_tests(ctx, stage="local", version=dev_version)
+    _run_tests(
+        ctx,
+        "local",
+        dev_version,
+        skip_tests,
+        fast_tests,
+        slow_tests,
+        superslow_tests,
+        qa_tests,
+    )
     # 4) Tag the image as dev image and push it to the target registries.
     for target_registry in target_registries:
-        docker_tag_push_multi_build_local_image_as_dev(
+        docker_tag_push_multi_arch_local_image_as_dev(
             ctx,
             version=dev_version,
             target_registry=target_registry,
@@ -573,13 +753,10 @@ def docker_build_prod_image(  # type: ignore
     :param user_tag: the name of the user building the candidate image
     :param container_dir_name: directory where the Dockerfile is located
     """
-    hlitauti.report_task(container_dir_name=container_dir_name)
-    prod_version = hlitadoc.resolve_version_value(
-        version, container_dir_name=container_dir_name
+    stage = "prod"
+    prod_version = _resolve_image_version_and_prepare(
+        ctx, version, container_dir_name, stage
     )
-    # Prepare `.dockerignore`.
-    docker_ignore = "devops/docker_build/dockerignore.prod"
-    _prepare_docker_ignore(ctx, docker_ignore)
     # TODO(gp): We should do a `i git_clean` to remove artifacts and check that
     #  the client is clean so that we don't release from a dirty client.
     # Build prod image.
@@ -604,7 +781,6 @@ def docker_build_prod_image(  # type: ignore
         image_versioned_prod = hlitadoc.get_image(
             base_image, "prod", prod_version
         )
-    hlitadoc.dassert_is_image_name_valid(image_versioned_prod)
     #
     dockerfile = "devops/docker_build/prod.Dockerfile"
     dockerfile = _to_abs_path(dockerfile)
@@ -627,7 +803,7 @@ def docker_build_prod_image(  # type: ignore
     hlitauti.run(ctx, cmd)
     if candidate:
         _LOG.info("Head hash: %s", head_hash)
-        cmd = f"docker image ls {image_versioned_prod}"
+        _list_image(ctx, image_versioned_prod)
     else:
         # Tag versioned image as latest prod image.
         latest_version = None
@@ -635,11 +811,11 @@ def docker_build_prod_image(  # type: ignore
         cmd = f"docker tag {image_versioned_prod} {image_prod}"
         hlitauti.run(ctx, cmd)
         #
-        cmd = f"docker image ls {image_prod}"
-    hlitauti.run(ctx, cmd)
+        _list_image(ctx, image_versioned_prod)
 
 
 # TODO(gp): Remove redundancy with docker_build_local_image(), if possible.
+@task
 @task
 def docker_build_multi_arch_prod_image(  # type: ignore
     ctx,
@@ -665,38 +841,16 @@ def docker_build_multi_arch_prod_image(  # type: ignore
     :param multi_arch: comma separated list of target architectures to
         build the image for. E.g., `linux/amd64,linux/arm64`
     """
-    hlitauti.report_task(container_dir_name=container_dir_name)
-    prod_version = hlitadoc.resolve_version_value(
-        version, container_dir_name=container_dir_name
-    )
+    stage = "prod"
     # Prepare `.dockerignore`.
     docker_ignore = "devops/docker_build/dockerignore.prod"
-    _prepare_docker_ignore(ctx, docker_ignore)
+    prod_version = _resolve_image_version_and_prepare(
+        ctx, version, container_dir_name, stage, docker_ignore
+    )
     # TODO(gp): We should do a `i git_clean` to remove artifacts and check that
     #  the client is clean so that we don't release from a dirty client.
     # Build prod image.
     image_versioned_prod = hlitadoc.get_image(base_image, "prod", prod_version)
-    hlitadoc.dassert_is_image_name_valid(image_versioned_prod)
-    # Login to AWS ECR because for multi-arch build the image is built locally
-    # and pushed to the remote registry automatically.
-    hlitadoc.docker_login(ctx)
-    # Create a multi-arch builder.
-    platform_builder = "multiarch_builder"
-    cmd = rf"""
-    docker buildx rm {platform_builder}
-    """
-    # We do not abort on error since the platform builder might be present
-    # or not from previous executions.
-    hsystem.system(cmd, abort_on_error=False)
-    cmd = rf"""
-    docker buildx create \
-        --name {platform_builder} \
-        --driver docker-container \
-        --bootstrap \
-        && \
-        docker buildx use {platform_builder}
-    """
-    hlitauti.run(ctx, cmd)
     # Prepare the build.
     dockerfile = "devops/docker_build/prod.Dockerfile"
     # Keep the relative path instead of an absolute path to ensure it matches
@@ -706,34 +860,22 @@ def docker_build_multi_arch_prod_image(  # type: ignore
     opts = "--no-cache" if not cache else ""
     # Use dev version for building prod image.
     dev_version = hlitadoc.to_dev_version(prod_version)
+    build_args = [
+        ("VERSION", dev_version),
+        ("ECR_BASE_PATH", os.environ["CSFY_ECR_BASE_PATH"]),
+    ]
+    build_args = " ".join(f"--build-arg {k}={v}" for k, v in build_args)
     # Build.
     # Compress the current directory (in order to dereference symbolic
     # links) into a tar stream and pipes it to the `docker build` command.
     # See HelpersTask197.
-    cmd = rf"""
-    tar -czh . | DOCKER_BUILDKIT={DOCKER_BUILDKIT} \
-        time \
-        docker buildx build \
-        {opts} \
-        --push \
-        --platform {multi_arch} \
-        --build-arg VERSION={dev_version} \
-        --build-arg ECR_BASE_PATH={os.environ['CSFY_ECR_BASE_PATH']} \
-        --tag {image_versioned_prod} \
-        --file {dockerfile} \
-        -
-    """
-    hlitauti.run(ctx, cmd)
-    # Pull the image from registry.
-    cmd = rf"""
-    docker pull {image_versioned_prod}
-    """
-    hlitauti.run(ctx, cmd)
-    cmd = f"docker image ls {image_versioned_prod}"
-    hlitauti.run(ctx, cmd)
+    _setup_multiarch_builder(
+        ctx, opts, multi_arch, build_args, dev_version, dockerfile
+    )
+    _list_image(ctx, image_versioned_prod)
 
 
-# TODO(Vlad): Refactor with the `docker_tag_push_multi_build_local_image_as_dev()`.
+# TODO(Vlad): Refactor with the `docker_tag_push_multi_arch_local_image_as_dev()`.
 @task
 def docker_tag_push_multi_arch_prod_image(  # type: ignore
     ctx,
@@ -757,51 +899,15 @@ def docker_tag_push_multi_arch_prod_image(  # type: ignore
         - "aws_ecr.ck": private AWS CK ECR
     :param container_dir_name: directory where the Dockerfile is located
     """
-    hlitauti.report_task(container_dir_name=container_dir_name)
-    #
-    hlitadoc.docker_login(ctx, target_registry)
-    #
-    prod_version = hlitadoc.resolve_version_value(
-        version, container_dir_name=container_dir_name
-    )
-    aws_image_versioned_prod = hlitadoc.get_image(
-        base_image, "prod", prod_version
-    )
-    _LOG.info(
-        "Pushing the prod image %s to the target_registry %s",
-        aws_image_versioned_prod,
+    _docker_tag_and_push_multi_arch_image(
+        ctx,
+        version,
+        base_image,
         target_registry,
+        container_dir_name,
+        stage="prod",
+        target_stage="prod",
     )
-    if target_registry == "aws_ecr.ck":
-        # Use AWS Docker registry.
-        prod_base_image = ""
-    elif target_registry == "dockerhub.causify":
-        # Use public DockerHub registry.
-        base_image_name = hrecouti.get_repo_config().get_docker_base_image_name()
-        prod_base_image = f"causify/{base_image_name}"
-        # Tag and push the versioned prod image.
-        dockerhub_image_versioned_prod = hlitadoc.get_image(
-            prod_base_image, "prod", prod_version
-        )
-        cmd = rf"""
-        docker buildx imagetools create \
-            -t {dockerhub_image_versioned_prod} {aws_image_versioned_prod}
-        """
-        hlitauti.run(ctx, cmd)
-    else:
-        raise ValueError(
-            f"Invalid target Docker image registry='{target_registry}'"
-        )
-    # Tag and push the versioned prod image as prod image.
-    latest_version = None
-    image_prod = hlitadoc.get_image(
-        prod_base_image, "prod", version=latest_version
-    )
-    cmd = rf"""
-    docker buildx imagetools create \
-        -t {image_prod} {aws_image_versioned_prod}
-    """
-    hlitauti.run(ctx, cmd)
 
 
 @task
@@ -989,16 +1095,12 @@ def docker_rollback_dev_image(  # type: ignore
     :param version: version to tag the image and code with
     :param push_to_repo: push the image to the ECR repo
     """
-    hlitauti.report_task()
-    # 1) Ensure that version of the image exists locally.
-    hlitadoc._docker_pull(ctx, base_image="", stage="dev", version=version)
-    # 2) Promote requested image to dev image.
-    _docker_rollback_image(ctx, base_image="", stage="dev", version=version)
-    # 3) Push the dev image to ECR.
-    if push_to_repo:
-        docker_push_dev_image(ctx, version=version)
-    else:
-        _LOG.warning("Skipping pushing dev image to ECR, as requested")
+    _rollback_image(
+        ctx,
+        version,
+        push_to_repo,
+        stage="dev",
+    )
     _LOG.info("==> SUCCESS <==")
 
 
@@ -1013,16 +1115,7 @@ def docker_rollback_prod_image(  # type: ignore
 
     Same as parameters and meaning as `docker_rollback_dev_image`.
     """
-    hlitauti.report_task()
-    # 1) Ensure that version of the image exists locally.
-    hlitadoc._docker_pull(ctx, base_image="", stage="prod", version=version)
-    # 2) Promote requested image as prod image.
-    _docker_rollback_image(ctx, base_image="", stage="prod", version=version)
-    # 3) Push the "prod" image to ECR.
-    if push_to_repo:
-        docker_push_prod_image(ctx, version=version)
-    else:
-        _LOG.warning("Skipping pushing prod image to ECR, as requested")
+    _rollback_image(ctx, version, push_to_repo, stage="prod")
     _LOG.info("==> SUCCESS <==")
 
 
