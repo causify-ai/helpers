@@ -20,6 +20,11 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+# #############################################################################
+# Test_linter_py1
+# #############################################################################
+
+
 class Test_linter_py1(hunitest.TestCase):
 
     def write_input_file(self, txt: str, file_name: str) -> Tuple[str, str]:
@@ -75,11 +80,12 @@ class Test_linter_py1(hunitest.TestCase):
         """
         Run Linter as executable on Python code.
         """
-        txt = self._get_horrible_python_code1()
+        # Get input.
+        text = self._get_input_text()
         # Run.
         file_name = "input.py"
         as_system_call = True
-        output = self.run_linter(txt, file_name, as_system_call)
+        output = self.run_linter(text, file_name, as_system_call)
         # Check.
         self.check_string(output, purify_text=True)
 
@@ -88,11 +94,12 @@ class Test_linter_py1(hunitest.TestCase):
         """
         Run Linter as library on Python code.
         """
-        txt = self._get_horrible_python_code1()
+        # Get input.
+        text = self._get_input_text()
         # Run.
         file_name = "input.py"
         as_system_call = False
-        output = self.run_linter(txt, file_name, as_system_call)
+        output = self.run_linter(text, file_name, as_system_call)
         # Check.
         self.check_string(output, purify_text=True)
 
@@ -107,20 +114,12 @@ class Test_linter_py1(hunitest.TestCase):
         """
         Run Linter as executable on Markdown.
         """
-        txt = r"""
-# Good.
-- Good time management
-  1. choose the right tasks
-    - Avoid non-essential tasks
-
-## Bad
--  Hello
-    - World
-        """
+        # Get input.
+        text = self._get_input_text()
         # Run.
         file_name = "hello.md"
         as_system_call = True
-        output = self.run_linter(txt, file_name, as_system_call)
+        output = self.run_linter(text, file_name, as_system_call)
         # Remove the lines:
         # '12-16_14:59 ^[[33mWARNING^[[0m: _refresh_toc   :138 : No tags for table'.
         # '$GIT_ROOT/linters/test/outcomes/.../hello.md: is not referenced in README.md'.
@@ -139,17 +138,12 @@ class Test_linter_py1(hunitest.TestCase):
         """
         Run Linter as executable on Markdown file with a fenced block.
         """
-        txt = r"""
-# Header1
-```text
-test text
-nothing should be changed
-```
-        """
+        # Get input.
+        text = self._get_input_text()
         # Run.
         file_name = "hello.md"
         as_system_call = True
-        output = self.run_linter(txt, file_name, as_system_call)
+        output = self.run_linter(text, file_name, as_system_call)
         # Remove the lines:
         # '12-16_14:59 ^[[33mWARNING^[[0m: _refresh_toc   :138 : No tags for table'.
         # '$GIT_ROOT/linters/test/outcomes/.../hello.md: is not referenced in README.md'.
@@ -165,26 +159,12 @@ nothing should be changed
 
         The content of txt files is not linted, see DevToolsTask553.
         """
-        txt = r"""
-//src/linters/test/test_precommit.py
-//src/linters/utils.py
-//src/zenhub_stats/notebooks/stats.py
-//src/zenhub_stats/stats.py
-//src/zenhub_stats/test/test_stats.py
-//src/zenhub_stats/zenhub_typing/__init__.py
-//src/zenhub_stats/zenhub_typing/issue.py
-
-
-
-
-
-
-
-"""
+        # Get input.
+        text = self._get_input_text()
         # Run.
         file_name = "test.txt"
         as_system_call = True
-        output = self.run_linter(txt, file_name, as_system_call)
+        output = self.run_linter(text, file_name, as_system_call)
         # Remove the line:
         # '12-16_14:59 ^[[33mWARNING^[[0m: _refresh_toc   :138 : No tags for table'
         output = hunitest.filter_text("No tags for table", output)
@@ -197,19 +177,12 @@ nothing should be changed
 
         The content of txt files is not linted, see DevToolsTask553.
         """
-        txt = r"""
-//src/linters/test/test_precommit.py
-//src/linters/utils.py
-//src/zenhub_stats/notebooks/stats.py
-//src/zenhub_stats/stats.py
-//src/zenhub_stats/test/test_stats.py
-//src/zenhub_stats/zenhub_typing/__init__.py
-//src/zenhub_stats/zenhub_typing/issue.py
-"""
+        # Get input.
+        text = self._get_input_text()
         # Run.
         file_name = "test.txt"
         as_system_call = True
-        output = self.run_linter(txt, file_name, as_system_call)
+        output = self.run_linter(text, file_name, as_system_call)
         # Remove the line:
         # '12-16_14:59 ^[[33mWARNING^[[0m: _refresh_toc   :138 : No tags for table'
         output = hunitest.filter_text("No tags for table", output)
@@ -221,22 +194,12 @@ nothing should be changed
         """
         Test pylint's string formatting warnings.
         """
-        txt = """
-import logging
-
-import helpers.hdbg as hdbg
-
-_LOG = logging.getLogger(__name__)
-
-s = "hello"
-a = "Checking {}".format(s)
-_LOG.debug("Checking '%s'.", s)
-hdbg.dassert(s.startswith("h"), "Checking '%s'.", s)
-"""
+        # Get input.
+        text = self._get_input_text()
         # Run.
         file_name = "input.py"
         as_system_call = True
-        output = self.run_linter(txt, file_name, as_system_call)
+        output = self.run_linter(text, file_name, as_system_call)
         # Check.
         self.check_string(output, purify_text=True)
 
@@ -245,11 +208,12 @@ hdbg.dassert(s.startswith("h"), "Checking '%s'.", s)
         """
         Run Linter as executable on a notebook.
         """
-        contents_ipynb = self._get_ipynb_contents1()
+        # Get input.
+        text = self._get_input_text()
         # Run.
         file_name = "input.ipynb"
         as_system_call = True
-        output = self.run_linter(contents_ipynb, file_name, as_system_call)
+        output = self.run_linter(text, file_name, as_system_call)
         # Check.
         self.check_string(output, purify_text=True)
 
@@ -313,176 +277,6 @@ hdbg.dassert(s.startswith("h"), "Checking '%s'.", s)
 
     # #########################################################################
 
-    @staticmethod
-    def _get_horrible_python_code1() -> str:
-        txt = r'''
-from typing import Any, List
-import helpers.hdbg as hdbg
-import helpers.hcache as hcac
-import helpers.hio as io
-import nltk
-import pandas as pd
-import python
-import tqdm.autonotebook as tqdm
-
-# hcac._get_cache_types()
-hcac._get_cache_types()
-x = "hcac._get_cache_types()"
-
-def func(a: str, lst: List[str]) -> Any:
-    """First comment line."""
-    import helpers.hcache as hcache
-    hcache._get_cache_types()
-    for i in tqdm.tqdm(lst):
-        a += "string {}".format(i)
-    return a
-
-def func2(df: pd.DataFrame, a: str) -> pd.DataFrame:
-    """
-    Generate "random returns". Use lag + noise as predictor.
-
-    ```
-        git@github.com:alphamatic/amp
-        https://github.com/alphamatic/amp
-    ```
-
-    The stage names refer to Node objects, which are not json serializable.
-    We don't use io.dassert_is_valid_file_name().
-
-    E.g.,
-    ```
-    PostgreSQL 11.5 on x86_64-pc-linux-gnu
-        compiled by gcc (GCC) 4.8.3 20140911 (Red Hat 4.8.3-9), 64-bit
-    ```
-    """
-    io.dassert_is_valid_file_name("test.py")
-    b = """
-    Before separating line.
-    ##########################################################################
-    Comments inside string.
-    ##########################################################################
-    """
-    result_df = df.loc[a+b:]
-    return result_df
-
-def func3(a: str) -> str:
-    """
-    Generate "random returns". Use lag + noise as predictor.
-    """
-    if a is not None:
-        assert isinstance(a, str), (f"You passed '{a}' or type '{type(a)}'"
-            "instead of str")
-    ## [C0330(bad-continuation), ] Wrong hanging indentation before
-    ##   block (add 4 spaces).
-    return a
-
-
-# #############################################################################
-# New part.
-# #############################################################################
-
-
-class MyClass:
-    """
-    Contains all of the logic to construct the standard bars from chapter 2.
-    This class shouldn't be used directly. We have added functions to the
-    package such as get_dollar_bars which will create an instance of this class
-    and then construct the standard bars, to return to the user.
-
-    This is because we wanted to simplify the logic as much as possible,
-    for the end user.
-    """
-    @staticmethod
-    def _private_static_method(a: str) -> str:
-        """
-        For reference, let
-
-          - N = 2
-          - M = 3
-        """
-        return a
-
-    def _private_regular_method(self, a: str) -> str:
-        """
-        Read csv file(s) or pd.DataFrame in batches and then constructs the
-        financial data structure in the form of a DataFrame. The csv file or
-        DataFrame must have only 3 columns: date_time, price, & volume.
-        """
-        # Returning
-        return a
-
-##############################################################################
-# New part 2.
-##############################################################################
-
-class TestReplaceShortImportInCode:
-    def _helper(self, actual: str, expected: str) -> None:
-        """
-        ......
-        """
-        assert expected == actual
-
-    def test1(self) -> None:
-        """
-        No matches.
-        """
-        code = "import test as te"
-        expected = code
-        self._helper(code, expected)
-
-# Comment before initializing.
-class TestAnother():
-    pass
-
-if __name__ == "main":
-    txt = "hello"
-    m = re.search("\s", txt)
-    n = nltk.word_tokenize(txt)
-    hdbg.dassert_path_exists("filename.txt")
-        '''
-        return txt
-
-    @staticmethod
-    def _get_ipynb_contents1() -> str:
-        contents_ipynb = r"""
-{
- "cells": [
-  {
-   "cell_type": "markdown",
-   "metadata": {},
-   "source": [
-    "# Imports"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "import pandas as pd\n",
-    "import re\n",
-    "\n",
-    "# TODO: Fix.\n",
-    "res = re.findall(r\"[a-z]+\", \"some text\")\n",
-    "\n",
-    "\n"
-   ]
-  }
- ],
- "metadata": {
-  "kernelspec": {
-   "display_name": "Python 3 (ipykernel)",
-   "language": "python",
-   "name": "python3"
-  }
- },
- "nbformat": 4,
- "nbformat_minor": 5
-}
-        """
-        return contents_ipynb
-
     def _run_linter(
         self,
         file_name: str,
@@ -544,3 +338,10 @@ if __name__ == "main":
         # //////////////
         output_as_str = "\n".join(output)
         return output_as_str
+
+    def _get_input_text(self) -> str:
+        # Prepare input.
+        test_input_dir = self.get_input_dir()
+        text_file_path = os.path.join(test_input_dir, "test.txt")
+        text = hio.from_file(text_file_path)
+        return text
