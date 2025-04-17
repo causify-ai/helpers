@@ -84,7 +84,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _system(f"{activate_cmd} && pip3 install -r {tmp_requirements_path}")
     # Show the package list.
     _system("pip3 list")
-    if hserver.is_mac():
+    if hserver.is_host_mac():
         # Darwin specific updates.
         _system("brew update")
         _, brew_ver = hsystem.system_to_string("brew --version")

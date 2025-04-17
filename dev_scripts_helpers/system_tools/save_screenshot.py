@@ -60,7 +60,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     txt = "![](%s)" % filename
     _LOG.info("%s", txt)
     # <img src="image.jpg" alt="A tree" width="300" title="This is a tree">
-    if hserver.is_mac():
+    if hserver.is_host_mac():
         _LOG.warning("Copied to clipboard")
         cmd = f"echo '{txt}' | pbcopy"
         hsystem.system(cmd)

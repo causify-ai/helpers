@@ -436,23 +436,17 @@ def extract_headers_from_markdown(
     hdbg.dassert_isinstance(txt, str)
     hdbg.dassert_lte(1, max_level)
     header_list: HeaderList = []
-    # Parse an header like `# Header1` or `## Header2`.
-    header_pattern = re.compile(r"^(#+)\s+(.*)")
     # Process the input file to extract headers.
     for line_number, line in enumerate(txt.splitlines(), start=1):
         # TODO(gp): Use the iterator.
         # Skip the visual separators.
         if is_markdown_line_separator(line):
             continue
-        # TODO(gp): Use is_header
-        match = header_pattern.match(line)
-        if match:
-            # The number of '#' determines level.
-            level = len(match.group(1))
-            if level <= max_level:
-                title = match.group(2).strip()
-                header_info = HeaderInfo(level, title, line_number)
-                header_list.append(header_info)
+        # Get the header level and title.
+        is_header_, level, title = is_header(line)
+        if is_header_ and level <= max_level:
+            header_info = HeaderInfo(level, title, line_number)
+            header_list.append(header_info)
     # Check the header list.
     if sanity_check:
         check_header_list(header_list)
