@@ -54,7 +54,15 @@ jobs:
           # in order to compare the current branch with the master branch.
           # The `0` means unlimited depth.
           fetch-depth: 0
+          submodules: true
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      # To access modules in `amp` and `helpers_root`, make sure PYTHONPATH includes
+      # them, just as it's set in `setenv.sh`.
+      # TODO(Grisha): re-use the approach from `dev_scripts_cmamp/thin_client/setenv.sh`.
+      - name: Update PYTHONPATH
+        if: ${{ github.event.repository.name != 'helpers' }}
+        run: echo "PYTHONPATH=.:helpers_root" >> $GITHUB_ENV
 
       # Install packages that are required to run the job via GH.
       - name: Install dependencies
