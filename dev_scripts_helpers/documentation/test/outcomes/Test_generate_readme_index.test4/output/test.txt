@@ -1,6 +1,6 @@
-# Repository README
+# README for `test/outcomes/Test_generate_readme_index.test4/tmp.scratch`
 
-This section lists all Markdown files in the repository.
+Below is a list of all Markdown files found under `test/outcomes/Test_generate_readme_index.test4/tmp.scratch`.
 
 ## Markdown Index
 
