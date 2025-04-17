@@ -151,23 +151,7 @@ def sample_method2() -> None:
         actual, _, _ = _docformatter(text, self.get_scratch_space())
         self.assertEqual(expected, actual)
 
-    def test_find_unbalanced_triple_backticks(self) -> None:
-        """
-        Test that the starting indices of docstrings with unbalanced backticks
-        are correctly returned.
-        """
-        # Prepare inputs.
-        test_get_docstring_lines_input_dir = self.get_input_dir()
-        file_path = os.path.join(test_get_docstring_lines_input_dir, "test.txt")
-        # Run.
-        actual = lamdofor._DocFormatter._find_unbalanced_triple_backticks(
-            file_path
-        )
-        # Check.
-        expected = [12, 21]
-        self.assertEqual(actual, expected)
-
-    def test9(self) -> None:
+    def test7(self) -> None:
         """
         Test that unbalanced backticks are correctly warned of.
         """
@@ -193,3 +177,27 @@ foo
         # Check.
         self.assertEqual(actual_warnings, expected_warnings)
         self.assert_equal(actual_content, text, fuzzy_match=True)
+
+
+# #############################################################################
+# TestFindUnbalancedBackticks
+# #############################################################################
+
+
+class TestFindUnbalancedBackticks(hunitest.TestCase):
+
+    def test1(self) -> None:
+        """
+        Test that the starting indices of docstrings with unbalanced backticks
+        are correctly returned.
+        """
+        # Prepare inputs.
+        test_get_docstring_lines_input_dir = self.get_input_dir()
+        file_path = os.path.join(test_get_docstring_lines_input_dir, "test.txt")
+        # Run.
+        actual = lamdofor._DocFormatter._find_unbalanced_triple_backticks(
+            file_path
+        )
+        # Check.
+        expected = [12, 21]
+        self.assertEqual(actual, expected)

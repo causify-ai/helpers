@@ -254,7 +254,7 @@ class TestGetDocstrings(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test that unbalanced backticks are correctly flagged.
+        Test that  grouped lines within docstrings are correctly returned.
         """
         # Prepare inputs.
         test_get_docstring_lines_input_dir = self.get_input_dir()
@@ -268,7 +268,6 @@ class TestGetDocstrings(hunitest.TestCase):
         # Check.
         expected = [
             [1, 2, 3, 4, 5, 6],
-            [11, 12, 13, 14, 15],
-            [20, 21, 22, 23, 24],
+            [11, 12, 13, 14, 15, 16],
         ]
         self.assertEqual(actual, expected)

@@ -66,9 +66,8 @@ class _DocFormatter(liaction.Action):
         wrapped in those backticks.
 
         :param file_name: file to process
-        :return:
-            - all the starting indices of docstrings where the
-              unbalanced backticks exist
+        :return: all the starting indices of docstrings where the
+                 unbalanced backticks exist
         """
         contents = hio.from_file(file_name)
         lines = contents.splitlines()

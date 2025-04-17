@@ -3,7 +3,7 @@ def func1():
     First function.
 
     ```
-    Valid backticks.
+    foo
     ```
     """
 
@@ -13,14 +13,6 @@ def func2():
     Second function.
 
     ```
-    Missing closing backticks.
-    """
-
-
-def func3():
-    """
-    Third function.
-
+    foo
     ```
-    Missing closing backticks.
     """
