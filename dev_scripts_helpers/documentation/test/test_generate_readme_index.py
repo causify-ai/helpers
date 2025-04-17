@@ -62,7 +62,7 @@ class Test_list_markdown_files(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        Test that non-Markdown files are ignored
+        Test that non-Markdown files are ignored.
         """
         # Sample nested documents.
         file_structure = {
@@ -89,7 +89,7 @@ class Test_list_markdown_files(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        Test that the existing README is ignored
+        Test that the existing README is ignored.
         """
         # Sample nested documents.
         file_structure = {
