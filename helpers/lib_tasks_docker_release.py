@@ -930,6 +930,75 @@ def docker_release_prod_image(  # type: ignore
     _LOG.info("==> SUCCESS <==")
 
 
+@task(iterable=["docker_registries"])
+def docker_release_multi_arch_prod_image(
+        ctx,
+        version,
+        cache=True,
+        skip_tests=False,
+        fast_tests=True,
+        slow_tests=True,
+        superslow_tests=False,
+        qa_tests=True,        
+        docker_registries=None,
+        container_dir_name=".",
+    ):
+    """
+    Build, test, and release to Docker registries the multi-aech prod image.
+    :param ctx: invoke context
+    :param version: version to tag the image and code with
+    :param cache: use the cache
+    :param skip_tests: skip all the tests
+    :param fast_tests: run fast tests, unless all tests skipped
+    :param slow_tests: run slow tests, unless all tests skipped
+    :param superslow_tests: run superslow tests, unless all tests skipped
+    :param qa_tests: run QA tests (e.g., end-to-end linter tests)
+    :param docker_registries: list of Docker image registries to push the image to
+    :param container_dir_name: directory where the Dockerfile is located
+    """
+    hlitauti.report_task()
+    if docker_registries is None:
+        docker_registries = [_DEFAULT_TARGET_REGISTRY]
+        _LOG.warning(
+            "No Docker registries provided, using default: %s",
+            docker_registries
+        )
+    # 1) Build prod image.
+    docker_build_multi_arch_prod_image(
+        ctx,
+        version,
+        cache=cache,
+        container_dir_name=container_dir_name,
+        multi_arch="linux/amd64,linux/arm64"
+    )
+    # 2) Run tests.
+    if skip_tests:
+        _LOG.warning("Skipping all tests and releasing")
+        fast_tests = False
+        slow_tests = False
+        superslow_tests = False
+        qa_tests = False
+    stage = "prod"
+    if fast_tests:
+        hlitapyt.run_fast_tests(ctx, stage=stage, version=version)
+    if slow_tests:
+        hlitapyt.run_slow_tests(ctx, stage=stage, version=version)
+    if superslow_tests:
+        hlitapyt.run_superslow_tests(ctx, stage=stage, version=version)   
+    # 3) Run QA tests.
+    if qa_tests:
+        hlitapyt.run_qa_tests(ctx, stage=stage, version=version)
+    # 4) Push prod image.
+    for target_registry in docker_registries:
+        docker_tag_push_multi_arch_prod_image(
+            ctx,
+            version=version,
+            target_registry=docker_registries,
+            container_dir_name=container_dir_name,
+        )
+    _LOG.info("==> SUCCESS <==")
+
+
 # # TODO(gp): Useless IMO.
 @task
 def docker_release_all(ctx, version, container_dir_name="."):  # type: ignore
