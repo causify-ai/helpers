@@ -65,22 +65,21 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-def _filter_files(file_paths: List[str], *, file_paths_to_skip: Optional[List[str]] = None) -> List[str]:
+def _filter_files(file_paths: List[str], file_paths_to_skip: List[str]) -> List[str]:
     """
-    Filter the list of files by removing invalid or excluded files.
+    Filter the list of files by removing invalid or excluded ones.
 
     The following files are skipped:
     - Files that do not exist
     - Non-files (directories)
     - Ipynb checkpoints
     - Input and output files in unit tests
-    - Files listed from `--skip_files`
+    - Files explicitly excluded by the user
 
     :param file_paths: all the original files to validate and filter
     :param file_paths_to_skip: files to exclude from processing
     :return: files that passed the filters
     """
-    file_paths_to_skip = file_paths_to_skip or []
     file_paths_to_keep: List[str] = []
     for file_path in file_paths:
         # Skip files that do not exist.
@@ -91,7 +90,7 @@ def _filter_files(file_paths: List[str], *, file_paths_to_skip: Optional[List[st
         is_valid &= ".ipynb_checkpoints/" not in file_path
         # Skip input and output files used in unit tests.
         is_valid &= not liutils.is_test_input_output_file(file_path)
-        # Skip explicitly specified files.
+        # Skip files explicitly excluded by user.
         is_valid &= file_path not in file_paths_to_skip
         if is_valid:
             file_paths_to_keep.append(file_path)
@@ -108,7 +107,6 @@ def _get_files_to_lint(args: argparse.Namespace) -> List[str]:
     :return: paths of the files to lint
     """
     file_paths: List[str] = []
-    file_paths_to_skip: List[str] = []
     if args.files:
         # Get the files that were explicitly specified.
         file_paths = args.files
@@ -133,11 +131,12 @@ def _get_files_to_lint(args: argparse.Namespace) -> List[str]:
         cmd = f"find {dir_name} -name '*' -type f"
         _, output = hsystem.system_to_string(cmd)
         file_paths = output.split("\n")
+    file_paths_to_skip: List[str] = []
     if args.skip_files:
         # Get and validate the files to skip that were explicitly specified.
-        file_paths_to_skip = _filter_files(args.skip_files)
+        file_paths_to_skip = args.skip_files
     # Remove files that should not be linted.
-    file_paths = _filter_files(file_paths, file_paths_to_skip=file_paths_to_skip)
+    file_paths = _filter_files(file_paths, file_paths_to_skip)
     if len(file_paths) < 1:
         _LOG.warning("No files that can be linted were found")
     return file_paths
@@ -463,7 +462,7 @@ def _parse() -> argparse.ArgumentParser:
         "--skip_files",
         nargs="+",
         type=str,
-        help="Files to skip from linting"
+        help="Files to skip during linting"
     )
     # Action selection.
     parser.add_argument(

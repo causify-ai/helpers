@@ -202,7 +202,7 @@ def lint(  # type: ignore
     > i lint --files="dir1/file1.py dir2/file2.md"
 
     # To lint the files changed in the last commit, excluding specific files:
-    > i lint --last_commit --skip_files="dir1/file1.py dir2/file2.md"
+    > i lint --last-commit --skip_files="dir1/file1.py dir2/file2.md"
 
     # To lint all the files in the current dir using only formatting actions:
     > i lint --dir-name . --only-format
@@ -217,7 +217,7 @@ def lint(  # type: ignore
     :param stage: the image stage to use (e.g., "prod", "dev", "local")
     :param version: the version of the container to use
     :param files: specific files to lint (e.g. "dir1/file1.py dir2/file2.md")
-    :param skip_files: specific files to skip lint (e.g. "dir1/file1.py dir2/file2.md")
+    :param skip_files: specific files to skip during lint (e.g. "dir1/file1.py dir2/file2.md")
     :param dir_name: name of the dir where all files should be linted
     :param modified: lint the files modified in the current git client
     :param last_commit: lint the files modified in the previous commit
@@ -234,26 +234,13 @@ def lint(  # type: ignore
     hlitauti.report_task()
     # Prepare the command line.
     lint_cmd_opts = []
-    # Enumerate file flags for assertion
-    file_flags_set =(
+    # Add the file selection argument.
+    hdbg.dassert_eq(
         int(len(files) > 0)
         + int(len(dir_name) > 0)
         + int(modified)
         + int(last_commit)
-        + int(branch)
-    )
-    # Add the file selection argument when using `--skip_files`.
-    hdbg.dassert_imply(
-        int(len(skip_files) > 0),
-        int(file_flags_set > 0),
-        msg=(
-            "--skip_files requires a file selection flag, specify exactly one among --files, "
-            "--dir-name, --modified, --last-commit, or --branch"
-        ),
-    )
-    # Add the file selection argument.
-    hdbg.dassert_eq(
-        file_flags_set,
+        + int(branch),
         1,
         msg="Specify exactly one among --files, --dir-name, --modified, --last-commit, --branch",
     )
