@@ -345,6 +345,62 @@ class Test_fix_links(hunitest.TestCase):
         ]
         self.assertEqual(expected, updated_lines)
 
+    def test8(self) -> None:
+        """
+        Test single bare link conversion to Markdown-style link.
+        """
+        # Prepare inputs.
+        text = r"""
+        https://gspread-pandas.readthedocs.io/en/latest/configuration.html
+        """
+        file_name = "test_bare_links.md"
+        file_path = self.write_input_file(text, file_name)
+        # Run.
+        _, actual, _ = lafimdli.fix_links(file_path)
+        # Check.
+        expected = [
+            "[https://gspread-pandas.readthedocs.io/en/latest/configuration.html](https://gspread-pandas.readthedocs.io/en/latest/configuration.html)",
+        ]
+        self.assertEqual(expected, actual)
+
+    def test9(self) -> None:
+        """
+        Test bulleted bare link conversion to Markdown-style link.
+        """
+        # Prepare inputs.
+        text = r"""
+        - Http://gspread-pandas.readthedocs.io/en/latest/configuration.html
+        """
+        file_name = "test_bare_links.md"
+        file_path = self.write_input_file(text, file_name)
+        # Run.
+        _, actual, _ = lafimdli.fix_links(file_path)
+        # Check.
+        expected = [
+            "- [http://gspread-pandas.readthedocs.io/en/latest/configuration.html](http://gspread-pandas.readthedocs.io/en/latest/configuration.html)",
+        ]
+        self.assertEqual(expected, actual)
+
+    def test10(self) -> None:
+        """
+        Test multiple bare links conversion to Markdown-style links.
+        """
+        # Prepare inputs.
+        text = r"""
+        http://github.com/google/styleguide/blob/gh-pages/docguide/style.md
+        - Https://github.com/causify-ai/tutorials/blob/master/llms/tutorial-openai_new.ipynb
+        """
+        file_name = "test_bare_links.md"
+        file_path = self.write_input_file(text, file_name)
+        # Run.
+        _, actual, _ = lafimdli.fix_links(file_path)
+        # Check.
+        expected = [
+            "[http://github.com/google/styleguide/blob/gh-pages/docguide/style.md](http://github.com/google/styleguide/blob/gh-pages/docguide/style.md)",
+            "- [https://github.com/causify-ai/tutorials/blob/master/llms/tutorial-openai_new.ipynb](https://github.com/causify-ai/tutorials/blob/master/llms/tutorial-openai_new.ipynb)",
+        ]
+        self.assertEqual(expected, actual)
+
 
 # #############################################################################
 # Test_make_path_absolute
