@@ -615,7 +615,6 @@ Check-list:
   ```bash
   > i docker_release_multi_build_dev_image \
       --version <VERSION> \
-      --platform <PLATFORM> \
       --target-registries <TARGET_REGISTRIES>
   ```
 
@@ -630,7 +629,6 @@ Check-list:
   ```
   > i docker_release_multi_build_dev_image \
       --version 1.6.1 \
-      --platform linux/amd64,linux/arm64 \
       --target-registries aws_ecr.ck,dockerhub.kaizenflow
   ```
 
