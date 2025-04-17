@@ -64,11 +64,10 @@ class _WarnIncorrectlyFormattedTodo(liaction.Action):
             return []
         lines = hio.from_file(file_name).split("\n")
         output = []
-        for i, line in enumerate(lines):
+        for i, line in enumerate(lines, start=1):
             msg = _warn_incorrectly_formatted_todo(file_name, i, line)
             if msg:
                 output.append(msg)
-
         return output
 
 
