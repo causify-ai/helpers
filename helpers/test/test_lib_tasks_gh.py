@@ -1,4 +1,5 @@
 import logging
+import os
 
 import pytest
 
@@ -34,9 +35,8 @@ class TestLibTasks1(hunitest.TestCase):
         self.assert_equal(str(act), str(exp))
 
     @pytest.mark.skipif(
-        not hgit.is_in_helpers_as_supermodule(),
-        reason="""Skip unless helpers is the supermodule. Fails when updating submodules;
-            passes in fast tests super-repo run. See CmTask10845.""",
+        not hgit.is_in_helpers_as_supermodule() or os.getenv("CSFY_CI") == "true",
+        reason="Skip unless in super-repo and not in CI (no gh login)",
     )
     def test_get_gh_issue_title4(self) -> None:
         cmd = "invoke gh_login"

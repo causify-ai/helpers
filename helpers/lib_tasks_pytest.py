@@ -798,17 +798,18 @@ def run_coverage_report(  # type: ignore
     Compute test coverage stats.
 
     The flow is:
-       - Run tests and compute coverage stats for each test type
+       - Run tests and compute coverage stats for each test type (fast and slow)
        - Combine coverage stats in a single file
        - Generate a text report
        - Generate a HTML report (optional)
           - Post it on S3 (optional)
 
-    :param target_dir: directory to compute coverage stats for
-        - "." for all the dirs in the current working directory
-    :param generate_html_report: whether to generate HTML coverage report or not
-    :param publish_html_on_s3: whether to publish HTML coverage report or not
-    :param aws_profile: the AWS profile to use for publishing HTML report
+    :param ctx: Invoke context.
+    :param target_dir: Directory to compute coverage stats for.
+         Use "." for all the dirs in the current working directory.
+    :param generate_html_report: Whether to generate an HTML coverage report or not.
+    :param publish_html_on_s3: Whether to publish the HTML coverage report on S3 or not.
+    :param aws_profile: The AWS profile to use for publishing the HTML report.
     """
     # TODO(Grisha): allow user to specify which tests to run.
     # Run fast tests for the target dir and collect coverage results.
@@ -864,6 +865,8 @@ def run_coverage_report(  # type: ignore
         if exclude_from_report is not None:
             report_html_cmd += f" --omit={exclude_from_report}"
         report_cmd.append(report_html_cmd)
+    # Generate an XML report for Codecov.
+    report_cmd.append("coverage xml -o coverage.xml")
     # Execute commands above one-by-one inside docker. Coverage tool is not
     # installed outside docker.
     full_report_cmd = " && ".join(report_cmd)
@@ -872,6 +875,136 @@ def run_coverage_report(  # type: ignore
     if publish_html_on_s3:
         # Publish HTML report on S3.
         _publish_html_coverage_report_on_s3(aws_profile)
+
+
+def _get_inclusion_settings(target_dir: str) -> Tuple[str, Optional[str]]:
+    """
+    Helper function to determine the directories to include and exclude in the
+    coverage report based on the target directory.
+
+    :param target_dir: directory for coverage stats. Use "." to indicate all directories
+    :return: tuple (include_in_report, exclude_from_report) where:
+             - include_in_report is a glob pattern for files to include
+             - exclude_from_report is a comma-separated glob pattern for files to exclude (or None if not applicable)
+    """
+    if target_dir == ".":
+        include_in_report: str = "*"
+        exclude_from_report: Optional[str] = None
+        if hserver.skip_submodules_test():
+            submodule_paths: List[str] = hgit.get_submodule_paths()
+            exclude_from_report = ",".join(
+                f"{path}/*" for path in submodule_paths
+            )
+    else:
+        include_in_report = f"*/{target_dir}/*"
+        exclude_from_report = None
+    return include_in_report, exclude_from_report
+
+
+@task
+def run_fast_coverage(
+    ctx, target_dir: str, generate_html_report: bool = True
+) -> str:
+    """
+    Run fast tests with coverage and generate an XML report for Codecov.
+
+    The task:
+      - Runs fast tests with coverage enabled.
+      - Collects coverage data and renames the resulting coverage file to .coverage_fast_tests.
+      - Combines any generated parallel coverage files.
+      - Outputs text, HTML (if requested), and XML reports.
+
+    :param ctx: Invoke context.
+    :param target_dir: Directory to compute coverage stats for.
+         Use "." for all directories in the current working directory.
+    :param generate_html_report: Flag to indicate whether to generate an HTML coverage report.
+    :return: The filename of the fast tests coverage file.
+    """
+    report_cmd: List[str] = []
+    # Run fast tests and collect coverage data.
+    fast_tests_cmd: str = f"invoke run_fast_tests --coverage -p {target_dir}"
+    hlitauti.run(ctx, fast_tests_cmd, use_system=False)
+    fast_tests_coverage_file: str = ".coverage_fast_tests"
+    create_fast_tests_file_cmd: str = f"mv .coverage {fast_tests_coverage_file}"
+    hsystem.system(create_fast_tests_file_cmd)
+    report_cmd.append("coverage erase")
+    # Get the include and exclude patterns for the coverage report.
+    include_in_report, exclude_from_report = _get_inclusion_settings(target_dir)
+    # Combine the fast test coverage data.
+    report_cmd.append(f"coverage combine --keep {fast_tests_coverage_file}")
+    # Generate text report with the coverage stats.
+    report_stats_cmd: str = (
+        f"coverage report --include={include_in_report} --sort=Cover"
+    )
+    if exclude_from_report:
+        report_stats_cmd += f" --omit={exclude_from_report}"
+    report_cmd.append(report_stats_cmd)
+    if generate_html_report:
+        # Generate HTML report with the coverage stats.
+        report_html_cmd: str = f"coverage html --include={include_in_report}"
+        if exclude_from_report:
+            report_html_cmd += f" --omit={exclude_from_report}"
+        report_cmd.append(report_html_cmd)
+    # Generate an XML report for Codecov.
+    report_cmd.append("coverage xml -o coverage.xml")
+    # Execute the generated commands inside Docker.
+    full_report_cmd: str = " && ".join(report_cmd)
+    docker_cmd_: str = f"invoke docker_cmd --use-bash --cmd '{full_report_cmd}'"
+    hlitauti.run(ctx, docker_cmd_)
+    return fast_tests_coverage_file
+
+
+@task
+def run_slow_coverage(
+    ctx, target_dir: str, generate_html_report: bool = True
+) -> str:
+    """
+    Run slow tests with coverage and generate an XML report for Codecov.
+
+    The task:
+      - Runs slow tests with coverage enabled in parallel mode
+      - Combines any generated parallel coverage files
+      - Outputs text, HTML (if requested), and XML reports
+
+    :param ctx: Invoke context.
+    :param target_dir: Directory to compute coverage stats for
+         Use "." for all directories in the current working directory
+    :param generate_html_report: Flag to indicate whether to generate an HTML coverage report
+    :return: The filename of the slow tests coverage file
+    """
+    report_cmd: List[str] = []
+    # Run slow tests and collect coverage data.
+    slow_tests_cmd: str = f"invoke run_slow_tests --coverage -p {target_dir}"
+    hlitauti.run(ctx, slow_tests_cmd, use_system=False)
+    slow_tests_coverage_file: str = ".coverage_slow_tests"
+    create_slow_tests_file_cmd: str = f"mv .coverage {slow_tests_coverage_file}"
+    hsystem.system(create_slow_tests_file_cmd)
+    hdbg.dassert_file_exists(slow_tests_coverage_file)
+    report_cmd.append("coverage erase")
+    # Get the include and exclude patterns for the coverage report.
+    include_in_report, exclude_from_report = _get_inclusion_settings(target_dir)
+    # Combine the slow test coverage data.
+    report_cmd.append(f"coverage combine --keep {slow_tests_coverage_file}")
+    # Generate text report with the coverage stats.
+    report_stats_cmd: str = (
+        f"coverage report --include={include_in_report} --sort=Cover"
+    )
+    if exclude_from_report:
+        report_stats_cmd += f" --omit={exclude_from_report}"
+    report_cmd.append(report_stats_cmd)
+    if generate_html_report:
+        # Generate HTML report with the coverage stats.
+        report_html_cmd: str = f"coverage html --include={include_in_report}"
+        if exclude_from_report:
+            report_html_cmd += f" --omit={exclude_from_report}"
+        report_cmd.append(report_html_cmd)
+    # Generate an XML report for Codecov.
+    report_cmd.append("coverage xml -o coverage.xml")
+    # Execute the generated commands inside Docker.
+    full_report_cmd: str = " && ".join(report_cmd)
+    docker_cmd_: str = f"invoke docker_cmd --use-bash --cmd '{full_report_cmd}'"
+    hlitauti.run(ctx, docker_cmd_)
+    return slow_tests_coverage_file
 
 
 # #############################################################################
@@ -1388,7 +1521,6 @@ def pytest_buildmeister(  # type: ignore
     ```
     > pytest_buildmeister --pytest-opts "--update_outcomes"
     ```
-
     :param docker_clean: remove all dead Docker instances
     :param opts: options to pass to the invoke (e.g., `--version 1.2.0` to test
         a specific version of the Docker container)
