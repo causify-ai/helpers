@@ -932,17 +932,17 @@ def docker_release_prod_image(  # type: ignore
 
 @task(iterable=["docker_registries"])
 def docker_release_multi_arch_prod_image(
-        ctx,
-        version,
-        cache=True,
-        skip_tests=False,
-        fast_tests=True,
-        slow_tests=True,
-        superslow_tests=False,
-        qa_tests=True,        
-        docker_registries=None,
-        container_dir_name=".",
-    ):
+    ctx,
+    version,
+    cache=True,
+    skip_tests=False,
+    fast_tests=True,
+    slow_tests=True,
+    superslow_tests=False,
+    qa_tests=True,
+    docker_registries=None,
+    container_dir_name=".",
+):
     """
     Build, test, and release to Docker registries the multi-aech prod image.
     :param ctx: invoke context
@@ -967,8 +967,7 @@ def docker_release_multi_arch_prod_image(
     if len(docker_registries) == 0:
         docker_registries = [_DEFAULT_TARGET_REGISTRY]
         _LOG.warning(
-            "No Docker registries provided, using default: %s",
-            docker_registries
+            "No Docker registries provided, using default: %s", docker_registries
         )
     # 1) Build prod image.
     docker_build_multi_arch_prod_image(
@@ -976,7 +975,7 @@ def docker_release_multi_arch_prod_image(
         version,
         cache=cache,
         container_dir_name=container_dir_name,
-        multi_arch="linux/amd64,linux/arm64"
+        multi_arch="linux/amd64,linux/arm64",
     )
     # 2) Run tests.
     if skip_tests:
@@ -991,7 +990,7 @@ def docker_release_multi_arch_prod_image(
     if slow_tests:
         hlitapyt.run_slow_tests(ctx, stage=stage, version=version)
     if superslow_tests:
-        hlitapyt.run_superslow_tests(ctx, stage=stage, version=version)   
+        hlitapyt.run_superslow_tests(ctx, stage=stage, version=version)
     # 3) Run QA tests.
     if qa_tests:
         hlitapyt.run_qa_tests(ctx, stage=stage, version=version)
