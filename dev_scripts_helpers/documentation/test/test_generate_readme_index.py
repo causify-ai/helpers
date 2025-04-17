@@ -3,13 +3,8 @@ import textwrap
 
 import pytest
 
-# Equivalent to `import openai`, but skip this module if the module is not present.
-# `mockai` must be imported before `openai` to properly mock it.
-mockai = pytest.importorskip("openai")
+pytest.importorskip("openai") # noqa: E402 # pylint: disable=wrong-import-position
 
-# Pylint wrong-import-position
-# It is necessary that generate_readme_index is imported after mockai.
-# If not, real OpenAI API will be called.
 import dev_scripts_helpers.documentation.generate_readme_index as dshdgrein
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
@@ -22,11 +17,10 @@ import helpers.hunit_test as hunitest
 
 class Test_list_markdown_files(hunitest.TestCase):
 
-    def write_input_file(self, txt: str, file_name: str) -> str:
+    def _write_input_file(self, txt: str, file_name: str) -> str:
         """
         Write test content to a file in the scratch space.
 
-        :param testcase: instance of the test case (self)
         :param txt: the content of the file
         :param file_name: the name of the file
         :return: the path to the file with the test content
@@ -42,7 +36,7 @@ class Test_list_markdown_files(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Test for list generation of directory.
+        Test retrieving all Markdown files in a directory.
         """
         # Sample nested documents.
         file_structure = {
@@ -60,15 +54,42 @@ class Test_list_markdown_files(hunitest.TestCase):
         ]
         dir_path = self.get_scratch_space()
         for path, content in file_structure.items():
-            self.write_input_file(content, path)
+            self._write_input_file(content, path)
         # Run.
-        output = dshdgrein.list_markdown_files(dir_path)
+        actual = dshdgrein.list_markdown_files(dir_path)
         # Check.
-        self.assertEqual(output, expected)
+        self.assertEqual(actual, expected)
 
     def test2(self) -> None:
         """
-        Test for ignore existing README.
+        Test that non-Markdown files are ignored
+        """
+        # Sample nested documents.
+        file_structure = {
+            "welcome.md": "# welcome page",
+            "docs/intro.md": "# Introduction",
+            "docs/guide/setup.md": "# Setup Guide",
+            "docs/guide/build.py": "Build setup",
+            "docs/guide/usage.md": "# Usage Guide",
+        }
+        # Expected output.
+        expected = [
+            "docs/guide/setup.md",
+            "docs/guide/usage.md",
+            "docs/intro.md",
+            "welcome.md",
+        ]
+        dir_path = self.get_scratch_space()
+        for path, content in file_structure.items():
+            self._write_input_file(content, path)
+        # Run.
+        actual = dshdgrein.list_markdown_files(dir_path)
+        # Check.
+        self.assertEqual(actual, expected)
+
+    def test3(self) -> None:
+        """
+        Test that the existing README is ignored
         """
         # Sample nested documents.
         file_structure = {
@@ -79,15 +100,15 @@ class Test_list_markdown_files(hunitest.TestCase):
         }
         dir_path = self.get_scratch_space()
         for path, content in file_structure.items():
-            self.write_input_file(content, path)
+            self._write_input_file(content, path)
         # Expected output.
         expected = ["docs/guide/setup.md", "docs/intro.md", "welcome.md"]
         # Run.
-        output = dshdgrein.list_markdown_files(dir_path)
+        actual = dshdgrein.list_markdown_files(dir_path)
         # Check.
-        self.assertEqual(output, expected)
+        self.assertEqual(actual, expected)
 
-    def test3(self) -> None:
+    def test4(self) -> None:
         """
         Test for empty directory.
         """
@@ -95,9 +116,9 @@ class Test_list_markdown_files(hunitest.TestCase):
         # Expected output.
         expected = []
         # Run.
-        output = dshdgrein.list_markdown_files(dir_path)
+        actual = dshdgrein.list_markdown_files(dir_path)
         # Check.
-        self.assertEqual(output, expected)
+        self.assertEqual(actual, expected)
 
 
 # #############################################################################
@@ -107,51 +128,52 @@ class Test_list_markdown_files(hunitest.TestCase):
 
 class Test_generate_readme_index(hunitest.TestCase):
 
-    def write_readme(self, content: str) -> str:
+    def _write_readme(self, content: str) -> str:
         """
-        Creates a README file with content.
+        Create a README file with content.
 
-        :param content: the content to be written to file
-        :return: path of README file
+        :param content: the content to write into the README file
+        :return: the path to the directory containing the README
         """
         content = textwrap.dedent(content)
         dir_path = self.get_scratch_space()
         readme_path = os.path.join(dir_path, "README.md")
         hio.to_file(readme_path, content)
-        return readme_path
+        return dir_path
 
     def test1(self) -> None:
         """
-        Test for generating README from scratch using placeholder summary.
+        Test generating README from scratch using placeholder summary.
         """
-        dir_path = self.get_scratch_space()
-        readme_path = os.path.join(dir_path, "README.md")
-        # Sample list of markdown files in directory.
+        # Prepare inputs.
+        target_path = self.get_scratch_space()
         markdown_files = [
             "docs/guide/setup.md",
             "docs/guide/usage.md",
             "docs/intro.md",
             "welcome.md",
         ]
+        index_mode="generate"
+        model="placeholder"
         # Run.
-        output = dshdgrein.generate_markdown_index(
-            readme_path=readme_path,
+        actual = dshdgrein.generate_markdown_index(
+            target_path=target_path,
             markdown_files=markdown_files,
-            index_mode="generate",
-            model="placeholder",
+            index_mode=index_mode,
+            model=model,
         )
         # Check.
-        self.check_string(output, tag="README.md")
+        self.check_string(actual)
 
     def test2(self) -> None:
         """
-        Test for refresh README to add new file using placeholder summary.
+        Test refreshing README by adding a new file.
         """
-        # Create existing README.
+        # Prepare inputs.
         existing_content = """
-        # Repository README
+        # README for `test/outcomes/Test_generate_readme_index.test2/tmp.scratch`
 
-        This section lists all Markdown files in the repository.
+        Below is a list of all Markdown files found under `test/outcomes/Test_generate_readme_index.test2/tmp.scratch`.
 
         ## Markdown Index
 
@@ -172,8 +194,7 @@ class Test_generate_readme_index(hunitest.TestCase):
         **Summary**: Welcomes readers to the repository and outlines the structure of documentation. Encourages contributors to explore and engage with the content.
 
         """
-        readme_path = self.write_readme(existing_content)
-        # New markdown files list.
+        target_path = self._write_readme(existing_content)
         markdown_files = [
             "docs/guide/new_file.md",
             "docs/guide/setup.md",
@@ -181,25 +202,27 @@ class Test_generate_readme_index(hunitest.TestCase):
             "docs/intro.md",
             "welcome.md",
         ]
+        index_mode="refresh"
+        model="placeholder"
         # Run.
-        output = dshdgrein.generate_markdown_index(
-            readme_path=readme_path,
+        actual = dshdgrein.generate_markdown_index(
+            target_path=target_path,
             markdown_files=markdown_files,
-            index_mode="refresh",
-            model="placeholder",
+            index_mode=index_mode,
+            model=model
         )
         # Check.
-        self.check_string(output, tag="README.md")
+        self.check_string(actual)
 
     def test3(self) -> None:
         """
-        Test for refresh README to remove summary of deleted file.
+        Test refreshing README by removing an obsolete file.
         """
-        # Create existing README.
+        # Prepare inputs.
         existing_content = """
-        # Repository README
+        # README for `test/outcomes/Test_generate_readme_index.test3/tmp.scratch`
 
-        This section lists all Markdown files in the repository.
+        Below is a list of all Markdown files found under `test/outcomes/Test_generate_readme_index.test3/tmp.scratch`.
 
         ## Markdown Index
 
@@ -220,28 +243,29 @@ class Test_generate_readme_index(hunitest.TestCase):
         **Summary**: Welcomes readers to the repository and outlines the structure of documentation. Encourages contributors to explore and engage with the content.
 
         """
-        readme_path = self.write_readme(existing_content)
-        # New markdown files list.
+        target_path = self._write_readme(existing_content)
         markdown_files = ["docs/guide/setup.md", "docs/intro.md", "welcome.md"]
+        index_mode="refresh"
+        model="placeholder"
         # Run.
-        output = dshdgrein.generate_markdown_index(
-            readme_path=readme_path,
+        actual = dshdgrein.generate_markdown_index(
+            target_path=target_path,
             markdown_files=markdown_files,
-            index_mode="refresh",
-            model="placeholder",
+            index_mode=index_mode,
+            model=model
         )
         # Check.
-        self.check_string(output, tag="README.md")
+        self.check_string(actual)
 
     def test4(self) -> None:
         """
-        Test for refresh README to add and delete file.
+        Test refreshing README by adding a new file and removing another.
         """
-        # Create existing README.
+        # Prepare inputs.
         existing_content = """
-        # Repository README
+        # README for `test/outcomes/Test_generate_readme_index.test4/tmp.scratch`
 
-        This section lists all Markdown files in the repository.
+        Below is a list of all Markdown files found under `test/outcomes/Test_generate_readme_index.test4/tmp.scratch`.
 
         ## Markdown Index
 
@@ -262,20 +286,21 @@ class Test_generate_readme_index(hunitest.TestCase):
         **Summary**: Welcomes readers to the repository and outlines the structure of documentation. Encourages contributors to explore and engage with the content.
 
         """
-        readme_path = self.write_readme(existing_content)
-        # New markdown files list.
+        target_path = self._write_readme(existing_content)
         markdown_files = [
             "docs/guide/new_file.md",
             "docs/guide/usage.md",
             "docs/intro.md",
             "welcome.md",
         ]
+        index_mode="refresh"
+        model="placeholder"
         # Run.
-        output = dshdgrein.generate_markdown_index(
-            readme_path=readme_path,
+        actual = dshdgrein.generate_markdown_index(
+            target_path=target_path,
             markdown_files=markdown_files,
-            index_mode="refresh",
-            model="placeholder",
+            index_mode=index_mode,
+            model=model
         )
         # Check.
-        self.check_string(output, tag="README.md")
+        self.check_string(actual)
