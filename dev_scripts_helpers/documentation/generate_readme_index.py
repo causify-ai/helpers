@@ -6,10 +6,10 @@ Generate a Markdown index in the README file.
 Usage:
     generate_readme_index.py --index_mode {generate,refresh} [--dir_path DIR_PATH] [--model MODEL]
 
-This script creates or updates a README file with an index of Markdown files in a given directory, 
+This script creates or updates a README file with an index of Markdown files in a given directory,
 including their relative paths and summaries.
 
-Example output
+Example output:
 
 # README for `dir_path`
 
@@ -44,7 +44,7 @@ import argparse
 import logging
 import os
 import re
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 import helpers.hgit as hgit
 import helpers.hio as hio
@@ -59,7 +59,8 @@ def _get_existing_summaries(
     """
     Extract and filter summaries from the existing README file.
 
-    Only summaries for Markdown files that still exist in the codebase are retained.
+    Only summaries for Markdown files that still exist in the codebase
+    are retained.
 
     :param dir_path: directory path where README.md file is located
     :param markdown_files: all Markdown file paths
@@ -90,9 +91,7 @@ def _get_existing_summaries(
     return summaries
 
 
-def _generate_summary_for_file(
-    file_path: str, model: str
-) -> str:
+def _generate_summary_for_file(file_path: str, model: str) -> str:
     """
     Generate a two-line summary for a given Markdown file.
 
@@ -123,7 +122,7 @@ def _build_index_lines(
     dir_path: str,
     markdown_files: List[str],
     summaries: Dict[str, str],
-    model: str
+    model: str,
 ) -> str:
     """
     Construct the Markdown index content to write into README.
@@ -149,18 +148,21 @@ def _build_index_lines(
             "",
             f"Below is a list of all Markdown files found under `{rel_path}`.",
         ]
-    lines.extend([
-        "",
-        "## Markdown Index",
-        "",
-    ])
+    lines.extend(
+        [
+            "",
+            "## Markdown Index",
+            "",
+        ]
+    )
     for file_path in markdown_files:
         if file_path not in summaries:
-            # Construct the info paragraph in the README format.
+            # Create a new summary for the file.
             summary = _generate_summary_for_file(file_path, model=model)
         else:
+            # Get the existing summary for the file.
             summary = summaries[file_path]
-        # README format.
+        # Construct the info paragraph in the README format.
         lines.append(
             f"- **File Name**: {file_path}  \n"
             f"  **Relative Path**: [{file_path}]({file_path})  \n"
@@ -211,14 +213,18 @@ def generate_markdown_index(
     :return: complete Markdown index content
     """
     if index_mode == "generate":
-        # Start with empty summary.
+        # Start with an empty summary.
         summaries = {}
     elif index_mode == "refresh":
-        # Retrieves summaries from existing README.
+        # Retrieve summaries from the existing README.
         summaries = _get_existing_summaries(dir_path, markdown_files)
     else:
-        raise ValueError(f"Invalid index_mode='{index_mode}'. Expected 'generate' or 'refresh'.")
-    content = _build_index_lines(dir_path, markdown_files, model=model, summaries=summaries)
+        raise ValueError(
+            f"Invalid index_mode='{index_mode}'. Expected 'generate' or 'refresh'."
+        )
+    content = _build_index_lines(
+        dir_path, markdown_files, model=model, summaries=summaries
+    )
     return content
 
 
@@ -241,7 +247,7 @@ def _main() -> None:
     parser.add_argument(
         "--model",
         type=str,
-        default='placeholder',
+        default="placeholder",
         help="LLM model to use for summarization. Defaults to 'placeholder', which creates a dummy summary.",
     )
     args = parser.parse_args()

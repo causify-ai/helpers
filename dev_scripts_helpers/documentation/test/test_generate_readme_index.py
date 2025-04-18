@@ -3,7 +3,9 @@ import textwrap
 
 import pytest
 
-pytest.importorskip("openai") # noqa: E402 # pylint: disable=wrong-import-position
+pytest.importorskip(
+    "openai"
+)  # noqa: E402 # pylint: disable=wrong-import-position
 
 import dev_scripts_helpers.documentation.generate_readme_index as dshdgrein
 import helpers.hio as hio
@@ -16,23 +18,6 @@ import helpers.hunit_test as hunitest
 
 
 class Test_list_markdown_files(hunitest.TestCase):
-
-    def _write_input_file(self, txt: str, file_name: str) -> str:
-        """
-        Write test content to a file in the scratch space.
-
-        :param txt: the content of the file
-        :param file_name: the name of the file
-        :return: the path to the file with the test content
-        """
-        txt = txt.strip()
-        # Get file path to write.
-        dir_name = self.get_scratch_space()
-        file_path = os.path.join(dir_name, file_name)
-        file_path = os.path.abspath(file_path)
-        # Create the file.
-        hio.to_file(file_path, txt)
-        return file_path
 
     def test1(self) -> None:
         """
@@ -120,6 +105,23 @@ class Test_list_markdown_files(hunitest.TestCase):
         # Check.
         self.assertEqual(actual, expected)
 
+    def _write_input_file(self, txt: str, file_name: str) -> str:
+        """
+        Write test content to a file in the scratch space.
+
+        :param txt: the content of the file
+        :param file_name: the name of the file
+        :return: the path to the file with the test content
+        """
+        txt = txt.strip()
+        # Get file path to write.
+        dir_name = self.get_scratch_space()
+        file_path = os.path.join(dir_name, file_name)
+        file_path = os.path.abspath(file_path)
+        # Create the file.
+        hio.to_file(file_path, txt)
+        return file_path
+
 
 # #############################################################################
 # Test_generate_readme_index
@@ -127,19 +129,6 @@ class Test_list_markdown_files(hunitest.TestCase):
 
 
 class Test_generate_readme_index(hunitest.TestCase):
-
-    def _write_readme(self, content: str) -> str:
-        """
-        Create a README file with content.
-
-        :param content: the content to write into the README file
-        :return: the path to the directory containing the README
-        """
-        content = textwrap.dedent(content)
-        dir_path = self.get_scratch_space()
-        readme_path = os.path.join(dir_path, "README.md")
-        hio.to_file(readme_path, content)
-        return dir_path
 
     def test1(self) -> None:
         """
@@ -153,8 +142,8 @@ class Test_generate_readme_index(hunitest.TestCase):
             "docs/intro.md",
             "welcome.md",
         ]
-        index_mode="generate"
-        model="placeholder"
+        index_mode = "generate"
+        model = "placeholder"
         # Run.
         actual = dshdgrein.generate_markdown_index(
             dir_path=dir_path,
@@ -202,14 +191,14 @@ class Test_generate_readme_index(hunitest.TestCase):
             "docs/intro.md",
             "welcome.md",
         ]
-        index_mode="refresh"
-        model="placeholder"
+        index_mode = "refresh"
+        model = "placeholder"
         # Run.
         actual = dshdgrein.generate_markdown_index(
             dir_path=dir_path,
             markdown_files=markdown_files,
             index_mode=index_mode,
-            model=model
+            model=model,
         )
         # Check.
         self.check_string(actual)
@@ -245,14 +234,14 @@ class Test_generate_readme_index(hunitest.TestCase):
         """
         dir_path = self._write_readme(existing_content)
         markdown_files = ["docs/guide/setup.md", "docs/intro.md", "welcome.md"]
-        index_mode="refresh"
-        model="placeholder"
+        index_mode = "refresh"
+        model = "placeholder"
         # Run.
         actual = dshdgrein.generate_markdown_index(
             dir_path=dir_path,
             markdown_files=markdown_files,
             index_mode=index_mode,
-            model=model
+            model=model,
         )
         # Check.
         self.check_string(actual)
@@ -293,14 +282,27 @@ class Test_generate_readme_index(hunitest.TestCase):
             "docs/intro.md",
             "welcome.md",
         ]
-        index_mode="refresh"
-        model="placeholder"
+        index_mode = "refresh"
+        model = "placeholder"
         # Run.
         actual = dshdgrein.generate_markdown_index(
             dir_path=dir_path,
             markdown_files=markdown_files,
             index_mode=index_mode,
-            model=model
+            model=model,
         )
         # Check.
         self.check_string(actual)
+
+    def _write_readme(self, content: str) -> str:
+        """
+        Create a README file with content.
+
+        :param content: the content to write into the README file
+        :return: the path to the directory containing the README
+        """
+        content = textwrap.dedent(content)
+        dir_path = self.get_scratch_space()
+        readme_path = os.path.join(dir_path, "README.md")
+        hio.to_file(readme_path, content)
+        return dir_path
