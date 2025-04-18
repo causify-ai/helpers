@@ -25,14 +25,11 @@ _LOG = logging.getLogger(__name__)
 def _check_import(file_name: str, line_num: int, line: str) -> str:
     # The maximum length of an 'import as'.
     MAX_LEN_IMPORT = 8
-
     msg = ""
-
     if liutils.is_init_py(file_name):
         # In **init**.py we can import in weird ways. (e.g., the evil
         # `from ... import *`).
         return msg
-
     m = re.match(r"\s*from\s+(\S+)\s+import\s+.*", line)
     if m:
         if m.group(1) != "typing":
@@ -69,11 +66,10 @@ class _CheckImport(liaction.Action):
             return []
         output = []
         lines = hio.from_file(file_name).split("\n")
-        for i, line in enumerate(lines):
+        for i, line in enumerate(lines, start=1):
             msg = _check_import(file_name, i, line)
             if msg:
                 output.append(msg)
-
         return output
 
 
