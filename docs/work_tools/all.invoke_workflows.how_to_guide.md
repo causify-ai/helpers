@@ -113,7 +113,7 @@
   docker_rollback_prod_image                            Rollback the version of the prod image.
   docker_stats                                          Report last started Docker container stats, e.g., CPU, RAM.
   docker_tag_local_image_as_dev                         Mark the "local" image as "dev".
-  docker_tag_push_multi_build_local_image_as_dev        Mark the multi-arch "local" image as "dev" and push it.
+  docker_tag_push_multi_arch_local_image_as_dev         Mark the multi-arch "local" image as "dev" and push it.
   docker_update_prod_task_definition                    Update image in prod task definition to the desired version.
 
   find                                                  Find symbols, imports, test classes and so on.
@@ -268,7 +268,7 @@
 
   # Copied to system clipboard:
   AmpTask256_Part_task2236_jenkins_cleanup_split_scripts:
-  https://github.com/alphamatic/amp/pull/256
+  [https://github.com/alphamatic/amp/pull/256](https://github.com/alphamatic/amp/pull/256)
   ```
 
 ### Create a PR
@@ -350,7 +350,7 @@ TODO(gp): Describe
   Switched to a new branch 'CmTask5874_Document_PR_flow_2'
   remote:
   remote: Create a pull request for 'CmTask5874_Document_PR_flow_2' on GitHub by visiting:
-  remote:      https://github.com/cryptokaizen/cmamp/pull/new/CmTask5874_Document_PR_flow_2
+  remote:      [https://github.com/cryptokaizen/cmamp/pull/new/CmTask5874_Document_PR_flow_2](https://github.com/cryptokaizen/cmamp/pull/new/CmTask5874_Document_PR_flow_2)
   remote:
   To github.com:causify-ai/cmamp.git
   [new branch] CmTask5874_Document_PR_flow_2 ->
@@ -543,7 +543,8 @@ TODO(gp): Describe
 
 ## pytest
 
-- From https://gist.github.com/kwmiebach/3fd49612ef7a52b5ce3a
+- From
+  [https://gist.github.com/kwmiebach/3fd49612ef7a52b5ce3a](https://gist.github.com/kwmiebach/3fd49612ef7a52b5ce3a)
 
 - More details on running unit tests with `invoke` is
   [/docs/coding/all.run_unit_tests.how_to_guide.md](/docs/coding/all.run_unit_tests.how_to_guide.md)
