@@ -57,7 +57,7 @@ class _CheckMergeConflict(liaction.Action):
             return []
         output = []
         # Check the file lines for merge conflict markers.
-        for i, line in enumerate(lines):
+        for i, line in enumerate(lines, start=1):
             msg = _check_merge_conflict(file_name, i, line)
             if msg:
                 # Store the warning message.

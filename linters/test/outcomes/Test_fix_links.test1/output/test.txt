@@ -1,16 +1,16 @@
 # linter warnings
-$GIT_ROOT/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:37: '/helpersssss/hhhhgit.py' does not exist
-$GIT_ROOT/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:76: 'import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
-$GIT_ROOT/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:79: 'import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
-$GIT_ROOT/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:82: '/import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
-$GIT_ROOT/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:85: '/iiimport_check/example/output/basicccc.png' does not follow the format 'figs/test.md/XYZ'
-$GIT_ROOT/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:85: '/iiimport_check/example/output/basicccc.png' does not exist
-$GIT_ROOT/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:88: 'import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
-$GIT_ROOT/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:91: 'import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
-$GIT_ROOT/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:95: '/import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
-$GIT_ROOT/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:98: '../../import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
-$GIT_ROOT/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:101: '/iiimport_check/example/output/basicccc.png' does not follow the format 'figs/test.md/XYZ'
-$GIT_ROOT/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:101: '/iiimport_check/example/output/basicccc.png' does not exist
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:38: '/helpersssss/hhhhgit.py' does not exist
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:77: 'import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:80: 'import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:83: '/import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:86: '/iiimport_check/example/output/basicccc.png' does not follow the format 'figs/test.md/XYZ'
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:86: '/iiimport_check/example/output/basicccc.png' does not exist
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:89: 'import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:92: 'import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:96: '/import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:99: '../../import_check/example/output/basic.png' does not follow the format 'figs/test.md/XYZ'
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:102: '/iiimport_check/example/output/basicccc.png' does not follow the format 'figs/test.md/XYZ'
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test1/tmp.scratch/test.md:102: '/iiimport_check/example/output/basicccc.png' does not exist
 
 # linted file
 - Markdown-style link with a text label
