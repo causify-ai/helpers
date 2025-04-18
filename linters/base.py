@@ -370,8 +370,10 @@ def _lint(
         # Annotate each lint with a [tag] specifying the action name.
         cur_action_lints = [lnt + f" [{action_name}]" for lnt in cur_action_lints]
         lints.extend(cur_action_lints)
-    if not hserver.is_inside_ci():
+    in_tmp_scratch_dir = liutils.is_under_tmp_scratch_dir(file_path)
+    if not hserver.is_inside_ci() and not in_tmp_scratch_dir:
         # Stage the linted file for commit if Linter was run manually (not within CI).
+        # Skip staging files in `tmp.scratch` dir as they are temporary.
         cmd = f"git add {file_path}"
         hsystem.system(cmd)
     return lints
