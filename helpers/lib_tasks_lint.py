@@ -202,7 +202,7 @@ def lint(  # type: ignore
     > i lint --files="dir1/file1.py dir2/file2.md"
 
     # To lint the files changed in the last commit, excluding specific files:
-    > i lint --last-commit --skip_files="dir1/file1.py dir2/file2.md"
+    > i lint --last-commit --skip-files="dir1/file1.py dir2/file2.md"
 
     # To lint all the files in the current dir using only formatting actions:
     > i lint --dir-name . --only-format
@@ -217,7 +217,7 @@ def lint(  # type: ignore
     :param stage: the image stage to use (e.g., "prod", "dev", "local")
     :param version: the version of the container to use
     :param files: specific files to lint (e.g. "dir1/file1.py dir2/file2.md")
-    :param skip_files: specific files to skip during lint (e.g. "dir1/file1.py dir2/file2.md")
+    :param skip_files: specific files to skip during linting (e.g. "dir1/file1.py dir2/file2.md")
     :param dir_name: name of the dir where all files should be linted
     :param modified: lint the files modified in the current git client
     :param last_commit: lint the files modified in the previous commit
