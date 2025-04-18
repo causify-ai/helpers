@@ -195,7 +195,6 @@ def _docker_tag_and_push_multi_arch_image(
     :param target_stage: target stage to push the image as ("dev" or
         "prod")
     """
-    hlitauti.report_task(container_dir_name=container_dir_name)
     hlitadoc.docker_login(ctx, target_registry)
     # Get version string.
     if stage == "local":
@@ -569,6 +568,7 @@ def docker_tag_push_multi_arch_local_image_as_dev(  # type: ignore
         - "aws_ecr.ck": private AWS CK ECR
     :param container_dir_name: directory where the Dockerfile is located
     """
+    hlitauti.report_task(container_dir_name=container_dir_name)
     _docker_tag_and_push_multi_arch_image(
         ctx,
         version,
@@ -843,6 +843,7 @@ def docker_tag_push_multi_arch_prod_image(  # type: ignore
         - "aws_ecr.ck": private AWS CK ECR
     :param container_dir_name: directory where the Dockerfile is located
     """
+    hlitauti.report_task(container_dir_name=container_dir_name)
     _docker_tag_and_push_multi_arch_image(
         ctx,
         version,
