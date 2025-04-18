@@ -6,7 +6,7 @@
 - [HiringMeister](#hiringmeister)
 - [Step by step](#step-by-step)
 - [Warm-up tasks](#warm-up-tasks)
-- [Intern scoring](#intern-scoring)
+- [Giving feedback](#giving-feedback)
 
 <!-- tocstop -->
 
@@ -203,19 +203,11 @@
       understanding of our process
   - [Outsourceable issues gdoc](https://docs.google.com/document/d/1uuezdmcsV9TG2YwXGvEd0PBgWScCpR-QPOcySI5LPIA/edit#heading=h.vcvkivfud7be)
 
-## Intern scoring
+## Giving feedback
 
-- The interns are scored every 2 weeks
-- Scoring criteria and template are defined in detail in
-  [`all.contributor_scoring.how_to_guide.md`](/docs/work_organization/all.contributor_scoring.how_to_guide.md)
-  - Not all the criteria are used for scoring the interns
-  - See, e.g.,
-    [Scoring sheet](https://docs.google.com/spreadsheets/d/1eIzQnUZFiCAei4_vYnNWc_wDRfpSHgCdDmIeqnDm78Y),
-    [Internships - Feedback 2024](https://docs.google.com/spreadsheets/d/1FCuM3dPP3QZCT7iOHSKXls-maSZ0Mwj7BjsbaUq-T0Y/edit?gid=1816709202#gid=1816709202)
-  - See also the guidelines for the
-    [performance feedback for full-time team members](https://docs.google.com/document/d/1wkG7c8LYhCnBINDRTpWcCLEQ5E9cW_A_bt4jr-Vxy64/edit#heading=h.16akje28vcjx),
-    for what is generally expected of our employees
-- The scoring should be done by all members of the hiring team
-- The final score of the intern is the average score of all the team members
-- The final scores are delivered to the interns every 2 weeks
+- Every 2 weeks interns are provided feedback that includes scores given to
+  their skills and performance
+- The process and scoring criteria are defined in
+  [`all.contributor_feedback.how_to_guide.md`](/docs/work_organization/all.contributor_feedback.how_to_guide.md)
+- Scoring should be done by all members of the hiring team
 - Interns with a low score should be let go
