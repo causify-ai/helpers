@@ -69,7 +69,7 @@
   # Run only fast tests.
   > i run_fast_tests
   # Run only slow tests.
-  > i run_slow_test
+  > i run_slow_tests
   # Run only superslow tests.
   > i run_superslow_tests
   ```

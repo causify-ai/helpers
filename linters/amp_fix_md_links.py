@@ -304,7 +304,7 @@ def fix_links(file_name: str) -> Tuple[List[str], List[str], List[str]]:
     docstring_line_indices = hstring.get_docstring_line_indices(lines)
     updated_lines: List[str] = []
     warnings: List[str] = []
-    for i, line in enumerate(lines):
+    for i, line in enumerate(lines, start=1):
         updated_line = line
         # Check the formatting.
         # HTML-style links.
