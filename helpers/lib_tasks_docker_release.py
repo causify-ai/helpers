@@ -15,6 +15,7 @@ from invoke import task
 # this code needs to run with minimal dependencies and without Docker.
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
+import helpers.hio as hio
 import helpers.hs3 as hs3
 import helpers.hsystem as hsystem
 import helpers.lib_tasks_docker as hlitadoc
@@ -613,6 +614,19 @@ def docker_build_prod_image(  # type: ignore
     opts = "--no-cache" if not cache else ""
     # Use dev version for building prod image.
     dev_version = hlitadoc.to_dev_version(prod_version)
+    # Copy source code.
+    current_dir = _to_abs_path(".")
+    tmp_dir = "tmp.docker_build_prod_image"
+    hio.create_dir(tmp_dir, incremental=False)
+    # Copy the source code and deference all the symbolic links.
+    cmd = f"rsync -rL --exclude='{tmp_dir}' {current_dir}/* ./{tmp_dir}"
+    hsystem.system(cmd)
+    # Copy helpers.
+    helpers_root = hgit.find_helpers_root()
+    helpers_dir = _to_abs_path(helpers_root)
+    cmd = f"cp -rL {helpers_dir}/helpers ./{tmp_dir}/"
+    hsystem.system(cmd)
+    #
     cmd = rf"""
     DOCKER_BUILDKIT={DOCKER_BUILDKIT} \
     time \
@@ -637,6 +651,8 @@ def docker_build_prod_image(  # type: ignore
         #
         cmd = f"docker image ls {image_prod}"
     hlitauti.run(ctx, cmd)
+    # Delete the temporary deployment directory.
+    hio.delete_dir(tmp_dir)
 
 
 # TODO(gp): Remove redundancy with docker_build_local_image(), if possible.
