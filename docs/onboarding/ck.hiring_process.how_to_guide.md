@@ -146,7 +146,7 @@
 
 - HiringMeister: update the Asana task for the intern
   - Move to the "Onboarding" section
-  - Add a section to track this intern's issues and PRs
+  - Add a section to track the intern's issues and PRs
 
     ```verbatim
     GitHub:
