@@ -128,6 +128,13 @@ def _is_under_dir(file_name: str, dir_name: str) -> bool:
     return dir_name in subdir_names
 
 
+def is_under_tmp_scratch_dir(file_name: str) -> bool:
+    """
+    Return whether a file is under the temporary scratch directory.
+    """
+    return _is_under_dir(file_name, "tmp.scratch")
+
+
 def is_under_test_dir(file_name: str) -> bool:
     """
     Return whether a file is under a test directory (which is called "test").
