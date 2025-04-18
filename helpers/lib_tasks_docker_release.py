@@ -930,7 +930,7 @@ def docker_release_prod_image(  # type: ignore
     _LOG.info("==> SUCCESS <==")
 
 
-@task(iterable=["docker_registries"])
+@task(iterable=["docker_registry"])
 def docker_release_multi_arch_prod_image(
     ctx,
     version,
@@ -940,11 +940,11 @@ def docker_release_multi_arch_prod_image(
     slow_tests=True,
     superslow_tests=False,
     qa_tests=True,
-    docker_registries=None,
+    docker_registry=None,
     container_dir_name=".",
 ):
     """
-    Build, test, and release to Docker registries the multi-aech prod image.
+    Build, test, and release to Docker registries the multi-arch prod image.
     :param ctx: invoke context
     :param version: version to tag the image and code with
     :param cache: use the cache
@@ -953,21 +953,21 @@ def docker_release_multi_arch_prod_image(
     :param slow_tests: run slow tests, unless all tests skipped
     :param superslow_tests: run superslow tests, unless all tests skipped
     :param qa_tests: run QA tests (e.g., end-to-end linter tests)
-    :param docker_registries: list of Docker image registries to push the image to
+    :param docker_registry: list of Docker image registries to push the image to
         Example usage:
         > invoke docker_release_multi_arch_prod_image \
             --version 1.2.0
-            --docker-registries dockerhub.causify \
-            --docker-registries aws_ecr.ck
+            --docker-registry dockerhub.causify \
+            --docker-registry aws_ecr.ck
     :param container_dir_name: directory where the Dockerfile is located
     """
     hlitauti.report_task()
     # The default value for iterative task parameter will be an empty list.
     # https://docs.pyinvoke.org/en/stable/concepts/invoking-tasks.html#iterable-flag-values
-    if len(docker_registries) == 0:
-        docker_registries = [_DEFAULT_TARGET_REGISTRY]
+    if len(docker_registry) == 0:
+        docker_registry = [_DEFAULT_TARGET_REGISTRY]
         _LOG.warning(
-            "No Docker registries provided, using default: %s", docker_registries
+            "No Docker registries provided, using default: %s", docker_registry
         )
     # 1) Build prod image.
     docker_build_multi_arch_prod_image(
@@ -995,11 +995,11 @@ def docker_release_multi_arch_prod_image(
     if qa_tests:
         hlitapyt.run_qa_tests(ctx, stage=stage, version=version)
     # 4) Push prod image.
-    for target_registry in docker_registries:
+    for registry in docker_registry:
         docker_tag_push_multi_arch_prod_image(
             ctx,
             version=version,
-            target_registry=docker_registries,
+            target_registry=registry,
             container_dir_name=container_dir_name,
         )
     _LOG.info("==> SUCCESS <==")
