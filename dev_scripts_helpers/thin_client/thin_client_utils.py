@@ -45,15 +45,15 @@ def get_home_dir() -> str:
     return home_dir
 
 
-def get_thin_environment_dir(dir_prefix: str) -> str:
+def get_thin_environment_dir(dir_suffix: str) -> str:
     git_root_dir = get_git_root_dir()
-    thin_environ_dir = f"{git_root_dir}/dev_scripts_{dir_prefix}/thin_client"
+    thin_environ_dir = f"{git_root_dir}/dev_scripts_{dir_suffix}/thin_client"
     return thin_environ_dir
 
 
-def get_venv_dir(dir_prefix: str) -> str:
+def get_venv_dir(dir_suffix: str) -> str:
     home_dir = get_home_dir()
-    venv_dir = f"{home_dir}/src/venv/client_venv.{dir_prefix}"
+    venv_dir = f"{home_dir}/src/venv/client_venv.{dir_suffix}"
     return venv_dir
 
 
@@ -235,7 +235,7 @@ def _create_repo_tmux(
 def create_tmux_session(
     parser: argparse.ArgumentParser,
     script_path: str,
-    dir_prefix: str,
+    dir_suffix: str,
     setenv_path: str,
     # TODO(Juraj): deprecate the var, the behavior is now inferred.
     has_subrepo: bool,
@@ -244,7 +244,7 @@ def create_tmux_session(
     Creates a new tmux session or attaches to an existing one.
 
     This function checks if a tmux session with the given name (derived from
-    `dir_prefix` and `index` argument) already exists. If it does, the function
+    `dir_suffix` and `index` argument) already exists. If it does, the function
     either attaches to the existing session or destroys it and creates a new
     one, based on the `force_restart` argument. If the session does not exist, a
     new one is created.
@@ -254,7 +254,7 @@ def create_tmux_session(
 
     :param parser: Argument parser object.
     :param script_path: Path to the script file.
-    :param dir_prefix: Prefix for the directory and tmux session name.
+    :param dir_suffix: Prefix for the directory and tmux session name.
     :param setenv_path: Path to the shell script for setting up the environment.
     :param has_subrepo: Flag indicating if the project has a subrepository.
     """
@@ -266,14 +266,14 @@ def create_tmux_session(
     if args.create_global_link:
         _LOG.info("Creating the global link")
         hdbg.dassert_file_exists(script_path)
-        cmd = f"ln -sf {script_path} ~/go_{dir_prefix}.py"
+        cmd = f"ln -sf {script_path} ~/go_{dir_suffix}.py"
         system(cmd)
         _LOG.info("Link created: exiting")
         sys.exit(0)
     #
     hdbg.dassert_is_not(args.index, None, "Need to specify --index")
     idx = int(args.index)
-    tmux_name = f"{dir_prefix}{idx}"
+    tmux_name = f"{dir_suffix}{idx}"
     _LOG.info("tmux_name=%s", tmux_name)
     #
     _LOG.debug("Checking if the tmux session '%s' already exists", tmux_name)
