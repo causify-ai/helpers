@@ -320,7 +320,11 @@ def docker_build_local_image(  # type: ignore
     :param cleanup_installation: force clean up Docker installation. This can
         be disabled to speed up the build process
     """
-    # Build the local image.
+    hlitauti.report_task(container_dir_name=container_dir_name)
+    # For poetry_mode="update", the `poetry.lock` file is updated and saved as
+    # `/install/poetry.lock.out` to the container.
+    # For poetry_mode="no_update", the `poetry.lock` file from the repo is used,
+    # and it's passed as `/install/poetry.lock.in` to the container.
     hdbg.dassert_in(poetry_mode, ("update", "no_update"))
     if just_do_it:
         _LOG.warning("Skipping subsequent version check")
