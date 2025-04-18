@@ -345,7 +345,7 @@ class Test_fix_links(hunitest.TestCase):
         output = _get_output_string(out_warnings, updated_lines)
         self.check_string(output, purify_text=True)
 
-  def test12(self) -> None:
+    def test12(self) -> None:
         """
         Test Markdown files with external links.
         """
@@ -374,7 +374,7 @@ class Test_fix_links(hunitest.TestCase):
         output = _get_output_string(out_warnings, updated_lines)
         self.check_string(output, purify_text=True)
 
-  def test13(self) -> None:
+    def test13(self) -> None:
         """
         Test files without Markdown hyperlinks.
         """
@@ -406,7 +406,7 @@ class Test_fix_links(hunitest.TestCase):
         output = _get_output_string(out_warnings, updated_lines)
         self.check_string(output, purify_text=True)
 
-  def test14(self) -> None:
+    def test14(self) -> None:
         """
         Test Markdown files in triple backticks.
         """
@@ -425,7 +425,7 @@ class Test_fix_links(hunitest.TestCase):
         output = _get_output_string(out_warnings, updated_lines)
         self.check_string(output, purify_text=True)
   
-  def test15(self) -> None:
+    def test15(self) -> None:
         """
         Test HTML style image links.
         """
@@ -452,7 +452,7 @@ class Test_fix_links(hunitest.TestCase):
         output = _get_output_string(out_warnings, updated_lines)
         self.check_string(output, purify_text=True)
 
-  def test16(self) -> None:
+    def test16(self) -> None:
         """
         Test Markdown style image links.
         """
