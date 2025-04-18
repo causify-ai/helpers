@@ -113,7 +113,7 @@
   docker_rollback_prod_image                            Rollback the version of the prod image.
   docker_stats                                          Report last started Docker container stats, e.g., CPU, RAM.
   docker_tag_local_image_as_dev                         Mark the "local" image as "dev".
-  docker_tag_push_multi_build_local_image_as_dev        Mark the multi-arch "local" image as "dev" and push it.
+  docker_tag_push_multi_arch_local_image_as_dev         Mark the multi-arch "local" image as "dev" and push it.
   docker_update_prod_task_definition                    Update image in prod task definition to the desired version.
 
   find                                                  Find symbols, imports, test classes and so on.
