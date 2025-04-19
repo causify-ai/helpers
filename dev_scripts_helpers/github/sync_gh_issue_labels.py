@@ -63,6 +63,53 @@ class Label:
     def __repr__(self):
         return f"label(name='{self.name}', description='{self.description}', color='{self.color}')"
 
+    # #########################################################################
+    # Label loading/saving
+    # #########################################################################
+
+    @staticmethod
+    def load_labels(path: str) -> List["Label"]:
+        """
+        Load labels from label inventory manifest file.
+
+        :param path: path to label inventory manifest file
+        :return: label objects
+        """
+        with open(path, "r", encoding="utf-8") as file:
+            yaml_data = yaml.safe_load(file)
+            labels = [
+                Label(
+                    name=item["name"],
+                    description=item["description"],
+                    color=item["color"],
+                )
+                for item in yaml_data
+            ]
+            return labels
+
+    @staticmethod
+    def save_labels(labels: List["Label"], path: str) -> None:
+        """
+        Save labels to the label inventory manifest file.
+
+        :param labels: label objects
+        :param path: path to save the label inventory manifest file to
+        """
+        with open(path, "w", encoding="utf-8") as file:
+            labels_data = [
+                Label(
+                    name=label.name,
+                    description=label.description if label.description else None,
+                    color=label.color,
+                ).to_dict()
+                for label in labels
+            ]
+            # Set `default_flow_style=False` to use block style instead of
+            # flow style for better readability.
+            yaml.dump(
+                labels_data, file, default_flow_style=False, sort_keys=False
+            )
+
     @property
     def name(self) -> str:
         return self._name
@@ -86,49 +133,6 @@ class Label:
             "description": self._description,
             "color": self._color,
         }
-
-
-# TODO(*): GSI. Move to `Label` class as static method.
-def _load_labels(path: str) -> List[Label]:
-    """
-    Load labels from label inventory manifest file.
-
-    :param path: path to label inventory manifest file
-    :return: label objects
-    """
-    with open(path, "r") as file:
-        yaml_data = yaml.safe_load(file)
-        labels = [
-            Label(
-                name=item["name"],
-                description=item["description"],
-                color=item["color"],
-            )
-            for item in yaml_data
-        ]
-        return labels
-
-
-# TODO(*): GSI. Move to `Label` class as static method.
-def _save_labels(labels: List[Label], path: str) -> None:
-    """
-    Save labels to the label inventory manifest file.
-
-    :param labels: label objects
-    :param path: path to save the label inventory manifest file to
-    """
-    with open(path, "w") as file:
-        labels_data = [
-            Label(
-                name=label.name,
-                description=label.description if label.description else None,
-                color=label.color,
-            ).to_dict()
-            for label in labels
-        ]
-        # Set `default_flow_style=False` to use block style instead of
-        # flow style for better readability.
-        yaml.dump(labels_data, file, default_flow_style=False, sort_keys=False)
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -179,7 +183,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Load labels from label inventory manifest file.
-    labels = _load_labels(args.input_file)
+    labels = Label.load_labels(args.input_file)
     labels_map = {label.name: label for label in labels}
     token = os.environ[args.token_env_var]
     hdbg.dassert(token)
@@ -196,7 +200,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         git_root_dir = hgit.get_client_root(False)
         file_name = f"tmp.labels.{args.owner}.{args.repo}.yaml"
         file_path = f"{git_root_dir}/{file_name}"
-        _save_labels(current_labels, file_path)
+        Label.save_labels(current_labels, file_path)
         _LOG.info("Labels backed up to %s", file_path)
     else:
         _LOG.warning("Skipping saving labels as per user request")
