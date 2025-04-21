@@ -104,7 +104,6 @@
   docker_pull                                           Pull latest dev image corresponding to the current repo from the registry.
   docker_pull_helpers                                   Pull latest prod image of `helpers` from the registry.
   docker_push_dev_image                                 Push the "dev" image to ECR.
-  docker_push_prod_candidate_image                      (ONLY CI/CD) Push the "prod" candidate image to ECR.
   docker_push_prod_image                                Push the "prod" image to ECR.
   docker_release_dev_image                              Build, test, and release to ECR the latest "dev" image.
   docker_release_multi_build_dev_image                  Build, test, and release the latest multi-arch "dev" image.
