@@ -53,6 +53,7 @@ import linters.amp_mypy as lampmypy
 import linters.amp_normalize_import as lamnoimp
 import linters.amp_processjupytext as lampproc
 import linters.amp_pylint as lamppyli
+import linters.amp_remove_empty_lines_in_function as larelinfu
 import linters.amp_warn_incorrectly_formatted_todo as lawifoto
 import linters.utils as liutils
 
@@ -64,17 +65,19 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-def _filter_files(file_paths: List[str]) -> List[str]:
+def _filter_files(file_paths: List[str], file_paths_to_skip: List[str]) -> List[str]:
     """
-    Filter the list of files to be linted.
+    Filter the list of files by removing invalid or excluded ones.
 
     The following files are skipped:
     - Files that do not exist
     - Non-files (directories)
     - Ipynb checkpoints
     - Input and output files in unit tests
+    - Files explicitly excluded by the user
 
-    :param file_paths: all the original files to be linted
+    :param file_paths: all the original files to validate and filter
+    :param file_paths_to_skip: files to exclude from processing
     :return: files that passed the filters
     """
     file_paths_to_keep: List[str] = []
@@ -87,6 +90,8 @@ def _filter_files(file_paths: List[str]) -> List[str]:
         is_valid &= ".ipynb_checkpoints/" not in file_path
         # Skip input and output files used in unit tests.
         is_valid &= not liutils.is_test_input_output_file(file_path)
+        # Skip files explicitly excluded by user.
+        is_valid &= file_path not in file_paths_to_skip
         if is_valid:
             file_paths_to_keep.append(file_path)
         else:
@@ -126,8 +131,12 @@ def _get_files_to_lint(args: argparse.Namespace) -> List[str]:
         cmd = f"find {dir_name} -name '*' -type f"
         _, output = hsystem.system_to_string(cmd)
         file_paths = output.split("\n")
+    file_paths_to_skip: List[str] = []
+    if args.skip_files:
+        # Get the files to skip during linting.
+        file_paths_to_skip = args.skip_files
     # Remove files that should not be linted.
-    file_paths = _filter_files(file_paths)
+    file_paths = _filter_files(file_paths, file_paths_to_skip)
     if len(file_paths) < 1:
         _LOG.warning("No files that can be linted were found")
     return file_paths
@@ -217,6 +226,11 @@ _MODIFYING_ACTIONS: List[Tuple[str, str, Type[liaction.Action]]] = [
     #    "Reflows, capitalizes and adds punctuation to comment lines",
     #    lamficom._FixComment,  # pylint: disable=protected-access
     # ),
+    (
+        "remove_empty_lines_in_function",
+        "Removes empty lines in functions",
+        larelinfu._RemoveEmptyLines,  # pylint: disable=protected-access
+    ),
     (
         "black",
         "Runs `black` to format the code",
@@ -356,8 +370,10 @@ def _lint(
         # Annotate each lint with a [tag] specifying the action name.
         cur_action_lints = [lnt + f" [{action_name}]" for lnt in cur_action_lints]
         lints.extend(cur_action_lints)
-    if not hserver.is_inside_ci():
+    in_tmp_scratch_dir = liutils.is_under_tmp_scratch_dir(file_path)
+    if not hserver.is_inside_ci() and not in_tmp_scratch_dir:
         # Stage the linted file for commit if Linter was run manually (not within CI).
+        # Skip staging files in `tmp.scratch` dir as they are temporary.
         cmd = f"git add {file_path}"
         hsystem.system(cmd)
     return lints
@@ -443,6 +459,12 @@ def _parse() -> argparse.ArgumentParser:
         "--branch",
         action="store_true",
         help="Select files modified in the current branch with respect to master",
+    )
+    parser.add_argument(
+        "--skip_files",
+        nargs="+",
+        type=str,
+        help="Files to skip during linting"
     )
     # Action selection.
     parser.add_argument(
