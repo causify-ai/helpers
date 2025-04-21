@@ -1044,6 +1044,7 @@ def _run_coverage_suite(
     xml_file = f"coverage_{suite}.xml"
     commands: List[str] = [
         "coverage erase",
+        f"coverage combine --keep {data_file}"
         f"coverage report --include={include} --sort=Cover"
         + (f" --omit={exclude}" if exclude else ""),
     ]
