@@ -6,6 +6,7 @@ Import as:
 import helpers.hserver as hserver
 """
 
+import platform
 import functools
 import logging
 import os
@@ -618,6 +619,10 @@ def docker_needs_sudo() -> bool:
     """
     Return whether Docker commands need to be run with sudo.
     """
+    # TODO(gp): Remove this as per HelpersTask578
+    if os.path.exists("/.dockerenv"):
+        # Skip check when we're inside a Docker container
+        return False
     if not has_docker():
         return False
     # Another way to check is to see if your user is in the docker group:
