@@ -1037,23 +1037,20 @@ def _run_coverage_suite(
     :return: filename of the suite-specific coverage data file
     """
     data_file = f".coverage_{suite}_tests"
+    xml_file = f"coverage_{suite}.xml"
     test_cmd = f"invoke run_{suite}_tests --coverage -p {target_dir}"
     hlitauti.run(ctx, test_cmd, use_system=False)
     hsystem.system(f"mv .coverage {data_file}")
     include, exclude = _get_inclusion_settings(target_dir)
-    xml_file = f"coverage_{suite}.xml"
-    commands: List[str] = [
-        "coverage erase",
-        f"coverage combine --keep {data_file}"
-        f"coverage report --include={include} --sort=Cover"
-        + (f" --omit={exclude}" if exclude else ""),
-    ]
+    commands: List[str] = []
     if generate_html_report:
-        html_cmd = f"coverage html --include={include}" + (
-            f" --omit={exclude}" if exclude else ""
+        html_cmd = (
+            f"coverage html --data-file {data_file} --include={include}"
+            + (f" --omit={exclude}" if exclude else "")
         )
         commands.append(html_cmd)
-    commands.append(f"coverage xml -o {xml_file}")
+    xml_cmd = f"coverage xml --data-file {data_file} --output {xml_file}"
+    commands.append(xml_cmd)
     full_cmd = " && ".join(commands)
     docker_cmd = f"invoke docker_cmd --use-bash --cmd '{full_cmd}'"
     hlitauti.run(ctx, docker_cmd)
