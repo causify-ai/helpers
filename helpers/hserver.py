@@ -6,7 +6,6 @@ Import as:
 import helpers.hserver as hserver
 """
 
-import platform
 import functools
 import logging
 import os
@@ -943,7 +942,7 @@ def run_docker_as_root() -> bool:
         # outside.
         ret = False
     elif is_external_linux():
-        ret = False
+        ret = True
     elif is_inside_ci():
         # When running as user in GH action we get an error:
         # ```
