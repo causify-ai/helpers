@@ -64,6 +64,48 @@ def _get_dev_version(version: str, container_dir_name: str) -> str:
 
 def _create_multiarch_builder(
     ctx: Any,
+    platform_builder_name: str = "multiarch_builder",
+) -> None:
+    """
+    Create a multi-arch builder for Docker buildx.
+
+    :param ctx: invoke context
+    :param platform_builder_name: name to assign to the builder
+    """
+    # Create a multi-arch builder.
+    cmd = rf"""
+    docker buildx rm {platform_builder_name}
+    """
+    # We do not abort on error since the platform builder might be present
+    # or not from previous executions.
+    hsystem.system(cmd, abort_on_error=False)
+    cmd = rf"""
+    docker buildx create \
+        --name {platform_builder_name} \
+        --driver docker-container \
+        --bootstrap \
+        && \
+        docker buildx use {platform_builder_name}
+    """
+    hlitauti.run(ctx, cmd)
+
+
+def _pull_docker_image(
+    ctx: Any,
+    image_name: str,
+) -> None:
+    """
+    Pull a Docker image from a registry.
+
+    :param ctx: invoke context
+    :param image_name: name of the image to pull
+    """
+    cmd = f"docker pull {image_name}"
+    hlitauti.run(ctx, cmd)
+
+
+def _build_multi_arch_image(
+    ctx: Any,
     opts: str,
     multi_arch: str,
     build_args: str,
@@ -71,39 +113,17 @@ def _create_multiarch_builder(
     dockerfile: str,
 ) -> None:
     """
-    Create a multi-arch builder and build the image for multiple architectures.
+    Build a multi-architecture Docker image.
 
     :param ctx: invoke context
     :param opts: build options (e.g., --no-cache)
-    :param multi_arch: target architectures to build for
+    :param multi_arch: target architectures to build for (e.g.,
+        "linux/amd64,linux/arm64")
     :param build_args: build arguments for the Docker build command
     :param image_local: name of the local image to build
     :param dockerfile: path to the Dockerfile to use for building
     """
-    # Login to AWS ECR because for multi-arch we need to build the local
-    # image remotely.
-    hlitadoc.docker_login(ctx)
-    # Create a multi-arch builder.
-    platform_builder = "multiarch_builder"
-    cmd = rf"""
-    docker buildx rm {platform_builder}
-    """
-    # We do not abort on error since the platform builder might be present
-    # or not from previous executions.
-    hsystem.system(cmd, abort_on_error=False)
-    cmd = rf"""
-    docker buildx create \
-        --name {platform_builder} \
-        --driver docker-container \
-        --bootstrap \
-        && \
-        docker buildx use {platform_builder}
-    """
-    hlitauti.run(ctx, cmd)
-    # Build.
-    # Compress the current directory (in order to dereference symbolic
-    # links) into a tar stream and pipes it to the `docker build` command.
-    # See HelpersTask197.
+    # Build the multi-arch image.
     cmd = rf"""
     tar -czh . | DOCKER_BUILDKIT={DOCKER_BUILDKIT} \
         time \
@@ -117,20 +137,17 @@ def _create_multiarch_builder(
         -
     """
     hlitauti.run(ctx, cmd)
-    # Pull the image from registry.
-    cmd = rf"""
-    docker pull {image_local}
-    """
-    hlitauti.run(ctx, cmd)
 
 
 def _list_image(ctx: Any, repository_tag: str) -> None:
     """
-    List a specific Docker image with the given tag.
+    List Docker image.
 
     :param ctx: invoke context
-    :param repository_tag: docker image reference in REPOSITORY[:TAG]
-        format, e.g. "myapp:1.4.2" or "myapp"
+    :param repository_tag: docker image reference in REPOSITORY[:TAG] format
+        - E.g.,`*****.dkr.ecr.us-east-1.amazonaws.com/amp:dev-1.0.0`,
+        `*****.dkr.ecr.us-east-1.amazonaws.com/amp:dev`
+        `sorrentum/cmamp:dev-1.0.0`, `ghcr.io/cryptokaizen/cmamp:prod`
     """
     cmd = f"docker image ls {repository_tag}"
     hlitauti.run(ctx, cmd)
@@ -221,7 +238,7 @@ def _docker_tag_and_push_multi_arch_image(
         raise ValueError(
             f"Invalid target Docker image registry='{target_registry}'"
         )
-    # Tag and push the base image as versioned target image
+    # Tag and push the base image as versioned target image.
     target_versioned_image = hlitadoc.get_image(
         target_base_image, target_stage, image_stage_version
     )
@@ -236,24 +253,39 @@ def _docker_tag_and_push_multi_arch_image(
     hlitauti.run(ctx, cmd)
 
 
-def _rollback_image(
-    ctx: Any, version: str, push_to_repo: bool, stage: str
+# TODO(gp): We moved away from versioning of the prod image because we release
+# continuously and so it's easier to track the hash.
+
+
+def _docker_rollback_image(
+    ctx: Any,
+    base_image: str,
+    stage: str,
+    version: str,
+    push_to_repo: bool = False,
 ) -> None:
     """
-    Rollback an image to a specific version and optionally push it to the
-    registry.
+    Rollback the versioned image for a particular stage and optionally push it
+    to the registry.
 
     :param ctx: invoke context
-    :param version: version to rollback to
+    :param base_image: e.g., *****.dkr.ecr.us-east-1.amazonaws.com/amp
+    :param stage: select a specific stage for the Docker image
+    :param version: version to tag the image and code with
     :param push_to_repo: whether to push the rolled back image to the
         registry
-    :param stage: image stage to rollback ("dev" or "prod")
     """
-    # 1) Ensure that version of the image exists locally
-    hlitadoc._docker_pull(ctx, base_image="", stage=stage, version=version)
-    # 2) Promote requested image to target stage
-    _docker_rollback_image(ctx, base_image="", stage=stage, version=version)
-    # 3) Push the image to ECR
+    # 1) Ensure that version of the image exists locally.
+    hlitadoc._docker_pull(
+        ctx, base_image=base_image, stage=stage, version=version
+    )
+    # 2) Promote requested image to target stage.
+    image_versioned = hlitadoc.get_image(base_image, stage, version)
+    latest_version = None
+    image_latest = hlitadoc.get_image(base_image, stage, latest_version)
+    cmd = f"docker tag {image_versioned} {image_latest}"
+    hlitauti.run(ctx, cmd)
+    # 3) Push the image to ECR.
     if push_to_repo:
         if stage == "dev":
             docker_push_dev_image(ctx, version=version)
@@ -354,9 +386,17 @@ def docker_build_local_image(  # type: ignore
     build_args = " ".join(f"--build-arg {k}={v}" for k, v in build_args)
     # Build for both a single arch or multi-arch.
     if multi_arch:
-        _create_multiarch_builder(
+        # Login to AWS ECR because for multi-arch we need to build the local
+        # image remotely.
+        hlitadoc.docker_login(ctx)
+        # Create a multi-arch builder.
+        _create_multiarch_builder(ctx)
+        # Build the multi-arch image.
+        _build_multi_arch_image(
             ctx, opts, multi_arch, build_args, image_local, dockerfile
         )
+        # Pull the image from registry after building.
+        _pull_docker_image(ctx, image_local)
     else:
         # Build for a single architecture using `docker build`.
         # Compress the current directory (in order to dereference symbolic
@@ -641,9 +681,10 @@ def docker_release_multi_build_dev_image(  # type: ignore
     # Use the local image because it is not possible to tag a multi-arch
     # image as dev without releasing (pushing) it.
     # The difference between a local and a dev image is just a tag.
+    stage = "local"
     _run_tests(
         ctx,
-        "local",
+        stage,
         dev_version,
         skip_tests,
         fast_tests,
@@ -813,13 +854,20 @@ def docker_build_multi_arch_prod_image(  # type: ignore
         ("ECR_BASE_PATH", os.environ["CSFY_ECR_BASE_PATH"]),
     ]
     build_args = " ".join(f"--build-arg {k}={v}" for k, v in build_args)
+    # Login to AWS ECR because for multi-arch we need to build the local
+    # image remotely.
+    hlitadoc.docker_login(ctx)
+    # Create a multi-arch builder.
+    _create_multiarch_builder(ctx)
     # Build.
     # Compress the current directory (in order to dereference symbolic
     # links) into a tar stream and pipes it to the `docker build` command.
     # See HelpersTask197.
-    _create_multiarch_builder(
-        ctx, opts, multi_arch, build_args, dev_version, dockerfile
+    _build_multi_arch_image(
+        ctx, opts, multi_arch, build_args, image_versioned_prod, dockerfile
     )
+    # Pull the image from registry.
+    _pull_docker_image(ctx, image_versioned_prod)
     _list_image(ctx, image_versioned_prod)
 
 
@@ -1004,28 +1052,6 @@ def docker_release_all(ctx, version, container_dir_name="."):  # type: ignore
     _LOG.info("==> SUCCESS <==")
 
 
-# TODO(gp): We moved away from versioning of the prod image because we release
-# continuously and so it's easier to track the hash.
-
-
-def _docker_rollback_image(
-    ctx: Any, base_image: str, stage: str, version: str
-) -> None:
-    """
-    Rollback the versioned image for a particular stage.
-
-    :param ctx: invoke context
-    :param base_image: e.g., *****.dkr.ecr.us-east-1.amazonaws.com/amp
-    :param stage: select a specific stage for the Docker image
-    :param version: version to tag the image and code with
-    """
-    image_versioned_dev = hlitadoc.get_image(base_image, stage, version)
-    latest_version = None
-    image_dev = hlitadoc.get_image(base_image, stage, latest_version)
-    cmd = f"docker tag {image_versioned_dev} {image_dev}"
-    hlitauti.run(ctx, cmd)
-
-
 @task
 def docker_rollback_dev_image(  # type: ignore
     ctx,
@@ -1045,11 +1071,12 @@ def docker_rollback_dev_image(  # type: ignore
     :param push_to_repo: push the image to the ECR repo
     """
     hlitauti.report_task()
-    _rollback_image(
+    _docker_rollback_image(
         ctx,
-        version,
-        push_to_repo,
+        base_image="",
         stage="dev",
+        version=version,
+        push_to_repo=push_to_repo,
     )
     _LOG.info("==> SUCCESS <==")
 
@@ -1066,7 +1093,13 @@ def docker_rollback_prod_image(  # type: ignore
     Same as parameters and meaning as `docker_rollback_dev_image`.
     """
     hlitauti.report_task()
-    _rollback_image(ctx, version, push_to_repo, stage="prod")
+    _docker_rollback_image(
+        ctx,
+        base_image="",
+        stage="prod",
+        version=version,
+        push_to_repo=push_to_repo,
+    )
     _LOG.info("==> SUCCESS <==")
 
 
