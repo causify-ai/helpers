@@ -1049,12 +1049,11 @@ def _run_coverage_suite(
             + (f" --omit={exclude}" if exclude else "")
         )
         commands.append(html_cmd)
-    xml_cmd = f"coverage xml -o coverage_fast.xml --data-file .coverage_fast_tests"
-    commands.append(xml_cmd)
+    commands.append(f"cp {data_file} .coverage")
+    commands.append(f"coverage xml -o {xml_file}")
     full_cmd = " && ".join(commands)
     docker_cmd = f"invoke docker_cmd --use-bash --cmd '{full_cmd}'"
     hlitauti.run(ctx, docker_cmd)
-    return xml_file
 
 
 @task
