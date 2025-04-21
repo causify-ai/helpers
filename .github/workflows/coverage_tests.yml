@@ -83,7 +83,7 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage_fast.xml
+          files: ./coverage.xml
           flags: fast
           name: fast-test-coverage
           # `fail_ci_if_error: true` instructs the action to mark the CI as failed
@@ -113,7 +113,7 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage_slow.xml
+          files: ./coverage.xml
           flags: slow
           name: slow-test-coverage
           # "fail_ci_if_error: true" causes the job to fail if the upload to Codecov fails,

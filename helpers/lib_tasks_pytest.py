@@ -1006,13 +1006,15 @@ def run_slow_coverage(
 
 def _get_inclusion_settings(target_dir: str) -> Tuple[str, Optional[str]]:
     """
-    Determine include/exclude patterns for coverage based on target_dir.
+    Determine include/omit glob patterns for the coverage report.
 
-    :param target_dir: directory to cover ("." for all directories)
-    :return: (include_pattern, exclude_pattern or None)
+    :param target_dir: directory for coverage stats; use "." to indicate all directories
+    :return: tuple (include_in_report, exclude_from_report) where
+        - include_in_report is the glob pattern to include
+        - exclude_from_report is a comma‑separated glob pattern to omit, or ``None``
     """
     if target_dir == ".":
-        include_in_report = "*"
+        include_in_report: str = "*"
         exclude_from_report: Optional[str] = None
         if hserver.skip_submodules_test():
             submodule_paths: List[str] = hgit.get_submodule_paths()
@@ -1025,8 +1027,11 @@ def _get_inclusion_settings(target_dir: str) -> Tuple[str, Optional[str]]:
     return include_in_report, exclude_from_report
 
 
-def _run_coverage_suite(
-    ctx, suite: str, target_dir: str, generate_html_report: bool = True
+def _run_coverage(
+    ctx,
+    suite: str,
+    target_dir: str,
+    generate_html_report: bool,
 ) -> str:
     """
     Internal helper to run coverage for a given suite (fast/slow) and emit XML.
@@ -1034,26 +1039,39 @@ def _run_coverage_suite(
     :param suite: one of "fast" or "slow"
     :param target_dir: coverage target directory
     :param generate_html_report: whether to produce HTML output
-    :return: filename of the suite-specific coverage data file
+    :return: filename of the suite‑specific coverage data file
     """
-    data_file = f".coverage_{suite}_tests"
-    xml_file = f"coverage_{suite}.xml"
-    test_cmd = f"invoke run_{suite}_tests --coverage -p {target_dir}"
-    hlitauti.run(ctx, test_cmd, use_system=False)
-    hsystem.system(f"mv .coverage {data_file}")
-    include, exclude = _get_inclusion_settings(target_dir)
-    commands: List[str] = []
-    if generate_html_report:
-        html_cmd = (
-            f"coverage html --data-file {data_file} --include={include}"
-            + (f" --omit={exclude}" if exclude else "")
+
+    if suite not in ("fast", "slow"):
+        raise ValueError(
+            f"Unsupported suite='{suite}'. Expected 'fast' or 'slow'."
         )
-        commands.append(html_cmd)
-    commands.append(f"cp {data_file} .coverage")
-    commands.append(f"coverage xml -o {xml_file}")
-    full_cmd = " && ".join(commands)
-    docker_cmd = f"invoke docker_cmd --use-bash --cmd '{full_cmd}'"
-    hlitauti.run(ctx, docker_cmd)
+    test_cmd = f"invoke run_{suite}_tests --coverage -p {target_dir}"
+    coverage_file = f".coverage_{suite}_tests"
+    hlitauti.run(ctx, test_cmd, use_system=False)
+    hsystem.system(f"mv .coverage {coverage_file}")
+    hdbg.dassert_file_exists(coverage_file)
+    include_in_report, exclude_from_report = _get_inclusion_settings(target_dir)
+    report_cmd: List[str] = [
+        "coverage erase",
+        f"coverage combine --keep {coverage_file}",
+    ]
+    report_stats_cmd: str = (
+        f"coverage report --include={include_in_report} --sort=Cover"
+    )
+    if exclude_from_report:
+        report_stats_cmd += f" --omit={exclude_from_report}"
+    report_cmd.append(report_stats_cmd)
+    if generate_html_report:
+        report_html_cmd: str = f"coverage html --include={include_in_report}"
+        if exclude_from_report:
+            report_html_cmd += f" --omit={exclude_from_report}"
+        report_cmd.append(report_html_cmd)
+    report_cmd.append("coverage xml -o coverage.xml")
+    full_report_cmd: str = " && ".join(report_cmd)
+    docker_cmd_: str = f"invoke docker_cmd --use-bash --cmd '{full_report_cmd}'"
+    hlitauti.run(ctx, docker_cmd_)
+    return coverage_file
 
 
 @task
@@ -1061,11 +1079,14 @@ def run_fast_coverage(
     ctx, target_dir: str, generate_html_report: bool = True
 ) -> str:
     """
-    Run fast tests with coverage and produce XML for Codecov.
+    Task wrapper to run *fast* test suite with coverage and emit reports.
+
+    :param ctx: Invoke context
+    :param target_dir: coverage target directory
+    :param generate_html_report: whether to produce HTML output
+    :return: filename of the fast‑suite coverage data file
     """
-    return _run_coverage_suite(
-        ctx, "fast", target_dir, generate_html_report=False
-    )
+    return _run_coverage(ctx, "fast", target_dir, generate_html_report)
 
 
 @task
@@ -1073,11 +1094,14 @@ def run_slow_coverage(
     ctx, target_dir: str, generate_html_report: bool = True
 ) -> str:
     """
-    Run slow tests with coverage and produce XML for Codecov.
+    Task wrapper to run *slow* test suite with coverage and emit reports.
+
+    :param ctx: Invoke context
+    :param target_dir: coverage target directory
+    :param generate_html_report: whether to produce HTML output
+    :return: filename of the slow‑suite coverage data file
     """
-    return _run_coverage_suite(
-        ctx, "slow", target_dir, generate_html_report=False
-    )
+    return _run_coverage(ctx, "slow", target_dir, generate_html_report)
 
 
 # #############################################################################
