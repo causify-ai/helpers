@@ -109,7 +109,7 @@ def _build_multi_arch_image(
     opts: str,
     multi_arch: str,
     build_args: str,
-    image_local: str,
+    build_image: str,
     dockerfile: str,
 ) -> None:
     """
@@ -120,7 +120,7 @@ def _build_multi_arch_image(
     :param multi_arch: target architectures to build for (e.g.,
         "linux/amd64,linux/arm64")
     :param build_args: build arguments for the Docker build command
-    :param image_local: name of the local image to build
+    :param build_image: name of the image to build
     :param dockerfile: path to the Dockerfile to use for building
     """
     # Build the multi-arch image.
@@ -132,7 +132,7 @@ def _build_multi_arch_image(
         --push \
         --platform {multi_arch} \
         {build_args} \
-        --tag {image_local} \
+        --tag {build_image} \
         --file {dockerfile} \
         -
     """
@@ -624,7 +624,6 @@ def docker_tag_push_multi_arch_local_image_as_dev(  # type: ignore
     )
 
 
-# TODO(gp): This needs to be merged with docker_release_dev_image.
 @task
 def docker_release_multi_build_dev_image(  # type: ignore
     ctx,
@@ -714,7 +713,6 @@ def docker_release_multi_build_dev_image(  # type: ignore
 # The prod flow doesn't support multi-arch because we only run on x86 in prod.
 
 
-# TODO(gp): Remove redundancy with docker_build_local_image(), if possible.
 @task
 def docker_build_prod_image(  # type: ignore
     ctx,
@@ -802,8 +800,6 @@ def docker_build_prod_image(  # type: ignore
         _list_image(ctx, image_prod)
 
 
-# TODO(gp): Remove redundancy with docker_build_local_image(), if possible.
-@task
 @task
 def docker_build_multi_arch_prod_image(  # type: ignore
     ctx,
@@ -871,7 +867,6 @@ def docker_build_multi_arch_prod_image(  # type: ignore
     _list_image(ctx, image_versioned_prod)
 
 
-# TODO(Vlad): Refactor with the `docker_tag_push_multi_arch_local_image_as_dev()`.
 @task
 def docker_tag_push_multi_arch_prod_image(  # type: ignore
     ctx,
