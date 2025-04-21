@@ -954,12 +954,12 @@ def docker_release_multi_arch_prod_image(
     :param superslow_tests: run superslow tests, unless all tests skipped
     :param qa_tests: run QA tests (e.g., end-to-end linter tests)
     :param docker_registry: list of Docker image registries to push the image to
+    :param container_dir_name: directory where the Dockerfile is located
         Example usage:
         > invoke docker_release_multi_arch_prod_image \
             --version 1.2.0
             --docker-registry dockerhub.causify \
             --docker-registry aws_ecr.ck
-    :param container_dir_name: directory where the Dockerfile is located
     """
     hlitauti.report_task()
     # The default value for iterative task parameter will be an empty list.
