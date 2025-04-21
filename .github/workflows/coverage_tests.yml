@@ -1,0 +1,119 @@
+name: Test coverage
+
+on:
+  # Run on every push (all branches).
+  push: {}
+  # Run on every pull request.
+  pull_request: {}
+  # Manual trigger
+  workflow_dispatch: {}
+  # Weekly cron (always runs on master under the hood)
+  schedule:
+    - cron: '0 0 * * 1'  # every Monday at 00:00 UTC
+
+env:
+  CSFY_CI: true
+
+permissions:
+  id-token: write
+  contents: read
+  packages: read
+
+jobs:
+  run_test_coverage:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ vars.GH_ACTION_AWS_ROLE_ARN }}
+          role-session-name: ${{ vars.GH_ACTION_AWS_SESSION_NAME }}
+          aws-region: ${{ vars.CSFY_AWS_DEFAULT_REGION }}
+
+      - name: Login to GHCR
+        run: docker login ghcr.io -u gpsaggese -p ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cleanup
+        run: sudo chmod 777 -R .
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update PYTHONPATH
+        run: echo "PYTHONPATH=.:helpers" >> $GITHUB_ENV
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r .github/gh_requirements.txt
+
+      - name: Pull image from GHCR
+        run: docker pull ghcr.io/${{ github.repository }}:dev
+
+      # This step is used to trigger the fast test coverage generation using the invoke task.
+      - name: Run Fast test and generate report
+        env:
+          GH_ACTION_ACCESS_TOKEN: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
+          CSFY_AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
+          CSFY_AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          CSFY_AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
+          CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
+          CSFY_ECR_BASE_PATH: ghcr.io/${{ github.repository_owner }}
+          CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
+        run: invoke run_fast_coverage .
+
+      # After the test run, rename the generated coverage.xml to coverage_fast.xml.
+      # - name: Rename Fast Test Coverage report
+      #   if: always()
+      #   run: mv ./coverage.xml ./coverage_fast.xml
+
+      # This step is used to upload the fast test coverage report file to Codecov.
+      - name: Upload Fast Test Coverage to Codecov
+        # `if: always()` ensures this step runs regardless of prior failures.
+        # It is used here to always attempt uploading the coverage report,
+        # even if earlier steps have failed.
+        if: always()
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage_fast.xml
+          flags: fast
+          name: fast-test-coverage
+          # `fail_ci_if_error: true` instructs the action to mark the CI as failed
+          # if there is any error during the upload to Codecov.
+          fail_ci_if_error: true
+
+      # This step is used to trigger the slow test coverage generation using the invoke task.
+      - name: Run Slow test and generate report
+        env:
+          GH_ACTION_ACCESS_TOKEN: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
+          CSFY_AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
+          CSFY_AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          CSFY_AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
+          CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
+          CSFY_ECR_BASE_PATH: ghcr.io/${{ github.repository_owner }}
+          CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
+        run: invoke run_slow_coverage .
+
+      # # Rename the slow test coverage report to avoid conflict with the fast tests coverage file.
+      # - name: Rename Slow Test Coverage report
+      #   if: always()
+      #   run: mv ./coverage.xml ./coverage_slow.xml
+
+      - name: Upload Slow Test Coverage to Codecov
+        # "if: always()" ensures this step is executed regardless of previous outcomes.
+        if: always()
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage_slow.xml
+          flags: slow
+          name: slow-test-coverage
+          # "fail_ci_if_error: true" causes the job to fail if the upload to Codecov fails,
+          # helping to catch issues with the coverage reporting.
+          fail_ci_if_error: true
