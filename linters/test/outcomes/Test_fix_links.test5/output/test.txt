@@ -1,8 +1,8 @@
 # linter warnings
-$GIT_ROOT/linters/test/outcomes/Test_fix_links.test5/tmp.scratch/valid_header_test.md:0: '$GIT_ROOT/linters/test/outcomes/Test_fix_links.test5/tmp.scratch/reference.md' does not exist
-$GIT_ROOT/linters/test/outcomes/Test_fix_links.test5/tmp.scratch/valid_header_test.md:2: '/docs/markdown_exam.md' does not exist
-$GIT_ROOT/linters/test/outcomes/Test_fix_links.test5/tmp.scratch/valid_header_test.md:4: '$GIT_ROOT/linters/test/outcomes/Test_fix_links.test5/tmp.scratch/reference.md' does not exist
-$GIT_ROOT/linters/test/outcomes/Test_fix_links.test5/tmp.scratch/valid_header_test.md:6: '$GIT_ROOT/linters/test/outcomes/Test_fix_links.test5/tmp.scratch/reference.md' does not exist
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test5/tmp.scratch/valid_header_test.md:1: '$GIT_ROOT/linters/test/outcomes/Test_fix_links.test5/tmp.scratch/reference.md' does not exist
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test5/tmp.scratch/valid_header_test.md:3: '/docs/markdown_exam.md' does not exist
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test5/tmp.scratch/valid_header_test.md:5: '$GIT_ROOT/linters/test/outcomes/Test_fix_links.test5/tmp.scratch/reference.md' does not exist
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test5/tmp.scratch/valid_header_test.md:7: '$GIT_ROOT/linters/test/outcomes/Test_fix_links.test5/tmp.scratch/reference.md' does not exist
 
 # linted file
 Markdown link: [Valid Markdown and header Link]($GIT_ROOT/linters/test/outcomes/Test_fix_links.test5/tmp.scratch/reference.md#introduction)
