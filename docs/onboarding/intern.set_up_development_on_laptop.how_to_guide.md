@@ -36,7 +36,7 @@
     alternative command using HTTP instead of SSH:
 
   ```bash
-  > git clone --recursive https://github.com/causify-ai/{repo_name}.git ~/src/{repo_name}1
+  > git clone --recursive [https://github.com/causify-ai/{repo_name}.git](https://github.com/causify-ai/{repo_name}.git) ~/src/{repo_name}1
   ```
 
 - All the source code should go under `~/src` (e.g., `/Users/<YOUR_USER>/src` on
@@ -150,7 +150,7 @@
 ### Install Docker
 
 - Get familiar with Docker if you are not, e.g.,
-  https://docs.docker.com/get-started/overview/
+  [https://docs.docker.com/get-started/overview/](https://docs.docker.com/get-started/overview/)
 
 - We work in a Docker container that has all the required dependencies installed
   - You can use PyCharm / VSCode on your laptop to edit code, but you want to
@@ -237,7 +237,7 @@
     for the solution
     ```bash
     > docker pull hello-world
-    Got permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get   http://%2Fvar%2Frun%2Fdocker.sock/v1.40/containers/json: dial unix /var/run/docker.sock: connect: permission denied
+    Got permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get   [http://%2Fvar%2Frun%2Fdocker.sock/v1.40/containers/json:](http://%2Fvar%2Frun%2Fdocker.sock/v1.40/containers/json:) dial unix /var/run/docker.sock: connect: permission denied
     ```
 
 ### Add user to Docker group and sudoers
@@ -385,9 +385,9 @@
 
 - To open a Jupyter notebook in a local web-browser:
   - In the output from the cmd above find an assigned port, e.g.,
-    `[I 14:52:26.824 NotebookApp] http://0044e866de8d:10091/` -> port is `10091`
-  - Add the port to the link like so: `http://localhost:10091/` or
-    `http://127.0.0.1:10091`
+    `[I 14:52:26.824 NotebookApp] [http://0044e866de8d:10091/`](http://0044e866de8d:10091/`) -> port is `10091`
+  - Add the port to the link like so:
+    `[http://localhost:10091/`](http://localhost:10091/`) or `[http://127.0.0.1:10091`](http://127.0.0.1:10091`)
   - Copy-paste the link into a web-browser and update the page
 
 ## Hack: use a local container if needed
