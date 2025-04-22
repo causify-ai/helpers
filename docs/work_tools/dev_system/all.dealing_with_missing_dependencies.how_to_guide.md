@@ -47,6 +47,7 @@
     ```
   - A preferred way is to issue a warning if the package is not installed, so
     the user of the script can install it in their environment
+    - TODO(heanh): Replace with the wrapper function. See CmampTask11877.
     ```python
     try:
       import somepackage
@@ -76,7 +77,7 @@
   pytest.importorskip("somepackage")
   ```
 
-TODO(heanh): Replace with wrapper function.
+TODO(heanh): Replace with the wrapper function. See CmampTask11877.
 
 - Use try/catch statement to check if package exists and run the code only if
   they are there when the module is imported
@@ -160,8 +161,8 @@ TODO(heanh): Replace with wrapper function.
   directory so it can build its own container with all the dependencies needed
   to run and be tested
 - A "runnable" dir is more complex to set up than the previous approach
-- It is good for larger projects or parts of a project with many interactivng
-  components that have a large number of dependencies
+- It is good for larger projects or parts of a project with many interacting
+  components that have many dependencies
 - The image can be built and stored in the container registry
 - Some examples of runnable directories:
   - `infra`
