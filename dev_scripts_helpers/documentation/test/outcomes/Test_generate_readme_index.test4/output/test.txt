@@ -1,0 +1,21 @@
+# README for `test/outcomes/Test_generate_readme_index.test4/tmp.scratch`
+
+Below is a list of all Markdown files found under `test/outcomes/Test_generate_readme_index.test4/tmp.scratch`.
+
+## Markdown Index
+
+- **File Name**: docs/guide/new_file.md  
+  **Relative Path**: [docs/guide/new_file.md](docs/guide/new_file.md)  
+  **Summary**: Placeholder summary for docs/guide/new_file.md  
+
+- **File Name**: docs/guide/usage.md  
+  **Relative Path**: [docs/guide/usage.md](docs/guide/usage.md)  
+  **Summary**: Describes how to use the project's key features and available commands. Helps users understand how to interact with the system effectively.  
+
+- **File Name**: docs/intro.md  
+  **Relative Path**: [docs/intro.md](docs/intro.md)  
+  **Summary**: Offers an overview of the project's purpose, goals, and core components. Ideal as a starting point for readers new to the repository.  
+
+- **File Name**: welcome.md  
+  **Relative Path**: [welcome.md](welcome.md)  
+  **Summary**: Welcomes readers to the repository and outlines the structure of documentation. Encourages contributors to explore and engage with the content.  

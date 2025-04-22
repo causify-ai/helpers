@@ -84,7 +84,7 @@ def verify_toc_position(lines: List[str], file_name: str) -> List[str]:
     warnings = []
     # Check for the start TOC markers.
     toc_start_found: bool = False
-    for line_num, line in enumerate(lines):
+    for line_num, line in enumerate(lines, start=1):
         # Check for the start of TOC markers.
         stripped_line = line.strip()
         if TOC_REGEX.match(stripped_line):
