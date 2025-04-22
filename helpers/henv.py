@@ -45,7 +45,7 @@ def has_module(module: str) -> bool:
         import {module}
         has_module_ = True
     except ImportError as e:
-        _LOG.warning("%s: %s", {_WARNING}, str(e))
+        _LOG.warning("%s: %s", _WARNING, str(e))
         has_module_ = False
     """
     code = hprint.dedent(code)

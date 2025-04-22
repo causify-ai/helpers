@@ -14,14 +14,19 @@ if False:
 # prevent import cycles.
 
 import warnings
-import helpers.henv as henv
 
 # From https://docs.python.org/3/library/warnings.html
 
 # TODO(gp): For some reason "once" doesn't work, so we ignore all of the warnings.
 action = "ignore"
 
-_HAS_STATSMODELS = henv.has_module("statsmodels")
+# We can't use `henv.has_module` here because it would create a circular dependency.
+try:
+    import statsmodels
+    _HAS_STATSMODELS = True
+except ImportError:
+    _HAS_STATSMODELS = False
+
 
 if _HAS_STATSMODELS:
     # /venv/lib/python3.8/site-packages/statsmodels/tsa/stattools.py:1910:
@@ -70,10 +75,16 @@ warnings.filterwarnings(
 
 # TODO(gp): Add this TqdmExperimentalWarning
 
-_HAS_PANDAS = henv.has_module("pandas")
+# We can't use `henv.has_module` here because it would create a circular dependency.
+try:
+    import pandas as pd
+
+    _HAS_PANDAS = True
+except ImportError:
+    _HAS_PANDAS = False
+
 
 if _HAS_PANDAS:
-    import pandas as pd
     pd.set_option("mode.chained_assignment", None)
     # TODO(gp): We should fix the issues and re-enable.
     # See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
