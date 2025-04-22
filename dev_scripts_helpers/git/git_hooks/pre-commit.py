@@ -33,6 +33,7 @@ if __name__ == "__main__":
     dsgghout.check_file_size()
     dsgghout.check_words()
     dsgghout.check_python_compile()
+    dsgghout.check_gitleaks()
     print(
         "\n"
         + dsgghout.color_highlight(

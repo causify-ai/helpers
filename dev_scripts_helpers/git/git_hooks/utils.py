@@ -460,3 +460,23 @@ def check_python_compile(
     error = _check_python_compile(file_list)
     # Handle error.
     _handle_error(func_name, error, abort_on_error)
+
+def check_gitleaks(abort_on_error: bool = True):
+    func_name = _report()
+    cmd = "git rev-parse --show-toplevel"
+    _, git_root_dir = _system_to_string(cmd)
+    git_root_dir = git_root_dir.strip()
+    # cmd = """
+    # docker run -v /data/heanhs/src/helpers2:/app zricethezav/gitleaks:latest -c /app/.github/gitleaks-rules.toml git /app --pre-commit --staged
+    # """
+    cmd = f"""
+    docker run -v {git_root_dir}:/app zricethezav/gitleaks:latest -c /app/.github/gitleaks-rules.toml git /app --pre-commit --staged --verbose
+    """
+    _LOG.debug("cmd='%s'", cmd)
+    rc, txt = _system_to_string(cmd, abort_on_error=False)
+    error = False
+    if rc != 0:
+        error = True
+        _LOG.error(txt)
+    # Handle error.
+    _handle_error(func_name, error, abort_on_error)
