@@ -18,7 +18,7 @@ import dev_scripts_helpers.git.git_hooks.pre-commit as dsgghpr
 import logging
 import sys
 
-import dev_scripts_helpers.git.git_hooks.utils as dsgghout
+import dev_scripts_helpers.git.git_hooks.utils as dshgghout
 
 _LOG = logging.getLogger(__name__)
 
@@ -28,15 +28,15 @@ _LOG = logging.getLogger(__name__)
 
 if __name__ == "__main__":
     print("# Running git pre-commit hook ...")
-    dsgghout.check_master()
-    dsgghout.check_author()
-    dsgghout.check_file_size()
-    dsgghout.check_words()
-    dsgghout.check_python_compile()
-    dsgghout.check_gitleaks()
+    dshgghout.check_master()
+    dshgghout.check_author()
+    dshgghout.check_file_size()
+    dshgghout.check_words()
+    dshgghout.check_python_compile()
+    dshgghout.check_gitleaks()
     print(
         "\n"
-        + dsgghout.color_highlight(
+        + dshgghout.color_highlight(
             "##### All pre-commit hooks passed: committing ######", "purple"
         )
     )

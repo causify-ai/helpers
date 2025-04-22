@@ -1,7 +1,7 @@
 """
 Import as:
 
-import dev_scripts_helpers.git.git_hooks.utils as dsgghout
+import dev_scripts_helpers.git.git_hooks.utils as dshgghout
 """
 
 # NOTE: This file should depend only on Python standard libraries.
@@ -461,9 +461,11 @@ def check_python_compile(
     # Handle error.
     _handle_error(func_name, error, abort_on_error)
 
+
 # #############################################################################
 # check_gitleaks
 # #############################################################################
+
 
 def check_gitleaks(abort_on_error: bool = True) -> None:
     """
