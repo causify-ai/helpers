@@ -31,8 +31,8 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 # Phases to install.
-# _GIT_PHASE_HOOKS = ["pre-commit", "commit-msg"]
-_GIT_PHASE_HOOKS = ["pre-commit"]
+_GIT_PHASE_HOOKS = ["pre-commit", "commit-msg"]
+# _GIT_PHASE_HOOKS = ["pre-commit"]
 
 
 def _main() -> None:
