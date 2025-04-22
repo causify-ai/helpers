@@ -1,5 +1,7 @@
+import os
 from typing import List, Tuple
 
+import helpers.hio as hio
 import helpers.hstring as hstring
 import helpers.hunit_test as hunitest
 
@@ -241,3 +243,31 @@ class TestGetCodeBlockLineIndices(hunitest.TestCase):
         """
         expected = ["```", "Test one."]
         self.helper(code, expected)
+
+
+# #############################################################################
+# TestGetDocstrings
+# #############################################################################
+
+
+class TestGetDocstrings(hunitest.TestCase):
+
+    def test1(self) -> None:
+        """
+        Test that grouped lines within docstrings are correctly returned.
+        """
+        # Prepare inputs.
+        test_get_docstring_lines_input_dir = self.get_input_dir()
+        text_file_path = os.path.join(
+            test_get_docstring_lines_input_dir, "test.txt"
+        )
+        text = hio.from_file(text_file_path)
+        lines = text.splitlines()
+        # Run.
+        actual = hstring.get_docstrings(lines)
+        # Check.
+        expected = [
+            [1, 2, 3, 4, 5, 6],
+            [11, 12, 13, 14, 15, 16],
+        ]
+        self.assertEqual(actual, expected)

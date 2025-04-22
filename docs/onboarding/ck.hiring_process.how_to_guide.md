@@ -65,7 +65,7 @@
 
 - Members of the hiring team alternate being the HiringMeister for 2 weeks
 - To see who is the HiringMeister now, refer to
-  [Rotation Meisters](https://docs.google.com/spreadsheets/d/1Ab6a3BVeLX1l1B3_A6rNY9pHRsofeoCw2ip2dkQ6SdA)
+  [Rotation Meisters](https://docs.google.com/spreadsheets/d/12OhDW4hzSLekorrri2WfRkV8h3JcnB8WQd1JEL_n0D8/edit)
 - HiringMeister's duties include:
   - Organizing the hiring and onboarding process (see [below](#step-by-step) for
     more details)
@@ -113,7 +113,7 @@
     ```
   - We use this Asana task to communicate about the applicant
 
-- HiringMeister: send an email to the applicant with a link to the
+- HiringMeister/GP: send an email to the applicant with a link to the
   [questionnaire](https://docs.google.com/forms/d/e/1FAIpQLScWAavYiYj1IfWGP1QEv2jqjKvQKnFjseryhzmIIHZKnZ4HkA/viewform)
   to gather information about them
   - Responses are available
@@ -130,10 +130,30 @@
     profile, we should proceed further in the process
   - It's ok to ask more team members to take a look
   - If the candidate is a no-go, GP sends an email of rejection
+  - If we decide to onboard the candidate, continue with the steps below
+
+- HiringMeister/GP: send an email asking to confirm if they are still interested
+  and ready to go
+  - Proceed with the steps below only if they respond with a confirmation
+
+- HiringMeister/GP: send invitations to GitHub repos with `write` permissions:
+  - [`helpers`](https://github.com/causify-ai/helpers/settings/access)
+  - [`tutorials`](https://github.com/causify-ai/tutorials/settings/access)
 
 - HiringMeister: create a GitHub issue for onboarding the intern
   - Follow the instructions in
     [`intern.onboarding_checklist.reference.md`](/docs/onboarding/intern.onboarding_checklist.reference.md)
+
+- HiringMeister: update the Asana task for the intern
+  - Move to the "Onboarding" section
+  - Add a section to track the intern's issues and PRs
+
+    ```verbatim
+    GitHub:
+      Onboarding issue:
+      Issues:
+      PRs:
+    ```
 
 - HiringMeister: regularly check the updates made by the intern in the
   onboarding issue and help resolve any errors they face
