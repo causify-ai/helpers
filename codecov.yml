@@ -6,3 +6,9 @@ flag_management:
       carryforward: true
     - name: slow
       carryforward: true
+
+comment: false
+coverage:
+  status:
+    project: off
+    patch: off

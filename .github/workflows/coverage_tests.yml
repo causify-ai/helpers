@@ -1,12 +1,12 @@
 name: Test coverage
 
 on:
-  # Only run push builds when master changes
+  # Only run push builds when master changes.
   push:
     branches:
       - master
 
-  # Run on every PR (regardless of source branch)
+  # Run on every PR (regardless of source branch).
   pull_request: {}
 
   workflow_dispatch: {}
@@ -69,12 +69,6 @@ jobs:
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
         run: invoke run_fast_coverage .
 
-      # After the test run, rename the generated coverage.xml to coverage_fast.xml.
-      # - name: Rename Fast Test Coverage report
-      #   if: always()
-      #   run: mv ./coverage.xml ./coverage_fast.xml
-
-      # This step is used to upload the fast test coverage report file to Codecov.
       - name: Upload Fast Test Coverage to Codecov
         # `if: always()` ensures this step runs regardless of prior failures.
         # It is used here to always attempt uploading the coverage report,
@@ -90,7 +84,6 @@ jobs:
           # if there is any error during the upload to Codecov.
           fail_ci_if_error: true
 
-      # This step is used to trigger the slow test coverage generation using the invoke task.
       - name: Run Slow test and generate report
         env:
           GH_ACTION_ACCESS_TOKEN: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
@@ -101,11 +94,6 @@ jobs:
           CSFY_ECR_BASE_PATH: ghcr.io/${{ github.repository_owner }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
         run: invoke run_slow_coverage .
-
-      # # Rename the slow test coverage report to avoid conflict with the fast tests coverage file.
-      # - name: Rename Slow Test Coverage report
-      #   if: always()
-      #   run: mv ./coverage.xml ./coverage_slow.xml
 
       - name: Upload Slow Test Coverage to Codecov
         # "if: always()" ensures this step is executed regardless of previous outcomes.
@@ -118,12 +106,4 @@ jobs:
           name: slow-test-coverage
           # "fail_ci_if_error: true" causes the job to fail if the upload to Codecov fails,
           # helping to catch issues with the coverage reporting.
-          fail_ci_if_error: true
-
-      - name: Upload JUnit results to Codecov
-        if: always()
-        uses: codecov/test-results-action@v1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: reports/junit_fast.xml,reports/junit_slow.xml
           fail_ci_if_error: true
