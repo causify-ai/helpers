@@ -156,7 +156,7 @@ def _run_tests(
     Run tests for a given stage and version.
 
     :param ctx: invoke context
-    :param stage: image stage ("local", "dev", "prod")
+    :param stage: image stage (must be one of "local", "dev", or "prod")
     :param version: version to test
     :param skip_tests: skip all tests if True
     :param fast_tests: run fast tests
@@ -197,9 +197,10 @@ def _docker_tag_and_push_multi_arch_image(
     :param target_registry: target Docker registry to push to (e.g.,
         "aws_ecr.ck" or "dockerhub.causify")
     :param container_dir_name: directory where Dockerfile is located
-    :param stage: source stage of the image ("local" or "prod")
-    :param target_stage: target stage to push the image as ("dev" or
+    :param stage: source stage of the image (must be one of "local" or
         "prod")
+    :param target_stage: target stage to push the image as (must be one
+        of "dev" or "prod")
     """
     hdbg.dassert_in(stage, ("local", "prod"))
     hdbg.dassert_in(target_stage, ("dev", "prod"))
@@ -263,8 +264,8 @@ def _docker_rollback_image(
 
     :param ctx: invoke context
     :param base_image: e.g., *****.dkr.ecr.us-east-1.amazonaws.com/amp
-    :param stage: select a specific stage for the Docker image ("dev" or
-        "prod")
+    :param stage: select a specific stage for the Docker image (must be
+        one of "dev" or "prod")
     :param version: version to tag the image and code with
     :param push_to_repo: whether to push the rolled back image to the
         registry
