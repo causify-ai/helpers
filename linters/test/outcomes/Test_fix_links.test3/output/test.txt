@@ -1,9 +1,9 @@
 # linter warnings
-$GIT_ROOT/linters/test/outcomes/Test_fix_links.test3/tmp.scratch/test_combined.md:0: '/docs/markdown_example.md' does not exist
-$GIT_ROOT/linters/test/outcomes/Test_fix_links.test3/tmp.scratch/test_combined.md:2: '/docs/html_example.md' does not exist
-$GIT_ROOT/linters/test/outcomes/Test_fix_links.test3/tmp.scratch/test_combined.md:4: '/missing_markdown.md' does not exist
-$GIT_ROOT/linters/test/outcomes/Test_fix_links.test3/tmp.scratch/test_combined.md:6: '/missing_html.md' does not exist
-$GIT_ROOT/linters/test/outcomes/Test_fix_links.test3/tmp.scratch/test_combined.md:12: '/nested.md)' does not exist
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test3/tmp.scratch/test_combined.md:1: '/docs/markdown_example.md' does not exist
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test3/tmp.scratch/test_combined.md:3: '/docs/html_example.md' does not exist
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test3/tmp.scratch/test_combined.md:5: '/missing_markdown.md' does not exist
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test3/tmp.scratch/test_combined.md:7: '/missing_html.md' does not exist
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test3/tmp.scratch/test_combined.md:13: '/nested.md)' does not exist
 
 # linted file
 Markdown link: [Valid Markdown Link](/docs/markdown_example.md)

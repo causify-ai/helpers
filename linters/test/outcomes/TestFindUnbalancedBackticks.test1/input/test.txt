@@ -1,0 +1,26 @@
+def func1():
+    """
+    First function.
+
+    ```
+    Valid backticks.
+    ```
+    """
+
+
+def func2():
+    """
+    Second function.
+
+    ```
+    Missing closing backticks.
+    """
+
+
+def func3():
+    """
+    Third function.
+
+    ```
+    Missing closing backticks.
+    """
