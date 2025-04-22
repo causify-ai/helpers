@@ -6,6 +6,8 @@ flag_management:
       carryforward: true
     - name: slow
       carryforward: true
+    - name: combined_fast_slow
+      carryforward: true
     - name: superslow
 
 # no per-line comments.
@@ -22,8 +24,6 @@ coverage:
       # fail if drop ≥1%.
       threshold: 1
       flags:
-        - fast
-        - slow
-        - superslow
+        - combined_fast_slow
     patch:
       enabled: false
