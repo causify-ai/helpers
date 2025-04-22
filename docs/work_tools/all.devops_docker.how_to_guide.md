@@ -234,6 +234,13 @@
     - Run QA tests
   - Push prod image to ECR, DockerHub, GHCR
 
+- The release flow is implemented in the `invoke` tasks:
+  - E.g., `docker_release_dev_image`, `docker_release_prod_image`, etc.
+  - These tasks are quite complex and perform many operations
+  - Currently, we don't run them directly — instead, we execute the individual
+    steps from the `invoke` tasks
+  - Once the release process is more stable, we plan to run them directly
+
 ## How to add a Python package to dev image
 
 - To add a new Python package to a Docker image you need to update `poetry`
