@@ -9,6 +9,7 @@
     + [Install Docker](#install-docker)
     + [Checking Docker installation](#checking-docker-installation)
     + [Docker installation troubleshooting](#docker-installation-troubleshooting)
+    + [Add user to Docker group and sudoers](#add-user-to-docker-group-and-sudoers)
   * [Tmux](#tmux)
   * [Shell support](#shell-support)
   * [Some useful workflows](#some-useful-workflows)
@@ -241,29 +242,32 @@
     ```
 
 ### Add user to Docker group and sudoers
- - This section only applies to Linux, macOS users can skip this. Docker Desktop
-   handles permissions automatically on Mac.
- - Add your user to the `docker` group to run Docker without `sudo`
-   ```bash
-    > sudo usermod -aG docker $USER
-   
-    # Restart your shell session (log out and log back in), or run:
-    > newgrp docker
+
+- This section only applies to Linux, macOS users can skip this. Docker Desktop
+  handles permissions automatically on Mac.
+- Add your user to the `docker` group to run Docker without `sudo`
+
+  ```bash
+   > sudo usermod -aG docker $USER
+
+   # Restart your shell session (log out and log back in), or run:
+   > newgrp docker
+  ```
+
+- Add yourself to the sudoers file
+  ```bash
+  > sudo visudo
+  ```
+  - Add this line to the file(replace `your_username`):
+    ```bash
+    your_username ALL=(ALL) NOPASSWD:ALL
     ```
- - Add yourself to the sudoers file
-   ```bash
-   > sudo visudo
-   ```
-   - Add this line to the file(replace `your_username`):
-     ```bash
-     your_username ALL=(ALL) NOPASSWD:ALL
-     ```
- - You should see `docker` in the output
-   ```bash
-   > groups
-   your_username adm cdrom sudo dip plugdev lpadmin lxd sambashare docker
-   ```
-   
+- You should see `docker` in the output
+  ```bash
+  > groups
+  your_username adm cdrom sudo dip plugdev lpadmin lxd sambashare docker
+  ```
+
 ## Tmux
 
 - Using [tmux](https://en.wikipedia.org/wiki/Tmux) is optional but recommended
