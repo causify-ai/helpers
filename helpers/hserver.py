@@ -618,10 +618,6 @@ def docker_needs_sudo() -> bool:
     """
     Return whether Docker commands need to be run with sudo.
     """
-    # TODO(gp): Remove this as per HelpersTask578
-    if os.path.exists("/.dockerenv"):
-        # Skip check when we're inside a Docker container
-        return False
     if not has_docker():
         return False
     # Another way to check is to see if your user is in the docker group:
@@ -633,6 +629,10 @@ def docker_needs_sudo() -> bool:
     rc = os.system("sudo docker run hello-world 2>&1 >/dev/null")
     if rc == 0:
         return True
+    # TODO(gp): Remove this as per HelpersTask578
+    if is_inside_docker():
+        # Skip check when we're inside a Docker container
+        return False
     assert False, "Failed to run docker"
 
 
