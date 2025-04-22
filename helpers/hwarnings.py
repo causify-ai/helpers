@@ -20,12 +20,12 @@ import warnings
 # TODO(gp): For some reason "once" doesn't work, so we ignore all of the warnings.
 action = "ignore"
 
-try:
-    import statsmodels
+# try:
+#     import statsmodels
 
-    _HAS_STATSMODELS = True
-except ImportError:
-    _HAS_STATSMODELS = False
+#     _HAS_STATSMODELS = True
+# except ImportError:
+#     _HAS_STATSMODELS = False
 
 
 if _HAS_STATSMODELS:
@@ -75,12 +75,12 @@ warnings.filterwarnings(
 
 # TODO(gp): Add this TqdmExperimentalWarning
 
-try:
-    import pandas as pd
+# try:
+#     import pandas as pd
 
-    _HAS_PANDAS = True
-except ImportError:
-    _HAS_PANDAS = False
+#     _HAS_PANDAS = True
+# except ImportError:
+#     _HAS_PANDAS = False
 
 
 if _HAS_PANDAS:
