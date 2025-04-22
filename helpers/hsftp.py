@@ -10,7 +10,8 @@ import sys
 from io import BytesIO
 from typing import List
 
-subprocess.call(["sudo", "/venv/bin/pip", "install", "pysftp"])
+# See CmampTasks11877.
+# subprocess.call(["sudo", "/venv/bin/pip", "install", "pysftp"])
 
 import pysftp
 

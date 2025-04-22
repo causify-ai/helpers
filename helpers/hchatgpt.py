@@ -13,12 +13,13 @@ from typing import Dict, List, Optional
 
 import helpers.hio as hio
 
-try:
-    import openai
-except ImportError:
-    os.system("pip install openai")
-finally:
-    import openai
+# See CmampTasks11877.
+# try:
+#     import openai
+# except ImportError:
+#     os.system("pip install openai")
+# finally:
+#     import openai
 
 _LOG = logging.getLogger(__name__)
 

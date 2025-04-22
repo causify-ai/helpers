@@ -12,12 +12,13 @@ import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
 
-try:
-    pass
-except ImportError:
-    os.system("pip install openai")
-finally:
-    pass
+# See CmampTasks11877.
+# try:
+#     pass
+# except ImportError:
+#     os.system("pip install openai")
+# finally:
+#     pass
 
 _LOG = logging.getLogger(__name__)
 
