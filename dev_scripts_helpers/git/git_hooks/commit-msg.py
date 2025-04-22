@@ -17,11 +17,12 @@ def _main():
         commit_message = f.read()
     finally:
         f.close()
-    # We might not need to every commit message start with the issue number as
+    # We might not need every commit message to start with the issue number as
     # it is already in the branch and PR name.
     # regex = r"^Merge\sbranch|#(\d+)\s\S+"
     # Example: "E.g., '#101 Awesomely fix this and that' or 'Merge branch ...'"
     #
+    # Every commit message should start with a capital letter.
     regex = r"^Merge\sbranch|^[A-Z].+"
     if not re.match(regex, commit_message):
         print(("Your commit message doesn't match regex '%s'" % regex))
