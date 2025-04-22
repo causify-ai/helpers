@@ -77,10 +77,9 @@
   pytest.importorskip("somepackage")
   ```
 
-TODO(heanh): Replace with the wrapper function. See CmampTask11877.
-
 - Use try/catch statement to check if package exists and run the code only if
   they are there when the module is imported
+  - TODO(heanh): Replace with the wrapper function. See CmampTask11877.
 
   ```python
   _HAS_MOTO = True
