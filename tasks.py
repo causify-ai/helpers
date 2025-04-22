@@ -94,6 +94,7 @@ from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=u
     run_coverage_report,
     run_fast_coverage,
     run_slow_coverage,
+    run_superslow_coverage,
     run_fast_slow_superslow_tests,
     run_fast_slow_tests,
     run_fast_tests,

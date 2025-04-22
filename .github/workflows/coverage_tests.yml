@@ -3,14 +3,10 @@ name: Test coverage
 on:
   # Only run push builds when master changes.
   push:
-    branches:
-      - master
-
+    branches:  [master ]
   # Run on every PR (regardless of source branch).
   pull_request: {}
-
   workflow_dispatch: {}
-
   schedule:
     - cron: '0 0 * * 1'
 env:
@@ -80,6 +76,8 @@ jobs:
           files: ./coverage.xml
           flags: fast
           name: fast-test-coverage
+          # Combined coverage for tests will be checked rather than individual.
+          fail_ci: false
           # `fail_ci_if_error: true` instructs the action to mark the CI as failed
           # if there is any error during the upload to Codecov.
           fail_ci_if_error: true
@@ -104,6 +102,30 @@ jobs:
           files: ./coverage.xml
           flags: slow
           name: slow-test-coverage
+          fail_ci: false
           # "fail_ci_if_error: true" causes the job to fail if the upload to Codecov fails,
           # helping to catch issues with the coverage reporting.
+          fail_ci_if_error: true
+
+      - name: Run Superslow test and generate report
+        if: github.event_name == 'schedule'
+        env:
+          GH_ACTION_ACCESS_TOKEN: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
+          CSFY_AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
+          CSFY_AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          CSFY_AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
+          CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
+          CSFY_ECR_BASE_PATH: ghcr.io/${{ github.repository_owner }}
+          CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
+        run: invoke run_superslow_coverage .
+
+      - name: Upload Superslow Test Coverage to Codecov
+        if: github.event_name == 'schedule'
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          flags: superslow
+          name: superslow-test-coverage
+          fail_ci: ${{ github.event_name == 'schedule' }}
           fail_ci_if_error: true

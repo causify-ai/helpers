@@ -956,7 +956,7 @@ def run_fast_coverage(
     :param generate_html_report: whether to produce HTML output
     :return: filename of the fast‑suite coverage data file
     """
-    return _run_coverage(ctx, "fast", target_dir, generate_html_report)
+    return _run_coverage(ctx, "fast", target_dir, generate_html_report=False)
 
 
 @task
@@ -971,7 +971,22 @@ def run_slow_coverage(
     :param generate_html_report: whether to produce HTML output
     :return: filename of the slow‑suite coverage data file
     """
-    return _run_coverage(ctx, "slow", target_dir, generate_html_report)
+    return _run_coverage(ctx, "slow", target_dir, generate_html_report=False)
+
+
+@task
+def run_superslow_coverage(
+    ctx, target_dir: str, generate_html_report: bool = True
+) -> str:
+    """
+    Task wrapper to run *slow* test suite with coverage and emit reports.
+
+    :param ctx: Invoke context
+    :param target_dir: coverage target directory
+    :param generate_html_report: whether to produce HTML output
+    :return: filename of the slow‑suite coverage data file
+    """
+    return _run_coverage(ctx, "superslow", target_dir, generate_html_report=False)
 
 
 # #############################################################################

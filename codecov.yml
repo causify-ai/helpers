@@ -6,9 +6,24 @@ flag_management:
       carryforward: true
     - name: slow
       carryforward: true
+    - name: superslow
 
+# no per-line comments.
 comment: false
+
 coverage:
   status:
-    project: off
-    patch: off
+    project:
+      # post the project‑level GitHub Check.
+      enabled: true
+      target_branch: master
+      # measure % drop relative to baseline.
+      comparator: relative
+      # fail if drop ≥1%.
+      threshold: 1
+      flags:
+        - fast
+        - slow
+        - superslow
+    patch:
+      enabled: false
