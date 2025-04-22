@@ -91,20 +91,20 @@
 
 - Open the `Issues` section in the GitHub repository you want to update labels.
   <img
-  src="figs/synchronize_gh_issue_labels/image2.png"
-  style="width:2458px;height:251px" />
+  src="figs/synchronize_gh_issue_labels/image1.png"
+  style="width:2458px;height:100px" />
 
 - Click on `Labels` on the right side of the page to view all the labels in the
   repository. <img
   src="figs/synchronize_gh_issue_labels/image2.png"
-  style="width:2474px;height:608px" />
+  style="width:2474px;height:251px" />
 
 - To edit or delete a label, click on the label and make the necessary changes.
 
 - To create a new label, click on `New Label`, enter its name, description, and
   color, and click `Create Label`. <img
   src="figs/synchronize_gh_issue_labels/image3.png"
-  style="width:2474px;height:608px" />
+  style="width:2474px;height:251px" />
 
 - After saving the changes in GitHub, run the script manually to reflect the
   changes in the local label file. Follow the instructions in the sections
