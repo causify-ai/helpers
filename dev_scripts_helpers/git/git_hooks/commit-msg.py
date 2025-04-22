@@ -17,10 +17,15 @@ def _main():
         commit_message = f.read()
     finally:
         f.close()
-    regex = r"^Merge\sbranch|#(\d+)\s\S+"
+    # We might not need to every commit message start with the issue number as
+    # it is already in the branch and PR name.
+    # regex = r"^Merge\sbranch|#(\d+)\s\S+"
+    # Example: "E.g., '#101 Awesomely fix this and that' or 'Merge branch ...'"
+    #
+    regex = r"^Merge\sbranch|^[A-Z].+"
     if not re.match(regex, commit_message):
         print(("Your commit message doesn't match regex '%s'" % regex))
-        print("E.g., '#101 Awesomely fix this and that' or 'Merge branch ...'")
+        print("E.g., 'Awesomely fix this and that' or 'Merge branch ...'")
         print()
         print(
             "If you think there is a problem commit with --no-verify and "
