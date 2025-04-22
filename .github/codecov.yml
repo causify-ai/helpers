@@ -1,0 +1,8 @@
+flag_management:
+  default_rules:
+    carryforward: false
+  individual_flags:
+    - name: fast
+      carryforward: true
+    - name: slow
+      carryforward: true
