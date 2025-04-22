@@ -240,6 +240,30 @@
     Got permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get   http://%2Fvar%2Frun%2Fdocker.sock/v1.40/containers/json: dial unix /var/run/docker.sock: connect: permission denied
     ```
 
+### Add user to Docker group and sudoers
+ - This section only applies to Linux, macOS users can skip this. Docker Desktop
+   handles permissions automatically on Mac.
+ - Add your user to the `docker` group to run Docker without `sudo`
+   ```bash
+    > sudo usermod -aG docker $USER
+   
+    # Restart your shell session (log out and log back in), or run:
+    > newgrp docker
+    ```
+ - Add yourself to the sudoers file
+   ```bash
+   > sudo visudo
+   ```
+   - Add this line to the file(replace `your_username`):
+     ```bash
+     your_username ALL=(ALL) NOPASSWD:ALL
+     ```
+ - You should see `docker` in the output
+   ```bash
+   > groups
+   your_username adm cdrom sudo dip plugdev lpadmin lxd sambashare docker
+   ```
+   
 ## Tmux
 
 - Using [tmux](https://en.wikipedia.org/wiki/Tmux) is optional but recommended
