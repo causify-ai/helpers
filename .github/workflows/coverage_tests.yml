@@ -16,6 +16,15 @@ on:
 env:
   CSFY_CI: true
 
+flag_management:
+  default_rules:
+    carryforward: false
+  individual_flags:
+    - name: fast
+      carryforward: true
+    - name: slow
+      carryforward: true
+
 permissions:
   id-token: write
   contents: read
@@ -118,4 +127,12 @@ jobs:
           name: slow-test-coverage
           # "fail_ci_if_error: true" causes the job to fail if the upload to Codecov fails,
           # helping to catch issues with the coverage reporting.
+          fail_ci_if_error: true
+
+      - name: Upload JUnit results to Codecov
+        if: always()
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: reports/junit_fast.xml,reports/junit_slow.xml
           fail_ci_if_error: true
