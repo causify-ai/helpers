@@ -33,6 +33,21 @@ def _main():
             "file a bug with commit line and error"
         )
         sys.exit(1)
+    # Read pre-commit output.
+    precommit_output_path = ".git/hooks/tmp.precommit_output.txt"
+    try:
+        with open(precommit_output_path, "r") as f:
+            precommit_output = f.read().strip()
+    except FileNotFoundError:
+        precommit_output = "No pre-commit output found."
+    # Format metadata and append to commit message.
+    metadata = (
+        "\n"
+        "# Pre-commit output:\n"
+        + "\n".join([f"# {line}" for line in precommit_output.splitlines()])
+    )
+    with open(message_file, "a") as f:
+        f.write(metadata)
 
 
 if __name__ == "__main__":
