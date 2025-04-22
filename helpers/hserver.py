@@ -941,6 +941,7 @@ def run_docker_as_root() -> bool:
         # On dev1 / dev2 we run as users specifying the user / group id as
         # outside.
         ret = False
+    # TODO(gp): Revert to non-root user as per HelpersTask578
     elif is_external_linux():
         ret = True
     elif is_inside_ci():
