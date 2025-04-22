@@ -195,10 +195,9 @@
     - **Copilot** integrates directly within GitHub (especially if you're using
       GitHub for everything).
     - **Graphite** integrates well with GitHub but provides its own dashboard
-      and workflow enhancements.
-      **Coderabbit** is newer but also targets GitHub integration. You'll want
-      to verify how mature their integration is and whether it fits your team's
-      workflows.
+      and workflow enhancements. **Coderabbit** is newer but also targets GitHub
+      integration. You'll want to verify how mature their integration is and
+      whether it fits your team's workflows.
 
 3.  Budget & Licensing
     - **GitHub Copilot** is priced per user per month. For 30–40 developers, the
