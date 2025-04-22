@@ -5,6 +5,7 @@
     + [Install dependency on the fly](#install-dependency-on-the-fly)
     + [Skip the module](#skip-the-module)
     + [Delay the evaluation](#delay-the-evaluation)
+    + [Type annotations](#type-annotations)
   * [Long term solution](#long-term-solution)
     + [Add the dependency to the Docker image](#add-the-dependency-to-the-docker-image)
     + [Create "dockerized" executable](#create-dockerized-executable)
@@ -20,11 +21,11 @@
   script, we can request to have it installed in the Docker image and release a
   new version of the image
 - However, sometimes the packages are only needed for a specific script or part
-  of the project. Thus, we don't want to install them in the Docker image as it
+  of a project. Thus, we don't want to install them in the Docker image as it
   would bloat the image
 
 - Due to missing dependencies, the build process will fail when tests are
-  discovered or when the module is imported
+  discovered or when the module is imported and used in another module
 - The following are some common workarounds to deal with the missing
   dependencies without breaking the build
 
@@ -75,8 +76,10 @@
   pytest.importorskip("somepackage")
   ```
 
+TODO(heanh): Replace with wrapper function.
+
 - Use try/catch statement to check if package exists and run the code only if
-  they are there
+  they are there when the module is imported
 
   ```python
   _HAS_MOTO = True
@@ -109,7 +112,21 @@
     ...
   ```
 
-- Postpone evaluation of annotations
+### Type annotations
+
+- If the missing dependency is only needed for type annotations, we can postpone
+  the evaluation of the annotations to avoid errors during module loading or
+  pytest discovery
+
+- One option is to use string literals for type hints
+
+  ```python
+  def my_function(param: "SomeClass") -> "SomeClass":
+      ...
+  ```
+
+- Another option is to use the `__future__` module to enable postponed
+  evaluation of type annotations
   ```python
   from __future__ import annotations
   ```
