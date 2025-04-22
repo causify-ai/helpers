@@ -4,25 +4,16 @@ import argparse
 import logging
 import os
 
-from openai import OpenAI
-
 import helpers.hchatgpt_instructions as hchainst
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
+import helpers.himport as himport
 
 _LOG = logging.getLogger(__name__)
 
-# See CmampTasks11877.
-# try:
-#     pass
-# except ImportError:
-#     os.system("pip install openai")
-# finally:
-#     pass
+openai = himport.try_import("openai")
 
-_LOG = logging.getLogger(__name__)
-
-client = OpenAI(
+client = openai.OpenAI(
     # This is the default and can be omitted
     api_key=os.environ.get("OPENAI_API_KEY"),
 )

@@ -10,17 +10,16 @@ import sys
 from io import BytesIO
 from typing import List
 
-# See CmampTasks11877.
-# subprocess.call(["sudo", "/venv/bin/pip", "install", "pysftp"])
-
 import pysftp
 
 import helpers.haws as haws
 import helpers.hsecrets as hsecret
+import helpers.himport as himport
 
 # Create a logger instance.
 _LOG = logging.getLogger(__name__)
 
+pysftp = himport.try_import("pysftp")
 
 def check_lftp_connection():
     """
