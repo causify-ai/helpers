@@ -5,6 +5,7 @@ import helpers.henv as henv
 """
 
 import logging
+import subprocess
 import os
 from typing import Any, Dict, List, Tuple, Union
 
@@ -14,6 +15,7 @@ import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hversion as hversio
 import helpers.repo_config_utils as hrecouti
+
 
 # This module can depend only on:
 # - Python standard modules
@@ -43,7 +45,7 @@ def has_module(module: str) -> bool:
         import {module}
         has_module_ = True
     except ImportError as e:
-        _LOG.warning("%s: %s", _WARNING, str(e))
+        _LOG.warning("%s: %s", {_WARNING}, str(e))
         has_module_ = False
     """
     code = hprint.dedent(code)
@@ -58,6 +60,15 @@ def has_module(module: str) -> bool:
     has_module_ = locals_["has_module_"]
     return has_module_
 
+def install_module(module: str) -> None:
+    """
+    Install a Python module using pip in the current virtual environment.
+    """
+    has_module_ = has_module(module)
+    if has_module_:
+        _LOG.info("Module '%s' is already installed.", module)
+    else:
+        subprocess.call(["/venv/bin/pip", "install", module])
 
 # All printing functions should:
 # - Return a string and not a list of strings

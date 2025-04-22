@@ -14,14 +14,14 @@ if False:
 # prevent import cycles.
 
 import warnings
-import helpers.himport as himport
+import helpers.henv as henv
 
 # From https://docs.python.org/3/library/warnings.html
 
 # TODO(gp): For some reason "once" doesn't work, so we ignore all of the warnings.
 action = "ignore"
 
-_HAS_STATSMODELS = himport.try_import("statsmodels")
+_HAS_STATSMODELS = henv.has_module("statsmodels")
 
 if _HAS_STATSMODELS:
     # /venv/lib/python3.8/site-packages/statsmodels/tsa/stattools.py:1910:
@@ -70,7 +70,7 @@ warnings.filterwarnings(
 
 # TODO(gp): Add this TqdmExperimentalWarning
 
-_HAS_PANDAS = himport.try_import("pandas")
+_HAS_PANDAS = henv.has_module("pandas")
 
 if _HAS_PANDAS:
     import pandas as pd
