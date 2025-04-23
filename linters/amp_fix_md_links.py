@@ -304,8 +304,18 @@ def fix_links(file_name: str) -> Tuple[List[str], List[str], List[str]]:
     docstring_line_indices = hstring.get_docstring_line_indices(lines)
     updated_lines: List[str] = []
     warnings: List[str] = []
+    inside_fence = False
     for i, line in enumerate(lines, start=1):
         updated_line = line
+        # Check if we're entering or exiting a fenced block.
+        if line.strip().startswith("```"):
+            inside_fence = not inside_fence
+            updated_lines.append(updated_line)
+            continue
+        # Skip processing links in fenced blocks.
+        if inside_fence:
+            updated_lines.append(updated_line)
+            continue
         # Check the formatting.
         # HTML-style links.
         html_link_matches = re.findall(HTML_LINK_REGEX, updated_line)
