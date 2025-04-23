@@ -146,7 +146,7 @@ def _run_dockerized_sync_gh_issue_labels(
     )
     # Build the command.
     git_root = hgit.find_git_root()
-    docker_executable = "sync_gh_issue_labels.py"
+    docker_executable = "dockerized_sync_gh_issue_labels.py"
     script = hsystem.find_file_in_repo(docker_executable, root_dir=git_root)
     script = hdocker.convert_caller_to_callee_docker_path(
         script,

@@ -2,11 +2,13 @@
 """
 The script is designed to synchronize GitHub issue labels from a label
 inventory manifest file. It requires certain dependencies to be present (e.g.,
-`pygithub`) and thus it is executed within a Docker container.
+`pygithub`) and thus it is executed as a dockerized executable.
 
 To use this script, you need to provide the input file, GitHub
 repository name, owner, token environment variable, and optional flags
 for controlling the synchronization behavior.
+
+The command lines are the same as the `dev_scripts_helpers/github/sync_gh_issue_labels.py` script.
 """
 
 import argparse
@@ -19,7 +21,7 @@ import yaml
 # TODO(gp): Use hdbg.WARNING
 _WARNING = "\033[33mWARNING\033[0m"
 
-# TODO(*): outsourceable. Convert to dockerized executable.
+
 try:
     import github
 except ModuleNotFoundError:
@@ -172,6 +174,9 @@ def _parse() -> argparse.ArgumentParser:
         help="Do not prompt for confirmation before executing actions",
     )
     return parser
+
+
+# TODO(sandeep): Split _main() into multiple functions.
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
