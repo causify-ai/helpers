@@ -13,6 +13,7 @@
 
 - Source:
   [`bounty.onboarding_checklist.reference.md`](/docs/onboarding/bounty.onboarding_checklist.reference.md)
+
 - [ ] **Contributor**: Fork the repos
   - [ ] [helpers](https://github.com/causify-ai/helpers)
   - [ ] [tutorials](https://github.com/causify-ai/tutorials)

@@ -139,7 +139,7 @@
 - HiringMeister: create a task on Asana in the
   [Hiring](https://app.asana.com/1/1208196877870190/project/1208280136292379/list/1208280159230261)
   project
-  - The task goes in the "Onboarding" group
+  - The task goes in the "Onboarding" section
   - The name of the task is the name of the intern
   - In the task description, use the following template:
 
@@ -163,7 +163,7 @@
       Best piece of code:
       How good (1-5):
     ```
-  - Fill in the template based on their questionnaire
+  - Fill in the template based on their questionnaire responses
   - We use this Asana task to communicate about the intern
 
 - HiringMeister/GP: send invitations to GitHub repos with `write` permissions:
