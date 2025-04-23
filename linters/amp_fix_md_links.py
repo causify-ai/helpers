@@ -30,7 +30,7 @@ FILE_PATH_REGEX = r"\.{0,2}\w*\/\S+\.[\w\.]+"
 HTML_LINK_REGEX = r'(<a href=".*?">.*?</a>)'
 MD_LINK_REGEX = r"\[(.+)\]\(((?!#).*)\)"
 BARE_LINK_REGEX = r"(?<!\[)(?<!\]\()(?<!href=\")([Hh]ttps?://[^\s<>()]+)"
-FENCE_RE = re.compile(r"^\s*(```|~~~)")
+FENCE_REGEX = re.compile(r"^\s*(```|~~~)")
 
 
 def _make_path_absolute(path: str) -> str:
@@ -305,16 +305,16 @@ def fix_links(file_name: str) -> Tuple[List[str], List[str], List[str]]:
     docstring_line_indices = hstring.get_docstring_line_indices(lines)
     updated_lines: List[str] = []
     warnings: List[str] = []
-    inside_fence = False
+    is_inside_fence = False
     for i, line in enumerate(lines, start=1):
         updated_line = line
         # Check if we're entering or exiting a fenced block.
-        if FENCE_RE.match(line):
-            inside_fence = not inside_fence
+        if FENCE_REGEX.match(line):
+            is_inside_fence = not is_inside_fence
             updated_lines.append(updated_line)
             continue
         # Skip processing links in fenced blocks.
-        if inside_fence:
+        if is_inside_fence:
             updated_lines.append(updated_line)
             continue
         # Check the formatting.
