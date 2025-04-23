@@ -466,6 +466,7 @@ def check_python_compile(
 # check_gitleaks
 # #############################################################################
 
+
 def get_git_root_dir() -> str:
     """
     Return path to the root of the git repository.
@@ -476,6 +477,7 @@ def get_git_root_dir() -> str:
     _, git_root_dir = _system_to_string(cmd)
     git_root_dir = git_root_dir.strip()
     return git_root_dir
+
 
 def check_gitleaks(abort_on_error: bool = True) -> None:
     """
