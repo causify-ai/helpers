@@ -228,12 +228,9 @@ def _docker_tag_and_push_multi_arch_image(
         source_image_versioned,
         target_registry,
     )
-    push_to_registry = True
     if target_registry == "aws_ecr.ck":
         # Use AWS Docker registry.
         target_base_image = ""
-        # Skip pushing to ECR for the "prod" stage.
-        push_to_registry = False if source_stage == "prod" else True
     elif target_registry == "dockerhub.causify":
         # Use public GitHub Docker registry.
         target_base_image_name = (
@@ -244,7 +241,8 @@ def _docker_tag_and_push_multi_arch_image(
         raise ValueError(
             f"Invalid target Docker image registry='{target_registry}'"
         )
-    if push_to_registry:
+    # The versioned image is needed only for the 'dev' stage.
+    if target_stage == "dev":
         # Tag and push the source image as versioned target image.
         target_versioned_image = hlitadoc.get_image(
             target_base_image, target_stage, source_stage_version
