@@ -30,6 +30,7 @@ FILE_PATH_REGEX = r"\.{0,2}\w*\/\S+\.[\w\.]+"
 HTML_LINK_REGEX = r'(<a href=".*?">.*?</a>)'
 MD_LINK_REGEX = r"\[(.+)\]\(((?!#).*)\)"
 BARE_LINK_REGEX = r"(?<!\[)(?<!\]\()(?<!href=\")([Hh]ttps?://[^\s<>()]+)"
+FENCE_RE = re.compile(r"^\s*(```|~~~)")
 
 
 def _make_path_absolute(path: str) -> str:
@@ -308,7 +309,7 @@ def fix_links(file_name: str) -> Tuple[List[str], List[str], List[str]]:
     for i, line in enumerate(lines, start=1):
         updated_line = line
         # Check if we're entering or exiting a fenced block.
-        if line.strip().startswith("```"):
+        if FENCE_RE.match(line):
             inside_fence = not inside_fence
             updated_lines.append(updated_line)
             continue

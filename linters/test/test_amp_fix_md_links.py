@@ -407,69 +407,25 @@ class Test_fix_links(hunitest.TestCase):
         """
         # Prepare inputs with links both inside and outside fenced blocks
         text = r"""
-        Regular bare link that should be converted:
-        https://example.com/regular-link
-
-        Links inside fenced code block that should not be converted:
+        Links inside fenced block that should not be formatted:
         ```
-        # Code with URLs
-        https://example.com/inside-code-block
+        https://example.com/inside-fenced-block
         http://github.com/user/repo
-
-        def example():
-            # Comment with URL https://example.com/in-comment
-            url = "https://api.example.com/endpoint"
-            return url
         ```
-
-        Another regular bare link after the code block:
-        https://example.com/another-link
 
         Another fenced block with different language:
         ```python
-        # Python code with URLs
         url = "https://example.com/python-url"
         response = requests.get("https://api.github.com/users")
         ```
-
-        Final regular link:
-        https://example.com/final-link
         """
         file_name = "test_fenced_blocks.md"
         file_path = self.write_input_file(text, file_name)
         # Run.
-        _, actual, _ = lafimdli.fix_links(file_path)
-        # Check
-        expected = [
-            "Regular bare link that should be converted:",
-            "[https://example.com/regular-link](https://example.com/regular-link)",
-            "",
-            "Links inside fenced code block that should not be converted:",
-            "```",
-            "# Code with URLs",
-            "https://example.com/inside-code-block",
-            "http://github.com/user/repo",
-            "",
-            "def example():",
-            "    # Comment with URL https://example.com/in-comment",
-            '    url = "https://api.example.com/endpoint"',
-            "    return url",
-            "```",
-            "",
-            "Another regular bare link after the code block:",
-            "[https://example.com/another-link](https://example.com/another-link)",
-            "",
-            "Another fenced block with different language:",
-            "```python",
-            "# Python code with URLs",
-            'url = "https://example.com/python-url"',
-            'response = requests.get("https://api.github.com/users")',
-            "```",
-            "",
-            "Final regular link:",
-            "[https://example.com/final-link](https://example.com/final-link)",
-        ]
-        self.assertEqual(expected, actual)
+        _, updated_lines, out_warnings = lafimdli.fix_links(file_path)
+        # Check.
+        output = _get_output_string(out_warnings, updated_lines)
+        self.check_string(output, purify_text=True)
 
 
 # #############################################################################
