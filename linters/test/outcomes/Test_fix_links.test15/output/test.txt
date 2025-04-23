@@ -1,0 +1,11 @@
+- HTML-style figure pointer
+  - <img src="import_check/example/output/basic.png">
+
+- HTML-style figure pointer with an attribute
+  <img src="import_check/example/output/basic.png" style="" />
+
+- HTML-style figure pointer with a slash at the start
+  - <img src="/import_check/example/output/basic.png">
+
+- HTML-style figure pointer that does not exist
+  - <img src="/iiimport_check/example/output/basicccc.png">

@@ -1,0 +1,15 @@
+- Markdown-style figure pointer
+  - <img src="import_check/example/output/basic.png">
+
+- Markdown-style figure pointer with an attribute
+  - <img src="import_check/example/output/basic.png">{width="6.854779090113736in"
+height="1.2303444881889765in"}
+
+- Markdown-style figure pointer with a slash at the start
+  - <img src="/import_check/example/output/basic.png">
+
+- Markdown-style figure pointer with a dir changes at the start
+  - <img src="../../import_check/example/output/basic.png">
+
+- Markdown-style figure pointer that does not exist
+  - <img src="/iiimport_check/example/output/basicccc.png">
