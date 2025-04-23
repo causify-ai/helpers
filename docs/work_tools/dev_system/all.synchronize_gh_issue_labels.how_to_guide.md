@@ -21,14 +21,14 @@
   script synchronizes GitHub issue labels between a repository and a label
   inventory manifest file
 
+- The script includes options to back up existing labels before synchronization
+  to prevent data loss
+
 - The labels are stored in the
   [`/dev_scripts_helpers/github/labels/gh_issues_labels.yml`](/dev_scripts_helpers/github/labels/gh_issues_labels.yml)
   file, which acts as a manifest for synchronization. You can create your own
   label file or use the default ones provided in the repository but you need to
   use only yaml file
-
-- The script includes options to back up existing labels before synchronization
-  to prevent data loss
 
 ## Prerequisites
 
