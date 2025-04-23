@@ -43,8 +43,7 @@ def _main():
     # Format metadata and append to commit message.
     metadata = (
         "\n"
-        "# Pre-commit output:\n"
-        + "\n".join([f"# {line}" for line in precommit_output.splitlines()])
+        + "\n".join([f"{line}" for line in precommit_output.splitlines()])
     )
     with open(message_file, "a") as f:
         f.write(metadata)
