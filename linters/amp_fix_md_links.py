@@ -308,13 +308,13 @@ def fix_links(file_name: str) -> Tuple[List[str], List[str], List[str]]:
     is_inside_fence = False
     for i, line in enumerate(lines, start=1):
         updated_line = line
-        # Check if we're entering or exiting a fenced block.
         if FENCE_REGEX.match(line):
+            # Check if we're entering or exiting a fenced block.
             is_inside_fence = not is_inside_fence
             updated_lines.append(updated_line)
             continue
-        # Skip processing links in fenced blocks.
         if is_inside_fence:
+            # Skip processing links in fenced blocks.
             updated_lines.append(updated_line)
             continue
         # Check the formatting.

@@ -405,7 +405,7 @@ class Test_fix_links(hunitest.TestCase):
         """
         Test that links inside fenced code blocks are not modified.
         """
-        # Prepare inputs with links both inside and outside fenced blocks
+        # Prepare inputs.
         text = r"""
         Links inside fenced block that should not be formatted:
         ```
