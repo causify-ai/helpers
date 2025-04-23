@@ -466,15 +466,18 @@ def check_python_compile(
 # check_gitleaks
 # #############################################################################
 
+def get_git_root_dir() -> str:
+    cmd = "git rev-parse --show-toplevel"
+    _, git_root_dir = _system_to_string(cmd)
+    git_root_dir = git_root_dir.strip()
+    return git_root_dir
 
 def check_gitleaks(abort_on_error: bool = True) -> None:
     """
     Check that the code does not contain any leaked secrets.
     """
     func_name = _report()
-    cmd = "git rev-parse --show-toplevel"
-    _, git_root_dir = _system_to_string(cmd)
-    git_root_dir = git_root_dir.strip()
+    git_root_dir = get_git_root_dir()
     # > docker run -v /data/heanhs/src/helpers2:/app zricethezav/gitleaks:latest -c /app/.github/gitleaks-rules.toml git /app --pre-commit --staged
     cmd = f"""
     docker run -v {git_root_dir}:/app zricethezav/gitleaks:latest -c /app/.github/gitleaks-rules.toml git /app --pre-commit --staged --verbose
