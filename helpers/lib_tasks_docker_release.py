@@ -69,7 +69,6 @@ def _create_multiarch_builder(
     Create a multi-arch builder for Docker buildx.
 
     :param ctx: invoke context
-    :param platform_builder_name: name to assign to the builder
     """
     # Create a multi-arch builder.
     platform_builder_name = "multiarch_builder"
@@ -104,12 +103,15 @@ def _build_multi_arch_image(
     :param ctx: invoke context
     :param opts: build options (e.g., --no-cache)
     :param multi_arch: target architectures to build for (e.g.,
-        "linux/amd64,linux/arm64")
+        `linux/amd64`, `linux/arm64`)
     :param build_args: build arguments for the Docker build command
     :param build_image: name of the image to build
     :param dockerfile: path to the Dockerfile to use for building
     """
     # Build the multi-arch image.
+    # Compress the current directory (in order to dereference symbolic
+    # links) into a tar stream and pipes it to the `docker build` command.
+    # See HelpersTask197.
     cmd = rf"""
     tar -czh . | DOCKER_BUILDKIT={DOCKER_BUILDKIT} \
         time \
@@ -131,7 +133,7 @@ def _list_image(ctx: Any, image: str) -> None:
 
     :param ctx: invoke context
     :param image: docker image reference in REPOSITORY[:TAG] format
-        Example:
+        Examples:
         - `*****.dkr.ecr.us-east-1.amazonaws.com/amp:dev-1.0.0`
         - `*****.dkr.ecr.us-east-1.amazonaws.com/amp:dev`
         - `sorrentum/cmamp:dev-1.0.0`
@@ -156,7 +158,7 @@ def _run_tests(
     Run tests for a given stage and version.
 
     :param ctx: invoke context
-    :param stage: image stage (must be one of "local", "dev", or "prod")
+    :param stage: image stage (must be one of `local`, `dev`, or `prod`)
     :param version: version to test
     :param skip_tests: skip all tests if True
     :param fast_tests: run fast tests
@@ -181,10 +183,10 @@ def _run_tests(
 def _docker_tag_and_push_multi_arch_image(
     ctx: Any,
     version: str,
-    base_image: str,
+    source_image: str,
     target_registry: str,
     container_dir_name: str,
-    stage: str,
+    source_stage: str,
     target_stage: str,
 ) -> None:
     """
@@ -193,57 +195,68 @@ def _docker_tag_and_push_multi_arch_image(
 
     :param ctx: invoke context
     :param version: version to tag the image with
-    :param base_image: base name of the image
+    :param source_image: base name of the image
     :param target_registry: target Docker registry to push to (e.g.,
-        "aws_ecr.ck" or "dockerhub.causify")
+        `aws_ecr.ck` or `dockerhub.causify`)
     :param container_dir_name: directory where Dockerfile is located
-    :param stage: source stage of the image (must be one of "local" or
-        "prod")
+    :param source_stage: source stage of the image (must be one of `local` or
+        `prod`)
     :param target_stage: target stage to push the image as (must be one
-        of "dev" or "prod")
+        of `dev` or `prod`)
     """
-    hdbg.dassert_in(stage, ("local", "prod"))
+    hdbg.dassert_in(source_stage, ("local", "prod"))
     hdbg.dassert_in(target_stage, ("dev", "prod"))
+    #
     hlitadoc.docker_login(ctx, target_registry)
-    # Get version string.
-    if stage == "local":
-        image_stage_version = _get_dev_version(version, container_dir_name)
-    elif stage == "prod":
-        image_stage_version = hlitadoc.resolve_version_value(
+    # Get source version string.
+    if source_stage == "local":
+        source_stage_version = _get_dev_version(version, container_dir_name)
+    elif source_stage == "prod":
+        source_stage_version = hlitadoc.resolve_version_value(
             version, container_dir_name=container_dir_name
         )
     else:
-        raise ValueError(f"Invalid stage='{stage}' for tagging and pushing")
-    image_versioned = hlitadoc.get_image(base_image, stage, image_stage_version)
+        raise ValueError(
+            f"Invalid source stage='{source_stage}' for tagging and pushing"
+        )
+    source_image_versioned = hlitadoc.get_image(
+        source_image, source_stage, source_stage_version
+    )
     _LOG.info(
         "Pushing the %s image %s to the target_registry %s ",
-        stage,
-        image_versioned,
+        source_stage,
+        source_image_versioned,
         target_registry,
     )
+    push_to_registry = True
     if target_registry == "aws_ecr.ck":
         # Use AWS Docker registry.
         target_base_image = ""
+        # Skip pushing to ECR for the "prod" stage.
+        push_to_registry = False if source_stage == "prod" else True
     elif target_registry == "dockerhub.causify":
         # Use public GitHub Docker registry.
-        base_image_name = hrecouti.get_repo_config().get_docker_base_image_name()
-        target_base_image = f"causify/{base_image_name}"
+        target_base_image_name = (
+            hrecouti.get_repo_config().get_docker_base_image_name()
+        )
+        target_base_image = f"causify/{target_base_image_name}"
     else:
         raise ValueError(
             f"Invalid target Docker image registry='{target_registry}'"
         )
-    # Tag and push the base image as versioned target image.
-    target_versioned_image = hlitadoc.get_image(
-        target_base_image, target_stage, image_stage_version
+    if push_to_registry:
+        # Tag and push the source image as versioned target image.
+        target_versioned_image = hlitadoc.get_image(
+            target_base_image, target_stage, source_stage_version
+        )
+        cmd = f"docker buildx imagetools create -t {target_versioned_image} {source_image_versioned}"
+        hlitauti.run(ctx, cmd)
+    # Tag and push the source image as target image.
+    target_latest_version = None
+    target_latest_image = hlitadoc.get_image(
+        target_base_image, target_stage, version=target_latest_version
     )
-    cmd = f"docker buildx imagetools create -t {target_versioned_image} {image_versioned}"
-    hlitauti.run(ctx, cmd)
-    # Tag and push the base image as target image.
-    latest_version = None
-    latest_image = hlitadoc.get_image(
-        target_base_image, target_stage, version=latest_version
-    )
-    cmd = f"docker buildx imagetools create -t {latest_image} {image_versioned}"
+    cmd = f"docker buildx imagetools create -t {target_latest_image} {source_image_versioned}"
     hlitauti.run(ctx, cmd)
 
 
@@ -260,15 +273,14 @@ def _docker_rollback_image(
 ) -> None:
     """
     Rollback the versioned image for a particular stage and optionally push it
-    to the registry.
+    to ECR.
 
     :param ctx: invoke context
-    :param base_image: e.g., *****.dkr.ecr.us-east-1.amazonaws.com/amp
+    :param base_image:  e.g., *****.dkr.ecr.us-east-1.amazonaws.com/amp
     :param stage: select a specific stage for the Docker image (must be
-        one of "dev" or "prod")
+        one of `dev` or `prod`)
     :param version: version to tag the image and code with
-    :param push_to_repo: whether to push the rolled back image to the
-        registry
+    :param push_to_repo: whether to push the rolled back image to ECR
     """
     hdbg.dassert_in(stage, ("dev", "prod"))
     # 1) Ensure that version of the image exists locally.
@@ -585,8 +597,11 @@ def docker_release_dev_image(  # type: ignore
 # /////////////////////////////////////////////////////////////////////////////
 
 
+# TODO(gp): multi_build -> multi_arch
+
+
 @task
-def docker_tag_push_multi_arch_local_image_as_dev(  # type: ignore
+def docker_tag_push_multi_build_local_image_as_dev(  # type: ignore
     ctx,
     version,
     local_base_image="",
@@ -691,7 +706,7 @@ def docker_release_multi_build_dev_image(  # type: ignore
     )
     # 4) Tag the image as dev image and push it to the target registries.
     for target_registry in target_registries:
-        docker_tag_push_multi_arch_local_image_as_dev(
+        docker_tag_push_multi_build_local_image_as_dev(
             ctx,
             version=dev_version,
             target_registry=target_registry,
@@ -852,9 +867,6 @@ def docker_build_multi_arch_prod_image(  # type: ignore
     # image remotely.
     hlitadoc.docker_login(ctx)
     _create_multiarch_builder(ctx)
-    # Compress the current directory (in order to dereference symbolic
-    # links) into a tar stream and pipes it to the `docker build` command.
-    # See HelpersTask197.
     _build_multi_arch_image(
         ctx, opts, multi_arch, build_args, image_versioned_prod, dockerfile
     )

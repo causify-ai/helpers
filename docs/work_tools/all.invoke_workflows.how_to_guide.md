@@ -104,6 +104,7 @@
   docker_pull                                           Pull latest dev image corresponding to the current repo from the registry.
   docker_pull_helpers                                   Pull latest prod image of `helpers` from the registry.
   docker_push_dev_image                                 Push the "dev" image to ECR.
+  docker_push_prod_candidate_image                      (ONLY CI/CD) Push the "prod" candidate image to ECR.
   docker_push_prod_image                                Push the "prod" image to ECR.
   docker_release_dev_image                              Build, test, and release to ECR the latest "dev" image.
   docker_release_multi_build_dev_image                  Build, test, and release the latest multi-arch "dev" image.
@@ -112,7 +113,7 @@
   docker_rollback_prod_image                            Rollback the version of the prod image.
   docker_stats                                          Report last started Docker container stats, e.g., CPU, RAM.
   docker_tag_local_image_as_dev                         Mark the "local" image as "dev".
-  docker_tag_push_multi_arch_local_image_as_dev         Mark the multi-arch "local" image as "dev" and push it.
+  docker_tag_push_multi_build_local_image_as_dev        Mark the multi-arch "local" image as "dev" and push it.
   docker_update_prod_task_definition                    Update image in prod task definition to the desired version.
 
   find                                                  Find symbols, imports, test classes and so on.
