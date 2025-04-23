@@ -16,8 +16,8 @@ import dev_scripts_helpers.git.git_hooks.pre-commit as dsgghpr
 
 # NOTE: This file should depend only on Python standard libraries.
 import logging
-import sys
 import pathlib
+import sys
 from typing import List
 
 import dev_scripts_helpers.git.git_hooks.utils as dshgghout
@@ -27,11 +27,13 @@ _LOG = logging.getLogger(__name__)
 
 # #############################################################################
 
+
 def _write_output_to_file(lines: List[str]) -> None:
     out_path = pathlib.Path(".git/hooks/tmp.precommit_output.txt")
     with out_path.open("w") as f:
         for line in lines:
             f.write(line + "\n")
+
 
 if __name__ == "__main__":
     print("# Running git pre-commit hook ...")

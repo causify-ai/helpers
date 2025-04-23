@@ -29,7 +29,7 @@ def _main():
     if not re.match(regex, commit_message):
         msg = dshgghout.color_highlight(
             "##### commit-msg hook failed ######", "red"
-        ) 
+        )
         print(msg)
         print(("Your commit message doesn't match regex '%s'" % regex))
         print("E.g., 'Awesomely fix this and that' or 'Merge branch ...'")
@@ -47,9 +47,8 @@ def _main():
     except FileNotFoundError:
         precommit_output = "No pre-commit output found."
     # Format metadata and append to commit message.
-    metadata = (
-        "\n"
-        + "\n".join([f"{line}" for line in precommit_output.splitlines()])
+    metadata = "\n" + "\n".join(
+        [f"{line}" for line in precommit_output.splitlines()]
     )
     with open(message_file, "a") as f:
         f.write(metadata)
