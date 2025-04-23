@@ -467,6 +467,11 @@ def check_python_compile(
 # #############################################################################
 
 def get_git_root_dir() -> str:
+    """
+    Return path to the root of the git repository.
+
+    :return: absolute path to the root of the git repository
+    """
     cmd = "git rev-parse --show-toplevel"
     _, git_root_dir = _system_to_string(cmd)
     git_root_dir = git_root_dir.strip()

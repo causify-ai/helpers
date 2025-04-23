@@ -29,6 +29,11 @@ _LOG = logging.getLogger(__name__)
 
 
 def _write_output_to_file(lines: List[str]) -> None:
+    """
+    Write the output of the pre-commit hook to temporary file.
+
+    :param lines: pre-commit output lines
+    """
     out_path = pathlib.Path(".git/hooks/tmp.precommit_output.txt")
     with out_path.open("w") as f:
         for line in lines:
