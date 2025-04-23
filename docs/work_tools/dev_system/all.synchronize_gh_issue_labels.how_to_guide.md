@@ -155,8 +155,7 @@ Are you sure you want to synchronize labels? [y/n] y
 ```
 
 - Logs are saved in the
-  [`/dev_scripts_helpers/github/sync_gh_issue_labels.py.log`](/dev_scripts_helpers/github/sync_gh_issue_labels.py.log)
-  file
+  `/dev_scripts_helpers/github/sync_gh_issue_labels.py.log` file
 
 ### Using Invoke
 
