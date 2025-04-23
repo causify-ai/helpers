@@ -9,6 +9,8 @@ import dev_scripts_helpers.git.git_hooks.commit-msg as dsgghoco
 import re
 import sys
 
+import dev_scripts_helpers.git.git_hooks.utils as dshgghout
+
 
 def _main():
     message_file = sys.argv[1]
@@ -25,6 +27,10 @@ def _main():
     # Every commit message should start with a capital letter.
     regex = r"^Merge\sbranch|^[A-Z].+"
     if not re.match(regex, commit_message):
+        msg = dshgghout.color_highlight(
+            "##### commit-msg hook failed ######", "red"
+        ) 
+        print(msg)
         print(("Your commit message doesn't match regex '%s'" % regex))
         print("E.g., 'Awesomely fix this and that' or 'Merge branch ...'")
         print()
@@ -47,9 +53,13 @@ def _main():
     )
     with open(message_file, "a") as f:
         f.write(metadata)
+    msg = dshgghout.color_highlight(
+        "##### commit-msg hook passed: committing ######", "purple"
+    )
+    print(msg)
 
 
 if __name__ == "__main__":
-    print("git commit-msg hook ...")
+    print("\nRun git commit-msg hook ...\n")
     _main()
     sys.exit(0)
