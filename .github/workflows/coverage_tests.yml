@@ -1,6 +1,7 @@
 name: Test coverage
 
 on:
+  pull_request:
   workflow_dispatch: {}
   # every day at 00:00 UTC.
   schedule:
