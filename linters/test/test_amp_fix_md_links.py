@@ -314,37 +314,6 @@ class Test_fix_links(hunitest.TestCase):
         ]
         self.assertEqual(expected, actual)
 
-    def test11(self) -> None:
-        """
-        Test broken files, links and paths.
-        """
-        # Prepare inputs.
-        txt_incorrect = r"""
-        - Markdown-style link with the link only in square brackets
-          - [/helpers/hgit.py]()
-
-        - Markdown-style link to a file that does not exist
-          - [File not found](/helpersssss/hhhhgit.py)
-
-        - Non-file path
-          - ../../../../amp/helpers:/app/helpers
-
-        - Non-file path text with slashes in it
-          - Code in Markdown/LaTeX files (e.g., mermaid code).
-
-        - File path that does not exist
-          - `/helpersssss/hhhhgit.py`
-
-        Broken Markdown link: [Broken Markdown Link](missing_markdown.md)
-        """
-        file_name = "test_broken_links.md"
-        file_path = self.write_input_file(txt_incorrect, file_name)
-        # Run.
-        _, updated_lines, out_warnings = lafimdli.fix_links(file_path)
-        # Check.
-        output = _get_output_string(out_warnings, updated_lines)
-        self.check_string(output, purify_text=True)
-
     def test12(self) -> None:
         """
         Test Markdown files with external links.
@@ -476,6 +445,37 @@ class Test_fix_links(hunitest.TestCase):
           - ![](/iiimport_check/example/output/basicccc.png)
         """
         file_name = "test_md_img_links.md"
+        file_path = self.write_input_file(txt_incorrect, file_name)
+        # Run.
+        _, updated_lines, out_warnings = lafimdli.fix_links(file_path)
+        # Check.
+        output = _get_output_string(out_warnings, updated_lines)
+        self.check_string(output, purify_text=True)
+
+    def test17(self) -> None:
+        """
+        Test broken files, links and paths.
+        """
+        # Prepare inputs.
+        txt_incorrect = r"""
+        - Markdown-style link with the link only in square brackets
+          - [/helpers/hgit.py]()
+
+        - Markdown-style link to a file that does not exist
+          - [File not found](/helpersssss/hhhhgit.py)
+
+        - Non-file path
+          - ../../../../amp/helpers:/app/helpers
+
+        - Non-file path text with slashes in it
+          - Code in Markdown/LaTeX files (e.g., mermaid code).
+
+        - File path that does not exist
+          - `/helpersssss/hhhhgit.py`
+
+        Broken Markdown link: [Broken Markdown Link](missing_markdown.md)
+        """
+        file_name = "test_broken_links.md"
         file_path = self.write_input_file(txt_incorrect, file_name)
         # Run.
         _, updated_lines, out_warnings = lafimdli.fix_links(file_path)
