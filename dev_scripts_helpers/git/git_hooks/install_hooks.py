@@ -31,8 +31,8 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 # Phases to install.
-# _GIT_PHASE_HOOKS = ["pre-commit", "commit-msg"]
-_GIT_PHASE_HOOKS = ["pre-commit"]
+_GIT_PHASE_HOOKS = ["pre-commit", "commit-msg"]
+# _GIT_PHASE_HOOKS = ["pre-commit"]
 
 
 def _main() -> None:
@@ -54,7 +54,7 @@ def _main() -> None:
     _LOG.info("amp_dir=%s", amp_dir)
     hdbg.dassert_dir_exists(amp_dir)
     # Get the dir with the Git hooks to install.
-    src_dir = os.path.join(amp_dir, "dev_scripts/git/git_hooks")
+    src_dir = os.path.join(amp_dir, "dev_scripts_helpers/git/git_hooks")
     _LOG.info("src_dir=%s", src_dir)
     hdbg.dassert_dir_exists(src_dir)
     # Find the location to install the Git hooks.
