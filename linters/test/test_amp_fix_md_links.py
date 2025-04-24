@@ -81,11 +81,11 @@ class Test_fix_links(hunitest.TestCase):
 
         - Markdown-style link with a path label in backticks without the slash at the start
           - [`helpers/test/test_hdbg.py`](helpers/test/test_hdbg.py)
-        
-        - Markdown-style link with a directory beginning with a dot
-          - [`fast_tests.yml`](/.github/workflows/fast_tests.yml)  
 
-        Markdown link: [Valid Markdown Link](docs/markdown_example.md)      
+        - Markdown-style link with a directory beginning with a dot
+          - [`fast_tests.yml`](/.github/workflows/fast_tests.yml)
+
+        Markdown link: [Valid Markdown Link](docs/markdown_example.md)
         """
         file_name = "test.md"
         file_path = self.write_input_file(txt_incorrect, file_name)
@@ -322,10 +322,10 @@ class Test_fix_links(hunitest.TestCase):
         txt_incorrect = r"""
         - Markdown-style link with the link only in square brackets
           - [/helpers/hgit.py]()
-        
+
         - Markdown-style link to a file that does not exist
           - [File not found](/helpersssss/hhhhgit.py)
-        
+
         - Non-file path
           - ../../../../amp/helpers:/app/helpers
 
@@ -334,7 +334,7 @@ class Test_fix_links(hunitest.TestCase):
 
         - File path that does not exist
           - `/helpersssss/hhhhgit.py`
-        
+
         Broken Markdown link: [Broken Markdown Link](missing_markdown.md)
         """
         file_name = "test_broken_links.md"
@@ -363,7 +363,7 @@ class Test_fix_links(hunitest.TestCase):
 
         - Markdown-style link with backticks in the square brackets and external http link
           - [`foobar`](https://ap-northeast-1.console.aws.amazon.com/s3/buckets/foobar)
-        
+
         External Markdown link: [External Markdown Link](https://example.com)
         """
         file_name = "test_external_links.md"
@@ -424,7 +424,7 @@ class Test_fix_links(hunitest.TestCase):
         # Check.
         output = _get_output_string(out_warnings, updated_lines)
         self.check_string(output, purify_text=True)
-  
+
     def test15(self) -> None:
         """
         Test HTML style image links.
