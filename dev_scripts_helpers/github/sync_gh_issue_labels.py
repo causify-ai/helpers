@@ -112,6 +112,8 @@ def _run_dockerized_sync_gh_issue_labels(
     FROM python:3.10-slim
 
     # Install required packages.
+    RUN apt-get update && apt-get install -y git && \
+        apt-get clean && rm -rf /var/lib/apt/lists/*
     RUN pip install PyGithub PyYAML
 
     WORKDIR /app
