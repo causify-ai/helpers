@@ -266,8 +266,6 @@ def _docker_tag_and_push_multi_arch_image(
 
 # TODO(gp): We moved away from versioning of the prod image because we release
 # continuously and so it's easier to track the hash.
-
-
 def _docker_rollback_image(
     ctx: Any,
     base_image: str,
@@ -630,7 +628,7 @@ def docker_tag_push_multi_build_local_image_as_dev(  # type: ignore
     :param container_dir_name: directory where the Dockerfile is located
     """
     hlitauti.report_task(container_dir_name=container_dir_name)
-    stage = "local"
+    source_stage = "local"
     target_stage = "dev"
     _docker_tag_and_push_multi_arch_image(
         ctx,
@@ -638,7 +636,7 @@ def docker_tag_push_multi_build_local_image_as_dev(  # type: ignore
         local_base_image,
         target_registry,
         container_dir_name,
-        stage,
+        source_stage,
         target_stage,
     )
 
@@ -907,7 +905,7 @@ def docker_tag_push_multi_arch_prod_image(  # type: ignore
     :param container_dir_name: directory where the Dockerfile is located
     """
     hlitauti.report_task(container_dir_name=container_dir_name)
-    stage = "prod"
+    source_stage = "prod"
     target_stage = "prod"
     _docker_tag_and_push_multi_arch_image(
         ctx,
@@ -915,54 +913,66 @@ def docker_tag_push_multi_arch_prod_image(  # type: ignore
         base_image,
         target_registry,
         container_dir_name,
-        stage,
+        source_stage,
         target_stage,
     )
 
 
 @task
 def docker_push_prod_image(  # type: ignore
-    ctx: Any,
-    base_image: str = "",
-    container_dir_name: str = ".",
-    *,
-    version: Optional[str] = None,
-    candidate: Optional[str] = None,
-) -> None:
+    ctx,
+    version,
+    base_image="",
+    container_dir_name=".",
+):
     """
     Push the "prod" image to ECR.
 
     :param ctx: invoke context
-    :param version: version to tag the image and code with (not used
-        when candidate is provided)
+    :param version: version to tag the image and code with
     :param base_image: e.g., *****.dkr.ecr.us-east-1.amazonaws.com/amp
     :param container_dir_name: directory where the Dockerfile is located
-    :param candidate: hash of the candidate image to push
+    """
+    hlitauti.report_task(container_dir_name=container_dir_name)
+    prod_version = hlitadoc.resolve_version_value(
+        version, container_dir_name=container_dir_name
+    )
+    #
+    hlitadoc.docker_login(ctx)
+    # Push versioned tag.
+    image_versioned_prod = hlitadoc.get_image(base_image, "prod", prod_version)
+    cmd = f"docker push {image_versioned_prod}"
+    hlitauti.run(ctx, cmd, pty=True)
+    #
+    latest_version = None
+    image_prod = hlitadoc.get_image(base_image, "prod", latest_version)
+    cmd = f"docker push {image_prod}"
+    hlitauti.run(ctx, cmd, pty=True)
+
+
+# TODO(gp): Can we merge this with docker_push_prod_image?
+@task
+def docker_push_prod_candidate_image(  # type: ignore
+    ctx,
+    candidate,
+    base_image="",
+    container_dir_name=".",
+):
+    """
+    (ONLY CI/CD) Push the "prod" candidate image to ECR.
+
+    :param ctx: invoke context
+    :param candidate: hash of the candidate prod image to push
+    :param base_image: e.g., *****.dkr.ecr.us-east-1.amazonaws.com/amp
+    :param container_dir_name: directory where the Dockerfile is located
     """
     hlitauti.report_task(container_dir_name=container_dir_name)
     #
     hlitadoc.docker_login(ctx)
-    if candidate:
-        # Push image with tagged with a hash ID.
-        image_versioned_prod = hlitadoc.get_image(base_image, "prod", None)
-        cmd = f"docker push {image_versioned_prod}-{candidate}"
-        hlitauti.run(ctx, cmd, pty=True)
-    else:
-        # Push versioned and latest prod image.
-        prod_version = hlitadoc.resolve_version_value(
-            version, container_dir_name=container_dir_name
-        )
-        # Push versioned tag.
-        image_versioned_prod = hlitadoc.get_image(
-            base_image, "prod", prod_version
-        )
-        cmd = f"docker push {image_versioned_prod}"
-        hlitauti.run(ctx, cmd, pty=True)
-        #
-        latest_version = None
-        image_prod = hlitadoc.get_image(base_image, "prod", latest_version)
-        cmd = f"docker push {image_prod}"
-        hlitauti.run(ctx, cmd, pty=True)
+    # Push image with tagged with a hash ID.
+    image_versioned_prod = hlitadoc.get_image(base_image, "prod", None)
+    cmd = f"docker push {image_versioned_prod}-{candidate}"
+    hlitauti.run(ctx, cmd, pty=True)
 
 
 @task
@@ -1167,7 +1177,7 @@ def docker_create_candidate_image(
         tag=tag,
     )
     # Push candidate image.
-    docker_push_prod_image(ctx, candidate=tag)
+    docker_push_prod_candidate_image(ctx, tag)
     exec_name = "im_v2/aws/aws_update_task_definition.py"
     # Ensure compatibility with repos where amp is a submodule.
     if not os.path.exists(exec_name):

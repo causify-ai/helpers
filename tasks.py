@@ -28,6 +28,7 @@ from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=u
     docker_pull,
     docker_pull_helpers,
     docker_push_dev_image,
+    docker_push_prod_candidate_image,
     docker_push_prod_image,
     docker_release_dev_image,
     docker_release_prod_image,
