@@ -26,6 +26,8 @@ coverage:
       # Fail if drop ≥1%.
       threshold: 1
       flags:
-        - combined_fast_slow
+        - fast
+        - slow
+        - superslow
     patch:
       enabled: false

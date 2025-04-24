@@ -110,6 +110,7 @@ jobs:
           fail_ci_if_error: true
 
       - name: Run Superslow test and generate report
+        # Scheduled for Monday (i.e Day 1) or when manually triggered.
         if: (github.event_name == 'schedule' && env.DAY_OF_WEEK == '1') || github.event_name == 'workflow_dispatch'
         env:
           GH_ACTION_ACCESS_TOKEN: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
