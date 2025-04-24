@@ -247,7 +247,7 @@ def _docker_tag_and_push_multi_arch_image(
             f"Invalid target Docker image registry='{target_registry}'"
         )
     # Only create a versioned image for the 'dev' stage or for the
-    # 'dockerhub.causify' registry.
+    # `dockerhub.causify` registry.
     if target_stage == "dev" or target_registry == "dockerhub.causify":
         # Tag and push the source image as versioned target image.
         target_versioned_image = hlitadoc.get_image(
