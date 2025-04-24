@@ -956,7 +956,7 @@ def _run_coverage(
         # Enable coverage collection.
         "--coverage",
         # Specify which directory to test.
-        "--path",
+        "--p",
         target_dir,
         # Pass through remaining args to pytest.
         "--",
