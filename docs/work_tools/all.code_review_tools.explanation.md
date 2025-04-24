@@ -2,7 +2,7 @@
 
 <!-- toc -->
 
-- [Code Review Tools](#code-review-tools)
+- [Review Systems](#review-systems)
   * [Github Copilot Code Review](#github-copilot-code-review)
   * [Graphite.dev](#graphitedev)
   * [CodeRabbit](#coderabbit)
@@ -13,6 +13,10 @@
   * [CodeRabbit](#coderabbit-1)
 - [Takeaways](#takeaways)
   * [Core Needs](#core-needs)
+  * [Strengths and Weaknesses](#strengths-and-weaknesses)
+    + [Github Copilot](#github-copilot)
+    + [Graphite.dev](#graphitedev-1)
+    + [CodeRabbit](#coderabbit-2)
 - [References](#references)
 
 <!-- tocstop -->
@@ -57,8 +61,7 @@
 
 ### CodeRabbit
 
-- Link:
-  [https://docs.coderabbit.ai/](https://docs.coderabbit.ai/)
+- Link: [https://docs.coderabbit.ai/](https://docs.coderabbit.ai/)
 
 - Key Features:
   - Advanced AI-driven code review
@@ -75,8 +78,7 @@
 
 ### Deepcode (now integrated with Snyk Code)
 
-- Link
-  [https://docs.snyk.io/](https://docs.snyk.io/)
+- Link [https://docs.snyk.io/](https://docs.snyk.io/)
 
 - Key Features:
   - AI-powered static analysis
@@ -202,21 +204,21 @@
   - The "Copilot for Code Review" feature is relatively new and may not offer
     deep analysis compared to specialized tools.
   - Can produce "best guess" suggestions that require human oversight.
- 
+
 #### Graphite.dev
 
- - Strengths
-   - Focuses on improving the pull request workflow, making it faster and more
-     organized.
-   - Catches common style or lint issues early, reducing manual review overhead.
-   - Ideal for teams seeking to structure their PR process rigorously (e.g.,
-     stacked diffs, streamlined merges).
+- Strengths
+  - Focuses on improving the pull request workflow, making it faster and more
+    organized.
+  - Catches common style or lint issues early, reducing manual review overhead.
+  - Ideal for teams seeking to structure their PR process rigorously (e.g.,
+    stacked diffs, streamlined merges).
 
 - Weaknesses
   - Not as advanced in AI-based code analysis as some specialized code-review
     tools.
   - May require your team to adapt to a new PR workflow or dashboard.
- 
+
 #### CodeRabbit
 
 - Strengths
