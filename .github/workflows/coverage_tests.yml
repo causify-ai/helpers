@@ -51,7 +51,7 @@ jobs:
       - name: Pull image from GHCR
         run: docker pull ghcr.io/${{ github.repository }}:dev
 
-      # Only on scheduled runs, capture ISO weekday (1=Mon … 7=Sun)
+      # Only on scheduled runs, capture ISO weekday (1=Mon … 7=Sun).
       - name: Set DAY_OF_WEEK
         if: github.event_name == 'schedule'
         run: echo "DAY_OF_WEEK=$(date -u +'%u')" >> $GITHUB_ENV
@@ -106,31 +106,6 @@ jobs:
           flags: slow
           name: slow-test-coverage
           fail_ci: false
-          # "fail_ci_if_error: true" causes the job to fail if the upload to Codecov fails,
-          # helping to catch issues with the coverage reporting.
-          fail_ci_if_error: true
-
-      - name: Run Combined tests and generate report
-        env:
-          GH_ACTION_ACCESS_TOKEN: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
-          CSFY_AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
-          CSFY_AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
-          CSFY_AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
-          CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
-          CSFY_ECR_BASE_PATH: ghcr.io/${{ github.repository_owner }}
-          CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
-        run: invoke run_coverage_report .
-
-      - name: Upload Combined Test Coverage to Codecov
-        # "if: always()" ensures this step is executed regardless of previous outcomes.
-        if: always()
-        uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage.xml
-          flags: combined_fast_slow
-          name: combined-test-coverage
-          fail_ci: true
           # "fail_ci_if_error: true" causes the job to fail if the upload to Codecov fails,
           # helping to catch issues with the coverage reporting.
           fail_ci_if_error: true

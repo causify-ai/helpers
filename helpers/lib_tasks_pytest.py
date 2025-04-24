@@ -835,7 +835,9 @@ def run_coverage_report(  # type: ignore
     # does not affect the coverage results was added as a workaround.
     report_cmd.append("coverage erase")
     # Merge stats for fast and slow tests into single dir.
-    report_cmd.append(f"coverage combine --keep")
+    report_cmd.append(
+        f"coverage combine --keep {fast_tests_coverage_file} {slow_tests_coverage_file}"
+    )
     # Specify the dirs to include and exclude in the report.
     exclude_from_report = None
     if target_dir == ".":
