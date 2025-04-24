@@ -961,7 +961,7 @@ def _run_coverage(
         # Pass through remaining args to pytest.
         "--",
         # Emit JUnit XML report for CI systems.
-        "--junitxml=reports/junit_{suite}.xml",
+        f"--junitxml=reports/junit_{suite}.xml",
         # Force legacy JUnit output format.
         "-o",
         "junit_family=legacy",
