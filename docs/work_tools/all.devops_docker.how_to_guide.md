@@ -161,6 +161,7 @@
 
 - `docker_build_prod_image`: build a "prod" image from a dev image
 - `docker_push_prod_image`: push the "prod" image to ECR
+- `docker_push_prod_candidate_image`: push the "prod" candidate image to ECR
 - `docker_release_prod_image`: build, test, and release the "prod" image to ECR
 - `docker_release_all`: release both the "dev" and "prod" image to ECR
 - `docker_rollback_dev_image`: rollback the version of the "dev" image

@@ -180,10 +180,14 @@ def _run_tests(
         hlitapyt.run_qa_tests(ctx, stage=stage, version=version)
 
 
+# TODO(sandeep): Consider promoting this to an invoke target and removing the callers.
+# Reason: the caller invoke targets only contain this helper call.
+
+
 def _docker_tag_and_push_multi_arch_image(
     ctx: Any,
     version: str,
-    source_image: str,
+    base_image: str,
     target_registry: str,
     container_dir_name: str,
     source_stage: str,
@@ -195,7 +199,8 @@ def _docker_tag_and_push_multi_arch_image(
 
     :param ctx: invoke context
     :param version: version to tag the image with
-    :param source_image: base name of the image
+    :param base_image: base name of the image (e.g.,
+        `*****.dkr.ecr.us-east-1.amazonaws.com/amp`)
     :param target_registry: target Docker registry to push to (e.g.,
         `aws_ecr.ck` or `dockerhub.causify`)
     :param container_dir_name: directory where Dockerfile is located
@@ -220,7 +225,7 @@ def _docker_tag_and_push_multi_arch_image(
             f"Invalid source stage='{source_stage}' for tagging and pushing"
         )
     source_image_versioned = hlitadoc.get_image(
-        source_image, source_stage, source_stage_version
+        base_image, source_stage, source_stage_version
     )
     _LOG.info(
         "Pushing the %s image %s to the target_registry %s ",
@@ -241,8 +246,9 @@ def _docker_tag_and_push_multi_arch_image(
         raise ValueError(
             f"Invalid target Docker image registry='{target_registry}'"
         )
-    # The versioned image is needed only for the 'dev' stage.
-    if target_stage == "dev":
+    # Only create a versioned image for the 'dev' stage or for the
+    # 'dockerhub.causify' registry.
+    if target_stage == "dev" or target_registry == "dockerhub.causify":
         # Tag and push the source image as versioned target image.
         target_versioned_image = hlitadoc.get_image(
             target_base_image, target_stage, source_stage_version
@@ -624,14 +630,16 @@ def docker_tag_push_multi_build_local_image_as_dev(  # type: ignore
     :param container_dir_name: directory where the Dockerfile is located
     """
     hlitauti.report_task(container_dir_name=container_dir_name)
+    stage = "local"
+    target_stage = "dev"
     _docker_tag_and_push_multi_arch_image(
         ctx,
         version,
         local_base_image,
         target_registry,
         container_dir_name,
-        stage="local",
-        target_stage="dev",
+        stage,
+        target_stage,
     )
 
 
@@ -899,14 +907,16 @@ def docker_tag_push_multi_arch_prod_image(  # type: ignore
     :param container_dir_name: directory where the Dockerfile is located
     """
     hlitauti.report_task(container_dir_name=container_dir_name)
+    stage = "prod"
+    target_stage = "prod"
     _docker_tag_and_push_multi_arch_image(
         ctx,
         version,
         base_image,
         target_registry,
         container_dir_name,
-        stage="prod",
-        target_stage="prod",
+        stage,
+        target_stage,
     )
 
 
@@ -1062,10 +1072,11 @@ def docker_rollback_dev_image(  # type: ignore
     :param push_to_repo: push the image to the ECR repo
     """
     hlitauti.report_task()
+    stage = "dev"
     _docker_rollback_image(
         ctx,
         base_image="",
-        stage="dev",
+        stage=stage,
         version=version,
         push_to_repo=push_to_repo,
     )
@@ -1084,10 +1095,11 @@ def docker_rollback_prod_image(  # type: ignore
     Same as parameters and meaning as `docker_rollback_dev_image`.
     """
     hlitauti.report_task()
+    stage = "prod"
     _docker_rollback_image(
         ctx,
         base_image="",
-        stage="prod",
+        stage=stage,
         version=version,
         push_to_repo=push_to_repo,
     )
