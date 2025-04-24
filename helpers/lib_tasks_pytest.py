@@ -8,6 +8,7 @@ import json
 import logging
 import os
 import re
+import shlex
 import sys
 from typing import Any, List, Optional, Tuple, cast
 
@@ -790,7 +791,7 @@ def _publish_html_coverage_report_on_s3(aws_profile: str) -> None:
 def run_coverage_report(  # type: ignore
     ctx,
     target_dir,
-    generate_html_report=True,
+    generate_html_report=False,
     publish_html_on_s3=True,
     aws_profile="ck",
 ):
@@ -931,7 +932,7 @@ def _run_coverage(
     ctx,
     suite: str,
     target_dir: str,
-    generate_html_report: bool,
+    generate_html_report: bool = False,
 ) -> str:
     """
     Run coverage for a given suite (fast/slow/superslow).
@@ -948,7 +949,7 @@ def _run_coverage(
         "Expected one of 'fast', 'slow', or 'superslow'.",
     )
     # Build the command line.
-    test_cmd = [
+    test_cmd_parts = [
         # Invoke the "<suite>_tests" task.
         "invoke",
         f"run_{suite}_tests",
@@ -965,6 +966,8 @@ def _run_coverage(
         "-o",
         "junit_family=legacy",
     ]
+    # join and quote them into a single shell command
+    test_cmd = " ".join(shlex.quote(p) for p in test_cmd_parts)
     # Name output coverage data file for this suite.
     coverage_file = f".coverage_{suite}_tests"
     # Run the tests under coverage.
@@ -1002,9 +1005,7 @@ def _run_coverage(
 
 
 @task
-def run_fast_coverage(
-    ctx, target_dir: str, generate_html_report: bool = True
-) -> str:
+def run_fast_coverage(ctx, target_dir: str) -> None:
     """
     Task wrapper to run *fast* test suite with coverage and emit reports.
 
@@ -1018,9 +1019,7 @@ def run_fast_coverage(
 
 
 @task
-def run_slow_coverage(
-    ctx, target_dir: str, generate_html_report: bool = True
-) -> str:
+def run_slow_coverage(ctx, target_dir: str) -> None:
     """
     Task wrapper to run *slow* test suite with coverage and emit reports.
 
@@ -1034,9 +1033,7 @@ def run_slow_coverage(
 
 
 @task
-def run_superslow_coverage(
-    ctx, target_dir: str, generate_html_report: bool = True
-) -> str:
+def run_superslow_coverage(ctx, target_dir: str) -> None:
     """
     Task wrapper to run *slow* test suite with coverage and emit reports.
 
