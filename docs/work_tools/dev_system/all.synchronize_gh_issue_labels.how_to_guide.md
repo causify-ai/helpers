@@ -2,8 +2,9 @@
 
 <!-- toc -->
 
+- [Overview](#overview)
 - [Prerequisites](#prerequisites)
-  * [Label format](#label-format)
+  * [Label file](#label-file)
   * [Permissions and access](#permissions-and-access)
 - [How to synchronize issue labels](#how-to-synchronize-issue-labels)
   * [Using GitHub](#using-github)
@@ -11,6 +12,8 @@
   * [Using Invoke](#using-invoke)
 
 <!-- tocstop -->
+
+## Overview
 
 - GitHub labels help categorize and prioritize issues in a repository. You can
   find more information in the
@@ -28,11 +31,11 @@
   [`/dev_scripts_helpers/github/labels/gh_issues_labels.yml`](/dev_scripts_helpers/github/labels/gh_issues_labels.yml)
   file, which acts as a manifest for synchronization. You can create your own
   label file or use the default ones provided in the repository but you need to
-  use only yaml file
+  use only YAML file
 
 ## Prerequisites
 
-### Label format
+### Label file
 
 - A GitHub label includes the following attributes:
   - `name`: The label's name
@@ -80,9 +83,6 @@
 
 - The script requires write access to the repository you want to update labels
 
-- If working with a different label file, ensure to specify the correct path in
-  the script
-
 ## How to synchronize issue labels
 
 ### Using GitHub
@@ -114,38 +114,26 @@
   following command:
 
 ```bash
-> python ./dev_scripts_helpers/github/sync_gh_issue_labels.py \
-    --input_file $FILENAME \
+> ./dev_scripts_helpers/github/sync_gh_issue_labels.py \
+    --input_file ./dev_scripts_helpers/github/labels/gh_issues_labels.yml \
     --owner causify-ai \
-    --repo sports_analytics \
-    --token_env_var GITHUB_TOKEN  \
-    --backup
-12:57:34 - INFO  hdbg.py init_logger:1013                               Saving log to file '$REPOLOCATION/dev_scripts_helpers/github/sync_gh_issue_labels.py.log'
-12:57:34 - INFO  hdbg.py init_logger:1018                               > cmd='sync_gh_issue_labels.py --input_file $FILENAME --owner causify-ai --repo helpers --token_env_var GITHUB_TOKEN --backup'
-12:57:35 - INFO  sync_gh_issue_labels.py _main:205                      Labels backed up to $REPOLOCATION/tmp.labels.causify-ai.helpers.yaml
+    --repo helpers \
+    --token_env_var GITHUB_TOKEN \
+    --backup \
+    --dry_run
+12:26:27 - INFO  hdbg.py init_logger:1013                               Saving log to file '/home/peeyush/src/helpers1/dev_scripts_helpers/github/sync_gh_issue_labels.py.log'
+12:26:27 - INFO  hdbg.py init_logger:1018                               > cmd='./dev_scripts_helpers/github/sync_gh_issue_labels.py --input_file ./dev_scripts_helpers/github/labels/gh_issues_labels.yml --owner causify-ai --repo helpers --token_env_var GITHUB_TOKEN --backup --dry_run'
+12:26:28 - INFO  sync_gh_issue_labels.py _main:205                      Labels backed up to /home/peeyush/src/helpers1/tmp.labels.causify-ai.helpers.yaml
 Are you sure you want to synchronize labels? [y/n] y
-12:57:36 - INFO  sync_gh_issue_labels.py _main:263                      Label 'P0' not changed
-12:57:36 - INFO  sync_gh_issue_labels.py _main:263                      Label 'P1' not changed
-12:57:36 - INFO  sync_gh_issue_labels.py _main:263                      Label 'P2' not changed
-12:57:36 - INFO  sync_gh_issue_labels.py _main:263                      Label 'Blocking' not changed
-12:57:36 - INFO  sync_gh_issue_labels.py _main:263                      Label 'Bug' not changed
-12:57:36 - INFO  sync_gh_issue_labels.py _main:263                      Label 'Enhancement' not changed
-12:57:36 - INFO  sync_gh_issue_labels.py _main:263                      Label 'Epic' not changed
-12:57:36 - INFO  sync_gh_issue_labels.py _main:263                      Label 'Design' not changed
-12:57:36 - INFO  sync_gh_issue_labels.py _main:263                      Label 'Documentation' not changed
-12:57:36 - INFO  sync_gh_issue_labels.py _main:263                      Label 'Cleanup' not changed
-12:57:36 - INFO  sync_gh_issue_labels.py _main:263                      Label 'Customer' not changed
-12:57:36 - INFO  sync_gh_issue_labels.py _main:263                      Label 'Readings' not changed
-12:57:36 - INFO  sync_gh_issue_labels.py _main:263                      Label 'PR for authors' not changed
-12:57:36 - INFO  sync_gh_issue_labels.py _main:263                      Label 'PR for integrators' not changed
-12:57:36 - INFO  sync_gh_issue_labels.py _main:263                      Label 'PR for reviewers' not changed
-12:57:36 - INFO  sync_gh_issue_labels.py _main:263                      Label 'Paused' not changed
-12:57:36 - INFO  sync_gh_issue_labels.py _main:263                      Label 'To close' not changed
-12:57:36 - INFO  sync_gh_issue_labels.py _main:263                      Label 'Good first issue' not changed
-12:57:36 - INFO  sync_gh_issue_labels.py _main:263                      Label 'Good second issue' not changed
-12:57:36 - INFO  sync_gh_issue_labels.py _main:263                      Label 'Outsource' not changed
-12:57:36 - INFO  sync_gh_issue_labels.py _main:263                      Label 'Bounty' not changed
-12:57:36 - INFO  sync_gh_issue_labels.py _main:264                      Label synchronization completed!
+12:26:32 - INFO  sync_gh_issue_labels.py _main:263                      Label 'P0' not changed
+12:26:32 - INFO  sync_gh_issue_labels.py _main:263                      Label 'P1' not changed
+...
+12:26:32 - INFO  sync_gh_issue_labels.py _main:263                      Label 'Readings' not changed
+12:26:32 - INFO  sync_gh_issue_labels.py _main:241                      Label 'Testing' will be created without --dry_run
+12:26:32 - INFO  sync_gh_issue_labels.py _main:263                      Label 'PR for authors' not changed
+...
+12:26:32 - INFO  sync_gh_issue_labels.py _main:263                      Label 'Bounty' not changed
+12:26:32 - INFO  sync_gh_issue_labels.py _main:264                      Label synchronization completed!
 ```
 
 - For more information on the script's arguments, run the following command:
@@ -153,9 +141,6 @@ Are you sure you want to synchronize labels? [y/n] y
 ```bash
 > ./dev_scripts_helpers/github/sync_gh_issue_labels.py --help
 ```
-
-- Logs are saved in the
-  `/dev_scripts_helpers/github/sync_gh_issue_labels.py.log` file
 
 ### Using Invoke
 
