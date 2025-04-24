@@ -2,6 +2,7 @@
 
 <!-- toc -->
 
+- [Pre-hiring: Bounty](#pre-hiring-bounty)
 - [Hiring stages](#hiring-stages)
 - [HiringMeister](#hiringmeister)
 - [Step by step](#step-by-step)
@@ -9,6 +10,27 @@
 - [Giving feedback](#giving-feedback)
 
 <!-- tocstop -->
+
+## Pre-hiring: Bounty
+
+- We have hundreds of candidates who want to contribute to our projects and work
+  with us, but we can't easily find the ones that have the right skills to join
+  the team
+- One approach is for us to go through the applications, rank the candidates,
+  on-board them and help them achieve the quality of code we expect from team
+  members
+- Another approach is to let the candidates show that they can deliver through
+  **bounty hunting**
+- The idea is to have challenging projects (bounties) that potential hires can
+  take on
+  - From a couple of days to ~2 weeks of work
+  - Lots of coding with clear specs
+  - Not on the critical path, "nice to have" projects that will become useful in
+    the future
+- Those who excel at the bounties get paid and get onto the
+  [hiring path](#step-by-step)
+- More information and instructions for bounty hunters are provided in
+  [`/docs/onboarding/bounty.onboarding_checklist.reference.md`](/docs/onboarding/bounty.onboarding_checklist.reference.md)
 
 ## Hiring stages
 
@@ -88,37 +110,15 @@
   - Job postings on LinkedIn
   - Job postings on Upwork
 
-- HiringMeister: upon receipt of a new application, create a task on Asana in
-  the
-  [Hiring](https://app.asana.com/1/1208196877870190/project/1208280136292379/list/1208280159230261)
-  project
-  - The task goes in the "Candidates" group
-  - The name of the task is the name of the applicant
-  - In the task description, use the following template:
-
-    ```verbatim
-    Pronoun:
-    Personal email:
-    Work status (e.g., when graduates):
-
-    Hiring info:
-      Google Form:
-      CV:
-      LinkedIn:
-      GitHub user:
-      TG:
-      Working hours / week:
-      Best piece of code:
-      How good (1-5):
-    ```
-  - We use this Asana task to communicate about the applicant
-
 - HiringMeister/GP: send an email to the applicant with a link to the
   [questionnaire](https://docs.google.com/forms/d/e/1FAIpQLScWAavYiYj1IfWGP1QEv2jqjKvQKnFjseryhzmIIHZKnZ4HkA/viewform)
   to gather information about them
   - Responses are available
     [here](https://docs.google.com/forms/d/1NUsjbTyXBoITQZ6z8nqmTydFPcWl0kWEQZJZzzYXUeM/edit#responses)
-  - Use their responses to update the corresponding Asana task description
+
+- (Optional) HiringMeister/GP: send an email inviting the applicant to
+  participate in [bounty hunting](#pre-hiring-bounty)
+  - All further steps are put on hold while the applicant works on bounty tasks
 
 - Hiring team: decide whether we take on the applicant as an **intern**
   - Decided at a review meeting that takes place every 2 weeks
@@ -130,11 +130,41 @@
     profile, we should proceed further in the process
   - It's ok to ask more team members to take a look
   - If the candidate is a no-go, GP sends an email of rejection
-  - If we decide to onboard the candidate, continue with the steps below
+  - If we decide to on-board the candidate, continue with the steps below
 
 - HiringMeister/GP: send an email asking to confirm if they are still interested
   and ready to go
   - Proceed with the steps below only if they respond with a confirmation
+
+- HiringMeister: create a task on Asana in the
+  [Hiring](https://app.asana.com/1/1208196877870190/project/1208280136292379/list/1208280159230261)
+  project
+  - The task goes in the "Onboarding" section
+  - The name of the task is the name of the intern
+  - In the task description, use the following template:
+
+    ```verbatim
+    Pronoun:
+    Personal email:
+    Work status (e.g., when graduates):
+
+    GitHub:
+      Onboarding issue:x
+      Issues:
+      PRs:
+
+    Hiring info:
+      Google Form:
+      CV:
+      LinkedIn:
+      GitHub user:
+      TG:
+      Working hours / week:
+      Best piece of code:
+      How good (1-5):
+    ```
+  - Fill in the template based on their questionnaire responses
+  - We use this Asana task to communicate about the intern
 
 - HiringMeister/GP: send invitations to GitHub repos with `write` permissions:
   - [`helpers`](https://github.com/causify-ai/helpers/settings/access)
@@ -143,17 +173,6 @@
 - HiringMeister: create a GitHub issue for onboarding the intern
   - Follow the instructions in
     [`intern.onboarding_checklist.reference.md`](/docs/onboarding/intern.onboarding_checklist.reference.md)
-
-- HiringMeister: update the Asana task for the intern
-  - Move to the "Onboarding" section
-  - Add a section to track the intern's issues and PRs
-
-    ```verbatim
-    GitHub:
-      Onboarding issue:
-      Issues:
-      PRs:
-    ```
 
 - HiringMeister: regularly check the updates made by the intern in the
   onboarding issue and help resolve any errors they face
