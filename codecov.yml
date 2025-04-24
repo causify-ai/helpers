@@ -1,27 +1,31 @@
 flag_management:
   default_rules:
+    # Do not reuse last coverage if missing.
     carryforward: false
   individual_flags:
     - name: fast
+      # Reuse last coverage if missing for true.
       carryforward: true
     - name: slow
       carryforward: true
     - name: combined_fast_slow
       carryforward: true
     - name: superslow
+      carryforward: true
 
-# no per-line comments.
+
+# No per-line comments.
 comment: false
 
 coverage:
   status:
     project:
-      # post the project‑level GitHub Check.
+      # Post the project‑level GitHub Check.
       enabled: true
       target_branch: master
-      # measure % drop relative to baseline.
+      # Measure % drop relative to baseline.
       comparator: relative
-      # fail if drop ≥1%.
+      # Fail if drop ≥1%.
       threshold: 1
       flags:
         - combined_fast_slow

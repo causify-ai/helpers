@@ -876,16 +876,46 @@ def run_coverage_report(  # type: ignore
 
 def _get_inclusion_settings(target_dir: str) -> Tuple[str, Optional[str]]:
     """
-    Determine include/omit glob patterns for the coverage report.
+    Determine include/omit glob patterns for the coverage report for both text
+    and HTML coverage reports.
 
     :param target_dir: directory for coverage stats; use "." to indicate all directories
     :return: tuple (include_in_report, exclude_from_report) where
         - include_in_report is the glob pattern to include
         - exclude_from_report is a comma‑separated glob pattern to omit, or ``None``
+
+    Examples:
+        1. Cover everything (no submodules to omit):
+        ```
+        _get_inclusion_settings(".")
+        ```
+        ("*", "")
+
+        2. Only cover code under a specific directory:
+        ```
+        _get_inclusion_settings("helpers")
+        ```
+        ("*/helpers/*", None)
+
+    Usage in `_run_coverage`:
+
+         # Entire repo coverage (e.g. your 'helpers' project root):
+         ```
+        include, omit = _get_inclusion_settings(".")
+        ```
+        #   coverage report --include=* --sort=Cover
+        #   coverage html   --include=* [--omit=ext/foo/*,ext/bar/*]
+
+        # Single-directory coverage:
+        ```
+        include, omit = _get_inclusion_settings("helpers")
+        ```
+        #   coverage report --include=*/helpers/* --sort=Cover
+        #   coverage html   --include=*/helpers/* [--omit=...]
     """
     if target_dir == ".":
-        include_in_report: str = "*"
-        exclude_from_report: Optional[str] = None
+        include_in_report = "*"
+        exclude_from_report = ""
         if hserver.skip_submodules_test():
             submodule_paths: List[str] = hgit.get_submodule_paths()
             exclude_from_report = ",".join(
@@ -904,44 +934,71 @@ def _run_coverage(
     generate_html_report: bool,
 ) -> str:
     """
-    Internal helper to run coverage for a given suite (fast/slow) and emit XML.
+    Run coverage for a given suite (fast/slow/superslow).
 
     :param suite: one of "fast" or "slow"
     :param target_dir: coverage target directory
     :param generate_html_report: whether to produce HTML output
-    :return: filename of the suite‑specific coverage data file
+    :return: xml file named 'coverage.xml'
     """
 
-    if suite not in ("fast", "slow"):
-        raise ValueError(
-            f"Unsupported suite='{suite}'. Expected 'fast' or 'slow'."
-        )
-    test_cmd = f"invoke run_{suite}_tests --coverage -p {target_dir} -- --junitxml=reports/junit_{suite}.xml -o junit_family=legacy"
+    hdbg.dassert_in(
+        suite,
+        ("fast", "slow", "superslow"),
+        "Expected one of 'fast', 'slow', or 'superslow'.",
+    )
+    # Build the command line.
+    test_cmd = [
+        # Invoke the "<suite>_tests" task.
+        "invoke",
+        f"run_{suite}_tests",
+        # Enable coverage collection.
+        "--coverage",
+        # Specify which directory to test.
+        "--path",
+        target_dir,
+        # Pass through remaining args to pytest.
+        "--",
+        # Emit JUnit XML report for CI systems.
+        "--junitxml=reports/junit_{suite}.xml",
+        # Force legacy JUnit output format.
+        "-o",
+        "junit_family=legacy",
+    ]
+    # Name output coverage data file for this suite.
     coverage_file = f".coverage_{suite}_tests"
+    # Run the tests under coverage.
     hlitauti.run(ctx, test_cmd, use_system=False)
+    # Move the default ".coverage" file to our suite-specific filename.
     hsystem.system(f"mv .coverage {coverage_file}")
     hdbg.dassert_file_exists(coverage_file)
+    # Compute which files/dirs to include and omit in the report.
     include_in_report, exclude_from_report = _get_inclusion_settings(target_dir)
     report_cmd: List[str] = [
+        # Clear out any prior coverage data.
         "coverage erase",
+        # Combine this suite's data into the coverage database.
         f"coverage combine --keep {coverage_file}",
     ]
+    # Generate a text report, including only our target paths.
     report_stats_cmd: str = (
         f"coverage report --include={include_in_report} --sort=Cover"
     )
     if exclude_from_report:
         report_stats_cmd += f" --omit={exclude_from_report}"
     report_cmd.append(report_stats_cmd)
+    # Produce HTML output for interactive browsing.
     if generate_html_report:
         report_html_cmd: str = f"coverage html --include={include_in_report}"
         if exclude_from_report:
             report_html_cmd += f" --omit={exclude_from_report}"
         report_cmd.append(report_html_cmd)
+    # Export XML coverage report.
     report_cmd.append("coverage xml -o coverage.xml")
     full_report_cmd: str = " && ".join(report_cmd)
-    docker_cmd_: str = f"invoke docker_cmd --use-bash --cmd '{full_report_cmd}'"
+    docker_cmd_ = f"invoke docker_cmd --use-bash --cmd '{full_report_cmd}'"
+    # Execute the full coverage/Docker pipeline.
     hlitauti.run(ctx, docker_cmd_)
-    return coverage_file
 
 
 @task
@@ -956,7 +1013,8 @@ def run_fast_coverage(
     :param generate_html_report: whether to produce HTML output
     :return: filename of the fast‑suite coverage data file
     """
-    return _run_coverage(ctx, "fast", target_dir, generate_html_report=False)
+    test = "fast"
+    _run_coverage(ctx, test, target_dir, generate_html_report=False)
 
 
 @task
@@ -971,7 +1029,8 @@ def run_slow_coverage(
     :param generate_html_report: whether to produce HTML output
     :return: filename of the slow‑suite coverage data file
     """
-    return _run_coverage(ctx, "slow", target_dir, generate_html_report=False)
+    test = "slow"
+    _run_coverage(ctx, test, target_dir, generate_html_report=False)
 
 
 @task
@@ -986,7 +1045,8 @@ def run_superslow_coverage(
     :param generate_html_report: whether to produce HTML output
     :return: filename of the slow‑suite coverage data file
     """
-    return _run_coverage(ctx, "superslow", target_dir, generate_html_report=False)
+    test = "superslow"
+    _run_coverage(ctx, test, target_dir, generate_html_report=False)
 
 
 # #############################################################################
@@ -1113,10 +1173,6 @@ def pytest_repro(  # type: ignore
             pytest helpers/test/test_cache.py::TestCachingOnS3_2
             ```
         - "files": files with the failed tests, e.g.,
-            ```
-            pytest helpers/test/test_cache.py
-            pytest helpers/test/test_lib_tasks.py
-            ```
     :param file_name: the name of the file containing the pytest output file to parse
     :param show_stacktrace: whether to show the stacktrace of the failed tests
       - only if it is available in the pytest output file
@@ -1266,10 +1322,6 @@ def pytest_rename_test(ctx, old_test_class_name, new_test_class_name):  # type: 
     Rename the test and move its golden outcome.
 
     E.g., to rename a test class and all the test methods:
-    ```
-    > i pytest_rename_test TestCacheUpdateFunction1 \
-            TestCacheUpdateFunction_new
-    ```
 
     :param old_test_class_name: old class name
     :param new_test_class_name: new class name
@@ -1500,9 +1552,6 @@ def pytest_buildmeister(  # type: ignore
     Run the regression tests.
 
     - Run updating all the tests
-    ```
-    > pytest_buildmeister --pytest-opts "--update_outcomes"
-    ```
 
     :param docker_clean: remove all dead Docker instances
     :param opts: options to pass to the invoke (e.g., `--version 1.2.0` to test
