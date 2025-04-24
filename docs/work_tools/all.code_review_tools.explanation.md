@@ -1,3 +1,5 @@
+# Code Review Tools
+
 <!-- toc -->
 
 - [Code Review Tools](#code-review-tools)
@@ -15,9 +17,12 @@
 
 <!-- tocstop -->
 
-# Code Review Tools
+## Review Systems
 
-## Github Copilot Code Review
+### Github Copilot Code Review
+
+- Link:
+  [https://docs.github.com/en/copilot/using-github-copilot/code-review/using-copilot-code-review](https://docs.github.com/en/copilot/using-github-copilot/code-review/using-copilot-code-review)
 
 - Key Features:
   - AI-generated review comments
@@ -32,18 +37,10 @@
   - Very easy for teams already on GitHub
   - Minimal setup required
 
-- Strengths
-  - Seamless integration if your team is already deeply invested in GitHub.
-  - Great for boosting productivity during coding (boilerplate, tests,
-    refactors).
-  - Provides a familiar in-IDE experience.
+### Graphite.dev
 
-- Weaknesses
-  - The "Copilot for Code Review" feature is relatively new and may not offer
-    deep analysis compared to specialized tools.
-  - Can produce "best guess" suggestions that require human oversight.
-
-## Graphite.dev
+- Link:
+  [https://graphite.dev/docs/code-review](https://graphite.dev/docs/code-review)
 
 - Key Features:
   - Automated code review assistance
@@ -58,19 +55,10 @@
   - User-friendly dashboard
   - Requires initial configuration to align with project-specific rules
 
-- Strengths
-  - Focuses on improving the pull request workflow, making it faster and more
-    organized.
-  - Catches common style or lint issues early, reducing manual review overhead.
-  - Ideal for teams seeking to structure their PR process rigorously (e.g.,
-    stacked diffs, streamlined merges).
+### CodeRabbit
 
-- Weaknesses
-  - Not as advanced in AI-based code analysis as some specialized code-review
-    tools.
-  - May require your team to adapt to a new PR workflow or dashboard.
-
-## CodeRabbit
+- Link:
+  [https://docs.coderabbit.ai/](https://docs.coderabbit.ai/)
 
 - Key Features:
   - Advanced AI-driven code review
@@ -85,18 +73,10 @@
   - Modern UI and workflow
   - May involve a learning curve as the product matures
 
-- Strengths
-  - Billed as an AI-driven code review tool, aiming for deeper analysis of
-    logic, bugs, and potential improvements.
-  - If effective, it could reduce the time spent on finding edge cases or hidden
-    issues.
+### Deepcode (now integrated with Snyk Code)
 
-- Weaknesses
-  - A relatively new entrant; maturity and coverage (languages, frameworks) need
-    to be confirmed.
-  - Integration details might not be as polished or comprehensive yet.
-
-## Deepcode (now integrated with Snyk Code)
+- Link
+  [https://docs.snyk.io/](https://docs.snyk.io/)
 
 - Key Features:
   - AI-powered static analysis
@@ -111,16 +91,16 @@
   - Integration may require initial setup within Snyk ecosystem
   - Familiarity with Snyk platforms can help
 
-# Prices
+## Prices
 
-## Github Copilot Code Review
+### Github Copilot Code Review
 
 - Link:
   [https://docs.github.com/en/copilot/about-github-copilot/plans-for-github-copilot](https://docs.github.com/en/copilot/about-github-copilot/plans-for-github-copilot)
 
 - Cost per User:
   - Pro: $10/month
-  - Pro+: $39/umonth
+  - Pro+: $39/month
   - Business: $19/month
   - Enterprise: $39/month
 
@@ -136,7 +116,7 @@
   - Business: $380/month
   - Enterprise: $780/month
 
-## Grapite.dev
+### Grapite.dev
 
 - Link:
   [https://graphite.dev/docs/graphite-standard](https://graphite.dev/docs/graphite-standard)
@@ -158,7 +138,7 @@
 - Note: Graphite is free for personal repositories, teams with 10 or fewer
   GitHub collaborators, open-source projects, and students/educators.
 
-## CodeRabbit
+### CodeRabbit
 
 - Link: [https://www.coderabbit.ai/pricing](https://www.coderabbit.ai/pricing)
 
@@ -177,9 +157,9 @@
 - Note: CodeRabbit is free for open-source projects and offers a 14-day free
   trial.
 
-# Takeaways
+## Takeaways
 
-## Core Needs
+### Core Needs
 
 1.  Automated Code Review vs. Code Generation
     - **GitHub Copilot** is primarily an AI-assisted code generation tool
@@ -208,7 +188,49 @@
       be straightforward. Graphite and Coderabbit would be additional monthly
       expenses.
 
-# References
+### Strengths and Weaknesses
+
+#### Github Copilot
+
+- Strengths
+  - Seamless integration if your team is already deeply invested in GitHub.
+  - Great for boosting productivity during coding (boilerplate, tests,
+    refactors).
+  - Provides a familiar in-IDE experience.
+
+- Weaknesses
+  - The "Copilot for Code Review" feature is relatively new and may not offer
+    deep analysis compared to specialized tools.
+  - Can produce "best guess" suggestions that require human oversight.
+ 
+#### Graphite.dev
+
+ - Strengths
+   - Focuses on improving the pull request workflow, making it faster and more
+     organized.
+   - Catches common style or lint issues early, reducing manual review overhead.
+   - Ideal for teams seeking to structure their PR process rigorously (e.g.,
+     stacked diffs, streamlined merges).
+
+- Weaknesses
+  - Not as advanced in AI-based code analysis as some specialized code-review
+    tools.
+  - May require your team to adapt to a new PR workflow or dashboard.
+ 
+#### CodeRabbit
+
+- Strengths
+  - Billed as an AI-driven code review tool, aiming for deeper analysis of
+    logic, bugs, and potential improvements.
+  - If effective, it could reduce the time spent on finding edge cases or hidden
+    issues.
+
+- Weaknesses
+  - A relatively new entrant; maturity and coverage (languages, frameworks) need
+    to be confirmed.
+  - Integration details might not be as polished or comprehensive yet.
+
+## References
 
 - [https://www.awesomecodereviews.com/tools/ai-code-review-tools](https://www.awesomecodereviews.com/tools/ai-code-review-tools)
 
