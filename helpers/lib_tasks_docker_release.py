@@ -103,7 +103,7 @@ def _build_multi_arch_image(
     :param ctx: invoke context
     :param opts: build options (e.g., --no-cache)
     :param multi_arch: target architectures to build for (e.g.,
-        `linux/amd64`, `linux/arm64`)
+        `linux/amd64,linux/arm64`)
     :param build_args: build arguments for the Docker build command
     :param build_image: name of the image to build
     :param dockerfile: path to the Dockerfile to use for building
@@ -182,8 +182,6 @@ def _run_tests(
 
 # TODO(sandeep): Consider promoting this to an invoke target and removing the callers.
 # Reason: the caller invoke targets only contain this helper call.
-
-
 def _docker_tag_and_push_multi_arch_image(
     ctx: Any,
     version: str,
@@ -641,6 +639,7 @@ def docker_tag_push_multi_build_local_image_as_dev(  # type: ignore
     )
 
 
+# TODO(gp): This needs to be merged with docker_release_dev_image.
 @task
 def docker_release_multi_build_dev_image(  # type: ignore
     ctx,
