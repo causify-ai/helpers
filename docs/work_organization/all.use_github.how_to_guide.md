@@ -161,8 +161,11 @@ stateDiagram
 
 ### Naming an Issue
 
-- Use an informative description, typically in the form an action
+- Use an informative description, typically in the form of an action
   - E.g., "Do this and that"
+- Do not put too many details in the title making it too long
+  - E.g., the full path to the file where the changes should be made is better
+    suited for the starting post, not the title
 - We don't use a period at the end of the title
 - We prefer to avoid too much capitalization to make the Issue title easy to
   read and for consistency with the rest of the bugs
@@ -215,9 +218,10 @@ stateDiagram
   - Authors and assignees receive all the emails in any case
   - In general everybody should be subscribed to receiving all the notifications
     and you can quickly go through them to know what's happening around you
-- Assign an Issue to the right person for re-routing
+- Assign an Issue to the right person
   - There should be a single assignee to a Issue so we know who needs to do the
     work
+  - Assign to yourself if you are going to work on it
   - Assign Integrators / Team leaders if not sure
 - If you are not sure, leave it unassigned but `@tag` Integrators / team leaders
   to make sure we can take care of it
@@ -289,7 +293,7 @@ stateDiagram
   ```
 - If you want to make sure you are going in a right direction or just to confirm
   the interfaces you can also file a PR to discuss
-- Mark PR as draft if it is not ready, use the `convert to draft` button
+- Mark PR as draft if it is not ready, use the `Convert to draft` button
   - Draft PR should be filed when there is something to discuss with and
     demonstrate to the reviewer, but the feature is not completely implemented
 
@@ -297,19 +301,28 @@ stateDiagram
 
 #### Filing process
 
+- The title of the PR should match the name of the branch
+  - Look at the existing PRs in the repo for examples
 - Add a description to help reviewers to understand what it is about and what
   you want the focus to be
-  - Add a pointer in the description to the issue that PR is related to - this
-    will ease the GH navigation for you and reviewers
-- Leave the assignee field empty
-  - This will be done by team leaders
+- Add a pointer in the description to the issue that PR is related to - this
+  will ease the GH navigation for you and reviewers
+  - Do **not** link the PR to the issue through the dedicated GH functionality.
+    The reason is that when they are linked, GH automatically closes the issue
+    when the PR is merged, and this is inconvenient if there is more work to do.
+    We always want to have control over when the issue is closed.
+  - Sometimes GH creates these links itself - usually when the PR description
+    contains keywords like "Fixes #<issue_number>". So please avoid such
+    phrasing and instead use something more abstract like "Related to
+    #<issue_number>".
+- Put yourself in the "Assignees" field
 - Add reviewers to the reviewers list
-  - For optional review just do `@FYI` `person_name` in the description
+  - For optional review just do `FYI @username` in the description
 - Add a corresponding label
   - Usually the first label in the filed PR is `PR_for_reviewers`
   - If it is urgent/blocking, use the `Blocking` label
 - Make sure that the corresponding tests pass
-- Always lint before asking for a review
+- Always lint (and commit files modified by Linter) before asking for a review
 - If the output is a notebook:
   - Publish a notebook, see
     [here](/docs/work_tools/all.development.how_to_guide.md#publish-notebooks)
