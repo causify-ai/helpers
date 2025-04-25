@@ -87,8 +87,8 @@
 
 ### Using GitHub
 
-- Open the `Issues` section in the GitHub repository you want to update labels in
-  <img
+- Open the `Issues` section in the GitHub repository you want to update labels
+  in <img
   src="figs/synchronize_gh_issue_labels/image1.png"
   style="width:2458px;height:100px" />
 
