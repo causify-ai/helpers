@@ -135,7 +135,7 @@ some helpful tips and resources to guide you through your first review.
 - Make sure to select a Reviewer in a corresponding GitHub field so he/she gets
   notified
   - <img width="313" alt=""
-    src="[https://github.com/kaizen-ai/kaizenflow/assets/31514660/f8534c49-bff6-4d59-9037-d70dc03d5ff9"](https://github.com/kaizen-ai/kaizenflow/assets/31514660/f8534c49-bff6-4d59-9037-d70dc03d5ff9")>
+    src="https://github.com/kaizen-ai/kaizenflow/assets/31514660/f8534c49-bff6-4d59-9037-d70dc03d5ff9">
   - Junior contributors should assign Team Leaders (e.g., Grisha, DanY, Samarth,
     ...) to review their PR
     - Team Leaders will assign integrators (GP & Paul) themselves after all
@@ -150,14 +150,14 @@ some helpful tips and resources to guide you through your first review.
   - E.g., see an
     [example](https://github.com/kaizen-ai/kaizenflow/pull/288#issue-1729654983)
     - <img width="505" alt=""
-      src="[https://github.com/kaizen-ai/kaizenflow/assets/31514660/69fbabec-300c-4f7c-94fc-45c5da5a6817"](https://github.com/kaizen-ai/kaizenflow/assets/31514660/69fbabec-300c-4f7c-94fc-45c5da5a6817")>
+      src="https://github.com/kaizen-ai/kaizenflow/assets/31514660/69fbabec-300c-4f7c-94fc-45c5da5a6817">
 
 ### Resolve conversations
 
 - When you've addressed a comment from a Reviewer, press `Resolve conversation`
   button so the Reviewer knows that you actually took care of it
   - <img width="328" alt=""
-    src="[https://github.com/kaizen-ai/kaizenflow/assets/31514660/a4c79d73-62bd-419b-b3cf-e8011621ba3c"](https://github.com/kaizen-ai/kaizenflow/assets/31514660/a4c79d73-62bd-419b-b3cf-e8011621ba3c")>
+    src="https://github.com/kaizen-ai/kaizenflow/assets/31514660/a4c79d73-62bd-419b-b3cf-e8011621ba3c">
 
 ### Merge master into your branch
 
@@ -181,12 +181,12 @@ some helpful tips and resources to guide you through your first review.
 - When you've addressed all the comments and need another round of review:
   - Press the circling arrows sign next to the Reviewer for the ping
     - <img width="280" alt=""
-      src="[https://github.com/kaizen-ai/kaizenflow/assets/31514660/4f924f4f-abab-40be-975d-a4fa81d9af3b"](https://github.com/kaizen-ai/kaizenflow/assets/31514660/4f924f4f-abab-40be-975d-a4fa81d9af3b")>
+      src="https://github.com/kaizen-ai/kaizenflow/assets/31514660/4f924f4f-abab-40be-975d-a4fa81d9af3b">
   - Remove `PR_for_authors` and add the `PR_for_reviewers` label (see
     [here](/docs/work_organization/all.use_github.how_to_guide.md#pr-labels) for
     the description of available labels)
     - <img width="271" alt=""
-      src="[https://github.com/kaizen-ai/kaizenflow/assets/31514660/3580bf34-dcba-431b-af5c-5ae65f7597c3"](https://github.com/kaizen-ai/kaizenflow/assets/31514660/3580bf34-dcba-431b-af5c-5ae65f7597c3")>
+      src="https://github.com/kaizen-ai/kaizenflow/assets/31514660/3580bf34-dcba-431b-af5c-5ae65f7597c3">
 
 ### Do not use screenshots
 
@@ -201,7 +201,7 @@ some helpful tips and resources to guide you through your first review.
   - _Bad_
 
     <img width="677" alt="scree"
-    src="[https://github.com/kaizen-ai/kaizenflow/assets/31514660/699cd1c5-53d2-403b-a0d7-96c66d4360ce"](https://github.com/kaizen-ai/kaizenflow/assets/31514660/699cd1c5-53d2-403b-a0d7-96c66d4360ce")>
+    src="https://github.com/kaizen-ai/kaizenflow/assets/31514660/699cd1c5-53d2-403b-a0d7-96c66d4360ce">
   - _Good_
 
     Input:

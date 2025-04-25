@@ -43,8 +43,9 @@
       with a few words about the next steps
 
 - [ ] **Intern**: Post your laptop's OS (Windows, Linux, Mac) in the comments of
-      this issue - Our dev environment is only adapted for Linux and Mac.
-      Windows users have to install dual boot or a VM with Linux (Ubuntu)
+      this issue
+  - Our dev environment is only adapted for Linux and Mac. Windows users have to
+    install dual boot or a VM with Linux (Ubuntu)
 
 - [ ] **Intern**: Confirm access to the public GH repos
   - [ ] [helpers](https://github.com/causify-ai/helpers)

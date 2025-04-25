@@ -265,9 +265,7 @@ The idea is to send a morning TODO email to broadcast:
   - No need to be too specific, give just an approximation
 - List all the tasks you're going to work during the day in priority order
   - Add a hyperlink to the corresponding GitHub issue to each task in order to
-    ease the navigation <img width="381" alt="Снимок экрана 2023-05-29 в 02 59
-    55"
-    src="[https://github.com/sorrentum/sorrentum/assets/31514660/0d2fbba4-1e6c-4c39-9c04-7ffc4acdde81"](https://github.com/sorrentum/sorrentum/assets/31514660/0d2fbba4-1e6c-4c39-9c04-7ffc4acdde81")>
+    ease the navigation <img width="381" src="https://github.com/sorrentum/sorrentum/assets/31514660/0d2fbba4-1e6c-4c39-9c04-7ffc4acdde81">
   - For each task provide an ETA
     - You always estimate the ETA yourself, based on the task's difficulty,
       priority and your workload
@@ -328,10 +326,6 @@ The idea is to send a morning TODO email to broadcast:
   - Exceptions are to send non-urgent information to everybody
 - There should be little replication among these forms of documentation
   - It's not ok to file a bug and then ping on Slack unless it's urgent
-- Google Form
-  - When you want to ask a question anonymously use
-    [https://forms.gle/KMQgobqbyxhoTR9n6](https://forms.gle/KMQgobqbyxhoTR9n6)
-  - The question will be discussed at the all hands meeting
 
 #### DRY also applies to documentation
 

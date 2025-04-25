@@ -40,7 +40,7 @@
     + [Comment chunks of code](#comment-chunks-of-code)
     + [Referring to an object in code comments](#referring-to-an-object-in-code-comments)
     + [Referring to type of vars in code comments](#referring-to-type-of-vars-in-code-comments)
-    + [Avoid comments](#avoid-comments)
+    + [Avoid distracting comments](#avoid-distracting-comments)
     + [Commenting out code](#commenting-out-code)
     + [Use type hints](#use-type-hints)
     + [Interval notation](#interval-notation)
@@ -716,7 +716,7 @@
     # Filter the LLM prompts.
     ```
 
-#### Avoid comments
+#### Avoid distracting comments
 
 - Use comments to explain the high level logic / goal of a piece of code and not
   the implementation details ("what" and not "how")
@@ -2114,8 +2114,6 @@
   where this function or variable was used) and try to fix them, at least to
   give your best shot at making things work
   - You can edit the notebooks directly without opening, or open and fix it.
-- Good examples of how you can safely rename anything for Pycharm users:
-  <[https://www.jetbrains.com/help/Pycharm/rename-refactorings.html](https://www.jetbrains.com/help/Pycharm/rename-refactorings.html)>
 - But remember, you must know how to do it without fancy IDE like Pycharm.
 - If it's important code:
   - Run unit tests
