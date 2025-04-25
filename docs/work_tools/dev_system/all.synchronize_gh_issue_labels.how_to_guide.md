@@ -17,7 +17,7 @@
 
 - GitHub labels help categorize and prioritize issues in a repository. You can
   find more information in the
-  [`all.use_github.how_to_guide.md`](/docs/work_organization/all.use_github.how_to_guide.md)
+  [`all.use_github.how_to_guide.md`](/docs/work_organization/all.use_github.how_to_guide.md#label)
 
 - The
   [`/dev_scripts_helpers/github/sync_gh_issue_labels.py`](/dev_scripts_helpers/github/sync_gh_issue_labels.py)
@@ -87,7 +87,7 @@
 
 ### Using GitHub
 
-- Open the `Issues` section in the GitHub repository you want to update labels
+- Open the `Issues` section in the GitHub repository you want to update labels in
   <img
   src="figs/synchronize_gh_issue_labels/image1.png"
   style="width:2458px;height:100px" />
@@ -147,7 +147,7 @@ Are you sure you want to synchronize labels? [y/n] y
 TODO(\*): Update this section once the invoke target is implemented
 
 - You can run the script using the `invoke` command where `$FILENAME` is the
-  name of the YAML file containing the labels as below:
+  name of the YAML file containing the labels:
 
 ```bash
 > i sync_gh_issue_labels \
