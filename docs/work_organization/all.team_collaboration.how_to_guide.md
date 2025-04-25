@@ -3,7 +3,7 @@
 - [General Rules of Collaboration](#general-rules-of-collaboration)
   * [Ask somebody if you have any doubts](#ask-somebody-if-you-have-any-doubts)
   * [Ping Team Leaders when you are out of tasks](#ping-team-leaders-when-you-are-out-of-tasks)
-  * [Do not be an island](#do-not-be-an-island)
+  * [Collaboration for problem solving](#collaboration-for-problem-solving)
   * [Collaboration](#collaboration)
     + [Why do we need to follow this handbook?](#why-do-we-need-to-follow-this-handbook)
       - [Learning from each other](#learning-from-each-other)
@@ -38,10 +38,9 @@
 - If you have doubts on how to do something you want to do:
   - Look in the [documentation](/docs) and our Google drive folders
     [Process](https://drive.google.com/drive/u/1/folders/1sJDqCjM1Q_nq8diyZDiWO8mVBQW5Wg_X)
-    and
-    [Tech](https://drive.google.com/drive/u/1/folders/1zawE6IEBDpWLTbpK-03z75f5pu_T9Jba)
-  - Google search is your friend
-- Ask your team-members
+    and [Tech](https://drive.google.com/drive/u/1/folders/0AG6WMNtf7MVkUk9PVA)
+  - Try Google search/ChatGPT
+- If you still can't find the answer, ask your team members
   - Learn
     [how to ask questions](http://www.catb.org/~esr/faqs/smart-questions.html)
     first
@@ -55,18 +54,26 @@
 - When you're close to being out of tasks or all your ongoing PRs are waiting
   for review and are close to being merged, feel free to ping us in the IM and
   ask for more issues
+  - IM = Telegram for interns / Slack for permanent team members
 - In this way, Team Leaders can quickly assign you another issue, before you run
   out of work
 - Everyone should have 2 issues to work on at the same time to avoid getting
   blocked on others
 
-## Do not be an island
+## Collaboration for problem solving
 
-- Instead of spending hours coding on your own, apply the following steps:
-  1. Identify a problem and describe it in the issue
-  2. Design solution or seek guidance from a more experienced team member
-  3. Communicate with the team and reach consensus on the solution
-  4. Write code
+- Identify a problem and describe it in the issue
+- Try your best to find a solution independently and outline the design in the
+  issue
+- If in doubt, seek guidance from a more experienced team member
+- Communicate with the team and reach consensus on the solution
+- NB:
+  - Not every step requires explicit approval. In our team members, we value
+    autonomy and ability to get things done
+  - Keep our usual conventions and workflows in mind. For example, usually there
+    is no need to ask "Do we need to add unit tests for this?" or "Do we also
+    want this documented?" - the answer is almost always "YES", so just doing it
+    saves time, shows proactivity and ability to follow processes
 
 ## Collaboration
 
@@ -182,10 +189,7 @@ The idea is to send a morning TODO email to broadcast:
 
   Issues:
   - GitHub issue title and number with a hyperlink
-     - Original ETA: YYYY-MM-DD
      - ETA: YYYY-MM-DD
-     - Reason for ETA update: ...
-     - Blocked on: ... (ok to omit if not blocked)
   - GitHub issue title and number with a hyperlink
      - Original ETA: YYYY-MM-DD
      - ETA: YYYY-MM-DD
@@ -215,7 +219,7 @@ The idea is to send a morning TODO email to broadcast:
   - Create linear supply/demand curves #177
       - ETA: tomorrow (2023-05-26)
   - Unit test `compute_share_prices_and_slippage()` #8482
-      - ETA Wednesday (06-19-2024)
+      - ETA: 2024-06-19
   ```
 
 - Bad example:
@@ -243,6 +247,9 @@ The idea is to send a morning TODO email to broadcast:
   - A TODO email replaces stand-up meetings
 - When to send an email:
   - Within the first hour of beginning the day
+    - There is no hard deadline, given that we have people working from
+      different time zones. Doing it first thing in the morning ensures one
+      doesn't forget
   - It is recommended to check the inbox (email, GitHub) first to reflect all
     the update in the plan for the day
 - Send an email to:
@@ -258,16 +265,22 @@ The idea is to send a morning TODO email to broadcast:
   - No need to be too specific, give just an approximation
 - List all the tasks you're going to work during the day in priority order
   - Add a hyperlink to the corresponding GitHub issue to each task in order to
-    ease the navigation
-    <img width="381" alt="Снимок экрана 2023-05-29 в 02 59 55" src="https://github.com/sorrentum/sorrentum/assets/31514660/0d2fbba4-1e6c-4c39-9c04-7ffc4acdde81">
+    ease the navigation <img width="381" src="https://github.com/sorrentum/sorrentum/assets/31514660/0d2fbba4-1e6c-4c39-9c04-7ffc4acdde81">
   - For each task provide an ETA
+    - You always estimate the ETA yourself, based on the task's difficulty,
+      priority and your workload
     - No reason to be optimistic: complex things take time to be done correctly
-    - Use a date in the usual format, e.g. 2023-05-20
-    - Add "today", "yesterday", "tomorrow", "end of week" so that it's easier to
-      parse
+    - Use a date in the YYYY-MM-DD format, e.g. 2023-05-20
+    - When possible, add "today", "yesterday", "tomorrow", "end of week" so that
+      it's easier to parse
+      - "End of week" generally means Friday, although it can be extended if you
+        are planning to work on the weekend (provide the date to clarify)
+      - If nothing is applicable, it's okay to just provide the date
+    - If the originally set ETA has not been changed yet, omit "Original ETA"
+      and "Reason for ETA update"
     - If your original ETA needs to be updated (e.g., you thought that you would
-      have finished a task by yesterday, but it's taking longer) keep the older
-      ETA and add the new one
+      have finished a task by yesterday, but it's taking longer), keep the older
+      ETA (as "Original ETA") and add the new one (as "ETA")
 - Report the PR/issue blocked
 
 ### Communication
@@ -313,10 +326,6 @@ The idea is to send a morning TODO email to broadcast:
   - Exceptions are to send non-urgent information to everybody
 - There should be little replication among these forms of documentation
   - It's not ok to file a bug and then ping on Slack unless it's urgent
-- Google Form
-  - When you want to ask a question anonymously use
-    https://forms.gle/KMQgobqbyxhoTR9n6
-  - The question will be discussed at the all hands meeting
 
 #### DRY also applies to documentation
 

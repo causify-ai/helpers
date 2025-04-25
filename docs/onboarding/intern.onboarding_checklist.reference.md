@@ -20,7 +20,7 @@
   common environment, open GitHub issues and PRs, use our extensive coding
   toolchain
 - However, some of the steps of the
-  [_full_ onboarding process](https://github.com/causify-ai/helpers/blob/master/docs/onboarding/all.onboarding_checklist.reference.md)
+  [_full_ onboarding process](/docs/onboarding/all.onboarding_checklist.reference.md)
   (like creating a company email) are postponed until the intern "graduates" to
   a permanent position
 
@@ -36,17 +36,16 @@
   - Copy-and-paste the whole checklist starting from [here](#checklist)
   - The issue should be assigned to the intern
 
-- [ ] **Intern**: Update this GitHub issue if you face any problems. If
-      applicable, do a PR proposing improvements to the checklist (or any other
-      docs), since this will allow us to improve the process as we move forward
-
-- [ ] **Intern**: Join the Telegram channel - https://t.me/+DXZXsWoEHR1mNWIx
+- [ ] **Intern**: Join the Telegram channel -
+      [https://t.me/+DXZXsWoEHR1mNWIx](https://t.me/+DXZXsWoEHR1mNWIx)
 
 - [ ] **HiringMeister**: Establish contact by email or Telegram with the intern
       with a few words about the next steps
 
 - [ ] **Intern**: Post your laptop's OS (Windows, Linux, Mac) in the comments of
       this issue
+  - Our dev environment is only adapted for Linux and Mac. Windows users have to
+    install dual boot or a VM with Linux (Ubuntu)
 
 - [ ] **Intern**: Confirm access to the public GH repos
   - [ ] [helpers](https://github.com/causify-ai/helpers)
@@ -62,10 +61,30 @@
     task in the
     [Hiring](https://app.asana.com/0/1208280136292379/1208280159230261) project
 
+- [ ] **HiringMeister**: Update the
+      [Access Tracker](https://docs.google.com/spreadsheets/d/130tDQBLAeq89uOTj9pyE8r1-o2-OKztCZYZtyiOKnLk/edit?resourcekey=&gid=1024055821#gid=1024055821)
+      spreadsheet
+  - Put "Yes" in the columns that the intern now has access to
+
 ### IT setup
 
 - [ ] **Intern**: Set up the development environment following instructions in
       [`intern.set_up_development_on_laptop.how_to_guide.md`](https://github.com/causify-ai/helpers/blob/master/docs/onboarding/intern.set_up_development_on_laptop.how_to_guide.md)
+  - We expect the intern to independently solve all the problems they encounter
+    through trial and error, googling and ChatGPT-ing
+  - If you cannot solve some problem no matter how hard you try:
+    - Check if the problem has already been reported and discussed in one of the
+      existing issues
+    - If not, create a new issue and provide a full report
+      - Describe your problem in detail, including the full context to reproduce
+        (e.g., copy-and-paste the command you ran and the output you got; do not
+        use screenshots)
+      - Describe what you have already tried to fix it and what was the result
+      - Tag the hiring team
+  - After the problem is resolved, then, if applicable, do a PR to fix the bug /
+    add a description of the problem and the solution to the docs
+  - See also
+    [`Collaboration for problem solving`](https://github.com/causify-ai/helpers/blob/master/docs/work_organization/all.team_collaboration.how_to_guide.md#collaboration-for-problem-solving)
 
 ### Must-read
 
@@ -100,3 +119,6 @@
   - [ ] Start a Docker container (`i docker_bash`)
   - [ ] Start a Jupyter server (`i docker_jupyter`)
   - [ ] Do a PR
+- Tip: a good approach to the "final checks" is to perform all the steps
+  (opening an issue, creating a branch, filing a PR) for something very small
+  but useful -- like fixing a typo in the docs.

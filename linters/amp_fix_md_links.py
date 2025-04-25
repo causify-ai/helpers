@@ -82,7 +82,9 @@ def _check_md_header_exists(
     with open(markdown_link_path, "r", encoding="utf-8") as file:
         content = file.read()
     # Get the headers of the markdown file.
-    headers_md = hmarkdo.extract_headers_from_markdown(content, level)
+    headers_md = hmarkdo.extract_headers_from_markdown(
+        content, level, sanity_check=False
+    )
     # Replace '-' with a white space.
     header = header.replace("-", " ").lower()
     # Check if the header matches any extracted header of the markdown file.
