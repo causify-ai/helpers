@@ -578,9 +578,10 @@ def docker_release_dev_image(  # type: ignore
     docker_tag_local_image_as_dev(
         ctx, dev_version, container_dir_name=container_dir_name
     )
+    # 4) Run QA tests for the (local version) of the dev image.
     stage = "dev"
     _run_tests(ctx, stage, dev_version, qa_tests=qa_tests)
-    # 4) Push the "dev" image to ECR.
+    # 5) Push the "dev" image to ECR.
     if push_to_repo:
         docker_push_dev_image(
             ctx, dev_version, container_dir_name=container_dir_name
