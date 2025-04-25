@@ -98,7 +98,7 @@ def _build_multi_arch_image(
     dockerfile: str,
 ) -> None:
     """
-    Build a multi-architecture Docker image.
+    Build a multi-architecture Docker image in a remote Docker registry.
 
     :param ctx: invoke context
     :param opts: build options (e.g., --no-cache)
@@ -149,10 +149,10 @@ def _run_tests(
     version: str,
     *,
     skip_tests: Optional[bool] = False,
-    fast_tests: Optional[bool] = False,
-    slow_tests: Optional[bool] = False,
-    superslow_tests: Optional[bool] = False,
-    qa_tests: Optional[bool] = False,
+    fast_tests: Optional[bool] = True,
+    slow_tests: Optional[bool] = True,
+    superslow_tests: Optional[bool] = True,
+    qa_tests: Optional[bool] = True,
 ) -> None:
     """
     Run tests for a given stage and version.
@@ -572,7 +572,7 @@ def docker_release_dev_image(  # type: ignore
         fast_tests,
         slow_tests,
         superslow_tests,
-        qa_tests,
+        qa_tests=False,
     )
     # 3) Promote the "local" image to "dev".
     docker_tag_local_image_as_dev(
@@ -580,7 +580,15 @@ def docker_release_dev_image(  # type: ignore
     )
     # 4) Run QA tests for the (local version) of the dev image.
     stage = "dev"
-    _run_tests(ctx, stage, dev_version, qa_tests=qa_tests)
+    _run_tests(
+        ctx,
+        stage,
+        dev_version,
+        fast_tests=False,
+        slow_tests=False,
+        superslow_tests=False,
+        qa_tests=qa_tests,
+    )
     # 5) Push the "dev" image to ECR.
     if push_to_repo:
         docker_push_dev_image(
