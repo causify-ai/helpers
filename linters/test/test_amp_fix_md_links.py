@@ -427,6 +427,33 @@ class Test_fix_links(hunitest.TestCase):
         output = _get_output_string(out_warnings, updated_lines)
         self.check_string(output, purify_text=True)
 
+    def test12(self) -> None:
+        """
+        Test that URLs inside quotation marks are not converted to Markdown-
+        style links.
+        """
+        # Prepare inputs.
+        text = r"""
+        URL in quotation marks: "https://example.com/path".
+
+        Image with URL in src attribute: <img width="505" alt="" src="https://github.com/user/repo/assets/12345/abcdef-ghijk-lmnop" />
+
+        URL in HTML attribute: <div data-url="https://api.example.com/endpoint"></div>
+        """
+        file_name = "test_quoted_urls.md"
+        file_path = self.write_input_file(text, file_name)
+        # Run.
+        _, actual, _ = lafimdli.fix_links(file_path)
+        # Check.
+        expected = [
+            'URL in quotation marks: "https://example.com/path".',
+            "",
+            'Image with URL in src attribute: <img width="505" alt="" src="https://github.com/user/repo/assets/12345/abcdef-ghijk-lmnop" />',
+            "",
+            'URL in HTML attribute: <div data-url="https://api.example.com/endpoint"></div>',
+        ]
+        self.assertEqual(expected, actual)
+
 
 # #############################################################################
 # Test_make_path_absolute
