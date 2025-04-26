@@ -78,6 +78,26 @@ def get_header_list3() -> hmarkdo.HeaderList:
     return header_list
 
 
+def get_header_list4() -> hmarkdo.HeaderList:
+    data = [
+        (1, "Chapter 1"),
+        (3, "Subsection 1.1.1"),
+    ]
+    header_list = _to_header_list(data)
+    return header_list
+
+
+def get_header_list5() -> hmarkdo.HeaderList:
+    data = [
+        (1, "Chapter 1"),
+        (2, "Section 1.1"),
+        (3, "Subsection 1.1.1"),
+        (1, "Chapter 2"),
+    ]
+    header_list = _to_header_list(data)
+    return header_list
+
+
 # #############################################################################
 # Test_header_list_to_vim_cfile1
 # #############################################################################
@@ -404,6 +424,7 @@ def _get_markdown_example5() -> str:
                 except:
                     return False
 
+
             for v in values:
                 if _is_integer(v):
                     print(v)
@@ -620,6 +641,7 @@ class Test_process_code_block1(hunitest.TestCase):
                             return value == int(value)
                         except:
                             return False
+
 
                     for v in values:
                         if _is_integer(v):
@@ -1282,6 +1304,7 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
         def check_empty_lines():
             print("Check empty lines are present!")
 
+
         ```
 
         """
@@ -1381,6 +1404,7 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
                     except:
                         return False
 
+
                 for v in values:
                     if _is_integer(v):
                         print(v)
@@ -1412,10 +1436,6 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
             print("No mention of python at the start")```
         ```
 
-        ```
-            A markdown paragraph contains
-            delimiters that needs to be removed.
-        ```
         """
         content = hprint.dedent(content)
         # Call function.
@@ -1431,3 +1451,44 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
             delimiters that needs to be removed.
         """
         self.assert_equal(str(act), exp, dedent=True)
+
+
+# #############################################################################
+# Test_check_header_list1
+# #############################################################################
+
+
+class Test_check_header_list1(hunitest.TestCase):
+
+    def test1(self) -> None:
+        """
+        Test that the header list with valid level increase is accepted.
+        """
+        # Prepare inputs.
+        header_list = get_header_list1()
+        # Call function.
+        hmarkdo.check_header_list(header_list)
+
+    def test2(self) -> None:
+        """
+        Test that the header list with an increase of more than one level
+        raises an error.
+        """
+        # Prepare inputs.
+        header_list = get_header_list4()
+        # Call function.
+        with self.assertRaises(ValueError) as err:
+            hmarkdo.check_header_list(header_list)
+        # Check output.
+        actual = str(err.exception)
+        self.check_string(actual)
+
+    def test3(self) -> None:
+        """
+        Test that the header list is accepted when heading levels decrease by
+        more than one.
+        """
+        # Prepare inputs.
+        header_list = get_header_list5()
+        # Call function.
+        hmarkdo.check_header_list(header_list)
