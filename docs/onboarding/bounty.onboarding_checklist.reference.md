@@ -34,11 +34,12 @@
 
 ## Instructions
 
-### Org
+### General organization
 
 - All the collaboration happens on GitHub as a typical open-source project
 - The bounties are published in a
   [Gdoc with specs](https://docs.google.com/document/d/1xPgQ2tWXQuVWKkGVONjOGd5j14mXSmGeY_4d1_sGzAE/edit?tab=t.0#heading=h.1ja24i564v3o)
+  - We are going to be adding more and more bounties depending on the demand
 - There is a
   [sign-up sheet](https://docs.google.com/spreadsheets/d/1QiTCyydNQwftMWj3nTL5jWBqOq3UCziFChF08aRNBcE/edit?gid=0#gid=0)
   for the bounties
@@ -50,18 +51,22 @@
     to make the bounty "locked", meaning that other people can no longer take it
     on
 - There will be minimal interaction from us
-  - We don't answer questions, contributors need to figure things out themselves
+  - In general we don't answer questions, contributors need to figure things out
+    themselves
   - If they believe there is a genuine bug somewhere in the codebase, they
     should
     - Check the existing issues in case this bug has already been reported
     - If not, file an issue with a proper report and ideally propose a fix too
-- If a contributor succeeds, we pay the bounty $XYZ (as a bank transfer or in
-  Tether)
+- If a contributor succeeds, we pay the bounty $XYZ as a bank transfer or in
+  Tether
   - If both sides agree, the contributor gets a paid internship / RA / TA
-  - We then on-board them and dedicate our time to train them
+  - We then on-board the contributors as part of our team and dedicate our time
+    to train them
 
 ### Working on a bounty
 
+- Take time to peruse the description of the bounty
+  - No need to rush, there is always time and work to do
 - Before any implementation, the contributor should create an issue for the task
   and post a detailed plan of action there
   - By default the contributor is then free to proceed according to their plan
