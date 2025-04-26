@@ -49,9 +49,9 @@ class Test_llm_transform1(hunitest.TestCase):
         out_file_name = os.path.join(self.get_scratch_space(), "output.md")
         return script, in_file_name, out_file_name
 
-    def test1(self) -> None:
+    def test_md_rewrite1(self) -> None:
         """
-        Run the `llm_transform.py` script with a specific prompt tag and verify
+        Run the `llm_transform.py` script with the prompt `md_rewrite` and verify
         the output.
         """
         script, in_file_name, out_file_name = self.setup_test()
@@ -63,6 +63,8 @@ class Test_llm_transform1(hunitest.TestCase):
         hsystem.system(cmd)
         # Check.
         self.assertTrue(os.path.exists(out_file_name))
+        # TODO(gp): We should be able to check the output once we have CmampTask10710
+        # fixed and we can run dind.
         if False:
             act = hio.from_file(out_file_name)
             exp = r"""
@@ -74,10 +76,33 @@ class Test_llm_transform1(hunitest.TestCase):
             """
             self.assert_equal(act, exp, dedent=True)
 
-    @pytest.mark.skip(reason="Run manually since it needs OpenAI credentials")
-    def test2(self) -> None:
+    def test_test1(self) -> None:
         """
-        Run the `llm_transform.py` script with various prompt tags and print
+        Run the `llm_transform.py` script with the prompt `test` and verify
+        the output.
+        """
+        script, in_file_name, out_file_name = self.setup_test()
+        # Run test.
+        prompt_tag = "test"
+        cmd = f"{script} -i {in_file_name} -o {out_file_name} -p {prompt_tag}"
+        hsystem.system(cmd)
+        # Check.
+        self.assertTrue(os.path.exists(out_file_name))
+        act = hio.from_file(out_file_name)
+        exp = r"""
+        - If there is no pattern we can try learning, measure if learning works and, in
+            the worst case, conclude that it does not work
+        - If we can find the solution in one step or program the solution, machine
+            learning is not the recommended technique, but it still works
+        - Without data we cannot do anything: data is all that matters
+        """
+        self.assert_equal(act, exp, dedent=True)
+
+    # TODO(gp): This can be enabled once we can mock the OpenAI interactions.
+    @pytest.mark.skip(reason="Run manually since it needs OpenAI credentials")
+    def test_all_prompts1(self) -> None:
+        """
+        Run the `llm_transform.py` script with all the prompt tags and print
         the output.
         """
         script, in_file_name, out_file_name = self.setup_test()

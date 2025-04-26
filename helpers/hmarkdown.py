@@ -302,6 +302,12 @@ def fix_chatgpt_output(txt: str) -> str:
     return txt
 
 
+def md_clean_up(txt: str) -> str:
+    # Remove dot at the end of each line.
+    txt = re.sub(r'\.\s*$', '', txt, flags=re.MULTILINE)
+    return txt
+
+
 # #############################################################################
 # Header processing
 # #############################################################################
