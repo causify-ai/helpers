@@ -424,7 +424,6 @@ def _get_markdown_example5() -> str:
                 except:
                     return False
 
-
             for v in values:
                 if _is_integer(v):
                     print(v)
@@ -641,7 +640,6 @@ class Test_process_code_block1(hunitest.TestCase):
                             return value == int(value)
                         except:
                             return False
-
 
                     for v in values:
                         if _is_integer(v):
@@ -1304,7 +1302,6 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
         def check_empty_lines():
             print("Check empty lines are present!")
 
-
         ```
 
         """
@@ -1404,7 +1401,6 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
                     except:
                         return False
 
-
                 for v in values:
                     if _is_integer(v):
                         print(v)
@@ -1436,6 +1432,10 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
             print("No mention of python at the start")```
         ```
 
+        ```
+            A markdown paragraph contains
+            delimiters that needs to be removed.
+        ```
         """
         content = hprint.dedent(content)
         # Call function.
