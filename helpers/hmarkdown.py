@@ -404,8 +404,8 @@ def check_header_list(header_list: HeaderList) -> None:
             header_list[0].line_number,
             header_list[0].level,
         )
-    # Check that headers only increase by at most one level at a time,
-    # but can decrease by multiple levels.
+    # Check that consecutive elements in the header list only increase by
+    # at most one level at a time, but can decrease by multiple levels.
     if len(header_list) > 1:
         for i in range(1, len(header_list)):
             hdbg.dassert_isinstance(header_list[i - 1], HeaderInfo)
