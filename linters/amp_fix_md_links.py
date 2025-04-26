@@ -30,6 +30,7 @@ FILE_PATH_REGEX = r"\.{0,2}\w*\/\S+\.[\w\.]+"
 HTML_LINK_REGEX = r'(<a href=".*?">.*?</a>)'
 MD_LINK_REGEX = r"\[(.+)\]\(((?!#).*)\)"
 BARE_LINK_REGEX = r"(?<!\[)(?<!\]\()(?<!href=\")([Hh]ttps?://[^\s<>()]+)"
+FENCE_REGEX = re.compile(r"^\s*(```|~~~)")
 
 
 def _make_path_absolute(path: str) -> str:
@@ -81,7 +82,9 @@ def _check_md_header_exists(
     with open(markdown_link_path, "r", encoding="utf-8") as file:
         content = file.read()
     # Get the headers of the markdown file.
-    headers_md = hmarkdo.extract_headers_from_markdown(content, level)
+    headers_md = hmarkdo.extract_headers_from_markdown(
+        content, level, sanity_check=False
+    )
     # Replace '-' with a white space.
     header = header.replace("-", " ").lower()
     # Check if the header matches any extracted header of the markdown file.
@@ -304,8 +307,18 @@ def fix_links(file_name: str) -> Tuple[List[str], List[str], List[str]]:
     docstring_line_indices = hstring.get_docstring_line_indices(lines)
     updated_lines: List[str] = []
     warnings: List[str] = []
+    is_inside_fence = False
     for i, line in enumerate(lines, start=1):
         updated_line = line
+        if FENCE_REGEX.match(line):
+            # Check if we're entering or exiting a fenced block.
+            is_inside_fence = not is_inside_fence
+            updated_lines.append(updated_line)
+            continue
+        if is_inside_fence:
+            # Skip processing links in fenced blocks.
+            updated_lines.append(updated_line)
+            continue
         # Check the formatting.
         # HTML-style links.
         html_link_matches = re.findall(HTML_LINK_REGEX, updated_line)

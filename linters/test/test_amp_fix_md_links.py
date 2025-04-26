@@ -401,6 +401,32 @@ class Test_fix_links(hunitest.TestCase):
         ]
         self.assertEqual(expected, actual)
 
+    def test11(self) -> None:
+        """
+        Test that links inside fenced code blocks are not modified.
+        """
+        # Prepare inputs.
+        text = r"""
+        Links inside fenced block that should not be formatted:
+        ```
+        https://example.com/inside-fenced-block
+        http://github.com/user/repo
+        ```
+
+        Another fenced block with different language:
+        ```python
+        url = "https://example.com/python-url"
+        response = requests.get("https://api.github.com/users")
+        ```
+        """
+        file_name = "test_fenced_blocks.md"
+        file_path = self.write_input_file(text, file_name)
+        # Run.
+        _, updated_lines, out_warnings = lafimdli.fix_links(file_path)
+        # Check.
+        output = _get_output_string(out_warnings, updated_lines)
+        self.check_string(output, purify_text=True)
+
 
 # #############################################################################
 # Test_make_path_absolute
