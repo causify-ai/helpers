@@ -40,9 +40,7 @@ def _main():
         )
         sys.exit(1)
     # Read pre-commit output.
-    precommit_output_path = (
-        f"tmp.precommit_output.txt"
-    )
+    precommit_output_path = f"tmp.precommit_output.txt"
     try:
         with open(precommit_output_path, "r") as f:
             precommit_output = f.read().strip()

@@ -57,17 +57,17 @@ if not OUTSIDE_CONTAINER_POST_TRANSFORMS:
     OUTSIDE_CONTAINER_POST_TRANSFORMS = {
         # These are all the prompts with post_transforms with
         # `convert_to_vim_cfile`.
-        "convert_file_names":
-            ["code_review",
+        "convert_file_names": [
+            "code_review",
             "code_review_and_find_missing_docstrings",
             "code_propose_refactoring",
-             ],
-        "prettier_on_str":
-        ["md_rewrite",
-        "md_summarize_short",
-        "slide_improve",
-        "slide_colorize",
-    ]
+        ],
+        "prettier_on_str": [
+            "md_rewrite",
+            "md_summarize_short",
+            "slide_improve",
+            "slide_colorize",
+        ],
     }
     valid_prompts = get_prompt_tags()
     for _, prompts in OUTSIDE_CONTAINER_POST_TRANSFORMS.items():
@@ -347,7 +347,7 @@ def code_apply_csfy_style1() -> _PROMPT_OUT:
     system = _CONTEXT
     file_name = "template_code.py"
     file_content = hio.from_file(file_name)
-    system += fr"""
+    system += rf"""
     Apply the style described below to the Python code without changing the
     behavior of the code.
     ```
@@ -373,7 +373,7 @@ def code_apply_csfy_style2() -> _PROMPT_OUT:
     - Always use imperative in comments
     - Remove empty spaces in functions
     - Add type hints, when missing
-    - Use * before mandatory parameters 
+    - Use * before mandatory parameters
     - Make local functions private
     - Convert .format() to f-string unless it’s a _LOG
     """

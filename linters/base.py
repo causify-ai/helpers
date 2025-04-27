@@ -488,7 +488,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--num_threads",
         action="store",
-        default="-1",
+        default="serial",
         help="Number of threads to use ('serial' to run serially, -1 to use "
         "all CPUs)",
     )

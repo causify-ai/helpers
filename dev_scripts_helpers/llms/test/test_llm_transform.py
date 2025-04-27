@@ -59,8 +59,8 @@ class Test_llm_transform1(hunitest.TestCase):
 
     def test_md_rewrite1(self) -> None:
         """
-        Run the `llm_transform.py` script with the prompt `md_rewrite` and verify
-        the output.
+        Run the `llm_transform.py` script with the prompt `md_rewrite` and
+        verify the output.
         """
         script, in_file_name, out_file_name = self.setup_test(txt_id=0)
         # Run test.
@@ -86,8 +86,8 @@ class Test_llm_transform1(hunitest.TestCase):
 
     def test_test1(self) -> None:
         """
-        Run the `llm_transform.py` script with the prompt `test` and verify
-        the output.
+        Run the `llm_transform.py` script with the prompt `test` and verify the
+        output.
         """
         script, in_file_name, out_file_name = self.setup_test(txt_id=1)
         # Run test.
