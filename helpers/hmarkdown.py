@@ -60,7 +60,7 @@ def is_header(line: str) -> Tuple[bool, int, str]:
         - The level of the header (0 if not a header)
         - The title of the header (empty string if not a header)
     """
-    #hdbg.dassert(not is_markdown_line_separator(line), "line='%s'", line)
+    # hdbg.dassert(not is_markdown_line_separator(line), "line='%s'", line)
     m = re.match(r"(#+)\s+(.*)", line)
     is_header_ = bool(m)
     if m:
@@ -298,13 +298,13 @@ def fix_chatgpt_output(txt: str) -> str:
     txt = re.sub(r"’", r"'", txt)
     # Remove empty spaces at beginning / end of Latex equations $...$.
     # E.g., $ \text{Student} $ becomes $\text{Student}$
-    txt = re.sub(r'\$\s+(.*?)\s\$', r'$\1$', txt)
+    txt = re.sub(r"\$\s+(.*?)\s\$", r"$\1$", txt)
     return txt
 
 
 def md_clean_up(txt: str) -> str:
     # Remove dot at the end of each line.
-    txt = re.sub(r'\.\s*$', '', txt, flags=re.MULTILINE)
+    txt = re.sub(r"\.\s*$", "", txt, flags=re.MULTILINE)
     return txt
 
 

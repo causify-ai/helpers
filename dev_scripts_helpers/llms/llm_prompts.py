@@ -310,7 +310,7 @@ def code_use_f_strings() -> _PROMPT_OUT:
     system += r"""
     Use f-strings (formatted string literals) instead of % formatting and format
     strings. Do not print any comment, just the converted code.
-    
+
     For instance, convert:
     "Hello, %s. You are %d years old." % (name, age)
     to

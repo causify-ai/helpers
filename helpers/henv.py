@@ -371,7 +371,6 @@ def _get_psutil_info() -> str:
     except ModuleNotFoundError as e:
         _LOG.warning("psutil is not installed: %s", str(e))
         has_psutil = False
-
     txt_tmp = []
     if has_psutil:
         txt_tmp.append(f"cpu count={psutil.cpu_count()}")

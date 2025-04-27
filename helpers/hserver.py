@@ -379,8 +379,8 @@ def is_external_linux() -> bool:
     """
     Detect whether we are running on a non-server/non-CI Linux machine.
 
-    This returns true when we run on the machine of an intern, or a non-CSFY
-    contributor.
+    This returns true when we run on the machine of an intern, or a non-
+    CSFY contributor.
     """
     if is_host_csfy_server() or is_inside_ci():
         # Dev servers and CI are not external Linux systems.
@@ -395,9 +395,9 @@ def is_external_linux() -> bool:
 def is_external_dev() -> bool:
     """
     Detect whether we are running on an system outside of Causify.
-    
-    E.g., a Linux / Mac contributor's laptop, an intern's laptop, a non-CSFY
-    machine.
+
+    E.g., a Linux / Mac contributor's laptop, an intern's laptop, a non-
+    CSFY machine.
     """
     ret = is_host_mac() or is_external_linux()
     return ret
@@ -467,7 +467,8 @@ def is_inside_docker_container_on_csfy_server() -> bool:
 
 def is_outside_docker_container_on_csfy_server() -> bool:
     """
-    Return whether we are running outside a Docker container on a Causify server.
+    Return whether we are running outside a Docker container on a Causify
+    server.
     """
     ret = not is_inside_docker() and is_host_csfy_server()
     return ret
@@ -718,7 +719,10 @@ def can_run_docker_from_docker() -> bool:
     Return whether we can run docker from docker, either as children or sibling
     container.
     """
-    return has_docker_children_containers_support() or has_docker_sibling_containers_support()
+    return (
+        has_docker_children_containers_support()
+        or has_docker_sibling_containers_support()
+    )
 
 
 def get_docker_info() -> str:
@@ -741,15 +745,21 @@ def get_docker_info() -> str:
     txt_tmp.append(f"is_inside_docker={is_inside_docker_}")
     #
     if is_inside_docker_:
-        has_docker_sibling_containers_support_ = has_docker_sibling_containers_support()
-        has_docker_children_containers_support_ = has_docker_children_containers_support()
+        has_docker_sibling_containers_support_ = (
+            has_docker_sibling_containers_support()
+        )
+        has_docker_children_containers_support_ = (
+            has_docker_children_containers_support()
+        )
     else:
         has_docker_sibling_containers_support_ = "*undef*"
         has_docker_children_containers_support_ = "*undef*"
     txt_tmp.append(
         f"has_docker_sibling_containers_support={has_docker_sibling_containers_support_}"
     )
-    txt_tmp.append(f"has_docker_children_containers_support={has_docker_children_containers_support_}")
+    txt_tmp.append(
+        f"has_docker_children_containers_support={has_docker_children_containers_support_}"
+    )
     #
     txt = hprint.to_info("Docker info", txt_tmp)
     return txt

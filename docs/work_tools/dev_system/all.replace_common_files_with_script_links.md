@@ -138,6 +138,7 @@
 ### Workflow Summary
 
 1. Set up symbolic links:
+
    ```bash
    > create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --replace_links
    ```

@@ -166,8 +166,6 @@ def parse_dst_dir_arg(args: argparse.Namespace) -> Tuple[str, bool]:
 # #############################################################################
 
 
-
-
 def add_action_arg(
     parser: argparse.ArgumentParser,
     valid_actions: List[str],
@@ -409,7 +407,7 @@ def write_file(txt: Union[str, List[str]], file_name: str) -> None:
             f.write("\n".join(txt))
         _LOG.info("Written file '%s'", file_name)
 
-    
+
 def adapt_input_output_args_for_dockerized_scripts(
     in_file_name: str, tag: str
 ) -> Tuple[str, str]:
