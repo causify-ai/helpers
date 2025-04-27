@@ -126,10 +126,10 @@ def get_env_vars() -> List[str]:
         "CSFY_HOST_NAME",
         # The OS of the host running Docker.
         "CSFY_HOST_OS_NAME",
+        # The version of the host running Docker.
+        "CSFY_HOST_OS_VERSION",
         # The name of the user running the host.
         "CSFY_HOST_USER_NAME",
-        # The version of the host running Docker.
-        "CSFY_HOST_VERSION",
         # Whether to check if certain property of the repo are as expected or not.
         "CSFY_REPO_CONFIG_CHECK",
         # Path to use for `repo_config.py`. E.g., used when running `helpers`

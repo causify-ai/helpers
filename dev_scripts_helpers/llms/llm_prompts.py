@@ -1,5 +1,6 @@
 import ast
 import functools
+import hashlib
 import logging
 import os
 import re
@@ -44,10 +45,14 @@ def get_prompt_tags() -> List[str]:
     matched_functions = sorted(matched_functions)
     return matched_functions
 
+
 # Store the prompts that need a certain post-transforms to be applied outside
 # the container.
 OUTSIDE_CONTAINER_POST_TRANSFORMS = {}
 
+
+# TODO(gp): We should embed this outside_container_post_transforms in the
+# prompts.
 if not OUTSIDE_CONTAINER_POST_TRANSFORMS:
     OUTSIDE_CONTAINER_POST_TRANSFORMS = {
         # These are all the prompts with post_transforms with
@@ -81,6 +86,17 @@ def get_outside_container_post_transforms(transform_name: str) -> Set[str]:
 
 
 _PROMPT_OUT = Tuple[str, Set[str], Set[str]]
+
+
+def test() -> _PROMPT_OUT:
+    """
+    This is just needed as a placeholder to test the flow.
+    """
+    system = ""
+    pre_transforms = set()
+    post_transforms = set()
+    return system, pre_transforms, post_transforms
+
 
 _CONTEXT = r"""
 You are a proficient Python coder who pays attention to detail.
@@ -562,16 +578,21 @@ def run_prompt(
         "Not all pre_transforms were run: %s",
         pre_transforms,
     )
-    # We need to import this here since we have this package only when running
-    # inside a Dockerized executable. We don't want an import to this file
-    # assert since openai is not available in the local dev environment.
-    import helpers.hopenai as hopenai
+    if prompt_tag == "test":
+        txt = "\n".join(txt)
+        txt_out = hashlib.sha256(txt.encode("utf-8")).hexdigest()
+    else:
+        # We need to import this here since we have this package only when
+        # running inside a Dockerized executable. We don't want an import to
+        # this file assert since openai is not available in the local dev
+        # environment.
+        import helpers.hopenai as hopenai
 
-    response = hopenai.get_completion(
-        txt, system_prompt=system_prompt, model=model, print_cost=True
-    )
-    # _LOG.debug(hprint.to_str("response"))
-    txt_out = hopenai.response_to_txt(response)
+        response = hopenai.get_completion(
+            txt, system_prompt=system_prompt, model=model, print_cost=True
+        )
+        # _LOG.debug(hprint.to_str("response"))
+        txt_out = hopenai.response_to_txt(response)
     hdbg.dassert_isinstance(txt_out, str)
     # Run post-transforms.
     if _to_run("remove_code_delimiters", post_transforms):

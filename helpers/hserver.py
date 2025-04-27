@@ -63,7 +63,7 @@ def _system_to_string(cmd: str) -> Tuple[int, str]:
 # running, since inside Docker the name of the host is like `01a7e34a82a5`. Of
 # course, there is no way to know anything about the host for security reason,
 # so we pass this value from the external environment to the container, through
-# env vars (e.g., `CSFY_HOST_NAME`, `CSFY_HOST_OS_NAME`, `CSFY_HOST_VERSION`).
+# env vars (e.g., `CSFY_HOST_NAME`, `CSFY_HOST_OS_NAME`, `CSFY_HOST_OS_VERSION`).
 
 
 # Sometimes we want to know if:
@@ -844,16 +844,16 @@ def enable_privileged_mode() -> bool:
             ret = True
         elif is_inside_ci():
             ret = True
-        elif is_host_mac(version="Catalina"):
-            # Docker for macOS Catalina supports dind.
-            ret = True
-        elif (
-            is_host_mac(version="Monterey")
-            or is_host_mac(version="Ventura")
-            or is_host_mac(version="Sequoia")
-        ):
-            # Docker doesn't seem to support dind for these versions of macOS.
-            ret = False
+        elif is_host_mac():
+            mac_version = get_host_mac_version()
+            if mac_version == "Catalina":
+                # Docker for macOS Catalina supports dind.
+                ret = True
+            elif mac_version in ("Monterey", "Ventura", "Sequoia"):
+                # Docker doesn't seem to support dind for these versions of macOS.
+                ret = False
+            else:
+                raise ValueError(f"Invalid version='{version}'")
         elif is_prod_csfy():
             ret = False
         else:
@@ -889,11 +889,8 @@ def has_docker_sudo() -> bool:
 
 
 def _is_mac_version_with_sibling_containers() -> bool:
-    return (
-        is_host_mac(version="Monterey")
-        or is_host_mac(version="Ventura")
-        or is_host_mac(version="Sequoia")
-    )
+    mac_version = get_host_mac_version()
+    return mac_version in ("Monterey", "Ventura", "Sequoia")
 
 
 # TODO(gp): -> use_docker_sibling_container_support
