@@ -40,9 +40,7 @@ def _main():
         )
         sys.exit(1)
     # Read pre-commit output.
-    #get_git_root_dir = dshgghout.get_git_root_dir()
     precommit_output_path = (
-        #f"{get_git_root_dir}/.git/hooks/tmp.precommit_output.txt"
         f"tmp.precommit_output.txt"
     )
     try:

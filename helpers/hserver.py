@@ -227,6 +227,7 @@ def is_inside_ci() -> bool:
     return ret
 
 
+# TODO(gp): -> is_inside_docker_container()
 def is_inside_docker() -> bool:
     """
     Return whether we are inside a container or not.

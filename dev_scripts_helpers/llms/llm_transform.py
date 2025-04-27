@@ -203,17 +203,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
         return
     # Parse files.
     in_file_name, out_file_name = hparser.parse_input_output_args(args)
-    # # Since we need to call a container and passing stdin/stdout is tricky,
-    # # we read the input and save it in a temporary file.
-    # in_lines = hparser.read_file(in_file_name)
-    # if in_file_name == "-":
-    #     tmp_in_file_name = "tmp.llm_transform.in.txt"
-    #     in_txt = "\n".join(in_lines)
-    #     hio.to_file(tmp_in_file_name, in_txt)
-    # else:
-    #     tmp_in_file_name = in_file_name
-    # #
-    # tmp_out_file_name = "tmp.llm_transform.out.txt"
     tmp_in_file_name, tmp_out_file_name = hparser.adapt_input_output_args_for_dockerized_scripts(
         in_file_name, "llm_transform"
     )
