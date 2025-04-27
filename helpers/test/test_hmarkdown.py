@@ -858,11 +858,11 @@ class Test_colorize_first_level_bullets1(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_fix_chatgpt_math_syntax1
+# Test_fix_chatgpt_output
 # #############################################################################
 
 
-class Test_fix_chatgpt_math_syntax1(hunitest.TestCase):
+class Test_fix_chatgpt_output1(hunitest.TestCase):
 
     def test1(self) -> None:
         # Prepare inputs.
@@ -894,7 +894,7 @@ class Test_fix_chatgpt_math_syntax1(hunitest.TestCase):
         \]
         """
         txt = hprint.dedent(txt)
-        act = hmarkdo.fix_chatgpt_math_syntax(txt)
+        act = hmarkdo.fix_chatgpt_output(txt)
         act = hprint.dedent(act)
         exp = r"""
         **States**:
