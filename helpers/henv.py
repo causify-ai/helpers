@@ -126,10 +126,10 @@ def get_env_vars() -> List[str]:
         "CSFY_HOST_NAME",
         # The OS of the host running Docker.
         "CSFY_HOST_OS_NAME",
+        # The version of the host running Docker.
+        "CSFY_HOST_OS_VERSION",
         # The name of the user running the host.
         "CSFY_HOST_USER_NAME",
-        # The version of the host running Docker.
-        "CSFY_HOST_VERSION",
         # Whether to check if certain property of the repo are as expected or not.
         "CSFY_REPO_CONFIG_CHECK",
         # Path to use for `repo_config.py`. E.g., used when running `helpers`
@@ -371,7 +371,6 @@ def _get_psutil_info() -> str:
     except ModuleNotFoundError as e:
         _LOG.warning("psutil is not installed: %s", str(e))
         has_psutil = False
-
     txt_tmp = []
     if has_psutil:
         txt_tmp.append(f"cpu count={psutil.cpu_count()}")

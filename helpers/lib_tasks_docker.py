@@ -523,7 +523,7 @@ def _generate_docker_compose_file(
     # ```
     csfy_host_os_name = os.uname()[0]
     csfy_host_name = os.uname()[1]
-    csfy_host_version = os.uname()[2]
+    csfy_host_os_version = os.uname()[2]
     csfy_host_user_name = getpass.getuser()
     # We assume that we don't use this code inside a container, since otherwise
     # we would need to distinguish the container style (see
@@ -563,8 +563,8 @@ def _generate_docker_compose_file(
             f"CSFY_FORCE_TEST_FAIL=$CSFY_FORCE_TEST_FAIL",
             f"CSFY_HOST_NAME={csfy_host_name}",
             f"CSFY_HOST_OS_NAME={csfy_host_os_name}",
+            f"CSFY_HOST_OS_VERSION={csfy_host_os_version}",
             f"CSFY_HOST_USER_NAME={csfy_host_user_name}",
-            f"CSFY_HOST_VERSION={csfy_host_version}",
             "CSFY_REPO_CONFIG_CHECK=True",
             # Use inferred path for `repo_config.py`.
             "CSFY_REPO_CONFIG_PATH=",
