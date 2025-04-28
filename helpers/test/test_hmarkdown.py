@@ -411,7 +411,7 @@ def _get_markdown_example4() -> str:
     return content
 
 
-def _get_markdown_example6() -> hmarkdo.HeaderList:
+def _get_markdown_example5() -> hmarkdo.HeaderList:
     content = r"""
     # Models
     test
@@ -744,9 +744,9 @@ class Test_selected_navigation_to_str2(hunitest.TestCase):
 
     def test1(self) -> None:
         """
-        Create navigation bar from Markdown text `_get_markdown_example6()`.
+        Create navigation bar from Markdown text `_get_markdown_example5()`.
         """
-        txt = _get_markdown_example6()
+        txt = _get_markdown_example5()
         header_list_exp = r"""
         [HeaderInfo(1, 'Models', 1),
          HeaderInfo(2, 'Naive Bayes', 3),
@@ -777,7 +777,7 @@ class Test_selected_navigation_to_str2(hunitest.TestCase):
         )
 
     def test2(self) -> None:
-        txt = _get_markdown_example6()
+        txt = _get_markdown_example5()
         _test_full_navigation_flow(self, txt)
 
 
@@ -812,7 +812,7 @@ class Test_colorize_first_level_bullets1(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_fix_chatgpt_output
+# Test_fix_chatgpt_output1
 # #############################################################################
 
 
