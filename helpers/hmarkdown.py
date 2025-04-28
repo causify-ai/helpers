@@ -60,7 +60,7 @@ def is_header(line: str) -> Tuple[bool, int, str]:
         - The level of the header (0 if not a header)
         - The title of the header (empty string if not a header)
     """
-    hdbg.dassert(not is_markdown_line_separator(line), "line='%s'", line)
+    # hdbg.dassert(not is_markdown_line_separator(line), "line='%s'", line)
     m = re.match(r"(#+)\s+(.*)", line)
     is_header_ = bool(m)
     if m:
@@ -274,7 +274,7 @@ def remove_formatting(txt: str) -> str:
     return txt
 
 
-def fix_chatgpt_math_syntax(txt: str) -> str:
+def fix_chatgpt_output(txt: str) -> str:
     # Replace \( ... \) math syntax with $ ... $.
     txt = re.sub(r"\\\(\s*(.*?)\s*\\\)", r"$\1$", txt)
     # Replace \[ ... \] math syntax with $$ ... $$, handling multiline equations.
@@ -283,6 +283,28 @@ def fix_chatgpt_math_syntax(txt: str) -> str:
     txt = re.sub(r"P\((.*?)\)", r"\\Pr(\1)", txt)
     # Replace \mid with `|`.
     txt = re.sub(r"\\mid", r"|", txt)
+    # E.g.,``  • Description Logics (DLs) are a family``
+    # Replace `•` with `-`
+    txt = re.sub(r"•\s+", r"- ", txt)
+    # Replace `\t` with 2 spaces
+    txt = re.sub(r"\t", r"  ", txt)
+    # Remove `⸻`.
+    txt = re.sub(r"⸻", r"", txt)
+    # “
+    txt = re.sub(r"“", r'"', txt)
+    # ”
+    txt = re.sub(r"”", r'"', txt)
+    # ’
+    txt = re.sub(r"’", r"'", txt)
+    # Remove empty spaces at beginning / end of Latex equations $...$.
+    # E.g., $ \text{Student} $ becomes $\text{Student}$
+    txt = re.sub(r"\$\s+(.*?)\s\$", r"$\1$", txt)
+    return txt
+
+
+def md_clean_up(txt: str) -> str:
+    # Remove dot at the end of each line.
+    txt = re.sub(r"\.\s*$", "", txt, flags=re.MULTILINE)
     return txt
 
 

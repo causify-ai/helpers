@@ -262,24 +262,75 @@ def mark_action(action: str, actions: List[str]) -> Tuple[bool, List[str]]:
 # Command line options for input/output processing.
 # #############################################################################
 
+# For non-dockerized scripts the following idiom is used:
+#
+# ```python
+# # Add input/output arguments to parser.
+# hparser.add_input_output_args(parser)
+# # Handle input/output arguments, including stdin/stdout.
+# in_file_name, out_file_name = hparser.parse_input_output_args(args)
+# ...
+# # Read input file, handling stdin.
+# in_lines = hparser.read_file(in_file_name)
+# ...
+# # Write output, handling stdout.
+# hparser.write_file(txt, out_file_name)
+# ```
+# See helpers_root/dev_scripts_helpers/coding_tools/transform_skeleton.py as an
+# example.
+
+# For dockerized scripts the following idiom is used inside the wrapper, which
+# calls the dockerized script:
+#
+# ```python
+# # Add input/output arguments to parser.
+# hparser.add_input_output_args(parser)
+# # Handle input/output arguments, including stdin/stdout.
+# in_file_name, out_file_name = hparser.parse_input_output_args(args)
+# tmp_in_file_name, tmp_out_file_name = hparser.adapt_input_output_args_for_dockerized_scripts(
+#   in_file_name, "llm_transform")
+# ...
+# # For stdin/stdout, suppress the output of the container.
+# suppress_output = in_file_name == "-" or out_file_name == "-"
+# _run_dockerized_llm_transform(
+#     tmp_in_file_name,
+#     cmd_line_opts,
+#     tmp_out_file_name,
+#     return_cmd=False,
+#     force_rebuild=args.dockerized_force_rebuild,
+#     use_sudo=args.dockerized_use_sudo,
+#     suppress_output=suppress_output,
+# )
+# ...
+# # Write output, handling stdout.
+# hparser.write_file(txt, out_file_name)
+# ```
+#
+# See helpers_root/dev_scripts_helpers/llms/llm_transform.py as an example.
+
 
 def add_input_output_args(
     parser: argparse.ArgumentParser,
     *,
     in_default: Optional[str] = None,
+    in_required: bool = True,
     out_default: Optional[str] = None,
+    out_required: bool = False,
 ) -> argparse.ArgumentParser:
     """
-    Add options to parse input and output file name.
+    Add options to parse input and output file name, and handle stdin / stdout.
 
     :param in_default: default file to be used for input
         - If `None`, it must be specified by the user
-    :param in_default: same as `in_default` but for output
+    :param in_required: whether the input file is required
+    :param out_default: default file to be used for output
+        - If `None`, it must be specified by the user
+    :param out_required: whether the output file is required
     """
     parser.add_argument(
         "-i",
         "--in_file_name",
-        required=(in_default is None),
+        required=in_required,
         type=str,
         default=in_default,
         help="Input file or `-` for stdin",
@@ -287,7 +338,7 @@ def add_input_output_args(
     parser.add_argument(
         "-o",
         "--out_file_name",
-        required=(out_default is None),
+        required=out_required,
         type=str,
         default=out_default,
         help="Output file or `-` for stdout",
@@ -299,22 +350,28 @@ def parse_input_output_args(
     args: argparse.Namespace, *, clear_screen: bool = False
 ) -> Tuple[str, str]:
     """
+    Parse input and output file name, handling stdin / stdout.
+
     :return input and output file name.
     """
     in_file_name = args.in_file_name
     out_file_name = args.out_file_name
     if out_file_name is None:
+        # If the output file is not specified, use the input file name, i.e.,
+        # in place.
         out_file_name = in_file_name
-    # Print summary.
+    # Print summary. If we are using stdin / stdout, don't print anything since
+    # we don't want to pollute the output.
     if in_file_name != "-":
         if clear_screen:
             os.system("clear")
         _LOG.info(hprint.to_str("in_file_name"))
         _LOG.info(hprint.to_str("out_file_name"))
+
     return in_file_name, out_file_name
 
 
-# TODO(gp): -> from_file for symmetry for hio.
+# TODO(gp): GFI -> from_file for symmetry for hio.
 def read_file(file_name: str) -> List[str]:
     """
     Read file or stdin (represented by `-`), returning an array of lines.
@@ -334,7 +391,7 @@ def read_file(file_name: str) -> List[str]:
     return txt
 
 
-# TODO(gp): -> to_file for symmetry for hio.
+# TODO(gp): GFI -> to_file for symmetry for hio.
 def write_file(txt: Union[str, List[str]], file_name: str) -> None:
     """
     Write txt in a file or stdout (represented by `-`).
@@ -349,6 +406,31 @@ def write_file(txt: Union[str, List[str]], file_name: str) -> None:
         with open(file_name, "w") as f:
             f.write("\n".join(txt))
         _LOG.info("Written file '%s'", file_name)
+
+
+def adapt_input_output_args_for_dockerized_scripts(
+    in_file_name: str, tag: str
+) -> Tuple[str, str]:
+    """
+    Adapt input and output file name for dockerized scripts.
+
+    Since we need to call a container and passing stdin/stdout is tricky,
+    we read the input and save it in a temporary file.
+
+    :param tag: tag to be used for the temporary file name (e.g., `llm_transform`)
+    """
+    # Since we need to call a container and passing stdin/stdout is tricky,
+    # we read the input and save it in a temporary file.
+    in_lines = read_file(in_file_name)
+    if in_file_name == "-":
+        tmp_in_file_name = f"tmp.{tag}.in.txt"
+        in_txt = "\n".join(in_lines)
+        hio.to_file(tmp_in_file_name, in_txt)
+    else:
+        tmp_in_file_name = in_file_name
+    #
+    tmp_out_file_name = f"tmp.{tag}.out.txt"
+    return tmp_in_file_name, tmp_out_file_name
 
 
 # #############################################################################

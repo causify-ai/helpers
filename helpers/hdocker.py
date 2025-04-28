@@ -132,10 +132,11 @@ def volume_rm(volume_name: str, use_sudo: bool) -> None:
 
 # #############################################################################
 
-    
+
 def get_current_arch() -> str:
     """
-    Return the architecture that we are running on (e.g., arm64, aarch64, x86_64).
+    Return the architecture that we are running on (e.g., arm64, aarch64,
+    x86_64).
     """
     cmd = "uname -m"
     _, current_arch = hsystem.system_to_one_line(cmd)
@@ -149,7 +150,7 @@ def _is_compatible_arch(val1: str, val2: str) -> bool:
     hdbg.dassert_in(val2, valid_arch)
     if val1 == val2:
         return True
-    compatible_sets = [{'x86_64', 'amd64'}, {'aarch64', 'arm64'}]
+    compatible_sets = [{"x86_64", "amd64"}, {"aarch64", "arm64"}]
     for comp_set in compatible_sets:
         if {val1, val2}.issubset(comp_set):
             return True
@@ -170,8 +171,8 @@ def check_image_compatibility_with_current_arch(
     :param use_sudo: Whether to use sudo for Docker commands.
     :param pull_image_if_needed: Whether to pull the image if it doesn't
         exist.
-    :param assert_on_error: Whether to raise an error if the image is not
-        compatible with the current architecture.
+    :param assert_on_error: Whether to raise an error if the image is
+        not compatible with the current architecture.
     """
     _LOG.debug(hprint.func_signature_to_str())
     hdbg.dassert_ne(image_name, "")
@@ -194,9 +195,7 @@ def check_image_compatibility_with_current_arch(
             hdbg.dfatal("Image '%s' not found", image_name)
     # Check the image architecture.
     executable = get_docker_executable(use_sudo)
-    cmd = (
-        f"{executable} inspect {image_name}" + r" --format '{{.Architecture}}'"
-    )
+    cmd = f"{executable} inspect {image_name}" + r" --format '{{.Architecture}}'"
     _, image_arch = hsystem.system_to_one_line(cmd)
     _LOG.debug(hprint.to_str("image_arch"))
     # Check architecture compatibility.
@@ -314,11 +313,11 @@ def get_docker_base_cmd(use_sudo: bool) -> List[str]:
     docker_executable = get_docker_executable(use_sudo)
     # Get all the environment variables that start with `AM_`, `CK_`, `CSFY_`.
     vars_to_pass = [
-        v for v in os.environ.keys() if
-            # TODO(gp): We should only pass the `CSFY_` vars.
-            v.startswith("AM_") or 
-            v.startswith("CK_") or
-            v.startswith("CSFY_")
+        v
+        for v in os.environ.keys()
+        if
+        # TODO(gp): We should only pass the `CSFY_` vars.
+        v.startswith("AM_") or v.startswith("CK_") or v.startswith("CSFY_")
     ]
     vars_to_pass.append("OPENAI_API_KEY")
     vars_to_pass = sorted(vars_to_pass)
@@ -328,7 +327,7 @@ def get_docker_base_cmd(use_sudo: bool) -> List[str]:
         docker_executable,
         "run --rm",
         "--user $(id -u):$(id -g)",
-        vars_to_pass_as_str
+        vars_to_pass_as_str,
     ]
     return docker_cmd
 
@@ -397,7 +396,7 @@ def build_container_image(
             f"{docker_executable} build",
             f"-f {temp_dockerfile}",
             f"-t {image_name_out}",
-            #"--platform linux/aarch64",
+            # "--platform linux/aarch64",
         ]
         if not use_cache:
             cmd.append("--no-cache")
@@ -437,12 +436,12 @@ def _dassert_valid_path(file_path: str, is_input: bool) -> None:
         # but we assume that at the least the directory should be already
         # present.
         dir_name = os.path.normpath(os.path.dirname(file_path))
-        hio.create_dir(dir_name, incremental=True) 
+        hio.create_dir(dir_name, incremental=True)
         hdbg.dassert(
-            os.path.exists(file_path)
-            or os.path.exists(dir_name),
+            os.path.exists(file_path) or os.path.exists(dir_name),
             "Invalid path: '%s' and '%s' don't exist",
-            file_path, dir_name
+            file_path,
+            dir_name,
         )
 
 
@@ -658,12 +657,14 @@ def run_dockerized_prettier(
         bash_cmd += f" > {out_file_path}"
     # Build the Docker command.
     docker_cmd = get_docker_base_cmd(use_sudo)
-    docker_cmd.extend([
-        " --entrypoint ''",
-        f"--workdir {callee_mount_path} --mount {mount}",
-        f"{container_image}",
-        f'bash -c "{bash_cmd}"'
-    ])
+    docker_cmd.extend(
+        [
+            " --entrypoint ''",
+            f"--workdir {callee_mount_path} --mount {mount}",
+            f"{container_image}",
+            f'bash -c "{bash_cmd}"',
+        ]
+    )
     docker_cmd = " ".join(docker_cmd)
     if return_cmd:
         ret = docker_cmd
@@ -770,7 +771,7 @@ def convert_pandoc_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
     args, unknown_args = parser.parse_known_args(cmd)
     _LOG.debug(hprint.to_str("args unknown_args"))
     # Filter out the option terminator if present.
-    # Remove the `--` option terminator to treat `--option-after-terminator` as a regular argument, not as an option. 
+    # Remove the `--` option terminator to treat `--option-after-terminator` as a regular argument, not as an option.
     unknown_args = [arg for arg in unknown_args if arg != "--"]
     # Return all the arguments in a dictionary with names that match the
     # function signature of `run_dockerized_pandoc()`.
@@ -997,11 +998,13 @@ def run_dockerized_pandoc(
     #     input.md -o output.md \
     #     -s --toc
     docker_cmd = get_docker_base_cmd(use_sudo)
-    docker_cmd.extend([
-        f"--workdir {callee_mount_path} --mount {mount}",
-        f"{container_image}",
-        f"{pandoc_cmd}",
-    ])
+    docker_cmd.extend(
+        [
+            f"--workdir {callee_mount_path} --mount {mount}",
+            f"{container_image}",
+            f"{pandoc_cmd}",
+        ]
+    )
     docker_cmd = " ".join(docker_cmd)
     if return_cmd:
         ret = docker_cmd
@@ -1068,15 +1071,15 @@ def run_dockerized_markdown_toc(
     #     --workdir /app --mount type=bind,source=.,target=/app \
     #     tmp.markdown_toc \
     #     -i ./test.md
-    bash_cmd = (
-        f"/usr/local/bin/markdown-toc {cmd_opts_as_str} -i {in_file_path}"
-    )
+    bash_cmd = f"/usr/local/bin/markdown-toc {cmd_opts_as_str} -i {in_file_path}"
     docker_cmd = get_docker_base_cmd(use_sudo)
-    docker_cmd.extend([
-        f"--workdir {callee_mount_path} --mount {mount}",
-        f"{container_image}",
-        f'bash -c "{bash_cmd}"'
-    ])
+    docker_cmd.extend(
+        [
+            f"--workdir {callee_mount_path} --mount {mount}",
+            f"{container_image}",
+            f'bash -c "{bash_cmd}"',
+        ]
+    )
     docker_cmd = " ".join(docker_cmd)
     # TODO(gp): Note that `suppress_output=False` seems to hang the call.
     hsystem.system(docker_cmd)
@@ -1208,7 +1211,7 @@ def run_dockerized_latex(
         texlive-latex-extra \
         lmodern \
         tikzit
-        
+
     RUN rm -rf /var/lib/apt/lists/* \
         && apt-get clean
 
@@ -1272,11 +1275,13 @@ def run_dockerized_latex(
     _LOG.debug(hprint.to_str("latex_cmd"))
     #
     docker_cmd = get_docker_base_cmd(use_sudo)
-    docker_cmd.extend([
-        f"--workdir {callee_mount_path} --mount {mount}",
-        f"{container_image}",
-        f"{latex_cmd}"
-    ])
+    docker_cmd.extend(
+        [
+            f"--workdir {callee_mount_path} --mount {mount}",
+            f"{container_image}",
+            f"{latex_cmd}",
+        ]
+    )
     docker_cmd = " ".join(docker_cmd)
     # TODO(gp): Factor this out.
     if return_cmd:
@@ -1302,7 +1307,7 @@ def run_basic_latex(
     """
     _LOG.debug(hprint.func_signature_to_str())
     #
-    #hdbg.dassert_file_extension(input_file_name, "tex")
+    # hdbg.dassert_file_extension(input_file_name, "tex")
     hdbg.dassert_file_exists(in_file_name)
     hdbg.dassert_file_extension(out_file_name, "pdf")
     # There is a horrible bug in pdflatex that if the input file is not the last
@@ -1407,12 +1412,14 @@ def run_dockerized_imagemagick(
     cmd_opts_as_str = " ".join(cmd_opts)
     cmd = f"magick {cmd_opts_as_str} {in_file_path} {out_file_path}"
     docker_cmd = get_docker_base_cmd(use_sudo)
-    docker_cmd.extend([
-        "--entrypoint ''",
-        f"--workdir {callee_mount_path} --mount {mount}",
-        container_image,
-        f'bash -c "{cmd}"'
-    ])
+    docker_cmd.extend(
+        [
+            "--entrypoint ''",
+            f"--workdir {callee_mount_path} --mount {mount}",
+            container_image,
+            f'bash -c "{cmd}"',
+        ]
+    )
     docker_cmd = " ".join(docker_cmd)
     # TODO(gp): Factor this out.
     if return_cmd:
@@ -1518,12 +1525,14 @@ def run_dockerized_plantuml(
     )
     plantuml_cmd = f"plantuml -t{dst_ext} -o {out_file_path} {in_file_path}"
     docker_cmd = get_docker_base_cmd(use_sudo)
-    docker_cmd.extend([
-        " --entrypoint ''",
-        f"--workdir {callee_mount_path} --mount {mount}",
-        f"{container_image}",
-        f'bash -c "{plantuml_cmd}"'
-    ])
+    docker_cmd.extend(
+        [
+            " --entrypoint ''",
+            f"--workdir {callee_mount_path} --mount {mount}",
+            f"{container_image}",
+            f'bash -c "{plantuml_cmd}"',
+        ]
+    )
     docker_cmd = " ".join(docker_cmd)
     hsystem.system(docker_cmd)
 
@@ -1574,15 +1583,15 @@ def run_dockerized_mermaid(
         is_caller_host=is_caller_host,
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
-    mermaid_cmd = (
-        f" -i {in_file_path} -o {out_file_path}"
-    )
+    mermaid_cmd = f" -i {in_file_path} -o {out_file_path}"
     docker_cmd = get_docker_base_cmd(use_sudo)
-    docker_cmd.extend([
-        f"--workdir {callee_mount_path} --mount {mount}",
-        container_image,
-        mermaid_cmd,
-    ])
+    docker_cmd.extend(
+        [
+            f"--workdir {callee_mount_path} --mount {mount}",
+            container_image,
+            mermaid_cmd,
+        ]
+    )
     docker_cmd = " ".join(docker_cmd)
     hsystem.system(docker_cmd)
 
@@ -1596,8 +1605,8 @@ def run_dockerized_mermaid2(
     use_sudo: bool = False,
 ) -> None:
     """
-    Run `mermaid` in a Docker container, building the container from scratch and
-    using a puppeteer config.
+    Run `mermaid` in a Docker container, building the container from scratch
+    and using a puppeteer config.
     """
     _LOG.debug(hprint.func_signature_to_str())
     # Build the container, if needed.
@@ -1673,12 +1682,14 @@ def run_dockerized_mermaid2(
     )
     # TODO(gp): Factor out building the docker cmd.
     docker_cmd = get_docker_base_cmd(use_sudo)
-    docker_cmd.extend([
-        "--entrypoint ''",
-        f"--workdir {callee_mount_path} --mount {mount}",
-        container_image,
-        f'bash -c "{mermaid_cmd}"'
-    ])
+    docker_cmd.extend(
+        [
+            "--entrypoint ''",
+            f"--workdir {callee_mount_path} --mount {mount}",
+            container_image,
+            f'bash -c "{mermaid_cmd}"',
+        ]
+    )
     docker_cmd = " ".join(docker_cmd)
     hsystem.system(docker_cmd)
 
@@ -1742,19 +1753,21 @@ def run_dockerized_graphviz(
     )
     cmd_opts = " ".join(cmd_opts)
     graphviz_cmd = [
-        "dot"
+        "dot",
         f"{cmd_opts}",
         "-T png",
         "-Gdpi=300",
         f"-o {out_file_path}",
-        in_file_path
+        in_file_path,
     ]
     graphviz_cmd = " ".join(graphviz_cmd)
     docker_cmd = get_docker_base_cmd(use_sudo)
-    docker_cmd.extend([
-        f"--workdir {callee_mount_path} --mount {mount}",
-        container_image,
-        graphviz_cmd,
-    ])
+    docker_cmd.extend(
+        [
+            f"--workdir {callee_mount_path} --mount {mount}",
+            container_image,
+            graphviz_cmd,
+        ]
+    )
     docker_cmd = " ".join(docker_cmd)
     hsystem.system(docker_cmd)

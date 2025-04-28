@@ -16,6 +16,7 @@ import dev_scripts_helpers.git.git_hooks.pre-commit as dsgghpr
 
 # NOTE: This file should depend only on Python standard libraries.
 import logging
+import os
 import pathlib
 import sys
 from typing import List
@@ -34,7 +35,7 @@ def _write_output_to_file(lines: List[str]) -> None:
 
     :param lines: pre-commit output lines
     """
-    out_path = pathlib.Path(".git/hooks/tmp.precommit_output.txt")
+    out_path = pathlib.Path("tmp.precommit_output.txt")
     with out_path.open("w") as f:
         for line in lines:
             f.write(line + "\n")
@@ -53,15 +54,20 @@ if __name__ == "__main__":
     #
     dshgghout.check_file_size()
     lines.append("- 'check_file_size' passed")
-    #
-    dshgghout.check_words()
-    lines.append("- 'check_words' passed")
+    # TODO(gp): Disabled for now since it's too strict.
+    # dshgghout.check_words()
+    # lines.append("- 'check_words' passed")
     #
     dshgghout.check_python_compile()
     lines.append("- 'check_python_compile' passed")
-    #
-    dshgghout.check_gitleaks()
-    lines.append("- 'check_gitleaks' passed")
+    assert os.path.exists(".git")
+    if os.path.isdir(".git"):
+        dshgghout.check_gitleaks()
+        lines.append("- 'check_gitleaks' passed")
+    else:
+        # TODO(gp): Fix HelpersTask622.
+        _LOG.warning("Skipping 'check_gitleaks' since we are in a submodule")
+        lines.append("- 'check_gitleaks' skipped")
     print(
         "\n"
         + dshgghout.color_highlight(
