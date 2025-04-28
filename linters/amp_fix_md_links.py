@@ -29,9 +29,8 @@ FIG_REGEX_2 = r"!\[\w*\]\(\.{0,2}\w*\/\S+?\.(?:jpg|jpeg|png)\)"
 FILE_PATH_REGEX = r"\.{0,2}\w*\/\S+\.[\w\.]+"
 HTML_LINK_REGEX = r'(<a href=".*?">.*?</a>)'
 MD_LINK_REGEX = r"\[(.+)\]\(((?!#).*)\)"
-BARE_LINK_REGEX = r"(?<!\[)(?<!\]\()(?<!href=\")(?<![\'\"])([Hh]ttps?://[^\s<>()\'\"]+)(?![\'\"])"
+BARE_LINK_REGEX = r"(?<!\[)(?<!\]\()(?<!href=\")(?<![\'\"\`])([Hh]ttps?://[^\s<>()\'\"\`]+)(?![\'\"\`])"
 FENCE_REGEX = re.compile(r"^\s*(```|~~~)")
-INLINE_REGEX = r"`([^`]+)`"
 
 
 def _make_path_absolute(path: str) -> str:
@@ -362,15 +361,7 @@ def fix_links(file_name: str) -> Tuple[List[str], List[str], List[str]]:
             warnings.extend(line_warnings)
         # Bare URLs.
         bare_link_matches = re.findall(BARE_LINK_REGEX, updated_line)
-        # Find all inline code spans for the line.
-        inline_code_contents = [
-            match.group(1) for match in re.finditer(INLINE_REGEX, updated_line)
-        ]
         for bare_link in bare_link_matches:
-            clean_bare_link = bare_link.rstrip("`")
-            if clean_bare_link in inline_code_contents:
-                # Skip if the link is inside an inline code.
-                continue
             # Convert bare URLs to Markdown-style links.
             new_bare_link = bare_link.replace("Http://", "http://").replace(
                 "Https://", "https://"
