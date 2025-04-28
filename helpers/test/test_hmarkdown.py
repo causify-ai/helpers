@@ -411,29 +411,6 @@ def _get_markdown_example4() -> str:
     return content
 
 
-def _get_markdown_example5() -> str:
-    content = r"""
-    - Functions can be declared in the body of another function
-    - E.g., to hide utility functions in the scope of the function that uses them
-        ```python
-        def print_integers(values):
-
-            def _is_integer(value):
-                try:
-                    return value == int(value)
-                except:
-                    return False
-
-            for v in values:
-                if _is_integer(v):
-                    print(v)
-        ```
-    - Hello
-    """
-    content = hprint.dedent(content)
-    return content
-
-
 def _get_markdown_example6() -> hmarkdo.HeaderList:
     content = r"""
     # Models
@@ -624,34 +601,12 @@ class Test_process_code_block1(hunitest.TestCase):
         return "\n".join(out)
 
     def test1(self) -> None:
-        txt_in = _get_markdown_example5()
+        in_dir_name = self.get_input_dir()
+        input_file_path = os.path.join(in_dir_name, "test.txt")
+        txt_in = hio.from_file(input_file_path)
         txt_in = hprint.dedent(txt_in, remove_lead_trail_empty_lines_=True)
         act = self.process_code_block(txt_in)
-        exp = r"""
-        - Functions can be declared in the body of another function
-        - E.g., to hide utility functions in the scope of the function that uses them
-
-
-                ```python
-                def print_integers(values):
-
-                    def _is_integer(value):
-                        try:
-                            return value == int(value)
-                        except:
-                            return False
-
-                    for v in values:
-                        if _is_integer(v):
-                            print(v)
-                ```
-
-
-        - Hello
-        """
-        self.assert_equal(
-            act, exp, dedent=True, remove_lead_trail_empty_lines=True
-        )
+        self.check_string(act, dedent=True, remove_lead_trail_empty_lines=True)
 
 
 # #############################################################################
@@ -663,38 +618,17 @@ class Test_process_lines1(hunitest.TestCase):
 
     # TODO(gp): This doesn't seem correct.
     def test1(self) -> None:
-        txt = _get_markdown_example5()
-        lines = txt.split("\n")
+        in_dir_name = self.get_input_dir()
+        input_file_path = os.path.join(in_dir_name, "test.txt")
+        txt_in = hio.from_file(input_file_path)
+        txt_in = hprint.dedent(txt_in)
+        lines = txt_in.split("\n")
         out = []
         for i, line in hmarkdo.process_lines(lines):
             _LOG.debug(hprint.to_str("line"))
             out.append(f"{i}:{line}")
         act = "\n".join(out)
-        exp = r"""
-        0:- Functions can be declared in the body of another function
-        1:- E.g., to hide utility functions in the scope of the function that uses them
-        2:
-
-        3:        ```python
-        4:        def print_integers(values):
-        5:
-        6:            def _is_integer(value):
-        7:                try:
-        8:                    return value == int(value)
-        9:                except:
-        10:                    return False
-        11:
-        12:            for v in values:
-        13:                if _is_integer(v):
-        14:                    print(v)
-        15:        ```
-        16:
-
-        17:- Hello
-        """
-        self.assert_equal(
-            act, exp, dedent=True, remove_lead_trail_empty_lines=True
-        )
+        self.check_string(act, dedent=True, remove_lead_trail_empty_lines=True)
 
 
 # #############################################################################
@@ -1295,17 +1229,9 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
         Test an example with empty lines at the start and end.
         """
         # Prepare inputs.
-        content = r"""
-
-        ```python
-
-        def check_empty_lines():
-            print("Check empty lines are present!")
-
-        ```
-
-        """
-        content = hprint.dedent(content)
+        in_dir_name = self.get_input_dir()
+        input_file_path = os.path.join(in_dir_name, "test.txt")
+        content = hio.from_file(input_file_path)
         # Call function.
         act = hmarkdo.remove_code_delimiters(content)
         # Check output.
@@ -1385,29 +1311,14 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
         Test another markdown with headings and multiple indent Python blocks.
         """
         # Prepare inputs.
-        content = _get_markdown_example5()
+        in_dir_name = self.get_input_dir()
+        input_file_path = os.path.join(in_dir_name, "test.txt")
+        content = hio.from_file(input_file_path)
+        content = hprint.dedent(content)
         # Call function.
         act = hmarkdo.remove_code_delimiters(content)
         # Check output.
-        exp = r"""
-        - Functions can be declared in the body of another function
-        - E.g., to hide utility functions in the scope of the function that uses them
-
-            def print_integers(values):
-
-                def _is_integer(value):
-                    try:
-                        return value == int(value)
-                    except:
-                        return False
-
-                for v in values:
-                    if _is_integer(v):
-                        print(v)
-
-        - Hello
-        """
-        self.assert_equal(str(act), exp, dedent=True)
+        self.check_string(act, dedent=True)
 
     def test5(self) -> None:
         """
@@ -1426,18 +1337,9 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
         Test a Python and immediate markdown code block.
         """
         # Prepare inputs.
-        content = r"""
-        ```python
-        def no_start_python():
-            print("No mention of python at the start")```
-        ```
-
-        ```
-            A markdown paragraph contains
-            delimiters that needs to be removed.
-        ```
-        """
-        content = hprint.dedent(content)
+        in_dir_name = self.get_input_dir()
+        input_file_path = os.path.join(in_dir_name, "test.txt")
+        content = hio.from_file(input_file_path)
         # Call function.
         act = hmarkdo.remove_code_delimiters(content)
         # Check output.
@@ -1468,6 +1370,7 @@ class Test_check_header_list1(hunitest.TestCase):
         header_list = get_header_list1()
         # Call function.
         hmarkdo.check_header_list(header_list)
+        self.assertTrue(True)
 
     def test2(self) -> None:
         """
@@ -1492,3 +1395,4 @@ class Test_check_header_list1(hunitest.TestCase):
         header_list = get_header_list5()
         # Call function.
         hmarkdo.check_header_list(header_list)
+        self.assertTrue(True)
