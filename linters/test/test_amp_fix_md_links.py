@@ -38,6 +38,18 @@ def _get_output_string(out_warnings: List[str], updated_lines: List[str]) -> str
 
 class Test_fix_links(hunitest.TestCase):
 
+    def run_test(self, input_content: str, file_name: str = "test.md") -> None:
+        """
+        Helper method to run link tests with common setup and verification.
+        
+        :param input_content: The content to test
+        :param file_name: The name of the test file (default: "test.md")
+        """
+        file_path = self.write_input_file(input_content, file_name)
+        _, updated_lines, out_warnings = lafimdli.fix_links(file_path)
+        output = _get_output_string(out_warnings, updated_lines)
+        self.check_string(output, purify_text=True)
+
     def write_input_file(self, txt: str, file_name: str) -> str:
         """
         Write test content to a file in the scratch space.
@@ -87,13 +99,7 @@ class Test_fix_links(hunitest.TestCase):
 
         Markdown link: [Valid Markdown Link](docs/markdown_example.md)
         """
-        file_name = "test.md"
-        file_path = self.write_input_file(txt_incorrect, file_name)
-        # Run.
-        _, updated_lines, out_warnings = lafimdli.fix_links(file_path)
-        # Check.
-        output = _get_output_string(out_warnings, updated_lines)
-        self.check_string(output, purify_text=True)
+        self.run_test(txt_incorrect, "test.md")
 
     def test2(self) -> None:
         """
@@ -361,13 +367,7 @@ class Test_fix_links(hunitest.TestCase):
 
         External Markdown link: [External Markdown Link](https://example.com)
         """
-        file_name = "test_external_links.md"
-        file_path = self.write_input_file(txt_incorrect, file_name)
-        # Run.
-        _, updated_lines, out_warnings = lafimdli.fix_links(file_path)
-        # Check.
-        output = _get_output_string(out_warnings, updated_lines)
-        self.check_string(output, purify_text=True)
+        self.run_test(txt_incorrect, "test_external_links.md")
 
     def test13(self) -> None:
         """
@@ -393,13 +393,7 @@ class Test_fix_links(hunitest.TestCase):
         - File path of a hidden file
           - .github/workflows/build_image.yml.DISABLED
         """
-        file_name = "test_without_md_hyperlinks.md"
-        file_path = self.write_input_file(txt_incorrect, file_name)
-        # Run.
-        _, updated_lines, out_warnings = lafimdli.fix_links(file_path)
-        # Check.
-        output = _get_output_string(out_warnings, updated_lines)
-        self.check_string(output, purify_text=True)
+        self.run_test(txt_incorrect, "test_without_md_hyperlinks.md")
 
     def test14(self) -> None:
         """
@@ -412,13 +406,8 @@ class Test_fix_links(hunitest.TestCase):
         Without backticks: helpers/hgit.py
         ```
         """
-        file_name = "test_md_in_triple_backticks.md"
-        file_path = self.write_input_file(txt_incorrect, file_name)
-        # Run.
-        _, updated_lines, out_warnings = lafimdli.fix_links(file_path)
-        # Check.
-        output = _get_output_string(out_warnings, updated_lines)
-        self.check_string(output, purify_text=True)
+        self.run_test(txt_incorrect, "test_md_in_triple_backticks.md")
+        
 
     def test15(self) -> None:
         """
@@ -439,13 +428,7 @@ class Test_fix_links(hunitest.TestCase):
         - HTML-style figure pointer that does not exist
           - <img src="/iiimport_check/example/output/basicccc.png">
         """
-        file_name = "test_html_img_links.md"
-        file_path = self.write_input_file(txt_incorrect, file_name)
-        # Run.
-        _, updated_lines, out_warnings = lafimdli.fix_links(file_path)
-        # Check.
-        output = _get_output_string(out_warnings, updated_lines)
-        self.check_string(output, purify_text=True)
+        self.run_test(txt_incorrect, "test_html_img_links.md")
 
     def test16(self) -> None:
         """
@@ -470,13 +453,7 @@ class Test_fix_links(hunitest.TestCase):
         - Markdown-style figure pointer that does not exist
           - ![](/iiimport_check/example/output/basicccc.png)
         """
-        file_name = "test_md_img_links.md"
-        file_path = self.write_input_file(txt_incorrect, file_name)
-        # Run.
-        _, updated_lines, out_warnings = lafimdli.fix_links(file_path)
-        # Check.
-        output = _get_output_string(out_warnings, updated_lines)
-        self.check_string(output, purify_text=True)
+        self.run_test(txt_incorrect, "test_md_img_links.md")
 
     def test17(self) -> None:
         """
@@ -501,8 +478,7 @@ class Test_fix_links(hunitest.TestCase):
 
         Broken Markdown link: [Broken Markdown Link](missing_markdown.md)
         """
-        file_name = "test_broken_links.md"
-        self.write_input_file(txt_incorrect, file_name)
+        self.run_test(txt_incorrect, "test_broken_links.md")
 
 
 # #############################################################################
