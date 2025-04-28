@@ -954,8 +954,7 @@ def _run_coverage(
         # Enable coverage collection.
         "--coverage",
         # Specify which directory to test.
-        "-p",
-        target_dir,
+        "-p", target_dir,
     ]
     # join and quote them into a single shell command
     test_cmd = hlitauti.to_multi_line_cmd(test_cmd_parts)
