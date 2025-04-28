@@ -1,6 +1,7 @@
 name: Test coverage
 
 on:
+  pull_request:
   workflow_dispatch: {}
   # every day at 00:00 UTC.
   schedule:
@@ -35,7 +36,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          submodules: true
+          submodules: recursive
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -65,7 +66,7 @@ jobs:
           CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
           CSFY_ECR_BASE_PATH: ghcr.io/${{ github.repository_owner }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
-        run: invoke run_fast_coverage .
+        run: invoke run_coverage --suite fast .
 
       - name: Upload Fast Test Coverage to Codecov
         # `if: always()` ensures this step runs regardless of prior failures.
@@ -93,7 +94,7 @@ jobs:
           CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
           CSFY_ECR_BASE_PATH: ghcr.io/${{ github.repository_owner }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
-        run: invoke run_slow_coverage .
+        run: invoke run_coverage --suite slow .
 
       - name: Upload Slow Test Coverage to Codecov
         # "if: always()" ensures this step is executed regardless of previous outcomes.
@@ -110,6 +111,7 @@ jobs:
           fail_ci_if_error: true
 
       - name: Run Superslow test and generate report
+        id: run_superslow
         # Scheduled for Monday (i.e Day 1) or when manually triggered.
         if: (github.event_name == 'schedule' && env.DAY_OF_WEEK == '1') || github.event_name == 'workflow_dispatch'
         env:
@@ -120,10 +122,11 @@ jobs:
           CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
           CSFY_ECR_BASE_PATH: ghcr.io/${{ github.repository_owner }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
-        run: invoke run_superslow_coverage .
+        run: invoke run_coverage --suite superslow .
 
       - name: Upload Superslow Test Coverage to Codecov
-        if: (github.event_name == 'schedule' && env.DAY_OF_WEEK == '1') || github.event_name == 'workflow_dispatch'
+        #TODO(Shaunak): Consider removing it when we turn this workflow into a reusable one.
+        if: steps.run_superslow.outcome == 'success'
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}

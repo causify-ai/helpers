@@ -8,7 +8,6 @@ import json
 import logging
 import os
 import re
-import shlex
 import sys
 from typing import Any, List, Optional, Tuple, cast
 
@@ -937,12 +936,11 @@ def _run_coverage(
     """
     Run coverage for a given suite (fast/slow/superslow).
 
-    :param suite: one of "fast" or "slow"
+    :param suite: one of "fast", "slow" or "superslow"
     :param target_dir: coverage target directory
     :param generate_html_report: whether to produce HTML output
     :return: xml file named 'coverage.xml'
     """
-
     hdbg.dassert_in(
         suite,
         ("fast", "slow", "superslow"),
@@ -958,30 +956,18 @@ def _run_coverage(
         # Specify which directory to test.
         "-p",
         target_dir,
-        # Pass through remaining args to pytest.
-        "--",
-        # Emit JUnit XML report for CI systems.
-        f"--junitxml=reports/junit_{suite}.xml",
-        # Force legacy JUnit output format.
-        "-o",
-        "junit_family=legacy",
     ]
     # join and quote them into a single shell command
-    test_cmd = " ".join(shlex.quote(p) for p in test_cmd_parts)
-    # Name output coverage data file for this suite.
-    coverage_file = f".coverage_{suite}_tests"
+    test_cmd = hlitauti.to_multi_line_cmd(test_cmd_parts)
     # Run the tests under coverage.
     hlitauti.run(ctx, test_cmd, use_system=False)
-    # Move the default ".coverage" file to our suite-specific filename.
-    hsystem.system(f"mv .coverage {coverage_file}")
-    hdbg.dassert_file_exists(coverage_file)
+    # Check that '.coverage' was created.
+    hdbg.dassert_file_exists(".coverage")
     # Compute which files/dirs to include and omit in the report.
     include_in_report, exclude_from_report = _get_inclusion_settings(target_dir)
     report_cmd: List[str] = [
         # Clear out any prior coverage data.
-        "coverage erase",
-        # Combine this suite's data into the coverage database.
-        f"coverage combine --keep {coverage_file}",
+        "coverage erase"
     ]
     # Generate a text report, including only our target paths.
     report_stats_cmd: str = (
@@ -1005,45 +991,25 @@ def _run_coverage(
 
 
 @task
-def run_fast_coverage(ctx, target_dir: str) -> None:
+def run_coverage(
+    ctx,
+    suite: str,
+    target_dir: str = ".",
+):
     """
-    Task wrapper to run *fast* test suite with coverage and emit reports.
+    Unified task to run coverage for any test suite.
 
     :param ctx: Invoke context
-    :param target_dir: coverage target directory
-    :param generate_html_report: whether to produce HTML output
-    :return: filename of the fast‑suite coverage data file
+    :param suite: Test suite to run ("fast", "slow", "superslow")
+    :param target_dir: Target directory to measure coverage for (default
+        ".")
     """
-    test = "fast"
-    _run_coverage(ctx, test, target_dir, generate_html_report=False)
-
-
-@task
-def run_slow_coverage(ctx, target_dir: str) -> None:
-    """
-    Task wrapper to run *slow* test suite with coverage and emit reports.
-
-    :param ctx: Invoke context
-    :param target_dir: coverage target directory
-    :param generate_html_report: whether to produce HTML output
-    :return: filename of the slow‑suite coverage data file
-    """
-    test = "slow"
-    _run_coverage(ctx, test, target_dir, generate_html_report=False)
-
-
-@task
-def run_superslow_coverage(ctx, target_dir: str) -> None:
-    """
-    Task wrapper to run *slow* test suite with coverage and emit reports.
-
-    :param ctx: Invoke context
-    :param target_dir: coverage target directory
-    :param generate_html_report: whether to produce HTML output
-    :return: filename of the slow‑suite coverage data file
-    """
-    test = "superslow"
-    _run_coverage(ctx, test, target_dir, generate_html_report=False)
+    hdbg.dassert_in(
+        suite,
+        ("fast", "slow", "superslow"),
+        "Expected one of 'fast', 'slow', or 'superslow'.",
+    )
+    _run_coverage(ctx, suite, target_dir, generate_html_report=False)
 
 
 # #############################################################################
