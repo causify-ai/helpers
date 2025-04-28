@@ -1060,7 +1060,8 @@ def _check_workspace_dir_sizes() -> None:
 
 @task
 def docker_create_candidate_image(
-    ctx, task_definition, user_tag="", region=hs3.AWS_EUROPE_REGION_1
+    ctx, task_definition, user_tag="", region=hs3.AWS_EUROPE_REGION_1, 
+    dir="."
 ):  # type: ignore
     """
     Create new prod candidate image and update the specified ECS task
@@ -1073,21 +1074,22 @@ def docker_create_candidate_image(
         parameter means the command was run via gh actions
     :param region: AWS Region, for Tokyo region specify 'ap-northeast-1'
     """
-    _check_workspace_dir_sizes()
-    # Get the hash of the image.
-    tag = hgit.get_head_hash(".", short_hash=True)
-    if user_tag:
-        # Add user name to the candidate tag.
-        tag = f"{user_tag}-{tag}"
-    # Create new prod image.
-    docker_build_prod_image(
-        ctx,
-        version=hlitadoc._IMAGE_VERSION_FROM_CHANGELOG,
-        candidate=True,
-        tag=tag,
-    )
-    # Push candidate image.
-    docker_push_prod_candidate_image(ctx, tag)
+    with hsystem.cd(dir):
+        # _check_workspace_dir_sizes()
+        # Get the hash of the image.
+        tag = hgit.get_head_hash(".", short_hash=True)
+        if user_tag:
+            # Add user name to the candidate tag.
+            tag = f"{user_tag}-{tag}"
+        # Create new prod image.
+        docker_build_prod_image(
+            ctx,
+            version=hlitadoc._IMAGE_VERSION_FROM_CHANGELOG,
+            candidate=True,
+            tag=tag,
+        )
+        # Push candidate image.
+        docker_push_prod_candidate_image(ctx, tag)
     exec_name = "im_v2/aws/aws_update_task_definition.py"
     # Ensure compatibility with repos where amp is a submodule.
     if not os.path.exists(exec_name):
