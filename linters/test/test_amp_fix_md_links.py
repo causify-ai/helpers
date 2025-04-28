@@ -454,6 +454,29 @@ class Test_fix_links(hunitest.TestCase):
         ]
         self.assertEqual(expected, actual)
 
+    def test13(self) -> None:
+        """
+        Test that links inside inline code are not modified.
+        """
+        # Prepare inputs.
+        text = r"""
+        Inline link: `http://0044e866de8d:10091/` -> port is `10091`
+
+        Inline path: `/src/app.py`
+        """
+        file_name = "test_inline_links.md"
+        file_path = self.write_input_file(text, file_name)
+        # Run.
+        _, actual, _ = lafimdli.fix_links(file_path)
+        # Check.
+        _LOG.info(actual)
+        expected = [
+            "Inline link: `http://0044e866de8d:10091/` -> port is `10091`",
+            "",
+            "Inline path: `/src/app.py`",
+        ]
+        self.assertEqual(expected, actual)
+
 
 # #############################################################################
 # Test_make_path_absolute
