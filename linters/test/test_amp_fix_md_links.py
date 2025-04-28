@@ -348,52 +348,53 @@ class Test_fix_links(hunitest.TestCase):
 
     def test12(self) -> None:
         """
-        Test Markdown files with external links.
+        Test that URLs inside quotation marks are not converted to Markdown-
+        style links.
         """
         # Prepare inputs.
-        txt_incorrect = r"""
+        text = r"""
+        URL in quotation marks: "https://example.com/path".
 
-        - Markdown-style link with an http GH company link
-          - [helpers/hgit.py](https://github.com/causify-ai/helpers/blob/master/helpers/hgit.py)
+        Image with URL in src attribute: <img width="505" alt="" src="https://github.com/user/repo/assets/12345/abcdef-ghijk-lmnop" />
 
-        - Markdown-style link with an http GH company link and a text label
-          - [Here](https://github.com/causify-ai/helpers/blob/master/helpers/hgit.py)
-
-        - Markdown-style link with an http external link
-          - [AirFlow UI](http://172.30.2.44:8090/home).
-
-        - Markdown-style link with backticks in the square brackets and external http link
-          - [`foobar`](https://ap-northeast-1.console.aws.amazon.com/s3/buckets/foobar)
-
-        External Markdown link: [External Markdown Link](https://example.com)
+        URL in HTML attribute: <div data-url="https://api.example.com/endpoint"></div>
         """
-        self.run_test(txt_incorrect, "test_external_links.md")
+        file_name = "test_quoted_urls.md"
+        file_path = self.write_input_file(text, file_name)
+        # Run.
+        _, actual, _ = lafimdli.fix_links(file_path)
+        # Check.
+        expected = [
+            'URL in quotation marks: "https://example.com/path".',
+            "",
+            'Image with URL in src attribute: <img width="505" alt="" src="https://github.com/user/repo/assets/12345/abcdef-ghijk-lmnop" />',
+            "",
+            'URL in HTML attribute: <div data-url="https://api.example.com/endpoint"></div>',
+        ]
+        self.assertEqual(expected, actual)
 
     def test13(self) -> None:
         """
-        Test files without Markdown hyperlinks.
+        Test that links inside inline code are not modified.
         """
         # Prepare inputs.
-        txt_incorrect = r"""
-        - File path without the backticks
-          - /helpers/test/test_hdbg.py
+        text = r"""
+        Inline link: `http://0044e866de8d:10091/` -> port is `10091`
 
-        - File path with the backticks
-          - `/helpers/test/test_hdbg.py`
-
-        - File path with the backticks and a dot at the start
-          - `./helpers/test/test_hdbg.py`
-
-        - File path with the backticks and no slash at the start
-          - `helpers/test/test_hdbg.py`
-
-        - File path without the dir
-          - `README.md`
-
-        - File path of a hidden file
-          - .github/workflows/build_image.yml.DISABLED
+        Inline path: `/src/app.py`
         """
-        self.run_test(txt_incorrect, "test_without_md_hyperlinks.md")
+        file_name = "test_inline_links.md"
+        file_path = self.write_input_file(text, file_name)
+        # Run.
+        _, actual, _ = lafimdli.fix_links(file_path)
+        # Check.
+        _LOG.info(actual)
+        expected = [
+            "Inline link: `http://0044e866de8d:10091/` -> port is `10091`",
+            "",
+            "Inline path: `/src/app.py`",
+        ]
+        self.assertEqual(expected, actual)
 
     def test14(self) -> None:
         """
@@ -479,6 +480,55 @@ class Test_fix_links(hunitest.TestCase):
         Broken Markdown link: [Broken Markdown Link](missing_markdown.md)
         """
         self.run_test(txt_incorrect, "test_broken_links.md")
+
+    def test18(self) -> None:
+        """
+        Test Markdown files with external links.
+        """
+        # Prepare inputs.
+        txt_incorrect = r"""
+
+        - Markdown-style link with an http GH company link
+          - [helpers/hgit.py](https://github.com/causify-ai/helpers/blob/master/helpers/hgit.py)
+
+        - Markdown-style link with an http GH company link and a text label
+          - [Here](https://github.com/causify-ai/helpers/blob/master/helpers/hgit.py)
+
+        - Markdown-style link with an http external link
+          - [AirFlow UI](http://172.30.2.44:8090/home).
+
+        - Markdown-style link with backticks in the square brackets and external http link
+          - [`foobar`](https://ap-northeast-1.console.aws.amazon.com/s3/buckets/foobar)
+
+        External Markdown link: [External Markdown Link](https://example.com)
+        """
+        self.run_test(txt_incorrect, "test_external_links.md")
+
+    def test19(self) -> None:
+        """
+        Test files without Markdown hyperlinks.
+        """
+        # Prepare inputs.
+        txt_incorrect = r"""
+        - File path without the backticks
+          - /helpers/test/test_hdbg.py
+
+        - File path with the backticks
+          - `/helpers/test/test_hdbg.py`
+
+        - File path with the backticks and a dot at the start
+          - `./helpers/test/test_hdbg.py`
+
+        - File path with the backticks and no slash at the start
+          - `helpers/test/test_hdbg.py`
+
+        - File path without the dir
+          - `README.md`
+
+        - File path of a hidden file
+          - .github/workflows/build_image.yml.DISABLED
+        """
+        self.run_test(txt_incorrect, "test_without_md_hyperlinks.md")
 
 
 # #############################################################################
