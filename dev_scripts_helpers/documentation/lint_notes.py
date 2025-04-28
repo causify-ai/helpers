@@ -94,6 +94,7 @@ def _preprocess(txt: str) -> str:
     return txt_new_as_str
 
 
+# TODO(gp): Move this somewhere else.
 # TODO(gp): Remove the code path using non dockerized executable, after fix for
 # CmampTask10710.
 def prettier(

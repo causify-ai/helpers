@@ -206,6 +206,7 @@ def _render_images(file_name: str, prefix: str) -> str:
     out = "\n".join(out)
     file3 = f"{prefix}.render_image2.txt"
     hio.to_file(file3, out)
+    _LOG.info("Remove commented code and saved file='%s'", file3)
     #
     file_out = file3
     return file_out
