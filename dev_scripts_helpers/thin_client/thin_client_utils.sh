@@ -334,6 +334,8 @@ set_up_docker_in_docker() {
     # TODO(Vlad): Fix ulimit error: https://github.com/docker/cli/issues/4807.
     # Need to remove after the issue is fixed.
     sudo sed -i 's/ulimit -Hn/# ulimit -Hn/g' /etc/init.d/docker
+    # TODO(gp): Remove this as per HelpersTask578.
+    sudo sed -i '/if \[ "\$BASH" \]; then/,/fi/ s/^/#/' /etc/init.d/docker
     sudo /etc/init.d/docker start
     sudo /etc/init.d/docker status
     # Wait for Docker Engine to be started, otherwise `docker.sock` file is
