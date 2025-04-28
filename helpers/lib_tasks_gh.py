@@ -227,6 +227,9 @@ def gh_workflow_list(  # type: ignore
                 log_file_name = log_file_name.replace(" ", "_").lower()
                 cmd = f"gh run view {workload_id} --log-failed >{log_file_name}"
                 hsystem.system(cmd)
+                # Remove non-printable chars.
+                cmd = f"remove_escape_chars.py -i {log_file_name}"
+                hsystem.system(cmd)
                 print(f"# Log is in '{log_file_name}'")
                 # Run_fast_tests  Run fast tests  2021-12-19T00:19:38.3394316Z FAILED data
                 # cmd = rf"grep 'Z FAILED ' {log_file_name}"
