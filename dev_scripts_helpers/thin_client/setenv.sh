@@ -97,6 +97,12 @@ umask 002
 # modifications before starting to develop.
 set_symlink_permissions .
 
+#################################################################################
+# Install pre-commit hooks.
+#################################################################################
+
+$HELPERS_ROOT_DIR/dev_scripts_helpers/git/git_hooks/install_hooks.py --action install
+
 # #############################################################################
 # Project configuration.
 # #############################################################################

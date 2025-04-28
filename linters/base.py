@@ -65,7 +65,9 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-def _filter_files(file_paths: List[str], file_paths_to_skip: List[str]) -> List[str]:
+def _filter_files(
+    file_paths: List[str], file_paths_to_skip: List[str]
+) -> List[str]:
     """
     Filter the list of files by removing invalid or excluded ones.
 
@@ -461,10 +463,7 @@ def _parse() -> argparse.ArgumentParser:
         help="Select files modified in the current branch with respect to master",
     )
     parser.add_argument(
-        "--skip_files",
-        nargs="+",
-        type=str,
-        help="Files to skip during linting"
+        "--skip_files", nargs="+", type=str, help="Files to skip during linting"
     )
     # Action selection.
     parser.add_argument(
@@ -488,7 +487,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--num_threads",
         action="store",
-        default="-1",
+        default="serial",
         help="Number of threads to use ('serial' to run serially, -1 to use "
         "all CPUs)",
     )
