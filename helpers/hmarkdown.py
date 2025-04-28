@@ -426,15 +426,15 @@ def check_header_list(header_list: HeaderList) -> None:
             header_list[0].line_number,
             header_list[0].level,
         )
-    # Check that consecutive elements in the header list differ by at most one
-    # value of level.
+    # Check that consecutive elements in the header list only increase by
+    # at most one level at a time, but can decrease by multiple levels.
     if len(header_list) > 1:
         for i in range(1, len(header_list)):
             hdbg.dassert_isinstance(header_list[i - 1], HeaderInfo)
             hdbg.dassert_isinstance(header_list[i], HeaderInfo)
-            if abs(header_list[i].level - header_list[i - 1].level) > 1:
+            if header_list[i].level - header_list[i - 1].level > 1:
                 msg = []
-                msg.append("Consecutive headers differ by more than one level:")
+                msg.append("Consecutive headers increase by more than one level:")
                 msg.append(f"  {header_list[i - 1]}")
                 msg.append(f"  {header_list[i]}")
                 msg = "\n".join(msg)
