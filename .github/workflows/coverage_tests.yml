@@ -113,7 +113,8 @@ jobs:
       - name: Run Superslow test and generate report
         id: run_superslow
         # Scheduled for Monday (i.e Day 1) or when manually triggered.
-        if: (github.event_name == 'schedule' && env.DAY_OF_WEEK == '1') || github.event_name == 'workflow_dispatch'
+        # if: (github.event_name == 'schedule' && env.DAY_OF_WEEK == '1') || github.event_name == 'workflow_dispatch'
+        if: always()
         env:
           GH_ACTION_ACCESS_TOKEN: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
           CSFY_AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
@@ -126,7 +127,8 @@ jobs:
 
       - name: Upload Superslow Test Coverage to Codecov
         #TODO(Shaunak): Consider removing it when we turn this workflow into a reusable one.
-        if: steps.run_superslow.outcome == 'success'
+        # if: steps.run_superslow.outcome == 'success'
+        if: always()
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
