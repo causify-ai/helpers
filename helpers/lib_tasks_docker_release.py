@@ -1100,22 +1100,16 @@ def docker_release_multi_arch_prod_image(
         multi_arch="linux/amd64,linux/arm64",
     )
     # 2) Run tests.
-    if skip_tests:
-        _LOG.warning("Skipping all tests and releasing")
-        fast_tests = False
-        slow_tests = False
-        superslow_tests = False
-        qa_tests = False
-    stage = "prod"
-    if fast_tests:
-        hlitapyt.run_fast_tests(ctx, stage=stage, version=version)
-    if slow_tests:
-        hlitapyt.run_slow_tests(ctx, stage=stage, version=version)
-    if superslow_tests:
-        hlitapyt.run_superslow_tests(ctx, stage=stage, version=version)
-    # 3) Run QA tests.
-    if qa_tests:
-        hlitapyt.run_qa_tests(ctx, stage=stage, version=version)
+    _run_tests(
+        ctx,
+        stage="prod",
+        version=version,
+        skip_tests=skip_tests,
+        fast_tests=fast_tests,
+        slow_tests=slow_tests,
+        superslow_tests=superslow_tests,
+        qa_tests=qa_tests,
+    )
     # 4) Push prod image.
     for registry in docker_registry:
         docker_tag_push_multi_arch_prod_image(
