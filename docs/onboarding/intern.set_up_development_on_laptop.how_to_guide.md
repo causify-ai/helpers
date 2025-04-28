@@ -9,6 +9,7 @@
     + [Install Docker](#install-docker)
     + [Checking Docker installation](#checking-docker-installation)
     + [Docker installation troubleshooting](#docker-installation-troubleshooting)
+    + [Add user to Docker group and sudoers](#add-user-to-docker-group-and-sudoers)
   * [Tmux](#tmux)
   * [Shell support](#shell-support)
   * [Some useful workflows](#some-useful-workflows)
@@ -150,7 +151,7 @@
 ### Install Docker
 
 - Get familiar with Docker if you are not, e.g.,
-  https://docs.docker.com/get-started/overview/
+  [https://docs.docker.com/get-started/overview/](https://docs.docker.com/get-started/overview/)
 
 - We work in a Docker container that has all the required dependencies installed
   - You can use PyCharm / VSCode on your laptop to edit code, but you want to
@@ -388,9 +389,9 @@
 
 - To open a Jupyter notebook in a local web-browser:
   - In the output from the cmd above find an assigned port, e.g.,
-    `[I 14:52:26.824 NotebookApp] http://0044e866de8d:10091/` -> port is `10091`
-  - Add the port to the link like so: `http://localhost:10091/` or
-    `http://127.0.0.1:10091`
+    `[I 14:52:26.824 NotebookApp] [http://0044e866de8d:10091/`](http://0044e866de8d:10091/`) -> port is `10091`
+  - Add the port to the link like so:
+    `[http://localhost:10091/`](http://localhost:10091/`) or `[http://127.0.0.1:10091`](http://127.0.0.1:10091`)
   - Copy-paste the link into a web-browser and update the page
 
 ## Hack: use a local container if needed
