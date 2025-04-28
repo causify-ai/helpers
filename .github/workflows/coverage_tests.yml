@@ -66,7 +66,7 @@ jobs:
           CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
           CSFY_ECR_BASE_PATH: ghcr.io/${{ github.repository_owner }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
-        run: invoke run_coverage --suite fast .
+        run: invoke run_coverage --suite fast -- .
 
       - name: Upload Fast Test Coverage to Codecov
         # `if: always()` ensures this step runs regardless of prior failures.
@@ -94,7 +94,7 @@ jobs:
           CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
           CSFY_ECR_BASE_PATH: ghcr.io/${{ github.repository_owner }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
-        run: invoke run_coverage --suite slow .
+        run: invoke run_coverage --suite slow -- .
 
       - name: Upload Slow Test Coverage to Codecov
         # "if: always()" ensures this step is executed regardless of previous outcomes.
@@ -122,7 +122,7 @@ jobs:
           CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
           CSFY_ECR_BASE_PATH: ghcr.io/${{ github.repository_owner }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
-        run: invoke run_coverage --suite superslow .
+        run: invoke run_coverage --suite superslow -- .
 
       - name: Upload Superslow Test Coverage to Codecov
         #TODO(Shaunak): Consider removing it when we turn this workflow into a reusable one.
