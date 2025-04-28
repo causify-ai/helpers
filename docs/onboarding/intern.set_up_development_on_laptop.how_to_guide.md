@@ -389,9 +389,9 @@
 
 - To open a Jupyter notebook in a local web-browser:
   - In the output from the cmd above find an assigned port, e.g.,
-    `[I 14:52:26.824 NotebookApp] [http://0044e866de8d:10091/`](http://0044e866de8d:10091/`) -> port is `10091`
-  - Add the port to the link like so:
-    `[http://localhost:10091/`](http://localhost:10091/`) or `[http://127.0.0.1:10091`](http://127.0.0.1:10091`)
+    `[I 14:52:26.824 NotebookApp] http://0044e866de8d:10091/` -> port is `10091`
+  - Add the port to the link like so: `http://localhost:10091/` or
+    `http://127.0.0.1:10091`
   - Copy-paste the link into a web-browser and update the page
 
 ## Hack: use a local container if needed
