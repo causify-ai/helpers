@@ -132,13 +132,13 @@ def find_test_class(ctx, class_name, dir_name=".", pbcopy=True, exact_match=Fals
         macOS)
     """
     hlitauti.report_task(txt="class_name abs_dir pbcopy")
-    hdbg.dassert(class_name != "", "You need to specify a class name")
+    hdbg.dassert_ne(class_name, "", "You need to specify a class name")
     _ = ctx
     file_names = _find_test_files(dir_name)
     res = _find_test_class(class_name, file_names, exact_match)
     res = " ".join(res)
     # Print or copy to clipboard.
-    hsystem.to_pbcopy(res, pbcopy=True)
+    hsystem.to_pbcopy(res, pbcopy)
 
 
 # //////////////////////////////////////////////////////////////////////////////////
