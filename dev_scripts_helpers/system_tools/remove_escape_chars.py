@@ -38,7 +38,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     txt = hparser.read_file(in_file_name)
     txt_tmp = "\n".join(txt)
-    txt_tmp = hprint.remove_non_printable(txt_tmp)
+    txt_tmp = hprint.remove_non_printable_chars(txt_tmp)
     txt_tmp = txt_tmp.split("\n")
     hparser.write_file(txt_tmp, out_file_name)
 
