@@ -21,8 +21,8 @@
       `causify-data-collaborators` bucket
 - [ ] Move the Asana task corresponding to the intern to the "Let go" section
 - [ ] Update the
-      [Access Tracker](https://docs.google.com/spreadsheets/d/1UQEHzWhgnQ6s1NK3qr03a0-CgDuLmXBqhSc_-ISeLx4/edit?gid=0#gid=0)
-      gdoc
+      [Access Tracker](https://docs.google.com/spreadsheets/d/130tDQBLAeq89uOTj9pyE8r1-o2-OKztCZYZtyiOKnLk/edit?resourcekey=&gid=1024055821#gid=1024055821)
+      spreadsheet
   - Put "No" in the columns that they no longer have access to
 
 ## Offboarding for permanent team members
