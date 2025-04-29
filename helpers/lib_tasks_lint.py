@@ -190,7 +190,7 @@ def lint(  # type: ignore
     last_commit=False,
     branch=False,
     # It needs to be a string to allow the user to specify "serial".
-    num_threads="-1",
+    num_threads="serial",
     only_format=False,
     only_check=False,
 ):

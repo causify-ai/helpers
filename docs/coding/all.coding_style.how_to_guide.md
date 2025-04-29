@@ -34,10 +34,12 @@
     + [General conventions](#general-conventions)
     + [Descriptive vs imperative style](#descriptive-vs-imperative-style)
     + [Docstrings style](#docstrings-style)
+    + [Doctrings content](#doctrings-content)
     + [Comments style](#comments-style)
     + [Replace empty lines in code with comments](#replace-empty-lines-in-code-with-comments)
-    + [Comment chunk of codes](#comment-chunk-of-codes)
+    + [Comment chunks of code](#comment-chunks-of-code)
     + [Referring to an object in code comments](#referring-to-an-object-in-code-comments)
+    + [Referring to type of vars in code comments](#referring-to-type-of-vars-in-code-comments)
     + [Avoid distracting comments](#avoid-distracting-comments)
     + [Commenting out code](#commenting-out-code)
     + [Use type hints](#use-type-hints)
@@ -470,8 +472,9 @@
         :return: this is a description of what is returned
         """
   ```
-  - We pick lowercase after `:param XYZ: ...` unless the first word is a proper
-    noun or type
+  - We use lowercase after `:param XYZ: ...`/`:return:` unless the first word is
+    a proper noun
+  - First docstring line must be a single line
   - A full ReST docstring styling also requires to specify params and return
     types, however type hinting makes it redundant so you should use only type
     hinting
@@ -500,19 +503,54 @@
     This is our approach.
     """
     ```
+- Follow this example for indentation of param/return descriptions:
+  - _Good_
+    ```python
+    """
+    :param param1: a very very long param description that
+        continues into a second line
+    :param param2: a param with two possible values
+        - first value description
+        - second value description that is very long and
+          continues into a second line
+    """
+    ```
 - [More examples of and discussions on Python docstrings](https://stackoverflow.com/questions/3898572)
+
+#### Doctrings content
+
+- The docstring should focus on the "what" (the goal of the code) and not the
+  "how" (the implementation)
+
+- The docstring should not be a line-by-line "translation" of code into text
+  - People can look at the code if they want to know the details of the
+    implementation
+  - We don't want to create a maintainability burden where the docstring should
+    change with every update in the implementation
+
+- We encourage adding examples (e.g., of input and output) to the docstring to
+  improve clarity
+
+- Type of variables should not be mentioned in `:param:`/`:return:` descriptions
+  - E.g., do not do `:return: a list of messages`, do `:return: messages`
+  - Types should already be evident (from the type hinting)
+  - We don't want to have to change all the docstrings if we change the
+    implementation (e.g., turn a list into a set)
+
+- Default values of parameters should not be mentioned in `:param:` descriptions
+  for the same reasons as above
 
 #### Comments style
 
-- Comments follow the same style of docstrings, e.g., imperative style with
-  period `.` at the end
+- Comments follow the same style of docstrings, e.g., imperative style, start
+  with a capital letter, with period `.` at the end
   - _Bad_
     ```python
-    # This comment is not imperative and has no period at the end
+    # this comment is not imperative, not capitalized and has no period at the end
     ```
   - _Good_
     ```python
-    # Make comments imperative and end them with a period.
+    # Make comments imperative, start with a capital letter and end with a period.
     ```
 - Always place comments above the lines that they are referring to. Avoid
   writing comments on the same line as code since they require extra maintenance
@@ -526,7 +564,7 @@
     # Introduce yourself.
     print("hello world")
     ```
-- The only exception is commenting `if-elif-else` statments: we comment them
+- The only exception is commenting `if-elif-else` statements: we comment them
   underneath the each statement in order to explain the code that belongs to the
   each statement particularly
   - _Bad_
@@ -547,7 +585,7 @@
         # Set remapping for file system data used in simulation.
         ...
     ```
-    - If you want to separate an `if` statement from a bunch of code preceeding
+    - If you want to separate an `if` statement from a bunch of code preceding
       it, you can leave an empty comment before it
 
 #### Replace empty lines in code with comments
@@ -586,7 +624,7 @@
   ...
   ```
 
-#### Comment chunk of codes
+#### Comment chunks of code
 
 - Avoid wall-of-code, by commenting chunks of code that perform a cohesive work
 
@@ -665,10 +703,33 @@
     # The dataframe `df_tmp` is used for ...
     ```
 
+#### Referring to type of vars in code comments
+
+- Similarly, and for the same reason, avoid referring to the type of a variable
+  in the comments
+  - _Bad_
+    ```python
+    # Filter the list of LLM prompts.
+    ```
+  - _Good_
+    ```python
+    # Filter the LLM prompts.
+    ```
+
 #### Avoid distracting comments
 
 - Use comments to explain the high level logic / goal of a piece of code and not
-  the details, e.g., do not comment things that are obvious
+  the implementation details ("what" and not "how")
+  - _Bad_
+    ```python
+    # Format the output by displaying only the beginning and the end segments.
+    ```
+  - _Good_
+    ```python
+    # Format the output.
+    ```
+
+- Do not comment things that are obvious
   - _Bad_
     ```python
     # Print results.
@@ -2053,8 +2114,6 @@
   where this function or variable was used) and try to fix them, at least to
   give your best shot at making things work
   - You can edit the notebooks directly without opening, or open and fix it.
-- Good examples of how you can safely rename anything for Pycharm users:
-  <https://www.jetbrains.com/help/Pycharm/rename-refactorings.html>
 - But remember, you must know how to do it without fancy IDE like Pycharm.
 - If it's important code:
   - Run unit tests
@@ -2279,10 +2338,11 @@
 
 #### SQL
 
-- You can use the package https://github.com/andialbrecht/sqlparse to format SQL
-  queries
+- You can use the package
+  [https://github.com/andialbrecht/sqlparse](https://github.com/andialbrecht/sqlparse)
+  to format SQL queries
 - There is also an on-line version of the same formatter at
-  https://sqlformat.org
+  [https://sqlformat.org](https://sqlformat.org)
 
 ## Conventions (Addendum)
 

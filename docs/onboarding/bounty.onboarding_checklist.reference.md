@@ -12,33 +12,34 @@
 ## Checklist
 
 - Source:
-  [`bounty.onboarding_checklist.reference.md`](/docs/onboarding/bounty.onboarding_checklist.reference.md)
+  [`bounty.onboarding_checklist.reference.md`](https://github.com/causify-ai/helpers/blob/master/docs/onboarding/bounty.onboarding_checklist.reference.md)
 
 - [ ] **Contributor**: Fork the repos
   - [ ] [helpers](https://github.com/causify-ai/helpers)
   - [ ] [tutorials](https://github.com/causify-ai/tutorials)
 - [ ] **Contributor**: Set up the development environment following instructions
       in
-      [`intern.set_up_development_on_laptop.how_to_guide.md`](/docs/onboarding/intern.set_up_development_on_laptop.how_to_guide.md)
+      [`intern.set_up_development_on_laptop.how_to_guide.md`](https://github.com/causify-ai/helpers/blob/master/docs/onboarding/intern.set_up_development_on_laptop.how_to_guide.md)
 - [ ] **Contributor**: Carefully study all the documents in the must-read list:
-  - [ ] [Coding style guide](/docs/coding/all.coding_style.how_to_guide.md)
-  - [ ] [How to write unit tests](/docs/coding/all.write_unit_tests.how_to_guide.md)
-  - [ ] [How to run unit tests](/docs/coding/all.run_unit_tests.how_to_guide.md)
-  - [ ] [Creating a Jupyter Notebook](/docs/coding/all.jupyter_notebook.how_to_guide.md)
-  - [ ] [What to do before opening a PR](/docs/coding/all.submit_code_for_review.how_to_guide.md)
-  - [ ] [Code review process](/docs/coding/all.code_review.how_to_guide.md)
-  - [ ] [Git workflows and best practices](/docs/work_tools/git/all.git.how_to_guide.md)
-  - [ ] [GitHub organization](/docs/work_organization/all.use_github.how_to_guide.md)
-  - [ ] [Tips for writing documentation](/docs/documentation_meta/all.writing_docs.how_to_guide.md)
+  - [ ] [Coding style guide](https://github.com/causify-ai/helpers/blob/master/docs/coding/all.coding_style.how_to_guide.md)
+  - [ ] [How to write unit tests](https://github.com/causify-ai/helpers/blob/master/docs/coding/all.write_unit_tests.how_to_guide.md)
+  - [ ] [How to run unit tests](https://github.com/causify-ai/helpers/blob/master/docs/coding/all.run_unit_tests.how_to_guide.md)
+  - [ ] [Creating a Jupyter Notebook](https://github.com/causify-ai/helpers/blob/master/docs/coding/all.jupyter_notebook.how_to_guide.md)
+  - [ ] [What to do before opening a PR](https://github.com/causify-ai/helpers/blob/master/docs/coding/all.submit_code_for_review.how_to_guide.md)
+  - [ ] [Code review process](https://github.com/causify-ai/helpers/blob/master/docs/coding/all.code_review.how_to_guide.md)
+  - [ ] [Git workflows and best practices](https://github.com/causify-ai/helpers/blob/master/docs/work_tools/git/all.git.how_to_guide.md)
+  - [ ] [GitHub organization](https://github.com/causify-ai/helpers/blob/master/docs/work_organization/all.use_github.how_to_guide.md)
+  - [ ] [Tips for writing documentation](https://github.com/causify-ai/helpers/blob/master/docs/documentation_meta/all.writing_docs.how_to_guide.md)
   - They will help you get up to speed with our practices and development style
 
 ## Instructions
 
-### Org
+### General organization
 
 - All the collaboration happens on GitHub as a typical open-source project
 - The bounties are published in a
   [Gdoc with specs](https://docs.google.com/document/d/1xPgQ2tWXQuVWKkGVONjOGd5j14mXSmGeY_4d1_sGzAE/edit?tab=t.0#heading=h.1ja24i564v3o)
+  - We are going to be adding more and more bounties depending on the demand
 - There is a
   [sign-up sheet](https://docs.google.com/spreadsheets/d/1QiTCyydNQwftMWj3nTL5jWBqOq3UCziFChF08aRNBcE/edit?gid=0#gid=0)
   for the bounties
@@ -50,18 +51,22 @@
     to make the bounty "locked", meaning that other people can no longer take it
     on
 - There will be minimal interaction from us
-  - We don't answer questions, contributors need to figure things out themselves
+  - In general we don't answer questions, contributors need to figure things out
+    themselves
   - If they believe there is a genuine bug somewhere in the codebase, they
     should
     - Check the existing issues in case this bug has already been reported
     - If not, file an issue with a proper report and ideally propose a fix too
-- If a contributor succeeds, we pay the bounty $XYZ (as a bank transfer or in
-  Tether)
+- If a contributor succeeds, we pay the bounty $XYZ as a bank transfer or in
+  Tether
   - If both sides agree, the contributor gets a paid internship / RA / TA
-  - We then on-board them and dedicate our time to train them
+  - We then on-board the contributors as part of our team and dedicate our time
+    to train them
 
 ### Working on a bounty
 
+- Take time to peruse the description of the bounty
+  - No need to rush, there is always time and work to do
 - Before any implementation, the contributor should create an issue for the task
   and post a detailed plan of action there
   - By default the contributor is then free to proceed according to their plan
