@@ -15,12 +15,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class TestDockerBuildLocalImage1(hunitest.TestCase):
-    """
-    Test suite for docker_build_local_image function.
-
-    This class contains unit tests for both single-architecture and
-    multi-architecture Docker image builds.
-    """
 
     def setUp(self) -> None:
         """
@@ -37,19 +31,16 @@ class TestDockerBuildLocalImage1(hunitest.TestCase):
             "helpers.lib_tasks_docker.dassert_is_subsequent_version"
         )
         self.mock_version = self.version_patcher.start()
-        # Mock docker login
+        # Mock docker login.
         self.docker_login_patcher = umock.patch(
             "helpers.lib_tasks_docker.docker_login"
         )
         self.mock_docker_login = self.docker_login_patcher.start()
-        # Get user name.
         self.user = hsystem.get_user_name()
 
     def tearDown(self) -> None:
         """
-        Clean up test environment.
-
-        This method stops all mocks after each test case.
+        Clean up test environment by stopping all mocks after each test case.
         """
         self.system_patcher.stop()
         self.run_patcher.stop()
@@ -78,7 +69,7 @@ class TestDockerBuildLocalImage1(hunitest.TestCase):
             poetry_mode="update",
             cache=False,
         )
-        # Extract the command argument from the call.
+        # Extract the command arguments from the call.
         actual_cmds = [call[0][1] for call in self.mock_run.call_args_list]
         # Check output.
         expected_cmds = [
@@ -102,7 +93,11 @@ class TestDockerBuildLocalImage1(hunitest.TestCase):
         # Normalize both expected and actual commands.
         expected = [self._normalize_command(cmd) for cmd in expected_cmds]
         actual = [self._normalize_command(cmd) for cmd in actual_cmds]
-        self.assertEqual(expected, actual)
+        self.assertEqual(
+            expected,
+            actual,
+            f"Expected commands: {expected}\nActual commands: {actual}",
+        )
 
     def test_docker_build_multi_arch(self) -> None:
         """
@@ -126,7 +121,7 @@ class TestDockerBuildLocalImage1(hunitest.TestCase):
             poetry_mode="update",
             cache=False,
         )
-        # Extract the command argument from the call.
+        # Extract the command arguments from the call.
         actual_cmds = [call[0][1] for call in self.mock_run.call_args_list]
         # Check output.
         expected_cmds = [
@@ -153,11 +148,15 @@ class TestDockerBuildLocalImage1(hunitest.TestCase):
         # Normalize both expected and actual commands.
         expected = [self._normalize_command(cmd) for cmd in expected_cmds]
         actual = [self._normalize_command(cmd) for cmd in actual_cmds]
-        self.assertEqual(expected, actual)
+        self.assertEqual(
+            expected,
+            actual,
+            f"Expected commands: {expected}\nActual commands: {actual}",
+        )
 
     def _normalize_command(self, cmd: str) -> str:
         """
-        Normalize a command string by removing extra whitespace and line
+        Normalize a command string by removing whitespace and line
         continuations.
 
         :param cmd: command string to normalize
