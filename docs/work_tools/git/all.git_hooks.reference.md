@@ -63,14 +63,14 @@
   repo_info:
     ...
     # Enable git-commit hooks.
-    enable_git_commit_hook: True
+    enable_git_commit_hook: False
   ...
   ```
 
 ## Git hooks in action
 
-- Once installed, the hooks will run automatically when a user tries to commit
-  changes
+- Once installed, the hooks will be run automatically when a user tries to
+  commit changes
 - If the pre-commit and the commit-msg checks pass, the commit will be created
 
   ```bash
