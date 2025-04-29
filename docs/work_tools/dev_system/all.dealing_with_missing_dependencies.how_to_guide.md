@@ -41,22 +41,24 @@
   - If the file is discovered by `pytest` and the image doesn't have the package
     installed, it will be skipped with the `pytest.importorskip` in the test
     file
+
+- Why not installing the package on the fly?
   - While installing the package on the fly within the script is possible, it is
     NOT a good practice
   - This approach is NOT great since every time somebody imports that module
-    (even pytest during test discovery), the package gets installed **Bad**
-
-    ```python
-    subprocess.call(["sudo", "/venv/bin/pip", "install", "somepackage"])
-    ```
+    (even pytest during test discovery), the package gets installed
+    - **Bad**
+      ```python
+      subprocess.call(["sudo", "/venv/bin/pip", "install", "somepackage"])
+      ```
   - An exception is in Jupyter Notebooks, where it's acceptable to install
     packages on the fly for prototyping, experimenting, or running analyses
   - However, we should "comment out" those lines afterwards, since Jupyter
     Notebooks are often converted to Python scripts (through jupytext), and we
     don't want these installation commands running automatically
-  - Example (in a Jupyter Notebook cell) TODO(heanh): Replace with
-    `install_module_if_not_present`
+  - Example (in a Jupyter Notebook cell)
     ```bash
+    # TODO(heanh): Replace with `install_module_if_not_present`
     !sudo sudo /venv/bin/pip install --quiet somepackage)"
     ```
 
