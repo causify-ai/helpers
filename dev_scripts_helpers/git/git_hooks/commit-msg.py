@@ -31,7 +31,7 @@ def _main():
             "##### commit-msg hook failed ######", "red"
         )
         print(msg)
-        print(("Your commit message doesn't match regex '%s'" % regex))
+        print("Your commit message doesn't match regex '%s'" % regex)
         print("E.g., 'Awesomely fix this and that' or 'Merge branch ...'")
         print()
         print(
