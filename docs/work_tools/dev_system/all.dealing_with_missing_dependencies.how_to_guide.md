@@ -2,8 +2,6 @@
 
 - [Dealing with missing dependencies in Docker images](#dealing-with-missing-dependencies-in-docker-images)
   * [Quick hacks](#quick-hacks)
-    + [Install dependency on the fly](#install-dependency-on-the-fly)
-    + [Skip the module](#skip-the-module)
     + [Delay the evaluation](#delay-the-evaluation)
     + [Type annotations](#type-annotations)
   * [Long term solution](#long-term-solution)
@@ -34,22 +32,26 @@
 - In test files,
   - We can use `pytest.importorskip` to skip the tests if the package is not
     available
-  
+    ```python
+    pytest.importorskip("somepackage")
+    ```
+
 - In non-test files,
   - We do not need to do anything besides avoiding importing the file
-  - If the file is discovered by `pytest`, it will be skipped with the `pytest.importorskip` in the test file
-
-  - While installing the package on the fly is possible, it is NOT a good practice
-  - This approach is NOT great since every time somebody imports that module (even
-    pytest during test discovery), the package gets installed
-  
-  - An exception is in Jupyter Notebooks, where it's acceptable to install packages
-    on the fly for prototyping, experimenting, or running analyses
+  - If the file is discovered by `pytest` and the image doesn't have the package
+    installed, it will be skipped with the `pytest.importorskip` in the test
+    file
+  - While installing the package on the fly is possible, it is NOT a good
+    practice
+  - This approach is NOT great since every time somebody imports that module
+    (even pytest during test discovery), the package gets installed
+  - An exception is in Jupyter Notebooks, where it's acceptable to install
+    packages on the fly for prototyping, experimenting, or running analyses
   - However, we should "comment out" those lines afterwards, since Jupyter
     Notebooks are often converted to Python scripts (through jupytext), and we
     don't want these installation commands running automatically
-  - Example (in a Jupyter Notebook cell)
-    TODO(heanh): Replace with `install_module_if_not_present`
+  - Example (in a Jupyter Notebook cell) TODO(heanh): Replace with
+    `install_module_if_not_present`
     ```bash
     !sudo sudo /venv/bin/pip install --quiet somepackage)"
     ```
