@@ -949,13 +949,12 @@ def _run_coverage(
         # Invoke the "<suite>_tests" task.
         "invoke",
         f"run_{suite}_tests",
-        # enable coverage computation.
+        # Enable coverage computation.
         "--coverage",
         # Specify which directory to test.
         "-p",
         target_dir,
     ]
-    # join and quote them into a single shell command
     test_cmd = hlitauti.to_multi_line_cmd(test_cmd_parts)
     # Run the tests under coverage.
     hlitauti.run(ctx, test_cmd, use_system=False)
@@ -979,7 +978,7 @@ def _run_coverage(
         if exclude_from_report:
             report_html_cmd += f" --omit={exclude_from_report}"
         report_cmd.append(report_html_cmd)
-    # Export XML coverage report .
+    # Export XML coverage report to integrate with Codecov.
     report_cmd.append("coverage xml -o coverage.xml")
     full_report_cmd: str = " && ".join(report_cmd)
     docker_cmd_ = f"invoke docker_cmd --use-bash --cmd '{full_report_cmd}'"

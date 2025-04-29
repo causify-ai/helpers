@@ -29,5 +29,5 @@ coverage:
         - slow
         - superslow
     patch:
-      # Do not post patch-level coverage checks for pull requests.
+      # Post patch-level coverage checks for pull requests.
       enabled: true

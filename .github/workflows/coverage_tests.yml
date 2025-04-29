@@ -76,8 +76,7 @@ jobs:
         run: invoke run_coverage --suite fast
 
       - name: Upload Fast Test Coverage to Codecov
-        # It is used here to always attempt uploading the coverage report,
-        # even if earlier steps have failed.
+        # Upload report if the fast test run successfully.
         if: steps.run_fast.outcome == 'success'
         uses: codecov/codecov-action@v5
         with:
@@ -117,8 +116,7 @@ jobs:
           flags: slow
           name: slow-test-coverage
           fail_ci: false
-          # "fail_ci_if_error: true" causes the job to fail if the upload to Codecov fails,
-          # helping to catch issues with the coverage reporting.
+          # "fail_ci_if_error: true" causes the job to fail if the upload to Codecov fails.
           fail_ci_if_error: true
 
       - name: Run Superslow test and generate report
