@@ -61,8 +61,8 @@
     !sudo sudo /venv/bin/pip install --quiet somepackage)"
     ```
 
-- If we want to implement different variations of the code depending on
-  whether the package is available or not, we can use the following approaches
+- If we want to implement different variations of the code depending on whether
+  the package is available or not, we can use the following approaches
   ```python
   _HAS_MOTO = henv.has_module("moto")
   if _HAS_MOTO:
