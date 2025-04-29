@@ -14,7 +14,7 @@
 
 - The DagMeister rotates every 2 weeks
   - To see who is the DagMeister now refer to
-    [DataPull_DagMeister gsheet](https://docs.google.com/spreadsheets/d/1Ab6a3BVeLX1l1B3_A6rNY9pHRsofeoCw2ip2dkQ6SdA/edit#gid=0)
+    [DataPull_DagMeister gsheet](https://docs.google.com/spreadsheets/d/12OhDW4hzSLekorrri2WfRkV8h3JcnB8WQd1JEL_n0D8/edit)
   - Each rotation should be confirmed by a 'handshake' between the outgoing
     DagMeister and the new one in the related Slack channel
     `#notifs-preprod-datapull`

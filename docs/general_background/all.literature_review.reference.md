@@ -65,7 +65,7 @@
 ### 2015 - The role of news in commodity markets
 
 - Paper authors: Borovkova
-- [Link](https://drive.google.com/file/d/1p3Z6W5DPBrDyTGBK__uLE2gNkQDO6VTM/view?usp=sharing)
+- [Link](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2587285)
 - Review author / date: GP, 2019-11-22
 - Score: 4/5
 - Summary:
