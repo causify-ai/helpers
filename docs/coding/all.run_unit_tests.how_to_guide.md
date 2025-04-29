@@ -565,7 +565,7 @@
   - `html_coverage` is the common dir on S3 for coverage reports
 - After publishing the report, one can easily open it via a local web browser
   - See the details in
-    [htmlcov server](https://docs.google.com/document/d/1JWAbNLuwseLAleW1wQ0BH8gxHEA9Hb9ZRgAy-Ooj9-M/edit#heading=h.58pd2t5yyzlw)
+    [htmlcov server](https://github.com/causify-ai/cmamp/blob/master/docs/infra/ck.use_htmlcov_server.how_to_guide.md)
   - E.g.
     [http://172.30.2.44/html_coverage/grisha_CmTask1038_Tool_to_extract_the_dependency_from_a_project/](http://172.30.2.44/html_coverage/grisha_CmTask1038_Tool_to_extract_the_dependency_from_a_project/)
 

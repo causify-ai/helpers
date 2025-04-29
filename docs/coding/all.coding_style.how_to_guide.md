@@ -172,7 +172,7 @@
   sure to familiarize yourself with it before proceeding to the rest of the doc,
   since it is the basis of our team's code style.
 - Another important source is
-  [The Pragmatic Programmer](https://drive.google.com/file/d/1g0vjtaBVq0dt32thNprBRJpeHJsJSe-Z/view?usp=sharing)
+  [The Pragmatic Programmer](https://drive.google.com/file/d/1J0YVZO12s67Jq3H5dv9utS6BjhjkHr5G/view)
   by David Thomas and Andrew Hunt. While not Python-specific, it provides an
   invaluable set of general principles by which any person working with code
   (software developer, DevOps or data scientist) should abide. Read it on long

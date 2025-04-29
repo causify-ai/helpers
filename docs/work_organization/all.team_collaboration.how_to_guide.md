@@ -37,7 +37,7 @@
 
 - If you have doubts on how to do something you want to do:
   - Look in the [documentation](/docs) and our Google drive folders
-    [Process](https://drive.google.com/drive/u/1/folders/1sJDqCjM1Q_nq8diyZDiWO8mVBQW5Wg_X)
+    [Process](https://drive.google.com/drive/u/1/folders/1aLNVB_Oiljf2ajkmpZuoX_TArpQdb6pG)
     and [Tech](https://drive.google.com/drive/u/1/folders/0AG6WMNtf7MVkUk9PVA)
   - Try Google search/ChatGPT
 - If you still can't find the answer, ask your team members
