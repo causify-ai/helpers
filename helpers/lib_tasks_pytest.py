@@ -951,7 +951,7 @@ def _run_coverage(
         # Invoke the "<suite>_tests" task.
         "invoke",
         f"run_{suite}_tests",
-        # Enable coverage collection.
+        # Enable coverage collection to track code execution.
         "--coverage",
         # Specify which directory to test.
         "-p",
@@ -961,20 +961,16 @@ def _run_coverage(
     test_cmd = hlitauti.to_multi_line_cmd(test_cmd_parts)
     # Run the tests under coverage.
     hlitauti.run(ctx, test_cmd, use_system=False)
-    # Check that '.coverage' was created.
     hdbg.dassert_file_exists(".coverage")
     # Compute which files/dirs to include and omit in the report.
     include_in_report, exclude_from_report = _get_inclusion_settings(target_dir)
-    report_cmd: List[str] = [
-        # Clear out any prior coverage data.
-        "coverage erase"
-    ]
     # Generate a text report, including only our target paths.
     report_stats_cmd: str = (
         f"coverage report --include={include_in_report} --sort=Cover"
     )
     if exclude_from_report:
         report_stats_cmd += f" --omit={exclude_from_report}"
+    report_cmd: List[str]
     report_cmd.append(report_stats_cmd)
     # Produce HTML output for interactive browsing.
     if generate_html_report:
@@ -982,7 +978,7 @@ def _run_coverage(
         if exclude_from_report:
             report_html_cmd += f" --omit={exclude_from_report}"
         report_cmd.append(report_html_cmd)
-    # Export XML coverage report.
+    # Export XML coverage report for Codecov integration.
     report_cmd.append("coverage xml -o coverage.xml")
     full_report_cmd: str = " && ".join(report_cmd)
     docker_cmd_ = f"invoke docker_cmd --use-bash --cmd '{full_report_cmd}'"
