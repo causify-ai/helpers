@@ -101,7 +101,8 @@ set_symlink_permissions .
 # Install pre-commit hooks.
 #################################################################################
 
-# We want to install the git hooks by default unless the user has disabled them.
+# We want to install git hooks by default unless the user has explicitly 
+# disabled them in the repo config.
 if [[ "${REPO_CONF_repo_info_enable_git_commit_hook}" == False ]]; then
     echo "Skipping git hooks installation because enable_git_commit_hook=False"
     $HELPERS_ROOT_DIR/dev_scripts_helpers/git/git_hooks/install_hooks.py --action remove
