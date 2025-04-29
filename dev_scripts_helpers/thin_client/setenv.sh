@@ -101,7 +101,14 @@ set_symlink_permissions .
 # Install pre-commit hooks.
 #################################################################################
 
-$HELPERS_ROOT_DIR/dev_scripts_helpers/git/git_hooks/install_hooks.py --action install
+# We want to install the git hooks by default unless the user has disabled them.
+if [[ "${REPO_CONF_repo_info_enable_git_commit_hook}" == False ]]; then
+    echo "Skipping git hooks installation because enable_git_commit_hook=False"
+    $HELPERS_ROOT_DIR/dev_scripts_helpers/git/git_hooks/install_hooks.py --action remove
+else
+    echo "Installing git hooks"
+    $HELPERS_ROOT_DIR/dev_scripts_helpers/git/git_hooks/install_hooks.py --action install
+fi
 
 # #############################################################################
 # Project configuration.
