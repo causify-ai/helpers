@@ -951,8 +951,7 @@ def run_docker_as_root() -> bool:
         # outside.
         ret = False
     elif is_external_linux():
-        # TODO(gp): Revert to non-root user as per HelpersTask578.
-        ret = True
+        ret = False
     elif is_inside_ci():
         # When running as user in GH action we get an error:
         # ```
