@@ -11,9 +11,13 @@ env:
   CSFY_CI: true
 
 permissions:
+  # Required to authenticate and retrieve temporary AWS credentials via OIDC.
   id-token: write
+  # Required to fetch and check out code from the repository.
   contents: read
+  # Required to authenticate and pull Docker images from GitHub Container Registry (GHCR).
   packages: read
+
 
 jobs:
   run_test_coverage:
@@ -58,6 +62,8 @@ jobs:
 
       # This step is used to trigger the fast test coverage generation using the invoke task.
       - name: Run Fast test and generate report
+        id: run_fast
+        if: always()
         env:
           GH_ACTION_ACCESS_TOKEN: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
           CSFY_AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
@@ -66,17 +72,19 @@ jobs:
           CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
           CSFY_ECR_BASE_PATH: ghcr.io/${{ github.repository_owner }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
-        run: invoke run_coverage --suite fast -- .
+        run: invoke run_coverage --suite fast
 
       - name: Upload Fast Test Coverage to Codecov
         # `if: always()` ensures this step runs regardless of prior failures.
         # It is used here to always attempt uploading the coverage report,
         # even if earlier steps have failed.
-        if: always()
+        if: steps.run_fast.outcome == 'success'
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.xml
+          # Specify the Codecov flag name associated with this test suite.
+          # Required to separatw coverage reports by type (e.g., fast, slow, superslow) inside the Codecov UI.
           flags: fast
           name: fast-test-coverage
           # Combined coverage for tests will be checked rather than individual.
@@ -86,6 +94,8 @@ jobs:
           fail_ci_if_error: true
 
       - name: Run Slow test and generate report
+        id: run_slow
+        continue-on-error: true
         env:
           GH_ACTION_ACCESS_TOKEN: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
           CSFY_AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
@@ -94,11 +104,11 @@ jobs:
           CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
           CSFY_ECR_BASE_PATH: ghcr.io/${{ github.repository_owner }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
-        run: invoke run_coverage --suite slow -- .
+        run: invoke run_coverage --suite slow
 
       - name: Upload Slow Test Coverage to Codecov
         # "if: always()" ensures this step is executed regardless of previous outcomes.
-        if: always()
+        if: steps.run_slow.outcome == 'success'
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -112,6 +122,7 @@ jobs:
 
       - name: Run Superslow test and generate report
         id: run_superslow
+        continue-on-error: true
         # Scheduled for Monday (i.e Day 1) or when manually triggered.
         if: (github.event_name == 'schedule' && env.DAY_OF_WEEK == '1') || github.event_name == 'workflow_dispatch'
         env:
@@ -122,7 +133,7 @@ jobs:
           CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
           CSFY_ECR_BASE_PATH: ghcr.io/${{ github.repository_owner }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
-        run: invoke run_coverage --suite superslow -- .
+        run: invoke run_coverage --suite superslow
 
       - name: Upload Superslow Test Coverage to Codecov
         #TODO(Shaunak): Consider removing it when we turn this workflow into a reusable one.

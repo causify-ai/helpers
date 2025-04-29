@@ -904,7 +904,7 @@ def _get_inclusion_settings(target_dir: str) -> Tuple[str, Optional[str]]:
         include, omit = _get_inclusion_settings(".")
         ```
         #   coverage report --include=* --sort=Cover
-        #   coverage html   --include=* [--omit=ext/foo/*,ext/bar/*]
+        #   coverage html   --include=* [--omit=submodule1/*,submodule2/*]
 
         # Single-directory coverage:
         ```
@@ -954,7 +954,8 @@ def _run_coverage(
         # Enable coverage collection.
         "--coverage",
         # Specify which directory to test.
-        "-p", target_dir,
+        "-p",
+        target_dir,
     ]
     # join and quote them into a single shell command
     test_cmd = hlitauti.to_multi_line_cmd(test_cmd_parts)
@@ -998,16 +999,11 @@ def run_coverage(
     """
     Unified task to run coverage for any test suite.
 
-    :param ctx: Invoke context
-    :param suite: Test suite to run ("fast", "slow", "superslow")
-    :param target_dir: Target directory to measure coverage for (default
-        ".")
+    :param ctx: invoke context
+    :param suite: suite to run ("fast", "slow", "superslow")
+    :param target_dir: directory to measure coverage
     """
-    hdbg.dassert_in(
-        suite,
-        ("fast", "slow", "superslow"),
-        "Expected one of 'fast', 'slow', or 'superslow'.",
-    )
+    hdbg.dassert_in(suite, ("fast", "slow", "superslow"))
     _run_coverage(ctx, suite, target_dir, generate_html_report=False)
 
 

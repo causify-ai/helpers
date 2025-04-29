@@ -1,10 +1,6 @@
 flag_management:
-  default_rules:
-    # Do not reuse last coverage if missing.
-    carryforward: false
   individual_flags:
     - name: fast
-      # Reuse last coverage if missing for true.
       carryforward: true
     - name: slow
       carryforward: true
@@ -12,22 +8,26 @@ flag_management:
       carryforward: true
 
 
-# No per-line comments.
+
+# Disable per-line comments on pull requests.
 comment: false
 
 coverage:
   status:
     project:
-      # Post the project‑level GitHub Check.
+      # Post an overall project-level GitHub check summarizing coverage status.
       enabled: true
+      # Use the master branch as the baseline for comparison.
       target_branch: master
-      # Measure % drop relative to baseline.
+      # Compare coverage change relative to the baseline branch.
       comparator: relative
-      # Fail if drop ≥1%.
+      # Fail the status check if coverage drops by 1% or more.
       threshold: 1
+      # Specify which flags to include in the project-level coverage calculation.
       flags:
         - fast
         - slow
         - superslow
     patch:
-      enabled: false
+      # Do not post patch-level coverage checks for pull requests.
+      enabled: true
