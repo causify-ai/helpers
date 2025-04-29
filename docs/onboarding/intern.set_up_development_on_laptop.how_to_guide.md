@@ -135,6 +135,9 @@
 ### Supported OS
 
 - Our systems support Mac (both x86 and Apple Silicon) and Linux Ubuntu
+- For Linux Ubuntu, we actively test and support development on:
+  - Operating System: [Ubuntu 24.04 LTS](https://ubuntu.com/download/desktop)
+  - Docker: [v28](https://docs.docker.com/engine/release-notes/28/)
 - We do not support Windows and WSL: we have tried several times to port the
   toolchain to it, but there are always subtle incompatible behaviors that drive
   everyone crazy
@@ -265,7 +268,7 @@
 - You should see `docker` in the output
   ```bash
   > groups
-  your_username adm cdrom sudo dip plugdev lpadmin lxd sambashare docker
+  your_username sudo ... docker
   ```
 
 ## Tmux
@@ -389,8 +392,9 @@
 
 - To open a Jupyter notebook in a local web-browser:
   - In the output from the cmd above find an assigned port, e.g.,
-    `[I 14:52:26.824 NotebookApp] [http://0044e866de8d:10091](http://0044e866de8d:10091)/`
-    -> port is `10091`
+    ```bash
+    [I 14:52:26.824 NotebookApp] http://0044e866de8d:10091/ -> port is `10091`
+    ```
   - Add the port to the link like so: `http://localhost:10091/` or
     `http://127.0.0.1:10091`
   - Copy-paste the link into a web-browser and update the page
