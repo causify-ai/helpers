@@ -18,7 +18,7 @@
 
 - The Buildmeister rotates every 2 weeks
   - To see who is the Buildmeister now refer to
-    [Buildmeister gsheet](https://docs.google.com/spreadsheets/d/1Ab6a3BVeLX1l1B3_A6rNY9pHRsofeoCw2ip2dkQ6SdA/edit#gid=0)
+    [Buildmeister gsheet](https://docs.google.com/spreadsheets/d/12OhDW4hzSLekorrri2WfRkV8h3JcnB8WQd1JEL_n0D8/edit)
   - Each rotation should be confirmed by a 'handshake' between the outgoing
     Buildmeister and the new one in the related Slack channel
 - The Buildmeister is responsible for:
@@ -217,9 +217,6 @@ for detailed information.
   system to make it more robust
   - In order to do that, we need to understand the failure modes of the system
   - For this reason we keep a log of all the issues and what was the root cause
-
-- After each break fill the
-  [Buildmeister spreadsheet sheet "Post-mortem breaks analysis"](https://docs.google.com/spreadsheets/d/1AajgLnRQka9-W8mKOkobg8QOzaEVOnIMlDi8wWVATeA/edit#gid=1363431255)
 
 - `Date` column:
   - Enter the date when the break took place
