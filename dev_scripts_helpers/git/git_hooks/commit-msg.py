@@ -42,14 +42,14 @@ def _main():
     # Read pre-commit output.
     precommit_output_path = f"tmp.precommit_output.txt"
     try:
+        # We want to avoid using helpers here because we want to keep the
+        # script keep the script decoupled.
         with open(precommit_output_path, "r") as f:
             precommit_output = f.read().strip()
     except FileNotFoundError:
         precommit_output = "No pre-commit output found."
     # Format metadata and append to commit message.
-    metadata = "\n" + "\n".join(
-        [f"{line}" for line in precommit_output.splitlines()]
-    )
+    metadata = "\n" + precommit_output
     with open(message_file, "a") as f:
         f.write(metadata)
     msg = dshgghout.color_highlight(
