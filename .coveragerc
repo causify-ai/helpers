@@ -1,9 +1,0 @@
-[run]
-# Tell coverage which directories should be considered as source.
-source = helpers
-
-[report]
-# Glob pattern(s) of files to omit from the report.
-omit =
-    */devops/compose/*
-    */helpers/test/outcomes/*/tmp.scratch/*
