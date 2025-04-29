@@ -29,7 +29,7 @@ FIG_REGEX_2 = r"!\[\w*\]\(\.{0,2}\w*\/\S+?\.(?:jpg|jpeg|png)\)"
 FILE_PATH_REGEX = r"\.{0,2}\w*\/\S+\.[\w\.]+"
 HTML_LINK_REGEX = r'(<a href=".*?">.*?</a>)'
 MD_LINK_REGEX = r"\[(.+)\]\(((?!#).*)\)"
-BARE_LINK_REGEX = r"(?<!\[)(?<!\]\()(?<!href=\")(?<![\'\"])([Hh]ttps?://[^\s<>()\'\"]+)(?![\'\"])"
+BARE_LINK_REGEX = r"(?<!\[)(?<!\]\()(?<!href=\")(?<![\'\"\`])([Hh]ttps?://[^\s<>()\'\"\`]+)(?![\'\"\`])"
 FENCE_REGEX = re.compile(r"^\s*(```|~~~)")
 
 
