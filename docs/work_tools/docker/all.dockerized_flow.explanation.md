@@ -219,7 +219,7 @@ we want to run it in a container with minimal changes to the system call:
 # Naming convention
 
 - `dockerized_XYZ_*`: contains the "actual" scripts that do the work and needs
-  to be run inside a docker container. For example,
+  to be run inside a Docker container. For example,
   - `dockerized_llm_transform.py`
   - `dockerized_extract_notebook_images.py`
   - `dockerized_sync_gh_issue_labels.py`
