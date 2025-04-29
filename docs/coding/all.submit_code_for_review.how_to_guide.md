@@ -5,7 +5,10 @@
 - [Read Python Style Guide](#read-python-style-guide)
 - [Run Linter](#run-linter)
 - [Compare your code to example code](#compare-your-code-to-example-code)
+- [Edit code/text written by AI](#edit-codetext-written-by-ai)
 - [Save Reviewer time](#save-reviewer-time)
+  * [Make sure checks are green](#make-sure-checks-are-green)
+  * [Review your own PR](#review-your-own-pr)
   * [Assign Reviewers](#assign-reviewers)
   * [Mention the issue](#mention-the-issue)
   * [Resolve conversations](#resolve-conversations)
@@ -25,7 +28,7 @@ some helpful tips and resources to guide you through your first review.
 
 ## Read Python Style Guide
 
-- Before submitting your code for review, we highly recommend that you read the
+- Before submitting your code for review, we highly recommend that you read our
   [Python Style Guide](/docs/coding/all.coding_style.how_to_guide.md), which
   outlines the major conventions and best practices for writing Python code.
 - Adhering to these standards will help ensure that your code is easy to read,
@@ -60,10 +63,8 @@ some helpful tips and resources to guide you through your first review.
     ```
 - Fix the lints
   - No need to obsessively fix all of them - just crucial and obvious ones
-  - Post unresolved lints in your PR so that Reviewer can see them and know
-    which should be fixed and which are not
-- If we see that people didn't run Linter, we should do a quick PR just running
-  Linter. This type of PR can be merged even without review.
+- Running Linter on a file also applies some formatting fixes to it
+  automatically and stages the updated file for commit
 - If Linter introduces extensive changes in a PR, causing difficulty in reading
   the diff, a new pull request should be created exclusively for the Linter
   changes, based on the branch of the original PR.
@@ -88,7 +89,46 @@ some helpful tips and resources to guide you through your first review.
     - [`/linters/test/test_amp_fix_md_links.py`](/linters/test/test_amp_fix_md_links.py)
     - [`/helpers/test/test_lib_tasks_lint.py`](/helpers/test/test_lib_tasks_lint.py)
 
+## Edit code/text written by AI
+
+- We do not mind if the AI writes the first version of the code or text for you
+- We do mind if you simply copy-and-paste its output and submit if for our
+  review as-is
+- Take whatever is produced by AI as the first draft: go over it, revise it,
+  make sure it's readable and relevant, adjust it to fit our specific
+  conventions
+
 ## Save Reviewer time
+
+- Follow the instructions given in
+  [`PR workflows`](/docs/work_organization/all.use_github.how_to_guide.md#pr-workflows)
+
+### Make sure checks are green
+
+- Before requesting review, make sure that all the checks performed by GitHub
+  Actions pass
+  - The checks and their status can be seen at the bottom of the PR page or in
+    the "Checks" tab
+- Clicking on a failed check will take you to the extended report with the full
+  failure stacktrace
+- If the Linter check fails with "The Git client is not clean", then run Linter
+  on the files reported by the check (it will automatically update them with
+  formatting fixes), commit and push them
+- In rare cases it's okay to submit a PR for review with some of the checks
+  failing:
+  - If the tests are already broken in master
+  - If a genuine bug in Linter causes the check to fail or requires reverting
+    the automatic fixes
+    - Check if this bug is already tracked in an issue, and if not, open a new
+      issue to report it
+
+### Review your own PR
+
+- Before requesting review, take a final look at the "Files changed" tab
+- Make sure there are
+  - No changes you haven't intended
+  - No leftovers from debugging
+  - No files added by mistake (such as tmp files)
 
 ### Assign Reviewers
 
@@ -126,6 +166,9 @@ some helpful tips and resources to guide you through your first review.
   get back to work on it
   - This way you make sure that your branch is always using relevant code and
     avoid huge merge conflicts
+- You can also easily merge master into your branch by clicking on "Update
+  branch" button on the PR page
+  <img src="/docs/coding/figs/submit_code_for_review/image1.png">
 - **NEVER** press `Squash and merge` button yourself
   - You need to merge master branch into your branch - not vice verca!
   - This is a strictly Team Leaders' and Integrators' responsibility
@@ -202,7 +245,7 @@ some helpful tips and resources to guide you through your first review.
   - What the problem is
   - Why the outcome is different from what you expected
   - E.g. on how to report any issues
-    - Https://github.com/kaizen-ai/kaizenflow/issues/370#issue-1782574355
+    - [https://github.com/kaizen-ai/kaizenflow/issues/370#issue-1782574355](https://github.com/kaizen-ai/kaizenflow/issues/370#issue-1782574355)
 
 ### Stick to smaller PRs
 
@@ -226,8 +269,8 @@ some helpful tips and resources to guide you through your first review.
   idea of what common issues are and how to address them.
 - Here are some links to a few "painful" first reviews:
   - Adding unit tests:
-    - Https://github.com/kaizen-ai/kaizenflow/pull/166
-    - Https://github.com/kaizen-ai/kaizenflow/pull/186
+    - [https://github.com/kaizen-ai/kaizenflow/pull/166](https://github.com/kaizen-ai/kaizenflow/pull/166)
+    - [https://github.com/kaizen-ai/kaizenflow/pull/186](https://github.com/kaizen-ai/kaizenflow/pull/186)
   - Writing scripts:
-    - Https://github.com/kaizen-ai/kaizenflow/pull/267
-    - Https://github.com/kaizen-ai/kaizenflow/pull/276
+    - [https://github.com/kaizen-ai/kaizenflow/pull/267](https://github.com/kaizen-ai/kaizenflow/pull/267)
+    - [https://github.com/kaizen-ai/kaizenflow/pull/276](https://github.com/kaizen-ai/kaizenflow/pull/276)
