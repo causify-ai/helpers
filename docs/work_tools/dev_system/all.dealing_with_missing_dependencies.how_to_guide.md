@@ -37,14 +37,18 @@
     ```
 
 - In non-test files,
-  - We do not need to do anything besides avoiding importing the file
+  - We do not need to do anything besides avoiding importing the module
   - If the file is discovered by `pytest` and the image doesn't have the package
     installed, it will be skipped with the `pytest.importorskip` in the test
     file
-  - While installing the package on the fly is possible, it is NOT a good
-    practice
+  - While installing the package on the fly within the script is possible, it is
+    NOT a good practice
   - This approach is NOT great since every time somebody imports that module
-    (even pytest during test discovery), the package gets installed
+    (even pytest during test discovery), the package gets installed **Bad**
+
+    ```python
+    subprocess.call(["sudo", "/venv/bin/pip", "install", "somepackage"])
+    ```
   - An exception is in Jupyter Notebooks, where it's acceptable to install
     packages on the fly for prototyping, experimenting, or running analyses
   - However, we should "comment out" those lines afterwards, since Jupyter
