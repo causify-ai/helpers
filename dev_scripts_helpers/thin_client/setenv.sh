@@ -101,7 +101,7 @@ set_symlink_permissions .
 # Install pre-commit hooks.
 #################################################################################
 
-# We want to install git hooks by default unless the user has explicitly 
+# We want to install git hooks by default unless the user has explicitly
 # disabled them in the repo config.
 if [[ "${REPO_CONF_repo_info_enable_git_commit_hook}" == False ]]; then
     echo "Skipping git hooks installation because enable_git_commit_hook=False"
