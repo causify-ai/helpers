@@ -42,10 +42,9 @@
     installed, it will be skipped with the `pytest.importorskip` in the test
     file
 
-- Why not installing the package on the fly?
-  - While installing the package on the fly within the script is possible, it is
-    NOT a good practice
-  - This approach is NOT great since every time somebody imports that module
+- Why not installing the package on the fly within the script?
+  - While it is possible, it is NOT a good practice
+  - This approach is NOT great because every time somebody imports that module
     (even pytest during test discovery), the package gets installed
     - **Bad**
       ```python
@@ -62,11 +61,11 @@
     !sudo sudo /venv/bin/pip install --quiet somepackage)"
     ```
 
-- If the authors want to implement different variations of the code based on
+- If the authors want to implement different variations of the code depending on
   whether the package is available or not, they can use the following approaches
   ```python
-  HAS_MOTO = henv.has_module("moto")
-  if HAS_MOTO:
+  _HAS_MOTO = henv.has_module("moto")
+  if _HAS_MOTO:
     import moto
     # Implementation that uses moto.
   else:
