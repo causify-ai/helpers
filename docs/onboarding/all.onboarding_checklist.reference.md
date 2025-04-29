@@ -182,8 +182,8 @@
 
 - [ ] **Team member**: Confirm access to the Google Drive documentation
   - This should be automatically granted as being in `all@causify.ai`
-  - [Crypto-tech](https://drive.google.com/drive/u/1/folders/1zawE6IEBDpWLTbpK-03z75f5pu_T9Jba)
-  - [Process](https://drive.google.com/drive/u/1/folders/1sJDqCjM1Q_nq8diyZDiWO8mVBQW5Wg_X)
+  - [Tech](https://drive.google.com/drive/u/1/folders/0AG6WMNtf7MVkUk9PVA)
+  - [Process](https://drive.google.com/drive/u/1/folders/1aLNVB_Oiljf2ajkmpZuoX_TArpQdb6pG)
 
 - [ ] **Team member**: Set up the laptop to connect to the server following
       [VPN and dev server access setup instructions](https://github.com/causify-ai/helpers/blob/master/docs/onboarding/ck.setup_vpn_and_dev_server_access.how_to_guide.md)
