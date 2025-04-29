@@ -43,7 +43,7 @@ def _main():
     precommit_output_path = f"tmp.precommit_output.txt"
     try:
         # We want to avoid using helpers here because we want to keep the
-        # script keep the script decoupled.
+        # script decoupled from helpers.
         with open(precommit_output_path, "r") as f:
             precommit_output = f.read().strip()
     except FileNotFoundError:
