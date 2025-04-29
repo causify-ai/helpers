@@ -962,13 +962,16 @@ def _run_coverage(
     hdbg.dassert_file_exists(".coverage")
     # Compute which files/dirs to include and omit in the report.
     include_in_report, exclude_from_report = _get_inclusion_settings(target_dir)
+    report_cmd: List[str] = [
+        # Reset any previous coverage data to avoid contamination.
+        "coverage erase"
+    ]
     # Generate a text report, including only our target paths.
     report_stats_cmd: str = (
         f"coverage report --include={include_in_report} --sort=Cover"
     )
     if exclude_from_report:
         report_stats_cmd += f" --omit={exclude_from_report}"
-    report_cmd: List[str] = []
     report_cmd.append(report_stats_cmd)
     # Produce HTML output for interactive browsing.
     if generate_html_report:
