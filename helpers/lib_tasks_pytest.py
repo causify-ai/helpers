@@ -880,9 +880,7 @@ def _get_inclusion_settings(target_dir: str) -> Tuple[str, Optional[str]]:
     and HTML coverage reports.
 
     :param target_dir: directory for coverage stats; use "." to indicate all directories
-    :return: tuple (include_in_report, exclude_from_report) where
-        - include_in_report is the glob pattern to include
-        - exclude_from_report is a comma‑separated glob pattern to omit, or ``None``
+    :return: glob pattern to include and a comma-separated glob pattern to omit
 
     Examples:
         1. Cover everything (no submodules to omit):
@@ -951,7 +949,7 @@ def _run_coverage(
         # Invoke the "<suite>_tests" task.
         "invoke",
         f"run_{suite}_tests",
-        # Enable coverage collection to track code execution.
+        # enable coverage computation.
         "--coverage",
         # Specify which directory to test.
         "-p",
@@ -970,7 +968,7 @@ def _run_coverage(
     )
     if exclude_from_report:
         report_stats_cmd += f" --omit={exclude_from_report}"
-    report_cmd: List[str]
+    report_cmd: List[str] = []
     report_cmd.append(report_stats_cmd)
     # Produce HTML output for interactive browsing.
     if generate_html_report:
@@ -978,7 +976,7 @@ def _run_coverage(
         if exclude_from_report:
             report_html_cmd += f" --omit={exclude_from_report}"
         report_cmd.append(report_html_cmd)
-    # Export XML coverage report for Codecov integration.
+    # Export XML coverage report .
     report_cmd.append("coverage xml -o coverage.xml")
     full_report_cmd: str = " && ".join(report_cmd)
     docker_cmd_ = f"invoke docker_cmd --use-bash --cmd '{full_report_cmd}'"
