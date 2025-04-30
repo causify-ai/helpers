@@ -6,8 +6,8 @@ import os
 
 import helpers.hchatgpt_instructions as hchainst
 import helpers.hdbg as hdbg
-import helpers.hparser as hparser
 import helpers.henv as henv
+import helpers.hparser as hparser
 
 henv.install_module_if_not_present("openai")
 import openai
@@ -32,7 +32,7 @@ def _process_text(txt: str, instruction: str) -> str:
             {
                 "role": "user",
                 "content": txt,
-            }
+            },
         ],
         model="gpt-3.5-turbo",
     )
