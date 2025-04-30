@@ -148,18 +148,19 @@ Coverage flags and project-level checks are configured at -
   standards.
   ```
   coverage:
-  status:
-      project:
-      enabled: true
-      target_branch: master
-      comparator: relative
-      threshold: 1
-      flags:
-          - fast
-          - slow
-          - superslow
-      patch:
-      enabled: true
+    annotations: false
+    status:
+        project:
+        enabled: true
+        target_branch: master
+        comparator: relative
+        threshold: 1
+        flags:
+            - fast
+            - slow
+            - superslow
+        patch:
+        enabled: true`
   ```
   <img src="image-2.png" alt="alt text" width="1000"/>
 
@@ -169,29 +170,39 @@ Coverage results for the helpers repository are accessible via Codecov.
 
 - Codecov UI link for helpers -
   [https://app.codecov.io/gh/causify-ai/helpers](https://app.codecov.io/gh/causify-ai/helpers)
-- `Master Build Dashboard Notebook`:
+- Master Build Dashboard Notebook:
   [http://172.30.2.44/build/buildmeister_dashboard/Master_buildmeister_dashboard.latest.html#Code-coverage-HTML-page](http://172.30.2.44/build/buildmeister_dashboard/Master_buildmeister_dashboard.latest.html#Code-coverage-HTML-page)
 
 ## Running Coverage Locally
 
-Developers can manually run coverage tasks locally via Invoke commands:
+Developers can manually run coverage tasks locally via Invoke commands and
+generate html report:
 
 - Fast Tests:
-```
-invoke run_coverage --suite fast
-```
+  ```
+  invoke run_coverage --suite fast --generate-html-report
+  ```
 
 - Slow Tests:
-```
-invoke run_coverage --suite slow
-```
+  ```
+  invoke run_coverage --suite slow --generate-html-report
+  ```
 
 - Superslow Tests:
-```
-invoke run_coverage --suite superslow
-```
+  ```
+  invoke run_coverage --suite superslow --generate-html-report
+  ```
 
-Coverage results (text/XML/HTML) are generated locally for immediate inspection.
+- You can then open [`/htmlcov/index.html`](/htmlcov/index.html) in your browser
+  to browse the interactive report if html report generated.
+- Steps:
+  ```
+  > cd htmlcov
+  > python3 -m http.server 8000
+  ```
+- Then visit: `[http://localhost:8000`](http://localhost:8000`)
+
+<img src="image-3.png" alt="alt text" width="1000"/>
 
 ## System Behavior: When the Test Coverage Workflow Fails or Continues
 
@@ -284,6 +295,9 @@ include:
   line-by-line coverage comments directly in GitHub pull requests
 - `Coverage Badges`: Integrate coverage badges in the repository `README` to
   visibly show current coverage status
+
+  <img src="image-4.png" alt="alt text" width="1000"/>
+
 - `Report Customization`: Configure detailed reporting settings to specify what
   information to display or omit in coverage summaries
 
