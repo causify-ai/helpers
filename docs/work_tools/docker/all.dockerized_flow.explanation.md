@@ -6,6 +6,7 @@
     + [Bind mounting a directory from inside the development container](#bind-mounting-a-directory-from-inside-the-development-container)
 - [Running a Dockerized executable](#running-a-dockerized-executable)
 - [Directory & Module Structure](#directory--module-structure)
+- [Naming convention](#naming-convention)
 - [Testing a dockerized executable](#testing-a-dockerized-executable)
 - [Examples](#examples)
   * [Example 1: Notebook Image Extraction](#example-1-notebook-image-extraction)
@@ -214,10 +215,19 @@ we want to run it in a container with minimal changes to the system call:
     `dockerized_latex.py`) that serve as the entry point for users
     - Core functionalities for the module can be placed in separate files. For
       example, image extraction logic might reside in `helpers/hjupyter`
-  - Naming Convention:`dockerized_*` are just wrappers around the corresponding
-    tools, while the others (example: `extract_notebook_images.py`)
-     are just scripts that perform some function and happen to use docker to
-    achieve it.
+
+# Naming convention
+
+- `dockerized_XYZ_*`: contains the "actual" scripts that do the work and needs
+  to be run inside a Docker container. For example,
+  - `dockerized_llm_transform.py`
+  - `dockerized_extract_notebook_images.py`
+  - `dockerized_sync_gh_issue_labels.py`
+- `XYZ_*`: is the entrypoint and the wrapper for the dockerized executable. It
+  contains the call to the actual `dockerized_XYZ_*` scripts. For example,
+  - `llm_transform.py`
+  - `extract_notebook_images.py`
+  - `sync_gh_issue_labels.py`
 
 # Testing a dockerized executable
 
@@ -285,7 +295,8 @@ we want to run it in a container with minimal changes to the system call:
     in production
   - Avoids the overhead of additional layers or entrypoint modifications
 
-  Example: `dev_scripts_helpers/notebooks/test/test_extract_notebook_images.py`
+  Example:
+  [`/dev_scripts_helpers/notebooks/test/test_extract_notebook_images.py`](/dev_scripts_helpers/notebooks/test/test_extract_notebook_images.py)
 
 # Examples
 
@@ -313,7 +324,7 @@ we want to run it in a container with minimal changes to the system call:
 
 - Testing:
   - Location:
-    `dev_scripts_helpers/notebooks/test/test_extract_notebook_images.py`
+    [`/dev_scripts_helpers/notebooks/test/test_extract_notebook_images.py`](/dev_scripts_helpers/notebooks/test/test_extract_notebook_images.py)
   - Role: Contains tests for the dockerized executable. The tests simulate
     real-world usage by invoking the Docker container using the standard process
     defined in `helpers/hdocker`, and then asserting that the expected output

@@ -63,7 +63,7 @@ def _system_to_string(cmd: str) -> Tuple[int, str]:
 # running, since inside Docker the name of the host is like `01a7e34a82a5`. Of
 # course, there is no way to know anything about the host for security reason,
 # so we pass this value from the external environment to the container, through
-# env vars (e.g., `CSFY_HOST_NAME`, `CSFY_HOST_OS_NAME`, `CSFY_HOST_VERSION`).
+# env vars (e.g., `CSFY_HOST_NAME`, `CSFY_HOST_OS_NAME`, `CSFY_HOST_OS_VERSION`).
 
 
 # Sometimes we want to know if:
@@ -379,14 +379,14 @@ def is_external_linux() -> bool:
     """
     Detect whether we are running on a non-server/non-CI Linux machine.
 
-    This is true when we run on the machine of an intern, or a non-CSFY
-    contributor.
+    This returns true when we run on the machine of an intern, or a non-
+    CSFY contributor.
     """
     if is_host_csfy_server() or is_inside_ci():
         # Dev servers and CI are not external Linux systems.
         ret = False
     else:
-        # We need to check the host OS directly.
+        # We need to check if the host is Linux.
         host_os_name = _get_host_os_name()
         ret = host_os_name == "Linux"
     return ret
@@ -394,8 +394,10 @@ def is_external_linux() -> bool:
 
 def is_external_dev() -> bool:
     """
-    Detect whether we are running on an system outside of Causify system (e.g.,
-    a contributor's laptop, an intern's laptop, a non-CSFY machine).
+    Detect whether we are running on an system outside of Causify.
+
+    E.g., a Linux / Mac contributor's laptop, an intern's laptop, a non-
+    CSFY machine.
     """
     ret = is_host_mac() or is_external_linux()
     return ret
@@ -465,7 +467,8 @@ def is_inside_docker_container_on_csfy_server() -> bool:
 
 def is_outside_docker_container_on_csfy_server() -> bool:
     """
-    Return whether we are running on a Docker container on a Causify server.
+    Return whether we are running outside a Docker container on a Causify
+    server.
     """
     ret = not is_inside_docker() and is_host_csfy_server()
     return ret
@@ -481,7 +484,7 @@ def is_inside_docker_container_on_host_mac() -> bool:
 
 def is_outside_docker_container_on_host_mac() -> bool:
     """
-    Return whether we are running on a Docker container on a Mac host.
+    Return whether we are running outside of a Docker container on a Mac host.
     """
     ret = not is_inside_docker() and is_host_mac()
     return ret
@@ -497,7 +500,7 @@ def is_inside_docker_container_on_external_linux() -> bool:
 
 def is_outside_docker_container_on_external_linux() -> bool:
     """
-    Return whether we are running on a Docker container on an external Linux.
+    Return whether we are outside of a Docker container on an external Linux.
     """
     ret = not is_inside_docker() and is_external_linux()
     return ret
@@ -555,6 +558,8 @@ def _dassert_setup_consistency() -> None:
     expected ones and uniquely defined.
     """
 
+    # We don't want to import `hprint` here because it will cause a circular
+    # import.
     def _indent(txt: str, *, num_spaces: int = 2) -> str:
         """
         Add `num_spaces` spaces before each line of the passed string.
@@ -603,6 +608,12 @@ else:
 # #############################################################################
 # Detect Docker functionalities.
 # #############################################################################
+
+
+# Each function below should run without asserting. E.g., when we check if
+# docker supports privileged mode, we should check if `docker` is available,
+# and then if docker supports privileged mode, instead of asserting if `docker`
+# doesn't exist on the system.
 
 
 @functools.lru_cache()

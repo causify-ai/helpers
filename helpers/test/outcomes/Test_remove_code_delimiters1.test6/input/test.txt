@@ -1,0 +1,9 @@
+```python
+def no_start_python():
+    print("No mention of python at the start")```
+```
+
+```
+    A markdown paragraph contains
+    delimiters that needs to be removed.
+```
