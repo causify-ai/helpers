@@ -28,6 +28,7 @@ Perform one of several transformations on a txt file, e.g.,
 """
 
 import argparse
+import hashlib
 import logging
 
 import helpers.hdbg as hdbg
@@ -61,7 +62,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
     in_file_name, out_file_name = hparser.parse_input_output_args(
         args, clear_screen=True
     )
-    if cmd == "toc":
+    if cmd == "test":
+        # Compute the hash of a string to test the flow.
+        txt = hparser.read_file(in_file_name)
+        txt = "\n".join(txt)
+        txt = hashlib.sha256(txt.encode("utf-8")).hexdigest()
+        hparser.write_file(txt, out_file_name)
+    elif cmd == "toc":
         txt = hparser.read_file(in_file_name)
         max_level = 3
         header_list = hmarkdo.extract_headers_from_markdown(
@@ -84,10 +91,15 @@ def _main(parser: argparse.ArgumentParser) -> None:
         txt = "\n".join(txt)
         txt = hmarkdo.remove_formatting(txt)
         hparser.write_file(txt, out_file_name)
-    elif cmd == "md_fix_chatgpt_math_syntax":
+    elif cmd == "md_fix_chatgpt_output":
         txt = hparser.read_file(in_file_name)
         txt = "\n".join(txt)
-        txt = hmarkdo.fix_chatgpt_math_syntax(txt)
+        txt = hmarkdo.fix_chatgpt_output(txt)
+        hparser.write_file(txt, out_file_name)
+    elif cmd == "md_clean_up":
+        txt = hparser.read_file(in_file_name)
+        txt = "\n".join(txt)
+        txt = hmarkdo.md_clean_up(txt)
         hparser.write_file(txt, out_file_name)
     else:
         assert 0, f"Invalid cmd='{cmd}'"

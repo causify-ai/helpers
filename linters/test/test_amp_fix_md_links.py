@@ -401,6 +401,82 @@ class Test_fix_links(hunitest.TestCase):
         ]
         self.assertEqual(expected, actual)
 
+    def test11(self) -> None:
+        """
+        Test that links inside fenced code blocks are not modified.
+        """
+        # Prepare inputs.
+        text = r"""
+        Links inside fenced block that should not be formatted:
+        ```
+        https://example.com/inside-fenced-block
+        http://github.com/user/repo
+        ```
+
+        Another fenced block with different language:
+        ```python
+        url = "https://example.com/python-url"
+        response = requests.get("https://api.github.com/users")
+        ```
+        """
+        file_name = "test_fenced_blocks.md"
+        file_path = self.write_input_file(text, file_name)
+        # Run.
+        _, updated_lines, out_warnings = lafimdli.fix_links(file_path)
+        # Check.
+        output = _get_output_string(out_warnings, updated_lines)
+        self.check_string(output, purify_text=True)
+
+    def test12(self) -> None:
+        """
+        Test that URLs inside quotation marks are not converted to Markdown-
+        style links.
+        """
+        # Prepare inputs.
+        text = r"""
+        URL in quotation marks: "https://example.com/path".
+
+        Image with URL in src attribute: <img width="505" alt="" src="https://github.com/user/repo/assets/12345/abcdef-ghijk-lmnop" />
+
+        URL in HTML attribute: <div data-url="https://api.example.com/endpoint"></div>
+        """
+        file_name = "test_quoted_urls.md"
+        file_path = self.write_input_file(text, file_name)
+        # Run.
+        _, actual, _ = lafimdli.fix_links(file_path)
+        # Check.
+        expected = [
+            'URL in quotation marks: "https://example.com/path".',
+            "",
+            'Image with URL in src attribute: <img width="505" alt="" src="https://github.com/user/repo/assets/12345/abcdef-ghijk-lmnop" />',
+            "",
+            'URL in HTML attribute: <div data-url="https://api.example.com/endpoint"></div>',
+        ]
+        self.assertEqual(expected, actual)
+
+    def test13(self) -> None:
+        """
+        Test that links inside inline code are not modified.
+        """
+        # Prepare inputs.
+        text = r"""
+        Inline link: `http://0044e866de8d:10091/` -> port is `10091`
+
+        Inline path: `/src/app.py`
+        """
+        file_name = "test_inline_links.md"
+        file_path = self.write_input_file(text, file_name)
+        # Run.
+        _, actual, _ = lafimdli.fix_links(file_path)
+        # Check.
+        _LOG.info(actual)
+        expected = [
+            "Inline link: `http://0044e866de8d:10091/` -> port is `10091`",
+            "",
+            "Inline path: `/src/app.py`",
+        ]
+        self.assertEqual(expected, actual)
+
 
 # #############################################################################
 # Test_make_path_absolute

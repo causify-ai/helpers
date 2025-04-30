@@ -89,10 +89,37 @@ def get_docstring_line_indices(lines: List[str]) -> List[int]:
                 # Switch the docstring flag.
                 # pylint: disable=modified-iterating-dict
                 quotes[q] = not quotes[q]
+                if q in ('"""', "'''") and not quotes[q]:
+                    # A triple-quote has just been closed.
+                    # Reset the triple backticks flag.
+                    quotes["```"] = False
         if any(quotes.values()):
             # Store the index if the quotes have been opened but not closed yet.
             docstring_line_indices.append(i)
     return docstring_line_indices
+
+
+def get_docstrings(lines: List[str]) -> List[List[int]]:
+    """
+    Get line indices grouped together by the docstring they belong to.
+
+    :param lines: lines from the file to process
+    :return: grouped lines within docstrings
+    """
+    # Get indices of lines that are within docstrings.
+    doc_indices = get_docstring_line_indices(lines)
+    # Group these indices into consecutive docstrings.
+    docstrings = []
+    if doc_indices:
+        current_docstring = [doc_indices[0]]
+        for idx in doc_indices[1:]:
+            if idx == current_docstring[-1] + 1:
+                current_docstring.append(idx)
+            else:
+                docstrings.append(current_docstring)
+                current_docstring = [idx]
+        docstrings.append(current_docstring)
+    return docstrings
 
 
 # TODO(gp): GFI. Move to hpython_code.py
