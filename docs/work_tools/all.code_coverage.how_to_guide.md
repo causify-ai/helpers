@@ -221,10 +221,10 @@ Steps included:
 
 Behavior:
 
-- If any of these steps fail, the workflow fails immediately.
-- No test suites (fast, slow, superslow) will run.
+- If any of these steps fail, the workflow fails immediately
+- No test suites (fast, slow, superslow) will run
 - This is intentional to prevent test execution in a broken or incomplete
-  environment.
+  environment
 
 2. Fast / Slow Test Steps
 
@@ -239,11 +239,11 @@ These steps use `continue-on-error: true`.
 
 Behavior:
 
-- If any of these steps fail, the workflow continues without immediate failure.
+- If any of these steps fail, the workflow continues without immediate failure
 - The superslow test will still run if the workflow is triggered on Monday
-  (scheduled) or manually (workflow_dispatch).
+  (scheduled) or manually (workflow_dispatch)
 - However, the workflow may still fail at the end if fast/slow failures are
-  detected by the final failure check step.
+  detected by the final failure check step
 
 3. Superslow Test Steps
 
@@ -259,8 +259,8 @@ Behavior:
 - These steps run only:
   - On scheduled workflows that fall on a Monday (DAY_OF_WEEK == 1)
   - Or when the workflow is manually triggered
-- If either step fails, the workflow fails immediately.
-- If both pass, the workflow continues to the final fast/slow check.
+- If either step fails, the workflow fails immediately
+- If both pass, the workflow continues to the final fast/slow check
 
 4. Final Failure Check (Fast/Slow Only)
 
@@ -270,11 +270,11 @@ Step included:
 
 Behavior:
 
-- This step runs at the very end of the workflow.
-- It checks whether any of the fast/slow test or upload steps failed.
-- If any of them failed, this step causes the entire job to fail using exit 1.
+- This step runs at the very end of the workflow
+- It checks whether any of the fast/slow test or upload steps failed
+- If any of them failed, this step causes the entire job to fail using exit 1
 - This ensures that silent failures in fast/slow coverage are surfaced, even if
-  superslow passes.
+  superslow passes
 
 | Step Type        | Step Failed?              | Superslow Runs?         | Job Fails?              |
 | ---------------- | ------------------------- | ----------------------- | ----------------------- |
