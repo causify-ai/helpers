@@ -106,7 +106,8 @@ def _run_test(runnable_dir: str, command: str) -> None:
     # Error code is not propagated upward to the parent process causing the
     # GH actions to not fail the pipeline (See CmampTask11449).
     # We need to explicitly exit with the return code of the subprocess.
-    if result.returncode != 0:
+    # pytest returns 5 if no tests are collected.
+    if result.returncode not in [0, 5]:
         sys.exit(result.returncode)
 
 
