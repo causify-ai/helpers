@@ -21,11 +21,10 @@ comment:
   # Disable inline per-line critical path comments in the PR file view.
   show_critical_paths: false
 
-# Disable GitHub inline annotations (e.g., red/yellow markers in 'Files changed').
 coverage:
-  annotations: false
-
-coverage:
+  # Disable GitHub inline annotations (e.g., red/yellow markers in 'Files changed').
+  coverage:
+    annotations: false
   status:
     project:
       # Post an overall project-level GitHub check summarizing coverage status.
