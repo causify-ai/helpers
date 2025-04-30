@@ -4,24 +4,17 @@ import argparse
 import logging
 import os
 
-from openai import OpenAI
-
 import helpers.hchatgpt_instructions as hchainst
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
+import helpers.henv as henv
+
+henv.install_module_if_not_present("openai")
+import openai
 
 _LOG = logging.getLogger(__name__)
 
-try:
-    pass
-except ImportError:
-    os.system("pip install openai")
-finally:
-    pass
-
-_LOG = logging.getLogger(__name__)
-
-client = OpenAI(
+client = openai.OpenAI(
     # This is the default and can be omitted
     api_key=os.environ.get("OPENAI_API_KEY"),
 )
