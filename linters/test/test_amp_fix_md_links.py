@@ -41,7 +41,7 @@ class Test_fix_links(hunitest.TestCase):
     def run_test(self, input_content: str, file_name: str = "test.md") -> None:
         """
         Helper method to run link tests with common setup and verification.
-        
+
         :param input_content: The content to test
         :param file_name: The name of the test file (default: "test.md")
         """
@@ -408,7 +408,6 @@ class Test_fix_links(hunitest.TestCase):
         ```
         """
         self.run_test(txt_incorrect, "test_md_in_triple_backticks.md")
-        
 
     def test15(self) -> None:
         """
