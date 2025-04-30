@@ -162,7 +162,13 @@
 - `docker_build_prod_image`: build a "prod" image from a dev image
 - `docker_push_prod_image`: push the "prod" image to ECR
 - `docker_push_prod_candidate_image`: push the "prod" candidate image to ECR
+- `docker_build_multi_arch_prod_image`: build a multi arch. versioned "prod"
+  image from a "dev" image
+- `docker_tag_push_multi_arch_prod_image`: mark the multi-arch versioned "prod"
+  image as "prod" and push them to the target registry 
 - `docker_release_prod_image`: build, test, and release the "prod" image to ECR
+- `docker_release_multi_arch_prod_image`: build, test, and release to Docker
+  registries the multi-arch prod image
 - `docker_release_all`: release both the "dev" and "prod" image to ECR
 - `docker_rollback_dev_image`: rollback the version of the "dev" image
 - `docker_rollback_prod_image`: rollback the version of the "prod" image
@@ -533,7 +539,7 @@
   `docker_build_local_image`
 
   ```bash
-  > i docker_build_local_image --version <VERSION> --multi-arch --platform <PLATFORM NAME>
+  > i docker_build_local_image --version <VERSION> --multi-arch <PLATFORM NAME>
   ```
   - To build for specific platforms specify the platform name:
     - For `x86`: `linux/amd64`
@@ -547,9 +553,9 @@
   local image by default
 - Images are pushed to the remote registry and pulled for testing and usage
 - To tag the local image as dev and push it to the target registry: e.g.,
-  `aws_ecr.ck` or `dockerhub.kaizenflow` , use
+  `aws_ecr.ck` or `dockerhub.causify` , use
   ```bash
-  > i docker_tag_push_multi_build_local_image_as_dev --version <VERSION> --target <TARGET>
+  > i docker_tag_push_multi_build_local_image_as_dev --version <VERSION> --target_registry <TARGET>
   ```
 - Once the image has been successfully pushed to both ECR and DockerHub
   registries, the subsequent step involves pushing the `dev` image to GHCR
@@ -628,7 +634,7 @@ Check-list:
   where
   - TARGET_REGISTRIES: list of target registries to push the image to. E.g.,
     - `aws_ecr.ck`: private CK AWS Docker registry
-    - `dockerhub.kaizenflow`: public Dockerhub registry
+    - `dockerhub.causify`: public Dockerhub registry
   - All the other options are the same as for the `docker_release_dev_image`
     end-to-end flow.
 
@@ -636,7 +642,7 @@ Check-list:
   ```
   > i docker_release_multi_build_dev_image \
       --version 1.6.1 \
-      --target-registries aws_ecr.ck,dockerhub.kaizenflow
+      --target-registries aws_ecr.ck,dockerhub.causify
   ```
 
 ### Post-release check-list
