@@ -3,6 +3,7 @@ Import as:
 
 import helpers.hsftp as hsftp
 """
+
 import logging
 import os
 import subprocess
@@ -130,7 +131,6 @@ def get_sftp_connection(hostname: str, secret_name: str) -> pysftp.Connection:
     secret_dict = hsecret.get_secret(secret_name)
     username = secret_dict["username"]
     private_key = secret_dict["private_key"]
-
     # Write the private key to a temporary file
     with open("/tmp/temp_key.pem", "w") as temp_key_file:
         temp_key_file.write(private_key)
