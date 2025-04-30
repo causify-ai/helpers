@@ -1,16 +1,43 @@
+flag_management:
+  individual_flags:
+    - name: fast
+      carryforward: true
+    - name: slow
+      carryforward: true
+    - name: superslow
+      carryforward: true
+
+this_field_should_fail: true  # ← temporary check
+
+# Enable PR summary comment with coverage details.
 comment:
+  # Define the layout of the summary comment to show overall, diff, and file-level stats.
   layout: "reach, diff, files"
+  # Overwrite the previous comment instead of posting a new one each time.
   behavior: default
+  # Allow comment to appear even if the coverage drop is small or unchanged.
   require_changes: false
+  # Disable inline per-line critical path comments in the PR file view.
   show_critical_paths: false
 
 coverage:
+  # Disable GitHub inline annotations (e.g., red/yellow markers in 'Files changed').
   annotations: false
   status:
     project:
+      # Post an overall project-level GitHub check summarizing coverage status.
       enabled: true
+      # Use the master branch as the baseline for comparison.
       target_branch: master
+      # Compare coverage change relative to the baseline branch.
       comparator: relative
+      # Fail the status check if coverage drops by 1% or more.
       threshold: 1
+      # Specify which flags to include in the project-level coverage calculation.
+      flags:
+        - fast
+        - slow
+        - superslow
     patch:
+      # Enable a GitHub check that reports coverage for only the lines changed in the pull request.
       enabled: true
