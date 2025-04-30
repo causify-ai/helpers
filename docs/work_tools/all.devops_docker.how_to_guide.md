@@ -555,7 +555,7 @@
 - To tag the local image as dev and push it to the target registry: e.g.,
   `aws_ecr.ck` or `dockerhub.causify` , use
   ```bash
-  > i docker_tag_push_multi_build_local_image_as_dev --version <VERSION> --target_registry <TARGET>
+  > i docker_tag_push_multi_build_local_image_as_dev --version <VERSION> --target-registry <TARGET>
   ```
 - Once the image has been successfully pushed to both ECR and DockerHub
   registries, the subsequent step involves pushing the `dev` image to GHCR
