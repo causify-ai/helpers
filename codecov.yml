@@ -1,7 +1,4 @@
 flag_management:
-  default_rules:
-      # Delay GitHub status checks (e.g., patch/project) until all expected flags are uploaded.
-      wait_for_results: true
   individual_flags:
     - name: fast
       carryforward: true
