@@ -110,10 +110,34 @@ Coverage flags and project-level checks are configured at -
         carryforward: true
    ```
 
-2. Comment Behavior: `comment = false` disables per-line comments in GitHub PRs.
+2. Comment Behavior: Codecov can automatically post a comment on pull requests
+   summarizing the impact of the changes on code coverage. The `comment` block
+   in the configuration controls how and when these comments are made. Setting
+   `behavior: default` ensures that only one comment is maintained and updated
+   with each commit. The `layout` controls what data is shown, such as overall
+   project coverage, the diff, and file-level breakdowns. To avoid clutter in
+   the PR "Files changed" tab, `show_critical_paths` is set to `false`, which
+   disables inline per-line comments made by the Codecov bot. However, even with
+   `show_critical_paths: false`, GitHub Checks can still show per-line
+   annotations for uncovered lines. To fully suppress all inline coverage
+   feedback (both Codecov review comments and GitHub check annotations), set
+   `coverage.annotations: false`.
    ```
-   comment: false
+   comment:
+     layout: "reach, diff, files"
+     behavior: default
+     # Allow comment to appear even if the coverage drop is small or unchanged.
+     require_changes: false
+     show_critical_paths: false
+   coverage:
+     annotations: false
    ```
+   - When PR comment is enabled:
+
+   <img src="image.png" alt="alt text" width="1000"/>
+   - When per-line comments in PR files is enabled with `show_critical_paths`.
+
+   <img src="image-1.png" alt="alt text" width="1000"/>
 
 3. Coverage Status Check:
 
@@ -135,17 +159,18 @@ Coverage flags and project-level checks are configured at -
           - slow
           - superslow
       patch:
-      enabled: false
+      enabled: true
   ```
+  <img src="image-2.png" alt="alt text" width="1000"/>
 
 ## Viewing Coverage Reports
 
 Coverage results for the helpers repository are accessible via Codecov.
 
 - Codecov UI link for helpers -
-  [helpers repo coverage](https://app.codecov.io/gh/causify-ai/helpers)
+  [https://app.codecov.io/gh/causify-ai/helpers](https://app.codecov.io/gh/causify-ai/helpers)
 - `Master Build Dashboard Notebook`:
-  [`/dev_scripts_helpers/update_devops_packages/notebooks/Master_buildmeister_dashboard.ipynb`](/dev_scripts_helpers/update_devops_packages/notebooks/Master_buildmeister_dashboard.ipynb)
+  [http://172.30.2.44/build/buildmeister_dashboard/Master_buildmeister_dashboard.latest.html#Code-coverage-HTML-page](http://172.30.2.44/build/buildmeister_dashboard/Master_buildmeister_dashboard.latest.html#Code-coverage-HTML-page)
 
 ## Running Coverage Locally
 
@@ -153,17 +178,17 @@ Developers can manually run coverage tasks locally via Invoke commands:
 
 - Fast Tests:
 ```
-invoke run_fast_coverage .
+invoke run_coverage --suite fast
 ```
 
 - Slow Tests:
 ```
-invoke run_slow_coverage .
+invoke run_coverage --suite slow
 ```
 
 - Superslow Tests:
 ```
-invoke run_superslow_coverage .
+invoke run_coverage --suite superslow
 ```
 
 Coverage results (text/XML/HTML) are generated locally for immediate inspection.
