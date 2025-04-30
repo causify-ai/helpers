@@ -2,8 +2,6 @@
 
 - [Dealing with missing dependencies in Docker images](#dealing-with-missing-dependencies-in-docker-images)
   * [Quick hacks](#quick-hacks)
-    + [Install dependency on the fly](#install-dependency-on-the-fly)
-    + [Skip the module](#skip-the-module)
     + [Delay the evaluation](#delay-the-evaluation)
     + [Type annotations](#type-annotations)
   * [Long term solution](#long-term-solution)
@@ -31,66 +29,47 @@
 
 ## Quick hacks
 
-### Install dependency on the fly
-
-- While installing the package on the fly is possible, it is NOT a good practice
-- This approach is NOT great since every time somebody imports that module (even
-  pytest during test discovery), the package gets installed
-  - _Bad_
+- In test files,
+  - We can use `pytest.importorskip` to skip the tests if the package is not
+    available
     ```python
-    try:
-      import somepackage
-    except ModuleNotFoundError:
+    pytest.importorskip("somepackage")
+    ```
+
+- In non-test files,
+  - We do not need to do anything besides avoiding importing the module
+  - If the file is discovered by `pytest` and the image doesn't have the package
+    installed, it will be skipped with the `pytest.importorskip` in the test
+    file
+
+- Why not installing the package on the fly within the script?
+  - While it is possible, it is NOT a good practice
+  - This approach is NOT great because every time somebody imports that module
+    (even pytest during test discovery), the package gets installed
+    - **Bad**
+      ```python
       subprocess.call(["sudo", "/venv/bin/pip", "install", "somepackage"])
-    finally:
-      import somepackage
-    ```
-  - A preferred way is to issue a warning if the package is not installed, so
-    the user of the script can install it in their environment
-    - TODO(heanh): Replace with the wrapper function. See CmampTask11877.
-    ```python
-    try:
-      import somepackage
-    except ModuleNotFoundError:
-      _module = "somepackage"
-      print(_WARNING + f": Can't find {_module}: continuing")
+      ```
+  - An exception is in Jupyter Notebooks, where it's acceptable to install
+    packages on the fly for prototyping, experimenting, or running analyses
+  - However, we should "comment out" those lines afterwards, since Jupyter
+    Notebooks are often converted to Python scripts (through jupytext), and we
+    don't want these installation commands running automatically
+  - Example (in a Jupyter Notebook cell)
+    ```bash
+    # TODO(heanh): Replace with `install_module_if_not_present`
+    !sudo sudo /venv/bin/pip install --quiet somepackage)"
     ```
 
-- A exception is in Jupyter Notebooks, where it's acceptable to install packages
-  on the fly for prototyping, experimenting, or running analyses
-- However, we should "comment out" those lines afterwards, since Jupyter
-  Notebooks are often converted to Python scripts (through jupytext), and we
-  don't want these installation commands running automatically
-- Example (in a Jupyter Notebook cell)
-  ```bash
-  !sudo /bin/bash -c "(source /venv/bin/activate; pip install --quiet somepackage)"
-  ```
-
-### Skip the module
-
-- If a module is only needed for specific tests or features, we can skip those
-  parts gracefully when the module is not available
-
-- Use `pytest.importorskip` to skip the test during the test discovery phase
-
+- If we want to implement different variations of the code depending on whether
+  the package is available or not, we can use the following approaches
   ```python
-  pytest.importorskip("somepackage")
-  ```
-
-- Use try/catch statement to check if package exists and run the code only if
-  they are there when the module is imported
-  - TODO(heanh): Replace with the wrapper function. See CmampTask11877.
-
-  ```python
-  _HAS_MOTO = True
-  try:
-      import moto
-  except ImportError:
-      ...
-      _HAS_MOTO = False
-
+  _HAS_MOTO = henv.has_module("moto")
   if _HAS_MOTO:
-    ....
+    import moto
+    # Implementation that uses moto.
+  else:
+    # Implementation that doesn't use moto.
   ```
 
 ### Delay the evaluation

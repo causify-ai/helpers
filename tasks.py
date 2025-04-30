@@ -118,6 +118,7 @@ try:
     from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=unused-import
         copy_ecs_task_definition_image_url,
         docker_release_multi_build_dev_image,
+        docker_release_multi_arch_prod_image,
         docker_tag_push_multi_build_local_image_as_dev,
         release_dags_to_airflow,
         integrate_file,
