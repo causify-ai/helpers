@@ -1,6 +1,7 @@
 name: Test coverage
 
 on:
+  pull_request:
   workflow_dispatch: {}
   # every day at 00:00 UTC.
   schedule:
@@ -62,8 +63,6 @@ jobs:
       # This step is used to trigger the fast test coverage generation using the invoke task.
       - name: Run Fast test and generate report
         id: run_fast
-        # `if: always()` ensures this step runs regardless of prior failures.
-        if: always()
         continue-on-error: true
         env:
           GH_ACTION_ACCESS_TOKEN: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
@@ -76,8 +75,10 @@ jobs:
         run: invoke run_coverage --suite fast
 
       - name: Upload Fast Test Coverage to Codecov
+        id: upload_fast
         # Upload report if the fast test run successfully.
         if: steps.run_fast.outcome == 'success'
+        continue-on-error: true
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -86,15 +87,9 @@ jobs:
           # Required to separatw coverage reports by type (e.g., fast, slow, superslow) inside the Codecov UI.
           flags: fast
           name: fast-test-coverage
-          # Combined coverage for tests will be checked rather than individual.
-          fail_ci: false
-          # `fail_ci_if_error: true` instructs the action to mark the CI as failed
-          # if there is any error during the upload to Codecov.
-          fail_ci_if_error: true
 
       - name: Run Slow test and generate report
         id: run_slow
-        if: always()
         continue-on-error: true
         env:
           GH_ACTION_ACCESS_TOKEN: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
@@ -107,21 +102,17 @@ jobs:
         run: invoke run_coverage --suite slow
 
       - name: Upload Slow Test Coverage to Codecov
-        # "if: always()" ensures this step is executed regardless of previous outcomes.
+        id: upload_slow
         if: steps.run_slow.outcome == 'success'
+        continue-on-error: true
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.xml
           flags: slow
           name: slow-test-coverage
-          fail_ci: false
-          # "fail_ci_if_error: true" causes the job to fail if the upload to Codecov fails.
-          fail_ci_if_error: true
 
       - name: Run Superslow test and generate report
-        id: run_superslow
-        continue-on-error: true
         # Scheduled for Monday (i.e Day 1) or when manually triggered.
         if: (github.event_name == 'schedule' && env.DAY_OF_WEEK == '1') || github.event_name == 'workflow_dispatch'
         env:
@@ -143,5 +134,14 @@ jobs:
           files: ./coverage.xml
           flags: superslow
           name: superslow-test-coverage
-          fail_ci: true
-          fail_ci_if_error: true
+
+        # Fail the job in CI if any of the run or upload steps above failed.
+      - name: Fail if fast/slow test or upload failed
+        run: |
+          if [ "${{ steps.run_fast.outcome }}" != "success" ] || \
+              [ "${{ steps.run_slow.outcome }}" != "success" ] || \
+              [ "${{ steps.upload_fast.outcome }}" != "success" ] || \
+              [ "${{ steps.upload_slow.outcome }}" != "success" ]; then
+            echo "At least one fast/slow test or upload step failed."
+            exit 1
+          fi

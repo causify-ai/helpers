@@ -930,20 +930,15 @@ def _run_coverage(
     suite: str,
     target_dir: str,
     generate_html_report: bool = False,
-) -> str:
+) -> None:
     """
     Run coverage for a given suite (fast/slow/superslow).
 
     :param suite: one of "fast", "slow" or "superslow"
     :param target_dir: coverage target directory
     :param generate_html_report: whether to produce HTML output
-    :return: xml file named 'coverage.xml'
     """
-    hdbg.dassert_in(
-        suite,
-        ("fast", "slow", "superslow"),
-        "Expected one of 'fast', 'slow', or 'superslow'.",
-    )
+    hdbg.dassert_in(suite, ("fast", "slow", "superslow"))
     # Build the command line.
     test_cmd_parts = [
         # Invoke the "<suite>_tests" task.
@@ -988,9 +983,7 @@ def _run_coverage(
 
 @task
 def run_coverage(
-    ctx,
-    suite: str,
-    target_dir: str = ".",
+    ctx, suite: str, target_dir: str = ".", generate_html_report: bool = False
 ):
     """
     Unified task to run coverage for any test suite.
@@ -1000,7 +993,7 @@ def run_coverage(
     :param target_dir: directory to measure coverage
     """
     hdbg.dassert_in(suite, ("fast", "slow", "superslow"))
-    _run_coverage(ctx, suite, target_dir, generate_html_report=False)
+    _run_coverage(ctx, suite, target_dir, generate_html_report)
 
 
 # #############################################################################

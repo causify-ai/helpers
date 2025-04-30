@@ -7,8 +7,6 @@ flag_management:
     - name: superslow
       carryforward: true
 
-
-
 # Disable per-line comments on pull requests.
 comment: false
 
@@ -29,5 +27,5 @@ coverage:
         - slow
         - superslow
     patch:
-      # Post patch-level coverage checks for pull requests.
+      # Enable a GitHub check that reports coverage for only the lines changed in the pull request.
       enabled: true
