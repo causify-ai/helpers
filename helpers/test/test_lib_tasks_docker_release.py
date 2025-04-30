@@ -10,7 +10,7 @@ import helpers.lib_tasks_docker_release as hltadore
 _LOG = logging.getLogger(__name__)
 
 
-def normalize_command(cmd: str) -> str:
+def _normalize_command(cmd: str) -> str:
     """
     Normalize a command string by removing line continuations and spaces around
     special characters.
@@ -25,7 +25,7 @@ def normalize_command(cmd: str) -> str:
     return cmd
 
 
-def convert_commands_to_strings(
+def _convert_commands_to_strings(
     actual_cmds: List[str], expected_cmds: List[str]
 ) -> Tuple[str, str]:
     """
@@ -37,8 +37,8 @@ def convert_commands_to_strings(
         commands string
     """
     # Normalize each command in both lists.
-    actual_normalized = [normalize_command(cmd) for cmd in actual_cmds]
-    expected_normalized = [normalize_command(cmd) for cmd in expected_cmds]
+    actual_normalized = [_normalize_command(cmd) for cmd in actual_cmds]
+    expected_normalized = [_normalize_command(cmd) for cmd in expected_cmds]
     # Convert to strings.
     actual_str = "\n".join(actual_normalized)
     expected_str = "\n".join(expected_normalized)
@@ -129,7 +129,9 @@ class TestDockerBuildLocalImage1(hunitest.TestCase):
             f"docker image ls {test_base_image}:local-{self.user}-1.0.0",
         ]
         # Normalize and convert both command lists to strings.
-        actual, expected = convert_commands_to_strings(actual_cmds, expected_cmds)
+        actual, expected = _convert_commands_to_strings(
+            actual_cmds, expected_cmds
+        )
         self.assert_equal(
             actual,
             expected,
@@ -186,7 +188,9 @@ class TestDockerBuildLocalImage1(hunitest.TestCase):
             f"docker image ls {test_base_image}:local-{self.user}-1.0.0",
         ]
         # Normalize and convert both command lists to strings.
-        actual, expected = convert_commands_to_strings(actual_cmds, expected_cmds)
+        actual, expected = _convert_commands_to_strings(
+            actual_cmds, expected_cmds
+        )
         self.assert_equal(
             actual,
             expected,
