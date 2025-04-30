@@ -132,10 +132,10 @@ Coverage flags and project-level checks are configured at - `codecov.yml`.
    ```
    - When PR comment is enabled:
 
-   <img src="image.png" alt="alt text" width="1000"/>
+   <img src="figs/coverage/image1.png" alt="alt text" width="1000"/>
    - When per-line comments in PR files is enabled with `show_critical_paths`.
 
-   <img src="image-1.png" alt="alt text" width="1000"/>
+   <img src="figs/coverage/image2.png" alt="alt text" width="1000"/>
 
 3. Coverage Status Check:
 
@@ -160,7 +160,7 @@ Coverage flags and project-level checks are configured at - `codecov.yml`.
         patch:
         enabled: true`
   ```
-  <img src="image-2.png" alt="alt text" width="1000"/>
+  <img src="figs/coverage/image3.png" alt="alt text" width="1000"/>
 
 ## Viewing Coverage Reports
 
@@ -200,7 +200,7 @@ generate html report:
   ```
 - Then visit: `[http://localhost:8000`](http://localhost:8000`)
 
-<img src="image-3.png" alt="alt text" width="1000"/>
+<img src="figs/coverage/image4.png" alt="alt text" width="1000"/>
 
 ## System Behavior: When the Test Coverage Workflow Fails or Continues
 
@@ -294,7 +294,7 @@ include:
 - `Coverage Badges`: Integrate coverage badges in the repository `README` to
   visibly show current coverage status
 
-  <img src="image-4.png" alt="alt text" width="1000"/>
+  <img src="figs/coverage/image5.png" alt="alt text" width="1000"/>
 
 - `Report Customization`: Configure detailed reporting settings to specify what
   information to display or omit in coverage summaries
