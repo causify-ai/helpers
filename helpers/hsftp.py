@@ -10,7 +10,9 @@ import sys
 from io import BytesIO
 from typing import List
 
-subprocess.call(["sudo", "/venv/bin/pip", "install", "pysftp"])
+import helpers.henv as henv
+
+henv.install_module_if_not_present("pysftp")
 
 import pysftp
 
