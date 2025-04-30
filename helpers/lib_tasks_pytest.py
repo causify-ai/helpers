@@ -947,8 +947,7 @@ def _run_coverage(
         # Enable coverage computation.
         "--coverage",
         # Specify which directory to test.
-        "-p",
-        target_dir,
+        "-p", target_dir,
     ]
     test_cmd = hlitauti.to_multi_line_cmd(test_cmd_parts)
     # Run the tests under coverage.

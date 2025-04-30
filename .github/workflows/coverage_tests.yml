@@ -1,7 +1,6 @@
 name: Test coverage
 
 on:
-  pull_request:
   workflow_dispatch: {}
   # every day at 00:00 UTC.
   schedule:
@@ -76,7 +75,7 @@ jobs:
 
       - name: Upload Fast Test Coverage to Codecov
         id: upload_fast
-        # Upload report if the fast test run successfully.
+        # Upload report if the fast test run successfully and report is generated.
         if: steps.run_fast.outcome == 'success'
         continue-on-error: true
         uses: codecov/codecov-action@v5
@@ -84,7 +83,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.xml
           # Specify the Codecov flag name associated with this test suite.
-          # Required to separatw coverage reports by type (e.g., fast, slow, superslow) inside the Codecov UI.
+          # Required to separate coverage reports by type (e.g., fast, slow, superslow) inside the Codecov UI.
           flags: fast
           name: fast-test-coverage
 
@@ -135,7 +134,7 @@ jobs:
           flags: superslow
           name: superslow-test-coverage
 
-        # Fail the job in CI if any of the run or upload steps above failed.
+        # Fail the job in CI if any of the fast/ slow run/ upload steps above failed.
       - name: Fail if fast/slow test or upload failed
         run: |
           if [ "${{ steps.run_fast.outcome }}" != "success" ] || \
