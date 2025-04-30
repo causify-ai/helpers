@@ -23,8 +23,7 @@ comment:
 
 coverage:
   # Disable GitHub inline annotations (e.g., red/yellow markers in 'Files changed').
-  coverage:
-    annotations: false
+  annotations: false
   status:
     project:
       # Post an overall project-level GitHub check summarizing coverage status.
