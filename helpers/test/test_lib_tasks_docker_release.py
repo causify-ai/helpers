@@ -1,12 +1,48 @@
 import logging
 import re
 import unittest.mock as umock
+from typing import List, Tuple
 
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 import helpers.lib_tasks_docker_release as hltadore
 
 _LOG = logging.getLogger(__name__)
+
+
+def normalize_command(cmd: str) -> str:
+    """
+    Normalize a command string by removing line continuations and spaces around
+    special characters.
+
+    :param cmd: command string to normalize
+    :return: normalized command string
+    """
+    cmd = re.sub(r"\\\s*\n\s*", " ", cmd)
+    chars_to_normalize = ["=", ",", "|"]
+    escaped_chars = "".join(re.escape(ch) for ch in chars_to_normalize)
+    cmd = re.sub(rf"\s*([{escaped_chars}])\s*", r"\1", cmd)
+    return cmd
+
+
+def convert_commands_to_strings(
+    actual_cmds: List[str], expected_cmds: List[str]
+) -> Tuple[str, str]:
+    """
+    Convert a list of commands to strings and normalize them.
+
+    :param actual_cmds: list of actual command strings
+    :param expected_cmds: list of expected command strings
+    :return: normalized actual commands string and normalized expected
+        commands string
+    """
+    # Normalize each command in both lists.
+    actual_normalized = [normalize_command(cmd) for cmd in actual_cmds]
+    expected_normalized = [normalize_command(cmd) for cmd in expected_cmds]
+    # Convert to strings.
+    actual_str = "\n".join(actual_normalized)
+    expected_str = "\n".join(expected_normalized)
+    return actual_str, expected_str
 
 
 # #############################################################################
@@ -20,6 +56,7 @@ class TestDockerBuildLocalImage1(hunitest.TestCase):
         """
         Set up test environment and initialize all necessary mocks.
         """
+        super().setUp()
         # Mock system calls.
         self.system_patcher = umock.patch("helpers.hsystem.system")
         self.mock_system = self.system_patcher.start()
@@ -36,6 +73,7 @@ class TestDockerBuildLocalImage1(hunitest.TestCase):
             "helpers.lib_tasks_docker.docker_login"
         )
         self.mock_docker_login = self.docker_login_patcher.start()
+        #
         self.user = hsystem.get_user_name()
 
     def tearDown(self) -> None:
@@ -46,6 +84,7 @@ class TestDockerBuildLocalImage1(hunitest.TestCase):
         self.run_patcher.stop()
         self.version_patcher.stop()
         self.docker_login_patcher.stop()
+        super().tearDown()
 
     def test_docker_build_single_arch(self) -> None:
         """
@@ -59,15 +98,14 @@ class TestDockerBuildLocalImage1(hunitest.TestCase):
         mock_ctx = umock.MagicMock()
         test_version = "1.0.0"
         test_base_image = "test-registry.com/test-image"
-        test_multi_arch = ""
-        # Call tested function.
+        # Call tested function using `.body` to bypass invoke's argument
+        # parsing and run the raw implementation.
         hltadore.docker_build_local_image.body(
-            ctx=mock_ctx,
-            version=test_version,
-            base_image=test_base_image,
-            multi_arch=test_multi_arch,
-            poetry_mode="update",
+            mock_ctx,
+            test_version,
             cache=False,
+            base_image=test_base_image,
+            poetry_mode="update",
         )
         # Extract the command arguments from the call.
         actual_cmds = [call[0][1] for call in self.mock_run.call_args_list]
@@ -90,13 +128,14 @@ class TestDockerBuildLocalImage1(hunitest.TestCase):
             "cp -f pip_list.txt ./devops/docker_build/pip_list.txt",
             f"docker image ls {test_base_image}:local-{self.user}-1.0.0",
         ]
-        # Normalize both expected and actual commands.
-        expected = [self._normalize_command(cmd) for cmd in expected_cmds]
-        actual = [self._normalize_command(cmd) for cmd in actual_cmds]
-        self.assertEqual(
-            expected,
+        # Normalize and convert both command lists to strings.
+        actual, expected = convert_commands_to_strings(actual_cmds, expected_cmds)
+        self.assert_equal(
             actual,
-            f"Expected commands: {expected}\nActual commands: {actual}",
+            expected,
+            fuzzy_match=True,
+            remove_lead_trail_empty_lines=True,
+            dedent=True,
         )
 
     def test_docker_build_multi_arch(self) -> None:
@@ -112,14 +151,15 @@ class TestDockerBuildLocalImage1(hunitest.TestCase):
         test_version = "1.0.0"
         test_base_image = "test-registry.com/test-image"
         test_multi_arch = "linux/amd64,linux/arm64"
-        # Call tested function.
+        # Call tested function using `.body` to bypass invoke's argument
+        # parsing and run the raw implementation.
         hltadore.docker_build_local_image.body(
-            ctx=mock_ctx,
-            version=test_version,
-            base_image=test_base_image,
-            multi_arch=test_multi_arch,
-            poetry_mode="update",
+            mock_ctx,
+            test_version,
             cache=False,
+            base_image=test_base_image,
+            poetry_mode="update",
+            multi_arch=test_multi_arch,
         )
         # Extract the command arguments from the call.
         actual_cmds = [call[0][1] for call in self.mock_run.call_args_list]
@@ -145,31 +185,12 @@ class TestDockerBuildLocalImage1(hunitest.TestCase):
             "cp -f pip_list.txt ./devops/docker_build/pip_list.txt",
             f"docker image ls {test_base_image}:local-{self.user}-1.0.0",
         ]
-        # Normalize both expected and actual commands.
-        expected = [self._normalize_command(cmd) for cmd in expected_cmds]
-        actual = [self._normalize_command(cmd) for cmd in actual_cmds]
-        self.assertEqual(
-            expected,
+        # Normalize and convert both command lists to strings.
+        actual, expected = convert_commands_to_strings(actual_cmds, expected_cmds)
+        self.assert_equal(
             actual,
-            f"Expected commands: {expected}\nActual commands: {actual}",
+            expected,
+            fuzzy_match=True,
+            remove_lead_trail_empty_lines=True,
+            dedent=True,
         )
-
-    def _normalize_command(self, cmd: str) -> str:
-        """
-        Normalize a command string by removing whitespace and line
-        continuations.
-
-        :param cmd: command string to normalize
-        :return: normalized command string
-        """
-        # Replace line continuation backslashes with spaces.
-        cmd = re.sub(r"\\\s*\n\s*", " ", cmd)
-        # Remove all extra whitespaces.
-        cmd = re.sub(r"\s+", " ", cmd)
-        # Remove spaces around special characters.
-        chars_to_normalize = ["=", ",", "|"]
-        escaped_chars = "".join(re.escape(ch) for ch in chars_to_normalize)
-        cmd = re.sub(rf"\s*([{escaped_chars}])\s*", r"\1", cmd)
-        # Remove leading/trailing whitespace.
-        cmd = cmd.strip()
-        return cmd
