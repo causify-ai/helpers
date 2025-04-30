@@ -37,6 +37,9 @@ def indent(txt: str, num_spaces: int = 2) -> str:
 # End copy.
 
 
+# #############################################################################
+
+
 def _find_config_file(file_name: str) -> str:
     """
     Find recursively the dir of config file.
@@ -148,21 +151,23 @@ class RepoConfig:
         ret.append(
             f"get_docker_base_image_name='{self.get_docker_base_image_name()}'"
         )
-        return "# repo_config.config\n" + indent("\n".join(ret))
+        txt = "\n".join(ret)
+        return txt
 
     # repo_info
 
     # TODO(gp): -> get_repo_name
     def get_name(self) -> str:
         """
-        Return the name of the repo, e.g., `//amp`.
+        Return the name of the repo, e.g., in `//amp`.
         """
         value = self._data["repo_info"]["repo_name"]
         return f"//{value}"
 
     def get_github_repo_account(self) -> str:
         """
-        Return the account name of the repo on GitHub, e.g., `github.com`.
+        Return the account name of the repo on GitHub, e.g., `causify-ai`,
+        `gpsaggese`.
         """
         value = self._data["repo_info"]["github_repo_account"]
         return value
@@ -173,10 +178,11 @@ class RepoConfig:
         """
         value = self._data["repo_info"]["repo_name"]
         return value
-        
+
     def get_repo_full_name(self) -> str:
         """
-        Return the full name of the repo, e.g., `causify-ai/amp`, `gpsaggese/notes`.
+        Return the full name of the repo, e.g., `causify-ai/amp`,
+        `gpsaggese/notes`.
         """
         github_repo_account = self._data["repo_info"]["github_repo_account"]
         repo_name = self._data["repo_info"]["repo_name"]
@@ -249,7 +255,9 @@ class RepoConfig:
 
     def get_docker_base_image_name(self) -> str:
         """
-        Return a base name for docker image.  E.g., `helpers`.
+        Return a base name for docker image.
+
+        E.g., `helpers`.
         """
         value = self._data["docker_info"]["docker_image_name"]
         return value
@@ -309,6 +317,24 @@ class RepoConfig:
             self.get_html_bucket_path_v2(): self.get_html_ip_v2(),
         }
         return dir_to_url
+
+    def get_dir_suffix(self) -> str:
+        """
+        Return the suffix of the dev_scripts_{dir_suffix} dir for the repo.
+
+        E.g., `helpers` for `dev_scripts_helpers` in //helpers repo.
+        """
+        value = self._data["runnable_dir_info"]["dir_suffix"]
+        return value
+
+    def use_helpers_as_nested_module(self) -> bool:
+        """
+        Return whether the helpers repo is used as a nested module.
+        """
+        value = bool(
+            self._data["runnable_dir_info"]["use_helpers_as_nested_module"]
+        )
+        return value
 
     # TODO(gp): Add functions for container_registry_info.
 

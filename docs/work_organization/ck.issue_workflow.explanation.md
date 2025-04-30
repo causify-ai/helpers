@@ -28,19 +28,12 @@ Examples:
 
 We use Google Docs (Gdocs) to keep track of ideas.
 
-We divide coding ideas and documenting ideas in different Gdocs, and keep all
-the components/functions in the same doc separated by sections.
-
-[Coding ideas](https://docs.google.com/document/d/16M-ABJv9dFueGwwcNZk3r4qDODrOD5ffTQMfD8-ebSM)
-
-[Documentation ideas](https://docs.google.com/document/d/1sEG5vGkaNIuMEkCHgkpENTUYxDgw1kZXb92vCw53hO4)
-
 Example flow:
 
 - You have an idea and you do not have time to think it through/execute at the
   moment
 - However, you would like to keep track of what could be done in the future
-- You go to one of the Gdocs above and put a note for your future self
+- You put a note in a Gdoc for your future self
 - Use suggestion mode so that other people can track that (once in a while we
   accept all the changes)
 

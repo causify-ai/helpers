@@ -17,14 +17,11 @@ import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
+import helpers.repo_config_utils as hrecouti
 
 _LOG = logging.getLogger(__name__)
 
 SCRIPT_PATH = os.path.abspath(__file__)
-
-# This is specific of this repo.
-# To customize: xyz
-DIR_PREFIX = "helpers"
 
 
 def _system(cmd: str) -> None:
@@ -46,8 +43,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
         raise RuntimeError(
             "AWS CLI is not installed. Please install it and try again."
         )
+    dir_suffix = hrecouti.get_repo_config().get_dir_suffix()
     # Create the virtual environment.
-    venv_dir = tcu.get_venv_dir(DIR_PREFIX)
+    venv_dir = tcu.get_venv_dir(dir_suffix)
     # Double check that the dir is in home.
     hdbg.dassert(
         venv_dir.startswith(os.environ["HOME"] + "/src/venv"),
@@ -69,12 +67,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
     activate_cmd = f"source {venv_dir}/bin/activate"
     _system(activate_cmd)
     # Install the requirements.
-    thin_environ_dir = tcu.get_thin_environment_dir(DIR_PREFIX)
+    thin_environ_dir = tcu.get_thin_environment_dir(dir_suffix)
     requirements_path = os.path.join(thin_environ_dir, "requirements.txt")
     tmp_requirements_path = os.path.join(thin_environ_dir, "tmp.requirements.txt")
     shutil.copy(requirements_path, tmp_requirements_path)
     if platform.system() == "Darwin" or (
-        platform.system() == "Linux" and not hserver.is_dev_ck()
+        platform.system() == "Linux" and not hserver.is_dev_csfy()
     ):
         # Pinning down the package version for running locally on Mac and Linux,
         # see HelpersTask377.
@@ -84,7 +82,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _system(f"{activate_cmd} && pip3 install -r {tmp_requirements_path}")
     # Show the package list.
     _system("pip3 list")
-    if hserver.is_mac():
+    if hserver.is_host_mac():
         # Darwin specific updates.
         _system("brew update")
         _, brew_ver = hsystem.system_to_string("brew --version")

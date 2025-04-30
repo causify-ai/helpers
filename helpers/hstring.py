@@ -71,6 +71,7 @@ def diff_strings(
     return txt
 
 
+# TODO(gp): GFI. Move to hpython_code.py
 def get_docstring_line_indices(lines: List[str]) -> List[int]:
     """
     Get indices of lines of code that are inside (doc)strings.
@@ -88,12 +89,40 @@ def get_docstring_line_indices(lines: List[str]) -> List[int]:
                 # Switch the docstring flag.
                 # pylint: disable=modified-iterating-dict
                 quotes[q] = not quotes[q]
+                if q in ('"""', "'''") and not quotes[q]:
+                    # A triple-quote has just been closed.
+                    # Reset the triple backticks flag.
+                    quotes["```"] = False
         if any(quotes.values()):
             # Store the index if the quotes have been opened but not closed yet.
             docstring_line_indices.append(i)
     return docstring_line_indices
 
 
+def get_docstrings(lines: List[str]) -> List[List[int]]:
+    """
+    Get line indices grouped together by the docstring they belong to.
+
+    :param lines: lines from the file to process
+    :return: grouped lines within docstrings
+    """
+    # Get indices of lines that are within docstrings.
+    doc_indices = get_docstring_line_indices(lines)
+    # Group these indices into consecutive docstrings.
+    docstrings = []
+    if doc_indices:
+        current_docstring = [doc_indices[0]]
+        for idx in doc_indices[1:]:
+            if idx == current_docstring[-1] + 1:
+                current_docstring.append(idx)
+            else:
+                docstrings.append(current_docstring)
+                current_docstring = [idx]
+        docstrings.append(current_docstring)
+    return docstrings
+
+
+# TODO(gp): GFI. Move to hpython_code.py
 def get_code_block_line_indices(lines: List[str]) -> List[int]:
     """
     Get indices of lines that are inside code blocks.
@@ -125,9 +154,12 @@ def get_code_block_line_indices(lines: List[str]) -> List[int]:
 
 def extract_version_from_file_name(file_name: str) -> Tuple[int, int]:
     """
-    Extract version number from filename_vXX.json file. e.g.
-    'universe_v3.1.json' -> (3, 1) 'universe_v1.json' -> (1, 0)
-    'dataset_schema_v3.json' -> (3, 0)
+    Extract version number from filename_vXX.json file.
+
+    E.g.
+    - 'universe_v3.1.json' -> (3, 1)
+    - 'universe_v1.json' -> (1, 0)
+    - 'dataset_schema_v3.json' -> (3, 0)
 
     Currently only JSON file extension is supported.
 
@@ -144,5 +176,4 @@ def extract_version_from_file_name(file_name: str) -> Tuple[int, int]:
     # Groups return tuple.
     version = m.groups(1)[0].split(".")  # type: ignore[arg-type, union-attr]
     major, minor = int(version[0]), 0 if len(version) == 1 else int(version[1])
-
     return major, minor

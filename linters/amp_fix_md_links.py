@@ -17,6 +17,7 @@ import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
 import helpers.hparser as hparser
 import helpers.hstring as hstring
+import helpers.repo_config_utils as hrecouti
 import linters.action as liaction
 import linters.utils as liutils
 
@@ -28,6 +29,8 @@ FIG_REGEX_2 = r"!\[\w*\]\(\.{0,2}\w*\/\S+?\.(?:jpg|jpeg|png)\)"
 FILE_PATH_REGEX = r"\.{0,2}\w*\/\S+\.[\w\.]+"
 HTML_LINK_REGEX = r'(<a href=".*?">.*?</a>)'
 MD_LINK_REGEX = r"\[(.+)\]\(((?!#).*)\)"
+BARE_LINK_REGEX = r"(?<!\[)(?<!\]\()(?<!href=\")(?<![\'\"\`])([Hh]ttps?://[^\s<>()\'\"\`]+)(?![\'\"\`])"
+FENCE_REGEX = re.compile(r"^\s*(```|~~~)")
 
 
 def _make_path_absolute(path: str) -> str:
@@ -79,7 +82,9 @@ def _check_md_header_exists(
     with open(markdown_link_path, "r", encoding="utf-8") as file:
         content = file.read()
     # Get the headers of the markdown file.
-    headers_md = hmarkdo.extract_headers_from_markdown(content, level)
+    headers_md = hmarkdo.extract_headers_from_markdown(
+        content, level, sanity_check=False
+    )
     # Replace '-' with a white space.
     header = header.replace("-", " ").lower()
     # Check if the header matches any extracted header of the markdown file.
@@ -115,7 +120,7 @@ def _check_md_link_format(
     old_link_txt = f"[{link_text}]({link})"
     if link == "" and (
         re.match(r"^{}$".format(FILE_PATH_REGEX), link_text)
-        or link_text.startswith("http")
+        or link_text.startswith(("http", "mailto", "ftp", "tel"))
     ):
         # Fill in the empty link with the file path or URL from the link text.
         link = link_text
@@ -123,7 +128,7 @@ def _check_md_link_format(
         # The link is empty and there is no indication of how it should be filled;
         # update is impossible.
         return line, warnings
-    if link.startswith("http"):
+    if link.startswith(("http", "mailto", "ftp", "tel")):
         if not any(
             x in link
             for x in ["://github.com/cryptokaizen", "://github.com/causify-ai"]
@@ -133,6 +138,15 @@ def _check_md_link_format(
         if "blob/master" not in link:
             # The link is not to a file (but, for example, to an issue);
             # update is not needed.
+            return line, warnings
+        link_repo_short_name = link.split("/blob/master")[0].split(
+            "/causify-ai/"
+        )[-1]
+        if (
+            hrecouti.get_repo_config().get_repo_short_name()
+            != link_repo_short_name
+        ):
+            # The link points to another repo; update is not needed.
             return line, warnings
         # Leave only the path to the file in the link.
         link = link.split("blob/master")[-1]
@@ -185,7 +199,9 @@ def _check_file_path_format(file_path: str, line: str) -> str:
     ):
         # Ignore links and figure pointers, which are processed separately.
         return line
-    if not re.search(r"(?<!http:)(?<!https:)" + file_path, line):
+    if not re.search(
+        r"(?<!http:)(?<!https:)(?<!mailto:)(?<!ftp:)(?<!tel:)" + file_path, line
+    ):
         # Ignore URLs.
         return line
     # Make the file path absolute.
@@ -291,8 +307,18 @@ def fix_links(file_name: str) -> Tuple[List[str], List[str], List[str]]:
     docstring_line_indices = hstring.get_docstring_line_indices(lines)
     updated_lines: List[str] = []
     warnings: List[str] = []
-    for i, line in enumerate(lines):
+    is_inside_fence = False
+    for i, line in enumerate(lines, start=1):
         updated_line = line
+        if FENCE_REGEX.match(line):
+            # Check if we're entering or exiting a fenced block.
+            is_inside_fence = not is_inside_fence
+            updated_lines.append(updated_line)
+            continue
+        if is_inside_fence:
+            # Skip processing links in fenced blocks.
+            updated_lines.append(updated_line)
+            continue
         # Check the formatting.
         # HTML-style links.
         html_link_matches = re.findall(HTML_LINK_REGEX, updated_line)
@@ -333,6 +359,16 @@ def fix_links(file_name: str) -> Tuple[List[str], List[str], List[str]]:
                 fig_pointer, updated_line, file_name, i
             )
             warnings.extend(line_warnings)
+        # Bare URLs.
+        bare_link_matches = re.findall(BARE_LINK_REGEX, updated_line)
+        for bare_link in bare_link_matches:
+            # Convert bare URLs to Markdown-style links.
+            new_bare_link = bare_link.replace("Http://", "http://").replace(
+                "Https://", "https://"
+            )
+            updated_line = updated_line.replace(
+                bare_link, f"[{new_bare_link}]({new_bare_link})"
+            )
         # Store the updated line.
         updated_lines.append(updated_line)
     out_warnings = [w for w in warnings if len(w)]
@@ -351,9 +387,8 @@ class _LinkFixer(liaction.Action):
 
     def _execute(self, file_name: str, pedantic: int) -> List[str]:
         _ = pedantic
-        if not file_name.endswith(".md"):
+        if self.skip_if_not_markdown(file_name):
             # Apply only to Markdown files.
-            _LOG.debug("Skipping file_name='%s'", file_name)
             return []
         # Fix links in the file.
         lines, updated_lines, warnings = fix_links(file_name)

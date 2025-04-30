@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 r"""
-Wrapper for pylint
+Wrapper for pylint.
 
 > amp_pylint.py sample_file1.py sample_file2.py
 
@@ -11,12 +11,10 @@ import linters.amp_pylint as lamppyli
 import argparse
 import logging
 import os
-import re
 from typing import List
 
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
-import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import linters.action as liaction
 import linters.utils as liutils
@@ -27,7 +25,13 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+# #############################################################################
+# _Pylint
+# #############################################################################
+
+
 class _Pylint(liaction.Action):
+
     def __init__(self) -> None:
         executable = "pylint"
         super().__init__(executable)
@@ -37,9 +41,8 @@ class _Pylint(liaction.Action):
         return check
 
     def _execute(self, file_name: str, pedantic: int) -> List[str]:
-        # Applicable to only python file.
-        if not liutils.is_py_file(file_name):
-            _LOG.debug("Skipping file_name='%s'", file_name)
+        if self.skip_if_not_py(file_name):
+            # Apply only to Python files.
             return []
         #
         is_test_code_tmp = liutils.is_under_test_dir(file_name)
@@ -60,7 +63,7 @@ class _Pylint(liaction.Action):
                     # [C0304(missing-final-newline), ] Final newline missing.
                     "C0304",
                     ## [C0411(wrong-import-order), ]
-                    # Pylint's import order check is based fully on `isort` that 
+                    # Pylint's import order check is based fully on `isort` that
                     # we use separately (see https://github.com/PyCQA/pylint/issues/3551),
                     # but is less configurable, which leads to false positives (not
                     # recognizing `helpers` as a first-party module).
@@ -193,7 +196,11 @@ class _Pylint(liaction.Action):
             output_tmp.append(line)
         output = output_tmp
         # Remove decorator lines.
-        output = [line for line in output if ("-" * 20) not in line and not line.startswith("*" * 13)]
+        output = [
+            line
+            for line in output
+            if ("-" * 20) not in line and not line.startswith("*" * 13)
+        ]
         # Remove empty lines.
         output = [line for line in output if line.rstrip().lstrip() != ""]
         return output

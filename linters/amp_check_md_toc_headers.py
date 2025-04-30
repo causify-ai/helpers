@@ -17,6 +17,7 @@ from typing import List, Tuple
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
+import helpers.hstring as hstring
 import linters.action as liaction
 import linters.utils as liutils
 
@@ -41,10 +42,12 @@ def fix_md_headers(lines: List[str], file_name: str) -> List[str]:
     """
     fixed_lines = []
     last_header_level = 0
+    # Get code block indices to exclude comment symbols from header processing.
+    code_line_indices = hstring.get_code_block_line_indices(lines)
     for idx, line in enumerate(lines):
         fixed_line = line
         match = HEADER_REGEX.match(line)
-        if match:
+        if match and idx not in code_line_indices:
             # Count the number of leading `#`.
             current_level = len(match.group(1))
             # Capture the rest of the line (after the initial `#` header).
@@ -81,7 +84,7 @@ def verify_toc_position(lines: List[str], file_name: str) -> List[str]:
     warnings = []
     # Check for the start TOC markers.
     toc_start_found: bool = False
-    for line_num, line in enumerate(lines):
+    for line_num, line in enumerate(lines, start=1):
         # Check for the start of TOC markers.
         stripped_line = line.strip()
         if TOC_REGEX.match(stripped_line):
@@ -129,9 +132,8 @@ class _TOCHeaderFixer(liaction.Action):
 
     def _execute(self, file_name: str, pedantic: int) -> List[str]:
         _ = pedantic
-        if not file_name.endswith(".md"):
+        if self.skip_if_not_markdown(file_name):
             # Apply only to Markdown files.
-            _LOG.debug("Skipping file_name='%s'", file_name)
             return []
         # Fix headers in the file.
         lines, updated_lines, warnings = fix_md_toc_headers(file_name)

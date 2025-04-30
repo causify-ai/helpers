@@ -197,6 +197,9 @@ def indent(txt: Optional[str], *, num_spaces: int = 2) -> str:
     """
     if txt is None:
         return ""
+    hdbg.dassert_isinstance(txt, str)
+    hdbg.dassert_isinstance(num_spaces, int)
+    hdbg.dassert_lte(0, num_spaces)
     spaces = " " * num_spaces
     txt_out = []
     for curr_line in txt.split("\n"):
@@ -339,6 +342,7 @@ def remove_empty_lines(txt: str) -> str:
     """
     Remove empty lines from a multi-line string.
     """
+    hdbg.dassert_isinstance(txt, str)
     arr = txt.split("\n")
     arr = remove_empty_lines_from_string_list(arr)
     txt = "\n".join(arr)
@@ -941,7 +945,7 @@ def to_pretty_str(obj: Any) -> str:
     return res
 
 
-# TODO(gp): -> remove_lines?
+# TODO(gp): GSI -> rename remove_lines()?
 def filter_text(regex: str, txt: str) -> str:
     """
     Remove lines in `txt` that match the regex `regex`.
@@ -966,6 +970,30 @@ def filter_text(regex: str, txt: str) -> str:
     )
     txt = "\n".join(txt_out)
     return txt
+
+
+def dassert_one_trailing_newline(txt: str) -> None:
+    num_newlines = len(re.search(r'\n*$', txt).group())
+    hdbg.dassert_eq(num_newlines, 0, "num_newlines='%s' txt='%s'", num_newlines, txt)
+
+
+def to_info(tag: str, txt: Union[str, List[str]]) -> str:
+    hdbg.dassert_isinstance(tag, str)
+    hdbg.dassert_isinstance(txt, (str, list))
+    txt_tmp = ""
+    txt_tmp += "# " + tag + "\n"
+    # Indent the text.
+    if not isinstance(txt, str):
+        for t in txt:
+            hdbg.dassert_isinstance(t, str)
+        txt = "\n".join(txt)
+    txt_tmp += indent(txt)
+    # Ensure that there is a single trailing newline.
+    txt_tmp = txt_tmp.rstrip("\n")
+    # txt_tmp += "\n"
+    # _dassert_one_trailing_newline(txt_tmp)
+    _LOG.debug("'%s'", txt_tmp)
+    return txt_tmp
 
 
 # #############################################################################

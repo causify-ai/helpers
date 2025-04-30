@@ -167,7 +167,8 @@ def lint_detect_cycles(  # type: ignore
         + hlitauti._to_single_line_cmd(docker_cmd_opts)
     )
     # Execute command line.
-    cmd = hlitadoc._get_lint_docker_cmd(docker_cmd_, stage, version)
+    base_image = ""
+    cmd = _get_lint_docker_cmd(base_image, docker_cmd_, stage, version)
     # Use `PIPESTATUS` otherwise the exit status of the pipe is always 0
     # because writing to a file succeeds.
     cmd = f"({cmd}) 2>&1 | tee -a {out_file_name}; exit $PIPESTATUS"
@@ -183,12 +184,13 @@ def lint(  # type: ignore
     stage="prod",
     version="",
     files="",
+    skip_files="",
     dir_name="",
     modified=False,
     last_commit=False,
     branch=False,
     # It needs to be a string to allow the user to specify "serial".
-    num_threads="-1",
+    num_threads="serial",
     only_format=False,
     only_check=False,
 ):
@@ -198,6 +200,9 @@ def lint(  # type: ignore
     ```
     # To lint specific files:
     > i lint --files="dir1/file1.py dir2/file2.md"
+
+    # To lint the files changed in the last commit, excluding specific files:
+    > i lint --last-commit --skip-files="dir1/file1.py dir2/file2.md"
 
     # To lint all the files in the current dir using only formatting actions:
     > i lint --dir-name . --only-format
@@ -212,6 +217,7 @@ def lint(  # type: ignore
     :param stage: the image stage to use (e.g., "prod", "dev", "local")
     :param version: the version of the container to use
     :param files: specific files to lint (e.g. "dir1/file1.py dir2/file2.md")
+    :param skip_files: specific files to skip during linting (e.g. "dir1/file1.py dir2/file2.md")
     :param dir_name: name of the dir where all files should be linted
     :param modified: lint the files modified in the current git client
     :param last_commit: lint the files modified in the previous commit
@@ -220,6 +226,11 @@ def lint(  # type: ignore
     :param only_format: run only the modifying actions of Linter (e.g., black)
     :param only_check: run only the non-modifying actions of Linter (e.g., pylint)
     """
+    # Check if the user is in a repo root.
+    hdbg.dassert(
+        hgit.is_cwd_git_repo(),
+        msg="Linter should run from repo root",
+    )
     hlitauti.report_task()
     # Prepare the command line.
     lint_cmd_opts = []
@@ -245,6 +256,8 @@ def lint(  # type: ignore
         lint_cmd_opts.append("--branch")
     else:
         raise ValueError("No file selection arguments are specified")
+    if len(skip_files) > 0:
+        lint_cmd_opts.append(f"--skip_files {skip_files}")
     #
     lint_cmd_opts.append(f"--num_threads {num_threads}")
     # Add the action selection argument, if needed.
@@ -260,7 +273,7 @@ def lint(  # type: ignore
     else:
         _LOG.info("All Linter actions selected")
     # Compose the command line.
-    if hserver.is_mac():
+    if hserver.is_host_mac():
         find_cmd = "$(find . -path '*linters/base.py')"
     else:
         find_cmd = "$(find -wholename '*linters/base.py')"

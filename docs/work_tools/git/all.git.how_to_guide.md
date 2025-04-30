@@ -9,6 +9,7 @@
 - [Workflow](#workflow)
 - [Best Practices](#best-practices)
   * [Do not check in large data files](#do-not-check-in-large-data-files)
+  * [Write helpful commit messages](#write-helpful-commit-messages)
   * [Branch workflow best practices](#branch-workflow-best-practices)
     + [Branches are cheap](#branches-are-cheap)
     + [`master` is sacred](#master-is-sacred)
@@ -120,6 +121,7 @@
   - The name is `CmTask274_Update_names`
   - To use multiple branches for a given task, append a numeral to the name,
     e.g., `CmTask274_Update_names_v02`
+  - Make sure the names of all your branches follow this format
 
 - Create and checkout the branch
   ```
@@ -142,7 +144,7 @@
     ```
     > git status On branch my_feature
     > git add ...
-    > git commit
+    > git commit -m "..."
     [my_feature 820b296] My feature is awesome!
     ```
   - Commits stay local (not seen on GitHub) until you explicitly tell git to
@@ -207,6 +209,17 @@
   - If in doubt (even on a branch), ask first!
 - Sometimes is makes sense to check in some representative data for unit tests
 - BUT, larger tests should obtain their data from s3 or MongoDB
+
+### Write helpful commit messages
+
+- Use short but informative commit messages - this eases navigation for yourself
+  and reviewers
+  - A good commit message follows the format
+    `IssueTag: High-level commit description`
+  - E.g. `HelpersTask123: Add filtering for the inputs`
+  - Do not make commit messages too long
+  - Do not mention the file that the commit has updated in the commit message -
+    it's already clear from the commit itself
 
 ### Branch workflow best practices
 
@@ -525,8 +538,8 @@
 
 #### Resources
 
-- Use https://learngitbranching.js.org/ to practice and understand the concept
-  of branching
+- Use [https://learngitbranching.js.org/](https://learngitbranching.js.org/) to
+  practice and understand the concept of branching
 
 ### Merging `master`
 

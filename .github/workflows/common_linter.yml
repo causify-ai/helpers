@@ -11,6 +11,8 @@ permissions:
   contents: read
   # This is required for pulling the Docker image from GHCR.
   packages: read
+  # This is required for posting the status of the job when triggered manually.
+  statuses: write
 jobs:
   Run_linter:
     # We expect user to not execute manual run in a draft PR.
@@ -52,7 +54,15 @@ jobs:
           # in order to compare the current branch with the master branch.
           # The `0` means unlimited depth.
           fetch-depth: 0
+          submodules: true
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      # To access modules in `amp` and `helpers_root`, make sure PYTHONPATH includes
+      # them, just as it's set in `setenv.sh`.
+      # TODO(Grisha): re-use the approach from `dev_scripts_cmamp/thin_client/setenv.sh`.
+      - name: Update PYTHONPATH
+        if: ${{ github.event.repository.name != 'helpers' }}
+        run: echo "PYTHONPATH=.:helpers_root" >> $GITHUB_ENV
 
       # Install packages that are required to run the job via GH.
       - name: Install dependencies
@@ -86,7 +96,7 @@ jobs:
 
       - name: Post status if triggered manually
         if: ${{ always() && github.event_name == 'workflow_dispatch' }}
-        uses: Sibz/github-status-action@v1
+        uses: guibranco/github-status-action-v2@main
         with:
           authToken: ${{ secrets.GITHUB_TOKEN }}
           context: "Run_linter"

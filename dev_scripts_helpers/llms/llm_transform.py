@@ -17,7 +17,7 @@ Examples
 > llm_transform.py -i input.txt -o output.txt -p list
 
 # Code review
-> llm_transform.py -i dev_scripts_helpers/documentation/render_images.py -o cfile -p code_propose_refactoring
+> llm_transform.py -i dev_scripts_helpers/documentation/render_images.py -o cfile -p code_review
 
 # Propose refactoring
 > llm_transform.py -i dev_scripts_helpers/documentation/render_images.py -o cfile -p code_propose_refactoring
@@ -27,21 +27,18 @@ import argparse
 import logging
 import os
 import re
+from typing import List, Optional
 
-if False:
-    # Hardwire path when we are calling from a different dir.
-    import sys
-
-    sys.path.insert(0, "/Users/saggese/src/notes1/helpers_root")
-
-# pylint: disable=wrong-import-position
 import dev_scripts_helpers.documentation.lint_notes as dshdlino
 import dev_scripts_helpers.llms.llm_prompts as dshlllpr
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
+import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hprint as hprint
+import helpers.hserver as hserver
+import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
@@ -60,6 +57,113 @@ def _parse() -> argparse.ArgumentParser:
     # Use CRITICAL to avoid logging anything.
     hparser.add_verbosity_arg(parser, log_level="CRITICAL")
     return parser
+
+
+def _run_dockerized_llm_transform(
+    in_file_path: str,
+    cmd_opts: List[str],
+    out_file_path: str,
+    *,
+    return_cmd: bool = False,
+    force_rebuild: bool = False,
+    use_sudo: bool = False,
+    suppress_output: bool = False,
+) -> Optional[str]:
+    """
+    Run dockerized_llm_transform.py in a Docker container with all its
+    dependencies.
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    #
+    hdbg.dassert_in("OPENAI_API_KEY", os.environ)
+    hdbg.dassert_isinstance(cmd_opts, list)
+    # Build the container, if needed.
+    container_image = "tmp.llm_transform"
+    dockerfile = r"""
+    FROM python:3.12-alpine
+
+    # Install Bash.
+    #RUN apk add --no-cache bash
+
+    # Set Bash as the default shell.
+    #SHELL ["/bin/bash", "-c"]
+
+    # Install pip packages.
+    RUN pip install --upgrade pip
+    RUN pip install --no-cache-dir PyYAML
+
+    RUN pip install --no-cache-dir openai
+    """
+    container_image = hdocker.build_container_image(
+        container_image, dockerfile, force_rebuild, use_sudo
+    )
+    # Convert files to Docker paths.
+    is_caller_host = not hserver.is_inside_docker()
+    use_sibling_container_for_callee = True
+    caller_mount_path, callee_mount_path, mount = hdocker.get_docker_mount_info(
+        is_caller_host, use_sibling_container_for_callee
+    )
+    in_file_path = hdocker.convert_caller_to_callee_docker_path(
+        in_file_path,
+        caller_mount_path,
+        callee_mount_path,
+        check_if_exists=True,
+        is_input=True,
+        is_caller_host=is_caller_host,
+        use_sibling_container_for_callee=use_sibling_container_for_callee,
+    )
+    out_file_path = hdocker.convert_caller_to_callee_docker_path(
+        out_file_path,
+        caller_mount_path,
+        callee_mount_path,
+        check_if_exists=False,
+        is_input=False,
+        is_caller_host=is_caller_host,
+        use_sibling_container_for_callee=use_sibling_container_for_callee,
+    )
+    helpers_root = hgit.find_helpers_root()
+    helpers_root = hdocker.convert_caller_to_callee_docker_path(
+        helpers_root,
+        caller_mount_path,
+        callee_mount_path,
+        check_if_exists=True,
+        is_input=False,
+        is_caller_host=is_caller_host,
+        use_sibling_container_for_callee=use_sibling_container_for_callee,
+    )
+    git_root = hgit.find_git_root()
+    script = hsystem.find_file_in_repo(
+        "dockerized_llm_transform.py", root_dir=git_root
+    )
+    script = hdocker.convert_caller_to_callee_docker_path(
+        script,
+        caller_mount_path,
+        callee_mount_path,
+        check_if_exists=True,
+        is_input=True,
+        is_caller_host=is_caller_host,
+        use_sibling_container_for_callee=use_sibling_container_for_callee,
+    )
+    cmd_opts_as_str = " ".join(cmd_opts)
+    cmd = f" {script} -i {in_file_path} -o {out_file_path} {cmd_opts_as_str}"
+    docker_cmd = hdocker.get_docker_base_cmd(use_sudo)
+    docker_cmd.extend(
+        [
+            f"-e PYTHONPATH={helpers_root}",
+            f"--workdir {callee_mount_path}",
+            f"--mount {mount}",
+            container_image,
+            cmd,
+        ]
+    )
+    docker_cmd = " ".join(docker_cmd)
+    if return_cmd:
+        ret = docker_cmd
+    else:
+        # TODO(gp): Note that `suppress_output=False` seems to hang the call.
+        hsystem.system(docker_cmd, suppress_output=suppress_output)
+        ret = None
+    return ret
 
 
 def _convert_file_names(in_file_name: str, out_file_name: str) -> str:
@@ -99,18 +203,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
         return
     # Parse files.
     in_file_name, out_file_name = hparser.parse_input_output_args(args)
-    _ = in_file_name, out_file_name
-    # Since we need to call a container and passing stdin/stdout is tricky,
-    # we read the input and save it in a temporary file.
-    in_lines = hparser.read_file(in_file_name)
-    if in_file_name == "-":
-        tmp_in_file_name = "tmp.llm_transform.in.txt"
-        in_txt = "\n".join(in_lines)
-        hio.to_file(tmp_in_file_name, in_txt)
-    else:
-        tmp_in_file_name = in_file_name
-    #
-    tmp_out_file_name = "tmp.llm_transform.out.txt"
+    tmp_in_file_name, tmp_out_file_name = (
+        hparser.adapt_input_output_args_for_dockerized_scripts(
+            in_file_name, "llm_transform"
+        )
+    )
     # TODO(gp): We should just automatically pass-through the options.
     cmd_line_opts = [f"-p {args.prompt}", f"-v {args.log_level}"]
     if args.fast_model:
@@ -126,31 +223,25 @@ def _main(parser: argparse.ArgumentParser) -> None:
     #                 cmd_line_opts.append(f"--{arg.replace('_', '-')}")
     #         else:
     #             cmd_line_opts.append(f"--{arg.replace('_', '-')} {value}")
-    hdocker.run_dockerized_llm_transform(
+    # For stdin/stdout, suppress the output of the container.
+    suppress_output = in_file_name == "-" or out_file_name == "-"
+    _run_dockerized_llm_transform(
         tmp_in_file_name,
         cmd_line_opts,
         tmp_out_file_name,
         return_cmd=False,
         force_rebuild=args.dockerized_force_rebuild,
         use_sudo=args.dockerized_use_sudo,
+        suppress_output=suppress_output,
     )
-    # Post transforms outside the container.
-    valid_prompts = dshlllpr.get_prompt_tags()
-    prompts = ["code_review", "code_propose_refactoring"]
-    for prompt in prompts:
-        hdbg.dassert_in(prompt, valid_prompts)
+    # Run post-transforms outside the container.
+    # 1) _convert_file_names().
+    prompts = dshlllpr.get_outside_container_post_transforms("convert_file_names")
     if args.prompt in prompts:
         _convert_file_names(in_file_name, tmp_out_file_name)
-    #
+    # 2) prettier_on_str().
     out_txt = hio.from_file(tmp_out_file_name)
-    prompts = [
-        "md_rewrite",
-        "md_summarize_short",
-        "slide_improve",
-        "slide_colorize",
-    ]
-    for prompt in prompts:
-        hdbg.dassert_in(prompt, valid_prompts)
+    prompts = dshlllpr.get_outside_container_post_transforms("prettier_on_str")
     if args.prompt in prompts:
         # Note that we need to run this outside the `llm_transform` container to
         # avoid to do docker-in-docker in the `llm_transform` container (which

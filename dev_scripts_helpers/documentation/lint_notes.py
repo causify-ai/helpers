@@ -4,11 +4,13 @@
 Lint "notes" files.
 
 > lint_notes.py -i foo.md -o bar.md \
-        --use_dockerized_prettier \
-        --use_dockerized_markdown_toc
+    --use_dockerized_prettier \
+    --use_dockerized_markdown_toc
 
-It can be used in vim to prettify a part of the text using stdin /
-stdout. :%!lint_notes.py
+It can be used in vim to prettify a part of the text using stdin / stdout.
+```
+:%!lint_notes.py
+```
 """
 
 # TODO(gp): -> lint_md.py
@@ -92,6 +94,8 @@ def _preprocess(txt: str) -> str:
     return txt_new_as_str
 
 
+# TODO(gp): Remove the code path using non dockerized executable, after fix for
+# CmampTask10710.
 def prettier(
     in_file_path: str,
     out_file_path: str,
@@ -156,14 +160,8 @@ def prettier_on_str(
     """
     _LOG.debug("txt=\n%s", txt)
     # Save string as input.
-    debug = False
-    if not debug:
-        # We need to use the current dir since the file needs to be in the
-        # container build context.
-        curr_dir = os.getcwd()
-        tmp_file_name = tempfile.NamedTemporaryFile(dir=curr_dir).name
-    else:
-        tmp_file_name = "/tmp/tmp_prettier.txt"
+    curr_dir = os.getcwd()
+    tmp_file_name = tempfile.NamedTemporaryFile(dir=curr_dir).name
     hio.to_file(tmp_file_name, txt)
     # Call `prettier` in-place.
     prettier(tmp_file_name, tmp_file_name, *args, **kwargs)
@@ -184,18 +182,20 @@ def _postprocess(txt: str, in_file_name: str) -> str:
     """
     _LOG.debug("txt=%s", txt)
     # Remove empty lines before ```.
-    txt = re.sub(r"^\s*\n(\s*```)$", r"\1", txt, 0, flags=re.MULTILINE)
+    txt = re.sub(r"^\s*\n(\s*```)$", r"\1", txt, count=0, flags=re.MULTILINE)
     # Remove empty lines before higher level bullets, but not chapters.
-    txt = re.sub(r"^\s*\n(\s+-\s+.*)$", r"\1", txt, 0, flags=re.MULTILINE)
+    txt = re.sub(r"^\s*\n(\s+-\s+.*)$", r"\1", txt, count=0, flags=re.MULTILINE)
     # True if one is in inside a ``` .... ``` block.
     in_triple_tick_block: bool = False
     txt_new: List[str] = []
     for i, line in enumerate(txt.split("\n")):
         # Undo the transformation `* -> STAR`.
-        line = re.sub(r"^\-(\s*)STAR", r"*\1", line, 0)
-        line = re.sub(r"^\-(\s*)SSTAR", r"**\1", line, 0)
+        line = re.sub(r"^\-(\s*)STAR", r"*\1", line, count=0)
+        line = re.sub(r"^\-(\s*)SSTAR", r"**\1", line, count=0)
         # Remove empty lines.
-        line = re.sub(r"^\s*\n(\s*\$\$)", r"\1", line, 0, flags=re.MULTILINE)
+        line = re.sub(
+            r"^\s*\n(\s*\$\$)", r"\1", line, count=0, flags=re.MULTILINE
+        )
         # Handle ``` block.
         m = re.match(r"^\s*```(.*)\s*$", line)
         if m:

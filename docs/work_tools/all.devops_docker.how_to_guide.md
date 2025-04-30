@@ -234,6 +234,13 @@
     - Run QA tests
   - Push prod image to ECR, DockerHub, GHCR
 
+- The release flow is implemented in the `invoke` tasks:
+  - E.g., `docker_release_dev_image`, `docker_release_prod_image`, etc.
+  - These tasks are quite complex and perform many operations
+  - Currently, we don't run them directly — instead, we execute the individual
+    steps from the `invoke` tasks
+  - Once the release process is more stable, we plan to run them directly
+
 ## How to add a Python package to dev image
 
 - To add a new Python package to a Docker image you need to update `poetry`
@@ -242,7 +249,7 @@
     [`/devops/docker_build/pyproject.toml`](/devops/docker_build/pyproject.toml)
     file to the `[tool.poetry.dependencies]` section
   - E.g., to add `pytest-timeout` do:
-    ```markdown
+    ```text
     [tool.poetry.dependencies]
     ...
     pytest-timeout = "*"
@@ -331,7 +338,7 @@
   ```
 - The command above will generate `./tmp.requirements.txt` with the list of the
   imported packages, e.g.,
-  ```markdown
+  ```text
   amp==1.1.4
   async_solipsism==0.3
   beautifulsoup4==4.11.1
@@ -548,8 +555,8 @@
   registries, the subsequent step involves pushing the `dev` image to GHCR
   registry. However, this action currently requires manual execution due to
   restricted access
-  - Access to the `cryptokaizen` packages is limited. To gain access, kindly
-    reach out to GP or Juraj
+  - Access to the `causify-ai` packages is limited. To gain access, kindly reach
+    out to GP, Samarth or Vlad
   - To proceed, perform a Docker login using your GitHub username and PAT
     (Personal Access Token):
     ```bash
@@ -557,11 +564,11 @@
     ```
   - Tag the `dev` image to the GHCR namespace:
     ```bash
-    > docker tag 623860924167.dkr.ecr.eu-north-1.amazonaws.com/cmamp:dev ghcr.io/cryptokaizen/cmamp:dev
+    > docker tag 623860924167.dkr.ecr.eu-north-1.amazonaws.com/cmamp:dev ghcr.io/causify-ai/cmamp:dev
     ```
   - Push the tagged image to the GHCR registry:
     ```bash
-    > docker push ghcr.io/cryptokaizen/cmamp:dev
+    > docker push ghcr.io/causify-ai/cmamp:dev
     ```
 
 ## Release a multi-architecture dev image
@@ -775,11 +782,11 @@ Check-list:
     ```
   - Tag the `dev` image to the GHCR namespace:
     ```bash
-    > docker tag 623860924167.dkr.ecr.eu-north-1.amazonaws.com/cmamp:dev ghcr.io/cryptokaizen/cmamp:dev
+    > docker tag 623860924167.dkr.ecr.eu-north-1.amazonaws.com/cmamp:dev ghcr.io/causify-ai/cmamp:dev
     ```
   - Push the tagged image to the GHCR registry:
     ```bash
-    > docker push ghcr.io/cryptokaizen/cmamp:dev
+    > docker push ghcr.io/causify-ai/cmamp:dev
     ```
 
 - Send a message on the `all@` chat telling people that a new version of the

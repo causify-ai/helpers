@@ -2,13 +2,35 @@
 
 <!-- toc -->
 
+- [Pre-hiring: Bounty](#pre-hiring-bounty)
 - [Hiring stages](#hiring-stages)
 - [HiringMeister](#hiringmeister)
 - [Step by step](#step-by-step)
 - [Warm-up tasks](#warm-up-tasks)
-- [Intern scoring](#intern-scoring)
+- [Giving feedback](#giving-feedback)
 
 <!-- tocstop -->
+
+## Pre-hiring: Bounty
+
+- We have hundreds of candidates who want to contribute to our projects and work
+  with us, but we can't easily find the ones that have the right skills to join
+  the team
+- One approach is for us to go through the applications, rank the candidates,
+  on-board them and help them achieve the quality of code we expect from team
+  members
+- Another approach is to let the candidates show that they can deliver through
+  **bounty hunting**
+- The idea is to have challenging projects (bounties) that potential hires can
+  take on
+  - From a couple of days to ~2 weeks of work
+  - Lots of coding with clear specs
+  - Not on the critical path, "nice to have" projects that will become useful in
+    the future
+- Those who excel at the bounties get paid and get onto the
+  [hiring path](#step-by-step)
+- More information and instructions for bounty hunters are provided in
+  [`/docs/onboarding/bounty.onboarding_checklist.reference.md`](/docs/onboarding/bounty.onboarding_checklist.reference.md)
 
 ## Hiring stages
 
@@ -65,7 +87,7 @@
 
 - Members of the hiring team alternate being the HiringMeister for 2 weeks
 - To see who is the HiringMeister now, refer to
-  [Rotation Meisters](https://docs.google.com/spreadsheets/d/1Ab6a3BVeLX1l1B3_A6rNY9pHRsofeoCw2ip2dkQ6SdA)
+  [Rotation Meisters](https://docs.google.com/spreadsheets/d/12OhDW4hzSLekorrri2WfRkV8h3JcnB8WQd1JEL_n0D8/edit)
 - HiringMeister's duties include:
   - Organizing the hiring and onboarding process (see [below](#step-by-step) for
     more details)
@@ -88,37 +110,13 @@
   - Job postings on LinkedIn
   - Job postings on Upwork
 
-- HiringMeister: upon receipt of a new application, create a task on Asana in
-  the
-  [Hiring](https://app.asana.com/1/1208196877870190/project/1208280136292379/list/1208280159230261)
-  project
-  - The task goes in the "Candidates" group
-  - The name of the task is the name of the applicant
-  - In the task description, use the following template:
-
-    ```verbatim
-    Pronoun:
-    Personal email:
-    Work status (e.g., when graduates):
-
-    Hiring info:
-      Google Form:
-      CV:
-      LinkedIn:
-      GitHub user:
-      TG:
-      Working hours / week:
-      Best piece of code:
-      How good (1-5):
-    ```
-  - We use this Asana task to communicate about the applicant
-
-- HiringMeister: send an email to the applicant with a link to the
+- HiringMeister/GP: send an email to the applicant with a link to the
   [questionnaire](https://docs.google.com/forms/d/e/1FAIpQLScWAavYiYj1IfWGP1QEv2jqjKvQKnFjseryhzmIIHZKnZ4HkA/viewform)
   to gather information about them
-  - Responses are available
-    [here](https://docs.google.com/forms/d/1NUsjbTyXBoITQZ6z8nqmTydFPcWl0kWEQZJZzzYXUeM/edit#responses)
-  - Use their responses to update the corresponding Asana task description
+
+- (Optional) HiringMeister/GP: send an email inviting the applicant to
+  participate in [bounty hunting](#pre-hiring-bounty)
+  - All further steps are put on hold while the applicant works on bounty tasks
 
 - Hiring team: decide whether we take on the applicant as an **intern**
   - Decided at a review meeting that takes place every 2 weeks
@@ -130,6 +128,45 @@
     profile, we should proceed further in the process
   - It's ok to ask more team members to take a look
   - If the candidate is a no-go, GP sends an email of rejection
+  - If we decide to on-board the candidate, continue with the steps below
+
+- HiringMeister/GP: send an email asking to confirm if they are still interested
+  and ready to go
+  - Proceed with the steps below only if they respond with a confirmation
+
+- HiringMeister: create a task on Asana in the
+  [Hiring](https://app.asana.com/1/1208196877870190/project/1208280136292379/list/1208280159230261)
+  project
+  - The task goes in the "Onboarding" section
+  - The name of the task is the name of the intern
+  - In the task description, use the following template:
+
+    ```verbatim
+    Pronoun:
+    Personal email:
+    Work status (e.g., when graduates):
+
+    GitHub:
+      Onboarding issue:x
+      Issues:
+      PRs:
+
+    Hiring info:
+      Google Form:
+      CV:
+      LinkedIn:
+      GitHub user:
+      TG:
+      Working hours / week:
+      Best piece of code:
+      How good (1-5):
+    ```
+  - Fill in the template based on their questionnaire responses
+  - We use this Asana task to communicate about the intern
+
+- HiringMeister/GP: send invitations to GitHub repos with `write` permissions:
+  - [`helpers`](https://github.com/causify-ai/helpers/settings/access)
+  - [`tutorials`](https://github.com/causify-ai/tutorials/settings/access)
 
 - HiringMeister: create a GitHub issue for onboarding the intern
   - Follow the instructions in
@@ -201,21 +238,13 @@
     - Still simple but require a little bit more coding than the first issue
     - The goal is to start testing the skills as well as confirm the
       understanding of our process
-  - [Outsourceable issues gdoc](https://docs.google.com/document/d/1uuezdmcsV9TG2YwXGvEd0PBgWScCpR-QPOcySI5LPIA/edit#heading=h.vcvkivfud7be)
+  - [Outsourceable issues gdoc](https://docs.google.com/document/d/1kmybx8u6eJsJBYndPb4r3jPcKM1yNpXIHpLJeRKK4l4/edit?tab=t.0)
 
-## Intern scoring
+## Giving feedback
 
-- The interns are scored every 2 weeks
-- Scoring criteria and template are defined in detail in
-  [`all.contributor_scoring.how_to_guide.md`](/docs/work_organization/all.contributor_scoring.how_to_guide.md)
-  - Not all the criteria are used for scoring the interns
-  - See, e.g.,
-    [Scoring sheet](https://docs.google.com/spreadsheets/d/1eIzQnUZFiCAei4_vYnNWc_wDRfpSHgCdDmIeqnDm78Y),
-    [Internships - Feedback 2024](https://docs.google.com/spreadsheets/d/1FCuM3dPP3QZCT7iOHSKXls-maSZ0Mwj7BjsbaUq-T0Y/edit?gid=1816709202#gid=1816709202)
-  - See also the guidelines for the
-    [performance feedback for full-time team members](https://docs.google.com/document/d/1wkG7c8LYhCnBINDRTpWcCLEQ5E9cW_A_bt4jr-Vxy64/edit#heading=h.16akje28vcjx),
-    for what is generally expected of our employees
-- The scoring should be done by all members of the hiring team
-- The final score of the intern is the average score of all the team members
-- The final scores are delivered to the interns every 2 weeks
+- Every 2 weeks interns are provided feedback that includes scores given to
+  their skills and performance
+- The process and scoring criteria are defined in
+  [`all.contributor_feedback.how_to_guide.md`](/docs/work_organization/all.contributor_feedback.how_to_guide.md)
+- Scoring should be done by all members of the hiring team
 - Interns with a low score should be let go
