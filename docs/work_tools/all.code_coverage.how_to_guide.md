@@ -4,8 +4,8 @@
   * [Setting Up Codecov](#setting-up-codecov)
   * [Coverage Configuration](#coverage-configuration)
   * [GitHub Actions Workflow](#github-actions-workflow)
-    + [Workflow Schedule:](#workflow-schedule)
-    + [Workflow Jobs:](#workflow-jobs)
+    + [Workflow Schedule](#workflow-schedule)
+    + [Workflow Jobs](#workflow-jobs)
   * [Codecov Configuration (codecov.yml)](#codecov-configuration-codecovyml)
   * [Viewing Coverage Reports](#viewing-coverage-reports)
   * [Running Coverage Locally](#running-coverage-locally)
@@ -55,14 +55,14 @@ measurement settings:
 Coverage tests are automated via GitHub Actions -
 `.github/workflows/coverage_tests.yml`.
 
-### Workflow Schedule:
+### Workflow Schedule
 
 - Runs daily at midnight (UTC)
 - Can be manually triggered (`workflow_dispatch`)
 - Action fails if coverage drops by `1%` (including `fast`, `slow` and
   `superslow` tests)
 
-### Workflow Jobs:
+### Workflow Jobs
 
 1. Fast Tests Coverage:
 
@@ -305,6 +305,16 @@ include:
   tracking consistency
 - Coverage flags (`fast`, `slow`, `superslow`) allow separate visibility and
   tracking
+  - Fast test coverage:
+
+  <img src="figs/coverage/image6.png" alt="alt text" width="1000"/>
+  - Slow test coverage:
+
+  <img src="figs/coverage/image7.png" alt="alt text" width="1000"/>
+  - Superslow test coverage
+
+  <img src="figs/coverage/image8.png" alt="alt text" width="1000"/>
+
 - Regular review of coverage differences (visible in PR checks and Codecov UI)
   is encouraged to maintain code quality
 
