@@ -34,8 +34,10 @@
     + [Command to run the release flow](#command-to-run-the-release-flow)
     + [Post-release check-list](#post-release-check-list)
   * [Build prod image](#build-prod-image)
-  * [QA for prod image](#qa-for-prod-image)
-  * [End-to-end flow for `prod` image](#end-to-end-flow-for-prod-image)
+    + [QA for prod image](#qa-for-prod-image)
+    + [End-to-end flow for `prod` image](#end-to-end-flow-for-prod-image)
+  * [Release a multi-architecture prod image](#release-a-multi-architecture-prod-image)
+    + [Overview](#overview-1)
   * [Flow for both dev and prod images](#flow-for-both-dev-and-prod-images)
 - [Release flow](#release-flow)
   * [cmamp](#cmamp)
@@ -165,7 +167,7 @@
 - `docker_build_multi_arch_prod_image`: build a multi arch. versioned "prod"
   image from a "dev" image
 - `docker_tag_push_multi_arch_prod_image`: mark the multi-arch versioned "prod"
-  image as "prod" and push them to the target registry 
+  image as "prod" and push them to the target registry
 - `docker_release_prod_image`: build, test, and release the "prod" image to ECR
 - `docker_release_multi_arch_prod_image`: build, test, and release to Docker
   registries the multi-arch prod image
@@ -731,7 +733,8 @@ Check-list:
 - Build `prod` versioned image remotely in the CK AWS ECR registry and pull once
   it is built
 - Run the `cmamp` regressions using a versioned `prod` image
-- Tag the versioned `prod` image as `prod` image and push it to the Docker registries
+- Tag the versioned `prod` image as `prod` image and push it to the Docker
+  registries
 - Tag the new `prod` image to GHCR namespace and push it to GHCR registry
 
 ## Flow for both dev and prod images
