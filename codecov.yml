@@ -10,8 +10,20 @@ flag_management:
     - name: superslow
       carryforward: true
 
-# Disable per-line comments on pull requests.
-comment: false
+# Enable PR summary comment with coverage details.
+comment:
+  # Define the layout of the summary comment to show overall, diff, and file-level stats.
+  layout: "reach, diff, files"
+  # Overwrite the previous comment instead of posting a new one each time.
+  behavior: default
+  # Allow comment to appear even if the coverage drop is small or unchanged.
+  require_changes: false
+  # Disable inline per-line critical path comments in the PR file view.
+  show_critical_paths: false
+
+# Disable GitHub inline annotations (e.g., red/yellow markers in 'Files changed').
+coverage:
+  annotations: false
 
 coverage:
   status:
