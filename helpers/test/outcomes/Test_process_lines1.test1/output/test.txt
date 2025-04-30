@@ -1,0 +1,20 @@
+0:- Functions can be declared in the body of another function
+1:- E.g., to hide utility functions in the scope of the function that uses them
+2:
+
+3:        ```python
+4:        def print_integers(values):
+5:
+6:            def _is_integer(value):
+7:                try:
+8:                    return value == int(value)
+9:                except:
+10:                    return False
+11:
+12:            for v in values:
+13:                if _is_integer(v):
+14:                    print(v)
+15:        ```
+16:
+
+17:- Hello
