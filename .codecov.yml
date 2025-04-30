@@ -7,8 +7,6 @@ flag_management:
     - name: superslow
       carryforward: true
 
-this_field_should_fail: true  # ← temporary check
-
 # Enable PR summary comment with coverage details.
 comment:
   # Define the layout of the summary comment to show overall, diff, and file-level stats.
