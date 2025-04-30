@@ -34,8 +34,8 @@ Files and Directories Added:
   workflow
 - `.github/workflows/coverage_tests.yml`: Defines GitHub Actions workflow for
   automated coverage runs
-- `.github/codecov.yml`: Specifies Codecov-specific behaviors such as flags,
-  comments, and coverage thresholds
+- `codecov.yml`: Specifies Codecov-specific behaviors such as flags, comments,
+  and coverage thresholds
 
 ## Coverage Configuration
 
@@ -84,12 +84,10 @@ Coverage tests are automated via GitHub Actions -
 - Generates an `XML` coverage report (`coverage.xml`)
 - Uploads reports to `Codecov` with respective flags (`fast`, `slow`,
   `superslow`)
-- Marks CI as failed if upload errors occur (`fail_ci_if_error: true`)
 
 ## Codecov Configuration (codecov.yml)
 
-Coverage flags and project-level checks are configured at -
-`.github/codecov.yml`.
+Coverage flags and project-level checks are configured at - `codecov.yml`.
 
 1. Flag Management: The `carryforward` option allows Codecov to reuse the
    previous coverage data if no new coverage report is submitted for a specific
