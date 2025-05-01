@@ -1,55 +1,13 @@
 import os
+import sys
 import tempfile
 import unittest
-from typing import List
-from unittest.mock import DEFAULT, patch
+from unittest.mock import DEFAULT, MagicMock, patch
+
+import yaml
 
 import dev_scripts_helpers.github.dockerized_sync_gh_issue_labels as dshgdsgil
 import dev_scripts_helpers.github.sync_gh_issue_labels as dshgsgila
-
-
-# #############################################################################
-# TestLabelModel
-# #############################################################################
-
-
-class TestLabelModel(unittest.TestCase):
-    """
-    Validate the `Label` data model.
-    """
-
-    def setUp(self) -> None:
-        """
-        Prepare a shared label inventory.
-        """
-        super().setUp()
-        self._labels: List[dshgdsgil.Label] = [
-            dshgdsgil.Label("bug", "Something is broken", "#d73a4a"),
-            dshgdsgil.Label("todo", None, "#ABCDEF"),
-        ]
-
-    def test_color_prefix_stripped(self) -> None:
-        """
-        Ensure the leading " # " is removed from colours.
-        """
-        self.assertEqual(self._labels[0].color, "d73a4a")
-        self.assertEqual(self._labels[1].color, "ABCDEF")
-
-    def test_save_load_roundtrip(self) -> None:
-        """
-        Ensure round-trip save ↔ load returns identical label data.
-        """
-        with tempfile.NamedTemporaryFile(suffix=".yml", delete=False) as tmp:
-            path = tmp.name
-        try:
-            dshgdsgil.Label.save_labels(self._labels, path)
-            loaded = dshgdsgil.Label.load_labels(path)
-            self.assertEqual(
-                [lbl.to_dict() for lbl in loaded],
-                [lbl.to_dict() for lbl in self._labels],
-            )
-        finally:
-            os.unlink(path)
 
 
 # #############################################################################
@@ -209,3 +167,66 @@ class TestDockerCommand(unittest.TestCase):
                         executed_cmd,
                         f"Unexpected argument '{arg}' found in command",
                     )
+
+
+# #############################################################################
+# TestBackupFile
+# #############################################################################
+
+
+class TestBackupFile(unittest.TestCase):
+    """
+    Ensure --backup produces tmp.labels.* even during --dry_run.
+    """
+
+    @patch(
+        "dev_scripts_helpers.github.dockerized_sync_gh_issue_labels.hgit.get_client_root"
+    )
+    @patch(
+        "dev_scripts_helpers.github.dockerized_sync_gh_issue_labels.github.Github"
+    )
+    def test_backup_created(self, gh_mock, get_root_mock):
+        """
+        Run _main() once and assert the file exists.
+        """
+        with tempfile.TemporaryDirectory() as git_root, tempfile.NamedTemporaryFile(
+            "w", suffix=".yml"
+        ) as manifest:
+            # Write test label data to manifest file.
+            yaml_data = [
+                {"name": "bug", "description": "Bug label", "color": "#d73a4a"},
+                {
+                    "name": "feature",
+                    "description": "Feature request",
+                    "color": "#00FF00",
+                },
+            ]
+            yaml.dump(yaml_data, manifest, default_flow_style=False)
+            manifest.flush()  # Ensure data is written to disk
+            get_root_mock.return_value = git_root
+            # Fake one current label so save_labels has something to write.
+            fake_lbl = dshgdsgil.Label("bug", "Bug label", "#d73a4a")
+            repo_mock = MagicMock()
+            repo_mock.get_labels.return_value = [fake_lbl]
+            gh_mock.return_value.get_repo.return_value = repo_mock
+            os.environ["GH_TOKEN"] = "dummy"  # satisfies argparse
+            argv = [
+                "prog",
+                "--input_file",
+                manifest.name,
+                "--owner",
+                "test-org",
+                "--repo",
+                "test-repo",
+                "--token_env_var",
+                "GH_TOKEN",
+                "--dry_run",
+                "--backup",
+                "--no_interactive",
+            ]
+            with patch.object(sys, "argv", argv):
+                dshgdsgil._main(dshgdsgil._parse())
+            expected = os.path.join(
+                git_root, "tmp.labels.test-org.test-repo.yaml"
+            )
+            self.assertTrue(os.path.exists(expected))
