@@ -13,6 +13,9 @@ import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
+# #############################################################################
+# get_prompt_tags()
+# #############################################################################
 
 @functools.lru_cache(maxsize=1)
 def get_prompt_tags() -> List[str]:
@@ -46,6 +49,9 @@ def get_prompt_tags() -> List[str]:
     return matched_functions
 
 
+# #############################################################################
+
+
 # Store the prompts that need a certain post-transforms to be applied outside
 # the container.
 OUTSIDE_CONTAINER_POST_TRANSFORMS = {}
@@ -58,10 +64,11 @@ if not OUTSIDE_CONTAINER_POST_TRANSFORMS:
         # These are all the prompts with post_transforms with
         # `convert_to_vim_cfile`.
         "convert_file_names": [
-            "code_review",
+            "code_review_correctness",
             "code_review_and_find_missing_docstrings",
             "code_propose_refactoring",
         ],
+        # remove_code_delimiters
         "prettier_on_str": [
             "md_rewrite",
             "md_summarize_short",
@@ -104,95 +111,71 @@ I will pass you a chunk of Python code.
 """
 
 
-def code_comment() -> _PROMPT_OUT:
+def code_add_comments() -> _PROMPT_OUT:
     """
     Add comments to Python code.
     """
     system = _CONTEXT
     system += r"""
-    Every a chunk of 4 or 5 lines of code add comment explaining the code.
-    Comments should go before the logical chunk of code they describe.
-    Comments should be in imperative form, a full English phrase, and end with a
-    period.
+    - Every a chunk of 4 or 5 lines of code add comment explaining the code
+    - Comments should go before the logical chunk of code they describe
+    - Comments should be in imperative form, a full English phrase, and end with a
+      period `.`
+    - Do not comment every single line of code and especially logging statements
     """
-    # You are a proficient Python coder and write English very well.
-    # Given the Python code passed below, improve or add comments to the code.
-    # Comments must be for every logical chunk of 4 or 5 lines of Python code.
-    # Do not comment every single line of code and especially logging statements.
-    # Each comment should be in imperative form, a full English phrase, and end
-    # with a period.
     pre_transforms = set()
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
 
 
-def code_docstring() -> _PROMPT_OUT:
-    """
-    Add a REST docstring to Python code.
-    """
+def code_add_docstrings() -> _PROMPT_OUT:
+    '''
+    Add or complete a REST docstring to Python code. Each function should have a
+    docstring that describes the function, its parameters, and its return value.
+    '''
     system = _CONTEXT
-    system += r"""
-    Add a docstring to the function passed.
+    system += r'''
+    Make sure each function as a REST docstring
     - The first comment should be in imperative mode and fit in a single line of
-      less than 80 characters.
+      less than 80 characters
     - To describe the parameters use the REST style, which requires each
       parameter to be prepended with :param
+    
+    An example of a correct docstring is:
+
+    def _format_greeting(name: str, *, greeting: str = DEFAULT_GREETING) -> str:
+        """
+        Format a greeting message with the given name.
+
+        :param name: the name to include in the greeting
+        :param greeting: the base greeting message to use
+        :return: formatted greeting
+        """
+    '''
+    pre_transforms = set()
+    post_transforms = {"remove_code_delimiters"}
+    return system, pre_transforms, post_transforms
+
+
+def code_fix_type_hints() -> _PROMPT_OUT:
+    system = _CONTEXT
+    system += r"""
+    Add type hints to the Python code passed.
     """
     pre_transforms = set()
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
 
 
-def code_type_hints() -> _PROMPT_OUT:
+def code_review_correctness() -> _PROMPT_OUT:
     system = _CONTEXT
     system += r"""
-    You will add type hints to the function passed.
-    """
-    pre_transforms = set()
-    post_transforms = {"remove_code_delimiters"}
-    return system, pre_transforms, post_transforms
-
-
-def _get_code_unit_test_prompt(num_tests: int) -> str:
-    system = _CONTEXT
-    system += r"""
-    You will write a unit test suite for the function passed.
-
-    Write {num_tests} unit tests for the function passed
-    Just output the Python code
-    Use the following style for the unit tests:
-    When calling the function passed assume it's under the module called uut and the user has called `import uut as uut`
-    ```
-    act = call to the function passed
-    exp = expected code
-    self.assert_equal(act, exp)
-    ```
-    """
-    return system
-
-
-def code_unit_test() -> _PROMPT_OUT:
-    system = _get_code_unit_test_prompt(5)
-    pre_transforms = set()
-    post_transforms = {"remove_code_delimiters"}
-    return system, pre_transforms, post_transforms
-
-
-def code_1_unit_test() -> _PROMPT_OUT:
-    system = _get_code_unit_test_prompt(1)
-    pre_transforms = set()
-    post_transforms = {"remove_code_delimiters"}
-    return system, pre_transforms, post_transforms
-
-
-def code_review() -> _PROMPT_OUT:
-    system = _CONTEXT
-    system += r"""
-    You will review the code and make sure it is correct.
-    You will also make sure that the code is clean and readable.
-    You will also make sure that the code is efficient.
-    You will also make sure that the code is robust.
-    You will also make sure that the code is maintainable.
+    You will review the code and make sure it is:
+    - correct
+    - clean and readable
+    - efficient
+    - robust
+    - maintainable
 
     Do not print any comment, besides for each point of improvement, you will
     print the line number and the proposed improvement in the following style:
@@ -203,7 +186,7 @@ def code_review() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms
 
 
-# TODO(gp): This is kind of expensive and we should use a linter stage.
+# TODO(gp): This is kind of expensive and we should use a procedural linter stage.
 def code_review_and_find_missing_docstrings() -> _PROMPT_OUT:
     """
     Find missing docstrings in Python code.
@@ -278,14 +261,16 @@ tutorial_github/github_utils.py:106: [W1203(logging-fstring-interpolation), get_
     return system, pre_transforms, post_transforms
 
 
-def code_fix_string() -> _PROMPT_OUT:
+def code_fix_log_string() -> _PROMPT_OUT:
     """
     Fix the log statements to use % formatting.
     """
     system = _CONTEXT
     system += r"""
-    Use % formatting instead of f-strings (formatted string literals).
-    Do not print any comment, just the converted code.
+    Fix logging statements and dassert statements by using % formatting instead
+    of f-strings (formatted string literals).
+
+    Do not print any comment, but just the converted code.
 
     For instance, convert:
     _LOG.info(f"env_var='{str(env_var)}' is not in env_vars='{str(os.environ.keys())}'")
@@ -302,14 +287,16 @@ def code_fix_string() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms
 
 
-def code_use_f_strings() -> _PROMPT_OUT:
+def code_fix_by_using_f_strings() -> _PROMPT_OUT:
     """
-    Use f-strings, like `f"Hello, {name}. You are {age} years old."`.
+    Fix code to use f-strings, like `f"Hello, {name}. You are {age} years old."`.
     """
     system = _CONTEXT
     system += r"""
     Use f-strings (formatted string literals) instead of % formatting and format
-    strings. Do not print any comment, just the converted code.
+    strings.
+    
+    Do not print any comment, but just the converted code.
 
     For instance, convert:
     "Hello, %s. You are %d years old." % (name, age)
@@ -321,14 +308,15 @@ def code_use_f_strings() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms
 
 
-def code_use_perc_strings() -> _PROMPT_OUT:
+def code_fix_by_using_perc_strings() -> _PROMPT_OUT:
     """
     Use % formatting, like `"Hello, %s. You are %d years old." % (name, age)`.
     """
     system = _CONTEXT
     system += r"""
     Use % formatting instead of f-strings (formatted string literals).
-    Do not print any comment, just the converted code.
+
+    Do not print any comment, but just the converted code.
 
     For instance, convert:
     f"Hello, {name}. You are {age} years old."
@@ -340,9 +328,9 @@ def code_use_perc_strings() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms
 
 
-def code_apply_csfy_style1() -> _PROMPT_OUT:
+def code_apply_csfy_style() -> _PROMPT_OUT:
     """
-    Apply the csfy style to the code.
+    Apply the style to the code using template code in `template_code.py`.
     """
     system = _CONTEXT
     file_name = "template_code.py"
@@ -355,28 +343,114 @@ def code_apply_csfy_style1() -> _PROMPT_OUT:
     ```
     Do not remove any code, just format the existing code using the style.
 
-    Do not report any explanation of what you did, just the converted code.
+    Do not report any explanation of what you did, but just the converted code.
     """
     pre_transforms = set()
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
 
 
-def code_apply_csfy_style2() -> _PROMPT_OUT:
+def code_fix_from_imports() -> _PROMPT_OUT:
     """
-    Apply the csfy style to the code.
+    Fix code to use imports instead of "from import" statements.
     """
     system = _CONTEXT
     system += r"""
-    Apply the following style to the code:
-    - Convert docstrings into REST docstrings
-    - Always use imperative in comments
-    - Remove empty spaces in functions
-    - Add type hints, when missing
-    - Use * before mandatory parameters
-    - Make local functions private
-    - Convert .format() to f-string unless it’s a _LOG
+    Replace any Python "from import" statement like:
+    from X import Y
+    with the form:
+    import X
+    and then replace the uses of Y with X.Y
+
+    For instance, replace:
+    from langchain_openai import OpenAIEmbeddings
+    with:
+    import langchain_openai 
+    and then replace the uses of OpenAIEmbeddings with langchain_openai.OpenAIEmbeddings
     """
+    pre_transforms = set()
+    post_transforms = {"remove_code_delimiters"}
+    return system, pre_transforms, post_transforms
+
+
+def code_fix_star_before_optional_parameters() -> _PROMPT_OUT:
+    """
+    Fix code missing the star before optional parameters.
+    """
+    system = _CONTEXT
+    system += r"""
+    When you find a Python function with optional parameters, add a star after
+    the mandatory parameters and before the optional parameters, and make sure
+    that the function is called with the correct number of arguments.
+
+    For instance, replace:
+    def reflow_label(label: str, max_length: int = 10) -> str:
+
+    reflow_label("Hello, world!", 10)
+
+    with
+    def reflow_label(label: str, *, max_length: int = 10) -> str:
+
+    reflow_label("Hello, world!", max_length=10)
+    """
+    pre_transforms = set()
+    post_transforms = {"remove_code_delimiters"}
+    return system, pre_transforms, post_transforms
+
+
+def code_fix_csfy_style() -> _PROMPT_OUT:
+    """
+    Apply the csfy style to the code.
+    """
+    function_names = ["code_add_comments",
+                      "code_add_docstrings",
+                      "code_fix_type_hints"]
+    system_prompts = []
+    for function_name in function_names:
+        system, pre_transforms, post_transforms = eval(function_name)()
+        system_prompts.append(system)
+        hdbg.dassert_eq(pre_transforms, set())
+        hdbg.dassert_eq(post_transforms, {"remove_code_delimiters"})
+    system = "\n\n".join(system_prompts)
+    pre_transforms = set()
+    post_transforms = {"remove_code_delimiters"}
+    return system, pre_transforms, post_transforms
+
+
+# #############################################################################
+
+
+def _get_code_unit_test_prompt(num_tests: int) -> str:
+    system = _CONTEXT
+    system += rf"""
+    - You will write a unit test suite for the function passed.
+
+    - Write {num_tests} unit tests for the function passed
+    - Just output the Python code
+    - Use the following style for the unit tests:
+    - When calling the function passed assume it's under the module called uut
+      and the user has called `import uut as uut`
+    ```
+    act = call to the function passed
+    exp = expected code
+    self.assert_equal(act, exp)
+    ```
+    """
+    return system
+
+
+def code_unit_test() -> _PROMPT_OUT:
+    system = _get_code_unit_test_prompt(5)
+    pre_transforms = set()
+    post_transforms = {"remove_code_delimiters"}
+    return system, pre_transforms, post_transforms
+
+
+def code_1_unit_test() -> _PROMPT_OUT:
+    system = _get_code_unit_test_prompt(1)
+    pre_transforms = set()
+    post_transforms = {"remove_code_delimiters"}
+    return system, pre_transforms, post_transforms
 
 
 # #############################################################################
@@ -433,16 +507,17 @@ def slide_colorize() -> _PROMPT_OUT:
 
     I will give you markdown text in the next prompt
     - Do not change the text or the structure of the text
-    - You will use multiple colors using pandoc \textcolor{COLOR}{text} to highlight
-    only the most important phrases in the text—those that are key to understanding
-    the main points. Keep the highlights minimal and avoid over-marking. Focus on
-    critical concepts, key data, or essential takeaways rather than full sentences
-    or excessive details.
-    - You can use the following colors in the given order: red, orange, green, teal, cyan, blue, violet, brown
+    - You will use multiple colors using pandoc \textcolor{COLOR}{text} to
+      highlight only the most important phrases in the text—those that are key to
+      understanding the main points. Keep the highlights minimal and avoid
+      over-marking. Focus on critical concepts, key data, or essential takeaways
+      rather than full sentences or excessive details.
+    - You can use the following colors in the given order: red, orange, green,
+      teal, cyan, blue, violet, brown
 
     - You can highlight only 4 words or phrases in the text
 
-    Print only the markdown without any explanation
+    Print only the markdown without any explanation.
     """
     pre_transforms = set()
     post_transforms = {"remove_code_delimiters"}
@@ -455,10 +530,12 @@ def slide_colorize_points() -> _PROMPT_OUT:
 
     I will give you markdown text in the next prompt
     - Do not change the text or the structure of the text
-    - You will highlight with \textcolor{COLOR}{text} the bullet point at the first level, without highlighting the - character
-    - You can use the following colors in the given order: red, orange, green, teal, cyan, blue, violet, brown
+    - You will highlight with \textcolor{COLOR}{text} the bullet point at the
+      first level, without highlighting the - character
+    - You can use the following colors in the given order: red, orange, green,
+      teal, cyan, blue, violet, brown
 
-    Print only the markdown without any explanation
+    Print only the markdown without any explanation.
     """
     pre_transforms = set()
     post_transforms = {"remove_code_delimiters"}
@@ -473,6 +550,17 @@ def slide_colorize_points() -> _PROMPT_OUT:
 def _convert_to_vim_cfile_str(txt: str, in_file_name: str) -> str:
     """
     Convert the text passed to a string representing a vim cfile.
+    
+    E.g.,
+    ```
+    57: The docstring should use more detailed type annotations for ...
+    98-104: Simplify the hash computation logic with a helper ...
+    ```
+    become:
+    ```
+    test.py:57: The docstring should use more detailed type annotations for ...
+    test.py:98: Simplify the hash computation logic with a helper ...
+    ```
     """
     ret_out = []
     for line in txt.split("\n"):
@@ -500,7 +588,7 @@ def _convert_to_vim_cfile_str(txt: str, in_file_name: str) -> str:
             # ```
             regex = re.compile(
                 r"""
-                ^(\d+)-\d+:    # Line number(s) followed by colon
+                ^(\d+)-\d+:         # Line number(s) followed by colon
                 \s*                 # Space
                 (.*)$               # Rest of line
                 """,
@@ -539,6 +627,15 @@ def _convert_to_vim_cfile(txt: str, in_file_name: str, out_file_name: str) -> st
     return txt_out
 
 
+def _annotate_with_cfile(txt: str) -> str:
+    """
+    Given code and a corresponding cfile, annotate the code with the cfile.
+
+    Use TODO(*): to 
+    """
+
+
+
 # #############################################################################
 # run_prompt()
 # #############################################################################
@@ -557,6 +654,13 @@ def run_prompt(
 ) -> Optional[str]:
     """
     Run the prompt passed and apply the transforms to the response.
+
+    :param prompt_tag: tag of the prompt to run
+    :param txt: text to run the prompt on
+    :param model: model to use
+    :param in_file_name: name of the input file
+    :param out_file_name: name of the output file
+    :return: transformed text
     """
     _LOG.debug(hprint.to_str("prompt_tag model in_file_name out_file_name"))
     # Get the info corresponding to the prompt tag.
