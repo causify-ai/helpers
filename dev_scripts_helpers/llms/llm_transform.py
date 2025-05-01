@@ -50,7 +50,7 @@ _LOG = logging.getLogger(__name__)
 
 def _parse() -> argparse.ArgumentParser:
     """
-    Same interface as `dockerized_llm_transform.py`.
+    Use the same argparse parser for `dockerized_llm_transform.py`.
     """
     parser = argparse.ArgumentParser(
         description=__doc__,
@@ -186,12 +186,12 @@ def _convert_file_names(in_file_name: str, out_file_name: str) -> str:
         if line.strip() == "":
             continue
         # E.g., the format is like
-        # ```
+        # 
         # /app/helpers_root/r.py:1: Change the shebang line to `#!/usr/bin/env python3` to e
-        # ```
-        _LOG.debug("before: " + hprint.to_str("line in_file_name"))
+        # 
+        _LOG.debug("before: %s", hprint.to_str("line in_file_name"))
         line = re.sub(r"^.*(:\d+:.*)$", rf"{in_file_name}\1", line)
-        _LOG.debug("after: " + hprint.to_str("line"))
+        _LOG.debug("after: %s", hprint.to_str("line"))
         txt_out.append(line)
     txt_out = "\n".join(txt_out)
     hio.to_file(out_file_name, txt_out)

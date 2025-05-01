@@ -216,7 +216,7 @@ def check_author(abort_on_error: bool = True) -> None:
     user_email = user_email.lstrip().rstrip()
     cmd = f"{_GIT_BINARY_PATH} config --show-origin {var}"
     _system_to_string(cmd, verbose=verbose)
-    print(f"user_email='{user_email}")
+    print(f"user_email='{user_email}'")
     # Check.
     error = False
     if not user_email.endswith("@gmail.com"):
