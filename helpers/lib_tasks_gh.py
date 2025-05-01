@@ -228,7 +228,12 @@ def gh_workflow_list(  # type: ignore
                 cmd = f"gh run view {workload_id} --log-failed >{log_file_name}"
                 hsystem.system(cmd)
                 # Remove non-printable chars.
-                cmd = f"remove_escape_chars.py -i {log_file_name}"
+                # TODO(heanh): Consider adding all the helpers util scripts
+                # to the `PATH` (when inside the container) so we can just use 
+                # them without specifying the full path.
+                helpers_root_dir = hgit.find_helpers_root()
+                file_path = f"{helpers_root_dir}/dev_scripts_helpers/system_tools"
+                cmd = f"{file_path}/remove_escape_chars.py -i {log_file_name}"
                 hsystem.system(cmd)
                 print(f"# Log is in '{log_file_name}'")
                 # Run_fast_tests  Run fast tests  2021-12-19T00:19:38.3394316Z FAILED data
