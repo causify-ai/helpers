@@ -6,7 +6,7 @@
   * [GitHub Actions Workflow](#github-actions-workflow)
     + [Workflow Schedule](#workflow-schedule)
     + [Workflow Jobs](#workflow-jobs)
-  * [Codecov Configuration (codecov.yml)](#codecov-configuration-codecovyml)
+  * [Codecov Configuration](#codecov-configuration)
   * [Viewing Coverage Reports](#viewing-coverage-reports)
   * [Running Coverage Locally](#running-coverage-locally)
   * [System Behavior: When the Test Coverage Workflow Fails or Continues](#system-behavior-when-the-test-coverage-workflow-fails-or-continues)
@@ -27,19 +27,28 @@ with, and extend the coverage results.
 
 Codecov was integrated by adding necessary files and configuration steps:
 
-Files and Directories Added:
+Files and Directories Added
 
-- `.coveragerc`: Configures directories and files under coverage collection
-- `.github/gh_requirements.txt`: Lists dependencies necessary for the coverage
-  workflow
-- `.github/workflows/coverage_tests.yml`: Defines GitHub Actions workflow for
-  automated coverage runs
-- `Global YAML`: Configures coverage collection of Codecov
+- [.coveragerc](https://github.com/causify-ai/helpers/.coveragerc): Configures
+  directories and files under coverage collection
+- [.github/gh_requirements.txt](https://github.com/causify-ai/helpers/.github/gh_requirements.txt):
+  Lists dependencies necessary for the coverage workflow
+- [.github/workflows/coverage_tests.yml](https://github.com/causify-ai/helpers/.github/workflows/coverage_tests.yml):
+  Defines GitHub Actions workflow for automated coverage runs
+
+External setup
+
+Applies default coverage settings across all repos to ensure consistency in
+reporting and behavior.
+If needed, individual repos can include their own `.codecov.yml` at the root to
+override specific global settings.
+
+- [Global YAML](https://app.codecov.io/account/gh/causify-ai/yaml/.): Configures
+  coverage collection of Codecov
 
 ## Coverage Configuration
 
-The `.coveragerc` file located at the repository's root defines coverage
-measurement settings:
+The `.coveragerc` file defines coverage measurement settings:
 
 - `Excluded Files`: These files are omitted from coverage reporting.
   ```
@@ -84,96 +93,97 @@ Coverage tests are automated via GitHub Actions -
 - Uploads reports to `Codecov` with respective flags (`fast`, `slow`,
   `superslow`)
 
-## Codecov Configuration (codecov.yml)
+## Codecov Configuration
 
 - Coverage flags and project-level checks are configured at Global yml -
   [https://app.codecov.io/account/gh/causify-ai/yaml/.](https://app.codecov.io/account/gh/causify-ai/yaml/.)
 - If required, you can add distinct repository configurations to the
-  `.codecov.yml` file at the root of your repository.
+  `.codecov.yml` file at the root of your repository. - You can change the
+  threshold of coverage drops for a specific repo - You can add/ change patch
+  settings or flags for a specific repo
 
 1. Flag Management
 
-The `carryforward` option allows Codecov to reuse the previous coverage data if
-a report is not submitted for a given flag in the current CI run. This is useful
-when certain test suites (e.g., slow or superslow) don't run in every cycle but
-should still be reflected in the coverage summary.
-```
-flag_management:
- individual_flags:
-   - name: fast
-     carryforward: true
-   - name: slow
-     carryforward: true
-   - name: superslow
-     carryforward: true
-```
+   The `carryforward` option allows Codecov to reuse the previous coverage data
+   if a report is not submitted for a given flag in the current CI run. This is
+   useful when certain test suites (e.g., slow or superslow) don't run in every
+   cycle but should still be reflected in the coverage summary.
+   ```
+   flag_management:
+   individual_flags:
+     - name: fast
+       carryforward: true
+     - name: slow
+       carryforward: true
+     - name: superslow
+       carryforward: true
+   ```
 
 2. Comment Behavior
 
-Codecov can automatically post a summary comment on PRs. This comment can be
-customized in layout, behavior, and verbosity.
+   Codecov can automatically post a summary comment on PRs. This comment can be
+   customized in layout, behavior, and verbosity.
+   - `layout: "reach, diff, files"` : Displays overall coverage, diff coverage,
+     and file-level detail
+   - `behavior: default` : Overwrites the previous comment instead of posting a
+     new one
+   - `require_changes: false` : Posts the comment even when coverage doesn't
+     change
+   - `show_critical_paths: false` : Disables per-line comments in the PR diff
+     view
+   ```
+   comment:
+     layout: "reach, diff, files"
+     behavior: default
+     require_changes: false
+     show_critical_paths: false
+   ```
+   - When PR comment is enabled:
 
-- `layout: "reach, diff, files"` : Displays overall coverage, diff coverage, and
-  file-level detail
-- `behavior: default` : Overwrites the previous comment instead of posting a new
-  one
-- `require_changes: false` : Posts the comment even when coverage doesn't change
-- `show_critical_paths: false` : Disables per-line comments in the PR diff view
-```
-comment:
- layout: "reach, diff, files"
- behavior: default
- require_changes: false
- show_critical_paths: false
-```
+     <img src="figs/coverage/image1.png" alt="alt text" width="1000"/>
+   - When per-line comments in PR files is enabled.
 
-- When PR comment is enabled:
-
-   <img src="figs/coverage/image1.png" alt="alt text" width="1000"/>
-
-- When per-line comments in PR files is enabled.
-
-   <img src="figs/coverage/image2.png" alt="alt text" width="1000"/>
+     <img src="figs/coverage/image2.png" alt="alt text" width="1000"/>
 
 3. GitHub Check Annotations
 
-Inline annotations in the GitHub "Files changed" view are disabled using the
-`github_checks.annotations` flag. This ensures a cleaner PR experience without
-coverage-based highlights on each line.
+   Inline annotations in the GitHub "Files changed" view are disabled using the
+   `github_checks.annotations` flag. This ensures a cleaner PR experience
+   without coverage-based highlights on each line.
 
-  <img src="figs/coverage/image9.png" alt="alt text" width="1000"/>
+     <img src="figs/coverage/image7.png" alt="alt text" width="1000"/>
 
-3. Coverage Status Check:
+4. Coverage Status Check:
 
-This section configures the status checks that appear in GitHub pull requests.
-It defines both patch-level and project-level coverage checks and sets
-conditions for when they should run and how they should behave.
+   This section configures the status checks that appear in GitHub pull
+   requests. It defines both patch-level and project-level coverage checks and
+   sets conditions for when they should run and how they should behave.
+   - `project.default`: Defines the overall coverage check behavior.
+   - `target`: auto automatically compares against the base branch of the PR.
+   - `threshold: 1%` means the check will fail if coverage drops by `1%` or
+     more.
+   - `flags` scopes the project-level check to specific test suites (`fast`,
+     `slow`, `superslow`).
+   - `branches` limits the check to PRs targeting the `master` branch.
+   - `patch: true`: Ensures Codecov always checks coverage on the changed lines
+     in a PR, regardless of the base branch or flag.
+   ```
+   coverage:
+     status:
+       project:
+         default:
+           target: auto
+           threshold: 1%
+           flags:
+             - fast
+             - slow
+             - superslow
+           branches:
+             - master
+       patch: true
+   ```
 
-- `project.default`: Defines the overall coverage check behavior.
-- `target`: auto automatically compares against the base branch of the PR.
-- `threshold: 1%` means the check will fail if coverage drops by `1%` or more.
-- `flags` scopes the project-level check to specific test suites (`fast`,
-  `slow`, `superslow`).
-- `branches` limits the check to PRs targeting the `master` branch.
-- `patch: true`: Ensures Codecov always checks coverage on the changed lines in
-  a PR, regardless of the base branch or flag.
-```
-coverage:
-  status:
-    project:
-      default:
-        target: auto
-        threshold: 1%
-        flags:
-          - fast
-          - slow
-          - superslow
-        branches:
-          - master
-    patch: true
-```
-
-  <img src="figs/coverage/image3.png" alt="alt text" width="1000"/>
+     <img src="figs/coverage/image3.png" alt="alt text" width="1000"/>
 
 ## Viewing Coverage Reports
 
@@ -204,16 +214,20 @@ generate html report:
   invoke run_coverage --suite superslow --generate-html-report
   ```
 
-- You can then open [`/htmlcov/index.html`](/htmlcov/index.html) in your browser
-  to browse the interactive report if html report generated.
-- Steps:
-  ```
-  > cd htmlcov
-  > python3 -m http.server 8000
-  ```
-- Then visit: `[http://localhost:8000`](http://localhost:8000`)
+- Review HTML coverage report
+  - Run a local HTTP server to serve the HTML:
+    ```
+      cd htmlcov
+      python3 -m http.server 8000
+    ```
+  - If you're running this on a remote server, set up SSH port forwarding:
+    ```
+      ssh -i ~/.ssh/<private_key> -L 8000:localhost:8000 <user_name>@<server_ip>
+    ```
+  - Then open your browser and go to:
+    [http://localhost:8000](http://localhost:8000)
 
-<img src="figs/coverage/image4.png" alt="alt text" width="1000"/>
+    <img src="figs/coverage/image4.png" alt="alt text" width="1000"/>
 
 ## System Behavior: When the Test Coverage Workflow Fails or Continues
 
@@ -322,11 +336,6 @@ include:
 
   <img src="figs/coverage/image6.png" alt="alt text" width="1000"/>
   - Slow test coverage:
-
-  <img src="figs/coverage/image7.png" alt="alt text" width="1000"/>
-  - Superslow test coverage
-
-  <img src="figs/coverage/image8.png" alt="alt text" width="1000"/>
 
 - Regular review of coverage differences (visible in PR checks and Codecov UI)
   is encouraged to maintain code quality
