@@ -112,9 +112,8 @@ class TestDockerBuildLocalImage1(hunitest.TestCase):
         mock_ctx = httestlib._build_mock_context_returning_ok()
         test_version = "1.0.0"
         test_base_image = "test-registry.com/test-image"
-        # Call tested function using `.body` to bypass invoke's argument
-        # parsing and run the raw implementation.
-        hltadore.docker_build_local_image.body(
+        # Call tested function .
+        hltadore.docker_build_local_image(
             mock_ctx,
             test_version,
             cache=False,
@@ -194,9 +193,8 @@ class TestDockerBuildLocalImage1(hunitest.TestCase):
         test_version = "1.0.0"
         test_base_image = "test-registry.com/test-image"
         test_multi_arch = "linux/amd64,linux/arm64"
-        # Call tested function using `.body` to bypass invoke's argument
-        # parsing and run the raw implementation.
-        hltadore.docker_build_local_image.body(
+        # Call tested function.
+        hltadore.docker_build_local_image(
             mock_ctx,
             test_version,
             cache=False,
