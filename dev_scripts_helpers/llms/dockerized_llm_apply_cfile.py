@@ -14,6 +14,8 @@ import logging
 import re
 from typing import List, Tuple
 
+import tqdm
+
 import dev_scripts_helpers.llms.llm_prompts as dshlllpr
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -76,7 +78,7 @@ def _apply_transforms(cfile_lines: List[Tuple[str, str]], prompt_tag: str, model
     _LOG.info("Files to transform: %s", len(file_to_line_to_transform.keys()))
     _LOG.info("Total number of transform: %s", len(cfile_lines))
     # Apply the transforms to the file.
-    for file_name, line_to_transform in file_to_line_to_transform.items():
+    for file_name, line_to_transform in tqdm.tqdm(file_to_line_to_transform.items()):
         _LOG.info("Applying transforms to file '%s'", file_name)
         # Look for file in the current directory.
         cmd = f'find -path "*/{file_name}"'
@@ -89,10 +91,12 @@ def _apply_transforms(cfile_lines: List[Tuple[str, str]], prompt_tag: str, model
         instructions = "\n".join(
             [f"{line_number}: {transform}" for line_number, transform in line_to_transform]
         )
+        print(instructions)
+        assert 0
         # Transform the file using the instructions.
         txt_out = dshlllpr.run_prompt(prompt_tag, txt_in, model, instructions=instructions, in_file_name="", out_file_name="")
         # Write the file.
-        hio.to_file(txt_out, file_name)
+        hio.to_file(act_file_name, txt_out)
 
 
 

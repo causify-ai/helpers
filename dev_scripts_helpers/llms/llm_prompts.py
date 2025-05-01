@@ -433,7 +433,7 @@ def code_apply_linter_instructions() -> _PROMPT_OUT:
     number of changes to the code that are not needed.
     """
     pre_transforms = {"add_line_numbers"}
-    post_transforms = {"remove_line_numbers"}
+    post_transforms = set()
     return system, pre_transforms, post_transforms
 
 
