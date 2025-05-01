@@ -925,18 +925,16 @@ def _get_inclusion_settings(target_dir: str) -> Tuple[str, Optional[str]]:
     return include_in_report, exclude_from_report
 
 
-def _run_coverage(
-    ctx,
-    suite: str,
-    target_dir: str,
-    generate_html_report: bool = False,
-) -> None:
+@task
+def run_coverage(
+    ctx, suite: str, target_dir: str = ".", generate_html_report: bool = False
+):
     """
-    Run coverage for a given suite (fast/slow/superslow).
+    Unified task to run coverage for any test suite.
 
-    :param suite: one of "fast", "slow" or "superslow"
-    :param target_dir: coverage target directory
-    :param generate_html_report: whether to produce HTML output
+    :param ctx: invoke context
+    :param suite: suite to run ("fast", "slow", "superslow")
+    :param target_dir: directory to measure coverage
     """
     hdbg.dassert_in(suite, ("fast", "slow", "superslow"))
     # Build the command line.
@@ -947,7 +945,8 @@ def _run_coverage(
         # Enable coverage computation.
         "--coverage",
         # Specify which directory to test.
-        "-p", target_dir,
+        "-p",
+        target_dir,
     ]
     test_cmd = hlitauti.to_multi_line_cmd(test_cmd_parts)
     # Run the tests under coverage.
@@ -978,21 +977,6 @@ def _run_coverage(
     docker_cmd_ = f"invoke docker_cmd --use-bash --cmd '{full_report_cmd}'"
     # Execute the full coverage/Docker pipeline.
     hlitauti.run(ctx, docker_cmd_)
-
-
-@task
-def run_coverage(
-    ctx, suite: str, target_dir: str = ".", generate_html_report: bool = False
-):
-    """
-    Unified task to run coverage for any test suite.
-
-    :param ctx: invoke context
-    :param suite: suite to run ("fast", "slow", "superslow")
-    :param target_dir: directory to measure coverage
-    """
-    hdbg.dassert_in(suite, ("fast", "slow", "superslow"))
-    _run_coverage(ctx, suite, target_dir, generate_html_report)
 
 
 # #############################################################################
