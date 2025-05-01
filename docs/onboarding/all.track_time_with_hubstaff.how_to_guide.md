@@ -19,9 +19,7 @@
   - Time tracking
   - Invoice creation
   - Payment
-- The goal is to replace our
-  [hour log spreadsheet](https://docs.google.com/spreadsheets/d/1oNd6ORhc94oUzg5nhNC7fQelN_PmfAv110F7lUiZsxo/edit#gid=0)
-  with Hubstaff and get paid automatically for the worked hours.
+- The goal is to use Hubstaff for automatically getting paid for the worked hours.
 
 ## Time Tracking
 

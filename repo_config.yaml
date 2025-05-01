@@ -9,6 +9,8 @@ repo_info:
   invalid_words:
   # Prefix of the issue in the repo, e.g., `HelpersTask`, `CmampTask`.
   issue_prefix: HelpersTask
+  # Enable git-commit hooks.
+  enable_git_commit_hook: True
 
 docker_info:
   # Base name of the docker image, e.g., `helpers`.
