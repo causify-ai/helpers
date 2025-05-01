@@ -63,19 +63,23 @@ jobs:
       - name: Run Fast test and generate report
         id: run_fast
         continue-on-error: true
-        env:
-          GH_ACTION_ACCESS_TOKEN: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
-          CSFY_AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
-          CSFY_AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
-          CSFY_AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
-          CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
-          CSFY_ECR_BASE_PATH: ghcr.io/${{ github.repository_owner }}
-          CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
-        run: invoke run_coverage --suite fast
+        run: |
+          echo "Simulating fast test failure"
+          exit 1
+        # env:
+        #   GH_ACTION_ACCESS_TOKEN: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
+        #   CSFY_AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
+        #   CSFY_AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
+        #   CSFY_AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
+        #   CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
+        #   CSFY_ECR_BASE_PATH: ghcr.io/${{ github.repository_owner }}
+        #   CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
+        # run: invoke run_coverage --suite fast
 
       - name: Upload Fast Test Coverage to Codecov
         id: upload_fast
-        # Upload report if the fast test run successfully and report is generated.
+        # Only upload if the previous fast test run step succeeded (i.r report generated).
+        # failed step don’t generate a coverage report, so there's nothing to upload.
         if: steps.run_fast.outcome == 'success'
         continue-on-error: true
         uses: codecov/codecov-action@v5
@@ -102,6 +106,7 @@ jobs:
 
       - name: Upload Slow Test Coverage to Codecov
         id: upload_slow
+        # Only upload if the previous slow test run step succeeded (i.r report generated).
         if: steps.run_slow.outcome == 'success'
         continue-on-error: true
         uses: codecov/codecov-action@v5
