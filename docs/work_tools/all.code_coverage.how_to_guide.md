@@ -29,13 +29,12 @@ Codecov was integrated by adding necessary files and configuration steps:
 
 Files and Directories Added:
 
-- `.coveragerc`: Configures coverage collection rules
+- `.coveragerc`: Configures directories and files under coverage collection
 - `.github/gh_requirements.txt`: Lists dependencies necessary for the coverage
   workflow
 - `.github/workflows/coverage_tests.yml`: Defines GitHub Actions workflow for
   automated coverage runs
-- `codecov.yml`: Specifies Codecov-specific behaviors such as flags, comments,
-  and coverage thresholds
+- `Global YAML`: Configures coverage collection of Codecov
 
 ## Coverage Configuration
 
@@ -81,85 +80,99 @@ Coverage tests are automated via GitHub Actions -
 
 4. Each job:
 
-- Generates an `XML` coverage report (`coverage.xml`)
+- Generates an `XML` coverage report (`Global YAML`)
 - Uploads reports to `Codecov` with respective flags (`fast`, `slow`,
   `superslow`)
 
 ## Codecov Configuration (codecov.yml)
 
-Coverage flags and project-level checks are configured at - `codecov.yml`.
+- Coverage flags and project-level checks are configured at Global yml -
+  [https://app.codecov.io/account/gh/causify-ai/yaml/.](https://app.codecov.io/account/gh/causify-ai/yaml/.)
+- If required, you can add distinct repository configurations to the
+  `.codecov.yml` file at the root of your repository.
 
-1. Flag Management: The `carryforward` option allows Codecov to reuse the
-   previous coverage data if no new coverage report is submitted for a specific
-   flag during a `CI` run. Setting it to true ensures continuous visibility for
-   flags that might not run on every CI cycle. `wait_for_results` is used to
-   delay GitHub status checks (e.g., patch/project) until all expected flags are
-   uploaded.
-   ```
-   flag_management:
-    default_rules:
-        wait_for_results: true
-    individual_flags:
-      - name: fast
-        carryforward: true
-      - name: slow
-        carryforward: true
-      - name: superslow
-        carryforward: true
-   ```
+1. Flag Management
 
-2. Comment Behavior: Codecov can automatically post a comment on pull requests
-   summarizing the impact of the changes on code coverage. The `comment` block
-   in the configuration controls how and when these comments are made. Setting
-   `behavior: default` ensures that only one comment is maintained and updated
-   with each commit. The `layout` controls what data is shown, such as overall
-   project coverage, the diff, and file-level breakdowns. To avoid clutter in
-   the PR "Files changed" tab, `show_critical_paths` is set to `false`, which
-   disables inline per-line comments made by the Codecov bot. However, even with
-   `show_critical_paths: false`, GitHub Checks can still show per-line
-   annotations for uncovered lines. To fully suppress all inline coverage
-   feedback (both Codecov review comments and GitHub check annotations), set
-   `coverage.annotations: false`.
-   ```
-   comment:
-     layout: "reach, diff, files"
-     behavior: default
-     # Allow comment to appear even if the coverage drop is small or unchanged.
-     require_changes: false
-     show_critical_paths: false
-   coverage:
-     annotations: false
-   ```
-   - When PR comment is enabled:
+The `carryforward` option allows Codecov to reuse the previous coverage data if
+a report is not submitted for a given flag in the current CI run. This is useful
+when certain test suites (e.g., slow or superslow) don't run in every cycle but
+should still be reflected in the coverage summary.
+```
+flag_management:
+ individual_flags:
+   - name: fast
+     carryforward: true
+   - name: slow
+     carryforward: true
+   - name: superslow
+     carryforward: true
+```
+
+2. Comment Behavior
+
+Codecov can automatically post a summary comment on PRs. This comment can be
+customized in layout, behavior, and verbosity.
+
+- `layout: "reach, diff, files"` : Displays overall coverage, diff coverage, and
+  file-level detail
+- `behavior: default` : Overwrites the previous comment instead of posting a new
+  one
+- `require_changes: false` : Posts the comment even when coverage doesn't change
+- `show_critical_paths: false` : Disables per-line comments in the PR diff view
+```
+comment:
+ layout: "reach, diff, files"
+ behavior: default
+ require_changes: false
+ show_critical_paths: false
+```
+
+- When PR comment is enabled:
 
    <img src="figs/coverage/image1.png" alt="alt text" width="1000"/>
-   - When per-line comments in PR files is enabled with `show_critical_paths`.
+
+- When per-line comments in PR files is enabled.
 
    <img src="figs/coverage/image2.png" alt="alt text" width="1000"/>
 
+3. GitHub Check Annotations
+
+Inline annotations in the GitHub "Files changed" view are disabled using the
+`github_checks.annotations` flag. This ensures a cleaner PR experience without
+coverage-based highlights on each line.
+
+  <img src="figs/coverage/image9.png" alt="alt text" width="1000"/>
+
 3. Coverage Status Check:
 
-- Enabled for `master` branch.
-- Compares coverage changes relatively.
-- Fails CI if total coverage decreases by 1% or more. This threshold ensures
-  that significant coverage drops do not go unnoticed, enforcing code quality
-  standards.
-  ```
-  coverage:
-    annotations: false
-    status:
-        project:
-        enabled: true
-        target_branch: master
-        comparator: relative
-        threshold: 1
+This section configures the status checks that appear in GitHub pull requests.
+It defines both patch-level and project-level coverage checks and sets
+conditions for when they should run and how they should behave.
+
+- `project.default`: Defines the overall coverage check behavior.
+- `target`: auto automatically compares against the base branch of the PR.
+- `threshold: 1%` means the check will fail if coverage drops by `1%` or more.
+- `flags` scopes the project-level check to specific test suites (`fast`,
+  `slow`, `superslow`).
+- `branches` limits the check to PRs targeting the `master` branch.
+- `patch: true`: Ensures Codecov always checks coverage on the changed lines in
+  a PR, regardless of the base branch or flag.
+```
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
         flags:
-            - fast
-            - slow
-            - superslow
-        patch:
-        enabled: true`
-  ```
+          - fast
+          - slow
+          - superslow
+        branches:
+          - master
+    patch: true
+```
+
   <img src="figs/coverage/image3.png" alt="alt text" width="1000"/>
 
 ## Viewing Coverage Reports
