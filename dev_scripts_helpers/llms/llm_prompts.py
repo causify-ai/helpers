@@ -67,7 +67,7 @@ if not OUTSIDE_CONTAINER_POST_TRANSFORMS:
         # `convert_to_vim_cfile`.
         "convert_file_names": [
             "code_review_correctness",
-            "code_propose_refactoring",
+            "code_review_refactoring",
         ],
         # remove_code_delimiters
         "prettier_on_str": [
@@ -346,6 +346,9 @@ def code_fix_csfy_style() -> _PROMPT_OUT:
 
 
 def code_review_correctness() -> _PROMPT_OUT:
+    """
+    Review the code for correctness.
+    """
     system = _CONTEXT
     system += r"""
     You will review the code and make sure it is:
@@ -364,7 +367,10 @@ def code_review_correctness() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms
 
 
-def code_propose_refactoring() -> _PROMPT_OUT:
+def code_review_refactoring() -> _PROMPT_OUT:
+    """
+    Review the code for refactoring opportunities.
+    """
     system = _CONTEXT
     system += r"""
     You will review the code and look for opportunities to refactor the code,
@@ -379,7 +385,12 @@ def code_propose_refactoring() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms
 
 
-def code_remove_redundancy() -> _PROMPT_OUT:
+# #############################################################################
+# Transform the code.
+# #############################################################################
+
+
+def code_transform_remove_redundancy() -> _PROMPT_OUT:
     system = _CONTEXT
     system += r"""
     You will review the code and look for opportunities to refactor the code,
@@ -392,7 +403,7 @@ def code_remove_redundancy() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms
 
 
-def code_apply_csfy_style() -> _PROMPT_OUT:
+def code_transform_apply_csfy_style() -> _PROMPT_OUT:
     """
     Apply the style to the code using template code in `template_code.py`.
     """
@@ -400,10 +411,14 @@ def code_apply_csfy_style() -> _PROMPT_OUT:
     file_name = "template_code.py"
     file_content = hio.from_file(file_name)
     system += rf"""
-    Apply the style described below to the Python code without changing the
-    behavior of the code.
+    Apply the style described below to the Python code
+    
+    ```
+    {file_content}
+    ```
+    
     Do not remove any code, just format the existing code using the style.
-
+    Do not change the behavior of the code.
     Do not report any explanation of what you did, but just the converted code.
     """
     pre_transforms = set()
@@ -411,12 +426,7 @@ def code_apply_csfy_style() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms
 
 
-# #############################################################################
-# Apply transforms.
-# #############################################################################
-
-
-def code_apply_linter_instructions() -> _PROMPT_OUT:
+def code_transform_apply_linter_instructions() -> _PROMPT_OUT:
     """
     Apply the transforms passed in a cfile to the code.
     """
@@ -441,6 +451,7 @@ def code_apply_linter_instructions() -> _PROMPT_OUT:
 # #############################################################################
 
 
+# TODO(gp): Probably obsolete since Cursor can do it.
 def _get_code_unit_test_prompt(num_tests: int) -> str:
     system = _CONTEXT
     system += rf"""
@@ -455,14 +466,14 @@ def _get_code_unit_test_prompt(num_tests: int) -> str:
     return system
 
 
-def code_unit_test() -> _PROMPT_OUT:
+def code_write_unit_test() -> _PROMPT_OUT:
     system = _get_code_unit_test_prompt(5)
     pre_transforms = set()
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
 
 
-def code_1_unit_test() -> _PROMPT_OUT:
+def code_write_1_unit_test() -> _PROMPT_OUT:
     system = _get_code_unit_test_prompt(1)
     pre_transforms = set()
     post_transforms = {"remove_code_delimiters"}

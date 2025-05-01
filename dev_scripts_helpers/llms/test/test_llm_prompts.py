@@ -97,7 +97,8 @@ class Test_run_prompt1(hunitest.TestCase):
         out_file_name = "test.py"
         # Run the prompt.
         act_output = dshlllpr.run_prompt(
-            prompt_tag, input_txt, model, in_file_name, out_file_name
+            prompt_tag, input_txt, model, in_file_name=in_file_name,
+            out_file_name=out_file_name
         )
         # Check the output.
         exp_output = hprint.dedent(exp_output)

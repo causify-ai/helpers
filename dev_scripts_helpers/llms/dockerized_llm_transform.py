@@ -47,7 +47,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
         model = "gpt-4o-mini"
     else:
         model = "gpt-4o"
-    txt_tmp = dshlllpr.run_prompt(prompt_tag, txt_tmp, model, in_file_name, out_file_name)
+    txt_tmp = dshlllpr.run_prompt(prompt_tag, txt_tmp, model,
+                                  in_file_name=in_file_name,
+                                  out_file_name=out_file_name)
     if txt_tmp is not None:
         # Write file, if needed.
         res = []
