@@ -23,6 +23,13 @@ Examples
 > llm_transform.py -i dev_scripts_helpers/documentation/render_images.py -o cfile -p code_propose_refactoring
 """
 
+# TODO(gp): There are different modes to run the script
+# - process the input and write the transformed output
+# - process the input and extract a cfile with the required changes
+# - apply changes to the input from a cfile (e.g., from a previous run or the
+#   linter)
+
+
 import argparse
 import logging
 import os

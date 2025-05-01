@@ -13,9 +13,11 @@ import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
+
 # #############################################################################
 # get_prompt_tags()
 # #############################################################################
+
 
 @functools.lru_cache(maxsize=1)
 def get_prompt_tags() -> List[str]:
@@ -65,7 +67,6 @@ if not OUTSIDE_CONTAINER_POST_TRANSFORMS:
         # `convert_to_vim_cfile`.
         "convert_file_names": [
             "code_review_correctness",
-            "code_review_and_find_missing_docstrings",
             "code_propose_refactoring",
         ],
         # remove_code_delimiters
@@ -95,6 +96,12 @@ def get_outside_container_post_transforms(transform_name: str) -> Set[str]:
 _PROMPT_OUT = Tuple[str, Set[str], Set[str]]
 
 
+_CONTEXT = r"""
+You are a proficient Python coder who pays attention to detail.
+I will pass you a chunk of Python code.
+"""
+
+
 def test() -> _PROMPT_OUT:
     """
     This is just needed as a placeholder to test the flow.
@@ -105,13 +112,7 @@ def test() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms
 
 
-_CONTEXT = r"""
-You are a proficient Python coder who pays attention to detail.
-I will pass you a chunk of Python code.
-"""
-
-
-def code_add_comments() -> _PROMPT_OUT:
+def code_fix_comments() -> _PROMPT_OUT:
     """
     Add comments to Python code.
     """
@@ -128,7 +129,7 @@ def code_add_comments() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms
 
 
-def code_add_docstrings() -> _PROMPT_OUT:
+def code_fix_docstrings() -> _PROMPT_OUT:
     '''
     Add or complete a REST docstring to Python code. Each function should have a
     docstring that describes the function, its parameters, and its return value.
@@ -167,100 +168,6 @@ def code_fix_type_hints() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms
 
 
-def code_review_correctness() -> _PROMPT_OUT:
-    system = _CONTEXT
-    system += r"""
-    You will review the code and make sure it is:
-    - correct
-    - clean and readable
-    - efficient
-    - robust
-    - maintainable
-
-    Do not print any comment, besides for each point of improvement, you will
-    print the line number and the proposed improvement in the following style:
-    <line_number>: <short description of the proposed improvement>
-    """
-    pre_transforms = {"add_line_numbers"}
-    post_transforms = {"convert_to_vim_cfile"}
-    return system, pre_transforms, post_transforms
-
-
-# TODO(gp): This is kind of expensive and we should use a procedural linter stage.
-def code_review_and_find_missing_docstrings() -> _PROMPT_OUT:
-    """
-    Find missing docstrings in Python code.
-    """
-    system = _CONTEXT
-    system += r"""
-    You will review the code and find missing docstrings.
-
-    Do not print any comment, only print the line number in the following style:
-    <line_number>: <short description of the proposed improvement>
-    """
-    pre_transforms = {"add_line_numbers"}
-    post_transforms = {"convert_to_vim_cfile"}
-    return system, pre_transforms, post_transforms
-
-
-# def code_review_and_fix() -> _PROMPT_OUT:
-#     system = _CONTEXT
-#     system += r"""
-#     You will review the code and make sure it is correct and readable.
-
-#     You will print the code with the proposed improvements, minimizing the
-#     number of changes to the code that are not strictly needed.
-#     """
-#     pre_transforms = {"add_line_numbers"}
-#     post_transforms = {"convert_to_vim_cfile"}
-#     return system, pre_transforms, post_transforms
-
-
-def code_propose_refactoring() -> _PROMPT_OUT:
-    system = _CONTEXT
-    system += r"""
-    You will review the code and look for opportunities to refactor the code,
-    by removing redundancy and copy-paste code.
-
-    Do not print any comment, besides for each point of improvement, you will
-    print the line number and the proposed improvement in the following style:
-    <line_number>: <short description of the proposed improvement>
-    """
-    pre_transforms = {"add_line_numbers"}
-    post_transforms = {"convert_to_vim_cfile"}
-    return system, pre_transforms, post_transforms
-
-
-def code_refactor_and_fix() -> _PROMPT_OUT:
-    system = _CONTEXT
-    system += r"""
-    You will review the code and look for opportunities to refactor the code,
-    by removing redundancy and copy-paste code, and apply refactoring to remove
-    redundancy in the code, minimizing the number of changes to the code that
-    are not needed.
-    """
-    pre_transforms = set()
-    post_transforms = set()
-    return system, pre_transforms, post_transforms
-
-
-def code_apply_linter_issues() -> _PROMPT_OUT:
-    system = _CONTEXT
-    system += r"""
-    I will pass you Python code and a list of linting errors in the format
-    <file_name>:<line_number>:<error_code>:<error_message>
-
-    You will fix the code according to the linting errors passed, minimizing the
-    number of changes to the code that are not needed.
-
-tutorial_github/github_utils.py:105: [W0718(broad-exception-caught), get_github_contributors] Catching too general exception Exception [pylint]
-tutorial_github/github_utils.py:106: [W1203(logging-fstring-interpolation), get_github_contributors] Use lazy % formatting in logging functions [pylint]
-    """
-    pre_transforms = set()
-    post_transforms = set()
-    return system, pre_transforms, post_transforms
-
-
 def code_fix_log_string() -> _PROMPT_OUT:
     """
     Fix the log statements to use % formatting.
@@ -293,8 +200,10 @@ def code_fix_by_using_f_strings() -> _PROMPT_OUT:
     """
     system = _CONTEXT
     system += r"""
-    Use f-strings (formatted string literals) instead of % formatting and format
-    strings.
+    Fix statements like
+        raise ValueError(f"Unsupported data_source='{data_source}'")
+    by using f-strings (formatted string literals) instead of % formatting and
+    format strings.
     
     Do not print any comment, but just the converted code.
 
@@ -322,28 +231,6 @@ def code_fix_by_using_perc_strings() -> _PROMPT_OUT:
     f"Hello, {name}. You are {age} years old."
     to
     "Hello, %s. You are %d years old." % (name, age)
-    """
-    pre_transforms = set()
-    post_transforms = {"remove_code_delimiters"}
-    return system, pre_transforms, post_transforms
-
-
-def code_apply_csfy_style() -> _PROMPT_OUT:
-    """
-    Apply the style to the code using template code in `template_code.py`.
-    """
-    system = _CONTEXT
-    file_name = "template_code.py"
-    file_content = hio.from_file(file_name)
-    system += rf"""
-    Apply the style described below to the Python code without changing the
-    behavior of the code.
-    ```
-    {file_content}
-    ```
-    Do not remove any code, just format the existing code using the style.
-
-    Do not report any explanation of what you did, but just the converted code.
     """
     pre_transforms = set()
     post_transforms = {"remove_code_delimiters"}
@@ -402,9 +289,15 @@ def code_fix_csfy_style() -> _PROMPT_OUT:
     """
     Apply the csfy style to the code.
     """
-    function_names = ["code_add_comments",
-                      "code_add_docstrings",
-                      "code_fix_type_hints"]
+    function_names = ["code_fix_comments",
+                      "code_fix_docstrings",
+                      "code_fix_type_hints",
+                      "code_fix_log_string",
+                      "code_fix_from_imports",
+                      "code_fix_by_using_f_strings",
+                      "code_fix_by_using_perc_strings",
+                      "code_fix_star_before_optional_parameters",
+                      ]
     system_prompts = []
     for function_name in function_names:
         system, pre_transforms, post_transforms = eval(function_name)()
@@ -412,6 +305,95 @@ def code_fix_csfy_style() -> _PROMPT_OUT:
         hdbg.dassert_eq(pre_transforms, set())
         hdbg.dassert_eq(post_transforms, {"remove_code_delimiters"})
     system = "\n\n".join(system_prompts)
+    pre_transforms = set()
+    post_transforms = {"remove_code_delimiters"}
+    return system, pre_transforms, post_transforms
+
+
+# #############################################################################
+
+
+def code_review_correctness() -> _PROMPT_OUT:
+    system = _CONTEXT
+    system += r"""
+    You will review the code and make sure it is:
+    - correct
+    - clean and readable
+    - efficient
+    - robust
+    - maintainable
+
+    Do not print any comment, besides for each point of improvement, you will
+    print the line number and the proposed improvement in the following style:
+    <line_number>: <short description of the proposed improvement>
+    """
+    pre_transforms = {"add_line_numbers"}
+    post_transforms = {"convert_to_vim_cfile"}
+    return system, pre_transforms, post_transforms
+
+
+def code_propose_refactoring() -> _PROMPT_OUT:
+    system = _CONTEXT
+    system += r"""
+    You will review the code and look for opportunities to refactor the code,
+    by removing redundancy and copy-paste code.
+
+    Do not print any comment, besides for each point of improvement, you will
+    print the line number and the proposed improvement in the following style:
+    <line_number>: <short description of the proposed improvement>
+    """
+    pre_transforms = {"add_line_numbers"}
+    post_transforms = {"convert_to_vim_cfile"}
+    return system, pre_transforms, post_transforms
+
+
+def code_refactor_and_fix() -> _PROMPT_OUT:
+    system = _CONTEXT
+    system += r"""
+    You will review the code and look for opportunities to refactor the code,
+    by removing redundancy and copy-paste code, and apply refactoring to remove
+    redundancy in the code, minimizing the number of changes to the code that
+    are not needed.
+    """
+    pre_transforms = set()
+    post_transforms = set()
+    return system, pre_transforms, post_transforms
+
+
+def code_apply_linter_issues() -> _PROMPT_OUT:
+    system = _CONTEXT
+    system += r"""
+    I will pass you Python code and a list of linting errors in the format
+    <file_name>:<line_number>:<error_code>:<error_message>
+
+    You will fix the code according to the linting errors passed, minimizing the
+    number of changes to the code that are not needed.
+
+tutorial_github/github_utils.py:105: [W0718(broad-exception-caught), get_github_contributors] Catching too general exception Exception [pylint]
+tutorial_github/github_utils.py:106: [W1203(logging-fstring-interpolation), get_github_contributors] Use lazy % formatting in logging functions [pylint]
+    """
+    pre_transforms = set()
+    post_transforms = set()
+    return system, pre_transforms, post_transforms
+
+
+def code_apply_csfy_style() -> _PROMPT_OUT:
+    """
+    Apply the style to the code using template code in `template_code.py`.
+    """
+    system = _CONTEXT
+    file_name = "template_code.py"
+    file_content = hio.from_file(file_name)
+    system += rf"""
+    Apply the style described below to the Python code without changing the
+    behavior of the code.
+    ```
+    {file_content}
+    ```
+    Do not remove any code, just format the existing code using the style.
+
+    Do not report any explanation of what you did, but just the converted code.
+    """
     pre_transforms = set()
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
@@ -546,22 +528,8 @@ def slide_colorize_points() -> _PROMPT_OUT:
 # Transforms.
 # #############################################################################
 
-
-def _convert_to_vim_cfile_str(txt: str, in_file_name: str) -> str:
-    """
-    Convert the text passed to a string representing a vim cfile.
     
-    E.g.,
-    ```
-    57: The docstring should use more detailed type annotations for ...
-    98-104: Simplify the hash computation logic with a helper ...
-    ```
-    become:
-    ```
-    test.py:57: The docstring should use more detailed type annotations for ...
-    test.py:98: Simplify the hash computation logic with a helper ...
-    ```
-    """
+def _extract_vim_cfile_lines(txt: str) -> List[str]:
     ret_out = []
     for line in txt.split("\n"):
         _LOG.debug(hprint.to_str("line"))
@@ -601,9 +569,32 @@ def _convert_to_vim_cfile_str(txt: str, in_file_name: str) -> str:
         else:
             _LOG.warning("Can't parse line: '%s'", line)
             continue
-        ret_out.append(f"{in_file_name}:{line_number}: {description}")
+        ret_out.append((line_number, description))
+    return ret_out
+
+
+def _convert_to_vim_cfile_str(txt: str, in_file_name: str) -> str:
+    """
+    Convert the text passed to a string representing a vim cfile.
+    
+    E.g.,
+    ```
+    57: The docstring should use more detailed type annotations for ...
+    98-104: Simplify the hash computation logic with a helper ...
+    ```
+    become:
+    ```
+    test.py:57: The docstring should use more detailed type annotations for ...
+    test.py:98: Simplify the hash computation logic with a helper ...
+    ```
+    """
+    ret_out = _extract_vim_cfile_lines(txt)
+    # Append the file name to the description.
+    ret_out2 = []
+    for line_number, description in ret_out:
+        ret_out2.append(f"{in_file_name}:{line_number}: {description}")
     # Save the output.
-    txt_out = "\n".join(ret_out)
+    txt_out = "\n".join(ret_out2)
     return txt_out
 
 
@@ -627,13 +618,29 @@ def _convert_to_vim_cfile(txt: str, in_file_name: str, out_file_name: str) -> st
     return txt_out
 
 
-def _annotate_with_cfile(txt: str) -> str:
+# TODO(gp): This should become an invoke, where we read a file and a cfile and
+# inject TODOs.
+def _annotate_with_cfile(txt: str, txt_cfile: str) -> str:
     """
-    Given code and a corresponding cfile, annotate the code with the cfile.
-
-    Use TODO(*): to 
+    Annotate a file `txt` with TODOs from the cfile `txt_cfile`.
     """
-
+    ret_out = _extract_vim_cfile_lines(txt_cfile)
+    # Convert ret_out to a dict.
+    ret_out_dict = {}
+    for line_number, line in ret_out:
+        if line_number not in ret_out_dict:
+            ret_out_dict[line_number] = [line]
+        else:
+            ret_out_dict[line_number].append(line)
+    # Annotate the code.
+    txt_out = []
+    for line_number, line in txt:
+        if line_number in ret_out_dict:
+            for todo in ret_out_dict[line_number]:
+                txt_out.append(f"# TODO(*): {todo}")
+        else:
+            txt_out.append(line)
+    return "\n".join(txt_out)
 
 
 # #############################################################################
