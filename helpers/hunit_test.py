@@ -396,7 +396,10 @@ def purify_from_environment(txt: str) -> str:
             pass
     # 2) Remove CSFY_GIT_ROOT_PATH
     val = os.environ.get("CSFY_HOST_GIT_ROOT_PATH")
-    txt = re.sub(val, "$CSFY_HOST_GIT_ROOT_PATH", txt, flags=re.MULTILINE)
+    if val is not None:
+        txt = re.sub(val, "$CSFY_HOST_GIT_ROOT_PATH", txt, flags=re.MULTILINE)
+    else:
+        _LOG.debug("CSFY_HOST_GIT_ROOT_PATH is not set")
     # 3) Replace the path of current working dir with `$PWD`.
     pwd = os.getcwd()
     pattern = re.compile(f"{pwd}{dir_pattern}")

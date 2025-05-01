@@ -3,6 +3,7 @@ import re
 import unittest.mock as umock
 from typing import List, Tuple
 
+import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 import helpers.lib_tasks_docker_release as hltadore
@@ -121,60 +122,27 @@ class TestDockerBuildLocalImage1(hunitest.TestCase):
             poetry_mode="update",
         )
         actual_cmds = _extract_commands_from_call(self.mock_run.call_args_list)
-        # Check build image commands.
-        build_cmds = actual_cmds[:2]
-        expected_build_cmds = [
-            "cp -f devops/docker_build/dockerignore.dev .dockerignore",
-            "tar -czh . | DOCKER_BUILDKIT=0 time docker build "
-            " --no-cache "
-            " --build-arg AM_CONTAINER_VERSION=1.0.0 "
-            " --build-arg INSTALL_DIND=True "
-            " --build-arg POETRY_MODE=update "
-            " --build-arg CLEAN_UP_INSTALLATION=True "
-            f" --tag {test_base_image}:local-{self.user}-1.0.0 "
-            " --file devops/docker_build/dev.Dockerfile -",
-        ]
-        actual_build, expected_build = _convert_commands_to_strings(
-            build_cmds, expected_build_cmds
-        )
+        actual_cmds = "\n".join(actual_cmds)
+        # The output is a list of strings, each representing a command.
+        exp = r"""
+        cp -f devops/docker_build/dockerignore.dev .dockerignore
+        tar -czh . | DOCKER_BUILDKIT=0 \
+        time \
+        docker build \
+            --no-cache \
+            --build-arg AM_CONTAINER_VERSION=1.0.0 --build-arg INSTALL_DIND=True --build-arg POETRY_MODE=update --build-arg CLEAN_UP_INSTALLATION=True \
+            --tag test-registry.com/test-image:local-$USER_NAME-1.0.0 \
+            --file devops/docker_build/dev.Dockerfile \
+            -
+        invoke docker_cmd --stage local --version 1.0.0 --cmd 'cp -f /install/poetry.lock.out /install/pip_list.txt .' --skip-pull
+        cp -f poetry.lock.out ./devops/docker_build/poetry.lock
+        cp -f pip_list.txt ./devops/docker_build/pip_list.txt
+        docker image ls test-registry.com/test-image:local-$USER_NAME-1.0.0
+        """
         self.assert_equal(
-            actual_build,
-            expected_build,
-            fuzzy_match=True,
-            remove_lead_trail_empty_lines=True,
-            dedent=True,
-        )
-        # Check poetry file commands.
-        poetry_cmds = actual_cmds[2:5]
-        expected_poetry_cmds = [
-            "invoke docker_cmd  "
-            "--stage local "
-            f"--version {test_version} "
-            f"--cmd 'cp -f /install/poetry.lock.out /install/pip_list.txt .' --skip-pull",
-            "cp -f poetry.lock.out ./devops/docker_build/poetry.lock",
-            "cp -f pip_list.txt ./devops/docker_build/pip_list.txt",
-        ]
-        actual_poetry, expected_poetry = _convert_commands_to_strings(
-            poetry_cmds, expected_poetry_cmds
-        )
-        self.assert_equal(
-            actual_poetry,
-            expected_poetry,
-            fuzzy_match=True,
-            remove_lead_trail_empty_lines=True,
-            dedent=True,
-        )
-        # Check list images command.
-        actual_list_cmd = actual_cmds[5]
-        expected_list_cmd = (
-            f"docker image ls {test_base_image}:local-{self.user}-1.0.0"
-        )
-        actual_list, expected_list = _convert_commands_to_strings(
-            actual_list_cmd, expected_list_cmd
-        )
-        self.assert_equal(
-            actual_list,
-            expected_list,
+            actual_cmds,
+            exp,
+            purify_text=True,
             fuzzy_match=True,
             remove_lead_trail_empty_lines=True,
             dedent=True,
