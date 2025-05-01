@@ -1,7 +1,6 @@
 name: Test coverage
 
 on:
-  pull_request:
   workflow_dispatch: {}
   # every day at 00:00 UTC.
   schedule:
@@ -172,4 +171,3 @@ jobs:
             echo "At least one fast/slow test or upload step failed."
             exit 1
           fi
-

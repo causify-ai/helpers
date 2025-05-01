@@ -12,12 +12,24 @@
 #     name: python3
 # ---
 
+# CONTENTS:
+# - [Description](#description)
+# - [Imports](#imports)
+# - [Utils](#utils)
+# - [GH workflows state](#gh-workflows-state)
+# - [Allure reports](#allure-reports)
+# - [Number of open pull requests](#number-of-open-pull-requests)
+# - [Code coverage HTML-page](#code-coverage-html-page)
+# - [Code Coverage Page - CodeCov](#code-coverage-page---codecov)
+
 #  TODO(Grisha): does it belong to the `devops` dir?
 
+# <a name='description'></a>
 # # Description
 
 # The notebook reports the latest build status for multiple repos.
 
+# <a name='imports'></a>
 # # Imports
 
 # %load_ext autoreload
@@ -48,6 +60,7 @@ hprint.config_notebook()
 pd.set_option("display.max_colwidth", None)
 pd.set_option("display.max_columns", None)
 
+# <a name='utils'></a>
 # # Utils
 
 
@@ -84,6 +97,7 @@ def color_format(val: str, status_color_mapping: Dict[str, str]) -> str:
 
 # -
 
+# <a name='gh-workflows-state'></a>
 # # GH workflows state
 
 repo_list = [
@@ -122,22 +136,26 @@ for repo in repos:
         )
     )
 
+# <a name='allure-reports'></a>
 # # Allure reports
 
 # - fast tests: http://172.30.2.44/allure_reports/cmamp/fast/latest/index.html
 # - slow tests: http://172.30.2.44/allure_reports/cmamp/slow/latest/index.html
 # - superslow tests: http://172.30.2.44/allure_reports/cmamp/superslow/latest/index.html
 
+# <a name='number-of-open-pull-requests'></a>
 # # Number of open pull requests
 
 for repo in repo_list:
     number_prs = len(hlitagh.gh_get_open_prs(repo))
     _LOG.info("%s: %s", repo, number_prs)
 
+# <a name='code-coverage-html-page'></a>
 # # Code coverage HTML-page
 
 # http://172.30.2.44/html_coverage/runner_master/
 
+# <a name='code-coverage-page---codecov'></a>
 # # Code Coverage Page - CodeCov
 
 # - Helpers: https://app.codecov.io/gh/causify-ai/helpers
