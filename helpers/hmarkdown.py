@@ -252,6 +252,9 @@ def remove_code_delimiters(txt: str) -> str:
     # Replace the ```python and ``` delimiters with empty strings.
     txt_out = txt.replace("```python", "").replace("```", "")
     txt_out = txt_out.strip()
+    # Remove the numbers at the beginning of the line, if needed
+    # E.g., `3: """` -> `"""`.
+    txt_out = re.sub(r"(^\d+: )", "", txt_out, flags=re.MULTILINE)
     return txt_out
 
 

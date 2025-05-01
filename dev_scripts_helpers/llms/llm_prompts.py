@@ -97,9 +97,9 @@ _PROMPT_OUT = Tuple[str, Set[str], Set[str]]
 
 
 _CONTEXT = r"""
-You are a proficient Python coder who pays attention to detail.
-I will pass you a chunk of Python code.
-"""
+    You are a proficient Python coder who pays attention to detail.
+    I will pass you a chunk of Python code.
+    """
 
 
 def test() -> _PROMPT_OUT:
@@ -425,10 +425,6 @@ def code_apply_linter_instructions() -> _PROMPT_OUT:
     I will pass you Python code and a list of linting errors in the format
     <line_number>:<error_code>:<error_message>
 
-    For example:
-    105: [W0718(broad-exception-caught), get_github_contributors] Catching too general exception Exception [pylint]
-    106: [W1203(logging-fstring-interpolation), get_github_contributors] Use lazy % formatting in logging functions [pylint]
-
     You will fix the code according to the linting errors passed, print the
     modified code, minimizing the number of changes to the code that are not
     needed.
@@ -699,8 +695,15 @@ def run_prompt(
     if _to_run("add_line_numbers", pre_transforms):
         txt = hmarkdo.add_line_numbers(txt)
     if _to_run("add_instructions", pre_transforms):
+        # Add the specific instructions to the system prompt.
+        # E.g.,
+        # The instructions are:
+        # 52: in private function `_parse`:D401: First line should be in imperative mood; try rephrasing (found 'Same') [doc_formatter]
+        # 174: error: Missing return statement  [return] [mypy]
+        # 192: [W1201(logging-not-lazy), _convert_file_names] Use lazy % formatting in logging functions [pylint]
+        system_prompt = hprint.dedent(system_prompt)
         hdbg.dassert_is_not(instructions, None)
-        system_prompt = "The instructions are:\n" + system_prompt
+        system_prompt += "\nThe instructions are:\n" + instructions + "\n\n"
     hdbg.dassert_eq(
         len(pre_transforms),
         0,
