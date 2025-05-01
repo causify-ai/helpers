@@ -88,7 +88,7 @@ class TestDockerBuildLocalImage1(hunitest.TestCase):
         mock_ctx = httestlib._build_mock_context_returning_ok()
         test_version = "1.0.0"
         test_base_image = "test-registry.com/test-image"
-        # Call tested function .
+        # Call tested function.
         hltadore.docker_build_local_image(
             mock_ctx,
             test_version,
@@ -114,6 +114,7 @@ class TestDockerBuildLocalImage1(hunitest.TestCase):
         cp -f pip_list.txt ./devops/docker_build/pip_list.txt
         docker image ls test-registry.com/test-image:local-$USER_NAME-1.0.0
         """
+        # Check output.
         self.assert_equal(
             actual_cmds,
             exp,
@@ -172,6 +173,7 @@ class TestDockerBuildLocalImage1(hunitest.TestCase):
         cp -f pip_list.txt ./devops/docker_build/pip_list.txt
         docker image ls test-registry.com/test-image:local-$USER_NAME-1.0.0
         """
+        # Check output.
         self.assert_equal(
             actual_cmds,
             exp,
