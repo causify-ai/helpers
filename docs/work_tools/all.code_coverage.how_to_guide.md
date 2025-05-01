@@ -39,9 +39,8 @@ Files and Directories Added
 External setup
 
 Applies default coverage settings across all repos to ensure consistency in
-reporting and behavior.
-If needed, individual repos can include their own `.codecov.yml` at the root to
-override specific global settings.
+reporting and behavior. If needed, individual repos can include their own
+`.codecov.yml` at the root to override specific global settings.
 
 - [Global YAML](https://app.codecov.io/account/gh/causify-ai/yaml/.): Configures
   coverage collection of Codecov
@@ -141,13 +140,13 @@ Coverage tests are automated via GitHub Actions -
    - When PR comment is enabled:
 
      <img src="figs/coverage/image1.png" alt="alt text" width="1000"/>
-   - When per-line comments in PR files is enabled.
+   - When per-line comments in PR files is enabled:
 
      <img src="figs/coverage/image2.png" alt="alt text" width="1000"/>
 
 3. GitHub Check Annotations
 
-   Inline annotations in the GitHub "Files changed" view are disabled using the
+   Inline annotations in the GitHub `Files changed` view are disabled using the
    `github_checks.annotations` flag. This ensures a cleaner PR experience
    without coverage-based highlights on each line.
 
@@ -335,7 +334,6 @@ include:
   - Fast test coverage:
 
   <img src="figs/coverage/image6.png" alt="alt text" width="1000"/>
-  - Slow test coverage:
 
 - Regular review of coverage differences (visible in PR checks and Codecov UI)
   is encouraged to maintain code quality
