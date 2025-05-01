@@ -86,9 +86,6 @@ jobs:
           # Required to separate coverage reports by type (e.g., fast, slow, superslow) inside the Codecov UI.
           flags: fast
           name: fast-test-coverage
-          # Add this to ensure config is used correctly
-          disable_default_path_fixes: true
-
 
       - name: Run Slow test and generate report
         id: run_slow
@@ -113,9 +110,6 @@ jobs:
           files: ./coverage.xml
           flags: slow
           name: slow-test-coverage
-          # Add this to ensure config is used correctly
-          disable_default_path_fixes: true
-
 
       - name: Run Superslow test and generate report
         # Scheduled for Monday (i.e Day 1) or when manually triggered.
@@ -139,9 +133,6 @@ jobs:
           files: ./coverage.xml
           flags: superslow
           name: superslow-test-coverage
-          # Add this to ensure config is used correctly
-          disable_default_path_fixes: true
-
 
         # Fail the job in CI if any of the fast/ slow run/ upload steps above failed.
       - name: Fail if fast/slow test or upload failed
