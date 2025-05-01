@@ -151,10 +151,25 @@ jobs:
         # Fail the job in CI if any of the fast/ slow run/ upload steps above failed.
       - name: Fail if fast/slow test or upload failed
         run: |
-          if [ "${{ steps.run_fast.outcome }}" != "success" ] || \
-              [ "${{ steps.run_slow.outcome }}" != "success" ] || \
-              [ "${{ steps.upload_fast.outcome }}" != "success" ] || \
-              [ "${{ steps.upload_slow.outcome }}" != "success" ]; then
+          failed=""
+          if [ "${{ steps.run_fast.outcome }}" != "success" ]; then
+            echo "Fast test run failed"
+            failed="true"
+          fi
+          if [ "${{ steps.upload_fast.outcome }}" != "success" ]; then
+            echo "Fast test coverage upload failed"
+            failed="true"
+          fi
+          if [ "${{ steps.run_slow.outcome }}" != "success" ]; then
+            echo "Slow test run failed"
+            failed="true"
+          fi
+          if [ "${{ steps.upload_slow.outcome }}" != "success" ]; then
+            echo "Slow test coverage upload failed"
+            failed="true"
+          fi
+          if [ "$failed" = "true" ]; then
             echo "At least one fast/slow test or upload step failed."
             exit 1
           fi
+
