@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Given the list of potential bounties
+Given the list of potential bounties.
 
 > curl -L -o output.md "https://docs.google.com/document/d/1xPgQ2tWXQuVWKkGVONjOGd5j14mXSmGeY_4d1_sGzAE/export?format=markdown"
 > grep "## " output.md
@@ -34,6 +34,7 @@ import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
+
 _LOG = logging.getLogger(__name__)
 
 
@@ -57,16 +58,16 @@ def _extract_sections(markdown_content: str) -> List[Tuple[str, str]]:
     sections = []
     current_level2 = None
     # Split content into lines
-    lines = markdown_content.split('\n')
+    lines = markdown_content.split("\n")
     for line in lines:
         # Check for level 2 headers (##).
-        level2_match = re.match(r'^##\s+(.+)$', line)
+        level2_match = re.match(r"^##\s+(.+)$", line)
         if level2_match:
             current_level2 = level2_match.group(1).strip()
             current_level2 = _clean_up(current_level2)
             continue
         # Check for level 3 headers (###).
-        level3_match = re.match(r'^###\s+(.+)$', line)
+        level3_match = re.match(r"^###\s+(.+)$", line)
         if level3_match and current_level2:
             level3_section = level3_match.group(1).strip()
             level3_section = _clean_up(level3_section)
@@ -83,8 +84,18 @@ def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
-    parser.add_argument("--input_file", action="store", required=True, help="Path to the markdown file to process")
-    parser.add_argument("--output_file", action="store", required=False, help="Path to the output file to process")
+    parser.add_argument(
+        "--input_file",
+        action="store",
+        required=True,
+        help="Path to the markdown file to process",
+    )
+    parser.add_argument(
+        "--output_file",
+        action="store",
+        required=False,
+        help="Path to the output file to process or stdout/clipboard",
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -106,11 +117,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
     strs = [f"{level3}\t{level2}" for level2, level3 in sections]
     txt = "\n".join(strs)
     # Create a file with the string.
-    if args.output_file:    
+    if args.output_file:
         hio.to_file(args.output_file, txt)
     else:
         hsystem.to_pbcopy(txt, pbcopy=True)
 
 
 if __name__ == "__main__":
-    _main(_parse()) 
+    _main(_parse())
