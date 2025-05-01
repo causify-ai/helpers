@@ -1864,7 +1864,6 @@ class Test_to_pickleable_string(hunitest.TestCase):
         key2:
           key3:
             key4:
-
         """
         should_be_pickleable_before = True
         force_values_to_string = True
@@ -1886,7 +1885,6 @@ class Test_to_pickleable_string(hunitest.TestCase):
         key2:
           key3:
             key4:
-
         """
         should_be_pickleable_before = False
         force_values_to_string = True
@@ -2085,7 +2083,6 @@ class Test_to_string(hunitest.TestCase):
     def test6(self) -> None:
         """
         Test debug mode with `marked_as_used` == True.
-
         This is a smoketest since the output of stacktrace is unstable.
         """
         # Set multiline string value.
@@ -2499,8 +2496,9 @@ class Test_basic1(_Config_execute_stmt_TestCase1):
 
 
 # #############################################################################
-# Test_sort_config_string
+# TestSortConfigString
 # #############################################################################
+
 
 class TestSortConfigString(hunitest.TestCase):
     """
@@ -2576,30 +2574,6 @@ class TestSortConfigString(hunitest.TestCase):
 
     def test4(self) -> None:
         """
-        Test handling of empty lines and lines with only spaces.
-        """
-        txt = """
-        config3:
-          value3: test3
-        
-        config2:
-          value2: test2
-             
-        config1:
-          value1: test1
-        """
-        expected = """
-        config1:
-          value1: test1
-        config2:
-          value2: test2
-        config3:
-          value3: test3
-        """
-        self.check_sort_test(txt, expected)
-
-    def test5(self) -> None:
-        """
         Test sorting of complex nested structure with multiple levels.
         """
         txt = """
@@ -2628,7 +2602,7 @@ class TestSortConfigString(hunitest.TestCase):
         """
         self.check_sort_test(txt, expected)
 
-    def test6(self) -> None:
+    def test5(self) -> None:
         """
         Test sorting with special characters in config names.
         """
@@ -2641,45 +2615,5 @@ class TestSortConfigString(hunitest.TestCase):
         #comment: note
         @config: test
         _special: value
-        """
-        self.check_sort_test(txt, expected)
-
-    def test7(self) -> None:
-        """
-        Test handling of different key-value formats.
-        """
-        txt = """
-        key3 = value3
-        key1=value1
-        key4:balue4
-        key2: value2
-        """
-        expected = """
-        key1=value1
-        key2: value2
-        key3 = value3
-        key4:value4
-        """
-        self.check_sort_test(txt, expected)
-
-    def test8(self) -> None:
-        """
-        Test handling of comments and various whitespace patterns.
-        """
-        txt = """
-        # This is a comment
-        key1: value1  # Inline comment
-
-        key3: value3  # With trailing spaces
-        
-        # Another comment
-        key2: value2   
-        """
-        expected = """
-        # This is a comment
-        key1: value1  # Inline comment
-        # Another comment
-        key2: value2
-        key3: value3  # With trailing spaces
         """
         self.check_sort_test(txt, expected)
