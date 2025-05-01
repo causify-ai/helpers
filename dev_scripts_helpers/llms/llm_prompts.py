@@ -429,11 +429,14 @@ def code_apply_linter_instructions() -> _PROMPT_OUT:
     105: [W0718(broad-exception-caught), get_github_contributors] Catching too general exception Exception [pylint]
     106: [W1203(logging-fstring-interpolation), get_github_contributors] Use lazy % formatting in logging functions [pylint]
 
-    You will fix the code according to the linting errors passed, minimizing the
-    number of changes to the code that are not needed.
+    You will fix the code according to the linting errors passed, print the
+    modified code, minimizing the number of changes to the code that are not
+    needed.
+
+    Do not print any discussion, but just the converted code.
     """
-    pre_transforms = {"add_line_numbers"}
-    post_transforms = set()
+    pre_transforms = {"add_line_numbers", "add_instructions"}
+    post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
 
 
@@ -716,6 +719,7 @@ def run_prompt(
         # environment.
         import helpers.hopenai as hopenai
 
+        _LOG.debug(hprint.to_str("system_prompt"))
         response = hopenai.get_completion(
             txt, system_prompt=system_prompt, model=model, print_cost=True
         )
