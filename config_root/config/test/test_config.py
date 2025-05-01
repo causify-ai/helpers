@@ -2496,3 +2496,190 @@ class Test_basic1(_Config_execute_stmt_TestCase1):
         key1 (marked_as_used=False, writer=None, val_type=str): hello.txt
         """
         self.execute_stmt(stmt, exp, mode, globals())
+
+
+# #############################################################################
+# Test_sort_config_string
+# #############################################################################
+
+class TestSortConfigString(hunitest.TestCase):
+    """
+    Test sort_config_string function with various config formats.
+    """
+
+    def check_sort_test(self, txt: str, expected: str) -> None:
+        """
+        Helper method to test sorted config output.
+        """
+        result = cconfig.sort_config_string(txt)
+        self.assertEqual(result, expected, fuzzy_match=True)
+
+    def test1(self) -> None:
+        """
+        Test sorting of single-line config entries.
+        """
+        txt = """
+        z_config: value3
+        a_config: value1
+        m_config: value2
+        """
+        expected = """
+        a_config: value1
+        m_config: value2
+        z_config: value3
+        """
+        self.check_sort_test(txt, expected)
+
+    def test2(self) -> None:
+        """
+        Test sorting of multi-level config entries.
+        """
+        txt = """
+        build_model:
+          activation: sigmoid
+          layers: 3
+        build_data:
+          source: database
+          type: timeseries
+        """
+        expected = """
+        build_data:
+          source: database
+          type: timeseries
+        build_model:
+          activation: sigmoid
+          layers: 3
+        """
+        self.check_sort_test(txt, expected)
+
+    def test3(self) -> None:
+        """
+        Test handling of different indentation patterns and space combinations.
+        """
+        txt = """
+        config1:
+          normal_indent: value1
+         wrong_indent: value2
+        config2:
+            extra_indent: value3
+        single: value4
+         bad_indent: value5
+        """
+        expected = """
+        config1:
+          normal_indent: value1
+        config2:
+            extra_indent: value3
+        single value4
+        """
+        self.check_sort_test(txt, expected)
+
+    def test4(self) -> None:
+        """
+        Test handling of empty lines and lines with only spaces.
+        """
+        txt = """
+        config3:
+          value3: test3
+        
+        config2:
+          value2: test2
+             
+        config1:
+          value1: test1
+        """
+        expected = """
+        config1:
+          value1: test1
+        config2:
+          value2: test2
+        config3:
+          value3: test3
+        """
+        self.check_sort_test(txt, expected)
+
+    def test5(self) -> None:
+        """
+        Test sorting of complex nested structure with multiple levels.
+        """
+        txt = """
+        z_parent:
+          child2:
+            key1: val1
+            key2: val2
+          child1: value
+        a_parent:
+          nested:
+            deep:
+              key: value
+          simple: test
+        """
+        expected = """
+        a_parent:
+          nested:
+            deep:
+              key: value
+          simple: test
+        z_parent:
+          child1: value
+          child2:
+            key1: val1
+            key2: val2
+        """
+        self.check_sort_test(txt, expected)
+
+    def test6(self) -> None:
+        """
+        Test sorting with special characters in config names.
+        """
+        txt = """
+        _special: value
+        #comment: note
+        @config: test
+        """
+        expected = """
+        #comment: note
+        @config: test
+        _special: value
+        """
+        self.check_sort_test(txt, expected)
+
+    def test7(self) -> None:
+        """
+        Test handling of different key-value formats.
+        """
+        txt = """
+        key3 = value3
+        key1=value1
+        key4:balue4
+        key2: value2
+        """
+        expected = """
+        key1=value1
+        key2: value2
+        key3 = value3
+        key4:value4
+        """
+        self.check_sort_test(txt, expected)
+
+    def test8(self) -> None:
+        """
+        Test handling of comments and various whitespace patterns.
+        """
+        txt = """
+        # This is a comment
+        key1: value1  # Inline comment
+
+        key3: value3  # With trailing spaces
+        
+        # Another comment
+        key2: value2   
+        """
+        expected = """
+        # This is a comment
+        key1: value1  # Inline comment
+        # Another comment
+        key2: value2
+        key3: value3  # With trailing spaces
+        """
+        self.check_sort_test(txt, expected)

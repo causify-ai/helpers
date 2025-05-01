@@ -86,7 +86,6 @@ def replace_shared_dir_paths(
     return new_config
 
 
-# TODO(gp): Add unit tests.
 def sort_config_string(txt: str) -> str:
     """
     Sort a string representing a Config in alphabetical order by the first
