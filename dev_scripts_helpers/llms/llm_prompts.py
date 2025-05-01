@@ -112,6 +112,11 @@ def test() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms
 
 
+# #############################################################################
+# Fix.
+# #############################################################################
+
+
 def code_fix_comments() -> _PROMPT_OUT:
     """
     Add comments to Python code.
@@ -130,10 +135,12 @@ def code_fix_comments() -> _PROMPT_OUT:
 
 
 def code_fix_docstrings() -> _PROMPT_OUT:
-    '''
-    Add or complete a REST docstring to Python code. Each function should have a
-    docstring that describes the function, its parameters, and its return value.
-    '''
+    """
+    Add or complete a REST docstring to Python code.
+
+    Each function should have a docstring that describes the function,
+    its parameters, and its return value.
+    """
     system = _CONTEXT
     system += r'''
     Make sure each function as a REST docstring
@@ -141,9 +148,9 @@ def code_fix_docstrings() -> _PROMPT_OUT:
       less than 80 characters
     - To describe the parameters use the REST style, which requires each
       parameter to be prepended with :param
-    
-    An example of a correct docstring is:
 
+    An example of a correct docstring is:
+    ```
     def _format_greeting(name: str, *, greeting: str = DEFAULT_GREETING) -> str:
         """
         Format a greeting message with the given name.
@@ -152,6 +159,7 @@ def code_fix_docstrings() -> _PROMPT_OUT:
         :param greeting: the base greeting message to use
         :return: formatted greeting
         """
+    ```
     '''
     pre_transforms = set()
     post_transforms = {"remove_code_delimiters"}
@@ -162,6 +170,25 @@ def code_fix_type_hints() -> _PROMPT_OUT:
     system = _CONTEXT
     system += r"""
     Add type hints to the Python code passed.
+
+    For example, convert:
+    ```
+    def process_data(data, threshold=0.5):
+        results = []
+        for item in data:
+            if item > threshold:
+                results.append(item)
+        return results
+    ```
+    to:
+    ```
+    def process_data(data: List[float], threshold: float = 0.5) -> List[float]:
+        results: List[float] = []
+        for item in data:
+            if item > threshold:
+                results.append(item)
+        return results
+    ```
     """
     pre_transforms = set()
     post_transforms = {"remove_code_delimiters"}
@@ -180,14 +207,22 @@ def code_fix_log_string() -> _PROMPT_OUT:
     Do not print any comment, but just the converted code.
 
     For instance, convert:
+    ```
     _LOG.info(f"env_var='{str(env_var)}' is not in env_vars='{str(os.environ.keys())}'")
+    ```
     to
+    ```
     _LOG.info("env_var='%s' is not in env_vars='%s'", env_var, str(os.environ.keys()))
+    ```
 
     For instance, convert:
+    ```
     hdbg.dassert_in(env_var, os.environ, f"env_var='{str(env_var)}' is not in env_vars='{str(os.environ.keys())}''")
+    ```
     to
+    ```
     hdbg.dassert_in(env_var, os.environ, "env_var='%s' is not in env_vars='%s'", env_var, str(os.environ.keys()))
+    ```
     """
     pre_transforms = set()
     post_transforms = {"remove_code_delimiters"}
@@ -196,21 +231,29 @@ def code_fix_log_string() -> _PROMPT_OUT:
 
 def code_fix_by_using_f_strings() -> _PROMPT_OUT:
     """
-    Fix code to use f-strings, like `f"Hello, {name}. You are {age} years old."`.
+    Fix code to use f-strings, like `f"Hello, {name}.
+
+    You are {age} years old."`.
     """
     system = _CONTEXT
     system += r"""
-    Fix statements like
-        raise ValueError(f"Unsupported data_source='{data_source}'")
+    Fix statements like:
+    ```
+    raise ValueError(f"Unsupported data_source='{data_source}'")
+    ```
     by using f-strings (formatted string literals) instead of % formatting and
     format strings.
-    
+
     Do not print any comment, but just the converted code.
 
     For instance, convert:
+    ```
     "Hello, %s. You are %d years old." % (name, age)
+    ```
     to
+    ```
     f"Hello, {name}. You are {age} years old."
+    ```
     """
     pre_transforms = set()
     post_transforms = {"remove_code_delimiters"}
@@ -219,7 +262,9 @@ def code_fix_by_using_f_strings() -> _PROMPT_OUT:
 
 def code_fix_by_using_perc_strings() -> _PROMPT_OUT:
     """
-    Use % formatting, like `"Hello, %s. You are %d years old." % (name, age)`.
+    Use % formatting, like `"Hello, %s.
+
+    You are %d years old." % (name, age)`.
     """
     system = _CONTEXT
     system += r"""
@@ -228,9 +273,13 @@ def code_fix_by_using_perc_strings() -> _PROMPT_OUT:
     Do not print any comment, but just the converted code.
 
     For instance, convert:
+    ```
     f"Hello, {name}. You are {age} years old."
+    ```
     to
+    ```
     "Hello, %s. You are %d years old." % (name, age)
+    ```
     """
     pre_transforms = set()
     post_transforms = {"remove_code_delimiters"}
@@ -243,17 +292,21 @@ def code_fix_from_imports() -> _PROMPT_OUT:
     """
     system = _CONTEXT
     system += r"""
-    Replace any Python "from import" statement like:
-    from X import Y
-    with the form:
-    import X
-    and then replace the uses of Y with X.Y
+    Replace any Python "from import" statement like `from X import Y` with the
+    form `import X` and then replace the uses of `Y` with `X.Y`
 
     For instance, replace:
+    ```
     from langchain_openai import OpenAIEmbeddings
+    ```
     with:
-    import langchain_openai 
-    and then replace the uses of OpenAIEmbeddings with langchain_openai.OpenAIEmbeddings
+    ```
+    import langchain_openai
+    ```
+    Then replace the uses of `OpenAIEmbeddings` with:
+    ```
+    langchain_openai.OpenAIEmbeddings
+    ```
     """
     pre_transforms = set()
     post_transforms = {"remove_code_delimiters"}
@@ -271,14 +324,17 @@ def code_fix_star_before_optional_parameters() -> _PROMPT_OUT:
     that the function is called with the correct number of arguments.
 
     For instance, replace:
+    ```
     def reflow_label(label: str, max_length: int = 10) -> str:
 
     reflow_label("Hello, world!", 10)
-
-    with
+    ```
+    with the following:
+    ```
     def reflow_label(label: str, *, max_length: int = 10) -> str:
 
     reflow_label("Hello, world!", max_length=10)
+    ```
     """
     pre_transforms = set()
     post_transforms = {"remove_code_delimiters"}
@@ -289,15 +345,17 @@ def code_fix_csfy_style() -> _PROMPT_OUT:
     """
     Apply the csfy style to the code.
     """
-    function_names = ["code_fix_comments",
-                      "code_fix_docstrings",
-                      "code_fix_type_hints",
-                      "code_fix_log_string",
-                      "code_fix_from_imports",
-                      "code_fix_by_using_f_strings",
-                      "code_fix_by_using_perc_strings",
-                      "code_fix_star_before_optional_parameters",
-                      ]
+    # > grep "def code_fix" ./dev_scripts_helpers/llms/llm_prompts.py | awk '{print $2 }'
+    function_names = [
+        "code_fix_comments",
+        "code_fix_docstrings",
+        "code_fix_type_hints",
+        "code_fix_log_string",
+        "code_fix_by_using_f_strings",
+        "code_fix_by_using_perc_strings",
+        "code_fix_from_imports",
+        "code_fix_star_before_optional_parameters",
+    ]
     system_prompts = []
     for function_name in function_names:
         system, pre_transforms, post_transforms = eval(function_name)()
@@ -310,6 +368,8 @@ def code_fix_csfy_style() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms
 
 
+# #############################################################################
+# Review.
 # #############################################################################
 
 
@@ -347,30 +407,13 @@ def code_propose_refactoring() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms
 
 
-def code_refactor_and_fix() -> _PROMPT_OUT:
+def code_remove_redundancy() -> _PROMPT_OUT:
     system = _CONTEXT
     system += r"""
     You will review the code and look for opportunities to refactor the code,
     by removing redundancy and copy-paste code, and apply refactoring to remove
     redundancy in the code, minimizing the number of changes to the code that
     are not needed.
-    """
-    pre_transforms = set()
-    post_transforms = set()
-    return system, pre_transforms, post_transforms
-
-
-def code_apply_linter_issues() -> _PROMPT_OUT:
-    system = _CONTEXT
-    system += r"""
-    I will pass you Python code and a list of linting errors in the format
-    <file_name>:<line_number>:<error_code>:<error_message>
-
-    You will fix the code according to the linting errors passed, minimizing the
-    number of changes to the code that are not needed.
-
-tutorial_github/github_utils.py:105: [W0718(broad-exception-caught), get_github_contributors] Catching too general exception Exception [pylint]
-tutorial_github/github_utils.py:106: [W1203(logging-fstring-interpolation), get_github_contributors] Use lazy % formatting in logging functions [pylint]
     """
     pre_transforms = set()
     post_transforms = set()
@@ -399,6 +442,34 @@ def code_apply_csfy_style() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms
 
 
+# #############################################################################
+# Apply transforms.
+# #############################################################################
+
+
+def code_apply_linter_instructions() -> _PROMPT_OUT:
+    """
+    Apply the transforms passed in a cfile to the code.
+    """
+    system = _CONTEXT
+    system += r"""
+    I will pass you Python code and a list of linting errors in the format
+    <line_number>:<error_code>:<error_message>
+
+    For example:
+    105: [W0718(broad-exception-caught), get_github_contributors] Catching too general exception Exception [pylint]
+    106: [W1203(logging-fstring-interpolation), get_github_contributors] Use lazy % formatting in logging functions [pylint]
+
+    You will fix the code according to the linting errors passed, minimizing the
+    number of changes to the code that are not needed.
+    """
+    pre_transforms = {"add_line_numbers"}
+    post_transforms = {"remove_line_numbers"}
+    return system, pre_transforms, post_transforms
+
+
+# #############################################################################
+# Unit tests.
 # #############################################################################
 
 
@@ -528,7 +599,7 @@ def slide_colorize_points() -> _PROMPT_OUT:
 # Transforms.
 # #############################################################################
 
-    
+
 def _extract_vim_cfile_lines(txt: str) -> List[str]:
     ret_out = []
     for line in txt.split("\n"):
@@ -576,7 +647,7 @@ def _extract_vim_cfile_lines(txt: str) -> List[str]:
 def _convert_to_vim_cfile_str(txt: str, in_file_name: str) -> str:
     """
     Convert the text passed to a string representing a vim cfile.
-    
+
     E.g.,
     ```
     57: The docstring should use more detailed type annotations for ...
@@ -618,38 +689,15 @@ def _convert_to_vim_cfile(txt: str, in_file_name: str, out_file_name: str) -> st
     return txt_out
 
 
-# TODO(gp): This should become an invoke, where we read a file and a cfile and
-# inject TODOs.
-def _annotate_with_cfile(txt: str, txt_cfile: str) -> str:
-    """
-    Annotate a file `txt` with TODOs from the cfile `txt_cfile`.
-    """
-    ret_out = _extract_vim_cfile_lines(txt_cfile)
-    # Convert ret_out to a dict.
-    ret_out_dict = {}
-    for line_number, line in ret_out:
-        if line_number not in ret_out_dict:
-            ret_out_dict[line_number] = [line]
-        else:
-            ret_out_dict[line_number].append(line)
-    # Annotate the code.
-    txt_out = []
-    for line_number, line in txt:
-        if line_number in ret_out_dict:
-            for todo in ret_out_dict[line_number]:
-                txt_out.append(f"# TODO(*): {todo}")
-        else:
-            txt_out.append(line)
-    return "\n".join(txt_out)
-
-
 # #############################################################################
 # run_prompt()
 # #############################################################################
 
 
-# Apply transforms to the response.
 def _to_run(action: str, transforms: Set[str]) -> bool:
+    """
+    Return True if the action should be run.
+    """
     if action in transforms:
         transforms.remove(action)
         return True
@@ -657,7 +705,10 @@ def _to_run(action: str, transforms: Set[str]) -> bool:
 
 
 def run_prompt(
-    prompt_tag: str, txt: str, model: str, in_file_name: str, out_file_name: str
+    prompt_tag: str, txt: str, model: str,
+    *,
+    instructions: Optional[str] = None,
+    in_file_name: str = "", out_file_name: str = "",
 ) -> Optional[str]:
     """
     Run the prompt passed and apply the transforms to the response.
@@ -665,14 +716,15 @@ def run_prompt(
     :param prompt_tag: tag of the prompt to run
     :param txt: text to run the prompt on
     :param model: model to use
-    :param in_file_name: name of the input file
-    :param out_file_name: name of the output file
+    :param instructions: instructions to add to the system prompt
+        (e.g., line numbers and transforms to apply to each file)
+    :param in_file_name: name of the input file (needed only for cfile)
+    :param out_file_name: name of the output file (needed only for cfile)
     :return: transformed text
     """
-    _LOG.debug(hprint.to_str("prompt_tag model in_file_name out_file_name"))
+    _LOG.debug(hprint.func_signature_to_str())
     # Get the info corresponding to the prompt tag.
     prompt_tags = get_prompt_tags()
-    _LOG.debug(hprint.to_str("prompt_tags"))
     hdbg.dassert_in(prompt_tag, prompt_tags)
     python_cmd = f"{prompt_tag}()"
     system_prompt, pre_transforms, post_transforms = eval(python_cmd)
@@ -680,16 +732,21 @@ def run_prompt(
     hdbg.dassert_isinstance(pre_transforms, set)
     hdbg.dassert_isinstance(post_transforms, set)
     system_prompt = hprint.dedent(system_prompt)
-    # Run pre-transforms.
+    # 1) Run pre-transforms.
     if _to_run("add_line_numbers", pre_transforms):
         txt = hmarkdo.add_line_numbers(txt)
+    if _to_run("add_instructions", pre_transforms):
+        hdbg.dassert_is_not(instructions, None)
+        system_prompt = "The instructions are:\n" + system_prompt
     hdbg.dassert_eq(
         len(pre_transforms),
         0,
         "Not all pre_transforms were run: %s",
         pre_transforms,
     )
+    # 2) Run the prompt.
     if prompt_tag == "test":
+        # Compute the hash of the text.
         txt = "\n".join(txt)
         txt_out = hashlib.sha256(txt.encode("utf-8")).hexdigest()
     else:
@@ -705,7 +762,7 @@ def run_prompt(
         # _LOG.debug(hprint.to_str("response"))
         txt_out = hopenai.response_to_txt(response)
     hdbg.dassert_isinstance(txt_out, str)
-    # Run post-transforms.
+    # 3) Run post-transforms.
     if _to_run("remove_code_delimiters", post_transforms):
         txt_out = hmarkdo.remove_code_delimiters(txt_out)
     if _to_run("remove_end_of_line_periods", post_transforms):
@@ -713,6 +770,8 @@ def run_prompt(
     if _to_run("remove_empty_lines", post_transforms):
         txt_out = hmarkdo.remove_empty_lines(txt_out)
     if _to_run("convert_to_vim_cfile", post_transforms):
+        hdbg.dassert_ne(in_file_name, "")
+        hdbg.dassert_ne(out_file_name, "")
         txt_out = _convert_to_vim_cfile(txt_out, in_file_name, out_file_name)
     hdbg.dassert_eq(
         len(post_transforms),
