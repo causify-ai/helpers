@@ -1,9 +1,6 @@
 name: Test coverage
 
 on:
-  push:
-    branches:
-      - master
   pull_request:
   workflow_dispatch: {}
   # every day at 00:00 UTC.
