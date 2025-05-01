@@ -59,6 +59,20 @@ def has_module(module: str) -> bool:
     return has_module_
 
 
+def install_module_if_not_present(module: str) -> None:
+    """
+    Install a Python module if it is not already installed.
+
+    :param module: name of the module to install
+    """
+    _has_module = has_module(module)
+    if _has_module:
+        print(f"Module '{module}' is already installed.")
+        return
+    _, output = hsystem.system_to_string(f"sudo /venv/bin/pip install {module}")
+    print(output)
+
+
 # All printing functions should:
 # - Return a string and not a list of strings
 # - Add a newline at the end of the string (i.e., the string should end with
