@@ -29,11 +29,11 @@ Codecov was integrated by adding necessary files and configuration steps:
 
 Files and Directories Added
 
-- [.coveragerc](https://github.com/causify-ai/helpers/.coveragerc): Configures
-  directories and files under coverage collection
-- [.github/gh_requirements.txt](https://github.com/causify-ai/helpers/.github/gh_requirements.txt):
-  Lists dependencies necessary for the coverage workflow
-- [.github/workflows/coverage_tests.yml](https://github.com/causify-ai/helpers/.github/workflows/coverage_tests.yml):
+- [.coveragerc](/.coveragerc): Configures directories and files under coverage
+  collection
+- [/.github/gh_requirements.txt](/.github/gh_requirements.txt): Lists
+  dependencies necessary for the coverage workflow
+- [/.github/workflows/coverage_tests.yml](/.github/workflows/coverage_tests.yml):
   Defines GitHub Actions workflow for automated coverage runs
 
 External setup
