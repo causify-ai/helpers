@@ -251,9 +251,6 @@ def code_fix_by_using_f_strings() -> _PROMPT_OUT:
     "Hello, %s. You are %d years old." % (name, age)
     ```
     to
-    ```
-    f"Hello, {name}. You are {age} years old."
-    ```
     """
     pre_transforms = set()
     post_transforms = {"remove_code_delimiters"}
@@ -273,13 +270,7 @@ def code_fix_by_using_perc_strings() -> _PROMPT_OUT:
     Do not print any comment, but just the converted code.
 
     For instance, convert:
-    ```
-    f"Hello, {name}. You are {age} years old."
-    ```
     to
-    ```
-    "Hello, %s. You are %d years old." % (name, age)
-    ```
     """
     pre_transforms = set()
     post_transforms = {"remove_code_delimiters"}
@@ -296,17 +287,8 @@ def code_fix_from_imports() -> _PROMPT_OUT:
     form `import X` and then replace the uses of `Y` with `X.Y`
 
     For instance, replace:
-    ```
-    from langchain_openai import OpenAIEmbeddings
-    ```
     with:
-    ```
-    import langchain_openai
-    ```
     Then replace the uses of `OpenAIEmbeddings` with:
-    ```
-    langchain_openai.OpenAIEmbeddings
-    ```
     """
     pre_transforms = set()
     post_transforms = {"remove_code_delimiters"}
@@ -324,17 +306,7 @@ def code_fix_star_before_optional_parameters() -> _PROMPT_OUT:
     that the function is called with the correct number of arguments.
 
     For instance, replace:
-    ```
-    def reflow_label(label: str, max_length: int = 10) -> str:
-
-    reflow_label("Hello, world!", 10)
-    ```
     with the following:
-    ```
-    def reflow_label(label: str, *, max_length: int = 10) -> str:
-
-    reflow_label("Hello, world!", max_length=10)
-    ```
     """
     pre_transforms = set()
     post_transforms = {"remove_code_delimiters"}
@@ -430,9 +402,6 @@ def code_apply_csfy_style() -> _PROMPT_OUT:
     system += rf"""
     Apply the style described below to the Python code without changing the
     behavior of the code.
-    ```
-    {file_content}
-    ```
     Do not remove any code, just format the existing code using the style.
 
     Do not report any explanation of what you did, but just the converted code.
@@ -483,11 +452,6 @@ def _get_code_unit_test_prompt(num_tests: int) -> str:
     - Use the following style for the unit tests:
     - When calling the function passed assume it's under the module called uut
       and the user has called `import uut as uut`
-    ```
-    act = call to the function passed
-    exp = expected code
-    self.assert_equal(act, exp)
-    ```
     """
     return system
 
@@ -649,15 +613,7 @@ def _convert_to_vim_cfile_str(txt: str, in_file_name: str) -> str:
     Convert the text passed to a string representing a vim cfile.
 
     E.g.,
-    ```
-    57: The docstring should use more detailed type annotations for ...
-    98-104: Simplify the hash computation logic with a helper ...
-    ```
     become:
-    ```
-    test.py:57: The docstring should use more detailed type annotations for ...
-    test.py:98: Simplify the hash computation logic with a helper ...
-    ```
     """
     ret_out = _extract_vim_cfile_lines(txt)
     # Append the file name to the description.
@@ -705,10 +661,13 @@ def _to_run(action: str, transforms: Set[str]) -> bool:
 
 
 def run_prompt(
-    prompt_tag: str, txt: str, model: str,
+    prompt_tag: str,
+    txt: str,
+    model: str,
     *,
     instructions: Optional[str] = None,
-    in_file_name: str = "", out_file_name: str = "",
+    in_file_name: str = "",
+    out_file_name: str = "",
 ) -> Optional[str]:
     """
     Run the prompt passed and apply the transforms to the response.
@@ -716,10 +675,11 @@ def run_prompt(
     :param prompt_tag: tag of the prompt to run
     :param txt: text to run the prompt on
     :param model: model to use
-    :param instructions: instructions to add to the system prompt
-        (e.g., line numbers and transforms to apply to each file)
+    :param instructions: instructions to add to the system prompt (e.g.,
+        line numbers and transforms to apply to each file)
     :param in_file_name: name of the input file (needed only for cfile)
-    :param out_file_name: name of the output file (needed only for cfile)
+    :param out_file_name: name of the output file (needed only for
+        cfile)
     :return: transformed text
     """
     _LOG.debug(hprint.func_signature_to_str())

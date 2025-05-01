@@ -18,11 +18,12 @@ import dev_scripts_helpers.llms.llm_prompts as dshlllpr
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
+import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
 
-def _parse_cfile(cfile: str) -> List[Tuple[str, str]]:
+def _parse_cfile(cfile: str) -> List[Tuple[str, str, str]]:
     """
     Read and parse a cfile.
 
@@ -32,23 +33,29 @@ def _parse_cfile(cfile: str) -> List[Tuple[str, str]]:
     """
     # Read the cfile.
     cfile_lines = hio.from_file(cfile)
+    cfile_lines = cfile_lines.split("\n")
+    # 
+    ret = []
     # Parse the cfile.
     for line in cfile_lines:
         _LOG.debug("line=%s", line)
+        hdbg.dassert_isinstance(line, str)
         # Parse the lines of the cfile, like
         # dev_scripts_helpers/llms/llm_prompts.py:106: in public function `test`:D404: First word of the docstring should not be `This` [doc_formatter]
         # dev_scripts_helpers/llms/llm_prompts.py:110: error: Need type annotation for "pre_transforms" (hint: "pre_transforms: set[<type>] = ...")  [var-annotated] [mypy]
         # extracting the file name, line number, and transform.
         regex = r"^(.+):(\d+): (.*)$"
         match = re.match(regex, line)
-        hdbg.dassert_in(match, "Failed to parse line: %s", line)
+        if match is None:
+            _LOG.debug("Failed to parse line '%s'", line)
+            continue
         # Extract the file name, line number, and transform.
         file_name = match.group(1)
         line_number = match.group(2)
         transform = match.group(3)
         # Add values to the list.
-        cfile_lines.append((file_name, line_number, transform))
-    return cfile_lines
+        ret.append((file_name, line_number, transform))
+    return ret
 
 
 def _apply_transforms(cfile_lines: List[Tuple[str, str]], prompt_tag: str, model: str) -> None:
@@ -65,10 +72,19 @@ def _apply_transforms(cfile_lines: List[Tuple[str, str]], prompt_tag: str, model
         if file_name not in file_to_line_to_transform:
             file_to_line_to_transform[file_name] = []
         file_to_line_to_transform[file_name].append((line_number, transform))
+    # 
+    _LOG.info("Files to transform: %s", len(file_to_line_to_transform.keys()))
+    _LOG.info("Total number of transform: %s", len(cfile_lines))
     # Apply the transforms to the file.
     for file_name, line_to_transform in file_to_line_to_transform.items():
+        _LOG.info("Applying transforms to file '%s'", file_name)
+        # Look for file in the current directory.
+        cmd = f'find -path "*/{file_name}"'
+        _, act_file_name = hsystem.system_to_one_line(cmd)
+        _LOG.debug("Found file '%s' -> '%s'", file_name, act_file_name)
         # Read the file.
-        txt_in = hio.from_file(file_name)
+        hdbg.dassert_path_exists(act_file_name)
+        txt_in = hio.from_file(act_file_name)
         # Prepare the instructions for the prompt.
         instructions = "\n".join(
             [f"{line_number}: {transform}" for line_number, transform in line_to_transform]
@@ -134,7 +150,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         model = "gpt-4o"
     # Apply the transforms.
     cfile_lines = _parse_cfile(args.cfile)
-    _apply_transforms(cfile_lines, args.prompt_tag, model)
+    _apply_transforms(cfile_lines, args.prompt, model)
 
 
 if __name__ == "__main__":

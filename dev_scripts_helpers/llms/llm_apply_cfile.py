@@ -57,7 +57,6 @@ def _parse() -> argparse.ArgumentParser:
 def _run_dockerized_llm_apply_cfile(
     in_file_path: str,
     cmd_opts: List[str],
-    out_file_path: str,
     *,
     return_cmd: bool = False,
     force_rebuild: bool = False,
@@ -78,10 +77,10 @@ def _run_dockerized_llm_apply_cfile(
     FROM python:3.12-alpine
 
     # Install Bash.
-    #RUN apk add --no-cache bash
+    RUN apk add --no-cache bash
 
     # Set Bash as the default shell.
-    #SHELL ["/bin/bash", "-c"]
+    SHELL ["/bin/bash", "-c"]
 
     # Install pip packages.
     RUN pip install --upgrade pip
@@ -107,15 +106,6 @@ def _run_dockerized_llm_apply_cfile(
         is_caller_host=is_caller_host,
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
-    out_file_path = hdocker.convert_caller_to_callee_docker_path(
-        out_file_path,
-        caller_mount_path,
-        callee_mount_path,
-        check_if_exists=False,
-        is_input=False,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
-    )
     helpers_root = hgit.find_helpers_root()
     helpers_root = hdocker.convert_caller_to_callee_docker_path(
         helpers_root,
@@ -129,7 +119,7 @@ def _run_dockerized_llm_apply_cfile(
     git_root = hgit.find_git_root()
     # TODO(gp): -> llm_apply_cfile.py
     script = hsystem.find_file_in_repo(
-        "dockerized_llm_transform.py", root_dir=git_root
+        "dockerized_llm_apply_cfile.py", root_dir=git_root
     )
     script = hdocker.convert_caller_to_callee_docker_path(
         script,
@@ -141,7 +131,7 @@ def _run_dockerized_llm_apply_cfile(
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
     cmd_opts_as_str = " ".join(cmd_opts)
-    cmd = f" {script} -i {in_file_path} -o {out_file_path} {cmd_opts_as_str}"
+    cmd = f" {script} --cfile {in_file_path} {cmd_opts_as_str}"
     docker_cmd = hdocker.get_docker_base_cmd(use_sudo)
     docker_cmd.extend(
         [

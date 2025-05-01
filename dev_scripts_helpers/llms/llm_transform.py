@@ -24,10 +24,8 @@ Examples
 """
 
 # TODO(gp): There are different modes to run the script
-# - process the input and write the transformed output
-# - process the input and extract a cfile with the required changes
-# - apply changes to the input from a cfile (e.g., from a previous run or the
-#   linter)
+# - run the script to process input and write transformed output
+# - run the script to process input and extract a cfile
 
 
 import argparse
