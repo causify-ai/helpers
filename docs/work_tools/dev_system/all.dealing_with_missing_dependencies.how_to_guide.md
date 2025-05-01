@@ -57,7 +57,6 @@
     don't want these installation commands running automatically
   - Example (in a Jupyter Notebook cell)
     ```bash
-    # TODO(heanh): Replace with `install_module_if_not_present`
     !sudo sudo /venv/bin/pip install --quiet somepackage)"
     ```
 
