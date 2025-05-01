@@ -4,24 +4,17 @@ import argparse
 import logging
 import os
 
-from openai import OpenAI
-
 import helpers.hchatgpt_instructions as hchainst
 import helpers.hdbg as hdbg
+import helpers.henv as henv
 import helpers.hparser as hparser
 
-_LOG = logging.getLogger(__name__)
-
-try:
-    pass
-except ImportError:
-    os.system("pip install openai")
-finally:
-    pass
+henv.install_module_if_not_present("openai")
+import openai
 
 _LOG = logging.getLogger(__name__)
 
-client = OpenAI(
+client = openai.OpenAI(
     # This is the default and can be omitted
     api_key=os.environ.get("OPENAI_API_KEY"),
 )
@@ -39,7 +32,7 @@ def _process_text(txt: str, instruction: str) -> str:
             {
                 "role": "user",
                 "content": txt,
-            }
+            },
         ],
         model="gpt-3.5-turbo",
     )
