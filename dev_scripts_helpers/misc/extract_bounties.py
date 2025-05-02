@@ -94,7 +94,8 @@ def _parse() -> argparse.ArgumentParser:
         "--output_file",
         action="store",
         required=False,
-        help="Path to the output file to process or stdout/clipboard",
+        default=None,
+        help="Path to the output file to process",
     )
     hparser.add_verbosity_arg(parser)
     return parser
