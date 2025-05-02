@@ -116,14 +116,12 @@ class Test_run_prompt1(hunitest.TestCase):
         def transform(input: str, value: str, output: Optional[str] = None) -> str:
             print(f"input={input}, value={value}, output={output}")
 
-
         transform("input", "value")
         transform("input", "value", "output")
         """
         exp_output = """
         def transform(input: str, value: str, *, output: Optional[str] = None) -> str:
             print(f"input={input}, value={value}, output={output}")
-
 
         transform("input", "value")
         transform("input", "value", output="output")
