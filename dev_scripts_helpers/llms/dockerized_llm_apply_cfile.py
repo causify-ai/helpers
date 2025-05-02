@@ -72,7 +72,7 @@ def _apply_transforms(
     :param model: model to use for the transformation
     """
     # Create a dict from file to line number to transform.
-    file_to_line_to_transform = {}
+    file_to_line_to_transform: Dict[str, Tuple[int, str]] = {}
     for file_name, line_number, transform in cfile_lines:
         if file_name not in file_to_line_to_transform:
             file_to_line_to_transform[file_name] = []

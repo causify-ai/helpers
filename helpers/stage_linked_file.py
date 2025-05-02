@@ -54,7 +54,7 @@ logging.basicConfig(level=logging.INFO)
 #             _LOG.error(f"Error staging link {link}: {e}")
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
         description="Stage symbolic links for modification."
     )

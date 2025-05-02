@@ -81,7 +81,7 @@ def get_host_user_name() -> Optional[str]:
     return os.environ.get("CSFY_HOST_USER_NAME", None)
 
 
-def get_dev_csfy_host_names() -> List[str]:
+def get_dev_csfy_host_names() -> Tuple[str]:
     """
     Return the names of the Causify dev servers.
     """

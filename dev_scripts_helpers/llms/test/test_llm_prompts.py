@@ -63,27 +63,6 @@ class Test_prompt_tags1(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_prompt_tags1
-# #############################################################################
-
-
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
-class Test_prompt_tags1(hunitest.TestCase):
-
-    def test1(self) -> None:
-        prompt_tags = dshlllpr.get_prompt_tags()
-        _LOG.debug(hprint.to_str("prompt_tags"))
-        #
-        self.assertGreater(len(prompt_tags), 0)
-
-
-# #############################################################################
-
-
-# #############################################################################
 # Test_run_prompt1
 # #############################################################################
 

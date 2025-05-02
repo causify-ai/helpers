@@ -83,7 +83,7 @@ if not OUTSIDE_CONTAINER_POST_TRANSFORMS:
             hdbg.dassert_in(prompt, valid_prompts)
 
 
-def get_outside_container_post_transforms(transform_name: str) -> Set[str]:
+def get_outside_container_post_transforms(transform_name: str) -> Dict[str, List[str]]:
     hdbg.dassert_in(transform_name, OUTSIDE_CONTAINER_POST_TRANSFORMS.keys())
     return OUTSIDE_CONTAINER_POST_TRANSFORMS[transform_name]
 
@@ -330,10 +330,10 @@ def code_fix_csfy_style() -> _PROMPT_OUT:
     ]
     system_prompts = []
     for function_name in function_names:
-        system, pre_transforms, post_transforms = eval(function_name)()
+        system, pre_transforms_tmp, post_transforms_tmp = eval(function_name)()
         system_prompts.append(system)
-        hdbg.dassert_eq(pre_transforms, set())
-        hdbg.dassert_eq(post_transforms, {"remove_code_delimiters"})
+        hdbg.dassert_eq(pre_transforms_tmp, set())
+        hdbg.dassert_eq(post_transforms_tmp, {"remove_code_delimiters"})
     system = "\n\n".join(system_prompts)
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
@@ -574,7 +574,7 @@ def slide_colorize_points() -> _PROMPT_OUT:
 # #############################################################################
 
 
-def _extract_vim_cfile_lines(txt: str) -> List[str]:
+def _extract_vim_cfile_lines(txt: str) -> List[Tuple[int, str]]:
     ret_out = []
     for line in txt.split("\n"):
         _LOG.debug(hprint.to_str("line"))
@@ -675,7 +675,7 @@ def run_prompt(
     txt: str,
     model: str,
     *,
-    instructions: Optional[str] = None,
+    instructions: str = "",
     in_file_name: str = "",
     out_file_name: str = "",
 ) -> Optional[str]:
@@ -713,7 +713,7 @@ def run_prompt(
         # 174: error: Missing return statement  [return] [mypy]
         # 192: [W1201(logging-not-lazy), _convert_file_names] Use lazy % formatting in logging functions [pylint]
         system_prompt = hprint.dedent(system_prompt)
-        hdbg.dassert_is_not(instructions, None)
+        hdbg.dassert_ne(instructions, "")
         system_prompt += "\nThe instructions are:\n" + instructions + "\n\n"
     hdbg.dassert_eq(
         len(pre_transforms),
