@@ -4,7 +4,7 @@ import hashlib
 import logging
 import os
 import re
-from typing import List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -568,6 +568,25 @@ def slide_colorize_points() -> _PROMPT_OUT:
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
 
+
+# #############################################################################
+
+
+def scratch_categorize_topics() -> _PROMPT_OUT:
+    system = r"""
+    For each of the following title of article, find the best topic among the following ones
+
+    LLM Reasoning, Quant Finance, Time Series, Developer Tools, Python Ecosystem, Git and GitHub, Software Architecture, AI Infrastructure, Knowledge Graphs, Diffusion Models, Causal Inference, Trading Strategies, Prompt Engineering, Mathematical Concepts, Dev Productivity, Rust and C++, Marketing and Sales, Probabilistic Programming, Code Refactoring, Open Source
+
+    Only print
+    - the first 2 words of the title
+    - a separator |
+    - the topic
+    and don't print any explanation
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {"remove_code_delimiters"}
+    return system, pre_transforms, post_transforms
 
 # #############################################################################
 # Transforms.
