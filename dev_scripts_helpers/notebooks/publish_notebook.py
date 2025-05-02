@@ -24,8 +24,7 @@ This script performs several actions on a Jupyter notebook, such as:
       --aws_profile 'am'
   ```
 
-# Detailed instructions at:
-https://docs.google.com/document/d/1b3RptKVK6vFUc8upcz3n0nTZhTO0ZQ-Ay5I01nCp5WM/edit#heading=h.prfy6fm6muxp
+# Detailed instructions at `/docs/coding/all.publish_notebook.how_to_guide.md`.
 
 Import as:
 
