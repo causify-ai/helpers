@@ -96,7 +96,6 @@ class Test_sync_gh_issue_labels1(hunitest.TestCase):
             backup=True,
         )
         actual_cmd = self.mock_system.call_args[0][0]
-        _LOG.info("actual_cmd=%s", actual_cmd)
         expected_cmd = (
             r"docker run -e GH_TOKEN -e PYTHONPATH=/container/app --workdir /container "
             r"--mount /host:/container test.img:latest /container/app/dev_scripts_helpers/github/dockerized_sync_gh_issue_labels.py "
