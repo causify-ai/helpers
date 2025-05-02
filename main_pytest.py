@@ -106,7 +106,8 @@ def _run_test(runnable_dir: str, command: str) -> None:
     # Error code is not propagated upward to the parent process causing the
     # GH actions to not fail the pipeline (See CmampTask11449).
     # We need to explicitly exit with the return code of the subprocess.
-    if result.returncode != 0:
+    # pytest returns 5 if no tests are collected.
+    if result.returncode not in [0, 5]:
         sys.exit(result.returncode)
 
 
@@ -114,9 +115,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     command = args.command
-    runnable_dirs = [
-        "ck.infra",
-    ]
+    # TODO(heanh): We don't want one repo to depend on another repo.
+    # Ideally, we want the runnable directories to be discovered automatically
+    # so the tests will be skipped in the global pytest but will be executed in
+    # the local runnables dirs from the CI.
+    runnable_dirs = ["ck.infra", "ck_web_apps/itsavvy"]
     if command == "run_fast_tests":
         runnable_dir = args.dir
         if runnable_dir:
