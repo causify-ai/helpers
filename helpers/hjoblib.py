@@ -450,7 +450,8 @@ def processify(func):
         p.join()
         if error:
             ex_type, ex_value, tb_str = error
-            message = "%s (in subprocess)\n%s" % (ex_value.message, tb_str)
+            #message = "%s (in subprocess)\n%s" % (ex_value.message, tb_str)
+            message = "%s (in subprocess)\n%s" % (str(ex_value), tb_str)
             raise ex_type(message)
         return ret
 
