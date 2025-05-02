@@ -76,7 +76,10 @@ class Test_sync_gh_issue_labels1(hunitest.TestCase):
 
     def test_docker_command_structure(self) -> None:
         """
-        Verify the complete Docker command structure and sequence.
+        Test building and running a dockerized executable.
+
+        This test verifies that the correct sequence of commands is
+        generated for running the dockerized executable.
         """
         # Prepare inputs.
         in_dir_name = self.get_input_dir()
