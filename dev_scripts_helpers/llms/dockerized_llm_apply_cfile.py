@@ -36,7 +36,7 @@ def _parse_cfile(cfile: str) -> List[Tuple[str, str, str]]:
     # Read the cfile.
     cfile_lines = hio.from_file(cfile)
     cfile_lines = cfile_lines.split("\n")
-    # 
+    #
     ret = []
     # Parse the cfile.
     for line in cfile_lines:
@@ -60,12 +60,14 @@ def _parse_cfile(cfile: str) -> List[Tuple[str, str, str]]:
     return ret
 
 
-def _apply_transforms(cfile_lines: List[Tuple[str, str]], prompt_tag: str, model: str) -> None:
+def _apply_transforms(
+    cfile_lines: List[Tuple[str, str]], prompt_tag: str, model: str
+) -> None:
     """
     Apply the transforms to the file.
 
-    :param cfile_lines: list of tuples, each containing a file name, line
-        number, and transform
+    :param cfile_lines: list of tuples, each containing a file name,
+        line number, and transform
     :param model: model to use for the transformation
     """
     # Create a dict from file to line number to transform.
@@ -74,11 +76,13 @@ def _apply_transforms(cfile_lines: List[Tuple[str, str]], prompt_tag: str, model
         if file_name not in file_to_line_to_transform:
             file_to_line_to_transform[file_name] = []
         file_to_line_to_transform[file_name].append((line_number, transform))
-    # 
+    #
     _LOG.info("Files to transform: %s", len(file_to_line_to_transform.keys()))
     _LOG.info("Total number of transform: %s", len(cfile_lines))
     # Apply the transforms to the file.
-    for file_name, line_to_transform in tqdm.tqdm(file_to_line_to_transform.items()):
+    for file_name, line_to_transform in tqdm.tqdm(
+        file_to_line_to_transform.items()
+    ):
         _LOG.info("Applying transforms to file '%s'", file_name)
         # Look for file in the current directory.
         cmd = f'find -path "*/{file_name}"'
@@ -89,15 +93,22 @@ def _apply_transforms(cfile_lines: List[Tuple[str, str]], prompt_tag: str, model
         txt_in = hio.from_file(act_file_name)
         # Prepare the instructions for the prompt.
         instructions = "\n".join(
-            [f"{line_number}: {transform}" for line_number, transform in line_to_transform]
+            [
+                f"{line_number}: {transform}"
+                for line_number, transform in line_to_transform
+            ]
         )
         # Transform the file using the instructions.
-        txt_out = dshlllpr.run_prompt(prompt_tag, txt_in, model,
-                                      instructions=instructions,
-                                      in_file_name="", out_file_name="")
+        txt_out = dshlllpr.run_prompt(
+            prompt_tag,
+            txt_in,
+            model,
+            instructions=instructions,
+            in_file_name="",
+            out_file_name="",
+        )
         # Write the file.
         hio.to_file(act_file_name, txt_out)
-
 
 
 # # TODO(gp): This should become an invoke or a command, where we read a file

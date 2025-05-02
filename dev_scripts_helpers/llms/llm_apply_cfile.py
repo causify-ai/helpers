@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 """
-Read cfile input and implement a transform for each line of the cfile using LLMs.
+Read cfile input and implement a transform for each line of the cfile using
+LLMs.
 
 The script `dockerized_llm_apply_cfile.py` is executed within a Docker container to ensure
 all dependencies are met. The Docker container is built dynamically if
@@ -15,15 +16,12 @@ Examples
 import argparse
 import logging
 import os
-import re
 from typing import List, Optional
 
-import dev_scripts_helpers.documentation.lint_notes as dshdlino
 import dev_scripts_helpers.llms.llm_prompts as dshlllpr
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hgit as hgit
-import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hserver as hserver
@@ -200,7 +198,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     #     out_txt = dshdlino.prettier_on_str(out_txt)
     # Read the output from the container and write it to the output file from
     # command line (e.g., `-` for stdout).
-    #hparser.write_file(out_txt, out_file_name)
+    # hparser.write_file(out_txt, out_file_name)
 
 
 if __name__ == "__main__":

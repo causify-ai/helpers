@@ -300,7 +300,7 @@ def _run_pandoc_to_pdf(
         "latex_abbrevs.sty",
     )
     hdbg.dassert_file_exists(latex_file)
-    #cmd = f"cp -f {latex_file} ."
+    # cmd = f"cp -f {latex_file} ."
     cmd = f"cp -f {latex_file} {out_dir}"
     _ = _system(cmd)
     #
@@ -327,7 +327,7 @@ def _run_pandoc_to_pdf(
     else:
         _LOG.warning("Skipping: run latex again")
     # Remove `latex_abbrevs.sty`.
-    #os.remove("latex_abbrevs.sty")
+    # os.remove("latex_abbrevs.sty")
     # Get the path of the output file created by Latex.
     file_out = os.path.basename(file_name).replace(".tex", ".pdf")
     file_out = os.path.join(out_dir, file_out)

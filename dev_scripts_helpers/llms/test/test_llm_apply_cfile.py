@@ -1,22 +1,15 @@
 import logging
-import os
-from typing import Tuple
 
 import pytest
 
-import dev_scripts_helpers.llms.llm_prompts as dshlllpr
-import helpers.hdbg as hdbg
-import helpers.hio as hio
-import helpers.hprint as hprint
 import helpers.hserver as hserver
-import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
-# Test_llm_transform1
+# Test_llm_apply_cfile1
 # #############################################################################
 
 
@@ -28,7 +21,7 @@ class Test_llm_apply_cfile1(hunitest.TestCase):
     """
     Run the script `llm_transform.py` in a Docker container.
     """
-    pass
+
     # i lint --files dev_scripts_helpers/llms/llm_prompts.py
 
     # llm_apply_cfile.py --cfile linter_warnings.txt -p code_apply_linter_instructions -v DEBUG

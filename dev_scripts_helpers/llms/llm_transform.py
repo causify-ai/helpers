@@ -186,9 +186,9 @@ def _convert_file_names(in_file_name: str, out_file_name: str) -> str:
         if line.strip() == "":
             continue
         # E.g., the format is like
-        # 
+        # ```
         # /app/helpers_root/r.py:1: Change the shebang line to `#!/usr/bin/env python3` to e
-        # 
+        # ```
         _LOG.debug("before: %s", hprint.to_str("line in_file_name"))
         line = re.sub(r"^.*(:\d+:.*)$", rf"{in_file_name}\1", line)
         _LOG.debug("after: %s", hprint.to_str("line"))
