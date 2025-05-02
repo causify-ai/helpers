@@ -356,7 +356,8 @@ def _check_words_in_text(
             val = m.group(1)
             _LOG.debug("  -> found '%s'", val)
             val = caesar(val, _CAESAR_STEP)
-            violation = f"{file_name}:{i+1}: Found '{val}'"
+            i_tmp = i + 1
+            violation = f"{file_name}:{i_tmp}: Found '{val}'"
             violations.append(violation)
     return violations
 
@@ -485,7 +486,6 @@ def check_gitleaks(abort_on_error: bool = True) -> None:
     """
     func_name = _report()
     git_root_dir = get_git_root_dir()
-    # > docker run -v /data/heanhs/src/helpers2:/app zricethezav/gitleaks:latest -c /app/.github/gitleaks-rules.toml git /app --pre-commit --staged
     cmd = f"""
     docker run -v {git_root_dir}:/app zricethezav/gitleaks:latest -c /app/.github/gitleaks-rules.toml git /app --pre-commit --staged --verbose
     """

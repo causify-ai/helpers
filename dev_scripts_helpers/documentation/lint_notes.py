@@ -103,7 +103,6 @@ def prettier(
     *,
     print_width: int = 80,
     use_dockerized_prettier: bool = True,
-    **kwargs: Any,
 ) -> None:
     """
     Format the given text using Prettier.
@@ -259,7 +258,6 @@ def _refresh_toc(
     txt: str,
     *,
     use_dockerized_markdown_toc: bool = True,
-    **kwargs: Any,
 ) -> str:
     """
     Refresh the table of contents (TOC) in the given text.

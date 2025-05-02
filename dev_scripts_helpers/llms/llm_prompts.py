@@ -104,11 +104,11 @@ _CONTEXT = r"""
 
 def test() -> _PROMPT_OUT:
     """
-    This is just needed as a placeholder to test the flow.
+    Placeholder to test the flow.
     """
     system = ""
-    pre_transforms = set()
-    post_transforms = set()
+    pre_transforms: Set[str] = set()
+    post_transforms: Set[str] = set()
     return system, pre_transforms, post_transforms
 
 
@@ -129,7 +129,7 @@ def code_fix_comments() -> _PROMPT_OUT:
       period `.`
     - Do not comment every single line of code and especially logging statements
     """
-    pre_transforms = set()
+    pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
 
@@ -161,7 +161,7 @@ def code_fix_docstrings() -> _PROMPT_OUT:
         """
     ```
     '''
-    pre_transforms = set()
+    pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
 
@@ -190,7 +190,7 @@ def code_fix_type_hints() -> _PROMPT_OUT:
         return results
     ```
     """
-    pre_transforms = set()
+    pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
 
@@ -224,7 +224,7 @@ def code_fix_log_string() -> _PROMPT_OUT:
     hdbg.dassert_in(env_var, os.environ, "env_var='%s' is not in env_vars='%s'", env_var, str(os.environ.keys()))
     ```
     """
-    pre_transforms = set()
+    pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
 
@@ -252,7 +252,7 @@ def code_fix_by_using_f_strings() -> _PROMPT_OUT:
     ```
     to
     """
-    pre_transforms = set()
+    pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
 
@@ -272,7 +272,7 @@ def code_fix_by_using_perc_strings() -> _PROMPT_OUT:
     For instance, convert:
     to
     """
-    pre_transforms = set()
+    pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
 
@@ -290,7 +290,7 @@ def code_fix_from_imports() -> _PROMPT_OUT:
     with:
     Then replace the uses of `OpenAIEmbeddings` with:
     """
-    pre_transforms = set()
+    pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
 
@@ -308,7 +308,7 @@ def code_fix_star_before_optional_parameters() -> _PROMPT_OUT:
     For instance, replace:
     with the following:
     """
-    pre_transforms = set()
+    pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
 
@@ -335,7 +335,7 @@ def code_fix_csfy_style() -> _PROMPT_OUT:
         hdbg.dassert_eq(pre_transforms, set())
         hdbg.dassert_eq(post_transforms, {"remove_code_delimiters"})
     system = "\n\n".join(system_prompts)
-    pre_transforms = set()
+    pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
 
@@ -398,8 +398,8 @@ def code_transform_remove_redundancy() -> _PROMPT_OUT:
     redundancy in the code, minimizing the number of changes to the code that
     are not needed.
     """
-    pre_transforms = set()
-    post_transforms = set()
+    pre_transforms: Set[str] = set()
+    post_transforms: Set[str] = set()
     return system, pre_transforms, post_transforms
 
 
@@ -421,7 +421,7 @@ def code_transform_apply_csfy_style() -> _PROMPT_OUT:
     Do not change the behavior of the code.
     Do not report any explanation of what you did, but just the converted code.
     """
-    pre_transforms = set()
+    pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
 
@@ -468,14 +468,14 @@ def _get_code_unit_test_prompt(num_tests: int) -> str:
 
 def code_write_unit_test() -> _PROMPT_OUT:
     system = _get_code_unit_test_prompt(5)
-    pre_transforms = set()
+    pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
 
 
 def code_write_1_unit_test() -> _PROMPT_OUT:
     system = _get_code_unit_test_prompt(1)
-    pre_transforms = set()
+    pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
 
@@ -487,12 +487,12 @@ def md_rewrite() -> _PROMPT_OUT:
     system = r"""
     You are a proficient technical writer.
 
-    Rewrite the text passed as if you were writing a technical document to increase
-    clarity and readability.
+    Rewrite the text passed as if you were writing a technical document to
+    increase clarity and readability.
     Maintain the structure of the text as much as possible, in terms of bullet
     points and their indentation
     """
-    pre_transforms = set()
+    pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
 
@@ -503,7 +503,7 @@ def md_summarize_short() -> _PROMPT_OUT:
 
     Summarize the text in less than 30 words.
     """
-    pre_transforms = set()
+    pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
 
@@ -519,7 +519,7 @@ def slide_improve() -> _PROMPT_OUT:
     You will convert the following markdown text into bullet points
     Make sure that the text is clean and readable
     """
-    pre_transforms = set()
+    pre_transforms: Set[str] = set()
     post_transforms = {
         "remove_code_delimiters",
         "remove_end_of_line_periods",
@@ -546,7 +546,7 @@ def slide_colorize() -> _PROMPT_OUT:
 
     Print only the markdown without any explanation.
     """
-    pre_transforms = set()
+    pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
 
@@ -564,7 +564,7 @@ def slide_colorize_points() -> _PROMPT_OUT:
 
     Print only the markdown without any explanation.
     """
-    pre_transforms = set()
+    pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
 
