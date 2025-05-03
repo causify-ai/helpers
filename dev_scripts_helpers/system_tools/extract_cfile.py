@@ -1,26 +1,18 @@
 #!/usr/bin/env python
 
 """
-Run pandoc on stdin/file to stdout/file.
+This script extracts the file name from a cfile.
 
-- Read value from stdin/file
-- Transform it using Pandoc according to different transforms
-  (e.g., `convert_md_to_latex`)
-- Write the result to stdout/file.
-
-To run in vim:
-```
-:'<,'>!dev_scripts/documentation/run_pandoc.py -i - -o - -v CRITICAL
-```
-
-This script is derived from `dev_scripts/transform_skeleton.py`.
+Example:
+> jackmd DataPull | extract_cfile.py -i - -o -
 """
 
 import argparse
 import logging
+import re
+from typing import List
 
 import helpers.hdbg as hdbg
-import helpers.hlatex as hlatex
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -34,14 +26,26 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
     hparser.add_input_output_args(parser)
-    parser.add_argument(
-        "--action",
-        action="store",
-        default="convert_md_to_latex",
-        help="Action to perform",
-    )
     hparser.add_verbosity_arg(parser)
     return parser
+
+
+def _parse_input_cfile(txt: List[str]) -> List[str]:
+    files = []
+    for line in txt:
+        # Extract the file name from the `filename:line:text`.
+        # E.g.,
+        # ```
+        # docs/all.workflow.explanation.md:396:- Add QA for a `DataPull` source
+        # ````
+        pattern = r"^(\S+):\d+:.*$"
+        match = re.match(pattern, line)
+        if match:
+            filename = match.group(1)
+            files.append(filename)
+        else:
+            _LOG.warning("Can't parse line: '%s", line)
+    return files
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
@@ -52,13 +56,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Read file.
     txt = hparser.read_file(in_file_name)
     # Transform.
-    txt_tmp = "\n".join(txt)
-    if args.action == "convert_md_to_latex":
-        txt_out = hlatex.convert_pandoc_md_to_latex(txt_tmp)
-    else:
-        hdbg.dfatal("Invalid action='%s'", args.action)
+    files = _parse_input_cfile(txt)
+    files = sorted(list(set(files)))
     # Write file.
-    hparser.write_file(txt_out.split("\n"), out_file_name)
+    txt_out = "\n".join(files)
+    hparser.write_file(txt_out, out_file_name)
 
 
 if __name__ == "__main__":

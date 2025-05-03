@@ -199,9 +199,7 @@ def _convert_file_names(in_file_name: str, out_file_name: str) -> None:
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    hdbg.init_logger(
-        verbosity=args.log_level, use_exec_path=True, force_white=False
-    )
+    hparser.init_logger_for_input_output_transform(args)
     if args.prompt == "list":
         print("# Available prompt tags:")
         print("\n".join(dshlllpr.get_prompt_tags()))

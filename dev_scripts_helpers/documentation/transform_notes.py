@@ -53,9 +53,7 @@ def _parse() -> argparse.ArgumentParser:
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    hdbg.init_logger(
-        verbosity=logging.ERROR, use_exec_path=True, force_white=False
-    )
+    hparser.init_logger_for_input_output_transform(args)
     #
     cmd = args.action
     max_lev = int(args.max_lev)
