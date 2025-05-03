@@ -579,10 +579,12 @@ def scratch_categorize_topics() -> _PROMPT_OUT:
     LLM Reasoning, Quant Finance, Time Series, Developer Tools, Python Ecosystem, Git and GitHub, Software Architecture, AI Infrastructure, Knowledge Graphs, Diffusion Models, Causal Inference, Trading Strategies, Prompt Engineering, Mathematical Concepts, Dev Productivity, Rust and C++, Marketing and Sales, Probabilistic Programming, Code Refactoring, Open Source
 
     Only print
-    - the first 2 words of the title
+    - the first 3 words of the title
     - a separator |
     - the topic
     and don't print any explanation
+
+    if you don't know the topic, print "unknown"
     """
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
