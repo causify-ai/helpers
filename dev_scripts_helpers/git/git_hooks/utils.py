@@ -471,8 +471,8 @@ def get_git_root_dir() -> str:
     """
     Return the absolute path to the outermost Git repository root.
 
-    If inside a Git submodule, this returns the parent (superproject) root.
-    Otherwise, it returns the current repository's root.
+    If inside a Git submodule, this returns the parent (superproject)
+    root. Otherwise, it returns the current repository's root.
 
     :return: absolute path to the outermost Git repository root
     """
