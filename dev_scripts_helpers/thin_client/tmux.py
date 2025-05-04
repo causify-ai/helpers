@@ -22,7 +22,6 @@ current_dir = os.path.dirname(current_file_path)
 # Change to the repo directory so that it can find the repo config.
 os.chdir(current_dir)
 
-
 _HAS_SUBREPO = hrecouti.get_repo_config().use_helpers_as_nested_module()
 _SCRIPT_PATH = os.path.abspath(__file__)
 if _HAS_SUBREPO:
