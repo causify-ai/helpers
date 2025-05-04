@@ -150,7 +150,8 @@ class DependencyGraph:
 
         :param imp: Import statement (e.g., "module.submodule").
         :param py_file: File path where the import is found.
-        :return: Relative path to the resolved file, or None if unresolved.
+        :return: Relative path to the resolved file, or None if
+            unresolved.
         """
         _LOG.info("Resolving import '%s' for file %s", imp, py_file)
         # Define base directory and other parameters for module resolution.

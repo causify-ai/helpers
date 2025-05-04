@@ -83,7 +83,9 @@ if not OUTSIDE_CONTAINER_POST_TRANSFORMS:
             hdbg.dassert_in(prompt, valid_prompts)
 
 
-def get_outside_container_post_transforms(transform_name: str) -> Dict[str, List[str]]:
+def get_outside_container_post_transforms(
+    transform_name: str,
+) -> Dict[str, List[str]]:
     hdbg.dassert_in(transform_name, OUTSIDE_CONTAINER_POST_TRANSFORMS.keys())
     return OUTSIDE_CONTAINER_POST_TRANSFORMS[transform_name]
 
@@ -625,6 +627,7 @@ def scratch_categorize_topics() -> _PROMPT_OUT:
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
+
 
 # #############################################################################
 # Transforms.
