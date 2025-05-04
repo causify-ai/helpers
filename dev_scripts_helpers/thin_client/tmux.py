@@ -16,6 +16,13 @@ import thin_client_utils as tcu
 sys.path.append("helpers_root/helpers")
 import helpers.repo_config_utils as hrecouti
 
+# Get the real file path rather than the symlink path.
+current_file_path = os.path.realpath(__file__)
+current_dir = os.path.dirname(current_file_path)
+# Change to the repo directory so that it can find the repo config.
+os.chdir(current_dir)
+
+
 _HAS_SUBREPO = hrecouti.get_repo_config().use_helpers_as_nested_module()
 _SCRIPT_PATH = os.path.abspath(__file__)
 if _HAS_SUBREPO:
