@@ -469,11 +469,14 @@ def check_python_compile(
 
 def get_git_root_dir() -> str:
     """
-    Return path to the root of the git repository.
+    Return the absolute path to the outermost Git repository root.
 
-    :return: absolute path to the root of the git repository
+    If inside a Git submodule, this returns the parent (superproject) root.
+    Otherwise, it returns the current repository's root.
+
+    :return: absolute path to the outermost Git repository root
     """
-    cmd = "git rev-parse --show-toplevel"
+    cmd = "git rev-parse --show-superproject-working-tree --show-toplevel | head -n1"
     _, git_root_dir = _system_to_string(cmd)
     git_root_dir = git_root_dir.strip()
     return git_root_dir
