@@ -11,6 +11,7 @@ from typing import Tuple
 
 _LOG = logging.getLogger(__name__)
 
+
 # We can't use `hsystem` as this is a bootstrapping script.
 def _system_to_string(
     cmd: str, abort_on_error: bool = True, verbose: bool = False
@@ -39,6 +40,7 @@ def _system_to_string(
         _LOG.error(msg)
         sys.exit(-1)
     return rc, output
+
 
 # We can't use `hgit` as this is a bootstrapping script.
 def _get_git_root_dir() -> str:
