@@ -117,17 +117,53 @@ def test() -> _PROMPT_OUT:
 # #############################################################################
 
 
-def code_fix_comments() -> _PROMPT_OUT:
+def code_fix_existing_comments() -> _PROMPT_OUT:
+    """
+    Fix the already existing comments in the Python code.
+    """
+    system = _CONTEXT
+    system += r"""
+    Make sure that comments in the code are:
+    - in imperative form
+    - a correct English phrase
+    - end with a period `.`
+    - clear
+
+    Comments should be before the code that they refer to
+    E.g.,
+    ```
+    dir_name = self.directory.name  # For example, "helpers".
+    ```
+    should become
+    ```
+    # E.g., "helpers".
+    dir_name = self.directory.name
+    ```
+
+    Variables should be enclosed in a back tick, like `bar`.
+    Functions should be reported as `foo()`.
+
+    Do not change the code.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {"remove_code_delimiters"}
+    return system, pre_transforms, post_transforms
+
+
+def code_fix_improve_comments() -> _PROMPT_OUT:
     """
     Add comments to Python code.
     """
     system = _CONTEXT
     system += r"""
+    - Add comments for the parts of the code that are not properly commented
     - Every a chunk of 4 or 5 lines of code add comment explaining the code
     - Comments should go before the logical chunk of code they describe
     - Comments should be in imperative form, a full English phrase, and end with a
       period `.`
     - Do not comment every single line of code and especially logging statements
+
+    - Leave the comments already existing
     """
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
