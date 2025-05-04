@@ -40,7 +40,6 @@ class DependencyGraph:
     def build_graph(self) -> None:
         """
         Build a directed graph of intra-directory dependencies.
-        
         """
         _LOG.info("Building dependency graph for %s", self.directory)
         # Calculate the base depth of the directory
@@ -148,11 +147,11 @@ class DependencyGraph:
     def _resolve_import(self, imp: str, py_file: Path) -> str:
         """
         Resolve an import to a file path within the directory.
-        
+
         :param imp: Import statement (e.g., "module.submodule").
         :param py_file: File path where the import is found.
-        
-        :return: Relative path to the resolved file, or None if unresolved.
+        :return: Relative path to the resolved file, or None if
+            unresolved.
         """
         _LOG.info("Resolving import '%s' for file %s", imp, py_file)
         # Define base directory and other parameters for module resolution
@@ -205,11 +204,15 @@ class DependencyGraph:
                     return resolved_path
                 # If not last part, but is a module, it can't lead further
                 _LOG.info(
-                    "Could not resolve full import '%s' beyond %s", imp, module_path
+                    "Could not resolve full import '%s' beyond %s",
+                    imp,
+                    module_path,
                 )
                 return None
             # If neither exists, the import cannot be resolved
-            _LOG.info("Could not resolve import '%s' at part '%s'", imp, module_name)
+            _LOG.info(
+                "Could not resolve import '%s' at part '%s'", imp, module_name
+            )
             return None
         _LOG.info("Could not resolve import '%s'", imp)
         return None

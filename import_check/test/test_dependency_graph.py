@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-import import_check.dependency_graph as dependency_graph
+import import_check.dependency_graph as ichdegra
 
 
 @pytest.fixture
@@ -48,7 +48,7 @@ class TestDependencyGraph:
         :param test_dir: Path to the test directory
         """
         # Initialize dependency graph and build it
-        graph = dependency_graph.DependencyGraph(str(test_dir))
+        graph = ichdegra.DependencyGraph(str(test_dir))
         graph.build_graph()
         report = graph.get_text_report()
         # Verify the module with no imports is reported correctly
@@ -61,7 +61,7 @@ class TestDependencyGraph:
         :param test_dir: Path to the test directory
         """
         # Initialize dependency graph and build it
-        graph = dependency_graph.DependencyGraph(str(test_dir))
+        graph = ichdegra.DependencyGraph(str(test_dir))
         graph.build_graph()
         report = graph.get_text_report()
         # Verify chained dependencies are reported correctly
@@ -75,7 +75,7 @@ class TestDependencyGraph:
         :param test_dir: Path to the test directory
         """
         # Initialize dependency graph and build it
-        graph = dependency_graph.DependencyGraph(str(test_dir))
+        graph = ichdegra.DependencyGraph(str(test_dir))
         graph.build_graph()
         report = graph.get_text_report()
         # Verify cyclic dependencies are identified
@@ -89,7 +89,7 @@ class TestDependencyGraph:
         :param test_dir: Path to the test directory
         """
         # Initialize dependency graph and build it
-        graph = dependency_graph.DependencyGraph(str(test_dir))
+        graph = ichdegra.DependencyGraph(str(test_dir))
         graph.build_graph()
         output_file = "dependency_graph.dot"
         graph.get_dot_file(output_file)
@@ -109,7 +109,7 @@ class TestDependencyGraph:
         with open(test_dir / "module_invalid.py", "w") as f:
             f.write("def invalid_syntax()  # Missing colon\n")
         # Initialize dependency graph and build it
-        graph = dependency_graph.DependencyGraph(str(test_dir))
+        graph = ichdegra.DependencyGraph(str(test_dir))
         graph.build_graph()
         report = graph.get_text_report()
         # Verify that the graph is still correct
@@ -128,7 +128,7 @@ class TestDependencyGraph:
         with open(test_dir / "module_f.py", "w") as f:
             f.write(f"import {test_dir.name}\n")
         # Initialize dependency graph and build it
-        graph = dependency_graph.DependencyGraph(str(test_dir))
+        graph = ichdegra.DependencyGraph(str(test_dir))
         graph.build_graph()
         report = graph.get_text_report()
         # Verify that the directory import is resolved to __init__.py
@@ -151,7 +151,7 @@ class TestDependencyGraph:
             f.write("import subpackage\n")
         try:
             # Initialize dependency graph and build it
-            graph = dependency_graph.DependencyGraph(str(package_dir))
+            graph = ichdegra.DependencyGraph(str(package_dir))
             graph.build_graph()
             report = graph.get_text_report()
             # Verify the import of subpackage is resolved as a dependency
@@ -188,7 +188,7 @@ class TestDependencyGraph:
             f.write("import subpackage.subsubpackage.module_a\n")
         try:
             # Initialize dependency graph and build it
-            graph = dependency_graph.DependencyGraph(str(package_dir))
+            graph = ichdegra.DependencyGraph(str(package_dir))
             graph.build_graph()
             report = graph.get_text_report()
             # Verify the nested import is resolved as a dependency
@@ -216,7 +216,7 @@ class TestDependencyGraph:
             f.write("import subpackage.subsubpackage.module_a\n")
         try:
             # Initialize dependency graph and build it
-            graph = dependency_graph.DependencyGraph(str(package_dir))
+            graph = ichdegra.DependencyGraph(str(package_dir))
             graph.build_graph()
             report = graph.get_text_report()
             # Verify no dependencies are reported for unresolved imports
@@ -237,7 +237,7 @@ class TestDependencyGraph:
         with open(test_dir / "module_f.py", "w") as f:
             f.write("# No imports\n")
         # Build the graph with show_cycles=True to filter out everything but cycles
-        graph = dependency_graph.DependencyGraph(str(test_dir), show_cycles=True)
+        graph = ichdegra.DependencyGraph(str(test_dir), show_cycles=True)
         graph.build_graph()
         # Get the text report
         report = graph.get_text_report()
