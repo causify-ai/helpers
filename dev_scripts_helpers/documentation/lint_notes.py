@@ -94,6 +94,7 @@ def _preprocess(txt: str) -> str:
     return txt_new_as_str
 
 
+# TODO(gp): Move this somewhere else.
 # TODO(gp): Remove the code path using non dockerized executable, after fix for
 # CmampTask10710.
 def prettier(
@@ -102,6 +103,7 @@ def prettier(
     *,
     print_width: int = 80,
     use_dockerized_prettier: bool = True,
+    # TODO(gp): Remove this.
     **kwargs: Any,
 ) -> None:
     """
@@ -258,6 +260,7 @@ def _refresh_toc(
     txt: str,
     *,
     use_dockerized_markdown_toc: bool = True,
+    # TODO(gp): Remove this.
     **kwargs: Any,
 ) -> str:
     """

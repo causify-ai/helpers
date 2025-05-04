@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 
 """
-This script is designed to run a transformation script using LLMs. It requires
-certain dependencies to be present (e.g., `openai`) and thus it is executed
-within a Docker container.
+Run transformations using LLMs. It requires certain dependencies to be present
+(e.g., `openai`) and thus it is executed within a Docker container.
 
 To use this script, you need to provide the input file, output file, and
 the type of transformation to apply.
@@ -35,7 +34,7 @@ def _parse() -> argparse.ArgumentParser:
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    hparser.init_logger_for_input_output_transform(args)
     # Parse files from command line.
     in_file_name, out_file_name = hparser.parse_input_output_args(args)
     # Read file.
@@ -47,7 +46,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
         model = "gpt-4o-mini"
     else:
         model = "gpt-4o"
-    txt_tmp = dshlllpr.run_prompt(prompt_tag, txt_tmp, model, in_file_name, out_file_name)
+    txt_tmp = dshlllpr.run_prompt(
+        prompt_tag,
+        txt_tmp,
+        model,
+        in_file_name=in_file_name,
+        out_file_name=out_file_name,
+    )
     if txt_tmp is not None:
         # Write file, if needed.
         res = []
