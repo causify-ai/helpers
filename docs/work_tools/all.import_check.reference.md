@@ -1,20 +1,30 @@
-<!--ts-->
-   * [show_imports](#show_imports)
-      * [Basic usage](#basic-usage)
-      * [Visualize dependencies at a directory level](#visualize-dependencies-at-a-directory-level)
-      * [Visualize external dependencies](#visualize-external-dependencies)
-      * [Visualize level X dependencies](#visualize-level-x-dependencies)
-      * [Visualize cyclic dependencies](#visualize-cyclic-dependencies)
-      * [Pydeps-dependent limitations](#pydeps-dependent-limitations)
-         * [NotModuleError](#notmoduleerror)
-         * [Modules above the target directory](#modules-above-the-target-directory)
-      * [Run the tool on our codebase -- pre-docker procedure](#run-the-tool-on-our-codebase----pre-docker-procedure)
-   * [detect_import_cycles](#detect_import_cycles)
-      * [Basic usage](#basic-usage-1)
+<!-- toc -->
 
+- [show_imports](#show_imports)
+  * [Basic usage](#basic-usage)
+  * [Visualize dependencies at a directory level](#visualize-dependencies-at-a-directory-level)
+  * [Visualize external dependencies](#visualize-external-dependencies)
+  * [Visualize level X dependencies](#visualize-level-x-dependencies)
+  * [Visualize cyclic dependencies](#visualize-cyclic-dependencies)
+  * [Pydeps-dependent limitations](#pydeps-dependent-limitations)
+    + [NotModuleError](#notmoduleerror)
+    + [Modules above the target directory](#modules-above-the-target-directory)
+  * [Run the tool on our codebase -- pre-docker procedure](#run-the-tool-on-our-codebase----pre-docker-procedure)
+- [detect_import_cycles](#detect_import_cycles)
+  * [Basic usage](#basic-usage-1)
+- [show_deps](#show_deps)
+  * [Overview](#overview)
+  * [Command usage](#command-usage)
+  * [Examples](#examples)
+    + [Generate a text report](#generate-a-text-report)
+    + [Generate a DOT file for visualization](#generate-a-dot-file-for-visualization)
+    + [Limit analysis to a specific directory depth](#limit-analysis-to-a-specific-directory-depth)
+    + [Focus on cyclic dependencies](#focus-on-cyclic-dependencies)
+  * [Options](#options)
+  * [Limitations](#limitations)
+  * [Running the tool on our codebase](#running-the-tool-on-our-codebase)
 
-
-<!--te-->
+<!-- tocstop -->
 
 # show_imports
 
@@ -325,3 +335,209 @@ following output, detecting two import cycles:
 ERROR detect_import_cycles.py _main:73    Cyclic imports detected: (input.subdir2.subdir3.file1, input.subdir2.subdir3.file2)
 ERROR detect_import_cycles.py _main:73    Cyclic imports detected: (input.subdir4.file1, input.subdir4.file2, input.subdir4.file3)
 ```
+
+# show_deps
+
+## Overview
+
+- Analyzes Python files in a directory for intra-directory import dependencies
+- Generates:
+  - A text report, or
+  - A DOT file for visualization
+- Useful for understanding module relationships within a project
+- Supports options to:
+  - Limit analysis depth
+  - Focus on cyclic dependencies
+
+## Command usage
+
+```bash
+i show_deps [--directory <directory>] [--format <format>] [--output_file <file>] [--max_level <level>] [--show_cycles]
+```
+
+- **Default behavior**: Produces a text report, printed to stdout.
+- **Options**:
+  - `--directory`: Specifies the directory to analyze (default: current
+    directory).
+  - `--format`: Sets the output format (`text` or `dot`, default: `text`).
+  - `--output_file`: Saves the report to a file (default: stdout for text,
+    `dependency_graph.dot` for DOT).
+  - `--max_level`: Limits the directory depth for analysis (e.g., `2` for two
+    levels).
+  - `--show_cycles`: Filters the report to show only cyclic dependencies
+    (default: false).
+
+## Examples
+
+The examples below analyze the `helpers` directory, which contains
+subdirectories like `notebooks/`.
+
+### Generate a text report
+
+Create a text report of all intra-directory dependencies:
+
+```bash
+>i show_deps --directory helpers --format text > report.txt
+```
+
+Output in `report.txt`:
+
+```text
+helpers/notebooks/gallery_parquet.py imports helpers/hdbg.py, helpers/hio.py
+helpers/hdbg.py has no dependencies
+helpers/hio.py has no dependencies
+...
+```
+
+### Generate a DOT file for visualization
+
+Create a DOT file for visualization:
+
+```bash
+>i show_deps --directory helpers --format dot --output_file dependency_graph.dot
+>dot -Tsvg dependency_graph.dot -o dependency_graph.svg
+>open dependency_graph.svg
+```
+
+For large graphs, use the `neato` layout engine:
+
+```bash
+>neato -Tsvg dependency_graph.dot -o dependency_graph.svg -Goverlap=scale -Gsep=+0.5 -Gepsilon=0.01
+>open dependency_graph.svg
+```
+
+### Limit analysis to a specific directory depth
+
+Restrict analysis to a certain depth with `--max_level` (e.g., `--max_level 2`
+includes `helpers/notebooks/`, excludes deeper subdirectories):
+
+```bash
+>i show_deps --directory helpers --format text --max_level 2 > report_max_level.txt
+```
+
+Output in `report_max_level.txt`:
+
+```text
+helpers/notebooks/gallery_parquet.py imports helpers/hdbg.py, helpers/hio.py
+helpers/hdbg.py has no dependencies
+helpers/hio.py has no dependencies
+...
+```
+
+Visualize the limited graph:
+
+```bash
+>i show_deps --directory helpers --format dot --output_file dependency_graph.dot --max_level 2
+>neato -Tsvg dependency_graph.dot -o dependency_graph.svg -Goverlap=scale -Gsep=+0.5 -Gepsilon=0.01
+>open dependency_graph.svg
+```
+
+### Focus on cyclic dependencies
+
+Show only cyclic dependencies with `--show_cycles`:
+
+```bash
+>i show_deps --directory helpers --format text --show_cycles > report_cycles.txt
+```
+
+Output in `report_cycles.txt` (if cycles exist):
+
+```text
+helpers/module_d.py imports helpers/module_e.py
+helpers/module_e.py imports helpers/module_d.py
+...
+```
+
+Visualize the cyclic dependencies:
+
+```bash
+>i show_deps --directory helpers --format dot --output_file dependency_graph.dot --show_cycles
+>neato -Tsvg dependency_graph.dot -o dependency_graph.svg -Goverlap=scale -Gsep=+0.5 -Gepsilon=0.01
+>open dependency_graph.svg
+```
+
+## Options
+
+- `--directory <path>`: Directory to analyze (default: `.`).
+- `--format <text|dot>`: Output format (default: `text`).
+- `--output_file <file>`: File to save the report (default: stdout for text,
+  `dependency_graph.dot` for DOT).
+- `--max_level <int>`: Maximum directory depth to analyze (e.g., `2`).
+- `--show_cycles`: Show only cyclic dependencies (e.g., `module_d` importing
+  `module_e` and vice versa).
+
+## Limitations
+
+- Analyzes only intra-directory imports; external imports (e.g., `numpy`) are
+  ignored.
+- Imports must resolve within the directory (e.g., `helpers.hdbg` to
+  [`/helpers/hdbg.py)`](/helpers/hdbg.py)).
+- Directories with Python files must be modules (contain `__init__.py`), or a
+  `NotModuleError` is raised.
+
+Example of a valid structure:
+
+```text
+helpers
+├── __init__.py
+├── notebooks
+│   ├── gallery_parquet.py
+│   └── __init__.py
+└── hdbg.py
+```
+
+Example causing `NotModuleError`:
+
+```text
+helpers
+├── __init__.py
+├── notebooks
+│   └── gallery_parquet.py
+└── hdbg.py
+```
+
+```bash
+NotModuleError: The following dirs have to be modules (add `__init__.py`): ['helpers/notebooks']
+```
+
+## Running the tool on our codebase
+
+1. **Activate the `helpers` environment**: From the `helpers` root directory:
+
+   ```bash
+   poetry shell; export PYTHONPATH=$PYTHONPATH:$(pwd)
+   ```
+
+2. **Generate a dependency report**: Create a text report:
+
+   ```bash
+   i show_deps --directory helpers --format text > report.txt
+   ```
+
+   Or create a DOT file for visualization:
+
+   ```bash
+   i show_deps --directory helpers --format dot --output_file dependency_graph.dot
+   ```
+
+3. **Visualize the graph** (optional): Convert the DOT file to SVG and view:
+   ```bash
+   neato -Tsvg dependency_graph.dot -o dependency_graph.svg -Goverlap=scale -Gsep=+0.5 -Gepsilon=0.01
+   open dependency_graph.svg
+   ```
+
+**Troubleshooting**: If `invoke` fails (e.g.,
+`No idea what '--output_file' is!`), use the fallback script:
+
+```bash
+python3 ~/src/helpers1/generate_deps.py
+neato -Tsvg dependency_graph.dot -o dependency_graph.svg -Goverlap=scale -Gsep=+0.5 -Gepsilon=0.01
+open dependency_graph.svg
+```
+
+**Tips**: The `generate_deps.py` script applies customizations like filtering
+nodes with no dependencies and shortening labels (e.g., removing `helpers/`
+prefix). Adjust Graphviz attributes (`ranksep=2.0`, `nodesep=1.0`,
+`splines=spline`, `overlap=false`, `fontsize=10`) for better visualization.
+
+**Last review**: 2025-05-01 Ehaab Basil

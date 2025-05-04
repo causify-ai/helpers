@@ -2,6 +2,8 @@ import logging
 import os
 from typing import Any
 
+from invoke import task
+
 import helpers.repo_config_utils as hrecouti
 
 # Expose the pytest targets.
@@ -92,7 +94,6 @@ from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=u
     pytest_repro,
     run_blank_tests,
     run_coverage_report,
-    run_coverage,
     run_fast_slow_superslow_tests,
     run_fast_slow_tests,
     run_fast_tests,
@@ -119,7 +120,6 @@ try:
     from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=unused-import
         copy_ecs_task_definition_image_url,
         docker_release_multi_build_dev_image,
-        docker_release_multi_arch_prod_image,
         docker_tag_push_multi_build_local_image_as_dev,
         release_dags_to_airflow,
         integrate_file,
@@ -133,6 +133,8 @@ try:
     )
 except ImportError:
     pass
+from import_check.dependency_graph import DependencyGraph
+
 # # TODO(gp): This is due to the coupling between code in linter container and
 # #  the code being linted.
 # try:
@@ -153,7 +155,8 @@ _LOG = logging.getLogger(__name__)
 
 
 # TODO(gp): Move it to lib_tasks.
-ECR_BASE_PATH = os.environ["CSFY_ECR_BASE_PATH"]
+# ECR_BASE_PATH = os.environ["CSFY_ECR_BASE_PATH"]
+ECR_BASE_PATH = os.environ.get("CSFY_ECR_BASE_PATH", "")
 
 
 def _run_qa_tests(ctx: Any, stage: str, version: str) -> bool:
@@ -172,6 +175,54 @@ def _run_qa_tests(ctx: Any, stage: str, version: str) -> bool:
         cmd = f"{cmd} --image_version {version}"
     ctx.run(cmd)
     return True
+
+
+@task
+def show_deps(
+    c,
+    directory=".",
+    format="text",
+    output_file=None,
+    max_level=None,
+    show_cycles=False,
+):
+    """
+    Generate a dependency report for a specified directory.
+
+    Args:
+        c: Invoke context (required by invoke, unused).
+        directory (str): Directory to analyze (default: current directory).
+        format (str): Output format ('text' or 'dot', default: 'text').
+        output_file (str, optional): File to write output to (default: None).
+        max_level (int, optional): Max directory depth to analyze (default: None).
+        show_cycles (bool, optional): Show only cyclic dependencies (default: False).
+
+    Raises:
+        ValueError: If the format is neither 'text' nor 'dot'.
+    """
+    # Convert max_level to int if provided
+    max_level = int(max_level) if max_level is not None else None
+    # Convert show_cycles to bool
+    show_cycles = show_cycles in (True, "True", "true", "1")
+    graph = DependencyGraph(
+        directory, max_level=max_level, show_cycles=show_cycles
+    )
+    graph.build_graph()
+    if format == "text":
+        report = graph.get_text_report()
+        if output_file:
+            with open(output_file, "w") as f:
+                f.write(report)
+            print(f"Report written to {output_file}")
+        else:
+            print(report)
+    elif format == "dot":
+        if not output_file:
+            output_file = "dependency_graph.dot"
+        graph.get_dot_file(output_file)
+        print(f"DOT file written to {output_file}")
+    else:
+        raise ValueError(f"Unsupported format: {format}")
 
 
 default_params = {

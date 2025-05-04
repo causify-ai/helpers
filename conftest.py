@@ -7,21 +7,22 @@ import helpers.hunit_test as hut
 
 # Hack to workaround pytest not happy with multiple redundant conftest.py
 # (bug #34).
-if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
+#if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
     # import helpers.hversion as hversi
     # hversi.check_version()
 
     # pylint: disable=protected-access
-    hut._CONFTEST_ALREADY_PARSED = True
+    #hut._CONFTEST_ALREADY_PARSED = True
 
     # Store whether we are running unit test through pytest.
     # pylint: disable=line-too-long
     # From https://docs.pytest.org/en/latest/example/simple.html#detect-if-running-from-within-a-pytest-run
-    def pytest_configure(config: Any) -> None:
-        _ = config
-        # pylint: disable=protected-access
-        hut._CONFTEST_IN_PYTEST = True
 
+def pytest_configure(config: Any) -> None:
+    _ = config
+    # pylint: disable=protected-access
+    hut._CONFTEST_IN_PYTEST = True
+    
     def pytest_unconfigure(config: Any) -> None:
         _ = config
         # pylint: disable=protected-access
