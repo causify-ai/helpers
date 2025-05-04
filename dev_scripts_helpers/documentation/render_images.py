@@ -564,7 +564,7 @@ def _parse() -> argparse.ArgumentParser:
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    hparser.init_logger_for_input_output_transform(args)
     # Get the paths to the input and output files.
     in_file, out_file = hparser.parse_input_output_args(args)
     # Verify that the input and output file types are valid and equal.

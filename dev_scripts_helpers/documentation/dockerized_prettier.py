@@ -54,14 +54,12 @@ def _parse() -> argparse.ArgumentParser:
 def _main(parser: argparse.ArgumentParser) -> None:
     # Parse everything that can be parsed and returns the rest.
     args, cmd_opts = parser.parse_known_args()
+    hparser.init_logger_for_input_output_transform(args)
     in_file_name, out_file_name = hparser.parse_input_output_args(
         args, clear_screen=True
     )
     if not cmd_opts:
         cmd_opts = []
-    hdbg.init_logger(
-        verbosity=args.log_level, use_exec_path=True, force_white=False
-    )
     _LOG.debug("cmd_opts: %s", cmd_opts)
     hdocker.run_dockerized_prettier(
         in_file_name,

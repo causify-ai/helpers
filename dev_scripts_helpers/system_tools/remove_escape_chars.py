@@ -30,8 +30,7 @@ def _parse() -> argparse.ArgumentParser:
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    print("cmd line: %s" % hdbg.get_command_line())
-    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    hparser.init_logger_for_input_output_transform(args)
     #
     in_file_name, out_file_name = hparser.parse_input_output_args(
         args, clear_screen=False
