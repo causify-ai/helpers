@@ -44,7 +44,7 @@ class DependencyGraph:
         _LOG.info("Building dependency graph for %s", self.directory)
         # Calculate the base depth of the directory.
         base_depth = len(self.directory.parts)
-        # Find Python files up to max_level.
+        # Find Python files up to `max_level`.
         py_files = [
             path
             for path in self.directory.rglob("*.py")
@@ -66,7 +66,7 @@ class DependencyGraph:
                 continue
             for node in ast.walk(tree):
                 if isinstance(node, (ast.Import, ast.ImportFrom)):
-                    # Extract import names based on node type.
+                    # Extract import names based on `node` type.
                     imports = (
                         [name.name for name in node.names]
                         if isinstance(node, ast.Import)
@@ -82,7 +82,7 @@ class DependencyGraph:
                             self.graph.add_edge(relative_path, imp_path)
                         else:
                             _LOG.info("No edge added for import %s", imp)
-        # Filter for cyclic dependencies if show_cycles is True.
+        # Filter for cyclic dependencies if `show_cycles` is `True`.
         if self.show_cycles:
             self._filter_cycles()
 
@@ -158,13 +158,14 @@ class DependencyGraph:
         _LOG.info("Base directory: %s", base_dir)
         parts = imp.split(".")
         current_dir = base_dir
-        dir_name = self.directory.name  # For example, "helpers".
+        # E.g., "helpers".
+        dir_name = self.directory.name
         # Handle imports starting with the directory name.
         if parts[0] == dir_name:
-            # Skip the first part dir, solve for next.
+            # Skip the first part `dir`, solve for next.
             parts = parts[1:]
             if not parts:
-                # Only if the dir name is given (e.g., "helpers"), check for __init__.py.
+                # Only if the `dir` name is given (e.g., "helpers"), check for `__init__.py`.
                 init_path = base_dir / "__init__.py"
                 if init_path.exists():
                     resolved_path = init_path.relative_to(
@@ -176,11 +177,11 @@ class DependencyGraph:
                 return None
         # Iterate over each module name in resolved path.
         for i, module_name in enumerate(parts):
-            # Check for package with __init__.py.
+            # Check for package with `__init__.py`.
             package_path = current_dir / module_name / "__init__.py"
             _LOG.info("Checking package path: %s", package_path)
             if package_path.exists():
-                # If last part, return the __init__.py path.
+                # If last part, return the `__init__.py` path.
                 if i == len(parts) - 1:
                     resolved_path = package_path.relative_to(
                         self.directory.parent
@@ -190,11 +191,11 @@ class DependencyGraph:
                 # Otherwise, continue to the next part.
                 current_dir = current_dir / module_name
                 continue
-            # Check for a .py file.
+            # Check for a `.py` file.
             module_path = current_dir / f"{module_name}.py"
             _LOG.info("Checking module path: %s", module_path)
             if module_path.exists():
-                # If last part, return the .py path.
+                # If last part, return the `.py` path.
                 if i == len(parts) - 1:
                     resolved_path = module_path.relative_to(
                         self.directory.parent
