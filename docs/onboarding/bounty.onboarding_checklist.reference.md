@@ -21,6 +21,9 @@
       in
       [`intern.set_up_development_on_laptop.how_to_guide.md`](https://github.com/causify-ai/helpers/blob/master/docs/onboarding/intern.set_up_development_on_laptop.how_to_guide.md)
 - [ ] **Contributor**: Carefully study all the documents in the must-read list:
+  - [ ] *Carefully study all the documents in
+      [the must-read list](https://github.com/causify-ai/helpers/blob/master/docs/onboarding/all.dev_must_read_checklist.reference.md)
+  - [ ] [General rules of collaboration](https://github.com/causify-ai/helpers/blob/master/docs/work_organization/all.team_collaboration.how_to_guide.md)
   - [ ] [Coding style guide](https://github.com/causify-ai/helpers/blob/master/docs/coding/all.coding_style.how_to_guide.md)
   - [ ] [How to write unit tests](https://github.com/causify-ai/helpers/blob/master/docs/coding/all.write_unit_tests.how_to_guide.md)
   - [ ] [How to run unit tests](https://github.com/causify-ai/helpers/blob/master/docs/coding/all.run_unit_tests.how_to_guide.md)
@@ -31,6 +34,27 @@
   - [ ] [GitHub organization](https://github.com/causify-ai/helpers/blob/master/docs/work_organization/all.use_github.how_to_guide.md)
   - [ ] [Tips for writing documentation](https://github.com/causify-ai/helpers/blob/master/docs/documentation_meta/all.writing_docs.how_to_guide.md)
   - They will help you get up to speed with our practices and development style
+  - Read them carefully one by one
+  - Ask questions
+  - Memorize / internalize all the information
+  - Take notes
+  - Mark the reading as done
+  - Open a GH issue/PR to propose improvements to the documentation
+
+### Final checks
+
+- [ ] **Intern**: Exercise all the important parts of the systems
+  - [ ] Create a GitHub issue
+  - [ ] Check out and pull the latest version of the repo code
+  - [ ] Create a branch
+  - [ ] Run regressions (`i run_fast_tests`)
+  - [ ] Run Linter (`i lint --files="..."`)
+  - [ ] Start a Docker container (`i docker_bash`)
+  - [ ] Start a Jupyter server (`i docker_jupyter`)
+  - [ ] Do a PR
+- Tip: a good approach to the "final checks" is to perform all the steps
+  (opening an issue, creating a branch, filing a PR) for something very small
+  but useful -- like fixing a typo in the docs.
 
 ## Instructions
 
