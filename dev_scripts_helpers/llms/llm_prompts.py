@@ -158,13 +158,16 @@ def code_fix_improve_comments() -> _PROMPT_OUT:
     """
     system = _CONTEXT
     system += r"""
-    - Leave the comments already existing
+    - Leave the comments in the code that already exists
     - Add comments for the parts of the code that are not properly commented
-    - Every chunk of 4 or 5 lines of code add comment explaining the code
+        - E.g., every chunk of 4 or 5 lines of code add comment explaining the
+          code
     - Comments should go before the logical chunk of code they describe
     - Comments should be in imperative form, a full English phrase, and end with a
       period `.`
     - Do not comment every single line of code and especially logging statements
+    - Add examples of the values of variables, when you are sure of the types
+      and values of variables. If you are not sure, do not add any information.
     """
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
@@ -198,6 +201,10 @@ def code_fix_docstrings() -> _PROMPT_OUT:
 
     Each function should have a docstring that describes the function,
     its parameters, and its return value.
+
+    Create examples of the values in input and output of each function, only
+    when you are sure of the types and values of variables. If you are not
+    sure, do not add any information.
     """
     system = _CONTEXT
     system += r'''

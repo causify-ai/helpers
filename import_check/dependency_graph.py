@@ -7,11 +7,9 @@ import networkx as nx
 
 _LOG = logging.getLogger(__name__)
 
-
 # #############################################################################
 # DependencyGraph
 # #############################################################################
-
 
 class DependencyGraph:
     """
@@ -30,6 +28,7 @@ class DependencyGraph:
         max_level: Union[int, None] = None,
         show_cycles: bool = False,
     ) -> None:
+        # Initialize basic attributes.
         self.directory = Path(directory).resolve()
         # Create a directed graph of dependencies.
         self.graph: nx.DiGraph = nx.DiGraph()
@@ -52,12 +51,14 @@ class DependencyGraph:
             or (len(path.parent.parts) - base_depth) <= self.max_level
         ]
         _LOG.info("Found Python files: %s", py_files)
+        # Process each Python file to build the dependency graph.
         for py_file in py_files:
             relative_path = py_file.relative_to(self.directory.parent).as_posix()
             _LOG.info(
                 "Processing file %s, relative path: %s", py_file, relative_path
             )
             self.graph.add_node(relative_path)
+            # Attempt to parse the file as an Abstract Syntax Tree (AST).
             # TODO: Use hio.from_file and to_file to write.
             # TODO: Let's add a switch `abort_on_error` to continue or abort.
             try:
@@ -66,6 +67,7 @@ class DependencyGraph:
             except SyntaxError as e:
                 _LOG.warning("Skipping %s due to syntax error: %s", py_file, e)
                 continue
+            # Walk through the AST and parse import statements.
             for node in ast.walk(tree):
                 if isinstance(node, (ast.Import, ast.ImportFrom)):
                     # Extract import names based on `node` type.
@@ -74,6 +76,7 @@ class DependencyGraph:
                         if isinstance(node, ast.Import)
                         else [node.module]
                     )
+                    # Add edges for each import found.
                     for imp in imports:
                         _LOG.info("Found import: %s", imp)
                         imp_path = self._resolve_import(imp, py_file)
@@ -99,6 +102,7 @@ class DependencyGraph:
         # Iterate over all nodes to report their dependencies.
         for node in self.graph.nodes:
             dependencies = list(self.graph.successors(node))
+            # Conditional report creation depending on dependencies presence.
             # TODO: Let's use a if-then-else for clarity.
             line = (
                 f"{node} imports {', '.join(dependencies)}"
@@ -220,5 +224,6 @@ class DependencyGraph:
                 "Could not resolve import '%s' at part '%s'", imp, module_name
             )
             return None
+        # Return None if module resolution was unsuccessful.
         _LOG.info("Could not resolve import '%s'", imp)
         return None
