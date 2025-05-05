@@ -2,6 +2,8 @@ import logging
 import os
 import unittest.mock as umock
 
+import pytest
+
 import dev_scripts_helpers.github.sync_gh_issue_labels as dshgsgila
 import helpers.hgit as hgit
 import helpers.hunit_test as hunitest
@@ -14,6 +16,7 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+@pytest.mark.slow("~6 sec.")
 class Test_sync_gh_issue_labels1(hunitest.TestCase):
 
     @umock.patch(
