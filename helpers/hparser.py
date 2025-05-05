@@ -367,8 +367,20 @@ def parse_input_output_args(
             os.system("clear")
         _LOG.info(hprint.to_str("in_file_name"))
         _LOG.info(hprint.to_str("out_file_name"))
-
     return in_file_name, out_file_name
+
+    
+def init_logger_for_input_output_transform(args: argparse.Namespace) -> None:
+    verbosity = args.log_level
+    # If the input is stdin, we don't want to print the command line or any
+    # other log messages, unless the user specified a more verbose log level.
+    if args.in_file_name == "-":
+        if args.log_level == "INFO":
+            verbosity = "CRITICAL"
+    else:
+        print("cmd line: %s" % hdbg.get_command_line())
+    hdbg.init_logger(verbosity=verbosity, use_exec_path=True,
+        force_white=False)
 
 
 # TODO(gp): GFI -> from_file for symmetry for hio.

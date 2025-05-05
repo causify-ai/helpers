@@ -49,12 +49,9 @@ def _main() -> None:
     #
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level)
-    # Get amp dir.
-    amp_dir = hgit.get_amp_abs_path()
-    _LOG.info("amp_dir=%s", amp_dir)
-    hdbg.dassert_dir_exists(amp_dir)
     # Get the dir with the Git hooks to install.
-    src_dir = os.path.join(amp_dir, "dev_scripts_helpers/git/git_hooks")
+    helpers_root = hgit.find_helpers_root()
+    src_dir = os.path.join(helpers_root, "dev_scripts_helpers/git/git_hooks")
     _LOG.info("src_dir=%s", src_dir)
     hdbg.dassert_dir_exists(src_dir)
     # Find the location to install the Git hooks.
