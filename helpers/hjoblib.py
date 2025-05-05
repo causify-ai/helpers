@@ -73,10 +73,10 @@ _LOG = logging.getLogger(__name__)
 Task = Tuple[Tuple[Any], Dict[str, Any]]
 
 
-# TODO(gp): @Nikola add unit tests
+# TODO(gp): Outsource, add unit tests
 def split_list_in_tasks(
     list_in: List[Any],
-    n: int,
+    n: Union[str, int],
     *,
     keep_order: bool = False,
     num_elems_per_task: Optional[int] = None,
@@ -85,10 +85,12 @@ def split_list_in_tasks(
     Split a list in tasks based on the number of threads or elements per
     partition.
 
-    :param num_elems_per_task: force each task to have the given number of elements
+    :param list_in: list to split
+    :param n: number of threads or "serial"
     :param keep_order: split the list so that consecutive elements of the list
         are in different tasks. This favors executing the workload in order on `n`
         threads
+    :param num_elems_per_task: force each task to have the given number of elements
     :return: list of lists of elements, where each list can be assigned to an
         execution thread
 
@@ -112,6 +114,8 @@ def split_list_in_tasks(
         3 -> []
         ```
     """
+    if n == "serial":
+        n = 1
     hdbg.dassert_lte(1, n)
     hdbg.dassert_lte(n, len(list_in), "There are fewer tasks than threads")
     if keep_order:
@@ -182,9 +186,9 @@ def validate_task(task: Task) -> bool:
     hdbg.dassert_eq(len(task), 2)
     # Parse the `Task`.
     args, kwargs = task
-    _LOG.debug("task.args=%s", pprint.pformat(args))
+    #_LOG.debug("task.args=%s", pprint.pformat(args))
     hdbg.dassert_isinstance(args, tuple)
-    _LOG.debug("task.kwargs=%s", pprint.pformat(kwargs))
+    #_LOG.debug("task.kwargs=%s", pprint.pformat(kwargs))
     hdbg.dassert_isinstance(kwargs, dict)
     return True
 
@@ -424,7 +428,7 @@ def processify(func):
         """
         Run function as a process and store output in the input Queue.
         """
-        _LOG.debug("pid after processify=", os.getpid())
+        _LOG.debug("pid after processify=%s", os.getpid())
         try:
             ret = func(*args, **kwargs)
         except Exception:
@@ -552,8 +556,9 @@ def _parallel_execute_decorator(
     txt.append(f"error={error}")
     # Update log file.
     txt = "\n".join(txt)
-    _LOG.debug("txt=\n%s", hprint.indent(txt))
-    hio.to_file(log_file, txt, mode="a")
+    # TODO(gp): Add a flag to disable.
+    #_LOG.debug("txt=\n%s", hprint.indent(txt))
+    #hio.to_file(log_file, txt, mode="a")
     if error:
         # The execution wasn't successful.
         _LOG.error(txt)

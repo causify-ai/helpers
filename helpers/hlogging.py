@@ -187,6 +187,9 @@ def shutup_chatty_modules(
         "s3fs",
         "s3transfer",
         "urllib3",
+        "langchain",
+        "openai",
+        "faiss",
     ]
     # verbose = True
     loggers = get_matching_loggers(module_names, verbose)
