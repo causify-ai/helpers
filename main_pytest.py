@@ -112,6 +112,7 @@ def _run_test(runnable_dir: str, command: str) -> None:
     if result.returncode not in [0, 5]:
         sys.exit(result.returncode)
 
+
 def _find_runnable_dirs() -> List[str]:
     """
     Find all runnable directories in the current repo.
