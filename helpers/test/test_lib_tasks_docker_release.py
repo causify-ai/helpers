@@ -1,8 +1,6 @@
 import logging
 import unittest.mock as umock
-from typing import List, Tuple
-
-import invoke
+from typing import List
 
 import helpers.hunit_test as hunitest
 import helpers.lib_tasks_docker_release as hltadore
@@ -34,20 +32,6 @@ def _extract_commands_from_call(calls: List[umock._Call]) -> List[str]:
     # from args[1] in each call.
     call_list = [args_[1] for args_, kwargs_ in calls]
     return call_list
-
-
-def get_build_inputs() -> Tuple[invoke.MockContext, str, str, str]:
-    """
-    Create common test inputs for docker build flow tests.
-
-    :return: tuple containing mock context, test version, test base
-        image and test multi-arch
-    """
-    mock_ctx = httestlib._build_mock_context_returning_ok()
-    test_version = "1.0.0"
-    test_base_image = "test-registry.com/test-image"
-    test_multi_arch = "linux/amd64,linux/arm64"
-    return mock_ctx, test_version, test_base_image, test_multi_arch
 
 
 # #############################################################################
@@ -87,19 +71,25 @@ class _DockerFlowTestHelper(hunitest.TestCase):
             "os.environ", {"CSFY_ECR_BASE_PATH": "test.ecr.path"}
         )
         self.env_patcher.start()
-
-    def tearDown(self) -> None:
-        """
-        Clean up test environment by stopping all mocks after each test case.
-        """
-        patchers = [
+        #
+        self.patchers = [
             self.system_patcher,
             self.run_patcher,
             self.version_patcher,
             self.docker_login_patcher,
             self.env_patcher,
         ]
-        for patcher in patchers:
+        # Test inputs.
+        self.mock_ctx = httestlib._build_mock_context_returning_ok()
+        self.test_version = "1.0.0"
+        self.test_base_image = "test-registry.com/test-image"
+        self.test_multi_arch = "linux/amd64,linux/arm64"
+
+    def tearDown(self) -> None:
+        """
+        Clean up test environment by stopping all mocks after each test case.
+        """
+        for patcher in self.patchers:
             patcher.stop()
         super().tearDown()
 
@@ -141,14 +131,12 @@ class Test_docker_build_local_image1(_DockerFlowTestHelper):
         generated for building a local Docker image with single
         architecture.
         """
-        # Prepare inputs.
-        mock_ctx, test_version, test_base_image, _ = get_build_inputs()
         # Call tested function.
         hltadore.docker_build_local_image(
-            mock_ctx,
-            test_version,
+            self.mock_ctx,
+            self.test_version,
             cache=False,
-            base_image=test_base_image,
+            base_image=self.test_base_image,
             poetry_mode="update",
         )
         # The output is a list of strings, each representing a command.
@@ -177,18 +165,14 @@ class Test_docker_build_local_image1(_DockerFlowTestHelper):
         generated for building a local Docker image with multiple
         architectures.
         """
-        # Prepare inputs.
-        mock_ctx, test_version, test_base_image, test_multi_arch = (
-            get_build_inputs()
-        )
         # Call tested function.
         hltadore.docker_build_local_image(
-            mock_ctx,
-            test_version,
+            self.mock_ctx,
+            self.test_version,
             cache=False,
-            base_image=test_base_image,
+            base_image=self.test_base_image,
             poetry_mode="update",
-            multi_arch=test_multi_arch,
+            multi_arch=self.test_multi_arch,
         )
         exp = r"""
         cp -f devops/docker_build/dockerignore.dev .dockerignore
@@ -231,13 +215,11 @@ class Test_docker_build_prod_image1(_DockerFlowTestHelper):
         This test verifies that the correct sequence of commands is
         generated for building a prod Docker image.
         """
-        # Prepare inputs.
-        mock_ctx, test_version, test_base_image, _ = get_build_inputs()
         # Call tested function.
         hltadore.docker_build_prod_image(
-            mock_ctx,
-            test_version,
-            base_image=test_base_image,
+            self.mock_ctx,
+            self.test_version,
+            base_image=self.test_base_image,
             cache=False,
         )
         exp = r"""
@@ -263,17 +245,13 @@ class Test_docker_build_prod_image1(_DockerFlowTestHelper):
         This test verifies that the correct sequence of commands is
         generated for building a multi-arch prod Docker image.
         """
-        # Prepare inputs.
-        mock_ctx, test_version, test_base_image, test_multi_arch = (
-            get_build_inputs()
-        )
         # Call tested function.
         hltadore.docker_build_multi_arch_prod_image(
-            mock_ctx,
-            test_version,
-            base_image=test_base_image,
+            self.mock_ctx,
+            self.test_version,
+            base_image=self.test_base_image,
             cache=False,
-            multi_arch=test_multi_arch,
+            multi_arch=self.test_multi_arch,
         )
         exp = r"""
         cp -f devops/docker_build/dockerignore.prod .dockerignore
@@ -306,14 +284,12 @@ class Test_docker_build_prod_image1(_DockerFlowTestHelper):
         generated for building a prod image with candidate mode using
         tag.
         """
-        # Prepare inputs.
-        mock_ctx, test_version, test_base_image, _ = get_build_inputs()
         test_tag = "test_tag"
         # Call tested function.
         hltadore.docker_build_prod_image(
-            mock_ctx,
-            test_version,
-            base_image=test_base_image,
+            self.mock_ctx,
+            self.test_version,
+            base_image=self.test_base_image,
             cache=False,
             candidate=True,
             tag=test_tag,
@@ -341,15 +317,13 @@ class Test_docker_build_prod_image1(_DockerFlowTestHelper):
         generated for building a prod image with candidate mode using
         user tag and tag.
         """
-        # Prepare inputs.
-        mock_ctx, test_version, test_base_image, _ = get_build_inputs()
         test_user_tag = "test_user"
         test_tag = "test_tag"
         # Call tested function.
         hltadore.docker_build_prod_image(
-            mock_ctx,
-            test_version,
-            base_image=test_base_image,
+            self.mock_ctx,
+            self.test_version,
+            base_image=self.test_base_image,
             cache=False,
             candidate=True,
             user_tag=test_user_tag,
