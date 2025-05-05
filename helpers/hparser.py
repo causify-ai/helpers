@@ -381,7 +381,7 @@ def init_logger_for_input_output_transform(args: argparse.Namespace) -> None:
             verbosity = "CRITICAL"
     else:
         print("cmd line: %s" % hdbg.get_command_line())
-    hdbg.init_logger(verbosity=verbosity, use_exec_path=True)
+    hdbg.init_logger(verbosity=verbosity, use_exec_path=True, force_white=False)
 
 
 # TODO(gp): GFI -> from_file for symmetry for hio.

@@ -1396,3 +1396,178 @@ class Test_check_header_list1(hunitest.TestCase):
         # Call function.
         hmarkdo.check_header_list(header_list)
         self.assertTrue(True)
+
+
+class Test_format_compressed_markdown1(hunitest.TestCase):
+
+    def _format_and_compare_markdown(self, text: str, expected: str) -> None:
+        text = hprint.dedent(text)
+        expected = hprint.dedent(expected)
+        #
+        actual = hmarkdo.format_compressed_markdown(text)
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test basic case with single first level bullet.
+        """
+        text = """
+        Some text
+        - First bullet
+        More text"""
+        expected = """
+        Some text
+
+        - First bullet
+        More text"""
+        self._format_and_compare_markdown(text, expected)
+
+    def test2(self) -> None:
+        """
+        Test multiple first level bullets.
+        """
+        text = """
+        - First bullet
+        - Second bullet
+        - Third bullet"""
+        expected = """
+        - First bullet
+
+        - Second bullet
+
+        - Third bullet"""
+        self._format_and_compare_markdown(text, expected)
+
+    def test3(self) -> None:
+        """
+        Test mixed first level and indented bullets.
+        """
+        text = """
+        - First level
+
+          - Second level
+          - Another second
+        - Back to first"""
+        expected = """
+        - First level
+          - Second level
+          - Another second
+
+        - Back to first"""
+        self._format_and_compare_markdown(text, expected)
+
+    def test4(self) -> None:
+        """
+        Test mixed content with text and bullets.
+        """
+        text = """
+        Some initial text
+        - First bullet
+        Some text in between
+        - Second bullet
+        Final text"""
+        expected = """
+        Some initial text
+
+        - First bullet
+        Some text in between
+
+        - Second bullet
+        Final text"""
+        self._format_and_compare_markdown(text, expected)
+
+    def test5(self) -> None:
+        """
+        Test nested bullets with multiple levels.
+        """
+        text = """
+        - Level 1
+            - Level 2
+                - Level 3
+        - Another level 1
+            - Level 2 again"""
+        expected = """
+        - Level 1
+            - Level 2
+                - Level 3
+
+        - Another level 1
+            - Level 2 again"""
+        self._format_and_compare_markdown(text, expected)
+
+    def test6(self) -> None:
+        """
+        Test empty lines handling.
+        """
+        text = """
+        - First bullet
+
+        - Second bullet
+
+        - Third bullet"""
+        expected = """
+        - First bullet
+
+        - Second bullet
+
+        - Third bullet"""
+        self._format_and_compare_markdown(text, expected)
+
+    def test7(self) -> None:
+        """
+        Test mixed content with bullets and text.
+        """
+        text = """
+        Some text here
+        - First bullet
+        More text
+        - Second bullet
+            - Nested bullet
+        Final paragraph
+        - Last bullet"""
+        expected = """
+        Some text here
+
+        - First bullet
+        More text
+
+        - Second bullet
+            - Nested bullet
+        Final paragraph
+
+        - Last bullet"""
+        self._format_and_compare_markdown(text, expected)
+
+    def test8(self) -> None:
+        """
+        Test bullets with inline formatting.
+        """
+        text = """
+        - **Bold bullet** point
+            - *Italic nested* bullet
+        - `Code bullet` here
+            - **_Mixed_** formatting"""
+        expected = """
+        - **Bold bullet** point
+            - *Italic nested* bullet
+
+        - `Code bullet` here
+            - **_Mixed_** formatting"""
+        self._format_and_compare_markdown(text, expected)
+
+    def test9(self) -> None:
+        """
+        Test bullets with special characters.
+        """
+        text = """
+        - Bullet with (parentheses)
+            - Bullet with [brackets]
+        - Bullet with {braces}
+            - Bullet with $math$"""
+        expected = """
+        - Bullet with (parentheses)
+            - Bullet with [brackets]
+
+        - Bullet with {braces}
+            - Bullet with $math$"""
+        self._format_and_compare_markdown(text, expected)

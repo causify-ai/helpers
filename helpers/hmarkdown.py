@@ -782,3 +782,30 @@ def colorize_first_level_bullets(markdown_text: str) -> str:
         else:
             result.append(line)
     return "\n".join(result)
+
+
+def format_compressed_markdown(markdown_text: str) -> str:
+    """
+    Add an empty line before first level bullets in markdown text.
+
+    First level bullets are those starting with "- " at the beginning of a line
+    with no indentation. Other level bullets have no empty line before them.
+
+    :param markdown_text: Input markdown text
+    :return: Formatted markdown text with empty lines before first level bullets
+    """
+    lines = markdown_text.split("\n")
+    result = []
+    for i, line in enumerate(lines):
+        # Check if current line is a first level bullet (no indentation)
+        if re.match(r"^- ", line):
+            # Add empty line before first level bullet if previous line exists and isn't empty
+            if i > 0 and lines[i-1].strip() != "":
+                result.append("")
+        # Check if current line is an indented bullet
+        elif re.match(r"^\s+- ", line):
+            # Remove any empty line before indented bullet
+            if result and result[-1].strip() == "":
+                result.pop()
+        result.append(line)
+    return "\n".join(result)
