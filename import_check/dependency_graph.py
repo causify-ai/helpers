@@ -28,16 +28,14 @@ class DependencyGraph:
         max_level: Union[int, None] = None,
         show_cycles: bool = False,
     ) -> None:
+        _LOG.debug(hprint.func_signature_to_str())
         # Initialize basic attributes.
         self.directory = Path(directory).resolve()
-        _LOG.debug(hprint.to_str("self.directory"))
         # Create a directed graph of dependencies.
         self.graph: nx.DiGraph = nx.DiGraph()
         self.max_level = max_level
-        _LOG.debug(hprint.to_str("self.max_level"))
         # Determine whether to show only cyclic dependencies.
         self.show_cycles = show_cycles
-        _LOG.debug(hprint.to_str("self.show_cycles"))
 
     def build_graph(self) -> None:
         """
