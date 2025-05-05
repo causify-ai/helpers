@@ -7,6 +7,8 @@ import pytest
 import import_check.dependency_graph as ichdegra
 
 
+# TODO: use self.get_scratch_dir() and make this a function that is called
+# by the needed test methods.
 @pytest.fixture
 def test_dir():
     """
@@ -18,6 +20,7 @@ def test_dir():
     # Create a temporary directory for test files.
     dir_path = Path("test_tmp")
     dir_path.mkdir(exist_ok=True)
+    # TODO: Let's use hio.to_file
     # Create test files with specific imports.
     with open(dir_path / "module_a.py", "w") as f:
         f.write("# No imports\n")
@@ -39,6 +42,7 @@ def test_dir():
 # #############################################################################
 
 
+# TODO: Derive from hunittest.TestCase
 class TestDependencyGraph:
 
     def test_no_dependencies(self, test_dir: Path) -> None:
@@ -52,6 +56,7 @@ class TestDependencyGraph:
         graph.build_graph()
         report = graph.get_text_report()
         # Verify the module with no imports is reported correctly.
+        # TODO: Use self.assert_in
         assert f"{test_dir}/module_a.py has no dependencies" in report
 
     def test_multiple_dependencies(self, test_dir: Path) -> None:
@@ -94,6 +99,7 @@ class TestDependencyGraph:
         output_file = "dependency_graph.dot"
         graph.get_dot_file(output_file)
         # Assert that the DOT file exists and has expected content.
+        # TODO: use self.check_string
         assert os.path.exists(output_file)
         with open(output_file, "r") as f:
             content = f.read()
@@ -140,6 +146,9 @@ class TestDependencyGraph:
         """
         # Prepare directory structure for the package.
         package_dir = Path("package_only_tmp")
+        # TODO: use self.get_scratch_space and hio.to_file
+        # TODO: use hio.create_dir
+        # TODO: add a descrition of how the dir and files look like
         package_dir.mkdir(exist_ok=True)
         subdir = package_dir / "subpackage"
         subdir.mkdir(exist_ok=True)
@@ -149,6 +158,7 @@ class TestDependencyGraph:
         # Create module that imports the package.
         with open(package_dir / "module_b.py", "w") as f:
             f.write("import subpackage\n")
+        # TODO: No need for deleting.
         try:
             # Initialize dependency graph and build it.
             graph = ichdegra.DependencyGraph(str(package_dir))
