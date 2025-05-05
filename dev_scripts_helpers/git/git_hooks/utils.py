@@ -4,7 +4,6 @@ Import as:
 import dev_scripts_helpers.git.git_hooks.utils as dshgghout
 """
 
-# NOTE: This file should depend only on Python standard libraries.
 import compileall
 import inspect
 import logging
