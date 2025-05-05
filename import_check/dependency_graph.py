@@ -58,6 +58,8 @@ class DependencyGraph:
                 "Processing file %s, relative path: %s", py_file, relative_path
             )
             self.graph.add_node(relative_path)
+            # TODO: Use hio.from_file and to_file to write.
+            # TODO: Let's add a switch `abort_on_error` to continue or abort.
             try:
                 with open(py_file, "r") as f:
                     tree = ast.parse(f.read(), filename=str(py_file))
@@ -97,6 +99,7 @@ class DependencyGraph:
         # Iterate over all nodes to report their dependencies.
         for node in self.graph.nodes:
             dependencies = list(self.graph.successors(node))
+            # TODO: Let's use a if-then-else for clarity.
             line = (
                 f"{node} imports {', '.join(dependencies)}"
                 if dependencies
@@ -144,11 +147,12 @@ class DependencyGraph:
             len(self.graph.edges),
         )
 
+    # TODO: -> Optional[str]
     def _resolve_import(self, imp: str, py_file: Path) -> str:
         """
         Resolve an import to a file path within the directory.
 
-        :param imp: Import statement (e.g., "module.submodule").
+        :param imp: Import statement (e.g., `module.submodule`).
         :param py_file: File path where the import is found.
         :return: Relative path to the resolved file, or None if
             unresolved.
@@ -166,7 +170,8 @@ class DependencyGraph:
             # Skip the first part `dir`, solve for next.
             parts = parts[1:]
             if not parts:
-                # Only if the `dir` name is given (e.g., "helpers"), check for `__init__.py`.
+                # Only if the `dir` name is given (e.g., "helpers"), check for
+                # `__init__.py`.
                 init_path = base_dir / "__init__.py"
                 if init_path.exists():
                     resolved_path = init_path.relative_to(

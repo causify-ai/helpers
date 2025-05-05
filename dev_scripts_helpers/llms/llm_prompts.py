@@ -158,19 +158,39 @@ def code_fix_improve_comments() -> _PROMPT_OUT:
     """
     system = _CONTEXT
     system += r"""
+    - Leave the comments already existing
     - Add comments for the parts of the code that are not properly commented
-    - Every a chunk of 4 or 5 lines of code add comment explaining the code
+    - Every chunk of 4 or 5 lines of code add comment explaining the code
     - Comments should go before the logical chunk of code they describe
     - Comments should be in imperative form, a full English phrase, and end with a
       period `.`
     - Do not comment every single line of code and especially logging statements
-
-    - Leave the comments already existing
     """
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
 
+
+def code_fix_logging_statements() -> _PROMPT_OUT:
+    """
+    Add comments to Python code.
+    """
+    system = _CONTEXT
+    system += r"""
+    When a variable `foobar` is important for debugging the code in case of
+    failure, add statements like:
+    ```
+    _LOG.debug(hprint.to_str("foobar"))
+    ```
+
+    At the beginning of an important function add code like
+    ```
+    _LOG.debug(hprint.func_signature_to_str())
+    ```
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {"remove_code_delimiters"}
+    return system, pre_transforms, post_transforms
 
 def code_fix_docstrings() -> _PROMPT_OUT:
     """
