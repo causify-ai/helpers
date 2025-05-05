@@ -1,0 +1,9 @@
+# linter warnings
+
+
+# linted file
+- File path inside triple ticks:
+```bash
+With backticks: `helpers/hgit.py`
+Without backticks: helpers/hgit.py
+```
