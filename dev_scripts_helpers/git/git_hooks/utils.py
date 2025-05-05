@@ -490,7 +490,7 @@ def check_gitleaks(abort_on_error: bool = True) -> None:
     func_name = _report()
     git_root_dir = get_git_root_dir()
     cmd = f"""
-    docker run -v {git_root_dir}:/app zricethezav/gitleaks:latest -c /app/.github/gitleaks-rules.toml git /app --pre-commit --staged --verbose
+    docker run -v {git_root_dir}:/app zricethezav/gitleaks:latest -c /app/dev_scripts_helpers/git/gitleaks/gitleaks-rules.toml git /app --pre-commit --staged --verbose
     """
     _LOG.debug("cmd='%s'", cmd)
     rc, txt = _system_to_string(cmd, abort_on_error=False)
