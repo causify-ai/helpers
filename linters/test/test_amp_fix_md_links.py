@@ -38,15 +38,17 @@ def _get_output_string(out_warnings: List[str], updated_lines: List[str]) -> str
 
 class Test_fix_links(hunitest.TestCase):
 
-    def run_test(self, input_content: str, file_name: str = "test.md") -> None:
+    def run_test(self, input_content: str, *, file_name: str = "test.md") -> None:
         """
-        Helper method to run link tests with common setup and verification.
+        Helper method to run tests with common setup and verification.
 
-        :param input_content: The content to test
-        :param file_name: The name of the test file (default: "test.md")
+        :param input_content: the content to test
+        :param file_name: the name of the test file
         """
         file_path = self.write_input_file(input_content, file_name)
+        # Run.
         _, updated_lines, out_warnings = lafimdli.fix_links(file_path)
+        # Check.
         output = _get_output_string(out_warnings, updated_lines)
         self.check_string(output, purify_text=True)
 
@@ -99,7 +101,7 @@ class Test_fix_links(hunitest.TestCase):
 
         Markdown link: [Valid Markdown Link](docs/markdown_example.md)
         """
-        self.run_test(txt_incorrect, "test.md")
+        self.run_test(txt_incorrect, file_name="test.md")
 
     def test2(self) -> None:
         """
@@ -124,13 +126,7 @@ class Test_fix_links(hunitest.TestCase):
         [Data Availability](#data-availability)
         """
         #
-        file_name = "test.md"
-        file_path = self.write_input_file(txt_internal_links, file_name)
-        # Run.
-        _, updated_lines, out_warnings = lafimdli.fix_links(file_path)
-        # Check.
-        output = _get_output_string(out_warnings, updated_lines)
-        self.check_string(output, purify_text=True)
+        self.run_test(txt_internal_links, file_name="test.md")
 
     def test3(self) -> None:
         """
@@ -146,13 +142,7 @@ class Test_fix_links(hunitest.TestCase):
 
         Nested HTML link with Markdown: <a href="[Example](nested.md)">Invalid Nested</a>
         """
-        file_name = "test_combined.md"
-        file_path = self.write_input_file(input_content, file_name)
-        # Run.
-        _, updated_lines, out_warnings = lafimdli.fix_links(file_path)
-        # Check.
-        output = _get_output_string(out_warnings, updated_lines)
-        self.check_string(output, purify_text=True)
+        self.run_test(input_content, file_name="test_combined.md")
 
     def test4(self) -> None:
         """
@@ -213,13 +203,7 @@ class Test_fix_links(hunitest.TestCase):
 
         Markdown link: [Valid Markdown and header Link]({reference_file_link}#hyphen-test)
         """
-        test_file_name = "valid_header_test.md"
-        test_file_link = self.write_input_file(test_md_content, test_file_name)
-        # Run.
-        _, updated_lines, out_warnings = lafimdli.fix_links(test_file_link)
-        # Check.
-        output = _get_output_string(out_warnings, updated_lines)
-        self.check_string(output, purify_text=True)
+        self.run_test(reference_file_md_content, file_name="valid_header_test.md")
 
     def test6(self) -> None:
         """
@@ -236,13 +220,7 @@ class Test_fix_links(hunitest.TestCase):
 
           Tel: [Call](tel:+1234567890)
           """
-        file_name = "test_links.md"
-        file_path = self.write_input_file(input_content, file_name)
-        # Run.
-        _, updated_lines, out_warnings = lafimdli.fix_links(file_path)
-        # Check.
-        output = _get_output_string(out_warnings, updated_lines)
-        self.check_string(output, purify_text=True)
+        self.run_test(input_content, file_name="test_links.md")
 
     def test7(self) -> None:
         """
@@ -338,13 +316,7 @@ class Test_fix_links(hunitest.TestCase):
         response = requests.get("https://api.github.com/users")
         ```
         """
-        file_name = "test_fenced_blocks.md"
-        file_path = self.write_input_file(text, file_name)
-        # Run.
-        _, updated_lines, out_warnings = lafimdli.fix_links(file_path)
-        # Check.
-        output = _get_output_string(out_warnings, updated_lines)
-        self.check_string(output, purify_text=True)
+        self.run_test(text, file_name="test_fenced_blocks.md")
 
     def test12(self) -> None:
         """
@@ -407,7 +379,7 @@ class Test_fix_links(hunitest.TestCase):
         Without backticks: helpers/hgit.py
         ```
         """
-        self.run_test(txt_incorrect, "test_md_in_triple_backticks.md")
+        self.run_test(txt_incorrect, file_name="test_md_in_triple_backticks.md")
 
     def test15(self) -> None:
         """
@@ -428,7 +400,7 @@ class Test_fix_links(hunitest.TestCase):
         - HTML-style figure pointer that does not exist
           - <img src="/iiimport_check/example/output/basicccc.png">
         """
-        self.run_test(txt_incorrect, "test_html_img_links.md")
+        self.run_test(txt_incorrect, file_name="test_html_img_links.md")
 
     def test16(self) -> None:
         """
@@ -453,7 +425,7 @@ class Test_fix_links(hunitest.TestCase):
         - Markdown-style figure pointer that does not exist
           - ![](/iiimport_check/example/output/basicccc.png)
         """
-        self.run_test(txt_incorrect, "test_md_img_links.md")
+        self.run_test(txt_incorrect, file_name="test_md_img_links.md")
 
     def test17(self) -> None:
         """
@@ -478,7 +450,7 @@ class Test_fix_links(hunitest.TestCase):
 
         Broken Markdown link: [Broken Markdown Link](missing_markdown.md)
         """
-        self.run_test(txt_incorrect, "test_broken_links.md")
+        self.run_test(txt_incorrect, file_name="test_broken_links.md")
 
     def test18(self) -> None:
         """
@@ -501,7 +473,7 @@ class Test_fix_links(hunitest.TestCase):
 
         External Markdown link: [External Markdown Link](https://example.com)
         """
-        self.run_test(txt_incorrect, "test_external_links.md")
+        self.run_test(txt_incorrect, file_name="test_external_links.md")
 
     def test19(self) -> None:
         """
@@ -527,7 +499,7 @@ class Test_fix_links(hunitest.TestCase):
         - File path of a hidden file
           - .github/workflows/build_image.yml.DISABLED
         """
-        self.run_test(txt_incorrect, "test_without_md_hyperlinks.md")
+        self.run_test(txt_incorrect, file_name="test_without_md_hyperlinks.md")
 
 
 # #############################################################################
