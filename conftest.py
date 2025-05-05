@@ -113,8 +113,7 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
         """
         Skip runnable directories.
 
-        We use "runnable_dir" as a marker to identify runnable
-        directories.
+        We use the `runnable_dir` file as a marker to identify runnable directories.
         """
         _ = config
         if path.isdir() and (path / "runnable_dir").exists():

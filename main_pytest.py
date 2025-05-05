@@ -117,15 +117,15 @@ def _find_runnable_dirs() -> List[str]:
     """
     Find all runnable directories in the current repo.
 
-    A runnable dir is a dir that contains the file "runnable_dir" in it.
+    We use the `runnable_dir` file as a marker to identify runnable directories.
 
     :return: list of runnable directories
     """
     runnable_dirs = []
     root = hgit.find_git_root()
-    for dirpath, _, filenames in os.walk(root):
-        if "runnable_dir" in filenames:
-            relative_path = os.path.relpath(dirpath, root)
+    for dir_path, _, file_names in os.walk(root):
+        if "runnable_dir" in file_names:
+            relative_path = os.path.relpath(dir_path, root)
             runnable_dirs.append(relative_path)
     return runnable_dirs
 
