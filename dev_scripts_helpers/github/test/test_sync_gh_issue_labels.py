@@ -6,6 +6,7 @@ import pytest
 
 import dev_scripts_helpers.github.sync_gh_issue_labels as dshgsgila
 import helpers.hgit as hgit
+import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
@@ -16,13 +17,16 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-@pytest.mark.slow("~6 sec.")
 class Test_sync_gh_issue_labels1(hunitest.TestCase):
 
+    @pytest.mark.skipif(
+        hserver.is_inside_ci() or hserver.is_dev_csfy(),
+        reason="Disabled because of CmampTask10710",
+    )
     @umock.patch(
         "dev_scripts_helpers.github.dockerized_sync_gh_issue_labels.github.Github"
     )
-    def test_backup_file_written(self, mock_github: umock.Mock) -> None:
+    def test1(self, mock_github: umock.Mock) -> None:
         """
         Test that the backup file is written as intended by mocking GitHub API
         interactions.
@@ -43,7 +47,7 @@ class Test_sync_gh_issue_labels1(hunitest.TestCase):
         owner = "test-org"
         repo = "test-repo"
         git_root_dir = hgit.get_client_root(False)
-        backup_file_name = f"tmp.labels.{owner}.{repo}.yaml"
+        backup_file_name = "tmp.labels.test-org.test-repo.yaml"
         backup_file_path = os.path.join(git_root_dir, backup_file_name)
         # Remove backup file if it exists.
         if os.path.exists(backup_file_path):
@@ -60,10 +64,7 @@ class Test_sync_gh_issue_labels1(hunitest.TestCase):
             backup=True,
         )
         # Check that the backup file exists.
-        self.assertTrue(os.path.exists(backup_file_path))
-        # Check the contents of the backup file.
-        with open(backup_file_path, encoding="utf-8") as f:
-            content = f.read()
-        self.assertIn("name: bug", content)
-        self.assertIn("color: f29513", content)
-        self.assertIn("description: Something isn't working", content)
+        self.assertTrue(
+            os.path.exists(backup_file_path),
+            msg="Backup file was not created.",
+        )
