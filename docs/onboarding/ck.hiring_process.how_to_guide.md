@@ -113,8 +113,6 @@
 - HiringMeister/GP: send an email to the applicant with a link to the
   [questionnaire](https://docs.google.com/forms/d/e/1FAIpQLScWAavYiYj1IfWGP1QEv2jqjKvQKnFjseryhzmIIHZKnZ4HkA/viewform)
   to gather information about them
-  - Responses are available
-    [here](https://docs.google.com/forms/d/1NUsjbTyXBoITQZ6z8nqmTydFPcWl0kWEQZJZzzYXUeM/edit#responses)
 
 - (Optional) HiringMeister/GP: send an email inviting the applicant to
   participate in [bounty hunting](#pre-hiring-bounty)
@@ -240,7 +238,7 @@
     - Still simple but require a little bit more coding than the first issue
     - The goal is to start testing the skills as well as confirm the
       understanding of our process
-  - [Outsourceable issues gdoc](https://docs.google.com/document/d/1uuezdmcsV9TG2YwXGvEd0PBgWScCpR-QPOcySI5LPIA/edit#heading=h.vcvkivfud7be)
+  - [Outsourceable issues gdoc](https://docs.google.com/document/d/1kmybx8u6eJsJBYndPb4r3jPcKM1yNpXIHpLJeRKK4l4/edit?tab=t.0)
 
 ## Giving feedback
 

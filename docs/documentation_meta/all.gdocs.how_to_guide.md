@@ -48,12 +48,7 @@
     bottom to ensure accurate rendering.
   - Review the markdown file on GitHub to make sure it looks good, as it may
     slightly differ from the preview in your local markdown editor
-- When a gdoc becomes obsolete or it's deleted
-  - Add a note at the top of a gdoc explaining what happened
-  - Example: "Moved to /new_markdown_file.md"
-  - Strike out the entire document
-  - Move the gdoc to the
-    [\_OLD directory](https://drive.google.com/drive/u/0/folders/1J4B1vq8EwT-q_z7qSLCZ9Tug2CA9f8i7)
+- When a gdoc becomes obsolete, delete it
 
 ### Other approaches
 

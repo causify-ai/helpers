@@ -62,8 +62,6 @@ There are multiple ways to develop on a remote server using PyCharm
       - It's not super polished: kind of beta, but it will get better and better
 
 4.  PyCharm Remote Set-up
-    - This is described below in
-      [PyCharm - Advanced tip and tricks](https://docs.google.com/document/d/1atNNMnmT6ZdIPSEtDaWZiBkL_fo5BHjPHy06He6zEZU/edit#heading=h.e0xo9fe70sks)
       - Edit locally and then PyCharm moves the files back and forth
     - Pros
       - Only requires ssh

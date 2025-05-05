@@ -3,33 +3,40 @@
 #   jupytext:
 #     text_representation:
 #       extension: .py
-#       format_name: percent
-#       format_version: '1.3'
-#       jupytext_version: 1.15.2
+#       format_name: light
+#       format_version: '1.5'
+#       jupytext_version: 1.16.7
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
 #     name: python3
 # ---
 
-# %% [markdown]
+# CONTENTS:
+# - [Description](#description)
+# - [Imports](#imports)
+# - [Utils](#utils)
+# - [GH workflows state](#gh-workflows-state)
+# - [Allure reports](#allure-reports)
+# - [Number of open pull requests](#number-of-open-pull-requests)
+# - [Code coverage HTML-page](#code-coverage-html-page)
+# - [Code Coverage Page - CodeCov](#code-coverage-page---codecov)
+
 #  TODO(Grisha): does it belong to the `devops` dir?
 
-# %% [markdown]
+# <a name='description'></a>
 # # Description
 
-# %% [markdown]
 # The notebook reports the latest build status for multiple repos.
 
-# %% [markdown]
+# <a name='imports'></a>
 # # Imports
 
-# %%
 # %load_ext autoreload
 # %autoreload 2
 # %matplotlib inline
 
-# %%
+# +
 import logging
 from typing import Dict
 
@@ -42,22 +49,22 @@ import helpers.hpandas as hpandas
 import helpers.hprint as hprint
 import helpers.lib_tasks_gh as hlitagh
 
-# %%
+# -
+
 hdbg.init_logger(verbosity=logging.INFO)
 _LOG = logging.getLogger(__name__)
 _LOG.info("%s", henv.get_system_signature()[0])
 hprint.config_notebook()
 
-# %%
 # Set the display options to print the full table.
 pd.set_option("display.max_colwidth", None)
 pd.set_option("display.max_columns", None)
 
-# %% [markdown]
+# <a name='utils'></a>
 # # Utils
 
 
-# %%
+# +
 def make_clickable(url: str) -> str:
     """
     Wrapper to make the URL value clickable.
@@ -88,10 +95,11 @@ def color_format(val: str, status_color_mapping: Dict[str, str]) -> str:
     return f"background-color: {color}"
 
 
-# %% [markdown]
+# -
+
+# <a name='gh-workflows-state'></a>
 # # GH workflows state
 
-# %%
 repo_list = [
     "cryptokaizen/cmamp",
     "cryptokaizen/orange",
@@ -106,7 +114,6 @@ workflow_df = workflow_df[columns_order]
 workflow_df["url"] = workflow_df["url"].apply(make_clickable)
 _LOG.info(hpandas.df_to_str(workflow_df, log_level=logging.INFO))
 
-# %%
 status_color_mapping = {
     "success": "green",
     "failure": "red",
@@ -129,24 +136,26 @@ for repo in repos:
         )
     )
 
-# %% [markdown]
+# <a name='allure-reports'></a>
 # # Allure reports
 
-# %% [markdown]
 # - fast tests: http://172.30.2.44/allure_reports/cmamp/fast/latest/index.html
 # - slow tests: http://172.30.2.44/allure_reports/cmamp/slow/latest/index.html
 # - superslow tests: http://172.30.2.44/allure_reports/cmamp/superslow/latest/index.html
 
-# %% [markdown]
+# <a name='number-of-open-pull-requests'></a>
 # # Number of open pull requests
 
-# %%
 for repo in repo_list:
     number_prs = len(hlitagh.gh_get_open_prs(repo))
     _LOG.info("%s: %s", repo, number_prs)
 
-# %% [markdown]
+# <a name='code-coverage-html-page'></a>
 # # Code coverage HTML-page
 
-# %% [markdown]
 # http://172.30.2.44/html_coverage/runner_master/
+
+# <a name='code-coverage-page---codecov'></a>
+# # Code Coverage Page - CodeCov
+
+# - Helpers: https://app.codecov.io/gh/causify-ai/helpers
