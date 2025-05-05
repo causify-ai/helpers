@@ -237,8 +237,6 @@ def create_tmux_session(
     script_path: str,
     dir_suffix: str,
     setenv_path: str,
-    # TODO(Juraj): deprecate the var, the behavior is now inferred.
-    has_subrepo: bool,
 ) -> None:
     """
     Creates a new tmux session or attaches to an existing one.
@@ -256,7 +254,6 @@ def create_tmux_session(
     :param script_path: Path to the script file.
     :param dir_suffix: Prefix for the directory and tmux session name.
     :param setenv_path: Path to the shell script for setting up the environment.
-    :param has_subrepo: Flag indicating if the project has a subrepository.
     """
     print(f"##> {script_path}")
     # Parse the args.
