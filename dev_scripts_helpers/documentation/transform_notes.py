@@ -31,6 +31,7 @@ import argparse
 import hashlib
 import logging
 
+import dev_scripts_helpers.documentation.lint_notes as dshdlino
 import helpers.hdbg as hdbg
 import helpers.hlatex as hlatex
 import helpers.hmarkdown as hmarkdo
@@ -52,9 +53,7 @@ def _parse() -> argparse.ArgumentParser:
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    hdbg.init_logger(
-        verbosity=logging.ERROR, use_exec_path=True, force_white=False
-    )
+    hparser.init_logger_for_input_output_transform(args)
     #
     cmd = args.action
     max_lev = int(args.max_lev)
@@ -91,15 +90,16 @@ def _main(parser: argparse.ArgumentParser) -> None:
         txt = "\n".join(txt)
         txt = hmarkdo.remove_formatting(txt)
         hparser.write_file(txt, out_file_name)
-    elif cmd == "md_fix_chatgpt_output":
-        txt = hparser.read_file(in_file_name)
-        txt = "\n".join(txt)
-        txt = hmarkdo.fix_chatgpt_output(txt)
-        hparser.write_file(txt, out_file_name)
     elif cmd == "md_clean_up":
         txt = hparser.read_file(in_file_name)
         txt = "\n".join(txt)
         txt = hmarkdo.md_clean_up(txt)
+        txt = dshdlino.prettier_on_str(txt)
+        hparser.write_file(txt, out_file_name)
+    elif cmd == "md_format":
+        txt = hparser.read_file(in_file_name)
+        txt = "\n".join(txt)
+        txt = dshdlino.prettier_on_str(txt)
         hparser.write_file(txt, out_file_name)
     else:
         assert 0, f"Invalid cmd='{cmd}'"

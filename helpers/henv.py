@@ -6,7 +6,7 @@ import helpers.henv as henv
 
 import logging
 import os
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
@@ -59,17 +59,26 @@ def has_module(module: str) -> bool:
     return has_module_
 
 
-def install_module_if_not_present(module: str) -> None:
+def install_module_if_not_present(
+    import_name: str, package_name: Optional[str] = None
+) -> None:
     """
     Install a Python module if it is not already installed.
 
-    :param module: name of the module to install
+    :param import_name: name used to import the module
+    :param package_name: name of the package on PyPI (if different from `import_name`)
     """
-    _has_module = has_module(module)
+    _has_module = has_module(import_name)
     if _has_module:
-        print(f"Module '{module}' is already installed.")
+        print(f"Module '{import_name}' is already installed.")
         return
-    _, output = hsystem.system_to_string(f"sudo /venv/bin/pip install {module}")
+    # Sometime the package name is different from the import name.
+    # e.g., we import using `import dash_bootstrap_components`
+    # but the package name is `dash-bootstrap-components`.
+    package_name = package_name or import_name
+    _, output = hsystem.system_to_string(
+        f"sudo /venv/bin/pip install {package_name}"
+    )
     print(output)
 
 

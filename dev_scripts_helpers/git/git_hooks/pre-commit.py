@@ -61,13 +61,8 @@ if __name__ == "__main__":
     dshgghout.check_python_compile()
     lines.append("- 'check_python_compile' passed")
     assert os.path.exists(".git")
-    if os.path.isdir(".git"):
-        dshgghout.check_gitleaks()
-        lines.append("- 'check_gitleaks' passed")
-    else:
-        # TODO(gp): Fix HelpersTask622.
-        _LOG.warning("Skipping 'check_gitleaks' since we are in a submodule")
-        lines.append("- 'check_gitleaks' skipped")
+    dshgghout.check_gitleaks()
+    lines.append("- 'check_gitleaks' passed")
     print(
         "\n"
         + dshgghout.color_highlight(

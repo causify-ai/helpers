@@ -192,7 +192,7 @@ class Test_is_markdown_line_separator1(hunitest.TestCase):
 
     def test_valid_separator2(self) -> None:
         # Prepare inputs.
-        line = "# ---"
+        line = "# ------"
         # Call function.
         act = hmarkdo.is_markdown_line_separator(line)
         # Check output.
@@ -816,7 +816,7 @@ class Test_colorize_first_level_bullets1(hunitest.TestCase):
 # #############################################################################
 
 
-class Test_fix_chatgpt_output1(hunitest.TestCase):
+class Test_md_clean_up1(hunitest.TestCase):
 
     def test1(self) -> None:
         # Prepare inputs.
@@ -848,7 +848,7 @@ class Test_fix_chatgpt_output1(hunitest.TestCase):
         \]
         """
         txt = hprint.dedent(txt)
-        act = hmarkdo.fix_chatgpt_output(txt)
+        act = hmarkdo.md_clean_up(txt)
         act = hprint.dedent(act)
         exp = r"""
         **States**:
@@ -857,18 +857,25 @@ class Test_fix_chatgpt_output1(hunitest.TestCase):
         - $O = \{\text{Yes}, \text{No}\}$ (umbrella)
 
         ### Initial Probabilities:
-        $$\Pr(\text{Sunny}) = 0.6, \quad \Pr(\text{Rainy}) = 0.4$$### Transition Probabilities:$$
+        $$
+        \Pr(\text{Sunny}) = 0.6, \quad \Pr(\text{Rainy}) = 0.4
+        $$
+
+        ### Transition Probabilities:
+        $$
         \begin{aligned}
         \Pr(\text{Sunny} \to \text{Sunny}) &= 0.7, \quad \Pr(\text{Sunny} \to \text{Rainy}) = 0.3 \\
         \Pr(\text{Rainy} \to \text{Sunny}) &= 0.4, \quad \Pr(\text{Rainy} \to \text{Rainy}) = 0.6
         \end{aligned}
-        $$### Observation (Emission) Probabilities:$$
+        $$
+
+        ### Observation (Emission) Probabilities:
+        $$
         \begin{aligned}
         \Pr(\text{Yes} | \text{Sunny}) &= 0.1, \quad \Pr(\text{No} | \text{Sunny}) = 0.9 \\
         \Pr(\text{Yes} | \text{Rainy}) &= 0.8, \quad \Pr(\text{No} | \text{Rainy}) = 0.2
         \end{aligned}
-        $$
-        """
+        $$"""
         self.assert_equal(act, exp, dedent=True)
 
 
