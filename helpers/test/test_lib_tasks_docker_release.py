@@ -1,6 +1,8 @@
 import logging
 import unittest.mock as umock
-from typing import List
+from typing import Generator, List
+
+import pytest
 
 import helpers.hunit_test as hunitest
 import helpers.lib_tasks_docker_release as hltadore
@@ -45,11 +47,13 @@ class _DockerFlowTestHelper(hunitest.TestCase):
     checks for Docker flow tests.
     """
 
-    def setUp(self) -> None:
-        """
-        Set up test environment and initialize all necessary mocks.
-        """
-        super().setUp()
+    @pytest.fixture(autouse=True)
+    def setup_teardown_test(self) -> Generator:
+        self.set_up_test()
+        yield
+        self.tear_down_test()
+
+    def set_up_test(self) -> None:
         # Mock system calls.
         self.system_patcher = umock.patch("helpers.hsystem.system")
         self.mock_system = self.system_patcher.start()
@@ -85,13 +89,12 @@ class _DockerFlowTestHelper(hunitest.TestCase):
         self.test_base_image = "test-registry.com/test-image"
         self.test_multi_arch = "linux/amd64,linux/arm64"
 
-    def tearDown(self) -> None:
+    def tear_down_test(self) -> None:
         """
         Clean up test environment by stopping all mocks after each test case.
         """
         for patcher in self.patchers:
             patcher.stop()
-        super().tearDown()
 
     def _check_docker_command_output(
         self, exp: str, call_args_list: List[umock._Call]
@@ -123,7 +126,7 @@ class _DockerFlowTestHelper(hunitest.TestCase):
 
 class Test_docker_build_local_image1(_DockerFlowTestHelper):
 
-    def test_docker_build_single_arch(self) -> None:
+    def test_docker_build_local_image_single_arch(self) -> None:
         """
         Test building a local Docker image with single architecture.
 
@@ -157,7 +160,7 @@ class Test_docker_build_local_image1(_DockerFlowTestHelper):
         """
         self._check_docker_command_output(exp, self.mock_run.call_args_list)
 
-    def test_docker_build_multi_arch(self) -> None:
+    def test_docker_build_local_image_multi_arch(self) -> None:
         """
         Test building a local Docker image with multiple architectures.
 
