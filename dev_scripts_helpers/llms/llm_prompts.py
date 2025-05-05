@@ -158,7 +158,6 @@ def code_fix_improve_comments() -> _PROMPT_OUT:
     """
     system = _CONTEXT
     system += r"""
-    - Leave the comments in the code that already exists
     - Add comments for the parts of the code that are not properly commented
         - E.g., every chunk of 4 or 5 lines of code add comment explaining the
           code
@@ -168,6 +167,7 @@ def code_fix_improve_comments() -> _PROMPT_OUT:
     - Do not comment every single line of code and especially logging statements
     - Add examples of the values of variables, when you are sure of the types
       and values of variables. If you are not sure, do not add any information.
+    - Do not remove any already existing comment.
     """
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
@@ -179,18 +179,27 @@ def code_fix_logging_statements() -> _PROMPT_OUT:
     Add comments to Python code.
     """
     system = _CONTEXT
-    system += r"""
+    system += r'''
     When a variable `foobar` is important for debugging the code in case of
     failure, add statements like:
     ```
     _LOG.debug(hprint.to_str("foobar"))
     ```
 
-    At the beginning of an important function add code like
+    At the beginning of an important function, after the docstring, add code
+    like
     ```
-    _LOG.debug(hprint.func_signature_to_str())
+       def get_text_report(self) -> str:
+       """
+       Generate a text report listing each module's dependencies.
+
+       :return: Text report of dependencies, one per line.
+       """
+       _LOG.debug(hprint.func_signature_to_str())
     ```
-    """
+
+    Do not remove any already existing comment.
+    '''
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
@@ -216,13 +225,13 @@ def code_fix_docstrings() -> _PROMPT_OUT:
 
     An example of a correct docstring is:
     ```
-    def _format_greeting(name: str, *, greeting: str = DEFAULT_GREETING) -> str:
+    def _format_greeting(name: str, *, greeting: str = "Hello") -> str:
         """
         Format a greeting message with the given name.
 
-        :param name: the name to include in the greeting
-        :param greeting: the base greeting message to use
-        :return: formatted greeting
+        :param name: the name to include in the greeting (e.g., "John")
+        :param greeting: the base greeting message to use (e.g., "Ciao")
+        :return: formatted greeting (e.g., "Hello John")
         """
     ```
     '''

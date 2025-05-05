@@ -30,19 +30,24 @@ class DependencyGraph:
     ) -> None:
         # Initialize basic attributes.
         self.directory = Path(directory).resolve()
+        _LOG.debug(hprint.to_str("self.directory"))
         # Create a directed graph of dependencies.
         self.graph: nx.DiGraph = nx.DiGraph()
         self.max_level = max_level
+        _LOG.debug(hprint.to_str("self.max_level"))
         # Determine whether to show only cyclic dependencies.
         self.show_cycles = show_cycles
+        _LOG.debug(hprint.to_str("self.show_cycles"))
 
     def build_graph(self) -> None:
         """
         Build a directed graph of intra-directory dependencies.
         """
+        _LOG.debug(hprint.func_signature_to_str())
         _LOG.info("Building dependency graph for %s", self.directory)
         # Calculate the base depth of the directory.
         base_depth = len(self.directory.parts)
+        _LOG.debug(hprint.to_str("base_depth"))
         # Find Python files up to `max_level`.
         py_files = [
             path
@@ -51,12 +56,14 @@ class DependencyGraph:
             or (len(path.parent.parts) - base_depth) <= self.max_level
         ]
         _LOG.info("Found Python files: %s", py_files)
+        _LOG.debug(hprint.to_str("py_files"))
         # Process each Python file to build the dependency graph.
         for py_file in py_files:
             relative_path = py_file.relative_to(self.directory.parent).as_posix()
             _LOG.info(
                 "Processing file %s, relative path: %s", py_file, relative_path
             )
+            _LOG.debug(hprint.to_str("relative_path"))
             self.graph.add_node(relative_path)
             # Attempt to parse the file as an Abstract Syntax Tree (AST).
             # TODO: Use hio.from_file and to_file to write.
@@ -76,15 +83,18 @@ class DependencyGraph:
                         if isinstance(node, ast.Import)
                         else [node.module]
                     )
+                    _LOG.debug(hprint.to_str("imports"))
                     # Add edges for each import found.
                     for imp in imports:
                         _LOG.info("Found import: %s", imp)
+                        _LOG.debug(hprint.to_str("imp"))
                         imp_path = self._resolve_import(imp, py_file)
                         if imp_path:
                             _LOG.info(
                                 "Adding edge: %s -> %s", relative_path, imp_path
                             )
                             self.graph.add_edge(relative_path, imp_path)
+                            _LOG.debug(hprint.to_str("self.graph"))
                         else:
                             _LOG.info("No edge added for import %s", imp)
         # Filter for cyclic dependencies if `show_cycles` is `True`.
@@ -97,11 +107,14 @@ class DependencyGraph:
 
         :return: Text report of dependencies, one per line.
         """
+        _LOG.debug(hprint.func_signature_to_str())
         # Accumulate report lines.
         report = []
         # Iterate over all nodes to report their dependencies.
         for node in self.graph.nodes:
+            _LOG.debug(hprint.to_str("node"))
             dependencies = list(self.graph.successors(node))
+            _LOG.debug(hprint.to_str("dependencies"))
             # Conditional report creation depending on dependencies presence.
             # TODO: Let's use a if-then-else for clarity.
             line = (
@@ -109,6 +122,7 @@ class DependencyGraph:
                 if dependencies
                 else f"{node} has no dependencies"
             )
+            _LOG.debug(hprint.to_str("line"))
             report.append(line)
         # Join all lines into a single string separated by newline.
         return "\n".join(report)
@@ -119,6 +133,7 @@ class DependencyGraph:
 
         :param output_file: Path to the output DOT file.
         """
+        _LOG.debug(hprint.func_signature_to_str())
         # Write the graph to a DOT file.
         networkx.drawing.nx_pydot.write_dot(self.graph, output_file)
         _LOG.info("DOT file written to %s", output_file)
@@ -127,14 +142,17 @@ class DependencyGraph:
         """
         Filter the graph to show only nodes and edges in cyclic dependencies.
         """
+        _LOG.debug(hprint.func_signature_to_str())
         # Find all strongly connected components in the graph.
         cycles = list(nx.strongly_connected_components(self.graph))
+        _LOG.debug(hprint.to_str("cycles"))
         # Accumulate cyclic nodes.
         cyclic_nodes = set()
         # Keep only components with more than one node (i.e., cycles).
         for component in cycles:
             if len(component) > 1:
                 cyclic_nodes.update(component)
+        _LOG.debug(hprint.to_str("cyclic_nodes"))
         # Create a new graph with only cyclic nodes and their edges.
         new_graph = nx.DiGraph()
         for node in cyclic_nodes:
@@ -161,22 +179,29 @@ class DependencyGraph:
         :return: Relative path to the resolved file, or None if
             unresolved.
         """
+        _LOG.debug(hprint.func_signature_to_str())
         _LOG.info("Resolving import '%s' for file %s", imp, py_file)
+        _LOG.debug(hprint.to_str("imp, py_file"))
         # Define base directory and other parameters for module resolution.
         base_dir = self.directory
         _LOG.info("Base directory: %s", base_dir)
         parts = imp.split(".")
+        _LOG.debug(hprint.to_str("parts"))
         current_dir = base_dir
+        _LOG.debug(hprint.to_str("current_dir"))
         # E.g., "helpers".
         dir_name = self.directory.name
+        _LOG.debug(hprint.to_str("dir_name"))
         # Handle imports starting with the directory name.
         if parts[0] == dir_name:
             # Skip the first part `dir`, solve for next.
             parts = parts[1:]
+            _LOG.debug(hprint.to_str("parts after dir_name handling"))
             if not parts:
                 # Only if the `dir` name is given (e.g., "helpers"), check for
                 # `__init__.py`.
                 init_path = base_dir / "__init__.py"
+                _LOG.debug(hprint.to_str("init_path"))
                 if init_path.exists():
                     resolved_path = init_path.relative_to(
                         self.directory.parent
@@ -187,9 +212,11 @@ class DependencyGraph:
                 return None
         # Iterate over each module name in resolved path.
         for i, module_name in enumerate(parts):
+            _LOG.debug(hprint.to_str("i, module_name"))
             # Check for package with `__init__.py`.
             package_path = current_dir / module_name / "__init__.py"
             _LOG.info("Checking package path: %s", package_path)
+            _LOG.debug(hprint.to_str("package_path"))
             if package_path.exists():
                 # If last part, return the `__init__.py` path.
                 if i == len(parts) - 1:
@@ -200,10 +227,12 @@ class DependencyGraph:
                     return resolved_path
                 # Otherwise, continue to the next part.
                 current_dir = current_dir / module_name
+                _LOG.debug(hprint.to_str("current_dir"))
                 continue
             # Check for a `.py` file.
             module_path = current_dir / f"{module_name}.py"
             _LOG.info("Checking module path: %s", module_path)
+            _LOG.debug(hprint.to_str("module_path"))
             if module_path.exists():
                 # If last part, return the `.py` path.
                 if i == len(parts) - 1:
