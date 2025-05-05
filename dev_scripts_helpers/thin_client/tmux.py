@@ -7,8 +7,9 @@ import logging
 import os
 
 import thin_client_utils as tcu
-import helpers.repo_config_utils as hrecouti
+
 import helpers.hgit as hgit
+import helpers.repo_config_utils as hrecouti
 
 _LOG = logging.getLogger(__name__)
 
