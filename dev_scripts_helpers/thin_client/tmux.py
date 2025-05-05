@@ -22,7 +22,7 @@ current_file_path = os.path.realpath(__file__)
 current_dir = os.path.dirname(current_file_path)
 # Change to the directory where the file is located so it can find its way to
 # the Git root.
-# This is necessary when the script (e.g., `~/go_cmamp.py`) is symlinked and
+# This is necessary when the script is symlinked (e.g., `~/go_cmamp.py`) and
 # executed from a different directory.
 os.chdir(current_dir)
 
