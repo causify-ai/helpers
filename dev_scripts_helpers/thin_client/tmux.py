@@ -26,8 +26,8 @@ current_dir = os.path.dirname(current_file_path)
 # executed from a different directory.
 os.chdir(current_dir)
 
-# Change to the outermost Git repository root so that it can find the repo
-# config.
+# Change to the outermost Git repository root so that it can find and use 
+# the correct repo config.
 git_root_dir = hgit.find_git_root()
 os.chdir(git_root_dir)
 
