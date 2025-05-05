@@ -1,6 +1,8 @@
 import logging
 import unittest.mock as umock
-from typing import List
+from typing import List, Tuple
+
+import invoke
 
 import helpers.hunit_test as hunitest
 import helpers.lib_tasks_docker_release as hltadore
@@ -34,159 +36,30 @@ def _extract_commands_from_call(calls: List[umock._Call]) -> List[str]:
     return call_list
 
 
-# #############################################################################
-# TestDockerBuildLocalImage1
-# #############################################################################
+def get_build_inputs() -> Tuple[invoke.MockContext, str, str, str]:
+    """
+    Create common test inputs for docker build flow tests.
 
-
-class TestDockerBuildLocalImage1(hunitest.TestCase):
-
-    def setUp(self) -> None:
-        """
-        Set up test environment and initialize all necessary mocks.
-        """
-        super().setUp()
-        # Mock system calls.
-        self.system_patcher = umock.patch("helpers.hsystem.system")
-        self.mock_system = self.system_patcher.start()
-        # Mock run.
-        self.run_patcher = umock.patch("helpers.lib_tasks_utils.run")
-        self.mock_run = self.run_patcher.start()
-        # Mock version validation.
-        self.version_patcher = umock.patch(
-            "helpers.lib_tasks_docker.dassert_is_subsequent_version"
-        )
-        self.mock_version = self.version_patcher.start()
-        # Mock docker login.
-        self.docker_login_patcher = umock.patch(
-            "helpers.lib_tasks_docker.docker_login"
-        )
-        self.mock_docker_login = self.docker_login_patcher.start()
-
-    def tearDown(self) -> None:
-        """
-        Clean up test environment by stopping all mocks after each test case.
-        """
-        self.system_patcher.stop()
-        self.run_patcher.stop()
-        self.version_patcher.stop()
-        self.docker_login_patcher.stop()
-        super().tearDown()
-
-    def test_docker_build_single_arch(self) -> None:
-        """
-        Test building a local Docker image with single architecture.
-
-        This test verifies that the correct sequence of commands is
-        generated for building a local Docker image with single
-        architecture.
-        """
-        # Prepare inputs.
-        mock_ctx = httestlib._build_mock_context_returning_ok()
-        test_version = "1.0.0"
-        test_base_image = "test-registry.com/test-image"
-        # Call tested function.
-        hltadore.docker_build_local_image(
-            mock_ctx,
-            test_version,
-            cache=False,
-            base_image=test_base_image,
-            poetry_mode="update",
-        )
-        actual_cmds = _extract_commands_from_call(self.mock_run.call_args_list)
-        actual_cmds = "\n".join(actual_cmds)
-        # The output is a list of strings, each representing a command.
-        exp = r"""
-        cp -f devops/docker_build/dockerignore.dev .dockerignore
-        tar -czh . | DOCKER_BUILDKIT=0 \
-        time \
-        docker build \
-            --no-cache \
-            --build-arg AM_CONTAINER_VERSION=1.0.0 --build-arg INSTALL_DIND=True --build-arg POETRY_MODE=update --build-arg CLEAN_UP_INSTALLATION=True \
-            --tag test-registry.com/test-image:local-$USER_NAME-1.0.0 \
-            --file devops/docker_build/dev.Dockerfile \
-            -
-        invoke docker_cmd --stage local --version 1.0.0 --cmd 'cp -f /install/poetry.lock.out /install/pip_list.txt .' --skip-pull
-        cp -f poetry.lock.out ./devops/docker_build/poetry.lock
-        cp -f pip_list.txt ./devops/docker_build/pip_list.txt
-        docker image ls test-registry.com/test-image:local-$USER_NAME-1.0.0
-        """
-        # Check output.
-        self.assert_equal(
-            actual_cmds,
-            exp,
-            purify_text=True,
-            fuzzy_match=True,
-            remove_lead_trail_empty_lines=True,
-            dedent=True,
-        )
-
-    def test_docker_build_multi_arch(self) -> None:
-        """
-        Test building a local Docker image with multiple architectures.
-
-        This test verifies that the correct sequence of commands is
-        generated for building a local Docker image with multiple
-        architectures.
-        """
-        # Prepare inputs.
-        mock_ctx = httestlib._build_mock_context_returning_ok()
-        test_version = "1.0.0"
-        test_base_image = "test-registry.com/test-image"
-        test_multi_arch = "linux/amd64,linux/arm64"
-        # Call tested function.
-        hltadore.docker_build_local_image(
-            mock_ctx,
-            test_version,
-            cache=False,
-            base_image=test_base_image,
-            poetry_mode="update",
-            multi_arch=test_multi_arch,
-        )
-        actual_cmds = _extract_commands_from_call(self.mock_run.call_args_list)
-        actual_cmds = "\n".join(actual_cmds)
-        # The output is a list of strings, each representing a command.
-        exp = r"""
-        cp -f devops/docker_build/dockerignore.dev .dockerignore
-        docker buildx create \
-            --name multiarch_builder \
-            --driver docker-container \
-            --bootstrap \
-            && \
-            docker buildx use multiarch_builder
-        tar -czh . | DOCKER_BUILDKIT=0 \
-            time \
-            docker buildx build \
-            --no-cache \
-            --push \
-            --platform linux/amd64,linux/arm64 \
-            --build-arg AM_CONTAINER_VERSION=1.0.0 --build-arg INSTALL_DIND=True --build-arg POETRY_MODE=update --build-arg CLEAN_UP_INSTALLATION=True \
-            --tag test-registry.com/test-image:local-$USER_NAME-1.0.0 \
-            --file devops/docker_build/dev.Dockerfile \
-            -
-        docker pull test-registry.com/test-image:local-$USER_NAME-1.0.0
-        invoke docker_cmd --stage local --version 1.0.0 --cmd 'cp -f /install/poetry.lock.out /install/pip_list.txt .' --skip-pull
-        cp -f poetry.lock.out ./devops/docker_build/poetry.lock
-        cp -f pip_list.txt ./devops/docker_build/pip_list.txt
-        docker image ls test-registry.com/test-image:local-$USER_NAME-1.0.0
-        """
-        # Check output.
-        self.assert_equal(
-            actual_cmds,
-            exp,
-            purify_text=True,
-            fuzzy_match=True,
-            remove_lead_trail_empty_lines=True,
-            dedent=True,
-        )
+    :return: tuple containing mock context, test version, test base
+        image and test multi-arch
+    """
+    mock_ctx = httestlib._build_mock_context_returning_ok()
+    test_version = "1.0.0"
+    test_base_image = "test-registry.com/test-image"
+    test_multi_arch = "linux/amd64,linux/arm64"
+    return mock_ctx, test_version, test_base_image, test_multi_arch
 
 
 # #############################################################################
-# TestDockerBuildProdImage1
+# _DockerFlowTestHelper
 # #############################################################################
 
 
-class TestDockerBuildProdImage1(hunitest.TestCase):
+class _DockerFlowTestHelper(hunitest.TestCase):
+    """
+    Helper test class to perform common setup, teardown logic and assertion
+    checks for Docker flow tests.
+    """
 
     def setUp(self) -> None:
         """
@@ -211,7 +84,7 @@ class TestDockerBuildProdImage1(hunitest.TestCase):
         self.mock_docker_login = self.docker_login_patcher.start()
         # Mock environment variable.
         self.env_patcher = umock.patch.dict(
-            "os.environ", {"CSFY_ECR_BASE_PATH": "dummy.ecr.path"}
+            "os.environ", {"CSFY_ECR_BASE_PATH": "test.ecr.path"}
         )
         self.env_patcher.start()
 
@@ -219,49 +92,29 @@ class TestDockerBuildProdImage1(hunitest.TestCase):
         """
         Clean up test environment by stopping all mocks after each test case.
         """
-        self.system_patcher.stop()
-        self.run_patcher.stop()
-        self.version_patcher.stop()
-        self.docker_login_patcher.stop()
-        self.env_patcher.stop()
+        patchers = [
+            self.system_patcher,
+            self.run_patcher,
+            self.version_patcher,
+            self.docker_login_patcher,
+            self.env_patcher,
+        ]
+        for patcher in patchers:
+            patcher.stop()
         super().tearDown()
 
-    def test_docker_build_prod_image(self) -> None:
+    def _check_docker_command_output(
+        self, exp: str, call_args_list: List[umock._Call]
+    ) -> None:
         """
-        Test building a prod Docker image with single architecture.
+        Check that the sequence of commands from mock calls matches the
+        expected string.
 
-        This test verifies that the correct sequence of commands is
-        generated for building a prod Docker image.
+        :param exp: expected command string
+        :param call_args_list: list of mock call objects
         """
-        # Prepare inputs.
-        mock_ctx = httestlib._build_mock_context_returning_ok()
-        test_version = "1.0.0"
-        test_base_image = "test-registry.com/test-image"
-        # Call tested function.
-        hltadore.docker_build_prod_image(
-            mock_ctx,
-            test_version,
-            base_image=test_base_image,
-            cache=False,
-        )
-        actual_cmds = _extract_commands_from_call(self.mock_run.call_args_list)
+        actual_cmds = _extract_commands_from_call(call_args_list)
         actual_cmds = "\n".join(actual_cmds)
-        # The output is a list of strings, each representing a command.
-        exp = r"""
-        cp -f devops/docker_build/dockerignore.prod .dockerignore
-        DOCKER_BUILDKIT=0 \
-        time \
-        docker build \
-            --no-cache \
-            --tag test-registry.com/test-image:prod-1.0.0 \
-            --file /app/devops/docker_build/prod.Dockerfile \
-            --build-arg VERSION=1.0.0 \
-            --build-arg ECR_BASE_PATH=dummy.ecr.path \
-            .
-        docker tag test-registry.com/test-image:prod-1.0.0 test-registry.com/test-image:prod
-        docker image ls test-registry.com/test-image:prod
-        """
-        # Check output.
         self.assert_equal(
             actual_cmds,
             exp,
@@ -272,6 +125,137 @@ class TestDockerBuildProdImage1(hunitest.TestCase):
             dedent=True,
         )
 
+
+# #############################################################################
+# Test_docker_build_local_image1
+# #############################################################################
+
+
+class Test_docker_build_local_image1(_DockerFlowTestHelper):
+
+    def test_docker_build_single_arch(self) -> None:
+        """
+        Test building a local Docker image with single architecture.
+
+        This test verifies that the correct sequence of commands is
+        generated for building a local Docker image with single
+        architecture.
+        """
+        # Prepare inputs.
+        mock_ctx, test_version, test_base_image, _ = get_build_inputs()
+        # Call tested function.
+        hltadore.docker_build_local_image(
+            mock_ctx,
+            test_version,
+            cache=False,
+            base_image=test_base_image,
+            poetry_mode="update",
+        )
+        # The output is a list of strings, each representing a command.
+        exp = r"""
+        cp -f devops/docker_build/dockerignore.dev .dockerignore
+        tar -czh . | DOCKER_BUILDKIT=0 \
+        time \
+        docker build \
+            --no-cache \
+            --build-arg AM_CONTAINER_VERSION=1.0.0 --build-arg INSTALL_DIND=True --build-arg POETRY_MODE=update --build-arg CLEAN_UP_INSTALLATION=True \
+            --tag test-registry.com/test-image:local-$USER_NAME-1.0.0 \
+            --file devops/docker_build/dev.Dockerfile \
+            -
+        invoke docker_cmd --stage local --version 1.0.0 --cmd 'cp -f /install/poetry.lock.out /install/pip_list.txt .' --skip-pull
+        cp -f poetry.lock.out ./devops/docker_build/poetry.lock
+        cp -f pip_list.txt ./devops/docker_build/pip_list.txt
+        docker image ls test-registry.com/test-image:local-$USER_NAME-1.0.0
+        """
+        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+
+    def test_docker_build_multi_arch(self) -> None:
+        """
+        Test building a local Docker image with multiple architectures.
+
+        This test verifies that the correct sequence of commands is
+        generated for building a local Docker image with multiple
+        architectures.
+        """
+        # Prepare inputs.
+        mock_ctx, test_version, test_base_image, test_multi_arch = (
+            get_build_inputs()
+        )
+        # Call tested function.
+        hltadore.docker_build_local_image(
+            mock_ctx,
+            test_version,
+            cache=False,
+            base_image=test_base_image,
+            poetry_mode="update",
+            multi_arch=test_multi_arch,
+        )
+        exp = r"""
+        cp -f devops/docker_build/dockerignore.dev .dockerignore
+        docker buildx create \
+            --name multiarch_builder \
+            --driver docker-container \
+            --bootstrap \
+            && \
+            docker buildx use multiarch_builder
+        tar -czh . | DOCKER_BUILDKIT=0 \
+            time \
+            docker buildx build \
+            --no-cache \
+            --push \
+            --platform linux/amd64,linux/arm64 \
+            --build-arg AM_CONTAINER_VERSION=1.0.0 --build-arg INSTALL_DIND=True --build-arg POETRY_MODE=update --build-arg CLEAN_UP_INSTALLATION=True \
+            --tag test-registry.com/test-image:local-$USER_NAME-1.0.0 \
+            --file devops/docker_build/dev.Dockerfile \
+            -
+        docker pull test-registry.com/test-image:local-$USER_NAME-1.0.0
+        invoke docker_cmd --stage local --version 1.0.0 --cmd 'cp -f /install/poetry.lock.out /install/pip_list.txt .' --skip-pull
+        cp -f poetry.lock.out ./devops/docker_build/poetry.lock
+        cp -f pip_list.txt ./devops/docker_build/pip_list.txt
+        docker image ls test-registry.com/test-image:local-$USER_NAME-1.0.0
+        """
+        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+
+
+# #############################################################################
+# Test_docker_build_prod_image1
+# #############################################################################
+
+
+class Test_docker_build_prod_image1(_DockerFlowTestHelper):
+
+    def test_docker_build_prod_image(self) -> None:
+        """
+        Test building a prod Docker image with single architecture.
+
+        This test verifies that the correct sequence of commands is
+        generated for building a prod Docker image.
+        """
+        # Prepare inputs.
+        mock_ctx, test_version, test_base_image, _ = get_build_inputs()
+        # Call tested function.
+        hltadore.docker_build_prod_image(
+            mock_ctx,
+            test_version,
+            base_image=test_base_image,
+            cache=False,
+        )
+        exp = r"""
+        cp -f devops/docker_build/dockerignore.prod .dockerignore
+        DOCKER_BUILDKIT=0 \
+        time \
+        docker build \
+            --no-cache \
+            --tag test-registry.com/test-image:prod-1.0.0 \
+            --file /app/devops/docker_build/prod.Dockerfile \
+            --build-arg VERSION=1.0.0 \
+            --build-arg ECR_BASE_PATH=test.ecr.path \
+            .
+        docker tag test-registry.com/test-image:prod-1.0.0 test-registry.com/test-image:prod
+        docker image ls test-registry.com/test-image:prod
+        """
+        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+
     def test_docker_build_multi_arch_prod_image(self) -> None:
         """
         Test building a prod Docker image with multiple architectures.
@@ -280,10 +264,9 @@ class TestDockerBuildProdImage1(hunitest.TestCase):
         generated for building a multi-arch prod Docker image.
         """
         # Prepare inputs.
-        mock_ctx = httestlib._build_mock_context_returning_ok()
-        test_version = "1.0.0"
-        test_base_image = "test-registry.com/test-image"
-        test_multi_arch = "linux/amd64,linux/arm64"
+        mock_ctx, test_version, test_base_image, test_multi_arch = (
+            get_build_inputs()
+        )
         # Call tested function.
         hltadore.docker_build_multi_arch_prod_image(
             mock_ctx,
@@ -292,9 +275,6 @@ class TestDockerBuildProdImage1(hunitest.TestCase):
             cache=False,
             multi_arch=test_multi_arch,
         )
-        actual_cmds = _extract_commands_from_call(self.mock_run.call_args_list)
-        actual_cmds = "\n".join(actual_cmds)
-        # The output is a list of strings, each representing a command.
         exp = r"""
         cp -f devops/docker_build/dockerignore.prod .dockerignore
         docker buildx create \
@@ -309,23 +289,14 @@ class TestDockerBuildProdImage1(hunitest.TestCase):
             --no-cache \
             --push \
             --platform linux/amd64,linux/arm64 \
-            --build-arg VERSION=1.0.0 --build-arg ECR_BASE_PATH=dummy.ecr.path \
+            --build-arg VERSION=1.0.0 --build-arg ECR_BASE_PATH=test.ecr.path \
             --tag test-registry.com/test-image:prod-1.0.0 \
             --file devops/docker_build/prod.Dockerfile \
             -
         docker pull test-registry.com/test-image:prod-1.0.0
         docker image ls test-registry.com/test-image:prod-1.0.0
         """
-        # Check output.
-        self.assert_equal(
-            actual_cmds,
-            exp,
-            purify_text=True,
-            purify_expected_text=True,
-            fuzzy_match=True,
-            remove_lead_trail_empty_lines=True,
-            dedent=True,
-        )
+        self._check_docker_command_output(exp, self.mock_run.call_args_list)
 
     def test_docker_build_prod_image_with_candidate_tag(self) -> None:
         """
@@ -336,9 +307,7 @@ class TestDockerBuildProdImage1(hunitest.TestCase):
         tag.
         """
         # Prepare inputs.
-        mock_ctx = httestlib._build_mock_context_returning_ok()
-        test_version = "1.0.0"
-        test_base_image = "test-registry.com/test-image"
+        mock_ctx, test_version, test_base_image, _ = get_build_inputs()
         test_tag = "test_tag"
         # Call tested function.
         hltadore.docker_build_prod_image(
@@ -349,9 +318,6 @@ class TestDockerBuildProdImage1(hunitest.TestCase):
             candidate=True,
             tag=test_tag,
         )
-        actual_cmds = _extract_commands_from_call(self.mock_run.call_args_list)
-        actual_cmds = "\n".join(actual_cmds)
-        # The output is a list of strings, each representing a command.
         exp = r"""
         cp -f devops/docker_build/dockerignore.prod .dockerignore
         DOCKER_BUILDKIT=0 \
@@ -361,20 +327,11 @@ class TestDockerBuildProdImage1(hunitest.TestCase):
             --tag test-registry.com/test-image:prod-test_tag \
             --file /app/devops/docker_build/prod.Dockerfile \
             --build-arg VERSION=1.0.0 \
-            --build-arg ECR_BASE_PATH=dummy.ecr.path \
+            --build-arg ECR_BASE_PATH=test.ecr.path \
             .
         docker image ls test-registry.com/test-image:prod-test_tag
         """
-        # Check output.
-        self.assert_equal(
-            actual_cmds,
-            exp,
-            purify_text=True,
-            purify_expected_text=True,
-            fuzzy_match=True,
-            remove_lead_trail_empty_lines=True,
-            dedent=True,
-        )
+        self._check_docker_command_output(exp, self.mock_run.call_args_list)
 
     def test_docker_build_prod_image_with_candidate_user_tag(self) -> None:
         """
@@ -385,10 +342,8 @@ class TestDockerBuildProdImage1(hunitest.TestCase):
         user tag and tag.
         """
         # Prepare inputs.
-        mock_ctx = httestlib._build_mock_context_returning_ok()
-        test_version = "1.0.0"
-        test_base_image = "test-registry.com/test-image"
-        test_user_tag = "testuser"
+        mock_ctx, test_version, test_base_image, _ = get_build_inputs()
+        test_user_tag = "test_user"
         test_tag = "test_tag"
         # Call tested function.
         hltadore.docker_build_prod_image(
@@ -400,29 +355,17 @@ class TestDockerBuildProdImage1(hunitest.TestCase):
             user_tag=test_user_tag,
             tag=test_tag,
         )
-        actual_cmds = _extract_commands_from_call(self.mock_run.call_args_list)
-        actual_cmds = "\n".join(actual_cmds)
-        # The output is a list of strings, each representing a command.
         exp = r"""
         cp -f devops/docker_build/dockerignore.prod .dockerignore
         DOCKER_BUILDKIT=0 \
         time \
         docker build \
             --no-cache \
-            --tag test-registry.com/test-image:prod-testuser-test_tag \
+            --tag test-registry.com/test-image:prod-test_user-test_tag \
             --file /app/devops/docker_build/prod.Dockerfile \
             --build-arg VERSION=1.0.0 \
-            --build-arg ECR_BASE_PATH=dummy.ecr.path \
+            --build-arg ECR_BASE_PATH=test.ecr.path \
             .
-        docker image ls test-registry.com/test-image:prod-testuser-test_tag
+        docker image ls test-registry.com/test-image:prod-test_user-test_tag
         """
-        # Check output.
-        self.assert_equal(
-            actual_cmds,
-            exp,
-            purify_text=True,
-            purify_expected_text=True,
-            fuzzy_match=True,
-            remove_lead_trail_empty_lines=True,
-            dedent=True,
-        )
+        self._check_docker_command_output(exp, self.mock_run.call_args_list)
