@@ -285,6 +285,9 @@ def md_clean_up(txt: str) -> str:
     txt = re.sub(r"\\\[(.*?)\\\]", r"$$\1$$", txt, flags=re.DOTALL)
     # Replace `P(.)`` with `\Pr(.)`.
     txt = re.sub(r"P\((.*?)\)", r"\\Pr(\1)", txt)
+    # Replace \left[, \right].
+    txt = re.sub(r"\\left\[", r"[", txt)
+    txt = re.sub(r"\\right\]", r"]", txt)
     # Replace \mid with `|`.
     txt = re.sub(r"\\mid", r"|", txt)
     # E.g.,``  • Description Logics (DLs) are a family``
@@ -755,27 +758,24 @@ def selected_navigation_to_str(
 # #############################################################################
 
 
-all_colors = [
+# These are the colors that are supported by Latex / markdown, are readable on
+# white, and form an equidistant color palette.
+_ALL_COLORS = [
     "red",
     "orange",
-    "yellow",
-    "lime",
+    "brown",
+    "olive",
     "green",
     "teal",
     "cyan",
     "blue",
-    "purple",
     "violet",
-    "magenta",
-    "pink",
-    "brown",
-    "olive",
-    "gray",
     "darkgray",
-    "lightgray",
+    "gray",
 ]
 
 
+# TODO(gp): Just bold the first-level bullets and then apply colorize_bold_text.
 def colorize_first_level_bullets(markdown_text: str) -> str:
     """
     Colorize first-level bullets in markdown text.
@@ -784,7 +784,6 @@ def colorize_first_level_bullets(markdown_text: str) -> str:
     :return: Formatted markdown text with first-level bullets colored
     """
     # Define the colors to use.
-    colors = ["red", "orange", "green", "teal", "cyan", "blue", "violet", "brown"]
     # Find all first-level bullet points (lines starting with "- " after any whitespace).
     lines = markdown_text.split("\n")
     color_index = 0
@@ -796,7 +795,7 @@ def colorize_first_level_bullets(markdown_text: str) -> str:
             indentation = len(line) - len(line.lstrip())
             if indentation == 0:
                 # First-level bullet.
-                color = colors[color_index % len(colors)]
+                color = _ALL_COLORS[color_index % len(_ALL_COLORS)]
                 # Replace the bullet with a colored version.
                 # - \textcolor{red}{Linear models}
                 colored_line = re.sub(
@@ -826,58 +825,60 @@ def colorize_bold_text(
         `\red{text}` instead of `\textcolor{red}{text}`
     :return: Markdown text with colored bold sections
     """
+    # Remove any existing color formatting.
+    # Remove \color{text} format
+    markdown_text = re.sub(r"\\[a-z]+\{([^}]+)\}", r"\1", markdown_text)
+    # Remove \textcolor{color}{text} format  
+    markdown_text = re.sub(r"\\textcolor\{[^}]+\}\{([^}]+)\}", r"\1", markdown_text)
     # Find all bold text (both ** and __ formats).
     bold_pattern = r"\*\*(.*?)\*\*|__(.*?)__"
     # matches will look like:
-    # - For **text**: group(1)='text', group(2)=None
-    # - For __text__: group(1)=None, group(2)='text'
+    # For **text**: group(1)='text', group(2)=None.
+    # For __text__: group(1)=None, group(2)='text'.
     matches = list(re.finditer(bold_pattern, markdown_text))
     if not matches:
         return markdown_text
     result = markdown_text
     # Calculate color spacing to use equidistant colors.
-    color_step = len(all_colors) / len(matches)
-    # Process matches in reverse to not mess up string indices
+    color_step = len(_ALL_COLORS) / len(matches)
+    # Process matches in reverse to not mess up string indices.
     for i, match in enumerate(reversed(matches)):
-        # Get the matched bold text (either ** or __ format)
+        # Get the matched bold text (either ** or __ format).
         bold_text = match.group(1) or match.group(2)
-        # Calculate color index using equidistant spacing
-        color_idx = int((len(matches) - 1 - i) * color_step) % len(all_colors)
-        color = all_colors[color_idx]
-        # Create the colored version
+        # Calculate `color_idx` using equidistant spacing.
+        color_idx = int((len(matches) - 1 - i) * color_step) % len(_ALL_COLORS)
+        color = _ALL_COLORS[color_idx]
+        # Create the colored version.
         if use_abbreviations:
+            # E.g., \red{text}
             colored_text = f"\\{color}{{{bold_text}}}"
         else:
-            colored_text = f"**\\textcolor{{{color}}}{{{bold_text}}}**"
-        # Replace in the original text
+            # E.g., \textcolor{red}{text}
+            colored_text = f"\\textcolor{{{color}}}{{{bold_text}}}"
+        # Apply bold.
+        colored_text = f"**{colored_text}**"
+        # Replace in the original text.
         result = result[: match.start()] + colored_text + result[match.end() :]
     return result
 
 
-def format_compressed_markdown(markdown_text: str) -> str:
+def remove_empty_lines_from_markdown(markdown_text: str) -> str:
     """
-    Add an empty line before first level bullets in markdown text.
-
-    First level bullets are those starting with "- " at the beginning of
-    a line with no indentation. Other level bullets have no empty line
-    before them.
+    Remove all empty lines from markdown text and add empty lines only before
+    first level bullets.
 
     :param markdown_text: Input markdown text
-    :return: Formatted markdown text with
+    :return: Formatted markdown text
     """
-    lines = markdown_text.split("\n")
+    # Split into lines and remove empty ones.
+    lines = [line for line in markdown_text.split("\n") if line.strip()]
+    # Remove all empty lines.
     result = []
     for i, line in enumerate(lines):
         # Check if current line is a first level bullet (no indentation).
         if re.match(r"^- ", line):
-            # Add empty line before first level bullet if previous line exists
-            # and isn't empty.
-            if i > 0 and lines[i - 1].strip() != "":
+            # Add empty line before first level bullet if not at start.
+            if i > 0:
                 result.append("")
-        elif re.match(r"^\s+- ", line):
-            # If current line is an indented bullet, remove any empty line
-            # before indented bullet.
-            if result and result[-1].strip() == "":
-                result.pop()
         result.append(line)
     return "\n".join(result)

@@ -51,6 +51,12 @@ def _parse() -> argparse.ArgumentParser:
     return parser
 
 
+def _format_markdown(txt: str) -> str:
+    txt = dshdlino.prettier_on_str(txt)
+    txt = hmarkdo.remove_empty_lines_from_markdown(txt)
+    return txt
+
+
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hparser.init_logger_for_input_output_transform(args)
@@ -59,14 +65,14 @@ def _main(parser: argparse.ArgumentParser) -> None:
     if cmd == "list":
         txt = r"""
         test: compute the hash of a string to test the flow
-        format_headers: format the headers of the current file
-        increase_headers_level: increase the level of the headers of the current file
+        format_headers: format the headers
+        increase_headers_level: increase the level of the headers
         md_list_to_latex: convert a markdown list to a latex list
-        md_remove_formatting: remove the formatting of the current file
-        md_clean_up: clean up the current file
-        md_format: format the current file
-        md_format_compressed: format the current file
-        md_colorize_bold_text: colorize the bold text of the current file
+        md_remove_formatting: remove the formatting
+        md_clean_up: clean up removing all weird characters
+        md_only_format: reflow the markdown
+        md_colorize_bold_text: colorize the bold text
+        md_format: reflow the markdown and colorize the bold text
         """
         txt = hprint.dedent(txt)
         print(txt)
@@ -98,23 +104,27 @@ def _main(parser: argparse.ArgumentParser) -> None:
             )
             mode = "list"
             txt = hmarkdo.header_list_to_markdown(header_list, mode)
+            txt = _format_markdown(txt)
         elif cmd == "md_list_to_latex":
             txt = hlatex.markdown_list_to_latex(txt)
+            txt = _format_markdown(txt)
         elif cmd == "md_remove_formatting":
             txt = hmarkdo.remove_formatting(txt)
+            txt = _format_markdown(txt)
         elif cmd == "md_clean_up":
             txt = hmarkdo.md_clean_up(txt)
-        elif cmd == "md_format":
-            # txt = dshdlino.prettier_on_str(txt)
-            pass
-        elif cmd == "md_format_compressed":
-            txt = hmarkdo.format_compressed_markdown(txt)
+            txt = _format_markdown(txt)
+        elif cmd == "md_only_format":
+            txt = _format_markdown(txt)
         elif cmd == "md_colorize_bold_text":
             txt = hmarkdo.colorize_bold_text(txt)
+            txt = _format_markdown(txt)
+        elif cmd == "md_format":
+            txt = hmarkdo.md_clean_up(txt)
+            txt = hmarkdo.colorize_bold_text(txt)
+            txt = _format_markdown(txt)
         else:
             raise ValueError(f"Invalid cmd='{cmd}'")
-        # Reflow the output.
-        txt = dshdlino.prettier_on_str(txt)
         # Write the output.
         hparser.write_file(txt, out_file_name)
 

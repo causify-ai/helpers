@@ -1411,7 +1411,7 @@ class Test_colorize_bold_text1(hunitest.TestCase):
         """
         text = "This is **bold** text"
         actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
-        expected = "This is \\red{bold} text"
+        expected = r"This is **\red{bold}** text"
         self.assert_equal(actual, expected)
 
     def test2(self) -> None:
@@ -1420,7 +1420,7 @@ class Test_colorize_bold_text1(hunitest.TestCase):
         """
         text = "**First** normal **Second** text"
         actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
-        expected = "\\red{First} normal \\purple{Second} text"
+        expected = r"**\red{First}** normal **\purple{Second}** text"
         self.assert_equal(actual, expected)
 
     def test3(self) -> None:
@@ -1429,7 +1429,7 @@ class Test_colorize_bold_text1(hunitest.TestCase):
         """
         text = "This is __bold__ text"
         actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
-        expected = "This is \\red{bold} text"
+        expected = r"This is **\red{bold}** text"
         self.assert_equal(actual, expected)
 
     def test4(self) -> None:
@@ -1447,7 +1447,7 @@ class Test_colorize_bold_text1(hunitest.TestCase):
         """
         text = "**First** and __Second__ bold"
         actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
-        expected = "\\red{First} and \\purple{Second} bold"
+        expected = r"**\red{First}** and **\purple{Second}** bold"
         self.assert_equal(actual, expected)
 
     def test6(self) -> None:
@@ -1456,7 +1456,7 @@ class Test_colorize_bold_text1(hunitest.TestCase):
         """
         text = "This is **bold** text"
         actual = hmarkdo.colorize_bold_text(text, use_abbreviations=False)
-        expected = "This is **\\textcolor{red}{bold}** text"
+        expected = r"This is **\textcolor{red}{bold}** text"
         self.assert_equal(actual, expected)
 
     def test7(self) -> None:
@@ -1473,16 +1473,91 @@ class Test_colorize_bold_text1(hunitest.TestCase):
         - Final item
         """
         actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
-        expected = """
-        \\red{List 1:}
+        expected = r"""
+        **\red{List 1:}**
         - First item
         - Second item
 
-        \\purple{List 2:}
+        **\purple{List 2:}**
         - Another item
         - Final item
         """
         self.assert_equal(actual, expected)
+
+    def test8(self) -> None:
+        text = r"""
+- **\red{Objective}**
+  - Learn utility estimates $U^\pi(s)$for a fixed policy$\pi$ using an estimated
+    model of the environment
+
+- **\orange{Key Components}**
+  - Model learning: Estimate transition probabilities $\Pr(s'|s,a)$ and
+    reward function $R(s,a)$ from experience
+  - Utility update: Solve the Bellman equations for the fixed policy:
+    - $U^\pi(s) = R(s, \pi(s)) + \gamma \sum_{s'} \Pr(s'|s, \pi(s)) U^\pi(s')$
+
+- **\blue{Learning Process}**
+  - Collect transitions $(s, \pi(s), r, s')$ during execution
+  - Update model estimates:
+    - $\Pr(s'|s,a) \approx$ empirical frequency
+    - $R(s,a) \approx$ average observed reward
+  - Use dynamic programming to compute $U^\pi(s)$
+
+- **\violet{Advantages}**
+  - More sample-efficient than direct utility estimation
+  - Leverages structure of the MDP to generalize better
+
+- **\pink{Challenges}**
+  - Requires accurate model estimation
+  - Computational cost of solving Bellman equations repeatedly
+
+- **\olive{Example}**
+  - A thermostat estimates room temperature dynamics and uses them to predict
+    comfort level under a fixed heating schedule
+
+- **\darkgray{Use Case}**
+  - Suitable when environment dynamics are stationary and can be learned from
+    interaction
+        """
+        actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
+        expected = r"""
+- **\red{Objective}**
+  - Learn utility estimates $U^\pi(s)$for a fixed policy$\pi$ using an estimated
+    model of the environment
+
+- **\yellow{Key Components}**
+  - Model learning: Estimate transition probabilities $\Pr(s'|s,a)$ and
+    reward function $R(s,a)$ from experience
+  - Utility update: Solve the Bellman equations for the fixed policy:
+    - $U^\pi(s) = R(s, \pi(s)) + \gamma \sum_{s'} \Pr(s'|s, \pi(s)) U^\pi(s')$
+
+- **\green{Learning Process}**
+  - Collect transitions $(s, \pi(s), r, s')$ during execution
+  - Update model estimates:
+    - $\Pr(s'|s,a) \approx$ empirical frequency
+    - $R(s,a) \approx$ average observed reward
+  - Use dynamic programming to compute $U^\pi(s)$
+
+- **\blue{Advantages}**
+  - More sample-efficient than direct utility estimation
+  - Leverages structure of the MDP to generalize better
+
+- **\violet{Challenges}**
+  - Requires accurate model estimation
+  - Computational cost of solving Bellman equations repeatedly
+
+- **\brown{Example}**
+  - A thermostat estimates room temperature dynamics and uses them to predict
+    comfort level under a fixed heating schedule
+
+- **\gray{Use Case}**
+  - Suitable when environment dynamics are stationary and can be learned from
+    interaction
+        """
+        self.assert_equal(actual, expected)
+
+
+
 
 
 # #############################################################################
@@ -1655,6 +1730,56 @@ class Test_format_compressed_markdown1(hunitest.TestCase):
 
         - Bullet with {braces}
             - Bullet with $math$"""
+        self._format_and_compare_markdown(text, expected)
+
+    def test10(self) -> None:
+        text = r"""
+        - **Objective**
+
+          - Learn utility estimates $U^\pi(s)$for a fixed policy$\pi$ using an estimated
+            model of the environment
+
+        - **Key Components**
+
+          - **Model learning**: Estimate transition probabilities $\Pr(s'|s,a)$ and
+            reward function $R(s,a)$ from experience
+          - **Utility update**: Solve the Bellman equations for the fixed policy:
+            - $U^\pi(s) = R(s, \pi(s)) + \gamma \sum_{s'} \Pr(s'|s, \pi(s)) U^\pi(s')$
+
+        - **Learning Process**
+
+          - Collect transitions $(s, \pi(s), r, s')$ during execution
+          - Update model estimates:
+            - $\Pr(s'|s,a) \approx$ empirical frequency
+            - $R(s,a) \approx$ average observed reward
+          - Use dynamic programming to compute $U^\pi(s)$
+
+        - **Use Case**
+          - Suitable when environment dynamics are stationary and can be learned from
+            interaction
+        """
+        expected = r"""
+        - **Objective**
+          - Learn utility estimates $U^\pi(s)$for a fixed policy$\pi$ using an estimated
+            model of the environment
+
+        - **Key Components**
+          - **Model learning**: Estimate transition probabilities $\Pr(s'|s,a)$ and
+            reward function $R(s,a)$ from experience
+          - **Utility update**: Solve the Bellman equations for the fixed policy:
+            - $U^\pi(s) = R(s, \pi(s)) + \gamma \sum_{s'} \Pr(s'|s, \pi(s)) U^\pi(s')$
+
+        - **Learning Process**
+          - Collect transitions $(s, \pi(s), r, s')$ during execution
+          - Update model estimates:
+            - $\Pr(s'|s,a) \approx$ empirical frequency
+            - $R(s,a) \approx$ average observed reward
+          - Use dynamic programming to compute $U^\pi(s)$
+
+        - **Use Case**
+          - Suitable when environment dynamics are stationary and can be learned from
+            interaction
+        """
         self._format_and_compare_markdown(text, expected)
 
     def _format_and_compare_markdown(self, text: str, expected: str) -> None:
