@@ -37,6 +37,12 @@ for var in $(compgen -v | grep "^REPO_CONF_"); do
   eval "echo \"$var=\$$var\""
 done;
 
+# TODO(heanh): Remove this once all repos are migrated to the new config.
+# Allow backward compatibility with old repo config that use integer value.
+if [[ $REPO_CONF_runnable_dir_info_use_helpers_as_nested_module == 1 ]]; then
+    REPO_CONF_runnable_dir_info_use_helpers_as_nested_module=True
+fi;
+
 # #############################################################################
 # Thin environment.
 # #############################################################################
