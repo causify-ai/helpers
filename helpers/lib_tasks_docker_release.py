@@ -801,8 +801,9 @@ def docker_build_prod_image(  # type: ignore
     # Use dev version for building prod image.
     dev_version = hlitadoc.to_dev_version(prod_version)
     image_name = hrecouti.get_repo_config().get_docker_base_image_name()
-    # Copy the entire repository (not just the current directory)
+    # Copy the entire copy (not just the current directory where the code is executed)
     # to ensure the setup in the `prod` image mirrors that of the `dev` image.
+    # See CmampTask12104.
     git_root_dir = hgit.find_git_root()
     cmd = rf"""
     DOCKER_BUILDKIT={DOCKER_BUILDKIT} \
