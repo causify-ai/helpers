@@ -804,7 +804,7 @@ def docker_build_prod_image(  # type: ignore
     # Copy the entire repo (not just the current dir where the code is executed)
     # to ensure the setup in the `prod` image mirrors that of the `dev` image.
     # Use `find_immediate_git_root` instead of `get_git_root` to allow building
-    # of `prod` container from submodule.
+    # of `prod` image from submodule.
     git_root_dir = hgit.find_immediate_git_root()
     cmd = rf"""
     DOCKER_BUILDKIT={DOCKER_BUILDKIT} \
