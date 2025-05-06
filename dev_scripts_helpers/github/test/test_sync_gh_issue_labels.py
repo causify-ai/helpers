@@ -28,8 +28,9 @@ class Test_sync_gh_issue_labels1(hunitest.TestCase):
     )
     def test1(self, mock_github: umock.Mock) -> None:
         """
-        Test that the backup file is written as intended by mocking GitHub API
-        interactions.
+        Test that the dockerized executable reads the input file, performs the
+        necessary operations, and writes the backup file in the git root
+        directory.
         """
         # Set up mock GitHub repo and labels.
         mock_label = umock.Mock()
