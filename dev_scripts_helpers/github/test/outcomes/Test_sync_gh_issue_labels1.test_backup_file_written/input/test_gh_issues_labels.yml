@@ -1,7 +1,0 @@
-# Test labels for GitHub issue label synchronization.
-- name: bug
-  description: Bug label
-  color: "#d73a4a"
-- name: feature
-  description: Feature request
-  color: "#00FF00"
