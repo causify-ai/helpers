@@ -268,11 +268,11 @@ graph TD
     processor architectures (e.g., x86-64, arm64)
 - The same container is used to run the code in all set-ups (e.g., on a personal
   laptop, on a server, in the CI)
+- It is possible to have different dependencies for the dev and prod container
+  - E.g., dependencies to run the unit tests are not needed in a prod container
 - The toolchain to build containers is managed through `invoke` targets
   - It supports versioning
 - The Python dependencies are managed through `poetry`
-- It is possible to have different dependencies for the dev and prod container
-  - E.g., dependencies to run the unit tests are not needed in a prod container
 
 ### Building `dev` container
 
