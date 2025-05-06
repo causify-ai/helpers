@@ -479,7 +479,9 @@ def check_gitleaks(abort_on_error: bool = True) -> None:
     helpers_root_dir = hgit.find_helpers_root()
     rel_path = os.path.relpath(helpers_root_dir, git_root_dir)
     # Find the gitleaks config file.
-    config_path = os.path.join("/app", rel_path, "dev_scripts_helpers/git/gitleaks")
+    config_path = os.path.join(
+        "/app", rel_path, "dev_scripts_helpers/git/gitleaks"
+    )
     config_path = os.path.normpath(config_path)
     cmd = f"""
     docker run -v {git_root_dir}:/app zricethezav/gitleaks:latest -c {config_path}/gitleaks-rules.toml git /app --pre-commit --staged --verbose
