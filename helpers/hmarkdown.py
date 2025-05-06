@@ -755,7 +755,34 @@ def selected_navigation_to_str(
 # #############################################################################
 
 
+all_colors = [
+    "red",
+    "orange", 
+    "yellow",
+    "lime",
+    "green",
+    "teal",
+    "cyan", 
+    "blue",
+    "purple",
+    "violet",
+    "magenta",
+    "pink",
+    "brown",
+    "olive",
+    "gray",
+    "darkgray",
+    "lightgray", 
+]
+
+
 def colorize_first_level_bullets(markdown_text: str) -> str:
+    """
+    Colorize first-level bullets in markdown text.
+
+    :param markdown_text: Input markdown text
+    :return: Formatted markdown text with first-level bullets colored
+    """
     # Define the colors to use.
     colors = ["red", "orange", "green", "teal", "cyan", "blue", "violet", "brown"]
     # Find all first-level bullet points (lines starting with "- " after any whitespace).
@@ -784,6 +811,54 @@ def colorize_first_level_bullets(markdown_text: str) -> str:
     return "\n".join(result)
 
 
+def colorize_bold_text(markdown_text: str, *, use_abbreviations: bool = True) -> str:
+    r"""
+    Add colors to bold text in markdown using equidistant colors from an array.
+
+    The function finds all bold text (enclosed in ** or __) and adds LaTeX color
+    commands while preserving the rest of the markdown unchanged.
+
+    :param markdown_text: Input markdown text
+    :param use_abbreviations: Use LaTeX abbreviations for colors,
+        `\red{text}` instead of `\textcolor{red}{text}`
+    :return: Markdown text with colored bold sections
+    """
+    # Find all bold text (both ** and __ formats).
+    bold_pattern = r'\*\*(.*?)\*\*|__(.*?)__'
+    # matches will look like:
+    # - For **text**: group(1)='text', group(2)=None
+    # - For __text__: group(1)=None, group(2)='text'
+    matches = list(re.finditer(bold_pattern, markdown_text))
+    if not matches:
+        return markdown_text
+        
+    result = markdown_text
+    # Calculate color spacing to use equidistant colors.
+    color_step = len(all_colors) / len(matches)
+    
+    # Process matches in reverse to not mess up string indices
+    for i, match in enumerate(reversed(matches)):
+        # Get the matched bold text (either ** or __ format)
+        bold_text = match.group(1) or match.group(2)
+        # Calculate color index using equidistant spacing
+        color_idx = int((len(matches) - 1 - i) * color_step) % len(all_colors)
+        color = all_colors[color_idx]
+        
+        # Create the colored version
+        if use_abbreviations:
+            colored_text = f"\\{color}{{{bold_text}}}"
+        else:
+            colored_text = f"**\\textcolor{{{color}}}{{{bold_text}}}**"
+        
+        # Replace in the original text
+        result = (
+            result[:match.start()]
+            + colored_text
+            + result[match.end():]
+        )
+    return result
+
+
 def format_compressed_markdown(markdown_text: str) -> str:
     """
     Add an empty line before first level bullets in markdown text.
@@ -792,19 +867,20 @@ def format_compressed_markdown(markdown_text: str) -> str:
     with no indentation. Other level bullets have no empty line before them.
 
     :param markdown_text: Input markdown text
-    :return: Formatted markdown text with empty lines before first level bullets
+    :return: Formatted markdown text with
     """
     lines = markdown_text.split("\n")
     result = []
     for i, line in enumerate(lines):
-        # Check if current line is a first level bullet (no indentation)
+        # Check if current line is a first level bullet (no indentation).
         if re.match(r"^- ", line):
-            # Add empty line before first level bullet if previous line exists and isn't empty
+            # Add empty line before first level bullet if previous line exists
+            # and isn't empty.
             if i > 0 and lines[i-1].strip() != "":
                 result.append("")
-        # Check if current line is an indented bullet
         elif re.match(r"^\s+- ", line):
-            # Remove any empty line before indented bullet
+            # If current line is an indented bullet, remove any empty line
+            # before indented bullet.
             if result and result[-1].strip() == "":
                 result.pop()
         result.append(line)

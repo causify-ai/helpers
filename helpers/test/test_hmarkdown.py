@@ -1398,6 +1398,97 @@ class Test_check_header_list1(hunitest.TestCase):
         self.assertTrue(True)
 
 
+# #############################################################################
+# Test_colorize_bold_text1
+# #############################################################################
+
+
+class Test_colorize_bold_text1(hunitest.TestCase):
+
+    def test1(self) -> None:
+        """
+        Test basic case with single bold text.
+        """
+        text = "This is **bold** text"
+        actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
+        expected = "This is \\red{bold} text"
+        self.assert_equal(actual, expected)
+
+    def test2(self) -> None:
+        """
+        Test multiple bold sections get different colors.
+        """
+        text = "**First** normal **Second** text"
+        actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
+        expected = "\\red{First} normal \\purple{Second} text"
+        self.assert_equal(actual, expected)
+
+    def test3(self) -> None:
+        """
+        Test underscore style bold text.
+        """
+        text = "This is __bold__ text"
+        actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
+        expected = "This is \\red{bold} text"
+        self.assert_equal(actual, expected)
+
+    def test4(self) -> None:
+        """
+        Test text with no bold sections returns unchanged.
+        """
+        text = "This is plain text"
+        actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
+        expected = "This is plain text"
+        self.assert_equal(actual, expected)
+
+    def test5(self) -> None:
+        """
+        Test mixed bold styles in same text.
+        """
+        text = "**First** and __Second__ bold"
+        actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
+        expected = "\\red{First} and \\purple{Second} bold"
+        self.assert_equal(actual, expected)
+
+    def test6(self) -> None:
+        """
+        Test with abbreviations=False uses full \textcolor syntax.
+        """
+        text = "This is **bold** text"
+        actual = hmarkdo.colorize_bold_text(text, use_abbreviations=False)
+        expected = "This is **\\textcolor{red}{bold}** text"
+        self.assert_equal(actual, expected)
+
+    def test7(self) -> None:
+        """
+        Test with multiple bullet lists and different colors.
+        """
+        text = """
+        **List 1:**
+        - First item
+        - Second item
+        
+        **List 2:**
+        - Another item
+        - Final item
+        """
+        actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
+        expected = """
+        \\red{List 1:}
+        - First item
+        - Second item
+        
+        \\purple{List 2:}
+        - Another item
+        - Final item
+        """
+        self.assert_equal(actual, expected)
+
+# #############################################################################
+# Test_format_compressed_markdown1
+# #############################################################################
+
+
 class Test_format_compressed_markdown1(hunitest.TestCase):
 
     def _format_and_compare_markdown(self, text: str, expected: str) -> None:

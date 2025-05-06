@@ -36,6 +36,7 @@ import helpers.hdbg as hdbg
 import helpers.hlatex as hlatex
 import helpers.hmarkdown as hmarkdo
 import helpers.hparser as hparser
+import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
@@ -56,6 +57,22 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hparser.init_logger_for_input_output_transform(args)
     #
     cmd = args.action
+    if cmd == "list":
+        txt = r"""
+        test: compute the hash of a string to test the flow
+        format_headers: format the headers of the current file
+        increase_headers_level: increase the level of the headers of the current file
+        md_list_to_latex: convert a markdown list to a latex list
+        md_remove_formatting: remove the formatting of the current file
+        md_clean_up: clean up the current file
+        md_format: format the current file
+        md_format_compressed: format the current file
+        md_colorize_bold_text: colorize the bold text of the current file
+        """
+        txt = hprint.dedent(txt)
+        print(txt)
+        return
+
     max_lev = int(args.max_lev)
     #
     in_file_name, out_file_name = hparser.parse_input_output_args(
@@ -67,42 +84,38 @@ def _main(parser: argparse.ArgumentParser) -> None:
         txt = "\n".join(txt)
         txt = hashlib.sha256(txt.encode("utf-8")).hexdigest()
         hparser.write_file(txt, out_file_name)
-    elif cmd == "toc":
-        txt = hparser.read_file(in_file_name)
-        max_level = 3
-        header_list = hmarkdo.extract_headers_from_markdown(
-            txt, max_level=max_level
-        )
-        mode = "list"
-        txt_out = hmarkdo.header_list_to_markdown(header_list, mode)
-        hparser.write_file(txt_out, out_file_name)
-    elif cmd == "format":
+    elif cmd == "format_headers":
         hmarkdo.format_headers(in_file_name, out_file_name, max_lev)
-    elif cmd == "increase":
+    elif cmd == "increase_headers_level":
         hmarkdo.modify_header_level(in_file_name, out_file_name, mode="increase")
-    elif cmd == "md_list_to_latex":
-        txt = hparser.read_file(in_file_name)
-        txt = "\n".join(txt)
-        txt = hlatex.markdown_list_to_latex(txt)
-        hparser.write_file(txt, out_file_name)
-    elif cmd == "md_remove_formatting":
-        txt = hparser.read_file(in_file_name)
-        txt = "\n".join(txt)
-        txt = hmarkdo.remove_formatting(txt)
-        hparser.write_file(txt, out_file_name)
-    elif cmd == "md_clean_up":
-        txt = hparser.read_file(in_file_name)
-        txt = "\n".join(txt)
-        txt = hmarkdo.md_clean_up(txt)
-        txt = dshdlino.prettier_on_str(txt)
-        hparser.write_file(txt, out_file_name)
-    elif cmd == "md_format":
-        txt = hparser.read_file(in_file_name)
-        txt = "\n".join(txt)
-        txt = dshdlino.prettier_on_str(txt)
-        hparser.write_file(txt, out_file_name)
     else:
-        assert 0, f"Invalid cmd='{cmd}'"
+        txt = hparser.read_file(in_file_name)
+        txt = "\n".join(txt)
+        if cmd == "toc":
+            max_level = 3
+            header_list = hmarkdo.extract_headers_from_markdown(
+                txt, max_level=max_level
+            )
+            mode = "list"
+            txt = hmarkdo.header_list_to_markdown(header_list, mode)
+        elif cmd == "md_list_to_latex":
+            txt = hlatex.markdown_list_to_latex(txt)
+        elif cmd == "md_remove_formatting":
+            txt = hmarkdo.remove_formatting(txt)
+        elif cmd == "md_clean_up":
+            txt = hmarkdo.md_clean_up(txt)
+        elif cmd == "md_format":
+            #txt = dshdlino.prettier_on_str(txt)
+            pass
+        elif cmd == "md_format_compressed":
+            txt = hmarkdo.format_compressed_markdown(txt)
+        elif cmd == "md_colorize_bold_text":
+            txt = hmarkdo.colorize_bold_text(txt)
+        else:
+            raise ValueError(f"Invalid cmd='{cmd}'")
+        # Format the output.
+        txt = dshdlino.prettier_on_str(txt)
+        hparser.write_file(txt, out_file_name)
 
 
 if __name__ == "__main__":
