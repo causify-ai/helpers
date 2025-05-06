@@ -245,6 +245,21 @@ def find_git_root(path: str = ".") -> str:
     return git_root_dir
 
 
+def find_immediate_git_root() -> str:
+    """
+    Return full path of the immediate Git repo directory.
+
+    It doesn't traverse up the directory hierarchy to find outermost
+    super module.
+
+    :return: absolute path to the immediate Git repo directory
+    """
+    cmd = "git rev-parse --show-toplevel"
+    _, target_dir = hsystem.system_to_one_line(cmd)
+    hdbg.dassert_dir_exists(target_dir)
+    return target_dir
+
+
 # TODO(gp): There are several functions doing the same work.
 # helpers_root/helpers/hgit.py:827:def find_file_in_git_tree(
 # helpers_root/helpers/hsystem.py:757:def find_file_in_repo(file_name: str, *, root_dir: Optional[str] = None) -> str:
