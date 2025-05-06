@@ -32,7 +32,6 @@ import hashlib
 import logging
 
 import dev_scripts_helpers.documentation.lint_notes as dshdlino
-import helpers.hdbg as hdbg
 import helpers.hlatex as hlatex
 import helpers.hmarkdown as hmarkdo
 import helpers.hparser as hparser
@@ -72,7 +71,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
         txt = hprint.dedent(txt)
         print(txt)
         return
-
     max_lev = int(args.max_lev)
     #
     in_file_name, out_file_name = hparser.parse_input_output_args(
@@ -89,8 +87,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     elif cmd == "increase_headers_level":
         hmarkdo.modify_header_level(in_file_name, out_file_name, mode="increase")
     else:
+        # Read the input.
         txt = hparser.read_file(in_file_name)
         txt = "\n".join(txt)
+        # Process the input.
         if cmd == "toc":
             max_level = 3
             header_list = hmarkdo.extract_headers_from_markdown(
@@ -105,7 +105,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         elif cmd == "md_clean_up":
             txt = hmarkdo.md_clean_up(txt)
         elif cmd == "md_format":
-            #txt = dshdlino.prettier_on_str(txt)
+            # txt = dshdlino.prettier_on_str(txt)
             pass
         elif cmd == "md_format_compressed":
             txt = hmarkdo.format_compressed_markdown(txt)
@@ -113,8 +113,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
             txt = hmarkdo.colorize_bold_text(txt)
         else:
             raise ValueError(f"Invalid cmd='{cmd}'")
-        # Format the output.
+        # Reflow the output.
         txt = dshdlino.prettier_on_str(txt)
+        # Write the output.
         hparser.write_file(txt, out_file_name)
 
 

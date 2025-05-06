@@ -56,7 +56,7 @@ def get_prompt_tags() -> List[str]:
 
 # Store the prompts that need a certain post-transforms to be applied outside
 # the container.
-OUTSIDE_CONTAINER_POST_TRANSFORMS = {}
+OUTSIDE_CONTAINER_POST_TRANSFORMS: Dict[str, List[str]] = {}
 
 
 # TODO(gp): We should embed this outside_container_post_transforms in the
@@ -168,7 +168,7 @@ def code_fix_improve_comments() -> _PROMPT_OUT:
     - Do not comment every single line of code and especially logging statements
     - Add examples of the values of variables, when you are sure of the types
       and values of variables. If you are not sure, do not add any information.
-    
+
     Do not change the code.
     Do not remove any already existing comment.
     Do not add any empty line.
@@ -218,9 +218,9 @@ def code_fix_docstrings() -> _PROMPT_OUT:
     Each function should have a docstring that describes the function,
     its parameters, and its return value.
 
-    Create examples of the values in input and output of each function, only
-    when you are sure of the types and values of variables. If you are not
-    sure, do not add any information.
+    Create examples of the values in input and output of each function,
+    only when you are sure of the types and values of variables. If you
+    are not sure, do not add any information.
     """
     system = _CONTEXT
     system += r'''
@@ -689,7 +689,7 @@ def scratch_categorize_topics() -> _PROMPT_OUT:
 
 
 def _extract_vim_cfile_lines(txt: str) -> List[Tuple[int, str]]:
-    ret_out = []
+    ret_out: List[Tuple[int, str]] = []
     for line in txt.split("\n"):
         _LOG.debug(hprint.to_str("line"))
         if line.strip() == "":
@@ -707,7 +707,7 @@ def _extract_vim_cfile_lines(txt: str) -> List[Tuple[int, str]]:
         )
         match = regex.match(line)
         if match:
-            line_number = match.group(1)
+            line_number = int(match.group(1))
             description = match.group(2)
         else:
             # ```
@@ -723,7 +723,7 @@ def _extract_vim_cfile_lines(txt: str) -> List[Tuple[int, str]]:
             )
             match = regex.match(line)
         if match:
-            line_number = match.group(1)
+            line_number = int(match.group(1))
             description = match.group(2)
         else:
             _LOG.warning("Can't parse line: '%s'", line)

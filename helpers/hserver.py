@@ -85,7 +85,7 @@ def get_dev_csfy_host_names() -> Tuple[str]:
     """
     Return the names of the Causify dev servers.
     """
-    host_names = ("dev1", "dev2", "dev3")
+    host_names = ["dev1", "dev2", "dev3"]
     return host_names
 
 

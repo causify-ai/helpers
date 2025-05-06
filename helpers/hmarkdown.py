@@ -757,12 +757,12 @@ def selected_navigation_to_str(
 
 all_colors = [
     "red",
-    "orange", 
+    "orange",
     "yellow",
     "lime",
     "green",
     "teal",
-    "cyan", 
+    "cyan",
     "blue",
     "purple",
     "violet",
@@ -772,7 +772,7 @@ all_colors = [
     "olive",
     "gray",
     "darkgray",
-    "lightgray", 
+    "lightgray",
 ]
 
 
@@ -811,12 +811,15 @@ def colorize_first_level_bullets(markdown_text: str) -> str:
     return "\n".join(result)
 
 
-def colorize_bold_text(markdown_text: str, *, use_abbreviations: bool = True) -> str:
+def colorize_bold_text(
+    markdown_text: str, *, use_abbreviations: bool = True
+) -> str:
     r"""
     Add colors to bold text in markdown using equidistant colors from an array.
 
-    The function finds all bold text (enclosed in ** or __) and adds LaTeX color
-    commands while preserving the rest of the markdown unchanged.
+    The function finds all bold text (enclosed in ** or __) and adds
+    LaTeX color commands while preserving the rest of the markdown
+    unchanged.
 
     :param markdown_text: Input markdown text
     :param use_abbreviations: Use LaTeX abbreviations for colors,
@@ -824,18 +827,16 @@ def colorize_bold_text(markdown_text: str, *, use_abbreviations: bool = True) ->
     :return: Markdown text with colored bold sections
     """
     # Find all bold text (both ** and __ formats).
-    bold_pattern = r'\*\*(.*?)\*\*|__(.*?)__'
+    bold_pattern = r"\*\*(.*?)\*\*|__(.*?)__"
     # matches will look like:
     # - For **text**: group(1)='text', group(2)=None
     # - For __text__: group(1)=None, group(2)='text'
     matches = list(re.finditer(bold_pattern, markdown_text))
     if not matches:
         return markdown_text
-        
     result = markdown_text
     # Calculate color spacing to use equidistant colors.
     color_step = len(all_colors) / len(matches)
-    
     # Process matches in reverse to not mess up string indices
     for i, match in enumerate(reversed(matches)):
         # Get the matched bold text (either ** or __ format)
@@ -843,19 +844,13 @@ def colorize_bold_text(markdown_text: str, *, use_abbreviations: bool = True) ->
         # Calculate color index using equidistant spacing
         color_idx = int((len(matches) - 1 - i) * color_step) % len(all_colors)
         color = all_colors[color_idx]
-        
         # Create the colored version
         if use_abbreviations:
             colored_text = f"\\{color}{{{bold_text}}}"
         else:
             colored_text = f"**\\textcolor{{{color}}}{{{bold_text}}}**"
-        
         # Replace in the original text
-        result = (
-            result[:match.start()]
-            + colored_text
-            + result[match.end():]
-        )
+        result = result[: match.start()] + colored_text + result[match.end() :]
     return result
 
 
@@ -863,8 +858,9 @@ def format_compressed_markdown(markdown_text: str) -> str:
     """
     Add an empty line before first level bullets in markdown text.
 
-    First level bullets are those starting with "- " at the beginning of a line
-    with no indentation. Other level bullets have no empty line before them.
+    First level bullets are those starting with "- " at the beginning of
+    a line with no indentation. Other level bullets have no empty line
+    before them.
 
     :param markdown_text: Input markdown text
     :return: Formatted markdown text with
@@ -876,7 +872,7 @@ def format_compressed_markdown(markdown_text: str) -> str:
         if re.match(r"^- ", line):
             # Add empty line before first level bullet if previous line exists
             # and isn't empty.
-            if i > 0 and lines[i-1].strip() != "":
+            if i > 0 and lines[i - 1].strip() != "":
                 result.append("")
         elif re.match(r"^\s+- ", line):
             # If current line is an indented bullet, remove any empty line

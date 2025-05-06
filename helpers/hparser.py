@@ -370,7 +370,6 @@ def parse_input_output_args(
 
     return in_file_name, out_file_name
 
-    
 
 def init_logger_for_input_output_transform(args: argparse.Namespace) -> None:
     verbosity = args.log_level

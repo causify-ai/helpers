@@ -812,7 +812,7 @@ class Test_colorize_first_level_bullets1(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_fix_chatgpt_output1
+# Test_md_clean_up1
 # #############################################################################
 
 
@@ -1467,7 +1467,7 @@ class Test_colorize_bold_text1(hunitest.TestCase):
         **List 1:**
         - First item
         - Second item
-        
+
         **List 2:**
         - Another item
         - Final item
@@ -1477,12 +1477,13 @@ class Test_colorize_bold_text1(hunitest.TestCase):
         \\red{List 1:}
         - First item
         - Second item
-        
+
         \\purple{List 2:}
         - Another item
         - Final item
         """
         self.assert_equal(actual, expected)
+
 
 # #############################################################################
 # Test_format_compressed_markdown1
@@ -1490,13 +1491,6 @@ class Test_colorize_bold_text1(hunitest.TestCase):
 
 
 class Test_format_compressed_markdown1(hunitest.TestCase):
-
-    def _format_and_compare_markdown(self, text: str, expected: str) -> None:
-        text = hprint.dedent(text)
-        expected = hprint.dedent(expected)
-        #
-        actual = hmarkdo.format_compressed_markdown(text)
-        self.assert_equal(actual, expected)
 
     def test1(self) -> None:
         """
@@ -1662,3 +1656,10 @@ class Test_format_compressed_markdown1(hunitest.TestCase):
         - Bullet with {braces}
             - Bullet with $math$"""
         self._format_and_compare_markdown(text, expected)
+
+    def _format_and_compare_markdown(self, text: str, expected: str) -> None:
+        text = hprint.dedent(text)
+        expected = hprint.dedent(expected)
+        #
+        actual = hmarkdo.format_compressed_markdown(text)
+        self.assert_equal(actual, expected)
