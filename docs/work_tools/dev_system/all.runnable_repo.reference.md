@@ -292,7 +292,7 @@ graph TD
   - We are guaranteed that all the deps are verified
   - It is difficult to understand what exactly is needed from the repo for a
     runnable dir to work (e.g., we know we need helpers, but what else?)
-- The entire code encrypt the entire thing for confidentiality reason
+- The entire code can be encrypted for confidentiality reason
 
 ## Running a Docker container
 
@@ -305,9 +305,8 @@ graph TD
 - Runnable dirs (which are subdirs of a runnable repo) should still import from
   the root of their parent repo
   - The imports should respect the structure of the repo
-  - They can be run independently from the rest of the code
-  - However, they should be able to import from other dirs in the same repo as
-    well
+  - A runnable dir can be run independently from the rest of the code
+  - However, they it be able to import from other dirs in the same repo as well
   - For example,
     - In a set up where //cmamp is a runnable repo and //cmamp/optimizer is a
       runnable dir
@@ -319,7 +318,7 @@ graph TD
   - For example,
     - In a setup where //helpers is a submodule of //cmamp (i.e.,
       //cmamp/helpers_root)
-    - All imports in //helpers can start from helpers rather than //cmamp
+    - All imports in //helpers can start from //helpers rather than //cmamp
 
 ## pytest
 
