@@ -1,14 +1,16 @@
 # linter warnings
-$GIT_ROOT/linters/test/outcomes/Test_fix_links.test5/tmp.scratch/valid_header_test.md:1: '$GIT_ROOT/linters/test/outcomes/Test_fix_links.test5/tmp.scratch/reference.md' does not exist
-$GIT_ROOT/linters/test/outcomes/Test_fix_links.test5/tmp.scratch/valid_header_test.md:3: '/docs/markdown_exam.md' does not exist
-$GIT_ROOT/linters/test/outcomes/Test_fix_links.test5/tmp.scratch/valid_header_test.md:5: '$GIT_ROOT/linters/test/outcomes/Test_fix_links.test5/tmp.scratch/reference.md' does not exist
-$GIT_ROOT/linters/test/outcomes/Test_fix_links.test5/tmp.scratch/valid_header_test.md:7: '$GIT_ROOT/linters/test/outcomes/Test_fix_links.test5/tmp.scratch/reference.md' does not exist
+
 
 # linted file
-Markdown link: [Valid Markdown and header Link]($GIT_ROOT/linters/test/outcomes/Test_fix_links.test5/tmp.scratch/reference.md#introduction)
+# Reference test file
 
-Markdown link: [InValid Markdown Link](/docs/markdown_exam.md#introduction)
+- [Introduction](#introduction)
+- [Hyphen test](#hyphen-test)
 
-Markdown link: [Invalid header in the Markdown Link]($GIT_ROOT/linters/test/outcomes/Test_fix_links.test5/tmp.scratch/reference.md#introduce)
+## Introduction
 
-Markdown link: [Valid Markdown and header Link]($GIT_ROOT/linters/test/outcomes/Test_fix_links.test5/tmp.scratch/reference.md#hyphen-test)
+A test header with one word in the reference file.
+
+## Hyphen test
+
+A test to check two words header in the reference file.
