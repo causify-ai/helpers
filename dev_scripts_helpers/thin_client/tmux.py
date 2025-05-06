@@ -8,7 +8,7 @@ import os
 
 # This can be imported because this module is in the same dir as the script
 # being executed.
-import thin_client_utils as tcu
+import thin_client_utils as tcu  # noqa: E402
 
 # The `tcu` module adds root of helpers (or `helpers_root` when used in as
 # module) to the path, thus allowing imports from helpers.
@@ -26,7 +26,7 @@ current_dir = os.path.dirname(current_file_path)
 # executed from a different directory.
 os.chdir(current_dir)
 
-# Change to the outermost Git repository root so that it can find and use 
+# Change to the outermost Git repository root so that it can find and use
 # the correct repo config.
 git_root_dir = hgit.find_git_root()
 os.chdir(git_root_dir)
