@@ -15,7 +15,6 @@ from invoke import task
 # this code needs to run with minimal dependencies and without Docker.
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
-import helpers.hio as hio
 import helpers.hs3 as hs3
 import helpers.hsystem as hsystem
 import helpers.lib_tasks_docker as hlitadoc
@@ -801,8 +800,6 @@ def docker_build_prod_image(  # type: ignore
     opts = "--no-cache" if not cache else ""
     # Use dev version for building prod image.
     dev_version = hlitadoc.to_dev_version(prod_version)
-    image_name = hrecouti.get_repo_config().get_docker_base_image_name()
-    git_root_dir = hgit.find_git_root()
     cmd = rf"""
     DOCKER_BUILDKIT={DOCKER_BUILDKIT} \
     time \
@@ -812,8 +809,7 @@ def docker_build_prod_image(  # type: ignore
         --file {dockerfile} \
         --build-arg VERSION={dev_version} \
         --build-arg ECR_BASE_PATH={os.environ["CSFY_ECR_BASE_PATH"]} \
-        --build-arg IMAGE_NAME={image_name} \
-        {git_root_dir}
+        .
     """
     hlitauti.run(ctx, cmd)
     if candidate:
