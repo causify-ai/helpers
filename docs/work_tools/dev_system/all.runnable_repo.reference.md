@@ -289,7 +289,7 @@ graph TD
 - The entire repo (not just the current runnable dir) is copied because
   - We should respect the structure of the repo
   - We want to ensure setup in the `prod` image mirrors that of the `dev` image
-  - We are guaranteed that all the deps are verified
+  - We are guaranteed that all the dependencies are verified
   - It is difficult to understand what exactly is needed from the repo for a
     runnable dir to work (e.g., we know we need helpers, but what else?)
 - The entire code can be encrypted for confidentiality reason
@@ -306,7 +306,8 @@ graph TD
   the root of their parent repo
   - The imports should respect the structure of the repo
   - A runnable dir can be run independently from the rest of the code
-  - However, they it be able to import from other dirs in the same repo as well
+  - However, it should be able to import from other dirs in the same repo as
+    well
   - For example,
     - In a set up where //cmamp is a runnable repo and //cmamp/optimizer is a
       runnable dir
