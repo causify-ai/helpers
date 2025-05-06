@@ -41,7 +41,7 @@ done;
 # Thin environment.
 # #############################################################################
 
-if [[ $REPO_CONF_runnable_dir_info_use_helpers_as_nested_module == 1 ]]; then
+if [[ $REPO_CONF_runnable_dir_info_use_helpers_as_nested_module == True ]]; then
     # We can reuse the thin environment of `helpers` or create a new one.
     VENV_TAG=$REPO_CONF_runnable_dir_info_venv_tag
 else
@@ -55,7 +55,7 @@ activate_venv $VENV_TAG
 # helpers_root path.
 # #############################################################################
 
-if [[ $REPO_CONF_runnable_dir_info_use_helpers_as_nested_module == 1 ]]; then
+if [[ $REPO_CONF_runnable_dir_info_use_helpers_as_nested_module == True ]]; then
     HELPERS_ROOT_DIR=$(find ${GIT_ROOT_DIR} \( -path '*/.git' -o -path '*/.mypy_cache' \) -prune -o -name "helpers_root" -print | head -n 1)
 else
     HELPERS_ROOT_DIR="${GIT_ROOT_DIR}"
@@ -64,7 +64,7 @@ fi;
 echo "HELPERS_ROOT_DIR=$HELPERS_ROOT_DIR"
 dassert_dir_exists $HELPERS_ROOT_DIR
 
-if [[ $REPO_CONF_runnable_dir_info_use_helpers_as_nested_module == 1 ]]; then
+if [[ $REPO_CONF_runnable_dir_info_use_helpers_as_nested_module == True ]]; then
     # Set vars for helpers_root.
     set_path "${HELPERS_ROOT_DIR}/dev_scripts_helpers"
 fi;
