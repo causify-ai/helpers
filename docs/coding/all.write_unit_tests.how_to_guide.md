@@ -877,6 +877,73 @@ It is best to apply on any part that is deemed unnecessary for specific test
    - We want to test the minimal amount of behavior that enforces what we care
      about
 
+3. When to mock (external services only) First, identify the external boundaries
+   of your code:
+
+   **Bad**:
+
+   ```python
+   @umock.patch("my_module._process_labels")
+   def test_sync_labels(self, mock_process):
+       # Don't mock internal processing
+   ```
+
+   **Good**:
+
+   ```python
+   @umock.patch("github.Github")
+   def test_sync_labels(self, mock_github):
+       mock_repo = umock.Mock()
+       mock_github.return_value.get_repo.return_value = mock_repo
+       # Test code that uses GitHub API
+   ```
+
+4. What to mock (service clients/interfaces) Next, decide what portion of that
+   boundary to stub:
+
+   **Bad**:
+
+   ```python
+   @umock.patch("my_module._make_github_request")
+   def test_sync_labels(self, mock_request):
+       # Don't mock how the request is made
+   ```
+
+   **Good**:
+
+   ```python
+   @umock.patch("github.Github")
+   def test_sync_labels(self, mock_github):
+       mock_repo = umock.Mock()
+       mock_github.return_value.get_repo.return_value = mock_repo
+       # Test code that uses GitHub API
+   ```
+
+5. How to mock (minimal, realistic mocks) Finally, keep your stub lean and
+   realistic:
+
+   **Bad**:
+
+   ```python
+   mock_label = umock.Mock()
+   mock_label.name = "bug"
+   mock_label.color = "f29513"
+   mock_label.description = "Something isn't working"
+   mock_label.created_at = "2024-01-01"
+   mock_label.updated_at = "2024-01-02"
+   # ... many more unnecessary attributes
+   ```
+
+   **Good**:
+
+   ```python
+   mock_label = umock.Mock()
+   mock_label.name = "bug"
+   mock_label.color = "f29513"
+   mock_repo = umock.Mock()
+   mock_repo.get_labels.return_value = [mock_label]
+   ```
+
 ### Some general suggestions about testing
 
 #### Test from the outside-in
