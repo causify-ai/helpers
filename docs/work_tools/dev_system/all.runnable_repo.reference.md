@@ -291,7 +291,7 @@ graph TD
   - We want to ensure setup in the `prod` image mirrors that of the `dev` image
   - We are guaranteed that all the dependencies are verified
   - It is difficult to understand what exactly is needed from the repo for a
-    runnable dir to work (e.g., we know we need helpers, but what else?)
+    runnable dir to work (e.g., we know we need `helpers`, but what else?)
 - The entire code can be encrypted for confidentiality reason
 
 ## Running a Docker container
