@@ -1,0 +1,21 @@
+# linter warnings
+
+
+# linted file
+- File path without the backticks
+  - /helpers/test/test_hdbg.py
+
+- File path with the backticks
+  - [`/helpers/test/test_hdbg.py`](/helpers/test/test_hdbg.py)
+
+- File path with the backticks and a dot at the start
+  - [`/helpers/test/test_hdbg.py`](/helpers/test/test_hdbg.py)
+
+- File path with the backticks and no slash at the start
+  - [`/helpers/test/test_hdbg.py`](/helpers/test/test_hdbg.py)
+
+- File path without the dir
+  - `README.md`
+
+- File path of a hidden file
+  - .github/workflows/build_image.yml.DISABLED
