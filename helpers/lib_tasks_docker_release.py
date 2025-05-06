@@ -15,6 +15,7 @@ from invoke import task
 # this code needs to run with minimal dependencies and without Docker.
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
+import helpers.hio as hio
 import helpers.hs3 as hs3
 import helpers.hsystem as hsystem
 import helpers.lib_tasks_docker as hlitadoc
@@ -800,29 +801,47 @@ def docker_build_prod_image(  # type: ignore
     opts = "--no-cache" if not cache else ""
     # Use dev version for building prod image.
     dev_version = hlitadoc.to_dev_version(prod_version)
-    cmd = rf"""
-    DOCKER_BUILDKIT={DOCKER_BUILDKIT} \
-    time \
-    docker build \
-        {opts} \
-        --tag {image_versioned_prod} \
-        --file {dockerfile} \
-        --build-arg VERSION={dev_version} \
-        --build-arg ECR_BASE_PATH={os.environ["CSFY_ECR_BASE_PATH"]} \
-        .
-    """
-    hlitauti.run(ctx, cmd)
-    if candidate:
-        _LOG.info("Head hash: %s", head_hash)
-        _list_image(ctx, image_versioned_prod)
-    else:
-        # Tag versioned image as latest prod image.
-        latest_version = None
-        image_prod = hlitadoc.get_image(base_image, "prod", latest_version)
-        cmd = f"docker tag {image_versioned_prod} {image_prod}"
+    image_name = "helpers"
+    # Create a temporary directory for the build.
+    # tmp_dir = "tmp.docker_build_prod_image"
+    # _LOG.debug("Creating temporary deployment directory %s", tmp_dir)
+    # hio.create_dir(tmp_dir, incremental=False)
+    try:
+        # Copy the source code and deference all the symbolic links.
+        git_root_dir = hgit.find_git_root()
+        # cmd = f"rsync -rL --exclude='{tmp_dir}' {git_root_dir}/* ./{tmp_dir}"
+        # hsystem.system(cmd)
+        cmd = rf"""
+        DOCKER_BUILDKIT={DOCKER_BUILDKIT} \
+        time \
+        docker build \
+            {opts} \
+            --tag {image_versioned_prod} \
+            --file {dockerfile} \
+            --build-arg VERSION={dev_version} \
+            --build-arg ECR_BASE_PATH={os.environ["CSFY_ECR_BASE_PATH"]} \
+            --build-arg IMAGE_NAME={image_name}
+            {git_root_dir}
+        """
         hlitauti.run(ctx, cmd)
-        #
-        _list_image(ctx, image_prod)
+        if candidate:
+            _LOG.info("Head hash: %s", head_hash)
+            _list_image(ctx, image_versioned_prod)
+        else:
+            # Tag versioned image as latest prod image.
+            latest_version = None
+            image_prod = hlitadoc.get_image(base_image, "prod", latest_version)
+            cmd = f"docker tag {image_versioned_prod} {image_prod}"
+            hlitauti.run(ctx, cmd)
+            #
+            _list_image(ctx, image_prod)
+    finally:
+        pass
+        # Delete the temporary deployment directory.
+        # _LOG.debug(
+        #     "Deleting temporary deployment directory %s", tmp_dir
+        # )
+        # hio.delete_dir(tmp_dir)
 
 
 @task
