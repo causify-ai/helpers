@@ -12,6 +12,8 @@ from typing import Generator, List, Optional, Tuple, cast
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 import helpers.hprint as hprint
+import dev_scripts_helpers.documentation.lint_notes as dshdlino
+
 
 _LOG = logging.getLogger(__name__)
 
@@ -882,3 +884,10 @@ def remove_empty_lines_from_markdown(markdown_text: str) -> str:
                 result.append("")
         result.append(line)
     return "\n".join(result)
+
+
+def format_markdown(txt: str) -> str:
+    txt = dshdlino.prettier_on_str(txt)
+    txt = remove_empty_lines_from_markdown(txt)
+    return txt
+

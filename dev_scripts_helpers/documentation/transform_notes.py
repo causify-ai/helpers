@@ -31,7 +31,6 @@ import argparse
 import hashlib
 import logging
 
-import dev_scripts_helpers.documentation.lint_notes as dshdlino
 import helpers.hlatex as hlatex
 import helpers.hmarkdown as hmarkdo
 import helpers.hparser as hparser
@@ -49,12 +48,6 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument("-l", "--max_lev", default=5)
     hparser.add_verbosity_arg(parser)
     return parser
-
-
-def _format_markdown(txt: str) -> str:
-    txt = dshdlino.prettier_on_str(txt)
-    txt = hmarkdo.remove_empty_lines_from_markdown(txt)
-    return txt
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
@@ -104,25 +97,25 @@ def _main(parser: argparse.ArgumentParser) -> None:
             )
             mode = "list"
             txt = hmarkdo.header_list_to_markdown(header_list, mode)
-            txt = _format_markdown(txt)
+            txt = hmarkdo.format_markdown(txt)
         elif cmd == "md_list_to_latex":
             txt = hlatex.markdown_list_to_latex(txt)
-            txt = _format_markdown(txt)
+            txt = hmarkdo.format_markdown(txt)
         elif cmd == "md_remove_formatting":
             txt = hmarkdo.remove_formatting(txt)
-            txt = _format_markdown(txt)
+            txt = hmarkdo.format_markdown(txt)
         elif cmd == "md_clean_up":
             txt = hmarkdo.md_clean_up(txt)
-            txt = _format_markdown(txt)
+            txt = hmarkdo.format_markdown(txt)
         elif cmd == "md_only_format":
-            txt = _format_markdown(txt)
+            txt = hmarkdo.format_markdown(txt)
         elif cmd == "md_colorize_bold_text":
             txt = hmarkdo.colorize_bold_text(txt)
-            txt = _format_markdown(txt)
+            txt = hmarkdo.format_markdown(txt)
         elif cmd == "md_format":
             txt = hmarkdo.md_clean_up(txt)
             txt = hmarkdo.colorize_bold_text(txt)
-            txt = _format_markdown(txt)
+            txt = hmarkdo.format_markdown(txt)
         else:
             raise ValueError(f"Invalid cmd='{cmd}'")
         # Write the output.
