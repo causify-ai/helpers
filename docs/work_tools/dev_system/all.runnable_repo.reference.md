@@ -13,7 +13,10 @@
   * [Managing common files](#managing-common-files)
   * [Managing repo configurations](#managing-repo-configurations)
   * [Building a Docker container](#building-a-docker-container)
+    + [Building `dev` container](#building-dev-container)
+    + [Buiding `prod` container](#buiding-prod-container)
   * [Running a Docker container](#running-a-docker-container)
+  * [Module imports](#module-imports)
   * [pytest](#pytest)
     + [Recursive pytest](#recursive-pytest)
   * [Support for docker-in-docker and sibling-containers](#support-for-docker-in-docker-and-sibling-containers)
@@ -265,22 +268,58 @@ graph TD
     processor architectures (e.g., x86-64, arm64)
 - The same container is used to run the code in all set-ups (e.g., on a personal
   laptop, on a server, in the CI)
-- The container mounts the source code as a bind-mount directory so that
-  developers can use external tools to edit the code (e.g., vim, PyCharm,
-  VSCode)
-- A production container copies the code inside so that it contains OS
-  dependencies, Python packages, and code, without any external dependency
 - It is possible to have different dependencies for the dev and prod container
   - E.g., dependencies to run the unit tests are not needed in a prod container
 - The toolchain to build containers is managed through `invoke` targets
   - It supports versioning
 - The Python dependencies are managed through `poetry`
 
+### Building `dev` container
+
+- The `dev` container mounts the source code as a bind-mount directory so that
+  developers can use external tools to edit the code (e.g., vim, PyCharm,
+  VSCode)
+- The `dev` container mounts the outermost repo so runnable dirs that are sub
+  directories can see and use //helpers submodule
+
+### Buiding `prod` container
+
+- The `prod` container copies the code inside so that it contains OS
+  dependencies, Python packages, and code, without any external dependency
+- The entire repo (not just the current runnable dir) is copied because
+  - We should respect the structure of the repo
+  - We want to ensure setup in the `prod` image mirrors that of the `dev` image
+  - We are guaranteed that all the dependencies are verified
+  - It is difficult to understand what exactly is needed from the repo for a
+    runnable dir to work (e.g., we know we need `helpers`, but what else?)
+- The entire code can be encrypted for confidentiality reason
+
 ## Running a Docker container
 
 - Handy wrappers through the `invoke` toolchain are available to perform common
   operations, e.g.,
   - `invoke docker_bash` to start a shell inside a container
+
+## Module imports
+
+- Runnable dirs (which are subdirs of a runnable repo) should still import from
+  the root of their parent repo
+  - The imports should respect the structure of the repo
+  - A runnable dir can be run independently from the rest of the code
+  - However, it should be able to import from other dirs in the same repo as
+    well
+  - For example,
+    - In a set up where //cmamp is a runnable repo and //cmamp/optimizer is a
+      runnable dir
+    - All the imports in //cmamp/optimizer should start from //cmamp rather than
+      //cmamp/optimizer
+
+- Only runnable dirs (which are runnable repos and can be submodules of other
+  repos), such as //helpers, should use relative imports
+  - For example,
+    - In a setup where //helpers is a submodule of //cmamp (i.e.,
+      //cmamp/helpers_root)
+    - All imports in //helpers can start from //helpers rather than //cmamp
 
 ## pytest
 
