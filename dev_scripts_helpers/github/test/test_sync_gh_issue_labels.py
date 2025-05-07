@@ -32,21 +32,31 @@ class Test_sync_gh_issue_labels1(hunitest.TestCase):
         necessary operations, and writes the backup file in the git root
         directory.
         """
-        # Set up mock GitHub repo and labels.
+        # Set up mock labels.
+        label_data = {
+            "name": "bug",
+            "color": "f29513",
+            "description": "Something isn't working",
+        }
         mock_label = umock.Mock()
-        mock_label.name = "bug"
-        mock_label.color = "f29513"
-        mock_label.description = "Something isn't working"
+        for k, v in label_data.items():
+            setattr(mock_label, k, v)
+        # Set up mock GitHub repo.
         mock_repo = umock.Mock()
         mock_repo.get_labels.return_value = [mock_label]
         mock_client = umock.Mock()
         mock_client.get_repo.return_value = mock_repo
         mock_github.return_value = mock_client
-        # Prepare inputs.
-        in_dir_name = self.get_input_dir()
-        input_file_path = os.path.join(in_dir_name, "test_gh_issues_labels.yml")
-        owner = "test-org"
-        repo = "test-repo"
+        # Prepare input arguments.
+        input_args = {
+            "in_dir_name": self.get_input_dir(),
+            "owner": "test-org",
+            "repo": "test-repo",
+            "token_env_var": "GITHUB_TEST_TOKEN",
+        }
+        input_file_path = os.path.join(
+            input_args["in_dir_name"], "test_gh_issues_labels.yml"
+        )
         git_root_dir = hgit.get_client_root(False)
         backup_file_name = "tmp.labels.test-org.test-repo.yaml"
         backup_file_path = os.path.join(git_root_dir, backup_file_name)
@@ -56,9 +66,9 @@ class Test_sync_gh_issue_labels1(hunitest.TestCase):
         # Run test.
         dshgsgila._run_dockerized_sync_gh_issue_labels(
             input_file_path,
-            owner,
-            repo,
-            "fake_token",
+            input_args["owner"],
+            input_args["repo"],
+            input_args["token_env_var"],
             dry_run=False,
             no_interactive=True,
             prune=False,
