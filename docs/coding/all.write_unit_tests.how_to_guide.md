@@ -868,7 +868,8 @@ It is best to apply on any part that is deemed unnecessary for specific test
    - We want to replace the provider with an object that responds to the
      requests with the actual response of the provider
    - In this way, we can leave all the code of our class untouched and tested
-   - We want to mock only the external provider; never mock internal helpers
+   - We want to mock only the external provider and avoid mocking internal
+     helpers
 
      **Bad**:
 
