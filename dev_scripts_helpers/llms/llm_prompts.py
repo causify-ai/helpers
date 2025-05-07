@@ -167,7 +167,7 @@ def code_fix_improve_comments() -> _PROMPT_OUT:
 
 def code_fix_logging_statements() -> _PROMPT_OUT:
     """
-    Add comments to Python code.
+    Add logging statements to Python code.
     """
     system = _CODING_CONTEXT
     system += r'''

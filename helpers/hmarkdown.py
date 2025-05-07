@@ -277,6 +277,10 @@ def remove_formatting(txt: str) -> str:
     txt = re.sub(r"\*\*(.*?)\*\*", r"\1", txt)
     # Replace italic markdown syntax with plain text.
     txt = re.sub(r"\*(.*?)\*", r"\1", txt)
+    # Remove \textcolor{red}{ ... }.
+    txt = re.sub(r"\\textcolor\{(.*?)\}\{(.*?)\}", r"\2", txt)
+    # Remove \red{ ... }.
+    txt = re.sub(r"\\\S+\{(.*?)\}", r"\1", txt)
     return txt
 
 
