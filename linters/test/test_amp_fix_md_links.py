@@ -38,6 +38,20 @@ def _get_output_string(out_warnings: List[str], updated_lines: List[str]) -> str
 
 class Test_fix_links(hunitest.TestCase):
 
+    def run_test(self, input_content: str, *, file_name: str = "test.md") -> None:
+        """
+        Helper method to run tests with common setup and verification.
+
+        :param input_content: the content to test
+        :param file_name: the name of the test file
+        """
+        file_path = self.write_input_file(input_content, file_name)
+        # Run.
+        _, updated_lines, out_warnings = lafimdli.fix_links(file_path)
+        # Check.
+        output = _get_output_string(out_warnings, updated_lines)
+        self.check_string(output, purify_text=True)
+
     def write_input_file(self, txt: str, file_name: str) -> str:
         """
         Write test content to a file in the scratch space.
@@ -55,8 +69,6 @@ class Test_fix_links(hunitest.TestCase):
         hio.to_file(file_path, txt)
         return file_path
 
-    # TODO(gp): To outsource. Break into smaller tests. If one of these fails,
-    # it's hard to debug.
     def test1(self) -> None:
         """
         Test fixing link formatting in a Markdown file.
@@ -84,95 +96,12 @@ class Test_fix_links(hunitest.TestCase):
         - Markdown-style link with a path label in backticks without the slash at the start
           - [`helpers/test/test_hdbg.py`](helpers/test/test_hdbg.py)
 
-        - Markdown-style link with the link only in square brackets
-          - [/helpers/hgit.py]()
-
-        - Markdown-style link with an http GH company link
-          - [helpers/hgit.py](https://github.com/causify-ai/helpers/blob/master/helpers/hgit.py)
-
-        - Markdown-style link with an http GH company link and a text label
-          - [Here](https://github.com/causify-ai/helpers/blob/master/helpers/hgit.py)
-
-        - Markdown-style link with an http external link
-          - [AirFlow UI](http://172.30.2.44:8090/home).
-
-        - Markdown-style link with backticks in the square brackets and external http link
-          - [`foobar`](https://ap-northeast-1.console.aws.amazon.com/s3/buckets/foobar)
-
-        - Markdown-style link to a file that does not exist
-          - [File not found](/helpersssss/hhhhgit.py)
-
         - Markdown-style link with a directory beginning with a dot
           - [`fast_tests.yml`](/.github/workflows/fast_tests.yml)
 
-        - File path without the backticks
-          - /helpers/test/test_hdbg.py
-
-        - File path with the backticks
-          - `/helpers/test/test_hdbg.py`
-
-        - File path with the backticks and a dot at the start
-          - `./helpers/test/test_hdbg.py`
-
-        - File path with the backticks and no slash at the start
-          - `helpers/test/test_hdbg.py`
-
-        - File path without the dir
-          - `README.md`
-
-        - File path of a hidden file
-          - .github/workflows/build_image.yml.DISABLED
-
-        - Non-file path
-          - ../../../../amp/helpers:/app/helpers
-
-        - Non-file path text with slashes in it
-          - Code in Markdown/LaTeX files (e.g., mermaid code).
-
-        - File path that does not exist
-          - `/helpersssss/hhhhgit.py`
-
-        - File path inside triple ticks:
-        ```bash
-        With backticks: `helpers/hgit.py`
-        Without backticks: helpers/hgit.py
-        ```
-
-        - HTML-style figure pointer
-          - <img src="import_check/example/output/basic.png">
-
-        - HTML-style figure pointer with an attribute
-          <img src="import_check/example/output/basic.png" style="" />
-
-        - HTML-style figure pointer with a slash at the start
-          - <img src="/import_check/example/output/basic.png">
-
-        - HTML-style figure pointer that does not exist
-          - <img src="/iiimport_check/example/output/basicccc.png">
-
-        - Markdown-style figure pointer
-          - ![](import_check/example/output/basic.png)
-
-        - Markdown-style figure pointer with an attribute
-          - ![](import_check/example/output/basic.png){width="6.854779090113736in"
-        height="1.2303444881889765in"}
-
-        - Markdown-style figure pointer with a slash at the start
-          - ![](/import_check/example/output/basic.png)
-
-        - Markdown-style figure pointer with a dir changes at the start
-          - ![](../../import_check/example/output/basic.png)
-
-        - Markdown-style figure pointer that does not exist
-          - ![](/iiimport_check/example/output/basicccc.png)
+        Markdown link: [Valid Markdown Link](docs/markdown_example.md)
         """
-        file_name = "test.md"
-        file_path = self.write_input_file(txt_incorrect, file_name)
-        # Run.
-        _, updated_lines, out_warnings = lafimdli.fix_links(file_path)
-        # Check.
-        output = _get_output_string(out_warnings, updated_lines)
-        self.check_string(output, purify_text=True)
+        self.run_test(txt_incorrect, file_name="test.md")
 
     def test2(self) -> None:
         """
@@ -197,43 +126,23 @@ class Test_fix_links(hunitest.TestCase):
         [Data Availability](#data-availability)
         """
         #
-        file_name = "test.md"
-        file_path = self.write_input_file(txt_internal_links, file_name)
-        # Run.
-        _, updated_lines, out_warnings = lafimdli.fix_links(file_path)
-        # Check.
-        output = _get_output_string(out_warnings, updated_lines)
-        self.check_string(output, purify_text=True)
+        self.run_test(txt_internal_links, file_name="test.md")
 
-    # TODO(gp): To outsource. Break into smaller tests. If one of these fails,
-    # it's hard to debug.
     def test3(self) -> None:
         """
-        Test the mix of Markdown and HTML-style links.
+        Test the mix of Markdown and HTML-style links with anchor tags.
         """
         # Prepare inputs.
         input_content = r"""
-        Markdown link: [Valid Markdown Link](docs/markdown_example.md)
-
         HTML-style link: <a href="docs/html_example.md">Valid HTML Link</a>
 
-        Broken Markdown link: [Broken Markdown Link](missing_markdown.md)
-
         Broken HTML link: <a href="missing_html.md">Broken HTML Link</a>
-
-        External Markdown link: [External Markdown Link](https://example.com)
 
         External HTML link: <a href="https://example.com">External HTML Link</a>
 
         Nested HTML link with Markdown: <a href="[Example](nested.md)">Invalid Nested</a>
         """
-        file_name = "test_combined.md"
-        file_path = self.write_input_file(input_content, file_name)
-        # Run.
-        _, updated_lines, out_warnings = lafimdli.fix_links(file_path)
-        # Check.
-        output = _get_output_string(out_warnings, updated_lines)
-        self.check_string(output, purify_text=True)
+        self.run_test(input_content, file_name="test_combined.md")
 
     def test4(self) -> None:
         """
@@ -294,13 +203,7 @@ class Test_fix_links(hunitest.TestCase):
 
         Markdown link: [Valid Markdown and header Link]({reference_file_link}#hyphen-test)
         """
-        test_file_name = "valid_header_test.md"
-        test_file_link = self.write_input_file(test_md_content, test_file_name)
-        # Run.
-        _, updated_lines, out_warnings = lafimdli.fix_links(test_file_link)
-        # Check.
-        output = _get_output_string(out_warnings, updated_lines)
-        self.check_string(output, purify_text=True)
+        self.run_test(reference_file_md_content, file_name="valid_header_test.md")
 
     def test6(self) -> None:
         """
@@ -317,13 +220,7 @@ class Test_fix_links(hunitest.TestCase):
 
           Tel: [Call](tel:+1234567890)
           """
-        file_name = "test_links.md"
-        file_path = self.write_input_file(input_content, file_name)
-        # Run.
-        _, updated_lines, out_warnings = lafimdli.fix_links(file_path)
-        # Check.
-        output = _get_output_string(out_warnings, updated_lines)
-        self.check_string(output, purify_text=True)
+        self.run_test(input_content, file_name="test_links.md")
 
     def test7(self) -> None:
         """
@@ -419,13 +316,7 @@ class Test_fix_links(hunitest.TestCase):
         response = requests.get("https://api.github.com/users")
         ```
         """
-        file_name = "test_fenced_blocks.md"
-        file_path = self.write_input_file(text, file_name)
-        # Run.
-        _, updated_lines, out_warnings = lafimdli.fix_links(file_path)
-        # Check.
-        output = _get_output_string(out_warnings, updated_lines)
-        self.check_string(output, purify_text=True)
+        self.run_test(text, file_name="test_fenced_blocks.md")
 
     def test12(self) -> None:
         """
@@ -476,6 +367,139 @@ class Test_fix_links(hunitest.TestCase):
             "Inline path: `/src/app.py`",
         ]
         self.assertEqual(expected, actual)
+
+    def test14(self) -> None:
+        """
+        Test Markdown files in triple backticks.
+        """
+        txt_incorrect = r"""
+        - File path inside triple ticks:
+        ```bash
+        With backticks: `helpers/hgit.py`
+        Without backticks: helpers/hgit.py
+        ```
+        """
+        self.run_test(txt_incorrect, file_name="test_md_in_triple_backticks.md")
+
+    def test15(self) -> None:
+        """
+        Test HTML style image links.
+        """
+        # Prepare inputs.
+        txt_incorrect = r"""
+
+        - HTML-style figure pointer
+          - <img src="import_check/example/output/basic.png">
+
+        - HTML-style figure pointer with an attribute
+          <img src="import_check/example/output/basic.png" style="" />
+
+        - HTML-style figure pointer with a slash at the start
+          - <img src="/import_check/example/output/basic.png">
+
+        - HTML-style figure pointer that does not exist
+          - <img src="/iiimport_check/example/output/basicccc.png">
+        """
+        self.run_test(txt_incorrect, file_name="test_html_img_links.md")
+
+    def test16(self) -> None:
+        """
+        Test Markdown style image links.
+        """
+        # Prepare inputs.
+        txt_incorrect = r"""
+
+        - Markdown-style figure pointer
+          - ![](import_check/example/output/basic.png)
+
+        - Markdown-style figure pointer with an attribute
+          - ![](import_check/example/output/basic.png){width="6.854779090113736in"
+        height="1.2303444881889765in"}
+
+        - Markdown-style figure pointer with a slash at the start
+          - ![](/import_check/example/output/basic.png)
+
+        - Markdown-style figure pointer with a dir changes at the start
+          - ![](../../import_check/example/output/basic.png)
+
+        - Markdown-style figure pointer that does not exist
+          - ![](/iiimport_check/example/output/basicccc.png)
+        """
+        self.run_test(txt_incorrect, file_name="test_md_img_links.md")
+
+    def test17(self) -> None:
+        """
+        Test broken files, links and paths.
+        """
+        # Prepare inputs.
+        txt_incorrect = r"""
+        - Markdown-style link with the link only in square brackets
+          - [/helpers/hgit.py]()
+
+        - Markdown-style link to a file that does not exist
+          - [File not found](/helpersssss/hhhhgit.py)
+
+        - Non-file path
+          - ../../../../amp/helpers:/app/helpers
+
+        - Non-file path text with slashes in it
+          - Code in Markdown/LaTeX files (e.g., mermaid code).
+
+        - File path that does not exist
+          - `/helpersssss/hhhhgit.py`
+
+        Broken Markdown link: [Broken Markdown Link](missing_markdown.md)
+        """
+        self.run_test(txt_incorrect, file_name="test_broken_links.md")
+
+    def test18(self) -> None:
+        """
+        Test Markdown files with external links.
+        """
+        # Prepare inputs.
+        txt_incorrect = r"""
+
+        - Markdown-style link with an http GH company link
+          - [helpers/hgit.py](https://github.com/causify-ai/helpers/blob/master/helpers/hgit.py)
+
+        - Markdown-style link with an http GH company link and a text label
+          - [Here](https://github.com/causify-ai/helpers/blob/master/helpers/hgit.py)
+
+        - Markdown-style link with an http external link
+          - [AirFlow UI](http://172.30.2.44:8090/home).
+
+        - Markdown-style link with backticks in the square brackets and external http link
+          - [`foobar`](https://ap-northeast-1.console.aws.amazon.com/s3/buckets/foobar)
+
+        External Markdown link: [External Markdown Link](https://example.com)
+        """
+        self.run_test(txt_incorrect, file_name="test_external_links.md")
+
+    def test19(self) -> None:
+        """
+        Test files without Markdown hyperlinks.
+        """
+        # Prepare inputs.
+        txt_incorrect = r"""
+        - File path without the backticks
+          - /helpers/test/test_hdbg.py
+
+        - File path with the backticks
+          - `/helpers/test/test_hdbg.py`
+
+        - File path with the backticks and a dot at the start
+          - `./helpers/test/test_hdbg.py`
+
+        - File path with the backticks and no slash at the start
+          - `helpers/test/test_hdbg.py`
+
+        - File path without the dir
+          - `README.md`
+
+        - File path of a hidden file
+          - .github/workflows/build_image.yml.DISABLED
+        """
+        self.run_test(txt_incorrect, file_name="test_without_md_hyperlinks.md")
 
 
 # #############################################################################

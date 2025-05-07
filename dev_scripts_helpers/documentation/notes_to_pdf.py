@@ -133,7 +133,7 @@ def _filter_by_lines(file_name: str, filter_by_lines: str, prefix: str) -> str:
     # E.g., filter_by_lines='1:10'.
     m = re.match(r"^(\S+):(\S+)$", filter_by_lines)
     hdbg.dassert(m, "Invalid filter_by_lines='%s'", filter_by_lines)
-    start_line, end_line = m.group(1), m.group(2)
+    start_line, end_line = m.groups()
     if start_line.lower() == "none":
         start_line = 1
     else:
@@ -206,6 +206,7 @@ def _render_images(file_name: str, prefix: str) -> str:
     out = "\n".join(out)
     file3 = f"{prefix}.render_image2.txt"
     hio.to_file(file3, out)
+    _LOG.info("Remove commented code and saved file='%s'", file3)
     #
     file_out = file3
     return file_out
@@ -299,7 +300,7 @@ def _run_pandoc_to_pdf(
         "latex_abbrevs.sty",
     )
     hdbg.dassert_file_exists(latex_file)
-    #cmd = f"cp -f {latex_file} ."
+    # cmd = f"cp -f {latex_file} ."
     cmd = f"cp -f {latex_file} {out_dir}"
     _ = _system(cmd)
     #
@@ -326,7 +327,7 @@ def _run_pandoc_to_pdf(
     else:
         _LOG.warning("Skipping: run latex again")
     # Remove `latex_abbrevs.sty`.
-    #os.remove("latex_abbrevs.sty")
+    # os.remove("latex_abbrevs.sty")
     # Get the path of the output file created by Latex.
     file_out = os.path.basename(file_name).replace(".tex", ".pdf")
     file_out = os.path.join(out_dir, file_out)

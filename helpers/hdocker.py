@@ -12,7 +12,7 @@ import os
 import re
 import shlex
 import time
-from typing import Any, Dict, List, Optional, Tuple
+from typing import cast, Any, Dict, List, Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
@@ -141,7 +141,7 @@ def get_current_arch() -> str:
     cmd = "uname -m"
     _, current_arch = hsystem.system_to_one_line(cmd)
     _LOG.debug(hprint.to_str("current_arch"))
-    return current_arch
+    return cast(str, current_arch)
 
 
 def _is_compatible_arch(val1: str, val2: str) -> bool:
@@ -1444,7 +1444,7 @@ def dockerized_tikz_to_bitmap(
     """
     _LOG.debug(hprint.func_signature_to_str())
     # Convert tikz file to PDF.
-    latex_cmd_opts = []
+    latex_cmd_opts: List[str] = []
     run_latex_again = False
     file_out = hio.change_file_extension(in_file_path, ".pdf")
     run_basic_latex(

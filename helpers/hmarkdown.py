@@ -26,17 +26,18 @@ _TRACE = False
 # #############################################################################
 
 
-def is_markdown_line_separator(line: str, min_repeats: int = 3) -> bool:
+def is_markdown_line_separator(line: str, min_repeats: int = 5) -> bool:
     """
     Check if the given line is a Markdown separator.
 
-    This function determines if a line consists of repeated characters (`#`, `/`, `-`, `=`)
-    that would indicate a markdown separator.
+    This function determines if a line consists of repeated characters (`#`,
+    `/`, `-`, `=`) that would indicate a markdown separator.
 
     :param line: the current line of text being processed
-    :param min_repeats: the minimum number of times the characters have to be repeated to be
-        considered a separator, e.g., if `min_repeats` = 2, then `##`, `###`, `//` are
-        considered to be line separators, but `#`, `/` are not
+    :param min_repeats: the minimum number of times the characters have to be
+        repeated to be considered a separator, e.g., if `min_repeats` = 2, then
+        `##`, `###`, `//` are considered to be line separators, but `#`, `/` are
+        not
     :return: true if the line is a separator
     """
     separator_pattern = rf"""
@@ -251,6 +252,9 @@ def remove_code_delimiters(txt: str) -> str:
     # Replace the ```python and ``` delimiters with empty strings.
     txt_out = txt.replace("```python", "").replace("```", "")
     txt_out = txt_out.strip()
+    # Remove the numbers at the beginning of the line, if needed
+    # E.g., `3: """` -> `"""`.
+    txt_out = re.sub(r"(^\d+: )", "", txt_out, flags=re.MULTILINE)
     return txt_out
 
 
@@ -274,7 +278,7 @@ def remove_formatting(txt: str) -> str:
     return txt
 
 
-def fix_chatgpt_output(txt: str) -> str:
+def md_clean_up(txt: str) -> str:
     # Replace \( ... \) math syntax with $ ... $.
     txt = re.sub(r"\\\(\s*(.*?)\s*\\\)", r"$\1$", txt)
     # Replace \[ ... \] math syntax with $$ ... $$, handling multiline equations.
@@ -296,15 +300,13 @@ def fix_chatgpt_output(txt: str) -> str:
     txt = re.sub(r"”", r'"', txt)
     # ’
     txt = re.sub(r"’", r"'", txt)
+    # →
+    txt = re.sub(r"→", r"$\\rightarrow$", txt)
     # Remove empty spaces at beginning / end of Latex equations $...$.
     # E.g., $ \text{Student} $ becomes $\text{Student}$
-    txt = re.sub(r"\$\s+(.*?)\s\$", r"$\1$", txt)
-    return txt
-
-
-def md_clean_up(txt: str) -> str:
+    #txt = re.sub(r"\$\s+(.*?)\s\$", r"$\1$", txt)
     # Remove dot at the end of each line.
-    txt = re.sub(r"\.\s*$", "", txt, flags=re.MULTILINE)
+    #txt = re.sub(r"\.\s*$", "", txt, flags=re.MULTILINE)
     return txt
 
 

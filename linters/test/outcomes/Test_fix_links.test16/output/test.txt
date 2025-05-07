@@ -1,0 +1,24 @@
+# linter warnings
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test16/tmp.scratch/test_md_img_links.md:2: 'import_check/example/output/basic.png' does not follow the format 'figs/test_md_img_links.md/XYZ'
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test16/tmp.scratch/test_md_img_links.md:5: 'import_check/example/output/basic.png' does not follow the format 'figs/test_md_img_links.md/XYZ'
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test16/tmp.scratch/test_md_img_links.md:9: '/import_check/example/output/basic.png' does not follow the format 'figs/test_md_img_links.md/XYZ'
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test16/tmp.scratch/test_md_img_links.md:12: '../../import_check/example/output/basic.png' does not follow the format 'figs/test_md_img_links.md/XYZ'
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test16/tmp.scratch/test_md_img_links.md:15: '/iiimport_check/example/output/basicccc.png' does not follow the format 'figs/test_md_img_links.md/XYZ'
+$GIT_ROOT/linters/test/outcomes/Test_fix_links.test16/tmp.scratch/test_md_img_links.md:15: '/iiimport_check/example/output/basicccc.png' does not exist
+
+# linted file
+- Markdown-style figure pointer
+  - <img src="import_check/example/output/basic.png">
+
+- Markdown-style figure pointer with an attribute
+  - <img src="import_check/example/output/basic.png">{width="6.854779090113736in"
+height="1.2303444881889765in"}
+
+- Markdown-style figure pointer with a slash at the start
+  - <img src="/import_check/example/output/basic.png">
+
+- Markdown-style figure pointer with a dir changes at the start
+  - <img src="../../import_check/example/output/basic.png">
+
+- Markdown-style figure pointer that does not exist
+  - <img src="/iiimport_check/example/output/basicccc.png">

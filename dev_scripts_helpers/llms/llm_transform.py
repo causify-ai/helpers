@@ -23,6 +23,11 @@ Examples
 > llm_transform.py -i dev_scripts_helpers/documentation/render_images.py -o cfile -p code_propose_refactoring
 """
 
+# TODO(gp): There are different modes to run the script
+# - run the script to process input and write transformed output
+# - run the script to process input and extract a cfile
+
+
 import argparse
 import logging
 import os
@@ -45,7 +50,7 @@ _LOG = logging.getLogger(__name__)
 
 def _parse() -> argparse.ArgumentParser:
     """
-    Same interface as `dockerized_llm_transform.py`.
+    Use the same argparse parser for `dockerized_llm_transform.py`.
     """
     parser = argparse.ArgumentParser(
         description=__doc__,
@@ -166,7 +171,7 @@ def _run_dockerized_llm_transform(
     return ret
 
 
-def _convert_file_names(in_file_name: str, out_file_name: str) -> str:
+def _convert_file_names(in_file_name: str, out_file_name: str) -> None:
     """
     Convert the files from inside the container to outside.
 
@@ -184,9 +189,9 @@ def _convert_file_names(in_file_name: str, out_file_name: str) -> str:
         # ```
         # /app/helpers_root/r.py:1: Change the shebang line to `#!/usr/bin/env python3` to e
         # ```
-        _LOG.debug("before: " + hprint.to_str("line in_file_name"))
+        _LOG.debug("before: %s", hprint.to_str("line in_file_name"))
         line = re.sub(r"^.*(:\d+:.*)$", rf"{in_file_name}\1", line)
-        _LOG.debug("after: " + hprint.to_str("line"))
+        _LOG.debug("after: %s", hprint.to_str("line"))
         txt_out.append(line)
     txt_out = "\n".join(txt_out)
     hio.to_file(out_file_name, txt_out)
@@ -194,9 +199,7 @@ def _convert_file_names(in_file_name: str, out_file_name: str) -> str:
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    hdbg.init_logger(
-        verbosity=args.log_level, use_exec_path=True, force_white=False
-    )
+    hparser.init_logger_for_input_output_transform(args)
     if args.prompt == "list":
         print("# Available prompt tags:")
         print("\n".join(dshlllpr.get_prompt_tags()))
