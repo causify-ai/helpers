@@ -868,6 +868,28 @@ It is best to apply on any part that is deemed unnecessary for specific test
    - We want to replace the provider with an object that responds to the
      requests with the actual response of the provider
    - In this way, we can leave all the code of our class untouched and tested
+   - We want to mock only the external provider; never mock internal helpers
+
+     **Bad**:
+
+     ```python
+     @umock.patch("helpers.get_labels")
+     def test_github_labels(self, mock_helper):
+     # Do not mock internal helper.
+     ...
+     ```
+
+     **Good**:
+
+     ```python
+     @umock.patch("github.Github")
+     def test_github_labels(self, mock_github):
+        # Mock only the external provider.
+        mock_repo = umock.Mock()
+        mock_github.return_value.get_repo.return_value = mock_repo
+        ...
+     ```
+
 2. We want to test public methods of our class (and a few private methods)
    - In other words, we want to test the end-to-end behavior and not how things
      are achieved
@@ -877,72 +899,65 @@ It is best to apply on any part that is deemed unnecessary for specific test
    - We want to test the minimal amount of behavior that enforces what we care
      about
 
-3. When to mock (external services only) First, identify the external boundaries
-   of your code:
+     **Bad**:
 
-   **Bad**:
+     ```python
+     @umock.patch("docker.build_container")
+     @umock.patch("helpers.get_labels")
+     @umock.patch("github.Github")
+     def test_github_labels(self, mock_get_labels, mock_build_container, mock_github):
+        # Don't mock too much, like internal Docker and helper functions.
+        mock_get_labels.return_value = ["bug"]
+        mock_build_container.return_value = "image123"
+        mock_repo = umock.Mock()
+        mock_github.return_value.get_repo.return_value = mock_repo
+     ```
 
-   ```python
-   @umock.patch("my_module._process_labels")
-   def test_sync_labels(self, mock_process):
-       # Don't mock internal processing
-   ```
+     **Good**:
 
-   **Good**:
+     ```python
+     @umock.patch("github.Github")
+     def test_GitHub_labels(self, mock_github):
+        # Mock only the behavior that needs to be tested.
+        mock_repo = umock.Mock()
+        mock_github.return_value.get_repo.return_value = mock_repo
+        ...
+     ```
 
-   ```python
-   @umock.patch("github.Github")
-   def test_sync_labels(self, mock_github):
-       mock_repo = umock.Mock()
-       mock_github.return_value.get_repo.return_value = mock_repo
-       # Test code that uses GitHub API
-   ```
+3. We want our mock object to look just real enough for the code to run.
+   - Include only the attributes or return values your function actually uses.
 
-4. What to mock (service clients/interfaces) Next, decide what portion of that
-   boundary to stub:
+     **Bad**:
 
-   **Bad**:
+     ```python
+     mock_label = umock.Mock()
+     mock_label.name = "bug"
+     # Don't add unused fields.
+     mock_label.color = "f29513"
+     mock_label.description = "Something is not working"
+     mock_label.created_at = "2024‑01‑01"
+     mock_label.updated_at = "2024‑01‑02"
+     ....
 
-   ```python
-   @umock.patch("my_module._make_github_request")
-   def test_sync_labels(self, mock_request):
-       # Don't mock how the request is made
-   ```
+     def test_process_labels(mock_repo):
+       labels = mock_repo.get_labels()
+       self.assert_equal(labels[0].name, "bug")
+     ```
 
-   **Good**:
+     **Good**:
 
-   ```python
-   @umock.patch("github.Github")
-   def test_sync_labels(self, mock_github):
-       mock_repo = umock.Mock()
-       mock_github.return_value.get_repo.return_value = mock_repo
-       # Test code that uses GitHub API
-   ```
+     ```python
+     mock_label = umock.Mock()
+     # Add only the fields the function uses.
+     mock_label.name = "bug"
+     mock_repo = umock.Mock()
+     mock_repo.get_labels.return_value = [mock_label]
+     ...
 
-5. How to mock (minimal, realistic mocks) Finally, keep your stub lean and
-   realistic:
-
-   **Bad**:
-
-   ```python
-   mock_label = umock.Mock()
-   mock_label.name = "bug"
-   mock_label.color = "f29513"
-   mock_label.description = "Something isn't working"
-   mock_label.created_at = "2024-01-01"
-   mock_label.updated_at = "2024-01-02"
-   # ... many more unnecessary attributes
-   ```
-
-   **Good**:
-
-   ```python
-   mock_label = umock.Mock()
-   mock_label.name = "bug"
-   mock_label.color = "f29513"
-   mock_repo = umock.Mock()
-   mock_repo.get_labels.return_value = [mock_label]
-   ```
+     def test_process_labels(mock_repo):
+       labels = mock_repo.get_labels()
+       self.assert_equal(labels[0].name, "bug")
+     ```
 
 ### Some general suggestions about testing
 
