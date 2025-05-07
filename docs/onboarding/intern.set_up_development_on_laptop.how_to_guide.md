@@ -11,6 +11,7 @@
     + [Docker installation troubleshooting](#docker-installation-troubleshooting)
   * [Tmux](#tmux)
   * [Shell support](#shell-support)
+  * [Set up AWS](#set-up-aws)
   * [Some useful workflows](#some-useful-workflows)
   * [Hack: use a local container if needed](#hack-use-a-local-container-if-needed)
 
@@ -150,7 +151,7 @@
 ### Install Docker
 
 - Get familiar with Docker if you are not, e.g.,
-  https://docs.docker.com/get-started/overview/
+  [https://docs.docker.com/get-started/overview/](https://docs.docker.com/get-started/overview/)
 
 - We work in a Docker container that has all the required dependencies installed
   - You can use PyCharm / VSCode on your laptop to edit code, but you want to
@@ -281,6 +282,40 @@
 - We recommended that you make `bash` the default shell on your system, to avoid
   possible compatibility issues
 
+## Set up AWS
+
+- NB! This section is only for interns/collaborators who have been assigned
+  tasks that require access to data on AWS S3
+- NB! Skip this section if you haven't been assigned an AWS user with us yet
+
+- Create dir with proper permissions:
+
+  ```bash
+  > mkdir ~/.aws; chmod 700 ~/.aws
+  ```
+
+- Place the following into `~/.aws/config`:
+
+  ```bash
+  [profile ck]
+  region = eu-north-1
+  ```
+
+- Place the following into `~/.aws/credentials` and populate the values with
+  your credentials:
+
+  ```bash
+  [ck]
+  aws_access_key_id=***
+  aws_secret_access_key=***
+  ```
+
+- Test access to the S3 bucket:
+  ```bash
+  > aws s3 ls s3://causify-data-collaborators --profile ck
+                            PRE causal_automl/
+  ```
+
 ## Some useful workflows
 
 - Check the installation by running:
@@ -361,7 +396,8 @@
 
 - To open a Jupyter notebook in a local web-browser:
   - In the output from the cmd above find an assigned port, e.g.,
-    `[I 14:52:26.824 NotebookApp] http://0044e866de8d:10091/` -> port is `10091`
+    `[I 14:52:26.824 NotebookApp] [http://0044e866de8d:10091](http://0044e866de8d:10091)/`
+    -> port is `10091`
   - Add the port to the link like so: `http://localhost:10091/` or
     `http://127.0.0.1:10091`
   - Copy-paste the link into a web-browser and update the page
