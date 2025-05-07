@@ -83,7 +83,9 @@ if not OUTSIDE_CONTAINER_POST_TRANSFORMS:
             hdbg.dassert_in(prompt, valid_prompts)
 
 
-def get_outside_container_post_transforms(transform_name: str) -> Dict[str, List[str]]:
+def get_outside_container_post_transforms(
+    transform_name: str,
+) -> Dict[str, List[str]]:
     hdbg.dassert_in(transform_name, OUTSIDE_CONTAINER_POST_TRANSFORMS.keys())
     return OUTSIDE_CONTAINER_POST_TRANSFORMS[transform_name]
 
@@ -117,18 +119,93 @@ def test() -> _PROMPT_OUT:
 # #############################################################################
 
 
-def code_fix_comments() -> _PROMPT_OUT:
+def code_fix_existing_comments() -> _PROMPT_OUT:
+    """
+    Fix the already existing comments in the Python code.
+    """
+    system = _CONTEXT
+    system += r"""
+    Make sure that comments in the code are:
+    - in imperative form
+    - a correct English phrase
+    - end with a period `.`
+    - clear
+
+    Comments should be before the code that they refer to
+    E.g.,
+    ```
+    dir_name = self.directory.name  # For example, "helpers".
+    ```
+    should become
+    ```
+    # E.g., "helpers".
+    dir_name = self.directory.name
+    ```
+
+    Variables should be enclosed in a back tick, like `bar`.
+    Functions should be reported as `foo()`.
+
+    Do not change the code.
+    Do not add any empty line.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {"remove_code_delimiters"}
+    return system, pre_transforms, post_transforms
+
+
+def code_fix_improve_comments() -> _PROMPT_OUT:
     """
     Add comments to Python code.
     """
     system = _CONTEXT
     system += r"""
-    - Every a chunk of 4 or 5 lines of code add comment explaining the code
+    - Add comments for the parts of the code that are not properly commented
+        - E.g., every chunk of 4 or 5 lines of code add comment explaining the
+          code
     - Comments should go before the logical chunk of code they describe
     - Comments should be in imperative form, a full English phrase, and end with a
       period `.`
     - Do not comment every single line of code and especially logging statements
+    - Add examples of the values of variables, when you are sure of the types
+      and values of variables. If you are not sure, do not add any information.
+    
+    Do not change the code.
+    Do not remove any already existing comment.
+    Do not add any empty line.
     """
+    pre_transforms: Set[str] = set()
+    post_transforms = {"remove_code_delimiters"}
+    return system, pre_transforms, post_transforms
+
+
+def code_fix_logging_statements() -> _PROMPT_OUT:
+    """
+    Add comments to Python code.
+    """
+    system = _CONTEXT
+    system += r'''
+    When a variable `foobar` is important for debugging the code in case of
+    failure, add statements like:
+    ```
+    _LOG.debug(hprint.to_str("foobar"))
+    ```
+
+    At the beginning of an important function, after the docstring, add code
+    like
+    ```
+       def get_text_report(self) -> str:
+       """
+       Generate a text report listing each module's dependencies.
+
+       :return: Text report of dependencies, one per line.
+       """
+       _LOG.debug(hprint.func_signature_to_str())
+    ```
+
+    Do not change the code.
+    Do not remove any already existing comment.
+    Do not add any empty line.
+    '''
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
@@ -140,6 +217,10 @@ def code_fix_docstrings() -> _PROMPT_OUT:
 
     Each function should have a docstring that describes the function,
     its parameters, and its return value.
+
+    Create examples of the values in input and output of each function, only
+    when you are sure of the types and values of variables. If you are not
+    sure, do not add any information.
     """
     system = _CONTEXT
     system += r'''
@@ -151,13 +232,13 @@ def code_fix_docstrings() -> _PROMPT_OUT:
 
     An example of a correct docstring is:
     ```
-    def _format_greeting(name: str, *, greeting: str = DEFAULT_GREETING) -> str:
+    def _format_greeting(name: str, *, greeting: str = "Hello") -> str:
         """
         Format a greeting message with the given name.
 
-        :param name: the name to include in the greeting
-        :param greeting: the base greeting message to use
-        :return: formatted greeting
+        :param name: the name to include in the greeting (e.g., "John")
+        :param greeting: the base greeting message to use (e.g., "Ciao")
+        :return: formatted greeting (e.g., "Hello John")
         """
     ```
     '''
@@ -182,7 +263,7 @@ def code_fix_type_hints() -> _PROMPT_OUT:
     ```
     to:
     ```
-    def process_data(data: List[float], threshold: float = 0.5) -> List[float]:
+    def process_data(data: List[float], *, threshold: float = 0.5) -> List[float]:
         results: List[float] = []
         for item in data:
             if item > threshold:
@@ -259,18 +340,17 @@ def code_fix_by_using_f_strings() -> _PROMPT_OUT:
 
 def code_fix_by_using_perc_strings() -> _PROMPT_OUT:
     """
-    Use % formatting, like `"Hello, %s.
-
-    You are %d years old." % (name, age)`.
+    Use % formatting, like `"Hello, %s. You are %d years old." % (name, age)`.
     """
     system = _CONTEXT
     system += r"""
     Use % formatting instead of f-strings (formatted string literals).
-
-    Do not print any comment, but just the converted code.
+    Do not print any comment, just the converted code.
 
     For instance, convert:
+    `f"Hello, {name}. You are {age} years old."`
     to
+    `"Hello, %s. You are %d years old." % (name, age)`
     """
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
@@ -285,10 +365,6 @@ def code_fix_from_imports() -> _PROMPT_OUT:
     system += r"""
     Replace any Python "from import" statement like `from X import Y` with the
     form `import X` and then replace the uses of `Y` with `X.Y`
-
-    For instance, replace:
-    with:
-    Then replace the uses of `OpenAIEmbeddings` with:
     """
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
@@ -304,9 +380,18 @@ def code_fix_star_before_optional_parameters() -> _PROMPT_OUT:
     When you find a Python function with optional parameters, add a star after
     the mandatory parameters and before the optional parameters, and make sure
     that the function is called with the correct number of arguments.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {"remove_code_delimiters"}
+    return system, pre_transforms, post_transforms
 
-    For instance, replace:
-    with the following:
+
+def code_fix_unit_test() -> _PROMPT_OUT:
+    """
+    Fix code missing the star before optional parameters.
+    """
+    system = _CONTEXT
+    system += r"""
     """
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
@@ -315,7 +400,8 @@ def code_fix_star_before_optional_parameters() -> _PROMPT_OUT:
 
 def code_fix_csfy_style() -> _PROMPT_OUT:
     """
-    Apply the csfy style to the code.
+    Apply all the transformations required to write code according to the
+    Causify conventions.
     """
     # > grep "def code_fix" ./dev_scripts_helpers/llms/llm_prompts.py | awk '{print $2 }'
     function_names = [
@@ -574,21 +660,28 @@ def slide_colorize_points() -> _PROMPT_OUT:
 
 def scratch_categorize_topics() -> _PROMPT_OUT:
     system = r"""
-    For each of the following title of article, find the best topic among the following ones
+    For each of the following title of article, find the best topic among the
+    following ones:
 
-    LLM Reasoning, Quant Finance, Time Series, Developer Tools, Python Ecosystem, Git and GitHub, Software Architecture, AI Infrastructure, Knowledge Graphs, Diffusion Models, Causal Inference, Trading Strategies, Prompt Engineering, Mathematical Concepts, Dev Productivity, Rust and C++, Marketing and Sales, Probabilistic Programming, Code Refactoring, Open Source
+    LLM Reasoning, Quant Finance, Time Series, Developer Tools, Python
+    Ecosystem, Git and GitHub, Software Architecture, AI Infrastructure,
+    Knowledge Graphs, Diffusion Models, Causal Inference, Trading Strategies,
+    Prompt Engineering, Mathematical Concepts, Dev Productivity, Rust and C++,
+    Marketing and Sales, Probabilistic Programming, Code Refactoring, Open
+    Source
 
     Only print
     - the first 3 words of the title
     - a separator |
     - the topic
-    and don't print any explanation
+    and don't print any explanation.
 
     if you don't know the topic, print "unknown"
     """
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
     return system, pre_transforms, post_transforms
+
 
 # #############################################################################
 # Transforms.
@@ -730,9 +823,9 @@ def run_prompt(
         # Add the specific instructions to the system prompt.
         # E.g.,
         # The instructions are:
-        # 52: in private function `_parse`:D401: First line should be in imperative mood; try rephrasing (found 'Same') [doc_formatter]
+        # 52: in private function `_parse`:D401: First line should be in
         # 174: error: Missing return statement  [return] [mypy]
-        # 192: [W1201(logging-not-lazy), _convert_file_names] Use lazy % formatting in logging functions [pylint]
+        # 192: [W1201(logging-not-lazy), _convert_file_names] Use lazy %
         system_prompt = hprint.dedent(system_prompt)
         hdbg.dassert_ne(instructions, "")
         system_prompt += "\nThe instructions are:\n" + instructions + "\n\n"
