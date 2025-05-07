@@ -99,7 +99,7 @@ jobs:
 
       - name: Upload Slow Test Coverage to Codecov
         id: upload_slow
-        # Only upload if the previous slow test run step succeeded (i.e if report generated).
+        # Only upload if the previous slow test run step succeeded (i.e, if report generated).
         if: steps.run_slow.outcome == 'success'
         continue-on-error: true
         uses: codecov/codecov-action@v5
@@ -119,17 +119,17 @@ jobs:
           CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
           CSFY_ECR_BASE_PATH: ghcr.io/${{ github.repository_owner }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
-          run: |
-            # Determine the day of the week (1 = Monday, 7 = Sunday).
-            day_of_week=$(date +%u)
-            # Only run superslow tests on Mondays or if the workflow is manually triggered.
-            if [ "$day_of_week" = "1" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-              echo "Running superslow tests..."
-              invoke run_coverage --suite superslow
-            else
-              echo "Skipping superslow tests — today is not Monday and this is not a manual trigger"
-              exit 0
-            fi
+        run: |
+          # Determine the day of the week (1 = Monday, 7 = Sunday).
+          day_of_week=$(date +%u)
+          # Only run superslow tests on Mondays or if the workflow is manually triggered.
+          if [ "$day_of_week" = "1" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "Running superslow tests..."
+            invoke run_coverage --suite superslow
+          else
+            echo "Skipping superslow tests — today is not Monday and this is not a manual trigger"
+            exit 0
+          fi
 
       - name: Upload Superslow Test Coverage to Codecov
         #TODO(Shaunak): Consider removing it when we turn this workflow into a reusable one.
