@@ -924,8 +924,8 @@ It is best to apply on any part that is deemed unnecessary for specific test
         ...
      ```
 
-3. We want our mock object to look just real enough for the code to run.
-   - Include only the attributes or return values your function actually uses.
+3. We want our mock object to look just real enough for the code to run
+   - Include only the attributes or return values your function actually uses
 
      **Bad**:
 
