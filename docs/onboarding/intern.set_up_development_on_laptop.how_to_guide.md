@@ -11,7 +11,7 @@
     + [Docker installation troubleshooting](#docker-installation-troubleshooting)
   * [Tmux](#tmux)
   * [Shell support](#shell-support)
-  * [Set up AWS](#set-up-aws)
+  * [Set up AWS credentials](#set-up-aws-credentials)
   * [Some useful workflows](#some-useful-workflows)
   * [Hack: use a local container if needed](#hack-use-a-local-container-if-needed)
 
@@ -282,7 +282,7 @@
 - We recommended that you make `bash` the default shell on your system, to avoid
   possible compatibility issues
 
-## Set up AWS
+## Set up AWS credentials
 
 - NB! This section is only for interns/collaborators who have been assigned
   tasks that require access to data on AWS S3
@@ -396,8 +396,9 @@
 
 - To open a Jupyter notebook in a local web-browser:
   - In the output from the cmd above find an assigned port, e.g.,
-    `[I 14:52:26.824 NotebookApp] [http://0044e866de8d:10091](http://0044e866de8d:10091)/`
-    -> port is `10091`
+    ```bash
+    '[I 14:52:26.824 NotebookApp] http://0044e866de8d:10091/' -> port is '10091'
+    ```
   - Add the port to the link like so: `http://localhost:10091/` or
     `http://127.0.0.1:10091`
   - Copy-paste the link into a web-browser and update the page
