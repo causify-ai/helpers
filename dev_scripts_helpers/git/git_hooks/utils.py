@@ -194,7 +194,7 @@ def check_master(abort_on_error: bool = True) -> None:
 # #############################################################################
 
 
-def _is_valid_email(email) -> bool:
+def _is_valid_email(email: str) -> bool:
     """
     Check if the email is valid.
 
