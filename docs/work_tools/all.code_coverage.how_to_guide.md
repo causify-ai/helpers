@@ -50,7 +50,7 @@ reporting and behavior. If needed, individual repos can include their own
 The `.coveragerc` file defines coverage measurement settings:
 
 - `Excluded Files`: These files are omitted from coverage reporting.
-  ```
+  ```ini
   [report]
   omit =
       */devops/compose/*
@@ -107,7 +107,8 @@ Coverage tests are automated via GitHub Actions -
    if a report is not submitted for a given flag in the current CI run. This is
    useful when certain test suites (e.g., slow or superslow) don't run in every
    cycle but should still be reflected in the coverage summary.
-   ```
+
+   ```yml
    flag_management:
    individual_flags:
      - name: fast
@@ -130,7 +131,8 @@ Coverage tests are automated via GitHub Actions -
      change
    - `show_critical_paths: false` : Disables per-line comments in the PR diff
      view
-   ```
+
+   ```yml
    comment:
      layout: "reach, diff, files"
      behavior: default
@@ -166,7 +168,8 @@ Coverage tests are automated via GitHub Actions -
    - `branches` limits the check to PRs targeting the `master` branch.
    - `patch: true`: Ensures Codecov always checks coverage on the changed lines
      in a PR, regardless of the base branch or flag.
-   ```
+
+   ```yml
    coverage:
      status:
        project:
@@ -199,28 +202,31 @@ Developers can manually run coverage tasks locally via Invoke commands and
 generate html report:
 
 - Fast Tests:
-  ```
+
+  ```yml
   invoke run_coverage --suite fast --generate-html-report
   ```
 
 - Slow Tests:
-  ```
+
+  ```yml
   invoke run_coverage --suite slow --generate-html-report
   ```
 
 - Superslow Tests:
-  ```
+
+  ```yml
   invoke run_coverage --suite superslow --generate-html-report
   ```
 
 - Review HTML coverage report
   - Run a local HTTP server to serve the HTML:
-    ```
+    ```bash
       cd htmlcov
       python3 -m http.server 8000
     ```
   - If you're running this on a remote server, set up SSH port forwarding:
-    ```
+    ```bash
       ssh -i ~/.ssh/<private_key> -L 8000:localhost:8000 <user_name>@<server_ip>
     ```
   - Then open your browser and go to:
