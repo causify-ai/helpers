@@ -167,17 +167,16 @@
 
 2.  Project owner creates a GitHub status update (by clicking on the Status
     button on the upper right in a given project) until 11 AM ET each Friday
-
-    1.  The 11 AM deadline was chosen to facilitate easier completion of Asana
-        status updates which have a 12 AM deadline
-        - In practice the GitHub project status updates will often serve as the
-          source of information for the Asana update
-    2.  The status update should include the following sections:
-        - Summary (what was accomplished, what kind of obstacles did the team
-          run into)
-        - Next steps (explain work for the next 1-2 sprints)
-        - Example update:
-          ```
+    - The 11 AM deadline was chosen to facilitate easier completion of Asana
+      status updates which have a 12 AM deadline
+      - In practice the GitHub project status updates will often serve as the
+        source of information for the Asana update
+    - The status update should include the following sections:
+      - Summary (what was accomplished, what kind of obstacles did the team run
+        into)
+      - Next steps (explain work for the next 1-2 sprints)
+      - Example update:
+        ```
           Summary
           - We have finished updating ETL pipeline for historical bid/ask data
             for additional symbols (the work started two sprints ago)
@@ -197,8 +196,8 @@
             catch some corner-case behavior (mainly with regards interaction
             with exchange API)
           - Run back-test(s) for orderbook-based model(s)
-          - Kick-off work on a new crypto.com specific model
-          ```
+          - Kick-off work on a new model
+        ```
 
 3.  The status update is sent to customers (either external or internal sending
     to all@)
