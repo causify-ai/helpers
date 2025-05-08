@@ -34,8 +34,10 @@
     + [Command to run the release flow](#command-to-run-the-release-flow)
     + [Post-release check-list](#post-release-check-list)
   * [Build prod image](#build-prod-image)
-  * [QA for prod image](#qa-for-prod-image)
-  * [End-to-end flow for `prod` image](#end-to-end-flow-for-prod-image)
+    + [QA for prod image](#qa-for-prod-image)
+    + [End-to-end flow for `prod` image](#end-to-end-flow-for-prod-image)
+  * [Release a multi-architecture prod image](#release-a-multi-architecture-prod-image)
+    + [Overview](#overview-1)
   * [Flow for both dev and prod images](#flow-for-both-dev-and-prod-images)
 - [Release flow](#release-flow)
   * [cmamp](#cmamp)
@@ -162,7 +164,13 @@
 - `docker_build_prod_image`: build a "prod" image from a dev image
 - `docker_push_prod_image`: push the "prod" image to ECR
 - `docker_push_prod_candidate_image`: push the "prod" candidate image to ECR
+- `docker_build_multi_arch_prod_image`: build a multi arch. versioned "prod"
+  image from a "dev" image
+- `docker_tag_push_multi_arch_prod_image`: mark the multi-arch versioned "prod"
+  image as "prod" and push them to the target registry
 - `docker_release_prod_image`: build, test, and release the "prod" image to ECR
+- `docker_release_multi_arch_prod_image`: build, test, and release to Docker
+  registries the multi-arch prod image
 - `docker_release_all`: release both the "dev" and "prod" image to ECR
 - `docker_rollback_dev_image`: rollback the version of the "dev" image
 - `docker_rollback_prod_image`: rollback the version of the "prod" image
@@ -234,6 +242,13 @@
     - Run QA tests
   - Push prod image to ECR, DockerHub, GHCR
 
+- The release flow is implemented in the `invoke` tasks:
+  - E.g., `docker_release_dev_image`, `docker_release_prod_image`, etc.
+  - These tasks are quite complex and perform many operations
+  - Currently, we don't run them directly — instead, we execute the individual
+    steps from the `invoke` tasks
+  - Once the release process is more stable, we plan to run them directly
+
 ## How to add a Python package to dev image
 
 - To add a new Python package to a Docker image you need to update `poetry`
@@ -242,7 +257,7 @@
     [`/devops/docker_build/pyproject.toml`](/devops/docker_build/pyproject.toml)
     file to the `[tool.poetry.dependencies]` section
   - E.g., to add `pytest-timeout` do:
-    ```markdown
+    ```text
     [tool.poetry.dependencies]
     ...
     pytest-timeout = "*"
@@ -331,7 +346,7 @@
   ```
 - The command above will generate `./tmp.requirements.txt` with the list of the
   imported packages, e.g.,
-  ```markdown
+  ```text
   amp==1.1.4
   async_solipsism==0.3
   beautifulsoup4==4.11.1
@@ -526,7 +541,7 @@
   `docker_build_local_image`
 
   ```bash
-  > i docker_build_local_image --version <VERSION> --multi-arch --platform <PLATFORM NAME>
+  > i docker_build_local_image --version <VERSION> --multi-arch <PLATFORM NAME>
   ```
   - To build for specific platforms specify the platform name:
     - For `x86`: `linux/amd64`
@@ -540,16 +555,16 @@
   local image by default
 - Images are pushed to the remote registry and pulled for testing and usage
 - To tag the local image as dev and push it to the target registry: e.g.,
-  `aws_ecr.ck` or `dockerhub.kaizenflow` , use
+  `aws_ecr.ck` or `dockerhub.causify` , use
   ```bash
-  > i docker_tag_push_multi_build_local_image_as_dev --version <VERSION> --target <TARGET>
+  > i docker_tag_push_multi_build_local_image_as_dev --version <VERSION> --target-registry <TARGET>
   ```
 - Once the image has been successfully pushed to both ECR and DockerHub
   registries, the subsequent step involves pushing the `dev` image to GHCR
   registry. However, this action currently requires manual execution due to
   restricted access
-  - Access to the `causify-ai` packages is limited. To gain access, kindly
-    reach out to GP, Samarth or Vlad
+  - Access to the `causify-ai` packages is limited. To gain access, kindly reach
+    out to GP, Samarth or Vlad
   - To proceed, perform a Docker login using your GitHub username and PAT
     (Personal Access Token):
     ```bash
@@ -615,14 +630,13 @@ Check-list:
   ```bash
   > i docker_release_multi_build_dev_image \
       --version <VERSION> \
-      --platform <PLATFORM> \
       --target-registries <TARGET_REGISTRIES>
   ```
 
   where
   - TARGET_REGISTRIES: list of target registries to push the image to. E.g.,
     - `aws_ecr.ck`: private CK AWS Docker registry
-    - `dockerhub.kaizenflow`: public Dockerhub registry
+    - `dockerhub.causify`: public Dockerhub registry
   - All the other options are the same as for the `docker_release_dev_image`
     end-to-end flow.
 
@@ -630,8 +644,7 @@ Check-list:
   ```
   > i docker_release_multi_build_dev_image \
       --version 1.6.1 \
-      --platform linux/amd64,linux/arm64 \
-      --target-registries aws_ecr.ck,dockerhub.kaizenflow
+      --target-registries aws_ecr.ck,dockerhub.causify
   ```
 
 ### Post-release check-list
@@ -675,7 +688,7 @@ Check-list:
   > docker run --rm -t --workdir=/app 665840871993.dkr.ecr.us-east-1.amazonaws.com/cmamp:prod-1.0.3 "python /app/im_v2/ccxt/data/extract/download_realtime.py --to_datetime '20211204-194432' --from_datetime '20211204-193932' --dst_dir 'test/ccxt_test' --data_type 'ohlcv' --api_keys 'API_keys.json' --universe 'v03'"
   ```
 
-## QA for prod image
+### QA for prod image
 
 - In dev_scripts repo test:
   ```
@@ -686,7 +699,7 @@ Check-list:
   > i lint -f "helpers/dbg.py"
   ```
 
-## End-to-end flow for `prod` image
+### End-to-end flow for `prod` image
 
 1. Build docker `prod` image
    ```bash
@@ -712,6 +725,17 @@ Check-list:
 
 - The same options are available as for `i docker_release_dev_image` and you can
   check them with `i docker_release_prod_image -h`
+
+## Release a multi-architecture prod image
+
+### Overview
+
+- Build `prod` versioned image remotely in the CK AWS ECR registry and pull once
+  it is built
+- Run the `cmamp` regressions using a versioned `prod` image
+- Tag the versioned `prod` image as `prod` image and push it to the Docker
+  registries
+- Tag the new `prod` image to GHCR namespace and push it to GHCR registry
 
 ## Flow for both dev and prod images
 

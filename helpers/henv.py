@@ -6,7 +6,7 @@ import helpers.henv as henv
 
 import logging
 import os
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
@@ -57,6 +57,29 @@ def has_module(module: str) -> bool:
     exec(code, globals(), locals_)
     has_module_ = locals_["has_module_"]
     return has_module_
+
+
+def install_module_if_not_present(
+    import_name: str, package_name: Optional[str] = None
+) -> None:
+    """
+    Install a Python module if it is not already installed.
+
+    :param import_name: name used to import the module
+    :param package_name: name of the package on PyPI (if different from `import_name`)
+    """
+    _has_module = has_module(import_name)
+    if _has_module:
+        print(f"Module '{import_name}' is already installed.")
+        return
+    # Sometime the package name is different from the import name.
+    # e.g., we import using `import dash_bootstrap_components`
+    # but the package name is `dash-bootstrap-components`.
+    package_name = package_name or import_name
+    _, output = hsystem.system_to_string(
+        f"sudo /venv/bin/pip install {package_name}"
+    )
+    print(output)
 
 
 # All printing functions should:
@@ -126,10 +149,10 @@ def get_env_vars() -> List[str]:
         "CSFY_HOST_NAME",
         # The OS of the host running Docker.
         "CSFY_HOST_OS_NAME",
+        # The version of the host running Docker.
+        "CSFY_HOST_OS_VERSION",
         # The name of the user running the host.
         "CSFY_HOST_USER_NAME",
-        # The version of the host running Docker.
-        "CSFY_HOST_VERSION",
         # Whether to check if certain property of the repo are as expected or not.
         "CSFY_REPO_CONFIG_CHECK",
         # Path to use for `repo_config.py`. E.g., used when running `helpers`
@@ -371,7 +394,6 @@ def _get_psutil_info() -> str:
     except ModuleNotFoundError as e:
         _LOG.warning("psutil is not installed: %s", str(e))
         has_psutil = False
-
     txt_tmp = []
     if has_psutil:
         txt_tmp.append(f"cpu count={psutil.cpu_count()}")

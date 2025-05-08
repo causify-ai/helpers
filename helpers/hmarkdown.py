@@ -26,17 +26,18 @@ _TRACE = False
 # #############################################################################
 
 
-def is_markdown_line_separator(line: str, min_repeats: int = 3) -> bool:
+def is_markdown_line_separator(line: str, min_repeats: int = 5) -> bool:
     """
     Check if the given line is a Markdown separator.
 
-    This function determines if a line consists of repeated characters (`#`, `/`, `-`, `=`)
-    that would indicate a markdown separator.
+    This function determines if a line consists of repeated characters (`#`,
+    `/`, `-`, `=`) that would indicate a markdown separator.
 
     :param line: the current line of text being processed
-    :param min_repeats: the minimum number of times the characters have to be repeated to be
-        considered a separator, e.g., if `min_repeats` = 2, then `##`, `###`, `//` are
-        considered to be line separators, but `#`, `/` are not
+    :param min_repeats: the minimum number of times the characters have to be
+        repeated to be considered a separator, e.g., if `min_repeats` = 2, then
+        `##`, `###`, `//` are considered to be line separators, but `#`, `/` are
+        not
     :return: true if the line is a separator
     """
     separator_pattern = rf"""
@@ -60,7 +61,7 @@ def is_header(line: str) -> Tuple[bool, int, str]:
         - The level of the header (0 if not a header)
         - The title of the header (empty string if not a header)
     """
-    hdbg.dassert(not is_markdown_line_separator(line), "line='%s'", line)
+    # hdbg.dassert(not is_markdown_line_separator(line), "line='%s'", line)
     m = re.match(r"(#+)\s+(.*)", line)
     is_header_ = bool(m)
     if m:
@@ -251,6 +252,9 @@ def remove_code_delimiters(txt: str) -> str:
     # Replace the ```python and ``` delimiters with empty strings.
     txt_out = txt.replace("```python", "").replace("```", "")
     txt_out = txt_out.strip()
+    # Remove the numbers at the beginning of the line, if needed
+    # E.g., `3: """` -> `"""`.
+    txt_out = re.sub(r"(^\d+: )", "", txt_out, flags=re.MULTILINE)
     return txt_out
 
 
@@ -274,7 +278,7 @@ def remove_formatting(txt: str) -> str:
     return txt
 
 
-def fix_chatgpt_math_syntax(txt: str) -> str:
+def md_clean_up(txt: str) -> str:
     # Replace \( ... \) math syntax with $ ... $.
     txt = re.sub(r"\\\(\s*(.*?)\s*\\\)", r"$\1$", txt)
     # Replace \[ ... \] math syntax with $$ ... $$, handling multiline equations.
@@ -283,6 +287,26 @@ def fix_chatgpt_math_syntax(txt: str) -> str:
     txt = re.sub(r"P\((.*?)\)", r"\\Pr(\1)", txt)
     # Replace \mid with `|`.
     txt = re.sub(r"\\mid", r"|", txt)
+    # E.g.,``  • Description Logics (DLs) are a family``
+    # Replace `•` with `-`
+    txt = re.sub(r"•\s+", r"- ", txt)
+    # Replace `\t` with 2 spaces
+    txt = re.sub(r"\t", r"  ", txt)
+    # Remove `⸻`.
+    txt = re.sub(r"⸻", r"", txt)
+    # “
+    txt = re.sub(r"“", r'"', txt)
+    # ”
+    txt = re.sub(r"”", r'"', txt)
+    # ’
+    txt = re.sub(r"’", r"'", txt)
+    # →
+    txt = re.sub(r"→", r"$\\rightarrow$", txt)
+    # Remove empty spaces at beginning / end of Latex equations $...$.
+    # E.g., $ \text{Student} $ becomes $\text{Student}$
+    #txt = re.sub(r"\$\s+(.*?)\s\$", r"$\1$", txt)
+    # Remove dot at the end of each line.
+    #txt = re.sub(r"\.\s*$", "", txt, flags=re.MULTILINE)
     return txt
 
 
@@ -404,15 +428,15 @@ def check_header_list(header_list: HeaderList) -> None:
             header_list[0].line_number,
             header_list[0].level,
         )
-    # Check that consecutive elements in the header list differ by at most one
-    # value of level.
+    # Check that consecutive elements in the header list only increase by
+    # at most one level at a time, but can decrease by multiple levels.
     if len(header_list) > 1:
         for i in range(1, len(header_list)):
             hdbg.dassert_isinstance(header_list[i - 1], HeaderInfo)
             hdbg.dassert_isinstance(header_list[i], HeaderInfo)
-            if abs(header_list[i].level - header_list[i - 1].level) > 1:
+            if header_list[i].level - header_list[i - 1].level > 1:
                 msg = []
-                msg.append("Consecutive headers differ by more than one level:")
+                msg.append("Consecutive headers increase by more than one level:")
                 msg.append(f"  {header_list[i - 1]}")
                 msg.append(f"  {header_list[i]}")
                 msg = "\n".join(msg)

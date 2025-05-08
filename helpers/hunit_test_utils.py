@@ -476,7 +476,7 @@ def execute_only_on_mac(*, version: Optional[str] = None) -> None:
 def check_env_to_str(
     self_: Any, exp: str, *, skip_secrets_vars: bool = False
 ) -> None:
-    act = henv.env_to_str(add_system_signature=False)
+    act = henv.env_to_str(system_signature=False)
     act = hunitest.filter_text("get_name", act)
     act = hunitest.filter_text("get_repo_map", act)
     act = hunitest.filter_text("CSFY_HOST_", act)

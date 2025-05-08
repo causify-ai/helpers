@@ -162,4 +162,4 @@
   - Shadow trading should always be a superset of scheduled trading configs
 
 The rotation is here
-https://docs.google.com/spreadsheets/d/1Ab6a3BVeLX1l1B3_A6rNY9pHRsofeoCw2ip2dkQ6SdA
+https://docs.google.com/spreadsheets/d/12OhDW4hzSLekorrri2WfRkV8h3JcnB8WQd1JEL_n0D8/edit

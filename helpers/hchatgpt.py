@@ -11,14 +11,11 @@ import sys
 import time
 from typing import Dict, List, Optional
 
+import helpers.henv as henv
 import helpers.hio as hio
 
-try:
-    import openai
-except ImportError:
-    os.system("pip install openai")
-finally:
-    import openai
+henv.install_module_if_not_present("openai")
+import openai
 
 _LOG = logging.getLogger(__name__)
 
