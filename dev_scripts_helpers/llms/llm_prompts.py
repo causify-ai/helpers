@@ -383,7 +383,6 @@ def code_fix_star_before_optional_parameters() -> _PROMPT_OUT:
 
 def code_fix_unit_test() -> _PROMPT_OUT:
     """
-    Fix code missing the star before optional parameters.
     """
     system = _CODING_CONTEXT
     system += r"""
@@ -638,8 +637,36 @@ def slide_improve() -> _PROMPT_OUT:
     system = _MD_CONTEXT
     system += r"""
     I will give you markdown text
-    You will convert the following markdown text into bullet points
-    Make sure that the text is clean and readable
+
+    You will:
+    - Convert the following markdown text into bullet points
+    - Make sure that the text is clean and readable
+
+    Print only the markdown without any explanation.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {
+        "remove_code_delimiters",
+        "remove_end_of_line_periods",
+        "remove_empty_lines",
+    }
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def slide_improve2() -> _PROMPT_OUT:
+    system = _MD_CONTEXT
+    system += r"""
+    I will give you markdown text
+
+    You will:
+    - Maintain the structure of the text and keep the content of the existing text
+    - Remove all the words that are not needed, minimizing the changes to the
+      text
+    - Add bullet points to the text that are important or missing
+    - Add examples to clarify the text and help intuition
+
+    Print only the markdown without any explanation.
     """
     pre_transforms: Set[str] = set()
     post_transforms = {
@@ -655,11 +682,14 @@ def slide_reduce() -> _PROMPT_OUT:
     system = _MD_CONTEXT
     system += r"""
     I will give you markdown text
+
     You will:
-    - maintain the structure of the text
-    - make sure that the text is clean and readable
-    - remove all the words that are not needed
-    - minimize the changes to the text
+    - Maintain the structure of the text
+    - Make sure that the text is clean and readable
+    - Remove all the words that are not needed
+    - Minimize the changes to the text
+
+    Print only the markdown without any explanation.
     """
     pre_transforms: Set[str] = set()
     post_transforms = {
@@ -674,13 +704,15 @@ def slide_reduce() -> _PROMPT_OUT:
 def slide_bold() -> _PROMPT_OUT:
     system = _MD_CONTEXT
     system += r"""
-    I will give you markdown text and you will
-
-    - Do not change the text or the structure of the text
+    I will give you markdown text
+    
+    You will:
+    - Not change the text or the structure of the text
     - Highlight in bold only the most important phrases in the text—those that
-      are key to understanding the main points. Keep the highlights minimal and
-      avoid over-marking. Focus on critical concepts, key data, or essential
-      takeaways rather than full sentences or excessive details.
+      are key to understanding the main points
+    - Keep the highlights minimal and avoid over-marking. Focus on critical
+      concepts, key data, or essential takeaways rather than full sentences or
+      excessive details.
 
     Print only the markdown without any explanation.
     """

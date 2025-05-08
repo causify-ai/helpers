@@ -781,36 +781,26 @@ _ALL_COLORS = [
 ]
 
 
-# TODO(gp): Just bold the first-level bullets and then apply colorize_bold_text.
-def colorize_first_level_bullets(markdown_text: str) -> str:
+def bold_first_level_bullets(markdown_text: str) -> str:
     """
-    Colorize first-level bullets in markdown text.
+    Make first-level bullets bold in markdown text.
 
     :param markdown_text: Input markdown text
-    :return: Formatted markdown text with first-level bullets colored
+    :return: Formatted markdown text with first-level bullets in bold
     """
-    # Define the colors to use.
-    # Find all first-level bullet points (lines starting with "- " after any whitespace).
     lines = markdown_text.split("\n")
-    color_index = 0
     result = []
     for line in lines:
         # Check if this is a first-level bullet point.
         if re.match(r"^\s*- ", line):
-            # Only color first-level bullets (those with minimal indentation).
-            indentation = len(line) - len(line.lstrip())
-            if indentation == 0:
-                # First-level bullet.
-                color = _ALL_COLORS[color_index % len(_ALL_COLORS)]
-                # Replace the bullet with a colored version.
-                # - \textcolor{red}{Linear models}
-                colored_line = re.sub(
-                    r"^(\s*-\s+)(.*)", r"\1\\textcolor{" + color + r"}{\2}", line
-                )
-                result.append(colored_line)
-                color_index += 1
-            else:
-                result.append(line)
+            # Check if the line has bold text it in it.
+            if not re.search(r"\*\*", line):
+                # Bold first-level bullets.
+                indentation = len(line) - len(line.lstrip())
+                if indentation == 0:
+                    # First-level bullet, add bold markers.
+                    line = re.sub(r"^(\s*-\s+)(.*)", r"\1**\2**", line)
+            result.append(line)
         else:
             result.append(line)
     return "\n".join(result)
@@ -891,6 +881,7 @@ def remove_empty_lines_from_markdown(markdown_text: str) -> str:
 
 
 def format_markdown(txt: str) -> str:
+    txt = bold_first_level_bullets(txt)
     txt = dshdlino.prettier_on_str(txt)
     txt = remove_empty_lines_from_markdown(txt)
     return txt

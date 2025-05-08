@@ -782,33 +782,114 @@ class Test_selected_navigation_to_str2(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_colorize_first_level_bullets1
+# Test_bold_first_level_bullets1
 # #############################################################################
 
 
-class Test_colorize_first_level_bullets1(hunitest.TestCase):
-
+class Test_bold_first_level_bullets1(hunitest.TestCase):
     def test1(self) -> None:
-        # Prepare inputs.
-        content = r"""
-        - Item 1
-          - Subitem 1.1
-          - Subitem 1.2
-        - Item 2
-          - Subitem 2.1
         """
-        content = hprint.dedent(content)
-        # Call tested function.
-        act = hmarkdo.colorize_first_level_bullets(content)
-        # Check output.
-        exp = r"""
-        - \textcolor{red}{Item 1}
-          - Subitem 1.1
-          - Subitem 1.2
-        - \textcolor{orange}{Item 2}
-          - Subitem 2.1
+        Test basic first-level bullet bolding.
         """
-        self.assert_equal(act, exp, dedent=True)
+        text = r"""
+        - First item
+          - Sub item
+        - Second item
+        """
+        expected = r"""
+        - **First item**
+          - Sub item
+        - **Second item**
+        """
+        self._test_bold_first_level_bullets(text, expected)
+
+    def _test_bold_first_level_bullets(self, text: str, expected: str) -> None:
+        """
+        Helper to test bold_first_level_bullets function.
+        """
+        text = hprint.dedent(text)
+        actual = hmarkdo.bold_first_level_bullets(text)
+        self.assert_equal(actual, expected, dedent=True)
+
+    def test2(self) -> None:
+        """
+        Test with mixed content including non-bullet text.
+        """
+        text = r"""
+        Some text here
+        - First bullet
+        More text
+        - Second bullet
+          - Nested bullet
+        Final text
+        """
+        expected = r"""
+        Some text here
+        - **First bullet**
+        More text
+        - **Second bullet**
+          - Nested bullet
+        Final text
+        """
+        self._test_bold_first_level_bullets(text, expected)
+
+    def test3(self) -> None:
+        """
+        Test with multiple levels of nesting.
+        """
+        text = r"""
+        - Top level
+          - Second level
+            - Third level
+          - Back to second
+        - Another top
+        """
+        expected = r"""
+        - **Top level**
+          - Second level
+            - Third level
+          - Back to second
+        - **Another top**
+        """
+        self._test_bold_first_level_bullets(text, expected)
+
+    def test4(self) -> None:
+        """
+        Test with empty lines between bullets.
+        """
+        text = r"""
+        - First item
+
+        - Second item
+          - Sub item
+
+        - Third item
+        """
+        expected = r"""
+        - **First item**
+
+        - **Second item**
+          - Sub item
+
+        - **Third item**
+        """
+        self._test_bold_first_level_bullets(text, expected)
+
+    def test5(self) -> None:
+        """
+        Test with text that already contains some bold markers.
+        """
+        text = r"""
+        - First **important** point
+          - Sub point
+        - Second point with emphasis
+        """
+        expected = r"""
+        - First **important** point
+          - Sub point
+        - **Second point with emphasis**
+        """
+        self._test_bold_first_level_bullets(text, expected)
 
 
 # #############################################################################

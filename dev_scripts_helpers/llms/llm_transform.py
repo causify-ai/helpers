@@ -61,6 +61,12 @@ def _parse() -> argparse.ArgumentParser:
         out_default="-", out_required=False)
     hparser.add_prompt_arg(parser)
     hparser.add_dockerized_script_arg(parser)
+    parser.add_argument(
+        "-c",
+        "--compare",
+        action="store_true",
+        help="Print the original and transformed",
+    )
     # Use CRITICAL to avoid logging anything.
     hparser.add_verbosity_arg(parser, log_level="CRITICAL")
     return parser
@@ -257,6 +263,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
         "Not all post_transforms were run: %s",
         post_container_transforms,
     )
+    if args.compare:
+        out_txt_tmp = []
+        out_txt_tmp.append("#### Original ####")
+        out_txt_tmp.append(hio.from_file(tmp_in_file_name))
+        out_txt_tmp.append("#### Transformed ####")
+        out_txt_tmp.append(out_txt)
+        out_txt = "\n\n".join(out_txt_tmp)
     # Read the output from the container and write it to the output file from
     # command line (e.g., `-` for stdout).
     hparser.write_file(out_txt, out_file_name)
