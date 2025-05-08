@@ -1,6 +1,7 @@
 name: Test coverage
 
 on:
+  # Run manually.
   workflow_dispatch: {}
   # every day at 00:00 UTC.
   schedule:
@@ -54,27 +55,19 @@ jobs:
       - name: Pull image from GHCR
         run: docker pull ghcr.io/${{ github.repository }}:dev
 
-      # Only on scheduled runs, capture ISO weekday (1=Mon … 7=Sun).
-      - name: Set DAY_OF_WEEK
-        if: github.event_name == 'schedule'
-        run: echo "DAY_OF_WEEK=$(date -u +'%u')" >> $GITHUB_ENV
-
       # This step is used to trigger the fast test coverage generation using the invoke task.
       - name: Run Fast test and generate report
         id: run_fast
         continue-on-error: true
-        run: |
-          echo "Simulating fast test failure"
-          exit 1
-        # env:
-        #   GH_ACTION_ACCESS_TOKEN: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
-        #   CSFY_AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
-        #   CSFY_AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
-        #   CSFY_AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
-        #   CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
-        #   CSFY_ECR_BASE_PATH: ghcr.io/${{ github.repository_owner }}
-        #   CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
-        # run: invoke run_coverage --suite fast
+        env:
+          GH_ACTION_ACCESS_TOKEN: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
+          CSFY_AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
+          CSFY_AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          CSFY_AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
+          CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
+          CSFY_ECR_BASE_PATH: ghcr.io/${{ github.repository_owner }}
+          CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
+        run: invoke run_coverage --suite fast
 
       - name: Upload Fast Test Coverage to Codecov
         id: upload_fast
@@ -106,7 +99,7 @@ jobs:
 
       - name: Upload Slow Test Coverage to Codecov
         id: upload_slow
-        # Only upload if the previous slow test run step succeeded (i.r report generated).
+        # Only upload if the previous slow test run step succeeded (i.e, if report generated).
         if: steps.run_slow.outcome == 'success'
         continue-on-error: true
         uses: codecov/codecov-action@v5
@@ -117,8 +110,7 @@ jobs:
           name: slow-test-coverage
 
       - name: Run Superslow test and generate report
-        # Run only on scheduled jobs or manual trigger
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        id: run_superslow
         env:
           GH_ACTION_ACCESS_TOKEN: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
           CSFY_AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
@@ -128,12 +120,14 @@ jobs:
           CSFY_ECR_BASE_PATH: ghcr.io/${{ github.repository_owner }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
         run: |
-          # Only run superslow tests if it's Monday or a manual dispatch.
+          # Determine the day of the week (1 = Monday, 7 = Sunday).
           day_of_week=$(date +%u)
+          # Only run superslow tests on Mondays or if the workflow is manually triggered.
           if [ "$day_of_week" = "1" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "Running superslow tests..."
             invoke run_coverage --suite superslow
           else
-            echo "Skipping superslow tests — not Monday and not manually triggered"
+            echo "Skipping superslow tests — today is not Monday and this is not a manual trigger"
             exit 0
           fi
 
