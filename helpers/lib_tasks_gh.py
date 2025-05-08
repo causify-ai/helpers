@@ -104,7 +104,6 @@ def _get_workflow_table() -> htable.TableType:
     # > gh run list | more
     # completed       success AmpTask1786_Integrate_20230518_2        Fast tests      AmpTask1786_Integrate_20230518_2        pull_request    5027911519      7m17s   10m
     # in_progress             AmpTask1786_Integrate_20230518_2        Slow tests      AmpTask1786_Integrate_20230518_2        pull_request    5027911518      10m9s   10m
-
     # pylint: enable=line-too-long
     # The output is tab separated, so convert it into CSV.
     first_line = txt.split("\n")[0]
@@ -226,6 +225,14 @@ def gh_workflow_list(  # type: ignore
                 log_file_name = f"tmp.failure.{workflow}.{branch_name}.txt"
                 log_file_name = log_file_name.replace(" ", "_").lower()
                 cmd = f"gh run view {workload_id} --log-failed >{log_file_name}"
+                hsystem.system(cmd)
+                # Remove non-printable chars.
+                # TODO(heanh): Consider adding all the helpers util scripts
+                # to the `PATH` (when inside the container) so we can just use
+                # them without specifying the full path.
+                helpers_root_dir = hgit.find_helpers_root()
+                file_path = f"{helpers_root_dir}/dev_scripts_helpers/system_tools"
+                cmd = f"{file_path}/remove_escape_chars.py -i {log_file_name}"
                 hsystem.system(cmd)
                 print(f"# Log is in '{log_file_name}'")
                 # Run_fast_tests  Run fast tests  2021-12-19T00:19:38.3394316Z FAILED data

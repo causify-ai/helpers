@@ -1,7 +1,7 @@
 """
 Import as:
 
-import dev_scripts_helpers.git.git_hooks.utils as dsgghout
+import dev_scripts_helpers.git.git_hooks.utils as dshgghout
 """
 
 # NOTE: This file should depend only on Python standard libraries.
@@ -216,7 +216,7 @@ def check_author(abort_on_error: bool = True) -> None:
     user_email = user_email.lstrip().rstrip()
     cmd = f"{_GIT_BINARY_PATH} config --show-origin {var}"
     _system_to_string(cmd, verbose=verbose)
-    print(f"user_email='{user_email}")
+    print(f"user_email='{user_email}'")
     # Check.
     error = False
     if not user_email.endswith("@gmail.com"):
@@ -356,7 +356,8 @@ def _check_words_in_text(
             val = m.group(1)
             _LOG.debug("  -> found '%s'", val)
             val = caesar(val, _CAESAR_STEP)
-            violation = f"{file_name}:{i+1}: Found '{val}'"
+            i_tmp = i + 1
+            violation = f"{file_name}:{i_tmp}: Found '{val}'"
             violations.append(violation)
     return violations
 
@@ -458,5 +459,44 @@ def check_python_compile(
     _LOG.info("Python files:\n%s", "\n".join(file_list))
     #
     error = _check_python_compile(file_list)
+    # Handle error.
+    _handle_error(func_name, error, abort_on_error)
+
+
+# #############################################################################
+# check_gitleaks
+# #############################################################################
+
+
+def get_git_root_dir() -> str:
+    """
+    Return the absolute path to the outermost Git repository root.
+
+    If inside a Git submodule, this returns the parent (superproject)
+    root. Otherwise, it returns the current repository's root.
+
+    :return: absolute path to the outermost Git repository root
+    """
+    cmd = "git rev-parse --show-superproject-working-tree --show-toplevel | head -n1"
+    _, git_root_dir = _system_to_string(cmd)
+    git_root_dir = git_root_dir.strip()
+    return git_root_dir
+
+
+def check_gitleaks(abort_on_error: bool = True) -> None:
+    """
+    Check that the code does not contain any leaked secrets.
+    """
+    func_name = _report()
+    git_root_dir = get_git_root_dir()
+    cmd = f"""
+    docker run -v {git_root_dir}:/app zricethezav/gitleaks:latest -c /app/.github/gitleaks-rules.toml git /app --pre-commit --staged --verbose
+    """
+    _LOG.debug("cmd='%s'", cmd)
+    rc, txt = _system_to_string(cmd, abort_on_error=False)
+    error = False
+    if rc != 0:
+        error = True
+        _LOG.error(txt)
     # Handle error.
     _handle_error(func_name, error, abort_on_error)
