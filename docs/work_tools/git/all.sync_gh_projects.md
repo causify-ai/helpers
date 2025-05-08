@@ -132,8 +132,6 @@ This will:
 - Warn about any views missing in the destination.
 - Not reorder, delete, or modify any existing structure.
 
----
-
 ## Example Scenario
 
 ### Source Project `[TEMPLATE] Causify Project`
