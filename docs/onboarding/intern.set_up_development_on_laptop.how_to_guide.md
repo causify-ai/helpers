@@ -9,6 +9,7 @@
     + [Install Docker](#install-docker)
     + [Checking Docker installation](#checking-docker-installation)
     + [Docker installation troubleshooting](#docker-installation-troubleshooting)
+    + [Add user to Docker group and sudoers](#add-user-to-docker-group-and-sudoers)
   * [Tmux](#tmux)
   * [Shell support](#shell-support)
   * [Some useful workflows](#some-useful-workflows)
@@ -134,6 +135,9 @@
 ### Supported OS
 
 - Our systems support Mac (both x86 and Apple Silicon) and Linux Ubuntu
+- For Linux Ubuntu, we actively test and support development on:
+  - Operating System: [Ubuntu 24.04 LTS](https://ubuntu.com/download/desktop)
+  - Docker: [v28](https://docs.docker.com/engine/release-notes/28/)
 - We do not support Windows and WSL: we have tried several times to port the
   toolchain to it, but there are always subtle incompatible behaviors that drive
   everyone crazy
@@ -150,7 +154,7 @@
 ### Install Docker
 
 - Get familiar with Docker if you are not, e.g.,
-  https://docs.docker.com/get-started/overview/
+  [https://docs.docker.com/get-started/overview/](https://docs.docker.com/get-started/overview/)
 
 - We work in a Docker container that has all the required dependencies installed
   - You can use PyCharm / VSCode on your laptop to edit code, but you want to
@@ -239,6 +243,33 @@
     > docker pull hello-world
     Got permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Get   http://%2Fvar%2Frun%2Fdocker.sock/v1.40/containers/json: dial unix /var/run/docker.sock: connect: permission denied
     ```
+
+### Add user to Docker group and sudoers
+
+- This section only applies to Linux, macOS users can skip this. Docker Desktop
+  handles permissions automatically on Mac.
+- Add your user to the `docker` group to run Docker without `sudo`
+
+  ```bash
+   > sudo usermod -aG docker $USER
+
+   # Restart your shell session (log out and log back in), or run:
+   > newgrp docker
+  ```
+
+- Add yourself to the sudoers file
+  ```bash
+  > sudo visudo
+  ```
+  - Add this line to the file(replace `your_username`):
+    ```bash
+    your_username ALL=(ALL) NOPASSWD:ALL
+    ```
+- You should see `docker` in the output
+  ```bash
+  > groups
+  your_username sudo ... docker
+  ```
 
 ## Tmux
 
@@ -361,7 +392,9 @@
 
 - To open a Jupyter notebook in a local web-browser:
   - In the output from the cmd above find an assigned port, e.g.,
-    `[I 14:52:26.824 NotebookApp] http://0044e866de8d:10091/` -> port is `10091`
+    ```bash
+    [I 14:52:26.824 NotebookApp] http://0044e866de8d:10091/ -> port is `10091`
+    ```
   - Add the port to the link like so: `http://localhost:10091/` or
     `http://127.0.0.1:10091`
   - Copy-paste the link into a web-browser and update the page

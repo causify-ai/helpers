@@ -22,7 +22,7 @@
   components/products/services
 
 - The entrypoint to preview available projects is
-  [<u>https://github.com/orgs/cryptokaizen/projects</u>](https://github.com/orgs/cryptokaizen/projects) -
+  [Causify-ai GitHub Projects](https://github.com/orgs/causify-ai/projects)
   TODO(Juraj): this link will work only for people who are directly members of
   the organization (not collaborators)
 
@@ -36,29 +36,31 @@
 - A view can provide a specific perspective on the issues in the project, e.g.,
   filter certain issues by their attributes, visualize them in a board/list
 
-<img src="figs/ck.github_projects_process.reference_figs/image1.png"
-    style="width:6.5in;height:0.31944in" />
+<img src="figs/ck.github_projects_process.reference_figs/image1.png" style="width:6.5in;height:0.31944in" />
 
 - We use a base
-  [<u>template</u>](https://github.com/cryptokaizen/cmamp/projects?query=is%3Aopen+is%3Atemplate)
+  [template](https://github.com/orgs/causify-ai/projects?query=is%3Aopen+is%3Atemplate)
   for all of our projects to ensure consistency between projects
 
 - The base template consists of the following views:
-  - Current sprint - provides a kanban board of issues in the currently running
+  - All issues: provides a table view of all issues present in the project
+  - Current sprint: provides a table view of issues in the currently running
     sprint
-  - Next sprint - provides a kanban board of issues in the next sprint
-  - Backlog - list of a non-finished issues in a given project without a sprint
+  - Next sprint: provides a table view of issues in the next sprint
+  - Backlog: list of a non-finished issues in a given project without a sprint
     assigned
-  - Team capacity - aggregates "estimate point" for each collaborator in the
+  - Team capacity: aggregates "estimate point" for each collaborator in the
     project
-  - Issue list - a "warehouse" to preview all of the project issues regardless
-    of its status
 
 ### Issue fields
 
-- Each issue within a project contains specific fields:
+- Each view within a project contains specific fields:
+  - **Assignee**
+    - Names of people the issue is assigned to
   - **Status** (TODO, In Progress, Done)
     - What phase of the development the issue is in
+  - **Label** (Bug, P0, P1)
+    - Label assigned to the specific issue
   - **Estimate** in terms of "uninterrupted hours of work"
     - What is the issues' estimated implementation difficulty
     - We want to become good at estimating complexity and overcome being
@@ -71,20 +73,22 @@
       our expectations, so that we can learn and improve
   - **Sprint**
     - Which weekly sprint this issue belongs to
+  - **Linked Pull Request**
+    - The pull requests linked to the specific issue
 
-- It's possible to add new fields; the list above includes the agreed upon
-  fields shared across all projects
+- It's possible to add new fields; the list above includes some of the agreed
+  upon fields shared across all projects
 
 ### How to set up a new project
 
 - Click on `Projects` tab in the desired repository, e.g.
-  [<u>https://github.com/cryptokaizen/cmamp</u>](https://github.com/cryptokaizen/cmamp)
+  [causify-ai/cmamp](https://github.com/causify-ai/cmamp)
 
 - Click on the green `New Project` button
 
 - A new window with a pop-up should appear, in the pop-up choose
-  `Project templates` > `From your organization` and choose **[TEMPLATE] Kaizen
-  Project**
+  `Project templates` > `From your organization` and choose ** [TEMPLATE]
+  Causify Project**
 
 - Change the default name `@yourusername untitled project` to a relevant name
   - The name should be short and representative of what needs to be done
@@ -163,59 +167,51 @@
 
 2.  Project owner creates a GitHub status update (by clicking on the Status
     button on the upper right in a given project) until 11 AM ET each Friday
+    - The 11 AM deadline was chosen to facilitate easier completion of Asana
+      status updates which have a 12 AM deadline
+      - In practice the GitHub project status updates will often serve as the
+        source of information for the Asana update
+    - The status update should include the following sections:
+      - Summary (what was accomplished, what kind of obstacles did the team run
+        into)
+      - Next steps (explain work for the next 1-2 sprints)
+      - Example update:
+        ```
+          Summary
+          - We have finished updating ETL pipeline for historical bid/ask data
+            for additional symbols (the work started two sprints ago)
+          - We have started to run daily scheduled live trading runs (low
+            volume, short runs) using one of our off-the-shelf models
+            - This is a major step forward for the team as it involved
+              collaboration between all engineering departments
+            - The runs were completed successfully from start to finish for the
+              last couple of days
+          - The orderbook related ETL and backtest pipelines encountered some
+            unexpected obstacles (code-base related). It took a bit more time
+            than expected to resolve them, but it didn't take us off track.
 
-    1.  The 11 AM deadline was chosen to facilitate easier completion of Asana
-        status updates which have a 12 AM deadline
-        - In practice the GitHub project status updates will often serve as the
-          source of information for the Asana update
+          Next steps
+          - Increase the length of daily low-volume trading to exercise the
+            whole system from start to finish in a more rigorous manner and
+            catch some corner-case behavior (mainly with regards interaction
+            with exchange API)
+          - Run back-test(s) for orderbook-based model(s)
+          - Kick-off work on a new model
+        ```
 
-    2.  The status update should include the following sections:
-        - Summary (what was accomplished, what kind of obstacles did the team
-          run into)
-        - Next steps (explain work for the next 1-2 sprints)
-        - Example update:
-```
-Summary
+3.  The status update is sent to customers (either external or internal sending
+    to all@)
 
-- We have finished updating ETL pipeline for historical bid/ask data
-    for additional symbols (the work started two sprints ago)
-
-- We have started to run daily scheduled live trading runs (low
-    volume, short runs) using one of our off-the-shelf models
-    - This is a major step forward for the team as it involved
-        collaboration between all engineering departments
-    - The runs were completed successfully from start to finish for
-        the last couple of days
-
-- The orderbook related ETL and backtest pipelines encountered some
-    unexpected obstacles (code-base related). It took a bit more time
-    than expected to resolve them, but it didn't take us off track.
-
-Next steps
-
-- Increase the length of daily low-volume trading to exercise the
-    whole system from start to finish in a more rigorous manner and
-    catch some corner-case behavior (mainly with regards interaction
-    with exchange API)
-
-- Run back-test(s) for orderbook-based model(s).
-
-- Kick-off work on a new crypto.com specific model
-```
-
-- The status update is sent to customers (either external or internal sending to
-  all@)
-
-- Project owner (or a TL) can ask other collaborators in the project to also add
-  status updates if needed, before broadcasting, to make sure we manage
-  expectations.
+4.  Project owner (or a TL) can ask other collaborators in the project to also
+    add status updates if needed, before broadcasting, to make sure we manage
+    expectations.
 
 ## Automation
 
 ### Built-in workflows
 
 - GitHub offers a handful of
-  [<u>built-in workflows</u>](https://docs.github.com/en/issues/planning-and-tracking-with-projects/automating-your-project/using-the-built-in-automations)
+  [built-in workflows](https://docs.github.com/en/issues/planning-and-tracking-with-projects/automating-your-project/using-the-built-in-automations)
   to automate frequently run actions within projects
   - For example: when an issue is closed, set the status to done
 
@@ -223,24 +219,30 @@ Next steps
   corner of the project view and select "Workflows"
 
 - In our
-  [<u>base template</u>](https://github.com/cryptokaizen/cmamp/projects?query=is%3Aopen+is%3Atemplate)
+  [base template](https://github.com/cryptokaizen/cmamp/projects?query=is%3Aopen+is%3Atemplate)
   we currently use
-  [<u>these</u>](https://github.com/orgs/cryptokaizen/projects/18/workflows)
-  automated workflows
+  [these](https://github.com/orgs/cryptokaizen/projects/18/workflows) automated
+  workflows
 
 ### Github Actions automations
 
 - For more customized automated workflows we use GitHub actions
-
 - A GitHub Action
-  [`sprint_iteration.yml`](https://github.com/causify-ai/cmamp/blob/master/.github/workflows/sprint_iteration.yml) is set up to
-  move items in active projects from last sprint to current sprint at the
-  beginning of each sprint.
+  [sprint_iteration.yml](https://github.com/causify-ai/cmamp/blob/master/.github/workflows/sprint_iteration.yml)
+  is set up to move items in active projects from last sprint to current sprint
+  at the beginning of each sprint.
+- We have
+  [sync_gh_issue_labels.py](https://github.com/causify-ai/helpers/tree/master/dev_scripts_helpers/github/sync_gh_issue_labels.py)
+  to synchronize GitHub issue labels from a label inventory manifest file
+- We also have
+  [sync_gh_projects.py](https://github.com/causify-ai/helpers/tree/master/dev_scripts_helpers/github/sync_gh_projects.py)
+  to compare a source GitHub Project (the template) with a destination project
+  and ensures all global fields and views from the template exist in the
+  destination
 
 ## Parent and sub-issues
 
 - GitHub offers
-  [<u>sub-issues</u>](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/adding-sub-issues)
+  [sub-issues](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/adding-sub-issues)
   to breakdown complex or higher-level task into smaller chunks of works
-
 - Our current convention is _not_ to use this feature

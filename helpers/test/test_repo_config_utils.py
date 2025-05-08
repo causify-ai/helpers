@@ -38,7 +38,7 @@ class Test_repo_config1(hunitest.TestCase):
           ghcr: ghcr.io/cryptokaizen
 
         runnable_dir_info:
-          use_helpers_as_nested_module: 0
+          use_helpers_as_nested_module: False
           venv_tag: helpers
           dir_suffix: helpers
         """
