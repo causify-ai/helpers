@@ -22,7 +22,7 @@
   components/products/services
 
 - The entrypoint to preview available projects is
-  [cryptokaizen GitHub Projects](https://github.com/orgs/cryptokaizen/projects)
+  [Causify-ai GitHub Projects](https://github.com/orgs/causify-ai/projects)
   TODO(Juraj): this link will work only for people who are directly members of
   the organization (not collaborators)
 
@@ -54,7 +54,7 @@
 
 ### Issue fields
 
-- Each issue within a project contains specific fields:
+- Each view within a project contains specific fields:
   - **Assignee**
     - Names of people the issue is assigned to
   - **Status** (TODO, In Progress, Done)
@@ -76,13 +76,13 @@
   - **Linked Pull Request**
     - The pull requests linked to the specific issue
 
-- It's possible to add new fields; the list above includes the agreed upon
-  fields shared across all projects
+- It's possible to add new fields; the list above includes some of the agreed
+  upon fields shared across all projects
 
 ### How to set up a new project
 
 - Click on `Projects` tab in the desired repository, e.g.
-  [cryptokaizen/cmamp](https://github.com/cryptokaizen/cmamp)
+  [causify-ai/cmamp](https://github.com/causify-ai/cmamp)
 
 - Click on the green `New Project` button
 
@@ -172,47 +172,40 @@
         status updates which have a 12 AM deadline
         - In practice the GitHub project status updates will often serve as the
           source of information for the Asana update
-
     2.  The status update should include the following sections:
         - Summary (what was accomplished, what kind of obstacles did the team
           run into)
         - Next steps (explain work for the next 1-2 sprints)
         - Example update:
-```
-Summary
+          ```
+          Summary
+          - We have finished updating ETL pipeline for historical bid/ask data
+            for additional symbols (the work started two sprints ago)
+          - We have started to run daily scheduled live trading runs (low
+            volume, short runs) using one of our off-the-shelf models
+            - This is a major step forward for the team as it involved
+              collaboration between all engineering departments
+            - The runs were completed successfully from start to finish for the
+              last couple of days
+          - The orderbook related ETL and backtest pipelines encountered some
+            unexpected obstacles (code-base related). It took a bit more time
+            than expected to resolve them, but it didn't take us off track.
 
-- We have finished updating ETL pipeline for historical bid/ask data
-    for additional symbols (the work started two sprints ago)
+          Next steps
+          - Increase the length of daily low-volume trading to exercise the
+            whole system from start to finish in a more rigorous manner and
+            catch some corner-case behavior (mainly with regards interaction
+            with exchange API)
+          - Run back-test(s) for orderbook-based model(s)
+          - Kick-off work on a new crypto.com specific model
+          ```
 
-- We have started to run daily scheduled live trading runs (low
-    volume, short runs) using one of our off-the-shelf models
-    - This is a major step forward for the team as it involved
-        collaboration between all engineering departments
-    - The runs were completed successfully from start to finish for
-        the last couple of days
+3.  The status update is sent to customers (either external or internal sending
+    to all@)
 
-- The orderbook related ETL and backtest pipelines encountered some
-    unexpected obstacles (code-base related). It took a bit more time
-    than expected to resolve them, but it didn't take us off track.
-
-Next steps
-
-- Increase the length of daily low-volume trading to exercise the
-    whole system from start to finish in a more rigorous manner and
-    catch some corner-case behavior (mainly with regards interaction
-    with exchange API)
-
-- Run back-test(s) for orderbook-based model(s).
-
-- Kick-off work on a new crypto.com specific model
-```
-
-- The status update is sent to customers (either external or internal sending to
-  all@)
-
-- Project owner (or a TL) can ask other collaborators in the project to also add
-  status updates if needed, before broadcasting, to make sure we manage
-  expectations.
+4.  Project owner (or a TL) can ask other collaborators in the project to also
+    add status updates if needed, before broadcasting, to make sure we manage
+    expectations.
 
 ## Automation
 
@@ -235,16 +228,22 @@ Next steps
 ### Github Actions automations
 
 - For more customized automated workflows we use GitHub actions
-
 - A GitHub Action
-  [`sprint_iteration.yml`](https://github.com/causify-ai/cmamp/blob/master/.github/workflows/sprint_iteration.yml)
+  [sprint_iteration.yml](https://github.com/causify-ai/cmamp/blob/master/.github/workflows/sprint_iteration.yml)
   is set up to move items in active projects from last sprint to current sprint
   at the beginning of each sprint.
+- We have
+  [sync_gh_issue_labels.py](https://github.com/causify-ai/helpers/tree/master/dev_scripts_helpers/github/sync_gh_issue_labels.py)
+  to synchronize GitHub issue labels from a label inventory manifest file
+- We also have
+  [sync_gh_projects.py](https://github.com/causify-ai/helpers/tree/master/dev_scripts_helpers/github/sync_gh_projects.py)
+  to compare a source GitHub Project (the template) with a destination project
+  and ensures all global fields and views from the template exist in the
+  destination
 
 ## Parent and sub-issues
 
 - GitHub offers
   [sub-issues](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/adding-sub-issues)
   to breakdown complex or higher-level task into smaller chunks of works
-
 - Our current convention is _not_ to use this feature
