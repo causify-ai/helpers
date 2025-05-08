@@ -881,7 +881,6 @@ def remove_empty_lines_from_markdown(markdown_text: str) -> str:
 
 
 def format_markdown(txt: str) -> str:
-    txt = bold_first_level_bullets(txt)
     txt = dshdlino.prettier_on_str(txt)
     txt = remove_empty_lines_from_markdown(txt)
     return txt

@@ -1584,6 +1584,7 @@ def run_dockerized_mermaid(
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
     mermaid_cmd = f" -i {in_file_path} -o {out_file_path}"
+    mermaid_cmd += " --scale 3"
     docker_cmd = get_docker_base_cmd(use_sudo)
     docker_cmd.extend(
         [
@@ -1593,6 +1594,7 @@ def run_dockerized_mermaid(
         ]
     )
     docker_cmd = " ".join(docker_cmd)
+    _LOG.debug(hprint.to_str("docker_cmd"))
     hsystem.system(docker_cmd)
 
 

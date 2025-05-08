@@ -660,9 +660,31 @@ def slide_improve2() -> _PROMPT_OUT:
     I will give you markdown text
 
     You will:
-    - Maintain the structure of the text and keep the content of the existing text
+    - Maintain the structure of the text and keep the content of the existing
+      text
     - Remove all the words that are not needed, minimizing the changes to the
       text
+    - Add bullet points to the text that are important or missing
+    - Add examples to clarify the text and help intuition
+
+    Print only the markdown without any explanation.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {
+        "remove_code_delimiters",
+        "remove_end_of_line_periods",
+        "remove_empty_lines",
+    }
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def slide_elaborate() -> _PROMPT_OUT:
+    system = _MD_CONTEXT
+    system += r"""
+    I will give you markdown text
+
+    You will:
     - Add bullet points to the text that are important or missing
     - Add examples to clarify the text and help intuition
 
@@ -685,6 +707,7 @@ def slide_reduce() -> _PROMPT_OUT:
 
     You will:
     - Maintain the structure of the text
+    - Keep all the figures
     - Make sure that the text is clean and readable
     - Remove all the words that are not needed
     - Minimize the changes to the text
