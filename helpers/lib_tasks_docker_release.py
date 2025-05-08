@@ -803,9 +803,13 @@ def docker_build_prod_image(  # type: ignore
     image_name = hrecouti.get_repo_config().get_docker_base_image_name()
     # Copy the entire repo (not just the current dir where the code is executed)
     # to ensure the setup in the `prod` image mirrors that of the `dev` image.
-    # Use `find_immediate_git_root` instead of `get_git_root` to allow building
+    #
+    # Use `find_parent_repo()` instead of `find_git_root()` to allow building
     # of `prod` image from submodule.
-    git_root_dir = hgit.find_immediate_git_root()
+    # For example, building the prod image from
+    # - `//cmamp//helpers/openai` (for `openai` runnable dir) would return `//helpers` root
+    # - `//orange/amp/ck_web_app/webapp1` (for `webapp1` runnable dir) would return `//cmamp` root
+    git_root_dir = hgit.find_parent_repo()
     cmd = rf"""
     DOCKER_BUILDKIT={DOCKER_BUILDKIT} \
     time \

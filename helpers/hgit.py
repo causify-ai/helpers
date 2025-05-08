@@ -245,9 +245,9 @@ def find_git_root(path: str = ".") -> str:
     return git_root_dir
 
 
-def find_immediate_git_root() -> str:
+def find_parent_repo() -> str:
     """
-    Return full path of the immediate Git repo directory.
+    Return full path of the parent Git repo directory.
 
     It doesn't traverse up the directory hierarchy to find outermost
     super module.
