@@ -1,224 +1,265 @@
 #!/usr/bin/env python3
 """
-Synchronize the structure (fields and views) of a GitHub Projects Beta board
-from a template project to a destination project, without touching title or
-content.
+The script compares a source GitHub Project (the template) with a destination
+project and ensures all global fields from the template exist in the
+destination.
 
-Example:
-    ./sync_gh_project_structure.py \
-      --src-template "[TEMPLATE] Causify Project" \
-      --dst-project "Buildmeister"
+It does NOT (currently not supported):
+- Reorder fields or views
+- Create views (view creation is not supported via GitHub API)
+- Modify view filters, sort orders, or layout
+- Delete extra fields or views
+- Detect hidden fields or per-view field visibility
 
-Helper: get_project_titles() returns all project titles for quick lookup.
+Usage:
+    python sync_gh_projects.py \
+        --owner "causify-ai" \
+        --src-template "[TEMPLATE] Causify Project" \
+        --dst-project "Buildmeister"
+
+Options:
+- `--dry-run`: Show what changes would be made without applying them.
+- `--verbose`: Enable debug logging to see internal command execution.
+
+What it does:
+- Lists fields and views from both the source and destination projects
+- Adds missing global fields (columns) from source to destination
+- Logs a warning for any views missing in the destination (views are not created)
 """
 
 import argparse
 import json
 import logging
-import subprocess
+import shlex
 import sys
+import textwrap
+import typing
 
-DEFAULT_OWNER = "causify-ai"
+import helpers.hsystem as hsystem
+
+# TODO(*): Add support for view creation once GitHub exposes `addProjectV2View` mutation.
+# TODO(*): Support reordering of fields and views when GitHub adds position-based mutations.
+# TODO(*): Implement `--delete-extra` to remove fields/views not in the template.
+# TODO(*): Support syncing view filters, groupings, and layout once exposed via GraphQL.
+# TODO(*): Handle per-view field visibility when GitHub exposes view-level metadata.
+
 _LOG = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
 
 def _run_command(cmd: list) -> str:
     """
-    Run a command and return its stdout or exit on error.
+    Run a shell command.
+
+    :param cmd: command arguments to execute
+    :return: standard output of the executed command
     """
-    _LOG.debug("Running command: %s", " ".join(cmd))
-    result = subprocess.run(cmd, capture_output=True, text=True)
-    if result.returncode != 0:
-        _LOG.error(
-            "Error running command:\n%s\n%s", " ".join(cmd), result.stderr.strip()
-        )
-        sys.exit(1)
-    return result.stdout
+    cmd_str = " ".join(cmd)
+    _, output = hsystem.system_to_string(
+        cmd_str,
+        abort_on_error=True,
+        dry_run=False,
+        log_level=logging.DEBUG,
+    )
+    out = typing.cast(str, output)
+    return out
 
 
-def _get_projects() -> list:
+def _get_projects(owner: str) -> typing.List[typing.Dict[str, typing.Any]]:
     """
-    Retrieve up to 100 Projects Beta boards for DEFAULT_OWNER (including
-    closed).
+    Retrieve up to 100 Projects for the specified owner.
 
-    Returns list of dicts with 'title', 'id', and 'number'.
+    :return: list of project dicts with 'title', 'id', and 'number' keys
     """
     cmd = [
         "gh",
         "project",
         "list",
-        "--owner",
-        DEFAULT_OWNER,
+        f"--owner={owner}",
         "--closed",
-        "--limit",
-        "100",
-        "--format",
-        "json",
+        "--limit=100",
+        "--format=json",
     ]
-    data = json.loads(_run_command(cmd))
-    if isinstance(data, list):
-        return data
+    raw = _run_command(cmd)
+    data = json.loads(raw)
+    projects: typing.List[typing.Dict[str, typing.Any]]
     if isinstance(data, dict) and "projects" in data:
-        return data["projects"]
-    _LOG.error("Unexpected response from gh project list: %r", data)
-    sys.exit(1)
+        projects = typing.cast(
+            typing.List[typing.Dict[str, typing.Any]], data["projects"]
+        )
+    elif isinstance(data, list):
+        projects = typing.cast(typing.List[typing.Dict[str, typing.Any]], data)
+    else:
+        _LOG.error("Unexpected response format from gh project list: %r", data)
+        sys.exit(1)
+    return projects
 
 
-def get_project_titles() -> list:
+def get_project_titles(owner: str) -> typing.Optional[typing.List[str]]:
     """
-    Return all project titles under DEFAULT_OWNER for user reference.
+    Return all project titles under the specified owner.
+
+    :param owner: GitHub organization or user owning the projects
+    :return: list of project titles, or None if none found
     """
-    return [proj.get("title", "") for proj in _get_projects()]
+    # Extract the title field from each project dictionary.
+    title = [proj.get("title", "") for proj in _get_projects(owner)]
+    return title
 
 
-def _find_project(projects: list, title: str) -> dict:
+def _find_project(
+    projects: typing.List[typing.Dict[str, typing.Any]], title: str
+) -> typing.Optional[typing.Dict[str, typing.Any]]:
     """
-    Return the project dict whose title matches exactly, else None.
+    Return the project dictionary matching the given title.
+
+    :param projects: project dictionaries to search
+    :param title: project title to match
+    :return: matching project dictionary, or None if not found
     """
+    matched_project: typing.Optional[typing.Dict[str, typing.Any]] = None
     for p in projects:
+        if not isinstance(p, dict):
+            _LOG.warning("Skipping non-dict entry in project list: %r", p)
+            continue
         if p.get("title") == title:
-            return p
-    return None
+            matched_project = p
+            break
+    return matched_project
 
 
-def _get_structure(project_number: int) -> dict:
+def _get_structure(
+    project_number: int, owner: str, _dry_run: bool = False
+) -> typing.Dict[str, typing.List[typing.Tuple[str, str]]]:
     """
-    Use GitHub CLI to fetch fields and views for a ProjectV2 by number.
+    Retrieve the field and view structure for a GitHub Project via GraphQL.
 
-    Returns: {'fields': [(id,name), ...], 'views': [(id,name), ...]}
+    :param project_number: numeric ID of the GitHub Project to inspect
+    :param owner: organization or user that owns the project
+    :param dry_run: if True, skip any side effects (currently unused)
+    :return: 'fields' and 'views' keys, each a list of (id, name)
     """
-    cmd = [
-        "gh",
-        "project",
-        "view",
-        str(project_number),
-        "--owner",
-        DEFAULT_OWNER,
-        "--format",
-        "json",
-    ]
+    # Define the GraphQL query to fetch fields and views.
+    raw = f"""
+    query {{
+      organization(login: "{owner}") {{
+        projectV2(number: {project_number}) {{
+          fields(first: 100) {{
+            nodes {{
+              ... on ProjectV2FieldCommon {{ id name }}
+            }}
+          }}
+          views(first: 100) {{
+            nodes {{ id name }}
+          }}
+        }}
+      }}
+    }}
+    """
+    # Format the query as a single line.
+    single_line = " ".join(textwrap.dedent(raw).split())
+    # Quote the query string for shell safety.
+    escaped = shlex.quote(single_line)
+    # Run the query via the GitHub CLI.
+    cmd = ["gh", "api", "graphql", "-f", f"query={escaped}"]
     output = _run_command(cmd)
     data = json.loads(output)
-    fields = []
-    views = []
-    if "fields" in data:
-        for f in data["fields"]:
-            if isinstance(f, dict):
-                fields.append((f.get("id"), f.get("name", "")))
-            else:
-                fields.append((None, f))
-    if "views" in data:
-        for v in data["views"]:
-            if isinstance(v, dict):
-                views.append((v.get("id"), v.get("name", "")))
-            else:
-                views.append((None, v))
-    return {"fields": fields, "views": views}
+    try:
+        # Navigate to the project node in the response.
+        project = data["data"]["organization"]["projectV2"]
+    except (KeyError, TypeError):
+        _LOG.error("Failed to retrieve project structure from GraphQL output")
+        sys.exit(1)
+    # Extract field and view names with IDs.
+    fields = [
+        (f["id"], f["name"]) for f in project.get("fields", {}).get("nodes", [])
+    ]
+    views = [
+        (v["id"], v["name"]) for v in project.get("views", {}).get("nodes", [])
+    ]
+    _LOG.info("Project #%s structure:", project_number)
+    _LOG.info("Fields: %s", [n for _, n in fields])
+    _LOG.info("Views: %s", [n for _, n in views])
+    _LOG.warning(
+        "This script cannot detect per-view visibility, filters, grouping or ordering, "
+        "since GitHubs GraphQL API does not expose them."
+    )
+    output = {"fields": fields, "views": views}
+    return output
 
 
-def _sync_structure(src_num: int, dst_num: int) -> None:
+def _sync_structure(
+    src_num: int, dst_num: int, owner: str, dry_run: bool = False
+) -> None:
     """
-    Sync the fields and views order and presence from src → dst.
+    Create any fields present in the source but missing in the destination and
+    Warn about any views missing in the destination.
+
+    :param src_num: id of the template (source) project
+    :param dst_num: id of the destination project
+    :param dry_run: If True, only print what would happen
     """
-    src_struct = _get_structure(src_num)
-    dst_struct = _get_structure(dst_num)
-    src_fields = [(fid, name) for fid, name in src_struct["fields"] if fid]
-    src_names = [name for _, name in src_fields]
+    # Get structure of source and destination projects.
+    src_struct = _get_structure(src_num, owner, dry_run)
+    dst_struct = _get_structure(dst_num, owner, dry_run)
+    # Extract field names from source.
+    src_names = [name for fid, name in src_struct["fields"] if fid]
+    # Build a map of field names to IDs in the destination.
     dst_map = {name: fid for fid, name in dst_struct["fields"] if fid}
-    # Create missing fields.
+    # Loop over fields to identify missing ones.
     for name in src_names:
         if name not in dst_map:
-            _LOG.info("Creating field '%s'", name)
-            mut = """
-            mutation($pid: ID!, $n: String!) {
-              addProjectV2Field(input: { projectId: $pid, name: $n }) {
-                projectV2Field { id }
-              }
-            }
-            """
-            variables = json.dumps({"pid": dst_num, "n": name})
-            _run_command(
-                [
-                    "gh",
-                    "api",
-                    "graphql",
-                    "-f",
-                    f"query={mut}",
-                    "-f",
-                    f"variables={variables}",
-                ]
-            )
-    # Reorder fields using the correct GitHub mutation.
-    dst_struct = _get_structure(dst_num)
-    dst_map = {name: fid for fid, name in dst_struct["fields"] if fid}
-    prev = None
-    for name in src_names:
-        fid = dst_map.get(name)
-        if not fid:
-            continue
-        _LOG.info("Moving field '%s' after '%s'", name, prev)
-        mv = """
-        mutation($input: UpdateProjectV2FieldConfigurationPositionInput!) {
-          updateProjectV2FieldConfigurationPosition(input: $input) {
-            projectV2FieldConfiguration { id }
-          }
-        }
-        """
-        variables = json.dumps(
-            {
-                "input": {
-                    "projectId": dst_num,
-                    "fieldConfigurationId": fid,
-                    "afterId": prev,
+            if dry_run:
+                _LOG.info("[DRY-RUN] Would create field: '%s'", name)
+            else:
+                _LOG.info("Creating field: '%s'", name)
+                # Construct GraphQL mutation to create the field.
+                mut = """
+                mutation($pid: ID!, $n: String!) {
+                addProjectV2Field(input: { projectId: $pid, name: $n }) {
+                    projectV2Field { id }
                 }
-            }
-        )
-        _run_command(
-            [
-                "gh",
-                "api",
-                "graphql",
-                "-f",
-                f"query={mv}",
-                "-f",
-                f"variables={variables}",
-            ]
-        )
-        prev = fid
-    # Note: View reordering via API is not supported; we still filter and create.
+                }
+                """
+                # Prepare mutation variables.
+                variables = json.dumps({"pid": dst_num, "n": name})
+                _run_command(
+                    [
+                        "gh",
+                        "api",
+                        "graphql",
+                        "-f",
+                        f"query={mut}",
+                        "-f",
+                        f"variables={variables}",
+                    ]
+                )
+    # Compare views and log warnings for missing ones.
     src_view_names = [name for vid, name in src_struct["views"] if vid]
-    dst_map = {name: vid for vid, name in dst_struct["views"] if vid}
-    # Create missing views.
+    dst_view_names = [name for vid, name in dst_struct["views"] if vid]
     for name in src_view_names:
-        if name not in dst_map:
-            _LOG.info("Creating view '%s'", name)
-            mut = """
-            mutation($pid: ID!, $n: String!) {
-              addProjectV2View(input: { projectId: $pid, name: $n }) {
-                projectV2View { id }
-              }
-            }
-            """
-            variables = json.dumps({"pid": dst_num, "n": name})
-            _run_command(
-                [
-                    "gh",
-                    "api",
-                    "graphql",
-                    "-f",
-                    f"query={mut}",
-                    "-f",
-                    f"variables={variables}",
-                ]
+        if name not in dst_view_names:
+            _LOG.warning(
+                "View '%s' is missing in destination. "
+                "GitHub API does not currently support view creation. Please add manually.",
+                name,
             )
-    # Reordering views is not available via GraphQL.
-    _LOG.info("Structure sync complete.")
+    _LOG.info("Structure sync %scomplete.", "(dry-run) " if dry_run else "")
 
 
 def _parse() -> argparse.ArgumentParser:
+    """
+    Parse command-line arguments for the script.
+
+    :return: configured ArgumentParser instance.
+    """
     p = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    p.add_argument(
+        "--owner",
+        required=True,
+        help="GitHub organization or user owning the projects",
     )
     p.add_argument(
         "--src-template",
@@ -230,20 +271,44 @@ def _parse() -> argparse.ArgumentParser:
         required=True,
         help="Destination project title to sync structure to",
     )
+    p.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Print what would be created without making any changes",
+    )
+    p.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Enable verbose logging output (DEBUG level)",
+    )
     return p
 
 
-def main():
+def main() -> None:
     args = _parse().parse_args()
-    projects = _get_projects()
-    src = _find_project(projects, args.src_template) or sys.exit(
-        "Template not found"
+    # Enable DEBUG logging if verbose is set.
+    if args.verbose:
+        logging.getLogger().setLevel(logging.DEBUG)
+    # Get all projects under the owner.
+    projects = _get_projects(args.owner)
+    # Find the source project by title.
+    src = _find_project(projects, args.src_template)
+    if src is None:
+        sys.exit("Template not found")
+    # Find the destination project by title.
+    dst = _find_project(projects, args.dst_project)
+    if dst is None:
+        sys.exit("Destination not found")
+    _LOG.info(
+        "Syncing '%s' ➔ '%s'%s",
+        args.src_template,
+        args.dst_project,
+        " [dry-run]" if args.dry_run else "",
     )
-    dst = _find_project(projects, args.dst_project) or sys.exit(
-        "Destination not found"
+    # Perform the sync.
+    _sync_structure(
+        src["number"], dst["number"], args.owner, dry_run=args.dry_run
     )
-    _LOG.info("Syncing %r ➔ %r", args.src_template, args.dst_project)
-    _sync_structure(src["number"], dst["number"])
 
 
 if __name__ == "__main__":
