@@ -25,6 +25,31 @@
   `-- README.md
   ```
 
+## Dir structure
+
+```bash
+> tree -d --charset unicode docs -I 'figs'
+docs
+|-- build_system
+  - Build documentation explaining GitHub workflows and tools like Gitleaks,
+    Semgrep, linters, and Allure reporting.
+|-- coding
+|-- documentation_meta
+  - How to write documentation
+|-- general_background
+|-- onboarding
+  - Onboarding documentation with checklists and how-to guides for developers,
+    interns, and contributors, including setup, tools, and processes.
+|-- work_organization
+`-- work_tools
+    |-- dev_system
+    |-- docker
+    |-- documentation_toolchain
+    |-- git
+    |-- jupyter_notebooks
+    `-- thin_environment
+```
+
 ## File description
 
 - Invariants:
