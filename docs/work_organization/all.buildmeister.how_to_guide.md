@@ -17,11 +17,11 @@
 
 ## General
 
-- The Buildmeister rotates every 2 weeks
+- The Buildmeister rotates according to the schedule
   - To see who is the Buildmeister now refer to
     [Buildmeister gsheet](https://docs.google.com/spreadsheets/d/12OhDW4hzSLekorrri2WfRkV8h3JcnB8WQd1JEL_n0D8/edit)
-  - Each rotation should be confirmed by a 'handshake' between the outgoing
-    Buildmeister and the new one in the related Slack channel
+  - Each rotation should be confirmed following the [Handover Process](#handover-process) which includes
+    a status report from the outgoing Buildmeister and acknowledgment from the new one
 - The Buildmeister is responsible for:
   - Check build status using the
     [buildmeister dashboard](#buildmeister-dashboard) everyday
