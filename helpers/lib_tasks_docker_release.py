@@ -803,7 +803,7 @@ def docker_build_prod_image(  # type: ignore
     image_name = hrecouti.get_repo_config().get_docker_base_image_name()
     if hgit.is_inside_submodule():
         _LOG.warning(
-            "The build should run from a super repo, not the submodule."
+            "The build should run from a super repo, a the submodule."
         )
     git_root_dir = hgit.find_git_root()
     cmd = rf"""
