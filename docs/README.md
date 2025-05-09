@@ -12,6 +12,75 @@
 - This file is the entrypoint of all the documentation and describes all the
   documentation files in the `docs` directory
 
+## How to organize the docs
+
+- Documentation can be organized in multiple ways:
+  - By software component
+  - By functionality (e.g., infra, backtesting)
+  - By team (e.g., trading ops)
+
+- We have decided that
+  - For each software component there should be a corresponding documentation
+  - We have documentation for each functionality and team
+
+- Processes
+  - `onboarding`
+  - `general_background`
+  - `work_organization`
+  - `work_tools`
+  - `coding`
+  - ...
+
+- Software components
+  - `build`
+  - `kaizenflow`
+  - `datapull`
+  - `dataflow`
+  - `trade_execution`
+  - `infra`
+  - ...
+
+### Dir vs no-dirs
+
+- Directories make it difficult to navigate the docs
+- We use “name spaces” until we have enough objects to create a dir
+
+### Tracking reviews and improvements
+
+- Doc needs to be reviewed "actively", e.g., by making sure someone checks them
+  in the field
+- Somebody should verify that is "executable"
+
+- There is a
+  [Master Documentation Gdoc](https://docs.google.com/document/d/1sEG5vGkaNIuMEkCHgkpENTUYxDgw1kZXb92vCw53hO4)
+  that contains a list of tasks related to documentation, including what needs
+  to be reviewed
+
+- For small action items we add a markdown TODO like we do for the code
+  ```
+  <!-- TODO(gp): ... -->
+  ```
+
+- To track the last revision we use a tag at the end of the document like:
+  ```markdown
+  Last review: GP on 2024-04-20, ...
+  ```
+
+### How to search the documentation
+
+- Be patient and assume that the documentation is there, but you can't find it
+  because you are not familiar with it and not because you think the
+  documentation is poorly done or not organized
+
+- Look for files that contain words related to what you are looking for
+  - E.g., `ffind.py XYZ`
+- Grep in the documentation looking for words related to what you are looking
+  for
+  - E.g., `jackmd trading`
+- Scan through the content of the references
+  - E.g., `all.code_organization.reference.md`
+- Grep for the name of a tool in the documentation
+
 ## File description
 
 - Invariants:
@@ -85,3 +154,7 @@
 - `docs/work_organization/`
   - Team process documentation: roles, workflows, feedback, issue tracking, and
     collaboration practices like Scrum and Kaizen.
+
+- Review:
+  - GP, 2025-05-09
+  - GP, 2024-08-11
