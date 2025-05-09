@@ -19,7 +19,7 @@ Usage:
 
 Options:
 - `--dry-run`: Show what changes would be made without applying them.
-- `--verbose`: Enable debug logging to see internal command execution.
+- `--v`: Enable debug logging to see internal command execution.
 
 What it does:
 - Lists fields and views from both the source and destination projects
@@ -33,8 +33,10 @@ import logging
 import shlex
 import sys
 import textwrap
-import typing
+from typing import Any, Dict, List, Optional, Tuple, cast
 
+import helpers.hdbg as hdbg
+import helpers.hparser as hparser
 import helpers.hsystem as hsystem
 
 # TODO(*): Add support for view creation once GitHub exposes `addProjectV2View` mutation.
@@ -44,10 +46,9 @@ import helpers.hsystem as hsystem
 # TODO(*): Handle per-view field visibility when GitHub exposes view-level metadata.
 
 _LOG = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
 
-def _run_command(cmd: list) -> str:
+def _run_command(cmd: List) -> str:
     """
     Run a shell command.
 
@@ -61,11 +62,11 @@ def _run_command(cmd: list) -> str:
         dry_run=False,
         log_level=logging.DEBUG,
     )
-    out = typing.cast(str, output)
+    out = cast(str, output)
     return out
 
 
-def _get_projects(owner: str) -> typing.List[typing.Dict[str, typing.Any]]:
+def _get_projects(owner: str) -> List[Dict[str, Any]]:
     """
     Retrieve up to 100 Projects for the specified owner.
 
@@ -82,20 +83,18 @@ def _get_projects(owner: str) -> typing.List[typing.Dict[str, typing.Any]]:
     ]
     raw = _run_command(cmd)
     data = json.loads(raw)
-    projects: typing.List[typing.Dict[str, typing.Any]]
+    projects: List[Dict[str, Any]]
     if isinstance(data, dict) and "projects" in data:
-        projects = typing.cast(
-            typing.List[typing.Dict[str, typing.Any]], data["projects"]
-        )
+        projects = cast(List[Dict[str, Any]], data["projects"])
     elif isinstance(data, list):
-        projects = typing.cast(typing.List[typing.Dict[str, typing.Any]], data)
+        projects = cast(List[Dict[str, Any]], data)
     else:
         _LOG.error("Unexpected response format from gh project list: %r", data)
         sys.exit(1)
     return projects
 
 
-def get_project_titles(owner: str) -> typing.Optional[typing.List[str]]:
+def get_project_titles(owner: str) -> Optional[List[str]]:
     """
     Return all project titles under the specified owner.
 
@@ -108,8 +107,8 @@ def get_project_titles(owner: str) -> typing.Optional[typing.List[str]]:
 
 
 def _find_project(
-    projects: typing.List[typing.Dict[str, typing.Any]], title: str
-) -> typing.Optional[typing.Dict[str, typing.Any]]:
+    projects: List[Dict[str, Any]], title: str
+) -> Optional[Dict[str, Any]]:
     """
     Return the project dictionary matching the given title.
 
@@ -117,7 +116,7 @@ def _find_project(
     :param title: project title to match
     :return: matching project dictionary, or None if not found
     """
-    matched_project: typing.Optional[typing.Dict[str, typing.Any]] = None
+    matched_project: Optional[Dict[str, Any]] = None
     for p in projects:
         if not isinstance(p, dict):
             _LOG.warning("Skipping non-dict entry in project list: %r", p)
@@ -129,13 +128,14 @@ def _find_project(
 
 
 def _get_structure(
-    project_number: int, owner: str, _dry_run: bool = False
-) -> typing.Dict[str, typing.List[typing.Tuple[str, str]]]:
+    project_number: int, owner: str, project_title: str, _dry_run: bool = False
+) -> Dict[str, List[Tuple[str, str]]]:
     """
     Retrieve the field and view structure for a GitHub Project via GraphQL.
 
     :param project_number: numeric ID of the GitHub Project to inspect
     :param owner: organization or user that owns the project
+    :param project_title: name of project
     :param dry_run: if True, skip any side effects (currently unused)
     :return: 'fields' and 'views' keys, each a list of (id, name)
     """
@@ -177,7 +177,7 @@ def _get_structure(
     views = [
         (v["id"], v["name"]) for v in project.get("views", {}).get("nodes", [])
     ]
-    _LOG.info("Project #%s structure:", project_number)
+    _LOG.info("Project #%s (%s) structure:", project_number, project_title)
     _LOG.info("Fields: %s", [n for _, n in fields])
     _LOG.info("Views: %s", [n for _, n in views])
     _LOG.warning(
@@ -189,19 +189,30 @@ def _get_structure(
 
 
 def _sync_structure(
-    src_num: int, dst_num: int, owner: str, dry_run: bool = False
+    src_num: int,
+    dst_num: int,
+    *,
+    owner: str,
+    dry_run: bool = False,
+    src_title: str = "source",
+    dst_title: str = "destination",
 ) -> None:
     """
-    Create any fields present in the source but missing in the destination and
-    Warn about any views missing in the destination.
+    Sync the structure from a source GitHub Project to a destination project.
 
-    :param src_num: id of the template (source) project
-    :param dst_num: id of the destination project
-    :param dry_run: If True, only print what would happen
+    - Create any fields present in the source but missing in the destination.
+    - Log a warning for any views missing in the destination (view creation is not supported).
+
+    :param src_num: number of the source (template) project
+    :param dst_num: number of the destination project
+    :param owner: user that owns the projects
+    :param dry_run: log intended changes without applying them
+    :param src_title: source project
+    :param dst_title: destination project
     """
     # Get structure of source and destination projects.
-    src_struct = _get_structure(src_num, owner, dry_run)
-    dst_struct = _get_structure(dst_num, owner, dry_run)
+    src_struct = _get_structure(src_num, owner, src_title, _dry_run=dry_run)
+    dst_struct = _get_structure(dst_num, owner, dst_title, _dry_run=dry_run)
     # Extract field names from source.
     src_names = [name for fid, name in src_struct["fields"] if fid]
     # Build a map of field names to IDs in the destination.
@@ -276,20 +287,18 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Print what would be created without making any changes",
     )
-    p.add_argument(
-        "--verbose",
-        action="store_true",
-        help="Enable verbose logging output (DEBUG level)",
-    )
+    p = cast(argparse.ArgumentParser, hparser.add_verbosity_arg(p))
     return p
 
 
 def main() -> None:
     args = _parse().parse_args()
-    # Enable DEBUG logging if verbose is set.
-    if args.verbose:
-        logging.getLogger().setLevel(logging.DEBUG)
-    # Get all projects under the owner.
+    verbosity = getattr(logging, args.log_level.upper())
+    hdbg.init_logger(
+        verbosity=verbosity,
+        force_verbose_format=(verbosity == logging.DEBUG),
+        in_pytest=False,
+    )
     projects = _get_projects(args.owner)
     # Find the source project by title.
     src = _find_project(projects, args.src_template)
@@ -307,7 +316,12 @@ def main() -> None:
     )
     # Perform the sync.
     _sync_structure(
-        src["number"], dst["number"], args.owner, dry_run=args.dry_run
+        src["number"],
+        dst["number"],
+        owner=args.owner,
+        dry_run=args.dry_run,
+        src_title=args.src_template,
+        dst_title=args.dst_project,
     )
 
 

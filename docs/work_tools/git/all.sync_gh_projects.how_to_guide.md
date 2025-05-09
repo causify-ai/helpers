@@ -15,6 +15,7 @@
     + [Source Project `[TEMPLATE] Causify Project`](#source-project-template-causify-project)
     + [Destination Project `Buildmeister`](#destination-project-buildmeister)
     + [What the Script Will Do:](#what-the-script-will-do)
+    + [Example output from script](#example-output-from-script)
   * [Final Notes](#final-notes)
     + [When GitHub adds support for:](#when-github-adds-support-for)
 
@@ -102,7 +103,7 @@ project configuration without manually replicating fields.
 ### 1. To preview what changes would be made:
 
 ```bash
-python sync_gh_projects.py \
+sync_gh_projects.py \
   --owner causify-ai \
   --src-template "[TEMPLATE] Causify Project" \
   --dst-project "Buildmeister" \
@@ -159,6 +160,34 @@ This will:
 - It will `add` the missing fields: `Repository`, `Estimate`
 - It will `log a warning` that the view `All issues` is missing
 - It will `not` remove or alter any other structure
+
+### Example output from script
+
+- The source project is `[TEMPLATE] Causify Project` and dst project is
+  `Test_Shaunak`
+  - The dst project does not contain `All issues` view which is a req according
+    to the template
+  - The dst project also does not have `Assignees` field in `Backlog` view
+  - The fields are calculated globally as git does not allow to see fileds for a
+    certain view yet
+
+- The output is displayed below:
+  ```text
+  15:11:14 - INFO  sync_gh_projects.py main:304                           Syncing '[TEMPLATE] Causify Project' ➔ 'Test_Shaunak'
+  15:11:14 - INFO  sync_gh_projects.py _get_structure:180                 Project #92 ([TEMPLATE] Causify Project) structure:
+  15:11:14 - INFO  sync_gh_projects.py _get_structure:181                 Fields: ['Title', 'Assignees', 'Status', 'Labels', 'Linked pull requests', 'Milestone', 'Repository', 'Reviewers', 'Parent issue', 'Sub-issues progress', 'Estimate', 'Sprint']
+  15:11:14 - INFO  sync_gh_projects.py _get_structure:182                 Views: ['All issues', 'Current sprint', 'Next sprint', 'Backlog', 'Team capacity ']
+  15:11:14 - WARN  sync_gh_projects.py _get_structure:183                 This script cannot detect per-view visibility, filters, grouping or ordering, since GitHubs GraphQL API does not expose them.
+  15:11:14 - INFO  sync_gh_projects.py _get_structure:180                 Project #95 (Test_Shaunak) structure:
+  15:11:14 - INFO  sync_gh_projects.py _get_structure:181                 Fields: ['Title', 'Assignees', 'Status', 'Labels', 'Linked pull requests', 'Milestone', 'Repository', 'Reviewers', 'Parent issue', 'Sub-issues progress', 'Estimate', 'Sprint']
+  15:11:14 - INFO  sync_gh_projects.py _get_structure:182                 Views: ['Current sprint', 'Next sprint', 'Backlog', 'Team capacity ']
+  15:11:14 - WARN  sync_gh_projects.py _get_structure:183                 This script cannot detect per-view visibility, filters, grouping or ordering, since GitHubs GraphQL API does not expose them.
+  15:11:14 - WARN  sync_gh_projects.py _sync_structure:245                View 'All issues' is missing in destination. GitHub API does not currently support view creation. Please add manually.
+  15:11:14 - INFO  sync_gh_projects.py _sync_structure:250                Structure sync complete.
+  ```
+  - The script displayes the missing fields or views in the dst project when
+    compared to the source. `Github` has not introduced a way to automate view
+    creation yet.
 
 ## Final Notes
 
