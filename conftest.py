@@ -109,6 +109,17 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
         # TODO(gp): redirect also the stderr to file.
         dbg.init_logger(level, in_pytest=True, log_filename="tmp.pytest.log")
 
+    def pytest_ignore_collect(path: str, config: Any):
+        """
+        Skip runnable directories.
+
+        We use the `runnable_dir` file as a marker to identify runnable directories.
+        """
+        _ = config
+        if path.isdir() and (path / "runnable_dir").exists():
+            # Exclude this directory.
+            return True
+
     if "PYANNOTATE" in os.environ:
         print("\nWARNING: Collecting information about types through pyannotate")
         # From https://github.com/dropbox/pyannotate/blob/master/example/example_conftest.py
