@@ -30,16 +30,6 @@
     + [Use the appropriate `self.assert*`](#use-the-appropriate-selfassert)
     + [Do not use `hdbg.dassert` in testing](#do-not-use-hdbgdassert-in-testing)
     + [Always explain `self.assertRaises`](#always-explain-selfassertraises)
-    + [Interesting testing functions](#interesting-testing-functions)
-    + [Use set_up_test / tear_down_test](#use-set_up_test--tear_down_test)
-      - [Nested set_up_test / tear_down_test](#nested-set_up_test--tear_down_test)
-    + [Use setUpClass / tearDownClass](#use-setupclass--teardownclass)
-- [Update test tags](#update-test-tags)
-- [Mocking](#mocking)
-  * [Refs](#refs)
-  * [Common usage samples](#common-usage-samples)
-  * [Philosophy about mocking](#philosophy-about-mocking)
-  * [Some general suggestions about testing](#some-general-suggestions-about-testing)
     + [Test from the outside-in](#test-from-the-outside-in)
     + [We don't need to test all the assertions](#we-dont-need-to-test-all-the-assertions)
     + [Use strings to compare output instead of data structures](#use-strings-to-compare-output-instead-of-data-structures)
@@ -48,6 +38,17 @@
     + [Each test should be crystal clear on how it is different from the others](#each-test-should-be-crystal-clear-on-how-it-is-different-from-the-others)
     + [In general, you want to budget the time to write unit tests](#in-general-you-want-to-budget-the-time-to-write-unit-tests)
     + [Write a template of unit tests and ask for a review if you are not sure how what to test](#write-a-template-of-unit-tests-and-ask-for-a-review-if-you-are-not-sure-how-what-to-test)
+    + [Interesting testing functions](#interesting-testing-functions)
+    + [Use set_up_test / tear_down_test](#use-set_up_test--tear_down_test)
+    + [Nested set_up_test / tear_down_test](#nested-set_up_test--tear_down_test)
+    + [Use setUpClass / tearDownClass](#use-setupclass--teardownclass)
+- [Update test tags](#update-test-tags)
+- [Mocking](#mocking)
+  * [Refs](#refs)
+  * [Our Philosophy about mocking](#our-philosophy-about-mocking)
+    + [Mock only external dependencies](#mock-only-external-dependencies)
+    + [Do not mock internal dependencies](#do-not-mock-internal-dependencies)
+    + [Testing end-to-end](#testing-end-to-end)
   * [Object patch with return value](#object-patch-with-return-value)
   * [Path patch with multiple return values](#path-patch-with-multiple-return-values)
   * [Ways of calling `patch` and `patch.object`](#ways-of-calling-patch-and-patchobject)
@@ -932,118 +933,117 @@ self.assert_equal(act, exp, fuzzy_match=True)
   - 3rd party provider
     - CCXT
   - Cloud infra (e.g., AWS)
-    - S3 (e.g., see [`/helpers/hmoto.py`](/helpers/hmoto.py))
-    - AWS Secrets
-    ...
+    - S3 (e.g., see [`/helpers/hmoto.py)`](/helpers/hmoto.py))
+    - AWS Secrets ...
   - DataBase
   - GitHub
   - ...
 
- - E.g., assume there is a class that is interfacing with an external data
-   provider and our code places requests and gets values back
- - We want to replace the provider with an object that responds to the
-   requests with the actual response of the provider
+- E.g., assume there is a class that is interfacing with an external data
+  provider and our code places requests and gets values back
+- We want to replace the provider with an object that responds to the requests
+  with the actual response of the provider
 
 - If we want to interactions with GitHub we should mock the GitHub library and
   not our API on top of it (since we want to test it)
 
-   **Good**:
+  **Good**:
 
-   ```python
-   @umock.patch("github.Github")
-   def test_github_labels(self, mock_github):
-      # Mock only the external provider.
-      mock_repo = umock.Mock()
-      mock_github.return_value.get_repo.return_value = mock_repo
-      ...
-   ```
+  ```python
+  @umock.patch("github.Github")
+  def test_github_labels(self, mock_github):
+     # Mock only the external provider.
+     mock_repo = umock.Mock()
+     mock_github.return_value.get_repo.return_value = mock_repo
+     ...
+  ```
 
-   **Bad**:
+  **Bad**:
 
-   ```python
-   @umock.patch("helpers.get_labels")
-   def test_github_labels(self, mock_helper):
-     # Do not mock internal helper.
-   ...
-   ```
+  ```python
+  @umock.patch("helpers.get_labels")
+  def test_github_labels(self, mock_helper):
+    # Do not mock internal helper.
+  ...
+  ```
 
 - We want our mock object to look just real enough for the code to run
-   - Include only the attributes or return values your function actually uses
+  - Include only the attributes or return values your function actually uses
 
-     **Bad**:
+    **Bad**:
 
-     ```python
-     mock_label = umock.Mock()
-     mock_label.name = "bug"
-     # Don't add unused fields.
-     mock_label.color = "f29513"
-     mock_label.description = "Something is not working"
-     mock_label.created_at = "2024Ã¢ÂÂ01Ã¢ÂÂ01"
-     mock_label.updated_at = "2024Ã¢ÂÂ01Ã¢ÂÂ02"
-     ....
+    ```python
+    mock_label = umock.Mock()
+    mock_label.name = "bug"
+    # Don't add unused fields.
+    mock_label.color = "f29513"
+    mock_label.description = "Something is not working"
+    mock_label.created_at = "2024Ã¢ÂÂ01Ã¢ÂÂ01"
+    mock_label.updated_at = "2024Ã¢ÂÂ01Ã¢ÂÂ02"
+    ....
 
-     def test_process_labels(mock_repo):
-       labels = mock_repo.get_labels()
-       self.assert_equal(labels[0].name, "bug")
-     ```
+    def test_process_labels(mock_repo):
+      labels = mock_repo.get_labels()
+      self.assert_equal(labels[0].name, "bug")
+    ```
 
-     **Good**:
+    **Good**:
 
-     ```python
-     mock_label = umock.Mock()
-     # Add only the fields the function uses.
-     mock_label.name = "bug"
-     mock_repo = umock.Mock()
-     mock_repo.get_labels.return_value = [mock_label]
-     ...
+    ```python
+    mock_label = umock.Mock()
+    # Add only the fields the function uses.
+    mock_label.name = "bug"
+    mock_repo = umock.Mock()
+    mock_repo.get_labels.return_value = [mock_label]
+    ...
 
-     def test_process_labels(mock_repo):
-       labels = mock_repo.get_labels()
-       self.assert_equal(labels[0].name, "bug")
-     ```
+    def test_process_labels(mock_repo):
+      labels = mock_repo.get_labels()
+      self.assert_equal(labels[0].name, "bug")
+    ```
 
 #### Do not mock internal dependencies
 
 - In general we don't want to mock any code that is inside our repo, since
-  - we want to actual test the interaction of different pieces of our code
-  - it creates maintanance problems
+  - We want to actual test the interaction of different pieces of our code
+  - It creates maintanance problems
 
 #### Testing end-to-end
 
 - Often we want to test public methods of our class (and a few private methods)
-   - In other words, we want to test the end-to-end behavior and not how things
-     are achieved
-   - Rationale: if we start testing "how" things are done and not "what" is
-     done, we can't change how we do things (even if it doesn't affect the
-     interface and its behavior), without updating tons of methods
+  - In other words, we want to test the end-to-end behavior and not how things
+    are achieved
+  - Rationale: if we start testing "how" things are done and not "what" is done,
+    we can't change how we do things (even if it doesn't affect the interface
+    and its behavior), without updating tons of methods
 
- - We want to test the minimal amount of behavior that enforces what we care
-   about
+- We want to test the minimal amount of behavior that enforces what we care
+  about
 
-     **Bad**:
+  **Bad**:
 
-     ```python
-     @umock.patch("docker.build_container")
-     @umock.patch("helpers.get_labels")
-     @umock.patch("github.Github")
-     def test_github_labels(self, mock_get_labels, mock_build_container, mock_github):
-        # Don't mock too much, like internal Docker and helper functions.
-        mock_get_labels.return_value = ["bug"]
-        mock_build_container.return_value = "image123"
-        mock_repo = umock.Mock()
-        mock_github.return_value.get_repo.return_value = mock_repo
-     ```
+  ```python
+  @umock.patch("docker.build_container")
+  @umock.patch("helpers.get_labels")
+  @umock.patch("github.Github")
+  def test_github_labels(self, mock_get_labels, mock_build_container, mock_github):
+     # Don't mock too much, like internal Docker and helper functions.
+     mock_get_labels.return_value = ["bug"]
+     mock_build_container.return_value = "image123"
+     mock_repo = umock.Mock()
+     mock_github.return_value.get_repo.return_value = mock_repo
+  ```
 
-     **Good**:
+  **Good**:
 
-     ```python
-     @umock.patch("github.Github")
-     def test_GitHub_labels(self, mock_github):
-        # Mock only the behavior that needs to be tested.
-        mock_repo = umock.Mock()
-        mock_github.return_value.get_repo.return_value = mock_repo
-        ...
-     ```
+  ```python
+  @umock.patch("github.Github")
+  def test_GitHub_labels(self, mock_github):
+     # Mock only the behavior that needs to be tested.
+     mock_repo = umock.Mock()
+     mock_github.return_value.get_repo.return_value = mock_repo
+     ...
+  ```
 
 ### Object patch with return value
 

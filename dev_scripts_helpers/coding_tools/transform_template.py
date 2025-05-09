@@ -14,7 +14,6 @@ import dev_scripts_helpers.transform_template as dsctrske
 import argparse
 import logging
 
-import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
