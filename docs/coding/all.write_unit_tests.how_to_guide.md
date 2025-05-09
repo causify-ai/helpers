@@ -96,11 +96,17 @@
   - Use Saboteurs to Test Your Testing
   - Find Bugs Once
 
+- Read these wisdom pearls carefully and you will have made another step towards
+  programming mastery
+
 ### Unit testing tips
 
 #### Test one thing
 
 - A good unit test tests only one thing
+  - A test class should test only one function / class
+  - A test method should only test a single case (e.g., "for these inputs the
+    function responds with this output"
 - Testing one thing keeps the unit test simple, relatively easy to understand,
   and helps isolate the root cause when the test fails
 - How do you test more than one thing? By having more than one unit test!
@@ -435,6 +441,82 @@ exp = r"""
 self.assert_equal(act, exp, fuzzy_match=True)
 ```
 
+#### Test from the outside-in
+
+- We want to start testing from the end-to-end methods towards the constructor
+  of an object
+- Rationale: often, we start testing the constructor very carefully and then we
+  get tired / run out of time when we finally get to test the actual behavior
+- Also, testing the important behavior automatically tests building the objects
+- Use the code coverage to see what's left to test once you have tested the
+  "most external" code
+
+#### We don't need to test all the assertions
+
+- E.g., testing carefully that we can't pass a value to a constructor doesn't
+  really test much besides the fact that `dassert` works (which, surprisingly
+  works!)
+- We don't care about line coverage or checking boxes for the sake of checking
+  boxes
+
+#### Use strings to compare output instead of data structures
+
+- Often, it's easier to do a check like:
+
+  ```python
+  # Better:
+  expected = str(...)
+  expected = pprint.pformat(...)
+
+  # Worse:
+  expected = ["a", "b", { ... }]
+  ```
+
+  rather than building the data structure
+
+- Some purists might not like this, but
+  - It's much faster to use a string (which is or should be one-to-one to the
+    data structure), rather than the data structure itself
+    - By extension, many of the more complex data structure have a built-in
+      string representation
+  - It is often more readable and easier to diff (e.g., `self.assertEqual` vs
+    `self.assert_equal`)
+  - In case of mismatch, it's easier to update the string with copy-paste rather
+    than creating a data structure that matches what was created
+
+#### Use `self.check_string()` for things that we care about not changing (or are too big to have as strings in the code)
+
+- Use `self.assert_equal()` for things that should not change (e.g., 1 + 1 = 2)
+- When using `check_string` still try to add invariants that force the code to
+  be correct
+- E.g., if we want to check the PnL of a model, we can freeze the output with
+  `check_string()`, but we want to add a constraint like there are more
+  timestamps than 0 to avoid the situation where we update the string to
+  something malformed
+
+#### Each test method should test a single test case
+
+- Rationale: we want each test to be clear, simple, fast
+- If there is repeated code we should factor it out (e.g., builders for objects)
+
+#### Each test should be crystal clear on how it is different from the others
+
+- Often, you can factor out all the common logic into a helper method
+- Copy-paste is not allowed in unit tests in the same way it's not allowed in
+  production code
+
+#### In general, you want to budget the time to write unit tests
+
+- E.g., "I'm going to spend 3 hours writing unit tests". This is going to help
+  you focus on what's important to test and force you to use an iterative
+  approach rather than incremental (remember the Monalisa)
+
+  <img src="figs/unit_tests/image_4.png">
+
+#### Write a skeleton of unit tests and ask for a review if you are not sure how what to test
+
+- Aka "testing plan"
+
 #### Interesting testing functions
 
 - List of useful testing functions are:
@@ -510,7 +592,7 @@ self.assert_equal(act, exp, fuzzy_match=True)
     `super().setUp()`/`super.tearDown()`, then `setUp()`/`tearDown()` can be
     discarded completely.
 
-##### Nested set_up_test / tear_down_test
+#### Nested set_up_test / tear_down_test
 
 - When a test class (e.g., TestChild) inherits from another test class (e.g.,
   TestParent), `setUp()`/`tearDown()` methods in the child class normally
@@ -842,118 +924,126 @@ self.assert_equal(act, exp, fuzzy_match=True)
 - Official Python documentation for the mock package can be seen here
   [unit test mock](https://docs.python.org/3/library/unittest.mock.html)
 
-### Common usage samples
+### Our Philosophy about mocking
 
-It is best to apply on any part that is deemed unnecessary for specific test
+#### Mock only external dependencies
 
-- Complex functions
-  - Mocked functions can be tested separately
-- 3rd party provider calls
-  - CCXT
-  - AWS
-    - S3
-      - See [`/helpers/hmoto.py`](/helpers/hmoto.py)
-    - Secrets
-    - Etc...
-- DB calls
+- Typically we want to mock interactions with only external components, e.g.,
+  - 3rd party provider
+    - CCXT
+  - Cloud infra (e.g., AWS)
+    - S3 (e.g., see [`/helpers/hmoto.py`](/helpers/hmoto.py))
+    - AWS Secrets
+    ...
+  - DataBase
+  - GitHub
+  - ...
 
-- Many more possible combinations can be seen in the official documentation.
-- Below are the most common ones for basic understanding.
+ - E.g., assume there is a class that is interfacing with an external data
+   provider and our code places requests and gets values back
+ - We want to replace the provider with an object that responds to the
+   requests with the actual response of the provider
 
-### Philosophy about mocking
+- If we want to interactions with GitHub we should mock the GitHub library and
+  not our API on top of it (since we want to test it)
 
-1. We want to mock the minimal surface of a class
-   - E.g., assume there is a class that is interfacing with an external provider
-     and our code places requests and gets values back
-   - We want to replace the provider with an object that responds to the
-     requests with the actual response of the provider
-   - In this way, we can leave all the code of our class untouched and tested
-2. We want to test public methods of our class (and a few private methods)
+   **Good**:
+
+   ```python
+   @umock.patch("github.Github")
+   def test_github_labels(self, mock_github):
+      # Mock only the external provider.
+      mock_repo = umock.Mock()
+      mock_github.return_value.get_repo.return_value = mock_repo
+      ...
+   ```
+
+   **Bad**:
+
+   ```python
+   @umock.patch("helpers.get_labels")
+   def test_github_labels(self, mock_helper):
+     # Do not mock internal helper.
+   ...
+   ```
+
+- We want our mock object to look just real enough for the code to run
+   - Include only the attributes or return values your function actually uses
+
+     **Bad**:
+
+     ```python
+     mock_label = umock.Mock()
+     mock_label.name = "bug"
+     # Don't add unused fields.
+     mock_label.color = "f29513"
+     mock_label.description = "Something is not working"
+     mock_label.created_at = "2024‑01‑01"
+     mock_label.updated_at = "2024‑01‑02"
+     ....
+
+     def test_process_labels(mock_repo):
+       labels = mock_repo.get_labels()
+       self.assert_equal(labels[0].name, "bug")
+     ```
+
+     **Good**:
+
+     ```python
+     mock_label = umock.Mock()
+     # Add only the fields the function uses.
+     mock_label.name = "bug"
+     mock_repo = umock.Mock()
+     mock_repo.get_labels.return_value = [mock_label]
+     ...
+
+     def test_process_labels(mock_repo):
+       labels = mock_repo.get_labels()
+       self.assert_equal(labels[0].name, "bug")
+     ```
+
+#### Do not mock internal dependencies
+
+- In general we don't want to mock any code that is inside our repo, since
+  - we want to actual test the interaction of different pieces of our code
+  - it creates maintanance problems
+
+#### Testing end-to-end
+
+- Often we want to test public methods of our class (and a few private methods)
    - In other words, we want to test the end-to-end behavior and not how things
      are achieved
    - Rationale: if we start testing "how" things are done and not "what" is
      done, we can't change how we do things (even if it doesn't affect the
      interface and its behavior), without updating tons of methods
-   - We want to test the minimal amount of behavior that enforces what we care
-     about
 
-### Some general suggestions about testing
+ - We want to test the minimal amount of behavior that enforces what we care
+   about
 
-#### Test from the outside-in
+     **Bad**:
 
-- We want to start testing from the end-to-end methods towards the constructor
-  of an object
-- Rationale: often, we start testing the constructor very carefully and then we
-  get tired / run out of time when we finally get to test the actual behavior
-- Also, testing the important behavior automatically tests building the objects
-- Use the code coverage to see what's left to test once you have tested the
-  "most external" code
+     ```python
+     @umock.patch("docker.build_container")
+     @umock.patch("helpers.get_labels")
+     @umock.patch("github.Github")
+     def test_github_labels(self, mock_get_labels, mock_build_container, mock_github):
+        # Don't mock too much, like internal Docker and helper functions.
+        mock_get_labels.return_value = ["bug"]
+        mock_build_container.return_value = "image123"
+        mock_repo = umock.Mock()
+        mock_github.return_value.get_repo.return_value = mock_repo
+     ```
 
-#### We don't need to test all the assertions
+     **Good**:
 
-- E.g., testing carefully that we can't pass a value to a constructor doesn't
-  really test much besides the fact that `dassert` works (which, surprisingly
-  works!)
-- We don't care about line coverage or checking boxes for the sake of checking
-  boxes
-
-#### Use strings to compare output instead of data structures
-
-- Often, it's easier to do a check like:
-
-  ```python
-  # Better:
-  expected = str(...)
-  expected = pprint.pformat(...)
-
-  # Worse:
-  expected = ["a", "b", { ... }]
-  ```
-
-  rather than building the data structure
-
-- Some purists might not like this, but
-  - It's much faster to use a string (which is or should be one-to-one to the
-    data structure), rather than the data structure itself
-    - By extension, many of the more complex data structure have a built-in
-      string representation
-  - It is often more readable and easier to diff (e.g., `self.assertEqual` vs
-    `self.assert_equal`)
-  - In case of mismatch, it's easier to update the string with copy-paste rather
-    than creating a data structure that matches what was created
-
-#### Use `self.check_string()` for things that we care about not changing (or are too big to have as strings in the code)
-
-- Use `self.assert_equal()` for things that should not change (e.g., 1 + 1 = 2)
-- When using `check_string` still try to add invariants that force the code to
-  be correct
-- E.g., if we want to check the PnL of a model, we can freeze the output with
-  `check_string()`, but we want to add a constraint like there are more
-  timestamps than 0 to avoid the situation where we update the string to
-  something malformed
-
-#### Each test method should test a single test case
-
-- Rationale: we want each test to be clear, simple, fast
-- If there is repeated code we should factor it out (e.g., builders for objects)
-
-#### Each test should be crystal clear on how it is different from the others
-
-- Often, you can factor out all the common logic into a helper method
-- Copy-paste is not allowed in unit tests in the same way it's not allowed in
-  production code
-
-#### In general, you want to budget the time to write unit tests
-
-- E.g., "I'm going to spend 3 hours writing unit tests". This is going to help
-  you focus on what's important to test and force you to use an iterative
-  approach rather than incremental (remember the Monalisa)
-
-  <img src="figs/unit_tests/image_4.png">
-
-#### Write a skeleton of unit tests and ask for a review if you are not sure how what to test
-
-- Aka "testing plan"
+     ```python
+     @umock.patch("github.Github")
+     def test_GitHub_labels(self, mock_github):
+        # Mock only the behavior that needs to be tested.
+        mock_repo = umock.Mock()
+        mock_github.return_value.get_repo.return_value = mock_repo
+        ...
+     ```
 
 ### Object patch with return value
 
