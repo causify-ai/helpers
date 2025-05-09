@@ -120,7 +120,7 @@ This will output:
 ### 2. To apply changes:
 
 ```bash
-python sync_gh_projects.py \
+sync_gh_projects.py \
   --owner causify-ai \
   --src-template "[TEMPLATE] Causify Project" \
   --dst-project "Buildmeister"
