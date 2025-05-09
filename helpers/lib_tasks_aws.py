@@ -66,7 +66,7 @@ def release_dags_to_airflow(
             if platform == "EC2":
                 dst_airflow_dir = "/shared_data/airflow_preprod_new/dags"
             elif platform == "K8":
-                dst_airflow_dir = "/shared_data/airflow/dags"
+                dst_airflow_dir = "/shared_k8s/airflow/dags"
             else:
                 raise ValueError(f"Unknown platform: {platform}")
     hdbg.dassert_dir_exists(dst_airflow_dir)
