@@ -8,6 +8,7 @@
 - [Notification system](#notification-system)
 - [Buildmeister instructions](#buildmeister-instructions)
     + [`update_helpers_submodule` fails](#update_helpers_submodule-fails)
+- [Daily Reporting](#daily-reporting)
 - [Buildmeister dashboard](#buildmeister-dashboard)
 - [Allure Reports Analysis](#allure-reports-analysis)
 - [Post-mortem analysis (TBD)](#post-mortem-analysis-tbd)
@@ -146,6 +147,58 @@ Example:
   > git commit -m "Update helpers pointer"
   ```
 
+## Daily Reporting
+
+- The current Buildmeister must send a daily status report to eng@ at the end of each workday
+  - The email subject should follow the format: `[BM Report] Build Status - YYYY-MM-DD`
+  - The email should include:
+    - Current status of all builds (green/red)
+    - For any red (failing) builds:
+      - Which tests are failing
+      - Why they are failing (if known)
+      - Who is responsible for fixing them
+      - Expected timeline for fixes
+    - Confirmation that all breaks are tracked with GitHub issues
+      - Include links to all open issues related to build breaks
+    - A screenshot of the current Buildmeister dashboard
+      - This provides a visual overview of the build status
+    - Any additional relevant information or concerns
+
+- When a new Buildmeister takes over the role:
+  - The new Buildmeister must respond to the most recent status report email
+  - The response should:
+    - Acknowledge receipt of the handover
+    - Confirm understanding of current build status
+    - Include "Acknowledged" in the subject line
+    - CC the previous Buildmeister and eng@
+
+- Example email format:
+  ```
+  Subject: [BM Report] Build Status - 2025-05-08
+  
+  Build Status Summary:
+  - cmamp/master: RED (2 failing tests)
+  - helpers/master: GREEN
+  - lemonade/master: GREEN
+  
+  Details on failing builds:
+  - cmamp/master:
+    - FAILED knowledge_graph/vendors/test/test_utils.py::TestClean::test_clean
+    - FAILED knowledge_graph/vendors/nbsc/test/test_nbsc_utils.py::TestExposeNBSCMetadata::test_expose_nbsc_metadata
+    - Root cause: Data path changed in recent PR #1234
+    - Owner: @username is working on a fix, ETA: EOD today
+    - Issue: https://github.com/cryptokaizen/cmamp/issues/4386
+  
+  All breaks are tracked in GitHub issues:
+  - https://github.com/cryptokaizen/cmamp/issues/4386
+  
+  Dashboard screenshot attached.
+  
+  Additional notes:
+  - The failing tests have been occurring since yesterday's deployment
+  - We may need to update the data path configuration in our CI environment
+  ```
+
 ## Buildmeister dashboard
 
 The Buildmeister dashboard is a tool that provides a quick overview of the
@@ -228,26 +281,4 @@ for detailed information.
     - `amp`
     - ...
 
-- `Test type` column:
-  - Specify the type of the failing tests
-    - Fast
-    - Slow
-    - Super-slow
-
-- `Link` column:
-  - Provide a link to a failing run
-
-- `Reason` column:
-  - Specify the reason of the break
-    - Merged a branch with broken tests
-    - Master was not merged in a branch
-    - Merged broken slow tests without knowing that
-    - Underlying data changed
-
-- `Issue` column:
-  - Provide the link to the GH issue with the break description
-
-- `Solution` column:
-  - Provide the solution description of the problem
-    - Problem that led to the break was solved
-    - Failing tests were disabled, i.e. problem was not solved
+- `Test type`
