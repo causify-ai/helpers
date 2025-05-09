@@ -801,10 +801,10 @@ def docker_build_prod_image(  # type: ignore
     # Use dev version for building prod image.
     dev_version = hlitadoc.to_dev_version(prod_version)
     image_name = hrecouti.get_repo_config().get_docker_base_image_name()
-    if hgit.is_inside_submodule():
-        _LOG.warning(
-            "The build should run from a super repo, a the submodule."
-        )
+    hdbg.dassert(
+        not hgit.is_inside_submodule(), 
+        "The build should run from a super repo, not a submodule."
+    )
     git_root_dir = hgit.find_git_root()
     cmd = rf"""
     DOCKER_BUILDKIT={DOCKER_BUILDKIT} \
