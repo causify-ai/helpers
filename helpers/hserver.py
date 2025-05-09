@@ -806,6 +806,8 @@ def enable_privileged_mode() -> bool:
             ret = True
         elif is_inside_ci():
             ret = True
+        elif is_external_linux():
+            ret = True
         elif is_host_mac(version="Catalina"):
             # Docker for macOS Catalina supports dind.
             ret = True
