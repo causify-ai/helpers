@@ -155,7 +155,7 @@ Example:
     - For any red (failing) builds:
       - Which tests are failing
       - Why they are failing (if known)
-      - Who is responsible for fixing them
+      - Links to the GitHub issues tracking these failures
     - Confirmation that all breaks are tracked with GitHub issues
     - A screenshot of the current Buildmeister dashboard
 
