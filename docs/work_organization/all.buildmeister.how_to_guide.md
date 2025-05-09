@@ -7,7 +7,8 @@
 - [General](#general)
 - [Notification system](#notification-system)
 - [Buildmeister instructions](#buildmeister-instructions)
-    + [`update_helpers_submodule` fails](#update_helpers_submodule-fails)
+  * [`update_helpers_submodule` fails](#update_helpers_submodule-fails)
+- [Handover Process](#handover-process)
 - [Buildmeister dashboard](#buildmeister-dashboard)
 - [Allure Reports Analysis](#allure-reports-analysis)
 - [Post-mortem analysis (TBD)](#post-mortem-analysis-tbd)
@@ -16,11 +17,12 @@
 
 ## General
 
-- The Buildmeister rotates every 2 weeks
+- The Buildmeister rotates according to the schedule
   - To see who is the Buildmeister now refer to
     [Buildmeister gsheet](https://docs.google.com/spreadsheets/d/12OhDW4hzSLekorrri2WfRkV8h3JcnB8WQd1JEL_n0D8/edit)
-  - Each rotation should be confirmed by a 'handshake' between the outgoing
-    Buildmeister and the new one in the related Slack channel
+  - Each rotation should be confirmed following the
+    [Handover Process](#handover-process) which includes a status report from
+    the outgoing Buildmeister and acknowledgment from the new one
 - The Buildmeister is responsible for:
   - Check build status using the
     [buildmeister dashboard](#buildmeister-dashboard) everyday
@@ -146,6 +148,24 @@ Example:
   > git commit -m "Update helpers pointer"
   ```
 
+## Handover Process
+
+- When transitioning to a new Buildmeister at the end of the rotation, the
+  outgoing Buildmeister should:
+  - Send a handover report to the @team-eng Slack channel with the following
+    information:
+    - Current status of all builds (green/red)
+    - For any red (failing) builds:
+      - Which tests are failing
+      - Why they are failing (if known)
+      - Links to the GitHub issues tracking these failures
+    - Confirmation that all breaks are tracked with GitHub issues
+    - A screenshot of the current Buildmeister dashboard
+
+- The new Buildmeister is expected to respond to the handover message:
+  - Acknowledging receipt of the handover information
+  - Confirming understanding of the current build status
+
 ## Buildmeister dashboard
 
 The Buildmeister dashboard is a tool that provides a quick overview of the
@@ -162,15 +182,16 @@ for detailed information.
   - [Allure How to Guide](/docs/infra/all.pytest_allure.how_to_guide.md)
 
 - For now, the Buildmeister can get the link to the Allure reports by navigating
-  GitHub Actions page https://github.com/cryptokaizen/cmamp/actions
+  GitHub Actions page
+  [https://github.com/cryptokaizen/cmamp/actions](https://github.com/cryptokaizen/cmamp/actions)
   - Select a particular workflow (Allure fast tests, Allure slow tests, Allure
     superslow tests) based on the test types
   - Click on the particular run for which to get the report. Latest is on the
     top
   - Access the report URL by clicking `Report URL` in the run link. For e.g.:
-    https://github.com/cryptokaizen/cmamp/actions/runs/7210433549/job/19643566697
+    [https://github.com/cryptokaizen/cmamp/actions/runs/7210433549/job/19643566697](https://github.com/cryptokaizen/cmamp/actions/runs/7210433549/job/19643566697)
   - The report URL looks like:
-    http://172.30.2.44/allure_reports/cmamp/fast/report.20231212_013147
+    [http://172.30.2.44/allure_reports/cmamp/fast/report.20231212_013147](http://172.30.2.44/allure_reports/cmamp/fast/report.20231212_013147)
 
 - Once a week the Buildmeister manually inspects
   [graph](https://allurereport.org/docs/gettingstarted-graphs/) section of the
