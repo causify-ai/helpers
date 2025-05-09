@@ -149,8 +149,8 @@ Example:
 
 ## Handover Process
 
-- When transitioning to a new Buildmeister at the end of the 2-week rotation, the outgoing Buildmeister must:
-  - Send a handover report to eng@ with the following information:
+- When transitioning to a new Buildmeister at the end of the rotation, the outgoing Buildmeister should:
+  - Send a handover report to the @team-eng Slack channel with the following information:
     - Current status of all builds (green/red)
     - For any red (failing) builds:
       - Which tests are failing
@@ -159,7 +159,7 @@ Example:
     - Confirmation that all breaks are tracked with GitHub issues
     - A screenshot of the current Buildmeister dashboard
 
-- The new Buildmeister must respond to the handover email:
+- The new Buildmeister is expected to respond to the handover message:
   - Acknowledging receipt of the handover information
   - Confirming understanding of the current build status
 
