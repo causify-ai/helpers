@@ -8,6 +8,7 @@
 - [Notification system](#notification-system)
 - [Buildmeister instructions](#buildmeister-instructions)
     + [`update_helpers_submodule` fails](#update_helpers_submodule-fails)
+- [Handover Process](#handover-process)
 - [Buildmeister dashboard](#buildmeister-dashboard)
 - [Allure Reports Analysis](#allure-reports-analysis)
 - [Post-mortem analysis (TBD)](#post-mortem-analysis-tbd)
@@ -145,6 +146,22 @@ Example:
   > git add helpers_root
   > git commit -m "Update helpers pointer"
   ```
+
+## Handover Process
+
+- When transitioning to a new Buildmeister at the end of the 2-week rotation, the outgoing Buildmeister must:
+  - Send a handover report to eng@ with the following information:
+    - Current status of all builds (green/red)
+    - For any red (failing) builds:
+      - Which tests are failing
+      - Why they are failing (if known)
+      - Who is responsible for fixing them
+    - Confirmation that all breaks are tracked with GitHub issues
+    - A screenshot of the current Buildmeister dashboard
+
+- The new Buildmeister must respond to the handover email:
+  - Acknowledging receipt of the handover information
+  - Confirming understanding of the current build status
 
 ## Buildmeister dashboard
 
