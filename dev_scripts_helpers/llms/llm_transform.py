@@ -34,12 +34,12 @@ import os
 import re
 from typing import List, Optional
 
-import dev_scripts_helpers.documentation.lint_notes as dshdlino
 import dev_scripts_helpers.llms.llm_prompts as dshlllpr
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hgit as hgit
 import helpers.hio as hio
+import helpers.hmarkdown as hmarkdo
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hserver as hserver
@@ -56,9 +56,33 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    hparser.add_input_output_args(parser)
+    hparser.add_input_output_args(
+        parser,
+        in_default="-",
+        in_required=False,
+        out_default="-",
+        out_required=False,
+    )
     hparser.add_prompt_arg(parser)
     hparser.add_dockerized_script_arg(parser)
+    parser.add_argument(
+        "-c",
+        "--compare",
+        action="store_true",
+        help="Print the original and transformed",
+    )
+    parser.add_argument(
+        "-b",
+        "--bold_first_level_bullets",
+        action="store_true",
+        help="Bold the first level bullets",
+    )
+    parser.add_argument(
+        "-s",
+        "--skip-post-transforms",
+        action="store_true",
+        help="Skip the post-transforms",
+    )
     # Use CRITICAL to avoid logging anything.
     hparser.add_verbosity_arg(parser, log_level="CRITICAL")
     return parser
@@ -238,22 +262,41 @@ def _main(parser: argparse.ArgumentParser) -> None:
         suppress_output=suppress_output,
     )
     # Run post-transforms outside the container.
-    # 1) _convert_file_names().
-    prompts = dshlllpr.get_outside_container_post_transforms("convert_file_names")
-    if args.prompt in prompts:
-        _convert_file_names(in_file_name, tmp_out_file_name)
-    # 2) prettier_on_str().
-    out_txt = hio.from_file(tmp_out_file_name)
-    prompts = dshlllpr.get_outside_container_post_transforms("prettier_on_str")
-    if args.prompt in prompts:
-        # Note that we need to run this outside the `llm_transform` container to
-        # avoid to do docker-in-docker in the `llm_transform` container (which
-        # doesn't support that).
-        out_txt = dshdlino.prettier_on_str(out_txt)
+    if not args.skip_post_transforms:
+        post_container_transforms = dshlllpr.get_post_container_transforms(
+            args.prompt
+        )
+        #
+        if dshlllpr.to_run("convert_file_names", post_container_transforms):
+            _convert_file_names(in_file_name, tmp_out_file_name)
+        #
+        out_txt = hio.from_file(tmp_out_file_name)
+        if dshlllpr.to_run("format_markdown", post_container_transforms):
+            # Note that we need to run this outside the `llm_transform` container to
+            # avoid to do docker-in-docker in the `llm_transform` container (which
+            # doesn't support that).
+            out_txt = hmarkdo.format_markdown(out_txt)
+            if args.bold_first_level_bullets:
+                out_txt = hmarkdo.bold_first_level_bullets(out_txt)
+        hdbg.dassert_eq(
+            len(post_container_transforms),
+            0,
+            "Not all post_transforms were run: %s",
+            post_container_transforms,
+        )
+        if args.compare:
+            out_txt_tmp = []
+            out_txt_tmp.append("#### Original ####")
+            out_txt_tmp.append(hio.from_file(tmp_in_file_name))
+            out_txt_tmp.append("#### Transformed ####")
+            out_txt_tmp.append(out_txt)
+            out_txt = "\n\n".join(out_txt_tmp)
+    else:
+        _LOG.info("Skipping post-transforms")
+        out_txt = hio.from_file(tmp_out_file_name)
     # Read the output from the container and write it to the output file from
     # command line (e.g., `-` for stdout).
     hparser.write_file(out_txt, out_file_name)
-    #
     if os.path.basename(out_file_name) == "cfile":
         print(out_txt)
 
