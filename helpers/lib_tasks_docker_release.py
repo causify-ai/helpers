@@ -1227,7 +1227,7 @@ def _check_workspace_dir_sizes() -> None:
 
 @task
 def docker_create_candidate_image(
-    ctx, task_definition, user_tag="", region=hs3.AWS_EUROPE_REGION_1
+    ctx, task_definition, version, user_tag="", region=hs3.AWS_EUROPE_REGION_1
 ):  # type: ignore
     """
     Create new prod candidate image and update the specified ECS task
@@ -1240,7 +1240,8 @@ def docker_create_candidate_image(
         parameter means the command was run via gh actions
     :param region: AWS Region, for Tokyo region specify 'ap-northeast-1'
     """
-    _check_workspace_dir_sizes()
+    # TODO(Grisha): it fails when running from a runnable dir such as `ck_web_apps/itsavvy`, revisit and fix.
+    #_check_workspace_dir_sizes()
     # Get the hash of the image.
     tag = hgit.get_head_hash(".", short_hash=True)
     if user_tag:
@@ -1249,17 +1250,22 @@ def docker_create_candidate_image(
     # Create new prod image.
     docker_build_prod_image(
         ctx,
-        version=hlitadoc._IMAGE_VERSION_FROM_CHANGELOG,
+        # TODO(Grisha): adapt to the runnable dir approach, it always searches in `cmamp/changelog.txt`,
+        # refer to CmTask11978 for details.
+        #version=hlitadoc._IMAGE_VERSION_FROM_CHANGELOG,
+        version=version,
         candidate=True,
         tag=tag,
     )
     # Push candidate image.
     docker_push_prod_candidate_image(ctx, tag)
-    exec_name = "im_v2/aws/aws_update_task_definition.py"
-    # Ensure compatibility with repos where amp is a submodule.
-    if not os.path.exists(exec_name):
-        exec_name = f"amp/{exec_name}"
-    hdbg.dassert_file_exists(exec_name)
+    # TODO(Grisha): build the path programatically w.r.t. cmamp root dir inside a Docker container,
+    # refer to CmTask11978 for details.
+    exec_name = "/app/im_v2/aws/aws_update_task_definition.py"
+    # # Ensure compatibility with repos where amp is a submodule.
+    # if not os.path.exists(exec_name):
+    #     exec_name = f"amp/{exec_name}"
+    # hdbg.dassert_file_exists(exec_name)
     _LOG.debug("exec_name=%s", exec_name)
     # Register new task definition revision with updated image URL.
     cmd = f'invoke docker_cmd -c "{exec_name} -t {task_definition} -i {tag} -r {region}"'
