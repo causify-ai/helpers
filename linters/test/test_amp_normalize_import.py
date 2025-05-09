@@ -259,7 +259,7 @@ class TestShortenImport(hunitest.TestCase):
         long_import = "helpers.unit_test_template"
         short_imports_generator = lamnoimp.LongToShortImportGenerator()
         actual = short_imports_generator._shorten_import(long_import, {})
-        expected = "hunteske"
+        expected = "huntetem"
         self.assert_equal(actual, expected)
 
     def test6(self) -> None:
