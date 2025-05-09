@@ -18,9 +18,9 @@ from invoke import task
 # We want to minimize the dependencies from non-standard Python packages since
 # this code needs to run with minimal dependencies and without Docker.
 import helpers.hdbg as hdbg
-import helpers.henv as henv
 import helpers.hdict as hdict
 import helpers.hdocker as hdocker
+import helpers.henv as henv
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -592,12 +592,14 @@ def _generate_docker_compose_file(
         # from files and inside GitHub actions we use the `GH_TOKEN`
         # environment variable.
     ]
-    environment.extend([
-        "GH_ACTION_ACCESS_TOKEN=$GH_ACTION_ACCESS_TOKEN",
-        # Inside GitHub Actions we use `GH_TOKEN` environment variable,
-        # see https://cli.github.com/manual/gh_auth_login.
-        "GH_TOKEN=$GH_ACTION_ACCESS_TOKEN",
-    ])
+    environment.extend(
+        [
+            "GH_ACTION_ACCESS_TOKEN=$GH_ACTION_ACCESS_TOKEN",
+            # Inside GitHub Actions we use `GH_TOKEN` environment variable,
+            # see https://cli.github.com/manual/gh_auth_login.
+            "GH_TOKEN=$GH_ACTION_ACCESS_TOKEN",
+        ]
+    )
     api_key_env_vars = henv.get_api_key_env_vars()
     environment.extend([f"{env_var}=${env_var}" for env_var in api_key_env_vars])
     #

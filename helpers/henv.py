@@ -131,13 +131,17 @@ def get_env_var(
             value = True
     return value
 
-    
+
 def get_csfy_env_vars() -> List[str]:
     """
     Get all the environment variables that start with `AM_`, `CK_`, `CSFY_`.
     """
     # TODO(gp): We should only pass the `CSFY_` vars.
-    env_var_names = [ v for v in os.environ.keys() if v.startswith("AM_") or v.startswith("CK_") or v.startswith("CSFY_") ]
+    env_var_names = [
+        v
+        for v in os.environ.keys()
+        if v.startswith("AM_") or v.startswith("CK_") or v.startswith("CSFY_")
+    ]
     return env_var_names
 
 

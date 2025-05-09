@@ -31,7 +31,6 @@ Examples
 import argparse
 import logging
 
-import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hparser as hparser
 

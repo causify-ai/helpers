@@ -287,13 +287,7 @@ def code_fix_log_string() -> _PROMPT_OUT:
     ```
 
     For instance, convert:
-    ```
-    hdbg.dassert_in(env_var, os.environ, f"env_var='{str(env_var)}' is not in env_vars='{str(os.environ.keys())}''")
-    ```
     to
-    ```
-    hdbg.dassert_in(env_var, os.environ, "env_var='%s' is not in env_vars='%s'", env_var, str(os.environ.keys()))
-    ```
     """
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
@@ -310,18 +304,12 @@ def code_fix_by_using_f_strings() -> _PROMPT_OUT:
     system = _CODING_CONTEXT
     system += r"""
     Fix statements like:
-    ```
-    raise ValueError(f"Unsupported data_source='{data_source}'")
-    ```
     by using f-strings (formatted string literals) instead of % formatting and
     format strings.
 
     Do not print any comment, but just the converted code.
 
     For instance, convert:
-    ```
-    "Hello, %s. You are %d years old." % (name, age)
-    ```
     to
     """
     pre_transforms: Set[str] = set()
@@ -332,7 +320,9 @@ def code_fix_by_using_f_strings() -> _PROMPT_OUT:
 
 def code_fix_by_using_perc_strings() -> _PROMPT_OUT:
     """
-    Use % formatting, like `"Hello, %s. You are %d years old." % (name, age)`.
+    Use % formatting, like `"Hello, %s.
+
+    You are %d years old." % (name, age)`.
     """
     system = _CODING_CONTEXT
     system += r"""
@@ -504,11 +494,8 @@ def code_transform_apply_csfy_style() -> _PROMPT_OUT:
     file_content = hio.from_file(file_name)
     system += rf"""
     Apply the style described below to the Python code
-    
-    ```
-    {file_content}
-    ```
-    
+
+
     Do not remove any code, just format the existing code using the style.
     Do not change the behavior of the code.
     Do not report any explanation of what you did, but just the converted code.
@@ -640,21 +627,21 @@ def md_clean_up_explanation_doc() -> _PROMPT_OUT:
     Rewrite the provided markdown to transform it into an explanation document
     that clearly explains a concept or idea. Follow this structure:
 
-    - Abstract  
+    - Abstract
     Provide a clear and concise summary of the document in approximately 200 words.
-    - Introduction  
+    - Introduction
     Briefly introduce the topic and its relevance or context.
 
-    - Core Concepts  
+    - Core Concepts
     List and explain the key ideas necessary to understand the topic.
 
-    - How It Works  
+    - How It Works
     Describe the mechanics or process in a step-by-step or logical manner.
 
-    - Design Rationale  
+    - Design Rationale
     Explain the reasoning behind the approach, design, or structure.
 
-    - (Optional) Trade-offs and Alternatives  
+    - (Optional) Trade-offs and Alternatives
     Discuss other possible approaches, including their pros and cons.
 
     You will:
