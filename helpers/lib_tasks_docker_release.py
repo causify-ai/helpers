@@ -801,15 +801,11 @@ def docker_build_prod_image(  # type: ignore
     # Use dev version for building prod image.
     dev_version = hlitadoc.to_dev_version(prod_version)
     image_name = hrecouti.get_repo_config().get_docker_base_image_name()
-    # Copy the entire repo (not just the current dir where the code is executed)
-    # to ensure the setup in the `prod` image mirrors that of the `dev` image.
-    #
-    # Use `find_parent_repo()` instead of `find_git_root()` to allow building
-    # of `prod` image from submodule.
-    # For example, building the prod image from
-    # - `//cmamp//helpers/openai` (for `openai` runnable dir) would return `//helpers` root
-    # - `//orange/amp/ck_web_app/webapp1` (for `webapp1` runnable dir) would return `//cmamp` root
-    git_root_dir = hgit.find_parent_repo()
+    if hgit.is_inside_submodule():
+        _LOG.warning(
+            "The build should run from a super repo, not the submodule."
+        )
+    git_root_dir = hgit.find_git_root()
     cmd = rf"""
     DOCKER_BUILDKIT={DOCKER_BUILDKIT} \
     time \
