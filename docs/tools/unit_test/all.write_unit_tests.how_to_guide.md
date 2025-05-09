@@ -24,7 +24,7 @@
     + [`check_string` vs `self.assertEqual`](#check_string-vs-selfassertequal)
     + [Use `self.assert_equal()`](#use-selfassert_equal)
     + [How to split unit test code in files](#how-to-split-unit-test-code-in-files)
-    + [Skeleton for unit test](#template-for-unit-test)
+    + [Template for unit test](#template-for-unit-test)
     + [Use consistent comments in test methods](#use-consistent-comments-in-test-methods)
     + [Hierarchical `TestCase` approach](#hierarchical-testcase-approach)
     + [Use the appropriate `self.assert*`](#use-the-appropriate-selfassert)
@@ -258,9 +258,9 @@
   ```bash
   > tree -d edg/form_8/test/
   edg/form_8/test/
-  └── TestExtractTables1.test1
-      ├── input
-      └── output
+  Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ TestExtractTables1.test1
+      Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ input
+      Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂ output
   ```
 
 #### Use text and not pickle files as input/outputs
@@ -330,7 +330,7 @@ Last review: GP on 2024-05-13
   - So it's easy to find which file is tested were using grep
 - Then split when it becomes too big using `test_$FILENAME.py`
 
-#### Skeleton for unit test
+#### Template for unit test
 
 - Interesting unit tests are in `helpers/test`
 - A unit test looks like:
@@ -978,8 +978,8 @@ self.assert_equal(act, exp, fuzzy_match=True)
      # Don't add unused fields.
      mock_label.color = "f29513"
      mock_label.description = "Something is not working"
-     mock_label.created_at = "2024‑01‑01"
-     mock_label.updated_at = "2024‑01‑02"
+     mock_label.created_at = "2024Ã¢ÂÂ01Ã¢ÂÂ01"
+     mock_label.updated_at = "2024Ã¢ÂÂ01Ã¢ÂÂ02"
      ....
 
      def test_process_labels(mock_repo):

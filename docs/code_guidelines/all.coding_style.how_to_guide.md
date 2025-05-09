@@ -73,7 +73,7 @@
     + [Examples of imports](#examples-of-imports)
   * [Scripts](#scripts)
     + [Use Python and not bash for scripting](#use-python-and-not-bash-for-scripting)
-    + [Skeleton for a script](#template-for-a-script)
+    + [Template for a script](#template-for-a-script)
     + [Some useful patterns](#some-useful-patterns)
     + [Use scripts and not notebooks for long-running jobs](#use-scripts-and-not-notebooks-for-long-running-jobs)
     + [Follow the same structure](#follow-the-same-structure)
@@ -1213,7 +1213,7 @@
 - Our approach is to make simple to create scripts in Python that are equivalent
   to sequencing shell commands, so that can evolve in complex scripts
 
-#### Skeleton for a script
+#### Template for a script
 
 - The ingredients are:
   - [`/dev_scripts_helpers/coding_tools/script_template.py`](/dev_scripts_helpers/coding_tools/script_template.py):
