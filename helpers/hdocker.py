@@ -15,6 +15,7 @@ import time
 from typing import Any, Dict, List, Optional, Tuple, cast
 
 import helpers.hdbg as hdbg
+import helpers.henv as henv
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -311,15 +312,7 @@ def get_docker_base_cmd(use_sudo: bool) -> List[str]:
     :return: The base command for running a Docker container.
     """
     docker_executable = get_docker_executable(use_sudo)
-    # Get all the environment variables that start with `AM_`, `CK_`, `CSFY_`.
-    vars_to_pass = [
-        v
-        for v in os.environ.keys()
-        if
-        # TODO(gp): We should only pass the `CSFY_` vars.
-        v.startswith("AM_") or v.startswith("CK_") or v.startswith("CSFY_")
-    ]
-    vars_to_pass.append("OPENAI_API_KEY")
+    vars_to_pass = henv.get_csfy_env_vars() + henv.get_api_key_env_vars()
     vars_to_pass = sorted(vars_to_pass)
     vars_to_pass_as_str = " ".join(f"-e {v}" for v in vars_to_pass)
     # Build the command as a list.

@@ -881,6 +881,11 @@ def remove_empty_lines_from_markdown(markdown_text: str) -> str:
     return "\n".join(result)
 
 
+def prettier_markdown(txt: str) -> str:
+    txt = dshdlino.prettier_on_str(txt)
+    return txt
+
+
 def format_markdown(txt: str) -> str:
     txt = dshdlino.prettier_on_str(txt)
     txt = remove_empty_lines_from_markdown(txt)

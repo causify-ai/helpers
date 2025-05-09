@@ -131,6 +131,15 @@ def get_env_var(
             value = True
     return value
 
+    
+def get_csfy_env_vars() -> List[str]:
+    """
+    Get all the environment variables that start with `AM_`, `CK_`, `CSFY_`.
+    """
+    # TODO(gp): We should only pass the `CSFY_` vars.
+    env_var_names = [ v for v in os.environ.keys() if v.startswith("AM_") or v.startswith("CK_") or v.startswith("CSFY_") ]
+    return env_var_names
+
 
 # TODO(gp): Extract all the env vars that start with AM_, CK_, CSFY_ and make
 # sure they have a description here.
@@ -214,6 +223,17 @@ def get_secret_env_vars() -> List[str]:
     # Sort.
     secret_env_var_names = sorted(secret_env_var_names)
     return secret_env_var_names
+
+
+def get_api_key_env_vars() -> List[str]:
+    """
+    Return the list of env vars that are API keys.
+    """
+    # Find all the env vars that end with "_API_KEY".
+    env_var_names = [
+        env_var for env_var in os.environ.keys() if env_var.endswith("_API_KEY")
+    ]
+    return env_var_names
 
 
 def check_env_vars() -> None:

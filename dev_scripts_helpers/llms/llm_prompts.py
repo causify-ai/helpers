@@ -610,7 +610,7 @@ def md_summarize_short() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
-def md_clean_up_how_to_guide() -> _PROMPT_OUT:
+def md_clean_up_how_to_guide_doc() -> _PROMPT_OUT:
     system = _MD_CONTEXT
     system += r"""
     Format the text passed as a how-to guide.
@@ -630,7 +630,42 @@ def md_clean_up_how_to_guide() -> _PROMPT_OUT:
     """
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
-    post_container_transforms = ["format_markdown"]
+    post_container_transforms = ["prettier_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def md_clean_up_explanation_doc() -> _PROMPT_OUT:
+    system = _MD_CONTEXT
+    system += r"""
+    Rewrite the provided markdown to transform it into an explanation document
+    that clearly explains a concept or idea. Follow this structure:
+
+    - Abstract  
+    Provide a clear and concise summary of the document in approximately 200 words.
+    - Introduction  
+    Briefly introduce the topic and its relevance or context.
+
+    - Core Concepts  
+    List and explain the key ideas necessary to understand the topic.
+
+    - How It Works  
+    Describe the mechanics or process in a step-by-step or logical manner.
+
+    - Design Rationale  
+    Explain the reasoning behind the approach, design, or structure.
+
+    - (Optional) Trade-offs and Alternatives  
+    Discuss other possible approaches, including their pros and cons.
+
+    You will:
+    - Maintain clarity and conciseness throughout.
+    - Use bullet points and indentation to enhance readability everywhere
+    - Preserve all information from the original content — do not omit or
+      summarize unless it improves clarity.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {"remove_code_delimiters"}
+    post_container_transforms = ["prettier_markdown"]
     return system, pre_transforms, post_transforms, post_container_transforms
 
 

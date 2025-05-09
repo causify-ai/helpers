@@ -7,7 +7,9 @@ import helpers.hopenai as hopenai
 import datetime
 import functools
 import logging
+import os
 import re
+import requests
 from typing import Any, Dict, List, Optional
 
 import openai
@@ -139,6 +141,17 @@ def _calculate_cost(
     return cost
 
 
+def get_models_stats():
+    url = "https://openrouter.ai/api/v1/models"
+    response = requests.get(url)
+    import pprint
+    pprint.pprint(response.json())
+    #
+    import pandas as pd
+    df = pd.read_json(response.json())
+    print(df)
+
+
 @functools.lru_cache(maxsize=1024)
 def get_completion(
     user_prompt: str,
@@ -160,9 +173,23 @@ def get_completion(
         call
     :return: completion text
     """
-    model = _MODEL if model is None else model
-    client = OpenAI()
+    get_models_stats()
+    assert 0
+    #model = _MODEL if model is None else model
+    #model = "anthropic/claude-3-5-sonnet"
+    #model = "openai/gpt-4o"
+    #model="meta-llama/llama-3-70b-instruct"
+    model="deepseek/deepseek-r1-distill-qwen-1.5b"
     print("OpenAI API call ... ")
+    #client = OpenAI()
+    # print(openai.api_base)
+    # assert 0
+    # openai.api_base ="https://openrouter.ai/api/v1"
+    # openai.api_key = os.environ.get("OPENROUTER_API_KEY")
+    client = OpenAI(
+        base_url="https://openrouter.ai/api/v1",  # Important: Use OpenRouter's base URL
+        api_key=os.environ.get("OPENROUTER_API_KEY")
+        )
     memento = htimer.dtimer_start(logging.DEBUG, "OpenAI API call")
     if not report_progress:
         completion = client.chat.completions.create(
@@ -201,9 +228,9 @@ def get_completion(
     msg, _ = htimer.dtimer_stop(memento)
     print(msg)
     # Calculate and accumulate the cost
-    cost = _calculate_cost(completion, model, print_cost)
+    #cost = _calculate_cost(completion, model, print_cost)
     # Accumulate the cost.
-    _accumulate_cost_if_needed(cost)
+    #_accumulate_cost_if_needed(cost)
     return response
 
 

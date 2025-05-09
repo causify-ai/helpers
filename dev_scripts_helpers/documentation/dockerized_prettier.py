@@ -55,9 +55,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Parse everything that can be parsed and returns the rest.
     args, cmd_opts = parser.parse_known_args()
     hparser.init_logger_for_input_output_transform(args)
-    in_file_name, out_file_name = hparser.parse_input_output_args(
-        args, clear_screen=True
-    )
+    in_file_name, out_file_name = hparser.parse_input_output_args(args)
     if not cmd_opts:
         cmd_opts = []
     _LOG.debug("cmd_opts: %s", cmd_opts)
@@ -68,7 +66,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         force_rebuild=args.dockerized_force_rebuild,
         use_sudo=args.dockerized_use_sudo,
     )
-    _LOG.info("Output written to '%s'", args.output)
+    _LOG.info("Output written to '%s'", out_file_name)
 
 
 if __name__ == "__main__":
