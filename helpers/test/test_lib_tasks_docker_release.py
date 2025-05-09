@@ -96,6 +96,8 @@ class TestDockerBuildLocalImage1(hunitest.TestCase):
             base_image=test_base_image,
             poetry_mode="update",
         )
+        _LOG.info(self.mock_run.call_args_list)
+        print(self.mock_run.call_args_list)
         actual_cmds = _extract_commands_from_call(self.mock_run.call_args_list)
         actual_cmds = "\n".join(actual_cmds)
         # The output is a list of strings, each representing a command.
