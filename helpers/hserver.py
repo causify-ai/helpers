@@ -857,14 +857,16 @@ def enable_privileged_mode() -> bool:
             ret = True
         elif is_external_linux():
             ret = True
-        elif is_host_mac(version="Catalina"):
-            # Docker for macOS Catalina supports dind.
-            ret = True
-        elif (
-            is_host_mac(version="Monterey")
-            or is_host_mac(version="Ventura")
-            or is_host_mac(version="Sequoia")
-        ):
+        elif is_host_mac():
+            mac_version = get_host_mac_version()
+            if mac_version == "Catalina":
+                # Docker for macOS Catalina supports dind.
+                ret = True
+            elif mac_version in ("Monterey", "Ventura", "Sequoia"):
+                # Docker doesn't seem to support dind for these versions of macOS.
+                ret = False
+            else:
+                raise ValueError(f"Invalid version='{version}'")
             # Docker doesn't seem to support dind for these versions of macOS.
             ret = False
         elif is_prod_csfy():

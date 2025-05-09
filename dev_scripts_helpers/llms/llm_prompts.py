@@ -6,8 +6,8 @@ import os
 import re
 from typing import Dict, List, Optional, Set, Tuple, Union
 
-import helpers.hgit as hgit
 import helpers.hdbg as hdbg
+import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
 import helpers.hprint as hprint
@@ -382,8 +382,7 @@ def code_fix_star_before_optional_parameters() -> _PROMPT_OUT:
 
 
 def code_fix_unit_test() -> _PROMPT_OUT:
-    """
-    """
+    """ """
     system = _CODING_CONTEXT
     system += r"""
     """
@@ -411,7 +410,12 @@ def code_fix_csfy_style() -> _PROMPT_OUT:
     ]
     system_prompts = []
     for function_name in function_names:
-        system, pre_transforms_tmp, post_transforms_tmp, post_container_transforms_tmp = eval(function_name)()
+        (
+            system,
+            pre_transforms_tmp,
+            post_transforms_tmp,
+            post_container_transforms_tmp,
+        ) = eval(function_name)()
         system_prompts.append(system)
         hdbg.dassert_eq(pre_transforms_tmp, set())
         hdbg.dassert_eq(post_transforms_tmp, {"remove_code_delimiters"})
@@ -533,7 +537,7 @@ def code_transform_apply_linter_instructions() -> _PROMPT_OUT:
     pre_transforms = {"add_line_numbers", "add_instructions"}
     post_transforms = {"remove_code_delimiters"}
     post_container_transforms: List[str] = []
-    return system, pre_transforms, post_transforms, post_container_transforms    
+    return system, pre_transforms, post_transforms, post_container_transforms
 
 
 # #############################################################################
@@ -610,7 +614,7 @@ def md_clean_up_how_to_guide() -> _PROMPT_OUT:
     system = _MD_CONTEXT
     system += r"""
     Format the text passed as a how-to guide.
-    
+
     An how-to-guide should explain how to solve a specific problem or achieve
     a goal.
 
@@ -728,7 +732,7 @@ def slide_bold() -> _PROMPT_OUT:
     system = _MD_CONTEXT
     system += r"""
     I will give you markdown text
-    
+
     You will:
     - Not change the text or the structure of the text
     - Highlight in bold only the most important phrases in the text—those that
@@ -902,7 +906,9 @@ def run_prompt(
     prompt_tags = get_prompt_tags()
     hdbg.dassert_in(prompt_tag, prompt_tags)
     python_cmd = f"{prompt_tag}()"
-    system_prompt, pre_transforms, post_transforms, post_container_transforms = eval(python_cmd)
+    system_prompt, pre_transforms, post_transforms, post_container_transforms = (
+        eval(python_cmd)
+    )
     # Check return types.
     hdbg.dassert_isinstance(system_prompt, str)
     hdbg.dassert_isinstance(pre_transforms, set)

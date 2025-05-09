@@ -45,7 +45,6 @@ import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 
-
 _LOG = logging.getLogger(__name__)
 
 
@@ -57,8 +56,13 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    hparser.add_input_output_args(parser, in_default="-", in_required=False,
-        out_default="-", out_required=False)
+    hparser.add_input_output_args(
+        parser,
+        in_default="-",
+        in_required=False,
+        out_default="-",
+        out_required=False,
+    )
     hparser.add_prompt_arg(parser)
     hparser.add_dockerized_script_arg(parser)
     parser.add_argument(
@@ -259,7 +263,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     # Run post-transforms outside the container.
     if not args.skip_post_transforms:
-        post_container_transforms = dshlllpr.get_post_container_transforms(args.prompt)
+        post_container_transforms = dshlllpr.get_post_container_transforms(
+            args.prompt
+        )
         #
         if dshlllpr.to_run("convert_file_names", post_container_transforms):
             _convert_file_names(in_file_name, tmp_out_file_name)

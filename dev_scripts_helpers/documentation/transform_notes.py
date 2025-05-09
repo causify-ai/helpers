@@ -43,8 +43,13 @@ def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
-    hparser.add_input_output_args(parser, in_default="-", in_required=False,
-        out_default="-", out_required=False)
+    hparser.add_input_output_args(
+        parser,
+        in_default="-",
+        in_required=False,
+        out_default="-",
+        out_required=False,
+    )
     parser.add_argument("-a", "--action", required=True)
     parser.add_argument("-l", "--max_lev", default=5)
     hparser.add_verbosity_arg(parser)

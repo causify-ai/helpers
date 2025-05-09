@@ -9,11 +9,10 @@ import logging
 import re
 from typing import Generator, List, Optional, Tuple, cast
 
+import dev_scripts_helpers.documentation.lint_notes as dshdlino
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 import helpers.hprint as hprint
-import dev_scripts_helpers.documentation.lint_notes as dshdlino
-
 
 _LOG = logging.getLogger(__name__)
 
@@ -822,10 +821,12 @@ def colorize_bold_text(
     :return: Markdown text with colored bold sections
     """
     # Remove any existing color formatting.
-    # Remove \color{text} format
+    # Remove \color{text} format.
     markdown_text = re.sub(r"\\[a-z]+\{([^}]+)\}", r"\1", markdown_text)
-    # Remove \textcolor{color}{text} format  
-    markdown_text = re.sub(r"\\textcolor\{[^}]+\}\{([^}]+)\}", r"\1", markdown_text)
+    # Remove \textcolor{color}{text} format.
+    markdown_text = re.sub(
+        r"\\textcolor\{[^}]+\}\{([^}]+)\}", r"\1", markdown_text
+    )
     # Find all bold text (both ** and __ formats).
     bold_pattern = r"\*\*(.*?)\*\*|__(.*?)__"
     # matches will look like:
@@ -884,4 +885,3 @@ def format_markdown(txt: str) -> str:
     txt = dshdlino.prettier_on_str(txt)
     txt = remove_empty_lines_from_markdown(txt)
     return txt
-

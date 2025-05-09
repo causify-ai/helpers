@@ -787,6 +787,7 @@ class Test_selected_navigation_to_str2(hunitest.TestCase):
 
 
 class Test_bold_first_level_bullets1(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Test basic first-level bullet bolding.
@@ -802,14 +803,6 @@ class Test_bold_first_level_bullets1(hunitest.TestCase):
         - **Second item**
         """
         self._test_bold_first_level_bullets(text, expected)
-
-    def _test_bold_first_level_bullets(self, text: str, expected: str) -> None:
-        """
-        Helper to test bold_first_level_bullets function.
-        """
-        text = hprint.dedent(text)
-        actual = hmarkdo.bold_first_level_bullets(text)
-        self.assert_equal(actual, expected, dedent=True)
 
     def test2(self) -> None:
         """
@@ -890,6 +883,14 @@ class Test_bold_first_level_bullets1(hunitest.TestCase):
         - **Second point with emphasis**
         """
         self._test_bold_first_level_bullets(text, expected)
+
+    def _test_bold_first_level_bullets(self, text: str, expected: str) -> None:
+        """
+        Helper to test bold_first_level_bullets function.
+        """
+        text = hprint.dedent(text)
+        actual = hmarkdo.bold_first_level_bullets(text)
+        self.assert_equal(actual, expected, dedent=True)
 
 
 # #############################################################################
@@ -1636,9 +1637,6 @@ class Test_colorize_bold_text1(hunitest.TestCase):
     interaction
         """
         self.assert_equal(actual, expected)
-
-
-
 
 
 # #############################################################################

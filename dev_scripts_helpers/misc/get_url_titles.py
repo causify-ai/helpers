@@ -1,8 +1,10 @@
 import time
+from html.parser import HTMLParser
+from typing import Optional
+
 import requests
 from bs4 import BeautifulSoup
-from typing import Optional
-from html.parser import HTMLParser
+
 
 def get_page_title(url: str) -> str:
     try:
@@ -14,6 +16,12 @@ def get_page_title(url: str) -> str:
     except requests.RequestException as e:
         return f"Request failed: {e}"
 
+
+# #############################################################################
+# TitleParser
+# #############################################################################
+
+
 class TitleParser(HTMLParser):
 
     def __init__(self) -> None:
@@ -21,7 +29,9 @@ class TitleParser(HTMLParser):
         self.in_title: bool = False
         self.title: Optional[str] = None
 
-    def handle_starttag(self, tag: str, attrs: list[tuple[str, Optional[str]]]) -> None:
+    def handle_starttag(
+        self, tag: str, attrs: list[tuple[str, Optional[str]]]
+    ) -> None:
         if tag.lower() == "title":
             self.in_title = True
 
@@ -32,6 +42,7 @@ class TitleParser(HTMLParser):
     def handle_endtag(self, tag: str) -> None:
         if tag.lower() == "title":
             self.in_title = False
+
 
 def get_title_streaming(url: str) -> str:
     try:
@@ -45,6 +56,7 @@ def get_title_streaming(url: str) -> str:
             return parser.title if parser.title else "No <title> tag found"
     except requests.RequestException as e:
         return f"Request failed: {e}"
+
 
 if __name__ == "__main__":
     files: str = """
