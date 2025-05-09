@@ -256,7 +256,7 @@ class TestShortenImport(hunitest.TestCase):
         """
         Test shorten import for helper name with more than 2 chunks.
         """
-        long_import = "helpers.unit_test_skeleton"
+        long_import = "helpers.unit_test_template"
         short_imports_generator = lamnoimp.LongToShortImportGenerator()
         actual = short_imports_generator._shorten_import(long_import, {})
         expected = "hunteske"

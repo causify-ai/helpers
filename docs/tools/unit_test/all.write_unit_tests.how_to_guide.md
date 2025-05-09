@@ -24,7 +24,7 @@
     + [`check_string` vs `self.assertEqual`](#check_string-vs-selfassertequal)
     + [Use `self.assert_equal()`](#use-selfassert_equal)
     + [How to split unit test code in files](#how-to-split-unit-test-code-in-files)
-    + [Skeleton for unit test](#skeleton-for-unit-test)
+    + [Skeleton for unit test](#template-for-unit-test)
     + [Use consistent comments in test methods](#use-consistent-comments-in-test-methods)
     + [Hierarchical `TestCase` approach](#hierarchical-testcase-approach)
     + [Use the appropriate `self.assert*`](#use-the-appropriate-selfassert)
@@ -47,7 +47,7 @@
     + [Each test method should test a single test case](#each-test-method-should-test-a-single-test-case)
     + [Each test should be crystal clear on how it is different from the others](#each-test-should-be-crystal-clear-on-how-it-is-different-from-the-others)
     + [In general, you want to budget the time to write unit tests](#in-general-you-want-to-budget-the-time-to-write-unit-tests)
-    + [Write a skeleton of unit tests and ask for a review if you are not sure how what to test](#write-a-skeleton-of-unit-tests-and-ask-for-a-review-if-you-are-not-sure-how-what-to-test)
+    + [Write a template of unit tests and ask for a review if you are not sure how what to test](#write-a-template-of-unit-tests-and-ask-for-a-review-if-you-are-not-sure-how-what-to-test)
   * [Object patch with return value](#object-patch-with-return-value)
   * [Path patch with multiple return values](#path-patch-with-multiple-return-values)
   * [Ways of calling `patch` and `patch.object`](#ways-of-calling-patch-and-patchobject)
@@ -513,7 +513,7 @@ self.assert_equal(act, exp, fuzzy_match=True)
 
   <img src="figs/unit_tests/image_4.png">
 
-#### Write a skeleton of unit tests and ask for a review if you are not sure how what to test
+#### Write a template of unit tests and ask for a review if you are not sure how what to test
 
 - Aka "testing plan"
 

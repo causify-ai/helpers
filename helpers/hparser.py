@@ -276,7 +276,7 @@ def mark_action(action: str, actions: List[str]) -> Tuple[bool, List[str]]:
 # # Write output, handling stdout.
 # hparser.write_file(txt, out_file_name)
 # ```
-# See helpers_root/dev_scripts_helpers/coding_tools/transform_skeleton.py as an
+# See helpers_root/dev_scripts_helpers/coding_tools/transform_template.py as an
 # example.
 
 # For dockerized scripts the following idiom is used inside the wrapper, which

@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 
 """
-This is a skeleton example for a script that reads value from stdin or file,
+This is a template example for a script that reads value from stdin or file,
 transforms it, and writes it to stdout or file.
 
 This pattern is useful for integrating with editors (e.g., vim).
 
 Import as:
 
-import dev_scripts_helpers.transform_skeleton as dsctrske
+import dev_scripts_helpers.transform_template as dsctrske
 """
 
 import argparse
