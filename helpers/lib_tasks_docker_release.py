@@ -806,6 +806,7 @@ def docker_build_prod_image(  # type: ignore
         "The build should be run from a super repo, not a submodule.",
     )
     git_root_dir = hgit.find_git_root()
+    # TODO(heanh): Expose the build context to the interface and use `git_root_dir` by default.
     cmd = rf"""
     DOCKER_BUILDKIT={DOCKER_BUILDKIT} \
     time \
