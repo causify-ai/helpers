@@ -141,17 +141,116 @@ def _calculate_cost(
     return cost
 
 
-def get_models_stats():
+import pandas as pd
+
+
+def convert_to_type(col, type_):
+    if type_ == "is_bool":
+        return col.map(lambda x: isinstance(x, bool) or
+                       x in ["True", "False", "true", "false"] or 
+                       x in [1, 0, "1", "0"])
+    elif type_ == "is_int":
+        return pd.to_numeric(col, errors='coerce')
+    elif type_ == "is_numeric":
+        return pd.to_numeric(col, errors='coerce')
+    elif type_ == "is_string":
+        return col.map(lambda x: isinstance(x, str))
+    else:
+        raise ValueError(f"Unknown column type: {type_}")
+
+
+def infer_column_types(col):
+    vals = {
+        'is_numeric': pd.to_numeric(col, errors='coerce').notna(),
+        #'is_datetime': pd.to_datetime(col, errors='coerce').notna(),
+        'is_bool': col.map(lambda x: isinstance(x, bool)),
+        'is_string': col.map(lambda x: isinstance(x, str)),
+    }
+    vals = {k: float(v.mean()) for k, v in vals.items()}
+    # type_ = np.where(vals["is_bool"] >= vals["is_numeric"], "is_bool",
+    #                  (vals["is_numeric"] >= vals["is_string"], "is_numeric",
+    #                  "is_string"))
+    if vals["is_bool"] >= vals["is_numeric"]:
+        type_ = "is_bool"
+    elif vals["is_numeric"] >= vals["is_string"]:
+        type_ = "is_numeric"
+    else:
+        type_ = "is_string"
+    vals["type"] = type_
+    return vals
+
+
+def infer_column_types_df(df: pd.DataFrame) -> pd.DataFrame:
+    return df.apply(lambda x: pd.Series(infer_column_types(x))).T
+
+
+def convert_df(df: pd.DataFrame, *, print_invalid_values: bool = False) -> pd.DataFrame:
+    types = df.apply(lambda x: pd.Series(infer_column_types(x))).T
+    df_out = []
+    for col in df.columns:
+        if types[col]["type"] == "is_bool":
+            df_out[col] = df[col].astype(bool)
+        elif types[col]["type"] == "is_numeric":
+            df_out[col] = df[col].astype(float)
+        elif types[col]["type"] == "is_string":
+            df_out[col] = df[col]
+        else:
+            raise ValueError(f"Unknown column type: {types[col]['type']}")
+    return df_out
+
+
+
+def get_model_stats() -> Dict[str, Any]:
     url = "https://openrouter.ai/api/v1/models"
     response = requests.get(url)
+    # {'architecture': {'input_modalities': ['text', 'image'],
+    #                   'instruct_type': None,
+    #                   'modality': 'text+image->text',
+    #                   'output_modalities': ['text'],
+    #                   'tokenizer': 'Mistral'},
+    #  'context_length': 131072,
+    #  'created': 1746627341,
+    #  'description': 'Mistral Medium 3 is a high-performance enterprise-grade '
+    #                 'language model designed to deliver frontier-level '
+    #                  ...
+    #                 'broad compatibility across cloud environments.',
+    #  'id': 'mistralai/mistral-medium-3',
+    #  'name': 'Mistral: Mistral Medium 3',
+    #  'per_request_limits': None,
+    #  'pricing': {'completion': '0.000002',
+    #              'image': '0',
+    #              'internal_reasoning': '0',
+    #              'prompt': '0.0000004',
+    #              'request': '0',
+    #              'web_search': '0'},
+    #  'supported_parameters': ['tools',
+    #                           'tool_choice',
+    #                           'max_tokens',
+    #                           'temperature',
+    #                           'top_p',
+    #                           'stop',
+    #                           'frequency_penalty',
+    #                           'presence_penalty',
+    #                           'response_format',
+    #                           'structured_outputs',
+    #                           'seed'],
+    #  'top_provider': {'context_length': 131072,
+    #                   'is_moderated': False,
+    #                   'max_completion_tokens': None}}
+    response_json = response.json()
+    hdbg.dassert_eq(list(response_json.keys()), ["data"])
+    response_json = response_json["data"]
+    return response_json
+    
+
     import pprint
 
     pprint.pprint(response.json())
     #
-    import pandas as pd
+    #import pandas as pd
 
-    df = pd.read_json(response.json())
-    print(df)
+    #df = pd.read_json(response.json())
+    #print(df)
 
 
 @functools.lru_cache(maxsize=1024)
