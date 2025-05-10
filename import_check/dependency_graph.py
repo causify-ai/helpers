@@ -39,7 +39,8 @@ class DependencyGraph:
         """
         Initialize the DependencyGraph with directory and analysis parameters.
         """
-        # _LOG.debug(hprint.func_signature_to_str())
+        # Following caused ValueError: Unable to determine caller function. 
+        # _LOG.debug(hprint.func_signature_to_str())  
         # Initialize directory path
         print(f"Type of Path: {type(Path)}")
         self.directory = Path(directory).resolve()
@@ -94,10 +95,13 @@ class DependencyGraph:
                     imports = (
                         [name.name for name in node.names]
                         if isinstance(node, ast.Import)
-                        else [node.module]
+                        else [node.module] if node.module is not None else []
                     )
                     _LOG.debug(hprint.to_str("imports"))
                     for imp in imports:
+                        if imp is None:
+                            _LOG.warning("Skipping None import in file %s", py_file)
+                            continue
                         _LOG.info("Found import: %s", imp)
                         _LOG.debug(hprint.to_str("imp"))
                         imp_path = self._resolve_import(imp, py_file)

@@ -15,3 +15,9 @@ report_cycles.txt
 report_max_level.txt
 __pycache__/
 dependency_report.txt
+devops/compose/local.docker-compose.yml
+tmp.precommit_output.txt
+tmp.pytest.log
+tmp.amp_normalize_import.txt
+source
+import_check/test/outcomes/TestDependencyGraph.test_dot_output/output/test.txt

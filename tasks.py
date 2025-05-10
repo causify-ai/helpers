@@ -183,7 +183,7 @@ def show_deps(
     directory=".",
     format="text",
     output_file=None,
-    max_level=None,
+    max_level=-1,
     show_cycles=False,
 ):
     """
