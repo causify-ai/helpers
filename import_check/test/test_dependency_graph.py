@@ -5,9 +5,11 @@ import helpers.hio as hio
 import helpers.hunit_test as hunitest
 import import_check.dependency_graph as ichdegra
 
+
 # #############################################################################
 # TestDependencyGraph
 # #############################################################################
+
 
 # #############################################################################
 # TestDependencyGraph
@@ -18,6 +20,7 @@ class TestDependencyGraph(hunitest.TestCase):
     def get_test_dir(self) -> path.Path:
         """
         Create a temporary directory with test files.
+
         :return: Path to the temporary directory.
         """
         # Prepare directory.
@@ -56,8 +59,12 @@ class TestDependencyGraph(hunitest.TestCase):
         graph.build_graph()
         report = graph.get_text_report()
         # Check.
-        self.assertIn("tmp.scratch/module_c.py imports tmp.scratch/module_b.py", report)
-        self.assertIn("tmp.scratch/module_b.py imports tmp.scratch/module_a.py", report)
+        self.assertIn(
+            "tmp.scratch/module_c.py imports tmp.scratch/module_b.py", report
+        )
+        self.assertIn(
+            "tmp.scratch/module_b.py imports tmp.scratch/module_a.py", report
+        )
 
     def test_circular_dependencies(self) -> None:
         """
@@ -70,8 +77,12 @@ class TestDependencyGraph(hunitest.TestCase):
         graph.build_graph()
         report = graph.get_text_report()
         # Check.
-        self.assertIn("tmp.scratch/module_d.py imports tmp.scratch/module_e.py", report)
-        self.assertIn("tmp.scratch/module_e.py imports tmp.scratch/module_d.py", report)
+        self.assertIn(
+            "tmp.scratch/module_d.py imports tmp.scratch/module_e.py", report
+        )
+        self.assertIn(
+            "tmp.scratch/module_e.py imports tmp.scratch/module_d.py", report
+        )
 
     def test_dot_output(self) -> None:
         """
@@ -97,7 +108,10 @@ class TestDependencyGraph(hunitest.TestCase):
         """
         # Prepare inputs.
         test_dir = self.get_test_dir()
-        hio.to_file(str(test_dir / "module_invalid.py"), "def invalid_syntax()  # Missing colon\n")
+        hio.to_file(
+            str(test_dir / "module_invalid.py"),
+            "def invalid_syntax()  # Missing colon\n",
+        )
         graph = ichdegra.DependencyGraph(str(test_dir))
         # Run.
         graph.build_graph()
@@ -119,7 +133,9 @@ class TestDependencyGraph(hunitest.TestCase):
         graph.build_graph()
         report = graph.get_text_report()
         # Check.
-        self.assertIn("tmp.scratch/module_f.py imports tmp.scratch/__init__.py", report)
+        self.assertIn(
+            "tmp.scratch/module_f.py imports tmp.scratch/__init__.py", report
+        )
 
     def test_package_only_import(self) -> None:
         """
@@ -146,7 +162,7 @@ class TestDependencyGraph(hunitest.TestCase):
         # Check.
         self.assertIn(
             "tmp.scratch/module_b.py imports tmp.scratch/subpackage/__init__.py",
-            report
+            report,
         )
 
     def test_package_import(self) -> None:
@@ -164,7 +180,10 @@ class TestDependencyGraph(hunitest.TestCase):
         hio.to_file(str(subdir / "__init__.py"), "")
         hio.to_file(str(subsubdir / "__init__.py"), "")
         hio.to_file(str(module_dir / "__init__.py"), "")
-        hio.to_file(str(package_dir / "module_b.py"), "import subpackage.subsubpackage.module_a")
+        hio.to_file(
+            str(package_dir / "module_b.py"),
+            "import subpackage.subsubpackage.module_a",
+        )
         # Directory structure:
         # tmp.scratch/
         #   subpackage/
@@ -182,7 +201,7 @@ class TestDependencyGraph(hunitest.TestCase):
         self.assertIn(
             "tmp.scratch/module_b.py imports "
             "tmp.scratch/subpackage/subsubpackage/module_a/__init__.py",
-            report
+            report,
         )
 
     def test_unresolved_nested_import(self) -> None:
@@ -194,7 +213,10 @@ class TestDependencyGraph(hunitest.TestCase):
         subdir = package_dir / "subpackage"
         hio.create_dir(subdir, incremental=True)
         hio.to_file(str(subdir / "__init__.py"), "")
-        hio.to_file(str(package_dir / "module_b.py"), "import subpackage.subsubpackage.module_a")
+        hio.to_file(
+            str(package_dir / "module_b.py"),
+            "import subpackage.subsubpackage.module_a",
+        )
         # Directory structure:
         # tmp.scratch/
         #   subpackage/
@@ -219,6 +241,10 @@ class TestDependencyGraph(hunitest.TestCase):
         graph.build_graph()
         report = graph.get_text_report()
         # Check.
-        self.assertIn("tmp.scratch/module_d.py imports tmp.scratch/module_e.py", report)
-        self.assertIn("tmp.scratch/module_e.py imports tmp.scratch/module_d.py", report)
+        self.assertIn(
+            "tmp.scratch/module_d.py imports tmp.scratch/module_e.py", report
+        )
+        self.assertIn(
+            "tmp.scratch/module_e.py imports tmp.scratch/module_d.py", report
+        )
         self.assertFalse("tmp.scratch/module_f.py" in report)
