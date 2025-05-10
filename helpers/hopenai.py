@@ -274,23 +274,24 @@ def get_completion(
         call
     :return: completion text
     """
-    get_models_stats()
-    assert 0
     # model = _MODEL if model is None else model
     # model = "anthropic/claude-3-5-sonnet"
     # model = "openai/gpt-4o"
     # model="meta-llama/llama-3-70b-instruct"
-    model = "deepseek/deepseek-r1-distill-qwen-1.5b"
+    #model = "deepseek/deepseek-r1-distill-qwen-1.5b"
     print("OpenAI API call ... ")
     # client = OpenAI()
     # print(openai.api_base)
     # assert 0
     # openai.api_base ="https://openrouter.ai/api/v1"
     # openai.api_key = os.environ.get("OPENROUTER_API_KEY")
-    client = OpenAI(
-        base_url="https://openrouter.ai/api/v1",  # Important: Use OpenRouter's base URL
-        api_key=os.environ.get("OPENROUTER_API_KEY"),
-    )
+    if False:
+        client = OpenAI(
+            base_url="https://openrouter.ai/api/v1",  # Important: Use OpenRouter's base URL
+            api_key=os.environ.get("OPENROUTER_API_KEY"),
+        )
+    else:
+        client = OpenAI()
     memento = htimer.dtimer_start(logging.DEBUG, "OpenAI API call")
     if not report_progress:
         completion = client.chat.completions.create(
