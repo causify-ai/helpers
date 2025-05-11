@@ -93,14 +93,35 @@ class TestDependencyGraph(hunitest.TestCase):
         graph = ichdegra.DependencyGraph(str(test_dir))
         graph.build_graph()
         # Run.
-        output_file = "dependency_graph.dot"
-        graph.get_dot_file(output_file)
+        scratch_dir = path.Path(self.get_scratch_space())
+        output_file = scratch_dir / "dependency_graph.dot"
+        graph.get_dot_file(str(output_file))
         # TODO: use self.check_string
         # Check.
-        self.assertTrue(os.path.exists(output_file))
-        with open(output_file, "r", encoding="utf-8") as f:
-            content = f.read()
+        # Verify the DOT file content matches the expected golden outcome.
+        content = hio.from_file(str(output_file), encoding="utf-8")
         self.check_string(content)
+
+    
+    def test_dot_output(self) -> None:
+        """
+        Verify that the DependencyGraph generates a DOT file with the correct format,
+        representing module dependencies as a directed graph.
+        """
+        # Prepare inputs: Create a temporary directory with test files and initialize graph.
+        test_dir = self.get_test_dir()
+        graph = ichdegra.DependencyGraph(str(test_dir))
+        graph.build_graph()
+
+        # Run: Generate the DOT file in a temporary scratch space.
+        scratch_dir = path.Path(self.get_scratch_space())
+        output_file = scratch_dir / "dependency_graph.dot"
+        graph.get_dot_file(str(output_file))
+
+        # Check: Verify the DOT file content matches the expected golden outcome.
+        content = hio.from_file(str(output_file), encoding="utf-8")
+        self.check_string(content)
+
 
     def test_syntax_error_handling(self) -> None:
         """
