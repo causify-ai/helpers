@@ -31,7 +31,7 @@ _LOG = logging.getLogger(__name__)
 # _LOG.debug = _LOG.info
 _MODEL = "gpt-4o-mini"
 _TEMPERATURE = 0.1
-_CACHE_FILE = "openai_cache.json"
+_CACHE_FILE = "cache.get_completion.json"
 
 # #############################################################################
 # Utility Functions
@@ -87,7 +87,7 @@ class OpenAICache:
             with open(_CACHE_FILE, "r") as f:
                 self.cache = json.load(f)
         except FileNotFoundError:
-            # responses will be stored in entries.
+            # Responses will be stored in entries.
             self.cache = {"version": "1.0",
                           "metadata": {
                             "created_at": datetime.datetime.now().isoformat(),
@@ -114,7 +114,7 @@ class OpenAICache:
             **extra_kwargs: Any,
     ) -> str:
         """
-        Generate a hash key for the OpenAI request.
+        Generates a hash key for the OpenAI request.
         """
         norm_msgs = []
         for m in messages:
@@ -122,7 +122,6 @@ class OpenAICache:
                 "role": m["role"].strip().lower(),
                 "content": " ".join(m["content"].split()).lower()
             })
-        # print(norm_msgs)
 
         key_obj: Dict[str, Any] = {
             "model": model.strip().lower(),
@@ -147,15 +146,17 @@ class OpenAICache:
 
         serialized = json.dumps(
             key_obj,
-            separators=(",", ":"),   # no spaces
-            sort_keys=True,          # keys in alphabetical order
+             # no spaces
+            separators=(",", ":"),
+             # keys in alphabetical order  
+            sort_keys=True,         
             ensure_ascii=False
         )
         return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
 
-    def check_hash_key_in_cache(self, hash_key: str) -> bool:
+    def has_cache(self, hash_key: str) -> bool:
         """
-        Check if the hash key is in the cache.
+        Checks if the hash key is in the cache.
         """
         return hash_key in self.cache["entries"]
     
@@ -215,7 +216,6 @@ def call_api_sync(
         messages=messages,
         **create_kwargs,
     )
-    # print("OpenAI response", completion)
     return completion.choices[0].message.content, completion
 
 def start_logging_costs():
@@ -279,7 +279,6 @@ def _calculate_cost(
 
 
 
-
 @functools.lru_cache(maxsize=1024)
 def get_completion(
     user_prompt: str,
@@ -321,13 +320,14 @@ def get_completion(
         "messages": messages,
         **create_kwargs
     }
+    
     hash_key = cache.hash_key_generator(
         **request_params
     )
 
     if cache_mode in ("REPLAY", "FALLBACK"):
         
-        if cache.check_hash_key_in_cache(hash_key):
+        if cache.has_cache(hash_key):
             return cache.load_response_from_cache(hash_key)
         else:
             if  cache_mode == "REPLAY":
@@ -342,9 +342,7 @@ def get_completion(
         raise ValueError(f"Unsupported cache mode: {cache_mode}")
 
     if not report_progress:
-        response, completion = call_api_sync(client, messages, model, **create_kwargs)
-        
-
+        response, completion = call_api_sync(client, messages, model, **create_kwargs) 
     else:
         # TODO(gp): This is not working. It doesn't show the progress and it
         # doesn't show the cost.
@@ -372,10 +370,9 @@ def get_completion(
     cost = _calculate_cost(completion, model, print_cost)
     # Accumulate the cost.
     _accumulate_cost_if_needed(cost)
-    ##Todo: chanhges should be made
+    
     if cache_mode != "DISABLED":
         cache.save_respone_to_cache(hash_key, request =request_params,  response =completion.to_dict())
-
     return response
 
 
