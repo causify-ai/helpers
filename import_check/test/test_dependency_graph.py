@@ -1,4 +1,3 @@
-import os
 import pathlib as path  # Updated import style
 
 import helpers.hio as hio
@@ -10,10 +9,6 @@ import import_check.dependency_graph as ichdegra
 # TestDependencyGraph
 # #############################################################################
 
-
-# #############################################################################
-# TestDependencyGraph
-# #############################################################################
 # TODO: class TestDependencyGraph(hunitest.TestCase):
 class TestDependencyGraph(hunitest.TestCase):
     # TODO: use self.get_scratch_dir() and make this a function that is called
@@ -101,7 +96,6 @@ class TestDependencyGraph(hunitest.TestCase):
         # Verify the DOT file content matches the expected golden outcome.
         content = hio.from_file(str(output_file), encoding="utf-8")
         self.check_string(content)
-
 
     def test_syntax_error_handling(self) -> None:
         """
