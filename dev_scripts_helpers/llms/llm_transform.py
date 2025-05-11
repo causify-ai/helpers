@@ -271,13 +271,27 @@ def _main(parser: argparse.ArgumentParser) -> None:
         out_txt = hio.from_file(tmp_out_file_name)
         if dshlllpr.to_run("prettier_markdown", post_container_transforms):
             out_txt = hmarkdo.prettier_markdown(out_txt)
+        #
         if dshlllpr.to_run("format_markdown", post_container_transforms):
             # Note that we need to run this outside the `llm_transform` container to
             # avoid to do docker-in-docker in the `llm_transform` container (which
             # doesn't support that).
+            out_txt = hmarkdo.md_clean_up(out_txt)
             out_txt = hmarkdo.format_markdown(out_txt)
             if args.bold_first_level_bullets:
                 out_txt = hmarkdo.bold_first_level_bullets(out_txt)
+        #
+        if dshlllpr.to_run("append_text", post_container_transforms):
+            out_txt_tmp = []
+            # Append the original text.
+            txt = hio.from_file(tmp_in_file_name)
+            txt = hmarkdo.format_markdown(txt)
+            txt = hmarkdo.md_clean_up(txt)
+            out_txt_tmp.append(txt)
+            # Append the transformed text.
+            out_txt_tmp.append(out_txt)
+            out_txt = "\n".join(out_txt_tmp)
+        # Check that all post-transforms were run.
         hdbg.dassert_eq(
             len(post_container_transforms),
             0,

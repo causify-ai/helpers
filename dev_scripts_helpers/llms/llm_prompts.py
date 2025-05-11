@@ -659,7 +659,10 @@ def md_clean_up_explanation_doc() -> _PROMPT_OUT:
 # #############################################################################
 
 
-def slide_improve() -> _PROMPT_OUT:
+def slide_to_bullet_points() -> _PROMPT_OUT:
+    """
+    Convert the markdown text into bullet points.
+    """
     system = _MD_CONTEXT
     system += r"""
     I will give you markdown text
@@ -680,20 +683,19 @@ def slide_improve() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
-def slide_improve2() -> _PROMPT_OUT:
+def slide_add_example_picture() -> _PROMPT_OUT:
+    """
+    """
     system = _MD_CONTEXT
     system += r"""
     I will give you markdown text
 
-    You will:
-    - Maintain the structure of the text and keep the content of the existing
-      text
-    - Remove all the words that are not needed, minimizing the changes to the
-      text
-    - Add bullet points to the text that are important or missing
-    - Add examples to clarify the text and help intuition
-
-    Print only the markdown without any explanation.
+    You will
+    - Select the most important concepts in the text
+    - Print a TODO comment of less than 30 words suggesting what example picture
+      to add to give an intuition of the text
+    - The TODO is in the format `// TODO: <suggestion>`
+    - Suggest what tool to use e.g., (mermaid, tikz, graphviz dot)
     """
     pre_transforms: Set[str] = set()
     post_transforms = {
@@ -701,18 +703,22 @@ def slide_improve2() -> _PROMPT_OUT:
         "remove_end_of_line_periods",
         "remove_empty_lines",
     }
-    post_container_transforms = ["format_markdown"]
+    post_container_transforms = ["append_text"]
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
-def slide_elaborate() -> _PROMPT_OUT:
+def slide_expand() -> _PROMPT_OUT:
     system = _MD_CONTEXT
     system += r"""
     I will give you markdown text
 
     You will:
+    - Maintain the structure of the text and keep the content of the existing
+      text
     - Add bullet points to the text that are important or missing
     - Add examples to clarify the text and help intuition
+    - Not bold or italicize the text
+    - Use `E.g.,` instead of `Example`
 
     Print only the markdown without any explanation.
     """
@@ -737,6 +743,7 @@ def slide_reduce() -> _PROMPT_OUT:
     - Make sure that the text is clean and readable
     - Remove all the words that are not needed
     - Minimize the changes to the text
+    - Use `E.g.,` instead of `Example`
 
     Print only the markdown without any explanation.
     """
