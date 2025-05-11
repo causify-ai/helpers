@@ -196,6 +196,17 @@ class DependencyGraph:
         parts = imp.split(".")
         _LOG.debug(hprint.to_str("parts"))
         current_dir = base_dir
+        # Check: direct match for directory package
+        dir_name_parts = base_dir.name.split(".")
+        if parts == dir_name_parts:
+            init_path = base_dir / "__init__.py"
+            _LOG.info("Checking base directory __init__ at %s", init_path)
+            if init_path.exists():
+                resolved_path = init_path.relative_to(base_dir.parent).as_posix()
+                _LOG.info("Resolved directory self-import to: %s", resolved_path)
+                return resolved_path
+            _LOG.error("Base directory __init__.py missing at %s", init_path)
+            return None
         # Handle directory name imports.
         # Current directory.
         dir_name = self.directory.name
