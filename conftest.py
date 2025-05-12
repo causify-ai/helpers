@@ -115,10 +115,14 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
         Skip runnable directories.
 
         We use the `runnable_dir` file as a marker to identify runnable directories.
+
+        :param path: path to the directory to check.
+        :param config: pytest config object
+        :return: True if the directory should be ignored, False otherwise
         """
         _ = config
         path = pathlib.Path(path)
-        if path.isdir() and (path / "runnable_dir").exists():
+        if path.is_dir() and (path / "runnable_dir").exists():
             # Exclude this directory.
             return True
         return False
