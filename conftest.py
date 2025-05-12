@@ -125,7 +125,7 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
         if path.is_dir() and (path / "runnable_dir").exists():
             # Exclude this directory.
             return True
-        return False
+        # return False
 
     if "PYANNOTATE" in os.environ:
         print("\nWARNING: Collecting information about types through pyannotate")
