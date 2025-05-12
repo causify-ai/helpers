@@ -20,4 +20,4 @@ tmp.precommit_output.txt
 tmp.pytest.log
 tmp.amp_normalize_import.txt
 source
-import_check/test/outcomes/TestDependencyGraph.test_dot_output/output/test.txt
+devops/compose/tmp.docker-compose.yml
