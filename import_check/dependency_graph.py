@@ -6,7 +6,7 @@ import import_check.dependency_graph as ichdegra
 
 import ast
 import logging
-from pathlib import Path
+import pathlib as path
 from typing import Optional
 
 import networkx as nx
@@ -15,6 +15,7 @@ import helpers.hio as hio
 import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
+
 
 # #############################################################################
 # DependencyGraph
@@ -46,8 +47,8 @@ class DependencyGraph:
         # Following caused ValueError: Unable to determine caller function.
         # _LOG.debug(hprint.func_signature_to_str())
         # Initialize directory path
-        print(f"Type of Path: {type(Path)}")
-        self.directory = Path(directory).resolve()
+        print(f"Type of Path: {type(path.Path)}")
+        self.directory = path.Path(directory).resolve()
         # Create a directed graph for dependencies.
         self.graph: nx.DiGraph = nx.DiGraph()
         # Set maximum directory depth.
@@ -191,7 +192,7 @@ class DependencyGraph:
         )
 
     # TODO: -> Optional[str]
-    def _resolve_import(self, imp: str, py_file: Path) -> Optional[str]:
+    def _resolve_import(self, imp: str, py_file: path.Path) -> Optional[str]:
         """
         Resolve an import to a file path within the directory.
 
