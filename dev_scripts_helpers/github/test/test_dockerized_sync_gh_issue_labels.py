@@ -1,7 +1,7 @@
 import logging
 import os
 import unittest.mock as umock
-from typing import Dict, Generator, List, Optional
+from typing import Generator, List, Optional
 
 import pytest
 
@@ -12,16 +12,28 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 
-def _get_label_data() -> Dict[str, str]:
-    return {"name": "test", "description": "test label", "color": "FF0000"}
+def _get_label_data() -> dshgdsgil.Label:
+    """
+    Create an example test label data.
 
-
-def _make_mock_label(label_data: Dict[str, str]) -> umock.Mock:
-    label = umock.Mock()
-    label.name = label_data["name"]
-    label.color = label_data["color"]
-    label.description = label_data["description"]
+    :return: a Label instance with test data
+    """
+    label = dshgdsgil.Label("test", "test label", "FF0000")
     return label
+
+
+def _make_mock_label(label: dshgdsgil.Label) -> umock.Mock:
+    """
+    Create a mock label with the same attributes as the input label.
+
+    :param label: the Label instance to mock
+    :return: a Mock instance with the same attributes as the input label
+    """
+    mock_label = umock.Mock()
+    mock_label.name = label.name
+    mock_label.color = label.color
+    mock_label.description = label.description
+    return mock_label
 
 
 # #############################################################################
@@ -36,10 +48,7 @@ class TestLabel1(hunitest.TestCase):
         Test saving a label object to a file.
         """
         # Prepare inputs.
-        label_data = _get_label_data()
-        input_label = dshgdsgil.Label(
-            label_data["name"], label_data["description"], label_data["color"]
-        )
+        input_label = _get_label_data()
         temp_dir = self.get_scratch_space()
         tmp_file_name = os.path.join(temp_dir, "test_labels.yaml")
         # Run.
@@ -47,9 +56,9 @@ class TestLabel1(hunitest.TestCase):
         # Check the output.
         actual = hio.from_file(tmp_file_name)
         expected = f"""
-        - name: {label_data["name"]}
-          description: {label_data["description"]}
-          color: {label_data["color"]}
+        - name: {input_label.name}
+          description: {input_label.description}
+          color: {input_label.color}
         """
         self.assert_equal(actual, expected, fuzzy_match=True)
 
@@ -58,14 +67,14 @@ class TestLabel1(hunitest.TestCase):
         Test loading a label object from a file.
         """
         # Prepare inputs.
-        label_data = _get_label_data()
+        input_label = _get_label_data()
         temp_dir = self.get_scratch_space()
         tmp_file_name = os.path.join(temp_dir, "test_labels.yaml")
-        # Create a file with known content.
+        # Create a file with the label data to load.
         txt = f"""
-        - name: {label_data["name"]}
-          description: {label_data["description"]}
-          color: {label_data["color"]}
+        - name: {input_label.name}
+          description: {input_label.description}
+          color: {input_label.color}
         """
         hio.to_file(tmp_file_name, txt)
         # Load the label.
@@ -78,9 +87,9 @@ class TestLabel1(hunitest.TestCase):
         color={output_label.color}
         """
         expected = f"""
-        name={label_data["name"]}
-        description={label_data["description"]}
-        color={label_data["color"]}
+        name={input_label.name}
+        description={input_label.description}
+        color={input_label.color}
         """
         self.assert_equal(actual, expected, fuzzy_match=True)
 
@@ -137,8 +146,8 @@ class TestDockerizedSyncGitHubIssueLabels(hunitest.TestCase):
         """
         # Prepare inputs.
         self.mock_repo.get_labels.return_value = []
-        label_data = _get_label_data()
-        input_label = self._save_label(label_data)
+        input_label = _get_label_data()
+        dshgdsgil.Label.save_labels([input_label], self.tmp_file_name)
         # Run.
         self._run_with_args()
         # Check if the mock was called.
@@ -154,26 +163,18 @@ class TestDockerizedSyncGitHubIssueLabels(hunitest.TestCase):
         different properties.
         """
         # Prepare inputs.
-        repo_label_data = {
-            "name": "test",
-            "description": "old desc",
-            "color": "00FF00",
-        }
-        yaml_label_data = {
-            "name": "test",
-            "description": "new desc",
-            "color": "FF0000",
-        }
-        mock_label = _make_mock_label(repo_label_data)
+        repo_label = dshgdsgil.Label("test", "old desc", "00FF00")
+        yaml_label = dshgdsgil.Label("test", "new desc", "FF0000")
+        mock_label = _make_mock_label(repo_label)
         self.mock_repo.get_labels.return_value = [mock_label]
-        input_label = self._save_label(yaml_label_data)
+        dshgdsgil.Label.save_labels([yaml_label], self.tmp_file_name)
         # Run.
         self._run_with_args()
         # Check if the mock was called.
         mock_label.edit.assert_called_once_with(
-            name=input_label.name,
-            color=input_label.color,
-            description=input_label.description,
+            name=yaml_label.name,
+            color=yaml_label.color,
+            description=yaml_label.description,
         )
 
     def test_identical_label(self) -> None:
@@ -181,13 +182,14 @@ class TestDockerizedSyncGitHubIssueLabels(hunitest.TestCase):
         Test that no changes are made when label exists and is identical.
         """
         # Prepare inputs.
-        label_data = _get_label_data()
-        mock_label = _make_mock_label(label_data)
+        input_label = _get_label_data()
+        mock_label = _make_mock_label(input_label)
         self.mock_repo.get_labels.return_value = [mock_label]
-        self._save_label(label_data)
+        dshgdsgil.Label.save_labels([input_label], self.tmp_file_name)
         # Run.
         self._run_with_args()
         # Check if the mock was called.
+        self.mock_repo.create_label.assert_not_called()
         mock_label.edit.assert_not_called()
         mock_label.delete.assert_not_called()
 
@@ -197,16 +199,8 @@ class TestDockerizedSyncGitHubIssueLabels(hunitest.TestCase):
         prune is enabled.
         """
         # Prepare inputs.
-        repo_label1 = {
-            "name": "to_prune1",
-            "description": "desc1",
-            "color": "FF0000",
-        }
-        repo_label2 = {
-            "name": "to_prune2",
-            "description": "desc2",
-            "color": "00FF00",
-        }
+        repo_label1 = dshgdsgil.Label("to_prune1", "desc1", "FF0000")
+        repo_label2 = dshgdsgil.Label("to_prune2", "desc2", "00FF00")
         mock_label1 = _make_mock_label(repo_label1)
         mock_label2 = _make_mock_label(repo_label2)
         self.mock_repo.get_labels.return_value = [mock_label1, mock_label2]
@@ -242,16 +236,3 @@ class TestDockerizedSyncGitHubIssueLabels(hunitest.TestCase):
         with umock.patch("sys.argv", ["script"] + args):
             parser = dshgdsgil._parse()
             dshgdsgil._main(parser)
-
-    def _save_label(self, label_data: Dict[str, str]) -> dshgdsgil.Label:
-        """
-        Create a Label from label_data and save it to a YAML file.
-
-        :param label_data: the label data to save
-        :return: the Label instance
-        """
-        label = dshgdsgil.Label(
-            label_data["name"], label_data["description"], label_data["color"]
-        )
-        dshgdsgil.Label.save_labels([label], self.tmp_file_name)
-        return label
