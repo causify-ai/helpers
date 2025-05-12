@@ -233,15 +233,26 @@ def _render_image_code(
         if not image_code_txt.endswith("@enduml"):
             image_code_txt = f"{image_code_txt}\n@enduml"
     elif image_code_type == "tikz":
-        image_code_tmp = r"""
-        \documentclass[tikz, border=10pt]{standalone}
-        \usepackage{tikz}
-        \begin{document}
-        """
-        image_code_tmp = hprint.dedent(image_code_tmp)
-        image_code_tmp += image_code_txt
-        image_code_tmp += r"\end{document}"
-        image_code_txt = image_code_tmp
+        if False:
+            start_tag = r"""
+            \documentclass[tikz, border=10pt]{standalone}
+            \usepackage{tikz}
+            \begin{document}
+            """
+        else:
+            start_tag = r"""
+            \documentclass{standalone}
+            \usepackage{tikz}
+            \usepackage{amsmath}
+            \begin{document}
+            \begin{tikzpicture}
+            """
+        start_tag = hprint.dedent(start_tag)
+        end_tag = hprint.dedent(r"""
+        \end{tikzpicture}
+        \end{document}
+        """)
+        image_code_txt = "\n".join([start_tag, image_code_txt, end_tag])
     # Get paths for rendered files.
     # TODO(gp): The fact that we compute the image file path here makes it
     # not possible to use a decorator to implement the caching.
@@ -285,8 +296,8 @@ def _render_image_code(
             hdocker.run_dockerized_mermaid(in_code_file_path, out_img_file_path,
                 force_rebuild=force_rebuild, use_sudo=use_sudo)
         elif image_code_type == "tikz":
-            cmd_opts: List[str] = []
-            hdocker.dockerized_tikz_to_bitmap(in_code_file_path, cmd_opts, out_img_file_path,
+            cmd_opts: List[str] = ["-density 300", "-quality 10"]
+            hdocker.run_dockerized_tikz_to_bitmap(in_code_file_path, cmd_opts, out_img_file_path,
                 force_rebuild=force_rebuild, use_sudo=use_sudo)
         elif image_code_type == "graphviz":
             cmd_opts: List[str] = []
