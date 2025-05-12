@@ -125,11 +125,13 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
         """
         _ = path
         _ = config
-        path = pathlib.Path(collection_path)
         # Ref: https://docs.pytest.org/en/stable/_modules/_pytest/hookspec.html#pytest_ignore_collect
         # Return `True` to ignore this path for collection.
         # Return `None` to let other plugins ignore the path for collection.
-        if path.is_dir() and (path / "runnable_dir").exists():
+        if (
+            collection_path.is_dir()
+            and (collection_path / "runnable_dir").exists()
+        ):
             # Exclude this directory.
             return True
 
