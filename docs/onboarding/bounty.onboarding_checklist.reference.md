@@ -3,8 +3,9 @@
 <!-- toc -->
 
 - [Checklist](#checklist)
+  * [Final checks](#final-checks)
 - [Instructions](#instructions)
-  * [Org](#org)
+  * [General organization](#general-organization)
   * [Working on a bounty](#working-on-a-bounty)
 
 <!-- tocstop -->
@@ -14,23 +15,42 @@
 - Source:
   [`bounty.onboarding_checklist.reference.md`](https://github.com/causify-ai/helpers/blob/master/docs/onboarding/bounty.onboarding_checklist.reference.md)
 
-- [ ] **Contributor**: Fork the repos
+- [ ] **Contributor**: Clone the repos
   - [ ] [helpers](https://github.com/causify-ai/helpers)
   - [ ] [tutorials](https://github.com/causify-ai/tutorials)
 - [ ] **Contributor**: Set up the development environment following instructions
       in
       [`intern.set_up_development_on_laptop.how_to_guide.md`](https://github.com/causify-ai/helpers/blob/master/docs/onboarding/intern.set_up_development_on_laptop.how_to_guide.md)
 - [ ] **Contributor**: Carefully study all the documents in the must-read list:
-  - [ ] [Coding style guide](https://github.com/causify-ai/helpers/blob/master/docs/coding/all.coding_style.how_to_guide.md)
-  - [ ] [How to write unit tests](https://github.com/causify-ai/helpers/blob/master/docs/coding/all.write_unit_tests.how_to_guide.md)
-  - [ ] [How to run unit tests](https://github.com/causify-ai/helpers/blob/master/docs/coding/all.run_unit_tests.how_to_guide.md)
-  - [ ] [Creating a Jupyter Notebook](https://github.com/causify-ai/helpers/blob/master/docs/coding/all.jupyter_notebook.how_to_guide.md)
-  - [ ] [What to do before opening a PR](https://github.com/causify-ai/helpers/blob/master/docs/coding/all.submit_code_for_review.how_to_guide.md)
-  - [ ] [Code review process](https://github.com/causify-ai/helpers/blob/master/docs/coding/all.code_review.how_to_guide.md)
-  - [ ] [Git workflows and best practices](https://github.com/causify-ai/helpers/blob/master/docs/work_tools/git/all.git.how_to_guide.md)
+  - [ ] **Carefully** study all the documents in
+        [the must-read list](https://github.com/causify-ai/helpers/blob/master/docs/onboarding/all.dev_must_read_checklist.reference.md)
+  - [ ] [General rules of collaboration](https://github.com/causify-ai/helpers/blob/master/docs/work_organization/all.team_collaboration.how_to_guide.md)
+  - [ ] [Coding style guide](https://github.com/causify-ai/helpers/blob/master/docs/code_guidelines/all.coding_style.how_to_guide.md)
+  - [ ] [How to write unit tests](https://github.com/causify-ai/helpers/blob/master/docs/tools/unit_test/all.write_unit_tests.how_to_guide.md)
+  - [ ] [How to run unit tests](https://github.com/causify-ai/helpers/blob/master/docs/tools/unit_test/all.run_unit_tests.how_to_guide.md)
+  - [ ] [Creating a Jupyter Notebook](https://github.com/causify-ai/helpers/blob/master/docs/tools/notebooks/all.jupyter_notebook.how_to_guide.md)
+  - [ ] [What to do before opening a PR](https://github.com/causify-ai/helpers/blob/master/docs/code_guidelines/all.submit_code_for_review.how_to_guide.md)
+  - [ ] [Code review process](https://github.com/causify-ai/helpers/blob/master/docs/code_guidelines/all.code_review.how_to_guide.md)
+  - [ ] [Git workflows and best practices](https://github.com/causify-ai/helpers/blob/master/docs/tools/git/all.git.how_to_guide.md)
   - [ ] [GitHub organization](https://github.com/causify-ai/helpers/blob/master/docs/work_organization/all.use_github.how_to_guide.md)
   - [ ] [Tips for writing documentation](https://github.com/causify-ai/helpers/blob/master/docs/documentation_meta/all.writing_docs.how_to_guide.md)
   - They will help you get up to speed with our practices and development style
+  - Read them carefully one by one
+  - Ask questions
+  - Memorize / internalize all the information
+  - Take notes
+  - Mark the reading as done
+  - Open a GH issue/PR to propose improvements to the documentation
+
+### Final checks
+
+- [ ] **Contributor**: Exercise all the important parts of the systems
+  - [ ] Check out and pull the latest version of the repo code
+  - [ ] Create a branch
+  - [ ] Run regressions (`i run_fast_tests`)
+  - [ ] Run Linter (`i lint --files="..."`)
+  - [ ] Start a Docker container (`i docker_bash`)
+  - [ ] Start a Jupyter server (`i docker_jupyter`)
 
 ## Instructions
 
@@ -82,11 +102,11 @@
     money with very little work
 - All code needs to be written using our coding style
   - See [`template_code.py`](/template_code.py),
-    [coding style doc](/docs/coding/all.coding_style.how_to_guide.md),
-    [examples of good code](/docs/coding/all.submit_code_for_review.how_to_guide.md#compare-your-code-to-example-code)
+    [coding style doc](/docs/code_guidelines/all.coding_style.how_to_guide.md),
+    [examples of good code](/docs/code_guidelines/all.submit_code_for_review.how_to_guide.md#compare-your-code-to-example-code)
   - We provide our Linter and our AI code-styler / reviewer (once available) to
     help with formatting and style fixes
 - All code needs to be unit tested according to our
-  [standards and infrastructure](/docs/coding/all.write_unit_tests.how_to_guide.md)
+  [standards and infrastructure](/docs/tools/unit_test/all.write_unit_tests.how_to_guide.md)
 - The project needs to be documented in the way we
   [document software](/docs/documentation_meta/all.writing_docs.how_to_guide.md)

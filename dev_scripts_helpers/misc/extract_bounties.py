@@ -3,8 +3,8 @@
 """
 Given the list of potential bounties.
 
-> curl -L -o output.md "https://docs.google.com/document/d/1xPgQ2tWXQuVWKkGVONjOGd5j14mXSmGeY_4d1_sGzAE/export?format=markdown"
-> grep "## " output.md
+> curl -L -o bounties.md "https://docs.google.com/document/d/1xPgQ2tWXQuVWKkGVONjOGd5j14mXSmGeY_4d1_sGzAE/export?format=markdown"
+> grep "## " bounties.md
 ## **Template**
 ## **LLMs**
 ### **Capture / replay interactions with OpenAI**
@@ -18,11 +18,8 @@ This script processes a markdown file to extract level 2 (##) and level 3 (###) 
 then creates files named with the format: level3_section,level2_section.txt
 
 Examples:
-# Process a markdown file and create files in default 'output' directory
-> extract_markdown_sections.py input.md
-
-# Process a markdown file and create files in specified directory
-> extract_markdown_sections.py input.md --dst_dir my_output
+> extract_bounties.py --input_file bounties.md
+> extract_bounties.py --input_file bounties.md --output_file output.txt
 """
 
 import argparse
@@ -36,6 +33,32 @@ import helpers.hparser as hparser
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
+
+
+def _parse() -> argparse.ArgumentParser:
+    """
+    Parse command-line arguments.
+
+    :return: argument parser with all command-line arguments
+    """
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    parser.add_argument(
+        "--input_file",
+        action="store",
+        required=True,
+        help="Path to the markdown file to process",
+    )
+    parser.add_argument(
+        "--output_file",
+        action="store",
+        required=False,
+        default=None,
+        help="Path to the output file to process",
+    )
+    hparser.add_verbosity_arg(parser)
+    return parser
 
 
 def _clean_up(line: str) -> str:
@@ -73,32 +96,6 @@ def _extract_sections(markdown_content: str) -> List[Tuple[str, str]]:
             level3_section = _clean_up(level3_section)
             sections.append((current_level2, level3_section))
     return sections
-
-
-def _parse() -> argparse.ArgumentParser:
-    """
-    Parse command-line arguments.
-
-    :return: argument parser with all command-line arguments
-    """
-    parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
-    )
-    parser.add_argument(
-        "--input_file",
-        action="store",
-        required=True,
-        help="Path to the markdown file to process",
-    )
-    parser.add_argument(
-        "--output_file",
-        action="store",
-        required=False,
-        default=None,
-        help="Path to the output file to process",
-    )
-    hparser.add_verbosity_arg(parser)
-    return parser
 
 
 def _main(parser: argparse.ArgumentParser) -> None:

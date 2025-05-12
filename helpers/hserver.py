@@ -807,6 +807,8 @@ def enable_privileged_mode() -> bool:
             ret = True
         elif is_inside_ci():
             ret = True
+        elif is_external_linux():
+            ret = True
         elif is_host_mac(version="Catalina"):
             # Docker for macOS Catalina supports dind.
             ret = True
@@ -896,6 +898,7 @@ def get_shared_data_dirs() -> Optional[Dict[str, str]]:
         shared_data_dirs = {
             "/data/shared": "/shared_data",
             "/data/shared2": "/shared_data2",
+            "/data/shared_k8s": "/shared_k8s",
         }
     elif is_external_dev() or is_inside_ci() or is_prod_csfy():
         shared_data_dirs = None

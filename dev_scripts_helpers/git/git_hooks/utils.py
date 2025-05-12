@@ -194,6 +194,17 @@ def check_master(abort_on_error: bool = True) -> None:
 # #############################################################################
 
 
+def _is_valid_email(email: str) -> bool:
+    """
+    Check if the email is valid.
+
+    :param email: email address to check
+    :return: True if the email is valid, False otherwise
+    """
+    pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+    return bool(re.match(pattern, email))
+
+
 def check_author(abort_on_error: bool = True) -> None:
     """
     Ensure that the committer use a gmail and not a corporate account.
@@ -219,7 +230,7 @@ def check_author(abort_on_error: bool = True) -> None:
     print(f"user_email='{user_email}'")
     # Check.
     error = False
-    if not user_email.endswith("@gmail.com"):
+    if not _is_valid_email(user_email):
         _LOG.error("user_email='%s' is incorrect", user_email)
         error = True
     # Handle error.
