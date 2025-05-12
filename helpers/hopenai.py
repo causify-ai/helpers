@@ -30,6 +30,7 @@ _LOG = logging.getLogger(__name__)
 
 # _LOG.debug = _LOG.info
 _MODEL = "gpt-4o-mini"
+_CACHE_MODE ="CAPTURE"
 _TEMPERATURE = 0.1
 _CACHE_FILE = "cache.get_completion.json"
 
@@ -82,12 +83,23 @@ def _extract(
 
 
 class OpenAICache:
-    def __init__(self):
+    def __init__(self, cache_file: str =_CACHE_FILE):
+        self.cache_file = cache_file
+        # Load the existing file(may not exist or may be invalid JSON)
         try:
-            with open(_CACHE_FILE, "r") as f:
+            with open(self.cache_file, "r") as f:
                 self.cache = json.load(f)
-        except FileNotFoundError:
-            # Responses will be stored in entries.
+        except (FileNotFoundError , json.JSONDecodeError):
+            self.cache= None
+       
+        # Validates structure
+        if (not isinstance(self.cache, dict)
+            or "version" not in self.cache
+            or "metadata" not in self.cache
+            or "entries" not in self.cache
+            or not isinstance(self.cache["entries"], dict) ):
+
+        # Responses will be stored in entries.
             self.cache = {"version": "1.0",
                           "metadata": {
                             "created_at": datetime.datetime.now().isoformat(),
@@ -95,7 +107,7 @@ class OpenAICache:
                           },
                           "entries":{}
                          }
-            with open(_CACHE_FILE, "w") as f:
+            with open(self.cache_file , "w") as f:
                 json.dump(self.cache, f)
 
     def hash_key_generator(
@@ -171,7 +183,7 @@ class OpenAICache:
         self.cache["entries"][hash_key] = entry
         self.cache["metadata"]["last_updated"] = datetime.datetime.now().isoformat()
 
-        with open(_CACHE_FILE, 'w') as f:
+        with open(self.cache_file , 'w') as f:
           json.dump(self.cache, f, indent=2 )
 
             
@@ -179,7 +191,7 @@ class OpenAICache:
         """
         Load the response from the cache directory.
         """
-        with open(_CACHE_FILE, "r") as f:
+        with open(self.cache_file , "r") as f:
             openai_response = json.load(f)["entries"][hash_key]["response"]
             return openai_response["choices"][0]["message"]["content"]
 
@@ -287,7 +299,7 @@ def get_completion(
     model: Optional[str] = None,
     report_progress: bool = False,
     print_cost: bool = False,
-    cache_mode: str ="DISABLED",
+    cache_mode: str =None,
     **create_kwargs,
 ) -> str:
     """
@@ -308,6 +320,7 @@ def get_completion(
     """
 
     model = _MODEL if model is None else model
+    cache_mode = _CACHE_MODE if cache_mode is None else cache_mode
     client = OpenAI()
     print("OpenAI API call ... ")
     memento = htimer.dtimer_start(logging.DEBUG, "OpenAI API call")
@@ -326,7 +339,7 @@ def get_completion(
     )
 
     if cache_mode in ("REPLAY", "FALLBACK"):
-        
+        # Checks for response in cache
         if cache.has_cache(hash_key):
             return cache.load_response_from_cache(hash_key)
         else:
