@@ -29,6 +29,9 @@ root    ALL=(ALL:ALL) ALL
 # Mac user.
 user_501 ALL=(ALL) NOPASSWD:ALL
 # Linux users.
+# Some users from external Linux systems have the same user ID (`1000`)
+# as the `ubuntu` user in the Docker container.
+ubuntu ALL=(ALL) NOPASSWD:ALL
 user_1000 ALL=(ALL) NOPASSWD:ALL
 user_1001 ALL=(ALL) NOPASSWD:ALL
 user_1002 ALL=(ALL) NOPASSWD:ALL
