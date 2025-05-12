@@ -472,7 +472,7 @@
   - E.g., write prototype in Python and then code the production system in C++
 
 - Tracer code:
-  - Build architectural skeleton
+  - Build architectural template
   - Components have minimal implementation
   - Over time stubbed routines are completed
   - The framework stays intact

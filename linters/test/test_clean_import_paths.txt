@@ -67,7 +67,7 @@
 //src/helpers/translate.py
 //src/helpers/tunnels.py
 //src/helpers/unit_test.py
-//src/helpers/unit_test_skeleton.py
+//src/helpers/unit_test_template.py
 //src/helpers/user_credentials.py
 //src/import_check/__init__.py
 //src/import_check/example_input/subdir1/__init__.py

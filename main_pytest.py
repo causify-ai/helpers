@@ -115,7 +115,7 @@ def _run_test(runnable_dir: str, command: str) -> None:
 
 def _find_runnable_dirs() -> List[str]:
     """
-    Find all runnable directories in the current repo.
+    Find all the runnable directories in the current repo.
 
     We use the `runnable_dir` file as a marker to identify runnable directories.
 

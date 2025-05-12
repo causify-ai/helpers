@@ -13,7 +13,7 @@ To run in vim:
 :'<,'>!dev_scripts/documentation/run_pandoc.py -i - -o - -v CRITICAL
 ```
 
-This script is derived from `dev_scripts/transform_skeleton.py`.
+This script is derived from `dev_scripts/transform_template.py`.
 """
 
 import argparse
