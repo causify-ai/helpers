@@ -9,10 +9,8 @@ import functools
 import hashlib
 import json
 import logging
-import os
 import re
 from typing import Any, Dict, List, Optional, Tuple
-
 
 import openai
 import tqdm
@@ -30,7 +28,7 @@ _LOG = logging.getLogger(__name__)
 
 # _LOG.debug = _LOG.info
 _MODEL = "gpt-4o-mini"
-_CACHE_MODE ="CAPTURE"
+_CACHE_MODE = "CAPTURE"
 _TEMPERATURE = 0.1
 _CACHE_FILE = "cache.get_completion.json"
 
@@ -78,79 +76,82 @@ def _extract(
 
 
 # #############################################################################
-# OpenAI API cache helper class
+# OpenAICache
 # #############################################################################
 
 
 class OpenAICache:
-    def __init__(self, cache_file: str =_CACHE_FILE):
+
+    def __init__(self, cache_file: str = _CACHE_FILE):
         self.cache_file = cache_file
         # Load the existing file(may not exist or may be invalid JSON)
         try:
             with open(self.cache_file, "r") as f:
                 self.cache = json.load(f)
-        except (FileNotFoundError , json.JSONDecodeError):
-            self.cache= None
-       
+        except (FileNotFoundError, json.JSONDecodeError):
+            self.cache = None
         # Validates structure
-        if (not isinstance(self.cache, dict)
+        if (
+            not isinstance(self.cache, dict)
             or "version" not in self.cache
             or "metadata" not in self.cache
             or "entries" not in self.cache
-            or not isinstance(self.cache["entries"], dict) ):
-
-        # Responses will be stored in entries.
-            self.cache = {"version": "1.0",
-                          "metadata": {
-                            "created_at": datetime.datetime.now().isoformat(),
-                            "last_updated": datetime.datetime.now().isoformat(),
-                          },
-                          "entries":{}
-                         }
-            with open(self.cache_file , "w") as f:
+            or not isinstance(self.cache["entries"], dict)
+        ):
+            # Responses will be stored in entries.
+            self.cache = {
+                "version": "1.0",
+                "metadata": {
+                    "created_at": datetime.datetime.now().isoformat(),
+                    "last_updated": datetime.datetime.now().isoformat(),
+                },
+                "entries": {},
+            }
+            with open(self.cache_file, "w") as f:
                 json.dump(self.cache, f)
 
     def hash_key_generator(
-            self,
-            model: str,
-            messages: List[Dict[str, str]],
-            # *,
-            # temperature: Optional[float] = None,
-            # top_p: Optional[float] = None,
-            # n: Optional[int] = None,
-            # max_completion_tokens: Optional[int] = None,
-            # presence_penalty: Optional[float] = None,
-            # frequency_penalty: Optional[float] = None,
-            # logit_bias: Optional[Dict[int, float]] = None,
-            # user: Optional[str] = None,
-            **extra_kwargs: Any,
+        self,
+        model: str,
+        messages: List[Dict[str, str]],
+        # *,
+        # temperature: Optional[float] = None,
+        # top_p: Optional[float] = None,
+        # n: Optional[int] = None,
+        # max_completion_tokens: Optional[int] = None,
+        # presence_penalty: Optional[float] = None,
+        # frequency_penalty: Optional[float] = None,
+        # logit_bias: Optional[Dict[int, float]] = None,
+        # user: Optional[str] = None,
+        **extra_kwargs: Any,
     ) -> str:
         """
         Generates a hash key for the OpenAI request.
         """
         norm_msgs = []
         for m in messages:
-            norm_msgs.append({
-                "role": m["role"].strip().lower(),
-                "content": " ".join(m["content"].split()).lower()
-            })
+            norm_msgs.append(
+                {
+                    "role": m["role"].strip().lower(),
+                    "content": " ".join(m["content"].split()).lower(),
+                }
+            )
 
         key_obj: Dict[str, Any] = {
             "model": model.strip().lower(),
             "messages": norm_msgs,
         }
 
-
         for name in sorted(extra_kwargs):
             key_obj[name] = extra_kwargs[name]
 
         serialized = json.dumps(
             key_obj,
-             # no spaces
+            # no spaces
             separators=(",", ":"),
-             # keys in alphabetical order  
-            sort_keys=True,         
-            ensure_ascii=False
+            # keys in alphabetical order
+            sort_keys=True,
+            ensure_ascii=False,
         )
         return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
 
@@ -159,31 +160,29 @@ class OpenAICache:
         Checks if the hash key is in the cache.
         """
         return hash_key in self.cache["entries"]
-    
-    def save_response_to_cache(self, hash_key: str, request: dict, response: dict):
+
+    def save_response_to_cache(
+        self, hash_key: str, request: dict, response: dict
+    ):
         """
         Save the cache to the cache directory.
         """
-        entry =  {
-            "request": request,
-            "response": response
-        }
+        entry = {"request": request, "response": response}
         self.cache["entries"][hash_key] = entry
-        self.cache["metadata"]["last_updated"] = datetime.datetime.now().isoformat()
+        self.cache["metadata"][
+            "last_updated"
+        ] = datetime.datetime.now().isoformat()
+        with open(self.cache_file, "w") as f:
+            json.dump(self.cache, f, indent=2)
 
-        with open(self.cache_file , 'w') as f:
-          json.dump(self.cache, f, indent=2 )
-
-            
     def load_response_from_cache(self, hash_key: str) -> dict:
         """
         Load the response from the cache directory.
         """
-        with open(self.cache_file , "r") as f:
+        with open(self.cache_file, "r") as f:
             openai_response = json.load(f)["entries"][hash_key]["response"]
             return openai_response["choices"][0]["message"]["content"]
 
-            
 
 # #############################################################################
 # OpenAI API Helpers
@@ -192,8 +191,10 @@ class OpenAICache:
 
 _CURRENT_OPENAI_COST = None
 
-def _construct_messages(system_prompt: str, user_prompt: str) ->  List[Dict[str, str]]:
-    
+
+def _construct_messages(
+    system_prompt: str, user_prompt: str
+) -> List[Dict[str, str]]:
     """
     Construct the standard messages payload for the chat API.
     """
@@ -201,6 +202,7 @@ def _construct_messages(system_prompt: str, user_prompt: str) ->  List[Dict[str,
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_prompt},
     ]
+
 
 def call_api_sync(
     client: OpenAI,
@@ -217,6 +219,7 @@ def call_api_sync(
         **create_kwargs,
     )
     return completion.choices[0].message.content, completion
+
 
 def start_logging_costs():
     global _CURRENT_OPENAI_COST
@@ -278,7 +281,6 @@ def _calculate_cost(
     return cost
 
 
-
 @functools.lru_cache(maxsize=1024)
 def get_completion(
     user_prompt: str,
@@ -287,7 +289,7 @@ def get_completion(
     model: Optional[str] = None,
     report_progress: bool = False,
     print_cost: bool = False,
-    cache_mode: str =_CACHE_MODE,
+    cache_mode: str = _CACHE_MODE,
     cache_file: str = _CACHE_FILE,
     **create_kwargs,
 ) -> str:
@@ -300,7 +302,7 @@ def get_completion(
     :param create_kwargs: additional params for the API call
     :param report_progress: whether to report progress running the API
         call
-    :param cache_mode : "DISABLED","CAPTURE", "REPLAY", "FALLBACK" 
+    :param cache_mode : "DISABLED","CAPTURE", "REPLAY", "FALLBACK"
         - "DISABLED" : No caching
         - "CAPTURE" :  Make API calls and save responses to cache
         - "REPLAY" : Uses cached responses, fail if not in cache
@@ -310,18 +312,12 @@ def get_completion(
 
     model = _MODEL if model is None else model
     # Construct messages in OpenAI format
-    messages =  _construct_messages(system_prompt, user_prompt)
+    messages = _construct_messages(system_prompt, user_prompt)
     cache = OpenAICache(cache_file=cache_file)
-    # Dic makes easy to reuse it 
-    request_params = {
-        "model": model,
-        "messages": messages,
-        **create_kwargs
-    }
-    
-    hash_key = cache.hash_key_generator(
-        **request_params
-    )
+    # Dic makes easy to reuse it
+    request_params = {"model": model, "messages": messages, **create_kwargs}
+
+    hash_key = cache.hash_key_generator(**request_params)
 
     if cache_mode in ("REPLAY", "FALLBACK"):
         # Checks for response in cache
@@ -329,22 +325,26 @@ def get_completion(
             print("Loading from the cache!")
             return cache.load_response_from_cache(hash_key)
         else:
-            if  cache_mode == "REPLAY":
-                raise RuntimeError(f"No cached response for this request parameters!")
-    
+            if cache_mode == "REPLAY":
+                raise RuntimeError(
+                    f"No cached response for this request parameters!"
+                )
+
     if cache_mode in ("DISABLED", "CAPTURE", "FALLBACK"):
         call_api = True
     else:
         call_api = False
-    
+
     if not call_api:
         raise ValueError(f"Unsupported cache mode: {cache_mode}")
-    
+
     client = OpenAI()
     print("OpenAI API call ... ")
     memento = htimer.dtimer_start(logging.DEBUG, "OpenAI API call")
     if not report_progress:
-        response, completion = call_api_sync(client, messages, model, **create_kwargs) 
+        response, completion = call_api_sync(
+            client, messages, model, **create_kwargs
+        )
     else:
         # TODO(gp): This is not working. It doesn't show the progress and it
         # doesn't show the cost.
@@ -372,9 +372,11 @@ def get_completion(
     cost = _calculate_cost(completion, model, print_cost)
     # Accumulate the cost.
     _accumulate_cost_if_needed(cost)
-    
+
     if cache_mode != "DISABLED":
-        cache.save_response_to_cache(hash_key, request =request_params,  response =completion.to_dict())
+        cache.save_response_to_cache(
+            hash_key, request=request_params, response=completion.to_dict()
+        )
     return response
 
 
@@ -659,10 +661,3 @@ def apply_prompt_to_dataframe(
         response_data.extend(processed_response)
     df[response_col] = response_data
     return df
-
-
-
-
-    
-            
-    
