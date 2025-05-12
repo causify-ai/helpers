@@ -1,7 +1,7 @@
 import logging
 import os
 import pathlib
-from typing import Any, Generator
+from typing import Any, Generator, Optional
 
 import helpers.hdbg as dbg
 import helpers.hunit_test as hut
@@ -110,22 +110,21 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
         # TODO(gp): redirect also the stderr to file.
         dbg.init_logger(level, in_pytest=True, log_filename="tmp.pytest.log")
 
-    def pytest_ignore_collect(path: str, config: Any):
+    def pytest_ignore_collect(path: str, config: Any) -> Optional[bool]:
         """
         Skip runnable directories.
 
         We use the `runnable_dir` file as a marker to identify runnable directories.
 
-        :param path: path to the directory to check.
+        :param path: path to the directory to check
         :param config: pytest config object
-        :return: True if the directory should be ignored, False otherwise
+        :return: True if the directory should be ignored
         """
         _ = config
         path = pathlib.Path(path)
         if path.is_dir() and (path / "runnable_dir").exists():
             # Exclude this directory.
             return True
-        # return False
 
     if "PYANNOTATE" in os.environ:
         print("\nWARNING: Collecting information about types through pyannotate")
