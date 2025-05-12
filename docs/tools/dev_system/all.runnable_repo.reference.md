@@ -280,7 +280,7 @@ graph TD
   developers can use external tools to edit the code (e.g., vim, PyCharm,
   VSCode)
 - The `dev` container mounts the outermost repo so runnable dirs that are sub
-  directories can see and use //helpers submodule
+  directories can see and use `//helpers` submodule
 
 ### Buiding `prod` container
 
@@ -309,17 +309,18 @@ graph TD
   - However, it should be able to import from other dirs in the same repo as
     well
   - For example,
-    - In a set up where //cmamp is a runnable repo and //cmamp/optimizer is a
-      runnable dir
-    - All the imports in //cmamp/optimizer should start from //cmamp rather than
-      //cmamp/optimizer
+    - In a set up where `//cmamp` is a runnable repo and `//cmamp/optimizer` is
+      a runnable dir
+    - All the imports in `//cmamp/optimizer` should start from `//cmamp` rather
+      than `//cmamp/optimizer`
 
 - Only runnable dirs (which are runnable repos and can be submodules of other
-  repos), such as //helpers, should use relative imports
+  repos), such as `//helpers`, should use relative imports
   - For example,
-    - In a setup where //helpers is a submodule of //cmamp (i.e.,
-      //cmamp/helpers_root)
-    - All imports in //helpers can start from //helpers rather than //cmamp
+    - In a setup where `//helpers` is a submodule of `//cmamp` (i.e.,
+      `//cmamp/helpers_root`)
+    - All imports in `//helpers` can start from `//helpers` rather than
+      `//cmamp`
 
 ## pytest
 
