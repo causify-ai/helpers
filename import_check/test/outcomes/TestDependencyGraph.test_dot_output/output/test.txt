@@ -1,0 +1,11 @@
+strict digraph {
+"tmp.scratch/module_e.py";
+"tmp.scratch/module_d.py";
+"tmp.scratch/module_a.py";
+"tmp.scratch/module_c.py";
+"tmp.scratch/module_b.py";
+"tmp.scratch/module_e.py" -> "tmp.scratch/module_d.py";
+"tmp.scratch/module_d.py" -> "tmp.scratch/module_e.py";
+"tmp.scratch/module_c.py" -> "tmp.scratch/module_b.py";
+"tmp.scratch/module_b.py" -> "tmp.scratch/module_a.py";
+}
