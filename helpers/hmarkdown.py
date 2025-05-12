@@ -317,8 +317,8 @@ def md_clean_up(txt: str) -> str:
     txt = re.sub(r"\.\s*$", "", txt, flags=re.MULTILINE)
     # Transform `Example: Training a deep` into `E.g., training a deep`,
     # converting the word after `Example:` to lower case.
-    txt = re.sub(r'\bExample:', 'E.g.,', txt)
-    txt = re.sub(r'\bE.g.,\s+(\w)', lambda m: 'E.g., ' + m.group(1).lower(), txt)
+    txt = re.sub(r"\bExample:", "E.g.,", txt)
+    txt = re.sub(r"\bE.g.,\s+(\w)", lambda m: "E.g., " + m.group(1).lower(), txt)
     return txt
 
 

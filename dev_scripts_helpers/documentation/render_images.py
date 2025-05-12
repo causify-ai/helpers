@@ -22,12 +22,12 @@ Usage:
 """
 
 import argparse
+import hashlib
 import logging
 import os
 import re
 import tempfile
-import hashlib
-from typing import List, Tuple, Optional
+from typing import List, Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
@@ -67,7 +67,9 @@ def _get_rendered_file_paths(
     """
     sub_dir = "figs"
     # E.g., "docs/readme.md" -> "/usr/docs", "readme.md".
-    out_file_dir, out_file_name = os.path.split(os.path.abspath(template_out_file))
+    out_file_dir, out_file_name = os.path.split(
+        os.path.abspath(template_out_file)
+    )
     # E.g., "readme".
     out_file_name_body = os.path.splitext(out_file_name)[0]
     # Create the name for the image file, e.g., "readme.1.png".
@@ -82,6 +84,8 @@ def _get_rendered_file_paths(
     return (code_file_path, abs_img_dir_path, rel_img_path)
 
 
+# #############################################################################
+# ImageHashCache
 # #############################################################################
 
 
@@ -135,7 +139,15 @@ class ImageHashCache:
             _LOG.debug("No cache file found at %s", self.cache_file)
             self.cache = {}
 
-    def compute_hash(self, image_code: str, image_code_type: str, out_file: str) -> Tuple[str, dict]:
+    def __contains__(self, entry_key: str) -> bool:
+        """
+        Check if an entry is in the cache.
+        """
+        return entry_key in self.cache
+
+    def compute_hash(
+        self, image_code: str, image_code_type: str, out_file: str
+    ) -> Tuple[str, dict]:
         """
         Compute a hash of the needed computation inputs.
 
@@ -158,25 +170,22 @@ class ImageHashCache:
         cache_key = out_file
         return cache_key, cache_value
 
-    def update_cache(self, cache_key: str, cache_value: str,
-                     *, assert_no_key: bool = False) -> bool:
+    def update_cache(
+        self, cache_key: str, cache_value: str, *, assert_no_key: bool = False
+    ) -> bool:
         """
         Update the cache with a new entry.
         """
         if assert_no_key:
             hdbg.dassert_not_in(cache_key, self.cache)
-        cache_updated = cache_key not in self.cache or self.cache[cache_key] != cache_value
+        cache_updated = (
+            cache_key not in self.cache or self.cache[cache_key] != cache_value
+        )
         if cache_updated:
             self.cache[cache_key] = cache_value
             # Save the cache to the file.
             self._save()
         return cache_updated
-
-    def __contains__(self, entry_key: str) -> bool:
-        """
-        Check if an entry is in the cache.
-        """
-        return entry_key in self.cache
 
     def _load(self) -> dict:
         """
@@ -248,16 +257,18 @@ def _render_image_code(
             \begin{tikzpicture}
             """
         start_tag = hprint.dedent(start_tag)
-        end_tag = hprint.dedent(r"""
+        end_tag = hprint.dedent(
+            r"""
         \end{tikzpicture}
         \end{document}
-        """)
+        """
+        )
         image_code_txt = "\n".join([start_tag, image_code_txt, end_tag])
     # Get paths for rendered files.
     # TODO(gp): The fact that we compute the image file path here makes it
     # not possible to use a decorator to implement the caching.
-    in_code_file_path, abs_img_dir_path, out_img_file_path = _get_rendered_file_paths(
-        out_file, image_code_idx, dst_ext
+    in_code_file_path, abs_img_dir_path, out_img_file_path = (
+        _get_rendered_file_paths(out_file, image_code_idx, dst_ext)
     )
     cache_hit = False
     if use_cache:
@@ -266,7 +277,9 @@ def _render_image_code(
         _LOG.debug(hprint.to_str("cache_file"))
         cache = ImageHashCache(cache_file)
         # Compute hash of inputs.
-        cache_key, cache_value = cache.compute_hash(image_code_txt, image_code_type, out_img_file_path)
+        cache_key, cache_value = cache.compute_hash(
+            image_code_txt, image_code_type, out_img_file_path
+        )
         # Check if the image is cached.
         if cache_key in cache:
             # The image is cached, return the path.
@@ -289,20 +302,37 @@ def _render_image_code(
     else:
         if image_code_type == "plantuml":
             hdocker.run_dockerized_plantuml(
-                in_code_file_path, abs_img_dir_path, dst_ext,
-                force_rebuild=force_rebuild, use_sudo=use_sudo
+                in_code_file_path,
+                abs_img_dir_path,
+                dst_ext,
+                force_rebuild=force_rebuild,
+                use_sudo=use_sudo,
             )
         elif image_code_type == "mermaid":
-            hdocker.run_dockerized_mermaid(in_code_file_path, out_img_file_path,
-                force_rebuild=force_rebuild, use_sudo=use_sudo)
+            hdocker.run_dockerized_mermaid(
+                in_code_file_path,
+                out_img_file_path,
+                force_rebuild=force_rebuild,
+                use_sudo=use_sudo,
+            )
         elif image_code_type == "tikz":
             cmd_opts: List[str] = ["-density 300", "-quality 10"]
-            hdocker.run_dockerized_tikz_to_bitmap(in_code_file_path, cmd_opts, out_img_file_path,
-                force_rebuild=force_rebuild, use_sudo=use_sudo)
+            hdocker.run_dockerized_tikz_to_bitmap(
+                in_code_file_path,
+                cmd_opts,
+                out_img_file_path,
+                force_rebuild=force_rebuild,
+                use_sudo=use_sudo,
+            )
         elif image_code_type == "graphviz":
             cmd_opts: List[str] = []
-            hdocker.run_dockerized_graphviz(in_code_file_path, cmd_opts, out_img_file_path,
-                force_rebuild=force_rebuild, use_sudo=use_sudo)
+            hdocker.run_dockerized_graphviz(
+                in_code_file_path,
+                cmd_opts,
+                out_img_file_path,
+                force_rebuild=force_rebuild,
+                use_sudo=use_sudo,
+            )
         else:
             raise ValueError(f"Invalid type: {image_code_type}")
     # Remove the temp file.
@@ -444,7 +474,9 @@ def _render_images(
             image_code_idx += 1
             # E.g., "plantuml" or "mermaid".
             image_code_type = m.group(2)
-            hdbg.dassert_in(image_code_type, ["plantuml", "mermaid", "tikz", "graphviz"])
+            hdbg.dassert_in(
+                image_code_type, ["plantuml", "mermaid", "tikz", "graphviz"]
+            )
             if m.group(3):
                 hdbg.dassert_eq(user_rel_img_path, "")
                 user_rel_img_path = m.group(4)
@@ -469,7 +501,7 @@ def _render_images(
                     force_rebuild=force_rebuild,
                     use_sudo=use_sudo,
                     dry_run=dry_run,
-                    cache_file=cache_file
+                    cache_file=cache_file,
                 )
                 _ = is_cache_hit
                 # Override the image name if explicitly set by the user.
@@ -600,7 +632,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     in_lines = hio.from_file(in_file).split("\n")
     # Get the updated file lines after rendering.
     out_lines = _render_images(
-        in_lines, out_file, dst_ext,
+        in_lines,
+        out_file,
+        dst_ext,
         force_rebuild=args.dockerized_force_rebuild,
         use_sudo=args.dockerized_use_sudo,
         dry_run=args.dry_run,

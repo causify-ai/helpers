@@ -146,13 +146,15 @@ import pandas as pd
 
 def convert_to_type(col, type_):
     if type_ == "is_bool":
-        return col.map(lambda x: isinstance(x, bool) or
-                       x in ["True", "False", "true", "false"] or 
-                       x in [1, 0, "1", "0"])
+        return col.map(
+            lambda x: isinstance(x, bool)
+            or x in ["True", "False", "true", "false"]
+            or x in [1, 0, "1", "0"]
+        )
     elif type_ == "is_int":
-        return pd.to_numeric(col, errors='coerce')
+        return pd.to_numeric(col, errors="coerce")
     elif type_ == "is_numeric":
-        return pd.to_numeric(col, errors='coerce')
+        return pd.to_numeric(col, errors="coerce")
     elif type_ == "is_string":
         return col.map(lambda x: isinstance(x, str))
     else:
@@ -161,10 +163,10 @@ def convert_to_type(col, type_):
 
 def infer_column_types(col):
     vals = {
-        'is_numeric': pd.to_numeric(col, errors='coerce').notna(),
+        "is_numeric": pd.to_numeric(col, errors="coerce").notna(),
         #'is_datetime': pd.to_datetime(col, errors='coerce').notna(),
-        'is_bool': col.map(lambda x: isinstance(x, bool)),
-        'is_string': col.map(lambda x: isinstance(x, str)),
+        "is_bool": col.map(lambda x: isinstance(x, bool)),
+        "is_string": col.map(lambda x: isinstance(x, str)),
     }
     vals = {k: float(v.mean()) for k, v in vals.items()}
     # type_ = np.where(vals["is_bool"] >= vals["is_numeric"], "is_bool",
@@ -184,7 +186,9 @@ def infer_column_types_df(df: pd.DataFrame) -> pd.DataFrame:
     return df.apply(lambda x: pd.Series(infer_column_types(x))).T
 
 
-def convert_df(df: pd.DataFrame, *, print_invalid_values: bool = False) -> pd.DataFrame:
+def convert_df(
+    df: pd.DataFrame, *, print_invalid_values: bool = False
+) -> pd.DataFrame:
     types = df.apply(lambda x: pd.Series(infer_column_types(x))).T
     df_out = []
     for col in df.columns:
@@ -197,7 +201,6 @@ def convert_df(df: pd.DataFrame, *, print_invalid_values: bool = False) -> pd.Da
         else:
             raise ValueError(f"Unknown column type: {types[col]['type']}")
     return df_out
-
 
 
 def get_model_stats() -> Dict[str, Any]:
@@ -241,16 +244,13 @@ def get_model_stats() -> Dict[str, Any]:
     hdbg.dassert_eq(list(response_json.keys()), ["data"])
     response_json = response_json["data"]
     return response_json
-    
-
     import pprint
 
     pprint.pprint(response.json())
     #
-    #import pandas as pd
-
-    #df = pd.read_json(response.json())
-    #print(df)
+    # import pandas as pd
+    # df = pd.read_json(response.json())
+    # print(df)
 
 
 @functools.lru_cache(maxsize=1024)
@@ -278,7 +278,7 @@ def get_completion(
     # model = "anthropic/claude-3-5-sonnet"
     # model = "openai/gpt-4o"
     # model="meta-llama/llama-3-70b-instruct"
-    #model = "deepseek/deepseek-r1-distill-qwen-1.5b"
+    # model = "deepseek/deepseek-r1-distill-qwen-1.5b"
     print("OpenAI API call ... ")
     # client = OpenAI()
     # print(openai.api_base)

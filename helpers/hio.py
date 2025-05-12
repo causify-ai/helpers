@@ -537,7 +537,7 @@ def change_filename_extension(filename: str, old_ext: str, new_ext: str) -> str:
     if old_ext == "":
         _, old_ext = os.path.splitext(filename)
         # Remove the leading dot.
-        old_ext = old_ext.lstrip('.')  
+        old_ext = old_ext.lstrip(".")
     hdbg.dassert(
         is_valid_filename_extension(old_ext), "Invalid extension '%s'", old_ext
     )

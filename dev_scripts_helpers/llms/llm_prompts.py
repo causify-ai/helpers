@@ -495,6 +495,9 @@ def code_transform_apply_csfy_style() -> _PROMPT_OUT:
     system += rf"""
     Apply the style described below to the Python code
 
+    ```
+    {file_content}
+    ```
 
     Do not remove any code, just format the existing code using the style.
     Do not change the behavior of the code.
@@ -684,8 +687,7 @@ def slide_to_bullet_points() -> _PROMPT_OUT:
 
 
 def slide_add_example_picture() -> _PROMPT_OUT:
-    """
-    """
+    """ """
     system = _MD_CONTEXT
     system += r"""
     I will give you markdown text

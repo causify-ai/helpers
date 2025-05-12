@@ -59,11 +59,12 @@ val = hopenai.get_model_stats()
 
 # %%
 import pprint
+
 pprint.pprint(val[0])
 
 # %%
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 # %%
 # Normalize the nested JSON
@@ -82,7 +83,7 @@ col_names = ["id", "context_length", "pricing_prompt", "pricing_completion"]
 df.dtypes
 
 # %% [markdown]
-# # 
+# #
 
 # %%
 for col in df.columns:
@@ -93,10 +94,6 @@ df.apply(lambda x: pd.Series(infer_column_types(x))).T
 
 # %%
 hopenai.infer_column_types_df(df)
-
-
-# %%
-def find_
 
 
 # %%
@@ -117,4 +114,4 @@ df["price_ratio"] = df["pricing_completion"] / df["pricing_prompt"]
 # %%
 
 # %%
-df["total_price"] = 
+#df["total_price"] =
