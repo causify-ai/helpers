@@ -926,9 +926,7 @@ def _get_inclusion_settings(target_dir: str) -> Tuple[str, Optional[str]]:
 
 
 @task
-def run_coverage(
-    ctx, suite: str, target_dir: str = ".", generate_html_report: bool = False
-):
+def run_coverage(ctx, suite, target_dir=".", generate_html_report=False):
     """
     Unified task to run coverage for any test suite.
 

@@ -5,73 +5,30 @@ Check whether a tmux session exists and, if not, creates it.
 
 import logging
 import os
-import subprocess
-import sys
-from typing import Tuple
+
+# This can be imported because this module is in the same dir as the script
+# being executed.
+import thin_client_utils as tcu  # noqa: E402
+
+# The `tcu` module adds root of helpers (or `helpers_root` when used in as
+# module) to the path, thus allowing imports from helpers.
+import helpers.hgit as hgit
+import helpers.repo_config_utils as hrecouti
 
 _LOG = logging.getLogger(__name__)
-
-
-# We can't use `hsystem` as this is a bootstrapping script.
-def _system_to_string(
-    cmd: str, abort_on_error: bool = True, verbose: bool = False
-) -> Tuple[int, str]:
-    assert isinstance(cmd, str), "Type of '%s' is %s" % (str(cmd), type(cmd))
-    if verbose:
-        print(f"> {cmd}")
-    stdout = subprocess.PIPE
-    stderr = subprocess.STDOUT
-    with subprocess.Popen(
-        cmd, shell=True, executable="/bin/bash", stdout=stdout, stderr=stderr
-    ) as p:
-        output = ""
-        while True:
-            line = p.stdout.readline().decode("utf-8")  # type: ignore
-            if not line:
-                break
-            # print((line.rstrip("\n")))
-            output += line
-        p.stdout.close()  # type: ignore
-        rc = p.wait()
-    if abort_on_error and rc != 0:
-        msg = (
-            "cmd='%s' failed with rc='%s'" % (cmd, rc)
-        ) + "\nOutput of the failing command is:\n%s" % output
-        _LOG.error(msg)
-        sys.exit(-1)
-    return rc, output
-
-
-# We can't use `hgit` as this is a bootstrapping script.
-def _get_git_root_dir() -> str:
-    """
-    Return the absolute path to the outermost Git repository root.
-
-    If inside a Git submodule, this returns the parent (superproject)
-    root. Otherwise, it returns the current repository's root.
-    :return: absolute path to the outermost Git repository root
-    """
-    cmd = "git rev-parse --show-superproject-working-tree --show-toplevel | head -n1"
-    _, git_root_dir = _system_to_string(cmd)
-    git_root_dir = git_root_dir.strip()
-    return git_root_dir
-
-
-# We need to tweak `PYTHONPATH` directly since we are bootstrapping the system.
-sys.path.append("helpers_root/dev_scripts_helpers/thin_client")
-import thin_client_utils as tcu
-
-sys.path.append("helpers_root/helpers")
-import helpers.repo_config_utils as hrecouti
 
 # Get the real file path rather than the symlink path.
 current_file_path = os.path.realpath(__file__)
 current_dir = os.path.dirname(current_file_path)
-# Change to the repo directory so that it can find the repo config.
+# Change to the directory where the file is located so it can find its way to
+# the Git root.
+# This is necessary when the script is symlinked (e.g., `~/go_cmamp.py`) and
+# executed from a different directory.
 os.chdir(current_dir)
 
-# Change to the outermost Git repository root.
-git_root_dir = _get_git_root_dir()
+# Change to the outermost Git repository root so that it can find and use
+# the correct repo config.
+git_root_dir = hgit.find_git_root()
 os.chdir(git_root_dir)
 
 if __name__ == "__main__":

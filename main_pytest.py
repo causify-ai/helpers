@@ -9,8 +9,10 @@ import logging
 import os
 import subprocess
 import sys
+from typing import List
 
 import helpers.hdbg as hdbg
+import helpers.hgit as hgit
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -111,15 +113,28 @@ def _run_test(runnable_dir: str, command: str) -> None:
         sys.exit(result.returncode)
 
 
+def _find_runnable_dirs() -> List[str]:
+    """
+    Find all runnable directories in the current repo.
+
+    We use the `runnable_dir` file as a marker to identify runnable directories.
+
+    :return: list of runnable directories
+    """
+    runnable_dirs = []
+    root = hgit.find_git_root()
+    for dir_path, _, file_names in os.walk(root):
+        if "runnable_dir" in file_names:
+            relative_path = os.path.relpath(dir_path, root)
+            runnable_dirs.append(relative_path)
+    return runnable_dirs
+
+
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     command = args.command
-    # TODO(heanh): We don't want one repo to depend on another repo.
-    # Ideally, we want the runnable directories to be discovered automatically
-    # so the tests will be skipped in the global pytest but will be executed in
-    # the local runnables dirs from the CI.
-    runnable_dirs = ["ck.infra", "ck_web_apps/itsavvy"]
+    runnable_dirs = _find_runnable_dirs()
     if command == "run_fast_tests":
         runnable_dir = args.dir
         if runnable_dir:
