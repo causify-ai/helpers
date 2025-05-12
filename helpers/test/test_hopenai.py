@@ -14,7 +14,7 @@ import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
 
-_TEST_CACHE_FILE = "test_get_completion_cache.json"
+_TEST_CACHE_FILE = "cache.test_get_completion.json"
 
 _USER_PROMPT1 = "What is machine learning?"
 _USER_PROMPT2 = _USER_PROMPT1.lower()
@@ -160,10 +160,6 @@ def get_dummy_openai_response2():
     }
 
 
-
-
-
-    
 ############################################################################
 
 #############################################################################
@@ -190,7 +186,7 @@ class BaseOpenAICacheTest(hunitest.TestCase):
         original_get_completion = hopenai.get_completion
 
         def replay_get_completion(**kwargs):
-            return original_get_completion(**kwargs, cache_mode="REPLAY",cache_file=_TEST_CACHE_FILE )
+            return original_get_completion(**kwargs, cache_mode="REPLAY" )
         
         self.patcher =umock.patch.object(hopenai, "get_completion", replay_get_completion)
         self.patcher.start()
@@ -235,17 +231,28 @@ class Test_get_completion(BaseOpenAICacheTest):
 
     def test1(self):
         """
-        Verify that get_completion returns response from cache with the expected key and value.
+        Verify that get_completion returns response from cache with the expected response.
         """
-        
 
         parameters1 = get_completion_paramters1()
-        print(parameters1)
         dummy_response1= get_dummy_openai_response1()
-        response =hopenai.get_completion(**parameters1)
+        response =hopenai.get_completion(**parameters1, cache_file=_TEST_CACHE_FILE)
 
         self.assertEqual(dummy_response1["choices"][0]["message"]["content"], response)
+    
+    def test2(self):
+        """
+        Verify that if hashkey is not in response, then get_completion should raise error in replay mode.
+        """
+        # parameters4 are not saved in test cache file
+        paramters4 = get_completion_paramters4()
 
+        with self.assertRaises(RuntimeError) as RTE:
+            hopenai.get_completion(**paramters4, cache_file=_TEST_CACHE_FILE)
+
+        self.assertEqual(str(RTE.exception), "No cached response for this request parameters!")
+
+    
 
 
 # #############################################################################

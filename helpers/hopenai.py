@@ -140,18 +140,6 @@ class OpenAICache:
             "messages": norm_msgs,
         }
 
-        # for name, val in [
-        #     ("temperature", temperature),
-        #     ("top_p", top_p),
-        #     ("n", n),
-        #     ("max_completion_tokens", max_completion_tokens),
-        #     ("presence_penalty", presence_penalty),
-        #     ("frequency_penalty", frequency_penalty),
-        #     ("logit_bias", logit_bias),
-        #     ("user", user),
-        # ]:
-        #     if val is not None:
-        #         key_obj[name] = val
 
         for name in sorted(extra_kwargs):
             key_obj[name] = extra_kwargs[name]
@@ -172,7 +160,7 @@ class OpenAICache:
         """
         return hash_key in self.cache["entries"]
     
-    def save_respone_to_cache(self, hash_key: str, request: dict, response: dict):
+    def save_response_to_cache(self, hash_key: str, request: dict, response: dict):
         """
         Save the cache to the cache directory.
         """
@@ -299,7 +287,8 @@ def get_completion(
     model: Optional[str] = None,
     report_progress: bool = False,
     print_cost: bool = False,
-    cache_mode: str =None,
+    cache_mode: str =_CACHE_MODE,
+    cache_file: str = _CACHE_FILE,
     **create_kwargs,
 ) -> str:
     """
@@ -320,14 +309,10 @@ def get_completion(
     """
 
     model = _MODEL if model is None else model
-    cache_mode = _CACHE_MODE if cache_mode is None else cache_mode
-    client = OpenAI()
-    print("OpenAI API call ... ")
-    memento = htimer.dtimer_start(logging.DEBUG, "OpenAI API call")
-
+    # Construct messages in OpenAI format
     messages =  _construct_messages(system_prompt, user_prompt)
-    cache = OpenAICache()
-
+    cache = OpenAICache(cache_file=cache_file)
+    # Dic makes easy to reuse it 
     request_params = {
         "model": model,
         "messages": messages,
@@ -341,6 +326,7 @@ def get_completion(
     if cache_mode in ("REPLAY", "FALLBACK"):
         # Checks for response in cache
         if cache.has_cache(hash_key):
+            print("Loading from the cache!")
             return cache.load_response_from_cache(hash_key)
         else:
             if  cache_mode == "REPLAY":
@@ -353,7 +339,10 @@ def get_completion(
     
     if not call_api:
         raise ValueError(f"Unsupported cache mode: {cache_mode}")
-
+    
+    client = OpenAI()
+    print("OpenAI API call ... ")
+    memento = htimer.dtimer_start(logging.DEBUG, "OpenAI API call")
     if not report_progress:
         response, completion = call_api_sync(client, messages, model, **create_kwargs) 
     else:
@@ -385,7 +374,7 @@ def get_completion(
     _accumulate_cost_if_needed(cost)
     
     if cache_mode != "DISABLED":
-        cache.save_respone_to_cache(hash_key, request =request_params,  response =completion.to_dict())
+        cache.save_response_to_cache(hash_key, request =request_params,  response =completion.to_dict())
     return response
 
 
