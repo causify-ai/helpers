@@ -20,27 +20,31 @@ _LOG = logging.getLogger(__name__)
 # DependencyGraph
 # #############################################################################
 
+
 class DependencyGraph:
     """
     Generate a dependency graph for intra-directory imports.
 
     :param directory: Path to the directory to analyze.
     :param max_level: Max directory depth to analyze (-1 for no limit).
-    :param show_cycles: If True, include only cyclic dependencies in the graph.
+    :param show_cycles: If True, include only cyclic dependencies in the
+        graph.
     """
 
     def __init__(
         self,
         directory: str,
         *,
-        max_level: Optional[int] = -1,  # TODO: Use -1 instead of None to simplify typing.
+        max_level: Optional[
+            int
+        ] = -1,  # TODO: Use -1 instead of None to simplify typing.
         show_cycles: bool = False,
     ) -> None:
         """
         Initialize the DependencyGraph with directory and analysis parameters.
         """
-        # Following caused ValueError: Unable to determine caller function. 
-        # _LOG.debug(hprint.func_signature_to_str())  
+        # Following caused ValueError: Unable to determine caller function.
+        # _LOG.debug(hprint.func_signature_to_str())
         # Initialize directory path
         print(f"Type of Path: {type(Path)}")
         self.directory = Path(directory).resolve()
@@ -55,8 +59,8 @@ class DependencyGraph:
         """
         Build a directed graph of intra-directory dependencies.
 
-        :param abort_on_error: If True, raise SyntaxError on parsing failures; if False,
-        skip invalid files.
+        :param abort_on_error: If True, raise SyntaxError on parsing
+            failures; if False, skip invalid files.
         """
         # _LOG.debug(hprint.func_signature_to_str())
         # Prepare directory analysis.
@@ -67,14 +71,17 @@ class DependencyGraph:
         py_files = [
             path
             for path in self.directory.rglob("*.py")
-            if self.max_level == -1 or (len(path.parent.parts) - base_depth) <= self.max_level
+            if self.max_level == -1
+            or (len(path.parent.parts) - base_depth) <= self.max_level
         ]
         _LOG.info("Found Python files: %s", py_files)
         _LOG.debug(hprint.to_str("py_files"))
         # Process each Python file to build the dependency graph.
         for py_file in py_files:
             relative_path = py_file.relative_to(self.directory.parent).as_posix()
-            _LOG.info("Processing file %s, relative path: %s", py_file, relative_path)
+            _LOG.info(
+                "Processing file %s, relative path: %s", py_file, relative_path
+            )
             _LOG.debug(hprint.to_str("relative_path"))
             self.graph.add_node(relative_path)
             # TODO: Use hio.from_file and to_file to write.
@@ -100,13 +107,17 @@ class DependencyGraph:
                     _LOG.debug(hprint.to_str("imports"))
                     for imp in imports:
                         if imp is None:
-                            _LOG.warning("Skipping None import in file %s", py_file)
+                            _LOG.warning(
+                                "Skipping None import in file %s", py_file
+                            )
                             continue
                         _LOG.info("Found import: %s", imp)
                         _LOG.debug(hprint.to_str("imp"))
                         imp_path = self._resolve_import(imp, py_file)
                         if imp_path:
-                            _LOG.info("Adding edge: %s -> %s", relative_path, imp_path)
+                            _LOG.info(
+                                "Adding edge: %s -> %s", relative_path, imp_path
+                            )
                             self.graph.add_edge(relative_path, imp_path)
                             _LOG.debug(hprint.to_str("self.graph"))
                         else:
@@ -178,6 +189,7 @@ class DependencyGraph:
             len(self.graph.nodes),
             len(self.graph.edges),
         )
+
     # TODO: -> Optional[str]
     def _resolve_import(self, imp: str, py_file: Path) -> Optional[str]:
         """
@@ -214,7 +226,9 @@ class DependencyGraph:
         parent_name = self.directory.parent.name
         # Grandparent directory, if exists.
         parent_parent_name = (
-            self.directory.parent.parent.name if len(self.directory.parent.parts) > 1 else ""
+            self.directory.parent.parent.name
+            if len(self.directory.parent.parts) > 1
+            else ""
         )
         # Collect all parent directory names into a list for validation.
         valid_names = [dir_name, parent_name, parent_parent_name]
@@ -225,8 +239,11 @@ class DependencyGraph:
         _LOG.info(
             "Directory name: %s, Parent name: %s, Parent parent name: %s, "
             "Valid names: %s, Import first part: %s",
-            dir_name, parent_name, parent_parent_name, valid_names,
-            parts[0] if parts else ""
+            dir_name,
+            parent_name,
+            parent_parent_name,
+            valid_names,
+            parts[0] if parts else "",
         )
         result = None
         if parts and parts[0] in valid_names:
@@ -236,9 +253,15 @@ class DependencyGraph:
                 # Only if the `dir` name is given (e.g., "helpers"), check for
                 # `__init__.py`.
                 init_path = base_dir / "__init__.py"
-                _LOG.info("Checking __init__.py at %s, exists: %s", init_path, init_path.exists())
+                _LOG.info(
+                    "Checking __init__.py at %s, exists: %s",
+                    init_path,
+                    init_path.exists(),
+                )
                 if init_path.exists():
-                    resolved_path = init_path.relative_to(self.directory.parent).as_posix()
+                    resolved_path = init_path.relative_to(
+                        self.directory.parent
+                    ).as_posix()
                     _LOG.info("Resolved to: %s", resolved_path)
                     result = resolved_path
                 else:
@@ -251,7 +274,9 @@ class DependencyGraph:
                 _LOG.debug(hprint.to_str("package_path"))
                 if package_path.exists():
                     if i == len(parts) - 1:
-                        resolved_path = package_path.relative_to(self.directory.parent).as_posix()
+                        resolved_path = package_path.relative_to(
+                            self.directory.parent
+                        ).as_posix()
                         _LOG.info("Resolved to: %s", resolved_path)
                         result = resolved_path
                         break
@@ -265,7 +290,9 @@ class DependencyGraph:
                 if module_path.exists():
                     # If last part, return the `.py` path.
                     if i == len(parts) - 1:
-                        resolved_path = module_path.relative_to(self.directory.parent).as_posix()
+                        resolved_path = module_path.relative_to(
+                            self.directory.parent
+                        ).as_posix()
                         _LOG.info("Resolved to: %s", resolved_path)
                         result = resolved_path
                         break
@@ -277,7 +304,9 @@ class DependencyGraph:
                     )
                     break
                 # If neither exists, the import cannot be resolved.
-                _LOG.info("Could not resolve import '%s' at part '%s'", imp, module_name)
+                _LOG.info(
+                    "Could not resolve import '%s' at part '%s'", imp, module_name
+                )
                 break
         # Return None if module resolution was unsuccessful.
         if result is None:
