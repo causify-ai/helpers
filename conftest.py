@@ -1,5 +1,6 @@
 import logging
 import os
+import pathlib
 from typing import Any, Generator
 
 import helpers.hdbg as dbg
@@ -116,9 +117,11 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
         We use the `runnable_dir` file as a marker to identify runnable directories.
         """
         _ = config
+        path = pathlib.Path(path)
         if path.isdir() and (path / "runnable_dir").exists():
             # Exclude this directory.
             return True
+        return False
 
     if "PYANNOTATE" in os.environ:
         print("\nWARNING: Collecting information about types through pyannotate")
