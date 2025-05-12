@@ -680,7 +680,7 @@ def parallel_execute(
             # from joblib.externals.loky import set_loky_pickler
             # set_loky_pickler('cloudpickle')
             res = joblib.Parallel(
-                n_jobs=num_threads, backend=backend, verbose=200
+                n_jobs=num_threads, backend=backend
             )(
                 joblib.delayed(_parallel_execute_decorator)(
                     task_idx,
