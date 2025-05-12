@@ -74,6 +74,14 @@ class _DockerFlowTestHelper(hunitest.TestCase):
         self.env_patcher = umock.patch.dict(
             "os.environ", {"CSFY_ECR_BASE_PATH": "test.ecr.path"}
         )
+        self.get_default_param_patcher = umock.patch(
+            "helpers.lib_tasks_utils.get_default_param",
+            side_effect=lambda param: {
+                "CSFY_ECR_BASE_PATH": "test.ecr.path",
+                "BASE_IMAGE": "test-image",
+            }.get(param, ""),
+        )
+        self.mock_get_default_param = self.get_default_param_patcher.start()
         self.env_patcher.start()
         #
         self.patchers = [
@@ -82,6 +90,7 @@ class _DockerFlowTestHelper(hunitest.TestCase):
             self.version_patcher,
             self.docker_login_patcher,
             self.env_patcher,
+            self.get_default_param_patcher,
         ]
         # Test inputs.
         self.mock_ctx = httestlib._build_mock_context_returning_ok()
@@ -344,5 +353,421 @@ class Test_docker_build_prod_image1(_DockerFlowTestHelper):
             --build-arg ECR_BASE_PATH=test.ecr.path \
             .
         docker image ls test-registry.com/test-image:prod-test_user-test_tag
+        """
+        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+
+
+# #############################################################################
+# Test_docker_tag_push_multi_arch_prod_image1
+# #############################################################################
+
+
+class Test_docker_tag_push_multi_arch_prod_image1(_DockerFlowTestHelper):
+
+    def test_docker_tag_push_multi_arch_prod_image(self) -> None:
+        """
+        Test tagging and pushing a multi-arch prod Docker image.
+
+        This test verifies that the correct sequence of commands is
+        generated for tagging and pushing a multi-arch prod Docker image
+        to the target registry.
+        """
+        # Call tested function.
+        hltadore.docker_tag_push_multi_arch_prod_image(
+            self.mock_ctx,
+            self.test_version,
+            base_image=self.test_base_image,
+            target_registry="aws_ecr.ck",
+        )
+        exp = r"""
+        docker buildx imagetools create -t test.ecr.path/test-image:prod test-registry.com/test-image:prod-1.0.0
+        """
+        _LOG.info("exp=\n%s", exp)
+        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+
+    def test_docker_tag_push_multi_arch_prod_image_dockerhub(self) -> None:
+        """
+        Test tagging and pushing a multi-arch prod Docker image to DockerHub.
+
+        This test verifies that the correct sequence of commands is
+        generated for tagging and pushing a multi-arch prod Docker image
+        to DockerHub registry.
+        """
+        # Call tested function.
+        hltadore.docker_tag_push_multi_arch_prod_image(
+            self.mock_ctx,
+            self.test_version,
+            base_image=self.test_base_image,
+            target_registry="dockerhub.causify",
+        )
+        exp = r"""
+        docker buildx imagetools create -t causify/helpers:prod-1.0.0 test-registry.com/test-image:prod-1.0.0
+        docker buildx imagetools create -t causify/helpers:prod test-registry.com/test-image:prod-1.0.0
+        """
+        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+
+
+# #############################################################################
+# Test_docker_tag_push_multi_build_local_image_as_dev1
+# #############################################################################
+
+
+class Test_docker_tag_push_multi_build_local_image_as_dev1(_DockerFlowTestHelper):
+
+    def test_docker_tag_push_multi_build_local_image_as_dev(self) -> None:
+        """
+        Test tagging and pushing a multi-arch local Docker image as dev.
+
+        This test verifies that the correct sequence of commands is
+        generated for tagging and pushing a multi-arch local Docker
+        image as dev to the target registry.
+        """
+        # Call tested function.
+        hltadore.docker_tag_push_multi_build_local_image_as_dev(
+            self.mock_ctx,
+            self.test_version,
+            local_base_image=self.test_base_image,
+            target_registry="aws_ecr.ck",
+        )
+        exp = r"""
+        docker buildx imagetools create -t test.ecr.path/test-image:dev-1.0.0 test-registry.com/test-image:local-$USER_NAME-1.0.0
+        docker buildx imagetools create -t test.ecr.path/test-image:dev test-registry.com/test-image:local-$USER_NAME-1.0.0
+        """
+        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+
+    def test_docker_tag_push_multi_build_local_image_as_dev_dockerhub(
+        self,
+    ) -> None:
+        """
+        Test tagging and pushing a multi-arch local Docker image as dev to
+        DockerHub.
+
+        This test verifies that the correct sequence of commands is
+        generated for tagging and pushing a multi-arch local Docker
+        image as dev to DockerHub registry.
+        """
+        # Call tested function.
+        hltadore.docker_tag_push_multi_build_local_image_as_dev(
+            self.mock_ctx,
+            self.test_version,
+            local_base_image=self.test_base_image,
+            target_registry="dockerhub.causify",
+        )
+        exp = r"""
+        docker buildx imagetools create -t causify/helpers:dev-1.0.0 test-registry.com/test-image:local-$USER_NAME-1.0.0
+        docker buildx imagetools create -t causify/helpers:dev test-registry.com/test-image:local-$USER_NAME-1.0.0
+        """
+        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+
+
+# #############################################################################
+# Test_docker_release_dev_image1
+# #############################################################################
+
+
+class Test_docker_release_dev_image1(_DockerFlowTestHelper):
+
+    def test_docker_release_dev_image(self) -> None:
+        """
+        Test releasing a dev Docker image with tests skipped.
+
+        This test verifies that the correct sequence of commands is
+        generated for building and releasing a dev Docker image without
+        running tests.
+        """
+        # Call tested function.
+        hltadore.docker_release_dev_image(
+            self.mock_ctx,
+            self.test_version,
+            cache=False,
+            skip_tests=True,
+            fast_tests=False,
+            slow_tests=False,
+            superslow_tests=False,
+            qa_tests=False,
+            push_to_repo=True,
+        )
+        exp = r"""
+        cp -f devops/docker_build/dockerignore.dev .dockerignore
+        tar -czh . | DOCKER_BUILDKIT=0 \
+        time \
+        docker build \
+            --no-cache \
+            --build-arg AM_CONTAINER_VERSION=1.0.0 --build-arg INSTALL_DIND=True --build-arg POETRY_MODE=update --build-arg CLEAN_UP_INSTALLATION=True \
+            --tag test.ecr.path/test-image:local-$USER_NAME-1.0.0 \
+            --file devops/docker_build/dev.Dockerfile \
+            -
+        invoke docker_cmd --stage local --version 1.0.0 --cmd 'cp -f /install/poetry.lock.out /install/pip_list.txt .' --skip-pull
+        cp -f poetry.lock.out ./devops/docker_build/poetry.lock
+        cp -f pip_list.txt ./devops/docker_build/pip_list.txt
+        docker image ls test.ecr.path/test-image:local-$USER_NAME-1.0.0
+        docker tag test.ecr.path/test-image:local-$USER_NAME-1.0.0 test.ecr.path/test-image:dev-1.0.0
+        docker tag test.ecr.path/test-image:local-$USER_NAME-1.0.0 test.ecr.path/test-image:dev
+        docker push test.ecr.path/test-image:dev-1.0.0
+        docker push test.ecr.path/test-image:dev
+        """
+        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+
+
+# # #############################################################################
+# # Test_docker_release_prod_image1
+# # #############################################################################
+
+
+# #############################################################################
+# Test_docker_release_prod_image1
+# #############################################################################
+
+
+class Test_docker_release_prod_image1(_DockerFlowTestHelper):
+
+    def test_docker_release_prod_image_skip_tests(self) -> None:
+        """
+        Test releasing a prod Docker image with tests skipped.
+
+        This test verifies that the correct sequence of commands is
+        generated for building and releasing a prod Docker image without
+        running tests.
+        """
+        # Call tested function.
+        hltadore.docker_release_prod_image(
+            self.mock_ctx,
+            self.test_version,
+            cache=False,
+            skip_tests=True,
+            fast_tests=False,
+            slow_tests=False,
+            superslow_tests=False,
+            qa_tests=False,
+            push_to_repo=True,
+        )
+        exp = r"""
+        cp -f devops/docker_build/dockerignore.prod .dockerignore
+        DOCKER_BUILDKIT=0 \
+        time \
+        docker build \
+            --no-cache \
+            --tag test.ecr.path/test-image:prod-1.0.0 \
+            --file /app/devops/docker_build/prod.Dockerfile \
+            --build-arg VERSION=1.0.0 \
+            --build-arg ECR_BASE_PATH=test.ecr.path \
+            .
+        docker tag test.ecr.path/test-image:prod-1.0.0 test.ecr.path/test-image:prod
+        docker image ls test.ecr.path/test-image:prod
+        docker push test.ecr.path/test-image:prod-1.0.0
+        docker push test.ecr.path/test-image:prod
+        """
+        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+
+
+# #############################################################################
+# Test_docker_release_multi_build_dev_image1
+# #############################################################################
+
+
+class Test_docker_release_multi_build_dev_image1(_DockerFlowTestHelper):
+
+    def test_docker_release_multi_build_dev_image(self) -> None:
+        """
+        Test releasing a multi-arch dev Docker image.
+
+        This test verifies that the correct sequence of commands is
+        generated for building, testing, and releasing a multi-arch dev
+        Docker image.
+        """
+        # Call tested function.
+        hltadore.docker_release_multi_build_dev_image(
+            self.mock_ctx,
+            self.test_version,
+            cache=False,
+            skip_tests=True,
+            fast_tests=False,
+            slow_tests=False,
+            superslow_tests=False,
+            qa_tests=False,
+            target_registries="aws_ecr.ck",
+        )
+        exp = r"""
+        cp -f devops/docker_build/dockerignore.dev .dockerignore
+        docker buildx create \
+            --name multiarch_builder \
+            --driver docker-container \
+            --bootstrap \
+            && \
+            docker buildx use multiarch_builder
+        tar -czh . | DOCKER_BUILDKIT=0 \
+            time \
+            docker buildx build \
+            --no-cache \
+            --push \
+            --platform linux/amd64,linux/arm64 \
+            --build-arg AM_CONTAINER_VERSION=1.0.0 --build-arg INSTALL_DIND=True --build-arg POETRY_MODE=update --build-arg CLEAN_UP_INSTALLATION=True \
+            --tag test.ecr.path/test-image:local-$USER_NAME-1.0.0 \
+            --file devops/docker_build/dev.Dockerfile \
+            -
+        docker pull test.ecr.path/test-image:local-$USER_NAME-1.0.0
+        invoke docker_cmd --stage local --version 1.0.0 --cmd 'cp -f /install/poetry.lock.out /install/pip_list.txt .' --skip-pull
+        cp -f poetry.lock.out ./devops/docker_build/poetry.lock
+        cp -f pip_list.txt ./devops/docker_build/pip_list.txt
+        docker image ls test.ecr.path/test-image:local-$USER_NAME-1.0.0
+        docker buildx imagetools create -t test.ecr.path/test-image:dev-1.0.0 test.ecr.path/test-image:local-$USER_NAME-1.0.0
+        docker buildx imagetools create -t test.ecr.path/test-image:dev test.ecr.path/test-image:local-$USER_NAME-1.0.0
+        """
+        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+
+    def test_docker_release_multi_build_dev_image_multiple_registries(
+        self,
+    ) -> None:
+        """
+        Test releasing a multi-arch dev Docker image to multiple registries.
+
+        This test verifies that the correct sequence of commands is
+        generated for building, testing, and releasing a multi-arch dev
+        Docker image to multiple target registries.
+        """
+        # Call tested function.
+        hltadore.docker_release_multi_build_dev_image(
+            self.mock_ctx,
+            self.test_version,
+            cache=False,
+            skip_tests=True,
+            fast_tests=False,
+            slow_tests=False,
+            superslow_tests=False,
+            qa_tests=False,
+            target_registries="aws_ecr.ck,dockerhub.causify",
+        )
+        exp = r"""
+        cp -f devops/docker_build/dockerignore.dev .dockerignore
+        docker buildx create \
+            --name multiarch_builder \
+            --driver docker-container \
+            --bootstrap \
+            && \
+            docker buildx use multiarch_builder
+        tar -czh . | DOCKER_BUILDKIT=0 \
+            time \
+            docker buildx build \
+            --no-cache \
+            --push \
+            --platform linux/amd64,linux/arm64 \
+            --build-arg AM_CONTAINER_VERSION=1.0.0 --build-arg INSTALL_DIND=True --build-arg POETRY_MODE=update --build-arg CLEAN_UP_INSTALLATION=True \
+            --tag test.ecr.path/test-image:local-$USER_NAME-1.0.0 \
+            --file devops/docker_build/dev.Dockerfile \
+            -
+        docker pull test.ecr.path/test-image:local-$USER_NAME-1.0.0
+        invoke docker_cmd --stage local --version 1.0.0 --cmd 'cp -f /install/poetry.lock.out /install/pip_list.txt .' --skip-pull
+        cp -f poetry.lock.out ./devops/docker_build/poetry.lock
+        cp -f pip_list.txt ./devops/docker_build/pip_list.txt
+        docker image ls test.ecr.path/test-image:local-$USER_NAME-1.0.0
+        docker buildx imagetools create -t test.ecr.path/test-image:dev-1.0.0 test.ecr.path/test-image:local-$USER_NAME-1.0.0
+        docker buildx imagetools create -t test.ecr.path/test-image:dev test.ecr.path/test-image:local-$USER_NAME-1.0.0
+        docker buildx imagetools create -t causify/helpers:dev-1.0.0 test.ecr.path/test-image:local-$USER_NAME-1.0.0
+        docker buildx imagetools create -t causify/helpers:dev test.ecr.path/test-image:local-$USER_NAME-1.0.0
+        """
+        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+
+
+# #############################################################################
+# Test_docker_rollback_dev_image1
+# #############################################################################
+
+
+class Test_docker_rollback_dev_image1(_DockerFlowTestHelper):
+
+    def test_docker_rollback_dev_image(self) -> None:
+        """
+        Test rolling back a dev Docker image.
+
+        This test verifies that the correct sequence of commands is
+        generated for rolling back a dev Docker image to a specific
+        version.
+        """
+        # Call tested function.
+        hltadore.docker_rollback_dev_image(
+            self.mock_ctx,
+            self.test_version,
+            push_to_repo=True,
+        )
+        exp = r"""
+        docker pull test.ecr.path/test-image:dev-1.0.0
+        docker tag test.ecr.path/test-image:dev-1.0.0 test.ecr.path/test-image:dev
+        docker push test.ecr.path/test-image:dev-1.0.0
+        docker push test.ecr.path/test-image:dev
+        """
+        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+
+    def test_docker_rollback_dev_image_no_push(self) -> None:
+        """
+        Test rolling back a dev Docker image without pushing.
+
+        This test verifies that the correct sequence of commands is
+        generated for rolling back a dev Docker image to a specific
+        version without pushing to the repository.
+        """
+        # Call tested function.
+        hltadore.docker_rollback_dev_image(
+            self.mock_ctx,
+            self.test_version,
+            push_to_repo=False,
+        )
+        exp = r"""
+        docker pull test.ecr.path/test-image:dev-1.0.0
+        docker tag test.ecr.path/test-image:dev-1.0.0 test.ecr.path/test-image:dev
+        """
+        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+
+
+# # #############################################################################
+# # Test_docker_rollback_prod_image1
+# # #############################################################################
+
+
+# #############################################################################
+# Test_docker_rollback_prod_image1
+# #############################################################################
+
+
+class Test_docker_rollback_prod_image1(_DockerFlowTestHelper):
+
+    def test_docker_rollback_prod_image(self) -> None:
+        """
+        Test rolling back a prod Docker image.
+
+        This test verifies that the correct sequence of commands is
+        generated for rolling back a prod Docker image to a specific
+        version.
+        """
+        # Call tested function.
+        hltadore.docker_rollback_prod_image(
+            self.mock_ctx,
+            self.test_version,
+            push_to_repo=True,
+        )
+        exp = r"""
+        docker pull test.ecr.path/test-image:prod-1.0.0
+        docker tag test.ecr.path/test-image:prod-1.0.0 test.ecr.path/test-image:prod
+        docker push test.ecr.path/test-image:prod-1.0.0
+        docker push test.ecr.path/test-image:prod
+        """
+        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+
+    def test_docker_rollback_prod_image_no_push(self) -> None:
+        """
+        Test rolling back a prod Docker image without pushing.
+
+        This test verifies that the correct sequence of commands is
+        generated for rolling back a prod Docker image to a specific
+        version without pushing to the repository.
+        """
+        # Call tested function.
+        hltadore.docker_rollback_prod_image(
+            self.mock_ctx,
+            self.test_version,
+            push_to_repo=False,
+        )
+        exp = r"""
+        docker pull test.ecr.path/test-image:prod-1.0.0
+        docker tag test.ecr.path/test-image:prod-1.0.0 test.ecr.path/test-image:prod
         """
         self._check_docker_command_output(exp, self.mock_run.call_args_list)
