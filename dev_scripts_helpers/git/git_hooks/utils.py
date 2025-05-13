@@ -485,7 +485,6 @@ def check_gitleaks(abort_on_error: bool = True) -> None:
     Check that the code does not contain any leaked secrets.
     """
     func_name = _report()
-    # Find relative path from the git root to the helpers root.
     git_root_dir = hgit.find_git_root()
     helpers_root_dir = hgit.find_helpers_root()
     # Compute relative path from root of the outer most repo to the helpers root.
