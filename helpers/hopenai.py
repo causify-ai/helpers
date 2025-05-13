@@ -76,115 +76,6 @@ def _extract(
 
 
 # #############################################################################
-# OpenAICache
-# #############################################################################
-
-
-class OpenAICache:
-
-    def __init__(self, cache_file: str = _CACHE_FILE):
-        self.cache_file = cache_file
-        # Load the existing file(may not exist or may be invalid JSON)
-        try:
-            with open(self.cache_file, "r") as f:
-                self.cache = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            self.cache = None
-        # Validates structure
-        if (
-            not isinstance(self.cache, dict)
-            or "version" not in self.cache
-            or "metadata" not in self.cache
-            or "entries" not in self.cache
-            or not isinstance(self.cache["entries"], dict)
-        ):
-            # Responses will be stored in entries.
-            self.cache = {
-                "version": "1.0",
-                "metadata": {
-                    "created_at": datetime.datetime.now().isoformat(),
-                    "last_updated": datetime.datetime.now().isoformat(),
-                },
-                "entries": {},
-            }
-            with open(self.cache_file, "w") as f:
-                json.dump(self.cache, f)
-
-    def hash_key_generator(
-        self,
-        model: str,
-        messages: List[Dict[str, str]],
-        # *,
-        # temperature: Optional[float] = None,
-        # top_p: Optional[float] = None,
-        # n: Optional[int] = None,
-        # max_completion_tokens: Optional[int] = None,
-        # presence_penalty: Optional[float] = None,
-        # frequency_penalty: Optional[float] = None,
-        # logit_bias: Optional[Dict[int, float]] = None,
-        # user: Optional[str] = None,
-        **extra_kwargs: Any,
-    ) -> str:
-        """
-        Generates a hash key for the OpenAI request.
-        """
-        norm_msgs = []
-        for m in messages:
-            norm_msgs.append(
-                {
-                    "role": m["role"].strip().lower(),
-                    "content": " ".join(m["content"].split()).lower(),
-                }
-            )
-
-        key_obj: Dict[str, Any] = {
-            "model": model.strip().lower(),
-            "messages": norm_msgs,
-        }
-
-        for name in sorted(extra_kwargs):
-            key_obj[name] = extra_kwargs[name]
-
-        serialized = json.dumps(
-            key_obj,
-            # no spaces
-            separators=(",", ":"),
-            # keys in alphabetical order
-            sort_keys=True,
-            ensure_ascii=False,
-        )
-        return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
-
-    def has_cache(self, hash_key: str) -> bool:
-        """
-        Checks if the hash key is in the cache.
-        """
-        return hash_key in self.cache["entries"]
-
-    def save_response_to_cache(
-        self, hash_key: str, request: dict, response: dict
-    ):
-        """
-        Save the cache to the cache directory.
-        """
-        entry = {"request": request, "response": response}
-        self.cache["entries"][hash_key] = entry
-        self.cache["metadata"][
-            "last_updated"
-        ] = datetime.datetime.now().isoformat()
-        with open(self.cache_file, "w") as f:
-            json.dump(self.cache, f, indent=2)
-
-    def load_response_from_cache(self, hash_key: str) -> dict:
-        """
-        Load the response from the cache directory.
-        """
-        with open(self.cache_file, "r") as f:
-            openai_response = json.load(f)["entries"][hash_key]["response"]
-            return openai_response["choices"][0]["message"]["content"]
-
-
-# #############################################################################
 # OpenAI API Helpers
 # #############################################################################
 
@@ -311,10 +202,10 @@ def get_completion(
     """
 
     model = _MODEL if model is None else model
-    # Construct messages in OpenAI format
+    # Construct messages in OpenAI API request format
     messages = _construct_messages(system_prompt, user_prompt)
-    cache = OpenAICache(cache_file=cache_file)
-    # Dic makes easy to reuse it
+    cache = GetCompletionCache(cache_file=cache_file)
+    # Dictionary makes easy to reuse it.
     request_params = {"model": model, "messages": messages, **create_kwargs}
 
     hash_key = cache.hash_key_generator(**request_params)
@@ -661,3 +552,106 @@ def apply_prompt_to_dataframe(
         response_data.extend(processed_response)
     df[response_col] = response_data
     return df
+
+
+# #############################################################################
+# GetCompletionCache
+# #############################################################################
+
+
+class GetCompletionCache:
+
+    def __init__(self, cache_file: str = _CACHE_FILE):
+        self.cache_file = cache_file
+        # Load the existing file(may not exist or may be invalid JSON)
+        try:
+            with open(self.cache_file, "r") as f:
+                self.cache = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            self.cache = None
+        # Validates structure
+        if (
+            not isinstance(self.cache, dict)
+            or "version" not in self.cache
+            or "metadata" not in self.cache
+            or "entries" not in self.cache
+            or not isinstance(self.cache["entries"], dict)
+        ):
+            # Responses will be stored in entries.
+            self.cache = {
+                "version": "1.0",
+                "metadata": {
+                    "created_at": datetime.datetime.now().isoformat(),
+                    "last_updated": datetime.datetime.now().isoformat(),
+                },
+                "entries": {},
+            }
+            with open(self.cache_file, "w") as f:
+                json.dump(self.cache, f)
+
+    def hash_key_generator(
+        self,
+        model: str,
+        messages: List[Dict[str, str]],
+        **extra_kwargs: Any,
+    ) -> str:
+        """
+        Generate a hash key for the OpenAI request.
+        """
+        norm_msgs = []
+        for m in messages:
+            norm_msgs.append(
+                {
+                    "role": m["role"].strip().lower(),
+                    "content": " ".join(m["content"].split()).lower(),
+                }
+            )
+
+        key_obj: Dict[str, Any] = {
+            "model": model.strip().lower(),
+            "messages": norm_msgs,
+        }
+
+        for name in sorted(extra_kwargs):
+            key_obj[name] = extra_kwargs[name]
+
+        serialized = json.dumps(
+            key_obj,
+            # no spaces
+            separators=(",", ":"),
+            # keys in alphabetical order
+            sort_keys=True,
+            ensure_ascii=False,
+        )
+        return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+
+    def has_cache(self, hash_key: str) -> bool:
+        """
+        Check if the hash key is in the cache.
+        """
+        return hash_key in self.cache["entries"]
+
+    def save_response_to_cache(
+        self, hash_key: str, request: dict, response: dict
+    ):
+        """
+        Save the cache to the cache directory.
+        """
+        entry = {"request": request, "response": response}
+        self.cache["entries"][hash_key] = entry
+        self.cache["metadata"][
+            "last_updated"
+        ] = datetime.datetime.now().isoformat()
+        with open(self.cache_file, "w") as f:
+            json.dump(self.cache, f, indent=2)
+
+    def load_response_from_cache(self, hash_key: str) -> dict:
+        """
+        Load the response from the cache directory.
+        """
+        with open(self.cache_file, "r") as f:
+            cache = json.load(f)
+            if hash_key in cache["entries"]:
+                openai_response = cache["entries"][hash_key]["response"]
+                return openai_response["choices"][0]["message"]["content"]
+            raise ValueError("No cache found!")

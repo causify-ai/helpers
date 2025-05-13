@@ -150,11 +150,13 @@ def get_dummy_openai_response2():
             "total_tokens": 215,
         },
     }
+    return response
 
 
 # #############################################################################
 
 # #############################################################################
+
 
 # #############################################################################
 # BaseOpenAICacheTest
@@ -162,13 +164,18 @@ def get_dummy_openai_response2():
 
 
 class BaseOpenAICacheTest(hunitest.TestCase):
+    """
+    - Makes sure that hopenai.get_completion() always uses REPLAY mode.
+    - Adds dummy data in test cache file for testcases.
+    - Removes the test cache file after the tests.
+    """
 
-    """ """
-
-        
     @pytest.fixture(autouse=True)
     def setup_teardown_test(self):
-        self.get_completion_cache = hopenai.GetCompletionCache(cache_file=_TEST_CACHE_FILE)
+        # Using test cache file to prevent ruining the actual cache file.
+        self.get_completion_cache = hopenai.GetCompletionCache(
+            cache_file=_TEST_CACHE_FILE
+        )
         # Patch get_completion to inject REPLAY
         self.force_replay_cache()
         # Run common setuo for each test
@@ -177,7 +184,7 @@ class BaseOpenAICacheTest(hunitest.TestCase):
         # Run common teardown after the test.
         self.tear_down_test()
 
-    def force_replay_cache(self):
+    def force_replay_cache(self) -> None:
         """
         For all get_completion test cases, the cache_mode="REPLAY".
         """
@@ -201,8 +208,12 @@ class BaseOpenAICacheTest(hunitest.TestCase):
         dummy_openai_response1 = get_dummy_openai_response1()
         dummy_openai_response2 = get_dummy_openai_response2()
         # generating hash keys
-        dummy_hash_key1 = self.get_completion_cache.hash_key_generator(**request_parameters1)
-        dummy_hash_key2 = self.get_completion_cache.hash_key_generator(**request_parameters3)
+        dummy_hash_key1 = self.get_completion_cache.hash_key_generator(
+            **request_parameters1
+        )
+        dummy_hash_key2 = self.get_completion_cache.hash_key_generator(
+            **request_parameters3
+        )
         # saving dummy responses to cache
         self.get_completion_cache.save_response_to_cache(
             hash_key=dummy_hash_key1,
@@ -215,7 +226,7 @@ class BaseOpenAICacheTest(hunitest.TestCase):
             response=dummy_openai_response2,
         )
 
-    def tear_down_test(self):
+    def tear_down_test(self) -> None:
         """
         Teardown operations to run after each test:
             -  Remove cache files created on disk.
@@ -232,7 +243,7 @@ class BaseOpenAICacheTest(hunitest.TestCase):
 
 class Test_get_completion(BaseOpenAICacheTest):
 
-    def test1(self):
+    def test1(self) -> None:
         """
         Verify that get_completion returns response from cache with the
         expected response.
@@ -246,7 +257,7 @@ class Test_get_completion(BaseOpenAICacheTest):
             dummy_response1["choices"][0]["message"]["content"], response
         )
 
-    def test2(self):
+    def test2(self) -> None:
         """
         Verify that if hashkey is not in response, then get_completion should
         raise error in replay mode.
@@ -267,7 +278,7 @@ class Test_get_completion(BaseOpenAICacheTest):
 
 class Test_hash_key_generator(BaseOpenAICacheTest):
 
-    def test_different_request_parameters1(self):
+    def test_different_request_parameters1(self) -> None:
         """
         This test case checks if normalisation works before generating hash
         key.
@@ -278,7 +289,7 @@ class Test_hash_key_generator(BaseOpenAICacheTest):
         hash_key2 = self.get_completion_cache.hash_key_generator(**parameters2)
         self.assertEqual(hash_key1, hash_key2)
 
-    def test_different_request_parameters2(self):
+    def test_different_request_parameters2(self) -> None:
         """
         Different Temperatures should give different hashkeys.
         """
@@ -288,7 +299,7 @@ class Test_hash_key_generator(BaseOpenAICacheTest):
         hash_key2 = self.get_completion_cache.hash_key_generator(**parameters3)
         self.assertNotEqual(hash_key1, hash_key2)
 
-    def test_different_request_parameters3(self):
+    def test_different_request_parameters3(self) -> None:
         """
         Different models should give different hashkeys.
         """
@@ -298,6 +309,7 @@ class Test_hash_key_generator(BaseOpenAICacheTest):
         hash_key4 = self.get_completion_cache.hash_key_generator(**parameters4)
         self.assertNotEqual(hash_key3, hash_key4)
 
+
 # #############################################################################
 # Test_has_cache
 # #############################################################################
@@ -305,7 +317,7 @@ class Test_hash_key_generator(BaseOpenAICacheTest):
 
 class Test_has_cache(BaseOpenAICacheTest):
 
-    def test1(self):
+    def test1(self) -> None:
         """
         Should return False if cache doesnt exist.
         """
@@ -314,7 +326,7 @@ class Test_has_cache(BaseOpenAICacheTest):
         hash_key4 = self.get_completion_cache.hash_key_generator(**parameters4)
         self.assertFalse(self.get_completion_cache.has_cache(hash_key=hash_key4))
 
-    def test2(self):
+    def test2(self) -> None:
         """
         Should return True if cache exists.
         """
@@ -323,15 +335,60 @@ class Test_has_cache(BaseOpenAICacheTest):
         hash_key1 = self.get_completion_cache.hash_key_generator(**parameters1)
         self.assertTrue(self.get_completion_cache.has_cache(hash_key=hash_key1))
 
-    
-# class Test_save_response_to_cache(BaseOpenAICacheTest):
+
+# #############################################################################
+# Test_save_response_to_cache
+# #############################################################################
 
 
+class Test_save_response_to_cache(BaseOpenAICacheTest):
+
+    def test1(self) -> None:
+        """
+        Verifies if response saves into cache.
+        """
+        parameters4 = get_openai_request_parameters4()
+        dummy_response1 = get_dummy_openai_response1()
+        hash_key4 = self.get_completion_cache.hash_key_generator(**parameters4)
+        self.get_completion_cache.save_response_to_cache(
+            hash_key=hash_key4, request=parameters4, response=dummy_response1
+        )
+        self.assertEqual(
+            dummy_response1["choices"][0]["message"]["content"],
+            self.get_completion_cache.load_response_from_cache(
+                hash_key=hash_key4
+            ),
+        )
+        self.assertTrue(self.get_completion_cache.has_cache(hash_key=hash_key4))
 
 
+# #############################################################################
+# Test_load_response_from_cache
+# #############################################################################
 
 
-    
-    
+class Test_load_response_from_cache(BaseOpenAICacheTest):
 
+    def test1(self) -> None:
+        """
+        Verifies if stored response can be loaded.
+        """
+        # This response  saved in test cache through set up function.
+        dummy_response1 = get_dummy_openai_response1()
+        # same parameters used to save the above response in test cache.
+        parameters1 = get_openai_request_parameters1()
+        hash_key1 = self.get_completion_cache.hash_key_generator(**parameters1)
+        self.assertEqual(
+            dummy_response1["choices"][0]["message"]["content"],
+            self.get_completion_cache.load_response_from_cache(
+                hash_key=hash_key1
+            ),
+        )
 
+    def test2(self) -> None:
+        """ """
+        paramters4 = get_openai_request_parameters4()
+        hash_key4 = self.get_completion_cache.hash_key_generator(**paramters4)
+        with self.assertRaises(ValueError) as VE:
+            self.get_completion_cache.load_response_from_cache(hash_key=hash_key4)
+        self.assertEqual(str(VE.exception), "No cache found!")
