@@ -25,8 +25,8 @@
     + [Jupytext](#jupytext)
     + [Plotting](#plotting)
   * [Markdowns](#markdowns)
-  * [Spelling](#spelling)
   * [File system structure](#file-system-structure)
+  * [Spelling](#spelling)
 
 <!-- tocstop -->
 
@@ -55,9 +55,9 @@ It can serve as a guideline for automated PR reviews.
 - The starting post of the PR should briefly describe the content of the PR on a
   high level
 - The issue related to the PR must be mentioned in the starting post of the PR
-- The PR must not be linked to any issues under the "Development" section
-- At least one reviewer must be assigned under "Reviewers"
-- The PR author must be listed under "Assignees"
+- The PR must not be linked to any issues under the `Development` section
+- At least one reviewer must be assigned under `Reviewers`
+- The PR author must be listed under `Assignees`
 
 ### Before requesting review
 
@@ -68,16 +68,16 @@ It can serve as a guideline for automated PR reviews.
 - All checked in files should be checked and formatted by Linter
 - No files larger than 500 KB should be checked in
 - Screenshots should not be used in PR posts to describe the situation or report
-  an error -- copy-and-paste instead
+  an error — copy-and-paste instead
 
 ### During the review cycle
 
-- Label "PR_for_reviewers" should be present when a review is requested
+- Label `PR_for_reviewers` should be present when a review is requested
 - Fixes addressing a review comment should be applied everywhere, not just where
   the reviewer pointed out the issue
 - After addressing a review comment, the corresponding conversation should be
-  marked as "resolved"
-- After all review comments are resolved, "re-request review" button should be
+  marked as `resolved`
+- After all review comments are resolved, `re-request review` button should be
   used to request another round of review
 
 ## Code style
@@ -124,12 +124,12 @@ It can serve as a guideline for automated PR reviews.
   - It should not describe implementation details that can be changed
   - It should describe the goal of the function, the interface and what the user
     needs to know to use the function
-- The more detailed description is followed by a blank line and then the
-  param/return description section
-  - Use lowercase after `:param XYZ: ...`/`:return:` unless the description
+- The more detailed description is followed by a blank line and then the param /
+  return description section
+  - Use lowercase after `:param XYZ: ...` / `:return:` unless the description
     starts with a proper noun
-  - Do not add a period at the end of the param/return descriptions
-  - Do not mention the type of the parameters/returned structures
+  - Do not add a period at the end of the param / return descriptions
+  - Do not mention the type of the parameters / returned structures
   - Do not mention default values of parameters in parameter descriptions
   - Follow this example for indentation of parameter descriptions:
     ```python
@@ -173,7 +173,7 @@ It can serve as a guideline for automated PR reviews.
 #### Code design
 
 - Follow DRY principle (Don't Repeat Yourself):
-  - Factor out common code in a separate function/method
+  - Factor out common code in a separate function / method
   - Do not copy-and-paste parameter descriptions, instead write them in only one
     function and put a reference to it in the other functions where the same
     parameters are used, e.g., "See `func_name()` for the param description"
@@ -213,7 +213,7 @@ It can serve as a guideline for automated PR reviews.
   for all the parameters and returned structures
   - We use `-> None` if a function doesn't return anything
   - The only exception are invoke tasks, i.e. functions with the `@task`
-    decorator - they shouldn't have type annotations
+    decorator — they shouldn't have type annotations
 - We use `List[<type of list elements>]` instead of `list`,
   `Dict[<type of keys>, <type of values>]` instead of `dict`,
   `Tuple[<type of tuple elements>]` instead of `tuple`, etc.
@@ -238,17 +238,17 @@ It can serve as a guideline for automated PR reviews.
   of the time are constant
 - All the default parameters should be keyword-only
   - They should be separated from the other parameters by `*`
-- Do not use lists, maps, objects, etc. as the default value -- instead pass
+- Do not use lists, maps, objects, etc. as the default value — instead pass
   `None` and then initialize the default parameter inside the function
 - Use a default value of `None` when a function needs to be wrapped and the
   default parameter needs to be propagated
 - Do not use use a boolean parameter as a switch controlling some function
-  behavior -- instead use a string parameter `mode`, which is allowed to take a
+  behavior — instead use a string parameter `mode`, which is allowed to take a
   small well-defined set of values
 - For functions dealing with dataframes, avoid hard-wired column name
-  dependencies -- instead allow the caller to pass the column name to the
+  dependencies — instead allow the caller to pass the column name to the
   function as a parameter
-- Do not put computations of the output in the `return` line -- instead compute
+- Do not put computations of the output in the `return` line — instead compute
   the output first, assign it to a variable and then return this variable
 - A function should ideally have a single exit point (one line with `return`)
 - A function should ideally return objects of only one type (or `None`)
@@ -302,7 +302,7 @@ It can serve as a guideline for automated PR reviews.
     `TestFooBar.test_method_a`, `TestFooBar.test_method_b` for the methods
     `FooBar.method_a` and `FooBar.method_b`
   - Test class `Test_foo_bar` for the function `foo_bar()`, and test methods
-    `Test_foo_bar.test1`, `Test_foo_bar.test2` for different cases/inputs
+    `Test_foo_bar.test1`, `Test_foo_bar.test2` for different cases / inputs
 - - Do not add the following idiom in the testing file
   ```python
   if __name__ == "__main__":
@@ -311,9 +311,9 @@ It can serve as a guideline for automated PR reviews.
 - A unit test should be independent of all other unit tests
 - If there is a lot of common code in individual test methods, it should be
   factored out in a helper method within the test class
-- If some code needs to be repeated at the beginning/end of each test method, it
-  can be moved to `set_up_test()`/`tear_down_test()` methods and the following
-  idiom should be added to the test class:
+- If some code needs to be repeated at the beginning / end of each test method,
+  it can be moved to `set_up_test()` / `tear_down_test()` methods and the
+  following idiom should be added to the test class:
   ```python
   @pytest.fixture(autouse=True)
   def setup_teardown_test(self):
@@ -325,11 +325,11 @@ It can serve as a guideline for automated PR reviews.
   ```
 - Test methods should have a docstring describing briefly what case is being
   tested
-- Test methods should have param/return type annotations
-- Do not create temporary files for tests with `tempfile` -- use
+- Test methods should have param / return type annotations
+- Do not create temporary files for tests with `tempfile` — use
   `self.get_scratch_space()` instead
-- If the input to the test is a large piece of code/text, it should be moved to
-  a separate file in the `input` dir corresponding to the test
+- If the input to the test is a large piece of code / text, it should be moved
+  to a separate file in the `input` dir corresponding to the test
   (`outcomes/<TestClassName.test_method_name>/input`)
 - Do not use pickle files for test inputs
 - In every test method, separate logically distinct code chunks with comments
@@ -349,9 +349,9 @@ It can serve as a guideline for automated PR reviews.
 
 #### Misc
 
-- If a PR includes renaming a file/variable/parameter/function/class/etc., then
-  all the instances and references to it throughout the codebase should be
-  updated
+- If a PR includes renaming a file / variable / parameter / function / class /
+  etc., then all the instances and references to it throughout the codebase
+  should be updated
 - Encode the assumptions made in the code using assertions, e.g.,
   `hdbg.dassert_lt(start_date, end_date)`
   - Report as much information as possible in an assertion
@@ -414,7 +414,8 @@ It can serve as a guideline for automated PR reviews.
   times without changing their output value
 - If the data is transformed, display a few lines to show the outcome (e.g.,
   `df.head(3)`)
-- If any data is discarded/filtered, display the percentage of the rows dropped
+- If any data is discarded / filtered, display the percentage of the rows
+  dropped
 - Progress bars should be added where applicable
 
 #### Jupytext
@@ -468,6 +469,15 @@ It can serve as a guideline for automated PR reviews.
   - Do not explain things in a repetitive way
   - Rewrite long-winded AI-generated texts in a concise way
 
+### File system structure
+
+- If a new directory with code is added, it should contain an empty
+  `__init__.py` file
+- Notebooks should generally be located under the `notebooks` dir
+- Unit tests should be located under the `test` dir
+  - Golden outcomes for tests should be located under the `test/outcomes` dir
+- Documentation files should generally be located under the `docs` dir
+
 ### Spelling
 
 - Capitalize the first letter of `Python`
@@ -478,12 +488,3 @@ It can serve as a guideline for automated PR reviews.
   (e.g., `git` as a command, `Git` as a program)
 - Represent intervals with `[a, b), (a, b], (a, b), [a, b]`, not `[a, b[`
 - Write `hyperparameter` without a hyphen
-
-### File system structure
-
-- If a new directory with code is added, it should contain an empty
-  `__init__.py` file
-- Notebooks should generally be located under the `notebooks` dir
-- Unit tests should be located under the `test` dir
-  - Golden outcomes for tests should be located under the `test/outcomes` dir
-- Documentation files should generally be located under the `docs` dir
