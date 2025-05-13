@@ -44,6 +44,7 @@ def _write_output_to_file(lines: List[str]) -> None:
 if __name__ == "__main__":
     print("# Running git pre-commit hook ...")
     lines = []
+    lines.append("Pre-commit checks:")
     #
     dshgghout.check_master()
     #
