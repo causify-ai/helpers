@@ -73,7 +73,7 @@
     + [Examples of imports](#examples-of-imports)
   * [Scripts](#scripts)
     + [Use Python and not bash for scripting](#use-python-and-not-bash-for-scripting)
-    + [Skeleton for a script](#skeleton-for-a-script)
+    + [Template for a script](#template-for-a-script)
     + [Some useful patterns](#some-useful-patterns)
     + [Use scripts and not notebooks for long-running jobs](#use-scripts-and-not-notebooks-for-long-running-jobs)
     + [Follow the same structure](#follow-the-same-structure)
@@ -340,7 +340,7 @@
   - The name needs to be (possibly) short and memorable
     - However, don't be afraid to use long names, if needed, e.g.,
       `process_text_with_full_pipeline_twitter_v1`
-    - Сlarity is more important than number of bytes used
+    - Clarity is more important than number of bytes used
   - The name should capture what the object represents, without reference to
     things that can change or to details that are not important
   - The name should refer to what objects do (i.e., mechanisms), rather than how
@@ -1213,17 +1213,17 @@
 - Our approach is to make simple to create scripts in Python that are equivalent
   to sequencing shell commands, so that can evolve in complex scripts
 
-#### Skeleton for a script
+#### Template for a script
 
 - The ingredients are:
-  - [`/dev_scripts_helpers/coding_tools/script_skeleton.py`](/dev_scripts_helpers/coding_tools/script_skeleton.py):
+  - [`/dev_scripts_helpers/coding_tools/script_template.py`](/dev_scripts_helpers/coding_tools/script_template.py):
     a template to write simple scripts you can copy and modify it
   - [`/helpers/hsystem.py`](/helpers/hsystem.py): a set of utilities that make
     simple to run shell commands (e.g., capturing their output, breaking on
     error or not, tee-ing to file, logging, ...)
   - `helpers` has lots of useful libraries
 - The official reference for a script is
-  [`/dev_scripts_helpers/coding_tools/script_skeleton.py`](/dev_scripts_helpers/coding_tools/script_skeleton.py)
+  [`/dev_scripts_helpers/coding_tools/script_template.py`](/dev_scripts_helpers/coding_tools/script_template.py)
   - You can copy this file and change it
   - A simple example is:
     [`/dev_scripts_helpers/git/gup.py`](/dev_scripts_helpers/git/gup.py)

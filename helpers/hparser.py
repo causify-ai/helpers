@@ -276,7 +276,7 @@ def mark_action(action: str, actions: List[str]) -> Tuple[bool, List[str]]:
 # # Write output, handling stdout.
 # hparser.write_file(txt, out_file_name)
 # ```
-# See helpers_root/dev_scripts_helpers/coding_tools/transform_skeleton.py as an
+# See helpers_root/dev_scripts_helpers/coding_tools/transform_template.py as an
 # example.
 
 # For dockerized scripts the following idiom is used inside the wrapper, which
@@ -369,7 +369,7 @@ def parse_input_output_args(
         _LOG.info(hprint.to_str("out_file_name"))
     return in_file_name, out_file_name
 
-    
+
 def init_logger_for_input_output_transform(args: argparse.Namespace) -> None:
     verbosity = args.log_level
     # If the input is stdin, we don't want to print the command line or any
@@ -379,8 +379,7 @@ def init_logger_for_input_output_transform(args: argparse.Namespace) -> None:
             verbosity = "CRITICAL"
     else:
         print("cmd line: %s" % hdbg.get_command_line())
-    hdbg.init_logger(verbosity=verbosity, use_exec_path=True,
-        force_white=False)
+    hdbg.init_logger(verbosity=verbosity, use_exec_path=True, force_white=False)
 
 
 # TODO(gp): GFI -> from_file for symmetry for hio.

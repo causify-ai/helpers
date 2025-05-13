@@ -9,6 +9,7 @@ import logging
 import re
 from typing import Generator, List, Optional, Tuple, cast
 
+import dev_scripts_helpers.documentation.lint_notes as dshdlino
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 import helpers.hprint as hprint
@@ -275,6 +276,10 @@ def remove_formatting(txt: str) -> str:
     txt = re.sub(r"\*\*(.*?)\*\*", r"\1", txt)
     # Replace italic markdown syntax with plain text.
     txt = re.sub(r"\*(.*?)\*", r"\1", txt)
+    # Remove \textcolor{red}{ ... }.
+    txt = re.sub(r"\\textcolor\{(.*?)\}\{(.*?)\}", r"\2", txt)
+    # Remove \red{ ... }.
+    txt = re.sub(r"\\\S+\{(.*?)\}", r"\1", txt)
     return txt
 
 
@@ -285,6 +290,9 @@ def md_clean_up(txt: str) -> str:
     txt = re.sub(r"\\\[(.*?)\\\]", r"$$\1$$", txt, flags=re.DOTALL)
     # Replace `P(.)`` with `\Pr(.)`.
     txt = re.sub(r"P\((.*?)\)", r"\\Pr(\1)", txt)
+    # Replace \left[, \right].
+    txt = re.sub(r"\\left\[", r"[", txt)
+    txt = re.sub(r"\\right\]", r"]", txt)
     # Replace \mid with `|`.
     txt = re.sub(r"\\mid", r"|", txt)
     # E.g.,``  • Description Logics (DLs) are a family``
@@ -306,7 +314,7 @@ def md_clean_up(txt: str) -> str:
     # E.g., $ \text{Student} $ becomes $\text{Student}$
     #txt = re.sub(r"\$\s+(.*?)\s\$", r"$\1$", txt)
     # Remove dot at the end of each line.
-    #txt = re.sub(r"\.\s*$", "", txt, flags=re.MULTILINE)
+    txt = re.sub(r"\.\s*$", "", txt, flags=re.MULTILINE)
     return txt
 
 
@@ -755,30 +763,125 @@ def selected_navigation_to_str(
 # #############################################################################
 
 
-def colorize_first_level_bullets(markdown_text: str) -> str:
-    # Define the colors to use.
-    colors = ["red", "orange", "green", "teal", "cyan", "blue", "violet", "brown"]
-    # Find all first-level bullet points (lines starting with "- " after any whitespace).
+# These are the colors that are supported by Latex / markdown, are readable on
+# white, and form an equidistant color palette.
+_ALL_COLORS = [
+    "red",
+    "orange",
+    "brown",
+    "olive",
+    "green",
+    "teal",
+    "cyan",
+    "blue",
+    "violet",
+    "darkgray",
+    "gray",
+]
+
+
+def bold_first_level_bullets(markdown_text: str) -> str:
+    """
+    Make first-level bullets bold in markdown text.
+
+    :param markdown_text: Input markdown text
+    :return: Formatted markdown text with first-level bullets in bold
+    """
     lines = markdown_text.split("\n")
-    color_index = 0
     result = []
     for line in lines:
         # Check if this is a first-level bullet point.
         if re.match(r"^\s*- ", line):
-            # Only color first-level bullets (those with minimal indentation).
-            indentation = len(line) - len(line.lstrip())
-            if indentation == 0:
-                # First-level bullet.
-                color = colors[color_index % len(colors)]
-                # Replace the bullet with a colored version.
-                # - \textcolor{red}{Linear models}
-                colored_line = re.sub(
-                    r"^(\s*-\s+)(.*)", r"\1\\textcolor{" + color + r"}{\2}", line
-                )
-                result.append(colored_line)
-                color_index += 1
-            else:
-                result.append(line)
+            # Check if the line has bold text it in it.
+            if not re.search(r"\*\*", line):
+                # Bold first-level bullets.
+                indentation = len(line) - len(line.lstrip())
+                if indentation == 0:
+                    # First-level bullet, add bold markers.
+                    line = re.sub(r"^(\s*-\s+)(.*)", r"\1**\2**", line)
+            result.append(line)
         else:
             result.append(line)
     return "\n".join(result)
+
+
+def colorize_bold_text(
+    markdown_text: str, *, use_abbreviations: bool = True
+) -> str:
+    r"""
+    Add colors to bold text in markdown using equidistant colors from an array.
+
+    The function finds all bold text (enclosed in ** or __) and adds
+    LaTeX color commands while preserving the rest of the markdown
+    unchanged.
+
+    :param markdown_text: Input markdown text
+    :param use_abbreviations: Use LaTeX abbreviations for colors,
+        `\red{text}` instead of `\textcolor{red}{text}`
+    :return: Markdown text with colored bold sections
+    """
+    # Remove any existing color formatting.
+    # Remove \color{text} format.
+    markdown_text = re.sub(r"\\[a-z]+\{([^}]+)\}", r"\1", markdown_text)
+    # Remove \textcolor{color}{text} format.
+    markdown_text = re.sub(
+        r"\\textcolor\{[^}]+\}\{([^}]+)\}", r"\1", markdown_text
+    )
+    # Find all bold text (both ** and __ formats).
+    bold_pattern = r"\*\*(.*?)\*\*|__(.*?)__"
+    # matches will look like:
+    # For **text**: group(1)='text', group(2)=None.
+    # For __text__: group(1)=None, group(2)='text'.
+    matches = list(re.finditer(bold_pattern, markdown_text))
+    if not matches:
+        return markdown_text
+    result = markdown_text
+    # Calculate color spacing to use equidistant colors.
+    color_step = len(_ALL_COLORS) / len(matches)
+    # Process matches in reverse to not mess up string indices.
+    for i, match in enumerate(reversed(matches)):
+        # Get the matched bold text (either ** or __ format).
+        bold_text = match.group(1) or match.group(2)
+        # Calculate `color_idx` using equidistant spacing.
+        color_idx = int((len(matches) - 1 - i) * color_step) % len(_ALL_COLORS)
+        color = _ALL_COLORS[color_idx]
+        # Create the colored version.
+        if use_abbreviations:
+            # E.g., \red{text}
+            colored_text = f"\\{color}{{{bold_text}}}"
+        else:
+            # E.g., \textcolor{red}{text}
+            colored_text = f"\\textcolor{{{color}}}{{{bold_text}}}"
+        # Apply bold.
+        colored_text = f"**{colored_text}**"
+        # Replace in the original text.
+        result = result[: match.start()] + colored_text + result[match.end() :]
+    return result
+
+
+def remove_empty_lines_from_markdown(markdown_text: str) -> str:
+    """
+    Remove all empty lines from markdown text and add empty lines only before
+    first level bullets.
+
+    :param markdown_text: Input markdown text
+    :return: Formatted markdown text
+    """
+    # Split into lines and remove empty ones.
+    lines = [line for line in markdown_text.split("\n") if line.strip()]
+    # Remove all empty lines.
+    result = []
+    for i, line in enumerate(lines):
+        # Check if current line is a first level bullet (no indentation).
+        if re.match(r"^- ", line):
+            # Add empty line before first level bullet if not at start.
+            if i > 0:
+                result.append("")
+        result.append(line)
+    return "\n".join(result)
+
+
+def format_markdown(txt: str) -> str:
+    txt = dshdlino.prettier_on_str(txt)
+    txt = remove_empty_lines_from_markdown(txt)
+    return txt
