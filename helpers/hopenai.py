@@ -15,6 +15,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import openai
 import tqdm
+from dotenv import load_dotenv
 from openai import OpenAI
 from openai.types.beta.assistant import Assistant
 from openai.types.beta.threads.message import Message
@@ -22,6 +23,8 @@ from openai.types.beta.threads.message import Message
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
 import helpers.htimer as htimer
+
+load_dotenv()
 
 _LOG = logging.getLogger(__name__)
 
@@ -231,9 +234,12 @@ def get_completion(
         raise ValueError(f"Unsupported cache mode: {cache_mode}")
 
     client = OpenAI(
-        base_url="https://openrouter.ai/api/v1",  # Important: Use OpenRouter's base URL
-        api_key=os.environ.get("OPENROUTER_API_KEY")
+        # Important: Use OpenRouter's base URL
+        base_url="https://openrouter.ai/api/v1",
+        api_key=os.environ.get("OPENROUTER_API_KEY"),
     )
+    # client= OpenAI(api_key=os.environ.get("OPENROUTER_API_KEY"))
+
     print("OpenAI API call ... ")
     memento = htimer.dtimer_start(logging.DEBUG, "OpenAI API call")
     if not report_progress:
