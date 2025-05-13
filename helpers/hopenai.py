@@ -9,6 +9,7 @@ import functools
 import hashlib
 import json
 import logging
+import os
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -229,7 +230,10 @@ def get_completion(
     if not call_api:
         raise ValueError(f"Unsupported cache mode: {cache_mode}")
 
-    client = OpenAI()
+    client = OpenAI(
+        base_url="https://openrouter.ai/api/v1",  # Important: Use OpenRouter's base URL
+        api_key=os.environ.get("OPENROUTER_API_KEY")
+    )
     print("OpenAI API call ... ")
     memento = htimer.dtimer_start(logging.DEBUG, "OpenAI API call")
     if not report_progress:
