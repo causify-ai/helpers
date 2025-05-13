@@ -117,7 +117,7 @@ class _DockerFlowTestHelper(hunitest.TestCase):
         self, exp: str, call_args_list: List[umock._Call]
     ) -> None:
         """
-        Check that the sequence of commands from mock calls matches the
+        Verify that the sequence of Docker commands from mock calls matches the
         expected string.
 
         :param exp: expected command string
@@ -142,14 +142,19 @@ class _DockerFlowTestHelper(hunitest.TestCase):
 
 
 class Test_docker_build_local_image1(_DockerFlowTestHelper):
+    """
+    Test building a local Docker image.
+    """
 
-    def test_docker_build_local_image_single_arch(self) -> None:
+    def test_single_arch1(self) -> None:
         """
-        Test building a local Docker image with single architecture.
+        Test building with single architecture.
 
-        This test verifies that the correct sequence of commands is
-        generated for building a local Docker image with single
-        architecture.
+        This test checks:
+        - Single architecture build
+        - No-cache build options
+        - Custom build arguments
+        - Local user-specific tagging
         """
         # Call tested function.
         hltadore.docker_build_local_image(
@@ -177,13 +182,15 @@ class Test_docker_build_local_image1(_DockerFlowTestHelper):
         """
         self._check_docker_command_output(exp, self.mock_run.call_args_list)
 
-    def test_docker_build_local_image_multi_arch(self) -> None:
+    def test_multi_arch1(self) -> None:
         """
-        Test building a local Docker image with multiple architectures.
+        Test building with multiple architectures.
 
-        This test verifies that the correct sequence of commands is
-        generated for building a local Docker image with multiple
-        architectures.
+        This test checks:
+        - Multi-architecture build (amd64, arm64)
+        - Buildx driver setup
+        - Platform-specific build options
+        - Image pushing to registry
         """
         # Call tested function.
         hltadore.docker_build_local_image(
@@ -227,13 +234,20 @@ class Test_docker_build_local_image1(_DockerFlowTestHelper):
 
 
 class Test_docker_build_prod_image1(_DockerFlowTestHelper):
+    """
+    Test building a prod Docker image.
+    """
 
-    def test_docker_build_prod_image(self) -> None:
+    def test_single_arch_prod_image1(self) -> None:
         """
-        Test building a prod Docker image with single architecture.
+        Test building with single architecture.
 
-        This test verifies that the correct sequence of commands is
-        generated for building a prod Docker image.
+        This test checks:
+        - Production build workflow
+        - Single architecture build
+        - Build arguments for prod environment
+        - Prod image versioning
+        - Default and versioned tagging
         """
         # Call tested function.
         hltadore.docker_build_prod_image(
@@ -259,12 +273,16 @@ class Test_docker_build_prod_image1(_DockerFlowTestHelper):
         """
         self._check_docker_command_output(exp, self.mock_run.call_args_list)
 
-    def test_docker_build_multi_arch_prod_image(self) -> None:
+    def test_multi_arch_prod_image1(self) -> None:
         """
-        Test building a prod Docker image with multiple architectures.
+        Test building with multiple architectures.
 
-        This test verifies that the correct sequence of commands is
-        generated for building a multi-arch prod Docker image.
+        This test checks:
+        - Multi-architecture production build
+        - Buildx setup for multi-platform builds
+        - Push to registry during build
+        - Production build arguments
+        - Multi-arch specific options
         """
         # Call tested function.
         hltadore.docker_build_multi_arch_prod_image(
@@ -297,13 +315,15 @@ class Test_docker_build_prod_image1(_DockerFlowTestHelper):
         """
         self._check_docker_command_output(exp, self.mock_run.call_args_list)
 
-    def test_docker_build_prod_image_with_candidate_tag(self) -> None:
+    def test_candidate_tag1(self) -> None:
         """
-        Test building a prod Docker image with candidate mode using tag.
+        Test building with candidate mode using tag.
 
-        This test verifies that the correct sequence of commands is
-        generated for building a prod image with candidate mode using
-        tag.
+        This test checks:
+        - Production build using candidate mode
+        - Custom tag specification
+        - Build arguments
+        - Non-default image tagging
         """
         test_tag = "test_tag"
         # Call tested function.
@@ -331,13 +351,15 @@ class Test_docker_build_prod_image1(_DockerFlowTestHelper):
         """
         self._check_docker_command_output(exp, self.mock_run.call_args_list)
 
-    def test_docker_build_prod_image_with_candidate_user_tag(self) -> None:
+    def test_candidate_user_tag1(self) -> None:
         """
-        Test building a prod Docker image with candidate mode using user tag.
+        Test building with candidate mode using user tag.
 
-        This test verifies that the correct sequence of commands is
-        generated for building a prod image with candidate mode using
-        user tag and tag.
+        This test checks:
+        - Production build using candidate mode
+        - Combined user and custom tag parameters
+        - Custom tag format (prod-user-tag)
+        - Build arguments
         """
         test_user_tag = "test_user"
         test_tag = "test_tag"
@@ -374,40 +396,47 @@ class Test_docker_build_prod_image1(_DockerFlowTestHelper):
 
 
 class Test_docker_tag_push_multi_arch_prod_image1(_DockerFlowTestHelper):
+    """
+    Test tagging and pushing a multi-architecture Docker image.
+    """
 
-    def test_docker_tag_push_multi_arch_prod_image(self) -> None:
+    def test_aws_ecr1(self) -> None:
         """
-        Test tagging and pushing a multi-architecture Docker image.
+        Test pushing to AWS ECR.
 
-        This test verifies that the correct command is generated for
-        tagging and pushing a multi-architecture Docker image to the AWS
-        ECR target registry.
+        This test checks:
+        - Multi-arch image tagging
+        - AWS ECR target registry
+        - Production image versioning
         """
         # Call tested function.
+        target_registry = "aws_ecr.ck"
         hltadore.docker_tag_push_multi_arch_prod_image(
             self.mock_ctx,
             self.test_version,
-            target_registry="aws_ecr.ck",
+            target_registry=target_registry,
         )
         exp = r"""
         docker buildx imagetools create -t test.ecr.path/test-image:prod test.ecr.path/test-image:prod-1.0.0
         """
         self._check_docker_command_output(exp, self.mock_run.call_args_list)
 
-    def test_docker_tag_push_multi_arch_prod_image_dockerhub(self) -> None:
+    def test_dockerhub1(self) -> None:
         """
-        Test tagging and pushing a multi-arch versioned prod image to
-        DockerHub.
+        Test pushing to DockerHub from AWS ECR.
 
-        This test verifies that the correct sequence of commands is
-        generated for tagging and pushing a multi-arch versioned prod
-        image from ECR to DockerHub registry.
+        This test checks:
+        - Multi-arch image tagging
+        - DockerHub registry (differs from AWS ECR test)
+        - Version and latest tagging
+        - Cross-registry image copying
         """
         # Call tested function.
+        target_registry = "dockerhub.causify"
         hltadore.docker_tag_push_multi_arch_prod_image(
             self.mock_ctx,
             self.test_version,
-            target_registry="dockerhub.causify",
+            target_registry=target_registry,
         )
         exp = r"""
         docker buildx imagetools create -t causify/test-image:prod-1.0.0 test.ecr.path/test-image:prod-1.0.0
@@ -422,20 +451,26 @@ class Test_docker_tag_push_multi_arch_prod_image1(_DockerFlowTestHelper):
 
 
 class Test_docker_tag_push_multi_build_local_image_as_dev1(_DockerFlowTestHelper):
+    """
+    Test tagging and pushing a multi-arch local Docker image as dev.
+    """
 
-    def test_docker_tag_push_multi_build_local_image_as_dev(self) -> None:
+    def test_aws_ecr1(self) -> None:
         """
-        Test tagging and pushing a multi-arch local Docker image as dev.
+        Test pushing to AWS ECR.
 
-        This test verifies that the correct sequence of commands is
-        generated for tagging and pushing a multi-arch local Docker
-        image as dev to the AWS ECR target registry.
+        This test checks:
+        - Multi-arch image tagging
+        - AWS ECR target registry
+        - Dev image versioning
+        - Default and versioned tagging
         """
         # Call tested function.
+        target_registry = "aws_ecr.ck"
         hltadore.docker_tag_push_multi_build_local_image_as_dev(
             self.mock_ctx,
             self.test_version,
-            target_registry="aws_ecr.ck",
+            target_registry=target_registry,
         )
         exp = r"""
         docker buildx imagetools create -t test.ecr.path/test-image:dev-1.0.0 test.ecr.path/test-image:local-$USER_NAME-1.0.0
@@ -443,22 +478,22 @@ class Test_docker_tag_push_multi_build_local_image_as_dev1(_DockerFlowTestHelper
         """
         self._check_docker_command_output(exp, self.mock_run.call_args_list)
 
-    def test_docker_tag_push_multi_build_local_image_as_dev_dockerhub(
-        self,
-    ) -> None:
+    def test_dockerhub1(self) -> None:
         """
-        Test tagging and pushing a multi-arch local Docker image as dev to
-        DockerHub.
+        Test pushing to DockerHub from AWS ECR.
 
-        This test verifies that the correct sequence of commands is
-        generated for tagging and pushing a multi-arch local Docker
-        image as dev from ECR to DockerHub registry.
+        This test checks:
+        - Multi-arch image tagging
+        - DockerHub registry (differs from AWS ECR test)
+        - Version and latest tagging
+        - Cross-registry image copying
         """
         # Call tested function.
+        target_registry = "dockerhub.causify"
         hltadore.docker_tag_push_multi_build_local_image_as_dev(
             self.mock_ctx,
             self.test_version,
-            target_registry="dockerhub.causify",
+            target_registry=target_registry,
         )
         exp = r"""
         docker buildx imagetools create -t causify/test-image:dev-1.0.0 test.ecr.path/test-image:local-$USER_NAME-1.0.0
@@ -478,8 +513,14 @@ class Test_docker_release_dev_image1(_DockerFlowTestHelper):
         """
         Test releasing a dev Docker image with tests skipped.
 
-        This test verifies that the correct sequence of commands is
-        generated for building and releasing a dev Docker image.
+        This test checks:
+          - Build workflow
+          - No-cache build options
+          - Dev image versioning
+          - Default and versioned tagging
+          - Registry target selection
+          - Architecture support
+          - Tagging and versioning
         """
         # Call tested function.
         hltadore.docker_release_dev_image(
@@ -522,12 +563,18 @@ class Test_docker_release_dev_image1(_DockerFlowTestHelper):
 
 class Test_docker_release_prod_image1(_DockerFlowTestHelper):
 
-    def test_docker_release_prod_image_skip_tests(self) -> None:
+    def test_docker_release_prod_image(self) -> None:
         """
-        Test releasing a prod Docker image with tests skipped.
+        Test releasing a prod Docker image.
 
-        This test verifies that the correct sequence of commands is
-        generated for building and releasing a prod Docker image.
+        This test checks:
+          - Build workflow
+          - No-cache build options
+          - Prod image versioning
+          - Default and versioned tagging
+          - Registry target selection
+          - Architecture support
+          - Tagging and versioning
         """
         # Call tested function.
         hltadore.docker_release_prod_image(
@@ -567,14 +614,20 @@ class Test_docker_release_prod_image1(_DockerFlowTestHelper):
 
 
 class Test_docker_release_multi_build_dev_image1(_DockerFlowTestHelper):
+    """
+    Test releasing a multi-arch dev Docker image.
+    """
 
-    def test_docker_release_multi_build_dev_image(self) -> None:
+    def test_single_registry1(self) -> None:
         """
-        Test releasing a multi-arch dev Docker image.
+        Test releasing to a single registry.
 
-        This test verifies that the correct sequence of commands is
-        generated for building, testing, and releasing a multi-arch dev
-        Docker image.
+        This test checks:
+        - Multi-arch build setup
+        - Build and push workflow
+        - Dev image tagging
+        - Test skipping options
+        - Single registry target
         """
         # Call tested function.
         hltadore.docker_release_multi_build_dev_image(
@@ -616,15 +669,15 @@ class Test_docker_release_multi_build_dev_image1(_DockerFlowTestHelper):
         """
         self._check_docker_command_output(exp, self.mock_run.call_args_list)
 
-    def test_docker_release_multi_build_dev_image_multiple_registries(
-        self,
-    ) -> None:
+    def test_multiple_registries1(self) -> None:
         """
-        Test releasing a multi-arch dev Docker image to multiple registries.
+        Test releasing to multiple registries.
 
-        This test verifies that the correct sequence of commands is
-        generated for building, testing, and releasing a multi-arch dev
-        Docker image to multiple target registries.
+        This test checks:
+        - Multi-arch build workflow
+        - Multiple registry targets (AWS ECR and DockerHub)
+        - Parallel image tagging
+        - Image retagging for different registries
         """
         # Call tested function.
         hltadore.docker_release_multi_build_dev_image(
@@ -680,9 +733,11 @@ class Test_docker_rollback_dev_image1(_DockerFlowTestHelper):
         """
         Test rolling back a dev Docker image.
 
-        This test verifies that the correct sequence of commands is
-        generated for rolling back a dev Docker image to a specific
-        version.
+        This test checks:
+        - Dev image rollback workflow
+        - Version-specific image pull
+        - Retagging as latest
+        - Repository pushing
         """
         # Call tested function.
         hltadore.docker_rollback_dev_image(
@@ -710,9 +765,11 @@ class Test_docker_rollback_prod_image1(_DockerFlowTestHelper):
         """
         Test rolling back a prod Docker image.
 
-        This test verifies that the correct sequence of commands is
-        generated for rolling back a prod Docker image to a specific
-        version.
+        This test checks:
+        - Production image rollback workflow
+        - Version-specific image pull
+        - Retagging as latest production
+        - Repository pushing
         """
         # Call tested function.
         hltadore.docker_rollback_prod_image(
