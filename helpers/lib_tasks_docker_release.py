@@ -479,6 +479,9 @@ def docker_tag_local_image_as_dev(  # type: ignore
     hlitauti.run(ctx, cmd)
 
 
+# TODO(sandeep): Consider removing the redundant pull-push operation.
+# Currently, we pull the versioned dev image and then push it back to ECR.
+# This could be optimized by directly pushing the local image if it exists.
 @task
 def docker_push_dev_image(  # type: ignore
     ctx,
@@ -926,6 +929,9 @@ def docker_tag_push_multi_arch_prod_image(  # type: ignore
     )
 
 
+# TODO(sandeep): Consider removing the redundant pull-push operation.
+# Currently, we pull the versioned prod image and then push it back to ECR.
+# This could be optimized by directly pushing the local image if it exists.
 @task
 def docker_push_prod_image(  # type: ignore
     ctx,
