@@ -312,13 +312,15 @@ def md_clean_up(txt: str) -> str:
     txt = re.sub(r"→", r"$\\rightarrow$", txt)
     # Remove empty spaces at beginning / end of Latex equations $...$.
     # E.g., $ \text{Student} $ becomes $\text{Student}$
-    txt = re.sub(r"\$\s+(.*?)\s\$", r"$\1$", txt)
+    #txt = re.sub(r"\$\s+(.*?)\s\$", r"$\1$", txt)
     # Remove dot at the end of each line.
     txt = re.sub(r"\.\s*$", "", txt, flags=re.MULTILINE)
     # Transform `Example: Training a deep` into `E.g., training a deep`,
     # converting the word after `Example:` to lower case.
     txt = re.sub(r"\bExample:", "E.g.,", txt)
     txt = re.sub(r"\bE.g.,\s+(\w)", lambda m: "E.g., " + m.group(1).lower(), txt)
+    # Replace \mid with `|`.
+    txt = re.sub(r"\\mid", r"|", txt)
     return txt
 
 

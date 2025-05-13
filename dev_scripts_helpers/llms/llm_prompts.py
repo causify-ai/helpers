@@ -780,6 +780,49 @@ def slide_bold() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
+def slide_smart_colorize() -> _PROMPT_OUT:
+    system = _MD_CONTEXT
+    system += r"""
+    I will give you markdown text
+
+    You will:
+
+    - Not change the text or the structure of the text
+    - Use the \red{...}, \green{...}, \blue{...}, \violet{} to highlight common
+      chunks of the expression and text
+    - Consider that \Pr(.) is a single token and so it should not be highlighted
+      independently
+    - Make the chunks as big as possible
+
+    Print only the markdown without any explanation.
+# <input>
+# - Bayes' theorem states:
+#   $$\Pr(A_i|B) = \frac{\Pr(B|A_i) \cdot \Pr(A_i)}{\Pr(B)}$$
+#   where:
+#   - $\Pr(A_i|B)$ = posterior probability of $A_i$
+#   - $\Pr(B|A_i)$ = conditional (inverted) probability
+#   - $\Pr(A_i)$ = prior probability of $A_i$
+#   - $\Pr(B)$ = probability of $B$
+# </input>
+
+# <output>
+# - Bayes' theorem states:
+#   $$
+#   \red{\Pr(A_i|B)} = \frac{\green{\Pr(B|A_i)} \cdot \blue{\Pr(A_i)}}{\violet{\Pr(B)}}
+#   $$
+#   where:
+#   - \red{$\Pr(A_i|B)$} = posterior probability of \blue{$A_i$}
+#   - \green{$\Pr(B|A_i)$} = conditional (inverted) probability
+#   - \blue{$\Pr(A_i)$} = prior probability of \blue{$A_i$}
+#   - \violet{$\Pr(B)$} = probability of \violet{$B$}
+# </output>
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {"remove_code_delimiters"}
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
 # #############################################################################
 
 

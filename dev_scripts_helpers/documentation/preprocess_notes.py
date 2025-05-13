@@ -205,12 +205,15 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
         # 2) Remove code block.
         if _TRACE:
             _LOG.debug("# 2) Process code block.")
-        do_continue, in_code_block, out_tmp = hmarkdo.process_code_block(
-            line, in_code_block, i, lines
-        )
-        out.extend(out_tmp)
-        if do_continue:
-            continue
+        # TODO(gp): Not sure why this is needed. For sure the extra spacing
+        # creates a problem with the Python code blocks rendered by pandoc beamer.
+        if False:
+            do_continue, in_code_block, out_tmp = hmarkdo.process_code_block(
+                line, in_code_block, i, lines
+            )
+            out.extend(out_tmp)
+            if do_continue:
+                continue
         # 3) Remove single line comment.
         if _TRACE:
             _LOG.debug("# 3) Process single line comment.")
@@ -255,6 +258,7 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
                     # It's a line in an answer.
                     out.append(" " * _NUM_SPACES + line)
             else:
+                assert 0
                 # Empty line.
                 prev_line_is_verbatim = ((i - 1) > 0) and lines[i - 1].startswith(
                     "```"
@@ -277,7 +281,9 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
                     or prev_line_is_verbatim
                     or next_line_is_verbatim
                 ):
-                    out.append(" " * _NUM_SPACES + line)
+                    #out.append(" " * _NUM_SPACES + line)
+                    assert 0
+                    pass
     # c) Clean up.
     _LOG.debug("Clean up")
     # Remove all the lines with only spaces.
@@ -367,7 +373,7 @@ def _parse() -> argparse.ArgumentParser:
     )
     # TODO(gp): Unclear what it doesn.
     parser.add_argument(
-        "--qa", action="store_true", default=None, help="The input file is QA"
+        "--qa", action="store_true", default=False, help="The input file is QA"
     )
     hparser.add_verbosity_arg(parser)
     return parser
