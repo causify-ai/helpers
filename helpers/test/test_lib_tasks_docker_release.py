@@ -253,7 +253,7 @@ class Test_docker_build_prod_image1(_DockerFlowTestHelper):
             --build-arg VERSION=1.0.0 \
             --build-arg ECR_BASE_PATH=test.ecr.path \
             --build-arg IMAGE_NAME=test-image \
-            $GIT_ROOT
+            /app
         docker tag test-registry.com/test-image:prod-1.0.0 test-registry.com/test-image:prod
         docker image ls test-registry.com/test-image:prod
         """
@@ -326,7 +326,7 @@ class Test_docker_build_prod_image1(_DockerFlowTestHelper):
             --build-arg VERSION=1.0.0 \
             --build-arg ECR_BASE_PATH=test.ecr.path \
             --build-arg IMAGE_NAME=test-image \
-            $GIT_ROOT
+            /app
         docker image ls test-registry.com/test-image:prod-test_tag
         """
         self._check_docker_command_output(exp, self.mock_run.call_args_list)
@@ -362,7 +362,7 @@ class Test_docker_build_prod_image1(_DockerFlowTestHelper):
             --build-arg VERSION=1.0.0 \
             --build-arg ECR_BASE_PATH=test.ecr.path \
             --build-arg IMAGE_NAME=test-image \
-            $GIT_ROOT
+            /app
         docker image ls test-registry.com/test-image:prod-test_user-test_tag
         """
         self._check_docker_command_output(exp, self.mock_run.call_args_list)
@@ -410,8 +410,8 @@ class Test_docker_tag_push_multi_arch_prod_image1(_DockerFlowTestHelper):
             target_registry="dockerhub.causify",
         )
         exp = r"""
-        docker buildx imagetools create -t causify/helpers:prod-1.0.0 test.ecr.path/test-image:prod-1.0.0
-        docker buildx imagetools create -t causify/helpers:prod test.ecr.path/test-image:prod-1.0.0
+        docker buildx imagetools create -t causify/test-image:prod-1.0.0 test.ecr.path/test-image:prod-1.0.0
+        docker buildx imagetools create -t causify/test-image:prod test.ecr.path/test-image:prod-1.0.0
         """
         self._check_docker_command_output(exp, self.mock_run.call_args_list)
 
@@ -461,8 +461,8 @@ class Test_docker_tag_push_multi_build_local_image_as_dev1(_DockerFlowTestHelper
             target_registry="dockerhub.causify",
         )
         exp = r"""
-        docker buildx imagetools create -t causify/helpers:dev-1.0.0 test.ecr.path/test-image:local-$USER_NAME-1.0.0
-        docker buildx imagetools create -t causify/helpers:dev test.ecr.path/test-image:local-$USER_NAME-1.0.0
+        docker buildx imagetools create -t causify/test-image:dev-1.0.0 test.ecr.path/test-image:local-$USER_NAME-1.0.0
+        docker buildx imagetools create -t causify/test-image:dev test.ecr.path/test-image:local-$USER_NAME-1.0.0
         """
         self._check_docker_command_output(exp, self.mock_run.call_args_list)
 
@@ -515,11 +515,6 @@ class Test_docker_release_dev_image1(_DockerFlowTestHelper):
         self._check_docker_command_output(exp, self.mock_run.call_args_list)
 
 
-# # #############################################################################
-# # Test_docker_release_prod_image1
-# # #############################################################################
-
-
 # #############################################################################
 # Test_docker_release_prod_image1
 # #############################################################################
@@ -556,7 +551,8 @@ class Test_docker_release_prod_image1(_DockerFlowTestHelper):
             --file /app/devops/docker_build/prod.Dockerfile \
             --build-arg VERSION=1.0.0 \
             --build-arg ECR_BASE_PATH=test.ecr.path \
-            .
+            --build-arg IMAGE_NAME=test-image \
+            /app
         docker tag test.ecr.path/test-image:prod-1.0.0 test.ecr.path/test-image:prod
         docker image ls test.ecr.path/test-image:prod
         docker push test.ecr.path/test-image:prod-1.0.0
@@ -667,8 +663,8 @@ class Test_docker_release_multi_build_dev_image1(_DockerFlowTestHelper):
         docker image ls test.ecr.path/test-image:local-$USER_NAME-1.0.0
         docker buildx imagetools create -t test.ecr.path/test-image:dev-1.0.0 test.ecr.path/test-image:local-$USER_NAME-1.0.0
         docker buildx imagetools create -t test.ecr.path/test-image:dev test.ecr.path/test-image:local-$USER_NAME-1.0.0
-        docker buildx imagetools create -t causify/helpers:dev-1.0.0 test.ecr.path/test-image:local-$USER_NAME-1.0.0
-        docker buildx imagetools create -t causify/helpers:dev test.ecr.path/test-image:local-$USER_NAME-1.0.0
+        docker buildx imagetools create -t causify/test-image:dev-1.0.0 test.ecr.path/test-image:local-$USER_NAME-1.0.0
+        docker buildx imagetools create -t causify/test-image:dev test.ecr.path/test-image:local-$USER_NAME-1.0.0
         """
         self._check_docker_command_output(exp, self.mock_run.call_args_list)
 
@@ -701,11 +697,6 @@ class Test_docker_rollback_dev_image1(_DockerFlowTestHelper):
         docker push test.ecr.path/test-image:dev
         """
         self._check_docker_command_output(exp, self.mock_run.call_args_list)
-
-
-# # #############################################################################
-# # Test_docker_rollback_prod_image1
-# # #############################################################################
 
 
 # #############################################################################
