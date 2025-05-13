@@ -57,12 +57,13 @@ class Settings:
         """
         Get the current settings of the repository.
 
-        :param repo: GitHub repository object
-        :return: Dictionary containing repository settings
+        :param repo: github repository object
+        :return: dictionary containing repository settings
         """
         current_settings = {
             "name": repo.name,
             "default_branch": repo.default_branch,
+            "homepage": repo.homepage,
             "description": repo.description,
             "private": repo.private,
             "archived": repo.archived,
@@ -135,7 +136,7 @@ class Settings:
         not in settings manifest file.
 
         :param repo: github repository object
-        :param execute: whether to actually apply changes
+        :param execute: whether to do dry run
         """
         branches = repo.get_branches()
         for branch in branches:
@@ -172,7 +173,7 @@ class Settings:
         settings manifest file.
 
         :param repo: github repository object
-        :param execute: whether to actually apply changes
+        :param execute: whether to do dry run
         """
         current_settings = self.get_repository_settings(repo)
 
@@ -207,7 +208,7 @@ class Settings:
         Apply branch protection rules.
 
         :param repo: github repository object
-        :param execute: whether to actually apply changes
+        :param execute: whether to do dry run
         """
         for branch_name, protection in self.branch_protection.items():
             branch = repo.get_branch(branch_name)
@@ -266,7 +267,7 @@ class Settings:
         Apply repository settings.
 
         :param repo: github repository object
-        :param execute: whether to actually apply changes
+        :param execute: whether to do dry run
         """
         if execute:
             private = self.repo_settings.get("private")
