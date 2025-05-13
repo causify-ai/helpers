@@ -488,6 +488,7 @@ def check_gitleaks(abort_on_error: bool = True) -> None:
     # Find relative path from the git root to the helpers root.
     git_root_dir = hgit.find_git_root()
     helpers_root_dir = hgit.find_helpers_root()
+    # Compute relative path from root of the outer repo to the helpers root.
     rel_path = os.path.relpath(helpers_root_dir, git_root_dir)
     # Find the gitleaks config file.
     config_path = os.path.join(
