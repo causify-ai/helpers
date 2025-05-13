@@ -83,6 +83,12 @@ class _DockerFlowTestHelper(hunitest.TestCase):
         )
         self.mock_get_default_param = self.get_default_param_patcher.start()
         self.env_patcher.start()
+        self.get_docker_base_image_name_patcher = umock.patch(
+            "helpers.repo_config_utils.RepoConfig.get_docker_base_image_name"
+        )
+        self.mock_get_docker_base_image_name = (
+            self.get_docker_base_image_name_patcher.start()
+        )
         #
         self.patchers = [
             self.system_patcher,
@@ -90,6 +96,7 @@ class _DockerFlowTestHelper(hunitest.TestCase):
             self.version_patcher,
             self.docker_login_patcher,
             self.env_patcher,
+            self.get_docker_base_image_name_patcher,
             self.get_default_param_patcher,
         ]
         # Test inputs.
@@ -97,6 +104,7 @@ class _DockerFlowTestHelper(hunitest.TestCase):
         self.test_version = "1.0.0"
         self.test_base_image = "test-registry.com/test-image"
         self.test_multi_arch = "linux/amd64,linux/arm64"
+        self.mock_get_docker_base_image_name.return_value = "test-image"
 
     def tear_down_test(self) -> None:
         """
@@ -244,7 +252,8 @@ class Test_docker_build_prod_image1(_DockerFlowTestHelper):
             --file /app/devops/docker_build/prod.Dockerfile \
             --build-arg VERSION=1.0.0 \
             --build-arg ECR_BASE_PATH=test.ecr.path \
-            .
+            --build-arg IMAGE_NAME=test-image \
+            $GIT_ROOT
         docker tag test-registry.com/test-image:prod-1.0.0 test-registry.com/test-image:prod
         docker image ls test-registry.com/test-image:prod
         """
@@ -316,7 +325,8 @@ class Test_docker_build_prod_image1(_DockerFlowTestHelper):
             --file /app/devops/docker_build/prod.Dockerfile \
             --build-arg VERSION=1.0.0 \
             --build-arg ECR_BASE_PATH=test.ecr.path \
-            .
+            --build-arg IMAGE_NAME=test-image \
+            $GIT_ROOT
         docker image ls test-registry.com/test-image:prod-test_tag
         """
         self._check_docker_command_output(exp, self.mock_run.call_args_list)
@@ -351,7 +361,8 @@ class Test_docker_build_prod_image1(_DockerFlowTestHelper):
             --file /app/devops/docker_build/prod.Dockerfile \
             --build-arg VERSION=1.0.0 \
             --build-arg ECR_BASE_PATH=test.ecr.path \
-            .
+            --build-arg IMAGE_NAME=test-image \
+            $GIT_ROOT
         docker image ls test-registry.com/test-image:prod-test_user-test_tag
         """
         self._check_docker_command_output(exp, self.mock_run.call_args_list)

@@ -803,6 +803,13 @@ def docker_build_prod_image(  # type: ignore
     opts = "--no-cache" if not cache else ""
     # Use dev version for building prod image.
     dev_version = hlitadoc.to_dev_version(prod_version)
+    image_name = hrecouti.get_repo_config().get_docker_base_image_name()
+    hdbg.dassert(
+        not hgit.is_inside_submodule(),
+        "The build should be run from a super repo, not a submodule.",
+    )
+    git_root_dir = hgit.find_git_root()
+    # TODO(heanh): Expose the build context to the interface and use `git_root_dir` by default.
     cmd = rf"""
     DOCKER_BUILDKIT={DOCKER_BUILDKIT} \
     time \
@@ -812,7 +819,8 @@ def docker_build_prod_image(  # type: ignore
         --file {dockerfile} \
         --build-arg VERSION={dev_version} \
         --build-arg ECR_BASE_PATH={os.environ["CSFY_ECR_BASE_PATH"]} \
-        .
+        --build-arg IMAGE_NAME={image_name} \
+        {git_root_dir}
     """
     hlitauti.run(ctx, cmd)
     if candidate:
