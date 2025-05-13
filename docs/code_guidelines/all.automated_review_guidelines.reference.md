@@ -388,19 +388,15 @@ It can serve as a guideline for automated PR reviews.
   - All the imports should be located in a single cell
 - Below the cell with the imports, there should be a code cell that configures
   the logging and notebook style, and reports execution info:
-
   ```python
   # Configure logger.
   hdbg.init_logger(verbosity=logging.INFO)
   _LOG = logging.getLogger(__name__)
-
   # Print system signature.
   _LOG.info("%s", henv.get_system_signature()[0])
-
   # Configure the notebook style.
   hprint.config_notebook()
   ```
-
 - The rest of the notebook should be clearly organized using Markdown cells with
   headings of different levels
 - The code in the notebook should adhere to the same style and formatting
