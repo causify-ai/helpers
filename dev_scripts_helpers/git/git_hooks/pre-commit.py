@@ -63,8 +63,6 @@ if __name__ == "__main__":
             "##### All pre-commit hooks passed: committing ######", "purple"
         )
     )
-    lines = []
-    lines.append("Pre-commit checks:")
     lines.append("All checks passed ✅")
     _write_output_to_file(lines)
     sys.exit(0)
