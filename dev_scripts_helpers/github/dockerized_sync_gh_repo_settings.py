@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
-The script is designed to synchronize GitHub repository settings from a
-settings manifest file. It requires certain dependencies to be present (e.g.,
-`pygithub`) and thus it is executed as a dockerized executable.
+The script is designed to synchronize GitHub repository settings and branch
+protection rules from a settings manifest file. It requires certain
+dependencies to be present (e.g., `pygithub`) and thus it is executed as a
+dockerized executable.
 
 To use this script, you need to provide the input file, GitHub repository name,
 owner, token environment variable, and optional flags for controlling the
@@ -42,7 +43,7 @@ class Settings:
         repository settings.
 
         :param settings: dictionary containing branch protection and
-            repository settings.
+            repository settings
         """
         self._settings = settings
         self._branch_protection = settings.get("branch_protection", {})
@@ -52,16 +53,41 @@ class Settings:
         return f"settings(branch_protection={self.branch_protection}, repo_settings={self.repo_settings})"
 
     @staticmethod
+    def get_repository_settings(repo: gh_repo.Repository) -> Dict[str, Any]:
+        """
+        Get the current settings of the repository.
+
+        :param repo: GitHub repository object
+        :return: Dictionary containing repository settings
+        """
+        current_settings = {
+            "name": repo.name,
+            "default_branch": repo.default_branch,
+            "description": repo.description,
+            "private": repo.private,
+            "archived": repo.archived,
+            "has_issues": repo.has_issues,
+            "has_projects": repo.has_projects,
+            "has_wiki": repo.has_wiki,
+            "allow_squash_merge": repo.allow_squash_merge,
+            "allow_merge_commit": repo.allow_merge_commit,
+            "allow_rebase_merge": repo.allow_rebase_merge,
+            "delete_branch_on_merge": repo.delete_branch_on_merge,
+        }
+        return current_settings
+
+    @staticmethod
     def load_settings(path: str) -> "Settings":
         """
-        Load settings from a YAML file.
+        Load settings from settings manifest file.
 
         :param path: path to settings manifest file
         :return: settings object
         """
         with open(path, "r", encoding="utf-8") as file:
             yaml_data = yaml.safe_load(file)
-            return Settings(yaml_data)
+            settings = Settings(yaml_data)
+            return settings
 
     @staticmethod
     def save_settings(settings: "Settings", path: str) -> None:
@@ -101,83 +127,77 @@ class Settings:
             "repository_settings": self._repo_settings,
         }
 
-    def prune_branch_protection(
+    def switch_default_branch_protection(
         self, repo: gh_repo.Repository, execute: bool = True
     ) -> None:
         """
-        Remove branch protection rules that exist in the repo but not in
-        settings.
+        Switch to default branch protection rules that exist in the repo but
+        not in settings manifest file.
 
         :param repo: github repository object
         :param execute: whether to actually apply changes
         """
-        try:
-            branches = repo.get_branches()
-            for branch in branches:
-                try:
-                    # Check if branch has protection.
-                    protection = branch.get_protection()
-                    # If branch is not in our settings but has protection, remove it.
-                    if branch.name not in self.branch_protection:
-                        if execute:
-                            protection.remove()
-                            _LOG.info(
-                                "Branch protection removed from %s", branch.name
-                            )
-                        else:
-                            _LOG.info(
-                                "Would remove branch protection from %s",
-                                branch.name,
-                            )
-                except gh.GithubException as e:
-                    if e.status == 404:
-                        # Branch has no protection, skip.
-                        continue
+        branches = repo.get_branches()
+        for branch in branches:
+            try:
+                # Get branch protection settings.
+                protection = branch.get_protection()
+                # Remove branch protection if branch exists in repo but not in settings.
+                if branch.name not in self.branch_protection:
+                    if execute:
+                        protection.remove()
+                        _LOG.info(
+                            "Branch protection removed from %s", branch.name
+                        )
                     else:
-                        raise
-        except gh.GithubException as e:
-            _LOG.error("Failed to prune branch protection: %s", str(e))
+                        _LOG.info(
+                            "Would remove branch protection from %s without --dry_run",
+                            branch.name,
+                        )
+            except gh.GithubException as e:
+                if e.status == 404:
+                    # Skip if branch has no protection.
+                    continue
+                _LOG.error(
+                    "Failed to remove branch protection from %s: %s",
+                    branch.name,
+                    str(e),
+                )
 
-    def prune_repo_settings(
+    def switch_default_repository_settings(
         self, repo: gh_repo.Repository, execute: bool = True
     ) -> None:
         """
-        Reset repository settings that exist in the repo but not in settings.
+        Switch to default repository settings that exist in the repo but not in
+        settings manifest file.
 
         :param repo: github repository object
         :param execute: whether to actually apply changes
         """
-        current_settings = {
-            "allow_merge_commit": repo.allow_merge_commit,
-            "allow_squash_merge": repo.allow_squash_merge,
-            "allow_rebase_merge": repo.allow_rebase_merge,
-            "has_issues": repo.has_issues,
-            "has_wiki": repo.has_wiki,
-            "has_projects": repo.has_projects,
-        }
+        current_settings = self.get_repository_settings(repo)
 
-        # Check each setting
+        # Check each setting in the repository.
         for setting, value in current_settings.items():
             if setting not in self.repo_settings and value:
                 if execute:
-                    # Reset the setting to its default value.
                     if setting in [
                         "allow_merge_commit",
                         "allow_squash_merge",
                         "allow_rebase_merge",
+                        "delete_branch_on_merge",
+                        "has_issues",
+                        "has_wiki",
+                        "has_projects",
                     ]:
-                        repo.edit(**{setting: False})
-                        _LOG.info(
-                            "Reset repository setting %s to default", setting
-                        )
-                    elif setting in ["has_issues", "has_wiki", "has_projects"]:
+                        # Reset setting to default value.
                         repo.edit(**{setting: False})
                         _LOG.info(
                             "Reset repository setting %s to default", setting
                         )
                 else:
                     _LOG.info(
-                        "Would reset repository setting %s to default", setting
+                        "Would reset repository setting %s to default without --dry_run",
+                        setting,
                     )
 
     def apply_branch_protection(
@@ -190,61 +210,53 @@ class Settings:
         :param execute: whether to actually apply changes
         """
         for branch_name, protection in self.branch_protection.items():
-            try:
-                branch = repo.get_branch(branch_name)
-                if execute:
-                    # Get the protection settings.
-                    required_status_checks = protection.get(
-                        "required_status_checks", {}
-                    )
-                    required_pr_reviews = protection.get(
-                        "required_pull_request_reviews", {}
-                    )
-                    restrictions = protection.get("restrictions", {})
-                    # Only include status checks if explicitly set and non-empty.
-                    contexts = required_status_checks.get("contexts", [])
-                    strict = required_status_checks.get("strict")
-                    # Apply branch protection with supported parameters.
-                    branch.edit_protection(
-                        strict=strict if strict is not None else gh_obj.NotSet,
-                        contexts=contexts if contexts else gh_obj.NotSet,
-                        enforce_admins=protection.get(
-                            "enforce_admins", gh_obj.NotSet
-                        ),
-                        dismiss_stale_reviews=required_pr_reviews.get(
-                            "dismiss_stale_reviews", gh_obj.NotSet
-                        ),
-                        require_code_owner_reviews=required_pr_reviews.get(
-                            "require_code_owner_reviews", gh_obj.NotSet
-                        ),
-                        required_approving_review_count=required_pr_reviews.get(
-                            "required_approving_review_count", gh_obj.NotSet
-                        ),
-                        dismissal_users=required_pr_reviews.get(
-                            "dismissal_restrictions", {}
-                        ).get("users", gh_obj.NotSet),
-                        dismissal_teams=required_pr_reviews.get(
-                            "dismissal_restrictions", {}
-                        ).get("teams", gh_obj.NotSet),
-                        user_push_restrictions=restrictions.get(
-                            "users", gh_obj.NotSet
-                        ),
-                        team_push_restrictions=restrictions.get(
-                            "teams", gh_obj.NotSet
-                        ),
-                    )
-                    _LOG.info(
-                        "Branch protection rules applied to %s", branch_name
-                    )
-                else:
-                    _LOG.info(
-                        "Would apply branch protection rules to %s", branch_name
-                    )
-            except gh.GithubException as e:
-                _LOG.error(
-                    "Failed to apply branch protection to %s: %s",
+            branch = repo.get_branch(branch_name)
+            if execute:
+                # Get the protection settings.
+                required_status_checks = protection.get(
+                    "required_status_checks", {}
+                )
+                required_pr_reviews = protection.get(
+                    "required_pull_request_reviews", {}
+                )
+                restrictions = protection.get("restrictions", {})
+                # Include status checks only if explicitly set and non-empty.
+                contexts = required_status_checks.get("contexts", [])
+                strict = required_status_checks.get("strict")
+                # Apply branch protection using supported parameters.
+                branch.edit_protection(
+                    strict=strict if strict is not None else gh_obj.NotSet,
+                    contexts=contexts if contexts else gh_obj.NotSet,
+                    enforce_admins=protection.get(
+                        "enforce_admins", gh_obj.NotSet
+                    ),
+                    dismiss_stale_reviews=required_pr_reviews.get(
+                        "dismiss_stale_reviews", gh_obj.NotSet
+                    ),
+                    require_code_owner_reviews=required_pr_reviews.get(
+                        "require_code_owner_reviews", gh_obj.NotSet
+                    ),
+                    required_approving_review_count=required_pr_reviews.get(
+                        "required_approving_review_count", gh_obj.NotSet
+                    ),
+                    dismissal_users=required_pr_reviews.get(
+                        "dismissal_restrictions", {}
+                    ).get("users", gh_obj.NotSet),
+                    dismissal_teams=required_pr_reviews.get(
+                        "dismissal_restrictions", {}
+                    ).get("teams", gh_obj.NotSet),
+                    user_push_restrictions=restrictions.get(
+                        "users", gh_obj.NotSet
+                    ),
+                    team_push_restrictions=restrictions.get(
+                        "teams", gh_obj.NotSet
+                    ),
+                )
+                _LOG.info("Branch protection rules applied to %s", branch_name)
+            else:
+                _LOG.info(
+                    "Would apply branch protection rules to %s without --dry_run",
                     branch_name,
-                    str(e),
                 )
 
     def apply_repo_settings(
@@ -257,7 +269,6 @@ class Settings:
         :param execute: whether to actually apply changes
         """
         if execute:
-            # Handle visibility/private conflict.
             private = self.repo_settings.get("private")
             # Apply basic repository settings.
             repo.edit(
@@ -284,49 +295,38 @@ class Settings:
                 ),
                 archived=self.repo_settings.get("archived", gh_obj.NotSet),
             )
-            # Apply security settings
-            try:
-                enable_security_fixes = self.repo_settings.get(
-                    "enable_automated_security_fixes"
-                )
-                if enable_security_fixes is not None:
-                    if enable_security_fixes:
-                        repo.enable_automated_security_fixes()
-                        _LOG.info("Enabled automated security fixes")
-                    else:
-                        repo.disable_automated_security_fixes()
-                        _LOG.info("Disabled automated security fixes")
-            except gh.GithubException as e:
-                _LOG.error(
-                    "Failed to configure automated security fixes: %s", str(e)
-                )
-            try:
-                enable_vuln_alerts = self.repo_settings.get(
-                    "enable_vulnerability_alerts"
-                )
-                if enable_vuln_alerts is not None:
-                    if enable_vuln_alerts:
-                        repo.enable_vulnerability_alert()
-                        _LOG.info("Enabled vulnerability alerts")
-                    else:
-                        repo.disable_vulnerability_alert()
-                        _LOG.info("Disabled vulnerability alerts")
-            except gh.GithubException as e:
-                _LOG.error("Failed to configure vulnerability alerts: %s", str(e))
-            # Update topics separately.
-            try:
-                if "topics" in self.repo_settings:
-                    topics = [
-                        topic.strip()
-                        for topic in self.repo_settings["topics"].split(",")
-                    ]
-                    repo.replace_topics(topics)
-                    _LOG.info("Updated repository topics")
-            except gh.GithubException as e:
-                _LOG.error("Failed to update repository topics: %s", str(e))
+            # Apply security-related settings.
+            enable_security_fixes = self.repo_settings.get(
+                "enable_automated_security_fixes"
+            )
+            if enable_security_fixes is not None:
+                if enable_security_fixes:
+                    repo.enable_automated_security_fixes()
+                    _LOG.info("Enabled automated security fixes")
+                else:
+                    repo.disable_automated_security_fixes()
+                    _LOG.info("Disabled automated security fixes")
+
+            enable_vuln_alerts = self.repo_settings.get(
+                "enable_vulnerability_alerts"
+            )
+            if enable_vuln_alerts is not None:
+                if enable_vuln_alerts:
+                    repo.enable_vulnerability_alert()
+                    _LOG.info("Enabled vulnerability alerts")
+                else:
+                    repo.disable_vulnerability_alert()
+                    _LOG.info("Disabled vulnerability alerts")
+
+            # Update repository topics.
+            if "topics" in self.repo_settings:
+                topics = self.repo_settings["topics"]
+                repo.replace_topics(topics)
+                _LOG.info("Updated repository topics")
+
             _LOG.info("Repository settings applied")
         else:
-            _LOG.info("Would apply repository settings")
+            _LOG.info("Would apply repository settings without --dry_run")
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -354,9 +354,9 @@ def _parse() -> argparse.ArgumentParser:
         help="Name of the environment variable containing the GitHub token",
     )
     parser.add_argument(
-        "--prune",
+        "--switch_default",
         action="store_true",
-        help="Delete settings that exist in the repo but not in the settings manifest file",
+        help="Switch to default settings for settings that exist in the repo but not in the settings manifest file",
     )
     parser.add_argument(
         "--dry_run",
@@ -383,30 +383,22 @@ def _main(parser: argparse.ArgumentParser) -> None:
     settings = Settings.load_settings(args.input_file)
     token = os.environ[args.token_env_var]
     hdbg.dassert(token)
-    # Initialize GH client.
+    # Initialize GitHub client.
     client = gh.Github(token)
     repo = client.get_repo(f"{args.owner}/{args.repo}")
-    # Get current settings from the repo.
+    # Get current repository settings.
     current_settings = {
         "branch_protection": {},
-        "repository_settings": {
-            "allow_merge_commit": repo.allow_merge_commit,
-            "allow_squash_merge": repo.allow_squash_merge,
-            "allow_rebase_merge": repo.allow_rebase_merge,
-            "has_issues": repo.has_issues,
-            "has_wiki": repo.has_wiki,
-            "has_projects": repo.has_projects,
-            "default_branch": repo.default_branch,
-        },
+        "repository_settings": Settings.get_repository_settings(repo),
     }
     # Execute code if not in dry run mode.
     execute = not args.dry_run
-    # Backup current settings if requested.
+    # Create backup of current settings if requested.
     if args.backup:
         git_root_dir = hgit.get_client_root(False)
         backup_file = f"tmp.settings.{args.owner}.{args.repo}.yaml"
         backup_path = f"{git_root_dir}/{backup_file}"
-        Settings.save_settings(current_settings, backup_path)
+        Settings.save_settings(Settings(current_settings), backup_path)
         _LOG.info("Settings backed up to %s", backup_path)
     else:
         _LOG.warning("Skipping saving settings as per user request")
@@ -418,11 +410,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
         )
     else:
         _LOG.warning("Running in non-interactive mode, skipping confirmation")
-    # Change to default settings if pruning is enabled.
-    if args.prune:
-        settings.prune_branch_protection(repo, execute)
-        settings.prune_repo_settings(repo, execute)
-    # Apply new settings
+    # Switch to default settings if requested.
+    settings.switch_default_branch_protection(repo, execute)
+    settings.switch_default_repository_settings(repo, execute)
+    # Apply branch protection and repository settings.
     settings.apply_branch_protection(repo, execute)
     settings.apply_repo_settings(repo, execute)
     _LOG.info("Settings synchronization completed!")
