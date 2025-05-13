@@ -44,31 +44,27 @@ def _write_output_to_file(lines: List[str]) -> None:
 if __name__ == "__main__":
     print("# Running git pre-commit hook ...")
     lines = []
-    lines.append("Pre-commit checks:")
     #
     dshgghout.check_master()
-    lines.append("- 'check_master' passed")
     #
     dshgghout.check_author()
-    lines.append("- 'check_author' passed")
     #
     dshgghout.check_file_size()
-    lines.append("- 'check_file_size' passed")
     # TODO(gp): Disabled for now since it's too strict.
     # dshgghout.check_words()
     # lines.append("- 'check_words' passed")
     #
     dshgghout.check_python_compile()
-    lines.append("- 'check_python_compile' passed")
     assert os.path.exists(".git")
     dshgghout.check_gitleaks()
-    lines.append("- 'check_gitleaks' passed")
     print(
         "\n"
         + dshgghout.color_highlight(
             "##### All pre-commit hooks passed: committing ######", "purple"
         )
     )
+    lines = []
+    lines.append("Pre-commit checks:")
     lines.append("All checks passed ✅")
     _write_output_to_file(lines)
     sys.exit(0)
