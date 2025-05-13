@@ -1,7 +1,15 @@
 """
-Import as:
+Build graph for dependencies.
 
-import import_check.dependency_graph as ichdegra
+Examples:
+# Show file dependencies.
+> show_deps.py <module_name>
+
+# Show directory-level dependencies.
+> show_deps.py --max_level 2 <module_name>
+
+# Detect cyclic dependencies.
+> show_deps.py --show_cycles <module_name>
 """
 
 import ast
