@@ -508,10 +508,13 @@ class Test_docker_tag_push_multi_build_local_image_as_dev1(_DockerFlowTestHelper
 
 
 class Test_docker_release_dev_image1(_DockerFlowTestHelper):
+    """
+    Test releasing a dev Docker image.
+    """
 
-    def test_docker_release_dev_image(self) -> None:
+    def test_aws_ecr1(self) -> None:
         """
-        Test releasing a dev Docker image with tests skipped.
+        Test releasing the dev image to AWS ECR.
 
         This test checks:
           - Build workflow
@@ -562,10 +565,13 @@ class Test_docker_release_dev_image1(_DockerFlowTestHelper):
 
 
 class Test_docker_release_prod_image1(_DockerFlowTestHelper):
+    """
+    Test releasing a prod Docker image.
+    """
 
-    def test_docker_release_prod_image(self) -> None:
+    def test_aws_ecr1(self) -> None:
         """
-        Test releasing a prod Docker image.
+        Test releasing the prod image to AWS ECR.
 
         This test checks:
           - Build workflow
@@ -728,10 +734,13 @@ class Test_docker_release_multi_build_dev_image1(_DockerFlowTestHelper):
 
 
 class Test_docker_rollback_dev_image1(_DockerFlowTestHelper):
+    """
+    Test rolling back a dev Docker image.
+    """
 
-    def test_docker_rollback_dev_image(self) -> None:
+    def test_aws_ecr1(self) -> None:
         """
-        Test rolling back a dev Docker image.
+        Test rolling back and pushing to AWS ECR.
 
         This test checks:
         - Dev image rollback workflow
@@ -760,10 +769,13 @@ class Test_docker_rollback_dev_image1(_DockerFlowTestHelper):
 
 
 class Test_docker_rollback_prod_image1(_DockerFlowTestHelper):
+    """
+    Test rolling back a prod Docker image.
+    """
 
-    def test_docker_rollback_prod_image(self) -> None:
+    def test_aws_ecr1(self) -> None:
         """
-        Test rolling back a prod Docker image.
+        Test rolling back and pushing to AWS ECR.
 
         This test checks:
         - Production image rollback workflow
