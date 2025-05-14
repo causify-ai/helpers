@@ -13,11 +13,12 @@ import os
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
-import dotenv.load_dotenv as load_dotenv
-import openai.OpenAI as OpenAI
-import openai.types.beta.assistant.Assistant as Assistant
-import openai.types.beta.threads.message.Message as Message
+import openai
 import tqdm
+from dotenv import load_dotenv
+from openai import OpenAI
+from openai.types.beta.assistant import Assistant
+from openai.types.beta.threads.message import Message
 
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
@@ -216,8 +217,12 @@ def get_completion(
     if cache_mode in ("REPLAY", "FALLBACK"):
         # Checks for response in cache
         if cache.has_cache(hash_key):
-            print("Loading from the cache!")
+            memento = htimer.dtimer_start(
+                logging.DEBUG, "Loading from the cache!"
+            )
             cache.increment_cache_stat("hits")
+            msg, _ = htimer.dtimer_stop(memento)
+            print(msg)
             return cache.load_response_from_cache(hash_key)
         else:
             cache.increment_cache_stat("misses")
@@ -241,7 +246,7 @@ def get_completion(
     )
     # client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
-    print("OpenAI API call ... ")
+    # print("OpenAI API call ... ")
     memento = htimer.dtimer_start(logging.DEBUG, "OpenAI API call")
     if not report_progress:
         response, completion = call_api_sync(
