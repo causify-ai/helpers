@@ -679,7 +679,7 @@ def parallel_execute(
         if backend in ("loky", "threading", "multiprocessing"):
             # from joblib.externals.loky import set_loky_pickler
             # set_loky_pickler('cloudpickle')
-            # Removed `verbose` param which causes issues in HelpersTask71.
+            # Removed `verbose` param which causes issues in HelpersTask715.
             res = joblib.Parallel(n_jobs=num_threads, backend=backend)(
                 joblib.delayed(_parallel_execute_decorator)(
                     task_idx,
