@@ -4,6 +4,8 @@ import re
 import shutil
 from typing import Tuple
 
+import jupytext
+import packaging
 import pytest
 
 import helpers.hdbg as hdbg
@@ -247,6 +249,11 @@ class Test_linter_py1(hunitest.TestCase):
         self.check_string(output, purify_text=True)
 
     @pytest.mark.slow("About 7 sec")
+    @pytest.mark.skipif(
+        packaging.version.parse(jupytext.__version__)
+        < packaging.version.parse("1.7.1"),
+        reason="Prevent this test from running in older versions of jupytext.",
+    )
     def test_linter_ipynb_paired2(self) -> None:
         """
         Run Linter as executable on a notebook with a paired Python file.
