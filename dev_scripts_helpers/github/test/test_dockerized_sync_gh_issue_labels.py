@@ -9,6 +9,8 @@ import dev_scripts_helpers.github.dockerized_sync_gh_issue_labels as dshgdsgil
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
 
+pytest.importorskip("github")
+
 _LOG = logging.getLogger(__name__)
 
 
