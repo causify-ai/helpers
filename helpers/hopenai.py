@@ -218,8 +218,10 @@ def get_completion(
         # Checks for response in cache
         if cache.has_cache(hash_key):
             print("Loading from the cache!")
+            cache._increment_cache_stat("hits")
             return cache.load_response_from_cache(hash_key)
         else:
+            cache._increment_cache_stat("misses")
             if cache_mode == "REPLAY":
                 raise RuntimeError(
                     f"No cached response for this request parameters!"
@@ -233,12 +235,12 @@ def get_completion(
     if not call_api:
         raise ValueError(f"Unsupported cache mode: {cache_mode}")
 
-    client = OpenAI(
-        # Important: Use OpenRouter's base URL
-        base_url="https://openrouter.ai/api/v1",
-        api_key=os.environ.get("OPENROUTER_API_KEY"),
-    )
-    # client= OpenAI(api_key=os.environ.get("OPENROUTER_API_KEY"))
+    # client = OpenAI(
+    #     # Important: Use OpenRouter's base URL
+    #     base_url="https://openrouter.ai/api/v1",
+    #     api_key=os.environ.get("OPENROUTER_API_KEY"),
+    # )
+    client= OpenAI(api_key=os.environ.get("OPENROUTER_API_KEY"))
 
     print("OpenAI API call ... ")
     memento = htimer.dtimer_start(logging.DEBUG, "OpenAI API call")
@@ -273,10 +275,13 @@ def get_completion(
     cost = _calculate_cost(completion, model, print_cost)
     # Accumulate the cost.
     _accumulate_cost_if_needed(cost)
-
+    # Convert OpenAI completion object to DICT.
+    completion_obj = completion.to_dict()
+    # Store cost in the cache
+    completion_obj["cost"] = cost
     if cache_mode != "DISABLED":
         cache.save_response_to_cache(
-            hash_key, request=request_params, response=completion.to_dict()
+            hash_key, request=request_params, response=completion_obj
         )
     return response
 
@@ -593,11 +598,34 @@ class GetCompletionCache:
                 "metadata": {
                     "created_at": datetime.datetime.now().isoformat(),
                     "last_updated": datetime.datetime.now().isoformat(),
+                    "hits": 0,
+                    "misses": 0,
+
                 },
                 "entries": {},
             }
             with open(self.cache_file, "w") as f:
                 json.dump(self.cache, f)
+
+    def _write_cache_to_disk(self):
+        with open(self.cache_file, "w") as f:
+            json.dump(self.cache,f, indent=2)
+        
+    def _clear_cache(self):
+        """
+        Clears the cache from the file.
+        """
+        self.cache["entries"]= {}
+        self.cache["metadata"]["last_updated"] = datetime.datetime.now().isoformat()
+        self._write_cache_to_disk()
+    
+    def _increment_cache_stat(self, key:str):
+        """
+        Update the hits, misses counter.
+        """
+        self.cache["metadata"][key]+=1
+        self._write_cache_to_disk()
+
 
     def hash_key_generator(
         self,
@@ -652,16 +680,31 @@ class GetCompletionCache:
         self.cache["metadata"][
             "last_updated"
         ] = datetime.datetime.now().isoformat()
-        with open(self.cache_file, "w") as f:
-            json.dump(self.cache, f, indent=2)
+        # with open(self.cache_file, "w") as f:
+        #     json.dump(self.cache, f, indent=2)
+        self._write_cache_to_disk()
 
     def load_response_from_cache(self, hash_key: str) -> dict:
         """
         Load the response from the cache directory.
         """
-        with open(self.cache_file, "r") as f:
-            cache = json.load(f)
-            if hash_key in cache["entries"]:
-                openai_response = cache["entries"][hash_key]["response"]
-                return openai_response["choices"][0]["message"]["content"]
+        if hash_key in self.cache["entries"]:
+            openai_response = self.cache["entries"][hash_key]["response"]
+            return openai_response["choices"][0]["message"]["content"]
+        else:
+            self._write_cache_to_disk()
             raise ValueError("No cache found!")
+        
+    def get_stats(self):
+        """
+        Return basic stats: hits, misses, total entries.
+        """
+        stats ={
+            "hits": self.cache["metadata"]["hits"],
+            "misses": self.cache["metadata"]["misses"],
+            "entries_count": len(self.cache["entries"])
+        }
+        return stats
+    
+
+
