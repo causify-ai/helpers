@@ -355,8 +355,6 @@ It can serve as a guideline for automated PR reviews.
 - Encode the assumptions made in the code using assertions, e.g.,
   `hdbg.dassert_lt(start_date, end_date)`
   - Report as much information as possible in an assertion
-  - Use positional args in `hdbg.dassert` (e.g.,
-    `hdbg.dassert_eq(a, 1, msg="No info for %s", method)`)
 - Use f-strings in exceptions (e.g.,
   `raise ValueError(f"Invalid server_name='{server_name}'")`)
 - Use complete `if-elif-else` statements instead of a sequence of `if`
