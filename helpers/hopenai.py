@@ -13,12 +13,11 @@ import os
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
-import openai
+import dotenv.load_dotenv as load_dotenv
+import openai.OpenAI as OpenAI
+import openai.types.beta.assistant.Assistant as Assistant
+import openai.types.beta.threads.message.Message as Message
 import tqdm
-from dotenv import load_dotenv
-from openai import OpenAI
-from openai.types.beta.assistant import Assistant
-from openai.types.beta.threads.message import Message
 
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
@@ -218,13 +217,13 @@ def get_completion(
         # Checks for response in cache
         if cache.has_cache(hash_key):
             print("Loading from the cache!")
-            cache._increment_cache_stat("hits")
+            cache.increment_cache_stat("hits")
             return cache.load_response_from_cache(hash_key)
         else:
-            cache._increment_cache_stat("misses")
+            cache.increment_cache_stat("misses")
             if cache_mode == "REPLAY":
                 raise RuntimeError(
-                    f"No cached response for this request parameters!"
+                    "No cached response for this request parameters!"
                 )
 
     if cache_mode in ("DISABLED", "CAPTURE", "FALLBACK"):
@@ -235,12 +234,12 @@ def get_completion(
     if not call_api:
         raise ValueError(f"Unsupported cache mode: {cache_mode}")
 
-    # client = OpenAI(
-    #     # Important: Use OpenRouter's base URL
-    #     base_url="https://openrouter.ai/api/v1",
-    #     api_key=os.environ.get("OPENROUTER_API_KEY"),
-    # )
-    client= OpenAI(api_key=os.environ.get("OPENROUTER_API_KEY"))
+    client = OpenAI(
+        # Important: Use OpenRouter's base URL
+        base_url="https://openrouter.ai/api/v1",
+        api_key=os.environ.get("OPENROUTER_API_KEY"),
+    )
+    # client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
     print("OpenAI API call ... ")
     memento = htimer.dtimer_start(logging.DEBUG, "OpenAI API call")
@@ -580,7 +579,7 @@ class GetCompletionCache:
         self.cache_file = cache_file
         # Load the existing file(may not exist or may be invalid JSON)
         try:
-            with open(self.cache_file, "r") as f:
+            with open(self.cache_file, "r", encoding="utf-8") as f:
                 self.cache = json.load(f)
         except (FileNotFoundError, json.JSONDecodeError):
             self.cache = None
@@ -600,32 +599,11 @@ class GetCompletionCache:
                     "last_updated": datetime.datetime.now().isoformat(),
                     "hits": 0,
                     "misses": 0,
-
                 },
                 "entries": {},
             }
-            with open(self.cache_file, "w") as f:
+            with open(self.cache_file, "w", encoding="utf-8") as f:
                 json.dump(self.cache, f)
-
-    def _write_cache_to_disk(self):
-        with open(self.cache_file, "w") as f:
-            json.dump(self.cache,f, indent=2)
-        
-    def _clear_cache(self):
-        """
-        Clears the cache from the file.
-        """
-        self.cache["entries"]= {}
-        self.cache["metadata"]["last_updated"] = datetime.datetime.now().isoformat()
-        self._write_cache_to_disk()
-    
-    def _increment_cache_stat(self, key:str):
-        """
-        Update the hits, misses counter.
-        """
-        self.cache["metadata"][key]+=1
-        self._write_cache_to_disk()
-
 
     def hash_key_generator(
         self,
@@ -671,7 +649,7 @@ class GetCompletionCache:
 
     def save_response_to_cache(
         self, hash_key: str, request: dict, response: dict
-    ):
+    ) -> None:
         """
         Save the cache to the cache directory.
         """
@@ -680,31 +658,45 @@ class GetCompletionCache:
         self.cache["metadata"][
             "last_updated"
         ] = datetime.datetime.now().isoformat()
-        # with open(self.cache_file, "w") as f:
-        #     json.dump(self.cache, f, indent=2)
         self._write_cache_to_disk()
 
-    def load_response_from_cache(self, hash_key: str) -> dict:
+    def load_response_from_cache(self, hash_key: str) -> Any:
         """
         Load the response from the cache directory.
         """
         if hash_key in self.cache["entries"]:
             openai_response = self.cache["entries"][hash_key]["response"]
             return openai_response["choices"][0]["message"]["content"]
-        else:
-            self._write_cache_to_disk()
-            raise ValueError("No cache found!")
-        
-    def get_stats(self):
+        raise ValueError("No cache found!")
+
+    def get_stats(self) -> dict:
         """
         Return basic stats: hits, misses, total entries.
         """
-        stats ={
+        stats = {
             "hits": self.cache["metadata"]["hits"],
             "misses": self.cache["metadata"]["misses"],
-            "entries_count": len(self.cache["entries"])
+            "entries_count": len(self.cache["entries"]),
         }
         return stats
-    
 
+    def increment_cache_stat(self, key: str) -> None:
+        """
+        Update the hits, misses counter.
+        """
+        self.cache["metadata"][key] += 1
+        self._write_cache_to_disk()
 
+    def _write_cache_to_disk(self) -> None:
+        with open(self.cache_file, "w", encoding="utf-8") as f:
+            json.dump(self.cache, f, indent=2)
+
+    def _clear_cache(self) -> None:
+        """
+        Clear the cache from the file.
+        """
+        self.cache["entries"] = {}
+        self.cache["metadata"][
+            "last_updated"
+        ] = datetime.datetime.now().isoformat()
+        self._write_cache_to_disk()
