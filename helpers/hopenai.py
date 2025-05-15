@@ -15,7 +15,9 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import openai
 import tqdm
+# TODO(*): Use import and not from import (see how coding style)
 from dotenv import load_dotenv
+# TODO(*): Use import and not from import (see how coding style)
 from openai import OpenAI
 from openai.types.beta.assistant import Assistant
 from openai.types.beta.threads.message import Message
@@ -24,6 +26,8 @@ import helpers.hdbg as hdbg
 import helpers.hprint as hprint
 import helpers.htimer as htimer
 
+# TODO(*): Where are you using this? It should go in the main, otherwise it gets
+# executed when importing the module.
 load_dotenv()
 
 _LOG = logging.getLogger(__name__)
@@ -32,9 +36,10 @@ _LOG = logging.getLogger(__name__)
 
 # _LOG.debug = _LOG.info
 _MODEL = "gpt-4o-mini"
+# TODO(*): Explain the values.
 _CACHE_MODE = "CAPTURE"
-_TEMPERATURE = 0.1
 _CACHE_FILE = "cache.get_completion.json"
+_TEMPERATURE = 0.1
 
 # #############################################################################
 # Utility Functions
