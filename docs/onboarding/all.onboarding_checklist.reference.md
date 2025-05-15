@@ -237,7 +237,7 @@
     one of your face, so we can virtually get to know each other
 
 - [ ] **Team member**: Make sure you have access to the
-      [vacation/OOTO calendar](https://calendar.google.com/calendar/u/0?cid=Y19kYWRlOGU0NTUwMzhiMDllMmUzNDk1OWM2YzFkYWNhYTVmMTAzYjdjZmNiODQ1MDkzOWZhMTBkZDY2NWI3ZjJhQGdyb3VwLmNhbGVuZGFyLmdvb2dsZS5jb20).
+      [OOTO / Vacation calendar](https://calendar.google.com/calendar/u/0?cid=Y184ZDdmOGExZDFiMjRjZGMwN2I4Mzg4OGExYjk4NWI2MDk4MzE0YjFkYTg4MzVhMmUyYTkwOTZjNDc0NWE2MWFiQGdyb3VwLmNhbGVuZGFyLmdvb2dsZS5jb20)
   - The link should be accessible and you should see the calendar in the list of
     calendars at calendar.google.com (when accessing via your corporate email)
 

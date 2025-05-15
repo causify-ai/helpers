@@ -1,6 +1,7 @@
 import logging
 import os
-from typing import Any, Generator
+import pathlib
+from typing import Any, Generator, Optional
 
 import helpers.hdbg as dbg
 import helpers.hunit_test as hut
@@ -108,6 +109,31 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
             sys.argv.append("-o log_cli=true")
         # TODO(gp): redirect also the stderr to file.
         dbg.init_logger(level, in_pytest=True, log_filename="tmp.pytest.log")
+
+    def pytest_ignore_collect(
+        collection_path: pathlib.Path, path: Any, config: Any
+    ) -> Optional[bool]:
+        """
+        Skip runnable directories.
+
+        We use the `runnable_dir` file as a marker to identify runnable directories.
+
+        :param collection_path: path to analyze
+        :param path: path to analyze (deprecated)
+        :param config: pytest config object
+        :return: True if the path should be ignored
+        """
+        _ = path
+        _ = config
+        # Ref: https://docs.pytest.org/en/stable/_modules/_pytest/hookspec.html#pytest_ignore_collect
+        # Return `True` to ignore this path for collection.
+        # Return `None` to let other plugins ignore the path for collection.
+        if (
+            collection_path.is_dir()
+            and (collection_path / "runnable_dir").exists()
+        ):
+            # Exclude this directory.
+            return True
 
     if "PYANNOTATE" in os.environ:
         print("\nWARNING: Collecting information about types through pyannotate")

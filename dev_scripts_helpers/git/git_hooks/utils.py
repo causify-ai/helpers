@@ -4,7 +4,6 @@ Import as:
 import dev_scripts_helpers.git.git_hooks.utils as dshgghout
 """
 
-# NOTE: This file should depend only on Python standard libraries.
 import compileall
 import inspect
 import logging
@@ -14,6 +13,8 @@ import string
 import subprocess
 import sys
 from typing import Any, List, Optional, Tuple
+
+import helpers.hgit as hgit
 
 _LOG = logging.getLogger(__name__)
 
@@ -194,6 +195,17 @@ def check_master(abort_on_error: bool = True) -> None:
 # #############################################################################
 
 
+def _is_valid_email(email: str) -> bool:
+    """
+    Check if the email is valid.
+
+    :param email: email address to check
+    :return: True if the email is valid, False otherwise
+    """
+    pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+    return bool(re.match(pattern, email))
+
+
 def check_author(abort_on_error: bool = True) -> None:
     """
     Ensure that the committer use a gmail and not a corporate account.
@@ -219,7 +231,7 @@ def check_author(abort_on_error: bool = True) -> None:
     print(f"user_email='{user_email}'")
     # Check.
     error = False
-    if not user_email.endswith("@gmail.com"):
+    if not _is_valid_email(user_email):
         _LOG.error("user_email='%s' is incorrect", user_email)
         error = True
     # Handle error.
@@ -468,29 +480,22 @@ def check_python_compile(
 # #############################################################################
 
 
-def get_git_root_dir() -> str:
-    """
-    Return the absolute path to the outermost Git repository root.
-
-    If inside a Git submodule, this returns the parent (superproject)
-    root. Otherwise, it returns the current repository's root.
-
-    :return: absolute path to the outermost Git repository root
-    """
-    cmd = "git rev-parse --show-superproject-working-tree --show-toplevel | head -n1"
-    _, git_root_dir = _system_to_string(cmd)
-    git_root_dir = git_root_dir.strip()
-    return git_root_dir
-
-
 def check_gitleaks(abort_on_error: bool = True) -> None:
     """
     Check that the code does not contain any leaked secrets.
     """
     func_name = _report()
-    git_root_dir = get_git_root_dir()
+    git_root_dir = hgit.find_git_root()
+    helpers_root_dir = hgit.find_helpers_root()
+    # Compute relative path from root of the outer most repo to the helpers root.
+    rel_path = os.path.relpath(helpers_root_dir, git_root_dir)
+    # Find the gitleaks config file.
+    config_path = os.path.join(
+        "/app", rel_path, "dev_scripts_helpers/git/gitleaks"
+    )
+    config_path = os.path.normpath(config_path)
     cmd = f"""
-    docker run -v {git_root_dir}:/app zricethezav/gitleaks:latest -c /app/.github/gitleaks-rules.toml git /app --pre-commit --staged --verbose
+    docker run -v {git_root_dir}:/app zricethezav/gitleaks:latest -c {config_path}/gitleaks-rules.toml git /app --pre-commit --staged --verbose
     """
     _LOG.debug("cmd='%s'", cmd)
     rc, txt = _system_to_string(cmd, abort_on_error=False)

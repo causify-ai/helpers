@@ -159,7 +159,7 @@ $replace_text --old 'import helpers.translate' --new 'import helpers.htranslate'
 (cd $AMP_DIR;git mv helpers/unit_test.py helpers/hunit_test.py)
 $replace_text --old 'import helpers.unit_test' --new 'import helpers.hunit_test'
 
-#unit_test_skeleton.py
+#unit_test_template.py
 
 #versioning.py
 (cd $AMP_DIR;git mv helpers/versioning.py helpers/hversion.py)
