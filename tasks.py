@@ -94,6 +94,7 @@ from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=u
     pytest_repro,
     run_blank_tests,
     run_coverage_report,
+    run_coverage,
     run_fast_slow_superslow_tests,
     run_fast_slow_tests,
     run_fast_tests,
@@ -120,6 +121,7 @@ try:
     from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=unused-import
         copy_ecs_task_definition_image_url,
         docker_release_multi_build_dev_image,
+        docker_release_multi_arch_prod_image,
         docker_tag_push_multi_build_local_image_as_dev,
         release_dags_to_airflow,
         integrate_file,
@@ -155,8 +157,7 @@ _LOG = logging.getLogger(__name__)
 
 
 # TODO(gp): Move it to lib_tasks.
-# ECR_BASE_PATH = os.environ["CSFY_ECR_BASE_PATH"]
-ECR_BASE_PATH = os.environ.get("CSFY_ECR_BASE_PATH", "")
+ECR_BASE_PATH = os.environ["CSFY_ECR_BASE_PATH"]
 
 
 def _run_qa_tests(ctx: Any, stage: str, version: str) -> bool:

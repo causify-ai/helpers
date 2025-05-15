@@ -33,7 +33,7 @@ A tool for visualizing dependencies among files and packages.
 ## Basic usage
 
 ```bash
->./show_imports.py [flags] <target_directory>
+> show_imports.py [flags] <target_directory>
 ```
 
 The script will produce by default an output `.png` file named
@@ -71,7 +71,7 @@ example
 Basic usage example:
 
 ```bash
->./show_imports.py --out_filename example/output/basic.png example/input
+> show_imports.py --out_filename example/output/basic.png example/input
 ```
 
 Will produce the following output:
@@ -85,7 +85,7 @@ To visualize dependencies at a directory level, specify `--dir` option.
 Example:
 
 ```bash
->./show_imports.py --dir --out_filename example/output/directory_deps.png example/input
+> show_imports.py --dir --out_filename example/output/directory_deps.png example/input
 ```
 
 Output:
@@ -100,7 +100,7 @@ specifying the `--ext` option.
 Example:
 
 ```bash
->./show_imports.py --ext --out_filename example/output/external_deps.png example/input
+> show_imports.py --ext --out_filename example/output/external_deps.png example/input
 ```
 
 Output:
@@ -115,7 +115,7 @@ can set the `--max_level` option.
 Example:
 
 ```bash
->./show_imports.py --max_level 2 --out_filename example/output/max_level_deps.png example/input
+> show_imports.py --max_level 2 --out_filename example/output/max_level_deps.png example/input
 ```
 
 Output:
@@ -130,7 +130,7 @@ When you want to visualize cyclic dependencies only, you can set the
 Example:
 
 ```bash
->./show_imports.py --show_cycles --out_filename example/output/cyclic_deps.png example/input
+> show_imports.py --show_cycles --out_filename example/output/cyclic_deps.png example/input
 ```
 
 Output:
@@ -149,7 +149,7 @@ its limitations:
   considered (e.g., if a module is missing or not installed, it will not be
   included regardless of whether it is being imported)
 - All the imports inside submodules should be absolute
-- There are certain requirements related to the presence of _modules_ in and
+- There are certain requirements related to the presence of modules in and
   above the target directory, which are described in detail below
   - Here, a module is a directory that contains an `__init__.py` file
 
@@ -314,7 +314,7 @@ A tool for detecting circular dependencies among files and packages.
 ## Basic usage
 
 ```bash
->./detect_import_cycles.py <target_directory>
+> detect_import_cycles.py <target_directory>
 ```
 
 The script will either exit with an error, logging the groups of files with
@@ -328,7 +328,7 @@ For the `import_check/example/input` directory, the script will produce the
 following output, detecting two import cycles:
 
 ```bash
->./detect_import_cycles.py example/input
+> detect_import_cycles.py example/input
 ```
 
 ```bash
@@ -352,7 +352,7 @@ ERROR detect_import_cycles.py _main:73    Cyclic imports detected: (input.subdir
 ## Command usage
 
 ```bash
-i show_deps [--directory <directory>] [--format <format>] [--output_file <file>] [--max_level <level>] [--show_cycles]
+> i show_deps [--directory <directory>] [--format <format>] [--output_file <file>] [--max_level <level>] [--show_cycles]
 ```
 
 - **Default behavior**: Produces a text report, printed to stdout.
@@ -377,7 +377,7 @@ subdirectories like `notebooks/`.
 Create a text report of all intra-directory dependencies:
 
 ```bash
->i show_deps --directory helpers --format text > report.txt
+> i show_deps --directory helpers --format text > report.txt
 ```
 
 Output in `report.txt`:
@@ -394,7 +394,7 @@ helpers/hio.py has no dependencies
 Create a DOT file for visualization:
 
 ```bash
->i show_deps --directory helpers --format dot --output_file dependency_graph.dot
+> i show_deps --directory helpers --format dot --output_file dependency_graph.dot
 >dot -Tsvg dependency_graph.dot -o dependency_graph.svg
 >open dependency_graph.svg
 ```
@@ -412,7 +412,7 @@ Restrict analysis to a certain depth with `--max_level` (e.g., `--max_level 2`
 includes `helpers/notebooks/`, excludes deeper subdirectories):
 
 ```bash
->i show_deps --directory helpers --format text --max_level 2 > report_max_level.txt
+> i show_deps --directory helpers --format text --max_level 2 > report_max_level.txt
 ```
 
 Output in `report_max_level.txt`:
@@ -427,7 +427,7 @@ helpers/hio.py has no dependencies
 Visualize the limited graph:
 
 ```bash
->i show_deps --directory helpers --format dot --output_file dependency_graph.dot --max_level 2
+> i show_deps --directory helpers --format dot --output_file dependency_graph.dot --max_level 2
 >neato -Tsvg dependency_graph.dot -o dependency_graph.svg -Goverlap=scale -Gsep=+0.5 -Gepsilon=0.01
 >open dependency_graph.svg
 ```
@@ -437,7 +437,7 @@ Visualize the limited graph:
 Show only cyclic dependencies with `--show_cycles`:
 
 ```bash
->i show_deps --directory helpers --format text --show_cycles > report_cycles.txt
+> i show_deps --directory helpers --format text --show_cycles > report_cycles.txt
 ```
 
 Output in `report_cycles.txt` (if cycles exist):
@@ -451,9 +451,9 @@ helpers/module_e.py imports helpers/module_d.py
 Visualize the cyclic dependencies:
 
 ```bash
->i show_deps --directory helpers --format dot --output_file dependency_graph.dot --show_cycles
->neato -Tsvg dependency_graph.dot -o dependency_graph.svg -Goverlap=scale -Gsep=+0.5 -Gepsilon=0.01
->open dependency_graph.svg
+> i show_deps --directory helpers --format dot --output_file dependency_graph.dot --show_cycles
+> neato -Tsvg dependency_graph.dot -o dependency_graph.svg -Goverlap=scale -Gsep=+0.5 -Gepsilon=0.01
+> open dependency_graph.svg
 ```
 
 ## Options
@@ -505,34 +505,34 @@ NotModuleError: The following dirs have to be modules (add `__init__.py`): ['hel
 1. **Activate the `helpers` environment**: From the `helpers` root directory:
 
    ```bash
-   poetry shell; export PYTHONPATH=$PYTHONPATH:$(pwd)
+   > poetry shell; export PYTHONPATH=$PYTHONPATH:$(pwd)
    ```
 
 2. **Generate a dependency report**: Create a text report:
 
    ```bash
-   i show_deps --directory helpers --format text > report.txt
+   > i show_deps --directory helpers --format text > report.txt
    ```
 
    Or create a DOT file for visualization:
 
    ```bash
-   i show_deps --directory helpers --format dot --output_file dependency_graph.dot
+   > i show_deps --directory helpers --format dot --output_file dependency_graph.dot
    ```
 
 3. **Visualize the graph** (optional): Convert the DOT file to SVG and view:
    ```bash
-   neato -Tsvg dependency_graph.dot -o dependency_graph.svg -Goverlap=scale -Gsep=+0.5 -Gepsilon=0.01
-   open dependency_graph.svg
+   > neato -Tsvg dependency_graph.dot -o dependency_graph.svg -Goverlap=scale -Gsep=+0.5 -Gepsilon=0.01
+   > open dependency_graph.svg
    ```
 
 **Troubleshooting**: If `invoke` fails (e.g.,
 `No idea what '--output_file' is!`), use the fallback script:
 
 ```bash
-python3 ~/src/helpers1/generate_deps.py
-neato -Tsvg dependency_graph.dot -o dependency_graph.svg -Goverlap=scale -Gsep=+0.5 -Gepsilon=0.01
-open dependency_graph.svg
+> generate_deps.py
+> neato -Tsvg dependency_graph.dot -o dependency_graph.svg -Goverlap=scale -Gsep=+0.5 -Gepsilon=0.01
+> open dependency_graph.svg
 ```
 
 **Tips**: The `generate_deps.py` script applies customizations like filtering
@@ -540,4 +540,6 @@ nodes with no dependencies and shortening labels (e.g., removing `helpers/`
 prefix). Adjust Graphviz attributes (`ranksep=2.0`, `nodesep=1.0`,
 `splines=spline`, `overlap=false`, `fontsize=10`) for better visualization.
 
-**Last review**: 2025-05-01 Ehaab Basil
+**Last review**:
+- 2025-05-14, GP Saggese
+- 2025-05-01, Ehaab Basil
