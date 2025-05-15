@@ -93,8 +93,6 @@ class DependencyGraph:
             )
             _LOG.debug(hprint.to_str("relative_path"))
             self.graph.add_node(relative_path)
-            # TODO: Use hio.from_file and to_file to write.
-            # TODO: Let's add a switch `abort_on_error` to continue or abort.
             # Parse the file as an Abstract Syntax Tree (AST).
             try:
                 file_content = hio.from_file(str(py_file))

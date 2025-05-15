@@ -201,9 +201,15 @@ set_path() {
     echo "# set_path()"
     local dev_script_dir=$1
     dassert_dir_exists $dev_script_dir
+    dassert_dir_exists $GIT_ROOT_DIR
     export PATH=$(pwd):$PATH
+    # Add the top Git dir to PATH.
     export PATH=$GIT_ROOT_DIR:$PATH
-    # Add to the PATH all the first level directory under `dev_scripts`.
+    # Add import_check.
+    IMPORT_CHECK_DIR=$GIT_ROOT_DIR/import_check
+    dassert_dir_exists $IMPORT_CHECK_DIR
+    export PATH=$IMPORT_CHECK_DIR:$PATH
+    # Add all the first level directory under `dev_scripts` to PATH.
     export PATH_TMP="$(find $dev_script_dir -maxdepth 1 -type d -not -path "$(pwd)" | tr '\n' ':' | sed 's/:$//')"
     export PATH=$PATH_TMP:$PATH
     # Remove duplicates.
