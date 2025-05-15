@@ -283,6 +283,10 @@ def _docker_rollback_image(
     :param push_to_repo: whether to push the rolled back image to ECR
     """
     hdbg.dassert_in(stage, ("dev", "prod"))
+    # TODO(sandeep): Consider removing the redundant pull-push step. Instead of
+    # pulling the versioned image and pushing it back to ECR, directly push
+    # the local image. However, note that this may not work for multi-arch images
+    # since local images are arch-specific, while remote tags include all architectures.
     # 1) Ensure that version of the image exists locally.
     hlitadoc._docker_pull(
         ctx, base_image=base_image, stage=stage, version=version
