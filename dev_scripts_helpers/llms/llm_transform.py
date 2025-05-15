@@ -2,11 +2,11 @@
 
 """
 Read input from either stdin or a file, apply a specified transformation using
-an LLM, and then write the output to either stdout or a file. It is
-particularly useful for integrating with editors like Vim.
+an LLM, and then write the output to either stdout or a file. It is particularly
+useful for integrating with editors like Vim.
 
-The script `dockerized_llm_transform.py` is executed within a Docker container to ensure
-all dependencies are met. The Docker container is built dynamically if
+The script `dockerized_llm_transform.py` is executed within a Docker container
+to ensure all dependencies are met. The Docker container is built dynamically if
 necessary. The script requires an OpenAI API key to be set in the environment.
 
 Examples
