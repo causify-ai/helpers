@@ -129,11 +129,11 @@ collected 1874 items / 81 deselected / 1793 selected                           
 
 amp/dataflow/model/test/test_experiment_utils.py::Test_get_configs_from_command_line1::test1 (0.02 s) [32mPASSED[0m[32m [  0%][0m
 amp/core/finance/test/test_prediction_processing.py::TestStackPredictionDf::test1 (0.03 s) [32mPASSED[0m[32m [  0%][0m
-amp/im_v2/ccxt/data/extract/test/test_compare_realtime_and_historical_data.py::TestCompareRealtimeAndHistoricalData1::test_function_call1 [33mSKIPPED[0m[32m [  0%][0m
-amp/im_v2/ccxt/data/extract/test/test_compare_realtime_and_historical_data.py::TestCompareRealtimeAndHistoricalData1::test_function_call2 [33mSKIPPED[0m[32m [  0%][0m
-amp/im_v2/ccxt/data/extract/test/test_compare_realtime_and_historical_data.py::TestCompareRealtimeAndHistoricalData1::test_function_call3 [33mSKIPPED[0m[32m [  0%][0m
-amp/im_v2/ccxt/data/extract/test/test_compare_realtime_and_historical_data.py::TestCompareRealtimeAndHistoricalData1::test_function_call4 [33mSKIPPED[0m[32m [  0%][0m
-amp/im_v2/ccxt/data/extract/test/test_compare_realtime_and_historical_data.py::TestCompareRealtimeAndHistoricalData1::test_parser [33mSKIPPED[0m[32m [  0%][0m
+amp/datapull/ccxt/data/extract/test/test_compare_realtime_and_historical_data.py::TestCompareRealtimeAndHistoricalData1::test_function_call1 [33mSKIPPED[0m[32m [  0%][0m
+amp/datapull/ccxt/data/extract/test/test_compare_realtime_and_historical_data.py::TestCompareRealtimeAndHistoricalData1::test_function_call2 [33mSKIPPED[0m[32m [  0%][0m
+amp/datapull/ccxt/data/extract/test/test_compare_realtime_and_historical_data.py::TestCompareRealtimeAndHistoricalData1::test_function_call3 [33mSKIPPED[0m[32m [  0%][0m
+amp/datapull/ccxt/data/extract/test/test_compare_realtime_and_historical_data.py::TestCompareRealtimeAndHistoricalData1::test_function_call4 [33mSKIPPED[0m[32m [  0%][0m
+amp/datapull/ccxt/data/extract/test/test_compare_realtime_and_historical_data.py::TestCompareRealtimeAndHistoricalData1::test_parser [33mSKIPPED[0m[32m [  0%][0m
 amp/helpers/test/test_hparquet.py::TestParquet1::test_get_df1 (0.01 s) [32mPASSED[0m[32m     [  0%][0m
 amp/helpers/test/test_hparquet.py::TestParquet1::test_read_with_filter1 (0.03 s) [32mPASSED[0m[32m [  0%][0m
 amp/helpers/test/test_hparquet.py::TestParquet1::test_write_and_read_everything1 (0.02 s) [32mPASSED[0m[32m [  0%][0m
@@ -172,30 +172,30 @@ amp/dataflow/core/nodes/test/test_sklearn_models.py::TestMultiindexSkLearnModel:
 amp/dataflow/core/nodes/test/test_sklearn_models.py::TestMultiindexSkLearnModel::test2 (0.10 s) [32mPASSED[0m[32m [  2%][0m
 amp/dataflow/core/nodes/test/test_sklearn_models.py::TestMultiindexPooledSkLearnModel::test1 (0.04 s) [32mPASSED[0m[32m [  2%][0m
 amp/dataflow/core/nodes/test/test_sklearn_models.py::TestMultiindexPooledSkLearnModel::test2 (0.08 s) [32mPASSED[0m[32m [  2%][0m
-amp/im_v2/kibot/data/client/test/test_kibot_clients.py::TestKibotEquitiesCsvParquetByAssetClient::test_get_end_ts_for_symbol1 (0.21 s) [32mPASSED[0m[32m [  2%][0m
-amp/im_v2/kibot/data/client/test/test_kibot_clients.py::TestKibotEquitiesCsvParquetByAssetClient::test_get_start_ts_for_symbol1 (0.04 s) [32mPASSED[0m[32m [  2%][0m
-amp/im_v2/kibot/data/client/test/test_kibot_clients.py::TestKibotEquitiesCsvParquetByAssetClient::test_get_universe1 (0.00 s) [32mPASSED[0m[32m [  2%][0m
-amp/im_v2/kibot/data/client/test/test_kibot_clients.py::TestKibotEquitiesCsvParquetByAssetClient::test_read_csv_data1 (0.05 s) [32mPASSED[0m[32m [  2%][0m
-amp/im_v2/kibot/data/client/test/test_kibot_clients.py::TestKibotEquitiesCsvParquetByAssetClient::test_read_csv_data2 (0.07 s) [32mPASSED[0m[32m [  2%][0m
-amp/im_v2/kibot/data/client/test/test_kibot_clients.py::TestKibotEquitiesCsvParquetByAssetClient::test_read_csv_data3 (0.08 s) [32mPASSED[0m[32m [  2%][0m
-amp/im_v2/kibot/data/client/test/test_kibot_clients.py::TestKibotEquitiesCsvParquetByAssetClient::test_read_csv_data4 (0.08 s) [32mPASSED[0m[32m [  2%][0m
-amp/im_v2/kibot/data/client/test/test_kibot_clients.py::TestKibotEquitiesCsvParquetByAssetClient::test_read_csv_data5 (0.08 s) [32mPASSED[0m[32m [  2%][0m
-amp/im_v2/kibot/data/client/test/test_kibot_clients.py::TestKibotEquitiesCsvParquetByAssetClient::test_read_csv_unadjusted_data5 (0.08 s) [32mPASSED[0m[32m [  3%][0m
-amp/im_v2/kibot/data/client/test/test_kibot_clients.py::TestKibotEquitiesCsvParquetByAssetClient::test_read_parquet_data2 (0.06 s) [32mPASSED[0m[32m [  3%][0m
-amp/im_v2/kibot/data/client/test/test_kibot_clients.py::TestKibotEquitiesCsvParquetByAssetClient::test_read_parquet_data5 (0.08 s) [32mPASSED[0m[32m [  3%][0m
-amp/im_v2/kibot/data/client/test/test_kibot_clients.py::TestKibotFuturesCsvParquetByAssetClient::test_get_end_ts_for_symbol1 (0.04 s) [32mPASSED[0m[32m [  3%][0m
-amp/im_v2/kibot/data/client/test/test_kibot_clients.py::TestKibotFuturesCsvParquetByAssetClient::test_get_metadata1 (0.11 s) [32mPASSED[0m[32m [  3%][0m
-amp/im_v2/kibot/data/client/test/test_kibot_clients.py::TestKibotFuturesCsvParquetByAssetClient::test_get_start_ts_for_symbol1 (0.04 s) [32mPASSED[0m[32m [  3%][0m
-amp/im_v2/kibot/data/client/test/test_kibot_clients.py::TestKibotFuturesCsvParquetByAssetClient::test_get_universe1 (0.00 s) [32mPASSED[0m[32m [  3%][0m
-amp/im_v2/kibot/data/client/test/test_kibot_clients.py::TestKibotFuturesCsvParquetByAssetClient::test_read_csv_data1 (0.05 s) [32mPASSED[0m[32m [  3%][0m
-amp/im_v2/kibot/data/client/test/test_kibot_clients.py::TestKibotFuturesCsvParquetByAssetClient::test_read_csv_data2 (0.07 s) [32mPASSED[0m[32m [  3%][0m
-amp/im_v2/kibot/data/client/test/test_kibot_clients.py::TestKibotFuturesCsvParquetByAssetClient::test_read_csv_data3 (0.08 s) [32mPASSED[0m[32m [  3%][0m
-amp/im_v2/kibot/data/client/test/test_kibot_clients.py::TestKibotFuturesCsvParquetByAssetClient::test_read_csv_data4 (0.08 s) [32mPASSED[0m[32m [  3%][0m
-amp/im_v2/kibot/data/client/test/test_kibot_clients.py::TestKibotFuturesCsvParquetByAssetClient::test_read_csv_data5 (0.08 s) [32mPASSED[0m[32m [  3%][0m
-amp/im_v2/kibot/data/client/test/test_kibot_clients.py::TestKibotFuturesCsvParquetByAssetClient::test_read_csv_expiry_data5 (0.09 s) [32mPASSED[0m[32m [  3%][0m
-amp/im_v2/kibot/data/client/test/test_kibot_clients.py::TestKibotFuturesCsvParquetByAssetClient::test_read_parquet_data2 (0.06 s) [32mPASSED[0m[32m [  3%][0m
-amp/im_v2/kibot/data/client/test/test_kibot_clients.py::TestKibotFuturesCsvParquetByAssetClient::test_read_parquet_data5 (0.07 s) [32mPASSED[0m[32m [  3%][0m
-amp/im_v2/kibot/data/client/test/test_kibot_clients.py::TestKibotFuturesCsvParquetByAssetClient::test_read_parquet_expiry_data5 (0.07 s) [32mPASSED[0m[32m [  3%][0m
+amp/datapull/kibot/data/client/test/test_kibot_clients.py::TestKibotEquitiesCsvParquetByAssetClient::test_get_end_ts_for_symbol1 (0.21 s) [32mPASSED[0m[32m [  2%][0m
+amp/datapull/kibot/data/client/test/test_kibot_clients.py::TestKibotEquitiesCsvParquetByAssetClient::test_get_start_ts_for_symbol1 (0.04 s) [32mPASSED[0m[32m [  2%][0m
+amp/datapull/kibot/data/client/test/test_kibot_clients.py::TestKibotEquitiesCsvParquetByAssetClient::test_get_universe1 (0.00 s) [32mPASSED[0m[32m [  2%][0m
+amp/datapull/kibot/data/client/test/test_kibot_clients.py::TestKibotEquitiesCsvParquetByAssetClient::test_read_csv_data1 (0.05 s) [32mPASSED[0m[32m [  2%][0m
+amp/datapull/kibot/data/client/test/test_kibot_clients.py::TestKibotEquitiesCsvParquetByAssetClient::test_read_csv_data2 (0.07 s) [32mPASSED[0m[32m [  2%][0m
+amp/datapull/kibot/data/client/test/test_kibot_clients.py::TestKibotEquitiesCsvParquetByAssetClient::test_read_csv_data3 (0.08 s) [32mPASSED[0m[32m [  2%][0m
+amp/datapull/kibot/data/client/test/test_kibot_clients.py::TestKibotEquitiesCsvParquetByAssetClient::test_read_csv_data4 (0.08 s) [32mPASSED[0m[32m [  2%][0m
+amp/datapull/kibot/data/client/test/test_kibot_clients.py::TestKibotEquitiesCsvParquetByAssetClient::test_read_csv_data5 (0.08 s) [32mPASSED[0m[32m [  2%][0m
+amp/datapull/kibot/data/client/test/test_kibot_clients.py::TestKibotEquitiesCsvParquetByAssetClient::test_read_csv_unadjusted_data5 (0.08 s) [32mPASSED[0m[32m [  3%][0m
+amp/datapull/kibot/data/client/test/test_kibot_clients.py::TestKibotEquitiesCsvParquetByAssetClient::test_read_parquet_data2 (0.06 s) [32mPASSED[0m[32m [  3%][0m
+amp/datapull/kibot/data/client/test/test_kibot_clients.py::TestKibotEquitiesCsvParquetByAssetClient::test_read_parquet_data5 (0.08 s) [32mPASSED[0m[32m [  3%][0m
+amp/datapull/kibot/data/client/test/test_kibot_clients.py::TestKibotFuturesCsvParquetByAssetClient::test_get_end_ts_for_symbol1 (0.04 s) [32mPASSED[0m[32m [  3%][0m
+amp/datapull/kibot/data/client/test/test_kibot_clients.py::TestKibotFuturesCsvParquetByAssetClient::test_get_metadata1 (0.11 s) [32mPASSED[0m[32m [  3%][0m
+amp/datapull/kibot/data/client/test/test_kibot_clients.py::TestKibotFuturesCsvParquetByAssetClient::test_get_start_ts_for_symbol1 (0.04 s) [32mPASSED[0m[32m [  3%][0m
+amp/datapull/kibot/data/client/test/test_kibot_clients.py::TestKibotFuturesCsvParquetByAssetClient::test_get_universe1 (0.00 s) [32mPASSED[0m[32m [  3%][0m
+amp/datapull/kibot/data/client/test/test_kibot_clients.py::TestKibotFuturesCsvParquetByAssetClient::test_read_csv_data1 (0.05 s) [32mPASSED[0m[32m [  3%][0m
+amp/datapull/kibot/data/client/test/test_kibot_clients.py::TestKibotFuturesCsvParquetByAssetClient::test_read_csv_data2 (0.07 s) [32mPASSED[0m[32m [  3%][0m
+amp/datapull/kibot/data/client/test/test_kibot_clients.py::TestKibotFuturesCsvParquetByAssetClient::test_read_csv_data3 (0.08 s) [32mPASSED[0m[32m [  3%][0m
+amp/datapull/kibot/data/client/test/test_kibot_clients.py::TestKibotFuturesCsvParquetByAssetClient::test_read_csv_data4 (0.08 s) [32mPASSED[0m[32m [  3%][0m
+amp/datapull/kibot/data/client/test/test_kibot_clients.py::TestKibotFuturesCsvParquetByAssetClient::test_read_csv_data5 (0.08 s) [32mPASSED[0m[32m [  3%][0m
+amp/datapull/kibot/data/client/test/test_kibot_clients.py::TestKibotFuturesCsvParquetByAssetClient::test_read_csv_expiry_data5 (0.09 s) [32mPASSED[0m[32m [  3%][0m
+amp/datapull/kibot/data/client/test/test_kibot_clients.py::TestKibotFuturesCsvParquetByAssetClient::test_read_parquet_data2 (0.06 s) [32mPASSED[0m[32m [  3%][0m
+amp/datapull/kibot/data/client/test/test_kibot_clients.py::TestKibotFuturesCsvParquetByAssetClient::test_read_parquet_data5 (0.07 s) [32mPASSED[0m[32m [  3%][0m
+amp/datapull/kibot/data/client/test/test_kibot_clients.py::TestKibotFuturesCsvParquetByAssetClient::test_read_parquet_expiry_data5 (0.07 s) [32mPASSED[0m[32m [  3%][0m
 amp/optimizer/test/test_single_period_optimization.py::Test_SinglePeriodOptimizer1::test_mixed_constraints [33mSKIPPED[0m[32m [  3%][0m
 amp/optimizer/test/test_single_period_optimization.py::Test_SinglePeriodOptimizer1::test_only_gmv_constraint [33mSKIPPED[0m[32m [  3%][0m
 amp/optimizer/test/test_single_period_optimization.py::Test_SinglePeriodOptimizer1::test_restrictions [33mSKIPPED[0m[32m [  4%][0m
@@ -290,15 +290,15 @@ amp/helpers/test/test_lib_tasks.py::Test_pytest_repro_end_to_end::test3 (0.22 s)
 amp/helpers/test/test_lib_tasks.py::Test_pytest_repro_end_to_end::test4 (0.22 s) [32mPASSED[0m[32m [  8%][0m
 amp/helpers/test/test_lib_tasks.py::Test_pytest_repro_end_to_end::test5 (0.22 s) [32mPASSED[0m[32m [  9%][0m
 amp/helpers/test/test_lib_tasks.py::TestFailing::test_failing (0.00 s) [32mPASSED[0m[32m     [  9%][0m
-amp/im_v2/ccxt/data/extract/test/test_exchange_class.py::TestCcxtExchange1::test_download_ohlcv_data2 [33mSKIPPED[0m[32m [  9%][0m
-amp/im_v2/ccxt/data/extract/test/test_exchange_class.py::TestCcxtExchange1::test_download_ohlcv_data_invalid_input1 [33mSKIPPED[0m[32m [  9%][0m
-amp/im_v2/ccxt/data/extract/test/test_exchange_class.py::TestCcxtExchange1::test_download_ohlcv_data_invalid_input2 [33mSKIPPED[0m[32m [  9%][0m
-amp/im_v2/ccxt/data/extract/test/test_exchange_class.py::TestCcxtExchange1::test_download_ohlcv_data_invalid_input3 [33mSKIPPED[0m[32m [  9%][0m
-amp/im_v2/ccxt/data/extract/test/test_exchange_class.py::TestCcxtExchange1::test_download_ohlcv_data_invalid_input4 [33mSKIPPED[0m[32m [  9%][0m
-amp/im_v2/ccxt/data/extract/test/test_exchange_class.py::TestCcxtExchange1::test_download_order_book [33mSKIPPED[0m[32m [  9%][0m
-amp/im_v2/ccxt/data/extract/test/test_exchange_class.py::TestCcxtExchange1::test_download_order_book_invalid_input1 [33mSKIPPED[0m[32m [  9%][0m
-amp/im_v2/ccxt/data/extract/test/test_exchange_class.py::TestCcxtExchange1::test_get_exchange_currency_pairs [33mSKIPPED[0m[32m [  9%][0m
-amp/im_v2/ccxt/data/extract/test/test_exchange_class.py::TestCcxtExchange1::test_initialize_class [33mSKIPPED[0m[32m [  9%][0m
+amp/datapull/ccxt/data/extract/test/test_exchange_class.py::TestCcxtExchange1::test_download_ohlcv_data2 [33mSKIPPED[0m[32m [  9%][0m
+amp/datapull/ccxt/data/extract/test/test_exchange_class.py::TestCcxtExchange1::test_download_ohlcv_data_invalid_input1 [33mSKIPPED[0m[32m [  9%][0m
+amp/datapull/ccxt/data/extract/test/test_exchange_class.py::TestCcxtExchange1::test_download_ohlcv_data_invalid_input2 [33mSKIPPED[0m[32m [  9%][0m
+amp/datapull/ccxt/data/extract/test/test_exchange_class.py::TestCcxtExchange1::test_download_ohlcv_data_invalid_input3 [33mSKIPPED[0m[32m [  9%][0m
+amp/datapull/ccxt/data/extract/test/test_exchange_class.py::TestCcxtExchange1::test_download_ohlcv_data_invalid_input4 [33mSKIPPED[0m[32m [  9%][0m
+amp/datapull/ccxt/data/extract/test/test_exchange_class.py::TestCcxtExchange1::test_download_order_book [33mSKIPPED[0m[32m [  9%][0m
+amp/datapull/ccxt/data/extract/test/test_exchange_class.py::TestCcxtExchange1::test_download_order_book_invalid_input1 [33mSKIPPED[0m[32m [  9%][0m
+amp/datapull/ccxt/data/extract/test/test_exchange_class.py::TestCcxtExchange1::test_get_exchange_currency_pairs [33mSKIPPED[0m[32m [  9%][0m
+amp/datapull/ccxt/data/extract/test/test_exchange_class.py::TestCcxtExchange1::test_initialize_class [33mSKIPPED[0m[32m [  9%][0m
 amp/dataflow/model/test/test_backtest_config.py::Test_build_configs_varying_tiled_periods1::test_1tile_1 (0.00 s) [32mPASSED[0m[32m [  9%][0m
 amp/dataflow/model/test/test_backtest_config.py::Test_build_configs_varying_tiled_periods1::test_1tile_2 (0.00 s) [32mPASSED[0m[32m [  9%][0m
 amp/dataflow/model/test/test_backtest_config.py::Test_build_configs_varying_tiled_periods1::test_1tile_3 (0.00 s) [32mPASSED[0m[32m [  9%][0m
@@ -326,33 +326,33 @@ amp/helpers/test/test_hpandas.py::TestDataframeToJson::test_dataframe_to_json (0
 amp/helpers/test/test_hpandas.py::TestDataframeToJson::test_dataframe_to_json_datetime (0.00 s) [32mPASSED[0m[32m [ 10%][0m
 amp/helpers/test/test_hpandas.py::TestDataframeToJson::test_dataframe_to_json_timestamp (0.00 s) [32mPASSED[0m[32m [ 11%][0m
 amp/helpers/test/test_hpandas.py::TestDataframeToJson::test_dataframe_to_json_uuid (0.00 s) [32mPASSED[0m[32m [ 11%][0m
-amp/im_v2/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtCsvClient1::test_get_end_ts_for_symbol1 (0.04 s) [32mPASSED[0m[32m [ 11%][0m
-amp/im_v2/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtCsvClient1::test_get_start_ts_for_symbol1 (0.04 s) [32mPASSED[0m[32m [ 11%][0m
-amp/im_v2/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtCsvClient1::test_get_universe1 (0.00 s) [32mPASSED[0m[32m [ 11%][0m
-amp/im_v2/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtCsvClient1::test_read_data1 (0.04 s) [32mPASSED[0m[32m [ 11%][0m
-amp/im_v2/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtCsvClient1::test_read_data2 (0.06 s) [32mPASSED[0m[32m [ 11%][0m
-amp/im_v2/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtCsvClient1::test_read_data3 (0.07 s) [32mPASSED[0m[32m [ 11%][0m
-amp/im_v2/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtCsvClient1::test_read_data4 (0.06 s) [32mPASSED[0m[32m [ 11%][0m
-amp/im_v2/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtCsvClient1::test_read_data5 (0.07 s) [32mPASSED[0m[32m [ 11%][0m
-amp/im_v2/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtCsvClient1::test_read_data6 (0.00 s) [32mPASSED[0m[32m [ 11%][0m
-amp/im_v2/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtPqByAssetClient1::test_get_end_ts_for_symbol1 (0.04 s) [32mPASSED[0m[32m [ 11%][0m
-amp/im_v2/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtPqByAssetClient1::test_get_start_ts_for_symbol1 (0.04 s) [32mPASSED[0m[32m [ 11%][0m
-amp/im_v2/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtPqByAssetClient1::test_get_universe1 (0.00 s) [32mPASSED[0m[32m [ 11%][0m
-amp/im_v2/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtPqByAssetClient1::test_read_data1 (0.04 s) [32mPASSED[0m[32m [ 11%][0m
-amp/im_v2/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtPqByAssetClient1::test_read_data2 (0.06 s) [32mPASSED[0m[32m [ 11%][0m
-amp/im_v2/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtPqByAssetClient1::test_read_data3 (0.07 s) [32mPASSED[0m[32m [ 11%][0m
-amp/im_v2/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtPqByAssetClient1::test_read_data4 (0.06 s) [32mPASSED[0m[32m [ 11%][0m
-amp/im_v2/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtPqByAssetClient1::test_read_data5 (0.07 s) [32mPASSED[0m[32m [ 12%][0m
-amp/im_v2/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtPqByAssetClient1::test_read_data6 (0.00 s) [32mPASSED[0m[32m [ 12%][0m
-amp/im_v2/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtCddDbClient1::test_get_end_ts_for_symbol1 [33mSKIPPED[0m[32m [ 12%][0m
-amp/im_v2/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtCddDbClient1::test_get_start_ts_for_symbol1 [33mSKIPPED[0m[32m [ 12%][0m
-amp/im_v2/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtCddDbClient1::test_get_universe1 [33mSKIPPED[0m[32m [ 12%][0m
-amp/im_v2/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtCddDbClient1::test_read_data1 [33mSKIPPED[0m[32m [ 12%][0m
-amp/im_v2/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtCddDbClient1::test_read_data2 [33mSKIPPED[0m[32m [ 12%][0m
-amp/im_v2/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtCddDbClient1::test_read_data3 [33mSKIPPED[0m[32m [ 12%][0m
-amp/im_v2/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtCddDbClient1::test_read_data4 [33mSKIPPED[0m[32m [ 12%][0m
-amp/im_v2/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtCddDbClient1::test_read_data5 [33mSKIPPED[0m[32m [ 12%][0m
-amp/im_v2/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtCddDbClient1::test_read_data6 [33mSKIPPED[0m[32m [ 12%][0m
+amp/datapull/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtCsvClient1::test_get_end_ts_for_symbol1 (0.04 s) [32mPASSED[0m[32m [ 11%][0m
+amp/datapull/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtCsvClient1::test_get_start_ts_for_symbol1 (0.04 s) [32mPASSED[0m[32m [ 11%][0m
+amp/datapull/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtCsvClient1::test_get_universe1 (0.00 s) [32mPASSED[0m[32m [ 11%][0m
+amp/datapull/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtCsvClient1::test_read_data1 (0.04 s) [32mPASSED[0m[32m [ 11%][0m
+amp/datapull/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtCsvClient1::test_read_data2 (0.06 s) [32mPASSED[0m[32m [ 11%][0m
+amp/datapull/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtCsvClient1::test_read_data3 (0.07 s) [32mPASSED[0m[32m [ 11%][0m
+amp/datapull/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtCsvClient1::test_read_data4 (0.06 s) [32mPASSED[0m[32m [ 11%][0m
+amp/datapull/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtCsvClient1::test_read_data5 (0.07 s) [32mPASSED[0m[32m [ 11%][0m
+amp/datapull/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtCsvClient1::test_read_data6 (0.00 s) [32mPASSED[0m[32m [ 11%][0m
+amp/datapull/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtPqByAssetClient1::test_get_end_ts_for_symbol1 (0.04 s) [32mPASSED[0m[32m [ 11%][0m
+amp/datapull/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtPqByAssetClient1::test_get_start_ts_for_symbol1 (0.04 s) [32mPASSED[0m[32m [ 11%][0m
+amp/datapull/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtPqByAssetClient1::test_get_universe1 (0.00 s) [32mPASSED[0m[32m [ 11%][0m
+amp/datapull/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtPqByAssetClient1::test_read_data1 (0.04 s) [32mPASSED[0m[32m [ 11%][0m
+amp/datapull/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtPqByAssetClient1::test_read_data2 (0.06 s) [32mPASSED[0m[32m [ 11%][0m
+amp/datapull/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtPqByAssetClient1::test_read_data3 (0.07 s) [32mPASSED[0m[32m [ 11%][0m
+amp/datapull/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtPqByAssetClient1::test_read_data4 (0.06 s) [32mPASSED[0m[32m [ 11%][0m
+amp/datapull/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtPqByAssetClient1::test_read_data5 (0.07 s) [32mPASSED[0m[32m [ 12%][0m
+amp/datapull/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtPqByAssetClient1::test_read_data6 (0.00 s) [32mPASSED[0m[32m [ 12%][0m
+amp/datapull/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtCddDbClient1::test_get_end_ts_for_symbol1 [33mSKIPPED[0m[32m [ 12%][0m
+amp/datapull/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtCddDbClient1::test_get_start_ts_for_symbol1 [33mSKIPPED[0m[32m [ 12%][0m
+amp/datapull/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtCddDbClient1::test_get_universe1 [33mSKIPPED[0m[32m [ 12%][0m
+amp/datapull/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtCddDbClient1::test_read_data1 [33mSKIPPED[0m[32m [ 12%][0m
+amp/datapull/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtCddDbClient1::test_read_data2 [33mSKIPPED[0m[32m [ 12%][0m
+amp/datapull/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtCddDbClient1::test_read_data3 [33mSKIPPED[0m[32m [ 12%][0m
+amp/datapull/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtCddDbClient1::test_read_data4 [33mSKIPPED[0m[32m [ 12%][0m
+amp/datapull/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtCddDbClient1::test_read_data5 [33mSKIPPED[0m[32m [ 12%][0m
+amp/datapull/ccxt/data/client/test/test_ccxt_clients.py::TestCcxtCddDbClient1::test_read_data6 [33mSKIPPED[0m[32m [ 12%][0m
 amp/core/signal_processing/test/test_misc_transformations.py::Test_get_symmetric_equisized_bins::test_infs (0.00 s) [32mPASSED[0m[32m [ 12%][0m
 amp/core/signal_processing/test/test_misc_transformations.py::Test_get_symmetric_equisized_bins::test_zero_in_bin_interior_false (0.00 s) [32mPASSED[0m[32m [ 12%][0m
 amp/core/signal_processing/test/test_misc_transformations.py::Test_get_symmetric_equisized_bins::test_zero_in_bin_interior_true (0.00 s) [32mPASSED[0m[32m [ 12%][0m
@@ -417,7 +417,7 @@ amp/dataflow/pipelines/real_time/test/test_dataflow_pipelines_real_time_pipeline
 amp/dataflow/pipelines/real_time/test/test_dataflow_pipelines_real_time_pipeline.py::TestRealTimePipelineWithOms1::test1 (0.98 s) [32mPASSED[0m[32m [ 15%][0m
 amp/dataflow/pipelines/real_time/test/test_dataflow_pipelines_real_time_pipeline.py::TestRealTimeMvnReturnsWithOms1::test1 [33mSKIPPED[0m[32m [ 15%][0m
 amp/dataflow/pipelines/real_time/test/test_dataflow_pipelines_real_time_pipeline.py::TestRealTimeMvnReturnsWithOms2::test1 [33mSKIPPED[0m[32m [ 15%][0m
-amp/im_v2/common/data/transform/test/test_convert_csv_to_pq.py::TestCsvToPq::test_csv_to_pq_script [33mSKIPPED[0m[32m [ 16%][0m
+amp/datapull/common/data/transform/test/test_convert_csv_to_pq.py::TestCsvToPq::test_csv_to_pq_script [33mSKIPPED[0m[32m [ 16%][0m
 dataflow_lime/pipelines/E8/test/test_E8d_configs.py::Test_get_configs_from_command_line1::test1 (0.00 s) [31mFAILED[0m[31m [ 16%][0m
 research/RH4E/test/test_RH4Ea_pipeline.py::Test_RH4Ea_DagBuilder::test_fit (6.31 s) [33mRERUN[0m[31m [ 16%][0m
 research/RH4E/test/test_RH4Ea_pipeline.py::Test_RH4Ea_DagBuilder::test_fit (1.61 s) [32mPASSED[0m[31m [ 16%][0m
@@ -544,26 +544,26 @@ core_lime/dataflow/nodes/test/test_core_lime_dataflow_nodes.py::TestEgSingleInst
 core_lime/dataflow/nodes/test/test_core_lime_dataflow_nodes.py::TestEgSingleInstrumentDataReader2::test_replayed_time1 [33mSKIPPED[0m[31m [ 22%][0m
 core_lime/dataflow/nodes/test/test_core_lime_dataflow_nodes.py::TestEgSingleInstrumentDataReader2::test_save_data [33mSKIPPED[0m[31m [ 22%][0m
 core_lime/dataflow/nodes/test/test_core_lime_dataflow_nodes.py::TestEgMultipleInstrumentDataReader1::test_historical1 (0.75 s) [32mPASSED[0m[31m [ 22%][0m
-amp/im_v2/common/data/transform/test/test_transform_utils.py::TestConvertTimestampColumn::test_incorrect_datetime (0.00 s) [32mPASSED[0m[31m [ 22%][0m
-amp/im_v2/common/data/transform/test/test_transform_utils.py::TestConvertTimestampColumn::test_integer_datetime (0.00 s) [32mPASSED[0m[31m [ 22%][0m
-amp/im_v2/common/data/transform/test/test_transform_utils.py::TestConvertTimestampColumn::test_string_datetime (0.00 s) [32mPASSED[0m[31m [ 22%][0m
-amp/im_v2/common/data/transform/test/test_transform_utils.py::TestReindexOnDatetime::test_reindex_on_datetime_index_already_present (0.00 s) [32mPASSED[0m[31m [ 23%][0m
-amp/im_v2/common/data/transform/test/test_transform_utils.py::TestReindexOnDatetime::test_reindex_on_datetime_milliseconds (0.00 s) [32mPASSED[0m[31m [ 23%][0m
-amp/im_v2/common/data/transform/test/test_transform_utils.py::TestReindexOnDatetime::test_reindex_on_datetime_seconds (0.00 s) [32mPASSED[0m[31m [ 23%][0m
-amp/im_v2/common/data/transform/test/test_transform_utils.py::TestReindexOnDatetime::test_reindex_on_datetime_wrong_column (0.00 s) [32mPASSED[0m[31m [ 23%][0m
-amp/im_v2/common/data/client/test/test_historical_pq_clients.py::TestHistoricalPqByTileClient1::test_get_end_ts_for_symbol1 [33mSKIPPED[0m[31m [ 23%][0m
-amp/im_v2/common/data/client/test/test_historical_pq_clients.py::TestHistoricalPqByTileClient1::test_get_start_ts_for_symbol1 [33mSKIPPED[0m[31m [ 23%][0m
-amp/im_v2/common/data/client/test/test_historical_pq_clients.py::TestHistoricalPqByTileClient1::test_get_universe1 [33mSKIPPED[0m[31m [ 23%][0m
-amp/im_v2/common/data/client/test/test_historical_pq_clients.py::TestHistoricalPqByTileClient1::test_read_data1 [33mSKIPPED[0m[31m [ 23%][0m
-amp/im_v2/common/data/client/test/test_historical_pq_clients.py::TestHistoricalPqByTileClient1::test_read_data2 [33mSKIPPED[0m[31m [ 23%][0m
-amp/im_v2/common/data/client/test/test_historical_pq_clients.py::TestHistoricalPqByTileClient1::test_read_data3 [33mSKIPPED[0m[31m [ 23%][0m
-amp/im_v2/common/data/client/test/test_historical_pq_clients.py::TestHistoricalPqByTileClient1::test_read_data4 [33mSKIPPED[0m[31m [ 23%][0m
-amp/im_v2/common/data/client/test/test_historical_pq_clients.py::TestHistoricalPqByTileClient1::test_read_data5 [33mSKIPPED[0m[31m [ 23%][0m
-amp/im_v2/common/data/client/test/test_historical_pq_clients.py::TestHistoricalPqByTileClient1::test_read_data6 [33mSKIPPED[0m[31m [ 23%][0m
-amp/im_v2/common/data/transform/test/test_transform_pq_by_date_to_by_asset.py::TestPqByDateToByAsset1::test_command_line [33mSKIPPED[0m[31m [ 23%][0m
-amp/im_v2/common/data/transform/test/test_transform_pq_by_date_to_by_asset.py::TestPqByDateToByAsset1::test_function_call1 [33mSKIPPED[0m[31m [ 23%][0m
-amp/im_v2/common/data/transform/test/test_transform_pq_by_date_to_by_asset.py::TestPqByDateToByAsset1::test_function_call2 [33mSKIPPED[0m[31m [ 23%][0m
-amp/im_v2/common/data/transform/test/test_transform_pq_by_date_to_by_asset.py::TestPqByDateToByAsset1::test_process_chunk [33mSKIPPED[0m[31m [ 23%][0m
+amp/datapull/common/data/transform/test/test_transform_utils.py::TestConvertTimestampColumn::test_incorrect_datetime (0.00 s) [32mPASSED[0m[31m [ 22%][0m
+amp/datapull/common/data/transform/test/test_transform_utils.py::TestConvertTimestampColumn::test_integer_datetime (0.00 s) [32mPASSED[0m[31m [ 22%][0m
+amp/datapull/common/data/transform/test/test_transform_utils.py::TestConvertTimestampColumn::test_string_datetime (0.00 s) [32mPASSED[0m[31m [ 22%][0m
+amp/datapull/common/data/transform/test/test_transform_utils.py::TestReindexOnDatetime::test_reindex_on_datetime_index_already_present (0.00 s) [32mPASSED[0m[31m [ 23%][0m
+amp/datapull/common/data/transform/test/test_transform_utils.py::TestReindexOnDatetime::test_reindex_on_datetime_milliseconds (0.00 s) [32mPASSED[0m[31m [ 23%][0m
+amp/datapull/common/data/transform/test/test_transform_utils.py::TestReindexOnDatetime::test_reindex_on_datetime_seconds (0.00 s) [32mPASSED[0m[31m [ 23%][0m
+amp/datapull/common/data/transform/test/test_transform_utils.py::TestReindexOnDatetime::test_reindex_on_datetime_wrong_column (0.00 s) [32mPASSED[0m[31m [ 23%][0m
+amp/datapull/common/data/client/test/test_historical_pq_clients.py::TestHistoricalPqByTileClient1::test_get_end_ts_for_symbol1 [33mSKIPPED[0m[31m [ 23%][0m
+amp/datapull/common/data/client/test/test_historical_pq_clients.py::TestHistoricalPqByTileClient1::test_get_start_ts_for_symbol1 [33mSKIPPED[0m[31m [ 23%][0m
+amp/datapull/common/data/client/test/test_historical_pq_clients.py::TestHistoricalPqByTileClient1::test_get_universe1 [33mSKIPPED[0m[31m [ 23%][0m
+amp/datapull/common/data/client/test/test_historical_pq_clients.py::TestHistoricalPqByTileClient1::test_read_data1 [33mSKIPPED[0m[31m [ 23%][0m
+amp/datapull/common/data/client/test/test_historical_pq_clients.py::TestHistoricalPqByTileClient1::test_read_data2 [33mSKIPPED[0m[31m [ 23%][0m
+amp/datapull/common/data/client/test/test_historical_pq_clients.py::TestHistoricalPqByTileClient1::test_read_data3 [33mSKIPPED[0m[31m [ 23%][0m
+amp/datapull/common/data/client/test/test_historical_pq_clients.py::TestHistoricalPqByTileClient1::test_read_data4 [33mSKIPPED[0m[31m [ 23%][0m
+amp/datapull/common/data/client/test/test_historical_pq_clients.py::TestHistoricalPqByTileClient1::test_read_data5 [33mSKIPPED[0m[31m [ 23%][0m
+amp/datapull/common/data/client/test/test_historical_pq_clients.py::TestHistoricalPqByTileClient1::test_read_data6 [33mSKIPPED[0m[31m [ 23%][0m
+amp/datapull/common/data/transform/test/test_transform_pq_by_date_to_by_asset.py::TestPqByDateToByAsset1::test_command_line [33mSKIPPED[0m[31m [ 23%][0m
+amp/datapull/common/data/transform/test/test_transform_pq_by_date_to_by_asset.py::TestPqByDateToByAsset1::test_function_call1 [33mSKIPPED[0m[31m [ 23%][0m
+amp/datapull/common/data/transform/test/test_transform_pq_by_date_to_by_asset.py::TestPqByDateToByAsset1::test_function_call2 [33mSKIPPED[0m[31m [ 23%][0m
+amp/datapull/common/data/transform/test/test_transform_pq_by_date_to_by_asset.py::TestPqByDateToByAsset1::test_process_chunk [33mSKIPPED[0m[31m [ 23%][0m
 amp/helpers/test/test_lib_tasks_find.py::Test_find_short_import1::test1 (0.00 s) [32mPASSED[0m[31m [ 23%][0m
 amp/helpers/test/test_lib_tasks_find.py::Test_find_func_class_uses1::test1 (0.00 s) [32mPASSED[0m[31m [ 24%][0m
 amp/dataflow/system/test/test_real_time_runner.py::TestRealTimeDagRunner1::test_replayed_time1 [33mSKIPPED[0m[31m [ 24%][0m
@@ -1051,19 +1051,19 @@ amp/market_data/test/test_market_data_im_client.py::TestImClientMarketData::test
 amp/market_data/test/test_market_data_im_client.py::TestImClientMarketData::test_get_twap_price1 (0.15 s) [32mPASSED[0m[31m [ 50%][0m
 amp/market_data/test/test_market_data_im_client.py::TestImClientMarketData::test_is_online1 (0.06 s) [32mPASSED[0m[31m [ 51%][0m
 amp/market_data/test/test_market_data_im_client.py::TestImClientMarketData::test_should_be_online1 (0.00 s) [32mPASSED[0m[31m [ 51%][0m
-amp/im_v2/common/data/client/test/test_full_symbol.py::TestDassertIsFullSymbolValid::test1 (0.00 s) [32mPASSED[0m[31m [ 51%][0m
-amp/im_v2/common/data/client/test/test_full_symbol.py::TestDassertIsFullSymbolValid::test2 (0.00 s) [32mPASSED[0m[31m [ 51%][0m
-amp/im_v2/common/data/client/test/test_full_symbol.py::TestDassertIsFullSymbolValid::test3 (0.00 s) [32mPASSED[0m[31m [ 51%][0m
-amp/im_v2/common/data/client/test/test_full_symbol.py::TestDassertIsFullSymbolValid::test4 (0.00 s) [32mPASSED[0m[31m [ 51%][0m
-amp/im_v2/common/data/client/test/test_full_symbol.py::TestDassertIsFullSymbolValid::test5 (0.00 s) [32mPASSED[0m[31m [ 51%][0m
-amp/im_v2/common/data/client/test/test_full_symbol.py::TestDassertIsFullSymbolValid::test6 (0.00 s) [32mPASSED[0m[31m [ 51%][0m
-amp/im_v2/common/data/client/test/test_full_symbol.py::TestDassertIsFullSymbolValid::test7 (0.00 s) [32mPASSED[0m[31m [ 51%][0m
-amp/im_v2/common/data/client/test/test_full_symbol.py::TestParseFullSymbol::test1 (0.00 s) [32mPASSED[0m[31m [ 51%][0m
-amp/im_v2/common/data/client/test/test_full_symbol.py::TestParseFullSymbol::test2 (0.00 s) [32mPASSED[0m[31m [ 51%][0m
-amp/im_v2/common/data/client/test/test_full_symbol.py::TestConstructFullSymbol::test1 (0.00 s) [32mPASSED[0m[31m [ 51%][0m
-amp/im_v2/common/data/client/test/test_full_symbol.py::TestConstructFullSymbol::test2 (0.00 s) [32mPASSED[0m[31m [ 51%][0m
-amp/im_v2/common/universe/test/test_universe_utils.py::TestStringToNumericalId::test1 (0.00 s) [32mPASSED[0m[31m [ 51%][0m
-amp/im_v2/common/universe/test/test_universe_utils.py::TestBuildNumericalToStringIdMapping::test1 (0.00 s) [32mPASSED[0m[31m [ 51%][0m
+amp/datapull/common/data/client/test/test_full_symbol.py::TestDassertIsFullSymbolValid::test1 (0.00 s) [32mPASSED[0m[31m [ 51%][0m
+amp/datapull/common/data/client/test/test_full_symbol.py::TestDassertIsFullSymbolValid::test2 (0.00 s) [32mPASSED[0m[31m [ 51%][0m
+amp/datapull/common/data/client/test/test_full_symbol.py::TestDassertIsFullSymbolValid::test3 (0.00 s) [32mPASSED[0m[31m [ 51%][0m
+amp/datapull/common/data/client/test/test_full_symbol.py::TestDassertIsFullSymbolValid::test4 (0.00 s) [32mPASSED[0m[31m [ 51%][0m
+amp/datapull/common/data/client/test/test_full_symbol.py::TestDassertIsFullSymbolValid::test5 (0.00 s) [32mPASSED[0m[31m [ 51%][0m
+amp/datapull/common/data/client/test/test_full_symbol.py::TestDassertIsFullSymbolValid::test6 (0.00 s) [32mPASSED[0m[31m [ 51%][0m
+amp/datapull/common/data/client/test/test_full_symbol.py::TestDassertIsFullSymbolValid::test7 (0.00 s) [32mPASSED[0m[31m [ 51%][0m
+amp/datapull/common/data/client/test/test_full_symbol.py::TestParseFullSymbol::test1 (0.00 s) [32mPASSED[0m[31m [ 51%][0m
+amp/datapull/common/data/client/test/test_full_symbol.py::TestParseFullSymbol::test2 (0.00 s) [32mPASSED[0m[31m [ 51%][0m
+amp/datapull/common/data/client/test/test_full_symbol.py::TestConstructFullSymbol::test1 (0.00 s) [32mPASSED[0m[31m [ 51%][0m
+amp/datapull/common/data/client/test/test_full_symbol.py::TestConstructFullSymbol::test2 (0.00 s) [32mPASSED[0m[31m [ 51%][0m
+amp/datapull/common/universe/test/test_universe_utils.py::TestStringToNumericalId::test1 (0.00 s) [32mPASSED[0m[31m [ 51%][0m
+amp/datapull/common/universe/test/test_universe_utils.py::TestBuildNumericalToStringIdMapping::test1 (0.00 s) [32mPASSED[0m[31m [ 51%][0m
 vendors_lime/taq_bars/test/test_taq_bars_utils.py::TestTaqBarsUtils1::test_filter_dates1 (0.00 s) [32mPASSED[0m[31m [ 51%][0m
 vendors_lime/taq_bars/test/test_taq_bars_utils.py::TestTaqBarsUtils1::test_filter_dates2 (0.00 s) [32mPASSED[0m[31m [ 51%][0m
 vendors_lime/taq_bars/test/test_taq_bars_utils.py::TestTaqBarsUtils1::test_filter_dates3 (0.00 s) [32mPASSED[0m[31m [ 51%][0m
@@ -1143,23 +1143,23 @@ amp/oms/test/test_order_processor.py::TestOrderProcessor1::test_submit_order1 [
 amp/oms/test/test_order_processor.py::TestOrderProcessor1::test_submit_order2 [33mSKIPPED[0m[31m [ 56%][0m
 amp/oms/test/test_order_processor.py::TestOrderProcessor1::test_submit_order_and_timeout1 [33mSKIPPED[0m[31m [ 56%][0m
 amp/oms/test/test_order_processor.py::TestOrderProcessor1::test_submit_order_and_timeout2 [33mSKIPPED[0m[31m [ 56%][0m
-amp/im_v2/test/test_im_lib_tasks.py::TestGetImDockerCmd::test1 (0.00 s) [32mPASSED[0m[31m    [ 56%][0m
-amp/im_v2/test/test_im_lib_tasks.py::TestGetImDockerCmd::test2 (0.00 s) [32mPASSED[0m[31m    [ 56%][0m
-amp/im_v2/test/test_im_lib_tasks.py::TestGetImDockerDown::test1 (0.00 s) [32mPASSED[0m[31m   [ 56%][0m
-amp/im_v2/test/test_im_lib_tasks.py::TestGetImDockerDown::test2 (0.00 s) [32mPASSED[0m[31m   [ 56%][0m
-amp/im_v2/test/test_im_lib_tasks.py::TestGetImDockerUp::test1 (0.00 s) [32mPASSED[0m[31m     [ 56%][0m
-amp/im_v2/test/test_im_lib_tasks.py::TestGetImDockerUp::test2 (0.00 s) [32mPASSED[0m[31m     [ 56%][0m
-amp/im_v2/test/test_im_lib_tasks.py::TestGetCreateDbCmd::test1 [33mSKIPPED[0m[31m   [ 56%][0m
-amp/im_v2/test/test_im_lib_tasks.py::TestGetCreateDbCmd::test2 [33mSKIPPED[0m[31m   [ 56%][0m
-amp/im_v2/test/test_im_lib_tasks.py::TestGetCreateDbCmd::test3 [33mSKIPPED[0m[31m   [ 56%][0m
-amp/im_v2/test/test_im_lib_tasks.py::TestGetCreateDbCmd::test4 [33mSKIPPED[0m[31m   [ 56%][0m
-amp/im_v2/test/test_im_lib_tasks.py::TestGetRemoveDbCmd::test1 [33mSKIPPED[0m[31m   [ 56%][0m
-amp/im_v2/test/test_im_lib_tasks.py::TestGetRemoveDbCmd::test2 [33mSKIPPED[0m[31m   [ 56%][0m
-amp/im_v2/test/test_im_lib_tasks.py::TestGetRemoveDbCmd::test3 [33mSKIPPED[0m[31m   [ 56%][0m
-amp/im_v2/test/test_im_lib_tasks.py::TestImDockerCmd::test1 [33mSKIPPED[0m[31m      [ 56%][0m
-amp/im_v2/ccxt/universe/test/test_universe.py::TestGetUniverse::test_get_universe1 (0.00 s) [32mPASSED[0m[31m [ 57%][0m
-amp/im_v2/ccxt/universe/test/test_universe.py::TestGetUniverse::test_get_universe2 (0.00 s) [32mPASSED[0m[31m [ 57%][0m
-amp/im_v2/ccxt/universe/test/test_universe.py::TestGetVendorUniverse::test1 (0.00 s) [32mPASSED[0m[31m [ 57%][0m
+amp/datapull/test/test_im_lib_tasks.py::TestGetImDockerCmd::test1 (0.00 s) [32mPASSED[0m[31m    [ 56%][0m
+amp/datapull/test/test_im_lib_tasks.py::TestGetImDockerCmd::test2 (0.00 s) [32mPASSED[0m[31m    [ 56%][0m
+amp/datapull/test/test_im_lib_tasks.py::TestGetImDockerDown::test1 (0.00 s) [32mPASSED[0m[31m   [ 56%][0m
+amp/datapull/test/test_im_lib_tasks.py::TestGetImDockerDown::test2 (0.00 s) [32mPASSED[0m[31m   [ 56%][0m
+amp/datapull/test/test_im_lib_tasks.py::TestGetImDockerUp::test1 (0.00 s) [32mPASSED[0m[31m     [ 56%][0m
+amp/datapull/test/test_im_lib_tasks.py::TestGetImDockerUp::test2 (0.00 s) [32mPASSED[0m[31m     [ 56%][0m
+amp/datapull/test/test_im_lib_tasks.py::TestGetCreateDbCmd::test1 [33mSKIPPED[0m[31m   [ 56%][0m
+amp/datapull/test/test_im_lib_tasks.py::TestGetCreateDbCmd::test2 [33mSKIPPED[0m[31m   [ 56%][0m
+amp/datapull/test/test_im_lib_tasks.py::TestGetCreateDbCmd::test3 [33mSKIPPED[0m[31m   [ 56%][0m
+amp/datapull/test/test_im_lib_tasks.py::TestGetCreateDbCmd::test4 [33mSKIPPED[0m[31m   [ 56%][0m
+amp/datapull/test/test_im_lib_tasks.py::TestGetRemoveDbCmd::test1 [33mSKIPPED[0m[31m   [ 56%][0m
+amp/datapull/test/test_im_lib_tasks.py::TestGetRemoveDbCmd::test2 [33mSKIPPED[0m[31m   [ 56%][0m
+amp/datapull/test/test_im_lib_tasks.py::TestGetRemoveDbCmd::test3 [33mSKIPPED[0m[31m   [ 56%][0m
+amp/datapull/test/test_im_lib_tasks.py::TestImDockerCmd::test1 [33mSKIPPED[0m[31m      [ 56%][0m
+amp/datapull/ccxt/universe/test/test_universe.py::TestGetUniverse::test_get_universe1 (0.00 s) [32mPASSED[0m[31m [ 57%][0m
+amp/datapull/ccxt/universe/test/test_universe.py::TestGetUniverse::test_get_universe2 (0.00 s) [32mPASSED[0m[31m [ 57%][0m
+amp/datapull/ccxt/universe/test/test_universe.py::TestGetVendorUniverse::test1 (0.00 s) [32mPASSED[0m[31m [ 57%][0m
 amp/im/kibot/data/load/test/test_sql_data_loader.py::TestSqlDataLoader1::test_get_exchange_id1 [33mSKIPPED[0m[31m [ 57%][0m
 amp/im/kibot/data/load/test/test_sql_data_loader.py::TestSqlDataLoader1::test_get_exchange_id2 [33mSKIPPED[0m[31m [ 57%][0m
 amp/im/kibot/data/load/test/test_sql_data_loader.py::TestSqlDataLoader1::test_get_symbol_id1 [33mSKIPPED[0m[31m [ 57%][0m
@@ -1949,7 +1949,7 @@ ModuleNotFoundError: No module named 'dataflow_lime.pipelines.E8.8Ed_configs'
 6.41s call     dataflow_lime/pipelines/E8/test/test_E8d_pipeline.py::Test_E8d_DagBuilder::test_fit
 6.31s call     research/RH4E/test/test_RH4Ea_pipeline.py::Test_RH4Ea_DagBuilder::test_fit
 =========================== short test summary info ============================
-SKIPPED [5] amp/im_v2/ccxt/data/extract/test/test_compare_realtime_and_historical_data.py: Need dind support
+SKIPPED [5] amp/datapull/ccxt/data/extract/test/test_compare_realtime_and_historical_data.py: Need dind support
 SKIPPED [1] amp/helpers/test/test_hparquet.py:741: CmTask1305: after removing circular dependencies in `hio.from_file`, this test fails reading a parquet file
 SKIPPED [5] amp/optimizer/test/test_single_period_optimization.py: Requires special docker container.
 SKIPPED [1] amp/helpers/test/test_lib_tasks.py:200: AmpTask1347: Add support for mocking `system*()` functions to unit test
@@ -1974,20 +1974,20 @@ SKIPPED [1] amp/helpers/test/test_lib_tasks.py:698: Only run in amp as submodule
 SKIPPED [1] amp/helpers/test/test_lib_tasks.py:792: Only run in amp
 SKIPPED [1] amp/helpers/test/test_lib_tasks.py:1003: Only run in amp
 SKIPPED [1] amp/helpers/test/test_lib_tasks.py:1343: This test makes sense for a branch
-SKIPPED [9] amp/im_v2/ccxt/data/extract/test/test_exchange_class.py: Enable after CMTask1292 is resolved.
-SKIPPED [1] amp/im_v2/ccxt/data/client/test/test_ccxt_clients.py:789: Need dind support
-SKIPPED [1] amp/im_v2/ccxt/data/client/test/test_ccxt_clients.py:769: Need dind support
-SKIPPED [1] amp/im_v2/ccxt/data/client/test/test_ccxt_clients.py:809: Need dind support
-SKIPPED [1] amp/im_v2/ccxt/data/client/test/test_ccxt_clients.py:530: Need dind support
-SKIPPED [1] amp/im_v2/ccxt/data/client/test/test_ccxt_clients.py:573: Need dind support
-SKIPPED [1] amp/im_v2/ccxt/data/client/test/test_ccxt_clients.py:620: Need dind support
-SKIPPED [1] amp/im_v2/ccxt/data/client/test/test_ccxt_clients.py:666: Need dind support
-SKIPPED [1] amp/im_v2/ccxt/data/client/test/test_ccxt_clients.py:711: Need dind support
-SKIPPED [1] amp/im_v2/ccxt/data/client/test/test_ccxt_clients.py:757: Need dind support
+SKIPPED [9] amp/datapull/ccxt/data/extract/test/test_exchange_class.py: Enable after CMTask1292 is resolved.
+SKIPPED [1] amp/datapull/ccxt/data/client/test/test_ccxt_clients.py:789: Need dind support
+SKIPPED [1] amp/datapull/ccxt/data/client/test/test_ccxt_clients.py:769: Need dind support
+SKIPPED [1] amp/datapull/ccxt/data/client/test/test_ccxt_clients.py:809: Need dind support
+SKIPPED [1] amp/datapull/ccxt/data/client/test/test_ccxt_clients.py:530: Need dind support
+SKIPPED [1] amp/datapull/ccxt/data/client/test/test_ccxt_clients.py:573: Need dind support
+SKIPPED [1] amp/datapull/ccxt/data/client/test/test_ccxt_clients.py:620: Need dind support
+SKIPPED [1] amp/datapull/ccxt/data/client/test/test_ccxt_clients.py:666: Need dind support
+SKIPPED [1] amp/datapull/ccxt/data/client/test/test_ccxt_clients.py:711: Need dind support
+SKIPPED [1] amp/datapull/ccxt/data/client/test/test_ccxt_clients.py:757: Need dind support
 SKIPPED [1] amp/helpers/test/test_unit_test.py:335: This is only used to debug the debugging the infrastructure
 SKIPPED [1] amp/dataflow/pipelines/real_time/test/test_dataflow_pipelines_real_time_pipeline.py:380: Need dind support
 SKIPPED [1] amp/dataflow/pipelines/real_time/test/test_dataflow_pipelines_real_time_pipeline.py:534: Need dind support
-SKIPPED [1] amp/im_v2/common/data/transform/test/test_convert_csv_to_pq.py:60: CmTask1305: after removing circular dependencies in `hio.from_file`, this test fails reading a parquet file
+SKIPPED [1] amp/datapull/common/data/transform/test/test_convert_csv_to_pq.py:60: CmTask1305: after removing circular dependencies in `hio.from_file`, this test fails reading a parquet file
 SKIPPED [1] dataflow_lime/system/test/test_E8d_replayed_system_runner.py:130: Need dind support
 SKIPPED [1] amp/oms/test/test_oms_db.py: Need dind support
 SKIPPED [1] amp/oms/test/test_portfolio.py:291: Need dind support
@@ -2009,8 +2009,8 @@ SKIPPED [1] core_lime/dataflow/nodes/test/test_core_lime_dataflow_nodes.py:198: 
 SKIPPED [1] core_lime/dataflow/nodes/test/test_core_lime_dataflow_nodes.py:274: Next PR will rewrite this
 SKIPPED [1] core_lime/dataflow/nodes/test/test_core_lime_dataflow_nodes.py:325: LimeTask296: Break 2022-01-06
 SKIPPED [1] core_lime/dataflow/nodes/test/test_core_lime_dataflow_nodes.py:311: Run manually
-SKIPPED [9] amp/im_v2/common/data/client/test/test_historical_pq_clients.py: Some tests are returning an empty df
-SKIPPED [4] amp/im_v2/common/data/transform/test/test_transform_pq_by_date_to_by_asset.py: TODO(gp): Need to update this tests after transform v1.3
+SKIPPED [9] amp/datapull/common/data/client/test/test_historical_pq_clients.py: Some tests are returning an empty df
+SKIPPED [4] amp/datapull/common/data/transform/test/test_transform_pq_by_date_to_by_asset.py: TODO(gp): Need to update this tests after transform v1.3
 SKIPPED [1] amp/dataflow/system/test/test_real_time_runner.py:39: Too slow for real time
 SKIPPED [1] amp/dataflow/core/nodes/test/test_volatility_models.py:423: unconditional skip
 SKIPPED [1] amp/core/statistics/test/test_regression.py:46: This test fails on some computers due to AmpTask1649
@@ -2053,8 +2053,8 @@ SKIPPED [1] amp/oms/test/test_order_processor.py:70: Need dind support
 SKIPPED [1] amp/oms/test/test_order_processor.py:78: Need dind support
 SKIPPED [1] amp/oms/test/test_order_processor.py:86: Need dind support
 SKIPPED [1] amp/oms/test/test_order_processor.py:96: Need dind support
-SKIPPED [7] amp/im_v2/test/test_im_lib_tasks.py: CMTask #789.
-SKIPPED [1] amp/im_v2/test/test_im_lib_tasks.py:240: amp #1189
+SKIPPED [7] amp/datapull/test/test_im_lib_tasks.py: CMTask #789.
+SKIPPED [1] amp/datapull/test/test_im_lib_tasks.py:240: amp #1189
 SKIPPED [10] amp/im/kibot/data/load/test/test_sql_data_loader.py: CmTask666
 SKIPPED [1] amp/helpers/test/test_cache.py:731: See CMTask #952.
 SKIPPED [1] amp/helpers/test/test_git.py:217: Run only in amp as super-module
@@ -2243,8 +2243,8 @@ amp/dataflow/system/test/test_example_pipeline1.py::TestExamplePipeline1::test_m
 amp/dataflow/system/test/test_example_pipeline1.py::TestExamplePipeline1::test_market_data2_database_portfolio [33mSKIPPED[0m[32m [ 19%][0m
 amp/dataflow/system/test/test_example_pipeline1.py::TestExamplePipeline1::test_market_data2_database_vs_dataframe_portfolio [33mSKIPPED[0m[32m [ 21%][0m
 amp/dataflow/system/test/test_example_pipeline1.py::TestExamplePipeline1::test_market_data3_database_portfolio [33mSKIPPED[0m[32m [ 22%][0m
-amp/im_v2/ccxt/data/extract/test/test_exchange_class.py::TestCcxtExchange1::test_download_ohlcv_data1 [33mSKIPPED[0m[32m [ 23%][0m
-amp/im_v2/common/data/transform/test/test_extract_data_from_db.py::TestExtractDataFromDb1::test_extract_data_from_db [33mSKIPPED[0m[32m [ 25%][0m
+amp/datapull/ccxt/data/extract/test/test_exchange_class.py::TestCcxtExchange1::test_download_ohlcv_data1 [33mSKIPPED[0m[32m [ 23%][0m
+amp/datapull/common/data/transform/test/test_extract_data_from_db.py::TestExtractDataFromDb1::test_extract_data_from_db [33mSKIPPED[0m[32m [ 25%][0m
 dataflow_lime/pipelines/E8/test/test_E8d_prod_models.py::Test_TiledBacktest_E8d::test_end_to_end_slow1 (1.29 s) [31mFAILED[0m[31m [ 26%][0m
 dataflow_lime/system/test/test_E8d_replayed_system_runner.py::TestReplayedE8dWithMockedOms1::test1 [33mSKIPPED[0m[31m [ 28%][0m
 dataflow_lime/pipelines/E8/test/test_E8d_pipeline.py::Test_E8d_DagBuilder2::test_invariance1 (19.17 s) [32mPASSED[0m[31m [ 29%][0m
@@ -2284,9 +2284,9 @@ market_data_lime/test/test_eg_stitched_market_data_interface.py::TestEgStitchedM
 market_data_lime/test/test_eg_stitched_market_data_interface.py::TestEgStitchedMarketData1::test_get_data_for_last_period3 (0.00 s) [33mSKIPPED[0m[31m [ 77%][0m
 market_data_lime/test/test_eg_stitched_market_data_interface.py::TestEgStitchedMarketData1::test_get_data_for_last_period_compare1 (0.00 s) [33mSKIPPED[0m[31m [ 78%][0m
 amp/test/test_tasks.py::TestExecuteTasks2::test_collect_only1 [33mSKIPPED[0m[31m    [ 80%][0m
-amp/im_v2/common/db/test/test_create_db.py::TestCreateDb1::test_create_all_tables1 [33mSKIPPED[0m[31m [ 81%][0m
-amp/im_v2/common/db/test/test_create_db.py::TestCreateDb1::test_create_im_database [33mSKIPPED[0m[31m [ 83%][0m
-amp/im_v2/common/db/test/test_create_db.py::TestCreateDb1::test_up1 [33mSKIPPED[0m[31m [ 84%][0m
+amp/datapull/common/db/test/test_create_db.py::TestCreateDb1::test_create_all_tables1 [33mSKIPPED[0m[31m [ 81%][0m
+amp/datapull/common/db/test/test_create_db.py::TestCreateDb1::test_create_im_database [33mSKIPPED[0m[31m [ 83%][0m
+amp/datapull/common/db/test/test_create_db.py::TestCreateDb1::test_up1 [33mSKIPPED[0m[31m [ 84%][0m
 amp/core/test/test_real_time.py::Test_align_on_time_grid1::test_real_time1 (3.62 s) [32mPASSED[0m[31m [ 85%][0m
 amp/core/test/test_real_time.py::Test_align_on_time_grid1::test_real_time2 (3.99 s) [32mPASSED[0m[31m [ 87%][0m
 amp/im/ib/metadata/test/test_ib_symbols.py::TestIbSymbolUniverse::test_parse_symbols_file2 (11.92 s) [32mPASSED[0m[31m [ 88%][0m
@@ -2334,8 +2334,8 @@ SKIPPED [1] amp/dataflow/system/test/test_example_pipeline1.py:210: Need dind su
 SKIPPED [1] amp/dataflow/system/test/test_example_pipeline1.py:162: Need dind support
 SKIPPED [1] amp/dataflow/system/test/test_example_pipeline1.py:226: Need dind support
 SKIPPED [1] amp/dataflow/system/test/test_example_pipeline1.py:200: Need dind support
-SKIPPED [1] amp/im_v2/ccxt/data/extract/test/test_exchange_class.py:35: Enable after CMTask1292 is resolved.
-SKIPPED [1] amp/im_v2/common/data/transform/test/test_extract_data_from_db.py:38: Need dind support
+SKIPPED [1] amp/datapull/ccxt/data/extract/test/test_exchange_class.py:35: Enable after CMTask1292 is resolved.
+SKIPPED [1] amp/datapull/common/data/transform/test/test_extract_data_from_db.py:38: Need dind support
 SKIPPED [1] dataflow_lime/system/test/test_E8d_replayed_system_runner.py:250: Need dind support
 SKIPPED [1] research/RH2E/test/test_RH2E_prod_models.py:61: Disabled since cache was invalidated
 SKIPPED [1] amp/oms/test/test_oms_db.py:46: Need dind support
@@ -2351,9 +2351,9 @@ SKIPPED [1] market_data_lime/test/test_eg_stitched_market_data_interface.py:59: 
 SKIPPED [1] market_data_lime/test/test_eg_stitched_market_data_interface.py:81: Skip on Mondays
 SKIPPED [1] market_data_lime/test/test_eg_stitched_market_data_interface.py:105: Skip on Mondays
 SKIPPED [1] amp/test/test_tasks.py:116: Test needs to be run outside Docker
-SKIPPED [1] amp/im_v2/common/db/test/test_create_db.py:20: Need dind support
-SKIPPED [1] amp/im_v2/common/db/test/test_create_db.py:49: Need dind support
-SKIPPED [1] amp/im_v2/common/db/test/test_create_db.py:12: Need dind support
+SKIPPED [1] amp/datapull/common/db/test/test_create_db.py:20: Need dind support
+SKIPPED [1] amp/datapull/common/db/test/test_create_db.py:49: Need dind support
+SKIPPED [1] amp/datapull/common/db/test/test_create_db.py:12: Need dind support
 SKIPPED [1] amp/core/test/test_backtest.py:153: Disabled because of PTask2440
 FAILED dataflow_lime/pipelines/E8/test/test_E8d_prod_models.py::Test_TiledBacktest_E8d::test_end_to_end_slow1
 [31m==== [31m[1m1 failed[0m, [32m35 passed[0m, [33m35 skipped[0m, [33m1803 deselected[0m[31m in 297.23s (0:04:57)[0m[31m =====[0m
