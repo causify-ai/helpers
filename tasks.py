@@ -13,6 +13,7 @@ from helpers.lib_tasks import (  # This is not an invoke target.
 )
 
 from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=unused-import
+    aws_create_ecs_task_definition,
     docker_bash,
     docker_build_local_image,
     docker_build_multi_arch_prod_image,

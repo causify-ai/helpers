@@ -1268,7 +1268,8 @@ def docker_create_candidate_image(
     )
     # Push candidate image.
     docker_push_prod_candidate_image(ctx, tag)
-    exec_name = "im_v2/aws/aws_update_task_definition.py"
+    helpers_root = hgit.find_helpers_root()
+    exec_name = f"{helpers_root}/dev_scripts_helpers/aws/aws_update_task_definition.py"
     # Ensure compatibility with repos where amp is a submodule.
     if not os.path.exists(exec_name):
         exec_name = f"amp/{exec_name}"

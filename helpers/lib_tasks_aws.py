@@ -9,6 +9,9 @@ import helpers.lib_tasks_aws as hlitaaws
 import logging
 import os
 import re
+import copy
+import json
+from typing import Dict
 
 from invoke import task
 
@@ -17,6 +20,9 @@ import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
+import helpers.lib_tasks_utils as hlitauti
+import helpers.haws as haws
+import helpers.hs3 as hs3
 
 _LOG = logging.getLogger(__name__)
 
@@ -120,3 +126,115 @@ def release_dags_to_airflow(
         hsystem.system(f"bash -c {temp_script_path}")
     for test_file in test_file_path:
         hio.delete_file(test_file)
+
+# #############################################################################
+# ECS Task Definition
+# #############################################################################
+
+# Decide where to get these values from.
+_AWS_PROFILE = ""
+_TASK_DEFINITION_PREFIX = ""
+_TASK_DEFINITION_JSON_TEMPLATE_PATH = ""
+_TASK_DEFINITION_LOG_OPTIONS_TEMPLATE = {}
+_IMAGE_URL_TEMPLATE = ""
+_EFS_CONFIG = {}
+
+def _set_task_definition_config(
+    task_definition_config: Dict, task_definition_name: str, region: str
+) -> Dict:
+    """
+    Update template of ECS task definition with concrete values:
+
+    :return: full formed task definition config dictionary
+    """
+    # Replace placeholder values inside container definition
+    # from the template with concrete values.
+    # We use single container inside our task definition and
+    # the convention is to set the same name as the task
+    # definition itself
+    task_definition_config["containerDefinitions"][0][
+        "name"
+    ] = task_definition_name
+    # Set placeholder image URL.
+    task_definition_config["containerDefinitions"][0][
+        "image"
+    ] = _IMAGE_URL_TEMPLATE.format(region)
+    # Set log configuration options.
+    log_config_opts = copy.deepcopy(_TASK_DEFINITION_LOG_OPTIONS_TEMPLATE)
+    log_config_opts["awslogs-group"] = log_config_opts["awslogs-group"].format(
+        task_definition_name
+    )
+    log_config_opts["awslogs-region"] = region
+    task_definition_config["containerDefinitions"][0]["logConfiguration"][
+        "options"
+    ] = log_config_opts
+    # Set environment variable "CSFY_AWS_DEFAULT_REGION".
+    task_definition_config["containerDefinitions"][0]["environment"][1][
+        "value"
+    ] = region
+    # Configure access to EFS
+    task_definition_config["volumes"] = _EFS_CONFIG[region]["volumes"]
+    task_definition_config["containerDefinitions"][0][
+        "mountPoints"
+    ] = _EFS_CONFIG[region]["mountPoints"]
+    return task_definition_config
+
+
+def _register_task_definition(task_definition_name: str, region: str) -> None:
+    """
+    Register a new ECS task definition.
+
+    :param task_definition_name: The name of the new task definition.
+    :param config_file: Path to the JSON file containing the task
+        definition configuration.
+    :param region: Optional AWS region. If not provided, the default
+        region from the AWS profile will be used.
+    """
+    # Check if the template file exists.
+    hdbg.dassert_file_exists(_TASK_DEFINITION_JSON_TEMPLATE_PATH)
+    with open(_TASK_DEFINITION_JSON_TEMPLATE_PATH, "r") as f:
+        task_definition_config = json.load(f)
+    client = haws.get_ecs_client(_AWS_PROFILE, region=region)
+    task_definition_config = _set_task_definition_config(
+        task_definition_config, task_definition_name, region
+    )
+    client.register_task_definition(
+        family=task_definition_name,
+        taskRoleArn=task_definition_config.get("taskRoleArn", ""),
+        executionRoleArn=task_definition_config["executionRoleArn"],
+        networkMode=task_definition_config["networkMode"],
+        containerDefinitions=task_definition_config["containerDefinitions"],
+        volumes=task_definition_config.get("volumes", []),
+        placementConstraints=task_definition_config.get(
+            "placementConstraints", []
+        ),
+        requiresCompatibilities=task_definition_config["requiresCompatibilities"],
+        cpu=task_definition_config["cpu"],
+        memory=task_definition_config["memory"],
+    )
+    _LOG.info(
+        "Registered new task definition: %s in region %s",
+        task_definition_name,
+        region,
+    )
+
+@task
+def aws_create_ecs_task_definition(ctx, issue_id: int = None) -> None:
+    """
+    Create a new ECS task definition.
+
+    :param issue_id: issue ID to create the task definition for
+    """
+    hlitauti.report_task()
+    hdbg.dassert_is_not(issue_id, None, "issue_id is required")
+    is_valid_issue_id = str(issue_id).isdigit()
+    hdbg.dassert(is_valid_issue_id, f"issue_id '{issue_id}' must be an integer")
+    _LOG.debug("Creating task definition for issue '%s'", issue_id)
+    task_definition_name = f"{_TASK_DEFINITION_PREFIX}-{issue_id}"
+    for region in hs3.AWS_REGIONS:
+        _register_task_definition(task_definition_name, region=region)
+    # helpers_root = hgit.find_helpers_root()
+    # exec_name = f"{helpers_root}/dev_scripts_helpers/aws/aws_create_test_task_definition.py"
+    # cmd = f'invoke docker_cmd -c "{exec_name} -issue_id {issue_id}"'
+    # hlitauti.run(ctx, cmd)
+ 
