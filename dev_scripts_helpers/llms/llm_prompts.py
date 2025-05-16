@@ -589,10 +589,9 @@ _MD_CONTEXT = r"""
 def md_rewrite() -> _PROMPT_OUT:
     system = _MD_CONTEXT
     system += r"""
-    Rewrite the text passed as if you were writing a technical document to
-    increase clarity and readability.
-    Maintain the structure of the text as much as possible, in terms of bullet
-    points and their indentation
+    - Rewrite the text passed to increase clarity and readability.
+    - Maintain the structure of the text as much as possible, in terms of bullet
+      points and their indentation
     """
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
@@ -609,7 +608,6 @@ def md_summarize_short() -> _PROMPT_OUT:
     post_transforms = {"remove_code_delimiters"}
     post_container_transforms = ["format_markdown"]
     return system, pre_transforms, post_transforms, post_container_transforms
-
 
 
 def md_clean_up_how_to_guide() -> _PROMPT_OUT:
@@ -668,6 +666,7 @@ def doc_summarize_short() -> _PROMPT_OUT:
 
     You will:
     - Write 3 bullet points that summarize the text
+    - Each bullet point should be at most 30 words
 
     Print only the markdown without any explanation.
     """
@@ -677,6 +676,16 @@ def doc_summarize_short() -> _PROMPT_OUT:
     }
     post_container_transforms = ["format_markdown"]
     return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def doc_rewrite() -> _PROMPT_OUT:
+    system = _MD_CONTEXT
+    system += r"""
+    - Rewrite the text passed to increase clarity and readability.
+    - Maintain the structure of the text as much as possible, in terms of bullet
+      points and their indentation
+    """
+    return md_rewrite()
 
 
 # #############################################################################
