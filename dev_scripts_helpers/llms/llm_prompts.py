@@ -100,8 +100,11 @@ def test() -> _PROMPT_OUT:
 
 
 # #############################################################################
-# Fix.
+# Code.
 # #############################################################################
+
+
+# Fix
 
 
 def code_fix_existing_comments() -> _PROMPT_OUT:
@@ -287,7 +290,13 @@ def code_fix_log_string() -> _PROMPT_OUT:
     ```
 
     For instance, convert:
+    ```
+    hdbg.dassert_in(env_var, os.environ, f"env_var='{str(env_var)}' is not in env_vars='{str(os.environ.keys())}''")
+    ```
     to
+    ```
+    hdbg.dassert_in(env_var, os.environ, "env_var='%s' is not in env_vars='%s'", env_var, str(os.environ.keys()))
+    ```
     """
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
@@ -304,12 +313,18 @@ def code_fix_by_using_f_strings() -> _PROMPT_OUT:
     system = _CODING_CONTEXT
     system += r"""
     Fix statements like:
+    ```
+    raise ValueError(f"Unsupported data_source='{data_source}'")
+    ```
     by using f-strings (formatted string literals) instead of % formatting and
     format strings.
 
     Do not print any comment, but just the converted code.
 
     For instance, convert:
+    ```
+    "Hello, %s. You are %d years old." % (name, age)
+    ```
     to
     """
     pre_transforms: Set[str] = set()
@@ -320,9 +335,7 @@ def code_fix_by_using_f_strings() -> _PROMPT_OUT:
 
 def code_fix_by_using_perc_strings() -> _PROMPT_OUT:
     """
-    Use % formatting, like `"Hello, %s.
-
-    You are %d years old." % (name, age)`.
+    Use % formatting, like `"Hello, %s. You are %d years old." % (name, age)`.
     """
     system = _CODING_CONTEXT
     system += r"""
@@ -465,9 +478,7 @@ def code_review_refactoring() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
-# #############################################################################
-# Transform the code.
-# #############################################################################
+# Transform code.
 
 
 def code_transform_remove_redundancy() -> _PROMPT_OUT:
@@ -530,9 +541,7 @@ def code_transform_apply_linter_instructions() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
-# #############################################################################
 # Unit tests.
-# #############################################################################
 
 
 # TODO(gp): Probably obsolete since Cursor can do it.
@@ -567,6 +576,8 @@ def code_write_1_unit_test() -> _PROMPT_OUT:
 
 
 # #############################################################################
+# Markdown.
+# #############################################################################
 
 
 _MD_CONTEXT = r"""
@@ -600,7 +611,8 @@ def md_summarize_short() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
-def md_clean_up_how_to_guide_doc() -> _PROMPT_OUT:
+
+def md_clean_up_how_to_guide() -> _PROMPT_OUT:
     system = _MD_CONTEXT
     system += r"""
     Format the text passed as a how-to guide.
@@ -620,45 +632,55 @@ def md_clean_up_how_to_guide_doc() -> _PROMPT_OUT:
     """
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
-    post_container_transforms = ["prettier_markdown"]
+    post_container_transforms = ["format_markdown"]
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
-def md_clean_up_explanation_doc() -> _PROMPT_OUT:
+# #############################################################################
+# Doc.
+# #############################################################################
+
+
+def doc_create_bullets() -> _PROMPT_OUT:
     system = _MD_CONTEXT
     system += r"""
-    Rewrite the provided markdown to transform it into an explanation document
-    that clearly explains a concept or idea. Follow this structure:
-
-    - Abstract
-    Provide a clear and concise summary of the document in approximately 200 words.
-    - Introduction
-    Briefly introduce the topic and its relevance or context.
-
-    - Core Concepts
-    List and explain the key ideas necessary to understand the topic.
-
-    - How It Works
-    Describe the mechanics or process in a step-by-step or logical manner.
-
-    - Design Rationale
-    Explain the reasoning behind the approach, design, or structure.
-
-    - (Optional) Trade-offs and Alternatives
-    Discuss other possible approaches, including their pros and cons.
+    I will give you markdown text
 
     You will:
-    - Maintain clarity and conciseness throughout.
-    - Use bullet points and indentation to enhance readability everywhere
-    - Preserve all information from the original content — do not omit or
-      summarize unless it improves clarity.
+    - Convert the following markdown text into bullet points
+    - Use multiple levels of bullets, if needed
+    - Not modify the text, just convert it into bullet points
+
+    Print only the markdown without any explanation.
     """
     pre_transforms: Set[str] = set()
-    post_transforms = {"remove_code_delimiters"}
-    post_container_transforms = ["prettier_markdown"]
+    post_transforms = {
+        "remove_end_of_line_periods",
+    }
+    post_container_transforms = ["format_markdown"]
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
+def doc_summarize_short() -> _PROMPT_OUT:
+    system = _MD_CONTEXT
+    system += r"""
+    I will give you markdown text
+
+    You will:
+    - Write 3 bullet points that summarize the text
+
+    Print only the markdown without any explanation.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {
+        "remove_end_of_line_periods",
+    }
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+# #############################################################################
+# Slide.
 # #############################################################################
 
 
