@@ -147,6 +147,8 @@ _IMAGE_URL_TEMPLATE = "623860924167.dkr.ecr.{}.amazonaws.com/{}:prod-xyz"
 def _get_ecs_task_definition_template() -> Dict:
     """
     Get the ECS task definition template.
+
+    :return: ECS task definition template
     """
     # TODO(heanh): Read the path from repo config.
     s3_path = "s3://causify-shared-configs/preprod/templates/ecs/ecs_task_definition_template.json"
@@ -159,6 +161,8 @@ def _get_ecs_task_definition_template() -> Dict:
 def _get_efs_mount_config_template() -> Dict:
     """
     Get the EFS mount config template.
+
+    :return: EFS mount config template
     """
     # TODO(heanh): Read the path from repo config.
     s3_path = "s3://causify-shared-configs/preprod/templates/efs/efs_mount_config_template.json"
@@ -172,8 +176,11 @@ def _set_task_definition_config(
     task_definition_config: Dict, task_definition_name: str, region: str
 ) -> Dict:
     """
-    Update template of ECS task definition with concrete values:
+    Update template of ECS task definition with concrete values.
 
+    :param task_definition_config: task definition config template
+    :param task_definition_name: name of the task definition
+    :param region: region to create the task definition in
     :return: full formed task definition config dictionary
     """
     # Replace placeholder values inside container definition
@@ -215,11 +222,10 @@ def _register_task_definition(task_definition_name: str, region: str) -> None:
     """
     Register a new ECS task definition.
 
-    :param task_definition_name: The name of the new task definition.
-    :param config_file: Path to the JSON file containing the task
+    :param task_definition_name: name of the new task definition.
+    :param config_file: path to the JSON file containing the task
         definition configuration.
-    :param region: Optional AWS region. If not provided, the default
-        region from the AWS profile will be used.
+    :param region: region to create the task definition in
     """
     task_definition_config = _get_ecs_task_definition_template()
     client = haws.get_ecs_client(_AWS_PROFILE, region=region)
@@ -267,6 +273,7 @@ def _update_task_definition(
         which an update to container image URL is made, e.g. cmamp-test
     :param image_tag: the hash of the new candidate image, e.g.
         13538588e
+    :param region: region to update the task definition in
     """
     old_image_url = haws.get_task_definition_image_url(
         task_definition, region=region
@@ -280,14 +287,13 @@ def _update_task_definition(
 def aws_create_test_ecs_task_definition(
     ctx,
     issue_id: int = None,
-    region: str = "europe",
+    region: str = hs3.AWS_EUROPE_REGION_1,
 ) -> None:
     """
     Create a new ECS task definition.
 
     :param issue_id: issue ID to create the task definition for
-    :param region: region to create the task definition for (e.g.
-        'europe', 'tokyo')
+    :param region: region to create the task definition in
     """
     _ = ctx
     hlitauti.report_task()
@@ -317,8 +323,7 @@ def aws_create_prod_ecs_task_definition(
     """
     Create a new ECS task definition.
 
-    :param region: region to create the task definition for (e.g.
-        'europe', 'tokyo')
+    :param region: region to create the task definition in
     """
     _ = ctx
     hlitauti.report_task()
@@ -346,8 +351,7 @@ def aws_update_ecs_task_definition(
         which an update to container image URL is made, e.g. cmamp-test
     :param image_tag: the hash of the new candidate image, e.g.
         13538588e
-    :param region: region to update the task definition for (e.g.
-        'europe', 'tokyo')
+    :param region: region to update the task definition in
     """
     _ = ctx
     hlitauti.report_task()
