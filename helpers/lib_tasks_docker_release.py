@@ -1338,7 +1338,7 @@ def docker_update_prod_task_definition(
     super_module = not hgit.is_inside_submodule()
     # Prepare params for listing DAGs.
     root_dir = hgit.get_client_root(super_module)
-    dags_path = [root_dir, "im_v2", "airflow", "dags"]
+    dags_path = [root_dir, "datapull", "airflow", "dags"]
     if super_module and hgit.is_amp_present():
         # Main DAGs location is always in `cmamp`.
         dags_path.insert(1, "amp")

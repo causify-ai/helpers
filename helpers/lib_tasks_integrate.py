@@ -252,9 +252,9 @@ def integrate_diff_dirs(  # type: ignore
 
 # Sometimes we want to see the changes in one dir since an integration point
 
-# E.g., find all the changes in `im_v2` since the last integration
+# E.g., find all the changes in `datapull` since the last integration
 #
-# > git log --oneline im_v2
+# > git log --oneline datapull
 # 77f612f75 SorrIssue244 CCXT timestamp representation unit test (#317)
 # 6b981b1f6 Sorrtask298 rename get docker cmd to get docker run cmd (#331)
 # bd33a5fb9 SorrTask267_Parquet_to_CSV (#267)
@@ -262,16 +262,16 @@ def integrate_diff_dirs(  # type: ignore
 # d530ed561 Update (#272)
 # b75eab7ad AmpTask1786_Integrate_20230518_3 (#271)
 #
-# > git difftool 9819fd117.. im_v2
+# > git difftool 9819fd117.. datapull
 # ...
 #
-# > git diff --name-only 9819fd117.. im_v2
-# im_v2/ccxt/data/extract/test/test_ccxt_extractor.py
-# im_v2/common/data/transform/convert_pq_to_csv.py
-# im_v2/im_lib_tasks.py
-# im_v2/test/test_im_lib_tasks.py
+# > git diff --name-only 9819fd117.. datapull
+# datapull/ccxt/data/extract/test/test_ccxt_extractor.py
+# datapull/common/data/transform/convert_pq_to_csv.py
+# datapull/im_lib_tasks.py
+# datapull/test/test_im_lib_tasks.py
 #
-# for file in im_v2/ccxt/data/extract/test/test_ccxt_extractor.py im_v2/common/data/transform/convert_pq_to_csv.py im_v2/im_lib_tasks.py im_v2/test/test_im_lib_tasks.py; do
+# for file in datapull/ccxt/data/extract/test/test_ccxt_extractor.py datapull/common/data/transform/convert_pq_to_csv.py datapull/im_lib_tasks.py datapull/test/test_im_lib_tasks.py; do
 #   vimdiff ~/src/cmamp1/$file ~/src/kaizenflow1/$file
 # done
 
