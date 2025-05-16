@@ -20,6 +20,7 @@ import helpers.hsystem as hsystem
 import helpers.lib_tasks_docker as hlitadoc
 import helpers.lib_tasks_pytest as hlitapyt
 import helpers.lib_tasks_utils as hlitauti
+import helpers.lib_tasks_aws as hlitaaws
 import helpers.repo_config_utils as hrecouti
 
 _DEFAULT_TARGET_REGISTRY = "aws_ecr.ck"
@@ -1216,10 +1217,12 @@ def _check_workspace_dir_sizes() -> None:
     """
     # Execute system command and split into a list of tuples [size, dir].
     # Threshold is chosen heuristically according to current repo dir sizes.
-    fs_item_max_threshold = "200M"
-    directory_size_list = hsystem.system_to_string(
-        f"du --threshold {fs_item_max_threshold} -hs $(ls -A) | sort -hr"
-    )[1].split("\n")
+    git_root = hgit.find_git_root()
+    with hsystem.cd(git_root):
+        fs_item_max_threshold = "200M"
+        directory_size_list = hsystem.system_to_string(
+            f"du --threshold {fs_item_max_threshold} -hs $(ls -A) | sort -hr"
+        )[1].split("\n")
     # Filter out directories ignored by `dockerignore.prod` + "amp/"
     # as submodule.
     ignored_dirs = ["amp", "ck.infra", "amp/ck.infra", "docs", ".git", "amp/.git"]
@@ -1238,6 +1241,8 @@ def _check_workspace_dir_sizes() -> None:
     )
 
 
+# TODO(heanh): Consider splitting this into 2 tasks?
+# One for creating the candidate image and one for updating the ECS task definition.
 @task
 def docker_create_candidate_image(
     ctx, task_definition, user_tag="", region=hs3.AWS_EUROPE_REGION_1
@@ -1268,17 +1273,8 @@ def docker_create_candidate_image(
     )
     # Push candidate image.
     docker_push_prod_candidate_image(ctx, tag)
-    helpers_root = hgit.find_helpers_root()
-    exec_name = f"{helpers_root}/dev_scripts_helpers/aws/aws_update_task_definition.py"
-    # Ensure compatibility with repos where amp is a submodule.
-    if not os.path.exists(exec_name):
-        exec_name = f"amp/{exec_name}"
-    hdbg.dassert_file_exists(exec_name)
-    _LOG.debug("exec_name=%s", exec_name)
     # Register new task definition revision with updated image URL.
-    cmd = f'invoke docker_cmd -c "{exec_name} -t {task_definition} -i {tag} -r {region}"'
-    hlitauti.run(ctx, cmd)
-
+    hlitaaws.aws_update_ecs_task_definition(ctx, task_definition, tag, region)
 
 # /////////////////////////////////////////////////////////////////////////////
 

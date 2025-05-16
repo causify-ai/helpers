@@ -115,6 +115,18 @@ def get_task_definition_image_url(
     image_url = task_definition_json["containerDefinitions"][0]["image"]
     return image_url
 
+def is_task_definition_exists(
+        task_definition_name: str, *, region: Optional[str] = None
+    ) -> bool:
+    """
+    Check if a task definition exists in the specified region.
+    """
+    client = get_ecs_client("ck", region=region)
+    try:
+        client.describe_task_definition(taskDefinition=task_definition_name)
+        return True
+    except Exception:
+        return False
 
 # TODO(Nikola): Pass a dict config instead, so any part can be updated.
 def update_task_definition(
