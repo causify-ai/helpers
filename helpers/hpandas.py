@@ -2527,3 +2527,116 @@ def to_perc(vals: Union[List, pd.Series], **perc_kwargs: Dict[str, Any]) -> str:
         vals = pd.Series(vals)
     ret = hprint.perc(vals.sum(), len(vals), **perc_kwargs)
     return ret
+
+
+# #############################################################################
+
+
+def convert_to_type(srs: pd.Series, type_: str) -> pd.Series:
+    """
+    Convert the elements to a specific type when possible, and return nan otherwise.
+
+    :param srs: column to convert
+    :param type_: type to convert to
+    :return: series with converted values or nan
+    """
+    hdbg.dassert_isinstance(srs, pd.Series)
+    if type_ == "is_bool":
+        def is_bool(x: Any) -> bool:
+            # An element is a bool if it's a bool, or a string that can be converted
+            # to a bool, or an int / float that is 0 or 1.
+            true_values = ("True", "true", "1", 1, 1.0)
+            false_values = ("False", "false", "0", 0, 0.0)
+            if isinstance(x, bool):
+                ret = x
+            elif x in true_values:
+                ret = True
+            elif x in false_values:
+                ret = False
+            else:
+                ret = np.nan
+            return ret
+        ret = srs.map(lambda x: is_bool(x))
+    elif type_ == "is_int":
+        ret = pd.to_numeric(srs, errors='coerce')
+        ret = ret.apply(lambda x: x if pd.notna(x) and float(x).is_integer() else np.nan)
+    elif type_ == "is_float":
+        ret = pd.to_numeric(srs, errors='coerce')
+    elif type_ == "is_string":
+        ret = srs.astype(str)
+    else:
+        # TODO(gp): Add timestamp.
+        raise ValueError(f"Unknown column type: {type_}")
+    return ret
+
+
+def infer_column_types(srs: pd.Series) -> Tuple[Dict[str, float], pd.Series]:
+    """
+    Infer the type of a column by trying to convert it to each type and picking
+    the one with the highest count, giving priority to stricter types.
+
+    :param srs: column to infer the type of
+    :return: counts and values of the types, e.g.,
+        ```
+        counts = {
+            "is_bool": 0.2,
+            "is_int": 0.3,
+            "is_float": 0.5,
+            "is_string": 1.0
+        }
+        ```
+    """
+    hdbg.dassert_isinstance(srs, pd.Series)
+    # Convert the column to each type.
+    vals = {}
+    types = ["is_bool", "is_int", "is_float", "is_string"]
+    for type_ in types:
+        vals[type_] = convert_to_type(srs, type_)
+    # Count the number of values for each type.
+    counts = {}
+    for type_ in types:
+        counts[type_] = float(vals[type_].notna().mean())
+    # Choose the type with the highest count, using an order of preference.
+    if counts["is_bool"] > 0.0 and counts["is_bool"] >= max(counts["is_int"], counts["is_float"], counts["is_string"]):
+        type_ = "is_bool"
+    elif counts["is_int"] > 0.0 and counts["is_int"] >= max(counts["is_float"], counts["is_string"]):
+        type_ = "is_int"
+    elif counts["is_float"] > 0.0: # and counts["is_float"] >= counts["is_string"]:
+        type_ = "is_float"
+    else:
+        type_ = "is_string"
+    vals["type"] = type_
+    #
+    return counts, vals[type_]
+
+
+def infer_types_df(df: pd.DataFrame, *, report_invalid_values: bool = False,
+                   log_level: int = logging.INFO,
+                   ) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    Infer the type of each column in the DataFrame and return a new DataFrame
+    with the inferred types.
+
+    :param df: DataFrame to infer the types of
+    :param report_invalid_values: whether to report invalid values
+    :return: tuple of (DataFrame with the inferred types, DataFrame with the counts)
+    """
+    # Initialize the output DataFrame.
+    types_df = []
+    df_out = df.copy()
+    # Process each column in the DataFrame.
+    for col_name in df.columns:
+        _LOG.info("Processing col_name='%s'", col_name)
+        counts, vals = infer_column_types(df[col_name])
+        # If requested, print any values that failed conversion.
+        if report_invalid_values:
+            mask = vals.isna()
+            if mask.any():
+                _LOG.log(log_level, "column=%s\n%s", col_name, df[col_name][mask])
+        # Store results.
+        df_out[col_name] = vals
+        types_df.append(counts)
+    # Package the counts into a DataFrame.
+    types_df = pd.DataFrame(types_df)
+    types_df.index = df.columns
+    return df_out, types_df
