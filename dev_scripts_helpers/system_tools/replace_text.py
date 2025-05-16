@@ -26,7 +26,7 @@ import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
-_ENCODING = "ISO-8859-1"
+_ENCODING = "utf-8"
 
 
 def _get_all_files(dirs: List[str], extensions: Optional[List[str]]) -> List[str]:

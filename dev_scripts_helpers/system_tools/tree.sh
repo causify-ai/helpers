@@ -1,11 +1,11 @@
 #!/bin/bash -e
 #
 # """
-# Show one level of dirs under im_v2:
-# > tree.sh -d 1 -p im_v2
+# Show one level of dirs under datapull:
+# > tree.sh -d 1 -p datapull
 #
-# Show all files under im_v2:
-# > tree.sh -p im_v2
+# Show all files under datapull:
+# > tree.sh -p datapull
 # """
 
 #set -x
