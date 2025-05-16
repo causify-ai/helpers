@@ -17,10 +17,10 @@ import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hs3 as hs3
 import helpers.hsystem as hsystem
+import helpers.lib_tasks_aws as hlitaaws
 import helpers.lib_tasks_docker as hlitadoc
 import helpers.lib_tasks_pytest as hlitapyt
 import helpers.lib_tasks_utils as hlitauti
-import helpers.lib_tasks_aws as hlitaaws
 import helpers.repo_config_utils as hrecouti
 
 _DEFAULT_TARGET_REGISTRY = "aws_ecr.ck"
@@ -1275,6 +1275,7 @@ def docker_create_candidate_image(
     docker_push_prod_candidate_image(ctx, tag)
     # Register new task definition revision with updated image URL.
     hlitaaws.aws_update_ecs_task_definition(ctx, task_definition, tag, region)
+
 
 # /////////////////////////////////////////////////////////////////////////////
 

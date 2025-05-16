@@ -115,9 +115,10 @@ def get_task_definition_image_url(
     image_url = task_definition_json["containerDefinitions"][0]["image"]
     return image_url
 
+
 def is_task_definition_exists(
-        task_definition_name: str, *, region: Optional[str] = None
-    ) -> bool:
+    task_definition_name: str, *, region: Optional[str] = None
+) -> bool:
     """
     Check if a task definition exists in the specified region.
     """
@@ -127,6 +128,7 @@ def is_task_definition_exists(
         return True
     except Exception:
         return False
+
 
 # TODO(Nikola): Pass a dict config instead, so any part can be updated.
 def update_task_definition(

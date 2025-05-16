@@ -6,23 +6,23 @@ Import as:
 import helpers.lib_tasks_aws as hlitaaws
 """
 
+import copy
+import json
 import logging
 import os
 import re
-import copy
-import json
 from typing import Dict
 
 from invoke import task
 
+import helpers.haws as haws
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
+import helpers.hs3 as hs3
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.lib_tasks_utils as hlitauti
-import helpers.haws as haws
-import helpers.hs3 as hs3
 import helpers.repo_config_utils as hrecouti
 
 _LOG = logging.getLogger(__name__)
@@ -128,6 +128,7 @@ def release_dags_to_airflow(
     for test_file in test_file_path:
         hio.delete_file(test_file)
 
+
 # #############################################################################
 # ECS Task Definition
 # #############################################################################
@@ -142,6 +143,7 @@ _TASK_DEFINITION_LOG_OPTIONS_TEMPLATE = {
 }
 _IMAGE_URL_TEMPLATE = "623860924167.dkr.ecr.{}.amazonaws.com/{}:prod-xyz"
 
+
 def _get_ecs_task_definition_template() -> Dict:
     """
     Get the ECS task definition template.
@@ -153,6 +155,7 @@ def _get_ecs_task_definition_template() -> Dict:
     task_definition_config = json.loads(task_definition_config)
     return task_definition_config
 
+
 def _get_efs_mount_config_template() -> Dict:
     """
     Get the EFS mount config template.
@@ -163,6 +166,7 @@ def _get_efs_mount_config_template() -> Dict:
     efs_config = hs3.from_file(s3_path, aws_profile=_AWS_PROFILE)
     efs_config = json.loads(efs_config)
     return efs_config
+
 
 def _set_task_definition_config(
     task_definition_config: Dict, task_definition_name: str, region: str
@@ -182,9 +186,9 @@ def _set_task_definition_config(
     ] = task_definition_name
     # Set placeholder image URL.
     image_name = hrecouti.get_repo_config().get_docker_base_image_name()
-    task_definition_config["containerDefinitions"][0][
-        "image"
-    ] = _IMAGE_URL_TEMPLATE.format(region, image_name)
+    task_definition_config["containerDefinitions"][0]["image"] = (
+        _IMAGE_URL_TEMPLATE.format(region, image_name)
+    )
     # Set log configuration options.
     log_config_opts = copy.deepcopy(_TASK_DEFINITION_LOG_OPTIONS_TEMPLATE)
     log_config_opts["awslogs-group"] = log_config_opts["awslogs-group"].format(
@@ -201,10 +205,11 @@ def _set_task_definition_config(
     # Configure access to EFS
     efs_config = _get_efs_mount_config_template()
     task_definition_config["volumes"] = efs_config[region]["volumes"]
-    task_definition_config["containerDefinitions"][0][
-        "mountPoints"
-    ] = efs_config[region]["mountPoints"]
+    task_definition_config["containerDefinitions"][0]["mountPoints"] = efs_config[
+        region
+    ]["mountPoints"]
     return task_definition_config
+
 
 def _register_task_definition(task_definition_name: str, region: str) -> None:
     """
@@ -249,7 +254,8 @@ def _register_task_definition(task_definition_name: str, region: str) -> None:
         task_definition_name,
         region,
     )
-    
+
+
 def _update_task_definition(
     task_definition: str, image_tag: str, region: str
 ) -> None:
@@ -269,17 +275,19 @@ def _update_task_definition(
     new_image_url = re.sub("prod-(.+)$", f"prod-{image_tag}", old_image_url)
     haws.update_task_definition(task_definition, new_image_url, region=region)
 
+
 @task
 def aws_create_test_ecs_task_definition(
-    ctx, 
-    issue_id: int = None, 
-    region: str = "europe", 
+    ctx,
+    issue_id: int = None,
+    region: str = "europe",
 ) -> None:
     """
     Create a new ECS task definition.
 
     :param issue_id: issue ID to create the task definition for
-    :param region: region to create the task definition for (e.g. 'europe', 'tokyo')
+    :param region: region to create the task definition for (e.g.
+        'europe', 'tokyo')
     """
     _ = ctx
     hlitauti.report_task()
@@ -289,35 +297,44 @@ def aws_create_test_ecs_task_definition(
     hdbg.dassert(is_valid_issue_id, f"issue_id '{issue_id}' must be an integer")
     # Check if the `region` provided is valid.
     valid_regions = hs3.AWS_REGION_MAPPING.keys()
-    hdbg.dassert(region in valid_regions, f"region '{region}' must be one of {valid_regions}")
+    hdbg.dassert(
+        region in valid_regions,
+        f"region '{region}' must be one of {valid_regions}",
+    )
     # Prepare inputs.
     region = hs3.AWS_REGION_MAPPING[region]
-    image_name =  hrecouti.get_repo_config().get_docker_base_image_name()
+    image_name = hrecouti.get_repo_config().get_docker_base_image_name()
     task_definition_name = f"{image_name}-test-{issue_id}"
     # Register task definition.
     _register_task_definition(task_definition_name, region=region)
 
+
 @task
 def aws_create_prod_ecs_task_definition(
-    ctx, 
-    region: str = hs3.AWS_EUROPE_REGION_1, 
+    ctx,
+    region: str = hs3.AWS_EUROPE_REGION_1,
 ) -> None:
     """
     Create a new ECS task definition.
 
-    :param region: region to create the task definition for (e.g. 'europe', 'tokyo')
+    :param region: region to create the task definition for (e.g.
+        'europe', 'tokyo')
     """
     _ = ctx
     hlitauti.report_task()
-    hdbg.dassert(region in hs3.AWS_REGIONS, f"region '{region}' must be one of {hs3.AWS_REGIONS}")
-    image_name =  hrecouti.get_repo_config().get_docker_base_image_name()
+    hdbg.dassert(
+        region in hs3.AWS_REGIONS,
+        f"region '{region}' must be one of {hs3.AWS_REGIONS}",
+    )
+    image_name = hrecouti.get_repo_config().get_docker_base_image_name()
     task_definition_name = f"{image_name}-prod"
     # Register task definition.
     _register_task_definition(task_definition_name, region=region)
 
+
 # TODO(heanh): Should this be an invoke task?
 def aws_update_ecs_task_definition(
-    ctx, 
+    ctx,
     task_definition: str = None,
     image_tag: str = None,
     region: str = hs3.AWS_EUROPE_REGION_1,
@@ -329,11 +346,15 @@ def aws_update_ecs_task_definition(
         which an update to container image URL is made, e.g. cmamp-test
     :param image_tag: the hash of the new candidate image, e.g.
         13538588e
-    :param region: region to update the task definition for (e.g. 'europe', 'tokyo')
+    :param region: region to update the task definition for (e.g.
+        'europe', 'tokyo')
     """
     _ = ctx
     hlitauti.report_task()
     hdbg.dassert_is_not(task_definition, None, "task_definition is required")
     hdbg.dassert_is_not(image_tag, None, "image_tag is required")
-    hdbg.dassert(region in hs3.AWS_REGIONS, f"region '{region}' must be one of {hs3.AWS_REGIONS}")
+    hdbg.dassert(
+        region in hs3.AWS_REGIONS,
+        f"region '{region}' must be one of {hs3.AWS_REGIONS}",
+    )
     _update_task_definition(task_definition, image_tag, region)
