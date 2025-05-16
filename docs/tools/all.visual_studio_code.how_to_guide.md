@@ -157,7 +157,7 @@ that runs within a docker container located on a remote server.
 ```
 "args": [
     "--file",
-    "/app/im_v2/ccxt/notebooks/Master_universe.ipynb",
+    "/app/datapull/ccxt/notebooks/Master_universe.ipynb",
     "--action",
     "convert"
 ]
