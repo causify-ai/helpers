@@ -274,25 +274,24 @@ def get_completion(
         call
     :return: completion text
     """
-    # model = _MODEL if model is None else model
-    # model = "anthropic/claude-3-5-sonnet"
-    # model = "openai/gpt-4o"
-    # model="meta-llama/llama-3-70b-instruct"
-    # model = "deepseek/deepseek-r1-distill-qwen-1.5b"
-    print("OpenAI API call ... ")
-    # client = OpenAI()
-    # print(openai.api_base)
-    # assert 0
-    # openai.api_base ="https://openrouter.ai/api/v1"
-    # openai.api_key = os.environ.get("OPENROUTER_API_KEY")
-    if False:
+    provider_name = "openai"
+    #provider_name = "openrouter"
+    print(f"Calling {provider_name} API call ... ")
+    memento = htimer.dtimer_start(logging.DEBUG, "OpenAI API call")
+    if provider_name == "openai":
+        model = _MODEL if model is None else model
+        client = OpenAI()
+    elif provider_name == "openrouter":
+        #model = "anthropic/claude-3-5-sonnet"
+        #model = "openai/gpt-4o"
+        model = "meta-llama/llama-3-70b-instruct"
+        #client = OpenAI()
         client = OpenAI(
             base_url="https://openrouter.ai/api/v1",  # Important: Use OpenRouter's base URL
-            api_key=os.environ.get("OPENROUTER_API_KEY"),
-        )
+            api_key=os.environ.get("OPENROUTER_API_KEY")
+            )
     else:
-        client = OpenAI()
-    memento = htimer.dtimer_start(logging.DEBUG, "OpenAI API call")
+        raise ValueError(f"Unknown provider: {provider_name}")
     if not report_progress:
         completion = client.chat.completions.create(
             model=model,
@@ -329,10 +328,11 @@ def get_completion(
     # Report the time taken.
     msg, _ = htimer.dtimer_stop(memento)
     print(msg)
-    # Calculate and accumulate the cost
-    # cost = _calculate_cost(completion, model, print_cost)
-    # Accumulate the cost.
-    # _accumulate_cost_if_needed(cost)
+    if provider_name == "openai":
+        # Calculate and accumulate the cost
+        cost = _calculate_cost(completion, model, print_cost)
+        # Accumulate the cost.
+        _accumulate_cost_if_needed(cost)
     return response
 
 
