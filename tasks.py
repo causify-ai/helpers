@@ -2,6 +2,8 @@ import logging
 import os
 from typing import Any
 
+from invoke import task
+
 import helpers.repo_config_utils as hrecouti
 
 # Expose the pytest targets.
@@ -133,6 +135,8 @@ try:
     )
 except ImportError:
     pass
+from import_check.dependency_graph import DependencyGraph
+
 # # TODO(gp): This is due to the coupling between code in linter container and
 # #  the code being linted.
 # try:
