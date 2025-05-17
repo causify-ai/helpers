@@ -14,10 +14,8 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import openai
 import tqdm
-# TODO(*): Use import and not from import (see how coding style)
-from dotenv import load_dotenv
-# TODO(*): Use import and not from import (see how coding style)
-from openai import OpenAI
+import dotenv
+
 from openai.types.beta.assistant import Assistant
 from openai.types.beta.threads.message import Message
 
@@ -25,19 +23,21 @@ import helpers.hdbg as hdbg
 import helpers.hprint as hprint
 import helpers.htimer as htimer
 
-# TODO(*): Where are you using this? It should go in the main, otherwise it gets
-# executed when importing the module.
-load_dotenv()
-
 _LOG = logging.getLogger(__name__)
 
 # hdbg.set_logger_verbosity(logging.DEBUG)
 
 # _LOG.debug = _LOG.info
-_MODEL = "gpt-4o-mini"
-# TODO(*): Explain the values.
+
+# FALLBACK: checks the response in cache, if doesn't exist make a call to OPENAI.
 _CACHE_MODE = "FALLBACK"
+# gpt-4o-mini is Openai Model, its great for most tasks.
+_MODEL = "gpt-4o-mini"
+# File for saving get_completion() cache.
 _CACHE_FILE = "cache.get_completion.json"
+# Temperature adjusts an LLM’s sampling diversity:
+#  lower values make it more deterministic, while higher values foster creative variation.
+# 0 < Temperature <= 2, 0.1 is default value in openai models.
 _TEMPERATURE = 0.1
 
 # #############################################################################
@@ -104,7 +104,7 @@ def _construct_messages(
 
 
 def _call_api_sync(
-    client: OpenAI,
+    client: openai.OpenAI,
     messages: List[Dict[str, str]],
     model: str,
     **create_kwargs,
@@ -237,12 +237,12 @@ def get_completion(
                     "No cached response for this request parameters!"
                 )
     call_api = cache_mode in ("DISABLED", "CAPTURE", "FALLBACK")
-    client = OpenAI(
-        # Important: Use OpenRouter's base URL.
-        base_url="https://openrouter.ai/api/v1",
-        api_key=os.environ.get("OPENROUTER_API_KEY"),
-    )
-    # client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+    # client = openai.OpenAI(
+    #     # Important: Use OpenRouter's base URL.
+    #     base_url="https://openrouter.ai/api/v1",
+    #     api_key=os.environ.get("OPENROUTER_API_KEY"),
+    # )
+    client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
     # print("OpenAI API call ... ")
     memento = htimer.dtimer_start(logging.DEBUG, "OpenAI API call")
     if not report_progress:
@@ -325,7 +325,7 @@ def delete_all_files(*, ask_for_confirmation: bool = True) -> None:
     :param ask_for_confirmation: whether to prompt for confirmation
         before deletion
     """
-    client = OpenAI()
+    client = openai.OpenAI()
     files = list(client.files.list())
     # Print.
     _LOG.info(files_to_str(files))
@@ -381,7 +381,7 @@ def delete_all_assistants(*, ask_for_confirmation: bool = True) -> None:
     :param ask_for_confirmation: whether to prompt for confirmation
         before deletion.
     """
-    client = OpenAI()
+    client = openai.OpenAI()
     assistants = client.beta.assistants.list()
     assistants = assistants.data
     _LOG.info(assistants_to_str(assistants))
@@ -411,7 +411,7 @@ def get_coding_style_assistant(
     :return: created or updated assistant object
     """
     model = _MODEL if model is None else model
-    client = OpenAI()
+    client = openai.OpenAI()
     # Check if the assistant already exists.
     existing_assistants = list(client.beta.assistants.list().data)
     for existing_assistant in existing_assistants:
@@ -471,7 +471,7 @@ def get_query_assistant(assistant: Assistant, question: str) -> List[Message]:
     :param question: user question
     :return: list of messages containing the assistant's response
     """
-    client = OpenAI()
+    client = openai.OpenAI()
     # Create a thread and attach the file to the message.
     thread = client.beta.threads.create(
         messages=[
