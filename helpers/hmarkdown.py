@@ -315,6 +315,12 @@ def md_clean_up(txt: str) -> str:
     #txt = re.sub(r"\$\s+(.*?)\s\$", r"$\1$", txt)
     # Remove dot at the end of each line.
     txt = re.sub(r"\.\s*$", "", txt, flags=re.MULTILINE)
+    # Transform `Example: Training a deep` into `E.g., training a deep`,
+    # converting the word after `Example:` to lower case.
+    txt = re.sub(r"\bExample:", "E.g.,", txt)
+    txt = re.sub(r"\bE.g.,\s+(\w)", lambda m: "E.g., " + m.group(1).lower(), txt)
+    # Replace \mid with `|`.
+    txt = re.sub(r"\\mid", r"|", txt)
     return txt
 
 
@@ -859,7 +865,7 @@ def colorize_bold_text(
     return result
 
 
-def remove_empty_lines_from_markdown(markdown_text: str) -> str:
+def remove_empty_lines_from_markdown_excluding_first_level(markdown_text: str) -> str:
     """
     Remove all empty lines from markdown text and add empty lines only before
     first level bullets.
@@ -869,7 +875,7 @@ def remove_empty_lines_from_markdown(markdown_text: str) -> str:
     """
     # Split into lines and remove empty ones.
     lines = [line for line in markdown_text.split("\n") if line.strip()]
-    # Remove all empty lines.
+    # Add empty lines only before first level bullets.
     result = []
     for i, line in enumerate(lines):
         # Check if current line is a first level bullet (no indentation).
@@ -881,7 +887,25 @@ def remove_empty_lines_from_markdown(markdown_text: str) -> str:
     return "\n".join(result)
 
 
+def remove_empty_lines_from_markdown(markdown_text: str) -> str:
+    """
+    Remove all empty lines from markdown text.
+
+    :param markdown_text: Input markdown text
+    :return: Formatted markdown text
+    """
+    # Split into lines and remove empty ones.
+    result = [line for line in markdown_text.split("\n") if line.strip()]
+    return "\n".join(result)
+
+
+def prettier_markdown(txt: str) -> str:
+    txt = dshdlino.prettier_on_str(txt)
+    return txt
+
+
 def format_markdown(txt: str) -> str:
     txt = dshdlino.prettier_on_str(txt)
     txt = remove_empty_lines_from_markdown(txt)
+    #txt = remove_empty_lines_from_markdown_excluding_first_level(txt)
     return txt

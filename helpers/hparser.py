@@ -367,6 +367,7 @@ def parse_input_output_args(
             os.system("clear")
         _LOG.info(hprint.to_str("in_file_name"))
         _LOG.info(hprint.to_str("out_file_name"))
+
     return in_file_name, out_file_name
 
 

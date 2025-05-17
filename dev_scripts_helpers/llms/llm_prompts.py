@@ -100,8 +100,11 @@ def test() -> _PROMPT_OUT:
 
 
 # #############################################################################
-# Fix.
+# Code.
 # #############################################################################
+
+
+# Fix
 
 
 def code_fix_existing_comments() -> _PROMPT_OUT:
@@ -475,9 +478,7 @@ def code_review_refactoring() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
-# #############################################################################
-# Transform the code.
-# #############################################################################
+# Transform code.
 
 
 def code_transform_remove_redundancy() -> _PROMPT_OUT:
@@ -504,11 +505,11 @@ def code_transform_apply_csfy_style() -> _PROMPT_OUT:
     file_content = hio.from_file(file_name)
     system += rf"""
     Apply the style described below to the Python code
-    
+
     ```
     {file_content}
     ```
-    
+
     Do not remove any code, just format the existing code using the style.
     Do not change the behavior of the code.
     Do not report any explanation of what you did, but just the converted code.
@@ -540,9 +541,7 @@ def code_transform_apply_linter_instructions() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
-# #############################################################################
 # Unit tests.
-# #############################################################################
 
 
 # TODO(gp): Probably obsolete since Cursor can do it.
@@ -577,6 +576,8 @@ def code_write_1_unit_test() -> _PROMPT_OUT:
 
 
 # #############################################################################
+# Markdown.
+# #############################################################################
 
 
 _MD_CONTEXT = r"""
@@ -588,10 +589,9 @@ _MD_CONTEXT = r"""
 def md_rewrite() -> _PROMPT_OUT:
     system = _MD_CONTEXT
     system += r"""
-    Rewrite the text passed as if you were writing a technical document to
-    increase clarity and readability.
-    Maintain the structure of the text as much as possible, in terms of bullet
-    points and their indentation
+    - Rewrite the text passed to increase clarity and readability.
+    - Maintain the structure of the text as much as possible, in terms of bullet
+      points and their indentation
     """
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
@@ -635,9 +635,68 @@ def md_clean_up_how_to_guide() -> _PROMPT_OUT:
 
 
 # #############################################################################
+# Doc.
+# #############################################################################
 
 
-def slide_improve() -> _PROMPT_OUT:
+def doc_create_bullets() -> _PROMPT_OUT:
+    system = _MD_CONTEXT
+    system += r"""
+    I will give you markdown text
+
+    You will:
+    - Convert the following markdown text into bullet points
+    - Use multiple levels of bullets, if needed
+    - Not modify the text, just convert it into bullet points
+
+    Print only the markdown without any explanation.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {
+        "remove_end_of_line_periods",
+    }
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def doc_summarize_short() -> _PROMPT_OUT:
+    system = _MD_CONTEXT
+    system += r"""
+    I will give you markdown text
+
+    You will:
+    - Write 3 bullet points that summarize the text
+    - Each bullet point should be at most 30 words
+
+    Print only the markdown without any explanation.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {
+        "remove_end_of_line_periods",
+    }
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def doc_rewrite() -> _PROMPT_OUT:
+    system = _MD_CONTEXT
+    system += r"""
+    - Rewrite the text passed to increase clarity and readability.
+    - Maintain the structure of the text as much as possible, in terms of bullet
+      points and their indentation
+    """
+    return md_rewrite()
+
+
+# #############################################################################
+# Slide.
+# #############################################################################
+
+
+def slide_to_bullet_points() -> _PROMPT_OUT:
+    """
+    Convert the markdown text into bullet points.
+    """
     system = _MD_CONTEXT
     system += r"""
     I will give you markdown text
@@ -658,20 +717,18 @@ def slide_improve() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
-def slide_improve2() -> _PROMPT_OUT:
+def slide_add_example_picture() -> _PROMPT_OUT:
+    """ """
     system = _MD_CONTEXT
     system += r"""
     I will give you markdown text
 
-    You will:
-    - Maintain the structure of the text and keep the content of the existing
-      text
-    - Remove all the words that are not needed, minimizing the changes to the
-      text
-    - Add bullet points to the text that are important or missing
-    - Add examples to clarify the text and help intuition
-
-    Print only the markdown without any explanation.
+    You will
+    - Select the most important concepts in the text
+    - Print a TODO comment of less than 30 words suggesting what example picture
+      to add to give an intuition of the text
+    - The TODO is in the format `// TODO: <suggestion>`
+    - Suggest what tool to use e.g., (mermaid, tikz, graphviz dot)
     """
     pre_transforms: Set[str] = set()
     post_transforms = {
@@ -679,18 +736,22 @@ def slide_improve2() -> _PROMPT_OUT:
         "remove_end_of_line_periods",
         "remove_empty_lines",
     }
-    post_container_transforms = ["format_markdown"]
+    post_container_transforms = ["append_text"]
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
-def slide_elaborate() -> _PROMPT_OUT:
+def slide_expand() -> _PROMPT_OUT:
     system = _MD_CONTEXT
     system += r"""
     I will give you markdown text
 
     You will:
+    - Maintain the structure of the text and keep the content of the existing
+      text
     - Add bullet points to the text that are important or missing
     - Add examples to clarify the text and help intuition
+    - Not bold or italicize the text
+    - Use `E.g.,` instead of `Example`
 
     Print only the markdown without any explanation.
     """
@@ -715,6 +776,7 @@ def slide_reduce() -> _PROMPT_OUT:
     - Make sure that the text is clean and readable
     - Remove all the words that are not needed
     - Minimize the changes to the text
+    - Use `E.g.,` instead of `Example`
 
     Print only the markdown without any explanation.
     """
@@ -742,6 +804,49 @@ def slide_bold() -> _PROMPT_OUT:
       excessive details.
 
     Print only the markdown without any explanation.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {"remove_code_delimiters"}
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def slide_smart_colorize() -> _PROMPT_OUT:
+    system = _MD_CONTEXT
+    system += r"""
+    I will give you markdown text
+
+    You will:
+
+    - Not change the text or the structure of the text
+    - Use the \red{...}, \green{...}, \blue{...}, \violet{} to highlight common
+      chunks of the expression and text
+    - Consider that \Pr(.) is a single token and so it should not be highlighted
+      independently
+    - Make the chunks as big as possible
+
+    Print only the markdown without any explanation.
+# <input>
+# - Bayes' theorem states:
+#   $$\Pr(A_i|B) = \frac{\Pr(B|A_i) \cdot \Pr(A_i)}{\Pr(B)}$$
+#   where:
+#   - $\Pr(A_i|B)$ = posterior probability of $A_i$
+#   - $\Pr(B|A_i)$ = conditional (inverted) probability
+#   - $\Pr(A_i)$ = prior probability of $A_i$
+#   - $\Pr(B)$ = probability of $B$
+# </input>
+
+# <output>
+# - Bayes' theorem states:
+#   $$
+#   \red{\Pr(A_i|B)} = \frac{\green{\Pr(B|A_i)} \cdot \blue{\Pr(A_i)}}{\violet{\Pr(B)}}
+#   $$
+#   where:
+#   - \red{$\Pr(A_i|B)$} = posterior probability of \blue{$A_i$}
+#   - \green{$\Pr(B|A_i)$} = conditional (inverted) probability
+#   - \blue{$\Pr(A_i)$} = prior probability of \blue{$A_i$}
+#   - \violet{$\Pr(B)$} = probability of \violet{$B$}
+# </output>
     """
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
