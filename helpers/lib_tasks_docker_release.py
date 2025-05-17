@@ -283,6 +283,10 @@ def _docker_rollback_image(
     :param push_to_repo: whether to push the rolled back image to ECR
     """
     hdbg.dassert_in(stage, ("dev", "prod"))
+    # TODO(sandeep): Consider removing the redundant pull-push step. Instead of
+    # pulling the versioned image and pushing it back to ECR, directly push
+    # the local image. However, note that this may not work for multi-arch images
+    # since local images are arch-specific, while remote tags include all architectures.
     # 1) Ensure that version of the image exists locally.
     hlitadoc._docker_pull(
         ctx, base_image=base_image, stage=stage, version=version
@@ -800,6 +804,13 @@ def docker_build_prod_image(  # type: ignore
     opts = "--no-cache" if not cache else ""
     # Use dev version for building prod image.
     dev_version = hlitadoc.to_dev_version(prod_version)
+    image_name = hrecouti.get_repo_config().get_docker_base_image_name()
+    hdbg.dassert(
+        not hgit.is_inside_submodule(),
+        "The build should be run from a super repo, not a submodule.",
+    )
+    git_root_dir = hgit.find_git_root()
+    # TODO(heanh): Expose the build context to the interface and use `git_root_dir` by default.
     cmd = rf"""
     DOCKER_BUILDKIT={DOCKER_BUILDKIT} \
     time \
@@ -809,7 +820,8 @@ def docker_build_prod_image(  # type: ignore
         --file {dockerfile} \
         --build-arg VERSION={dev_version} \
         --build-arg ECR_BASE_PATH={os.environ["CSFY_ECR_BASE_PATH"]} \
-        .
+        --build-arg IMAGE_NAME={image_name} \
+        {git_root_dir}
     """
     hlitauti.run(ctx, cmd)
     if candidate:
@@ -1256,7 +1268,7 @@ def docker_create_candidate_image(
     )
     # Push candidate image.
     docker_push_prod_candidate_image(ctx, tag)
-    exec_name = "im_v2/aws/aws_update_task_definition.py"
+    exec_name = "datapull/aws/aws_update_task_definition.py"
     # Ensure compatibility with repos where amp is a submodule.
     if not os.path.exists(exec_name):
         exec_name = f"amp/{exec_name}"
@@ -1329,7 +1341,7 @@ def docker_update_prod_task_definition(
     super_module = not hgit.is_inside_submodule()
     # Prepare params for listing DAGs.
     root_dir = hgit.get_client_root(super_module)
-    dags_path = [root_dir, "im_v2", "airflow", "dags"]
+    dags_path = [root_dir, "datapull", "airflow", "dags"]
     if super_module and hgit.is_amp_present():
         # Main DAGs location is always in `cmamp`.
         dags_path.insert(1, "amp")

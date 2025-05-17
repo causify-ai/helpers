@@ -388,8 +388,8 @@ Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4860695Z 2000-01-01 10:10:00-0
 Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4861053Z """
 Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4862316Z ============================= slowest 3 durations ==============================
 Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4866438Z 26.87s setup    oms/test/test_broker.py::TestDatabaseBroker1::test1
-Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4867269Z 6.46s setup    im_v2/ccxt/data/extract/test/test_compare_realtime_and_historical_data.py::TestCompareRealtimeAndHistoricalData1::test_parser
-Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4868189Z 6.24s setup    im_v2/talos/data/client/test/test_talos_clients.py::TestTalosSqlRealTimeImClient1::test_build_numerical_to_string_id_mapping
+Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4867269Z 6.46s setup    datapull/ccxt/data/extract/test/test_compare_realtime_and_historical_data.py::TestCompareRealtimeAndHistoricalData1::test_parser
+Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4868189Z 6.24s setup    datapull/talos/data/client/test/test_talos_clients.py::TestTalosSqlRealTimeImClient1::test_build_numerical_to_string_id_mapping
 Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4868892Z =========================== short test summary info ============================
 Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4956618Z FAILED helpers/test/test_lib_tasks.py::TestDryRunTasks1::test_git_clean - Run...
 Run_fast_tests	Run fast tests	2022-07-10T12:40:40.4957400Z FAILED dataflow/system/example1/test/test_example1_forecast_system.py::Test_Example1_ForecastSystem_FitPredict::test_fit_over_backtest_period1

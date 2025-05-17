@@ -61,7 +61,7 @@ df.shape
 # # Download data
 
 # %%
-# !/app/amp/im_v2/common/data/extract/download_bulk.py \
+# !/app/amp/datapull/common/data/extract/download_bulk.py \
 #     --start_timestamp '2023-01-01T00:00:00+00:00' \
 #     --end_timestamp '2023-01-31T23:59:00+00:00' \
 #     --vendor 'ccxt' \
