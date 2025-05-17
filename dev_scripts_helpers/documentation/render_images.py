@@ -253,6 +253,8 @@ def _render_image_code(
             \documentclass{standalone}
             \usepackage{tikz}
             \usepackage{amsmath}
+            \usepackage{pgfplots}
+            \pgfplotsset{compat=1.17}
             \begin{document}
             \begin{tikzpicture}
             """
