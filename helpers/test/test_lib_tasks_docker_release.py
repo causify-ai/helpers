@@ -912,7 +912,7 @@ class Test_docker_create_candidate_image1(_DockerFlowTestHelper):
         )
         self.mock_git_hash = self.git_hash_patcher.start()
         self.patchers.append(self.git_hash_patcher)
-        # Mock workspace size check
+        # Mock workspace size check.
         self.workspace_check_patcher = umock.patch(
             "helpers.lib_tasks_docker_release._check_workspace_dir_sizes"
         )
@@ -922,13 +922,13 @@ class Test_docker_create_candidate_image1(_DockerFlowTestHelper):
         self.file_exists_patcher = umock.patch("helpers.hdbg.dassert_file_exists")
         self.mock_file_exists = self.file_exists_patcher.start()
         self.patchers.append(self.file_exists_patcher)
-        # Mock the `docker_build_prod_image` function.
+        # Mock `docker_build_prod_image()`.
         self.build_prod_patcher = umock.patch(
             "helpers.lib_tasks_docker_release.docker_build_prod_image"
         )
         self.mock_build_prod = self.build_prod_patcher.start()
         self.patchers.append(self.build_prod_patcher)
-        # Mock the `docker_push_prod_candidate_image` function.
+        # Mock `docker_push_prod_candidate_image()`.
         self.push_prod_patcher = umock.patch(
             "helpers.lib_tasks_docker_release.docker_push_prod_candidate_image"
         )
@@ -965,7 +965,7 @@ class Test_docker_create_candidate_image1(_DockerFlowTestHelper):
             user_tag="test_user",
         )
         exp = r"""
-        invoke docker_cmd -c "amp/im_v2/aws/aws_update_task_definition.py -t test_task -i test_user-test_hash -r eu-north-1"
+        invoke docker_cmd -c "amp/datapull/aws/aws_update_task_definition.py -t test_task -i test_user-test_hash -r eu-north-1"
         """
         self._check_docker_command_output(exp, self.mock_run.call_args_list)
         # Verify the mocks were called with correct parameters.
@@ -992,7 +992,7 @@ class Test_docker_update_prod_task_definition1(_DockerFlowTestHelper):
     """
 
     @pytest.fixture(autouse=True, scope="class")
-    def aws_credentials(self) -> None:
+    def aws_credentials(self) -> Generator[None, None, None]:
         """
         Mocked AWS credentials for moto.
         """
@@ -1001,6 +1001,17 @@ class Test_docker_update_prod_task_definition1(_DockerFlowTestHelper):
         os.environ["MOCK_AWS_SECURITY_TOKEN"] = "testing"
         os.environ["MOCK_AWS_SESSION_TOKEN"] = "testing"
         os.environ["MOCK_AWS_DEFAULT_REGION"] = "us-east-1"
+        yield
+        # Clean up environment variables.
+        for key in [
+            "MOCK_AWS_ACCESS_KEY_ID",
+            "MOCK_AWS_SECRET_ACCESS_KEY",
+            "MOCK_AWS_SECURITY_TOKEN",
+            "MOCK_AWS_SESSION_TOKEN",
+            "MOCK_AWS_DEFAULT_REGION",
+        ]:
+            if key in os.environ:
+                del os.environ[key]
 
     def set_up_test2(self) -> None:
         """
@@ -1025,7 +1036,7 @@ class Test_docker_update_prod_task_definition1(_DockerFlowTestHelper):
         )
         self.mock_file = self.file_patcher.start()
         self.patchers.append(self.file_patcher)
-        # Mock listdir to return test DAG files
+        # Mock listdir to return test DAG files.
         self.listdir_patcher = umock.patch(
             "helpers.hs3.listdir",
             return_value=["/app/im_v2/airflow/dags/test_dag.py"],
@@ -1037,6 +1048,11 @@ class Test_docker_update_prod_task_definition1(_DockerFlowTestHelper):
         """
         Clean up test environment.
         """
+        # Stop all patchers
+        for patcher in self.patchers:
+            patcher.stop()
+        self.patchers = []
+        # Call parent teardown
         self.tear_down_test()
 
     @pytest.fixture(autouse=True)
@@ -1060,7 +1076,7 @@ class Test_docker_update_prod_task_definition1(_DockerFlowTestHelper):
         - DAG file synchronization
         - Image tagging and pushing
         """
-        # Create mock ECS client and task definition.
+        # Mock ECS client and task definition.
         region = "us-east-1"
         mock_client = boto3.client("ecs", region_name=region)
         mock_client.register_task_definition(
@@ -1078,6 +1094,12 @@ class Test_docker_update_prod_task_definition1(_DockerFlowTestHelper):
             memory="512",
         )
         mock_get_ecs_client.return_value = mock_client
+        # Add mock client to patchers for cleanup
+        self.ecs_client_patcher = umock.patch(
+            "boto3.client", return_value=mock_client
+        )
+        self.mock_ecs_client = self.ecs_client_patcher.start()
+        self.patchers.append(self.ecs_client_patcher)
         # Call tested function.
         hltadore.docker_update_prod_task_definition(
             self.mock_ctx,
@@ -1111,7 +1133,7 @@ class Test_docker_update_prod_task_definition1(_DockerFlowTestHelper):
         - Rollback of S3 DAG files
         - Proper error propagation
         """
-        # Create mock ECS client and task definition.
+        # Mock ECS client and task definition.
         region = "us-east-1"
         mock_client = boto3.client("ecs", region_name=region)
         mock_client.register_task_definition(
@@ -1129,6 +1151,12 @@ class Test_docker_update_prod_task_definition1(_DockerFlowTestHelper):
             memory="512",
         )
         mock_get_ecs_client.return_value = mock_client
+        # Add mock client to patchers for cleanup
+        self.ecs_client_patcher = umock.patch(
+            "boto3.client", return_value=mock_client
+        )
+        self.mock_ecs_client = self.ecs_client_patcher.start()
+        self.patchers.append(self.ecs_client_patcher)
         # Mock S3 bucket operations to simulate a failure.
         self.mock_s3.return_value.put.side_effect = Exception("S3 upload failed")
         # Call tested function and verify exception is raised.
