@@ -105,6 +105,7 @@ def _construct_messages(
 def _call_api_sync(
     client: openai.OpenAI,
     messages: List[Dict[str, str]],
+    temperature:float,
     model: str,
     **create_kwargs,
 ) -> Tuple[str, Any]:
@@ -117,29 +118,30 @@ def _call_api_sync(
     completion = client.chat.completions.create(
         model=model,
         messages=messages,
+        temperature=temperature,
         **create_kwargs,
     )
     return completion.choices[0].message.content, completion
 
 
-def start_logging_costs():
+def start_logging_costs() -> None:
     global _CURRENT_OPENAI_COST
     _CURRENT_OPENAI_COST = 0.0
 
 
-def end_logging_costs():
+def end_logging_costs() -> None:
     global _CURRENT_OPENAI_COST
     _CURRENT_OPENAI_COST = None
 
 
-def _accumulate_cost_if_needed(cost: float):
+def _accumulate_cost_if_needed(cost: float) -> None:
     # Accumulate the cost.
     global _CURRENT_OPENAI_COST
     if _CURRENT_OPENAI_COST is not None:
         _CURRENT_OPENAI_COST += cost
 
 
-def get_current_cost():
+def get_current_cost() -> float:
     return _CURRENT_OPENAI_COST
 
 
@@ -241,7 +243,6 @@ def get_completion(
                 raise RuntimeError(
                     "No cached response for this request parameters!"
                 )
-    cache_mode in ("DISABLED", "CAPTURE", "FALLBACK")
     # client = openai.OpenAI(
     #     # Important: Use OpenRouter's base URL.
     #     base_url="https://openrouter.ai/api/v1",
@@ -252,7 +253,7 @@ def get_completion(
     memento = htimer.dtimer_start(logging.DEBUG, "OpenAI API call")
     if not report_progress:
         response, completion = _call_api_sync(
-            client, messages, model, **create_kwargs
+            client=client, messages=messages, model=model, temperature=temperature, **create_kwargs
         )
     else:
         # TODO(gp): This is not working. It doesn't show the progress and it
