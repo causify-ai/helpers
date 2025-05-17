@@ -455,7 +455,7 @@ def purify_app_references(txt: str) -> str:
     """
     Remove references to `/app`.
     """
-    txt = re.sub(r"/app/", "", txt, flags=re.MULTILINE)
+    txt = re.sub(r"/app$", "", txt, flags=re.MULTILINE)
     txt = re.sub(r"app\.helpers", "helpers", txt, flags=re.MULTILINE)
     txt = re.sub(r"app\.amp\.helpers", "amp.helpers", txt, flags=re.MULTILINE)
     txt = re.sub(
@@ -617,8 +617,8 @@ def purify_txt_from_client(txt: str) -> str:
     """
     Remove from a string all the information of a specific run.
     """
-    txt = purify_from_environment(txt)
     txt = purify_app_references(txt)
+    txt = purify_from_environment(txt)
     txt = purify_amp_references(txt)
     txt = purify_from_env_vars(txt)
     txt = purify_object_representation(txt)

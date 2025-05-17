@@ -943,6 +943,15 @@ dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py:3: error: Nam
         act = hunitest.purify_txt_from_client(txt)
         self.assertEqual(act, exp)
 
+    def test_purify_txt_from_client3(self) -> None:
+        """
+        Test case when client root path is equal to `/`
+        """
+        input_txt = "/app"
+        act = hunitest.purify_txt_from_client(input_txt)
+        exp = ""
+        self.assert_equal(act, exp)
+
 
 # #############################################################################
 # Test_unit_test2
