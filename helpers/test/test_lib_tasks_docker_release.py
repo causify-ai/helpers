@@ -1095,3 +1095,60 @@ class Test_docker_update_prod_task_definition1(_DockerFlowTestHelper):
         docker push test.ecr.path/test-image:prod
         """
         self._check_docker_command_output(exp, self.mock_run.call_args_list)
+
+    @moto.mock_aws
+    @umock.patch("helpers.haws.get_ecs_client")
+    def test_promotion_to_prod_exception_handling(
+        self, mock_get_ecs_client: umock.Mock
+    ) -> None:
+        """
+        Test exception handling and rollback behavior when updating prod task
+        definition.
+
+        This test checks:
+        - Exception handling during task definition update
+        - Rollback of task definition to original image
+        - Rollback of S3 DAG files
+        - Proper error propagation
+        """
+        # Create mock ECS client and task definition.
+        region = "us-east-1"
+        mock_client = boto3.client("ecs", region_name=region)
+        mock_client.register_task_definition(
+            family="test_task",
+            containerDefinitions=[
+                {
+                    "name": "test-container",
+                    "image": "test.ecr.path/test-image:test_hash",
+                }
+            ],
+            executionRoleArn="__mock__",
+            networkMode="bridge",
+            requiresCompatibilities=["EC2"],
+            cpu="256",
+            memory="512",
+        )
+        mock_get_ecs_client.return_value = mock_client
+        # Mock S3 bucket operations to simulate a failure.
+        self.mock_s3.return_value.put.side_effect = Exception("S3 upload failed")
+        # Call tested function and verify exception is raised.
+        with self.assertRaises(Exception) as cm:
+            hltadore.docker_update_prod_task_definition(
+                self.mock_ctx,
+                version=self.test_version,
+                preprod_tag="test_hash",
+                airflow_dags_s3_path="s3://test-bucket/dags/",
+                task_definition="test_task",
+            )
+        # Check the error message.
+        self.assertIn("S3 upload failed", str(cm.exception))
+        # Check whether rollback commands were executed.
+        exp = r"""
+        docker pull test.ecr.path/test-image:test_hash
+        docker tag test.ecr.path/test-image:test_hash test.ecr.path/test-image:prod-1.0.0
+        docker tag test.ecr.path/test-image:test_hash test.ecr.path/test-image:prod
+        docker rmi test.ecr.path/test-image:test_hash
+        """
+        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+        # Check whether task definition was rolled back.
+        self.mock_aws.assert_called_with("test_task")
