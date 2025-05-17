@@ -471,13 +471,6 @@ def from_file(
     if file_name.endswith((".gz", ".gzip")):
         # Open gzipped file.
         f = gzip.open(file_name, "rt", encoding=encoding)
-    # TODO(Nikola): CmTask1305: This function should only read the data without
-    #  any transformation. Furthermore we can't use hpandas and hparquet in
-    #  this file since it creates circular imports.
-    # elif file_name.endswith((".pq", ".parquet")):
-    #   df = hparque.from_parquet(file_name)
-    #   data = hpandas.convert_df_to_json_string(df, n_head=3, n_tail=3)
-    # return data
     else:
         # Open regular text file.
         f = open(  # pylint: disable=consider-using-with
