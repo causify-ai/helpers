@@ -7,6 +7,8 @@
   * [Usage](#usage)
   * [Configuration](#configuration)
   * [Git hooks in action](#git-hooks-in-action)
+    + [Commit changes](#commit-changes)
+    + [Skip the checks](#skip-the-checks)
 
 <!-- tocstop -->
 
@@ -69,6 +71,8 @@
 
 ## Git hooks in action
 
+### Commit changes
+
 - Once installed, the hooks will be run automatically when a user tries to
   commit changes
 - If the pre-commit and the commit-msg checks pass, the commit will be created
@@ -128,4 +132,11 @@
       - 'check_python_compile' passed
       - 'check_gitleaks' passed
       All checks passed ✅
+  ```
+
+### Skip the checks
+
+- To skip the checks for a specific commit, use the `--no-verify` option
+  ```bash
+  > git commit -m "Enable copilot review by default" --no-verify
   ```
