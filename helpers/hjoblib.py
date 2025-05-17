@@ -137,7 +137,7 @@ def split_list_in_tasks(
 
 
 def apply_incremental_mode(
-    src_dst_file_name_map: List[Tuple[str, str]]
+    src_dst_file_name_map: List[Tuple[str, str]],
 ) -> List[Tuple[str, str]]:
     """
     Apply incremental mode to a map of source to destination files.
@@ -679,9 +679,8 @@ def parallel_execute(
         if backend in ("loky", "threading", "multiprocessing"):
             # from joblib.externals.loky import set_loky_pickler
             # set_loky_pickler('cloudpickle')
-            res = joblib.Parallel(
-                n_jobs=num_threads, backend=backend, verbose=200
-            )(
+            # Removed `verbose` param which causes issues in HelpersTask715.
+            res = joblib.Parallel(n_jobs=num_threads, backend=backend)(
                 joblib.delayed(_parallel_execute_decorator)(
                     task_idx,
                     task_len,
@@ -751,6 +750,11 @@ def parallel_execute(
 # This allows to store a joblib cache on S3.
 
 # Adapted from https://github.com/aabadie/joblib-s3
+
+
+# #############################################################################
+# _S3FSStoreBackend
+# #############################################################################
 
 
 class _S3FSStoreBackend(StoreBackendBase, StoreBackendMixin):
