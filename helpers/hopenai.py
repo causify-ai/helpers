@@ -3,7 +3,6 @@ Import as:
 
 import helpers.hopenai as hopenai
 """
-
 import datetime
 import functools
 import hashlib
@@ -32,7 +31,7 @@ _LOG = logging.getLogger(__name__)
 
 # _LOG.debug = _LOG.info
 _MODEL = "gpt-4o-mini"
-_CACHE_MODE = "CAPTURE"
+_CACHE_MODE = "FALLBACK"
 _TEMPERATURE = 0.1
 _CACHE_FILE = "cache.get_completion.json"
 
@@ -99,7 +98,7 @@ def _construct_messages(
     ]
 
 
-def call_api_sync(
+def _call_api_sync(
     client: OpenAI,
     messages: List[Dict[str, str]],
     model: str,
@@ -107,6 +106,8 @@ def call_api_sync(
 ) -> Tuple[str, Any]:
     """
     Make a non-streaming API call and return (response, raw_completion).
+    return str: Model's response in openai's completion object.
+    return Any: openai's completion object.
     """
     completion = client.chat.completions.create(
         model=model,
@@ -186,6 +187,7 @@ def get_completion(
     print_cost: bool = False,
     cache_mode: str = _CACHE_MODE,
     cache_file: str = _CACHE_FILE,
+    temperature:float=_TEMPERATURE,
     **create_kwargs,
 ) -> str:
     """
@@ -204,18 +206,17 @@ def get_completion(
         - "FALLBACK" : Use cached responses if available, otherwise make API call
     :return: completion text
     """
-
     model = _MODEL if model is None else model
-    # Construct messages in OpenAI API request format
+    hdbg.dassert_in(cache_mode, ("REPLAY", "FALLBACK", "CAPTURE", "DISABLED"))
+    # Construct messages in OpenAI API request format.
     messages = _construct_messages(system_prompt, user_prompt)
-    cache = GetCompletionCache(cache_file=cache_file)
+    cache = CompletionCache(cache_file=cache_file)
     # Dictionary makes easy to reuse it.
-    request_params = {"model": model, "messages": messages, **create_kwargs}
-
+    request_params = {"model": model, "messages": messages,"temperature":temperature, **create_kwargs}
     hash_key = cache.hash_key_generator(**request_params)
 
     if cache_mode in ("REPLAY", "FALLBACK"):
-        # Checks for response in cache
+        # Checks for response in cache.
         if cache.has_cache(hash_key):
             memento = htimer.dtimer_start(
                 logging.DEBUG, "Loading from the cache!"
@@ -230,26 +231,17 @@ def get_completion(
                 raise RuntimeError(
                     "No cached response for this request parameters!"
                 )
-
-    if cache_mode in ("DISABLED", "CAPTURE", "FALLBACK"):
-        call_api = True
-    else:
-        call_api = False
-
-    if not call_api:
-        raise ValueError(f"Unsupported cache mode: {cache_mode}")
-
+    call_api = cache_mode in ("DISABLED", "CAPTURE", "FALLBACK")
     client = OpenAI(
-        # Important: Use OpenRouter's base URL
+        # Important: Use OpenRouter's base URL.
         base_url="https://openrouter.ai/api/v1",
         api_key=os.environ.get("OPENROUTER_API_KEY"),
     )
     # client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-
     # print("OpenAI API call ... ")
     memento = htimer.dtimer_start(logging.DEBUG, "OpenAI API call")
     if not report_progress:
-        response, completion = call_api_sync(
+        response, completion = _call_api_sync(
             client, messages, model, **create_kwargs
         )
     else:
@@ -281,7 +273,7 @@ def get_completion(
     _accumulate_cost_if_needed(cost)
     # Convert OpenAI completion object to DICT.
     completion_obj = completion.to_dict()
-    # Store cost in the cache
+    # Store cost in the cache.
     completion_obj["cost"] = cost
     if cache_mode != "DISABLED":
         cache.save_response_to_cache(
@@ -382,7 +374,7 @@ def delete_all_assistants(*, ask_for_confirmation: bool = True) -> None:
     Delete all assistants from OpenAI's assistant storage.
 
     :param ask_for_confirmation: whether to prompt for confirmation
-        before deletion
+        before deletion.
     """
     client = OpenAI()
     assistants = client.beta.assistants.list()
@@ -574,11 +566,16 @@ def apply_prompt_to_dataframe(
 
 
 # #############################################################################
-# GetCompletionCache
+# CompletionCache
 # #############################################################################
 
 
-class GetCompletionCache:
+class CompletionCache:
+    """
+    1. Manage the cache for get_completion().
+    2. Do not use hcache_simple.simple_cache() because it uses a different cache format
+    and does not support conditions required by get_completion().
+    """
 
     def __init__(self, cache_file: str = _CACHE_FILE):
         self.cache_file = cache_file
@@ -627,15 +624,12 @@ class GetCompletionCache:
                     "content": " ".join(m["content"].split()).lower(),
                 }
             )
-
         key_obj: Dict[str, Any] = {
             "model": model.strip().lower(),
             "messages": norm_msgs,
         }
-
         for name in sorted(extra_kwargs):
             key_obj[name] = extra_kwargs[name]
-
         serialized = json.dumps(
             key_obj,
             # no spaces

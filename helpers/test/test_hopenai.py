@@ -26,7 +26,7 @@ _MODEL1 = "gpt-4o-mini"
 _MODEL2 = "gpt-o4-mini"
 
 
-def get_completion_paramters1():
+def _get_completion_paramters1():
     data = {
         "user_prompt": _USER_PROMPT1,
         "system_prompt": _SYSTEM_PROMPT1,
@@ -36,7 +36,7 @@ def get_completion_paramters1():
     return data
 
 
-def get_openai_request_parameters1():
+def _get_openai_request_parameters1():
     messages = hopenai._construct_messages(
         user_prompt=_USER_PROMPT1, system_prompt=_SYSTEM_PROMPT1
     )
@@ -44,7 +44,7 @@ def get_openai_request_parameters1():
     return data
 
 
-def get_completion_paramters2():
+def _get_completion_paramters2():
     data = {
         "user_prompt": _USER_PROMPT2,
         "system_prompt": _SYSTEM_PROMPT1,
@@ -54,7 +54,7 @@ def get_completion_paramters2():
     return data
 
 
-def get_openai_request_parameters2():
+def _get_openai_request_parameters2():
     messages = hopenai._construct_messages(
         user_prompt=_USER_PROMPT2, system_prompt=_SYSTEM_PROMPT1
     )
@@ -62,7 +62,7 @@ def get_openai_request_parameters2():
     return data
 
 
-def get_completion_paramters3():
+def _get_completion_paramters3():
     data = {
         "user_prompt": _USER_PROMPT1,
         "system_prompt": _SYSTEM_PROMPT1,
@@ -72,7 +72,7 @@ def get_completion_paramters3():
     return data
 
 
-def get_openai_request_parameters3():
+def _get_openai_request_parameters3():
     messages = hopenai._construct_messages(
         user_prompt=_USER_PROMPT1, system_prompt=_SYSTEM_PROMPT1
     )
@@ -80,7 +80,7 @@ def get_openai_request_parameters3():
     return data
 
 
-def get_completion_paramters4():
+def _get_completion_paramters4():
     data = {
         "user_prompt": _USER_PROMPT1,
         "system_prompt": _SYSTEM_PROMPT1,
@@ -90,7 +90,7 @@ def get_completion_paramters4():
     return data
 
 
-def get_openai_request_parameters4():
+def _get_openai_request_parameters4():
     messages = hopenai._construct_messages(
         user_prompt=_USER_PROMPT1, system_prompt=_SYSTEM_PROMPT1
     )
@@ -98,7 +98,7 @@ def get_openai_request_parameters4():
     return data
 
 
-def get_dummy_openai_response1():
+def _get_dummy_openai_response1():
     response = {
         "id": "chatcmpl-test",
         "object": "chat.completion",
@@ -122,7 +122,7 @@ def get_dummy_openai_response1():
     return response
 
 
-def get_dummy_openai_response2():
+def _get_dummy_openai_response2():
     response = {
         "id": "chatcmpl-test",
         "object": "chat.completion",
@@ -154,26 +154,21 @@ def get_dummy_openai_response2():
 
 
 # #############################################################################
-
-# #############################################################################
-
-
-# #############################################################################
 # BaseOpenAICacheTest
 # #############################################################################
 
 
 class BaseOpenAICacheTest(hunitest.TestCase):
     """
-    - Makes sure that hopenai.get_completion() always uses REPLAY mode.
-    - Adds dummy data in test cache file for testcases.
-    - Removes the test cache file after the tests.
+    - Ensure hopenai.get_completion() always uses REPLAY mode.
+    - Add dummy data to the test cache file for test cases.  
+    - Remove the test cache file after running tests.  
     """
 
     @pytest.fixture(autouse=True)
     def setup_teardown_test(self):
         # Using test cache file to prevent ruining the actual cache file.
-        self.get_completion_cache = hopenai.GetCompletionCache(
+        self.get_completion_cache = hopenai.CompletionCache(
             cache_file=_TEST_CACHE_FILE
         )
         # Patch get_completion to inject REPLAY
@@ -203,10 +198,10 @@ class BaseOpenAICacheTest(hunitest.TestCase):
         Setup Operations to run before each test:
         - adding dummy requests and responses in temporary cache file
         """
-        request_parameters1 = get_openai_request_parameters1()
-        request_parameters3 = get_openai_request_parameters3()
-        dummy_openai_response1 = get_dummy_openai_response1()
-        dummy_openai_response2 = get_dummy_openai_response2()
+        request_parameters1 = _get_openai_request_parameters1()
+        request_parameters3 = _get_openai_request_parameters3()
+        dummy_openai_response1 = _get_dummy_openai_response1()
+        dummy_openai_response2 = _get_dummy_openai_response2()
         # generating hash keys
         dummy_hash_key1 = self.get_completion_cache.hash_key_generator(
             **request_parameters1
@@ -245,28 +240,28 @@ class Test_get_completion(BaseOpenAICacheTest):
 
     def test1(self) -> None:
         """
-        Verify that get_completion returns response from cache with the
+        Verify that get_completion() returns response from cache with the
         expected response.
         """
-        parameters1 = get_completion_paramters1()
-        dummy_response1 = get_dummy_openai_response1()
+        parameters1 = _get_completion_paramters1()
+        dummy_response1 = _get_dummy_openai_response1()
         response = hopenai.get_completion(
             **parameters1, cache_file=_TEST_CACHE_FILE
         )
-        self.assertEqual(
+        self.assert_equal(
             dummy_response1["choices"][0]["message"]["content"], response
         )
 
     def test2(self) -> None:
         """
-        Verify that if hashkey is not in response, then get_completion should
+        Verify that if hashkey is not in response, then get_completion() should
         raise error in replay mode.
         """
         # parameters4 are not saved in test cache file
-        paramters4 = get_completion_paramters4()
+        paramters4 = _get_completion_paramters4()
         with self.assertRaises(RuntimeError) as RTE:
             hopenai.get_completion(**paramters4, cache_file=_TEST_CACHE_FILE)
-        self.assertEqual(
+        self.assert_equal(
             str(RTE.exception), "No cached response for this request parameters!"
         )
 
@@ -280,31 +275,31 @@ class Test_hash_key_generator(BaseOpenAICacheTest):
 
     def test_different_request_parameters1(self) -> None:
         """
-        This test case checks if normalisation works before generating hash
+        This test case check if normalisation works before generating hash
         key.
         """
-        parameters1 = get_openai_request_parameters1()
-        parameters2 = get_openai_request_parameters2()
+        parameters1 = _get_openai_request_parameters1()
+        parameters2 = _get_openai_request_parameters2()
         hash_key1 = self.get_completion_cache.hash_key_generator(**parameters1)
         hash_key2 = self.get_completion_cache.hash_key_generator(**parameters2)
-        self.assertEqual(hash_key1, hash_key2)
+        self.assert_equal(hash_key1, hash_key2)
 
     def test_different_request_parameters2(self) -> None:
         """
-        Different Temperatures should give different hashkeys.
+        Different Temperature should give different hashkeys.
         """
-        parameters1 = get_openai_request_parameters1()
-        parameters3 = get_openai_request_parameters3()
+        parameters1 = _get_openai_request_parameters1()
+        parameters3 = _get_openai_request_parameters3()
         hash_key1 = self.get_completion_cache.hash_key_generator(**parameters1)
         hash_key2 = self.get_completion_cache.hash_key_generator(**parameters3)
         self.assertNotEqual(hash_key1, hash_key2)
 
     def test_different_request_parameters3(self) -> None:
         """
-        Different models should give different hashkeys.
+        Different model should give different hashkeys.
         """
-        parameters3 = get_openai_request_parameters3()
-        parameters4 = get_openai_request_parameters4()
+        parameters3 = _get_openai_request_parameters3()
+        parameters4 = _get_openai_request_parameters4()
         hash_key3 = self.get_completion_cache.hash_key_generator(**parameters3)
         hash_key4 = self.get_completion_cache.hash_key_generator(**parameters4)
         self.assertNotEqual(hash_key3, hash_key4)
@@ -319,10 +314,10 @@ class Test_has_cache(BaseOpenAICacheTest):
 
     def test1(self) -> None:
         """
-        Should return False if cache doesnt exist.
+        Should return False if cache doesn't exist.
         """
         # These parameters are not saved in the cache file.
-        parameters4 = get_openai_request_parameters4()
+        parameters4 = _get_openai_request_parameters4()
         hash_key4 = self.get_completion_cache.hash_key_generator(**parameters4)
         self.assertFalse(self.get_completion_cache.has_cache(hash_key=hash_key4))
 
@@ -331,7 +326,7 @@ class Test_has_cache(BaseOpenAICacheTest):
         Should return True if cache exists.
         """
         # These parameters are stored in the cache through Set up function
-        parameters1 = get_openai_request_parameters1()
+        parameters1 = _get_openai_request_parameters1()
         hash_key1 = self.get_completion_cache.hash_key_generator(**parameters1)
         self.assertTrue(self.get_completion_cache.has_cache(hash_key=hash_key1))
 
@@ -347,8 +342,8 @@ class Test_save_response_to_cache(BaseOpenAICacheTest):
         """
         Verifies if response saves into cache.
         """
-        parameters4 = get_openai_request_parameters4()
-        dummy_response1 = get_dummy_openai_response1()
+        parameters4 = _get_openai_request_parameters4()
+        dummy_response1 = _get_dummy_openai_response1()
         hash_key4 = self.get_completion_cache.hash_key_generator(**parameters4)
         self.get_completion_cache.save_response_to_cache(
             hash_key=hash_key4, request=parameters4, response=dummy_response1
@@ -374,11 +369,11 @@ class Test_load_response_from_cache(BaseOpenAICacheTest):
         Verifies if stored response can be loaded.
         """
         # This response  saved in test cache through set up function.
-        dummy_response1 = get_dummy_openai_response1()
+        dummy_response1 = _get_dummy_openai_response1()
         # same parameters used to save the above response in test cache.
-        parameters1 = get_openai_request_parameters1()
+        parameters1 = _get_openai_request_parameters1()
         hash_key1 = self.get_completion_cache.hash_key_generator(**parameters1)
-        self.assertEqual(
+        self.assert_equal(
             dummy_response1["choices"][0]["message"]["content"],
             self.get_completion_cache.load_response_from_cache(
                 hash_key=hash_key1
@@ -386,9 +381,10 @@ class Test_load_response_from_cache(BaseOpenAICacheTest):
         )
 
     def test2(self) -> None:
-        """ """
-        paramters4 = get_openai_request_parameters4()
+        """Trying to load unsaved response from cache. """
+        # These parameters are not stored in cache.s
+        paramters4 = _get_openai_request_parameters4()
         hash_key4 = self.get_completion_cache.hash_key_generator(**paramters4)
         with self.assertRaises(ValueError) as VE:
             self.get_completion_cache.load_response_from_cache(hash_key=hash_key4)
-        self.assertEqual(str(VE.exception), "No cache found!")
+        self.assert_equal(str(VE.exception), "No cache found!")
