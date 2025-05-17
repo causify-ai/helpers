@@ -3,6 +3,7 @@ Import as:
 
 import helpers.hopenai as hopenai
 """
+
 import datetime
 import functools
 import hashlib
@@ -14,8 +15,6 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import openai
 import tqdm
-import dotenv
-
 from openai.types.beta.assistant import Assistant
 from openai.types.beta.threads.message import Message
 
@@ -111,6 +110,7 @@ def _call_api_sync(
 ) -> Tuple[str, Any]:
     """
     Make a non-streaming API call and return (response, raw_completion).
+
     return str: Model's response in openai's completion object.
     return Any: openai's completion object.
     """
@@ -192,7 +192,7 @@ def get_completion(
     print_cost: bool = False,
     cache_mode: str = _CACHE_MODE,
     cache_file: str = _CACHE_FILE,
-    temperature:float=_TEMPERATURE,
+    temperature: float = _TEMPERATURE,
     **create_kwargs,
 ) -> str:
     """
@@ -217,7 +217,12 @@ def get_completion(
     messages = _construct_messages(system_prompt, user_prompt)
     cache = CompletionCache(cache_file=cache_file)
     # Dictionary makes easy to reuse it.
-    request_params = {"model": model, "messages": messages,"temperature":temperature, **create_kwargs}
+    request_params = {
+        "model": model,
+        "messages": messages,
+        "temperature": temperature,
+        **create_kwargs,
+    }
     hash_key = cache.hash_key_generator(**request_params)
 
     if cache_mode in ("REPLAY", "FALLBACK"):
@@ -236,7 +241,7 @@ def get_completion(
                 raise RuntimeError(
                     "No cached response for this request parameters!"
                 )
-    call_api = cache_mode in ("DISABLED", "CAPTURE", "FALLBACK")
+    cache_mode in ("DISABLED", "CAPTURE", "FALLBACK")
     # client = openai.OpenAI(
     #     # Important: Use OpenRouter's base URL.
     #     base_url="https://openrouter.ai/api/v1",
