@@ -12,6 +12,8 @@ import re
 from typing import Any, Dict, List, Optional
 
 import openai
+import pandas as pd
+import requests
 import tqdm
 from openai import OpenAI
 from openai.types.beta.assistant import Assistant
@@ -28,6 +30,7 @@ _LOG = logging.getLogger(__name__)
 # _LOG.debug = _LOG.info
 _MODEL = "gpt-4o-mini"
 _TEMPERATURE = 0.1
+_MODELS_INFO_FILE = "openrouter_models.csv"
 
 # #############################################################################
 # Utility Functions
@@ -80,6 +83,39 @@ def _extract(
 _CURRENT_OPENAI_COST = None
 
 
+def _get_models_info() -> list[dict]:
+    # Get all openrouter models info.
+    response = requests.get("https://openrouter.ai/api/v1/models").json()
+    return response["data"]
+
+
+def _save_models_to_csv(
+    models_info: list, file_name: str = _MODELS_INFO_FILE
+) -> pd.DataFrame:
+    models_obj = pd.DataFrame(models_info)
+    # Extract prompt, completion pricing from pricing column.
+    models_obj["prompt_pricing"] = models_obj["pricing"].apply(
+        lambda x: x["prompt"]
+    )
+    models_obj["completion_pricing"] = models_obj["pricing"].apply(
+        lambda x: x["completion"]
+    )
+    # Take only relevant columns.
+    models_obj = models_obj[
+        [
+            "id",
+            "name",
+            "description",
+            "prompt_pricing",
+            "completion_pricing",
+            "supported_parameters",
+        ]
+    ]
+    # Save to CSV file.
+    models_obj.to_csv(file_name, index=False)
+    return models_obj
+
+
 def start_logging_costs():
     global _CURRENT_OPENAI_COST
     _CURRENT_OPENAI_COST = 0.0
@@ -116,28 +152,63 @@ def _calculate_cost(
     """
     prompt_tokens = completion.usage.prompt_tokens
     completion_tokens = completion.usage.completion_tokens
-    # Get the pricing for the selected model.
-    # https://openai.com/api/pricing/
-    # https://gptforwork.com/tools/openai-chatgpt-api-pricing-calculator
-    # Cost per 1M tokens.
-    pricing = {
-        "gpt-3.5-turbo": {"prompt": 0.5, "completion": 1.5},
-        "gpt-4o-mini": {"prompt": 0.15, "completion": 0.60},
-        "gpt-4o": {"prompt": 5, "completion": 15},
-    }
-    hdbg.dassert_in(model, pricing)
-    model_pricing = pricing[model]
-    # Calculate the cost.
-    cost = (prompt_tokens / 1e6) * model_pricing["prompt"] + (
-        completion_tokens / 1e6
-    ) * model_pricing["completion"]
-    _LOG.debug(hprint.to_str("prompt_tokens completion_tokens cost"))
-    if print_cost:
-        print(
-            f"cost=${cost:.2f} / "
-            + hprint.to_str("prompt_tokens completion_tokens")
-        )
+    # Models info are saved in the CSV file.
+    csv_path = _MODELS_INFO_FILE
+    # Ensure file exist, if not create the file.
+    if not os.path.isfile(csv_path):
+        _save_models_to_csv(_get_models_info())
+    # Ensure model info present in the file.
+    df = pd.read_csv(csv_path)
+    if model not in df["id"].values:
+        # Refresh CSV and reload
+        _save_models_to_csv(_get_models_info())
+        df = pd.read_csv(csv_path)
+    # Extract pricing for this model.
+    row = df.loc[df["id"] == model].iloc[0]
+    prompt_price = row["prompt_pricing"]
+    completion_price = row["completion_pricing"]
+    # Compute cost.
+    cost = (prompt_tokens) * prompt_price + (completion_tokens) * completion_price
     return cost
+
+
+# def _calculate_cost(
+#     completion: openai.types.chat.chat_completion.ChatCompletion,
+#     model: str,
+#     print_cost: bool = False,
+# ) -> float:
+#     """
+#     Calculate the cost of an OpenAI API call.
+
+#     :param completion: The completion response from OpenAI
+#     :param model: The model used for the completion
+#     :param print_cost: Whether to print the cost details
+#     :return: The calculated cost in dollars
+#     """
+#     prompt_tokens = completion.usage.prompt_tokens
+#     completion_tokens = completion.usage.completion_tokens
+#     # Get the pricing for the selected model.
+#     # https://openai.com/api/pricing/
+#     # https://gptforwork.com/tools/openai-chatgpt-api-pricing-calculator
+#     # Cost per 1M tokens.
+#     pricing = {
+#         "gpt-3.5-turbo": {"prompt": 0.5, "completion": 1.5},
+#         "gpt-4o-mini": {"prompt": 0.15, "completion": 0.60},
+#         "gpt-4o": {"prompt": 5, "completion": 15},
+#     }
+#     hdbg.dassert_in(model, pricing)
+#     model_pricing = pricing[model]
+#     # Calculate the cost.
+#     cost = (prompt_tokens / 1e6) * model_pricing["prompt"] + (
+#         completion_tokens / 1e6
+#     ) * model_pricing["completion"]
+#     _LOG.debug(hprint.to_str("prompt_tokens completion_tokens cost"))
+#     if print_cost:
+#         print(
+#             f"cost=${cost:.2f} / "
+#             + hprint.to_str("prompt_tokens completion_tokens")
+#         )
+#     return cost
 
 
 @functools.lru_cache(maxsize=1024)
@@ -161,20 +232,20 @@ def get_completion(
         call
     :return: completion text
     """
-    #model = _MODEL if model is None else model
-    #model = "anthropic/claude-3-5-sonnet"
-    #model = "openai/gpt-4o"
-    model="meta-llama/llama-3-70b-instruct"
+    # model = _MODEL if model is None else model
+    # model = "anthropic/claude-3-5-sonnet"
+    # model = "openai/gpt-4o"
+    model = "meta-llama/llama-3-70b-instruct"
     print("OpenAI API call ... ")
-    #client = OpenAI()
+    # client = OpenAI()
     # print(openai.api_base)
     # assert 0
     # openai.api_base ="https://openrouter.ai/api/v1"
     # openai.api_key = os.environ.get("OPENROUTER_API_KEY")
     client = OpenAI(
         base_url="https://openrouter.ai/api/v1",  # Important: Use OpenRouter's base URL
-        api_key=os.environ.get("OPENROUTER_API_KEY")
-        )
+        api_key=os.environ.get("OPENROUTER_API_KEY"),
+    )
     memento = htimer.dtimer_start(logging.DEBUG, "OpenAI API call")
     if not report_progress:
         completion = client.chat.completions.create(
@@ -213,9 +284,10 @@ def get_completion(
     msg, _ = htimer.dtimer_stop(memento)
     print(msg)
     # Calculate and accumulate the cost
-    #cost = _calculate_cost(completion, model, print_cost)
+    cost = _calculate_cost(completion, model, print_cost)
+    print(cost)
     # Accumulate the cost.
-    #_accumulate_cost_if_needed(cost)
+    _accumulate_cost_if_needed(cost)
     return response
 
 
