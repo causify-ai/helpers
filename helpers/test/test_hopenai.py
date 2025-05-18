@@ -11,8 +11,8 @@ _LOG = logging.getLogger(__name__)
 
 _TEST_CACHE_FILE = "cache.test_get_completion.json"
 
-_USER_PROMPT1 = "What is machine learning?"
-_USER_PROMPT2 = _USER_PROMPT1.lower()
+_USER_PROMPT1 = "what is machine learning?"
+_USER_PROMPT2 = _USER_PROMPT1.upper()
 _USER_PROMPT3 = "What is artificial intelligence"
 
 _SYSTEM_PROMPT1 = "You are a helpful AI assistant."
@@ -26,7 +26,7 @@ _MODEL1 = "gpt-4o-mini"
 _MODEL2 = "gpt-o4-mini"
 
 
-def _get_completion_paramters1():
+def _get_completion_paramters1() -> dict:
     data = {
         "user_prompt": _USER_PROMPT1,
         "system_prompt": _SYSTEM_PROMPT1,
@@ -36,7 +36,7 @@ def _get_completion_paramters1():
     return data
 
 
-def _get_openai_request_parameters1():
+def _get_openai_request_parameters1() -> dict:
     messages = hopenai._construct_messages(
         user_prompt=_USER_PROMPT1, system_prompt=_SYSTEM_PROMPT1
     )
@@ -44,7 +44,7 @@ def _get_openai_request_parameters1():
     return data
 
 
-def _get_completion_paramters2():
+def _get_completion_paramters2() -> dict:
     data = {
         "user_prompt": _USER_PROMPT2,
         "system_prompt": _SYSTEM_PROMPT1,
@@ -54,7 +54,7 @@ def _get_completion_paramters2():
     return data
 
 
-def _get_openai_request_parameters2():
+def _get_openai_request_parameters2() -> dict:
     messages = hopenai._construct_messages(
         user_prompt=_USER_PROMPT2, system_prompt=_SYSTEM_PROMPT1
     )
@@ -62,7 +62,7 @@ def _get_openai_request_parameters2():
     return data
 
 
-def _get_completion_paramters3():
+def _get_completion_paramters3() -> dict:
     data = {
         "user_prompt": _USER_PROMPT1,
         "system_prompt": _SYSTEM_PROMPT1,
@@ -72,7 +72,7 @@ def _get_completion_paramters3():
     return data
 
 
-def _get_openai_request_parameters3():
+def _get_openai_request_parameters3() -> dict:
     messages = hopenai._construct_messages(
         user_prompt=_USER_PROMPT1, system_prompt=_SYSTEM_PROMPT1
     )
@@ -80,7 +80,7 @@ def _get_openai_request_parameters3():
     return data
 
 
-def _get_completion_paramters4():
+def _get_completion_paramters4() -> dict:
     data = {
         "user_prompt": _USER_PROMPT1,
         "system_prompt": _SYSTEM_PROMPT1,
@@ -90,7 +90,7 @@ def _get_completion_paramters4():
     return data
 
 
-def _get_openai_request_parameters4():
+def _get_openai_request_parameters4() -> dict:
     messages = hopenai._construct_messages(
         user_prompt=_USER_PROMPT1, system_prompt=_SYSTEM_PROMPT1
     )
@@ -98,7 +98,7 @@ def _get_openai_request_parameters4():
     return data
 
 
-def _get_dummy_openai_response1():
+def _get_dummy_openai_response1() -> dict:
     response = {
         "id": "chatcmpl-test",
         "object": "chat.completion",
@@ -112,7 +112,8 @@ def _get_dummy_openai_response1():
                     "content": """Machine learning is a subset of artificial intelligence
                       (AI) that focuses on the development of algorithms and statistical models
                         that enable computers to perform tasks without explicit instructions.
-                        Instead, these systems learn from and make predictions or decisions based on data.""",
+                        Instead, these systems learn from and make predictions or
+                        decisions based on data.""",
                 },
                 "finish_reason": "stop",
             }
@@ -122,7 +123,7 @@ def _get_dummy_openai_response1():
     return response
 
 
-def _get_dummy_openai_response2():
+def _get_dummy_openai_response2() -> dict:
     response = {
         "id": "chatcmpl-test",
         "object": "chat.completion",
@@ -133,10 +134,12 @@ def _get_dummy_openai_response2():
                 "index": 0,
                 "message": {
                     "role": "assistant",
-                    "content": """Artificial Intelligence (AI) is the field of computer science focused on creating systems or machines
-                                that can perform tasks typically requiring human intelligence. These tasks include:
+                    "content": """Artificial Intelligence (AI) is the field of computer science focused on creating
+                                 systems or machines that can perform tasks typically requiring human
+                                 intelligence. These tasks include:
                                 •   Perception: Recognizing images, speech, or patterns (e.g., facial recognition, voice assistants).
-                                •   Reasoning and Decision-Making: Solving problems and making decisions (e.g., self-driving cars deciding when to stop or accelerate).
+                                •   Reasoning and Decision-Making: Solving problems and making decisions (e.g., self-driving cars deciding
+                                    when to stop or accelerate).
                                 •   Learning: Improving performance from experience (e.g., recommendation systems like Netflix or Amazon).
                                 •   Natural Language Understanding: Interacting using human language (e.g., chatbots, language translation).
                                 •   Action: Controlling devices or robots to perform tasks (e.g., industrial automation, drones).""",
@@ -161,19 +164,22 @@ def _get_dummy_openai_response2():
 class BaseOpenAICacheTest(hunitest.TestCase):
     """
     - Ensure hopenai.get_completion() always uses REPLAY mode.
-    - Add dummy data to the test cache file for test cases.  
-    - Remove the test cache file after running tests.  
+    - Add dummy data to the test cache file for test cases.
+    - Remove the test cache file after running tests.
     """
 
     @pytest.fixture(autouse=True)
     def setup_teardown_test(self):
         # Using test cache file to prevent ruining the actual cache file.
+        # TODO(Sai): Reuse get_scratch_space().
+        # self.cache_file = self.get_scratch_space()+f"/{_TEST_CACHE_FILE}"
         self.get_completion_cache = hopenai.CompletionCache(
             cache_file=_TEST_CACHE_FILE
+            # cache_file=self.cache_file
         )
-        # Patch get_completion to inject REPLAY
+        # Patch get_completion to inject REPLAY.
         self.force_replay_cache()
-        # Run common setuo for each test
+        # Run common setuo for each test.
         self.set_up_test()
         yield
         # Run common teardown after the test.
@@ -229,6 +235,8 @@ class BaseOpenAICacheTest(hunitest.TestCase):
         self.patcher.stop()
         if os.path.exists(_TEST_CACHE_FILE):
             os.remove(_TEST_CACHE_FILE)
+        # if os.path.exists(self.cache_file):
+        #     os.remove(self.cache_file)
 
 
 # #############################################################################
@@ -246,7 +254,9 @@ class Test_get_completion(BaseOpenAICacheTest):
         parameters1 = _get_completion_paramters1()
         dummy_response1 = _get_dummy_openai_response1()
         response = hopenai.get_completion(
-            **parameters1, cache_file=_TEST_CACHE_FILE
+            **parameters1,
+            cache_file=_TEST_CACHE_FILE,
+            # cache_file=self.cache_file
         )
         self.assert_equal(
             dummy_response1["choices"][0]["message"]["content"], response
@@ -275,8 +285,7 @@ class Test_hash_key_generator(BaseOpenAICacheTest):
 
     def test_different_request_parameters1(self) -> None:
         """
-        This test case check if normalisation works before generating hash
-        key.
+        This test case check if normalisation works before generating hash key.
         """
         parameters1 = _get_openai_request_parameters1()
         parameters2 = _get_openai_request_parameters2()
@@ -381,7 +390,9 @@ class Test_load_response_from_cache(BaseOpenAICacheTest):
         )
 
     def test2(self) -> None:
-        """Trying to load unsaved response from cache. """
+        """
+        Trying to load unsaved response from cache.
+        """
         # These parameters are not stored in cache.s
         paramters4 = _get_openai_request_parameters4()
         hash_key4 = self.get_completion_cache.hash_key_generator(**paramters4)
