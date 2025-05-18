@@ -92,16 +92,16 @@ def _get_models_info() -> list[dict]:
 def _save_models_to_csv(
     models_info: list, file_name: str = _MODELS_INFO_FILE
 ) -> pd.DataFrame:
-    models_obj = pd.DataFrame(models_info)
+    models_info_obj = pd.DataFrame(models_info)
     # Extract prompt, completion pricing from pricing column.
-    models_obj["prompt_pricing"] = models_obj["pricing"].apply(
+    models_info_obj["prompt_pricing"] = models_info_obj["pricing"].apply(
         lambda x: x["prompt"]
     )
-    models_obj["completion_pricing"] = models_obj["pricing"].apply(
+    models_info_obj["completion_pricing"] = models_info_obj["pricing"].apply(
         lambda x: x["completion"]
     )
     # Take only relevant columns.
-    models_obj = models_obj[
+    models_info_obj = models_info_obj[
         [
             "id",
             "name",
@@ -112,8 +112,8 @@ def _save_models_to_csv(
         ]
     ]
     # Save to CSV file.
-    models_obj.to_csv(file_name, index=False)
-    return models_obj
+    models_info_obj.to_csv(file_name, index=False)
+    return models_info_obj
 
 
 def start_logging_costs():
@@ -141,6 +141,7 @@ def _calculate_cost(
     completion: openai.types.chat.chat_completion.ChatCompletion,
     model: str,
     print_cost: bool = False,
+    models_info_file: str = _MODELS_INFO_FILE,
 ) -> float:
     """
     Calculate the cost of an OpenAI API call.
@@ -153,62 +154,21 @@ def _calculate_cost(
     prompt_tokens = completion.usage.prompt_tokens
     completion_tokens = completion.usage.completion_tokens
     # Models info are saved in the CSV file.
-    csv_path = _MODELS_INFO_FILE
     # Ensure file exist, if not create the file.
-    if not os.path.isfile(csv_path):
+    if not os.path.isfile(models_info_file):
         _save_models_to_csv(_get_models_info())
     # Ensure model info present in the file.
-    df = pd.read_csv(csv_path)
-    if model not in df["id"].values:
+    models_info_obj: pd.Data = pd.read_csv(models_info_file)
+    if model not in models_info_obj["id"].values:
         # Refresh CSV and reload
-        _save_models_to_csv(_get_models_info())
-        df = pd.read_csv(csv_path)
+        models_info_obj = _save_models_to_csv(_get_models_info())
     # Extract pricing for this model.
-    row = df.loc[df["id"] == model].iloc[0]
+    row = models_info_obj.loc[models_info_obj["id"] == model].iloc[0]
     prompt_price = row["prompt_pricing"]
     completion_price = row["completion_pricing"]
     # Compute cost.
     cost = (prompt_tokens) * prompt_price + (completion_tokens) * completion_price
     return cost
-
-
-# def _calculate_cost(
-#     completion: openai.types.chat.chat_completion.ChatCompletion,
-#     model: str,
-#     print_cost: bool = False,
-# ) -> float:
-#     """
-#     Calculate the cost of an OpenAI API call.
-
-#     :param completion: The completion response from OpenAI
-#     :param model: The model used for the completion
-#     :param print_cost: Whether to print the cost details
-#     :return: The calculated cost in dollars
-#     """
-#     prompt_tokens = completion.usage.prompt_tokens
-#     completion_tokens = completion.usage.completion_tokens
-#     # Get the pricing for the selected model.
-#     # https://openai.com/api/pricing/
-#     # https://gptforwork.com/tools/openai-chatgpt-api-pricing-calculator
-#     # Cost per 1M tokens.
-#     pricing = {
-#         "gpt-3.5-turbo": {"prompt": 0.5, "completion": 1.5},
-#         "gpt-4o-mini": {"prompt": 0.15, "completion": 0.60},
-#         "gpt-4o": {"prompt": 5, "completion": 15},
-#     }
-#     hdbg.dassert_in(model, pricing)
-#     model_pricing = pricing[model]
-#     # Calculate the cost.
-#     cost = (prompt_tokens / 1e6) * model_pricing["prompt"] + (
-#         completion_tokens / 1e6
-#     ) * model_pricing["completion"]
-#     _LOG.debug(hprint.to_str("prompt_tokens completion_tokens cost"))
-#     if print_cost:
-#         print(
-#             f"cost=${cost:.2f} / "
-#             + hprint.to_str("prompt_tokens completion_tokens")
-#         )
-#     return cost
 
 
 @functools.lru_cache(maxsize=1024)
