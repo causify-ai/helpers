@@ -250,11 +250,6 @@ def get_completion(
         - "CAPTURE" :  Make API calls and save responses to cache
         - "REPLAY" : Uses cached responses, fail if not in cache
         - "FALLBACK" : Use cached responses if available, otherwise make API call
-    :param cache_mode : "DISABLED","CAPTURE", "REPLAY", "FALLBACK"
-        - "DISABLED" : No caching
-        - "CAPTURE" :  Make API calls and save responses to cache
-        - "REPLAY" : Uses cached responses, fail if not in cache
-        - "FALLBACK" : Use cached responses if available, otherwise make API call
     :return: completion text
     """
     model = _MODEL if model is None else model
@@ -332,6 +327,12 @@ def get_completion(
     if cache_mode != "DISABLED":
         cache.save_response_to_cache(
             hash_key, request=request_params, response=completion_obj
+        )
+    _LOG.debug(hprint.to_str("prompt_tokens completion_tokens cost"))
+    if print_cost:
+        print(
+            f"cost=${cost:.2f} / "
+            + hprint.to_str("prompt_tokens completion_tokens")
         )
     return response
 
