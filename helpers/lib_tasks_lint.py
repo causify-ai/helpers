@@ -182,50 +182,29 @@ def lint_detect_cycles(  # type: ignore
 # TODO
 @task
 def lint_show_deps(
-    c,
-    directory=".",
-    format="text",
-    output_file=None,
+    ctx,
+    dir_name=".",
+    stage="prod",
+    version="",
+    out_file_name="dependency_graph.dot",
     max_level=-1,
     show_cycles=False,
+    log_level="INFO",
 ):
     """
     Generate a dependency report for a specified directory.
-
-    Args:
-        c: Invoke context (required by invoke, unused).
-        directory (str): Directory to analyze (default: current directory).
-        format (str): Output format ('text' or 'dot', default: 'text').
-        output_file (str, optional): File to write output to (default: None).
-        max_level (int, optional): Max directory depth to analyze (default: None).
-        show_cycles (bool, optional): Show only cyclic dependencies (default: False).
-
-    Raises:
-        ValueError: If the format is neither 'text' nor 'dot'.
+    
+    :param dir_name: The name of dir to generate dependecy report for.
+    :param out_file_name: Path to the output DOT file. 
+    :param max_level: Maximum directory depth to analyze (-1 for no limit)
     """
-    # Convert max_level to int if provided
-    max_level = int(max_level) if max_level is not None else None
-    # Convert show_cycles to bool
-    show_cycles = show_cycles in (True, "True", "true", "1")
-    graph = DependencyGraph(
-        directory, max_level=max_level, show_cycles=show_cycles
-    )
-    graph.build_graph()
-    if format == "text":
-        report = graph.get_text_report()
-        if output_file:
-            with open(output_file, "w") as f:
-                f.write(report)
-            print(f"Report written to {output_file}")
-        else:
-            print(report)
-    elif format == "dot":
-        if not output_file:
-            output_file = "dependency_graph.dot"
-        graph.get_dot_file(output_file)
-        print(f"DOT file written to {output_file}")
-    else:
-        raise ValueError(f"Unsupported format: {format}")
+    hlitauti.report_task()
+    cmd = f"python import_check/show_deps.py {dir_name} --out_file {out_file_name} --max_level {max_level}"
+    if show_cycles:
+        cmd += " --show_cycles"
+    cmd += f" --log_level {log_level}"
+    docker_cmd = _get_lint_docker_cmd("", cmd, stage=stage, version=version)
+    hlitauti.run(ctx, docker_cmd)
 
 
 # pylint: disable=line-too-long
