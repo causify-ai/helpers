@@ -4,6 +4,10 @@ import unittest.mock as umock
 
 import pytest
 
+pytest.importorskip(
+    "openai"
+)  # noqa: E402 # pylint: disable=wrong-import-position
+
 import helpers.hopenai as hopenai
 import helpers.hunit_test as hunitest
 
@@ -26,7 +30,7 @@ _MODEL1 = "gpt-4o-mini"
 _MODEL2 = "gpt-o4-mini"
 
 
-def _get_completion_paramters1() -> dict:
+def _get_completion_parameters1() -> dict:
     data = {
         "user_prompt": _USER_PROMPT1,
         "system_prompt": _SYSTEM_PROMPT1,
@@ -44,7 +48,7 @@ def _get_openai_request_parameters1() -> dict:
     return data
 
 
-def _get_completion_paramters2() -> dict:
+def _get_completion_parameters2() -> dict:
     data = {
         "user_prompt": _USER_PROMPT2,
         "system_prompt": _SYSTEM_PROMPT1,
@@ -62,7 +66,7 @@ def _get_openai_request_parameters2() -> dict:
     return data
 
 
-def _get_completion_paramters3() -> dict:
+def _get_completion_parameters3() -> dict:
     data = {
         "user_prompt": _USER_PROMPT1,
         "system_prompt": _SYSTEM_PROMPT1,
@@ -80,7 +84,7 @@ def _get_openai_request_parameters3() -> dict:
     return data
 
 
-def _get_completion_paramters4() -> dict:
+def _get_completion_parameters4() -> dict:
     data = {
         "user_prompt": _USER_PROMPT1,
         "system_prompt": _SYSTEM_PROMPT1,
@@ -134,6 +138,7 @@ def _get_dummy_openai_response2() -> dict:
                 "index": 0,
                 "message": {
                     "role": "assistant",
+                    # TODO(gp): Use hprint.dedent
                     "content": """Artificial Intelligence (AI) is the field of computer science focused on creating
                                  systems or machines that can perform tasks typically requiring human
                                  intelligence. These tasks include:
@@ -161,6 +166,8 @@ def _get_dummy_openai_response2() -> dict:
 # #############################################################################
 
 
+# TODO(*): Rename _OpenAICacheTestCase
+@pytest.mark.skip(reason="Need OpenAI container")
 class BaseOpenAICacheTest(hunitest.TestCase):
     """
     - Ensure hopenai.get_completion() always uses REPLAY mode.
@@ -201,7 +208,7 @@ class BaseOpenAICacheTest(hunitest.TestCase):
 
     def set_up_test(self) -> None:
         """
-        Setup Operations to run before each test:
+        Setup operations to run before each test:
         - adding dummy requests and responses in temporary cache file
         """
         request_parameters1 = _get_openai_request_parameters1()
@@ -251,7 +258,7 @@ class Test_get_completion(BaseOpenAICacheTest):
         Verify that get_completion() returns response from cache with the
         expected response.
         """
-        parameters1 = _get_completion_paramters1()
+        parameters1 = _get_completion_parameters1()
         dummy_response1 = _get_dummy_openai_response1()
         response = hopenai.get_completion(
             **parameters1,
@@ -268,9 +275,9 @@ class Test_get_completion(BaseOpenAICacheTest):
         raise error in replay mode.
         """
         # parameters4 are not saved in test cache file
-        paramters4 = _get_completion_paramters4()
+        parameters4 = _get_completion_parameters4()
         with self.assertRaises(RuntimeError) as RTE:
-            hopenai.get_completion(**paramters4, cache_file=_TEST_CACHE_FILE)
+            hopenai.get_completion(**parameters4, cache_file=_TEST_CACHE_FILE)
         self.assert_equal(
             str(RTE.exception), "No cached response for this request parameters!"
         )
@@ -394,8 +401,8 @@ class Test_load_response_from_cache(BaseOpenAICacheTest):
         Trying to load unsaved response from cache.
         """
         # These parameters are not stored in cache.s
-        paramters4 = _get_openai_request_parameters4()
-        hash_key4 = self.get_completion_cache.hash_key_generator(**paramters4)
+        parameters4 = _get_openai_request_parameters4()
+        hash_key4 = self.get_completion_cache.hash_key_generator(**parameters4)
         with self.assertRaises(ValueError) as VE:
             self.get_completion_cache.load_response_from_cache(hash_key=hash_key4)
         self.assert_equal(str(VE.exception), "No cache found!")

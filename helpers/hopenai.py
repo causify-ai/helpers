@@ -8,6 +8,8 @@ import datetime
 import functools
 import hashlib
 import json
+import hashlib
+import json
 import logging
 import os
 import re
@@ -243,6 +245,11 @@ def get_completion(
     :param create_kwargs: additional params for the API call
     :param report_progress: whether to report progress running the API
         call
+    :param cache_mode : "DISABLED","CAPTURE", "REPLAY", "FALLBACK"
+        - "DISABLED" : No caching
+        - "CAPTURE" :  Make API calls and save responses to cache
+        - "REPLAY" : Uses cached responses, fail if not in cache
+        - "FALLBACK" : Use cached responses if available, otherwise make API call
     :param cache_mode : "DISABLED","CAPTURE", "REPLAY", "FALLBACK"
         - "DISABLED" : No caching
         - "CAPTURE" :  Make API calls and save responses to cache
