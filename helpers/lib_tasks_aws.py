@@ -261,83 +261,6 @@ def _register_task_definition(task_definition_name: str, region: str) -> None:
         region,
     )
 
-
-def _update_task_definition(
-    task_definition: str, image_tag: str, region: str
-) -> None:
-    """
-    Create the new revision of specified ECS task definition and point Image
-    URL specified to the new candidate image.
-
-    :param task_definition: the name of the ECS task definition for
-        which an update to container image URL is made, e.g. cmamp-test
-    :param image_tag: the hash of the new candidate image, e.g.
-        13538588e
-    :param region: region to update the task definition in
-    """
-    old_image_url = haws.get_task_definition_image_url(
-        task_definition, region=region
-    )
-    # Edit container version, e.g. cmamp:prod-12a45 - > cmamp:prod-12b46`
-    new_image_url = re.sub("prod-(.+)$", f"prod-{image_tag}", old_image_url)
-    haws.update_task_definition(task_definition, new_image_url, region=region)
-
-
-@task
-def aws_create_test_ecs_task_definition(
-    ctx,
-    issue_id: int = None,
-    region: str = hs3.AWS_EUROPE_REGION_1,
-) -> None:
-    """
-    Create a new ECS task definition.
-
-    :param issue_id: issue ID to create the task definition for
-    :param region: region to create the task definition in
-    """
-    _ = ctx
-    hlitauti.report_task()
-    # Check if the `issue_id` provided is valid.
-    hdbg.dassert_is_not(issue_id, None, "issue_id is required")
-    is_valid_issue_id = str(issue_id).isdigit()
-    hdbg.dassert(is_valid_issue_id, f"issue_id '{issue_id}' must be an integer")
-    # Check if the `region` provided is valid.
-    valid_regions = hs3.AWS_REGION_MAPPING.keys()
-    hdbg.dassert(
-        region in valid_regions,
-        f"region '{region}' must be one of {valid_regions}",
-    )
-    # Prepare inputs.
-    region = hs3.AWS_REGION_MAPPING[region]
-    image_name = hrecouti.get_repo_config().get_docker_base_image_name()
-    task_definition_name = f"{image_name}-test-{issue_id}"
-    # Register task definition.
-    _register_task_definition(task_definition_name, region=region)
-
-
-@task
-def aws_create_prod_ecs_task_definition(
-    ctx,
-    region: str = hs3.AWS_EUROPE_REGION_1,
-) -> None:
-    """
-    Create a new ECS task definition.
-
-    :param region: region to create the task definition in
-    """
-    _ = ctx
-    hlitauti.report_task()
-    hdbg.dassert(
-        region in hs3.AWS_REGIONS,
-        f"region '{region}' must be one of {hs3.AWS_REGIONS}",
-    )
-    image_name = hrecouti.get_repo_config().get_docker_base_image_name()
-    task_definition_name = f"{image_name}-prod"
-    # Register task definition.
-    _register_task_definition(task_definition_name, region=region)
-
-
-# TODO(heanh): Should this be an invoke task?
 def aws_update_ecs_task_definition(
     ctx,
     task_definition: str = None,
@@ -361,4 +284,59 @@ def aws_update_ecs_task_definition(
         region in hs3.AWS_REGIONS,
         f"region '{region}' must be one of {hs3.AWS_REGIONS}",
     )
-    _update_task_definition(task_definition, image_tag, region)
+    old_image_url = haws.get_task_definition_image_url(
+        task_definition, region=region
+    )
+    # Edit container version, e.g. cmamp:prod-12a45 - > cmamp:prod-12b46`
+    new_image_url = re.sub("prod-(.+)$", f"prod-{image_tag}", old_image_url)
+    haws.update_task_definition(task_definition, new_image_url, region=region)
+
+@task
+def aws_create_test_task_definition(
+    ctx,
+    issue_id: int = None,
+    region: str = hs3.AWS_EUROPE_REGION_1,
+) -> None:
+    """
+    Create a new ECS task definition.
+
+    :param issue_id: issue ID to create the task definition for
+    :param region: region to create the task definition in
+    """
+    _ = ctx
+    hlitauti.report_task()
+    # Check if the `issue_id` provided is valid.
+    hdbg.dassert_is_not(issue_id, None, "issue_id is required")
+    is_valid_issue_id = str(issue_id).isdigit()
+    hdbg.dassert(is_valid_issue_id, f"issue_id '{issue_id}' must be an integer")
+    # Check if the `region` provided is valid.
+    hdbg.dassert(
+        region in hs3.AWS_REGIONS,
+        f"region '{region}' must be one of {hs3.AWS_REGIONS}",
+    )
+    image_name = hrecouti.get_repo_config().get_docker_base_image_name()
+    task_definition_name = f"{image_name}-test-{issue_id}"
+    # Register task definition.
+    _register_task_definition(task_definition_name, region=region)
+
+
+@task
+def aws_create_prod_task_definition(
+    ctx,
+    region: str = hs3.AWS_EUROPE_REGION_1,
+) -> None:
+    """
+    Create a new ECS task definition.
+
+    :param region: region to create the task definition in
+    """
+    _ = ctx
+    hlitauti.report_task()
+    hdbg.dassert(
+        region in hs3.AWS_REGIONS,
+        f"region '{region}' must be one of {hs3.AWS_REGIONS}",
+    )
+    image_name = hrecouti.get_repo_config().get_docker_base_image_name()
+    task_definition_name = f"{image_name}-prod"
+    # Register task definition.
+    _register_task_definition(task_definition_name, region=region)

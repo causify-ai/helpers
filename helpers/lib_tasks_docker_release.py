@@ -1245,7 +1245,7 @@ def _check_workspace_dir_sizes() -> None:
 # One for creating the candidate image and one for updating the ECS task definition.
 @task
 def docker_create_candidate_image(
-    ctx, task_definition, user_tag="", region=hs3.AWS_EUROPE_REGION_1
+    ctx, user_tag=""
 ):  # type: ignore
     """
     Create new prod candidate image and update the specified ECS task
@@ -1257,6 +1257,7 @@ def docker_create_candidate_image(
     :param user_tag: the name of the user creating the image, empty
         parameter means the command was run via gh actions
     :param region: AWS Region, for Tokyo region specify 'ap-northeast-1'
+    :return: the tag used for the image
     """
     _check_workspace_dir_sizes()
     # Get the hash of the image.
@@ -1273,14 +1274,56 @@ def docker_create_candidate_image(
     )
     # Push candidate image.
     docker_push_prod_candidate_image(ctx, tag)
-    # Register new task definition revision with updated image URL.
-    hlitaaws.aws_update_ecs_task_definition(ctx, task_definition, tag, region)
+    return tag
 
 
-# /////////////////////////////////////////////////////////////////////////////
-
+# #############################################################################
+# ECS task definition workflows.
 # ECS task definition is a wrapper around a container definition.
+# #############################################################################
 
+@task
+def docker_release_test_task_definition(
+    ctx, task_definition: str = None, user_tag: str = None, region: str = hs3.AWS_EUROPE_REGION_1
+):  # type: ignore
+    """
+    Release candidate image to test ECS task definition.
+    """
+    hdbg.dassert(
+        region in hs3.AWS_REGIONS,
+        f"region '{region}' must be one of {hs3.AWS_REGIONS}",
+    )
+    # Verify that task definition is provided.
+    hdbg.dassert_is_not(task_definition, None, "task definition is required")
+    # Create candidate image.
+    image_tag = docker_create_candidate_image(ctx, user_tag)
+    # Update ECS task definition with new image URL.
+    hlitaaws.aws_update_ecs_task_definition(ctx, task_definition, image_tag, region)
+
+@task
+def docker_release_prod_task_definition(
+    ctx, region: str = hs3.AWS_EUROPE_REGION_1
+):  # type: ignore
+    """
+    Release prod image to prod ECS task definition.
+    """
+    hdbg.dassert(
+        region in hs3.AWS_REGIONS,
+        f"region '{region}' must be one of {hs3.AWS_REGIONS}",
+    )
+    # Prod release should be done from master branch and the client should be 
+    # clean.
+    curr_branch = hgit.get_branch_name()
+    hdbg.dassert_eq(
+        curr_branch, "master", msg="You should release from master branch"
+    )
+    _ = hgit.is_client_clean(abort_on_failure=True)
+    image_name = hrecouti.get_repo_config().get_docker_base_image_name()
+    task_definition_name = f"{image_name}-prod"
+    # Create candidate image.
+    image_tag = docker_create_candidate_image(ctx)
+    # Update ECS task definition with new image URL.
+    hlitaaws.aws_update_ecs_task_definition(ctx, task_definition_name, image_tag, region)
 
 @task
 def copy_ecs_task_definition_image_url(ctx, src_task_def, dst_task_def):  # type: ignore
