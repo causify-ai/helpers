@@ -140,9 +140,10 @@ _TASK_DEFINITION_LOG_OPTIONS_TEMPLATE = {
     "awslogs-region": "{}",
     "awslogs-stream-prefix": "ecs",
 }
-# TODO(heanh): Parameterize the account ID. 
+# TODO(heanh): Parameterize the account ID.
 _IMAGE_URL_TEMPLATE = "623860924167.dkr.ecr.{}.amazonaws.com/{}:prod-xyz"
 _SHARED_CONFIGS_DIR = "s3://causify-shared-configs"
+
 
 def _get_ecs_task_definition_template() -> Dict:
     """
@@ -261,6 +262,7 @@ def _register_task_definition(task_definition_name: str, region: str) -> None:
         region,
     )
 
+
 def aws_update_ecs_task_definition(
     ctx,
     task_definition: str = None,
@@ -280,16 +282,14 @@ def aws_update_ecs_task_definition(
     hlitauti.report_task()
     hdbg.dassert_is_not(task_definition, None, "task_definition is required")
     hdbg.dassert_is_not(image_tag, None, "image_tag is required")
-    hdbg.dassert(
-        region in hs3.AWS_REGIONS,
-        f"region '{region}' must be one of {hs3.AWS_REGIONS}",
-    )
+    hdbg.dassert_in(region, hs3.AWS_REGIONS)
     old_image_url = haws.get_task_definition_image_url(
         task_definition, region=region
     )
     # Edit container version, e.g. cmamp:prod-12a45 - > cmamp:prod-12b46`.
     new_image_url = re.sub("prod-(.+)$", f"prod-{image_tag}", old_image_url)
     haws.update_task_definition(task_definition, new_image_url, region=region)
+
 
 @task
 def aws_create_test_task_definition(
@@ -310,10 +310,7 @@ def aws_create_test_task_definition(
     is_valid_issue_id = str(issue_id).isdigit()
     hdbg.dassert(is_valid_issue_id, f"issue_id '{issue_id}' must be an integer")
     # Check if the `region` provided is valid.
-    hdbg.dassert(
-        region in hs3.AWS_REGIONS,
-        f"region '{region}' must be one of {hs3.AWS_REGIONS}",
-    )
+    hdbg.dassert_in(region, hs3.AWS_REGIONS)
     image_name = hrecouti.get_repo_config().get_docker_base_image_name()
     task_definition_name = f"{image_name}-test-{issue_id}"
     # Register task definition.
@@ -332,10 +329,7 @@ def aws_create_prod_task_definition(
     """
     _ = ctx
     hlitauti.report_task()
-    hdbg.dassert(
-        region in hs3.AWS_REGIONS,
-        f"region '{region}' must be one of {hs3.AWS_REGIONS}",
-    )
+    hdbg.dassert_in(region, hs3.AWS_REGIONS)
     image_name = hrecouti.get_repo_config().get_docker_base_image_name()
     task_definition_name = f"{image_name}-prod"
     # Register task definition.

@@ -140,6 +140,7 @@ def is_task_definition_exists(
         )
         return False
 
+
 # TODO(Nikola): Pass a dict config instead, so any part can be updated.
 def update_task_definition(
     task_definition_name: str, new_image_url: str, *, region: Optional[str] = None
