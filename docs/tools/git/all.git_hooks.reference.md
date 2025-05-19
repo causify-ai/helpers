@@ -25,7 +25,7 @@
   `git commit` to succeed
 - It ensures that essential checks are passed, such as verifying the branch,
   author information, file size limits, forbidden words, Python file
-  compilations, and secret leaks
+  compilations, secret leaks...etc.
 
 ## Commit-msg hook
 

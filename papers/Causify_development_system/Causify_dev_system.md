@@ -356,10 +356,10 @@ Figure 4. "Helpers" submodule integrated into a repository.
 
 Our "helpers" submodule includes a set of Git hooks used to enforce policies
 across our development process, including Git workflow rules, coding standards,
-and other quality checks. These hooks are installed by default when the user
-activates the thin environment. They perform essential checks such as verifying
-the branch name, author information, file size limits, forbidden words, Python
-file compilation, and potential secret leaks...etc.
+security and compliance, and other quality checks. These hooks are installed by
+default when the user activates the thin environment. They perform essential
+checks such as verifying the branch, author information, file size limits,
+forbidden words, Python file compilation, and potential secret leaks...etc.
 
 ### 3.5. Executing tests
 

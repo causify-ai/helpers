@@ -1,8 +1,8 @@
 <!-- toc -->
 
 - [Setup](#setup)
-  * [Installation](#installation)
   * [Configuration](#configuration)
+  * [Installation](#installation)
 - [Usage](#usage)
   * [Commit changes](#commit-changes)
   * [Skip the checks](#skip-the-checks)
@@ -10,19 +10,6 @@
 <!-- tocstop -->
 
 # Setup
-
-## Installation
-
-- To manually install the hooks, run
-
-  > dev_scripts_helpers/git/git_hooks/install_hooks.py --action install
-  ```
-  ```
-
-- To manually remove the hooks, run
-  ```bash
-  > dev_scripts_helpers/git/git_hooks/install_hooks.py --action remove
-  ```
 
 ## Configuration
 
@@ -38,6 +25,19 @@
     # Enable git-commit hooks.
     enable_git_commit_hook: False
   ...
+  ```
+
+## Installation
+
+- To manually install the hooks, run
+
+  ```bash
+  > dev_scripts_helpers/git/git_hooks/install_hooks.py --action install
+  ```
+
+- To manually remove the hooks, run
+  ```bash
+  > dev_scripts_helpers/git/git_hooks/install_hooks.py --action remove
   ```
 
 # Usage
