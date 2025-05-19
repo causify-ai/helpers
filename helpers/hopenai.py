@@ -8,8 +8,6 @@ import datetime
 import functools
 import hashlib
 import json
-import hashlib
-import json
 import logging
 import os
 import re
