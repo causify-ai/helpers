@@ -14,9 +14,11 @@ import re
 from typing import Any, Dict, List, Optional, Tuple
 
 import openai
-import tqdm
 import openai.types.beta.assistant as OAssistant
 import openai.types.beta.threads.message as OMessage
+import pandas as pd
+import requests
+import tqdm
 
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
@@ -34,6 +36,8 @@ _CACHE_MODE = "FALLBACK"
 _MODEL = "openai/gpt-4o-mini"
 # File for saving get_completion() cache.
 _CACHE_FILE = "cache.get_completion.json"
+# File for storing openrouter models information.
+_MODELS_INFO_FILE = "openrouter_models_info.csv"
 # Temperature adjusts an LLM’s sampling diversity:
 #  lower values make it more deterministic, while higher values foster creative variation.
 # 0 < Temperature <= 2, 0.1 is default value in openai models.
@@ -89,10 +93,44 @@ def _extract(
 
 _CURRENT_OPENAI_COST = None
 
+
 def get_openai_client() -> openai.OpenAI:
-    base_url="https://openrouter.ai/api/v1"
-    api_key=os.environ.get("OPENROUTER_API_KEY")
+    base_url = "https://openrouter.ai/api/v1"
+    api_key = os.environ.get("OPENROUTER_API_KEY")
     return openai.OpenAI(base_url=base_url, api_key=api_key)
+
+
+def _get_models_info() -> list[dict]:
+    # Get all openrouter models info.
+    response = requests.get("https://openrouter.ai/api/v1/models").json()
+    return response["data"]
+
+
+def _save_models_to_csv(
+    models_info: list, file_name: str = _MODELS_INFO_FILE
+) -> pd.DataFrame:
+    models_info_obj = pd.DataFrame(models_info)
+    # Extract prompt, completion pricing from pricing column.
+    models_info_obj["prompt_pricing"] = models_info_obj["pricing"].apply(
+        lambda x: x["prompt"]
+    )
+    models_info_obj["completion_pricing"] = models_info_obj["pricing"].apply(
+        lambda x: x["completion"]
+    )
+    # Take only relevant columns.
+    models_info_obj = models_info_obj[
+        [
+            "id",
+            "name",
+            "description",
+            "prompt_pricing",
+            "completion_pricing",
+            "supported_parameters",
+        ]
+    ]
+    # Save to CSV file.
+    models_info_obj.to_csv(file_name, index=False)
+    return models_info_obj
 
 
 def _construct_messages(
@@ -110,7 +148,7 @@ def _construct_messages(
 def _call_api_sync(
     client: openai.OpenAI,
     messages: List[Dict[str, str]],
-    temperature:float,
+    temperature: float,
     model: str,
     **create_kwargs,
 ) -> Tuple[str, Any]:
@@ -253,7 +291,11 @@ def get_completion(
     memento = htimer.dtimer_start(logging.DEBUG, "OpenAI API call")
     if not report_progress:
         response, completion = _call_api_sync(
-            client=client, messages=messages, model=model, temperature=temperature, **create_kwargs
+            client=client,
+            messages=messages,
+            model=model,
+            temperature=temperature,
+            **create_kwargs,
         )
     else:
         # TODO(gp): This is not working. It doesn't show the progress and it
@@ -331,7 +373,7 @@ def delete_all_files(*, ask_for_confirmation: bool = True) -> None:
     :param ask_for_confirmation: whether to prompt for confirmation
         before deletion
     """
-    client= get_openai_client()
+    client = get_openai_client()
     files = list(client.files.list())
     # Print.
     _LOG.info(files_to_str(files))
@@ -387,7 +429,7 @@ def delete_all_assistants(*, ask_for_confirmation: bool = True) -> None:
     :param ask_for_confirmation: whether to prompt for confirmation
         before deletion.
     """
-    client =get_openai_client()
+    client = get_openai_client()
     assistants = client.beta.assistants.list()
     assistants = assistants.data
     _LOG.info(assistants_to_str(assistants))
@@ -469,7 +511,9 @@ def get_coding_style_assistant(
     return assistant
 
 
-def get_query_assistant(assistant: OAssistant.Assistant, question: str) -> List[OMessage.Message]:
+def get_query_assistant(
+    assistant: OAssistant.Assistant, question: str
+) -> List[OMessage.Message]:
     """
     Query an assistant with sepecific question.
 
