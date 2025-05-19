@@ -2,89 +2,34 @@
 
 <!-- toc -->
 
-- [PR workflows](#pr-workflows)
-  * [Working in a branch](#working-in-a-branch)
-  * [Filing a PR](#filing-a-pr)
-  * [Before requesting review](#before-requesting-review)
-  * [During the review cycle](#during-the-review-cycle)
-- [Code style](#code-style)
-  * [Python code](#python-code)
-    + [Naming](#naming)
-    + [Docstrings](#docstrings)
-    + [Comments](#comments)
-    + [Code design](#code-design)
-    + [Imports](#imports)
-    + [Type annotations](#type-annotations)
-    + [Functions](#functions)
-    + [Scripts](#scripts)
-    + [Logging](#logging)
-    + [Unit tests](#unit-tests)
-    + [Misc](#misc)
-  * [Notebooks](#notebooks)
-    + [General](#general)
-    + [Jupytext](#jupytext)
-    + [Plotting](#plotting)
-  * [Markdowns](#markdowns)
-  * [File system structure](#file-system-structure)
-  * [Spelling](#spelling)
+- [Python code](#python-code)
+  * [Naming](#naming)
+  * [Docstrings](#docstrings)
+  * [Comments](#comments)
+  * [Code design](#code-design)
+  * [Imports](#imports)
+  * [Type annotations](#type-annotations)
+  * [Functions](#functions)
+  * [Scripts](#scripts)
+  * [Logging](#logging)
+  * [Unit tests](#unit-tests)
+  * [Misc](#misc)
+- [Notebooks](#notebooks)
+  * [General](#general)
+  * [Jupytext](#jupytext)
+  * [Plotting](#plotting)
+- [Markdowns](#markdowns)
+- [File system structure](#file-system-structure)
+- [Spelling](#spelling)
 
 <!-- tocstop -->
 
-This document outlines the rules that all PRs and checked-in code must follow.
-It can serve as a guideline for automated PR reviews.
+This document outlines the rules that all checked-in code must follow. It can
+serve as a guideline for automated PR reviews.
 
-## PR workflows
+## Python code
 
-### Working in a branch
-
-- The branch should be named following the format
-  `RelatedIssueTag_Normalized_issue_title`
-  - E.g., `HelpersTask123_Provide_branch_name_example`, if the branch is for
-    working on the issue #123 in the `helpers` repo with the title "Provide
-    branch name example"
-- Commit messages should be short and informative
-  - Ideally, they should follow the format
-    `RelatedIssueTag: High-level commit description`
-  - E.g., `HelpersTask123: Add example`
-  - Commit messages should not mention the name of the file that has been
-    changed by the commit
-
-### Filing a PR
-
-- The title of the PR should match the name of the branch
-- The starting post of the PR should briefly describe the content of the PR on a
-  high level
-- The issue related to the PR must be mentioned in the starting post of the PR
-- The PR must not be linked to any issues under the `Development` section
-- At least one reviewer must be assigned under `Reviewers`
-- The PR author must be listed under `Assignees`
-
-### Before requesting review
-
-- All the checks performed by GitHub Actions must pass
-- The branch must be up to date with the master branch
-- There should be no conflicts with the master branch
-- There should be no files checked in by mistake (such as tmp and log files)
-- All checked in files should be checked and formatted by Linter
-- No files larger than 500 KB should be checked in
-- Screenshots should not be used in PR posts to describe the situation or report
-  an error — copy-and-paste instead
-
-### During the review cycle
-
-- Label `PR_for_reviewers` should be present when a review is requested
-- Fixes addressing a review comment should be applied everywhere, not just where
-  the reviewer pointed out the issue
-- After addressing a review comment, the corresponding conversation should be
-  marked as `resolved`
-- After all review comments are resolved, `re-request review` button should be
-  used to request another round of review
-
-## Code style
-
-### Python code
-
-#### Naming
+### Naming
 
 - Name executable files (scripts) and library functions using verbs (e.g.,
   `download.py`, `download_data()`)
@@ -106,7 +51,7 @@ It can serve as a guideline for automated PR reviews.
 - To refer to the name of a column, use `..._col` and not `..._col_name` or
   `..._column`
 
-#### Docstrings
+### Docstrings
 
 - All functions and methods must have a docstring
 - Docstrings should be wrapped in triple quotation marks (`"""`)
@@ -146,7 +91,7 @@ It can serve as a guideline for automated PR reviews.
 - Multiline representations of data structures (e.g., an output example) should
   be wrapped in triple backticks
 
-#### Comments
+### Comments
 
 - Add a comment for every logically distinct chunk of code
 - Use comments to separate chunks of code instead of blank lines
@@ -170,7 +115,7 @@ It can serve as a guideline for automated PR reviews.
   the reason why
 - Comments with TODOs should have the format of `# TODO(username): ...`
 
-#### Code design
+### Code design
 
 - Follow DRY principle (Don't Repeat Yourself):
   - Factor out common code in a separate function / method
@@ -194,7 +139,7 @@ It can serve as a guideline for automated PR reviews.
   - The text inside the banner should start with a capital letter and end with a
     period
 
-#### Imports
+### Imports
 
 - All imports should be located at the top of the file
 - Do not use `import *`
@@ -207,7 +152,7 @@ It can serve as a guideline for automated PR reviews.
   - Linter adds it automatically
 - No import cycles should be introduced by the changes in the PR
 
-#### Type annotations
+### Type annotations
 
 - All functions and methods, including constructors, must have type annotations
   for all the parameters and returned structures
@@ -219,7 +164,7 @@ It can serve as a guideline for automated PR reviews.
   `Tuple[<type of tuple elements>]` instead of `tuple`, etc.
 - Type annotation `Any` should be avoided, if possible
 
-#### Functions
+### Functions
 
 - Avoid modifying the function input
   - For example, if a function `f` accepts a dataframe `df` as its (sole)
@@ -259,7 +204,7 @@ It can serve as a guideline for automated PR reviews.
   - E.g., call `func()` like `func(param1, param2, param3=param3)` if `param3`
     is the only parameter with a default value
 
-#### Scripts
+### Scripts
 
 - Use Python and not bash for scripting
 - All Python scripts that are meant to be executed directly should:
@@ -272,7 +217,7 @@ It can serve as a guideline for automated PR reviews.
     ```
   - Use `argparse` for argument parsing
 
-#### Logging
+### Logging
 
 - Use extensive logging (and not `print()`) for monitoring execution
 - Use the following idiom to configure logging:
@@ -288,7 +233,7 @@ It can serve as a guideline for automated PR reviews.
 - Use positional args in logging (e.g.,
   `_LOG.debug("cmd=%s %s %s", cmd1, cmd2, cmd3)`)
 
-#### Unit tests
+### Unit tests
 
 - Unit tests should be placed in a `test_*.py` file in the `test` directory,
   close to the library / code it tests
@@ -347,7 +292,7 @@ It can serve as a guideline for automated PR reviews.
 - If a unit test is renamed or removed in a PR, the corresponding files in the
   `outcomes` dir should also be renamed or removed
 
-#### Misc
+### Misc
 
 - If a PR includes renaming a file / variable / parameter / function / class /
   etc., then all the instances and references to it throughout the codebase
@@ -364,9 +309,9 @@ It can serve as a guideline for automated PR reviews.
   `if (not) var`)
 - Use `isinstance()` instead of `type()` to check the type of an object
 
-### Notebooks
+## Notebooks
 
-#### General
+### General
 
 - The name of a notebook should generally be the same as the branch name, unless
   it's a Master notebook
@@ -412,7 +357,7 @@ It can serve as a guideline for automated PR reviews.
   dropped
 - Progress bars should be added where applicable
 
-#### Jupytext
+### Jupytext
 
 - Every notebook should be accompanied by a Python file paired with the notebook
   by `jupytext`, containing a synchronized copy of the notebook code
@@ -424,7 +369,7 @@ It can serve as a guideline for automated PR reviews.
   by updated or deleted, and vice versa
 - Linter should be used on both the notebook and its paired Python file
 
-#### Plotting
+### Plotting
 
 - Each plot should have a descriptive title
 - Each plot should have axes labels
@@ -434,7 +379,7 @@ It can serve as a guideline for automated PR reviews.
 - If a function plots multiple plots, they should be generally plotted in a
   single figure
 
-### Markdowns
+## Markdowns
 
 - Names of documentation files should follow the format
   `docs/{component}/{audience}.{topic}.{diataxis_tag}.md`
@@ -463,7 +408,7 @@ It can serve as a guideline for automated PR reviews.
   - Do not explain things in a repetitive way
   - Rewrite long-winded AI-generated texts in a concise way
 
-### File system structure
+## File system structure
 
 - If a new directory with code is added, it should contain an empty
   `__init__.py` file
@@ -472,7 +417,7 @@ It can serve as a guideline for automated PR reviews.
   - Golden outcomes for tests should be located under the `test/outcomes` dir
 - Documentation files should generally be located under the `docs` dir
 
-### Spelling
+## Spelling
 
 - Capitalize the first letter of `Python`
 - Spell `Linter` with the first letter in upper case and do not use an article
