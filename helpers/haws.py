@@ -129,9 +129,16 @@ def is_task_definition_exists(
     try:
         client.describe_task_definition(taskDefinition=task_definition_name)
         return True
-    except Exception:
+    except client.exceptions.ClientError as e:
+        error_code = e.response["Error"]["Code"]
+        error_message = e.response["Error"]["Message"]
+        _LOG.warning(
+            "Failed to describe task definition '%s': %s - %s",
+            task_definition_name,
+            error_code,
+            error_message,
+        )
         return False
-
 
 # TODO(Nikola): Pass a dict config instead, so any part can be updated.
 def update_task_definition(
