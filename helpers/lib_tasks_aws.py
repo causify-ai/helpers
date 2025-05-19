@@ -133,7 +133,6 @@ def release_dags_to_airflow(
 # ECS Task Definition
 # #############################################################################
 
-# Decide where to get these values from.
 _AWS_PROFILE = "ck"
 _TASK_DEFINITION_LOG_OPTIONS_TEMPLATE = {
     "awslogs-create-group": "true",
@@ -141,8 +140,9 @@ _TASK_DEFINITION_LOG_OPTIONS_TEMPLATE = {
     "awslogs-region": "{}",
     "awslogs-stream-prefix": "ecs",
 }
+# TODO(heanh): Parameterize the account ID. 
 _IMAGE_URL_TEMPLATE = "623860924167.dkr.ecr.{}.amazonaws.com/{}:prod-xyz"
-
+_SHARED_CONFIGS_DIR = "s3://causify-shared-configs"
 
 def _get_ecs_task_definition_template() -> Dict:
     """
@@ -151,7 +151,7 @@ def _get_ecs_task_definition_template() -> Dict:
     :return: ECS task definition template
     """
     # TODO(heanh): Read the path from repo config.
-    s3_path = "s3://causify-shared-configs/preprod/templates/ecs/ecs_task_definition_template.json"
+    s3_path = f"{_SHARED_CONFIGS_DIR}/preprod/templates/ecs/ecs_task_definition_template.json"
     hs3.dassert_is_s3_path(s3_path)
     task_definition_config = hs3.from_file(s3_path, aws_profile=_AWS_PROFILE)
     task_definition_config = json.loads(task_definition_config)
@@ -165,7 +165,7 @@ def _get_efs_mount_config_template() -> Dict:
     :return: EFS mount config template
     """
     # TODO(heanh): Read the path from repo config.
-    s3_path = "s3://causify-shared-configs/preprod/templates/efs/efs_mount_config_template.json"
+    s3_path = f"{_SHARED_CONFIGS_DIR}/preprod/templates/efs/efs_mount_config_template.json"
     hs3.dassert_is_s3_path(s3_path)
     efs_config = hs3.from_file(s3_path, aws_profile=_AWS_PROFILE)
     efs_config = json.loads(efs_config)
@@ -187,7 +187,7 @@ def _set_task_definition_config(
     # from the template with concrete values.
     # We use single container inside our task definition and
     # the convention is to set the same name as the task
-    # definition itself
+    # definition itself.
     task_definition_config["containerDefinitions"][0][
         "name"
     ] = task_definition_name
@@ -209,7 +209,7 @@ def _set_task_definition_config(
     task_definition_config["containerDefinitions"][0]["environment"][1][
         "value"
     ] = region
-    # Configure access to EFS
+    # Configure access to EFS.
     efs_config = _get_efs_mount_config_template()
     task_definition_config["volumes"] = efs_config[region]["volumes"]
     task_definition_config["containerDefinitions"][0]["mountPoints"] = efs_config[
@@ -287,7 +287,7 @@ def aws_update_ecs_task_definition(
     old_image_url = haws.get_task_definition_image_url(
         task_definition, region=region
     )
-    # Edit container version, e.g. cmamp:prod-12a45 - > cmamp:prod-12b46`
+    # Edit container version, e.g. cmamp:prod-12a45 - > cmamp:prod-12b46`.
     new_image_url = re.sub("prod-(.+)$", f"prod-{image_tag}", old_image_url)
     haws.update_task_definition(task_definition, new_image_url, region=region)
 

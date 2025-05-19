@@ -121,6 +121,9 @@ def is_task_definition_exists(
 ) -> bool:
     """
     Check if a task definition exists in the specified region.
+
+    :param task_definition_name: the name of the ECS task definition
+    :param region: region of the task definition
     """
     client = get_ecs_client("ck", region=region)
     try:
