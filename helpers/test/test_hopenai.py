@@ -4,6 +4,10 @@ import unittest.mock as umock
 
 import pytest
 
+pytest.importorskip(
+    "openai"
+)  # noqa: E402 # pylint: disable=wrong-import-position
+
 import helpers.hopenai as hopenai
 import helpers.hunit_test as hunitest
 
