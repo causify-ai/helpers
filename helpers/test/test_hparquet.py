@@ -205,7 +205,6 @@ class TestParquet1(hunitest.TestCase):
             file_name,
             filesystem=filesystem,
             filters=filters,
-            use_legacy_dataset=False,
         )
         columns = None
         table = dataset.read(columns=columns)
@@ -517,7 +516,6 @@ class TestPartitionedParquet1(hunitest.TestCase):
             dir_name,
             filesystem=filesystem,
             filters=filters,
-            use_legacy_dataset=False,
         )
         table = dataset.read(columns=columns_to_read)
         df2 = table.to_pandas()
