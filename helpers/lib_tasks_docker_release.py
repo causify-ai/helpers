@@ -1317,7 +1317,7 @@ def docker_release_prod_task_definition(
     hdbg.dassert_eq(
         curr_branch, "master", msg="You should release from master branch"
     )
-    _ = hgit.is_client_clean(abort_on_failure=True)
+    _ = hgit.is_client_clean(abort_if_not_clean=True)
     image_name = hrecouti.get_repo_config().get_docker_base_image_name()
     task_definition_name = f"{image_name}-prod"
     # Create candidate image.
