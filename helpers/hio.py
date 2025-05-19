@@ -553,6 +553,7 @@ def change_filename_extension(filename: str, old_ext: str, new_ext: str) -> str:
 
 
 # TODO(gp): @all Use msg in all uses of this script `jackpyc "create_executable"`
+# TODO(gp): `file_name` should go last.
 def create_executable_script(
     file_name: str, content: str, *, msg: str = ""
 ) -> None:

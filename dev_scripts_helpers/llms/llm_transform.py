@@ -64,6 +64,12 @@ def _parse() -> argparse.ArgumentParser:
     hparser.add_prompt_arg(parser)
     hparser.add_dockerized_script_arg(parser)
     parser.add_argument(
+        "-d",
+        "--diff_compare",
+        action="store_true",
+        help="Compare the original and the transformed with vimdiff",
+    )
+    parser.add_argument(
         "-c",
         "--compare",
         action="store_true",
@@ -273,9 +279,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
             out_txt = hmarkdo.prettier_markdown(out_txt)
         #
         if dshlllpr.to_run("format_markdown", post_container_transforms):
-            # Note that we need to run this outside the `llm_transform` container to
-            # avoid to do docker-in-docker in the `llm_transform` container (which
-            # doesn't support that).
+            # Note that we need to run this outside the `llm_transform`
+            # container to avoid to do docker-in-docker in the `llm_transform`
+            # container (which doesn't support that).
             out_txt = hmarkdo.md_clean_up(out_txt)
             out_txt = hmarkdo.format_markdown(out_txt)
             if args.bold_first_level_bullets:
@@ -298,6 +304,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
             "Not all post_transforms were run: %s",
             post_container_transforms,
         )
+        if args.diff_compare:
+            txt = hio.from_file(tmp_in_file_name)
+            hio.to_file("original.txt", txt)
+            hio.to_file("transformed.txt", out_txt)
+            cmd = "vimdiff original.txt transformed.txt"
+            hio.create_executable_script("tmp.llm_diff.sh", cmd)
+
         if args.compare:
             out_txt_tmp = []
             out_txt_tmp.append("#### Original ####")

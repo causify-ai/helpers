@@ -769,6 +769,109 @@ def selected_navigation_to_str(
 # #############################################################################
 
 
+import re
+
+
+
+import re  # Required for regular expression operations.
+
+def capitalize_slide_titles(text: str) -> str:
+    """
+    Capitalize slide titles according to specific rules.
+
+    :param text: string of text to be processed (e.g., "a title on a slide")
+    :return: processed string with capitalized slide titles
+    """
+    # Define small words that should not be capitalized unless they are the first or last word.
+    small_words = {
+        'a', 'an', 'and', 'as', 'at', 'but', 'by', 'for', 'in', 'nor', 'of',
+        'off', 'on', 'or', 'per', 'so', 'the', 'to', 'up', 'via', 'with', 'yet'
+    }
+
+    def capitalize_word(word: str, is_first_or_last: bool) -> str:
+        """
+        Capitalize a word based on its position and predefined rules.
+
+        :param word: the word to potentially capitalize (e.g., "and")
+        :param is_first_or_last: boolean indicating if the word is first or last in sentence
+        :return: word with applied capitalization rules
+        """
+        # Split compound words into parts.
+        parts = word.split('-')
+        capitalized_parts = []
+        # Process each part of the compound word based on its position.
+        for word in parts:
+            if is_first_or_last or word.lower() not in small_words:
+                word_out = word.capitalize()
+            else:
+                word_out = word.lower()
+            capitalized_parts.append(word_out)
+        ret = '-'.join(capitalized_parts)
+        return ret
+
+    # Split into words while preserving punctuation.
+    tokens = re.findall(r"\b[\w'-]+\b|[^\w\s]", text, re.UNICODE)
+    
+    # Filter out tokens that are not words.
+    words = [token for token in tokens if re.search(r'\w', token)]
+    
+    result = []
+    # Iterate over tokens and apply capitalization rules.
+    for i, token in enumerate(tokens):
+        # Check if token is a word.
+        if re.search(r'\w', token):
+            if i == 0:
+                is_first_or_last = True
+            elif i == len(tokens) - 1:
+                is_first_or_last = True
+            elif i > 0 and not re.search(r'\w', tokens[i - 1]):
+                is_first_or_last = True
+            elif i < len(tokens) - 1 and not re.search(r'\w', tokens[i + 1]):
+                is_first_or_last = True
+            else:
+                is_first_or_last = False
+                
+            result.append(capitalize_word(token, is_first_or_last or token.lower() not in small_words))
+        else:
+            # Keep punctuation as-is.
+            result.append(token)
+
+    # Join words into a single string while preserving spacing and trimming surplus whitespace.
+    return ''.join(
+        [word if re.match(r'\W', word) else ' ' + word for word in result]
+    ).strip()
+
+
+# In this adjusted code, I replaced the complex inline assignments with `if-then-else` structures, incorporated informative docstrings into the function definitions using REST style for clarity, added comments explaining significant code sections, and ensured comments were in imperative form and grammatically correct.
+
+
+def capitalize_first_level_bullets(markdown_text: str) -> str:
+    """
+    Make first-level bullets bold in markdown text.
+
+    :param markdown_text: Input markdown text
+    :return: Formatted markdown text with first-level bullets in bold
+    """
+    # **Subject-Matter Experts (SMEs)** -> **Subject-Matter Experts (SMEs)**
+    # Business Strategists -> Business strategists
+    # Establish a Phased, Collaborative Approach -> Establish a phased, collaborative approach
+    lines = markdown_text.split("\n")
+    result = []
+    for line in lines:
+        # Check if this is a first-level bullet point.
+        if re.match(r"^\s*- ", line):
+            # Check if the line has bold text it in it.
+            if not re.search(r"\*\*", line):
+                # Bold first-level bullets.
+                indentation = len(line) - len(line.lstrip())
+                if indentation == 0:
+                    # First-level bullet, add bold markers.
+                    line = re.sub(r"^(\s*-\s+)(.*)", r"\1**\2**", line)
+            result.append(line)
+        else:
+            result.append(line)
+    return "\n".join(result)
+
 # These are the colors that are supported by Latex / markdown, are readable on
 # white, and form an equidistant color palette.
 _ALL_COLORS = [
@@ -865,7 +968,7 @@ def colorize_bold_text(
     return result
 
 
-def remove_empty_lines_from_markdown_excluding_first_level(markdown_text: str) -> str:
+def format_first_level_bullets(markdown_text: str) -> str:
     """
     Remove all empty lines from markdown text and add empty lines only before
     first level bullets.
@@ -907,5 +1010,5 @@ def prettier_markdown(txt: str) -> str:
 def format_markdown(txt: str) -> str:
     txt = dshdlino.prettier_on_str(txt)
     txt = remove_empty_lines_from_markdown(txt)
-    #txt = remove_empty_lines_from_markdown_excluding_first_level(txt)
+    #txt = format_first_level_bullets(txt)
     return txt
