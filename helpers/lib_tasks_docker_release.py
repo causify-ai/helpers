@@ -1268,7 +1268,7 @@ def docker_create_candidate_image(
     )
     # Push candidate image.
     docker_push_prod_candidate_image(ctx, tag)
-    exec_name = "im_v2/aws/aws_update_task_definition.py"
+    exec_name = "datapull/aws/aws_update_task_definition.py"
     # Ensure compatibility with repos where amp is a submodule.
     if not os.path.exists(exec_name):
         exec_name = f"amp/{exec_name}"
@@ -1341,7 +1341,7 @@ def docker_update_prod_task_definition(
     super_module = not hgit.is_inside_submodule()
     # Prepare params for listing DAGs.
     root_dir = hgit.get_client_root(super_module)
-    dags_path = [root_dir, "im_v2", "airflow", "dags"]
+    dags_path = [root_dir, "datapull", "airflow", "dags"]
     if super_module and hgit.is_amp_present():
         # Main DAGs location is always in `cmamp`.
         dags_path.insert(1, "amp")
