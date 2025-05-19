@@ -361,7 +361,7 @@ def _get_comment_prefix_postfix(extension: str) -> Tuple[str, str]:
     return comment_prefix, comment_postfix
 
 
-def _insert_image_code(extension: str, rel_img_path: str) -> str:
+def _insert_image_code(extension: str, rel_img_path: str, user_img_size: str) -> str:
     """
     Insert the code to display the image in the output file.
     """
@@ -369,7 +369,10 @@ def _insert_image_code(extension: str, rel_img_path: str) -> str:
     if extension in (".md", ".txt"):
         # Use the Markdown syntax.
         txt = f"![]({rel_img_path})"
-        # f"![]({rel_img_path})" + "{height=60%}"
+        # Add the size, if specified.
+        if user_img_size:
+            # E.g., "![](path/to/image.png){ height=100% }"
+            txt += "{ " + user_img_size + " }"
     elif extension == ".tex":
         # Use the LaTeX syntax.
         # We need to leave it on a single line to make it easy to find and
@@ -434,6 +437,8 @@ def _render_images(
     image_code_idx = 0
     # Image name explicitly set by the user with `plantuml(...)` syntax.
     user_rel_img_path = ""
+    # Image size explicitly set by the user with `plantuml[...]` syntax.
+    user_img_size = ""
     # Store the state of the parser.
     state = "search_image_code"
     # The code should look like:
@@ -447,7 +452,8 @@ def _render_images(
         ({comment}\s*)?     # Optional comment prefix
         ```                 # Opening backticks for code block
         (plantuml|mermaid|tikz|graphviz*)  # Image code type
-        (\((.*)\))?         # Optional user-specified image name in parentheses
+        (\((.*)\))?         # Optional user-specified image name as (...)
+        (\[(.*)\])?         # Optional user-specified image size as [...]
         \s*$                # Any trailing whitespace and end of the line
         """,
         re.VERBOSE,
@@ -483,6 +489,10 @@ def _render_images(
                 hdbg.dassert_eq(user_rel_img_path, "")
                 user_rel_img_path = m.group(4)
                 _LOG.debug(hprint.to_str("user_rel_img_path"))
+            if m.group(5):
+                hdbg.dassert_eq(user_img_size, "")
+                user_img_size = m.group(6)
+                _LOG.debug(hprint.to_str("user_img_size"))
             # Comment out the beginning of the image code.
             out_lines.append(
                 _comment_if_needed(state, line, comment_prefix, comment_postfix)
@@ -516,7 +526,8 @@ def _render_images(
                         state, line, comment_prefix, comment_postfix
                     )
                 )
-                out_lines.append(_insert_image_code(extension, rel_img_path))
+                out_lines.append(_insert_image_code(extension, rel_img_path, user_img_size))
+                user_img_size = ""
                 # Set the parser to search for a new image code block.
                 if state == "found_image_code":
                     state = "search_image_code"
