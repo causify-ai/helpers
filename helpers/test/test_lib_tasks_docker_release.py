@@ -1,10 +1,14 @@
 import logging
+import os
 import unittest.mock as umock
 from typing import Generator, List
 
+import boto3
+import moto
 import pytest
 
 import helpers.hunit_test as hunitest
+import helpers.lib_tasks_docker as hlitadoc
 import helpers.lib_tasks_docker_release as hltadore
 import helpers.test.test_lib_tasks as httestlib
 
@@ -90,15 +94,15 @@ class _DockerFlowTestHelper(hunitest.TestCase):
             self.get_docker_base_image_name_patcher.start()
         )
         #
-        self.patchers = [
-            self.system_patcher,
-            self.run_patcher,
-            self.version_patcher,
-            self.docker_login_patcher,
-            self.env_patcher,
-            self.get_docker_base_image_name_patcher,
-            self.get_default_param_patcher,
-        ]
+        self.patchers = {
+            "system": self.system_patcher,
+            "run": self.run_patcher,
+            "version": self.version_patcher,
+            "docker_login": self.docker_login_patcher,
+            "env": self.env_patcher,
+            "docker_base_image_name": self.get_docker_base_image_name_patcher,
+            "default_param": self.get_default_param_patcher,
+        }
         # Test inputs.
         self.mock_ctx = httestlib._build_mock_context_returning_ok()
         self.test_version = "1.0.0"
@@ -110,7 +114,7 @@ class _DockerFlowTestHelper(hunitest.TestCase):
         """
         Clean up test environment by stopping all mocks after each test case.
         """
-        for patcher in self.patchers:
+        for patcher in self.patchers.values():
             patcher.stop()
 
     def _check_docker_command_output(
@@ -796,3 +800,393 @@ class Test_docker_rollback_prod_image1(_DockerFlowTestHelper):
         docker push test.ecr.path/test-image:prod
         """
         self._check_docker_command_output(exp, self.mock_run.call_args_list)
+
+
+# #############################################################################
+# Test_docker_push_prod_candidate_image1
+# #############################################################################
+
+
+class Test_docker_push_prod_candidate_image1(_DockerFlowTestHelper):
+    """
+    Test pushing a prod candidate Docker image.
+    """
+
+    def test_aws_ecr1(self) -> None:
+        """
+        Test pushing to AWS ECR.
+
+        This test checks:
+        - Candidate image pushing
+        - AWS ECR target registry
+        - Hash-based image tagging
+        """
+        # Call tested function.
+        candidate = "4759b3685f903e6c669096e960b248ec31c63b69"
+        hltadore.docker_push_prod_candidate_image(
+            self.mock_ctx,
+            candidate=candidate,
+        )
+        exp = r"""
+        docker push test.ecr.path/test-image:prod-4759b3685f903e6c669096e960b248ec31c63b69
+        """
+        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+
+
+# #############################################################################
+# Test_docker_release_multi_arch_prod_image1
+# #############################################################################
+
+
+class Test_docker_release_multi_arch_prod_image1(_DockerFlowTestHelper):
+    """
+    Test releasing a multi-arch prod Docker image.
+    """
+
+    def test_multiple_registries1(self) -> None:
+        """
+        Test releasing to AWS ECR and DockerHub.
+
+        This test checks:
+        - Multi-arch build workflow
+        - AWS ECR and DockerHub target registries
+        - Test skipping options
+        - Image tagging and pushing
+        """
+        # Call tested function.
+        hltadore.docker_release_multi_arch_prod_image(
+            self.mock_ctx,
+            self.test_version,
+            cache=False,
+            skip_tests=True,
+            fast_tests=False,
+            slow_tests=False,
+            superslow_tests=False,
+            qa_tests=False,
+            docker_registry=["aws_ecr.ck", "dockerhub.causify"],
+        )
+        exp = r"""
+        cp -f devops/docker_build/dockerignore.prod .dockerignore
+        docker buildx create \
+            --name multiarch_builder \
+            --driver docker-container \
+            --bootstrap \
+            && \
+            docker buildx use multiarch_builder
+        tar -czh . | DOCKER_BUILDKIT=0 \
+            time \
+            docker buildx build \
+            --no-cache \
+            --push \
+            --platform linux/amd64,linux/arm64 \
+            --build-arg VERSION=1.0.0 --build-arg ECR_BASE_PATH=test.ecr.path \
+            --tag test.ecr.path/test-image:prod-1.0.0 \
+            --file devops/docker_build/prod.Dockerfile \
+            -
+        docker pull test.ecr.path/test-image:prod-1.0.0
+        docker image ls test.ecr.path/test-image:prod-1.0.0
+        docker buildx imagetools create -t test.ecr.path/test-image:prod test.ecr.path/test-image:prod-1.0.0
+        docker buildx imagetools create -t causify/test-image:prod-1.0.0 test.ecr.path/test-image:prod-1.0.0
+        docker buildx imagetools create -t causify/test-image:prod test.ecr.path/test-image:prod-1.0.0
+        """
+        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+
+
+# #############################################################################
+# Test_docker_create_candidate_image1
+# #############################################################################
+
+
+class Test_docker_create_candidate_image1(_DockerFlowTestHelper):
+    """
+    Test creating a candidate Docker image.
+    """
+
+    def set_up_test2(self) -> None:
+        """
+        Set up test environment with additional mocks specific to this test
+        class.
+        """
+        self.set_up_test()
+        # Mock git hash.
+        self.git_hash_patcher = umock.patch(
+            "helpers.hgit.get_head_hash",
+            return_value="4759b3685f903e6c669096e960b248ec31c63b69",
+        )
+        self.mock_git_hash = self.git_hash_patcher.start()
+        self.patchers["git_hash"] = self.git_hash_patcher
+        # Mock workspace size check.
+        self.workspace_check_patcher = umock.patch(
+            "helpers.lib_tasks_docker_release._check_workspace_dir_sizes"
+        )
+        self.mock_workspace_check = self.workspace_check_patcher.start()
+        self.patchers["workspace_check"] = self.workspace_check_patcher
+        # Mock file existence check to handle both paths.
+        self.file_exists_patcher = umock.patch("helpers.hdbg.dassert_file_exists")
+        self.mock_file_exists = self.file_exists_patcher.start()
+        self.patchers["file_exists"] = self.file_exists_patcher
+        # Mock `docker_build_prod_image()`.
+        self.build_prod_patcher = umock.patch(
+            "helpers.lib_tasks_docker_release.docker_build_prod_image"
+        )
+        self.mock_build_prod = self.build_prod_patcher.start()
+        self.patchers["build_prod"] = self.build_prod_patcher
+        # Mock `docker_push_prod_candidate_image()`.
+        self.push_prod_patcher = umock.patch(
+            "helpers.lib_tasks_docker_release.docker_push_prod_candidate_image"
+        )
+        self.mock_push_prod = self.push_prod_patcher.start()
+        self.patchers["push_prod"] = self.push_prod_patcher
+
+    def tear_down_test2(self) -> None:
+        """
+        Clean up test environment.
+        """
+        self.tear_down_test()
+
+    @pytest.fixture(autouse=True)
+    def setup_teardown_test(self) -> Generator:
+        """
+        Set up and tear down test environment for each test.
+        """
+        self.set_up_test2()
+        yield
+        self.tear_down_test2()
+
+    def test_aws_ecr1(self) -> None:
+        """
+        Test creating and pushing to AWS ECR.
+
+        This test checks:
+        - Task definition update with correct parameters
+        - Proper command construction for aws_update_task_definition.py
+        """
+        # Call tested function.
+        hltadore.docker_create_candidate_image(
+            self.mock_ctx,
+            task_definition="test_task",
+            user_tag="test_user",
+        )
+        exp = r"""
+        invoke docker_cmd -c "amp/datapull/aws/aws_update_task_definition.py -t test_task -i test_user-4759b3685f903e6c669096e960b248ec31c63b69 -r eu-north-1"
+        """
+        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+        # Verify the mocks were called with correct parameters.
+        self.mock_build_prod.assert_called_once_with(
+            self.mock_ctx,
+            version=hlitadoc._IMAGE_VERSION_FROM_CHANGELOG,
+            candidate=True,
+            tag="test_user-4759b3685f903e6c669096e960b248ec31c63b69",
+        )
+        self.mock_push_prod.assert_called_once_with(
+            self.mock_ctx,
+            "test_user-4759b3685f903e6c669096e960b248ec31c63b69",
+        )
+
+
+# #############################################################################
+# Test_docker_update_prod_task_definition1
+# #############################################################################
+
+
+class Test_docker_update_prod_task_definition1(_DockerFlowTestHelper):
+    """
+    Test updating a prod task definition to the desired version.
+    """
+
+    @pytest.fixture(autouse=True)
+    def aws_credentials(self) -> None:
+        """
+        Mocked AWS credentials for moto.
+        """
+        os.environ["DOCKER_MOCK_AWS_ACCESS_KEY_ID"] = "testing"
+        os.environ["DOCKER_MOCK_AWS_SECRET_ACCESS_KEY"] = "testing"
+        os.environ["DOCKER_MOCK_AWS_SECURITY_TOKEN"] = "testing"
+        os.environ["DOCKER_MOCK_AWS_SESSION_TOKEN"] = "testing"
+        os.environ["DOCKER_MOCK_AWS_DEFAULT_REGION"] = "us-east-1"
+
+    def set_up_test2(self) -> None:
+        """
+        Set up test environment with additional mocks specific to this test
+        class.
+        """
+        self.set_up_test()
+        # Mock AWS and S3 functionality.
+        self.aws_patcher = umock.patch(
+            "helpers.haws.get_task_definition_image_url"
+        )
+        self.mock_aws = self.aws_patcher.start()
+        self.mock_aws.return_value = (
+            "test.ecr.path/test-image:4759b3685f903e6c669096e960b248ec31c63b69"
+        )
+        self.patchers["aws"] = self.aws_patcher
+        self.s3_patcher = umock.patch("helpers.hs3.get_s3fs")
+        self.mock_s3 = self.s3_patcher.start()
+        self.mock_s3.return_value.cat.return_value = b"test_content"
+        self.patchers["s3"] = self.s3_patcher
+        # Mock file operations.
+        self.file_patcher = umock.patch(
+            "helpers.hs3.from_file", return_value="test_content"
+        )
+        self.mock_file = self.file_patcher.start()
+        self.patchers["file"] = self.file_patcher
+        # Mock listdir to return test DAG files.
+        self.listdir_patcher = umock.patch(
+            "helpers.hs3.listdir",
+            return_value=["/app/im_v2/airflow/dags/test_dag.py"],
+        )
+        self.mock_listdir = self.listdir_patcher.start()
+        self.patchers["listdir"] = self.listdir_patcher
+
+    def tear_down_test2(self) -> None:
+        """
+        Clean up test environment.
+        """
+        # Clean up environment variables.
+        for key in [
+            "DOCKER_MOCK_AWS_ACCESS_KEY_ID",
+            "DOCKER_MOCK_AWS_SECRET_ACCESS_KEY",
+            "DOCKER_MOCK_AWS_SECURITY_TOKEN",
+            "DOCKER_MOCK_AWS_SESSION_TOKEN",
+            "DOCKER_MOCK_AWS_DEFAULT_REGION",
+        ]:
+            if key in os.environ:
+                del os.environ[key]
+        # Call parent teardown.
+        self.tear_down_test()
+
+    @pytest.fixture(autouse=True)
+    def setup_teardown_test(self) -> Generator:
+        """
+        Set up and tear down test environment for each test.
+        """
+        self.set_up_test2()
+        yield
+        self.tear_down_test2()
+
+    @moto.mock_aws
+    @umock.patch("helpers.haws.update_task_definition")
+    @umock.patch("helpers.haws.get_ecs_client")
+    def test_promotion_to_prod(
+        self,
+        mock_get_ecs_client: umock.Mock,
+        mock_update_task_definition: umock.Mock,
+    ) -> None:
+        """
+        Test the promotion of a preprod Docker image and DAGs to production.
+
+        This test checks:
+        - Task definition update workflow
+        - Preprod to prod image conversion.
+        - DAG file synchronization
+        - Image tagging and pushing
+        """
+        # Mock AWS ECS client using moto and register a task definition.
+        region = "us-east-1"
+        mock_client = boto3.client("ecs", region_name=region)
+        mock_client.register_task_definition(
+            family="test_task",
+            containerDefinitions=[
+                {
+                    "name": "test-container",
+                    "image": "test.ecr.path/test-image:4759b3685f903e6c669096e960b248ec31c63b69",
+                }
+            ],
+            executionRoleArn="__mock__",
+            networkMode="bridge",
+            requiresCompatibilities=["EC2"],
+            cpu="256",
+            memory="512",
+        )
+        mock_get_ecs_client.return_value = mock_client
+        # Add mock client to patchers for cleanup.
+        self.ecs_client_patcher = umock.patch(
+            "boto3.client", return_value=mock_client
+        )
+        self.mock_ecs_client = self.ecs_client_patcher.start()
+        self.patchers["ecs_client_test1"] = self.ecs_client_patcher
+        # Call tested function.
+        hltadore.docker_update_prod_task_definition(
+            self.mock_ctx,
+            version=self.test_version,
+            preprod_tag="4759b3685f903e6c669096e960b248ec31c63b69",
+            airflow_dags_s3_path="s3://test-bucket/dags/",
+            task_definition="test_task",
+        )
+        exp = r"""
+        docker pull test.ecr.path/test-image:4759b3685f903e6c669096e960b248ec31c63b69
+        docker tag test.ecr.path/test-image:4759b3685f903e6c669096e960b248ec31c63b69 test.ecr.path/test-image:prod-1.0.0
+        docker tag test.ecr.path/test-image:4759b3685f903e6c669096e960b248ec31c63b69 test.ecr.path/test-image:prod
+        docker rmi test.ecr.path/test-image:4759b3685f903e6c669096e960b248ec31c63b69
+        docker push test.ecr.path/test-image:prod-1.0.0
+        docker push test.ecr.path/test-image:prod
+        """
+        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+        # Check whether `update_task_definition` was called with the expected arguments.
+        expected_image_url = "test.ecr.path/test-image:prod-1.0.0"
+        mock_update_task_definition.assert_called_once_with(
+            "test_task", expected_image_url
+        )
+
+    @moto.mock_aws
+    @umock.patch("helpers.haws.get_ecs_client")
+    def test_promotion_to_prod_exception_handling(
+        self, mock_get_ecs_client: umock.Mock
+    ) -> None:
+        """
+        Test exception handling and rollback behavior when updating prod task
+        definition.
+
+        This test checks:
+        - Exception handling during task definition update
+        - Rollback of task definition to original image
+        - Rollback of S3 DAG files
+        - Proper error propagation
+        """
+        # Mock AWS ECS client using moto and register a task definition.
+        region = "us-east-1"
+        mock_client = boto3.client("ecs", region_name=region)
+        mock_client.register_task_definition(
+            family="test_task",
+            containerDefinitions=[
+                {
+                    "name": "test-container",
+                    "image": "test.ecr.path/test-image:4759b3685f903e6c669096e960b248ec31c63b69",
+                }
+            ],
+            executionRoleArn="__mock__",
+            networkMode="bridge",
+            requiresCompatibilities=["EC2"],
+            cpu="256",
+            memory="512",
+        )
+        mock_get_ecs_client.return_value = mock_client
+        # Add mock client to patchers for cleanup.
+        self.ecs_client_patcher = umock.patch(
+            "boto3.client", return_value=mock_client
+        )
+        self.mock_ecs_client = self.ecs_client_patcher.start()
+        self.patchers["ecs_client_test2"] = self.ecs_client_patcher
+        # Mock S3 bucket operations to simulate a failure.
+        self.mock_s3.return_value.put.side_effect = Exception("S3 upload failed")
+        # Call tested function and verify exception is raised.
+        with self.assertRaises(Exception) as cm:
+            hltadore.docker_update_prod_task_definition(
+                self.mock_ctx,
+                version=self.test_version,
+                preprod_tag="4759b3685f903e6c669096e960b248ec31c63b69",
+                airflow_dags_s3_path="s3://test-bucket/dags/",
+                task_definition="test_task",
+            )
+        # Check the error message.
+        self.assertIn("S3 upload failed", str(cm.exception))
+        # Check whether rollback commands were executed.
+        exp = r"""
+        docker pull test.ecr.path/test-image:4759b3685f903e6c669096e960b248ec31c63b69
+        docker tag test.ecr.path/test-image:4759b3685f903e6c669096e960b248ec31c63b69 test.ecr.path/test-image:prod-1.0.0
+        docker tag test.ecr.path/test-image:4759b3685f903e6c669096e960b248ec31c63b69 test.ecr.path/test-image:prod
+        docker rmi test.ecr.path/test-image:4759b3685f903e6c669096e960b248ec31c63b69
+        """
+        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+        # Check whether task definition was rolled back.
+        self.mock_aws.assert_called_with("test_task")
