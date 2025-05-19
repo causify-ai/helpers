@@ -14,9 +14,9 @@ import re
 from typing import Any, Dict, List, Optional, Tuple
 
 import openai
-import tqdm
 import openai.types.beta.assistant as OAssistant
 import openai.types.beta.threads.message as OMessage
+import tqdm
 
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
@@ -105,7 +105,7 @@ def _construct_messages(
 def _call_api_sync(
     client: openai.OpenAI,
     messages: List[Dict[str, str]],
-    temperature:float,
+    temperature: float,
     model: str,
     **create_kwargs,
 ) -> Tuple[str, Any]:
@@ -253,7 +253,11 @@ def get_completion(
     memento = htimer.dtimer_start(logging.DEBUG, "OpenAI API call")
     if not report_progress:
         response, completion = _call_api_sync(
-            client=client, messages=messages, model=model, temperature=temperature, **create_kwargs
+            client=client,
+            messages=messages,
+            model=model,
+            temperature=temperature,
+            **create_kwargs,
         )
     else:
         # TODO(gp): This is not working. It doesn't show the progress and it
@@ -469,7 +473,9 @@ def get_coding_style_assistant(
     return assistant
 
 
-def get_query_assistant(assistant: OAssistant.Assistant, question: str) -> List[OMessage.Message]:
+def get_query_assistant(
+    assistant: OAssistant.Assistant, question: str
+) -> List[OMessage.Message]:
     """
     Query an assistant with sepecific question.
 
