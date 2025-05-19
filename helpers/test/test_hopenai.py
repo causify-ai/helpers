@@ -167,7 +167,6 @@ def _get_dummy_openai_response2() -> dict:
 
 
 # TODO(*): Rename _OpenAICacheTestCase
-@pytest.mark.skip(reason="Need OpenAI container")
 class BaseOpenAICacheTest(hunitest.TestCase):
     """
     - Ensure hopenai.get_completion() always uses REPLAY mode.
