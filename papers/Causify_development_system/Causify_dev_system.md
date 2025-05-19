@@ -6,11 +6,17 @@
     + [2.1. Monorepo](#21-monorepo)
     + [2.2. Multi-repo](#22-multi-repo)
     + [2.3. What is needed](#23-what-is-needed)
-  * [3. Causify's solution](#3-causifys-solution)
+  * [3. Proposed solution](#3-proposed-solution)
+  * [Design goals](#design-goals)
+    + [Development functionalities](#development-functionalities)
+    + [Python package management](#python-package-management)
+    + [Testing](#testing)
+    + [DevOps functionalities](#devops-functionalities)
     + [3.1. Runnable directory](#31-runnable-directory)
     + [3.2. Docker](#32-docker)
     + [3.3. Thin environment](#33-thin-environment)
     + [3.4. Submodule of "helpers"](#34-submodule-of-helpers)
+      - [3.4.1. Git hooks](#341-git-hooks)
     + [3.5. Executing tests](#35-executing-tests)
     + [3.6. Dockerized executables](#36-dockerized-executables)
   * [4. Discussion](#4-discussion)
@@ -50,10 +56,10 @@ presenting potential avenues for future improvement (Section 5).
 ### 2.1. Monorepo
 
 The monorepo approach involves storing all code for multiple applications within
-a single repository. This strategy has been popularized by large tech companies like
-Google[2], Meta[3], Microsoft[4] and Uber[5], proving that even codebases with
-billions of lines of code can be effectively managed in a single repository. The
-key benefits of this approach include:
+a single repository. This strategy has been popularized by large tech companies
+like Google[2], Meta[3], Microsoft[4] and Uber[5], proving that even codebases
+with billions of lines of code can be effectively managed in a single
+repository. The key benefits of this approach include:
 
 - Consistency in environment: with everything housed in one repository, there's
   no risk of projects becoming incompatible due to conflicting versions of
@@ -130,6 +136,7 @@ be discussed in Section 3.
 The proposed development system supports the following functionalities
 
 ### Development functionalities
+
 - Support composing code using a GitHub sub-module approach
 - Make it easy to add the development tool chain to a "new project" by simply
   adding the Git sub-module `//helpers` to the project
@@ -141,6 +148,7 @@ The proposed development system supports the following functionalities
   Visual Studio Code)
 
 ### Python package management
+
 - Carefully manage and control dependencies using Python managers (such as
   `poetry`) and virtual environments
 - Code and containers can be versioned and kept in sync automatically since a
@@ -151,6 +159,7 @@ The proposed development system supports the following functionalities
     the history
 
 ### Testing
+
 - Run end-to-end tests using `pytest` by automatically discover tests based on
   dependencies and test lists, supporting the dependencies needed by different
   directories
@@ -158,6 +167,7 @@ The proposed development system supports the following functionalities
   sibling containers
 
 ### DevOps functionalities
+
 - Support automatically different stages for container development
   - E.g., `test` / `local`, `dev`, `prod`
 - Standardize ways of building, testing, retrieving, and deploying containers
@@ -176,7 +186,6 @@ The proposed development system supports the following functionalities
   Subsystem for Linux WSL)
 - Support for developing, testing, and deploying multi-container applications
 
-
 ### 3.1. Runnable directory
 
 The core concept of the proposed approach is a **runnable directory** — a
@@ -190,9 +199,9 @@ A runnable directory can contain other runnable directories as subdirectories.
 For example, Figure 1 depicts three runnable directories: `A`, `B`, and `C`.
 Here, `A` and `C` are repositories, with `C` incorporated into `A` as a
 submodule, while `B` is a subdirectory within `A`. This setup provides the same
-accessibility as if all the code were hosted in a single monorepo. Note that each
-of `A`, `B`, and `C` has its own DevOps pipeline — a key feature of our approach,
-which is discussed further in Section 3.2.
+accessibility as if all the code were hosted in a single monorepo. Note that
+each of `A`, `B`, and `C` has its own DevOps pipeline — a key feature of our
+approach, which is discussed further in Section 3.2.
 
 ```mermaid
 graph RL
@@ -342,6 +351,15 @@ graph RL
 ```
 
 Figure 4. "Helpers" submodule integrated into a repository.
+
+#### 3.4.1. Git hooks
+
+Our "helpers" submodule includes a set of Git hooks used to enforce policies
+across our development process, including Git workflow rules, coding standards,
+and other safeguards. These hooks are installed by default when the user
+activates the thin environment. They perform essential checks such as verifying
+the branch name, author information, file size limits, forbidden words, Python
+file compilation, and potential secret leaks.
 
 ### 3.5. Executing tests
 
