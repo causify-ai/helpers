@@ -15,8 +15,8 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import openai
 import tqdm
-from openai.types.beta.assistant import Assistant
-from openai.types.beta.threads.message import Message
+import openai.types.beta.assistant as OAssistant
+import openai.types.beta.threads.message as OMessage
 
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
@@ -349,14 +349,14 @@ def delete_all_files(*, ask_for_confirmation: bool = True) -> None:
 # #############################################################################
 
 
-def assistant_to_info(assistant: Assistant) -> Dict[str, Any]:
+def assistant_to_info(assistant: OAssistant.Assistant) -> Dict[str, Any]:
     """
     Extract metadata from an assistant object.
 
     :param assistant: assistant object
     :return: dictionary with assistant metadata
     """
-    hdbg.dassert_isinstance(assistant, Assistant)
+    hdbg.dassert_isinstance(assistant, OAssistant.Assistant)
     keys = ["name", "created_at", "id", "instructions", "model"]
     assistant_info = _extract(assistant, keys)
     assistant_info["created_at"] = datetime.datetime.fromtimestamp(
@@ -365,7 +365,7 @@ def assistant_to_info(assistant: Assistant) -> Dict[str, Any]:
     return assistant_info
 
 
-def assistants_to_str(assistants: List[Assistant]) -> str:
+def assistants_to_str(assistants: List[OAssistant.Assistant]) -> str:
     """
     Generate a string summary of a list of assistants.
 
@@ -405,7 +405,7 @@ def get_coding_style_assistant(
     file_paths: List[str],
     *,
     model: Optional[str] = None,
-) -> Assistant:
+) -> OAssistant.Assistant:
     """
     Create or retrieve a coding style assistant with vector store support.
 
@@ -469,7 +469,7 @@ def get_coding_style_assistant(
     return assistant
 
 
-def get_query_assistant(assistant: Assistant, question: str) -> List[Message]:
+def get_query_assistant(assistant: OAssistant.Assistant, question: str) -> List[OMessage.Message]:
     """
     Query an assistant with sepecific question.
 
