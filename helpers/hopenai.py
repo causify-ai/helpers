@@ -31,7 +31,7 @@ _LOG = logging.getLogger(__name__)
 # FALLBACK: checks the response in cache, if doesn't exist make a call to OPENAI.
 _CACHE_MODE = "FALLBACK"
 # gpt-4o-mini is Openai Model, its great for most tasks.
-_MODEL = "gpt-4o-mini"
+_MODEL = "openai/gpt-4o-mini"
 # File for saving get_completion() cache.
 _CACHE_FILE = "cache.get_completion.json"
 # Temperature adjusts an LLM’s sampling diversity:
@@ -88,6 +88,11 @@ def _extract(
 
 
 _CURRENT_OPENAI_COST = None
+
+def get_openai_client() -> openai.OpenAI:
+    base_url="https://openrouter.ai/api/v1"
+    api_key=os.environ.get("OPENROUTER_API_KEY")
+    return openai.OpenAI(base_url=base_url, api_key=api_key)
 
 
 def _construct_messages(
@@ -243,12 +248,7 @@ def get_completion(
                 raise RuntimeError(
                     "No cached response for this request parameters!"
                 )
-    # client = openai.OpenAI(
-    #     # Important: Use OpenRouter's base URL.
-    #     base_url="https://openrouter.ai/api/v1",
-    #     api_key=os.environ.get("OPENROUTER_API_KEY"),
-    # )
-    client = openai.OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+    client = get_openai_client()
     # print("OpenAI API call ... ")
     memento = htimer.dtimer_start(logging.DEBUG, "OpenAI API call")
     if not report_progress:
@@ -279,13 +279,13 @@ def get_completion(
     msg, _ = htimer.dtimer_stop(memento)
     print(msg)
     # Calculate and accumulate the cost
-    cost = _calculate_cost(completion, model, print_cost)
+    # cost = _calculate_cost(completion, model, print_cost)
     # Accumulate the cost.
-    _accumulate_cost_if_needed(cost)
+    # _accumulate_cost_if_needed(cost)
     # Convert OpenAI completion object to DICT.
     completion_obj = completion.to_dict()
     # Store cost in the cache.
-    completion_obj["cost"] = cost
+    # completion_obj["cost"] = cost
     if cache_mode != "DISABLED":
         cache.save_response_to_cache(
             hash_key, request=request_params, response=completion_obj
@@ -331,7 +331,7 @@ def delete_all_files(*, ask_for_confirmation: bool = True) -> None:
     :param ask_for_confirmation: whether to prompt for confirmation
         before deletion
     """
-    client = openai.OpenAI()
+    client= get_openai_client()
     files = list(client.files.list())
     # Print.
     _LOG.info(files_to_str(files))
@@ -387,7 +387,7 @@ def delete_all_assistants(*, ask_for_confirmation: bool = True) -> None:
     :param ask_for_confirmation: whether to prompt for confirmation
         before deletion.
     """
-    client = openai.OpenAI()
+    client =get_openai_client()
     assistants = client.beta.assistants.list()
     assistants = assistants.data
     _LOG.info(assistants_to_str(assistants))
@@ -417,11 +417,11 @@ def get_coding_style_assistant(
     :return: created or updated assistant object
     """
     model = _MODEL if model is None else model
-    client = openai.OpenAI()
+    client = get_openai_client()
     # Check if the assistant already exists.
     existing_assistants = list(client.beta.assistants.list().data)
     for existing_assistant in existing_assistants:
-        if existing_assistant.name == "assistant_name":
+        if existing_assistant.name == assistant_name:
             _LOG.debug("Assistant '%s' already exists.", assistant_name)
             return existing_assistant
     # Cretae the assistant.
@@ -477,7 +477,7 @@ def get_query_assistant(assistant: OAssistant.Assistant, question: str) -> List[
     :param question: user question
     :return: list of messages containing the assistant's response
     """
-    client = openai.OpenAI()
+    client = get_openai_client()
     # Create a thread and attach the file to the message.
     thread = client.beta.threads.create(
         messages=[
