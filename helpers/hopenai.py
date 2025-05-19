@@ -191,7 +191,7 @@ def get_current_cost() -> float:
 def _calculate_cost(
     completion: openai.types.chat.chat_completion.ChatCompletion,
     model: str,
-    print_cost: bool = False,
+    models_info_file: str = _MODELS_INFO_FILE,
 ) -> float:
     """
     Calculate the cost of an OpenAI API call.
@@ -203,27 +203,21 @@ def _calculate_cost(
     """
     prompt_tokens = completion.usage.prompt_tokens
     completion_tokens = completion.usage.completion_tokens
-    # Get the pricing for the selected model.
-    # https://openai.com/api/pricing/
-    # https://gptforwork.com/tools/openai-chatgpt-api-pricing-calculator
-    # Cost per 1M tokens.
-    pricing = {
-        "gpt-3.5-turbo": {"prompt": 0.5, "completion": 1.5},
-        "gpt-4o-mini": {"prompt": 0.15, "completion": 0.60},
-        "gpt-4o": {"prompt": 5, "completion": 15},
-    }
-    hdbg.dassert_in(model, pricing)
-    model_pricing = pricing[model]
-    # Calculate the cost.
-    cost = (prompt_tokens / 1e6) * model_pricing["prompt"] + (
-        completion_tokens / 1e6
-    ) * model_pricing["completion"]
-    _LOG.debug(hprint.to_str("prompt_tokens completion_tokens cost"))
-    if print_cost:
-        print(
-            f"cost=${cost:.2f} / "
-            + hprint.to_str("prompt_tokens completion_tokens")
-        )
+    # Models info are saved in the CSV file.
+    # Ensure file exist, if not create the file.
+    if not os.path.isfile(models_info_file):
+        _save_models_to_csv(_get_models_info())
+    # Ensure model info present in the file.
+    models_info_obj: pd.Data = pd.read_csv(models_info_file)
+    if model not in models_info_obj["id"].values:
+        # Refresh CSV and reload
+        models_info_obj = _save_models_to_csv(_get_models_info())
+    # Extract pricing for this model.
+    row = models_info_obj.loc[models_info_obj["id"] == model].iloc[0]
+    prompt_price = row["prompt_pricing"]
+    completion_price = row["completion_pricing"]
+    # Compute cost.
+    cost = (prompt_tokens) * prompt_price + (completion_tokens) * completion_price
     return cost
 
 
@@ -321,13 +315,13 @@ def get_completion(
     msg, _ = htimer.dtimer_stop(memento)
     print(msg)
     # Calculate and accumulate the cost
-    # cost = _calculate_cost(completion, model, print_cost)
+    cost = _calculate_cost(completion, model, print_cost)
     # Accumulate the cost.
-    # _accumulate_cost_if_needed(cost)
+    _accumulate_cost_if_needed(cost)
     # Convert OpenAI completion object to DICT.
     completion_obj = completion.to_dict()
     # Store cost in the cache.
-    # completion_obj["cost"] = cost
+    completion_obj["cost"] = cost
     if cache_mode != "DISABLED":
         cache.save_response_to_cache(
             hash_key, request=request_params, response=completion_obj
