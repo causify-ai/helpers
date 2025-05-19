@@ -14,9 +14,11 @@ import re
 from typing import Any, Dict, List, Optional, Tuple
 
 import openai
-import tqdm
 import openai.types.beta.assistant as OAssistant
 import openai.types.beta.threads.message as OMessage
+import pandas as pd
+import requests
+import tqdm
 
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
@@ -34,6 +36,8 @@ _CACHE_MODE = "FALLBACK"
 _MODEL = "openai/gpt-4o-mini"
 # File for saving get_completion() cache.
 _CACHE_FILE = "cache.get_completion.json"
+# File for storing openrouter models information.
+_MODELS_INFO_FILE = "openrouter_models_info.csv"
 # Temperature adjusts an LLM’s sampling diversity:
 #  lower values make it more deterministic, while higher values foster creative variation.
 # 0 < Temperature <= 2, 0.1 is default value in openai models.
@@ -89,10 +93,44 @@ def _extract(
 
 _CURRENT_OPENAI_COST = None
 
+
 def get_openai_client() -> openai.OpenAI:
-    base_url="https://openrouter.ai/api/v1"
-    api_key=os.environ.get("OPENROUTER_API_KEY")
+    base_url = "https://openrouter.ai/api/v1"
+    api_key = os.environ.get("OPENROUTER_API_KEY")
     return openai.OpenAI(base_url=base_url, api_key=api_key)
+
+
+def _get_models_info() -> list[dict]:
+    # Get all openrouter models info.
+    response = requests.get("https://openrouter.ai/api/v1/models").json()
+    return response["data"]
+
+
+def _save_models_to_csv(
+    models_info: list, file_name: str = _MODELS_INFO_FILE
+) -> pd.DataFrame:
+    models_info_obj = pd.DataFrame(models_info)
+    # Extract prompt, completion pricing from pricing column.
+    models_info_obj["prompt_pricing"] = models_info_obj["pricing"].apply(
+        lambda x: x["prompt"]
+    )
+    models_info_obj["completion_pricing"] = models_info_obj["pricing"].apply(
+        lambda x: x["completion"]
+    )
+    # Take only relevant columns.
+    models_info_obj = models_info_obj[
+        [
+            "id",
+            "name",
+            "description",
+            "prompt_pricing",
+            "completion_pricing",
+            "supported_parameters",
+        ]
+    ]
+    # Save to CSV file.
+    models_info_obj.to_csv(file_name, index=False)
+    return models_info_obj
 
 
 def _construct_messages(
@@ -110,7 +148,7 @@ def _construct_messages(
 def _call_api_sync(
     client: openai.OpenAI,
     messages: List[Dict[str, str]],
-    temperature:float,
+    temperature: float,
     model: str,
     **create_kwargs,
 ) -> Tuple[str, Any]:
@@ -153,7 +191,7 @@ def get_current_cost() -> float:
 def _calculate_cost(
     completion: openai.types.chat.chat_completion.ChatCompletion,
     model: str,
-    print_cost: bool = False,
+    models_info_file: str = _MODELS_INFO_FILE,
 ) -> float:
     """
     Calculate the cost of an OpenAI API call.
@@ -165,27 +203,21 @@ def _calculate_cost(
     """
     prompt_tokens = completion.usage.prompt_tokens
     completion_tokens = completion.usage.completion_tokens
-    # Get the pricing for the selected model.
-    # https://openai.com/api/pricing/
-    # https://gptforwork.com/tools/openai-chatgpt-api-pricing-calculator
-    # Cost per 1M tokens.
-    pricing = {
-        "gpt-3.5-turbo": {"prompt": 0.5, "completion": 1.5},
-        "gpt-4o-mini": {"prompt": 0.15, "completion": 0.60},
-        "gpt-4o": {"prompt": 5, "completion": 15},
-    }
-    hdbg.dassert_in(model, pricing)
-    model_pricing = pricing[model]
-    # Calculate the cost.
-    cost = (prompt_tokens / 1e6) * model_pricing["prompt"] + (
-        completion_tokens / 1e6
-    ) * model_pricing["completion"]
-    _LOG.debug(hprint.to_str("prompt_tokens completion_tokens cost"))
-    if print_cost:
-        print(
-            f"cost=${cost:.2f} / "
-            + hprint.to_str("prompt_tokens completion_tokens")
-        )
+    # Models info are saved in the CSV file.
+    # Ensure file exist, if not create the file.
+    if not os.path.isfile(models_info_file):
+        _save_models_to_csv(_get_models_info())
+    # Ensure model info present in the file.
+    models_info_obj: pd.Data = pd.read_csv(models_info_file)
+    if model not in models_info_obj["id"].values:
+        # Refresh CSV and reload
+        models_info_obj = _save_models_to_csv(_get_models_info())
+    # Extract pricing for this model.
+    row = models_info_obj.loc[models_info_obj["id"] == model].iloc[0]
+    prompt_price = row["prompt_pricing"]
+    completion_price = row["completion_pricing"]
+    # Compute cost.
+    cost = (prompt_tokens) * prompt_price + (completion_tokens) * completion_price
     return cost
 
 
@@ -253,7 +285,11 @@ def get_completion(
     memento = htimer.dtimer_start(logging.DEBUG, "OpenAI API call")
     if not report_progress:
         response, completion = _call_api_sync(
-            client=client, messages=messages, model=model, temperature=temperature, **create_kwargs
+            client=client,
+            messages=messages,
+            model=model,
+            temperature=temperature,
+            **create_kwargs,
         )
     else:
         # TODO(gp): This is not working. It doesn't show the progress and it
@@ -279,16 +315,22 @@ def get_completion(
     msg, _ = htimer.dtimer_stop(memento)
     print(msg)
     # Calculate and accumulate the cost
-    # cost = _calculate_cost(completion, model, print_cost)
+    cost = _calculate_cost(completion, model, print_cost)
     # Accumulate the cost.
-    # _accumulate_cost_if_needed(cost)
+    _accumulate_cost_if_needed(cost)
     # Convert OpenAI completion object to DICT.
     completion_obj = completion.to_dict()
     # Store cost in the cache.
-    # completion_obj["cost"] = cost
+    completion_obj["cost"] = cost
     if cache_mode != "DISABLED":
         cache.save_response_to_cache(
             hash_key, request=request_params, response=completion_obj
+        )
+    _LOG.debug(hprint.to_str("prompt_tokens completion_tokens cost"))
+    if print_cost:
+        print(
+            f"cost=${cost:.2f} / "
+            + hprint.to_str("prompt_tokens completion_tokens")
         )
     return response
 
@@ -331,7 +373,7 @@ def delete_all_files(*, ask_for_confirmation: bool = True) -> None:
     :param ask_for_confirmation: whether to prompt for confirmation
         before deletion
     """
-    client= get_openai_client()
+    client = get_openai_client()
     files = list(client.files.list())
     # Print.
     _LOG.info(files_to_str(files))
@@ -387,7 +429,7 @@ def delete_all_assistants(*, ask_for_confirmation: bool = True) -> None:
     :param ask_for_confirmation: whether to prompt for confirmation
         before deletion.
     """
-    client =get_openai_client()
+    client = get_openai_client()
     assistants = client.beta.assistants.list()
     assistants = assistants.data
     _LOG.info(assistants_to_str(assistants))
@@ -469,7 +511,9 @@ def get_coding_style_assistant(
     return assistant
 
 
-def get_query_assistant(assistant: OAssistant.Assistant, question: str) -> List[OMessage.Message]:
+def get_query_assistant(
+    assistant: OAssistant.Assistant, question: str
+) -> List[OMessage.Message]:
     """
     Query an assistant with sepecific question.
 
