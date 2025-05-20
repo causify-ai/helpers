@@ -1241,8 +1241,6 @@ def _check_workspace_dir_sizes() -> None:
     )
 
 
-# TODO(heanh): Consider splitting this into 2 tasks?
-# One for creating the candidate image and one for updating the ECS task definition.
 @task
 def docker_create_candidate_image(ctx, user_tag=""):  # type: ignore
     """

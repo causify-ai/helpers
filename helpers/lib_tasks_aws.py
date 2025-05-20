@@ -11,7 +11,7 @@ import json
 import logging
 import os
 import re
-from typing import Dict
+from typing import Any, Dict
 
 from invoke import task
 
@@ -145,7 +145,7 @@ _IMAGE_URL_TEMPLATE = "623860924167.dkr.ecr.{}.amazonaws.com/{}:prod-xyz"
 _SHARED_CONFIGS_DIR = "s3://causify-shared-configs"
 
 
-def _get_ecs_task_definition_template() -> Dict:
+def _get_ecs_task_definition_template() -> Dict[str, Any]:
     """
     Get the ECS task definition template.
 
@@ -159,7 +159,7 @@ def _get_ecs_task_definition_template() -> Dict:
     return task_definition_config
 
 
-def _get_efs_mount_config_template() -> Dict:
+def _get_efs_mount_config_template() -> Dict[str, Any]:
     """
     Get the EFS mount config template.
 
@@ -175,7 +175,7 @@ def _get_efs_mount_config_template() -> Dict:
 
 def _set_task_definition_config(
     task_definition_config: Dict, task_definition_name: str, region: str
-) -> Dict:
+) -> Dict[str, Any]:
     """
     Update template of ECS task definition with concrete values.
 
