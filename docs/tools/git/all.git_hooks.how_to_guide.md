@@ -17,8 +17,7 @@
   environment via the `setenv.sh` script
 
 - Although not recommended, users can explicitly disable the hooks for the
-  entire repo by adding the the following configuration in the
-  `repo_config.yaml`:
+  entire repo by adding the following configuration in the `repo_config.yaml`:
   ```yaml
   repo_info:
     ...
@@ -97,11 +96,6 @@
       Lint
 
       Pre-commit checks:
-      - 'check_master' passed
-      - 'check_author' passed
-      - 'check_file_size' passed
-      - 'check_python_compile' passed
-      - 'check_gitleaks' passed
       All checks passed ✅
   ```
 
