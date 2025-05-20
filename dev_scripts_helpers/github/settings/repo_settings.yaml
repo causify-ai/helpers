@@ -1,23 +1,28 @@
 # Repository settings
-# - Basic settings: name, description, visibility, archive status
-# - Feature settings: issues, projects, wiki
-# - Merge settings: merge strategies and branch cleanup
+# - Basic settings: repository details
+# - Feature settings: repository features
+# - Merge settings: merge strategies
 # - Security settings: automated fixes and vulnerability alerts
 # - Topics: repository categorization tags
 repository_settings:
+  # Basic settings
   name: "test-repo"
   description: "Example repository with branch protection and settings"
   private: true
   archived: false
+  # Feature settings
   has_issues: true
   has_projects: true
   has_wiki: false
+  # Merge settings
   allow_squash_merge: true
   allow_merge_commit: false
   allow_rebase_merge: true
   delete_branch_on_merge: true
+  # Security settings
   enable_automated_security_fixes: true
   enable_vulnerability_alerts: true
+  # Topics
   topics:
     - "python"
     - "automation"
@@ -30,15 +35,18 @@ repository_settings:
 # - Admin enforcement: whether rules apply to admins
 branch_protection:
   main:
+    # Required status checks
     required_status_checks:
       strict: true
       contexts:
         - "ci/lint"
         - "ci/fasttests"
+    # Pull request reviews
     required_pull_request_reviews:
       dismiss_stale_reviews: true
       require_code_owner_reviews: true
       required_approving_review_count: 1
+    # Restrictions
     restrictions:
       users:
         - "admin1"
@@ -46,4 +54,5 @@ branch_protection:
       teams:
         - "maintainers"
         - "developers"
+    # Admin enforcement
     enforce_admins: true
