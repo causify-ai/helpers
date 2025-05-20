@@ -1244,9 +1244,7 @@ def _check_workspace_dir_sizes() -> None:
 # TODO(heanh): Consider splitting this into 2 tasks?
 # One for creating the candidate image and one for updating the ECS task definition.
 @task
-def docker_create_candidate_image(
-    ctx, user_tag=""
-):  # type: ignore
+def docker_create_candidate_image(ctx, user_tag=""):  # type: ignore
     """
     Create new prod candidate image and update the specified ECS task
     definition such that the Image URL specified in container definition points
@@ -1282,9 +1280,13 @@ def docker_create_candidate_image(
 # ECS task definition is a wrapper around a container definition.
 # #############################################################################
 
+
 @task
 def docker_release_test_task_definition(
-    ctx, task_definition: str = None, user_tag: str = None, region: str = hs3.AWS_EUROPE_REGION_1
+    ctx,
+    task_definition: str = None,
+    user_tag: str = None,
+    region: str = hs3.AWS_EUROPE_REGION_1,
 ):  # type: ignore
     """
     Release candidate image to test ECS task definition.
@@ -1298,7 +1300,10 @@ def docker_release_test_task_definition(
     # Create candidate image.
     image_tag = docker_create_candidate_image(ctx, user_tag)
     # Update ECS task definition with new image URL.
-    hlitaaws.aws_update_ecs_task_definition(ctx, task_definition, image_tag, region)
+    hlitaaws.aws_update_ecs_task_definition(
+        ctx, task_definition, image_tag, region
+    )
+
 
 @task
 def docker_release_prod_task_definition(
@@ -1311,7 +1316,7 @@ def docker_release_prod_task_definition(
         region in hs3.AWS_REGIONS,
         f"region '{region}' must be one of {hs3.AWS_REGIONS}",
     )
-    # Prod release should be done from master branch and the client should be 
+    # Prod release should be done from master branch and the client should be
     # clean.
     curr_branch = hgit.get_branch_name()
     hdbg.dassert_eq(
@@ -1323,7 +1328,10 @@ def docker_release_prod_task_definition(
     # Create candidate image.
     image_tag = docker_create_candidate_image(ctx)
     # Update ECS task definition with new image URL.
-    hlitaaws.aws_update_ecs_task_definition(ctx, task_definition_name, image_tag, region)
+    hlitaaws.aws_update_ecs_task_definition(
+        ctx, task_definition_name, image_tag, region
+    )
+
 
 @task
 def copy_ecs_task_definition_image_url(ctx, src_task_def, dst_task_def):  # type: ignore
