@@ -41,7 +41,7 @@ def _get_completion_parameters1() -> dict:
 
 
 def _get_openai_request_parameters1() -> dict:
-    messages = hopenai._construct_messages(
+    messages = hopenai._build_messages(
         user_prompt=_USER_PROMPT1, system_prompt=_SYSTEM_PROMPT1
     )
     data = {"messages": messages, "temperature": _TEMPERATURE1, "model": _MODEL1}
@@ -59,7 +59,7 @@ def _get_completion_parameters2() -> dict:
 
 
 def _get_openai_request_parameters2() -> dict:
-    messages = hopenai._construct_messages(
+    messages = hopenai._build_messages(
         user_prompt=_USER_PROMPT2, system_prompt=_SYSTEM_PROMPT1
     )
     data = {"messages": messages, "temperature": _TEMPERATURE1, "model": _MODEL1}
@@ -77,7 +77,7 @@ def _get_completion_parameters3() -> dict:
 
 
 def _get_openai_request_parameters3() -> dict:
-    messages = hopenai._construct_messages(
+    messages = hopenai._build_messages(
         user_prompt=_USER_PROMPT1, system_prompt=_SYSTEM_PROMPT1
     )
     data = {"messages": messages, "temperature": _TEMPERATURE2, "model": _MODEL1}
@@ -95,7 +95,7 @@ def _get_completion_parameters4() -> dict:
 
 
 def _get_openai_request_parameters4() -> dict:
-    messages = hopenai._construct_messages(
+    messages = hopenai._build_messages(
         user_prompt=_USER_PROMPT1, system_prompt=_SYSTEM_PROMPT1
     )
     data = {"messages": messages, "temperature": _TEMPERATURE2, "model": _MODEL2}
