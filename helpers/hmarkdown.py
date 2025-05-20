@@ -889,11 +889,13 @@ _ALL_COLORS = [
 ]
 
 
-def bold_first_level_bullets(markdown_text: str) -> str:
+def bold_first_level_bullets(markdown_text: str, *, max_length: int = 30) -> str:
     """
     Make first-level bullets bold in markdown text.
 
     :param markdown_text: Input markdown text
+    :param max_length: Max length of the bullet text to be bolded. -1 means no
+        limit.
     :return: Formatted markdown text with first-level bullets in bold
     """
     lines = markdown_text.split("\n")
@@ -901,16 +903,18 @@ def bold_first_level_bullets(markdown_text: str) -> str:
     for line in lines:
         # Check if this is a first-level bullet point.
         if re.match(r"^\s*- ", line):
-            # Check if the line has bold text it in it.
+            # Check if the line has already bold text it in it.
             if not re.search(r"\*\*", line):
                 # Bold first-level bullets.
                 indentation = len(line) - len(line.lstrip())
                 if indentation == 0:
                     # First-level bullet, add bold markers.
-                    line = re.sub(r"^(\s*-\s+)(.*)", r"\1**\2**", line)
-            result.append(line)
-        else:
-            result.append(line)
+                    m = re.match(r"^(\s*-\s+)(.*)", line)
+                    hdbg.dassert(m, "Can't parse line='%s'", line)
+                    bullet_text = m.group(2)
+                    if max_length > -1 and len(bullet_text) <= max_length:
+                        line = m.group(1) + "**" + bullet_text + "**"
+        result.append(line)
     return "\n".join(result)
 
 
@@ -1025,8 +1029,8 @@ def format_markdown_slide(txt: str) -> str:
     """
     # Split the text into title and body.
 
+    txt = bold_first_level_bullets(txt)
     txt = dshdlino.prettier_on_str(txt)
     txt = format_first_level_bullets(txt)
     #txt = capitalize_slide_titles(txt)
-    #txt = bold_first_level_bullets(txt)
     return txt

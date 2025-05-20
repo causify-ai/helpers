@@ -407,7 +407,7 @@ def get_completion(
     model: str = "",
     report_progress: bool = False,
     print_cost: bool = False,
-    cache_mode: str = "FALLBACK",
+    cache_mode: str = "DISABLED",
     cache_file: str = "cache.get_completion.json",
     temperature: float = 0.1,
     **create_kwargs,
