@@ -1305,7 +1305,7 @@ def docker_release_prod_task_definition(
     ctx, region: str = hs3.AWS_EUROPE_REGION_1
 ):  # type: ignore
     """
-    Release prod image to prod ECS task definition.
+    Release candidate image to prod ECS task definition.
     """
     hdbg.dassert_in(region, hs3.AWS_REGIONS)
     # Prod release should be done from master branch and the client should be
