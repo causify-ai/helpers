@@ -21,7 +21,6 @@ import requests
 import tqdm
 
 import helpers.hdbg as hdbg
-import helpers.hgit as hgit
 import helpers.hprint as hprint
 import helpers.htimer as htimer
 
@@ -101,7 +100,7 @@ def get_openai_client(provider_name: str = _PROVIDER_NAME) -> openai.OpenAI:
         api_key = os.environ.get("OPENROUTER_API_KEY")
     else:
         raise ValueError(f"Unknown provider: {provider_name}")
-    _LOG.debug(hprint.to_str("provider_name", "base_url"))
+    _LOG.debug(hprint.to_str("provider_name base_url"))
     client = openai.OpenAI(base_url=base_url, api_key=api_key)
     return client
 
@@ -123,17 +122,15 @@ def _get_models_info_file() -> str:
     """
     Get the path to the file for storing OpenRouter models info.
     """
-    helpers_root = hgit.find_helpers_root()
-    file_path = os.path.join(helpers_root, "tmp.openrouter_models_info.csv")
+    file_path = "tmp.openrouter_models_info.csv"
     return file_path
 
 
-# TODO(*): Return a pandas DataFrame.
-def _retrieve_openrouter_models_info() -> List[Dict[str, Any]]:
+def _retrieve_openrouter_model_info() -> pd.DataFrame:
     """
     Retrieve OpenRouter models info from the OpenRouter API.
     """
-    response = requests.get("https://openrouter.ai/api/v1/models").json()
+    response = requests.get("https://openrouter.ai/api/v1/models")
     # {'architecture': {'input_modalities': ['text', 'image'],
     #                   'instruct_type': None,
     #                   'modality': 'text+image->text',
@@ -347,7 +344,7 @@ def get_current_cost() -> float:
 def _calculate_cost(
     completion: openai.types.chat.chat_completion.ChatCompletion,
     model: str,
-    models_info_file: str = "",
+    models_info_file: str
 ) -> float:
     """
     Calculate the cost of an OpenAI API call.
@@ -358,21 +355,43 @@ def _calculate_cost(
     """
     prompt_tokens = completion.usage.prompt_tokens
     completion_tokens = completion.usage.completion_tokens
-    # If the model info file doesn't exist, download one.
-    if models_info_file == "":
-        models_info_file = _get_models_info_file()
-    if not os.path.isfile(models_info_file):
-        models_info_df = _retrieve_openrouter_models_info()
-        _save_models_info_to_csv(models_info_df, file_name=models_info_file)
+    # TODO(gp): This should be shared in the class.
+    if _PROVIDER_NAME == "openai":
+        # Get the pricing for the selected model.
+        # https://openai.com/api/pricing/
+        # https://gptforwork.com/tools/openai-chatgpt-api-pricing-calculator
+        # Cost per 1M tokens.
+        pricing = {
+            "gpt-3.5-turbo": {"prompt": 0.5, "completion": 1.5},
+            "gpt-4o-mini": {"prompt": 0.15, "completion": 0.60},
+            "gpt-4o": {"prompt": 5, "completion": 15},
+        }
+        hdbg.dassert_in(model, pricing)
+        model_pricing = pricing[model]
+        # Calculate the cost.
+        cost = (prompt_tokens / 1e6) * model_pricing["prompt"] + (
+            completion_tokens / 1e6
+        ) * model_pricing["completion"]
+    elif _PROVIDER_NAME == "openrouter":
+        # If the model info file doesn't exist, download one.
+        if models_info_file == "":
+            models_info_file = _get_models_info_file()
+        _LOG.debug(hprint.to_str("models_info_file"))
+        if not os.path.isfile(models_info_file):
+            model_info_df = _retrieve_openrouter_model_info()
+            _save_models_info_to_csv(model_info_df, models_info_file)
+        else:
+            model_info_df = pd.read_csv(models_info_file)
+        # Extract pricing for this model.
+        hdbg.dassert_in(model, model_info_df["id"].values)
+        row = model_info_df.loc[model_info_df["id"] == model].iloc[0]
+        prompt_price = row["prompt_pricing"]
+        completion_price = row["completion_pricing"]
+        # Compute cost.
+        cost = prompt_tokens * prompt_price + completion_tokens * completion_price
     else:
-        model_info_df: pd.DataFrame = pd.read_csv(models_info_file)
-    # Extract pricing for this model.
-    hdbg.dassert_in(model, model_info_df["id"].values)
-    row = model_info_df.loc[model_info_df["id"] == model].iloc[0]
-    prompt_price = row["prompt_pricing"]
-    completion_price = row["completion_pricing"]
-    # Compute cost.
-    cost = prompt_tokens * prompt_price + completion_tokens * completion_price
+        raise ValueError(f"Unknown provider: {_PROVIDER_NAME}")
+    _LOG.debug(hprint.to_str("prompt_tokens completion_tokens cost"))
     return cost
 
 
@@ -419,7 +438,7 @@ def get_completion(
     # Construct messages in OpenAI API request format.
     messages = _build_messages(system_prompt, user_prompt)
     # Initialize cache.
-    cache = CompletionCache(cache_file=cache_file)
+    cache = _CompletionCache(cache_file)
     request_params = {
         "model": model,
         "messages": messages,
@@ -477,8 +496,10 @@ def get_completion(
     # Report the time taken.
     msg, _ = htimer.dtimer_stop(memento)
     print(msg)
-    # Calculate and accumulate the cost
-    cost = _calculate_cost(completion, model, print_cost)
+    # Calculate the cost.
+    # TODO(gp): This should be shared in the class.
+    models_info_file = ""
+    cost = _calculate_cost(completion, model, models_info_file)
     # Accumulate the cost.
     _accumulate_cost_if_needed(cost)
     # Convert OpenAI completion object to DICT.
@@ -489,12 +510,8 @@ def get_completion(
         cache.save_response_to_cache(
             hash_key, request=request_params, response=completion_obj
         )
-    _LOG.debug(hprint.to_str("prompt_tokens completion_tokens cost"))
     if print_cost:
-        print(
-            f"cost=${cost:.2f} / "
-            + hprint.to_str("prompt_tokens completion_tokens")
-        )
+        print(f"cost=${cost:.2f}")
     return response
 
 
@@ -791,14 +808,14 @@ def apply_prompt_to_dataframe(
 # #############################################################################
 
 
-class CompletionCache:
+# TODO(gp): we can't use hcache_simple.simple_cache() because it uses a different cache
+# format and does not support conditions required by get_completion().
+class _CompletionCache:
     """
-    1. Manage the cache for get_completion().
-    2. Do not use hcache_simple.simple_cache() because it uses a different cache format
-    and does not support conditions required by get_completion().
+    Cache for get_completion().
     """
 
-    def __init__(self, cache_file: str = _CACHE_FILE):
+    def __init__(self, cache_file: str):
         self.cache_file = cache_file
         # Load the existing file(may not exist or may be invalid JSON)
         try:
@@ -806,7 +823,7 @@ class CompletionCache:
                 self.cache = json.load(f)
         except (FileNotFoundError, json.JSONDecodeError):
             self.cache = None
-        # Validates structure
+        # Validates structure.
         if (
             not isinstance(self.cache, dict)
             or "version" not in self.cache
