@@ -206,7 +206,7 @@ def _set_task_definition_config(
     task_definition_config["containerDefinitions"][0]["logConfiguration"][
         "options"
     ] = log_config_opts
-    # Set environment variable "CSFY_AWS_DEFAULT_REGION".
+    # Set environment variable `CSFY_AWS_DEFAULT_REGION`.
     task_definition_config["containerDefinitions"][0]["environment"][1][
         "value"
     ] = region

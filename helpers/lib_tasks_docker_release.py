@@ -1291,10 +1291,7 @@ def docker_release_test_task_definition(
     """
     Release candidate image to test ECS task definition.
     """
-    hdbg.dassert(
-        region in hs3.AWS_REGIONS,
-        f"region '{region}' must be one of {hs3.AWS_REGIONS}",
-    )
+    hdbg.dassert_in(region, hs3.AWS_REGIONS)
     # Verify that task definition is provided.
     hdbg.dassert_is_not(task_definition, None, "task definition is required")
     # Create candidate image.
@@ -1312,10 +1309,7 @@ def docker_release_prod_task_definition(
     """
     Release prod image to prod ECS task definition.
     """
-    hdbg.dassert(
-        region in hs3.AWS_REGIONS,
-        f"region '{region}' must be one of {hs3.AWS_REGIONS}",
-    )
+    hdbg.dassert_in(region, hs3.AWS_REGIONS)
     # Prod release should be done from master branch and the client should be
     # clean.
     curr_branch = hgit.get_branch_name()
