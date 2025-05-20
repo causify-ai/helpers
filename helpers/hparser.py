@@ -660,7 +660,6 @@ def add_prompt_arg(
     Add common command line arguments for `*llm_transform.py` scripts.
     """
     parser.add_argument(
-        "-d",
         "--debug",
         action="store_true",
         help="Print before/after the transform",
