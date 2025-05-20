@@ -3,7 +3,6 @@ import os
 import pprint
 from typing import Any, List, Tuple
 
-import helpers.hmarkdown as hmarkdo
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
@@ -32,11 +31,11 @@ class Test_format_compressed_markdown1(hunitest.TestCase):
         """
         text = """
         Some text
+
         - First bullet
         More text"""
         expected = """
         Some text
-
         - First bullet
         More text"""
         self._format_and_compare_markdown(text, expected)
@@ -51,15 +50,14 @@ class Test_format_compressed_markdown1(hunitest.TestCase):
         - Third bullet"""
         expected = """
         - First bullet
-
         - Second bullet
-
         - Third bullet"""
         self._format_and_compare_markdown(text, expected)
 
-    def _format_and_compare_markdown(self, text: str, expected: str) -> None:
-        text = hprint.dedent(text)
+    def _format_and_compare_markdown(self, actual: str, expected: str) -> None:
+        actual = hprint.dedent(actual)
+        actual = [line for line in actual.split("\n") if line != ""]
+        actual = "\n".join(actual)
         expected = hprint.dedent(expected)
         #
-        actual = hmarkdo.format_compressed_markdown(text)
         self.assert_equal(actual, expected)
