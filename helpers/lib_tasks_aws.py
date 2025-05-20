@@ -264,9 +264,9 @@ def _register_task_definition(task_definition_name: str, region: str) -> None:
 
 
 def aws_update_ecs_task_definition(
-    ctx,
-    task_definition: str = None,
-    image_tag: str = None,
+    *,
+    task_definition: str,
+    image_tag: str,
     region: str = hs3.AWS_EUROPE_REGION_1,
 ) -> None:
     """
@@ -278,10 +278,6 @@ def aws_update_ecs_task_definition(
         13538588e
     :param region: region to update the task definition in
     """
-    _ = ctx
-    hlitauti.report_task()
-    hdbg.dassert_is_not(task_definition, None, "task_definition is required")
-    hdbg.dassert_is_not(image_tag, None, "image_tag is required")
     hdbg.dassert_in(region, hs3.AWS_REGIONS)
     old_image_url = haws.get_task_definition_image_url(
         task_definition, region=region
