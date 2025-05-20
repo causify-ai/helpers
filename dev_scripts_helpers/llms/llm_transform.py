@@ -304,13 +304,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
             "Not all post_transforms were run: %s",
             post_container_transforms,
         )
-        if args.diff_compare:
-            txt = hio.from_file(tmp_in_file_name)
-            hio.to_file("original.txt", txt)
-            hio.to_file("transformed.txt", out_txt)
-            cmd = "vimdiff original.txt transformed.txt"
-            hio.create_executable_script("tmp.llm_diff.sh", cmd)
-
+        # Save the original and transformed text on file and a script to compare them.
+        txt = hio.from_file(tmp_in_file_name)
+        hio.to_file("original.txt", txt)
+        hio.to_file("transformed.txt", out_txt)
+        cmd = "vimdiff original.txt transformed.txt"
+        hio.create_executable_script("tmp.llm_diff.sh", cmd)
+        #
         if args.compare:
             out_txt_tmp = []
             out_txt_tmp.append("#### Original ####")

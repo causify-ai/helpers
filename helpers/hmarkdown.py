@@ -970,8 +970,8 @@ def colorize_bold_text(
 
 def format_first_level_bullets(markdown_text: str) -> str:
     """
-    Remove all empty lines from markdown text and add empty lines only before
-    first level bullets.
+    Add empty lines only before first level bullets and remove all empty lines
+    from markdown text.
 
     :param markdown_text: Input markdown text
     :return: Formatted markdown text
@@ -1003,12 +1003,30 @@ def remove_empty_lines_from_markdown(markdown_text: str) -> str:
 
 
 def prettier_markdown(txt: str) -> str:
+    """
+    Format markdown text using `prettier`.
+    """
     txt = dshdlino.prettier_on_str(txt)
     return txt
 
 
 def format_markdown(txt: str) -> str:
+    """
+    Format markdown text.
+    """
     txt = dshdlino.prettier_on_str(txt)
     txt = remove_empty_lines_from_markdown(txt)
-    #txt = format_first_level_bullets(txt)
+    return txt
+
+
+def format_markdown_slide(txt: str) -> str:
+    """
+    Format markdown text for a slide.
+    """
+    # Split the text into title and body.
+
+    txt = dshdlino.prettier_on_str(txt)
+    txt = format_first_level_bullets(txt)
+    #txt = capitalize_slide_titles(txt)
+    #txt = bold_first_level_bullets(txt)
     return txt

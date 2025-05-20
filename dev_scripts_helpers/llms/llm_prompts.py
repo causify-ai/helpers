@@ -863,6 +863,29 @@ def slide_reduce() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
+def slide_reduce_bullets() -> _PROMPT_OUT:
+    system = _MD_CONTEXT
+    system += r"""
+    I will give you markdown text
+
+    You will:
+    - Maintain the structure of the text
+    - Keep all the figures
+    - Keep only the bullet points that are important and clear
+    - Remove all the bullet points that are redundant or not clear
+
+    Print only the markdown without any explanation.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {
+        "remove_code_delimiters",
+        "remove_end_of_line_periods",
+        "remove_empty_lines",
+    }
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
 def slide_bold() -> _PROMPT_OUT:
     system = _MD_CONTEXT
     system += r"""
