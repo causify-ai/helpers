@@ -552,7 +552,6 @@ def _parallel_execute_decorator(
         txt.append(f"func_res=\n{hprint.indent(str(res))}")
     else:
         txt.append("func_res=<omitted>")
-
     txt.append(f"elapsed_time_in_secs={elapsed_time}")
     txt.append(f"start_ts={start_ts}")
     txt.append(f"end_ts={end_ts}")
