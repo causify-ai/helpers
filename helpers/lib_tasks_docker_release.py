@@ -1254,7 +1254,7 @@ def docker_create_candidate_image(
     :param region: AWS Region, for Tokyo region specify 'ap-northeast-1'
     """
     # TODO(Grisha): it fails when running from a runnable dir such as `ck_web_apps/itsavvy`, revisit and fix.
-    #_check_workspace_dir_sizes()
+    # _check_workspace_dir_sizes()
     # Get the hash of the image.
     tag = hgit.get_head_hash(".", short_hash=True)
     if user_tag:
@@ -1265,7 +1265,7 @@ def docker_create_candidate_image(
         ctx,
         # TODO(Grisha): adapt to the runnable dir approach, it always searches in `cmamp/changelog.txt`,
         # refer to CmTask11978 for details.
-        #version=hlitadoc._IMAGE_VERSION_FROM_CHANGELOG,
+        # version=hlitadoc._IMAGE_VERSION_FROM_CHANGELOG,
         version=version,
         candidate=True,
         tag=tag,
@@ -1274,7 +1274,7 @@ def docker_create_candidate_image(
     docker_push_prod_candidate_image(ctx, tag)
     # TODO(Grisha): build the path programatically w.r.t. cmamp root dir inside a Docker container,
     # refer to CmTask11978 for details.
-    exec_name = "/app/im_v2/aws/aws_update_task_definition.py"
+    exec_name = "/app/datapull/aws/aws_update_task_definition.py"
     # # Ensure compatibility with repos where amp is a submodule.
     # if not os.path.exists(exec_name):
     #     exec_name = f"amp/{exec_name}"
