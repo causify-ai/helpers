@@ -51,15 +51,15 @@
 - We follow rules to avoid import loops:
   - Code inside a package should import directly a file in the same package and
     not use the package
-    - E.g., `im_v2/common/data/client/data_frame_im_clients.py`
+    - E.g., `datapull/common/data/client/data_frame_im_clients.py`
       - Good
 
         ```python
-        import im_v2.common.data.client.abstract_im_clients as imvcdcaimcl
+        import datapull.common.data.client.abstract_im_clients as imvcdcaimcl
         ```
       - Bad
         ```python
-        import im_v2.common.data.client as icdc
+        import datapull.common.data.client as icdc
         ```
   - Code from a package should import other packages, instead of importing
     directly the file
@@ -79,14 +79,14 @@
   - We specify a short import in the `__init__.py` file for a package manually
     because Linter cannot do it automatically yet
     - We use the first letters to build a short import and try to keep it less
-      than 8 chars long, e.g., `im_v2.talos.data.client` -> `itdcl`
+      than 8 chars long, e.g., `datapull.talos.data.client` -> `itdcl`
     - We insert an import docstring in the `__init__.py` file manually and then
       we use the specified short import everywhere in the codebase. E.g.,
 
       ```python
       Import as:
 
-      import im_v2.talos.data.client as itdcl
+      import datapull.talos.data.client as itdcl
       ```
 
 ### How to import code from unit tests
