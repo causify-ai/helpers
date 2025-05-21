@@ -480,15 +480,15 @@
 #### An example with customized `pytest-cov` html run
 
 - We want to measure unit test coverage specifically for one test in
-  `im_v2/common/data/transform/` and to save generated `htmlcov` in the same
+  `datapull/common/data/transform/` and to save generated `htmlcov` in the same
   directory.
 
 - Run the command below after `i docker_bash`:
 
   ```bash
   docker> pytest --cov-report term-missing
-    --cov=im_v2/common/data/transform/ im_v2/common/data/transform/test/test_transform_utils.py
-    --cov-report html:im_v2/common/data/transform/htmlcov \
+    --cov=datapull/common/data/transform/ datapull/common/data/transform/test/test_transform_utils.py
+    --cov-report html:datapull/common/data/transform/htmlcov \
   ```
 
 - Output sample:
@@ -497,14 +497,14 @@
   ---------- coverage: platform linux, python 3.8.10-final-0 -----------
   Name                                                              Stmts Miss Cover Missing
   -----------------------------------------------------------------------------------------------
-  im_v2/common/data/transform/convert_csv_to_pq.py                  55    55   0%    2-159
-  im_v2/common/data/transform/extract_data_from_db.py               55    55   0%    2-125
-  im_v2/common/data/transform/pq_convert.py                         126   126  0%    3-248
-  im_v2/common/data/transform/transform_pq_by_date_to_by_asset.py   131   131  0%    2-437
-  im_v2/common/data/transform/transform_utils.py                    22    0    100%
+  datapull/common/data/transform/convert_csv_to_pq.py                  55    55   0%    2-159
+  datapull/common/data/transform/extract_data_from_db.py               55    55   0%    2-125
+  datapull/common/data/transform/pq_convert.py                         126   126  0%    3-248
+  datapull/common/data/transform/transform_pq_by_date_to_by_asset.py   131   131  0%    2-437
+  datapull/common/data/transform/transform_utils.py                    22    0    100%
   -----------------------------------------------------------------------------------------------
   TOTAL                                                             389   367  6%
-  Coverage HTML written to dir im_v2/common/data/transform/htmlcov
+  Coverage HTML written to dir datapull/common/data/transform/htmlcov
   ```
 
 #### Generate coverage report with `invoke`

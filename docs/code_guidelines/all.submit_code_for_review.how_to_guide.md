@@ -19,6 +19,7 @@
   * [Stick to smaller PRs](#stick-to-smaller-prs)
 - [Talk through code and not GitHub](#talk-through-code-and-not-github)
 - [Look at examples of first reviews](#look-at-examples-of-first-reviews)
+- [Checklist](#checklist)
 
 <!-- tocstop -->
 
@@ -29,8 +30,9 @@ some helpful tips and resources to guide you through your first review.
 ## Read Python Style Guide
 
 - Before submitting your code for review, we highly recommend that you read our
-  [Python Style Guide](/docs/coding/all.coding_style.how_to_guide.md), which
-  outlines the major conventions and best practices for writing Python code.
+  [Python Style Guide](/docs/code_guidelines/all.coding_style.how_to_guide.md),
+  which outlines the major conventions and best practices for writing Python
+  code.
 - Adhering to these standards will help ensure that your code is easy to read,
   maintain, and understand for other members of the team.
 
@@ -46,11 +48,11 @@ some helpful tips and resources to guide you through your first review.
 - The command should be run from the root of the repo you are developing in
 - The file paths should be relative to the repo root
   - Command example:
-  ```
+  ```bash
   > i lint --files="docs/coding/all.str_to_df.how_to_guide.md linters/utils.py"
   ```
   - Output example:
-    ```
+    ```bash
     docs/coding/all.str_to_df.how_to_guide.md: 'docs/coding/all.str_to_df.how_to_guide.md' is not referenced in README.md [check_md_reference]
     docs/coding/all.str_to_df.how_to_guide.md:79: 'figs/str_to_df/image1.png' does not follow the format 'figs/all.str_to_df.how_to_guide.md/XYZ' [fix_md_links]
     linters/utils.py:294: [R0916(too-many-boolean-expressions), get_dirs_with_missing_init] Too many boolean expressions in if statement (6/5) [pylint]
@@ -58,7 +60,7 @@ some helpful tips and resources to guide you through your first review.
   - `i lint` has options for many workflows. E.g., you can automatically lint
     all the files that you touched in your PR with `--branch`, the files in the
     last commit with `--last-commit`. You can look at all the options with:
-    ```
+    ```bash
     > i lint --help
     ```
 - Fix the lints
@@ -168,7 +170,7 @@ some helpful tips and resources to guide you through your first review.
     avoid huge merge conflicts
 - You can also easily merge master into your branch by clicking on "Update
   branch" button on the PR page
-  <img src="/docs/coding/figs/submit_code_for_review/image1.png">
+  <img src="/docs/code_guidelines/figs/submit_code_for_review/image1.png">
 - **NEVER** press `Squash and merge` button yourself
   - You need to merge master branch into your branch - not vice verca!
   - This is a strictly Team Leaders' and Integrators' responsibility
@@ -199,7 +201,8 @@ some helpful tips and resources to guide you through your first review.
   - _Good_
 
     Input:
-    ```
+
+    ```python
     type_ = "supply"
     supply_curve1 = ddcrsede.get_supply_demand_discrete_curve(
         type_, supply_orders_df1
@@ -208,7 +211,8 @@ some helpful tips and resources to guide you through your first review.
     ```
 
     Error:
-    ```
+
+    ```text
     ---------------------------------------------------------------------------
     NameError                                 Traceback (most recent call last)
     Cell In [5], line 2
@@ -227,12 +231,12 @@ some helpful tips and resources to guide you through your first review.
   possible, e.g.,:
   - What you are trying to achieve
   - Command line you ran, e.g.,
-    ```
+    ```bash
     > i lint -f defi/tulip/test/test_dao_cross_sol.py
     ```
   - **Copy-paste** the error and the stack trace from the cmd line, **no
     screenshots**, e.g.,
-    ```
+    ```text
     Traceback (most recent call last):
       File "/venv/bin/invoke", line 8, in <module>
         sys.exit(program.run())
@@ -274,3 +278,45 @@ some helpful tips and resources to guide you through your first review.
   - Writing scripts:
     - [https://github.com/kaizen-ai/kaizenflow/pull/267](https://github.com/kaizen-ai/kaizenflow/pull/267)
     - [https://github.com/kaizen-ai/kaizenflow/pull/276](https://github.com/kaizen-ai/kaizenflow/pull/276)
+
+## Checklist
+
+Post this checklist in a PR and check the boxes when the PR meets the
+requirements
+
+- [ ] The branch is named following the format
+      `RelatedIssueTag_Normalized_issue_title`
+  - E.g., `HelpersTask123_Provide_branch_name_example`, if the branch is for
+    working on the issue #123 in the `helpers` repo with the title "Provide
+    branch name example"
+- [ ] Commit messages are short and informative
+  - Ideally, they follow the format
+    `RelatedIssueTag: High-level commit description`
+  - E.g., `HelpersTask123: Add example`
+  - They do not mention the name of the file that has been changed by the commit
+- [ ] The title of the PR matches the name of the branch
+- [ ] The starting post of the PR briefly describes the content of the PR on a
+      high level
+- [ ] The issue related to the PR is mentioned in the starting post of the PR
+- [ ] The PR is not linked to any issues under the `Development` section
+- [ ] At least one reviewer is assigned under `Reviewers`
+- [ ] The PR author is listed under `Assignees`
+- [ ] All the checks performed by GitHub Actions pass
+  - If they do not and it can't be fixed, explain why in a comment
+  - E.g., "The fast tests failure is also present in `master` and is unrelated
+    to this PR"
+- [ ] The branch is up to date with the master branch
+- [ ] There are no conflicts with the master branch
+- [ ] There are no files checked in by mistake (such as tmp and log files)
+- [ ] All checked in files are checked and formatted by Linter in the latest
+      commit
+- [ ] No files larger than 500 KB are checked in
+- [ ] Screenshots are not used in PR posts to describe the situation or report
+      an error (if needed, copy-and-paste is used instead)
+- [ ] Label `PR_for_reviewers` is present if a review is requested
+- [ ] Fixes addressing a review comment are applied everywhere, not just where
+      the reviewer pointed out the issue
+- [ ] After addressing review comments, all corresponding conversations are
+      marked as `resolved`
+- [ ] After all review comments are resolved, `re-request review` button is used
+      to request another round of review

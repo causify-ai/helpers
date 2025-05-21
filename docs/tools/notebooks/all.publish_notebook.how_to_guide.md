@@ -33,7 +33,7 @@ You can get details by running: `dev_scripts/notebooks/publish_notebook.py -h`
 
 - Inside the dev container
   ```
-  docker> FILE=im_v2/common/universe/notebooks/Master_universe_analysis.ipynb; publish_notebook.py --file $FILE --action convert
+  docker> FILE=datapull/common/universe/notebooks/Master_universe_analysis.ipynb; publish_notebook.py --file $FILE --action convert
   ```
 - This converts the `ipynb` file into a `HTML`
 - Then you can open it from outside your container

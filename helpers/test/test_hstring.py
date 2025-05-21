@@ -89,7 +89,7 @@ class TestExtractVersionFromFileName(hunitest.TestCase):
         :param expected: expected output version in (major, minor)
             format
         """
-        fn = f"/app/im_v2/ccxt/universe/download/universe_v{version}.json"
+        fn = f"/app/datapull/ccxt/universe/download/universe_v{version}.json"
         self.assertEqual(hstring.extract_version_from_file_name(fn), expected)
 
     def _test_extract_version_from_file_name_incorrect_format(

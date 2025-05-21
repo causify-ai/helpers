@@ -24,11 +24,15 @@
 # This notebook examines ...
 
 # %%
+# #!sudo /bin/bash -c "(source /venv/bin/activate; pip install --quiet jupyterlab-vim)"
+# #!jupyter labextension enable
+
+# %%
 # %load_ext autoreload
 # %autoreload 2
 
 import logging
-
+    
 import helpers.hdbg as hdbg
 import helpers.henv as henv
 import helpers.hprint as hprint

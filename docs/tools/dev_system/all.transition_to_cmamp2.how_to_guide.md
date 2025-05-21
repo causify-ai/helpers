@@ -181,13 +181,13 @@
   # Activate environment ...
   # Activate environment ... done
   # Set PATH
-  PATH=.:./dataflow:./reconciliation:./oms:./ck_web_apps:./dataflow_amp:./devops:./core:./test:./.pytest_cache:./optimizer:./papers:./market_data:./research_amp:./ck.infra:./docker_common:./ck.marketing:./docs:./ck.alembic:./helpers_root:./dev_scripts:./dev_scripts_cmamp:./.github:./im_v2:./sorrentum_sandbox:./im:./mkdocs:./.git:./pnl_web_app:./ck_marketing:./defi:./data_schema:./.idea:/app:/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+  PATH=.:./dataflow:./reconciliation:./oms:./ck_web_apps:./dataflow_amp:./devops:./core:./test:./.pytest_cache:./optimizer:./papers:./market_data:./research_amp:./ck.infra:./docker_common:./ck.marketing:./docs:./ck.alembic:./helpers_root:./dev_scripts:./dev_scripts_cmamp:./.github:./datapull:./sorrentum_sandbox:./im:./mkdocs:./.git:./pnl_web_app:./ck_marketing:./defi:./data_schema:./.idea:/app:/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
   # Set PYTHONPATH
   PYTHONPATH=/app:
   # Configure env
   git --version: git version 2.43.0
   /app
-  PATH=.:./dataflow:./reconciliation:./oms:./ck_web_apps:./dataflow_amp:./devops:./core:./test:./.pytest_cache:./optimizer:./papers:./market_data:./research_amp:./ck.infra:./docker_common:./ck.marketing:./docs:./ck.alembic:./helpers_root:./dev_scripts:./dev_scripts_cmamp:./.github:./im_v2:./sorrentum_sandbox:./im:./mkdocs:./.git:./pnl_web_app:./ck_marketing:./defi:./data_schema:./.idea:/app:/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+  PATH=.:./dataflow:./reconciliation:./oms:./ck_web_apps:./dataflow_amp:./devops:./core:./test:./.pytest_cache:./optimizer:./papers:./market_data:./research_amp:./ck.infra:./docker_common:./ck.marketing:./docs:./ck.alembic:./helpers_root:./dev_scripts:./dev_scripts_cmamp:./.github:./datapull:./sorrentum_sandbox:./im:./mkdocs:./.git:./pnl_web_app:./ck_marketing:./defi:./data_schema:./.idea:/app:/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
   PYTHONPATH=/app/helpers_root:/app:
   entrypoint.sh: 'bash'
   ```

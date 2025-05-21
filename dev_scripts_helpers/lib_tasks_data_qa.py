@@ -140,7 +140,7 @@ def _run_data_qa_notebook(
     # Set directory to store results locally
     results_dir = "."
     cmd_txt = []
-    config_builder = "amp.im_v2.common.data.qa.qa_check.build_dummy_data_reconciliation_config()"
+    config_builder = "amp.datapull.common.data.qa.qa_check.build_dummy_data_reconciliation_config()"
     opts = (
         "--num_threads 'serial' --allow_errors --publish_notebook -v DEBUG 2>&1"
     )
@@ -234,7 +234,7 @@ def run_single_dataset_qa_notebook(
     """
     Run single data QA notebook and store it in a specified location.
 
-    See `im_v2.ccxt.data.extract.compare_realtime_and_historical` for
+    See `datapull.ccxt.data.extract.compare_realtime_and_historical` for
     reconcilation params description.
 
     :param base_dst_dir: dir to store data reconciliation
@@ -258,9 +258,9 @@ def run_single_dataset_qa_notebook(
         dataset_signature, dataset_schema
     )
     if dataset_signature_as_dict["data_type"] == "ohlcv":
-        notebook_path = "amp/im_v2/ccxt/data/qa/notebooks/data_qa_ohlcv.ipynb"
+        notebook_path = "amp/datapull/ccxt/data/qa/notebooks/data_qa_ohlcv.ipynb"
     elif dataset_signature_as_dict["data_type"] == "bid_ask":
-        notebook_path = "amp/im_v2/ccxt/data/qa/notebooks/data_qa_bid_ask.ipynb"
+        notebook_path = "amp/datapull/ccxt/data/qa/notebooks/data_qa_bid_ask.ipynb"
     else:
         raise NotImplementedError
     _run_data_qa_notebook(
@@ -288,7 +288,7 @@ def run_cross_dataset_qa_notebook(
     Run cross dataset reconciliation notebook and store it in a specified
     location.
 
-    See `im_v2.ccxt.data.extract.compare_realtime_and_historical` for
+    See `datapull.ccxt.data.extract.compare_realtime_and_historical` for
     reconcilation params description.
 
     :param base_dst_dir: dir to store data reconciliation
@@ -308,7 +308,7 @@ def run_cross_dataset_qa_notebook(
     # TODO(Juraj): come up with a more modular solution to executing the correct notebook.
     data_type = "bid_ask" if "bid_ask" in dataset_signature1 else "ohlcv"
     notebook_path = (
-        f"amp/im_v2/common/data/qa/notebooks/cross_dataset_qa_{data_type}.ipynb"
+        f"amp/datapull/common/data/qa/notebooks/cross_dataset_qa_{data_type}.ipynb"
     )
     _run_data_qa_notebook(
         config_dict, base_dst_dir, notebook_path, s3_publish_dst_dir

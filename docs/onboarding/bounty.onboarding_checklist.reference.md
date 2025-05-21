@@ -110,3 +110,6 @@
   [standards and infrastructure](/docs/tools/unit_test/all.write_unit_tests.how_to_guide.md)
 - The project needs to be documented in the way we
   [document software](/docs/documentation_meta/all.writing_docs.how_to_guide.md)
+- To get used to our process, for the first couple of PRs post the
+  [PR checklist](/docs/code_guidelines/all.submit_code_for_review.how_to_guide.md#checklist)
+  in a comment and check the boxes when the requirements are met

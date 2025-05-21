@@ -4,13 +4,13 @@
 # Open all the interesting Python files under a dir with vim.
 #
 # Print only:
-# > vi_all_py.sh -t -p im_v2
+# > vi_all_py.sh -t -p datapull
 #
 # Max depth:
-# > vi_all_py.sh -t -d 2 -p im_v2
+# > vi_all_py.sh -t -d 2 -p datapull
 #
 # Open with vim:
-# > vi_all_py.sh -p im_v2
+# > vi_all_py.sh -p datapull
 # """
 
 #set -x

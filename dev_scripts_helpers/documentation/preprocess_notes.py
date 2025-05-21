@@ -42,7 +42,9 @@ def _process_abbreviations(in_line: str) -> str:
     line = in_line
     for x, y in [
         (r"=>", r"\implies"),
-        (r"->", r"\rightarrow"),
+        # TODO(gp): This collides with the arrow in graphviz commands. We
+        # should skip this transformation if we are in a graphviz block.
+        #(r"->", r"\rightarrow"),
         (r"-^", r"\uparrow"),
         (r"-v", r"\downarrow"),
     ]:
@@ -367,7 +369,7 @@ def _parse() -> argparse.ArgumentParser:
     )
     # TODO(gp): Unclear what it doesn.
     parser.add_argument(
-        "--qa", action="store_true", default=None, help="The input file is QA"
+        "--qa", action="store_true", default=False, help="The input file is QA"
     )
     hparser.add_verbosity_arg(parser)
     return parser

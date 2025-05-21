@@ -36,7 +36,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(
         verbosity=args.log_level, use_exec_path=True, force_white=False
     )
-    hdocker.dockerized_tikz_to_bitmap(
+    hdocker.run_dockerized_tikz_to_bitmap(
         args.input,
         cmd_opts,
         args.output,

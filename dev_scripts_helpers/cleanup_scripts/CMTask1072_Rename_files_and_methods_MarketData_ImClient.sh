@@ -40,7 +40,7 @@
 ./dev_scripts/replace_text.py \
   --old 'dassert_is_valid\(' \
   --new 'dassert_output_data_is_valid\(' \
-  --dirs "im_v2" \
+  --dirs "datapull" \
   
 # CmTask1072 - Rename method "get_numerical_ids_from_full_symbols()" to "get_asset_ids_from_full_symbols()".
 ./dev_scripts/replace_text.py \
@@ -56,7 +56,7 @@
 ./dev_scripts/replace_text.py \
    --old 'numeric_' \
    --new 'numerical_' \
-   --dirs "im_v2" \
+   --dirs "datapull" \
    
 ./dev_scripts/replace_text.py \
    --old 'numeric_' \
@@ -67,7 +67,7 @@
 ./dev_scripts/replace_text.py \
    --old 'build_num_to_string_id_mapping' \
    --new 'build_numerical_to_string_id_mapping' \
-   --dirs "im_v2" \
+   --dirs "datapull" \
    
 # CmTask1072 - Rename method "get_full_symbols_from_numerical_ids()" to "get_full_symbols_from_asset_ids()".
 ./dev_scripts/replace_text.py \

@@ -126,7 +126,7 @@ def reconcile_data_run_notebook(
     """
     Run data reconciliation notebook and store in in a stored location.
 
-    See `im_v2.ccxt.data.extract.compare_realtime_and_historical` for
+    See `datapull.ccxt.data.extract.compare_realtime_and_historical` for
     reconcilation params description.
 
     :param base_dst_dir: dir to store data reconciliation
@@ -157,10 +157,10 @@ def reconcile_data_run_notebook(
     # Set directory to store results locally
     results_dir = "."
     # Add the command to run the notebook.
-    notebook_path = "amp/im_v2/ccxt/notebooks/Data_reconciliation.ipynb"
+    notebook_path = "amp/datapull/ccxt/notebooks/Data_reconciliation.ipynb"
     cmd_txt = []
     config_builder = (
-        "amp.im_v2.ccxt.data.extract.compare_realtime_and_historical."
+        "amp.datapull.ccxt.data.extract.compare_realtime_and_historical."
         + "build_dummy_data_reconciliation_config()"
     )
     opts = (
@@ -226,7 +226,7 @@ def reconcile_data_run_notebook(
     """
     Run data reconciliation notebook and store it in a specified location.
 
-    See `im_v2.ccxt.data.extract.compare_realtime_and_historical` for
+    See `datapull.ccxt.data.extract.compare_realtime_and_historical` for
     reconcilation params description.
 
     :param base_dst_dir: dir to store data reconciliation
@@ -252,10 +252,10 @@ def reconcile_data_run_notebook(
     # Set directory to store results locally
     results_dir = "."
     # Add the command to run the notebook.
-    notebook_path = "amp/im_v2/ccxt/notebooks/Data_reconciliation.ipynb"
+    notebook_path = "amp/datapull/ccxt/notebooks/Data_reconciliation.ipynb"
     cmd_txt = []
     config_builder = (
-        "amp.im_v2.ccxt.data.extract.compare_realtime_and_historical."
+        "amp.datapull.ccxt.data.extract.compare_realtime_and_historical."
         + "build_dummy_data_reconciliation_config()"
     )
     opts = (

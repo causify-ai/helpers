@@ -115,6 +115,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
             txt = hmarkdo.format_markdown(txt)
         elif cmd == "md_only_format":
             txt = hmarkdo.format_markdown(txt)
+        elif cmd == "md_bold_bullets":
+            txt = hmarkdo.bold_first_level_bullets(txt)
+            txt = hmarkdo.format_markdown(txt)
         elif cmd == "md_colorize_bold_text":
             txt = hmarkdo.colorize_bold_text(txt)
             txt = hmarkdo.format_markdown(txt)

@@ -526,7 +526,7 @@ def gh_publish_buildmeister_dashboard_to_s3(ctx, mark_as_latest=True):  # type: 
         f"--notebook {notebook_path}",
         # The notebook does not require a config, so using a random dummy config.
         # TODO(Grisha): consider creating a separate config builder for the notebook.
-        "--config_builder 'im_v2.common.data.qa.qa_check.build_dummy_data_reconciliation_config()'",
+        "--config_builder 'datapull.common.data.qa.qa_check.build_dummy_data_reconciliation_config()'",
         f"--dst_dir '{dst_local_dir}'",
         "--publish",
         "--num_threads serial",

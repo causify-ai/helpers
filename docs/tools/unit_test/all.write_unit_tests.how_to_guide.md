@@ -408,8 +408,8 @@ test code.
 
 - It is OK to skip a `TestCase` method if it is not meaningful, when coverage is
   enough
-- As an example, see `im_v2/common/data/client/test/im_client_test_case.py` and
-  `im_v2/ccxt/data/client/test/test_ccxt_clients.py`
+- As an example, see `datapull/common/data/client/test/im_client_test_case.py` and
+  `datapull/ccxt/data/client/test/test_ccxt_clients.py`
 
 #### Use the appropriate `self.assert*`
 
@@ -1049,7 +1049,7 @@ self.assert_equal(act, exp, fuzzy_match=True)
 
 ```python
 import unittest.mock as umock
-import im_v2.ccxt.data.extract.extractor as ivcdexex
+import datapull.ccxt.data.extract.extractor as ivcdexex
 
 @umock.patch.object(ivcdexex.hsecret, "get_secret")
 def test_function_call1(self, mock_get_secret: umock.MagicMock):
@@ -1058,7 +1058,7 @@ def test_function_call1(self, mock_get_secret: umock.MagicMock):
 
 - Function `get_secret` in `helpers/hsecret.py` is mocked
   - Pay attention on where is `get_secret` mocked:
-    - It is mocked in `im_v2.ccxt.data.extract.extractor` as "get_secret" is
+    - It is mocked in `datapull.ccxt.data.extract.extractor` as "get_secret" is
       called there in function that is being tested
   - `@umock.patch.object(hsecret, "get_secret")` will not work as mocks are
     applied after all modules are loaded, hence the reason for using exact

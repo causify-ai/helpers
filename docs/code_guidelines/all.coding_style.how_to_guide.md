@@ -1137,7 +1137,7 @@
   ```
 - _Good_
   ```python
-  import im_v2.ccxt.data.extract.exchange_class
+  import datapull.ccxt.data.extract.exchange_class
   ```
   - In this way your code can run without depending upon your current dir
 
@@ -1150,7 +1150,7 @@
   """
   Import as:
 
-  import im_v2.ccxt.data.client.ccxt_clients as imvcdccccl
+  import datapull.ccxt.data.client.ccxt_clients as imvcdccccl
   """
   ```
 
@@ -1168,11 +1168,11 @@
 - Example 1
   - _Bad_
     ```python
-    from im_v2.ccxt.data.client import ccxt_clients as ccxtcl
+    from datapull.ccxt.data.client import ccxt_clients as ccxtcl
     ```
   - _Good_
     ```python
-    import im_v2.ccxt.data.client.ccxt_clients as imvcdccccl
+    import datapull.ccxt.data.client.ccxt_clients as imvcdccccl
     ```
 - Example 2
   - _Bad_

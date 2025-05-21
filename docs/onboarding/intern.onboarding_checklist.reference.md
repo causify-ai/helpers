@@ -122,3 +122,6 @@
 - Tip: a good approach to the "final checks" is to perform all the steps
   (opening an issue, creating a branch, filing a PR) for something very small
   but useful -- like fixing a typo in the docs.
+- To get used to our process, for the first couple of PRs post the
+  [PR checklist](https://github.com/causify-ai/helpers/blob/master/docs/code_guidelines/all.submit_code_for_review.how_to_guide.md#checklist)
+  in a comment and check the boxes when the requirements are met

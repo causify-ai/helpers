@@ -54,8 +54,8 @@ suggested links.
 - The following steps will provide an example for resolution of issue
   https://github.com/cryptokaizen/cmamp/issues/9451 using GitHub Copilot
 - In this GH issue we want to add tests for the function
-  `im_v2/common/universe/universe.py::get_vendor_universe_as_asset_ids`
-- Go to the file `im_v2/common/universe/test/test_universe.py`
+  `datapull/common/universe/universe.py::get_vendor_universe_as_asset_ids`
+- Go to the file `datapull/common/universe/test/test_universe.py`
   - If there is a test called `Test_get_vendor_universe_as_assert_ids` you can
     delete it for this example
 
@@ -94,7 +94,7 @@ suggested links.
      - You can use so-called chat variables to include more context; a chat
        variable is accessed via `#`,
        - `#file` adds additional context from a given file
-         - E.g. `#file:im_v2/common/data/universe.py`
+         - E.g. `#file:datapull/common/data/universe.py`
    - **Slash commands**
      - Provide shortcuts to commonly used features
        - E.g. `/tests` to generate unit tests for the selected code
