@@ -53,10 +53,10 @@ the output file or the stdout depending upon the arguments passed by the user.
 # Basic Usage
 
 ```bash
-> llm_transform.py -i input.txt -o output.txt -p uppercase
+> llm_transform.py -i input.txt -o output.txt -p <prompt-tag>
 ```
-The script will produce output from a llm based on the prompt tage provided by 
-the user and the transformation takes place on the input file.
+The script generates output from an LLM based on the user-specified prompt tag, 
+pplying the transformation to the input file.
 
 # List of transforms
 
