@@ -617,6 +617,8 @@ def purify_txt_from_client(txt: str) -> str:
     """
     Remove from a string all the information of a specific run.
     """
+    # Run purify app references before purify_from_environment to avoid
+    # replacing /app with $GIT_ROOT.
     txt = purify_app_references(txt)
     txt = purify_from_environment(txt)
     txt = purify_amp_references(txt)
