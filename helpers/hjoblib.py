@@ -469,7 +469,7 @@ def _parallel_execute_decorator(
     func_name: str,
     processify_func: bool,
     task: Task,
-    enable_logging: bool,
+    enable_file_logging: bool,
     verbose_log: bool,
 ) -> Any:
     """
@@ -483,6 +483,8 @@ def _parallel_execute_decorator(
             - if `abort_on_error=False` the exception is not propagated, but the
               return value is the string representation of the exception
     :param processify_func: switch to enable wrapping a function into a process
+    :param enable_file_logging: see same parameter in `parallel_execute()`
+    :param verbose_log: see same parameter in `parallel_execute()`
     :return: the return value of the workload function or the exception string
     """
     # Validate very carefully all the parameters.
@@ -558,7 +560,7 @@ def _parallel_execute_decorator(
     # Update log file.
     txt = "\n".join(txt)
     _LOG.debug("txt=\n%s", hprint.indent(txt))
-    if enable_logging:
+    if enable_file_logging:
         hio.to_file(log_file, txt, mode="a")
     if error:
         # The execution wasn't successful.
@@ -588,11 +590,16 @@ def parallel_execute(
     log_file: str,
     *,
     backend: str = "loky",
-    enable_logging: bool = True,
+    enable_file_logging: bool = True,
     verbose_log: bool = False,
 ) -> Optional[List[Any]]:
     """
     Run a workload in parallel using joblib or asyncio.
+
+    Note:
+        - if `abort_on_error=True` and a task fails early, `joblib` does not return partial results
+        - use `enable_logging=False` to disable logging entirely (useful for large results)
+        - use `verbose_log=False` to keep logging enabled but skip verbose output per task
 
     :param workload: the workload to execute
     :param dry_run: if True, print the workload and exit without executing it
@@ -606,14 +613,10 @@ def parallel_execute(
         declaring an error
     :param log_file: file used to log information about the execution
     :param backend: specify the backend type (e.g., joblib `loky` or `asyncio_process_executor`)
-    :param enable_logging: if False, skip writing any log file (default: True)
-    :param verbose_log: if True, write detailed task results (e.g., embeddings) to the log file
-        - If False, large outputs will be omitted from the log to reduce file size (default: False)
-    :return: list with the results from executing `func` or the exception of the failing function
-    Note:
-        - if `abort_on_error=True` and a task fails early, `joblib` does not return partial results
-        - use `enable_logging=False` to disable logging entirely (useful for large results)
-        - use `verbose_log=False` to keep logging enabled but skip verbose output per task
+    :param enable_file_logging: if False, skip writing any log file
+    :param verbose_log: if True, write detailed task results to the log file
+        - If False, large outputs will be omitted from the log to reduce file size
+    :return: results from executing `func` or the exception of the failing function
     """
     # Print the parameters.
     _LOG.info(hprint.frame("Workload"))
@@ -679,7 +682,7 @@ def parallel_execute(
                 func_name,
                 processify_func,
                 task,
-                enable_logging,
+                enable_file_logging,
                 verbose_log,
             )
             res.append(res_tmp)
@@ -705,7 +708,7 @@ def parallel_execute(
                     func_name,
                     processify_func,
                     task,
-                    enable_logging,
+                    enable_file_logging,
                     verbose_log,
                 )
                 # We can't use `tqdm_iter` since this only shows the submission of
@@ -731,7 +734,7 @@ def parallel_execute(
                 func_name,
                 processify_func,
                 args_[1],
-                enable_logging,
+                enable_file_logging,
                 verbose_log,
             )
             args = list(enumerate(tasks))
