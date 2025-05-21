@@ -1,6 +1,7 @@
 import logging
 import os
 import pathlib
+import re
 from typing import Any, Generator, Optional
 
 import helpers.hdbg as dbg
@@ -135,6 +136,35 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
             # Exclude this directory.
             return True
 
+    import subprocess
+    
+    _original_popen = subprocess.Popen
+    
+    def _should_wrap(cmd: str) -> bool:
+        return (
+            bool(re.search(r"(?<!coverage )\\bpython(\\d*|\\s+)?\\s+\\S+\\.py", cmd)) or
+            (".py" in cmd and "coverage run" not in cmd)
+        )
+
+    def _wrap_cmd(cmd: str) -> str:
+        if _should_wrap(cmd):
+            return re.sub(
+                r"\\bpython(\\d*|\\s+)?\\s+(\\S+\\.py)",
+                r"coverage run --parallel-mode \\2",
+                cmd
+            )
+        return cmd
+    
+    @pytest.fixture(autouse=True)
+    def patch_subprocess_popen(monkeypatch):
+        def patched_popen(*args, **kwargs):
+            if kwargs.get("shell", False) and isinstance(args[0], str):
+                cmd = args[0]
+                wrapped_cmd = _wrap_cmd(cmd)
+                args = (wrapped_cmd,) + args[1:]
+            return _original_popen(*args, **kwargs)
+        monkeypatch.setattr(subprocess, "Popen", patched_popen)   
+    
     if "PYANNOTATE" in os.environ:
         print("\nWARNING: Collecting information about types through pyannotate")
         # From https://github.com/dropbox/pyannotate/blob/master/example/example_conftest.py
