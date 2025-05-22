@@ -333,7 +333,7 @@ configure_specific_project() {
     export DEV2="172.30.2.128"
 
     # Print some specific env vars.
-    printenv | egrep "AM_|CK|AWS_" | sort
+    printenv | egrep "AM_|CK_|AWS_|CSFY_" | sort
 
     # Set up custom path to the alembic.ini file.
     # See https://alembic.sqlalchemy.org/en/latest/tutorial.html#editing-the-ini-file

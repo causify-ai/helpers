@@ -1502,7 +1502,7 @@ class Test_colorize_bold_text1(hunitest.TestCase):
         """
         text = "**First** normal **Second** text"
         actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
-        expected = r"**\red{First}** normal **\purple{Second}** text"
+        expected = r"**\red{First}** normal **\teal{Second}** text"
         self.assert_equal(actual, expected)
 
     def test3(self) -> None:
@@ -1529,7 +1529,7 @@ class Test_colorize_bold_text1(hunitest.TestCase):
         """
         text = "**First** and __Second__ bold"
         actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
-        expected = r"**\red{First}** and **\purple{Second}** bold"
+        expected = r"**\red{First}** and **\teal{Second}** bold"
         self.assert_equal(actual, expected)
 
     def test6(self) -> None:
@@ -1560,91 +1560,91 @@ class Test_colorize_bold_text1(hunitest.TestCase):
         - First item
         - Second item
 
-        **\purple{List 2:}**
+        **\teal{List 2:}**
         - Another item
         - Final item
         """
         self.assert_equal(actual, expected)
 
     def test8(self) -> None:
-        text = r"""
-- **\red{Objective}**
-  - Learn utility estimates $U^\pi(s)$for a fixed policy$\pi$ using an estimated
-    model of the environment
+        text = hprint.dedent(r"""
+        - **\red{Objective}**
+        - Learn utility estimates $U^\pi(s)$for a fixed policy$\pi$ using an estimated
+            model of the environment
 
-- **\orange{Key Components}**
-  - Model learning: Estimate transition probabilities $\Pr(s'|s,a)$ and
-    reward function $R(s,a)$ from experience
-  - Utility update: Solve the Bellman equations for the fixed policy:
-    - $U^\pi(s) = R(s, \pi(s)) + \gamma \sum_{s'} \Pr(s'|s, \pi(s)) U^\pi(s')$
+        - **\orange{Key Components}**
+        - Model learning: Estimate transition probabilities $\Pr(s'|s,a)$ and
+            reward function $R(s,a)$ from experience
+        - Utility update: Solve the Bellman equations for the fixed policy:
+            - $U^\pi(s) = R(s, \pi(s)) + \gamma \sum_{s'} \Pr(s'|s, \pi(s)) U^\pi(s')$
 
-- **\blue{Learning Process}**
-  - Collect transitions $(s, \pi(s), r, s')$ during execution
-  - Update model estimates:
-    - $\Pr(s'|s,a) \approx$ empirical frequency
-    - $R(s,a) \approx$ average observed reward
-  - Use dynamic programming to compute $U^\pi(s)$
+        - **\blue{Learning Process}**
+        - Collect transitions $(s, \pi(s), r, s')$ during execution
+        - Update model estimates:
+            - $\Pr(s'|s,a) \approx$ empirical frequency
+            - $R(s,a) \approx$ average observed reward
+        - Use dynamic programming to compute $U^\pi(s)$
 
-- **\violet{Advantages}**
-  - More sample-efficient than direct utility estimation
-  - Leverages structure of the MDP to generalize better
+        - **\violet{Advantages}**
+        - More sample-efficient than direct utility estimation
+        - Leverages structure of the MDP to generalize better
 
-- **\pink{Challenges}**
-  - Requires accurate model estimation
-  - Computational cost of solving Bellman equations repeatedly
+        - **\pink{Challenges}**
+        - Requires accurate model estimation
+        - Computational cost of solving Bellman equations repeatedly
 
-- **\olive{Example}**
-  - A thermostat estimates room temperature dynamics and uses them to predict
-    comfort level under a fixed heating schedule
+        - **\olive{Example}**
+        - A thermostat estimates room temperature dynamics and uses them to predict
+            comfort level under a fixed heating schedule
 
-- **\darkgray{Use Case}**
-  - Suitable when environment dynamics are stationary and can be learned from
-    interaction
-        """
+        - **\darkgray{Use Case}**
+        - Suitable when environment dynamics are stationary and can be learned from
+            interaction
+        """)
         actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
-        expected = r"""
-- **\red{Objective}**
-  - Learn utility estimates $U^\pi(s)$for a fixed policy$\pi$ using an estimated
-    model of the environment
+        expected = hprint.dedent(r"""
+        - **\red{Objective}**
+        - Learn utility estimates $U^\pi(s)$for a fixed policy$\pi$ using an estimated
+            model of the environment
 
-- **\yellow{Key Components}**
-  - Model learning: Estimate transition probabilities $\Pr(s'|s,a)$ and
-    reward function $R(s,a)$ from experience
-  - Utility update: Solve the Bellman equations for the fixed policy:
-    - $U^\pi(s) = R(s, \pi(s)) + \gamma \sum_{s'} \Pr(s'|s, \pi(s)) U^\pi(s')$
+        - **\orange{Key Components}**
+        - Model learning: Estimate transition probabilities $\Pr(s'|s,a)$ and
+            reward function $R(s,a)$ from experience
+        - Utility update: Solve the Bellman equations for the fixed policy:
+            - $U^\pi(s) = R(s, \pi(s)) + \gamma \sum_{s'} \Pr(s'|s, \pi(s)) U^\pi(s')$
 
-- **\green{Learning Process}**
-  - Collect transitions $(s, \pi(s), r, s')$ during execution
-  - Update model estimates:
-    - $\Pr(s'|s,a) \approx$ empirical frequency
-    - $R(s,a) \approx$ average observed reward
-  - Use dynamic programming to compute $U^\pi(s)$
+        - **\olive{Learning Process}**
+        - Collect transitions $(s, \pi(s), r, s')$ during execution
+        - Update model estimates:
+            - $\Pr(s'|s,a) \approx$ empirical frequency
+            - $R(s,a) \approx$ average observed reward
+        - Use dynamic programming to compute $U^\pi(s)$
 
-- **\blue{Advantages}**
-  - More sample-efficient than direct utility estimation
-  - Leverages structure of the MDP to generalize better
+        - **\green{Advantages}**
+        - More sample-efficient than direct utility estimation
+        - Leverages structure of the MDP to generalize better
 
-- **\violet{Challenges}**
-  - Requires accurate model estimation
-  - Computational cost of solving Bellman equations repeatedly
+        - **\cyan{Challenges}**
+        - Requires accurate model estimation
+        - Computational cost of solving Bellman equations repeatedly
 
-- **\brown{Example}**
-  - A thermostat estimates room temperature dynamics and uses them to predict
-    comfort level under a fixed heating schedule
+        - **\blue{Example}**
+        - A thermostat estimates room temperature dynamics and uses them to predict
+            comfort level under a fixed heating schedule
 
-- **\gray{Use Case}**
-  - Suitable when environment dynamics are stationary and can be learned from
-    interaction
-        """
+        - **\darkgray{Use Case}**
+        - Suitable when environment dynamics are stationary and can be learned from
+            interaction
+        """)
         self.assert_equal(actual, expected)
 
 
 # #############################################################################
-# remove_empty_lines_from_markdown1
+# Test_format_first_level_bullets1
 # #############################################################################
 
 
-class Test_remove_empty_lines_from_markdown1(hunitest.TestCase):
+class Test_format_first_level_bullets1(hunitest.TestCase):
 
     def test1(self) -> None:
         """
@@ -1812,7 +1812,7 @@ class Test_remove_empty_lines_from_markdown1(hunitest.TestCase):
         self._format_and_compare_markdown(text, expected)
 
     def test10(self) -> None:
-        text = r"""
+        text = hprint.dedent(r"""
         - **Objective**
 
           - Learn utility estimates $U^\pi(s)$for a fixed policy$\pi$ using an estimated
@@ -1836,8 +1836,8 @@ class Test_remove_empty_lines_from_markdown1(hunitest.TestCase):
         - **Use Case**
           - Suitable when environment dynamics are stationary and can be learned from
             interaction
-        """
-        expected = r"""
+        """)
+        expected = hprint.dedent(r"""
         - **Objective**
           - Learn utility estimates $U^\pi(s)$for a fixed policy$\pi$ using an estimated
             model of the environment
@@ -1858,12 +1858,12 @@ class Test_remove_empty_lines_from_markdown1(hunitest.TestCase):
         - **Use Case**
           - Suitable when environment dynamics are stationary and can be learned from
             interaction
-        """
+        """)
         self._format_and_compare_markdown(text, expected)
 
     def _format_and_compare_markdown(self, text: str, expected: str) -> None:
         text = hprint.dedent(text)
         expected = hprint.dedent(expected)
         #
-        actual = hmarkdo.remove_empty_lines_from_markdown(text)
+        actual = hmarkdo.format_first_level_bullets(text)
         self.assert_equal(actual, expected)
