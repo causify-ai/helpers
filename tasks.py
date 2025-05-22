@@ -12,7 +12,11 @@ from helpers.lib_tasks import (  # This is not an invoke target.
     set_default_params,
 )
 
+# TODO(gp): Remove the lib_tasks import and import directly from lib_tasks_*.py files.
+# TODO(gp): How to automatically discovery the paths?
+
 from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=unused-import
+    #
     docker_bash,
     docker_build_local_image,
     docker_build_multi_arch_prod_image,
@@ -38,6 +42,9 @@ from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=u
     docker_tag_local_image_as_dev,  # TODO(gp): -> docker_release_...
     docker_tag_push_multi_arch_prod_image,
     docker_update_prod_task_definition,
+    #
+    print_bash,
+    #
     find,
     find_check_string_output,
     find_dependency,
