@@ -1186,27 +1186,10 @@ def run_dockerized_latex(
     """
     _LOG.debug(hprint.func_signature_to_str())
     container_image = "tmp.latex"
-    # Doesn't exist.
-    if False:
-        dockerfile = r"""
-        # Use a lightweight base image.
-        # FROM debian:bullseye-slim
-        FROM ubuntu:22.04
-        """
     if False:
         dockerfile = r"""
         # Use minimal multi-arch TeX Live image (includes ARM support)
         FROM ghcr.io/xu-cheng/texlive:latest
-        """
-    if True:
-        dockerfile = r"""
-        FROM mfisherman/texlive-full
-
-        # Verify LaTeX is installed.
-        RUN latex --version
-
-        # Default command.
-        CMD [ "bash" ]
         """
     # Doesn't work.
     if False:
@@ -1234,7 +1217,7 @@ def run_dockerized_latex(
             tikzit \
             || apt-get install -y --fix-missing
         """
-    #
+    # Doesn't work.
     if False:
         dockerfile = r"""
         # Use a lightweight base image.
@@ -1253,7 +1236,7 @@ def run_dockerized_latex(
         RUN apt install -y texlive-full
         """
     # Clean up.
-    if True:
+    if False:
         dockerfile += r"""
         RUN rm -rf /var/lib/apt/lists/* \
             && apt-get clean
@@ -1263,6 +1246,16 @@ def run_dockerized_latex(
 
         # Set working directory.
         WORKDIR /workspace
+
+        # Default command.
+        CMD [ "bash" ]
+        """
+    if True:
+        dockerfile = r"""
+        FROM mfisherman/texlive-full
+
+        # Verify LaTeX is installed.
+        RUN latex --version
 
         # Default command.
         CMD [ "bash" ]
