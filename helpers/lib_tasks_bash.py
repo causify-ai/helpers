@@ -19,26 +19,36 @@ import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
-# pylint: disable=protected-access
-
+# TODO(gp): GFI: Unit test.
 @task
-def print_bash(ctx):  # type: ignore
+def bash_print_path(ctx):  # type: ignore
     """
     Print the bash path.
     """
+    _ = ctx
     cmd = r"echo $PATH | sed 's/:/\n/g'"
     _, ret = hsystem.system_to_string(cmd)
-    # Check for duplicates.
     paths = ret.split("\n")
     paths.sort()
-    # Find duplicates.
-    duplicates = [path for path in paths if paths.count(path) > 1]
-    if len(duplicates) > 0:
-        _LOG.error("Found duplicates in the path: %s", duplicates)
-    # Check for dirs that don't exist.
+    #
+    all_paths = []
+    # Remove empty lines.
     for path in paths:
+        if path.strip() == "":
+            _LOG.error("Empty path: '%s'", path)
+            continue
         if not os.path.exists(path):
-            _LOG.error("Dir doesn't exist: %s", path)
+            _LOG.error("Dir doesn't exist: '%s'", path)
+            continue
+        if not os.path.isdir(path):
+            _LOG.error("Not a dir: '%s'", path)
+            continue
+        # TODO(gp): Make it efficient.
+        if paths.count(path) > 1:
+            _LOG.error("Duplicate path: '%s'", path)
+            continue
+        all_paths.append(path)
     # Print the paths.
-    for path in paths:
+    _LOG.info("Valid paths:")
+    for path in all_paths:
         print(path)
