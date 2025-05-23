@@ -1,0 +1,15 @@
+# Default settings for a repository.
+repository_settings:
+  allow_merge_commit: true
+  allow_squash_merge: true
+  allow_rebase_merge: true
+  has_issues: true
+  has_wiki: true
+  has_projects: true
+  delete_branch_on_merge: false
+# Recommended branch protection rules. There are no default settings for branch protection.
+branch_protection:
+  main:
+    enforce_admins: true
+    allow_force_pushes: false
+    allow_deletions: false
