@@ -706,6 +706,29 @@ def md_clean_up_how_to_guide() -> _PROMPT_OUT:
     post_container_transforms = ["format_markdown"]
     return system, pre_transforms, post_transforms, post_container_transforms
 
+# #############################################################################
+# Latex
+# #############################################################################
+
+
+_LATEX_CONTEXT = r"""
+    You are a proficient technical writer.
+    I will pass you a chunk of Latex code.
+    """
+
+
+def latex_rewrite() -> _PROMPT_OUT:
+    system = _LATEX_CONTEXT
+    system += r"""
+    - Rewrite the text passed to increase clarity and readability.
+    - Maintain the structure of the text as much as possible, in terms of bullet
+      points and their indentation
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {"remove_code_delimiters"}
+    post_container_transforms = []
+    return system, pre_transforms, post_transforms, post_container_transforms
+
 
 # #############################################################################
 # Doc.

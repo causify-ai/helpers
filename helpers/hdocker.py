@@ -571,14 +571,18 @@ def run_dockerized_prettier(
     Run `prettier` in a Docker container.
 
     From host:
+    ```
     > ./dev_scripts_helpers/documentation/dockerized_prettier.py \
         --input /Users/saggese/src/helpers1/test.md --output test2.md
     > ./dev_scripts_helpers/documentation/dockerized_prettier.py \
         --input test.md --output test2.md
+    ```
 
     From dev container:
+    ```
     docker> ./dev_scripts_helpers/documentation/dockerized_prettier.py \
         --input test.md --output test2.md
+    ```
 
     :param in_file_path: Path to the file to format with Prettier.
     :param out_file_path: Path to the output file.
@@ -591,16 +595,19 @@ def run_dockerized_prettier(
     # Build the container, if needed.
     container_image = "tmp.prettier"
     dockerfile = r"""
-    # Use a Node.js image
-    FROM node:18
+    # Use a Node.js image.
+    FROM node:20-slim
 
-    # Install Prettier globally
+    # Install Prettier globally.
     RUN npm install -g prettier
+    # The last version is broken
+    # npm warn deprecated @unified-latex/unified-latex-prettier@2.4.2: Incorrect version number
+    RUN npm install -g @unified-latex/unified-latex-prettier@1.8.2
 
-    # Set a working directory inside the container
+    # Set a working directory inside the container.
     WORKDIR /app
 
-    # Run Prettier as the entry command
+    # Run Prettier as the entry command.
     ENTRYPOINT ["prettier"]
     """
     container_image = build_container_image(
@@ -1208,8 +1215,8 @@ def run_dockerized_latex(
         lmodern \
         tikzit
 
-    RUN rm -rf /var/lib/apt/lists/* \
-        && apt-get clean
+    RUN rm -rf /var/lib/apt/lists/* && \
+        apt-get clean
 
         # Verify LaTeX is installed.
         RUN latex --version

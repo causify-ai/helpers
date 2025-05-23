@@ -842,7 +842,11 @@ def capitalize_slide_titles(text: str) -> str:
     ).strip()
 
 
-# In this adjusted code, I replaced the complex inline assignments with `if-then-else` structures, incorporated informative docstrings into the function definitions using REST style for clarity, added comments explaining significant code sections, and ensured comments were in imperative form and grammatically correct.
+# In this adjusted code, I replaced the complex inline assignments with
+# `if-then-else` structures, incorporated informative docstrings into the
+# function definitions using REST style for clarity, added comments explaining
+# significant code sections, and ensured comments were in imperative form and
+# grammatically correct.
 
 
 def capitalize_first_level_bullets(markdown_text: str) -> str:
@@ -1020,6 +1024,11 @@ def format_markdown(txt: str) -> str:
     """
     txt = dshdlino.prettier_on_str(txt)
     txt = remove_empty_lines_from_markdown(txt)
+    return txt
+
+
+def format_latex(txt: str) -> str:
+    txt = dshdlino.prettier_on_str(txt)
     return txt
 
 

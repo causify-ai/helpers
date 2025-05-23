@@ -287,6 +287,15 @@ def _main(parser: argparse.ArgumentParser) -> None:
             if args.bold_first_level_bullets:
                 out_txt = hmarkdo.bold_first_level_bullets(out_txt)
         #
+        if dshlllpr.to_run("format_latex", post_container_transforms):
+            # Note that we need to run this outside the `llm_transform`
+            # container to avoid to do docker-in-docker in the `llm_transform`
+            # container (which doesn't support that).
+            out_txt = hmarkdo.md_clean_up(out_txt)
+            out_txt = hmarkdo.format_markdown(out_txt)
+            if args.bold_first_level_bullets:
+                out_txt = hmarkdo.bold_first_level_bullets(out_txt)
+        #
         if dshlllpr.to_run("format_slide", post_container_transforms):
             # Note that we need to run this outside the `llm_transform`
             # container to avoid to do docker-in-docker in the `llm_transform`
