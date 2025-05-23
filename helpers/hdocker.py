@@ -650,7 +650,9 @@ def run_dockerized_prettier(
     #     tmp.prettier \
     #     --parser markdown --prose-wrap always --write --tab-width 2 \
     #     ./test.md
-    bash_cmd = f"/usr/local/bin/prettier {cmd_opts_as_str} {in_file_path}"
+    executable = "NODE_PATH=/usr/local/lib/node_modules /usr/local/bin/prettier"
+    #bash_cmd = f"/usr/local/bin/prettier {cmd_opts_as_str} {in_file_path}"
+    bash_cmd = f"NODE_PATH=/usr/local/lib/node_modules /usr/local/bin/prettier {cmd_opts_as_str} {in_file_path}"
     if out_file_path != in_file_path:
         bash_cmd += f" > {out_file_path}"
     # Build the Docker command.
