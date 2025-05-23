@@ -243,23 +243,35 @@ def _system(
         _LOG.error("error=%s", str(e))
     _LOG.debug("  ==> rc=%s", rc)
     if abort_on_error and rc != 0:
-        msg = (
-            "\n"
-            + hprint.frame(f"cmd='{cmd}' failed with rc='{rc}'")
-            + f"\nOutput of the failing command is:\n{hprint.line('>')}"
-            + f"\n{output}\n{hprint.line('<')}"
-        )
-        _LOG.error("%s", msg)
-        # Report the first `num_error_lines` of the output.
+        # msg = (
+        #     "\n"
+        #     + hprint.frame(f"cmd='{cmd}' failed with rc='{rc}'")
+        #     + f"\nOutput of the failing command is:\n{hprint.line('>')}"
+        #     + f"\n{output}\n{hprint.line('<')}"
+        # )
+        # _LOG.error("%s", msg)
+        # Report the last `num_error_lines` of the output.
         num_error_lines = num_error_lines or 30
-        output_error = "\n".join(output.split("\n")[:num_error_lines])
-        msg = f"_system failed: cmd='{cmd}'"
-        msg = (
-            "\n"
-            + hprint.frame(msg, char1="%", thickness=2)
-            + "\n"
-            + f"truncated output=\n{output_error}"
-        )
+        output_error = "\n".join(output.split("\n")[-num_error_lines:])
+        msg = []
+        msg.append("\n" + hprint.frame("_system() failed", thickness=2))
+        msg.append(hprint.func_signature_to_str())
+        msg.append(hprint.frame(f"cmd='{cmd}'", char1="%", thickness=1))
+        msg.append(f"- rc='{rc}'")
+        msg.append(f"- output='\n{output_error}'")
+        # Save the output in a file.
+        file_name = "tmp.system_output.txt"
+        with open(file_name, "w") as f:
+            f.write(output)
+        msg.append(f"- Output saved in '{file_name}'")
+        # Save the command in an executable file.
+        file_name = "tmp.system_cmd.sh"
+        msg.append(f"- Command saved in '{file_name}'")
+        with open(file_name, "w") as f:
+            f.write(cmd)
+        os.chmod(file_name, 0o755)
+        #
+        msg = "\n".join(msg)
         raise RuntimeError(msg)
     # hdbg.dassert_type_in(output, (str, ))
     return rc, output

@@ -120,6 +120,7 @@ def prettier(
         of Prettier.
     :return: The formatted text.
     """
+    _LOG.debug(hprint.func_signature_to_str())
     hdbg.dassert_in(file_type, ["md", "tex", "txt"])
     # Build command options.
     cmd_opts: List[str] = []
@@ -179,7 +180,7 @@ def prettier_on_str(
     # Save string as input.
     # TODO(gp): Use a context manager.
     curr_dir = os.getcwd()
-    tmp_file_name = tempfile.NamedTemporaryFile(dir=curr_dir).name
+    tmp_file_name = tempfile.NamedTemporaryFile(prefix="tmp.prettier_on_str.", dir=curr_dir).name
     hio.to_file(tmp_file_name, txt)
     # Call `prettier` in-place.
     prettier(tmp_file_name, tmp_file_name, *args, **kwargs)
@@ -361,6 +362,9 @@ def _process(
     """
     is_md_file = in_file_name.endswith(".md")
     extension = os.path.splitext(in_file_name)[1]
+    # Remove the . from the extenstion (e.g., ".txt").
+    hdbg.dassert(extension.startswith("."), "Invalid extension='%s'", extension)
+    extension = extension[1:]
     # Pre-process text.
     action = "preprocess"
     if _to_execute_action(action, actions):
@@ -416,7 +420,7 @@ def _parser() -> argparse.ArgumentParser:
         "--print-width",
         action="store",
         type=int,
-        default=None,
+        default=80,
     )
     parser.add_argument(
         "--use_dockerized_prettier",
@@ -440,7 +444,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         args, clear_screen=True
     )
     # If the input is stdin, then user needs to specify the type.
-    if in_file_name != "-":
+    if in_file_name == "-":
         hdbg.dassert_ne(args.type, "")
     # Read input.
     txt = hparser.read_file(in_file_name)
