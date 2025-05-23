@@ -68,7 +68,9 @@ def _run_dockerized_extract_notebook_images(
     # Build the container image, if needed.
     container_image = "tmp.extract_notebook_images"
     dockerfile = r"""
-    FROM python:3.10-slim
+    # This seems to be flaky on ARM64 architectures.
+    #FROM python:3.10-slim
+    FROM python:3.10
 
     # Install required system libraries for Chromium and Playwright.
     RUN apt-get update && apt-get install -y \
