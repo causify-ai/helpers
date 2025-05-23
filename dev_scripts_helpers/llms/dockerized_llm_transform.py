@@ -27,7 +27,7 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     hparser.add_input_output_args(parser)
-    hparser.add_prompt_arg(parser)
+    hparser.add_llm_prompt_arg(parser)
     hparser.add_verbosity_arg(parser, log_level="CRITICAL")
     return parser
 

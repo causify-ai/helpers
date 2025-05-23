@@ -48,6 +48,7 @@ import helpers.hsystem as hsystem
 _LOG = logging.getLogger(__name__)
 
 
+# TODO(gp): -> _parser() or _get_parser() everywhere.
 def _parse() -> argparse.ArgumentParser:
     """
     Use the same argparse parser for `dockerized_llm_transform.py`.
@@ -61,7 +62,7 @@ def _parse() -> argparse.ArgumentParser:
         in_default="-",
         in_required=False,
     )
-    hparser.add_prompt_arg(parser)
+    hparser.add_llm_prompt_arg(parser)
     hparser.add_dockerized_script_arg(parser)
     parser.add_argument(
         "-d",
@@ -228,15 +229,17 @@ def _convert_file_names(in_file_name: str, out_file_name: str) -> None:
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hparser.init_logger_for_input_output_transform(args)
+    #
     if args.prompt == "list":
         print("# Available prompt tags:")
         print("\n".join(dshlllpr.get_prompt_tags()))
         return
     # Parse files.
     in_file_name, out_file_name = hparser.parse_input_output_args(args)
+    tag = "llm_transform"
     tmp_in_file_name, tmp_out_file_name = (
         hparser.adapt_input_output_args_for_dockerized_scripts(
-            in_file_name, "llm_transform"
+            in_file_name, tag
         )
     )
     # TODO(gp): We should just automatically pass-through the options.

@@ -240,7 +240,7 @@ class Test_lint_notes2(hunitest.TestCase):
         For some reason prettier replaces - with * when there are 2 empty lines.
         """
         txt = self._get_text_problematic_for_prettier1()
-        act = dshdlino.prettier_on_str(txt)
+        act = dshdlino.prettier_on_str(txt, file_type="txt")
         exp = r"""
         - Python formatting
 

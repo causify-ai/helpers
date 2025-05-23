@@ -706,6 +706,7 @@ def md_clean_up_how_to_guide() -> _PROMPT_OUT:
     post_container_transforms = ["format_markdown"]
     return system, pre_transforms, post_transforms, post_container_transforms
 
+
 # #############################################################################
 # Latex
 # #############################################################################

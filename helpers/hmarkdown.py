@@ -876,6 +876,7 @@ def capitalize_first_level_bullets(markdown_text: str) -> str:
             result.append(line)
     return "\n".join(result)
 
+
 # These are the colors that are supported by Latex / markdown, are readable on
 # white, and form an equidistant color palette.
 _ALL_COLORS = [
@@ -1014,7 +1015,8 @@ def prettier_markdown(txt: str) -> str:
     """
     Format markdown text using `prettier`.
     """
-    txt = dshdlino.prettier_on_str(txt)
+    file_type = "md"
+    txt = dshdlino.prettier_on_str(txt, file_type)
     return txt
 
 
@@ -1022,13 +1024,9 @@ def format_markdown(txt: str) -> str:
     """
     Format markdown text.
     """
-    txt = dshdlino.prettier_on_str(txt)
+    file_type = "md"
+    txt = dshdlino.prettier_on_str(txt, file_type)
     txt = remove_empty_lines_from_markdown(txt)
-    return txt
-
-
-def format_latex(txt: str) -> str:
-    txt = dshdlino.prettier_on_str(txt)
     return txt
 
 
@@ -1039,7 +1037,14 @@ def format_markdown_slide(txt: str) -> str:
     # Split the text into title and body.
 
     txt = bold_first_level_bullets(txt)
-    txt = dshdlino.prettier_on_str(txt)
+    file_type = "md"
+    txt = dshdlino.prettier_on_str(txt, file_type)
     txt = format_first_level_bullets(txt)
     #txt = capitalize_slide_titles(txt)
+    return txt
+
+
+def format_latex(txt: str) -> str:
+    file_type = "tex"
+    txt = dshdlino.prettier_on_str(txt, file_type)
     return txt

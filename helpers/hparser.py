@@ -372,6 +372,9 @@ def parse_input_output_args(
 
 
 def init_logger_for_input_output_transform(args: argparse.Namespace) -> None:
+    """
+    Initialize the logger when input/output transformation is used.
+    """
     verbosity = args.log_level
     # If the input is stdin, we don't want to print the command line or any
     # other log messages, unless the user specified a more verbose log level.
@@ -654,7 +657,7 @@ def add_dockerized_script_arg(
     return parser
 
 
-def add_prompt_arg(
+def add_llm_prompt_arg(
     parser: argparse.ArgumentParser,
 ) -> argparse.ArgumentParser:
     """

@@ -44,7 +44,7 @@ def _parse() -> argparse.ArgumentParser:
         required=True,
         help="Path to the cfile",
     )
-    hparser.add_prompt_arg(parser)
+    hparser.add_llm_prompt_arg(parser)
     hparser.add_dockerized_script_arg(parser)
     # Use CRITICAL to avoid logging anything.
     hparser.add_verbosity_arg(parser, log_level="CRITICAL")
