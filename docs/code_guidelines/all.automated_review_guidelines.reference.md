@@ -316,7 +316,6 @@ serve as a guideline for automated PR reviews.
 - The name of a notebook should generally be the same as the branch name, unless
   it's a Master notebook
 - All notebooks should have a table of contents
-  - Linter automatically adds and updates the table of contents
 - At the top of the notebook there should be a Markdown cell `# Description`,
   followed by a Markdown cell with an explanation of the notebook's goal, what
   it does, etc.
@@ -414,12 +413,13 @@ serve as a guideline for automated PR reviews.
   `__init__.py` file
 - Notebooks should generally be located under the `notebooks` dir
 - Unit tests should be located under the `test` dir
-  - Golden outcomes for tests should be located under the `test/outcomes` dir
+- Golden outcomes for unit tests should be located under the `test/outcomes` dir
 - Documentation files should generally be located under the `docs` dir
 
 ## Spelling
 
 - Capitalize the first letter of `Python`
+- Capitalize the first letter of `Markdown`
 - Spell `Linter` with the first letter in upper case and do not use an article
   (`Linter` instead of `the Linter`)
 - Capitalize `JSON`, `CSV`, `DB` and other abbreviations
