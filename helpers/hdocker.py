@@ -15,6 +15,7 @@ import time
 from typing import Any, Dict, List, Optional, Tuple, cast
 
 import helpers.hdbg as hdbg
+import helpers.henv as henv
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -311,15 +312,7 @@ def get_docker_base_cmd(use_sudo: bool) -> List[str]:
     :return: The base command for running a Docker container.
     """
     docker_executable = get_docker_executable(use_sudo)
-    # Get all the environment variables that start with `AM_`, `CK_`, `CSFY_`.
-    vars_to_pass = [
-        v
-        for v in os.environ.keys()
-        if
-        # TODO(gp): We should only pass the `CSFY_` vars.
-        v.startswith("AM_") or v.startswith("CK_") or v.startswith("CSFY_")
-    ]
-    vars_to_pass.append("OPENAI_API_KEY")
+    vars_to_pass = henv.get_csfy_env_vars() + henv.get_api_key_env_vars()
     vars_to_pass = sorted(vars_to_pass)
     vars_to_pass_as_str = " ".join(f"-e {v}" for v in vars_to_pass)
     # Build the command as a list.
@@ -1193,37 +1186,80 @@ def run_dockerized_latex(
     """
     _LOG.debug(hprint.func_signature_to_str())
     container_image = "tmp.latex"
-    dockerfile = r"""
-    # Use a lightweight base image.
-    FROM debian:bullseye-slim
+    if False:
+        dockerfile = r"""
+        # Use minimal multi-arch TeX Live image (includes ARM support)
+        FROM ghcr.io/xu-cheng/texlive:latest
+        """
+    # Doesn't work.
+    if False:
+        dockerfile = r"""
+        # Use a lightweight base image.
+        # FROM debian:bullseye-slim
+        FROM ubuntu:22.04
 
-    # Set environment variables to avoid interactive prompts.
-    ENV DEBIAN_FRONTEND=noninteractive
+        # Set environment variables to avoid interactive prompts.
+        ENV DEBIAN_FRONTEND=noninteractive
 
-    # Update.
-    RUN apt-get update
+        # Update.
+        RUN apt-get update && \
+            apt-get clean && \
+            rm -rf /var/lib/apt/lists/* && \
+            apt-get update
 
-    # Install only the minimal TeX Live packages.
-    RUN apt-get install -y --no-install-recommends \
-        texlive-latex-base \
-        texlive-latex-recommended \
-        texlive-fonts-recommended \
-        texlive-latex-extra \
-        lmodern \
-        tikzit
+        # Install only the minimal TeX Live packages.
+        RUN apt-get install -y --no-install-recommends \
+            texlive-latex-base \
+            texlive-latex-recommended \
+            texlive-fonts-recommended \
+            texlive-latex-extra \
+            lmodern \
+            tikzit \
+            || apt-get install -y --fix-missing
+        """
+    # Doesn't work.
+    if False:
+        dockerfile = r"""
+        # Use a lightweight base image.
+        # FROM debian:bullseye-slim
+        FROM ubuntu:22.04
 
-    RUN rm -rf /var/lib/apt/lists/* \
-        && apt-get clean
+        # Set environment variables to avoid interactive prompts.
+        ENV DEBIAN_FRONTEND=noninteractive
 
-    # Verify LaTeX is installed.
-    RUN latex --version
+        RUN rm -rf /var/lib/apt/lists/*
+        # Update.
+        RUN apt-get clean && \
+            apt-get update
 
-    # Set working directory.
-    WORKDIR /workspace
+        # Install texlive-full.
+        RUN apt install -y texlive-full
+        """
+    # Clean up.
+    if False:
+        dockerfile += r"""
+        RUN rm -rf /var/lib/apt/lists/* \
+            && apt-get clean
 
-    # Default command.
-    CMD [ "bash" ]
-    """
+        # Verify LaTeX is installed.
+        RUN latex --version
+
+        # Set working directory.
+        WORKDIR /workspace
+
+        # Default command.
+        CMD [ "bash" ]
+        """
+    if True:
+        dockerfile = r"""
+        FROM mfisherman/texlive-full
+
+        # Verify LaTeX is installed.
+        RUN latex --version
+
+        # Default command.
+        CMD [ "bash" ]
+        """
     container_image = build_container_image(
         container_image, dockerfile, force_rebuild, use_sudo
     )
@@ -1333,8 +1369,9 @@ def run_basic_latex(
             force_rebuild=force_rebuild,
             use_sudo=use_sudo,
         )
-    # Get the path of the output file created by Latex.
-    file_out = os.path.basename(in_file_name).replace(".tex", ".pdf")
+    # Latex writes the output file in the current working directory.
+    file_out = os.path.basename(in_file_name)
+    file_out = hio.change_filename_extension(file_out, "", "pdf")
     _LOG.debug("file_out=%s", file_out)
     hdbg.dassert_path_exists(file_out)
     # Move to the proper output location.
@@ -1431,7 +1468,7 @@ def run_dockerized_imagemagick(
     return ret
 
 
-def dockerized_tikz_to_bitmap(
+def run_dockerized_tikz_to_bitmap(
     in_file_path: str,
     cmd_opts: List[str],
     out_file_path: str,
@@ -1439,8 +1476,19 @@ def dockerized_tikz_to_bitmap(
     force_rebuild: bool = False,
     use_sudo: bool = False,
 ) -> None:
-    """
+    r"""
     Convert a TikZ file to a PDF file.
+
+    It expects the input file to be a TikZ including the Latex preamble like:
+    ```
+    \documentclass[tikz, border=10pt]{standalone}
+    \usepackage{tikz}
+    \begin{document}
+    \begin{tikzpicture}[scale=0.8]
+    ...
+    \end{tikzpicture}
+    \end{document}
+    ```
     """
     _LOG.debug(hprint.func_signature_to_str())
     # Convert tikz file to PDF.
