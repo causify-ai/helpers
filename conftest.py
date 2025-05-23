@@ -49,13 +49,13 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
         wrap_cli = request.config.getoption("coverage_subprocess")
         if wrap_env or wrap_cli:
             try:
-                import coverage_subprocess_util as csu
+                import coverage_subprocess_util as csubutil
             except ImportError:
                 # skip all tests if our helper isn't installed
                 pytest.skip("coverage_subprocess_util not available")
-            csu.patch_subprocess_for_coverage()
+            csubutil.patch_subprocess_for_coverage()
             yield
-            csu.unpatch_subprocess_for_coverage()
+            csubutil.unpatch_subprocess_for_coverage()
         else:
             # nothing to do if flag/env not set
             yield
