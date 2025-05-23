@@ -596,16 +596,11 @@ def run_dockerized_prettier(
     container_image = "tmp.prettier"
     dockerfile = r"""
     # Use a Node.js image.
-    FROM node:20-slim
+    FROM node:18-slim
 
-    RUN npm install -g npm@latest
-    RUN npm cache clean --force
-
-    # Install Prettier globally.
-    RUN npm install -g prettier
-    # The last version is broken
-    # npm warn deprecated @unified-latex/unified-latex-prettier@2.4.2: Incorrect version number
-    #RUN npm install @unified-latex/unified-latex-prettier@1.8.2 --legacy-peer-deps
+    RUN npm install -g prettier@2.7.0
+    RUN npm install -g @unified-latex/unified-latex-prettier@1.7.1
+    RUN npm install -g prettier-plugin-latex@2.0.1
 
     # Set a working directory inside the container.
     WORKDIR /app

@@ -126,7 +126,8 @@ def prettier(
     cmd_opts: List[str] = []
     tab_width = 2
     if file_type == "tex":
-        cmd_opts.append("--plugin=prettier-plugin-latex")
+        #cmd_opts.append("--plugin=prettier-plugin-latex")
+        cmd_opts.append("--plugin=@unified-latex/unified-latex-prettier")
     elif file_type in ("md", "txt"):
         cmd_opts.append("--parser markdown")
     else:
@@ -153,6 +154,7 @@ def prettier(
     else:
         # Run `prettier` installed on the host directly.
         executable = "prettier"
+        #executable = "NODE_PATH=/usr/local/lib/node_modules /usr/local/bin/prettier"
         cmd = [executable] + cmd_opts
         if in_file_path == out_file_path:
             cmd.append("--write")
@@ -181,6 +183,7 @@ def prettier_on_str(
     # TODO(gp): Use a context manager.
     curr_dir = os.getcwd()
     tmp_file_name = tempfile.NamedTemporaryFile(prefix="tmp.prettier_on_str.", dir=curr_dir).name
+    tmp_file_name += ".tex"
     hio.to_file(tmp_file_name, txt)
     # Call `prettier` in-place.
     prettier(tmp_file_name, tmp_file_name, *args, **kwargs)
