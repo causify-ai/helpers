@@ -1,4 +1,21 @@
 """
+Utility to wrap subprocess and hsystem.system calls for coverage tracking. This
+module provides a way to automatically wrap subprocess calls to ensure that any
+Python invocations are run under coverage, if enabled via environment variables
+or command-line options.
+
+Examples:
+coverage run --parallel-mode -m pytest --coverage_subprocess <directory>
+coverage run --parallel-mode -m pytest --coverage_subprocess --arg1 --arg2
+coverage combine
+coverage report
+
+or
+export COVERAGE_SUBPROCESS_WRAP=1
+coverage run --parallel-mode -m pytest <directory>
+coverage combine
+coverage report
+
 Import as:
 
 import coverage_subprocess_util as csubutil
@@ -33,6 +50,9 @@ class CoverageSubprocessWrapper:
         self._is_patched = False
 
     def patch(self) -> None:
+        """
+        Patch subprocess and hsystem.system to include coverage tracking.
+        """
         if self._is_patched:
             return
         # Patch subprocess
@@ -49,6 +69,9 @@ class CoverageSubprocessWrapper:
         self._is_patched = True
 
     def unpatch(self) -> None:
+        """
+        Restore original subprocess and os.system functions.
+        """
         if not self._is_patched:
             return
         # Restore subprocess
@@ -188,6 +211,9 @@ class CoverageSubprocessWrapper:
         return tokens
 
     def _patched_popen(self, *args: Any, **kwargs: Any) -> subprocess.Popen:
+        """
+        Wrap subprocess.Popen.
+        """
         cmd = args[0]
         if isinstance(cmd, str) and kwargs.get("shell"):
             cmd = self._wrap_cmd_str(cmd)
@@ -200,6 +226,9 @@ class CoverageSubprocessWrapper:
     def _patched_run(
         self, cmd: Union[str, List[str]], *args: Any, **kwargs: Any
     ) -> subprocess.CompletedProcess:
+        """
+        Wrap subprocess.run.
+        """
         user_check = kwargs.pop("check", False)
         if isinstance(cmd, str):
             cmd = self._wrap_cmd_str(cmd)
@@ -208,12 +237,18 @@ class CoverageSubprocessWrapper:
         return self._orig_run(cmd, *args, check=user_check, **kwargs)
 
     def _patched_call(self, *args: Any, **kwargs: Any) -> int:
+        """
+        Wrap subprocess.call.
+        """
         cmd = args[0]
         if isinstance(cmd, str):
             cmd = self._wrap_cmd_str(cmd)
         return self._orig_call(cmd, **kwargs)
 
     def _patched_check_call(self, *args: Any, **kwargs: Any) -> int:
+        """
+        Wrap subprocess.check_call.
+        """
         cmd = args[0]
         if isinstance(cmd, str):
             cmd = self._wrap_cmd_str(cmd)
@@ -226,13 +261,13 @@ _wrapper = CoverageSubprocessWrapper()
 
 def patch_subprocess_for_coverage() -> None:
     """
-    Enable coverage wrapping on subprocess and hsystem.system.
+    General function to patch.
     """
     _wrapper.patch()
 
 
 def unpatch_subprocess_for_coverage() -> None:
     """
-    Disable coverage wrapping and restore originals.
+    General function to unpatch.
     """
     _wrapper.unpatch()
