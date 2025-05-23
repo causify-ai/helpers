@@ -36,11 +36,11 @@ import helpers.hsystem as hsystem
 
 class CoverageSubprocessWrapper:
     """
-    Wraps subprocess and hsystem.system calls to include coverage tracking.
+    Wraps subprocess calls to include coverage tracking.
     """
 
     def __init__(self) -> None:
-        # Preserve originals
+        # Preserve original commands.
         self._orig_popen = subprocess.Popen
         self._orig_run = subprocess.run
         self._orig_call = subprocess.call
@@ -51,18 +51,16 @@ class CoverageSubprocessWrapper:
 
     def patch(self) -> None:
         """
-        Patch subprocess and hsystem.system to include coverage tracking.
+        Patch commands.
         """
         if self._is_patched:
             return
-        # Patch subprocess
+        # Patch subprocess and system.
         subprocess.Popen = self._patched_popen
         subprocess.run = self._patched_run
         subprocess.call = self._patched_call
         subprocess.check_call = self._patched_check_call
-        # Patch os.system
         os.system = lambda cmd: self._orig_system(self._wrap_cmd_str(cmd))
-        # Patch hsystem.system
         hsystem.system = lambda cmd, *a, **k: self._orig_hsystem_system(
             self._wrap_cmd_str(cmd), *a, **k
         )
@@ -70,34 +68,35 @@ class CoverageSubprocessWrapper:
 
     def unpatch(self) -> None:
         """
-        Restore original subprocess and os.system functions.
+        Restore original commands.
         """
         if not self._is_patched:
             return
-        # Restore subprocess
+        # Restore subprocess and system.
         subprocess.Popen = self._orig_popen
         subprocess.run = self._orig_run
         subprocess.call = self._orig_call
         subprocess.check_call = self._orig_check_call
-        # Restore os.system
         os.system = self._orig_system
-        # Restore hsystem.system
         hsystem.system = self._orig_hsystem_system
         self._is_patched = False
 
     def _wrap_cmd_str(self, cmd: str) -> str:
         """
-        Wrap a command string to include coverage if it's a Python invocation.
+        Wrap a command to include coverage if it's a Python invocation.
+
+        :param cmd: the command to wrap
+        :return: the wrapped command
         """
         if isinstance(cmd, str):
             cmd = os.fsdecode(cmd)
-        # Handle the case where _system wraps the command in parentheses
+        # Handle the case where _system wraps the command in parentheses.
         original_cmd = cmd
         wrapped_in_parens = False
         suffix = ""
-        # Check if command is wrapped in parentheses like "(...) 2>&1"
         if cmd.startswith("(") and ") 2>&1" in cmd:
-            # Extract the inner command
+            # Command is wrapped in parentheses like "(...) 2>&1"
+            # Extract the inner command.
             paren_end = cmd.rfind(") 2>&1")
             if paren_end > 0:
                 inner_cmd = cmd[1:paren_end]
@@ -107,16 +106,16 @@ class CoverageSubprocessWrapper:
         try:
             tokens = shlex.split(cmd)
         except ValueError:
-            # If we can't parse the command, don't wrap it
+            # Command could not be split, return original.
             return original_cmd
         if not tokens:
             return original_cmd
-        # Check if --parallel-mode is already in the command
+        # Check if --parallel-mode is already in the command.
         if "--parallel-mode" in tokens:
             return original_cmd
         first = tokens[0]
         second = tokens[1] if len(tokens) > 1 else ""
-        # catch: anything named python*, any .py script, or -m invocations
+        # Wrap anything named python*, any .py script, or -m invocations.
         wants_wrap = (
             first.startswith("python")
             or first.endswith(".py")
@@ -125,9 +124,9 @@ class CoverageSubprocessWrapper:
             or first == "coverage"
         )
         if wants_wrap:
-            # If it's already a coverage command, just add --parallel-mode
+            # If it's already a coverage command, just add --parallel-mode.
             if first == "coverage":
-                # Find where to insert --parallel-mode
+                # Find where to insert --parallel-mode.
                 if "run" in tokens:
                     run_index = tokens.index("run")
                     new_tokens = (
@@ -136,15 +135,15 @@ class CoverageSubprocessWrapper:
                         + tokens[run_index + 1 :]
                     )
                 else:
-                    # coverage without run subcommand, add run --parallel-mode
+                    # Coverage without run subcommand, add run --parallel-mode.
                     new_tokens = ["coverage", "run", "--parallel-mode"] + tokens[
                         1:
                     ]
             else:
-                # Not a coverage command, wrap it completely
+                # Not a coverage command, wrap it completely.
                 prefix = ["coverage", "run", "--parallel-mode"]
                 new_tokens = prefix + tokens
-            # Add data file if specified
+            # Add data file if specified.
             data_file = os.getenv("COVERAGE_FILE")
             if data_file and "--data-file" not in new_tokens:
                 try:
@@ -155,18 +154,22 @@ class CoverageSubprocessWrapper:
                         + new_tokens[run_index + 1 :]
                     )
                 except ValueError:
-                    # 'run' not found, append at the end
+                    # 'run' not found, append at the end.
                     new_tokens.extend(["--data-file", data_file])
             wrapped_cmd = " ".join(new_tokens)
-            # If original was wrapped in parentheses, restore that structure
             if wrapped_in_parens:
+                # Original was wrapped in parentheses, restore that structure.
                 return f"({wrapped_cmd}){suffix}"
             return wrapped_cmd
         return original_cmd
 
     def _wrap_cmd_list(self, tokens: List[str]) -> List[str]:
         """
-        Wrap a command list to include coverage if it's a Python invocation.
+        Wrap a command collection to include coverage if it's a Python
+        invocation.
+
+        :param tokens: the command to wrap
+        :return: the wrapped command
         """
         if not tokens or "--parallel-mode" in tokens:
             return tokens
@@ -179,9 +182,9 @@ class CoverageSubprocessWrapper:
             or first == "coverage"
         )
         if wants_wrap:
-            # If it's already a coverage command, just add --parallel-mode
+            # If it's already a coverage command, just add --parallel-mode.
             if first == "coverage":
-                # Find where to insert --parallel-mode
+                # Find where to insert --parallel-mode.
                 if "run" in tokens:
                     run_index = tokens.index("run")
                     new_tokens = (
@@ -190,15 +193,15 @@ class CoverageSubprocessWrapper:
                         + tokens[run_index + 1 :]
                     )
                 else:
-                    # coverage without run subcommand, add run --parallel-mode
+                    # Coverage without run subcommand, add run --parallel-mode.
                     new_tokens = ["coverage", "run", "--parallel-mode"] + tokens[
                         1:
                     ]
             else:
-                # Not a coverage command, wrap it completely
+                # Not a coverage command, wrap it completely.
                 prefix = ["coverage", "run", "--parallel-mode"]
                 new_tokens = prefix + tokens
-            # Add data file if specified
+            # Add data file if specified.
             data_file = os.getenv("COVERAGE_FILE")
             if data_file and "--data-file" not in new_tokens:
                 run_index = new_tokens.index("run")
@@ -212,7 +215,11 @@ class CoverageSubprocessWrapper:
 
     def _patched_popen(self, *args: Any, **kwargs: Any) -> subprocess.Popen:
         """
-        Wrap subprocess.Popen.
+        Wrap `subprocess.Popen`.
+
+        :param args: the command to wrap
+        :param kwargs: additional arguments
+        :return: the wrapped command
         """
         cmd = args[0]
         if isinstance(cmd, str) and kwargs.get("shell"):
@@ -227,7 +234,12 @@ class CoverageSubprocessWrapper:
         self, cmd: Union[str, List[str]], *args: Any, **kwargs: Any
     ) -> subprocess.CompletedProcess:
         """
-        Wrap subprocess.run.
+        Wrap `subprocess.run`.
+
+        :param cmd: the command to wrap
+        :param args: additional arguments
+        :param kwargs: additional keyword arguments
+        :return: the wrapped command
         """
         user_check = kwargs.pop("check", False)
         if isinstance(cmd, str):
@@ -238,7 +250,11 @@ class CoverageSubprocessWrapper:
 
     def _patched_call(self, *args: Any, **kwargs: Any) -> int:
         """
-        Wrap subprocess.call.
+        Wrap `subprocess.call`.
+
+        :param args: the command to wrap
+        :param kwargs: additional arguments
+        :return: the wrapped command
         """
         cmd = args[0]
         if isinstance(cmd, str):
@@ -247,7 +263,11 @@ class CoverageSubprocessWrapper:
 
     def _patched_check_call(self, *args: Any, **kwargs: Any) -> int:
         """
-        Wrap subprocess.check_call.
+        Wrap `subprocess.check_call`.
+
+        :param args: the command to wrap
+        :param kwargs: additional arguments
+        :return: the wrapped command
         """
         cmd = args[0]
         if isinstance(cmd, str):
@@ -255,7 +275,7 @@ class CoverageSubprocessWrapper:
         return self._orig_check_call(cmd, **kwargs)
 
 
-# Create a global instance and convenience functions
+# Create a global instance and convenience functions.
 _wrapper = CoverageSubprocessWrapper()
 
 
