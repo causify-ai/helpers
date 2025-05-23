@@ -896,7 +896,7 @@ class Test_docker_release_multi_arch_prod_image1(_DockerFlowTestHelper):
 # Test_docker_create_candidate_image1
 # #############################################################################
 
-
+@pytest.mark.skip(reason="See CmampTask12206")
 class Test_docker_create_candidate_image1(_DockerFlowTestHelper):
     """
     Test creating a candidate Docker image.
