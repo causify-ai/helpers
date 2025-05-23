@@ -7,7 +7,8 @@
 repository_settings:
   # Basic settings
   name: "test-repo"
-  description: "Example repository with branch protection and settings"
+  description: "Test repository with branch protection and settings"
+  homepage: "https://github.com/test-repo"
   private: true
   archived: false
   # Feature settings

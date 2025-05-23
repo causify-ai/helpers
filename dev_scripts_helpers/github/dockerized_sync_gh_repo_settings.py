@@ -92,65 +92,113 @@ class Settings:
         for branch in branches:
             try:
                 protection = branch.get_protection()
+                if protection is None:
+                    _LOG.warning(
+                        "No protection info for branch: %s, skipping.",
+                        branch.name,
+                    )
+                    continue
+                status_checks = Settings._safe_getattr(
+                    protection, "required_status_checks"
+                )
+                required_status_checks = {}
+                if status_checks:
+                    required_status_checks["strict"] = Settings._safe_getattr(
+                        status_checks, "strict"
+                    )
+                    required_status_checks["contexts"] = Settings._safe_getattr(
+                        status_checks, "contexts", []
+                    )
+                pr_reviews = Settings._safe_getattr(
+                    protection, "required_pull_request_reviews"
+                )
+                required_pr_reviews = {}
+                if pr_reviews:
+                    required_pr_reviews["dismiss_stale_reviews"] = (
+                        Settings._safe_getattr(
+                            pr_reviews, "dismiss_stale_reviews"
+                        )
+                    )
+                    required_pr_reviews["require_code_owner_reviews"] = (
+                        Settings._safe_getattr(
+                            pr_reviews, "require_code_owner_reviews"
+                        )
+                    )
+                    required_pr_reviews["required_approving_review_count"] = (
+                        Settings._safe_getattr(
+                            pr_reviews, "required_approving_review_count"
+                        )
+                    )
+                    dismissal = Settings._safe_getattr(
+                        pr_reviews, "dismissal_restrictions"
+                    )
+                    dismissal_restrictions = {}
+                    if dismissal:
+                        dismissal_restrictions["users"] = [
+                            user.login
+                            for user in Settings._safe_getattr(
+                                dismissal, "users", []
+                            )
+                        ]
+                        dismissal_restrictions["teams"] = [
+                            team.name
+                            for team in Settings._safe_getattr(
+                                dismissal, "teams", []
+                            )
+                        ]
+                    required_pr_reviews["dismissal_restrictions"] = (
+                        dismissal_restrictions
+                    )
+                restrictions = Settings._safe_getattr(protection, "restrictions")
+                restrictions_dict = {}
+                if restrictions:
+                    restrictions_dict["users"] = [
+                        user.login
+                        for user in Settings._safe_getattr(
+                            restrictions, "users", []
+                        )
+                    ]
+                    restrictions_dict["teams"] = [
+                        team.name
+                        for team in Settings._safe_getattr(
+                            restrictions, "teams", []
+                        )
+                    ]
                 branch_protection[branch.name] = {
-                    "enforce_admins": protection.enforce_admins,
-                    "allow_force_pushes": protection.allow_force_pushes,
-                    "allow_deletions": protection.allow_deletions,
-                    "required_status_checks": (
-                        {
-                            "strict": protection.required_status_checks.strict,
-                            "contexts": protection.required_status_checks.contexts,
-                        }
-                        if protection.required_status_checks
-                        else {}
+                    "enforce_admins": Settings._safe_getattr(
+                        protection, "enforce_admins"
                     ),
-                    "required_pull_request_reviews": (
-                        {
-                            "dismiss_stale_reviews": protection.required_pull_request_reviews.dismiss_stale_reviews,
-                            "require_code_owner_reviews": protection.required_pull_request_reviews.require_code_owner_reviews,
-                            "required_approving_review_count": protection.required_pull_request_reviews.required_approving_review_count,
-                            "dismissal_restrictions": (
-                                {
-                                    "users": [
-                                        user.login
-                                        for user in protection.required_pull_request_reviews.dismissal_restrictions.users
-                                    ],
-                                    "teams": [
-                                        team.name
-                                        for team in protection.required_pull_request_reviews.dismissal_restrictions.teams
-                                    ],
-                                }
-                                if protection.required_pull_request_reviews.dismissal_restrictions
-                                else {}
-                            ),
-                        }
-                        if protection.required_pull_request_reviews
-                        else {}
+                    "allow_force_pushes": Settings._safe_getattr(
+                        protection, "allow_force_pushes"
                     ),
-                    "restrictions": (
-                        {
-                            "users": [
-                                user.login
-                                for user in protection.restrictions.users
-                            ],
-                            "teams": [
-                                team.name
-                                for team in protection.restrictions.teams
-                            ],
-                        }
-                        if protection.restrictions
-                        else {}
+                    "allow_deletions": Settings._safe_getattr(
+                        protection, "allow_deletions"
                     ),
+                    "required_status_checks": required_status_checks,
+                    "required_pull_request_reviews": required_pr_reviews,
+                    "restrictions": restrictions_dict,
                 }
             except github.GithubException as e:
-                if e.status == 404:
+                if hasattr(e, "status") and e.status == 404:
                     # Skip if branch has no protection.
+                    _LOG.warning(
+                        "Branch %s has no protection (404), skipping.",
+                        branch.name,
+                    )
                     continue
                 _LOG.error(
                     "Failed to get branch protection for %s: %s",
                     branch.name,
                     str(e),
                 )
+                continue
+            except (AttributeError, TypeError, ValueError) as e:
+                _LOG.error(
+                    "Error processing branch %s: %s. Skipping this branch.",
+                    branch.name,
+                    str(e),
+                )
+                continue
         return branch_protection
 
     @staticmethod
@@ -203,125 +251,6 @@ class Settings:
             "branch_protection": self._branch_protection,
             "repository_settings": self._repo_settings,
         }
-
-    def switch_default_branch_protection(
-        self, repo: github.Repository.Repository, dry_run: bool = True
-    ) -> None:
-        """
-        Switch to default branch protection rules that exist in the repo but
-        not in settings manifest file.
-
-        By default, branch protection:
-        - Disables force pushes
-        - Prevents branch deletion
-        - Does not apply restrictions to admins/bypassers
-        - Rest of the settings have no default values
-
-        Only these three settings are switched to default because they are the core
-        protection settings that GitHub applies by default. Other settings like
-        required status checks, pull request reviews, and restrictions are not
-        automatically applied by GitHub and thus are not included in the default
-        behavior.
-
-        :param repo: GitHub repository object
-        :param dry_run: whether to do dry run
-        """
-        branches = repo.get_branches()
-        for branch in branches:
-            try:
-                # Set default protection if branch exists in repo but not in settings.
-                if branch.name not in self.branch_protection:
-                    default_settings = {
-                        "enforce_admins": False,
-                        "allow_force_pushes": False,
-                        "allow_deletions": False,
-                    }
-                    if not dry_run:
-                        # Apply default protection settings.
-                        branch.edit_protection(
-                            enforce_admins=default_settings["enforce_admins"],
-                            allow_force_pushes=default_settings[
-                                "allow_force_pushes"
-                            ],
-                            allow_deletions=default_settings["allow_deletions"],
-                            strict=github.GithubObject.NotSet,
-                            contexts=github.GithubObject.NotSet,
-                            dismiss_stale_reviews=github.GithubObject.NotSet,
-                            require_code_owner_reviews=github.GithubObject.NotSet,
-                            required_approving_review_count=github.GithubObject.NotSet,
-                            dismissal_users=github.GithubObject.NotSet,
-                            dismissal_teams=github.GithubObject.NotSet,
-                            user_push_restrictions=github.GithubObject.NotSet,
-                            team_push_restrictions=github.GithubObject.NotSet,
-                        )
-                        _LOG.info(
-                            "Applied default branch protection to %s:\n%s",
-                            branch.name,
-                            "\n".join(
-                                f"  {k}: {v}" for k, v in default_settings.items()
-                            ),
-                        )
-                    else:
-                        _LOG.info(
-                            "Would apply default branch protection to %s:\n%s",
-                            branch.name,
-                            "\n".join(
-                                f"  {k}: {v}" for k, v in default_settings.items()
-                            ),
-                        )
-            except github.GithubException as e:
-                if e.status == 404:
-                    # Skip if branch has no protection.
-                    continue
-                _LOG.error(
-                    "Failed to apply default branch protection to %s: %s",
-                    branch.name,
-                    str(e),
-                )
-
-    def switch_default_repository_settings(
-        self, repo: github.Repository.Repository, dry_run: bool = True
-    ) -> None:
-        """
-        Switch to default repository settings that exist in the repo but not in
-        settings manifest file.
-
-        By default:
-        - Merge options are enabled
-        - Repository features are enabled
-        - Delete branch on merge is disabled
-        - Rest of the settings have no default values
-
-        :param repo: GitHub repository object
-        :param dry_run: whether to do dry run
-        """
-        current_settings = self.get_repository_settings(repo)
-        default_settings = {
-            "allow_merge_commit": True,
-            "allow_squash_merge": True,
-            "allow_rebase_merge": True,
-            "has_issues": True,
-            "has_wiki": True,
-            "has_projects": True,
-            "delete_branch_on_merge": False,
-        }
-        changes = {}
-        for setting, value in current_settings.items():
-            if setting not in self.repo_settings and setting in default_settings:
-                changes[setting] = default_settings[setting]
-        if changes:
-            if not dry_run:
-                for setting, value in changes.items():
-                    repo.edit(**{setting: value})
-                _LOG.info(
-                    "Applied default repository settings:\n%s",
-                    "\n".join(f"  {k}: {v}" for k, v in changes.items()),
-                )
-            else:
-                _LOG.info(
-                    "Would apply default repository settings:\n%s",
-                    "\n".join(f"  {k}: {v}" for k, v in changes.items()),
-                )
 
     def apply_branch_protection(
         self, repo: github.Repository.Repository, dry_run: bool = True
@@ -503,6 +432,24 @@ class Settings:
                     ", ".join(self.repo_settings["topics"]),
                 )
 
+    @staticmethod
+    def _safe_getattr(obj: Any, attr: str, default: Any = None) -> Any:
+        """
+        Get an attribute from an object, returning a default value if the
+        attribute is not found.
+
+        :param obj: object to get the attribute from
+        :param attr: attribute to get from the object
+        :param default: default value to return if the attribute is not
+            found
+        :return: attribute value or the default value if the attribute
+            is not found
+        """
+        try:
+            return getattr(obj, attr, default)
+        except (AttributeError, TypeError):
+            return default
+
 
 def _parse() -> argparse.ArgumentParser:
     """
@@ -548,6 +495,11 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Skip confirmation prompts",
     )
+    parser.add_argument(
+        "--default_settings_file",
+        required=False,
+        help="Path to default settings YAML file (for --switch_default)",
+    )
     return parser
 
 
@@ -585,8 +537,15 @@ def _main(parser: argparse.ArgumentParser) -> None:
         _LOG.warning("Running in non-interactive mode, skipping confirmation")
     # Switch to default settings if requested.
     if args.switch_default:
-        settings.switch_default_branch_protection(repo, args.dry_run)
-        settings.switch_default_repository_settings(repo, args.dry_run)
+        if not args.default_settings_file:
+            raise ValueError(
+                "You must provide --default_settings_file when using --switch_default"
+            )
+        default_settings = Settings.load_settings(args.default_settings_file)
+        # Recommended branch protection rules will be applied to all branches.
+        default_settings.apply_branch_protection(repo, args.dry_run)
+        # Default repository settings will be applied to the repository.
+        default_settings.apply_repo_settings(repo, args.dry_run)
     # Apply branch protection and repository settings.
     settings.apply_branch_protection(repo, args.dry_run)
     settings.apply_repo_settings(repo, args.dry_run)
