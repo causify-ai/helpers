@@ -5,8 +5,12 @@ from typing import Optional
 import pytest
 
 import dev_scripts_helpers.documentation.lint_notes as dshdlino
+import helpers.hdbg as hdbg
+import helpers.hgit as hgit
+import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hserver as hserver
+import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
@@ -240,7 +244,7 @@ class Test_lint_notes2(hunitest.TestCase):
         For some reason prettier replaces - with * when there are 2 empty lines.
         """
         txt = self._get_text_problematic_for_prettier1()
-        act = dshdlino.prettier_on_str(txt)
+        act = dshdlino.prettier_on_str(txt, file_type="txt")
         exp = r"""
         - Python formatting
 
@@ -337,3 +341,126 @@ class Test_lint_notes2(hunitest.TestCase):
             exp = hprint.dedent(exp, remove_lead_trail_empty_lines_=True)
             self.assert_equal(act, exp)
         return act
+
+
+# #############################################################################
+# Test_lint_notes_cmd_line1
+# #############################################################################
+
+
+@pytest.mark.skipif(
+    hserver.is_inside_ci() or hserver.is_dev_csfy(),
+    reason="Disabled because of CmampTask10710",
+)
+class Test_lint_notes_cmd_line1(hunitest.TestCase):
+
+    def create_md_input_file(self) -> str:
+        txt = """
+        # Header1
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+        """
+        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
+        in_file = os.path.join(self.get_scratch_space(), "input.md")
+        hio.to_file(in_file, txt)
+        return in_file
+
+    def create_tex_input_file(self) -> str:
+        txt = r"""
+            \documentclass{article}
+
+        \title{Simple \LaTeX{} Example}
+        \author{Your Name}
+                \date{\today}
+
+        \begin{document}
+
+        \maketitle
+
+        \section{Introduction}
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+        \section{Math Example}
+        Here is an inline equation: \( E = mc^2 \).\\
+        And a displayed equation:
+                \[
+        \int_{0}^{\infty} e^{-x^2} \, dx = \frac{\sqrt{\pi}}{2}
+        \]
+
+            \section{Lists}
+        \begin{itemize}
+        \item Item 1
+                \item Item 2
+            \item Item 3
+        \end{itemize}
+
+        \end{document}
+        """
+        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
+        in_file = os.path.join(self.get_scratch_space(), "input.tex")
+        hio.to_file(in_file, txt)
+        return in_file
+
+    # TODO(gp): Run this calling directly the code and not executing the script.
+    def run_lint_notes(
+        self, in_file: str, type_: str, cmd_opts: str
+    ) -> Optional[str]:
+        """
+        Run the `lint_notes.py` script with the specified options.
+
+        :param in_file: Path to the input file containing the notes.
+        :param type_: The output format, either 'md' or 'tex'.
+        :param cmd_opts: Additional command-line options to pass to the
+            script.
+        :returns: A tuple containing the script content and the output
+            content.
+        """
+        # lint_notes.py \
+        #  -i papers/DataFlow_stream_computing_framework/DataFlow_stream_computing_framework.tex \
+        #  --use_dockerized_prettier \
+        cmd = []
+        exec_path = hgit.find_file_in_git_tree("lint_notes.py")
+        hdbg.dassert_path_exists(exec_path)
+        cmd.append(exec_path)
+        cmd.append(f"--in_file_name {in_file}")
+        cmd.append("--use_dockerized_prettier")
+        # Save a script file to store the commands.
+        hdbg.dassert_in(type_, ["md", "tex"])
+        out_dir = self.get_scratch_space()
+        out_file = os.path.join(out_dir, f"output.{type_}")
+        cmd.append(f"--out_file_name {out_file}")
+        cmd.append(cmd_opts)
+        cmd = " ".join(cmd)
+        hsystem.system(cmd)
+        # Check the content of the file, if needed.
+        output_txt: Optional[str] = None
+        if os.path.exists(out_file):
+            output_txt = hio.from_file(out_file)
+        return output_txt
+
+    # ///////////////////////////////////////////////////////////////////////////
+
+    def test1(self) -> None:
+        """
+        Run lint_to_notes.py on a markdown file.
+        """
+        # Prepare inputs.
+        in_file = self.create_md_input_file()
+        type_ = "md"
+        cmd_opts = ""
+        # Run the script.
+        output_txt = self.run_lint_notes(in_file, type_, cmd_opts)
+        # Check.
+        self.check_string(output_txt)
+
+    def test2(self) -> None:
+        """
+        Run lint_to_notes.py on a latex file.
+        """
+        # Prepare inputs.
+        in_file = self.create_tex_input_file()
+        type_ = "tex"
+        cmd_opts = ""
+        # Run the script.
+        output_txt = self.run_lint_notes(in_file, type_, cmd_opts)
+        # Check.
+        self.check_string(output_txt)

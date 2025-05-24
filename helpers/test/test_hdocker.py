@@ -243,6 +243,7 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
             in_file_path,
             cmd_opts,
             out_file_path,
+            file_type="md",
             force_rebuild=force_rebuild,
             use_sudo=use_sudo,
         )

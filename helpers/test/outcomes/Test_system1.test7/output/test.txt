@@ -1,8 +1,16 @@
 
+################################################################################
+################################################################################
+_system() failed
+################################################################################
+################################################################################
+# _system: cmd='(ls this_file_doesnt_exist) 2>&1', abort_on_error=True, suppress_error=None, suppress_output=True, blocking=True, wrapper=None, output_file=None, num_error_lines=30, tee=False, dry_run=False, log_level=10
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+cmd='(ls this_file_doesnt_exist) 2>&1'
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-_system failed: cmd='(ls this_file_doesnt_exist) 2>&1'
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-truncated output=
+- rc=''
+- output='
 ls: cannot access 'this_file_doesnt_exist': No such file or directory
+'
+- Output saved in 'tmp.system_output.txt'
+- Command saved in 'tmp.system_cmd.sh'

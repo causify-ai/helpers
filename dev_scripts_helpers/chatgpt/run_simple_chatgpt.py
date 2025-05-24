@@ -54,13 +54,14 @@ def _parse() -> argparse.ArgumentParser:
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    hparser.init_logger_for_input_output_transform(args)
     #
+    hparser.init_logger_for_input_output_transform(args)
     in_file_name, out_file_name = hparser.parse_input_output_args(
         args, clear_screen=True
     )
     txt = hparser.read_file(in_file_name)
     txt = "\n".join(txt)
+    #
     hdbg.dassert_in(args.instruction, hchainst.instructions)
     instruction = hchainst.instructions[args.instruction]
     result = _process_text(txt, instruction)

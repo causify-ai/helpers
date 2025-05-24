@@ -105,14 +105,21 @@ class Test_system1(hunitest.TestCase):
         actual = hunitest.purify_txt_from_client(actual)
         expected = r"""
 
+        ################################################################################
+        ################################################################################
+        _system() failed
+        ################################################################################
+        ################################################################################
+        # _system: cmd='(ls this_should_fail) 2>&1 | tee -a $GIT_ROOT/helpers/test/outcomes/Test_system1.test9/tmp.scratch/tee_log; exit ${PIPESTATUS[0]}', abort_on_error=True, suppress_error=None, suppress_output=True, blocking=True, wrapper=None, output_file='$GIT_ROOT/helpers/test/outcomes/Test_system1.test9/tmp.scratch/tee_log', num_error_lines=30, tee=True, dry_run=False, log_level=10
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        cmd='(ls this_should_fail) 2>&1 | tee -a $GIT_ROOT/helpers/test/outcomes/Test_system1.test9/tmp.scratch/tee_log; exit ${PIPESTATUS[0]}'
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        _system failed: cmd='(ls this_should_fail) 2>&1 | tee -a $GIT_ROOT/helpers/test/outcomes/Test_system1.test9/tmp.scratch/tee_log; exit ${PIPESTATUS[0]}'
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        truncated output=
+        - rc='2'
+        - output='
         ls: cannot access 'this_should_fail': No such file or directory
-
+        '
+        - Output saved in 'tmp.system_output.txt'
+        - Command saved in 'tmp.system_cmd.sh'
         """
         self.assert_equal(actual, expected, fuzzy_match=True)
         # Check log output.
