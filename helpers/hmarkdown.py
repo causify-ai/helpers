@@ -769,8 +769,6 @@ def selected_navigation_to_str(
 # #############################################################################
 
 
-
-
 def capitalize_first_level_bullets(markdown_text: str) -> str:
     """
     Make first-level bullets bold in markdown text.

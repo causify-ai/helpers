@@ -72,6 +72,8 @@ def process_docker_cmd(
     """
     _LOG.debug(hprint.func_signature_to_str())
     hdbg.dassert_isinstance(docker_cmd, str)
+    hdbg.dassert_isinstance(container_image, str)
+    hdbg.dassert_isinstance(dockerfile, str)
     if mode == "return_cmd":
         ret = docker_cmd
     elif mode == "system":
@@ -628,16 +630,17 @@ def run_dockerized_prettier(
     :param in_file_path: Path to the file to format with Prettier.
     :param out_file_path: Path to the output file.
     :param cmd_opts: Command options to pass to Prettier.
+    :param file_type: Type of the file to format, e.g., `md`, `txt` or `tex`.
     :param force_rebuild: Whether to force rebuild the Docker container.
     :param use_sudo: Whether to use sudo for Docker commands.
     """
     _LOG.debug(hprint.func_signature_to_str())
     hdbg.dassert_isinstance(cmd_opts, list)
-    hdbg.dassert_in(file_type, ["md", "tex"])
+    hdbg.dassert_in(file_type, ["md", "txt", "tex"])
     # Build the container, if needed.
     # TODO(gp): -> container_image_name
     container_image = f"tmp.prettier.{file_type}"
-    if file_type == "md":
+    if file_type in ("md", "txt"):
         dockerfile = r"""
         FROM node:20-slim
 
@@ -710,7 +713,7 @@ def run_dockerized_prettier(
     #     tmp.prettier \
     #     --parser markdown --prose-wrap always --write --tab-width 2 \
     #     ./test.md
-    if file_type == "md":
+    if file_type in ("md", "txt"):
         executable = "/usr/local/bin/prettier"
     elif file_type == "tex":
         executable = (
@@ -894,6 +897,7 @@ def run_dockerized_pandoc(
     if container_type == "pandoc_only":
         container_image = "pandoc/core"
         incremental = False
+        dockerfile = ""
     else:
         if container_type == "pandoc_latex":
             container_image = "tmp.pandoc_latex"
@@ -1865,6 +1869,7 @@ def run_dockerized_graphviz(
         is_caller_host=is_caller_host,
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
+    #
     cmd_opts = " ".join(cmd_opts)
     graphviz_cmd = [
         "dot",
@@ -1875,6 +1880,7 @@ def run_dockerized_graphviz(
         in_file_path,
     ]
     graphviz_cmd = " ".join(graphviz_cmd)
+    #
     docker_cmd = get_docker_base_cmd(use_sudo)
     docker_cmd.extend(
         [

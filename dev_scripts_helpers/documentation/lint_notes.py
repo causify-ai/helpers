@@ -149,6 +149,7 @@ def prettier(
             in_file_path,
             cmd_opts,
             out_file_path,
+            file_type=file_type,
             force_rebuild=force_rebuild,
             use_sudo=use_sudo,
         )
@@ -173,6 +174,7 @@ def prettier(
 # TODO(gp): Move this to `hmarkdown.py`.
 def prettier_on_str(
     txt: str,
+    file_type: str,
     *args: Any,
     **kwargs: Any,
 ) -> str:
@@ -186,10 +188,11 @@ def prettier_on_str(
     tmp_file_name = tempfile.NamedTemporaryFile(
         prefix="tmp.prettier_on_str.", dir=curr_dir
     ).name
-    tmp_file_name += ".tex"
+    hdbg.dassert_in(file_type, ["md", "tex", "txt"])
+    tmp_file_name += "." + file_type
     hio.to_file(tmp_file_name, txt)
     # Call `prettier` in-place.
-    prettier(tmp_file_name, tmp_file_name, *args, **kwargs)
+    prettier(tmp_file_name, tmp_file_name, file_type, *args, **kwargs)
     # Read result into a string.
     txt = hio.from_file(tmp_file_name)
     _LOG.debug("After prettier txt=\n%s", txt)

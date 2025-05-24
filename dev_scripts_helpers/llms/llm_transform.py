@@ -185,7 +185,7 @@ def _run_dockerized_llm_transform(
         ]
     )
     docker_cmd = " ".join(docker_cmd)
-    ret = _process_docker_cmd(docker_cmd, container_image, dockerfile, mode)
+    ret = hdocker.process_docker_cmd(docker_cmd, container_image, dockerfile, mode)
     return ret
 
 

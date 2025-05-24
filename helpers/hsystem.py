@@ -243,13 +243,6 @@ def _system(
         _LOG.error("error=%s", str(e))
     _LOG.debug("  ==> rc=%s", rc)
     if abort_on_error and rc != 0:
-        # msg = (
-        #     "\n"
-        #     + hprint.frame(f"cmd='{cmd}' failed with rc='{rc}'")
-        #     + f"\nOutput of the failing command is:\n{hprint.line('>')}"
-        #     + f"\n{output}\n{hprint.line('<')}"
-        # )
-        # _LOG.error("%s", msg)
         # Report the last `num_error_lines` of the output.
         num_error_lines = num_error_lines or 30
         output_error = "\n".join(output.split("\n")[-num_error_lines:])
@@ -702,7 +695,7 @@ def to_pbcopy(txt: str, pbcopy: bool) -> None:
         # -n = no new line
         cmd = f"echo -n '{txt}' | pbcopy"
         system(cmd)
-        print(f"\n# Copied to system clipboard:\n{txt}")
+        _LOG.warning("\n# Copied to system clipboard:\n%s", txt)
     else:
         _LOG.warning("pbcopy works only on macOS")
         print(txt)

@@ -464,35 +464,3 @@ class Test_lint_notes_cmd_line1(hunitest.TestCase):
         output_txt = self.run_lint_notes(in_file, type_, cmd_opts)
         # Check.
         self.check_string(output_txt)
-
-    # def test2(self) -> None:
-    #     """
-    #     Run:
-    #     > notes_to_pdf.py --input input.md -t pdf
-    #     """
-    #     # Prepare inputs.
-    #     in_file = self.create_input_file()
-    #     type_ = "pdf"
-    #     cmd_opts = ""
-    #     # Run the script.
-    #     script_txt, output_txt = self.run_notes_to_pdf(in_file, type_, cmd_opts)
-    #     # Check.
-    #     txt = "script_txt:\n%s\n" % script_txt
-    #     txt += "output_txt:\n%s\n" % output_txt
-    #     self.check_string(txt, purify_text=True)
-
-    # def test3(self) -> None:
-    #     """
-    #     Run:
-    #     > notes_to_pdf.py --input input.md -t pdf --filter_by_header Header2
-    #     """
-    #     # Prepare inputs.
-    #     in_file = self.create_input_file()
-    #     type_ = "pdf"
-    #     cmd_opts = "--filter_by_header Header2"
-    #     # Run the script.
-    #     script_txt, output_txt = self.run_notes_to_pdf(in_file, type_, cmd_opts)
-    #     # Check.
-    #     txt = "script_txt:\n%s\n" % script_txt
-    #     txt += "output_txt:\n%s\n" % output_txt
-    #     self.check_string(txt, purify_text=True)
