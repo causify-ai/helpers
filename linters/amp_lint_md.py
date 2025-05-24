@@ -42,8 +42,10 @@ def _check_readme_is_capitalized(file_name: str) -> str:
 class _LintMarkdown(liaction.Action):
 
     def __init__(self) -> None:
-        cmd = "find -wholename '*dev_scripts_helpers/documentation/lint_notes.py'"
-        executable = hsystem.system_to_one_line(cmd)
+        #cmd = "find -wholename '*dev_scripts_helpers/documentation/lint_notes.py'"
+        #executable = hsystem.system_to_one_line(cmd)
+        #assert 0, executable
+        executable = "$(find -wholename '*dev_scripts_helpers/documentation/lint_notes.py')"
         super().__init__(executable)
 
     def check_if_possible(self) -> bool:
