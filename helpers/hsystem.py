@@ -695,7 +695,7 @@ def to_pbcopy(txt: str, pbcopy: bool) -> None:
         # -n = no new line
         cmd = f"echo -n '{txt}' | pbcopy"
         system(cmd)
-        print(f"\n# Copied to system clipboard:\n{txt}")
+        _LOG.warning("\n# Copied to system clipboard:\n%s", txt)
     else:
         _LOG.warning("pbcopy works only on macOS")
         print(txt)
