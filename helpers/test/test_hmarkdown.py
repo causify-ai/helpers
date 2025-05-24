@@ -1502,7 +1502,7 @@ class Test_colorize_bold_text1(hunitest.TestCase):
         """
         text = "**First** normal **Second** text"
         actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
-        expected = r"**\red{First}** normal **\purple{Second}** text"
+        expected = r"**\red{First}** normal **\teal{Second}** text"
         self.assert_equal(actual, expected)
 
     def test3(self) -> None:
@@ -1529,7 +1529,7 @@ class Test_colorize_bold_text1(hunitest.TestCase):
         """
         text = "**First** and __Second__ bold"
         actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
-        expected = r"**\red{First}** and **\purple{Second}** bold"
+        expected = r"**\red{First}** and **\teal{Second}** bold"
         self.assert_equal(actual, expected)
 
     def test6(self) -> None:
@@ -1560,7 +1560,7 @@ class Test_colorize_bold_text1(hunitest.TestCase):
         - First item
         - Second item
 
-        **\purple{List 2:}**
+        **\teal{List 2:}**
         - Another item
         - Final item
         """

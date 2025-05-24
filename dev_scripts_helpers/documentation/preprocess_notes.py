@@ -260,7 +260,6 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
                     # It's a line in an answer.
                     out.append(" " * _NUM_SPACES + line)
             else:
-                assert 0
                 # Empty line.
                 prev_line_is_verbatim = ((i - 1) > 0) and lines[i - 1].startswith(
                     "```"
@@ -283,8 +282,7 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
                     or prev_line_is_verbatim
                     or next_line_is_verbatim
                 ):
-                    # out.append(" " * _NUM_SPACES + line)
-                    assert 0
+                    out.append(" " * _NUM_SPACES + line)
     # c) Clean up.
     _LOG.debug("Clean up")
     # Remove all the lines with only spaces.
