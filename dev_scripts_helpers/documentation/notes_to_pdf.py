@@ -282,7 +282,7 @@ def _run_pandoc_to_pdf(
         cmd = hdocker.run_dockerized_pandoc(
             cmd,
             container_type,
-            return_cmd=True,
+            mode="return_cmd",
             force_rebuild=dockerized_force_rebuild,
             use_sudo=dockerized_use_sudo,
         )
@@ -317,7 +317,7 @@ def _run_pandoc_to_pdf(
     )
     _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
     if not use_host_tools:
-        cmd = hdocker.run_dockerized_latex(cmd, return_cmd=True, use_sudo=False)
+        cmd = hdocker.run_dockerized_latex(cmd, mode="return_cmd", use_sudo=False)
     _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
     _ = _system(cmd)
     # - Run latex again.
@@ -403,7 +403,7 @@ def _build_pandoc_cmd(
         cmd = hdocker.run_dockerized_pandoc(
             cmd,
             container_type,
-            return_cmd=True,
+            mode="return_cmd",
             force_rebuild=dockerized_force_rebuild,
             use_sudo=dockerized_use_sudo,
         )
