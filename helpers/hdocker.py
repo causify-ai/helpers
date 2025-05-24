@@ -630,17 +630,17 @@ def run_dockerized_prettier(
     :param in_file_path: Path to the file to format with Prettier.
     :param out_file_path: Path to the output file.
     :param cmd_opts: Command options to pass to Prettier.
-    :param file_type: Type of the file to format, e.g., `md` or `tex`.
+    :param file_type: Type of the file to format, e.g., `md`, `txt` or `tex`.
     :param force_rebuild: Whether to force rebuild the Docker container.
     :param use_sudo: Whether to use sudo for Docker commands.
     """
     _LOG.debug(hprint.func_signature_to_str())
     hdbg.dassert_isinstance(cmd_opts, list)
-    hdbg.dassert_in(file_type, ["md", "tex"])
+    hdbg.dassert_in(file_type, ["md", "txt", "tex"])
     # Build the container, if needed.
     # TODO(gp): -> container_image_name
     container_image = f"tmp.prettier.{file_type}"
-    if file_type == "md":
+    if file_type in ("md", "txt"):
         dockerfile = r"""
         FROM node:20-slim
 
@@ -713,7 +713,7 @@ def run_dockerized_prettier(
     #     tmp.prettier \
     #     --parser markdown --prose-wrap always --write --tab-width 2 \
     #     ./test.md
-    if file_type == "md":
+    if file_type in ("md", "txt"):
         executable = "/usr/local/bin/prettier"
     elif file_type == "tex":
         executable = (
