@@ -198,25 +198,32 @@ set_csfy_env_vars() {
 
 
 set_path() {
-    echo "# set_path()"
+    # Process interface.
+    dassert_eq_num_args $# 1 "set_path"
     local dev_script_dir=$1
+    #
     dassert_dir_exists $dev_script_dir
-    dassert_dir_exists $GIT_ROOT_DIR
+    dtrace "dev_script_dir=$dev_script_dir"
+    #
     export PATH=$(pwd):$PATH
-    # Add the top Git dir to PATH.
+    dtrace "GIT_ROOT=$GIT_ROOT"
+    dassert_var_defined "GIT_ROOT"
+    #
     export PATH=$GIT_ROOT_DIR:$PATH
-    # Add import_check.
-    IMPORT_CHECK_DIR=$GIT_ROOT_DIR/import_check
-    dassert_dir_exists $IMPORT_CHECK_DIR
-    export PATH=$IMPORT_CHECK_DIR:$PATH
-    # Add all the first level directory under `dev_scripts` to PATH.
-    export PATH_TMP="$(find $dev_script_dir -maxdepth 1 -type d -not -path "$(pwd)" | tr '\n' ':' | sed 's/:$//')"
+    # Avoid ./.mypy_cache/3.12/app/dev_scripts_helpers
+    DEV_SCRIPT_HELPER_DIR=$(find . -name dev_scripts_helpers -type d -not -path "*.mypy_cache*")
+    dassert_dir_exists $DEV_SCRIPT_HELPER_DIR
+    dtrace "DEV_SCRIPT_HELPER_DIR=$DEV_SCRIPT_HELPER_DIR"
+    # Add to the PATH all the first level directory under `dev_scripts`.
+    export PATH_TMP="$(find $DEV_SCRIPT_HELPER_DIR -maxdepth 1 -type d -not -path "$(pwd)" | tr '\n' ':' | sed 's/:$//')"
+    dtrace "PATH_TMP=$PATH_TMP"
     export PATH=$PATH_TMP:$PATH
     # Remove duplicates.
     export PATH=$(remove_dups $PATH)
     # Print.
     echo "PATH=$PATH"
 }
+
 
 
 set_pythonpath() {
