@@ -176,6 +176,69 @@ def lint_detect_cycles(  # type: ignore
     hlitauti.run(ctx, cmd)
 
 
+# TODO(ehaabbasil): c -> ctx
+# TODO(ehaabbasil): Use REST for docstrings.
+# TODO(ehaabbasil): Make this invoke target like the others.
+# TODO
+
+@task
+def lint_show_deps(
+    ctx,
+    dir_name=".",
+    stage="prod",
+    version="",
+    out_file_name="dependency_graph.dot",
+    max_level=-1,
+    show_cycles=False,
+    log_level="INFO",
+):
+    """
+    Generate a dependency report for a specified directory.
+    
+    :param dir_name: The name of dir to generate dependecy report for.
+    :param out_file_name: Path to the output DOT file. 
+    :param max_level: Maximum directory depth to analyze (-1 for no limit)
+    """
+    hlitauti.report_task()
+    cmd = f"python import_check/show_deps.py {dir_name} --out_file {out_file_name} --max_level {max_level}"
+    if show_cycles:
+        cmd += " --show_cycles"
+    cmd += f" -v {log_level}"
+    docker_cmd = _get_lint_docker_cmd("", cmd, stage=stage, version=version)
+    hlitauti.run(ctx, docker_cmd)
+
+@task
+def lint_generate_deps(
+    ctx,
+    dir_name=".",
+    stage="prod",
+    version="",
+    out_file_name="dependency_graph.dot",
+    max_level=-1,
+    show_cycles=False,
+    log_level="INFO",
+):
+    """
+    Generate a dependency graph for intra-directory imports.
+
+    For param descriptions, see `lint()`.
+
+    :param ctx: Invoke context
+    :param dir_name: Path to the directory to analyze
+    :param out_file_name: Path to the output DOT file
+    :param max_level: Maximum directory depth to analyze (-1 for no limit)
+    :param show_cycles: Show only cyclic dependencies
+    :param log_level: Logging verbosity level (e.g., DEBUG, INFO)
+    """
+    hlitauti.report_task()
+    cmd = f"python import_check/generate_deps.py {dir_name} --out_file {out_file_name} --max_level {max_level}"
+    if show_cycles:
+        cmd += " --show_cycles"
+    cmd += f" --log_level {log_level}"
+    docker_cmd = _get_lint_docker_cmd("", cmd, stage=stage, version=version)
+    hlitauti.run(ctx, docker_cmd)
+
+
 # pylint: disable=line-too-long
 @task
 def lint(  # type: ignore

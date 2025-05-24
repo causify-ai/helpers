@@ -2,6 +2,8 @@ import logging
 import os
 from typing import Any
 
+from invoke import task
+
 import helpers.repo_config_utils as hrecouti
 
 # Expose the pytest targets.
@@ -84,6 +86,8 @@ from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=u
     lint_check_python_files_in_docker,
     lint_create_branch,
     lint_detect_cycles,
+    lint_generate_deps,
+    lint_show_deps,
     print_env,
     print_setup,
     print_tasks,
@@ -140,6 +144,8 @@ try:
     )
 except ImportError:
     pass
+from import_check.dependency_graph import DependencyGraph
+
 # # TODO(gp): This is due to the coupling between code in linter container and
 # #  the code being linted.
 # try:
@@ -179,7 +185,6 @@ def _run_qa_tests(ctx: Any, stage: str, version: str) -> bool:
         cmd = f"{cmd} --image_version {version}"
     ctx.run(cmd)
     return True
-
 
 default_params = {
     # TODO(Nikola): Remove prefix after everything is cleaned.
