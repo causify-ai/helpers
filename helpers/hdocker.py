@@ -54,11 +54,10 @@ def get_docker_executable(use_sudo: bool) -> str:
     executable += "docker"
     return executable
 
-    
-def process_docker_cmd(docker_cmd: str, 
-                        container_image: str,
-                        dockerfile: str,
-                        mode: str) -> str:
+
+def process_docker_cmd(
+    docker_cmd: str, container_image: str, dockerfile: str, mode: str
+) -> str:
     """
     Process a Docker command according to the mode.
 
@@ -713,7 +712,9 @@ def run_dockerized_prettier(
     if file_type == "md":
         executable = "/usr/local/bin/prettier"
     elif file_type == "tex":
-        executable = "NODE_PATH=/usr/local/lib/node_modules /usr/local/bin/prettier"
+        executable = (
+            "NODE_PATH=/usr/local/lib/node_modules /usr/local/bin/prettier"
+        )
     else:
         raise ValueError(f"Invalid file_type='{file_type}'")
     bash_cmd = f"{executable} {cmd_opts_as_str} {in_file_path}"
@@ -1138,6 +1139,7 @@ def run_dockerized_markdown_toc(
     ret = process_docker_cmd(docker_cmd, container_image, dockerfile, mode)
     return ret
 
+
 # #############################################################################
 # Dockerized Latex.
 # #############################################################################
@@ -1237,7 +1239,7 @@ def convert_latex_arguments_to_cmd(
 def run_dockerized_latex(
     cmd: str,
     *,
-    mode: str= "system",
+    mode: str = "system",
     force_rebuild: bool = False,
     use_sudo: bool = False,
 ) -> str:

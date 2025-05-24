@@ -1567,7 +1567,8 @@ class Test_colorize_bold_text1(hunitest.TestCase):
         self.assert_equal(actual, expected)
 
     def test8(self) -> None:
-        text = hprint.dedent(r"""
+        text = hprint.dedent(
+            r"""
         - **\red{Objective}**
         - Learn utility estimates $U^\pi(s)$for a fixed policy$\pi$ using an estimated
             model of the environment
@@ -1600,9 +1601,11 @@ class Test_colorize_bold_text1(hunitest.TestCase):
         - **\darkgray{Use Case}**
         - Suitable when environment dynamics are stationary and can be learned from
             interaction
-        """)
+        """
+        )
         actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
-        expected = hprint.dedent(r"""
+        expected = hprint.dedent(
+            r"""
         - **\red{Objective}**
         - Learn utility estimates $U^\pi(s)$for a fixed policy$\pi$ using an estimated
             model of the environment
@@ -1635,7 +1638,8 @@ class Test_colorize_bold_text1(hunitest.TestCase):
         - **\darkgray{Use Case}**
         - Suitable when environment dynamics are stationary and can be learned from
             interaction
-        """)
+        """
+        )
         self.assert_equal(actual, expected)
 
 
@@ -1812,7 +1816,8 @@ class Test_format_first_level_bullets1(hunitest.TestCase):
         self._format_and_compare_markdown(text, expected)
 
     def test10(self) -> None:
-        text = hprint.dedent(r"""
+        text = hprint.dedent(
+            r"""
         - **Objective**
 
           - Learn utility estimates $U^\pi(s)$for a fixed policy$\pi$ using an estimated
@@ -1836,8 +1841,10 @@ class Test_format_first_level_bullets1(hunitest.TestCase):
         - **Use Case**
           - Suitable when environment dynamics are stationary and can be learned from
             interaction
-        """)
-        expected = hprint.dedent(r"""
+        """
+        )
+        expected = hprint.dedent(
+            r"""
         - **Objective**
           - Learn utility estimates $U^\pi(s)$for a fixed policy$\pi$ using an estimated
             model of the environment
@@ -1858,7 +1865,8 @@ class Test_format_first_level_bullets1(hunitest.TestCase):
         - **Use Case**
           - Suitable when environment dynamics are stationary and can be learned from
             interaction
-        """)
+        """
+        )
         self._format_and_compare_markdown(text, expected)
 
     def _format_and_compare_markdown(self, text: str, expected: str) -> None:

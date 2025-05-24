@@ -12,7 +12,6 @@ import argparse
 import logging
 
 import dev_scripts_helpers.llms.llm_prompts as dshlllpr
-import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)

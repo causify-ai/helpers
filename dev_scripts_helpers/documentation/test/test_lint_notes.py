@@ -5,16 +5,6 @@ from typing import Optional
 import pytest
 
 import dev_scripts_helpers.documentation.lint_notes as dshdlino
-import helpers.hprint as hprint
-import helpers.hserver as hserver
-import helpers.hunit_test as hunitest
-
-import logging
-import os
-from typing import Optional, Tuple
-
-import pytest
-
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio

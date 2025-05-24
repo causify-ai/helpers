@@ -131,7 +131,7 @@ def code_fix_star_before_optional_parameters() -> _PROMPT_OUT:
     When you find a Python function with optional parameters, add a star after
     the mandatory parameters and before the optional parameters, and make sure
     that the function is called with the correct number of arguments.
-    
+
     For example, convert:
     ```
     def process_data(data, threshold=0.5):

@@ -312,7 +312,7 @@ def md_clean_up(txt: str) -> str:
     txt = re.sub(r"→", r"$\\rightarrow$", txt)
     # Remove empty spaces at beginning / end of Latex equations $...$.
     # E.g., $ \text{Student} $ becomes $\text{Student}$
-    #txt = re.sub(r"\$\s+(.*?)\s\$", r"$\1$", txt)
+    # txt = re.sub(r"\$\s+(.*?)\s\$", r"$\1$", txt)
     # Remove dot at the end of each line.
     txt = re.sub(r"\.\s*$", "", txt, flags=re.MULTILINE)
     # Transform `Example: Training a deep` into `E.g., training a deep`,
@@ -769,84 +769,6 @@ def selected_navigation_to_str(
 # #############################################################################
 
 
-import re
-
-
-
-import re  # Required for regular expression operations.
-
-def capitalize_slide_titles(text: str) -> str:
-    """
-    Capitalize slide titles according to specific rules.
-
-    :param text: string of text to be processed (e.g., "a title on a slide")
-    :return: processed string with capitalized slide titles
-    """
-    # Define small words that should not be capitalized unless they are the first or last word.
-    small_words = {
-        'a', 'an', 'and', 'as', 'at', 'but', 'by', 'for', 'in', 'nor', 'of',
-        'off', 'on', 'or', 'per', 'so', 'the', 'to', 'up', 'via', 'with', 'yet'
-    }
-
-    def capitalize_word(word: str, is_first_or_last: bool) -> str:
-        """
-        Capitalize a word based on its position and predefined rules.
-
-        :param word: the word to potentially capitalize (e.g., "and")
-        :param is_first_or_last: boolean indicating if the word is first or last in sentence
-        :return: word with applied capitalization rules
-        """
-        # Split compound words into parts.
-        parts = word.split('-')
-        capitalized_parts = []
-        # Process each part of the compound word based on its position.
-        for word in parts:
-            if is_first_or_last or word.lower() not in small_words:
-                word_out = word.capitalize()
-            else:
-                word_out = word.lower()
-            capitalized_parts.append(word_out)
-        ret = '-'.join(capitalized_parts)
-        return ret
-
-    # Split into words while preserving punctuation.
-    tokens = re.findall(r"\b[\w'-]+\b|[^\w\s]", text, re.UNICODE)
-    
-    # Filter out tokens that are not words.
-    words = [token for token in tokens if re.search(r'\w', token)]
-    
-    result = []
-    # Iterate over tokens and apply capitalization rules.
-    for i, token in enumerate(tokens):
-        # Check if token is a word.
-        if re.search(r'\w', token):
-            if i == 0:
-                is_first_or_last = True
-            elif i == len(tokens) - 1:
-                is_first_or_last = True
-            elif i > 0 and not re.search(r'\w', tokens[i - 1]):
-                is_first_or_last = True
-            elif i < len(tokens) - 1 and not re.search(r'\w', tokens[i + 1]):
-                is_first_or_last = True
-            else:
-                is_first_or_last = False
-                
-            result.append(capitalize_word(token, is_first_or_last or token.lower() not in small_words))
-        else:
-            # Keep punctuation as-is.
-            result.append(token)
-
-    # Join words into a single string while preserving spacing and trimming surplus whitespace.
-    return ''.join(
-        [word if re.match(r'\W', word) else ' ' + word for word in result]
-    ).strip()
-
-
-# In this adjusted code, I replaced the complex inline assignments with
-# `if-then-else` structures, incorporated informative docstrings into the
-# function definitions using REST style for clarity, added comments explaining
-# significant code sections, and ensured comments were in imperative form and
-# grammatically correct.
 
 
 def capitalize_first_level_bullets(markdown_text: str) -> str:
@@ -899,8 +821,8 @@ def bold_first_level_bullets(markdown_text: str, *, max_length: int = 30) -> str
     Make first-level bullets bold in markdown text.
 
     :param markdown_text: Input markdown text
-    :param max_length: Max length of the bullet text to be bolded. -1 means no
-        limit.
+    :param max_length: Max length of the bullet text to be bolded. -1
+        means no limit.
     :return: Formatted markdown text with first-level bullets in bold
     """
     lines = markdown_text.split("\n")
@@ -1035,12 +957,11 @@ def format_markdown_slide(txt: str) -> str:
     Format markdown text for a slide.
     """
     # Split the text into title and body.
-
     txt = bold_first_level_bullets(txt)
     file_type = "md"
     txt = dshdlino.prettier_on_str(txt, file_type)
     txt = format_first_level_bullets(txt)
-    #txt = capitalize_slide_titles(txt)
+    # txt = capitalize_slide_titles(txt)
     return txt
 
 
