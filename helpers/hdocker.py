@@ -47,9 +47,49 @@ def get_use_sudo() -> bool:
 # TODO(gp): use_sudo should be set to None and the correct value inferred from
 #  the repo config.
 def get_docker_executable(use_sudo: bool) -> str:
+    """
+    Get the Docker executable with / without sudo, if needed.
+    """
     executable = "sudo " if use_sudo else ""
     executable += "docker"
     return executable
+
+    
+def process_docker_cmd(docker_cmd: str, 
+                        container_image: str,
+                        dockerfile: str,
+                        mode: str) -> str:
+    """
+    Process a Docker command according to the mode.
+
+    :param docker_cmd: The Docker command to process.
+    :param container_image: The name of the Docker container.
+    :param dockerfile: The content of the Dockerfile.
+    :param mode: The mode to process the Docker command.
+        - "return_cmd": return the command as is.
+        - "system": execute the command.
+        - "save_to_file": save the command to a file.
+    :return: The output of the Docker command.
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    if mode == "return_cmd":
+        ret = docker_cmd
+    elif mode == "system":
+        # TODO(gp): Note that `suppress_output=False` seems to hang the call.
+        hsystem.system(docker_cmd)
+        ret = ""
+    elif mode == "save_to_file":
+        file_name = f"tmp.process_docker_cmd.{container_image}.txt"
+        txt = []
+        txt.append(f"docker_cmd={docker_cmd}")
+        txt.append(f"container_image={container_image}")
+        txt.append(f"dockerfile={dockerfile}")
+        txt = "\n".join(txt)
+        hio.to_file(file_name, txt)
+        ret = ""
+    else:
+        raise ValueError(f"Invalid mode='{mode}'")
+    return ret
 
 
 def container_exists(container_name: str, use_sudo: bool) -> Tuple[bool, str]:
@@ -562,11 +602,12 @@ def run_dockerized_prettier(
     in_file_path: str,
     cmd_opts: List[str],
     out_file_path: str,
+    file_type: str,
     *,
-    return_cmd: bool = False,
+    mode: str = "system",
     force_rebuild: bool = False,
     use_sudo: bool = False,
-) -> Optional[str]:
+) -> str:
     """
     Run `prettier` in a Docker container.
 
@@ -592,22 +633,41 @@ def run_dockerized_prettier(
     """
     _LOG.debug(hprint.func_signature_to_str())
     hdbg.dassert_isinstance(cmd_opts, list)
+    hdbg.dassert_in(file_type, ["md", "tex"])
     # Build the container, if needed.
-    container_image = "tmp.prettier"
-    dockerfile = r"""
-    # Use a Node.js image.
-    FROM node:18-slim
+    # TODO(gp): -> container_image_name
+    container_image = f"tmp.prettier.{file_type}"
+    if file_type == "md":
+        dockerfile = r"""
+        FROM node:20-slim
 
-    RUN npm install -g prettier@2.7.0
-    RUN npm install -g @unified-latex/unified-latex-prettier@1.7.1
-    RUN npm install -g prettier-plugin-latex@2.0.1
+        RUN npm install -g prettier
 
-    # Set a working directory inside the container.
-    WORKDIR /app
+        # Set a working directory inside the container.
+        WORKDIR /app
 
-    # Run Prettier as the entry command.
-    ENTRYPOINT ["prettier"]
-    """
+        # Run Prettier as the entry command.
+        ENTRYPOINT ["prettier"]
+        """
+    elif file_type == "tex":
+        # For Latex we need to pin down the dependencies since the latest
+        # version of prettier is not compatible with the latest version of
+        # prettier-plugin-latex.
+        dockerfile = r"""
+        FROM node:18-slim
+
+        RUN npm install -g prettier@2.7.0
+        RUN npm install -g @unified-latex/unified-latex-prettier@1.7.1
+        RUN npm install -g prettier-plugin-latex@2.0.1
+
+        # Set a working directory inside the container.
+        WORKDIR /app
+
+        # Run Prettier as the entry command.
+        ENTRYPOINT ["prettier"]
+        """
+    else:
+        raise ValueError(f"Invalid file_type='{file_type}'")
     container_image = build_container_image(
         container_image, dockerfile, force_rebuild, use_sudo
     )
@@ -650,9 +710,13 @@ def run_dockerized_prettier(
     #     tmp.prettier \
     #     --parser markdown --prose-wrap always --write --tab-width 2 \
     #     ./test.md
-    executable = "NODE_PATH=/usr/local/lib/node_modules /usr/local/bin/prettier"
-    #bash_cmd = f"/usr/local/bin/prettier {cmd_opts_as_str} {in_file_path}"
-    bash_cmd = f"NODE_PATH=/usr/local/lib/node_modules /usr/local/bin/prettier {cmd_opts_as_str} {in_file_path}"
+    if file_type == "md":
+        executable = "/usr/local/bin/prettier"
+    elif file_type == "tex":
+        executable = "NODE_PATH=/usr/local/lib/node_modules /usr/local/bin/prettier"
+    else:
+        raise ValueError(f"Invalid file_type='{file_type}'")
+    bash_cmd = f"{executable} {cmd_opts_as_str} {in_file_path}"
     if out_file_path != in_file_path:
         bash_cmd += f" > {out_file_path}"
     # Build the Docker command.
@@ -666,12 +730,7 @@ def run_dockerized_prettier(
         ]
     )
     docker_cmd = " ".join(docker_cmd)
-    if return_cmd:
-        ret = docker_cmd
-    else:
-        # TODO(gp): Note that `suppress_output=False` seems to hang the call.
-        hsystem.system(docker_cmd)
-        ret = None
+    ret = process_docker_cmd(docker_cmd, container_image, dockerfile, mode)
     return ret
 
 
@@ -822,10 +881,10 @@ def run_dockerized_pandoc(
     cmd: str,
     container_type: str,
     *,
-    return_cmd: bool = False,
+    mode: str = "system",
     force_rebuild: bool = False,
     use_sudo: bool = False,
-) -> Optional[str]:
+) -> str:
     """
     Run `pandoc` in a Docker container.
     """
@@ -1005,13 +1064,7 @@ def run_dockerized_pandoc(
             f"{pandoc_cmd}",
         ]
     )
-    docker_cmd = " ".join(docker_cmd)
-    if return_cmd:
-        ret = docker_cmd
-    else:
-        # TODO(gp): Note that `suppress_output=False` seems to hang the call.
-        hsystem.system(docker_cmd)
-        ret = None
+    ret = process_docker_cmd(docker_cmd, container_image, dockerfile, mode)
     return ret
 
 
@@ -1024,9 +1077,10 @@ def run_dockerized_markdown_toc(
     in_file_path: str,
     cmd_opts: List[str],
     *,
+    mode: str = "system",
     force_rebuild: bool = False,
     use_sudo: bool = False,
-) -> None:
+) -> str:
     """
     Run `markdown-toc` in a Docker container.
     """
@@ -1081,9 +1135,8 @@ def run_dockerized_markdown_toc(
         ]
     )
     docker_cmd = " ".join(docker_cmd)
-    # TODO(gp): Note that `suppress_output=False` seems to hang the call.
-    hsystem.system(docker_cmd)
-
+    ret = process_docker_cmd(docker_cmd, container_image, dockerfile, mode)
+    return ret
 
 # #############################################################################
 # Dockerized Latex.
@@ -1184,10 +1237,10 @@ def convert_latex_arguments_to_cmd(
 def run_dockerized_latex(
     cmd: str,
     *,
-    return_cmd: bool = False,
+    mode: str= "system",
     force_rebuild: bool = False,
     use_sudo: bool = False,
-) -> Optional[str]:
+) -> str:
     """
     Run `latex` in a Docker container.
     """
@@ -1286,13 +1339,7 @@ def run_dockerized_latex(
         ]
     )
     docker_cmd = " ".join(docker_cmd)
-    # TODO(gp): Factor this out.
-    if return_cmd:
-        ret = docker_cmd
-    else:
-        # TODO(gp): Note that `suppress_output=False` seems to hang the call.
-        hsystem.system(docker_cmd)
-        ret = None
+    ret = process_docker_cmd(docker_cmd, container_image, dockerfile, mode)
     return ret
 
 
@@ -1302,6 +1349,7 @@ def run_basic_latex(
     run_latex_again: bool,
     out_file_name: str,
     *,
+    mode: str = "system",
     force_rebuild: bool = False,
     use_sudo: bool = False,
 ) -> None:
@@ -1327,12 +1375,14 @@ def run_basic_latex(
     )
     run_dockerized_latex(
         cmd,
+        mode=mode,
         force_rebuild=force_rebuild,
         use_sudo=use_sudo,
     )
     if run_latex_again:
         run_dockerized_latex(
             cmd,
+            mode=mode,
             force_rebuild=force_rebuild,
             use_sudo=use_sudo,
         )
@@ -1357,10 +1407,10 @@ def run_dockerized_imagemagick(
     cmd_opts: List[str],
     out_file_path: str,
     *,
-    return_cmd: bool = False,
+    mode: str = "system",
     force_rebuild: bool = False,
     use_sudo: bool = False,
-) -> Optional[str]:
+) -> str:
     """
     Run `ImageMagick` in a Docker container.
     """
@@ -1425,13 +1475,7 @@ def run_dockerized_imagemagick(
         ]
     )
     docker_cmd = " ".join(docker_cmd)
-    # TODO(gp): Factor this out.
-    if return_cmd:
-        ret = docker_cmd
-    else:
-        # TODO(gp): Note that `suppress_output=False` seems to hang the call.
-        hsystem.system(docker_cmd)
-        ret = None
+    ret = process_docker_cmd(docker_cmd, container_image, dockerfile, mode)
     return ret
 
 
@@ -1440,6 +1484,7 @@ def run_dockerized_tikz_to_bitmap(
     cmd_opts: List[str],
     out_file_path: str,
     *,
+    mode: str = "system",
     force_rebuild: bool = False,
     use_sudo: bool = False,
 ) -> None:
@@ -1467,6 +1512,7 @@ def run_dockerized_tikz_to_bitmap(
         latex_cmd_opts,
         run_latex_again,
         file_out,
+        mode=mode,
         force_rebuild=force_rebuild,
         use_sudo=use_sudo,
     )
@@ -1475,6 +1521,7 @@ def run_dockerized_tikz_to_bitmap(
         file_out,
         cmd_opts,
         out_file_path,
+        mode=mode,
         force_rebuild=force_rebuild,
         use_sudo=use_sudo,
     )
@@ -1488,9 +1535,10 @@ def run_dockerized_plantuml(
     out_file_path: str,
     dst_ext: str,
     *,
+    mode: str = "system",
     force_rebuild: bool = False,
     use_sudo: bool = False,
-) -> None:
+) -> str:
     """
     Run `plantUML` in a Docker container.
 
@@ -1549,7 +1597,8 @@ def run_dockerized_plantuml(
         ]
     )
     docker_cmd = " ".join(docker_cmd)
-    hsystem.system(docker_cmd)
+    ret = process_docker_cmd(docker_cmd, container_image, dockerfile, mode)
+    return ret
 
 
 # #############################################################################
@@ -1559,9 +1608,10 @@ def run_dockerized_mermaid(
     in_file_path: str,
     out_file_path: str,
     *,
+    mode: str = "system",
     force_rebuild: bool = False,
     use_sudo: bool = False,
-) -> None:
+) -> str:
     """
     Run `mermaid` in a Docker container.
 
@@ -1609,8 +1659,8 @@ def run_dockerized_mermaid(
         ]
     )
     docker_cmd = " ".join(docker_cmd)
-    _LOG.debug(hprint.to_str("docker_cmd"))
-    hsystem.system(docker_cmd)
+    ret = process_docker_cmd(docker_cmd, container_image, dockerfile, mode)
+    return ret
 
 
 # TODO(gp): Factor out the common code with `run_dockerized_mermaid()`.
@@ -1618,6 +1668,7 @@ def run_dockerized_mermaid2(
     in_file_path: str,
     out_file_path: str,
     *,
+    mode: str = "system",
     force_rebuild: bool = False,
     use_sudo: bool = False,
 ) -> None:
@@ -1708,7 +1759,8 @@ def run_dockerized_mermaid2(
         ]
     )
     docker_cmd = " ".join(docker_cmd)
-    hsystem.system(docker_cmd)
+    ret = process_docker_cmd(docker_cmd, container_image, dockerfile, mode)
+    return ret
 
 
 # #############################################################################
@@ -1719,9 +1771,10 @@ def run_dockerized_graphviz(
     cmd_opts: List[str],
     out_file_path: str,
     *,
+    mode: str = "system",
     force_rebuild: bool = False,
     use_sudo: bool = False,
-) -> None:
+) -> str:
     """
     Run `graphviz` in a Docker container.
 
@@ -1787,4 +1840,5 @@ def run_dockerized_graphviz(
         ]
     )
     docker_cmd = " ".join(docker_cmd)
-    hsystem.system(docker_cmd)
+    ret = process_docker_cmd(docker_cmd, container_image, dockerfile, mode)
+    return ret

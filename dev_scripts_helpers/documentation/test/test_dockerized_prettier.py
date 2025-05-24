@@ -43,7 +43,7 @@ class Test_run_dockerized_prettier(hunitest.TestCase):
             input_file_path,
             cmd_opts,
             output_file_path,
-            return_cmd=False,
+            mode="system",
             force_rebuild=False,
             use_sudo=False,
         )

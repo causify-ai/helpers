@@ -65,12 +65,6 @@ def _parse() -> argparse.ArgumentParser:
     hparser.add_llm_prompt_arg(parser)
     hparser.add_dockerized_script_arg(parser)
     parser.add_argument(
-        "-d",
-        "--diff_compare",
-        action="store_true",
-        help="Compare the original and the transformed with vimdiff",
-    )
-    parser.add_argument(
         "-c",
         "--compare",
         action="store_true",
@@ -98,7 +92,7 @@ def _run_dockerized_llm_transform(
     cmd_opts: List[str],
     out_file_path: str,
     *,
-    return_cmd: bool = False,
+    mode: str = "system",
     force_rebuild: bool = False,
     use_sudo: bool = False,
     suppress_output: bool = False,
@@ -191,12 +185,7 @@ def _run_dockerized_llm_transform(
         ]
     )
     docker_cmd = " ".join(docker_cmd)
-    if return_cmd:
-        ret = docker_cmd
-    else:
-        # TODO(gp): Note that `suppress_output=False` seems to hang the call.
-        hsystem.system(docker_cmd, suppress_output=suppress_output)
-        ret = None
+    ret = _process_docker_cmd(docker_cmd, container_image, dockerfile, mode)
     return ret
 
 
@@ -263,7 +252,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         tmp_in_file_name,
         cmd_line_opts,
         tmp_out_file_name,
-        return_cmd=False,
+        mode="system",
         force_rebuild=args.dockerized_force_rebuild,
         use_sudo=args.dockerized_use_sudo,
         suppress_output=suppress_output,

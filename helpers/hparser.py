@@ -296,7 +296,7 @@ def mark_action(action: str, actions: List[str]) -> Tuple[bool, List[str]]:
 #     tmp_in_file_name,
 #     cmd_line_opts,
 #     tmp_out_file_name,
-#     return_cmd=False,
+#     mode="system",
 #     force_rebuild=args.dockerized_force_rebuild,
 #     use_sudo=args.dockerized_use_sudo,
 #     suppress_output=suppress_output,

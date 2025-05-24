@@ -376,11 +376,11 @@ class Test_lint_notes_cmd_line1(hunitest.TestCase):
 
     def create_tex_input_file(self) -> str:
         txt = r"""
-        \documentclass{article}
+            \documentclass{article}
 
         \title{Simple \LaTeX{} Example}
         \author{Your Name}
-        \date{\today}
+                \date{\today}
 
         \begin{document}
 
@@ -392,15 +392,15 @@ class Test_lint_notes_cmd_line1(hunitest.TestCase):
         \section{Math Example}
         Here is an inline equation: \( E = mc^2 \).\\
         And a displayed equation:
-        \[
+                \[
         \int_{0}^{\infty} e^{-x^2} \, dx = \frac{\sqrt{\pi}}{2}
         \]
 
-        \section{Lists}
+            \section{Lists}
         \begin{itemize}
         \item Item 1
-        \item Item 2
-        \item Item 3
+                \item Item 2
+            \item Item 3
         \end{itemize}
 
         \end{document}
