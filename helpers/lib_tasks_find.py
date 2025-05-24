@@ -427,7 +427,7 @@ def find_check_string_output(  # type: ignore
     else:
         output = txt
     # Print or copy to clipboard.
-    hsystem.to_pbcopy(output, pbcopy=True)
+    hsystem.to_pbcopy(output, pbcopy=pbcopy)
     return output
 
 

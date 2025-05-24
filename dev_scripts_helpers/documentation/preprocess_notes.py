@@ -44,7 +44,7 @@ def _process_abbreviations(in_line: str) -> str:
         (r"=>", r"\implies"),
         # TODO(gp): This collides with the arrow in graphviz commands. We
         # should skip this transformation if we are in a graphviz block.
-        #(r"->", r"\rightarrow"),
+        # (r"->", r"\rightarrow"),
         (r"-^", r"\uparrow"),
         (r"-v", r"\downarrow"),
     ]:
