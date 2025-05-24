@@ -627,6 +627,7 @@ def run_dockerized_prettier(
     :param in_file_path: Path to the file to format with Prettier.
     :param out_file_path: Path to the output file.
     :param cmd_opts: Command options to pass to Prettier.
+    :param file_type: Type of the file to format, e.g., `md` or `tex`.
     :param force_rebuild: Whether to force rebuild the Docker container.
     :param use_sudo: Whether to use sudo for Docker commands.
     """

@@ -149,6 +149,7 @@ def prettier(
             in_file_path,
             cmd_opts,
             out_file_path,
+            file_type=file_type,
             force_rebuild=force_rebuild,
             use_sudo=use_sudo,
         )
