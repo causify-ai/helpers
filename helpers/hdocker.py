@@ -71,6 +71,7 @@ def process_docker_cmd(
     :return: The output of the Docker command.
     """
     _LOG.debug(hprint.func_signature_to_str())
+    hdbg.dassert_isinstance(docker_cmd, str)
     if mode == "return_cmd":
         ret = docker_cmd
     elif mode == "system":
@@ -1065,6 +1066,7 @@ def run_dockerized_pandoc(
             f"{pandoc_cmd}",
         ]
     )
+    docker_cmd = " ".join(docker_cmd)
     ret = process_docker_cmd(docker_cmd, container_image, dockerfile, mode)
     return ret
 
