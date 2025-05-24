@@ -1,4 +1,3 @@
-.DS_Store
 .coverage
 dependency_graph.dot
 dependency_graph.svg
