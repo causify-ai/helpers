@@ -71,6 +71,9 @@ def process_docker_cmd(
     :return: The output of the Docker command.
     """
     _LOG.debug(hprint.func_signature_to_str())
+    hdbg.dassert_isinstance(docker_cmd, str)
+    hdbg.dassert_isinstance(container_image, str)
+    hdbg.dassert_isinstance(dockerfile, str)
     if mode == "return_cmd":
         ret = docker_cmd
     elif mode == "system":
@@ -894,6 +897,7 @@ def run_dockerized_pandoc(
     if container_type == "pandoc_only":
         container_image = "pandoc/core"
         incremental = False
+        dockerfile = ""
     else:
         if container_type == "pandoc_latex":
             container_image = "tmp.pandoc_latex"
@@ -1066,6 +1070,7 @@ def run_dockerized_pandoc(
             f"{pandoc_cmd}",
         ]
     )
+    docker_cmd = " ".join(docker_cmd)
     ret = process_docker_cmd(docker_cmd, container_image, dockerfile, mode)
     return ret
 
