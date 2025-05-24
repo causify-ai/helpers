@@ -79,6 +79,8 @@ from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=u
     lint_check_python_files_in_docker,
     lint_create_branch,
     lint_detect_cycles,
+    lint_generate_deps,
+    lint_show_deps,
     print_env,
     print_setup,
     print_tasks,
@@ -176,7 +178,6 @@ def _run_qa_tests(ctx: Any, stage: str, version: str) -> bool:
         cmd = f"{cmd} --image_version {version}"
     ctx.run(cmd)
     return True
-
 
 default_params = {
     # TODO(Nikola): Remove prefix after everything is cleaned.
