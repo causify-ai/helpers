@@ -46,6 +46,49 @@ notes into polished PDFs, slide decks, and more.
 
 ---
 
+## 1 · Dockerized Graphviz
+
+### ✅ What
+Converts Graphviz DOT files into PNG images that are later inserted into slides.
+
+### 💡 Why
+- Removes manual dependency installation across systems.
+- Ensures version consistency of Graphviz.
+- Provides high-level abstraction and hides complex code.
+
+### 🔧 How
+Two key functions:
+- `_parse()`:
+  - Creates a parser object for CLI execution.
+  - Adds required input and output arguments.
+  - Appends Docker and verbosity arguments.
+- `main()`:
+  - Parses known and unknown arguments.
+  - Initializes logger.
+  - Calls Graphviz Docker function with:
+    - `args.input`
+    - `cmd_opts`
+    - `args.output`
+    - `force_rebuild`
+    - `use_sudo`
+
+### 🔗 Dependency – `run_dockerized_graphviz()` in `hdocker.py`
+- Calls `build_container_image()`.
+- Converts paths to Docker format.
+- Constructs full Docker command string.
+- Optionally uses `sudo` for Docker execution.
+- Final command is run with `hsystem.system()`.
+
+### 🔗 Dependency – `build_container_image()`
+1. Defines the container image.
+2. Checks for image existence and rebuild flag.
+3. If needed:
+   - Creates temp Dockerfile directory.
+   - Constructs Docker command string.
+   - Executes via `hsystem.system()`.
+
+---
+
 ## 1 · Generate slides & PDFs — `notes_to_pdf.py`
 
 ### What it does
