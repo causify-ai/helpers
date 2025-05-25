@@ -1,6 +1,12 @@
 <!-- toc -->
 
 - [Notes Documentation Toolchain](#notes-documentation-toolchain)
+- - [Tool Dockerized Components Guide](#tool-dockerized-components-guide)
+  * [1 · Dockerized Graphviz](#1--dockerized-graphviz)
+  * [2 · Dockerized LaTeX](#2--dockerized-latex)
+  * [3 · Dockerized Mermaid](#3--dockerized-mermaid)
+  * [4 · Dockerized Pandoc](#4--dockerized-pandoc)
+  * [5 · Dockerized Prettier](#5--dockerized-prettier)
   * [1 · Generate slides & PDFs — `notes_to_pdf.py`](#1-%C2%B7-generate-slides--pdfs--notes_to_pdfpy)
     + [What it does](#what-it-does)
     + [Most‑used flags](#most%E2%80%91used-flags)
