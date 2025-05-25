@@ -136,10 +136,10 @@ render_images.py -i notes/MSML610/Lesson9-Causal_inference.txt \
 
 ### Supported File types and Code blocks
 
-| File extension | Rendering syntax allowed                       | Output embeds as        |
-| -------------- | ---------------------------------------------- | ----------------------- |
-| `.md`, `.txt`  | `plantuml / mermaid / graphviz / tikz / latex` | `<img src="figs/xxx.png">`     |
-| `.tex`         | same tags (TikZ & LaTeX especially)            | `\includegraphics{...}` |
+| File extension | Rendering syntax allowed                       | Output embeds as           |
+| -------------- | ---------------------------------------------- | -------------------------- |
+| `.md`, `.txt`  | `plantuml / mermaid / graphviz / tikz / latex` | `<img src="figs/xxx.png">` |
+| `.tex`         | same tags (TikZ & LaTeX especially)            | `\includegraphics{...}`    |
 
 ### Quick Start Recipes
 
@@ -188,10 +188,10 @@ single command or straight from vim.
 
 ### Quickstart recipes
 
-#### In‑place prettify with Dockerised Prettier + TOC rebuild
+#### Prettify with Dockerised Prettier + TOC rebuild
 
 ```bash
-lint_notes.py -i Lesson10.md --in_place \
+lint_notes.py -i Lesson10.md \
               --use_dockerized_prettier \
               --use_dockerized_markdown_toc
 ```
