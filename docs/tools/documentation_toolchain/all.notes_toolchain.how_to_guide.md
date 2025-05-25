@@ -375,6 +375,9 @@ transform_notes.py -a md_format -i notes/lecture.txt --in_place
 
 # Generate a 2‑level TOC to STDOUT
 transform_notes.py -a toc -i notes/lecture.md -o - -l 2
+
+# Tidy ChatGPT‑generated Markdown (visual mode in Vim) 
+:'<,'>!transform_notes.py -i - -o - -a md_fix_chatgpt_output
 ```
 
 ### Flags
