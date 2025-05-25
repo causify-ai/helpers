@@ -20,7 +20,7 @@
     + [Flags](#flags)
   * [3 · Lint & prettify — `lint_notes.py`](#3-%C2%B7-lint--prettify--lint_notespy)
     + [Quickstart recipes](#quickstart-recipes)
-      - [In‑place prettify with Dockerised Prettier + TOC rebuild](#in%E2%80%91place-prettify-with-dockerised-prettier--toc-rebuild)
+      - [Prettify with Dockerised Prettier + TOC rebuild](#prettify-with-dockerised-prettier--toc-rebuild)
       - [Custom print width & selective actions](#custom-print-width--selective-actions)
     + [Flags](#flags-1)
   * [4 · Notebook image scraping — `extract_notebook_images.py`](#4-%C2%B7-notebook-image-scraping--extract_notebook_imagespy)
@@ -30,6 +30,24 @@
     + [Finding available prompts](#finding-available-prompts)
     + [Flags](#flags-2)
     + [Example recipes](#example-recipes)
+  * [6 · Pandoc Wrapper — `run_pandoc.py`](#6-%C2%B7-pandoc-wrapper--run_pandocpy)
+    + [What the script does](#what-the-script-does)
+    + [Quick‑use commands](#quick%E2%80%91use-commands)
+    + [Flags](#flags-3)
+  * [7 · Automate notes transformations — `transform_notes.py`](#7-%C2%B7-automate-notes-transformations--transform_notespy)
+    + [What it does](#what-it-does-1)
+    + [Supported actions](#supported-actions)
+    + [Examples](#examples)
+    + [Flags](#flags-4)
+  * [8 · Scrape headers from a markdown — `extract_headers_from_markdown.py`](#8-%C2%B7-scrape-headers-from-a-markdown--extract_headers_from_markdownpy)
+    + [Goal](#goal)
+    + [Examples](#examples-1)
+    + [Flags](#flags-5)
+  * [9 · TikZ to Bitmap — `dockerized_tikz_to_bitmap.py`](#9-%C2%B7-tikz-to-bitmap--dockerized_tikz_to_bitmappy)
+    + [Examples](#examples-2)
+  * [10 · MacOS screenshot helper — `save_screenshot.py`](#10-%C2%B7-macos-screenshot-helper--save_screenshotpy)
+    + [What it does](#what-it-does-2)
+    + [Flags](#flags-6)
 
 <!-- tocstop -->
 
@@ -209,7 +227,6 @@ lint_notes.py -i draft.txt -o tidy.txt -w 100 \
 | ------------------------------- | ------------------------- | --------------------------------------------------------------------------------------------------- |
 | `-i/--infile`                   | **stdin**                 | Input `.txt` or `.md` (also via pipe)                                                               |
 | `-o/--outfile`                  | **stdout**                | Destination file (omit for pipe)                                                                    |
-| `--in_place`                    | _False_                   | Overwrite the input file                                                                            |
 | `-w/--print-width`              | _None_ → Prettier default | Line wrap width                                                                                     |
 | `--use_dockerized_prettier`     | _False_                   | Run Prettier inside helper container                                                                |
 | `--use_dockerized_markdown_toc` | _False_                   | Refresh TOC via containerised `markdown-toc`                                                        |
@@ -295,5 +312,144 @@ llm_transform.py -p list -i - -o -
   ```vim
   :'<,'>!llm_transform.py -p summarize -i - -o -
   ```
+
+---
+
+## 6 · Pandoc Wrapper — `run_pandoc.py`
+
+### What the script does
+
+* Reads **Markdown** from _stdin_ or `--input` file.
+* Dispatches to a named **action** (currently only `convert_md_to_latex`).
+* Pushes the Pandoc output to _stdout_ or the `--output` file.
+
+### Quick‑use commands
+
+| Goal                                  | Command                                      |
+| ------------------------------------- | -------------------------------------------- |
+| Convert a Markdown file to LaTeX      | `run_pandoc.py -i note.md -o note.tex`       |
+| Same, but stream from STDIN to STDOUT | `cat note.md \| run_pandoc.py -i - -o -`     |
+| Inside **Vim** (visual range)         | `:'<,'>!run_pandoc.py -i - -o - -v CRITICAL` |
+
+> **Tip :** pass `-v CRITICAL` to silence helper logging when piping into
+> editors.
+
+### Flags
+
+| Flag               | Default               | Meaning                                                   |
+| ------------------ | --------------------- | --------------------------------------------------------- |
+| `-i / --input`     | `-`                   | Source file or `-` for STDIN.                             |
+| `-o / --output`    | `-`                   | Destination file or `-` for STDOUT.                       |
+| `--action`         | `convert_md_to_latex` | Transformation to apply. Future‑proofed for more actions. |
+| `-v / --log_level` | `INFO`                | Standard helper‑library verbosity.                        |
+
+---
+
+## 7 · Automate notes transformations — `transform_notes.py`
+
+### What it does
+
+* Accepts a **text/Markdown** stream (file or `-`).
+* Applies a named **action** (`-a/--action`).
+* Writes the result to the given output (in‑place, file, or `-`).
+
+### Supported actions
+
+| Run `-a list` to print.                                        | Tag                                                | Effect                   | Typical Vim one‑liner |     |
+| -------------------------------------------------------------- | -------------------------------------------------- | ------------------------ | --------------------- | --- |
+| -------------------------------------------------------------- |
+| --------------------------------------------------             |                                                    | `toc`                    | Generate a bullet     |
+| TOC (top‑level by default)                                     | `:!transform_notes.py -a toc -i % -l 1`            |                          |
+| `format_headers`                                               | Re‑flow / indent headers (≤ `--max_lev`)           |
+| `:%!transform_notes.py -a format -i - --max_lev 3`             |                                                    | `increase_headers_level` |
+| Bump all headers down one level                                | `:%!transform_notes.py -a increase -i -`           |                          |
+| `md_list_to_latex`                                             | Convert a Markdown list to LaTeX `\begin{itemize}` |
+| `:%!transform_notes.py -a md_list_to_latex -i -`               |                                                    | `md_*` family            | Formatting            |
+| clean‑ups (bold bullets, colourise bold text, etc.)            | see `-a list`                                      |
+
+### Examples
+
+```bash
+# Re‑flow & clean a file in place
+transform_notes.py -a md_format -i notes/lecture.txt --in_place
+
+# Generate a 2‑level TOC to STDOUT
+transform_notes.py -a toc -i notes/lecture.md -o - -l 2
+```
+
+### Flags
+
+| Flag             | Default      | Purpose                                            |
+| ---------------- | ------------ | -------------------------------------------------- |
+| `-a / --action`  | _(required)_ | Choose the transformation.                         |
+| `-l / --max_lev` | `5`          | Header depth for `format_headers`.                 |
+| `-i / --input`   | `-`          | File path or `-` (STDIN).                          |
+| `-o / --output`  | `-`          | File path or `-` (STDOUT).                         |
+| `--in_place`     | _False_      | Overwrite input file instead of writing elsewhere. |
+
+---
+
+## 8 · Scrape headers from a markdown — `extract_headers_from_markdown.py`
+
+### Goal
+
+Turn a Markdown document into either:
+
+* a **plain list** of headers,
+* a **nested header map**, or
+* a \*_Vim_ quick‑fix\*\* (`cfile`) that lets you jump between sections with
+  `:cnext`.
+
+### Examples
+
+```bash
+# Human‑readable map (levels 1‑3) to STDOUT
+extract_headers_from_markdown.py -i README.md -o - --mode list --max-level 3
+
+# Build a quick‑fix file and open Vim on it
+extract_headers_from_markdown.py -i README.md -o headers.cfile --mode cfile
+vim -c "cfile headers.cfile"
+```
+
+### Flags
+
+| Flag          | Default | Meaning                        |
+| ------------- | ------- | ------------------------------ |
+| `--mode`      | `list`  | `list`, `headers`, or `cfile`. |
+| `--max-level` | `3`     | Maximum `#` depth to parse.    |
+
+---
+
+## 9 · TikZ to Bitmap — `dockerized_tikz_to_bitmap.py`
+
+### Examples
+
+```bash
+# Plain 300 DPI conversion
+./dockerized_tikz_to_bitmap.py -i figure.tikz -o figure.png
+
+# Custom ImageMagick options (e.g. 600 DPI)
+./dockerized_tikz_to_bitmap.py -i fig.tikz -o fig.png -- -density 600 -quality 90
+```
+
+_Any extra tokens after `--` are passed verbatim to `convert`._
+
+---
+
+## 10 · MacOS screenshot helper — `save_screenshot.py`
+
+### What it does
+
+1. Prompts you to select a screen region (`⌘ + Ctrl + 4`).
+2. Saves it as `screenshot.YYYY‑MM‑DD_HH‑MM‑SS.png` (or your chosen name).
+3. Prints and copies the Markdown embed `![](path/to/file.png)`.
+
+### Flags
+
+| Flag                  | Purpose                                  |
+| --------------------- | ---------------------------------------- |
+| `--dst_dir DIR`       | Target directory (e.g. `notes/figures`). |
+| `--filename NAME.png` | Override default timestamped name.       |
+| `--override`          | Allow clobbering an existing file.       |
 
 ---
