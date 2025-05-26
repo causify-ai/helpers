@@ -231,20 +231,19 @@ class Test_preprocess_notes3(hunitest.TestCase):
         # Python: nested functions
         - Functions can be declared in the body of another function
         - E.g., to hide utility functions in the scope of the function that uses them
+            ```python
+            def print_integers(values):
 
-                ```python
-                def print_integers(values):
+                def _is_integer(value):
+                    try:
+                        return value == int(value)
+                    except:
+                        return False
 
-                    def _is_integer(value):
-                        try:
-                            return value == int(value)
-                        except:
-                            return False
-
-                    for v in values:
-                        if _is_integer(v):
-                            print(v)
-                ```
+                for v in values:
+                    if _is_integer(v):
+                        print(v)
+            ```
         """
         exp = hprint.dedent(exp, remove_lead_trail_empty_lines_=True)
         self.assert_equal(act, exp)

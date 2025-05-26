@@ -8,11 +8,9 @@ fontsize: 10pt
 
 
 
-
-    ```graphviz
-    digraph G {Hello->World}
-    ```
-
+```graphviz
+digraph G {Hello->World}
+```
 
 
 \begin{tikzpicture}

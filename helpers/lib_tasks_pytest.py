@@ -1644,6 +1644,13 @@ def pytest_failed(ctx, only_file=False, only_class=False, file_name="tmp.pytest_
     # Extract info.
     failed_tests, _, _ = _parse_failed_tests(txt, only_file, only_class)
     print("\n".join(failed_tests))
+    # Write the repro in a file.
+    repro_file_name = "tmp.pytest_failed.sh"
+    repro_txt = "pytest_log " + " ".join(failed_tests) + " $*"
+    hio.to_file(repro_file_name, repro_txt)
+    #
+    hio.create_executable_script(repro_file_name, repro_txt)
+    _LOG.warning("To run the failed tests run: %s", repro_file_name)
     # Save to clipboard.
     txt = " ".join(failed_tests)
     hsystem.to_pbcopy(txt, pbcopy=True)

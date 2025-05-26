@@ -296,7 +296,7 @@ def mark_action(action: str, actions: List[str]) -> Tuple[bool, List[str]]:
 #     tmp_in_file_name,
 #     cmd_line_opts,
 #     tmp_out_file_name,
-#     return_cmd=False,
+#     mode="system",
 #     force_rebuild=args.dockerized_force_rebuild,
 #     use_sudo=args.dockerized_use_sudo,
 #     suppress_output=suppress_output,
@@ -367,10 +367,14 @@ def parse_input_output_args(
             os.system("clear")
         _LOG.info(hprint.to_str("in_file_name"))
         _LOG.info(hprint.to_str("out_file_name"))
+
     return in_file_name, out_file_name
 
 
 def init_logger_for_input_output_transform(args: argparse.Namespace) -> None:
+    """
+    Initialize the logger when input/output transformation is used.
+    """
     verbosity = args.log_level
     # If the input is stdin, we don't want to print the command line or any
     # other log messages, unless the user specified a more verbose log level.
@@ -653,7 +657,7 @@ def add_dockerized_script_arg(
     return parser
 
 
-def add_prompt_arg(
+def add_llm_prompt_arg(
     parser: argparse.ArgumentParser,
 ) -> argparse.ArgumentParser:
     """
