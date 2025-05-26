@@ -6,6 +6,8 @@
 
 - Name functions using verbs and verbs/actions
   - E.g., `download_data()`, `process_input()`, `calculate_sum()`
+  - Python internal functions as `__repr__`, `__init__` are valid
+  - Functions names like `to_dict()`, `_parse()`, `_main()`  are valid
 - Name classes using nouns
   - E.g., `Downloader()`, `DataProcessor()`, `User()`
 - Name decorators with an adjective or a past tense verb
