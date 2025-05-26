@@ -1,7 +1,7 @@
 <!-- toc -->
 
 - [Notes Documentation Toolchain](#notes-documentation-toolchain)
-  * [1. Generate slides & PDFs — `notes_to_pdf.py`](#1-generate-slides--pdfs--notes_to_pdfpy)
+  * [1. Generate slides and PDFs — `notes_to_pdf.py`](#1-generate-slides-and-pdfs--notes_to_pdfpy)
     + [What it does](#what-it-does)
     + [Most used flags](#most-used-flags)
     + [Quickstart recipes](#quickstart-recipes)
