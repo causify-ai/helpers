@@ -27,7 +27,9 @@ def get_session(
     """
     Return connected Boto3 session.
 
-    :param region: aws region, if None get region from aws credentials.
+    :param aws_profile: AWS profile name to use for the session.
+    :param region: AWS region, if None get region from AWS credentials.
+    :return: Boto3 session object.
     """
     hdbg.dassert_isinstance(aws_profile, str)
     # When deploying jobs via ECS the container obtains credentials based on
@@ -100,8 +102,9 @@ def get_task_definition_image_url(
     """
     Get ECS task definition by name and return only image URL.
 
-    :param task_definition_name: the name of the ECS task definition,
-        e.g., cmamp-test
+    :param task_definition_name: The name of the ECS task definition,
+        e.g., `cmamp-test`.
+    :param region: AWS region, if None get region from AWS credentials.
     :param region: look at `get_session()`
     """
     aws_profile = "ck"
@@ -126,11 +129,11 @@ def update_task_definition(
     If region is different then the default one, it is assumed that ECR
     replication is enabled from the default region to the target region.
 
-    :param task_definition_name: the name of the ECS task definition for
-        which an update to container image URL is made, e.g., cmamp-test
-    :param new_image_url: New image url for task definition. e.g.,
-        `***.dkr.ecr.***/cmamp:prod`
-    :param region: look at `get_session()`
+    :param task_definition_name: The name of the ECS task definition for
+        which an update to container image URL is made, e.g., `cmamp-test`.
+    :param new_image_url: New image URL for task definition. e.g.,
+        `***.dkr.ecr.***/cmamp:prod`.
+    :param region: AWS region, if None get region from AWS credentials.
     """
     client = get_ecs_client("ck", region=region)
     # Get the last revision of the task definition.
@@ -180,9 +183,9 @@ def list_all_objects(
     List all objects in the specified S3 bucket under the given prefix,
     handling pagination.
 
-    :param s3_client: instance of boto3 S3 client
-    :param bucket_name: the name of the S3 bucket e.g., `cryptokaizen-data-test`
-    :param prefix: prefix to filter the S3 objects e.g., `binance/historical_bid_ask/`
+    :param s3_client: Instance of boto3 S3 client.
+    :param bucket_name: The name of the S3 bucket e.g., `cryptokaizen-data-test`.
+    :param prefix: Prefix to filter the S3 objects e.g., `binance/historical_bid_ask/`.
     :return: A list of dictionaries containing metadata about each object. E.g.,
         ```
         [

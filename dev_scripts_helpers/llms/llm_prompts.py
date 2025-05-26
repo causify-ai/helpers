@@ -194,9 +194,9 @@ def code_fix_docstrings() -> _PROMPT_OUT:
     - The first comment should be in imperative mode and fit in a single line of
       less than 80 characters
     - Describe the parameters using the REST style, which requires each
-      parameter to be prepended with :param
+      parameter to be prepended with `:param`
     - Describe the return value using the REST style, which requires the return
-      value to be prepended with :return
+      value to be prepended with `:return`
 
     An example of a correct docstring is:
     ```
