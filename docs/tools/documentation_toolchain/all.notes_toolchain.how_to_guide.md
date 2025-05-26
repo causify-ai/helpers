@@ -1,16 +1,16 @@
 <!-- toc -->
 
 - [Notes Documentation Toolchain](#notes-documentation-toolchain)
-  * [1 · Generate slides & PDFs — `notes_to_pdf.py`](#1-%C2%B7-generate-slides--pdfs--notes_to_pdfpy)
+  * [1. Generate slides & PDFs — `notes_to_pdf.py`](#1-generate-slides--pdfs--notes_to_pdfpy)
     + [What it does](#what-it-does)
-    + [Most‑used flags](#most%E2%80%91used-flags)
-    + [Quick‑start recipes](#quick%E2%80%91start-recipes)
-    + [CLI flags cheat‑sheet](#cli-flags-cheat%E2%80%91sheet)
+    + [Most used flags](#most-used-flags)
+    + [Quickstart recipes](#quickstart-recipes)
+    + [CLI flags cheatsheet](#cli-flags-cheatsheet)
     + [Worked examples](#worked-examples)
       - [Slides with navigation breadcrumbs](#slides-with-navigation-breadcrumbs)
       - [Focus on a subsection](#focus-on-a-subsection)
-      - [Plain PDF article (no slides)](#plain-pdf-article-no-slides)
-  * [2 · Auto‑render figures — `render_images.py`](#2-%C2%B7-auto%E2%80%91render-figures--render_imagespy)
+      - [Plain PDF article](#plain-pdf-article)
+  * [2. Auto render figures — `render_images.py`](#2-auto-render-figures--render_imagespy)
     + [Supported File types and Code blocks](#supported-file-types-and-code-blocks)
     + [Quick Start Recipes](#quick-start-recipes)
       - [Render to a new file](#render-to-a-new-file)
@@ -18,59 +18,59 @@
       - [HTML preview of already‑rendered images](#html-preview-of-already%E2%80%91rendered-images)
       - [Dry‑run (test parsing / comments only)](#dry%E2%80%91run-test-parsing--comments-only)
     + [Flags](#flags)
-  * [3 · Lint & prettify — `lint_notes.py`](#3-%C2%B7-lint--prettify--lint_notespy)
-    + [Quickstart recipes](#quickstart-recipes)
-      - [Prettify with Dockerised Prettier + TOC rebuild](#prettify-with-dockerised-prettier--toc-rebuild)
-      - [Custom print width & selective actions](#custom-print-width--selective-actions)
+  * [3. Lint & prettify — `lint_notes.py`](#3-lint--prettify--lint_notespy)
+    + [Quickstart recipes](#quickstart-recipes-1)
+      - [Prettify with Dockerised Prettier and TOC rebuild](#prettify-with-dockerised-prettier-and-toc-rebuild)
+      - [Custom print width and selective actions](#custom-print-width-and-selective-actions)
     + [Flags](#flags-1)
-  * [4 · Notebook image scraping — `extract_notebook_images.py`](#4-%C2%B7-notebook-image-scraping--extract_notebook_imagespy)
+  * [4. Notebook image scraping — `extract_notebook_images.py`](#4-notebook-image-scraping--extract_notebook_imagespy)
     + [Flag Options](#flag-options)
-  * [5 · LLM‑powered transforms — `llm_transform.py`](#5-%C2%B7-llm%E2%80%91powered-transforms--llm_transformpy)
+  * [5. LLM powered transforms — `llm_transform.py`](#5-llm-powered-transforms--llm_transformpy)
     + [Minimum viable command](#minimum-viable-command)
     + [Finding available prompts](#finding-available-prompts)
     + [Flags](#flags-2)
     + [Example recipes](#example-recipes)
-  * [6 · Pandoc Wrapper — `run_pandoc.py`](#6-%C2%B7-pandoc-wrapper--run_pandocpy)
+  * [6. Pandoc Wrapper — `run_pandoc.py`](#6-pandoc-wrapper--run_pandocpy)
     + [What the script does](#what-the-script-does)
-    + [Quick‑use commands](#quick%E2%80%91use-commands)
+    + [Quickstart commands](#quickstart-commands)
     + [Flags](#flags-3)
-  * [7 · Automate notes transformations — `transform_notes.py`](#7-%C2%B7-automate-notes-transformations--transform_notespy)
+  * [7. Automate notes transformations — `transform_notes.py`](#7-automate-notes-transformations--transform_notespy)
     + [What it does](#what-it-does-1)
     + [Supported actions](#supported-actions)
     + [Examples](#examples)
     + [Flags](#flags-4)
-  * [8 · Scrape headers from a markdown — `extract_headers_from_markdown.py`](#8-%C2%B7-scrape-headers-from-a-markdown--extract_headers_from_markdownpy)
+  * [8. Scrape headers from a markdown — `extract_headers_from_markdown.py`](#8-scrape-headers-from-a-markdown--extract_headers_from_markdownpy)
     + [Goal](#goal)
     + [Examples](#examples-1)
     + [Flags](#flags-5)
-  * [9 · TikZ to Bitmap — `dockerized_tikz_to_bitmap.py`](#9-%C2%B7-tikz-to-bitmap--dockerized_tikz_to_bitmappy)
+  * [9. TikZ to Bitmap — `dockerized_tikz_to_bitmap.py`](#9-tikz-to-bitmap--dockerized_tikz_to_bitmappy)
     + [Examples](#examples-2)
-  * [10 · Graphviz Renderer — `dockerized_graphviz.py`](#10-%C2%B7-graphviz-renderer--dockerized_graphvizpy)
+  * [10. Graphviz Renderer — `dockerized_graphviz.py`](#10-graphviz-renderer--dockerized_graphvizpy)
     + [What it does](#what-it-does-2)
-    + [Most‑used flags](#most%E2%80%91used-flags-1)
-    + [Quick‑start recipes](#quick%E2%80%91start-recipes-1)
-    + [CLI flags cheat‑sheet](#cli-flags-cheat%E2%80%91sheet-1)
-  * [11 · LaTeX Renderer — `dockerized_latex.py`](#11-%C2%B7-latex-renderer--dockerized_latexpy)
+    + [Most used flags](#most-used-flags-1)
+    + [Quickstart recipes](#quickstart-recipes-2)
+    + [CLI flags cheatsheet](#cli-flags-cheatsheet-1)
+  * [11. LaTeX Renderer — `dockerized_latex.py`](#11-latex-renderer--dockerized_latexpy)
     + [What it does](#what-it-does-3)
-    + [Most‑used flags](#most%E2%80%91used-flags-2)
-    + [Quick‑start recipes](#quick%E2%80%91start-recipes-2)
-    + [CLI flags cheat‑sheet](#cli-flags-cheat%E2%80%91sheet-2)
-  * [12 · Mermaid Renderer — `dockerized_mermaid.py`](#12-%C2%B7-mermaid-renderer--dockerized_mermaidpy)
+    + [Most used flags](#most-used-flags-2)
+    + [Quickstart recipes](#quickstart-recipes-3)
+    + [CLI flags cheatsheet](#cli-flags-cheatsheet-2)
+  * [12. Mermaid Renderer — `dockerized_mermaid.py`](#12-mermaid-renderer--dockerized_mermaidpy)
     + [What it does](#what-it-does-4)
-    + [Most‑used flags](#most%E2%80%91used-flags-3)
-    + [Quick‑start recipes](#quick%E2%80%91start-recipes-3)
-    + [CLI flags cheat‑sheet](#cli-flags-cheat%E2%80%91sheet-3)
-  * [13 · Pandoc Renderer — `dockerized_pandoc.py`](#13-%C2%B7-pandoc-renderer--dockerized_pandocpy)
+    + [Most used flags](#most-used-flags-3)
+    + [Quickstart recipes](#quickstart-recipes-4)
+    + [CLI flags cheatsheet](#cli-flags-cheatsheet-3)
+  * [13. Pandoc Renderer — `dockerized_pandoc.py`](#13-pandoc-renderer--dockerized_pandocpy)
     + [What it does](#what-it-does-5)
-    + [Most‑used flags](#most%E2%80%91used-flags-4)
-    + [Quick‑start recipes](#quick%E2%80%91start-recipes-4)
-    + [CLI flags cheat‑sheet](#cli-flags-cheat%E2%80%91sheet-4)
-  * [14 · Prettier Formatter — `dockerized_prettier.py`](#14-%C2%B7-prettier-formatter--dockerized_prettierpy)
+    + [Most used flags](#most-used-flags-4)
+    + [Quickstart recipes](#quickstart-recipes-5)
+    + [CLI flags cheat‑sheet](#cli-flags-cheat%E2%80%91sheet)
+  * [14. Prettier Formatter — `dockerized_prettier.py`](#14-prettier-formatter--dockerized_prettierpy)
     + [What it does](#what-it-does-6)
-    + [Most‑used flags](#most%E2%80%91used-flags-5)
-    + [Quick‑start recipes](#quick%E2%80%91start-recipes-5)
-    + [CLI flags cheat‑sheet](#cli-flags-cheat%E2%80%91sheet-5)
-  * [15 · MacOS screenshot helper — `save_screenshot.py`](#15-%C2%B7-macos-screenshot-helper--save_screenshotpy)
+    + [Most used flags](#most-used-flags-5)
+    + [Quickstart recipes](#quickstart-recipes-6)
+    + [CLI flags cheatsheet](#cli-flags-cheatsheet-4)
+  * [15. MacOS screenshot helper — `save_screenshot.py`](#15-macos-screenshot-helper--save_screenshotpy)
     + [What it does](#what-it-does-7)
     + [Flags](#flags-6)
 
@@ -83,7 +83,7 @@ notes into polished PDFs, slide decks, and more.
 
 ---
 
-## 1 · Generate slides & PDFs — `notes_to_pdf.py`
+## 1. Generate slides & PDFs — `notes_to_pdf.py`
 
 ### What it does
 
@@ -94,13 +94,13 @@ single command.
 > notes_to_pdf.py --input <infile.txt> --output <outfile.[pdf|html]> --type [pdf|html|slides]
 > ```
 
-### Most‑used flags
+### Most used flags
 
 * `--type {pdf|html|slides}`
 * `--toc_type {none|pandoc_native|navigation}`
 * `--debug_on_error`, `--skip_action ...`, `--filter_by_lines A:B`
 
-### Quick‑start recipes
+### Quickstart recipes
 
 | Goal                                | Command                                                            |
 | ----------------------------------- | ------------------------------------------------------------------ |
@@ -112,7 +112,7 @@ single command.
 _TIP  Run with `--preview_actions` to print the exact steps without executing
 them._
 
-### CLI flags cheat‑sheet
+### CLI flags cheatsheet
 
 | Flag                                         | Purpose                                                                   | Notes                                                 |
 | -------------------------------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------- |
@@ -157,7 +157,7 @@ notes_to_pdf.py \
 
 Compiles only from line 362 to EOF—fast iteration when debugging slides.
 
-#### Plain PDF article (no slides)
+#### Plain PDF article
 
 ```bash
 notes_to_pdf.py -i book_notes.txt -o book_notes.pdf --type pdf
@@ -165,7 +165,7 @@ notes_to_pdf.py -i book_notes.txt -o book_notes.pdf --type pdf
 
 ---
 
-## 2 · Auto‑render figures — `render_images.py`
+## 2. Auto render figures — `render_images.py`
 
 Detects fenced code blocks (PlantUML, Mermaid, TikZ, Graphviz, ...), renders
 them into images and swaps the block with `![](img)` markup.
@@ -223,7 +223,7 @@ render_images.py -i lesson.md -o /tmp/out.md --dry_run
 
 ---
 
-## 3 · Lint & prettify — `lint_notes.py`
+## 3. Lint & prettify — `lint_notes.py`
 
 A tidying‑up tool for Markdown/LaTeX notes: normalise G‑Doc artifacts, run
 Prettier, fix bullet/heading quirks, refresh the Table of Contents – all from a
@@ -231,7 +231,7 @@ single command or straight from vim.
 
 ### Quickstart recipes
 
-#### Prettify with Dockerised Prettier + TOC rebuild
+#### Prettify with Dockerised Prettier and TOC rebuild
 
 ```bash
 lint_notes.py -i Lesson10.md \
@@ -239,7 +239,7 @@ lint_notes.py -i Lesson10.md \
               --use_dockerized_markdown_toc
 ```
 
-#### Custom print width & selective actions
+#### Custom print width and selective actions
 
 ```bash
 lint_notes.py -i draft.txt -o tidy.txt -w 100 \
@@ -260,7 +260,7 @@ lint_notes.py -i draft.txt -o tidy.txt -w 100 \
 
 ---
 
-## 4 · Notebook image scraping — `extract_notebook_images.py`
+## 4. Notebook image scraping — `extract_notebook_images.py`
 
 Spins up a docker container and dumps every `png/svg` output cell into a folder.
 You can then publish or reuse the static plots/diagrams already rendered in a
@@ -286,7 +286,7 @@ extract_notebook_images.py \
 
 ---
 
-## 5 · LLM‑powered transforms — `llm_transform.py`
+## 5. LLM powered transforms — `llm_transform.py`
 
 Apply a GPT‑style transformation (rewrite, summarise, critique code, convert to
 slides, etc.) to any text file _without_ leaving the terminal / editor.
@@ -340,7 +340,7 @@ llm_transform.py -p list -i - -o -
 
 ---
 
-## 6 · Pandoc Wrapper — `run_pandoc.py`
+## 6. Pandoc Wrapper — `run_pandoc.py`
 
 ### What the script does
 
@@ -348,7 +348,7 @@ llm_transform.py -p list -i - -o -
 * Dispatches to a named **action** (currently only `convert_md_to_latex`).
 * Pushes the Pandoc output to _stdout_ or the `--output` file.
 
-### Quick‑use commands
+### Quickstart commands
 
 | Goal                                  | Command                                      |
 | ------------------------------------- | -------------------------------------------- |
@@ -370,7 +370,7 @@ llm_transform.py -p list -i - -o -
 
 ---
 
-## 7 · Automate notes transformations — `transform_notes.py`
+## 7. Automate notes transformations — `transform_notes.py`
 
 ### What it does
 
@@ -417,7 +417,7 @@ transform_notes.py -a toc -i notes/lecture.md -o - -l 2
 
 ---
 
-## 8 · Scrape headers from a markdown — `extract_headers_from_markdown.py`
+## 8. Scrape headers from a markdown — `extract_headers_from_markdown.py`
 
 ### Goal
 
@@ -448,7 +448,7 @@ vim -c "cfile headers.cfile"
 
 ---
 
-## 9 · TikZ to Bitmap — `dockerized_tikz_to_bitmap.py`
+## 9. TikZ to Bitmap — `dockerized_tikz_to_bitmap.py`
 
 ### Examples
 
@@ -464,7 +464,7 @@ _Any extra tokens after `--` are passed verbatim to `convert`._
 
 ---
 
-## 10 · Graphviz Renderer — `dockerized_graphviz.py`
+## 10. Graphviz Renderer — `dockerized_graphviz.py`
 
 ### What it does
 
@@ -478,14 +478,14 @@ container.
 This script serves as a thin wrapper around Dockerized Graphviz for consistent
 rendering across systems.
 
-### Most‑used flags
+### Most used flags
 
 - `--input`: path to the `.dot` file
 - `--output`: destination `.png` image file
 - `--dockerized_force_rebuild`: rebuild the container from scratch
 - `--dockerized_use_sudo`: use `sudo` for Docker commands
 
-### Quick‑start recipes
+### Quickstart recipes
 
 | Goal                  | Command                                                                        |
 | --------------------- | ------------------------------------------------------------------------------ |
@@ -493,7 +493,7 @@ rendering across systems.
 | Rebuild Docker image  | `graphviz_wrapper.py -i diagram.dot -o diagram.png --dockerized_force_rebuild` |
 | Use `sudo` for Docker | `graphviz_wrapper.py -i diagram.dot -o diagram.png --dockerized_use_sudo`      |
 
-### CLI flags cheat‑sheet
+### CLI flags cheatsheet
 
 | Flag                         | Purpose                      | Notes         |
 | ---------------------------- | ---------------------------- | ------------- |
@@ -505,7 +505,7 @@ rendering across systems.
 
 ---
 
-## 11 · LaTeX Renderer — `dockerized_latex.py`
+## 11. LaTeX Renderer — `dockerized_latex.py`
 
 ### What it does
 
@@ -520,7 +520,7 @@ Automatically rebuilds the Docker image if needed.
 Supports optional rerun of LaTeX for proper references or table of contents
 generation.
 
-### Most‑used flags
+### Most used flags
 
 - `--input`: LaTeX source file to compile
 - `--output`: Output PDF path
@@ -528,7 +528,7 @@ generation.
 - `--dockerized_force_rebuild`: Force container rebuild
 - `--dockerized_use_sudo`: Run Docker with `sudo`
 
-### Quick‑start recipes
+### Quickstart recipes
 
 | Goal                     | Command                                                                   |
 | ------------------------ | ------------------------------------------------------------------------- |
@@ -537,7 +537,7 @@ generation.
 | Use `sudo` for Docker    | `latex_wrapper.py -i report.tex -o report.pdf --dockerized_use_sudo`      |
 | Run LaTeX twice          | `latex_wrapper.py -i paper.tex -o paper.pdf --run_latex_again`            |
 
-### CLI flags cheat‑sheet
+### CLI flags cheatsheet
 
 | Flag                         | Purpose                    | Notes                         |
 | ---------------------------- | -------------------------- | ----------------------------- |
@@ -550,7 +550,7 @@ generation.
 
 ---
 
-## 12 · Mermaid Renderer — `dockerized_mermaid.py`
+## 12. Mermaid Renderer — `dockerized_mermaid.py`
 
 ### What it does
 
@@ -563,14 +563,14 @@ container.
 
 Automatically sets output to match input name if `--output` is omitted.
 
-### Most‑used flags
+### Most used flags
 
 - `--input`: Source Mermaid file
 - `--output`: Destination image file (optional)
 - `--dockerized_force_rebuild`: Rebuild Docker image
 - `--dockerized_use_sudo`: Use `sudo` for Docker
 
-### Quick‑start recipes
+### Quickstart recipes
 
 | Goal                          | Command                                                                       |
 | ----------------------------- | ----------------------------------------------------------------------------- |
@@ -579,7 +579,7 @@ Automatically sets output to match input name if `--output` is omitted.
 | Rebuild container             | `mermaid_wrapper.py -i diagram.mmd -o diagram.png --dockerized_force_rebuild` |
 | Use `sudo` for Docker         | `mermaid_wrapper.py -i diagram.mmd -o diagram.png --dockerized_use_sudo`      |
 
-### CLI flags cheat‑sheet
+### CLI flags cheatsheet
 
 | Flag                         | Purpose                            | Notes                      |
 | ---------------------------- | ---------------------------------- | -------------------------- |
@@ -591,7 +591,7 @@ Automatically sets output to match input name if `--output` is omitted.
 
 ---
 
-## 13 · Pandoc Renderer — `dockerized_pandoc.py`
+## 13. Pandoc Renderer — `dockerized_pandoc.py`
 
 ### What it does
 
@@ -605,7 +605,7 @@ Supports output to Beamer slides, PDFs, and more with custom CLI flags.
 Internally builds a Docker container and passes the full `pandoc` command
 string.
 
-### Most‑used flags
+### Most used flags
 
 - `--input`: source file (e.g., `.md`, `.txt`)
 - `--output`: output file (e.g., `.pdf`, `.html`)
@@ -613,7 +613,7 @@ string.
 - `--dockerized_force_rebuild`: rebuild image from scratch
 - `--dockerized_use_sudo`: run Docker with `sudo`
 
-### Quick‑start recipes
+### Quickstart recipes
 
 | Goal                     | Command                                                                                              |
 | ------------------------ | ---------------------------------------------------------------------------------------------------- |
@@ -636,7 +636,7 @@ string.
 
 ---
 
-## 14 · Prettier Formatter — `dockerized_prettier.py`
+## 14. Prettier Formatter — `dockerized_prettier.py`
 
 ### What it does
 
@@ -650,7 +650,7 @@ Avoids environment-specific issues and ensures consistent formatting.
 
 Supports full Prettier CLI flexibility via passthrough of additional options.
 
-### Most‑used flags
+### Most used flags
 
 - `--parser`: Prettier parser (e.g. `markdown`)
 - `--write`: Apply formatting in-place
@@ -658,7 +658,7 @@ Supports full Prettier CLI flexibility via passthrough of additional options.
 - `--dockerized_force_rebuild`: Force rebuild of Docker container
 - `--dockerized_use_sudo`: Use `sudo` for Docker commands
 
-### Quick‑start recipes
+### Quickstart recipes
 
 | Goal                              | Command                                                                                      |
 | --------------------------------- | -------------------------------------------------------------------------------------------- |
@@ -667,7 +667,7 @@ Supports full Prettier CLI flexibility via passthrough of additional options.
 | Rebuild the Docker image          | `dockerized_prettier.py --dockerized_force_rebuild --parser markdown --write test.md`        |
 | Change indentation and wrap style | `dockerized_prettier.py --parser markdown --tab-width 4 --prose-wrap always --write test.md` |
 
-### CLI flags cheat‑sheet
+### CLI flags cheatsheet
 
 | Flag                         | Purpose                                               | Notes                                 |
 | ---------------------------- | ----------------------------------------------------- | ------------------------------------- |
@@ -682,7 +682,7 @@ Supports full Prettier CLI flexibility via passthrough of additional options.
 
 ---
 
-## 15 · MacOS screenshot helper — `save_screenshot.py`
+## 15. MacOS screenshot helper — `save_screenshot.py`
 
 ### What it does
 
