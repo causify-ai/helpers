@@ -606,13 +606,12 @@ def code_write_1_unit_test() -> _PROMPT_OUT:
 # #############################################################################
 
 
-def review() -> _PROMPT_OUT:
+def _review_from_file(file: str) -> _PROMPT_OUT:
     """
     Review the code for refactoring opportunities.
     """
     system = _CODING_CONTEXT
     # Load the reference file.
-    file = "docs/code_guidelines/all.automated_review_guidelines.reference.md"
     reference_txt = hio.from_file(file)
     reference_txt = hmarkdo.add_line_numbers(reference_txt)
     # TODO(gp): Remove table of contents between <!-- toc --> and <!-- tocstop -->.
@@ -636,6 +635,33 @@ def review() -> _PROMPT_OUT:
     post_transforms = {"convert_to_vim_cfile"}
     post_container_transforms = ["convert_file_names"]
     return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def review_linter_style() -> _PROMPT_OUT:
+    """
+    Review the code for linter style.
+    """
+    # Load the reference file.
+    file = "docs/code_guidelines/all.linter_style_review_guidelines.reference.md"
+    return _review_from_file(file)
+
+
+def review_llm_style() -> _PROMPT_OUT:
+    """
+    Review the code for linter style.
+    """
+    # Load the reference file.
+    file = "docs/code_guidelines/all.llm_style_review_guidelines.reference.md"
+    return _review_from_file(file)
+
+
+def review_llm_style() -> _PROMPT_OUT:
+    """
+    Review the code for linter style.
+    """
+    # Load the reference file.
+    file = "docs/code_guidelines/all.llm_style_review_guidelines.reference.md"
+    return _review_from_file(file)
 
 
 def review_correctness() -> _PROMPT_OUT:

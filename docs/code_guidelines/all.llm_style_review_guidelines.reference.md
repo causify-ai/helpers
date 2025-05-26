@@ -1,32 +1,5 @@
 # Guidelines for automated PR reviews
 
-<!-- toc -->
-
-- [Python code](#python-code)
-  * [Naming](#naming)
-  * [Docstrings](#docstrings)
-  * [Comments](#comments)
-  * [Code design](#code-design)
-  * [Imports](#imports)
-  * [Type annotations](#type-annotations)
-  * [Functions](#functions)
-  * [Scripts](#scripts)
-  * [Logging](#logging)
-  * [Unit tests](#unit-tests)
-  * [Misc](#misc)
-- [Notebooks](#notebooks)
-  * [General](#general)
-  * [Jupytext](#jupytext)
-  * [Plotting](#plotting)
-- [Markdowns](#markdowns)
-- [File system structure](#file-system-structure)
-- [Spelling](#spelling)
-
-<!-- tocstop -->
-
-This document outlines the rules that all checked-in code must follow. It can
-serve as a guideline for automated PR reviews.
-
 ## Python code
 
 ### Naming
@@ -53,15 +26,6 @@ serve as a guideline for automated PR reviews.
 
 ### Docstrings
 
-- All functions and methods must have a docstring
-- Docstrings should be wrapped in triple quotation marks (`"""`)
-  - The opening and closing triple quotation marks should be located on their
-    own separate lines
-- Every docstring should start with a capital letter
-- Every docstring should start with a verb in the imperative form
-- Every docstring should begin with a one-line description of what the function
-  does
-  - It must fit into a single line and end with a period
 - The first docstring line is followed by a blank line and then, optionally, by
   a longer description (possibly on multiple lines) with a more detailed
   explanation of what the function does
@@ -95,25 +59,20 @@ serve as a guideline for automated PR reviews.
 
 - Add a comment for every logically distinct chunk of code
 - Use comments to separate chunks of code instead of blank lines
-- Avoid empty comments when possible
-- Every comment should start with a capital letter
-- Every comment should start with a verb in the imperative form
-- Every comment should end with a period
 - We do not use inline comments; every comment should be on its own separate
-  line
-- Comments should be placed above the lines that they are referring to
-- In `if-elif-else` statements, the comments are placed underneath each
-  statement in order to explain the code that belongs to each statement in
-  particular
+  line, before the line it refers to
+  - In `if-elif-else` statements, the comments are placed underneath each
+    statement in order to explain the code that belongs to each statement in
+    particular
 - Avoid mentioning concrete names of variables, functions, classes, files, etc.
   in the comments
   - If it is unavoidable, wrap their names in backticks
 - Avoid referring to the type of a variable in the comments
-- Do not include implementation details in comments (describe "what" and not
-  "how")
+- Do not include implementation details in comments
+  - Describe "what" and "why" the code does something and not "how" the code
+    does it
 - If some code is commented out in a PR, a comment should be added to explain
   the reason why
-- Comments with TODOs should have the format of `# TODO(username): ...`
 
 ### Code design
 
@@ -121,59 +80,28 @@ serve as a guideline for automated PR reviews.
   - Factor out common code in a separate function / method
   - Do not copy-and-paste parameter descriptions, instead write them in only one
     function and put a reference to it in the other functions where the same
-    parameters are used, e.g., "See `func_name()` for the param description"
-- Order functions / classes in a topological order so that the ones at the top
-  of the files are the "innermost" and the ones at the end of the files are the
-  "outermost"
+    parameters are used
+  - E.g., "See `func_name()` for the param description"
 - Keep public functions in an order representing the typical flow of use, e.g.,
   - Common functions, used by all other functions
   - Read data
   - Process data
   - Save data
-- Use banners to separate large sections of code, e.g.:
-  ```python
-  # #############################################################################
-  # Read data.
-  # #############################################################################
-  ```
-  - The text inside the banner should start with a capital letter and end with a
-    period
-
-### Imports
-
-- All imports should be located at the top of the file
-- Do not use `import *`
-- Do not use `from ... import ...`
-  - The only exception is the `typing` package, e.g.,
-    `from typing import Iterable, List`
-- Always import with a full path from the root of the repo / submodule
-- Each module that can be imported should have a docstring at the very beginning
-  describing how it should be imported
-  - Linter adds it automatically
-- No import cycles should be introduced by the changes in the PR
 
 ### Type annotations
 
-- All functions and methods, including constructors, must have type annotations
-  for all the parameters and returned structures
-  - We use `-> None` if a function doesn't return anything
-  - The only exception are invoke tasks, i.e. functions with the `@task`
-    decorator — they shouldn't have type annotations
-- We use `List[<type of list elements>]` instead of `list`,
+- For type hints use `List[<type of list elements>]` instead of `list`,
   `Dict[<type of keys>, <type of values>]` instead of `dict`,
   `Tuple[<type of tuple elements>]` instead of `tuple`, etc.
-- Type annotation `Any` should be avoided, if possible
 
 ### Functions
 
-- Avoid modifying the function input
-  - For example, if a function `f` accepts a dataframe `df` as its (sole)
-    argument, then, ideally, `f(df)` will not modify `df`
-- Use pure functions, i.e. if the function arguments do not change, then the
-  returned value should not change (in contrast to, e.g., functions that rely
+- Avoid pure functions without side effects, i.e. for the same input arguments
+  the returned value should not change (in contrast to, e.g., functions that rely
   upon global state)
-- Make a function private (e.g., `_foo_bar()`) when it is a helper of another
-  private or public function
+- Functions should not modify the function inputs
+  - E.g., if a function `f()` accepts a dataframe `df` as its argument, then
+    `f()` will not modify `df` but make a copy and work on it
 - The preferred order of function parameters is:
   - Input parameters
   - Output parameters
@@ -183,19 +111,21 @@ serve as a guideline for automated PR reviews.
   of the time are constant
 - All the default parameters should be keyword-only
   - They should be separated from the other parameters by `*`
-- Do not use lists, maps, objects, etc. as the default value — instead pass
-  `None` and then initialize the default parameter inside the function
+- Do not use mutable objects (such as lists, maps, objects) as default value for
+  functions, instead pass `None` and then initialize the default parameter inside
+  the function
 - Use a default value of `None` when a function needs to be wrapped and the
   default parameter needs to be propagated
 - Do not use use a boolean parameter as a switch controlling some function
-  behavior — instead use a string parameter `mode`, which is allowed to take a
+  behavior, instead use a string parameter `mode`, which is allowed to take a
   small well-defined set of values
 - For functions dealing with dataframes, avoid hard-wired column name
-  dependencies — instead allow the caller to pass the column name to the
-  function as a parameter
-- Do not put computations of the output in the `return` line — instead compute
-  the output first, assign it to a variable and then return this variable
-- A function should ideally have a single exit point (one line with `return`)
+  dependencies, instead allow the caller to pass the column name to the function
+  as a parameter
+- Do not put computations of the output in the `return` line
+  - Instead compute the output first, assign it to a variable and then return
+    this variable
+- A function should have a single exit point, i.e., one single line with `return`
 - A function should ideally return objects of only one type (or `None`)
 - When calling a function, assign all the input parameter values to variables on
   separate lines and then pass these variables to the function
@@ -204,22 +134,11 @@ serve as a guideline for automated PR reviews.
   - E.g., call `func()` like `func(param1, param2, param3=param3)` if `param3`
     is the only parameter with a default value
 
-### Scripts
-
-- Use Python and not bash for scripting
-- All Python scripts that are meant to be executed directly should:
-  - Be marked as executable files with `> chmod +x foo_bar.py`
-  - Have the standard Unix shebang notation at the top: `#!/usr/bin/env python`
-  - Use the following idiom at the bottom:
-    ```python
-    if __name__ == "__main__":
-        ...
-    ```
-  - Use `argparse` for argument parsing
-
 ### Logging
 
-- Use extensive logging (and not `print()`) for monitoring execution
+- Use logging `_LOG.debug()` and not `print()` for tracing execution
+- Use positional args in logging and not inline formatting
+  - E.g., `_LOG.debug("cmd=%s", cmd1)` instead `_LOG.debug(f"cmd={cmd1}")`
 - Use the following idiom to configure logging:
 
   ```python
@@ -230,34 +149,22 @@ serve as a guideline for automated PR reviews.
   hdbg.init_logger(verbosity=logging.DEBUG)
   ```
 
-- Use positional args in logging (e.g.,
-  `_LOG.debug("cmd=%s %s %s", cmd1, cmd2, cmd3)`)
-
 ### Unit tests
 
-- Unit tests should be placed in a `test_*.py` file in the `test` directory,
-  close to the library / code it tests
-- A test class should test only one function / class
-- A test method should only test a single case (e.g., "for these inputs the
-  function responds with this output")
-- Every test class should inherit from `hunitest.TestCase`
+- A test class should test only one function or class
+- A test method should only test a single case
+  - E.g., "for these inputs the function responds with this output"
 - Adhere to the following conventions for naming:
-  - Test file `test_file_name.py` testing the library `file_name.py`
-  - Test class `TestFooBar` for the class `FooBar`, and test methods
-    `TestFooBar.test_method_a`, `TestFooBar.test_method_b` for the methods
+  - Class `TestFooBar` tests the class `FooBar` and its methods
+    `TestFooBar.test_method_a`, `TestFooBar.test_method_b` test the methods
     `FooBar.method_a` and `FooBar.method_b`
-  - Test class `Test_foo_bar` for the function `foo_bar()`, and test methods
-    `Test_foo_bar.test1`, `Test_foo_bar.test2` for different cases / inputs
-- - Do not add the following idiom in the testing file
-  ```python
-  if __name__ == "__main__":
-      unittest.main()
-  ```
-- A unit test should be independent of all other unit tests
-- If there is a lot of common code in individual test methods, it should be
+  - Class `Test_foo_bar` tests the function `foo_bar()`
+  - `Test_foo_bar.test1`, `Test_foo_bar.test2` for different cases / inputs
+- A unit test should be independent of all the other unit tests
+- If there is a lot of common code across individual test methods, it should be
   factored out in a helper method within the test class
 - If some code needs to be repeated at the beginning / end of each test method,
-  it can be moved to `set_up_test()` / `tear_down_test()` methods and the
+  it should be moved to `set_up_test()` / `tear_down_test()` methods and the
   following idiom should be added to the test class:
   ```python
   @pytest.fixture(autouse=True)
@@ -268,14 +175,15 @@ serve as a guideline for automated PR reviews.
       # Run after each test.
       self.tear_down_test()
   ```
-- Test methods should have a docstring describing briefly what case is being
+- Each test method should have a docstring describing briefly what case is being
   tested
-- Test methods should have param / return type annotations
-- Do not create temporary files for tests with `tempfile` — use
-  `self.get_scratch_space()` instead
+- Test methods should have type hint annotations
+- Do not create temporary files for tests (e.g., with `tempfile`) but use
+  `hunittest.TestCase.get_scratch_space()` instead
 - If the input to the test is a large piece of code / text, it should be moved
   to a separate file in the `input` dir corresponding to the test
-  (`outcomes/<TestClassName.test_method_name>/input`)
+  - E.g., `outcomes/<TestClassName.test_method_name>/input` and read through the
+    `self.get_input
 - Do not use pickle files for test inputs
 - In every test method, separate logically distinct code chunks with comments
   `# Prepare inputs.`, `# Run.` and `# Check.`
