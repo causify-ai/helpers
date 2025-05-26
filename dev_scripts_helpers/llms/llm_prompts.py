@@ -655,15 +655,6 @@ def review_llm_style() -> _PROMPT_OUT:
     return _review_from_file(file)
 
 
-def review_llm_style() -> _PROMPT_OUT:
-    """
-    Review the code for linter style.
-    """
-    # Load the reference file.
-    file = "docs/code_guidelines/all.llm_style_review_guidelines.reference.md"
-    return _review_from_file(file)
-
-
 def review_correctness() -> _PROMPT_OUT:
     """
     Review the code for correctness.
@@ -694,7 +685,7 @@ def review_refactoring() -> _PROMPT_OUT:
     system = _CODING_CONTEXT
     system += r"""
     You will review the code and look for opportunities to refactor the code,
-    by removing redundancy and copy-paste code.
+    by removing redundancy and copy-pasted code.
 
     Do not print any comment, besides for each point of improvement, you will
     print the line number and the proposed improvement in the following style:
@@ -704,8 +695,6 @@ def review_refactoring() -> _PROMPT_OUT:
     post_transforms = {"convert_to_vim_cfile"}
     post_container_transforms = ["convert_file_names"]
     return system, pre_transforms, post_transforms, post_container_transforms
-
-
 
 
 # #############################################################################
