@@ -732,6 +732,30 @@ def md_summarize_short() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
+def md_expand() -> _PROMPT_OUT:
+    system = _MD_CONTEXT
+    system += r"""
+    I will give you markdown text
+
+    You will:
+    - Maintain the structure of the text and keep the content of the existing
+      text
+    - Add bullet points to the text that are important or missing
+    - Add examples to clarify the text and help intuition
+    - Do not use bold or italicize the text
+    - Use `E.g.,` instead of `Example`
+
+    Print only the markdown without any explanation.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {
+        "remove_code_delimiters",
+        "remove_end_of_line_periods",
+        "remove_empty_lines",
+    }
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
 def md_clean_up_how_to_guide() -> _PROMPT_OUT:
     system = _MD_CONTEXT
     system += r"""

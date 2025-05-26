@@ -5,15 +5,16 @@
 ### Naming
 
 - Name functions using verbs and verbs/actions
-  - E.g., `download_data()`
+  - E.g., `download_data()`, `process_input()`, `calculate_sum()`
 - Name classes using nouns
-  - E.g., `Downloader()`
+  - E.g., `Downloader()`, `DataProcessor()`, `User()`
 - Name decorators with an adjective or a past tense verb
-  - E.g., `timed`
+  - E.g., `timed`, `cached`, `logged`
 - Variable and function names should not reference implementation details, and
   things that can change or details that are not important
   - E.g., the name of a variable should not include its type
-    - E.g. use `embeddings` instead of `embeddings_list`
+    - E.g., use `embeddings` instead of `embeddings_list`
+    - E.g., use `data` instead of `data_dict`
 - Abbreviations in the names should be avoided, except for the following
   - `df` for dataframe
   - `srs` for series
@@ -25,28 +26,37 @@
   - `col` for columns and `row` for rows
 - Do not repeat in a function name what is already included in the library name
   (avoid "code stutter")
+  - E.g., if using a library named `math`, avoid naming a function
+    `math_calculate()`
 - Use `dir` and not `directory` or `folder`
+  - E.g., `dir_path`
 - Use `file_name` and not `filename`
+  - E.g., `file_name` for storing the name of a file
 - Use `dir_name` and not `dirname`
+  - E.g., `dir_name` for storing the name of a directory
 - Use `timestamp` and not `ts` or `datetime`
+  - E.g., `event_timestamp`
 - To refer to the name of a column, use `..._col` and not `..._col_name` or
   `..._column`
+  - E.g., `age_col` for a column storing age values
 
 ### Docstrings
 
 - The first docstring line is followed by a blank line and then, optionally, by
   a longer description (possibly on multiple lines) with a more detailed
   explanation of what the function does
-  - It should not describe parameters / what is being returned
-  - It should not describe implementation details that can be changed
-  - It should describe the goal of the function, the interface and what the user
+  - The text should describe the goal of the function, the interface and what the user
     needs to know to use the function
-- The more detailed description is followed by a blank line and then the param /
-  return description section
+    - E.g., "This function calculates the sum of two numbers and returns the
+      result."
+  - The text should not describe parameters / what is being returned
+  - The text should not describe implementation details that can be changed
+- The more detailed description is followed by a blank line and then the param
+  and return description section in REST style
   - Use lowercase after `:param XYZ: ...` / `:return:` unless the description
     starts with a proper noun
-  - Do not add a period at the end of the param / return descriptions
-  - Do not mention the type of the parameters / returned structures
+  - Do not add a period at the end of the param and return descriptions
+  - Do not mention the type of the parameters and return structures
   - Do not mention default values of parameters in parameter descriptions
   - Follow this example for indentation of parameter descriptions:
     ```python
@@ -58,10 +68,21 @@
           continues into a second line
     ```
 - Adding examples (e.g., of input and output) to the docstring is encouraged
+  - E.g.,
+    ```
+    # Example usage:
+    result = add_numbers(3, 5)
+    # result is 8
+    ```
 - References to variables, file paths, functions, classes, etc. should be
   wrapped in backticks
+  - E.g., "The `add_numbers` function takes two arguments."
 - Multiline representations of data structures (e.g., an output example) should
   be wrapped in triple backticks
+  - E.g.,
+    ```
+    { "name": "John", "age": 30, "city": "New York" }
+    ```
 
 ### Comments
 
