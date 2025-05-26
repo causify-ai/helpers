@@ -63,6 +63,12 @@ def _parse() -> argparse.ArgumentParser:
         in_default="-",
         in_required=False,
     )
+    parser.add_argument(
+        "-s",
+        "--skip-post-transforms",
+        action="store_true",
+        help="Skip the post-transforms",
+    )
     hparser.add_dockerized_script_arg(parser)
     # Use CRITICAL to avoid logging anything.
     hparser.add_verbosity_arg(parser, log_level="CRITICAL")
@@ -80,7 +86,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         hparser.adapt_input_output_args_for_dockerized_scripts(in_file_name, tag)
     )
     # TODO(gp): We should just automatically pass-through the options.
-    prompt = "review"
+    prompt = "review_llm"
     cmd_line_opts = [f"-p {prompt}", f"-v {args.log_level}"]
     # cmd_line_opts = []
     # for arg in vars(args):
@@ -102,13 +108,30 @@ def _main(parser: argparse.ArgumentParser) -> None:
         use_sudo=args.dockerized_use_sudo,
         suppress_output=suppress_output,
     )
-    # # Read the output from the container and write it to the output file from
-    # # command line (e.g., `-` for stdout).
-    # hparser.write_file(out_txt, out_file_name)
-    # if os.path.basename(out_file_name) == "cfile":
-    #     print(out_txt)
+    # Run post-transforms outside the container.
+    if not args.skip_post_transforms:
+        post_container_transforms = dshlllpr.get_post_container_transforms(
+            prompt
+        )
+        #
+        if dshlllpr.to_run("convert_file_names", post_container_transforms):
+            dshlllpt._convert_file_names(in_file_name, tmp_out_file_name)
+        #
+        # Check that all post-transforms were run.
+        hdbg.dassert_eq(
+            len(post_container_transforms),
+            0,
+            "Not all post_transforms were run: %s",
+            post_container_transforms,
+        )
+    else:
+        _LOG.info("Skipping post-transforms")
     out_txt = hio.from_file(tmp_out_file_name)
-    print(out_txt)
+    # Read the output from the container and write it to the output file from
+    # command line (e.g., `-` for stdout).
+    hparser.write_file(out_txt, out_file_name)
+    if os.path.basename(out_file_name) == "cfile":
+        print(out_txt)
 
 
 if __name__ == "__main__":

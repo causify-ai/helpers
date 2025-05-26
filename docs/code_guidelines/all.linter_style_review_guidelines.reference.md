@@ -139,40 +139,49 @@
 
 ### Jupytext
 
-- Every notebook should be accompanied by a Python file paired with the notebook
-  by `jupytext`, containing a synchronized copy of the notebook code
-- The name of the notebook and the name of its paired Python file should be the
-  same, except the extension
-- The code in the notebook and in its paired Python file should always be in
-  sync
-- If the notebook is updated or deleted, then its paired Python file should also
-  by updated or deleted, and vice versa
-- Linter should be used on both the notebook and its paired Python file
+- Each notebook must have an accompanying Python file, linked via `jupytext`,
+  which contains a synchronized copy of the notebook's code
+- The notebook and its paired Python file should share the same name, differing
+  only in their file extensions
+- Ensure that the code in the notebook and its paired Python file remains
+  synchronized at all times
+- If you update or delete the notebook, you must also update or delete its
+  paired Python file, and vice versa
 
 ## Markdowns
 
-- Names of documentation files should follow the format
+- Names of documentation files should follow the format 
   `docs/{component}/{audience}.{topic}.{diataxis_tag}.md`
+  to help in organizing and categorizing documentation files effectively
   - E.g., `docs/documentation_meta/all.diataxis.explanation.md`
+  - The `{component}` part specifies the part of the project the documentation
+    is related to
+  - The `{audience}` part indicates who the documentation is intended for
+  - The `{topic}` part describes the subject matter of the documentation
+  - The `{diataxis_tag}` part categorizes the documentation according to the
+    Diátaxis framework (e.g., explanation, tutorial)
 - All Markdown files should have a table of contents
   - Linter automatically adds and updates the table of contents
 - There should be one and only one level 1 heading (with one `#`) in a Markdown
-- The level 1 heading should be located above the table of contents
+  - The level 1 heading serves as the main title of the document
+  - It should clearly convey the primary topic or purpose of the document
+  - The level 1 heading should be located above the table of contents
 - Headings should not be boldfaced
 - Headings should not be overcapitalized
   - E.g., `Data schema` instead of `Data Schema`
 - Text should be reflowed to the maximum of 80 columns per line
 - Fenced code blocks should always be accompanied by language markers
-  - E.g. `bash`, `python`
+  - E.g., `bash`, `python`
 - Indent fenced code blocks at the same level as the previous line
 
 ## Spelling
 
-- Capitalize the first letter of `Python`
-- Spell `Linter` with the first letter in upper case and do not use an article
-  (`Linter` instead of `the Linter`)
-- Capitalize `JSON`, `CSV`, `DB` and other abbreviations
 - Spell commands in lower case and programs with the first letter in upper case
-  (e.g., `git` as a command, `Git` as a program)
+  - E.g., `git` as a command, `Git` as a program
+  - E.g., capitalize the first letter of `Python`
+- Spell `Linter` with the first letter in upper case and do not use an article
+  - E.g., `Linter` instead of `the Linter`
+- Capitalize `JSON`, `CSV`, `DB` and other abbreviations
 - Represent intervals with `[a, b), (a, b], (a, b), [a, b]`, not `[a, b[`
 - Write `hyperparameter` without a hyphen
+- Use `Python` for scripting and automation tasks

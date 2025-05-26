@@ -15,7 +15,8 @@
   - E.g., the name of a variable should not include its type
     - E.g., use `embeddings` instead of `embeddings_list`
     - E.g., use `data` instead of `data_dict`
-- Abbreviations in the names should be avoided, except for the following
+- Abbreviations in the names of variables and functions should be avoided, except
+  for the following
   - `df` for dataframe
   - `srs` for series
   - `idx` for index

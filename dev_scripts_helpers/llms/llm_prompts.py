@@ -620,12 +620,11 @@ def _review_from_file(file: str) -> _PROMPT_OUT:
 
     {reference_txt}
 
-    - Each rule to follow is referred by <rule_name> and represented as <header-line_number>
-      with the name of the header of the section in the reference file (e..g,
-      'Naming') and the line number (e.g., "Naming-7")
-
-    - Only print the lines that you are sure are in violation of one of the
-      rules <rule_name> in the reference
+    - Each rule to follow is referred by <rule_name> and represented as
+        <header-line_number> with the name of the header of the section in the
+        reference file (e..g, 'Naming') and the line number (e.g., "Naming-7")
+    - Only print the violation of the rules when you are absolutely sure that
+      it is a violation
     - For each violation of a rule, you will print the line number of the code
       and the proposed improvement in the following style:
       <line_number>: <rule_name>: <short description of the proposed improvement>
@@ -637,21 +636,21 @@ def _review_from_file(file: str) -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
-def review_linter_style() -> _PROMPT_OUT:
+def review_llm() -> _PROMPT_OUT:
     """
-    Review the code for linter style.
-    """
-    # Load the reference file.
-    file = "docs/code_guidelines/all.linter_style_review_guidelines.reference.md"
-    return _review_from_file(file)
-
-
-def review_llm_style() -> _PROMPT_OUT:
-    """
-    Review the code for linter style.
+    Review the code using LLMs.
     """
     # Load the reference file.
     file = "docs/code_guidelines/all.llm_style_review_guidelines.reference.md"
+    return _review_from_file(file)
+
+
+def review_linter() -> _PROMPT_OUT:
+    """
+    Review the code for linter style (still using LLMs).
+    """
+    # Load the reference file.
+    file = "docs/code_guidelines/all.linter_style_review_guidelines.reference.md"
     return _review_from_file(file)
 
 

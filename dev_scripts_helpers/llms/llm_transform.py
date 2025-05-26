@@ -70,6 +70,7 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Print the original and transformed",
     )
+    # TODO(gp): Remove this.
     parser.add_argument(
         "-b",
         "--bold_first_level_bullets",
