@@ -100,3 +100,79 @@
 - If a PR includes renaming a file, variable, parameter, function, class, etc.,
   then all the instances and references to it throughout the codebase should be
   updated
+
+## Notebooks
+
+### General
+
+- The name of a notebook should generally be the same as the branch name, unless
+  it's a Master notebook
+- All notebooks should have a table of contents
+  - Linter automatically adds and updates the table of contents
+- At the top of the notebook there should be a Markdown cell `# Description`,
+  followed by a Markdown cell with an explanation of the notebook's goal, what
+  it does, etc.
+- Immediately below the description, there should be a Markdown cell
+  `# Imports`, followed by a code cell importing all the needed libraries
+  - It should include autoreload modules to keep the local code updated in real
+    time:
+    ```python
+    %load_ext autoreload
+    %autoreload 2
+    ```
+  - All the imports should be located in a single cell
+- Below the cell with the imports, there should be a code cell that configures
+  the logging and notebook style, and reports execution info:
+  ```python
+  # Configure logger.
+  hdbg.init_logger(verbosity=logging.INFO)
+  _LOG = logging.getLogger(__name__)
+  # Print system signature.
+  _LOG.info("%s", henv.get_system_signature()[0])
+  # Configure the notebook style.
+  hprint.config_notebook()
+  ```
+- The rest of the notebook should be clearly organized using Markdown cells with
+  headings of different levels
+- There should be no errors in the executed notebook
+- Ideally, there should be no warnings in the executed notebook
+
+### Jupytext
+
+- Every notebook should be accompanied by a Python file paired with the notebook
+  by `jupytext`, containing a synchronized copy of the notebook code
+- The name of the notebook and the name of its paired Python file should be the
+  same, except the extension
+- The code in the notebook and in its paired Python file should always be in
+  sync
+- If the notebook is updated or deleted, then its paired Python file should also
+  by updated or deleted, and vice versa
+- Linter should be used on both the notebook and its paired Python file
+
+## Markdowns
+
+- Names of documentation files should follow the format
+  `docs/{component}/{audience}.{topic}.{diataxis_tag}.md`
+  - E.g., `docs/documentation_meta/all.diataxis.explanation.md`
+- All Markdown files should have a table of contents
+  - Linter automatically adds and updates the table of contents
+- There should be one and only one level 1 heading (with one `#`) in a Markdown
+- The level 1 heading should be located above the table of contents
+- Headings should not be boldfaced
+- Headings should not be overcapitalized
+  - E.g., `Data schema` instead of `Data Schema`
+- Text should be reflowed to the maximum of 80 columns per line
+- Fenced code blocks should always be accompanied by language markers
+  - E.g. `bash`, `python`
+- Indent fenced code blocks at the same level as the previous line
+
+## Spelling
+
+- Capitalize the first letter of `Python`
+- Spell `Linter` with the first letter in upper case and do not use an article
+  (`Linter` instead of `the Linter`)
+- Capitalize `JSON`, `CSV`, `DB` and other abbreviations
+- Spell commands in lower case and programs with the first letter in upper case
+  (e.g., `git` as a command, `Git` as a program)
+- Represent intervals with `[a, b), (a, b], (a, b), [a, b]`, not `[a, b[`
+- Write `hyperparameter` without a hyphen

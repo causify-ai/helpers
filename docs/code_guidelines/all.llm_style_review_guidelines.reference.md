@@ -77,7 +77,7 @@
 - References to variables, file paths, functions, classes, etc. should be
   wrapped in backticks
   - E.g., "The `add_numbers` function takes two arguments."
-- Multiline representations of data structures (e.g., an output example) should
+- Multi-line representations of data structures (e.g., an output example) should
   be wrapped in triple backticks
   - E.g.,
     ```
@@ -88,77 +88,175 @@
 
 - Add a comment for every logically distinct chunk of code
 - Use comments to separate chunks of code instead of blank lines
-- We do not use inline comments; every comment should be on its own separate
-  line, before the line it refers to
+- Do not use inline comments; every comment should be on its own separate line,
+  before the line it refers to
   - In `if-elif-else` statements, the comments are placed underneath each
     statement in order to explain the code that belongs to each statement in
     particular
+    ```python
+    if ...:
+      # Do this.
+    else:
+      # Do that.
+    ```
 - Avoid mentioning concrete names of variables, functions, classes, files, etc.
   in the comments
   - If it is unavoidable, wrap their names in backticks
 - Avoid referring to the type of a variable in the comments
+  - Keeps comments focused on functionality rather than implementation specifics
 - Do not include implementation details in comments
   - Describe "what" and "why" the code does something and not "how" the code
     does it
+  - Ensures comments remain relevant even if the implementation changes
 - If some code is commented out in a PR, a comment should be added to explain
   the reason why
+  - Provides context for future reference and helps other developers understand
+    the decision
+  - E.g., "This section is commented out due to a known bug that needs fixing"
+    or "Temporarily disabled for performance testing"
+
+### Code implementation
+
+- Encode the assumptions made in the code using assertions and report as much
+  information as possible in an assertion to make it easy to debug the output
+  - E.g., `hdbg.dassert_lt(start_date, end_date)`
+  - Ensure that assertions provide detailed information for debugging
+  - Use assertions to validate input parameters and preconditions
+- Do not use f-strings in `hdbg.dassert()`, but use traditional string formatting
+  methods in assertions
+  - E.g.,
+    `hdbg.dassert_eq(len(list1), len(list2), "Lists must be of equal length: %d vs %d" % (len(list1), len(list2)))`
+- Use f-strings in exceptions
+  - E.g., `raise ValueError(f"Invalid server_name='{server_name}'")`
+  - Provide clear and informative error messages using f-strings
+  - E.g., `raise TypeError(f"Expected type int, but got {type(var).__name__}")`
+- Use complete `if-elif-else` statements instead of a sequence of `if`
+  statements
+  - Ensure logical flow and clarity in conditional statements
+  - E.g.,
+    ```python
+    if condition1:
+      # Execute block for condition1.
+    elif condition2:
+      # Execute block for condition2.
+    else:
+      # Execute block if none of the above conditions are met or raise an
+      # exception.
+    ```
+- Compile a regex expression only if it's called more than once
+  - Optimize performance by compiling regex expressions that are reused
+  - E.g.,
+    ```
+    import re
+    pattern = re.compile(r'\d+')
+    if pattern.match(string):
+      # Do something.
+    ```
+- Use `if var is None` to check if `var` is `None` instead of `if not var`
+- Use `isinstance()` instead of `type()` to check the type of an object
 
 ### Code design
 
 - Follow DRY principle (Don't Repeat Yourself):
-  - Factor out common code in a separate function / method
-  - Do not copy-and-paste parameter descriptions, instead write them in only one
-    function and put a reference to it in the other functions where the same
+  - Factor out common code in a separate function/method
+  - Do not copy-and-paste parameter descriptions; instead, write them in only
+    one function and put a reference to it in the other functions where the same
     parameters are used
-  - E.g., "See `func_name()` for the param description"
-- Keep public functions in an order representing the typical flow of use, e.g.,
+    - E.g., "See `func_name()` for the param description"
+  - Avoid redundancy in code logic and comments
+- Keep public functions in an order representing the typical flow of use:
   - Common functions, used by all other functions
+    - E.g., utility functions like `log_message()`, `validate_input()`
   - Read data
+    - E.g., `read_csv()`, `load_json()`
   - Process data
+    - E.g., `clean_data()`, `transform_data()`
   - Save data
+    - E.g., `write_csv()`, `export_json()`
+- Ensure that function names are descriptive and convey their purpose
+- Use comments to explain complex logic or calculations
+- Implement error handling to manage exceptions and edge cases
+- Use inheritance or composition to reuse code in object-oriented programming
 
 ### Type annotations
 
-- For type hints use `List[<type of list elements>]` instead of `list`,
-  `Dict[<type of keys>, <type of values>]` instead of `dict`,
-  `Tuple[<type of tuple elements>]` instead of `tuple`, etc.
+- For type hints use use `List`, `Dict`, and `Tuple` to provide more explicit type information
+  and help with static type checking
+  - E.g., `List[int]` instead of `list`
+  - E.g., `List[str]` instead of `list`
+  - Use `Dict` instead of `dict`
+    - E.g., `Dict[str, int]` instead of `dict`
+    - E.g., `Dict[int, List[str]]` instead of `dict`
+  - Use `Tuple` instead of `tuple`
+    - E.g., `Tuple[int, str]` instead of `tuple`
+    - E.g., `Tuple[str, List[int]]` instead of `tuple`
 
 ### Functions
 
-- Avoid pure functions without side effects, i.e. for the same input arguments
-  the returned value should not change (in contrast to, e.g., functions that rely
-  upon global state)
+- Avoid pure functions without side effects, i.e., for the same input arguments,
+  the returned value should not change (in contrast to functions that
+  rely upon external state)
 - Functions should not modify the function inputs
   - E.g., if a function `f()` accepts a dataframe `df` as its argument, then
     `f()` will not modify `df` but make a copy and work on it
-- The preferred order of function parameters is:
+  - This ensures that the original data remains unchanged and can be reused
+- The preferred order of parameters in a function declaration is:
   - Input parameters
   - Output parameters
   - In-out parameters
   - Default parameters
+  - This order helps in maintaining clarity and consistency in function
+    definitions
 - Default parameters should be used sparingly and only for parameters that 99%
   of the time are constant
 - All the default parameters should be keyword-only
   - They should be separated from the other parameters by `*`
+  - This ensures that default parameters are always explicitly specified by
+    name, improving readability
 - Do not use mutable objects (such as lists, maps, objects) as default value for
-  functions, instead pass `None` and then initialize the default parameter inside
-  the function
+  functions; instead, pass `None` and then initialize the default parameter
+  inside the function
+  - E.g., instead of using a list as a default parameter, use `None` and
+    initialize the list inside the function:
+    ```
+    def add_item(item: str, *, items: Optional[List[str]]) -> List[str]:
+      if items is None:
+        items = []
+      items.append(item)
+      return items
+    ```
+
 - Use a default value of `None` when a function needs to be wrapped and the
   default parameter needs to be propagated
-- Do not use use a boolean parameter as a switch controlling some function
-  behavior, instead use a string parameter `mode`, which is allowed to take a
-  small well-defined set of values
+- Do not use a boolean parameter as a switch controlling some function behavior;
+  instead, use a string parameter `mode`, which is allowed to take a small
+  well-defined set of values
+  - E.g., `def process_data(mode='fast'):` where `mode` can be `'fast'`,
+    `'slow'`, etc
 - For functions dealing with dataframes, avoid hard-wired column name
-  dependencies, instead allow the caller to pass the column name to the function
-  as a parameter
+  dependencies; instead, allow the caller to pass the column name to the
+  function as a parameter
+  - E.g., `def calculate_average(df: pd.DataFrame, column_name: str):`
 - Do not put computations of the output in the `return` line
-  - Instead compute the output first, assign it to a variable and then return
+  - Instead, compute the output first, assign it to a variable, and then return
     this variable
-- A function should have a single exit point, i.e., one single line with `return`
+  - E.g.,
+    ```
+    result = compute_value()
+    return result
+    ```
+- A function should have a single exit point, i.e., one single line with
+  `return`
 - A function should ideally return objects of only one type (or `None`)
 - When calling a function, assign all the input parameter values to variables on
   separate lines and then pass these variables to the function
-- Explicitly bind default parameters, i.e. specify the parameter name when
+  - E.g.,
+    ```
+    param1 = value1
+    param2 = value2
+    result = my_function(param1, param2)
+    ```
+- Explicitly bind default parameters, i.e., specify the parameter name when
   calling a function, and do not bind non-default parameters
   - E.g., call `func()` like `func(param1, param2, param3=param3)` if `param3`
     is the only parameter with a default value
@@ -180,18 +278,25 @@
 
 ### Unit tests
 
-- A test class should test only one function or class
-- A test method should only test a single case
+- A test class should test only one function or class to help understanding test
+  failures
+- A test method should only test a single case to ensures clarity and precision
+  in testing
   - E.g., "for these inputs the function responds with this output"
 - Adhere to the following conventions for naming:
   - Class `TestFooBar` tests the class `FooBar` and its methods
-    `TestFooBar.test_method_a`, `TestFooBar.test_method_b` test the methods
-    `FooBar.method_a` and `FooBar.method_b`
+    - `TestFooBar.test_method_a`, `TestFooBar.test_method_b` test the methods
+      `FooBar.method_a` and `FooBar.method_b`
   - Class `Test_foo_bar` tests the function `foo_bar()`
+    - E.g., `Test_foo_bar.test_valid_input`, `Test_foo_bar.test_invalid_input`
+      for different cases / inputs
   - `Test_foo_bar.test1`, `Test_foo_bar.test2` for different cases / inputs
 - A unit test should be independent of all the other unit tests
+  - Ensures that tests do not affect each other and can be run in isolation
 - If there is a lot of common code across individual test methods, it should be
   factored out in a helper method within the test class
+  - Reduces redundancy and improves maintainability of the test code
+  - E.g., a `setUp` method to initialize common test data or configurations
 - If some code needs to be repeated at the beginning / end of each test method,
   it should be moved to `set_up_test()` / `tear_down_test()` methods and the
   following idiom should be added to the test class:
@@ -206,162 +311,112 @@
   ```
 - Each test method should have a docstring describing briefly what case is being
   tested
+  - E.g., "Tests the addition of two positive integers."
+  - E.g., "Verifies that an exception is raised when dividing by zero."
 - Test methods should have type hint annotations
+  - E.g., `def test_addition(self) -> None:`
 - Do not create temporary files for tests (e.g., with `tempfile`) but use
   `hunittest.TestCase.get_scratch_space()` instead
-- If the input to the test is a large piece of code / text, it should be moved
-  to a separate file in the `input` dir corresponding to the test
+- If the input to the test is a large piece of code/text, it should be moved to
+  a separate file in the `input` dir corresponding to the test
   - E.g., `outcomes/<TestClassName.test_method_name>/input` and read through the
     function `self.get_input_dir()` of `TestCase`
+  - This approach allows for easy updates and modifications to test inputs
+    without altering the test code itself
 - Do not use pickle files for test inputs
+  - Use JSON, YAML, CSV files for test inputs as they are more secure and
+    human-readable
 - In every test method, separate logically distinct code chunks with comments
   - E.g.,
     ```
-    # Prepare inputs.
-    ...
-    # Run test.
-    ...
-    # Check outputs.
+    # Prepare inputs
+    input_data = [1, 2, 3]
+    # Run test
+    result = my_function(input_data)
+    # Check outputs
+    self.assert_equal(result, expected_output)
     ```
 - Do not use `hdbg.dassert` in testing but use `self.assert*()` methods
 - Prefer `self.assert_equal()` instead of `self.assertEqual()`
+  - Always use actual and then expected value
+  - E.g., `self.assert_equal(actual, expected)`
 - Use strings to compare actual and expected outputs instead of data structures
-  - E.g., use a string representation of a list instead of a list
+  - E.g., use `self.assert_equal(str(actual_list), str(expected_list))`
 - Use `self.check_string()` to compare the actual output to a golden output in
   the `outcomes` dir, when the output is large or needs to be modified easily
+  - E.g., `self.check_string(actual_output)`
 - When testing for an assertion, check that you are getting the exact exception
   that is expected
-
-### Misc
-
-- Encode the assumptions made in the code using assertions and report as much
-  information as possible in an assertion to make it easy to debug the output
-  - E.g., `hdbg.dassert_lt(start_date, end_date)`
-- Do not use f-strings in `hdbg.dassert()`
-- Use f-strings in exceptions
-  - E.g., `raise ValueError(f"Invalid server_name='{server_name}'")`)
-- Use complete `if-elif-else` statements instead of a sequence of `if`
-  statements
-- Compile a regex expression only if it's called more than once
-- Use `if var is (not) None` to check if `var` is (not) `None` (instead of
-  `if (not) var`)
-- Use `isinstance()` instead of `type()` to check the type of an object
+  ```
+  # Make sure function raises an error.
+  with self.assertRaises(AssertionError) as cm:
+      config_list.configs = configs
+  act = str(cm.exception)
+  self.check_string(act, fuzzy_match=True)
+  ```
 
 ## Notebooks
 
 ### General
 
-- The name of a notebook should generally be the same as the branch name, unless
-  it's a Master notebook
-- All notebooks should have a table of contents
-  - Linter automatically adds and updates the table of contents
-- At the top of the notebook there should be a Markdown cell `# Description`,
-  followed by a Markdown cell with an explanation of the notebook's goal, what
-  it does, etc.
-- Immediately below the description, there should be a Markdown cell
-  `# Imports`, followed by a code cell importing all the needed libraries
-  - It should include autoreload modules to keep the local code updated in real
-    time:
-    ```python
-    %load_ext autoreload
-    %autoreload 2
-    ```
-  - All the imports should be located in a single cell
-- Below the cell with the imports, there should be a code cell that configures
-  the logging and notebook style, and reports execution info:
-  ```python
-  # Configure logger.
-  hdbg.init_logger(verbosity=logging.INFO)
-  _LOG = logging.getLogger(__name__)
-  # Print system signature.
-  _LOG.info("%s", henv.get_system_signature()[0])
-  # Configure the notebook style.
-  hprint.config_notebook()
-  ```
-- The rest of the notebook should be clearly organized using Markdown cells with
-  headings of different levels
 - The code in the notebook should adhere to the same style and formatting
   guidelines as the code in libraries and scripts
 - Common or general-purpose code should be factored out in functions and moved
   from the notebook to a Python library, which would then be imported in the
   notebook
-- There should be no errors in the executed notebook
-- Ideally, there should be no warnings in the executed notebook
-- Notebook cells should be idempotent, i.e. able of being executed multiple
-  times without changing their output value
-- If the data is transformed, display a few lines to show the outcome (e.g.,
-  `df.head(3)`)
-- If any data is discarded / filtered, display the percentage of the rows
-  dropped
+  - E.g., create a `utils.py` file for helper functions
+- Notebook cells should be idempotent, i.e., able to be executed multiple times
+  without changing their output value
+  - Avoid side effects such as modifying global variables or external states
+  - Ensure that cell execution order does not affect the results
+- If the data is transformed, display a few lines to show the outcome
+  - E.g., `df.head(3)` to preview the first three rows of a DataFrame
+- If any data is discarded/filtered, display the percentage of the rows dropped
+  - E.g.,
+    `print(f"Percentage of rows dropped: {dropped_rows / total_rows * 100:.2f}%")`
+  - Provides insight into data cleaning and filtering processes
 - Progress bars should be added where applicable
-
-### Jupytext
-
-- Every notebook should be accompanied by a Python file paired with the notebook
-  by `jupytext`, containing a synchronized copy of the notebook code
-- The name of the notebook and the name of its paired Python file should be the
-  same, except the extension
-- The code in the notebook and in its paired Python file should always be in
-  sync
-- If the notebook is updated or deleted, then its paired Python file should also
-  by updated or deleted, and vice versa
-- Linter should be used on both the notebook and its paired Python file
+  - Use libraries like `tqdm` to show progress in loops or data processing tasks
 
 ### Plotting
 
-- Each plot should have a descriptive title
+- Each plot should have a descriptive title to understand the context of the plot
+  at a glance
+  - E.g., "Monthly Sales Data for 2023" instead of just "Sales Data"
 - Each plot should have axes labels
-- If there are several lines on the plot, it should have a legend
+  - E.g., label the x-axis as "Months" and the y-axis as "Revenue in USD"
+- If there are several multiple data series on the same plot, it should have a legend
 - In a plotting function, `plt.show()` should not be added at the end
-- In a plotting function, the `ax` parameter should be exposed
+  - This allows for further customization or saving of the plot before
+    displaying
+  - E.g., users might want to save the plot using `plt.savefig('plot.png')`
+    before showing it
+- In a plotting function, the `ax` parameter should be exposed to allow users to
+  customize the plot further
+  - E.g., users can modify the axes limits or add additional annotations
 - If a function plots multiple plots, they should be generally plotted in a
   single figure
+  - E.g., use `plt.subplots()` to create a grid of plots within a single figure
 
 ## Markdowns
 
-- Names of documentation files should follow the format
-  `docs/{component}/{audience}.{topic}.{diataxis_tag}.md`
-  - E.g., `docs/documentation_meta/all.diataxis.explanation.md`
-- All Markdown files should have a table of contents
-  - Linter automatically adds and updates the table of contents
-- There should be one and only one level 1 heading (with one `#`) in a Markdown
-- The level 1 heading should be located above the table of contents
-- Headings should not be boldfaced
-- Headings should not be overcapitalized
-  - E.g., `Data schema` instead of `Data Schema`
-- Text should be reflowed to the maximum of 80 columns per line
-- Boldface should be used sparingly
+- Boldface and italics should be used sparingly
 - The use of bullet point lists is encouraged
   - For the items, `-` should be used instead of `*` or circles
-- Items in bullet point lists should not end with a period
-- Wrap file paths, names of variables, functions and classes in backticks
-- Use `>` to indicate a command line (e.g., `> git push` or `docker> pytest`)
-- Fenced code blocks should always be accompanied by language markers (e.g.
-  `bash`, `python`)
-- Indent fenced code blocks one level more than the previous line
-- Avoid to use screenshots whenever possible and instead copy-and-paste text
-  with the right highlighting
+  - Items in bullet point lists should not end with a period
+- Wrap file paths, names of variables, functions, and classes in backticks
+  - E.g., `file_path`, `variable_name`, `function_name()`, `ClassName`
+- Use `>` to indicate a command line
+  - E.g., `> git push` or `docker> pytest`
+- Avoid using screenshots whenever possible and instead copy-and-paste text with
+  the right highlighting
+  - E.g., instead of a screenshot of a terminal command, provide the command
+    text: `> ls -la`
 - Use active voice most of the time and use passive voice sparingly
+  - E.g., "The user updates the file" instead of "The file is updated by the
+    user"
 - Be efficient
   - Do not explain things in a repetitive way
   - Rewrite long-winded AI-generated texts in a concise way
-
-## File system structure
-
-- If a new directory with code is added, it should contain an empty
-  `__init__.py` file
-- Notebooks should generally be located under the `notebooks` dir
-- Unit tests should be located under the `test` dir
-  - Golden outcomes for tests should be located under the `test/outcomes` dir
-- Documentation files should generally be located under the `docs` dir
-
-## Spelling
-
-- Capitalize the first letter of `Python`
-- Spell `Linter` with the first letter in upper case and do not use an article
-  (`Linter` instead of `the Linter`)
-- Capitalize `JSON`, `CSV`, `DB` and other abbreviations
-- Spell commands in lower case and programs with the first letter in upper case
-  (e.g., `git` as a command, `Git` as a program)
-- Represent intervals with `[a, b), (a, b], (a, b), [a, b]`, not `[a, b[`
-- Write `hyperparameter` without a hyphen
+  - E.g., instead of "The process of updating the software can be done by
+    following these steps," use "Update the software by following these steps"
