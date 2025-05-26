@@ -1,8 +1,6 @@
 # Tool Code Breakdown
 <!-- toc -->
 
-- [Tool Dockerized Components Guide](#tool-dockerized-components-guide)
-
   - [1 · Dockerized Graphviz](#1--dockerized-graphviz)
 
   - [2 · Dockerized LaTeX](#2--dockerized-latex)
