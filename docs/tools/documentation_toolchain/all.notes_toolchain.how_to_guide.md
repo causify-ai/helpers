@@ -45,8 +45,33 @@
     + [Flags](#flags-5)
   * [9 · TikZ to Bitmap — `dockerized_tikz_to_bitmap.py`](#9-%C2%B7-tikz-to-bitmap--dockerized_tikz_to_bitmappy)
     + [Examples](#examples-2)
-  * [10 · MacOS screenshot helper — `save_screenshot.py`](#10-%C2%B7-macos-screenshot-helper--save_screenshotpy)
+  * [10 · Graphviz Renderer — `dockerized_graphviz.py`](#10-%C2%B7-graphviz-renderer--dockerized_graphvizpy)
     + [What it does](#what-it-does-2)
+    + [Most‑used flags](#most%E2%80%91used-flags-1)
+    + [Quick‑start recipes](#quick%E2%80%91start-recipes-1)
+    + [CLI flags cheat‑sheet](#cli-flags-cheat%E2%80%91sheet-1)
+  * [11 · LaTeX Renderer — `dockerized_latex.py`](#11-%C2%B7-latex-renderer--dockerized_latexpy)
+    + [What it does](#what-it-does-3)
+    + [Most‑used flags](#most%E2%80%91used-flags-2)
+    + [Quick‑start recipes](#quick%E2%80%91start-recipes-2)
+    + [CLI flags cheat‑sheet](#cli-flags-cheat%E2%80%91sheet-2)
+  * [12 · Mermaid Renderer — `dockerized_mermaid.py`](#12-%C2%B7-mermaid-renderer--dockerized_mermaidpy)
+    + [What it does](#what-it-does-4)
+    + [Most‑used flags](#most%E2%80%91used-flags-3)
+    + [Quick‑start recipes](#quick%E2%80%91start-recipes-3)
+    + [CLI flags cheat‑sheet](#cli-flags-cheat%E2%80%91sheet-3)
+  * [13 · Pandoc Renderer — `dockerized_pandoc.py`](#13-%C2%B7-pandoc-renderer--dockerized_pandocpy)
+    + [What it does](#what-it-does-5)
+    + [Most‑used flags](#most%E2%80%91used-flags-4)
+    + [Quick‑start recipes](#quick%E2%80%91start-recipes-4)
+    + [CLI flags cheat‑sheet](#cli-flags-cheat%E2%80%91sheet-4)
+  * [14 · Prettier Formatter — `dockerized_prettier.py`](#14-%C2%B7-prettier-formatter--dockerized_prettierpy)
+    + [What it does](#what-it-does-6)
+    + [Most‑used flags](#most%E2%80%91used-flags-5)
+    + [Quick‑start recipes](#quick%E2%80%91start-recipes-5)
+    + [CLI flags cheat‑sheet](#cli-flags-cheat%E2%80%91sheet-5)
+  * [15 · MacOS screenshot helper — `save_screenshot.py`](#15-%C2%B7-macos-screenshot-helper--save_screenshotpy)
+    + [What it does](#what-it-does-7)
     + [Flags](#flags-6)
 
 <!-- tocstop -->
@@ -376,7 +401,7 @@ transform_notes.py -a md_format -i notes/lecture.txt --in_place
 # Generate a 2‑level TOC to STDOUT
 transform_notes.py -a toc -i notes/lecture.md -o - -l 2
 
-# Tidy ChatGPT‑generated Markdown (visual mode in Vim) 
+# Tidy ChatGPT‑generated Markdown (visual mode in Vim)
 :'<,'>!transform_notes.py -i - -o - -a md_fix_chatgpt_output
 ```
 
@@ -439,7 +464,225 @@ _Any extra tokens after `--` are passed verbatim to `convert`._
 
 ---
 
-## 10 · MacOS screenshot helper — `save_screenshot.py`
+## 10 · Graphviz Renderer — `dockerized_graphviz.py`
+
+### What it does
+
+Converts a Graphviz `.dot` file into a `.png` image using a Dockerized
+container.
+
+> ```bash
+> graphviz_wrapper.py --input input.dot --output output.png
+> ```
+
+This script serves as a thin wrapper around Dockerized Graphviz for consistent
+rendering across systems.
+
+### Most‑used flags
+
+- `--input`: path to the `.dot` file
+- `--output`: destination `.png` image file
+- `--dockerized_force_rebuild`: rebuild the container from scratch
+- `--dockerized_use_sudo`: use `sudo` for Docker commands
+
+### Quick‑start recipes
+
+| Goal                  | Command                                                                        |
+| --------------------- | ------------------------------------------------------------------------------ |
+| Convert DOT to PNG    | `graphviz_wrapper.py -i diagram.dot -o diagram.png`                            |
+| Rebuild Docker image  | `graphviz_wrapper.py -i diagram.dot -o diagram.png --dockerized_force_rebuild` |
+| Use `sudo` for Docker | `graphviz_wrapper.py -i diagram.dot -o diagram.png --dockerized_use_sudo`      |
+
+### CLI flags cheat‑sheet
+
+| Flag                         | Purpose                      | Notes         |
+| ---------------------------- | ---------------------------- | ------------- |
+| `-i / --input`               | Path to input `.dot` file    | **required**  |
+| `-o / --output`              | Output path for `.png` image | **required**  |
+| `--dockerized_force_rebuild` | Force Docker image rebuild   | Optional      |
+| `--dockerized_use_sudo`      | Run Docker with `sudo`       | Optional      |
+| `-v / --verbosity`           | Logging verbosity            | Default: INFO |
+
+---
+
+## 11 · LaTeX Renderer — `dockerized_latex.py`
+
+### What it does
+
+Compiles a LaTeX `.tex` file into a PDF using `pdflatex` inside a Docker
+container.  
+Automatically rebuilds the Docker image if needed.
+
+> ```bash
+> latex_wrapper.py --input doc.tex --output doc.pdf
+> ```
+
+Supports optional rerun of LaTeX for proper references or table of contents
+generation.
+
+### Most‑used flags
+
+- `--input`: LaTeX source file to compile
+- `--output`: Output PDF path
+- `--run_latex_again`: Compile the LaTeX file twice
+- `--dockerized_force_rebuild`: Force container rebuild
+- `--dockerized_use_sudo`: Run Docker with `sudo`
+
+### Quick‑start recipes
+
+| Goal                     | Command                                                                   |
+| ------------------------ | ------------------------------------------------------------------------- |
+| Compile `.tex` to `.pdf` | `latex_wrapper.py -i report.tex -o report.pdf`                            |
+| Rebuild Docker image     | `latex_wrapper.py -i report.tex -o report.pdf --dockerized_force_rebuild` |
+| Use `sudo` for Docker    | `latex_wrapper.py -i report.tex -o report.pdf --dockerized_use_sudo`      |
+| Run LaTeX twice          | `latex_wrapper.py -i paper.tex -o paper.pdf --run_latex_again`            |
+
+### CLI flags cheat‑sheet
+
+| Flag                         | Purpose                    | Notes                         |
+| ---------------------------- | -------------------------- | ----------------------------- |
+| `-i / --input`               | Path to input `.tex` file  | **required**                  |
+| `-o / --output`              | Output PDF file path       | **required**                  |
+| `--run_latex_again`          | Run LaTeX a second time    | Optional, useful for TOC/refs |
+| `--dockerized_force_rebuild` | Force Docker image rebuild | Optional                      |
+| `--dockerized_use_sudo`      | Run Docker with `sudo`     | Optional                      |
+| `-v / --verbosity`           | Logging verbosity          | Default: INFO                 |
+
+---
+
+## 12 · Mermaid Renderer — `dockerized_mermaid.py`
+
+### What it does
+
+Renders Mermaid `.mmd` or `.md` diagrams into image files using a Dockerized
+container.
+
+> ```bash
+> mermaid_wrapper.py --input flowchart.mmd --output flowchart.png
+> ```
+
+Automatically sets output to match input name if `--output` is omitted.
+
+### Most‑used flags
+
+- `--input`: Source Mermaid file
+- `--output`: Destination image file (optional)
+- `--dockerized_force_rebuild`: Rebuild Docker image
+- `--dockerized_use_sudo`: Use `sudo` for Docker
+
+### Quick‑start recipes
+
+| Goal                          | Command                                                                       |
+| ----------------------------- | ----------------------------------------------------------------------------- |
+| Render Mermaid diagram        | `mermaid_wrapper.py -i diagram.mmd -o diagram.png`                            |
+| Use input as output (default) | `mermaid_wrapper.py -i diagram.mmd`                                           |
+| Rebuild container             | `mermaid_wrapper.py -i diagram.mmd -o diagram.png --dockerized_force_rebuild` |
+| Use `sudo` for Docker         | `mermaid_wrapper.py -i diagram.mmd -o diagram.png --dockerized_use_sudo`      |
+
+### CLI flags cheat‑sheet
+
+| Flag                         | Purpose                            | Notes                      |
+| ---------------------------- | ---------------------------------- | -------------------------- |
+| `-i / --input`               | Path to input `.mmd` or `.md` file | **required**               |
+| `-o / --output`              | Output image file                  | Defaults to input filename |
+| `--dockerized_force_rebuild` | Force Docker image rebuild         | Optional                   |
+| `--dockerized_use_sudo`      | Run Docker with `sudo`             | Optional                   |
+| `-v / --verbosity`           | Logging verbosity                  | Default: INFO              |
+
+---
+
+## 13 · Pandoc Renderer — `dockerized_pandoc.py`
+
+### What it does
+
+Converts documents using `pandoc` inside a Docker container.  
+Supports output to Beamer slides, PDFs, and more with custom CLI flags.
+
+> ```bash
+> pandoc_wrapper.py --input notes.md --output slides.pdf -- docker_args...
+> ```
+
+Internally builds a Docker container and passes the full `pandoc` command
+string.
+
+### Most‑used flags
+
+- `--input`: source file (e.g., `.md`, `.txt`)
+- `--output`: output file (e.g., `.pdf`, `.html`)
+- `--container_type`: use `pandoc_only`, `pandoc_latex`, or `pandoc_texlive`
+- `--dockerized_force_rebuild`: rebuild image from scratch
+- `--dockerized_use_sudo`: run Docker with `sudo`
+
+### Quick‑start recipes
+
+| Goal                     | Command                                                                                              |
+| ------------------------ | ---------------------------------------------------------------------------------------------------- |
+| Convert Markdown to PDF  | `pandoc_wrapper.py --input notes.md --output notes.pdf --container_type pandoc_latex`                |
+| Convert to Beamer slides | `pandoc_wrapper.py --input slides.md --output slides.pdf --container_type pandoc_latex -- -t beamer` |
+| Rebuild Docker image     | `pandoc_wrapper.py --input notes.md --output notes.pdf --dockerized_force_rebuild`                   |
+| Run with sudo            | `pandoc_wrapper.py --input notes.md --output notes.pdf --dockerized_use_sudo`                        |
+
+### CLI flags cheat‑sheet
+
+| Flag                         | Purpose                                                | Notes                  |
+| ---------------------------- | ------------------------------------------------------ | ---------------------- |
+| `--input`                    | Input source file for Pandoc                           | **required**           |
+| `--output`                   | Output file path                                       | Defaults to input name |
+| `--data_dir`                 | Additional resource/data path                          | Optional               |
+| `--container_type`           | Docker image type: `pandoc_only`, `pandoc_latex`, etc. | Default: `pandoc_only` |
+| `--dockerized_force_rebuild` | Force rebuild of Docker image                          | Optional               |
+| `--dockerized_use_sudo`      | Use `sudo` for Docker execution                        | Optional               |
+| `-v / --verbosity`           | Logging level                                          | Default: INFO          |
+
+---
+
+## 14 · Prettier Formatter — `dockerized_prettier.py`
+
+### What it does
+
+Formats text files (`.md`, `.txt`, `.tex`, etc.) using Prettier within a Docker
+container.  
+Avoids environment-specific issues and ensures consistent formatting.
+
+> ```bash
+> dockerized_prettier.py --parser markdown --write test.md
+> ```
+
+Supports full Prettier CLI flexibility via passthrough of additional options.
+
+### Most‑used flags
+
+- `--parser`: Prettier parser (e.g. `markdown`)
+- `--write`: Apply formatting in-place
+- `--tab-width`: Number of spaces per indentation level
+- `--dockerized_force_rebuild`: Force rebuild of Docker container
+- `--dockerized_use_sudo`: Use `sudo` for Docker commands
+
+### Quick‑start recipes
+
+| Goal                              | Command                                                                                      |
+| --------------------------------- | -------------------------------------------------------------------------------------------- |
+| Format a Markdown file            | `dockerized_prettier.py --parser markdown --write test.md`                                   |
+| Use `sudo` for Docker execution   | `dockerized_prettier.py --use_sudo --parser markdown --write test.md`                        |
+| Rebuild the Docker image          | `dockerized_prettier.py --dockerized_force_rebuild --parser markdown --write test.md`        |
+| Change indentation and wrap style | `dockerized_prettier.py --parser markdown --tab-width 4 --prose-wrap always --write test.md` |
+
+### CLI flags cheat‑sheet
+
+| Flag                         | Purpose                                               | Notes                                 |
+| ---------------------------- | ----------------------------------------------------- | ------------------------------------- |
+| `-i / --input`               | Input file path                                       | Required                              |
+| `-o / --output`              | Output file path                                      | Optional (defaults to input)          |
+| `--parser`                   | Prettier parser type (e.g. `markdown`, `babel`, etc.) | Required via passthrough              |
+| `--write`                    | Format and overwrite input file                       | Common usage flag                     |
+| `--tab-width`                | Number of spaces per tab                              | Optional, defaults to Prettier config |
+| `--dockerized_force_rebuild` | Force Docker image rebuild                            | Optional                              |
+| `--dockerized_use_sudo`      | Use `sudo` for Docker commands                        | Optional                              |
+| `-v / --verbosity`           | Logging level                                         | Default: INFO                         |
+
+---
+
+## 15 · MacOS screenshot helper — `save_screenshot.py`
 
 ### What it does
 
