@@ -4,22 +4,30 @@
 
 ### Naming
 
-- Name executable files (scripts) and library functions using verbs (e.g.,
-  `download.py`, `download_data()`)
-- Name classes and non-executable files using nouns (e.g., `Downloader()`,
-  `downloader.py`)
-- Name decorators with an adjective or a past tense verb (e.g., `timed`)
-- Variable and function names should not reference implementation details,
+- Name functions using verbs and verbs/actions
+  - E.g., `download_data()`
+- Name classes using nouns
+  - E.g., `Downloader()`
+- Name decorators with an adjective or a past tense verb
+  - E.g., `timed`
+- Variable and function names should not reference implementation details, and
   things that can change or details that are not important
-  - E.g., the name of a variable should not include its type, e.g. use
-    `embeddings` instead of `embeddings_list`
-- Abbreviations in the names should be avoided, except for the following: `df`
-  (dataframe), `srs` (series), `idx` (index), `id` (identifier), `val` (value),
-  `var` (variable), `args` (arguments), `kwargs` (keyword arguments), `col`
-  (column)
+  - E.g., the name of a variable should not include its type
+    - E.g. use `embeddings` instead of `embeddings_list`
+- Abbreviations in the names should be avoided, except for the following
+  - `df` for dataframe
+  - `srs` for series
+  - `idx` for index
+  - `id` for identifier
+  - `val` for value
+  - `var` for variable
+  - `args` for arguments and `kwargs` for keyword arguments
+  - `col` for columns and `row` for rows
 - Do not repeat in a function name what is already included in the library name
   (avoid "code stutter")
 - Use `dir` and not `directory` or `folder`
+- Use `file_name` and not `filename`
+- Use `dir_name` and not `dirname`
 - Use `timestamp` and not `ts` or `datetime`
 - To refer to the name of a column, use `..._col` and not `..._col_name` or
   `..._column`
@@ -183,33 +191,34 @@
 - If the input to the test is a large piece of code / text, it should be moved
   to a separate file in the `input` dir corresponding to the test
   - E.g., `outcomes/<TestClassName.test_method_name>/input` and read through the
-    `self.get_input
+    function `self.get_input_dir()` of `TestCase`
 - Do not use pickle files for test inputs
 - In every test method, separate logically distinct code chunks with comments
-  `# Prepare inputs.`, `# Run.` and `# Check.`
-- Specify all the input parameter values on separate lines before passing them
-  to the function that is being tested
-- Do not use `hdbg.dassert` in testing
-- Use `self.assert_equal()` instead of `self.assertEqual()`
+  - E.g.,
+    ```
+    # Prepare inputs.
+    ...
+    # Run test.
+    ...
+    # Check outputs.
+    ```
+- Do not use `hdbg.dassert` in testing but use `self.assert*()` methods
+- Prefer `self.assert_equal()` instead of `self.assertEqual()`
 - Use strings to compare actual and expected outputs instead of data structures
-  (e.g., a string representation of a list instead of a list)
+  - E.g., use a string representation of a list instead of a list
 - Use `self.check_string()` to compare the actual output to a golden output in
-  the `outcomes` dir
+  the `outcomes` dir, when the output is large or needs to be modified easily
 - When testing for an assertion, check that you are getting the exact exception
   that is expected
-- If a unit test is renamed or removed in a PR, the corresponding files in the
-  `outcomes` dir should also be renamed or removed
 
 ### Misc
 
-- If a PR includes renaming a file / variable / parameter / function / class /
-  etc., then all the instances and references to it throughout the codebase
-  should be updated
-- Encode the assumptions made in the code using assertions, e.g.,
-  `hdbg.dassert_lt(start_date, end_date)`
-  - Report as much information as possible in an assertion
-- Use f-strings in exceptions (e.g.,
-  `raise ValueError(f"Invalid server_name='{server_name}'")`)
+- Encode the assumptions made in the code using assertions and report as much
+  information as possible in an assertion to make it easy to debug the output
+  - E.g., `hdbg.dassert_lt(start_date, end_date)`
+- Do not use f-strings in `hdbg.dassert()`
+- Use f-strings in exceptions
+  - E.g., `raise ValueError(f"Invalid server_name='{server_name}'")`)
 - Use complete `if-elif-else` statements instead of a sequence of `if`
   statements
 - Compile a regex expression only if it's called more than once

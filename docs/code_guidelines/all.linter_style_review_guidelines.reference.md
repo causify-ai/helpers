@@ -4,6 +4,11 @@
 
 ### Naming
 
+- Name executable Python scripts using verbs and actions
+  - E.g., `download.py` and not `downloader.py`
+- Name non-executable files using nouns 
+  - E.g., `downloader.py`
+
 ### Docstrings
 
 - All functions and methods must have a docstring
@@ -88,3 +93,10 @@
   if __name__ == "__main__":
       unittest.main()
   ```
+- If a unit test is renamed or removed in a PR, the corresponding files in the
+  `outcomes` dir should also be renamed or removed
+
+### Misc
+- If a PR includes renaming a file, variable, parameter, function, class, etc.,
+  then all the instances and references to it throughout the codebase should be
+  updated
