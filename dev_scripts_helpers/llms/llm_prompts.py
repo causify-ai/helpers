@@ -504,53 +504,6 @@ def code_fix_code() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
-# #############################################################################
-# Review.
-# #############################################################################
-
-
-def code_review_correctness() -> _PROMPT_OUT:
-    """
-    Review the code for correctness.
-    """
-    system = _CODING_CONTEXT
-    system += r"""
-    You will review the code and make sure it is:
-    - correct
-    - clean and readable
-    - efficient
-    - robust
-    - maintainable
-
-    Do not print any comment, besides for each point of improvement, you will
-    print the line number and the proposed improvement in the following style:
-    <line_number>: <short description of the proposed improvement>
-    """
-    pre_transforms = {"add_line_numbers"}
-    post_transforms = {"convert_to_vim_cfile"}
-    post_container_transforms = ["convert_file_names"]
-    return system, pre_transforms, post_transforms, post_container_transforms
-
-
-def code_review_refactoring() -> _PROMPT_OUT:
-    """
-    Review the code for refactoring opportunities.
-    """
-    system = _CODING_CONTEXT
-    system += r"""
-    You will review the code and look for opportunities to refactor the code,
-    by removing redundancy and copy-paste code.
-
-    Do not print any comment, besides for each point of improvement, you will
-    print the line number and the proposed improvement in the following style:
-    <line_number>: <short description of the proposed improvement>
-    """
-    pre_transforms = {"add_line_numbers"}
-    post_transforms = {"convert_to_vim_cfile"}
-    post_container_transforms = ["convert_file_names"]
-    return system, pre_transforms, post_transforms, post_container_transforms
-
-
 # Transform code.
 
 
@@ -646,6 +599,87 @@ def code_write_1_unit_test() -> _PROMPT_OUT:
     post_transforms = {"remove_code_delimiters"}
     post_container_transforms: List[str] = []
     return system, pre_transforms, post_transforms, post_container_transforms
+
+
+# #############################################################################
+# review.
+# #############################################################################
+
+
+def review() -> _PROMPT_OUT:
+    """
+    Review the code for refactoring opportunities.
+    """
+    system = _CODING_CONTEXT
+    # Load the reference file.
+    file = "docs/code_guidelines/all.automated_review_guidelines.reference.md"
+    reference_txt = hio.from_file(file)
+    reference_txt = hmarkdo.add_line_numbers(reference_txt)
+    # TODO(gp): Remove table of contents between <!-- toc --> and <!-- tocstop -->.
+    system += rf"""
+    You will review the code and make sure it follows the rules in the reference below:
+
+    {reference_txt}
+
+    - Each rule to follow is referred by <rule_name> and represented as <header-line_number>
+      with the name of the header of the section in the reference file (e..g,
+      'Naming') and the line number (e.g., "Naming-7")
+
+    - Only print the lines that you are sure are in violation of one of the
+      rules <rule_name> in the reference
+    - For each violation of a rule, you will print the line number of the code
+      and the proposed improvement in the following style:
+      <line_number>: <rule_name>: <short description of the proposed improvement>
+    - Do not print any other comment, besides the violation of the rules
+    """
+    pre_transforms = {"add_line_numbers"}
+    post_transforms = {"convert_to_vim_cfile"}
+    post_container_transforms = ["convert_file_names"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def review_correctness() -> _PROMPT_OUT:
+    """
+    Review the code for correctness.
+    """
+    system = _CODING_CONTEXT
+    system += r"""
+    You will review the code and make sure it is:
+    - correct
+    - clean and readable
+    - efficient
+    - robust
+    - maintainable
+
+    Do not print any comment, besides for each point of improvement, you will
+    print the line number and the proposed improvement in the following style:
+    <line_number>: <short description of the proposed improvement>
+    """
+    pre_transforms = {"add_line_numbers"}
+    post_transforms = {"convert_to_vim_cfile"}
+    post_container_transforms = ["convert_file_names"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def review_refactoring() -> _PROMPT_OUT:
+    """
+    Review the code for refactoring opportunities.
+    """
+    system = _CODING_CONTEXT
+    system += r"""
+    You will review the code and look for opportunities to refactor the code,
+    by removing redundancy and copy-paste code.
+
+    Do not print any comment, besides for each point of improvement, you will
+    print the line number and the proposed improvement in the following style:
+    <line_number>: <short description of the proposed improvement>
+    """
+    pre_transforms = {"add_line_numbers"}
+    post_transforms = {"convert_to_vim_cfile"}
+    post_container_transforms = ["convert_file_names"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
 
 
 # #############################################################################

@@ -42,14 +42,14 @@ def _parse() -> argparse.ArgumentParser:
         help="First param is regex, optional second param is dirname",
     )
     parser.add_argument("--only_files", action="store_true", help="Only files")
-    parser.add_argument("--log", action="store_true", help="Only files")
+    parser.add_argument("--log", action="store_true", help="Report logging")
     hparser.add_verbosity_arg(parser)
     return parser
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    if args.log:
+    if (args.log_level == "DEBUG") or args.log:
         hdbg.init_logger(verbosity=args.log_level)
     positional = args.positional
     # Error check.
@@ -67,13 +67,19 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.dassert_path_exists(dir_name)
     name = "*" + positional[0].rstrip("").lstrip("") + "*"
     #
-    cmd = "find %s" % dir_name
+    cmd = []
+    cmd.append(f"find {dir_name}")
+    # Skip certain dirs.
+    cmd.append(r"\( -path './.git' -o -path './.ipynb_checkpoints' -o -path ./.mypy_cache \) -prune -o")
     if args.only_files:
-        cmd += " -type f"
-    cmd += ' -iname "%s"' % name
-    cmd += " | sort"
-    cmd += " | grep -v .ipynb_checkpoints"
-    if args.log:
+        cmd.append("-type f")
+    cmd.append('-iname "%s"' % name)
+    # Guarantee that only non-pruned files are printed.
+    cmd.append('-print')
+    cmd.append('| grep -v __pycache__')
+    cmd.append("| sort")
+    cmd = " ".join(cmd)
+    if (args.log_level == "DEBUG") or args.log:
         print(cmd)
         print()
     os.system(cmd)
