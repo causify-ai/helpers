@@ -67,9 +67,7 @@ def _run_dockerized_llm_review(
 
     # Install pip packages.
     RUN pip install --upgrade pip
-    RUN pip install --no-cache-dir PyYAML
-
-    RUN pip install --no-cache-dir openai
+    RUN pip install --no-cache-dir PyYAML pandas requests openai
     """
     container_image = hdocker.build_container_image(
         container_image,
@@ -124,7 +122,7 @@ def _run_dockerized_llm_review(
         reviewer_log,
         caller_mount_path,
         callee_mount_path,
-        check_if_exists=True,
+        check_if_exists=False,
         is_input=True,
         is_caller_host=is_caller_host,
         use_sibling_container_for_callee=use_sibling_container_for_callee,
