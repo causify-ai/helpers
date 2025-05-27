@@ -641,7 +641,7 @@ def review_llm() -> _PROMPT_OUT:
     Review the code using LLMs.
     """
     # Load the reference file.
-    file = "docs/code_guidelines/all.llm_style_review_guidelines.reference.md"
+    file = hgit.find_file("all.llm_style_review_guidelines.reference.md")
     return _review_from_file(file)
 
 
@@ -650,7 +650,7 @@ def review_linter() -> _PROMPT_OUT:
     Review the code for linter style (still using LLMs).
     """
     # Load the reference file.
-    file = "docs/code_guidelines/all.linter_style_review_guidelines.reference.md"
+    file = hgit.find_file("all.linter_style_review_guidelines.reference.md")
     return _review_from_file(file)
 
 
