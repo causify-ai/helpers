@@ -641,8 +641,11 @@ def review_llm() -> _PROMPT_OUT:
     Review the code using LLMs.
     """
     # Load the reference file.
-    file = hgit.find_file("all.llm_style_review_guidelines.reference.md")
-    return _review_from_file(file)
+    helper_root = hgit.find_helpers_root()
+    file_name = os.path.join(helper_root, "docs/code_guidelines/all.llm_style_review_guidelines.reference.md")
+    # TODO(gp): This doesn't work for unknown reasons.
+    #file_name = hgit.find_file("all.llm_style_review_guidelines.reference.md")
+    return _review_from_file(file_name)
 
 
 def review_linter() -> _PROMPT_OUT:
@@ -650,8 +653,10 @@ def review_linter() -> _PROMPT_OUT:
     Review the code for linter style (still using LLMs).
     """
     # Load the reference file.
-    file = hgit.find_file("all.linter_style_review_guidelines.reference.md")
-    return _review_from_file(file)
+    helper_root = hgit.find_helpers_root()
+    file_name = os.path.join(helper_root, "docs/code_guidelines/all.linter_style_review_guidelines.reference.md")
+    #file_name = hgit.find_file("all.linter_style_review_guidelines.reference.md")
+    return _review_from_file(file_name)
 
 
 def review_correctness() -> _PROMPT_OUT:

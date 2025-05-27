@@ -251,6 +251,7 @@ def find_git_root(path: str = ".") -> str:
 def find_file(file_name: str, *, dir_path: Optional[str] = None) -> str:
     if dir_path is None:
         dir_path = find_git_root()
+    _LOG.debug(hprint.to_str("dir_path"))
     cmd = rf"""
 find {dir_path} \( -path '*/.git' -o -path '*/.mypy_cache' \) -prune -o -name "{file_name}" -print
     """
