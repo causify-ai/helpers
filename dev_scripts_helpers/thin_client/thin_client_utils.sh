@@ -242,7 +242,9 @@ set_path() {
     #
     export PATH=$GIT_ROOT_DIR:$PATH
     # Avoid ./.mypy_cache/3.12/app/dev_scripts_helpers
-    DEV_SCRIPT_HELPER_DIR=$(find . -name dev_scripts_helpers -type d -not -path "*.mypy_cache*")
+    DEV_SCRIPT_HELPER_DIR=$(find ${GIT_ROOT_DIR} -name dev_scripts_helpers -type d -not -path "*.mypy_cache*")
+    echo "whoooo"
+    echo "WHOOO=$DEV_SCRIPT_HELPER_DIR"
     dassert_dir_exists $DEV_SCRIPT_HELPER_DIR
     dtrace "DEV_SCRIPT_HELPER_DIR=$DEV_SCRIPT_HELPER_DIR"
     # Add to the PATH all the first level directory under `dev_scripts`.
