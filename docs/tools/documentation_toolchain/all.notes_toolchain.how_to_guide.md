@@ -1,7 +1,7 @@
 <!-- toc -->
 
 - [Notes Documentation Toolchain](#notes-documentation-toolchain)
-  * [1. Generate slides & PDFs — `notes_to_pdf.py`](#1-generate-slides--pdfs--notes_to_pdfpy)
+  * [1. Generate Slides and PDFs — `notes_to_pdf.py`](#1-generate-slides-and-pdfs--notes_to_pdfpy)
     + [What it does](#what-it-does)
     + [Most used flags](#most-used-flags)
     + [Quickstart recipes](#quickstart-recipes)
@@ -10,7 +10,7 @@
       - [Slides with navigation breadcrumbs](#slides-with-navigation-breadcrumbs)
       - [Focus on a subsection](#focus-on-a-subsection)
       - [Plain PDF article](#plain-pdf-article)
-  * [2. Auto render figures — `render_images.py`](#2-auto-render-figures--render_imagespy)
+  * [2. Auto Render Figures — `render_images.py`](#2-auto-render-figures--render_imagespy)
     + [Supported File types and Code blocks](#supported-file-types-and-code-blocks)
     + [Quick Start Recipes](#quick-start-recipes)
       - [Render to a new file](#render-to-a-new-file)
@@ -18,14 +18,14 @@
       - [HTML preview of already‑rendered images](#html-preview-of-already%E2%80%91rendered-images)
       - [Dry‑run (test parsing / comments only)](#dry%E2%80%91run-test-parsing--comments-only)
     + [Flags](#flags)
-  * [3. Lint & prettify — `lint_notes.py`](#3-lint--prettify--lint_notespy)
+  * [3. Lint and Prettify — `lint_notes.py`](#3-lint-and-prettify--lint_notespy)
     + [Quickstart recipes](#quickstart-recipes-1)
       - [Prettify with Dockerised Prettier and TOC rebuild](#prettify-with-dockerised-prettier-and-toc-rebuild)
       - [Custom print width and selective actions](#custom-print-width-and-selective-actions)
     + [Flags](#flags-1)
-  * [4. Notebook image scraping — `extract_notebook_images.py`](#4-notebook-image-scraping--extract_notebook_imagespy)
+  * [4. Notebook Image Scraping — `extract_notebook_images.py`](#4-notebook-image-scraping--extract_notebook_imagespy)
     + [Flag Options](#flag-options)
-  * [5. LLM powered transforms — `llm_transform.py`](#5-llm-powered-transforms--llm_transformpy)
+  * [5. LLM Powered Transforms — `llm_transform.py`](#5-llm-powered-transforms--llm_transformpy)
     + [Minimum viable command](#minimum-viable-command)
     + [Finding available prompts](#finding-available-prompts)
     + [Flags](#flags-2)
@@ -83,7 +83,7 @@ notes into polished PDFs, slide decks, and more.
 
 ---
 
-## 1. Generate slides & PDFs — `notes_to_pdf.py`
+## 1. Generate Slides and PDFs — `notes_to_pdf.py`
 
 ### What it does
 
@@ -223,7 +223,7 @@ render_images.py -i lesson.md -o /tmp/out.md --dry_run
 
 ---
 
-## 3. Lint & prettify — `lint_notes.py`
+## 3. Lint and Prettify — `lint_notes.py`
 
 A tidying‑up tool for Markdown/LaTeX notes: normalise G‑Doc artifacts, run
 Prettier, fix bullet/heading quirks, refresh the Table of Contents – all from a
@@ -260,7 +260,7 @@ lint_notes.py -i draft.txt -o tidy.txt -w 100 \
 
 ---
 
-## 4. Notebook image scraping — `extract_notebook_images.py`
+## 4. Notebook Image Scraping — `extract_notebook_images.py`
 
 Spins up a docker container and dumps every `png/svg` output cell into a folder.
 You can then publish or reuse the static plots/diagrams already rendered in a
@@ -286,7 +286,7 @@ extract_notebook_images.py \
 
 ---
 
-## 5. LLM powered transforms — `llm_transform.py`
+## 5. LLM Powered Transforms — `llm_transform.py`
 
 Apply a GPT‑style transformation (rewrite, summarise, critique code, convert to
 slides, etc.) to any text file _without_ leaving the terminal / editor.
