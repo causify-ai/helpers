@@ -21,6 +21,7 @@ from typing import List
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hgit as hgit
+import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hserver as hserver
@@ -117,16 +118,6 @@ def _run_dockerized_llm_review(
         is_caller_host=is_caller_host,
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
-    # Get the path to the reviewer log file.
-    reviewer_log_docker = hdocker.convert_caller_to_callee_docker_path(
-        reviewer_log,
-        caller_mount_path,
-        callee_mount_path,
-        check_if_exists=False,
-        is_input=True,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
-    )
     for file_path in file_paths:
         # Get the path to the file to review.
         in_file_path_docker = hdocker.convert_caller_to_callee_docker_path(
@@ -141,7 +132,7 @@ def _run_dockerized_llm_review(
         # Build the command line.
         cmd = f" {script_docker} -i {in_file_path_docker}"
         cmd += f" --guidelines_doc_filename {review_guidelines_doc_docker}"
-        cmd += f" --reviewer_log {reviewer_log_docker}"
+        cmd += f" --reviewer_log {reviewer_log}"
         cmd += f" -v {log_level}"
         docker_cmd = hdocker.get_docker_base_cmd(use_sudo)
         docker_cmd.extend(
@@ -156,6 +147,11 @@ def _run_dockerized_llm_review(
         docker_cmd = " ".join(docker_cmd)
         # Run.
         hsystem.system(docker_cmd)
+    # Output the generated comments to the user.
+    output_from_file = hio.from_file(reviewer_log)
+    print(hprint.frame(reviewer_log, char1="/").rstrip("\n"))
+    print(output_from_file + "\n")
+    print(hprint.line(char="/").rstrip("\n"))
 
 
 def _parse() -> argparse.ArgumentParser:

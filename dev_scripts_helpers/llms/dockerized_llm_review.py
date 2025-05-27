@@ -50,15 +50,28 @@ def _extract_bullet_points(text: str) -> List[str]:
             # Match first-level bullet point item.
             if current_item:
                 # Store the previous item, if any.
-                bullet_points.append(current_item.strip())
+                current_item = re.sub(r"\s{2,}", " ", current_item.strip())
+                bullet_points.append(current_item)
             # Start a new first-level bullet point item.
             current_item = line
         elif re.match(r"^\s+- ", line):
             # Match a sub-item (non first-level bullet point item).
-            # Append sub-item to the current item.
+            # Append a sub-item to the current item.
             current_item += "\n" + line
+        elif len(line.strip()) != 0 and current_item:
+            # Append a line to the current item.
+            current_item += " " + line
+        else:
+            # Store the finished item.
+            current_item = re.sub(r"\s{2,}", " ", current_item.strip())
+            bullet_points.append(current_item)
     if current_item:
-        bullet_points.append(current_item.strip())
+        current_item = re.sub(r"\s{2,}", " ", current_item.strip())
+        bullet_points.append(current_item)
+    # Drop empty items.
+    bullet_points: List[str] = hprint.remove_empty_lines_from_string_list(
+        bullet_points
+    )
     return bullet_points
 
 
@@ -116,10 +129,13 @@ def _review(
         guidelines
     :return: automatically generated review comments for the input file
     """
-    # Load the review guidelines.
-    guidelines = _load_review_guidelines(guidelines_doc_filename)
     # Load the file.
     code = hio.from_file(file_path)
+    code_with_line_numbers = "\n".join(
+        [f"{num + 1} {line}" for num, line in enumerate(code.split("\n"))]
+    )
+    # Load the review guidelines.
+    guidelines = _load_review_guidelines(guidelines_doc_filename)
     # Select relevant guidelines for the file.
     guidelines_for_file: List[str] = []
     if file_path.endswith(".py"):
@@ -156,22 +172,28 @@ def _review(
         guideline_prompt = hprint.dedent(
             f"""
             Check if the following code violates the following guideline:
-            \n<GUIDELINE>\n
+            \n<GUIDELINE>
             {guideline}
-            \n</GUIDELINE>\n\n
-            \n<CODE>\n
-            {code}
-            \n</CODE>\n\n
+            </GUIDELINE>
+            \n<CODE>
+            {code_with_line_numbers}
+            </CODE>
 
             If no violations are found, do not output anything.
             For every line that violates the guideline, output the following:
 
-            '<VIOLATION>{file_path}: line number: {guideline}</VIOLATION>'
+            '<VIOLATION>{file_path}: LINE_NUM: GUIDELINE: QUOTE</VIOLATION>'
 
-            where line number is the number of the line that violates the guideline.
-            - If the whole chunk of code violates the guideline, use the number of the first
-            line in the chunk.
-            - If the violation cannot be associated with a particular line, use line number = 0.
+            where GUIDELINE is the violated guideline, LINE_NUM is the number
+            of the line in the code that violates the guideline, QUOTE is the
+            quote from the code showcasing the violation.
+            - Line numbers are provided at the beginning of each line already
+            - Remove these line numbers when you quote the code with the
+              violation
+            - If a whole chunk of code violates the guideline, use the number of
+              the first line in the chunk and quote the first line in the chunk
+            - If the violation cannot be associated with a particular line, use
+              line number = 0 and put <UNABLE TO QUOTE> as the quote
             """
         )
         response = hopenai.get_completion(
@@ -187,7 +209,7 @@ def _review(
 
 def _process_comments(comments: List[str], log_filepath: str) -> None:
     """
-    Post-process, save and output generated review comments.
+    Post-process and save generated review comments.
 
     :param comments: automatically generated review comments
     :param log_filepath: path to the file to save the comments to
@@ -199,11 +221,6 @@ def _process_comments(comments: List[str], log_filepath: str) -> None:
     comments = hlist.remove_duplicates(comments)
     # Write into a file.
     hio.to_file(log_filepath, "\n".join(comments))
-    # Output to the user.
-    output_from_file = hio.from_file(log_filepath)
-    print(hprint.frame(log_filepath, char1="/").rstrip("\n"))
-    print(output_from_file + "\n")
-    print(hprint.line(char="/").rstrip("\n"))
 
 
 # #############################################################################
