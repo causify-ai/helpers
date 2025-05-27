@@ -48,6 +48,7 @@ import helpers.hsystem as hsystem
 _LOG = logging.getLogger(__name__)
 
 
+# TODO(gp): -> _parser() or _get_parser() everywhere.
 def _parse() -> argparse.ArgumentParser:
     """
     Use the same argparse parser for `dockerized_llm_transform.py`.
@@ -61,7 +62,7 @@ def _parse() -> argparse.ArgumentParser:
         in_default="-",
         in_required=False,
     )
-    hparser.add_prompt_arg(parser)
+    hparser.add_llm_prompt_arg(parser)
     hparser.add_dockerized_script_arg(parser)
     parser.add_argument(
         "-c",
@@ -91,7 +92,7 @@ def _run_dockerized_llm_transform(
     cmd_opts: List[str],
     out_file_path: str,
     *,
-    return_cmd: bool = False,
+    mode: str = "system",
     force_rebuild: bool = False,
     use_sudo: bool = False,
     suppress_output: bool = False,
@@ -184,12 +185,7 @@ def _run_dockerized_llm_transform(
         ]
     )
     docker_cmd = " ".join(docker_cmd)
-    if return_cmd:
-        ret = docker_cmd
-    else:
-        # TODO(gp): Note that `suppress_output=False` seems to hang the call.
-        hsystem.system(docker_cmd, suppress_output=suppress_output)
-        ret = None
+    ret = hdocker.process_docker_cmd(docker_cmd, container_image, dockerfile, mode)
     return ret
 
 
@@ -222,16 +218,16 @@ def _convert_file_names(in_file_name: str, out_file_name: str) -> None:
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hparser.init_logger_for_input_output_transform(args)
+    #
     if args.prompt == "list":
         print("# Available prompt tags:")
         print("\n".join(dshlllpr.get_prompt_tags()))
         return
     # Parse files.
     in_file_name, out_file_name = hparser.parse_input_output_args(args)
+    tag = "llm_transform"
     tmp_in_file_name, tmp_out_file_name = (
-        hparser.adapt_input_output_args_for_dockerized_scripts(
-            in_file_name, "llm_transform"
-        )
+        hparser.adapt_input_output_args_for_dockerized_scripts(in_file_name, tag)
     )
     # TODO(gp): We should just automatically pass-through the options.
     cmd_line_opts = [f"-p {args.prompt}", f"-v {args.log_level}"]
@@ -254,7 +250,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         tmp_in_file_name,
         cmd_line_opts,
         tmp_out_file_name,
-        return_cmd=False,
+        mode="system",
         force_rebuild=args.dockerized_force_rebuild,
         use_sudo=args.dockerized_use_sudo,
         suppress_output=suppress_output,
@@ -273,6 +269,15 @@ def _main(parser: argparse.ArgumentParser) -> None:
             out_txt = hmarkdo.prettier_markdown(out_txt)
         #
         if dshlllpr.to_run("format_markdown", post_container_transforms):
+            # Note that we need to run this outside the `llm_transform`
+            # container to avoid to do docker-in-docker in the `llm_transform`
+            # container (which doesn't support that).
+            out_txt = hmarkdo.md_clean_up(out_txt)
+            out_txt = hmarkdo.format_markdown(out_txt)
+            if args.bold_first_level_bullets:
+                out_txt = hmarkdo.bold_first_level_bullets(out_txt)
+        #
+        if dshlllpr.to_run("format_latex", post_container_transforms):
             # Note that we need to run this outside the `llm_transform`
             # container to avoid to do docker-in-docker in the `llm_transform`
             # container (which doesn't support that).

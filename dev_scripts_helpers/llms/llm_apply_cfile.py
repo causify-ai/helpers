@@ -44,7 +44,7 @@ def _parse() -> argparse.ArgumentParser:
         required=True,
         help="Path to the cfile",
     )
-    hparser.add_prompt_arg(parser)
+    hparser.add_llm_prompt_arg(parser)
     hparser.add_dockerized_script_arg(parser)
     # Use CRITICAL to avoid logging anything.
     hparser.add_verbosity_arg(parser, log_level="CRITICAL")
@@ -55,7 +55,7 @@ def _run_dockerized_llm_apply_cfile(
     in_file_path: str,
     cmd_opts: List[str],
     *,
-    return_cmd: bool = False,
+    mode: str = "system",
     force_rebuild: bool = False,
     use_sudo: bool = False,
     suppress_output: bool = False,
@@ -140,12 +140,7 @@ def _run_dockerized_llm_apply_cfile(
         ]
     )
     docker_cmd = " ".join(docker_cmd)
-    if return_cmd:
-        ret = docker_cmd
-    else:
-        # TODO(gp): Note that `suppress_output=False` seems to hang the call.
-        hsystem.system(docker_cmd, suppress_output=suppress_output)
-        ret = None
+    ret = hdocker.process_docker_cmd(docker_cmd, container_image, dockerfile, mode)
     return ret
 
 
@@ -178,7 +173,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _run_dockerized_llm_apply_cfile(
         args.cfile,
         cmd_line_opts,
-        return_cmd=False,
+        mode="system",
         force_rebuild=args.dockerized_force_rebuild,
         use_sudo=args.dockerized_use_sudo,
         suppress_output=suppress_output,

@@ -1380,8 +1380,8 @@ class _LintMarkdown(_Action):
         #
         cmd = []
         cmd.append(exec_path)
-        cmd.append("-i %s" % file_name)
-        cmd.append("--in_place")
+        cmd.append(f"-i {file_name}")
+        cmd.append(f"-o {file_name}")
         cmd_as_str = " ".join(cmd)
         _, output = _tee(cmd_as_str, executable, abort_on_error=True)
         # Remove cruft.

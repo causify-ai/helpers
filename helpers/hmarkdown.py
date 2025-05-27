@@ -312,7 +312,7 @@ def md_clean_up(txt: str) -> str:
     txt = re.sub(r"→", r"$\\rightarrow$", txt)
     # Remove empty spaces at beginning / end of Latex equations $...$.
     # E.g., $ \text{Student} $ becomes $\text{Student}$
-    #txt = re.sub(r"\$\s+(.*?)\s\$", r"$\1$", txt)
+    # txt = re.sub(r"\$\s+(.*?)\s\$", r"$\1$", txt)
     # Remove dot at the end of each line.
     txt = re.sub(r"\.\s*$", "", txt, flags=re.MULTILINE)
     # Transform `Example: Training a deep` into `E.g., training a deep`,
@@ -769,6 +769,34 @@ def selected_navigation_to_str(
 # #############################################################################
 
 
+def capitalize_first_level_bullets(markdown_text: str) -> str:
+    """
+    Make first-level bullets bold in markdown text.
+
+    :param markdown_text: Input markdown text
+    :return: Formatted markdown text with first-level bullets in bold
+    """
+    # **Subject-Matter Experts (SMEs)** -> **Subject-Matter Experts (SMEs)**
+    # Business Strategists -> Business strategists
+    # Establish a Phased, Collaborative Approach -> Establish a phased, collaborative approach
+    lines = markdown_text.split("\n")
+    result = []
+    for line in lines:
+        # Check if this is a first-level bullet point.
+        if re.match(r"^\s*- ", line):
+            # Check if the line has bold text it in it.
+            if not re.search(r"\*\*", line):
+                # Bold first-level bullets.
+                indentation = len(line) - len(line.lstrip())
+                if indentation == 0:
+                    # First-level bullet, add bold markers.
+                    line = re.sub(r"^(\s*-\s+)(.*)", r"\1**\2**", line)
+            result.append(line)
+        else:
+            result.append(line)
+    return "\n".join(result)
+
+
 # These are the colors that are supported by Latex / markdown, are readable on
 # white, and form an equidistant color palette.
 _ALL_COLORS = [
@@ -791,8 +819,8 @@ def bold_first_level_bullets(markdown_text: str, *, max_length: int = 30) -> str
     Make first-level bullets bold in markdown text.
 
     :param markdown_text: Input markdown text
-    :param max_length: Max length of the bullet text to be bolded. -1 means no
-        limit.
+    :param max_length: Max length of the bullet text to be bolded. -1
+        means no limit.
     :return: Formatted markdown text with first-level bullets in bold
     """
     lines = markdown_text.split("\n")
@@ -907,7 +935,8 @@ def prettier_markdown(txt: str) -> str:
     """
     Format markdown text using `prettier`.
     """
-    txt = dshdlino.prettier_on_str(txt)
+    file_type = "md"
+    txt = dshdlino.prettier_on_str(txt, file_type)
     return txt
 
 
@@ -915,7 +944,8 @@ def format_markdown(txt: str) -> str:
     """
     Format markdown text.
     """
-    txt = dshdlino.prettier_on_str(txt)
+    file_type = "md"
+    txt = dshdlino.prettier_on_str(txt, file_type)
     txt = remove_empty_lines_from_markdown(txt)
     return txt
 
@@ -925,9 +955,15 @@ def format_markdown_slide(txt: str) -> str:
     Format markdown text for a slide.
     """
     # Split the text into title and body.
-
     txt = bold_first_level_bullets(txt)
-    txt = dshdlino.prettier_on_str(txt)
+    file_type = "md"
+    txt = dshdlino.prettier_on_str(txt, file_type)
     txt = format_first_level_bullets(txt)
-    #txt = capitalize_slide_titles(txt)
+    # txt = capitalize_slide_titles(txt)
+    return txt
+
+
+def format_latex(txt: str) -> str:
+    file_type = "tex"
+    txt = dshdlino.prettier_on_str(txt, file_type)
     return txt
