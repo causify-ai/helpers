@@ -151,8 +151,8 @@ Example:
 
 ## Daily Reporting and Handover Process
 
-- The current Buildmeister must send a daily status report to eng@ at the end of
-  each workday
+- The current Buildmeister must send a daily status report to eng@ at the start of
+  each workday with the TODO email
   - The email subject should follow the format:
     `[BM Report] Build Status - YYYY-MM-DD`
   - The email should include:
@@ -179,27 +179,20 @@ Example:
 - Example email format:
 
   ```text
-  Subject: [BM Report] Build Status - 2025-05-08
+  Subject: BuildMeister Status
 
   Build Status Summary:
   - cmamp/master: RED (2 failing tests)
   - helpers/master: GREEN
   - lemonade/master: GREEN
 
-  Details on failing builds:
-  - cmamp/master:
-    - FAILED knowledge_graph/vendors/test/test_utils.py::TestClean::test_clean
-    - FAILED knowledge_graph/vendors/nbsc/test/test_nbsc_utils.py::TestExposeNBSCMetadata::test_expose_nbsc_metadata
-    - Root cause: Data path changed in recent PR #1234
-    - Owner: @username is working on a fix, ETA: EOD today
-    - Issue: https://github.com/cryptokaizen/cmamp/issues/4386
 
-  All breaks are tracked in GitHub issues:
+  Point each break to a git Issue:
   - https://github.com/cryptokaizen/cmamp/issues/4386
 
   Dashboard screenshot attached.
 
-  Additional notes:
+  Additional notes if needed:
   - The failing tests have been occurring since yesterday's deployment
   - We may need to update the data path configuration in our CI environment
   ```
@@ -210,6 +203,8 @@ The Buildmeister dashboard is a tool that provides a quick overview of the
 current state of the results of all GitHub Actions workflows. See
 [run and publish the buildmeister dashboard](/dev_scripts_helpers/update_devops_packages/notebooks/Master_buildmeister_dashboard.ipynb)
 for detailed information.
+
+<img src="figs/all.buildmeister.how_to_guide.md/Buildmeister Image.png"/>
 
 ## Allure Reports Analysis
 
