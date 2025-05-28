@@ -236,7 +236,6 @@ set_path() {
     #
     export PATH=$(pwd):$PATH
     dtrace "GIT_ROOT=$GIT_ROOT"
-    #
     # TODO(gp): Enable this as part of HelpersTask12257.
     # dassert_var_defined "GIT_ROOT"
     #
