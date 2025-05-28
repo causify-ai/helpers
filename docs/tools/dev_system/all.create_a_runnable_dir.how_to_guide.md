@@ -232,15 +232,14 @@ dependencies.
 
 4. Bash into the container
 
-   ````bash
+   ```bash
    > i docker_bash --skip-pull --stage local --version 1.0.0
 
-   Run tests
-   ```bash
+   # Run tests.
    > i run_fast_tests --stage local --version 1.0.0
    > i run_slow_tests --stage local --version 1.0.0
    > i run_superslow_tests --stage local --version 1.0.0
-   ````
+   ```
 
 #### Release the Docker image
 
