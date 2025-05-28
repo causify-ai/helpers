@@ -25,11 +25,18 @@ source $SOURCE_PATH
 # - Activate venv.
 activate_docker_venv
 
+# - Configure environment variables.
+
 # Check that the required environment vars are defined and non-empty.
 dassert_var_defined "CSFY_USE_HELPERS_AS_NESTED_MODULE"
 dassert_var_defined "CSFY_HOST_GIT_ROOT_PATH"
 dassert_var_defined "CSFY_GIT_ROOT_PATH"
 dassert_var_defined "CSFY_HELPERS_ROOT_PATH"
+
+# TODO(gp): The variable `GIT_ROOT` is used by many scripts inside Docker but it
+# should be defined in the environment.
+export GIT_ROOT=$CSFY_GIT_ROOT_PATH
+dassert_dir_exists $GIT_ROOT
 
 # Check that helpers_root path exists.
 dassert_dir_exists $CSFY_HELPERS_ROOT_PATH

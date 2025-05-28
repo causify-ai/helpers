@@ -153,7 +153,10 @@ class Test_convert_to_docker_path1(hunitest.TestCase):
         check_if_exists = False
         # - Prepare outputs.
         helpers_root_path = hgit.find_helpers_root()
-        exp_docker_file_path = f"{helpers_root_path}/helpers/test/outcomes/Test_convert_to_docker_path1.test1/input/tmp.llm_transform.in.txt"
+        exp_docker_file_path = os.path.join(helpers_root_path,
+            "helpers/test/outcomes",
+            "Test_convert_to_docker_path1.test1/input",
+            "tmp.llm_transform.in.txt")
         exp_mount = "type=bind,source=/app,target=/app"
         self.helper(
             in_file_path,
@@ -180,7 +183,10 @@ class Test_convert_to_docker_path1(hunitest.TestCase):
         check_if_exists = True
         # - Prepare outputs.
         helpers_root_path = hgit.find_helpers_root()
-        exp_docker_file_path = f"{helpers_root_path}/helpers/test/outcomes/Test_convert_to_docker_path1.test2/input/tmp.input.md"
+        exp_docker_file_path = os.path.join(helpers_root_path,
+            "helpers/test/outcomes",
+            "Test_convert_to_docker_path1.test2/input",
+            "tmp.input.md")
         exp_mount = "type=bind,source=/app,target=/app"
         self.helper(
             in_file_path,
@@ -237,6 +243,7 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
             in_file_path,
             cmd_opts,
             out_file_path,
+            file_type="md",
             force_rebuild=force_rebuild,
             use_sudo=use_sudo,
         )
@@ -664,7 +671,7 @@ class Test_dockerized_tikz_to_bitmap1(hunitest.TestCase):
         force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
         # Run function.
-        hdocker.dockerized_tikz_to_bitmap(
+        hdocker.run_dockerized_tikz_to_bitmap(
             in_file_path,
             cmd_opts,
             out_file_path,

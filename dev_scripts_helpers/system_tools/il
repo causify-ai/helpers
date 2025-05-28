@@ -1,0 +1,4 @@
+#!/bin/bash
+# Equivalent to `alias il = "invoke --list"`.
+
+invoke --list $*
