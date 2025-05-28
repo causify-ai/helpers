@@ -10,7 +10,7 @@
       - [Slides with navigation breadcrumbs](#slides-with-navigation-breadcrumbs)
       - [Focus on a subsection](#focus-on-a-subsection)
       - [Plain PDF article](#plain-pdf-article)
-  * [2. Auto Render Figures — `render_images.py`](#2-auto-render-figures--render_imagespy)
+  * [2. Auto render figures — `render_images.py`](#2-auto-render-figures--render_imagespy)
     + [Supported File types and Code blocks](#supported-file-types-and-code-blocks)
     + [Quick Start Recipes](#quick-start-recipes)
       - [Render to a new file](#render-to-a-new-file)
@@ -78,10 +78,8 @@
 
 # Notes Documentation Toolchain
 
-This is a high‑level guide to the helper scripts that turn raw `.txt` lecture
-notes into polished PDFs, slide decks, and more.
-
----
+- This is a high‑level guide to the helper scripts that turn raw `.txt` notes
+  into polished PDFs, slide decks, and more.
 
 ## 1. Generate Slides and PDFs — `notes_to_pdf.py`
 
@@ -96,9 +94,9 @@ single command.
 
 ### Most used flags
 
-* `--type {pdf|html|slides}`
-* `--toc_type {none|pandoc_native|navigation}`
-* `--debug_on_error`, `--skip_action ...`, `--filter_by_lines A:B`
+- `--type {pdf|html|slides}`
+- `--toc_type {none|pandoc_native|navigation}`
+- `--debug_on_error`, `--skip_action ...`, `--filter_by_lines A:B`
 
 ### Quickstart recipes
 
@@ -109,8 +107,8 @@ single command.
 | Build a **PDF article** (LaTeX)     | `notes_to_pdf.py -i paper.txt -o paper.pdf --type pdf`             |
 | Skip the final viewer **open** step | `... --skip_action open`                                           |
 
-_TIP  Run with `--preview_actions` to print the exact steps without executing
-them._
+- **Tip**: Run with `--preview_actions` to print the exact steps without
+  executing them.
 
 ### CLI flags cheatsheet
 
@@ -319,20 +317,20 @@ llm_transform.py -p list -i - -o -
 
 ### Example recipes
 
-* **Turn a code file into a review checklist**
+- **Turn a code file into a review checklist**
 
   ```bash
   llm_transform.py -i foo.py -o cfile -p code_review
   vim cfile
   ```
 
-* **Color‑accent the bold bullets for slides**
+- **Color‑accent the bold bullets for slides**
 
   ```bash
   llm_transform.py -i deck.md -o - -p slide_colorize | tee deck.color.md
   ```
 
-* **Inline use in Vim** – visual‑select a block, then:
+- **Inline use in Vim** – visual‑select a block, then:
 
   ```vim
   :'<,'>!llm_transform.py -p summarize -i - -o -
@@ -344,9 +342,9 @@ llm_transform.py -p list -i - -o -
 
 ### What the script does
 
-* Reads **Markdown** from _stdin_ or `--input` file.
-* Dispatches to a named **action** (currently only `convert_md_to_latex`).
-* Pushes the Pandoc output to _stdout_ or the `--output` file.
+- Reads **Markdown** from _stdin_ or `--input` file.
+- Dispatches to a named **action** (currently only `convert_md_to_latex`).
+- Pushes the Pandoc output to _stdout_ or the `--output` file.
 
 ### Quickstart commands
 
@@ -374,9 +372,9 @@ llm_transform.py -p list -i - -o -
 
 ### What it does
 
-* Accepts a **text/Markdown** stream (file or `-`).
-* Applies a named **action** (`-a/--action`).
-* Writes the result to the given output (in‑place, file, or `-`).
+- Accepts a **text/Markdown** stream (file or `-`).
+- Applies a named **action** (`-a/--action`).
+- Writes the result to the given output (in‑place, file, or `-`).
 
 ### Supported actions
 
@@ -423,9 +421,9 @@ transform_notes.py -a toc -i notes/lecture.md -o - -l 2
 
 Turn a Markdown document into either:
 
-* a **plain list** of headers,
-* a **nested header map**, or
-* a \*_Vim_ quick‑fix\*\* (`cfile`) that lets you jump between sections with
+- a **plain list** of headers,
+- a **nested header map**, or
+- a \*_Vim_ quick‑fix\*\* (`cfile`) that lets you jump between sections with
   `:cnext`.
 
 ### Examples
@@ -510,7 +508,7 @@ rendering across systems.
 ### What it does
 
 Compiles a LaTeX `.tex` file into a PDF using `pdflatex` inside a Docker
-container.  
+container.
 Automatically rebuilds the Docker image if needed.
 
 > ```bash
@@ -595,7 +593,7 @@ Automatically sets output to match input name if `--output` is omitted.
 
 ### What it does
 
-Converts documents using `pandoc` inside a Docker container.  
+Converts documents using `pandoc` inside a Docker container.
 Supports output to Beamer slides, PDFs, and more with custom CLI flags.
 
 > ```bash
@@ -641,7 +639,7 @@ string.
 ### What it does
 
 Formats text files (`.md`, `.txt`, `.tex`, etc.) using Prettier within a Docker
-container.  
+container.
 Avoids environment-specific issues and ensures consistent formatting.
 
 > ```bash
@@ -688,7 +686,7 @@ Supports full Prettier CLI flexibility via passthrough of additional options.
 
 1. Prompts you to select a screen region (`⌘ + Ctrl + 4`).
 2. Saves it as `screenshot.YYYY‑MM‑DD_HH‑MM‑SS.png` (or your chosen name).
-3. Prints and copies the Markdown embed `![](path/to/file.png)`.
+3. Prints and copies the Markdown embed `<img src="path/to/file.png">`.
 
 ### Flags
 
