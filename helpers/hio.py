@@ -508,7 +508,7 @@ def get_size_as_str(file_name: str) -> str:
 
 def is_valid_filename_extension(ext: str) -> bool:
     """
-    By convention extensions are the initial `.`.
+    By convention extensions don't include the initial `.`.
 
     E.g., "tgz" is valid, but not ".tgz".
     """
@@ -521,10 +521,16 @@ def change_filename_extension(filename: str, old_ext: str, new_ext: str) -> str:
     Change extension of a filename (e.g. "data.csv" to "data.json").
 
     :param filename: the old filename (including extension)
-    :param old_ext: the extension of the old filename
-    :param new_ext: the extension to replace the old extension
+    :param old_ext: the extension of the old filename (e.g., "csv")
+        - If empty, it is extracted from the filename
+    :param new_ext: the extension to replace the old extension (e.g., "json")
     :return: a filename with the new extension
     """
+    # If the old extension is empty, extract it from the filename.
+    if old_ext == "":
+        _, old_ext = os.path.splitext(filename)
+        # Remove the leading dot.
+        old_ext = old_ext.lstrip(".")
     hdbg.dassert(
         is_valid_filename_extension(old_ext), "Invalid extension '%s'", old_ext
     )
@@ -547,6 +553,7 @@ def change_filename_extension(filename: str, old_ext: str, new_ext: str) -> str:
 
 
 # TODO(gp): @all Use msg in all uses of this script `jackpyc "create_executable"`
+# TODO(gp): `file_name` should go last.
 def create_executable_script(
     file_name: str, content: str, *, msg: str = ""
 ) -> None:
