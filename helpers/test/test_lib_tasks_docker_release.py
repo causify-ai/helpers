@@ -969,9 +969,9 @@ class Test_docker_create_candidate_image1(_DockerFlowTestHelper):
             user_tag="test_user",
         )
         # Check if amp is a submodule.
-        path, _ = hgit.get_path_from_supermodule()
+        is_in_amp_as_submodule = hgit.is_in_amp_as_submodule()
         # Set the expected docker command based on whether amp is a submodule.
-        if path != "":
+        if is_in_amp_as_submodule:
             exp = r"""
             invoke docker_cmd -c "datapull/aws/aws_update_task_definition.py -t test_task -i test_user-4759b3685f903e6c669096e960b248ec31c63b69 -r eu-north-1"
             """
