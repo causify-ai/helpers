@@ -1053,6 +1053,31 @@ def slide_smart_colorize() -> _PROMPT_OUT:
 
 
 # #############################################################################
+# Text.
+# #############################################################################
+
+
+#def text_expand() -> _PROMPT_OUT:
+#    """
+#    """
+#    system = hio.from_file("text_expand2.txt")
+#    pre_transforms: Set[str] = set()
+#    post_transforms: Set[str] = set()
+#    post_container_transforms = ["format_markdown"]
+#    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def text_rephrase() -> _PROMPT_OUT:
+    """
+    """
+    system = hio.from_file("text_rephrase.txt")
+    pre_transforms: Set[str] = set()
+    post_transforms: Set[str] = set()
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+# #############################################################################
 
 
 def scratch_categorize_topics() -> _PROMPT_OUT:
