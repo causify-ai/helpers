@@ -32,6 +32,15 @@
     + [Allure Reports](#allure-reports)
     + [Post-Mortem Log](#post-mortem-log)
   * [Why It Matters](#why-it-matters)
+- [Coverage Tracking with Codecov: A Layer of Continuous Accountability](#coverage-tracking-with-codecov-a-layer-of-continuous-accountability)
+  * [Motivation](#motivation-1)
+  * [Structured Coverage by Test Category](#structured-coverage-by-test-category)
+  * [CI Integration and Workflow Behavior](#ci-integration-and-workflow-behavior)
+  * [Enforced Thresholds and Quality Gates](#enforced-thresholds-and-quality-gates)
+  * [Visibility and Developer Experience](#visibility-and-developer-experience)
+  * [Best Practices and Operational Consistency](#best-practices-and-operational-consistency)
+  * [Beyond the Basics](#beyond-the-basics)
+  * [Summary](#summary)
 
 <!-- tocstop -->
 
@@ -581,3 +590,96 @@ accountability. It transforms test stability from an abstract ideal into a daily
 operational habit, backed by clear expectations, defined processes, and human
 enforcement. By combining automation with ownership, we achieve sustainable
 reliability in a complex, multi-repo ecosystem.
+
+# Coverage Tracking with Codecov: A Layer of Continuous Accountability
+
+## Motivation
+
+Maintaining comprehensive test coverage across a growing codebase requires more
+than just writing tests, it demands visibility, automation, and enforcement. Our
+integration with Codecov provides a system-wide view of test coverage,
+structured into fast, slow, and superslow test suites. This setup ensures that
+all code paths are exercised and that test coverage regressions are identified
+early and reliably.
+
+## Structured Coverage by Test Category
+
+We categorize coverage tests into three suites based on runtime and scope:
+
+- Fast tests run frequently (e.g., daily) and provide immediate feedback on
+  high-priority code paths
+- Slow tests cover broader logic and data scenarios
+- Superslow tests are comprehensive, long-running regressions executed on a
+  weekly cadence or on-demand
+
+Each suite produces its own coverage report, which is flagged and uploaded
+independently to Codecov, enabling targeted inspection and carryforward of data
+when some suites are skipped.
+
+## CI Integration and Workflow Behavior
+
+Coverage reports are generated and uploaded automatically as part of our CI
+pipelines. The workflow:
+
+- Fails immediately on critical setup errors (e.g., dependency or configuration
+  issues)
+- Continues gracefully if fast or slow tests fail mid-pipeline, but surfaces
+  those failures in a final gating step
+- Treats superslow failures as critical, immediately halting the workflow
+
+This behavior ensures resilience while preventing silent test degradation.
+
+## Enforced Thresholds and Quality Gates
+
+Coverage checks are enforced at both project and patch levels:
+
+- Project-level threshold: Pull requests fail if overall coverage drops beyond a
+  configured margin (e.g., >1%)
+- Patch-level checks: Changes are required to maintain or improve coverage on
+  modified lines
+- Flags and branches: Checks are scoped per test suite and only enforced on
+  critical branches
+
+Together, these gates maintain coverage integrity while avoiding noise from
+unrelated code paths.
+
+## Visibility and Developer Experience
+
+Codecov is integrated tightly into the developer workflow:
+
+- PRs show inline coverage status and file-level diffs
+- Optional summary comments detail total coverage, changes, and affected files
+- Reports can be viewed in Codecov's UI or served locally as HTML
+- Carryforward settings retain historical data when full test suites aren't
+  executed
+
+Developers can also generate and inspect local reports for any test suite using
+standard coverage commands.
+
+## Best Practices and Operational Consistency
+
+To ensure effective usage:
+
+- Coverage is always uploaded—even if tests fail—ensuring no blind spots
+- Developers are encouraged to monitor coverage deltas in PRs
+- The system defaults to global configuration, but supports fine-tuning via
+  repo-specific overrides
+- Weekly reviews of coverage trends and flags help spot regressions and
+  low-tested areas
+
+## Beyond the Basics
+
+Our setup also supports:
+
+- PR commenting: Optional automated comments on test impact
+- Badges: Live indicators of coverage status
+- Custom reporting: Layouts and thresholds can be adjusted to align with
+  evolving policies
+
+## Summary
+
+Coverage tracking is more than a checkbox—it's an enforcement mechanism, a
+feedback loop, and a source of engineering discipline. With structured test
+categories, resilient workflows, and project-level gates, our Codecov-based
+system transforms coverage data into actionable insights, reinforcing test
+quality across all levels of the stack.
