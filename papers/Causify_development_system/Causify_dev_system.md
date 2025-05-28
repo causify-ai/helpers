@@ -22,6 +22,16 @@
   * [4. Discussion](#4-discussion)
   * [Future directions](#future-directions)
   * [References](#references)
+- [Buildmeister: Daily Accountability for CI Stability](#buildmeister-daily-accountability-for-ci-stability)
+  * [Motivation](#motivation)
+  * [Core Responsibilities](#core-responsibilities)
+  * [Handover and Daily Reporting](#handover-and-daily-reporting)
+  * [Workflow in Practice](#workflow-in-practice)
+  * [Tools and Analysis](#tools-and-analysis)
+    + [Buildmeister Dashboard](#buildmeister-dashboard)
+    + [Allure Reports](#allure-reports)
+    + [Post-Mortem Log](#post-mortem-log)
+  * [Why It Matters](#why-it-matters)
 
 <!-- tocstop -->
 
@@ -480,3 +490,94 @@ of our workflows as the projects continue to scale.
   [Microsoft: How "Mono-repo" and "One Infra" Help Us Deliver a Better Developer Experience](https://devblogs.microsoft.com/appcenter/how-mono-repo-and-one-infra-help-us-deliver-a-better-developer-experience/)
 - [5]
   [Uber: Faster Together: Uber Engineering's iOS Monorepo](https://www.uber.com/blog/ios-monorepo/)
+
+# Buildmeister: Daily Accountability for CI Stability
+
+## Motivation
+
+Automated test pipelines are essential, but without accountability, they often
+fall into disrepair. The Buildmeister routine introduces a rotating,
+human-in-the-loop system designed to enforce green builds, identify root causes,
+and ensure high-quality CI/CD hygiene. This mechanism aligns technical execution
+with team responsibility, fostering a culture of operational ownership.
+
+## Core Responsibilities
+
+The Buildmeister is a rotating role assigned to a team member each week. Their
+primary duties are:
+
+- Monitor build health daily via the Buildmeister Dashboard
+- Investigate failures and ensure GitHub Issues are filed promptly
+- Push responsible team members to fix or revert breaking code
+- Maintain test quality by analyzing trends in Allure reports
+- Document breakage through a structured post-mortem log
+
+The Buildmeister ensures builds are never "temporarily broken", our policy is:
+"Fix it or revert within one hour."
+
+## Handover and Daily Reporting
+
+The routine begins each day with a status email to the team detailing:
+
+- Overall build status (green/red)
+- Failing test names and owners
+- GitHub issue references
+- Expected resolution timelines
+- A screenshot of the Buildmeister dashboard
+
+At the end of each rotation, the outgoing Buildmeister must confirm handover by
+receiving an "Acknowledged" reply from the incoming one, ensuring continuity and
+awareness.
+
+## Workflow in Practice
+
+When a build breaks:
+
+- The team is alerted via Slack (#build-notifications) through our GitHub
+  Actions bot
+- The Buildmeister triages the issue:
+  - Quickly reruns or replicates the failed tests if uncertain
+  - Blames commits to identify the responsible party
+  - Notifies the team and files a structured GitHub Issue
+- All information including test names, logs, responsible engineer are
+  transparently shared and tracked
+
+If the issue is not resolved within one hour, the Buildmeister must escalate
+and, if needed, disable the test with explicit owner consent.
+
+## Tools and Analysis
+
+### Buildmeister Dashboard
+
+A centralized UI provides a real-time view of all builds across repos and
+branches. It is the Buildmeister's daily launchpad.
+
+### Allure Reports
+
+- Every week, the Buildmeister reviews trends in skipped/failing tests, duration
+  anomalies, and retry spikes
+- This process:
+  - Surfaces hidden test instability
+  - Provides historical context to new breaks
+  - Enables preventive action before regressions cascade
+
+### Post-Mortem Log
+
+Every build break is logged in a shared spreadsheet, capturing:
+
+- Repo and test type
+- Link to the failing GitHub run
+- Root cause
+- Owner and fix timeline
+- Whether the issue was fixed or test was disabled
+
+This living record forms the basis for failure mode analysis and future
+automation improvements.
+
+## Why It Matters
+
+The Buildmeister is not just a rotating duty, it is a system of shared
+accountability. It transforms test stability from an abstract ideal into a daily
+operational habit, backed by clear expectations, defined processes, and human
+enforcement. By combining automation with ownership, we achieve sustainable
+reliability in a complex, multi-repo ecosystem.
