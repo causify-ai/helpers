@@ -257,7 +257,6 @@ find {dir_path} \( -path '*/.git' -o -path '*/.mypy_cache' \) -prune -o -name "{
     """
     cmd = hprint.dedent(cmd, remove_lead_trail_empty_lines_=True)
     cmd = " ".join(cmd.split())
-    print(cmd)
     _, res = hsystem.system_to_one_line(cmd)
     return res
 
