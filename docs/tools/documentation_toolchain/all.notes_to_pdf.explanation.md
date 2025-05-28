@@ -17,9 +17,9 @@ This document walks through the **architecture** of the `notes_to_pdf.py`
 
 ## Goal
 
-Convert a lightweight, annotation‑heavy **plain‑text notes file** (usually
-`*.txt`) into a share‑ready document – **PDF**, **HTML**, or **Beamer slide
-deck** – while:
+Convert a lightweight, annotated with markdown **plain‑text notes file** (usually
+`*.txt`) into a share‑ready document, as **PDF**, **HTML**, or **Beamer slide
+deck**, while:
 
 * honouring rich Markdown features and custom shorthand,
 * inlining auto‑generated diagrams (PlantUML, Mermaid, TikZ, Graphviz, LaTeX
@@ -64,24 +64,22 @@ Rel(notes2pdf, style, "Injects LaTeX Style (.sty)")
 
 ## Dependencies
 
-###   `preprocess_notes.py`
+### `preprocess_notes.py`
 
 * **Input →** raw notes.
 * **Output →** Pandoc‑ready Markdown.
 * Handles banner frames, question formatting, colour commands (`\red{}` →
   `\textcolor{red}{...}`), TOC injection.
 
-###   `render_images.py`
+### `render_images.py`
 
 * Docker‑wrapper around _PlantUML_, _Mermaid CLI_, _TikZ → Ghostscript_,
   _Graphviz_.
 * Produces deterministic filenames: `figs/<basename>.<index>.png` →
   diff‑friendly.
 
-###   `latex_abbrevs.sty`
+### `latex_abbrevs.sty`
 
 * House style for math: bold‑underlined vectors (`\vv{x}`), matrices, colour
   presets, 9‑level `enumitem` lists, symbol shorthands.
 * Copied automatically; you rarely touch this unless you need new macros.
-
----
