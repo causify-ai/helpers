@@ -243,7 +243,7 @@ set_path() {
     #
     dassert_dir_exists $dev_script_dir
     dtrace "dev_script_dir=$dev_script_dir"
-    # TODO(gp): Unify this as part of CmmapTask12257.
+    # TODO(gp): Unify this as part of CmTask12257.
     if [[ -n "$GIT_ROOT_DIR" ]]; then
         # `GIT_ROOT_DIR` is available outside the container.
         GIT_ROOT=$GIT_ROOT_DIR
