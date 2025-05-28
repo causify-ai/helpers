@@ -106,7 +106,7 @@
       Python dependencies
 - Always trim
   [`/devops/docker_build/pyproject.toml`](/devops/docker_build/pyproject.toml)
-  to only include the dependancies requred by the runnable dir.
+  to only include the dependancies requred by the runnable dir
 
 ### 4) Copy and customize files in thin_client
 
@@ -203,7 +203,7 @@
 We release a new version of the Docker image whenever we need to update its
 dependencies.
 
-1. Modify changelog to specify what was changed and pick a semantic version.
+1. Modify changelog to specify what was changed and pick a semantic version
    Example:
 
    ```bash
@@ -230,7 +230,7 @@ dependencies.
    > i docker_tag_local_image_as_dev --version 1.0.0
    ```
 
-4. Bash into the container.
+4. Bash into the container
 
    ````bash
    > i docker_bash --skip-pull --stage local --version 1.0.0
