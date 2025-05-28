@@ -469,6 +469,8 @@ def _parallel_execute_decorator(
     func_name: str,
     processify_func: bool,
     task: Task,
+    enable_file_logging: bool,
+    verbose_log: bool,
 ) -> Any:
     """
     Parameters have the same meaning as in `parallel_execute()`.
@@ -481,6 +483,8 @@ def _parallel_execute_decorator(
             - if `abort_on_error=False` the exception is not propagated, but the
               return value is the string representation of the exception
     :param processify_func: switch to enable wrapping a function into a process
+    :param enable_file_logging: see same parameter in `parallel_execute()`
+    :param verbose_log: see same parameter in `parallel_execute()`
     :return: the return value of the workload function or the exception string
     """
     # Validate very carefully all the parameters.
@@ -544,7 +548,10 @@ def _parallel_execute_decorator(
     elapsed_time = ts.elapsed_time
     end_ts = hdateti.get_current_timestamp_as_string("naive_ET")
     # TODO(gp): -> func_result
-    txt.append(f"func_res=\n{hprint.indent(str(res))}")
+    if verbose_log:
+        txt.append(f"func_res=\n{hprint.indent(str(res))}")
+    else:
+        txt.append("func_res=<omitted>")
     txt.append(f"elapsed_time_in_secs={elapsed_time}")
     txt.append(f"start_ts={start_ts}")
     txt.append(f"end_ts={end_ts}")
@@ -552,7 +559,8 @@ def _parallel_execute_decorator(
     # Update log file.
     txt = "\n".join(txt)
     _LOG.debug("txt=\n%s", hprint.indent(txt))
-    hio.to_file(log_file, txt, mode="a")
+    if enable_file_logging:
+        hio.to_file(log_file, txt, mode="a")
     if error:
         # The execution wasn't successful.
         _LOG.error(txt)
@@ -581,9 +589,16 @@ def parallel_execute(
     log_file: str,
     *,
     backend: str = "loky",
+    enable_file_logging: bool = True,
+    verbose_log: bool = False,
 ) -> Optional[List[Any]]:
     """
     Run a workload in parallel using joblib or asyncio.
+
+    Note:
+        - if `abort_on_error=True` and a task fails early, `joblib` does not return partial results
+        - use `enable_logging=False` to disable logging entirely (useful for large results)
+        - use `verbose_log=False` to keep logging enabled but skip verbose output per task
 
     :param workload: the workload to execute
     :param dry_run: if True, print the workload and exit without executing it
@@ -596,17 +611,14 @@ def parallel_execute(
     :param num_attempts: number of times to attempt running a function before
         declaring an error
     :param log_file: file used to log information about the execution
-    :param backend: specify the backend type (e.g., joblib `loky` or
-        `asyncio_process_executor`)
-
-    :return: list with the results from executing `func` or the exception of the
-        failing function
-        - NOTE: if `abort_on_error=True` and one task fails, `joblib` doesn't return
-          the output of the already executed tasks. In this case, the best we can do
-          is to return the exception of the failing task
+    :param backend: specify the backend type (e.g., joblib `loky` or `asyncio_process_executor`)
+    :param enable_file_logging: if False, skip writing any log file
+    :param verbose_log: if True, write detailed task results to the log file
+        - If False, large outputs will be omitted from the log to reduce file size
+    :return: results from executing `func` or the exception of the failing function
     """
     # Print the parameters.
-    print(hprint.frame("Workload"))
+    _LOG.info(hprint.frame("Workload"))
     # It's too verbose to print all the workload.
     # print(workload_to_string(workload, use_pprint=False))
     _LOG.info(
@@ -669,6 +681,8 @@ def parallel_execute(
                 func_name,
                 processify_func,
                 task,
+                enable_file_logging,
+                verbose_log,
             )
             res.append(res_tmp)
     else:
@@ -693,6 +707,8 @@ def parallel_execute(
                     func_name,
                     processify_func,
                     task,
+                    enable_file_logging,
+                    verbose_log,
                 )
                 # We can't use `tqdm_iter` since this only shows the submission of
                 # the jobs but not their completion.
@@ -717,6 +733,8 @@ def parallel_execute(
                 func_name,
                 processify_func,
                 args_[1],
+                enable_file_logging,
+                verbose_log,
             )
             args = list(enumerate(tasks))
             use_progress_bar = True

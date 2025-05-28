@@ -44,7 +44,7 @@ def _process_abbreviations(in_line: str) -> str:
         (r"=>", r"\implies"),
         # TODO(gp): This collides with the arrow in graphviz commands. We
         # should skip this transformation if we are in a graphviz block.
-        #(r"->", r"\rightarrow"),
+        # (r"->", r"\rightarrow"),
         (r"-^", r"\uparrow"),
         (r"-v", r"\downarrow"),
     ]:
@@ -207,12 +207,15 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
         # 2) Remove code block.
         if _TRACE:
             _LOG.debug("# 2) Process code block.")
-        do_continue, in_code_block, out_tmp = hmarkdo.process_code_block(
-            line, in_code_block, i, lines
-        )
-        out.extend(out_tmp)
-        if do_continue:
-            continue
+        # TODO(gp): Not sure why this is needed. For sure the extra spacing
+        # creates a problem with the Python code blocks rendered by pandoc beamer.
+        if False:
+            do_continue, in_code_block, out_tmp = hmarkdo.process_code_block(
+                line, in_code_block, i, lines
+            )
+            out.extend(out_tmp)
+            if do_continue:
+                continue
         # 3) Remove single line comment.
         if _TRACE:
             _LOG.debug("# 3) Process single line comment.")

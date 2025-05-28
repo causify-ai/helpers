@@ -22,9 +22,6 @@ import linters.utils as liutils
 _LOG = logging.getLogger(__name__)
 
 
-# #############################################################################
-
-
 def _check_readme_is_capitalized(file_name: str) -> str:
     """
     Check if all readme markdown files are named README.md.
@@ -38,9 +35,6 @@ def _check_readme_is_capitalized(file_name: str) -> str:
 
 
 # #############################################################################
-
-
-# #############################################################################
 # _LintMarkdown
 # #############################################################################
 
@@ -48,6 +42,9 @@ def _check_readme_is_capitalized(file_name: str) -> str:
 class _LintMarkdown(liaction.Action):
 
     def __init__(self) -> None:
+        #cmd = "find -wholename '*dev_scripts_helpers/documentation/lint_notes.py'"
+        #executable = hsystem.system_to_one_line(cmd)
+        #assert 0, executable
         executable = "$(find -wholename '*dev_scripts_helpers/documentation/lint_notes.py')"
         super().__init__(executable)
 
