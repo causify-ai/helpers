@@ -1,0 +1,40 @@
+# Common repository settings.
+# This file contains repository-agnostic settings that can be applied to any repository.
+# Settings not specified here will remain unchanged when applied.
+# Repository-specific details (name, description, users, teams, etc.) are intentionally
+# excluded.
+repository_settings:
+  # Feature settings - common across repositories.
+  has_issues: true
+  has_projects: true
+  has_wiki: false
+  # Merge settings - standardized merge strategies.
+  allow_squash_merge: true
+  allow_merge_commit: false
+  allow_rebase_merge: true
+  delete_branch_on_merge: true
+  # Security settings - recommended for all repositories.
+  enable_automated_security_fixes: true
+  enable_vulnerability_alerts: true
+
+# Branch protection rules.
+# These rules can be applied to any repository's main branch.
+# User and team restrictions are intentionally excluded as they are repo-specific.
+branch_protection:
+  main:
+    # Required status checks - common CI requirements.
+    required_status_checks:
+      strict: true
+      contexts:
+        - "ci/lint"
+        - "ci/fasttests"
+    # Pull request reviews - standard review requirements.
+    required_pull_request_reviews:
+      dismiss_stale_reviews: true
+      require_code_owner_reviews: true
+      required_approving_review_count: 1
+    # Admin enforcement - recommended security practice.
+    enforce_admins: true
+    # Additional protection settings.
+    allow_force_pushes: false
+    allow_deletions: false

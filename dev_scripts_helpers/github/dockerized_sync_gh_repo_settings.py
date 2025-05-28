@@ -371,12 +371,13 @@ class Settings:
                 "archived", github.GithubObject.NotSet
             ),
         }
+        # Apply security-related settings.
+        enable_security_fixes = self.repo_settings.get(
+            "enable_automated_security_fixes"
+        )
+        enable_vuln_alerts = self.repo_settings.get("enable_vulnerability_alerts")
         if not dry_run:
             repo.edit(**settings)
-            # Apply security-related settings.
-            enable_security_fixes = self.repo_settings.get(
-                "enable_automated_security_fixes"
-            )
             if enable_security_fixes is not None:
                 if enable_security_fixes:
                     repo.enable_automated_security_fixes()
