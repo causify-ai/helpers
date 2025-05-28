@@ -18,7 +18,7 @@ SOURCE_PATH="${CSFY_HELPERS_ROOT_PATH}/dev_scripts_helpers/thin_client/thin_clie
 echo "> source $SOURCE_PATH ..."
 if [[ ! -f $SOURCE_PATH ]]; then
     echo -e "ERROR: Can't find $SOURCE_PATH"
-    kill -INT $$
+    return -1
 fi
 source $SOURCE_PATH
 

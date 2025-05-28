@@ -61,7 +61,7 @@ dassert_dir_exists() {
     local dir_path="$1"
     if [[ ! -d "$dir_path" ]]; then
         echo -e "${ERROR}: Directory '$dir_path' does not exist."
-        kill -INT $$
+        return -1
     fi
 }
 
@@ -72,7 +72,7 @@ check_file_exists() {
     local file_name="$1"
     if [[ ! -f "$file_name" ]]; then
         echo -e "${ERROR}: File '$file_name' does not exist."
-        kill -INT $$
+        return -1
     fi
 }
 
@@ -81,7 +81,7 @@ dassert_is_git_root() {
     # Check if the current directory is the root of a Git repository.
     if [[ ! -d .git ]]; then
         echo -e "${ERROR}: Current dir '$(pwd)' is not the root of a Git repo."
-        kill -INT $$
+        return -1
     fi;
 }
 
@@ -95,7 +95,7 @@ dassert_var_defined() {
     # Use indirect expansion to check the value of the variable.
     if [[ -z "${!var_name}" ]]; then
         echo -e "${ERROR}: Var '${var_name}' is not defined or is empty."
-        kill -INT $$
+        return -1
     fi;
 }
 
@@ -107,7 +107,7 @@ dassert_eq_num_args() {
     local func_name=$3
     if [[ $actual_args -ne $expected_args ]]; then
         echo -e "${ERROR}: Function '$func_name' requires exactly $expected_args arguments, but got $actual_args"
-        kill -INT $$
+        return -1
     fi
 }
 
@@ -197,7 +197,7 @@ activate_venv() {
         venv_dir="/venv/client_venv.${venv_tag}"
         if [[ ! -d $venv_dir ]]; then
             echo -e "${ERROR}: Can't find venv_dir='$venv_dir'. Create it with build.py"
-            kill -INT $$
+            return -1
         fi;
     fi;
     ACTIVATE_SCRIPT="$venv_dir/bin/activate"
@@ -241,7 +241,13 @@ set_path() {
     #
     export PATH=$GIT_ROOT_DIR:$PATH
     # Avoid ./.mypy_cache/3.12/app/dev_scripts_helpers
+    # `GIT_ROOT_DIR` is used available outside the container while
+    # `CSFY_GIT_ROOT_PATH` is available inside the container.
+    if [[ -z "$GIT_ROOT_DIR" ]]; then
+        GIT_ROOT_DIR=$CSFY_GIT_ROOT_PATH
+    fi
     DEV_SCRIPT_HELPER_DIR=$(find ${GIT_ROOT_DIR} -name dev_scripts_helpers -type d -not -path "*.mypy_cache*")
+    echo "DEV_SCRIPT_HELPER_DIR=$DEV_SCRIPT_HELPER_DIR"
     dassert_dir_exists $DEV_SCRIPT_HELPER_DIR
     dtrace "DEV_SCRIPT_HELPER_DIR=$DEV_SCRIPT_HELPER_DIR"
     # Add to the PATH all the first level directory under `dev_scripts`.
