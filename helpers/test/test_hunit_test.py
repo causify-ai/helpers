@@ -1351,3 +1351,71 @@ class Test_purify_docker_image_name1(hunitest.TestCase):
         """
         actual = hunitest.purify_docker_image_name(txt)
         self.assert_equal(actual, expected, fuzzy_match=True)
+
+
+# #############################################################################
+# TestPurifyAppReferences1
+# #############################################################################
+
+
+class TestPurifyAppReferences1(hunitest.TestCase):
+    """
+    Test the `purify_app_references()` function.
+    """
+
+    def test1(self) -> None:
+        """
+        Test app.helpers reference removal.
+        """
+        # Test removing app.helpers references
+        txt = "app.helpers.test.test_file"
+        expected = "helpers.test.test_file"
+        actual = hunitest.purify_app_references(txt)
+        self.assert_equal(actual, expected)
+
+    def test2(self) -> None:
+        """
+        Test app.amp.helpers reference removal.
+        """
+        # Test removing app.amp.helpers references
+        txt = "app.amp.helpers.test.test_file"
+        expected = "amp.helpers.test.test_file"
+        actual = hunitest.purify_app_references(txt)
+        self.assert_equal(actual, expected)
+
+    def test3(self) -> None:
+        """
+        Test app.amp.helpers_root.helpers reference removal.
+        """
+        txt = "app.amp.helpers_root.helpers.test.test_file"
+        expected = "amp.helpers.test.test_file"
+        actual = hunitest.purify_app_references(txt)
+        self.assert_equal(actual, expected)
+
+    def test4(self) -> None:
+        """
+        Test multiple app references in the same string.
+        """
+        # Test multiple app references in the same string
+        txt = """
+        app.helpers.test.test_file
+        app.amp.helpers.test.test_file
+        app.amp.helpers_root.helpers.test.test_file
+        """
+        expected = """
+        helpers.test.test_file
+        amp.helpers.test.test_file
+        amp.helpers.test.test_file
+        """
+        actual = hunitest.purify_app_references(txt)
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+
+    def test5(self) -> None:
+        """
+        Test string with no app references.
+        """
+        # Test string with no app references
+        txt = "path/to/file.txt"
+        expected = "path/to/file.txt"
+        actual = hunitest.purify_app_references(txt)
+        self.assert_equal(actual, expected)

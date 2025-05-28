@@ -371,40 +371,95 @@ def filter_text(regex: str, txt: str) -> str:
 # TODO(gp): -> private functions?
 
 
+def normalize_path_refs(txt: str) -> str:
+    """
+    Replace known directory paths with normalized placeholders using deterministic priority.
+    
+    Priority order (highest to lowest):
+    1. Git root paths (both super_module and regular) -> $GIT_ROOT
+    2. CSFY_HOST_GIT_ROOT_PATH environment variable -> $CSFY_HOST_GIT_ROOT_PATH
+    3. Current working directory -> $PWD
+    4. Generic /app directory -> $APP_DIR (only if not already covered)
+    
+    This ensures that more specific paths are replaced before generic ones,
+    preventing conflicts when paths overlap.
+    """
+    _LOG.debug("Before normalize_path_refs: txt='\n%s'", txt)
+    
+    # Collect all paths to replace with their priorities
+    replacements = []
+    processed_paths = set()
+    
+    # Priority 1: Git root paths (highest priority)
+    for super_module in [False, True]:
+        git_root = hgit.get_client_root(super_module=super_module)
+        if git_root and git_root != "/" and git_root not in processed_paths:
+            replacements.append((git_root, "$GIT_ROOT"))
+            processed_paths.add(git_root)
+            _LOG.debug("Added git root '%s' for replacement", git_root)
+    
+    # Priority 2: CSFY_HOST_GIT_ROOT_PATH environment variable
+    csfy_git_root = os.environ.get("CSFY_HOST_GIT_ROOT_PATH")
+    if csfy_git_root and csfy_git_root not in processed_paths:
+        replacements.append((csfy_git_root, "$CSFY_HOST_GIT_ROOT_PATH"))
+        processed_paths.add(csfy_git_root)
+        _LOG.debug("Added CSFY_HOST_GIT_ROOT_PATH '%s' for replacement", csfy_git_root)
+    
+    # Priority 3: Current working directory
+    pwd = os.getcwd()
+    if pwd and pwd != "/" and pwd not in processed_paths:
+        replacements.append((pwd, "$PWD"))
+        processed_paths.add(pwd)
+        _LOG.debug("Added PWD '%s' for replacement", pwd)
+    
+    # Priority 4: Generic /app directory (lowest priority)
+    app_dir = "/app"
+    if app_dir not in processed_paths:
+        # Handle /app/ specially based on whether it has content after it
+        # /app/something -> $GIT_ROOT/something (if /app wasn't already processed as git_root)
+        # /app/ (trailing slash only) -> "" (empty string)
+        
+        # First handle /app/ with trailing slash only (replace with empty string)
+        txt = re.sub(r"(?<![\w/])/app/(?=\s|$)", "", txt)
+        _LOG.debug("Removed trailing /app/ references")
+        
+        # Then handle /app/something -> $GIT_ROOT/something (if /app wasn't git_root)
+        if app_dir not in processed_paths:
+            # Check if /app should be treated as $GIT_ROOT or removed
+            # If /app wasn't already processed as git_root, replace /app/content with $GIT_ROOT/content
+            pattern = rf"(?<![\w/])/app(?=/[\w])"
+            txt = re.sub(pattern, "$GIT_ROOT", txt)
+            _LOG.debug("Replaced /app/content with $GIT_ROOT/content")
+        
+        processed_paths.add(app_dir)
+    
+    # Apply other replacements in order (highest priority first)
+    # Sort by path length (descending) to handle nested paths correctly
+    replacements.sort(key=lambda x: len(x[0]), reverse=True)
+    
+    for path, placeholder in replacements:
+        # Use word boundaries to avoid replacing path fragments
+        # Pattern ensures path is not part of a larger word or path
+        pattern = rf"(?<![\w/]){re.escape(path)}(?![\w])"
+        txt = re.sub(pattern, placeholder, txt)
+        _LOG.debug("Replaced '%s' with '%s'", path, placeholder)
+    
+    _LOG.debug("After normalize_path_refs: txt='\n%s'", txt)
+    return txt
+
+
 def purify_from_environment(txt: str) -> str:
     """
-    Replace environment variables with placeholders.
-
+    Replace environment-specific values with placeholders.
+    
     The performed transformations are:
-    1. Replace the Git path with `$GIT_ROOT`
-    2. Replace the path of current working dir with `$PWD`
-    3. Replace the current user name with `$USER_NAME`
+    1. Replace directory paths with standardized placeholders
+    2. Replace the current user name with $USER_NAME
     """
-    # 1) Remove references to Git modules starting from the innermost one.
-    # Make sure that the path is not followed by a word character.
-    # E.g., `/app/test.txt` is the correct path, while `/application.py`
-    # is not a root path even though `/app` is the part of the text.
-    dir_pattern = r"(?![\w])"
-    for super_module in [False, True]:
-        # Replace the git path with `$GIT_ROOT`.
-        super_module_path = hgit.get_client_root(super_module=super_module)
-        if super_module_path != "/":
-            pattern = re.compile(f"{super_module_path}{dir_pattern}")
-            txt = pattern.sub("$GIT_ROOT", txt)
-        else:
-            # If the git path is `/` then we don't need to do anything.
-            pass
-    # 2) Remove CSFY_GIT_ROOT_PATH
-    val = os.environ.get("CSFY_HOST_GIT_ROOT_PATH")
-    if val is not None:
-        txt = re.sub(val, "$CSFY_HOST_GIT_ROOT_PATH", txt, flags=re.MULTILINE)
-    else:
-        _LOG.debug("CSFY_HOST_GIT_ROOT_PATH is not set")
-    # 3) Replace the path of current working dir with `$PWD`.
-    pwd = os.getcwd()
-    pattern = re.compile(f"{pwd}{dir_pattern}")
-    txt = pattern.sub("$PWD", txt)
-    # 4) Replace the current user name with `$USER_NAME`.
+    # Apply path normalization first
+    txt = normalize_path_refs(txt)
+    
+    # Replace current username with $USER_NAME
     user_name = hsystem.get_user_name()
     # Set a regex pattern that finds a user name surrounded by dot, dash or space.
     # E.g., `IMAGE=$CSFY_ECR_BASE_PATH/amp_test:local-$USER_NAME-1.0.0`,
@@ -419,48 +474,56 @@ def purify_from_environment(txt: str) -> str:
 
 def purify_amp_references(txt: str) -> str:
     """
-    Remove references to amp.
+    Remove references to amp module names and paths.
+    
+    This handles amp-specific module references that are not covered by
+    the general path normalization.
     """
     # E.g., `amp/helpers/test/...`
     txt = re.sub(r"^\s*amp\/", "", txt, flags=re.MULTILINE)
-    # E.g., `<amp.helpers.test.test_dbg._Man object at 0x`
-    # in GH actions the packages end up being called `app.` for some reason
-    # (see AmpTask1627), so we clean up also that.
+    txt = re.sub(r"'amp\/", "'", txt, flags=re.MULTILINE)
+    txt = re.sub(r"\s+amp\/", " ", txt, flags=re.MULTILINE)
+    txt = re.sub(r"\/amp\/", "/", txt, flags=re.MULTILINE)
+    txt = re.sub(r"\/amp:", ":", txt, flags=re.MULTILINE)
+    txt = re.sub(r"^\./", "", txt, flags=re.MULTILINE)
+    
+    # Python module references - handle both 'amp.' and 'app.' (GH actions issue)
     txt = re.sub(r"<a[mp]p\.", "<", txt, flags=re.MULTILINE)
-    # E.g., class 'amp.
     txt = re.sub(r"class 'a[mp]p\.", "class '", txt, flags=re.MULTILINE)
-    # E.g., from helpers/test/test_playback.py::TestPlaybackInputOutput1
-    # ```
-    # Test created for amp.helpers.test.test_playback.get_result_ae
-    # ```
+    txt = re.sub(r"a[mp]p\.helpers", "helpers", txt, flags=re.MULTILINE)
+    
+    # Specific test-related references
     txt = re.sub(
         r"# Test created for a[mp]p\.helpers",
         "# Test created for helpers",
         txt,
         flags=re.MULTILINE,
     )
-    # E.g., `['amp/helpers/test/...`
-    txt = re.sub(r"'amp\/", "'", txt, flags=re.MULTILINE)
-    txt = re.sub(r"\/amp\/", "/", txt, flags=re.MULTILINE)
-    # E.g., `vimdiff helpers/test/...`
-    txt = re.sub(r"\s+amp\/", " ", txt, flags=re.MULTILINE)
-    txt = re.sub(r"\/amp:", ":", txt, flags=re.MULTILINE)
-    txt = re.sub(r"^\./", "", txt, flags=re.MULTILINE)
-    txt = re.sub(r"amp\.helpers", "helpers", txt, flags=re.MULTILINE)
+    
+    # Complex module path references
+    txt = re.sub(
+        r"a[mp]p\.amp\.helpers_root\.helpers", "amp.helpers", txt, flags=re.MULTILINE
+    )
+    txt = re.sub(r"a[mp]p\.amp\.helpers", "amp.helpers", txt, flags=re.MULTILINE)
+    
     _LOG.debug("After %s: txt='\n%s'", hintros.get_function_name(), txt)
     return txt
 
 
 def purify_app_references(txt: str) -> str:
     """
-    Remove references to `/app`.
+    Remove remaining references to `/app` and app module paths.
+    
+    This handles app-specific references that weren't covered by path normalization.
+    Note: Most /app path handling is now done in normalize_path_refs().
     """
-    txt = re.sub(r"/app/", "", txt, flags=re.MULTILINE)
+    # Handle remaining app module references
     txt = re.sub(r"app\.helpers", "helpers", txt, flags=re.MULTILINE)
-    txt = re.sub(r"app\.amp\.helpers", "amp.helpers", txt, flags=re.MULTILINE)
     txt = re.sub(
         r"app\.amp\.helpers_root\.helpers", "amp.helpers", txt, flags=re.MULTILINE
     )
+    txt = re.sub(r"app\.amp\.helpers", "amp.helpers", txt, flags=re.MULTILINE)
+    
     _LOG.debug("After %s: txt='\n%s'", hintros.get_function_name(), txt)
     return txt
 
@@ -472,7 +535,7 @@ def purify_file_names(file_names: List[str]) -> List[str]:
     """
     git_root = hgit.get_client_root(super_module=True)
     file_names = [os.path.relpath(f, git_root) for f in file_names]
-    # TODO(gp): Add also `purify_app_references`.
+    # Apply amp reference purification to file paths
     file_names = list(map(purify_amp_references, file_names))
     return file_names
 
@@ -616,17 +679,33 @@ def purify_docker_image_name(txt: str) -> str:
 def purify_txt_from_client(txt: str) -> str:
     """
     Remove from a string all the information of a specific run.
+    
+    This function applies all purification steps in the correct order to ensure
+    consistent and deterministic text normalization across different environments.
+    
+    The order is important:
+    1. Environment/path normalization (highest priority)
+    2. Module-specific reference cleanup
+    3. Other artifact cleanup
     """
+    # Step 1: Normalize environment-specific paths and user info
     txt = purify_from_environment(txt)
-    txt = purify_app_references(txt)
+    
+    # Step 2: Handle module-specific references
     txt = purify_amp_references(txt)
+    txt = purify_app_references(txt)
+    
+    # Step 3: Handle other environment variables
     txt = purify_from_env_vars(txt)
+    
+    # Step 4: Handle other artifacts and formatting
     txt = purify_object_representation(txt)
     txt = purify_today_date(txt)
     txt = purify_white_spaces(txt)
     txt = purify_parquet_file_names(txt)
     txt = purify_helpers(txt)
     txt = purify_docker_image_name(txt)
+    
     return txt
 
 
