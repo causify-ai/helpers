@@ -236,7 +236,9 @@ set_path() {
     #
     export PATH=$(pwd):$PATH
     dtrace "GIT_ROOT=$GIT_ROOT"
-    dassert_var_defined "GIT_ROOT"
+    # 
+    # TODO(gp): Enable this as part of HelpersTask12257.
+    # dassert_var_defined "GIT_ROOT"
     #
     export PATH=$GIT_ROOT_DIR:$PATH
     # Avoid ./.mypy_cache/3.12/app/dev_scripts_helpers
