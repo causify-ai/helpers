@@ -10,6 +10,7 @@
     + [5) Replace files with symbolic links](#5-replace-files-with-symbolic-links)
     + [6) Build a container for a runnable dir](#6-build-a-container-for-a-runnable-dir)
     + [7) Test the code](#7-test-the-code)
+    + [8) Create a New Release of the Image](#8-create-a-new-release-of-the-image)
       - [Release the Docker image](#release-the-docker-image)
 
 <!-- tocstop -->
@@ -103,6 +104,9 @@
       or remove OS packages
     - `$DST_DIR/devops/docker_build/pyproject.toml`: if we need to add or remove
       Python dependencies
+- Always trim
+  [`/devops/docker_build/pyproject.toml`](/devops/docker_build/pyproject.toml)
+  to only include the dependancies requred by the runnable dir.
 
 ### 4) Copy and customize files in thin_client
 
@@ -193,6 +197,50 @@
   > main_pytest.py run_fast_tests --dir ck.infra
   > main_pytest.py run_slow_tests --dir ck.infra
   ```
+
+### 8) Create a New Release of the Image
+
+We release a new version of the Docker image whenever we need to update its
+dependencies.
+
+1. Modify changelog to specify what was changed and pick a semantic version.
+   Example:
+
+   ```bash
+   > cd {research_dir}
+   > source dev_scripts_{runnable_dir_suffix}/thin_client/setenv.sh
+   > cat changelog.txt
+
+   # cmamp-causal-kg-1.0.0
+   - 2025-05-18
+   - Initial release
+   ```
+
+2. Modify dependencies Update as needed:
+   - OS packages:/devops/docker_build/install_os_packages.sh
+   - Python packages: /devops/docker_build/pyproject.toml
+
+3. Build the image locally
+
+   ```bash
+   # Build the image.
+   > i docker_build_local_image --version 1.0.0 --container-dir-name {dir_name}
+
+   # Tag the image as dev.
+   > i docker_tag_local_image_as_dev --version 1.0.0
+   ```
+
+4. Bash into the container.
+
+   ````bash
+   > i docker_bash --skip-pull --stage local --version 1.0.0
+
+   Run tests
+   ```bash
+   > i run_fast_tests --stage local --version 1.0.0
+   > i run_slow_tests --stage local --version 1.0.0
+   > i run_superslow_tests --stage local --version 1.0.0
+   ````
 
 #### Release the Docker image
 
