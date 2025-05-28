@@ -112,10 +112,10 @@ def _run_dockerized_llm_transform(
     FROM python:3.12-alpine
 
     # Install Bash.
-    #RUN apk add --no-cache bash
+    RUN apk add --no-cache bash git
 
     # Set Bash as the default shell.
-    #SHELL ["/bin/bash", "-c"]
+    SHELL ["/bin/bash", "-c"]
 
     # Install pip packages.
     RUN pip install --upgrade pip

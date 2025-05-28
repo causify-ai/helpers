@@ -7,11 +7,10 @@ Read a cfile and inject its content as todos in the code.
 import argparse
 import logging
 
-import dev_scripts_helpers.llms.llm_prompts as dshlllpr
+import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
 import helpers.hparser as hparser
-import dev_scripts_helpers.llms.llm_transform as dshlllpt
 
 _LOG = logging.getLogger(__name__)
 
@@ -42,12 +41,11 @@ def _parse() -> argparse.ArgumentParser:
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
+    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Read the cfile.
     cfile_txt = hio.from_file(args.cfile)
     # Inject the TODOs.
     todo_txt = hmarkdo.inject_todos_from_cfile(cfile_txt, args.todo_target, comment_prefix="#")
-    # Write the TODOs to the cfile.
-    hio.to_file(args.cfile, todo_txt)
 
 
 if __name__ == "__main__":

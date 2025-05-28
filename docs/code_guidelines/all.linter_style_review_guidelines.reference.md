@@ -8,10 +8,30 @@
   - E.g., `download.py` and not `downloader.py`
 - Name non-executable files using nouns 
   - E.g., `downloader.py`
+- Use `dir` and not `directory` or `folder`
+  - E.g., `dir_path`
+- Use `file_name` and not `filename`
+  - E.g., `file_name` for storing the name of a file
+- Use `dir_name` and not `dirname`
+  - E.g., `dir_name` for storing the name of a directory
+- Use `timestamp` and not `ts` or `datetime`
+  - E.g., `event_timestamp`
+- To refer to the name of a column, use `..._col` and not `..._col_name` or
+  `..._column`
+  - E.g., `age_col` for a column storing age values
 
 ### Docstrings
 
-- All functions and methods must have a docstring
+- The first docstring line is followed by a blank line and then, optionally, by
+  a longer description (possibly on multiple lines) with a more detailed
+  explanation of what the function does
+- The more detailed description is followed by a blank line and then the param
+  and return description section in REST style
+- The more detailed description is followed by a blank line and then the param
+  and return description section in REST style
+  - Use lowercase after `:param XYZ: ...` / `:return:` unless the description
+    starts with a proper noun
+- Do not mention default values of parameters in parameter descriptions
 - Docstrings should be wrapped in triple quotation marks (`"""`)
   - The opening and closing triple quotation marks should be located on their
     own separate lines

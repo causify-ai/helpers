@@ -31,44 +31,23 @@
   (avoid "code stutter")
   - E.g., if using a library named `math`, avoid naming a function
     `math_calculate()`
-- Use `dir` and not `directory` or `folder`
-  - E.g., `dir_path`
-- Use `file_name` and not `filename`
-  - E.g., `file_name` for storing the name of a file
-- Use `dir_name` and not `dirname`
-  - E.g., `dir_name` for storing the name of a directory
-- Use `timestamp` and not `ts` or `datetime`
-  - E.g., `event_timestamp`
-- To refer to the name of a column, use `..._col` and not `..._col_name` or
-  `..._column`
-  - E.g., `age_col` for a column storing age values
 
 ### Docstrings
 
-- The first docstring line is followed by a blank line and then, optionally, by
-  a longer description (possibly on multiple lines) with a more detailed
-  explanation of what the function does
-  - The text should describe the goal of the function, the interface and what the user
-    needs to know to use the function
-    - E.g., "This function calculates the sum of two numbers and returns the
-      result."
-  - The text should not describe parameters / what is being returned
-  - The text should not describe implementation details that can be changed
-- The more detailed description is followed by a blank line and then the param
-  and return description section in REST style
-  - Use lowercase after `:param XYZ: ...` / `:return:` unless the description
-    starts with a proper noun
-  - Do not add a period at the end of the param and return descriptions
-  - Do not mention the type of the parameters and return structures
-  - Do not mention default values of parameters in parameter descriptions
-  - Follow this example for indentation of parameter descriptions:
-    ```python
-    :param param1: a very very long param description that
+- All functions and methods must have a docstring
+- The docstring should describe the goal of the function, the interface and what the user
+  needs to know to use the function
+  - E.g., "This function calculates the sum of two numbers and returns the
+    result."
+- The text should not describe implementation details that can be changed
+- Follow this example for indentation of parameter descriptions:
+  ```python
+  :param param1: a very very long param description that
+      continues into a second line
+  :param param2: a param with two possible values
+      - first value description
+      - second value description that is very long and
         continues into a second line
-    :param param2: a param with two possible values
-        - first value description
-        - second value description that is very long and
-          continues into a second line
     ```
 - Adding examples (e.g., of input and output) to the docstring is encouraged
   - E.g.,
@@ -240,10 +219,14 @@
   dependencies; instead, allow the caller to pass the column name to the
   function as a parameter
   - E.g., `def calculate_average(df: pd.DataFrame, column_name: str):`
-- Do not put computations of the output in the `return` line
+- Do not put computations of the output together in a `return` statement
+  - Bad
+    ```
+    return compute_value()
+    ```
   - Instead, compute the output first, assign it to a variable, and then return
     this variable
-  - E.g.,
+  - Good
     ```
     result = compute_value()
     return result
@@ -268,7 +251,7 @@
 
 - Use logging `_LOG.debug()` and not `print()` for tracing execution
 - Use positional args in logging and not inline formatting
-  - E.g., `_LOG.debug("cmd=%s", cmd1)` instead `_LOG.debug(f"cmd={cmd1}")`
+  - E.g., The code should do `_LOG.debug("cmd=%s", cmd1)` and not `_LOG.debug(f"cmd={cmd1}")`
 - Use the following idiom to configure logging:
 
   ```python
