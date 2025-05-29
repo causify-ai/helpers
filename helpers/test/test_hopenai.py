@@ -177,7 +177,7 @@ class _OpenAICacheTestCase(hunitest.TestCase):
     """
 
     @pytest.fixture(autouse=True)
-    def setup_teardown_test(self):
+    def setup_teardown_test(self) -> None:
         # Using test cache file to prevent ruining the actual cache file.
         # TODO(Sai): Reuse get_scratch_space().
         # self.cache_file = self.get_scratch_space()+f"/{_TEST_CACHE_FILE}"
@@ -199,7 +199,7 @@ class _OpenAICacheTestCase(hunitest.TestCase):
         """
         original_get_completion = hopenai.get_completion
 
-        def replay_get_completion(**kwargs):
+        def replay_get_completion(**kwargs) :
             return original_get_completion(**kwargs, cache_mode="REPLAY")
 
         self.patcher = umock.patch.object(
@@ -357,7 +357,7 @@ class Test_save_response_to_cache(_OpenAICacheTestCase):
 
     def test1(self) -> None:
         """
-        Verifies if response saves into cache.
+        Verify if response saves into cache.
         """
         parameters4 = _get_openai_request_parameters4()
         dummy_response1 = _get_dummy_openai_response1()
@@ -383,7 +383,7 @@ class Test_load_response_from_cache(_OpenAICacheTestCase):
 
     def test1(self) -> None:
         """
-        Verifies if stored response can be loaded.
+        Verify if stored response can be loaded.
         """
         # This response  saved in test cache through set up function.
         dummy_response1 = _get_dummy_openai_response1()
@@ -416,15 +416,15 @@ class Test_load_response_from_cache(_OpenAICacheTestCase):
 
 class Test_response_to_txt(hunitest.TestCase):
 
-    # --- Fake classes to satisfy isinstance checks --- #
-    class FakeChatCompletion:
+    # --- Dummy classes to satisfy isinstance checks --- #
+    class DummyChatCompletion:
 
-        def __init__(self, text=""):
+        def __init__(self, text="") -> None:
             msg = types.SimpleNamespace(content=text)
             choice = types.SimpleNamespace(message=msg)
             self.choices = [choice]
 
-    # class FakeSyncCursorPage:
+    # class DummySyncCursorPage:
     #     def __init__(self, text=""):
     #         # mimic .data[0].content[0].text.value
     #         text_obj = types.SimpleNamespace(value=text)
@@ -432,9 +432,9 @@ class Test_response_to_txt(hunitest.TestCase):
     #         data_item = types.SimpleNamespace(content=[content_item])
     #         self.data = [data_item]
 
-    class FakeThreadMessage:
+    class DummyThreadMessage:
 
-        def __init__(self, text=""):
+        def __init__(self, text="") -> None:
             # mimic .content[0].text.value
             value_obj = types.SimpleNamespace(value=text)
             text_obj = types.SimpleNamespace(text=value_obj)
@@ -442,26 +442,26 @@ class Test_response_to_txt(hunitest.TestCase):
 
     @umock.patch(
         "openai.types.chat.chat_completion.ChatCompletion",
-        new=FakeChatCompletion,
+        new=DummyChatCompletion,
     )
     def test_chat_completion_branch(self) -> None:
-        resp = Test_response_to_txt.FakeChatCompletion("hello chat")
+        resp = Test_response_to_txt.DummyChatCompletion("hello chat")
         self.assert_equal(hopenai.response_to_txt(resp), "hello chat")
 
     # @umock.patch(
     #     "helpers.hopenai.openai.pagination.SyncCursorPage",
-    #     new=FakeSyncCursorPage,
+    #     new=DummySyncCursorPage,
     # )
     # def test_sync_cursor_page_branch(self):
-    #     resp = TestResponseToTxt.FakeSyncCursorPage("paged text")
+    #     resp = TestResponseToTxt.DummySyncCursorPage("paged text")
     #     self.assertEqual(response_to_txt(resp), "paged text")
 
     @umock.patch(
         "openai.types.beta.threads.message.Message",
-        new=FakeThreadMessage,
+        new=DummyThreadMessage,
     )
     def test_thread_message_branch(self) -> None:
-        resp = Test_response_to_txt.FakeThreadMessage("thread reply")
+        resp = Test_response_to_txt.DummyThreadMessage("thread reply")
         self.assert_equal(hopenai.response_to_txt(resp), "thread reply")
 
     def test_str_pass_through(self) -> None:
@@ -487,26 +487,26 @@ class Test_extract(hunitest.TestCase):
         Check for exisiting elements.
         """
         # Only x and y exist on our object
-        fake_file = types.SimpleNamespace(x=10, y="hello")
+        dummy_file = types.SimpleNamespace(x=10, y="hello")
         # "z" does NOT exist.
         attrs = ["x", "y", "z"]
-        result = hopenai._extract(fake_file, attrs)
+        result = hopenai._extract(dummy_file, attrs)
         self.assert_equal(str(result), str({"x": 10, "y": "hello"}))
 
     def test_extract_no_attributes(self) -> None:
         """
         Asking for nothing always yields an empty dict.
         """
-        fake_file = types.SimpleNamespace(anything=123)
-        result = hopenai._extract(fake_file, [])
+        dummy_file = types.SimpleNamespace(anything=123)
+        result = hopenai._extract(dummy_file, [])
         self.assert_equal(str(result), str({}))
 
     def test_extract_all_missing_attributes(self) -> None:
         """
         Non existent attributes yield empty dict.
         """
-        fake_file = types.SimpleNamespace(foo="bar")
-        result = hopenai._extract(fake_file, ["a", "b", "c"])
+        dummy_file = types.SimpleNamespace(foo="bar")
+        result = hopenai._extract(dummy_file, ["a", "b", "c"])
         self.assert_equal(str(result), str({}))
 
     def test_extract_various_types(self) -> None:
@@ -514,9 +514,9 @@ class Test_extract(hunitest.TestCase):
         Ensure arbitrary attribute types pass through.
         """
         inner = types.SimpleNamespace(inner_attr="value")
-        fake_file = types.SimpleNamespace(num=42, lst=[1, 2, 3], obj=inner)
+        dummy_file = types.SimpleNamespace(num=42, lst=[1, 2, 3], obj=inner)
         attrs = ["num", "lst", "obj"]
-        result = hopenai._extract(fake_file, attrs)
+        result = hopenai._extract(dummy_file, attrs)
         self.assert_equal(str(result["lst"]), str([1, 2, 3]))
         # The exact same object should be returned
         self.assertIs(result["obj"], inner)
@@ -609,7 +609,7 @@ class Test_retrieve_openrouter_model_info(hunitest.TestCase):
 
     @umock.patch("requests.get")
     def test_retrieve_success(self, mock_get) -> None:
-        # Prepare fake JSON data.
+        # Prepare dummy JSON data.
         data = [
             {"id": "model1", "name": "Model One"},
             {"id": "model2", "name": "Model Two"},
@@ -646,7 +646,7 @@ class Test_retrieve_openrouter_model_info(hunitest.TestCase):
 
 class Test_save_models_info_to_csv(hunitest.TestCase):
 
-    def helper(self, tmp_file_name="tmp.models_info.csv") -> None:
+    def get_temp_path(self, tmp_file_name: str = "tmp.models_info.csv") -> str:
         """
         Helper function for creating temporary directory.
         """
@@ -678,7 +678,7 @@ class Test_save_models_info_to_csv(hunitest.TestCase):
             },
         ]
         df = pd.DataFrame(data)
-        output_file = self.helper()
+        output_file: str = self.get_temp_path()
         # Call the function under test.
         returned_df = hopenai._save_models_info_to_csv(df, output_file)
         # The returned DataFrame should have only the selected columns.
@@ -793,6 +793,7 @@ class Test_infer_column_types(hunitest.TestCase):
 
     def test_numeric_dominance(self) -> None:
         """
+        Check with numeric dominant column.
         """
         # 5 elements: '1','2',3 (numeric), 'a', None
         col = pd.Series(["1", "2", 3, "a", None], dtype=object)
@@ -808,6 +809,7 @@ class Test_infer_column_types(hunitest.TestCase):
 
     def test_bool_dominance(self) -> None:
         """
+        Check with bool dominant column.
         """
         # 4 elements: True, False, True (bool), "x"
         col = pd.Series([True, False, True, "x"], dtype=object)
@@ -823,6 +825,7 @@ class Test_infer_column_types(hunitest.TestCase):
 
     def test_string_dominance(self) -> None:
         """
+        Check with string dominant column.
         """
         # 3 elements: 1.5 (numeric), "a","b" (strings)
         col = pd.Series([1.5, "a", "b"], dtype=object)
@@ -955,13 +958,13 @@ class Test_build_messages(hunitest.TestCase):
 class Test_call_api_sync(hunitest.TestCase):
 
     def test_call_api_sync_calls_client_and_returns_response(self) -> None:
-        # Prepare fake completion object
+        # Prepare mock completion object
         mock_content = "Hello from LLM"
         mock_message = umock.Mock()
         mock_message.content = mock_content
         mock_choice = umock.Mock(message=mock_message)
         mock_completion = umock.Mock(choices=[mock_choice])
-        # Fake client with chat.completions.create
+        # Mock client with chat.completions.create
         mock_client = umock.Mock()
         mock_client.chat.completions.create.return_value = mock_completion
         # Test inputs
