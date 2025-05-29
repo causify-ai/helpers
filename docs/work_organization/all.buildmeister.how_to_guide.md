@@ -8,7 +8,7 @@
 - [Notification system](#notification-system)
 - [Buildmeister instructions](#buildmeister-instructions)
   * [`update_helpers_submodule` fails](#update_helpers_submodule-fails)
-- [Handover Process](#handover-process)
+- [Daily Reporting and Handover Process](#daily-reporting-and-handover-process)
 - [Buildmeister dashboard](#buildmeister-dashboard)
 - [Allure Reports Analysis](#allure-reports-analysis)
 - [Post-mortem analysis (TBD)](#post-mortem-analysis-tbd)
@@ -31,8 +31,9 @@
     - Why did the break happen?
     - How can we avoid the problem next time, through process and automation?
 - Refer to `.github` dir in the repo for update schedule of GH actions
-- Additional information about the
-  [tests](/docs/coding/all.unit_tests.how_to_guide.md)
+- Additional information about tests:
+  - [write tests](/docs/tools/unit_test/all.write_unit_tests.how_to_guide.md)
+  - [run tests](/docs/tools/unit_test/all.run_unit_tests.how_to_guide.md)
 
 ## Notification system
 
@@ -47,7 +48,7 @@
 
 Example:
 
-- <img src="figs/buildmeister/image1.png">
+- <img src="figs/all.buildmeister.how_to_guide.md/Slack Image.png">
 
 ## Buildmeister instructions
 
@@ -83,12 +84,12 @@ Example:
   - Provide as much information as possible to give an understanding of the
     problem
   - List all the tests with FAILED status in a GitHub run, e.g.,
-    ```
+    ```bash
     FAILED knowledge_graph/vendors/test/test_p1_utils.py::TestClean::test_clean
     FAILED knowledge_graph/vendors/nbsc/test/test_nbsc_utils.py::TestExposeNBSCMetadata::test_expose_nbsc_metadata
     ```
   - Stack trace or part of it (if it's too large)
-    ```
+    ```bash
     Traceback (most recent call last): File
     "/.../automl/hypotheses/test/test*rh_generator.py", line 104, in test1
     kg_metadata, * = p1ut.load_release(version="0.5.2") File
@@ -136,7 +137,7 @@ Example:
   pointer manually
 
 - Instructions:
-  ```
+  ```bash
   > cd src/cmamp1
   > git checkout master
   > git pull --recurse-submodules
@@ -148,38 +149,70 @@ Example:
   > git commit -m "Update helpers pointer"
   ```
 
-## Handover Process
+## Daily Reporting and Handover Process
 
-- When transitioning to a new Buildmeister at the end of the rotation, the
-  outgoing Buildmeister should:
-  - Send a handover report to the @team-eng Slack channel with the following
-    information:
+- The current Buildmeister must send a daily status report to eng@ at the start of
+  each workday with the TODO email
+  - The email subject should follow the format:
+    `[BM Report] Build Status - YYYY-MM-DD`
+  - The email should include:
     - Current status of all builds (green/red)
     - For any red (failing) builds:
       - Which tests are failing
       - Why they are failing (if known)
-      - Links to the GitHub issues tracking these failures
+      - Who is responsible for fixing them
+      - Expected timeline for fixes
     - Confirmation that all breaks are tracked with GitHub issues
+      - Include links to all open issues related to build breaks
     - A screenshot of the current Buildmeister dashboard
+      - This provides a visual overview of the build status
+    - Any additional relevant information or concerns
 
-- The new Buildmeister is expected to respond to the handover message:
-  - Acknowledging receipt of the handover information
-  - Confirming understanding of the current build status
+- When a new Buildmeister takes over the role:
+  - The new Buildmeister must respond to the most recent status report email
+  - The response should:
+    - Acknowledge receipt of the handover
+    - Confirm understanding of current build status
+    - Include "Acknowledged" in the subject line
+    - CC the previous Buildmeister and eng@
+
+- Example email format:
+
+  ```text
+  Subject: BuildMeister Status
+
+  Build Status Summary:
+  - cmamp/master: RED (2 failing tests)
+  - helpers/master: GREEN
+  - lemonade/master: GREEN
+
+
+  Point each break to a git Issue:
+  - https://github.com/cryptokaizen/cmamp/issues/4386
+
+  Dashboard screenshot attached.
+
+  Additional notes if needed:
+  - The failing tests have been occurring since yesterday's deployment
+  - We may need to update the data path configuration in our CI environment
+  ```
 
 ## Buildmeister dashboard
 
 The Buildmeister dashboard is a tool that provides a quick overview of the
 current state of the results of all GitHub Actions workflows. See
-[run and publish the buildmeister dashboard](/docs/infra/ck.gh_workflows.explanation.md#run-and-publish-the-buildmeister-dashboard)
+[run and publish the buildmeister dashboard](/dev_scripts_helpers/update_devops_packages/notebooks/Master_buildmeister_dashboard.ipynb)
 for detailed information.
+
+<img src="figs/all.buildmeister.how_to_guide.md/Buildmeister Image.png"/>
 
 ## Allure Reports Analysis
 
 - For a background on Allure, refer to these docs
   - Detailed info can be found in the official
     [docs](https://allurereport.org/docs/)
-  - [Allure Explanantion](/docs/infra/all.pytest_allure.explanation.md)
-  - [Allure How to Guide](/docs/infra/all.pytest_allure.how_to_guide.md)
+  - [Allure Explanantion](/docs/build_system/all.pytest_allure.explanation.md)
+  - [Allure How to Guide](/docs/build_system/all.pytest_allure.how_to_guide.md)
 
 - For now, the Buildmeister can get the link to the Allure reports by navigating
   GitHub Actions page
@@ -202,20 +235,20 @@ for detailed information.
       vertical line corresponds to a certain version of the test report, with
       the last line on the right corresponding to the current version
 
-      <img src="figs/buildmeister/trend.png"/>
+      <img src="figs/all.buildmeister.how_to_guide.md/Trend Image.png"/>
     - Monitor the `Duration Trend` to check the time taken to the run all tests
       comparing to historical trends
 
-      <img src="figs/buildmeister/Duration trend.png"/>
+      <img src="figs/all.buildmeister.how_to_guide.md/Duration trend.png"/>
     - Monitor the `Duration Distribution`, where all the tests are divided into
       groups based on how long it took to complete them, and manually compare
       with the last week results
 
-      <img src="figs/buildmeister/Duration Distribution.png"/>
+      <img src="figs/all.buildmeister.how_to_guide.md/Duration Distribution.png"/>
     - Monitor the `Retries Trend` to check the number of retries occured in a
       particular run
 
-      <img src="figs/buildmeister/Reries.png"/>
+      <img src="figs/all.buildmeister.how_to_guide.md/Retries Image.png"/>
     - The idea is to make sure it doesn't have drastic change in the values
 
 - Steps to perform if a test fails, timeouts or breaks
