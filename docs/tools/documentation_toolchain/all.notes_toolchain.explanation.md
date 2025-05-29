@@ -53,7 +53,7 @@ Rel(notes2pdf, style, "Injects LaTeX Style (.sty)")
 
 ## Steps
 
-- **Stage 1 – Clean-up & augmentation**
+1. **Clean-up & augmentation**
   - Performed by: `preprocess_notes.py`
   - Key ideas:
     - Normalizes headers
@@ -61,7 +61,8 @@ Rel(notes2pdf, style, "Injects LaTeX Style (.sty)")
     - Deals with comments
     - Inserts Pandoc YAML front-matter
     - Inserts optional navigation slides
-- **Stage 2 – Diagram extraction**
+
+2. **Diagram extraction**
   - Performed by: `render_images.py`
   - Key ideas:
     - Scans code blocks (e.g., ` plantuml)
@@ -69,13 +70,15 @@ Rel(notes2pdf, style, "Injects LaTeX Style (.sty)")
     - Replaces the code with `![](figs/...)` include
     - Comments out the original block
     - Uses a SHA-256 cache to skip unchanged diagrams
-- **Stage 3 – Orchestration**
+
+3. **Orchestration**
   - Performed by: `notes_to_pdf.py`
   - Key ideas:
     - Calls Stage 1 and Stage 2, then Pandoc, then (for PDF) LaTeX
     - Flags control each sub-action to allow skipping, debugging, or re-running
       steps individually
-- **Stage 4 – Document synthesis**
+
+4. **Document synthesis**
   - Performed by: Pandoc + LaTeX
   - Key ideas:
     - Pandoc converts Markdown to LaTeX (or HTML / Beamer)
