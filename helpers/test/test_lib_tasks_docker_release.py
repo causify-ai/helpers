@@ -964,7 +964,6 @@ class Test_docker_create_candidate_image1(_DockerFlowTestHelper):
         # Call tested function.
         hltadore.docker_create_candidate_image(
             self.mock_ctx,
-            task_definition="test_task",
             user_tag="test_user",
         )
         exp = r"""
