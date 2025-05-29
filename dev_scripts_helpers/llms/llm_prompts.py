@@ -761,6 +761,7 @@ def md_expand() -> _PROMPT_OUT:
     post_container_transforms = ["format_markdown"]
     return system, pre_transforms, post_transforms, post_container_transforms
 
+
 def md_clean_up_how_to_guide() -> _PROMPT_OUT:
     system = _MD_CONTEXT
     system += r"""
@@ -784,6 +785,61 @@ def md_clean_up_how_to_guide() -> _PROMPT_OUT:
     post_container_transforms = ["format_markdown"]
     return system, pre_transforms, post_transforms, post_container_transforms
 
+
+def md_convert_text_to_bullet_points() -> _PROMPT_OUT:
+    system = _MD_CONTEXT
+    system += r"""
+    - Convert the text passed to bullet points using multiple levels of bullets.
+    - Remove formatting (bold, italic, etc.) that is not needed.
+
+    Make sure to lose any information.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {"remove_code_delimiters"}
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def md_convert_table_to_bullet_points() -> _PROMPT_OUT:
+    system = _MD_CONTEXT
+    system += r"""
+    - Convert the table passed to bullet points using multiple levels of bullets.
+    - Remove the formatting (e.g., bold, italic)
+    
+    Make sure to lose any information.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {"remove_code_delimiters"}
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def md_format() -> _PROMPT_OUT:
+    system = _MD_CONTEXT
+    system += r"""
+    - Replace `*` with `-` for bullet points 
+    - Do not use tables unless necessary
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {"remove_code_delimiters"}
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def md_remove_formatting() -> _PROMPT_OUT:
+    system = _MD_CONTEXT
+    system += r"""
+    You will:
+    - Maintain the structure of the text and keep the content of the existing
+      text
+    - Remove the formatting (e.g., bold, italic)
+
+    Print only the markdown without any explanation.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {"remove_code_delimiters"}
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
 
 # #############################################################################
 # Latex
@@ -1070,7 +1126,10 @@ def slide_smart_colorize() -> _PROMPT_OUT:
 def text_rephrase() -> _PROMPT_OUT:
     """
     """
-    system = hio.from_file("text_rephrase.txt")
+    if os.path.exists("text_rephrase.txt"):
+        system = hio.from_file("text_rephrase.txt")
+    else:
+        system = ""
     pre_transforms: Set[str] = set()
     post_transforms: Set[str] = set()
     post_container_transforms = ["format_markdown"]
