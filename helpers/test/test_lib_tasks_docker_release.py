@@ -7,7 +7,6 @@ import boto3
 import moto
 import pytest
 
-import helpers.hgit as hgit
 import helpers.hunit_test as hunitest
 import helpers.lib_tasks_docker as hlitadoc
 import helpers.lib_tasks_docker_release as hltadore
@@ -968,18 +967,9 @@ class Test_docker_create_candidate_image1(_DockerFlowTestHelper):
             task_definition="test_task",
             user_tag="test_user",
         )
-        # Check if amp is a submodule.
-        is_in_amp_as_submodule = hgit.is_in_amp_as_submodule()
-        _LOG.info("is_in_amp_as_submodule=%s", is_in_amp_as_submodule)
-        # Set the expected docker command based on whether amp is a submodule.
-        if is_in_amp_as_submodule:
-            exp = r"""
-            invoke docker_cmd -c "amp/datapull/aws/aws_update_task_definition.py -t test_task -i test_user-4759b3685f903e6c669096e960b248ec31c63b69 -r eu-north-1"
-            """
-        else:
-            exp = r"""
-            invoke docker_cmd -c "datapull/aws/aws_update_task_definition.py -t test_task -i test_user-4759b3685f903e6c669096e960b248ec31c63b69 -r eu-north-1"
-            """
+        exp = r"""
+        invoke docker_cmd -c "datapull/aws/aws_update_task_definition.py -t test_task -i test_user-4759b3685f903e6c669096e960b248ec31c63b69 -r eu-north-1"
+        """
         self._check_docker_command_output(exp, self.mock_run.call_args_list)
         # Verify the mocks were called with correct parameters.
         self.mock_build_prod.assert_called_once_with(
