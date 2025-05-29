@@ -177,7 +177,7 @@ class _OpenAICacheTestCase(hunitest.TestCase):
     """
 
     @pytest.fixture(autouse=True)
-    def setup_teardown_test(self) -> None:
+    def setup_teardown_test(self):
         # Using test cache file to prevent ruining the actual cache file.
         # TODO(Sai): Reuse get_scratch_space().
         # self.cache_file = self.get_scratch_space()+f"/{_TEST_CACHE_FILE}"
@@ -199,7 +199,7 @@ class _OpenAICacheTestCase(hunitest.TestCase):
         """
         original_get_completion = hopenai.get_completion
 
-        def replay_get_completion(**kwargs) :
+        def replay_get_completion(**kwargs):
             return original_get_completion(**kwargs, cache_mode="REPLAY")
 
         self.patcher = umock.patch.object(
@@ -419,7 +419,7 @@ class Test_response_to_txt(hunitest.TestCase):
     # --- Dummy classes to satisfy isinstance checks --- #
     class DummyChatCompletion:
 
-        def __init__(self, text="") -> None:
+        def __init__(self, text: str = "") -> None:
             msg = types.SimpleNamespace(content=text)
             choice = types.SimpleNamespace(message=msg)
             self.choices = [choice]
@@ -434,7 +434,7 @@ class Test_response_to_txt(hunitest.TestCase):
 
     class DummyThreadMessage:
 
-        def __init__(self, text="") -> None:
+        def __init__(self, text: str = "") -> None:
             # mimic .content[0].text.value
             value_obj = types.SimpleNamespace(value=text)
             text_obj = types.SimpleNamespace(text=value_obj)
@@ -1003,34 +1003,38 @@ class Test_calculate_cost(hunitest.TestCase):
         """
         Scenario: Known OpenAI model and token counts produce expected cost.
         """
-        # TODO: implement test to assert correct cost calculation for OpenAI provider branch.
+        # TODO(Sai): implement test to assert correct cost calculation for OpenAI provider branch.
 
     def test_openai_unknown_model(self) -> None:
         """
         Scenario: Passing an unknown OpenAI model should raise an assertion or ValueError.
         """
-        # TODO: implement test that unsupported model triggers appropriate error.
+        # TODO(Sai): implement test that unsupported model triggers appropriate error.
 
-    def test_openrouter_download_and_save(self):
+    def test_openrouter_download_and_save(self) -> None:
         """
-        Scenario: No CSV file exists for OpenRouter; should retrieve model info, save CSV, then calculate cost.
+        Scenario: No CSV file exists for OpenRouter; should retrieve
+         model info, save CSV, then calculate cost.
         """
-        # TODO: use pytest tmp_path to simulate missing file, patch retrieve and save, assert CSV creation and cost.
+        # TODO(Sai): use pytest tmp_path to simulate missing file, patch retrieve and save, assert CSV creation and cost.
 
     def test_openrouter_load_existing_csv(self) -> None:
         """
-        Scenario: CSV file exists for OpenRouter; should load CSV and calculate cost without fetching.
+        Scenario: CSV file exists for OpenRouter; should load CSV and
+         calculate cost without fetching.
         """
-        # TODO: write a sample CSV to tmp_path, patch os.path.isfile/read_csv, assert cost matches expected.
+        # TODO(Sai): write a sample CSV to tmp_path, patch os.path.isfile/read_csv, assert cost matches expected.
 
     def test_openrouter_missing_model(self) -> None:
         """
-        Scenario: CSV exists but missing the requested model ID; should raise an assertion error.
+        Scenario: CSV exists but missing the requested model ID; should
+          raise an assertion error.
         """
-        # TODO: simulate CSV lacking the model row and assert that dassert_in triggers an error.
+        # TODO(Sai): simulate CSV lacking the model row and assert that dassert_in triggers an error.
 
     def test_openrouter_invalid_csv(self) -> None:
         """
-        Scenario: Existing CSV is malformed or unreadable; should raise a parsing or assertion error.
+        Scenario: Existing CSV is malformed or unreadable; should raise
+          a parsing or assertion error.
         """
-        # TODO: simulate malformed CSV content and assert exception is raised.
+        # TODO(Sai): simulate malformed CSV content and assert exception is raised.
