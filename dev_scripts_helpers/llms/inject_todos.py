@@ -17,8 +17,7 @@ _LOG = logging.getLogger(__name__)
 
 # TODO(gp): -> _parser() or _get_parser() everywhere.
 def _parse() -> argparse.ArgumentParser:
-    """
-    """
+    """ """
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -31,9 +30,7 @@ def _parse() -> argparse.ArgumentParser:
         help="File containing the TODOs to inject",
     )
     parser.add_argument(
-        "--todo_target",
-        action="store_true",
-        help="User name to use in the TODOs"
+        "--todo_target", action="store_true", help="User name to use in the TODOs"
     )
     hparser.add_verbosity_arg(parser)
     return parser
@@ -45,7 +42,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Read the cfile.
     cfile_txt = hio.from_file(args.cfile)
     # Inject the TODOs.
-    todo_txt = hmarkdo.inject_todos_from_cfile(cfile_txt, args.todo_target, comment_prefix="#")
+    todo_txt = hmarkdo.inject_todos_from_cfile(
+        cfile_txt, args.todo_target, comment_prefix="#"
+    )
 
 
 if __name__ == "__main__":

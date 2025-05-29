@@ -371,7 +371,9 @@ def parse_input_output_args(
     return in_file_name, out_file_name
 
 
-def init_logger_for_input_output_transform(args: argparse.Namespace, *, verbose: bool = True) -> None:
+def init_logger_for_input_output_transform(
+    args: argparse.Namespace, *, verbose: bool = True
+) -> None:
     """
     Initialize the logger when input/output transformation is used.
 

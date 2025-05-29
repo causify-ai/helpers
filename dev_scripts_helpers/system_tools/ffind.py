@@ -70,13 +70,15 @@ def _main(parser: argparse.ArgumentParser) -> None:
     cmd = []
     cmd.append(f"find {dir_name}")
     # Skip certain dirs.
-    cmd.append(r"\( -path './.git' -o -path './.ipynb_checkpoints' -o -path ./.mypy_cache \) -prune -o")
+    cmd.append(
+        r"\( -path './.git' -o -path './.ipynb_checkpoints' -o -path ./.mypy_cache \) -prune -o"
+    )
     if args.only_files:
         cmd.append("-type f")
     cmd.append('-iname "%s"' % name)
     # Guarantee that only non-pruned files are printed.
-    cmd.append('-print')
-    cmd.append('| grep -v __pycache__')
+    cmd.append("-print")
+    cmd.append("| grep -v __pycache__")
     cmd.append("| sort")
     cmd = " ".join(cmd)
     if (args.log_level == "DEBUG") or args.log:

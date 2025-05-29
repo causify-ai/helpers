@@ -1,78 +1,57 @@
 <!-- toc -->
 
 - [Notes Documentation Toolchain](#notes-documentation-toolchain)
-  * [1. Generate Slides and PDFs — `notes_to_pdf.py`](#1-generate-slides-and-pdfs--notes_to_pdfpy)
+  * [notes_to_pdf.py](#notes_to_pdfpy)
     + [What it does](#what-it-does)
-    + [Most used flags](#most-used-flags)
     + [Quickstart recipes](#quickstart-recipes)
     + [CLI flags cheatsheet](#cli-flags-cheatsheet)
     + [Worked examples](#worked-examples)
-      - [Slides with navigation breadcrumbs](#slides-with-navigation-breadcrumbs)
-      - [Focus on a subsection](#focus-on-a-subsection)
-      - [Plain PDF article](#plain-pdf-article)
-  * [2. Auto render figures — `render_images.py`](#2-auto-render-figures--render_imagespy)
+  * [render_images.py](#render_imagespy)
     + [Supported File types and Code blocks](#supported-file-types-and-code-blocks)
     + [Quick Start Recipes](#quick-start-recipes)
-      - [Render to a new file](#render-to-a-new-file)
-      - [Render in‑place (Markdown or LaTeX)](#render-in%E2%80%91place-markdown-or-latex)
-      - [HTML preview of already‑rendered images](#html-preview-of-already%E2%80%91rendered-images)
-      - [Dry‑run (test parsing / comments only)](#dry%E2%80%91run-test-parsing--comments-only)
     + [Flags](#flags)
-  * [3. Lint and Prettify — `lint_notes.py`](#3-lint-and-prettify--lint_notespy)
+  * [`lint_notes.py`](#lint_notespy)
     + [Quickstart recipes](#quickstart-recipes-1)
-      - [Prettify with Dockerised Prettier and TOC rebuild](#prettify-with-dockerised-prettier-and-toc-rebuild)
-      - [Custom print width and selective actions](#custom-print-width-and-selective-actions)
     + [Flags](#flags-1)
-  * [4. Notebook Image Scraping — `extract_notebook_images.py`](#4-notebook-image-scraping--extract_notebook_imagespy)
+  * [`extract_notebook_images.py`](#extract_notebook_imagespy)
     + [Flag Options](#flag-options)
   * [5. LLM Powered Transforms — `llm_transform.py`](#5-llm-powered-transforms--llm_transformpy)
     + [Minimum viable command](#minimum-viable-command)
     + [Finding available prompts](#finding-available-prompts)
     + [Flags](#flags-2)
     + [Example recipes](#example-recipes)
-  * [6. Pandoc Wrapper — `run_pandoc.py`](#6-pandoc-wrapper--run_pandocpy)
+  * [`run_pandoc.py`](#run_pandocpy)
     + [What the script does](#what-the-script-does)
     + [Quickstart commands](#quickstart-commands)
     + [Flags](#flags-3)
-  * [7. Automate notes transformations — `transform_notes.py`](#7-automate-notes-transformations--transform_notespy)
+  * [`transform_notes.py`](#transform_notespy)
     + [What it does](#what-it-does-1)
-    + [Supported actions](#supported-actions)
+    + [Example of Supported Actions](#example-of-supported-actions)
     + [Examples](#examples)
     + [Flags](#flags-4)
-  * [8. Scrape headers from a markdown — `extract_headers_from_markdown.py`](#8-scrape-headers-from-a-markdown--extract_headers_from_markdownpy)
+  * [`extract_headers_from_markdown.py`](#extract_headers_from_markdownpy)
     + [Goal](#goal)
     + [Examples](#examples-1)
-    + [Flags](#flags-5)
-  * [9. TikZ to Bitmap — `dockerized_tikz_to_bitmap.py`](#9-tikz-to-bitmap--dockerized_tikz_to_bitmappy)
+  * [`dockerized_tikz_to_bitmap.py`](#dockerized_tikz_to_bitmappy)
     + [Examples](#examples-2)
-  * [10. Graphviz Renderer — `dockerized_graphviz.py`](#10-graphviz-renderer--dockerized_graphvizpy)
+  * [`dockerized_graphviz.py`](#dockerized_graphvizpy)
     + [What it does](#what-it-does-2)
-    + [Most used flags](#most-used-flags-1)
+    + [Most used flags](#most-used-flags)
     + [Quickstart recipes](#quickstart-recipes-2)
-    + [CLI flags cheatsheet](#cli-flags-cheatsheet-1)
-  * [11. LaTeX Renderer — `dockerized_latex.py`](#11-latex-renderer--dockerized_latexpy)
+  * [dockerized_latex.py](#dockerized_latexpy)
     + [What it does](#what-it-does-3)
-    + [Most used flags](#most-used-flags-2)
     + [Quickstart recipes](#quickstart-recipes-3)
-    + [CLI flags cheatsheet](#cli-flags-cheatsheet-2)
-  * [12. Mermaid Renderer — `dockerized_mermaid.py`](#12-mermaid-renderer--dockerized_mermaidpy)
+  * [dockerized_mermaid.py](#dockerized_mermaidpy)
     + [What it does](#what-it-does-4)
-    + [Most used flags](#most-used-flags-3)
-    + [Quickstart recipes](#quickstart-recipes-4)
-    + [CLI flags cheatsheet](#cli-flags-cheatsheet-3)
-  * [13. Pandoc Renderer — `dockerized_pandoc.py`](#13-pandoc-renderer--dockerized_pandocpy)
+  * [dockerized_pandoc.py](#dockerized_pandocpy)
     + [What it does](#what-it-does-5)
-    + [Most used flags](#most-used-flags-4)
-    + [Quickstart recipes](#quickstart-recipes-5)
-    + [CLI flags cheat‑sheet](#cli-flags-cheat%E2%80%91sheet)
-  * [14. Prettier Formatter — `dockerized_prettier.py`](#14-prettier-formatter--dockerized_prettierpy)
+    + [Quickstart recipes](#quickstart-recipes-4)
+  * [`dockerized_prettier.py`](#dockerized_prettierpy)
     + [What it does](#what-it-does-6)
-    + [Most used flags](#most-used-flags-5)
-    + [Quickstart recipes](#quickstart-recipes-6)
-    + [CLI flags cheatsheet](#cli-flags-cheatsheet-4)
-  * [15. MacOS screenshot helper — `save_screenshot.py`](#15-macos-screenshot-helper--save_screenshotpy)
+    + [Quickstart recipes](#quickstart-recipes-5)
+    + [Interface](#interface)
+  * [`save_screenshot.py`](#save_screenshotpy)
     + [What it does](#what-it-does-7)
-    + [Flags](#flags-6)
 
 <!-- tocstop -->
 
@@ -81,7 +60,7 @@
 - This is a high‑level guide to the helper scripts that turn raw `.txt` notes
   into polished PDFs, slide decks, and more.
 
-// TODO(*): Is it worth to report the flags? It's difficult to maintain
+// TODO(\*): Is it worth to report the flags? It's difficult to maintain
 
 ## notes_to_pdf.py
 
@@ -93,12 +72,70 @@
   > notes_to_pdf.py --input <infile.txt> --output <outfile.[pdf|html]> --type [pdf|html|slides]
   ```
 
-- The most used flags are
-  - `--type {pdf|html|slides}`
-  - `--toc_type {none|pandoc_native|navigation}`
-  - `--debug_on_error`, `--skip_action ...`, `--filter_by_lines A:B`
+- The interface is:
+  ```
+  > notes_to_pdf.py -h
+  usage: notes_to_pdf.py [-h] -i INPUT -o OUTPUT --type {pdf,html,slides}
+                         [--filter_by_header FILTER_BY_HEADER]
+                         [--filter_by_lines FILTER_BY_LINES] [--script SCRIPT]
+                         [--preview_actions]
+                         [--toc_type {none,pandoc_native,navigation}]
+                         [--no_run_latex_again] [--debug_on_error]
+                         [--gdrive_dir GDRIVE_DIR] [--use_host_tools]
+                         [--action {cleanup_before,preprocess_notes,render_images,run_pandoc,copy_to_gdrive,open,cleanup_after} | --skip_action {cleanup_before,preprocess_notes,render_images,run_pandoc,copy_to_gdrive,open,cleanup_after}]
+                         [--all] [--dockerized_force_rebuild]
+                         [--dockerized_use_sudo]
+                         [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 
-###  Quickstart recipes
+  Convert a txt file into a PDF / HTML / slides using `pandoc`.
+
+  # From scratch with TOC:
+  > notes_to_pdf.py -a pdf --input ...
+
+  # For interactive mode:
+  > notes_to_pdf.py -a pdf --no_cleanup_before --no_cleanup --input ...
+
+  # Check that can be compiled:
+  > notes_to_pdf.py -a pdf --no_toc --no_open_pdf --input ...
+
+  > notes_to_pdf.py     --input notes/IN_PROGRESS/math.The_hundred_page_ML_book.Burkov.2019.txt     -t pdf     --no_cleanup --no_cleanup_before --no_run_latex_again --no_open
+
+  options:
+    -h, --help            show this help message and exit
+    -i INPUT, --input INPUT
+    -o OUTPUT, --output OUTPUT
+                          Output file
+    --type {pdf,html,slides}
+                          Type of output to generate
+    --filter_by_header FILTER_BY_HEADER
+                          Filter by header
+    --filter_by_lines FILTER_BY_LINES
+                          Filter by lines (e.g., `0:10`, `1:None`, `None:10`)
+    --script SCRIPT       Bash script to generate with all the executed sub-
+                          commands
+    --preview_actions     Print the actions and exit
+    --toc_type {none,pandoc_native,navigation}
+    --no_run_latex_again
+    --debug_on_error
+    --gdrive_dir GDRIVE_DIR
+                          Directory where to save the output to share on Google
+                          Drive
+    --use_host_tools      Use the host tools instead of the dockerized ones
+    --action {cleanup_before,preprocess_notes,render_images,run_pandoc,copy_to_gdrive,open,cleanup_after}
+                          Actions to execute
+    --skip_action {cleanup_before,preprocess_notes,render_images,run_pandoc,copy_to_gdrive,open,cleanup_after}
+                          Actions to skip
+    --all                 Run all the actions (cleanup_before preprocess_notes
+                          render_images run_pandoc open cleanup_after)
+    --dockerized_force_rebuild
+                          Force to rebuild the Docker container
+    --dockerized_use_sudo
+                          Use sudo inside the container
+    -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
+                          Set the logging level
+  ```
+
+### Examples
 
 - Compile to **Beamer slides**
   ```
@@ -120,42 +157,8 @@
 - **Tip**: Run with `--preview_actions` to print the exact steps without
   executing them.
 
-### CLI flags cheatsheet
-
-- `--type {pdf,html,slides}`
-  - Purpose: Specifies the output format
-  - Notes: The "slides" option uses Beamer
-- `--toc_type {none,pandoc_native,navigation}`
-  - Purpose: Determines the Table of Contents (TOC) style
-  - Notes: The `navigation` option inserts slide-friendly breadcrumb frames
-- `--filter_by_header "# Intro"`
-  - Purpose: Builds an artefact from a section subset
-  - Notes: This is useful for testing
-- `--filter_by_lines 120:250`
-  - Purpose: Compiles only a specified range of lines
-  - Notes: Accepts `None` as a sentinel value
-- `--debug_on_error`
-  - Purpose: On Pandoc failure, generates a _.tex_ file and provides a helpful
-    log
-  - Notes: No additional notes
-- `--script myrun.sh`
-  - Purpose: Saves every shell command executed
-  - Notes: Useful for reproducing build pipelines
-- Docker knobs:
-  - Options:
-    - `--dockerized_force_rebuild`
-    - `--dockerized_use_sudo`
-    - `--use_host_tools`
-  - Purpose: Controls the use of container vs host for pandoc/latex
-
-- Run `notes_to_pdf.py -h` for the exhaustive list.
-
-### Worked examples
-
 - Slides with navigation breadcrumbs, keeping intermediate files for inspection
-
-// TODO(indro): `--toc_type navigation` fails because of the preprocess step.
-
+  // TODO(indro): `--toc_type navigation` fails because of the preprocess step.
   ```bash
   > notes_to_pdf.py \
       --input MSML610/Lesson5-Theory_Statistical_learning.txt \
@@ -166,8 +169,8 @@
       --skip_action cleanup_after
   ```
 
-- Focus on a subsection, compiling only from line 362 to EOF for a fast iteration
-  when debugging slides
+- Focus on a subsection, compiling only from line 362 to EOF for a fast
+  iteration when debugging slides
   ```bash
   > notes_to_pdf.py \
       --input Lesson8-Reasoning_over_time.txt \
@@ -184,11 +187,13 @@
 
 ## render_images.py
 
+### What it does
+
 - This script auto renders figures by
-  - detecting fenced code blocks (PlantUML, Mermaid, TikZ, Graphviz, ...)
-  - rendering them into images calling the appropriate tool
-  - commenting them out the block
-  - inlining a `![](img)` markup
+  - Detecting fenced code blocks (PlantUML, Mermaid, TikZ, Graphviz, ...)
+  - Rendering them into images calling the appropriate tool
+  - Commenting them out the block
+  - Inlining a `![](img)` markup
 
 - Render the images in a text file
   ```bash
@@ -196,34 +201,36 @@
       -o lesson9.images.txt --run_dockerized
   ```
 
-### Supported File types and Code blocks
+The supported File types and code blocks are:
+  - File extension: `.md`, `.txt`
+    - Rendering syntax allowed:
+      - `plantuml`
+      - `mermaid`
+      - `graphviz`
+      - `tikz`
+      - `latex`
+    - Output embeds as: `<img src="figs/xxx.png">`
+  - File extension: `.tex`
+    - Rendering syntax allowed:
+      - Same tags (TikZ & LaTeX especially)
+    - Output embeds as: `\includegraphics{...}`
 
-- File extension: `.md`, `.txt`
-  - Rendering syntax allowed:
-    - `plantuml`
-    - `mermaid`
-    - `graphviz`
-    - `tikz`
-    - `latex`
-  - Output embeds as: `<img src="figs/xxx.png">`
-- File extension: `.tex`
-  - Rendering syntax allowed:
-    - same tags (TikZ & LaTeX especially)
-  - Output embeds as: `\includegraphics{...}`
-
-### Quick Start Recipes
+### Examples
 
 - Render to a new file
+
   ```bash
   > render_images.py -i lesson.md -o lesson.rendered.md --action render --run_dockerized
   ```
 
 - Render in‑place (Markdown or LaTeX)
+
   ```bash
   > render_images.py -i lesson.md --action render --run_dockerized
   ```
 
 - HTML preview of already‑rendered images
+
   ```bash
   > render_images.py -i lesson.md --action open --run_dockerized
   ```
@@ -233,38 +240,71 @@
   > render_images.py -i lesson.md -o /tmp/out.md --dry_run
   ```
 
-### Flags
+### Interface
 
-- `-i/--in_file_name`
-  - Default: required
-  - Purpose: Input `.md`, `.tex`, or `.txt`
-- `-o/--out_file_name`
-  - Default: `<input>`
-  - Purpose: Output path (must share extension)
-- `--action`
-  - Default: `render`
-  - Purpose: `render` ↔ `open`
-- `--dry_run`
-  - Default: False
-  - Purpose: Skip actual rendering, still rewrites markup
-- `--run_dockerized / --dockerized_*`
-  - Default: False
-  - Purpose: Use pre-built container images for PlantUML, Mermaid, etc
-- `--verbosity/-v`
-  - Default: `INFO`
-  - Purpose: Logging verbosity
+- The interface
+
+  ```bash
+  > render_images.py -h
+  usage: render_images.py [-h] -i IN_FILE_NAME [-o OUT_FILE_NAME]
+                          [--action {open,render} | --skip_action {open,render}]
+                          [--all] [--dry_run] [--dockerized_force_rebuild]
+                          [--dockerized_use_sudo]
+                          [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
+
+  Replace sections of image code with rendered images, commenting out the
+  original code, if needed.
+
+  See `docs/work_tools/documentation_toolchain/all.render_images.explanation.md`.
+
+  Usage:
+
+  # Create a new Markdown file with rendered images:
+  > render_images.py -i ABC.md -o XYZ.md --action render --run_dockerized
+
+  # Render images in place in the original Markdown file:
+  > render_images.py -i ABC.md --action render --run_dockerized
+
+  # Render images in place in the original LaTeX file:
+  > render_images.py -i ABC.tex --action render --run_dockerized
+
+  # Open rendered images from a Markdown file in HTML to preview:
+  > render_images.py -i ABC.md --action open --run_dockerized
+
+  options:
+    -h, --help            show this help message and exit
+    -i IN_FILE_NAME, --in_file_name IN_FILE_NAME
+                          Path to the input file
+    -o OUT_FILE_NAME, --out_file_name OUT_FILE_NAME
+                          Path to the output file
+    --action {open,render}
+                          Actions to execute
+    --skip_action {open,render}
+                          Actions to skip
+    --all                 Run all the actions ()
+    --dry_run             Update the file but do not render images
+    --dockerized_force_rebuild
+                          Force to rebuild the Docker container
+    --dockerized_use_sudo
+                          Use sudo inside the container
+    -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
+                          Set the logging level
+    ```
 
 ## `lint_notes.py`
 
-- Tidy up Markdown/LaTeX/txt notes by:
-  - normalising G‑Doc artifacts
-  - running Prettier
-  - fixing bullet/heading quirks
-  - refreshing the Table of Contents
+### What it does
 
-### Quickstart recipes
+- Tidy up Markdown/LaTeX/txt notes by:
+  - Normalising G‑Doc artifacts
+  - Running Prettier
+  - Fixing bullet/heading quirks
+  - Refreshing the Table of Contents
+
+### Examples
 
 - Prettify with Dockerised Prettier and TOC rebuild
+
   ```bash
   > lint_notes.py -i Lesson10.md \
        --use_dockerized_prettier \
@@ -277,36 +317,20 @@
                 --action preprocess,prettier,postprocess
   ```
 
-### Flags
+### Interface
 
-- `-i/--infile`
-  - Default: stdin
-  - Purpose: Input `.txt` or `.md` (also via pipe)
-- `-o/--outfile`
-  - Default: stdout
-  - Purpose: Destination file (omit for pipe)
-- `-w/--print-width`
-  - Default: None $\rightarrow$ Prettier default
-  - Purpose: Line wrap width
-- `--use_dockerized_prettier`
-  - Default: False
-  - Purpose: Run Prettier inside helper container
-- `--use_dockerized_markdown_toc`
-  - Default: False
-  - Purpose: Refresh TOC via containerised `markdown-toc`
-- `--action`
-  - Default: all five stages
-  - Purpose: Comma-separated subset of: `preprocess`, `prettier`, `postprocess`,
-    `frame_chapters`, `refresh_toc`
-- `-v/--verbosity`
-  - Default: INFO
-  - Purpose: Logging level
+// TODO
 
 ## `extract_notebook_images.py`
 
-- Spins up a docker container and dumps every `png/svg` output cell into a folder.
+### What it does
+
+- Spins up a docker container and dumps every `png/svg` output cell into a
+  folder.
 - You can then publish or reuse the static plots/diagrams already rendered in a
   Jupyter notebook.
+
+### Example
 
 - Minimal call:
   ```bash
@@ -315,100 +339,62 @@
       --out_image_dir notebooks/screenshots
   ```
 
-### Flag Options
+### Interface
 
-- `-i / --in_notebook_filename PATH`
-  - Purpose: Notebook to scan
-  - Default: required
-- `-o / --out_image_dir DIR`
-  - Purpose: Folder where images land
-  - Default: required
-- `--dockerized_force_rebuild`
-  - Purpose: Re-build the Docker image (use if you changed extractor code)
-  - Default: false
-- `--dockerized_use_sudo`
-  - Purpose: Prepend `sudo docker ...`
-  - Default: auto-detects
-- `-v INFO/DEBUG`
-  - Purpose: Log verbosity
-  - Default: `INFO`
+// TODO
 
----
+## `llm_transform.py`
 
-## 5. LLM Powered Transforms — `llm_transform.py`
+### What it does
 
-Apply a GPT‑style transformation (rewrite, summarise, critique code, convert to
-slides, etc.) to any text file _without_ leaving the terminal / editor.
+- Apply a GPT‑style transformation (rewrite, summarise, critique code, convert to
+  slides, etc.) to any text file _without_ leaving the terminal / editor.
 
-> _Note: You need to have an `OPENAI_API_KEY` and an internet connection._
+- **Note**: You need to have an `OPENAI_API_KEY` and an internet connection.
 
-### Minimum viable command
+### Examples
 
-```bash
-llm_transform.py -i draft.txt -o polished.txt -p rewrite_clearer
-```
+- TODO
+  ```bash
+  llm_transform.py -i draft.txt -o polished.txt -p rewrite_clearer
+  ```
 
-### Finding available prompts
-
-```bash
-llm_transform.py -p list -i - -o -
-```
-
-### Flags
-
-- `-i / --input`
-  - Role: Source text (`-` = stdin)
-  - Notes: None
-- `-o / --output`
-  - Role: Destination (`-` = stdout)
-  - Notes: None
-- `-p / --prompt`
-  - Role: Prompt tag (`list`, `code_review`, `slide_colorize`, ...)
-  - Notes: Required
-- `-c / --compare`
-  - Role: Print both original & transformed blocks to stdout
-  - Notes: Helpful for quick diff
-- `-b / --bold_first_level_bullets`
-  - Role: Post-format tweak for slide prompts
-  - Notes: None
-- `-s / --skip-post-transforms`
-  - Role: Return raw LLM output, skip prettier/cleanup
-  - Notes: None
-- Docker flags
-  - Flags: `--dockerized_force_rebuild`, `--dockerized_use_sudo`
-  - Role: Control container lifecycle
-  - Notes: None
-
-### Example recipes
+- Finding available prompts
+  ```bash
+  llm_transform.py -p list -i - -o -
+  ```
 
 - Turn a code file into a review checklist
-
   ```bash
   > llm_transform.py -i foo.py -o cfile -p code_review
   vim cfile
   ```
 
-- **Color‑accent the bold bullets for slides**
+- Color‑accent the bold bullets for slides
 
   ```bash
   > llm_transform.py -i deck.md -o - -p slide_colorize | tee deck.color.md
   ```
 
-- **Inline use in Vim** – visual‑select a block, then:
+- Inline use in Vim, visual‑select a block, then:
 
   ```vim
   :'<,'>!llm_transform.py -p summarize -i - -o -
   ```
 
+### Interface
+
+// TODO
+
 ## `run_pandoc.py`
 
-### What the script does
+### What it does
 
 - Reads **Markdown** from _stdin_ or `--input` file.
 - Dispatches to a named **action** (currently only `convert_md_to_latex`).
 - Pushes the Pandoc output to _stdout_ or the `--output` file.
 
-### Quickstart commands
+### Example
 
 - Convert a Markdown file to LaTeX
   ```
@@ -423,9 +409,9 @@ llm_transform.py -p list -i - -o -
   :<,'>!run_pandoc.py -i - -o - -v CRITICAL
   ```
 
-**Tip :** pass `-v CRITICAL` to silence helper logging when piping into editors.
+- **Tip:** pass `-v CRITICAL` to silence helper logging when piping into editors.
 
-### Flags
+### Interface
 
 - `-i / --input`
   - Default: `-`
@@ -448,34 +434,33 @@ llm_transform.py -p list -i - -o -
 - Applies a named **action** (`-a/--action`).
 - Writes the result to the given output (in‑place, file, or `-`).
 
-### Example of Supported Actions
-
-- Run `-a list` to print a list of the valid
-
-- `toc`
-  - Generate a bullet TOC (top-level by default)
-  - Typical Vim one-liner: `:!transform_notes.py -a toc -i % -l 1`
-- `format_headers`
-  - Re-flow / indent headers (up to `--max_lev`)
-  - Typical Vim one-liner: `:%!transform_notes.py -a format -i - --max_lev 3`
-- `increase_headers_level`
-  - Bump all headers down one level
-  - Typical Vim one-liner: `:%!transform_notes.py -a increase -i -`
-- `md_list_to_latex`
-  - Convert a Markdown list to LaTeX `\begin{itemize}`
-  - Typical Vim one-liner: `:%!transform_notes.py -a md_list_to_latex -i -`
-- `md_*` family
-  - Formatting clean-ups (bold bullets, colorize bold text, etc.)
-  - Additional Information: See `-a list` for more details
-
 ### Examples
 
+- Run `-a list` to print a list of the valid
+  - `toc`
+    - Generate a bullet TOC (top-level by default)
+    - Typical Vim one-liner: `:!transform_notes.py -a toc -i % -l 1`
+  - `format_headers`
+    - Re-flow / indent headers (up to `--max_lev`)
+    - Typical Vim one-liner: `:%!transform_notes.py -a format -i - --max_lev 3`
+  - `increase_headers_level`
+    - Bump all headers down one level
+    - Typical Vim one-liner: `:%!transform_notes.py -a increase -i -`
+  - `md_list_to_latex`
+    - Convert a Markdown list to LaTeX `\begin{itemize}`
+    - Typical Vim one-liner: `:%!transform_notes.py -a md_list_to_latex -i -`
+  - `md_*` family
+    - Formatting clean-ups (bold bullets, colorize bold text, etc.)
+    - Additional Information: See `-a list` for more details
+
 - Re‑flow & clean a file in place
+
   ```bash
   > transform_notes.py -a md_format -i notes/lecture.txt --in_place
   ```
 
 - Generate a 2‑level TOC to STDOUT
+
   ```bash
   > transform_notes.py -a toc -i notes/lecture.md -o - -l 2
   ```
@@ -485,37 +470,22 @@ llm_transform.py -p list -i - -o -
   :'<,'>!transform_notes.py -i - -o - -a md_fix_chatgpt_output
   ```
 
-### Flags
-
-- `-a / --action`
-  - Default: Required
-  - Purpose: Choose the transformation
-- `-l / --max_lev`
-  - Default: 5
-  - Purpose: Header depth for `format_headers`
-- `-i / --input`
-  - Default: `-`
-  - Purpose: File path or `-` (STDIN)
-- `-o / --output`
-  - Default: `-`
-  - Purpose: File path or `-` (STDOUT)
-- `--in_place`
-  - Default: False
-  - Purpose: Overwrite input file instead of writing elsewhere
+### Interface
 
 ## `extract_headers_from_markdown.py`
 
-### Goal
+### What it does
 
-Turn a Markdown document into either:
-- a **plain list** of headers
-- a **nested header map**
-- a \*_Vim_ quick‑fix\*\* (`cfile`) that lets you jump between sections with
-  `:cnext`.
+- Turn a Markdown document into either:
+  - A **plain list** of headers
+  - A **nested header map**
+  - A \*_Vim_ quick‑fix\*\* (`cfile`) that lets you jump between sections with
+    `:cnext`.
 
 ### Examples
 
 - Human‑readable map (levels 1‑3) to `stdout`
+
   ```bash
   > extract_headers_from_markdown.py -i README.md -o - --mode list --max-level 3
   ```
@@ -528,11 +498,12 @@ Turn a Markdown document into either:
 
 ## `dockerized_tikz_to_bitmap.py`
 
-- Converts 
+- Converts
 
 ### Examples
 
 - Plain 300 DPI conversion
+
   ```bash
   > dockerized_tikz_to_bitmap.py -i figure.tikz -o figure.png
   ```
@@ -547,24 +518,18 @@ Turn a Markdown document into either:
 
 ### What it does
 
-Converts a Graphviz `.dot` file into a `.png` image using a Dockerized
-container.
+- Converts a Graphviz `.dot` file into a `.png` image using a Dockerized
+  container.
+  > ```bash
+  > graphviz_wrapper.py --input input.dot --output output.png
+  > ```
 
-> ```bash
-> graphviz_wrapper.py --input input.dot --output output.png
-> ```
+- This script serves as a thin wrapper around Dockerized Graphviz for consistent
+  rendering across systems.
 
-This script serves as a thin wrapper around Dockerized Graphviz for consistent
-rendering across systems.
+### Interface
 
-### Most used flags
-
-- `--input`: path to the `.dot` file
-- `--output`: destination `.png` image file
-- `--dockerized_force_rebuild`: rebuild the container from scratch
-- `--dockerized_use_sudo`: use `sudo` for Docker commands
-
-### Quickstart recipes
+### Examples
 
 - Convert DOT to PNG
   ```
@@ -592,7 +557,7 @@ rendering across systems.
   > latex_wrapper.py --input doc.tex --output doc.pdf
   ```
 
-### Quickstart recipes
+### Examples
 
 - Compile `.tex` to `.pdf`
   ```
@@ -618,12 +583,14 @@ rendering across systems.
 - Renders Mermaid `.mmd` or `.md` diagrams into image files using a Dockerized
   container.
 
+### Examples
+
+- TODO  
   ```bash
   > mermaid_wrapper.py --input flowchart.mmd --output flowchart.png
   ```
 
 - Automatically sets output to match input name if `--output` is omitted
-
 
 - Mermaid diagram
   ```
@@ -646,17 +613,17 @@ rendering across systems.
 
 ### What it does
 
-Converts documents using `pandoc` inside a Docker container.
-Supports output to Beamer slides, PDFs, and more with custom CLI flags.
+- Converts documents using `pandoc` inside a Docker container
+- Supports output to Beamer slides, PDFs, and more with custom CLI flags.
 
 ```bash
 > pandoc_wrapper.py --input notes.md --output slides.pdf -- docker_args...
 ```
 
-Internally builds a Docker container and passes the full `pandoc` command
-string.
+- Internally builds a Docker container and passes the full `pandoc` command
+  string.
 
-### Quickstart recipes
+### Example
 
 - Convert Markdown to PDF
   ```
@@ -679,17 +646,17 @@ string.
 
 ### What it does
 
-Formats text files (`.md`, `.txt`, `.tex`, etc.) using Prettier within a Docker
-container.
-Avoids environment-specific issues and ensures consistent formatting.
+- Formats text files (`.md`, `.txt`, `.tex`, etc.) using Prettier within a Docker
+  container
+- Avoids environment-specific issues and ensures consistent formatting.
+- Supports full Prettier CLI flexibility via passthrough of additional options.
 
-> ```bash
-> dockerized_prettier.py --parser markdown --write test.md
-> ```
+  > ```bash
+  > dockerized_prettier.py --parser markdown --write test.md
+  > ```
 
-Supports full Prettier CLI flexibility via passthrough of additional options.
 
-### Quickstart recipes
+### Examples
 
 - Format a Markdown file
   ```

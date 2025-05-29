@@ -1,3 +1,25 @@
+<!-- toc -->
+
+- [Guidelines for automated PR reviews](#guidelines-for-automated-pr-reviews)
+  * [Python code](#python-code)
+    + [Naming](#naming)
+    + [Docstrings](#docstrings)
+    + [Comments](#comments)
+    + [Code design](#code-design)
+    + [Imports](#imports)
+    + [Type annotations](#type-annotations)
+    + [Functions](#functions)
+    + [Scripts](#scripts)
+    + [Unit tests](#unit-tests)
+    + [Misc](#misc)
+  * [Notebooks](#notebooks)
+    + [General](#general)
+    + [Jupytext](#jupytext)
+  * [Markdowns](#markdowns)
+  * [Spelling](#spelling)
+
+<!-- tocstop -->
+
 # Guidelines for automated PR reviews
 
 ## Python code
@@ -6,7 +28,7 @@
 
 - Name executable Python scripts using verbs and actions
   - E.g., `download.py` and not `downloader.py`
-- Name non-executable files using nouns 
+- Name non-executable files using nouns
   - E.g., `downloader.py`
 - Use `dir` and not `directory` or `folder`
   - E.g., `dir_path`
@@ -78,6 +100,7 @@
 - No import cycles should be introduced by the changes in the PR
 
 ### Type annotations
+
 - All functions and methods, including constructors, must have type annotations
   for all the parameters and returned structures
   - Use `-> None` if a function doesn't return anything
@@ -86,6 +109,7 @@
 - Type annotation `Any` should be avoided, if possible
 
 ### Functions
+
 - Make a function private (e.g., `_foo_bar()`) when it is a helper of another
   private or public function
 
@@ -103,6 +127,7 @@
   - Use `argparse` for argument parsing
 
 ### Unit tests
+
 - Unit tests should be placed in a `test_*.py` file in the `test` directory,
   close to the library / code it tests
   - Test file `test_file_name.py` testing the library `file_name.py`
@@ -117,6 +142,7 @@
   `outcomes` dir should also be renamed or removed
 
 ### Misc
+
 - If a PR includes renaming a file, variable, parameter, function, class, etc.,
   then all the instances and references to it throughout the codebase should be
   updated
@@ -170,9 +196,9 @@
 
 ## Markdowns
 
-- Names of documentation files should follow the format 
-  `docs/{component}/{audience}.{topic}.{diataxis_tag}.md`
-  to help in organizing and categorizing documentation files effectively
+- Names of documentation files should follow the format
+  `docs/{component}/{audience}.{topic}.{diataxis_tag}.md` to help in organizing
+  and categorizing documentation files effectively
   - E.g., `docs/documentation_meta/all.diataxis.explanation.md`
   - The `{component}` part specifies the part of the project the documentation
     is related to
@@ -182,17 +208,34 @@
     Diátaxis framework (e.g., explanation, tutorial)
 - All Markdown files should have a table of contents
   - Linter automatically adds and updates the table of contents
+- Items in bullet point lists should not end with a period
 - There should be one and only one level 1 heading (with one `#`) in a Markdown
   - The level 1 heading serves as the main title of the document
   - It should clearly convey the primary topic or purpose of the document
   - The level 1 heading should be located above the table of contents
+- Wrap file paths, names of variables, functions, and classes in backticks
+  - E.g., `file_path`, `variable_name`, `function_name()`, `ClassName`
+- Use `>` to indicate a command line
+  - E.g., `> git push` or `docker> pytest`
 - Headings should not be boldfaced
 - Headings should not be overcapitalized
   - E.g., `Data schema` instead of `Data Schema`
 - Text should be reflowed to the maximum of 80 columns per line
 - Fenced code blocks should always be accompanied by language markers
   - E.g., `bash`, `python`
-- Indent fenced code blocks at the same level as the previous line
+  - Fenced code blocks should be indented at the same level as the previous line
+- Commands should be prepended by `>` or `docker>` if they need to 
+  - Example
+    ```
+    > notes_to_pdf.py \
+      --input MSML610/Lesson5-Theory_Statistical_learning.txt \
+      --output Lesson5.pdf \
+      --type slides \
+      --toc_type navigation \
+      --debug_on_error \
+      --skip_action cleanup_after
+    ```
+- Commands should be prepended by `docker>` if they need to be run inside Docker
 
 ## Spelling
 

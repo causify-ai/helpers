@@ -776,7 +776,9 @@ def selected_navigation_to_str(
 # #############################################################################
 
 
-def inject_todos_from_cfile(cfile_txt: str, todo_user: str, comment_prefix: str) -> None:
+def inject_todos_from_cfile(
+    cfile_txt: str, todo_user: str, comment_prefix: str
+) -> None:
     """
     Inject the TODOs from a cfile in the corresponding files.
 
@@ -820,9 +822,14 @@ def inject_todos_from_cfile(cfile_txt: str, todo_user: str, comment_prefix: str)
         # Extract the info for the file to process.
         txt, offset, last_line_modified = file_content[file_name]
         _LOG.debug(hprint.to_str("offset last_line_modified"))
-        hdbg.dassert_lt(last_line_modified, todo_line_number,
-                        "The TODOs don't look like they are increasing line numbers: "
-                        "TODO at line %d is before the last line modified %d", todo_line_number, last_line_modified)
+        hdbg.dassert_lt(
+            last_line_modified,
+            todo_line_number,
+            "The TODOs don't look like they are increasing line numbers: "
+            "TODO at line %d is before the last line modified %d",
+            todo_line_number,
+            last_line_modified,
+        )
         # We subtract 1 from the line number since TODOs count from 1, while
         # Python arrays count from 0.
         act_line_number = todo_line_number - 1 + offset

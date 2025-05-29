@@ -1,6 +1,6 @@
 <!-- toc -->
 
-- [`notes_to_pdf.py` - Flow Explanation](#notes_to_pdfpy---flow-explanation)
+- [Flow Explanation](#flow-explanation)
   * [Goal](#goal)
   * [Architecture diagram](#architecture-diagram)
   * [Steps](#steps)
@@ -54,37 +54,41 @@ Rel(notes2pdf, style, "Injects LaTeX Style (.sty)")
 ## Steps
 
 1. **Clean-up & augmentation**
-  - Performed by: `preprocess_notes.py`
-  - Key ideas:
-    - Normalizes headers
-    - Expands arrow shorthand (`->` to `\rightarrow`)
-    - Deals with comments
-    - Inserts Pandoc YAML front-matter
-    - Inserts optional navigation slides
+
+- Performed by: `preprocess_notes.py`
+- Key ideas:
+  - Normalizes headers
+  - Expands arrow shorthand (`->` to `\rightarrow`)
+  - Deals with comments
+  - Inserts Pandoc YAML front-matter
+  - Inserts optional navigation slides
 
 2. **Diagram extraction**
-  - Performed by: `render_images.py`
-  - Key ideas:
-    - Scans code blocks (e.g., ` plantuml)
-    - Renders diagrams via Docker containers
-    - Replaces the code with `![](figs/...)` include
-    - Comments out the original block
-    - Uses a SHA-256 cache to skip unchanged diagrams
+
+- Performed by: `render_images.py`
+- Key ideas:
+  - Scans code blocks (e.g., ` plantuml)
+  - Renders diagrams via Docker containers
+  - Replaces the code with `![](figs/...)` include
+  - Comments out the original block
+  - Uses a SHA-256 cache to skip unchanged diagrams
 
 3. **Orchestration**
-  - Performed by: `notes_to_pdf.py`
-  - Key ideas:
-    - Calls Stage 1 and Stage 2, then Pandoc, then (for PDF) LaTeX
-    - Flags control each sub-action to allow skipping, debugging, or re-running
-      steps individually
+
+- Performed by: `notes_to_pdf.py`
+- Key ideas:
+  - Calls Stage 1 and Stage 2, then Pandoc, then (for PDF) LaTeX
+  - Flags control each sub-action to allow skipping, debugging, or re-running
+    steps individually
 
 4. **Document synthesis**
-  - Performed by: Pandoc + LaTeX
-  - Key ideas:
-    - Pandoc converts Markdown to LaTeX (or HTML / Beamer)
-    - `latex_abbrevs.sty` is copied next to the generated `.tex` file
-    - Ensures vector/matrix macros (`\vv{}`, `\mat{}`), deep lists, and color
-      helpers compile correctly
+
+- Performed by: Pandoc + LaTeX
+- Key ideas:
+  - Pandoc converts Markdown to LaTeX (or HTML / Beamer)
+  - `latex_abbrevs.sty` is copied next to the generated `.tex` file
+  - Ensures vector/matrix macros (`\vv{}`, `\mat{}`), deep lists, and color
+    helpers compile correctly
 
 ## Dependencies
 
@@ -93,9 +97,9 @@ Rel(notes2pdf, style, "Injects LaTeX Style (.sty)")
 - **Input: ** raw notes.
 - **Output: ** Pandoc‑ready Markdown.
 - Handles
-  - formatting banner frames
-  - question formatting
-  - colour commands (`\red{}` -> `\textcolor{red}{...}`)
+  - Formatting banner frames
+  - Question formatting
+  - Colour commands (`\red{}` -> `\textcolor{red}{...}`)
   - TOC injection
 
 ### `render_images.py`

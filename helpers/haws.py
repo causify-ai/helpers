@@ -130,7 +130,8 @@ def update_task_definition(
     replication is enabled from the default region to the target region.
 
     :param task_definition_name: The name of the ECS task definition for
-        which an update to container image URL is made, e.g., `cmamp-test`.
+        which an update to container image URL is made, e.g., `cmamp-
+        test`.
     :param new_image_url: New image URL for task definition. e.g.,
         `***.dkr.ecr.***/cmamp:prod`.
     :param region: AWS region, if None get region from AWS credentials.

@@ -1487,40 +1487,6 @@ class Test_check_header_list1(hunitest.TestCase):
 
 class Test_inject_todos_from_cfile1(hunitest.TestCase):
 
-    def _create_test_file(self, filename: str, content: str) -> str:
-        """
-        Create a test file with given content in the scratch directory.
-        
-        :param scratch_dir: Directory to create file in
-        :param filename: Name of file to create
-        :param content: Content to write to file
-        :return: Full path to created file
-        """
-        scratch_dir = self.get_scratch_space()
-        file_path = os.path.join(scratch_dir, filename)
-        content = hprint.dedent(content)
-        hio.to_file(file_path, content)
-        return file_path
-
-    def _create_cfile(self, cfile_content: List[str]) -> str:
-        """
-        Create a cfile with TODOs in the scratch directory.
-        
-        :param scratch_dir: Directory to create file in
-        :param cfile_content: List of TODO lines to write
-        :return: Full path to created cfile
-        """
-        content = "\n".join(cfile_content)
-        return self._create_test_file("cfile.txt", content)
-
-    def _inject_todos(self, cfile_content: str) -> None:
-        """
-        Helper to inject TODOs with standard parameters.
-        """
-        todo_user ="user"
-        comment_prefix ="#"
-        hmarkdo.inject_todos_from_cfile(cfile_content, todo_user, comment_prefix)
-
     def test1(self) -> None:
         """
         Test injecting TODOs from a cfile into a Python file.
@@ -1529,7 +1495,7 @@ class Test_inject_todos_from_cfile1(hunitest.TestCase):
         test_file_content = """
         def hello(msg):
             print(msg)
-            
+
         def world():
             print("world")
         """
@@ -1548,7 +1514,8 @@ class Test_inject_todos_from_cfile1(hunitest.TestCase):
         # TODO(user): Add type hints.
         def hello(msg):
             print(msg)
-            
+
+
         # TODO(user): Add docstring.
         def world():
             print("world")
@@ -1565,9 +1532,7 @@ class Test_inject_todos_from_cfile1(hunitest.TestCase):
         """
         file_path = self._create_test_file("empty.py", test_file_content)
         # Create cfile with TODOs
-        cfile_content = [
-            f"{file_path}:1: Add content to empty file."
-        ]
+        cfile_content = [f"{file_path}:1: Add content to empty file."]
         self._create_cfile(cfile_content)
         # Run the function under test
         self._inject_todos("\n".join(cfile_content))
@@ -1604,11 +1569,14 @@ class Test_inject_todos_from_cfile1(hunitest.TestCase):
         998 < 2
         ################################################################################
         """
-        self.assert_equal(str(err.exception), expected, dedent=True, fuzzy_match=True)
+        self.assert_equal(
+            str(err.exception), expected, dedent=True, fuzzy_match=True
+        )
 
     def test2(self) -> None:
         """
-        Test injecting TODOs from a cfile into a Python file with a complex class.
+        Test injecting TODOs from a cfile into a Python file with a complex
+        class.
         """
         # Create a test file.
         test_file_content = """
@@ -1619,17 +1587,17 @@ class Test_inject_todos_from_cfile1(hunitest.TestCase):
             def __init__(self):
                 self.logger = logging.getLogger(__name__)
                 self.data = []
-            
+
             def process_batch(self, items):
                 for item in items:
                     self.data.append(self._transform(item))
-                    
+
             def _transform(self, item):
                 return item.upper()
-                
+
             def get_results(self):
                 return self.data
-                
+
             def clear(self):
                 self.data = []
         """
@@ -1642,7 +1610,7 @@ class Test_inject_todos_from_cfile1(hunitest.TestCase):
             f"{file_path}:10: Consider adding batch size validation",
             f"{file_path}:13: Add error handling for non-string inputs",
             f"{file_path}:16: Add return type hint and docstring",
-            f"{file_path}:19: Add docstring explaining clear behavior"
+            f"{file_path}:19: Add docstring explaining clear behavior",
         ]
         self._create_cfile(cfile_content)
         # Run function under test.
@@ -1659,21 +1627,21 @@ class Test_inject_todos_from_cfile1(hunitest.TestCase):
             def __init__(self):
                 self.logger = logging.getLogger(__name__)
                 self.data = []
-            
+
             # TODO(user): Add type hints for items parameter
             def process_batch(self, items):
                 # TODO(user): Consider adding batch size validation
                 for item in items:
                     self.data.append(self._transform(item))
-                    
+
             # TODO(user): Add error handling for non-string inputs
             def _transform(self, item):
                 return item.upper()
-                
+
             # TODO(user): Add return type hint and docstring
             def get_results(self):
                 return self.data
-                
+
             # TODO(user): Add docstring explaining clear behavior
             def clear(self):
                 self.data = []
@@ -1722,6 +1690,40 @@ class Test_inject_todos_from_cfile1(hunitest.TestCase):
             return None
         """
         self.assert_equal(actual2, expected2, dedent=True)
+
+    def _create_test_file(self, filename: str, content: str) -> str:
+        """
+        Create a test file with given content in the scratch directory.
+
+        :param scratch_dir: Directory to create file in
+        :param filename: Name of file to create
+        :param content: Content to write to file
+        :return: Full path to created file
+        """
+        scratch_dir = self.get_scratch_space()
+        file_path = os.path.join(scratch_dir, filename)
+        content = hprint.dedent(content)
+        hio.to_file(file_path, content)
+        return file_path
+
+    def _create_cfile(self, cfile_content: List[str]) -> str:
+        """
+        Create a cfile with TODOs in the scratch directory.
+
+        :param scratch_dir: Directory to create file in
+        :param cfile_content: List of TODO lines to write
+        :return: Full path to created cfile
+        """
+        content = "\n".join(cfile_content)
+        return self._create_test_file("cfile.txt", content)
+
+    def _inject_todos(self, cfile_content: str) -> None:
+        """
+        Helper to inject TODOs with standard parameters.
+        """
+        todo_user = "user"
+        comment_prefix = "#"
+        hmarkdo.inject_todos_from_cfile(cfile_content, todo_user, comment_prefix)
 
 
 # #############################################################################

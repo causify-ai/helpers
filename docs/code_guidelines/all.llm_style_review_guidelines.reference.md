@@ -1,3 +1,23 @@
+<!-- toc -->
+
+- [Guidelines for automated PR reviews](#guidelines-for-automated-pr-reviews)
+  * [Python code](#python-code)
+    + [Naming](#naming)
+    + [Docstrings](#docstrings)
+    + [Comments](#comments)
+    + [Code implementation](#code-implementation)
+    + [Code design](#code-design)
+    + [Type annotations](#type-annotations)
+    + [Functions](#functions)
+    + [Logging](#logging)
+    + [Unit tests](#unit-tests)
+  * [Notebooks](#notebooks)
+    + [General](#general)
+    + [Plotting](#plotting)
+  * [Markdowns](#markdowns)
+
+<!-- tocstop -->
+
 # Guidelines for automated PR reviews
 
 ## Python code
@@ -7,7 +27,7 @@
 - Name functions using verbs and verbs/actions
   - E.g., `download_data()`, `process_input()`, `calculate_sum()`
   - Python internal functions as `__repr__`, `__init__` are valid
-  - Functions names like `to_dict()`, `_parse()`, `_main()`  are valid
+  - Functions names like `to_dict()`, `_parse()`, `_main()` are valid
 - Name classes using nouns
   - E.g., `Downloader()`, `DataProcessor()`, `User()`
 - Name decorators with an adjective or a past tense verb
@@ -17,8 +37,8 @@
   - E.g., the name of a variable should not include its type
     - E.g., use `embeddings` instead of `embeddings_list`
     - E.g., use `data` instead of `data_dict`
-- Abbreviations in the names of variables and functions should be avoided, except
-  for the following
+- Abbreviations in the names of variables and functions should be avoided,
+  except for the following
   - `df` for dataframe
   - `srs` for series
   - `idx` for index
@@ -35,8 +55,8 @@
 ### Docstrings
 
 - All functions and methods must have a docstring
-- The docstring should describe the goal of the function, the interface and what the user
-  needs to know to use the function
+- The docstring should describe the goal of the function, the interface and what
+  the user needs to know to use the function
   - E.g., "This function calculates the sum of two numbers and returns the
     result."
 - The text should not describe implementation details that can be changed
@@ -48,7 +68,7 @@
       - first value description
       - second value description that is very long and
         continues into a second line
-    ```
+  ```
 - Adding examples (e.g., of input and output) to the docstring is encouraged
   - E.g.,
     ```
@@ -104,8 +124,8 @@
   - E.g., `hdbg.dassert_lt(start_date, end_date)`
   - Ensure that assertions provide detailed information for debugging
   - Use assertions to validate input parameters and preconditions
-- Do not use f-strings in `hdbg.dassert()`, but use traditional string formatting
-  methods in assertions
+- Do not use f-strings in `hdbg.dassert()`, but use traditional string
+  formatting methods in assertions
   - E.g.,
     `hdbg.dassert_eq(len(list1), len(list2), "Lists must be of equal length: %d vs %d" % (len(list1), len(list2)))`
 - Use f-strings in exceptions
@@ -162,8 +182,8 @@
 
 ### Type annotations
 
-- For type hints use use `List`, `Dict`, and `Tuple` to provide more explicit type information
-  and help with static type checking
+- For type hints use use `List`, `Dict`, and `Tuple` to provide more explicit
+  type information and help with static type checking
   - E.g., `List[int]` instead of `list`
   - E.g., `List[str]` instead of `list`
   - Use `Dict` instead of `dict`
@@ -176,8 +196,8 @@
 ### Functions
 
 - Avoid pure functions without side effects, i.e., for the same input arguments,
-  the returned value should not change (in contrast to functions that
-  rely upon external state)
+  the returned value should not change (in contrast to functions that rely upon
+  external state)
 - Functions should not modify the function inputs
   - E.g., if a function `f()` accepts a dataframe `df` as its argument, then
     `f()` will not modify `df` but make a copy and work on it
@@ -251,7 +271,8 @@
 
 - Use logging `_LOG.debug()` and not `print()` for tracing execution
 - Use positional args in logging and not inline formatting
-  - E.g., The code should do `_LOG.debug("cmd=%s", cmd1)` and not `_LOG.debug(f"cmd={cmd1}")`
+  - E.g., The code should do `_LOG.debug("cmd=%s", cmd1)` and not
+    `_LOG.debug(f"cmd={cmd1}")`
 - Use the following idiom to configure logging:
 
   ```python
@@ -366,12 +387,13 @@
 
 ### Plotting
 
-- Each plot should have a descriptive title to understand the context of the plot
-  at a glance
+- Each plot should have a descriptive title to understand the context of the
+  plot at a glance
   - E.g., "Monthly Sales Data for 2023" instead of just "Sales Data"
 - Each plot should have axes labels
   - E.g., label the x-axis as "Months" and the y-axis as "Revenue in USD"
-- If there are several multiple data series on the same plot, it should have a legend
+- If there are several multiple data series on the same plot, it should have a
+  legend
 - In a plotting function, `plt.show()` should not be added at the end
   - This allows for further customization or saving of the plot before
     displaying
@@ -389,11 +411,6 @@
 - Boldface and italics should be used sparingly
 - The use of bullet point lists is encouraged
   - For the items, `-` should be used instead of `*` or circles
-  - Items in bullet point lists should not end with a period
-- Wrap file paths, names of variables, functions, and classes in backticks
-  - E.g., `file_path`, `variable_name`, `function_name()`, `ClassName`
-- Use `>` to indicate a command line
-  - E.g., `> git push` or `docker> pytest`
 - Avoid using screenshots whenever possible and instead copy-and-paste text with
   the right highlighting
   - E.g., instead of a screenshot of a terminal command, provide the command
@@ -406,3 +423,9 @@
   - Rewrite long-winded AI-generated texts in a concise way
   - E.g., instead of "The process of updating the software can be done by
     following these steps," use "Update the software by following these steps"
+
+- When describing a tool the format should be the following
+  - A description of what the tool does
+  - A list of examples of invocations of a tool, with a comment on the command
+    line, the command line, and its output if possible
+  - A copy-paste version of the tool interface running `-h`

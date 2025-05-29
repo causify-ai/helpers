@@ -27,7 +27,6 @@ The script:
 import argparse
 import logging
 
-import helpers.hdbg as hdbg
 import helpers.hmarkdown as hmarkdo
 import helpers.hparser as hparser
 

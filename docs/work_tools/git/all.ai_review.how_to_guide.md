@@ -1,3 +1,17 @@
+<!-- toc -->
+
+- [Operations](#operations)
+- [Use templates](#use-templates)
+- [Tools](#tools)
+  * [llm_transform.py](#llm_transformpy)
+  * [`transform_notes.py`](#transform_notespy)
+- [Some typical workflows](#some-typical-workflows)
+  * [An editing workflow](#an-editing-workflow)
+  * [A reviewer workflow](#a-reviewer-workflow)
+  * [How to change the logic in place while reviewing](#how-to-change-the-logic-in-place-while-reviewing)
+
+<!-- tocstop -->
+
 # Operations
 
 - There are several operations we want to perform
@@ -5,18 +19,19 @@
     - E.g., create a unit test
   - Extract comments and lints in the form of a `cfile`
     - E.g., lint or AI review based on certain criteria
-  - Apply a set of transformations (e.g., styling / formatting code) to an entire
-    file
+  - Apply a set of transformations (e.g., styling / formatting code) to an
+    entire file
   - Apply modifications from a `cfile` (e.g., from linter and AI review) to a
     file
-  - Add TODOs from a `cfile` to Python or markdown files 
+  - Add TODOs from a `cfile` to Python or markdown files
   - Rewrite an entire markdown to fix English mistakes without changing its
     structure
   - Reformat an entire markdown or Python using LLMs or code
 
 # Use templates
-- We use templates for code and documentation to show and describe how a document
-  or code should look like, e.g.,
+
+- We use templates for code and documentation to show and describe how a
+  document or code should look like, e.g.,
   - `template_code.py` shows our coding style
   - `template_unit_test.py` shows how our unit tests look like
   - `template_doc.how_to_guide.md` shows how a Diataxis how to guide should be
@@ -130,16 +145,16 @@
 - There are 3 types of transforms and review tasks
   - `llm`: executed by an LLM since they are difficult to implement otherwise
     - E.g., "apply this style to a certain file"
-  - `linter_llm`: executed by an LLM for now to get something in place, even
-    if they should be moved to code / linter
-    `- E.g., mainly formatting tasks 
+  - `linter_llm`: executed by an LLM for now to get something in place, even if
+    they should be moved to code / linter `- E.g., mainly formatting tasks
   - `linter`: executed by the Linter using code and regex
 
 ## A reviewer workflow
 
 - This workflow can be used by the author of the code or by a reviewer
   - The goal is to make these tools robust enough so that they can be used
-    directly by the author and potentially integrated in the `linter` flow itself
+    directly by the author and potentially integrated in the `linter` flow
+    itself
   - Initially, reviewers use these tools as part of initial dog-fooding of the
     flows
 
@@ -149,11 +164,13 @@
   > invoke git_branch_diff_with -t base --only-print-files
   ```
 - Run `ai_review.py` on each file to generate a list of comments on the code
-  - This is equivalent to running a `review` target with `llm_transform.py` 
-    (e.g., `llm_transform.py -p review_*`) but it is a separated flow for clarify
+  - This is equivalent to running a `review` target with `llm_transform.py`
+    (e.g., `llm_transform.py -p review_*`) but it is a separated flow for
+    clarify
 - This generates a `cfile` with a list of comments comments
 
 - Review the TODOs using cfile jumping around files
+
   ```bash
   > vim -c "cfile cfile"
   ```
@@ -175,13 +192,11 @@
 - A common problem is that we might want to adjust one of our tools (e.g.,
   `linter.py`, `ai_review.py`) while reviewing somebody's else code
 
-- The approach is to copy files from a different Git client in the one with
-  the code being tested using one of the scripts
-
+- The approach is to copy files from a different Git client in the one with the
+  code being tested using one of the scripts
   ```
   > ai_review.py -i template_code.py
   ```
-
   ```
   > llm_transform.py -i template_code.py -p code_fix_code
   ```
@@ -191,7 +206,7 @@
   > PROMPT=review_correctness
   > PROMPT=review_linter
   > PROMPT=review_architecture
-  > 
+  >
   > FILE=dev_scripts_helpers/github/dockerized_sync_gh_repo_settings.py
 
   > \cp -f /Users/saggese/src/helpers1/dev_scripts_helpers/llms/sync_ai_review.sh $HELPERS_ROOT_DIR/dev_scripts_helpers/llms && sync_ai_review.sh && ai_review.py -i $FILE -p $PROMPT

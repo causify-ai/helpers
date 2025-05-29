@@ -11,7 +11,6 @@ import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
 import helpers.hprint as hprint
-import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
@@ -439,7 +438,9 @@ def code_fix_by_using_f_strings() -> _PROMPT_OUT:
 
 def code_fix_by_using_perc_strings() -> _PROMPT_OUT:
     """
-    Use % formatting, like `"Hello, %s. You are %d years old." % (name, age)`.
+    Use % formatting, like `"Hello, %s.
+
+    You are %d years old." % (name, age)`.
     """
     system = _CODING_CONTEXT
     system += r"""
@@ -601,6 +602,7 @@ def code_write_1_unit_test() -> _PROMPT_OUT:
     post_container_transforms: List[str] = []
     return system, pre_transforms, post_transforms, post_container_transforms
 
+
 # #############################################################################
 # Latex
 # #############################################################################
@@ -623,8 +625,6 @@ def latex_rewrite() -> _PROMPT_OUT:
     post_transforms = {"remove_code_delimiters"}
     post_container_transforms = []
     return system, pre_transforms, post_transforms, post_container_transforms
-
-
 
 
 # #############################################################################
@@ -695,7 +695,7 @@ def md_clean_up_how_to_guide() -> _PROMPT_OUT:
     a goal.
 
     Rewrite the markdown passed to make it a how-to guide and contain the
-    the following sections:
+    following sections:
     - Goal / Use Case
     - Assumptions / Requirements
     - Step-by-Step Instructions
@@ -729,7 +729,7 @@ def md_convert_table_to_bullet_points() -> _PROMPT_OUT:
     system += r"""
     - Convert the table passed to bullet points using multiple levels of bullets.
     - Remove the formatting (e.g., bold, italic).
-    
+
     Make sure to lose any information.
     """
     pre_transforms: Set[str] = set()
@@ -741,7 +741,7 @@ def md_convert_table_to_bullet_points() -> _PROMPT_OUT:
 def md_format() -> _PROMPT_OUT:
     system = _MD_CONTEXT
     system += r"""
-    - Replace `*` with `-` for bullet points 
+    - Replace `*` with `-` for bullet points
     - Do not use tables unless necessary
     """
     pre_transforms: Set[str] = set()
@@ -806,6 +806,7 @@ def md_create_bullets() -> _PROMPT_OUT:
 # #############################################################################
 
 # One-off transforms.
+
 
 def misc_categorize_topics() -> _PROMPT_OUT:
     system = r"""
@@ -873,9 +874,6 @@ def review_llm() -> _PROMPT_OUT:
     Review the code using LLMs.
     """
     # Load the reference file.
-    #helper_root = hgit.find_helpers_root()
-    #file_name = os.path.join(helper_root, "docs/code_guidelines/all.llm_style_review_guidelines.reference.md")
-    # TODO(gp): This doesn't work for unknown reasons.
     file_name = hgit.find_file("all.llm_style_review_guidelines.reference.md")
     return _review_from_file(file_name)
 
@@ -885,8 +883,6 @@ def review_linter() -> _PROMPT_OUT:
     Review the code for linter style (still using LLMs).
     """
     # Load the reference file.
-    #helper_root = hgit.find_helpers_root()
-    #file_name = os.path.join(helper_root, "docs/code_guidelines/all.linter_style_review_guidelines.reference.md")
     file_name = hgit.find_file("all.linter_style_review_guidelines.reference.md")
     return _review_from_file(file_name)
 
@@ -1137,7 +1133,7 @@ def slide_add_figure() -> _PROMPT_OUT:
 
 # Operate on pure text, not markdown.
 
-#def text_expand() -> _PROMPT_OUT:
+# def text_expand() -> _PROMPT_OUT:
 #    """
 #    """
 #    system = hio.from_file("text_expand2.txt")
