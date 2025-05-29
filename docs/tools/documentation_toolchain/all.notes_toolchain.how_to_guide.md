@@ -122,23 +122,23 @@
 
 ### CLI flags cheatsheet
 
-- Flag: `--type {pdf,html,slides}`
+- `--type {pdf,html,slides}`
   - Purpose: Specifies the output format
   - Notes: The "slides" option uses Beamer
-- Flag: `--toc_type {none,pandoc_native,navigation}`
+- `--toc_type {none,pandoc_native,navigation}`
   - Purpose: Determines the Table of Contents (TOC) style
   - Notes: The `navigation` option inserts slide-friendly breadcrumb frames
-- Flag: `--filter_by_header "# Intro"`
+- `--filter_by_header "# Intro"`
   - Purpose: Builds an artefact from a section subset
   - Notes: This is useful for testing
-- Flag: `--filter_by_lines 120:250`
+- `--filter_by_lines 120:250`
   - Purpose: Compiles only a specified range of lines
   - Notes: Accepts `None` as a sentinel value
-- Flag: `--debug_on_error`
+- `--debug_on_error`
   - Purpose: On Pandoc failure, generates a _.tex_ file and provides a helpful
     log
   - Notes: No additional notes
-- Flag: `--script myrun.sh`
+- `--script myrun.sh`
   - Purpose: Saves every shell command executed
   - Notes: Useful for reproducing build pipelines
 - Docker knobs:
@@ -153,7 +153,8 @@
 ### Worked examples
 
 - Slides with navigation breadcrumbs, keeping intermediate files for inspection
-TODO(indro): `--toc_type navigation` fails because of the preprocess step.
+
+// TODO(indro): `--toc_type navigation` fails because of the preprocess step.
 
   ```bash
   > notes_to_pdf.py \
@@ -355,29 +356,42 @@ llm_transform.py -p list -i - -o -
 
 ### Flags
 
-| Flag                                                                 | Role                                                          | Notes                  |
-| -------------------------------------------------------------------- | ------------------------------------------------------------- | ---------------------- |
-| `-i / --input`                                                       | Source text (`-` = stdin)                                     | —                      |
-| `-o / --output`                                                      | Destination (`-` = stdout)                                    | —                      |
-| `-p / --prompt`                                                      | **Prompt tag** (`list`, `code_review`, `slide_colorize`, ...) | required               |
-| `-c / --compare`                                                     | Print _both_ original & transformed blocks to stdout          | helpful for quick diff |
-| `-b / --bold_first_level_bullets`                                    | Post‑format tweak for slide prompts                           |                        |
-| `-s / --skip-post-transforms`                                        | Return raw LLM output, skip prettier/cleanup                  |                        |
-| Docker flags (`--dockerized_force_rebuild`, `--dockerized_use_sudo`) | Control container lifecycle                                   |
+- `-i / --input`
+  - Role: Source text (`-` = stdin)
+  - Notes: None
+- `-o / --output`
+  - Role: Destination (`-` = stdout)
+  - Notes: None
+- `-p / --prompt`
+  - Role: Prompt tag (`list`, `code_review`, `slide_colorize`, ...)
+  - Notes: Required
+- `-c / --compare`
+  - Role: Print both original & transformed blocks to stdout
+  - Notes: Helpful for quick diff
+- `-b / --bold_first_level_bullets`
+  - Role: Post-format tweak for slide prompts
+  - Notes: None
+- `-s / --skip-post-transforms`
+  - Role: Return raw LLM output, skip prettier/cleanup
+  - Notes: None
+- Docker flags
+  - Flags: `--dockerized_force_rebuild`, `--dockerized_use_sudo`
+  - Role: Control container lifecycle
+  - Notes: None
 
 ### Example recipes
 
-- **Turn a code file into a review checklist**
+- Turn a code file into a review checklist
 
   ```bash
-  llm_transform.py -i foo.py -o cfile -p code_review
+  > llm_transform.py -i foo.py -o cfile -p code_review
   vim cfile
   ```
 
 - **Color‑accent the bold bullets for slides**
 
   ```bash
-  llm_transform.py -i deck.md -o - -p slide_colorize | tee deck.color.md
+  > llm_transform.py -i deck.md -o - -p slide_colorize | tee deck.color.md
   ```
 
 - **Inline use in Vim** – visual‑select a block, then:
@@ -386,9 +400,7 @@ llm_transform.py -p list -i - -o -
   :'<,'>!llm_transform.py -p summarize -i - -o -
   ```
 
----
-
-## 6. Pandoc Wrapper — `run_pandoc.py`
+## `run_pandoc.py`
 
 ### What the script does
 
@@ -398,27 +410,37 @@ llm_transform.py -p list -i - -o -
 
 ### Quickstart commands
 
-| Goal                                  | Command                                      |
-| ------------------------------------- | -------------------------------------------- |
-| Convert a Markdown file to LaTeX      | `run_pandoc.py -i note.md -o note.tex`       |
-| Same, but stream from STDIN to STDOUT | `cat note.md \| run_pandoc.py -i - -o -`     |
-| Inside **Vim** (visual range)         | `:'<,'>!run_pandoc.py -i - -o - -v CRITICAL` |
+- Convert a Markdown file to LaTeX
+  ```
+  > run_pandoc.py -i note.md -o note.tex
+  ```
+- Same, but stream from `stdin` to `stdout`
+  ```
+  > cat note.md | run_pandoc.py -i - -o -
+  ```
+- Inside Vim (visual range)
+  ```
+  :<,'>!run_pandoc.py -i - -o - -v CRITICAL
+  ```
 
-> **Tip :** pass `-v CRITICAL` to silence helper logging when piping into
-> editors.
+**Tip :** pass `-v CRITICAL` to silence helper logging when piping into editors.
 
 ### Flags
 
-| Flag               | Default               | Meaning                                                   |
-| ------------------ | --------------------- | --------------------------------------------------------- |
-| `-i / --input`     | `-`                   | Source file or `-` for STDIN.                             |
-| `-o / --output`    | `-`                   | Destination file or `-` for STDOUT.                       |
-| `--action`         | `convert_md_to_latex` | Transformation to apply. Future‑proofed for more actions. |
-| `-v / --log_level` | `INFO`                | Standard helper‑library verbosity.                        |
+- `-i / --input`
+  - Default: `-`
+  - Meaning: Source file or `-` for STDIN
+- `-o / --output`
+  - Default: `-`
+  - Meaning: Destination file or `-` for STDOUT
+- `--action`
+  - Default: `convert_md_to_latex`
+  - Meaning: Transformation to apply. Future-proofed for more actions
+- `-v / --log_level`
+  - Default: `INFO`
+  - Meaning: Standard helper-library verbosity
 
----
-
-## 7. Automate notes transformations — `transform_notes.py`
+## `transform_notes.py`
 
 ### What it does
 
@@ -426,42 +448,60 @@ llm_transform.py -p list -i - -o -
 - Applies a named **action** (`-a/--action`).
 - Writes the result to the given output (in‑place, file, or `-`).
 
-### Supported actions
+### Example of Supported Actions
 
-| Run `-a list` to print.                                        | Tag                                                | Effect                   | Typical Vim one‑liner |     |
-| -------------------------------------------------------------- | -------------------------------------------------- | ------------------------ | --------------------- | --- |
-| -------------------------------------------------------------- |
-| --------------------------------------------------             |                                                    | `toc`                    | Generate a bullet     |
-| TOC (top‑level by default)                                     | `:!transform_notes.py -a toc -i % -l 1`            |                          |
-| `format_headers`                                               | Re‑flow / indent headers (≤ `--max_lev`)           |
-| `:%!transform_notes.py -a format -i - --max_lev 3`             |                                                    | `increase_headers_level` |
-| Bump all headers down one level                                | `:%!transform_notes.py -a increase -i -`           |                          |
-| `md_list_to_latex`                                             | Convert a Markdown list to LaTeX `\begin{itemize}` |
-| `:%!transform_notes.py -a md_list_to_latex -i -`               |                                                    | `md_*` family            | Formatting            |
-| clean‑ups (bold bullets, colourise bold text, etc.)            | see `-a list`                                      |
+- Run `-a list` to print a list of the valid
+
+- `toc`
+  - Generate a bullet TOC (top-level by default)
+  - Typical Vim one-liner: `:!transform_notes.py -a toc -i % -l 1`
+- `format_headers`
+  - Re-flow / indent headers (up to `--max_lev`)
+  - Typical Vim one-liner: `:%!transform_notes.py -a format -i - --max_lev 3`
+- `increase_headers_level`
+  - Bump all headers down one level
+  - Typical Vim one-liner: `:%!transform_notes.py -a increase -i -`
+- `md_list_to_latex`
+  - Convert a Markdown list to LaTeX `\begin{itemize}`
+  - Typical Vim one-liner: `:%!transform_notes.py -a md_list_to_latex -i -`
+- `md_*` family
+  - Formatting clean-ups (bold bullets, colorize bold text, etc.)
+  - Additional Information: See `-a list` for more details
 
 ### Examples
 
-```bash
-# Re‑flow & clean a file in place
-transform_notes.py -a md_format -i notes/lecture.txt --in_place
+- Re‑flow & clean a file in place
+  ```bash
+  > transform_notes.py -a md_format -i notes/lecture.txt --in_place
+  ```
 
-# Generate a 2‑level TOC to STDOUT
-transform_notes.py -a toc -i notes/lecture.md -o - -l 2
+- Generate a 2‑level TOC to STDOUT
+  ```bash
+  > transform_notes.py -a toc -i notes/lecture.md -o - -l 2
+  ```
 
-# Tidy ChatGPT‑generated Markdown (visual mode in Vim)
-:'<,'>!transform_notes.py -i - -o - -a md_fix_chatgpt_output
-```
+- Tidy ChatGPT‑generated Markdown (visual mode in Vim)
+  ```
+  :'<,'>!transform_notes.py -i - -o - -a md_fix_chatgpt_output
+  ```
 
 ### Flags
 
-| Flag             | Default      | Purpose                                            |
-| ---------------- | ------------ | -------------------------------------------------- |
-| `-a / --action`  | _(required)_ | Choose the transformation.                         |
-| `-l / --max_lev` | `5`          | Header depth for `format_headers`.                 |
-| `-i / --input`   | `-`          | File path or `-` (STDIN).                          |
-| `-o / --output`  | `-`          | File path or `-` (STDOUT).                         |
-| `--in_place`     | _False_      | Overwrite input file instead of writing elsewhere. |
+- `-a / --action`
+  - Default: Required
+  - Purpose: Choose the transformation
+- `-l / --max_lev`
+  - Default: 5
+  - Purpose: Header depth for `format_headers`
+- `-i / --input`
+  - Default: `-`
+  - Purpose: File path or `-` (STDIN)
+- `-o / --output`
+  - Default: `-`
+  - Purpose: File path or `-` (STDOUT)
+- `--in_place`
+  - Default: False
+  - Purpose: Overwrite input file instead of writing elsewhere
 
 ---
 
