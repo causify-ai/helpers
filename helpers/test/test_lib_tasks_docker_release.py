@@ -970,14 +970,15 @@ class Test_docker_create_candidate_image1(_DockerFlowTestHelper):
         )
         # Check if amp is a submodule.
         is_in_amp_as_submodule = hgit.is_in_amp_as_submodule()
+        _LOG.info("is_in_amp_as_submodule=%s", is_in_amp_as_submodule)
         # Set the expected docker command based on whether amp is a submodule.
         if is_in_amp_as_submodule:
             exp = r"""
-            invoke docker_cmd -c "datapull/aws/aws_update_task_definition.py -t test_task -i test_user-4759b3685f903e6c669096e960b248ec31c63b69 -r eu-north-1"
+            invoke docker_cmd -c "amp/datapull/aws/aws_update_task_definition.py -t test_task -i test_user-4759b3685f903e6c669096e960b248ec31c63b69 -r eu-north-1"
             """
         else:
             exp = r"""
-            invoke docker_cmd -c "amp/datapull/aws/aws_update_task_definition.py -t test_task -i test_user-4759b3685f903e6c669096e960b248ec31c63b69 -r eu-north-1"
+            invoke docker_cmd -c "datapull/aws/aws_update_task_definition.py -t test_task -i test_user-4759b3685f903e6c669096e960b248ec31c63b69 -r eu-north-1"
             """
         self._check_docker_command_output(exp, self.mock_run.call_args_list)
         # Verify the mocks were called with correct parameters.

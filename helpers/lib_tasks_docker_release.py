@@ -1270,7 +1270,7 @@ def docker_create_candidate_image(
     docker_push_prod_candidate_image(ctx, tag)
     exec_name = "datapull/aws/aws_update_task_definition.py"
     # Ensure compatibility with repos where amp is a submodule.
-    if not os.path.exists(exec_name):
+    if not hdbg.dassert_file_exists(exec_name):
         exec_name = f"amp/{exec_name}"
     hdbg.dassert_file_exists(exec_name)
     _LOG.debug("exec_name=%s", exec_name)
