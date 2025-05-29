@@ -37,29 +37,6 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
     def populate_globals(capsys: Any) -> None:
         hut._GLOBAL_CAPSYS = capsys
 
-    @pytest.fixture(autouse=True)
-    def coverage_wrap_all_subprocesses(
-        request: pytest.FixtureRequest,
-    ) -> Generator[None, None, None]:
-        """
-        Auto-wrap subprocess.Popen calls and os.system so that any python/.py
-        invocation runs under coverage, if enabled via env or CLI.
-        """
-        wrap_env = os.getenv("COVERAGE_SUBPROCESS_WRAP")
-        wrap_cli = request.config.getoption("coverage_subprocess")
-        if wrap_env or wrap_cli:
-            try:
-                import coverage_subprocess_util as csu
-            except ImportError:
-                # skip all tests if our helper isn't installed
-                pytest.skip("coverage_subprocess_util not available")
-            csu.patch_subprocess_for_coverage()
-            yield
-            csu.unpatch_subprocess_for_coverage()
-        else:
-            # nothing to do if flag/env not set
-            yield
-
     # Add custom options.
     def pytest_addoption(parser: Any) -> None:
         parser.addoption(
@@ -94,11 +71,6 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
             "--image_stage",
             action="store",
             help="Stage of the image to test against",
-        )
-        parser.addoption(
-            "--coverage_subprocess",
-            action="store_true",
-            help="Enable coverage for subprocess calls",
         )
 
     def pytest_collection_modifyitems(config: Any, items: Any) -> None:
@@ -162,7 +134,7 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
         ):
             # Exclude this directory.
             return True
-
+            
     if "PYANNOTATE" in os.environ:
         print("\nWARNING: Collecting information about types through pyannotate")
         # From https://github.com/dropbox/pyannotate/blob/master/example/example_conftest.py
