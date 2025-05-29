@@ -466,7 +466,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Load settings from the manifest file.
-    settings = Settings.load_settings(args.input_file)
+    settings = Settings.load_settings(args.sync)
     token = os.environ[args.token_env_var]
     hdbg.dassert(token)
     # Initialize GitHub client.
@@ -480,7 +480,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Create backup of current settings if requested.
     if args.backup:
         backup_file = f"settings.{args.owner}.{args.repo}.backup.yaml"
-        backup_path = os.path.join(os.path.dirname(args.input_file), backup_file)
+        backup_path = os.path.join(os.path.dirname(args.sync), backup_file)
         Settings.save_settings(Settings(current_settings), backup_path)
         _LOG.info("Settings backed up to %s", backup_path)
     else:
