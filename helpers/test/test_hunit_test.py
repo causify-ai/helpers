@@ -1056,6 +1056,11 @@ class Test_purify_txt_from_client1(hunitest.TestCase):
         exp = "['helpers/test/test_system_interaction.py']"
         self.helper(txt, exp)
 
+    def test4(self) -> None:
+        txt = "/app"
+        exp = ""
+        self.helper(txt, exp)
+
 
 # #############################################################################
 # Test_purify_from_env_vars
