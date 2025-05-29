@@ -784,21 +784,21 @@ def md_create_bullets() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
-def md_summarize_short() -> _PROMPT_OUT:
-    system = _MD_CONTEXT
-    system += r"""
-    You will:
-    - Write 3 bullet points that summarize the text
-    - Each bullet point should be at most 30 words
+# def md_summarize_short() -> _PROMPT_OUT:
+#     system = _MD_CONTEXT
+#     system += r"""
+#     You will:
+#     - Write 3 bullet points that summarize the text
+#     - Each bullet point should be at most 30 words
 
-    Print only the markdown without any explanation.
-    """
-    pre_transforms: Set[str] = set()
-    post_transforms = {
-        "remove_end_of_line_periods",
-    }
-    post_container_transforms = ["format_markdown"]
-    return system, pre_transforms, post_transforms, post_container_transforms
+#     Print only the markdown without any explanation.
+#     """
+#     pre_transforms: Set[str] = set()
+#     post_transforms = {
+#         "remove_end_of_line_periods",
+#     }
+#     post_container_transforms = ["format_markdown"]
+#     return system, pre_transforms, post_transforms, post_container_transforms
 
 
 # #############################################################################
@@ -1162,6 +1162,7 @@ def text_rephrase() -> _PROMPT_OUT:
 
 
 def text_rewrite() -> _PROMPT_OUT:
+    system = ""
     system += r"""
     - Rewrite the text passed to increase clarity and readability.
     - Maintain the structure of the text as much as possible, in terms of bullet
