@@ -13,6 +13,9 @@ INFO="${GREEN}INFO${NC}"
 WARNING="${YELLOW}WARNING${NC}"
 ERROR="${RED}ERROR${NC}"
 
+#_VERB_LEVEL=2
+_VERB_LEVEL=0
+
 echo -e -n $NC
 
 
@@ -83,13 +86,39 @@ dassert_is_git_root() {
 }
 
 
+# TODO(gp): -> dassert_not_empty?
 dassert_var_defined() {
+    # Check if a variable is defined.
+    # It needs to be called as `dassert_var_defined GIT_ROOT` and not
+    # `dassert_var_defined "$GIT_ROOT"`.
     local var_name="$1"
     # Use indirect expansion to check the value of the variable.
     if [[ -z "${!var_name}" ]]; then
         echo -e "${ERROR}: Var '${var_name}' is not defined or is empty."
-        exit 1
+        kill -INT $$
     fi;
+}
+
+
+dassert_eq_num_args() {
+    # Check if the number of arguments passed matches expected count.
+    local actual_args=$1
+    local expected_args=$2
+    local func_name=$3
+    if [[ $actual_args -ne $expected_args ]]; then
+        echo -e "${ERROR}: Function '$func_name' requires exactly $expected_args arguments, but got $actual_args"
+        kill -INT $$
+    fi
+}
+
+
+dtrace() {
+    # Print a debug message if _VERB_LEVEL > 1.
+    dassert_eq_num_args $# 1 "dtrace"
+    local msg="$1"
+    if [[ "${_VERB_LEVEL:-0}" -gt 1 ]]; then
+        echo -e "$msg"
+    fi
 }
 
 
@@ -198,13 +227,26 @@ set_csfy_env_vars() {
 
 
 set_path() {
-    echo "# set_path()"
+    # Process interface.
+    dassert_eq_num_args $# 1 "set_path"
     local dev_script_dir=$1
+    #
     dassert_dir_exists $dev_script_dir
+    dtrace "dev_script_dir=$dev_script_dir"
+    #
     export PATH=$(pwd):$PATH
+    dtrace "GIT_ROOT=$GIT_ROOT"
+    # TODO(gp): Enable this as part of HelpersTask12257.
+    # dassert_var_defined "GIT_ROOT"
+    #
     export PATH=$GIT_ROOT_DIR:$PATH
+    # Avoid ./.mypy_cache/3.12/app/dev_scripts_helpers
+    DEV_SCRIPT_HELPER_DIR=$(find ${GIT_ROOT_DIR} -name dev_scripts_helpers -type d -not -path "*.mypy_cache*")
+    dassert_dir_exists $DEV_SCRIPT_HELPER_DIR
+    dtrace "DEV_SCRIPT_HELPER_DIR=$DEV_SCRIPT_HELPER_DIR"
     # Add to the PATH all the first level directory under `dev_scripts`.
-    export PATH_TMP="$(find $dev_script_dir -maxdepth 1 -type d -not -path "$(pwd)" | tr '\n' ':' | sed 's/:$//')"
+    export PATH_TMP="$(find $DEV_SCRIPT_HELPER_DIR -maxdepth 1 -type d -not -path "$(pwd)" | tr '\n' ':' | sed 's/:$//')"
+    dtrace "PATH_TMP=$PATH_TMP"
     export PATH=$PATH_TMP:$PATH
     # Remove duplicates.
     export PATH=$(remove_dups $PATH)
@@ -292,20 +334,11 @@ configure_specific_project() {
     export DEV2="172.30.2.128"
 
     # Print some specific env vars.
-    printenv | egrep "AM_|CK|AWS_" | sort
+    printenv | egrep "AM_|CK_|AWS_|CSFY_" | sort
 
     # Set up custom path to the alembic.ini file.
     # See https://alembic.sqlalchemy.org/en/latest/tutorial.html#editing-the-ini-file
     export ALEMBIC_CONFIG="alembic/alembic.ini"
-
-    alias i="invoke"
-    alias it="invoke traceback"
-    alias itpb="pbpaste | traceback_to_cfile.py -i - -o cfile"
-    alias ih="invoke --help"
-    alias il="invoke --list"
-
-    # Add autocomplete for `invoke`.
-    #source $AMP/dev_scripts/invoke_completion.sh
 }
 
 

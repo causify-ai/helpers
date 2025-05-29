@@ -151,7 +151,7 @@ def _parse() -> argparse.ArgumentParser:
         required=True,
         help="Path to the cfile",
     )
-    hparser.add_prompt_arg(parser)
+    hparser.add_llm_prompt_arg(parser)
     hparser.add_verbosity_arg(parser, log_level="CRITICAL")
     return parser
 

@@ -109,7 +109,9 @@ def _run_dockerized_sync_gh_issue_labels(
     # Build the container image, if needed.
     container_image = "tmp.sync_gh_issue_labels"
     dockerfile = r"""
-    FROM python:3.10-slim
+    # This seems to be flaky on ARM64 architectures.
+    #FROM python:3.10-slim
+    FROM python:3.10
 
     # Install required packages.
     RUN apt-get update && apt-get install -y git && \

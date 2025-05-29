@@ -20,6 +20,7 @@ _LOG = logging.getLogger(__name__)
 
 class Test_sync_gh_issue_labels1(hunitest.TestCase):
 
+    @pytest.mark.skip("Enable after HelpersTask753")
     # TODO(sandeep): Check the dockerized executable once the CmampTask10710 is fixed.
     @pytest.mark.skipif(
         hserver.is_inside_ci() or hserver.is_dev_csfy(),

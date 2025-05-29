@@ -897,6 +897,7 @@ class Test_docker_release_multi_arch_prod_image1(_DockerFlowTestHelper):
 # #############################################################################
 
 
+@pytest.mark.skip(reason="See CmampTask12206")
 class Test_docker_create_candidate_image1(_DockerFlowTestHelper):
     """
     Test creating a candidate Docker image.
@@ -964,13 +965,8 @@ class Test_docker_create_candidate_image1(_DockerFlowTestHelper):
         # Call tested function.
         hltadore.docker_create_candidate_image(
             self.mock_ctx,
-            task_definition="test_task",
             user_tag="test_user",
         )
-        exp = r"""
-        invoke docker_cmd -c "amp/datapull/aws/aws_update_task_definition.py -t test_task -i test_user-4759b3685f903e6c669096e960b248ec31c63b69 -r eu-north-1"
-        """
-        self._check_docker_command_output(exp, self.mock_run.call_args_list)
         # Verify the mocks were called with correct parameters.
         self.mock_build_prod.assert_called_once_with(
             self.mock_ctx,

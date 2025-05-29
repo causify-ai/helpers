@@ -19,7 +19,6 @@ import argparse
 import logging
 import os
 import re
-import sys
 import tempfile
 from typing import Any, List, Optional
 
@@ -31,6 +30,7 @@ import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
+
 
 # #############################################################################
 
@@ -100,6 +100,7 @@ def _preprocess(txt: str) -> str:
 def prettier(
     in_file_path: str,
     out_file_path: str,
+    file_type: str,
     *,
     print_width: int = 80,
     use_dockerized_prettier: bool = True,
@@ -109,21 +110,37 @@ def prettier(
     """
     Format the given text using Prettier.
 
+    :param in_file_path: The path to the input file.
+    :param out_file_path: The path to the output file.
+    :param file_type: The type of file to be formatted, e.g., `md` or `tex`.
     :param print_width: The maximum line width for the formatted text.
         If None, the default width is used.
     :param use_dockerized_prettier: Whether to use a Dockerized version
         of Prettier.
     :return: The formatted text.
     """
+    _LOG.debug(hprint.func_signature_to_str())
+    hdbg.dassert_in(file_type, ["md", "tex", "txt"])
+    # Build command options.
     cmd_opts: List[str] = []
-    cmd_opts.append("--parser markdown")
-    cmd_opts.append("--prose-wrap always")
     tab_width = 2
-    cmd_opts.append(f"--tab-width {tab_width}")
-    if print_width is not None:
-        hdbg.dassert_lte(1, print_width)
-        cmd_opts.append(f"--print-width {print_width}")
-    #
+    if file_type == "tex":
+        # cmd_opts.append("--plugin=prettier-plugin-latex")
+        cmd_opts.append("--plugin=@unified-latex/unified-latex-prettier")
+    elif file_type in ("md", "txt"):
+        cmd_opts.append("--parser markdown")
+    else:
+        raise ValueError(f"Invalid file type: {file_type}")
+    hdbg.dassert_lte(1, print_width)
+    cmd_opts.extend(
+        [
+            f"--print-width {print_width}",
+            "--prose-wrap always",
+            f"--tab-width {tab_width}",
+            "--use-tabs false",
+        ]
+    )
+    # Run prettier.
     if use_dockerized_prettier:
         # Run `prettier` in a Docker container.
         force_rebuild = False
@@ -132,12 +149,14 @@ def prettier(
             in_file_path,
             cmd_opts,
             out_file_path,
+            file_type=file_type,
             force_rebuild=force_rebuild,
             use_sudo=use_sudo,
         )
     else:
         # Run `prettier` installed on the host directly.
         executable = "prettier"
+        # executable = "NODE_PATH=/usr/local/lib/node_modules /usr/local/bin/prettier"
         cmd = [executable] + cmd_opts
         if in_file_path == out_file_path:
             cmd.append("--write")
@@ -152,8 +171,10 @@ def prettier(
 
 # TODO(gp): Convert this into a decorator to adapt operations that work on
 #  files to passing strings.
+# TODO(gp): Move this to `hmarkdown.py`.
 def prettier_on_str(
     txt: str,
+    file_type: str,
     *args: Any,
     **kwargs: Any,
 ) -> str:
@@ -162,11 +183,16 @@ def prettier_on_str(
     """
     _LOG.debug("txt=\n%s", txt)
     # Save string as input.
+    # TODO(gp): Use a context manager.
     curr_dir = os.getcwd()
-    tmp_file_name = tempfile.NamedTemporaryFile(dir=curr_dir).name
+    tmp_file_name = tempfile.NamedTemporaryFile(
+        prefix="tmp.prettier_on_str.", dir=curr_dir
+    ).name
+    hdbg.dassert_in(file_type, ["md", "tex", "txt"])
+    tmp_file_name += "." + file_type
     hio.to_file(tmp_file_name, txt)
     # Call `prettier` in-place.
-    prettier(tmp_file_name, tmp_file_name, *args, **kwargs)
+    prettier(tmp_file_name, tmp_file_name, file_type, *args, **kwargs)
     # Read result into a string.
     txt = hio.from_file(tmp_file_name)
     _LOG.debug("After prettier txt=\n%s", txt)
@@ -344,6 +370,10 @@ def _process(
     :return: The processed text.
     """
     is_md_file = in_file_name.endswith(".md")
+    extension = os.path.splitext(in_file_name)[1]
+    # Remove the . from the extenstion (e.g., ".txt").
+    hdbg.dassert(extension.startswith("."), "Invalid extension='%s'", extension)
+    extension = extension[1:]
     # Pre-process text.
     action = "preprocess"
     if _to_execute_action(action, actions):
@@ -351,7 +381,7 @@ def _process(
     # Prettify.
     action = "prettier"
     if _to_execute_action(action, actions):
-        txt = prettier_on_str(txt, **kwargs)
+        txt = prettier_on_str(txt, file_type=extension, **kwargs)
     # Post-process text.
     action = "postprocess"
     if _to_execute_action(action, actions):
@@ -387,30 +417,19 @@ def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
+    hparser.add_input_output_args(parser)
     parser.add_argument(
-        "-i",
-        "--infile",
-        nargs="?",
-        type=argparse.FileType("r"),
-        default=sys.stdin,
-    )
-    parser.add_argument(
-        "-o",
-        "--outfile",
-        nargs="?",
-        type=argparse.FileType("w"),
-        default=sys.stdout,
-    )
-    parser.add_argument(
-        "--in_place",
-        action="store_true",
+        "--type",
+        action="store",
+        type=str,
+        default="",
     )
     parser.add_argument(
         "-w",
         "--print-width",
         action="store",
         type=int,
-        default=None,
+        default=80,
     )
     parser.add_argument(
         "--use_dockerized_prettier",
@@ -421,27 +440,27 @@ def _parser() -> argparse.ArgumentParser:
         action="store_true",
     )
     hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    hparser.add_dockerized_script_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 
 
-def _main(args: argparse.Namespace) -> None:
-    in_file_name = args.infile.name
-    from_stdin = in_file_name == "<stdin>"
-    hdbg.init_logger(
-        verbosity=args.log_level, use_exec_path=False, force_white=from_stdin
+def _main(parser: argparse.ArgumentParser) -> None:
+    args = parser.parse_args()
+    hparser.init_logger_for_input_output_transform(args)
+    #
+    in_file_name, out_file_name = hparser.parse_input_output_args(
+        args, clear_screen=True
     )
+    # If the input is stdin, then user needs to specify the type.
+    if in_file_name == "-":
+        hdbg.dassert_ne(args.type, "")
     # Read input.
+    txt = hparser.read_file(in_file_name)
+    txt = "\n".join(txt)
     _LOG.debug("in_file_name=%s", in_file_name)
-    if not from_stdin:
-        hdbg.dassert(
-            in_file_name.endswith(".txt") or in_file_name.endswith(".md"),
-            "Invalid extension for file name '%s'",
-            in_file_name,
-        )
-    txt = args.infile.read()
     # Process.
-    txt = _process(
+    out_txt = _process(
         txt,
         in_file_name,
         actions=args.action,
@@ -450,14 +469,8 @@ def _main(args: argparse.Namespace) -> None:
         use_dockerized_markdown_toc=args.use_dockerized_markdown_toc,
     )
     # Write output.
-    if args.in_place:
-        hdbg.dassert_ne(in_file_name, "<stdin>")
-        hio.to_file(in_file_name, txt)
-    else:
-        args.outfile.write(txt)
+    hparser.write_file(out_txt, out_file_name)
 
 
 if __name__ == "__main__":
-    parser_ = _parser()
-    args_ = parser_.parse_args()
-    _main(args_)
+    _main(_parser())
