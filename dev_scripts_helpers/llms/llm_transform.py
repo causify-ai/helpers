@@ -294,7 +294,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             out_txt = hmarkdo.md_clean_up(out_txt)
             out_txt = hmarkdo.format_markdown_slide(out_txt)
         #
-        if dshlllpr.to_run("append_text", post_container_transforms):
+        if dshlllpr.to_run("append_to_text", post_container_transforms):
             out_txt_tmp = []
             # Append the original text.
             txt = hio.from_file(tmp_in_file_name)

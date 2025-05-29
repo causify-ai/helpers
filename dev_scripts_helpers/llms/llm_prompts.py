@@ -948,29 +948,6 @@ def slide_to_bullet_points() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
-def slide_add_example_picture() -> _PROMPT_OUT:
-    """ """
-    system = _MD_CONTEXT
-    system += r"""
-    I will give you markdown text
-
-    You will
-    - Select the most important concepts in the text
-    - Print a TODO comment of less than 30 words suggesting what example picture
-      to add to give an intuition of the text
-    - The TODO is in the format `// TODO: <suggestion>`
-    - Suggest what tool to use e.g., (mermaid, tikz, graphviz dot)
-    """
-    pre_transforms: Set[str] = set()
-    post_transforms = {
-        "remove_code_delimiters",
-        "remove_end_of_line_periods",
-        "remove_empty_lines",
-    }
-    post_container_transforms = ["append_text"]
-    return system, pre_transforms, post_transforms, post_container_transforms
-
-
 def slide_expand() -> _PROMPT_OUT:
     system = _MD_CONTEXT
     system += r"""
@@ -1107,6 +1084,52 @@ def slide_smart_colorize() -> _PROMPT_OUT:
     post_container_transforms = ["format_slide"]
     return system, pre_transforms, post_transforms, post_container_transforms
 
+
+def slide_add_figure() -> _PROMPT_OUT:
+    system = _MD_CONTEXT
+    system += r"""
+    I will give you markdown text
+
+    You will create a figure that illustrates the text using Graphviz dot.
+
+    - If you are sure about the meaning of the variables use
+        - Circles for variables
+        - Rounded boxes for states
+    - If you are not sure, use rounded boxes for every variable
+
+    - If you need to use subscripts use it in Latex format such as var_0
+
+    - Use pastel colors like
+        - Red: `#F4A6A6`, Orange: `#FFD1A6`, Green: `#B2E2B2`, Teal: `#A0D6D1`,
+        - Cyan: `#A6E7F4`, Blue: `#A6C8F4`, Violet: `#C6A6F4`, Brown: `#D2B48C`
+
+    - Use a template like:
+        ```graphviz
+        digraph BayesianFlow {
+            // rankdir=LR;
+            splines=true;
+            nodesep=1.0;
+            ranksep=0.75;
+            node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=12, penwidth=1.7];
+
+            // Node styles.
+
+            // Force ranks.
+
+            // Edges.
+        }
+        ```
+
+    Do not print anything else than the graphviz code in a markdown format
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {
+        "remove_code_delimiters",
+        "remove_end_of_line_periods",
+        "remove_empty_lines",
+    }
+    post_container_transforms = ["append_to_text"]
+    return system, pre_transforms, post_transforms, post_container_transforms
 
 # #############################################################################
 # Text.

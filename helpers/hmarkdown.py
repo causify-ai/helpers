@@ -704,6 +704,12 @@ def header_tree_to_str(
     Only expand (i.e. recursively include children) for a node if it is part of
     the ancestry of the selected node.
 
+    :param tree: The tree to convert to a string.
+    :param ancestry: The ancestry of the selected node.
+    :param open_modifier: The modifier to use for the open of the selected node.
+    :param close_modifier: The modifier to use for the close of the selected node.
+    :param indent: The indent of the tree.
+
     - Nodes not in the ancestry are included on one line (even if they have
       children).
     - The selected node (last in the ancestry) is included highlighted.
