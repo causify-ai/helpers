@@ -11,11 +11,9 @@ import json
 import logging
 import os
 import re
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 import openai
-import openai.types.beta.assistant as OAssistant
-import openai.types.beta.threads.message as OMessage
 import pandas as pd
 import requests
 import tqdm
@@ -47,8 +45,8 @@ def response_to_txt(response: Any) -> str:
     """
     if isinstance(response, openai.types.chat.chat_completion.ChatCompletion):
         ret = response.choices[0].message.content
-    elif isinstance(response, openai.pagination.SyncCursorPage):
-        ret = response.data[0].content[0].text.value
+    # elif isinstance(response, openai.pagination.SyncCursorPage):
+    #     ret = response.data[0].content[0].text.value
     elif isinstance(response, openai.types.beta.threads.message.Message):
         ret = response.content[0].text.value
     elif isinstance(response, str):
@@ -174,7 +172,8 @@ def _retrieve_openrouter_model_info() -> pd.DataFrame:
 
 
 def _save_models_info_to_csv(
-    model_info_df: pd.DataFrame, file_name: str,
+    model_info_df: pd.DataFrame,
+    file_name: str,
 ) -> pd.DataFrame:
     """
     Save models info to a CSV file.
@@ -237,9 +236,9 @@ def infer_column_types(col):
     # type_ = np.where(vals["is_bool"] >= vals["is_numeric"], "is_bool",
     #                  (vals["is_numeric"] >= vals["is_string"], "is_numeric",
     #                  "is_string"))
-    if vals["is_bool"] >= vals["is_numeric"]:
+    if vals["is_bool"] >= vals["is_numeric"] and (vals["is_bool"] != 0):
         type_ = "is_bool"
-    elif vals["is_numeric"] >= vals["is_string"]:
+    elif vals["is_numeric"] >= vals["is_string"] and (vals["is_numeric"] != 0):
         type_ = "is_numeric"
     else:
         type_ = "is_string"
@@ -254,8 +253,8 @@ def infer_column_types_df(df: pd.DataFrame) -> pd.DataFrame:
 def convert_df(
     df: pd.DataFrame, *, print_invalid_values: bool = False
 ) -> pd.DataFrame:
-    types = df.apply(lambda x: pd.Series(infer_column_types(x))).T
-    df_out = []
+    types = df.apply(lambda x: pd.Series(infer_column_types(x)))
+    df_out = pd.DataFrame()
     for col in df.columns:
         if types[col]["type"] == "is_bool":
             df_out[col] = df[col].astype(bool)
@@ -271,9 +270,7 @@ def convert_df(
 # #############################################################################
 
 
-def _build_messages(
-    system_prompt: str, user_prompt: str
-) -> List[Dict[str, str]]:
+def _build_messages(system_prompt: str, user_prompt: str) -> List[Dict[str, str]]:
     """
     Construct the standard messages payload for the chat API.
     """
@@ -344,7 +341,7 @@ def get_current_cost() -> float:
 def _calculate_cost(
     completion: openai.types.chat.chat_completion.ChatCompletion,
     model: str,
-    models_info_file: str
+    models_info_file: str,
 ) -> float:
     """
     Calculate the cost of an OpenAI API call.
@@ -804,7 +801,7 @@ def apply_prompt_to_dataframe(
 
 
 # #############################################################################
-# CompletionCache
+# _CompletionCache
 # #############################################################################
 
 
