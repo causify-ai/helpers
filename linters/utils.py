@@ -32,6 +32,98 @@ FILES_TO_EXCLUDE = [
 ]
 
 
+def _filter_files(
+    file_paths: List[str], file_paths_to_skip: List[str]
+) -> List[str]:
+    """
+    Filter the list of files by removing invalid or excluded ones.
+
+    The following files are skipped:
+    - Files that do not exist
+    - Non-files (directories)
+    - Ipynb checkpoints
+    - Input and output files in unit tests
+    - Files explicitly excluded by the user
+
+    :param file_paths: all the original files to validate and filter
+    :param file_paths_to_skip: files to exclude from processing
+    :return: files that passed the filters
+    """
+    file_paths_to_keep: List[str] = []
+    for file_path in file_paths:
+        # Skip files that do not exist.
+        is_valid = os.path.exists(file_path)
+        # Skip non-files.
+        is_valid &= os.path.isfile(file_path)
+        # Skip checkpoints.
+        is_valid &= ".ipynb_checkpoints/" not in file_path
+        # Skip input and output files used in unit tests.
+        is_valid &= not is_test_input_output_file(file_path)
+        # Skip files explicitly excluded by user.
+        is_valid &= file_path not in file_paths_to_skip
+        if is_valid:
+            file_paths_to_keep.append(file_path)
+        else:
+            _LOG.warning("Skipping %s", file_path)
+    return file_paths_to_keep
+
+
+def get_files_to_check(
+    files: Optional[List[str]],
+    skip_files: Optional[List[str]],
+    dir_name: Optional[str],
+    modified: bool,
+    last_commit: bool,
+    branch: bool,
+) -> List[str]:
+    """
+    Get the files to be processed by Linter/Reviewer.
+
+    :param files: specific files to process
+    :param skip_files: specific files to skip and not process
+    :param dir_name: name of the dir where all files should be processed
+    :param modified: process the files modified in the current git
+        client
+    :param last_commit: process the files modified in the previous
+        commit
+    :param branch: process the files modified in the current branch
+        w.r.t. master
+    :return: paths of the files to process
+    """
+    file_paths: List[str] = []
+    if files:
+        # Get the files that were explicitly specified.
+        file_paths = files
+    elif modified:
+        # Get all the modified files in the git client.
+        file_paths = hgit.get_modified_files()
+    elif last_commit:
+        # Get all the files modified in the previous commit.
+        file_paths = hgit.get_previous_committed_files()
+    elif branch:
+        # Get all the files modified in the branch.
+        file_paths = hgit.get_modified_files_in_branch(dst_branch="master")
+    elif dir_name:
+        # Get the files in a specified dir.
+        if dir_name == "$GIT_ROOT":
+            dir_name = hgit.get_client_root(super_module=True)
+        dir_name = os.path.abspath(dir_name)
+        _LOG.info("Looking for all files in '%s'", dir_name)
+        hdbg.dassert_path_exists(dir_name)
+        cmd = f"find {dir_name} -name '*' -type f"
+        _, output = hsystem.system_to_string(cmd)
+        file_paths = output.split("\n")
+    file_paths_to_skip: List[str] = []
+    if skip_files:
+        # Get the files to skip.
+        file_paths_to_skip = skip_files
+    # Remove files that should not be processed.
+    file_paths = _filter_files(file_paths, file_paths_to_skip)
+    if len(file_paths) < 1:
+        _LOG.warning("No files that can be processed were found")
+    return file_paths
+
+
 def get_python_files_to_lint(dir_name: str) -> List[str]:
     """
     Get Python files for linter excluding jupytext and test Python files.
