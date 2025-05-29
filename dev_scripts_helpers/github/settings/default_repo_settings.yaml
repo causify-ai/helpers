@@ -7,9 +7,3 @@ repository_settings:
   has_wiki: true
   has_projects: true
   delete_branch_on_merge: false
-# Recommended branch protection rules. There are no default settings for branch protection.
-branch_protection:
-  main:
-    enforce_admins: true
-    allow_force_pushes: false
-    allow_deletions: false

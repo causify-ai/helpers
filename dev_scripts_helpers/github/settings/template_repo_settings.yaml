@@ -42,6 +42,8 @@ branch_protection:
       contexts:
         - "ci/lint"
         - "ci/fasttests"
+        - "ci/slowtests"
+        - "ci/gitleaks"
     # Pull request reviews
     required_pull_request_reviews:
       dismiss_stale_reviews: true

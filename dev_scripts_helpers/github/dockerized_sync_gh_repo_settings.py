@@ -21,7 +21,6 @@ import github
 import yaml
 
 import helpers.hdbg as hdbg
-import helpers.hgit as hgit
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
 
@@ -74,6 +73,7 @@ class Settings:
             "allow_merge_commit": repo.allow_merge_commit,
             "allow_rebase_merge": repo.allow_rebase_merge,
             "delete_branch_on_merge": repo.delete_branch_on_merge,
+            "topics": repo.get_topics(),
         }
         return current_settings
 
@@ -98,81 +98,64 @@ class Settings:
                         branch.name,
                     )
                     continue
-                status_checks = Settings._safe_getattr(
-                    protection, "required_status_checks"
+                status_checks = getattr(
+                    protection, "required_status_checks", None
                 )
                 required_status_checks = {}
                 if status_checks:
-                    required_status_checks["strict"] = Settings._safe_getattr(
-                        status_checks, "strict"
+                    required_status_checks["strict"] = getattr(
+                        status_checks, "strict", None
                     )
-                    required_status_checks["contexts"] = Settings._safe_getattr(
+                    required_status_checks["contexts"] = getattr(
                         status_checks, "contexts", []
                     )
-                pr_reviews = Settings._safe_getattr(
-                    protection, "required_pull_request_reviews"
+
+                pr_reviews = getattr(
+                    protection, "required_pull_request_reviews", None
                 )
                 required_pr_reviews = {}
                 if pr_reviews:
-                    required_pr_reviews["dismiss_stale_reviews"] = (
-                        Settings._safe_getattr(
-                            pr_reviews, "dismiss_stale_reviews"
-                        )
+                    required_pr_reviews["dismiss_stale_reviews"] = getattr(
+                        pr_reviews, "dismiss_stale_reviews", None
                     )
-                    required_pr_reviews["require_code_owner_reviews"] = (
-                        Settings._safe_getattr(
-                            pr_reviews, "require_code_owner_reviews"
-                        )
+                    required_pr_reviews["require_code_owner_reviews"] = getattr(
+                        pr_reviews, "require_code_owner_reviews", None
                     )
                     required_pr_reviews["required_approving_review_count"] = (
-                        Settings._safe_getattr(
-                            pr_reviews, "required_approving_review_count"
+                        getattr(
+                            pr_reviews, "required_approving_review_count", None
                         )
                     )
-                    dismissal = Settings._safe_getattr(
-                        pr_reviews, "dismissal_restrictions"
+                    dismissal = getattr(
+                        pr_reviews, "dismissal_restrictions", None
                     )
                     dismissal_restrictions = {}
                     if dismissal:
                         dismissal_restrictions["users"] = [
-                            user.login
-                            for user in Settings._safe_getattr(
-                                dismissal, "users", []
-                            )
+                            user.login for user in getattr(dismissal, "users", [])
                         ]
                         dismissal_restrictions["teams"] = [
-                            team.name
-                            for team in Settings._safe_getattr(
-                                dismissal, "teams", []
-                            )
+                            team.name for team in getattr(dismissal, "teams", [])
                         ]
                     required_pr_reviews["dismissal_restrictions"] = (
                         dismissal_restrictions
                     )
-                restrictions = Settings._safe_getattr(protection, "restrictions")
+                restrictions = getattr(protection, "restrictions", None)
                 restrictions_dict = {}
                 if restrictions:
                     restrictions_dict["users"] = [
-                        user.login
-                        for user in Settings._safe_getattr(
-                            restrictions, "users", []
-                        )
+                        user.login for user in getattr(restrictions, "users", [])
                     ]
                     restrictions_dict["teams"] = [
-                        team.name
-                        for team in Settings._safe_getattr(
-                            restrictions, "teams", []
-                        )
+                        team.name for team in getattr(restrictions, "teams", [])
                     ]
                 branch_protection[branch.name] = {
-                    "enforce_admins": Settings._safe_getattr(
-                        protection, "enforce_admins"
+                    "enforce_admins": getattr(protection, "enforce_admins", None),
+                    "allow_force_pushes": getattr(
+                        protection, "allow_force_pushes", None
                     ),
-                    "allow_force_pushes": Settings._safe_getattr(
-                        protection, "allow_force_pushes"
-                    ),
-                    "allow_deletions": Settings._safe_getattr(
-                        protection, "allow_deletions"
+                    "allow_deletions": getattr(
+                        protection, "allow_deletions", None
                     ),
                     "required_status_checks": required_status_checks,
                     "required_pull_request_reviews": required_pr_reviews,
@@ -313,13 +296,13 @@ class Settings:
             }
             if not dry_run:
                 _LOG.info(
-                    "Applied branch protection rules to %s:\n%s",
+                    "Applied branch protection rules to %s:\n",
                     branch_name,
                     "\n".join(f"  {k}: {v}" for k, v in log_settings.items()),
                 )
             else:
                 _LOG.info(
-                    "Would apply branch protection rules to %s:\n%s",
+                    "Would apply branch protection rules to %s:\n",
                     branch_name,
                     "\n".join(f"  {k}: {v}" for k, v in log_settings.items()),
                 )
@@ -400,7 +383,7 @@ class Settings:
             if "topics" in self.repo_settings:
                 topics = self.repo_settings["topics"]
                 repo.replace_topics(topics)
-                _LOG.info("Updated repository topics: %s", ", ".join(topics))
+                _LOG.info("Updated repository topics:", ", ".join(topics))
         # Filter out `NotSet` values for logging.
         log_settings = {
             k: v
@@ -409,47 +392,27 @@ class Settings:
         }
         if not dry_run:
             _LOG.info(
-                "Applied repository settings:\n%s",
+                "Applied repository settings:\n",
                 "\n".join(f"  {k}: {v}" for k, v in log_settings.items()),
             )
         else:
             _LOG.info(
-                "Would apply repository settings:\n%s",
+                "Would apply repository settings:\n",
                 "\n".join(f"  {k}: {v}" for k, v in log_settings.items()),
             )
             if enable_security_fixes is not None:
                 _LOG.info(
-                    "Would %s automated security fixes",
-                    "enable" if enable_security_fixes else "disable",
+                    f"Would have {'enabled' if enable_security_fixes else 'disabled'} automated security fixes"
                 )
             if enable_vuln_alerts is not None:
                 _LOG.info(
-                    "Would %s vulnerability alerts",
-                    "enable" if enable_vuln_alerts else "disable",
+                    f"Would have {'enabled' if enable_vuln_alerts else 'disabled'} vulnerability alerts"
                 )
             if "topics" in self.repo_settings:
                 _LOG.info(
-                    "Would update repository topics: %s",
+                    "Would update repository topics:",
                     ", ".join(self.repo_settings["topics"]),
                 )
-
-    @staticmethod
-    def _safe_getattr(obj: Any, attr: str, default: Any = None) -> Any:
-        """
-        Get an attribute from an object, returning a default value if the
-        attribute is not found.
-
-        :param obj: object to get the attribute from
-        :param attr: attribute to get from the object
-        :param default: default value to return if the attribute is not
-            found
-        :return: attribute value or the default value if the attribute
-            is not found
-        """
-        try:
-            return getattr(obj, attr, default)
-        except (AttributeError, TypeError):
-            return default
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -461,7 +424,7 @@ def _parse() -> argparse.ArgumentParser:
     )
     hparser.add_verbosity_arg(parser)
     parser.add_argument(
-        "--input_file",
+        "--sync",
         required=True,
         help="Path to settings manifest file",
     )
@@ -475,11 +438,6 @@ def _parse() -> argparse.ArgumentParser:
         "--token_env_var",
         required=True,
         help="Name of the environment variable containing the GitHub token",
-    )
-    parser.add_argument(
-        "--switch_default",
-        action="store_true",
-        help="Switch to default settings for settings that exist in the repo but not in the settings manifest file",
     )
     parser.add_argument(
         "--dry_run",
@@ -497,9 +455,9 @@ def _parse() -> argparse.ArgumentParser:
         help="Skip confirmation prompts",
     )
     parser.add_argument(
-        "--default_settings_file",
+        "--reset",
         required=False,
-        help="Path to default settings YAML file (for --switch_default)",
+        help="Path to default settings YAML file",
     )
     return parser
 
@@ -521,9 +479,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     }
     # Create backup of current settings if requested.
     if args.backup:
-        git_root_dir = hgit.get_client_root(False)
-        backup_file = f"tmp.settings.{args.owner}.{args.repo}.yaml"
-        backup_path = f"{git_root_dir}/{backup_file}"
+        backup_file = f"settings.{args.owner}.{args.repo}.backup.yaml"
+        backup_path = os.path.join(os.path.dirname(args.input_file), backup_file)
         Settings.save_settings(Settings(current_settings), backup_path)
         _LOG.info("Settings backed up to %s", backup_path)
     else:
@@ -537,14 +494,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     else:
         _LOG.warning("Running in non-interactive mode, skipping confirmation")
     # Switch to default settings if requested.
-    if args.switch_default:
-        if not args.default_settings_file:
-            raise ValueError(
-                "You must provide --default_settings_file when using --switch_default"
-            )
-        default_settings = Settings.load_settings(args.default_settings_file)
-        # Recommended branch protection rules will be applied to all branches.
-        default_settings.apply_branch_protection(repo, args.dry_run)
+    if args.reset:
+        default_settings = Settings.load_settings(args.reset)
         # Default repository settings will be applied to the repository.
         default_settings.apply_repo_settings(repo, args.dry_run)
     # Apply branch protection and repository settings.
