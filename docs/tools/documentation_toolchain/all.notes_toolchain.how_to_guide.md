@@ -503,56 +503,47 @@ llm_transform.py -p list -i - -o -
   - Default: False
   - Purpose: Overwrite input file instead of writing elsewhere
 
----
-
-## 8. Scrape headers from a markdown — `extract_headers_from_markdown.py`
+## `extract_headers_from_markdown.py`
 
 ### Goal
 
 Turn a Markdown document into either:
-
-- a **plain list** of headers,
-- a **nested header map**, or
+- a **plain list** of headers
+- a **nested header map**
 - a \*_Vim_ quick‑fix\*\* (`cfile`) that lets you jump between sections with
   `:cnext`.
 
 ### Examples
 
-```bash
-# Human‑readable map (levels 1‑3) to STDOUT
-extract_headers_from_markdown.py -i README.md -o - --mode list --max-level 3
+- Human‑readable map (levels 1‑3) to `stdout`
+  ```bash
+  > extract_headers_from_markdown.py -i README.md -o - --mode list --max-level 3
+  ```
 
-# Build a quick‑fix file and open Vim on it
-extract_headers_from_markdown.py -i README.md -o headers.cfile --mode cfile
-vim -c "cfile headers.cfile"
-```
+- Build a quick‑fix file and open Vim on it
+  ```bash
+  > extract_headers_from_markdown.py -i README.md -o headers.cfile --mode cfile
+  > vim -c "cfile headers.cfile"
+  ```
 
-### Flags
+## `dockerized_tikz_to_bitmap.py`
 
-| Flag          | Default | Meaning                        |
-| ------------- | ------- | ------------------------------ |
-| `--mode`      | `list`  | `list`, `headers`, or `cfile`. |
-| `--max-level` | `3`     | Maximum `#` depth to parse.    |
-
----
-
-## 9. TikZ to Bitmap — `dockerized_tikz_to_bitmap.py`
+- Converts 
 
 ### Examples
 
-```bash
-# Plain 300 DPI conversion
-./dockerized_tikz_to_bitmap.py -i figure.tikz -o figure.png
+- Plain 300 DPI conversion
+  ```bash
+  > dockerized_tikz_to_bitmap.py -i figure.tikz -o figure.png
+  ```
 
-# Custom ImageMagick options (e.g. 600 DPI)
-./dockerized_tikz_to_bitmap.py -i fig.tikz -o fig.png -- -density 600 -quality 90
-```
+- Custom ImageMagick options (e.g. 600 DPI)
+  ```bash
+  > dockerized_tikz_to_bitmap.py -i fig.tikz -o fig.png -- -density 600 -quality 90
+  ```
+  - Any extra tokens after `--` are passed verbatim to `convert`
 
-_Any extra tokens after `--` are passed verbatim to `convert`._
-
----
-
-## 10. Graphviz Renderer — `dockerized_graphviz.py`
+## `dockerized_graphviz.py`
 
 ### What it does
 

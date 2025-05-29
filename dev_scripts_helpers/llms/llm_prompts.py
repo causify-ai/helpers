@@ -601,6 +601,237 @@ def code_write_1_unit_test() -> _PROMPT_OUT:
     post_container_transforms: List[str] = []
     return system, pre_transforms, post_transforms, post_container_transforms
 
+# #############################################################################
+# Latex
+# #############################################################################
+
+
+_LATEX_CONTEXT = r"""
+    You are a proficient technical writer.
+    I will pass you a chunk of Latex code.
+    """
+
+
+def latex_rewrite() -> _PROMPT_OUT:
+    system = _LATEX_CONTEXT
+    system += r"""
+    - Rewrite the text passed to increase clarity and readability.
+    - Maintain the structure of the text as much as possible, in terms of bullet
+      points and their indentation
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {"remove_code_delimiters"}
+    post_container_transforms = []
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+
+
+# #############################################################################
+# Markdown.
+# #############################################################################
+
+
+_MD_CONTEXT = r"""
+    You are a proficient technical writer.
+    I will pass you a chunk of markdown code.
+    """
+
+
+def md_rewrite() -> _PROMPT_OUT:
+    system = _MD_CONTEXT
+    system += r"""
+    - Rewrite the text passed to increase clarity and readability.
+    - Maintain the structure of the text as much as possible, in terms of bullet
+      points and their indentation.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {"remove_code_delimiters"}
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def md_summarize_short() -> _PROMPT_OUT:
+    system = _MD_CONTEXT
+    system += r"""
+    Summarize the text in less than 30 words.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {"remove_code_delimiters"}
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def md_expand() -> _PROMPT_OUT:
+    system = _MD_CONTEXT
+    system += r"""
+    You will:
+    - Maintain the structure of the text and keep the content of the existing
+      text
+    - Add bullet points to the text that are important or missing
+    - Add examples to clarify the text and help intuition
+    - Do not use bold or italicize the text
+    - Use `E.g.,` instead of `Example`
+
+    Print only the markdown without any explanation.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {
+        "remove_code_delimiters",
+        "remove_end_of_line_periods",
+        "remove_empty_lines",
+    }
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+# TODO(gp): Move to template.
+def md_clean_up_how_to_guide() -> _PROMPT_OUT:
+    system = _MD_CONTEXT
+    system += r"""
+    Format the text passed as a how-to guide.
+
+    An how-to-guide should explain how to solve a specific problem or achieve
+    a goal.
+
+    Rewrite the markdown passed to make it a how-to guide and contain the
+    the following sections:
+    - Goal / Use Case
+    - Assumptions / Requirements
+    - Step-by-Step Instructions
+    - Alternatives or Optional Steps
+    - Troubleshooting
+
+    Do not lose any information, just rewrite the text to make it a how-to.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {"remove_code_delimiters"}
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def md_convert_text_to_bullet_points() -> _PROMPT_OUT:
+    system = _MD_CONTEXT
+    system += r"""
+    - Convert the text passed to bullet points using multiple levels of bullets.
+    - Remove formatting (bold, italic, etc.) that is not needed.
+
+    Make sure to lose any information.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {"remove_code_delimiters"}
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def md_convert_table_to_bullet_points() -> _PROMPT_OUT:
+    system = _MD_CONTEXT
+    system += r"""
+    - Convert the table passed to bullet points using multiple levels of bullets.
+    - Remove the formatting (e.g., bold, italic).
+    
+    Make sure to lose any information.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {"remove_code_delimiters"}
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def md_format() -> _PROMPT_OUT:
+    system = _MD_CONTEXT
+    system += r"""
+    - Replace `*` with `-` for bullet points 
+    - Do not use tables unless necessary
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {"remove_code_delimiters"}
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def md_remove_formatting() -> _PROMPT_OUT:
+    system = _MD_CONTEXT
+    system += r"""
+    You will:
+    - Maintain the structure of the text and keep the content of the existing
+      text
+    - Remove the formatting (e.g., bold, italic)
+
+    Print only the markdown without any explanation.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {"remove_code_delimiters"}
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def md_create_bullets() -> _PROMPT_OUT:
+    system = _MD_CONTEXT
+    system += r"""
+    You will:
+    - Convert the following markdown text into bullet points
+    - Use multiple levels of bullets, if needed
+    - Not modify the text, just convert it into bullet points
+
+    Print only the markdown without any explanation.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {
+        "remove_end_of_line_periods",
+    }
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def md_summarize_short() -> _PROMPT_OUT:
+    system = _MD_CONTEXT
+    system += r"""
+    You will:
+    - Write 3 bullet points that summarize the text
+    - Each bullet point should be at most 30 words
+
+    Print only the markdown without any explanation.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {
+        "remove_end_of_line_periods",
+    }
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+# #############################################################################
+# Misc
+# #############################################################################
+
+# One-off transforms.
+
+def misc_categorize_topics() -> _PROMPT_OUT:
+    system = r"""
+    For each of the following title of article, find the best topic among the
+    following ones:
+
+    LLM Reasoning, Quant Finance, Time Series, Developer Tools, Python
+    Ecosystem, Git and GitHub, Software Architecture, AI Infrastructure,
+    Knowledge Graphs, Diffusion Models, Causal Inference, Trading Strategies,
+    Prompt Engineering, Mathematical Concepts, Dev Productivity, Rust and C++,
+    Marketing and Sales, Probabilistic Programming, Code Refactoring, Open
+    Source
+
+    Only print
+    - the first 3 words of the title
+    - a separator |
+    - the topic
+    and don't print any explanation.
+
+    if you don't know the topic, print "unknown"
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {"remove_code_delimiters"}
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
 
 # #############################################################################
 # review.
@@ -703,223 +934,6 @@ def review_refactoring() -> _PROMPT_OUT:
 
 
 # #############################################################################
-# Markdown.
-# #############################################################################
-
-
-_MD_CONTEXT = r"""
-    You are a proficient technical writer.
-    I will pass you a chunk of markdown code.
-    """
-
-
-def md_rewrite() -> _PROMPT_OUT:
-    system = _MD_CONTEXT
-    system += r"""
-    - Rewrite the text passed to increase clarity and readability.
-    - Maintain the structure of the text as much as possible, in terms of bullet
-      points and their indentation
-    """
-    pre_transforms: Set[str] = set()
-    post_transforms = {"remove_code_delimiters"}
-    post_container_transforms = ["format_markdown"]
-    return system, pre_transforms, post_transforms, post_container_transforms
-
-
-def md_summarize_short() -> _PROMPT_OUT:
-    system = _MD_CONTEXT
-    system += r"""
-    Summarize the text in less than 30 words.
-    """
-    pre_transforms: Set[str] = set()
-    post_transforms = {"remove_code_delimiters"}
-    post_container_transforms = ["format_markdown"]
-    return system, pre_transforms, post_transforms, post_container_transforms
-
-
-def md_expand() -> _PROMPT_OUT:
-    system = _MD_CONTEXT
-    system += r"""
-    I will give you markdown text
-
-    You will:
-    - Maintain the structure of the text and keep the content of the existing
-      text
-    - Add bullet points to the text that are important or missing
-    - Add examples to clarify the text and help intuition
-    - Do not use bold or italicize the text
-    - Use `E.g.,` instead of `Example`
-
-    Print only the markdown without any explanation.
-    """
-    pre_transforms: Set[str] = set()
-    post_transforms = {
-        "remove_code_delimiters",
-        "remove_end_of_line_periods",
-        "remove_empty_lines",
-    }
-    post_container_transforms = ["format_markdown"]
-    return system, pre_transforms, post_transforms, post_container_transforms
-
-
-def md_clean_up_how_to_guide() -> _PROMPT_OUT:
-    system = _MD_CONTEXT
-    system += r"""
-    Format the text passed as a how-to guide.
-
-    An how-to-guide should explain how to solve a specific problem or achieve
-    a goal.
-
-    Rewrite the markdown passed to make it a how-to guide and contain the
-    the following sections:
-    - Goal / Use Case
-    - Assumptions / Requirements
-    - Step-by-Step Instructions
-    - Alternatives or Optional Steps
-    - Troubleshooting
-
-    Do not lose any information, just rewrite the text to make it a how-to.
-    """
-    pre_transforms: Set[str] = set()
-    post_transforms = {"remove_code_delimiters"}
-    post_container_transforms = ["format_markdown"]
-    return system, pre_transforms, post_transforms, post_container_transforms
-
-
-def md_convert_text_to_bullet_points() -> _PROMPT_OUT:
-    system = _MD_CONTEXT
-    system += r"""
-    - Convert the text passed to bullet points using multiple levels of bullets.
-    - Remove formatting (bold, italic, etc.) that is not needed.
-
-    Make sure to lose any information.
-    """
-    pre_transforms: Set[str] = set()
-    post_transforms = {"remove_code_delimiters"}
-    post_container_transforms = ["format_markdown"]
-    return system, pre_transforms, post_transforms, post_container_transforms
-
-
-def md_convert_table_to_bullet_points() -> _PROMPT_OUT:
-    system = _MD_CONTEXT
-    system += r"""
-    - Convert the table passed to bullet points using multiple levels of bullets.
-    - Remove the formatting (e.g., bold, italic)
-    
-    Make sure to lose any information.
-    """
-    pre_transforms: Set[str] = set()
-    post_transforms = {"remove_code_delimiters"}
-    post_container_transforms = ["format_markdown"]
-    return system, pre_transforms, post_transforms, post_container_transforms
-
-
-def md_format() -> _PROMPT_OUT:
-    system = _MD_CONTEXT
-    system += r"""
-    - Replace `*` with `-` for bullet points 
-    - Do not use tables unless necessary
-    """
-    pre_transforms: Set[str] = set()
-    post_transforms = {"remove_code_delimiters"}
-    post_container_transforms = ["format_markdown"]
-    return system, pre_transforms, post_transforms, post_container_transforms
-
-
-def md_remove_formatting() -> _PROMPT_OUT:
-    system = _MD_CONTEXT
-    system += r"""
-    You will:
-    - Maintain the structure of the text and keep the content of the existing
-      text
-    - Remove the formatting (e.g., bold, italic)
-
-    Print only the markdown without any explanation.
-    """
-    pre_transforms: Set[str] = set()
-    post_transforms = {"remove_code_delimiters"}
-    post_container_transforms = ["format_markdown"]
-    return system, pre_transforms, post_transforms, post_container_transforms
-
-# #############################################################################
-# Latex
-# #############################################################################
-
-
-_LATEX_CONTEXT = r"""
-    You are a proficient technical writer.
-    I will pass you a chunk of Latex code.
-    """
-
-
-def latex_rewrite() -> _PROMPT_OUT:
-    system = _LATEX_CONTEXT
-    system += r"""
-    - Rewrite the text passed to increase clarity and readability.
-    - Maintain the structure of the text as much as possible, in terms of bullet
-      points and their indentation
-    """
-    pre_transforms: Set[str] = set()
-    post_transforms = {"remove_code_delimiters"}
-    post_container_transforms = []
-    return system, pre_transforms, post_transforms, post_container_transforms
-
-
-# #############################################################################
-# Doc.
-# #############################################################################
-
-
-def doc_create_bullets() -> _PROMPT_OUT:
-    system = _MD_CONTEXT
-    system += r"""
-    I will give you markdown text
-
-    You will:
-    - Convert the following markdown text into bullet points
-    - Use multiple levels of bullets, if needed
-    - Not modify the text, just convert it into bullet points
-
-    Print only the markdown without any explanation.
-    """
-    pre_transforms: Set[str] = set()
-    post_transforms = {
-        "remove_end_of_line_periods",
-    }
-    post_container_transforms = ["format_markdown"]
-    return system, pre_transforms, post_transforms, post_container_transforms
-
-
-def doc_summarize_short() -> _PROMPT_OUT:
-    system = _MD_CONTEXT
-    system += r"""
-    I will give you markdown text
-
-    You will:
-    - Write 3 bullet points that summarize the text
-    - Each bullet point should be at most 30 words
-
-    Print only the markdown without any explanation.
-    """
-    pre_transforms: Set[str] = set()
-    post_transforms = {
-        "remove_end_of_line_periods",
-    }
-    post_container_transforms = ["format_markdown"]
-    return system, pre_transforms, post_transforms, post_container_transforms
-
-
-def doc_rewrite() -> _PROMPT_OUT:
-    system = _MD_CONTEXT
-    system += r"""
-    - Rewrite the text passed to increase clarity and readability.
-    - Maintain the structure of the text as much as possible, in terms of bullet
-      points and their indentation
-    """
-    return md_rewrite()
-
-
-# #############################################################################
 # Slide.
 # #############################################################################
 
@@ -930,8 +944,6 @@ def slide_to_bullet_points() -> _PROMPT_OUT:
     """
     system = _MD_CONTEXT
     system += r"""
-    I will give you markdown text
-
     You will:
     - Convert the following markdown text into bullet points
     - Make sure that the text is clean and readable
@@ -951,8 +963,6 @@ def slide_to_bullet_points() -> _PROMPT_OUT:
 def slide_expand() -> _PROMPT_OUT:
     system = _MD_CONTEXT
     system += r"""
-    I will give you markdown text
-
     You will:
     - Maintain the structure of the text and keep the content of the existing
       text
@@ -976,8 +986,6 @@ def slide_expand() -> _PROMPT_OUT:
 def slide_reduce() -> _PROMPT_OUT:
     system = _MD_CONTEXT
     system += r"""
-    I will give you markdown text
-
     You will:
     - Maintain the structure of the text
     - Keep all the figures
@@ -1001,8 +1009,6 @@ def slide_reduce() -> _PROMPT_OUT:
 def slide_reduce_bullets() -> _PROMPT_OUT:
     system = _MD_CONTEXT
     system += r"""
-    I will give you markdown text
-
     You will:
     - Maintain the structure of the text
     - Keep all the figures
@@ -1024,8 +1030,6 @@ def slide_reduce_bullets() -> _PROMPT_OUT:
 def slide_bold() -> _PROMPT_OUT:
     system = _MD_CONTEXT
     system += r"""
-    I will give you markdown text
-
     You will:
     - Not change the text or the structure of the text
     - Highlight in bold only the most important phrases in the text—those that
@@ -1045,10 +1049,7 @@ def slide_bold() -> _PROMPT_OUT:
 def slide_smart_colorize() -> _PROMPT_OUT:
     system = _MD_CONTEXT
     system += r"""
-    I will give you markdown text
-
     You will:
-
     - Not change the text or the structure of the text
     - Use the \red{...}, \green{...}, \blue{...}, \violet{} to highlight common
       chunks of the expression and text
@@ -1088,8 +1089,6 @@ def slide_smart_colorize() -> _PROMPT_OUT:
 def slide_add_figure() -> _PROMPT_OUT:
     system = _MD_CONTEXT
     system += r"""
-    I will give you markdown text
-
     You will create a figure that illustrates the text using Graphviz dot.
 
     - If you are sure about the meaning of the variables use
@@ -1131,10 +1130,12 @@ def slide_add_figure() -> _PROMPT_OUT:
     post_container_transforms = ["append_to_text"]
     return system, pre_transforms, post_transforms, post_container_transforms
 
+
 # #############################################################################
 # Text.
 # #############################################################################
 
+# Operate on pure text, not markdown.
 
 #def text_expand() -> _PROMPT_OUT:
 #    """
@@ -1148,6 +1149,7 @@ def slide_add_figure() -> _PROMPT_OUT:
 
 def text_rephrase() -> _PROMPT_OUT:
     """
+    Apply complex transformations to the text.
     """
     if os.path.exists("text_rephrase.txt"):
         system = hio.from_file("text_rephrase.txt")
@@ -1159,33 +1161,13 @@ def text_rephrase() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
-# #############################################################################
-
-
-def scratch_categorize_topics() -> _PROMPT_OUT:
-    system = r"""
-    For each of the following title of article, find the best topic among the
-    following ones:
-
-    LLM Reasoning, Quant Finance, Time Series, Developer Tools, Python
-    Ecosystem, Git and GitHub, Software Architecture, AI Infrastructure,
-    Knowledge Graphs, Diffusion Models, Causal Inference, Trading Strategies,
-    Prompt Engineering, Mathematical Concepts, Dev Productivity, Rust and C++,
-    Marketing and Sales, Probabilistic Programming, Code Refactoring, Open
-    Source
-
-    Only print
-    - the first 3 words of the title
-    - a separator |
-    - the topic
-    and don't print any explanation.
-
-    if you don't know the topic, print "unknown"
+def text_rewrite() -> _PROMPT_OUT:
+    system += r"""
+    - Rewrite the text passed to increase clarity and readability.
+    - Maintain the structure of the text as much as possible, in terms of bullet
+      points and their indentation
     """
-    pre_transforms: Set[str] = set()
-    post_transforms = {"remove_code_delimiters"}
-    post_container_transforms = ["format_markdown"]
-    return system, pre_transforms, post_transforms, post_container_transforms
+    return md_rewrite()
 
 
 # #############################################################################
