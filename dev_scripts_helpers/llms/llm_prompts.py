@@ -257,6 +257,7 @@ def code_fix_complex_assignments() -> _PROMPT_OUT:
         is_first_or_last = True
     else:
         is_first_or_last = False
+    ```
     """
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
@@ -636,6 +637,38 @@ _MD_CONTEXT = r"""
     You are a proficient technical writer.
     I will pass you a chunk of markdown code.
     """
+
+
+def md_add_good_bad_examples() -> _PROMPT_OUT:
+    system = _MD_CONTEXT
+    system += r"""
+    You will:
+    - Maintain the structure of the text and keep the content of the existing
+      text
+    - Add bullet points with good examples according to the text prepended with
+      `Good:`
+    - Add bullet points with good examples according to the text prepended with
+      `Bad:`
+
+    - For instance for the input:
+      ```
+      - The docstring must use imperative form, whenever possible
+      ```
+      the output is:
+      ```
+      - The docstring must use imperative form, whenever possible
+        - Good: "Calculate the sum of two numbers and return the result."
+        - Bad: "Calculates the sum of two numbers and returns the result."
+      ```
+
+    Print only the markdown without any explanation.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {
+        "remove_empty_lines",
+    }
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
 
 
 def md_rewrite() -> _PROMPT_OUT:

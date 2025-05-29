@@ -20,7 +20,7 @@
 
 <!-- tocstop -->
 
-# Guidelines for automated PR reviews
+# Guidelines for PR reviews
 
 ## Python code
 
@@ -90,10 +90,6 @@
 ### Imports
 
 - All imports should be located at the top of the file
-- Do not use `import *`
-- Do not use `from ... import ...`, unless it is the `typing` package, e.g.,
-  `from typing import Iterable, List`
-- Always import with a full path from the root of the repo / submodule
 - Each module that can be imported should have a docstring at the very beginning
   describing how it should be imported
   - Linter adds it automatically
@@ -236,6 +232,10 @@
       --skip_action cleanup_after
     ```
 - Commands should be prepended by `docker>` if they need to be run inside Docker
+- Avoid using screenshots whenever possible and instead copy-and-paste text with
+  the right highlighting
+  - E.g., instead of a screenshot of a terminal command, provide the command
+    text: `> ls -la`
 
 ## Spelling
 

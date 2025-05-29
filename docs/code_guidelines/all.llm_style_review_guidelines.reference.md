@@ -18,94 +18,152 @@
 
 <!-- tocstop -->
 
-# Guidelines for automated PR reviews
+# Guidelines for PR reviews
 
 ## Python code
 
 ### Naming
 
 - Name functions using verbs and verbs/actions
-  - E.g., `download_data()`, `process_input()`, `calculate_sum()`
-  - Python internal functions as `__repr__`, `__init__` are valid
-  - Functions names like `to_dict()`, `_parse()`, `_main()` are valid
+  - Good: `download_data()`, `process_input()`, `calculate_sum()`
+  - Good: Python internal functions as `__repr__`, `__init__` are valid
+  - Good: Functions names like `to_dict()`, `_parse()`, `_main()` are valid
 - Name classes using nouns
-  - E.g., `Downloader()`, `DataProcessor()`, `User()`
+  - Good: `Downloader()`, `DataProcessor()`, `User()`
+  - Bad: `DownloadStuff()`, `ProcessData()`, `UserActions()`
 - Name decorators with an adjective or a past tense verb
-  - E.g., `timed`, `cached`, `logged`
+  - Good: `timed`, `cached`, `logged`
+  - Bad: `time`, `cache`, `log`
 - Variable and function names should not reference implementation details, and
   things that can change or details that are not important
   - E.g., the name of a variable should not include its type
-    - E.g., use `embeddings` instead of `embeddings_list`
-    - E.g., use `data` instead of `data_dict`
-- Abbreviations in the names of variables and functions should be avoided,
-  except for the following
-  - `df` for dataframe
-  - `srs` for series
-  - `idx` for index
-  - `id` for identifier
-  - `val` for value
-  - `var` for variable
-  - `args` for arguments and `kwargs` for keyword arguments
-  - `col` for columns and `row` for rows
+    - Good: `embeddings`
+    - Bad: `embeddings_list`
+    - Good: `data`
+    - Bad: `data_dict`
+- Abbreviations in the names of variables and functions should be avoided
+  - Exceptions are the following 
+    - `df` for dataframe
+    - `srs` for series
+    - `idx` for index
+    - `id` for identifier
+    - `val` for value
+    - `var` for variable
+    - `args` for arguments and `kwargs` for keyword arguments
+    - `col` for columns and `row` for rows
 - Do not repeat in a function name what is already included in the library name
-  (avoid "code stutter")
+  avoiding "code stutter"
   - E.g., if using a library named `math`, avoid naming a function
     `math_calculate()`
+    - Good: `calculate()`
+    - Bad: `math_calculate()`
 
 ### Docstrings
 
 - All functions and methods must have a docstring
-- The docstring should describe the goal of the function, the interface and what
+  - Good:
+    ```
+    def add(a, b):
+      """
+      Add two numbers and return the result
+      """
+      return a + b
+    ```
+  - Bad:
+    ```
+    def add(a, b):
+      return a + b
+    ```
+- The docstring must describe the goal of the function, the interface and what
   the user needs to know to use the function
-  - E.g., "This function calculates the sum of two numbers and returns the
-    result."
-- The text should not describe implementation details that can be changed
+  - Good: "Calculate the sum of two numbers and return the result."
+  - Good
+    ```
+    def get_repository_settings(
+        repo: github.Repository.Repository,
+    ) -> Dict[str, Any]:
+        """
+        Get the current settings of the repository.
+
+        :param repo: GitHub repository object
+        :return: dictionary containing repository settings
+        """
+    ```
+- The docstring must use imperative form, whenever possible
+  - Good: "Calculate the sum of two numbers and return the result."
+  - Bad: "Calculates the sum of two numbers and returns the result."
+- The docstring should not describe implementation details that can be changed
+  - Good: "Sort the list of integers in ascending order."
+  - Bad: "Use the quicksort algorithm to sort the list of integers in ascending
+    order."
 - Follow this example for indentation of parameter descriptions:
-  ```python
-  :param param1: a very very long param description that
-      continues into a second line
-  :param param2: a param with two possible values
-      - first value description
-      - second value description that is very long and
+  - Good
+    ```python
+    :param param1: a very very long param description that
         continues into a second line
-  ```
+    :param param2: a param with two possible values
+        - first value description
+        - second value description that is very long and
+          continues into a second line
+    ```
 - Adding examples (e.g., of input and output) to the docstring is encouraged
-  - E.g.,
+  - Good
     ```
     # Example usage:
     result = add_numbers(3, 5)
-    # result is 8
+    # The result is 8.
     ```
 - References to variables, file paths, functions, classes, etc. should be
   wrapped in backticks
-  - E.g., "The `add_numbers` function takes two arguments."
+  - Good: "The `add_numbers()` function takes two arguments `a` and `b`."
+  - Bad: "The add_numbers() function takes two arguments a and b."
 - Multi-line representations of data structures (e.g., an output example) should
   be wrapped in triple backticks
-  - E.g.,
+  - Good
     ```
     { "name": "John", "age": 30, "city": "New York" }
     ```
 
 ### Comments
 
-- Add a comment for every logically distinct chunk of code
+- Add a comment for every logically distinct chunk of code, spanning 4-5 lines
 - Use comments to separate chunks of code instead of blank lines
+  - Good:
+    ```
+    function1()
+    # Then do something else.
+    function2()
+  - Bad:
+    ```
+    function1()
+
+    function2()
+    ```
 - Do not use inline comments; every comment should be on its own separate line,
   before the line it refers to
+  - Good:
+    ```
+    # Grant access to admin panel access_admin_panel().
+    if user.is_admin(): 
+    ```
+  - Bad:
+    ```
+    if user.is_admin(): # Check if the user is an admin access_admin_panel().
+    ```
   - In `if-elif-else` statements, the comments are placed underneath each
     statement in order to explain the code that belongs to each statement in
     particular
-    ```python
-    if ...:
-      # Do this.
-    else:
-      # Do that.
+    Good:
     ```
-- Avoid mentioning concrete names of variables, functions, classes, files, etc.
-  in the comments
-  - If it is unavoidable, wrap their names in backticks
+    if ...:
+      # Do this
+    else:
+      # Do that
+    ```
 - Avoid referring to the type of a variable in the comments
   - Keeps comments focused on functionality rather than implementation specifics
+  - Good: "Store the user's age for validation."
+  - Bad: "Store the user's age as an integer for validation."
 - Do not include implementation details in comments
   - Describe "what" and "why" the code does something and not "how" the code
     does it
@@ -121,26 +179,92 @@
 
 - Encode the assumptions made in the code using assertions and report as much
   information as possible in an assertion to make it easy to debug the output
-  - E.g., `hdbg.dassert_lt(start_date, end_date)`
+  - Good:
+    ```
+    hdbg.dassert_lt(start_date, end_date,
+      msg="start_date needs to be before end_date")
+    ```
   - Ensure that assertions provide detailed information for debugging
   - Use assertions to validate input parameters and preconditions
 - Do not use f-strings in `hdbg.dassert()`, but use traditional string
   formatting methods in assertions
-  - E.g.,
+  - Good:
     `hdbg.dassert_eq(len(list1), len(list2), "Lists must be of equal length: %d vs %d" % (len(list1), len(list2)))`
-- Use f-strings in exceptions
-  - E.g., `raise ValueError(f"Invalid server_name='{server_name}'")`
-  - Provide clear and informative error messages using f-strings
-  - E.g., `raise TypeError(f"Expected type int, but got {type(var).__name__}")`
+
+- Add type hints only to the function definitions, if they are missing.
+  - Good:
+    ```
+    def process_data(data, threshold=0.5):
+        results = []
+        for item in data:
+            if item > threshold:
+                results.append(item)
+        return results
+    ```
+  - Bad:
+    ```
+    def process_data(data: List[float], threshold: float = 0.5) -> List[float]:
+        results: List[float] = []
+        for item in data:
+            if item > threshold:
+                results.append(item)
+        return results
+    ```
+
+- Avoid complex assignments into if-then-else statements.
+  - Good:
+    ```
+    capitalized_parts = []
+    for w in parts:
+        if is_first_or_last or w.lower() not in small_words:
+            w_out = w.capitalize()
+        else:
+            w_out = w.lower()
+    capitalized_parts.append(w_out)
+    ```
+  - Bad:
+    ```
+    capitalized_parts = [
+        w.capitalize() if is_first_or_last or w.lower() not in small_words else w.lower()
+        for w in parts
+    ]
+    ```
+    to:
+
+  - Good:
+    ```
+    if i == 0:
+        is_first_or_last = True
+    elif i == len(tokens) - 1:
+        is_first_or_last = True
+    elif i > 0 and not re.search(r'\w', tokens[i - 1]):
+        is_first_or_last = True
+    elif i < len(tokens) - 1 and not re.search(r'\w', tokens[i + 1]):
+        is_first_or_last = True
+    else:
+        is_first_or_last = False
+    ```
+  - Bad:
+    ```
+    is_first_or_last = (i == 0 or i == len(tokens) - 1 or
+                    (i > 0 and not re.search(r'\w', tokens[i - 1])) or
+                    (i < len(tokens) - 1 and not re.search(r'\w', tokens[i + 1])))
+    ```
+
+- Provide clear and informative error messages in exceptions using f-strings
+  - Good: `raise ValueError(f"Invalid server_name='{server_name}'")`
+  - Good: `raise TypeError(f"Expected type int, but got {type(var).__name__}")`
 - Use complete `if-elif-else` statements instead of a sequence of `if`
   statements
   - Ensure logical flow and clarity in conditional statements
-  - E.g.,
+  - Good:
     ```python
     if condition1:
       # Execute block for condition1.
+      ...
     elif condition2:
       # Execute block for condition2.
+      ...
     else:
       # Execute block if none of the above conditions are met or raise an
       # exception.
@@ -155,7 +279,21 @@
       # Do something.
     ```
 - Use `if var is None` to check if `var` is `None` instead of `if not var`
+  - Good: `if my_variable is None:`
+  - Bad: `if not my_variable:`
 - Use `isinstance()` instead of `type()` to check the type of an object
+  - Good: `if isinstance(obj, str):`
+  - Bad: `if type(obj) == str:`
+- Do not use `import *`
+  - Good: `from math import sqrt, pi`
+  - Bad: `from math import *`
+- Do not use `from ... import ...`, unless it is the `typing` package, e.g.,
+  `from typing import Iterable, List`
+  - Good: `from typing import Dict, Tuple`
+  - Bad: `from os import path`
+- Always import with a full path from the root of the repo / submodule
+  - Good: `import myproject.module.submodule`
+  - Bad: `from submodule import my_function`
 
 ### Code design
 
@@ -170,11 +308,11 @@
   - Common functions, used by all other functions
     - E.g., utility functions like `log_message()`, `validate_input()`
   - Read data
-    - E.g., `read_csv()`, `load_json()`
+    - Good: `read_csv()`, `load_json()`
   - Process data
-    - E.g., `clean_data()`, `transform_data()`
+    - Good: `clean_data()`, `transform_data()`
   - Save data
-    - E.g., `write_csv()`, `export_json()`
+    - Good: `write_csv()`, `export_json()`
 - Ensure that function names are descriptive and convey their purpose
 - Use comments to explain complex logic or calculations
 - Implement error handling to manage exceptions and edge cases
@@ -202,17 +340,18 @@
   - E.g., if a function `f()` accepts a dataframe `df` as its argument, then
     `f()` will not modify `df` but make a copy and work on it
   - This ensures that the original data remains unchanged and can be reused
-- The preferred order of parameters in a function declaration is:
+- To maintain clarity and consistency in function definitions, use the following
+  order of parameters in a function declaration:
   - Input parameters
   - Output parameters
   - In-out parameters
   - Default parameters
-  - This order helps in maintaining clarity and consistency in function
-    definitions
 - Default parameters should be used sparingly and only for parameters that 99%
   of the time are constant
 - All the default parameters should be keyword-only
   - They should be separated from the other parameters by `*`
+    - Good: `def example_function(param1: str, *, default_param1: int = 10)`
+    - Bad: `def example_function(param1: str, default_param1 : int =10)`
   - This ensures that default parameters are always explicitly specified by
     name, improving readability
 - Do not use mutable objects (such as lists, maps, objects) as default value for
@@ -220,6 +359,7 @@
   inside the function
   - E.g., instead of using a list as a default parameter, use `None` and
     initialize the list inside the function:
+  - Good:
     ```
     def add_item(item: str, *, items: Optional[List[str]]) -> List[str]:
       if items is None:
@@ -228,57 +368,75 @@
       return items
     ```
 
-- Use a default value of `None` when a function needs to be wrapped and the
-  default parameter needs to be propagated
 - Do not use a boolean parameter as a switch controlling some function behavior;
   instead, use a string parameter `mode`, which is allowed to take a small
   well-defined set of values
-  - E.g., `def process_data(mode='fast'):` where `mode` can be `'fast'`,
+  - Good: `def process_data(mode: str = 'fast'):` where `mode` can be `'fast'`,
     `'slow'`, etc
 - For functions dealing with dataframes, avoid hard-wired column name
   dependencies; instead, allow the caller to pass the column name to the
   function as a parameter
   - E.g., `def calculate_average(df: pd.DataFrame, column_name: str):`
-- Do not put computations of the output together in a `return` statement
-  - Bad
-    ```
-    return compute_value()
-    ```
-  - Instead, compute the output first, assign it to a variable, and then return
-    this variable
+- Do not put computations of the output together in a `return` statement,
+  instead, compute the output first, assign it to a variable, and then return
+  this variable
   - Good
     ```
     result = compute_value()
     return result
     ```
+  - Bad
+    ```
+    return compute_value()
+    ```
 - A function should have a single exit point, i.e., one single line with
   `return`
+  - Good:
+    ```python
+    def calculate_total(price, tax):
+        total = price + (price * tax)
+        return total
+    ```
+  - Bad:
+    ```python
+    def calculate_total(price, tax):
+        if price > 0:
+            return price + (price * tax)
+        else:
+            return 0
+    ```
 - A function should ideally return objects of only one type (or `None`)
 - When calling a function, assign all the input parameter values to variables on
   separate lines and then pass these variables to the function
-  - E.g.,
+  - Good:
     ```
-    param1 = value1
-    param2 = value2
+    param1 = 10
+    param2 = 11
     result = my_function(param1, param2)
+    ```
+  - Bad:
+    ```
+    result = my_function(10, 11)
     ```
 - Explicitly bind default parameters, i.e., specify the parameter name when
   calling a function, and do not bind non-default parameters
-  - E.g., call `func()` like `func(param1, param2, param3=param3)` if `param3`
-    is the only parameter with a default value
+  - Good: `func(10, 20, param3=30)`
+  - Bad: `func(10, 20, 30)`
 
 ### Logging
 
 - Use logging `_LOG.debug()` and not `print()` for tracing execution
+  - Good: `_LOG.debug("value=%s", value)`
+  - Bad: `print("value=%s", value)`
 - Use positional args in logging and not inline formatting
-  - E.g., The code should do `_LOG.debug("cmd=%s", cmd1)` and not
-    `_LOG.debug(f"cmd={cmd1}")`
+  - Good: `_LOG.debug("cmd=%s", cmd1)`
+  - Bad: `_LOG.debug(f"cmd={cmd1}")`
 - Use the following idiom to configure logging:
-
   ```python
   import helpers.hdbg as hdbg
 
   _LOG = logging.getLogger(__name__)
+  ...
 
   hdbg.init_logger(verbosity=logging.DEBUG)
   ```
@@ -411,13 +569,9 @@
 - Boldface and italics should be used sparingly
 - The use of bullet point lists is encouraged
   - For the items, `-` should be used instead of `*` or circles
-- Avoid using screenshots whenever possible and instead copy-and-paste text with
-  the right highlighting
-  - E.g., instead of a screenshot of a terminal command, provide the command
-    text: `> ls -la`
 - Use active voice most of the time and use passive voice sparingly
-  - E.g., "The user updates the file" instead of "The file is updated by the
-    user"
+  - Good: "The user updates the file."
+  - Bad: "The file is updated by the user."
 - Be efficient
   - Do not explain things in a repetitive way
   - Rewrite long-winded AI-generated texts in a concise way
