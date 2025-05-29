@@ -16,7 +16,6 @@ E.g.,
 import argparse
 import itertools
 import logging
-import os
 from typing import List, Tuple, Type
 
 import joblib
@@ -58,90 +57,6 @@ import linters.amp_warn_incorrectly_formatted_todo as lawifoto
 import linters.utils as liutils
 
 _LOG = logging.getLogger(__name__)
-
-
-# #############################################################################
-# Files
-# #############################################################################
-
-
-def _filter_files(
-    file_paths: List[str], file_paths_to_skip: List[str]
-) -> List[str]:
-    """
-    Filter the list of files by removing invalid or excluded ones.
-
-    The following files are skipped:
-    - Files that do not exist
-    - Non-files (directories)
-    - Ipynb checkpoints
-    - Input and output files in unit tests
-    - Files explicitly excluded by the user
-
-    :param file_paths: all the original files to validate and filter
-    :param file_paths_to_skip: files to exclude from processing
-    :return: files that passed the filters
-    """
-    file_paths_to_keep: List[str] = []
-    for file_path in file_paths:
-        # Skip files that do not exist.
-        is_valid = os.path.exists(file_path)
-        # Skip non-files.
-        is_valid &= os.path.isfile(file_path)
-        # Skip checkpoints.
-        is_valid &= ".ipynb_checkpoints/" not in file_path
-        # Skip input and output files used in unit tests.
-        is_valid &= not liutils.is_test_input_output_file(file_path)
-        # Skip files explicitly excluded by user.
-        is_valid &= file_path not in file_paths_to_skip
-        if is_valid:
-            file_paths_to_keep.append(file_path)
-        else:
-            _LOG.warning("Skipping %s", file_path)
-    return file_paths_to_keep
-
-
-def _get_files_to_lint(args: argparse.Namespace) -> List[str]:
-    """
-    Get the files to be processed by Linter.
-
-    :param args: command line arguments
-    :return: paths of the files to lint
-    """
-    file_paths: List[str] = []
-    if args.files:
-        # Get the files that were explicitly specified.
-        file_paths = args.files
-    elif args.modified:
-        # Get all the modified files in the git client.
-        file_paths = hgit.get_modified_files()
-    elif args.last_commit:
-        # Get all the files modified in the previous commit.
-        file_paths = hgit.get_previous_committed_files()
-    elif args.branch:
-        # Get all the files modified in the branch.
-        file_paths = hgit.get_modified_files_in_branch(dst_branch="master")
-    elif args.dir_name:
-        # Get the files in a specified dir.
-        if args.dir_name == "$GIT_ROOT":
-            dir_name = hgit.get_client_root(super_module=True)
-        else:
-            dir_name = args.dir_name
-        dir_name = os.path.abspath(dir_name)
-        _LOG.info("Looking for all files in '%s'", dir_name)
-        hdbg.dassert_path_exists(dir_name)
-        cmd = f"find {dir_name} -name '*' -type f"
-        _, output = hsystem.system_to_string(cmd)
-        file_paths = output.split("\n")
-    file_paths_to_skip: List[str] = []
-    if args.skip_files:
-        # Get the files to skip during linting.
-        file_paths_to_skip = args.skip_files
-    # Remove files that should not be linted.
-    file_paths = _filter_files(file_paths, file_paths_to_skip)
-    if len(file_paths) < 1:
-        _LOG.warning("No files that can be linted were found")
-    return file_paths
 
 
 # #############################################################################
@@ -416,7 +331,6 @@ def _run_linter(
         # Lint the files in parallel.
         num_threads = int(num_threads)
         _LOG.info("Using %s threads", num_threads if num_threads > 0 else "all")
-
         lints_tmp = joblib.Parallel(n_jobs=num_threads, verbose=50)(
             joblib.delayed(_lint)(
                 file_path, action_names, action_classes, args.pedantic
@@ -503,7 +417,14 @@ def _parse() -> argparse.ArgumentParser:
 def _main(args: argparse.Namespace) -> None:
     hdbg.init_logger(args.log_level)
     # Get the files to be linted.
-    file_paths = _get_files_to_lint(args)
+    file_paths = liutils.get_files_to_check(
+        args.files,
+        args.skip_files,
+        args.dir_name,
+        args.modified,
+        args.last_commit,
+        args.branch,
+    )
     _LOG.debug(
         "Linting %s files; file_paths=%s", len(file_paths), " ".join(file_paths)
     )

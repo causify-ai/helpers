@@ -16,7 +16,10 @@ from helpers.lib_tasks import (  # This is not an invoke target.
 # TODO(gp): How to automatically discovery the paths?
 
 from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=unused-import
-    #
+    aws_create_test_task_definition,
+    aws_create_prod_task_definition,
+    docker_release_test_task_definition,
+    docker_release_prod_task_definition,
     docker_bash,
     docker_build_local_image,
     docker_build_multi_arch_prod_image,

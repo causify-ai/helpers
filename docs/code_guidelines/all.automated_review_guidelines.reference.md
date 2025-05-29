@@ -38,8 +38,7 @@ serve as a guideline for automated PR reviews.
 - Name decorators with an adjective or a past tense verb (e.g., `timed`)
 - Variable and function names should not reference implementation details,
   things that can change or details that are not important
-  - E.g., the name of a variable should not include its type, e.g. use
-    `embeddings` instead of `embeddings_list`
+- The name of a variable should not include its type, e.g. use `embeddings` instead of `embeddings_list`
 - Abbreviations in the names should be avoided, except for the following: `df`
   (dataframe), `srs` (series), `idx` (index), `id` (identifier), `val` (value),
   `var` (variable), `args` (arguments), `kwargs` (keyword arguments), `col`
@@ -55,28 +54,25 @@ serve as a guideline for automated PR reviews.
 
 - All functions and methods must have a docstring
 - Docstrings should be wrapped in triple quotation marks (`"""`)
-  - The opening and closing triple quotation marks should be located on their
-    own separate lines
+- The opening and closing triple quotation marks of a docstring should be located on their own separate lines
 - Every docstring should start with a capital letter
 - Every docstring should start with a verb in the imperative form
 - Every docstring should begin with a one-line description of what the function
   does
-  - It must fit into a single line and end with a period
+- The first line of a docstring must fit into a single line and end with a period
 - The first docstring line is followed by a blank line and then, optionally, by
   a longer description (possibly on multiple lines) with a more detailed
   explanation of what the function does
-  - It should not describe parameters / what is being returned
-  - It should not describe implementation details that can be changed
-  - It should describe the goal of the function, the interface and what the user
-    needs to know to use the function
-- The more detailed description is followed by a blank line and then the param /
+- The docstring should not describe parameters / what is being returned
+- The docstring should not describe implementation details that can be changed
+- The docstring should describe the goal of the function, the interface and what the user needs to know to use the function
+- The more detailed description in the docstring should be followed by a blank line and then the param /
   return description section
-  - Use lowercase after `:param XYZ: ...` / `:return:` unless the description
-    starts with a proper noun
-  - Do not add a period at the end of the param / return descriptions
-  - Do not mention the type of the parameters / returned structures
-  - Do not mention default values of parameters in parameter descriptions
-  - Follow this example for indentation of parameter descriptions:
+- Use lowercase after `:param XYZ: ...` / `:return:` unless the description starts with a proper noun
+- In the docstring, do not add a period at the end of the param / return descriptions
+- In the docstring, do not mention the type of the parameters / returned structures
+- In the docstring, do not mention default values of parameters in parameter descriptions
+- Follow this example for indentation of parameter descriptions in the docstring:
     ```python
     :param param1: a very very long param description that
         continues into a second line
@@ -86,9 +82,9 @@ serve as a guideline for automated PR reviews.
           continues into a second line
     ```
 - Adding examples (e.g., of input and output) to the docstring is encouraged
-- References to variables, file paths, functions, classes, etc. should be
+- In the docstring, references to variables, file paths, functions, classes, etc. should be
   wrapped in backticks
-- Multiline representations of data structures (e.g., an output example) should
+- In the docstring, multiline representations of data structures (e.g., an output example) should
   be wrapped in triple backticks
 
 ### Comments
@@ -107,7 +103,7 @@ serve as a guideline for automated PR reviews.
   particular
 - Avoid mentioning concrete names of variables, functions, classes, files, etc.
   in the comments
-  - If it is unavoidable, wrap their names in backticks
+- If names of variables, functions, classes, files are mentioned, their names should be wrapped in backticks
 - Avoid referring to the type of a variable in the comments
 - Do not include implementation details in comments (describe "what" and not
   "how")
@@ -117,49 +113,35 @@ serve as a guideline for automated PR reviews.
 
 ### Code design
 
-- Follow DRY principle (Don't Repeat Yourself):
-  - Factor out common code in a separate function / method
-  - Do not copy-and-paste parameter descriptions, instead write them in only one
-    function and put a reference to it in the other functions where the same
-    parameters are used, e.g., "See `func_name()` for the param description"
+- Factor out common code in a separate function / method
+- Do not copy-and-paste parameter descriptions, instead write them in only one function and put a reference to it in the other functions where the same parameters are used, e.g., "See `func_name()` for the param description"
 - Order functions / classes in a topological order so that the ones at the top
   of the files are the "innermost" and the ones at the end of the files are the
   "outermost"
-- Keep public functions in an order representing the typical flow of use, e.g.,
-  - Common functions, used by all other functions
-  - Read data
-  - Process data
-  - Save data
+- Keep public functions in an order representing the typical flow of use, e.g., (1) Common functions, used by all other functions; (2) Read data; (3) Process data; (4) Save data
 - Use banners to separate large sections of code, e.g.:
   ```python
   # #############################################################################
   # Read data.
   # #############################################################################
   ```
-  - The text inside the banner should start with a capital letter and end with a
-    period
+  The text inside the banner should start with a capital letter and end with a period
 
 ### Imports
 
 - All imports should be located at the top of the file
 - Do not use `import *`
-- Do not use `from ... import ...`
-  - The only exception is the `typing` package, e.g.,
-    `from typing import Iterable, List`
+- Do not use `from ... import ...`; the only exception is the `typing` package, e.g., `from typing import Iterable, List`
 - Always import with a full path from the root of the repo / submodule
 - Each module that can be imported should have a docstring at the very beginning
   describing how it should be imported
-  - Linter adds it automatically
 - No import cycles should be introduced by the changes in the PR
 
 ### Type annotations
 
-- All functions and methods, including constructors, must have type annotations
-  for all the parameters and returned structures
-  - We use `-> None` if a function doesn't return anything
-  - The only exception are invoke tasks, i.e. functions with the `@task`
-    decorator — they shouldn't have type annotations
-- We use `List[<type of list elements>]` instead of `list`,
+- All functions and methods, including constructors, must have type annotations for all the parameters and returned structures; the only exception are invoke tasks, i.e. functions with the `@task` decorator
+- Use `-> None` if a function doesn't return anything
+- Use `List[<type of list elements>]` instead of `list`,
   `Dict[<type of keys>, <type of values>]` instead of `dict`,
   `Tuple[<type of tuple elements>]` instead of `tuple`, etc.
 - Type annotation `Any` should be avoided, if possible
@@ -167,22 +149,16 @@ serve as a guideline for automated PR reviews.
 ### Functions
 
 - Avoid modifying the function input
-  - For example, if a function `f` accepts a dataframe `df` as its (sole)
-    argument, then, ideally, `f(df)` will not modify `df`
 - Use pure functions, i.e. if the function arguments do not change, then the
   returned value should not change (in contrast to, e.g., functions that rely
   upon global state)
 - Make a function private (e.g., `_foo_bar()`) when it is a helper of another
   private or public function
-- The preferred order of function parameters is:
-  - Input parameters
-  - Output parameters
-  - In-out parameters
-  - Default parameters
+- The preferred order of function parameters is (1) Input parameters; (2) Output parameters; (3) In-out parameters; (4) Default parameters
 - Default parameters should be used sparingly and only for parameters that 99%
   of the time are constant
 - All the default parameters should be keyword-only
-  - They should be separated from the other parameters by `*`
+- Default parameters should be separated from the other parameters by `*`
 - Do not use lists, maps, objects, etc. as the default value — instead pass
   `None` and then initialize the default parameter inside the function
 - Use a default value of `None` when a function needs to be wrapped and the
@@ -201,35 +177,28 @@ serve as a guideline for automated PR reviews.
   separate lines and then pass these variables to the function
 - Explicitly bind default parameters, i.e. specify the parameter name when
   calling a function, and do not bind non-default parameters
-  - E.g., call `func()` like `func(param1, param2, param3=param3)` if `param3`
-    is the only parameter with a default value
 
 ### Scripts
 
 - Use Python and not bash for scripting
-- All Python scripts that are meant to be executed directly should:
-  - Be marked as executable files with `> chmod +x foo_bar.py`
-  - Have the standard Unix shebang notation at the top: `#!/usr/bin/env python`
-  - Use the following idiom at the bottom:
+- All Python scripts that are meant to be executed directly should be marked as executable files with `> chmod +x foo_bar.py`
+- All Python scripts that are meant to be executed directly should have the standard Unix shebang notation at the top: `#!/usr/bin/env python`
+- All Python scripts should use the following idiom at the bottom:
     ```python
     if __name__ == "__main__":
         ...
     ```
-  - Use `argparse` for argument parsing
+- All Python scripts should use `argparse` for argument parsing
 
 ### Logging
 
 - Use extensive logging (and not `print()`) for monitoring execution
 - Use the following idiom to configure logging:
-
   ```python
   import helpers.hdbg as hdbg
-
   _LOG = logging.getLogger(__name__)
-
   hdbg.init_logger(verbosity=logging.DEBUG)
   ```
-
 - Use positional args in logging (e.g.,
   `_LOG.debug("cmd=%s %s %s", cmd1, cmd2, cmd3)`)
 
@@ -241,14 +210,12 @@ serve as a guideline for automated PR reviews.
 - A test method should only test a single case (e.g., "for these inputs the
   function responds with this output")
 - Every test class should inherit from `hunitest.TestCase`
-- Adhere to the following conventions for naming:
-  - Test file `test_file_name.py` testing the library `file_name.py`
-  - Test class `TestFooBar` for the class `FooBar`, and test methods
-    `TestFooBar.test_method_a`, `TestFooBar.test_method_b` for the methods
-    `FooBar.method_a` and `FooBar.method_b`
-  - Test class `Test_foo_bar` for the function `foo_bar()`, and test methods
-    `Test_foo_bar.test1`, `Test_foo_bar.test2` for different cases / inputs
-- - Do not add the following idiom in the testing file
+- File for testing the library `file_name.py` should be named `test_file_name.py`
+- Class for testing the class `FooBar` should be named `TestFooBar`
+- Methods for testing `FooBar.method_a` and `FooBar.method_b` should be named `TestFooBar.test_method_a`, `TestFooBar.test_method_b`
+- Class for testing the function `foo_bar()` should be named `Test_foo_bar`
+- Methods for testing different cases / inputs for the function `foo_bar()` should be named `Test_foo_bar.test1`, `Test_foo_bar.test2`
+- Do not add the following idiom in the testing file
   ```python
   if __name__ == "__main__":
       unittest.main()
@@ -299,7 +266,7 @@ serve as a guideline for automated PR reviews.
   should be updated
 - Encode the assumptions made in the code using assertions, e.g.,
   `hdbg.dassert_lt(start_date, end_date)`
-  - Report as much information as possible in an assertion
+- Report as much information as possible in an assertion
 - Use f-strings in exceptions (e.g.,
   `raise ValueError(f"Invalid server_name='{server_name}'")`)
 - Use complete `if-elif-else` statements instead of a sequence of `if`
@@ -316,19 +283,17 @@ serve as a guideline for automated PR reviews.
 - The name of a notebook should generally be the same as the branch name, unless
   it's a Master notebook
 - All notebooks should have a table of contents
-  - Linter automatically adds and updates the table of contents
 - At the top of the notebook there should be a Markdown cell `# Description`,
   followed by a Markdown cell with an explanation of the notebook's goal, what
   it does, etc.
 - Immediately below the description, there should be a Markdown cell
   `# Imports`, followed by a code cell importing all the needed libraries
-  - It should include autoreload modules to keep the local code updated in real
-    time:
+- The cell with imports should include autoreload modules to keep the local code updated in real time:
     ```python
     %load_ext autoreload
     %autoreload 2
     ```
-  - All the imports should be located in a single cell
+- All the imports should be located in a single cell
 - Below the cell with the imports, there should be a code cell that configures
   the logging and notebook style, and reports execution info:
   ```python
@@ -381,20 +346,16 @@ serve as a guideline for automated PR reviews.
 
 ## Markdowns
 
-- Names of documentation files should follow the format
-  `docs/{component}/{audience}.{topic}.{diataxis_tag}.md`
-  - E.g., `docs/documentation_meta/all.diataxis.explanation.md`
-- All Markdown files should have a table of contents
-  - Linter automatically adds and updates the table of contents
+- Names of documentation files should follow the format `docs/{component}/{audience}.{topic}.{diataxis_tag}.md`, e.g., `docs/documentation_meta/all.diataxis.explanation.md`
+- All Markdown files should have an up-to-date table of contents
 - There should be one and only one level 1 heading (with one `#`) in a Markdown
 - The level 1 heading should be located above the table of contents
 - Headings should not be boldfaced
-- Headings should not be overcapitalized
-  - E.g., `Data schema` instead of `Data Schema`
+- Headings should not be overcapitalized, e.g., `Data schema` instead of `Data Schema`
 - Text should be reflowed to the maximum of 80 columns per line
 - Boldface should be used sparingly
 - The use of bullet point lists is encouraged
-  - For the items, `-` should be used instead of `*` or circles
+- For the items in bullet point lists, `-` should be used instead of `*` or circles
 - Items in bullet point lists should not end with a period
 - Wrap file paths, names of variables, functions and classes in backticks
 - Use `>` to indicate a command line (e.g., `> git push` or `docker> pytest`)
@@ -404,9 +365,8 @@ serve as a guideline for automated PR reviews.
 - Avoid to use screenshots whenever possible and instead copy-and-paste text
   with the right highlighting
 - Use active voice most of the time and use passive voice sparingly
-- Be efficient
-  - Do not explain things in a repetitive way
-  - Rewrite long-winded AI-generated texts in a concise way
+- Do not explain things in a repetitive way
+- Rewrite long-winded AI-generated texts in a concise way
 
 ## File system structure
 
@@ -414,12 +374,13 @@ serve as a guideline for automated PR reviews.
   `__init__.py` file
 - Notebooks should generally be located under the `notebooks` dir
 - Unit tests should be located under the `test` dir
-  - Golden outcomes for tests should be located under the `test/outcomes` dir
+- Golden outcomes for unit tests should be located under the `test/outcomes` dir
 - Documentation files should generally be located under the `docs` dir
 
 ## Spelling
 
 - Capitalize the first letter of `Python`
+- Capitalize the first letter of `Markdown`
 - Spell `Linter` with the first letter in upper case and do not use an article
   (`Linter` instead of `the Linter`)
 - Capitalize `JSON`, `CSV`, `DB` and other abbreviations
