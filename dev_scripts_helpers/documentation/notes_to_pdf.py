@@ -57,6 +57,7 @@ def _report_phase(phase: str) -> None:
 
 
 def _log_system(cmd: str) -> None:
+    hdbg.dassert_isinstance(cmd, str)
     print("> " + cmd)
     _append_script(cmd)
 
@@ -408,6 +409,8 @@ def _build_pandoc_cmd(
             use_sudo=dockerized_use_sudo,
         )
     _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
+    hdbg.dassert_isinstance(cmd, str)
+    hdbg.dassert_isinstance(file_out, str)
     return cmd, file_out
 
 
