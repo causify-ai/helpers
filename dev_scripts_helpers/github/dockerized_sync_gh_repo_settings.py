@@ -32,6 +32,7 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+# TODO(*): -> _RepoSettings since it's private
 class Settings:
 
     def __init__(self, settings: Dict[str, Any]):
@@ -43,6 +44,7 @@ class Settings:
             repository settings
         """
         self._settings = settings
+        # TODO(*): Why creating this alias?
         self._branch_protection = settings.get("branch_protection", {})
         self._repo_settings = settings.get("repository_settings", {})
 
@@ -54,7 +56,7 @@ class Settings:
         repo: github.Repository.Repository,
     ) -> Dict[str, Any]:
         """
-        Get the current settings of the repository.
+        Get the current settings of the repository `repo`.
 
         :param repo: GitHub repository object
         :return: dictionary containing repository settings
@@ -82,26 +84,34 @@ class Settings:
         repo: github.Repository.Repository,
     ) -> Dict[str, Any]:
         """
-        Get the current branch protection settings of the repository.
+        Get the current branch protection settings of the repository `repo`.
 
         :param repo: GitHub repository object
         :return: dictionary containing branch protection settings
         """
+        # TODO(*): Describe what is inside, e.g., from branch name to a dict of
+        # information storing the protection settings for that branch.
         branch_protection = {}
+        # TODO(*): Let's add some _LOG.debug to show how the code evolve.
+        # The idea is to be able to enable the debugging and see what happens.
+        # TODO(*): What are branches?
         branches = repo.get_branches()
         for branch in branches:
             try:
+                # Get the protection information about this branch.
                 protection = branch.get_protection()
                 if protection is None:
                     _LOG.warning(
-                        "No protection info for branch: %s, skipping.",
+                        "No protection info for branch '%s': skipping.",
                         branch.name,
                     )
                     continue
+                # 1) Extract the information about required status check for
+                # the current branch.
+                required_status_checks = {}
                 status_checks = getattr(
                     protection, "required_status_checks", None
                 )
-                required_status_checks = {}
                 if status_checks:
                     required_status_checks["strict"] = getattr(
                         status_checks, "strict", None
@@ -113,6 +123,8 @@ class Settings:
                 pr_reviews = getattr(
                     protection, "required_pull_request_reviews", None
                 )
+                # 2) Extract the information about required PR reviews for the
+                # current branch.
                 required_pr_reviews = {}
                 if pr_reviews:
                     required_pr_reviews["dismiss_stale_reviews"] = getattr(
@@ -140,6 +152,8 @@ class Settings:
                     required_pr_reviews["dismissal_restrictions"] = (
                         dismissal_restrictions
                     )
+                # 3) Extract restrictions...
+                # TODO(*):
                 restrictions = getattr(protection, "restrictions", None)
                 restrictions_dict = {}
                 if restrictions:
@@ -149,6 +163,8 @@ class Settings:
                     restrictions_dict["teams"] = [
                         team.name for team in getattr(restrictions, "teams", [])
                     ]
+                # Package all the information in a dictionary for the current
+                # branch.
                 branch_protection[branch.name] = {
                     "enforce_admins": getattr(protection, "enforce_admins", None),
                     "allow_force_pushes": getattr(
@@ -162,6 +178,9 @@ class Settings:
                     "restrictions": restrictions_dict,
                 }
             except github.GithubException as e:
+                # It is possible that a branch has no protection set, so we
+                # recover from this by leaving an empty dictionary and
+                # continue.
                 if hasattr(e, "status") and e.status == 404:
                     # Skip if branch has no protection.
                     _LOG.warning(
@@ -169,6 +188,9 @@ class Settings:
                         branch.name,
                     )
                     continue
+                # TODO(*): Can / should you really recover from this? It's
+                # better to assert. The problem is that you don't know if the
+                # script worked on not. Our approach is to break.
                 _LOG.error(
                     "Failed to get branch protection for %s: %s",
                     branch.name,
@@ -176,6 +198,8 @@ class Settings:
                 )
                 continue
             except (AttributeError, TypeError, ValueError) as e:
+                # TODO(*): Can you really recover from this? It's better to
+                # assert.
                 _LOG.error(
                     "Error processing branch %s: %s. Skipping this branch.",
                     branch.name,
@@ -216,6 +240,8 @@ class Settings:
                 settings_data, file, default_flow_style=False, sort_keys=False
             )
 
+    # TODO(*): For me this is not shy enough. The state is only used by the
+    # class so no point in creating an accessor.
     @property
     def branch_protection(self) -> Dict[str, Any]:
         return self._branch_protection
@@ -236,13 +262,13 @@ class Settings:
         }
 
     def apply_branch_protection(
-        self, repo: github.Repository.Repository, dry_run: bool = True
+        self, repo: github.Repository.Repository, *, dry_run: bool = True
     ) -> None:
         """
-        Apply branch protection rules.
+        Apply branch protection rules to all the branches.
 
         :param repo: GitHub repository object
-        :param dry_run: whether to do dry run
+        :param dry_run: whether to do a dry run
         """
         for branch_name, protection in self.branch_protection.items():
             branch = repo.get_branch(branch_name)
@@ -256,6 +282,14 @@ class Settings:
             contexts = required_status_checks.get("contexts", [])
             strict = required_status_checks.get("strict")
             # Apply branch protection using supported parameters.
+            # TODO(*): Lots of repeatition. One could factor out all the common code
+            # in something like:
+            # def update_settings(key_name, dict_, default_name):
+            # and then do
+            # for key_name, dict_, default_value in [
+            #     "enforce_admins", protection, github.GithubObject.NotSet]:
+            #   settings.update(key_name, dict_, default_value)
+            # We want to extract the structure of the code.
             settings = {
                 "strict": (
                     strict if strict is not None else github.GithubObject.NotSet
@@ -308,7 +342,7 @@ class Settings:
                 )
 
     def apply_repo_settings(
-        self, repo: github.Repository.Repository, dry_run: bool = True
+        self, repo: github.Repository.Repository, *, dry_run: bool = True
     ) -> None:
         """
         Apply repository settings.
@@ -318,6 +352,7 @@ class Settings:
         """
         private = self.repo_settings.get("private")
         # Apply basic repository settings.
+        # TODO(*): Same thing here. Lots of code that we can factor out.
         settings = {
             "name": self.repo_settings.get("name"),
             "description": self.repo_settings.get(
@@ -354,6 +389,9 @@ class Settings:
                 "archived", github.GithubObject.NotSet
             ),
         }
+        # TODO(gp): We should report what we are going to do without doing it
+        # and not just skip. The idea is that you run dry-run you get a sense
+        # of what will happen and then you run without dry-run.
         # Apply security-related settings.
         enable_security_fixes = self.repo_settings.get(
             "enable_automated_security_fixes"
@@ -368,7 +406,6 @@ class Settings:
                 else:
                     repo.disable_automated_security_fixes()
                     _LOG.info("Disabled automated security fixes")
-
             enable_vuln_alerts = self.repo_settings.get(
                 "enable_vulnerability_alerts"
             )
@@ -384,6 +421,9 @@ class Settings:
                 topics = self.repo_settings["topics"]
                 repo.replace_topics(topics)
                 _LOG.info("Updated repository topics:", ", ".join(topics))
+        # TODO(gp): One problem is "how do we know if there is some new
+        # property that we don't know about?". We should add an assertion to
+        # check that the keys are the one we expect.
         # Filter out `NotSet` values for logging.
         log_settings = {
             k: v
@@ -413,6 +453,27 @@ class Settings:
                     "Would update repository topics:",
                     ", ".join(self.repo_settings["topics"]),
                 )
+
+    @staticmethod
+    def _safe_getattr(obj: Any, attr: str, *, default: Any = None) -> Any:
+        """
+        Get an attribute from an object, returning a default value if the
+        attribute is not found.
+
+        :param obj: object to get the attribute from
+        :param attr: attribute to get from the object
+        :param default: default value to return if the attribute is not
+            found
+        :return: attribute value or the default value if the attribute
+            is not found
+        """
+        try:
+            return getattr(obj, attr, default)
+        except (AttributeError, TypeError):
+            return default
+
+
+# #############################################################################
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -462,23 +523,35 @@ def _parse() -> argparse.ArgumentParser:
     return parser
 
 
+# TODO(*): The logic is hidden and the use cases should be simplified.
+# - My architecture is:
+#   - Invariant: the properties of a repo should just be copied, no need to use
+#     default settings and other complications
+#   - There is mode to copy the settings to file
+#   - There is a mode to copy the settings from file to repo
+
+
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Load settings from the manifest file.
     settings = Settings.load_settings(args.sync)
     token = os.environ[args.token_env_var]
-    hdbg.dassert(token)
+    hdbg.dassert(token, "Missing token from %s", args.token_env_var)
     # Initialize GitHub client.
     client = github.Github(token)
     repo = client.get_repo(f"{args.owner}/{args.repo}")
+    _LOG.debug(hprint.to_str("repo"))
     # Get current repository settings.
+    # TODO(*): current is unclear. I would call it "target".
     current_settings = {
         "branch_protection": Settings.get_branch_protection_settings(repo),
         "repository_settings": Settings.get_repository_settings(repo),
     }
     # Create backup of current settings if requested.
+    # TODO(gp): Let's always do a backup.
     if args.backup:
+        # TODO(*): Let's leave the file in the current dir.
         backup_file = f"settings.{args.owner}.{args.repo}.backup.yaml"
         backup_path = os.path.join(os.path.dirname(args.sync), backup_file)
         Settings.save_settings(Settings(current_settings), backup_path)
@@ -486,6 +559,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     else:
         _LOG.warning("Skipping saving settings as per user request")
     # Confirm settings synchronization.
+    # TODO(*): IMO either interactive or dry run and we prefer dry-run.
+    # It's not that you have printed any information. The user has the same
+    # information as before.
     if not args.no_interactive:
         hsystem.query_yes_no(
             "Are you sure you want to synchronize repository settings?",
@@ -497,10 +573,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     if args.reset:
         default_settings = Settings.load_settings(args.reset)
         # Default repository settings will be applied to the repository.
-        default_settings.apply_repo_settings(repo, args.dry_run)
+        default_settings.apply_repo_settings(repo, dry_run=args.dry_run)
     # Apply branch protection and repository settings.
-    settings.apply_branch_protection(repo, args.dry_run)
-    settings.apply_repo_settings(repo, args.dry_run)
+    settings.apply_branch_protection(repo, dry_run=args.dry_run)
+    settings.apply_repo_settings(repo, dry_run=args.dry_run)
     _LOG.info("Settings synchronization completed!")
 
 
