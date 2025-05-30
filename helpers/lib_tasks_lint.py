@@ -346,3 +346,65 @@ def _get_lint_docker_cmd(
         use_entrypoint=use_entrypoint,
     )
     return cmd
+
+
+@task
+def lint_sync_code(ctx, git_client_name="helpers1", revert_to_original=False):  # type: ignore
+    """
+    Sync the code needed to run linter and ai_review.py from a client to the current one.
+
+    :param git_client_name: the name of the git client to sync from. It can be
+        something like "helpers1" and it will be used from "$HOME/src" or can 
+        be a full path.
+    :param revert_to_original: if `True`, revert the changes to the original
+    """
+    _ = ctx
+    hlitauti.report_task()
+    #
+    files_to_copy = [
+        #"hgit.py",
+        #"hmarkdown.py",
+        "llm_prompts.py",
+        "llm_transform.py",
+        "inject_todos.py",
+        "all.linter_style_review_guidelines.reference.md",
+        "all.llm_style_review_guidelines.reference.md",
+    ]
+    if revert_to_original:
+        _LOG.debug("Reverting to original code ...")
+        for file_name in files_to_copy:
+            _LOG.debug("Reverting %s to original code", file_name)
+            src_file_path = hgit.find_file(file_name, dir_path=src_git_dir)
+            cmd = "git checkout -- %s" % src_file_path
+            hsystem.system(cmd)
+        _LOG.info("Done")
+        return
+    # 
+    if not os.path.isabs(git_client_name):
+        src_git_dir = os.path.join(os.environ["HOME"], "src", git_client_name)
+    else:
+        src_git_dir = git_client_name
+    hdbg.dassert_dir_exists(git_client_name)
+    # Get the path to the helpers repo.
+    src_helpers_dir = hgit.find_file("helpers_root", dir_path=src_git_dir)
+    hdbg.dassert_dir_exists(src_helpers_dir)
+    dst_helpers_dir = hgit.find_helpers_root()
+    hdbg.dassert_dir_exists(dst_helpers_dir)
+    _LOG.debug(hprint.to_str("src_helpers_dir dst_helpers_dir"))
+    #
+    _LOG.info("Copying code from %s to %s ...", src_helpers_dir, dst_helpers_dir)
+    # Find the files to copy.
+    for file_name in files_to_copy:
+        _LOG.debug(hprint.to_str("file_name"))
+        src_file_path = hgit.find_file(file_name, dir_path=src_git_dir)
+        src_file_path = os.path.abspath(os.path.join(src_git_dir, src_file_path))
+        hdbg.dassert_file_exists(src_file_path)
+        #
+        rel_path = os.path.relpath(src_file_path, src_helpers_dir)
+        dst_file_path = os.path.join(dst_helpers_dir, rel_path)
+        hdbg.dassert_file_exists(src_file_path)
+        #
+        _LOG.debug(hprint.to_str("src_file_path -> dst_file_path"))
+        cmd = f"cp -f {src_file_path} {dst_file_path}"
+        hsystem.system(cmd)
+    _LOG.info("Done")
