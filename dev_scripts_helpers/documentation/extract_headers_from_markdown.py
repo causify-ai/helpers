@@ -64,7 +64,9 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    hparser.add_input_output_args(parser, out_default="-")
+    # Print to stdout by default.
+    out_default = "-"
+    hparser.add_input_output_args(parser, out_default=out_default)
     parser.add_argument(
         "--mode",
         type=str,
@@ -84,7 +86,9 @@ def _parse() -> argparse.ArgumentParser:
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    hparser.init_logger_for_input_output_transform(args, verbose=False)
+    # Do not print information.
+    verbose = False
+    hparser.init_logger_for_input_output_transform(args, verbose=verbose)
     in_file_name, out_file_name = hparser.parse_input_output_args(args)
     #
     _extract_headers_from_markdown(

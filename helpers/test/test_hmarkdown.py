@@ -1515,7 +1515,6 @@ class Test_inject_todos_from_cfile1(hunitest.TestCase):
         def hello(msg):
             print(msg)
 
-
         # TODO(user): Add docstring.
         def world():
             print("world")
