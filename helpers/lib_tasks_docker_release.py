@@ -17,6 +17,7 @@ import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hs3 as hs3
 import helpers.hsystem as hsystem
+import helpers.lib_tasks_aws as hlitaaws
 import helpers.lib_tasks_docker as hlitadoc
 import helpers.lib_tasks_pytest as hlitapyt
 import helpers.lib_tasks_utils as hlitauti
@@ -1216,10 +1217,12 @@ def _check_workspace_dir_sizes() -> None:
     """
     # Execute system command and split into a list of tuples [size, dir].
     # Threshold is chosen heuristically according to current repo dir sizes.
-    fs_item_max_threshold = "200M"
-    directory_size_list = hsystem.system_to_string(
-        f"du --threshold {fs_item_max_threshold} -hs $(ls -A) | sort -hr"
-    )[1].split("\n")
+    git_root = hgit.find_git_root()
+    with hsystem.cd(git_root):
+        fs_item_max_threshold = "200M"
+        directory_size_list = hsystem.system_to_string(
+            f"du --threshold {fs_item_max_threshold} -hs $(ls -A) | sort -hr"
+        )[1].split("\n")
     # Filter out directories ignored by `dockerignore.prod` + "amp/"
     # as submodule.
     ignored_dirs = ["amp", "ck.infra", "amp/ck.infra", "docs", ".git", "amp/.git"]
@@ -1239,9 +1242,7 @@ def _check_workspace_dir_sizes() -> None:
 
 
 @task
-def docker_create_candidate_image(
-    ctx, task_definition, user_tag="", region=hs3.AWS_EUROPE_REGION_1
-):  # type: ignore
+def docker_create_candidate_image(ctx, user_tag=""):  # type: ignore
     """
     Create new prod candidate image and update the specified ECS task
     definition such that the Image URL specified in container definition points
@@ -1252,6 +1253,7 @@ def docker_create_candidate_image(
     :param user_tag: the name of the user creating the image, empty
         parameter means the command was run via gh actions
     :param region: AWS Region, for Tokyo region specify 'ap-northeast-1'
+    :return: the tag used for the image
     """
     _check_workspace_dir_sizes()
     # Get the hash of the image.
@@ -1268,20 +1270,59 @@ def docker_create_candidate_image(
     )
     # Push candidate image.
     docker_push_prod_candidate_image(ctx, tag)
-    exec_name = "datapull/aws/aws_update_task_definition.py"
-    # Ensure compatibility with repos where amp is a submodule.
-    if not os.path.exists(exec_name):
-        exec_name = f"amp/{exec_name}"
-    hdbg.dassert_file_exists(exec_name)
-    _LOG.debug("exec_name=%s", exec_name)
-    # Register new task definition revision with updated image URL.
-    cmd = f'invoke docker_cmd -c "{exec_name} -t {task_definition} -i {tag} -r {region}"'
-    hlitauti.run(ctx, cmd)
+    return tag
 
 
-# /////////////////////////////////////////////////////////////////////////////
-
+# #############################################################################
+# ECS task definition workflows.
 # ECS task definition is a wrapper around a container definition.
+# #############################################################################
+
+
+@task
+def docker_release_test_task_definition(
+    ctx,
+    task_definition: str = None,
+    user_tag: str = None,
+    region: str = hs3.AWS_EUROPE_REGION_1,
+):  # type: ignore
+    """
+    Release candidate image to test ECS task definition.
+    """
+    hdbg.dassert_in(region, hs3.AWS_REGIONS)
+    # Verify that task definition is provided.
+    hdbg.dassert_is_not(task_definition, None, "task definition is required")
+    # Create candidate image.
+    image_tag = docker_create_candidate_image(ctx, user_tag)
+    # Update ECS task definition with new image URL.
+    hlitaaws.aws_update_ecs_task_definition(
+        ctx, task_definition, image_tag, region
+    )
+
+
+@task
+def docker_release_prod_task_definition(
+    ctx, region: str = hs3.AWS_EUROPE_REGION_1
+):  # type: ignore
+    """
+    Release candidate image to prod ECS task definition.
+    """
+    hdbg.dassert_in(region, hs3.AWS_REGIONS)
+    # Prod release should be done from master branch and the client should be
+    # clean.
+    curr_branch = hgit.get_branch_name()
+    hdbg.dassert_eq(
+        curr_branch, "master", msg="You should release from master branch"
+    )
+    _ = hgit.is_client_clean(abort_if_not_clean=True)
+    image_name = hrecouti.get_repo_config().get_docker_base_image_name()
+    task_definition_name = f"{image_name}-prod"
+    # Create candidate image.
+    image_tag = docker_create_candidate_image(ctx)
+    # Update ECS task definition with new image URL.
+    hlitaaws.aws_update_ecs_task_definition(
+        ctx, task_definition_name, image_tag, region
+    )
 
 
 @task
