@@ -1079,8 +1079,8 @@ class Test_docker_update_prod_task_definition1(_DockerFlowTestHelper):
         """
         # Mock AWS ECS client using moto and register a task definition.
         region = "us-east-1"
-        mock_client = boto3.client("ecs", region_name=region)
-        mock_client.register_task_definition(
+        mock_ecs_client = boto3.client("ecs", region_name=region)
+        mock_ecs_client.register_task_definition(
             family="test_task",
             containerDefinitions=[
                 {
@@ -1094,10 +1094,10 @@ class Test_docker_update_prod_task_definition1(_DockerFlowTestHelper):
             cpu="256",
             memory="512",
         )
-        mock_get_ecs_client.return_value = mock_client
+        mock_get_ecs_client.return_value = mock_ecs_client
         # Add mock client to patchers for cleanup.
         self.ecs_client_patcher = umock.patch(
-            "boto3.client", return_value=mock_client
+            "boto3.client", return_value=mock_ecs_client
         )
         self.mock_ecs_client = self.ecs_client_patcher.start()
         self.patchers["ecs_client_test1"] = self.ecs_client_patcher
@@ -1141,8 +1141,8 @@ class Test_docker_update_prod_task_definition1(_DockerFlowTestHelper):
         """
         # Mock AWS ECS client using moto and register a task definition.
         region = "us-east-1"
-        mock_client = boto3.client("ecs", region_name=region)
-        mock_client.register_task_definition(
+        mock_ecs_client = boto3.client("ecs", region_name=region)
+        mock_ecs_client.register_task_definition(
             family="test_task",
             containerDefinitions=[
                 {
@@ -1156,10 +1156,10 @@ class Test_docker_update_prod_task_definition1(_DockerFlowTestHelper):
             cpu="256",
             memory="512",
         )
-        mock_get_ecs_client.return_value = mock_client
+        mock_get_ecs_client.return_value = mock_ecs_client
         # Add mock client to patchers for cleanup.
         self.ecs_client_patcher = umock.patch(
-            "boto3.client", return_value=mock_client
+            "boto3.client", return_value=mock_ecs_client
         )
         self.mock_ecs_client = self.ecs_client_patcher.start()
         self.patchers["ecs_client_test2"] = self.ecs_client_patcher
