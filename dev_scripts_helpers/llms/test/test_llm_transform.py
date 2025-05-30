@@ -54,7 +54,6 @@ class Test_llm_transform1(hunitest.TestCase):
         in_file_name = os.path.join(self.get_scratch_space(), "input.md")
         hio.to_file(in_file_name, txt)
         script = hsystem.find_file_in_repo("llm_transform.py")
-        script="python "+script
         out_file_name = os.path.join(self.get_scratch_space(), "output.md")
         return script, in_file_name, out_file_name
 
