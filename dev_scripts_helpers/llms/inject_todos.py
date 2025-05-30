@@ -25,12 +25,15 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--cfile",
         type=str,
-        required=True,
+        required=False,
         default="cfile",
         help="File containing the TODOs to inject",
     )
     parser.add_argument(
-        "--todo_target", action="store_true", help="User name to use in the TODOs"
+        "--todo_target",
+        action="store",
+        required=True,
+        help="User name to use in the TODOs",
     )
     hparser.add_verbosity_arg(parser)
     return parser
@@ -42,7 +45,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Read the cfile.
     cfile_txt = hio.from_file(args.cfile)
     # Inject the TODOs.
-    todo_txt = hmarkdo.inject_todos_from_cfile(
+    hmarkdo.inject_todos_from_cfile(
         cfile_txt, args.todo_target, comment_prefix="#"
     )
 

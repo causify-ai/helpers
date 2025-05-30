@@ -881,20 +881,87 @@ def _review_from_file(file: str) -> _PROMPT_OUT:
     reference_txt = hio.from_file(file)
     reference_txt = hmarkdo.add_line_numbers(reference_txt)
     # TODO(gp): Remove table of contents between <!-- toc --> and <!-- tocstop -->.
+    # system += rf"""
+    # You will review the code and make sure it follows the rules described in the
+    # markdown below:
+
+    # - Each rule starts with a level 1 bullet point and is followed by more bullet
+    #   points that describe the rule, together with examples of good and bad
+    #   code. For instance, the rule:
+    #   ```
+    #   1: - Rule1 description
+    #   2:   - Good: `x`
+    #   3:   - Bad: `x_0`
+    #   4: - Rule4 description
+    #   5:   - Good: `x`
+    #   6:   - Bad: `x_0`
+    #   ```
+    # - The rules are described in the markdown below:
+    #  {reference_txt}
+
+    # - You will refer to the rule as <rule_name> and represented as
+    #   <header-line_number> with the name of the header of the section in the
+    #   reference file (e.g., 'Naming') and the line number (e.g., "Naming-7")
+    # - Only print the violation of the rules when you are sure that it is a
+    #   violation. If you are not sure, do not print anything.
+    # - For each violation of a rule, you will print the line number of the code
+    #   and the proposed improvement in the following style:
+    #   <line_number>: <rule_name>: <short description of the proposed improvement>
+    # - Do not print any other comment, besides the violation of the rules
+    # """
+
     system += rf"""
-    You will review the code and make sure it follows the rules in the reference below:
+    You will **analyze the code** and report only violations of the coding rules described below.
+
+    #### Rule Format
+    The rules are written in markdown and follow this format:
+
+    - Each top-level bullet point (`-`) is a **rule header** (e.g., a new requirement).
+    - Each rule contains **examples of good and bad code** using:
+    - `- Good:` followed by inline or code block examples
+    - `- Bad:` followed by inline or code block examples
+
+    Example:
+    - All functions must have a docstring  
+    - Good:
+        ```python
+        def foo():  
+            pass
+        ```
+    - Bad:
+        ```python
+        def foo():
+            pass
+        ```
+
+    #### List of rules
 
     {reference_txt}
 
-    - Each rule to follow is referred by <rule_name> and represented as
-        <header-line_number> with the name of the header of the section in the
-        reference file (e..g, 'Naming') and the line number (e.g., "Naming-7")
-    - Only print the violation of the rules when you are absolutely sure that
-      it is a violation
-    - For each violation of a rule, you will print the line number of the code
-      and the proposed improvement in the following style:
-      <line_number>: <rule_name>: <short description of the proposed improvement>
-    - Do not print any other comment, besides the violation of the rules
+    #### Rule References
+    - You will reference each rule as <section-name>-<line-number>, where:
+      - <section-name> is the header or category the rule belongs to
+      - <line-number> is the line number of the rule header in the markdown
+
+    #### Your Task
+    - Review the input code and identify only clear violations of the rules.
+    - If uncertain whether something is a violation, do not report it.
+
+    #### Output Format
+
+    For each clear violation, output a single line in this format:
+
+    <code_line_number>: <section-name>-<rule_line_number>: <brief description of suggested fix>
+
+    Examples:
+
+    14: Docstrings-3: Missing docstring for function `add`
+    27: Docstrings-17: Docstring does not describe function interface or parameters
+
+    #### Do Not
+    - Do not print explanations or summaries
+    - Do not mention rules that are followed correctly
+    - Do not modify the input code
     """
     pre_transforms = {"add_line_numbers"}
     post_transforms = {"convert_to_vim_cfile"}
