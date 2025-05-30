@@ -70,6 +70,7 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Print the original and transformed",
     )
+    # TODO(gp): Remove this.
     parser.add_argument(
         "-b",
         "--bold_first_level_bullets",
@@ -111,10 +112,10 @@ def _run_dockerized_llm_transform(
     FROM python:3.12-alpine
 
     # Install Bash.
-    #RUN apk add --no-cache bash
+    RUN apk add --no-cache bash git
 
     # Set Bash as the default shell.
-    #SHELL ["/bin/bash", "-c"]
+    SHELL ["/bin/bash", "-c"]
 
     # Install pip packages.
     RUN pip install --upgrade pip
@@ -185,7 +186,9 @@ def _run_dockerized_llm_transform(
         ]
     )
     docker_cmd = " ".join(docker_cmd)
-    ret = hdocker.process_docker_cmd(docker_cmd, container_image, dockerfile, mode)
+    ret = hdocker.process_docker_cmd(
+        docker_cmd, container_image, dockerfile, mode
+    )
     return ret
 
 
@@ -293,7 +296,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             out_txt = hmarkdo.md_clean_up(out_txt)
             out_txt = hmarkdo.format_markdown_slide(out_txt)
         #
-        if dshlllpr.to_run("append_text", post_container_transforms):
+        if dshlllpr.to_run("append_to_text", post_container_transforms):
             out_txt_tmp = []
             # Append the original text.
             txt = hio.from_file(tmp_in_file_name)

@@ -1672,6 +1672,7 @@ def run_dockerized_mermaid(
     # Get the container image.
     _ = force_rebuild
     container_image = "minlag/mermaid-cli"
+    dockerfile = ""
     # Convert files to Docker paths.
     is_caller_host = not hserver.is_inside_docker()
     use_sibling_container_for_callee = True
