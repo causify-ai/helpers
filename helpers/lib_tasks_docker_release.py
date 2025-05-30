@@ -1296,7 +1296,9 @@ def docker_release_test_task_definition(
     image_tag = docker_create_candidate_image(ctx, user_tag)
     # Update ECS task definition with new image URL.
     hlitaaws.aws_update_ecs_task_definition(
-        ctx, task_definition, image_tag, region
+        task_definition=task_definition,
+        image_tag=image_tag,
+        region=region,
     )
 
 
@@ -1321,7 +1323,9 @@ def docker_release_prod_task_definition(
     image_tag = docker_create_candidate_image(ctx)
     # Update ECS task definition with new image URL.
     hlitaaws.aws_update_ecs_task_definition(
-        ctx, task_definition_name, image_tag, region
+        task_definition=task_definition_name,
+        image_tag=image_tag,
+        region=region,
     )
 
 
