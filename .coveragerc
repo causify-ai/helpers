@@ -3,3 +3,14 @@
 omit =
     */devops/compose/*
     */helpers/test/outcomes/*/tmp.scratch/*
+[run]
+branch = True
+parallel = True
+concurrency = multiprocessing
+sigterm = True
+
+[paths]
+# tell coverage that "/app" in the container is the same as "." on the host
+source =
+    .
+    /app
