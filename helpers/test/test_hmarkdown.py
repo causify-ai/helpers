@@ -539,6 +539,67 @@ class Test_extract_headers_from_markdown1(hunitest.TestCase):
 
 
 # #############################################################################
+# Test_extract_headers_from_markdown1
+# #############################################################################
+
+
+class Test_extract_first_level_bullets_from_markdown1(hunitest.TestCase):
+
+    def helper(self, text: str, expected: str) -> None:
+        # Prepare inputs.
+        text = hprint.dedent(text)
+        # Call function.
+        actual = hmarkdo.extract_first_level_bullets_from_markdown(text)
+        # Check output.
+        act = "\n".join(actual)
+        self.assert_equal(act, expected, dedent=True)
+
+    def test_basic_list1(self) -> None:
+        """
+        Test extracting simple first-level bullet points.
+        """
+        text = """
+        - Item 1
+        - Item 2
+        - Item 3
+        """
+        expected = """
+        - Item 1
+        - Item 2
+        - Item 3
+        """
+        self.helper(text, expected)
+
+    def test_nested_list1(self) -> None:
+        """
+        Test extracting bullet points with nested sub-items.
+        """
+        text = """
+        - Item 1
+        - Item 2
+          - Sub-item 2.1
+          - Sub-item 2.2
+        - Item 3
+        """
+        expected = """
+        - Item 1
+        - Item 2
+          - Sub-item 2.1
+          - Sub-item 2.2
+        - Item 3
+        """
+        self.helper(text, expected)
+
+    def test_empty_list1(self) -> None:
+        """
+        Test handling empty input.
+        """
+        text = ""
+        expected = ""
+        self.helper(text, expected)
+
+
+# #############################################################################
 # Test_remove_end_of_line_periods1
 # #############################################################################
 

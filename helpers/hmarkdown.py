@@ -390,6 +390,104 @@ def extract_section_from_markdown(content: str, header_name: str) -> str:
     return "\n".join(extracted_lines)
 
 
+def extract_first_level_bullets_from_markdown(text: str) -> List[str]:
+    """
+    Extract first-level bullet point list items from text until the next one.
+
+    Sub-lists nested under first-level items are extracted together with
+    the first-level items.
+
+    :param text: text to process
+        ```
+        - Item 1
+        - Item 2
+           - Item 3
+        - Item 4
+        ```
+    :return: extracted bullet points, e.g.,
+        ```
+        [
+            "- Item 1",
+            '''
+            - Item 2
+               - Item 3
+            ''',
+            "- Item 4",
+        ]
+        ```
+    """
+    lines = text.split("\n")
+    # Store the first-level bullet points.
+    bullet_points = []
+    # Store the current item including the first level bullet point and all
+    # its sub-items.
+    current_item = ""
+    for line in lines:
+        line = line.rstrip()
+        if not line:
+            continue
+        if re.match(r"^- ", line):
+            # Match first-level bullet point item.
+            if current_item:
+                # Store the previous item, if any.
+                bullet_points.append(current_item)
+            # Start a new first-level bullet point item.
+            current_item = line
+        elif re.match(r"^\s+- ", line):
+            # Match a sub-item (non first-level bullet point item).
+            # Append a sub-item to the current item.
+            current_item += "\n" + line
+        elif len(line.strip()) != 0 and current_item:
+            # Append a line to the current item.
+            current_item += "\n" + line
+    # Add the last item if there is one.
+    if current_item:
+        bullet_points.append(current_item)
+    return bullet_points
+
+# Guidelines are organized by
+# - File type
+#   - E.g., Python, Notebooks, Markdown
+# - Section
+#   - E.g., Naming, Comments, Code design, Imports, Type annotations, Functions, ...
+# - Target
+#   - E.g., LLM vs Linter
+
+# E.g.,
+# ````
+# - LLM
+#   - Python code
+#     - Naming
+#     - Docstrings
+#     - Comments
+#     - Code implementation
+#     - Code design
+#     - Type annotations
+#     - Functions
+#     - Logging
+#     - Unit tests
+#   - Notebooks
+#     - General
+#     - Plotting
+#   - Markdown
+# - Linter
+#   - Python code
+#     - Naming
+#     - Docstrings
+#     - Comments
+#     - Code design
+#     - Imports
+#     - Type annotations
+#     - Functions
+#     - Scripts
+#     - Unit tests
+#     - Misc
+#   - Notebooks
+#     - General
+#     - Jupytext
+#   - Markdown
+#   - Spelling
+
 # #############################################################################
 # HeaderInfo
 # #############################################################################

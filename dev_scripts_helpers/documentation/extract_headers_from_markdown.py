@@ -75,7 +75,7 @@ def _parse() -> argparse.ArgumentParser:
         help="Output mode",
     )
     parser.add_argument(
-        "--max-level",
+        "--max_level",
         type=int,
         default=3,
         help="Maximum header levels to parse",
