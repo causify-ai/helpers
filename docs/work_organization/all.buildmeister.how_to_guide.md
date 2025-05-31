@@ -151,8 +151,8 @@ Example:
 
 ## Daily Reporting and Handover Process
 
-- The current Buildmeister must send a daily status report to eng@ at the start of
-  each workday with the TODO email
+- The current Buildmeister must send a daily status report to eng@ at the start
+  of each workday with the TODO email
   - The email subject should follow the format:
     `[BM Report] Build Status - YYYY-MM-DD`
   - The email should include:
@@ -167,6 +167,9 @@ Example:
     - A screenshot of the current Buildmeister dashboard
       - This provides a visual overview of the build status
     - Any additional relevant information or concerns
+
+- The current Buildmeister must also save the status report in a Log file at
+  [Buildmesietr Log Doc](https://docs.google.com/document/d/12fm9068JwAEHjn2CE1H29cV9R7plAD_4NAGLoZJoBrY/edit?usp=drive_link)
 
 - When a new Buildmeister takes over the role:
   - The new Buildmeister must respond to the most recent status report email
@@ -185,7 +188,6 @@ Example:
   - cmamp/master: RED (2 failing tests)
   - helpers/master: GREEN
   - lemonade/master: GREEN
-
 
   Point each break to a git Issue:
   - https://github.com/cryptokaizen/cmamp/issues/4386
