@@ -4,14 +4,14 @@ Import as:
 import helpers.lib_tasks_find as hlitafin
 """
 
-import functools
-import glob
 import logging
 import os
 import re
 from typing import Iterator, List, Optional, Tuple
 
 from invoke import task
+
+import helpers.hgit as hgit
 
 # We want to minimize the dependencies from non-standard Python packages since
 # this code needs to run with minimal dependencies and without Docker.

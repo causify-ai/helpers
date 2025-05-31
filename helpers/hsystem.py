@@ -798,6 +798,56 @@ def find_file_in_repo(file_name: str, *, root_dir: Optional[str] = None) -> str:
     return file_name_out
 
 
+def _find_file(filename: str, *, search_path: str = ".") -> Optional[str]:
+    """
+    Find a file in a directory and report its absolute path.
+
+    :param filename: the name of the file to find (e.g., "helpers_root")
+    :param search_path: the directory to search in (e.g., "/Users/saggese/src/helpers1")
+    :return: the absolute path of the file
+    """
+    # Recursive glob.
+    search_path = os.path.join(search_path, "**", filename)
+    files = glob.glob(search_path, recursive=True)
+    if len(files) == 1:
+        return files[0]
+    elif len(files) > 1:
+        msg = "Found multiple files with basename '%s' in directory '%s':\n%s" % (
+            filename, search_path, "\n".join(files))
+        raise RuntimeError(msg)
+    else:
+        return None
+
+    
+def find_path(path: str, *, dir_name: str = ".", abort_on_error: bool = False) -> str:
+    """
+    Find a path in a directory and report its absolute path.
+
+    :param path: the path to find (e.g., "system_tools/path.py")
+    :param dir_name: the directory to search in (e.g., "/Users/saggese/src/helpers1")
+    :param abort_on_error: if True, raise an error if the path doesn't exist
+    :return: the absolute path of the path
+    """
+    # Make the path absolute.
+    path_out = os.path.abspath(path)
+    # If the path exists, return it.
+    if os.path.exists(path_out):
+        return path_out
+    # If the path doesn't exist, abort.
+    if abort_on_error:
+        msg = "path '%s' doesn't exist in '%s'" % (path, dir_name)
+        raise RuntimeError(msg)
+    # Look for a file with the same basename in ``dir_name``.
+    dir_name = os.path.abspath(dir_name)
+    basename = os.path.basename(path)
+    path_out = _find_file(basename, search_path=dir_name)
+    # If the file doesn't exist, abort.
+    if path_out is None:
+        msg = "path '%s' doesn't exist in '%s'" % (path, dir_name)
+        raise RuntimeError(msg)
+    return path_out
+
+
 # TODO(Nikola): Use filesystem's `du` and move to `hio` instead?
 def du(path: str, human_format: bool = False) -> Union[int, str]:
     """
