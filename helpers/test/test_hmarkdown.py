@@ -1499,11 +1499,11 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_check_header_list1
+# Test_sanity_check_header_list1
 # #############################################################################
 
 
-class Test_check_header_list1(hunitest.TestCase):
+class Test_sanity_check_header_list1(hunitest.TestCase):
 
     def test1(self) -> None:
         """
@@ -1512,7 +1512,7 @@ class Test_check_header_list1(hunitest.TestCase):
         # Prepare inputs.
         header_list = get_header_list1()
         # Call function.
-        hmarkdo.check_header_list(header_list)
+        hmarkdo.sanity_check_header_list(header_list)
         self.assertTrue(True)
 
     def test2(self) -> None:
@@ -1524,7 +1524,7 @@ class Test_check_header_list1(hunitest.TestCase):
         header_list = get_header_list4()
         # Call function.
         with self.assertRaises(ValueError) as err:
-            hmarkdo.check_header_list(header_list)
+            hmarkdo.sanity_check_header_list(header_list)
         # Check output.
         actual = str(err.exception)
         self.check_string(actual)
@@ -1537,7 +1537,7 @@ class Test_check_header_list1(hunitest.TestCase):
         # Prepare inputs.
         header_list = get_header_list5()
         # Call function.
-        hmarkdo.check_header_list(header_list)
+        hmarkdo.sanity_check_header_list(header_list)
         self.assertTrue(True)
 
 

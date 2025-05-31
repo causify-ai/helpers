@@ -39,6 +39,9 @@ def _extract_headers_from_markdown(
     max_level: int,
     out_file_name: str,
 ) -> None:
+    """
+    Extract headers from a Markdown file.
+    """
     input_content = hparser.read_file(in_file_name)
     input_content = "\n".join(input_content)
     # We don't want to sanity check since we want to show the headers, even
@@ -47,6 +50,7 @@ def _extract_headers_from_markdown(
     header_list = hmarkdo.extract_headers_from_markdown(
         input_content, max_level=max_level, sanity_check=sanity_check
     )
+    # Print the headers.
     if mode == "cfile":
         output_content = hmarkdo.header_list_to_vim_cfile(
             in_file_name, header_list
@@ -54,8 +58,8 @@ def _extract_headers_from_markdown(
     else:
         output_content = hmarkdo.header_list_to_markdown(header_list, mode)
     hparser.write_file(output_content, out_file_name)
-    #
-    hmarkdo.check_header_list(header_list)
+    # Sanity check the headers.
+    hmarkdo.sanity_check_header_list(header_list)
 
 
 # TODO(gp): _parse() -> _build_parser() everywhere.
