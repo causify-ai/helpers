@@ -594,33 +594,29 @@ def header_list_to_markdown(header_list: HeaderList, mode: str) -> str:
 # Rules processing.
 # #############################################################################
 
-# Rules are organized in 4 levels
+# Rules are organized in 4 levels of a markdown file:
+#
 # 1) Rule sets (level 1)
-#    - E.g., Python, Notebooks, Markdown
-#    - Level 1 is a set of rules determined mainly by the type of the file we are
-#      processing
-#    - Note: several set of rules can be applied to a given file type
-#      - E.g., `Python` and `Notebooks` apply to all Python files
+#    - E.g., `General`, `Python`, `Notebooks`, `Markdown`
+#    - Level 1 is a set of rules determined mainly by the type of the file we
+#      are processing
+#    - Several sets of rules can be applied to a given file type
+#      - E.g., rules in `Python` and `Notebooks` apply to all Python files
 # 2) Sections (level 2)
-#    - E.g., Naming, Comments, Code_design, Imports, Type_annotations, ...
-#    - Can be specified as:
-#      - `*` (to select all sections)
-#      - a list (e.g., `Naming,Docstrings`)
+#    - E.g., `Naming`, `Comments`, `Code_design`, `Imports`, `Type_annotations`
 # 3) Targets (level 3)
 #    - E.g., LLM vs Linter
-#    - Can be specified as:
-#      - `*` (to select all targets)
-#      - `LLM`, `Linter`
 # 4) Atomic rules (level 4)
+#    - This is the set of rules that are applied to the file
 #    ```
 #    - Spell commands in lower case and programs with the first letter in upper case
 #      - E.g., `git` as a command, `Git` as a program
 #      - E.g., capitalize the first letter of `Python`
 #    ```
 
-# E.g.,
-# > extract_headers_from_markdown.py -i docs/code_guidelines/all.coding_style_guidelines.reference.md --max_level 2
+# Extract the rules from the markdown file:
 # ```
+# > extract_headers_from_markdown.py -i docs/code_guidelines/all.coding_style_guidelines.reference.md --max_level 2
 # - General
 #   - Spelling
 #     - LLM
@@ -651,9 +647,9 @@ def header_list_to_markdown(header_list: HeaderList, mode: str) -> str:
 #   - General
 # ```
 
-# - The rules to apply to a Python file are automatically inferred as
+# - The rules to apply to a Python file are automatically extractedas:
 #   `([`General:*`, `Python:*`], `LLM`)`
-# - The rules to apply to a Notebook file are automatically inferred as
+# - The rules to apply to a Notebook file are automatically extracted as:
 #   `([`General:*`, `Python:*`, `Notebooks:*`], `LLM`)`
 # - A user can specify to apply a subset of rules like
 #   `([`General:*`, `Python:Naming,Docstrings`], `LLM,Linter`)`
@@ -669,8 +665,7 @@ def sanity_check_rules(txt: List[str]) -> None:
     """
     Sanity check the rules.
     """
-    lines = txt.split("\n")
-    header_list = extract_headers_from_markdown( txt, max_level=5)
+    header_list = extract_headers_from_markdown(txt, max_level=5)
     # 1) Start with level 1 headers.
     # 2) All level 1 headers are unique.
     # 3) Header levels are increasing / decreasing by at most 1.
@@ -679,31 +674,35 @@ def sanity_check_rules(txt: List[str]) -> None:
     # for header in header_list:
     #     if header.level != 3:
     #         hdbg.dassert_in(header.description, ["LLM", "Linter"])
+    # TODO(gp): Implement this.
     # 5) All headers have no spaces.
+    # TODO(gp): Implement this.
 
 
-# A `Rule` is a string separated by `:` characters, where each part is
-# - `*` means any string
-# - `string`
-# - a list of strings separated by `|`
-# E.g., 
+# A `Rule` is a string separated by `:` characters, where each part can be:
+# - `*` (which means "match any string")
+# - a `string` (e.g., `Spelling`)
+# - a list of strings separated by `|` (e.g., `LLM|Linter`)
+#
+# E.g., valid rules are:
 # - `General:*:LLM`, `*:*:Linter|LLM`, `General|Python:*:LLM`, `Python:*:Linter`
 # - For a Python file -> `General|Python:*:LLM`
 # - For a Notebook file -> `General|Python|Notebooks:*:LLM`
 # - `Python:Naming|Docstrings|Comments:LLM`
-RuleRegex = str
+SelectionRule = str
 
 
-# A "Guidelines" is a header list with only level 1 headers storing the full
-# hierarchy of the rules, e.g.,
-# `(1, "Spelling:All:LLM", xyz)``
+# A `Guidelines`` is a header list with only level 1 headers storing the full
+# hierarchy of the rules as a description, e.g.,
+# `(1, "Spelling:All:LLM", xyz)`
 # TODO(gp): Make Guidelines descend from HeaderList.
 Guidelines = HeaderList
 
 
 def convert_header_list_into_guidelines(header_list: HeaderList) -> Guidelines:
     """
-    Expand the header list into a full rule list.
+    Convert the header list into a `Guidelines` object with only level 1 headers
+    and full hierarchy of the rules as description.
 
     Expand a header list like:
     ```
@@ -727,7 +726,7 @@ def convert_header_list_into_guidelines(header_list: HeaderList) -> Guidelines:
         (3, "LLM", xyz),
         (3, "Linter", xyz),
     ```
-    into "rulelist" a header list with only level 1 headers like:
+    into:
     ```
     [
         (1, "Spelling:All:LLM", xyz),
@@ -738,27 +737,34 @@ def convert_header_list_into_guidelines(header_list: HeaderList) -> Guidelines:
     ```
     """
     hdbg.dassert_isinstance(header_list, list)
-    # 1) Extract the level 3 headers.
+    # Store the last level headers.
     level_1 = ""
     level_2 = ""
+    # Accumulate the last level headers.
     level_3_headers = []
+    # Scan the header list.
     for header_info in header_list:
         level, description, line_number = header_info.as_tuple()
+        # Store the headers found at each level.
         if level == 1:
             level_1 = description
         elif level == 2:
             level_2 = description
         elif level == 3:
+            # Store the level 3 header.
             hdbg.dassert_ne(level_1, "")
             hdbg.dassert_ne(level_2, "")
             full_level_3 = f"{level_1}:{level_2}:{description}"
-            level_3_headers.append(HeaderInfo(1, full_level_3, line_number))
+            header_info_tmp = HeaderInfo(1, full_level_3, line_number)
+            level_3_headers.append(header_info_tmp)
+        else:
+            raise ValueError(f"Invalid header info={header_info}")
     return level_3_headers
 
 
-def _convert_rule_into_regex(rule_regex: RuleRegex) -> str:
+def _convert_rule_into_regex(selection_rule: SelectionRule) -> str:
     """
-    Convert a rule regex into an actual regular expression.
+    Convert a rule into an actual regular expression.
 
     E.g., 
     - `Spelling:*:LLM` -> `Spelling:(\S*):LLM`
@@ -766,31 +772,39 @@ def _convert_rule_into_regex(rule_regex: RuleRegex) -> str:
     - `Spelling|Python:*:LLM` -> `Spelling|Python:(\S*):LLM`
     - `Python:*:Linter` -> `Python:(\S*):Linter`
     """
-    hdbg.dassert_isinstance(rule_regex, RuleRegex)
-    # Parse the rule regex into a list of strings.
-    rule_regex = rule_regex.split(":")
-    hdbg.dassert_eq(len(rule_regex), 3)
+    hdbg.dassert_isinstance(selection_rule, SelectionRule)
+    # Parse the rule into tokens.
+    selection_rule_parts = selection_rule.split(":")
+    hdbg.dassert_eq(len(selection_rule_parts), 3)
     # Process each part of the rule regex.
-    for i, rule in enumerate(rule_regex):
-        hdbg.dassert_not_in(" ", rule)
-        if rule == "*":
-            # Convert `*`` into `\S*``
-            rule_regex[i] = "(\S*)"
-        elif "|" in rule:
-            rule_regex[i] = "(" + rule_regex[i] + ")"
+    rule_parts_out = []
+    for rule_part_in in selection_rule_parts:
+        hdbg.dassert_not_in(" ", rule_part_in)
+        if rule_part_in == "*":
+            # Convert `*` into `\S*`.
+            rule_part_out = "(\S*)"
+        elif "|" in rule_part_in:
+            # Convert `LLM|Linter` into `(LLM|Linter)`.
+            rule_part_out = "(" + rule_part_in + ")"
         else:
-            pass
-    # Join the parts of the rule regex back together.
-    rule_regex = ":".join(rule_regex)
-    return rule_regex
+            # Keep the string as is.
+            rule_part_out = rule_part_in
+        rule_parts_out.append(rule_part_out)
+    # Join the parts of the rule back together.
+    rule_out = ":".join(rule_parts_out)
+    return rule_out
 
 
-def extract_rules(guidelines: Guidelines, rule_regexes: List[RuleRegex]) -> Guidelines:
+def extract_rules(guidelines: Guidelines, selection_rules: List[SelectionRule]) -> Guidelines:
     """
     Extract the set of rules from the `guidelines` that match the rule regex.
+
+    :param guidelines: The guidelines to extract the rules from.
+    :param selection_rules: The selection rules to use to extract the rules.
+    :return: The extracted rules.
     """
     hdbg.dassert_isinstance(guidelines, list)
-    hdbg.dassert_isinstance(rule_regexes, list)
+    hdbg.dassert_isinstance(selection_rules, list)
     # A rule regex is a string separated by `:` characters, where each part is
     # - `*` (meaning "any string")
     # - a `string` (e.g., `Spelling`)
@@ -798,8 +812,8 @@ def extract_rules(guidelines: Guidelines, rule_regexes: List[RuleRegex]) -> Guid
     # E.g., `Spelling:*:LLM`, `*:*:Linter|LLM`, `Spelling|Python:*:LLM`.
     # Convert each rule regex into a regular expression.
     rule_regex_map = {}
-    for rule_regex_str in rule_regexes:
-        hdbg.dassert_isinstance(rule_regex_str, RuleRegex)
+    for rule_regex_str in selection_rules:
+        hdbg.dassert_isinstance(rule_regex_str, SelectionRule)
         regex = _convert_rule_into_regex(rule_regex_str)
         _LOG.debug(hprint.to_str("rule_regex_str regex"))
         hdbg.dassert_not_in(rule_regex_str, rule_regex_map)
@@ -819,16 +833,15 @@ def extract_rules(guidelines: Guidelines, rule_regexes: List[RuleRegex]) -> Guid
     return rule_sections
 
 
-# TODO(gp): -> parse_atomic_rules?
-def extract_first_level_bullets_from_markdown(txt: str) -> List[str]:
+def parse_rules_from_txt(txt: str) -> List[str]:
     """
-    Parse atomic rules from a markdown.
+    Parse rules from a chunk of markdown text.
 
     - Extract first-level bullet point list items from text until the next one.
     - Sub-lists nested under first-level items are extracted together with the
-      first-level items.
+      first-level items. 
 
-    :param text: text to process
+    :param txt: text to process
         ```
         - Item 1
         - Item 2

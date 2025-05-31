@@ -549,7 +549,7 @@ class Test_extract_first_level_bullets_from_markdown1(hunitest.TestCase):
         # Prepare inputs.
         text = hprint.dedent(text)
         # Call function.
-        actual = hmarkdo.extract_first_level_bullets_from_markdown(text)
+        actual = hmarkdo.parse_rules_from_txt(text)
         # Check output.
         act = "\n".join(actual)
         self.assert_equal(act, expected, dedent=True)
@@ -1612,7 +1612,7 @@ class Test_convert_header_list_into_guidelines1(hunitest.TestCase):
 
 class Test_extract_rules1(hunitest.TestCase):
 
-    def helper(self, rule_regexes: List[str], exp: str) -> None:
+    def helper(self, selection_rules: List[str], exp: str) -> None:
         """
         Test extracting rules from a markdown file.
         """
@@ -1620,7 +1620,7 @@ class Test_extract_rules1(hunitest.TestCase):
         guidelines = get_header_list6()
         guidelines = hmarkdo.convert_header_list_into_guidelines(guidelines)
         # Call function.
-        selected_guidelines = hmarkdo.extract_rules(guidelines, rule_regexes)
+        selected_guidelines = hmarkdo.extract_rules(guidelines, selection_rules)
         # Check output.
         act = "\n".join(map(str, selected_guidelines))
         self.assert_equal(act, exp, dedent=True)
@@ -1629,37 +1629,37 @@ class Test_extract_rules1(hunitest.TestCase):
         """
         Test extracting rules from a markdown file.
         """
-        rule_regexes = ["Spelling:*:LLM"]
+        selection_rules = ["Spelling:*:LLM"]
         exp = """
         HeaderInfo(1, 'Spelling:All:LLM', 11)
         """
-        self.helper(rule_regexes, exp)
+        self.helper(selection_rules, exp)
 
     def test2(self) -> None:
         """
         Test extracting rules from a markdown file.
         """
-        rule_regexes = ["Spelling:NONE:LLM"]
+        selection_rules = ["Spelling:NONE:LLM"]
         exp = """
         """
-        self.helper(rule_regexes, exp)
+        self.helper(selection_rules, exp)
 
     def test3(self) -> None:
         """
         Test extracting rules from a markdown file.
         """
-        rule_regexes = ["Spelling:All:*"]
+        selection_rules = ["Spelling:All:*"]
         exp = """
         HeaderInfo(1, 'Spelling:All:LLM', 11)
         HeaderInfo(1, 'Spelling:All:Linter', 16)
         """
-        self.helper(rule_regexes, exp)
+        self.helper(selection_rules, exp)
 
     def test4(self) -> None:
         """
         Test extracting rules from a markdown file.
         """
-        rule_regexes = ["Spelling:All:*", "Python:*:*"]
+        selection_rules = ["Spelling:All:*", "Python:*:*"]
         exp = """
         HeaderInfo(1, 'Spelling:All:LLM', 11)
         HeaderInfo(1, 'Spelling:All:Linter', 16)
@@ -1668,7 +1668,7 @@ class Test_extract_rules1(hunitest.TestCase):
         HeaderInfo(1, 'Python:Docstrings:LLM', 46)
         HeaderInfo(1, 'Python:Docstrings:Linter', 51)
         """
-        self.helper(rule_regexes, exp)
+        self.helper(selection_rules, exp)
 
 
 def get_guidelines_txt1() -> str:
@@ -1727,8 +1727,10 @@ class Test_extract_rules2(hunitest.TestCase):
         """
         Test extracting headers from a markdown file.
         """
+        # Prepare inputs.
         txt = get_guidelines_txt1()
         max_level = 4
+        # Run function.
         header_list = hmarkdo.extract_headers_from_markdown(txt, max_level)
         # Check output.
         act = "\n".join(map(str, header_list))
@@ -1746,8 +1748,9 @@ class Test_extract_rules2(hunitest.TestCase):
         HeaderInfo(3, 'LLM', 37)
         """
         self.assert_equal(act, exp, dedent=True)
-        #
+        # Run function.
         guidelines = hmarkdo.convert_header_list_into_guidelines(header_list)
+        # Check output.
         act = "\n".join(map(str, guidelines))
         exp = """
         HeaderInfo(1, 'General:Spelling:LLM', 5)
@@ -1758,9 +1761,9 @@ class Test_extract_rules2(hunitest.TestCase):
         """
         self.assert_equal(act, exp, dedent=True)
 
-    def helper(self, rule_regexes: List[str], exp: str) -> None:
+    def helper_extract_rules(self, selection_rules: List[str], exp: str) -> None:
         """
-        Test extracting rules from a markdown file.
+        Helper function to test extracting rules from a markdown file.
         """
         # Prepare inputs.
         txt = get_guidelines_txt1()
@@ -1768,7 +1771,7 @@ class Test_extract_rules2(hunitest.TestCase):
         header_list = hmarkdo.extract_headers_from_markdown(txt, max_level)
         guidelines = hmarkdo.convert_header_list_into_guidelines(header_list)
         # Call function.
-        selected_guidelines = hmarkdo.extract_rules(guidelines, rule_regexes)
+        selected_guidelines = hmarkdo.extract_rules(guidelines, selection_rules)
         # Check output.
         act = "\n".join(map(str, selected_guidelines))
         self.assert_equal(act, exp, dedent=True)
@@ -1777,51 +1780,51 @@ class Test_extract_rules2(hunitest.TestCase):
         """
         Test extracting rules from a markdown file.
         """
-        rule_regexes = ["General:*:LLM"]
+        selection_rules = ["General:*:LLM"]
         exp = """
         HeaderInfo(1, 'General:Spelling:LLM', 5)
         """
-        self.helper(rule_regexes, exp)
+        self.helper_extract_rules(selection_rules, exp)
 
     def test2(self) -> None:
         """
         Test extracting rules from a markdown file.
         """
-        rule_regexes = ["General:NONE:LLM"]
+        selection_rules = ["General:NONE:LLM"]
         exp = """
         """
-        self.helper(rule_regexes, exp)
+        self.helper_extract_rules(selection_rules, exp)
 
     def test3(self) -> None:
         """
         Test extracting rules from a markdown file.
         """
-        rule_regexes = ["*:*:LLM"]
+        selection_rules = ["*:*:LLM"]
         exp = """
         HeaderInfo(1, 'General:Spelling:LLM', 5)
         HeaderInfo(1, 'Python:Naming:LLM', 18)
         HeaderInfo(1, 'Unit_tests:Rules:LLM', 37)
         """
-        self.helper(rule_regexes, exp)
+        self.helper_extract_rules(selection_rules, exp)
 
     def test4(self) -> None:
         """
         Test extracting rules from a markdown file.
         """
-        rule_regexes = ["*:*:LLM", "General:*:*"]
+        selection_rules = ["*:*:LLM", "General:*:*"]
         exp = """
         HeaderInfo(1, 'General:Spelling:LLM', 5)
         HeaderInfo(1, 'General:Spelling:Linter', 7)
         HeaderInfo(1, 'Python:Naming:LLM', 18)
         HeaderInfo(1, 'Unit_tests:Rules:LLM', 37)
         """
-        self.helper(rule_regexes, exp)
+        self.helper_extract_rules(selection_rules, exp)
 
     def test5(self) -> None:
         """
         Test extracting rules from a markdown file.
         """
-        rule_regexes = ["*:*:*"]
+        selection_rules = ["*:*:*"]
         exp = """
         HeaderInfo(1, 'General:Spelling:LLM', 5)
         HeaderInfo(1, 'General:Spelling:Linter', 7)
@@ -1829,13 +1832,13 @@ class Test_extract_rules2(hunitest.TestCase):
         HeaderInfo(1, 'Python:Naming:Linter', 28)
         HeaderInfo(1, 'Unit_tests:Rules:LLM', 37)
         """
-        self.helper(rule_regexes, exp)
+        self.helper_extract_rules(selection_rules, exp)
 
     def test6(self) -> None:
         """
         Test extracting rules from a markdown file.
         """
-        rule_regexes = ["*:*:*", "General:*:*"]
+        selection_rules = ["*:*:*", "General:*:*"]
         exp = """
         HeaderInfo(1, 'General:Spelling:LLM', 5)
         HeaderInfo(1, 'General:Spelling:Linter', 7)
@@ -1843,7 +1846,7 @@ class Test_extract_rules2(hunitest.TestCase):
         HeaderInfo(1, 'Python:Naming:Linter', 28)
         HeaderInfo(1, 'Unit_tests:Rules:LLM', 37)
         """
-        self.helper(rule_regexes, exp)
+        self.helper_extract_rules(selection_rules, exp)
 
 # #############################################################################
 # Test_inject_todos_from_cfile1
