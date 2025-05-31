@@ -371,18 +371,35 @@ def parse_input_output_args(
     return in_file_name, out_file_name
 
 
-def init_logger_for_input_output_transform(args: argparse.Namespace) -> None:
+def init_logger_for_input_output_transform(
+    args: argparse.Namespace, *, verbose: bool = True
+) -> None:
     """
     Initialize the logger when input/output transformation is used.
+
+    :param verbose: if `False`, set the log level to `CRITICAL` so that no
+        output is printed and avoid to print
+    ```
+    09:34:24 - INFO  hdbg.py init_logger:1013                 Saving log to file '/User...
+    09:34:24 - INFO  hdbg.py init_logger:1018                 > cmd='/Users/saggese/src...
+    09:34:24 - INFO  hparser.py parse_input_output_args:368   in_file_name='MSML610/Les...
+    09:34:24 - INFO  hparser.py parse_input_output_args:369   out_file_name='-'
+    ```
     """
     verbosity = args.log_level
-    # If the input is stdin, we don't want to print the command line or any
-    # other log messages, unless the user specified a more verbose log level.
-    if args.in_file_name == "-":
+    if not verbose:
+        # Unless user has specified DEBUG level, set the log level to `CRITICAL`
+        # so that no output is printed.
         if args.log_level == "INFO":
             verbosity = "CRITICAL"
     else:
-        print("cmd line: %s" % hdbg.get_command_line())
+        # If the input is stdin, we don't want to print the command line or any
+        # other log messages, unless the user specified a more verbose log level.
+        if args.in_file_name == "-":
+            if args.log_level == "INFO":
+                verbosity = "CRITICAL"
+        else:
+            print("cmd line: %s" % hdbg.get_command_line())
     hdbg.init_logger(verbosity=verbosity, use_exec_path=True, force_white=False)
 
 
