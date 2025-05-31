@@ -539,6 +539,67 @@ class Test_extract_headers_from_markdown1(hunitest.TestCase):
 
 
 # #############################################################################
+# Test_extract_headers_from_markdown1
+# #############################################################################
+
+
+class Test_extract_first_level_bullets_from_markdown1(hunitest.TestCase):
+
+    def helper(self, text: str, expected: str) -> None:
+        # Prepare inputs.
+        text = hprint.dedent(text)
+        # Call function.
+        actual = hmarkdo.extract_first_level_bullets_from_markdown(text)
+        # Check output.
+        act = "\n".join(actual)
+        self.assert_equal(act, expected, dedent=True)
+
+    def test_basic_list1(self) -> None:
+        """
+        Test extracting simple first-level bullet points.
+        """
+        text = """
+        - Item 1
+        - Item 2
+        - Item 3
+        """
+        expected = """
+        - Item 1
+        - Item 2
+        - Item 3
+        """
+        self.helper(text, expected)
+
+    def test_nested_list1(self) -> None:
+        """
+        Test extracting bullet points with nested sub-items.
+        """
+        text = """
+        - Item 1
+        - Item 2
+          - Sub-item 2.1
+          - Sub-item 2.2
+        - Item 3
+        """
+        expected = """
+        - Item 1
+        - Item 2
+          - Sub-item 2.1
+          - Sub-item 2.2
+        - Item 3
+        """
+        self.helper(text, expected)
+
+    def test_empty_list1(self) -> None:
+        """
+        Test handling empty input.
+        """
+        text = ""
+        expected = ""
+        self.helper(text, expected)
+
+
+# #############################################################################
 # Test_remove_end_of_line_periods1
 # #############################################################################
 
@@ -1438,11 +1499,11 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_check_header_list1
+# Test_sanity_check_header_list1
 # #############################################################################
 
 
-class Test_check_header_list1(hunitest.TestCase):
+class Test_sanity_check_header_list1(hunitest.TestCase):
 
     def test1(self) -> None:
         """
@@ -1451,7 +1512,7 @@ class Test_check_header_list1(hunitest.TestCase):
         # Prepare inputs.
         header_list = get_header_list1()
         # Call function.
-        hmarkdo.check_header_list(header_list)
+        hmarkdo.sanity_check_header_list(header_list)
         self.assertTrue(True)
 
     def test2(self) -> None:
@@ -1463,7 +1524,7 @@ class Test_check_header_list1(hunitest.TestCase):
         header_list = get_header_list4()
         # Call function.
         with self.assertRaises(ValueError) as err:
-            hmarkdo.check_header_list(header_list)
+            hmarkdo.sanity_check_header_list(header_list)
         # Check output.
         actual = str(err.exception)
         self.check_string(actual)
@@ -1476,7 +1537,7 @@ class Test_check_header_list1(hunitest.TestCase):
         # Prepare inputs.
         header_list = get_header_list5()
         # Call function.
-        hmarkdo.check_header_list(header_list)
+        hmarkdo.sanity_check_header_list(header_list)
         self.assertTrue(True)
 
 

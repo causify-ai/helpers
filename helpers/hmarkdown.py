@@ -391,6 +391,124 @@ def extract_section_from_markdown(content: str, header_name: str) -> str:
 
 
 # #############################################################################
+# Guidelines processing.
+# #############################################################################
+
+# Guidelines are organized in 3 levels by:
+# 1) File type
+#   - E.g., Python, Notebooks, Markdown
+# 2) Section
+#   - E.g., Naming, Comments, Code design, Imports, Type annotations, Functions, ...
+# 3) Target
+#   - E.g., LLM vs Linter
+
+# E.g.,
+# > extract_headers_from_markdown.py -i docs/code_guidelines/all.coding_style_guidelines.reference.md --max_level 2
+# ```
+# - All
+#   - Spelling
+# - Python
+#   - Naming
+#   - Docstrings
+#   - Comments
+#   - Code_implementation
+#   - Code_design
+#   - Imports
+#   - Type annotations
+#   - Functions
+#   - Scripts
+#   - Logging
+#   - Misc
+# - Unit_tests
+#   - Rules
+# - Notebooks
+#   - General
+#   - Plotting
+#   - Jupytext
+# - Markdown
+#   - Naming
+#   - General
+# ```
+
+# The level 1 is determined by the type of the file.
+# The level 2 is specified as `*` (for all), as `Naming,Docstrings`
+# The level 3 is specified as `mode=LLM` or `mode=Linter`
+
+
+def sanity_check_guidelines(txt: List[str]) -> None:
+    """
+    Sanity check the guidelines.
+    """
+    lines = txt.split("\n")
+    header_list = extract_headers_from_markdown( txt, max_level=5)
+    # 1) Start with level 1 headers.
+    # 2) All level 1 headers are unique.
+    # 3) Header levels are increasing / decreasing by at most 1.
+    sanity_check_header_list(header_list)
+    # 4) Level 3 headers are always `LLM` or `Linter`.
+    # for header in header_list:
+    #     if header.level != 3:
+    #         hdbg.dassert_in(header.description, ["LLM", "Linter"])
+    # 5) All headers have no spaces.
+
+
+def extract_first_level_bullets_from_markdown(txt: str) -> List[str]:
+    """
+    Extract first-level bullet point list items from text until the next one.
+
+    Sub-lists nested under first-level items are extracted together with
+    the first-level items.
+
+    :param text: text to process
+        ```
+        - Item 1
+        - Item 2
+           - Item 3
+        - Item 4
+        ```
+    :return: extracted bullet points, e.g.,
+        ```
+        [
+            "- Item 1",
+            '''
+            - Item 2
+               - Item 3
+            ''',
+            "- Item 4",
+        ]
+        ```
+    """
+    lines = txt.split("\n")
+    # Store the first-level bullet points.
+    bullet_points = []
+    # Store the current item including the first level bullet point and all
+    # its sub-items.
+    current_item = ""
+    for line in lines:
+        line = line.rstrip()
+        if not line:
+            continue
+        if re.match(r"^- ", line):
+            # Match first-level bullet point item.
+            if current_item:
+                # Store the previous item, if any.
+                bullet_points.append(current_item)
+            # Start a new first-level bullet point item.
+            current_item = line
+        elif re.match(r"^\s+- ", line):
+            # Match a sub-item (non first-level bullet point item).
+            # Append a sub-item to the current item.
+            current_item += "\n" + line
+        elif len(line.strip()) != 0 and current_item:
+            # Append a line to the current item.
+            current_item += "\n" + line
+    # Add the last item if there is one.
+    if current_item:
+        bullet_points.append(current_item)
+    return bullet_points
+
+
+# #############################################################################
 # HeaderInfo
 # #############################################################################
 
@@ -434,8 +552,37 @@ class HeaderInfo:
 HeaderList = List[HeaderInfo]
 
 
-def check_header_list(header_list: HeaderList) -> None:
-    # The first header should be level 1.
+def sanity_check_header_list(header_list: HeaderList) -> None:
+    """
+    Check that the header list is valid.
+
+    1) The first header should be level 1.
+    2) All level 1 headers are unique.
+    3) Check that consecutive elements in the header list only increase by at
+       most one level at a time (even if it can decrease by multiple levels).
+       - E.g., the following is valid:
+         ```
+         # Header 1
+         # Header 2
+         ## Header 2.1
+         ## Header 2.2
+         # Header 3
+         ```
+       - E.g., the following is valid:
+         ```
+         # Header1
+         ## Header 1.1
+         ### Header 1.1.1
+         # Header 2
+         ```
+       - E.g., the following is not valid:
+         ```
+         # Header 1
+         ### Header 1.0.1
+         # Header 2
+         ```
+    """
+    # 1) The first header should be level 1.
     if header_list and header_list[0].level > 1:
         _LOG.warning(
             "First header '%s' at line %s is not level 1, but %s",
@@ -443,8 +590,13 @@ def check_header_list(header_list: HeaderList) -> None:
             header_list[0].line_number,
             header_list[0].level,
         )
-    # Check that consecutive elements in the header list only increase by
-    # at most one level at a time, but can decrease by multiple levels.
+    # 2) All level 1 headers are unique.
+    level_1_headers = [
+        header.description for header in header_list if header.level == 1
+    ]
+    hdbg.dassert_no_duplicates(level_1_headers)
+    # 3) Check that consecutive elements in the header list only increase by at
+    #    most one level at a time (even if it can decrease by multiple levels).
     if len(header_list) > 1:
         for i in range(1, len(header_list)):
             hdbg.dassert_isinstance(header_list[i - 1], HeaderInfo)
@@ -458,6 +610,7 @@ def check_header_list(header_list: HeaderList) -> None:
                 raise ValueError(msg)
 
 
+# TODO(gp): Move sanity check outside?
 def extract_headers_from_markdown(
     txt: str, max_level: int, *, sanity_check: bool = True
 ) -> HeaderList:
@@ -467,9 +620,12 @@ def extract_headers_from_markdown(
     :param txt: content of the input Markdown file.
     :param max_level: Maximum header levels to parse (e.g., 3 parses all levels
         included `###`, but not `####`)
+    :param sanity_check: If True, check that the header list is valid.
     :return: the generated `HeaderList`, e.g.,
         ```
-        [(1, "Chapter 1", 5), (2, "Section 1.1", 10), ...]
+        [
+            (1, "Chapter 1", 5),
+            (2, "Section 1.1", 10), ...]
         ```
     """
     hdbg.dassert_isinstance(txt, str)
@@ -488,7 +644,7 @@ def extract_headers_from_markdown(
             header_list.append(header_info)
     # Check the header list.
     if sanity_check:
-        check_header_list(header_list)
+        sanity_check_header_list(header_list)
     else:
         _LOG.debug("Skipping sanity check")
     return header_list
@@ -550,6 +706,8 @@ def header_list_to_markdown(header_list: HeaderList, mode: str) -> str:
     return output_content
 
 
+# #############################################################################
+# Process headers.
 # #############################################################################
 
 
