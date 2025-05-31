@@ -1541,6 +1541,258 @@ class Test_sanity_check_header_list1(hunitest.TestCase):
         self.assertTrue(True)
 
 
+# //////////////////////////////////////////////////////////////////////////////
+# Rules processing.
+# //////////////////////////////////////////////////////////////////////////////
+
+
+def get_header_list6() -> hmarkdo.HeaderList:
+    """
+    - Spelling
+      - All
+        - LLM
+        - Linter
+    - Python
+      - Naming
+        - LLM
+        - Linter
+      - Docstrings
+        - LLM
+        - Linter
+    - Unit_tests
+      - All
+        - LLM
+        - Linter
+    """
+    data = [
+        (1, "Spelling"),
+        (2, "All"),
+        (3, "LLM"),
+        (3, "Linter"),
+        (1, "Python"),
+        (2, "Naming"),
+        (3, "LLM"),
+        (3, "Linter"),
+        (2, "Docstrings"),
+        (3, "LLM"),
+        (3, "Linter"),
+        (1, "Unit_tests"),
+        (2, "All"),
+        (3, "LLM"),
+        (3, "Linter"),
+    ]
+    header_list = _to_header_list(data)
+    return header_list
+
+
+class Test_convert_header_list_into_guidelines1(hunitest.TestCase):
+
+    def test1(self) -> None:
+        """
+        Test converting a header list into guidelines.
+        """
+        # Prepare inputs.
+        header_list = get_header_list6()
+        # Call function.
+        guidelines = hmarkdo.convert_header_list_into_guidelines(header_list)
+        # Check output.
+        act = "\n".join(map(str, guidelines))
+        exp = """
+        HeaderInfo(1, 'Spelling:All:LLM', 11)
+        HeaderInfo(1, 'Spelling:All:Linter', 16)
+        HeaderInfo(1, 'Python:Naming:LLM', 31)
+        HeaderInfo(1, 'Python:Naming:Linter', 36)
+        HeaderInfo(1, 'Python:Docstrings:LLM', 46)
+        HeaderInfo(1, 'Python:Docstrings:Linter', 51)
+        HeaderInfo(1, 'Unit_tests:All:LLM', 66)
+        HeaderInfo(1, 'Unit_tests:All:Linter', 71)
+        """
+        self.assert_equal(act, exp, dedent=True)
+
+
+class Test_extract_rules1(hunitest.TestCase):
+
+    def helper(self, rule_regexes: List[str], exp: str) -> None:
+        """
+        Test extracting rules from a markdown file.
+        """
+        # Prepare inputs.
+        guidelines = get_header_list6()
+        guidelines = hmarkdo.convert_header_list_into_guidelines(guidelines)
+        # Call function.
+        selected_guidelines = hmarkdo.extract_rules(guidelines, rule_regexes)
+        # Check output.
+        act = "\n".join(map(str, selected_guidelines))
+        self.assert_equal(act, exp, dedent=True)
+
+    def test1(self) -> None:
+        """
+        Test extracting rules from a markdown file.
+        """
+        rule_regexes = ["Spelling:*:LLM"]
+        exp = """
+        HeaderInfo(1, 'Spelling:All:LLM', 11)
+        """
+        self.helper(rule_regexes, exp)
+
+    def test2(self) -> None:
+        """
+        Test extracting rules from a markdown file.
+        """
+        rule_regexes = ["Spelling:NONE:LLM"]
+        exp = """
+        """
+        self.helper(rule_regexes, exp)
+
+    def test3(self) -> None:
+        """
+        Test extracting rules from a markdown file.
+        """
+        rule_regexes = ["Spelling:All:*"]
+        exp = """
+        HeaderInfo(1, 'Spelling:All:LLM', 11)
+        HeaderInfo(1, 'Spelling:All:Linter', 16)
+        """
+        self.helper(rule_regexes, exp)
+
+    def test4(self) -> None:
+        """
+        Test extracting rules from a markdown file.
+        """
+        rule_regexes = ["Spelling:All:*", "Python:*:*"]
+        exp = """
+        HeaderInfo(1, 'Spelling:All:LLM', 11)
+        HeaderInfo(1, 'Spelling:All:Linter', 16)
+        HeaderInfo(1, 'Python:Naming:LLM', 31)
+        HeaderInfo(1, 'Python:Naming:Linter', 36)
+        HeaderInfo(1, 'Python:Docstrings:LLM', 46)
+        HeaderInfo(1, 'Python:Docstrings:Linter', 51)
+        """
+        self.helper(rule_regexes, exp)
+
+
+def get_guidelines_txt1() -> str:
+    txt = r"""
+    # General
+
+    ## Spelling
+
+    ### LLM
+
+    ### Linter
+
+    - Spell commands in lower case and programs with the first letter in upper case
+    - E.g., `git` as a command, `Git` as a program
+    - E.g., capitalize the first letter of `Python`
+    - Capitalize `JSON`, `CSV`, `DB` and other abbreviations
+
+    # Python
+
+    ## Naming
+
+    ### LLM
+
+    - Name functions using verbs and verbs/actions
+      - Good: `download_data()`, `process_input()`, `calculate_sum()`
+      - Good: Python internal functions as `__repr__`, `__init__` are valid
+      - Good: Functions names like `to_dict()`, `_parse()`, `_main()` are valid
+    - Name classes using nouns
+      - Good: `Downloader()`, `DataProcessor()`, `User()`
+      - Bad: `DownloadStuff()`, `ProcessData()`, `UserActions()`
+
+    ### Linter
+
+    - Name executable Python scripts using verbs and actions
+    - E.g., `download.py` and not `downloader.py`
+
+    # Unit_tests
+
+    ## Rules
+
+    ### LLM
+
+    - A test class should test only one function or class to help understanding
+      test failures
+    - A test method should only test a single case to ensures clarity and
+      precision in testing
+    - E.g., "for these inputs the function responds with this output"
+    """
+    txt = hprint.dedent(txt)
+    return txt
+
+
+class Test_extract_rules2(hunitest.TestCase):
+
+    def test_get_header_list1(self) -> None:
+        """
+        Test extracting headers from a markdown file.
+        """
+        txt = get_guidelines_txt1()
+        max_level = 4
+        header_list = hmarkdo.extract_headers_from_markdown(txt, max_level)
+        # Check output.
+        act = "\n".join(map(str, header_list))
+        exp = """
+        HeaderInfo(1, 'General', 1)
+        HeaderInfo(2, 'Spelling', 3)
+        HeaderInfo(3, 'LLM', 5)
+        HeaderInfo(3, 'Linter', 7)
+        HeaderInfo(1, 'Python', 14)
+        HeaderInfo(2, 'Naming', 16)
+        HeaderInfo(3, 'LLM', 18)
+        HeaderInfo(3, 'Linter', 28)
+        HeaderInfo(1, 'Unit_tests', 33)
+        HeaderInfo(2, 'Rules', 35)
+        HeaderInfo(3, 'LLM', 37)
+        """
+        self.assert_equal(act, exp, dedent=True)
+        #
+        guidelines = hmarkdo.convert_header_list_into_guidelines(header_list)
+        act = "\n".join(map(str, guidelines))
+        exp = """
+        HeaderInfo(1, 'General:Spelling:LLM', 5)
+        HeaderInfo(1, 'General:Spelling:Linter', 7)
+        HeaderInfo(1, 'Python:Naming:LLM', 18)
+        HeaderInfo(1, 'Python:Naming:Linter', 28)
+        HeaderInfo(1, 'Unit_tests:Rules:LLM', 37)
+        """
+        self.assert_equal(act, exp, dedent=True)
+
+    def helper(self, rule_regexes: List[str], exp: str) -> None:
+        """
+        Test extracting rules from a markdown file.
+        """
+        # Prepare inputs.
+        txt = get_guidelines_txt1()
+        max_level = 4
+        header_list = hmarkdo.extract_headers_from_markdown(txt, max_level)
+        guidelines = hmarkdo.convert_header_list_into_guidelines(header_list)
+        # Call function.
+        selected_guidelines = hmarkdo.extract_rules(guidelines, rule_regexes)
+        # Check output.
+        act = "\n".join(map(str, selected_guidelines))
+        self.assert_equal(act, exp, dedent=True)
+
+    def test1(self) -> None:
+        """
+        Test extracting rules from a markdown file.
+        """
+        rule_regexes = ["General:*:LLM"]
+        exp = """
+        HeaderInfo(1, 'General:Spelling:LLM', 5)
+        """
+        self.helper(rule_regexes, exp)
+
+    def test2(self) -> None:
+        """
+        Test extracting rules from a markdown file.
+        """
+        rule_regexes = ["General:NONE:LLM"]
+        exp = """
+        """
+        self.helper(rule_regexes, exp)
+
+
 # #############################################################################
 # Test_inject_todos_from_cfile1
 # #############################################################################

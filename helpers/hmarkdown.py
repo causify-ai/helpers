@@ -330,6 +330,7 @@ def md_clean_up(txt: str) -> str:
 # #############################################################################
 
 
+# TODO(gp): This could be done with `HeaderList`.
 def extract_section_from_markdown(content: str, header_name: str) -> str:
     """
     Extract a section of text from a Markdown document based on the header
@@ -391,124 +392,6 @@ def extract_section_from_markdown(content: str, header_name: str) -> str:
 
 
 # #############################################################################
-# Guidelines processing.
-# #############################################################################
-
-# Guidelines are organized in 3 levels by:
-# 1) File type
-#   - E.g., Python, Notebooks, Markdown
-# 2) Section
-#   - E.g., Naming, Comments, Code design, Imports, Type annotations, Functions, ...
-# 3) Target
-#   - E.g., LLM vs Linter
-
-# E.g.,
-# > extract_headers_from_markdown.py -i docs/code_guidelines/all.coding_style_guidelines.reference.md --max_level 2
-# ```
-# - All
-#   - Spelling
-# - Python
-#   - Naming
-#   - Docstrings
-#   - Comments
-#   - Code_implementation
-#   - Code_design
-#   - Imports
-#   - Type annotations
-#   - Functions
-#   - Scripts
-#   - Logging
-#   - Misc
-# - Unit_tests
-#   - Rules
-# - Notebooks
-#   - General
-#   - Plotting
-#   - Jupytext
-# - Markdown
-#   - Naming
-#   - General
-# ```
-
-# The level 1 is determined by the type of the file.
-# The level 2 is specified as `*` (for all), as `Naming,Docstrings`
-# The level 3 is specified as `mode=LLM` or `mode=Linter`
-
-
-def sanity_check_guidelines(txt: List[str]) -> None:
-    """
-    Sanity check the guidelines.
-    """
-    lines = txt.split("\n")
-    header_list = extract_headers_from_markdown( txt, max_level=5)
-    # 1) Start with level 1 headers.
-    # 2) All level 1 headers are unique.
-    # 3) Header levels are increasing / decreasing by at most 1.
-    sanity_check_header_list(header_list)
-    # 4) Level 3 headers are always `LLM` or `Linter`.
-    # for header in header_list:
-    #     if header.level != 3:
-    #         hdbg.dassert_in(header.description, ["LLM", "Linter"])
-    # 5) All headers have no spaces.
-
-
-def extract_first_level_bullets_from_markdown(txt: str) -> List[str]:
-    """
-    Extract first-level bullet point list items from text until the next one.
-
-    Sub-lists nested under first-level items are extracted together with
-    the first-level items.
-
-    :param text: text to process
-        ```
-        - Item 1
-        - Item 2
-           - Item 3
-        - Item 4
-        ```
-    :return: extracted bullet points, e.g.,
-        ```
-        [
-            "- Item 1",
-            '''
-            - Item 2
-               - Item 3
-            ''',
-            "- Item 4",
-        ]
-        ```
-    """
-    lines = txt.split("\n")
-    # Store the first-level bullet points.
-    bullet_points = []
-    # Store the current item including the first level bullet point and all
-    # its sub-items.
-    current_item = ""
-    for line in lines:
-        line = line.rstrip()
-        if not line:
-            continue
-        if re.match(r"^- ", line):
-            # Match first-level bullet point item.
-            if current_item:
-                # Store the previous item, if any.
-                bullet_points.append(current_item)
-            # Start a new first-level bullet point item.
-            current_item = line
-        elif re.match(r"^\s+- ", line):
-            # Match a sub-item (non first-level bullet point item).
-            # Append a sub-item to the current item.
-            current_item += "\n" + line
-        elif len(line.strip()) != 0 and current_item:
-            # Append a line to the current item.
-            current_item += "\n" + line
-    # Add the last item if there is one.
-    if current_item:
-        bullet_points.append(current_item)
-    return bullet_points
-
-
-# #############################################################################
 # HeaderInfo
 # #############################################################################
 
@@ -532,6 +415,7 @@ class HeaderInfo:
         self.level = level
         #
         hdbg.dassert_isinstance(description, str)
+        hdbg.dassert_ne(description, "")
         self.description = description
         #
         hdbg.dassert_isinstance(line_number, int)
@@ -704,6 +588,293 @@ def header_list_to_markdown(header_list: HeaderList, mode: str) -> str:
         output_lines.append(f"{header_prefix} {title}")
     output_content = "\n".join(output_lines)
     return output_content
+
+
+# #############################################################################
+# Rules processing.
+# #############################################################################
+
+# Rules are organized in 4 levels
+# 1) Rule sets (level 1)
+#    - E.g., Python, Notebooks, Markdown
+#    - Level 1 is a set of rules determined mainly by the type of the file we are
+#      processing
+#    - Note: several set of rules can be applied to a given file type
+#      - E.g., `Python` and `Notebooks` apply to all Python files
+# 2) Sections (level 2)
+#    - E.g., Naming, Comments, Code_design, Imports, Type_annotations, ...
+#    - Can be specified as:
+#      - `*` (to select all sections)
+#      - a list (e.g., `Naming,Docstrings`)
+# 3) Targets (level 3)
+#    - E.g., LLM vs Linter
+#    - Can be specified as:
+#      - `*` (to select all targets)
+#      - `LLM`, `Linter`
+# 4) Atomic rules (level 4)
+#    ```
+#    - Spell commands in lower case and programs with the first letter in upper case
+#      - E.g., `git` as a command, `Git` as a program
+#      - E.g., capitalize the first letter of `Python`
+#    ```
+
+# E.g.,
+# > extract_headers_from_markdown.py -i docs/code_guidelines/all.coding_style_guidelines.reference.md --max_level 2
+# ```
+# - General
+#   - Spelling
+#     - LLM
+#     - Linter
+# - Python
+#   - Naming
+#     - LLM
+#     - Linter
+#   - Docstrings
+#     - ...
+#   - Comments
+#   - Code_implementation
+#   - Code_design
+#   - Imports
+#   - Type_annotations
+#   - Functions
+#   - Scripts
+#   - Logging
+#   - Misc
+# - Unit_tests
+#   - All
+# - Notebooks
+#   - General
+#   - Plotting
+#   - Jupytext
+# - Markdown
+#   - Naming
+#   - General
+# ```
+
+# - The rules to apply to a Python file are automatically inferred as
+#   `([`General:*`, `Python:*`], `LLM`)`
+# - The rules to apply to a Notebook file are automatically inferred as
+#   `([`General:*`, `Python:*`, `Notebooks:*`], `LLM`)`
+# - A user can specify to apply a subset of rules like
+#   `([`General:*`, `Python:Naming,Docstrings`], `LLM,Linter`)`
+# - Atomic rules are the first-level bullets of the markdown file, e.g.,
+#   ```
+#   - Spell commands in lower case and programs with the first letter in upper case
+#     - E.g., `git` as a command, `Git` as a program
+#     - E.g., capitalize the first letter of `Python`
+#   ```
+
+
+def sanity_check_rules(txt: List[str]) -> None:
+    """
+    Sanity check the rules.
+    """
+    lines = txt.split("\n")
+    header_list = extract_headers_from_markdown( txt, max_level=5)
+    # 1) Start with level 1 headers.
+    # 2) All level 1 headers are unique.
+    # 3) Header levels are increasing / decreasing by at most 1.
+    sanity_check_header_list(header_list)
+    # 4) Level 3 headers are always `LLM` or `Linter`.
+    # for header in header_list:
+    #     if header.level != 3:
+    #         hdbg.dassert_in(header.description, ["LLM", "Linter"])
+    # 5) All headers have no spaces.
+
+
+# A `Rule` is a string separated by `:` characters, where each part is
+# - `*` means any string
+# - `string`
+# - a list of strings separated by `|`
+# E.g., 
+# - `General:*:LLM`, `*:*:Linter|LLM`, `General|Python:*:LLM`, `Python:*:Linter`
+# - For a Python file -> `General|Python:*:LLM`
+# - For a Notebook file -> `General|Python|Notebooks:*:LLM`
+# - `Python:Naming|Docstrings|Comments:LLM`
+RuleRegex = str
+
+
+# A "Guidelines" is a header list with only level 1 headers storing the full
+# hierarchy of the rules, e.g.,
+# `(1, "Spelling:All:LLM", xyz)``
+# TODO(gp): Make Guidelines descend from HeaderList.
+Guidelines = HeaderList
+
+
+def convert_header_list_into_guidelines(header_list: HeaderList) -> Guidelines:
+    """
+    Expand the header list into a full rule list.
+
+    Expand a header list like:
+    ```
+    - General
+      - Spelling
+        - LLM
+        - Linter
+    - Python
+      - Naming
+        - LLM
+        - Linter
+    ```
+    represented internally as:
+    ```
+        (1, "General", xyz),
+        (2, "Spelling", xyz),
+        (3, "LLM", xyz),
+        (3, "Linter", xyz),
+        (1, "Python", xyz),
+        (2, "Naming", xyz),
+        (3, "LLM", xyz),
+        (3, "Linter", xyz),
+    ```
+    into "rulelist" a header list with only level 1 headers like:
+    ```
+    [
+        (1, "Spelling:All:LLM", xyz),
+        (1, "Spelling:All:Linter", xyz),
+        (1, "Python:Naming:LLM", xyz),
+        (1, "Python:Naming:Linter", xyz),
+    ]
+    ```
+    """
+    hdbg.dassert_isinstance(header_list, list)
+    # 1) Extract the level 3 headers.
+    level_1 = ""
+    level_2 = ""
+    level_3_headers = []
+    for header_info in header_list:
+        level, description, line_number = header_info.as_tuple()
+        if level == 1:
+            level_1 = description
+        elif level == 2:
+            level_2 = description
+        elif level == 3:
+            hdbg.dassert_ne(level_1, "")
+            hdbg.dassert_ne(level_2, "")
+            full_level_3 = f"{level_1}:{level_2}:{description}"
+            level_3_headers.append(HeaderInfo(1, full_level_3, line_number))
+    return level_3_headers
+
+
+def _convert_rule_into_regex(rule_regex: RuleRegex) -> str:
+    """
+    Convert a rule regex into an actual regular expression.
+
+    E.g., 
+    - `Spelling:*:LLM` -> `Spelling:(\S*):LLM`
+    - `*:*:Linter|LLM` -> `(\S*):(\S*):(Linter|LLM)`
+    - `Spelling|Python:*:LLM` -> `Spelling|Python:(\S*):LLM`
+    - `Python:*:Linter` -> `Python:(\S*):Linter`
+    """
+    hdbg.dassert_isinstance(rule_regex, RuleRegex)
+    # Parse the rule regex into a list of strings.
+    rule_regex = rule_regex.split(":")
+    hdbg.dassert_eq(len(rule_regex), 3)
+    # Process each part of the rule regex.
+    for i, rule in enumerate(rule_regex):
+        hdbg.dassert_not_in(" ", rule)
+        if rule == "*":
+            # Convert `*`` into `\S*``
+            rule_regex[i] = "(\S*)"
+        elif "|" in rule:
+            rule_regex[i] = "(" + rule_regex[i] + ")"
+        else:
+            pass
+    # Join the parts of the rule regex back together.
+    rule_regex = ":".join(rule_regex)
+    return rule_regex
+
+
+def extract_rules(guidelines: Guidelines, rule_regexes: List[RuleRegex]) -> Guidelines:
+    """
+    Extract the set of rules from the `guidelines` that match the rule regex.
+    """
+    hdbg.dassert_isinstance(guidelines, list)
+    hdbg.dassert_isinstance(rule_regexes, list)
+    # A rule regex is a string separated by `:` characters, where each part is
+    # - `*` (meaning "any string")
+    # - a `string` (e.g., `Spelling`)
+    # - a list of strings separated by `|` (e.g., `LLM|Linter`)
+    # E.g., `Spelling:*:LLM`, `*:*:Linter|LLM`, `Spelling|Python:*:LLM`.
+    # Convert each rule regex into a regular expression.
+    rule_regex_map = {}
+    for rule_regex_str in rule_regexes:
+        hdbg.dassert_isinstance(rule_regex_str, RuleRegex)
+        regex = _convert_rule_into_regex(rule_regex_str)
+        _LOG.debug(hprint.to_str("rule_regex_str regex"))
+        hdbg.dassert_not_in(rule_regex_str, rule_regex_map)
+        rule_regex_map[rule_regex_str] = regex
+    # Extract the set of rules from the `guidelines` that match the rule regex.
+    rule_sections = []
+    for guideline in guidelines:
+        # A guideline description is a string separated by `:` characters, where each part is
+        # (1, "Python:Naming:Linter", xyz),
+        for k, v in rule_regex_map.items():
+            if re.match(v, guideline.description):
+                _LOG.debug("%s matches %s", k, guideline.description)
+                rule_sections.append(guideline)
+    # Select the rules.
+    _LOG.debug("Selected %s sections:\n%s", len(rule_sections), "\n".join([r.description for r in rule_sections]))
+    # Return the rules.
+    return rule_sections
+
+
+# TODO(gp): -> parse_atomic_rules?
+def extract_first_level_bullets_from_markdown(txt: str) -> List[str]:
+    """
+    Parse atomic rules from a markdown.
+
+    - Extract first-level bullet point list items from text until the next one.
+    - Sub-lists nested under first-level items are extracted together with the
+      first-level items.
+
+    :param text: text to process
+        ```
+        - Item 1
+        - Item 2
+           - Item 3
+        - Item 4
+        ```
+    :return: extracted bullet points, e.g.,
+        ```
+        [
+            "- Item 1",
+            '''
+            - Item 2
+               - Item 3
+            ''',
+            "- Item 4",
+        ]
+        ```
+    """
+    lines = txt.split("\n")
+    # Store the first-level bullet points.
+    bullet_points = []
+    # Store the current item including the first level bullet point and all
+    # its sub-items.
+    current_item = ""
+    for line in lines:
+        line = line.rstrip()
+        if not line:
+            continue
+        if re.match(r"^- ", line):
+            # Match first-level bullet point item.
+            if current_item:
+                # Store the previous item, if any.
+                bullet_points.append(current_item)
+            # Start a new first-level bullet point item.
+            current_item = line
+        elif re.match(r"^\s+- ", line):
+            # Match a sub-item (non first-level bullet point item).
+            # Append a sub-item to the current item.
+            current_item += "\n" + line
+        elif len(line.strip()) != 0 and current_item:
+            # Append a line to the current item.
+            current_item += "\n" + line
+    # Add the last item if there is one.
+    if current_item:
+        bullet_points.append(current_item)
+    return bullet_points
 
 
 # #############################################################################
@@ -1016,6 +1187,8 @@ def inject_todos_from_cfile(
         hio.to_file(file_name, txt)
 
 
+# #############################################################################
+# Formatting markdown
 # #############################################################################
 
 
