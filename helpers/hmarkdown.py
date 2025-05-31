@@ -812,10 +812,10 @@ def extract_rules(guidelines: Guidelines, rule_regexes: List[RuleRegex]) -> Guid
         for k, v in rule_regex_map.items():
             if re.match(v, guideline.description):
                 _LOG.debug("%s matches %s", k, guideline.description)
-                rule_sections.append(guideline)
+                if guideline not in rule_sections:
+                    rule_sections.append(guideline)
     # Select the rules.
     _LOG.debug("Selected %s sections:\n%s", len(rule_sections), "\n".join([r.description for r in rule_sections]))
-    # Return the rules.
     return rule_sections
 
 

@@ -1792,6 +1792,58 @@ class Test_extract_rules2(hunitest.TestCase):
         """
         self.helper(rule_regexes, exp)
 
+    def test3(self) -> None:
+        """
+        Test extracting rules from a markdown file.
+        """
+        rule_regexes = ["*:*:LLM"]
+        exp = """
+        HeaderInfo(1, 'General:Spelling:LLM', 5)
+        HeaderInfo(1, 'Python:Naming:LLM', 18)
+        HeaderInfo(1, 'Unit_tests:Rules:LLM', 37)
+        """
+        self.helper(rule_regexes, exp)
+
+    def test4(self) -> None:
+        """
+        Test extracting rules from a markdown file.
+        """
+        rule_regexes = ["*:*:LLM", "General:*:*"]
+        exp = """
+        HeaderInfo(1, 'General:Spelling:LLM', 5)
+        HeaderInfo(1, 'General:Spelling:Linter', 7)
+        HeaderInfo(1, 'Python:Naming:LLM', 18)
+        HeaderInfo(1, 'Unit_tests:Rules:LLM', 37)
+        """
+        self.helper(rule_regexes, exp)
+
+    def test5(self) -> None:
+        """
+        Test extracting rules from a markdown file.
+        """
+        rule_regexes = ["*:*:*"]
+        exp = """
+        HeaderInfo(1, 'General:Spelling:LLM', 5)
+        HeaderInfo(1, 'General:Spelling:Linter', 7)
+        HeaderInfo(1, 'Python:Naming:LLM', 18)
+        HeaderInfo(1, 'Python:Naming:Linter', 28)
+        HeaderInfo(1, 'Unit_tests:Rules:LLM', 37)
+        """
+        self.helper(rule_regexes, exp)
+
+    def test6(self) -> None:
+        """
+        Test extracting rules from a markdown file.
+        """
+        rule_regexes = ["*:*:*", "General:*:*"]
+        exp = """
+        HeaderInfo(1, 'General:Spelling:LLM', 5)
+        HeaderInfo(1, 'General:Spelling:Linter', 7)
+        HeaderInfo(1, 'Python:Naming:LLM', 18)
+        HeaderInfo(1, 'Python:Naming:Linter', 28)
+        HeaderInfo(1, 'Unit_tests:Rules:LLM', 37)
+        """
+        self.helper(rule_regexes, exp)
 
 # #############################################################################
 # Test_inject_todos_from_cfile1
