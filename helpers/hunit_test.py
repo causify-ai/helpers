@@ -474,56 +474,48 @@ def purify_from_environment(txt: str) -> str:
 
 def purify_amp_references(txt: str) -> str:
     """
-    Remove references to amp module names and paths.
-    
-    This handles amp-specific module references that are not covered by
-    the general path normalization.
+    Remove references to amp.
     """
     # E.g., `amp/helpers/test/...`
     txt = re.sub(r"^\s*amp\/", "", txt, flags=re.MULTILINE)
-    txt = re.sub(r"'amp\/", "'", txt, flags=re.MULTILINE)
-    txt = re.sub(r"\s+amp\/", " ", txt, flags=re.MULTILINE)
-    txt = re.sub(r"\/amp\/", "/", txt, flags=re.MULTILINE)
-    txt = re.sub(r"\/amp:", ":", txt, flags=re.MULTILINE)
-    txt = re.sub(r"^\./", "", txt, flags=re.MULTILINE)
-    
-    # Python module references - handle both 'amp.' and 'app.' (GH actions issue)
+    # E.g., `<amp.helpers.test.test_dbg._Man object at 0x`
+    # in GH actions the packages end up being called `app.` for some reason
+    # (see AmpTask1627), so we clean up also that.
     txt = re.sub(r"<a[mp]p\.", "<", txt, flags=re.MULTILINE)
+    # E.g., class 'amp.
     txt = re.sub(r"class 'a[mp]p\.", "class '", txt, flags=re.MULTILINE)
-    txt = re.sub(r"a[mp]p\.helpers", "helpers", txt, flags=re.MULTILINE)
-    
-    # Specific test-related references
+    # E.g., from helpers/test/test_playback.py::TestPlaybackInputOutput1
+    # ```
+    # Test created for amp.helpers.test.test_playback.get_result_ae
+    # ```
     txt = re.sub(
         r"# Test created for a[mp]p\.helpers",
         "# Test created for helpers",
         txt,
         flags=re.MULTILINE,
     )
-    
-    # Complex module path references
-    txt = re.sub(
-        r"a[mp]p\.amp\.helpers_root\.helpers", "amp.helpers", txt, flags=re.MULTILINE
-    )
-    txt = re.sub(r"a[mp]p\.amp\.helpers", "amp.helpers", txt, flags=re.MULTILINE)
-    
+    # E.g., `['amp/helpers/test/...`
+    txt = re.sub(r"'amp\/", "'", txt, flags=re.MULTILINE)
+    txt = re.sub(r"\/amp\/", "/", txt, flags=re.MULTILINE)
+    # E.g., `vimdiff helpers/test/...`
+    txt = re.sub(r"\s+amp\/", " ", txt, flags=re.MULTILINE)
+    txt = re.sub(r"\/amp:", ":", txt, flags=re.MULTILINE)
+    txt = re.sub(r"^\./", "", txt, flags=re.MULTILINE)
+    txt = re.sub(r"amp\.helpers", "helpers", txt, flags=re.MULTILINE)
     _LOG.debug("After %s: txt='\n%s'", hintros.get_function_name(), txt)
     return txt
 
 
 def purify_app_references(txt: str) -> str:
     """
-    Remove remaining references to `/app` and app module paths.
-    
-    This handles app-specific references that weren't covered by path normalization.
-    Note: Most /app path handling is now done in normalize_path_refs().
+    Remove references to `/app`.
     """
-    # Handle remaining app module references
+    txt = re.sub(r"/app/", "", txt, flags=re.MULTILINE)
     txt = re.sub(r"app\.helpers", "helpers", txt, flags=re.MULTILINE)
+    txt = re.sub(r"app\.amp\.helpers", "amp.helpers", txt, flags=re.MULTILINE)
     txt = re.sub(
         r"app\.amp\.helpers_root\.helpers", "amp.helpers", txt, flags=re.MULTILINE
     )
-    txt = re.sub(r"app\.amp\.helpers", "amp.helpers", txt, flags=re.MULTILINE)
-    
     _LOG.debug("After %s: txt='\n%s'", hintros.get_function_name(), txt)
     return txt
 
