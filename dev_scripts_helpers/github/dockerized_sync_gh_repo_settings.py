@@ -107,13 +107,19 @@ class _RepoAndBranchSettings:
         Get the current settings of the repository `repo`.
 
         :param repo: GitHub repository object
-        :return: dictionary containing current settings of the
-            repository E.g., { "name": str, "default_branch": str,
-            "homepage": str, "description": str, "private": bool,
-            "archived": bool, "has_issues": bool, "has_projects": bool,
-            "has_wiki": bool, "allow_squash_merge": bool,
-            "allow_merge_commit": bool, "allow_rebase_merge": bool,
-            "delete_branch_on_merge": bool, "topics": List[str], }
+        :return: dictionary containing repository settings
+        E.g.,
+        {
+            "name": str, "default_branch": str, "homepage": str,
+            "description": str, "private": bool, "archived": bool,
+            "has_issues": bool, "has_projects": bool, "has_wiki": bool,
+            "allow_squash_merge": bool, "allow_merge_commit": bool,
+            "allow_rebase_merge": bool, "delete_branch_on_merge": bool,
+            "topics": List[str],
+            "enable_automated_security_fixes": bool,
+            "enable_vulnerability_alerts": bool,
+            ...
+        }
         """
         current_repo_settings = {
             "name": repo.name,
@@ -328,7 +334,7 @@ class _RepoAndBranchSettings:
         Apply branch protection rules to all the branches.
 
         This method applies branch protection settings to each branch specified in the
-        configuration. It handles various protection aspects including:
+        configuration. It handles various branchprotection aspects including:
         - Required status checks
         - Pull request review requirements
         - Push restrictions
