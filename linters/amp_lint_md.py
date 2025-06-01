@@ -63,7 +63,7 @@ class _LintMarkdown(liaction.Action):
         cmd = []
         cmd.append(self._executable)
         cmd.append(f"-i {file_name}")
-        cmd.append("--in_place")
+        cmd.append(f"-o {file_name}")
         cmd_as_str = " ".join(cmd)
         _, output = liutils.tee(cmd_as_str, self._executable, abort_on_error=True)
         # Check file name.
