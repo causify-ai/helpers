@@ -665,7 +665,8 @@ def sanity_check_rules(txt: List[str]) -> None:
     """
     Sanity check the rules.
     """
-    header_list = extract_headers_from_markdown(txt, max_level=5)
+    txt_tmp = "\n".join(txt)
+    header_list = extract_headers_from_markdown(txt_tmp, max_level=5)
     # 1) Start with level 1 headers.
     # 2) All level 1 headers are unique.
     # 3) Header levels are increasing / decreasing by at most 1.
@@ -814,7 +815,7 @@ def extract_rules(
     # - a list of strings separated by `|` (e.g., `LLM|Linter`)
     # E.g., `Spelling:*:LLM`, `*:*:Linter|LLM`, `Spelling|Python:*:LLM`.
     # Convert each rule regex into a regular expression.
-    rule_regex_map = {}
+    rule_regex_map: Dict[str, str] = {}
     for rule_regex_str in selection_rules:
         hdbg.dassert_isinstance(rule_regex_str, SelectionRule)
         regex = _convert_rule_into_regex(rule_regex_str)
@@ -1295,7 +1296,7 @@ def bold_first_level_bullets(markdown_text: str, *, max_length: int = 30) -> str
                     bullet_text = m.group(2)  # type: ignore[union-attr]
                     if max_length > -1 and len(bullet_text) <= max_length:
                         spaces = m.group(1)  # type: ignore[union-attr]
-                        line = spaces + "**" + bullet_text + "**"  
+                        line = spaces + "**" + bullet_text + "**"
         result.append(line)
     return "\n".join(result)
 
@@ -1394,7 +1395,8 @@ def prettier_markdown(txt: str) -> str:
     """
     file_type = "md"
     txt = dshdlino.prettier_on_str(txt, file_type)
-    return txt
+    txt_ = cast(str, txt)
+    return txt_
 
 
 def format_markdown(txt: str) -> str:
@@ -1423,4 +1425,5 @@ def format_markdown_slide(txt: str) -> str:
 def format_latex(txt: str) -> str:
     file_type = "tex"
     txt = dshdlino.prettier_on_str(txt, file_type)
-    return txt
+    txt_ = cast(str, txt)
+    return txt_

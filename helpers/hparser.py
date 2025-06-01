@@ -419,6 +419,7 @@ def read_file(file_name: str) -> List[str]:
         f.close()
     else:
         txt = hio.from_file(file_name)
+        txt = cast(str, txt)
         txt = txt.splitlines()
     return txt
 

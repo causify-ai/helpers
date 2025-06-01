@@ -11,7 +11,7 @@ import os
 import random
 import re
 import string
-from typing import cast, List, Match, Optional, Tuple, cast
+from typing import List, Match, Optional, Tuple, cast
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -270,7 +270,7 @@ def find_file(file_name: str, *, dir_path: Optional[str] = None) -> str:
     _LOG.debug(hprint.to_str("cmd"))
     _, res = hsystem.system_to_one_line(cmd)
     hdbg.dassert_ne(res, "Can't find file '%s' in '%s'", file_name, dir_path)
-    res = cast(res, str)
+    res = cast(str, res)
     return res
 
 
@@ -299,8 +299,9 @@ def find_helpers_root(dir_path: str = ".") -> str:
         # Make sure the dir and that `helpers` subdir exists.
         hdbg.dassert_dir_exists(helpers_root)
         hdbg.dassert_dir_exists(os.path.join(helpers_root), "helpers")
-    helpers_root = cast(str, helpers_root)
-    return helpers_root
+    # TODO(gp): Unclear why this happens.
+    helpers_root_ = cast(str, helpers_root)
+    return helpers_root_
 
 
 # #############################################################################

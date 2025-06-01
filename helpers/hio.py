@@ -426,11 +426,11 @@ def to_file(
         # Open regular text file.
         # buffering = 0 if mode == "a" else -1
         buffering = 0 if force_flush else -1
-        f = open(  # pylint: disable=consider-using-with
+        f = open(  # pylint: disable=consider-using-with,assignment
             file_name, mode, buffering=buffering
         )
     # Write file contents.
-    f.write(txt)
+    f.write(txt)  # type: ignore
     f.close()
     # Clear internal buffer of the file.
     if force_flush:
@@ -741,7 +741,7 @@ def to_json(file_name: str, obj: dict, *, use_types: bool = False) -> None:
     with open(file_name, "w") as outfile:
         if use_types:
             # Use jsonpickle to save types.
-            import jsonpickle
+            import jsonpickle  # type: ignore[import-untyped]
 
             txt = jsonpickle.encode(obj, indent=4)
             outfile.write(txt)
@@ -788,7 +788,7 @@ def from_json(file_name: str, *, use_types: bool = False) -> Dict:
 
 
 # TODO(gp): -> pandas_helpers.py
-def load_df_from_json(path_to_json: str) -> "pd.DataFrame":
+def load_df_from_json(path_to_json: str) -> "pd.DataFrame":  # type: ignore
     """
     Load a dataframe from a json file.
 

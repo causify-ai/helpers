@@ -286,7 +286,7 @@ def lint(  # type: ignore
 
 
 @task
-def lint_check_if_it_was_run(ctx):
+def lint_check_if_it_was_run(ctx):  # type: ignore
     """
     Check if the linter was run in the current branch.
 
@@ -361,6 +361,8 @@ def lint_sync_code(ctx, git_client_name="helpers1", revert_to_original=False):  
     """
     _ = ctx
     hlitauti.report_task()
+    # Copy the code from the src git client to the current one.
+    src_git_dir = hgit.resolve_git_client_dir(git_client_name)
     #
     files_to_copy = [
         # "hgit.py",
@@ -381,8 +383,6 @@ def lint_sync_code(ctx, git_client_name="helpers1", revert_to_original=False):  
             hsystem.system(cmd)
         _LOG.info("Done")
         return
-    # Copy the code from the src git client to the current one.
-    src_git_dir = hgit.resolve_git_client_dir(git_client_name)
     # Get the path to the helpers repo.
     src_helpers_dir = hgit.find_helpers_root(src_git_dir)
     hdbg.dassert_ne(src_helpers_dir, "")

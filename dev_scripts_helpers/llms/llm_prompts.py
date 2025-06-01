@@ -62,10 +62,15 @@ _POST_CONTAINER_TRANSFORMS: Dict[str, List[str]] = {}
 
 def get_post_container_transforms(
     transform_name: str,
-) -> Dict[str, List[str]]:
+) -> List[str]:
+    """
+    Return the transformations for `transform_name`.
+    """
     global _POST_CONTAINER_TRANSFORMS
+    # Initialize the dictionary, on the first call.
     if not _POST_CONTAINER_TRANSFORMS:
         valid_prompts = get_prompt_tags()
+        # Call all the functions and register their `post_container_transforms`.
         for prompt in valid_prompts:
             _, _, _, post_container_transforms = eval(f"{prompt}()")
             hdbg.dassert_not_in(prompt, _POST_CONTAINER_TRANSFORMS)
@@ -487,7 +492,7 @@ def code_transform_apply_csfy_style() -> _PROMPT_OUT:
     system = _CODING_CONTEXT
     file_name = "template_code.py"
     file_name = os.path.join(hgit.find_helpers_root(), file_name)
-    file_content = hio.from_file(file_name)
+    hio.from_file(file_name)
     system += rf"""
     Apply the style described below to the Python code
 

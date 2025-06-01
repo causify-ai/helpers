@@ -1,7 +1,7 @@
 import logging
 import os
 import pprint
-from typing import Any, List, Tuple
+from typing import cast, Any, List, Tuple
 
 import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
@@ -314,6 +314,7 @@ def _get_markdown_example1() -> str:
     Content under header 3.
     """
     content = hprint.dedent(content)
+    content = cast(str, content)
     return content
 
 
@@ -325,6 +326,7 @@ def _get_markdown_example2() -> str:
     Content under subheader 2.
     """
     content = hprint.dedent(content)
+    content = cast(str, content)
     return content
 
 
@@ -333,6 +335,7 @@ def _get_markdown_example3() -> str:
     This is some content without any headers.
     """
     content = hprint.dedent(content)
+    content = cast(str, content)
     return content
 
 
@@ -408,6 +411,7 @@ def _get_markdown_example4() -> str:
     Stay curious and keep exploring!
     """
     content = hprint.dedent(content)
+    content = cast(str, content)
     return content
 
 
@@ -423,6 +427,7 @@ def _get_markdown_example5() -> hmarkdo.HeaderList:
     ## Linear models
     """
     content = hprint.dedent(content)
+    content = cast(str, content)
     return content
 
 
@@ -1728,6 +1733,7 @@ def get_guidelines_txt1() -> str:
     - E.g., "for these inputs the function responds with this output"
     """
     txt = hprint.dedent(txt)
+    txt = cast(str, txt)
     return txt
 
 
@@ -1884,6 +1890,7 @@ class Test_inject_todos_from_cfile1(hunitest.TestCase):
         def hello(msg):
             print(msg)
 
+
         # TODO(user): Add docstring.
         def world():
             print("world")
@@ -1996,19 +2003,23 @@ class Test_inject_todos_from_cfile1(hunitest.TestCase):
                 self.logger = logging.getLogger(__name__)
                 self.data = []
 
+
             # TODO(user): Add type hints for items parameter
             def process_batch(self, items):
                 # TODO(user): Consider adding batch size validation
                 for item in items:
                     self.data.append(self._transform(item))
 
+
             # TODO(user): Add error handling for non-string inputs
             def _transform(self, item):
                 return item.upper()
 
+
             # TODO(user): Add return type hint and docstring
             def get_results(self):
                 return self.data
+
 
             # TODO(user): Add docstring explaining clear behavior
             def clear(self):

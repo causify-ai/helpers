@@ -212,6 +212,7 @@ def git_patch_create(  # type: ignore
         cmd = f"tar czvf {dst_file} {files_as_str}"
         cmd_inv = "tar xvzf"
     elif mode == "diff":
+        opts: str
         if modified:
             opts = "HEAD"
         elif branch:
@@ -219,12 +220,13 @@ def git_patch_create(  # type: ignore
         elif last_commit:
             opts = "HEAD^"
         else:
-            hdbg.dfatal(
-                "You need to specify one among -modified, --branch, "
-                "--last-commit"
-            )
+            raise ValueError(
+                    "You need to specify one among -modified, --branch, "
+                    "--last-commit")
         cmd = f"git diff {opts} --binary {files_as_str} >{dst_file}"
         cmd_inv = "git apply"
+    else:
+        raise ValueError(f"Invalid cmd='{cmd}'")
     # Execute patch command.
     _LOG.info("Creating the patch into %s", dst_file)
     hdbg.dassert_ne(cmd, "")
@@ -236,16 +238,17 @@ def git_patch_create(  # type: ignore
     remote_file = os.path.basename(dst_file)
     abs_path_dst_file = os.path.abspath(dst_file)
     msg = f"""
-# To apply the patch and execute:
-> git checkout {hash_}
-> {cmd_inv} {abs_path_dst_file}
+    # To apply the patch and execute:
+    > git checkout {hash_}
+    > {cmd_inv} {abs_path_dst_file}
 
-# To apply the patch to a remote client:
-> export SERVER="server"
-> export CLIENT_PATH="~/src"
-> scp {dst_file} $SERVER:
-> ssh $SERVER 'cd $CLIENT_PATH && {cmd_inv} ~/{remote_file}'"
+    # To apply the patch to a remote client:
+    > export SERVER="server"
+    > export CLIENT_PATH="~/src"
+    > scp {dst_file} $SERVER:
+    > ssh $SERVER 'cd $CLIENT_PATH && {cmd_inv} ~/{remote_file}'"
     """
+    msg = hprint.dedent(msg)
     print(msg)
 
 
