@@ -890,6 +890,32 @@ def parse_rules_from_txt(txt: str) -> List[str]:
     return bullet_points
 
 
+def extract_rules_from_section(txt: str, line_number: int) -> List[str]:
+    """
+    Extract rules from a section of a markdown file.
+
+    :param txt: The markdown text to extract the rules from.
+    :param line_number: The line number of the section to start extracting the
+        rules from.
+    :return: The extracted rules.
+    """
+    # Find the line number of the next header.
+    i = line_number
+    while True:
+        hdbg.dassert_lt(i, len(txt))
+        line = txt[i]
+        if line.startswith("#"):
+            break
+        i += 1
+    # Parse the markdown text into a list of bullet points.
+    bullet_points = parse_rules_from_txt(txt)
+    # Extract the rules from the bullet points.
+    rules = []
+    for bullet_point in bullet_points:
+        rules.append(bullet_point)
+    return rules
+
+
 # #############################################################################
 # Process headers.
 # #############################################################################
