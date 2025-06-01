@@ -8,7 +8,7 @@ import argparse
 import logging
 import os
 import sys
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio

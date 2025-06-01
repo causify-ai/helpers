@@ -221,8 +221,9 @@ def git_patch_create(  # type: ignore
             opts = "HEAD^"
         else:
             raise ValueError(
-                    "You need to specify one among -modified, --branch, "
-                    "--last-commit")
+                "You need to specify one among -modified, --branch, "
+                "--last-commit"
+            )
         cmd = f"git diff {opts} --binary {files_as_str} >{dst_file}"
         cmd_inv = "git apply"
     else:
