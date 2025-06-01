@@ -798,6 +798,7 @@ def find_file_in_repo(file_name: str, *, root_dir: Optional[str] = None) -> str:
     return file_name_out
 
 
+# TODO(gp): Use find_file
 def _find_file(filename: str, *, search_path: str = ".") -> Optional[str]:
     """
     Find a file in a directory and report its absolute path.
@@ -819,6 +820,7 @@ def _find_file(filename: str, *, search_path: str = ".") -> Optional[str]:
         return None
 
     
+# TODO(gp): -> find_path_greedily
 def find_path(path: str, *, dir_name: str = ".", abort_on_error: bool = False) -> str:
     """
     Find a path in a directory and report its absolute path.
