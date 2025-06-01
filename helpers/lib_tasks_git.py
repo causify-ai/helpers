@@ -921,6 +921,29 @@ def git_branch_diff_with(  # type: ignore
     )
 
 
+@task
+def git_repo_copy(ctx, file_name, src_git_dir, dst_git_dir):  # type: ignore
+    """
+    Copy the code from the src Git client to the dst Git client.
+
+    :param file_name: the name of the file to copy (which is under
+        `src_git_dir`)
+    :param src_git_dir: the directory of the source Git client (e.g.,
+        "/Users/saggese/src/helpers1")
+    :param dst_git_dir: the directory of the destination Git client (e.g.,
+        "/Users/saggese/src/helpers2")
+    """
+    _ = ctx
+    src_git_dir = hgit.resolve_git_client_dir(src_git_dir)
+    dst_git_dir = hgit.resolve_git_client_dir(dst_git_dir)
+    dst_file_path = hgit.project_file_name_in_git_client(file_name, src_git_dir, dst_git_dir,
+                                                        check_src_file_exists=True,
+                                                        check_dst_file_exists=False)
+    _LOG.info("Copying code from '%s' to '%s' ...", file_name, dst_git_dir)
+    # Copy the file.
+    hsystem.system_to_string(f"cp {file_name} {dst_file_path}")
+
+
 # pylint: disable=line-too-long
 
 # TODO(gp): Add the following scripts:

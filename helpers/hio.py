@@ -376,7 +376,7 @@ def create_enclosing_dir(file_name: str, incremental: bool = False) -> str:
             "Creating dir_name='%s' for file_name='%s'", dir_name, file_name
         )
         create_dir(dir_name, incremental=incremental)
-    hdbg.dassert_dir_exists(dir_name, "file_name='%s'", file_name)
+        hdbg.dassert_dir_exists(dir_name, "file_name='%s'", file_name)
     return dir_name
 
 

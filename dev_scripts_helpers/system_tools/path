@@ -1,12 +1,78 @@
 #!/usr/bin/env python
 
+"""
+Find a path in a directory and report the absolute path.
+
+Usage:
+    path.py <path> [<dir_name>]
+
+If <dir_name> is provided, the path is searched in the directory.
+
+Example:
+# Look for a file in the current directory.
+> path.py /Users/saggese/src/helpers1/dev_scripts_helpers/system_tools/path.py
+
+# Look for a file in a different directory.
+> path.py system_tools/path.py /Users/saggese/src/helpers2/dev_scripts_helpers/system_tools
+"""
+
+import glob
 import os
 import sys
+from typing import Optional
 
-path = sys.argv[1]
-path_out = os.path.abspath(path)
-print(path_out, end="")
 
-if not os.path.exists(path_out):
-    msg = "path '%s' converted to '%s' doesn't exist" % (path, path_out)
-    raise RuntimeError(msg)
+# Copied from `hsystem.py`.
+def _find_file(filename: str, *, search_path: str = ".") -> Optional[str]:
+    """
+    Find a file in a directory and report the absolute path.
+    """
+    # Recursive glob.
+    search_path = os.path.join(search_path, "**", filename)
+    files = glob.glob(search_path, recursive=True)
+    if len(files) == 1:
+        return files[0]
+    elif len(files) > 1:
+        msg = "Found multiple files with basename '%s' in directory '%s':\n%s" % (
+            filename, search_path, "\n".join(files))
+        raise RuntimeError(msg)
+    else:
+        return None
+
+    
+def _find_path(path: str, *, dir_name: str = ".", abort_on_error: bool = False) -> str:
+    """
+    Find a path in a directory and report its absolute path.
+    """
+    # Make the path absolute.
+    path_out = os.path.abspath(path)
+    # If the path exists, return it.
+    if os.path.exists(path_out):
+        return path_out
+    # If the path doesn't exist, abort.
+    if abort_on_error:
+        msg = "path '%s' doesn't exist in '%s'" % (path, dir_name)
+        raise RuntimeError(msg)
+    # Look for a file with the same basename in ``dir_name``.
+    dir_name = os.path.abspath(dir_name)
+    basename = os.path.basename(path)
+    path_out = _find_file(basename, search_path=dir_name)
+    # If the file doesn't exist, abort.
+    if path_out is None:
+        msg = "path '%s' doesn't exist in '%s'" % (path, dir_name)
+        raise RuntimeError(msg)
+    return path_out
+
+
+if __name__ == "__main__":
+    assert len(sys.argv) in (2, 3), "Usage: path.py <path> [<dir_name>]"
+    # Abort on error if the path doesn't exist, or try to find the file with the
+    # same basename.
+    abort_on_error = False
+    path = sys.argv[1]
+    if len(sys.argv) == 3:
+        dir_name = sys.argv[2]
+    else:
+        dir_name = "."
+    path_out = _find_path(path, dir_name=dir_name, abort_on_error=abort_on_error)
+    print(path_out, end="")
