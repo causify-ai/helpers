@@ -511,11 +511,16 @@ def purify_app_references(txt: str) -> str:
     Remove references to `/app`.
     """
     txt = re.sub(r"/app/", "", txt, flags=re.MULTILINE)
-    txt = re.sub(r"app\.helpers", "helpers", txt, flags=re.MULTILINE)
-    txt = re.sub(r"app\.amp\.helpers", "amp.helpers", txt, flags=re.MULTILINE)
+    
+    # Handle module references
+    # First handle helpers_root pattern
     txt = re.sub(
         r"app\.amp\.helpers_root\.helpers", "amp.helpers", txt, flags=re.MULTILINE
     )
+    # Then handle app.amp.helpers pattern (preserving amp)
+    txt = re.sub(r"app\.amp\.helpers", "amp.helpers", txt, flags=re.MULTILINE)
+    # Finally handle app.helpers pattern
+    txt = re.sub(r"app\.helpers", "helpers", txt, flags=re.MULTILINE)
     _LOG.debug("After %s: txt='\n%s'", hintros.get_function_name(), txt)
     return txt
 
