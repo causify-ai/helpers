@@ -204,68 +204,6 @@ def _save_models_info_to_csv(
     return model_info_df
 
 
-import pandas as pd
-
-
-# TODO(gp): This is general enough to be moved in hpandas.py
-def convert_to_type(col, type_):
-    if type_ == "is_bool":
-        return col.map(
-            lambda x: isinstance(x, bool)
-            or x in ["True", "False", "true", "false"]
-            or x in [1, 0, "1", "0"]
-        )
-    elif type_ == "is_int":
-        return pd.to_numeric(col, errors="coerce")
-    elif type_ == "is_numeric":
-        return pd.to_numeric(col, errors="coerce")
-    elif type_ == "is_string":
-        return col.map(lambda x: isinstance(x, str))
-    else:
-        raise ValueError(f"Unknown column type: {type_}")
-
-
-def infer_column_types(col):
-    vals = {
-        "is_numeric": pd.to_numeric(col, errors="coerce").notna(),
-        #'is_datetime': pd.to_datetime(col, errors='coerce').notna(),
-        "is_bool": col.map(lambda x: isinstance(x, bool)),
-        "is_string": col.map(lambda x: isinstance(x, str)),
-    }
-    vals = {k: float(v.mean()) for k, v in vals.items()}
-    # type_ = np.where(vals["is_bool"] >= vals["is_numeric"], "is_bool",
-    #                  (vals["is_numeric"] >= vals["is_string"], "is_numeric",
-    #                  "is_string"))
-    if vals["is_bool"] >= vals["is_numeric"] and (vals["is_bool"] != 0):
-        type_ = "is_bool"
-    elif vals["is_numeric"] >= vals["is_string"] and (vals["is_numeric"] != 0):
-        type_ = "is_numeric"
-    else:
-        type_ = "is_string"
-    vals["type"] = type_
-    return vals
-
-
-def infer_column_types_df(df: pd.DataFrame) -> pd.DataFrame:
-    return df.apply(lambda x: pd.Series(infer_column_types(x))).T
-
-
-def convert_df(
-    df: pd.DataFrame, *, print_invalid_values: bool = False
-) -> pd.DataFrame:
-    types = df.apply(lambda x: pd.Series(infer_column_types(x)))
-    df_out = pd.DataFrame()
-    for col in df.columns:
-        if types[col]["type"] == "is_bool":
-            df_out[col] = df[col].astype(bool)
-        elif types[col]["type"] == "is_numeric":
-            df_out[col] = df[col].astype(float)
-        elif types[col]["type"] == "is_string":
-            df_out[col] = df[col]
-        else:
-            raise ValueError(f"Unknown column type: {types[col]['type']}")
-    return df_out
-
 
 # #############################################################################
 
