@@ -6,8 +6,6 @@ import helpers.lib_tasks_find as hlitafin
 
 import logging
 import os
-import re
-from typing import Iterator, List, Optional, Tuple
 
 from invoke import task
 
@@ -16,6 +14,7 @@ from invoke import task
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
+
 
 # TODO(gp): GFI: Unit test.
 @task

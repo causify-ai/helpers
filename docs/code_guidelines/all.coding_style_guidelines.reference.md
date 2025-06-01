@@ -1,10 +1,68 @@
 <!-- toc -->
 
+- [General](#general)
+  * [Spelling](#spelling)
+    + [LLM](#llm)
+    + [Linter](#linter)
+- [Python](#python)
+  * [Naming](#naming)
+    + [LLM](#llm-1)
+    + [Linter](#linter-1)
+  * [Docstrings](#docstrings)
+    + [LLM](#llm-2)
+    + [Linter](#linter-2)
+  * [Comments](#comments)
+    + [LLM](#llm-3)
+    + [Linter](#linter-3)
+  * [Code implementation](#code-implementation)
+    + [LLM](#llm-4)
+    + [Linter](#linter-4)
+  * [Code design](#code-design)
+    + [LLM](#llm-5)
+    + [Linter](#linter-5)
+  * [Imports](#imports)
+    + [LLM](#llm-6)
+    + [Linter](#linter-6)
+  * [Type annotations](#type-annotations)
+    + [LLM](#llm-7)
+    + [Linter](#linter-7)
+  * [Functions](#functions)
+    + [LLM](#llm-8)
+    + [Linter](#linter-8)
+  * [Scripts](#scripts)
+    + [LLM](#llm-9)
+    + [Linter](#linter-9)
+  * [Logging](#logging)
+    + [LLM](#llm-10)
+    + [Linter](#linter-10)
+  * [Misc](#misc)
+    + [LLM](#llm-11)
+    + [Linter](#linter-11)
+- [Unit tests](#unit-tests)
+  * [Rules](#rules)
+    + [LLM](#llm-12)
+    + [Linter](#linter-12)
+- [Notebooks](#notebooks)
+  * [General](#general-1)
+    + [LLM](#llm-13)
+    + [Linter](#linter-13)
+  * [Plotting](#plotting)
+    + [LLM](#llm-14)
+    + [Linter](#linter-14)
+  * [Jupytext](#jupytext)
+    + [LLM](#llm-15)
+    + [Linter](#linter-15)
+- [Markdown](#markdown)
+  * [Naming](#naming-1)
+    + [LLM](#llm-16)
+    + [Linter](#linter-16)
+  * [General](#general-2)
+    + [LLM](#llm-17)
+    + [Linter](#linter-17)
+
 <!-- tocstop -->
 
-# #############################################################################
 # General
-# #############################################################################
 
 ## Spelling
 
@@ -46,7 +104,7 @@
     - Good: `data`
     - Bad: `data_dict`
 - Abbreviations in the names of variables and functions should be avoided
-  - Exceptions are the following 
+  - Exceptions are the following
     - `df` for dataframe
     - `srs` for series
     - `idx` for index
@@ -113,6 +171,7 @@
         :return: dictionary containing repository settings
         """
     ```
+
 - The docstring must use imperative form, whenever possible
   - Good: "Calculate the sum of two numbers and return the result."
   - Bad: "Calculates the sum of two numbers and returns the result."
@@ -182,18 +241,20 @@
     function1()
     # Then do something else.
     function2()
+    ```
   - Bad:
     ```
     function1()
 
     function2()
     ```
+
 - Do not use inline comments; every comment should be on its own separate line,
   before the line it refers to
   - Good:
     ```
     # Grant access to admin panel access_admin_panel().
-    if user.is_admin(): 
+    if user.is_admin():
     ```
   - Bad:
     ```
@@ -202,13 +263,13 @@
   - In `if-elif-else` statements, the comments are placed underneath each
     statement in order to explain the code that belongs to each statement in
     particular
-    Good:
-    ```
-    if ...:
-      # Do this
-    else:
-      # Do that
-    ```
+    - Good:
+      ```
+      if ...:
+        # Do this
+      else:
+        # Do that
+      ```
 - Avoid referring to the type of a variable in the comments
   - Keeps comments focused on functionality rather than implementation specifics
   - Good: "Store the user's age for validation."
@@ -288,8 +349,8 @@
         for w in parts
     ]
     ```
-    to:
 
+    to:
   - Good:
     ```
     if i == 0:
@@ -309,6 +370,7 @@
                     (i > 0 and not re.search(r'\w', tokens[i - 1])) or
                     (i < len(tokens) - 1 and not re.search(r'\w', tokens[i + 1])))
     ```
+
 - Provide clear and informative error messages in exceptions using f-strings
   - Good: `raise ValueError(f"Invalid server_name='{server_name}'")`
   - Good: `raise TypeError(f"Expected type int, but got {type(var).__name__}")`
@@ -556,6 +618,7 @@
   - Good: `_LOG.debug("cmd=%s", cmd1)`
   - Bad: `_LOG.debug(f"cmd={cmd1}")`
 - Use the following idiom to configure logging:
+
   ```python
   import helpers.hdbg as hdbg
 
@@ -577,9 +640,7 @@
   then all the instances and references to it throughout the codebase should be
   updated
 
-# #############################################################################
 # Unit tests
-# #############################################################################
 
 ## Rules
 
@@ -677,9 +738,7 @@
 - If a unit test is renamed or removed in a PR, the corresponding files in the
   `outcomes` dir should also be renamed or removed
 
-# #############################################################################
 # Notebooks
-# #############################################################################
 
 ## General
 
@@ -778,9 +837,7 @@
 - If you update or delete the notebook, you must also update or delete its
   paired Python file, and vice versa
 
-# #############################################################################
 # Markdown
-# #############################################################################
 
 ## Naming
 

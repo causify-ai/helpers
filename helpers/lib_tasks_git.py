@@ -936,9 +936,13 @@ def git_repo_copy(ctx, file_name, src_git_dir, dst_git_dir):  # type: ignore
     _ = ctx
     src_git_dir = hgit.resolve_git_client_dir(src_git_dir)
     dst_git_dir = hgit.resolve_git_client_dir(dst_git_dir)
-    dst_file_path = hgit.project_file_name_in_git_client(file_name, src_git_dir, dst_git_dir,
-                                                        check_src_file_exists=True,
-                                                        check_dst_file_exists=False)
+    dst_file_path = hgit.project_file_name_in_git_client(
+        file_name,
+        src_git_dir,
+        dst_git_dir,
+        check_src_file_exists=True,
+        check_dst_file_exists=False,
+    )
     _LOG.info("Copying code from '%s' to '%s' ...", file_name, dst_git_dir)
     # Copy the file.
     hsystem.system_to_string(f"cp {file_name} {dst_file_path}")

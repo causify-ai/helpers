@@ -701,8 +701,8 @@ Guidelines = HeaderList
 
 def convert_header_list_into_guidelines(header_list: HeaderList) -> Guidelines:
     """
-    Convert the header list into a `Guidelines` object with only level 1 headers
-    and full hierarchy of the rules as description.
+    Convert the header list into a `Guidelines` object with only level 1
+    headers and full hierarchy of the rules as description.
 
     Expand a header list like:
     ```
@@ -763,10 +763,10 @@ def convert_header_list_into_guidelines(header_list: HeaderList) -> Guidelines:
 
 
 def _convert_rule_into_regex(selection_rule: SelectionRule) -> str:
-    """
+    r"""
     Convert a rule into an actual regular expression.
 
-    E.g., 
+    E.g.,
     - `Spelling:*:LLM` -> `Spelling:(\S*):LLM`
     - `*:*:Linter|LLM` -> `(\S*):(\S*):(Linter|LLM)`
     - `Spelling|Python:*:LLM` -> `Spelling|Python:(\S*):LLM`
@@ -795,12 +795,15 @@ def _convert_rule_into_regex(selection_rule: SelectionRule) -> str:
     return rule_out
 
 
-def extract_rules(guidelines: Guidelines, selection_rules: List[SelectionRule]) -> Guidelines:
+def extract_rules(
+    guidelines: Guidelines, selection_rules: List[SelectionRule]
+) -> Guidelines:
     """
     Extract the set of rules from the `guidelines` that match the rule regex.
 
     :param guidelines: The guidelines to extract the rules from.
-    :param selection_rules: The selection rules to use to extract the rules.
+    :param selection_rules: The selection rules to use to extract the
+        rules.
     :return: The extracted rules.
     """
     hdbg.dassert_isinstance(guidelines, list)
@@ -829,7 +832,11 @@ def extract_rules(guidelines: Guidelines, selection_rules: List[SelectionRule]) 
                 if guideline not in rule_sections:
                     rule_sections.append(guideline)
     # Select the rules.
-    _LOG.debug("Selected %s sections:\n%s", len(rule_sections), "\n".join([r.description for r in rule_sections]))
+    _LOG.debug(
+        "Selected %s sections:\n%s",
+        len(rule_sections),
+        "\n".join([r.description for r in rule_sections]),
+    )
     return rule_sections
 
 
@@ -839,7 +846,7 @@ def parse_rules_from_txt(txt: str) -> List[str]:
 
     - Extract first-level bullet point list items from text until the next one.
     - Sub-lists nested under first-level items are extracted together with the
-      first-level items. 
+      first-level items.
 
     :param txt: text to process
         ```
@@ -849,16 +856,6 @@ def parse_rules_from_txt(txt: str) -> List[str]:
         - Item 4
         ```
     :return: extracted bullet points, e.g.,
-        ```
-        [
-            "- Item 1",
-            '''
-            - Item 2
-               - Item 3
-            ''',
-            "- Item 4",
-        ]
-        ```
     """
     lines = txt.split("\n")
     # Store the first-level bullet points.
@@ -895,8 +892,8 @@ def extract_rules_from_section(txt: str, line_number: int) -> List[str]:
     Extract rules from a section of a markdown file.
 
     :param txt: The markdown text to extract the rules from.
-    :param line_number: The line number of the section to start extracting the
-        rules from.
+    :param line_number: The line number of the section to start
+        extracting the rules from.
     :return: The extracted rules.
     """
     # Find the line number of the next header.
@@ -1151,9 +1148,6 @@ def inject_todos_from_cfile(
     Inject the TODOs from a cfile in the corresponding files.
 
     Given a cfile with the following content:
-    ```
-    dev_scripts_helpers/github/dockerized_sync_gh_repo_settings.py:101: The logic ...
-    ```
     the function will inject the TODO in the corresponding file and line
 
     :param cfile_txt: The content of the cfile.
@@ -1209,7 +1203,7 @@ def inject_todos_from_cfile(
         # the TODO.
         m = re.match(r"^(\s*)\S", insert_line)
         hdbg.dassert(m, "Can't parse insert_line='%s'", insert_line)
-        spaces = len(m.group(1)) * " "
+        spaces = len(m.group(1)) * " "  # type: ignore[union-attr]
         # Build the new line to insert.
         new_line = spaces + f"{comment_prefix} TODO({todo_user}): {todo}"
         _LOG.debug(hprint.to_str("new_line"))
@@ -1298,9 +1292,10 @@ def bold_first_level_bullets(markdown_text: str, *, max_length: int = 30) -> str
                     # First-level bullet, add bold markers.
                     m = re.match(r"^(\s*-\s+)(.*)", line)
                     hdbg.dassert(m, "Can't parse line='%s'", line)
-                    bullet_text = m.group(2)
+                    bullet_text = m.group(2)  # type: ignore[union-attr]
                     if max_length > -1 and len(bullet_text) <= max_length:
-                        line = m.group(1) + "**" + bullet_text + "**"
+                        spaces = m.group(1)  # type: ignore[union-attr]
+                        line = spaces + "**" + bullet_text + "**"  
         result.append(line)
     return "\n".join(result)
 

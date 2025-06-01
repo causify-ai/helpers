@@ -11,7 +11,7 @@ import os
 import random
 import re
 import string
-from typing import List, Match, Optional, Tuple, cast
+from typing import cast, List, Match, Optional, Tuple, cast
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -262,12 +262,15 @@ def find_file(file_name: str, *, dir_path: Optional[str] = None) -> str:
     if dir_path is None:
         dir_path = find_git_root()
     _LOG.debug(hprint.to_str("dir_path"))
-    cmd = (rf'find {dir_path} ' + 
-        r"\( -path '*/.git' -o -path '*/.mypy_cache' \) -prune " +
-        rf'-o -name "{file_name}" -print')
+    cmd = (
+        rf"find {dir_path} "
+        + r"\( -path '*/.git' -o -path '*/.mypy_cache' \) -prune "
+        + rf'-o -name "{file_name}" -print'
+    )
     _LOG.debug(hprint.to_str("cmd"))
     _, res = hsystem.system_to_one_line(cmd)
     hdbg.dassert_ne(res, "Can't find file '%s' in '%s'", file_name, dir_path)
+    res = cast(res, str)
     return res
 
 
@@ -296,6 +299,7 @@ def find_helpers_root(dir_path: str = ".") -> str:
         # Make sure the dir and that `helpers` subdir exists.
         hdbg.dassert_dir_exists(helpers_root)
         hdbg.dassert_dir_exists(os.path.join(helpers_root), "helpers")
+    helpers_root = cast(str, helpers_root)
     return helpers_root
 
 
@@ -306,8 +310,8 @@ def resolve_git_client_dir(git_client_name: str) -> str:
     """
     Resolve the absolute path of the Git client directory.
 
-    :param git_client_name: the name of the Git client (e.g., "helpers1" or
-        "/Users/saggese/src/helpers1")
+    :param git_client_name: the name of the Git client (e.g., "helpers1"
+        or "/Users/saggese/src/helpers1")
     :return: the absolute path of the Git client directory
     """
     if not os.path.isabs(git_client_name):
@@ -322,11 +326,17 @@ def resolve_git_client_dir(git_client_name: str) -> str:
     return git_client_dir
 
 
-def project_file_name_in_git_client(file_name: str, git_src_dir: str, git_dst_dir: str,
-                                    *, check_src_file_exists: bool = False,
-                                    check_dst_file_exists: bool = False) -> str:
+def project_file_name_in_git_client(
+    file_name: str,
+    git_src_dir: str,
+    git_dst_dir: str,
+    *,
+    check_src_file_exists: bool = False,
+    check_dst_file_exists: bool = False,
+) -> str:
     """
-    Find the file corresponding to `file_name` in `git_src_dir` for the client `git_dst_dir`.
+    Find the file corresponding to `file_name` in `git_src_dir` for the client
+    `git_dst_dir`.
 
     This is useful when we want to find the file in a destination Git client
     directory corresponding to a file in a source Git client directory.
@@ -434,7 +444,8 @@ def _is_repo(repo_short_name: str) -> bool:
     Return whether we are inside the module `repo_short_name`.
     """
     curr_repo_short_name = hrecouti.get_repo_config().get_repo_short_name()
-    return curr_repo_short_name == repo_short_name
+    is_repo = bool(curr_repo_short_name == repo_short_name)
+    return is_repo
 
 
 def is_helpers() -> bool:
@@ -761,7 +772,7 @@ def get_repo_full_name_from_client(super_module: bool) -> str:
     return repo_name
 
 
-def is_cwd_git_repo():
+def is_cwd_git_repo() -> bool:
     """
     Return whether the current working directory is a Git repo root.
     """

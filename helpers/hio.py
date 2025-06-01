@@ -777,12 +777,13 @@ def from_json(file_name: str, *, use_types: bool = False) -> Dict:
     txt_tmp = "\n".join(txt_tmp)
     _LOG.debug("txt_tmp=\n%s", txt_tmp)
     # Convert text into Python data structures.
+    data = {}
     if use_types:
         import jsonpickle
 
-        data: Dict = jsonpickle.decode(txt_tmp)
+        data = jsonpickle.decode(txt_tmp)
     else:
-        data: Dict = json.loads(txt_tmp)
+        data = json.loads(txt_tmp)
     return data
 
 

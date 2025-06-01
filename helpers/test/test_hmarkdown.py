@@ -1524,6 +1524,11 @@ def get_header_list6() -> hmarkdo.HeaderList:
     return header_list
 
 
+# #############################################################################
+# Test_convert_header_list_into_guidelines1
+# #############################################################################
+
+
 class Test_convert_header_list_into_guidelines1(hunitest.TestCase):
 
     def test1(self) -> None:
@@ -1547,6 +1552,11 @@ class Test_convert_header_list_into_guidelines1(hunitest.TestCase):
         HeaderInfo(1, 'Unit_tests:All:Linter', 71)
         """
         self.assert_equal(act, exp, dedent=True)
+
+
+# #############################################################################
+# Test_extract_rules1
+# #############################################################################
 
 
 class Test_extract_rules1(hunitest.TestCase):
@@ -1721,6 +1731,11 @@ def get_guidelines_txt1() -> str:
     return txt
 
 
+# #############################################################################
+# Test_end_to_end_rules1
+# #############################################################################
+
+
 class Test_end_to_end_rules1(hunitest.TestCase):
 
     def test_get_header_list1(self) -> None:
@@ -1832,6 +1847,7 @@ class Test_end_to_end_rules1(hunitest.TestCase):
         HeaderInfo(1, 'Unit_test_extract_ruless:Rules:LLM', 37)
         """
         self.helper_extract_rules(selection_rules, exp)
+
 
 # #############################################################################
 # Test_inject_todos_from_cfile1
