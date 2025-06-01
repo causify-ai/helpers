@@ -300,11 +300,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
             out_txt_tmp = []
             # Append the original text.
             txt = hio.from_file(tmp_in_file_name)
-            txt = hmarkdo.format_markdown(txt)
-            txt = hmarkdo.md_clean_up(txt)
             out_txt_tmp.append(txt)
             # Append the transformed text.
+            out_txt_tmp.append("\n#### Comments ####")
             out_txt_tmp.append(out_txt)
+            # Join everything.
             out_txt = "\n".join(out_txt_tmp)
         # Check that all post-transforms were run.
         hdbg.dassert_eq(

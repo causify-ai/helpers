@@ -439,9 +439,7 @@ def code_fix_by_using_f_strings() -> _PROMPT_OUT:
 
 def code_fix_by_using_perc_strings() -> _PROMPT_OUT:
     """
-    Use % formatting, like `"Hello, %s.
-
-    You are %d years old." % (name, age)`.
+    Use % formatting, like `"Hello, %s. You are %d years old." % (name, age)`.
     """
     system = _CODING_CONTEXT
     system += r"""
@@ -1227,13 +1225,30 @@ def slide_add_figure() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
+def slide_check() -> _PROMPT_OUT:
+    system = _MD_CONTEXT
+    system += r"""
+    - Do not print the content of the slide, but only the comment.
+
+    - Is the content of the slide clear and correct?
+      - Answer with "The slide is clear" or "The slide is not clear"
+      
+    - Is there anything that can be clarified?
+      - Respond with at most 5 short bullet points about what can be clarified.
+      - Do not report things that you are not sure about.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms: Set[str] = set()
+    post_container_transforms = ["format_markdown", "append_to_text"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
 # #############################################################################
 # Text.
 # #############################################################################
 
 # Operate on pure text, not markdown.
 
-# def text_expand() -> _PROMPT_OUT:
+#def text_expand() -> _PROMPT_OUT:
 #    """
 #    """
 #    system = hio.from_file("text_expand2.txt")
@@ -1243,12 +1258,26 @@ def slide_add_figure() -> _PROMPT_OUT:
 #    return system, pre_transforms, post_transforms, post_container_transforms
 
 
+def text_idea() -> _PROMPT_OUT:
+    """
+    """
+    file = "text_idea.txt"
+    if os.path.exists(file):
+        system = hio.from_file(file)
+    else:
+        system = ""
+    pre_transforms: Set[str] = set()
+    post_transforms: Set[str] = set()
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
 def text_rephrase() -> _PROMPT_OUT:
     """
-    Apply complex transformations to the text.
     """
-    if os.path.exists("text_rephrase.txt"):
-        system = hio.from_file("text_rephrase.txt")
+    file = "text_rephrase.txt"
+    if os.path.exists(file):
+        system = hio.from_file(file)
     else:
         system = ""
     pre_transforms: Set[str] = set()
