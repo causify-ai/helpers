@@ -1085,6 +1085,7 @@ def drop_duplicated(
 
 # #############################################################################
 
+
 def infer_column_types(col):
     vals = {
         "is_numeric": pd.to_numeric(col, errors="coerce").notna(),
@@ -1109,6 +1110,7 @@ def infer_column_types(col):
 def infer_column_types_df(df: pd.DataFrame) -> pd.DataFrame:
     return df.apply(lambda x: pd.Series(infer_column_types(x))).T
 
+
 def convert_to_type(col, type_):
     if type_ == "is_bool":
         return col.map(
@@ -1124,6 +1126,7 @@ def convert_to_type(col, type_):
         return col.map(lambda x: isinstance(x, str))
     else:
         raise ValueError(f"Unknown column type: {type_}")
+
 
 def convert_col_to_int(
     df: pd.DataFrame,
@@ -1654,6 +1657,7 @@ def convert_df_to_json_string(
     output_str = "\n".join([shape, "Head:", head_json, "Tail:", tail_json])
     return output_str
 
+
 def convert_df(
     df: pd.DataFrame, *, print_invalid_values: bool = False
 ) -> pd.DataFrame:
@@ -1669,8 +1673,6 @@ def convert_df(
         else:
             raise ValueError(f"Unknown column type: {types[col]['type']}")
     return df_out
-
-
 
 
 # #############################################################################

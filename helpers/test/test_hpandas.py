@@ -4625,7 +4625,14 @@ class Test_convert_to_type(hunitest.TestCase):
             hpandas.convert_to_type(series, "invalid_type")
         self.assertIn("Unknown column type: invalid_type", str(exc.value))
 
-    # #############################################################################
+    # #########################################################################
+
+
+# Test_infer_column_types
+# #############################################################################
+
+
+# #############################################################################
 # Test_infer_column_types
 # #############################################################################
 
@@ -4683,6 +4690,7 @@ class Test_infer_column_types(hunitest.TestCase):
         )
         # bool < numeric < string ⇒ type is string
         self.assert_equal(vals["type"], "is_string")
+
 
 # #############################################################################
 # Test_convert_df
@@ -4758,5 +4766,3 @@ class Test_convert_df(hunitest.TestCase):
         # text → string (since 1/3 numeric < 1/3 string and bool=0)
         self.assert_equal(df_out["text"].dtype.name, "object")
         self.assert_equal(str(df_out["text"].tolist()), str(["one", 2, None]))
-       
-
