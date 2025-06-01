@@ -1,9 +1,0 @@
-# Default settings for a repository.
-repository_settings:
-  allow_merge_commit: true
-  allow_squash_merge: true
-  allow_rebase_merge: true
-  has_issues: true
-  has_wiki: true
-  has_projects: true
-  delete_branch_on_merge: false

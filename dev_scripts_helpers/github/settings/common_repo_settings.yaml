@@ -26,10 +26,10 @@ branch_protection:
     required_status_checks:
       strict: true
       contexts:
-        - "ci/lint"
-        - "ci/fasttests"
-        - "ci/slowtests"
-        - "ci/gitleaks"
+        - "run_fast_tests"
+        - "run_slow_tests"
+        - "Run gitleaks"
+        - "Run_linter"
     # Pull request reviews - standard review requirements.
     required_pull_request_reviews:
       dismiss_stale_reviews: true
