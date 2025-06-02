@@ -7,11 +7,10 @@ import helpers.hmarkdown as hmarkdo
 import dataclasses
 import logging
 import re
-from typing import Generator, List, Optional, Tuple, cast
+from typing import Dict, Generator, List, Optional, Tuple, cast
 
 import dev_scripts_helpers.documentation.lint_notes as dshdlino
 import helpers.hdbg as hdbg
-import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 
@@ -665,7 +664,8 @@ def sanity_check_rules(txt: List[str]) -> None:
     """
     Sanity check the rules.
     """
-    header_list = extract_headers_from_markdown(txt, max_level=5)
+    txt_tmp = "\n".join(txt)
+    header_list = extract_headers_from_markdown(txt_tmp, max_level=5)
     # 1) Start with level 1 headers.
     # 2) All level 1 headers are unique.
     # 3) Header levels are increasing / decreasing by at most 1.
@@ -701,8 +701,8 @@ Guidelines = HeaderList
 
 def convert_header_list_into_guidelines(header_list: HeaderList) -> Guidelines:
     """
-    Convert the header list into a `Guidelines` object with only level 1 headers
-    and full hierarchy of the rules as description.
+    Convert the header list into a `Guidelines` object with only level 1
+    headers and full hierarchy of the rules as description.
 
     Expand a header list like:
     ```
@@ -766,7 +766,7 @@ def _convert_rule_into_regex(selection_rule: SelectionRule) -> str:
     r"""
     Convert a rule into an actual regular expression.
 
-    E.g., 
+    E.g.,
     - `Spelling:*:LLM` -> `Spelling:(\S*):LLM`
     - `*:*:Linter|LLM` -> `(\S*):(\S*):(Linter|LLM)`
     - `Spelling|Python:*:LLM` -> `Spelling|Python:(\S*):LLM`
@@ -795,12 +795,15 @@ def _convert_rule_into_regex(selection_rule: SelectionRule) -> str:
     return rule_out
 
 
-def extract_rules(guidelines: Guidelines, selection_rules: List[SelectionRule]) -> Guidelines:
+def extract_rules(
+    guidelines: Guidelines, selection_rules: List[SelectionRule]
+) -> Guidelines:
     """
     Extract the set of rules from the `guidelines` that match the rule regex.
 
     :param guidelines: The guidelines to extract the rules from.
-    :param selection_rules: The selection rules to use to extract the rules.
+    :param selection_rules: The selection rules to use to extract the
+        rules.
     :return: The extracted rules.
     """
     hdbg.dassert_isinstance(guidelines, list)
@@ -811,7 +814,7 @@ def extract_rules(guidelines: Guidelines, selection_rules: List[SelectionRule]) 
     # - a list of strings separated by `|` (e.g., `LLM|Linter`)
     # E.g., `Spelling:*:LLM`, `*:*:Linter|LLM`, `Spelling|Python:*:LLM`.
     # Convert each rule regex into a regular expression.
-    rule_regex_map = {}
+    rule_regex_map: Dict[str, str] = {}
     for rule_regex_str in selection_rules:
         hdbg.dassert_isinstance(rule_regex_str, SelectionRule)
         regex = _convert_rule_into_regex(rule_regex_str)
@@ -829,7 +832,11 @@ def extract_rules(guidelines: Guidelines, selection_rules: List[SelectionRule]) 
                 if guideline not in rule_sections:
                     rule_sections.append(guideline)
     # Select the rules.
-    _LOG.debug("Selected %s sections:\n%s", len(rule_sections), "\n".join([r.description for r in rule_sections]))
+    _LOG.debug(
+        "Selected %s sections:\n%s",
+        len(rule_sections),
+        "\n".join([r.description for r in rule_sections]),
+    )
     return rule_sections
 
 
@@ -839,7 +846,7 @@ def parse_rules_from_txt(txt: str) -> List[str]:
 
     - Extract first-level bullet point list items from text until the next one.
     - Sub-lists nested under first-level items are extracted together with the
-      first-level items. 
+      first-level items.
 
     :param txt: text to process
         ```
@@ -849,16 +856,6 @@ def parse_rules_from_txt(txt: str) -> List[str]:
         - Item 4
         ```
     :return: extracted bullet points, e.g.,
-        ```
-        [
-            "- Item 1",
-            '''
-            - Item 2
-               - Item 3
-            ''',
-            "- Item 4",
-        ]
-        ```
     """
     lines = txt.split("\n")
     # Store the first-level bullet points.
@@ -895,8 +892,8 @@ def extract_rules_from_section(txt: str, line_number: int) -> List[str]:
     Extract rules from a section of a markdown file.
 
     :param txt: The markdown text to extract the rules from.
-    :param line_number: The line number of the section to start extracting the
-        rules from.
+    :param line_number: The line number of the section to start
+        extracting the rules from.
     :return: The extracted rules.
     """
     # Find the line number of the next header.
@@ -1142,91 +1139,6 @@ def selected_navigation_to_str(
 
 
 # #############################################################################
-
-
-def inject_todos_from_cfile(
-    cfile_txt: str, todo_user: str, comment_prefix: str
-) -> None:
-    """
-    Inject the TODOs from a cfile in the corresponding files.
-
-    Given a cfile with the following content:
-    ```
-    dev_scripts_helpers/github/dockerized_sync_gh_repo_settings.py:101: The logic ...
-    ```
-    the function will inject the TODO in the corresponding file and line
-
-    :param cfile_txt: The content of the cfile.
-    :param todo_user: The user to use in the TODO.
-    :param comment_prefix: The prefix to use for the comment (e.g., "#")
-    """
-    # For each file, store
-    #   - the current file content
-    #   - the offset (i.e., how many lines we inserted in the file so far, so
-    #     we can inject the TODO at the correct line number)
-    #   - the index of the last line modified to make sure the TODOs are for
-    #     increasing line numbers.
-    file_content = {}
-    for todo_line in cfile_txt.split("\n"):
-        _LOG.debug("\n%s", hprint.frame("todo line='%s'" % todo_line))
-        if todo_line.strip() == "":
-            continue
-        # dev_scripts_helpers/github/dockerized_sync_gh_repo_settings.py:101: The logic for extracting required status checks and pull request reviews is repeated. Consider creating a helper function to handle this extraction to reduce redundancy.
-        m = re.match(r"^\s*(\S+):(\d+):\s*(.*)$", todo_line)
-        if not m:
-            _LOG.warning("Can't parse line='%s': skipping", todo_line)
-            continue
-        file_name, todo_line_number, todo = m.groups()
-        todo_line_number = int(todo_line_number)
-        _LOG.debug(hprint.to_str("file_name todo_line_number todo"))
-        # Update the state if needed.
-        if file_name not in file_content:
-            _LOG.debug("Reading %s", file_name)
-            hdbg.dassert_path_exists(file_name)
-            txt = hio.from_file(file_name).split("\n")
-            offset = 0
-            last_line_modified = 0
-            file_content[file_name] = (txt, offset, last_line_modified)
-        # Extract the info for the file to process.
-        txt, offset, last_line_modified = file_content[file_name]
-        _LOG.debug(hprint.to_str("offset last_line_modified"))
-        hdbg.dassert_lt(
-            last_line_modified,
-            todo_line_number,
-            "The TODOs don't look like they are increasing line numbers: "
-            "TODO at line %d is before the last line modified %d",
-            todo_line_number,
-            last_line_modified,
-        )
-        # We subtract 1 from the line number since TODOs count from 1, while
-        # Python arrays count from 0.
-        act_line_number = todo_line_number - 1 + offset
-        hdbg.dassert_lte(0, act_line_number)
-        hdbg.dassert_lt(act_line_number, len(txt))
-        insert_line = txt[act_line_number]
-        _LOG.debug(hprint.to_str("act_line_number insert_line"))
-        # Extract how many spaces there are at place where the line to insert
-        # the TODO.
-        m = re.match(r"^(\s*)\S", insert_line)
-        hdbg.dassert(m, "Can't parse insert_line='%s'", insert_line)
-        spaces = len(m.group(1)) * " "
-        # Build the new line to insert.
-        new_line = spaces + f"{comment_prefix} TODO({todo_user}): {todo}"
-        _LOG.debug(hprint.to_str("new_line"))
-        # Insert the new line in txt at the correct position.
-        txt = txt[:act_line_number] + [new_line] + txt[act_line_number:]
-        # Update the state.
-        offset += 1
-        file_content[file_name] = (txt, offset, todo_line_number)
-    # Write updated files back.
-    for file_name, (txt, offset, last_line_modified) in file_content.items():
-        _ = last_line_modified
-        _LOG.info("Writing %d lines in %s", offset, file_name)
-        txt = "\n".join(txt)
-        hio.to_file(file_name, txt)
-
-
-# #############################################################################
 # Formatting markdown
 # #############################################################################
 
@@ -1298,9 +1210,10 @@ def bold_first_level_bullets(markdown_text: str, *, max_length: int = 30) -> str
                     # First-level bullet, add bold markers.
                     m = re.match(r"^(\s*-\s+)(.*)", line)
                     hdbg.dassert(m, "Can't parse line='%s'", line)
-                    bullet_text = m.group(2)
+                    bullet_text = m.group(2)  # type: ignore[union-attr]
                     if max_length > -1 and len(bullet_text) <= max_length:
-                        line = m.group(1) + "**" + bullet_text + "**"
+                        spaces = m.group(1)  # type: ignore[union-attr]
+                        line = spaces + "**" + bullet_text + "**"
         result.append(line)
     return "\n".join(result)
 
@@ -1399,7 +1312,8 @@ def prettier_markdown(txt: str) -> str:
     """
     file_type = "md"
     txt = dshdlino.prettier_on_str(txt, file_type)
-    return txt
+    txt_ = cast(str, txt)
+    return txt_
 
 
 def format_markdown(txt: str) -> str:
@@ -1428,4 +1342,5 @@ def format_markdown_slide(txt: str) -> str:
 def format_latex(txt: str) -> str:
     file_type = "tex"
     txt = dshdlino.prettier_on_str(txt, file_type)
-    return txt
+    txt_ = cast(str, txt)
+    return txt_

@@ -39,7 +39,7 @@ def _find_file(filename: str, *, search_path: str = ".") -> Optional[str]:
     else:
         return None
 
-    
+
 def _find_path(path: str, *, dir_name: str = ".", abort_on_error: bool = False) -> str:
     """
     Find a path in a directory and report its absolute path.

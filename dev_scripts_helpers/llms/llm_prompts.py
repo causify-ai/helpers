@@ -62,10 +62,15 @@ _POST_CONTAINER_TRANSFORMS: Dict[str, List[str]] = {}
 
 def get_post_container_transforms(
     transform_name: str,
-) -> Dict[str, List[str]]:
+) -> List[str]:
+    """
+    Return the transformations for `transform_name`.
+    """
     global _POST_CONTAINER_TRANSFORMS
+    # Initialize the dictionary, on the first call.
     if not _POST_CONTAINER_TRANSFORMS:
         valid_prompts = get_prompt_tags()
+        # Call all the functions and register their `post_container_transforms`.
         for prompt in valid_prompts:
             _, _, _, post_container_transforms = eval(f"{prompt}()")
             hdbg.dassert_not_in(prompt, _POST_CONTAINER_TRANSFORMS)
@@ -104,7 +109,29 @@ def test() -> _PROMPT_OUT:
 # #############################################################################
 
 
+# Apply_cfile.
+
+
+def code_apply_cfile() -> _PROMPT_OUT:
+    """
+    Apply a cfile to the code.
+    """
+    system = _CODING_CONTEXT
+    system += r"""
+    Replace any Python "from import" statement like `from X import Y` with the
+    form `import X` and then replace the uses of `Y` with `X.Y`
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {"remove_code_delimiters"}
+    post_container_transforms: List[str] = []
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
 # Fix
+
+
+# TODO(gp): The code fixes are superseded by the llm_review.py approach using
+# the guideline file.
 
 
 def code_fix_from_imports() -> _PROMPT_OUT:
@@ -920,10 +947,10 @@ def _review_from_file(file: str) -> _PROMPT_OUT:
     - `- Bad:` followed by inline or code block examples
 
     Example:
-    - All functions must have a docstring  
+    - All functions must have a docstring
     - Good:
         ```python
-        def foo():  
+        def foo():
             pass
         ```
     - Bad:
@@ -1223,7 +1250,7 @@ def slide_check() -> _PROMPT_OUT:
 
     - Is the content of the slide clear and correct?
       - Answer with "The slide is clear" or "The slide is not clear"
-      
+
     - Is there anything that can be clarified?
       - Respond with at most 5 short bullet points about what can be clarified.
       - Do not report things that you are not sure about.

@@ -856,7 +856,7 @@ def dassert_is_path_abs(
     """
     dassert_isinstance(path, str)
     dassert_ne(path, "")
-    dassert_eq(os.path.isabs(path), True, "Path '%s' is not absolute", path,
+    dassert(os.path.isabs(path), "Path '%s' is not absolute", path,
         only_warning=only_warning)
 
 
