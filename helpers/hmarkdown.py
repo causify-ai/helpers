@@ -763,7 +763,7 @@ def convert_header_list_into_guidelines(header_list: HeaderList) -> Guidelines:
 
 
 def _convert_rule_into_regex(selection_rule: SelectionRule) -> str:
-    """
+    r"""
     Convert a rule into an actual regular expression.
 
     E.g., 
@@ -782,7 +782,7 @@ def _convert_rule_into_regex(selection_rule: SelectionRule) -> str:
         hdbg.dassert_not_in(" ", rule_part_in)
         if rule_part_in == "*":
             # Convert `*` into `\S*`.
-            rule_part_out = "(\S*)"
+            rule_part_out = r"(\S*)"
         elif "|" in rule_part_in:
             # Convert `LLM|Linter` into `(LLM|Linter)`.
             rule_part_out = "(" + rule_part_in + ")"
