@@ -763,6 +763,7 @@ def dassert_path_not_exists(
     only_warning: bool = False,
 ) -> None:
     dassert_isinstance(path, str)
+    dassert_ne(path, "")
     path = os.path.abspath(path)
     if os.path.exists(path):
         txt = f"Path '{path}' already exist!"
@@ -779,6 +780,7 @@ def dassert_file_exists(
     Assert unless `file_name` exists and it's a file and not a directory.
     """
     dassert_isinstance(file_name, str)
+    dassert_ne(file_name, "")
     file_name = os.path.abspath(file_name)
     # `file_name` exists.
     exists = os.path.exists(file_name)
@@ -802,6 +804,7 @@ def dassert_dir_exists(
     Assert unless `dir_name` exists and it's a directory.
     """
     dassert_isinstance(dir_name, str)
+    dassert_ne(dir_name, "")
     dir_name = os.path.abspath(dir_name)
     # `dir_name` exists.
     exists = os.path.exists(dir_name)
@@ -841,6 +844,21 @@ def dassert_file_extension(
         "Invalid extension '%s' for file '%s'",
         act_ext,
         file_name,
+        only_warning=only_warning,
+    )
+
+
+def dassert_is_path_abs(path: str, only_warning: bool = False) -> None:
+    """
+    Assert that `path` is an absolute path.
+    """
+    dassert_isinstance(path, str)
+    dassert_ne(path, "")
+    dassert_eq(
+        os.path.isabs(path),
+        True,
+        "Path '%s' is not absolute",
+        path,
         only_warning=only_warning,
     )
 

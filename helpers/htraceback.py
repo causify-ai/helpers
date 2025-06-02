@@ -15,6 +15,8 @@ import helpers.hgit as hgit
 _LOG = logging.getLogger(__name__)
 
 
+# TODO(gp): Move some code to `hcfile.py`.
+
 # Store elements parsed from a line of a traceback:
 #   (file_name, line_num, text)
 # E.g.,
