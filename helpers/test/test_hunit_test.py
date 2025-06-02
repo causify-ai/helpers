@@ -1056,6 +1056,69 @@ class Test_purify_txt_from_client1(hunitest.TestCase):
         exp = "['helpers/test/test_system_interaction.py']"
         self.helper(txt, exp)
 
+    def test4(self) -> None:
+        txt = "app.helpers.test.test_system_interaction.py"
+        exp = "helpers.test.test_system_interaction.py"
+        self.helper(txt, exp)
+
+    def test5(self) -> None:
+        """
+        Test that longer paths are processed before shorter ones.
+        """
+        txt = "/home/user/project/src/file.py"
+        with umock.patch(
+            "helpers.hgit.get_client_root"
+        ) as mock_git_root, umock.patch("os.getcwd") as mock_pwd:
+            mock_git_root.return_value = "/home/user/project"
+            mock_pwd.return_value = "/home/user"
+            exp = "$GIT_ROOT/src/file.py"
+            self.helper(txt, exp)
+
+    def test6(self) -> None:
+        """
+        Test that overlapping paths are processed correctly.
+        """
+        txt = "/home/user/project/src/subdir/file.py"
+        with umock.patch(
+            "helpers.hgit.get_client_root"
+        ) as mock_git_root, umock.patch("os.getcwd") as mock_pwd:
+            mock_git_root.return_value = "/home/user/project/src"
+            mock_pwd.return_value = "/home/user/project"
+            exp = "$GIT_ROOT/subdir/file.py"
+            self.helper(txt, exp)
+
+    def test7(self) -> None:
+        """
+        Test that word boundaries prevent incorrect replacements.
+
+        Verifies that 'app' in 'application.py' is not replaced.
+        """
+        txt = """
+        /application.py
+        application.py
+        """
+        exp = """
+        /application.py
+        application.py
+        """
+        self.helper(txt, exp)
+
+    def test8(self) -> None:
+        """
+        Test that word boundaries prevent incorrect replacements.
+
+        Verifies that 'amp' in 'amplification.py' is not replaced.
+        """
+        txt = """
+        /amplification.py
+        amplification.py
+        """
+        exp = """
+        /amplification.py
+        amplification.py
+        """
+        self.helper(txt, exp)
+
 
 # #############################################################################
 # Test_purify_from_env_vars
@@ -1316,6 +1379,41 @@ class Test_purify_amp_reference1(hunitest.TestCase):
         """
         self.helper(txt, exp)
 
+    def test7(self) -> None:
+        """
+        Test that longer amp paths are processed before shorter ones.
+        """
+        txt = "amp/helpers/amp/test/test_file.py"
+        expected = "helpers/test/test_file.py"
+        actual = hunitest.purify_amp_references(txt)
+        self.assert_equal(actual, expected)
+
+    def test8(self) -> None:
+        """
+        Test that nested amp references are processed correctly.
+        """
+        txt = "amp.helpers.test.amp.TestClass"
+        expected = "helpers.test.amp.TestClass"
+        actual = hunitest.purify_amp_references(txt)
+        self.assert_equal(actual, expected)
+
+    def test9(self) -> None:
+        """
+        Test removing amp references from test creation comments with various
+        module paths.
+        """
+        txt = """
+        # Test created for amp.helpers.test.test_file
+        # Test created for amp.core.dataflow.model
+        # Test created for amp.helpers.test.test_dbg._Man
+        """
+        exp = r"""
+        # Test created for helpers.test.test_file
+        # Test created for core.dataflow.model
+        # Test created for helpers.test.test_dbg._Man
+        """
+        self.helper(txt, exp)
+
 
 # #############################################################################
 # Test_purify_from_environment1
@@ -1440,7 +1538,6 @@ class TestPurifyAppReferences1(hunitest.TestCase):
         """
         Test app.helpers reference removal.
         """
-        # Test removing app.helpers references
         txt = "app.helpers.test.test_file"
         expected = "helpers.test.test_file"
         actual = hunitest.purify_app_references(txt)
@@ -1450,7 +1547,6 @@ class TestPurifyAppReferences1(hunitest.TestCase):
         """
         Test app.amp.helpers reference removal.
         """
-        # Test removing app.amp.helpers references
         txt = "app.amp.helpers.test.test_file"
         expected = "amp.helpers.test.test_file"
         actual = hunitest.purify_app_references(txt)
@@ -1469,7 +1565,6 @@ class TestPurifyAppReferences1(hunitest.TestCase):
         """
         Test multiple app references in the same string.
         """
-        # Test multiple app references in the same string
         txt = """
         app.helpers.test.test_file
         app.amp.helpers.test.test_file
@@ -1485,10 +1580,45 @@ class TestPurifyAppReferences1(hunitest.TestCase):
 
     def test5(self) -> None:
         """
+        Test that longer app paths are processed before shorter ones.
+        """
+        txt = "app/helpers/app/test/test_file.py"
+        expected = "helpers/test/test_file.py"
+        actual = hunitest.purify_app_references(txt)
+        self.assert_equal(actual, expected)
+
+    def test6(self) -> None:
+        """
+        Test that app.amp.helpers_root references are processed before app.amp.
+        """
+        txt = "app.amp.helpers_root.helpers.test.TestClass"
+        expected = "amp.helpers.test.TestClass"
+        actual = hunitest.purify_app_references(txt)
+        self.assert_equal(actual, expected)
+
+    def test7(self) -> None:
+        """
         Test string with no app references.
         """
-        # Test string with no app references
         txt = "path/to/file.txt"
         expected = "path/to/file.txt"
         actual = hunitest.purify_app_references(txt)
         self.assert_equal(actual, expected)
+
+    def test8(self) -> None:
+        """
+        Test removing app references from test creation comments with various
+        module paths.
+        """
+        txt = """
+        # Test created for app.helpers.test.test_file
+        # Test created for app.core.dataflow.model
+        # Test created for app.helpers.test.test_dbg._Man
+        """
+        exp = r"""
+        # Test created for helpers.test.test_file
+        # Test created for core.dataflow.model
+        # Test created for helpers.test.test_dbg._Man
+        """
+        actual = hunitest.purify_app_references(txt)
+        self.assert_equal(actual, exp, dedent=True, fuzzy_match=True)

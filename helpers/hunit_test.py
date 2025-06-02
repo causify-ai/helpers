@@ -371,32 +371,56 @@ def filter_text(regex: str, txt: str) -> str:
 # TODO(gp): -> private functions?
 
 
-def normalize_path_refs(txt: str) -> str:
+def _apply_regex_replacements(
+    txt: str, regex_patterns: List[Tuple[str, str]]
+) -> str:
     """
-    Replace known directory paths with normalized placeholders using
-    deterministic priority.
+    Apply a series of regex replacements to text, processing longer patterns
+    first.
 
-    Priority order (highest to lowest):
-    1. Git root paths (both super_module and regular) -> $GIT_ROOT
-    2. CSFY_HOST_GIT_ROOT_PATH environment variable -> $CSFY_HOST_GIT_ROOT_PATH
-    3. Current working directory -> $PWD
-    4. Generic /app directory -> $APP_DIR (only if not already covered)
+    :param txt: input text to process
+    :param regex_patterns: list of (pattern, replacement) tuples to
+        apply
+    :return: text with all regex replacements applied
+    """
+    # Sort patterns by length (longest first) to replace specific patterns before general ones.
+    # This avoids partial replacements. For example, replacing
+    # `/app/amp` before `/app` ensures correct matches.
+    regex_patterns.sort(key=lambda x: len(x[0]), reverse=True)
+    for regex_pattern, replacement in regex_patterns:
+        txt = re.sub(regex_pattern, replacement, txt)
+    return txt
+
+
+def purify_directory_paths(txt: str) -> str:
+    """
+    Replace known directory paths with normalized placeholders using a priority
+    order if all point to the same directory.
+
+    Apply replacements in this order:
+    1. Replace Git root paths with $GIT_ROOT.
+    2. Replace `CSFY_HOST_GIT_ROOT_PATH` with $CSFY_HOST_GIT_ROOT_PATH.
+    3. Replace current working directory with $PWD.
+    4. Purify `app` directory references if not already covered.
 
     This ensures that more specific paths are replaced before generic ones,
     preventing conflicts when paths overlap.
+
+    param txt: input text that needs to be purified
+    return: purified text
     """
     _LOG.debug("Before normalize_path_refs: txt='\n%s'", txt)
-    # Collect all paths to replace with their priorities
+    # Collect all paths to replace with their priorities.
     replacements = []
     processed_paths = set()
-    # Priority 1: Git root paths (highest priority)
+    # Priority 1: Git root paths.
     for super_module in [False, True]:
         git_root = hgit.get_client_root(super_module=super_module)
         if git_root and git_root != "/" and git_root not in processed_paths:
             replacements.append((git_root, "$GIT_ROOT"))
             processed_paths.add(git_root)
             _LOG.debug("Added git root '%s' for replacement", git_root)
-    # Priority 2: CSFY_HOST_GIT_ROOT_PATH environment variable
+    # Priority 2: CSFY_HOST_GIT_ROOT_PATH environment variable.
     csfy_git_root = os.environ.get("CSFY_HOST_GIT_ROOT_PATH")
     if csfy_git_root and csfy_git_root not in processed_paths:
         replacements.append((csfy_git_root, "$CSFY_HOST_GIT_ROOT_PATH"))
@@ -404,38 +428,26 @@ def normalize_path_refs(txt: str) -> str:
         _LOG.debug(
             "Added CSFY_HOST_GIT_ROOT_PATH '%s' for replacement", csfy_git_root
         )
-    # Priority 3: Current working directory
+    # Priority 3: Current working directory.
     pwd = os.getcwd()
     if pwd and pwd != "/" and pwd not in processed_paths:
         replacements.append((pwd, "$PWD"))
         processed_paths.add(pwd)
         _LOG.debug("Added PWD '%s' for replacement", pwd)
-    # Priority 4: Generic /app directory (lowest priority)
-    app_dir = "/app"
-    if app_dir not in processed_paths:
-        # Handle /app/ specially based on whether it has content after it
-        # /app/something -> $GIT_ROOT/something (if /app wasn't already processed as git_root)
-        # /app/ (trailing slash only) -> "" (empty string)
-        # First handle /app/ with trailing slash only (replace with empty string)
-        txt = re.sub(r"(?<![\w/])/app/(?=\s|$)", "", txt)
-        _LOG.debug("Removed trailing /app/ references")
-        # Then handle /app/something -> $GIT_ROOT/something (if /app wasn't git_root)
-        if app_dir not in processed_paths:
-            # Check if /app should be treated as $GIT_ROOT or removed
-            # If /app wasn't already processed as git_root, replace /app/content with $GIT_ROOT/content
-            pattern = rf"(?<![\w/])/app(?=/[\w])"
-            txt = re.sub(pattern, "$GIT_ROOT", txt)
-            _LOG.debug("Replaced /app/content with $GIT_ROOT/content")
-        processed_paths.add(app_dir)
-    # Apply other replacements in order (highest priority first)
-    # Sort by path length (descending) to handle nested paths correctly
+    # Sort paths by length (longest first) to replace specific paths before general ones.
+    # This avoids partial replacements. For example, replacing
+    # `/app/amp` before `/app` ensures correct matches.
     replacements.sort(key=lambda x: len(x[0]), reverse=True)
-    for path, placeholder in replacements:
-        # Use word boundaries to avoid replacing path fragments
-        # Pattern ensures path is not part of a larger word or path
+    for path, replacement in replacements:
+        # Use word boundaries to avoid replacing path fragments.
+        # Pattern ensures path is not part of a larger word or path.
+        # E.g., To avoid replacing `app` in `application.py`.
         pattern = rf"(?<![\w/]){re.escape(path)}(?![\w])"
-        txt = re.sub(pattern, placeholder, txt)
-        _LOG.debug("Replaced '%s' with '%s'", path, placeholder)
+        txt = re.sub(pattern, replacement, txt)
+        _LOG.debug("Replaced '%s' with '%s'", path, replacement)
+    # Priority 4: Handle app references after path replacements to avoid conflicts.
+    if re.search(r"\bapp[/:.]?", txt):
+        txt = purify_app_references(txt)
     _LOG.debug("After normalize_path_refs: txt='\n%s'", txt)
     return txt
 
@@ -444,13 +456,17 @@ def purify_from_environment(txt: str) -> str:
     """
     Replace environment-specific values with placeholders.
 
-    The performed transformations are:
-    1. Replace directory paths with standardized placeholders
-    2. Replace the current user name with $USER_NAME
+    Perform these transformations:
+    1. Replace directory paths with standardized placeholders.
+    2. Replace the current user name with $USER_NAME.
+    3. Handle special cases like usernames in paths and commands.
+
+    param txt: input text that needs to be purified
+    return: purified text
     """
-    # Apply path normalization first
-    txt = normalize_path_refs(txt)
-    # Replace current username with $USER_NAME
+    # Apply directory paths purification first.
+    txt = purify_directory_paths(txt)
+    # Replace current username with $USER_NAME.
     user_name = hsystem.get_user_name()
     # Set a regex pattern that finds a user name surrounded by dot, dash or space.
     # E.g., `IMAGE=$CSFY_ECR_BASE_PATH/amp_test:local-$USER_NAME-1.0.0`,
@@ -468,70 +484,75 @@ def purify_amp_references(txt: str) -> str:
     Remove references to amp from text by applying a series of regex
     substitutions.
 
-    This function handles various patterns where 'amp' appears in paths, class names,
-    and other references, replacing them with cleaner versions.
+    Handle these patterns:
+    1. Replace path references (e.g., "amp/helpers/test/..." -> "helpers/test/...").
+    2. Replace class references (e.g., "<amp.helpers.test.TestClass>" -> "<helpers.test.TestClass>").
+    3. Replace comment references (e.g., "# Test created for amp.helpers.test" -> "# Test created for helpers.test").
+    4. Replace module references (e.g., "amp.helpers.test.TestClass" -> "helpers.test.TestClass").
 
-    Examples of transformations:
-        - "amp/helpers/test/..." -> "helpers/test/..."
-        - "<amp.helpers.test.test_dbg._Man object at 0x" -> "<helpers.test.test_dbg._Man object at 0x"
-        - "class 'amp.helpers.test.TestClass'" -> "class 'helpers.test.TestClass'"
-        - "# Test created for amp.helpers.test.test_playback" -> "# Test created for helpers.test.test_playback"
-        - "'amp/helpers/test/...'" -> "'helpers/test/...'"
-        - "/amp/helpers/test/..." -> "/helpers/test/..."
-        - "/amp:helpers/test/..." -> ":helpers/test/..."
-        - "./amp/helpers/test/..." -> "helpers/test/..."
-        - "amp.helpers.test.TestClass" -> "helpers.test.TestClass"
-
-    :param txt: Input text containing amp references
-    :return: Text with amp references removed
+    param txt: input text containing amp references
+    return: text with amp references removed
     """
-    replacements = [
+    amp_patterns = [
+        # Remove 'amp/' prefix from quoted paths.
         (r"'amp/", "'"),
-        # ``amp/`` at the start of a path segment.
+        # Remove 'amp/' prefix from path segments.
         (r"(?m)(^\s*|\s+)amp/", r"\1"),
-        # ``/amp/`` or ``/amp:`` mid-path.
+        # Replace '/amp/' with '/' and '/amp:' with ':' in paths.
         (r"(?m)/amp/", "/"),
         (r"(?m)/amp:", ":"),
-        # ``<amp.`` or ``class 'amp.`` in reprs / tracebacks.
+        # Remove 'amp.' prefix from class representations and tracebacks.
         (r"<amp\.", "<"),
         (r"class 'amp\.", "class '"),
-        # Dotted helpers package.
+        # Replace 'amp.helpers' with 'helpers' in package references.
         (r"\bamp\.helpers\b", "helpers"),
-        # Special comment inserted by our unit-test generator.
-        (r"# Test created for amp\.helpers", "# Test created for helpers"),
-        # Strip a leading ``./`` that sometimes precedes relative paths.
+        # Remove amp references from test creation comments.
+        (r"# Test created for amp\.([\w\.]+)", r"# Test created for \1"),
+        # Remove leading './' from relative paths.
         (r"(?m)^\./", ""),
     ]
-    for pattern, repl in replacements:
-        txt = re.sub(pattern, repl, txt)
+    txt = _apply_regex_replacements(txt, amp_patterns)
     _LOG.debug("After %s: txt=\n%s", hintros.get_function_name(), txt)
     return txt
 
 
 def purify_app_references(txt: str) -> str:
     """
-    Remove references to `/app`.
+    Remove references to `/app` from text by applying a series of regex
+    substitutions.
+
+    Handle these patterns:
+    1. Replace path references (e.g., "app/helpers/test/..." -> "helpers/test/...").
+    2. Replace class references (e.g., "<app.helpers.test.TestClass>" -> "<helpers.test.TestClass>").
+    3. Replace comment references (e.g., "# Test created for app.helpers.test" -> "# Test created for helpers.test").
+    4. Replace module references (e.g., "app.helpers.test.TestClass" -> "helpers.test.TestClass").
+    5. Handle trailing /app/ references.
+
+    param txt: input text containing app references
+    return: text with app references removed
     """
-    replacements = [
-        # ``app/`` at the start of a path segment.
-        (r"(?m)(^\s*|\s+)'?app/", r"\1'"),
-        # ``/app/`` or ``/app:`` mid-path.
+    app_patterns = [
+        # Remove trailing '/app/' references.
+        (r"(?<![\w/])/app/(?=\s|$)", ""),
+        # Remove 'app/' prefix from path segments.
+        (r"(?m)(^\s*'?)app/", r"\1"),
+        # Replace '/app/' with '/' and '/app:' with ':' in paths.
         (r"(?m)/app/", "/"),
         (r"(?m)/app:", ":"),
-        # ``<app.`` or ``class 'app.`` in reprs / tracebacks.
+        # Remove 'app.' prefix from class representations and tracebacks.
         (r"<app\.", "<"),
         (r"class 'app\.", "class '"),
-        # Dotted helpers package.
+        # Replace 'app.helpers' with 'helpers' in package references.
         (r"\bapp\.helpers\b", "helpers"),
-        (r"# Test created for app\.helpers", "# Test created for helpers"),
-        # Legacy module-path forms produced by earlier code-gens.
+        # Remove app references from test creation comments.
+        (r"# Test created for app\.([\w\.]+)", r"# Test created for \1"),
+        # Update legacy module path forms to use amp.helpers.
         (r"app\.amp\.helpers_root\.helpers", "amp.helpers"),
         (r"app\.amp\.helpers", "amp.helpers"),
-        # Strip a leading ``./`` that sometimes precedes relative paths.
+        # Remove leading './' from relative paths.
         (r"(?m)^\./", ""),
     ]
-    for pattern, repl in replacements:
-        txt = re.sub(pattern, repl, txt)
+    txt = _apply_regex_replacements(txt, app_patterns)
     _LOG.debug("After %s: txt=\n%s", hintros.get_function_name(), txt)
     return txt
 
@@ -687,23 +708,14 @@ def purify_docker_image_name(txt: str) -> str:
 def purify_txt_from_client(txt: str) -> str:
     """
     Remove from a string all the information of a specific run.
-
-    This function applies all purification steps in the correct order to ensure
-    consistent and deterministic text normalization across different environments.
-
-    The order is important:
-    1. Environment/path normalization (highest priority)
-    2. Module-specific reference cleanup
-    3. Other artifact cleanup
     """
-    # Step 1: Normalize environment-specific paths and user info
+    # Step 1: Normalize environment-specific paths and user info.
     txt = purify_from_environment(txt)
-    # Step 2: Handle module-specific references
+    # Step 2: Handle module-specific references.
     txt = purify_amp_references(txt)
-    txt = purify_app_references(txt)
-    # Step 3: Handle other environment variables
+    # Step 3: Handle other environment variables.
     txt = purify_from_env_vars(txt)
-    # Step 4: Handle other artifacts and formatting
+    # Step 4: Handle other artifacts and formatting.
     txt = purify_object_representation(txt)
     txt = purify_today_date(txt)
     txt = purify_white_spaces(txt)
