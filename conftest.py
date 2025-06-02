@@ -134,7 +134,7 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
         ):
             # Exclude this directory.
             return True
-            
+         
     if "PYANNOTATE" in os.environ:
         print("\nWARNING: Collecting information about types through pyannotate")
         # From https://github.com/dropbox/pyannotate/blob/master/example/example_conftest.py
