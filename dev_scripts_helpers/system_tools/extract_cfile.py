@@ -30,6 +30,7 @@ def _parse() -> argparse.ArgumentParser:
     return parser
 
 
+# TODO(gp): Use code from hcfile.py
 def _parse_input_cfile(txt: List[str]) -> List[str]:
     files = []
     for line in txt:

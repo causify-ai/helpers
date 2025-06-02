@@ -109,7 +109,29 @@ def test() -> _PROMPT_OUT:
 # #############################################################################
 
 
+# Apply_cfile.
+
+
+def code_apply_cfile() -> _PROMPT_OUT:
+    """
+    Apply a cfile to the code.
+    """
+    system = _CODING_CONTEXT
+    system += r"""
+    Replace any Python "from import" statement like `from X import Y` with the
+    form `import X` and then replace the uses of `Y` with `X.Y`
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {"remove_code_delimiters"}
+    post_container_transforms: List[str] = []
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
 # Fix
+
+
+# TODO(gp): The code fixes are superseded by the llm_review.py approach using
+# the guideline file.
 
 
 def code_fix_from_imports() -> _PROMPT_OUT:

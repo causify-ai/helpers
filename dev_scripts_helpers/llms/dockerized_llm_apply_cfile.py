@@ -11,7 +11,7 @@ the type of transformation to apply.
 import argparse
 import logging
 import re
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 import tqdm
 
@@ -24,43 +24,6 @@ import helpers.hsystem as hsystem
 _LOG = logging.getLogger(__name__)
 
 
-def _parse_cfile(cfile: str) -> List[Tuple[str, str, str]]:
-    """
-    Read and parse a cfile.
-
-    :param cfile: path to the cfile
-    :return: list of tuples, each containing a line number and a transform, e.g.,
-        [(file_name, line_number, transform), ...]
-    """
-    # Read the cfile.
-    cfile_lines = hio.from_file(cfile)
-    cfile_lines = cfile_lines.split("\n")
-    #
-    ret = []
-    # Parse the cfile.
-    for line in cfile_lines:
-        _LOG.debug("line=%s", line)
-        hdbg.dassert_isinstance(line, str)
-        # Parse the lines of the cfile, like
-        # ```
-        # dev_scripts_helpers/llms/llm_prompts.py:106: in public function `test`:D404: ...
-        # dev_scripts_helpers/llms/llm_prompts.py:110: error: Need type annotation for ...
-        # ```
-        # extracting the file name, line number, and transform.
-        regex = r"^(.+):(\d+): (.*)$"
-        match = re.match(regex, line)
-        if match is None:
-            _LOG.debug("Failed to parse line '%s'", line)
-            continue
-        # Extract the file name, line number, and transform.
-        file_name = match.group(1)
-        line_number = match.group(2)
-        transform = match.group(3)
-        # Add values to the list.
-        ret.append((file_name, line_number, transform))
-    return ret
-
-
 def _apply_transforms(
     cfile_lines: List[Tuple[str, str, str]], prompt_tag: str, model: str
 ) -> None:
@@ -69,6 +32,7 @@ def _apply_transforms(
 
     :param cfile_lines: list of tuples, each containing a file name,
         line number, and transform
+    :param prompt_tag: tag of the prompt to use for the transformation
     :param model: model to use for the transformation
     """
     # Create a dict from file to line number to transform.
@@ -84,7 +48,7 @@ def _apply_transforms(
     for file_name, line_to_transform in tqdm.tqdm(
         file_to_line_to_transform.items()
     ):
-        _LOG.info("Applying transforms to file '%s'", file_name)
+        _LOG.debug("Applying transforms to file '%s'", file_name)
         # Look for file in the current directory.
         cmd = f'find -path "*/{file_name}"'
         _, act_file_name = hsystem.system_to_one_line(cmd)
