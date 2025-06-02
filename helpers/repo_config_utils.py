@@ -105,7 +105,6 @@ def _get_env_var(
 
 
 class RepoConfig:
-
     def __init__(self, data: Dict) -> None:
         """
         Set the data to be used by the module.

@@ -454,7 +454,9 @@ class Test_docker_tag_push_multi_arch_prod_image1(_DockerFlowTestHelper):
 # #############################################################################
 
 
-class Test_docker_tag_push_multi_build_local_image_as_dev1(_DockerFlowTestHelper):
+class Test_docker_tag_push_multi_build_local_image_as_dev1(
+    _DockerFlowTestHelper
+):
     """
     Test tagging and pushing a multi-arch local Docker image as dev.
     """
@@ -923,7 +925,9 @@ class Test_docker_create_candidate_image1(_DockerFlowTestHelper):
         self.mock_workspace_check = self.workspace_check_patcher.start()
         self.patchers["workspace_check"] = self.workspace_check_patcher
         # Mock file existence check to handle both paths.
-        self.file_exists_patcher = umock.patch("helpers.hdbg.dassert_file_exists")
+        self.file_exists_patcher = umock.patch(
+            "helpers.hdbg.dassert_file_exists"
+        )
         self.mock_file_exists = self.file_exists_patcher.start()
         self.patchers["file_exists"] = self.file_exists_patcher
         # Mock `docker_build_prod_image()`.

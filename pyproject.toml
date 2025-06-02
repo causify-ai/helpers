@@ -1,5 +1,5 @@
 [tool.ruff]
-line-length = 80
+line-length = 81
 target-version = "py311"
 fix = true
 exclude = [

@@ -14,7 +14,6 @@ import helpers.hunit_test as hunitest
 
 
 class Test_run_dockerized_prettier(hunitest.TestCase):
-
     @pytest.mark.skipif(
         hserver.is_inside_ci() or hserver.is_dev_csfy(),
         reason="Disabled because of CmampTask10710",

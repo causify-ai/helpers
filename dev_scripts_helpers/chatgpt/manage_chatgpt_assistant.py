@@ -113,7 +113,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
             name=args.new_name,
             tools=tools,
             model=args.model,
-            file_ids=[hchatgp.get_gpt_id(path) for path in args.input_file_paths],
+            file_ids=[
+                hchatgp.get_gpt_id(path) for path in args.input_file_paths
+            ],
         )
     elif args.delete_name:
         assistant_id = hchatgp.get_assistant_id_by_name(args.delete_name)

@@ -158,7 +158,9 @@ class LongToShortImportGenerator:
             _LOG.debug("# Processing '%s'", long_import)
             # E.g., "im.kitbot.data.load.kitbot_s3_data_loader" ->
             # "imkdalokis3datloa".
-            short_import = self._shorten_import(long_import, long_import_to_short)
+            short_import = self._shorten_import(
+                long_import, long_import_to_short
+            )
             if short_import is not None:
                 hdbg.dassert_ne(short_import, "")
                 # Store the long import to short import mapping.
@@ -231,7 +233,9 @@ class LongToShortImportGenerator:
         return chunks_tmp, chunk_lengths_tmp
 
     @staticmethod
-    def _compute_short_import(chunks: Chunks, chunk_lengths: ChunkLengths) -> str:
+    def _compute_short_import(
+        chunks: Chunks, chunk_lengths: ChunkLengths
+    ) -> str:
         """
         Compute the short import from the chunks and the desired length for
         each chunk.
@@ -304,7 +308,8 @@ class LongToShortImportGenerator:
         # [1, 3, 4] <- weighted chunk lengths
         # [1, 3, 2] <- adj chunk lengths
         adj_chunk_lengths = [
-            min(lengths) for lengths in zip(chunk_lengths, weighted_chunk_lengths)
+            min(lengths)
+            for lengths in zip(chunk_lengths, weighted_chunk_lengths)
         ]
         hdbg.dassert_eq(len(adj_chunk_lengths), len(chunks))
         _LOG.debug("-> chunk_lengths_tmp=%s", str(adj_chunk_lengths))
@@ -595,7 +600,9 @@ class CodeImportNormalizer:
             # Make sure that there are no conflicts of the new import with the existing
             # file code.
             conflict = self._is_short_import_used(
-                code=code, short_import=new_short_import, long_import=long_import
+                code=code,
+                short_import=new_short_import,
+                long_import=long_import,
             )
             hdbg.dassert(
                 not conflict,
@@ -665,7 +672,9 @@ class CodeImportNormalizer:
                         # Do not replace an import if it is inside a string.
                         res: str = matchobj.group()
                         return res
-                res = matchobj.group().replace(old_short_import, new_short_import)
+                res = matchobj.group().replace(
+                    old_short_import, new_short_import
+                )
                 return res
 
             # Replace the short import in the imports section of the file.
@@ -1058,7 +1067,8 @@ class _NormalizeImports(liaction.Action):
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "--generate_map",

@@ -79,7 +79,6 @@ def _get_test_config4() -> cconfig.Config:
 
 # TODO(gp): -> validate_config_list
 class Test_validate_configs1(hunitest.TestCase):
-
     def test_check_same_configs_error(self) -> None:
         """
         Verify that an error is raised when duplicated configs are encountered.
@@ -117,7 +116,6 @@ class Test_validate_configs1(hunitest.TestCase):
 
 
 class Test_apply_config_overrides_from_command_line1(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Verify that config values are updated correctly.
@@ -166,7 +164,6 @@ class Test_apply_config_overrides_from_command_line1(hunitest.TestCase):
 
 
 class Test_intersect_configs1(hunitest.TestCase):
-
     def test_same_config(self) -> None:
         """
         Verify that intersection of two same configs equals those configs.
@@ -204,7 +201,6 @@ class Test_intersect_configs1(hunitest.TestCase):
 
 
 class Test_subtract_configs1(hunitest.TestCase):
-
     def test_same_config(self) -> None:
         """
         Verify that the difference of two configs is empty.
@@ -294,7 +290,6 @@ class Test_subtract_configs1(hunitest.TestCase):
 
 
 class Test_diff_configs1(hunitest.TestCase):
-
     def test_same_config(self) -> None:
         """
         Verify that the difference of two configs is empty.
@@ -338,7 +333,9 @@ class Test_diff_configs1(hunitest.TestCase):
                 {"build_targets": {"target_asset": "Crude Oil"}}
             ),
             #
-            cconfig.Config.from_dict({"build_targets": {"target_asset": "Gold"}}),
+            cconfig.Config.from_dict(
+                {"build_targets": {"target_asset": "Gold"}}
+            ),
         ]
         self.assert_equal(str(act), str(exp))
 
@@ -356,10 +353,15 @@ class Test_diff_configs1(hunitest.TestCase):
                 {"build_targets": {"target_asset": "Crude Oil"}}
             ),
             #
-            cconfig.Config.from_dict({"build_targets": {"target_asset": "Gold"}}),
+            cconfig.Config.from_dict(
+                {"build_targets": {"target_asset": "Gold"}}
+            ),
             #
             cconfig.Config.from_dict(
-                {"build_targets": {"target_asset": "Crude Oil"}, "hello": "world"}
+                {
+                    "build_targets": {"target_asset": "Crude Oil"},
+                    "hello": "world",
+                }
             ),
         ]
         exp = "\n".join(map(str, exp))
@@ -372,7 +374,6 @@ class Test_diff_configs1(hunitest.TestCase):
 
 
 class Test_convert_to_dataframe1(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Compute and verify dataframe with all config parameters.
@@ -404,7 +405,6 @@ class Test_convert_to_dataframe1(hunitest.TestCase):
 
 
 class Test_build_config_diff_dataframe1(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Summarize differences between two different configs.
@@ -467,7 +467,6 @@ class Test_build_config_diff_dataframe1(hunitest.TestCase):
 
 
 class Test_make_hashable(hunitest.TestCase):
-
     def helper(self, obj: Any, is_hashable: bool, expected: str) -> None:
         is_hashable_before = isinstance(obj, collections.abc.Hashable)
         self.assertEqual(is_hashable_before, is_hashable)
@@ -569,7 +568,6 @@ class Test_make_hashable(hunitest.TestCase):
 
 
 class Test_replace_shared_root_path(hunitest.TestCase):
-
     def test_replace_shared_dir_paths(self) -> None:
         """
         Test replacing in config all shared root paths with the dummy mapping.
@@ -621,7 +619,6 @@ class Test_replace_shared_root_path(hunitest.TestCase):
 
 
 class Test_load_config_from_pickle1(hunitest.TestCase):
-
     def helper(
         self, expected_config_version: str, expected_signature: str
     ) -> None:

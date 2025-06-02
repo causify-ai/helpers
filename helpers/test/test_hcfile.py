@@ -3,7 +3,6 @@ import os
 from typing import Any, List
 
 import helpers.hio as hio
-import helpers.hmarkdown as hmarkdo
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 import helpers.hcfile as hcfile
@@ -45,7 +44,6 @@ def _create_cfile(self_: Any, cfile_content: List[str]) -> str:
 
 
 class Test_parse_cfile1(hunitest.TestCase):
-
     def helper(self, cfile_content: str, expected: str) -> None:
         """
         Helper function to test parsing a cfile.
@@ -125,7 +123,6 @@ class Test_parse_cfile1(hunitest.TestCase):
 
 
 class Test_inject_todos_from_cfile1(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test injecting TODOs from a cfile into a Python file.

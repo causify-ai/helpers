@@ -270,7 +270,9 @@ def _run_pip_install(args: Any, conda_env_name: str) -> None:
 
 def _test_conda_env(conda_env_name: str) -> None:
     # Test activating.
-    _LOG.info("\n%s", hprint.frame(f"Test activate conda env '{conda_env_name}'"))
+    _LOG.info(
+        "\n%s", hprint.frame(f"Test activate conda env '{conda_env_name}'")
+    )
     cmd = f"conda activate {conda_env_name} && conda info --envs"
     holdcond.conda_system(cmd, suppress_output=False)
     # Check packages.
@@ -287,7 +289,8 @@ def _test_conda_env(conda_env_name: str) -> None:
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("--delete_env_if_exists", action="store_true")
     parser.add_argument(

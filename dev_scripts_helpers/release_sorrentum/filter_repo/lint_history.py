@@ -145,8 +145,12 @@ def lint_with_real_filenames(commit, metadata):
             # Get the old blob contents
             cat_file_process.stdin.write(change.blob_id + b"\n")
             cat_file_process.stdin.flush()
-            objhash, objtype, objsize = cat_file_process.stdout.readline().split()
-            contents_plus_newline = cat_file_process.stdout.read(int(objsize) + 1)
+            objhash, objtype, objsize = (
+                cat_file_process.stdout.readline().split()
+            )
+            contents_plus_newline = cat_file_process.stdout.read(
+                int(objsize) + 1
+            )
 
             # Write it out to a file with the same basename
             filename = os.path.join(tmpdir, os.path.basename(change.filename))
@@ -170,7 +174,7 @@ def lint_with_real_filenames(commit, metadata):
 
 
 def lint_non_binary_blobs(blob, metadata):
-    if not b"\0" in blob.data[0:8192]:
+    if b"\0" not in blob.data[0:8192]:
         filename = ".git/info/tmpfile"
         with open(filename, "wb") as f:
             f.write(blob.data)

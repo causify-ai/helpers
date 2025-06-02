@@ -14,7 +14,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_check_file_reference(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test for a referenced Markdown file in README.md.
@@ -35,7 +34,9 @@ class Test_check_file_reference(hunitest.TestCase):
         warnings = lachmdre.check_file_reference(readme_path, "unreferenced.md")
         self.assertEqual(
             warnings,
-            ["unreferenced.md: 'unreferenced.md' is not referenced in README.md"],
+            [
+                "unreferenced.md: 'unreferenced.md' is not referenced in README.md"
+            ],
         )
 
     def _create_tmp_dir_with_file(self) -> str:

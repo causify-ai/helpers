@@ -303,7 +303,7 @@ def _git_log(num_commits: int = 5, my_commits: bool = False) -> str:
     cmd = []
     cmd.append("git log --date=local --oneline --graph --date-order --decorate")
     cmd.append(
-        "--pretty=format:" "'%h %<(8)%aN%  %<(65)%s (%>(14)%ar) %ad %<(10)%d'"
+        "--pretty=format:'%h %<(8)%aN%  %<(65)%s (%>(14)%ar) %ad %<(10)%d'"
     )
     cmd.append(f"-{num_commits}")
     if my_commits:

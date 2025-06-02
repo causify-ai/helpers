@@ -101,7 +101,9 @@ def verify_toc_position(lines: List[str], file_name: str) -> List[str]:
     return warnings
 
 
-def fix_md_toc_headers(file_name: str) -> Tuple[List[str], List[str], List[str]]:
+def fix_md_toc_headers(
+    file_name: str,
+) -> Tuple[List[str], List[str], List[str]]:
     """
     Fix header levels and verify the Table of Contents.
 
@@ -126,7 +128,6 @@ def fix_md_toc_headers(file_name: str) -> Tuple[List[str], List[str], List[str]]
 
 
 class _TOCHeaderFixer(liaction.Action):
-
     def check_if_possible(self) -> bool:
         return True
 
@@ -147,7 +148,8 @@ class _TOCHeaderFixer(liaction.Action):
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "files",

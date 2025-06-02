@@ -25,7 +25,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_filter_data_by_values1(hunitest.TestCase):
-
     def test_conjunction1(self) -> None:
         data = pd.DataFrame([[1, 2, 3], [4, 5, 6]])
         data = data.add_prefix("col_")
@@ -66,7 +65,6 @@ class Test_filter_data_by_values1(hunitest.TestCase):
 
 
 class Test_filter_data_by_comparison(hunitest.TestCase):
-
     def test_conjunction1(self) -> None:
         data = pd.DataFrame([[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]])
         data = data.add_prefix("col_")
@@ -140,7 +138,6 @@ class TestFilterDataByMethod(hunitest.TestCase):
 
 
 class Test_apply_nan_mode(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test for `mode=leave_unchanged`.
@@ -211,7 +208,6 @@ class Test_apply_nan_mode(hunitest.TestCase):
 
 
 class Test_compute_points_per_year_for_given_freq(hunitest.TestCase):
-
     def test1(self) -> None:
         actual = hdatafr.compute_points_per_year_for_given_freq("T")
         np.testing.assert_equal(actual, 525780.125)
@@ -247,7 +243,6 @@ class Test_compute_points_per_year_for_given_freq(hunitest.TestCase):
 
 
 class TestRemoveDuplicates(hunitest.TestCase):
-
     def test_remove_duplicates1(self) -> None:
         test_data = {
             "dummy_value_1": [1, 2, 1],

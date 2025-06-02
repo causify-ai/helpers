@@ -89,7 +89,9 @@ def _find_files_for_user(dir_name: str, user: str, is_equal: bool) -> List[str]:
     return files
 
 
-def _find_files_for_group(dir_name: str, group: str, is_equal: bool) -> List[str]:
+def _find_files_for_group(
+    dir_name: str, group: str, is_equal: bool
+) -> List[str]:
     """
     Find all the files under `abs_dir` that are owned by a group `group`.
     """

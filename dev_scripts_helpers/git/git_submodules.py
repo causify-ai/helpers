@@ -71,7 +71,8 @@ def _roll_fwd(dir_names: List[str], auto_commit: bool, short_hash: bool) -> None
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("--pull", action="store_true")
     parser.add_argument("--show", action="store_true")

@@ -231,7 +231,9 @@ def gh_workflow_list(  # type: ignore
                 # to the `PATH` (when inside the container) so we can just use
                 # them without specifying the full path.
                 helpers_root_dir = hgit.find_helpers_root()
-                file_path = f"{helpers_root_dir}/dev_scripts_helpers/system_tools"
+                file_path = (
+                    f"{helpers_root_dir}/dev_scripts_helpers/system_tools"
+                )
                 cmd = f"{file_path}/remove_escape_chars.py -i {log_file_name}"
                 hsystem.system(cmd)
                 print(f"# Log is in '{log_file_name}'")
@@ -711,7 +713,9 @@ def gh_get_overall_build_status_for_repo(
     return overall_status
 
 
-def gh_get_workflow_type_names(repo_name: str, *, sort: bool = True) -> List[str]:
+def gh_get_workflow_type_names(
+    repo_name: str, *, sort: bool = True
+) -> List[str]:
     """
     Get a list of workflow names for a given repo.
 
@@ -730,7 +734,8 @@ def gh_get_workflow_type_names(repo_name: str, *, sort: bool = True) -> List[str
         workflow_names = sorted(workflow_names)
     # Check for duplicate workflow names.
     hdbg.dassert_no_duplicates(
-        workflow_names, "Found duplicate workflow names in repo '%s'" % repo_name
+        workflow_names,
+        "Found duplicate workflow names in repo '%s'" % repo_name,
     )
     return workflow_names
 
