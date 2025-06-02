@@ -1,11 +1,11 @@
 # pip install nbconvert nbformat selenium pillow
 
-import os
-import time
+#import os
+#import time
 
-import nbformat
-from PIL import Image
-from selenium import webdriver
+#import nbformat
+#from PIL import Image
+#from selenium import webdriver
 
 
 #def extract_cells(notebook_path, cell_numbers, temp_notebook="temp_subset.ipynb"):

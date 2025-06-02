@@ -237,7 +237,7 @@ class _NotebookImageExtractor:
                     cell.source = ""
             # Create a new notebook for the region.
             new_nb = nbformat.v4.new_notebook(cells=cells)
-            temp_html = f"tmp.dockerized_extract_notebook_images.html"
+            temp_html = "tmp.dockerized_extract_notebook_images.html"
             self._convert_notebook_to_html(new_nb, temp_html)
             # Determine the final screenshot filename.
             base, ext = os.path.splitext(out_filename)

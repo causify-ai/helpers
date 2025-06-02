@@ -212,6 +212,7 @@ def git_patch_create(  # type: ignore
         cmd = f"tar czvf {dst_file} {files_as_str}"
         cmd_inv = "tar xvzf"
     elif mode == "diff":
+        opts: str
         if modified:
             opts = "HEAD"
         elif branch:
@@ -219,12 +220,14 @@ def git_patch_create(  # type: ignore
         elif last_commit:
             opts = "HEAD^"
         else:
-            hdbg.dfatal(
+            raise ValueError(
                 "You need to specify one among -modified, --branch, "
                 "--last-commit"
             )
         cmd = f"git diff {opts} --binary {files_as_str} >{dst_file}"
         cmd_inv = "git apply"
+    else:
+        raise ValueError(f"Invalid cmd='{cmd}'")
     # Execute patch command.
     _LOG.info("Creating the patch into %s", dst_file)
     hdbg.dassert_ne(cmd, "")
@@ -236,16 +239,17 @@ def git_patch_create(  # type: ignore
     remote_file = os.path.basename(dst_file)
     abs_path_dst_file = os.path.abspath(dst_file)
     msg = f"""
-# To apply the patch and execute:
-> git checkout {hash_}
-> {cmd_inv} {abs_path_dst_file}
+    # To apply the patch and execute:
+    > git checkout {hash_}
+    > {cmd_inv} {abs_path_dst_file}
 
-# To apply the patch to a remote client:
-> export SERVER="server"
-> export CLIENT_PATH="~/src"
-> scp {dst_file} $SERVER:
-> ssh $SERVER 'cd $CLIENT_PATH && {cmd_inv} ~/{remote_file}'"
+    # To apply the patch to a remote client:
+    > export SERVER="server"
+    > export CLIENT_PATH="~/src"
+    > scp {dst_file} $SERVER:
+    > ssh $SERVER 'cd $CLIENT_PATH && {cmd_inv} ~/{remote_file}'"
     """
+    msg = hprint.dedent(msg)
     print(msg)
 
 
@@ -919,6 +923,33 @@ def git_branch_diff_with(  # type: ignore
         only_print_files,
         dry_run,
     )
+
+
+@task
+def git_repo_copy(ctx, file_name, src_git_dir, dst_git_dir):  # type: ignore
+    """
+    Copy the code from the src Git client to the dst Git client.
+
+    :param file_name: the name of the file to copy (which is under
+        `src_git_dir`)
+    :param src_git_dir: the directory of the source Git client (e.g.,
+        "/Users/saggese/src/helpers1")
+    :param dst_git_dir: the directory of the destination Git client (e.g.,
+        "/Users/saggese/src/helpers2")
+    """
+    _ = ctx
+    src_git_dir = hgit.resolve_git_client_dir(src_git_dir)
+    dst_git_dir = hgit.resolve_git_client_dir(dst_git_dir)
+    dst_file_path = hgit.project_file_name_in_git_client(
+        file_name,
+        src_git_dir,
+        dst_git_dir,
+        check_src_file_exists=True,
+        check_dst_file_exists=False,
+    )
+    _LOG.info("Copying code from '%s' to '%s' ...", file_name, dst_git_dir)
+    # Copy the file.
+    hsystem.system_to_string(f"cp {file_name} {dst_file_path}")
 
 
 # pylint: disable=line-too-long

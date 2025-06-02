@@ -4,13 +4,13 @@
 Read cfile input and implement a transform for each line of the cfile using
 LLMs.
 
-The script `dockerized_llm_apply_cfile.py` is executed within a Docker container to ensure
-all dependencies are met. The Docker container is built dynamically if
+The script `dockerized_llm_apply_cfile.py` is executed within a Docker container
+to ensure all dependencies are met. The Docker container is built dynamically if
 necessary. The script requires an OpenAI API key to be set in the environment.
 
 Examples
 # Basic Usage
-> llm_apply_cfile.py -i cfile.txt
+> llm_apply_cfile.py --cfile cfile.txt
 """
 
 import argparse
@@ -44,13 +44,15 @@ def _parse() -> argparse.ArgumentParser:
         required=True,
         help="Path to the cfile",
     )
-    hparser.add_llm_prompt_arg(parser)
+    hparser.add_llm_prompt_arg(parser, default_prompt="code_apply_cfile")
     hparser.add_dockerized_script_arg(parser)
     # Use CRITICAL to avoid logging anything.
     hparser.add_verbosity_arg(parser, log_level="CRITICAL")
     return parser
 
 
+# TODO(gp): Factor this out since it's very similar to
+# `_run_dockerized_llm_transform()`.
 def _run_dockerized_llm_apply_cfile(
     in_file_path: str,
     cmd_opts: List[str],
@@ -81,9 +83,7 @@ def _run_dockerized_llm_apply_cfile(
 
     # Install pip packages.
     RUN pip install --upgrade pip
-    RUN pip install --no-cache-dir PyYAML
-
-    RUN pip install --no-cache-dir openai
+    RUN pip install --no-cache-dir PyYAML openai pandas requests tqdm
     """
     container_image = hdocker.build_container_image(
         container_image, dockerfile, force_rebuild, use_sudo
@@ -128,7 +128,7 @@ def _run_dockerized_llm_apply_cfile(
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
     cmd_opts_as_str = " ".join(cmd_opts)
-    cmd = f" {script} --cfile {in_file_path} {cmd_opts_as_str}"
+    cmd = f"{script} --cfile {in_file_path} {cmd_opts_as_str}"
     docker_cmd = hdocker.get_docker_base_cmd(use_sudo)
     docker_cmd.extend(
         [
