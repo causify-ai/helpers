@@ -78,7 +78,7 @@ def process_docker_cmd(
         ret = docker_cmd
     elif mode == "system":
         # TODO(gp): Note that `suppress_output=False` seems to hang the call.
-        hsystem.system(docker_cmd)
+        hsystem.system(docker_cmd, suppress_output=False)
         ret = ""
     elif mode == "save_to_file":
         file_name = f"tmp.process_docker_cmd.{container_image}.txt"
@@ -1838,7 +1838,7 @@ def run_dockerized_graphviz(
     # container_image = "graphviz/graphviz"
     # container_image = "nshine/dot"
     container_image = "tmp.graphviz"
-    dockerfile = rf"""
+    dockerfile = r"""
     FROM alpine:latest
 
     RUN apk add --no-cache graphviz

@@ -9,7 +9,6 @@ import dev_scripts_helpers.remove_escape_chars as dsreesch
 import argparse
 import logging
 
-import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 

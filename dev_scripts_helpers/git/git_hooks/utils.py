@@ -14,6 +14,7 @@ import subprocess
 import sys
 from typing import Any, List, Optional, Tuple
 
+import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 
 _LOG = logging.getLogger(__name__)
@@ -486,7 +487,9 @@ def check_gitleaks(abort_on_error: bool = True) -> None:
     """
     func_name = _report()
     git_root_dir = hgit.find_git_root()
+    hdbg.dassert_isinstance(git_root_dir, str)
     helpers_root_dir = hgit.find_helpers_root()
+    hdbg.dassert_isinstance(helpers_root_dir, str)
     # Compute relative path from root of the outer most repo to the helpers root.
     rel_path = os.path.relpath(helpers_root_dir, git_root_dir)
     # Find the gitleaks config file.

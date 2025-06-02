@@ -144,7 +144,7 @@ def _get_python_version_in_docker() -> str:
     """
     Get the Python version used in Docker.
     """
-    cmd = f"invoke docker_cmd -c 'python -V'"
+    cmd = "invoke docker_cmd -c 'python -V'"
     _, output = hsystem.system_to_string(cmd)
     pattern = r"Python (\d+\.\d+\.\d+)"
     match = re.search(pattern, output)

@@ -191,7 +191,7 @@ def get_env_vars() -> List[str]:
     hdbg.dassert_eq(
         len(set(env_var_names)),
         len(env_var_names),
-        f"There are duplicates",
+        "There are duplicates",
         str(env_var_names),
     )
     # Sort.
@@ -214,7 +214,7 @@ def get_secret_env_vars() -> List[str]:
     hdbg.dassert_eq(
         len(set(secret_env_var_names)),
         len(secret_env_var_names),
-        f"There are duplicates",
+        "There are duplicates",
         str(secret_env_var_names),
     )
     # Secret env vars are a subset of the env vars.
@@ -349,7 +349,7 @@ def _get_git_signature(git_commit_type: str = "all") -> str:
         raise ValueError(f"Invalid value='{git_commit_type}'")
     #
     txt = "\n".join(txt) + "\n"
-    hdbg.dassert(txt.endswith("\n"), f"txt_tmp='%s'", txt)
+    hdbg.dassert(txt.endswith("\n"), "txt_tmp='%s'", txt)
     return txt
 
 

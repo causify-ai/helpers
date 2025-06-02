@@ -286,7 +286,7 @@ def lint(  # type: ignore
 
 
 @task
-def lint_check_if_it_was_run(ctx):
+def lint_check_if_it_was_run(ctx):  # type: ignore
     """
     Check if the linter was run in the current branch.
 
@@ -346,3 +346,74 @@ def _get_lint_docker_cmd(
         use_entrypoint=use_entrypoint,
     )
     return cmd
+
+
+@task
+def lint_sync_code(ctx, git_client_name="helpers1", revert_to_original=False):  # type: ignore
+    """
+    Sync the code needed to run linter and ai_review.py from a client to the
+    current one.
+
+    :param git_client_name: the name of the git client to sync from. It can be
+        something like "helpers1" and it will be used from "$HOME/src" or can
+        be a full path.
+    :param revert_to_original: if `True`, revert the changes to the original
+    """
+    _ = ctx
+    hlitauti.report_task()
+    # Copy the code from the src git client to the current one.
+    src_git_dir = hgit.resolve_git_client_dir(git_client_name)
+    #
+    files_to_copy = [
+        # "hgit.py",
+        # "hmarkdown.py",
+        "llm_prompts.py",
+        "llm_transform.py",
+        "inject_todos.py",
+        "all.linter_style_review_guidelines.reference.md",
+        "all.llm_style_review_guidelines.reference.md",
+    ]
+    # Revert the files in the current git client to the original code.
+    if revert_to_original:
+        _LOG.debug("Reverting to original code ...")
+        for file_name in files_to_copy:
+            _LOG.debug("Reverting %s to original code", file_name)
+            src_file_path = hgit.find_file(file_name, dir_path=src_git_dir)
+            cmd = "git checkout -- %s" % src_file_path
+            hsystem.system(cmd)
+        _LOG.info("Done")
+        return
+    # Get the path to the helpers repo.
+    src_helpers_dir = hgit.find_helpers_root(src_git_dir)
+    hdbg.dassert_ne(src_helpers_dir, "")
+    hdbg.dassert_dir_exists(src_helpers_dir)
+    #
+    dst_helpers_dir = hgit.find_helpers_root()
+    hdbg.dassert_dir_exists(dst_helpers_dir)
+    _LOG.debug(hprint.to_str("src_helpers_dir dst_helpers_dir"))
+    #
+    _LOG.info(
+        "Copying files from '%s' to '%s' ...", src_helpers_dir, dst_helpers_dir
+    )
+    # Find the files to copy.
+    for file_name in files_to_copy:
+        _LOG.debug(hprint.to_str("file_name"))
+        # Get the path to the file in the src Git client.
+        src_file_path = hgit.find_file(file_name, dir_path=src_git_dir)
+        src_file_path = os.path.abspath(os.path.join(src_git_dir, src_file_path))
+        _LOG.debug(hprint.to_str("src_file_path"))
+        hdbg.dassert_file_exists(src_file_path)
+        # Get the path to the file in the dst Git client.
+        dst_file_path = hgit.project_file_name_in_git_client(
+            src_file_path, src_helpers_dir, dst_helpers_dir
+        )
+        _LOG.debug(hprint.to_str("dst_file_path"))
+        # Copy the file.
+        _LOG.debug(hprint.to_str("src_file_path dst_file_path"))
+        dir_name = os.path.dirname(dst_file_path)
+        hio.create_dir(dir_name, incremental=True)
+        cmd = f"cp -f {src_file_path} {dst_file_path}"
+        _LOG.debug(hprint.to_str("cmd"))
+        _LOG.info("Copying file '%s' to '%s' ...", src_file_path, dst_file_path)
+        hsystem.system(cmd)
+    _LOG.info("Done")
