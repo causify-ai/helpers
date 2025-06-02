@@ -363,7 +363,7 @@ def _docker_login_ecr() -> None:
         cmd = f"eval $(aws ecr get-login --profile {profile} --no-include-email --region {region})"
     elif major_version == 2:
         if profile == "ck":
-            env_var = f"CSFY_ECR_BASE_PATH"
+            env_var = "CSFY_ECR_BASE_PATH"
         else:
             env_var = f"{profile.upper()}_ECR_BASE_PATH"
         ecr_base_path = hlitauti.get_default_param(env_var)
@@ -560,7 +560,7 @@ def _generate_docker_compose_file(
         "cap_add": ["SYS_ADMIN"],
         "environment": [
             f"CSFY_ENABLE_DIND={CSFY_ENABLE_DIND}",
-            f"CSFY_FORCE_TEST_FAIL=$CSFY_FORCE_TEST_FAIL",
+            "CSFY_FORCE_TEST_FAIL=$CSFY_FORCE_TEST_FAIL",
             f"CSFY_HOST_NAME={csfy_host_name}",
             f"CSFY_HOST_OS_NAME={csfy_host_os_name}",
             f"CSFY_HOST_OS_VERSION={csfy_host_os_version}",

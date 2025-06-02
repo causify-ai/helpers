@@ -4,13 +4,13 @@
 
 3:        ```python
 4:        def print_integers(values):
-5:
+5:    
 6:            def _is_integer(value):
 7:                try:
 8:                    return value == int(value)
 9:                except:
 10:                    return False
-11:
+11:    
 12:            for v in values:
 13:                if _is_integer(v):
 14:                    print(v)
