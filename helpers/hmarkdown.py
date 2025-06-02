@@ -11,7 +11,6 @@ from typing import Dict, Generator, List, Optional, Tuple, cast
 
 import dev_scripts_helpers.documentation.lint_notes as dshdlino
 import helpers.hdbg as hdbg
-import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 

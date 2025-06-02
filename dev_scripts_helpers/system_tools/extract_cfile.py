@@ -12,7 +12,6 @@ import logging
 import re
 from typing import List
 
-import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)

@@ -10,7 +10,6 @@ the type of transformation to apply.
 
 import argparse
 import logging
-import re
 from typing import Dict, List, Tuple
 
 import tqdm

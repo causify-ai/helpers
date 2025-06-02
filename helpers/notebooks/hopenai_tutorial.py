@@ -63,7 +63,6 @@ import pprint
 pprint.pprint(val[0])
 
 # %%
-import numpy as np
 import pandas as pd
 
 # %%

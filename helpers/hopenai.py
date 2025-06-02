@@ -11,11 +11,11 @@ import json
 import logging
 import os
 import re
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 import openai
-import openai.types.beta.assistant as OAssistant
-import openai.types.beta.threads.message as OMessage
+#import openai.types.beta.assistant as OAssistant
+#import openai.types.beta.threads.message as OMessage
 import pandas as pd
 import requests
 import tqdm

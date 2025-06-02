@@ -514,10 +514,11 @@ def code_transform_apply_csfy_style() -> _PROMPT_OUT:
     system = _CODING_CONTEXT
     file_name = "template_code.py"
     file_name = os.path.join(hgit.find_helpers_root(), file_name)
-    hio.from_file(file_name)
+    template_code = hio.from_file(file_name)
     system += rf"""
     Apply the style described below to the Python code
 
+    {template_code}
 
     Do not remove any code, just format the existing code using the style.
     Do not change the behavior of the code.

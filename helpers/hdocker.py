@@ -1838,7 +1838,7 @@ def run_dockerized_graphviz(
     # container_image = "graphviz/graphviz"
     # container_image = "nshine/dot"
     container_image = "tmp.graphviz"
-    dockerfile = rf"""
+    dockerfile = r"""
     FROM alpine:latest
 
     RUN apk add --no-cache graphviz
