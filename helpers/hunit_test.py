@@ -440,7 +440,7 @@ def purify_directory_paths(txt: str) -> str:
     replacements.sort(key=lambda x: len(x[0]), reverse=True)
     for path, replacement in replacements:
         # Use word boundaries to avoid replacing path fragments.
-        # Pattern ensures path is not part of a larger word or path.
+        # Pattern ensures path is not part of a larger word.
         # E.g., To avoid replacing `app` in `application.py`.
         pattern = rf"(?<![\w/]){re.escape(path)}(?![\w])"
         txt = re.sub(pattern, replacement, txt)
