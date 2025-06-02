@@ -22,7 +22,6 @@ import argparse
 import logging
 import sys
 
-import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hprint as hprint

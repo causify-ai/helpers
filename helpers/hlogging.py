@@ -176,17 +176,19 @@ def shutup_chatty_modules(
         "boto",
         "boto3",
         "botocore",
-        # CCXT also needs to be shut up after the `exchange` is built.
-        "ccxt",
+        "ccxt",  # CCXT also needs to be shut up after the `exchange` is built.
         "fsspec",
         "hooks",
-        # "ib_insync",
+        "httpcore",
+        "httpx",
         "invoke",
         "matplotlib",
         "nose",
+        "openai"
         "s3fs",
         "s3transfer",
         "urllib3",
+        # "ib_insync",
     ]
     # verbose = True
     loggers = get_matching_loggers(module_names, verbose)
@@ -224,7 +226,7 @@ class _LocalTimeZoneFormatter:
             import pytz
 
             self._tzinfo = pytz.timezone("America/New_York")
-        except ModuleNotFoundError as e:
+        except ModuleNotFoundError:
             #print(f"Can't import pytz: using UTC\n{str(e)}")
             self._tzinfo = None
 
@@ -555,7 +557,7 @@ class CustomFormatter(logging.Formatter):
             import pytz
 
             self._tzinfo = pytz.timezone("America/New_York")
-        except ModuleNotFoundError as e:
+        except ModuleNotFoundError:
             #print(f"Can't import pytz: using UTC\n{str(e)}")
             self._tzinfo = None
         #

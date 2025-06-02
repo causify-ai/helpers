@@ -419,7 +419,7 @@ def read_file(file_name: str) -> List[str]:
         f.close()
     else:
         txt = hio.from_file(file_name)
-        txt = txt.splitlines()
+        txt = txt.split("\n")
     return txt
 
 
@@ -676,6 +676,8 @@ def add_dockerized_script_arg(
 
 def add_llm_prompt_arg(
     parser: argparse.ArgumentParser,
+    *,
+    default_prompt: str = ""
 ) -> argparse.ArgumentParser:
     """
     Add common command line arguments for `*llm_transform.py` scripts.
@@ -685,8 +687,14 @@ def add_llm_prompt_arg(
         action="store_true",
         help="Print before/after the transform",
     )
+    is_required = default_prompt == ""
     parser.add_argument(
-        "-p", "--prompt", required=True, type=str, help="Prompt to apply"
+        "-p",
+        "--prompt",
+        required=is_required,
+        type=str,
+        help="Prompt to apply",
+        default=default_prompt,
     )
     parser.add_argument(
         "-f",

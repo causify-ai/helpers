@@ -32,7 +32,7 @@ import argparse
 import logging
 import os
 import re
-from typing import List, Optional
+from typing import List, Optional, cast
 
 import dev_scripts_helpers.llms.llm_prompts as dshlllpr
 import helpers.hdbg as hdbg
@@ -189,6 +189,7 @@ def _run_dockerized_llm_transform(
     ret = hdocker.process_docker_cmd(
         docker_cmd, container_image, dockerfile, mode
     )
+    ret = cast(str, ret)
     return ret
 
 

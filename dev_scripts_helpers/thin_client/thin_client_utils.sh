@@ -31,7 +31,7 @@ dassert_is_sourced() {
     if [[ ! is_sourced ]]; then
         # We are in a script.
         echo -e "${ERROR}: This needs to be sourced and not executed"
-        exit -1
+        die
     fi;
 }
 
@@ -41,7 +41,7 @@ dassert_is_executed() {
     if [[ is_sourced ]]; then
         # This is being executed and not sourced.
         echo -e "${ERROR}: This needs to be executed and not sourced"
-        return -1
+        die
     fi;
 }
 
@@ -61,7 +61,7 @@ dassert_dir_exists() {
     local dir_path="$1"
     if [[ ! -d "$dir_path" ]]; then
         echo -e "${ERROR}: Directory '$dir_path' does not exist."
-        kill -INT $$
+        die
     fi
 }
 
@@ -72,7 +72,7 @@ check_file_exists() {
     local file_name="$1"
     if [[ ! -f "$file_name" ]]; then
         echo -e "${ERROR}: File '$file_name' does not exist."
-        kill -INT $$
+        die
     fi
 }
 
@@ -81,8 +81,19 @@ dassert_is_git_root() {
     # Check if the current directory is the root of a Git repository.
     if [[ ! -d .git ]]; then
         echo -e "${ERROR}: Current dir '$(pwd)' is not the root of a Git repo."
-        kill -INT $$
+        die
     fi;
+}
+
+
+die() {
+    if [[ -f /.dockerenv ]] ; then
+        # Inside container.
+        return 1
+    else
+        # Outside container.
+        kill -INT $$
+    fi
 }
 
 
@@ -95,7 +106,7 @@ dassert_var_defined() {
     # Use indirect expansion to check the value of the variable.
     if [[ -z "${!var_name}" ]]; then
         echo -e "${ERROR}: Var '${var_name}' is not defined or is empty."
-        kill -INT $$
+        die
     fi;
 }
 
@@ -107,7 +118,7 @@ dassert_eq_num_args() {
     local func_name=$3
     if [[ $actual_args -ne $expected_args ]]; then
         echo -e "${ERROR}: Function '$func_name' requires exactly $expected_args arguments, but got $actual_args"
-        kill -INT $$
+        die
     fi
 }
 
@@ -197,7 +208,7 @@ activate_venv() {
         venv_dir="/venv/client_venv.${venv_tag}"
         if [[ ! -d $venv_dir ]]; then
             echo -e "${ERROR}: Can't find venv_dir='$venv_dir'. Create it with build.py"
-            kill -INT $$
+            die
         fi;
     fi;
     ACTIVATE_SCRIPT="$venv_dir/bin/activate"
@@ -233,15 +244,21 @@ set_path() {
     #
     dassert_dir_exists $dev_script_dir
     dtrace "dev_script_dir=$dev_script_dir"
-    #
+    # TODO(gp): Unify this as part of CmTask12257.
+    if [[ -n "$GIT_ROOT_DIR" ]]; then
+        # `GIT_ROOT_DIR` is available outside the container.
+        GIT_ROOT=$GIT_ROOT_DIR
+    elif [[ -n "$CSFY_GIT_ROOT_PATH" ]]; then
+        # `CSFY_GIT_ROOT_PATH` is available inside the container.
+        GIT_ROOT=$CSFY_GIT_ROOT_PATH
+    fi
     export PATH=$(pwd):$PATH
     dtrace "GIT_ROOT=$GIT_ROOT"
-    # TODO(gp): Enable this as part of HelpersTask12257.
-    # dassert_var_defined "GIT_ROOT"
-    #
+    dassert_var_defined "GIT_ROOT"
     export PATH=$GIT_ROOT_DIR:$PATH
     # Avoid ./.mypy_cache/3.12/app/dev_scripts_helpers
-    DEV_SCRIPT_HELPER_DIR=$(find ${GIT_ROOT_DIR} -name dev_scripts_helpers -type d -not -path "*.mypy_cache*")
+    DEV_SCRIPT_HELPER_DIR=$(find ${GIT_ROOT} -name dev_scripts_helpers -type d -not -path "*.mypy_cache*")
+    echo "DEV_SCRIPT_HELPER_DIR=$DEV_SCRIPT_HELPER_DIR"
     dassert_dir_exists $DEV_SCRIPT_HELPER_DIR
     dtrace "DEV_SCRIPT_HELPER_DIR=$DEV_SCRIPT_HELPER_DIR"
     # Add to the PATH all the first level directory under `dev_scripts`.
