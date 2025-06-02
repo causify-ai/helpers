@@ -1243,6 +1243,79 @@ class Test_purify_amp_reference1(hunitest.TestCase):
         """
         self.helper(txt, exp)
 
+    def test2(self) -> None:
+        """
+        Test removing multiple amp references in a single string.
+        """
+        txt = """
+        ImportError: No module named 'amp.helpers.test.test_dbg'
+        ImportError: No module named 'amp.helpers.test.test_file'
+        """
+        exp = r"""
+        ImportError: No module named 'helpers.test.test_dbg'
+        ImportError: No module named 'helpers.test.test_file'
+        """
+        self.helper(txt, exp)
+
+    def test3(self) -> None:
+        """
+        Test removing amp references in file paths.
+        """
+        txt = """
+        File "/home/user/amp/helpers/test/test_dbg.py", line 10
+        File "/home/user/amp/helpers/test/test_file.py", line 20
+        """
+        exp = r"""
+        File "/home/user/helpers/test/test_dbg.py", line 10
+        File "/home/user/helpers/test/test_file.py", line 20
+        """
+        self.helper(txt, exp)
+
+    def test4(self) -> None:
+        """
+        Test removing amp references in import statements.
+        """
+        txt = """
+        from amp.helpers.test import test_dbg
+        import amp.helpers.test.test_file
+        from amp.helpers.test.test_dbg import _Man
+        """
+        exp = r"""
+        from helpers.test import test_dbg
+        import helpers.test.test_file
+        from helpers.test.test_dbg import _Man
+        """
+        self.helper(txt, exp)
+
+    def test5(self) -> None:
+        """
+        Test removing amp references in docstrings and comments.
+        """
+        txt = """
+        # This is a test for amp.helpers.test.test_dbg
+        """
+        exp = r"""
+        # This is a test for helpers.test.test_dbg
+        """
+        self.helper(txt, exp)
+
+    def test6(self) -> None:
+        """
+        Test removing amp references in error messages with multiple
+        occurrences.
+        """
+        txt = """
+        Error in amp.helpers.test.test_dbg: Invalid input
+        Error in amp.helpers.test.test_file: File not found
+        Error in amp.helpers.test.test_dbg: Permission denied
+        """
+        exp = r"""
+        Error in helpers.test.test_dbg: Invalid input
+        Error in helpers.test.test_file: File not found
+        Error in helpers.test.test_dbg: Permission denied
+        """
+        self.helper(txt, exp)
+
 
 # #############################################################################
 # Test_purify_from_environment1
