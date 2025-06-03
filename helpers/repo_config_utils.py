@@ -340,6 +340,9 @@ class RepoConfig:
     def get_container_registry_url(self, registry: str = "ecr") -> str:
         """
         Return the URL of the container registry.
+
+        :param registry: the name of the container registry (e.g., `ecr`, `ghcr`)
+        :return: the URL of the container registry
         """
         return self._data["container_registry_info"][registry]
 
