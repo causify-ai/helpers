@@ -181,6 +181,8 @@ def _run_dockerized_llm_transform(
         ]
     )
     docker_cmd = " ".join(docker_cmd)
+    if suppress_output:
+        mode = "system_without_output"
     ret = hdocker.process_docker_cmd(
         docker_cmd, container_image, dockerfile, mode
     )
@@ -217,7 +219,7 @@ def _convert_file_names(in_file_name: str, out_file_name: str) -> None:
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    hparser.init_logger_for_input_output_transform(args)
+    hparser.init_logger_for_input_output_transform(args, verbose=False)
     #
     if args.prompt == "list":
         print("# Available prompt tags:")
