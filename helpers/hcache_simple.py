@@ -555,3 +555,73 @@ def simple_cache(
         return wrapper
 
     return decorator
+
+
+# #############################################################################
+# Proposal: Extending simple_cache() with pluggable cache backends.
+# #############################################################################
+#
+# Step1: Introduce a minimal "CacheBackend" protocol.
+    # class CacheBackend(Protocol):
+    #     def has(self, key: str) -> bool: ...
+    #     def load(self, key: str) -> Any: ...
+    #     def save(self, key: str, value: Any) -> None: ...
+
+
+# Step2: Change the signature of "simple_cache" to accept:
+#   - "cache_backend"(an object implementing .has/.load/.save)
+#   - "key_fn"(to produce string key)
+#   - "serialise/desearialise" hooks
+
+    # def simple_cache(
+    #     cache_type: str = "json",
+    #     write_through: bool = False,
+    #     *,
+    #     cache_backend: CacheBackend = None,
+    #     key_fn: Callable[[Tuple[Any, ...], Dict[str, Any]], str] = None,
+    #     serialize: Callable[[Any], Any] = None,
+    #     deserialize: Callable[[Any], Any] = None,
+    #  ) -> Callable[..., Any]:
+
+
+
+# step3: in the wrapper, if "cache_backend" is passed, use the generic flow; otherwise fall back to default logic.
+
+    # @functools.wraps(func)
+    # def wrapper(*args: Any, **kwargs: Any) -> Any:
+    # ---- Pluggable‐backend flow ----
+    #     if cache_backend:
+    #         # build key
+    #         key = key_fn(args, kwargs) if key_fn else str(args)
+    #         # hit?
+    #         if cache_backend.has(key):
+    #             raw = cache_backend.load(key)
+    #             return deserialize(raw) if deserialize else raw
+    #         # miss: call original, then save
+    #         result = func(*args, **kwargs)
+    #         to_store = serialize(result) if serialize else result
+    #         cache_backend.save(key, to_store)
+    #         return result
+    #     # ---- Legacy in‐memory + disk logic ----
+    # # Get the function name.
+    # func_name = func.__name__
+    # if func_name.endswith("_intrinsic"):
+    #     func_name = func_name[: -len("_intrinsic")]
+    # # Get the cache.
+    # cache = get_cache(func_name)
+    # existing code here..
+    # ..
+
+
+# With this in place:
+# Any existing use of @simple_cache() (with no cache_backend) will continue to use your current memory+disk behavior.
+# To hook into a custom cache you simply pass it in "cache_backend"
+
+# Note1: This approach does not support cache modes such as "DISABLED", "CAPTURE", "REPLAY", or "FALLBACK", since those are specific to hopenai.get_completion().
+#       Incorporating them into simple_cache() would reduce its versatility.
+
+
+# Note2: If approach is followed and made changes to simple_cache(), then hopenai.get_completion will undergo some changes.
+
+
+
