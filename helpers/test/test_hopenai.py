@@ -6,7 +6,9 @@ import unittest.mock as umock
 import pandas as pd
 import pytest
 
-pytest.importorskip("openai")  # noqa: E402 # pylint: disable=wrong-import-position
+pytest.importorskip(
+    "openai"
+)  # noqa: E402 # pylint: disable=wrong-import-position
 
 import helpers.hopenai as hopenai
 import helpers.hunit_test as hunitest
@@ -270,10 +272,8 @@ class _OpenAICacheTestCase(hunitest.TestCase):
 # #############################################################################
 
 
-
 class Test_get_completion(_OpenAICacheTestCase):
 
-  
     def test1(self) -> None:
         """
         Verify that get_completion() returns response from cache with the
@@ -310,9 +310,7 @@ class Test_get_completion(_OpenAICacheTestCase):
 # #############################################################################
 
 
-
 class Test_hash_key_generator(_OpenAICacheTestCase):
-
 
     def test_different_request_parameters1(self) -> None:
         """
@@ -350,9 +348,7 @@ class Test_hash_key_generator(_OpenAICacheTestCase):
 # #############################################################################
 
 
-
 class Test_has_cache(_OpenAICacheTestCase):
-
 
     def test1(self) -> None:
         """
@@ -378,9 +374,7 @@ class Test_has_cache(_OpenAICacheTestCase):
 # #############################################################################
 
 
-
 class Test_save_response_to_cache(_OpenAICacheTestCase):
-
 
     def test1(self) -> None:
         """
@@ -406,9 +400,7 @@ class Test_save_response_to_cache(_OpenAICacheTestCase):
 # #############################################################################
 
 
-
 class Test_load_response_from_cache(_OpenAICacheTestCase):
-
 
     def test1(self) -> None:
         """
@@ -434,9 +426,7 @@ class Test_load_response_from_cache(_OpenAICacheTestCase):
         parameters4 = _get_openai_request_parameters4()
         hash_key4 = self.get_completion_cache.hash_key_generator(**parameters4)
         with self.assertRaises(ValueError) as VE:
-            self.get_completion_cache.load_response_from_cache(
-                hash_key=hash_key4
-            )
+            self.get_completion_cache.load_response_from_cache(hash_key=hash_key4)
         self.assert_equal(str(VE.exception), "No cache found!")
 
 
@@ -972,41 +962,41 @@ class Test_calculate_cost(hunitest.TestCase):
 
 # Method1 : Pytest approach: “REPLAY by default, CAPTURE when I ask for it”
 # 1. Registering a --update_llms_cache flag in conftest.py.
-    # parser.addoption(
-    #     "--refresh_llm",
-    #     action="store_true",
-    #     default=False,
-    #     help=(
-    #         "By default, force every get_completion(...) call in tests to run "
-    #         "with cache_mode='REPLAY'. If --refresh_llm is given, force "
-    #         "cache_mode='CAPTURE' instead, rewriting the cache file."
-    #     ),
-    # )
+# parser.addoption(
+#     "--refresh_llm",
+#     action="store_true",
+#     default=False,
+#     help=(
+#         "By default, force every get_completion(...) call in tests to run "
+#         "with cache_mode='REPLAY'. If --refresh_llm is given, force "
+#         "cache_mode='CAPTURE' instead, rewriting the cache file."
+#     ),
+# )
 
 # 2. Create a global variable for cache_mode, the default value should be "REPLAY" in testcases
 #    and should change it to "CAPTURE" when "--update_llm_cache" is passed.
 
-    # @pytest.fixture(autouse=True)
-    # def _force_replay_or_capture(request, monkeypatch):
-    #     """
-    #     Autouse fixture that wraps hopenai.get_completion so that:
-    #     - If --refresh_llm was NOT passed, every call becomes cache_mode="REPLAY".
-    #     - If --refresh_llm WAS passed, every call becomes cache_mode="CAPTURE".
-    #     This way, tests never need to mention cache_mode explicitly.
-    #     """
-    #     do_refresh = request.config.getoption("refresh_llm")
-    #     original_get = hopenai.get_completion
+# @pytest.fixture(autouse=True)
+# def _force_replay_or_capture(request, monkeypatch):
+#     """
+#     Autouse fixture that wraps hopenai.get_completion so that:
+#     - If --refresh_llm was NOT passed, every call becomes cache_mode="REPLAY".
+#     - If --refresh_llm WAS passed, every call becomes cache_mode="CAPTURE".
+#     This way, tests never need to mention cache_mode explicitly.
+#     """
+#     do_refresh = request.config.getoption("refresh_llm")
+#     original_get = hopenai.get_completion
 
-    #     def _wrapped_get_completion(*args, **kwargs):
-    #         # Overwrite whatever cache_mode was in kwargs:
-    #         if do_refresh:
-    #             kwargs["cache_mode"] = "CAPTURE"
-    #         else:
-    #             kwargs["cache_mode"] = "REPLAY"
-    #         return original_get(*args, **kwargs)
+#     def _wrapped_get_completion(*args, **kwargs):
+#         # Overwrite whatever cache_mode was in kwargs:
+#         if do_refresh:
+#             kwargs["cache_mode"] = "CAPTURE"
+#         else:
+#             kwargs["cache_mode"] = "REPLAY"
+#         return original_get(*args, **kwargs)
 
-    #     monkeypatch.setattr(hopenai, "get_completion", _wrapped_get_completion)
-    #     yield
+#     monkeypatch.setattr(hopenai, "get_completion", _wrapped_get_completion)
+#     yield
 
 
 # 3. The new outcomes from the get_completion() should be updated in the cache file.
@@ -1019,27 +1009,27 @@ class Test_calculate_cost(hunitest.TestCase):
 
 # Method2. Standalone script: “Rewrite every entry in an existing JSON cache”.
 # Create a file called refresh_full_llm_cache.py, the code should do the following things.
-    # 1. Load the cache file.
-    # with open(cache_path, "r", encoding="utf-8") as f:
-    #     cache_data = json.load(f)
+# 1. Load the cache file.
+# with open(cache_path, "r", encoding="utf-8") as f:
+#     cache_data = json.load(f)
 
 # 2. Takes each stored "request" dict.
 
-    # all_hashes = list(cache_data["entries"].keys())
-    # print(f"Found {len(all_hashes)} entries. Re‐capturing each one...")
+# all_hashes = list(cache_data["entries"].keys())
+# print(f"Found {len(all_hashes)} entries. Re‐capturing each one...")
 
-    # #2) Iterate and re‐CAPTURE
-    # for h in all_hashes:
-    #     entry = cache_data["entries"][h]
-    #     request_params = entry.get("request")
+# #2) Iterate and re‐CAPTURE
+# for h in all_hashes:
+#     entry = cache_data["entries"][h]
+#     request_params = entry.get("request")
 
 # 3. Calls get_completion(...., cache_mode="CAPTURE") for each one.(Respomses will be updated to the file.)
 
-    # hopenai.get_completion(
-    #                 **request_params,
-    #                 cache_file=cache_path,
-    #                 cache_mode="CAPTURE"
-    #             )
+# hopenai.get_completion(
+#                 **request_params,
+#                 cache_file=cache_path,
+#                 cache_mode="CAPTURE"
+#             )
 
 # 4. The updated cache file should be committed to git.
 
