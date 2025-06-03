@@ -1161,7 +1161,7 @@ class Test_purify_from_env_vars(hunitest.TestCase):
 #        - Multiple env vars.
 #        """
 #        #am_aws_s3_bucket = os.environ["AM_AWS_S3_BUCKET"]
-#        csfy_aws_s_s3_bucket = os.environ["CSFY_AWS_S3_BUCKET"]
+#        csfy_aws_s3_bucket = os.environ["CSFY_AWS_S3_BUCKET"]
 #        #
 #        text = f"""
 #        $AM_AWS_S3_BUCKET = {am_aws_s3_bucket}
@@ -1311,11 +1311,9 @@ class Test_purify_amp_reference1(hunitest.TestCase):
         Test removing multiple amp references in a single string.
         """
         txt = """
-        ImportError: No module named 'amp.helpers.test.test_dbg'
         ImportError: No module named 'amp.helpers.test.test_file'
         """
         exp = r"""
-        ImportError: No module named 'helpers.test.test_dbg'
         ImportError: No module named 'helpers.test.test_file'
         """
         self.helper(txt, exp)
@@ -1461,24 +1459,87 @@ class Test_purify_from_environment1(hunitest.TestCase):
         exp = "out_col_groups: [('root_q_mv',), ('root_q_mv_adj',), ('root_q_mv_os',)]"
         self.check_helper(input_, exp)
 
-    def test6(self) -> None:
-        input_ = "/app/jupyter_core/application.py"
-        exp = "$GIT_ROOT/jupyter_core/application.py"
-        self.check_helper(input_, exp)
 
-    def test7(self) -> None:
-        input_ = "/app"
-        exp = "$GIT_ROOT"
-        self.check_helper(input_, exp)
+# #############################################################################
+# Test_purify_directory_paths1
+# #############################################################################
 
-    @pytest.mark.skipif(
-        not hgit.is_inside_submodule(), reason="Run only in submodule"
-    )
-    def test8(self) -> None:
-        # /Users/saggese/src/notes1
-        input_ = os.path.join(os.environ.get("CSFY_HOST_GIT_ROOT_PATH"), "hello")
-        exp = "$CSFY_HOST_GIT_ROOT_PATH/hello"
-        self.check_helper(input_, exp)
+
+class Test_purify_directory_paths1(hunitest.TestCase):
+
+    def check_helper(self, input_: str, exp: str) -> None:
+        """
+        Check that the text is purified from directory paths correctly.
+        """
+        act = hunitest.purify_directory_paths(input_)
+        self.assert_equal(act, exp, fuzzy_match=True)
+
+    def test1(self) -> None:
+        """
+        Test the replacement of `GIT_ROOT`.
+        """
+        with umock.patch(
+            "helpers.hgit.get_client_root", return_value="/home/user/gitroot"
+        ), umock.patch.dict(
+            "os.environ",
+            {"CSFY_HOST_GIT_ROOT_PATH": "/home/user/csfy_host_git_root"},
+            clear=True,
+        ), umock.patch(
+            "os.getcwd", return_value="/home/user"
+        ):
+            input_ = "/home/user/gitroot/src/subdir/file.py"
+            exp = "$GIT_ROOT/src/subdir/file.py"
+            self.check_helper(input_, exp)
+
+    def test2(self) -> None:
+        """
+        Test the replacement of `CSFY_HOST_GIT_ROOT_PATH`.
+        """
+        with umock.patch(
+            "helpers.hgit.get_client_root", return_value="/home/user/gitroot"
+        ), umock.patch.dict(
+            "os.environ",
+            {"CSFY_HOST_GIT_ROOT_PATH": "/home/user/csfy_host_git_root"},
+            clear=True,
+        ), umock.patch(
+            "os.getcwd", return_value="/home/user"
+        ):
+            input_ = "/home/user/csfy_host_git_root/other/file.py"
+            exp = "$CSFY_HOST_GIT_ROOT_PATH/other/file.py"
+            self.check_helper(input_, exp)
+
+    def test3(self) -> None:
+        """
+        Test the replacement of `PWD`.
+        """
+        with umock.patch(
+            "helpers.hgit.get_client_root", return_value="/home/user/gitroot"
+        ), umock.patch.dict(
+            "os.environ",
+            {"CSFY_HOST_GIT_ROOT_PATH": "/home/user/csfy_host_git_root"},
+            clear=True,
+        ), umock.patch(
+            "os.getcwd", return_value="/home/user"
+        ):
+            input_ = "/home/user/documents/file.py"
+            exp = "$PWD/documents/file.py"
+            self.check_helper(input_, exp)
+
+    def test4(self) -> None:
+        """
+        Test the replacement when `GIT_ROOT`, `CSFY_HOST_GIT_ROOT_PATH` and
+        current working directory are the same.
+        """
+        with umock.patch(
+            "helpers.hgit.get_client_root", return_value="/home/user"
+        ), umock.patch.dict(
+            "os.environ", {"CSFY_HOST_GIT_ROOT_PATH": "/home/user"}, clear=True
+        ), umock.patch(
+            "os.getcwd", return_value="/home/user"
+        ):
+            input_ = "/home/user/file.py"
+            exp = "$GIT_ROOT/file.py"
+            self.check_helper(input_, exp)
 
 
 # #############################################################################
@@ -1525,11 +1586,11 @@ class Test_purify_docker_image_name1(hunitest.TestCase):
 
 
 # #############################################################################
-# TestPurifyAppReferences1
+# Test_purify_app_references1
 # #############################################################################
 
 
-class TestPurifyAppReferences1(hunitest.TestCase):
+class Test_purify_app_references1(hunitest.TestCase):
     """
     Test the `purify_app_references()` function.
     """
