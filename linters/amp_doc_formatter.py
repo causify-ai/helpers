@@ -8,6 +8,7 @@ Import as:
 
 import linters.amp_doc_formatter as lamdofor
 """
+
 import argparse
 import logging
 import re
@@ -87,7 +88,9 @@ class _DocFormatter(liaction.Action):
                 # Convert zero-indexed numbers to one-indexed line numbers.
                 # This would accurately link it to the part of the code;
                 # Where the docstring starts on code editors.
-                idxs_docstrings_with_unbalanced_backticks.append(docstring[0] + 1)
+                idxs_docstrings_with_unbalanced_backticks.append(
+                    docstring[0] + 1
+                )
         return idxs_docstrings_with_unbalanced_backticks
 
     @staticmethod
@@ -121,9 +124,7 @@ class _DocFormatter(liaction.Action):
             if match is None:
                 break
             hash_id = str(uuid.uuid4())
-            contents = (
-                f"{contents[: match.start()]}# {hash_id}{contents[match.end() :]}"
-            )
+            contents = f"{contents[: match.start()]}# {hash_id}{contents[match.end() :]}"
             result[hash_id] = match.group(0)
         hio.to_file(file_name, contents)
         return result
@@ -269,7 +270,6 @@ class _DocFormatter(liaction.Action):
 
 
 class _Pydocstyle(liaction.Action):
-
     def __init__(self) -> None:
         executable = "pydocstyle"
         super().__init__(executable)
@@ -406,7 +406,6 @@ class _Pydocstyle(liaction.Action):
 # TODO(gp): Fix this.
 # Not installable through conda.
 class _Pyment(liaction.Action):
-
     def __init__(self) -> None:
         executable = "pyment"
         super().__init__(executable)
@@ -471,7 +470,8 @@ class _DocFormatterAction(liaction.CompositeAction):
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "files",

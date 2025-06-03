@@ -28,7 +28,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_linter_py1(hunitest.TestCase):
-
     def write_input_file(self, txt: str, file_name: str) -> Tuple[str, str]:
         """
         Write test content to the file.

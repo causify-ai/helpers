@@ -17,7 +17,7 @@ class Test_check_import(hunitest.TestCase):
         Test from lib import something: invalid.
         """
         line = "from pandas import DataFrame"
-        exp = f"do not use '{line}' use 'import foo.bar " "as fba'"
+        exp = f"do not use '{line}' use 'import foo.bar as fba'"
         self._helper_check_import(line, exp, file_name="test.py")
 
     def test3(self) -> None:

@@ -40,6 +40,7 @@ _LOG = logging.getLogger(__name__)
 # %% [markdown] pycharm={"name": "#%% md\n"}
 # # Define computation function
 
+
 # %%
 def func(a, b):
     # hello

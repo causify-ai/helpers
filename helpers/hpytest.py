@@ -16,7 +16,9 @@ import helpers.hsystem as hsystem
 _LOG = logging.getLogger(__name__)
 
 
-def _pytest_show_artifacts(dir_name: str, tag: Optional[str] = None) -> List[str]:
+def _pytest_show_artifacts(
+    dir_name: str, tag: Optional[str] = None
+) -> List[str]:
     hdbg.dassert_ne(dir_name, "")
     hdbg.dassert_dir_exists(dir_name)
     cd_cmd = f"cd {dir_name} && "

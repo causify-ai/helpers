@@ -245,23 +245,36 @@ def find_git_root(path: str = ".") -> str:
     return git_root_dir
 
 
+# #############################################################################
+
+
 # TODO(gp): There are several functions doing the same work.
 # helpers_root/helpers/hgit.py:827:def find_file_in_git_tree(
 # helpers_root/helpers/hsystem.py:757:def find_file_in_repo(file_name: str, *, root_dir: Optional[str] = None) -> str:
 def find_file(file_name: str, *, dir_path: Optional[str] = None) -> str:
+    """
+    Find the file under a directory.
+
+    :param file_name: the name of the file to find
+    :param dir_path: the directory to start the search from
+    :return: the absolute path to the file
+    """
     if dir_path is None:
         dir_path = find_git_root()
     _LOG.debug(hprint.to_str("dir_path"))
-    cmd = rf"""
-find {dir_path} \( -path '*/.git' -o -path '*/.mypy_cache' \) -prune -o -name "{file_name}" -print
-    """
-    cmd = hprint.dedent(cmd, remove_lead_trail_empty_lines_=True)
-    cmd = " ".join(cmd.split())
+    cmd = (
+        rf"find {dir_path} "
+        + r"\( -path '*/.git' -o -path '*/.mypy_cache' \) -prune "
+        + rf'-o -name "{file_name}" -print'
+    )
+    _LOG.debug(hprint.to_str("cmd"))
     _, res = hsystem.system_to_one_line(cmd)
+    hdbg.dassert_ne(res, "Can't find file '%s' in '%s'", file_name, dir_path)
+    res = cast(str, res)
     return res
 
 
-def find_helpers_root() -> str:
+def find_helpers_root(dir_path: str = ".") -> str:
     """
     Find the root directory of the `helpers` repository.
 
@@ -271,21 +284,102 @@ def find_helpers_root() -> str:
 
     :returns: The absolute path to the `helpers_root` directory.
     """
-    git_root = find_git_root()
-    if is_helpers():
-        # If we are in `//helpers`, then the helpers root is the root of the
-        # repo.
-        cmd = "git rev-parse --show-toplevel"
-        _, helpers_root = hsystem.system_to_one_line(cmd)
+    with hsystem.cd(dir_path):
+        git_root = find_git_root()
+        if is_helpers():
+            # If we are in `//helpers`, then the helpers root is the root of the
+            # repo.
+            cmd = "git rev-parse --show-toplevel"
+            _, helpers_root = hsystem.system_to_one_line(cmd)
+        else:
+            # We need to search for the `helpers_root` dir starting from the root
+            # of the repo.
+            helpers_root = find_file("helpers_root", dir_path=git_root)
+        helpers_root = os.path.abspath(helpers_root)
+        # Make sure the dir and that `helpers` subdir exists.
+        hdbg.dassert_dir_exists(helpers_root)
+        hdbg.dassert_dir_exists(os.path.join(helpers_root), "helpers")
+    # TODO(gp): Unclear why this happens.
+    helpers_root_ = cast(str, helpers_root)
+    return helpers_root_
+
+
+# #############################################################################
+
+
+def resolve_git_client_dir(git_client_name: str) -> str:
+    """
+    Resolve the absolute path of the Git client directory.
+
+    :param git_client_name: the name of the Git client (e.g., "helpers1"
+        or "/Users/saggese/src/helpers1")
+    :return: the absolute path of the Git client directory
+    """
+    if not os.path.isabs(git_client_name):
+        # If the Git client name is not absolute, assume it's in the home
+        # directory (e.g., 'helpers1' -> '/Users/saggese/src/helpers1').
+        git_client_dir = os.path.join(os.environ["HOME"], "src", git_client_name)
     else:
-        # We need to search for the `helpers_root` dir starting from the root
-        # of the repo.
-        helpers_root = find_file("helpers_root", dir_path=git_root)
-    helpers_root = os.path.abspath(helpers_root)
-    # Make sure the dir and that `helpers` subdir exists.
-    hdbg.dassert_dir_exists(helpers_root)
-    hdbg.dassert_dir_exists(os.path.join(helpers_root), "helpers")
-    return helpers_root
+        # If the Git client name is absolute, use it as is.
+        git_client_dir = git_client_name
+    _LOG.debug(hprint.to_str("git_client_dir"))
+    hdbg.dassert_dir_exists(git_client_dir)
+    return git_client_dir
+
+
+def project_file_name_in_git_client(
+    file_name: str,
+    git_src_dir: str,
+    git_dst_dir: str,
+    *,
+    check_src_file_exists: bool = False,
+    check_dst_file_exists: bool = False,
+) -> str:
+    """
+    Find the file corresponding to `file_name` in `git_src_dir` for the client
+    `git_dst_dir`.
+
+    This is useful when we want to find the file in a destination Git client
+    directory corresponding to a file in a source Git client directory.
+
+    E.g., for:
+    ```
+    file_name = '/Users/saggese/src/helpers1/dev_scripts_helpers/system_tools/path.py'
+    git_src_dir = '/Users/saggese/src/helpers1'
+    git_dst_dir = '/Users/saggese/src/helpers2'
+    ```
+    the output is
+    `/Users/saggese/src/helpers2/dev_scripts_helpers/system_tools/path.py`
+
+    :param file_name: the name of the file to find (which is under `git_src_dir`)
+    :param git_src_dir: the directory of the Git client from which `file_name` is
+    :param git_dst_dir: the directory of the Git client to which find the
+        corresponding file
+    :param check_src_file_exists: if True, check that `file_name` exists in
+        `git_src_dir`
+    :param check_dst_file_exists: if True, check that the file in `git_dst_dir`
+        exists
+    :return: the absolute path of the file in `git_dst_dir`
+    """
+    if not os.path.isabs(file_name):
+        file_name = os.path.abspath(file_name)
+    if check_src_file_exists:
+        hdbg.dassert_file_exists(file_name)
+    if not os.path.isabs(git_src_dir):
+        git_src_dir = os.path.abspath(git_src_dir)
+    if not os.path.isabs(git_dst_dir):
+        git_dst_dir = os.path.abspath(git_dst_dir)
+    # Compute the relative path of the file in the source git client.
+    hdbg.dassert_is_path_abs(file_name)
+    hdbg.dassert_is_path_abs(git_src_dir)
+    rel_path = os.path.relpath(file_name, git_src_dir)
+    # Compute the absolute path of the file in the destination git client.
+    hdbg.dassert_is_path_abs(git_dst_dir)
+    dst_file_path = os.path.join(git_dst_dir, rel_path)
+    dst_file_path = os.path.abspath(dst_file_path)
+    if check_dst_file_exists:
+        hdbg.dassert_file_exists(dst_file_path)
+    return dst_file_path
 
 
 def get_project_dirname(only_index: bool = False) -> str:
@@ -315,6 +409,9 @@ def get_project_dirname(only_index: bool = False) -> str:
         ret = last_char
     _LOG.debug("ret=%s", ret)
     return ret
+
+
+# #############################################################################
 
 
 @functools.lru_cache()
@@ -348,7 +445,8 @@ def _is_repo(repo_short_name: str) -> bool:
     Return whether we are inside the module `repo_short_name`.
     """
     curr_repo_short_name = hrecouti.get_repo_config().get_repo_short_name()
-    return curr_repo_short_name == repo_short_name
+    is_repo = bool(curr_repo_short_name == repo_short_name)
+    return is_repo
 
 
 def is_helpers() -> bool:
@@ -675,7 +773,7 @@ def get_repo_full_name_from_client(super_module: bool) -> str:
     return repo_name
 
 
-def is_cwd_git_repo():
+def is_cwd_git_repo() -> bool:
     """
     Return whether the current working directory is a Git repo root.
     """
@@ -704,7 +802,11 @@ def find_file_in_git_tree(
     _, file_name_out = hsystem.system_to_one_line(cmd)
     _LOG.debug(hprint.to_str("file_name_out"))
     hdbg.dassert_ne(
-        file_name_out, "", "Can't find file '%s' in dir '%s'", file_name, root_dir
+        file_name_out,
+        "",
+        "Can't find file '%s' in dir '%s'",
+        file_name,
+        root_dir,
     )
     file_name_out: str = os.path.abspath(file_name_out)
     hdbg.dassert_path_exists(file_name_out)

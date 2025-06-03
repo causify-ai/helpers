@@ -21,8 +21,8 @@ class Test_parse_test_code(hunitest.TestCase):
                 self.assertEqual(actual, expected)
         """
         test_py_file = "dir/test/test_lib.py"
-        actual_test_methods, actual_class_to_test_file = dsfugofi.parse_test_code(
-            code, test_py_file
+        actual_test_methods, actual_class_to_test_file = (
+            dsfugofi.parse_test_code(code, test_py_file)
         )
         expected_test_methods = ["dir/test/outcomes/TestClass.test1"]
         expected_class_to_test_file = {
@@ -42,8 +42,8 @@ class Test_parse_test_code(hunitest.TestCase):
                 self.helper(actual)
         """
         test_py_file = "dir/test/test_lib.py"
-        actual_test_methods, actual_class_to_test_file = dsfugofi.parse_test_code(
-            code, test_py_file
+        actual_test_methods, actual_class_to_test_file = (
+            dsfugofi.parse_test_code(code, test_py_file)
         )
         expected_test_methods = ["dir/test/outcomes/TestClass.test1"]
         expected_class_to_test_file = {
@@ -64,8 +64,8 @@ class Test_parse_test_code(hunitest.TestCase):
                 self.helper(actual)
         """
         test_py_file = "dir/test/test_lib.py"
-        actual_test_methods, actual_class_to_test_file = dsfugofi.parse_test_code(
-            code, test_py_file
+        actual_test_methods, actual_class_to_test_file = (
+            dsfugofi.parse_test_code(code, test_py_file)
         )
         expected_test_methods: List[str] = []
         expected_class_to_test_file: Dict[str, str] = {

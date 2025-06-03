@@ -12,7 +12,6 @@ import logging
 import re
 from typing import List
 
-import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -23,13 +22,15 @@ _LOG = logging.getLogger(__name__)
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     hparser.add_input_output_args(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 
 
+# TODO(gp): Use code from hcfile.py
 def _parse_input_cfile(txt: List[str]) -> List[str]:
     files = []
     for line in txt:

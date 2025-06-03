@@ -324,12 +324,15 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
         reason="Only run in amp as supermodule",
     )
     def test_gh_create_pr1(self) -> None:
-        with umock.patch.object(
-            hgit, "get_branch_name", return_value="AmpTask1_test_branch"
-        ), umock.patch.object(
-            hlitagh,
-            "_get_repo_full_name_from_cmd",
-            return_value=("github.com/alphamatic/amp", "amp"),
+        with (
+            umock.patch.object(
+                hgit, "get_branch_name", return_value="AmpTask1_test_branch"
+            ),
+            umock.patch.object(
+                hlitagh,
+                "_get_repo_full_name_from_cmd",
+                return_value=("github.com/alphamatic/amp", "amp"),
+            ),
         ):
             target = "gh_create_pr(ctx, title='test')"
             self._check_output(target)
@@ -341,12 +344,15 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
         reason="Only run in amp as supermodule",
     )
     def test_gh_create_pr2(self) -> None:
-        with umock.patch.object(
-            hgit, "get_branch_name", return_value="AmpTask1_test_branch"
-        ), umock.patch.object(
-            hlitagh,
-            "_get_repo_full_name_from_cmd",
-            return_value=("github.com/alphamatic/amp", "amp"),
+        with (
+            umock.patch.object(
+                hgit, "get_branch_name", return_value="AmpTask1_test_branch"
+            ),
+            umock.patch.object(
+                hlitagh,
+                "_get_repo_full_name_from_cmd",
+                return_value=("github.com/alphamatic/amp", "amp"),
+            ),
         ):
             target = "gh_create_pr(ctx, body='hello_world', title='test')"
             self._check_output(target)
@@ -358,12 +364,15 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
         reason="Only run in amp as supermodule",
     )
     def test_gh_create_pr3(self) -> None:
-        with umock.patch.object(
-            hgit, "get_branch_name", return_value="AmpTask1_test_branch"
-        ), umock.patch.object(
-            hlitagh,
-            "_get_repo_full_name_from_cmd",
-            return_value=("github.com/alphamatic/amp", "amp"),
+        with (
+            umock.patch.object(
+                hgit, "get_branch_name", return_value="AmpTask1_test_branch"
+            ),
+            umock.patch.object(
+                hlitagh,
+                "_get_repo_full_name_from_cmd",
+                return_value=("github.com/alphamatic/amp", "amp"),
+            ),
         ):
             target = "gh_create_pr(ctx, draft=False, title='test')"
             self._check_output(target)
