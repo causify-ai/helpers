@@ -23,7 +23,9 @@ import helpers.hprint as hprint
 _LOG = logging.getLogger(__name__)
 
 
-def _load_review_guidelines(guidelines_doc_filename: str) -> Dict[str, List[str]]:
+def _load_review_guidelines(
+    guidelines_doc_filename: str,
+) -> Dict[str, List[str]]:
     """
     Load automated review guidelines.
 

@@ -406,9 +406,7 @@ class Test_reflow_comments_in_lines(hunitest.TestCase):
         test.method_after()
         # - a list item
         # - another list item
-        """.split(
-            "\n"
-        )
+        """.split("\n")
         expected = """
         test.method_before()
         # This is a super long message that has too much information in it. Although
@@ -416,9 +414,7 @@ class Test_reflow_comments_in_lines(hunitest.TestCase):
         test.method_after()
         # - a list item
         # - another list item
-        """.split(
-            "\n"
-        )
+        """.split("\n")
         actual = lamficom._reflow_comments_in_lines(lines=content)
         self.assertEqual(expected, actual)
 

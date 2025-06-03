@@ -72,7 +72,9 @@ class ImportTimeChecker:
         # Execute python "import module" to measure.
         if module not in self.checked_modules:
             timer = Timer()
-            rc, output = hsystem.system_to_string(f'python -c "import {module}"', abort_on_error=False)
+            rc, output = hsystem.system_to_string(
+                f'python -c "import {module}"', abort_on_error=False
+            )
             timer.stop()
             if rc == 0:
                 # Save execution time.
@@ -168,7 +170,8 @@ class ImportTimeChecker:
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "-d",

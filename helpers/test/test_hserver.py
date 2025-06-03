@@ -15,7 +15,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class _TestCase1:
-
     # def test_config_func_to_str1(self) -> None:
     #     val = hserver.config_func_to_str()
     #     _LOG.info("val=\n%s", val)

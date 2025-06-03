@@ -1380,7 +1380,9 @@ def _convert_to_vim_cfile_str(txt: str, in_file_name: str) -> str:
     return txt_out
 
 
-def _convert_to_vim_cfile(txt: str, in_file_name: str, out_file_name: str) -> str:
+def _convert_to_vim_cfile(
+    txt: str, in_file_name: str, out_file_name: str
+) -> str:
     """
     Convert the text passed to a vim cfile.
 
@@ -1442,9 +1444,12 @@ def run_prompt(
     prompt_tags = get_prompt_tags()
     hdbg.dassert_in(prompt_tag, prompt_tags)
     python_cmd = f"{prompt_tag}()"
-    system_prompt, pre_transforms, post_transforms, post_container_transforms = (
-        eval(python_cmd)
-    )
+    (
+        system_prompt,
+        pre_transforms,
+        post_transforms,
+        post_container_transforms,
+    ) = eval(python_cmd)
     # Check return types.
     hdbg.dassert_isinstance(system_prompt, str)
     hdbg.dassert_isinstance(pre_transforms, set)

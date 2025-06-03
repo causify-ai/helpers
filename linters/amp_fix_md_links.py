@@ -381,7 +381,6 @@ def fix_links(file_name: str) -> Tuple[List[str], List[str], List[str]]:
 
 
 class _LinkFixer(liaction.Action):
-
     def check_if_possible(self) -> bool:
         return True
 
@@ -399,7 +398,8 @@ class _LinkFixer(liaction.Action):
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "files",

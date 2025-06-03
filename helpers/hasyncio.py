@@ -3,6 +3,7 @@ Import as:
 
 import helpers.hasyncio as hasynci
 """
+
 import asyncio
 import contextlib
 import datetime
@@ -466,7 +467,9 @@ def sync_wait_until(
     fractional seconds.
     """
     # Sync wait.
-    time_in_secs = _wait_until(wait_until_timestamp, get_wall_clock_time, tag=tag)
+    time_in_secs = _wait_until(
+        wait_until_timestamp, get_wall_clock_time, tag=tag
+    )
     hdbg.dassert_lte(0, time_in_secs)
     # TODO(gp): Consider using part of align_on_time_grid for high-precision clock.
     time.sleep(time_in_secs)
@@ -491,7 +494,9 @@ async def async_wait_until(
     Asynchronous wait until the wall clock time is `timestamp`.
     """
     _LOG.debug(hprint.to_str("wait_until_timestamp"))
-    time_in_secs = _wait_until(wait_until_timestamp, get_wall_clock_time, tag=tag)
+    time_in_secs = _wait_until(
+        wait_until_timestamp, get_wall_clock_time, tag=tag
+    )
     # Async wait.
     hdbg.dassert_lte(0, time_in_secs)
     await asyncio.sleep(time_in_secs)

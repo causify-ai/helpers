@@ -32,7 +32,7 @@
 # %autoreload 2
 
 import logging
-    
+
 import helpers.hdbg as hdbg
 import helpers.henv as henv
 import helpers.hprint as hprint

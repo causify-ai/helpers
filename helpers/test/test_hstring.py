@@ -12,7 +12,6 @@ import helpers.hunit_test as hunitest
 
 
 class TestExtractVersionFromFileName(hunitest.TestCase):
-
     def test_extract_version_from_file_name1(self) -> None:
         """
         Verify function provides expected output on valid input.
@@ -220,7 +219,6 @@ class TestGetDocstringLineIndices(hunitest.TestCase):
 
 
 class TestGetCodeBlockLineIndices(hunitest.TestCase):
-
     def helper(self, code: str, expected: List[str]) -> None:
         lines = code.split("\n")
         actual_idxs = hstring.get_code_block_line_indices(lines)
@@ -251,7 +249,6 @@ class TestGetCodeBlockLineIndices(hunitest.TestCase):
 
 
 class TestGetDocstrings(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test that grouped lines within docstrings are correctly returned.

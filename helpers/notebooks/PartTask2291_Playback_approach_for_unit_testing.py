@@ -49,7 +49,6 @@ _LOG.info("%s", henv.get_system_signature()[0])
 hprint.config_notebook()
 
 # %%
-import pandas as pd
 
 data = {
     "Product": ["Desktop Computer", "Tablet", "iPhone", "Laptop"],
@@ -128,7 +127,6 @@ assert act == exp
 
 # %%
 class Playback:
-
     # def __init__(self, file_name, mode, *args, **kwargs):
     # self.args = args
     # self.kwargs = kwargs
@@ -176,7 +174,6 @@ print(res)
 
 # %%
 class Playback:
-
     # def __init__(self, file_name, mode, *args, **kwargs):
     # self.args = args
     # self.kwargs = kwargs

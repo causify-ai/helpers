@@ -37,8 +37,9 @@ def _get_output_string(out_warnings: List[str], updated_lines: List[str]) -> str
 
 
 class Test_fix_links(hunitest.TestCase):
-
-    def run_test(self, input_content: str, *, file_name: str = "test.md") -> None:
+    def run_test(
+        self, input_content: str, *, file_name: str = "test.md"
+    ) -> None:
         """
         Helper method to run tests with common setup and verification.
 
@@ -203,7 +204,9 @@ class Test_fix_links(hunitest.TestCase):
 
         Markdown link: [Valid Markdown and header Link]({reference_file_link}#hyphen-test)
         """
-        self.run_test(reference_file_md_content, file_name="valid_header_test.md")
+        self.run_test(
+            reference_file_md_content, file_name="valid_header_test.md"
+        )
 
     def test6(self) -> None:
         """
@@ -508,7 +511,6 @@ class Test_fix_links(hunitest.TestCase):
 
 
 class Test_make_path_absolute(hunitest.TestCase):
-
     def test_make_path_absolute1(self) -> None:
         """
         Test file path to retain directory name beginning with a dot.

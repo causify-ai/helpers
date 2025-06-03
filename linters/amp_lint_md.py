@@ -8,6 +8,7 @@ Import as:
 
 import linters.amp_lint_md as lamlimd
 """
+
 import argparse
 import logging
 import os
@@ -40,11 +41,10 @@ def _check_readme_is_capitalized(file_name: str) -> str:
 
 
 class _LintMarkdown(liaction.Action):
-
     def __init__(self) -> None:
-        #cmd = "find -wholename '*dev_scripts_helpers/documentation/lint_notes.py'"
-        #executable = hsystem.system_to_one_line(cmd)
-        #assert 0, executable
+        # cmd = "find -wholename '*dev_scripts_helpers/documentation/lint_notes.py'"
+        # executable = hsystem.system_to_one_line(cmd)
+        # assert 0, executable
         executable = "$(find -wholename '*dev_scripts_helpers/documentation/lint_notes.py')"
         super().__init__(executable)
 
@@ -57,7 +57,9 @@ class _LintMarkdown(liaction.Action):
         ext = os.path.splitext(file_name)[1]
         output: List[str] = []
         if ext != ".md":
-            _LOG.debug("Skipping file_name='%s' because ext='%s'", file_name, ext)
+            _LOG.debug(
+                "Skipping file_name='%s' because ext='%s'", file_name, ext
+            )
             return output
         # Run lint_notes.py.
         cmd = []
@@ -65,7 +67,9 @@ class _LintMarkdown(liaction.Action):
         cmd.append(f"-i {file_name}")
         cmd.append(f"-o {file_name}")
         cmd_as_str = " ".join(cmd)
-        _, output = liutils.tee(cmd_as_str, self._executable, abort_on_error=True)
+        _, output = liutils.tee(
+            cmd_as_str, self._executable, abort_on_error=True
+        )
         # Check file name.
         msg = _check_readme_is_capitalized(file_name)
         if msg:
@@ -87,7 +91,8 @@ class _LintMarkdown(liaction.Action):
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "files",

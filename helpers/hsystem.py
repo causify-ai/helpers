@@ -202,7 +202,11 @@ def _system(
         # with hloggin.set_level(_LOG, logging.DEBUG):
         #     _LOG.debug("> %s", cmd)
         with subprocess.Popen(
-            cmd, shell=True, executable="/bin/bash", stdout=stdout, stderr=stderr
+            cmd,
+            shell=True,
+            executable="/bin/bash",
+            stdout=stdout,
+            stderr=stderr,
         ) as p:
             output = ""
             if blocking:
@@ -567,7 +571,9 @@ def get_process_pids(
             try:
                 pid = int(fields[0])
             except ValueError as e:
-                _LOG.error("Can't parse fields '%s' from line '%s'", fields, line)
+                _LOG.error(
+                    "Can't parse fields '%s' from line '%s'", fields, line
+                )
                 raise e
             _LOG.debug("pid=%s", pid)
             pids.append(pid)
@@ -954,7 +960,9 @@ def find_file_with_dir(
             file_name = file_name[len(prefix) :]
         # Count how many dirs levels there are.
         dir_depth = len(os.path.normpath(file_name).split("/")) - 1
-        _LOG.debug("inferred dir_depth=%s for file_name=%s", dir_depth, file_name)
+        _LOG.debug(
+            "inferred dir_depth=%s for file_name=%s", dir_depth, file_name
+        )
     # Check the matching files.
     matching_files = []
     for candidate_file_name in sorted(candidate_files):
@@ -1009,7 +1017,9 @@ def has_timestamp(file_name: str) -> bool:
     # E.g., %Y%m%d-%H_%M_%S
     # The separator is _, -, or nothing.
     sep = "[-_]?"
-    regex = sep.join([r"\d{4}", r"\d{2}", r"\d{2}", r"\d{2}", r"\d{2}", r"\d{2}"])
+    regex = sep.join(
+        [r"\d{4}", r"\d{2}", r"\d{2}", r"\d{2}", r"\d{2}", r"\d{2}"]
+    )
     _LOG.debug("regex=%s", regex)
     occurrences = re.findall(regex, file_name)
     hdbg.dassert_lte(

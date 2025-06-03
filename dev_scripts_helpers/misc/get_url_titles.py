@@ -23,7 +23,6 @@ def get_page_title(url: str) -> str:
 
 
 class TitleParser(HTMLParser):
-
     def __init__(self) -> None:
         super().__init__()
         self.in_title: bool = False

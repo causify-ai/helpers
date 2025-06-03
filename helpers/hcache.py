@@ -72,7 +72,9 @@ def enable_clear_cache(val: bool) -> None:
     global _IS_CLEAR_CACHE_ENABLED
     if _TRACE:
         _LOG.trace("")
-    _LOG.warning("Enabling clear cache to %s -> %s", _IS_CLEAR_CACHE_ENABLED, val)
+    _LOG.warning(
+        "Enabling clear cache to %s -> %s", _IS_CLEAR_CACHE_ENABLED, val
+    )
     _IS_CLEAR_CACHE_ENABLED = val
 
 
@@ -218,7 +220,9 @@ def _create_global_cache_backend(
 
 
 # TODO(gp): -> _get_global_cache
-def get_global_cache(cache_type: str, tag: Optional[str] = None) -> joblib.Memory:
+def get_global_cache(
+    cache_type: str, tag: Optional[str] = None
+) -> joblib.Memory:
     """
     Get global cache by cache type.
 
@@ -804,9 +808,7 @@ class _Cached:
         )
         # This is needed for joblib >= 1.4.2.
         func_id = memorized_result.func_id
-        args_id = memorized_result._get_args_id(
-            *args, **kwargs
-        )
+        args_id = memorized_result._get_args_id(*args, **kwargs)
         _LOG.debug("func_id=%s args_id=%s", func_id, args_id)
         return func_id, args_id
 

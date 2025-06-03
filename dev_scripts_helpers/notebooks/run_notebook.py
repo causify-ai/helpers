@@ -147,7 +147,9 @@ def _run_notebook(
         # TODO(gp): Look for the script.
         amp_dir = hgit.get_amp_abs_path()
         script_path = os.path.join(
-            amp_dir, "helpers_root/dev_scripts_helpers/notebooks", "publish_notebook.py"
+            amp_dir,
+            "helpers_root/dev_scripts_helpers/notebooks",
+            "publish_notebook.py",
         )
         cmd = (
             f"python {script_path}"
@@ -209,7 +211,8 @@ def _get_workload(args: argparse.Namespace) -> hjoblib.Workload:
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     # Add common experiment options.
     parser = dtfbdtfbaut.add_run_experiment_args(parser, dst_dir_required=True)

@@ -184,7 +184,7 @@ def shutup_chatty_modules(
         "invoke",
         "matplotlib",
         "nose",
-        "openai"
+        "openai",
         "s3fs",
         "s3transfer",
         "urllib3",
@@ -227,7 +227,7 @@ class _LocalTimeZoneFormatter:
 
             self._tzinfo = pytz.timezone("America/New_York")
         except ModuleNotFoundError:
-            #print(f"Can't import pytz: using UTC\n{str(e)}")
+            # print(f"Can't import pytz: using UTC\n{str(e)}")
             self._tzinfo = None
 
     def converter(self, timestamp: float) -> datetime.datetime:
@@ -558,7 +558,7 @@ class CustomFormatter(logging.Formatter):
 
             self._tzinfo = pytz.timezone("America/New_York")
         except ModuleNotFoundError:
-            #print(f"Can't import pytz: using UTC\n{str(e)}")
+            # print(f"Can't import pytz: using UTC\n{str(e)}")
             self._tzinfo = None
         #
         self._report_memory_usage = report_memory_usage
