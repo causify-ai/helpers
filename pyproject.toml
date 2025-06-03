@@ -6,12 +6,11 @@ exclude = [
   "**/outcomes/**",
   "**/import_check/example/**"
 ]
+output-format = "concise"
 
 [tool.ruff.lint]
-exclude = [
-  "**/outcomes/**",
-  "**/import_check/example/**"
-]
+# E731 Do not assign a `lambda` expression, use a `def`
+ignore = ["E731"]
 
 [tool.pyrefly]
 # Currently, Pyrefly doesn't officially support [tool.pyrefly] config
@@ -23,5 +22,8 @@ path = "."
 lint.ignore_codes = []
 lint.enabled = true
 lint.format = "text"
-lint.exclude = ["tests/fixtures"]
+lint.exclude = [
+  "**/outcomes/**",
+  "**/import_check/example/**"
+]
 lint.show_source = true
