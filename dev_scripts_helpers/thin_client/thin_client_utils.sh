@@ -204,14 +204,21 @@ set_path() {
     #
     dassert_dir_exists $dev_script_dir
     dtrace "dev_script_dir=$dev_script_dir"
-    #
+    # TODO(gp): Unify this as part of CmTask12257.
+    if [[ -n "$GIT_ROOT_DIR" ]]; then
+        # `GIT_ROOT_DIR` is available outside the container.
+        GIT_ROOT=$GIT_ROOT_DIR
+    elif [[ -n "$CSFY_GIT_ROOT_PATH" ]]; then
+        # `CSFY_GIT_ROOT_PATH` is available inside the container.
+        GIT_ROOT=$CSFY_GIT_ROOT_PATH
+    fi
     export PATH=$(pwd):$PATH
     dtrace "GIT_ROOT=$GIT_ROOT"
     dassert_var_defined "GIT_ROOT"
-    #
     export PATH=$GIT_ROOT_DIR:$PATH
     # Avoid ./.mypy_cache/3.12/app/dev_scripts_helpers
-    DEV_SCRIPT_HELPER_DIR=$(find . -name dev_scripts_helpers -type d -not -path "*.mypy_cache*")
+    DEV_SCRIPT_HELPER_DIR=$(find ${GIT_ROOT} -name dev_scripts_helpers -type d -not -path "*.mypy_cache*")
+    echo "DEV_SCRIPT_HELPER_DIR=$DEV_SCRIPT_HELPER_DIR"
     dassert_dir_exists $DEV_SCRIPT_HELPER_DIR
     dtrace "DEV_SCRIPT_HELPER_DIR=$DEV_SCRIPT_HELPER_DIR"
     # Add to the PATH all the first level directory under `dev_scripts`.
