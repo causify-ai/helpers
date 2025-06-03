@@ -118,7 +118,11 @@ def test_write_and_read_partition_parquet_with_unit(
 
 # %%
 def test_write_and_read_parquet_file_with_unit(
-    initial_df: pd.DataFrame, file_name: str, unit: str, *, clean_up: bool = False
+    initial_df: pd.DataFrame,
+    file_name: str,
+    unit: str,
+    *,
+    clean_up: bool = False,
 ) -> None:
     """
     Write the provided DataFrame to Parquet file and read it back, verifying

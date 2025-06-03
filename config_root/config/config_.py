@@ -593,7 +593,7 @@ class Config:
         # TODO(gp): This might be a separate constructor, but it gives problems
         #  with `Config.from_python()`.
         if array is not None:
-            #TODO(Juraj): The variable name is not fitting now
+            # TODO(Juraj): The variable name is not fitting now
             # In Python 3.12 `from_python` now returns Dict.
             iterable = array.items() if isinstance(array, dict) else array
             for key, val in iterable:
@@ -690,7 +690,9 @@ class Config:
             write-after-read (see above)
             - `None` to use the value set in the constructor
         """
-        _LOG.debug("-> " + hprint.to_str("key val update_mode clobber_mode self"))
+        _LOG.debug(
+            "-> " + hprint.to_str("key val update_mode clobber_mode self")
+        )
         clobber_mode = self._resolve_clobber_mode(clobber_mode)
         report_mode = self._resolve_report_mode(report_mode)
         try:
@@ -1200,13 +1202,15 @@ class Config:
             tail_compound_key,
         )
         hdbg.dassert_isinstance(
-            head_scalar_key, ScalarKeyValidTypes, "Keys can only be string or int"
+            head_scalar_key,
+            ScalarKeyValidTypes,
+            "Keys can only be string or int",
         )
         return head_scalar_key, tail_compound_key
 
     @staticmethod
     def _get_config_from_flattened_dict(
-        flattened_config: Dict[Tuple[str], Any]
+        flattened_config: Dict[Tuple[str], Any],
     ) -> "Config":
         """
         Build a config from the flattened config representation.
@@ -1394,7 +1398,9 @@ class Config:
             ret = self._config._get_marked_as_used(key)  # type: ignore
         else:
             # Return the value associated to the key.
-            ret = self._config.__getitem__(key, mark_key_as_used=mark_key_as_used)  # type: ignore
+            ret = self._config.__getitem__(
+                key, mark_key_as_used=mark_key_as_used
+            )  # type: ignore
         return ret
 
     def _resolve_update_mode(self, value: Optional[str]) -> str:

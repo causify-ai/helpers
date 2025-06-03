@@ -57,7 +57,9 @@ def get_credentials(
     # /home/.config/gspread_pandas/google_secret.json
     # Instructions: https://gspread-pandas.readthedocs.io/en/latest/getting_started.html#client-credentials"
     hdbg.dassert_file_exists(
-        service_key_path, "Failed to read service key file: %s", service_key_path
+        service_key_path,
+        "Failed to read service key file: %s",
+        service_key_path,
     )
     # Scopes required for making API calls.
     scopes = [

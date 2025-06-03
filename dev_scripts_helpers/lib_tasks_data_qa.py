@@ -260,7 +260,9 @@ def run_single_dataset_qa_notebook(
     if dataset_signature_as_dict["data_type"] == "ohlcv":
         notebook_path = "amp/datapull/ccxt/data/qa/notebooks/data_qa_ohlcv.ipynb"
     elif dataset_signature_as_dict["data_type"] == "bid_ask":
-        notebook_path = "amp/datapull/ccxt/data/qa/notebooks/data_qa_bid_ask.ipynb"
+        notebook_path = (
+            "amp/datapull/ccxt/data/qa/notebooks/data_qa_bid_ask.ipynb"
+        )
     else:
         raise NotImplementedError
     _run_data_qa_notebook(
@@ -307,9 +309,7 @@ def run_cross_dataset_qa_notebook(
     _ = ctx
     # TODO(Juraj): come up with a more modular solution to executing the correct notebook.
     data_type = "bid_ask" if "bid_ask" in dataset_signature1 else "ohlcv"
-    notebook_path = (
-        f"amp/datapull/common/data/qa/notebooks/cross_dataset_qa_{data_type}.ipynb"
-    )
+    notebook_path = f"amp/datapull/common/data/qa/notebooks/cross_dataset_qa_{data_type}.ipynb"
     _run_data_qa_notebook(
         config_dict, base_dst_dir, notebook_path, s3_publish_dst_dir
     )

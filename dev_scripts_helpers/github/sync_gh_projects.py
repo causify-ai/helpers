@@ -265,7 +265,8 @@ def _parse() -> argparse.ArgumentParser:
     :return: configured ArgumentParser instance.
     """
     p = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     p.add_argument(
         "--owner",

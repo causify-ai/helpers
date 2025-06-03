@@ -479,7 +479,6 @@ def reset_cache(func_name: str = "") -> None:
 def simple_cache(
     cache_type: str = "json", write_through: bool = False
 ) -> Callable[..., Any]:
-
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         hdbg.dassert_in(cache_type, ("json", "pickle"))
         func_name = func.__name__
@@ -508,7 +507,9 @@ def simple_cache(
                 hdbg.dassert_in("tot", cache_perf)
                 cache_perf["tot"] += 1
             # Handle a forced refresh.
-            force_refresh = get_cache_property("user", func_name, "force_refresh")
+            force_refresh = get_cache_property(
+                "user", func_name, "force_refresh"
+            )
             _LOG.debug("force_refresh=%s", force_refresh)
             if not force_refresh and key in cache:
                 _LOG.debug("Cache hit for key='%s'", key)

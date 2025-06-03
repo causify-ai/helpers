@@ -8,8 +8,7 @@ except ImportError:
     import helpers.hgit as hgit
 
     assert not hgit.is_cmamp(), (
-        "`cmamp` should have moto, while other repos "
-        "are allowed to not have it)"
+        "`cmamp` should have moto, while other repos are allowed to not have it)"
     )
     _HAS_MOTO = False
 
@@ -40,7 +39,6 @@ if _HAS_MOTO:
         reason="Run only if CK S3 is available",
     )
     class TestCreateClient(hunitest.TestCase):
-
         def test_create_client1(self) -> None:
             """
             Simple smoke test to verify connection to AWS.
@@ -55,7 +53,6 @@ if _HAS_MOTO:
         reason="Run only if CK S3 is available",
     )
     class TestGetSecret(hunitest.TestCase):
-
         @moto.mock_aws
         def test_get_secret(self) -> None:
             """
@@ -133,7 +130,6 @@ if _HAS_MOTO:
         reason="Run only if CK S3 is available",
     )
     class TestStoreSecret(hunitest.TestCase):
-
         @moto.mock_aws
         def test_store_secret1(self) -> None:
             """
@@ -157,9 +153,10 @@ if _HAS_MOTO:
         not hserver.is_CK_S3_available(),
         reason="Run only if CK S3 is available",
     )
-    @pytest.mark.skip(reason="TODO(Juraj): Temporarily disabled in #Cmtask10068.")
+    @pytest.mark.skip(
+        reason="TODO(Juraj): Temporarily disabled in #Cmtask10068."
+    )
     class TestLockSecret(hunitest.TestCase):
-
         @moto.mock_aws
         def test_lock_secret(self) -> None:
             """
@@ -187,9 +184,10 @@ if _HAS_MOTO:
         not hserver.is_CK_S3_available(),
         reason="Run only if CK S3 is available",
     )
-    @pytest.mark.skip(reason="TODO(Juraj): Temporarily disabled in #Cmtask10068.")
+    @pytest.mark.skip(
+        reason="TODO(Juraj): Temporarily disabled in #Cmtask10068."
+    )
     class TestUpdateUsedby(hunitest.TestCase):
-
         @moto.mock_aws
         def test1(self) -> None:
             """

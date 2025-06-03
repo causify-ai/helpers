@@ -43,7 +43,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class Label:
-
     def __init__(self, name: str, description: str, color: str):
         """
         Initialize the label with name, description, and color.
@@ -134,7 +133,8 @@ class Label:
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     hparser.add_verbosity_arg(parser)
     parser.add_argument(

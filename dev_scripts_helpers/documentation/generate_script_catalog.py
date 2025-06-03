@@ -46,7 +46,8 @@ def _get_docstring(file_name: str) -> str:
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("--src_dir", action="store", default=".")
     parser.add_argument("--src_file", action="store", default=None)
@@ -89,7 +90,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     ordered_file_names = sorted(res.keys(), key=lambda x: len(x.split("/")))
     for file_name in ordered_file_names:
         _LOG.debug(
-            "file_name=%s curr_dir=%s last_dir=%s", file_name, curr_dir, last_dir
+            "file_name=%s curr_dir=%s last_dir=%s",
+            file_name,
+            curr_dir,
+            last_dir,
         )
         docstring = res[file_name]
         file_name = file_name.replace("./", "")

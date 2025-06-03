@@ -11,7 +11,6 @@ Import as:
 import dev_scripts_helpers.script_template as dscscske
 """
 
-
 import argparse
 import logging
 
@@ -26,7 +25,8 @@ _LOG = logging.getLogger(__name__)
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("positional", nargs="*", help="...")
     parser.add_argument("--dst_dir", action="store", help="Destination dir")

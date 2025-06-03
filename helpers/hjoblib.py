@@ -567,7 +567,9 @@ def _parallel_execute_decorator(
         if abort_on_error:
             _LOG.error("Aborting since abort_on_error=%s", abort_on_error)
             raise exception  # noqa: F821
-        _LOG.error("Continuing execution since abort_on_error=%s", abort_on_error)
+        _LOG.error(
+            "Continuing execution since abort_on_error=%s", abort_on_error
+        )
         res = str(exception)
     else:
         # The execution was successful.

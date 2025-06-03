@@ -9,14 +9,14 @@ if False:
     import dev_scripts_helpers.coding_tools.toml_merge as dsctomer
     import helpers.hunit_test as hunitest
 
-
     def _to_toml(txt: str) -> MutableMapping[str, Any]:
         """
         Remove all empty lines and leading / trailing spaces.
         """
-        txt = "\n".join([line.rstrip().lstrip() for line in txt.split("\n") if txt])
+        txt = "\n".join(
+            [line.rstrip().lstrip() for line in txt.split("\n") if txt]
+        )
         return toml.load(StringIO(txt))
-
 
     class TestMergeToml(hunitest.TestCase):
         def test1(self) -> None:

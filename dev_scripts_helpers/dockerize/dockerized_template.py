@@ -19,7 +19,8 @@ _LOG = logging.getLogger(__name__)
 def _parse() -> argparse.ArgumentParser:
     # Create an ArgumentParser instance with the provided docstring.
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     # FILL THIS.
     # parser.add_argument(
