@@ -5,6 +5,7 @@ jackdoc: Locate input from Markdown files in the docs directory
 Example usage:
 jackdoc "search_term" [--skip-toc] [--line-only] [--subdir <subdirectory>]
 """
+
 import argparse
 import logging
 import os
@@ -185,7 +186,8 @@ def _parse() -> argparse.ArgumentParser:
     :return: the argument parser object
     """
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("search_term", help="Term to search in Markdown files")
     parser.add_argument(

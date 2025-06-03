@@ -666,7 +666,9 @@ def generate_aws_files(
     config_file_name = os.path.join(home_dir, ".aws", "config")
     credentials_file_name = os.path.join(home_dir, ".aws", "credentials")
     # Check if the files already exist.
-    if os.path.exists(credentials_file_name) and os.path.exists(config_file_name):
+    if os.path.exists(credentials_file_name) and os.path.exists(
+        config_file_name
+    ):
         _LOG.info(
             "Both files exist: %s and %s; exiting",
             credentials_file_name,
@@ -911,7 +913,9 @@ def archive_data_on_s3(
     hdbg.dassert_dir_exists(src_dir)
     dassert_is_s3_path(s3_path)
     _LOG.info(
-        "The size of '%s' is %s", src_dir, hsystem.du(src_dir, human_format=True)
+        "The size of '%s' is %s",
+        src_dir,
+        hsystem.du(src_dir, human_format=True),
     )
     # Add a timestamp if needed.
     dst_path = hsystem.append_timestamp_tag(src_dir, tag) + ".tgz"

@@ -1,7 +1,7 @@
 import logging
 import os
 import pprint
-from typing import Any, List, Tuple
+from typing import Any, List, Tuple, cast
 
 import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
@@ -104,7 +104,6 @@ def get_header_list5() -> hmarkdo.HeaderList:
 
 
 class Test_header_list_to_vim_cfile1(hunitest.TestCase):
-
     def test_get_header_list1(self) -> None:
         # Prepare inputs.
         markdown_file = "test.py"
@@ -132,7 +131,6 @@ class Test_header_list_to_vim_cfile1(hunitest.TestCase):
 
 
 class Test_header_list_to_markdown1(hunitest.TestCase):
-
     def test_mode_list1(self) -> None:
         # Prepare inputs.
         headers = get_header_list1()
@@ -180,7 +178,6 @@ class Test_header_list_to_markdown1(hunitest.TestCase):
 
 
 class Test_is_markdown_line_separator1(hunitest.TestCase):
-
     def test_valid_separator1(self) -> None:
         # Prepare inputs.
         line = "-----------------------"
@@ -314,6 +311,7 @@ def _get_markdown_example1() -> str:
     Content under header 3.
     """
     content = hprint.dedent(content)
+    content = cast(str, content)
     return content
 
 
@@ -325,6 +323,7 @@ def _get_markdown_example2() -> str:
     Content under subheader 2.
     """
     content = hprint.dedent(content)
+    content = cast(str, content)
     return content
 
 
@@ -333,6 +332,7 @@ def _get_markdown_example3() -> str:
     This is some content without any headers.
     """
     content = hprint.dedent(content)
+    content = cast(str, content)
     return content
 
 
@@ -408,6 +408,7 @@ def _get_markdown_example4() -> str:
     Stay curious and keep exploring!
     """
     content = hprint.dedent(content)
+    content = cast(str, content)
     return content
 
 
@@ -423,6 +424,7 @@ def _get_markdown_example5() -> hmarkdo.HeaderList:
     ## Linear models
     """
     content = hprint.dedent(content)
+    content = cast(str, content)
     return content
 
 
@@ -432,7 +434,6 @@ def _get_markdown_example5() -> hmarkdo.HeaderList:
 
 
 class Test_extract_section_from_markdown1(hunitest.TestCase):
-
     # TODO(gp): This doesn't seem correct.
     def test1(self) -> None:
         # Prepare inputs.
@@ -506,7 +507,6 @@ class Test_extract_section_from_markdown1(hunitest.TestCase):
 
 
 class Test_extract_headers_from_markdown1(hunitest.TestCase):
-
     def test_multiple_headers(self) -> None:
         # Prepare inputs.
         content = _get_markdown_example1()
@@ -544,7 +544,6 @@ class Test_extract_headers_from_markdown1(hunitest.TestCase):
 
 
 class Test_remove_end_of_line_periods1(hunitest.TestCase):
-
     def test_standard_case(self) -> None:
         txt = "Hello.\nWorld.\nThis is a test."
         act = hmarkdo.remove_end_of_line_periods(txt)
@@ -582,7 +581,6 @@ class Test_remove_end_of_line_periods1(hunitest.TestCase):
 
 
 class Test_process_code_block1(hunitest.TestCase):
-
     def process_code_block(self, txt: str) -> str:
         out: List[str] = []
         in_code_block = False
@@ -615,7 +613,6 @@ class Test_process_code_block1(hunitest.TestCase):
 
 
 class Test_process_lines1(hunitest.TestCase):
-
     # TODO(gp): This doesn't seem correct.
     def test1(self) -> None:
         in_dir_name = self.get_input_dir()
@@ -689,7 +686,6 @@ def _test_full_navigation_flow(self_: Any, txt: str) -> None:
 
 
 class Test_selected_navigation_to_str1(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Create navigation bar from Markdown text `_get_markdown_example4()`.
@@ -741,7 +737,6 @@ class Test_selected_navigation_to_str1(hunitest.TestCase):
 
 
 class Test_selected_navigation_to_str2(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Create navigation bar from Markdown text `_get_markdown_example5()`.
@@ -787,7 +782,6 @@ class Test_selected_navigation_to_str2(hunitest.TestCase):
 
 
 class Test_bold_first_level_bullets1(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test basic first-level bullet bolding.
@@ -899,7 +893,6 @@ class Test_bold_first_level_bullets1(hunitest.TestCase):
 
 
 class Test_md_clean_up1(hunitest.TestCase):
-
     def test1(self) -> None:
         # Prepare inputs.
         txt = r"""
@@ -967,7 +960,6 @@ class Test_md_clean_up1(hunitest.TestCase):
 
 
 class Test_modify_header_level1(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test the inputs to increase headings.
@@ -1167,7 +1159,6 @@ class Test_modify_header_level1(hunitest.TestCase):
 
 
 class Test_format_headers1(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test the inputs to check the basic formatting of headings.
@@ -1284,7 +1275,6 @@ class Test_format_headers1(hunitest.TestCase):
 
 
 class Test_remove_code_delimiters1(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test a basic example.
@@ -1438,12 +1428,11 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_check_header_list1
+# Test_sanity_check_header_list1
 # #############################################################################
 
 
-class Test_check_header_list1(hunitest.TestCase):
-
+class Test_sanity_check_header_list1(hunitest.TestCase):
     def test1(self) -> None:
         """
         Test that the header list with valid level increase is accepted.
@@ -1451,7 +1440,7 @@ class Test_check_header_list1(hunitest.TestCase):
         # Prepare inputs.
         header_list = get_header_list1()
         # Call function.
-        hmarkdo.check_header_list(header_list)
+        hmarkdo.sanity_check_header_list(header_list)
         self.assertTrue(True)
 
     def test2(self) -> None:
@@ -1463,7 +1452,7 @@ class Test_check_header_list1(hunitest.TestCase):
         header_list = get_header_list4()
         # Call function.
         with self.assertRaises(ValueError) as err:
-            hmarkdo.check_header_list(header_list)
+            hmarkdo.sanity_check_header_list(header_list)
         # Check output.
         actual = str(err.exception)
         self.check_string(actual)
@@ -1476,253 +1465,374 @@ class Test_check_header_list1(hunitest.TestCase):
         # Prepare inputs.
         header_list = get_header_list5()
         # Call function.
-        hmarkdo.check_header_list(header_list)
+        hmarkdo.sanity_check_header_list(header_list)
         self.assertTrue(True)
 
 
+# //////////////////////////////////////////////////////////////////////////////
+# Rules processing.
+# //////////////////////////////////////////////////////////////////////////////
+
+
+def get_header_list6() -> hmarkdo.HeaderList:
+    """
+    - Spelling
+      - All
+        - LLM
+        - Linter
+    - Python
+      - Naming
+        - LLM
+        - Linter
+      - Docstrings
+        - LLM
+        - Linter
+    - Unit_tests
+      - All
+        - LLM
+        - Linter
+    """
+    data = [
+        (1, "Spelling"),
+        (2, "All"),
+        (3, "LLM"),
+        (3, "Linter"),
+        (1, "Python"),
+        (2, "Naming"),
+        (3, "LLM"),
+        (3, "Linter"),
+        (2, "Docstrings"),
+        (3, "LLM"),
+        (3, "Linter"),
+        (1, "Unit_tests"),
+        (2, "All"),
+        (3, "LLM"),
+        (3, "Linter"),
+    ]
+    header_list = _to_header_list(data)
+    return header_list
+
+
 # #############################################################################
-# Test_inject_todos_from_cfile1
+# Test_convert_header_list_into_guidelines1
 # #############################################################################
 
 
-class Test_inject_todos_from_cfile1(hunitest.TestCase):
+class Test_convert_header_list_into_guidelines1(hunitest.TestCase):
+    def test1(self) -> None:
+        """
+        Test converting a header list into guidelines.
+        """
+        # Prepare inputs.
+        header_list = get_header_list6()
+        # Call function.
+        guidelines = hmarkdo.convert_header_list_into_guidelines(header_list)
+        # Check output.
+        act = "\n".join(map(str, guidelines))
+        exp = """
+        HeaderInfo(1, 'Spelling:All:LLM', 11)
+        HeaderInfo(1, 'Spelling:All:Linter', 16)
+        HeaderInfo(1, 'Python:Naming:LLM', 31)
+        HeaderInfo(1, 'Python:Naming:Linter', 36)
+        HeaderInfo(1, 'Python:Docstrings:LLM', 46)
+        HeaderInfo(1, 'Python:Docstrings:Linter', 51)
+        HeaderInfo(1, 'Unit_tests:All:LLM', 66)
+        HeaderInfo(1, 'Unit_tests:All:Linter', 71)
+        """
+        self.assert_equal(act, exp, dedent=True)
+
+
+# #############################################################################
+# Test_extract_rules1
+# #############################################################################
+
+
+class Test_extract_rules1(hunitest.TestCase):
+    def helper(self, selection_rules: List[str], exp: str) -> None:
+        """
+        Test extracting rules from a markdown file.
+        """
+        # Prepare inputs.
+        guidelines = get_header_list6()
+        guidelines = hmarkdo.convert_header_list_into_guidelines(guidelines)
+        # Call function.
+        selected_guidelines = hmarkdo.extract_rules(guidelines, selection_rules)
+        # Check output.
+        act = "\n".join(map(str, selected_guidelines))
+        self.assert_equal(act, exp, dedent=True)
 
     def test1(self) -> None:
         """
-        Test injecting TODOs from a cfile into a Python file.
+        Test extracting rules from a markdown file.
         """
-        # Create a test file.
-        test_file_content = """
-        def hello(msg):
-            print(msg)
-
-        def world():
-            print("world")
+        selection_rules = ["Spelling:*:LLM"]
+        exp = """
+        HeaderInfo(1, 'Spelling:All:LLM', 11)
         """
-        file_path = self._create_test_file("test.py", test_file_content)
-        # Create cfile with TODOs.
-        cfile_content = [
-            f"{file_path}:1: Add type hints.",
-            f"{file_path}:4: Add docstring.",
-        ]
-        self._create_cfile(cfile_content)
-        # Run the function under test.
-        self._inject_todos("\n".join(cfile_content))
-        # Check output.
-        actual = hio.from_file(file_path)
-        expected = """
-        # TODO(user): Add type hints.
-        def hello(msg):
-            print(msg)
-
-        # TODO(user): Add docstring.
-        def world():
-            print("world")
-        """
-        self.assert_equal(actual, expected, dedent=True)
-
-    def test_one_line_file(self) -> None:
-        """
-        Test injecting TODOs into an empty file.
-        """
-        # Create an empty test file
-        test_file_content = """
-        print("hello")
-        """
-        file_path = self._create_test_file("empty.py", test_file_content)
-        # Create cfile with TODOs
-        cfile_content = [f"{file_path}:1: Add content to empty file."]
-        self._create_cfile(cfile_content)
-        # Run the function under test
-        self._inject_todos("\n".join(cfile_content))
-        # Check output
-        actual = hio.from_file(file_path)
-        expected = """
-        # TODO(user): Add content to empty file.
-        print("hello")
-        """
-        self.assert_equal(actual, expected, dedent=True)
-
-    def test_invalid_line_numbers(self) -> None:
-        """
-        Test handling of TODOs with invalid line numbers.
-        """
-        # Create a test file
-        test_file_content = """
-        line1
-        line2
-        """
-        file_path = self._create_test_file("test.py", test_file_content)
-        # Create cfile with invalid line numbers
-        cfile_content = [
-            f"{file_path}:999: This line number doesn't exist.",
-        ]
-        self._create_cfile(cfile_content)
-        # This should raise an assertion error due to invalid line numbers
-        with self.assertRaises(AssertionError) as err:
-            self._inject_todos("\n".join(cfile_content))
-        # Check output.
-        expected = """
-        ################################################################################
-        * Failed assertion *
-        998 < 2
-        ################################################################################
-        """
-        self.assert_equal(
-            str(err.exception), expected, dedent=True, fuzzy_match=True
-        )
+        self.helper(selection_rules, exp)
 
     def test2(self) -> None:
         """
-        Test injecting TODOs from a cfile into a Python file with a complex
-        class.
+        Test extracting rules from a markdown file.
         """
-        # Create a test file.
-        test_file_content = """
-        import logging
-        from typing import List, Optional
-
-        class DataProcessor:
-            def __init__(self):
-                self.logger = logging.getLogger(__name__)
-                self.data = []
-
-            def process_batch(self, items):
-                for item in items:
-                    self.data.append(self._transform(item))
-
-            def _transform(self, item):
-                return item.upper()
-
-            def get_results(self):
-                return self.data
-
-            def clear(self):
-                self.data = []
+        selection_rules = ["Spelling:NONE:LLM"]
+        exp = """
         """
-        file_path = self._create_test_file("test.py", test_file_content)
-        # Create cfile with TODOs.
-        cfile_content = [
-            f"{file_path}:4: Add class docstring explaining purpose and usage",
-            f"{file_path}:5: Add type hints for instance variables",
-            f"{file_path}:9: Add type hints for items parameter",
-            f"{file_path}:10: Consider adding batch size validation",
-            f"{file_path}:13: Add error handling for non-string inputs",
-            f"{file_path}:16: Add return type hint and docstring",
-            f"{file_path}:19: Add docstring explaining clear behavior",
-        ]
-        self._create_cfile(cfile_content)
-        # Run function under test.
-        self._inject_todos("\n".join(cfile_content))
-        # Check output.
-        actual = hio.from_file(file_path)
-        expected = """
-        import logging
-        from typing import List, Optional
-
-        # TODO(user): Add class docstring explaining purpose and usage
-        class DataProcessor:
-            # TODO(user): Add type hints for instance variables
-            def __init__(self):
-                self.logger = logging.getLogger(__name__)
-                self.data = []
-
-            # TODO(user): Add type hints for items parameter
-            def process_batch(self, items):
-                # TODO(user): Consider adding batch size validation
-                for item in items:
-                    self.data.append(self._transform(item))
-
-            # TODO(user): Add error handling for non-string inputs
-            def _transform(self, item):
-                return item.upper()
-
-            # TODO(user): Add return type hint and docstring
-            def get_results(self):
-                return self.data
-
-            # TODO(user): Add docstring explaining clear behavior
-            def clear(self):
-                self.data = []
-        """
-        self.assert_equal(actual, expected, dedent=True)
+        self.helper(selection_rules, exp)
 
     def test3(self) -> None:
         """
-        Test injecting TODOs from a cfile into multiple Python files.
+        Test extracting rules from a markdown file.
         """
-        # Create first test file.
-        test_file1_content = """
-        def foo():
-            pass
+        selection_rules = ["Spelling:All:*"]
+        exp = """
+        HeaderInfo(1, 'Spelling:All:LLM', 11)
+        HeaderInfo(1, 'Spelling:All:Linter', 16)
         """
-        file_path1 = self._create_test_file("test1.py", test_file1_content)
-        # Create second test file.
-        test_file2_content = """
-        def bar():
-            return None
+        self.helper(selection_rules, exp)
+
+    def test4(self) -> None:
         """
-        file_path2 = self._create_test_file("test2.py", test_file2_content)
-        # Create cfile.
-        cfile_content = [
-            f"{file_path1}:1: Add docstring for foo.",
-            f"{file_path2}:1: Add docstring for bar.",
-            f"{file_path2}:2: Add type hint for return.",
-        ]
-        self._create_cfile(cfile_content)
-        # Run function under test.
-        self._inject_todos("\n".join(cfile_content))
+        Test extracting rules from a markdown file.
+        """
+        selection_rules = ["Spelling:All:*", "Python:*:*"]
+        exp = """
+        HeaderInfo(1, 'Spelling:All:LLM', 11)
+        HeaderInfo(1, 'Spelling:All:Linter', 16)
+        HeaderInfo(1, 'Python:Naming:LLM', 31)
+        HeaderInfo(1, 'Python:Naming:Linter', 36)
+        HeaderInfo(1, 'Python:Docstrings:LLM', 46)
+        HeaderInfo(1, 'Python:Docstrings:Linter', 51)
+        """
+        self.helper(selection_rules, exp)
+
+
+# #############################################################################
+# Test_parse_rules_from_txt1
+# #############################################################################
+
+
+class Test_parse_rules_from_txt1(hunitest.TestCase):
+    def helper(self, text: str, expected: str) -> None:
+        # Prepare inputs.
+        text = hprint.dedent(text)
+        # Call function.
+        actual = hmarkdo.parse_rules_from_txt(text)
         # Check output.
-        actual1 = hio.from_file(file_path1)
-        expected1 = """
-        # TODO(user): Add docstring for foo.
-        def foo():
-            pass
-        """
-        self.assert_equal(actual1, expected1, dedent=True)
-        #
-        actual2 = hio.from_file(file_path2)
-        expected2 = """
-        # TODO(user): Add docstring for bar.
-        def bar():
-            # TODO(user): Add type hint for return.
-            return None
-        """
-        self.assert_equal(actual2, expected2, dedent=True)
+        act = "\n".join(actual)
+        self.assert_equal(act, expected, dedent=True)
 
-    def _create_test_file(self, filename: str, content: str) -> str:
+    def test_basic_list1(self) -> None:
         """
-        Create a test file with given content in the scratch directory.
+        Test extracting simple first-level bullet points.
+        """
+        text = """
+        - Item 1
+        - Item 2
+        - Item 3
+        """
+        expected = """
+        - Item 1
+        - Item 2
+        - Item 3
+        """
+        self.helper(text, expected)
 
-        :param scratch_dir: Directory to create file in
-        :param filename: Name of file to create
-        :param content: Content to write to file
-        :return: Full path to created file
+    def test_nested_list1(self) -> None:
         """
-        scratch_dir = self.get_scratch_space()
-        file_path = os.path.join(scratch_dir, filename)
-        content = hprint.dedent(content)
-        hio.to_file(file_path, content)
-        return file_path
+        Test extracting bullet points with nested sub-items.
+        """
+        text = """
+        - Item 1
+        - Item 2
+          - Sub-item 2.1
+          - Sub-item 2.2
+        - Item 3
+        """
+        expected = """
+        - Item 1
+        - Item 2
+          - Sub-item 2.1
+          - Sub-item 2.2
+        - Item 3
+        """
+        self.helper(text, expected)
 
-    def _create_cfile(self, cfile_content: List[str]) -> str:
+    def test_empty_list1(self) -> None:
         """
-        Create a cfile with TODOs in the scratch directory.
+        Test handling empty input.
+        """
+        text = ""
+        expected = ""
+        self.helper(text, expected)
 
-        :param scratch_dir: Directory to create file in
-        :param cfile_content: List of TODO lines to write
-        :return: Full path to created cfile
-        """
-        content = "\n".join(cfile_content)
-        return self._create_test_file("cfile.txt", content)
 
-    def _inject_todos(self, cfile_content: str) -> None:
+def get_guidelines_txt1() -> str:
+    txt = r"""
+    # General
+
+    ## Spelling
+
+    ### LLM
+
+    ### Linter
+
+    - Spell commands in lower case and programs with the first letter in upper case
+    - E.g., `git` as a command, `Git` as a program
+    - E.g., capitalize the first letter of `Python`
+    - Capitalize `JSON`, `CSV`, `DB` and other abbreviations
+
+    # Python
+
+    ## Naming
+
+    ### LLM
+
+    - Name functions using verbs and verbs/actions
+      - Good: `download_data()`, `process_input()`, `calculate_sum()`
+      - Good: Python internal functions as `__repr__`, `__init__` are valid
+      - Good: Functions names like `to_dict()`, `_parse()`, `_main()` are valid
+    - Name classes using nouns
+      - Good: `Downloader()`, `DataProcessor()`, `User()`
+      - Bad: `DownloadStuff()`, `ProcessData()`, `UserActions()`
+
+    ### Linter
+
+    - Name executable Python scripts using verbs and actions
+    - E.g., `download.py` and not `downloader.py`
+
+    # Unit_tests
+
+    ## Rules
+
+    ### LLM
+
+    - A test class should test only one function or class to help understanding
+      test failures
+    - A test method should only test a single case to ensures clarity and
+      precision in testing
+    - E.g., "for these inputs the function responds with this output"
+    """
+    txt = hprint.dedent(txt)
+    txt = cast(str, txt)
+    return txt
+
+
+# #############################################################################
+# Test_end_to_end_rules1
+# #############################################################################
+
+
+class Test_end_to_end_rules1(hunitest.TestCase):
+    def test_get_header_list1(self) -> None:
         """
-        Helper to inject TODOs with standard parameters.
+        Test extracting headers from a markdown file.
         """
-        todo_user = "user"
-        comment_prefix = "#"
-        hmarkdo.inject_todos_from_cfile(cfile_content, todo_user, comment_prefix)
+        # Prepare inputs.
+        txt = get_guidelines_txt1()
+        max_level = 4
+        # Run function.
+        header_list = hmarkdo.extract_headers_from_markdown(txt, max_level)
+        # Check output.
+        act = "\n".join(map(str, header_list))
+        exp = """
+        HeaderInfo(1, 'General', 1)
+        HeaderInfo(2, 'Spelling', 3)
+        HeaderInfo(3, 'LLM', 5)
+        HeaderInfo(3, 'Linter', 7)
+        HeaderInfo(1, 'Python', 14)
+        HeaderInfo(2, 'Naming', 16)
+        HeaderInfo(3, 'LLM', 18)
+        HeaderInfo(3, 'Linter', 28)
+        HeaderInfo(1, 'Unit_tests', 33)
+        HeaderInfo(2, 'Rules', 35)
+        HeaderInfo(3, 'LLM', 37)
+        """
+        self.assert_equal(act, exp, dedent=True)
+        # Run function.
+        guidelines = hmarkdo.convert_header_list_into_guidelines(header_list)
+        # Check output.
+        act = "\n".join(map(str, guidelines))
+        exp = """
+        HeaderInfo(1, 'General:Spelling:LLM', 5)
+        HeaderInfo(1, 'General:Spelling:Linter', 7)
+        HeaderInfo(1, 'Python:Naming:LLM', 18)
+        HeaderInfo(1, 'Python:Naming:Linter', 28)
+        HeaderInfo(1, 'Unit_tests:Rules:LLM', 37)
+        """
+        self.assert_equal(act, exp, dedent=True)
+
+    def helper_extract_rules(self, selection_rules: List[str], exp: str) -> None:
+        """
+        Helper function to test extracting rules from a markdown file.
+        """
+        # Prepare inputs.
+        txt = get_guidelines_txt1()
+        max_level = 4
+        header_list = hmarkdo.extract_headers_from_markdown(txt, max_level)
+        guidelines = hmarkdo.convert_header_list_into_guidelines(header_list)
+        # Call function.
+        selected_guidelines = hmarkdo.extract_rules(guidelines, selection_rules)
+        # Check output.
+        act = "\n".join(map(str, selected_guidelines))
+        self.assert_equal(act, exp, dedent=True)
+
+    def test_extract_rules1(self) -> None:
+        """
+        Test extracting rules from a markdown file.
+        """
+        selection_rules = ["General:*:LLM"]
+        exp = """
+        HeaderInfo(1, 'General:Spelling:LLM', 5)
+        """
+        self.helper_extract_rules(selection_rules, exp)
+
+    def test_extract_rules2(self) -> None:
+        selection_rules = ["General:NONE:LLM"]
+        exp = """
+        """
+        self.helper_extract_rules(selection_rules, exp)
+
+    def test_extract_rules3(self) -> None:
+        selection_rules = ["*:*:LLM"]
+        exp = """
+        HeaderInfo(1, 'General:Spelling:LLM', 5)
+        HeaderInfo(1, 'Python:Naming:LLM', 18)
+        HeaderInfo(1, 'Unit_tests:Rules:LLM', 37)
+        """
+        self.helper_extract_rules(selection_rules, exp)
+
+    def test_extract_rules4(self) -> None:
+        selection_rules = ["*:*:LLM", "General:*:*"]
+        exp = """
+        HeaderInfo(1, 'General:Spelling:LLM', 5)
+        HeaderInfo(1, 'General:Spelling:Linter', 7)
+        HeaderInfo(1, 'Python:Naming:LLM', 18)
+        HeaderInfo(1, 'Unit_tests:Rules:LLM', 37)
+        """
+        self.helper_extract_rules(selection_rules, exp)
+
+    def test_extract_rules5(self) -> None:
+        selection_rules = ["*:*:*"]
+        exp = """
+        HeaderInfo(1, 'General:Spelling:LLM', 5)
+        HeaderInfo(1, 'General:Spelling:Linter', 7)
+        HeaderInfo(1, 'Python:Naming:LLM', 18)
+        HeaderInfo(1, 'Python:Naming:Linter', 28)
+        HeaderInfo(1, 'Unit_tests:Rules:LLM', 37)
+        """
+        self.helper_extract_rules(selection_rules, exp)
+
+    def test_extract_rules6(self) -> None:
+        selection_rules = ["*:*:*", "General:*:*"]
+        exp = """
+        HeaderInfo(1, 'General:Spelling:LLM', 5)
+        HeaderInfo(1, 'General:Spelling:Linter', 7)
+        HeaderInfo(1, 'Python:Naming:LLM', 18)
+        HeaderInfo(1, 'Python:Naming:Linter', 28)
+        HeaderInfo(1, 'Unit_tests:Rules:LLM', 37)
+        """
+        self.helper_extract_rules(selection_rules, exp)
 
 
 # #############################################################################
@@ -1731,7 +1841,6 @@ class Test_inject_todos_from_cfile1(hunitest.TestCase):
 
 
 class Test_colorize_bold_text1(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test basic case with single bold text.
@@ -1894,7 +2003,6 @@ class Test_colorize_bold_text1(hunitest.TestCase):
 
 
 class Test_format_first_level_bullets1(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test basic case with single first level bullet.

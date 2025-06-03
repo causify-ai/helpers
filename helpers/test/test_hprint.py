@@ -14,7 +14,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_printing1(hunitest.TestCase):
-
     def test_color_highlight1(self) -> None:
         for c in hprint._COLOR_MAP:
             _LOG.debug(hprint.color_highlight(c, c))
@@ -26,7 +25,6 @@ class Test_printing1(hunitest.TestCase):
 
 
 class Test_to_str1(hunitest.TestCase):
-
     def test1(self) -> None:
         x = 1
         # To disable linter complaints.
@@ -125,7 +123,6 @@ def example_func5(x: int, y: str, z: float) -> str:
 
 
 class Test_func_signature_to_str1(hunitest.TestCase):
-
     def test1(self) -> None:
         act = example_func1(1, "hello")
         exp = "# example_func1: x=1, y='hello'"
@@ -158,7 +155,6 @@ class Test_func_signature_to_str1(hunitest.TestCase):
 
 
 class Test_log(hunitest.TestCase):
-
     def test2(self) -> None:
         x = 1
         # To disable linter complaints.
@@ -200,7 +196,6 @@ class Test_log(hunitest.TestCase):
 
 
 class Test_sort_dictionary(hunitest.TestCase):
-
     def test1(self) -> None:
         dict_ = {
             "tool": {
@@ -257,7 +252,6 @@ class Test_sort_dictionary(hunitest.TestCase):
 
 
 class Test_indent1(hunitest.TestCase):
-
     def test1(self) -> None:
         txt = """foo
 
@@ -280,7 +274,6 @@ klass TestHelloWorld(hunitest.TestCase):
 
 
 class Test_dedent1(hunitest.TestCase):
-
     def test1(self) -> None:
         txt = """
         foo
@@ -338,7 +331,6 @@ class TestHelloWorld(hunitest.TestCase):
 
 
 class Test_align_on_left1(hunitest.TestCase):
-
     def test1(self) -> None:
         txt = """foo
 
@@ -360,7 +352,6 @@ bar
 
 
 class Test_logging1(hunitest.TestCase):
-
     def test_log_frame1(self) -> None:
         hprint.log_frame(_LOG, "%s %s", "hello", "world")
 
@@ -377,7 +368,6 @@ class Test_logging1(hunitest.TestCase):
 
 
 class Test_remove_lead_trail_empty_lines1(hunitest.TestCase):
-
     def helper(self, input_str: str, expected_output: List[str]) -> None:
         """
         Test the `remove_lead_trail_empty_lines` function.
@@ -408,7 +398,9 @@ class Test_remove_lead_trail_empty_lines1(hunitest.TestCase):
         expected_output = ["line"]
         self.helper(input_str, expected_output)
 
-    def test_multiple_lines_with_no_empty_lines_returns_same_lines(self) -> None:
+    def test_multiple_lines_with_no_empty_lines_returns_same_lines(
+        self,
+    ) -> None:
         input_str: str = "line1\nline2\nline3"
         expected_output = ["line1", "line2", "line3"]
         self.helper(input_str, expected_output)
@@ -450,7 +442,9 @@ class Test_remove_lead_trail_empty_lines1(hunitest.TestCase):
         expected_output: List[str] = []
         self.helper(input_str, expected_output)
 
-    def test_multiple_consecutive_empty_lines_at_beginning_and_end(self) -> None:
+    def test_multiple_consecutive_empty_lines_at_beginning_and_end(
+        self,
+    ) -> None:
         input_str: str = "\n\n\nline1\nline2\n\n\n"
         expected_output = ["line1", "line2"]
         self.helper(input_str, expected_output)

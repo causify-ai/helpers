@@ -29,6 +29,8 @@ def create_in_operator(values: List[str], column_name: str) -> str:
       e.g. `"exchange_id IN ('binance', 'ftx')"`
     """
     in_operator = (
-        f"{column_name} IN (" + ",".join([f"'{value}'" for value in values]) + ")"
+        f"{column_name} IN ("
+        + ",".join([f"'{value}'" for value in values])
+        + ")"
     )
     return in_operator

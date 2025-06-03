@@ -22,7 +22,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_replace_shared_root_path1(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test replacing shared root path.
@@ -84,7 +83,6 @@ class Test_replace_shared_root_path1(hunitest.TestCase):
 
 
 class Test_convert_to_docker_path1(hunitest.TestCase):
-
     @staticmethod
     def convert_caller_to_callee_docker_path(
         in_file_path: str,
@@ -153,10 +151,12 @@ class Test_convert_to_docker_path1(hunitest.TestCase):
         check_if_exists = False
         # - Prepare outputs.
         helpers_root_path = hgit.find_helpers_root()
-        exp_docker_file_path = os.path.join(helpers_root_path,
+        exp_docker_file_path = os.path.join(
+            helpers_root_path,
             "helpers/test/outcomes",
             "Test_convert_to_docker_path1.test1/input",
-            "tmp.llm_transform.in.txt")
+            "tmp.llm_transform.in.txt",
+        )
         exp_mount = "type=bind,source=/app,target=/app"
         self.helper(
             in_file_path,
@@ -183,10 +183,12 @@ class Test_convert_to_docker_path1(hunitest.TestCase):
         check_if_exists = True
         # - Prepare outputs.
         helpers_root_path = hgit.find_helpers_root()
-        exp_docker_file_path = os.path.join(helpers_root_path,
+        exp_docker_file_path = os.path.join(
+            helpers_root_path,
             "helpers/test/outcomes",
             "Test_convert_to_docker_path1.test2/input",
-            "tmp.input.md")
+            "tmp.input.md",
+        )
         exp_mount = "type=bind,source=/app,target=/app"
         self.helper(
             in_file_path,
@@ -288,7 +290,6 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
 
 
 class Test_parse_pandoc_arguments1(hunitest.TestCase):
-
     def test1(self) -> None:
         # Prepare inputs.
         cmd = r"""
@@ -467,7 +468,6 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
     reason="Disabled because of CmampTask10710",
 )
 class Test_run_markdown_toc1(hunitest.TestCase):
-
     def run_markdown_toc(self, txt: str, exp: str) -> None:
         """
         Test running the `markdown-toc` command in a Docker container.
@@ -535,7 +535,6 @@ class Test_run_markdown_toc1(hunitest.TestCase):
     reason="Disabled because of CmampTask10710",
 )
 class Test_dockerized_latex1(hunitest.TestCase):
-
     def create_input_file(self) -> Tuple[str, str]:
         txt = r"""
         \documentclass{article}
@@ -632,7 +631,6 @@ class Test_dockerized_latex1(hunitest.TestCase):
     reason="Disabled because of CmampTask10710",
 )
 class Test_dockerized_tikz_to_bitmap1(hunitest.TestCase):
-
     def create_input_file(self) -> Tuple[str, str]:
         txt = r"""
         \documentclass[tikz, border=10pt]{standalone}
@@ -712,7 +710,6 @@ class Test_dockerized_tikz_to_bitmap1(hunitest.TestCase):
     reason="Disabled because of CmampTask10710",
 )
 class Test_dockerized_graphviz1(hunitest.TestCase):
-
     def create_input_file(self) -> Tuple[str, str]:
         txt = r"""
         digraph {

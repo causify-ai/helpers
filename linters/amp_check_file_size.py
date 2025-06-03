@@ -40,7 +40,6 @@ def _check_file_size(file_name: str, max_kb: int = 500) -> str:
 
 
 class _FileSizeChecker(liaction.Action):
-
     def check_if_possible(self) -> bool:
         return True
 
@@ -52,7 +51,8 @@ class _FileSizeChecker(liaction.Action):
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "files",

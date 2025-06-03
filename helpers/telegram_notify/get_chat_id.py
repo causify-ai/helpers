@@ -56,7 +56,8 @@ def send_chat_id(token: str, username: str) -> str:
 
 def _main() -> None:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("--username", required=True, action="store", type=str)
     parser.add_argument("--token", required=False, action="store", type=str)

@@ -1,0 +1,5 @@
+#!/bin/bash -xe
+
+FILE=$(path $1)
+echo "file=$FILE"
+vi $FILE
