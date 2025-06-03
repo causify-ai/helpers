@@ -32,7 +32,7 @@ import argparse
 import logging
 import os
 import re
-from typing import List, Optional
+from typing import List, Optional, cast
 
 import dev_scripts_helpers.llms.llm_prompts as dshlllpr
 import helpers.hdbg as hdbg
@@ -70,6 +70,7 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Print the original and transformed",
     )
+    # TODO(gp): Remove this.
     parser.add_argument(
         "-b",
         "--bold_first_level_bullets",
@@ -295,15 +296,15 @@ def _main(parser: argparse.ArgumentParser) -> None:
             out_txt = hmarkdo.md_clean_up(out_txt)
             out_txt = hmarkdo.format_markdown_slide(out_txt)
         #
-        if dshlllpr.to_run("append_text", post_container_transforms):
+        if dshlllpr.to_run("append_to_text", post_container_transforms):
             out_txt_tmp = []
             # Append the original text.
             txt = hio.from_file(tmp_in_file_name)
-            txt = hmarkdo.format_markdown(txt)
-            txt = hmarkdo.md_clean_up(txt)
             out_txt_tmp.append(txt)
             # Append the transformed text.
+            out_txt_tmp.append("\n#### Comments ####")
             out_txt_tmp.append(out_txt)
+            # Join everything.
             out_txt = "\n".join(out_txt_tmp)
         # Check that all post-transforms were run.
         hdbg.dassert_eq(

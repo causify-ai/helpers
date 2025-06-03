@@ -371,18 +371,35 @@ def parse_input_output_args(
     return in_file_name, out_file_name
 
 
-def init_logger_for_input_output_transform(args: argparse.Namespace) -> None:
+def init_logger_for_input_output_transform(
+    args: argparse.Namespace, *, verbose: bool = True
+) -> None:
     """
     Initialize the logger when input/output transformation is used.
+
+    :param verbose: if `False`, set the log level to `CRITICAL` so that no
+        output is printed and avoid to print:
+        ```
+        09:34:24 - INFO  hdbg.py init_logger:1013                 Saving log to file '/User...
+        09:34:24 - INFO  hdbg.py init_logger:1018                 > cmd='/Users/saggese/src...
+        09:34:24 - INFO  hparser.py parse_input_output_args:368   in_file_name='MSML610/Les...
+        09:34:24 - INFO  hparser.py parse_input_output_args:369   out_file_name='-'
+    ```
     """
     verbosity = args.log_level
-    # If the input is stdin, we don't want to print the command line or any
-    # other log messages, unless the user specified a more verbose log level.
-    if args.in_file_name == "-":
+    if not verbose:
+        # Unless user has specified DEBUG level, set the log level to `CRITICAL`
+        # so that no output is printed.
         if args.log_level == "INFO":
             verbosity = "CRITICAL"
     else:
-        print("cmd line: %s" % hdbg.get_command_line())
+        # If the input is stdin, we don't want to print the command line or any
+        # other log messages, unless the user specified a more verbose log level.
+        if args.in_file_name == "-":
+            if args.log_level == "INFO":
+                verbosity = "CRITICAL"
+        else:
+            print("cmd line: %s" % hdbg.get_command_line())
     hdbg.init_logger(verbosity=verbosity, use_exec_path=True, force_white=False)
 
 
@@ -402,7 +419,7 @@ def read_file(file_name: str) -> List[str]:
         f.close()
     else:
         txt = hio.from_file(file_name)
-        txt = txt.splitlines()
+        txt = txt.split("\n")
     return txt
 
 
@@ -659,6 +676,8 @@ def add_dockerized_script_arg(
 
 def add_llm_prompt_arg(
     parser: argparse.ArgumentParser,
+    *,
+    default_prompt: str = ""
 ) -> argparse.ArgumentParser:
     """
     Add common command line arguments for `*llm_transform.py` scripts.
@@ -668,8 +687,14 @@ def add_llm_prompt_arg(
         action="store_true",
         help="Print before/after the transform",
     )
+    is_required = default_prompt == ""
     parser.add_argument(
-        "-p", "--prompt", required=True, type=str, help="Prompt to apply"
+        "-p",
+        "--prompt",
+        required=is_required,
+        type=str,
+        help="Prompt to apply",
+        default=default_prompt,
     )
     parser.add_argument(
         "-f",
