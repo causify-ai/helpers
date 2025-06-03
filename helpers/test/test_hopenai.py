@@ -6,7 +6,9 @@ import unittest.mock as umock
 import pandas as pd
 import pytest
 
-pytest.importorskip("openai")  # noqa: E402 # pylint: disable=wrong-import-position
+pytest.importorskip(
+    "openai"
+)  # noqa: E402 # pylint: disable=wrong-import-position
 
 import helpers.hopenai as hopenai
 import helpers.hunit_test as hunitest
@@ -272,7 +274,6 @@ class _OpenAICacheTestCase(hunitest.TestCase):
 
 class Test_get_completion(_OpenAICacheTestCase):
 
-
     def test1(self) -> None:
         """
         Verify that get_completion() returns response from cache with the
@@ -309,9 +310,7 @@ class Test_get_completion(_OpenAICacheTestCase):
 # #############################################################################
 
 
-
 class Test_hash_key_generator(_OpenAICacheTestCase):
-
 
     def test_different_request_parameters1(self) -> None:
         """
@@ -351,7 +350,6 @@ class Test_hash_key_generator(_OpenAICacheTestCase):
 
 class Test_has_cache(_OpenAICacheTestCase):
 
-
     def test1(self) -> None:
         """
         Should return False if cache doesn't exist.
@@ -378,7 +376,6 @@ class Test_has_cache(_OpenAICacheTestCase):
 
 class Test_save_response_to_cache(_OpenAICacheTestCase):
 
-
     def test1(self) -> None:
         """
         Verify if response saves into cache.
@@ -401,7 +398,6 @@ class Test_save_response_to_cache(_OpenAICacheTestCase):
 # #############################################################################
 # Test_load_response_from_cache
 # #############################################################################
-
 
 
 class Test_load_response_from_cache(_OpenAICacheTestCase):
@@ -430,9 +426,7 @@ class Test_load_response_from_cache(_OpenAICacheTestCase):
         parameters4 = _get_openai_request_parameters4()
         hash_key4 = self.get_completion_cache.hash_key_generator(**parameters4)
         with self.assertRaises(ValueError) as VE:
-            self.get_completion_cache.load_response_from_cache(
-                hash_key=hash_key4
-            )
+            self.get_completion_cache.load_response_from_cache(hash_key=hash_key4)
         self.assert_equal(str(VE.exception), "No cache found!")
 
 
@@ -757,6 +751,9 @@ class Test_save_models_info_to_csv(hunitest.TestCase):
             hopenai._save_models_info_to_csv(df, "")
 
 
+# #############################################################################
+# Test_build_messages
+# #############################################################################
 
 
 # #############################################################################
