@@ -337,6 +337,12 @@ class RepoConfig:
 
     # TODO(gp): Add functions for container_registry_info.
 
+    def get_container_registry_url(self, registry: str = "ecr") -> str:
+        """
+        Return the URL of the container registry.
+        """
+        return self._data["container_registry_info"][registry]
+
     # Utils.
 
     @staticmethod

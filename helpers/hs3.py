@@ -45,7 +45,8 @@ _LOG = logging.getLogger(__name__)
 # build https://github.com/cryptokaizen/cmamp/actions/runs/10729983412/job/29757600889
 AWS_EUROPE_REGION_1 = "eu-north-1"
 AWS_TOKYO_REGION_1 = "ap-northeast-1"
-AWS_REGIONS = [AWS_EUROPE_REGION_1, AWS_TOKYO_REGION_1]
+AWS_US_REGION_1 = "us-east-1"
+AWS_REGIONS = [AWS_EUROPE_REGION_1, AWS_TOKYO_REGION_1, AWS_US_REGION_1]
 
 # TODO(gp): @all separate S3 code in `helpers/hs3.py` from authentication and
 #  AWS profile code in `helpers/aws_authentication.py`.
