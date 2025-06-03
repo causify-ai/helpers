@@ -23,7 +23,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_git_submodule1(hunitest.TestCase):
-
     def test_get_client_root1(self) -> None:
         act = hgit.get_client_root(super_module=True)
         _LOG.debug("act=%s", act)
@@ -125,7 +124,6 @@ class Test_git_submodule2(hunitest.TestCase):
 
 
 class Test_git_repo_name1(hunitest.TestCase):
-
     def test_parse_github_repo_name1(self) -> None:
         repo_name = "git@github.com:alphamatic/amp"
         host_name, repo_name = hgit._parse_github_repo_name(repo_name)
@@ -180,7 +178,6 @@ class Test_git_repo_name1(hunitest.TestCase):
 # Outside CK infra, the following class hangs, so we skip it.
 @pytest.mark.requires_ck_infra
 class Test_git_path1(hunitest.TestCase):
-
     @pytest.mark.skipif(
         not hgit.is_in_amp_as_supermodule(),
         reason="Run only in amp as super-module",
@@ -194,7 +191,8 @@ class Test_git_path1(hunitest.TestCase):
         self.assert_equal(act, exp)
 
     @pytest.mark.skipif(
-        not hgit.is_in_amp_as_submodule(), reason="Run only in amp as sub-module"
+        not hgit.is_in_amp_as_submodule(),
+        reason="Run only in amp as sub-module",
     )
     def test_get_path_from_git_root2(self) -> None:
         file_name = "/app/amp/helpers/test/test_hgit.py"
@@ -291,7 +289,6 @@ class Test_git_modified_files1(hunitest.TestCase):
 # Outside CK infra, the following class hangs, so we skip it.
 @pytest.mark.requires_ck_infra
 class Test_find_docker_file1(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test for a file `amp/helpers/test/test_hgit.py` that is not from Docker
@@ -389,7 +386,6 @@ class Test_find_docker_file1(hunitest.TestCase):
 
 
 class Test_extract_gh_issue_number_from_branch(hunitest.TestCase):
-
     def test_extract_gh_issue_number_from_branch1(self) -> None:
         """
         Tests extraction from a branch name with a specific format.
@@ -460,7 +456,7 @@ class Test_find_git_root1(hunitest.TestCase):
         self.submodule_dir = os.path.join(self.repo_dir, "amp")
         hio.create_dir(self.submodule_dir, incremental=False)
         submodule_git_file = os.path.join(self.submodule_dir, ".git")
-        txt = f"gitdir: ../.git/modules/amp"
+        txt = "gitdir: ../.git/modules/amp"
         hio.to_file(submodule_git_file, txt)
         submodule_git_file_dir = os.path.join(
             self.repo_dir, ".git", "modules", "amp"
@@ -470,7 +466,7 @@ class Test_find_git_root1(hunitest.TestCase):
         self.subsubmodule_dir = os.path.join(self.submodule_dir, "helpers_root")
         hio.create_dir(self.subsubmodule_dir, incremental=False)
         subsubmodule_git_file = os.path.join(self.subsubmodule_dir, ".git")
-        txt = f"gitdir: ../../.git/modules/amp/modules/helpers_root"
+        txt = "gitdir: ../../.git/modules/amp/modules/helpers_root"
         hio.to_file(subsubmodule_git_file, txt)
         subsubmodule_git_file_dir = os.path.join(
             self.repo_dir, ".git", "modules", "amp", "modules", "helpers_root"
@@ -552,7 +548,7 @@ class Test_find_git_root2(hunitest.TestCase):
         self.submodule_dir = os.path.join(self.repo_dir, "helpers_root")
         hio.create_dir(self.submodule_dir, incremental=False)
         submodule_git_file = os.path.join(self.submodule_dir, ".git")
-        txt = f"gitdir: ../.git/modules/helpers_root"
+        txt = "gitdir: ../.git/modules/helpers_root"
         hio.to_file(submodule_git_file, txt)
         submodule_git_file_dir = os.path.join(
             self.repo_dir, ".git", "modules", "helpers_root"
@@ -737,9 +733,10 @@ class Test_find_git_root5(hunitest.TestCase):
         Check that the error is raised when the caller is in a directory that
         is not either a git repo or a submodule.
         """
-        with hsystem.cd(self.arbitrary_dir), self.assertRaises(
-            AssertionError
-        ) as cm:
+        with (
+            hsystem.cd(self.arbitrary_dir),
+            self.assertRaises(AssertionError) as cm,
+        ):
             _ = hgit.find_git_root(".")
         act = str(cm.exception)
         exp = """
@@ -759,7 +756,7 @@ class Test_find_git_root5(hunitest.TestCase):
         with hsystem.cd(self.repo_dir), self.assertRaises(AssertionError) as cm:
             _ = hgit.find_git_root(".")
         act = str(cm.exception)
-        exp = f"""
+        exp = """
         * Failed assertion *
         '/'
         !=

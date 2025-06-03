@@ -20,7 +20,6 @@ _LOG = logging.getLogger(__name__)
     reason="Disabled because of CmampTask10710",
 )
 class Test_convert_to_vim_cfile1(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test converting a simple error message to vim cfile format.
@@ -55,7 +54,6 @@ class Test_convert_to_vim_cfile1(hunitest.TestCase):
     reason="Disabled because of CmampTask10710",
 )
 class Test_prompt_tags1(hunitest.TestCase):
-
     def test1(self) -> None:
         prompt_tags = dshlllpr.get_prompt_tags()
         _LOG.debug(hprint.to_str("prompt_tags"))
@@ -74,7 +72,6 @@ class Test_prompt_tags1(hunitest.TestCase):
     reason="Disabled because of CmampTask10710",
 )
 class Test_run_prompt1(hunitest.TestCase):
-
     # TODO(gp): Add one tests for each prompt.
 
     def test_code_fix_from_imports1(self) -> None:

@@ -83,10 +83,13 @@ def _parse() -> argparse.ArgumentParser:
     :return: Argument parser object.
     """
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("--src_dir", required=True, help="Source directory.")
-    parser.add_argument("--dst_dir", required=True, help="Destination directory.")
+    parser.add_argument(
+        "--dst_dir", required=True, help="Destination directory."
+    )
     parser.add_argument(
         "--replace_links",
         action="store_true",
@@ -208,7 +211,9 @@ def _replace_with_links(
             os.remove(dst_file)
         try:
             if use_relative_paths:
-                link_target = os.path.relpath(src_file, os.path.dirname(dst_file))
+                link_target = os.path.relpath(
+                    src_file, os.path.dirname(dst_file)
+                )
             else:
                 link_target = os.path.abspath(src_file)
             os.symlink(link_target, dst_file)

@@ -134,9 +134,9 @@ def patch_config_list(
         # Add experiment result dir.
         dst_subdir = f"result_{idx}"
         experiment_result_dir = os.path.join(dst_dir, dst_subdir)
-        config[
-            ("backtest_config", "experiment_result_dir")
-        ] = experiment_result_dir
+        config[("backtest_config", "experiment_result_dir")] = (
+            experiment_result_dir
+        )
         #
         configs_out.append(config)
     # Create a copy of the ConfigList and update the internal `configs`.

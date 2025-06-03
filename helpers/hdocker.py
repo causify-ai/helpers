@@ -868,8 +868,8 @@ def convert_pandoc_arguments_to_cmd(
     hdbg.dassert_is_subset(
         params.keys(), ["input", "output", "in_dir_params", "cmd_opts"]
     )
-    cmd.append(f'{params["input"]}')
-    cmd.append(f'--output {params["output"]}')
+    cmd.append(f"{params['input']}")
+    cmd.append(f"--output {params['output']}")
     for key, value in params["in_dir_params"].items():
         if value:
             cmd.append(f"--{key} {value}")
@@ -1232,7 +1232,7 @@ def convert_latex_arguments_to_cmd(
     cmd.append(" ".join(params["cmd_opts"]))
     # The input needs to be last to work around the bug in pdflatex where the
     # options before the input file are not always parsed correctly.
-    cmd.append(f'{params["input"]}')
+    cmd.append(f"{params['input']}")
     #
     cmd = " ".join(cmd)
     _LOG.debug(hprint.to_str("cmd"))

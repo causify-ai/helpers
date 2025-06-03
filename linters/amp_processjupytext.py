@@ -8,6 +8,7 @@ Import as:
 
 import linters.amp_processjupytext as lampproc
 """
+
 import argparse
 import logging
 from typing import List
@@ -30,7 +31,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class _ProcessJupytext(liaction.Action):
-
     def __init__(self, jupytext_action: str) -> None:
         executable = "$(find -wholename '*dev_scripts_helpers/notebooks/process_jupytext.py')"
         super().__init__(executable)
@@ -65,7 +65,6 @@ class _ProcessJupytext(liaction.Action):
 
 
 class _SyncJupytext(_ProcessJupytext):
-
     def __init__(self) -> None:
         super().__init__("sync")
 
@@ -76,7 +75,6 @@ class _SyncJupytext(_ProcessJupytext):
 
 
 class _TestJupytext(_ProcessJupytext):
-
     def __init__(self) -> None:
         super().__init__("test")
 
@@ -100,7 +98,8 @@ class _JupytextAction(liaction.CompositeAction):
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "files",

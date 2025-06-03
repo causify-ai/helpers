@@ -29,7 +29,9 @@ _LOG = logging.getLogger(__name__)
 _ENCODING = "utf-8"
 
 
-def _get_all_files(dirs: List[str], extensions: Optional[List[str]]) -> List[str]:
+def _get_all_files(
+    dirs: List[str], extensions: Optional[List[str]]
+) -> List[str]:
     """
     Find all the files with the given extensions in files under `dirs`.
 
@@ -71,8 +73,9 @@ def _get_all_files(dirs: List[str], extensions: Optional[List[str]]) -> List[str
                 d, pattern, only_files, use_relative_paths
             )
             _LOG.debug(
-                "extensions=%s -> found %s files", extensions,
-                len(file_names_tmp)
+                "extensions=%s -> found %s files",
+                extensions,
+                len(file_names_tmp),
             )
             file_names.extend(file_names_tmp)
     # Exclude some files.
@@ -147,7 +150,9 @@ def _get_files_to_replace(
             file_names_to_process.append(f)
     #
     txt = "\n".join(res)
-    _LOG.info("Found %s occurrences to replace\n%s", len(res), hprint.indent(txt))
+    _LOG.info(
+        "Found %s occurrences to replace\n%s", len(res), hprint.indent(txt)
+    )
     _LOG.info("Found %s files to replace", len(file_names_to_process))
     return file_names_to_process, txt
 
@@ -369,7 +374,10 @@ def _prerelease_cleanup(args: argparse.Namespace) -> None:
     Implement AmpTask1403.
     """
     # From longest to shortest to avoid nested replacements.
-    to_replace = [("instrument_master", "im"), ("order_management_system", "oms")]
+    to_replace = [
+        ("instrument_master", "im"),
+        ("order_management_system", "oms"),
+    ]
     dirs = ["."]
     # exts = ["py", "ipynb", "md", "txt"]
     exts = None
@@ -689,7 +697,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
             )
             if args.preview:
                 hio.to_file("./cfile", txt)
-                _LOG.warning("Preview only as required. Results saved in ./cfile")
+                _LOG.warning(
+                    "Preview only as required. Results saved in ./cfile"
+                )
             else:
                 # Replace the string inside the files. The `args.old` regex is
                 # replaced with the `args.new` regex in the whole files' contents.

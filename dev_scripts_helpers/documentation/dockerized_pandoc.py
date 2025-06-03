@@ -26,13 +26,16 @@ _LOG = logging.getLogger(__name__)
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     hparser.add_dockerized_script_arg(parser)
     parser.add_argument("--input", action="store")
     parser.add_argument("--output", action="store", default="")
     parser.add_argument("--data_dir", action="store")
-    parser.add_argument("--container_type", action="store", default="pandoc_only")
+    parser.add_argument(
+        "--container_type", action="store", default="pandoc_only"
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 

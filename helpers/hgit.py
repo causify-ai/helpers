@@ -802,7 +802,11 @@ def find_file_in_git_tree(
     _, file_name_out = hsystem.system_to_one_line(cmd)
     _LOG.debug(hprint.to_str("file_name_out"))
     hdbg.dassert_ne(
-        file_name_out, "", "Can't find file '%s' in dir '%s'", file_name, root_dir
+        file_name_out,
+        "",
+        "Can't find file '%s' in dir '%s'",
+        file_name,
+        root_dir,
     )
     file_name_out: str = os.path.abspath(file_name_out)
     hdbg.dassert_path_exists(file_name_out)

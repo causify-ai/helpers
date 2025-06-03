@@ -140,7 +140,9 @@ def _run_dockerized_llm_apply_cfile(
         ]
     )
     docker_cmd = " ".join(docker_cmd)
-    ret = hdocker.process_docker_cmd(docker_cmd, container_image, dockerfile, mode)
+    ret = hdocker.process_docker_cmd(
+        docker_cmd, container_image, dockerfile, mode
+    )
     return ret
 
 

@@ -154,13 +154,20 @@ def _get_list_files_cmd(
 
 def _main():
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
-        "--src_dir", action="store", required=True, help="Local directory to sync"
+        "--src_dir",
+        action="store",
+        required=True,
+        help="Local directory to sync",
     )
     parser.add_argument(
-        "--dst_dir", action="store", default=None, help="Remote directory to sync"
+        "--dst_dir",
+        action="store",
+        default=None,
+        help="Remote directory to sync",
     )
     parser.add_argument(
         "--action",

@@ -3,6 +3,7 @@ Import as:
 
 import helpers.hretry as hretry
 """
+
 import asyncio
 import functools
 import logging
@@ -46,7 +47,9 @@ def sync_retry(
                     )
                     attempts_count += 1
                     time.sleep(retry_delay_in_sec)
-            _LOG.error("Function %s failed after %d attempts", func, num_attempts)
+            _LOG.error(
+                "Function %s failed after %d attempts", func, num_attempts
+            )
             raise last_exception
 
         return retry_wrapper
@@ -81,7 +84,9 @@ def async_retry(
                     )
                     attempts_count += 1
                     await asyncio.sleep(retry_delay_in_sec)
-            _LOG.error("Function %s failed after %d attempts", func, num_attempts)
+            _LOG.error(
+                "Function %s failed after %d attempts", func, num_attempts
+            )
             raise last_exception
 
         return retry_wrapper
