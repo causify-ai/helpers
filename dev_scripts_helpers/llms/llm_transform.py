@@ -5,9 +5,15 @@ Read input from either stdin or a file, apply a specified transformation using
 an LLM, and then write the output to either stdout or a file. It is
 particularly useful for integrating with editors like Vim.
 
-The script `dockerized_llm_transform.py` is executed within a Docker container to ensure
-all dependencies are met. The Docker container is built dynamically if
-necessary. The script requires an OpenAI API key to be set in the environment.
+The script `dockerized_llm_transform.py` is executed within a Docker container
+to ensure all dependencies are met. The Docker container is built dynamically if
+necessary.
+
+There are different modes to run this script:
+- Process a chunk of code through vim
+- Process input and write transformed output
+- Process input and extract a cfile to be used to review the points in the code
+ or for further processing with `llm_apply.py`
 
 Examples
 # Basic Usage
@@ -22,10 +28,6 @@ Examples
 # Propose refactoring
 > llm_transform.py -i dev_scripts_helpers/documentation/render_images.py -o cfile -p code_propose_refactoring
 """
-
-# TODO(gp): There are different modes to run the script
-# - run the script to process input and write transformed output
-# - run the script to process input and extract a cfile
 
 import argparse
 import logging
@@ -67,20 +69,13 @@ def _parse() -> argparse.ArgumentParser:
         "-c",
         "--compare",
         action="store_true",
-        help="Print the original and transformed",
-    )
-    # TODO(gp): Remove this.
-    parser.add_argument(
-        "-b",
-        "--bold_first_level_bullets",
-        action="store_true",
-        help="Bold the first level bullets",
+        help="Report the original and transformed text in the same response",
     )
     parser.add_argument(
         "-s",
         "--skip-post-transforms",
         action="store_true",
-        help="Skip the post-transforms",
+        help="Skip the post-transforms outside the container",
     )
     # Use CRITICAL to avoid logging anything.
     hparser.add_verbosity_arg(parser, log_level="CRITICAL")
@@ -98,7 +93,7 @@ def _run_dockerized_llm_transform(
     suppress_output: bool = False,
 ) -> Optional[str]:
     """
-    Run dockerized_llm_transform.py in a Docker container with all its
+    Run `dockerized_llm_transform.py` in a Docker container with all its
     dependencies.
     """
     _LOG.debug(hprint.func_signature_to_str())
@@ -159,6 +154,7 @@ def _run_dockerized_llm_transform(
         is_caller_host=is_caller_host,
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
+    # Run the script inside the container.
     git_root = hgit.find_git_root()
     script = hsystem.find_file_in_repo(
         "dockerized_llm_transform.py", root_dir=git_root
@@ -192,6 +188,7 @@ def _run_dockerized_llm_transform(
     return ret
 
 
+# TODO(gp): Move this to somewhere else, `hdocker_utils.py`?
 def _convert_file_names(in_file_name: str, out_file_name: str) -> None:
     """
     Convert the files from inside the container to outside.
@@ -269,30 +266,23 @@ def _main(parser: argparse.ArgumentParser) -> None:
         #
         out_txt = hio.from_file(tmp_out_file_name)
         if dshlllpr.to_run("prettier_markdown", post_container_transforms):
+            # Note that we need to run this outside the `llm_transform`
+            # container to avoid to do docker-in-docker in the `llm_transform`
+            # container (which doesn't support that).
             out_txt = hmarkdo.prettier_markdown(out_txt)
         #
         if dshlllpr.to_run("format_markdown", post_container_transforms):
-            # Note that we need to run this outside the `llm_transform`
-            # container to avoid to do docker-in-docker in the `llm_transform`
-            # container (which doesn't support that).
+            # Same as `prettier_markdown`.
             out_txt = hmarkdo.md_clean_up(out_txt)
             out_txt = hmarkdo.format_markdown(out_txt)
-            if args.bold_first_level_bullets:
-                out_txt = hmarkdo.bold_first_level_bullets(out_txt)
         #
         if dshlllpr.to_run("format_latex", post_container_transforms):
-            # Note that we need to run this outside the `llm_transform`
-            # container to avoid to do docker-in-docker in the `llm_transform`
-            # container (which doesn't support that).
+            # Same as `prettier_markdown`.
             out_txt = hmarkdo.md_clean_up(out_txt)
             out_txt = hmarkdo.format_markdown(out_txt)
-            if args.bold_first_level_bullets:
-                out_txt = hmarkdo.bold_first_level_bullets(out_txt)
         #
         if dshlllpr.to_run("format_slide", post_container_transforms):
-            # Note that we need to run this outside the `llm_transform`
-            # container to avoid to do docker-in-docker in the `llm_transform`
-            # container (which doesn't support that).
+            # Same as `prettier_markdown`.
             out_txt = hmarkdo.md_clean_up(out_txt)
             out_txt = hmarkdo.format_markdown_slide(out_txt)
         #
@@ -313,7 +303,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
             "Not all post_transforms were run: %s",
             post_container_transforms,
         )
-        # Save the original and transformed text on file and a script to compare them.
+        # Save the original and transformed text on file and a script to compare
+        # them.
         txt = hio.from_file(tmp_in_file_name)
         hio.to_file("original.txt", txt)
         hio.to_file("transformed.txt", out_txt)
