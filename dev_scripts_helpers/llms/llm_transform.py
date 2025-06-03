@@ -96,7 +96,6 @@ def _run_dockerized_llm_transform(
     force_rebuild: bool = False,
     use_sudo: bool = False,
     suppress_output: bool = False,
-    coverage_dir: str = "coverage_docker",
 ) -> Optional[str]:
     """
     Run dockerized_llm_transform.py in a Docker container with all its
@@ -107,59 +106,21 @@ def _run_dockerized_llm_transform(
     hdbg.dassert_in("OPENAI_API_KEY", os.environ)
     hdbg.dassert_isinstance(cmd_opts, list)
     # Build the container, if needed.
-
-    if not os.path.exists(coverage_dir):
-            os.makedirs(coverage_dir)
-        
     container_image = "tmp.llm_transform"
-    # Get the mount paths first
-    is_caller_host = not hserver.is_inside_docker()
-    use_sibling_container_for_callee = True
-    caller_mount_path, callee_mount_path, mount = hdocker.get_docker_mount_info(
-        is_caller_host, use_sibling_container_for_callee
-    )
-    dockerfile = f"""
+    dockerfile = r"""
     FROM python:3.12-alpine
 
     # Install Bash.
-    #RUN apk add --no-cache bash
+    RUN apk add --no-cache bash git
 
     # Set Bash as the default shell.
-    #SHELL ["/bin/bash", "-c"]
+    SHELL ["/bin/bash", "-c"]
 
-    RUN mkdir -p {callee_mount_path}
     # Install pip packages.
     RUN pip install --upgrade pip
     RUN pip install --no-cache-dir PyYAML requests pandas
-    RUN pip install --no-cache-dir openai
-    RUN pip install --no-cache-dir coverage pytest pytest-cov
-    # Replace the COPY line with this:
-    RUN cat > {callee_mount_path}/.coveragerc <<EOF
-[report]
-# Glob pattern(s) of files to omit from the report.
-omit =
-    */devops/compose/*
-    */helpers/test/outcomes/*/tmp.scratch/*
-[run]
-branch = True
-parallel = True
-concurrency = multiprocessing
-sigterm = True
 
-[paths]
-# tell coverage that "/app" in the container is the same as "." on the host
-source =
-    .
-    /app
-EOF
-       # 4) Make sure coverage auto-starts on *every* python invocation
-    ENV COVERAGE_PROCESS_START=/{callee_mount_path}/.coveragerc
-  RUN python - <<PYCODE
-import site, os
-pth = os.path.join(site.getsitepackages()[0], "coverage.pth")
-with open(pth, "w") as f:
-    f.write("import coverage; coverage.process_startup()")
-PYCODE
+    RUN pip install --no-cache-dir openai
     """
     container_image = hdocker.build_container_image(
         container_image, dockerfile, force_rebuild, use_sudo
@@ -211,39 +172,24 @@ PYCODE
         is_caller_host=is_caller_host,
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
-
- 
-    coverage_dir_container = hdocker.convert_caller_to_callee_docker_path(
-        os.path.abspath(coverage_dir),
-        caller_mount_path,
-        callee_mount_path,
-        check_if_exists=False,  # Directory might not exist yet
-        is_input=False,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
-    )
-   # Set COVERAGE_FILE environment variable to save in mounted directory
-    coverage_file_container = f"{coverage_dir_container}/.coverage"
-    
     cmd_opts_as_str = " ".join(cmd_opts)
     cmd = f" {script} -i {in_file_path} -o {out_file_path} {cmd_opts_as_str}"
     docker_cmd = hdocker.get_docker_base_cmd(use_sudo)
-    docker_cmd.extend(["--network", "host"])
     docker_cmd.extend(
         [
             f"-e PYTHONPATH={helpers_root}",
-            f"-e COVERAGE_FILE={coverage_file_container}",
-            f"-e COVERAGE_PROCESS_START=/{callee_mount_path}/.coveragerc",
             f"--workdir {callee_mount_path}",
             f"--mount {mount}",
             container_image,
-            f"sh -c '{cmd}'",
+            cmd,
         ]
     )
     docker_cmd = " ".join(docker_cmd)
-    ret = hdocker.process_docker_cmd(docker_cmd, container_image, dockerfile, mode)
+    ret = hdocker.process_docker_cmd(
+        docker_cmd, container_image, dockerfile, mode
+    )
+    ret = cast(str, ret)
     return ret
-
 
 def _convert_file_names(in_file_name: str, out_file_name: str) -> None:
     """
