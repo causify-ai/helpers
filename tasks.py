@@ -81,6 +81,7 @@ from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=u
     lint_detect_cycles,
     lint_generate_deps,
     lint_show_deps,
+    lint_sync_code,
     print_env,
     print_setup,
     print_tasks,
