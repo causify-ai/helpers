@@ -14,7 +14,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_fix_md_headers(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test that no modifications are made when headers are correct.
@@ -153,7 +152,6 @@ for i in range(10):
 
 
 class Test_verify_toc_postion(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test that a warning is issued when content appears before TOC.

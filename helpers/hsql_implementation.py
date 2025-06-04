@@ -364,7 +364,9 @@ def remove_database(connection: DbConnection, dbname: str) -> None:
     # Drop database.
     # From https://stackoverflow.com/questions/36502401
     connection.cursor().execute(
-        psql.SQL("DROP DATABASE {} WITH (FORCE);").format(psql.Identifier(dbname))
+        psql.SQL("DROP DATABASE {} WITH (FORCE);").format(
+            psql.Identifier(dbname)
+        )
     )
 
 
@@ -711,7 +713,9 @@ def create_insert_on_conflict_do_nothing_query(
 
 # TODO(gp): -> connection, table_name, obj
 def execute_insert_query(
-    connection: DbConnection, obj: Union[pd.DataFrame, pd.Series], table_name: str
+    connection: DbConnection,
+    obj: Union[pd.DataFrame, pd.Series],
+    table_name: str,
 ) -> None:
     """
     Insert a DB as multiple rows into the database.
@@ -727,7 +731,7 @@ def execute_insert_query(
     hdbg.dassert_isinstance(df, pd.DataFrame)
     hdbg.dassert_in(table_name, get_table_names(connection))
     _LOG.debug("df=\n%s", hpandas.df_to_str(df, use_tabulate=False))
-    # Ensure the DataFrame has compatible types with 
+    # Ensure the DataFrame has compatible types with
     # downstream consumers (e.g., database).
     df = df.applymap(lambda x: float(x) if isinstance(x, np.float64) else x)
     # Transform dataframe into list of tuples.

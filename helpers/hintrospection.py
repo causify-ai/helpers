@@ -228,7 +228,9 @@ def get_size_in_bytes(obj: object, seen: Optional[set] = None) -> int:
         for cls in obj.__class__.__mro__:
             if "__dict__" in cls.__dict__:
                 d = cls.__dict__["__dict__"]
-                if inspect.isgetsetdescriptor(d) or inspect.ismemberdescriptor(d):
+                if inspect.isgetsetdescriptor(d) or inspect.ismemberdescriptor(
+                    d
+                ):
                     size += get_size_in_bytes(obj.__dict__, seen)
                 break
     if isinstance(obj, dict):

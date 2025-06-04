@@ -42,7 +42,8 @@ def _parse() -> argparse.ArgumentParser:
     :return: argument parser with all command-line arguments
     """
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "--input_file",

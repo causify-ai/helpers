@@ -258,7 +258,9 @@ class TestGlobalCache1(_ResetGlobalCacheHelper):
         - Cache different values
         """
         # Use only memory cache.
-        f, cf = self._get_f_cf_functions(use_mem_cache=True, use_disk_cache=False)
+        f, cf = self._get_f_cf_functions(
+            use_mem_cache=True, use_disk_cache=False
+        )
         # 1) Execute and verify that it is executed since not cached.
         _LOG.debug("\n%s", hprint.frame("Execute the 1st time"))
         self._execute_and_check_state(f, cf, 3, 4, exp_cf_state="no_cache")
@@ -276,7 +278,9 @@ class TestGlobalCache1(_ResetGlobalCacheHelper):
         - Cache different values
         """
         # Use only disk cache.
-        f, cf = self._get_f_cf_functions(use_mem_cache=False, use_disk_cache=True)
+        f, cf = self._get_f_cf_functions(
+            use_mem_cache=False, use_disk_cache=True
+        )
         # 1) Verify that it is executed since there is no cache.
         _LOG.debug("\n%s", hprint.frame("Execute the 1st time"))
         self._execute_and_check_state(f, cf, 3, 4, exp_cf_state="no_cache")
@@ -299,7 +303,9 @@ class TestGlobalCache1(_ResetGlobalCacheHelper):
         - Check that the cached function is recomputed
         """
         # Use only memory cache.
-        f, cf = self._get_f_cf_functions(use_mem_cache=True, use_disk_cache=False)
+        f, cf = self._get_f_cf_functions(
+            use_mem_cache=True, use_disk_cache=False
+        )
         # 1) Verify that it is executed, since it's not cached.
         _LOG.debug("\n%s", hprint.frame("Execute the 1st time"))
         self._execute_and_check_state(f, cf, 3, 4, exp_cf_state="no_cache")
@@ -318,7 +324,9 @@ class TestGlobalCache1(_ResetGlobalCacheHelper):
         Same as `test_with_caching_mem_reset()` but using the disk cache.
         """
         # Use only disk cache.
-        f, cf = self._get_f_cf_functions(use_mem_cache=False, use_disk_cache=True)
+        f, cf = self._get_f_cf_functions(
+            use_mem_cache=False, use_disk_cache=True
+        )
         # 1) Verify that it is executed, since it's not cached.
         _LOG.debug("\n%s", hprint.frame("Execute the 1st time"))
         self._execute_and_check_state(f, cf, 3, 4, exp_cf_state="no_cache")

@@ -44,7 +44,6 @@ def _run_preprocess_notes(in_file: str, out_file: str) -> str:
 
 
 class Test_process_color_commands1(hunitest.TestCase):
-
     def test_text_content1(self) -> None:
         """
         Test with plain text content.

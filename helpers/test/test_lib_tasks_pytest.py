@@ -27,7 +27,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_build_run_command_line1(hunitest.TestCase):
-
     def run_fast_tests1_helper(
         self,
         is_dev_csfy_return_value: bool,
@@ -51,10 +50,13 @@ class Test_build_run_command_line1(hunitest.TestCase):
         tee_to_file = False
         n_threads = "1"
         #
-        with umock.patch.object(
-            hserver, "is_dev_csfy", return_value=is_dev_csfy_return_value
-        ), umock.patch.object(
-            hserver, "is_inside_ci", return_value=is_inside_ci_return_value
+        with (
+            umock.patch.object(
+                hserver, "is_dev_csfy", return_value=is_dev_csfy_return_value
+            ),
+            umock.patch.object(
+                hserver, "is_inside_ci", return_value=is_inside_ci_return_value
+            ),
         ):
             act = hlitapyt._build_run_command_line(
                 "fast_tests",
@@ -132,10 +134,13 @@ class Test_build_run_command_line1(hunitest.TestCase):
         tee_to_file = False
         n_threads = "1"
         #
-        with umock.patch.object(
-            hserver, "is_dev_csfy", return_value=is_dev_csfy_return_value
-        ), umock.patch.object(
-            hserver, "is_inside_ci", return_value=is_inside_ci_return_value
+        with (
+            umock.patch.object(
+                hserver, "is_dev_csfy", return_value=is_dev_csfy_return_value
+            ),
+            umock.patch.object(
+                hserver, "is_inside_ci", return_value=is_inside_ci_return_value
+            ),
         ):
             act = hlitapyt._build_run_command_line(
                 "fast_tests",
@@ -275,10 +280,13 @@ class Test_build_run_command_line1(hunitest.TestCase):
         tee_to_file = True
         n_threads = "1"
         #
-        with umock.patch.object(
-            hserver, "is_dev_csfy", return_value=is_dev_csfy_return_value
-        ), umock.patch.object(
-            hserver, "is_inside_ci", return_value=is_inside_ci_return_value
+        with (
+            umock.patch.object(
+                hserver, "is_dev_csfy", return_value=is_dev_csfy_return_value
+            ),
+            umock.patch.object(
+                hserver, "is_inside_ci", return_value=is_inside_ci_return_value
+            ),
         ):
             act = hlitapyt._build_run_command_line(
                 "fast_tests",
@@ -358,10 +366,13 @@ class Test_build_run_command_line1(hunitest.TestCase):
         tee_to_file = False
         n_threads = "1"
         #
-        with umock.patch.object(
-            hserver, "is_dev_csfy", return_value=is_dev_csfy_return_value
-        ), umock.patch.object(
-            hserver, "is_inside_ci", return_value=is_inside_ci_return_value
+        with (
+            umock.patch.object(
+                hserver, "is_dev_csfy", return_value=is_dev_csfy_return_value
+            ),
+            umock.patch.object(
+                hserver, "is_inside_ci", return_value=is_inside_ci_return_value
+            ),
         ):
             act = hlitapyt._build_run_command_line(
                 "fast_tests",
@@ -439,10 +450,13 @@ class Test_build_run_command_line1(hunitest.TestCase):
         tee_to_file = False
         n_threads = "auto"
         #
-        with umock.patch.object(
-            hserver, "is_dev_csfy", return_value=is_dev_csfy_return_value
-        ), umock.patch.object(
-            hserver, "is_inside_ci", return_value=is_inside_ci_return_value
+        with (
+            umock.patch.object(
+                hserver, "is_dev_csfy", return_value=is_dev_csfy_return_value
+            ),
+            umock.patch.object(
+                hserver, "is_inside_ci", return_value=is_inside_ci_return_value
+            ),
         ):
             act = hlitapyt._build_run_command_line(
                 "fast_tests",
@@ -528,10 +542,13 @@ class Test_build_run_command_line1(hunitest.TestCase):
         tee_to_file = False
         n_threads = "1"
         # Mock test.
-        with umock.patch.object(
-            hserver, "is_dev_csfy", return_value=is_dev_csfy_return_value
-        ), umock.patch.object(
-            hserver, "is_inside_ci", return_value=is_inside_ci_return_value
+        with (
+            umock.patch.object(
+                hserver, "is_dev_csfy", return_value=is_dev_csfy_return_value
+            ),
+            umock.patch.object(
+                hserver, "is_inside_ci", return_value=is_inside_ci_return_value
+            ),
         ):
             custom_marker = hlitapyt._get_custom_marker(
                 run_only_test_list=run_only_test_list,
@@ -602,7 +619,6 @@ class Test_build_run_command_line1(hunitest.TestCase):
 
 
 class Test_pytest_repro1(hunitest.TestCase):
-
     def helper(self, file_name: str, mode: str, exp: List[str]) -> None:
         script_name = os.path.join(
             self.get_scratch_space(), "tmp.pytest_repro.sh"
@@ -969,7 +985,6 @@ class Test_pytest_repro_end_to_end(hunitest.TestCase):
 
 
 class Test_pytest_failed1(hunitest.TestCase):
-
     def get_pytest_text1(self) -> str:
         txt = """
         20:48:15 - ^[[36mINFO ^[[0m hdbg.py init_logger:1018                               > cmd='/venv/bin/pytest helpers_root/dev_scripts_helpers/documentation/'

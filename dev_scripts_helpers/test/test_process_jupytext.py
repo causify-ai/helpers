@@ -18,7 +18,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_process_jupytext(hunitest.TestCase):
-
     @pytest.mark.slow("~7 seconds.")
     def test_end_to_end(self) -> None:
         """

@@ -486,7 +486,9 @@ def sanity_check_header_list(header_list: HeaderList) -> None:
             hdbg.dassert_isinstance(header_list[i], HeaderInfo)
             if header_list[i].level - header_list[i - 1].level > 1:
                 msg = []
-                msg.append("Consecutive headers increase by more than one level:")
+                msg.append(
+                    "Consecutive headers increase by more than one level:"
+                )
                 msg.append(f"  {header_list[i - 1]}")
                 msg.append(f"  {header_list[i]}")
                 msg = "\n".join(msg)
@@ -964,7 +966,9 @@ def format_headers(in_file_name: str, out_file_name: str, max_lev: int) -> None:
     hparser.write_file(txt_tmp, out_file_name)
 
 
-def modify_header_level(in_file_name: str, out_file_name: str, mode: str) -> None:
+def modify_header_level(
+    in_file_name: str, out_file_name: str, mode: str
+) -> None:
     """
     Increase or decrease the level of headings by one for text in stdin.
 
@@ -1133,7 +1137,10 @@ def selected_navigation_to_str(
     )
     _LOG.debug(hprint.to_str("ancestry"))
     txt = header_tree_to_str(
-        tree, ancestry, open_modifier=open_modifier, close_modifier=close_modifier
+        tree,
+        ancestry,
+        open_modifier=open_modifier,
+        close_modifier=close_modifier,
     )
     return txt
 

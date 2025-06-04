@@ -126,7 +126,8 @@ def _rclone_copy_to_gdrive(local_src_dir, remote_dst_dir, log_dir, dry_run):
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "--action",

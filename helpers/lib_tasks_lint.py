@@ -120,7 +120,15 @@ def lint_check_python_files(  # type: ignore
 
     The params have the same meaning as in `_get_files_to_process()`.
     """
-    _ = python_compile, python_execute, modified, branch, last_commit, all_, files
+    _ = (
+        python_compile,
+        python_execute,
+        modified,
+        branch,
+        last_commit,
+        all_,
+        files,
+    )
     # Execute the same command line but inside the container. E.g.,
     # /Users/saggese/src/venv/amp.client_venv/bin/invoke lint_docker_check_python_files --branch
     cmd_line = hdbg.get_command_line()

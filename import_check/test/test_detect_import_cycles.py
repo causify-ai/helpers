@@ -163,12 +163,12 @@ class Test_detect_import_cycles(hunitest.TestCase):
         files = {}
         for dir_ in dirs:
             files[f"{dir_}/__init__.py"] = ""
-        files[
-            "subdir1/file1.py"
-        ] = f"import {in_dir_name}.subdir2.subdir3.file1\n"
-        files[
-            "subdir2/subdir3/file1.py"
-        ] = f"import {in_dir_name}.subdir1.file1\n"
+        files["subdir1/file1.py"] = (
+            f"import {in_dir_name}.subdir2.subdir3.file1\n"
+        )
+        files["subdir2/subdir3/file1.py"] = (
+            f"import {in_dir_name}.subdir1.file1\n"
+        )
         files["__init__.py"] = ""
         # Run and check the outcome.
         expected = [
@@ -195,12 +195,12 @@ class Test_detect_import_cycles(hunitest.TestCase):
         files = {}
         for dir_ in dirs:
             files[f"{dir_}/__init__.py"] = ""
-        files[
-            "subdir1/subdir2/subdir3/file1.py"
-        ] = f"import {in_dir_name}.subdir4.subdir5.file1\n"
-        files[
-            "subdir4/subdir5/file1.py"
-        ] = f"import {in_dir_name}.subdir1.subdir2.subdir3.file1\n"
+        files["subdir1/subdir2/subdir3/file1.py"] = (
+            f"import {in_dir_name}.subdir4.subdir5.file1\n"
+        )
+        files["subdir4/subdir5/file1.py"] = (
+            f"import {in_dir_name}.subdir1.subdir2.subdir3.file1\n"
+        )
         files["__init__.py"] = ""
         # Run and check the outcome.
         expected = [
@@ -306,12 +306,12 @@ class Test_detect_import_cycles(hunitest.TestCase):
         in_dir_name = self.get_input_dir().split("/")[-1]
         dirs = ["subdir1", "subdir1/subdir2"]
         files = {}
-        files[
-            "subdir1/subdir2/file1.py"
-        ] = f"import {in_dir_name}.subdir1.subdir2.file2\n"
-        files[
-            "subdir1/subdir2/file2.py"
-        ] = f"import {in_dir_name}.subdir1.subdir2.file1\n"
+        files["subdir1/subdir2/file1.py"] = (
+            f"import {in_dir_name}.subdir1.subdir2.file2\n"
+        )
+        files["subdir1/subdir2/file2.py"] = (
+            f"import {in_dir_name}.subdir1.subdir2.file1\n"
+        )
         files["subdir1/subdir2/__init__.py"] = ""
         files["__init__.py"] = ""
         # Run and check the outcome.
@@ -366,12 +366,12 @@ class Test_detect_import_cycles(hunitest.TestCase):
         in_dir_name = self.get_input_dir().split("/")[-1]
         dirs = ["subdir1", "subdir1/subdir2"]
         files = {}
-        files[
-            "subdir1/subdir2/file1.py"
-        ] = f"import {in_dir_name}.subdir1.subdir2.file2\n"
-        files[
-            "subdir1/subdir2/file2.py"
-        ] = f"import {in_dir_name}.subdir1.subdir2.file1\n"
+        files["subdir1/subdir2/file1.py"] = (
+            f"import {in_dir_name}.subdir1.subdir2.file2\n"
+        )
+        files["subdir1/subdir2/file2.py"] = (
+            f"import {in_dir_name}.subdir1.subdir2.file1\n"
+        )
         files["subdir1/subdir2/__init__.py"] = ""
         # Run and check the outcome.
         expected = (

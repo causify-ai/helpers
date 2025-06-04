@@ -97,7 +97,9 @@ class Timer:
         self._start = time.time()
 
     def is_started(self) -> bool:
-        return self._start is not None and self._start >= 0 and self._stop is None
+        return (
+            self._start is not None and self._start >= 0 and self._stop is None
+        )
 
     def is_stopped(self) -> bool:
         return self._start is None and self._stop is None

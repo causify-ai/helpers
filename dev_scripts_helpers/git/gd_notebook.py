@@ -135,7 +135,8 @@ def _get_files(args: argparse.Namespace) -> List[str]:
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("-f", "--files", nargs="+", help="Files to process")
     parser.add_argument(
@@ -208,7 +209,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.info(
         "file_names=%s\n%s",
         len(file_names),
-        "\n".join(["%s -> %s" % (cwd_f, abs_f) for (abs_f, cwd_f) in file_names]),
+        "\n".join(
+            ["%s -> %s" % (cwd_f, abs_f) for (abs_f, cwd_f) in file_names]
+        ),
     )
     hdbg.dassert_lte(1, len(file_names))
     # Create tmp dir.

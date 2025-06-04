@@ -8,6 +8,7 @@ Import as:
 
 import linters.amp_check_import as lamchimp
 """
+
 import argparse
 import logging
 import re
@@ -55,7 +56,6 @@ def _check_import(file_name: str, line_num: int, line: str) -> str:
 
 
 class _CheckImport(liaction.Action):
-
     def check_if_possible(self) -> bool:
         return True
 
@@ -75,7 +75,8 @@ class _CheckImport(liaction.Action):
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "files",

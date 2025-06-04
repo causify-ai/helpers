@@ -45,7 +45,9 @@ def run_notebook(
         cmd.append(f"jupytext --update --to notebook {file_name};")
         notebook_name = f"{root}.ipynb"
     else:
-        raise ValueError(f"Unsupported file format for `file_name`='{file_name}'")
+        raise ValueError(
+            f"Unsupported file format for `file_name`='{file_name}'"
+        )
     # Execute notebook.
     cmd.append(f"cd {scratch_dir} &&")
     cmd.append(f"jupyter nbconvert {notebook_name}")
@@ -60,7 +62,11 @@ def run_notebook(
 
 
 def build_run_notebook_cmd(
-    config_builder: str, dst_dir: str, notebook_path: str, *, extra_opts: str = ""
+    config_builder: str,
+    dst_dir: str,
+    notebook_path: str,
+    *,
+    extra_opts: str = "",
 ) -> str:
     """
     Construct a command string to run dev_scripts/notebooks/run_notebook.py
