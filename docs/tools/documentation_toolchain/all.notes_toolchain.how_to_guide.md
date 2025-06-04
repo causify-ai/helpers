@@ -456,7 +456,7 @@ The supported File types and code blocks are:
 - Re‑flow & clean a file in place
 
   ```bash
-  > transform_notes.py -a md_format -i notes/lecture.txt --in_place
+  > transform_notes.py -a md_format -i notes/lecture.txt
   ```
 
 - Generate a 2‑level TOC to STDOUT
