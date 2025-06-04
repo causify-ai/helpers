@@ -3,55 +3,55 @@
 - [Notes Documentation Toolchain](#notes-documentation-toolchain)
   * [notes_to_pdf.py](#notes_to_pdfpy)
     + [What it does](#what-it-does)
-    + [Quickstart recipes](#quickstart-recipes)
-    + [CLI flags cheatsheet](#cli-flags-cheatsheet)
-    + [Worked examples](#worked-examples)
-  * [render_images.py](#render_imagespy)
-    + [Supported File types and Code blocks](#supported-file-types-and-code-blocks)
-    + [Quick Start Recipes](#quick-start-recipes)
-    + [Flags](#flags)
-  * [`lint_notes.py`](#lint_notespy)
-    + [Quickstart recipes](#quickstart-recipes-1)
-    + [Flags](#flags-1)
-  * [`extract_notebook_images.py`](#extract_notebook_imagespy)
-    + [Flag Options](#flag-options)
-  * [5. LLM Powered Transforms — `llm_transform.py`](#5-llm-powered-transforms--llm_transformpy)
-    + [Minimum viable command](#minimum-viable-command)
-    + [Finding available prompts](#finding-available-prompts)
-    + [Flags](#flags-2)
-    + [Example recipes](#example-recipes)
-  * [`run_pandoc.py`](#run_pandocpy)
-    + [What the script does](#what-the-script-does)
-    + [Quickstart commands](#quickstart-commands)
-    + [Flags](#flags-3)
-  * [`transform_notes.py`](#transform_notespy)
-    + [What it does](#what-it-does-1)
-    + [Example of Supported Actions](#example-of-supported-actions)
     + [Examples](#examples)
-    + [Flags](#flags-4)
-  * [`extract_headers_from_markdown.py`](#extract_headers_from_markdownpy)
-    + [Goal](#goal)
+  * [render_images.py](#render_imagespy)
+    + [What it does](#what-it-does-1)
     + [Examples](#examples-1)
-  * [`dockerized_tikz_to_bitmap.py`](#dockerized_tikz_to_bitmappy)
-    + [Examples](#examples-2)
-  * [`dockerized_graphviz.py`](#dockerized_graphvizpy)
-    + [What it does](#what-it-does-2)
-    + [Most used flags](#most-used-flags)
-    + [Quickstart recipes](#quickstart-recipes-2)
-  * [dockerized_latex.py](#dockerized_latexpy)
-    + [What it does](#what-it-does-3)
-    + [Quickstart recipes](#quickstart-recipes-3)
-  * [dockerized_mermaid.py](#dockerized_mermaidpy)
-    + [What it does](#what-it-does-4)
-  * [dockerized_pandoc.py](#dockerized_pandocpy)
-    + [What it does](#what-it-does-5)
-    + [Quickstart recipes](#quickstart-recipes-4)
-  * [`dockerized_prettier.py`](#dockerized_prettierpy)
-    + [What it does](#what-it-does-6)
-    + [Quickstart recipes](#quickstart-recipes-5)
     + [Interface](#interface)
-  * [`save_screenshot.py`](#save_screenshotpy)
+  * [`lint_notes.py`](#lint_notespy)
+    + [What it does](#what-it-does-2)
+    + [Examples](#examples-2)
+    + [Interface](#interface-1)
+  * [`extract_notebook_images.py`](#extract_notebook_imagespy)
+    + [What it does](#what-it-does-3)
+    + [Example](#example)
+    + [Interface](#interface-2)
+  * [`llm_transform.py`](#llm_transformpy)
+    + [What it does](#what-it-does-4)
+    + [Examples](#examples-3)
+    + [Interface](#interface-3)
+  * [`run_pandoc.py`](#run_pandocpy)
+    + [What it does](#what-it-does-5)
+    + [Example](#example-1)
+    + [Interface](#interface-4)
+  * [`transform_notes.py`](#transform_notespy)
+    + [What it does](#what-it-does-6)
+    + [Examples](#examples-4)
+    + [Interface](#interface-5)
+  * [`extract_headers_from_markdown.py`](#extract_headers_from_markdownpy)
     + [What it does](#what-it-does-7)
+    + [Examples](#examples-5)
+  * [`dockerized_tikz_to_bitmap.py`](#dockerized_tikz_to_bitmappy)
+    + [Examples](#examples-6)
+  * [`dockerized_graphviz.py`](#dockerized_graphvizpy)
+    + [What it does](#what-it-does-8)
+    + [Interface](#interface-6)
+    + [Examples](#examples-7)
+  * [dockerized_latex.py](#dockerized_latexpy)
+    + [What it does](#what-it-does-9)
+    + [Examples](#examples-8)
+  * [dockerized_mermaid.py](#dockerized_mermaidpy)
+    + [What it does](#what-it-does-10)
+    + [Examples](#examples-9)
+  * [dockerized_pandoc.py](#dockerized_pandocpy)
+    + [What it does](#what-it-does-11)
+    + [Example](#example-2)
+  * [`dockerized_prettier.py`](#dockerized_prettierpy)
+    + [What it does](#what-it-does-12)
+    + [Examples](#examples-10)
+    + [Interface](#interface-7)
+  * [`save_screenshot.py`](#save_screenshotpy)
+    + [What it does](#what-it-does-13)
 
 <!-- tocstop -->
 
@@ -68,6 +68,7 @@
 
 - Convert plain‑text notes into polished **PDF, HTML, or Beamer slides** with a
   single command:
+
   ```bash
   > notes_to_pdf.py --input <infile.txt> --output <outfile.[pdf|html]> --type [pdf|html|slides]
   ```
@@ -159,6 +160,7 @@
 
 - Slides with navigation breadcrumbs, keeping intermediate files for inspection
   // TODO(indro): `--toc_type navigation` fails because of the preprocess step.
+
   ```bash
   > notes_to_pdf.py \
       --input MSML610/Lesson5-Theory_Statistical_learning.txt \
@@ -171,6 +173,7 @@
 
 - Focus on a subsection, compiling only from line 362 to EOF for a fast
   iteration when debugging slides
+
   ```bash
   > notes_to_pdf.py \
       --input Lesson8-Reasoning_over_time.txt \
@@ -202,18 +205,19 @@
   ```
 
 The supported File types and code blocks are:
-  - File extension: `.md`, `.txt`
-    - Rendering syntax allowed:
-      - `plantuml`
-      - `mermaid`
-      - `graphviz`
-      - `tikz`
-      - `latex`
-    - Output embeds as: `<img src="figs/xxx.png">`
-  - File extension: `.tex`
-    - Rendering syntax allowed:
-      - Same tags (TikZ & LaTeX especially)
-    - Output embeds as: `\includegraphics{...}`
+
+- File extension: `.md`, `.txt`
+  - Rendering syntax allowed:
+    - `plantuml`
+    - `mermaid`
+    - `graphviz`
+    - `tikz`
+    - `latex`
+  - Output embeds as: `<img src="figs/xxx.png">`
+- File extension: `.tex`
+  - Rendering syntax allowed:
+    - Same tags (TikZ & LaTeX especially)
+  - Output embeds as: `\includegraphics{...}`
 
 ### Examples
 
@@ -289,7 +293,7 @@ The supported File types and code blocks are:
                           Use sudo inside the container
     -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
                           Set the logging level
-    ```
+  ```
 
 ## `lint_notes.py`
 
@@ -347,24 +351,27 @@ The supported File types and code blocks are:
 
 ### What it does
 
-- Apply a GPT‑style transformation (rewrite, summarise, critique code, convert to
-  slides, etc.) to any text file _without_ leaving the terminal / editor.
+- Apply a GPT‑style transformation (rewrite, summarise, critique code, convert
+  to slides, etc.) to any text file _without_ leaving the terminal / editor.
 
 - **Note**: You need to have an `OPENAI_API_KEY` and an internet connection.
 
 ### Examples
 
 - TODO
+
   ```bash
   llm_transform.py -i draft.txt -o polished.txt -p rewrite_clearer
   ```
 
 - Finding available prompts
+
   ```bash
   llm_transform.py -p list -i - -o -
   ```
 
 - Turn a code file into a review checklist
+
   ```bash
   > llm_transform.py -i foo.py -o cfile -p code_review
   vim cfile
@@ -409,7 +416,8 @@ The supported File types and code blocks are:
   :<,'>!run_pandoc.py -i - -o - -v CRITICAL
   ```
 
-- **Tip:** pass `-v CRITICAL` to silence helper logging when piping into editors.
+- **Tip:** pass `-v CRITICAL` to silence helper logging when piping into
+  editors.
 
 ### Interface
 
@@ -520,6 +528,7 @@ The supported File types and code blocks are:
 
 - Converts a Graphviz `.dot` file into a `.png` image using a Dockerized
   container.
+
   > ```bash
   > graphviz_wrapper.py --input input.dot --output output.png
   > ```
@@ -585,7 +594,8 @@ The supported File types and code blocks are:
 
 ### Examples
 
-- TODO  
+- TODO
+
   ```bash
   > mermaid_wrapper.py --input flowchart.mmd --output flowchart.png
   ```
@@ -646,15 +656,14 @@ The supported File types and code blocks are:
 
 ### What it does
 
-- Formats text files (`.md`, `.txt`, `.tex`, etc.) using Prettier within a Docker
-  container
+- Formats text files (`.md`, `.txt`, `.tex`, etc.) using Prettier within a
+  Docker container
 - Avoids environment-specific issues and ensures consistent formatting.
 - Supports full Prettier CLI flexibility via passthrough of additional options.
 
   > ```bash
   > dockerized_prettier.py --parser markdown --write test.md
   > ```
-
 
 ### Examples
 
