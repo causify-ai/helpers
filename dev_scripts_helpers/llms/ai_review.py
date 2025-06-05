@@ -1,32 +1,5 @@
 #!/usr/bin/env python3
 
-"""
-Read input from either stdin or a file, apply a specified transformation using
-an LLM, and then write the output to either stdout or a file. It is
-particularly useful for integrating with editors like Vim.
-
-The script `dockerized_llm_transform.py` is executed within a Docker container to ensure
-all dependencies are met. The Docker container is built dynamically if
-necessary. The script requires an OpenAI API key to be set in the environment.
-
-Examples
-# Basic Usage
-> llm_transform.py -i input.txt -o output.txt -p uppercase
-
-# List of transforms
-> llm_transform.py -i input.txt -o output.txt -p list
-
-# Code review
-> llm_transform.py -i dev_scripts_helpers/documentation/render_images.py -o cfile -p code_review
-
-# Propose refactoring
-> llm_transform.py -i dev_scripts_helpers/documentation/render_images.py -o cfile -p code_propose_refactoring
-"""
-
-# TODO(gp): There are different modes to run the script
-# - run the script to process input and write transformed output
-# - run the script to process input and extract a cfile
-
 import argparse
 import logging
 import os
@@ -43,7 +16,7 @@ _LOG = logging.getLogger(__name__)
 # TODO(gp): -> _parser() or _get_parser() everywhere.
 def _parse() -> argparse.ArgumentParser:
     """
-    Use the same argparse parser for `dockerized_llm_transform.py`.
+    Use the same argparse parser for `dockerized_ai_review.py`.
     """
     parser = argparse.ArgumentParser(
         description=__doc__,
@@ -83,7 +56,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     if out_file_name != "cfile":
         _LOG.warning(
-            "The output file name is %s, so it will be converted to `cfile`",
+            "The output file name is '%s': using `cfile`",
             out_file_name,
         )
         out_file_name = "cfile"
@@ -121,7 +94,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
         #
         if dshlllpr.to_run("convert_file_names", post_container_transforms):
             dshllltr._convert_file_names(in_file_name, tmp_out_file_name)
-        #
         # Check that all post-transforms were run.
         hdbg.dassert_eq(
             len(post_container_transforms),

@@ -850,19 +850,16 @@ def dassert_file_extension(
     )
 
 
-def dassert_is_path_abs(path: str, only_warning: bool = False) -> None:
+def dassert_is_path_abs(
+    path: str, only_warning: bool = False
+) -> None:
     """
     Assert that `path` is an absolute path.
     """
     dassert_isinstance(path, str)
     dassert_ne(path, "")
-    dassert_eq(
-        os.path.isabs(path),
-        True,
-        "Path '%s' is not absolute",
-        path,
-        only_warning=only_warning,
-    )
+    dassert(os.path.isabs(path), "Path '%s' is not absolute", path,
+        only_warning=only_warning)
 
 
 def dassert_related_params(
