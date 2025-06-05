@@ -42,7 +42,8 @@ _LOG = logging.getLogger(__name__)
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     hparser.add_input_output_args(parser)
     hparser.add_dockerized_script_arg(parser)

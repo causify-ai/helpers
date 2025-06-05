@@ -6,6 +6,7 @@ Import as:
 
 import linters.amp_remove_empty_lines_in_function as larelinfu
 """
+
 import argparse
 import logging
 import re
@@ -53,7 +54,9 @@ def _remove_empty_lines(text: str) -> List[str]:
             continue
         if inside_function and stripped == "":
             # Remove empty lines inside the function.
-            _LOG.debug("Removing empty line found at line %d inside function.", i)
+            _LOG.debug(
+                "Removing empty line found at line %d inside function.", i
+            )
             continue
         if inside_function and stripped != "" and current_indent <= base_indent:
             # Retain trailing empty lines after the function,
@@ -89,7 +92,6 @@ def _remove_empty_lines(text: str) -> List[str]:
 
 
 class _RemoveEmptyLines(liaction.Action):
-
     def check_if_possible(self) -> bool:
         return True
 
@@ -110,7 +112,8 @@ class _RemoveEmptyLines(liaction.Action):
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "files",

@@ -75,7 +75,8 @@ def lock_secret(
         # Raise warning of locked resource with current use info.
         # raise RuntimeError()
         warnings.warn(
-            f"Secret key is already in use by {current_usedBy[0]}", RuntimeWarning
+            f"Secret key is already in use by {current_usedBy[0]}",
+            RuntimeWarning,
         )
     return secret_value
 

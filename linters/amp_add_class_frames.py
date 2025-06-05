@@ -92,7 +92,7 @@ def _check_above_initialization(
             break
     if (
         j > 1
-        and lines[j] == lines[j - 2] == f"# {'#' * (MAX_LINE_LENGTH-2)}"
+        and lines[j] == lines[j - 2] == f"# {'#' * (MAX_LINE_LENGTH - 2)}"
         and re.match(r"#\s\w+", lines[j - 1])
     ):
         # There is already a frame above this class that needs to be removed.
@@ -137,9 +137,9 @@ def _insert_frame(
     # Build the class frame.
     class_name = class_init_match.group(1)
     class_frame = [
-        f"# {'#' * (MAX_LINE_LENGTH-2)}",
+        f"# {'#' * (MAX_LINE_LENGTH - 2)}",
         f"# {class_name}",
-        f"# {'#' * (MAX_LINE_LENGTH-2)}",
+        f"# {'#' * (MAX_LINE_LENGTH - 2)}",
         "",
     ]
     # Add the class frame to the lines to be written into the updated file.
@@ -178,7 +178,6 @@ def update_class_frames(file_content: str) -> List[str]:
 
 
 class _ClassFramer(liaction.Action):
-
     def check_if_possible(self) -> bool:
         return True
 
@@ -199,7 +198,8 @@ class _ClassFramer(liaction.Action):
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "files",

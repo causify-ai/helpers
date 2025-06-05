@@ -14,8 +14,9 @@ import re
 from typing import Any, Dict, List, Tuple
 
 import openai
-#import openai.types.beta.assistant as OAssistant
-#import openai.types.beta.threads.message as OMessage
+
+# import openai.types.beta.assistant as OAssistant
+# import openai.types.beta.threads.message as OMessage
 import pandas as pd
 import requests
 import tqdm
@@ -174,7 +175,8 @@ def _retrieve_openrouter_model_info() -> pd.DataFrame:
 
 
 def _save_models_info_to_csv(
-    model_info_df: pd.DataFrame, file_name: str,
+    model_info_df: pd.DataFrame,
+    file_name: str,
 ) -> pd.DataFrame:
     """
     Save models info to a CSV file.
@@ -344,7 +346,7 @@ def get_current_cost() -> float:
 def _calculate_cost(
     completion: openai.types.chat.chat_completion.ChatCompletion,
     model: str,
-    models_info_file: str
+    models_info_file: str,
 ) -> float:
     """
     Calculate the cost of an OpenAI API call.
@@ -388,7 +390,9 @@ def _calculate_cost(
         prompt_price = row["prompt_pricing"]
         completion_price = row["completion_pricing"]
         # Compute cost.
-        cost = prompt_tokens * prompt_price + completion_tokens * completion_price
+        cost = (
+            prompt_tokens * prompt_price + completion_tokens * completion_price
+        )
     else:
         raise ValueError(f"Unknown provider: {_PROVIDER_NAME}")
     _LOG.debug(hprint.to_str("prompt_tokens completion_tokens cost"))
@@ -786,7 +790,7 @@ def apply_prompt_to_dataframe(
             response = get_completion(user, system=prompt, model=model)
         except Exception as e:
             _LOG.error(
-                f"Error processing column {input} in chunk" f" {start}-{end}: {e}"
+                f"Error processing column {input} in chunk {start}-{end}: {e}"
             )
             raise e
         processed_response = response.split("\n")
@@ -892,9 +896,9 @@ class _CompletionCache:
         """
         entry = {"request": request, "response": response}
         self.cache["entries"][hash_key] = entry
-        self.cache["metadata"][
-            "last_updated"
-        ] = datetime.datetime.now().isoformat()
+        self.cache["metadata"]["last_updated"] = (
+            datetime.datetime.now().isoformat()
+        )
         self._write_cache_to_disk()
 
     def load_response_from_cache(self, hash_key: str) -> Any:
@@ -933,7 +937,7 @@ class _CompletionCache:
         Clear the cache from the file.
         """
         self.cache["entries"] = {}
-        self.cache["metadata"][
-            "last_updated"
-        ] = datetime.datetime.now().isoformat()
+        self.cache["metadata"]["last_updated"] = (
+            datetime.datetime.now().isoformat()
+        )
         self._write_cache_to_disk()

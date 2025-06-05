@@ -8,6 +8,7 @@ Import as:
 
 import linters.amp_black as lampblac
 """
+
 import argparse
 import logging
 import os
@@ -59,7 +60,9 @@ class _Black(liaction.Action):
         # - 1 file left unchanged.
         to_remove = ["All done!", "file left unchanged", "reformatted"]
         output = [
-            line for line in output if all(word not in line for word in to_remove)
+            line
+            for line in output
+            if all(word not in line for word in to_remove)
         ]
         return output
 
@@ -69,7 +72,8 @@ class _Black(liaction.Action):
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "--abort_on_change",

@@ -611,7 +611,10 @@ def purify_today_date(txt: str) -> str:
     today_date_as_str = today_date.strftime("%Y%m%d")
     # Replace predict.3.compress_tails.df_out.20220627_094500.YYYYMMDD_171106.csv.gz.
     txt = re.sub(
-        today_date_as_str + r"_\d{6}", "YYYYMMDD_HHMMSS", txt, flags=re.MULTILINE
+        today_date_as_str + r"_\d{6}",
+        "YYYYMMDD_HHMMSS",
+        txt,
+        flags=re.MULTILINE,
     )
     txt = re.sub(today_date_as_str, "YYYYMMDD", txt, flags=re.MULTILINE)
     return txt
@@ -1672,7 +1675,9 @@ class TestCase(unittest.TestCase):
                     # Create golden file and add it to the repo.
                     _LOG.warning("Creating the golden outcome")
                     outcome_updated = True
-                    self._check_string_update_outcome(file_name, actual, use_gzip)
+                    self._check_string_update_outcome(
+                        file_name, actual, use_gzip
+                    )
                     is_equal = None
                 else:
                     hdbg.dfatal(
@@ -1814,7 +1819,8 @@ class TestCase(unittest.TestCase):
         if expected_column_names:
             # Verify that the column names are correct.
             self.assert_equal(
-                str(sorted(actual_df.columns)), str(sorted(expected_column_names))
+                str(sorted(actual_df.columns)),
+                str(sorted(expected_column_names)),
             )
         if expected_column_unique_values:
             hdbg.dassert_is_subset(

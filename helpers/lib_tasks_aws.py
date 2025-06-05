@@ -101,7 +101,8 @@ def release_dags_to_airflow(
         # If same file already exists, then overwrite.
         if os.path.exists(dest_file):
             _LOG.warning(
-                "DAG already exists in destination, Overwriting ... %s", dest_file
+                "DAG already exists in destination, Overwriting ... %s",
+                dest_file,
             )
             # Steps to overwrite:
             # 1. Change user to root.
@@ -118,7 +119,10 @@ def release_dags_to_airflow(
             _LOG.info(
                 "DAG doesn't exist in destination, Copying ... %s", dest_file
             )
-            cmds = [f"cp {file_path} {dest_file}", f"sudo chmod a-w {dest_file}"]
+            cmds = [
+                f"cp {file_path} {dest_file}",
+                f"sudo chmod a-w {dest_file}",
+            ]
         cmd = "&&".join(cmds)
         # TODO(sonaal): Instead of running scripts, run individual commands.
         # Append script for each file to a temporary file
@@ -189,9 +193,9 @@ def _set_task_definition_config(
     # We use single container inside our task definition and
     # the convention is to set the same name as the task
     # definition itself.
-    task_definition_config["containerDefinitions"][0][
-        "name"
-    ] = task_definition_name
+    task_definition_config["containerDefinitions"][0]["name"] = (
+        task_definition_name
+    )
     # Set placeholder image URL.
     image_name = hrecouti.get_repo_config().get_docker_base_image_name()
     task_definition_config["containerDefinitions"][0]["image"] = (
@@ -213,9 +217,9 @@ def _set_task_definition_config(
     # Configure access to EFS.
     efs_config = _get_efs_mount_config_template()
     task_definition_config["volumes"] = efs_config[region]["volumes"]
-    task_definition_config["containerDefinitions"][0]["mountPoints"] = efs_config[
-        region
-    ]["mountPoints"]
+    task_definition_config["containerDefinitions"][0]["mountPoints"] = (
+        efs_config[region]["mountPoints"]
+    )
     return task_definition_config
 
 
@@ -252,7 +256,9 @@ def _register_task_definition(task_definition_name: str, region: str) -> None:
         placementConstraints=task_definition_config.get(
             "placementConstraints", []
         ),
-        requiresCompatibilities=task_definition_config["requiresCompatibilities"],
+        requiresCompatibilities=task_definition_config[
+            "requiresCompatibilities"
+        ],
         cpu=task_definition_config["cpu"],
         memory=task_definition_config["memory"],
     )

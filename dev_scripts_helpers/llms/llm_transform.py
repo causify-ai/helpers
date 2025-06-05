@@ -27,7 +27,6 @@ Examples
 # - run the script to process input and write transformed output
 # - run the script to process input and extract a cfile
 
-
 import argparse
 import logging
 import os

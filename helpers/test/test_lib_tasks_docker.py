@@ -24,7 +24,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_generate_compose_file1(hunitest.TestCase):
-
     def helper(
         self,
         stage: str,
@@ -108,7 +107,6 @@ class Test_generate_compose_file1(hunitest.TestCase):
 
 
 class Test_generate_compose_file2(hunitest.TestCase):
-
     def helper(
         self,
         mock_getcwd: str,
@@ -138,16 +136,19 @@ class Test_generate_compose_file2(hunitest.TestCase):
         txt.append(txt_tmp)
         #
         file_name = None
-        with umock.patch.object(
-            os, "getcwd", return_value=mock_getcwd
-        ), umock.patch.object(
-            hgit, "find_git_root", return_value=mock_find_git_root
-        ), umock.patch.object(
-            hgit, "find_helpers_root", return_value=mock_find_helpers_root
-        ), umock.patch.object(
-            hgit,
-            "is_in_helpers_as_supermodule",
-            return_value=mock_is_in_helpers_as_supermodule,
+        with (
+            umock.patch.object(os, "getcwd", return_value=mock_getcwd),
+            umock.patch.object(
+                hgit, "find_git_root", return_value=mock_find_git_root
+            ),
+            umock.patch.object(
+                hgit, "find_helpers_root", return_value=mock_find_helpers_root
+            ),
+            umock.patch.object(
+                hgit,
+                "is_in_helpers_as_supermodule",
+                return_value=mock_is_in_helpers_as_supermodule,
+            ),
         ):
             txt_tmp = hlitadoc._generate_docker_compose_file(
                 stage,
@@ -422,7 +423,6 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
 
 
 class Test_dassert_is_image_name_valid1(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Check that valid images pass the assertion.
@@ -463,7 +463,6 @@ class Test_dassert_is_image_name_valid1(hunitest.TestCase):
 
 
 class Test_dassert_is_base_image_name_valid1(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Check that valid base images pass the assertion.

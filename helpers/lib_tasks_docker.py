@@ -552,7 +552,9 @@ def _generate_docker_compose_file(
     )
     # A super repo is a repo that contains helpers as a submodule and
     # is not a helper itself.
-    use_helpers_as_nested_module = 0 if hgit.is_in_helpers_as_supermodule() else 1
+    use_helpers_as_nested_module = (
+        0 if hgit.is_in_helpers_as_supermodule() else 1
+    )
     # We could do the same also with IMAGE for symmetry.
     # Keep the env vars in sync with what we print in `henv.get_env_vars()`.
     # Configure `base_app` service.
@@ -1329,7 +1331,9 @@ def _docker_cmd(
         hs3.generate_aws_files()
     docker_pull(ctx, skip_pull=skip_pull)
     _LOG.debug("cmd=%s", docker_cmd_)
-    rc: Optional[int] = hlitauti.run(ctx, docker_cmd_, pty=True, **ctx_run_kwargs)
+    rc: Optional[int] = hlitauti.run(
+        ctx, docker_cmd_, pty=True, **ctx_run_kwargs
+    )
     return rc
 
 
