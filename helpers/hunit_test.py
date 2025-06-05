@@ -405,16 +405,16 @@ def purify_directory_paths(txt: str) -> str:
     2. Replace `CSFY_HOST_GIT_ROOT_PATH` with `$CSFY_HOST_GIT_ROOT_PATH`.
     3. Replace current working directory with `$PWD`.
 
-    This ensures that more specific paths are replaced before generic ones,
-    preventing conflicts when paths overlap.
+    This order ensures that more specific paths are replaced before generic
+    ones, preventing conflicts when paths overlap.
 
     param txt: input text that needs to be purified
     return: purified text
     """
-    _LOG.debug("Before normalize_path_refs: txt='\n%s'", txt)
+    _LOG.debug("Before: txt='\n%s'", txt)
     # Collect all paths to replace with their priorities.
     replacements = []
-    # Priority 1: Git root paths.
+    # 1. Git root paths.
     # Remove references to Git modules starting from the innermost one.
     for super_module in [False, True]:
         # Replace the git root path with `$GIT_ROOT`.
@@ -425,7 +425,7 @@ def purify_directory_paths(txt: str) -> str:
         else:
             # Skip git root path if it is `/`.
             pass
-    # Priority 2: CSFY_HOST_GIT_ROOT_PATH environment variable.
+    # 2. CSFY_HOST_GIT_ROOT_PATH environment variable.
     # Replace the CSFY_HOST_GIT_ROOT_PATH with `$CSFY_HOST_GIT_ROOT_PATH`.
     csfy_git_root = os.environ.get("CSFY_HOST_GIT_ROOT_PATH")
     if csfy_git_root:
@@ -433,7 +433,7 @@ def purify_directory_paths(txt: str) -> str:
         _LOG.debug(
             "Added CSFY_HOST_GIT_ROOT_PATH '%s' for replacement", csfy_git_root
         )
-    # Priority 3: Current working directory.
+    # 3. Current working directory.
     # Replace the path of current working directory with `$PWD`.
     pwd = os.getcwd()
     if pwd and pwd != "/":
@@ -481,12 +481,17 @@ def purify_amp_references(txt: str) -> str:
     substitutions.
 
     Handle these patterns:
-    1. Replace path references (e.g., "amp/helpers/test/..." -> "helpers/test/...").
-    2. Replace class references (e.g., "<amp.helpers.test.TestClass>" -> "<helpers.test.TestClass>").
-    3. Replace comment references (e.g., "# Test created for amp.helpers.test" -> "# Test created for helpers.test").
-    4. Replace module references (e.g., "amp.helpers.test.TestClass" -> "helpers.test.TestClass").
+    1. Replace path references
+       - E.g., "amp/helpers/test/..." -> "helpers/test/..."
+    2. Replace class references
+       - E.g., "<amp.helpers.test.TestClass>" -> "<helpers.test.TestClass>"
+    3. Replace comment references
+       - E.g., "# Test created for amp.helpers.test" -> "# Test created for helpers.test"
+    4. Replace module references
+       - E.g., "amp.helpers.test.TestClass" -> "helpers.test.TestClass"
 
-    Order the regex patterns from most specific to most general to avoid incorrect replacements.
+    Order the regex patterns from most specific to most general to avoid
+    incorrect replacements.
     For example:
     - Place `'/amp/helpers'` before `'/amp'` to prevent replacing `'/amp'` in `'/amp/helpers'`
     - Place `'amp.helpers'` before `'amp'` to prevent replacing `'amp'` in `'amp.helpers'`
@@ -521,18 +526,6 @@ def purify_app_references(txt: str) -> str:
     """
     Remove references to `/app` from text by applying a series of regex
     substitutions.
-
-    Handle these patterns:
-    1. Replace path references (e.g., "app/helpers/test/..." -> "helpers/test/...").
-    2. Replace class references (e.g., "<app.helpers.test.TestClass>" -> "<helpers.test.TestClass>").
-    3. Replace comment references (e.g., "# Test created for app.helpers.test" -> "# Test created for helpers.test").
-    4. Replace module references (e.g., "app.helpers.test.TestClass" -> "helpers.test.TestClass").
-    5. Handle trailing /app/ references.
-
-    Order the regex patterns from most specific to most general to avoid incorrect replacements.
-    For example:
-    - Place `'/app/helpers'` before `'/app'` to prevent replacing `'/app'` in `'/app/helpers'`
-    - Place `'app.helpers'` before `'app'` to prevent replacing `'app'` in `'app.helpers'`
 
     param txt: input text containing app references
     return: text with app references removed
@@ -681,9 +674,7 @@ def purify_parquet_file_names(txt: str) -> str:
 
 def purify_helpers(txt: str) -> str:
     """
-    Replace the path ...
-
-    # Test created fork helpers_root.helpers.test.test_playback.get_result_che |  # Test created for helpers.test.test_playback.get_result_check_string.
+    Replace the path `helpers_root.helpers` with `helpers`.
     """
     txt = re.sub(r"helpers_root\.helpers\.", "helpers.", txt, flags=re.MULTILINE)
     txt = re.sub(r"helpers_root/helpers/", "helpers/", txt, flags=re.MULTILINE)
@@ -715,15 +706,14 @@ def purify_txt_from_client(txt: str) -> str:
     """
     Remove from a string all the information of a specific run.
     """
-    # Step 1: Normalize environment-specific paths and user info.
+    # The order of substitutions is important. We want to start from the "most
+    # specific" (e.g., `amp/helpers/test/...`) to the "least specific" (e.g.,
+    # `amp`).
     txt = purify_directory_paths(txt)
     txt = purify_from_environment(txt)
-    # Step 2: Handle module-specific references.
     txt = purify_amp_references(txt)
     txt = purify_app_references(txt)
-    # Step 3: Handle other environment variables.
     txt = purify_from_env_vars(txt)
-    # Step 4: Handle other artifacts and formatting.
     txt = purify_object_representation(txt)
     txt = purify_today_date(txt)
     txt = purify_white_spaces(txt)
@@ -2093,9 +2083,6 @@ class TestCase(unittest.TestCase):
     def _to_error(self, msg: str) -> None:
         self._error_msg += msg + "\n"
         _LOG.error(msg)
-
-
-# #############################################################################
 
 
 # #############################################################################

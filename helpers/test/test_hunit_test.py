@@ -1091,7 +1091,7 @@ class Test_purify_txt_from_client1(hunitest.TestCase):
         """
         Test that word boundaries prevent incorrect replacements.
 
-        Verifies that 'app' in 'application.py' is not replaced.
+        Verify that 'app' in 'application.py' is not replaced.
         """
         txt = """
         /application.py
@@ -1107,7 +1107,7 @@ class Test_purify_txt_from_client1(hunitest.TestCase):
         """
         Test that word boundaries prevent incorrect replacements.
 
-        Verifies that 'amp' in 'amplification.py' is not replaced.
+        Verify that 'amp' in 'amplification.py' is not replaced.
         """
         txt = """
         /amplification.py
