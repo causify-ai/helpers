@@ -1251,7 +1251,7 @@ def _check_workspace_dir_sizes() -> None:
 
 
 @task
-def docker_create_candidate_image(ctx, user_tag=""):  # type: ignore
+def docker_create_candidate_image(ctx, container_dir_name=".", user_tag=""):  # type: ignore
     """
     Create new prod candidate image and update the specified ECS task
     definition such that the Image URL specified in container definition points
@@ -1273,6 +1273,7 @@ def docker_create_candidate_image(ctx, user_tag=""):  # type: ignore
     # Create new prod image.
     docker_build_prod_image(
         ctx,
+        container_dir_name=container_dir_name,
         version=hlitadoc._IMAGE_VERSION_FROM_CHANGELOG,
         candidate=True,
         tag=tag,
@@ -1302,7 +1303,8 @@ def docker_release_test_task_definition(
     # Verify that task definition is provided.
     hdbg.dassert_is_not(task_definition, None, "task definition is required")
     # Create candidate image.
-    image_tag = docker_create_candidate_image(ctx, user_tag)
+    current_dir = os.getcwd()
+    image_tag = docker_create_candidate_image(ctx, current_dir, user_tag)
     # Update ECS task definition with new image URL.
     hlitaaws.aws_update_ecs_task_definition(
         task_definition=task_definition,
@@ -1329,7 +1331,8 @@ def docker_release_prod_task_definition(
     image_name = hrecouti.get_repo_config().get_docker_base_image_name()
     task_definition_name = f"{image_name}-prod"
     # Create candidate image.
-    image_tag = docker_create_candidate_image(ctx)
+    current_dir = os.getcwd()
+    image_tag = docker_create_candidate_image(ctx, current_dir)
     # Update ECS task definition with new image URL.
     hlitaaws.aws_update_ecs_task_definition(
         task_definition=task_definition_name,
