@@ -63,22 +63,6 @@ def hremove() -> None:
     else:
         _LOG.warning("No coverage.pth found in %s", sp)
 
-# Default .coveragerc contents
-DEFAULT_COVERAGE_RC = """[run]
-branch = True
-parallel = True
-concurrency = multiprocessing
-sigterm = True
-
-[report]
-omit =
-    */site-packages/*
-
-[paths]
-source =
-    .
-    /app
-"""
 
 def generate_temp_dockerfile_content() -> str:
     """
@@ -117,3 +101,46 @@ def generate_temp_dockerfile_content() -> str:
 
     # Final newline
     return "\n".join(lines)
+
+def coverage_commands_subprocess() :
+    """
+    Return a list of shell commands to run coverage steps in a Docker container.
+    Assumes:
+      - A valid .coveragerc exists in the current working directory.
+      - coverage_data/ is the mounted folder inside the container.
+    """
+    commands=[
+        "cp .coveragerc coverage_data/.coveragerc",
+        "chmod 644 coverage_data/.coveragerc",
+   ]
+    for cmd in commands:
+        hsystem.system(cmd, suppress_output=False)
+
+def coverage_combine() :
+    """
+    Return a list of shell commands to combine coverage data.
+    Assumes:
+      - .coverage.* files are present in the current directory.
+    """
+    commands=[
+        "cp coverage_data/.coverage.* .",
+        "rm -rf coverage_data/.coverage.*",
+        "coverage combine",
+        "coverage report",
+    ] 
+    for cmd in commands:
+        hsystem.system(cmd, suppress_output=False)
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    _LOG.info("Running hcoverage_inject as a script")
+    try:
+        hinject()
+        _LOG.info("Coverage hook installed successfully.")
+    except Exception as e:
+        _LOG.error("Error installing coverage hook: %s", e)
+    
+    # Example usage of removing the hook
+    # hremove()
+    # _LOG.info("Coverage hook removed successfully.")  
+    coverage_commands_subprocess()
