@@ -1,15 +1,11 @@
 import logging
 import os
 import pathlib
-import pytest
 from typing import Any, Generator, Optional
 
-pytest.importorskip(
-    "openai"
-)  # noqa: E402 # pylint: disable=wrong-import-position
-
 import helpers.hdbg as dbg
-import helpers.hopenai as hopenai
+
+# import helpers.hopenai as hopenai
 import helpers.hunit_test as hut
 
 # Hack to workaround pytest not happy with multiple redundant conftest.py
@@ -99,7 +95,8 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
             hut.set_update_tests(True)
         if config.getoption("--update_llm_cache"):
             print(f"\n{_WARNING}: Updating LLM Cache.")
-            hopenai.set_update_llm_cache(True)
+            # Importing hopenai.py is causing "openai" module not found error.
+            # hopenai.set_update_llm_cache(True)
         if config.getoption("--incremental"):
             print(f"\n{_WARNING}: Using incremental test mode")
             hut.set_incremental_tests(True)

@@ -1,9 +1,6 @@
 import logging
-import os
-import types
 import unittest.mock as umock
 
-import pandas as pd
 import pytest
 
 pytest.importorskip(
@@ -17,7 +14,7 @@ _LOG = logging.getLogger(__name__)
 
 # Shared cache file.
 _CACHE_FILE = "cache.get_completion.json"
-_TEMP_CACHE_FILE="tmp.cache.get_completion.json"
+_TEMP_CACHE_FILE = "tmp.cache.get_completion.json"
 
 _USER_PROMPT1 = "what is machine learning?"
 _USER_PROMPT2 = _USER_PROMPT1.upper()
@@ -136,11 +133,14 @@ class BaseOpenAICacheTest(hunitest.TestCase):
     """
 
     @pytest.fixture(autouse=True)
-    def setup_teardown_test(self):
+    def setup_teardown_test(self, pytestconfig):
         # Creating hopeani._CompletionCache instance.
         self.get_completion_cache = hopenai._CompletionCache(
             cache_file=_CACHE_FILE
         )
+        # TODO(Sai) : This should be removed once "openai" module not found error is fixed.
+        if pytestconfig.getoption("--update_llm_cache"):
+            hopenai.set_update_llm_cache(True)
         # Patch get_completion to inject REPLAY.
         self.force_replay_cache()
         yield
@@ -161,14 +161,13 @@ class BaseOpenAICacheTest(hunitest.TestCase):
         )
         self.patcher.start()
 
-
     def tear_down_test(self) -> None:
         """
         Teardown operations to run after each test:
             -  Stop the patcher.
         """
         self.patcher.stop()
-               
+
 
 # #############################################################################
 # Test_get_completion
@@ -183,60 +182,62 @@ class Test_get_completion(BaseOpenAICacheTest):
         expected response.
         """
         parameters1 = _get_completion_parameters1()
-        actual_response = hopenai.get_completion(
-            **parameters1
-        )
+        actual_response = hopenai.get_completion(**parameters1)
         # generate hash key
-        hash_key = self.get_completion_cache.hash_key_generator(**_get_openai_request_parameters1())
+        hash_key = self.get_completion_cache.hash_key_generator(
+            **_get_openai_request_parameters1()
+        )
         # load the response from cache.
-        expected_response = self.get_completion_cache.load_response_from_cache(hash_key=hash_key)
+        expected_response = self.get_completion_cache.load_response_from_cache(
+            hash_key=hash_key
+        )
         self.assert_equal(actual_response, expected_response)
-    
+
     def test2(self) -> None:
         """
-        Verify whether prompts with different capitalizations produce the same result.
+        Verify whether prompts with different capitalizations produce the same
+        result.
         """
-        parameters2= _get_completion_parameters2()
-        actual_response = hopenai.get_completion(
-            **parameters2
-        )
+        parameters2 = _get_completion_parameters2()
+        actual_response = hopenai.get_completion(**parameters2)
         # generate hash key
-        hash_key = self.get_completion_cache.hash_key_generator(**_get_openai_request_parameters1())
-        # load the response from cache.
-        expected_response = self.get_completion_cache.load_response_from_cache(hash_key=hash_key)
-        
-        self.assert_equal(
-            actual_response, expected_response
+        hash_key = self.get_completion_cache.hash_key_generator(
+            **_get_openai_request_parameters1()
         )
-    
+        # load the response from cache.
+        expected_response = self.get_completion_cache.load_response_from_cache(
+            hash_key=hash_key
+        )
+        self.assert_equal(actual_response, expected_response)
+
     def test3(self) -> None:
         """
         Verify if different parameters result in different results.
         """
         parameters1 = _get_completion_parameters1()
-        parameters3= _get_completion_parameters3()
-
-        actual_response1= hopenai.get_completion(
-            **parameters1
-        )
-        actual_response3 = hopenai.get_completion(
-            **parameters3
-        )
-
+        parameters3 = _get_completion_parameters3()
+        actual_response1 = hopenai.get_completion(**parameters1)
+        actual_response3 = hopenai.get_completion(**parameters3)
         # generate hash keys
-        hashkey1 = self.get_completion_cache.hash_key_generator(**_get_openai_request_parameters1())
-        hashkey3 = self.get_completion_cache.hash_key_generator(**_get_openai_request_parameters3())
-
+        hashkey1 = self.get_completion_cache.hash_key_generator(
+            **_get_openai_request_parameters1()
+        )
+        hashkey3 = self.get_completion_cache.hash_key_generator(
+            **_get_openai_request_parameters3()
+        )
         # Load responses from cache.
-        expected_response1 = self.get_completion_cache.load_response_from_cache(hash_key=hashkey1)
-        expected_response3 = self.get_completion_cache.load_response_from_cache(hash_key=hashkey3)
-
+        expected_response1 = self.get_completion_cache.load_response_from_cache(
+            hash_key=hashkey1
+        )
+        expected_response3 = self.get_completion_cache.load_response_from_cache(
+            hash_key=hashkey3
+        )
         self.assert_equal(actual_response1, expected_response1)
         self.assert_equal(actual_response3, expected_response3)
         # Different parameters should give different results.
         self.assertNotEqual(actual_response1, actual_response3)
 
-    #TODO(Sai): Tobe done after fixing hopenai.get_completion()
+    # TODO(Sai): Tobe done after fixing hopenai.get_completion()
     def test4(self) -> None:
         """
         Verify if openrouter models are supported.
@@ -280,8 +281,3 @@ class Test_hash_key_generator(BaseOpenAICacheTest):
         hash_key3 = self.get_completion_cache.hash_key_generator(**parameters3)
         hash_key4 = self.get_completion_cache.hash_key_generator(**parameters4)
         self.assertNotEqual(hash_key3, hash_key4)
-
-
-
-
-
