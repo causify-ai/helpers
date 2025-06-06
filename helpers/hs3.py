@@ -45,7 +45,8 @@ _LOG = logging.getLogger(__name__)
 # build https://github.com/cryptokaizen/cmamp/actions/runs/10729983412/job/29757600889
 AWS_EUROPE_REGION_1 = "eu-north-1"
 AWS_TOKYO_REGION_1 = "ap-northeast-1"
-AWS_REGIONS = [AWS_EUROPE_REGION_1, AWS_TOKYO_REGION_1]
+AWS_US_REGION_1 = "us-east-1"
+AWS_REGIONS = [AWS_EUROPE_REGION_1, AWS_TOKYO_REGION_1, AWS_US_REGION_1]
 
 # TODO(gp): @all separate S3 code in `helpers/hs3.py` from authentication and
 #  AWS profile code in `helpers/aws_authentication.py`.
@@ -666,9 +667,7 @@ def generate_aws_files(
     config_file_name = os.path.join(home_dir, ".aws", "config")
     credentials_file_name = os.path.join(home_dir, ".aws", "credentials")
     # Check if the files already exist.
-    if os.path.exists(credentials_file_name) and os.path.exists(
-        config_file_name
-    ):
+    if os.path.exists(credentials_file_name) and os.path.exists(config_file_name):
         _LOG.info(
             "Both files exist: %s and %s; exiting",
             credentials_file_name,
@@ -1041,7 +1040,6 @@ def expand_archived_data(src_tgz_file: str, dst_dir: str) -> str:
     _ = rc
     _LOG.debug(hprint.to_str("enclosing_tgz_dir_name"))
     tgz_dst_dir = os.path.join(dst_dir, enclosing_tgz_dir_name)
-
     if os.path.exists(tgz_dst_dir):
         hdbg.dassert_dir_exists(dst_dir)
         _LOG.info(
