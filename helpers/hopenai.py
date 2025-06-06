@@ -35,6 +35,23 @@ _LOG = logging.getLogger(__name__)
 _MODEL = "openai/gpt-4o-mini"
 
 # #############################################################################
+# Update llm cache
+# #############################################################################
+
+_UPDATE_LLM_CACHE = False
+
+
+def get_update_llm_cache() -> bool:
+    global _UPDATE_LLM_CACHE
+    return _UPDATE_LLM_CACHE
+
+
+def set_update_llm_cache(value: bool) -> None:
+    global _UPDATE_LLM_CACHE
+    _UPDATE_LLM_CACHE = value
+
+
+# #############################################################################
 # Utility Functions
 # #############################################################################
 
@@ -207,9 +224,6 @@ def _save_models_info_to_csv(
     return model_info_df
 
 
-import pandas as pd
-
-
 # TODO(gp): This is general enough to be moved in hpandas.py
 def convert_to_type(col, type_):
     if type_ == "is_bool":
@@ -273,9 +287,7 @@ def convert_df(
 # #############################################################################
 
 
-def _build_messages(
-    system_prompt: str, user_prompt: str
-) -> List[Dict[str, str]]:
+def _build_messages(system_prompt: str, user_prompt: str) -> List[Dict[str, str]]:
     """
     Construct the standard messages payload for the chat API.
     """
@@ -390,9 +402,7 @@ def _calculate_cost(
         prompt_price = row["prompt_pricing"]
         completion_price = row["completion_pricing"]
         # Compute cost.
-        cost = (
-            prompt_tokens * prompt_price + completion_tokens * completion_price
-        )
+        cost = prompt_tokens * prompt_price + completion_tokens * completion_price
     else:
         raise ValueError(f"Unknown provider: {_PROVIDER_NAME}")
     _LOG.debug(hprint.to_str("prompt_tokens completion_tokens cost"))
@@ -436,6 +446,10 @@ def get_completion(
     :param create_kwargs: additional params for the API call
     :return: completion text
     """
+    update_llm_cache = get_update_llm_cache()
+    if update_llm_cache:
+        _LOG.debug("# Update LLM cache.")
+        cache_mode = "CAPTURE"
     hdbg.dassert_in(cache_mode, ("REPLAY", "FALLBACK", "CAPTURE", "DISABLED"))
     if model == "":
         model = _get_default_model()
@@ -808,7 +822,7 @@ def apply_prompt_to_dataframe(
 
 
 # #############################################################################
-# CompletionCache
+# _CompletionCache
 # #############################################################################
 
 
@@ -896,9 +910,9 @@ class _CompletionCache:
         """
         entry = {"request": request, "response": response}
         self.cache["entries"][hash_key] = entry
-        self.cache["metadata"]["last_updated"] = (
-            datetime.datetime.now().isoformat()
-        )
+        self.cache["metadata"][
+            "last_updated"
+        ] = datetime.datetime.now().isoformat()
         self._write_cache_to_disk()
 
     def load_response_from_cache(self, hash_key: str) -> Any:
@@ -937,7 +951,7 @@ class _CompletionCache:
         Clear the cache from the file.
         """
         self.cache["entries"] = {}
-        self.cache["metadata"]["last_updated"] = (
-            datetime.datetime.now().isoformat()
-        )
+        self.cache["metadata"][
+            "last_updated"
+        ] = datetime.datetime.now().isoformat()
         self._write_cache_to_disk()

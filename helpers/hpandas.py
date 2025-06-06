@@ -1146,10 +1146,7 @@ def _display(log_level: int, df: pd.DataFrame) -> None:
     """
     from IPython.display import display
 
-    if (
-        hsystem.is_running_in_ipynb()
-        and log_level >= hdbg.get_logger_verbosity()
-    ):
+    if hsystem.is_running_in_ipynb() and log_level >= hdbg.get_logger_verbosity():
         display(df)
 
 
@@ -1847,9 +1844,7 @@ def remove_outliers(
         hdbg.dassert_is_subset(columns, df.columns)
         for column in all_columns:
             if column in columns:
-                df[column] = df[column].quantile(
-                    [lower_quantile, upper_quantile]
-                )
+                df[column] = df[column].quantile([lower_quantile, upper_quantile])
     elif axis == 1:
         all_rows = df.rows
         rows = _resolve_column_names(column_set, all_rows)
@@ -2002,12 +1997,8 @@ def compare_dfs(
         raise ValueError(f"Invalid column_mode='{column_mode}'")
     # Round small numbers to 0 to exclude them from the diff computation.
     close_to_zero_threshold_mask = lambda x: abs(x) < close_to_zero_threshold
-    df1[close_to_zero_threshold_mask] = df1[close_to_zero_threshold_mask].round(
-        0
-    )
-    df2[close_to_zero_threshold_mask] = df2[close_to_zero_threshold_mask].round(
-        0
-    )
+    df1[close_to_zero_threshold_mask] = df1[close_to_zero_threshold_mask].round(0)
+    df2[close_to_zero_threshold_mask] = df2[close_to_zero_threshold_mask].round(0)
     # Compute the difference df.
     if diff_mode == "diff":
         # Test and convert the assertion into a boolean.
@@ -2053,9 +2044,7 @@ def compare_dfs(
         # Check if `df_diff` values are less than `assert_diff_threshold`.
         if assert_diff_threshold is not None:
             nan_mask = df_diff.isna()
-            within_threshold = (
-                df_diff.abs() <= assert_diff_threshold
-            ) | nan_mask
+            within_threshold = (df_diff.abs() <= assert_diff_threshold) | nan_mask
             expected = pd.DataFrame(
                 True,
                 index=within_threshold.index,
