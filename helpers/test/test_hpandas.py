@@ -28,7 +28,6 @@ _AWS_PROFILE = "ck"
 
 
 class Test_dassert_is_unique1(hunitest.TestCase):
-
     def get_df1(self) -> pd.DataFrame:
         """
         Return a df without duplicated index.
@@ -107,7 +106,6 @@ class Test_dassert_is_unique1(hunitest.TestCase):
 
 
 class Test_to_series1(hunitest.TestCase):
-
     def helper(self, n: int, exp: str) -> None:
         vals = list(range(n))
         df = pd.DataFrame([vals], columns=[f"a{i}" for i in vals])
@@ -153,7 +151,6 @@ class Test_to_series1(hunitest.TestCase):
 
 
 class Test_dassert_valid_remap(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Check that the function works with correct inputs.
@@ -263,7 +260,6 @@ class Test_dassert_valid_remap(hunitest.TestCase):
 
 
 class Test_trim_df1(hunitest.TestCase):
-
     def get_df(self, *args: Any, **kwargs: Any) -> pd.DataFrame:
         """
         Return a df where the CSV txt is read verbatim without inferring dates.
@@ -915,9 +911,9 @@ class Test_trim_df2(Test_trim_df1):
         )
         # Run.
         start_time = time.time()
-        filter_values = pd.Series(df.index.get_level_values(ts_col_name)).between(
-            start_ts, end_ts, inclusive="both"
-        )
+        filter_values = pd.Series(
+            df.index.get_level_values(ts_col_name)
+        ).between(start_ts, end_ts, inclusive="both")
         df = df.droplevel(ts_col_name)
         df = df[filter_values]
         end_time = time.time()
@@ -1124,7 +1120,6 @@ class Test_trim_df2(Test_trim_df1):
 
 
 class Test_df_to_str(hunitest.TestCase):
-
     @staticmethod
     def get_test_data() -> pd.DataFrame:
         test_data = {
@@ -1553,7 +1548,6 @@ class Test_str_to_df(hunitest.TestCase):
 
 
 class TestDataframeToJson(hunitest.TestCase):
-
     def test_dataframe_to_json(self) -> None:
         """
         Verify correctness of dataframe to JSON transformation.
@@ -1641,7 +1635,6 @@ class TestDataframeToJson(hunitest.TestCase):
 
 
 class TestFindGapsInDataframes(hunitest.TestCase):
-
     def test_find_gaps_in_dataframes(self) -> None:
         """
         Verify that gaps are caught.
@@ -1676,7 +1669,6 @@ class TestFindGapsInDataframes(hunitest.TestCase):
 
 
 class TestCompareDataframeRows(hunitest.TestCase):
-
     def get_test_data(self) -> pd.DataFrame:
         test_data = {
             "dummy_value_1": [0, 1, 3, 2, 0],
@@ -1745,7 +1737,6 @@ class TestCompareDataframeRows(hunitest.TestCase):
 @pytest.mark.requires_ck_infra
 @pytest.mark.requires_aws
 class TestReadDataFromS3(hunitest.TestCase):
-
     def test_read_csv1(self) -> None:
         s3fs = hs3.get_s3fs(_AWS_PROFILE)
         file_name = os.path.join(
@@ -1777,7 +1768,6 @@ class TestReadDataFromS3(hunitest.TestCase):
 
 
 class TestSubsetDf1(hunitest.TestCase):
-
     def test1(self) -> None:
         # Generate some random data.
         np.random.seed(42)
@@ -1807,7 +1797,6 @@ class TestSubsetDf1(hunitest.TestCase):
 
 
 class TestDropNa(hunitest.TestCase):
-
     def test_dropna1(self) -> None:
         """
         Test if all types of NaNs are dropped.
@@ -1871,7 +1860,6 @@ class TestDropNa(hunitest.TestCase):
 
 
 class TestDropAxisWithAllNans(hunitest.TestCase):
-
     def test_drop_rows1(self) -> None:
         """
         Test if row full of nans is dropped.
@@ -3212,7 +3200,9 @@ class Test_compare_multiindex_dfs(hunitest.TestCase):
             pd.Timestamp("2022-01-01 21:05:00+00:00"),
         ]
         iterables1 = [["asset1", "asset2"], ["open", "high", "low", "close"]]
-        index1 = pd.MultiIndex.from_product(iterables1, names=[None, "timestamp"])
+        index1 = pd.MultiIndex.from_product(
+            iterables1, names=[None, "timestamp"]
+        )
         nums1 = np.array(
             [
                 [
@@ -3283,7 +3273,9 @@ class Test_compare_multiindex_dfs(hunitest.TestCase):
             ["asset1", "asset2", "asset3"],
             ["open", "high", "low", "close", "volume"],
         ]
-        index2 = pd.MultiIndex.from_product(iterables2, names=[None, "timestamp"])
+        index2 = pd.MultiIndex.from_product(
+            iterables2, names=[None, "timestamp"]
+        )
         nums2 = [
             [
                 0.79095104,
@@ -3625,7 +3617,6 @@ class Test_compute_duration_df(hunitest.TestCase):
 
 
 class Test_compare_nans_in_dataframes(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Check that NaN differences are identified correctly.
@@ -3664,7 +3655,6 @@ class Test_compare_nans_in_dataframes(hunitest.TestCase):
 
 
 class Test_dassert_increasing_index(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Check that a monotonically increasing index passes the assert.
@@ -3735,7 +3725,6 @@ class Test_dassert_increasing_index(hunitest.TestCase):
 
 
 class Test_dassert_strictly_increasing_index(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Check that unique and monotonically increasing index passes the assert.
@@ -3815,7 +3804,6 @@ class Test_dassert_strictly_increasing_index(hunitest.TestCase):
 
 
 class Test_apply_index_mode(hunitest.TestCase):
-
     @staticmethod
     def get_test_data() -> Tuple[pd.DataFrame, pd.DataFrame]:
         """
@@ -4009,7 +3997,6 @@ class Test_apply_column_mode(hunitest.TestCase):
 
 
 class Test_get_df_from_iterator(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Check that a dataframe is correctly built from an iterator of
@@ -4052,7 +4039,6 @@ class Test_get_df_from_iterator(hunitest.TestCase):
 
 
 class Test_multiindex_df_info1(hunitest.TestCase):
-
     @staticmethod
     def get_multiindex_df_with_datetime_index() -> pd.DataFrame:
         datetime_index = [
@@ -4242,7 +4228,6 @@ class Test_cast_series_to_type(hunitest.TestCase):
 
 
 class Test_dassert_index_is_datetime(hunitest.TestCase):
-
     @staticmethod
     def get_multiindex_df(
         index_is_datetime: bool,
@@ -4344,7 +4329,6 @@ class Test_dassert_index_is_datetime(hunitest.TestCase):
 
 
 class Test_dassert_approx_eq1(hunitest.TestCase):
-
     def test1(self) -> None:
         hpandas.dassert_approx_eq(1, 1.0000001)
 
@@ -4363,7 +4347,6 @@ class Test_dassert_approx_eq1(hunitest.TestCase):
 
 
 class Test_CheckSummary(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         All the tests have passed.
@@ -4426,7 +4409,6 @@ class Test_CheckSummary(hunitest.TestCase):
 
 
 class Test_compute_weighted_sum(hunitest.TestCase):
-
     def helper(
         self,
         index1: List[int],
@@ -4541,7 +4523,6 @@ class Test_compute_weighted_sum(hunitest.TestCase):
 
 
 class Test_list_to_str(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Check that a list is converted to string correctly.
@@ -4578,201 +4559,3 @@ class Test_list_to_str(hunitest.TestCase):
         # Check.
         expected = "5 ['1', '2', '3', '4', 'five']"
         self.assert_equal(actual, expected)
-
-
-# #############################################################################
-# Test_convert_to_type
-# #############################################################################
-
-
-class Test_convert_to_type(hunitest.TestCase):
-
-    def test_convert_to_type_bool(self) -> None:
-        """
-        Check converting to bool column.
-        """
-        # Mix of booleans, truthy/falsy strings, numerics, and invalid values
-        data = [True, False, "True", "false", 1, 0, "1", "0", "yes", None]
-        series = pd.Series(data, dtype=object)
-        result = hpandas.convert_to_type(series, "is_bool")
-        expected = pd.Series(
-            [True, True, True, True, True, True, True, True, False, False],
-            dtype=bool,
-        )
-        pd.testing.assert_series_equal(result, expected)
-
-    def test_convert_to_type_int_and_numeric(self) -> None:
-        """
-        Check converting to numeric and int column.
-        """
-        # Strings that parse to numbers, floats, invalid strings, and ints
-        series = pd.Series(["1", "2", "3.5", "abc", 4], dtype=object)
-        # is_int should coerce numeric strings to numbers, invalid -> NaN
-        result_int = hpandas.convert_to_type(series, "is_int")
-        expected_int = pd.to_numeric(series, errors="coerce")
-        pd.testing.assert_series_equal(result_int, expected_int)
-        # is_numeric is the same as to_numeric
-        result_numeric = hpandas.convert_to_type(series, "is_numeric")
-        pd.testing.assert_series_equal(result_numeric, expected_int)
-
-    def test_convert_to_type_string(self) -> None:
-        """
-        Check converting to string column.
-        """
-        # Strings vs non-strings
-        data = ["a", 1, None, "hello", True, 3.14]
-        series = pd.Series(data, dtype=object)
-        result = hpandas.convert_to_type(series, "is_string")
-        expected = pd.Series([True, False, False, True, False, False], dtype=bool)
-        pd.testing.assert_series_equal(result, expected)
-
-    def test_convert_to_type_unknown(self) -> None:
-        "Check converting to invalid datatype column."
-        series = pd.Series([1, 2, 3], dtype=object)
-        with pytest.raises(ValueError) as exc:
-            hpandas.convert_to_type(series, "invalid_type")
-        self.assertIn("Unknown column type: invalid_type", str(exc.value))
-
-    # #########################################################################
-
-
-# Test_infer_column_types
-# #############################################################################
-
-
-# #############################################################################
-# Test_infer_column_types
-# #############################################################################
-
-
-class Test_infer_column_types(hunitest.TestCase):
-
-    def test_numeric_dominance(self) -> None:
-        """
-        Check with numeric dominant column.
-        """
-        # 5 elements: '1','2',3 (numeric), 'a', None
-        col = pd.Series(["1", "2", 3, "a", None], dtype=object)
-        vals = hpandas.infer_column_types(col)
-        # is_numeric: True for "1","2",3 → 3/5 = 0.6
-        assert pytest.approx(vals["is_numeric"], rel=1e-6) == 0.6
-        # is_bool: none are bool → 0.0
-        assert vals["is_bool"] == 0.0
-        # is_string: "1","2","a" are str → 3/5 = 0.6
-        assert pytest.approx(vals["is_string"], rel=1e-6) == 0.6
-        # numeric ≥ string, and bool < numeric ⇒ type is numeric
-        self.assert_equal(vals["type"], "is_numeric")
-
-    def test_bool_dominance(self) -> None:
-        """
-        Check with bool dominant column.
-        """
-        # 4 elements: True, False, True (bool), "x"
-        col = pd.Series([True, False, True, "x"], dtype=object)
-        vals = hpandas.infer_column_types(col)
-        # is_bool: 3/4 = 0.75
-        assert pytest.approx(vals["is_bool"], rel=1e-6) == 0.75
-        # is_numeric: True→1, False→0, True→1, "x"→NaN  → notna → 3/4 = 0.75
-        assert pytest.approx(vals["is_numeric"], rel=1e-6) == 0.75
-        # is_string: only "x" → 1/4 = 0.25
-        assert pytest.approx(vals["is_string"], rel=1e-6) == 0.25
-        # bool ≥ numeric ⇒ type is bool
-        self.assert_equal(vals["type"], "is_bool")
-
-    def test_string_dominance(self) -> None:
-        """
-        Check with string dominant column.
-        """
-        # 3 elements: 1.5 (numeric), "a","b" (strings)
-        col = pd.Series([1.5, "a", "b"], dtype=object)
-        vals = hpandas.infer_column_types(col)
-        # is_bool: none are bool → 0/3 = 0.0
-        assert pytest.approx(vals["is_bool"], rel=1e-6) == 0.0
-        # is_numeric: 1/3 ≈ 0.333...
-        assert pytest.approx(vals["is_numeric"], rel=1e-6) == pytest.approx(
-            1 / 3, rel=1e-6
-        )
-        # is_string: 2/3 ≈ 0.666...
-        assert pytest.approx(vals["is_string"], rel=1e-6) == pytest.approx(
-            2 / 3, rel=1e-6
-        )
-        # bool < numeric < string ⇒ type is string
-        self.assert_equal(vals["type"], "is_string")
-
-
-# #############################################################################
-# Test_convert_df
-# #############################################################################
-
-
-class Test_convert_df(hunitest.TestCase):
-
-    def test_convert_df_all_bool(self) -> None:
-        """
-        A column of pure booleans should stay booleans.
-        """
-        df = pd.DataFrame({"flag": [True, False, True, False]})
-        df_out = hpandas.convert_df(df)
-        # Expect a DataFrame back
-        assert isinstance(df_out, pd.DataFrame)
-        # Column dtype must be bool
-        self.assert_equal(df_out["flag"].dtype.name, "bool")
-        # Values preserved
-        self.assert_equal(
-            str(df_out["flag"].tolist()), str([True, False, True, False])
-        )
-
-    def test_convert_df_all_numeric(self) -> None:
-        """
-        A column of numeric strings and ints should become floats.
-        """
-        df = pd.DataFrame({"score": ["1", 2, "3.5", 4]}, dtype=object)
-        df_out = hpandas.convert_df(df)
-        assert isinstance(df_out, pd.DataFrame)
-        # dtype should be float64
-        assert df_out["score"].dtype == float
-        # Values converted correctly
-        assert df_out["score"].tolist() == [1.0, 2.0, 3.5, 4.0]
-
-    def test_convert_df_all_string(self) -> None:
-        """
-        A column of strings (and mixed non-numeric non-bool) stays as-is.
-        """
-        df = pd.DataFrame({"name": ["alice", "bob", "", "charlie"]}, dtype=object)
-        df_out = hpandas.convert_df(df)
-        assert isinstance(df_out, pd.DataFrame)
-        # dtype remains object (strings)
-        self.assert_equal(df_out["name"].dtype.name, "object")
-        self.assert_equal(
-            str(df_out["name"].tolist()), str(["alice", "bob", "", "charlie"])
-        )
-
-
-# TODO(Sai) : Fix hpandas.convert_df().
-# def test_convert_df_mixed_columns(self) -> None:
-#     """
-#     Different datatype columns should convert accordingly.
-#     """
-#     df = pd.DataFrame(
-#         {
-#             "flag": [True, False, False],
-#             "value": ["10", "20", "xyz"],
-#             "text": ["one", 2, None],
-#         },
-#         dtype=object,
-#     )
-#     df_out = hpandas.convert_df(df)
-#     # flag → bool
-#     self.assert_equal(df_out["flag"].dtype.name, "bool")
-#     self.assert_equal(str(df_out["flag"].tolist()), str([True, False, False]))
-#     # value → numeric (since 2/3 parse as numbers > bool(1/3) or string(0/3))
-#     self.assert_equal(df_out["value"].dtype.name, "float")
-#     # "10","20"→10.0,20.0; "xyz"→NaN
-#     assert pytest.approx(df_out["value"].tolist(), rel=1e-6) == [
-#         10.0,
-#         20.0,
-#         pytest.approx(float("nan")),
-#     ]
-#     # text → string (since 1/3 numeric < 1/3 string and bool=0)
-#     self.assert_equal(df_out["text"].dtype.name, "object")
-#     self.assert_equal(str(df_out["text"].tolist()), str(["one", 2, None]))
