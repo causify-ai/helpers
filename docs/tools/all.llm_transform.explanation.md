@@ -20,7 +20,7 @@
 - **Prompt selection** – `llm_prompts.py` maps the `‑p/--prompt-tag` value to a
   concrete system/assistant prompt.
 - **LLM invocation** – the request is handed to the generic client in
-  [`/helpers/hserver.py`](/helpers/hserver.py) (through `llm_prompts.py`).
+  [`/helpers/hserver.py`](/helpers/hserver.py) through `llm_prompts.py`.
 - **Post‑processing** – raw LLM text may be re‑formatted by
   [`/helpers/hmarkdown.py`](/helpers/hmarkdown.py) (e.g. bold top‑level
   bullets).
