@@ -3,6 +3,10 @@ import os
 import pathlib
 from typing import Any, Generator, Optional
 
+pytest.importorskip(
+    "openai"
+)  # noqa: E402 # pylint: disable=wrong-import-position
+
 import helpers.hdbg as dbg
 import helpers.hopenai as hopenai
 import helpers.hunit_test as hut
@@ -49,8 +53,8 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
         parser.addoption(
             "--update_llm_cache",
             action="store_true",
-            default= False,
-            help= "Update LLM shared cache."
+            default=False,
+            help="Update LLM shared cache.",
         )
         parser.addoption(
             "--incremental",
