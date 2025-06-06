@@ -830,8 +830,7 @@ Use `foo()` to parse data.
 ##### Output
 
 ```md
-Bold text
-italicized text
+Bold text italicized text
 ```
 
 #### `md_rewrite`
@@ -1048,7 +1047,7 @@ P(A|B) = P(B|A)P(A)/P(B)
 
 ##### Output
 
-```md
+```latex
 \red{P(A|B)} = \frac{\green{P(B|A)}\blue{P(A)}}{\violet{P(B)}}
 ```
 
