@@ -644,12 +644,13 @@ def latex_rewrite() -> _PROMPT_OUT:
     system = _LATEX_CONTEXT
     system += r"""
     - Rewrite the text passed to increase clarity and readability.
-    - Maintain the structure of the text as much as possible, in terms of bullet
-      points and their indentation
+    - Maintain the structure of the text as much as possible, in terms of items
+      and their indentation
+    - The output should be a valid Latex code (e.g., using itemize)
     """
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
-    post_container_transforms = []
+    post_container_transforms = ["format_latex"]
     return system, pre_transforms, post_transforms, post_container_transforms
 
 

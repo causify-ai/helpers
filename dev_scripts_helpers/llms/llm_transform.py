@@ -231,6 +231,17 @@ def _main(parser: argparse.ArgumentParser) -> None:
     tmp_in_file_name, tmp_out_file_name = (
         hparser.adapt_input_output_args_for_dockerized_scripts(in_file_name, tag)
     )
+    if args.prompt == "md_to_latex":
+        import helpers.hlatex as hlatex
+        # Read the input.
+        txt = hparser.read_file(tmp_in_file_name)
+        txt = "\n".join(txt)
+        #txt = hmarkdo.format_markdown(txt)
+        txt = hlatex.convert_pandoc_md_to_latex(txt)
+        txt = hmarkdo.format_latex(txt)
+        hparser.write_file(txt, out_file_name)
+        return
+
     # TODO(gp): We should just automatically pass-through the options.
     cmd_line_opts = [f"-p {args.prompt}", f"-v {args.log_level}"]
     if args.fast_model:
