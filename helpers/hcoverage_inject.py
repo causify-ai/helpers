@@ -62,3 +62,58 @@ def hremove() -> None:
             raise
     else:
         _LOG.warning("No coverage.pth found in %s", sp)
+
+# Default .coveragerc contents
+DEFAULT_COVERAGE_RC = """[run]
+branch = True
+parallel = True
+concurrency = multiprocessing
+sigterm = True
+
+[report]
+omit =
+    */site-packages/*
+
+[paths]
+source =
+    .
+    /app
+"""
+
+def generate_temp_dockerfile_content() -> str:
+    """
+    Build a Dockerfile string that:
+      1. Starts FROM base_image
+      2. Installs coverage, pytest, pytest-cov at build time
+      3. Creates /coverage_data and writes .coveragerc
+      4. Sets ENV COVERAGE_PROCESS_START to /coverage_data/.coveragerc
+      5. Writes a coverage.pth into site-packages so coverage auto-starts
+    """
+    lines = []
+    lines.append("")  # blank line for readability
+
+    # 2) Install coverage & pytest
+    lines.append("RUN pip install --no-cache-dir coverage pytest pytest-cov")
+    lines.append("")
+
+    # 3) Create /coverage_data
+    lines.append("RUN mkdir -p /app/coverage_data && chmod 777 /app/coverage_data")
+    lines.append("")
+
+    # 4) Write .coveragerc into /coverage_data
+    # 5) Set ENV so every Python run picks up .coveragerc
+    lines.append("COPY .coveragerc /app/coverage_data/.coveragerc")
+    lines.append("ENV COVERAGE_PROCESS_START=/app/coverage_data/.coveragerc")
+    lines.append("")
+
+    # 6) Write coverage.pth into site-packages
+    lines.append("RUN python - <<PYCODE")
+    lines.append("import site, os")
+    lines.append("site_dir = site.getsitepackages()[0]")
+    lines.append("pth_file = os.path.join(site_dir, 'coverage.pth')")
+    lines.append("with open(pth_file, 'w') as f:")
+    lines.append("    f.write('import coverage; coverage.process_startup()')")
+    lines.append("PYCODE")
+
+    # Final newline
+    return "\n".join(lines)
