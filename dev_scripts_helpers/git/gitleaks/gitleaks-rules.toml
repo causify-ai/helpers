@@ -2,7 +2,7 @@ title = "gitleaks config"
 [allowlist]
 description = "global allow lists"
 paths = [
-    '''.github/gitleaks-rules.toml''',
+    '''(^|.*/)gitleaks-rules\.toml$''',
 ]
 [extend]
 useDefault = true
@@ -45,7 +45,7 @@ useDefault = true
 [[rules]]
     id = "rule15"
     description = '''AWS cred file info'''
-    regex = '''(aws_access_key_id|aws_secret_access_key)'''
+    regex = '''(?i)(aws_access_key_id\s*=\s*[A-Z0-9]{16,40}|aws_secret_access_key\s*=\s*[A-Za-z0-9/+=]{40})'''
     tags = ["secret"]
 
 [[rules]]
