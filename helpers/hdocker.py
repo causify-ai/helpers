@@ -14,6 +14,7 @@ import shlex
 import time
 from typing import Any, Dict, List, Optional, Tuple, cast
 
+import helpers.hcoverage_inject as hcovinje
 import helpers.hdbg as hdbg
 import helpers.henv as henv
 import helpers.hgit as hgit
@@ -21,7 +22,6 @@ import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
-import helpers.hcoverage_inject as hcovinj
 
 _LOG = logging.getLogger(__name__)
 
@@ -369,7 +369,7 @@ def get_docker_base_cmd(use_sudo: bool) -> List[str]:
         "--user $(id -u):$(id -g)",
         vars_to_pass_as_str,
         f"-e COVERAGE_FILE={coverage_dir_container}/.coverage",
-        f"-e COVERAGE_PROCESS_START={coverage_dir_container}/.coveragerc"
+        f"-e COVERAGE_PROCESS_START={coverage_dir_container}/.coveragerc",
     ]
     return docker_cmd
 
@@ -402,7 +402,9 @@ def build_container_image(
     _LOG.debug(hprint.func_signature_to_str("dockerfile"))
     #
     dockerfile = hprint.dedent(dockerfile)
-    dockerfile=dockerfile.strip()+ "\n"+hcovinj.generate_temp_dockerfile_content()
+    dockerfile = (
+        dockerfile.strip() + "\n" + hcovinje.generate_temp_dockerfile_content()
+    )
     _LOG.debug("Dockerfile:\n%s", dockerfile)
     # Get the current architecture.
     current_arch = get_current_arch()
