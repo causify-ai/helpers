@@ -2,12 +2,17 @@
 
 <!-- toc -->
 
+- [Introduction](#introduction)
 - [What You'll Build](#what-youll-build)
 - [Before You Begin](#before-you-begin)
 - [Using the Script](#using-the-script)
 - [Output](#output)
 
 <!-- tocstop -->
+
+## Introduction
+
+Provide a brief description of the task and what it does.
 
 ## What You'll Build
 
@@ -21,12 +26,13 @@ Sample reference:
 
 ## Before You Begin
 
-Ensure following checks have been completed
+Describe all necessary conditions that need to be fulfilled before running
+script
 
-- Python 3.10 or higher
+Example:
+
 - Docker installed and running
-- Terminal or command-line access
-- Any other scripts needed
+- Linter up and running
 
 ## Using the Script
 
