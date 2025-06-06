@@ -1,31 +1,26 @@
-# Template for Reference Guide: script.py
+# Reference Guide: script.py
 
 Template to document scripts and detail technical aspects of the file/script.
 
-## Dependencies:
-
-Mention any and all dependencies needed to run your code.
-
-- Any other scripts dependencies
-
 <!-- toc -->
 
-- [What it does](#what-it-does)
-  * [Sample reference:](#sample-reference)
-- [Input and Output Types](#input-and-output-types)
-- [Supported File types and Code Blocks](#supported-file-types-and-code-blocks)
-- [Flag Options](#flag-options)
-- [Examples](#examples)
-- [Common Error Codes and Exceptions](#common-error-codes-and-exceptions)
+  * [What it does](#what-it-does)
+    + [Sample reference:](#sample-reference)
+  * [Input and Output Types](#input-and-output-types)
+  * [Supported File types and Code Blocks](#supported-file-types-and-code-blocks)
+  * [Flag Options](#flag-options)
+  * [Examples](#examples)
+  * [Common Error Codes and Exceptions](#common-error-codes-and-exceptions)
+- [Dependencies](#dependencies)
 
 <!-- tocstop -->
 
-### What it does
+## What it does
 
 - Explain in a few lines the objective of the document/script and what it aims
   to achieve.
 
-#### Sample reference:
+### Sample reference:
 
 - This script auto renders figures by
   - Detecting fenced code blocks (PlantUML, Mermaid, TikZ, Graphviz, ...)
@@ -123,3 +118,7 @@ Reference:
 ### Common Error Codes and Exceptions
 
 Error/Issue: Likely Cause: Possible Fix:
+
+## Dependencies
+
+Mention any and all dependencies needed to run your code.

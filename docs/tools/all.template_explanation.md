@@ -16,8 +16,8 @@
 - What problem or limitation does it solve?
 - Who needs to understand it?
 
-_Example: "Traditional file conversion methods focused on quality rather than
-file size. This methods aims to optimize file size while ensuring quality."_
+Example: "Traditional file conversion methods focused on quality rather than
+file size. This methods aims to optimize file size while ensuring quality.
 
 ## Core Concepts
 

@@ -1,6 +1,6 @@
 # How-To Guide: Script.py
 
-Gguide to help **[solve a specific problem or achieve a goal]** using
+Guide to help **[solve a specific problem or achieve a goal]** using
 step-by-step instructions.
 
 <!-- toc -->
@@ -15,8 +15,6 @@ step-by-step instructions.
 
 <!-- tocstop -->
 
----
-
 ## What It Does
 
 Describe the specific problem this guide helps solve or the outcome it achieves.
@@ -24,18 +22,14 @@ Describe the specific problem this guide helps solve or the outcome it achieves.
 > **Example:** Automatically render images from fenced code blocks in Markdown
 > using a custom Python script.
 
----
-
 ## Assumptions / Requirements
 
-What the user must have before starting:
+Mention all requirements that need to be fulfilled before running the file:
 
 - Python 3.10+ installed
 - Docker installed and running
 - Basic command-line familiarity
-- Access to the `render_images.py` script
-
----
+- Any other script dependencies
 
 ## Instructions
 

@@ -1,16 +1,19 @@
-# Template for Tutorial Guide: script.py
+# Tutorial Guide: script.py
 
 <!-- toc -->
 
 - [What You'll Build](#what-youll-build)
 - [Before You Begin](#before-you-begin)
-- [Create a Sample Markdown File](#create-a-sample-markdown-file)
+- [Using the Script](#using-the-script)
+- [Output](#output)
 
 <!-- tocstop -->
 
----
-
 ## What You'll Build
+
+Describe what the files does.
+
+Sample reference:
 
 - A Markdown file with diagram code blocks
 - A script that processes and renders those diagrams
@@ -18,17 +21,22 @@
 
 ## Before You Begin
 
-Make sure you've got the following:
+Ensure following checks have been completed
 
 - Python 3.10 or higher
 - Docker installed and running
 - Terminal or command-line access
-- The script `render_images.py` downloaded to your system
+- Any other scripts needed
 
-## Create a Sample Markdown File
+## Using the Script
 
-Let's create the file we'll use:
+Describe the execution with proper syntax for commands to be executed.
 
 ```bash
-nano diagrams.md
+python render_images.py -i input.md -o output.md
 ```
+
+## Output
+
+Explain in few lines what the expected output is. Describe necessary commands to
+check output format and content.
