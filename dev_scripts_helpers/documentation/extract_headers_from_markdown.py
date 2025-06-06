@@ -27,7 +27,6 @@ The script:
 import argparse
 import logging
 
-import helpers.hdbg as hdbg
 import helpers.hmarkdown as hmarkdo
 import helpers.hparser as hparser
 
@@ -40,6 +39,9 @@ def _extract_headers_from_markdown(
     max_level: int,
     out_file_name: str,
 ) -> None:
+    """
+    Extract headers from a Markdown file.
+    """
     input_content = hparser.read_file(in_file_name)
     input_content = "\n".join(input_content)
     # We don't want to sanity check since we want to show the headers, even
@@ -48,6 +50,7 @@ def _extract_headers_from_markdown(
     header_list = hmarkdo.extract_headers_from_markdown(
         input_content, max_level=max_level, sanity_check=sanity_check
     )
+    # Print the headers.
     if mode == "cfile":
         output_content = hmarkdo.header_list_to_vim_cfile(
             in_file_name, header_list
@@ -55,8 +58,8 @@ def _extract_headers_from_markdown(
     else:
         output_content = hmarkdo.header_list_to_markdown(header_list, mode)
     hparser.write_file(output_content, out_file_name)
-    #
-    hmarkdo.check_header_list(header_list)
+    # Sanity check the headers.
+    hmarkdo.sanity_check_header_list(header_list)
 
 
 # TODO(gp): _parse() -> _build_parser() everywhere.
@@ -65,7 +68,9 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    hparser.add_input_output_args(parser)
+    # Print to stdout by default.
+    out_default = "-"
+    hparser.add_input_output_args(parser, out_default=out_default)
     parser.add_argument(
         "--mode",
         type=str,
@@ -74,7 +79,7 @@ def _parse() -> argparse.ArgumentParser:
         help="Output mode",
     )
     parser.add_argument(
-        "--max-level",
+        "--max_level",
         type=int,
         default=3,
         help="Maximum header levels to parse",
@@ -85,7 +90,9 @@ def _parse() -> argparse.ArgumentParser:
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    hparser.init_logger_for_input_output_transform(args)
+    # Do not print information.
+    verbose = False
+    hparser.init_logger_for_input_output_transform(args, verbose=verbose)
     in_file_name, out_file_name = hparser.parse_input_output_args(args)
     #
     _extract_headers_from_markdown(

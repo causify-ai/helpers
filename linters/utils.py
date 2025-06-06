@@ -191,7 +191,9 @@ def write_file_back(
 
 
 # TODO(saggese): should this be moved to system interactions?
-def tee(cmd: str, executable: str, abort_on_error: bool) -> Tuple[int, List[str]]:
+def tee(
+    cmd: str, executable: str, abort_on_error: bool
+) -> Tuple[int, List[str]]:
     """
     Execute command "cmd", capturing its output and removing empty lines.
 

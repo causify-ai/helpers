@@ -421,7 +421,9 @@ class TestPlaybackFilePath1(hunitest.TestCase):
         """
         Test writing to file when number of tests is more than generated (10).
         """
-        test_file = hplayba.Playback._get_test_file_name("./path/to/somewhere.py")
+        test_file = hplayba.Playback._get_test_file_name(
+            "./path/to/somewhere.py"
+        )
         self.assert_equal(
             test_file, "./path/to/test/test_by_playback_somewhere.py"
         )

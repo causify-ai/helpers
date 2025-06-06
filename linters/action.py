@@ -199,7 +199,6 @@ class Action:
 
 
 class CompositeAction(Action):
-
     def __init__(self, actions: List[Action]) -> None:
         super().__init__()
         self._actions = actions

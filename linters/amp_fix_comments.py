@@ -8,6 +8,7 @@ Import as:
 
 import linters.amp_fix_comments as lamficom
 """
+
 import argparse
 import dataclasses
 import io
@@ -248,7 +249,8 @@ class _FixComment(liaction.Action):
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "files", nargs="+", action="store", type=str, help="Files to process"

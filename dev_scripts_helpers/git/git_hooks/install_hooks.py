@@ -37,7 +37,8 @@ _GIT_PHASE_HOOKS = ["pre-commit", "commit-msg"]
 
 def _main() -> None:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "--action",

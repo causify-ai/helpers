@@ -147,14 +147,14 @@ class Playback:
             x = self._kwargs.pop("self")
             self._parent_class = x
             self._code = [
-                f'# Test created for {cur_frame.f_back.f_globals["__name__"]}'  # type: ignore
+                f"# Test created for {cur_frame.f_back.f_globals['__name__']}"  # type: ignore
                 f".{x.__class__.__name__}.{self._func_name}."
             ]
         else:
             self._parent_class = None
             self._code = [
                 # pylint: disable=line-too-long
-                f'# Test created for {cur_frame.f_back.f_globals["__name__"]}.{self._func_name}.'  # type: ignore
+                f"# Test created for {cur_frame.f_back.f_globals['__name__']}.{self._func_name}."  # type: ignore
             ]
         self._append("")
         # Check if need to write the code directly to file.
@@ -247,7 +247,9 @@ class Playback:
         if self.mode == "check_string":
             if isinstance(func_output, (pd.DataFrame, pd.Series, str)):
                 if not isinstance(func_output, str):
-                    self._append("act = hpandas.df_to_str(act, num_rows=None)", 2)
+                    self._append(
+                        "act = hpandas.df_to_str(act, num_rows=None)", 2
+                    )
             if not isinstance(func_output, (str, bytes)):
                 self._append("act = str(act)", 2)
             self._append("# Check output.", 2)
@@ -320,7 +322,9 @@ class Playback:
             if self._parent_class is not None
             else ""
         )
-        test_name += "".join([x.capitalize() for x in self._func_name.split("_")])
+        test_name += "".join(
+            [x.capitalize() for x in self._func_name.split("_")]
+        )
         class_string = f"class Test{test_name}(hunitest.TestCase):"
         return class_string
 
@@ -339,7 +343,9 @@ class Playback:
             self._append("cls = jsonpickle.decode(cls)", 2)
             fnc_call = [f"{k}={k}" for k in self._kwargs.keys()]
             # Call the method as a child of the parent class.
-            self._append(f"act = cls.{self._func_name}({', '.join(fnc_call)})", 2)
+            self._append(
+                f"act = cls.{self._func_name}({', '.join(fnc_call)})", 2
+            )
 
     def _add_var_definitions(self) -> None:
         """

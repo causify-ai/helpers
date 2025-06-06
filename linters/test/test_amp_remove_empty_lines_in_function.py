@@ -11,7 +11,6 @@ import linters.amp_remove_empty_lines_in_function as larelinfu
 
 
 class Test_remove_empty_lines(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test cleaning empty lines in a single function.

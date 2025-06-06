@@ -29,10 +29,14 @@ class TestLibTasksGitCreatePatch1(hunitest.TestCase):
         ctx = httestlib._build_mock_context_returning_ok()
         #
         mode = "tar"
-        hlitagit.git_patch_create(ctx, mode, modified, branch, last_commit, files)
+        hlitagit.git_patch_create(
+            ctx, mode, modified, branch, last_commit, files
+        )
         #
         mode = "diff"
-        hlitagit.git_patch_create(ctx, mode, modified, branch, last_commit, files)
+        hlitagit.git_patch_create(
+            ctx, mode, modified, branch, last_commit, files
+        )
 
     def test_tar_modified1(self) -> None:
         """
@@ -94,7 +98,9 @@ class TestLibTasksGitCreatePatch1(hunitest.TestCase):
         branch = False
         last_commit = False
         files = __file__
-        hlitagit.git_patch_create(ctx, mode, modified, branch, last_commit, files)
+        hlitagit.git_patch_create(
+            ctx, mode, modified, branch, last_commit, files
+        )
 
     def test_diff_files_abort1(self) -> None:
         """

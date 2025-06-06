@@ -176,9 +176,9 @@ class Test_build_config_list_with_tiled_universe_and_periods(hunitest.TestCase):
         # Prepare inputs.
         # Create a Config with `overwrite` mode to support item reassignment.
         system_config = cconfig.Config(update_mode="overwrite")
-        system_config[
-            "backtest_config", "time_interval_str"
-        ] = "2020-01-01_2020-03-01"
+        system_config["backtest_config", "time_interval_str"] = (
+            "2020-01-01_2020-03-01"
+        )
         system_config["backtest_config", "freq_as_pd_str"] = "M"
         system_config["backtest_config", "lookback_as_pd_str"] = "90D"
         system_config["market_data_config", "asset_ids"] = [13684, 10971]

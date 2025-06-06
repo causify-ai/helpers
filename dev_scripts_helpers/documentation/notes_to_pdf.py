@@ -18,7 +18,6 @@ Convert a txt file into a PDF / HTML / slides using `pandoc`.
     --no_cleanup --no_cleanup_before --no_run_latex_again --no_open
 """
 
-
 import argparse
 import logging
 import os
@@ -57,13 +56,16 @@ def _report_phase(phase: str) -> None:
 
 
 def _log_system(cmd: str) -> None:
+    hdbg.dassert_isinstance(cmd, str)
     print("> " + cmd)
     _append_script(cmd)
 
 
 def _system(cmd: str, *, log_level: int = logging.DEBUG, **kwargs: Any) -> int:
     _log_system(cmd)
-    rc = hsystem.system(cmd, log_level=log_level, suppress_output=False, **kwargs)
+    rc = hsystem.system(
+        cmd, log_level=log_level, suppress_output=False, **kwargs
+    )
     return rc  # type: ignore
 
 
@@ -317,7 +319,9 @@ def _run_pandoc_to_pdf(
     )
     _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
     if not use_host_tools:
-        cmd = hdocker.run_dockerized_latex(cmd, mode="return_cmd", use_sudo=False)
+        cmd = hdocker.run_dockerized_latex(
+            cmd, mode="return_cmd", use_sudo=False
+        )
     _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
     _ = _system(cmd)
     # - Run latex again.
@@ -408,6 +412,8 @@ def _build_pandoc_cmd(
             use_sudo=dockerized_use_sudo,
         )
     _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
+    hdbg.dassert_isinstance(cmd, str)
+    hdbg.dassert_isinstance(file_out, str)
     return cmd, file_out
 
 
@@ -532,7 +538,9 @@ def _run_all(args: argparse.Namespace) -> None:
     # Print actions.
     actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     add_frame = True
-    actions_as_str = hparser.actions_to_string(actions, _VALID_ACTIONS, add_frame)
+    actions_as_str = hparser.actions_to_string(
+        actions, _VALID_ACTIONS, add_frame
+    )
     _LOG.info("\n%s", actions_as_str)
     if args.preview_actions:
         return
@@ -567,7 +575,9 @@ def _run_all(args: argparse.Namespace) -> None:
     action = "preprocess_notes"
     to_execute, actions = _mark_action(action, actions)
     if to_execute:
-        file_name = _preprocess_notes(file_name, prefix, args.type, args.toc_type)
+        file_name = _preprocess_notes(
+            file_name, prefix, args.type, args.toc_type
+        )
     # - Render_images
     action = "render_images"
     to_execute, actions = _mark_action(action, actions)
@@ -661,7 +671,8 @@ _DEFAULT_ACTIONS = [
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("-i", "--input", action="store", type=str, required=True)
     parser.add_argument(

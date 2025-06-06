@@ -1150,7 +1150,9 @@ def docker_release_all(ctx, version, container_dir_name="."):  # type: ignore
     """
     hlitauti.report_task()
     docker_release_dev_image(ctx, version, container_dir_name=container_dir_name)
-    docker_release_prod_image(ctx, version, container_dir_name=container_dir_name)
+    docker_release_prod_image(
+        ctx, version, container_dir_name=container_dir_name
+    )
     _LOG.info("==> SUCCESS <==")
 
 
@@ -1225,7 +1227,14 @@ def _check_workspace_dir_sizes() -> None:
         )[1].split("\n")
     # Filter out directories ignored by `dockerignore.prod` + "amp/"
     # as submodule.
-    ignored_dirs = ["amp", "ck.infra", "amp/ck.infra", "docs", ".git", "amp/.git"]
+    ignored_dirs = [
+        "amp",
+        "ck.infra",
+        "amp/ck.infra",
+        "docs",
+        ".git",
+        "amp/.git",
+    ]
     offending_items = [
         it.replace("\t", " ")
         for it in directory_size_list
@@ -1312,7 +1321,9 @@ def docker_release_test_task_definition(
     image_tag = docker_create_candidate_image(ctx, user_tag)
     # Update ECS task definition with new image URL.
     hlitaaws.aws_update_ecs_task_definition(
-        ctx, task_definition, image_tag, region
+        task_definition=task_definition,
+        image_tag=image_tag,
+        region=region,
     )
 
 
@@ -1337,7 +1348,9 @@ def docker_release_prod_task_definition(
     image_tag = docker_create_candidate_image(ctx)
     # Update ECS task definition with new image URL.
     hlitaaws.aws_update_ecs_task_definition(
-        ctx, task_definition_name, image_tag, region
+        task_definition=task_definition_name,
+        image_tag=image_tag,
+        region=region,
     )
 
 
@@ -1423,14 +1436,18 @@ def docker_update_prod_task_definition(
     # Compose new prod image url.
     new_prod_image_url = hlitadoc.get_image(base_image, stage, prod_version)
     version = None
-    new_prod_image_url_no_version = hlitadoc.get_image(base_image, stage, version)
+    new_prod_image_url_no_version = hlitadoc.get_image(
+        base_image, stage, version
+    )
     # Check if preprod tag exist in preprod task definition as precaution.
     preprod_task_definition_name = f"{task_definition}-preprod"
     preprod_image_url = haws.get_task_definition_image_url(
         preprod_task_definition_name
     )
     preprod_tag_from_image = preprod_image_url.split(":")[-1]
-    msg = f"Preprod tag is different in the image url `{preprod_tag_from_image}`!"
+    msg = (
+        f"Preprod tag is different in the image url `{preprod_tag_from_image}`!"
+    )
     hdbg.dassert_eq(preprod_tag_from_image, preprod_tag, msg=msg)
     # Pull preprod image for re-tag.
     hlitadoc.docker_login(ctx)
@@ -1492,7 +1509,8 @@ def docker_update_prod_task_definition(
                 if len(versions) > 1:
                     rollback_version = versions[1]
                     _LOG.info(
-                        "Active version is now `%s`!", rollback_version.version_id
+                        "Active version is now `%s`!",
+                        rollback_version.version_id,
                     )
                 elif len(versions) == 1:
                     _LOG.info(
