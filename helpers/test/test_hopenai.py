@@ -476,53 +476,6 @@ class Test_response_to_txt(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_extract
-# #############################################################################
-
-
-# class Test_extract(hunitest.TestCase):
-
-#     def test_extract_existing_and_missing_attributes(self) -> None:
-#         """
-#         Check for exisiting elements.
-#         """
-#         # Only x and y exist on our object
-#         dummy_file = types.SimpleNamespace(x=10, y="hello")
-#         # "z" does NOT exist.
-#         attrs = ["x", "y", "z"]
-#         result = hopenai._extract(dummy_file, attrs)
-#         self.assert_equal(str(result), str({"x": 10, "y": "hello"}))
-
-#     def test_extract_no_attributes(self) -> None:
-#         """
-#         Asking for nothing always yields an empty dict.
-#         """
-#         dummy_file = types.SimpleNamespace(anything=123)
-#         result = hopenai._extract(dummy_file, [])
-#         self.assert_equal(str(result), str({}))
-
-#     def test_extract_all_missing_attributes(self) -> None:
-#         """
-#         Non existent attributes yield empty dict.
-#         """
-#         dummy_file = types.SimpleNamespace(foo="bar")
-#         result = hopenai._extract(dummy_file, ["a", "b", "c"])
-#         self.assert_equal(str(result), str({}))
-
-#     def test_extract_various_types(self) -> None:
-#         """
-#         Ensure arbitrary attribute types pass through.
-#         """
-#         inner = types.SimpleNamespace(inner_attr="value")
-#         dummy_file = types.SimpleNamespace(num=42, lst=[1, 2, 3], obj=inner)
-#         attrs = ["num", "lst", "obj"]
-#         result = hopenai._extract(dummy_file, attrs)
-#         self.assert_equal(str(result["lst"]), str([1, 2, 3]))
-#         # The exact same object should be returned
-#         self.assertIs(result["obj"], inner)
-
-
-# #############################################################################
 # Test_get_openai_client
 # #############################################################################
 
