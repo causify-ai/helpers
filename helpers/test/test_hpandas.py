@@ -4593,11 +4593,10 @@ class Test_convert_to_type(hunitest.TestCase):
         """
         # Mix of booleans, truthy/falsy strings, numerics, and invalid values
         data = [True, False, "True", "false", 1, 0, "1", "0", "yes", None]
-        series = pd.Series(data, dtype=object)
+        series = pd.Series(data)
         result = hpandas.convert_to_type(series, "is_bool")
         expected = pd.Series(
-            [True, True, True, True, True, True, True, True, False, False],
-            dtype=bool,
+            [True, False, True, False, True, False, True,False, None, None]
         )
         pd.testing.assert_series_equal(result, expected)
 
@@ -4623,7 +4622,7 @@ class Test_convert_to_type(hunitest.TestCase):
         data = ["a", 1, None, "hello", True, 3.14]
         series = pd.Series(data, dtype=object)
         result = hpandas.convert_to_type(series, "is_string")
-        expected = pd.Series([True, False, False, True, False, False], dtype=bool)
+        expected = pd.Series(["a", "1", "None", "hello", "True", '3.14'])
         pd.testing.assert_series_equal(result, expected)
 
     def test_convert_to_type_unknown(self) -> None:
@@ -4633,11 +4632,6 @@ class Test_convert_to_type(hunitest.TestCase):
             hpandas.convert_to_type(series, "invalid_type")
         self.assertIn("Unknown column type: invalid_type", str(exc.value))
 
-    # #########################################################################
-
-
-# Test_infer_column_types
-# #############################################################################
 
 
 # #############################################################################
@@ -4739,7 +4733,9 @@ class Test_convert_df(hunitest.TestCase):
         A column of strings (and mixed non-numeric non-bool) stays as-is.
         """
         df = pd.DataFrame({"name": ["alice", "bob", "", "charlie"]}, dtype=object)
+
         df_out = hpandas.convert_df(df)
+        print(df_out.head(5))
         assert isinstance(df_out, pd.DataFrame)
         # dtype remains object (strings)
         self.assert_equal(df_out["name"].dtype.name, "object")

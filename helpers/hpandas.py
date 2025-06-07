@@ -1120,6 +1120,7 @@ def infer_column_types(col: pd.Series):
     else:
         type_ = "is_string"
     vals["type"] = type_
+    print(type_)
     return vals
 
 
@@ -1165,16 +1166,18 @@ def convert_to_type(col: pd.Series, type_: str) -> pd.Series:
     """
     if type_ == "is_bool":
         return col.map(
-            lambda x: isinstance(x, bool)
-            or x in ["True", "False", "true", "false"]
-            or x in [1, 0, "1", "0"]
+            lambda x: (
+                True
+                if x in ["True", 1, "1", "true", True]
+                else False if x in [0, "0", "False", False, "false"] else None
+            )
         )
     elif type_ == "is_int":
         return pd.to_numeric(col, errors="coerce", downcast="integer")
     elif type_ == "is_numeric":
         return pd.to_numeric(col, errors="coerce")
     elif type_ == "is_string":
-        return col.map(lambda x: isinstance(x, str))
+        return col.astype(str)
     else:
         raise ValueError(f"Unknown column type: {type_}")
 
@@ -1741,7 +1744,7 @@ def convert_df(
     for col in df.columns:
         series = df[col]
         # Determine the dominant datatype.
-        col_type = infer_column_types(series)
+        col_type = infer_column_types(series)["type"]
         hdbg.dassert_in(col_type, ("is_bool", "is_numeric", "is_string"))
         # Convert the column to dominant datatype.
         converted = convert_to_type(series, col_type)
