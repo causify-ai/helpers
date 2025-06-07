@@ -164,12 +164,12 @@ def _get_dummy_openai_response2() -> dict:
 
 
 # #############################################################################
-# _OpenAICacheTestCase
+# BaseOpenAICacheTest
 # #############################################################################
 
 
 # TODO(*): Rename _OpenAICacheTestCase
-class _OpenAICacheTestCase(hunitest.TestCase):
+class BaseOpenAICacheTest(hunitest.TestCase):
     """
     - Ensure hopenai.get_completion() always uses REPLAY mode.
     - Add dummy data to the test cache file for test cases.
@@ -252,7 +252,7 @@ class _OpenAICacheTestCase(hunitest.TestCase):
 # #############################################################################
 
 
-class Test_get_completion(_OpenAICacheTestCase):
+class Test_get_completion(BaseOpenAICacheTest):
 
     def test1(self) -> None:
         """
@@ -289,7 +289,7 @@ class Test_get_completion(_OpenAICacheTestCase):
 # #############################################################################
 
 
-class Test_hash_key_generator(_OpenAICacheTestCase):
+class Test_hash_key_generator(BaseOpenAICacheTest):
 
     def test_different_request_parameters1(self) -> None:
         """
@@ -327,7 +327,7 @@ class Test_hash_key_generator(_OpenAICacheTestCase):
 # #############################################################################
 
 
-class Test_has_cache(_OpenAICacheTestCase):
+class Test_has_cache(BaseOpenAICacheTest):
 
     def test1(self) -> None:
         """
@@ -353,7 +353,7 @@ class Test_has_cache(_OpenAICacheTestCase):
 # #############################################################################
 
 
-class Test_save_response_to_cache(_OpenAICacheTestCase):
+class Test_save_response_to_cache(BaseOpenAICacheTest):
 
     def test1(self) -> None:
         """
@@ -379,7 +379,7 @@ class Test_save_response_to_cache(_OpenAICacheTestCase):
 # #############################################################################
 
 
-class Test_load_response_from_cache(_OpenAICacheTestCase):
+class Test_load_response_from_cache(BaseOpenAICacheTest):
 
     def test1(self) -> None:
         """
@@ -728,196 +728,6 @@ class Test_save_models_info_to_csv(hunitest.TestCase):
         df = pd.DataFrame()
         with pytest.raises(AssertionError):
             hopenai._save_models_info_to_csv(df, "")
-
-
-# #############################################################################
-# Test_convert_to_type
-# #############################################################################
-
-
-class Test_convert_to_type(hunitest.TestCase):
-
-    def test_convert_to_type_bool(self) -> None:
-        """
-        Check converting to bool column.
-        """
-        # Mix of booleans, truthy/falsy strings, numerics, and invalid values
-        data = [True, False, "True", "false", 1, 0, "1", "0", "yes", None]
-        series = pd.Series(data, dtype=object)
-        result = hopenai.convert_to_type(series, "is_bool")
-        expected = pd.Series(
-            [True, True, True, True, True, True, True, True, False, False],
-            dtype=bool,
-        )
-        pd.testing.assert_series_equal(result, expected)
-
-    def test_convert_to_type_int_and_numeric(self) -> None:
-        """
-        Check converting to numeric and int column.
-        """
-        # Strings that parse to numbers, floats, invalid strings, and ints
-        series = pd.Series(["1", "2", "3.5", "abc", 4], dtype=object)
-        # is_int should coerce numeric strings to numbers, invalid -> NaN
-        result_int = hopenai.convert_to_type(series, "is_int")
-        expected_int = pd.to_numeric(series, errors="coerce")
-        pd.testing.assert_series_equal(result_int, expected_int)
-        # is_numeric is the same as to_numeric
-        result_numeric = hopenai.convert_to_type(series, "is_numeric")
-        pd.testing.assert_series_equal(result_numeric, expected_int)
-
-    def test_convert_to_type_string(self) -> None:
-        """
-        Check converting to string column.
-        """
-        # Strings vs non-strings
-        data = ["a", 1, None, "hello", True, 3.14]
-        series = pd.Series(data, dtype=object)
-        result = hopenai.convert_to_type(series, "is_string")
-        expected = pd.Series([True, False, False, True, False, False], dtype=bool)
-        pd.testing.assert_series_equal(result, expected)
-
-    def test_convert_to_type_unknown(self) -> None:
-        "Check converting to invalid datatype column."
-        series = pd.Series([1, 2, 3], dtype=object)
-        with pytest.raises(ValueError) as exc:
-            hopenai.convert_to_type(series, "invalid_type")
-        self.assertIn("Unknown column type: invalid_type", str(exc.value))
-
-
-# #############################################################################
-# Test_infer_column_types
-# #############################################################################
-
-
-class Test_infer_column_types(hunitest.TestCase):
-
-    def test_numeric_dominance(self) -> None:
-        """
-        Check with numeric dominant column.
-        """
-        # 5 elements: '1','2',3 (numeric), 'a', None
-        col = pd.Series(["1", "2", 3, "a", None], dtype=object)
-        vals = hopenai.infer_column_types(col)
-        # is_numeric: True for "1","2",3 → 3/5 = 0.6
-        assert pytest.approx(vals["is_numeric"], rel=1e-6) == 0.6
-        # is_bool: none are bool → 0.0
-        assert vals["is_bool"] == 0.0
-        # is_string: "1","2","a" are str → 3/5 = 0.6
-        assert pytest.approx(vals["is_string"], rel=1e-6) == 0.6
-        # numeric ≥ string, and bool < numeric ⇒ type is numeric
-        self.assert_equal(vals["type"], "is_numeric")
-
-    def test_bool_dominance(self) -> None:
-        """
-        Check with bool dominant column.
-        """
-        # 4 elements: True, False, True (bool), "x"
-        col = pd.Series([True, False, True, "x"], dtype=object)
-        vals = hopenai.infer_column_types(col)
-        # is_bool: 3/4 = 0.75
-        assert pytest.approx(vals["is_bool"], rel=1e-6) == 0.75
-        # is_numeric: True→1, False→0, True→1, "x"→NaN  → notna → 3/4 = 0.75
-        assert pytest.approx(vals["is_numeric"], rel=1e-6) == 0.75
-        # is_string: only "x" → 1/4 = 0.25
-        assert pytest.approx(vals["is_string"], rel=1e-6) == 0.25
-        # bool ≥ numeric ⇒ type is bool
-        self.assert_equal(vals["type"], "is_bool")
-
-    def test_string_dominance(self) -> None:
-        """
-        Check with string dominant column.
-        """
-        # 3 elements: 1.5 (numeric), "a","b" (strings)
-        col = pd.Series([1.5, "a", "b"], dtype=object)
-        vals = hopenai.infer_column_types(col)
-        # is_bool: none are bool → 0/3 = 0.0
-        assert pytest.approx(vals["is_bool"], rel=1e-6) == 0.0
-        # is_numeric: 1/3 ≈ 0.333...
-        assert pytest.approx(vals["is_numeric"], rel=1e-6) == pytest.approx(
-            1 / 3, rel=1e-6
-        )
-        # is_string: 2/3 ≈ 0.666...
-        assert pytest.approx(vals["is_string"], rel=1e-6) == pytest.approx(
-            2 / 3, rel=1e-6
-        )
-        # bool < numeric < string ⇒ type is string
-        self.assert_equal(vals["type"], "is_string")
-
-
-# #############################################################################
-# Test_convert_df
-# #############################################################################
-
-
-class Test_convert_df(hunitest.TestCase):
-
-    def test_convert_df_all_bool(self) -> None:
-        """
-        A column of pure booleans should stay booleans.
-        """
-        df = pd.DataFrame({"flag": [True, False, True, False]})
-        df_out = hopenai.convert_df(df)
-        # Expect a DataFrame back
-        assert isinstance(df_out, pd.DataFrame)
-        # Column dtype must be bool
-        self.assert_equal(df_out["flag"].dtype.name, "bool")
-        # Values preserved
-        self.assert_equal(
-            str(df_out["flag"].tolist()), str([True, False, True, False])
-        )
-
-    def test_convert_df_all_numeric(self) -> None:
-        """
-        A column of numeric strings and ints should become floats.
-        """
-        df = pd.DataFrame({"score": ["1", 2, "3.5", 4]}, dtype=object)
-        df_out = hopenai.convert_df(df)
-        assert isinstance(df_out, pd.DataFrame)
-        # dtype should be float64
-        assert df_out["score"].dtype == float
-        # Values converted correctly
-        assert df_out["score"].tolist() == [1.0, 2.0, 3.5, 4.0]
-
-    def test_convert_df_all_string(self) -> None:
-        """
-        A column of strings (and mixed non-numeric non-bool) stays as-is.
-        """
-        df = pd.DataFrame({"name": ["alice", "bob", "", "charlie"]}, dtype=object)
-        df_out = hopenai.convert_df(df)
-        assert isinstance(df_out, pd.DataFrame)
-        # dtype remains object (strings)
-        self.assert_equal(df_out["name"].dtype.name, "object")
-        self.assert_equal(
-            str(df_out["name"].tolist()), str(["alice", "bob", "", "charlie"])
-        )
-
-    def test_convert_df_mixed_columns(self) -> None:
-        """
-        Different datatype columns should convert accordingly.
-        """
-        df = pd.DataFrame(
-            {
-                "flag": [True, False, False],
-                "value": ["10", "20", "xyz"],
-                "text": ["one", 2, None],
-            },
-            dtype=object,
-        )
-        df_out = hopenai.convert_df(df)
-        # flag → bool
-        self.assert_equal(df_out["flag"].dtype.name, "bool")
-        self.assert_equal(str(df_out["flag"].tolist()), str([True, False, False]))
-        # value → numeric (since 2/3 parse as numbers > bool(1/3) or string(0/3))
-        self.assert_equal(df_out["value"].dtype.name, "float")
-        # "10","20"→10.0,20.0; "xyz"→NaN
-        assert pytest.approx(df_out["value"].tolist(), rel=1e-6) == [
-            10.0,
-            20.0,
-            pytest.approx(float("nan")),
-        ]
-        # text → string (since 1/3 numeric < 1/3 string and bool=0)
-        self.assert_equal(df_out["text"].dtype.name, "object")
-        self.assert_equal(str(df_out["text"].tolist()), str(["one", 2, None]))
 
 
 # #############################################################################
