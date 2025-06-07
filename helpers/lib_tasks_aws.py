@@ -144,8 +144,7 @@ _TASK_DEFINITION_LOG_OPTIONS_TEMPLATE = {
     "awslogs-region": "{}",
     "awslogs-stream-prefix": "ecs",
 }
-# TODO(heanh): Parameterize the account ID.
-_IMAGE_URL_TEMPLATE = "623860924167.dkr.ecr.{}.amazonaws.com/{}:prod-xyz"
+_IMAGE_URL_TEMPLATE = "{}/{}:prod-xyz"
 _SHARED_CONFIGS_DIR = "s3://causify-shared-configs"
 
 
@@ -193,13 +192,18 @@ def _set_task_definition_config(
     # We use single container inside our task definition and
     # the convention is to set the same name as the task
     # definition itself.
-    task_definition_config["containerDefinitions"][0]["name"] = (
-        task_definition_name
-    )
+    task_definition_config["containerDefinitions"][0][
+        "name"
+    ] = task_definition_name
     # Set placeholder image URL.
+    registry_url = hrecouti.get_repo_config().get_container_registry_url()
     image_name = hrecouti.get_repo_config().get_docker_base_image_name()
+    # TODO(heanh): Consider replicating the image to the ECR in the region
+    # where the task definition is created.
+    # We can use the image from ECR in the base region for now to avoid
+    # unnecessary image replications.
     task_definition_config["containerDefinitions"][0]["image"] = (
-        _IMAGE_URL_TEMPLATE.format(region, image_name)
+        _IMAGE_URL_TEMPLATE.format(registry_url, image_name)
     )
     # Set log configuration options.
     log_config_opts = copy.deepcopy(_TASK_DEFINITION_LOG_OPTIONS_TEMPLATE)
@@ -217,9 +221,9 @@ def _set_task_definition_config(
     # Configure access to EFS.
     efs_config = _get_efs_mount_config_template()
     task_definition_config["volumes"] = efs_config[region]["volumes"]
-    task_definition_config["containerDefinitions"][0]["mountPoints"] = (
-        efs_config[region]["mountPoints"]
-    )
+    task_definition_config["containerDefinitions"][0]["mountPoints"] = efs_config[
+        region
+    ]["mountPoints"]
     return task_definition_config
 
 
@@ -256,9 +260,7 @@ def _register_task_definition(task_definition_name: str, region: str) -> None:
         placementConstraints=task_definition_config.get(
             "placementConstraints", []
         ),
-        requiresCompatibilities=task_definition_config[
-            "requiresCompatibilities"
-        ],
+        requiresCompatibilities=task_definition_config["requiresCompatibilities"],
         cpu=task_definition_config["cpu"],
         memory=task_definition_config["memory"],
     )
