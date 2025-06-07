@@ -21,7 +21,9 @@ import helpers.hsystem as hsystem
 _LOG = logging.getLogger(__name__)
 
 
-def _perform_linter_for_test_branch(base_commit_sha: str) -> Tuple[int, int, str]:
+def _perform_linter_for_test_branch(
+    base_commit_sha: str,
+) -> Tuple[int, int, str]:
     cmd = "git reset --hard"
     # Clean up the client from all linter artifacts.
     hsystem.system(cmd)
@@ -171,10 +173,14 @@ def _calculate_stats(
     # Statuses and additional info
     message.append(f"- Master (sha: {base_commit_sha})")
     message.append(f"\t- Number of lints: {master_lints}")
-    message.append(f"\t- Dirty (i.e., linter was not run): {master_dirty_status}")
+    message.append(
+        f"\t- Dirty (i.e., linter was not run): {master_dirty_status}"
+    )
     message.append(f"- Branch ({head_branch_name}: {head_commit_sha})")
     message.append(f"\t- Number of lints: {branch_lints}")
-    message.append(f"\t- Dirty (i.e., linter was not run): {branch_dirty_status}")
+    message.append(
+        f"\t- Dirty (i.e., linter was not run): {branch_dirty_status}"
+    )
     diff_lints = branch_lints - master_lints
     message.append(
         f"\nThe number of lints introduced with this change: {diff_lints}"
@@ -188,7 +194,8 @@ def _calculate_stats(
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     # Select files.
     parser.add_argument(

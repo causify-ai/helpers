@@ -130,7 +130,12 @@ val1=4, val2=8, incremental=True, num_attempts=1, kwargs={'hello4': 'world8', 'g
         #
         expected_return = self.EXPECTED_RETURN
         _helper_success(
-            self, workload, num_threads, abort_on_error, expected_return, backend
+            self,
+            workload,
+            num_threads,
+            abort_on_error,
+            expected_return,
+            backend,
         )
 
 

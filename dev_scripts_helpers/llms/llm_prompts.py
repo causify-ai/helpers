@@ -62,10 +62,15 @@ _POST_CONTAINER_TRANSFORMS: Dict[str, List[str]] = {}
 
 def get_post_container_transforms(
     transform_name: str,
-) -> Dict[str, List[str]]:
+) -> List[str]:
+    """
+    Return the transformations for `transform_name`.
+    """
     global _POST_CONTAINER_TRANSFORMS
+    # Initialize the dictionary, on the first call.
     if not _POST_CONTAINER_TRANSFORMS:
         valid_prompts = get_prompt_tags()
+        # Call all the functions and register their `post_container_transforms`.
         for prompt in valid_prompts:
             _, _, _, post_container_transforms = eval(f"{prompt}()")
             hdbg.dassert_not_in(prompt, _POST_CONTAINER_TRANSFORMS)
@@ -104,7 +109,29 @@ def test() -> _PROMPT_OUT:
 # #############################################################################
 
 
+# Apply_cfile.
+
+
+def code_apply_cfile() -> _PROMPT_OUT:
+    """
+    Apply a cfile to the code.
+    """
+    system = _CODING_CONTEXT
+    system += r"""
+    Replace any Python "from import" statement like `from X import Y` with the
+    form `import X` and then replace the uses of `Y` with `X.Y`
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {"remove_code_delimiters"}
+    post_container_transforms: List[str] = []
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
 # Fix
+
+
+# TODO(gp): The code fixes are superseded by the llm_review.py approach using
+# the guideline file.
 
 
 def code_fix_from_imports() -> _PROMPT_OUT:
@@ -278,23 +305,9 @@ def code_fix_comments() -> _PROMPT_OUT:
 
     Comments should go before the code that they refer to
     E.g.,
-    ```
-    dir_name = self.directory.name  # For example, "helpers".
-    ```
     becomes
-    ```
-    # E.g., "helpers".
-    dir_name = self.directory.name
-    ```
     E.g.,
-    ```
-    if re.search(r'\w', token):  # Check if the token is a word.
-    ```
     becomes:
-    ```
-    # Check if the token is a word.
-    if re.search(r'\w', token):
-    ```
 
     - Add comments for the parts of the code that are not properly commented
         - E.g., every chunk of 4 or 5 lines of code add comment explaining the
@@ -344,29 +357,17 @@ def code_fix_logging_statements() -> _PROMPT_OUT:
     Add logging statements to Python code.
     """
     system = _CODING_CONTEXT
-    system += r'''
+    system += r"""
     When a variable `foobar` is important for debugging the code in case of
     failure, add statements like:
-    ```
-    _LOG.debug(hprint.to_str("foobar"))
-    ```
 
     At the beginning of an important function, after the docstring, add code
     like
-    ```
-       def get_text_report(self) -> str:
-       """
-       Generate a text report listing each module's dependencies.
-
-       :return: Text report of dependencies, one per line.
-       """
-       _LOG.debug(hprint.func_signature_to_str())
-    ```
 
     Do not change the code.
     Do not remove any already existing comment.
     Do not add any empty line.
-    '''
+    """
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
     post_container_transforms: List[str] = []
@@ -385,22 +386,10 @@ def code_fix_log_string() -> _PROMPT_OUT:
     Do not print any comment, but just the converted code.
 
     For instance, convert:
-    ```
-    _LOG.info(f"env_var='{str(env_var)}' is not in env_vars='{str(os.environ.keys())}'")
-    ```
     to
-    ```
-    _LOG.info("env_var='%s' is not in env_vars='%s'", env_var, str(os.environ.keys()))
-    ```
 
     For instance, convert:
-    ```
-    hdbg.dassert_in(env_var, os.environ, f"env_var='{str(env_var)}' is not in env_vars='{str(os.environ.keys())}''")
-    ```
     to
-    ```
-    hdbg.dassert_in(env_var, os.environ, "env_var='%s' is not in env_vars='%s'", env_var, str(os.environ.keys()))
-    ```
     """
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
@@ -417,18 +406,12 @@ def code_fix_by_using_f_strings() -> _PROMPT_OUT:
     system = _CODING_CONTEXT
     system += r"""
     Fix statements like:
-    ```
-    raise ValueError(f"Unsupported data_source='{data_source}'")
-    ```
     by using f-strings (formatted string literals) instead of % formatting and
     format strings.
 
     Do not print any comment, but just the converted code.
 
     For instance, convert:
-    ```
-    "Hello, %s. You are %d years old." % (name, age)
-    ```
     to
     """
     pre_transforms: Set[str] = set()
@@ -531,13 +514,11 @@ def code_transform_apply_csfy_style() -> _PROMPT_OUT:
     system = _CODING_CONTEXT
     file_name = "template_code.py"
     file_name = os.path.join(hgit.find_helpers_root(), file_name)
-    file_content = hio.from_file(file_name)
+    template_code = hio.from_file(file_name)
     system += rf"""
     Apply the style described below to the Python code
 
-    ```
-    {file_content}
-    ```
+    {template_code}
 
     Do not remove any code, just format the existing code using the style.
     Do not change the behavior of the code.
@@ -624,7 +605,7 @@ def latex_rewrite() -> _PROMPT_OUT:
     """
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
-    post_container_transforms = []
+    post_container_transforms: List[str] = []
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
@@ -651,15 +632,7 @@ def md_add_good_bad_examples() -> _PROMPT_OUT:
       `Bad:`
 
     - For instance for the input:
-      ```
-      - The docstring must use imperative form, whenever possible
-      ```
       the output is:
-      ```
-      - The docstring must use imperative form, whenever possible
-        - Good: "Calculate the sum of two numbers and return the result."
-        - Bad: "Calculates the sum of two numbers and returns the result."
-      ```
 
     Print only the markdown without any explanation.
     """
@@ -909,7 +882,6 @@ def _review_from_file(file: str) -> _PROMPT_OUT:
     #   <line_number>: <rule_name>: <short description of the proposed improvement>
     # - Do not print any other comment, besides the violation of the rules
     # """
-
     system += rf"""
     You will **analyze the code** and report only violations of the coding rules described below.
 
@@ -922,17 +894,9 @@ def _review_from_file(file: str) -> _PROMPT_OUT:
     - `- Bad:` followed by inline or code block examples
 
     Example:
-    - All functions must have a docstring  
+    - All functions must have a docstring
     - Good:
-        ```python
-        def foo():  
-            pass
-        ```
     - Bad:
-        ```python
-        def foo():
-            pass
-        ```
 
     #### List of rules
 
@@ -1199,21 +1163,6 @@ def slide_add_figure() -> _PROMPT_OUT:
         - Cyan: `#A6E7F4`, Blue: `#A6C8F4`, Violet: `#C6A6F4`, Brown: `#D2B48C`
 
     - Use a template like:
-        ```graphviz
-        digraph BayesianFlow {
-            // rankdir=LR;
-            splines=true;
-            nodesep=1.0;
-            ranksep=0.75;
-            node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=12, penwidth=1.7];
-
-            // Node styles.
-
-            // Force ranks.
-
-            // Edges.
-        }
-        ```
 
     Do not print anything else than the graphviz code in a markdown format
     """
@@ -1224,6 +1173,24 @@ def slide_add_figure() -> _PROMPT_OUT:
         "remove_empty_lines",
     }
     post_container_transforms = ["append_to_text"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def slide_check() -> _PROMPT_OUT:
+    system = _MD_CONTEXT
+    system += r"""
+    - Do not print the content of the slide, but only the comment.
+
+    - Is the content of the slide clear and correct?
+      - Answer with "The slide is clear" or "The slide is not clear"
+
+    - Is there anything that can be clarified?
+      - Respond with at most 5 short bullet points about what can be clarified.
+      - Do not report things that you are not sure about.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms: Set[str] = set()
+    post_container_transforms = ["format_markdown", "append_to_text"]
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
@@ -1243,12 +1210,24 @@ def slide_add_figure() -> _PROMPT_OUT:
 #    return system, pre_transforms, post_transforms, post_container_transforms
 
 
+def text_idea() -> _PROMPT_OUT:
+    """ """
+    file = "text_idea.txt"
+    if os.path.exists(file):
+        system = hio.from_file(file)
+    else:
+        system = ""
+    pre_transforms: Set[str] = set()
+    post_transforms: Set[str] = set()
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
 def text_rephrase() -> _PROMPT_OUT:
-    """
-    Apply complex transformations to the text.
-    """
-    if os.path.exists("text_rephrase.txt"):
-        system = hio.from_file("text_rephrase.txt")
+    """ """
+    file = "text_rephrase.txt"
+    if os.path.exists(file):
+        system = hio.from_file(file)
     else:
         system = ""
     pre_transforms: Set[str] = set()
@@ -1333,7 +1312,9 @@ def _convert_to_vim_cfile_str(txt: str, in_file_name: str) -> str:
     return txt_out
 
 
-def _convert_to_vim_cfile(txt: str, in_file_name: str, out_file_name: str) -> str:
+def _convert_to_vim_cfile(
+    txt: str, in_file_name: str, out_file_name: str
+) -> str:
     """
     Convert the text passed to a vim cfile.
 
@@ -1395,9 +1376,12 @@ def run_prompt(
     prompt_tags = get_prompt_tags()
     hdbg.dassert_in(prompt_tag, prompt_tags)
     python_cmd = f"{prompt_tag}()"
-    system_prompt, pre_transforms, post_transforms, post_container_transforms = (
-        eval(python_cmd)
-    )
+    (
+        system_prompt,
+        pre_transforms,
+        post_transforms,
+        post_container_transforms,
+    ) = eval(python_cmd)
     # Check return types.
     hdbg.dassert_isinstance(system_prompt, str)
     hdbg.dassert_isinstance(pre_transforms, set)

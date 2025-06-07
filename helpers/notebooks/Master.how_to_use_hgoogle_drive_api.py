@@ -52,10 +52,10 @@ credentials = google_creds
 # %%
 row_indices = [0, 1, 2]
 hgodrapi.freeze_rows(
-    sheet_id=sheet_id,  
+    sheet_id=sheet_id,
     row_indices=row_indices,
-    sheet_name = sheet_name,
-    credentials=credentials
+    sheet_name=sheet_name,
+    credentials=credentials,
 )
 
 # %% [markdown]
@@ -63,7 +63,14 @@ hgodrapi.freeze_rows(
 # ## Change the height of certin rows
 
 # %%
-hgodrapi.set_row_height(sheet_id=sheet_id,height= 20, start_index = 0, end_index =2, sheet_name = sheet_name,credentials=google_creds)
+hgodrapi.set_row_height(
+    sheet_id=sheet_id,
+    height=20,
+    start_index=0,
+    end_index=2,
+    sheet_name=sheet_name,
+    credentials=google_creds,
+)
 
 # %% [markdown]
 # <a name='read-some-nice-data'></a>
@@ -83,6 +90,6 @@ nice_data.shape
 # ## Write this nice data
 
 # %%
-hgodrapi.write_to_google_sheet(nice_data, url, "testing_tab", credentials=google_creds)
-
-
+hgodrapi.write_to_google_sheet(
+    nice_data, url, "testing_tab", credentials=google_creds
+)

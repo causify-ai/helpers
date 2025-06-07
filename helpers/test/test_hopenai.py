@@ -6,9 +6,7 @@ import unittest.mock as umock
 import pandas as pd
 import pytest
 
-pytest.importorskip(
-    "openai"
-)  # noqa: E402 # pylint: disable=wrong-import-position
+pytest.importorskip("openai")  # noqa: E402 # pylint: disable=wrong-import-position
 
 import helpers.hopenai as hopenai
 import helpers.hunit_test as hunitest
@@ -46,7 +44,11 @@ def _get_openai_request_parameters1() -> dict:
     messages = hopenai._build_messages(
         user_prompt=_USER_PROMPT1, system_prompt=_SYSTEM_PROMPT1
     )
-    data = {"messages": messages, "temperature": _TEMPERATURE1, "model": _MODEL1}
+    data = {
+        "messages": messages,
+        "temperature": _TEMPERATURE1,
+        "model": _MODEL1,
+    }
     return data
 
 
@@ -64,7 +66,11 @@ def _get_openai_request_parameters2() -> dict:
     messages = hopenai._build_messages(
         user_prompt=_USER_PROMPT2, system_prompt=_SYSTEM_PROMPT1
     )
-    data = {"messages": messages, "temperature": _TEMPERATURE1, "model": _MODEL1}
+    data = {
+        "messages": messages,
+        "temperature": _TEMPERATURE1,
+        "model": _MODEL1,
+    }
     return data
 
 
@@ -82,7 +88,11 @@ def _get_openai_request_parameters3() -> dict:
     messages = hopenai._build_messages(
         user_prompt=_USER_PROMPT1, system_prompt=_SYSTEM_PROMPT1
     )
-    data = {"messages": messages, "temperature": _TEMPERATURE2, "model": _MODEL1}
+    data = {
+        "messages": messages,
+        "temperature": _TEMPERATURE2,
+        "model": _MODEL1,
+    }
     return data
 
 
@@ -100,7 +110,11 @@ def _get_openai_request_parameters4() -> dict:
     messages = hopenai._build_messages(
         user_prompt=_USER_PROMPT1, system_prompt=_SYSTEM_PROMPT1
     )
-    data = {"messages": messages, "temperature": _TEMPERATURE2, "model": _MODEL2}
+    data = {
+        "messages": messages,
+        "temperature": _TEMPERATURE2,
+        "model": _MODEL2,
+    }
     return data
 
 
@@ -124,7 +138,11 @@ def _get_dummy_openai_response1() -> dict:
                 "finish_reason": "stop",
             }
         ],
-        "usage": {"prompt_tokens": 5, "completion_tokens": 4, "total_tokens": 9},
+        "usage": {
+            "prompt_tokens": 5,
+            "completion_tokens": 4,
+            "total_tokens": 9,
+        },
     }
     return response
 
@@ -253,7 +271,6 @@ class BaseOpenAICacheTest(hunitest.TestCase):
 
 
 class Test_get_completion(BaseOpenAICacheTest):
-
     def test1(self) -> None:
         """
         Verify that get_completion() returns response from cache with the
@@ -280,7 +297,8 @@ class Test_get_completion(BaseOpenAICacheTest):
         with self.assertRaises(RuntimeError) as RTE:
             hopenai.get_completion(**parameters4, cache_file=_TEST_CACHE_FILE)
         self.assert_equal(
-            str(RTE.exception), "No cached response for this request parameters!"
+            str(RTE.exception),
+            "No cached response for this request parameters!",
         )
 
 
@@ -290,7 +308,6 @@ class Test_get_completion(BaseOpenAICacheTest):
 
 
 class Test_hash_key_generator(BaseOpenAICacheTest):
-
     def test_different_request_parameters1(self) -> None:
         """
         This test case check if normalisation works before generating hash key.
@@ -328,7 +345,6 @@ class Test_hash_key_generator(BaseOpenAICacheTest):
 
 
 class Test_has_cache(BaseOpenAICacheTest):
-
     def test1(self) -> None:
         """
         Should return False if cache doesn't exist.
@@ -354,7 +370,6 @@ class Test_has_cache(BaseOpenAICacheTest):
 
 
 class Test_save_response_to_cache(BaseOpenAICacheTest):
-
     def test1(self) -> None:
         """
         Verify if response saves into cache.
@@ -380,7 +395,6 @@ class Test_save_response_to_cache(BaseOpenAICacheTest):
 
 
 class Test_load_response_from_cache(BaseOpenAICacheTest):
-
     def test1(self) -> None:
         """
         Verify if stored response can be loaded.
@@ -405,7 +419,9 @@ class Test_load_response_from_cache(BaseOpenAICacheTest):
         parameters4 = _get_openai_request_parameters4()
         hash_key4 = self.get_completion_cache.hash_key_generator(**parameters4)
         with self.assertRaises(ValueError) as VE:
-            self.get_completion_cache.load_response_from_cache(hash_key=hash_key4)
+            self.get_completion_cache.load_response_from_cache(
+                hash_key=hash_key4
+            )
         self.assert_equal(str(VE.exception), "No cache found!")
 
 

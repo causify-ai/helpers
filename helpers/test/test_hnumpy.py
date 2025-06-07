@@ -180,7 +180,7 @@ class Test_OrderedDict_repr_str(hunitest.TestCase):
         act = repr(d["test"])
         exp = "np.int64(42)"
         self.assert_equal(act, exp)
-    
+
     def test_str_full1(self) -> None:
         """
         Test that the __str__ method of OrderedDict returns the expected string.

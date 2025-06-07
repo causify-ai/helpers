@@ -244,7 +244,12 @@ class Test_dassert_tz_compatible1(hunitest.TestCase):
         Test a pairs of non-compatible datetimes making sure the assertion is
         raised.
         """
-        for datetime1 in [_PD_TS_NAIVE, _DT_DT_NAIVE, _PD_TS_NAIVE, _DT_DT_NAIVE]:
+        for datetime1 in [
+            _PD_TS_NAIVE,
+            _DT_DT_NAIVE,
+            _PD_TS_NAIVE,
+            _DT_DT_NAIVE,
+        ]:
             for datetime2 in [_PD_TS_UTC, _PD_TS_ET, _DT_DT_UTC, _DT_DT_ET]:
                 with self.assertRaises(AssertionError):
                     hdateti.dassert_tz_compatible(datetime1, datetime2)
@@ -831,8 +836,8 @@ class Test_dassert_is_valid_timestamp(hunitest.TestCase):
         """
         # Check.
         self.assert_equal(act, exp, fuzzy_match=True)
-        
-        
+
+
 # #############################################################################
 # Test_dassert_timestamp_lt
 # #############################################################################

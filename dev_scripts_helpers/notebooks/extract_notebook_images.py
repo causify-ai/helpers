@@ -30,7 +30,8 @@ _LOG = logging.getLogger(__name__)
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "--in_notebook_filename",
@@ -171,7 +172,7 @@ def _run_dockerized_extract_notebook_images(
     docker_cmd = hdocker.get_docker_base_cmd(use_sudo)
     docker_cmd.extend(
         [
-            f"-e PLAYWRIGHT_BROWSERS_PATH=/ms-playwright",
+            "-e PLAYWRIGHT_BROWSERS_PATH=/ms-playwright",
             f"-e PYTHONPATH={helpers_root}",
             f"--workdir {callee_mount_path} --mount {mount}",
             container_image,

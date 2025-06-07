@@ -86,7 +86,6 @@ class TestRepoConfig_Amp(hunitest.TestCase):
 
 
 class TestRepoConfig_Amp_signature1(hunitest.TestCase):
-
     def test_dev_csfy_server(self) -> None:
         target_name = "amp"
         hunteuti.execute_only_in_target_repo(target_name)

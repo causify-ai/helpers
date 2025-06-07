@@ -15,7 +15,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_repo_config1(hunitest.TestCase):
-
     def create_test_file(self) -> str:
         yaml_txt = """
         repo_info:

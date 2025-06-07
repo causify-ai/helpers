@@ -130,7 +130,10 @@ class Test_get_files_to_rename(hunitest.TestCase):
         replace_in = "basename"
         filter_by = r"test\d"
         filter_on = "basename"
-        expected_file_names = ["dir/Test.subdir/test2.py", "dir/subdir/test1.py"]
+        expected_file_names = [
+            "dir/Test.subdir/test2.py",
+            "dir/subdir/test1.py",
+        ]
         expected_file_map = [
             ("dir/Test.subdir/test2.py", "dir/Test.subdir/testNUM.py"),
             ("dir/subdir/test1.py", "dir/subdir/testNUM.py"),
@@ -157,7 +160,10 @@ class Test_get_files_to_rename(hunitest.TestCase):
         replace_in = "dirname"
         filter_by = r"test\d"
         filter_on = "basename"
-        expected_file_names = ["dir/Test.subdir/test2.py", "dir/subdir/test1.py"]
+        expected_file_names = [
+            "dir/Test.subdir/test2.py",
+            "dir/subdir/test1.py",
+        ]
         expected_file_map = [
             ("dir/Test.subdir/test2.py", "dir/outcomes/Test.subdir/test2.py"),
             ("dir/subdir/test1.py", "dir/outcomes/subdir/test1.py"),
