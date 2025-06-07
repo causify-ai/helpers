@@ -1,9 +1,7 @@
 import logging
 import os
-import types
 import unittest.mock as umock
 
-import pandas as pd
 import pytest
 
 pytest.importorskip(
@@ -184,12 +182,12 @@ def _get_dummy_openai_response2() -> dict:
 
 
 # #############################################################################
-# _OpenAICacheTestCase
+# BaseOpenAICacheTest
 # #############################################################################
 
 
 # TODO(*): Rename _OpenAICacheTestCase
-class _OpenAICacheTestCase(hunitest.TestCase):
+class BaseOpenAICacheTest(hunitest.TestCase):
     """
     - Ensure hopenai.get_completion() always uses REPLAY mode.
     - Add dummy data to the test cache file for test cases.
@@ -272,7 +270,7 @@ class _OpenAICacheTestCase(hunitest.TestCase):
 # #############################################################################
 
 
-class Test_get_completion(_OpenAICacheTestCase):
+class Test_get_completion(BaseOpenAICacheTest):
 
     def test1(self) -> None:
         """
@@ -310,7 +308,7 @@ class Test_get_completion(_OpenAICacheTestCase):
 # #############################################################################
 
 
-class Test_hash_key_generator(_OpenAICacheTestCase):
+class Test_hash_key_generator(BaseOpenAICacheTest):
 
     def test_different_request_parameters1(self) -> None:
         """
@@ -348,7 +346,7 @@ class Test_hash_key_generator(_OpenAICacheTestCase):
 # #############################################################################
 
 
-class Test_has_cache(_OpenAICacheTestCase):
+class Test_has_cache(BaseOpenAICacheTest):
 
     def test1(self) -> None:
         """
@@ -374,7 +372,7 @@ class Test_has_cache(_OpenAICacheTestCase):
 # #############################################################################
 
 
-class Test_save_response_to_cache(_OpenAICacheTestCase):
+class Test_save_response_to_cache(BaseOpenAICacheTest):
 
     def test1(self) -> None:
         """
@@ -400,7 +398,7 @@ class Test_save_response_to_cache(_OpenAICacheTestCase):
 # #############################################################################
 
 
-class Test_load_response_from_cache(_OpenAICacheTestCase):
+class Test_load_response_from_cache(BaseOpenAICacheTest):
 
     def test1(self) -> None:
         """
@@ -428,527 +426,3 @@ class Test_load_response_from_cache(_OpenAICacheTestCase):
         with self.assertRaises(ValueError) as VE:
             self.get_completion_cache.load_response_from_cache(hash_key=hash_key4)
         self.assert_equal(str(VE.exception), "No cache found!")
-
-
-# #############################################################################
-# Test_response_to_txt
-# #############################################################################
-
-
-class Test_response_to_txt(hunitest.TestCase):
-
-    # --- Dummy classes to satisfy isinstance checks --- #
-    class DummyChatCompletion:
-
-        def __init__(self, text: str = "") -> None:
-            msg = types.SimpleNamespace(content=text)
-            choice = types.SimpleNamespace(message=msg)
-            self.choices = [choice]
-
-    # class DummySyncCursorPage:
-    #     def __init__(self, text=""):
-    #         # mimic .data[0].content[0].text.value
-    #         text_obj = types.SimpleNamespace(value=text)
-    #         content_item = types.SimpleNamespace(text=text_obj)
-    #         data_item = types.SimpleNamespace(content=[content_item])
-    #         self.data = [data_item]
-
-    class DummyThreadMessage:
-
-        def __init__(self, text: str = "") -> None:
-            # mimic .content[0].text.value
-            value_obj = types.SimpleNamespace(value=text)
-            text_obj = types.SimpleNamespace(text=value_obj)
-            self.content = [text_obj]
-
-    @umock.patch(
-        "openai.types.chat.chat_completion.ChatCompletion",
-        new=DummyChatCompletion,
-    )
-    def test_chat_completion_branch(self) -> None:
-        resp = Test_response_to_txt.DummyChatCompletion("hello chat")
-        self.assert_equal(hopenai.response_to_txt(resp), "hello chat")
-
-    # @umock.patch(
-    #     "helpers.hopenai.openai.pagination.SyncCursorPage",
-    #     new=DummySyncCursorPage,
-    # )
-    # def test_sync_cursor_page_branch(self):
-    #     resp = TestResponseToTxt.DummySyncCursorPage("paged text")
-    #     self.assertEqual(response_to_txt(resp), "paged text")
-
-    @umock.patch(
-        "openai.types.beta.threads.message.Message",
-        new=DummyThreadMessage,
-    )
-    def test_thread_message_branch(self) -> None:
-        resp = Test_response_to_txt.DummyThreadMessage("thread reply")
-        self.assert_equal(hopenai.response_to_txt(resp), "thread reply")
-
-    def test_str_pass_through(self) -> None:
-        self.assert_equal(
-            hopenai.response_to_txt("just a string"), "just a string"
-        )
-
-    def test_unknown_type_raises(self) -> None:
-        with self.assertRaises(ValueError) as cm:
-            hopenai.response_to_txt(12345)
-        self.assertIn("Unknown response type", str(cm.exception))
-
-
-# #############################################################################
-# Test_extract
-# #############################################################################
-
-
-# class Test_extract(hunitest.TestCase):
-
-#     def test_extract_existing_and_missing_attributes(self) -> None:
-#         """
-#         Check for exisiting elements.
-#         """
-#         # Only x and y exist on our object
-#         dummy_file = types.SimpleNamespace(x=10, y="hello")
-#         # "z" does NOT exist.
-#         attrs = ["x", "y", "z"]
-#         result = hopenai._extract(dummy_file, attrs)
-#         self.assert_equal(str(result), str({"x": 10, "y": "hello"}))
-
-#     def test_extract_no_attributes(self) -> None:
-#         """
-#         Asking for nothing always yields an empty dict.
-#         """
-#         dummy_file = types.SimpleNamespace(anything=123)
-#         result = hopenai._extract(dummy_file, [])
-#         self.assert_equal(str(result), str({}))
-
-#     def test_extract_all_missing_attributes(self) -> None:
-#         """
-#         Non existent attributes yield empty dict.
-#         """
-#         dummy_file = types.SimpleNamespace(foo="bar")
-#         result = hopenai._extract(dummy_file, ["a", "b", "c"])
-#         self.assert_equal(str(result), str({}))
-
-#     def test_extract_various_types(self) -> None:
-#         """
-#         Ensure arbitrary attribute types pass through.
-#         """
-#         inner = types.SimpleNamespace(inner_attr="value")
-#         dummy_file = types.SimpleNamespace(num=42, lst=[1, 2, 3], obj=inner)
-#         attrs = ["num", "lst", "obj"]
-#         result = hopenai._extract(dummy_file, attrs)
-#         self.assert_equal(str(result["lst"]), str([1, 2, 3]))
-#         # The exact same object should be returned
-#         self.assertIs(result["obj"], inner)
-
-
-# #############################################################################
-# Test_get_openai_client
-# #############################################################################
-
-
-class Test_get_openai_client(hunitest.TestCase):
-
-    @umock.patch.dict(os.environ, {"OPENAI_API_KEY": "openai-key"})
-    @umock.patch("openai.OpenAI")
-    def test_openai_provider(self, mock_openai_cls) -> None:
-        """
-        Verify if get_openai_client() returns openai's url and API key.
-        """
-        client = hopenai.get_openai_client("openai")
-        mock_openai_cls.assert_called_once_with(
-            base_url="https://api.openai.com/v1",
-            api_key="openai-key",
-        )
-        self.assertIs(client, mock_openai_cls.return_value)
-
-    @umock.patch.dict(os.environ, {"OPENROUTER_API_KEY": "router-key"})
-    @umock.patch("openai.OpenAI")
-    def test_openrouter_provider(self, mock_openai_cls) -> None:
-        """
-        Verify if get_openai_client() returns openrouter's url and API key.
-        """
-        client = hopenai.get_openai_client("openrouter")
-        mock_openai_cls.assert_called_once_with(
-            base_url="https://openrouter.ai/api/v1",
-            api_key="router-key",
-        )
-        self.assertIs(client, mock_openai_cls.return_value)
-
-    def test_unknown_provider_raises(self) -> None:
-        """
-        Verify exception if unknown provider given.
-        """
-        with self.assertRaises(ValueError) as cm:
-            hopenai.get_openai_client("not_a_provider")
-        self.assertIn("Unknown provider: not_a_provider", str(cm.exception))
-
-
-# #############################################################################
-# Test_get_default_model
-# #############################################################################
-
-
-class Test_get_default_model(hunitest.TestCase):
-
-    def test_openai_provider(self) -> None:
-        """
-        Explicit "openai" provider return "gpt-4o".
-        """
-        self.assert_equal(hopenai._get_default_model("openai"), "gpt-4o")
-
-    def test_openrouter_provider(self) -> None:
-        """
-        "openrouter" provider return "openai/gpt-4o".
-        """
-        self.assert_equal(
-            hopenai._get_default_model("openrouter"), "openai/gpt-4o"
-        )
-
-    def test_default_argument(self) -> None:
-        """
-        Default provider name (should be "openai") return "gpt-4o".
-        """
-        self.assert_equal(hopenai._get_default_model(), "gpt-4o")
-
-    def test_unknown_provider_raises(self) -> None:
-        """
-        Unknown provider should raise a ValueError.
-        """
-        with self.assertRaises(ValueError) as cm:
-            hopenai._get_default_model("invalid_provider")
-        self.assertIn("Unknown provider: invalid_provider", str(cm.exception))
-
-
-# #############################################################################
-# Test_retrieve_openrouter_model_info
-# #############################################################################
-
-
-class Test_retrieve_openrouter_model_info(hunitest.TestCase):
-
-    @umock.patch("requests.get")
-    def test_retrieve_success(self, mock_get) -> None:
-        # Prepare dummy JSON data.
-        data = [
-            {"id": "model1", "name": "Model One"},
-            {"id": "model2", "name": "Model Two"},
-        ]
-        mock_response = umock.Mock()
-        mock_response.json.return_value = {"data": data}
-        mock_get.return_value = mock_response
-        # Call the function under test.
-        df = hopenai._retrieve_openrouter_model_info()
-        # Build expected DataFrame.
-        expected_df = pd.DataFrame(data)
-        # Verify DataFrame content.
-        self.assertEqual(
-            df.to_dict(orient="records"), expected_df.to_dict(orient="records")
-        )
-        # Ensure the correct URL was requested.
-        mock_get.assert_called_once_with("https://openrouter.ai/api/v1/models")
-
-    @umock.patch("requests.get")
-    def test_missing_data_key_raises(self, mock_get) -> None:
-        # JSON missing the 'data' key.
-        mock_response = umock.Mock()
-        mock_response.json.return_value = {"wrong": []}
-        mock_get.return_value = mock_response
-        # Expect an assertion from hdbg.dassert_eq.
-        with self.assertRaises(AssertionError):
-            hopenai._retrieve_openrouter_model_info()
-
-
-# #############################################################################
-# Test_save_models_info_to_csv
-# #############################################################################
-
-
-class Test_save_models_info_to_csv(hunitest.TestCase):
-
-    def get_temp_path(self, tmp_file_name: str = "tmp.models_info.csv") -> str:
-        """
-        Helper function for creating temporary directory.
-        """
-        self.tmp_dir = self.get_scratch_space()
-        self.tmp_path = os.path.join(self.tmp_dir, tmp_file_name)
-        return self.tmp_path
-
-    def test_save_models_info(self) -> None:
-        """
-        Save Dataframe as a CSV and check.
-        """
-        # Prepare a DataFrame with extra columns.
-        data = [
-            {
-                "id": "m1",
-                "name": "Model1",
-                "description": "desc1",
-                "pricing": {"prompt": "0.1", "completion": "0.2"},
-                "supported_parameters": ["a", "b"],
-                "extra_col": 123,
-            },
-            {
-                "id": "m2",
-                "name": "Model2",
-                "description": "desc2",
-                "pricing": {"prompt": "0.3", "completion": "0.4"},
-                "supported_parameters": ["c"],
-                "extra_col": 456,
-            },
-        ]
-        df = pd.DataFrame(data)
-        output_file: str = self.get_temp_path()
-        # Call the function under test.
-        returned_df = hopenai._save_models_info_to_csv(df, output_file)
-        # The returned DataFrame should have only the selected columns.
-        expected_columns = [
-            "id",
-            "name",
-            "description",
-            "prompt_pricing",
-            "completion_pricing",
-            "supported_parameters",
-        ]
-        assert list(returned_df.columns) == expected_columns
-        # Verify pricing values are extracted correctly.
-        self.assertListEqual(
-            returned_df["prompt_pricing"].tolist(), ["0.1", "0.3"]
-        )
-        self.assertListEqual(
-            returned_df["completion_pricing"].tolist(), ["0.2", "0.4"]
-        )
-        # File should be created and readable.
-        assert os.path.exists(output_file)
-        saved_df = pd.read_csv(output_file)
-        # turn the in‐memory lists into exactly what pandas read back.
-        returned_df["prompt_pricing"] = returned_df["prompt_pricing"].astype(
-            float
-        )
-        returned_df["completion_pricing"] = returned_df[
-            "completion_pricing"
-        ].astype(float)
-        returned_df["supported_parameters"] = returned_df[
-            "supported_parameters"
-        ].astype(str)
-        pd.testing.assert_frame_equal(returned_df, saved_df)
-
-    def test_invalid_filename_type(self) -> None:
-        """
-        Check with invalid filename.
-        """
-        df = pd.DataFrame()
-        with pytest.raises(AssertionError):
-            hopenai._save_models_info_to_csv(df, 123)
-
-    def test_invalid_filename_empty(self) -> None:
-        """
-        Check with empty string as filename.
-        """
-        df = pd.DataFrame()
-        with pytest.raises(AssertionError):
-            hopenai._save_models_info_to_csv(df, "")
-
-
-# #############################################################################
-# Test_build_messages
-# #############################################################################
-
-
-# #############################################################################
-# Test_build_messages
-# #############################################################################
-class Test_build_messages(hunitest.TestCase):
-
-    def test_build_messages_returns_correct_structure(self) -> None:
-        """
-        Should return list with a certain format.
-        """
-        system = "System prompt"
-        user = "User prompt"
-        msgs = hopenai._build_messages(system, user)
-        # Should be a list of two dicts with the right roles and contents
-        self.assertIsInstance(msgs, list)
-        self.assert_equal(
-            str(msgs),
-            str(
-                [
-                    {"role": "system", "content": system},
-                    {"role": "user", "content": user},
-                ]
-            ),
-        )
-
-
-# #############################################################################
-# Test_call_api_sync
-# #############################################################################
-
-
-class Test_call_api_sync(hunitest.TestCase):
-
-    def test_call_api_sync_calls_client_and_returns_response(self) -> None:
-        # Prepare mock completion object
-        mock_content = "Hello from LLM"
-        mock_message = umock.Mock()
-        mock_message.content = mock_content
-        mock_choice = umock.Mock(message=mock_message)
-        mock_completion = umock.Mock(choices=[mock_choice])
-        # Mock client with chat.completions.create
-        mock_client = umock.Mock()
-        mock_client.chat.completions.create.return_value = mock_completion
-        # Test inputs
-        messages = [{"role": "user", "content": "Hi"}]
-        temperature = 0.5
-        model = "gpt-test"
-        extra_kwargs = {"foo": "bar"}
-        # Call under test
-        response, raw = hopenai._call_api_sync(
-            mock_client,
-            messages=messages,
-            temperature=temperature,
-            model=model,
-            **extra_kwargs,
-        )
-        # Verify return values
-        self.assert_equal(response, mock_content)
-        self.assertIs(raw, mock_completion)
-        # Verify the create() call was made with exactly the right arguments
-        mock_client.chat.completions.create.assert_called_once_with(
-            model=model,
-            messages=messages,
-            temperature=temperature,
-            **extra_kwargs,
-        )
-
-
-# #############################################################################
-# Test_calculate_cost
-# #############################################################################
-
-
-class Test_calculate_cost(hunitest.TestCase):
-
-    @pytest.fixture(autouse=True)
-    def setup_teardown_test(self):
-        self.setup_test()
-        yield
-        self.teardown_test()
-
-    def setup_test(self):
-        self._orig = hopenai._PROVIDER_NAME
-
-    def teardown_test(self):
-        hopenai._PROVIDER_NAME = self._orig
-
-    def get_tmp_path(self, tmp_file_name: str = "tmp.models_info.csv"):
-        self.tmp_dir = self.get_scratch_space()
-        self.tmp_path = os.path.join(self.tmp_dir, tmp_file_name)
-        return self.tmp_path
-
-    def test_openai_cost(self) -> None:
-        """
-        Scenario: Known OpenAI model and token counts produce expected cost.
-        """
-        # TODO(Sai): implement test to assert correct cost calculation for OpenAI provider branch.
-        hopenai._PROVIDER_NAME = "openai"
-        comp = types.SimpleNamespace(
-            usage=types.SimpleNamespace(
-                prompt_tokens=1000000, completion_tokens=2000000
-            )
-        )
-        cost = hopenai._calculate_cost(
-            comp, model="gpt-3.5-turbo", models_info_file=""
-        )
-        # 1000000*(0.5/1000000) + 20000000*(1.5/1000000) = 3.5
-        assert pytest.approx(cost) == 3.5
-
-    def test_openai_unknown_model(self) -> None:
-        """
-        Scenario: Passing an unknown OpenAI model should raise an assertion or ValueError.
-        """
-        # TODO(Sai): implement test that unsupported model triggers appropriate error.
-        hopenai._PROVIDER_NAME = "openai"
-        comp = types.SimpleNamespace(
-            usage=types.SimpleNamespace(prompt_tokens=1, completion_tokens=1)
-        )
-        with pytest.raises(AssertionError):
-            hopenai._calculate_cost(
-                comp, model="nonexistent-model", models_info_file=""
-            )
-
-    # def test_openrouter_download_and_save(self) -> None:
-    #     """
-    #     Scenario: No CSV file exists for OpenRouter; should retrieve
-    #      model info, save CSV, then calculate cost.
-    #     """
-    #     # TODO(Sai): use pytest tmp_path to simulate missing file, patch retrieve and save, assert CSV creation and cost.
-
-    def test_openrouter_load_existing_csv(self) -> None:
-        """
-        Scenario: CSV file exists for OpenRouter; should load CSV and
-         calculate cost without fetching.
-        """
-        # TODO(Sai): write a sample CSV to tmp_path, patch os.path.isfile/read_csv, assert cost matches expected.
-        hopenai._PROVIDER_NAME = "openrouter"
-        # Write a tiny CSV: id,prompt_pricing,completion_pricing
-        temp_csv_file = self.get_tmp_path()
-        pd.DataFrame(
-            {
-                "id": ["m1"],
-                "prompt_pricing": [0.1],
-                "completion_pricing": [0.2],
-            }
-        ).to_csv(temp_csv_file, index=False)
-        comp = types.SimpleNamespace(
-            usage=types.SimpleNamespace(prompt_tokens=1, completion_tokens=1)
-        )
-        cost = hopenai._calculate_cost(
-            comp, model="m1", models_info_file=temp_csv_file
-        )
-        # 1*0.1 + 1*0.2 = 0.1 + 0.2 = 0.3
-        assert pytest.approx(cost) == 0.3
-
-    def test_openrouter_missing_model(self) -> None:
-        """
-        Scenario: CSV exists but missing the requested model ID; should
-          raise an assertion error.
-        """
-        # TODO(Sai): simulate CSV lacking the model row and assert that dassert_in triggers an error.
-        hopenai._PROVIDER_NAME = "openrouter"
-        # Write a tiny CSV: id,prompt_pricing,completion_pricing
-        temp_csv_file = self.get_tmp_path()
-        pd.DataFrame(
-            {
-                "id": ["other"],
-                "prompt_pricing": [0.1],
-                "completion_pricing": [0.2],
-            }
-        ).to_csv(temp_csv_file, index=False)
-        comp = types.SimpleNamespace(
-            usage=types.SimpleNamespace(prompt_tokens=1, completion_tokens=1)
-        )
-        with pytest.raises(AssertionError):
-            hopenai._calculate_cost(
-                comp, model="m1", models_info_file=temp_csv_file
-            )
-
-    def test_openrouter_invalid_csv(self) -> None:
-        """
-        Scenario: Existing CSV is malformed or unreadable; should raise
-          a parsing or assertion error.
-        """
-        # TODO(Sai): simulate malformed CSV content and assert exception is raised.
-        hopenai._PROVIDER_NAME = "openrouter"
-        temp_csv_file = self.get_tmp_path()
-        with open(temp_csv_file, "w") as file:
-            file.write("not,a,valid,csv")
-        comp = types.SimpleNamespace(
-            usage=types.SimpleNamespace(prompt_tokens=1, completion_tokens=1)
-        )
-        with pytest.raises(Exception):
-            # could be pandas.errors.ParserError or our own assertion
-            hopenai._calculate_cost(
-                comp, model="whatever", models_info_file=temp_csv_file
-            )
