@@ -804,7 +804,6 @@ class Test_calculate_cost(hunitest.TestCase):
         """
         Scenario: Known OpenAI model and token counts produce expected cost.
         """
-        # TODO(Sai): implement test to assert correct cost calculation for OpenAI provider branch.
         hopenai._PROVIDER_NAME = "openai"
         comp = types.SimpleNamespace(
             usage=types.SimpleNamespace(
@@ -821,7 +820,6 @@ class Test_calculate_cost(hunitest.TestCase):
         """
         Scenario: Passing an unknown OpenAI model should raise an assertion or ValueError.
         """
-        # TODO(Sai): implement test that unsupported model triggers appropriate error.
         hopenai._PROVIDER_NAME = "openai"
         comp = types.SimpleNamespace(
             usage=types.SimpleNamespace(prompt_tokens=1, completion_tokens=1)
@@ -843,7 +841,6 @@ class Test_calculate_cost(hunitest.TestCase):
         Scenario: CSV file exists for OpenRouter; should load CSV and
          calculate cost without fetching.
         """
-        # TODO(Sai): write a sample CSV to tmp_path, patch os.path.isfile/read_csv, assert cost matches expected.
         hopenai._PROVIDER_NAME = "openrouter"
         # Write a tiny CSV: id,prompt_pricing,completion_pricing
         temp_csv_file = self.get_tmp_path()
@@ -868,7 +865,6 @@ class Test_calculate_cost(hunitest.TestCase):
         Scenario: CSV exists but missing the requested model ID; should
           raise an assertion error.
         """
-        # TODO(Sai): simulate CSV lacking the model row and assert that dassert_in triggers an error.
         hopenai._PROVIDER_NAME = "openrouter"
         # Write a tiny CSV: id,prompt_pricing,completion_pricing
         temp_csv_file = self.get_tmp_path()
@@ -892,7 +888,6 @@ class Test_calculate_cost(hunitest.TestCase):
         Scenario: Existing CSV is malformed or unreadable; should raise
           a parsing or assertion error.
         """
-        # TODO(Sai): simulate malformed CSV content and assert exception is raised.
         hopenai._PROVIDER_NAME = "openrouter"
         temp_csv_file = self.get_tmp_path()
         with open(temp_csv_file, "w") as file:
