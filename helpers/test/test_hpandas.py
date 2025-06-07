@@ -4741,7 +4741,7 @@ class Test_convert_df(hunitest.TestCase):
             str(df_out["name"].tolist()), str(["alice", "bob", "", "charlie"])
         )
 
-    # TODO(Sai) : Fix hpandas.convert_df().
+    
     def test_convert_df_mixed_columns(self) -> None:
         """
         Different datatype columns should convert accordingly.
