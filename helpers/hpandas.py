@@ -1712,18 +1712,50 @@ def convert_df_to_json_string(
 def convert_df(
     df: pd.DataFrame, *, print_invalid_values: bool = False
 ) -> pd.DataFrame:
-    types = df.apply(lambda x: pd.Series(infer_column_types(x)))
-    df_out = pd.DataFrame()
+    """
+    Convert each DataFrame column to its predominant type.
+
+    This function inspects every column in `df`, determines whether the
+    majority of its values are boolean, numeric, or string, and then
+    casts the column to that type using `convert_to_type`.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        The input DataFrame whose columns will be converted.
+    print_invalid_values : bool, optional
+        If True, print any original values that could not be converted
+        (they become NaN after conversion). Default is False.
+
+    Returns
+    -------
+    pandas.DataFrame
+        A new DataFrame with each column cast to its detected predominant type.
+
+    Raises
+    ------
+    ValueError
+        If a column’s detected type is not one of 'bool', 'numeric', or 'string'.
+    """
+    df_out = pd.DataFrame(index=df.index)
+
     for col in df.columns:
-        if types[col]["type"] == "is_bool":
-            df_out[col] = df[col].astype(bool)
-        elif types[col]["type"] == "is_numeric":
-            df_out[col] = df[col].astype(float)
-        elif types[col]["type"] == "is_string":
-            df_out[col] = df[col]
-        else:
-            raise ValueError(f"Unknown column type: {types[col]['type']}")
+        series = df[col]
+        # Determine the dominant datatype.
+        col_type= infer_column_types(series)
+        hdbg.dassert_in(col_type, ["is_bool", "is_numeric", "is_string"])
+        # Convert the column to dominant datatype.
+        converted= convert_to_type(series, col_type)
+
+        if print_invalid_values:
+            invalid_mask = series.notna() & converted.isna()
+            if invalid_mask.any():
+                invalid= series[invalid_mask].tolist()
+                print(f"Column {col} dropped invalid values: {invalid}")
+
+        df_out[col]=converted
     return df_out
+
 
 
 # #############################################################################
