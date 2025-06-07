@@ -1120,7 +1120,6 @@ def infer_column_types(col: pd.Series):
     else:
         type_ = "is_string"
     vals["type"] = type_
-    print(type_)
     return vals
 
 
