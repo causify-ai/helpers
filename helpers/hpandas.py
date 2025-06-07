@@ -1086,7 +1086,23 @@ def drop_duplicated(
 # #############################################################################
 
 
-def infer_column_types(col):
+def infer_column_types(col: pd.Series):
+    """
+    Determine which data type is most prevalent in a column.
+
+    Examines the values in the given pandas Series and decides whether the majority
+    of entries are strings, numeric values, or booleans.
+
+    Parameters
+    ----------
+    col : pandas.Series
+        The column to inspect.
+
+    Returns
+    -------
+    str
+        One of `"is_string"`, `"is_numeric"`, or `"is_bool"`, representing the predominant type.
+    """
     vals = {
         "is_numeric": pd.to_numeric(col, errors="coerce").notna(),
         #'is_datetime': pd.to_datetime(col, errors='coerce').notna(),
@@ -1108,10 +1124,45 @@ def infer_column_types(col):
 
 
 def infer_column_types_df(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Identify the predominant data type for each column in a DataFrame.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        The DataFrame whose columns will be analyzed.
+
+    Returns
+    -------
+    pandas.DataFrame
+        A DataFrame with two columns:
+        - `column`: the name of each original column.
+        - `predominant_type`: the most frequent type in that column,
+          one of `"string"`, `"numeric"`, or `"bool"`.
+    """
     return df.apply(lambda x: pd.Series(infer_column_types(x))).T
 
 
-def convert_to_type(col, type_):
+def convert_to_type(col: pd.Series, type_: str) -> pd.Series:
+    """
+    Convert a pandas Series to a specified data type.
+
+    Parameters
+    ----------
+    col : pandas.Series
+        The input column to be converted.
+    type_ : str
+        The target data type. Expected values include:
+        - `"is_bool"`: convert values to booleans.
+        - `"is_int"`: convert values to integers.
+        - `"is_numeric"`: convert values to float.
+        - `"is_string"`: convert values to strings.
+
+    Returns
+    -------
+    pandas.Series
+        A new Series with the same index as `col`, cast to the requested type.
+    """
     if type_ == "is_bool":
         return col.map(
             lambda x: isinstance(x, bool)
@@ -1119,7 +1170,7 @@ def convert_to_type(col, type_):
             or x in [1, 0, "1", "0"]
         )
     elif type_ == "is_int":
-        return pd.to_numeric(col, errors="coerce")
+        return pd.to_numeric(col, errors="coerce", downcast="integer")
     elif type_ == "is_numeric":
         return pd.to_numeric(col, errors="coerce")
     elif type_ == "is_string":
