@@ -1735,27 +1735,23 @@ def convert_df(
     Raises
     ------
     ValueError
-        If a column’s detected type is not one of 'bool', 'numeric', or 'string'.
+        If a column’s detected type is not one of 'is_bool', 'is_numeric', or 'is_string'.
     """
     df_out = pd.DataFrame(index=df.index)
-
     for col in df.columns:
         series = df[col]
         # Determine the dominant datatype.
-        col_type= infer_column_types(series)
-        hdbg.dassert_in(col_type, ["is_bool", "is_numeric", "is_string"])
+        col_type = infer_column_types(series)
+        hdbg.dassert_in(col_type, ("is_bool", "is_numeric", "is_string"))
         # Convert the column to dominant datatype.
-        converted= convert_to_type(series, col_type)
-
+        converted = convert_to_type(series, col_type)
         if print_invalid_values:
             invalid_mask = series.notna() & converted.isna()
             if invalid_mask.any():
-                invalid= series[invalid_mask].tolist()
+                invalid = series[invalid_mask].tolist()
                 print(f"Column {col} dropped invalid values: {invalid}")
-
-        df_out[col]=converted
+        df_out[col] = converted
     return df_out
-
 
 
 # #############################################################################
