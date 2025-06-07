@@ -385,9 +385,7 @@ def _calculate_cost(
         prompt_price = row["prompt_pricing"]
         completion_price = row["completion_pricing"]
         # Compute cost.
-        cost = (
-            prompt_tokens * prompt_price + completion_tokens * completion_price
-        )
+        cost = prompt_tokens * prompt_price + completion_tokens * completion_price
     else:
         raise ValueError(f"Unknown provider: {_PROVIDER_NAME}")
     _LOG.debug(hprint.to_str("prompt_tokens completion_tokens cost"))
@@ -891,9 +889,9 @@ class _CompletionCache:
         """
         entry = {"request": request, "response": response}
         self.cache["entries"][hash_key] = entry
-        self.cache["metadata"]["last_updated"] = (
-            datetime.datetime.now().isoformat()
-        )
+        self.cache["metadata"][
+            "last_updated"
+        ] = datetime.datetime.now().isoformat()
         self._write_cache_to_disk()
 
     def load_response_from_cache(self, hash_key: str) -> Any:
@@ -932,7 +930,7 @@ class _CompletionCache:
         Clear the cache from the file.
         """
         self.cache["entries"] = {}
-        self.cache["metadata"]["last_updated"] = (
-            datetime.datetime.now().isoformat()
-        )
+        self.cache["metadata"][
+            "last_updated"
+        ] = datetime.datetime.now().isoformat()
         self._write_cache_to_disk()
