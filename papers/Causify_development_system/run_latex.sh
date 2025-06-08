@@ -6,8 +6,11 @@ if [[ -z $GIT_ROOT ]]; then
     exit -1
 fi;
 
-# Relative to papers, without '.tex'.
-FILE_NAME=$GIT_ROOT/papers/KaizenFlow/kaizen_flow.paper.tex
+PWD=$(pwd)
+
+cd $GIT_ROOT/papers/Causify_development_system
+
+FILE_NAME=Causify_dev_system.tex
 
 PDF_FILE_NAME=$(basename $FILE_NAME).pdf
 
@@ -24,3 +27,5 @@ if (count of theDocs) > 0 then revert theDocs
 open theFile
 end tell
 EOF
+
+cd $PWD

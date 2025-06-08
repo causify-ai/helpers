@@ -10,7 +10,7 @@ PWD=$(pwd)
 
 cd $GIT_ROOT/papers/arxiv_template
 
-FILE_NAME=arxiv_template.tex
+FILE_NAME=template.tex
 
 PDF_FILE_NAME=$(basename $FILE_NAME).pdf
 
