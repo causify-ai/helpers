@@ -1,49 +1,3 @@
-<!-- toc -->
-
-- [Runnable Directories: The Solution to the Monorepo vs. Multi-repo Debate](#runnable-directories-the-solution-to-the-monorepo-vs-multi-repo-debate)
-  * [1. Introduction](#1-introduction)
-  * [2. Current landscape](#2-current-landscape)
-    + [2.1. Monorepo](#21-monorepo)
-    + [2.2. Multi-repo](#22-multi-repo)
-    + [2.3. What is needed](#23-what-is-needed)
-  * [3. Proposed solution](#3-proposed-solution)
-  * [Design goals](#design-goals)
-    + [Development functionalities](#development-functionalities)
-    + [Python package management](#python-package-management)
-    + [Testing](#testing)
-    + [DevOps functionalities](#devops-functionalities)
-    + [3.1. Runnable directory](#31-runnable-directory)
-    + [3.2. Docker](#32-docker)
-    + [3.3. Thin environment](#33-thin-environment)
-    + [3.4. Submodule of "helpers"](#34-submodule-of-helpers)
-      - [3.4.1. Git hooks](#341-git-hooks)
-    + [3.5. Executing tests](#35-executing-tests)
-    + [3.6. Dockerized executables](#36-dockerized-executables)
-  * [4. Discussion](#4-discussion)
-  * [Future directions](#future-directions)
-  * [References](#references)
-- [Buildmeister: Daily Accountability for CI Stability](#buildmeister-daily-accountability-for-ci-stability)
-  * [Motivation](#motivation)
-  * [Core Responsibilities](#core-responsibilities)
-  * [Handover and Daily Reporting](#handover-and-daily-reporting)
-  * [Workflow in Practice](#workflow-in-practice)
-  * [Tools and Analysis](#tools-and-analysis)
-    + [Buildmeister Dashboard](#buildmeister-dashboard)
-    + [Allure Reports](#allure-reports)
-    + [Post-Mortem Log](#post-mortem-log)
-  * [Why It Matters](#why-it-matters)
-- [Coverage Tracking with Codecov: A Layer of Continuous Accountability](#coverage-tracking-with-codecov-a-layer-of-continuous-accountability)
-  * [Motivation](#motivation-1)
-  * [Structured Coverage by Test Category](#structured-coverage-by-test-category)
-  * [CI Integration and Workflow Behavior](#ci-integration-and-workflow-behavior)
-  * [Enforced Thresholds and Quality Gates](#enforced-thresholds-and-quality-gates)
-  * [Visibility and Developer Experience](#visibility-and-developer-experience)
-  * [Best Practices and Operational Consistency](#best-practices-and-operational-consistency)
-  * [Beyond the Basics](#beyond-the-basics)
-  * [Summary](#summary)
-
-<!-- tocstop -->
-
 # Runnable Directories: The Solution to the Monorepo vs. Multi-repo Debate
 
 ## 1. Introduction
@@ -487,19 +441,6 @@ could be introduced for runnable directories in order to safeguard sensitive
 parts of the codebase. These steps will bolster both the security and efficiency
 of our workflows as the projects continue to scale.
 
-## References
-
-- [1]
-  [Mono vs. multi-repo](https://free.gitkraken.com/hubfs/Mono_v_Multi-Repo_debate_2023.pdf)
-- [2]
-  [Why Google stores billions of lines of code in a single repository](https://dl.acm.org/doi/10.1145/2854146)
-- [3]
-  [What it is like to work in Meta's (Facebook's) monorepo](https://blog.3d-logic.com/2024/09/02/what-it-is-like-to-work-in-metas-facebooks-monorepo/)
-- [4]
-  [Microsoft: How "Mono-repo" and "One Infra" Help Us Deliver a Better Developer Experience](https://devblogs.microsoft.com/appcenter/how-mono-repo-and-one-infra-help-us-deliver-a-better-developer-experience/)
-- [5]
-  [Uber: Faster Together: Uber Engineering's iOS Monorepo](https://www.uber.com/blog/ios-monorepo/)
-
 # Buildmeister: Daily Accountability for CI Stability
 
 ## Motivation
@@ -683,3 +624,16 @@ feedback loop, and a source of engineering discipline. With structured test
 categories, resilient workflows, and project-level gates, our Codecov-based
 system transforms coverage data into actionable insights, reinforcing test
 quality across all levels of the stack.
+
+## References
+
+- [1]
+  [Mono vs. multi-repo](https://free.gitkraken.com/hubfs/Mono_v_Multi-Repo_debate_2023.pdf)
+- [2]
+  [Why Google stores billions of lines of code in a single repository](https://dl.acm.org/doi/10.1145/2854146)
+- [3]
+  [What it is like to work in Meta's (Facebook's) monorepo](https://blog.3d-logic.com/2024/09/02/what-it-is-like-to-work-in-metas-facebooks-monorepo/)
+- [4]
+  [Microsoft: How "Mono-repo" and "One Infra" Help Us Deliver a Better Developer Experience](https://devblogs.microsoft.com/appcenter/how-mono-repo-and-one-infra-help-us-deliver-a-better-developer-experience/)
+- [5]
+  [Uber: Faster Together: Uber Engineering's iOS Monorepo](https://www.uber.com/blog/ios-monorepo/)
