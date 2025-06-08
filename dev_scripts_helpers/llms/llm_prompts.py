@@ -654,6 +654,19 @@ def latex_rewrite() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
+def latex_check() -> _PROMPT_OUT:
+    system = _LATEX_CONTEXT
+    system += r"""
+    Check the Latex code is correct and doesn't have errors.
+
+    Print the errors in one line.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = set()
+    post_container_transforms = []
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
 # #############################################################################
 # Markdown.
 # #############################################################################
