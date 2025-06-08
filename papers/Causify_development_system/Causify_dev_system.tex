@@ -95,7 +95,7 @@ Santa Narimana, Levand \\
   demands of large-scale systems and modern collaborative development practices.
   As teams and codebases grow, companies face the challenge of organizing both
   effectively. When it comes to structuring the codebase, two main approaches
-  emerge: monorepos and multi-repos[1]. Monorepos consolidate all code into a
+  emerge: monorepos and multi-repos. Monorepos consolidate all code into a
   single repository, simplifying version control but carrying a risk of
   scalability and maintainability issues. Conversely, multi-repos store the code
   in logically separated repositories, easier to manage and deploy but more
@@ -170,10 +170,15 @@ pipelines, but they often struggle when dealing with heterogeneous environments.
 
 An ideal strategy would combine the best of both worlds:
 
-- The modularity of multi-repos, to keep the codebase scalable and simplify
-  day-to-day development processes.
-- The environment consistency of monorepos, to avoid synchronization issues and
-  prevent errors that arise from executing code in misaligned environments.
+\begin{itemize}
+
+  \item The modularity of multi-repos, to keep the codebase scalable and
+    simplify day-to-day development processes.
+
+  \item The environment consistency of monorepos, to avoid synchronization
+    issues and prevent errors that arise from executing code in misaligned
+    environments.
+\end{itemize}
 
 Both are achieved through the hybrid approach proposed in this paper, which will
 be discussed in Section 3.
