@@ -12,7 +12,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_format_compressed_markdown1(hunitest.TestCase):
-
     def test1(self) -> None:
         # Prepare inputs.
         # ...

@@ -25,7 +25,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class _AddTOC(liaction.Action):
-
     def __init__(self) -> None:
         executable = "$(find -wholename '*dev_scripts_helpers/notebooks/add_toc_to_notebook.py')"
         super().__init__(executable)
@@ -61,7 +60,8 @@ class _AddTOC(liaction.Action):
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "files",

@@ -151,9 +151,9 @@ def dassert(
     # Handle the somehow frequent case of using `dassert` instead of another
     # one, e.g., `dassert(y, list)`
     if msg is not None:
-        assert isinstance(
-            msg, str
-        ), f"You passed '{msg}' or type '{type(msg)}' instead of str"
+        assert isinstance(msg, str), (
+            f"You passed '{msg}' or type '{type(msg)}' instead of str"
+        )
     if not cond:
         txt = f"cond={cond}"
         _dfatal(txt, msg, *args, only_warning=only_warning)
@@ -819,7 +819,9 @@ def dassert_dir_exists(
 
 
 def dassert_file_extension(
-    file_name: str, extensions: Union[str, List[str]], only_warning: bool = False
+    file_name: str,
+    extensions: Union[str, List[str]],
+    only_warning: bool = False,
 ) -> None:
     """
     Ensure that file has one of the given extensions.

@@ -150,7 +150,9 @@ def _build_run_command_line(
     timeout_in_sec = _TEST_TIMEOUTS_IN_SECS[test_list_name]
     # Detect if we are running on a CK dev server / inside CI
     # or a laptop outside the CK infra.
-    is_outside_ck_infra = not hserver.is_dev_csfy() and not hserver.is_inside_ci()
+    is_outside_ck_infra = (
+        not hserver.is_dev_csfy() and not hserver.is_inside_ci()
+    )
     if is_outside_ck_infra:
         timeout_multiplier = 10
         _LOG.warning(
@@ -401,7 +403,9 @@ def _get_custom_marker(
     """
     # If we are running outside the CK server / CI, tests requiring CK infra
     # should be automatically skipped.
-    is_outside_ck_infra = not hserver.is_dev_csfy() and not hserver.is_inside_ci()
+    is_outside_ck_infra = (
+        not hserver.is_dev_csfy() and not hserver.is_inside_ci()
+    )
     # Skip tests that requires CK infra.
     if is_outside_ck_infra:
         _LOG.warning(
@@ -1636,7 +1640,9 @@ def _parse_failed_tests(
 
 
 @task
-def pytest_failed(ctx, only_file=False, only_class=False, file_name="tmp.pytest_script.txt"):  # type: ignore
+def pytest_failed(
+    ctx, only_file=False, only_class=False, file_name="tmp.pytest_script.txt"
+):  # type: ignore
     _ = ctx
     hlitauti.report_task()
     # Read file.

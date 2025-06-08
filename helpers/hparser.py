@@ -212,7 +212,9 @@ def actions_to_string(
 
 
 def select_actions(
-    args: argparse.Namespace, valid_actions: List[str], default_actions: List[str]
+    args: argparse.Namespace,
+    valid_actions: List[str],
+    default_actions: List[str],
 ) -> List[str]:
     hdbg.dassert(
         not (args.action and args.all),
@@ -675,9 +677,7 @@ def add_dockerized_script_arg(
 
 
 def add_llm_prompt_arg(
-    parser: argparse.ArgumentParser,
-    *,
-    default_prompt: str = ""
+    parser: argparse.ArgumentParser, *, default_prompt: str = ""
 ) -> argparse.ArgumentParser:
     """
     Add common command line arguments for `*llm_transform.py` scripts.

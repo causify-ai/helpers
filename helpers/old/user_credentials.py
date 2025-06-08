@@ -26,7 +26,9 @@ def get_dev_server_ip() -> str:
     """
     env_var_name = ""
     if env_var_name not in os.environ:
-        _LOG.error("Can't find '%s': re-run dev_scripts/setenv.sh?", env_var_name)
+        _LOG.error(
+            "Can't find '%s': re-run dev_scripts/setenv.sh?", env_var_name
+        )
         raise RuntimeError
     dev_server = os.environ[env_var_name]
     return dev_server
@@ -183,7 +185,8 @@ def get_credentials() -> Dict[str, Any]:
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "--user", action="store", default=None, help="Impersonate a user"

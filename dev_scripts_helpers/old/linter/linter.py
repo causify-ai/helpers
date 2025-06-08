@@ -1208,7 +1208,7 @@ class _CustomPythonChecks(_Action):
         m = re.match(r"\s*from\s+(\S+)\s+import\s+.*", line)
         if m:
             if m.group(1) != "typing":
-                msg = "%s:%s: do not use '%s' use 'import foo.bar " "as fba'" % (
+                msg = "%s:%s: do not use '%s' use 'import foo.bar as fba'" % (
                     file_name,
                     line_num,
                     line.rstrip().lstrip(),
@@ -1300,7 +1300,9 @@ class _CustomPythonChecks(_Action):
             # Look for conflicts markers.
             if _CustomPythonChecks.DEBUG:
                 _LOG.debug("* Look for conflict markers")
-            if any(line.startswith(c) for c in ["<<<<<<<", "=======", ">>>>>>>"]):
+            if any(
+                line.startswith(c) for c in ["<<<<<<<", "=======", ">>>>>>>"]
+            ):
                 msg = "%s:%s: there are conflict markers" % (file_name, i + 1)
                 output.append(msg)
             # Format separating lines.
@@ -1371,7 +1373,9 @@ class _LintMarkdown(_Action):
         ext = os.path.splitext(file_name)[1]
         output: List[str] = []
         if ext not in (".txt", ".md"):
-            _LOG.debug("Skipping file_name='%s' because ext='%s'", file_name, ext)
+            _LOG.debug(
+                "Skipping file_name='%s' because ext='%s'", file_name, ext
+            )
             return output
         # Run lint_notes.py.
         executable = "lint_notes.py"
@@ -1745,7 +1749,8 @@ def _main(args: argparse.Namespace) -> int:
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     # Select files.
     parser.add_argument(
@@ -1810,7 +1815,9 @@ def _parse() -> argparse.ArgumentParser:
         help="Process only python scripts excluding paired notebooks",
     )
     parser.add_argument(
-        "--only_ipynb", action="store_true", help="Process only jupyter notebooks"
+        "--only_ipynb",
+        action="store_true",
+        help="Process only jupyter notebooks",
     )
     parser.add_argument(
         "--only_paired_jupytext",

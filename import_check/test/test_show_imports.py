@@ -262,9 +262,9 @@ class Test_show_imports(hunitest.TestCase):
         in_dir_name = self.get_input_dir().split("/")[-1]
         files = {}
         files["file1.py"] = "import numpy\n"
-        files[
-            "file2.py"
-        ] = f"import {in_dir_name}.file1\nimport {in_dir_name}.file3\n"
+        files["file2.py"] = (
+            f"import {in_dir_name}.file1\nimport {in_dir_name}.file3\n"
+        )
         files["file3.py"] = f"import {in_dir_name}.file2\n"
         files["__init__.py"] = ""
         # Run and check the outcome.

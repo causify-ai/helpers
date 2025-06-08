@@ -24,7 +24,6 @@ def _check(self: Any, str_to_eval: str, exp_val: str) -> None:
 
 
 class _Class:
-
     def __init__(self) -> None:
         self.a = 3
         self.b = 14
@@ -42,7 +41,6 @@ class _Class:
 
 
 class _TestCase(hunitest.TestCase):
-
     def check(self, *args, **kwargs) -> None:
         _check(self, *args, **kwargs)
 
@@ -190,7 +188,6 @@ class Test_MagicMock1(_TestCase):
 
 
 class Test_Mock_Class1(_TestCase):
-
     def test_without_mock1(self) -> None:
         obj = _Class()
         self.assertEqual(obj.get_a(), 3)
@@ -236,7 +233,6 @@ class Test_Mock_Class1(_TestCase):
 
 
 class Test_Mock_Class_with_decorator1(_TestCase):
-
     @umock.patch.object(_Class, "get_a", return_value=4)
     def test1(self, mock_method: umock.MagicMock) -> None:
         """
@@ -245,7 +241,9 @@ class Test_Mock_Class_with_decorator1(_TestCase):
         obj = _Class()
         # Check.
         # self.assertIs(mock_method, umock.MagicMock)
-        self.check("mock_method", "mock_method=<MagicMock name='get_a' id='xxx'>")
+        self.check(
+            "mock_method", "mock_method=<MagicMock name='get_a' id='xxx'>"
+        )
         self.assertEqual(obj.get_a(), 4)
         mock_method.assert_called()
         obj.get_a.assert_called()
@@ -257,7 +255,6 @@ class Test_Mock_Class_with_decorator1(_TestCase):
 
 
 class Test_Mock_Class_with_context_manager1(_TestCase):
-
     def test1(self) -> None:
         """
         Patch an object method using a context manager.
@@ -266,7 +263,9 @@ class Test_Mock_Class_with_context_manager1(_TestCase):
         with umock.patch.object(_Class, "get_a", return_value=4):
             obj = _Class()
             # Check.
-            self.check("obj.get_a", "obj.get_a=<MagicMock name='get_a' id='xxx'>")
+            self.check(
+                "obj.get_a", "obj.get_a=<MagicMock name='get_a' id='xxx'>"
+            )
             self.assertEqual(obj.get_a(), 4)
             obj.get_a.assert_called()
         # Outside the context manager everything is normal.

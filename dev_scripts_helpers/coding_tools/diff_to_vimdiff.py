@@ -189,9 +189,7 @@ def _parse_diff_output(
         Only in /Users/saggese/src/amp1/dataflow_amp/real_time/test: TestReal...
         ```
     """
-    print(
-        hprint.frame(f"Compare file content in dirs '{dir1}' vs '{dir2}'")
-    )
+    print(hprint.frame(f"Compare file content in dirs '{dir1}' vs '{dir2}'"))
     # Read the output from `diff -r --brief`.
     hdbg.dassert_path_exists(input_file)
     _LOG.info("Reading '%s'", input_file)
@@ -322,7 +320,8 @@ def _parse_diff_output(
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     # Specify dirs.
     parser.add_argument(

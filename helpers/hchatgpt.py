@@ -475,7 +475,7 @@ def wait_for_run_result(thread_id: str, run_id: str, timeout: int = 180) -> List
     finished = False
     _LOG.info("Waiting for chatgpt response...")
     for i in range(math.ceil(timeout / 5)):
-        _LOG.info(f"{i*5}/{timeout} seconds before timeout.")
+        _LOG.info(f"{i * 5}/{timeout} seconds before timeout.")
         time.sleep(5)
         run = client.beta.threads.runs.retrieve(
             thread_id=thread_id, run_id=run_id
@@ -527,7 +527,9 @@ def e2e_assistant_runner(
         thread_id, user_input, input_file_names
     )
     if model:
-        run_id = run_thread_on_assistant_by_name(assistant_name, thread_id, model)
+        run_id = run_thread_on_assistant_by_name(
+            assistant_name, thread_id, model
+        )
     else:
         run_id = run_thread_on_assistant_by_name(assistant_name, thread_id)
     messages = wait_for_run_result(thread_id, run_id)
