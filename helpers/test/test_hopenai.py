@@ -2,6 +2,7 @@ import logging
 import os
 import types
 import unittest.mock as umock
+from typing import Any, Dict
 
 import pandas as pd
 import pytest
@@ -15,15 +16,19 @@ import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
 
-_TEST_CACHE_FILE = "cache.test_get_completion.json"
+
+# Test functions for the unit tests.
+
+_TEST_CACHE_FILE = "tmp.cache.test_get_completion.json"
 
 _USER_PROMPT1 = "what is machine learning?"
 _USER_PROMPT2 = _USER_PROMPT1.upper()
+# TODO(Sai): This is not used?
 _USER_PROMPT3 = "What is artificial intelligence"
 
 _SYSTEM_PROMPT1 = "You are a helpful AI assistant."
+# TODO(Sai): This is not used?
 _SYSTEM_PROMPT2 = "You are a very helpful AI assistant."
-
 
 _TEMPERATURE1 = 1
 _TEMPERATURE2 = 2
@@ -32,7 +37,7 @@ _MODEL1 = "gpt-4o-mini"
 _MODEL2 = "gpt-o4-mini"
 
 
-def _get_completion_parameters1() -> dict:
+def _get_completion_parameters1() -> Dict[str, Any]:
     data = {
         "user_prompt": _USER_PROMPT1,
         "system_prompt": _SYSTEM_PROMPT1,
@@ -42,7 +47,7 @@ def _get_completion_parameters1() -> dict:
     return data
 
 
-def _get_openai_request_parameters1() -> dict:
+def _get_openai_request_parameters1() -> Dict[str, Any]:
     messages = hopenai._build_messages(
         user_prompt=_USER_PROMPT1, system_prompt=_SYSTEM_PROMPT1
     )
@@ -54,7 +59,8 @@ def _get_openai_request_parameters1() -> dict:
     return data
 
 
-def _get_completion_parameters2() -> dict:
+# TODO(Sai): This is not used?
+def _get_completion_parameters2() -> Dict[str, Any]:
     data = {
         "user_prompt": _USER_PROMPT2,
         "system_prompt": _SYSTEM_PROMPT1,
@@ -64,7 +70,7 @@ def _get_completion_parameters2() -> dict:
     return data
 
 
-def _get_openai_request_parameters2() -> dict:
+def _get_openai_request_parameters2() -> Dict[str, Any]:
     messages = hopenai._build_messages(
         user_prompt=_USER_PROMPT2, system_prompt=_SYSTEM_PROMPT1
     )
@@ -76,7 +82,8 @@ def _get_openai_request_parameters2() -> dict:
     return data
 
 
-def _get_completion_parameters3() -> dict:
+# TODO(Sai): This is not used?
+def _get_completion_parameters3() -> Dict[str, Any]:
     data = {
         "user_prompt": _USER_PROMPT1,
         "system_prompt": _SYSTEM_PROMPT1,
@@ -86,7 +93,7 @@ def _get_completion_parameters3() -> dict:
     return data
 
 
-def _get_openai_request_parameters3() -> dict:
+def _get_openai_request_parameters3() -> Dict[str, Any]:
     messages = hopenai._build_messages(
         user_prompt=_USER_PROMPT1, system_prompt=_SYSTEM_PROMPT1
     )
@@ -98,7 +105,7 @@ def _get_openai_request_parameters3() -> dict:
     return data
 
 
-def _get_completion_parameters4() -> dict:
+def _get_completion_parameters4() -> Dict[str, Any]:
     data = {
         "user_prompt": _USER_PROMPT1,
         "system_prompt": _SYSTEM_PROMPT1,
@@ -108,7 +115,7 @@ def _get_completion_parameters4() -> dict:
     return data
 
 
-def _get_openai_request_parameters4() -> dict:
+def _get_openai_request_parameters4() -> Dict[str, Any]:
     messages = hopenai._build_messages(
         user_prompt=_USER_PROMPT1, system_prompt=_SYSTEM_PROMPT1
     )
@@ -120,7 +127,7 @@ def _get_openai_request_parameters4() -> dict:
     return data
 
 
-def _get_dummy_openai_response1() -> dict:
+def _get_dummy_openai_response1() -> Dict[str, Any]:
     response = {
         "id": "chatcmpl-test",
         "object": "chat.completion",
@@ -149,7 +156,7 @@ def _get_dummy_openai_response1() -> dict:
     return response
 
 
-def _get_dummy_openai_response2() -> dict:
+def _get_dummy_openai_response2() -> Dict[str, Any]:
     response = {
         "id": "chatcmpl-test",
         "object": "chat.completion",
@@ -188,7 +195,7 @@ def _get_dummy_openai_response2() -> dict:
 # #############################################################################
 
 
-# TODO(*): Rename _OpenAICacheTestCase
+# TODO(Sai): Rename _OpenAICacheTestCase
 class BaseOpenAICacheTest(hunitest.TestCase):
     """
     - Ensure hopenai.get_completion() always uses REPLAY mode.
@@ -198,7 +205,7 @@ class BaseOpenAICacheTest(hunitest.TestCase):
 
     @pytest.fixture(autouse=True)
     def setup_teardown_test(self):
-        # Using test cache file to prevent ruining the actual cache file.
+        # Use test cache file to prevent ruining the actual cache file.
         # TODO(Sai): Reuse get_scratch_space().
         # self.cache_file = self.get_scratch_space()+f"/{_TEST_CACHE_FILE}"
         self.get_completion_cache = hopenai._CompletionCache(
@@ -207,12 +214,14 @@ class BaseOpenAICacheTest(hunitest.TestCase):
         )
         # Patch get_completion to inject REPLAY.
         self.force_replay_cache()
-        # Run common setuo for each test.
+        # Run common setup for each test.
         self.set_up_test()
         yield
         # Run common teardown after the test.
         self.tear_down_test()
 
+    # TODO(Sai): No need to patch get_completion, just use the actual cache
+    # and set the cache_mode="REPLAY" in the test cases.
     def force_replay_cache(self) -> None:
         """
         For all get_completion test cases, the cache_mode="REPLAY".
@@ -227,6 +236,8 @@ class BaseOpenAICacheTest(hunitest.TestCase):
         )
         self.patcher.start()
 
+    # TODO(Sai): IMO too complicated. We need to assume that the cache works
+    # and we just need to exercise the code.
     def set_up_test(self) -> None:
         """
         Setup operations to run before each test:
@@ -236,14 +247,14 @@ class BaseOpenAICacheTest(hunitest.TestCase):
         request_parameters3 = _get_openai_request_parameters3()
         dummy_openai_response1 = _get_dummy_openai_response1()
         dummy_openai_response2 = _get_dummy_openai_response2()
-        # generating hash keys
+        # Generate hash keys.
         dummy_hash_key1 = self.get_completion_cache.hash_key_generator(
             **request_parameters1
         )
         dummy_hash_key2 = self.get_completion_cache.hash_key_generator(
             **request_parameters3
         )
-        # saving dummy responses to cache
+        # Save dummy responses to cache.
         self.get_completion_cache.save_response_to_cache(
             hash_key=dummy_hash_key1,
             request=request_parameters1,
@@ -310,6 +321,8 @@ class Test_get_completion(BaseOpenAICacheTest):
 # #############################################################################
 
 
+# TODO(Sai): We are testing the testing code. Move it to testing the cache, if
+# needed.
 class Test_hash_key_generator(BaseOpenAICacheTest):
 
     def test_different_request_parameters1(self) -> None:
@@ -348,6 +361,8 @@ class Test_hash_key_generator(BaseOpenAICacheTest):
 # #############################################################################
 
 
+# TODO(Sai): We are testing the testing code. Move it to testing the cache, if
+# needed.
 class Test_has_cache(BaseOpenAICacheTest):
 
     def test1(self) -> None:
@@ -374,6 +389,8 @@ class Test_has_cache(BaseOpenAICacheTest):
 # #############################################################################
 
 
+# TODO(Sai): We are testing the testing code. Move it to testing the cache, if
+# needed.
 class Test_save_response_to_cache(BaseOpenAICacheTest):
 
     def test1(self) -> None:
@@ -437,7 +454,7 @@ class Test_load_response_from_cache(BaseOpenAICacheTest):
 
 class Test_response_to_txt(hunitest.TestCase):
 
-    # Dummy classes to satisfy isinstance checks.
+    # Dummy classes to satisfy `isinstance` checks.
 
     class DummyChatCompletion:
 
@@ -460,7 +477,9 @@ class Test_response_to_txt(hunitest.TestCase):
     )
     def test_chat_completion_branch(self) -> None:
         resp = Test_response_to_txt.DummyChatCompletion("hello chat")
-        self.assert_equal(hopenai.response_to_txt(resp), "hello chat")
+        act = hopenai.response_to_txt(resp)
+        exp = "hello chat"
+        self.assert_equal(act, exp)
 
     @umock.patch(
         "openai.types.beta.threads.message.Message",
@@ -468,12 +487,14 @@ class Test_response_to_txt(hunitest.TestCase):
     )
     def test_thread_message_branch(self) -> None:
         resp = Test_response_to_txt.DummyThreadMessage("thread reply")
-        self.assert_equal(hopenai.response_to_txt(resp), "thread reply")
+        act = hopenai.response_to_txt(resp)
+        exp = "thread reply"
+        self.assert_equal(act, exp)
 
     def test_str_pass_through(self) -> None:
-        self.assert_equal(
-            hopenai.response_to_txt("just a string"), "just a string"
-        )
+        act = hopenai.response_to_txt("just a string")
+        exp = "just a string"
+        self.assert_equal(act, exp)
 
     def test_unknown_type_raises(self) -> None:
         with self.assertRaises(ValueError) as cm:
@@ -492,7 +513,7 @@ class Test_get_openai_client(hunitest.TestCase):
     @umock.patch("openai.OpenAI")
     def test_openai_provider(self, mock_openai_cls) -> None:
         """
-        Verify if get_openai_client() returns openai's url and API key.
+        Verify that `get_openai_client()` returns OpenAI's URL and API key.
         """
         client = hopenai.get_openai_client("openai")
         mock_openai_cls.assert_called_once_with(
@@ -505,7 +526,7 @@ class Test_get_openai_client(hunitest.TestCase):
     @umock.patch("openai.OpenAI")
     def test_openrouter_provider(self, mock_openai_cls) -> None:
         """
-        Verify if get_openai_client() returns openrouter's url and API key.
+        Verify that `get_openai_client()` returns OpenRouter's URL and API key.
         """
         client = hopenai.get_openai_client("openrouter")
         mock_openai_cls.assert_called_once_with(
@@ -528,12 +549,15 @@ class Test_get_openai_client(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(Sai): Testing the default model requires to keep things updated when
+# the default model changes. I would just test that the function works.
 class Test_get_default_model(hunitest.TestCase):
 
     def test_openai_provider(self) -> None:
         """
         Explicit "openai" provider return "gpt-4o".
         """
+        # TODO(Sai): Pass act and exp.
         self.assert_equal(hopenai._get_default_model("openai"), "gpt-4o")
 
     def test_openrouter_provider(self) -> None:
@@ -605,11 +629,12 @@ class Test_retrieve_openrouter_model_info(hunitest.TestCase):
 
 class Test_save_models_info_to_csv(hunitest.TestCase):
 
-    def get_temp_path(self, tmp_file_name: str = "tmp.models_info.csv") -> str:
+    def get_temp_path(self) -> str:
         """
         Helper function for creating temporary directory.
         """
         self.tmp_dir = self.get_scratch_space()
+        tmp_file_name = "tmp.models_info.csv"
         self.tmp_path = os.path.join(self.tmp_dir, tmp_file_name)
         return self.tmp_path
 
@@ -649,6 +674,7 @@ class Test_save_models_info_to_csv(hunitest.TestCase):
             "completion_pricing",
             "supported_parameters",
         ]
+        # TODO(Sai): Use dassert
         assert list(returned_df.columns) == expected_columns
         # Verify pricing values are extracted correctly.
         self.assertListEqual(
@@ -658,8 +684,10 @@ class Test_save_models_info_to_csv(hunitest.TestCase):
             returned_df["completion_pricing"].tolist(), ["0.2", "0.4"]
         )
         # File should be created and readable.
+        # TODO(Sai): Use dassert
         assert os.path.exists(output_file)
         saved_df = pd.read_csv(output_file)
+        # TODO(Sai): Just do a self.assert_equal with the expected DataFrame.
         # turn the in‐memory lists into exactly what pandas read back.
         returned_df["prompt_pricing"] = returned_df["prompt_pricing"].astype(
             float
@@ -672,6 +700,7 @@ class Test_save_models_info_to_csv(hunitest.TestCase):
         ].astype(str)
         pd.testing.assert_frame_equal(returned_df, saved_df)
 
+    # TODO(Sai): Remove. No need to test the internal of the code.
     def test_invalid_filename_type(self) -> None:
         """
         Check with invalid filename.
@@ -680,6 +709,7 @@ class Test_save_models_info_to_csv(hunitest.TestCase):
         with pytest.raises(AssertionError):
             hopenai._save_models_info_to_csv(df, 123)
 
+    # TODO(Sai): Remove. No need to test the internal of the code.
     def test_invalid_filename_empty(self) -> None:
         """
         Check with empty string as filename.
@@ -694,9 +724,6 @@ class Test_save_models_info_to_csv(hunitest.TestCase):
 # #############################################################################
 
 
-# #############################################################################
-# Test_build_messages
-# #############################################################################
 class Test_build_messages(hunitest.TestCase):
 
     def test_build_messages_returns_correct_structure(self) -> None:
@@ -708,6 +735,7 @@ class Test_build_messages(hunitest.TestCase):
         msgs = hopenai._build_messages(system, user)
         # Should be a list of two dicts with the right roles and contents
         self.assertIsInstance(msgs, list)
+        # TODO(Sai): Use act and exp.
         self.assert_equal(
             str(msgs),
             str(
@@ -724,6 +752,16 @@ class Test_build_messages(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(Sai): Here we are testing that this function works???
+# completion = client.chat.completions.create(
+#     model=model,
+#     messages=messages,
+#     temperature=temperature,
+#     **create_kwargs,
+# )
+# model_response = completion.choices[0].message.content
+#
+# Of course it works. Remove test.
 class Test_call_api_sync(hunitest.TestCase):
 
     def test_call_api_sync_calls_client_and_returns_response(self) -> None:
@@ -774,21 +812,24 @@ class Test_calculate_cost(hunitest.TestCase):
         yield
         self.teardown_test()
 
-    def setup_test(self):
+    def setup_test(self) -> None:
         self._orig = hopenai._PROVIDER_NAME
 
-    def teardown_test(self):
+    def teardown_test(self) -> None:
         hopenai._PROVIDER_NAME = self._orig
 
-    def get_tmp_path(self, tmp_file_name: str = "tmp.models_info.csv"):
+    def get_tmp_path(self) -> str:
         self.tmp_dir = self.get_scratch_space()
+        tmp_file_name: str = "tmp.models_info.csv"
         self.tmp_path = os.path.join(self.tmp_dir, tmp_file_name)
         return self.tmp_path
 
     def test_openai_cost(self) -> None:
         """
-        Scenario: Known OpenAI model and token counts produce expected cost.
+        Known OpenAI model and token counts produce expected cost.
         """
+        # TODO(Sai): You can't modify a global variable! You need to use a
+        # default param.
         hopenai._PROVIDER_NAME = "openai"
         comp = types.SimpleNamespace(
             usage=types.SimpleNamespace(
@@ -799,11 +840,12 @@ class Test_calculate_cost(hunitest.TestCase):
             comp, model="gpt-3.5-turbo", models_info_file=""
         )
         # 1000000*(0.5/1000000) + 20000000*(1.5/1000000) = 3.5
+        # TODO(Sai): Use self.assert_equal.
         assert pytest.approx(cost) == 3.5
 
     def test_openai_unknown_model(self) -> None:
         """
-        Scenario: Passing an unknown OpenAI model should raise an assertion or ValueError.
+        Passing an unknown OpenAI model should raise an assertion or ValueError.
         """
         hopenai._PROVIDER_NAME = "openai"
         comp = types.SimpleNamespace(
@@ -814,17 +856,10 @@ class Test_calculate_cost(hunitest.TestCase):
                 comp, model="nonexistent-model", models_info_file=""
             )
 
-    # def test_openrouter_download_and_save(self) -> None:
-    #     """
-    #     Scenario: No CSV file exists for OpenRouter; should retrieve
-    #      model info, save CSV, then calculate cost.
-    #     """
-    #     # TODO(Sai): use pytest tmp_path to simulate missing file, patch retrieve and save, assert CSV creation and cost.
-
     def test_openrouter_load_existing_csv(self) -> None:
         """
-        Scenario: CSV file exists for OpenRouter; should load CSV and
-         calculate cost without fetching.
+        Assume that the CSV file exists for OpenRouter. Then we should load CSV
+        and calculate cost without fetching.
         """
         hopenai._PROVIDER_NAME = "openrouter"
         # Write a tiny CSV: id,prompt_pricing,completion_pricing
@@ -845,6 +880,8 @@ class Test_calculate_cost(hunitest.TestCase):
         # 1*0.1 + 1*0.2 = 0.1 + 0.2 = 0.3
         assert pytest.approx(cost) == 0.3
 
+    # TODO(Sai): Remove. We can't create all this testing code to test an
+    # assertion.  It works of course.
     def test_openrouter_missing_model(self) -> None:
         """
         Scenario: CSV exists but missing the requested model ID; should
@@ -868,6 +905,7 @@ class Test_calculate_cost(hunitest.TestCase):
                 comp, model="m1", models_info_file=temp_csv_file
             )
 
+    # TODO(Sai): Remove. No need to test this.
     def test_openrouter_invalid_csv(self) -> None:
         """
         Scenario: Existing CSV is malformed or unreadable; should raise
