@@ -99,7 +99,7 @@ docker_cmd = [
 
 ```bash
 # Install coverage hooks on host.
-python -c "import hcoverage_inject as hcovinje; hcovinje.hinject()"
+python -c "import hcoverage_inject as hcovinje; hcovinje.inject()"
 
 # Prepare shared coverage directory. 
 mkdir -p coverage_data
