@@ -90,6 +90,7 @@ Santa Narimana, Levand \\
   % keywords can be removed
   \keywords{First keyword \and Second keyword \and More}
 
+  % #############################################################################
   \section{Introduction}
   Software development workflows are becoming more complex as they adapt to the
   demands of large-scale systems and modern collaborative development practices.
@@ -113,6 +114,7 @@ Santa Narimana, Levand \\
   %our approach compared to existing practices (Section 4), and conclude by
   %presenting potential avenues for future improvement (Section 5).
 
+  % #############################################################################
   \section{Runnable directories}
 
   \subsection{The monorepo approach}
@@ -238,7 +240,6 @@ The proposed development system supports the following functionalities
 \end{itemize}
 
 \subsubsection{Python package management}
-\label{python-package-management}
 
 \begin{itemize}
 
@@ -259,7 +260,6 @@ The proposed development system supports the following functionalities
 \end{itemize}
 
 \subsubsection{Testing}
-\label{testing}
 
 \begin{itemize}
 
@@ -272,7 +272,6 @@ The proposed development system supports the following functionalities
 \end{itemize}
 
 \subsubsection{DevOps functionalities}
-\label{devops-functionalities}
 
 \begin{itemize}
 
@@ -312,8 +311,7 @@ The proposed development system supports the following functionalities
   \item Support for developing, testing, and deploying multi-container applications
 \end{itemize}
 
-\subsubsection{3.1. Runnable directory}
-\label{runnable-directory}
+\subsubsection{Runnable directory}
 
 The core concept of the proposed approach is a \textbf{runnable directory} --- a
 self-contained, independently executable directory with code, equipped with a
@@ -354,8 +352,7 @@ further in Section 3.2.
 %```
 % Figure 1. Sample architecture of Causify's runnable directories.
 
-\subsubsection{3.2. Docker}
-\label{docker}
+\subsubsection{Docker}
 
 Docker is the backbone of our containerized development environment. Every
 runnable directory contains Dockerfiles that allow it to build and run its own
@@ -416,8 +413,7 @@ enabling inter-container communication and orchestration.
 
 % Figure 2. Docker container flow.
 
-\subsubsection{2.3. What is needed}
-\label{what-is-needed}
+\subsubsection{What is needed}
 
 An ideal strategy would combine the best of both worlds:
 
@@ -434,8 +430,7 @@ An ideal strategy would combine the best of both worlds:
 Both are achieved through the hybrid approach proposed in this paper, which will
 be discussed in Section 3.
 
-\subsubsection{3.3. Thin environment}
-\label{thin-environment}
+\subsubsection{Thin environment}
 
 To bootstrap development workflows, we use a thin client that installs a minimal
 set of essential dependencies, such as Docker and invoke, in a lightweight
@@ -468,8 +463,7 @@ remain consistent across different systems (e.g., server, personal laptop, CI/CD
 %
 %Figure 3. Thin environment shared across multiple runnable directories.
 
-\subsubsection{3.4. Submodule of ``helpers''}
-\label{submodule-of-helpers}
+\subsubsection{Submodule of ``helpers''}
 
 All Causify repositories include a dedicated ``helpers'' repository as a submodule.
 This repository contains common utilities and development toolchains, such as the
@@ -504,7 +498,6 @@ discrepancies.
 %Figure 4. "Helpers" submodule integrated into a repository.
 
 \paragraph{3.4.1. Git hooks}
-\label{git-hooks}
 
 Our ``helpers'' submodule includes a set of Git hooks used to enforce policies
 across our development process, including Git workflow rules, coding standards, security
@@ -513,8 +506,7 @@ the user activates the thin environment. They perform essential checks such as
 verifying the branch, author information, file size limits, forbidden words,
 Python file compilation, and potential secret leaks\ldots etc.
 
-\subsubsection{3.5. Executing tests}
-\label{executing-tests}
+\subsubsection{Executing tests}
 
 Our system supports robust testing workflows that leverage the containerized environment
 for comprehensive code validation. Tests are executed inside Docker containers
@@ -554,8 +546,7 @@ directory's environment.
 %
 %Figure 5. Recursive test execution in dedicated containers.
 
-\subsubsection{3.6. Dockerized executables}
-\label{dockerized-executables}
+\subsubsection{Dockerized executables}
 
 Sometimes, installing a package within a development container may not be
 justified, particularly if it is large and will only be used occasionally. In
@@ -568,8 +559,7 @@ necessary, for example during test execution, a dockerized executable can be run
 inside another Docker container, whether using the children or sibling container
 approach, as discussed in Section 3.2.
 
-\subsection{4. Discussion}
-\label{discussion}
+\subsection{Discussion}
 
 Causify's approach presents a strong alternative to existing code organization solutions,
 offering scalability and efficiency for both small and large systems.
@@ -603,7 +593,6 @@ maintenance to ensure seamless integration with existing CI/CD pipelines and
 development practices.
 
 \subsection{Future directions}
-\label{future-directions}
 
 Looking ahead, there are several areas where the proposed approach can be
 improved. One direction is the implementation of dependency-aware caching to ensure
@@ -622,10 +611,8 @@ parts of the codebase. These steps will bolster both the security and efficiency
 of our workflows as the projects continue to scale.
 
 \section{Buildmeister: Daily Accountability for CI Stability}
-\label{buildmeister-daily-accountability-for-ci-stability}
 
 \subsection{Motivation}
-\label{motivation}
 
 Automated test pipelines are essential, but without accountability, they often fall
 into disrepair. The Buildmeister routine introduces a rotating, human-in-the-loop
@@ -634,7 +621,6 @@ CI/CD hygiene. This mechanism aligns technical execution with team
 responsibility, fostering a culture of operational ownership.
 
 \subsection{Core Responsibilities}
-\label{core-responsibilities}
 
 The Buildmeister is a rotating role assigned to a team member each week. Their primary
 duties are:
@@ -656,7 +642,6 @@ The Buildmeister ensures builds are never ``temporarily broken'', our policy is:
 ``Fix it or revert within one hour.''
 
 \subsection{Handover and Daily Reporting}
-\label{handover-and-daily-reporting}
 
 The routine begins each day with a status email to the team detailing:
 
@@ -678,7 +663,6 @@ an ``Acknowledged'' reply from the incoming one, ensuring continuity and
 awareness.
 
 \subsection{Workflow in Practice}
-\label{workflow-in-practice}
 
 When a build breaks:
 
@@ -705,17 +689,15 @@ When a build breaks:
 If the issue is not resolved within one hour, the Buildmeister must escalate and,
 if needed, disable the test with explicit owner consent.
 
+% #############################################################################
 \subsection{Tools and Analysis}
-\label{tools-and-analysis}
 
 \subsubsection{Buildmeister Dashboard}
-\label{buildmeister-dashboard}
 
 A centralized UI provides a real-time view of all builds across repos and branches.
 It is the Buildmeister's daily launchpad.
 
 \subsubsection{Allure Reports}
-\label{allure-reports}
 
 \begin{itemize}
 
@@ -735,7 +717,6 @@ It is the Buildmeister's daily launchpad.
 \end{itemize}
 
 \subsubsection{Post-Mortem Log}
-\label{post-mortem-log}
 
 Every build break is logged in a shared spreadsheet, capturing:
 
@@ -756,7 +737,6 @@ This living record forms the basis for failure mode analysis and future automati
 improvements.
 
 \subsection{Why It Matters}
-\label{why-it-matters}
 
 The Buildmeister is not just a rotating duty, it is a system of shared accountability.
 It transforms test stability from an abstract ideal into a daily operational
@@ -764,11 +744,10 @@ habit, backed by clear expectations, defined processes, and human enforcement.
 By combining automation with ownership, we achieve sustainable reliability in a complex,
 multi-repo ecosystem.
 
+% #############################################################################
 \section{Coverage Tracking with Codecov: A Layer of Continuous Accountability}
-\label{coverage-tracking-with-codecov-a-layer-of-continuous-accountability}
 
 \subsection{Motivation}
-\label{motivation-1}
 
 Maintaining comprehensive test coverage across a growing codebase requires more
 than just writing tests, it demands visibility, automation, and enforcement. Our
@@ -778,7 +757,6 @@ paths are exercised and that test coverage regressions are identified early and
 reliably.
 
 \subsection{Structured Coverage by Test Category}
-\label{structured-coverage-by-test-category}
 
 We categorize coverage tests into three suites based on runtime and scope:
 
@@ -798,7 +776,6 @@ to Codecov, enabling targeted inspection and carryforward of data when some
 suites are skipped.
 
 \subsection{CI Integration and Workflow Behavior}
-\label{ci-integration-and-workflow-behavior}
 
 Coverage reports are generated and uploaded automatically as part of our CI pipelines.
 The workflow:
@@ -817,7 +794,6 @@ The workflow:
 This behavior ensures resilience while preventing silent test degradation.
 
 \subsection{Enforced Thresholds and Quality Gates}
-\label{enforced-thresholds-and-quality-gates}
 
 Coverage checks are enforced at both project and patch levels:
 
@@ -837,7 +813,6 @@ Together, these gates maintain coverage integrity while avoiding noise from
 unrelated code paths.
 
 \subsection{Visibility and Developer Experience}
-\label{visibility-and-developer-experience}
 
 Codecov is integrated tightly into the developer workflow:
 
@@ -857,7 +832,6 @@ Developers can also generate and inspect local reports for any test suite using
 standard coverage commands.
 
 \subsection{Best Practices and Operational Consistency}
-\label{best-practices-and-operational-consistency}
 
 To ensure effective usage:
 
@@ -875,7 +849,6 @@ To ensure effective usage:
 \end{itemize}
 
 \subsection{Beyond the Basics}
-\label{beyond-the-basics}
 
 Our setup also supports:
 
@@ -890,7 +863,6 @@ Our setup also supports:
 \end{itemize}
 
 \subsection{Summary}
-\label{summary}
 
 Coverage tracking is more than a checkbox---it's an enforcement mechanism, a
 feedback loop, and a source of engineering discipline. With structured test
@@ -898,6 +870,101 @@ categories, resilient workflows, and project-level gates, our Codecov-based syst
 transforms coverage data into actionable insights, reinforcing test quality
 across all levels of the stack.
 
+% #############################################################################
+\section{GitHub Automation: Scalable Metadata Management Through Declarative Workflows}
+
+\subsection{Motivation}
+
+As organizations grow, so does the surface area of their GitHub ecosystem---more
+repositories, more contributors, and more operational complexity. Without strong
+conventions and enforcement, labels diverge across projects, and team boards
+lose structural consistency. This leads to disjointed workflows, unclear
+ownership, and fragmented planning. To mitigate this, we introduced a declarative
+automation system for GitHub metadata. It enables centralized definitions for
+labels and project structures and propagates them across the organization in a
+reproducible and scalable way.
+
+\subsection{Standardized Label Infrastructure}
+
+Issue labels form the foundation for triage, workflows, and reporting. At scale,
+inconsistent naming, coloring, or descriptions can fragment automation and reduce
+clarity. To address this, we maintain a centralized manifest that defines the entire
+organization's label taxonomy. Each label includes a name, color code, and
+description. Repositories synchronize against this manifest using a containerized
+process that:
+
+\begin{itemize}
+
+  \item Creates missing labels using manifest definitions
+
+  \item Updates outdated labels (e.g., if the description or color changes)
+
+  \item Backs up existing labels before applying changes
+
+  \item Supports dry-run execution for visibility and confidence
+
+  \item Optionally prunes unused labels not defined in the manifest
+\end{itemize}
+
+This guarantees all repositories speak a consistent language for issues and pull
+requests, improving developer experience and enabling reliable automation.
+
+\subsection{Template-Based Project Synchronization}
+
+GitHub Projects (Beta) are a powerful tool for planning and tracking, but manually
+configuring project fields and views across teams is tedious and error-prone. To
+streamline setup and reduce drift, we introduced a project templating system.
+Project metadata, such as fields and views is defined in a canonical source project
+and synced into destination projects. The system:
+
+\begin{itemize}
+
+  \item Adds missing global fields to ensure functional parity across projects
+
+  \item Logs discrepancies in view structure (e.g., missing ``Backlog'' or ``Current
+    sprint'' views)
+
+  \item Preserves existing configurations to avoid accidental data loss
+
+  \item Operates in a dry-run mode to preview proposed changes safely
+\end{itemize}
+
+Due to current API limitations, view creation, layout configuration, and field
+ordering cannot yet be automated. However, warnings are logged for manual follow-up,
+and the system is designed to evolve as GitHub expands its GraphQL support.
+
+\subsection{Design Principles and Workflow Behavior}
+
+These automation tools follow several core principles:
+
+\begin{itemize}
+
+  \item Declarative Configuration: Metadata is defined in structured YAML files
+    stored in version control, serving as the source of truth
+
+  \item Reproducible Execution: All sync operations run in isolated Docker
+    containers, ensuring consistent behavior across machines and CI pipelines
+
+  \item Non-Destructive by Default: No changes are applied unless explicitly
+    confirmed, and current states can be backed up for rollback
+
+  \item Extensibility: The architecture is modular and designed to incorporate
+    future GitHub API enhancements, including view creation and layout syncing
+\end{itemize}
+
+The workflows support both interactive execution and automated pipelines,
+allowing integration into CI/CD systems or local tooling as needed.
+
+\subsection{Summary}
+
+Our GitHub automation system codifies repository metadata into a version-controlled,
+declarative format. By automating label and project synchronization, we
+eliminate manual drift, accelerate onboarding, and enforce consistency at scale.
+This infrastructure-as-code approach brings the same discipline to GitHub configuration
+that we apply to code and deployment, enabling confident, scalable collaboration
+across all teams.
+
+  % #############################################################################
   \section{}
 
 %  \begin{figure}
