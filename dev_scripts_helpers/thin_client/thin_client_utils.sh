@@ -85,6 +85,7 @@ dassert_is_git_root() {
     fi;
 }
 
+
 abort() {
     if [[ -f /.dockerenv ]] ; then
         # Inside container.
