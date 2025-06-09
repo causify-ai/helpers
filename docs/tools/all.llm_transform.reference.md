@@ -153,14 +153,14 @@
 
 # `llm_transform.py`
 
-The script is capable of performing certain transformations using OpenAI's LLMs
-on the input text or the stdin. The transformed output is then stored in the
-output file or the stdout depending upon the arguments passed by the user.
+- The script is capable of performing certain transformations using OpenAI's LLMs
+  on the input text or the stdin. The transformed output is then stored in the
+  output file or the stdout depending upon the arguments passed by the user.
 
 ## Interface
 
 ```bash
-llm_transform.py -h
+> llm_transform.py -h
 usage: llm_transform.py [-h] -i INPUT -o OUTPUT -p PROMPT
                         [--compare]
                         [-b | --bold_first_level_bullets]
@@ -192,17 +192,16 @@ options:
                         Set the logging level
 ```
 
-## Basic Usage
+- The basic usage
+  ```bash
+  > llm_transform.py -i input.txt -o output.txt -p <prompt-tag>
+  # or
+  > llm_transform.py -i - -o - <prompt-tag>
+  ```
 
-```bash
-> llm_transform.py -i input.txt -o output.txt -p <prompt-tag>
-# or
-> llm_transform.py -i - -o - <prompt-tag>
-```
-
-The script generates output from an LLM based on the user-specified prompt tag,
-pplying the transformation to the input file. Using - for `-i` and `-o`
-signifies stdin and stdout.
+- The script generates output from an LLM based on the user-specified prompt tag,
+  applying the transformation to the input file. Using - for `-i` and `-o`
+  signifies stdin and stdout.
 
 > Note: Use the -s flag to see the LLM output without any post-processing.
 
