@@ -1,5 +1,6 @@
 title = "gitleaks config"
-[allowlist]
+
+[[allowlists]]
 description = "global allow lists"
 paths = [
     # Gitleaks rules file.
