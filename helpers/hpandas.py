@@ -1090,18 +1090,12 @@ def infer_column_types(col: pd.Series):
     """
     Determine which data type is most prevalent in a column.
 
-    Examines the values in the given pandas Series and decides whether the majority
-    of entries are strings, numeric values, or booleans.
+    Examine the values in the given pandas Series and decides whether the
+    majority of entries are strings, numeric values, or booleans.
 
-    Parameters
-    ----------
-    col : pandas.Series
-        The column to inspect.
-
-    Returns
-    -------
-    str
-        One of `"is_string"`, `"is_numeric"`, or `"is_bool"`, representing the predominant type.
+    :param col: The column to inspect.
+    :return: One of `"is_string"`, `"is_numeric"`, or `"is_bool"`, representing
+        the predominant type.
     """
     vals = {
         "is_numeric": pd.to_numeric(col, errors="coerce").notna(),
