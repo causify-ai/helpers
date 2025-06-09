@@ -2,8 +2,26 @@ title = "gitleaks config"
 [allowlist]
 description = "global allow lists"
 paths = [
+    # Gitleaks rules file.
     '''(^|.*/)gitleaks-rules\.toml$''',
+    # Compressed files.
+    '''.*\.(csv|txt)\.gz$''',
+    # Zip files.
+    '''.*\.zip$''',
 ]
+
+[[allowlists]]
+description = "allowlist for images in Jupyter notebooks"
+regexTarget = "line"
+regexes = ['''image/(png|jpeg|jpg|gif|bmp|webp|svg\+xml|tiff|ico|x-icon)''']
+
+[[allowlists]]
+description = "allowlist for base64 encoded data"
+regexTarget = "line"
+regexes = [
+    '''[A-Za-z0-9+/]{1000,}={0,2}''',
+]
+
 [extend]
 useDefault = true
 [[rules]]
@@ -5081,6 +5099,7 @@ useDefault = true
     description = '''google_oauth'''
     regex = '''(ya29.[0-9A-Za-z-_]+)'''
     tags = ["secret"]
+
 
 [[rules]]
     id = "rule1252"
