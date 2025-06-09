@@ -221,7 +221,6 @@ def _save_models_info_to_csv(
     return model_info_df
 
 
-
 # #############################################################################
 
 
@@ -386,7 +385,7 @@ def get_completion(
     """
     update_llm_cache = get_update_llm_cache()
     if update_llm_cache:
-        _LOG.debug("# Update LLM cache.")
+        _LOG.warning("# Update LLM cache.")
         cache_mode = "CAPTURE"
     hdbg.dassert_in(cache_mode, ("REPLAY", "FALLBACK", "CAPTURE", "DISABLED"))
     if model == "":

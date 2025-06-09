@@ -51,6 +51,8 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
             "--update_llm_cache",
             action="store_true",
             default=False,
+            # TODO(Sai): 6 lines above you see that there is no period.
+            # Let's be consistent and aware of the code around.
             help="Update LLM shared cache.",
         )
         parser.addoption(
@@ -94,8 +96,10 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
             print(f"\n{_WARNING}: Updating test outcomes")
             hut.set_update_tests(True)
         if config.getoption("--update_llm_cache"):
-            print(f"\n{_WARNING}: Updating LLM Cache.")
+            print(f"\n{_WARNING}: Updating LLM Cache")
             # Importing hopenai.py is causing "openai" module not found error.
+            # TODO(gp): We can't enable this until we have openai package in
+            # the dev container.
             # hopenai.set_update_llm_cache(True)
         if config.getoption("--incremental"):
             print(f"\n{_WARNING}: Using incremental test mode")
