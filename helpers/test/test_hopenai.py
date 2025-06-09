@@ -133,6 +133,7 @@ class BaseOpenAICacheTest(hunitest.TestCase):
     """
 
     @pytest.fixture(autouse=True)
+
     def setup_teardown_test(self, pytestconfig):
         # Creating hopeani._CompletionCache instance.
         self.get_completion_cache = hopenai._CompletionCache(

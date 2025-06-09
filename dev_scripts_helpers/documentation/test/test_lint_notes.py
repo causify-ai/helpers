@@ -408,7 +408,7 @@ class Test_lint_notes_cmd_line1(hunitest.TestCase):
         :param type_: The output format, either 'md' or 'tex'.
         :param cmd_opts: Additional command-line options to pass to the
             script.
-        :returns: A tuple containing the script content and the output
+        :return: A tuple containing the script content and the output
             content.
         """
         # lint_notes.py \
