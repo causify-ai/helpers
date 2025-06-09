@@ -80,6 +80,9 @@ def process_docker_cmd(
         # TODO(gp): Note that `suppress_output=False` seems to hang the call.
         hsystem.system(docker_cmd, suppress_output=False)
         ret = ""
+    elif mode == "system_without_output":
+        hsystem.system(docker_cmd, suppress_output=True)
+        ret = ""
     elif mode == "save_to_file":
         file_name = f"tmp.process_docker_cmd.{container_image}.txt"
         txt = []
@@ -1848,7 +1851,7 @@ def run_dockerized_graphviz(
     )
     # Convert files to Docker paths.
     is_caller_host = not hserver.is_inside_docker()
-    use_sibling_container_for_callee = True
+    use_sibling_container_for_callee = False
     caller_mount_path, callee_mount_path, mount = get_docker_mount_info(
         is_caller_host, use_sibling_container_for_callee
     )
