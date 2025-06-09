@@ -78,7 +78,6 @@ def remove() -> None:
     else:
         _LOG.warning("No coverage.pth found in %s", sp)
         # Remove coverage environment variables.
-
     try:
         if "COVERAGE_PROCESS_START" in os.environ:
             hsystem.system("unset COVERAGE_PROCESS_START")
@@ -98,26 +97,22 @@ def generate_temp_dockerfile_content() -> str:
       3. Sets ENV COVERAGE_PROCESS_START to /coverage_data/.coveragerc
       4. Writes a coverage.pth into site-packages so coverage auto-starts
     """
-    
     # Install coverage and testing dependencies.
     install_deps = [
         "RUN pip install --no-cache-dir coverage pytest pytest-cov",
-        ""
+        "",
     ]
-    
     # Create coverage data directory.
     create_directory = [
         "RUN mkdir -p /app/coverage_data && chmod 777 /app/coverage_data",
-        ""
+        "",
     ]
-    
     # Setup coverage configuration.
     setup_config = [
         "COPY .coveragerc /app/coverage_data/.coveragerc",
         "ENV COVERAGE_PROCESS_START=/app/coverage_data/.coveragerc",
-        ""
+        "",
     ]
-    
     # Create coverage.pth file for automatic startup.
     create_pth = [
         "RUN python - <<PYCODE",
@@ -126,18 +121,10 @@ def generate_temp_dockerfile_content() -> str:
         "pth_file = os.path.join(site_dir, 'coverage.pth')",
         "with open(pth_file, 'w') as f:",
         "    f.write('import coverage; coverage.process_startup()')",
-        "PYCODE"
+        "PYCODE",
     ]
-    
     # Combine all sections.
-    all_lines = (
-        [""] +
-        install_deps +
-        create_directory +
-        setup_config +
-        create_pth
-    )
-    
+    all_lines = [""] + install_deps + create_directory + setup_config + create_pth
     return "\n".join(all_lines)
 
 

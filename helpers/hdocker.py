@@ -365,18 +365,17 @@ def get_docker_base_cmd(use_sudo: bool) -> List[str]:
         "--user $(id -u):$(id -g)",
         vars_to_pass_as_str,
     ]
-
     if os.environ.get("COVERAGE_PROCESS_START"):
         host_cov_dir = os.path.abspath("coverage_data")
         os.makedirs(host_cov_dir, exist_ok=True)
         os.chmod(host_cov_dir, 0o777)
         coverage_dir_container = "/app/coverage_data"
-        
-        docker_cmd.extend([
-            f"-e COVERAGE_FILE={coverage_dir_container}/.coverage",
-            f"-e COVERAGE_PROCESS_START={coverage_dir_container}/.coveragerc",
-        ])
-
+        docker_cmd.extend(
+            [
+                f"-e COVERAGE_FILE={coverage_dir_container}/.coverage",
+                f"-e COVERAGE_PROCESS_START={coverage_dir_container}/.coveragerc",
+            ]
+        )
     return docker_cmd
 
 
