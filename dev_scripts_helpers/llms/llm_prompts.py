@@ -1263,12 +1263,16 @@ def slide_check() -> _PROMPT_OUT:
     system += r"""
     - Do not print the content of the slide, but only the comment.
 
-    - Is the content of the slide clear and correct?
+    - Is the content of the slide clear?
       - Answer with "The slide is clear" or "The slide is not clear"
 
-    - Is there anything that can be clarified?
-      - Respond with at most 5 short bullet points about what can be clarified.
-      - Do not report things that you are not sure about.
+    - Is the content of the slide correct?
+      - Answer with "The slide is correct" or "The slide is not correct"
+
+    - What can be clarified or improved?
+      - Respond with at most 3 short bullet points about what can be clarified
+        or improved.
+      - You MUST report only things that you are sure about.
     """
     pre_transforms: Set[str] = set()
     post_transforms: Set[str] = set()

@@ -45,6 +45,7 @@ import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
+import helpers.hlatex as hlatex
 
 _LOG = logging.getLogger(__name__)
 
@@ -232,13 +233,20 @@ def _main(parser: argparse.ArgumentParser) -> None:
         hparser.adapt_input_output_args_for_dockerized_scripts(in_file_name, tag)
     )
     if args.prompt == "md_to_latex":
-        import helpers.hlatex as hlatex
         # Read the input.
         txt = hparser.read_file(tmp_in_file_name)
         txt = "\n".join(txt)
         #txt = hmarkdo.format_markdown(txt)
         txt = hlatex.convert_pandoc_md_to_latex(txt)
         txt = hmarkdo.format_latex(txt)
+        hparser.write_file(txt, out_file_name)
+        return
+    elif args.prompt == "md_clean_up":
+        # Read the input.
+        txt = hparser.read_file(tmp_in_file_name)
+        txt = "\n".join(txt)
+        txt = hmarkdo.md_clean_up(txt)
+        txt = hmarkdo.format_markdown(txt)
         hparser.write_file(txt, out_file_name)
         return
 
