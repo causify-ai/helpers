@@ -5101,7 +5101,6 @@ useDefault = true
     regex = '''(ya29.[0-9A-Za-z-_]+)'''
     tags = ["secret"]
 
-
 [[rules]]
     id = "rule1252"
     description = '''mailchimp'''
