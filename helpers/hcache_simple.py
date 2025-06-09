@@ -62,8 +62,8 @@ def get_cache_perf_stats(func_name: str) -> str:
     """
     Get the cache performance statistics for a given function.
 
-    :param func_name: The name of the function whose cache performance stats are
-        to be retrieved.
+    :param func_name: The name of the function whose cache performance
+        stats are to be retrieved.
     :return: A string with the cache performance statistics.
     """
     perf = get_cache_perf(func_name)
@@ -163,7 +163,8 @@ def set_cache_property(
     """
     Set a property for the cache of a given function name.
 
-    :param func_name: The name of the function whose cache property is to be set.
+    :param func_name: The name of the function whose cache property is
+        to be set.
     :param property_name: The name of the property to set.
     :param val: The value to set for the property.
     """
@@ -217,9 +218,10 @@ def cache_property_to_str(type_: str, func_name: str = "") -> str:
     """
     Convert cache properties to a string representation.
 
-    :param type_: The type of cache properties to convert ('user' or 'system').
-    :param func_name: The name of the function whose cache properties are to be
-        converted.
+    :param type_: The type of cache properties to convert ('user' or
+        'system').
+    :param func_name: The name of the function whose cache properties
+        are to be converted.
     :return: A string representation of the cache properties.
     """
     txt: List[str] = []
@@ -351,8 +353,10 @@ def get_cache_func_names(type_: str) -> List[str]:
     """
     Retrieve the cache function names based on the specified type.
 
-    :param type_: The type of cache to retrieve ('all', 'mem', or 'disk').
-    :return: A list of function names corresponding to the specified cache type.
+    :param type_: The type of cache to retrieve ('all', 'mem', or
+        'disk').
+    :return: A list of function names corresponding to the specified
+        cache type.
     """
     if type_ == "all":
         mem_func_names = get_cache_func_names("mem")
@@ -383,7 +387,8 @@ def get_cache(func_name: str) -> _CacheType:
     """
     Retrieve the cache for a given function name.
 
-    :param func_name: The name of the function whose cache is to be retrieved.
+    :param func_name: The name of the function whose cache is to be
+        retrieved.
     :return: A dictionary containing the cache data.
     """
     global _CACHE
@@ -507,9 +512,7 @@ def simple_cache(
                 hdbg.dassert_in("tot", cache_perf)
                 cache_perf["tot"] += 1
             # Handle a forced refresh.
-            force_refresh = get_cache_property(
-                "user", func_name, "force_refresh"
-            )
+            force_refresh = get_cache_property("user", func_name, "force_refresh")
             _LOG.debug("force_refresh=%s", force_refresh)
             if not force_refresh and key in cache:
                 _LOG.debug("Cache hit for key='%s'", key)

@@ -288,9 +288,7 @@ def dedent(txt: str, *, remove_lead_trail_empty_lines_: bool = True) -> str:
     # Find the minimum number of leading spaces.
     min_num_spaces = None
     for curr_line in txt.split("\n"):
-        _LOG.debug(
-            "min_num_spaces=%s: curr_line='%s'", min_num_spaces, curr_line
-        )
+        _LOG.debug("min_num_spaces=%s: curr_line='%s'", min_num_spaces, curr_line)
         # Skip empty lines.
         if curr_line.lstrip().rstrip() == "":
             _LOG.debug("  -> Skipping empty line")
@@ -1016,7 +1014,6 @@ def config_notebook(sns_set: bool = True) -> None:
     plt.rcParams["legend.fontsize"] = 14
     plt.rcParams["font.size"] = 14
     plt.rcParams["image.cmap"] = "rainbow"
-
     if False:
         # Tweak the size of the plots to make it more readable when embedded in
         # documents or presentations.
@@ -1042,20 +1039,17 @@ def config_notebook(sns_set: bool = True) -> None:
         plt.rc("legend", fontsize=small_size)
         # Fontsize of the figure title.
         plt.rc("figure", titlesize=bigger_size)
-
     # Seaborn.
     import seaborn as sns
 
     if sns_set:
         sns.set()
-
     # Pandas.
     import pandas as pd
 
     pd.set_option("display.max_rows", 500)
     pd.set_option("display.max_columns", 500)
     pd.set_option("display.width", 1000)
-
     # Warnings.
     import helpers.hwarnings as hwarnin
 
