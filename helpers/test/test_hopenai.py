@@ -133,7 +133,6 @@ class BaseOpenAICacheTest(hunitest.TestCase):
     """
 
     @pytest.fixture(autouse=True)
-
     def setup_teardown_test(self, pytestconfig):
         # Creating hopeani._CompletionCache instance.
         self.get_completion_cache = hopenai._CompletionCache(
@@ -282,3 +281,90 @@ class Test_hash_key_generator(BaseOpenAICacheTest):
         hash_key3 = self.get_completion_cache.hash_key_generator(**parameters3)
         hash_key4 = self.get_completion_cache.hash_key_generator(**parameters4)
         self.assertNotEqual(hash_key3, hash_key4)
+
+
+# #############################################################################
+# Test_has_cache
+# #############################################################################
+
+
+class Test_has_cache(BaseOpenAICacheTest):
+
+    def test1(self) -> None:
+        """
+        Should return False if cache doesn't exist.
+        """
+        # These parameters are not saved in the cache file.
+        parameters4 = _get_openai_request_parameters4()
+        hash_key4 = self.get_completion_cache.hash_key_generator(**parameters4)
+        self.assertFalse(self.get_completion_cache.has_cache(hash_key=hash_key4))
+
+    def test2(self) -> None:
+        """
+        Should return True if cache exists.
+        """
+        # These parameters are stored in the cache through Set up function
+        parameters1 = _get_openai_request_parameters1()
+        hash_key1 = self.get_completion_cache.hash_key_generator(**parameters1)
+        self.assertTrue(self.get_completion_cache.has_cache(hash_key=hash_key1))
+
+
+# #############################################################################
+# Test_save_response_to_cache
+# #############################################################################
+
+
+class Test_save_response_to_cache(BaseOpenAICacheTest):
+
+    def test1(self) -> None:
+        """
+        Verify if response saves into cache.
+        """
+        parameters4 = _get_openai_request_parameters4()
+        dummy_response1 = _get_dummy_openai_response1()
+        hash_key4 = self.get_completion_cache.hash_key_generator(**parameters4)
+        self.get_completion_cache.save_response_to_cache(
+            hash_key=hash_key4, request=parameters4, response=dummy_response1
+        )
+        self.assertEqual(
+            dummy_response1["choices"][0]["message"]["content"],
+            self.get_completion_cache.load_response_from_cache(
+                hash_key=hash_key4
+            ),
+        )
+        self.assertTrue(self.get_completion_cache.has_cache(hash_key=hash_key4))
+
+
+# #############################################################################
+# Test_load_response_from_cache
+# #############################################################################
+
+
+class Test_load_response_from_cache(BaseOpenAICacheTest):
+
+    def test1(self) -> None:
+        """
+        Verify if stored response can be loaded.
+        """
+        # This response  saved in test cache through set up function.
+        dummy_response1 = _get_dummy_openai_response1()
+        # same parameters used to save the above response in test cache.
+        parameters1 = _get_openai_request_parameters1()
+        hash_key1 = self.get_completion_cache.hash_key_generator(**parameters1)
+        self.assert_equal(
+            dummy_response1["choices"][0]["message"]["content"],
+            self.get_completion_cache.load_response_from_cache(
+                hash_key=hash_key1
+            ),
+        )
+
+    def test2(self) -> None:
+        """
+        Trying to load unsaved response from cache.
+        """
+        # These parameters are not stored in cache.s
+        parameters4 = _get_openai_request_parameters4()
+        hash_key4 = self.get_completion_cache.hash_key_generator(**parameters4)
+        with self.assertRaises(ValueError) as VE:
+            self.get_completion_cache.load_response_from_cache(hash_key=hash_key4)
+        self.assert_equal(str(VE.exception), "No cache found!")
