@@ -359,18 +359,24 @@ def get_docker_base_cmd(use_sudo: bool) -> List[str]:
     vars_to_pass = sorted(vars_to_pass)
     vars_to_pass_as_str = " ".join(f"-e {v}" for v in vars_to_pass)
     # Build the command as a list.
-    host_cov_dir = os.path.abspath("coverage_data")
-    os.makedirs(host_cov_dir, exist_ok=True)
-    os.chmod(host_cov_dir, 0o777)
-    coverage_dir_container = "/app/coverage_data"
     docker_cmd = [
         docker_executable,
         "run --rm",
         "--user $(id -u):$(id -g)",
         vars_to_pass_as_str,
-        f"-e COVERAGE_FILE={coverage_dir_container}/.coverage",
-        f"-e COVERAGE_PROCESS_START={coverage_dir_container}/.coveragerc",
     ]
+
+    if os.environ.get("COVERAGE_PROCESS_START"):
+        host_cov_dir = os.path.abspath("coverage_data")
+        os.makedirs(host_cov_dir, exist_ok=True)
+        os.chmod(host_cov_dir, 0o777)
+        coverage_dir_container = "/app/coverage_data"
+        
+        docker_cmd.extend([
+            f"-e COVERAGE_FILE={coverage_dir_container}/.coverage",
+            f"-e COVERAGE_PROCESS_START={coverage_dir_container}/.coveragerc",
+        ])
+
     return docker_cmd
 
 
@@ -402,6 +408,7 @@ def build_container_image(
     _LOG.debug(hprint.func_signature_to_str("dockerfile"))
     #
     dockerfile = hprint.dedent(dockerfile)
+    # Add install coverage and hook to the Dockerfile.
     dockerfile = (
         dockerfile.strip() + "\n" + hcovinje.generate_temp_dockerfile_content()
     )

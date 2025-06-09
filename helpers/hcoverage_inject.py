@@ -39,15 +39,15 @@ def _detect_site_packages() -> Path:
     return Path(site.getusersitepackages())
 
 
-def hinject(coveragerc: str = ".coveragerc") -> None:
+def inject(coveragerc: str = ".coveragerc") -> None:
     """
-    Install the coverage startup hook into this env’s site-packages using sudo
+    Install the coverage startup hook into this envs site-packages using sudo
     tee.
     """
     rc = Path(coveragerc).resolve()
     if not rc.is_file():
         raise FileNotFoundError(f".coveragerc not found at {rc}")
-    os.environ.setdefault("COVERAGE_PROCESS_START", str(rc))
+    hsystem.system(f"export COVERAGE_PROCESS_START={rc}")
     sp = _detect_site_packages()
     target = sp / "coverage.pth"
     hook_line = "import coverage; coverage.process_startup()"
@@ -60,9 +60,9 @@ def hinject(coveragerc: str = ".coveragerc") -> None:
         raise
 
 
-def hremove() -> None:
+def remove() -> None:
     """
-    Remove the coverage startup hook from this env’s site-packages using sudo
+    Remove the coverage startup hook from this envs site-packages using sudo
     rm.
     """
     sp = _detect_site_packages()
@@ -77,42 +77,68 @@ def hremove() -> None:
             raise
     else:
         _LOG.warning("No coverage.pth found in %s", sp)
+        # Remove coverage environment variables.
+
+    try:
+        if "COVERAGE_PROCESS_START" in os.environ:
+            hsystem.system("unset COVERAGE_PROCESS_START")
+            _LOG.info("Removed COVERAGE_PROCESS_START from environment")
+        else:
+            _LOG.info("COVERAGE_PROCESS_START not found in environment")
+    except Exception as e:
+        _LOG.error("Failed to remove COVERAGE_PROCESS_START: %s", e)
+        raise
 
 
 def generate_temp_dockerfile_content() -> str:
     """
-    Build a Dockerfile string that:
-      1. Starts FROM base_image
-      2. Installs coverage, pytest, pytest-cov at build time
-      3. Creates /coverage_data and writes .coveragerc
-      4. Sets ENV COVERAGE_PROCESS_START to /coverage_data/.coveragerc
-      5. Writes a coverage.pth into site-packages so coverage auto-starts
+    Build a Dockerfile string that appends coverage support:
+      1. Installs coverage, pytest, pytest-cov at build time
+      2. Creates /coverage_data and writes .coveragerc
+      3. Sets ENV COVERAGE_PROCESS_START to /coverage_data/.coveragerc
+      4. Writes a coverage.pth into site-packages so coverage auto-starts
     """
-    lines = []
-    lines.append("")  # blank line for readability
-    # 2) Install coverage & pytest
-    lines.append("RUN pip install --no-cache-dir coverage pytest pytest-cov")
-    lines.append("")
-    # 3) Create /coverage_data
-    lines.append(
-        "RUN mkdir -p /app/coverage_data && chmod 777 /app/coverage_data"
+    
+    # Install coverage and testing dependencies.
+    install_deps = [
+        "RUN pip install --no-cache-dir coverage pytest pytest-cov",
+        ""
+    ]
+    
+    # Create coverage data directory.
+    create_directory = [
+        "RUN mkdir -p /app/coverage_data && chmod 777 /app/coverage_data",
+        ""
+    ]
+    
+    # Setup coverage configuration.
+    setup_config = [
+        "COPY .coveragerc /app/coverage_data/.coveragerc",
+        "ENV COVERAGE_PROCESS_START=/app/coverage_data/.coveragerc",
+        ""
+    ]
+    
+    # Create coverage.pth file for automatic startup.
+    create_pth = [
+        "RUN python - <<PYCODE",
+        "import site, os",
+        "site_dir = site.getsitepackages()[0]",
+        "pth_file = os.path.join(site_dir, 'coverage.pth')",
+        "with open(pth_file, 'w') as f:",
+        "    f.write('import coverage; coverage.process_startup()')",
+        "PYCODE"
+    ]
+    
+    # Combine all sections.
+    all_lines = (
+        [""] +
+        install_deps +
+        create_directory +
+        setup_config +
+        create_pth
     )
-    lines.append("")
-    # 4) Write .coveragerc into /coverage_data
-    # 5) Set ENV so every Python run picks up .coveragerc
-    lines.append("COPY .coveragerc /app/coverage_data/.coveragerc")
-    lines.append("ENV COVERAGE_PROCESS_START=/app/coverage_data/.coveragerc")
-    lines.append("")
-    # 6) Write coverage.pth into site-packages
-    lines.append("RUN python - <<PYCODE")
-    lines.append("import site, os")
-    lines.append("site_dir = site.getsitepackages()[0]")
-    lines.append("pth_file = os.path.join(site_dir, 'coverage.pth')")
-    lines.append("with open(pth_file, 'w') as f:")
-    lines.append("    f.write('import coverage; coverage.process_startup()')")
-    lines.append("PYCODE")
-    # Final newline
-    return "\n".join(lines)
+    
+    return "\n".join(all_lines)
 
 
 def coverage_commands_subprocess() -> None:
