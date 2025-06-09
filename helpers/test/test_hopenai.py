@@ -437,21 +437,14 @@ class Test_load_response_from_cache(BaseOpenAICacheTest):
 
 class Test_response_to_txt(hunitest.TestCase):
 
-    # --- Dummy classes to satisfy isinstance checks --- #
+    # Dummy classes to satisfy isinstance checks.
+
     class DummyChatCompletion:
 
         def __init__(self, text: str = "") -> None:
             msg = types.SimpleNamespace(content=text)
             choice = types.SimpleNamespace(message=msg)
             self.choices = [choice]
-
-    # class DummySyncCursorPage:
-    #     def __init__(self, text=""):
-    #         # mimic .data[0].content[0].text.value
-    #         text_obj = types.SimpleNamespace(value=text)
-    #         content_item = types.SimpleNamespace(text=text_obj)
-    #         data_item = types.SimpleNamespace(content=[content_item])
-    #         self.data = [data_item]
 
     class DummyThreadMessage:
 
@@ -468,14 +461,6 @@ class Test_response_to_txt(hunitest.TestCase):
     def test_chat_completion_branch(self) -> None:
         resp = Test_response_to_txt.DummyChatCompletion("hello chat")
         self.assert_equal(hopenai.response_to_txt(resp), "hello chat")
-
-    # @umock.patch(
-    #     "helpers.hopenai.openai.pagination.SyncCursorPage",
-    #     new=DummySyncCursorPage,
-    # )
-    # def test_sync_cursor_page_branch(self):
-    #     resp = TestResponseToTxt.DummySyncCursorPage("paged text")
-    #     self.assertEqual(response_to_txt(resp), "paged text")
 
     @umock.patch(
         "openai.types.beta.threads.message.Message",

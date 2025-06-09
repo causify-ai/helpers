@@ -45,8 +45,8 @@ def response_to_txt(response: Any) -> str:
     """
     if isinstance(response, openai.types.chat.chat_completion.ChatCompletion):
         ret = response.choices[0].message.content
-    # elif isinstance(response, openai.pagination.SyncCursorPage):
-    #     ret = response.data[0].content[0].text.value
+    elif isinstance(response, openai.pagination.SyncCursorPage):
+        ret = response.data[0].content[0].text.value
     elif isinstance(response, openai.types.beta.threads.message.Message):
         ret = response.content[0].text.value
     elif isinstance(response, str):
