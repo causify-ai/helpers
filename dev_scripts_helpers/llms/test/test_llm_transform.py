@@ -34,7 +34,7 @@ class Test_llm_transform1(hunitest.TestCase):
         Set up the test environment by creating an input markdown file and
         determining the script and output file paths.
 
-        :returns: A tuple containing the script path, input file path,
+        :return: A tuple containing the script path, input file path,
             and output file path.
         """
         if txt_id == 0:

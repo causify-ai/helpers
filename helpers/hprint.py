@@ -463,7 +463,7 @@ def round_digits(
         (Default value = 2)
     :param use_thousands_separator: use "," to separate thousands
         (Default value = False)
-    :returns: str with formatted value
+    :return: str with formatted value
     """
     if (num_digits is not None) and isinstance(v, float):
         fmt = "%0." + str(num_digits) + "f"

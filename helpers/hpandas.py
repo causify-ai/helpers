@@ -1127,15 +1127,8 @@ def infer_column_types_df(df: pd.DataFrame) -> pd.DataFrame:
     """
     Identify the predominant data type for each column in a DataFrame.
 
-    Parameters
-    ----------
-    df : pandas.DataFrame
-        The DataFrame whose columns will be analyzed.
-
-    Returns
-    -------
-    pandas.DataFrame
-        A DataFrame with two columns:
+    :param df: The DataFrame whose columns will be analyzed.
+    :return: A DataFrame with two columns:
         - `column`: the name of each original column.
         - `predominant_type`: the most frequent type in that column,
           one of `"string"`, `"numeric"`, or `"bool"`.
@@ -1147,21 +1140,14 @@ def convert_to_type(col: pd.Series, type_: str) -> pd.Series:
     """
     Convert a pandas Series to a specified data type.
 
-    Parameters
-    ----------
-    col : pandas.Series
-        The input column to be converted.
-    type_ : str
-        The target data type. Expected values include:
+    :param col: The input column to be converted.
+    :param type_: The target data type. Expected values include:
         - `"is_bool"`: convert values to booleans.
         - `"is_int"`: convert values to integers.
         - `"is_numeric"`: convert values to float.
         - `"is_string"`: convert values to strings.
-
-    Returns
-    -------
-    pandas.Series
-        A new Series with the same index as `col`, cast to the requested type.
+    :return: A new Series with the same index as `col`, cast to the requested
+        type.
     """
     if type_ == "is_bool":
         return col.map(
@@ -1721,23 +1707,11 @@ def convert_df(
     majority of its values are boolean, numeric, or string, and then
     casts the column to that type using `convert_to_type`.
 
-    Parameters
-    ----------
-    df : pandas.DataFrame
-        The input DataFrame whose columns will be converted.
-    print_invalid_values : bool, optional
-        If True, print any original values that could not be converted
-        (they become NaN after conversion). Default is False.
-
-    Returns
-    -------
-    pandas.DataFrame
-        A new DataFrame with each column cast to its detected predominant type.
-
-    Raises
-    ------
-    ValueError
-        If a column’s detected type is not one of 'is_bool', 'is_numeric', or 'is_string'.
+    :param df: The input DataFrame whose columns will be converted.
+    :param print_invalid_values: If True, print any original values that could
+        not be converted (they become NaN after conversion)
+    :return: a new DataFrame with each column cast to its detected predominant
+        type.
     """
     df_out = pd.DataFrame(index=df.index)
     for col in df.columns:

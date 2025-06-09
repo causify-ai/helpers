@@ -64,7 +64,7 @@ def get_cache_perf_stats(func_name: str) -> str:
 
     :param func_name: The name of the function whose cache performance stats are
         to be retrieved.
-    :returns: A string with the cache performance statistics.
+    :return: A string with the cache performance statistics.
     """
     perf = get_cache_perf(func_name)
     if perf is None:
@@ -220,7 +220,7 @@ def cache_property_to_str(type_: str, func_name: str = "") -> str:
     :param type_: The type of cache properties to convert ('user' or 'system').
     :param func_name: The name of the function whose cache properties are to be
         converted.
-    :returns: A string representation of the cache properties.
+    :return: A string representation of the cache properties.
     """
     txt: List[str] = []
     if func_name == "":
