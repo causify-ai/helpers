@@ -839,30 +839,6 @@
 
 # Markdown
 
-## Naming
-
-### LLM
-
-- Boldface and italics should be used sparingly
-- The use of bullet point lists is encouraged
-  - For the items, `-` should be used instead of `*` or circles
-- Use active voice most of the time and use passive voice sparingly
-  - Good: "The user updates the file."
-  - Bad: "The file is updated by the user."
-- Be efficient
-  - Do not explain things in a repetitive way
-  - Rewrite long-winded AI-generated texts in a concise way
-  - E.g., instead of "The process of updating the software can be done by
-    following these steps," use "Update the software by following these steps"
-
-- When describing a tool the format should be the following
-  - A description of what the tool does
-  - A list of examples of invocations of a tool, with a comment on the command
-    line, the command line, and its output if possible
-  - A copy-paste version of the tool interface running `-h`
-
-### Linter
-
 ## General
 
 ### LLM
@@ -879,24 +855,19 @@
   - The `{topic}` part describes the subject matter of the documentation
   - The `{diataxis_tag}` part categorizes the documentation according to the
     Diátaxis framework (e.g., explanation, tutorial)
+
 - All Markdown files should have a table of contents
-  - Linter automatically adds and updates the table of contents
-- Items in bullet point lists should not end with a period
+  - The linter automatically adds and updates the table of contents
+
 - There should be one and only one level 1 heading (with one `#`) in a Markdown
   - The level 1 heading serves as the main title of the document
   - It should clearly convey the primary topic or purpose of the document
   - The level 1 heading should be located above the table of contents
+
 - Wrap file paths, names of variables, functions, and classes in backticks
   - E.g., `file_path`, `variable_name`, `function_name()`, `ClassName`
 - Use `>` to indicate a command line
   - E.g., `> git push` or `docker> pytest`
-- Headings should not be boldfaced
-- Headings should not be overcapitalized
-  - E.g., `Data schema` instead of `Data Schema`
-- Text should be reflowed to the maximum of 80 columns per line
-- Fenced code blocks should always be accompanied by language markers
-  - E.g., `bash`, `python`
-  - Fenced code blocks should be indented at the same level as the previous line
 - Commands should be prepended by `>`
   - Example
     ```
@@ -913,3 +884,62 @@
   the right highlighting
   - E.g., instead of a screenshot of a terminal command, provide the command
     text: `> ls -la`
+
+## Headers
+
+### LLM
+
+- Do not use bold or italics in headings
+- Headings should not be overcapitalized
+  - E.g., `Data schema` instead of `Data Schema`
+  - TODO(gp): Need to decide
+- Use headers so that it's easy to refer to something by link
+- We want to use level 2 headers 
+
+### Linter
+
+## Text
+
+### LLM
+
+- We use bullet point lists
+  - For the items, `-` should be used instead of `*` or circles
+  - Items in bullet point lists should not end with a period
+
+- Boldface and italics should be used sparingly throughout the text
+
+- Structure the text so that bullet points of higher level correspond to
+  "nesting" int he concept
+
+- Examples should go in a sub-bullet
+  - Good
+    ```
+    - We typically increment the revision, likely a minor one
+      - E.g., from `v0.3` to `v0.3.1`
+    ```
+
+- Use "you" and not "we" or "one"
+  - Let's just be direct: no need to be passive-aggressive
+
+- Text should be reflowed to the maximum of 80 columns per line
+  - The linter performs this operation automatically
+- Fenced code blocks should always be accompanied by language markers
+  - E.g., `bash`, `python`
+  - Fenced code blocks should be indented at the same level as the previous line
+
+- Use active voice most of the time and use passive voice sparingly
+  - Good: "The user updates the file."
+  - Bad: "The file is updated by the user."
+- Be efficient
+  - Do not explain things in a repetitive way
+  - Rewrite long-winded AI-generated texts in a concise way
+  - E.g., instead of "The process of updating the software can be done by
+    following these steps," use "Update the software by following these steps"
+
+- When describing a tool the format should be the following
+  - A description of what the tool does
+  - A list of examples of invocations of a tool, with a comment on the command
+    line, the command line, and its output if possible
+  - A copy-paste version of the tool interface running `-h`
+
+### Linter
