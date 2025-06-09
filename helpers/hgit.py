@@ -282,7 +282,7 @@ def find_helpers_root(dir_path: str = ".") -> str:
     repository is returned. Otherwise, the function searches for the `helpers_root`
     directory starting from the root of the repository.
 
-    :returns: The absolute path to the `helpers_root` directory.
+    :return: The absolute path to the `helpers_root` directory.
     """
     with hsystem.cd(dir_path):
         git_root = find_git_root()

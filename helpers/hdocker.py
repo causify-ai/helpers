@@ -80,6 +80,9 @@ def process_docker_cmd(
         # TODO(gp): Note that `suppress_output=False` seems to hang the call.
         hsystem.system(docker_cmd, suppress_output=False)
         ret = ""
+    elif mode == "system_without_output":
+        hsystem.system(docker_cmd, suppress_output=True)
+        ret = ""
     elif mode == "save_to_file":
         file_name = f"tmp.process_docker_cmd.{container_image}.txt"
         txt = []
