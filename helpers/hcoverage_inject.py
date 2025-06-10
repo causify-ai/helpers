@@ -4,6 +4,8 @@ Import as:
 import helpers.hcoverage_inject as hcovinje
 """
 
+# TODO(Maddy): -> hcoverage.py
+
 import logging
 import os
 import pathlib
@@ -12,16 +14,17 @@ import sysconfig
 
 import helpers.hsystem as hsystem
 
-Path = pathlib.Path
 _LOG = logging.getLogger(__name__)
 
 
+# TODO(Maddy): Let's use pathlib.Path even if it's a bit verbose to follow our
+# conventions.
 def _detect_site_packages() -> Path:
     """
     Return the Path to the site-packages directory for the active interpreter.
 
-    Tries sysconfig first; falls back to site.getsitepackages() or user-
-    site.
+    - Try sysconfig first
+    - Fall back to site.getsitepackages() or user-site.
     """
     try:
         purelib = sysconfig.get_path("purelib")
@@ -57,7 +60,7 @@ def inject(coveragerc: str = ".coveragerc") -> None:
         _LOG.info("Installed coverage hook to %s via sudo tee", target)
     except Exception as e:
         _LOG.error("Failed to install coverage hook via sudo tee: %s", e)
-        raise
+        raise e
 
 
 def remove() -> None:
@@ -89,6 +92,7 @@ def remove() -> None:
         raise
 
 
+# TODO(Maddy): -> generate_coverage_dockerfile()
 def generate_temp_dockerfile_content() -> str:
     """
     Build a Dockerfile string that appends coverage support:
@@ -97,6 +101,8 @@ def generate_temp_dockerfile_content() -> str:
       3. Sets ENV COVERAGE_PROCESS_START to /coverage_data/.coveragerc
       4. Writes a coverage.pth into site-packages so coverage auto-starts
     """
+    # TODO(Maddy): Let's use a string in """ and we can also add the comments
+    # insides."
     # Install coverage and testing dependencies.
     install_deps = [
         "RUN pip install --no-cache-dir coverage pytest pytest-cov",
