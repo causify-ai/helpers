@@ -1257,6 +1257,8 @@ def docker_create_candidate_image(ctx, container_dir_name=".", user_tag=""):  # 
 
     :param task_definition: the name of the ECS task definition for
         which an update to container image URL is made, e.g. cmamp-test
+    :param container_dir_name: the runnable dir path (e.g.
+        `./ck.infra/`)
     :param user_tag: the name of the user creating the image, empty
         parameter means the command was run via gh actions
     :param region: AWS Region, for Tokyo region specify 'ap-northeast-1'
