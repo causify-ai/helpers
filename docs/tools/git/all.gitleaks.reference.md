@@ -2,9 +2,8 @@
 
 - [Gitleaks](#gitleaks)
   * [Gitleaks Integration in GitHub Actions](#gitleaks-integration-in-github-actions)
-    + [Features](#features)
-    + [Setup](#setup)
     + [Configuration](#configuration)
+    + [Additional Resources](#additional-resources)
 
 <!-- tocstop -->
 
@@ -41,39 +40,44 @@
   ]
   ```
 
+  ````
+
 - Rules extension
- - We can extend our custom ruleset to also include the default ruleset provided by
- Gitleaks.
- - `[extend]` - The flag that extends the custom ruleset. Has to be used with
-   `useDefault = true`:
-   ```toml
-   [extend]
-   useDefault = true
-   ```
+- We can extend our custom ruleset to also include the default ruleset provided
+  by Gitleaks.
+- `[extend]` - The flag that extends the custom ruleset. Has to be used with
+  `useDefault = true`:
+
+  ```toml
+  [extend]
+  useDefault = true
+  ```
 
 - Rules
-    - Each rule is defined with:
-    - `id` - A unique identifier for each rule
-    - `description` - Short human readable description of the rule
-    - `regex` - Golang regular expression used to detect secrets
-    - `tags` - Array of strings used for metadata and reporting purposes
+  - Each rule is defined with:
+  - `id` - A unique identifier for each rule
+  - `description` - Short human readable description of the rule
+  - `regex` - Golang regular expression used to detect secrets
+  - `tags` - Array of strings used for metadata and reporting purposes
 
-- To prevent specific lines of code from being scanned by Gitleaks, we can use the
-`.gitleaksignore` file.
+- To prevent specific lines of code from being scanned by Gitleaks, we can use
+  the `.gitleaksignore` file.
 - It uses "fingerprints" to define the leaks.
 - Gitleaks itself generates these fingerprints when it detects a leak. Then it
- can be simply added to the file.
+  can be simply added to the file.
 - The file can be placed at the root directory of a repo.
 
 Examples of a fingerprint:
-  ```bash
-  > ck.infra/infra/terraform/environments/preprod/ap-northeast-1/terraform.tfvars:rule3:429
-  > 93f292c3dfa2649ef91f8925b623e79546fa992e:README.md:aws-access-token:121
-  ````
+
+```bash
+> ck.infra/infra/terraform/environments/preprod/ap-northeast-1/terraform.tfvars:rule3:429
+> 93f292c3dfa2649ef91f8925b623e79546fa992e:README.md:aws-access-token:121
+```
 
 ### Additional Resources
 
-- The official GitHub page for Gitleaks - https://github.com/gitleaks/gitleaks
-  https://github.com/gitleaks/gitleaks-action/tree/master
+- The official GitHub page for Gitleaks -
+  [https://github.com/gitleaks/gitleaks](https://github.com/gitleaks/gitleaks)
+  [https://github.com/gitleaks/gitleaks-action/tree/master](https://github.com/gitleaks/gitleaks-action/tree/master)
 - The custom ruleset was based on -
-  https://github.com/mazen160/secrets-patterns-db
+  [https://github.com/mazen160/secrets-patterns-db](https://github.com/mazen160/secrets-patterns-db)

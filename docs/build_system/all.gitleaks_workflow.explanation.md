@@ -1,20 +1,10 @@
-
-
 <!-- toc -->
 
 - [Gitleaks Integration in GitHub Actions](#gitleaks-integration-in-github-actions)
-  * [Overview](#overview)
-  * [Features](#features)
-  * [Setup](#setup)
-  * [Rules and Exceptions](#rules-and-exceptions)
-    + [1. `title`](#1-title)
-    + [2. Allowlist](#2-allowlist)
-    + [3. Rules extension](#3-rules-extension)
-    + [4. Rules](#4-rules)
-    + [.gitleaksignore](#gitleaksignore)
-  * [Notifications](#notifications)
-  * [Running Gitleaks locally](#running-gitleaks-locally)
-  * [Additional Resources](#additional-resources)
+    + [Features](#features)
+    + [Setup](#setup)
+    + [Notifications](#notifications)
+    + [Additional Resources](#additional-resources)
 
 <!-- tocstop -->
 
@@ -24,7 +14,7 @@
   - [/docs/tools/git/all.gitleaks.reference.md](/docs/tools/git/all.gitleaks.reference.md)
   - [/docs/tools/git/all.gitleaks.reference.md](/docs/tools/git/all.gitleaks.reference.md)
 
-### Features
+## Features
 
 - **Automatic Scanning**: Gitleaks runs automatically on every pull request to
   the master branch and for every push to the master branch. This ensures that
@@ -49,8 +39,9 @@
 
 ### Additional Resources
 
-- The official GitHub page for Gitleaks - https://github.com/gitleaks/gitleaks
+- The official GitHub page for Gitleaks -
+  [https://github.com/gitleaks/gitleaks](https://github.com/gitleaks/gitleaks)
 - For more information about how Gitleaks functions in GH Actions -
-  https://github.com/gitleaks/gitleaks-action/tree/master
+  [https://github.com/gitleaks/gitleaks-action/tree/master](https://github.com/gitleaks/gitleaks-action/tree/master)
 - The custom ruleset was based on -
-  https://github.com/mazen160/secrets-patterns-db
+  [https://github.com/mazen160/secrets-patterns-db](https://github.com/mazen160/secrets-patterns-db)
