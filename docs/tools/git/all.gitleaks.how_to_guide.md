@@ -33,7 +33,7 @@
 
 ## How to remove leaks from previous commits in PR
 
-- Sometimes leaks are committed to a PR, even after we remove them, the leaks
+- Sometimes leaks are committed to a PR. Even after we remove them, the leaks
   still exist in the commit history
 - Because of the leaks in the commit history, the Gitleaks GH Actions will fail
 - To remove the leaks from the commit history, we can use the following methods:
@@ -56,13 +56,13 @@
   ```
 
 - Option 2: Rebase and squash only the commits that contain the leaks
-  - Use this if we want to keep some commit history in the PRs
+  - Use this if we want to retain some commit history in the PRs
   - See [this guide](https://www.datacamp.com/tutorial/git-squash-commits) for
     more details on how to rebase and squash commits
 
 ## How to run Gitleaks locally
 
-The easiest way to run gitleaks locally is with docker.
+The easiest way to run gitleaks locally is with Docker
 
 - First, pull the image:
 
@@ -72,29 +72,29 @@ The easiest way to run gitleaks locally is with docker.
 
 - Scan git repositories for secrets (including git history)
 
-```bash
-> docker run -v $(pwd):/path zricethezav/gitleaks:latest git /path -v -c /path/.github/gitleaks-rules.toml
-    ○
-    │╲
-    │ ○
-    ○ ░
-    ░    gitleaks
+  ```bash
+  > docker run -v $(pwd):/path zricethezav/gitleaks:latest git /path -v -c /path/.github/gitleaks-rules.toml
+      ○
+      │╲
+      │ ○
+      ○ ░
+      ░    gitleaks
 
-7:52PM INF 1540 commits scanned.
-7:52PM INF scanned ~51542901 bytes (51.54 MB) in 46.4s
-7:52PM INF no leaks found
-```
+  7:52PM INF 1540 commits scanned.
+  7:52PM INF scanned ~51542901 bytes (51.54 MB) in 46.4s
+  7:52PM INF no leaks found
+  ```
 
 - Scan directories or files for secrets
 
-```bash
-> docker run -v $(pwd):/path zricethezav/gitleaks:latest dir /path -v -c /path/.github/gitleaks-rules.toml
-    ○
-    │╲
-    │ ○
-    ○ ░
-    ░    gitleaks
+  ```bash
+  > docker run -v $(pwd):/path zricethezav/gitleaks:latest dir /path -v -c /path/.github/gitleaks-rules.toml
+      ○
+      │╲
+      │ ○
+      ○ ░
+      ░    gitleaks
 
-8:00PM INF scanned ~23901530 bytes (23.90 MB) in 26.1s
-8:00PM INF no leaks found
-```
+  8:00PM INF scanned ~23901530 bytes (23.90 MB) in 26.1s
+  8:00PM INF no leaks found
+  ```
