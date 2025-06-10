@@ -3,10 +3,10 @@
 - [Gitleaks](#gitleaks)
   * [Configuration](#configuration)
     + [`allowlists`](#allowlists)
-    + [Rule extensions](#rule-extensions)
+    + [Rule extension](#rule-extension)
     + [`rules`](#rules)
     + [.gitleaksignore`](#gitleaksignore)
-    + [Additional Resources](#additional-resources)
+  * [Additional Resource](#additional-resource)
 
 <!-- tocstop -->
 
@@ -44,7 +44,7 @@
   ```
   ````
 
-### Rule extensions
+### Rule extension
 
 - We can extend our custom ruleset to also include the default ruleset provided
   by Gitleaks with:
@@ -83,7 +83,7 @@
   ```
 - The file `.gitleaksignore` can be placed at the root directory of a repo
 
-### Additional Resources
+## Additional Resource
 
 - The official GitHub page for Gitleaks -
   [https://github.com/gitleaks/gitleaks](https://github.com/gitleaks/gitleaks)

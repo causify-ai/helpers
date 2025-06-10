@@ -1,10 +1,10 @@
 <!-- toc -->
 
 - [Gitleaks Integration in GitHub Actions](#gitleaks-integration-in-github-actions)
-  * [Features](#features)
+  * [Feature](#feature)
   * [Setup](#setup)
-  * [Notifications](#notifications)
-  * [Additional Resources](#additional-resources)
+  * [Notification](#notification)
+  * [Additional Resource](#additional-resource)
 
 <!-- tocstop -->
 
@@ -14,7 +14,7 @@
   - [/docs/tools/git/all.gitleaks.reference.md](/docs/tools/git/all.gitleaks.reference.md)
   - [/docs/tools/git/all.gitleaks.reference.md](/docs/tools/git/all.gitleaks.reference.md)
 
-## Features
+## Feature
 
 - **Automatic Scanning**: Gitleaks runs automatically on every pull request to
   the master branch and for every push to the master branch. This ensures that
@@ -34,12 +34,12 @@
 - **Running Environment**: The workflow runs on `ubuntu-latest` and uses GitHub
   action `gitleaks/gitleaks-action@v2` available on the marketplace
 
-## Notifications
+## Notification
 
 - **Slack**: Send a message to the `build-notifications` Slack channel if the
   workflow fails (e.g. if the leaks are detected)
 
-## Additional Resources
+## Additional Resource
 
 - The official GitHub page for Gitleaks -
   [https://github.com/gitleaks/gitleaks](https://github.com/gitleaks/gitleaks)
