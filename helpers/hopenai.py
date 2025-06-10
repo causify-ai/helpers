@@ -32,6 +32,23 @@ _LOG = logging.getLogger(__name__)
 _MODEL = "openai/gpt-4o-mini"
 
 # #############################################################################
+# Update llm cache
+# #############################################################################
+
+_UPDATE_LLM_CACHE = False
+
+
+def get_update_llm_cache() -> bool:
+    global _UPDATE_LLM_CACHE
+    return _UPDATE_LLM_CACHE
+
+
+def set_update_llm_cache(value: bool) -> None:
+    global _UPDATE_LLM_CACHE
+    _UPDATE_LLM_CACHE = value
+
+
+# #############################################################################
 # Utility Functions
 # #############################################################################
 
@@ -366,6 +383,10 @@ def get_completion(
     :param create_kwargs: additional params for the API call
     :return: completion text
     """
+    update_llm_cache = get_update_llm_cache()
+    if update_llm_cache:
+        _LOG.warning("# Update LLM cache.")
+        cache_mode = "CAPTURE"
     hdbg.dassert_in(cache_mode, ("REPLAY", "FALLBACK", "CAPTURE", "DISABLED"))
     if model == "":
         model = _get_default_model()

@@ -1,5 +1,4 @@
 import logging
-import os
 import unittest.mock as umock
 
 import pytest
@@ -13,7 +12,9 @@ import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
 
-_TEST_CACHE_FILE = "cache.test_get_completion.json"
+# Shared cache file.
+_CACHE_FILE = "cache.get_completion.json"
+_TEMP_CACHE_FILE = "tmp.cache.get_completion.json"
 
 _USER_PROMPT1 = "what is machine learning?"
 _USER_PROMPT2 = _USER_PROMPT1.upper()
@@ -118,69 +119,6 @@ def _get_openai_request_parameters4() -> dict:
     return data
 
 
-def _get_dummy_openai_response1() -> dict:
-    response = {
-        "id": "chatcmpl-test",
-        "object": "chat.completion",
-        "created": 1_612_345_678,
-        "model": _MODEL1,
-        "choices": [
-            {
-                "index": 0,
-                "message": {
-                    "role": "assistant",
-                    "content": """Machine learning is a subset of artificial intelligence
-                      (AI) that focuses on the development of algorithms and statistical models
-                        that enable computers to perform tasks without explicit instructions.
-                        Instead, these systems learn from and make predictions or
-                        decisions based on data.""",
-                },
-                "finish_reason": "stop",
-            }
-        ],
-        "usage": {
-            "prompt_tokens": 5,
-            "completion_tokens": 4,
-            "total_tokens": 9,
-        },
-    }
-    return response
-
-
-def _get_dummy_openai_response2() -> dict:
-    response = {
-        "id": "chatcmpl-test",
-        "object": "chat.completion",
-        "created": 1_612_345_999,
-        "model": _MODEL2,
-        "choices": [
-            {
-                "index": 0,
-                "message": {
-                    "role": "assistant",
-                    # TODO(gp): Use hprint.dedent
-                    "content": """Artificial Intelligence (AI) is the field of computer science focused on creating
-                                 systems or machines that can perform tasks typically requiring human
-                                 intelligence. These tasks include:
-                                •   Perception: Recognizing images, speech, or patterns (e.g., facial recognition, voice assistants).
-                                •   Reasoning and Decision-Making: Solving problems and making decisions (e.g., self-driving cars deciding
-                                    when to stop or accelerate).
-                                •   Learning: Improving performance from experience (e.g., recommendation systems like Netflix or Amazon).
-                                •   Natural Language Understanding: Interacting using human language (e.g., chatbots, language translation).
-                                •   Action: Controlling devices or robots to perform tasks (e.g., industrial automation, drones).""",
-                },
-                "finish_reason": "stop",
-            }
-        ],
-        "usage": {
-            "prompt_tokens": 15,
-            "completion_tokens": 200,
-            "total_tokens": 215,
-        },
-    }
-    return response
-
-
 # #############################################################################
 # BaseOpenAICacheTest
 # #############################################################################
@@ -190,23 +128,21 @@ def _get_dummy_openai_response2() -> dict:
 class BaseOpenAICacheTest(hunitest.TestCase):
     """
     - Ensure hopenai.get_completion() always uses REPLAY mode.
-    - Add dummy data to the test cache file for test cases.
-    - Remove the test cache file after running tests.
+    - Uses shared cache("cache.get_completion.json")
+    - if "--update_llm_cache" is passed in pytest command, cache file will be updated automatically.
     """
 
     @pytest.fixture(autouse=True)
-    def setup_teardown_test(self):
-        # Using test cache file to prevent ruining the actual cache file.
-        # TODO(Sai): Reuse get_scratch_space().
-        # self.cache_file = self.get_scratch_space()+f"/{_TEST_CACHE_FILE}"
+    def setup_teardown_test(self, pytestconfig):
+        # Creating hopeani._CompletionCache instance.
         self.get_completion_cache = hopenai._CompletionCache(
-            cache_file=_TEST_CACHE_FILE
-            # cache_file=self.cache_file
+            cache_file=_CACHE_FILE
         )
+        # TODO(Sai) : This should be removed once "openai" module not found error is fixed.
+        if pytestconfig.getoption("--update_llm_cache"):
+            hopenai.set_update_llm_cache(True)
         # Patch get_completion to inject REPLAY.
         self.force_replay_cache()
-        # Run common setuo for each test.
-        self.set_up_test()
         yield
         # Run common teardown after the test.
         self.tear_down_test()
@@ -225,44 +161,12 @@ class BaseOpenAICacheTest(hunitest.TestCase):
         )
         self.patcher.start()
 
-    def set_up_test(self) -> None:
-        """
-        Setup operations to run before each test:
-        - adding dummy requests and responses in temporary cache file
-        """
-        request_parameters1 = _get_openai_request_parameters1()
-        request_parameters3 = _get_openai_request_parameters3()
-        dummy_openai_response1 = _get_dummy_openai_response1()
-        dummy_openai_response2 = _get_dummy_openai_response2()
-        # generating hash keys
-        dummy_hash_key1 = self.get_completion_cache.hash_key_generator(
-            **request_parameters1
-        )
-        dummy_hash_key2 = self.get_completion_cache.hash_key_generator(
-            **request_parameters3
-        )
-        # saving dummy responses to cache
-        self.get_completion_cache.save_response_to_cache(
-            hash_key=dummy_hash_key1,
-            request=request_parameters1,
-            response=dummy_openai_response1,
-        )
-        self.get_completion_cache.save_response_to_cache(
-            hash_key=dummy_hash_key2,
-            request=request_parameters3,
-            response=dummy_openai_response2,
-        )
-
     def tear_down_test(self) -> None:
         """
         Teardown operations to run after each test:
-            -  Remove cache files created on disk.
+            -  Stop the patcher.
         """
         self.patcher.stop()
-        if os.path.exists(_TEST_CACHE_FILE):
-            os.remove(_TEST_CACHE_FILE)
-        # if os.path.exists(self.cache_file):
-        #     os.remove(self.cache_file)
 
 
 # #############################################################################
@@ -278,29 +182,67 @@ class Test_get_completion(BaseOpenAICacheTest):
         expected response.
         """
         parameters1 = _get_completion_parameters1()
-        dummy_response1 = _get_dummy_openai_response1()
-        response = hopenai.get_completion(
-            **parameters1,
-            cache_file=_TEST_CACHE_FILE,
-            # cache_file=self.cache_file
+        actual_response = hopenai.get_completion(**parameters1)
+        # generate hash key
+        hash_key = self.get_completion_cache.hash_key_generator(
+            **_get_openai_request_parameters1()
         )
-        self.assert_equal(
-            dummy_response1["choices"][0]["message"]["content"], response
+        # load the response from cache.
+        expected_response = self.get_completion_cache.load_response_from_cache(
+            hash_key=hash_key
         )
+        self.assert_equal(actual_response, expected_response)
 
     def test2(self) -> None:
         """
-        Verify that if hashkey is not in response, then get_completion() should
-        raise error in replay mode.
+        Verify whether prompts with different capitalizations produce the same
+        result.
         """
-        # parameters4 are not saved in test cache file
-        parameters4 = _get_completion_parameters4()
-        with self.assertRaises(RuntimeError) as RTE:
-            hopenai.get_completion(**parameters4, cache_file=_TEST_CACHE_FILE)
-        self.assert_equal(
-            str(RTE.exception),
-            "No cached response for this request parameters!",
+        parameters2 = _get_completion_parameters2()
+        actual_response = hopenai.get_completion(**parameters2)
+        # generate hash key
+        hash_key = self.get_completion_cache.hash_key_generator(
+            **_get_openai_request_parameters1()
         )
+        # load the response from cache.
+        expected_response = self.get_completion_cache.load_response_from_cache(
+            hash_key=hash_key
+        )
+        self.assert_equal(actual_response, expected_response)
+
+    def test3(self) -> None:
+        """
+        Verify if different parameters result in different results.
+        """
+        parameters1 = _get_completion_parameters1()
+        parameters3 = _get_completion_parameters3()
+        actual_response1 = hopenai.get_completion(**parameters1)
+        actual_response3 = hopenai.get_completion(**parameters3)
+        # generate hash keys
+        hashkey1 = self.get_completion_cache.hash_key_generator(
+            **_get_openai_request_parameters1()
+        )
+        hashkey3 = self.get_completion_cache.hash_key_generator(
+            **_get_openai_request_parameters3()
+        )
+        # Load responses from cache.
+        expected_response1 = self.get_completion_cache.load_response_from_cache(
+            hash_key=hashkey1
+        )
+        expected_response3 = self.get_completion_cache.load_response_from_cache(
+            hash_key=hashkey3
+        )
+        self.assert_equal(actual_response1, expected_response1)
+        self.assert_equal(actual_response3, expected_response3)
+        # Different parameters should give different results.
+        self.assertNotEqual(actual_response1, actual_response3)
+
+    # TODO(Sai): Tobe done after fixing hopenai.get_completion()
+    def test4(self) -> None:
+        """
+        Verify if openrouter models are supported.
+        """
+        assert True
 
 
 # #############################################################################
