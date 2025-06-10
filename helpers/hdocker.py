@@ -14,7 +14,7 @@ import shlex
 import time
 from typing import Any, Dict, List, Optional, Tuple, cast
 
-import helpers.hcoverage_inject as hcovinje
+import helpers.hcoverage as hcovera
 import helpers.hdbg as hdbg
 import helpers.henv as henv
 import helpers.hgit as hgit
@@ -409,7 +409,7 @@ def build_container_image(
     dockerfile = hprint.dedent(dockerfile)
     # Add install coverage and hook to the Dockerfile.
     dockerfile = (
-        dockerfile.strip() + "\n" + hcovinje.generate_temp_dockerfile_content()
+        dockerfile.strip() + "\n" + hcovera.generate_coverage_dockerfile()
     )
     _LOG.debug("Dockerfile:\n%s", dockerfile)
     # Get the current architecture.

@@ -1,10 +1,8 @@
 """
 Import as:
 
-import helpers.hcoverage_inject as hcovinje
+import helpers.hcoverage as hcovera
 """
-
-# TODO(Maddy): -> hcoverage.py
 
 import logging
 import os
@@ -17,9 +15,7 @@ import helpers.hsystem as hsystem
 _LOG = logging.getLogger(__name__)
 
 
-# TODO(Maddy): Let's use pathlib.Path even if it's a bit verbose to follow our
-# conventions.
-def _detect_site_packages() -> Path:
+def _detect_site_packages() -> pathlib.Path:
     """
     Return the Path to the site-packages directory for the active interpreter.
 
@@ -29,7 +25,7 @@ def _detect_site_packages() -> Path:
     try:
         purelib = sysconfig.get_path("purelib")
         if purelib:
-            return Path(purelib)
+            return pathlib.Path(purelib)
     except (KeyError, IOError):
         pass
     try:
@@ -38,8 +34,8 @@ def _detect_site_packages() -> Path:
         sp_dirs = []
     for d in sp_dirs:
         if "site-packages" in d:
-            return Path(d)
-    return Path(site.getusersitepackages())
+            return pathlib.Path(d)
+    return pathlib.Path(site.getusersitepackages())
 
 
 def inject(coveragerc: str = ".coveragerc") -> None:
@@ -47,7 +43,7 @@ def inject(coveragerc: str = ".coveragerc") -> None:
     Install the coverage startup hook into this envs site-packages using sudo
     tee.
     """
-    rc = Path(coveragerc).resolve()
+    rc = pathlib.Path(coveragerc).resolve()
     if not rc.is_file():
         raise FileNotFoundError(f".coveragerc not found at {rc}")
     hsystem.system(f"export COVERAGE_PROCESS_START={rc}")
@@ -92,8 +88,7 @@ def remove() -> None:
         raise
 
 
-# TODO(Maddy): -> generate_coverage_dockerfile()
-def generate_temp_dockerfile_content() -> str:
+def generate_coverage_dockerfile() -> str:
     """
     Build a Dockerfile string that appends coverage support:
       1. Installs coverage, pytest, pytest-cov at build time
@@ -101,37 +96,27 @@ def generate_temp_dockerfile_content() -> str:
       3. Sets ENV COVERAGE_PROCESS_START to /coverage_data/.coveragerc
       4. Writes a coverage.pth into site-packages so coverage auto-starts
     """
-    # TODO(Maddy): Let's use a string in """ and we can also add the comments
-    # insides."
-    # Install coverage and testing dependencies.
-    install_deps = [
-        "RUN pip install --no-cache-dir coverage pytest pytest-cov",
-        "",
-    ]
-    # Create coverage data directory.
-    create_directory = [
-        "RUN mkdir -p /app/coverage_data && chmod 777 /app/coverage_data",
-        "",
-    ]
-    # Setup coverage configuration.
-    setup_config = [
-        "COPY .coveragerc /app/coverage_data/.coveragerc",
-        "ENV COVERAGE_PROCESS_START=/app/coverage_data/.coveragerc",
-        "",
-    ]
-    # Create coverage.pth file for automatic startup.
-    create_pth = [
-        "RUN python - <<PYCODE",
-        "import site, os",
-        "site_dir = site.getsitepackages()[0]",
-        "pth_file = os.path.join(site_dir, 'coverage.pth')",
-        "with open(pth_file, 'w') as f:",
-        "    f.write('import coverage; coverage.process_startup()')",
-        "PYCODE",
-    ]
-    # Combine all sections.
-    all_lines = [""] + install_deps + create_directory + setup_config + create_pth
-    return "\n".join(all_lines)
+    return """
+# Install coverage and testing dependencies
+RUN pip install --no-cache-dir coverage pytest pytest-cov
+
+# Create coverage data directory with proper permissions
+RUN mkdir -p /app/coverage_data && chmod 777 /app/coverage_data
+
+# Setup coverage configuration
+COPY .coveragerc /app/coverage_data/.coveragerc
+ENV COVERAGE_PROCESS_START=/app/coverage_data/.coveragerc
+
+# Create coverage.pth file for automatic startup
+# This ensures coverage tracking starts automatically when Python runs
+RUN python - <<PYCODE
+import site, os
+site_dir = site.getsitepackages()[0]
+pth_file = os.path.join(site_dir, 'coverage.pth')
+with open(pth_file, 'w') as f:
+    f.write('import coverage; coverage.process_startup()')
+PYCODE
+"""
 
 
 def coverage_commands_subprocess() -> None:

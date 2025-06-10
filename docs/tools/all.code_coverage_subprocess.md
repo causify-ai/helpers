@@ -109,7 +109,7 @@
 - Pre-Test Setup
   ```bash
   # Install coverage hooks on host.
-  > python -c "import hcoverage_inject as hcovinje; hcovinje.inject()"
+  > python -c "import hcoverage as hcovera; hcovera.inject()"
 
   # Prepare shared coverage directory. 
   > mkdir -p coverage_data
@@ -117,7 +117,7 @@
   > chmod 644 coverage_data/.coveragerc
 
   # Or run function.
-  > python3 -c "import hcoverage_inject as hcovinje; hcovinje.coverage_subprocess_commands();"
+  > python3 -c "import hcoverage as hcovera; hcovera.coverage_subprocess_commands();"
   ```
 
 - Test Execution
@@ -144,7 +144,7 @@
   > coverage html  # Optional HTML report
 
   # Or run in function
-  > python3 -c "import hcoverage_inject as hcovinje; hcovinje.combine_commands()"
+  > python3 -c "import hcoverage as hcovera; hcovera.combine_commands()"
   ```
 
 ## Key Benefits of the Approach
