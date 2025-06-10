@@ -4,7 +4,9 @@ import unittest.mock as umock
 
 import pytest
 
-pytest.importorskip("openai")  # noqa: E402 # pylint: disable=wrong-import-position
+pytest.importorskip(
+    "openai"
+)  # noqa: E402 # pylint: disable=wrong-import-position
 
 import helpers.hopenai as hopenai
 import helpers.hunit_test as hunitest
@@ -197,7 +199,7 @@ class BaseOpenAICacheTest(hunitest.TestCase):
         # Using test cache file to prevent ruining the actual cache file.
         # TODO(Sai): Reuse get_scratch_space().
         # self.cache_file = self.get_scratch_space()+f"/{_TEST_CACHE_FILE}"
-        self.get_completion_cache = hopenai.CompletionCache(
+        self.get_completion_cache = hopenai._CompletionCache(
             cache_file=_TEST_CACHE_FILE
             # cache_file=self.cache_file
         )
@@ -269,6 +271,7 @@ class BaseOpenAICacheTest(hunitest.TestCase):
 
 
 class Test_get_completion(BaseOpenAICacheTest):
+
     def test1(self) -> None:
         """
         Verify that get_completion() returns response from cache with the
@@ -306,6 +309,7 @@ class Test_get_completion(BaseOpenAICacheTest):
 
 
 class Test_hash_key_generator(BaseOpenAICacheTest):
+
     def test_different_request_parameters1(self) -> None:
         """
         This test case check if normalisation works before generating hash key.
@@ -343,6 +347,7 @@ class Test_hash_key_generator(BaseOpenAICacheTest):
 
 
 class Test_has_cache(BaseOpenAICacheTest):
+
     def test1(self) -> None:
         """
         Should return False if cache doesn't exist.
@@ -368,9 +373,10 @@ class Test_has_cache(BaseOpenAICacheTest):
 
 
 class Test_save_response_to_cache(BaseOpenAICacheTest):
+
     def test1(self) -> None:
         """
-        Verifies if response saves into cache.
+        Verify if response saves into cache.
         """
         parameters4 = _get_openai_request_parameters4()
         dummy_response1 = _get_dummy_openai_response1()
@@ -393,9 +399,10 @@ class Test_save_response_to_cache(BaseOpenAICacheTest):
 
 
 class Test_load_response_from_cache(BaseOpenAICacheTest):
+
     def test1(self) -> None:
         """
-        Verifies if stored response can be loaded.
+        Verify if stored response can be loaded.
         """
         # This response  saved in test cache through set up function.
         dummy_response1 = _get_dummy_openai_response1()
@@ -417,7 +424,5 @@ class Test_load_response_from_cache(BaseOpenAICacheTest):
         parameters4 = _get_openai_request_parameters4()
         hash_key4 = self.get_completion_cache.hash_key_generator(**parameters4)
         with self.assertRaises(ValueError) as VE:
-            self.get_completion_cache.load_response_from_cache(
-                hash_key=hash_key4
-            )
+            self.get_completion_cache.load_response_from_cache(hash_key=hash_key4)
         self.assert_equal(str(VE.exception), "No cache found!")
