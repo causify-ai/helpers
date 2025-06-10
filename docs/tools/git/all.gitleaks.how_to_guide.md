@@ -1,9 +1,9 @@
 <!-- toc -->
 
 - [Gitleaks How to Guide](#gitleaks-how-to-guide)
+  * [How to run Gitleaks locally](#how-to-run-gitleaks-locally)
   * [How to deal with false positives](#how-to-deal-with-false-positives)
   * [How to remove leaks from previous commits in PR](#how-to-remove-leaks-from-previous-commits-in-pr)
-  * [How to run Gitleaks locally](#how-to-run-gitleaks-locally)
 
 <!-- tocstop -->
 
@@ -69,7 +69,7 @@ The easiest way to run Gitleaks locally is with Docker
 ```
 
 3. Adjust the `allowlists` or `rules` in the `gitleaks-rules.toml` file to
-  reduce false positives
+   reduce false positives
 
 ```bash
 > cat .github/gitleaks-rules.toml
