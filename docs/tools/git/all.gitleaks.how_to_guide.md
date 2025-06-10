@@ -2,7 +2,7 @@
 
 - [Gitleaks How to Guide](#gitleaks-how-to-guide)
   * [How to deal with false positives](#how-to-deal-with-false-positives)
-  * [How to clean leaks from previous commits in PR](#how-to-clean-leaks-from-previous-commits-in-pr)
+  * [How to remove leaks from previous commits in PR](#how-to-remove-leaks-from-previous-commits-in-pr)
   * [How to run Gitleaks locally](#how-to-run-gitleaks-locally)
 
 <!-- tocstop -->
@@ -10,6 +10,10 @@
 # Gitleaks How to Guide
 
 ## How to deal with false positives
+
+- Some secrets are detected by Gitleaks that are not actually secrets but false
+  positives
+- To deal with false positives, we can use the following methods:
 
 1. Use inline comments to allow specific lines of code
 
@@ -19,9 +23,15 @@
 
 2. Add the fingerprint to the `.gitleaksignore` file
 
+```bash
+> cat .gitleaksignore
+> ck.infra/infra/terraform/environments/preprod/ap-northeast-1/terraform.tfvars:rule3:429
+> 93f292c3dfa2649ef91f8925b623e79546fa992e:README.md:aws-access-token:121
+```
+
 3. Adjust the rules in the `gitleaks-rules.toml` file
 
-## How to clean leaks from previous commits in PR
+## How to remove leaks from previous commits in PR
 
 - Sometimes leaks are committed to a PR, even after we remove them, the leaks
   still exist in the commit history
@@ -54,37 +64,37 @@
 
 The easiest way to run gitleaks locally is with docker.
 
-- First we pull the image:
+- First, pull the image:
 
   ```bash
   > docker pull zricethezav/gitleaks:latest
   ```
 
-- Then we run it from the root of the repo:
-  - Scan git repositories for secrets (including git history)
+- Scan git repositories for secrets (including git history)
 
-  ```bash
-  > docker run -v $(pwd):/path zricethezav/gitleaks:latest git /path -v -c /path/.github/gitleaks-rules.toml
-      ○
-      │╲
-      │ ○
-      ○ ░
-      ░    gitleaks
+```bash
+> docker run -v $(pwd):/path zricethezav/gitleaks:latest git /path -v -c /path/.github/gitleaks-rules.toml
+    ○
+    │╲
+    │ ○
+    ○ ░
+    ░    gitleaks
 
-  7:52PM INF 1540 commits scanned.
-  7:52PM INF scanned ~51542901 bytes (51.54 MB) in 46.4s
-  7:52PM INF no leaks found
-  ```
-  - Scan directories or files for secrets
+7:52PM INF 1540 commits scanned.
+7:52PM INF scanned ~51542901 bytes (51.54 MB) in 46.4s
+7:52PM INF no leaks found
+```
 
-  ```bash
-  > docker run -v $(pwd):/path zricethezav/gitleaks:latest dir /path -v -c /path/.github/gitleaks-rules.toml
-      ○
-      │╲
-      │ ○
-      ○ ░
-      ░    gitleaks
+- Scan directories or files for secrets
 
-  8:00PM INF scanned ~23901530 bytes (23.90 MB) in 26.1s
-  8:00PM INF no leaks found
-  ```
+```bash
+> docker run -v $(pwd):/path zricethezav/gitleaks:latest dir /path -v -c /path/.github/gitleaks-rules.toml
+    ○
+    │╲
+    │ ○
+    ○ ░
+    ░    gitleaks
+
+8:00PM INF scanned ~23901530 bytes (23.90 MB) in 26.1s
+8:00PM INF no leaks found
+```

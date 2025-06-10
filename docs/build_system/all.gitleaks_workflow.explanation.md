@@ -1,10 +1,10 @@
 <!-- toc -->
 
 - [Gitleaks Integration in GitHub Actions](#gitleaks-integration-in-github-actions)
-    + [Features](#features)
-    + [Setup](#setup)
-    + [Notifications](#notifications)
-    + [Additional Resources](#additional-resources)
+  * [Features](#features)
+  * [Setup](#setup)
+  * [Notifications](#notifications)
+  * [Additional Resources](#additional-resources)
 
 <!-- tocstop -->
 
@@ -24,20 +24,22 @@
 - **Workflow Dispatch**: Allows for manual triggering of the Gitleaks scan,
   providing flexibility for ad-hoc code analysis
 
-### Setup
+## Setup
 
 - **GitHub Action Workflow**: The Gitleaks integration is set up as a part of
-  the GitHub Actions workflow in the [`.github/workflows/gitleaks.yml` file in
+  the GitHub Actions workflow in the `.github/workflows/gitleaks.yml` file in
   each repo
+- **Gitleaks rules**: The rules for Gitleaks used by the workflow are specified
+  in `.github/gitleaks-rules.toml`
 - **Running Environment**: The workflow runs on `ubuntu-latest` and uses GitHub
-  action `gitleaks/gitleaks-action@v2` available on the marketplace.
+  action `gitleaks/gitleaks-action@v2` available on the marketplace
 
-### Notifications
+## Notifications
 
 - **Slack**: Send a message to the `build-notifications` Slack channel if the
   workflow fails (e.g. if the leaks are detected)
 
-### Additional Resources
+## Additional Resources
 
 - The official GitHub page for Gitleaks -
   [https://github.com/gitleaks/gitleaks](https://github.com/gitleaks/gitleaks)
