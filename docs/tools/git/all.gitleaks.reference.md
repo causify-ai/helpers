@@ -22,22 +22,6 @@
 
 ## Gitleaks Integration in GitHub Actions
 
-### Features
-
-- **Automatic Scanning**: Gitleaks runs automatically on every pull request to
-  the master branch and for every push to the master branch. This ensures that
-  new code is checked before merging
-- **Scheduled Scans**: Gitleaks scans are scheduled to run once a day, ensuring
-  regular codebase checks even without new commits
-- **Workflow Dispatch**: Allows for manual triggering of the Gitleaks scan,
-  providing flexibility for ad-hoc code analysis
-
-### Setup
-
-- **GitHub Action Workflow**: The Gitleaks integration is set up as a part of
-  the GitHub Actions workflow in the [`.github/workflows/gitleaks.yml` file in
-  each repo
-
 ### Configuration
 
 - The rules for Gitleaks are specified in `.github/gitleaks-rules.toml`
@@ -49,13 +33,13 @@
 - Used for exceptions on a file level, i.e. to exclude whole files
 - For a line level exceptions see `.gitleaksignore` section
 
-````toml
-    [allowlist]
-    description = "global allow lists"
-    paths = [
-        '''.github/gitleaks-rules.toml''',
-    ]
-    ```
+  ````toml
+  [allowlist]
+  description = "global allow lists"
+  paths = [
+      '''.github/gitleaks-rules.toml''',
+  ]
+  ```
 
 - Rules extension
  - We can extend our custom ruleset to also include the default ruleset provided by
@@ -82,7 +66,14 @@
 - The file can be placed at the root directory of a repo.
 
 Examples of a fingerprint:
-```bash
-> ck.infra/infra/terraform/environments/preprod/ap-northeast-1/terraform.tfvars:rule3:429
-> 93f292c3dfa2649ef91f8925b623e79546fa992e:README.md:aws-access-token:121
-````
+  ```bash
+  > ck.infra/infra/terraform/environments/preprod/ap-northeast-1/terraform.tfvars:rule3:429
+  > 93f292c3dfa2649ef91f8925b623e79546fa992e:README.md:aws-access-token:121
+  ````
+
+### Additional Resources
+
+- The official GitHub page for Gitleaks - https://github.com/gitleaks/gitleaks
+  https://github.com/gitleaks/gitleaks-action/tree/master
+- The custom ruleset was based on -
+  https://github.com/mazen160/secrets-patterns-db
