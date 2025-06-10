@@ -327,7 +327,7 @@ def _get_markdown_example2() -> str:
     return content
 
 
-def _get_markdown_example3() -> str:
+def _get_markdown_no_header_example1() -> str:
     content = r"""
     This is some content without any headers.
     """
@@ -428,6 +428,38 @@ def _get_markdown_example5() -> hmarkdo.HeaderList:
     return content
 
 
+def _get_markdown_slides_example1() -> str:
+    content = r"""
+    # Header1
+
+    * Slide 1
+    Content 1.
+
+    ## Header2
+
+    * Slide 2
+    Content 2.
+
+    * Slide 3
+    Content 3.
+    """
+    content = hprint.dedent(content)
+    content = cast(str, content)
+    return content
+
+
+def _get_markdown_slides_example2() -> str:
+    content = r"""
+    # Header1
+    
+    * Slide1
+    Content 1.
+    """
+    content = hprint.dedent(content)
+    content = cast(str, content)
+    return content
+
+
 # #############################################################################
 # Test_extract_section_from_markdown1
 # #############################################################################
@@ -491,7 +523,7 @@ class Test_extract_section_from_markdown1(hunitest.TestCase):
 
     def test_no_header(self) -> None:
         # Prepare inputs.
-        content = _get_markdown_example3()
+        content = _get_markdown_no_header_example1()
         # Call tested function.
         with self.assertRaises(ValueError) as fail:
             hmarkdo.extract_section_from_markdown(content, "Header4")
@@ -533,6 +565,40 @@ class Test_extract_headers_from_markdown1(hunitest.TestCase):
         content = hprint.dedent(content)
         # Call function.
         act = hmarkdo.extract_headers_from_markdown(content, max_level=3)
+        # Check output.
+        exp: List[str] = []
+        self.assert_equal(str(act), str(exp))
+
+
+# #############################################################################
+# Test_extract_slides_from_markdown1
+# #############################################################################
+
+
+class Test_extract_slides_from_markdown1(hunitest.TestCase):
+    def test_multiple_slides(self) -> None:
+        # Prepare inputs.
+        content = _get_markdown_slides_example1()
+        # Call function.
+        act = hmarkdo.extract_slides_from_markdown(content)
+        # Check output.
+        exp = r"""[HeaderInfo(1, 'Slide 1', 1), HeaderInfo(1, 'Slide 2', 3), HeaderInfo(1, 'Slide 3', 5)]"""
+        self.assert_equal(str(act), exp)
+
+    def test_single_slides(self) -> None:
+        # Prepare inputs.
+        content = _get_markdown_slides_example2()
+        # Call function.
+        act = hmarkdo.extract_slides_from_markdown(content)
+        # Check output.
+        exp = r"""[HeaderInfo(1, 'Header1', 1), HeaderInfo(2, 'Header2', 3)]"""
+        self.assert_equal(str(act), exp)
+
+    def test_no_slides(self) -> None:
+        # Prepare inputs.
+        content = _get_markdown_no_header_example1()
+        # Call function.
+        act = hmarkdo.extract_slides_from_markdown(content)
         # Check output.
         exp: List[str] = []
         self.assert_equal(str(act), str(exp))

@@ -154,6 +154,25 @@ def _filter_by_lines(file_name: str, filter_by_lines: str, prefix: str) -> str:
     return file_out
 
 
+def _filter_by_slides(file_name: str, filter_by_slides: str, prefix: str) -> str:
+    """
+    Filter the lines of a file in [start_slide, end_slide[.
+
+    :param file_name: The input file to be processed
+    :param filter_by_slides: a string like `1:10` or `1:None` or `None:10`
+    :param prefix: The prefix used for the output file (e.g., `tmp.pandoc`)
+    :return: The path to the processed file
+    """
+    # Read the file.
+    txt = hio.from_file(file_name)
+    # Filter by header.
+    txt = hmarkdo.extract_section_from_markdown(txt, header)
+    # Save the file.
+    file_out = f"{prefix}.filter_by_slides.txt"
+    hio.to_file(file_out, txt)
+    return file_out
+
+
 # #############################################################################
 
 
@@ -570,7 +589,8 @@ def _run_all(args: argparse.Namespace) -> None:
         file_name = _filter_by_header(file_name, args.filter_by_header, prefix)
     if args.filter_by_lines:
         file_name = _filter_by_lines(file_name, args.filter_by_lines, prefix)
-    # E.g., file_='/app/helpers_root/tmp.notes_to_pdf.render_image2.txt'
+    if args.filter_by_slides:
+        file_name = _filter_by_slides(file_name, args.filter_by_slides, prefix)
     # - Preprocess_notes
     action = "preprocess_notes"
     to_execute, actions = _mark_action(action, actions)
@@ -697,6 +717,11 @@ def _parse() -> argparse.ArgumentParser:
         "--filter_by_lines",
         action="store",
         help="Filter by lines (e.g., `0:10`, `1:None`, `None:10`)",
+    )
+    parser.add_argument(
+        "--filter_by_slides",
+        action="store",
+        help="Filter by slides (e.g., `0:10`, `1:None`, `None:10`)",
     )
     # TODO(gp): -> out_action_script
     parser.add_argument(
