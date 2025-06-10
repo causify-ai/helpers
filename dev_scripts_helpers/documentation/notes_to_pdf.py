@@ -101,6 +101,7 @@ def _cleanup_before(prefix: str) -> None:
 # #############################################################################
 
 
+# TODO(gp): Move to hmarkdown and test it.
 def _filter_by_header(file_name: str, header: str, prefix: str) -> str:
     """
     Extract a specific header from a file.
@@ -120,6 +121,29 @@ def _filter_by_header(file_name: str, header: str, prefix: str) -> str:
     return file_out
 
 
+# TODO(gp): Move to hmarkdown and test it.
+def _parse_range(range_as_str: str, max_value: int) -> tuple[int, int]:
+    """
+    Parse a line range string like '1:10' into start and end line numbers.
+    
+    :param range_as_str: String in format 'start:end' where start/end can be numbers or 'None'
+    :param max_value: Maximum value to use when 'None' is specified for end
+    :return: Tuple of (start_line, end_line) as integers
+    """
+    m = re.match(r"^(\S+):(\S+)$", range_as_str)
+    hdbg.dassert(m, "Invalid range_as_str='%s'", range_as_str)
+    start_value, end_value = m.groups()
+    if start_value.lower() == "none":
+        start_value = 1
+    else:
+        start_value = int(start_value)
+    if end_value.lower() == "none":
+        end_value = max_value + 1
+    else:
+        end_value = int(end_value)
+    return start_value, end_value
+
+
 def _filter_by_lines(file_name: str, filter_by_lines: str, prefix: str) -> str:
     """
     Filter the lines of a file in [start_line, end_line[.
@@ -133,17 +157,7 @@ def _filter_by_lines(file_name: str, filter_by_lines: str, prefix: str) -> str:
     txt = hio.from_file(file_name)
     txt = txt.split("\n")
     # E.g., filter_by_lines='1:10'.
-    m = re.match(r"^(\S+):(\S+)$", filter_by_lines)
-    hdbg.dassert(m, "Invalid filter_by_lines='%s'", filter_by_lines)
-    start_line, end_line = m.groups()
-    if start_line.lower() == "none":
-        start_line = 1
-    else:
-        start_line = int(start_line)
-    if end_line.lower() == "none":
-        end_line = len(txt) + 1
-    else:
-        end_line = int(end_line)
+    start_line, end_line = _parse_range(filter_by_lines, len(txt))
     # Filter by header.
     hdbg.dassert_lte(start_line, end_line)
     txt = txt[start_line - 1 : end_line - 1]
@@ -154,6 +168,7 @@ def _filter_by_lines(file_name: str, filter_by_lines: str, prefix: str) -> str:
     return file_out
 
 
+# TODO(gp): Move to hmarkdown and test it.
 def _filter_by_slides(file_name: str, filter_by_slides: str, prefix: str) -> str:
     """
     Filter the lines of a file in [start_slide, end_slide[.
@@ -166,7 +181,17 @@ def _filter_by_slides(file_name: str, filter_by_slides: str, prefix: str) -> str
     # Read the file.
     txt = hio.from_file(file_name)
     # Filter by header.
-    txt = hmarkdo.extract_section_from_markdown(txt, header)
+    slides_info = hmarkdo.extract_slides_from_markdown(txt)
+    # E.g., filter_by_lines='1:10'.
+    start_slide, end_slide = _parse_range(filter_by_slides, len(slides_info))
+    hdbg.dassert_lte(start_slide, end_slide)
+    hdbg.dassert_lt(end_slide, len(slides_info))
+    start_slide_line = slides_info[start_slide].line_number
+    end_slide_line = slides_info[end_slide].line_number
+    # Filter by slides.
+    txt = txt.split("\n")
+    txt = txt[start_slide_line - 1 : end_slide_line - 1]
+    txt = "\n".join(txt)
     # Save the file.
     file_out = f"{prefix}.filter_by_slides.txt"
     hio.to_file(file_out, txt)
