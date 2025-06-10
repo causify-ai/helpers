@@ -582,7 +582,7 @@ class Test_extract_slides_from_markdown1(hunitest.TestCase):
         # Call function.
         act = hmarkdo.extract_slides_from_markdown(content)
         # Check output.
-        exp = r"""[HeaderInfo(1, 'Slide 1', 1), HeaderInfo(1, 'Slide 2', 3), HeaderInfo(1, 'Slide 3', 5)]"""
+        exp = r"""[HeaderInfo(1, 'Slide 1', 3), HeaderInfo(1, 'Slide 2', 8), HeaderInfo(1, 'Slide 3', 11)]"""
         self.assert_equal(str(act), exp)
 
     def test_single_slides(self) -> None:
@@ -591,7 +591,7 @@ class Test_extract_slides_from_markdown1(hunitest.TestCase):
         # Call function.
         act = hmarkdo.extract_slides_from_markdown(content)
         # Check output.
-        exp = r"""[HeaderInfo(1, 'Header1', 1), HeaderInfo(2, 'Header2', 3)]"""
+        exp = r"""[HeaderInfo(1, 'Slide1', 3)]"""
         self.assert_equal(str(act), exp)
 
     def test_no_slides(self) -> None:

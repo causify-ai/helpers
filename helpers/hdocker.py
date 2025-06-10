@@ -681,7 +681,7 @@ def run_dockerized_prettier(
     is_caller_host = not hserver.is_inside_docker()
     # TODO(gp): After fix for CmampTask10710 enable this.
     # use_sibling_container_for_callee = hserver.use_docker_sibling_containers()
-    use_sibling_container_for_callee = False
+    use_sibling_container_for_callee = True
     caller_mount_path, callee_mount_path, mount = get_docker_mount_info(
         is_caller_host, use_sibling_container_for_callee
     )
@@ -1851,7 +1851,7 @@ def run_dockerized_graphviz(
     )
     # Convert files to Docker paths.
     is_caller_host = not hserver.is_inside_docker()
-    use_sibling_container_for_callee = True
+    use_sibling_container_for_callee = False
     caller_mount_path, callee_mount_path, mount = get_docker_mount_info(
         is_caller_host, use_sibling_container_for_callee
     )
