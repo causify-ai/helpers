@@ -5184,7 +5184,7 @@ useDefault = true
 [[rules]]
     id = "rule1543"
     description = '''twilio_api_key'''
-    regex = '''twilio[_-]?api[_-]?key(=| =|:| :)'''
+    regex = '''twilio[_-]?api[_-]?key(=| =|:| :)[a-zA-Z0-9]{10,}'''
     tags = ["secret"]
 
 [[rules]]
