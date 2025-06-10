@@ -3,7 +3,7 @@ title = "gitleaks config"
 [[allowlists]]
 description = "global allow lists"
 paths = [
-    '''.github/gitleaks-rules.toml''',
+    '''\.github/gitleaks-rules\.toml$''',
     # Gitleaks rules file.
     '''(^|.*/)gitleaks-rules\.toml$''',
     # Compressed files.
