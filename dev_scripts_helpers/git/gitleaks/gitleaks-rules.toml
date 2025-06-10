@@ -9,6 +9,8 @@ paths = [
     '''.*\.(csv|txt)\.gz$''',
     # Zip files.
     '''.*\.zip$''',
+    # Gitleaks ignore file.
+    '''.gitleaksignore$''',
 ]
 
 [[allowlists]]
