@@ -14,9 +14,6 @@ import re
 from typing import Any, Dict, List, Tuple
 
 import openai
-
-# import openai.types.beta.assistant as OAssistant
-# import openai.types.beta.threads.message as OMessage
 import pandas as pd
 import requests
 import tqdm
@@ -207,75 +204,10 @@ def _save_models_info_to_csv(
     return model_info_df
 
 
-import pandas as pd
-
-
-# TODO(gp): This is general enough to be moved in hpandas.py
-def convert_to_type(col, type_):
-    if type_ == "is_bool":
-        return col.map(
-            lambda x: isinstance(x, bool)
-            or x in ["True", "False", "true", "false"]
-            or x in [1, 0, "1", "0"]
-        )
-    elif type_ == "is_int":
-        return pd.to_numeric(col, errors="coerce")
-    elif type_ == "is_numeric":
-        return pd.to_numeric(col, errors="coerce")
-    elif type_ == "is_string":
-        return col.map(lambda x: isinstance(x, str))
-    else:
-        raise ValueError(f"Unknown column type: {type_}")
-
-
-def infer_column_types(col):
-    vals = {
-        "is_numeric": pd.to_numeric(col, errors="coerce").notna(),
-        #'is_datetime': pd.to_datetime(col, errors='coerce').notna(),
-        "is_bool": col.map(lambda x: isinstance(x, bool)),
-        "is_string": col.map(lambda x: isinstance(x, str)),
-    }
-    vals = {k: float(v.mean()) for k, v in vals.items()}
-    # type_ = np.where(vals["is_bool"] >= vals["is_numeric"], "is_bool",
-    #                  (vals["is_numeric"] >= vals["is_string"], "is_numeric",
-    #                  "is_string"))
-    if vals["is_bool"] >= vals["is_numeric"]:
-        type_ = "is_bool"
-    elif vals["is_numeric"] >= vals["is_string"]:
-        type_ = "is_numeric"
-    else:
-        type_ = "is_string"
-    vals["type"] = type_
-    return vals
-
-
-def infer_column_types_df(df: pd.DataFrame) -> pd.DataFrame:
-    return df.apply(lambda x: pd.Series(infer_column_types(x))).T
-
-
-def convert_df(
-    df: pd.DataFrame, *, print_invalid_values: bool = False
-) -> pd.DataFrame:
-    types = df.apply(lambda x: pd.Series(infer_column_types(x))).T
-    df_out = []
-    for col in df.columns:
-        if types[col]["type"] == "is_bool":
-            df_out[col] = df[col].astype(bool)
-        elif types[col]["type"] == "is_numeric":
-            df_out[col] = df[col].astype(float)
-        elif types[col]["type"] == "is_string":
-            df_out[col] = df[col]
-        else:
-            raise ValueError(f"Unknown column type: {types[col]['type']}")
-    return df_out
-
-
 # #############################################################################
 
 
-def _build_messages(
-    system_prompt: str, user_prompt: str
-) -> List[Dict[str, str]]:
+def _build_messages(system_prompt: str, user_prompt: str) -> List[Dict[str, str]]:
     """
     Construct the standard messages payload for the chat API.
     """
@@ -390,9 +322,7 @@ def _calculate_cost(
         prompt_price = row["prompt_pricing"]
         completion_price = row["completion_pricing"]
         # Compute cost.
-        cost = (
-            prompt_tokens * prompt_price + completion_tokens * completion_price
-        )
+        cost = prompt_tokens * prompt_price + completion_tokens * completion_price
     else:
         raise ValueError(f"Unknown provider: {_PROVIDER_NAME}")
     _LOG.debug(hprint.to_str("prompt_tokens completion_tokens cost"))
@@ -808,7 +738,7 @@ def apply_prompt_to_dataframe(
 
 
 # #############################################################################
-# CompletionCache
+# _CompletionCache
 # #############################################################################
 
 
@@ -896,9 +826,9 @@ class _CompletionCache:
         """
         entry = {"request": request, "response": response}
         self.cache["entries"][hash_key] = entry
-        self.cache["metadata"]["last_updated"] = (
-            datetime.datetime.now().isoformat()
-        )
+        self.cache["metadata"][
+            "last_updated"
+        ] = datetime.datetime.now().isoformat()
         self._write_cache_to_disk()
 
     def load_response_from_cache(self, hash_key: str) -> Any:
@@ -937,7 +867,7 @@ class _CompletionCache:
         Clear the cache from the file.
         """
         self.cache["entries"] = {}
-        self.cache["metadata"]["last_updated"] = (
-            datetime.datetime.now().isoformat()
-        )
+        self.cache["metadata"][
+            "last_updated"
+        ] = datetime.datetime.now().isoformat()
         self._write_cache_to_disk()
