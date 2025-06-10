@@ -1,3 +1,27 @@
+<!-- toc -->
+
+- [Enhanced Pytest Coverage for Subprocesses and Docker](#enhanced-pytest-coverage-for-subprocesses-and-docker)
+  * [Overview](#overview)
+  * [Problem & Solution](#problem--solution)
+  * [Architecture](#architecture)
+  * [Core Configuration](#core-configuration)
+    + [Enhanced .coveragerc](#enhanced-coveragerc)
+  * [Hook Injection System](#hook-injection-system)
+    + [Coverage Hook Installation](#coverage-hook-installation)
+  * [Docker Integration](#docker-integration)
+    + [Container Preparation](#container-preparation)
+    + [Runtime Configuration](#runtime-configuration)
+  * [Workflow Implementation](#workflow-implementation)
+  * [Key Benefits of the Approach](#key-benefits-of-the-approach)
+  * [Design Principles](#design-principles)
+  * [Common Usage Patterns](#common-usage-patterns)
+    + [Simple Subprocess Test](#simple-subprocess-test)
+    + [Docker Container Test](#docker-container-test)
+    + [Coverage Data Flow](#coverage-data-flow)
+  * [Troubleshooting](#troubleshooting)
+
+<!-- tocstop -->
+
 # Enhanced Pytest Coverage for Subprocesses and Docker
 
 ## Overview
@@ -9,9 +33,9 @@
 
 ## Problem & Solution
 
-- **Problem**: Unit tests spawning Python subprocesses or Docker containers don't
-  capture coverage data from child processes, leading to incomplete coverage
-  metrics.
+- **Problem**: Unit tests spawning Python subprocesses or Docker containers
+  don't capture coverage data from child processes, leading to incomplete
+  coverage metrics.
 
 - **Solution**:
   - Automatically instrument all Python processes (host and container) using
@@ -24,7 +48,7 @@
   1. **Coverage Configuration**: Enhanced `.coveragerc` with parallel mode and
      path mapping
   2. **Hook Injection**: Utility to install coverage startup hooks in Python
-     environments  
+     environments
   3. **Docker Integration**: Modified containers that generate coverage data to
      shared volumes
 
@@ -34,6 +58,7 @@
 
 - The coverage configuration enables parallel data collection and maps container
   paths to host paths:
+
   ```ini
   [run]
   branch = True
@@ -55,7 +80,8 @@
 
 ### Coverage Hook Installation
 
-- The hook injection utility installs a startup hook in Python's site-packages directory.
+- The hook injection utility installs a startup hook in Python's site-packages
+  directory.
 
 - How it works:
   - Places `coverage.pth` in site-packages with startup code
@@ -107,11 +133,12 @@
   - All executables to be run using `hdocker.build_base_cmd()`
 
 - Pre-Test Setup
+
   ```bash
   # Install coverage hooks on host.
   > python -c "import hcoverage as hcovera; hcovera.inject()"
 
-  # Prepare shared coverage directory. 
+  # Prepare shared coverage directory.
   > mkdir -p coverage_data
   > cp .coveragerc coverage_data/.coveragerc
   > chmod 644 coverage_data/.coveragerc
@@ -121,6 +148,7 @@
   ```
 
 - Test Execution
+
   ```bash
   # Run pytest with subprocesses and containers automatically instrumented.
   > coverage run --parallel-mode -m pytest /dev_script_helpers/llms/test/test_llm_transform.py
@@ -132,6 +160,7 @@
   - All processes write separate `.coverage.*` files
 
 - Data Collection and Merging
+
   ```bash
   # Copy container coverage data to host
   > cp coverage_data/.coverage.* . 2>/dev/null || true
@@ -177,6 +206,7 @@
 ## Common Usage Patterns
 
 ### Simple Subprocess Test
+
 ```python
 def test_subprocess_script():
     # This subprocess will automatically be instrumented
@@ -185,12 +215,13 @@ def test_subprocess_script():
 ```
 
 ### Docker Container Test
+
 ```python
 def test_docker_script():
     # Build base Docker command with coverage support
     base_cmd = build_base_cmd(use_sudo=False)
     # base_cmd includes volume mounts and environment variables for coverage
-    
+
     # Add specific container and script execution
     docker_cmd = base_cmd + ["my-image", "python", "script.py"]
     result = subprocess.run(docker_cmd, capture_output=True)
@@ -199,8 +230,9 @@ def test_docker_script():
 ```
 
 ### Coverage Data Flow
+
 1. **Host Process**: Writes `.coverage.host-pid`
-2. **Subprocess**: Writes `.coverage.subprocess-pid` 
+2. **Subprocess**: Writes `.coverage.subprocess-pid`
 3. **Container**: Writes `.coverage.container-id` to mounted volume
 4. **Merge Step**: `coverage combine` merges all files into unified report
 
