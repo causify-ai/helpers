@@ -33,13 +33,13 @@
 
 ## How to remove leaks from previous commits in PR
 
-- Sometimes leaks are committed to a PR. Even after we remove them, the leaks
-  still exist in the commit history
-- Because of the leaks in the commit history, the Gitleaks GH Actions will fail
-- To remove the leaks from the commit history, we can use the following methods:
+- When leaks are committed to a PR, they remain in the commit history even after
+  removal
+- The Gitleaks GitHub Actions will fail due to these leaks in the commit history
+- We can remove leaks from the commit history using the following methods:
 
-- Option 1: Rebase and squash the all commits in the PR into a single commit
-  - Use this if it is okay to discard all the commit history in the PR
+- Option 1: Rebase and squash all commits in the PR into a single commit
+  - Use this method if you want to discard all commit history in the PR
 
   ```bash
   # Checkout the PR branch
@@ -56,13 +56,13 @@
   ```
 
 - Option 2: Rebase and squash only the commits that contain the leaks
-  - Use this if we want to retain some commit history in the PRs
+  - Use this method if you want to retain some commit history in the PR
   - See [this guide](https://www.datacamp.com/tutorial/git-squash-commits) for
     more details on how to rebase and squash commits
 
 ## How to run Gitleaks locally
 
-The easiest way to run gitleaks locally is with Docker
+The easiest way to run Gitleaks locally is with Docker
 
 - First, pull the image:
 

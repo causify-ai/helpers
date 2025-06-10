@@ -10,7 +10,7 @@
 
 # Gitleaks Integration in GitHub Actions
 
-- Refer the follow docs for more information on Gitleaks:
+- For more information on Gitleaks, refer to the following documentation:
   - [/docs/tools/git/all.gitleaks.reference.md](/docs/tools/git/all.gitleaks.reference.md)
   - [/docs/tools/git/all.gitleaks.reference.md](/docs/tools/git/all.gitleaks.reference.md)
 
@@ -36,8 +36,8 @@
 
 ## Notification
 
-- **Slack**: Send a message to the `build-notifications` Slack channel if the
-  workflow fails (e.g. if the leaks are detected)
+- **Slack**: Sends a message to the `build-notifications` Slack channel when the
+  workflow fails (e.g., when leaks are detected)
 
 ## Additional Resource
 

@@ -5,7 +5,7 @@
     + [`allowlists`](#allowlists)
     + [Rule extension](#rule-extension)
     + [`rules`](#rules)
-    + [.gitleaksignore`](#gitleaksignore)
+    + [`.gitleaksignore`](#gitleaksignore)
   * [Additional Resource](#additional-resource)
 
 <!-- tocstop -->
@@ -13,11 +13,11 @@
 # Gitleaks
 
 - Gitleaks is a SAST tool used for detecting and preventing hardcoded secrets
-  like passwords, api keys, and tokens in a directory or a git repository
+  such as passwords, API keys, and tokens in a directory or git repository
 - It detects secrets not only in the codebase but also in the git commit history
 - Gitleaks can be integrated into our workflow to prevent secrets from being
   accidentally added to our codebase
-- It is integrated into our dev system via
+- It is integrated into our dev system via:
   - Git hooks (Refer to
     [/docs/tools/git/all.git_hooks.reference.md)](/docs/tools/git/all.git_hooks.reference.md))
   - GitHub actions (Refer to
@@ -27,27 +27,28 @@
 
 - The rules for Gitleaks are specified in `.github/gitleaks-rules.toml`
 - To avoid redundancy, the file is symlinked to a common file in `//helpers`
-  located
+  located at
   [`/dev_scripts_helpers/git/gitleaks/gitleaks-rules.toml`](/dev_scripts_helpers/git/gitleaks/gitleaks-rules.toml)
   that can be shared across all repos
 
 ### `allowlists`
 
-- Used for exceptions on a file level, i.e. to exclude whole files
-- For a line level exceptions see `.gitleaksignore` section
-  ````toml
-  [[allowlist]]
+- We can use allowlists to make exceptions to certain files or lines of code
+  based on paths or regex patterns
+- If we want to exclude "specific" commits, lines, or rules, use the inline
+  `# gitleaks:allow` comment or the `.gitleaksignore` file instead
+  ```toml
+  [[allowlists]]
   description = "global allow lists"
   paths = [
-      '''.github/gitleaks-rules.toml''',
+    '''.github/gitleaks-rules.toml''',
   ]
   ```
-  ````
 
 ### Rule extension
 
-- We can extend our custom ruleset to also include the default ruleset provided
-  by Gitleaks with:
+- We can extend our custom ruleset to include the default ruleset provided by
+  Gitleaks with:
   ```toml
   [extend]
   useDefault = true
@@ -69,19 +70,19 @@
     tags = ["secret"]
   ```
 
-### .gitleaksignore`
+### `.gitleaksignore`
 
 - To prevent specific lines of code from being scanned by Gitleaks, we can use
   the `.gitleaksignore` file
 - It uses "fingerprints" to define the leaks
-- Gitleaks itself generates these fingerprints when it detects a leak. Then it
-  can be simply added to the file
-- Examples of a fingerprint:
+- Gitleaks generates these fingerprints when it detects a leak, which can then
+  be added to the file
+- Examples of fingerprints:
   ```bash
   > ck.infra/infra/terraform/environments/preprod/ap-northeast-1/terraform.tfvars:rule3:429
   > 93f292c3dfa2649ef91f8925b623e79546fa992e:README.md:aws-access-token:121
   ```
-- The file `.gitleaksignore` can be placed at the root directory of a repo
+- The `.gitleaksignore` file can be placed at the root directory of a repo
 
 ## Additional Resource
 
