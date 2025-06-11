@@ -108,7 +108,7 @@ class _RepoAndBranchSettings:
 
         :param repo: GitHub repository object
         :return: dictionary containing repository settings, refer to `REPO_SETTING_KEYS` for detailed
-            key structure and expected values.
+            key structure and expected values
         """
         current_repo_settings = {
             "name": repo.name,
@@ -139,7 +139,7 @@ class _RepoAndBranchSettings:
         :return: dictionary containing branch protection settings, refer to `BRANCH_PROTECTION_KEYS`
             for detailed key structure and expected values. The `STATUS_CHECK_KEYS`, `PR_REVIEW_KEYS`,
             and `RESTRICTION_KEYS` are nested keys of the `required_status_checks`,
-            `required_pull_request_reviews`, and `restrictions` keys respectively.
+            `required_pull_request_reviews`, and `restrictions` keys respectively
         """
         branch_protection = {}
         _LOG.debug(
