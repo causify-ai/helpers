@@ -3,7 +3,8 @@
 - [Enhanced Pytest Coverage for Subprocesses and Docker](#enhanced-pytest-coverage-for-subprocesses-and-docker)
   * [Overview](#overview)
   * [Problem & Solution](#problem--solution)
-  * [Architecture](#architecture)
+    + [The Challenge:](#the-challenge)
+    + [The Solution:](#the-solution)
   * [Setup Guide](#setup-guide)
     + [Prerequisites](#prerequisites)
     + [Step 1: Configure Coverage for Parallel Execution](#step-1-configure-coverage-for-parallel-execution)
@@ -13,26 +14,9 @@
     + [Step 5: Run Tests with Coverage](#step-5-run-tests-with-coverage)
     + [Step 6: Collect and Merge Coverage Data](#step-6-collect-and-merge-coverage-data)
     + [Step 7: View Coverage Report on web browser](#step-7-view-coverage-report-on-web-browser)
-  * [Configuration Reference](#configuration-reference)
-    + [Key Configuration Options](#key-configuration-options)
-    + [Environment Variables](#environment-variables)
-  * [Hook Injection System](#hook-injection-system)
-    + [Coverage Hook Installation](#coverage-hook-installation)
-    + [Function Reference](#function-reference)
-  * [Docker Integration](#docker-integration)
-    + [Container Preparation](#container-preparation)
-    + [Runtime Configuration](#runtime-configuration)
-    + [Integration with hdocker](#integration-with-hdocker)
-  * [Workflow Implementation](#workflow-implementation)
-  * [Coverage Data Flow](#coverage-data-flow)
-    + [File Naming Convention](#file-naming-convention)
-    + [Data Collection Process](#data-collection-process)
-  * [Key Benefits of the Approach](#key-benefits-of-the-approach)
-  * [Design Principles](#design-principles)
-  * [Common Usage Patterns](#common-usage-patterns)
+  * [Common Usage Patterns in test files](#common-usage-patterns-in-test-files)
     + [Simple Subprocess Test](#simple-subprocess-test)
     + [Docker Container Test](#docker-container-test)
-  * [Troubleshooting](#troubleshooting)
 
 <!-- tocstop -->
 
@@ -40,31 +24,31 @@
 
 ## Overview
 
-- This guide **extends `pytest` coverage** to capture data from **Python
-  subprocesses** and **Dockerized scripts**, normally excluded from coverage
-  metrics.
-- Uses **coverage hooks** and **parallel data collection** for **comprehensive
-  test coverage reporting**.
+This guide extends `coverage run` to capture comprehensive test data from
+**Python subprocesses** and **Dockerized applications**. By implementing
+**coverage hooks** and **parallel data collection**, you can achieve complete
+test coverage reporting across distributed processes that are typically excluded
+from standard coverage metrics.
 
 ## Problem & Solution
 
-- **Problem**: Unit tests spawning **Python subprocesses** or **Docker
-  containers** miss coverage data from child processes, leading to **incomplete
-  metrics**.
-- **Solution**:
-  - **Automatically instrument** all Python processes using **coverage hooks**
-    and **parallel data collection**.
-  - **Merge results** into a unified report.
+### The Challenge:
 
-## Architecture
+Traditional pytest coverage collection fails when tests spawn Python
+subprocesses or execute code within Docker containers. This results in
+significant coverage gaps, as child processes and containerized code execution
+don't contribute to your coverage reports, leading to artificially low and
+misleading coverage metrics.
 
-- Three main components:
-  1. **Coverage Configuration**: Enhanced `.coveragerc` with **parallel mode**
-     and **path mapping**.
-  2. **Hook Injection**: Utility to install **coverage startup hooks** in Python
-     environments.
-  3. **Docker Integration**: Modified containers generate **coverage data** to
-     **shared volumes**.
+### The Solution:
+
+- **Automatic Process Instrumentation**: Deploy coverage hooks that
+  automatically instrument all Python processes, including subprocesses and
+  container-based execution
+- **Parallel Data Collection**: Enable concurrent coverage data collection from
+  multiple processes without conflicts
+- **Unified Report Generation**: Aggregate coverage data from all sources into
+  comprehensive, actionable reports
 
 ## Setup Guide
 
@@ -118,16 +102,30 @@
 ### Step 4: Update Docker Containers (if applicable)
 
 - Add to **Dockerfile**:
-  ```dockerfile
-  RUN pip install coverage pytest pytest-cov
-  RUN mkdir -p /app/coverage_data && chmod 777 /app/coverage_data
-  RUN python -c "
-  import site, os
-  pth_file = os.path.join(site.getsitepackages()[0], 'coverage.pth')
-  with open(pth_file, 'w') as f:
-      f.write('import coverage; coverage.process_startup()')
-  "
-  ```
+
+```dockerfile
+FROM python:3.8
+WORKDIR /app
+
+# Install coverage and testing dependencies
+RUN pip install --no-cache-dir coverage pytest pytest-cov
+
+# Create coverage data directory with proper permissions
+RUN mkdir -p /app/coverage_data && chmod 777 /app/coverage_data
+
+# Copy coverage configuration
+COPY .coveragerc /app/coverage_data/.coveragerc
+ENV COVERAGE_PROCESS_START=/app/coverage_data/.coveragerc
+
+# Install coverage hook for automatic startup
+RUN python -c "\
+import site, os; \
+site_dir = site.getsitepackages()[0]; \
+pth_file = os.path.join(site_dir, 'coverage.pth'); \
+with open(pth_file, 'w') as f: \
+    f.write('import coverage; coverage.process_startup()')"
+```
+
 - Not required if base image is built through `hdocker.build_container_image()`
 
 ### Step 5: Run Tests with Coverage
@@ -222,114 +220,7 @@
 
 - In your browser, navigate to: [http://localhost:8000](http://localhost:8000)
 
-## Configuration Reference
-
-### Key Configuration Options
-
-- **`parallel = True`**: Enables separate **coverage files**.
-- **`concurrency = multiprocessing`**: Handles **concurrent processes**.
-- **`sigterm = True`**: Saves **coverage data** on termination.
-- **`[paths]`**: Maps **container paths** to **host paths**.
-
-### Environment Variables
-
-- **`COVERAGE_PROCESS_START`**: Points to **.coveragerc**, set by **hook
-  injection**.
-- **`COVERAGE_FILE`**: Specifies **coverage data file**, set by **Docker
-  integration**.
-
-## Hook Injection System
-
-### Coverage Hook Installation
-
-- Places `coverage.pth` in **site-packages** with:
-  ```python
-  import coverage; coverage.process_startup()
-  ```
-
-### Function Reference
-
-- **`hcoverage.inject()`**: Installs **hooks**, may raise `OSError` or
-  `ImportError`.
-- **`hcoverage.coverage_subprocess_commands()`**: Prepares **coverage data
-  directory**.
-- **`hcoverage.combine_commands()`**: Merges **coverage data**, generates
-  **reports**.
-
-## Docker Integration
-
-### Container Preparation
-
-- **Requirements**:
-  - **Coverage tools**: `RUN pip install coverage pytest pytest-cov`.
-  - **Shared directory**:
-    `RUN mkdir -p /app/coverage_data && chmod 777 /app/coverage_data`.
-  - **Coverage hook**: Installs `coverage.pth` in **site-packages**.
-
-### Runtime Configuration
-
-- **Volume mount**: `-v {host_coverage_dir}:/app/coverage_data`.
-- **Environment variables**:
-  - `-e COVERAGE_FILE=/app/coverage_data/.coverage`
-  - `-e COVERAGE_PROCESS_START=/app/coverage_data/.coveragerc`.
-
-### Integration with hdocker
-
-- **`hdocker.build_base_cmd()`**: Adds **volume mounts** and **environment
-  variables**.
-- **`hdocker.build_container_image()`**: Builds **Docker images** with
-  **coverage support**.
-
-## Workflow Implementation
-
-- **Assumptions**:
-  - Containers built with `hdocker.build_container_image()`.
-  - Executables run with `hdocker.build_base_cmd()`.
-
-- **Pre-Test Setup**:
-  - Install **hooks**: `hcoverage.inject()`.
-  - Prepare **directory**: `hcoverage.coverage_subprocess_commands()`.
-
-- **Test Execution**:
-  - Run: `coverage run --parallel-mode -m pytest`.
-  - **Subprocesses** and **containers** auto-instrumented.
-
-- **Data Collection and Merging**:
-  - Copy: `cp coverage_data/.coverage.* .`.
-  - Combine: `coverage combine`.
-  - Report: `coverage report; coverage html`.
-
-## Coverage Data Flow
-
-### File Naming Convention
-
-- **Main processes**: `.coverage.{hostname}.{pid}`.
-- **Subprocesses**: `.coverage.{hostname}.{pid}`.
-- **Containers**: `.coverage.{container_id}`.
-
-### Data Collection Process
-
-- **Generation**: Each **Python process** writes **coverage file**.
-- **Collection**: Copies **container files** to **host**.
-- **Merge**: Combines files into `.coverage`.
-
-## Key Benefits of the Approach
-
-- **Transparency**: No changes to **test code**.
-- **Comprehensive Coverage**: Captures **main process**, **subprocesses**,
-  **container scripts**.
-- **Leverages Native Tools**: Uses **pytest-cov** for **subprocess support**.
-- **Parallel Processing**: Supports **concurrent processes**.
-
-## Design Principles
-
-- **Explicit Configuration**: **Hooks** installed explicitly, errors **clear**.
-- **Native Tool Support**: Leverages `pytest-cov` and `coverage`.
-- **Consistent Environments**: Same **hooks** across **host** and
-  **containers**.
-- **Fail Fast**: Missing **tools** or **configs** trigger **immediate errors**.
-
-## Common Usage Patterns
+## Common Usage Patterns in test files
 
 ### Simple Subprocess Test
 
@@ -339,21 +230,16 @@ def test_subprocess_script():
     assert result.returncode == 0
 ```
 
+- Works with `hsystem.system`
+
 ### Docker Container Test
 
 ```python
 def test_docker_script():
-    base_cmd = build_base_cmd(use_sudo=False)
+    base_cmd = hdocker.get_docker_base_cmd(use_sudo=False)
     docker_cmd = base_cmd + ["my-image", "python", "script.py"]
     result = subprocess.run(docker_cmd, capture_output=True)
     assert result.returncode == 0
 ```
 
-## Troubleshooting
-
-- **Missing Coverage Data**: Check **hooks** with
-  `python -c "import site; print(site.getsitepackages())"`.
-- **Container Permissions**: Ensure **777 permissions** for **coverage
-  directory**, **644** for `.coveragerc`.
-- **Path Mapping Issues**: Verify `[paths]` maps **/app** to **.** in
-  `.coveragerc`.
+- Considers "my-image" to be built with `hdocker.build_container_image()`
