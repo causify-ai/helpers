@@ -10,9 +10,7 @@ import os
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
-import pandas as pd
 from invoke import task
-from IPython.display import Markdown, display
 
 # We want to minimize the dependencies from non-standard Python packages since
 # this code needs to run with minimal dependencies and without Docker.
@@ -888,6 +886,9 @@ def render_repo_workflow_status_table(
         "failure": "red"}
     :param timezone: timezone for timestamp display
     """
+    import pandas as pd
+    from IPython.display import Markdown, display
+
     workflow_df["url"] = workflow_df["url"].apply(make_clickable)
     repos = workflow_df["repo_name"].unique()
     display(Markdown("## Overall Status"))
