@@ -295,7 +295,7 @@ Sysadmin has sent you:
 - Your username `$USER`
 - A key `crypto.pub` that looks like:
   ```
-  -----BEGIN OPENSSH PRIVATE KEY-----
+  -----BEGIN OPENSSH PRIVATE KEY----- # gitleaks:allow
   b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAABlwAAAAdzc2gtcn
   NhAAAAAwEAAQAAAYEA0IQsLy1lL3bhPT+43sht2/m9tqZm8sEQrXMAVtfm4ji/LXMr7094 ...
   hakqVTlQ2sr0YTAAAAHnNhZ2dlc2VAZ3BtYWMuZmlvcy1yb3V0ZXIuaG9tZQECAwQ=
