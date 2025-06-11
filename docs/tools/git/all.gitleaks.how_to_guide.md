@@ -102,7 +102,7 @@ paths = [
 - The Gitleaks GitHub Actions will fail due to these leaks in the commit history
 - We can remove leaks from the commit history using the following methods:
 
-- Option 1: Rebase and squash all commits in the PR into a single commit
+- Option 1: Soft reset and combine all commits in the PR into a single commit
   - Use this method if you want to discard all commit history in the PR
 
   ```bash
