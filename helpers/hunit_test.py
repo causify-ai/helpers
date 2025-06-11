@@ -462,7 +462,7 @@ def purify_from_environment(txt: str) -> str:
     param txt: input text that needs to be purified
     return: purified text
     """
-    # Replace current username with $USER_NAME.
+    # Replace current username with `$USER_NAME`.
     user_name = hsystem.get_user_name()
     # Set a regex pattern that finds a user name surrounded by dot, dash or space.
     # E.g., `IMAGE=$CSFY_ECR_BASE_PATH/amp_test:local-$USER_NAME-1.0.0`,
