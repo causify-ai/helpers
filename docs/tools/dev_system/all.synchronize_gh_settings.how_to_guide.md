@@ -5,15 +5,14 @@
 - [Overview](#overview)
 - [Prerequisites](#prerequisites)
   * [GitHub token](#github-token)
-  * [PyGithub library](#pygithub-library)
 - [Settings manifest file structure](#settings-manifest-file-structure)
 - [How to synchronize repository settings](#how-to-synchronize-repository-settings)
 - [Troubleshooting](#troubleshooting)
 
 <!-- tocstop -->
 
-- TODO(sandeep): Update the script path references once the dockerized executable
-  is implemented
+- TODO(sandeep): Update the script path references once the dockerized
+  executable is implemented
 
 ## Overview
 
@@ -28,8 +27,8 @@
 
 - The script uses `PyGithub` library to interact with the GitHub API
 
-- The script is a dockerized executable (i.e., runs in a Docker container to ensure that
-  all the dependencies are verified, e.g., `PyGitHub`)
+- The script is a dockerized executable (i.e., runs in a Docker container to
+  ensure that all the dependencies are verified, e.g., `PyGitHub`)
 
 - Every time you run sync the script saves a backup of the current settings so
   you can roll back if needed
@@ -50,6 +49,7 @@
 - In each repo there are two parts of a configuration we need to set
 
 - The "repository settings" section controls basic repository configuration:
+
   ```yaml
   repository_settings:
     name: "repo-name"
@@ -72,6 +72,7 @@
   ```
 
 - The "branch protection" section defines rules for protected branches:
+
   ```yaml
   branch_protection:
     main:
@@ -101,6 +102,7 @@
   ```
 
 - You can use two reference files to help configure your repository:
+
   1. `Common repository settings`
      - Find the file at
        [/dev_scripts_helpers/github/settings/common_repo_settings.yaml](/dev_scripts_helpers/github/settings/common_repo_settings.yaml)
@@ -134,7 +136,7 @@
   > dockerized_sync_gh_repo_settings.py sync --help
   ```
 
-- Export current repository settings to a YAML file:
+- Export repository settings to a YAML file:
 
   ```bash
   > dockerized_sync_gh_repo_settings.py export \
@@ -168,8 +170,8 @@
 ## Troubleshooting
 
 1. For permission errors:
-     - Verify your GitHub token has sufficient permissions
-     - Check your repository admin access
+   - Verify your GitHub token has sufficient permissions
+   - Check your repository admin access
 
 2. If settings are not applied:
    - Run with `--dry_run` to preview changes
