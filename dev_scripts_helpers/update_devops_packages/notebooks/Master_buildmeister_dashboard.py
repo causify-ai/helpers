@@ -70,9 +70,9 @@ pd.set_option("display.max_columns", None)
 # %%
 repo_list = [
     "cryptokaizen/cmamp",
-    # "cryptokaizen/orange",
-    # "cryptokaizen/lemonade",
-    # "causify-ai/kaizenflow",
+    "cryptokaizen/orange",
+    "cryptokaizen/lemonade",
+    "causify-ai/kaizenflow",
 ]
 workflow_df = hlitagh.gh_get_details_for_all_workflows(repo_list)
 workflow_df = workflow_df[["repo_name", "workflow_name", "conclusion", "url"]]
