@@ -10,6 +10,7 @@ import os
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
+import pandas as pd
 from invoke import task
 from IPython.display import Markdown, display
 
