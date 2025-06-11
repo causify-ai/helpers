@@ -601,6 +601,14 @@ def _get_best_workflow_run(
     :param workflow_runs: run metadata, sorted most-recent-first
     :param preferred_event: trigger type to prioritize (e.g., "schedule")
     :return: best-matching run
+        e.g.,
+        ```
+        {
+            'conclusion': 'success',
+            'status': 'completed',
+            'url': 'https://github.com/cryptokaizen/cmamp/actions/runs/8714881296',
+            'workflowName': 'Allure fast tests'
+        }
     """
     run_status = None
     if preferred_event:
@@ -841,17 +849,29 @@ def _gh_run_and_get_json(cmd: str) -> List[Dict[str, Any]]:
 
 def make_clickable(url: str) -> str:
     """
-    Wrap a URL as an HTML anchor tag for IPython display.
+    Wrap a URL as an HTML anchor tag.
+
+    :param url: URL to wrap (e.g., "https://github.com/causify-ai/cmamp/actions/...")
+    :return: HTML anchor string that makes the URL clickable in rendered Markdown
     """
-    return f'<a href="{url}" target="_blank">{url}</a>'
+    anchor = f'<a href="{url}" target="_blank">{url}</a>'
+    return anchor
 
 
 def color_format(val: str, status_color_mapping: Dict[str, str]) -> str:
     """
     Return a background-color style for DataFrame.style.map based on status.
+
+    :param val: value to evaluate for status-based styling (e.g.,
+        "success" or "failure")
+    :param status_color_mapping: map status strings to color values,
+        e.g.: { "success": "green", "failure": "red" }
+    :return: CSS string to apply as a style, e.g., "background-color:
+        green"
     """
     color = status_color_mapping.get(val, "grey")
-    return f"background-color: {color}"
+    style = f"background-color: {color}"
+    return style
 
 
 def render_repo_workflow_status_table(
@@ -862,19 +882,17 @@ def render_repo_workflow_status_table(
     """
     Render a dashboard summary of workflow statuses grouped by repo.
 
-    :param workflow_df: DataFrame with columns ["repo_name",
-        "workflow_name", "conclusion", "url"]
-    :param status_color_mapping: e.g., {"success": "green", "failure":
-        "red"}
+    :param workflow_df: data with columns ["repo_name", "workflow_name",
+        "conclusion", "url"]
+    :param status_color_mapping: color for outcomes {"success": "green",
+        "failure": "red"}
     :param timezone: timezone for timestamp display
     """
     workflow_df["url"] = workflow_df["url"].apply(make_clickable)
     repos = workflow_df["repo_name"].unique()
-
     display(Markdown("## Overall Status"))
     current_timestamp = pd.Timestamp.now(tz=timezone)
     display(Markdown(f"**Last run: {current_timestamp}**"))
-
     for repo in repos:
         repo_df = workflow_df[workflow_df["repo_name"] == repo]
         overall_status = gh_get_overall_build_status_for_repo(repo_df)
