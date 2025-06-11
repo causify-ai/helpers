@@ -204,8 +204,7 @@
 ### 8) Release the Docker image
 
 - Refer to the following docs for more info on image releases
-- Docs/tools/dev_system/all.devops_docker.how_to_guide.md#registries
-- Docs/tools/dev_system/all.devops_docker.how_to_guide.md#release-a-docker-image
+  - [docs/tools/dev_system/all.devops_docker.how_to_guide.md#release-a-docker-image](/docs/tools/dev_system/all.devops_docker.how_to_guide.md#release-a-docker-image)
 
 - Release to ECR
   - This is required for running the container from the dev/prod servers
@@ -216,6 +215,7 @@
 
 - Release to GHCR
   - This is required for running the container from GH Actions CI/CD pipelines
+  - TODO(heanh): Can we create an invoke target for this?
   ```bash
   > docker login ghcr.io -u <username> -p <personal_access_token>
   > docker tag 623860924167.dkr.ecr.eu-north-1.amazonaws.com/<image_name>:dev ghcr.io/causify-ai/<image_name>:dev
