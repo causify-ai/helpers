@@ -70,10 +70,7 @@ def _sorting_key(node: Union[cst.ClassDef, cst.FunctionDef]) -> int:
 # #############################################################################
 
 
-class _OrderMethods(
-    codemod.ContextAwareTransformer
-):  # pylint: disable=too-many-ancestors
-
+class _OrderMethods(codemod.ContextAwareTransformer):  # pylint: disable=too-many-ancestors
     def leave_ClassDef(
         self, original_node: cst.ClassDef, updated_node: cst.ClassDef
     ) -> Union[cst.BaseStatement, cst.RemovalSentinel]:
@@ -156,7 +153,8 @@ class _ClassMethodOrder(liaction.Action):
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "files",

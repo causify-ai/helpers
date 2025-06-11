@@ -732,7 +732,9 @@ def remove_outliers(
     if mode is None:
         mode = "winsorize"
     _LOG.debug("Removing outliers with mode=%s", mode)
-    bounds = utils.jstats.get_quantile_bounds(obj, lower_quantile, upper_quantile)
+    bounds = utils.jstats.get_quantile_bounds(
+        obj, lower_quantile, upper_quantile
+    )
     if print_stats:
         _LOG.debug("bounds=%s", str(bounds))
     if inplace:
@@ -745,14 +747,17 @@ def remove_outliers(
         if print_stats:
             num = np.sum(obj <= bounds[0]) + np.sum(bounds[1] <= obj)
             _LOG.debug(
-                "winsorize: to_process=%s", dbg.perc(num, len(ret), printAll=True)
+                "winsorize: to_process=%s",
+                dbg.perc(num, len(ret), printAll=True),
             )
     else:
         mask = (bounds[0] <= obj) & (obj <= bounds[1])
         if print_stats:
             num = np.sum(mask)
             _LOG.debug(
-                "%s: to_process=%s", mode, dbg.perc(num, len(ret), printAll=True)
+                "%s: to_process=%s",
+                mode,
+                dbg.perc(num, len(ret), printAll=True),
             )
         if mode == "set_to_nan":
             ret[~mask] = np.nan
@@ -793,7 +798,10 @@ def remove_outlier_rows_from_df(
         if col in col_names_to_trim:
             _LOG.debug("Trimming col %s", col)
             trimmed_col, _ = remove_outliers(
-                df[col], lower_quantile, upper_quantile=upper_quantile, mode=mode
+                df[col],
+                lower_quantile,
+                upper_quantile=upper_quantile,
+                mode=mode,
             )
         else:
             _LOG.debug("Skipping col %s", col)
@@ -903,7 +911,8 @@ def report_intraday_stats(rets):
         #
         stats_df.append(row)
     stats_df = pd.DataFrame(
-        stats_df, columns=["inst", "min_hour", "max_hour", "min_date", "max_date"]
+        stats_df,
+        columns=["inst", "min_hour", "max_hour", "min_date", "max_date"],
     )
     stats_df.set_index("inst", drop=True, inplace=True)
     return stats_df
@@ -1420,7 +1429,9 @@ def compute_correlation(
         y = (y - y.mean()) / y.std()
     rho, p_val = scipy.stats.stats.pearsonr(x, y)
     if print_stats:
-        print("num_samples=%s" % dbg.perc(len(x), tot_num_samples, printAll=True))
+        print(
+            "num_samples=%s" % dbg.perc(len(x), tot_num_samples, printAll=True)
+        )
         print("rho=%.4f" % rho)
         print(
             "2-tailed pvalue=%.4f (%s)"

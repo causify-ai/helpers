@@ -461,7 +461,7 @@ def round_digits(
         (Default value = 2)
     :param use_thousands_separator: use "," to separate thousands
         (Default value = False)
-    :returns: str with formatted value
+    :return: str with formatted value
     """
     if (num_digits is not None) and isinstance(v, float):
         fmt = "%0." + str(num_digits) + "f"
@@ -973,8 +973,10 @@ def filter_text(regex: str, txt: str) -> str:
 
 
 def dassert_one_trailing_newline(txt: str) -> None:
-    num_newlines = len(re.search(r'\n*$', txt).group())
-    hdbg.dassert_eq(num_newlines, 0, "num_newlines='%s' txt='%s'", num_newlines, txt)
+    num_newlines = len(re.search(r"\n*$", txt).group())
+    hdbg.dassert_eq(
+        num_newlines, 0, "num_newlines='%s' txt='%s'", num_newlines, txt
+    )
 
 
 def to_info(tag: str, txt: Union[str, List[str]]) -> str:
@@ -1012,7 +1014,6 @@ def config_notebook(sns_set: bool = True) -> None:
     plt.rcParams["legend.fontsize"] = 14
     plt.rcParams["font.size"] = 14
     plt.rcParams["image.cmap"] = "rainbow"
-
     if False:
         # Tweak the size of the plots to make it more readable when embedded in
         # documents or presentations.
@@ -1038,20 +1039,17 @@ def config_notebook(sns_set: bool = True) -> None:
         plt.rc("legend", fontsize=small_size)
         # Fontsize of the figure title.
         plt.rc("figure", titlesize=bigger_size)
-
     # Seaborn.
     import seaborn as sns
 
     if sns_set:
         sns.set()
-
     # Pandas.
     import pandas as pd
 
     pd.set_option("display.max_rows", 500)
     pd.set_option("display.max_columns", 500)
     pd.set_option("display.width", 1000)
-
     # Warnings.
     import helpers.hwarnings as hwarnin
 

@@ -11,7 +11,7 @@
 #                             'passivity_factor': 0.55},
 # 'log_dir': '/app/system_log_dir',
 # 'raw_data_reader_signature': 'realtime.airflow.downloaded_200ms.postgres.bid_ask.futures.v7.ccxt.binance.v1_0_0',
-# 'secret_identifier': 'binance.preprod.trading.4',
+# 'secret_identifier': 'binance.preprod.trading.4', # gitleaks:allow
 # 'stage': 'preprod',
 # 'universe_version': 'v7.4'}
 # ```

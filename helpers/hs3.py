@@ -45,7 +45,8 @@ _LOG = logging.getLogger(__name__)
 # build https://github.com/cryptokaizen/cmamp/actions/runs/10729983412/job/29757600889
 AWS_EUROPE_REGION_1 = "eu-north-1"
 AWS_TOKYO_REGION_1 = "ap-northeast-1"
-AWS_REGIONS = [AWS_EUROPE_REGION_1, AWS_TOKYO_REGION_1]
+AWS_US_REGION_1 = "us-east-1"
+AWS_REGIONS = [AWS_EUROPE_REGION_1, AWS_TOKYO_REGION_1, AWS_US_REGION_1]
 
 # TODO(gp): @all separate S3 code in `helpers/hs3.py` from authentication and
 #  AWS profile code in `helpers/aws_authentication.py`.
@@ -911,7 +912,9 @@ def archive_data_on_s3(
     hdbg.dassert_dir_exists(src_dir)
     dassert_is_s3_path(s3_path)
     _LOG.info(
-        "The size of '%s' is %s", src_dir, hsystem.du(src_dir, human_format=True)
+        "The size of '%s' is %s",
+        src_dir,
+        hsystem.du(src_dir, human_format=True),
     )
     # Add a timestamp if needed.
     dst_path = hsystem.append_timestamp_tag(src_dir, tag) + ".tgz"
@@ -1037,7 +1040,6 @@ def expand_archived_data(src_tgz_file: str, dst_dir: str) -> str:
     _ = rc
     _LOG.debug(hprint.to_str("enclosing_tgz_dir_name"))
     tgz_dst_dir = os.path.join(dst_dir, enclosing_tgz_dir_name)
-
     if os.path.exists(tgz_dst_dir):
         hdbg.dassert_dir_exists(dst_dir)
         _LOG.info(

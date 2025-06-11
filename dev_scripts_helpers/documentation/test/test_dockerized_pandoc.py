@@ -15,7 +15,6 @@ import helpers.hunit_test as hunitest
 
 
 class Test_Pandoc_Cmd_Conversion(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test `convert_pandoc_cmd_to_arguments` to parse a pandoc command string
@@ -71,7 +70,6 @@ class Test_Pandoc_Cmd_Conversion(hunitest.TestCase):
 
 
 class Test_run_dockerized_pandoc(hunitest.TestCase):
-
     @pytest.mark.skipif(
         hserver.is_inside_ci() or hserver.is_dev_csfy(),
         reason="Disabled because of CmampTask10710",

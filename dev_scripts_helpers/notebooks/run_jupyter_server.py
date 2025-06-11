@@ -61,7 +61,7 @@ def _start(port, action):
     pids, txt = _get_port_process(port)
     if pids:
         _LOG.warning(
-            "Found other jupyter notebooks running on the same " "port:\n%s",
+            "Found other jupyter notebooks running on the same port:\n%s",
             "\n".join(txt),
         )
         if action == "force_start":
@@ -87,7 +87,8 @@ def _start(port, action):
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     _help = """
 - start: start a notebook if no notebook server is running at the requested port
@@ -105,7 +106,7 @@ def _parse() -> argparse.ArgumentParser:
         "--port",
         action="store",
         default=None,
-        help="Override the " "default port to use",
+        help="Override the default port to use",
     )
     hparser.add_verbosity_arg(parser)
     return parser

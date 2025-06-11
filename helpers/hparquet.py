@@ -119,7 +119,9 @@ class ParquetDataFrameGenerator:
                 index=self._dataframe_index,
             )
             _LOG.debug(
-                hpandas.df_to_str(asset_df, print_shape_info=True, tag="asset_df")
+                hpandas.df_to_str(
+                    asset_df, print_shape_info=True, tag="asset_df"
+                )
             )
             df.append(asset_df)
         return df

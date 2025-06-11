@@ -27,7 +27,6 @@ RT = TypeVar("RT")  # Return type for decorator.
 
 
 def jit(f: Callable[..., RT]) -> Callable[..., RT]:
-
     if USE_NUMBA and not numba_available:
         _LOG.warning("numba is not installed")
     use_numba = USE_NUMBA and numba_available

@@ -25,7 +25,8 @@ _LOG = logging.getLogger(__name__)
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     # parser.add_argument("--text", action="store", type=str, required=True)
     # parser.add_argument("--step", action="store", type=int, required=True)
@@ -39,7 +40,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     #
     _LOG.warning("\n%s", hprint.frame("This is a dry run!"))
     git_root = hgit.get_client_root(super_module=False)
-    cmd = rf'''cd {git_root} && find . -type f -name "*" -not -path "*/\.git/*"'''
+    cmd = (
+        rf'''cd {git_root} && find . -type f -name "*" -not -path "*/\.git/*"'''
+    )
     _, file_list = hsystem.system_to_string(cmd)
     file_list = file_list.split("\n")
     #

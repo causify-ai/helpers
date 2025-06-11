@@ -45,7 +45,8 @@ def _print(tag: str, val: str, verbose: bool) -> None:
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("positional", nargs="*")
     parser.add_argument("--short", action="store_true", help="Short output form")

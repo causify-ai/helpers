@@ -62,10 +62,15 @@ _POST_CONTAINER_TRANSFORMS: Dict[str, List[str]] = {}
 
 def get_post_container_transforms(
     transform_name: str,
-) -> Dict[str, List[str]]:
+) -> List[str]:
+    """
+    Return the transformations for `transform_name`.
+    """
     global _POST_CONTAINER_TRANSFORMS
+    # Initialize the dictionary, on the first call.
     if not _POST_CONTAINER_TRANSFORMS:
         valid_prompts = get_prompt_tags()
+        # Call all the functions and register their `post_container_transforms`.
         for prompt in valid_prompts:
             _, _, _, post_container_transforms = eval(f"{prompt}()")
             hdbg.dassert_not_in(prompt, _POST_CONTAINER_TRANSFORMS)
@@ -104,7 +109,29 @@ def test() -> _PROMPT_OUT:
 # #############################################################################
 
 
+# Apply_cfile.
+
+
+def code_apply_cfile() -> _PROMPT_OUT:
+    """
+    Apply a cfile to the code.
+    """
+    system = _CODING_CONTEXT
+    system += r"""
+    Replace any Python "from import" statement like `from X import Y` with the
+    form `import X` and then replace the uses of `Y` with `X.Y`
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {"remove_code_delimiters"}
+    post_container_transforms: List[str] = []
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
 # Fix
+
+
+# TODO(gp): The code fixes are superseded by the llm_review.py approach using
+# the guideline file.
 
 
 def code_fix_from_imports() -> _PROMPT_OUT:
@@ -439,9 +466,7 @@ def code_fix_by_using_f_strings() -> _PROMPT_OUT:
 
 def code_fix_by_using_perc_strings() -> _PROMPT_OUT:
     """
-    Use % formatting, like `"Hello, %s.
-
-    You are %d years old." % (name, age)`.
+    Use % formatting, like `"Hello, %s. You are %d years old." % (name, age)`.
     """
     system = _CODING_CONTEXT
     system += r"""
@@ -619,11 +644,25 @@ def latex_rewrite() -> _PROMPT_OUT:
     system = _LATEX_CONTEXT
     system += r"""
     - Rewrite the text passed to increase clarity and readability.
-    - Maintain the structure of the text as much as possible, in terms of bullet
-      points and their indentation
+    - Maintain the structure of the text as much as possible, in terms of items
+      and their indentation
+    - The output should be a valid Latex code (e.g., using itemize)
     """
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
+    post_container_transforms = ["format_latex"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def latex_check() -> _PROMPT_OUT:
+    system = _LATEX_CONTEXT
+    system += r"""
+    Check the Latex code is correct and doesn't have errors.
+
+    Print the errors in one line.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = set()
     post_container_transforms = []
     return system, pre_transforms, post_transforms, post_container_transforms
 
@@ -677,6 +716,7 @@ def md_rewrite() -> _PROMPT_OUT:
     - Rewrite the text passed to increase clarity and readability.
     - Maintain the structure of the text as much as possible, in terms of bullet
       points and their indentation.
+    - Whenever possible use "you" instead of "I" or "we"
     """
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
@@ -922,10 +962,10 @@ def _review_from_file(file: str) -> _PROMPT_OUT:
     - `- Bad:` followed by inline or code block examples
 
     Example:
-    - All functions must have a docstring  
+    - All functions must have a docstring
     - Good:
         ```python
-        def foo():  
+        def foo():
             pass
         ```
     - Bad:
@@ -974,16 +1014,7 @@ def review_llm() -> _PROMPT_OUT:
     Review the code using LLMs.
     """
     # Load the reference file.
-    file_name = hgit.find_file("all.llm_style_review_guidelines.reference.md")
-    return _review_from_file(file_name)
-
-
-def review_linter() -> _PROMPT_OUT:
-    """
-    Review the code for linter style (still using LLMs).
-    """
-    # Load the reference file.
-    file_name = hgit.find_file("all.linter_style_review_guidelines.reference.md")
+    file_name = hgit.find_file("all.coding_style_guidelines.reference.md")
     return _review_from_file(file_name)
 
 
@@ -1227,13 +1258,34 @@ def slide_add_figure() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
+def slide_check() -> _PROMPT_OUT:
+    system = _MD_CONTEXT
+    system += r"""
+    - Do not print the content of the slide, but only the comment.
+
+    - Is the content of the slide clear?
+      - Answer with "The slide is clear" or "The slide is not clear"
+
+    - Is the content of the slide correct?
+      - Answer with "The slide is correct" or "The slide is not correct"
+
+    - What can be clarified or improved?
+      - Respond with at most 3 short bullet points about what can be clarified
+        or improved.
+      - You MUST report only things that you are sure about.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms: Set[str] = set()
+    post_container_transforms = ["format_markdown", "append_to_text"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
 # #############################################################################
 # Text.
 # #############################################################################
 
 # Operate on pure text, not markdown.
 
-# def text_expand() -> _PROMPT_OUT:
+#def text_expand() -> _PROMPT_OUT:
 #    """
 #    """
 #    system = hio.from_file("text_expand2.txt")
@@ -1243,12 +1295,26 @@ def slide_add_figure() -> _PROMPT_OUT:
 #    return system, pre_transforms, post_transforms, post_container_transforms
 
 
+def text_idea() -> _PROMPT_OUT:
+    """
+    """
+    file = "text_idea.txt"
+    if os.path.exists(file):
+        system = hio.from_file(file)
+    else:
+        system = ""
+    pre_transforms: Set[str] = set()
+    post_transforms: Set[str] = set()
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
 def text_rephrase() -> _PROMPT_OUT:
     """
-    Apply complex transformations to the text.
     """
-    if os.path.exists("text_rephrase.txt"):
-        system = hio.from_file("text_rephrase.txt")
+    file = "text_rephrase.txt"
+    if os.path.exists(file):
+        system = hio.from_file(file)
     else:
         system = ""
     pre_transforms: Set[str] = set()
@@ -1333,7 +1399,9 @@ def _convert_to_vim_cfile_str(txt: str, in_file_name: str) -> str:
     return txt_out
 
 
-def _convert_to_vim_cfile(txt: str, in_file_name: str, out_file_name: str) -> str:
+def _convert_to_vim_cfile(
+    txt: str, in_file_name: str, out_file_name: str
+) -> str:
     """
     Convert the text passed to a vim cfile.
 
@@ -1395,9 +1463,12 @@ def run_prompt(
     prompt_tags = get_prompt_tags()
     hdbg.dassert_in(prompt_tag, prompt_tags)
     python_cmd = f"{prompt_tag}()"
-    system_prompt, pre_transforms, post_transforms, post_container_transforms = (
-        eval(python_cmd)
-    )
+    (
+        system_prompt,
+        pre_transforms,
+        post_transforms,
+        post_container_transforms,
+    ) = eval(python_cmd)
     # Check return types.
     hdbg.dassert_isinstance(system_prompt, str)
     hdbg.dassert_isinstance(pre_transforms, set)

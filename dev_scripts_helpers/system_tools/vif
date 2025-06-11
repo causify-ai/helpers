@@ -1,0 +1,9 @@
+#!/bin/bash -xe
+
+# """
+# Open file searching for the file if the path is incorrect.
+# """
+
+FILE=$(path $1)
+echo "file=$FILE"
+vi $FILE

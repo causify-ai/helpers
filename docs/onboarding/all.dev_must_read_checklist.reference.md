@@ -5,6 +5,7 @@
   * [Coding](#coding)
   * [Submitting your code for review](#submitting-your-code-for-review)
   * [Git(Hub)](#github)
+  * [Buildmeister duties](#buildmeister-duties)
   * [Writing docs](#writing-docs)
   * [Beyond the must-read](#beyond-the-must-read)
 
@@ -32,6 +33,10 @@
 
 - [ ] [Git workflows and best practices](/docs/tools/git/all.git.how_to_guide.md)
 - [ ] [GitHub organization](/docs/work_organization/all.use_github.how_to_guide.md)
+
+## Buildmeister duties
+
+- [ ] [Buildmeister Guide](/docs/work_organization/all.buildmeister.how_to_guide.md)
 
 ## Writing docs
 

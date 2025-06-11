@@ -42,7 +42,9 @@ class _NotebookImageExtractor:
         self.output_dir = output_dir
 
     @staticmethod
-    def _extract_regions_from_notebook(notebook_path: str) -> List[Tuple[str, str, List]]:
+    def _extract_regions_from_notebook(
+        notebook_path: str,
+    ) -> List[Tuple[str, str, List]]:
         """
         Extract regions from a notebook based on extraction markers.
 
@@ -117,7 +119,8 @@ class _NotebookImageExtractor:
                 hdbg.dassert(
                     not in_extract,
                     "Found a start marker while in an extraction region at cell %s\n%s",
-                    cell_idx, cell.source
+                    cell_idx,
+                    cell.source,
                 )
                 # A start marker was found.
                 # Capture the mode and output filename
@@ -138,7 +141,8 @@ class _NotebookImageExtractor:
                     hdbg.dassert(
                         in_extract,
                         "Found an end marker while not in an extraction region at cell %s\n%s",
-                        cell_idx, cell.source
+                        cell_idx,
+                        cell.source,
                     )
                     current_cells.append(cell)
                     regions.append(
@@ -212,7 +216,7 @@ class _NotebookImageExtractor:
         - Convert the region to an HTML file
         - Capture a screenshot using Playwright
         - Clean up the temporary HTML file
-        
+
         Screenshots are saved in the "screenshots" folder with filenames based
         on the name provided in the extraction marker. If a name is repeated, a
         counter suffix (_1, _2, etc.) is appended to ensure unique filenames. A
@@ -237,7 +241,7 @@ class _NotebookImageExtractor:
                     cell.source = ""
             # Create a new notebook for the region.
             new_nb = nbformat.v4.new_notebook(cells=cells)
-            temp_html = f"tmp.dockerized_extract_notebook_images.html"
+            temp_html = "tmp.dockerized_extract_notebook_images.html"
             self._convert_notebook_to_html(new_nb, temp_html)
             # Determine the final screenshot filename.
             base, ext = os.path.splitext(out_filename)
@@ -291,6 +295,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     extractor.extract_and_capture()
     _LOG.info("Extraction completed. Images saved in '%s'", args.out_image_dir)
+
 
 if __name__ == "__main__":
     _main(_parse())

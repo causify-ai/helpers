@@ -617,7 +617,7 @@ class DependenceGraphComputer:
         # Store the nodes that are connected to at least one other node.
         connected_nodes = set()
         new_structured_graph = copy.deepcopy(self.structured_graph)
-        for (n1, n2) in self.structured_graph.edges:
+        for n1, n2 in self.structured_graph.edges:
             connected_nodes.add(n1)
             connected_nodes.add(n2)
         # Remove all the other nodes.
@@ -901,7 +901,8 @@ def _show_dependencies(
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("module", type=str, help="Path to the target module")
     parser.add_argument(

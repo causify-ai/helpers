@@ -266,10 +266,14 @@ def save_script(args: argparse.Namespace, txt: List[str]) -> None:
 
 def parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
-        "-o", "--output_file", default=None, help="File to write. None for stdout"
+        "-o",
+        "--output_file",
+        default=None,
+        help="File to write. None for stdout",
     )
     parser.add_argument(
         "-e", "--conda_env", default=None, help="Select the conda env to use."

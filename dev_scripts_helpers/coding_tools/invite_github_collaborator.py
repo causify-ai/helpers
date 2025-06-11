@@ -83,7 +83,9 @@ def _invite_collaborator(
             repo_name,
             "invitations",
         )
-        response = requests.get(invitation_check_url, headers=headers, timeout=10)
+        response = requests.get(
+            invitation_check_url, headers=headers, timeout=10
+        )
         status_code = response.status_code
         if status_code == 200:
             # Check if an invitation was sent to a user that is already a GH collaborator.

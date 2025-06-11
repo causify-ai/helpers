@@ -44,7 +44,8 @@ def _process_text(txt: str, instruction: str) -> str:
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("--instruction", required=True)
     hparser.add_input_output_args(parser)

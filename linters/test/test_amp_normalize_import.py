@@ -21,7 +21,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class TestChunkify(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test long imports separated by dots only.
@@ -47,7 +46,6 @@ class TestChunkify(hunitest.TestCase):
 
 
 class TestComputeMaxChunkLengths(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test one chunk, given that length <= 8.
@@ -99,7 +97,6 @@ class TestComputeMaxChunkLengths(hunitest.TestCase):
 
 
 class TestComputeShortImport(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test short import computation.
@@ -131,7 +128,6 @@ class TestComputeShortImport(hunitest.TestCase):
 
 
 class TestUseSpecialAbbreviations(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test "helpers" (as a dir name).
@@ -187,7 +183,6 @@ class TestUseSpecialAbbreviations(hunitest.TestCase):
 
 
 class TestSearchForUniqueShortImport(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test search given that short import is not in existing short imports.
@@ -242,7 +237,6 @@ class TestSearchForUniqueShortImport(hunitest.TestCase):
 
 
 class TestShortenImport(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test shorten import for long helper name (>7 chars).
@@ -310,7 +304,6 @@ class TestShortenImport(hunitest.TestCase):
 
 
 class TestFindCollisions(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test no collisions.
@@ -344,7 +337,6 @@ class TestFindCollisions(hunitest.TestCase):
 
 
 class TestGetLongImportFromFilePath(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test that "py" letters inside a file name are not removed.
@@ -432,7 +424,6 @@ class TestGetLongImportFromFilePath(hunitest.TestCase):
 
 
 class TestShortenImportNames(hunitest.TestCase):
-
     def test_end_to_end1(self) -> None:
         """
         Test shorten import end to end.
@@ -532,7 +523,6 @@ class TestShortenImportNames(hunitest.TestCase):
 
 
 class TestIsShortImportUsed(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Short import is used with the correct long import.
@@ -685,7 +675,6 @@ def test_docstring():
 
 
 class TestExtractExistingImportMappingsFromCode(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test an import without a short import.
@@ -694,9 +683,7 @@ class TestExtractExistingImportMappingsFromCode(hunitest.TestCase):
         expected: List[Tuple[str, str]] = []
         act = lamnoimp.CodeImportNormalizer._extract_existing_import_mappings_from_code(
             code=code
-        )[
-            0
-        ]
+        )[0]
         self.assertEqual(act, expected)
 
     def test2(self) -> None:
@@ -707,9 +694,7 @@ class TestExtractExistingImportMappingsFromCode(hunitest.TestCase):
         expected = [("test", "te")]
         act = lamnoimp.CodeImportNormalizer._extract_existing_import_mappings_from_code(
             code=code
-        )[
-            0
-        ]
+        )[0]
         self.assertEqual(act, expected)
 
     def test3(self) -> None:
@@ -720,9 +705,7 @@ class TestExtractExistingImportMappingsFromCode(hunitest.TestCase):
         expected = [("test.sub", "tsub")]
         act = lamnoimp.CodeImportNormalizer._extract_existing_import_mappings_from_code(
             code=code
-        )[
-            0
-        ]
+        )[0]
         self.assertEqual(act, expected)
 
     def test4(self) -> None:
@@ -736,9 +719,7 @@ class TestExtractExistingImportMappingsFromCode(hunitest.TestCase):
         expected = [("test", "te"), ("test.sub", "tsub")]
         act = lamnoimp.CodeImportNormalizer._extract_existing_import_mappings_from_code(
             code=code
-        )[
-            0
-        ]
+        )[0]
         self.assertEqual(act, expected)
 
     def test5(self) -> None:
@@ -751,9 +732,7 @@ class TestExtractExistingImportMappingsFromCode(hunitest.TestCase):
         expected: List[Tuple[str, str]] = []
         act = lamnoimp.CodeImportNormalizer._extract_existing_import_mappings_from_code(
             code=code
-        )[
-            0
-        ]
+        )[0]
         self.assertEqual(act, expected)
 
     def test6(self) -> None:
@@ -773,9 +752,7 @@ class TestExtractExistingImportMappingsFromCode(hunitest.TestCase):
         expected = [("helpers.abc", "abc"), ("helpers.abc", "xyz")]
         act = lamnoimp.CodeImportNormalizer._extract_existing_import_mappings_from_code(
             code=code
-        )[
-            0
-        ]
+        )[0]
         self.assertEqual(act, expected)
 
 
@@ -785,7 +762,6 @@ class TestExtractExistingImportMappingsFromCode(hunitest.TestCase):
 
 
 class TestReplaceShortImportInCode(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         No matches.
@@ -967,7 +943,6 @@ class TestReplaceShortImportInCode(hunitest.TestCase):
 
 
 class TestReplaceShortImportsInFile(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test local package wrong short import.
@@ -1130,7 +1105,6 @@ class TestReplaceShortImportsInFile(hunitest.TestCase):
 
 
 class TestInsertDocstringIfNeeded(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test that the import docstring is not added.
@@ -1247,7 +1221,6 @@ class TestInsertDocstringIfNeeded(hunitest.TestCase):
 
 
 class TestCleanDocstringFromImport(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test no import line in the docstring text.
@@ -1320,7 +1293,6 @@ class TestCleanDocstringFromImport(hunitest.TestCase):
 
 
 class TestProcessContent(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test that the import line is added.
@@ -1529,7 +1501,6 @@ class TestProcessContent(hunitest.TestCase):
 
 
 class TestEndToEnd(hunitest.TestCase):
-
     def test(self) -> None:
         """
         Test that import normalization works end-to-end.

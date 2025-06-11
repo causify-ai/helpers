@@ -180,7 +180,9 @@ def run_cmd_line(
         "expected_pass=%s abort_on_error=%s", expected_pass, abort_on_error
     )
     _LOG.debug("cmd=%s", cmd)
-    rc = hsystem.system(cmd, abort_on_error=abort_on_error, suppress_output=False)
+    rc = hsystem.system(
+        cmd, abort_on_error=abort_on_error, suppress_output=False
+    )
     if expected_pass:
         self.assertEqual(rc, 0)
     else:

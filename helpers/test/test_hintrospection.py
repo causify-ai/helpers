@@ -89,9 +89,7 @@ class Test_is_pickleable1(hunitest.TestCase):
         # Local lambda.
         lambda_ = lambda: 0
         func = lambda_
-        exp_str = (
-            r"<function Test_is_pickleable1.test_lambda1.<locals>.<lambda> at 0x>"
-        )
+        exp_str = r"<function Test_is_pickleable1.test_lambda1.<locals>.<lambda> at 0x>"
         # A lambda is not bound to an object.
         exp_bound = False
         exp_lambda = True
@@ -102,9 +100,7 @@ class Test_is_pickleable1(hunitest.TestCase):
     def test_lambda2(self) -> None:
         lambda_ = lambda x: x
         func = lambda_
-        exp_str = (
-            r"<function Test_is_pickleable1.test_lambda2.<locals>.<lambda> at 0x>"
-        )
+        exp_str = r"<function Test_is_pickleable1.test_lambda2.<locals>.<lambda> at 0x>"
         # A lambda is not bound to an object.
         exp_bound = False
         exp_lambda = True
@@ -365,7 +361,11 @@ class Test_get_function_from_string1(hunitest.TestCase):
         # is a sub-repo or a super-repo:
         # helpers.test.test_hintrospection.dummy_function
         # helpers_root.helpers.test.test_hintrospection.dummy_function
-        # 
-        act = re.sub(r"helpers_root\.helpers\.", "helpers.", act, flags=re.MULTILINE)
-        exp = re.sub(r"helpers_root\.helpers\.", "helpers.", exp, flags=re.MULTILINE)
+        #
+        act = re.sub(
+            r"helpers_root\.helpers\.", "helpers.", act, flags=re.MULTILINE
+        )
+        exp = re.sub(
+            r"helpers_root\.helpers\.", "helpers.", exp, flags=re.MULTILINE
+        )
         self.assert_equal(act, exp, purify_text=True)

@@ -151,9 +151,9 @@ def dassert(
     # Handle the somehow frequent case of using `dassert` instead of another
     # one, e.g., `dassert(y, list)`
     if msg is not None:
-        assert isinstance(
-            msg, str
-        ), f"You passed '{msg}' or type '{type(msg)}' instead of str"
+        assert isinstance(msg, str), (
+            f"You passed '{msg}' or type '{type(msg)}' instead of str"
+        )
     if not cond:
         txt = f"cond={cond}"
         _dfatal(txt, msg, *args, only_warning=only_warning)
@@ -763,6 +763,7 @@ def dassert_path_not_exists(
     only_warning: bool = False,
 ) -> None:
     dassert_isinstance(path, str)
+    dassert_ne(path, "")
     path = os.path.abspath(path)
     if os.path.exists(path):
         txt = f"Path '{path}' already exist!"
@@ -779,6 +780,7 @@ def dassert_file_exists(
     Assert unless `file_name` exists and it's a file and not a directory.
     """
     dassert_isinstance(file_name, str)
+    dassert_ne(file_name, "")
     file_name = os.path.abspath(file_name)
     # `file_name` exists.
     exists = os.path.exists(file_name)
@@ -802,6 +804,7 @@ def dassert_dir_exists(
     Assert unless `dir_name` exists and it's a directory.
     """
     dassert_isinstance(dir_name, str)
+    dassert_ne(dir_name, "")
     dir_name = os.path.abspath(dir_name)
     # `dir_name` exists.
     exists = os.path.exists(dir_name)
@@ -816,7 +819,9 @@ def dassert_dir_exists(
 
 
 def dassert_file_extension(
-    file_name: str, extensions: Union[str, List[str]], only_warning: bool = False
+    file_name: str,
+    extensions: Union[str, List[str]],
+    only_warning: bool = False,
 ) -> None:
     """
     Ensure that file has one of the given extensions.
@@ -843,6 +848,18 @@ def dassert_file_extension(
         file_name,
         only_warning=only_warning,
     )
+
+
+def dassert_is_path_abs(
+    path: str, only_warning: bool = False
+) -> None:
+    """
+    Assert that `path` is an absolute path.
+    """
+    dassert_isinstance(path, str)
+    dassert_ne(path, "")
+    dassert(os.path.isabs(path), "Path '%s' is not absolute", path,
+        only_warning=only_warning)
 
 
 def dassert_related_params(
