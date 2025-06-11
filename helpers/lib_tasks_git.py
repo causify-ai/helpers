@@ -590,7 +590,7 @@ def git_branch_copy(  # type: ignore
     # Clean current repository.
     cmd = "git clean -fd"
     hlitauti.run(ctx, cmd)
-    # 
+    #
     curr_branch_name = hgit.get_branch_name()
     hdbg.dassert_ne(curr_branch_name, "master")
     if not skip_git_merge_master:
@@ -666,9 +666,7 @@ def _git_diff_with_branch(
         cmd.append(f"--diff-filter={diff_type}")
     cmd.append(f"--name-only HEAD {hash_}")
     cmd = " ".join(cmd)
-    files = hsystem.system_to_files(
-        cmd, dir_name, remove_files_non_present=False
-    )
+    files = hsystem.system_to_files(cmd, dir_name, remove_files_non_present=False)
     files = sorted(files)
     _LOG.debug("%s", "\n".join(files))
     # Filter by `file_name`, if needed.
