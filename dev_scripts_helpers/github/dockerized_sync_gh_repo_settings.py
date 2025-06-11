@@ -185,14 +185,15 @@ class _RepoAndBranchSettings:
         for branch in branches:
             _LOG.debug("Processing branch: %s", branch.name)
             try:
-                # Get the protection information of the branch.
-                protection = branch.get_protection()
-                if protection is None:
+                # Skip branches that don't have protection enabled.
+                if not branch.protected:
                     _LOG.warning(
-                        "No protection info for branch '%s': skipping.",
+                        "Branch '%s' is not protected: skipping.",
                         branch.name,
                     )
                     continue
+                # Get the protection information of the branch.
+                protection = branch.get_protection()
                 # 1) Extract the information about required status check for
                 # the current branch.
                 required_status_checks = {}
