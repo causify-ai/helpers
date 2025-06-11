@@ -10,7 +10,6 @@ import os
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
-import pandas as pd
 from invoke import task
 from IPython.display import Markdown, display
 
@@ -875,7 +874,7 @@ def color_format(val: str, status_color_mapping: Dict[str, str]) -> str:
 
 
 def render_repo_workflow_status_table(
-    workflow_df: pd.DataFrame,
+    workflow_df: "pd.DataFrame",
     status_color_mapping: Dict[str, str],
     timezone: str = "America/New_York",
 ) -> None:
