@@ -7,6 +7,7 @@
   * [Sprints](#sprints)
   * [Projects](#projects)
   * [Issue](#issue)
+  * [GH Actions](#gh-actions)
   * [Label](#label)
     + [List of labels](#list-of-labels)
   * [Status](#status)
@@ -70,7 +71,7 @@
   - Most Projects are created around software components or user workflows
     (which may cross software components)
 - For more information on GH Projects, see
-  [ck.github_projects_process.reference.md](/docs/work_organization/ck.github_projects_process.reference.md)
+  [all.github_projects_process.reference.md](/docs/work_organization/all.github_projects_process.reference.md)
 
 ### Issue
 
@@ -84,16 +85,44 @@
 - An issue may be labeled as "Epic" if it has associated sub-issues.
   - However, this is not a standard in our workflow.
 - See also
-  [ck.issue_workflow.explanation.md](/docs/work_organization/ck.issue_workflow.explanation.md)
+  [all.issue_workflow.explanation.md](/docs/work_organization/all.issue_workflow.explanation.md)
   for the description of the concept of Issues as opposed to Ideas/Projects.
+
+### GH Actions
+
+- GitHub Actions are used to automate tasks like running tests, checking
+  coverage, and deploying artifacts across our repositories
+- Each workflow is defined in `.yml` files located under `.github/workflows/` in
+  each repo
+- These actions run automatically based on defined triggers such as pushes, pull
+  requests, or scheduled events
+
+Disabling a GitHub Actions Workflow
+
+To disable a particular GitHub Actions workflow without deleting or commenting
+out the code:
+
+- Rename the file so that GitHub no longer recognizes it as a valid workflow:
+  ```bash
+  mv .github/workflows/ci.yml .github/workflows/ci.yml.DISABLED
+  ```
+- This prevents GitHub from executing the workflow, while preserving the file
+  for future use or reference
+- We follow this convention consistently across repos to make it visually
+  obvious when a workflow is intentionally deactivated
+- Note: Only files ending in `.yml` or `.yaml` are treated as valid workflows by
+  GitHub
+
+  For example, read about of our repos with workflows:
+  - Helpers:
+    [all.gitleaks_workflow.explanation.md](/docs/build_system/all.gitleaks_workflow.explanation.md)
 
 ### Label
 
 - Labels are attributes of an issue (or PR), e.g., `good first issue`,
   `PR_for_reviewers`, `duplicate`, etc.
-- See the current list of labels and their descriptions are
-  [Kaizenflow](https://github.com/causify-ai/kaizenflow/labels) and
-  [cmamp](https://github.com/causify-ai/cmamp/labels)
+- See the current list of labels and their descriptions at
+  [Git Issue Labels](/dev_scripts_helpers/github/labels/gh_issues_labels.yml)
   - The repos should always have labels in sync
 
 #### List of labels
@@ -171,12 +200,14 @@ stateDiagram
   read and for consistency with the rest of the bugs
 
   **Good**
-  ```
+
+  ```text
   Optimize Prometheus configuration for enhanced Kubernetes monitoring
   ```
 
   **Bad**
-  ```
+
+  ```text
   Optimize Prometheus Configuration for Enhanced Kubernetes Monitoring
   ```
 
@@ -188,12 +219,12 @@ stateDiagram
   possible, e.g.,:
   - What you are trying to achieve
   - Command line you ran, e.g.,
-    ```
+    ```bash
     > i lint -f defi/tulip/test/test_dao_cross_sol.py
     ```
   - **Copy-paste** the error and the stack trace from the command line, no
     screenshots, e.g.,
-    ```
+    ```bash
     Traceback (most recent call last):
       File "/venv/bin/invoke", line 8, in <module>
         sys.exit(program.run())
@@ -286,7 +317,7 @@ stateDiagram
 - Implement a feature in a branch (not `master`), once it is ready for review
   push it and file a PR via GH interface
 - We have `invoke` tasks to automate some of these tasks:
-  ```
+  ```bash
   > i git_branch_create -i 828
   > i git_branch_create -b Cmamp723_hello_world
   > i gh_create_pr
@@ -323,11 +354,6 @@ stateDiagram
   - If it is urgent/blocking, use the `Blocking` label
 - Make sure that the corresponding tests pass
 - Always lint (and commit files modified by Linter) before asking for a review
-- If the output is a notebook:
-  - Publish a notebook, see
-    [here](/docs/work_tools/all.development.how_to_guide.md#publish-notebooks)
-  - Attach a command line to open a published notebook, see
-    [here](/docs/work_tools/all.development.how_to_guide.md#open-a-published-notebook)
 
 ### Review
 
@@ -371,7 +397,7 @@ stateDiagram
       - `TODO(*): Enable for Sorrentum and add usage examples.`
     - Maybe we can automate it somehow, e.g., with GH actions. But we need to
       start from something.
-      ```
+      ```text
       Name                                    Stmts   Miss Branch BrPart  Cover
       -------------------------------------------------------------------------
       oms/locates.py                              7      7      2      0     0%
