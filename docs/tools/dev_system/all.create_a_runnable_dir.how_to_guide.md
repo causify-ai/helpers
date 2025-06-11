@@ -66,6 +66,11 @@
   - `conftest.py`: needed to configure `pytest`
   - `pytest.ini`: needed to configure `pytest` preferences
   - `invoke.yaml`: needed configure `invoke`
+  - `runnable_dir`: needed to be created as it is used for automated discovery 
+    of runnable dirs for `pytest` runs
+    ```bash
+    > touch $DST_DIR/runnable_dir
+    ```
   - `repo_config.yaml`: store information about this specific repo (e.g., name,
     used container)
     - This needs to be modified
@@ -77,7 +82,7 @@
       docker_image_name: cmamp-infra
     ...
     runnable_dir_info:
-      use_helpers_as_nested_module: 1
+      use_helpers_as_nested_module: True
       ...
       dir_suffix: cmamp_infra
     ```
@@ -110,7 +115,7 @@
 
 ### 4) Copy and customize files in thin_client
 
-- Create the `dev_scripts_{dir_name}` dir based off the template from `helpers`
+- Create the `dev_scripts_{runnable_dir_suffix}` dir based off the template from `helpers`
 
   ```bash
   # Use a suffix based on the repo name and runnable dir name, e.g., `cmamp_infra`.
@@ -189,58 +194,88 @@
   # If the version of the locally built image is 1.0.0.
   > i run_fast_tests --version 1.0.0
   > i run_slow_tests --version 1.0.0
+  > i run_superslow_tests --version 1.0.0
   ```
 
 - Run tests from the root dir (e.g. `cmamp`)
-  - TODO(heanh): Add support for recusive pytest run
   ```bash
   > main_pytest.py run_fast_tests --dir ck.infra
   > main_pytest.py run_slow_tests --dir ck.infra
+  > main_pytest.py run_superslow_tests --dir ck.infra
   ```
 
-### 8) Create a New Release of the Image
+### 8) Create a new release of the image
 
 We release a new version of the Docker image whenever we need to update its
-dependencies.
+dependencies
 
-1. Modify changelog to specify what was changed and pick a semantic version
-   Example:
+1. Modify changelog
 
-   ```bash
-   > cd {research_dir}
-   > source dev_scripts_{runnable_dir_suffix}/thin_client/setenv.sh
-   > cat changelog.txt
+- Specify what was changed
+- Pick the release version according to semantic versioning convention
+- For example for version 1.2.3:
+  - 1 is major, 2 is minor, 3 is patch
 
-   # cmamp-causal-kg-1.0.0
-   - 2025-05-18
-   - Initial release
-   ```
+```bash
+> cd {runnable_dir}
+> source dev_scripts_{runnable_dir_suffix}/thin_client/setenv.sh
+> cat changelog.txt
 
-2. Modify dependencies Update as needed:
-   - OS packages:/devops/docker_build/install_os_packages.sh
-   - Python packages: /devops/docker_build/pyproject.toml
+# cmamp-infra-1.2.0
+- 2025-05-18
+- Add support for Kubernetes Kustomize
+- Upgrade `kubectl` to v1.31.0
+- Add `yq` command line tool
+```
+
+2. Modify dependencies list
+- Modify `{runnable_dir}/devops/docker_build/install_os_packages.sh` to add or remove
+  OS packages
+- Modify `{runnable_dir}/devops/docker_build/pyproject.toml` to add or remove Python
+  packages
 
 3. Build the image locally
+```bash
+# Build the image.
+> i docker_build_local_image --version 1.2.0 --container-dir-name {runnable_dir_path}
 
-   ```bash
-   # Build the image.
-   > i docker_build_local_image --version 1.0.0 --container-dir-name {dir_name}
+# Tag the image as dev.
+> i docker_tag_local_image_as_dev --version 1.2.0
+```
 
-   # Tag the image as dev.
-   > i docker_tag_local_image_as_dev --version 1.0.0
-   ```
+4. Add the `poetry.lock` file to the commit
+```bash
+> git add {runnable_dir}/devops/docker_build/poetry.lock
+> git commit -m "Update dependencies"
+```
 
-4. Bash into the container
+4. Make sure we can run the container
+```bash
+> i docker_bash --skip-pull --stage local --version 1.2.0
+> i docker_jupyter --skip-pull --stage local --version 1.2.0
+```
 
-   ```bash
-   > i docker_bash --skip-pull --stage local --version 1.0.0
+5. Make sure all tests pass
+```bash
+# Run tests.
+> i run_fast_tests --stage local --version 1.2.0
+> i run_slow_tests --stage local --version 1.2.0
+> i run_superslow_tests --stage local --version 1.2.0
+```
 
-   # Run tests.
-   > i run_fast_tests --stage local --version 1.0.0
-   > i run_slow_tests --stage local --version 1.0.0
-   > i run_superslow_tests --stage local --version 1.0.0
-   ```
+## Release the Docker image
 
-#### Release the Docker image
+### Registries
 
-- TODO(gp): Add details
+- Image is pulled
+  - From ECR when the container in run from the dev and prod servers
+  - From GHCR when the container is run from Github Actions CI/CD pipeline
+  - From DockerHub when the container is run from non dev/prod servers on pulic 
+    facing repos such as `//helpers` and `//tutorials`
+
+### Release to ECR
+
+### Release to GHCR
+
+### Release to DockerHub
+
