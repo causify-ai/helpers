@@ -1,28 +1,35 @@
 title = "gitleaks config"
 
-[[allowlists]]
+[allowlist]
 description = "global allow lists"
 paths = [
     '''.github/gitleaks-rules.toml''',
-    # Gitleaks rules file.
-    '''(^|.*/)gitleaks-rules\.toml$''',
-    # Compressed files.
-    '''.*\.(csv|txt)\.gz$''',
-    # Zip files.
-    '''.*\.zip$''',
-    # Gitleaks ignore file.
-    '''.gitleaksignore$''',
+    '''dev_scripts_helpers/git/gitleaks/gitleaks-rules.toml''',
 ]
 
-[[allowlists]]
-description = "allowlist for images in Jupyter notebooks"
-regexTarget = "line"
-regexes = ['''image/(png|jpeg|jpg|gif|bmp|webp|svg\+xml|tiff|ico|x-icon)''']
+# [[allowlists]]
+# description = "global allow lists"
+# paths = [
+#     '''.github/gitleaks-rules.toml''',
+#     # Gitleaks rules file.
+#     '''(^|.*/)gitleaks-rules\.toml$''',
+#     # Compressed files.
+#     '''.*\.(csv|txt)\.gz$''',
+#     # Zip files.
+#     '''.*\.zip$''',
+#     # Gitleaks ignore file.
+#     '''.gitleaksignore$''',
+# ]
 
-[[allowlists]]
-description = "allowlist for base64 encoded data"
-regexTarget = "line"
-regexes = ['''[A-Za-z0-9+/]{1000,}={0,2}''']
+# [[allowlists]]
+# description = "allowlist for images in Jupyter notebooks"
+# regexTarget = "line"
+# regexes = ['''image/(png|jpeg|jpg|gif|bmp|webp|svg\+xml|tiff|ico|x-icon)''']
+
+# [[allowlists]]
+# description = "allowlist for base64 encoded data"
+# regexTarget = "line"
+# regexes = ['''[A-Za-z0-9+/]{1000,}={0,2}''']
 
 [extend]
 useDefault = true
