@@ -162,6 +162,7 @@ def _filter_by_lines(file_name: str, filter_by_lines: str, prefix: str) -> str:
     hdbg.dassert_lte(start_line, end_line)
     txt = txt[start_line - 1 : end_line - 1]
     txt = "\n".join(txt)
+    _LOG.warning("filter_by_lines='%s' -> lines=[%s:%s]", filter_by_lines, start_line, end_line)
     #
     file_out = f"{prefix}.filter_by_lines.txt"
     hio.to_file(file_out, txt)
@@ -186,11 +187,12 @@ def _filter_by_slides(file_name: str, filter_by_slides: str, prefix: str) -> str
     start_slide, end_slide = _parse_range(filter_by_slides, len(slides_info))
     hdbg.dassert_lte(start_slide, end_slide)
     hdbg.dassert_lt(end_slide, len(slides_info))
-    start_slide_line = slides_info[start_slide].line_number
-    end_slide_line = slides_info[end_slide].line_number
+    start_line = slides_info[start_slide].line_number
+    end_line = slides_info[end_slide].line_number
+    _LOG.warning("filter_by_slides='%s' -> lines=[%s:%s]", filter_by_slides, start_line, end_line)
     # Filter by slides.
     txt = txt.split("\n")
-    txt = txt[start_slide_line - 1 : end_slide_line - 1]
+    txt = txt[start_line - 1 : end_line - 1]
     txt = "\n".join(txt)
     # Save the file.
     file_out = f"{prefix}.filter_by_slides.txt"
