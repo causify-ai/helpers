@@ -12,7 +12,7 @@
 
 - For more information on Gitleaks, refer to the following documentation:
   - [/docs/tools/git/all.gitleaks.reference.md](/docs/tools/git/all.gitleaks.reference.md)
-  - [/docs/tools/git/all.gitleaks.reference.md](/docs/tools/git/all.gitleaks.reference.md)
+  - [/docs/tools/git/all.gitleaks.how_to_guide.md](/docs/tools/git/all.gitleaks.how_to_guide.md)
 
 ## Feature
 
