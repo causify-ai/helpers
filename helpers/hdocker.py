@@ -80,6 +80,9 @@ def process_docker_cmd(
         # TODO(gp): Note that `suppress_output=False` seems to hang the call.
         hsystem.system(docker_cmd, suppress_output=False)
         ret = ""
+    elif mode == "system_without_output":
+        hsystem.system(docker_cmd, suppress_output=True)
+        ret = ""
     elif mode == "save_to_file":
         file_name = f"tmp.process_docker_cmd.{container_image}.txt"
         txt = []
@@ -868,8 +871,8 @@ def convert_pandoc_arguments_to_cmd(
     hdbg.dassert_is_subset(
         params.keys(), ["input", "output", "in_dir_params", "cmd_opts"]
     )
-    cmd.append(f'{params["input"]}')
-    cmd.append(f'--output {params["output"]}')
+    cmd.append(f"{params['input']}")
+    cmd.append(f"--output {params['output']}")
     for key, value in params["in_dir_params"].items():
         if value:
             cmd.append(f"--{key} {value}")
@@ -1232,7 +1235,7 @@ def convert_latex_arguments_to_cmd(
     cmd.append(" ".join(params["cmd_opts"]))
     # The input needs to be last to work around the bug in pdflatex where the
     # options before the input file are not always parsed correctly.
-    cmd.append(f'{params["input"]}')
+    cmd.append(f"{params['input']}")
     #
     cmd = " ".join(cmd)
     _LOG.debug(hprint.to_str("cmd"))

@@ -90,7 +90,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # - Config PATH.
     #
     dirs = [
-        f"{amp_path}/dev_scripts/{d}" for d in dsoccseli.get_dev_scripts_subdirs()
+        f"{amp_path}/dev_scripts/{d}"
+        for d in dsoccseli.get_dev_scripts_subdirs()
     ]
     dirs.append(os.path.join(amp_path, "documentation", "scripts"))
     dsoccseli.config_path(dirs, txt)

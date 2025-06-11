@@ -8,6 +8,7 @@ import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
 
+
 @pytest.mark.skip(reason="TODO(Juraj): HelpersTask21.")
 class Test_publish_notebook1(hunitest.TestCase):
     @pytest.mark.slow("~7 seconds, see CmTask4951.")

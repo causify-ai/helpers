@@ -116,7 +116,6 @@ def _compare_dfs(self: Any, df1: pd.DataFrame, df2: pd.DataFrame) -> str:
 
 
 class TestParquet1(hunitest.TestCase):
-
     def test_get_df1(self) -> None:
         """
         Check the output of `_get_df()`.
@@ -199,7 +198,9 @@ class TestParquet1(hunitest.TestCase):
 
     # //////////////////////////////////////////////////////////////////////////////
 
-    def read_filtered_parquet(self, file_name: str, filters: Any) -> pd.DataFrame:
+    def read_filtered_parquet(
+        self, file_name: str, filters: Any
+    ) -> pd.DataFrame:
         filesystem = None
         dataset = parquet.ParquetDataset(
             file_name,
@@ -667,7 +668,6 @@ class TestPartitionedParquet1(hunitest.TestCase):
 
 
 class TestGetParquetFiltersFromTimestampInterval1(hunitest.TestCase):
-
     def test_no_interval(self) -> None:
         """
         No timestamps provided.
@@ -691,9 +691,7 @@ class TestGetParquetFiltersFromTimestampInterval1(hunitest.TestCase):
             partition_mode, start_ts, end_ts
         )
         actual = str(filters)
-        expected = (
-            r"[[('year', '==', 2020), ('month', '>=', 1)], [('year', '>', 2020)]]"
-        )
+        expected = r"[[('year', '==', 2020), ('month', '>=', 1)], [('year', '>', 2020)]]"
         self.assert_equal(actual, expected)
 
     def test_by_month_half2(self) -> None:
@@ -707,9 +705,7 @@ class TestGetParquetFiltersFromTimestampInterval1(hunitest.TestCase):
             partition_mode, start_ts, end_ts
         )
         actual = str(filters)
-        expected = (
-            r"[[('year', '==', 2020), ('month', '<=', 1)], [('year', '<', 2020)]]"
-        )
+        expected = r"[[('year', '==', 2020), ('month', '<=', 1)], [('year', '<', 2020)]]"
         self.assert_equal(actual, expected)
 
     def test_by_month_one_year1(self) -> None:
@@ -877,7 +873,6 @@ class TestGetParquetFiltersFromTimestampInterval1(hunitest.TestCase):
 
 
 class TestAddDatePartitionColumns(hunitest.TestCase):
-
     def add_date_partition_columns_helper(
         self, partition_mode: str, expected: str
     ) -> None:
@@ -939,7 +934,6 @@ class TestAddDatePartitionColumns(hunitest.TestCase):
 
 
 class TestToPartitionedDataset(hunitest.TestCase):
-
     @staticmethod
     def get_test_data1() -> pd.DataFrame:
         test_data = {
@@ -1038,7 +1032,6 @@ class TestToPartitionedDataset(hunitest.TestCase):
     reason="Run only if CK S3 is available",
 )
 class TestListAndMergePqFiles(hmoto.S3Mock_TestCase):
-
     def generate_test_data(self) -> hs3.AwsProfile:
         """
         Upload test daily Parquet files for 3 days to the mocked S3 bucket.
@@ -1077,7 +1070,11 @@ class TestListAndMergePqFiles(hmoto.S3Mock_TestCase):
         use_relative_paths = True
         # Check bucket content before merge.
         parquet_path_list_before = hs3.listdir(
-            s3_bucket, pattern, only_files, use_relative_paths, aws_profile=s3fs_
+            s3_bucket,
+            pattern,
+            only_files,
+            use_relative_paths,
+            aws_profile=s3fs_,
         )
         self.assertEqual(len(parquet_path_list_before), 6)
         # Add extra parquet files and rename existing one.
@@ -1097,7 +1094,11 @@ class TestListAndMergePqFiles(hmoto.S3Mock_TestCase):
             s3fs_.copy(renamed_path, additional_path)
         # Check if edits are in place.
         updated_parquet_path_list = hs3.listdir(
-            s3_bucket, pattern, only_files, use_relative_paths, aws_profile=s3fs_
+            s3_bucket,
+            pattern,
+            only_files,
+            use_relative_paths,
+            aws_profile=s3fs_,
         )
         data_parquet_path_list = [
             path for path in updated_parquet_path_list if "dummy" not in path
@@ -1107,7 +1108,11 @@ class TestListAndMergePqFiles(hmoto.S3Mock_TestCase):
         # Check bucket content after merge.
         hparque.list_and_merge_pq_files(self.bucket_name, aws_profile=s3fs_)
         parquet_path_list_after = hs3.listdir(
-            s3_bucket, pattern, only_files, use_relative_paths, aws_profile=s3fs_
+            s3_bucket,
+            pattern,
+            only_files,
+            use_relative_paths,
+            aws_profile=s3fs_,
         )
         parquet_path_list_after.sort()
         expected_list = [
@@ -1157,7 +1162,6 @@ class TestListAndMergePqFiles(hmoto.S3Mock_TestCase):
 
 
 class TestListAndMergePqFilesMixedUnits(hunitest.TestCase):
-
     def test_parquet_files_with_mixed_time_units_1(self) -> None:
         """
         Test merging Parquet files with the `ns` and `us`.
@@ -1229,7 +1233,6 @@ class TestListAndMergePqFilesMixedUnits(hunitest.TestCase):
 
 
 class TestYieldParquetTiles(hunitest.TestCase):
-
     def generate_test_data(self) -> None:
         """
         Generate test data and write it to a scratch dir.
@@ -1340,7 +1343,6 @@ class TestYieldParquetTiles(hunitest.TestCase):
 
 
 class TestBuildFilterWithOnlyEqualities(hunitest.TestCase):
-
     def test_year_month_day_equality(self) -> None:
         """
         Test interval with same year, month and day.

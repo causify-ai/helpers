@@ -184,7 +184,9 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Select files modified in the current branch with respect to master",
     )
-    parser.add_argument("--skip_files", nargs="+", type=str, help="Files to skip")
+    parser.add_argument(
+        "--skip_files", nargs="+", type=str, help="Files to skip"
+    )
     # Reviewer guidelines file.
     parser.add_argument(
         "--guidelines_doc_filename",
@@ -218,7 +220,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
         args.branch,
     )
     _LOG.debug(
-        "Reviewing %s files; file_paths=%s", len(file_paths), " ".join(file_paths)
+        "Reviewing %s files; file_paths=%s",
+        len(file_paths),
+        " ".join(file_paths),
     )
     _run_dockerized_llm_review(
         file_paths,

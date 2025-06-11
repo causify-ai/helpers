@@ -1,0 +1,19 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.4
+    hooks:
+      - id: ruff
+
+  - repo: local
+    hooks:
+      - id: fixit-lint
+        name: fixit lint
+        entry: fixit lint
+        language: system
+        types: [python]
+
+      - id: pyrefly
+        name: pyrefly lint
+        entry: pyrefly lint
+        language: system
+        types: [python]

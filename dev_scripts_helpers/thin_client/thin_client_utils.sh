@@ -31,7 +31,7 @@ dassert_is_sourced() {
     if [[ ! is_sourced ]]; then
         # We are in a script.
         echo -e "${ERROR}: This needs to be sourced and not executed"
-        die
+        abort
     fi;
 }
 
@@ -41,7 +41,7 @@ dassert_is_executed() {
     if [[ is_sourced ]]; then
         # This is being executed and not sourced.
         echo -e "${ERROR}: This needs to be executed and not sourced"
-        die
+        abort
     fi;
 }
 
@@ -61,7 +61,7 @@ dassert_dir_exists() {
     local dir_path="$1"
     if [[ ! -d "$dir_path" ]]; then
         echo -e "${ERROR}: Directory '$dir_path' does not exist."
-        die
+        abort
     fi
 }
 
@@ -72,7 +72,7 @@ check_file_exists() {
     local file_name="$1"
     if [[ ! -f "$file_name" ]]; then
         echo -e "${ERROR}: File '$file_name' does not exist."
-        die
+        abort
     fi
 }
 
@@ -81,11 +81,12 @@ dassert_is_git_root() {
     # Check if the current directory is the root of a Git repository.
     if [[ ! -d .git ]]; then
         echo -e "${ERROR}: Current dir '$(pwd)' is not the root of a Git repo."
-        die
+        abort
     fi;
 }
 
-die() {
+
+abort() {
     if [[ -f /.dockerenv ]] ; then
         # Inside container.
         return 1
@@ -105,7 +106,7 @@ dassert_var_defined() {
     # Use indirect expansion to check the value of the variable.
     if [[ -z "${!var_name}" ]]; then
         echo -e "${ERROR}: Var '${var_name}' is not defined or is empty."
-        die
+        abort
     fi;
 }
 
@@ -117,7 +118,7 @@ dassert_eq_num_args() {
     local func_name=$3
     if [[ $actual_args -ne $expected_args ]]; then
         echo -e "${ERROR}: Function '$func_name' requires exactly $expected_args arguments, but got $actual_args"
-        die
+        abort
     fi
 }
 
@@ -207,7 +208,7 @@ activate_venv() {
         venv_dir="/venv/client_venv.${venv_tag}"
         if [[ ! -d $venv_dir ]]; then
             echo -e "${ERROR}: Can't find venv_dir='$venv_dir'. Create it with build.py"
-            die
+            abort
         fi;
     fi;
     ACTIVATE_SCRIPT="$venv_dir/bin/activate"

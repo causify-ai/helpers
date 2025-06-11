@@ -41,7 +41,7 @@ def tunnel_info_to_string(tunnel_info: list) -> str:
 
 
 def parse_service(
-    service: Tuple[str, str, int, int]
+    service: Tuple[str, str, int, int],
 ) -> Dict[str, Union[str, int]]:
     hdbg.dassert_eq(len(service), 4, "service=%s", service)
     service_name, server, local_port, remote_port = service
@@ -258,6 +258,7 @@ def kill_all_tunnel_processes() -> None:
     """
     Kill all the processes that have `ssh -i ...:localhost:...".
     """
+
     # cmd = "ps ax | grep 'ssh -i' | grep localhost: | grep -v grep"
     def _keep_line(line: str) -> bool:
         keep = ("ssh -i" in line) and (":localhost:" in line)

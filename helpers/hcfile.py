@@ -127,4 +127,3 @@ def inject_todos_from_cfile(
         _LOG.info("Writing %d lines in %s", offset, file_name)
         txt = "\n".join(txt)
         hio.to_file(file_name, txt)
-

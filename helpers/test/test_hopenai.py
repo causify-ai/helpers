@@ -44,7 +44,11 @@ def _get_openai_request_parameters1() -> dict:
     messages = hopenai._build_messages(
         user_prompt=_USER_PROMPT1, system_prompt=_SYSTEM_PROMPT1
     )
-    data = {"messages": messages, "temperature": _TEMPERATURE1, "model": _MODEL1}
+    data = {
+        "messages": messages,
+        "temperature": _TEMPERATURE1,
+        "model": _MODEL1,
+    }
     return data
 
 
@@ -62,7 +66,11 @@ def _get_openai_request_parameters2() -> dict:
     messages = hopenai._build_messages(
         user_prompt=_USER_PROMPT2, system_prompt=_SYSTEM_PROMPT1
     )
-    data = {"messages": messages, "temperature": _TEMPERATURE1, "model": _MODEL1}
+    data = {
+        "messages": messages,
+        "temperature": _TEMPERATURE1,
+        "model": _MODEL1,
+    }
     return data
 
 
@@ -80,7 +88,11 @@ def _get_openai_request_parameters3() -> dict:
     messages = hopenai._build_messages(
         user_prompt=_USER_PROMPT1, system_prompt=_SYSTEM_PROMPT1
     )
-    data = {"messages": messages, "temperature": _TEMPERATURE2, "model": _MODEL1}
+    data = {
+        "messages": messages,
+        "temperature": _TEMPERATURE2,
+        "model": _MODEL1,
+    }
     return data
 
 
@@ -98,7 +110,11 @@ def _get_openai_request_parameters4() -> dict:
     messages = hopenai._build_messages(
         user_prompt=_USER_PROMPT1, system_prompt=_SYSTEM_PROMPT1
     )
-    data = {"messages": messages, "temperature": _TEMPERATURE2, "model": _MODEL2}
+    data = {
+        "messages": messages,
+        "temperature": _TEMPERATURE2,
+        "model": _MODEL2,
+    }
     return data
 
 
@@ -122,7 +138,11 @@ def _get_dummy_openai_response1() -> dict:
                 "finish_reason": "stop",
             }
         ],
-        "usage": {"prompt_tokens": 5, "completion_tokens": 4, "total_tokens": 9},
+        "usage": {
+            "prompt_tokens": 5,
+            "completion_tokens": 4,
+            "total_tokens": 9,
+        },
     }
     return response
 
@@ -179,7 +199,7 @@ class BaseOpenAICacheTest(hunitest.TestCase):
         # Using test cache file to prevent ruining the actual cache file.
         # TODO(Sai): Reuse get_scratch_space().
         # self.cache_file = self.get_scratch_space()+f"/{_TEST_CACHE_FILE}"
-        self.get_completion_cache = hopenai.CompletionCache(
+        self.get_completion_cache = hopenai._CompletionCache(
             cache_file=_TEST_CACHE_FILE
             # cache_file=self.cache_file
         )
@@ -278,7 +298,8 @@ class Test_get_completion(BaseOpenAICacheTest):
         with self.assertRaises(RuntimeError) as RTE:
             hopenai.get_completion(**parameters4, cache_file=_TEST_CACHE_FILE)
         self.assert_equal(
-            str(RTE.exception), "No cached response for this request parameters!"
+            str(RTE.exception),
+            "No cached response for this request parameters!",
         )
 
 
@@ -355,7 +376,7 @@ class Test_save_response_to_cache(BaseOpenAICacheTest):
 
     def test1(self) -> None:
         """
-        Verifies if response saves into cache.
+        Verify if response saves into cache.
         """
         parameters4 = _get_openai_request_parameters4()
         dummy_response1 = _get_dummy_openai_response1()
@@ -381,7 +402,7 @@ class Test_load_response_from_cache(BaseOpenAICacheTest):
 
     def test1(self) -> None:
         """
-        Verifies if stored response can be loaded.
+        Verify if stored response can be loaded.
         """
         # This response  saved in test cache through set up function.
         dummy_response1 = _get_dummy_openai_response1()

@@ -302,7 +302,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     if args.action == "convert":
         # Convert to HTML.
         dst_dir = "."
-        html_file_name = _export_notebook_to_dir(src_file_name, args.tag, dst_dir)
+        html_file_name = _export_notebook_to_dir(
+            src_file_name, args.tag, dst_dir
+        )
         # Try to open.
         hopen.open_file(html_file_name)
         # Exit the `convert` action.

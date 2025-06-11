@@ -272,7 +272,9 @@ def build_config_list_varying_tiled_periods(
     offset = pd.tseries.frequencies.to_offset(freq_as_pd_str)
     end_timestamp_tmp += offset
     _LOG.debug(hprint.to_str("start_timestamp end_timestamp_tmp"))
-    dates = pd.date_range(start_timestamp, end_timestamp_tmp, freq=freq_as_pd_str)
+    dates = pd.date_range(
+        start_timestamp, end_timestamp_tmp, freq=freq_as_pd_str
+    )
     dates = dates.to_list()
     hdbg.dassert_lte(1, len(dates))
     _LOG.debug(hprint.to_str("dates"))
@@ -385,7 +387,8 @@ def build_config_list_with_tiled_universe_and_periods(
     config_list_out.configs = [config]
     config_list_out = apply_build_config_list(func, config_list_out)
     _LOG.info(
-        "After applying universe tiles: num_config_list=%s", len(config_list_out)
+        "After applying universe tiles: num_config_list=%s",
+        len(config_list_out),
     )
     hdbg.dassert_lte(1, len(config_list_out))
     # Apply the cross-product by the time tiles.

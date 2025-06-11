@@ -10,6 +10,7 @@ Import as:
 
 import linters.amp_mypy as lampmypy
 """
+
 import argparse
 import functools
 import logging
@@ -58,7 +59,6 @@ def _ignore_misc_error(line: str, file_name: str) -> None:
 
 
 class _Mypy(liaction.Action):
-
     def __init__(self) -> None:
         executable = "mypy"
         super().__init__(executable)
@@ -131,7 +131,8 @@ class _Mypy(liaction.Action):
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "files",

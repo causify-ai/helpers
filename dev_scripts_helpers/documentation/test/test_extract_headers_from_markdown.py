@@ -14,7 +14,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_extract_headers_from_markdown1(hunitest.TestCase):
-
     def test1(self) -> None:
         # Prepare inputs.
         content = r"""

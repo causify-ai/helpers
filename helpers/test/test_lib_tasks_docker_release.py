@@ -969,6 +969,7 @@ class Test_docker_create_candidate_image1(_DockerFlowTestHelper):
         # Verify the mocks were called with correct parameters.
         self.mock_build_prod.assert_called_once_with(
             self.mock_ctx,
+            container_dir_name=".",
             version=hlitadoc._IMAGE_VERSION_FROM_CHANGELOG,
             candidate=True,
             tag="test_user-4759b3685f903e6c669096e960b248ec31c63b69",

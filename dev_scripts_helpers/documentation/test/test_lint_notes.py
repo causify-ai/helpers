@@ -54,7 +54,6 @@ def _get_text1() -> str:
     reason="Disabled because of CmampTask10710",
 )
 class Test_lint_notes1(hunitest.TestCase):
-
     def test_preprocess1(self) -> None:
         txt = r"""$$E_{in} = \frac{1}{N} \sum_i e(h(\vx_i), y_i)$$"""
         exp = r"""
@@ -140,7 +139,6 @@ class Test_lint_notes1(hunitest.TestCase):
     reason="Disabled because of CmampTask10710",
 )
 class Test_lint_notes2(hunitest.TestCase):
-
     def test_process1(self) -> None:
         txt = _get_text1()
         exp = None
@@ -353,7 +351,6 @@ class Test_lint_notes2(hunitest.TestCase):
     reason="Disabled because of CmampTask10710",
 )
 class Test_lint_notes_cmd_line1(hunitest.TestCase):
-
     def create_md_input_file(self) -> str:
         txt = """
         # Header1
@@ -411,7 +408,7 @@ class Test_lint_notes_cmd_line1(hunitest.TestCase):
         :param type_: The output format, either 'md' or 'tex'.
         :param cmd_opts: Additional command-line options to pass to the
             script.
-        :returns: A tuple containing the script content and the output
+        :return: A tuple containing the script content and the output
             content.
         """
         # lint_notes.py \
