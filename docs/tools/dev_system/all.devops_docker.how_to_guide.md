@@ -140,7 +140,7 @@
 - In practice we mirror the Docker images to make sure they are close to where
   they need to be used and they minimize downloading costs
 
-# `invoke` targets
+# invoke targets
 
 ## Single-arch flow
 
@@ -278,7 +278,7 @@
     - There are two options:
       - Update `poetry` and upgrade all packages to the latest versions
         ```bash
-        > i docker_build_local_image --version <VERSION> --poetry-mode="update"
+        > i docker_build_local_image --version {version} --poetry-mode="update"
         ```
       - Install packages from the current `poetry.lock` file without upgrading
         the packages
@@ -304,7 +304,6 @@
     ```bash
     > i run_fast_tests --stage local --version <VERSION>
     > i run_slow_tests --stage local --version <VERSION>
-    > i run_superslow_test --stage local --version <VERSION>
     ```
 
 - Update the changelog describing the new version
@@ -769,10 +768,10 @@ Check-list:
 - Test the change using the local release flow
 
   ```bash
-  > i docker_build_local_image -v <VERSION>
+  > i docker_build_local_image -v ${version}
   ...
 
-  > i run_fast_slow_tests -s local -v <VERSION>
+  > i run_fast_slow_tests -s local -v ${version}
   ```
 
 - Make sure that the goal of the Issue is achieved
