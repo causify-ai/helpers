@@ -10,8 +10,11 @@
     + [5) Replace files with symbolic links](#5-replace-files-with-symbolic-links)
     + [6) Build a container for a runnable dir](#6-build-a-container-for-a-runnable-dir)
     + [7) Test the code](#7-test-the-code)
-    + [8) Create a New Release of the Image](#8-create-a-new-release-of-the-image)
-      - [Release the Docker image](#release-the-docker-image)
+    + [8) Release the Docker image](#8-release-the-docker-image)
+      - [Registries](#registries)
+      - [Release to ECR](#release-to-ecr)
+      - [Release to GHCR](#release-to-ghcr)
+    + [8) Release a new version of the image](#8-release-a-new-version-of-the-image)
 
 <!-- tocstop -->
 
@@ -66,7 +69,7 @@
   - `conftest.py`: needed to configure `pytest`
   - `pytest.ini`: needed to configure `pytest` preferences
   - `invoke.yaml`: needed configure `invoke`
-  - `runnable_dir`: needed to be created as it is used for automated discovery 
+  - `runnable_dir`: needed to be created as it is used for automated discovery
     of runnable dirs for `pytest` runs
     ```bash
     > touch $DST_DIR/runnable_dir
@@ -115,7 +118,8 @@
 
 ### 4) Copy and customize files in thin_client
 
-- Create the `dev_scripts_{runnable_dir_suffix}` dir based off the template from `helpers`
+- Create the `dev_scripts_{runnable_dir_suffix}` dir based off the template from
+  `helpers`
 
   ```bash
   # Use a suffix based on the repo name and runnable dir name, e.g., `cmamp_infra`.
@@ -171,7 +175,6 @@
   > i docker_build_local_image --version 1.0.0 --container-dir-name $DST_DIR
   > i docker_tag_local_image_as_dev --version 1.0.0
   > i docker_bash --skip-pull --version 1.0.0
-  > i docker_push_dev_image --version 1.0.0
   ```
 
 - Run the multi-arch flow
@@ -183,7 +186,6 @@
   > i docker_build_local_image --version 1.0.0 --container-dir-name $DST_DIR --multi-arch "linux/amd64,linux/arm64"
   > i docker_tag_local_image_as_dev --version 1.0.0
   > i docker_bash --skip-pull --version 1.0.0
-  > i docker_push_dev_image --version 1.0.0
   ```
 
 ### 7) Test the code
@@ -194,17 +196,49 @@
   # If the version of the locally built image is 1.0.0.
   > i run_fast_tests --version 1.0.0
   > i run_slow_tests --version 1.0.0
-  > i run_superslow_tests --version 1.0.0
   ```
 
 - Run tests from the root dir (e.g. `cmamp`)
   ```bash
   > main_pytest.py run_fast_tests --dir ck.infra
   > main_pytest.py run_slow_tests --dir ck.infra
-  > main_pytest.py run_superslow_tests --dir ck.infra
   ```
 
-### 8) Create a new release of the image
+### 8) Release the Docker image
+
+#### Registries
+
+- Image is pulled
+  - From ECR when the container in run from the dev and prod servers
+  - From GHCR when the container is run from Github Actions CI/CD pipeline
+  - From DockerHub when the container is run from non dev/prod servers on pulic
+    facing repos such as `//helpers` and `//tutorials`
+
+#### Release to ECR
+
+- By default the image is pushed to ECR
+
+  ```bash
+  > i docker_release_dev_image --version <version>
+  ```
+
+- To view the image in ECR
+  ```bash
+  > aws ecr list-images \
+    --profile ck \
+    --region eu-north-1 \
+    --repository-name <image_name>
+  ```
+
+#### Release to GHCR
+
+```bash
+> docker login ghcr.io -u <username> -p <personal_access_token>
+> docker tag 623860924167.dkr.ecr.eu-north-1.amazonaws.com/<image_name>:dev ghcr.io/causify-ai/<image_name>:dev
+> docker push ghcr.io/causify-ai/<image_name>:dev
+```
+
+### 8) Release a new version of the image
 
 We release a new version of the Docker image whenever we need to update its
 dependencies
@@ -229,12 +263,14 @@ dependencies
 ```
 
 2. Modify dependencies list
-- Modify `{runnable_dir}/devops/docker_build/install_os_packages.sh` to add or remove
-  OS packages
-- Modify `{runnable_dir}/devops/docker_build/pyproject.toml` to add or remove Python
-  packages
+
+- Modify `{runnable_dir}/devops/docker_build/install_os_packages.sh` to add or
+  remove OS packages
+- Modify `{runnable_dir}/devops/docker_build/pyproject.toml` to add or remove
+  Python packages
 
 3. Build the image locally
+
 ```bash
 # Build the image.
 > i docker_build_local_image --version 1.2.0 --container-dir-name {runnable_dir_path}
@@ -244,38 +280,25 @@ dependencies
 ```
 
 4. Add the `poetry.lock` file to the commit
+
 ```bash
 > git add {runnable_dir}/devops/docker_build/poetry.lock
 > git commit -m "Update dependencies"
 ```
 
 4. Make sure we can run the container
+
 ```bash
 > i docker_bash --skip-pull --stage local --version 1.2.0
 > i docker_jupyter --skip-pull --stage local --version 1.2.0
 ```
 
 5. Make sure all tests pass
+
 ```bash
 # Run tests.
 > i run_fast_tests --stage local --version 1.2.0
 > i run_slow_tests --stage local --version 1.2.0
-> i run_superslow_tests --stage local --version 1.2.0
 ```
 
-## Release the Docker image
-
-### Registries
-
-- Image is pulled
-  - From ECR when the container in run from the dev and prod servers
-  - From GHCR when the container is run from Github Actions CI/CD pipeline
-  - From DockerHub when the container is run from non dev/prod servers on pulic 
-    facing repos such as `//helpers` and `//tutorials`
-
-### Release to ECR
-
-### Release to GHCR
-
-### Release to DockerHub
-
+6. Release the images to remote registries
