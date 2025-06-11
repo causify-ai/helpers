@@ -145,9 +145,7 @@ class TestTestCase1(hunitest.TestCase):
             test_class_name=test_class_name, test_method_name=test_method_name
         )
         act = hunitest.purify_txt_from_client(act)
-        exp = (
-            "$GIT_ROOT/helpers/test/outcomes/test_class.test_method/tmp.scratch"
-        )
+        exp = "$GIT_ROOT/helpers/test/outcomes/test_class.test_method/tmp.scratch"
         self.assertEqual(act, exp)
 
     def test_get_scratch_space3(self) -> None:
@@ -194,9 +192,7 @@ class TestTestCase1(hunitest.TestCase):
         expected = "hello world w"
         # Create a dir like `/var/tmp/tmph_kun9xq`.
         tmp_dir = tempfile.mkdtemp()
-        self.assert_equal(
-            actual, expected, abort_on_error=False, dst_dir=tmp_dir
-        )
+        self.assert_equal(actual, expected, abort_on_error=False, dst_dir=tmp_dir)
         # Compute the signature from the dir.
         act = hunitest.get_dir_signature(
             tmp_dir, include_file_content=True, num_lines=None
@@ -267,6 +263,7 @@ class TestTestCase1(hunitest.TestCase):
 
 
 class Test_AssertEqual1(hunitest.TestCase):
+
     def test_equal1(self) -> None:
         """
         Matching act and exp without fuzzy matching.
@@ -390,6 +387,7 @@ end
 
 
 class TestCheckString1(hunitest.TestCase):
+
     def test_check_string1(self) -> None:
         """
         Compare the actual value to a matching golden outcome.
@@ -881,6 +879,7 @@ class TestCheckDataFrame1(hunitest.TestCase):
 
 
 class Test_check_string_debug1(hunitest.TestCase):
+
     def test1(self) -> None:
         act = "hello"
         # action_on_missing_golden = "assert"
@@ -902,6 +901,7 @@ class Test_check_string_debug1(hunitest.TestCase):
 
 
 class Test_unit_test1(hunitest.TestCase):
+
     def test_purify_txt_from_client1(self) -> None:
         super_module_path = hgit.get_client_root(super_module=True)
         # TODO(gp): We should remove the current path.
@@ -950,6 +950,7 @@ dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py:3: error: Nam
 
 
 class Test_unit_test2(hunitest.TestCase):
+
     def test_purify_parquet_file_names1(self) -> None:
         """
         Test purification of Parquet file names with the path.
@@ -988,6 +989,7 @@ class Test_unit_test2(hunitest.TestCase):
 
 
 class Test_get_dir_signature1(hunitest.TestCase):
+
     def helper(self, include_file_content: bool) -> str:
         in_dir = self.get_input_dir()
         act = hunitest.get_dir_signature(
@@ -1034,6 +1036,7 @@ class Test_get_dir_signature1(hunitest.TestCase):
 
 
 class Test_purify_txt_from_client1(hunitest.TestCase):
+
     def helper(self, txt: str, exp: str) -> None:
         act = hunitest.purify_txt_from_client(txt)
         self.assert_equal(act, exp)
@@ -1175,6 +1178,7 @@ class Test_purify_from_env_vars(hunitest.TestCase):
 
 
 class Test_purify_object_representation1(hunitest.TestCase):
+
     def helper(self, txt: str, exp: str) -> None:
         txt = hprint.dedent(txt)
         act = hunitest.purify_object_representation(txt)
@@ -1279,6 +1283,7 @@ class Test_purify_object_representation1(hunitest.TestCase):
 
 
 class Test_purify_amp_reference1(hunitest.TestCase):
+
     def helper(self, txt: str, exp: str) -> None:
         txt = hprint.dedent(txt)
         act = hunitest.purify_amp_references(txt)
@@ -1414,6 +1419,7 @@ class Test_purify_amp_reference1(hunitest.TestCase):
 
 
 class Test_purify_from_environment1(hunitest.TestCase):
+
     def check_helper(self, input_: str, exp: str) -> None:
         """
         Check that the text is purified from environment variables correctly.
@@ -1542,6 +1548,7 @@ class Test_purify_directory_paths1(hunitest.TestCase):
 
 
 class Test_purify_line_number1(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Check that the text is purified from line numbers correctly.
@@ -1566,6 +1573,7 @@ class Test_purify_line_number1(hunitest.TestCase):
 
 
 class Test_purify_docker_image_name1(hunitest.TestCase):
+
     def test1(self) -> None:
         txt = r"""
         docker run --rm --user $(id -u):$(id -g) --workdir $GIT_ROOT --mount type=bind,source=/Users/saggese/src/helpers1,target=$GIT_ROOT tmp.latex.edb567be pdflatex -output-directory
