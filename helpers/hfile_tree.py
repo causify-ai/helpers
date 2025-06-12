@@ -95,7 +95,7 @@ def _parse_comments(old_tree: List[str]) -> Dict[str, str]:
     return comments
 
 
-def get_tree_nodes(
+def _get_tree_nodes(
     dir_path: pathlib.Path,
     depth: int,
     include_tests: bool,
@@ -189,7 +189,7 @@ def generate_tree(
     :param output: path of the markdown file to create or update
     """
     dir_path = pathlib.Path(path).resolve()
-    nodes = get_tree_nodes(
+    nodes = _get_tree_nodes(
         dir_path, depth, include_tests, include_python, only_dirs
     )
     _LOG.debug("Collected %d nodes under '%s'", len(nodes), dir_path)
