@@ -1,4 +1,3 @@
-import logging
 import os
 import types
 import unittest.mock as umock
@@ -14,9 +13,6 @@ import helpers.hdbg as hdbg
 import helpers.hopenai as hopenai
 import helpers.hunit_test as hunitest
 
-_LOG = logging.getLogger(__name__)
-
-
 # Test functions for the unit tests.
 _TEST_CACHE_FILE = "cache.get_completion.json"
 
@@ -24,12 +20,18 @@ _USER_PROMPT1 = "what is machine learning?"
 _USER_PROMPT2 = _USER_PROMPT1.upper()
 
 _SYSTEM_PROMPT1 = "You are a helpful AI assistant."
+_SYSTEM_PROMPT2 = (
+    "You are a helpful AI assistant and excellent in explaining things."
+)
 
 _TEMPERATURE1 = 1
 _TEMPERATURE2 = 2
 
+_TOP_K1 = 2
+
 _MODEL1 = "gpt-4o-mini"
 _MODEL2 = "gpt-o4-mini"
+_MODEL3 = "deepseek/deepseek-r1-0528-qwen3-8b:free/"
 
 
 def _get_completion_parameters1() -> Dict[str, Any]:
@@ -41,32 +43,70 @@ def _get_completion_parameters1() -> Dict[str, Any]:
     }
     return data
 
+
 def _get_openai_request_parameters1() -> Dict[str, Any]:
     messages = hopenai._build_messages(
         user_prompt=_USER_PROMPT1, system_prompt=_SYSTEM_PROMPT1
     )
-    data = {
-        "messages": messages,
-        "temperature": _TEMPERATURE1,
-        "model": _MODEL1,
-    }
+    data = {"messages": messages, "temperature": _TEMPERATURE1, "model": _MODEL1}
     return data
 
 
-def _get_completion_parameters4() -> Dict[str, Any]:
+def _get_completion_parameters2() -> Dict[str, Any]:
     data = {
-        "user_prompt": _USER_PROMPT1,
-        "system_prompt": _SYSTEM_PROMPT1,
+        "user_prompt": _USER_PROMPT2,
+        "system_prompt": _SYSTEM_PROMPT2,
         "temperature": _TEMPERATURE2,
         "model": _MODEL2,
+        "top_k": _TOP_K1,
     }
     return data
+
+
+def _get_openai_request_parameters2() -> Dict[str, Any]:
+    messages = hopenai._build_messages(
+        user_prompt=_USER_PROMPT2, system_prompt=_SYSTEM_PROMPT2
+    )
+    data = {
+        "messages": messages,
+        "temperature": _TEMPERATURE2,
+        "model": _MODEL2,
+        "top_k": _TOP_K1,
+    }
+    return data
+
+
+def _get_completion_parameters3() -> Dict[str, Any]:
+    data = {
+        "user_prompt": _USER_PROMPT2,
+        "system_prompt": _SYSTEM_PROMPT2,
+        "temperature": _TEMPERATURE2,
+        "model": _MODEL3,
+        "top_k": _TOP_K1,
+    }
+    return data
+
+
+def _get_openai_request_parameters3() -> Dict[str, Any]:
+    messages = hopenai._build_messages(
+        user_prompt=_USER_PROMPT2, system_prompt=_SYSTEM_PROMPT2
+    )
+    data = {
+        "messages": messages,
+        "temperature": _TEMPERATURE2,
+        "model": _MODEL3,
+        "top_k": _TOP_K1,
+    }
+    return data
+
 
 # #############################################################################
 # Test_get_completion
 # #############################################################################
 
+
 class Test_get_completion(hunitest.TestCase):
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.get_completion_cache = hopenai._CompletionCache(
@@ -80,32 +120,53 @@ class Test_get_completion(hunitest.TestCase):
         """
         parameters1 = _get_completion_parameters1()
         actual_response = hopenai.get_completion(
-            **parameters1,
-            cache_file=_TEST_CACHE_FILE,
-            cache_mode="REPLAY"
+            **parameters1, cache_mode="REPLAY"
         )
         openai_request_parameters1 = _get_openai_request_parameters1()
-        hash_key1 = self.get_completion_cache.hash_key_generator(**openai_request_parameters1)
-        expected_response = self.get_completion_cache.load_response_from_cache(hash_key1)
-        
-        self.assert_equal(
-            actual_response, expected_response
+        hash_key1 = self.get_completion_cache.hash_key_generator(
+            **openai_request_parameters1
         )
+        expected_response = self.get_completion_cache.load_response_from_cache(
+            hash_key1
+        )
+        self.assert_equal(actual_response, expected_response)
         self.assertIsInstance(actual_response, str)
 
     def test2(self) -> None:
         """
-        Verify that if hashkey is not in response, then get_completion() should
-        raise error in replay mode.
+        Verify with different openai models.
         """
-        # parameters4 are not saved in test cache file
-        parameters4 = _get_completion_parameters4()
-        with self.assertRaises(RuntimeError) as RTE:
-            hopenai.get_completion(**parameters4, cache_file=_TEST_CACHE_FILE, cache_mode="REPLAY")
-        self.assert_equal(
-            str(RTE.exception),
-            "No cached response for this request parameters!",
+        parameters2 = _get_completion_parameters2()
+        actual_response = hopenai.get_completion(
+            **parameters2, cache_mode="REPLAY"
         )
+        openai_request_parameters2 = _get_openai_request_parameters2()
+        hash_key2 = self.get_completion_cache.hash_key_generator(
+            **openai_request_parameters2
+        )
+        expected_response = self.get_completion_cache.load_response_from_cache(
+            hash_key=hash_key2
+        )
+        self.assert_equal(actual_response, expected_response)
+        self.assertIsInstance(actual_response, str)
+
+    def test3(self) -> None:
+        """
+        Verify if hopenai.get_completion() support openrouter models.
+        """
+        parameters3 = _get_completion_parameters3()
+        actual_response = hopenai.get_completion(
+            **parameters3, cache_mode="REPLAY"
+        )
+        openai_request_parameters3 = _get_openai_request_parameters3()
+        hash_key3 = self.get_completion_cache.hash_key_generator(
+            **openai_request_parameters3
+        )
+        expected_response = self.get_completion_cache.load_response_from_cache(
+            hash_key=hash_key3
+        )
+        self.assert_equal(actual_response, expected_response)
+        self.assertIsInstance(actual_response, str)
 
 
 # #############################################################################
@@ -206,44 +267,6 @@ class Test_get_openai_client(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_get_default_model
-# #############################################################################
-
-
-# # TODO(Sai): Testing the default model requires to keep things updated when
-# # the default model changes. I would just test that the function works.
-# class Test_get_default_model(hunitest.TestCase):
-
-#     def test_openai_provider(self) -> None:
-#         """
-#         Explicit "openai" provider return "gpt-4o".
-#         """
-#         self.assert_equal(actual=hopenai._get_default_model("openai"), expected="gpt-4o")
-
-#     def test_openrouter_provider(self) -> None:
-#         """
-#         "openrouter" provider return "openai/gpt-4o".
-#         """
-#         self.assert_equal(
-#             hopenai._get_default_model("openrouter"), "openai/gpt-4o"
-#         )
-
-#     def test_default_argument(self) -> None:
-#         """
-#         Default provider name (should be "openai") return "gpt-4o".
-#         """
-#         self.assert_equal(hopenai._get_default_model(), "gpt-4o")
-
-#     def test_unknown_provider_raises(self) -> None:
-#         """
-#         Unknown provider should raise a ValueError.
-#         """
-#         with self.assertRaises(ValueError) as cm:
-#             hopenai._get_default_model("invalid_provider")
-#         self.assertIn("Unknown provider: invalid_provider", str(cm.exception))
-
-
-# #############################################################################
 # Test_retrieve_openrouter_model_info
 # #############################################################################
 
@@ -334,23 +357,28 @@ class Test_save_models_info_to_csv(hunitest.TestCase):
             "completion_pricing",
             "supported_parameters",
         ]
-        
         hdbg.dassert_eq(list(returned_df.columns), expected_columns)
-
         # Verify pricing values are extracted correctly.
         self.assert_equal(
-            str(returned_df["prompt_pricing"]), str(pd.Series([0.1, 0.3],name="prompt_pricing", dtype=float)) 
+            str(returned_df["prompt_pricing"]),
+            str(pd.Series([0.1, 0.3], name="prompt_pricing", dtype=float)),
         )
         self.assert_equal(
-            str(returned_df["completion_pricing"]), str(pd.Series([0.2, 0.4],name="completion_pricing", dtype=float))
+            str(returned_df["completion_pricing"]),
+            str(pd.Series([0.2, 0.4], name="completion_pricing", dtype=float)),
         )
         # File should be created and readable.
         hdbg.dassert_file_exists(output_file)
         saved_df = pd.read_csv(output_file)
-       
-        self.assert_equal(str(returned_df["completion_pricing"]), str(saved_df["completion_pricing"]))
-        self.assert_equal(str(returned_df["prompt_pricing"]), str(saved_df["prompt_pricing"]))
-        
+        self.assert_equal(
+            str(returned_df["completion_pricing"]),
+            str(saved_df["completion_pricing"]),
+        )
+        self.assert_equal(
+            str(returned_df["prompt_pricing"]), str(saved_df["prompt_pricing"])
+        )
+
+
 # #############################################################################
 # Test_calculate_cost
 # #############################################################################
@@ -358,19 +386,10 @@ class Test_save_models_info_to_csv(hunitest.TestCase):
 
 class Test_calculate_cost(hunitest.TestCase):
 
-    @pytest.fixture(autouse=True)
-    def setup_teardown_test(self):
-        self.setup_test()
-        yield
-        self.teardown_test()
-
-    def setup_test(self) -> None:
-        self._orig = hopenai._PROVIDER_NAME
-
-    def teardown_test(self) -> None:
-        hopenai._PROVIDER_NAME = self._orig
-
     def get_tmp_path(self) -> str:
+        """
+        Return temporary file path.
+        """
         self.tmp_dir = self.get_scratch_space()
         tmp_file_name: str = "tmp.models_info.csv"
         self.tmp_path = os.path.join(self.tmp_dir, tmp_file_name)
@@ -380,9 +399,6 @@ class Test_calculate_cost(hunitest.TestCase):
         """
         Known OpenAI model and token counts produce expected cost.
         """
-        # TODO(Sai): You can't modify a global variable! You need to use a
-        # default param.
-        hopenai._PROVIDER_NAME = "openai"
         comp = types.SimpleNamespace(
             usage=types.SimpleNamespace(
                 prompt_tokens=1000000, completion_tokens=2000000
@@ -396,9 +412,9 @@ class Test_calculate_cost(hunitest.TestCase):
 
     def test_openai_unknown_model(self) -> None:
         """
-        Passing an unknown OpenAI model should raise an assertion or ValueError.
+        Passing an unknown OpenAI model should raise an assertion or
+        ValueError.
         """
-        hopenai._PROVIDER_NAME = "openai"
         comp = types.SimpleNamespace(
             usage=types.SimpleNamespace(prompt_tokens=1, completion_tokens=1)
         )
@@ -409,10 +425,10 @@ class Test_calculate_cost(hunitest.TestCase):
 
     def test_openrouter_load_existing_csv(self) -> None:
         """
-        Assume that the CSV file exists for OpenRouter. Then we should load CSV
-        and calculate cost without fetching.
+        Assume that the CSV file exists for OpenRouter.
+
+        Then we should load CSV and calculate cost without fetching.
         """
-        hopenai._PROVIDER_NAME = "openrouter"
         # Write a tiny CSV: id,prompt_pricing,completion_pricing
         temp_csv_file = self.get_tmp_path()
         pd.DataFrame(
@@ -426,11 +442,10 @@ class Test_calculate_cost(hunitest.TestCase):
             usage=types.SimpleNamespace(prompt_tokens=1, completion_tokens=1)
         )
         cost = hopenai._calculate_cost(
-            comp, model="m1", models_info_file=temp_csv_file
+            comp,
+            model="m1",
+            models_info_file=temp_csv_file,
+            provider_name="openrouter",
         )
         # 1*0.1 + 1*0.2 = 0.1 + 0.2 = 0.3
         self.assertAlmostEqual(cost, 0.3)
-
-    
-
-    
