@@ -2,6 +2,7 @@ import unittest.mock as mock
 from typing import List
 
 import pandas as pd
+import pytest
 
 import helpers.hunit_test as hunitest
 
@@ -13,6 +14,7 @@ MODULE_PATH = "dev_scripts_helpers.github.github_invite_collaborators"
 # #############################################################################
 
 
+@pytest.mark.slow(reason="Greater than 5s")
 class Test_extract_usernames_from_gsheet(hunitest.TestCase):
     """
     Test that github usernames are correctly pulled.
@@ -45,6 +47,7 @@ class Test_extract_usernames_from_gsheet(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.slow(reason="Greater than 5s")
 class Test_send_invitations(hunitest.TestCase):
     """
     Test that an invitation is sent once per user.
