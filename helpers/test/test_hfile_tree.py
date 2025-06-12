@@ -312,20 +312,21 @@ class Test_generate_tree(hunitest.TestCase):
         """
         Create a `devops` directory in scratch space.
 
-        Temp directory layout:
-
+        Scratch directory layout:
+        ```
         devops
         - __init__.py
         - user_credentials.py
         -  compose
         - docker_run
-        - execute.py
+          - execute.py
         - docker_build
-        - create_users.sh
-        - pip_list.txt
+          - create_users.sh
+          - pip_list.txt
         - test
-        - TestDocker
-        - test_docker.py
+          - TestDocker
+          - test_docker.py
+        ```
         """
         super().setUp()
         scratch = self.get_scratch_space()
