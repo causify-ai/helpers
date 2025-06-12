@@ -224,6 +224,7 @@ def _run_test_cmd(
     cmd: str,
     coverage: bool,
     collect_only: bool,
+    skip_pull: bool,
     start_coverage_script: bool,
     **ctx_run_kwargs: Any,
 ) -> Optional[int]:
@@ -247,7 +248,7 @@ def _run_test_cmd(
     _LOG.info("cmd=%s", docker_cmd_)
     # We can't use `hsystem.system()` because of buffering of the output,
     # losing formatting and so on, so we stick to executing through `ctx`.
-    rc: Optional[int] = hlitadoc._docker_cmd(ctx, docker_cmd_, **ctx_run_kwargs)
+    rc: Optional[int] = hlitadoc._docker_cmd(ctx, docker_cmd_, skip_pull=skip_pull, **ctx_run_kwargs)
     # Print message about coverage.
     if coverage:
         msg = """
@@ -282,6 +283,7 @@ def _run_tests(
     version: str,
     custom_marker: str,
     pytest_opts: str,
+    skip_pull: bool,
     skip_submodules: bool,
     coverage: bool,
     collect_only: bool,
@@ -321,6 +323,7 @@ def _run_tests(
         cmd,
         coverage,
         collect_only,
+        skip_pull,
         start_coverage_script,
         **ctx_run_kwargs,
     )
@@ -337,6 +340,7 @@ def run_tests(  # type: ignore
     version="",
     custom_marker="",
     pytest_opts="",
+    skip_pull=False,
     skip_submodules=False,
     coverage=False,
     collect_only=False,
@@ -359,6 +363,7 @@ def run_tests(  # type: ignore
             version,
             custom_marker,
             pytest_opts,
+            skip_pull,
             skip_submodules,
             coverage,
             collect_only,
@@ -454,6 +459,7 @@ def run_fast_tests(  # type: ignore
     pytest_opts="",
     run_only_test_list="",
     skip_test_list="",
+    skip_pull=False,
     skip_submodules=False,
     coverage=False,
     collect_only=False,
@@ -499,6 +505,7 @@ def run_fast_tests(  # type: ignore
         version,
         custom_marker,
         pytest_opts,
+        skip_pull,
         skip_submodules,
         coverage,
         collect_only,
@@ -518,6 +525,7 @@ def run_slow_tests(  # type: ignore
     pytest_opts="",
     run_only_test_list="",
     skip_test_list="",
+    skip_pull=False,
     skip_submodules=False,
     coverage=False,
     collect_only=False,
@@ -544,6 +552,7 @@ def run_slow_tests(  # type: ignore
         version,
         custom_marker,
         pytest_opts,
+        skip_pull,
         skip_submodules,
         coverage,
         collect_only,
@@ -563,6 +572,7 @@ def run_superslow_tests(  # type: ignore
     pytest_opts="",
     run_only_test_list="",
     skip_test_list="",
+    skip_pull=False,
     skip_submodules=False,
     coverage=False,
     collect_only=False,
@@ -589,6 +599,7 @@ def run_superslow_tests(  # type: ignore
         version,
         custom_marker,
         pytest_opts,
+        skip_pull,
         skip_submodules,
         coverage,
         collect_only,
