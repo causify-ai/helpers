@@ -8,8 +8,10 @@
     + [3) Copy and customize files in `devops`](#3-copy-and-customize-files-in-devops)
     + [4) Copy and customize files in thin_client](#4-copy-and-customize-files-in-thin_client)
     + [5) Replace files with symbolic links](#5-replace-files-with-symbolic-links)
-    + [6) Build a container for a runnable dir](#6-build-a-container-for-a-runnable-dir)
-    + [7) Test the code](#7-test-the-code)
+    + [6) Commit changes](#6-commit-changes)
+    + [7) Build a container for a runnable dir](#7-build-a-container-for-a-runnable-dir)
+    + [9) Test the code](#9-test-the-code)
+    + [8) Add the dependency lock files to the commit](#8-add-the-dependency-lock-files-to-the-commit)
     + [8) Release the Docker image](#8-release-the-docker-image)
     + [8) Update and release a new version of the image](#8-update-and-release-a-new-version-of-the-image)
 
@@ -29,6 +31,11 @@
   - A sub directory under a super-repo (e.g. `//cmamp/ck.infra`)
 
 ## A runnable dir as sub directory under a super-repo
+
+```bash
+export CSFY_RUNNABLE_DIR="core_tf"
+export CSFY_RUNNABLE_DIR_SUFFIX="cmamp_core_tf"
+```
 
 ### 1) Turn the repo into a super-repo with helpers
 
@@ -52,13 +59,14 @@
   various tools (e.g., dev container workflow, `pytest`, `invoke`)
   ```bash
   > (cd helpers_root; git pull)
-  > DST_DIR="ck.infra"; echo $DST_DIR
-  > cp helpers_root/{changelog.txt,conftest.py,pytest.ini,invoke.yaml,repo_config.yaml,tasks.py} $DST_DIR
+  > echo $CSFY_RUNNABLE_DIR
+  > mkdir $CSFY_RUNNABLE_DIR
+  > cp helpers_root/{changelog.txt,conftest.py,pytest.ini,invoke.yaml,repo_config.yaml,tasks.py} $CSFY_RUNNABLE_DIR
   ```
   - `changelog.txt`: this is copied from the repo that builds the used container
     or started from scratch for a new container
     ```bash
-    > cat $DST_DIR/changelog.txt
+    > vim $CSFY_RUNNABLE_DIR/changelog.txt
     # cmamp-infra-1.0.0
     - 2024-10-16
     - First release
@@ -69,12 +77,13 @@
   - `runnable_dir`: needed to be created as it is used for automated discovery
     of runnable dirs for `pytest` runs
     ```bash
-    > touch $DST_DIR/runnable_dir
+    > touch $CSFY_RUNNABLE_DIR/runnable_dir
     ```
   - `repo_config.yaml`: store information about this specific repo (e.g., name,
     used container)
     - This needs to be modified
-    ```yaml
+    ```bash
+    > vim $CSFY_RUNNABLE_DIR/repo_config.yaml
     repo_info:
       repo_name: cmamp
     ...
@@ -94,8 +103,7 @@
 - Copy the `devops` from `//helpers` as a template dir
   ```bash
   > (cd helpers_root; git pull)
-  > DST_DIR="ck.infra"; echo $DST_DIR
-  > cp -r helpers_root/devops $DST_DIR
+  > cp -r helpers_root/devops $CSFY_RUNNABLE_DIR
   ```
 - Follow the instructions in
   [`/docs/work_tools/all.devops_docker.reference.md`](/docs/work_tools/all.devops_docker.reference.md)
@@ -103,12 +111,12 @@
   [`/docs/work_tools/all.devops_docker.how_to_guide.md`](/docs/work_tools/all.devops_docker.how_to_guide.md)
   to customize the files in order to build the Docker container
   - Typically, we might want to customize the following
-    - `$DST_DIR/devops/docker_build/dev.Dockerfile`: if we need to use a base
-      image with different Linux distro or version
-    - `$DST_DIR/devops/docker_build/install_os_packages.sh`: if we need to add
-      or remove OS packages
-    - `$DST_DIR/devops/docker_build/pyproject.toml`: if we need to add or remove
-      Python dependencies
+    - `$CSFY_RUNNABLE_DIR/devops/docker_build/dev.Dockerfile`: if we need to use
+      a base image with different Linux distro or version
+    - `$CSFY_RUNNABLE_DIR/devops/docker_build/install_os_packages.sh`: if we
+      need to add or remove OS packages
+    - `$CSFY_RUNNABLE_DIR/devops/docker_build/pyproject.toml`: if we need to add
+      or remove Python dependencies
 - Always trim
   [`/devops/docker_build/pyproject.toml`](/devops/docker_build/pyproject.toml)
   to only include the dependancies requred by the runnable dir
@@ -121,8 +129,7 @@
   ```bash
   # Use a suffix based on the repo name and runnable dir name, e.g., `cmamp_infra`.
   > SRC_DIR="./helpers_root/dev_scripts_helpers/thin_client"; echo $SRC_DIR
-  > DST_SUFFIX="cmamp_infra"
-  > DST_DIR="./ck.infra/dev_scripts_${DST_SUFFIX}/thin_client"; echo $DST_DIR
+  > DST_DIR="${CSFY_RUNNABLE_DIR}/dev_scripts_${CSFY_RUNNABLE_DIR_SUFFIX}/thin_client"; echo $DST_DIR
   > mkdir -p $DST_DIR
   > cp "$SRC_DIR/setenv.sh" $DST_DIR
   ```
@@ -150,7 +157,7 @@
 
   ```bash
   # Runnable dir is "ck.infra" in this case.
-  ./helpers_root/helpers/create_links.py --src_dir ./helpers_root --dst_dir ./ck.infra --replace_links --use_relative_paths
+  ./helpers_root/helpers/create_links.py --src_dir ./helpers_root --dst_dir $CSFY_RUNNABLE_DIR --replace_links --use_relative_paths
   ```
 
 - Refer to
@@ -160,39 +167,52 @@
   [Managing symbolic links between directories](/docs/work_tools/dev_system/all.replace_common_files_with_script_links.md)
   for how to use the commands
 
-### 6) Build a container for a runnable dir
+### 6) Commit changes
+
+- Commit changes
+  ```bash
+  > git add $CSFY_RUNNABLE_DIR
+  > git commit -m "Add runnable dir"
+  ```
+
+### 7) Build a container for a runnable dir
 
 - Run the single-arch flow to test the flow
 
   ```bash
-  > DST_DIR="ck.infra"
-  > DST_SUFFIX="cmamp_infra"
-  > cd $DST_DIR
-  > source dev_scripts_${DST_SUFFIX}/thin_client/setenv.sh
-  > i docker_build_local_image --version 1.0.0 --container-dir-name $DST_DIR
+  > cd $CSFY_RUNNABLE_DIR
+  > source dev_scripts_${CSFY_RUNNABLE_DIR_SUFFIX}/thin_client/setenv.sh
+  > i docker_build_local_image --version 1.0.0 --container-dir-name $CSFY_RUNNABLE_DIR
   > i docker_tag_local_image_as_dev --version 1.0.0
   > i docker_bash --skip-pull --version 1.0.0
   ```
 
 - Run the multi-arch flow
   ```bash
-  > DST_DIR="ck.infra"
-  > DST_SUFFIX="cmamp_infra"
-  > cd $DST_DIR
-  > source dev_scripts_${DST_SUFFIX}/thin_client/setenv.sh
-  > i docker_build_local_image --version 1.0.0 --container-dir-name $DST_DIR --multi-arch "linux/amd64,linux/arm64"
+  > cd $CSFY_RUNNABLE_DIR
+  > source dev_scripts_${CSFY_RUNNABLE_DIR_SUFFIX}/thin_client/setenv.sh
+  > i docker_build_local_image --version 1.0.0 --container-dir-name $CSFY_RUNNABLE_DIR --multi-arch "linux/amd64,linux/arm64"
   > i docker_tag_local_image_as_dev --version 1.0.0
   > i docker_bash --skip-pull --version 1.0.0
   ```
 
-### 7) Test the code
+### 9) Test the code
 
 - Run tests from the runnable dir (e.g. `cmamp/ck.infra`)
 
   ```bash
   # If the version of the locally built image is 1.0.0.
+  > cd $CSFY_RUNNABLE_DIR
   > i run_fast_tests --version 1.0.0
   > i run_slow_tests --version 1.0.0
+  ```
+
+  TODO(heanh): Add support for `skip_pull` so we can run tests without creating
+  a registry first. For example,
+
+  ```bash
+  > i run_fast_tests --version 1.0.0 --skip-pull
+  > i run_slow_tests --version 1.0.0 --skip-pull
   ```
 
 - Run tests from the root dir (e.g. `cmamp`)
@@ -201,10 +221,21 @@
   > main_pytest.py run_slow_tests --dir ck.infra
   ```
 
+### 8) Add the dependency lock files to the commit
+
+```bash
+> cd $CSFY_RUNNABLE_DIR
+> git add devops/docker_build/poetry.lock
+> git add devops/docker_build/pip_list.txt
+> git commit -m "Update dependencies"
+```
+
 ### 8) Release the Docker image
 
 - Refer to the following docs for more info on image releases
   - [docs/tools/dev_system/all.devops_docker.how_to_guide.md#release-a-docker-image](/docs/tools/dev_system/all.devops_docker.how_to_guide.md#release-a-docker-image)
+
+- To create new registory to store the image, please contact Infra team.
 
 - Release to ECR
   - This is required for running the container from the dev/prod servers
@@ -235,9 +266,9 @@ dependencies
   - 1 is major, 2 is minor, 3 is patch
 
 ```bash
-> cd {runnable_dir}
-> source dev_scripts_{runnable_dir_suffix}/thin_client/setenv.sh
-> cat changelog.txt
+> cd $CSFY_RUNNABLE_DIR
+> source dev_scripts_${CSFY_RUNNABLE_DIR_SUFFIX}/thin_client/setenv.sh
+> vim changelog.txt
 
 # cmamp-infra-1.2.0
 - 2025-05-18
@@ -248,25 +279,27 @@ dependencies
 
 2. Modify dependencies list
 
-- Modify `{runnable_dir}/devops/docker_build/install_os_packages.sh` to add or
-  remove OS packages
-- Modify `{runnable_dir}/devops/docker_build/pyproject.toml` to add or remove
-  Python packages
+- Modify `$CSFY_RUNNABLE_DIR/devops/docker_build/install_os_packages.sh` to add
+  or remove OS packages
+- Modify `$CSFY_RUNNABLE_DIR/devops/docker_build/pyproject.toml` to add or
+  remove Python packages
 
 3. Build the image locally
 
 ```bash
 # Build the image.
-> i docker_build_local_image --version 1.2.0 --container-dir-name {runnable_dir_path}
+> i docker_build_local_image --version 1.2.0 --container-dir-name $CSFY_RUNNABLE_DIR
 
 # Tag the image as dev.
 > i docker_tag_local_image_as_dev --version 1.2.0
 ```
 
-4. Add the `poetry.lock` file to the commit
+4. Add the dependency lock files to the commit
 
 ```bash
-> git add {runnable_dir}/devops/docker_build/poetry.lock
+> cd $CSFY_RUNNABLE_DIR
+> git add devops/docker_build/poetry.lock
+> git add devops/docker_build/pip_list.txt
 > git commit -m "Update dependencies"
 ```
 
