@@ -10,10 +10,10 @@
     + [5) Replace files with symbolic links](#5-replace-files-with-symbolic-links)
     + [6) Commit changes](#6-commit-changes)
     + [7) Build a container for a runnable dir](#7-build-a-container-for-a-runnable-dir)
-    + [9) Test the code](#9-test-the-code)
-    + [8) Add the dependency lock files to the commit](#8-add-the-dependency-lock-files-to-the-commit)
-    + [8) Release the Docker image](#8-release-the-docker-image)
-    + [8) Update and release a new version of the image](#8-update-and-release-a-new-version-of-the-image)
+    + [8) Test the code](#8-test-the-code)
+    + [9) Add the dependency lock files to the commit](#9-add-the-dependency-lock-files-to-the-commit)
+    + [10) Release the Docker image](#10-release-the-docker-image)
+    + [11) Update and release a new version of the image](#11-update-and-release-a-new-version-of-the-image)
 
 <!-- tocstop -->
 
@@ -196,7 +196,7 @@ export CSFY_RUNNABLE_DIR_SUFFIX="cmamp_core_tf"
   > i docker_bash --skip-pull --version 1.0.0
   ```
 
-### 9) Test the code
+### 8) Test the code
 
 - Run tests from the runnable dir (e.g. `cmamp/ck.infra`)
 
@@ -221,7 +221,7 @@ export CSFY_RUNNABLE_DIR_SUFFIX="cmamp_core_tf"
   > main_pytest.py run_slow_tests --dir ck.infra
   ```
 
-### 8) Add the dependency lock files to the commit
+### 9) Add the dependency lock files to the commit
 
 ```bash
 > cd $CSFY_RUNNABLE_DIR
@@ -230,7 +230,7 @@ export CSFY_RUNNABLE_DIR_SUFFIX="cmamp_core_tf"
 > git commit -m "Update dependencies"
 ```
 
-### 8) Release the Docker image
+### 10) Release the Docker image
 
 - Refer to the following docs for more info on image releases
   - [docs/tools/dev_system/all.devops_docker.how_to_guide.md#release-a-docker-image](/docs/tools/dev_system/all.devops_docker.how_to_guide.md#release-a-docker-image)
@@ -258,7 +258,7 @@ export CSFY_RUNNABLE_DIR_SUFFIX="cmamp_core_tf"
   > docker push ghcr.io/causify-ai/<image_name>:dev
   ```
 
-### 8) Update and release a new version of the image
+### 11) Update and release a new version of the image
 
 We release a new version of the Docker image whenever we need to update its
 dependencies
