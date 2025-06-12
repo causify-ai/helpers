@@ -241,7 +241,12 @@ export CSFY_RUNNABLE_DIR_SUFFIX="cmamp_core_tf"
   - This is required for running the container from the dev/prod servers
 
   ```bash
-  > i docker_release_dev_image --version <version>
+  > i docker_push_dev_image --version <version>
+  ```
+  - Or run the following command to build, test, and release the image
+
+  ```bash
+  > i docker_release_dev_image --version <version> --container-dir-name $CSFY_RUNNABLE_DIR
   ```
 
 - Release to GHCR
