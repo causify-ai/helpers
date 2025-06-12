@@ -33,8 +33,8 @@
 ## A runnable dir as sub directory under a super-repo
 
 ```bash
-export CSFY_RUNNABLE_DIR="core_tf"
-export CSFY_RUNNABLE_DIR_SUFFIX="cmamp_core_tf"
+export CSFY_RUNNABLE_DIR="ck.infra"
+export CSFY_RUNNABLE_DIR_SUFFIX="cmamp_infra"
 ```
 
 ### 1) Turn the repo into a super-repo with helpers
