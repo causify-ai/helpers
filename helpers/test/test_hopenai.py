@@ -13,7 +13,7 @@ import helpers.hdbg as hdbg
 import helpers.hopenai as hopenai
 import helpers.hunit_test as hunitest
 
-# Test functions for the unit tests.
+# cache file used for storing llm responses.
 _TEST_CACHE_FILE = "cache.get_completion.json"
 
 _USER_PROMPT1 = "what is machine learning?"
@@ -24,16 +24,17 @@ _SYSTEM_PROMPT2 = (
     "You are a helpful AI assistant and excellent in explaining things."
 )
 
-_TEMPERATURE1 = 1
-_TEMPERATURE2 = 2
+_TEMPERATURE1 = 0.1
+_TEMPERATURE2 = 0.2
 
-_TOP_K1 = 2
+_TOP_P1 = 0.5
 
 _MODEL1 = "gpt-4o-mini"
 _MODEL2 = "gpt-o4-mini"
 _MODEL3 = "deepseek/deepseek-r1-0528-qwen3-8b:free/"
 
 
+# Test functions for the unit tests.
 def _get_completion_parameters1() -> Dict[str, Any]:
     data = {
         "user_prompt": _USER_PROMPT1,
@@ -58,7 +59,7 @@ def _get_completion_parameters2() -> Dict[str, Any]:
         "system_prompt": _SYSTEM_PROMPT2,
         "temperature": _TEMPERATURE2,
         "model": _MODEL2,
-        "top_k": _TOP_K1,
+        "top_p": _TOP_P1,
     }
     return data
 
@@ -71,7 +72,7 @@ def _get_openai_request_parameters2() -> Dict[str, Any]:
         "messages": messages,
         "temperature": _TEMPERATURE2,
         "model": _MODEL2,
-        "top_k": _TOP_K1,
+        "top_p": _TOP_P1,
     }
     return data
 
@@ -82,7 +83,7 @@ def _get_completion_parameters3() -> Dict[str, Any]:
         "system_prompt": _SYSTEM_PROMPT2,
         "temperature": _TEMPERATURE2,
         "model": _MODEL3,
-        "top_k": _TOP_K1,
+        "top_p": _TOP_P1,
     }
     return data
 
@@ -95,7 +96,7 @@ def _get_openai_request_parameters3() -> Dict[str, Any]:
         "messages": messages,
         "temperature": _TEMPERATURE2,
         "model": _MODEL3,
-        "top_k": _TOP_K1,
+        "top_p": _TOP_P1,
     }
     return data
 
