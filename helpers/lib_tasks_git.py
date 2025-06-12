@@ -594,7 +594,7 @@ def git_branch_copy(  # type: ignore
     curr_branch_name = hgit.get_branch_name()
     hdbg.dassert_ne(curr_branch_name, "master")
     if not skip_git_merge_master:
-        # Ensure current branch is up to date with master.
+        # Ensure current branch is up-to-date with `master`.
         cmd = "invoke git_merge_master --abort-if-not-ff"
         hlitauti.run(ctx, cmd)
     else:
