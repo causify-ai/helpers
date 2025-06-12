@@ -11,8 +11,10 @@ from invoke import task
 
 # We want to minimize the dependencies from non-standard Python packages since
 # this code needs to run with minimal dependencies and without Docker.
+import helpers.hdbg as hdbg
 import helpers.hfile_tree as hfiltree
 import helpers.hsystem as hsystem
+import helpers.lib_tasks_utils as hlitauti
 
 _LOG = logging.getLogger(__name__)
 
@@ -53,10 +55,11 @@ def bash_print_path(ctx):  # type: ignore
 
 
 @task
-def bash_print_tree(
+def bash_print_tree(  # type: ignore
     ctx,
     path=".",
     depth=0,
+    clean=False,
     include_tests=False,
     include_python=False,
     only_dirs=False,
@@ -84,12 +87,17 @@ def bash_print_tree(
 
     :param path: directory path to traverse
     :param depth: maximum depth to traverse
+    :param clean: clean untracked files in directory
     :param include_tests: include test files or directories
     :param include_python: include python files
     :param only_dirs: only show directories
     :param output: path of the markdown file to create or update
     """
     _ = ctx
+    hdbg.dassert_lte(0, depth, "Depth must be non-negative: %s", depth)
+    if clean:
+        cmd = "git clean -fd"
+        hlitauti.run(ctx, cmd)
     tree = hfiltree.generate_tree(
         path, depth, include_tests, include_python, only_dirs, output
     )

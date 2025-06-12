@@ -13,7 +13,7 @@ from typing import Dict, List
 _LOG = logging.getLogger(__name__)
 
 
-def build_tree_lines(
+def _build_tree_lines(
     dir_name: str,
     nodes: List[pathlib.Path],
     comments: Dict[str, str],
@@ -72,7 +72,7 @@ def build_tree_lines(
     return "\n".join(lines)
 
 
-def parse_comments(old_tree: List[str]) -> Dict[str, str]:
+def _parse_comments(old_tree: List[str]) -> Dict[str, str]:
     """
     Parse existing tree lines to extract inline comments.
 
@@ -124,36 +124,48 @@ def get_tree_nodes(
             # Stop pruning on given depth.
             dirnames[:] = []
             continue
+        if not include_tests:
+            # Prune out test directories.
+            filtered = []
+            for d in dirnames:
+                dir_lower = d.lower()
+                if not (
+                    dir_lower.startswith("test_")
+                    or dir_lower in {"test", "tests"}
+                ):
+                    filtered.append(d)
+            dirnames[:] = filtered
         candidates = dirnames + filenames
         for name in candidates:
-            low = name.lower()
-            full = pathlib.Path(dirpath) / name
-            is_test = (
-                low.startswith("test_")
-                or low == "tests"
-                or low.endswith("_test.py")
-            )
-            is_python = full.suffix in (".py", ".ipynb")
-            if full.is_dir():
+            full_path = pathlib.Path(dirpath) / name
+            rel_path = full_path.relative_to(dir_path)
+            name_lower = name.lower()
+            is_dir = full_path.is_dir()
+            is_test_name = name_lower.startswith("test_") or name_lower in {
+                "test",
+                "tests",
+            }
+            is_test = is_test_name or name_lower.endswith("_test.py")
+            is_python = full_path.suffix in {".py", ".ipynb"}
+            if is_dir:
                 # Always include directories.
-                nodes.append(full.relative_to(dir_path))
+                nodes.append(rel_path)
                 continue
+            # Flag filter to include test or python files.
+            allowed_by_flag = (include_tests and is_test) or (
+                include_python and is_python
+            )
             if only_dirs:
-                # Include directories and test or python files when flagged.
-                if is_test and include_tests:
-                    # Include test files and directories.
-                    nodes.append(full.relative_to(dir_path))
-                elif is_python and include_python:
-                    # Include python files.
-                    nodes.append(full.relative_to(dir_path))
-                continue
-            if is_test and not include_tests:
-                # Include test files and directories.
-                continue
-            if is_python and not include_python:
-                # Include python files.
-                continue
-            nodes.append(full.relative_to(dir_path))
+                include_file = allowed_by_flag
+            else:
+                include_file = allowed_by_flag or (
+                    not is_test
+                    and not is_python
+                    and not include_tests
+                    and not include_python
+                )
+            if include_file:
+                nodes.append(rel_path)
     nodes.sort()
     return nodes
 
@@ -180,6 +192,7 @@ def generate_tree(
     nodes = get_tree_nodes(
         dir_path, depth, include_tests, include_python, only_dirs
     )
+    _LOG.debug("Collected %d nodes under '%s'", len(nodes), dir_path)
     if output:
         output_path = pathlib.Path(output)
         start_marker = f"<!-- tree:start:{dir_path.name} -->"
@@ -191,26 +204,29 @@ def generate_tree(
             # Parse inline comments.
             file = output_path.read_text(encoding="utf-8")
             lines = file.splitlines()
+            _LOG.debug("Reading existing file '%s' for markers", output_path)
             try:
                 idx_start = lines.index(start_marker)
                 idx_end = lines.index(end_marker)
+                _LOG.debug("Markers found at lines %d–%d", idx_start, idx_end)
             except ValueError as exc:
                 raise RuntimeError(
-                    "Couldn't find tree markers in output file"
+                    "Couldn't find tree markers in output file."
                 ) from exc
             # Parse existing file.
             prefix = lines[:idx_start]
             old_tree = lines[idx_start + 1 : idx_end]
             suffix = lines[idx_end + 1 :]
-            comments = parse_comments(old_tree)
+            comments = _parse_comments(old_tree)
         # Build the directory tree.
-        tree_block = build_tree_lines(dir_path.name, nodes, comments)
+        tree_block = _build_tree_lines(dir_path.name, nodes, comments)
         # Build the content of the file.
         content = (
             "\n".join(prefix + [start_marker, tree_block, end_marker] + suffix)
             + "\n"
         )
         output_path.write_text(content, encoding="utf-8")
+        _LOG.debug("Writing updated tree to '%s'", output_path)
     # Return tree without markers.
-    tree_block = build_tree_lines(dir_path.name, nodes, {})
+    tree_block = _build_tree_lines(dir_path.name, nodes, {})
     return tree_block
