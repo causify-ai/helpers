@@ -1,3 +1,5 @@
+# hopenai.get_completion – Explanation
+
 <!-- toc -->
 
 - [Overview](#overview)
