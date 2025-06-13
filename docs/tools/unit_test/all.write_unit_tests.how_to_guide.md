@@ -13,6 +13,7 @@
     + [Test realistic corner cases](#test-realistic-corner-cases)
     + [Test a typical scenario](#test-a-typical-scenario)
     + [Test executable scripts end-to-end](#test-executable-scripts-end-to-end)
+    + [Test from the outside-in](#test-from-the-outside-in)
   * [Conventions](#conventions)
     + [Naming and placement conventions](#naming-and-placement-conventions)
     + [Keep testing code in sync with tested code](#keep-testing-code-in-sync-with-tested-code)
@@ -30,7 +31,7 @@
     + [Use the appropriate `self.assert*`](#use-the-appropriate-selfassert)
     + [Do not use `hdbg.dassert` in testing](#do-not-use-hdbgdassert-in-testing)
     + [Always explain `self.assertRaises`](#always-explain-selfassertraises)
-    + [Test from the outside-in](#test-from-the-outside-in)
+    + [Test from the outside-in](#test-from-the-outside-in-1)
     + [We don't need to test all the assertions](#we-dont-need-to-test-all-the-assertions)
     + [Use strings to compare output instead of data structures](#use-strings-to-compare-output-instead-of-data-structures)
     + [Use `self.check_string()` for things that we care about not changing (or are too big to have as strings in the code)](#use-selfcheck_string-for-things-that-we-care-about-not-changing-or-are-too-big-to-have-as-strings-in-the-code)
@@ -160,6 +161,18 @@
   possible from `_main()`
   - A good practice is to have a `_run()` function that does all the job and
     `_main()` only brings together the parser and the executable part
+
+#### Test from the outside-in
+
+- Prefer testing end-to-end behaviors first, rather than starting with internal
+  implementation details.
+- This helps focus tests on what the system should do, not how it's implemented.
+- It also lowers maintenance costs when internal code is refactored, since
+  interface-level tests don't need to change.
+- Start with public-facing methods or behaviors, and only add tests for internal
+  helpers if truly necessary.
+- This approach supports flexible and safe refactoring, encourages clear
+  interfaces, and reduces test fragility.
 
 ### Conventions
 
@@ -408,8 +421,8 @@ test code.
 
 - It is OK to skip a `TestCase` method if it is not meaningful, when coverage is
   enough
-- As an example, see `datapull/common/data/client/test/im_client_test_case.py` and
-  `datapull/ccxt/data/client/test/test_ccxt_clients.py`
+- As an example, see `datapull/common/data/client/test/im_client_test_case.py`
+  and `datapull/ccxt/data/client/test/test_ccxt_clients.py`
 
 #### Use the appropriate `self.assert*`
 
@@ -1001,6 +1014,12 @@ self.assert_equal(act, exp, fuzzy_match=True)
       labels = mock_repo.get_labels()
       self.assert_equal(labels[0].name, "bug")
     ```
+
+- Do not test external providers themselves. E.g., when using OpenAI, we don't
+  need to verify that OpenAI's API behaves according to spec—only that our code
+  handles the expected inputs/outputs.
+- This avoids redundant tests and focuses coverage on our code, not third-party
+  behavior.
 
 #### Do not mock internal dependencies
 
