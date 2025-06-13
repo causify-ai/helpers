@@ -5,19 +5,19 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review, draft]
     branches:
-       - master
+      - master
 
   # Run for every change in master.
   push:
     branches:
-       - master
+      - master
 
   # Run manually.
   workflow_dispatch:
 
   schedule:
     # Run this once a day even if there are no commits.
-    - cron:  '0 0 */1 * *'
+    - cron: "0 0 */1 * *"
 
 env:
   CSFY_CI: true
@@ -40,3 +40,4 @@ jobs:
           GITLEAKS_ENABLE_SUMMARY: true
           GITLEAKS_ENABLE_UPLOAD_ARTIFACT: false
           GITLEAKS_CONFIG: .github/gitleaks-rules.toml
+          GITLEAKS_VERSION: latest
