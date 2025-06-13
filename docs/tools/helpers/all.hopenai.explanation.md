@@ -2,9 +2,9 @@
 
 - [Overview](#overview)
 - [Guide](#guide)
-    + [Parameters](#parameters)
+  * [Parameters](#parameters)
 - [Reference](#reference)
-    + [Function Signature](#function-signature)
+  * [Function Signature](#function-signature)
 - [Explanation](#explanation)
   * [Caching Logic](#caching-logic)
     + [Key Generation](#key-generation)
@@ -17,7 +17,7 @@
   * [Entire Flow](#entire-flow)
 - [How Testing Works](#how-testing-works)
 - [Cache Refreshing](#cache-refreshing)
-    + [What This Does](#what-this-does)
+  * [What This Does](#what-this-does)
     + [When to Use](#when-to-use)
 
 <!-- tocstop -->
