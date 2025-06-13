@@ -76,6 +76,7 @@ RESTRICTION_KEYS = {
 
 
 class _RepoAndBranchSettings:
+
     def __init__(self, repo_and_branch_settings: Dict[str, Any]):
         """
         Initialize a nested dictionary of branch protection and repository
@@ -106,19 +107,8 @@ class _RepoAndBranchSettings:
         Get the current settings of the repository `repo`.
 
         :param repo: GitHub repository object
-        :return: dictionary containing repository settings
-        E.g.,
-        {
-            "name": str, "default_branch": str, "homepage": str,
-            "description": str, "private": bool, "archived": bool,
-            "has_issues": bool, "has_projects": bool, "has_wiki": bool,
-            "allow_squash_merge": bool, "allow_merge_commit": bool,
-            "allow_rebase_merge": bool, "delete_branch_on_merge": bool,
-            "topics": List[str],
-            "enable_automated_security_fixes": bool,
-            "enable_vulnerability_alerts": bool,
-            ...
-        }
+        :return: dictionary containing repository settings, refer to `REPO_SETTING_KEYS` for detailed
+            key structure and expected values
         """
         current_repo_settings = {
             "name": repo.name,
@@ -146,33 +136,10 @@ class _RepoAndBranchSettings:
         Get the current branch protection settings of the repository `repo`.
 
         :param repo: GitHub repository object
-        :return: dictionary containing branch protection settings
-        E.g.,
-        {
-            "main" : {
-                "enforce_admins": bool,
-                "allow_force_pushes": bool,
-                "allow_deletions": bool,
-                "required_status_checks": {
-                    "strict": bool,
-                    "contexts": List[str]
-                },
-                "required_pull_request_reviews": {
-                    "dismiss_stale_reviews": bool,
-                    "require_code_owner_reviews": bool,
-                    "required_approving_review_count": int,
-                    "dismissal_restrictions": {
-                        "users": List[str],
-                        "teams": List[str]
-                    }
-                },
-                "restrictions": {
-                    "users": List[str],
-                    "teams": List[str]
-                }
-            },
-            ...
-        }
+        :return: dictionary containing branch protection settings, refer to `BRANCH_PROTECTION_KEYS`
+            for detailed key structure and expected values. The `STATUS_CHECK_KEYS`, `PR_REVIEW_KEYS`,
+            and `RESTRICTION_KEYS` are nested keys of the `required_status_checks`,
+            `required_pull_request_reviews`, and `restrictions` keys respectively
         """
         branch_protection = {}
         _LOG.debug(
@@ -184,14 +151,15 @@ class _RepoAndBranchSettings:
         for branch in branches:
             _LOG.debug("Processing branch: %s", branch.name)
             try:
-                # Get the protection information of the branch.
-                protection = branch.get_protection()
-                if protection is None:
+                # Skip branches that don't have protection enabled.
+                if not branch.protected:
                     _LOG.warning(
-                        "No protection info for branch '%s': skipping.",
+                        "Branch '%s' is not protected: skipping.",
                         branch.name,
                     )
                     continue
+                # Get the protection information of the branch.
+                protection = branch.get_protection()
                 # 1) Extract the information about required status check for
                 # the current branch.
                 required_status_checks = {}
@@ -230,8 +198,7 @@ class _RepoAndBranchSettings:
                     dismissal_restrictions = {}
                     if dismissal:
                         dismissal_restrictions["users"] = [
-                            user.login
-                            for user in getattr(dismissal, "users", [])
+                            user.login for user in getattr(dismissal, "users", [])
                         ]
                         dismissal_restrictions["teams"] = [
                             team.name for team in getattr(dismissal, "teams", [])
@@ -252,9 +219,7 @@ class _RepoAndBranchSettings:
                 # Package all the information in a dictionary for the current
                 # branch.
                 branch_protection[branch.name] = {
-                    "enforce_admins": getattr(
-                        protection, "enforce_admins", None
-                    ),
+                    "enforce_admins": getattr(protection, "enforce_admins", None),
                     "allow_force_pushes": getattr(
                         protection, "allow_force_pushes", None
                     ),
@@ -725,8 +690,7 @@ def _parse() -> argparse.ArgumentParser:
     Parse command line arguments.
     """
     parser = argparse.ArgumentParser(
-        description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
     # Create subparsers for different commands.
     subparsers = parser.add_subparsers(dest="command", help="Sub-command help")
