@@ -414,7 +414,7 @@ class HeaderInfo:
         self.level = level
         #
         hdbg.dassert_isinstance(description, str)
-        hdbg.dassert_ne(description, "")
+        hdbg.dassert_ne(description, "", "Invalid HeaderInfo: %s, %s, %s", level, description, line_number)
         self.description = description
         #
         hdbg.dassert_isinstance(line_number, int)
