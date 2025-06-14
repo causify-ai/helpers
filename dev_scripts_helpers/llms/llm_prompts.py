@@ -650,7 +650,8 @@ def latex_rewrite() -> _PROMPT_OUT:
     """
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
-    post_container_transforms = ["format_latex"]
+    #post_container_transforms = ["format_latex"]
+    post_container_transforms = []
     return system, pre_transforms, post_transforms, post_container_transforms
 
 

@@ -329,7 +329,7 @@ def md_clean_up(txt: str) -> str:
 # #############################################################################
 
 
-# TODO(gp): This could be done with `HeaderList`.
+# TODO(gp): This could be done by processing `HeaderList`.
 def extract_section_from_markdown(content: str, header_name: str) -> str:
     """
     Extract a section of text from a Markdown document based on the header
@@ -414,7 +414,7 @@ class HeaderInfo:
         self.level = level
         #
         hdbg.dassert_isinstance(description, str)
-        hdbg.dassert_ne(description, "")
+        hdbg.dassert_ne(description, "", "Invalid HeaderInfo: %s, %s, %s", level, description, line_number)
         self.description = description
         #
         hdbg.dassert_isinstance(line_number, int)
@@ -532,6 +532,39 @@ def extract_headers_from_markdown(
         sanity_check_header_list(header_list)
     else:
         _LOG.debug("Skipping sanity check")
+    return header_list
+
+
+def extract_slides_from_markdown(
+    txt: str, 
+) -> HeaderList:
+    """
+    Extract slides (i.e., sections prepended by `*`) from Markdown file and
+    return an `HeaderList`.
+
+    :param txt: content of the input Markdown file.
+    :return: the generated `HeaderList`, e.g.,
+        ```
+        [
+            (1, "Slide 1", 5),
+            (1, "Slide 2", 10), ...]
+        ```
+    """
+    hdbg.dassert_isinstance(txt, str)
+    header_list: HeaderList = []
+    # Process the input file to extract headers.
+    for line_number, line in enumerate(txt.splitlines(), start=1):
+        # TODO(gp): Use the iterator.
+        # Skip the visual separators.
+        if is_markdown_line_separator(line):
+            continue
+        # Get the header level and title.
+        m = re.match(r"^\* (.*)$", line)
+        is_slide = m is not None
+        if is_slide:
+            title = m.group(1)
+            header_info = HeaderInfo(1, title, line_number)
+            header_list.append(header_info)
     return header_list
 
 
