@@ -58,8 +58,8 @@ def git_fetch_master(ctx):  # type: ignore
 
 @task
 def git_merge_master(
-    ctx, abort_if_not_ff=False, abort_if_not_clean=True, skip_fetch=False
-):  # type: ignore
+    ctx, abort_if_not_ff=False, abort_if_not_clean=True, skip_fetch=False  # type: ignore
+):  
     """
     Merge `origin/master` into the current branch.
 
@@ -782,7 +782,7 @@ def _git_diff_with_branch(
         script_txt.append(cmd)
     script_txt = "\n".join(script_txt)
     # Files to diff.
-    _LOG.info("\n" + hprint.frame("Diffing script"))
+    _LOG.info("\n%s" % hprint.frame("Diffing script"))
     _LOG.info(script_txt)
     # Save the script to compare.
     script_file_name = f"./tmp.vimdiff_branch_with_{tag}.sh"
@@ -825,8 +825,8 @@ def _git_diff_with_branch_wrapper(
         hash_,
         tag,
         dir_name,
-        diff_type,
         subdir,
+        diff_type,
         keep_extensions,
         skip_extensions,
         file_name,
@@ -842,8 +842,8 @@ def _git_diff_with_branch_wrapper(
                     hash_,
                     tag,
                     dir_name,
-                    diff_type,
                     subdir,
+                    diff_type,
                     keep_extensions,
                     skip_extensions,
                     file_name,

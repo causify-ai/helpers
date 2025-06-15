@@ -6,11 +6,10 @@
 - [Workflow Explanation](#workflow-explanation)
 - [Usage Instructions](#usage-instructions)
   * [Example](#example)
-  * [Alternative Manual Workflow](#alternative-manual-workflow)
-    + [Using invoke `git_create_patch`](#using-invoke-git_create_patch)
-    + [Using Git only commands](#using-git-only-commands)
-- [Known Limitations](#known-limitations)
-- [Future Improvements](#future-improvements)
+- [Alternative Manual Workflow](#alternative-manual-workflow)
+  * [Using invoke `git_create_patch`](#using-invoke-git_create_patch)
+  * [Known Limitations](#known-limitations)
+  * [Future Improvements](#future-improvements)
 
 <!-- tocstop -->
 
@@ -23,11 +22,11 @@
   efficiency and reduce integration complexity
 - This approach allows to:
   - Develop a large feature in one-shot, but merge it in chunks
-  - Easily extract a sub-PR, since often "removing" code chunks is simpler
-    than "adding" code chunks one by one, e.g., by reverting an entire file
+  - Easily extract a sub-PR, since often "removing" code chunks is simpler than
+    "adding" code chunks one by one, e.g., by reverting an entire file
   - Overlap developing and testing / reviewing
-  - Make it simple to extract a sub-PR and then merge it back into the
-    feature branch easily
+  - Make it simple to extract a sub-PR and then merge it back into the feature
+    branch easily
 
 ## Workflow Explanation
 
@@ -46,11 +45,12 @@
 ## Usage Instructions
 
 - Go to the target branch to merge
-  ```
+  ```bash
   > git checkout CmTask5874_Document_PR_flow
   ```
 
 - You can execute the workflow with one of these command:
+
   ```bash
   # Create new branch with an automatically generated name (e.g., `CmTask5874_Document_PR_flow_02`).
   > i git_branch_copy
@@ -81,6 +81,7 @@
   them into `master` one at a time
 
 - Step 1: Make sure your branch is up to date with origin
+
   ```bash
   # First switch to your feature branch.
   > git checkout CmTask5874_Document_PR_flow
@@ -95,8 +96,9 @@
   # Check the diff between your branch and master.
   > i git_branch_diff_with -t base --only-print-files
   ```
+
 - The output looks like:
-  ```
+  ```bash
   INFO: > cmd='/data/sameepp/src/venv/amp.client_venv/bin/invoke git_branch_diff_with -t base --only-print-files'
   04:58:35 - INFO  lib_tasks_git.py _git_diff_with_branch:726
   ###############################################################################
@@ -116,6 +118,7 @@
 
 - Step 2: Create a new branch (e.g., `CmTask5874_Document_PR_flow_02`) derived
   from our feature branch `CmTask5874_Document_PR_flow`
+
   ```bash
   # Create a derived branch from the feature branch.
   > i git_branch_copy
@@ -162,8 +165,10 @@
   docs/work_tools/figs/development/Fig2.png
   ```
 
-- Step 3: After running the command, a new branch `CmTask5874_Document_PR_flow_2`
-  is created, containing all changes from the original feature branch.
+- Step 3: After running the command, a new branch
+  `CmTask5874_Document_PR_flow_2` is created, containing all changes from the
+  original feature branch.
+
   ```bash
   > git status
   On branch CmTask5874_Document_PR_flow_2
@@ -175,9 +180,9 @@
       ./figs/development/Fig2.png
       docs/work_tools/all.invoke_workflows.how_to_guide.md
   ```
+
 - You can now stage and commit only the files you want to merge (e.g., the
-  `.png` files), and proceed to create a PR to merge those changes into
-  `master`
+  `.png` files), and proceed to create a PR to merge those changes into `master`
   ```bash
   # Add, commit and push only the required files.
   > git add ./figs/development/Fig1.png ./figs/development/Fig2.png
@@ -186,16 +191,16 @@
   ```
 - From this you can create a PR, test it, review it, and merge it
 
-- Once the chunk is merged into `master`, you can go to the father
-  branch and merge `master`
-  ```
+- Once the chunk is merged into `master`, you can go to the father branch and
+  merge `master`
+  ```bash
   > git checkout CmTask5874_Document_PR_flow
   > i git_merge_master
   > git commit -am "Merge"
   > git push
   ```
-- Note that the merge it's typically very simple, since the incoming code is
-  the same one that is already in the branch
+- Note that the merge it's typically very simple, since the incoming code is the
+  same one that is already in the branch
 
 ## Alternative Manual Workflow
 
@@ -206,6 +211,7 @@
 
 - If you're working with multiple Git clients or prefer working outside your
   development tree:
+
   ```bash
   # In your feature branch:
   > i git_patch_create --branch
