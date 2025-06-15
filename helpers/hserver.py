@@ -916,10 +916,11 @@ def use_docker_sibling_containers() -> bool:
     Using sibling containers requires that all Docker containers are in the
     same network so that they can communicate with each other.
     """
-    if is_dev_csfy():
-        val = True
-    else:
-        val = is_dev4() or _is_mac_version_with_sibling_containers()
+    return has_docker_sibling_containers_support()
+    # if is_dev_csfy():
+    #     val = True
+    # else:
+    val = is_dev4() or _is_mac_version_with_sibling_containers()
     return val
 
 
@@ -1165,4 +1166,4 @@ def config_func_to_str() -> str:
         ret.append(msg)
     # Package.
     ret = "\n".join(ret)
-    return ret
+    t return ret
