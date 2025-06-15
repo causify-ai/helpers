@@ -71,7 +71,7 @@ def _run_dockerized_extract_notebook_images(
     _LOG.debug(hprint.func_signature_to_str())
     # Build the container image, if needed.
     container_image = "tmp.extract_notebook_images"
-    if False:
+    if True:
         container_image = "tmp.extract_notebook_images"
         dockerfile = r"""
         # This seems to be flaky on ARM64 architectures.
@@ -114,15 +114,15 @@ def _run_dockerized_extract_notebook_images(
         RUN pip install nbconvert nbformat playwright pyyaml
 
         # Install Playwright browsers.
+        RUN playwright install-deps
         RUN python -m playwright install
 
-        RUN playwright install-deps
-
-        RUN playwrite --version
+        #RUN npx playwright --version
+        RUN python --version
 
         WORKDIR /app
         """
-    if True:
+    if False:
         dockerfile = r"""
         FROM mcr.microsoft.com/playwright:v1.53.0-noble
 
