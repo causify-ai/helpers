@@ -913,10 +913,13 @@ def use_docker_sibling_containers() -> bool:
     """
     Return whether to use Docker sibling containers.
 
-    Using sibling containers requires that all Docker containers in the
+    Using sibling containers requires that all Docker containers are in the
     same network so that they can communicate with each other.
     """
-    val = is_dev4() or _is_mac_version_with_sibling_containers()
+    if is_dev_csfy():
+        val = True
+    else:
+        val = is_dev4() or _is_mac_version_with_sibling_containers()
     return val
 
 
