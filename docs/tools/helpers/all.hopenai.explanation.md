@@ -1,4 +1,4 @@
-# hopenai.get_completion – Explanation
+# hopenai – Explanation
 
 <!-- toc -->
 
@@ -26,151 +26,108 @@
 
 # Overview
 
-`hopenai.get_completion()` is a helper function that sends prompts to LLMs
-(OpenAI or OpenRouter) and returns their responses. Since API calls can be
-costly, it includes a custom caching mechanism to reduce redundant requests.
+- `hopenai.get_completion()` is a helper function that sends prompts to LLMs
+  (OpenAI or OpenRouter) and returns their responses
+- It includes a custom caching mechanism to reduce redundant requests and allow
+  unit testing
 
-This guide follows the Diátaxis documentation framework: **Guide**,
-**Reference**, **Explanation**, and **How-to** (testing & refreshing).
+- An example call to the LLM interface is
+  ```python
+  from helpers import hopenai
 
----
+  response = hopenai.get_completion(
+      user_prompt="What is machine learning?",
+      system_prompt="You are a helpful assistant.",
+      model="gpt-4o-mini",
+      cache_mode="FALLBACK",
+      cache_file="cache.get_completion.json",
+      temperature=0.5
+  )
+  ```
 
-# Guide
-
-This section walks through how to use `get_completion()` with caching.
-
-```python
-from helpers import hopenai
-
-response = hopenai.get_completion(
-    user_prompt="What is machine learning?",
-    system_prompt="You are a helpful assistant.",
-    model="gpt-4o-mini",
-    cache_mode="FALLBACK",
-    cache_file="cache.get_completion.json",
-    temperature=0.5
-)
-```
-
-## Parameters
-
-- `user_prompt`: (str) User's message to the LLM.
-- `system_prompt`: (str) Context-setting instruction for the assistant.
-- `model`: (str) OpenAI or OpenRouter model to use.
-- `cache_mode`: (str) One of:
-  - `"DISABLED"`: No caching.
-  - `"REPLAY"`: Only use cached response; raise error if not found.
-  - `"FALLBACK"`: Use cache if available, else make an API call.
-  - `"CAPTURE"`: Always make an API call and update the cache.
-- `cache_file`: (str) Path to JSON cache file.
-- `temperature`: (float) Sampling temperature (0-2).
-- `**create_kwargs`: Additional arguments passed to the API.
-
----
-
-# Reference
-
-## Function Signature
-
-```python
-def get_completion(
-    user_prompt: str,
-    *,
-    system_prompt: str = "",
-    model: str = "",
-    report_progress: bool = False,
-    print_cost: bool = False,
-    cache_mode: str = "DISABLED",
-    cache_file: str = "cache.get_completion.json",
-    temperature: float = 0.1,
-    **create_kwargs,
-) -> str
-```
-
----
-
-# Explanation
+- The parameter used are:
+  - `user_prompt`: User's message to the LLM.
+  - `system_prompt`: Context-setting instruction for the assistant.
+  - `model`: OpenAI or OpenRouter model to use.
+  - `cache_mode`: One of:
+    - `"DISABLED"`: No caching.
+    - `"REPLAY"`: Only use cached response; raise error if not found.
+    - `"FALLBACK"`: Use cache if available, else make an API call.
+    - `"CAPTURE"`: Always make an API call and update the cache.
+  - `cache_file`: Path to JSON cache file.
+  - `temperature`: Sampling temperature (0-2).
+  - `**create_kwargs`: Additional arguments passed to the API.
 
 ## Caching Logic
 
-The caching mechanism uses a hashed key generated from:
+- The caching mechanism uses a hashed key generated from:
+  - `user_prompt`
+  - `system_prompt`
+  - `model`
+  - `temperature`
+  - Additional parameters
 
-- `user_prompt`
-- `system_prompt`
-- `model`
-- `temperature`
-- Additional parameters
+- The caching layer
+  - Reads from `cache_file` on load
+  - Writes to disk when cache is updated
+  - Tracks metadata:
+    - `hits` : Number of times the cache returned a value.
+    - `misses`: Number of times the function looked for response in cache but
+      didn't find
+    - timestamps : Stores both `created_at` and `last_updated` timestamps.
 
-### Key Generation
-
-```python
-def hash_key_generator(model, messages, **extra_kwargs) -> str:
-    # Normalize input messages and parameters before hashing
-```
-
-### Cache Storage Format
-
-```json
-{
-  "version": "1.0",
-  "metadata": {
-    "created_at": "...",
-    "last_updated": "...",
-    "hits": 10,
-    "misses": 5
-  },
-  "entries": {
-    "<hash_key>": {
-      "request": { ... },
-      "response": { ... }
+- The cache storage format:
+  ```json
+  {
+    "version": "1.0",
+    "metadata": {
+      "created_at": "...",
+      "last_updated": "...",
+      "hits": 10,
+      "misses": 5
+    },
+    "entries": {
+      "<hash_key>": {
+        "request": { ... },
+        "response": { ... }
+      }
     }
   }
-}
-```
-
-### Disk I/O
-
-- Read from `cache_file` on load
-- Write to disk when cache is updated
-- Tracks metadata: `hits` : Number of times the cache returned a value.
-  `misses`: Number of times the function looked for response in cache but didnt
-  find. timestamps : Stores both `created_at` and `last_updated` timestamps.
+  ```
 
 ## Cost Calculation
 
 ### OpenAI Models
 
-For OpenAI models like `gpt-4o` or `gpt-3.5-turbo`, cost is computed using
-hardcoded pricing from [OpenAI's pricing page](https://openai.com/api/pricing).
-Each model has a per-token price for both the **prompt** and **completion**
-components:
+- For OpenAI models like `gpt-4o` or `gpt-3.5-turbo`, the cost is computed using
+  hardcoded pricing from [OpenAI's pricing page](https://openai.com/api/pricing)
+- Each model has a per-token price for both the **prompt** and **completion**
+  components:
 
-```python
-pricing = {
-    "gpt-3.5-turbo": {"prompt": 0.5, "completion": 1.5},
-    "gpt-4o-mini": {"prompt": 0.15, "completion": 0.60},
-    ...
-}
-```
+  ```python
+  pricing = {
+      "gpt-3.5-turbo": {"prompt": 0.5, "completion": 1.5},
+      "gpt-4o-mini": {"prompt": 0.15, "completion": 0.60},
+      ...
+  }
+  ```
 
-The formula used is:
-```
-cost = (prompt_tokens / 1e6) * prompt_price + (completion_tokens / 1e6) * completion_price
-```
+- The formula used is:
+  ```text
+  cost = (prompt_tokens / 1e6) * prompt_price + (completion_tokens / 1e6) * completion_price
+  ```
 
 ### OpenRouter Models
 
-For OpenRouter models, pricing is not hardcoded. Instead, the flow is:
-
-1. If the local file `tmp.openrouter_models_info.csv` does not exist:
-   - It queries `https://openrouter.ai/api/v1/models`
-   - Saves the returned model pricing and metadata to a CSV file
-2. The cost is computed using:
-```
-cost = prompt_tokens * prompt_price + completion_tokens * completion_price
-```
-
-Note: OpenRouter prices are already in per-token format.
+- For OpenRouter models the price is extracted through the API
+  1. If the local file `tmp.openrouter_models_info.csv` does not exist:
+     - It queries `https://openrouter.ai/api/v1/models`
+     - Saves the returned model pricing and metadata to a CSV file
+  2. The cost is computed using:
+     ```python
+     cost = prompt_tokens * prompt_price + completion_tokens * completion_price
+     ```
+     - Note: OpenRouter prices are already in per-token format.
 
 ### Runtime Behavior
 
@@ -221,45 +178,40 @@ This section summarizes how `get_completion()` operates internally.
 7. **Return**
    - Returns only the final text content from the model.
 
-All caching operations are handled by the `_CompletionCache` class.
-
----
+- All caching operations are handled by the `_CompletionCache` class.
 
 # How Testing Works
 
-Tests use `cache_mode="REPLAY"` to avoid real API calls. During testing:
+- During unit tests, the cache:
+  - Is set in `REPLAY` mode to avoid real API calls
+    (tests raise error if the required response is not cached)
+  - Uses for cache a file that is checked into the repo
+  - Expected prompts and responses are cached beforehand or as tests are executed
 
-- Expected prompts and responses are cached beforehand
-- Cache file is checked in under version control
-- Tests raise error if the required response is not cached
+## Cache Refreshing
 
----
+- When testing, it might be necessary to regenerate cached responses, e.g.,
+  - Prompts or expected completions have changed.
+  - You are adding a new test using a LLM prompt
+  - You want to ensure the cache reflects the latest LLM output.
 
-# Cache Refreshing
+- When testing, it might be necessary to regenerate cached responses after making
+  prompt or model changes. You can trigger cache refreshing using:
+  ```bash
+  > pytest --update_llm_cache
+  ```
+  - This sets the global `UPDATE_LLM_CACHE` flag (defined in your conftest or
+    test setup for now later it will be moved to `hopenai.py`).
+  - Internally, this sets `cache_mode="CAPTURE"` when calling `get_completion()`.
+    - All API calls will be re-executed even if cached versions exist.
+    - The cache file (e.g., `cache.get_completion.json`) is updated with new
+      responses.
+    - Metadata like `last_updated`, `hits`, and `misses` are also updated.
 
-When testing, it's often necessary to regenerate cached responses after making
-prompt or model changes. You can trigger cache refreshing using:
+- Note that the cache might contain old prompts that are not needed anymore
+  - If you want to generate a cache with all and only what is needed, you
+    can delete the unit test cache and then run all the tests with
+    `--update_llm_cache`
 
-```bash
-pytest --update_llm_cache
-```
-
-## What This Does
-
-- Sets the global `UPDATE_LLM_CACHE` flag (defined in your conftest or test
-  setup for now later it will be moved to `hopenai.py`).
-- Internally, this sets `cache_mode="CAPTURE"` when calling `get_completion()`.
-- All API calls will be re-executed even if cached versions exist.
-- The cache file (e.g., `cache.get_completion.json`) is updated with new
-  responses.
-- Metadata like `last_updated`, `hits`, and `misses` are also updated.
-
-### When to Use
-
-Use this command when:
-
-- Prompts or expected completions have changed.
-- You're onboarding a new test prompt.
-- You want to ensure the cache reflects the latest LLM output.
-
-Once refreshed, review and commit the updated cache file to version control.
+- Once the cache is refreshed, the cache should be reviewed and committed the
+  updated cache file to version control
