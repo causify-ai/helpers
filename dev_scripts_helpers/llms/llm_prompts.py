@@ -650,7 +650,8 @@ def latex_rewrite() -> _PROMPT_OUT:
     """
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
-    post_container_transforms = ["format_latex"]
+    #post_container_transforms = ["format_latex"]
+    post_container_transforms = []
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
@@ -1118,11 +1119,12 @@ def slide_reduce() -> _PROMPT_OUT:
     - Keep all the figures
     - Make sure that the text is clean and readable
     - Remove all the words that are not needed
-    - Minimize the changes to the text
+    - Use "you" instead of "we"
     - Use `E.g.,` instead of `Example`
 
     Print only the markdown without any explanation.
     """
+    # - Minimize the changes to the text
     pre_transforms: Set[str] = set()
     post_transforms = {
         "remove_code_delimiters",

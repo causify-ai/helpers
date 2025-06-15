@@ -9,6 +9,7 @@ import pytest
 import helpers.hgit as hgit
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
+import helpers.hunit_test_purification as huntepur
 import helpers.lib_tasks_docker as hlitadoc
 import helpers.test.test_lib_tasks as httestlib
 
@@ -24,6 +25,7 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_generate_compose_file1(hunitest.TestCase):
+
     def helper(
         self,
         stage: str,
@@ -107,6 +109,7 @@ class Test_generate_compose_file1(hunitest.TestCase):
 
 
 class Test_generate_compose_file2(hunitest.TestCase):
+
     def helper(
         self,
         mock_getcwd: str,
@@ -234,7 +237,8 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
         # so that the tests pass.
         timestamp_regex = r"\.\d{8}_\d{6}"
         act = re.sub(timestamp_regex, "", act)
-        act = hunitest.purify_txt_from_client(act)
+        text_purifier = huntepur.TextPurifier()
+        act = text_purifier.purify_txt_from_client(act)
         # This is required when different repos run Docker with user vs root / remap.
         act = hunitest.filter_text("--user", act)
         self.assert_equal(act, exp, fuzzy_match=True)
@@ -423,6 +427,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
 
 
 class Test_dassert_is_image_name_valid1(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Check that valid images pass the assertion.
@@ -463,6 +468,7 @@ class Test_dassert_is_image_name_valid1(hunitest.TestCase):
 
 
 class Test_dassert_is_base_image_name_valid1(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Check that valid base images pass the assertion.
