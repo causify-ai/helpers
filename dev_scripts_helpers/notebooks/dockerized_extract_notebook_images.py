@@ -1,14 +1,5 @@
 #!/usr/bin/env python3
 
-"""
-This script is designed to run a transformation script using LLMs. It requires
-certain dependencies to be present (e.g., `openai`) and thus it is executed
-within a Docker container.
-
-To use this script, you need to provide the input file, output file, and
-the type of transformation to apply.
-"""
-
 import argparse
 import logging
 import os
@@ -21,6 +12,7 @@ import nbformat
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
+import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
@@ -33,11 +25,21 @@ _LOG = logging.getLogger(__name__)
 class _NotebookImageExtractor:
     """
     Extract marked regions from a Jupyter notebook, convert them to HTML and
-    captures screenshots.
-    Initialize with input notebook path and output directory.
+    capture screenshots.
+
+    See documentation at:
+    //helpers/docs/tools/documentation_toolchain/all.extract_notebook_images.*
     """
 
     def __init__(self, notebook_path: str, output_dir: str) -> None:
+        """
+        Initialize the notebook image extractor.
+
+        :param notebook_path: path to the input notebook
+        :param output_dir: path to the output directory
+        """
+        _LOG.debug(hprint.to_str("notebook_path output_dir"))
+        hdbg.dassert_file_exists(notebook_path)
         self.notebook_path = notebook_path
         self.output_dir = output_dir
 
@@ -82,8 +84,12 @@ class _NotebookImageExtractor:
         :return: tuples (mode, out_filename, region_cells) for each extraction
         region.
         """
+        _LOG.debug(hprint.to_str("notebook_path"))
+        hdbg.dassert_file_exists(notebook_path)
         # Read notebook.
         nb = nbformat.read(notebook_path, as_version=4)
+        hdbg.dassert_in("cells", nb)
+        _LOG.debug("cells=\n%s", "\n".join(map(str, nb.cells)))
         # Define the regex for the start / endmarker.
         start_marker_regex = re.compile(
             r"""
@@ -105,25 +111,33 @@ class _NotebookImageExtractor:
         end_marker_regex = re.compile(r"#\s*end_extract\s*")
         # Initialize variables.
         regions = []
+        # Store if we are inside an extraction region.
         in_extract = False
+        # Store the current extraction mode (e.g., `only_input`, `only_output`,
+        # or `all`).
         current_mode = None
+        # Store the current output filename.
         current_out_filename = None
+        # List of the cells in the current extraction region.
         current_cells = []
         # Iterate over the cells in the notebook.
         for cell_idx, cell in enumerate(nb.cells):
+            _LOG.debug("\n" + hprint.frame(hprint.to_str("cell_idx cell")))
+            _LOG.debug("-> " + hprint.to_str("in_extract"))
             if cell.cell_type != "code":
                 continue
             # Check if the cell contains a start marker.
             m = start_marker_regex.search(cell.source)
             if m:
+                # A start marker was found.
+                _LOG.debug("Found a start marker")
                 hdbg.dassert(
                     not in_extract,
-                    "Found a start marker while in an extraction region at cell %s\n%s",
+                    "Found a start marker inside an extraction region: %s\n%s",
                     cell_idx,
                     cell.source,
                 )
-                # A start marker was found.
-                # Capture the mode and output filename
+                # Capture the mode and output filename.
                 current_mode = m.group(1)
                 hdbg.dassert_in(
                     current_mode,
@@ -131,30 +145,36 @@ class _NotebookImageExtractor:
                 )
                 current_out_filename = m.group(2)
                 in_extract = True
-                # Remove the start marker from the cell.
+                _LOG.debug(hprint.to_str("current_mode current_out_filename in_extract"))
+                # Remove the start marker from the cell, since we don't want
+                # to show it in the captured picture.
                 cell.source = start_marker_regex.sub("", cell.source).strip()
+            # We are inside an extraction region, so:
+            # - end the extraction region; or
+            # - continue adding cells to the region
+            m = end_marker_regex.search(cell.source)
+            if m:
+                _LOG.debug("Found an end marker")
+                hdbg.dassert(
+                    in_extract,
+                    "Found an end marker outside an extraction region: %s\n%s",
+                    cell_idx,
+                    cell.source,
+                )
+                # Add the current region to the list of regions.
+                current_cells.append(cell)
+                regions.append(
+                    (current_mode, current_out_filename, current_cells)
+                )
+                # Reset the state.
+                current_cells = []
+                in_extract = False
+                # Remove the end marker from the cell.
+                cell.source = end_marker_regex.sub("", cell.source).strip()
             else:
-                # We are inside an extraction region, so continue adding cells
-                # to the region.
-                m = end_marker_regex.search(cell.source)
-                if m:
-                    hdbg.dassert(
-                        in_extract,
-                        "Found an end marker while not in an extraction region at cell %s\n%s",
-                        cell_idx,
-                        cell.source,
-                    )
-                    current_cells.append(cell)
-                    regions.append(
-                        (current_mode, current_out_filename, current_cells)
-                    )
-                    current_cells = []
-                    in_extract = False
-                    # Remove the end marker from the cell.
-                    cell.source = end_marker_regex.sub("", cell.source).strip()
-                else:
-                    # If there's no end marker, just keep adding cells to the current region.
-                    current_cells.append(cell)
+                # If there's no end marker, just keep adding cells to the current region.
+                _LOG.debug("Continuing to add cells to the current region")
+                current_cells.append(cell)
         if not regions:
             _LOG.warning("No extraction markers found in the notebook.")
         return regions
@@ -224,7 +244,7 @@ class _NotebookImageExtractor:
 
         :return: list of paths to the screenshot files.
         """
-        regions = self._extract_regions_from_notebook()
+        regions = self._extract_regions_from_notebook(self.notebook_path)
         screenshot_files = []
         # Create screenshots folder if it doesn't exist.
         screenshots_folder = self.output_dir

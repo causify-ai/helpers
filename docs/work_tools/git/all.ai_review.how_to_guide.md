@@ -155,10 +155,11 @@
   - The goal is to make these tools robust enough so that they can be used
     directly by the author and potentially integrated in the `linter` flow
     itself
-  - Initially, reviewers use these tools as part of initial dog-fooding of the
+  - Initially, reviewers use these tools as part of initial dogfooding of the
     flows
 
-- Go to the Git branch with the code
+- Go to the Git branch with the code to review
+
 - Check which files are modified
   ```bash
   > invoke git_branch_diff_with -t base --only-print-files
@@ -187,29 +188,19 @@
 - You should always commit your code and apply the automatic transforms that
   modify a file in a separate commit, so that it's easy to review
 
-## How to change the logic in place while reviewing
-
-- A common problem is that we might want to adjust one of our tools (e.g.,
-  `linter.py`, `ai_review.py`) while reviewing somebody's else code
-
-- The approach is to copy files from a different Git client in the one with the
-  code being tested using one of the scripts
-  ```
-  > ai_review.py -i template_code.py
-  ```
-  ```
-  > llm_transform.py -i template_code.py -p code_fix_code
-  ```
-
+- There are multiple targets for the `ai_review.py`
   ```bash
   > PROMPT=review_llm
   > PROMPT=review_correctness
   > PROMPT=review_linter
   > PROMPT=review_architecture
-  >
+
   > FILE=dev_scripts_helpers/github/dockerized_sync_gh_repo_settings.py
 
-  > \cp -f /Users/saggese/src/helpers1/dev_scripts_helpers/llms/sync_ai_review.sh $HELPERS_ROOT_DIR/dev_scripts_helpers/llms && sync_ai_review.sh && ai_review.py -i $FILE -p $PROMPT
+  > ai_review.py -i $FILE -p $PROMPT
+
+  # To copy all the reviewer code.
+  > \cp -f /Users/saggese/src/helpers1/helpers/lib_tasks_lint.py helpers && i lint_sync_code && ai_review.py -i $FILE -p $PROMPT
 
   > vi -c "cfile cfile"
 
@@ -217,3 +208,35 @@
 
   > llm_transform.py -i dev_scripts_helpers/github/dockerized_sync_gh_repo_settings.py -p code_fix_code
   ```
+
+  ```
+  > ai_review.py -i template_code.py
+  ```
+  ```
+  > llm_transform.py -i template_code.py -p code_fix_code
+  ```
+
+## How to improve the code in place while reviewing
+
+- A common problem is that we might want to adjust one of our tools (e.g.,
+  `linter.py`, `ai_review.py`) while reviewing somebody's else code
+
+- The approach is to copy files from a different Git client in the one with the
+  code being tested using one of the scripts
+
+- There are two use cases
+  1. When the code to review is in repo including `//helpers`
+     - In this case we can simply create a branch in `//helpers` and modify the
+       code for the tools in place
+  2. When the code to review is in the repo `//helpers`
+     - In this case, we can use a different Git client to develop and "sync" the
+       `linter.py` / `ai_review.py` code from one client to another
+       ```bash
+       > \cp -f /Users/saggese/src/helpers1/helpers/lib_tasks_lint.py helpers && i lint_sync_code
+       ```
+     - Before committing the review, we then revert the `linter.py /
+       ai_review.py` code
+       ```bash
+       > i lint_sync_code -r
+       ```
+
