@@ -703,9 +703,10 @@ def assert_equal(
     # Purify text, if needed.
     if purify_text:
         tag = "purify_text"
-        actual = purify_text.purify_text(actual)
+        text_purifier = huntepur.TextPurifier()
+        actual = text_purifier.purify_txt_from_client(actual)
         if purify_expected_text:
-            expected = purify_text.purify_text(expected)
+            expected = text_purifier.purify_txt_from_client(expected)
         _append(tag, actual, expected)
     # Ensure that there is a single `\n` at the end of the strings.
     actual = actual.rstrip("\n") + "\n"

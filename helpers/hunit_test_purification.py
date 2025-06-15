@@ -345,6 +345,17 @@ class TextPurifier:
         )
         return txt
 
+    def purify_file_names(self, file_names: List[str]) -> List[str]:
+        """
+        Express file names in terms of the root of git repo, removing reference
+        to `amp`.
+        """
+        git_root = hgit.get_client_root(super_module=True)
+        file_names = [os.path.relpath(f, git_root) for f in file_names]
+        # Apply amp reference purification to file paths.
+        file_names = list(map(self.purify_amp_references, file_names))
+        return file_names
+
     def _apply_regex_replacements(
         self, txt: str, regex_patterns: List[Tuple[str, str]]
     ) -> str:

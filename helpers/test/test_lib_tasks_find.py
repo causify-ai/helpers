@@ -100,7 +100,7 @@ class TestLibTasksRunTests1(hunitest.TestCase):
             "TestLibTasksRunTests1", file_names
         )
         text_purifier = huntepur.TextPurifier()
-        act = text_purifier.purify_txt_from_client(file_names)
+        act = text_purifier.purify_file_names(file_names)
         exp = ["helpers/test/test_lib_tasks_find.py::TestLibTasksRunTests1"]
         self.assert_equal(str(act), str(exp), purify_text=True)
 
@@ -114,7 +114,7 @@ class TestLibTasksRunTests1(hunitest.TestCase):
             "TestLibTasksRunTests1", file_names
         )
         text_purifier = huntepur.TextPurifier()
-        act = text_purifier.purify_txt_from_client(file_names)
+        act = text_purifier.purify_file_names(file_names)
         exp = ["helpers/test/test_lib_tasks_find.py::TestLibTasksRunTests1"]
         self.assert_equal(str(act), str(exp), purify_text=True)
 
@@ -153,7 +153,7 @@ class TestLibTasksRunTests1(hunitest.TestCase):
         #
         act = hlitafin._find_test_class("TestHelloWorld", file_names)
         text_purifier = huntepur.TextPurifier()
-        act = text_purifier.purify_txt_from_client(act)
+        act = text_purifier.purify_file_names(act)
         exp = [
             "helpers/test/outcomes/TestLibTasksRunTests1.test_find_test_class3/tmp.scratch/"
             "test/test_this.py::TestHelloWorld"
@@ -192,7 +192,7 @@ class TestLibTasksRunTests1(hunitest.TestCase):
         file_names = hlitafin._find_test_files(dir_name)
         act = hlitafin._find_test_decorator("no_container", file_names)
         text_purifier = huntepur.TextPurifier()
-        act = text_purifier.purify_txt_from_client(act)
+        act = text_purifier.purify_file_names(act)
         exp = [
             "helpers/test/outcomes/TestLibTasksRunTests1.test_find_test_decorator1/"
             "tmp.scratch/test/test_that.py"

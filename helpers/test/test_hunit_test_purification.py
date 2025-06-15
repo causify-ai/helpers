@@ -8,6 +8,7 @@ import datetime
 import logging
 import os
 import unittest.mock as umock
+from typing import List
 
 import pytest
 
@@ -933,3 +934,81 @@ class Test_purify_line_number1(hunitest.TestCase):
         text_purifier = huntepur.TextPurifier()
         actual = text_purifier.purify_line_number(txt)
         self.assert_equal(actual, expected, fuzzy_match=True)
+
+
+# #############################################################################
+# Test_purify_file_names1
+# #############################################################################
+
+
+class Test_purify_file_names1(hunitest.TestCase):
+
+    def check_helper(self, file_names: List[str], exp: List[str]) -> None:
+        text_purifier = huntepur.TextPurifier()
+        act = text_purifier.purify_file_names(file_names)
+        act = "\n".join(str(path) for path in act)
+        exp = "\n".join(str(path) for path in exp)
+        self.assert_equal(act, exp)
+
+    def test1(self) -> None:
+        """
+        Test basic file name purification with relative paths.
+        """
+        with umock.patch(
+            "helpers.hgit.get_client_root", return_value="/home/user/gitroot"
+        ):
+            txt = [
+                "/home/user/gitroot/helpers/test/test_file.py",
+                "/home/user/gitroot/amp/helpers/test/test_dbg.py",
+            ]
+            exp = [
+                "helpers/test/test_file.py",
+                "helpers/test/test_dbg.py",
+            ]
+            self.check_helper(txt, exp)
+
+    def test2(self) -> None:
+        """
+        Test file name purification with nested amp references.
+        """
+        with umock.patch(
+            "helpers.hgit.get_client_root", return_value="/home/user/gitroot"
+        ):
+            txt = [
+                "/home/user/gitroot/amp/helpers/amp/test/test_file.py",
+                "/home/user/gitroot/amp/helpers/test/amp/test_dbg.py",
+            ]
+            exp = [
+                "helpers/test/test_file.py",
+                "helpers/test/test_dbg.py",
+            ]
+            self.check_helper(txt, exp)
+
+    def test3(self) -> None:
+        """
+        Test file name purification with app references to ensure that they are
+        not replaced.
+        """
+        with umock.patch(
+            "helpers.hgit.get_client_root", return_value="/home/user/gitroot"
+        ):
+            txt = [
+                "/home/user/gitroot/app/helpers/test/test_file.py",
+                "/home/user/gitroot/app/amp/helpers/test/test_dbg.py",
+            ]
+            exp = [
+                "app/helpers/test/test_file.py",
+                "app/helpers/test/test_dbg.py",
+            ]
+            self.check_helper(txt, exp)
+
+    def test4(self) -> None:
+        """
+        Test file name purification with empty list.
+        """
+        with umock.patch(
+            "helpers.hgit.get_client_root", return_value="/home/user/gitroot"
+        ):
+            txt = []
+            exp = []
+            self.check_helper(txt, exp)
