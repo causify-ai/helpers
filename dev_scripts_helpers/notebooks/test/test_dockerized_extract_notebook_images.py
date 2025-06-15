@@ -13,9 +13,12 @@ _LOG = logging.getLogger(__name__)
 
 class TestNotebookImageExtractor1(hunitest.TestCase):
     def test1(self) -> None:
+        # Prepare the input.
         input_dir = self.get_input_dir()
-        src_test_notebook = os.path.join(input_dir, "test_images.ipynb")
+        src_test_notebook = os.path.join(input_dir, "test_notebook_image_extractor.ipynb")
+        # Run the function.
         act = dshndb._NotebookImageExtractor._extract_regions_from_notebook(
             src_test_notebook
         )
+        # Check the output.
         print(act)

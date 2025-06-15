@@ -1,14 +1,5 @@
 #!/usr/bin/env python3
 
-"""
-This script is designed to run a transformation script using LLMs. It requires
-certain dependencies to be present (e.g., `openai`) and thus it is executed
-within a Docker container.
-
-To use this script, you need to provide the input file, output file, and
-the type of transformation to apply.
-"""
-
 import argparse
 import logging
 import os
@@ -33,8 +24,11 @@ _LOG = logging.getLogger(__name__)
 class _NotebookImageExtractor:
     """
     Extract marked regions from a Jupyter notebook, convert them to HTML and
-    captures screenshots.
+    capture screenshots.
     Initialize with input notebook path and output directory.
+
+    See documentation at:
+    //helpers/docs/tools/documentation_toolchain/all.extract_notebook_images.*
     """
 
     def __init__(self, notebook_path: str, output_dir: str) -> None:

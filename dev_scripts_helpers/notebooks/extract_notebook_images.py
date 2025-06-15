@@ -3,10 +3,13 @@
 Extract images from a Jupyter notebook by running inside a Docker container.
 
 This script builds the container dynamically if necessary and extracts images
-from the specified Jupyter notebook using the NotebookImageExtractor module.
+from the specified Jupyter notebook using the `NotebookImageExtractor` module.
 
-Extract images from notebook test_images.ipynb and save them to `screenshots`
-directory.
+See documentation at:
+//helpers/docs/tools/documentation_toolchain/all.extract_notebook_images.*
+
+# Extract images from notebook `test_images.ipynb` and save them to
+# `screenshots` directory.
 ```bash
 > dev_scripts_helpers/notebooks/extract_notebook_images.py \
     -i dev_scripts_helpers/notebooks/test_images.ipynb \
