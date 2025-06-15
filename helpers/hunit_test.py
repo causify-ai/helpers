@@ -6,7 +6,6 @@ import helpers.hunit_test as hunitest
 
 import abc
 import collections
-import datetime
 import inspect
 import logging
 import os
@@ -22,12 +21,12 @@ import pytest
 
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
-import helpers.hintrospection as hintros
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.htimer as htimer
+import helpers.hunit_test_purification as huntepur
 import helpers.hwall_clock_time as hwacltim
 import helpers.repo_config_utils as hrecouti
 
@@ -364,369 +363,6 @@ def filter_text(regex: str, txt: str) -> str:
 
 
 # #############################################################################
-# Outcome purification functions.
-# #############################################################################
-
-
-# TODO(gp): -> private functions?
-
-
-def _apply_regex_replacements(
-    txt: str, regex_patterns: List[Tuple[str, str]]
-) -> str:
-    """
-    Apply a series of regex replacements to text.
-
-    :param txt: input text to process
-    :param regex_patterns: list of (pattern, replacement) tuples to
-        apply in order
-    :return: text with all regex replacements applied
-    """
-    # Apply regex replacements in order.
-    txt_out = txt
-    for regex_pattern, replacement in regex_patterns:
-        txt_out = re.sub(regex_pattern, replacement, txt_out)
-        _LOG.debug(
-            "Applying %s -> %s: before=%s, after=%s",
-            regex_pattern,
-            replacement,
-            txt,
-            txt_out,
-        )
-    return txt_out
-
-
-def purify_directory_paths(txt: str) -> str:
-    """
-    Replace known directory paths with standardized placeholders.
-
-    Apply replacements in this order:
-    1. Replace Git root paths with `$GIT_ROOT`.
-    2. Replace `CSFY_HOST_GIT_ROOT_PATH` with `$CSFY_HOST_GIT_ROOT_PATH`.
-    3. Replace current working directory with `$PWD`.
-
-    This order ensures that more specific paths are replaced before generic
-    ones, preventing conflicts when paths overlap.
-
-    param txt: input text that needs to be purified
-    return: purified text
-    """
-    _LOG.debug("Before: txt='\n%s'", txt)
-    # Collect all paths to replace with their priorities.
-    replacements = []
-    # 1. Git root paths.
-    # Remove references to Git modules starting from the innermost one.
-    for super_module in [False, True]:
-        # Replace the git root path with `$GIT_ROOT`.
-        git_root = hgit.get_client_root(super_module=super_module)
-        if git_root and git_root != "/":
-            replacements.append((git_root, "$GIT_ROOT"))
-            _LOG.debug("Added git root '%s' for replacement", git_root)
-        else:
-            # Skip git root path if it is `/`.
-            pass
-    # 2. CSFY_HOST_GIT_ROOT_PATH environment variable.
-    # Replace the CSFY_HOST_GIT_ROOT_PATH with `$CSFY_HOST_GIT_ROOT_PATH`.
-    csfy_git_root = os.environ.get("CSFY_HOST_GIT_ROOT_PATH")
-    if csfy_git_root:
-        replacements.append((csfy_git_root, "$CSFY_HOST_GIT_ROOT_PATH"))
-        _LOG.debug(
-            "Added CSFY_HOST_GIT_ROOT_PATH '%s' for replacement", csfy_git_root
-        )
-    # 3. Current working directory.
-    # Replace the path of current working directory with `$PWD`.
-    pwd = os.getcwd()
-    if pwd and pwd != "/":
-        replacements.append((pwd, "$PWD"))
-        _LOG.debug("Added PWD '%s' for replacement", pwd)
-    # Apply replacements in order of priority.
-    for path, replacement in replacements:
-        # Use word boundaries to avoid replacing path fragments.
-        # E.g., To avoid replacing `app` in `application.py`.
-        pattern = rf"(?<![\w/]){re.escape(path)}(?![\w])"
-        txt = re.sub(pattern, replacement, txt)
-        _LOG.debug("Replaced '%s' with '%s'", path, replacement)
-    _LOG.debug("After purifying directory paths: txt='\n%s'", txt)
-    return txt
-
-
-def purify_from_environment(txt: str) -> str:
-    """
-    Replace environment-specific values with placeholders.
-
-    Perform these transformations:
-    1. Replace directory paths with standardized placeholders.
-    2. Replace the current user name with $USER_NAME.
-    3. Handle special cases like usernames in paths and commands.
-
-    param txt: input text that needs to be purified
-    return: purified text
-    """
-    # Replace current username with `$USER_NAME`.
-    user_name = hsystem.get_user_name()
-    # Set a regex pattern that finds a user name surrounded by dot, dash or space.
-    # E.g., `IMAGE=$CSFY_ECR_BASE_PATH/amp_test:local-$USER_NAME-1.0.0`,
-    # `--name $USER_NAME.amp_test.app.app`, `run --rm -l user=$USER_NAME`.
-    regex = rf"([\s\n\-\.\=]|^)+{user_name}+([.\s/-]|$)"
-    # Use `\1` and `\2` to preserve specific characters around `$USER_NAME`.
-    target = r"\1$USER_NAME\2"
-    txt = re.sub(regex, target, txt)
-    _LOG.debug("After %s: txt='\n%s'", hintros.get_function_name(), txt)
-    return txt
-
-
-def purify_amp_references(txt: str) -> str:
-    """
-    Remove references to amp from text by applying a series of regex
-    substitutions.
-
-    Handle these patterns:
-    1. Replace path references
-       - E.g., "amp/helpers/test/..." -> "helpers/test/..."
-    2. Replace class references
-       - E.g., "<amp.helpers.test.TestClass>" -> "<helpers.test.TestClass>"
-    3. Replace comment references
-       - E.g., "# Test created for amp.helpers.test" -> "# Test created for helpers.test"
-    4. Replace module references
-       - E.g., "amp.helpers.test.TestClass" -> "helpers.test.TestClass"
-
-    Order the regex patterns from most specific to most general to avoid
-    incorrect replacements.
-    For example:
-    - Place `'/amp/helpers'` before `'/amp'` to prevent replacing `'/amp'` in `'/amp/helpers'`
-    - Place `'amp.helpers'` before `'amp'` to prevent replacing `'amp'` in `'amp.helpers'`
-
-    param txt: input text containing amp references
-    return: text with amp references removed
-    """
-    amp_patterns = [
-        # Remove 'amp/' prefix from quoted paths.
-        (r"'amp/", "'"),
-        # Remove 'amp/' prefix from path segments.
-        (r"(?m)(^\s*|\s+)amp/", r"\1"),
-        # Replace '/amp/' with '/' and '/amp:' with ':' in paths.
-        (r"(?m)/amp/", "/"),
-        (r"(?m)/amp:", ":"),
-        # Remove 'amp.' prefix from class representations and tracebacks.
-        (r"<amp\.", "<"),
-        (r"class 'amp\.", "class '"),
-        # Replace 'amp.helpers' with 'helpers' in package references.
-        (r"\bamp\.helpers\b", "helpers"),
-        # Remove amp references from test creation comments.
-        (r"# Test created for amp\.([\w\.]+)", r"# Test created for \1"),
-        # Remove leading './' from relative paths.
-        (r"(?m)^\./", ""),
-    ]
-    txt = _apply_regex_replacements(txt, amp_patterns)
-    _LOG.debug("After %s: txt=\n%s", hintros.get_function_name(), txt)
-    return txt
-
-
-def purify_app_references(txt: str) -> str:
-    """
-    Remove references to `/app` from text by applying a series of regex
-    substitutions.
-
-    param txt: input text containing app references
-    return: text with app references removed
-    """
-    app_patterns = [
-        # Remove trailing '/app/' references.
-        (r"(?<![\w/])/app/(?=\s|$)", ""),
-        # Remove 'app/' prefix from path segments.
-        (r"(?m)(^\s*'?)app/", r"\1"),
-        # Replace '/app/' with '/' and '/app:' with ':' in paths.
-        (r"(?m)/app/", "/"),
-        (r"(?m)/app:", ":"),
-        # Remove 'app.' prefix from class representations and tracebacks.
-        (r"<app\.", "<"),
-        (r"class 'app\.", "class '"),
-        # Replace 'app.helpers' with 'helpers' in package references.
-        (r"\bapp\.helpers\b", "helpers"),
-        # Remove app references from test creation comments.
-        (r"# Test created for app\.([\w\.]+)", r"# Test created for \1"),
-        # Update legacy module path forms to use amp.helpers.
-        (r"app\.amp\.helpers_root\.helpers", "amp.helpers"),
-        (r"app\.amp\.helpers", "amp.helpers"),
-        # Remove leading './' from relative paths.
-        (r"(?m)^\./", ""),
-    ]
-    txt = _apply_regex_replacements(txt, app_patterns)
-    _LOG.debug("After %s: txt=\n%s", hintros.get_function_name(), txt)
-    return txt
-
-
-def purify_file_names(file_names: List[str]) -> List[str]:
-    """
-    Express file names in terms of the root of git repo, removing reference to
-    `amp`.
-    """
-    git_root = hgit.get_client_root(super_module=True)
-    file_names = [os.path.relpath(f, git_root) for f in file_names]
-    # Apply amp reference purification to file paths
-    file_names = list(map(purify_amp_references, file_names))
-    return file_names
-
-
-def purify_from_env_vars(txt: str) -> str:
-    # TODO(gp): Diff between amp and cmamp.
-    for env_var in [
-        "CSFY_AWS_S3_BUCKET",
-        "CSFY_ECR_BASE_PATH",
-    ]:
-        if env_var in os.environ:
-            val = os.environ[env_var]
-            if val == "":
-                _LOG.debug("Env var '%s' is empty", env_var)
-            else:
-                txt = txt.replace(val, f"${env_var}")
-    _LOG.debug("After %s: txt='\n%s'", hintros.get_function_name(), txt)
-    return txt
-
-
-def purify_object_representation(txt: str) -> str:
-    """
-    Remove references like `at 0x7f43493442e0`.
-    """
-    txt = re.sub(r"at 0x[0-9A-Fa-f]+", "at 0x", txt, flags=re.MULTILINE)
-    txt = re.sub(r" id='\d+'>", " id='xxx'>", txt, flags=re.MULTILINE)
-    txt = re.sub(r"port=\d+", "port=xxx", txt, flags=re.MULTILINE)
-    txt = re.sub(r"host=\S+ ", "host=xxx ", txt, flags=re.MULTILINE)
-    # wall_clock_time=Timestamp('2022-08-04 09:25:04.830746-0400'
-    txt = re.sub(
-        r"wall_clock_time=Timestamp\('.*?',",
-        r"wall_clock_time=Timestamp('xxx',",
-        txt,
-        flags=re.MULTILINE,
-    )
-    _LOG.debug("After %s: txt='\n%s'", hintros.get_function_name(), txt)
-    return txt
-
-
-def purify_today_date(txt: str) -> str:
-    """
-    Remove today's date like `20220810`.
-    """
-    today_date = datetime.date.today()
-    today_date_as_str = today_date.strftime("%Y%m%d")
-    # Replace predict.3.compress_tails.df_out.20220627_094500.YYYYMMDD_171106.csv.gz.
-    txt = re.sub(
-        today_date_as_str + r"_\d{6}",
-        "YYYYMMDD_HHMMSS",
-        txt,
-        flags=re.MULTILINE,
-    )
-    txt = re.sub(today_date_as_str, "YYYYMMDD", txt, flags=re.MULTILINE)
-    return txt
-
-
-# TODO(gp): -> purify_trailing_white_spaces
-def purify_white_spaces(txt: str) -> str:
-    """
-    Remove trailing white spaces.
-    """
-    txt_new = []
-    for line in txt.split("\n"):
-        line = line.rstrip()
-        txt_new.append(line)
-    txt = "\n".join(txt_new)
-    return txt
-
-
-# TODO(Grisha): move to `purify_txt_from_client`.
-def purify_line_number(txt: str) -> str:
-    """
-    Replace line number with `$LINE_NUMBER`.
-    """
-    txt = re.sub(r"\.py::\d+", ".py::$LINE_NUMBER", txt, flags=re.MULTILINE)
-    return txt
-
-
-def purify_parquet_file_names(txt: str) -> str:
-    """
-    Replace UUIDs file names to `data.parquet` in the goldens.
-
-    Some tests are expecting in the goldens the Parquet files with the names
-    `data.parquet`.
-    Example:
-        Initial text:
-        ```
-        s3://some_bucket/root/currency_pair=BTC_USDT/year=2024/month=1/ea5e3faed73941a2901a2128abeac4ca-0.parquet
-        s3://some_bucket/root/currency_pair=BTC_USDT/year=2024/month=2/f7a39fefb69b40e0987cec39569df8ed-0.parquet
-        ```
-        Purified text:
-        ```
-        s3://some_bucket/root/currency_pair=BTC_USDT/year=2024/month=1/data.parquet
-        s3://some_bucket/root/currency_pair=BTC_USDT/year=2024/month=2/data.parquet
-        ```
-    """
-    pattern = r"""
-        [0-9a-f]{32}-[0-9].*    # GUID pattern.
-        (?=\.parquet)           # positive lookahead assertion that matches a
-                                # position followed by ".parquet" without
-                                # consuming it.
-    """
-    # TODO(Vlad): Need to change the replacement to `$FILE_NAME` as in the
-    # `purify_from_environment()` function. For now, some tests are expecting
-    # `data.parquet` files.
-    replacement = "data"
-    # flags=re.VERBOSE allows us to use whitespace and comments in the pattern.
-    txt = re.sub(pattern, replacement, txt, flags=re.VERBOSE)
-    return txt
-
-
-def purify_helpers(txt: str) -> str:
-    """
-    Replace the path `helpers_root.helpers` with `helpers`.
-    """
-    txt = re.sub(r"helpers_root\.helpers\.", "helpers.", txt, flags=re.MULTILINE)
-    txt = re.sub(r"helpers_root/helpers/", "helpers/", txt, flags=re.MULTILINE)
-    txt = re.sub(
-        r"helpers_root\.config_root", "config_root", txt, flags=re.MULTILINE
-    )
-    txt = re.sub(
-        r"helpers_root/config_root/", "config_root/", txt, flags=re.MULTILINE
-    )
-    return txt
-
-
-def purify_docker_image_name(txt: str) -> str:
-    """
-    Remove temporary docker image name that are function of their content.
-    """
-    # In a command like:
-    # > docker run --rm ...  tmp.latex.edb567be ..
-    txt = re.sub(
-        r"^(.*docker.*\s+tmp\.\S+\.)[a-z0-9]{8}(\s+.*)$",
-        r"\1xxxxxxxx\2",
-        txt,
-        flags=re.MULTILINE,
-    )
-    return txt
-
-
-def purify_txt_from_client(txt: str) -> str:
-    """
-    Remove from a string all the information of a specific run.
-    """
-    # The order of substitutions is important. We want to start from the "most
-    # specific" (e.g., `amp/helpers/test/...`) to the "least specific" (e.g.,
-    # `amp`).
-    txt = purify_directory_paths(txt)
-    txt = purify_from_environment(txt)
-    txt = purify_amp_references(txt)
-    txt = purify_app_references(txt)
-    txt = purify_from_env_vars(txt)
-    txt = purify_object_representation(txt)
-    txt = purify_today_date(txt)
-    txt = purify_white_spaces(txt)
-    txt = purify_parquet_file_names(txt)
-    txt = purify_helpers(txt)
-    txt = purify_docker_image_name(txt)
-    return txt
-
-
-# #############################################################################
 
 
 def diff_files(
@@ -1047,8 +683,9 @@ def assert_equal(
     tag = "original"
     _append(tag, actual, expected)
     # 1) Remove white spaces.
-    actual = purify_white_spaces(actual)
-    expected = purify_white_spaces(expected)
+    text_purifier = huntepur.TextPurifier()
+    actual = text_purifier.purify_white_spaces(actual)
+    expected = text_purifier.purify_white_spaces(expected)
     tag = "purify_white_spaces"
     _append(tag, actual, expected)
     # Remove empty leading / trailing lines.
@@ -1066,9 +703,9 @@ def assert_equal(
     # Purify text, if needed.
     if purify_text:
         tag = "purify_text"
-        actual = purify_txt_from_client(actual)
+        actual = purify_text.purify_text(actual)
         if purify_expected_text:
-            expected = purify_txt_from_client(expected)
+            expected = purify_text.purify_text(expected)
         _append(tag, actual, expected)
     # Ensure that there is a single `\n` at the end of the strings.
     actual = actual.rstrip("\n") + "\n"
@@ -1612,7 +1249,8 @@ class TestCase(unittest.TestCase):
         # TODO(gp): Not sure why we purify here and not delegate to `assert_equal`.
         if purify_text:
             _LOG.debug("Purifying actual outcome")
-            actual = purify_txt_from_client(actual)
+            text_purifier = huntepur.TextPurifier()
+            actual = text_purifier.purify_txt_from_client(actual)
         _LOG.debug("actual=\n%s", actual)
         outcome_updated = False
         file_exists = os.path.exists(file_name)
