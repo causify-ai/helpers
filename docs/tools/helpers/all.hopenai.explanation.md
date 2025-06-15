@@ -3,24 +3,14 @@
 <!-- toc -->
 
 - [Overview](#overview)
-- [Guide](#guide)
-  * [Parameters](#parameters)
-- [Reference](#reference)
-  * [Function Signature](#function-signature)
-- [Explanation](#explanation)
   * [Caching Logic](#caching-logic)
-    + [Key Generation](#key-generation)
-    + [Cache Storage Format](#cache-storage-format)
-    + [Disk I/O](#disk-io)
   * [Cost Calculation](#cost-calculation)
     + [OpenAI Models](#openai-models)
     + [OpenRouter Models](#openrouter-models)
     + [Runtime Behavior](#runtime-behavior)
   * [Entire Flow](#entire-flow)
 - [How Testing Works](#how-testing-works)
-- [Cache Refreshing](#cache-refreshing)
-  * [What This Does](#what-this-does)
-    + [When to Use](#when-to-use)
+  * [Cache Refreshing](#cache-refreshing)
 
 <!-- tocstop -->
 
@@ -32,6 +22,7 @@
   unit testing
 
 - An example call to the LLM interface is
+
   ```python
   from helpers import hopenai
 
@@ -74,7 +65,7 @@
     - `hits` : Number of times the cache returned a value.
     - `misses`: Number of times the function looked for response in cache but
       didn't find
-    - timestamps : Stores both `created_at` and `last_updated` timestamps.
+    - Timestamps : Stores both `created_at` and `last_updated` timestamps.
 
 - The cache storage format:
   ```json
@@ -183,10 +174,11 @@ This section summarizes how `get_completion()` operates internally.
 # How Testing Works
 
 - During unit tests, the cache:
-  - Is set in `REPLAY` mode to avoid real API calls
-    (tests raise error if the required response is not cached)
+  - Is set in `REPLAY` mode to avoid real API calls (tests raise error if the
+    required response is not cached)
   - Uses for cache a file that is checked into the repo
-  - Expected prompts and responses are cached beforehand or as tests are executed
+  - Expected prompts and responses are cached beforehand or as tests are
+    executed
 
 ## Cache Refreshing
 
@@ -195,22 +187,24 @@ This section summarizes how `get_completion()` operates internally.
   - You are adding a new test using a LLM prompt
   - You want to ensure the cache reflects the latest LLM output.
 
-- When testing, it might be necessary to regenerate cached responses after making
-  prompt or model changes. You can trigger cache refreshing using:
+- When testing, it might be necessary to regenerate cached responses after
+  making prompt or model changes. You can trigger cache refreshing using:
+
   ```bash
   > pytest --update_llm_cache
   ```
   - This sets the global `UPDATE_LLM_CACHE` flag (defined in your conftest or
     test setup for now later it will be moved to `hopenai.py`).
-  - Internally, this sets `cache_mode="CAPTURE"` when calling `get_completion()`.
+  - Internally, this sets `cache_mode="CAPTURE"` when calling
+    `get_completion()`.
     - All API calls will be re-executed even if cached versions exist.
     - The cache file (e.g., `cache.get_completion.json`) is updated with new
       responses.
     - Metadata like `last_updated`, `hits`, and `misses` are also updated.
 
 - Note that the cache might contain old prompts that are not needed anymore
-  - If you want to generate a cache with all and only what is needed, you
-    can delete the unit test cache and then run all the tests with
+  - If you want to generate a cache with all and only what is needed, you can
+    delete the unit test cache and then run all the tests with
     `--update_llm_cache`
 
 - Once the cache is refreshed, the cache should be reviewed and committed the
