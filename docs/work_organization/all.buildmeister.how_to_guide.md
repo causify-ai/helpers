@@ -10,6 +10,7 @@
   * [`update_helpers_submodule` fails](#update_helpers_submodule-fails)
 - [Daily Reporting and Handover Process](#daily-reporting-and-handover-process)
 - [Buildmeister dashboard](#buildmeister-dashboard)
+  * [Logic Used to Determine Workflow Status](#logic-used-to-determine-workflow-status)
 - [Allure Reports Analysis](#allure-reports-analysis)
 - [Post-mortem analysis (TBD)](#post-mortem-analysis-tbd)
 
@@ -207,6 +208,45 @@ current state of the results of all GitHub Actions workflows. See
 for detailed information.
 
 <img src="figs/all.buildmeister.how_to_guide.md/Buildmeister Image.png"/>
+
+### Logic Used to Determine Workflow Status
+
+The dashboard uses the following logic to determine the latest and most relevant
+status of each GitHub Actions workflow:
+
+- **Workflow Run Selection**:
+  - For each workflow in each repo, the dashboard fetches the 10 most recent
+    workflow runs on the `master` branch
+  - For workflows such as `"Gitleaks Scan"`, the dashboard prioritizes the
+    latest scheduled run (`event == "schedule"`) as these are used for CI health
+    checks
+  - If no scheduled run is found (or the workflow does not have scheduled runs),
+    it falls back to the most recent completed run with a `conclusion` of
+    `"success"` or `"failure"`
+
+- **Overall Repository Status**:
+  - A repository is marked as `Failed` if any of its workflows have a
+    `conclusion` of `failure`
+  - Otherwise, it is marked as `Success`
+  - In Jupyter notebooks, these statuses are color-coded:
+    - `Green`: `Success`
+    - `Red`: `Failure`
+
+- **Workflow Data and Display**:
+  - For each workflow, the dashboard shows:
+    - `repo_name`: repository name (e.g., `cryptokaizen/cmamp`)
+    - `workflow_name`: name of the workflow (e.g., `"Allure fast tests"`)
+    - `conclusion`: overall status (`"success"` or `"failure"`)
+    - `url`: link to the specific workflow run
+  - All URLs in the dashboard are rendered as clickable links
+  - A timestamp indicating when the dashboard was last generated is included for
+    reference
+
+- **Handling Missing or Sparse Runs**:
+  - If fewer than 10 runs are available for a workflow, the dashboard logs a
+    warning and skips the workflow
+  - This ensures that workflows which haven't run recently do not affect the
+    overall dashboard accuracy
 
 ## Allure Reports Analysis
 
