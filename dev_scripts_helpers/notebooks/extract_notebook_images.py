@@ -128,7 +128,6 @@ def _run_dockerized_extract_notebook_images(
 
         WORKDIR /app
 
-        #RUN playwright --version
 
         # Install Python and pip
         RUN apt-get update && apt-get install -y \
@@ -137,9 +136,13 @@ def _run_dockerized_extract_notebook_images(
             && rm -rf /var/lib/apt/lists/*
 
         # Copy your requirements and install Python dependencies
-        RUN pip install nbconvert nbformat playwright pyyaml
+        RUN pip install --break-system-packages nbconvert nbformat pyyaml playwright
 
-        RUN python --version
+        RUN npx playwright --version
+
+        RUN python3 --version
+
+        RUN python3 -c 'import importlib.metadata; print(importlib.metadata.version("playwright"))'
         """
     container_image = hdocker.build_container_image(
         container_image, dockerfile, force_rebuild, use_sudo
