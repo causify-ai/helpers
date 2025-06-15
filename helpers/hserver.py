@@ -1166,4 +1166,4 @@ def config_func_to_str() -> str:
         ret.append(msg)
     # Package.
     ret = "\n".join(ret)
-    t return ret
+    return ret
