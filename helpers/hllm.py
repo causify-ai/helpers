@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.hopenai as hopenai
+import helpers.hllm as hllm
 """
 
 import datetime
@@ -342,7 +342,7 @@ def get_completion(
     model: str = "",
     report_progress: bool = False,
     print_cost: bool = False,
-    cache_mode: str = "DISABLED",
+    cache_mode: str = "DISABLE_CACHE",
     cache_file: str = "cache.get_completion.json",
     temperature: float = 0.1,
     **create_kwargs,
@@ -355,11 +355,11 @@ def get_completion(
     :param model: model to use or empty string to use the default model
     :param report_progress: whether to report progress running the API
         call
-    :param cache_mode : "DISABLED","CAPTURE", "REPLAY", "FALLBACK"
-        - "DISABLED": No caching
-        - "CAPTURE": Make API calls and save responses to cache
-        - "REPLAY": Use cached responses, fail if not in cache
-        - "FALLBACK": Use cached responses if available, otherwise make API call
+    :param cache_mode : "DISABLE_CACHE","REFRESH_CACHE", "HIT_CACHE_OR_ABORT", "NORMAL"
+        - "DISABLE_CACHE": No caching
+        - "REFRESH_CACHE": Make API calls and save responses to cache
+        - "HIT_CACHE_OR_ABORT": Use cached responses, fail if not in cache
+        - "NORMAL": Use cached responses if available, otherwise make API call
     :param cache_file: file to save/load completioncache
     :param temperature: adjust an LLM's sampling diversity: lower values make it
         more deterministic, while higher values foster creative variation.
@@ -367,7 +367,7 @@ def get_completion(
     :param create_kwargs: additional params for the API call
     :return: completion text
     """
-    hdbg.dassert_in(cache_mode, ("REPLAY", "FALLBACK", "CAPTURE", "DISABLED"))
+    hdbg.dassert_in(cache_mode, ("DISABLE_CACHE","REFRESH_CACHE", "HIT_CACHE_OR_ABORT", "NORMAL"))
     if model == "":
         model = _get_default_model()
     # Construct messages in OpenAI API request format.
@@ -381,7 +381,7 @@ def get_completion(
         **create_kwargs,
     }
     hash_key = cache.hash_key_generator(**request_params)
-    if cache_mode in ("REPLAY", "FALLBACK"):
+    if cache_mode in ("HIT_CACHE_OR_ABORT", "NORMAL"):
         # Checks for response in cache.
         if cache.has_cache(hash_key):
             memento = htimer.dtimer_start(
@@ -393,7 +393,7 @@ def get_completion(
             return cache.load_response_from_cache(hash_key)
         else:
             cache.increment_cache_stat("misses")
-            if cache_mode == "REPLAY":
+            if cache_mode == "HIT_CACHE_OR_ABORT":
                 raise RuntimeError(
                     "No cached response for this request parameters!"
                 )
@@ -441,7 +441,7 @@ def get_completion(
     completion_obj = completion.to_dict()
     # Store cost in the cache.
     completion_obj["cost"] = cost
-    if cache_mode != "DISABLED":
+    if cache_mode != "DISABLE_CACHE":
         cache.save_response_to_cache(
             hash_key, request=request_params, response=completion_obj
         )
