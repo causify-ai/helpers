@@ -121,7 +121,7 @@ class Test_get_completion(hunitest.TestCase):
         """
         parameters1 = _get_completion_parameters1()
         actual_response = hopenai.get_completion(
-            **parameters1, cache_mode="REPLAY"
+            **parameters1, cache_mode="HIT_CACHE_OR_ABORT"
         )
         openai_request_parameters1 = _get_openai_request_parameters1()
         hash_key1 = self.get_completion_cache.hash_key_generator(
@@ -139,7 +139,7 @@ class Test_get_completion(hunitest.TestCase):
         """
         parameters2 = _get_completion_parameters2()
         actual_response = hopenai.get_completion(
-            **parameters2, cache_mode="REPLAY"
+            **parameters2, cache_mode="HIT_CACHE_OR_ABORT"
         )
         openai_request_parameters2 = _get_openai_request_parameters2()
         hash_key2 = self.get_completion_cache.hash_key_generator(
@@ -157,7 +157,7 @@ class Test_get_completion(hunitest.TestCase):
         """
         parameters3 = _get_completion_parameters3()
         actual_response = hopenai.get_completion(
-            **parameters3, cache_mode="REPLAY"
+            **parameters3, cache_mode="HIT_CACHE_OR_ABORT"
         )
         openai_request_parameters3 = _get_openai_request_parameters3()
         hash_key3 = self.get_completion_cache.hash_key_generator(

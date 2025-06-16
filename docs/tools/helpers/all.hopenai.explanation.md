@@ -30,7 +30,7 @@
       user_prompt="What is machine learning?",
       system_prompt="You are a helpful assistant.",
       model="gpt-4o-mini",
-      cache_mode="FALLBACK",
+      cache_mode="DISABLE_CACHE",
       cache_file="cache.get_completion.json",
       temperature=0.5
   )
@@ -41,10 +41,10 @@
   - `system_prompt`: Context-setting instruction for the assistant.
   - `model`: OpenAI or OpenRouter model to use.
   - `cache_mode`: One of:
-    - `"DISABLED"`: No caching.
-    - `"REPLAY"`: Only use cached response; raise error if not found.
-    - `"FALLBACK"`: Use cache if available, else make an API call.
-    - `"CAPTURE"`: Always make an API call and update the cache.
+    - `"DISABLE_CACHE"`: No caching.
+    - `"HIT_CACHE_OR_ABORT"`: Only use cached response; raise error if not found.
+    - `"NORMAL"`: Use cache if available, else make an API call.
+    - `"REFRESH_CACHE"`: Always make an API call and update the cache.
   - `cache_file`: Path to JSON cache file.
   - `temperature`: Sampling temperature (0-2).
   - `**create_kwargs`: Additional arguments passed to the API.
@@ -141,16 +141,16 @@ This section summarizes how `get_completion()` operates internally.
      parameters to produce a unique hash key.
 
 3. **Cache Behavior**
-   - If `cache_mode == "REPLAY"`:
+   - If `cache_mode == "HIT_CACHE_OR_ABORT"`:
      - Looks up the response using hash key.
      - If not found, raises an error.
-   - If `cache_mode == "FALLBACK"`:
+   - If `cache_mode == "NORMAL"`:
      - Returns cached response if available.
      - Otherwise proceeds to make an API call and saves the new response to
        cache.
-   - If `cache_mode == "CAPTURE"`:
+   - If `cache_mode == "REFRESH_CACHE"`:
      - Always makes a fresh API call and updates cache.
-   - If `cache_mode == "DISABLED"`:
+   - If `cache_mode == "DISABLE_CACHE"`:
      - Makes a fresh API call and does not touch cache.
 
 4. **API Call Execution**
@@ -174,7 +174,7 @@ This section summarizes how `get_completion()` operates internally.
 # How Testing Works
 
 - During unit tests, the cache:
-  - Is set in `REPLAY` mode to avoid real API calls (tests raise error if the
+  - Is set in `HIT_CACHE_OR_ABORT` mode to avoid real API calls (tests raise error if the
     required response is not cached)
   - Uses for cache a file that is checked into the repo
   - Expected prompts and responses are cached beforehand or as tests are
@@ -195,7 +195,7 @@ This section summarizes how `get_completion()` operates internally.
   ```
   - This sets the global `UPDATE_LLM_CACHE` flag (defined in your conftest or
     test setup for now later it will be moved to `hopenai.py`).
-  - Internally, this sets `cache_mode="CAPTURE"` when calling
+  - Internally, this sets `cache_mode="REFRESH_CACHE"` when calling
     `get_completion()`.
     - All API calls will be re-executed even if cached versions exist.
     - The cache file (e.g., `cache.get_completion.json`) is updated with new
