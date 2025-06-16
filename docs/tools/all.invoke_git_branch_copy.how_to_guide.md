@@ -45,7 +45,6 @@
 ## Usage Instructions
 
 - Go to the target branch to merge
-
   ```bash
   > git checkout CmTask5874_Document_PR_flow
   ```
@@ -99,7 +98,6 @@
   ```
 
 - The output looks like:
-
   ```bash
   INFO: > cmd='/data/sameepp/src/venv/amp.client_venv/bin/invoke git_branch_diff_with -t base --only-print-files'
   04:58:35 - INFO  lib_tasks_git.py _git_diff_with_branch:726
