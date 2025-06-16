@@ -45,8 +45,8 @@ def response_to_txt(response: Any) -> str:
     """
     if isinstance(response, openai.types.chat.chat_completion.ChatCompletion):
         ret = response.choices[0].message.content
-    elif isinstance(response, openai.pagination.SyncCursorPage):
-        ret = response.data[0].content[0].text.value
+    # elif isinstance(response, openai.pagination.SyncCursorPage):
+    #     ret = response.data[0].content[0].text.value
     elif isinstance(response, openai.types.beta.threads.message.Message):
         ret = response.content[0].text.value
     elif isinstance(response, str):
@@ -279,6 +279,7 @@ def _calculate_cost(
     completion: openai.types.chat.chat_completion.ChatCompletion,
     model: str,
     models_info_file: str,
+    provider_name: str = _PROVIDER_NAME,
 ) -> float:
     """
     Calculate the cost of an OpenAI API call.
@@ -290,7 +291,7 @@ def _calculate_cost(
     prompt_tokens = completion.usage.prompt_tokens
     completion_tokens = completion.usage.completion_tokens
     # TODO(gp): This should be shared in the class.
-    if _PROVIDER_NAME == "openai":
+    if provider_name == "openai":
         # Get the pricing for the selected model.
         # https://openai.com/api/pricing/
         # https://gptforwork.com/tools/openai-chatgpt-api-pricing-calculator
@@ -306,7 +307,7 @@ def _calculate_cost(
         cost = (prompt_tokens / 1e6) * model_pricing["prompt"] + (
             completion_tokens / 1e6
         ) * model_pricing["completion"]
-    elif _PROVIDER_NAME == "openrouter":
+    elif provider_name == "openrouter":
         # If the model info file doesn't exist, download one.
         if models_info_file == "":
             models_info_file = _get_models_info_file()
@@ -324,7 +325,7 @@ def _calculate_cost(
         # Compute cost.
         cost = prompt_tokens * prompt_price + completion_tokens * completion_price
     else:
-        raise ValueError(f"Unknown provider: {_PROVIDER_NAME}")
+        raise ValueError(f"Unknown provider: {provider_name}")
     _LOG.debug(hprint.to_str("prompt_tokens completion_tokens cost"))
     return cost
 
