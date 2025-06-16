@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.hopenai as hopenai
+import helpers.hllm as hllm
 """
 
 import datetime

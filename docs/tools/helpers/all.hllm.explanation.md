@@ -1,4 +1,4 @@
-# hopenai – Explanation
+# hllm – Explanation
 
 <!-- toc -->
 
@@ -16,7 +16,7 @@
 
 # Overview
 
-- `hopenai.get_completion()` is a helper function that sends prompts to LLMs
+- `hllm.get_completion()` is a helper function that sends prompts to LLMs
   (OpenAI or OpenRouter) and returns their responses
 - It includes a custom caching mechanism to reduce redundant requests and allow
   unit testing
@@ -24,9 +24,9 @@
 - An example call to the LLM interface is
 
   ```python
-  from helpers import hopenai
+  from helpers import hllm
 
-  response = hopenai.get_completion(
+  response = hllm.get_completion(
       user_prompt="What is machine learning?",
       system_prompt="You are a helpful assistant.",
       model="gpt-4o-mini",
@@ -194,7 +194,7 @@ This section summarizes how `get_completion()` operates internally.
   > pytest --update_llm_cache
   ```
   - This sets the global `UPDATE_LLM_CACHE` flag (defined in your conftest or
-    test setup for now later it will be moved to `hopenai.py`).
+    test setup for now later it will be moved to `hllm.py`).
   - Internally, this sets `cache_mode="REFRESH_CACHE"` when calling
     `get_completion()`.
     - All API calls will be re-executed even if cached versions exist.
