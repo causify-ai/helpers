@@ -142,7 +142,7 @@
 
 - To list, but not run, the tests that will be executed, use `--collect-only`.
   ```bash
-  > i run_fast_test --collect-only
+  > i run_fast_tests --collect-only
   ```
 
 #### Skip submodules
@@ -216,8 +216,7 @@
 - Which generates:
   - A default coverage report
   - A binary `.coverage` file that contains the coverage information
-  - An `htmlcov` dir with a browsable code output to inspect the coverage for
-    the files
+  - An `htmlcov` directory with a browsable HTML coverage report
 
 - One can post-process the coverage report in different ways using the command
   `coverage` inside a docker container, since the code was run (as always)
@@ -387,7 +386,7 @@
   ...
 
   # Compute the coverage for the module sorting by coverage
-  docker> coverage report --include="oms/*" --omit="*/test_*.py" --sort=Cover
+  docker> coverage report --include="oms/*" --omit="*/test_*.py" --sort=cover
 
   Name                                    Stmts   Miss Branch BrPart  Cover
   -------------------------------------------------------------------------
@@ -694,8 +693,7 @@ docker > pytest <test_file_name>
    - The `-s --dbg` is to show `_LOG.debug` in case you care about that to get
      more information
 
-2. Commit the code to your branch (not in master, please) since GH runs each
-   branch independently
+2. Commit the code to your branch (not in master, please) since GH runs tests independently per branch
 3. Kick-off manually the fast test through the GH interface
 4. After debugging, you can revert the change from your branch to `master` and
    move along with the usual PR flow
