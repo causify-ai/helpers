@@ -32,6 +32,28 @@ _LOG = logging.getLogger(__name__)
 _MODEL = "openai/gpt-4o-mini"
 
 # #############################################################################
+# Update LLM cache
+# #############################################################################
+_UPDATE_LLM_CACHE = False
+
+def set_update_llm_cache(update: bool) -> None:
+    """
+    Set whether to update the LLM cache.
+    
+    :param update: True to update the cache, False otherwise
+    """
+    global _UPDATE_LLM_CACHE
+    _UPDATE_LLM_CACHE = update
+
+def get_update_llm_cache() -> bool:
+    """
+    Get whether to update the LLM cache.
+    
+    :return: True if the cache should be updated, False otherwise
+    """
+    return _UPDATE_LLM_CACHE
+
+# #############################################################################
 # Utility Functions
 # #############################################################################
 
@@ -368,6 +390,12 @@ def get_completion(
     :return: completion text
     """
     hdbg.dassert_in(cache_mode, ("DISABLE_CACHE","REFRESH_CACHE", "HIT_CACHE_OR_ABORT", "NORMAL"))
+    update_llm_cache = get_update_llm_cache()
+    if update_llm_cache:
+        cache_mode = "REFRESH_CACHE"
+    
+    print(
+        f"cache_mode={cache_mode}, cache_file={cache_file}")
     if model == "":
         model = _get_default_model()
     # Construct messages in OpenAI API request format.

@@ -32,7 +32,7 @@ _TEMPERATURE2 = 0.2
 _TOP_P1 = 0.5
 
 _MODEL1 = "gpt-4o-mini"
-_MODEL2 = "gpt-o4-mini"
+_MODEL2 = "gpt-3.5-turbo"
 _MODEL3 = "deepseek/deepseek-r1-0528-qwen3-8b:free/"
 
 
@@ -109,12 +109,19 @@ def _get_openai_request_parameters3() -> Dict[str, Any]:
 
 
 class Test_get_completion(hunitest.TestCase):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        
+    
+    @pytest.fixture(autouse=True)
+    def setup_get_completion_cache(self, pytestconfig: Any) -> None:
+        """
+        Set up the cache and check for flag before each test.
+        """
         self.get_completion_cache = hllm._CompletionCache(
             cache_file=_TEST_CACHE_FILE
         )
+        if pytestconfig.getoption("--update_llm_cache"):
+            hllm.set_update_llm_cache(True)
+       
 
     def test1(self) -> None:
 
