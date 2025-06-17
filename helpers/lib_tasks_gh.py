@@ -231,9 +231,7 @@ def gh_workflow_list(  # type: ignore
                 # to the `PATH` (when inside the container) so we can just use
                 # them without specifying the full path.
                 helpers_root_dir = hgit.find_helpers_root()
-                file_path = (
-                    f"{helpers_root_dir}/dev_scripts_helpers/system_tools"
-                )
+                file_path = f"{helpers_root_dir}/dev_scripts_helpers/system_tools"
                 cmd = f"{file_path}/remove_escape_chars.py -i {log_file_name}"
                 hsystem.system(cmd)
                 print(f"# Log is in '{log_file_name}'")
@@ -586,15 +584,22 @@ def gh_get_open_prs(repo: str) -> List[Dict[str, Any]]:
     return pull_requests
 
 
-def _get_failed_or_successful_workflow_run(
+def _get_best_workflow_run(
+    workflow_name: str,
     workflow_runs: List[Dict[str, Any]],
+    *,
+    preferred_event: Optional[str] = None,
 ) -> Optional[Dict[str, Any]]:
     """
-    Get the most recent successful or failed workflow run.
+    Pick the best available workflow run:
+    - If `preferred_event` is specified (e.g., "schedule"), try that first.
+    - Otherwise, return the most recent success/failure run.
 
-    :param workflow_runs: list of workflow runs
-    :return: the most recent successful or failed workflow run or None if not
-        found, e.g.,
+    :param workflow_name: GitHub Actions workflow name
+    :param workflow_runs: run metadata, sorted most-recent-first
+    :param preferred_event: trigger type to prioritize (e.g., "schedule")
+    :return: best-matching run
+        e.g.,
         ```
         {
             'conclusion': 'success',
@@ -602,19 +607,28 @@ def _get_failed_or_successful_workflow_run(
             'url': 'https://github.com/cryptokaizen/cmamp/actions/runs/8714881296',
             'workflowName': 'Allure fast tests'
         }
-        ```
     """
-    # We assume that the workflow runs are sorted by time in descending order.
-    # Therefore, we can iterate over the list and return the last successful
-    # or failed run.
-    workflow_run_dict = None
-    for curr_workflow_run in workflow_runs:
-        if curr_workflow_run["conclusion"] in ["success", "failure"]:
-            # The last complete run found, exiting the loop. A run is considered
-            # complete if the "conclusion" field meets the current condition.
-            workflow_run_dict = curr_workflow_run
-            break
-    return workflow_run_dict
+    run_status = None
+    if preferred_event:
+        for run in workflow_runs:
+            if run.get("event") == preferred_event and run["conclusion"] in [
+                "success",
+                "failure",
+            ]:
+                run_status = run
+                break
+        if run_status is None:
+            _LOG.warning(
+                "No '%s' run found for workflow '%s'",
+                preferred_event,
+                workflow_name,
+            )
+    if run_status is None:
+        for run in workflow_runs:
+            if run["conclusion"] in ["success", "failure"]:
+                run_status = run
+                break
+    return run_status
 
 
 def gh_get_details_for_all_workflows(repo_list: List[str]) -> "pd.DataFrame":
@@ -631,7 +645,7 @@ def gh_get_details_for_all_workflows(repo_list: List[str]) -> "pd.DataFrame":
     ```
     """
     # TODO(Grisha): expose cols to the interface, i.e. a caller decides what to do.
-    gh_cols = ["workflowName", "url", "status", "conclusion"]
+    gh_cols = ["workflowName", "url", "status", "conclusion", "event"]
     # Import locally in order not to introduce external dependencies to the lib.
     import pandas as pd
 
@@ -644,7 +658,7 @@ def gh_get_details_for_all_workflows(repo_list: List[str]) -> "pd.DataFrame":
             # Get at least a few runs to compute the status; this is useful when
             # the latest run is not completed, in this case the run before the
             # latest one tells the status for a workflow.
-            limit = 5
+            limit = 10
             workflow_id = workflow["id"]
             workflow_name = workflow["name"]
             workflow_statuses = gh_get_workflow_details(
@@ -659,9 +673,15 @@ def gh_get_details_for_all_workflows(repo_list: List[str]) -> "pd.DataFrame":
                     repo_name,
                 )
                 continue
-            # Get the latest successful or failed workflow run.
-            workflow_status = _get_failed_or_successful_workflow_run(
-                workflow_statuses
+            # Get the latest successful or failed workflow run (prioritize scheduled run if available).
+            SCHEDULED_WORKFLOWS = {
+                "Gitleaks Scan",
+            }
+            preferred_event = (
+                "schedule" if workflow_name in SCHEDULED_WORKFLOWS else None
+            )
+            workflow_status = _get_best_workflow_run(
+                workflow_name, workflow_statuses, preferred_event=preferred_event
             )
             if workflow_status is None:
                 _LOG.warning(
@@ -713,9 +733,7 @@ def gh_get_overall_build_status_for_repo(
     return overall_status
 
 
-def gh_get_workflow_type_names(
-    repo_name: str, *, sort: bool = True
-) -> List[str]:
+def gh_get_workflow_type_names(repo_name: str, *, sort: bool = True) -> List[str]:
     """
     Get a list of workflow names for a given repo.
 
@@ -825,3 +843,66 @@ def _gh_run_and_get_json(cmd: str) -> List[Dict[str, Any]]:
     _LOG.debug(hprint.to_str("_txt"))
     ret: List[Dict[str, Any]] = json.loads(_txt)
     return ret
+
+
+def make_clickable(url: str) -> str:
+    """
+    Wrap a URL as an HTML anchor tag.
+
+    :param url: URL to wrap (e.g., "https://github.com/causify-ai/cmamp/actions/...")
+    :return: HTML anchor string that makes the URL clickable in rendered Markdown
+    """
+    anchor = f'<a href="{url}" target="_blank">{url}</a>'
+    return anchor
+
+
+def color_format(val: str, status_color_mapping: Dict[str, str]) -> str:
+    """
+    Return a background-color style for DataFrame.style.map based on status.
+
+    :param val: value to evaluate for status-based styling (e.g.,
+        "success" or "failure")
+    :param status_color_mapping: map status strings to color values,
+        e.g.: { "success": "green", "failure": "red" }
+    :return: CSS string to apply as a style, e.g., "background-color:
+        green"
+    """
+    color = status_color_mapping.get(val, "grey")
+    style = f"background-color: {color}"
+    return style
+
+
+def render_repo_workflow_status_table(
+    workflow_df: "pd.DataFrame",
+    status_color_mapping: Dict[str, str],
+    timezone: str = "America/New_York",
+) -> None:
+    """
+    Render a dashboard summary of workflow statuses grouped by repo.
+
+    :param workflow_df: data with columns ["repo_name", "workflow_name",
+        "conclusion", "url"]
+    :param status_color_mapping: color for outcomes {"success": "green",
+        "failure": "red"}
+    :param timezone: timezone for timestamp display
+    """
+    import pandas as pd
+    from IPython.display import Markdown, display
+
+    workflow_df["url"] = workflow_df["url"].apply(make_clickable)
+    repos = workflow_df["repo_name"].unique()
+    display(Markdown("## Overall Status"))
+    current_timestamp = pd.Timestamp.now(tz=timezone)
+    display(Markdown(f"**Last run: {current_timestamp}**"))
+    for repo in repos:
+        repo_df = workflow_df[workflow_df["repo_name"] == repo]
+        overall_status = gh_get_overall_build_status_for_repo(repo_df)
+        display(Markdown(f"## {repo}: {overall_status}"))
+        repo_df = repo_df.drop(columns=["repo_name"])
+        display(
+            repo_df.style.map(
+                color_format,
+                status_color_mapping=status_color_mapping,
+                subset=["conclusion"],
+            )
+        )

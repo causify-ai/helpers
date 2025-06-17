@@ -650,7 +650,8 @@ def latex_rewrite() -> _PROMPT_OUT:
     """
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
-    post_container_transforms = ["format_latex"]
+    #post_container_transforms = ["format_latex"]
+    post_container_transforms = []
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
@@ -1118,11 +1119,12 @@ def slide_reduce() -> _PROMPT_OUT:
     - Keep all the figures
     - Make sure that the text is clean and readable
     - Remove all the words that are not needed
-    - Minimize the changes to the text
+    - Use "you" instead of "we"
     - Use `E.g.,` instead of `Example`
 
     Print only the markdown without any explanation.
     """
+    # - Minimize the changes to the text
     pre_transforms: Set[str] = set()
     post_transforms = {
         "remove_code_delimiters",
@@ -1504,14 +1506,14 @@ def run_prompt(
         # running inside a Dockerized executable. We don't want an import to
         # this file assert since openai is not available in the local dev
         # environment.
-        import helpers.hopenai as hopenai
+        import helpers.hllm as hllm
 
         _LOG.debug(hprint.to_str("system_prompt"))
-        response = hopenai.get_completion(
+        response = hllm.get_completion(
             txt, system_prompt=system_prompt, model=model, print_cost=True
         )
         # _LOG.debug(hprint.to_str("response"))
-        txt_out = hopenai.response_to_txt(response)
+        txt_out = hllm.response_to_txt(response)
     hdbg.dassert_isinstance(txt_out, str)
     # 3) Run post-transforms.
     if to_run("remove_code_delimiters", post_transforms):
