@@ -22,23 +22,23 @@
 
 # Configuration Reference
 
-This section provides detailed technical specifications for configurations,
-functions, and tools used to extend pytest coverage to Python subprocesses and
-Dockerized applications.
+- This section provides detailed technical specifications for configurations,
+  functions, and tools used to extend pytest coverage to Python subprocesses and
+  Dockerized applications.
 
 ## Key Configuration Options
 
-- **`parallel = True`**: Enables separate **coverage files**.
-- **`concurrency = multiprocessing`**: Handles **concurrent processes**.
-- **`sigterm = True`**: Saves **coverage data** on termination.
-- **`[paths]`**: Maps **container paths** to **host paths**.
+- The configuration options are:
+  - `parallel = True`: Enables separate coverage files.
+  - `concurrency = multiprocessing`: Handles concurrent processes.
+  - `sigterm = True`: Saves coverage data on termination.
+  - `[paths]`: Maps container paths to host paths.
 
-### Environment Variables
-
-- **`COVERAGE_PROCESS_START`**: Points to **.coveragerc**, set by **hook
-  injection**.
-- **`COVERAGE_FILE`**: Specifies **coverage data file**, set by **Docker
-  integration**.
+- The relevant environment variables are:
+  - **`COVERAGE_PROCESS_START`**: Points to **.coveragerc**, set by **hook
+    injection**.
+  - **`COVERAGE_FILE`**: Specifies **coverage data file**, set by **Docker
+    integration**.
 
 ## Hook Injection System
 

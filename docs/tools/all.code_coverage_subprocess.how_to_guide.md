@@ -24,27 +24,25 @@
 
 ## Overview
 
-This guide extends `coverage run` to capture comprehensive test data from
-**Python subprocesses** and **Dockerized applications**. By implementing
-**coverage hooks** and **parallel data collection**, you can achieve complete
-test coverage reporting across distributed processes that are typically excluded
-from standard coverage metrics.
+- This guide extends `coverage run` to capture comprehensive test data from
+  **Python subprocesses** and **Dockerized applications**
+- By implementing **coverage hooks** and **parallel data collection**, you can
+  achieve complete test coverage reporting across distributed processes that are
+  typically excluded from standard coverage metrics.
 
-## Problem & Solution
+## Problem
 
-### The Challenge:
+- Out of the box pytest coverage collection fails when tests spawn Python
+  subprocesses or execute code within Docker containers
+- This results in significant coverage gaps, as child processes and containerized
+  code execution don't contribute to your coverage reports, leading to
+  artificially low and misleading coverage metrics.
 
-Traditional pytest coverage collection fails when tests spawn Python
-subprocesses or execute code within Docker containers. This results in
-significant coverage gaps, as child processes and containerized code execution
-don't contribute to your coverage reports, leading to artificially low and
-misleading coverage metrics.
+## Solution
 
-### The Solution:
-
-- **Automatic Process Instrumentation**: Deploy coverage hooks that
-  automatically instrument all Python processes, including subprocesses and
-  container-based execution
+- **Automatic Process Instrumentation**: Deploy coverage hooks that automatically
+  instrument all Python processes, including subprocesses and container-based
+  execution
 - **Parallel Data Collection**: Enable concurrent coverage data collection from
   multiple processes without conflicts
 - **Unified Report Generation**: Aggregate coverage data from all sources into
@@ -54,10 +52,10 @@ misleading coverage metrics.
 
 ### Prerequisites
 
-- **Python project** with **pytest tests**.
-- **Docker** installed.
-- **`coverage`, `pytest`, `pytest-cov`** packages.
-- Access to modify **Docker containers**.
+- Python project with pytest tests.
+- Docker installed.
+- `coverage`, `pytest`, `pytest-cov` packages.
+- Access to modify Docker containers.
 
 ### Step 1: Configure Coverage for Parallel Execution
 
@@ -80,51 +78,51 @@ misleading coverage metrics.
 
 - Run:
   ```bash
-  python -c "import helpers.hcoverage as hcovera; hcovera.inject()"
+  > python -c "import helpers.hcoverage as hcovera; hcovera.inject()"
   ```
 - Example Log:
-  ```INFO:helpers.hcoverage:Installed coverage hook to /home/maddev/src/venv/client_venv.helpers/lib/python3.10/site-packages/coverage.pth via sudo tee
+  ```text
+  INFO:helpers.hcoverage:Installed coverage hook to /home/maddev/src/venv/client_venv.helpers/lib/python3.10/site-packages/coverage.pth via sudo tee
   ```
 
 ### Step 3: Prepare Coverage Data Directory
 
 - Run:
   ```bash
-  python3 -c "import helpers.hcoverage as hcovera; hcovera.coverage_subprocess_commands()"
+  > python3 -c "import helpers.hcoverage as hcovera; hcovera.coverage_subprocess_commands()"
   ```
 - Or manually:
   ```bash
-  mkdir -p coverage_data
-  cp .coveragerc coverage_data/.coveragerc
-  chmod 644 coverage_data/.coveragerc
+  > mkdir -p coverage_data
+  > cp .coveragerc coverage_data/.coveragerc
+  > chmod 644 coverage_data/.coveragerc
   ```
 
 ### Step 4: Update Docker Containers (if applicable)
 
 - Add to **Dockerfile**:
+  ```dockerfile
+  FROM python:3.8
+  WORKDIR /app
 
-```dockerfile
-FROM python:3.8
-WORKDIR /app
+  # Install coverage and testing dependencies.
+  RUN pip install --no-cache-dir coverage pytest pytest-cov
 
-# Install coverage and testing dependencies
-RUN pip install --no-cache-dir coverage pytest pytest-cov
+  # Create coverage data directory with proper permissions.
+  RUN mkdir -p /app/coverage_data && chmod 777 /app/coverage_data
 
-# Create coverage data directory with proper permissions
-RUN mkdir -p /app/coverage_data && chmod 777 /app/coverage_data
+  # Copy coverage configuration.
+  COPY .coveragerc /app/coverage_data/.coveragerc
+  ENV COVERAGE_PROCESS_START=/app/coverage_data/.coveragerc
 
-# Copy coverage configuration
-COPY .coveragerc /app/coverage_data/.coveragerc
-ENV COVERAGE_PROCESS_START=/app/coverage_data/.coveragerc
-
-# Install coverage hook for automatic startup
-RUN python -c "\
-import site, os; \
-site_dir = site.getsitepackages()[0]; \
-pth_file = os.path.join(site_dir, 'coverage.pth'); \
-with open(pth_file, 'w') as f: \
-    f.write('import coverage; coverage.process_startup()')"
-```
+  # Install coverage hook for automatic startup.
+  RUN python -c "\
+    import site, os; \
+    site_dir = site.getsitepackages()[0]; \
+    pth_file = os.path.join(site_dir, 'coverage.pth'); \
+    with open(pth_file, 'w') as f: \
+        f.write('import coverage; coverage.process_startup()')"
+  ```
 
 - Not required if base image is built through `hdocker.build_container_image()`
 
@@ -132,12 +130,12 @@ with open(pth_file, 'w') as f: \
 
 - Run:
   ```bash
-  coverage run --parallel-mode -m pytest your_test_file.py
+  > coverage run --parallel-mode -m pytest your_test_file.py
   ```
 - Example Output:
 
-  ```bash
-  ================================================================================ 1 failed, 2 passed, 1 skipped in 21.87s ================================================================================
+  ```text
+  =========== 1 failed, 2 passed, 1 skipped in 21.87s ========
   (client_venv.helpers) maddev@pop-os:~/src/helpers1$
   ```
 
@@ -145,16 +143,16 @@ with open(pth_file, 'w') as f: \
 
 - Run:
   ```bash
-  python3 -c "import helpers.hcoverage as hcovera; hcovera.coverage_combine()"
+  > python3 -c "import helpers.hcoverage as hcovera; hcovera.coverage_combine()"
   ```
 - Or manually:
   ```bash
-  cp coverage_data/.coverage.* . 2>/dev/null || true
-  coverage combine
-  coverage report
+  > cp coverage_data/.coverage.* . 2>/dev/null || true
+  > coverage combine
+  > coverage report
   ```
 - Example Output for `llm_transform.py`
-  ```bash
+  ```text
   (client_venv.helpers) maddev@pop-os:~/src/helpers1$ python3 -c "import helpers.hcoverage as hcovera; hcovera.coverage_combine()"
   ... Combined data file .coverage.5a2d2b4fdfe3.1.XrhVQNTx
   ... Skipping duplicate data .coverage.cdf5b8f26c75.1.XFGOFeyx
@@ -209,13 +207,13 @@ with open(pth_file, 'w') as f: \
 - Generate the HTML report:
 
   ```bash
-  coverage html
+  > coverage html
   ```
 
 - Serve it on a local web server:
 
   ```bash
-  python3 -m http.server --directory htmlcov 8000
+  > python3 -m http.server --directory htmlcov 8000
   ```
 
 - In your browser, navigate to: [http://localhost:8000](http://localhost:8000)
@@ -224,22 +222,20 @@ with open(pth_file, 'w') as f: \
 
 ### Simple Subprocess Test
 
-```python
-def test_subprocess_script():
-    result = subprocess.run([sys.executable, "my_script.py"], capture_output=True)
-    assert result.returncode == 0
-```
-
-- Works with `hsystem.system`
+- To instrument a system call `hsystem.system()` with the coverage
+  ```python
+  def test_subprocess_script():
+      result = subprocess.run([sys.executable, "my_script.py"], capture_output=True)
+      assert result.returncode == 0
+  ```
 
 ### Docker Container Test
 
-```python
-def test_docker_script():
-    base_cmd = hdocker.get_docker_base_cmd(use_sudo=False)
-    docker_cmd = base_cmd + ["my-image", "python", "script.py"]
-    result = subprocess.run(docker_cmd, capture_output=True)
-    assert result.returncode == 0
-```
-
-- Considers "my-image" to be built with `hdocker.build_container_image()`
+- To instrument a container "my-image" to be built with `hdocker.build_container_image()`
+  ```python
+  def test_docker_script():
+      base_cmd = hdocker.get_docker_base_cmd(use_sudo=False)
+      docker_cmd = base_cmd + ["my-image", "python", "script.py"]
+      result = subprocess.run(docker_cmd, capture_output=True)
+      assert result.returncode == 0
+  ```
