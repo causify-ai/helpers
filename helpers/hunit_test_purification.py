@@ -43,8 +43,8 @@ class TextPurifier:
         # `amp`).
         txt = self.purify_directory_paths(txt)
         txt = self.purify_from_environment(txt)
-        txt = self.purify_amp_references(txt)
         txt = self.purify_app_references(txt)
+        txt = self.purify_amp_references(txt)
         txt = self.purify_from_env_vars(txt)
         txt = self.purify_object_representation(txt)
         txt = self.purify_today_date(txt)
