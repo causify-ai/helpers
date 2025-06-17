@@ -150,9 +150,7 @@ def _build_run_command_line(
     timeout_in_sec = _TEST_TIMEOUTS_IN_SECS[test_list_name]
     # Detect if we are running on a CK dev server / inside CI
     # or a laptop outside the CK infra.
-    is_outside_ck_infra = (
-        not hserver.is_dev_csfy() and not hserver.is_inside_ci()
-    )
+    is_outside_ck_infra = not hserver.is_dev_csfy() and not hserver.is_inside_ci()
     if is_outside_ck_infra:
         timeout_multiplier = 10
         _LOG.warning(
@@ -248,7 +246,9 @@ def _run_test_cmd(
     _LOG.info("cmd=%s", docker_cmd_)
     # We can't use `hsystem.system()` because of buffering of the output,
     # losing formatting and so on, so we stick to executing through `ctx`.
-    rc: Optional[int] = hlitadoc._docker_cmd(ctx, docker_cmd_, skip_pull=skip_pull, **ctx_run_kwargs)
+    rc: Optional[int] = hlitadoc._docker_cmd(
+        ctx, docker_cmd_, skip_pull=skip_pull, **ctx_run_kwargs
+    )
     # Print message about coverage.
     if coverage:
         msg = """
@@ -408,9 +408,7 @@ def _get_custom_marker(
     """
     # If we are running outside the CK server / CI, tests requiring CK infra
     # should be automatically skipped.
-    is_outside_ck_infra = (
-        not hserver.is_dev_csfy() and not hserver.is_inside_ci()
-    )
+    is_outside_ck_infra = not hserver.is_dev_csfy() and not hserver.is_inside_ci()
     # Skip tests that requires CK infra.
     if is_outside_ck_infra:
         _LOG.warning(
