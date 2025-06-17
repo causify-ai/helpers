@@ -11,7 +11,7 @@ pytest.importorskip(
     "openai"
 )  # noqa: E402 # pylint: disable=wrong-import-position
 import helpers.hdbg as hdbg
-import helpers.hopenai as hopenai
+import helpers.hllm as hllm
 import helpers.hunit_test as hunitest
 
 # cache file used for storing llm responses.
@@ -48,7 +48,7 @@ def _get_completion_parameters1() -> Dict[str, Any]:
 
 
 def _get_openai_request_parameters1() -> Dict[str, Any]:
-    messages = hopenai._build_messages(
+    messages = hllm._build_messages(
         user_prompt=_USER_PROMPT1, system_prompt=_SYSTEM_PROMPT1
     )
     data = {"messages": messages, "temperature": _TEMPERATURE1, "model": _MODEL1}
@@ -67,7 +67,7 @@ def _get_completion_parameters2() -> Dict[str, Any]:
 
 
 def _get_openai_request_parameters2() -> Dict[str, Any]:
-    messages = hopenai._build_messages(
+    messages = hllm._build_messages(
         user_prompt=_USER_PROMPT2, system_prompt=_SYSTEM_PROMPT2
     )
     data = {
@@ -91,7 +91,7 @@ def _get_completion_parameters3() -> Dict[str, Any]:
 
 
 def _get_openai_request_parameters3() -> Dict[str, Any]:
-    messages = hopenai._build_messages(
+    messages = hllm._build_messages(
         user_prompt=_USER_PROMPT2, system_prompt=_SYSTEM_PROMPT2
     )
     data = {
@@ -112,7 +112,7 @@ class Test_get_completion(hunitest.TestCase):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.get_completion_cache = hopenai._CompletionCache(
+        self.get_completion_cache = hllm._CompletionCache(
             cache_file=_TEST_CACHE_FILE
         )
 
@@ -123,8 +123,8 @@ class Test_get_completion(hunitest.TestCase):
         expected response.
         """
         parameters1 = _get_completion_parameters1()
-        actual_response = hopenai.get_completion(
-            **parameters1, cache_mode="REPLAY"
+        actual_response = hllm.get_completion(
+            **parameters1, cache_mode="HIT_CACHE_OR_ABORT"
         )
         openai_request_parameters1 = _get_openai_request_parameters1()
         hash_key1 = self.get_completion_cache.hash_key_generator(
@@ -142,8 +142,8 @@ class Test_get_completion(hunitest.TestCase):
         Verify with different openai models.
         """
         parameters2 = _get_completion_parameters2()
-        actual_response = hopenai.get_completion(
-            **parameters2, cache_mode="REPLAY"
+        actual_response = hllm.get_completion(
+            **parameters2, cache_mode="HIT_CACHE_OR_ABORT"
         )
         openai_request_parameters2 = _get_openai_request_parameters2()
         hash_key2 = self.get_completion_cache.hash_key_generator(
@@ -157,11 +157,11 @@ class Test_get_completion(hunitest.TestCase):
 
     def test3(self) -> None:
         """
-        Verify if hopenai.get_completion() support openrouter models.
+        Verify if hllm.get_completion() support openrouter models.
         """
         parameters3 = _get_completion_parameters3()
-        actual_response = hopenai.get_completion(
-            **parameters3, cache_mode="REPLAY"
+        actual_response = hllm.get_completion(
+            **parameters3, cache_mode="HIT_CACHE_OR_ABORT"
         )
         openai_request_parameters3 = _get_openai_request_parameters3()
         hash_key3 = self.get_completion_cache.hash_key_generator(
@@ -204,7 +204,7 @@ class Test_response_to_txt(hunitest.TestCase):
     )
     def test_chat_completion_branch(self) -> None:
         resp = Test_response_to_txt.DummyChatCompletion("hello chat")
-        act = hopenai.response_to_txt(resp)
+        act = hllm.response_to_txt(resp)
         exp = "hello chat"
         self.assert_equal(act, exp)
 
@@ -214,18 +214,18 @@ class Test_response_to_txt(hunitest.TestCase):
     )
     def test_thread_message_branch(self) -> None:
         resp = Test_response_to_txt.DummyThreadMessage("thread reply")
-        act = hopenai.response_to_txt(resp)
+        act = hllm.response_to_txt(resp)
         exp = "thread reply"
         self.assert_equal(act, exp)
 
     def test_str_pass_through(self) -> None:
-        act = hopenai.response_to_txt("just a string")
+        act = hllm.response_to_txt("just a string")
         exp = "just a string"
         self.assert_equal(act, exp)
 
     def test_unknown_type_raises(self) -> None:
         with self.assertRaises(ValueError) as cm:
-            hopenai.response_to_txt(12345)
+            hllm.response_to_txt(12345)
         self.assertIn("Unknown response type", str(cm.exception))
 
 
@@ -242,7 +242,7 @@ class Test_get_openai_client(hunitest.TestCase):
         """
         Verify that `get_openai_client()` returns OpenAI's URL and API key.
         """
-        client = hopenai.get_openai_client("openai")
+        client = hllm.get_openai_client("openai")
         mock_openai_cls.assert_called_once_with(
             base_url="https://api.openai.com/v1",
             api_key="openai-key",
@@ -255,7 +255,7 @@ class Test_get_openai_client(hunitest.TestCase):
         """
         Verify that `get_openai_client()` returns OpenRouter's URL and API key.
         """
-        client = hopenai.get_openai_client("openrouter")
+        client = hllm.get_openai_client("openrouter")
         mock_openai_cls.assert_called_once_with(
             base_url="https://openrouter.ai/api/v1",
             api_key="router-key",
@@ -267,7 +267,7 @@ class Test_get_openai_client(hunitest.TestCase):
         Verify exception if unknown provider given.
         """
         with self.assertRaises(ValueError) as cm:
-            hopenai.get_openai_client("not_a_provider")
+            hllm.get_openai_client("not_a_provider")
         self.assertIn("Unknown provider: not_a_provider", str(cm.exception))
 
 
@@ -289,7 +289,7 @@ class Test_retrieve_openrouter_model_info(hunitest.TestCase):
         mock_response.json.return_value = {"data": data}
         mock_get.return_value = mock_response
         # Call the function under test.
-        df = hopenai._retrieve_openrouter_model_info()
+        df = hllm._retrieve_openrouter_model_info()
         # Build expected DataFrame.
         expected_df = pd.DataFrame(data)
         # Verify DataFrame content.
@@ -307,7 +307,7 @@ class Test_retrieve_openrouter_model_info(hunitest.TestCase):
         mock_get.return_value = mock_response
         # Expect an assertion from hdbg.dassert_eq.
         with self.assertRaises(AssertionError):
-            hopenai._retrieve_openrouter_model_info()
+            hllm._retrieve_openrouter_model_info()
 
 
 # #############################################################################
@@ -352,7 +352,7 @@ class Test_save_models_info_to_csv(hunitest.TestCase):
         df = pd.DataFrame(data)
         output_file: str = self.get_temp_path()
         # Call the function under test.
-        returned_df = hopenai._save_models_info_to_csv(df, output_file)
+        returned_df = hllm._save_models_info_to_csv(df, output_file)
         # The returned DataFrame should have only the selected columns.
         expected_columns = [
             "id",
@@ -409,7 +409,7 @@ class Test_calculate_cost(hunitest.TestCase):
                 prompt_tokens=1000000, completion_tokens=2000000
             )
         )
-        cost = hopenai._calculate_cost(
+        cost = hllm._calculate_cost(
             comp, model="gpt-3.5-turbo", models_info_file=""
         )
         # 1000000*(0.5/1000000) + 20000000*(1.5/1000000) = 3.5
@@ -424,7 +424,7 @@ class Test_calculate_cost(hunitest.TestCase):
             usage=types.SimpleNamespace(prompt_tokens=1, completion_tokens=1)
         )
         with pytest.raises(AssertionError):
-            hopenai._calculate_cost(
+            hllm._calculate_cost(
                 comp, model="nonexistent-model", models_info_file=""
             )
 
@@ -446,7 +446,7 @@ class Test_calculate_cost(hunitest.TestCase):
         comp = types.SimpleNamespace(
             usage=types.SimpleNamespace(prompt_tokens=1, completion_tokens=1)
         )
-        cost = hopenai._calculate_cost(
+        cost = hllm._calculate_cost(
             comp,
             model="m1",
             models_info_file=temp_csv_file,
