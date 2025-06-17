@@ -88,6 +88,9 @@ class _RepoAndBranchSettings:
         self._repo_and_branch_settings = repo_and_branch_settings
         # Validate the settings.
         self._validate_settings()
+        _LOG.debug(
+            "Initializing settings with data: %s", repo_and_branch_settings
+        )
 
     def __repr__(self) -> str:
         repo_settings = self._repo_and_branch_settings.get(
@@ -107,8 +110,8 @@ class _RepoAndBranchSettings:
         Get the current settings of the repository `repo`.
 
         :param repo: GitHub repository object
-        :return: dictionary containing repository settings, refer to `REPO_SETTING_KEYS` for detailed
-            key structure and expected values
+        :return: dictionary containing repository settings, refer to `REPO_SETTING_KEYS`
+            for detailed key structure and expected values.
         """
         current_repo_settings = {
             "name": repo.name,
@@ -126,6 +129,7 @@ class _RepoAndBranchSettings:
             "delete_branch_on_merge": repo.delete_branch_on_merge,
             "topics": repo.get_topics(),
         }
+        _LOG.debug("Getting current repository settings for %s", repo.full_name)
         return current_repo_settings
 
     @staticmethod
@@ -136,14 +140,27 @@ class _RepoAndBranchSettings:
         Get the current branch protection settings of the repository `repo`.
 
         :param repo: GitHub repository object
-        :return: dictionary containing branch protection settings, refer to `BRANCH_PROTECTION_KEYS`
-            for detailed key structure and expected values. The `STATUS_CHECK_KEYS`, `PR_REVIEW_KEYS`,
-            and `RESTRICTION_KEYS` are nested keys of the `required_status_checks`,
-            `required_pull_request_reviews`, and `restrictions` keys respectively
+        :return: dict with the following structure:
+            ```
+            {
+            branch_name: {
+                BRANCH_PROTECTION_KEYS,
+                required_status_checks: {
+                    STATUS_CHECK_KEYS
+                },
+                required_pull_request_reviews: {
+                    PR_REVIEW_KEYS
+                },
+                restrictions: {
+                    RESTRICTION_KEYS
+                },
+              },
+            }
+            ```
         """
         branch_protection = {}
         _LOG.debug(
-            "Getting branch protection settings for repo %s", repo.full_name
+            "Getting current branch protection settings for %s", repo.full_name
         )
         # Retrieve all Git branches of the repository (e.g., 'main', 'dev', etc.).
         branches = repo.get_branches()
@@ -265,6 +282,7 @@ class _RepoAndBranchSettings:
         :param path: path to settings manifest file
         :return: settings object
         """
+        _LOG.debug("Loading settings from file: %s", path)
         with open(path, "r", encoding="utf-8") as file:
             yaml_data = yaml.safe_load(file)
             settings = _RepoAndBranchSettings(yaml_data)
@@ -276,6 +294,7 @@ class _RepoAndBranchSettings:
 
         :param path: path to save the settings manifest file to
         """
+        _LOG.debug("Saving settings to file: %s", path)
         with open(path, "w", encoding="utf-8") as file:
             settings_data = {
                 "branch_protection": self._repo_and_branch_settings.get(
@@ -319,7 +338,8 @@ class _RepoAndBranchSettings:
             "branch_protection", {}
         )
         _LOG.debug(
-            "Target branch protection settings: %s", target_branch_protection
+            "Branch protection settings to be applied: %s",
+            target_branch_protection,
         )
         for branch_name, protection in target_branch_protection.items():
             _LOG.debug(
@@ -479,7 +499,6 @@ class _RepoAndBranchSettings:
             target_repo_settings,
             REPO_SETTING_KEYS,
         )
-        _LOG.debug("Normalized repository settings: %s", target_repo_settings)
         # Remove security-related settings for special handling.
         # Use dedicated API calls instead of the standard edit method.
         enable_security_fixes = target_repo_settings.pop(
@@ -497,9 +516,7 @@ class _RepoAndBranchSettings:
         )
         # Apply settings if not in dry run mode.
         if not is_dry_run:
-            _LOG.debug(
-                "Applying basic repository settings: %s", target_repo_settings
-            )
+            _LOG.debug("Applying basic repository settings")
             # Update basic repository settings.
             repository.edit(**target_repo_settings)
             if enable_security_fixes is not None:
@@ -571,12 +588,18 @@ class _RepoAndBranchSettings:
         :return: normalized settings dictionary with NotSet values for
             missing keys
         """
+        _LOG.debug("Settings to be normalized: %s", settings)
         normalized_settings = {}
         for key in expected_keys:
             value = settings.get(key)
             normalized_settings[key] = (
                 value if value is not None else github.GithubObject.NotSet
             )
+        _LOG.debug(
+            "Settings before normalization: %s, settings after normalization: %s",
+            settings,
+            normalized_settings,
+        )
         return normalized_settings
 
     def _validate_settings(self) -> None:
@@ -586,6 +609,7 @@ class _RepoAndBranchSettings:
 
         Raises an assertion error if unknown keys are found.
         """
+        _LOG.debug("Validating settings")
         gh_setting_keys = set(self._repo_and_branch_settings.keys())
         unknown_gh_setting_keys = gh_setting_keys - GH_SETTING_KEYS
         hdbg.dassert(
@@ -763,6 +787,7 @@ def _get_repo(args: argparse.Namespace) -> github.Repository.Repository:
         token env var
     :return: GitHub repository object
     """
+    _LOG.debug("Initializing GitHub client for %s/%s", args.owner, args.repo)
     # Get GitHub token from environment variable.
     token = os.environ[args.token_env_var]
     hdbg.dassert(token, "Missing token from %s", args.token_env_var)
@@ -802,6 +827,7 @@ def _export_repo_settings(args: argparse.Namespace) -> None:
     :param args: Command line arguments containing output file path,
         owner, repo name, and token env var
     """
+    _LOG.debug("Saving repository settings to %s", args.output_file)
     # Get GitHub repository object.
     repo = _get_repo(args)
     if not args.dry_run:
@@ -823,6 +849,7 @@ def _sync_repo_settings(args: argparse.Namespace) -> None:
     :param args: Command line arguments containing input file path,
         owner, repo name, token env var, and dry run flag
     """
+    _LOG.debug("Importing repository settings from %s", args.input_file)
     # Get GitHub repository object.
     repo = _get_repo(args)
     # Create backup of current settings.
