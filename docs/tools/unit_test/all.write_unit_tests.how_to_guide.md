@@ -475,7 +475,7 @@ self.assert_equal(act, exp, fuzzy_match=True)
 #### We don't need to test all the assertions
 
 - Focus on behavioral correctness, not line coverage.
-- We don't need to exhaustively test every `dassert` or input validation unless 
+- We don't need to exhaustively test every `dassert` or input validation unless
   it's part of the system's observable behavior.
 - Behavioral coverage gives better ROI than aiming for 100% line coverage.
 
@@ -531,7 +531,7 @@ self.assert_equal(act, exp, fuzzy_match=True)
   you focus on what's important to test and force you to use an iterative
   approach rather than incremental (remember the Monalisa)
 
-  <img src="figs/unit_tests/image_4.png">
+  <img src="../../code_guidelines/figs/unit_tests/image_4.png">
 
 #### Write a template of unit tests and ask for a review if you are not sure how what to test
 
@@ -616,7 +616,8 @@ self.assert_equal(act, exp, fuzzy_match=True)
 
 - In nested inheritance:
   - The parent class uses `set_up_test()` / `tear_down_test()`.
-  - The child class uses `set_up_test2()` / `tear_down_test2()`, calling its parent.
+  - The child class uses `set_up_test2()` / `tear_down_test2()`, calling its
+    parent.
   - Each further nested level adds a numeric suffix: `set_up_test3()`, etc.
 - This makes nested setup logic explicit and avoids framework collisions.
 - The following cases are possible with regard to the `setUp()`/`tearDown()`

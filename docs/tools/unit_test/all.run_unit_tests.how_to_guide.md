@@ -13,7 +13,7 @@
     + [Skip submodules](#skip-submodules)
     + [Compute test coverage](#compute-test-coverage)
   * [Timeout](#timeout)
-  * [Rerunning timeout-ed tests](#rerunning-timeout-ed-tests)
+  * [Rerunning timed out tests](#rerunning-timed-out-tests)
   * [Compute test coverage](#compute-test-coverage-1)
     + [An example coverage session](#an-example-coverage-session)
     + [An example with customized `pytest-cov` html run](#an-example-with-customized-pytest-cov-html-run)
@@ -22,7 +22,7 @@
     + [Publishing HTML report on S3](#publishing-html-report-on-s3)
 - [Running `pytest` directly](#running-pytest-directly)
   * [Basic rules](#basic-rules)
-  * [Usage and Invocations reference](#usage-and-invocations-reference)
+- [Usage and Invocations reference](#usage-and-invocations-reference)
   * [Custom `pytest` options behaviors](#custom-pytest-options-behaviors)
     + [Enable logging](#enable-logging)
     + [Update golden outcomes](#update-golden-outcomes)
@@ -173,7 +173,7 @@
   `set_up_test()` and `tear_down_test()` time, if they are run at the
   beginning/end of the methods
 
-### Rerunning timeout-ed tests
+### Rerunning timed out tests
 
 - Running tests can take different amounts of time depending on workload and
   machine
@@ -366,11 +366,11 @@
   > open htmlcov/index.html
   ```
 
-  <img src="figs/unit_tests/image_1.png">
+  <img src="../../code_guidelines/figs/unit_tests/image_1.png">
 
 - By clicking on a file you can see which lines are not covered
 
-  <img src="figs/unit_tests/image_2.png">
+  <img src="../../code_guidelines/figs/unit_tests/image_2.png">
 
 #### An example coverage session
 
@@ -689,11 +689,12 @@ docker > pytest <test_file_name>
    ```
    - Note that the indentation matters since it's a YAML file
 
-     <img src="figs/unit_tests/image_3.png">
+     <img src="../../code_guidelines/figs/unit_tests/image_3.png">
    - The `-s --dbg` is to show `_LOG.debug` in case you care about that to get
      more information
 
-2. Commit the code to your branch (not in master, please) since GH runs tests independently per branch
+2. Commit the code to your branch (not in master, please) since GH runs tests
+   independently per branch
 3. Kick-off manually the fast test through the GH interface
 4. After debugging, you can revert the change from your branch to `master` and
    move along with the usual PR flow
