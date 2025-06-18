@@ -203,7 +203,9 @@ def _build_run_command_line(
     pytest_opts_tmp = [po for po in pytest_opts_tmp if po != ""]
     # TODO(gp): Use to_multi_line_cmd()
     pytest_opts = " ".join([po.rstrip().lstrip() for po in pytest_opts_tmp])
-    cmd = f"pytest {pytest_opts}"
+    # Get image name.
+    image_name = hrecouti.get_repo_config().get_docker_base_image_name()
+    cmd = f"pytest --junit-xml=junit.xml -o junit_suite_name={image_name} {pytest_opts}"
     if allure_dir is not None:
         # Install the `allure-pytest` before running the tests. This is needed
         # to generate Allure results which serve as an input for generating
