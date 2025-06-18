@@ -9,6 +9,7 @@ import glob
 import logging
 import os
 import subprocess
+import sys
 from typing import List
 
 from junitparser import JUnitXml
@@ -109,9 +110,6 @@ def _run_test(runnable_dir: str, command: str) -> bool:
     result = subprocess.run(
         f"invoke {command}", shell=True, env=env, cwd=runnable_dir
     )
-    # Error code is not propagated upward to the parent process causing the
-    # GH actions to not fail the pipeline (See CmampTask11449).
-    # We need to explicitly exit with the return code of the subprocess.
     # pytest returns 5 if no tests are collected.
     if result.returncode in [0, 5]:
         return True
@@ -187,8 +185,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
     reporter = hpytest.JUnitReporter(combined_junit_xml_file)
     reporter.parse()
     reporter.print_summary()
-    # if not res:
-    #     sys.exit(1)
+    if not res:
+        # Error code is not propagated upward to the parent process causing the
+        # GH actions to not fail the pipeline (See CmampTask11449).
+        # We need to explicitly exit to fail the pipeline.
+        sys.exit(1)
 
 
 if __name__ == "__main__":
