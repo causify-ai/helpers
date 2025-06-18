@@ -1,11 +1,10 @@
 import sys
 import types
 
-# Create a dummy ratelimit module with the names your code expects
-fake_rl = types.SimpleNamespace(
-    limits=lambda *args, **kwargs: (lambda fn: fn),
-    RateLimitException=Exception,
-)
+fake_rl = types.ModuleType("ratelimit")
+fake_rl.limits = lambda *a, **k: (lambda fn: fn)
+fake_rl.sleep_and_retry = lambda *a, **k: (lambda fn: fn)
+fake_rl.RateLimitException = Exception
 sys.modules["ratelimit"] = fake_rl
 
 import pathlib
