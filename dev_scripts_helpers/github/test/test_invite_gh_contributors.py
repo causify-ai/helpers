@@ -50,7 +50,6 @@ class Test_extract_usernames_from_gsheet(hunitest.TestCase):
 # #############################################################################
 
 
-@pytest.mark.slow(reason="Greater than 5s")
 class Test_extract_usernames_from_csv(hunitest.TestCase):
     """
     Verify that GitHub usernames are correctly extracted from a CSV file.
