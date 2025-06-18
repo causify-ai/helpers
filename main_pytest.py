@@ -9,10 +9,9 @@ import glob
 import logging
 import os
 import subprocess
-import sys
 from typing import List
-from junitparser import JUnitXml
 
+from junitparser import JUnitXml
 
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
@@ -118,10 +117,11 @@ def _run_test(runnable_dir: str, command: str) -> bool:
         return True
     return False
 
+
 def _run_tests(runnable_dirs: List[str], command: str) -> bool:
     """
     Run tests for all runnable directories.
-    
+
     :param runnable_dirs: list of runnable directories
     :param command: command to run tests (e.g. run_fast_tests,
         run_slow_tests, run_superslow_tests)
@@ -133,6 +133,7 @@ def _run_tests(runnable_dirs: List[str], command: str) -> bool:
         results.append(res)
     # If any of the item is False, return False.
     return all(results)
+
 
 def _find_runnable_dirs() -> List[str]:
     """
@@ -150,11 +151,12 @@ def _find_runnable_dirs() -> List[str]:
             runnable_dirs.append(relative_path)
     return runnable_dirs
 
+
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     command = args.command
-    runnable_dir = args.dir 
+    runnable_dir = args.dir
     if runnable_dir:
         # Run tests for the specified runnable directory.
         runnable_dirs = [runnable_dir]
@@ -187,6 +189,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     reporter.print_summary()
     # if not res:
     #     sys.exit(1)
+
 
 if __name__ == "__main__":
     _main(_parse())
