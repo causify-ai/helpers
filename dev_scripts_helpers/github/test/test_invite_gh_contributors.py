@@ -5,11 +5,11 @@ from typing import List
 import pandas as pd
 import pytest
 
-import dev_scripts_helpers.github.invite_gh_contributors as dshgighco
+import dev_scripts_helpers.github.dockerized_invite_gh_contributors as dshgdigco
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
 
-MODULE_PATH = "dev_scripts_helpers.github.invite_gh_contributors"
+MODULE_PATH = "dev_scripts_helpers.github.dockerized_invite_gh_contributors"
 
 
 # #############################################################################
@@ -50,6 +50,7 @@ class Test_extract_usernames_from_gsheet(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.slow(reason="Greater than 5s")
 class Test_extract_usernames_from_csv(hunitest.TestCase):
     """
     Verify that GitHub usernames are correctly extracted from a CSV file.
@@ -64,7 +65,7 @@ class Test_extract_usernames_from_csv(hunitest.TestCase):
             "GitHub user\nalice\nbob\n\n",
         )
         # Run.
-        actual: List[str] = dshgighco.extract_usernames_from_csv(str(csv_path))
+        actual: List[str] = dshgdigco.extract_usernames_from_csv(str(csv_path))
         expected: List[str] = ["alice", "bob"]
         # Check.
         self.assertEqual(actual, expected)
