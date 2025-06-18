@@ -11,8 +11,6 @@
 - [GitHub](#github)
   * [Create a PR](#create-a-pr)
   * [Extract a PR from a larger one](#extract-a-pr-from-a-larger-one)
-    + [Example](#example)
-    + [Using git](#using-git)
   * [Systematic code transformation](#systematic-code-transformation)
   * [Generate a local `amp` Docker image](#generate-a-local-amp-docker-image)
 - [Update the dev `amp` Docker image](#update-the-dev-amp-docker-image)
@@ -277,168 +275,9 @@ TODO(gp): Describe
 
 ### Extract a PR from a larger one
 
-- When having a PR which is really big we prefer to brake it into smaller
-  mergeable PRs using `i git_branch_copy`
-
-#### Example
-
-- In my workflow there is a feature branch (e.g. `CmTask5874_Document_PR_flow`
-  that I am developing in.
-- When a piece of code is ready to be merged rather than merging the main PR we
-  will create a child PR and merge that into `master`:
-  - Step 1: Make sure your branch is up to date with origin
-
-  ```bash
-  # First switch to your feature branch
-  > git checkout CmTask5874_Document_PR_flow
-
-  # Make sure that the branch is up-to-date with master
-  > i git_merge_master
-
-  # Commit and push the changes that you have made to the branch
-  > git commit -m "Initial Changes"
-  > git push origin CmTask5874_Document_PR_flow
-
-  # You can check the git diff between your branch and master using the following command:
-  > i git_branch_diff_with -t base --only-print-files
-  # Output:
-  INFO: > cmd='/data/sameepp/src/venv/amp.client_venv/bin/invoke git_branch_diff_with -t base --only-print-files'
-  04:58:35 - INFO  lib_tasks_git.py _git_diff_with_branch:726
-  ###############################################################################
-  # files=3
-  ###############################################################################
-  04:58:35 - INFO  lib_tasks_git.py _git_diff_with_branch:727
-  ./figs/development/Fig1.png
-  ./figs/development/Fig2.png
-  docs/work_tools/all.development.how_to_guide.md
-  04:58:35 - WARN  lib_tasks_git.py _git_diff_with_branch:732             Exiting as per user request with --only-print-files
-  ```
-
-  As we can see above I have made changes to 3 files. Lets say I just want to
-  partially merge this PR and still keep working on the main branch (e.g. merge
-  only the .png files).
-  - Step 2: create a new branch (e.g., `CmTask5874_Document_PR_flow_02`) derived
-    from our feature branch `CmTask5874_Document_PR_flow` using the command
-    `i git_branch_copy`.
-
-  ```bash
-  # Create a derived branch from the feature branch.
-  > i git_branch_copy
-
-  # Output:
-  INFO: > cmd='/data/sameepp/src/venv/amp.client_venv/bin/invoke git_branch_copy'
-  git clean -fd
-  invoke git_merge_master --ff-only
-  From github.com:cryptokaizen/cmamp
-    e59affd79..d6e6ed8e4  master     -> master
-  INFO: > cmd='/data/sameepp/src/venv/amp.client_venv/bin/invoke git_merge_master --ff-only'
-  ## git_merge_master:
-  ## git_fetch_master:
-  git fetch origin master:master
-  git submodule foreach 'git fetch origin master:master'
-  git merge master --ff-only
-  Already up to date.
-  07:04:46 - INFO  lib_tasks_git.py git_branch_copy:599                   new_branch_name='CmTask5874_Document_PR_flow_2'
-  git checkout master && invoke git_branch_create -b 'CmTask5874_Document_PR_flow_2'
-  Switched to branch 'master'
-  Your branch is up to date with 'origin/master'.
-  INFO: > cmd='/data/sameepp/src/venv/amp.client_venv/bin/invoke git_branch_create -b CmTask5874_Document_PR_flow_2'
-  ## git_branch_create:
-  07:05:00 - INFO  lib_tasks_git.py git_branch_create:413                 branch_name='CmTask5874_Document_PR_flow_2'
-  git pull --autostash --rebase
-  Current branch master is up to date.
-  Switched to a new branch 'CmTask5874_Document_PR_flow_2'
-  remote:
-  remote: Create a pull request for 'CmTask5874_Document_PR_flow_2' on GitHub by visiting:
-  remote:      https://github.com/cryptokaizen/cmamp/pull/new/CmTask5874_Document_PR_flow_2
-  remote:
-  To github.com:causify-ai/cmamp.git
-  [new branch] CmTask5874_Document_PR_flow_2 ->
-  CmTask5874_Document_PR_flow_2 git checkout -b CmTask5874_Document_PR_flow_2
-  git push --set-upstream origin CmTask5874_Document_PR_flow_2 Branch
-  'CmTask5874_Document_PR_flow_2' set up to track remote branch
-  'CmTask5874_Document_PR_flow_2' from 'origin'. git merge --squash --ff
-  CmTask5874_Document_PR_flow && git reset HEAD Updating d6e6ed8e4..a264a6f30
-  Fast-forward Squash commit -- not updating HEAD
-  docs/work_tools/figs/development/Fig1.png | Bin 27415 -> 0 bytes
-  docs/work_tools/figs/development/Fig2.png | Bin 35534 -> 0 bytes 2 files
-  changed, 0 insertions(+), 0 deletions(-) delete mode 100644
-  docs/work_tools/figs/development/Fig1.png delete mode 100644
-  docs/work_tools/figs/development/Fig2.png Unstaged changes after reset: D
-  docs/work_tools/figs/development/Fig1.png D
-  docs/work_tools/figs/development/Fig2.png
-  ```
-  - Step 3: Once the command is completed you can see that there is a new branch
-    `CmTask5874_Document_PR_flow_2`with the same changes from feature branch
-    ready to be staged. Hence finally you can just commit the desired files and
-    merge the changes to master.
-
-  ```bash
-  > git status
-  #Output:
-  On branch CmTask5874_Document_PR_flow_2
-  Your branch is up to date with 'origin/CmTask5874_Document_PR_flow_2'.
-
-  Untracked files:
-  (use "git add <file>..." to include in what will be committed)
-        ./figs/development/Fig1.png
-        ./figs/development/Fig2.png
-        docs/work_tools/all.invoke_workflows.how_to_guide.md
-
-  # Add, commit and push ont the required files.
-  > git add ./figs/development/Fig1.png ./figs/development/Fig2.png
-  > git commit -m "Checkpoint"
-  > git push origin CmTask5874_Document_PR_flow_2
-  ```
-
-- Go to a fresh Git client (I have 2-3 Git clients separated from the one in
-  which I develop for this kind of operations) or go to master in the same Git
-  client
-
-  ```bash
-  # Go to master
-  > git checkout master
-
-  # Apply the patch from the run of `git_create_patch`
-
-  > git apply
-  > /Users/saggese/src/lemonade1/amp/patch.amp.8f9cda97.20210609_080439.patch
-
-  # This patch should apply cleanly and with no errors from git, otherwise it means
-  that your feature branch does not have the latest master
-
-  # Remove what you don't want to commit.
-
-  # Do not change anything or run Linter, otherwise your feature branch will not
-  merge easily.
-  > git diff
-  > git checkout master -- ...
-  ...
-  > git commit; git push
-
-  # Create a PR (non-draft so that GH can start running the tests)
-  > i gh_create_pr --no-draft
-
-  # Regress the branch
-  > i run_fast_tests ...
-
-  # Merge the PR into master
-
-  # Go back to your feature branch and merge master
-  > gco ${feature_branch}
-  > git pull
-
-  # Now one piece of your feature branch has been merged and you can repeat until
-  all the code is merged.
-  ```
-
-#### Using git
-
-```bash
-> git checkout `dst_branch`
-> git merge --squash --ff `src_branch`
-> git reset HEAD
-```
+- For splitting large PRs, use the dedicated workflow `git_branch_copy'
+- See detailed guide in
+  [all.invoke_git_branch_copy.how_to_guide.md](/docs/tools/all.invoke_git_branch_copy.how_to_guide.md)
 
 ### Systematic code transformation
 
@@ -543,7 +382,8 @@ TODO(gp): Describe
 
 ## pytest
 
-- From https://gist.github.com/kwmiebach/3fd49612ef7a52b5ce3a
+- From
+  [https://gist.github.com/kwmiebach/3fd49612ef7a52b5ce3a](https://gist.github.com/kwmiebach/3fd49612ef7a52b5ce3a)
 
 - More details on running unit tests with `invoke` is
   [/docs/coding/all.run_unit_tests.how_to_guide.md](/docs/coding/all.run_unit_tests.how_to_guide.md)
