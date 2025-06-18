@@ -1,12 +1,3 @@
-import sys
-import types
-
-fake_rl = types.ModuleType("ratelimit")
-fake_rl.limits = lambda *a, **k: (lambda fn: fn)
-fake_rl.sleep_and_retry = lambda *a, **k: (lambda fn: fn)
-fake_rl.RateLimitException = Exception
-sys.modules["ratelimit"] = fake_rl
-
 import pathlib
 import unittest.mock as mock
 from typing import List
@@ -14,11 +5,15 @@ from typing import List
 import pandas as pd
 import pytest
 
-import dev_scripts_helpers.github.dockerized_invite_gh_contributors as dshgdigco
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
 
 MODULE_PATH = "dev_scripts_helpers.github.dockerized_invite_gh_contributors"
+
+dshgdigco = pytest.importorskip(
+    MODULE_PATH,
+    reason="Google client libraries not available; skipping Docker inviter tests.",
+)
 
 
 # #############################################################################
