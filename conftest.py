@@ -51,9 +51,7 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
             "--update_llm_cache",
             action="store_true",
             default=False,
-            # TODO(Sai): 6 lines above you see that there is no period.
-            # Let's be consistent and aware of the code around.
-            help="Update LLM shared cache.",
+            help="Update LLM shared cache",
         )
         parser.addoption(
             "--incremental",
@@ -98,7 +96,7 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
         if config.getoption("--update_llm_cache"):
             print(f"\n{_WARNING}: Updating LLM Cache")
             import helpers.hllm as hllm
-            # Importing hllm.py is causing "openai" module not found error.
+
             # TODO(gp): We can't enable this until we have openai package in
             # the dev container.
             hllm.set_update_llm_cache(True)

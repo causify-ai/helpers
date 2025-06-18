@@ -1,4 +1,3 @@
-
 import os
 import types
 import unittest.mock as umock
@@ -112,16 +111,12 @@ class Test_get_completion(hunitest.TestCase):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """
-        Initialize the test case.
+        Initialize the cache instance.
         """
         super().__init__(*args, **kwargs)
-        self.llm_cache = hllm._CompletionCache(
-            cache_file=_TEST_CACHE_FILE
-        )
-        
+        self.llm_cache = hllm._CompletionCache(cache_file=_TEST_CACHE_FILE)
 
     def test1(self) -> None:
-
         """
         Verify that get_completion() returns response from cache with the
         expected response.
@@ -134,12 +129,9 @@ class Test_get_completion(hunitest.TestCase):
         hash_key1 = self.llm_cache.hash_key_generator(
             **openai_request_parameters1
         )
-        expected_response = self.llm_cache.load_response_from_cache(
-            hash_key1
-        )
+        expected_response = self.llm_cache.load_response_from_cache(hash_key1)
         self.assert_equal(actual_response, expected_response)
         self.assertIsInstance(actual_response, str)
-
 
     def test2(self) -> None:
         """
@@ -184,7 +176,7 @@ class Test_get_completion(hunitest.TestCase):
 
 
 class Test_response_to_txt(hunitest.TestCase):
-  
+
     # Dummy classes to satisfy `isinstance` checks.
 
     class DummyChatCompletion:
