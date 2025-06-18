@@ -1,3 +1,13 @@
+import sys
+import types
+
+# Create a dummy ratelimit module with the names your code expects
+fake_rl = types.SimpleNamespace(
+    limits=lambda *args, **kwargs: (lambda fn: fn),
+    RateLimitException=Exception,
+)
+sys.modules["ratelimit"] = fake_rl
+
 import pathlib
 import unittest.mock as mock
 from typing import List
@@ -50,6 +60,7 @@ class Test_extract_usernames_from_gsheet(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.slow(reason="Greater than 5s")
 class Test_extract_usernames_from_csv(hunitest.TestCase):
     """
     Verify that GitHub usernames are correctly extracted from a CSV file.
