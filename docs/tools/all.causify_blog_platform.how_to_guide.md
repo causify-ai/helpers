@@ -83,12 +83,12 @@
     automatically uploaded to that location
 
 - Using Cards & Embeds
-- Type `/` in a new line to see options (e.g., Markdown card, HTML, YouTube
-  embed, etc.)
+  - Type `/` in a new line to see options (e.g., Markdown card, HTML, YouTube
+    embed, etc.)
 
 - Preview & Publish
-- Click **Preview** to see how the post will appear to readers
-- When ready, click **Publish → Publish now** or schedule a specific time
+  - Click **Preview** to see how the post will appear to readers
+  - When ready, click **Publish → Publish now** or schedule a specific time
 
 - Tags & Organization
   - Add tags to group similar posts (e.g., `Company News`, `Technical`,
