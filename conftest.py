@@ -5,7 +5,7 @@ from typing import Any, Generator, Optional
 
 import helpers.hdbg as dbg
 
-# import helpers.hopenai as hopenai
+# import helpers.hllm as hllm
 import helpers.hunit_test as hut
 
 # Hack to workaround pytest not happy with multiple redundant conftest.py
@@ -97,10 +97,11 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
             hut.set_update_tests(True)
         if config.getoption("--update_llm_cache"):
             print(f"\n{_WARNING}: Updating LLM Cache")
-            # Importing hopenai.py is causing "openai" module not found error.
+            import helpers.hllm as hllm
+            # Importing hllm.py is causing "openai" module not found error.
             # TODO(gp): We can't enable this until we have openai package in
             # the dev container.
-            # hopenai.set_update_llm_cache(True)
+            hllm.set_update_llm_cache(True)
         if config.getoption("--incremental"):
             print(f"\n{_WARNING}: Using incremental test mode")
             hut.set_incremental_tests(True)
