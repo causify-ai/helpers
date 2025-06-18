@@ -47,6 +47,7 @@ from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=u
     docker_update_prod_task_definition,
     #
     bash_print_path,
+    bash_print_tree,
     #
     find,
     find_check_string_output,

@@ -115,7 +115,7 @@ def _review(
     # running inside a Dockerized executable. We don't want an import to
     # this file assert since openai is not available in the local dev
     # environment.
-    import helpers.hopenai as hopenai
+    import helpers.hllm as hllm
 
     for guideline in guidelines_for_file:
         # Check if the file follows the specific guideline.
@@ -146,10 +146,10 @@ def _review(
               line number = 0 and put <UNABLE TO QUOTE> as the quote
             """
         )
-        response = hopenai.get_completion(
+        response = hllm.get_completion(
             guideline_prompt, system_prompt=system_prompt, print_cost=True
         )
-        txt_out = hopenai.response_to_txt(response)
+        txt_out = hllm.response_to_txt(response)
         hdbg.dassert_isinstance(txt_out, str)
         # Extract review comments from the response.
         cur_comments = re.findall(r"<VIOLATION>(.*?)</VIOLATION>", txt_out)

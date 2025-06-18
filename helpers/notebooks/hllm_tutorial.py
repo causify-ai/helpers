@@ -52,10 +52,11 @@ _LOG = logging.getLogger(__name__)
 # !sudo /bin/bash -c "(source /venv/bin/activate; pip install --quiet openai requests)"
 
 # %%
-import helpers.hopenai as hopenai
+import helpers.hllm as hllm
+import helpers.hpandas as hpandas
 
 # %%
-val = hopenai.get_model_stats()
+val = hllm.get_model_stats()
 
 # %%
 import pprint
@@ -86,13 +87,13 @@ df.dtypes
 
 # %%
 for col in df.columns:
-    print(hopenai.infer_column_types(df[col]))
+    print(hpandas.infer_column_types(df[col]))
 
 # %%
-df.apply(lambda x: pd.Series(infer_column_types(x))).T
+df.apply(lambda x: pd.Series(hpandas.infer_column_types(x))).T
 
 # %%
-hopenai.infer_column_types_df(df)
+hpandas.infer_column_types_df(df)
 
 
 # %%
