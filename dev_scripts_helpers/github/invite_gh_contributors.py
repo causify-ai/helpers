@@ -1,7 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Invite GitHub collaborators listed in a Google Sheet/CSV while obeying the
-50-invite / 24-hour cap.
+50-invite / 24-hour cap by creating a docker container and running
+`dockerized_invite_gh_contributors`
 
 Example (Google Sheet):
 
@@ -20,121 +21,138 @@ Example (CSV):
     --org_name causify-ai \
     --repo_name tutorials
 """
+
 import argparse
-import csv
-import datetime
 import logging
-import subprocess
-import sys
+import os
 from typing import List
 
 import helpers.hdbg as hdbg
+import helpers.hdocker as hdocker
+import helpers.hgit as hgit
 import helpers.hparser as hparser
+import helpers.hprint as hprint
+import helpers.hserver as hserver
+import helpers.hsystem as hsystem
 
-# Install required packages and configure.
-packages = [
+_LOG = logging.getLogger(__name__)
+
+# Set build-time constants.
+
+REQUIRED_PACKAGES: List[str] = [
     "pygithub",
     "google-api-python-client",
     "oauth2client",
     "gspread",
     "ratelimit",
+    "pyyaml",
+    "pandas",
+    "requests",
 ]
-for pkg in packages:
-    subprocess.run(
-        [sys.executable, "-m", "pip", "install", "--quiet", "--upgrade", pkg],
-        check=True,
+
+INNER_SCRIPT_REL = (
+    "dev_scripts_helpers/github/dockerized_invite_gh_contributors.py"
+)
+CONTAINER_IMAGE_BASE = "tmp.invite_gh_contributors"
+
+
+def _run_dockerized_invite(args: argparse.Namespace) -> None:  # noqa: D401
+    """
+    Build image and run the inner script in Docker.
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    # Add required packages.
+    packages_line = " " + " ".join(REQUIRED_PACKAGES)
+    dockerfile = rf"""
+    FROM python:3.12-slim
+    RUN pip install --no-cache-dir --upgrade pip && \
+        pip install --no-cache-dir{packages_line}
+    WORKDIR /app
+    ENTRYPOINT ["python"]
+    """
+    container_image = hdocker.build_container_image(
+        CONTAINER_IMAGE_BASE,
+        dockerfile,
+        force_rebuild=args.dockerized_force_rebuild,
+        use_sudo=args.dockerized_use_sudo,
     )
-
-_LOG = logging.getLogger(__name__)
-
-import github
-import ratelimit
-
-import helpers.hgoogle_drive_api as hgodrapi
-
-_INVITES_PER_WINDOW = 50
-_WINDOW_SECONDS = int(datetime.timedelta(hours=24).total_seconds())
-
-
-def extract_usernames_from_gsheet(gsheet_url: str) -> List[str]:
-    """
-    Extract usernames from a Google Sheet URL.
-
-    :param gsheet_url: URL of the Google Sheet
-    :return: github usernames
-    """
-    credentials = hgodrapi.get_credentials(
-        service_key_path="/app/DATA605/google_secret.json"
+    # Mount repo and convert paths.
+    is_host = not hserver.is_inside_docker()
+    sibling = True
+    caller_mount, callee_mount, mount_str = hdocker.get_docker_mount_info(
+        is_host, sibling
     )
-    df = hgodrapi.read_google_file(gsheet_url, credentials=credentials)
-    usernames = [
-        user for user in df["GitHub user"].tolist() if user and user.strip()
-    ]
-    _LOG.info("Usernames = \n  %s", usernames)
-    return usernames
-
-
-def extract_usernames_from_csv(csv_path: str) -> List[str]:
-    """
-    Extract GitHub usernames from a CSV file containing a *GitHub user* column.
-
-    :param csv_path: path to csv
-    :return: github usernames
-    """
-    usernames: List[str] = []
-    with open(csv_path, newline="", encoding="utf-8") as csv_file:
-        reader = csv.DictReader(csv_file)
-        if not reader.fieldnames or "GitHub user" not in reader.fieldnames:
-            raise ValueError("CSV missing required column 'GitHub user'")
-        for row in reader:
-            usernames.append(row["GitHub user"])
-    usernames = [user.strip() for user in usernames if user and user.strip()]
-    _LOG.info("Usernames (CSV)   = %s", usernames)
-    return usernames
-
-
-@ratelimit.sleep_and_retry
-@ratelimit.limits(calls=_INVITES_PER_WINDOW, period=_WINDOW_SECONDS)
-def _invite(repo, username: str, *, permission: str = "write") -> None:
-    """
-    Invite one user, limiting it to 50 invites/24h.
-
-    :param repo: path to repo
-    :param username: username to add
-    :param permission: type of permission
-    """
-    repo.add_to_collaborators(username, permission=permission)
-    _LOG.info("Invitation sent to %s", username)
-
-
-def send_invitations(
-    usernames: List[str],
-    gh_access_token: str,
-    repo_name: str,
-    org_name: str,
-) -> None:
-    """
-    Send GitHub collaborator invitations to given usernames.
-
-    :param usernames: List of GitHub usernames
-    :param gh_access_token: GitHub API access token
-    :param repo_url: URL of the target repository
-    """
-    # Initialize GitHub API.
-    gh = github.Github(gh_access_token)
-    # Get the repository.
-    repo = gh.get_repo(f"{org_name}/{repo_name}")
-    # Send invitations.
-    for username in usernames:
-        if repo.has_in_collaborators(username):
-            _LOG.info("User %s is already a collaborator", username)
+    # Locate inner script (repo or CWD fallback).
+    try:
+        inner_script_host = hsystem.find_file_in_repo(
+            INNER_SCRIPT_REL, root_dir=hgit.find_git_root()
+        )
+    except AssertionError:
+        inner_script_host = os.path.abspath(INNER_SCRIPT_REL)
+        _LOG.warning("Using local path for inner script: %s", inner_script_host)
+    inner_script_docker = hdocker.convert_caller_to_callee_docker_path(
+        inner_script_host,
+        caller_mount,
+        callee_mount,
+        check_if_exists=True,
+        is_input=True,
+        is_caller_host=is_host,
+        use_sibling_container_for_callee=sibling,
+    )
+    # Resolve helper imports.
+    helpers_root_host = hgit.find_helpers_root()
+    helpers_root_docker = hdocker.convert_caller_to_callee_docker_path(
+        helpers_root_host,
+        caller_mount,
+        callee_mount,
+        check_if_exists=True,
+        is_input=False,
+        is_caller_host=is_host,
+        use_sibling_container_for_callee=sibling,
+    )
+    # Build Flags.
+    passthrough: List[str] = []
+    for flag, value in vars(args).items():
+        if flag.startswith("dockerized_") or flag == "log_level":
             continue
-        try:
-            _invite(repo, username)
-        except github.GithubException as exc:
-            _LOG.error(
-                "Failed to invite %s: %s", username, exc.data.get("message")
+        if value is None or value is False:
+            continue
+        # Translate path-like args.
+        if flag == "csv_file":
+            csv_host = os.path.abspath(str(value))
+            csv_docker = hdocker.convert_caller_to_callee_docker_path(
+                csv_host,
+                caller_mount,
+                callee_mount,
+                check_if_exists=True,
+                is_input=True,
+                is_caller_host=is_host,
+                use_sibling_container_for_callee=sibling,
             )
+            passthrough.extend(["--csv_file", csv_docker])
+            continue
+        # Propagate flags.
+        if isinstance(value, bool):
+            passthrough.append(f"--{flag}")
+        else:
+            passthrough.extend([f"--{flag}", str(value)])
+    passthrough_str = " ".join(passthrough)
+    # Run Docker.
+    docker_cmd_parts = hdocker.get_docker_base_cmd(args.dockerized_use_sudo)
+    docker_cmd_parts.extend(
+        [
+            f"-e PYTHONPATH={helpers_root_docker}",
+            f"--workdir {callee_mount}",
+            f"--mount {mount_str}",
+            container_image,
+            f"{inner_script_docker} {passthrough_str}",
+        ]
+    )
+    docker_cmd = " ".join(docker_cmd_parts)
+    _LOG.debug("Docker cmd: %s", docker_cmd)
+    hdocker.process_docker_cmd(
+        docker_cmd, container_image, dockerfile, mode="system"
+    )
 
 
 def _parse() -> argparse.Namespace:
@@ -163,17 +181,16 @@ def _parse() -> argparse.Namespace:
     parser.add_argument(
         "--org_name", required=True, help="GitHub organisation name"
     )
+    hparser.add_dockerized_script_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser.parse_args()
 
 
 def _main(args: argparse.Namespace) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    if args.csv_file:
-        usernames = extract_usernames_from_csv(args.csv_file)
-    else:
-        usernames = extract_usernames_from_gsheet(args.drive_url)
-    send_invitations(usernames, args.gh_token, args.repo_name, args.org_name)
+    if not args.gh_token and "GH_TOKEN" in os.environ:
+        args.gh_token = os.environ["GH_TOKEN"]
+    _run_dockerized_invite(args)
 
 
 if __name__ == "__main__":
