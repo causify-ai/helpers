@@ -7,12 +7,11 @@ Main script used for running tests in runnable directories.
 import argparse
 import glob
 import logging
+import junitparser
 import os
 import subprocess
 import sys
 from typing import List
-
-from junitparser import JUnitXml
 
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
@@ -110,7 +109,9 @@ def _run_test(runnable_dir: str, command: str) -> bool:
     result = subprocess.run(
         f"invoke {command}", shell=True, env=env, cwd=runnable_dir
     )
-    # pytest returns 5 if no tests are collected.
+    # pytest returns:
+    # - 0 if all tests passed
+    # - 5 if no tests are collected
     if result.returncode in [0, 5]:
         return True
     return False
@@ -121,15 +122,14 @@ def _run_tests(runnable_dirs: List[str], command: str) -> bool:
     Run tests for all runnable directories.
 
     :param runnable_dirs: list of runnable directories
-    :param command: command to run tests (e.g. run_fast_tests,
-        run_slow_tests, run_superslow_tests)
-    :return: True if the tests were run successfully, False otherwise
+    :param command: command to run tests (e.g. `run_fast_tests`,
+        `run_slow_tests`, `run_superslow_tests`)
+    :return: True if all tests for all runnable directories passed, False otherwise
     """
     results = []
     for runnable_dir in runnable_dirs:
         res = _run_test(runnable_dir, command)
         results.append(res)
-    # If any of the item is False, return False.
     return all(results)
 
 
@@ -155,41 +155,45 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     command = args.command
     runnable_dir = args.dir
-    if runnable_dir:
-        # Run tests for the specified runnable directory.
-        runnable_dirs = [runnable_dir]
-    else:
-        # Run tests for all runnable directories.
-        runnable_dirs = _find_runnable_dirs()
-    # Run tests.
-    if command == "run_fast_tests":
-        res = _run_tests(runnable_dirs=runnable_dirs, command=command)
-    elif command == "run_slow_tests":
-        res = _run_tests(runnable_dirs=runnable_dirs, command=command)
-    elif command == "run_superslow_tests":
-        res = _run_tests(runnable_dirs=runnable_dirs, command=command)
-    else:
-        _LOG.error("Invalid command.")
-    # Search for junit xml report files.
-    junit_xml_files = glob.glob("**/junit.xml", recursive=True)
-    # Combine the junit xml files into a single file.
-    combined_junit_xml = JUnitXml()
-    for junit_xml_file in junit_xml_files:
-        _LOG.debug(f"Processing {junit_xml_file}.")
-        junit_xml = JUnitXml.fromfile(junit_xml_file)
-        combined_junit_xml += junit_xml
-    combined_junit_xml_file = "tmp.combined_junit.xml"
-    # Save the combined junit xml file.
-    combined_junit_xml.write(combined_junit_xml_file)
-    # Print report.
-    reporter = hpytest.JUnitReporter(combined_junit_xml_file)
-    reporter.parse()
-    reporter.print_summary()
-    if not res:
-        # Error code is not propagated upward to the parent process causing the
-        # GH actions to not fail the pipeline (See CmampTask11449).
-        # We need to explicitly exit to fail the pipeline.
+    try:
+        if runnable_dir:
+            # If a runnable directory is specified, run tests for it.
+            runnable_dirs = [runnable_dir]
+        else:
+            # If no runnable directory is specified, run tests for all runnable directories.
+            runnable_dirs = _find_runnable_dirs()
+        # Run tests.
+        if command == "run_fast_tests":
+            all_tests_passed = _run_tests(runnable_dirs=runnable_dirs, command=command)
+        elif command == "run_slow_tests":
+            all_tests_passed = _run_tests(runnable_dirs=runnable_dirs, command=command)
+        elif command == "run_superslow_tests":
+            all_tests_passed = _run_tests(runnable_dirs=runnable_dirs, command=command)
+        else:
+            _LOG.error("Invalid command.")
+        # Search for junit xml report files.
+        junit_xml_files = glob.glob("**/tmp.junit.xml", recursive=True)
+        # Combine the junit xml files into a single file.
+        combined_junit_xml = junitparser.JUnitXml()
+        for junit_xml_file in junit_xml_files:
+            _LOG.debug(f"Processing {junit_xml_file}.")
+            junit_xml = junitparser.JUnitXml.fromfile(junit_xml_file)
+            combined_junit_xml += junit_xml
+        combined_junit_xml_file = "tmp.combined_junit.xml"
+        combined_junit_xml.write(combined_junit_xml_file)
+        # Print report based on the combined junit xml file.
+        reporter = hpytest.JUnitReporter(combined_junit_xml_file)
+        reporter.parse()
+        reporter.print_summary()
+    except Exception as e:
+        _LOG.error(f"Error: {e}")
         sys.exit(1)
+    finally:
+        if not all_tests_passed:
+            # Error code is not propagated upward to the parent process causing the
+            # GH actions to not fail the pipeline (See CmampTask11449).
+            # We need to explicitly exit to fail the pipeline.
+            sys.exit(1)
 
 
 if __name__ == "__main__":

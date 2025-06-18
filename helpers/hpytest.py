@@ -4,13 +4,13 @@ Import as:
 import helpers.hpytest as hpytest
 """
 
+import junitparser
 import logging
 import os
 import shutil
 import sys
 from typing import List, Optional
 
-from junitparser import JUnitXml, TestCase, TestSuite
 
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
@@ -140,10 +140,10 @@ class JUnitReporter:
         Parse the JUnit XML file.
         """
         try:
-            self.xml_data = JUnitXml.fromfile(self.xml_file)
+            self.xml_data = junitparser.JUnitXml.fromfile(self.xml_file)
             # Calculate overall statistics.
             for suite in self.xml_data:
-                if isinstance(suite, TestSuite):
+                if isinstance(suite, junitparser.TestSuite):
                     self.overall_stats["total_time"] += suite.time or 0
                     self.overall_stats["total_tests"] += suite.tests or 0
                     self.overall_stats["passed"] += (
@@ -160,22 +160,19 @@ class JUnitReporter:
             sys.exit(1)
 
     def print_summary(self):
-        self.print_detailed_results()
-        self.print_final_summary()
+        self._print_detailed_results()
+        self._print_final_summary()
 
-    def print_detailed_results(self):
+    def _print_detailed_results(self):
         print(f"{Colors.BOLD}{'=' * 70}")
-        print(f"test session starts")
         print(
             f"collected {self.overall_stats['total_tests']} items{Colors.RESET}"
         )
-        print()
-        for i, suite in enumerate(self.xml_data):
-            if not isinstance(suite, TestSuite):
+        for _, suite in enumerate(self.xml_data):
+            if not isinstance(suite, junitparser.TestSuite):
                 continue
-            # Add divider between test suites.
-            if i > 0:
-                print(f"\n{Colors.BLUE}{'=' * 70}{Colors.RESET}")
+            # Print suite header.
+            print(f"\n{Colors.BLUE}{'=' * 70}{Colors.RESET}")
             print(f"{Colors.BOLD}{Colors.BLUE}Test: {suite.name}{Colors.RESET}")
             print(
                 f"{Colors.BLUE}Timestamp: {getattr(suite, 'timestamp', 'Unknown')}{Colors.RESET}"
@@ -183,8 +180,8 @@ class JUnitReporter:
             print(f"{Colors.BLUE}{'-' * 70}{Colors.RESET}")
             # Print each test case.
             for case in suite:
-                if isinstance(case, TestCase):
-                    status_display = self.get_colored_status(case)
+                if isinstance(case, junitparser.TestCase):
+                    status_display = self._get_colored_status(case)
                     test_time = getattr(case, "time", 0) or 0
                     print(
                         f"  {case.classname}::{case.name} {status_display} ({test_time:.3f}s)"
@@ -221,7 +218,7 @@ class JUnitReporter:
                 f"{Colors.BOLD}Summary: {suite_summary} in {suite_time:.3f}s{Colors.RESET}"
             )
 
-    def print_final_summary(self):
+    def _print_final_summary(self):
         summary_parts = []
         if self.overall_stats["passed"] > 0:
             summary_parts.append(
@@ -253,12 +250,13 @@ class JUnitReporter:
             )
         else:
             status_indicator = f"{Colors.GREEN}{Colors.BOLD}PASSED{Colors.RESET}"
+        # Print summary.
         print(f"\n{Colors.BOLD}{'=' * 70}")
         print("Summary:")
         print(f"{summary_text} {time_text}")
         print(f"Result: {status_indicator}{Colors.RESET}")
 
-    def get_colored_status(self, case: TestCase) -> str:
+    def _get_colored_status(self, case: junitparser.TestCase) -> str:
         """
         Get the colored status representation of test case.
         """
