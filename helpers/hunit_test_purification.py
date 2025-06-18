@@ -43,6 +43,16 @@ class TextPurifier:
         # `amp`).
         txt = self.purify_directory_paths(txt)
         txt = self.purify_from_environment(txt)
+        # Correct order: -> `app` -> `amp` ->
+        # Start with `app.amp.helpers_root.helpers...`
+        # After purifying app references -> `amp.helpers_root.helpers...`
+        # After purifying amp references -> `helpers_root.helpers...`
+        #
+        # Incorrect order: -> `amp` -> `app` ->
+        # Start with `amp.helpers_root.helpers...`
+        # After purifying `amp` references -> `app.amp.helpers_root.helpers...`
+        # After purifying `app` references -> `amp.helpers_root.helpers...`
+        #
         txt = self.purify_app_references(txt)
         txt = self.purify_amp_references(txt)
         txt = self.purify_from_env_vars(txt)
