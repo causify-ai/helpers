@@ -196,7 +196,7 @@ def _build_run_command_line(
         pytest_opts_tmp.append(f"-n {str(n_threads)}")
     if allure_dir is not None:
         pytest_opts_tmp.append(f"--alluredir={allure_dir}")
-    # Generate test report. 
+    # Generate test report.
     pytest_opts_tmp.append("--junit-xml=tmp.junit.xml")
     # Add runnable dir image name to the test report.
     image_name = hrecouti.get_repo_config().get_docker_base_image_name()

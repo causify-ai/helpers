@@ -7,11 +7,12 @@ Main script used for running tests in runnable directories.
 import argparse
 import glob
 import logging
-import junitparser
 import os
 import subprocess
 import sys
 from typing import List
+
+import junitparser
 
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
@@ -164,11 +165,17 @@ def _main(parser: argparse.ArgumentParser) -> None:
             runnable_dirs = _find_runnable_dirs()
         # Run tests.
         if command == "run_fast_tests":
-            all_tests_passed = _run_tests(runnable_dirs=runnable_dirs, command=command)
+            all_tests_passed = _run_tests(
+                runnable_dirs=runnable_dirs, command=command
+            )
         elif command == "run_slow_tests":
-            all_tests_passed = _run_tests(runnable_dirs=runnable_dirs, command=command)
+            all_tests_passed = _run_tests(
+                runnable_dirs=runnable_dirs, command=command
+            )
         elif command == "run_superslow_tests":
-            all_tests_passed = _run_tests(runnable_dirs=runnable_dirs, command=command)
+            all_tests_passed = _run_tests(
+                runnable_dirs=runnable_dirs, command=command
+            )
         else:
             _LOG.error("Invalid command.")
         # Search for junit xml report files.

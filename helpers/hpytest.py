@@ -4,13 +4,13 @@ Import as:
 import helpers.hpytest as hpytest
 """
 
-import junitparser
 import logging
 import os
 import shutil
 import sys
 from typing import List, Optional
 
+import junitparser
 
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
