@@ -122,21 +122,7 @@
 - The `## Authorship` section should include everyone who helped (e.g., writing
   code, reviewing code, writing the blog, etc)
 
-- The updated content should look like so:
-
 ```markdown
-- [Introduction](#introduction)
-- [Workflow Explanation](#workflow-explanation)
-- [Usage Instructions](#usage-instructions)
-  * [Example](#example)
-- [Alternative Manual Workflow](#alternative-manual-workflow)
-  * [Using invoke `git_create_patch`](#using-invoke-git_create_patch)
-  * [Known Limitations](#known-limitations)
-  * [Future Improvements](#future-improvements)
-- [Authorship](#authorship)
-
-...
-
 ## Authorship
 
 - gpsaggese, aangelo9, Shayawnn, heanhsok
