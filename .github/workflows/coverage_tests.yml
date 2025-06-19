@@ -2,7 +2,12 @@ name: Test coverage
 
 on:
   # Run manually.
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: 'Test suite (fast, slow, superslow)'
+        required: true
+        default: 'fast'
   # every day at 00:00 UTC.
   schedule:
     - cron: '0 0 * * *'
@@ -57,6 +62,7 @@ jobs:
 
       # This step is used to trigger the fast test coverage generation using the invoke task.
       - name: Run Fast test and generate report
+        if: ${{github.event.inputs.suite == 'fast' || github.event_name != 'workflow_dispatch'}}
         id: run_fast
         continue-on-error: true
         env:
@@ -67,7 +73,10 @@ jobs:
           CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
           CSFY_ECR_BASE_PATH: ghcr.io/${{ github.repository_owner }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
-        run: invoke run_coverage --suite fast
+        run: |
+          suite="${{ github.event.inputs.suite }}"
+          suite="${suite:-fast}"
+          invoke run_coverage --suite "$suite"
 
       - name: Upload Fast Test Coverage to Codecov
         id: upload_fast
@@ -85,6 +94,7 @@ jobs:
           name: fast-test-coverage
 
       - name: Run Slow test and generate report
+        if: ${{github.event.inputs.suite == 'slow' || github.event_name != 'workflow_dispatch'}}
         id: run_slow
         continue-on-error: true
         env:
@@ -110,6 +120,7 @@ jobs:
           name: slow-test-coverage
 
       - name: Run Superslow test and generate report
+        if: ${{github.event.inputs.suite == 'superslow' || github.event_name != 'workflow_dispatch'}}
         id: run_superslow
         env:
           GH_ACTION_ACCESS_TOKEN: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
@@ -143,6 +154,7 @@ jobs:
 
         # Fail the job in CI if any of the fast/ slow run/ upload steps above failed.
       - name: Fail if fast/slow test or upload failed
+        if: ${{ github.event_name != 'workflow_dispatch' }}
         run: |
           failed=""
           if [ "${{ steps.run_fast.outcome }}" != "success" ]; then
