@@ -1,7 +1,6 @@
 name: Test coverage
 
 on:
-  pull_request:
   # Run manually.
   workflow_dispatch:
     inputs:
