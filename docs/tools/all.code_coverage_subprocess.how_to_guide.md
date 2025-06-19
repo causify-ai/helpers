@@ -79,6 +79,7 @@
 - Run:
   ```bash
   > python -c "import helpers.hcoverage as hcovera; hcovera.inject()"
+  > export COVERAGE_PROCESS_START=.coveragerc
   ```
 - Example Log:
   ```text
@@ -89,7 +90,7 @@
 
 - Run:
   ```bash
-  > python3 -c "import helpers.hcoverage as hcovera; hcovera.coverage_subprocess_commands()"
+  > python3 -c "import helpers.hcoverage as hcovera; hcovera.coverage_commands_subprocess()"
   ```
 - Or manually:
   ```bash
