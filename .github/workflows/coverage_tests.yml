@@ -1,6 +1,7 @@
 name: Test coverage
 
 on:
+  pull_request:
   # Run manually.
   workflow_dispatch:
     inputs:
@@ -120,7 +121,7 @@ jobs:
           name: slow-test-coverage
 
       - name: Run Superslow test and generate report
-        if: ${{github.event.inputs.suite == 'superslow' || github.event_name != 'workflow_dispatch'}}
+        if: ${{ github.event.inputs.suite == 'superslow' || github.event_name != 'workflow_dispatch' }}
         id: run_superslow
         env:
           GH_ACTION_ACCESS_TOKEN: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
@@ -131,26 +132,26 @@ jobs:
           CSFY_ECR_BASE_PATH: ghcr.io/${{ github.repository_owner }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
         run: |
-          # Determine the day of the week (1 = Monday, 7 = Sunday).
           day_of_week=$(date +%u)
-          # Only run superslow tests on Mondays or if the workflow is manually triggered.
           if [ "$day_of_week" = "1" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "Running superslow tests..."
             invoke run_coverage --suite superslow
+            echo "::set-output name=ran::true"
           else
-            echo "Skipping superslow tests — today is not Monday and this is not a manual trigger"
+            echo "Skipping superslow tests — not Monday and not manually triggered"
+            echo "::set-output name=ran::false"
             exit 0
           fi
 
       - name: Upload Superslow Test Coverage to Codecov
-        #TODO(Shaunak): Consider removing it when we turn this workflow into a reusable one.
-        if: steps.run_superslow.outcome == 'success'
+        if: ${{ steps.run_superslow.outputs.ran == 'true' }}
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.xml
           flags: superslow
           name: superslow-test-coverage
+          commit_sha: ${{ github.event.pull_request.head.sha || github.sha }}
 
         # Fail the job in CI if any of the fast/ slow run/ upload steps above failed.
       - name: Fail if fast/slow test or upload failed
