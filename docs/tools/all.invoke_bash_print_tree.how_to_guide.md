@@ -14,10 +14,10 @@
 
 ## Introduction
 
-- The `bash_print_tree` `invoke` workflow prints a filtered directory tree and
-  optionally updates an existing Markdown file
-- It is especially useful for maintaining structured file documentation with
-  preserved inline comments
+- The `bash_print_tree` `invoke` workflow prints a directory tree and optionally
+  updates an existing Markdown file
+- It is used for maintaining documentation of structured files preserving inline
+  comments
 - The tree can be printed to standard output or embedded into a file between
   markers like `<!-- tree:start:{name} -->` and `<!-- tree:end -->`
 
@@ -38,202 +38,202 @@
 
 ## Usage Instructions
 
-```bash
-# Print the current directory tree.
-> i bash_print_tree
+- Some examples of workflows are:
+  ```bash
+  # Print the current directory tree.
+  > i bash_print_tree
 
-# Limit depth to 2 and include test files.
-> i bash_print_tree --path="devops" --depth=2 --include-tests
+  # Limit depth to 2 and include test files.
+  > i bash_print_tree --path="devops" --depth=2 --include-tests
 
-# Include only Python files.
-> i bash_print_tree --include-python
+  # Include only Python files.
+  > i bash_print_tree --include-python
 
-# Print only directory names.
-> i bash_print_tree --only-dirs
+  # Print only directory names.
+  > i bash_print_tree --only-dirs
 
-# Overwrite tree block in a Markdown file while preserving comments.
-> i bash_print_tree --path="devops" --output="README.md"
+  # Overwrite tree block in a Markdown file while preserving comments.
+  > i bash_print_tree --path="devops" --output="README.md"
 
-# Clean untracked files before generating the tree.
-> i bash_print_tree --clean
-```
+  # Clean untracked files before generating the tree.
+  > i bash_print_tree --clean
+  ```
 
-## Example
-
-- Consider the case where we want to document the DevOps code organization
-  located in the directory `devops`
-- Over time, additional files and subdirectories will be added to `devops`
-
-- Step 1: Create a new file with tree output
-
-```bash
-> i bash_print_tree --path="devops" --output="all.devops_docker.reference.md"
-```
-
-- The output file `all.devops_docker.reference.md` should look like this:
-
-```bash
-<!-- tree:start:devops -->
-devops
-- compose
-  - tmp.docker-compose.yml
-- docker_build
-  - create_users.sh
-  - dev.Dockerfile
-  - dockerignore.dev
-  - dockerignore.prod
-  - etc_sudoers
-  - fstab
-  - install_cprofile.sh
-  - install_dind.sh
-  - install_os_packages.sh
-  - install_publishing_tools.sh
-  - install_python_packages.sh
-  - pip_list.txt
-  - poetry.lock
-  - poetry.toml
-  - prod.Dockerfile
-  - pyproject.python_data_stack.toml
-  - pyproject.toml
-  - update_os.sh
-  - utils.sh
-- docker_run
-  - bashrc
-  - docker_setenv.sh
-  - entrypoint.sh
-  - run_jupyter_server.sh
-- env
-  - default.env
-<!-- tree:end -->
-```
-
-- Step 2: Add comments to explain important files
-
-```bash
-## Introduction
-
-This file documents the code organization and Docker-based DevOps structure.
-
-## Directory Structure
-
-<!-- tree:start:devops -->
-devops
-- compose # Contains Docker compose files.
-  - tmp.docker-compose.yml
-- docker_build # Building Docker image.
-  - create_users.sh # Create container users.
-  - dev.Dockerfile
-  - dockerignore.dev
-  - dockerignore.prod
-  - etc_sudoers # Gives sudo permissions.
-  - fstab
-  - install_cprofile.sh
-  - install_dind.sh # Installs docker-in-docker.
-  - install_os_packages.sh
-  - install_publishing_tools.sh
-  - install_python_packages.sh
-  - pip_list.txt
-  - poetry.lock
-  - poetry.toml
-  - prod.Dockerfile
-  - pyproject.python_data_stack.toml
-  - pyproject.toml
-  - update_os.sh
-  - utils.sh
-- docker_run # Running Docker image.
-  - bashrc
-  - docker_setenv.sh
-  - entrypoint.sh
-  - run_jupyter_server.sh
-- env
-  - default.env
-<!-- tree:end -->
-
-## Docker invoke flow
-
-There exists `docker_bash` and `docker_jupyter`.
-```
-
-- Step 3: Add more files and subdirectories to `devops`
-
-```bash
-# Create a new directory.
-mkdir -p devops/debug
-
-# Add a new file.
-touch devops/docker_build/install_tools.sh
-```
-
-- Step 4: Re-run the workflow to update the tree
-
-```bash
-> i bash_print_tree --path="devops" --output="all.devops_docker.reference.md"
-```
-
-- The updated tree will reflect the new files while preserving comments:
-
-```bash
-## Introduction
-
-This file documents the code organization and Docker-based DevOps structure.
-
-## Directory Structure
-
-<!-- tree:start:devops -->
-devops
-- compose # Contains Docker compose files.
-  - tmp.docker-compose.yml
-- debug
-- docker_build # Building Docker image.
-  - create_users.sh # Create container users.
-  - dev.Dockerfile
-  - dockerignore.dev
-  - dockerignore.prod
-  - etc_sudoers # Gives sudo permissions.
-  - fstab
-  - install_cprofile.sh
-  - install_dind.sh # Installs docker-in-docker.
-  - install_os_packages.sh
-  - install_publishing_tools.sh
-  - install_python_packages.sh
-  - install_tools.sh
-  - pip_list.txt
-  - poetry.lock
-  - poetry.toml
-  - prod.Dockerfile
-  - pyproject.python_data_stack.toml
-  - pyproject.toml
-  - update_os.sh
-  - utils.sh
-- docker_run # Running Docker image.
-  - bashrc
-  - docker_setenv.sh
-  - entrypoint.sh
-  - run_jupyter_server.sh
-- env
-  - default.env
-<!-- tree:end -->
-
-## Docker invoke flow
-
-There exists `docker_bash` and `docker_jupyter`.
-```
-
-### Use Cases
+## Use Cases
 
 - Documenting file structures in `README.md` or similar documentation
 - Auditing the layout of codebases and shared folders
 - Tracking structural changes over time via version control
 
-### Known Limitations
+## Example
+
+- Consider the case where we want to document the DevOps code organization
+  located in the directory `devops`
+
+### Step 1: Create a new file with tree output
+  ```bash
+  > i bash_print_tree --path="devops" --output="all.devops_docker.reference.md"
+  ```
+
+- The output file `all.devops_docker.reference.md` should look like this:
+  ```markdown
+  <!-- tree:start:devops -->
+  devops
+  - compose
+    - tmp.docker-compose.yml
+  - docker_build
+    - create_users.sh
+    - dev.Dockerfile
+    - dockerignore.dev
+    - dockerignore.prod
+    - etc_sudoers
+    - fstab
+    - install_cprofile.sh
+    - install_dind.sh
+    - install_os_packages.sh
+    - install_publishing_tools.sh
+    - install_python_packages.sh
+    - pip_list.txt
+    - poetry.lock
+    - poetry.toml
+    - prod.Dockerfile
+    - pyproject.python_data_stack.toml
+    - pyproject.toml
+    - update_os.sh
+    - utils.sh
+  - docker_run
+    - bashrc
+    - docker_setenv.sh
+    - entrypoint.sh
+    - run_jupyter_server.sh
+  - env
+    - default.env
+  <!-- tree:end -->
+  ```
+
+### Step 2: Add comments to explain important files
+
+- You edit the output file `all.devops_docker.reference.md` and more information
+  and comments to the files in the tree
+  ```bash
+  ## Introduction
+
+  This file documents the code organization and Docker-based DevOps structure.
+
+  ## Directory Structure
+
+  <!-- tree:start:devops -->
+  devops
+  - compose # Contains Docker compose files.
+    - tmp.docker-compose.yml
+  - docker_build # Building Docker image.
+    - create_users.sh # Create container users.
+    - dev.Dockerfile
+    - dockerignore.dev
+    - dockerignore.prod
+    - etc_sudoers # Gives sudo permissions.
+    - fstab
+    - install_cprofile.sh
+    - install_dind.sh # Installs docker-in-docker.
+    - install_os_packages.sh
+    - install_publishing_tools.sh
+    - install_python_packages.sh
+    - pip_list.txt
+    - poetry.lock
+    - poetry.toml
+    - prod.Dockerfile
+    - pyproject.python_data_stack.toml
+    - pyproject.toml
+    - update_os.sh
+    - utils.sh
+  - docker_run # Running Docker image.
+    - bashrc
+    - docker_setenv.sh
+    - entrypoint.sh
+    - run_jupyter_server.sh
+  - env
+    - default.env
+  <!-- tree:end -->
+
+  ## Docker invoke flow
+
+  There exists `docker_bash` and `docker_jupyter`.
+  ```
+
+### Step 3: Add more files and subdirectories to `devops`
+
+- Over time, additional files and subdirectories will be added to `devops`
+  ```bash
+  # Create a new directory.
+  > mkdir -p devops/debug
+
+  # Add a new file.
+  > touch devops/docker_build/install_tools.sh
+  ```
+
+### Step 4: Re-run the workflow to update the tree
+
+- Update the documentation file with the updated structure of `devops`
+  ```bash
+  > i bash_print_tree --path="devops" --output="all.devops_docker.reference.md"
+  ```
+
+- The updated tree will reflect the new files while preserving comments:
+  ```markdown
+  ## Introduction
+
+  This file documents the code organization and Docker-based DevOps structure.
+
+  ## Directory Structure
+
+  <!-- tree:start:devops -->
+  devops
+  - compose # Contains Docker compose files.
+    - tmp.docker-compose.yml
+  - debug
+  - docker_build # Building Docker image.
+    - create_users.sh # Create container users.
+    - dev.Dockerfile
+    - dockerignore.dev
+    - dockerignore.prod
+    - etc_sudoers # Gives sudo permissions.
+    - fstab
+    - install_cprofile.sh
+    - install_dind.sh # Installs docker-in-docker.
+    - install_os_packages.sh
+    - install_publishing_tools.sh
+    - install_python_packages.sh
+    - install_tools.sh
+    - pip_list.txt
+    - poetry.lock
+    - poetry.toml
+    - prod.Dockerfile
+    - pyproject.python_data_stack.toml
+    - pyproject.toml
+    - update_os.sh
+    - utils.sh
+  - docker_run # Running Docker image.
+    - bashrc
+    - docker_setenv.sh
+    - entrypoint.sh
+    - run_jupyter_server.sh
+  - env
+    - default.env
+  <!-- tree:end -->
+
+  ## Docker invoke flow
+
+  There exists `docker_bash` and `docker_jupyter`.
+  ```
+
+## Known Limitations
 
 - Inline comment preservation only works if the tree is wrapped with markers
   like `<!-- tree:start:{name} -->` and `<!-- tree:end -->`
-
 - The function does not support excluding arbitrary file patterns beyond test or
   Python filters
 
-### Future Improvements
+## Future Improvements
 
 - Add support for custom exclude or include glob patterns
 - Support multiple tree blocks per file (e.g., for different directories)
