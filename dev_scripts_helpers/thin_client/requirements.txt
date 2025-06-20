@@ -7,6 +7,7 @@ requests <= 2.31.0
 docker < 7
 docker-compose >= 1.29.0
 invoke >= 1.5.0
+junitparser
 poetry
 pytest >= 6.0.0
 s3fs  # For tools like `publish_notebook.py`.
