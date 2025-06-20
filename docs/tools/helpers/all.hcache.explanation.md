@@ -61,8 +61,6 @@ control, and tagged caches for environment separation (e.g., test vs prod).
 
 ## Common Misunderstandings
 
-- **Caching is not free**: It adds overhead, especially with deep copies and
-  verbose logging.
 - **Caches aren't auto-cleaned**: Old entries may accumulate; manual clearing is
   needed via `clear_global_cache()` or `clear_function_cache()`.
 - **Not all functions are cache-safe**: Side effects, non-determinism (e.g.,
