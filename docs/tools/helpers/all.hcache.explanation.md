@@ -1,105 +1,143 @@
-
-
 <!-- toc -->
 
-- [Cache](#cache)
-  * [How to use `Cache`](#how-to-use-cache)
-  * [How the `Cache` works](#how-the-cache-works)
-  * [Disk level](#disk-level)
-  * [Memory level](#memory-level)
-  * [Global cache](#global-cache)
-    + [Tagged global cache](#tagged-global-cache)
-  * [Function-specific cache](#function-specific-cache)
+- [Cache (Explanation)](#cache-explanation)
+  * [Introduction / Motivation](#introduction--motivation)
+  * [Core Concepts](#core-concepts)
+  * [Design Rationale](#design-rationale)
+  * [Trade-offs and Alternatives](#trade-offs-and-alternatives)
+  * [Common Misunderstandings](#common-misunderstandings)
+  * [Execution Flow Diagram](#execution-flow-diagram)
 
 <!-- tocstop -->
 
-# Cache
+# Cache (Explanation)
 
-## How to use `Cache`
+## Introduction / Motivation
 
-- `Cache` is typically used as a decorator function `@cache` around functions or
-  regular class methods
-- `Cache` works in code and in Python notebooks with `%autoreload`
+In performance-sensitive systems, repeated evaluations of the same expensive
+function can degrade efficiency. The `hcache` module addresses this through a
+robust, dual-layer caching mechanism that reduces recomputation, enables
+persistency across sessions, and improves responsiveness in both scripts and
+interactive notebooks.
 
-## How the `Cache` works
+Unlike lightweight alternatives like `hcache_simple`, `hcache` is suited for
+complex use cases where cache configuration, inspection, tagging, and sharing
+are necessary. It supports memory- and disk-based layers, function-level
+control, and tagged caches for environment separation (e.g., test vs prod).
 
-- `Cache` tracks changes in the source code of the wrapped function
-  - For performance reasons, it checks the code only one time unless the pointer
-    to the function is changed, e.g. in notebooks
+## Core Concepts
 
-- By default, it uses two levels of caching:
-  - `Memory` level
-  - `Disk` level
+- **Two-Level Cache**: `hcache` uses `joblib.Memory` for both in-memory (via
+  tmpfs) and on-disk caching. First, the memory cache is checked; then disk;
+  finally, the original function is executed.
+- **Tagging**: Allows namespacing the cache (e.g., `unit_tests`, `dev`) to avoid
+  collisions and keep environments isolated.
+- **Global vs Function-Specific**:
+  - _Global cache_: Default backend shared across functions in a Git repo.
+  - _Function-specific cache_: Dedicated backend configured for individual
+    functions or external persistence (e.g., S3).
+- **Read-Only & Check-Only Modes**: Enforces deterministic behavior by raising
+  exceptions when a cache miss occurs or prevents accessing cached values
+  directly.
 
-- When a call is made to the wrapped function:
-  - Firstly the `Memory` level is being checked
-  - If there's no hit in the `Memory`, the `Disk` level is checked
-  - If there's no hit in `Disk` level, the wrapped function is called
-  - The result is then stored in both `Disk` and `Memory` levels
+## Design Rationale
 
-- `Cache` is equipped with a `get_last_cache_accessed()` method to understand if
-  the call hit the cache and on which level
+- **Use of `joblib.Memory`**: Supports both memory and disk caching, with better
+  introspection and file system persistence than `functools.lru_cache`.
+- **Global Caches**: Simplifies reuse across modules and functions. Tagging
+  improves hygiene across test/production.
+- **Function-Specific Caches**: Provides isolation for workflows that require
+  sharing across machines or long-term retention.
+- **Deep Copy on Retrieval**: Prevents accidental mutation of cached objects.
 
-## Disk level
+## Trade-offs and Alternatives
 
-- `Disk` level is implemented via
-  [joblib.Memory](https://joblib.readthedocs.io/en/latest/generated/joblib.Memory.html)
+| Choice                                                              | Trade-off                                                      |
+| ------------------------------------------------------------------- | -------------------------------------------------------------- |
+| `joblib.Memory` over `lru_cache`                                    | More flexible and persistent, but slightly slower              |
+| `copy.deepcopy()` on retrieval                                      | Ensures immutability but adds overhead                         |
+| Global + function-specific backends                                 | Powerful but adds complexity for setup and cleanup             |
+| Verbose cache control (`enable_read_only`, `check_only_if_present`) | Good for testing and debugging; may be overkill for casual use |
 
-## Memory level
+## Common Misunderstandings
 
-- Initially, the idea was to use
-  [functools.lru_cache](https://docs.python.org/3/library/functools.html#functools.lru_cache)
-  for memory cache
+- **Caching is not free**: It adds overhead, especially with deep copies and
+  verbose logging.
+- **Caches aren't auto-cleaned**: Old entries may accumulate; manual clearing is
+  needed via `clear_global_cache()` or `clear_function_cache()`.
+- **Not all functions are cache-safe**: Side effects, non-determinism (e.g.,
+  random values or timestamps), and unhashable arguments can lead to incorrect
+  or missing cache behavior.
+- **Function code changes may invalidate cache**: `joblib` hashes the function
+  code, so altering it causes cache misses unless overridden intentionally via
+  `update_func_code_without_invalidating_cache()`.
 
-- Pros:
+## Execution Flow Diagram
 
-  1. Standard library implementation
-  2. Quietly fast in-memory implementation
+```mermaid
+flowchart LR
+  %% Decorator System
+  subgraph DecoratorSystem["Decorator System"]
+    dec["@cache(use_mem_cache, use_disk_cache, disk_cache_path)"]
+    CachedClass["CachedClass"]
+    dec --> CachedClass
+  end
 
-- Cons:
+  %% Cached Class Components
+  subgraph CachedClassComponents["Cached Class Components"]
+    memCache["_create_function_memory_cache()"]
+    diskCache["_create_function_disk_cache()"]
+    CachedClass --> memCache
+    CachedClass --> diskCache
 
-  1. Only hashable arguments are supported
-  2. No access to cache, it's not possible to check if an item is in cache or
-     not
-  3. It does not work properly in notebooks
+    memCache --> globalType["get_global_cache_type(tag)"]
+    diskCache --> globalType
+    globalType --> backendFactory["_create_global_cache_backend()"]
 
-- Because Cons outweighed Pros, we decided to implement `Memory` level as
-  [joblib.Memory](https://joblib.readthedocs.io/en/latest/generated/joblib.Memory.html)
-  over [`tmpfs`](https://uk.wikipedia.org/wiki/Tmpfs)
-- In this way we reuse the same code for `Disk` level cache but over a RAM-based
-  disk
-  - This implementation overcomes the Cons listed above, although it is slightly
-    slower than the pure `functools.lru_cache` approach
+    backendFactory --> globalPath["_get_global_cache_path()"]
+    backendFactory --> globalName["_get_global_cache_name()"]
+    backendFactory --> clearGlobal["clear_global_cache()"]
+    backendFactory --> infoGlobal["get_global_cache_info()"]
+    backendFactory --> clearFunc["clear_function_cache()"]
+    backendFactory --> funcPath["get_function_cache_path()"]
+    backendFactory --> hasFunc["has_function_cache()"]
+  end
 
-## Global cache
+  %% Cache Types & Paths
+  subgraph CacheTypesAndPaths["Cache Types & Paths"]
+    memoryPath["Memory Cache Path\n/tmp/jbill/mem"]
+    diskPath["Disk Cache Path\n~/.cache/hj/cache.disk"]
+    funcSpecific["Function-specific Path"]
+    globalPath --> memoryPath
+    globalName --> diskPath
+    funcPath   --> funcSpecific
+  end
 
-- By default, all cached functions save their cached values in the default
-  global cache
-- The cache is "global" in the sense that:
-  - It is unique per-user and per Git client
-  - It serves all the functions of a Git client
-- The cached data stored in a folder `$GIT_ROOT/tmp.cache.{mem,disk}.[tag]`
-- This global cache is being managed via global functions named
-  `*_global_cache`, e.g., `set_global_cache()`
+  %% Joblib Integration
+  subgraph JoblibIntegration["Joblib Integration"]
+    MemCache["MEMORY_CACHE\njoblib.Memory"]
+    DiskCache2["DISK_CACHE\njoblib.Memory"]
+    MemCache  --> MemFunction["joblib.MemoryFunc"]
+    DiskCache2 --> MemFunction
+    MemFunction --> StoreBackend["Store Backend"]
+    StoreBackend --> CodeTracking["Function Code Tracking"]
+  end
 
-- TODO(gp): maybe a better name is
-  - Global -> local_cache, client_cache
-  - Function_specific -> global or shared
+  %% Function Wrapper
+  subgraph FunctionWrapper["Function Wrapper"]
+    Wrapper["call() – Main caching logic"]
+    CachedClass --> Wrapper
+    Wrapper --> GetResult["get_memorized_result()"]
+    Wrapper --> StoreVersion["store_cached_version()"]
+    Wrapper --> GlobalMgmt["_IS_CACHE_ENABLED = true"]
+  end
 
-### Tagged global cache
-
-- A global cache can be specific of different applications (e.g., for unit tests
-  vs normal code)
-  - It is controlled through the `tag` parameter
-  - The global cache corresponds to `tag = None`
-
-## Function-specific cache
-
-- It is possible to create function-specific caches, e.g., to share the result
-  of a function across clients and users
-- In this case the client needs to set `disk_cache_directory` and / or
-  `mem_cache_directory` parameters in the decorator or in the `Cached` class
-  constructor
-- If cache is set for the function, it can be managed with
-  `.set_cache_directory()`, `.get_cache_directory()`, `.destroy_cache()` and
-  `.clear_function_cache()` methods.
+  %% Advanced Features
+  subgraph AdvancedFeatures["Advanced Features"]
+    CodeTracking --> ReadOnly["enable_read_only()"]
+    CodeTracking --> CheckOnly["enable_check_only_if_present()"]
+    CodeTracking --> S3Support["S3 Backend Support"]
+    CodeTracking --> LastAccessed["_get_last_cache_accessed()"]
+    CodeTracking --> UpdateCode["update_func_code_without_invalidating_cache()"]
+  end
+```
