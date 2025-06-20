@@ -203,14 +203,6 @@
   ```bash
   # If the version of the locally built image is 1.0.0.
   > cd $CSFY_RUNNABLE_DIR
-  > i run_fast_tests --version 1.0.0
-  > i run_slow_tests --version 1.0.0
-  ```
-
-  TODO(heanh): Add support for `skip_pull` so we can run tests without creating
-  a registry first. For example,
-
-  ```bash
   > i run_fast_tests --version 1.0.0 --skip-pull
   > i run_slow_tests --version 1.0.0 --skip-pull
   ```
