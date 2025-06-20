@@ -4,20 +4,16 @@ Invite GitHub collaborators listed in a Google Sheet/CSV while obeying the
 50-invite / 24-hour cap. This requires some dependencies, which is why it is
 executed in a Docker container.
 
-Example (Google Sheet):
-
+# Invite to the repo `causify-ai/tutorials` the users in the passed Google Sheet:
 > invite_gh_contributors.py \
     --drive_url "https://docs.google.com/spreadsheets/d/1Ez5uRvOgvDMkFc9c6mI21kscTKnpiCSh4UkUh_ifLIw
     /edit?gid=0#gid=0" \
-    --gh_token "$GH_PAT" \
     --org_name causify-ai \
     --repo_name tutorials
 
-Example (CSV):
-
+# Invite to the repo `causify-ai/tutorials` the users in the passed CSV file:
 > invite_gh_contributors.py \
     --csv_file "/tmp/github_users.csv" \
-    --gh_token "$GH_PAT" \
     --org_name causify-ai \
     --repo_name tutorials
 """
@@ -25,7 +21,8 @@ import argparse
 import csv
 import datetime
 import logging
-from typing import List
+import os
+from typing import List, Optional
 
 import github
 import ratelimit
@@ -69,8 +66,11 @@ def extract_usernames_from_csv(csv_path: str) -> List[str]:
     usernames: List[str] = []
     with open(csv_path, newline="", encoding="utf-8") as csv_file:
         reader = csv.DictReader(csv_file)
-        if not reader.fieldnames or "GitHub user" not in reader.fieldnames:
-            raise ValueError("CSV missing required column 'GitHub user'")
+        hdbg.dassert_in(
+            "GitHub user",
+            reader.fieldnames,
+            "CSV missing required column 'GitHub user'",
+        )
         for row in reader:
             usernames.append(row["GitHub user"])
     usernames = [user.strip() for user in usernames if user and user.strip()]
@@ -94,7 +94,7 @@ def _invite(repo, username: str, *, permission: str = "write") -> None:
 
 def send_invitations(
     usernames: List[str],
-    gh_access_token: str,
+    gh_access_token: Optional[str],
     repo_name: str,
     org_name: str,
 ) -> None:
@@ -138,11 +138,6 @@ def _parse() -> argparse.Namespace:
         help="Path to CSV file containing a 'GitHub user' column",
     )
     parser.add_argument(
-        "--gh_token",
-        required=True,
-        help="GitHub personal‑access token (repo scope)",
-    )
-    parser.add_argument(
         "--repo_name", required=True, help="Target repository name (without org)"
     )
     parser.add_argument(
@@ -154,11 +149,14 @@ def _parse() -> argparse.Namespace:
 
 def _main(args: argparse.Namespace) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    # Retrieve GitHub token from env var.
+    gh_token = os.getenv("GITHUB_TOKEN")
+    hdbg.dassert(gh_token, "Environment variable GITHUB_TOKEN must be set")
     if args.csv_file:
         usernames = extract_usernames_from_csv(args.csv_file)
     else:
         usernames = extract_usernames_from_gsheet(args.drive_url)
-    send_invitations(usernames, args.gh_token, args.repo_name, args.org_name)
+    send_invitations(usernames, gh_token, args.repo_name, args.org_name)
 
 
 if __name__ == "__main__":

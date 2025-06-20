@@ -4,20 +4,16 @@ Invite GitHub collaborators listed in a Google Sheet/CSV while obeying the
 50-invite / 24-hour cap by creating a docker container and running
 `dockerized_invite_gh_contributors`
 
-Example (Google Sheet):
-
+# Invite to the repo `causify-ai/tutorials` the users in the passed Google Sheet:
 > invite_gh_contributors.py \
     --drive_url "https://docs.google.com/spreadsheets/d/1Ez5uRvOgvDMkFc9c6mI21kscTKnpiCSh4UkUh_ifLIw
     /edit?gid=0#gid=0" \
-    --gh_token "$GH_PAT" \
     --org_name causify-ai \
     --repo_name tutorials
 
-Example (CSV):
-
+# Invite to the repo `causify-ai/tutorials` the users in the passed CSV file:
 > invite_gh_contributors.py \
     --csv_file "/tmp/github_users.csv" \
-    --gh_token "$GH_PAT" \
     --org_name causify-ai \
     --repo_name tutorials
 """
@@ -171,11 +167,6 @@ def _parse() -> argparse.Namespace:
         help="Path to CSV file containing a 'GitHub user' column",
     )
     parser.add_argument(
-        "--gh_token",
-        required=True,
-        help="GitHub personal‑access token (repo scope)",
-    )
-    parser.add_argument(
         "--repo_name", required=True, help="Target repository name (without org)"
     )
     parser.add_argument(
@@ -188,8 +179,9 @@ def _parse() -> argparse.Namespace:
 
 def _main(args: argparse.Namespace) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    if not args.gh_token and "GH_TOKEN" in os.environ:
-        args.gh_token = os.environ["GH_TOKEN"]
+    hdbg.dassert(
+        os.getenv("GITHUB_TOKEN"), "Environment variable GITHUB_TOKEN must be set"
+    )
     _run_dockerized_invite(args)
 
 
