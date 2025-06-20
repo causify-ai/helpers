@@ -33,8 +33,8 @@
 ## A runnable dir as sub directory under a super-repo
 
 ```bash
-export CSFY_RUNNABLE_DIR="ck.infra"
-export CSFY_RUNNABLE_DIR_SUFFIX="cmamp_infra"
+> export CSFY_RUNNABLE_DIR="ck.infra"
+> export CSFY_RUNNABLE_DIR_SUFFIX="cmamp_infra"
 ```
 
 ### 1) Turn the repo into a super-repo with helpers
@@ -157,7 +157,7 @@ export CSFY_RUNNABLE_DIR_SUFFIX="cmamp_infra"
 
   ```bash
   # Runnable dir is "ck.infra" in this case.
-  ./helpers_root/helpers/create_links.py --src_dir ./helpers_root --dst_dir $CSFY_RUNNABLE_DIR --replace_links --use_relative_paths
+  > ./helpers_root/helpers/create_links.py --src_dir ./helpers_root --dst_dir $CSFY_RUNNABLE_DIR --replace_links --use_relative_paths
   ```
 
 - Refer to
