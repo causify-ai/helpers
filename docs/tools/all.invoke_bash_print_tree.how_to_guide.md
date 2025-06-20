@@ -5,10 +5,14 @@
 - [Introduction](#introduction)
 - [Workflow Explanation](#workflow-explanation)
 - [Usage Instructions](#usage-instructions)
+- [Use Cases](#use-cases)
 - [Example](#example)
-  * [Use Cases](#use-cases)
-  * [Known Limitations](#known-limitations)
-  * [Future Improvements](#future-improvements)
+  * [Step 1: Create a new file with tree output](#step-1-create-a-new-file-with-tree-output)
+  * [Step 2: Add comments to explain important files](#step-2-add-comments-to-explain-important-files)
+  * [Step 3: Add more files and subdirectories to `devops`](#step-3-add-more-files-and-subdirectories-to-devops)
+  * [Step 4: Re-run the workflow to update the tree](#step-4-re-run-the-workflow-to-update-the-tree)
+- [Known Limitations](#known-limitations)
+- [Future Improvements](#future-improvements)
 
 <!-- tocstop -->
 
@@ -39,6 +43,7 @@
 ## Usage Instructions
 
 - Some examples of workflows are:
+
   ```bash
   # Print the current directory tree.
   > i bash_print_tree
@@ -71,6 +76,8 @@
   located in the directory `devops`
 
 ### Step 1: Create a new file with tree output
+
+- Create the initial file with the structure of the tree
   ```bash
   > i bash_print_tree --path="devops" --output="all.devops_docker.reference.md"
   ```
@@ -78,6 +85,7 @@
 - The output file `all.devops_docker.reference.md` should look like this:
   ```markdown
   <!-- tree:start:devops -->
+
   devops
   - compose
     - tmp.docker-compose.yml
@@ -108,13 +116,14 @@
     - run_jupyter_server.sh
   - env
     - default.env
-  <!-- tree:end -->
+    <!-- tree:end -->
   ```
 
 ### Step 2: Add comments to explain important files
 
 - You edit the output file `all.devops_docker.reference.md` and more information
   and comments to the files in the tree
+
   ```bash
   ## Introduction
 
@@ -163,6 +172,7 @@
 ### Step 3: Add more files and subdirectories to `devops`
 
 - Over time, additional files and subdirectories will be added to `devops`
+
   ```bash
   # Create a new directory.
   > mkdir -p devops/debug
@@ -174,11 +184,13 @@
 ### Step 4: Re-run the workflow to update the tree
 
 - Update the documentation file with the updated structure of `devops`
+
   ```bash
   > i bash_print_tree --path="devops" --output="all.devops_docker.reference.md"
   ```
 
 - The updated tree will reflect the new files while preserving comments:
+
   ```markdown
   ## Introduction
 
@@ -187,6 +199,7 @@
   ## Directory Structure
 
   <!-- tree:start:devops -->
+
   devops
   - compose # Contains Docker compose files.
     - tmp.docker-compose.yml
@@ -219,7 +232,7 @@
     - run_jupyter_server.sh
   - env
     - default.env
-  <!-- tree:end -->
+    <!-- tree:end -->
 
   ## Docker invoke flow
 
