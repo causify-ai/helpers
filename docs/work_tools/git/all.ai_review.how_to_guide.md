@@ -66,6 +66,7 @@
   - `text_*`: process free form (not markdown) text
 
 - You can list the available transformations with:
+
   ```bash
   > llm_transform.py -p list
   # Available prompt tags:
@@ -119,6 +120,7 @@
 - These transformations don't need LLMs and are implemented as code
 
 - You can see the available transforms with:
+
   ```bash
   > transform_notes.py -a list
   test: compute the hash of a string to test the flow
@@ -161,9 +163,11 @@
 - Go to the Git branch with the code to review
 
 - Check which files are modified
+
   ```bash
   > invoke git_branch_diff_with -t base --only-print-files
   ```
+
 - Run `ai_review.py` on each file to generate a list of comments on the code
   - This is equivalent to running a `review` target with `llm_transform.py`
     (e.g., `llm_transform.py -p review_*`) but it is a separated flow for
@@ -175,6 +179,7 @@
   ```bash
   > vim -c "cfile cfile"
   ```
+
   - You can fix the code according to the TODOs
   - Discard a TODO as a false positive or not important
 
@@ -189,6 +194,7 @@
   modify a file in a separate commit, so that it's easy to review
 
 - There are multiple targets for the `ai_review.py`
+
   ```bash
   > PROMPT=review_llm
   > PROMPT=review_correctness
@@ -212,6 +218,7 @@
   ```
   > ai_review.py -i template_code.py
   ```
+
   ```
   > llm_transform.py -i template_code.py -p code_fix_code
   ```
@@ -231,12 +238,14 @@
   2. When the code to review is in the repo `//helpers`
      - In this case, we can use a different Git client to develop and "sync" the
        `linter.py` / `ai_review.py` code from one client to another
+
        ```bash
        > \cp -f /Users/saggese/src/helpers1/helpers/lib_tasks_lint.py helpers && i lint_sync_code
        ```
+
      - Before committing the review, we then revert the `linter.py /
        ai_review.py` code
+
        ```bash
        > i lint_sync_code -r
        ```
-
