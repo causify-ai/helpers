@@ -81,11 +81,11 @@ def get_host_user_name() -> Optional[str]:
     return os.environ.get("CSFY_HOST_USER_NAME", None)
 
 
-def get_dev_csfy_host_names() -> List[str]:
+def get_dev_csfy_host_names() -> Tuple[str]:
     """
     Return the names of the Causify dev servers.
     """
-    host_names = ("dev1", "dev2", "dev3")
+    host_names = ["dev1", "dev2", "dev3"]
     return host_names
 
 
@@ -278,63 +278,63 @@ def is_dev4() -> bool:
     return is_dev4_
 
 
-def is_host_mac(*, version: Optional[str] = None) -> bool:
-    """
-    Return whether we are running on macOS and, optionally, on a specific
-    version.
+# def is_host_mac(*, version: Optional[str] = None) -> bool:
+#     """
+#     Return whether we are running on macOS and, optionally, on a specific
+#     version.
 
-    :param version: check whether we are running on a certain macOS version (e.g.,
-        `Catalina`, `Monterey`)
-    """
-    _LOG.debug("version=%s", version)
-    host_os_name = os.uname()[0]
-    _LOG.debug("os.uname()=%s", str(os.uname()))
-    csfy_host_os_name = os.environ.get("CSFY_HOST_OS_NAME", None)
-    _LOG.debug(
-        "host_os_name=%s csfy_host_os_name=%s", host_os_name, csfy_host_os_name
-    )
-    is_mac_ = host_os_name == "Darwin" or csfy_host_os_name == "Darwin"
-    if version is None:
-        # The user didn't request a specific version, so we return whether we
-        # are running on a Mac or not.
-        _LOG.debug("is_mac_=%s", is_mac_)
-        return is_mac_
-    else:
-        # The user specified a version: if we are not running on a Mac then we
-        # return False, since we don't even have to check the macOS version.
-        if not is_mac_:
-            _LOG.debug("is_mac_=%s", is_mac_)
-            return False
-    # Check the macOS version we are running.
-    if version == "Catalina":
-        # Darwin gpmac.local 19.6.0 Darwin Kernel Version 19.6.0:
-        # root:xnu-6153.141.2~1/RELEASE_X86_64 x86_64
-        macos_tag = "19.6"
-    elif version == "Monterey":
-        # Darwin alpha.local 21.5.0 Darwin Kernel Version 21.5.0:
-        # root:xnu-8020.121.3~4/RELEASE_ARM64_T6000 arm64
-        macos_tag = "21."
-    elif version == "Ventura":
-        macos_tag = "22."
-    elif version == "Sequoia":
-        # Darwin gpmac.local 24.4.0 Darwin Kernel Version 24.4.0:
-        # root:xnu-11417.101.15~1/RELEASE_ARM64_T8112 arm64
-        macos_tag = "24."
-    else:
-        raise ValueError(f"Invalid version='{version}'")
-    _LOG.debug("macos_tag=%s", macos_tag)
-    host_os_version = os.uname()[2]
-    # 'Darwin Kernel Version 19.6.0: Mon Aug 31 22:12:52 PDT 2020;
-    #   root:xnu-6153.141.2~1/RELEASE_X86_64'
-    csfy_host_os_version = os.environ.get("CSFY_HOST_VERSION", "")
-    _LOG.debug(
-        "host_os_version=%s csfy_host_os_version=%s",
-        host_os_version,
-        csfy_host_os_version,
-    )
-    is_mac_ = macos_tag in host_os_version or macos_tag in csfy_host_os_version
-    _LOG.debug("is_mac_=%s", is_mac_)
-    return is_mac_
+#     :param version: check whether we are running on a certain macOS version (e.g.,
+#         `Catalina`, `Monterey`)
+#     """
+#     _LOG.debug("version=%s", version)
+#     host_os_name = os.uname()[0]
+#     _LOG.debug("os.uname()=%s", str(os.uname()))
+#     csfy_host_os_name = os.environ.get("CSFY_HOST_OS_NAME", None)
+#     _LOG.debug(
+#         "host_os_name=%s csfy_host_os_name=%s", host_os_name, csfy_host_os_name
+#     )
+#     is_mac_ = host_os_name == "Darwin" or csfy_host_os_name == "Darwin"
+#     if version is None:
+#         # The user didn't request a specific version, so we return whether we
+#         # are running on a Mac or not.
+#         _LOG.debug("is_mac_=%s", is_mac_)
+#         return is_mac_
+#     else:
+#         # The user specified a version: if we are not running on a Mac then we
+#         # return False, since we don't even have to check the macOS version.
+#         if not is_mac_:
+#             _LOG.debug("is_mac_=%s", is_mac_)
+#             return False
+#     # Check the macOS version we are running.
+#     if version == "Catalina":
+#         # Darwin gpmac.local 19.6.0 Darwin Kernel Version 19.6.0:
+#         # root:xnu-6153.141.2~1/RELEASE_X86_64 x86_64
+#         macos_tag = "19.6"
+#     elif version == "Monterey":
+#         # Darwin alpha.local 21.5.0 Darwin Kernel Version 21.5.0:
+#         # root:xnu-8020.121.3~4/RELEASE_ARM64_T6000 arm64
+#         macos_tag = "21."
+#     elif version == "Ventura":
+#         macos_tag = "22."
+#     elif version == "Sequoia":
+#         # Darwin gpmac.local 24.4.0 Darwin Kernel Version 24.4.0:
+#         # root:xnu-11417.101.15~1/RELEASE_ARM64_T8112 arm64
+#         macos_tag = "24."
+#     else:
+#         raise ValueError(f"Invalid version='{version}'")
+#     _LOG.debug("macos_tag=%s", macos_tag)
+#     host_os_version = os.uname()[2]
+#     # 'Darwin Kernel Version 19.6.0: Mon Aug 31 22:12:52 PDT 2020;
+#     #   root:xnu-6153.141.2~1/RELEASE_X86_64'
+#     csfy_host_os_version = os.environ.get("CSFY_HOST_VERSION", "")
+#     _LOG.debug(
+#         "host_os_version=%s csfy_host_os_version=%s",
+#         host_os_version,
+#         csfy_host_os_version,
+#     )
+#     is_mac_ = macos_tag in host_os_version or macos_tag in csfy_host_os_version
+#     _LOG.debug("is_mac_=%s", is_mac_)
+#     return is_mac_
 
 
 def is_prod_csfy() -> bool:
@@ -510,6 +510,20 @@ def _get_setup_settings() -> List[Tuple[str, bool]]:
     """
     Return a list of tuples with the name and value of the current server
     setup.
+
+    E.g.,
+    ```bash
+    is_inside_docker_container_on_csfy_server=True
+    is_outside_docker_container_on_csfy_server=False
+    is_inside_docker_container_on_host_mac=False
+    is_outside_docker_container_on_host_mac=True
+    is_inside_docker_container_on_external_linux=False
+    is_outside_docker_container_on_external_linux=True
+    is_dev4=False
+    is_ig_prod=False
+    is_prod_csfy=False
+    is_inside_ci=False
+    ```
     """
     func_names = [
         "is_inside_docker_container_on_csfy_server",
@@ -631,8 +645,6 @@ def docker_needs_sudo() -> bool:
     """
     if not has_docker():
         return False
-    if not has_dind_support() and not use_docker_sibling_containers():
-        return False
     # Another way to check is to see if your user is in the docker group:
     # > groups | grep docker
     rc = os.system("docker run hello-world 2>&1 >/dev/null")
@@ -645,6 +657,17 @@ def docker_needs_sudo() -> bool:
     assert False, "Failed to run docker"
 
 
+def get_docker_executable() -> str:
+    """
+    Return the docker executable, wrapper with `sudo` if needed.
+    """
+    docker_needs_sudo_ = docker_needs_sudo()
+    executable = "docker"
+    if docker_needs_sudo_:
+        executable = "sudo " + executable
+    return executable
+
+
 @functools.lru_cache()
 def has_docker_privileged_mode() -> bool:
     """
@@ -652,18 +675,25 @@ def has_docker_privileged_mode() -> bool:
 
     Docker privileged mode gives containers nearly all the same capabilities as
     the host system's kernel.
+
     Privileged mode allows to:
     - run Docker-in-Docker
     - mount filesystems
     """
-    cmd = "docker run --privileged hello-world 2>&1 >/dev/null"
+    if not has_docker():
+        return False
+    docker_executable = get_docker_executable()
+    cmd = f"{docker_executable} run --privileged hello-world 2>&1 >/dev/null"
     rc = os.system(cmd)
     _print("cmd=%s -> rc=%s" % (cmd, rc))
     has_privileged_mode = rc == 0
     return has_privileged_mode
 
 
-def has_sibling_containers_support() -> bool:
+def has_docker_sibling_containers_support() -> bool:
+    """
+    Return whether the current container supports running sibling containers.
+    """
     # We need to be inside a container to run sibling containers.
     if not is_inside_docker():
         return False
@@ -673,7 +703,7 @@ def has_sibling_containers_support() -> bool:
     return False
 
 
-def has_docker_dind_support() -> bool:
+def has_docker_children_containers_support() -> bool:
     """
     Return whether the current container supports Docker-in-Docker.
     """
@@ -682,6 +712,17 @@ def has_docker_dind_support() -> bool:
         return False
     # We assume that if we have privileged mode then we can run docker-in-docker.
     return has_docker_privileged_mode()
+
+
+def can_run_docker_from_docker() -> bool:
+    """
+    Return whether we can run docker from docker, either as children or sibling
+    container.
+    """
+    return (
+        has_docker_children_containers_support()
+        or has_docker_sibling_containers_support()
+    )
 
 
 def get_docker_info() -> str:
@@ -704,15 +745,21 @@ def get_docker_info() -> str:
     txt_tmp.append(f"is_inside_docker={is_inside_docker_}")
     #
     if is_inside_docker_:
-        has_sibling_containers_support_ = has_sibling_containers_support()
-        has_docker_dind_support_ = has_docker_dind_support()
+        has_docker_sibling_containers_support_ = (
+            has_docker_sibling_containers_support()
+        )
+        has_docker_children_containers_support_ = (
+            has_docker_children_containers_support()
+        )
     else:
-        has_sibling_containers_support_ = "*undef*"
-        has_docker_dind_support_ = "*undef*"
+        has_docker_sibling_containers_support_ = "*undef*"
+        has_docker_children_containers_support_ = "*undef*"
     txt_tmp.append(
-        f"has_sibling_containers_support={has_sibling_containers_support_}"
+        f"has_docker_sibling_containers_support={has_docker_sibling_containers_support_}"
     )
-    txt_tmp.append(f"has_docker_dind_support={has_docker_dind_support_}")
+    txt_tmp.append(
+        f"has_docker_children_containers_support={has_docker_children_containers_support_}"
+    )
     #
     txt = hprint.to_info("Docker info", txt_tmp)
     return txt
@@ -728,56 +775,56 @@ def get_docker_info() -> str:
 # the system.
 
 
-# TODO(gp): -> has_docker_privileged_mode
-@functools.lru_cache()
-def has_dind_support() -> bool:
-    """
-    Return whether the current container supports privileged mode.
+# # TODO(gp): -> has_docker_privileged_mode
+# @functools.lru_cache()
+# def has_dind_support() -> bool:
+#     """
+#     Return whether the current container supports privileged mode.
 
-    This is needed to use Docker-in-Docker.
-    """
-    _print("is_inside_docker()=%s" % is_inside_docker())
-    if not is_inside_docker():
-        # Outside Docker there is no privileged mode.
-        _print("-> ret = False")
-        return False
-    # TODO(gp): Not sure this is really needed since we do this check
-    #  after enable_privileged_mode controls if we have dind or not.
-    if _is_mac_version_with_sibling_containers():
-        return False
-    # TODO(gp): This part is not multi-process friendly. When multiple
-    # processes try to run this code they interfere. A solution is to run `ip
-    # link` in the entrypoint and create a `has_docker_privileged_mode` file
-    # which contains the value.
-    # We rely on the approach from https://stackoverflow.com/questions/32144575
-    # to check if there is support for privileged mode.
-    # Sometimes there is some state left, so we need to clean it up.
-    # TODO(Juraj): this is slow and inefficient, but works for now.
-    cmd = "sudo docker run hello-world"
-    rc = os.system(cmd)
-    _print("cmd=%s -> rc=%s" % (cmd, rc))
-    has_dind = rc == 0
-    # dind is supported on both Mac and GH Actions.
-    # TODO(Juraj): HelpersTask16.
-    # if check_repo:
-    #    if hserver.is_inside_ci():
-    #        # Docker-in-docker is needed for GH actions. For all other builds is optional.
-    #        assert has_dind, (
-    #            f"Expected privileged mode: has_dind={has_dind}\n"
-    #            + hserver.setup_to_str()
-    #        )
-    #    else:
-    #        only_warning = True
-    #        _raise_invalid_host(only_warning)
-    #        return False
-    # else:
-    #    csfy_repo_config = os.environ.get("CSFY_REPO_CONFIG_CHECK", "True")
-    #    print(
-    #        _WARNING
-    #        + ": Skip checking since CSFY_REPO_CONFIG_CHECK="
-    #        + f"'{csfy_repo_config}'"
-    #    )
-    return has_dind
+#     This is needed to use Docker-in-Docker.
+#     """
+#     _print("is_inside_docker()=%s" % is_inside_docker())
+#     if not is_inside_docker():
+#         # Outside Docker there is no privileged mode.
+#         _print("-> ret = False")
+#         return False
+#     # TODO(gp): Not sure this is really needed since we do this check
+#     #  after enable_privileged_mode controls if we have dind or not.
+#     if _is_mac_version_with_sibling_containers():
+#         return False
+#     # TODO(gp): This part is not multi-process friendly. When multiple
+#     # processes try to run this code they interfere. A solution is to run `ip
+#     # link` in the entrypoint and create a `has_docker_privileged_mode` file
+#     # which contains the value.
+#     # We rely on the approach from https://stackoverflow.com/questions/32144575
+#     # to check if there is support for privileged mode.
+#     # Sometimes there is some state left, so we need to clean it up.
+#     # TODO(Juraj): this is slow and inefficient, but works for now.
+#     cmd = "sudo docker run hello-world"
+#     rc = os.system(cmd)
+#     _print("cmd=%s -> rc=%s" % (cmd, rc))
+#     has_dind = rc == 0
+#     # dind is supported on both Mac and GH Actions.
+#     # TODO(Juraj): HelpersTask16.
+#     # if check_repo:
+#     #    if hserver.is_inside_ci():
+#     #        # Docker-in-docker is needed for GH actions. For all other builds is optional.
+#     #        assert has_dind, (
+#     #            f"Expected privileged mode: has_dind={has_dind}\n"
+#     #            + hserver.setup_to_str()
+#     #        )
+#     #    else:
+#     #        only_warning = True
+#     #        _raise_invalid_host(only_warning)
+#     #        return False
+#     # else:
+#     #    csfy_repo_config = os.environ.get("CSFY_REPO_CONFIG_CHECK", "True")
+#     #    print(
+#     #        _WARNING
+#     #        + ": Skip checking since CSFY_REPO_CONFIG_CHECK="
+#     #        + f"'{csfy_repo_config}'"
+#     #    )
+#     return has_dind
 
 
 def _raise_invalid_host(only_warning: bool) -> None:
@@ -810,14 +857,16 @@ def enable_privileged_mode() -> bool:
             ret = True
         elif is_external_linux():
             ret = True
-        elif is_host_mac(version="Catalina"):
-            # Docker for macOS Catalina supports dind.
-            ret = True
-        elif (
-            is_host_mac(version="Monterey")
-            or is_host_mac(version="Ventura")
-            or is_host_mac(version="Sequoia")
-        ):
+        elif is_host_mac():
+            mac_version = get_host_mac_version()
+            if mac_version == "Catalina":
+                # Docker for macOS Catalina supports dind.
+                ret = True
+            elif mac_version in ("Monterey", "Ventura", "Sequoia"):
+                # Docker doesn't seem to support dind for these versions of macOS.
+                ret = False
+            else:
+                raise ValueError(f"Invalid version='{version}'")
             # Docker doesn't seem to support dind for these versions of macOS.
             ret = False
         elif is_prod_csfy():
@@ -855,11 +904,8 @@ def has_docker_sudo() -> bool:
 
 
 def _is_mac_version_with_sibling_containers() -> bool:
-    return (
-        is_host_mac(version="Monterey")
-        or is_host_mac(version="Ventura")
-        or is_host_mac(version="Sequoia")
-    )
+    mac_version = get_host_mac_version()
+    return mac_version in ("Monterey", "Ventura", "Sequoia")
 
 
 # TODO(gp): -> use_docker_sibling_container_support
@@ -867,9 +913,13 @@ def use_docker_sibling_containers() -> bool:
     """
     Return whether to use Docker sibling containers.
 
-    Using sibling containers requires that all Docker containers in the
+    Using sibling containers requires that all Docker containers are in the
     same network so that they can communicate with each other.
     """
+    return has_docker_sibling_containers_support()
+    # if is_dev_csfy():
+    #     val = True
+    # else:
     val = is_dev4() or _is_mac_version_with_sibling_containers()
     return val
 

@@ -554,6 +554,7 @@ def extract_slides_from_markdown(
     header_list: HeaderList = []
     # Process the input file to extract headers.
     for line_number, line in enumerate(txt.splitlines(), start=1):
+        _LOG.debug("%d: %s", line_number, line)
         # TODO(gp): Use the iterator.
         # Skip the visual separators.
         if is_markdown_line_separator(line):
