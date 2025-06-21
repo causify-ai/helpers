@@ -2,12 +2,14 @@
 
 - [Cache Simple](#cache-simple)
   * [Overview](#overview)
+  * [Design Rationale and Trade-offs](#design-rationale-and-trade-offs)
   * [Memory Cache](#memory-cache)
   * [Disk Cache](#disk-cache)
   * [Cache Performance Monitoring](#cache-performance-monitoring)
   * [Cache Properties: User and System](#cache-properties-user-and-system)
-  * [Decorator: `simple_cache`](#decorator-simple_cache)
-  * [Entire Flow](#entire-flow)
+  * [Decorator](#decorator)
+  * [Common Misunderstandings](#common-misunderstandings)
+  * [Execution Flow Diagram](#execution-flow-diagram)
   * [Proposal: Pluggable Cache Backends for `simple_cache`](#proposal-pluggable-cache-backends-for-simple_cache)
     + [1. Define a `CacheBackend` Protocol](#1-define-a-cachebackend-protocol)
     + [2. Extend `simple_cache` Signature](#2-extend-simple_cache-signature)
@@ -42,6 +44,28 @@
 
 - Additionally, the system monitors cache performance and allows users to
   configure caching behavior via `user` and `system` properties
+
+## Design Rationale and Trade-offs
+
+- **Memory vs Disk**: Memory cache provides fast access but is volatile and
+  non-persistent. Disk cache persists across sessions but comes with I/O
+  overhead. The design allows combining both for flexibility.
+
+- **Pickle vs JSON**: Pickle supports a wider range of Python-native types (like
+  objects, sets, etc.), while JSON is more portable and human-readable but
+  limited to basic types. The user can choose based on their use case.
+
+- **Argument Handling**: Cache keys are built using only positional arguments
+  (`args`) for simplicity and consistency. Keyword arguments (`kwargs`) are
+  ignored, which can lead to unexpected reuse of cache if the function behavior
+  changes based on `kwargs`.
+
+- **Property Storage**: Properties are stored in separate `user` and `system`
+  pickle files to separate runtime configuration (user behavior) from
+  infrastructure-level settings (e.g., storage format).
+
+- **Performance Tracking is Optional**: Monitoring is off by default to avoid
+  runtime overhead and is opt-in via `enable_cache_perf`.
 
 ## Memory Cache
 
@@ -138,7 +162,8 @@
 
 - Interface:
   - `set_cache_property(type, func_name, property_name, value)`: set a property
-  - `get_cache_property(type, func_name, property_name)`: get the value of a property
+  - `get_cache_property(type, func_name, property_name)`: get the value of a
+    property
   - `reset_cache_property(type)`: reset Properties
 
 ## Decorator
@@ -178,8 +203,8 @@
   - First call:
     - When you call `multiply_by_two(4)`, the cache key is generated (in this
       case, `(4,)` as a string)
-    - Since the key is not in the cache, the function is executed, returning `8`,
-      which is then stored in the `memory cache`.
+    - Since the key is not in the cache, the function is executed, returning
+      `8`, which is then stored in the `memory cache`.
   - Subsequent call:
     - Calling `multiply_by_two(4)` again finds the key in the cache and
       immediately returns `8` without executing the function again.
@@ -196,7 +221,25 @@
     - When using `@simple_cache(write_through=True)`, the decorator will flush
       the memory cache to disk immediately after updating.
 
-## Entire Flow
+## Common Misunderstandings
+
+- **Cached Function Must Be Deterministic**: The cache assumes the same inputs
+  always produce the same outputs. Functions with side effects or
+  non-deterministic behavior (e.g., randomness, time-based logic) may yield
+  inconsistent results.
+
+- **force_refresh Must Be Reset**: Once `force_refresh` is set, every call
+  recomputes the result. Users must manually unset this flag if they want to
+  resume normal caching.
+
+- **Disk Cache Is Persistent**: Cache files on disk are not automatically
+  cleaned up or rotated. Old or unused caches may accumulate over time.
+
+- **write_through Only Applies to Disk**: Setting `write_through=True` will
+  update the disk immediately after each cache write, which is useful for
+  persistency but may impact performance.
+
+## Execution Flow Diagram
 
 ```mermaid
 flowchart TD
