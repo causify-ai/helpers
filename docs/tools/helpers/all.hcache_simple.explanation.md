@@ -280,11 +280,11 @@ class CacheBackend(Protocol):
 
 ### 2. Extend `simple_cache` Signature
 
-Add three optional parameters:
-
-- `cache_backend`: an instance of `CacheBackend`
-- `key_fn`: callable `(*args, **kwargs) -> str` to generate cache keys
-- `serialize` / `deserialize`: hooks to convert values for storage and retrieval
+- Add three optional parameters:
+  - `cache_backend`: an instance of `CacheBackend`
+  - `key_fn`: callable `(*args, **kwargs) -> str` to generate cache keys
+  - `serialize` / `deserialize`: hooks to convert values for storage and
+    retrieval
 
 ```python
 def simple_cache(
