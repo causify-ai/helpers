@@ -387,7 +387,6 @@ class Test_save_models_info_to_csv(hunitest.TestCase):
 
 class Test_calculate_cost(hunitest.TestCase):
 
-
     def get_tmp_path(self) -> str:
         """
         Return temporary file path.
