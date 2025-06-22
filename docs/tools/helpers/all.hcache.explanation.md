@@ -2,6 +2,7 @@
 
 - [Cache](#cache)
   * [Overview](#overview)
+    + [Usage Example](#usage-example)
   * [Core Concepts](#core-concepts)
   * [How the `Cache` works](#how-the-cache-works)
     + [Disk level](#disk-level)
@@ -37,26 +38,40 @@ complex use cases where cache configuration, inspection, tagging, and sharing
 are necessary. It supports memory- and disk-based layers, function-level
 control, and tagged caches for environment separation (e.g., test vs prod).
 
+### Usage Example
+
+```python
+from helpers.hcache import cache
+
+@cache(use_mem_cache=True, use_disk_cache=True, tag="unit_tests")
+def expensive_compute(x, y):
+    # heavy work...
+    return x * y
+
+# First call: computes and caches
+res1 = expensive_compute(3, 4)
+# Second call: instant return from memory
+res2 = expensive_compute(3, 4)
+```
+
 ## Core Concepts
 
 - **Source Code Tracking**: Detects changes in the wrapped function's bytecode
   pointer to invalidate stale cache entries.
-
 - **Two-Level Cache**: Cascading lookup in memory first (via `joblib.Memory`
   over `tmpfs`), then on disk (via `joblib.Memory` at specified directory).
-
 - **Lookup and Store Flow**: On function call, check memory → check disk →
   execute function if miss → store result in both layers.
-
 - **Global Cache**: Default backend shared across all cached functions in a Git
-  repo, located at `$GIT_ROOT/tmp.cache.{mem,disk}[.tag]`.
-
-- **Tagged Global Cache**: Namespaces cache per `tag` parameter (e.g.,
-  `unit_tests` vs default) to isolate environments.
-
+  repo, located at `$GIT_ROOT/tmp.cache.{mem,disk}`.
+  - **Tagged Global Cache**: Namespaces cache per `tag` parameter (e.g.,
+    `unit_tests` vs default) to isolate environments.
 - **Function-Specific Cache**: Customizable cache directories for individual
   functions managed via `.set_cache_directory()`, `.get_cache_directory()`, and
   `.clear_function_cache()`.
+- **Deterministic Modes**: `enable_read_only` and `check_only_if_present`
+  options enforce strict cache-only or read-only behaviors, supporting testing
+  and debugging.
 
 ## How the `Cache` works
 
@@ -143,6 +158,9 @@ control, and tagged caches for environment separation (e.g., test vs prod).
 
 ## Design Rationale and Trade-offs
 
+We chose these approaches to balance performance, persistence, and
+configurability.
+
 Below is a summary of our key design choices and their trade-offs.
 
 | Choice                                                              | Trade-off                                                      |
@@ -165,7 +183,8 @@ Below is a summary of our key design choices and their trade-offs.
 
 ## Execution Flow Diagram
 
-**Figure:** Execution flow of the caching mechanism.
+**Figure:** Execution flow of the caching mechanism, showing decorator setup,
+lookup order, and advanced features.
 
 ```mermaid
 flowchart LR
