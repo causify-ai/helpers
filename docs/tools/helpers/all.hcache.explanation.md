@@ -1,18 +1,22 @@
 <!-- toc -->
 
-- [Cache (Explanation)](#cache-explanation)
-  * [Introduction / Motivation](#introduction--motivation)
-  * [Core Concepts](#core-concepts)
-  * [Design Rationale](#design-rationale)
-  * [Trade-offs and Alternatives](#trade-offs-and-alternatives)
+- [Cache](#cache)
+  * [Overview](#overview)
+  * [Design Rationale and Trade-offs](#design-rationale-and-trade-offs)
   * [Common Misunderstandings](#common-misunderstandings)
   * [Execution Flow Diagram](#execution-flow-diagram)
 
 <!-- tocstop -->
 
-# Cache (Explanation)
+# Cache
 
-## Introduction / Motivation
+- This document explains the design and flow of a caching system implemented in
+  [`/helpers/hcache.py`](/helpers/hcache.py).
+- `hcache` provides a dual-layer cache (memory and disk) with tagging, global
+  and function-specific isolation, and deterministic modes for complex projects,
+  improving performance and persistency across sessions.
+
+## Overview
 
 In performance-sensitive systems, repeated evaluations of the same expensive
 function can degrade efficiency. The `hcache` module addresses this through a
@@ -25,32 +29,9 @@ complex use cases where cache configuration, inspection, tagging, and sharing
 are necessary. It supports memory- and disk-based layers, function-level
 control, and tagged caches for environment separation (e.g., test vs prod).
 
-## Core Concepts
+## Design Rationale and Trade-offs
 
-- **Two-Level Cache**: `hcache` uses `joblib.Memory` for both in-memory (via
-  tmpfs) and on-disk caching. First, the memory cache is checked; then disk;
-  finally, the original function is executed.
-- **Tagging**: Allows namespacing the cache (e.g., `unit_tests`, `dev`) to avoid
-  collisions and keep environments isolated.
-- **Global vs Function-Specific**:
-  - _Global cache_: Default backend shared across functions in a Git repo.
-  - _Function-specific cache_: Dedicated backend configured for individual
-    functions or external persistence (e.g., S3).
-- **Read-Only & Check-Only Modes**: Enforces deterministic behavior by raising
-  exceptions when a cache miss occurs or prevents accessing cached values
-  directly.
-
-## Design Rationale
-
-- **Use of `joblib.Memory`**: Supports both memory and disk caching, with better
-  introspection and file system persistence than `functools.lru_cache`.
-- **Global Caches**: Simplifies reuse across modules and functions. Tagging
-  improves hygiene across test/production.
-- **Function-Specific Caches**: Provides isolation for workflows that require
-  sharing across machines or long-term retention.
-- **Deep Copy on Retrieval**: Prevents accidental mutation of cached objects.
-
-## Trade-offs and Alternatives
+The table below summarizes key design choices and their trade-offs.
 
 | Choice                                                              | Trade-off                                                      |
 | ------------------------------------------------------------------- | -------------------------------------------------------------- |
