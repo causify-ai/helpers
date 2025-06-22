@@ -275,39 +275,44 @@ def _call_api_sync(
 
 _CURRENT_OPENAI_COST = None
 
+# #############################################################################
+# LLMCostTracker
+# #############################################################################
+
+
 class LLMCostTracker:
     """
     A class to track the costs of OpenAI API calls.
     """
-    
+
     def start_logging_costs(self) -> None:
         """
         Start logging costs by initializing the current cost to 0.
         """
         global _CURRENT_OPENAI_COST
         _CURRENT_OPENAI_COST = 0.0
-    
+
     def end_logging_costs(self) -> None:
         """
         End logging costs by resetting the current cost to None.
         """
         global _CURRENT_OPENAI_COST
         _CURRENT_OPENAI_COST = None
-    
+
     def accumulate_cost(self, cost: float) -> None:
         """
         Accumulate the cost if logging is enabled.
-        
+
         :param cost: The cost to accumulate
         """
         global _CURRENT_OPENAI_COST
         if _CURRENT_OPENAI_COST is not None:
             _CURRENT_OPENAI_COST += cost
-        
+
     def get_current_cost(self) -> float:
         """
         Get the current accumulated cost.
-        
+
         :return: The current cost
         """
         global _CURRENT_OPENAI_COST
@@ -322,18 +327,18 @@ class LLMCostTracker:
     ) -> float:
         """
         Calculate the cost of an OpenAI API call.
-        
+
         :param completion: The completion response from OpenAI
         :param model: The model used for the completion
         :return: The calculated cost in dollars
         """
         """
-    Calculate the cost of an OpenAI API call.
+        Calculate the cost of an OpenAI API call.
 
-    :param completion: The completion response from OpenAI
-    :param model: The model used for the completion
-    :return: The calculated cost in dollars
-    """
+        :param completion: The completion response from OpenAI
+        :param model: The model used for the completion
+        :return: The calculated cost in dollars
+        """
         prompt_tokens = completion.usage.prompt_tokens
         completion_tokens = completion.usage.completion_tokens
         # TODO(gp): This should be shared in the class.
@@ -369,7 +374,10 @@ class LLMCostTracker:
             prompt_price = row["prompt_pricing"]
             completion_price = row["completion_pricing"]
             # Compute cost.
-            cost = prompt_tokens * prompt_price + completion_tokens * completion_price
+            cost = (
+                prompt_tokens * prompt_price
+                + completion_tokens * completion_price
+            )
         else:
             raise ValueError(f"Unknown provider: {provider_name}")
         _LOG.debug(hprint.to_str("prompt_tokens completion_tokens cost"))
@@ -377,7 +385,6 @@ class LLMCostTracker:
 
 
 # #############################################################################
-
 
 
 @functools.lru_cache(maxsize=1024)
