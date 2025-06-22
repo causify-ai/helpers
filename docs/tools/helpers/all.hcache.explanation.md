@@ -26,17 +26,18 @@
 
 ## Overview
 
-In performance-sensitive systems, repeated evaluations of the same expensive
-function can degrade efficiency (for example, calling an expensive function
-twice with the same arguments returns instantly on the second call due to
-caching). The `hcache` module addresses this through a robust, dual-layer
-caching mechanism that reduces recomputation, enables persistency across
-sessions, and improves responsiveness in both scripts and interactive notebooks.
+- In performance-sensitive systems, repeated evaluations of the same expensive
+  function can degrade efficiency (for example, calling an expensive function
+  twice with the same arguments returns instantly on the second call due to
+  caching).
+- The `hcache` module addresses this through a robust, dual-layer caching
+  mechanism that reduces recomputation, enables persistency across sessions, and
+  improves responsiveness in both scripts and interactive notebooks.
 
-Unlike lightweight alternatives like `hcache_simple`, `hcache` is suited for
-complex use cases where cache configuration, inspection, tagging, and sharing
-are necessary. It supports memory- and disk-based layers, function-level
-control, and tagged caches for environment separation (e.g., test vs prod).
+- Unlike lightweight alternatives like `hcache_simple`, `hcache` is suited for
+  complex use cases where cache configuration, inspection, tagging, and sharing
+  are necessary. It supports memory- and disk-based layers, function-level
+  control, and tagged caches for environment separation (e.g., test vs prod).
 
 ### Usage Example
 
@@ -58,17 +59,22 @@ res2 = expensive_compute(3, 4)
 
 - **Source Code Tracking**: Detects changes in the wrapped function's bytecode
   pointer to invalidate stale cache entries.
+
 - **Two-Level Cache**: Cascading lookup in memory first (via `joblib.Memory`
   over `tmpfs`), then on disk (via `joblib.Memory` at specified directory).
+
 - **Lookup and Store Flow**: On function call, check memory → check disk →
   execute function if miss → store result in both layers.
+
 - **Global Cache**: Default backend shared across all cached functions in a Git
   repo, located at `$GIT_ROOT/tmp.cache.{mem,disk}`.
   - **Tagged Global Cache**: Namespaces cache per `tag` parameter (e.g.,
     `unit_tests` vs default) to isolate environments.
+
 - **Function-Specific Cache**: Customizable cache directories for individual
   functions managed via `.set_cache_directory()`, `.get_cache_directory()`, and
   `.clear_function_cache()`.
+
 - **Deterministic Modes**: `enable_read_only` and `check_only_if_present`
   options enforce strict cache-only or read-only behaviors, supporting testing
   and debugging.
