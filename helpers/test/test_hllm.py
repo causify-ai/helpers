@@ -16,6 +16,7 @@ import helpers.hunit_test as hunitest
 # cache file used for storing llm responses.
 _TEST_CACHE_FILE = "cache.get_completion.json"
 
+
 _USER_PROMPT1 = "what is machine learning?"
 _USER_PROMPT2 = _USER_PROMPT1.upper()
 
@@ -30,7 +31,7 @@ _TEMPERATURE2 = 0.2
 _TOP_P1 = 0.5
 
 _MODEL1 = "gpt-4o-mini"
-_MODEL2 = "gpt-o4-mini"
+_MODEL2 = "gpt-3.5-turbo"
 _MODEL3 = "deepseek/deepseek-r1-0528-qwen3-8b:free/"
 
 
@@ -108,11 +109,12 @@ def _get_openai_request_parameters3() -> Dict[str, Any]:
 
 class Test_get_completion(hunitest.TestCase):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """
+        Initialize the cache instance.
+        """
         super().__init__(*args, **kwargs)
-        self.get_completion_cache = hllm._CompletionCache(
-            cache_file=_TEST_CACHE_FILE
-        )
+        self.llm_cache = hllm._CompletionCache(cache_file=_TEST_CACHE_FILE)
 
     def test1(self) -> None:
         """
@@ -124,12 +126,10 @@ class Test_get_completion(hunitest.TestCase):
             **parameters1, cache_mode="HIT_CACHE_OR_ABORT"
         )
         openai_request_parameters1 = _get_openai_request_parameters1()
-        hash_key1 = self.get_completion_cache.hash_key_generator(
+        hash_key1 = self.llm_cache.hash_key_generator(
             **openai_request_parameters1
         )
-        expected_response = self.get_completion_cache.load_response_from_cache(
-            hash_key1
-        )
+        expected_response = self.llm_cache.load_response_from_cache(hash_key1)
         self.assert_equal(actual_response, expected_response)
         self.assertIsInstance(actual_response, str)
 
@@ -142,10 +142,10 @@ class Test_get_completion(hunitest.TestCase):
             **parameters2, cache_mode="HIT_CACHE_OR_ABORT"
         )
         openai_request_parameters2 = _get_openai_request_parameters2()
-        hash_key2 = self.get_completion_cache.hash_key_generator(
+        hash_key2 = self.llm_cache.hash_key_generator(
             **openai_request_parameters2
         )
-        expected_response = self.get_completion_cache.load_response_from_cache(
+        expected_response = self.llm_cache.load_response_from_cache(
             hash_key=hash_key2
         )
         self.assert_equal(actual_response, expected_response)
@@ -160,10 +160,10 @@ class Test_get_completion(hunitest.TestCase):
             **parameters3, cache_mode="HIT_CACHE_OR_ABORT"
         )
         openai_request_parameters3 = _get_openai_request_parameters3()
-        hash_key3 = self.get_completion_cache.hash_key_generator(
+        hash_key3 = self.llm_cache.hash_key_generator(
             **openai_request_parameters3
         )
-        expected_response = self.get_completion_cache.load_response_from_cache(
+        expected_response = self.llm_cache.load_response_from_cache(
             hash_key=hash_key3
         )
         self.assert_equal(actual_response, expected_response)
