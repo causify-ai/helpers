@@ -174,9 +174,19 @@ def _quote_path_name(cmd: str) -> str:
             tok = tok[:-1]
         if prefix:
             fixed.append(prefix)
-        # 5. Single‑quote awk/sed style scripts.
+        # 5.a  Leave variable assignments (e.g. PYTHONPATH=/x) untouched.
+        if re.match(r"^[A-Za-z_][A-Za-z0-9_]*=.*", tok):
+            # Handle a trailing semicolon stuck to the assignment.
+            if tok.endswith(";") and len(tok) > 1:
+                fixed.append(tok[:-1])
+                fixed.append(";")
+            else:
+                fixed.append(tok)
+            continue
+        # 5.b Single‑quote awk/sed style scripts (contain $ {{ }}).
         if any(ch in tok for ch in ("$", "{", "}")):
             fixed.append(f"'{tok}'")
+            continue
         # 6. Double‑quote paths & globs (handle trailing semicolon).
         elif _looks_like_path(tok) or any(ch in tok for ch in wildcard_chars):
             if tok.endswith(";") and len(tok) > 1:
