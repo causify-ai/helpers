@@ -1066,11 +1066,20 @@ def review_refactoring() -> _PROMPT_OUT:
 # #############################################################################
 
 
+_SLIDE_CONTEXT = r"""
+    You are a proficient technical writer who writes slides in markdown.
+
+    - If a line starts with an asterisk *, consider it as an header andleave it unchanged
+    
+    I will pass you a chunk of markdown code.
+    """
+
+
 def slide_to_bullet_points() -> _PROMPT_OUT:
     """
     Convert the markdown text into bullet points.
     """
-    system = _MD_CONTEXT
+    system = _SLIDE_CONTEXT
     system += r"""
     You will:
     - Convert the following markdown text into bullet points
@@ -1089,7 +1098,7 @@ def slide_to_bullet_points() -> _PROMPT_OUT:
 
 
 def slide_expand() -> _PROMPT_OUT:
-    system = _MD_CONTEXT
+    system = _SLIDE_CONTEXT
     system += r"""
     You will:
     - Maintain the structure of the text and keep the content of the existing
@@ -1112,10 +1121,11 @@ def slide_expand() -> _PROMPT_OUT:
 
 
 def slide_reduce() -> _PROMPT_OUT:
-    system = _MD_CONTEXT
+    system = _SLIDE_CONTEXT
     system += r"""
     You will:
     - Maintain the structure of the text
+    - If a line starts with an asterisk *, consider it as an header andleave it unchanged
     - Keep all the figures
     - Make sure that the text is clean and readable
     - Remove all the words that are not needed
@@ -1136,7 +1146,7 @@ def slide_reduce() -> _PROMPT_OUT:
 
 
 def slide_reduce_bullets() -> _PROMPT_OUT:
-    system = _MD_CONTEXT
+    system = _SLIDE_CONTEXT
     system += r"""
     You will:
     - Maintain the structure of the text
@@ -1156,8 +1166,42 @@ def slide_reduce_bullets() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
+def slide_reduce2() -> _PROMPT_OUT:
+    system = _SLIDE_CONTEXT
+    system += r"""
+    You will:
+    - Maintain the structure of the text
+    - Keep all the figures
+    - Make sure that the text is clean and readable
+    - Use "you" instead of "we"
+
+    - 1 idea per bullet: Keep each point focused on a single concept
+	- Max 5-6 bullets per slide: Avoid cognitive overload
+	- Max 6-8 words per bullet: Short phrases, not full sentences
+	- Parallel structure: Start each bullet with the same part of speech (e.g., verbs)
+	- No full stops (unless it's a complete sentence needing emphasis)
+
+	- Be concise: Drop filler words ("the", "that", etc.)
+	- Use active voice: "Improve accuracy" instead of "Accuracy can be improved."
+	- Use verbs for actions: e.g., "Collect feedback", "Analyze results"
+	- Highlight outcomes: Emphasize value, not process:
+        "Boost retention" > "Use spaced repetition."
+
+    Print only the markdown without any explanation.
+    """
+    # - Minimize the changes to the text
+    pre_transforms: Set[str] = set()
+    post_transforms = {
+        "remove_code_delimiters",
+        "remove_end_of_line_periods",
+        "remove_empty_lines",
+    }
+    post_container_transforms = ["format_slide"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
 def slide_bold() -> _PROMPT_OUT:
-    system = _MD_CONTEXT
+    system = _SLIDE_CONTEXT
     system += r"""
     You will:
     - Not change the text or the structure of the text
@@ -1176,7 +1220,7 @@ def slide_bold() -> _PROMPT_OUT:
 
 
 def slide_smart_colorize() -> _PROMPT_OUT:
-    system = _MD_CONTEXT
+    system = _SLIDE_CONTEXT
     system += r"""
     You will:
     - Not change the text or the structure of the text
@@ -1216,7 +1260,7 @@ def slide_smart_colorize() -> _PROMPT_OUT:
 
 
 def slide_add_figure() -> _PROMPT_OUT:
-    system = _MD_CONTEXT
+    system = _SLIDE_CONTEXT
     system += r"""
     You will create a figure that illustrates the text using Graphviz dot.
 
@@ -1261,7 +1305,7 @@ def slide_add_figure() -> _PROMPT_OUT:
 
 
 def slide_check() -> _PROMPT_OUT:
-    system = _MD_CONTEXT
+    system = _SLIDE_CONTEXT
     system += r"""
     - Do not print the content of the slide, but only the comment.
 
