@@ -20,6 +20,7 @@
 
 - This document explains the design and flow of a caching system implemented in
   [`/helpers/hcache.py`](/helpers/hcache.py).
+
 - `hcache` provides a dual-layer cache (memory and disk) with tagging, global
   and function-specific isolation, and deterministic modes for complex projects,
   improving performance and persistency across sessions.
