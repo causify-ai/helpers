@@ -13,6 +13,7 @@ import getpass
 import logging
 import os
 import re
+import shlex
 import signal
 import subprocess
 import sys
@@ -113,6 +114,76 @@ def get_env_var(env_var_name: str) -> str:
 # #############################################################################
 
 
+def _looks_like_path(token: str) -> bool:
+    """
+    Check if token looks like a filesystem path.
+
+    :param token: token to check
+    :return: whether or not it looks like a path
+    """
+    # Not a flag ("-name"), not an operator ("|", "&&", …)
+    if token.startswith("-"):
+        return False
+    # Contains a slash or begins with ./ or ../ or ends with a typical file‑ext
+    if "/" in token or token.startswith("./") or token.startswith("../"):
+        return True
+    # Common extensions
+    if re.search(r"\.[A-Za-z0-9]{1,5}$", token):
+        return True
+    return False
+
+
+def _quote_path_name(cmd: str) -> str:
+    """
+    Quote pathname tokens and protect tokens that need not be touched.
+
+    :param cmd: Bash command to process
+    :return: processed command
+    """
+    control_ops = {"|", "||", "&&", ";", "&"}
+    wildcard_chars = set("*?[]")
+    try:
+        tokens: List[str] = shlex.split(cmd, posix=True)
+    except ValueError:
+        # Return unbalanced quotes as is.
+        return cmd
+    fixed: List[str] = []
+    for tok in tokens:
+        # Leave control operators verbatim.
+        if tok in control_ops:
+            fixed.append(tok)
+            continue
+        # Leave tokens that are already quoted.
+        if (tok.startswith("'") and tok.endswith("'")) or (
+            tok.startswith('"') and tok.endswith('"')
+        ):
+            fixed.append(tok)
+            continue
+        # Leave subshells like $(pwd) untouched.
+        if tok.startswith("$("):
+            fixed.append(tok)
+            continue
+        # Single‑quote awk/sed scripts to block $‑expansion.
+        if any(ch in tok for ch in ("$", "{", "}")):
+            fixed.append(f"'{tok}'")
+            continue
+        # Protect leading / trailing parenthesis.
+        if tok.startswith("(") or tok.endswith(")"):
+            fixed.append(f'"{tok}"')
+            continue
+        # Double‑quote paths & globs.
+        if _looks_like_path(tok) or any(ch in tok for ch in wildcard_chars):
+            fixed.append(f'"{tok}"')
+            continue
+        # Quote if token still contains spaces.
+        if " " in tok:
+            fixed.append(f'"{tok}"')
+            continue
+        # Otherwise leave as‑is.
+        fixed.append(tok)
+    return " ".join(fixed)
+
+
 # pylint: disable=too-many-branches,too-many-statements,too-many-arguments,too-many-locals
 def _system(
     cmd: str,
@@ -149,6 +220,8 @@ def _system(
         show_output = _LOG.getEffectiveLevel() <= logging.DEBUG
         suppress_output = not show_output
     _LOG.debug(hprint.to_str("suppress_output"))
+    cmd = _quote_path_name(cmd)
+    _LOG.debug("quoted_cmd=%s", cmd)
     # Prepare the command line.
     cmd = f"({cmd})"
     hdbg.dassert_imply(tee, output_file is not None)
@@ -571,9 +644,7 @@ def get_process_pids(
             try:
                 pid = int(fields[0])
             except ValueError as e:
-                _LOG.error(
-                    "Can't parse fields '%s' from line '%s'", fields, line
-                )
+                _LOG.error("Can't parse fields '%s' from line '%s'", fields, line)
                 raise e
             _LOG.debug("pid=%s", pid)
             pids.append(pid)
@@ -810,7 +881,8 @@ def _find_file(filename: str, *, search_path: str = ".") -> Optional[str]:
     Find a file in a directory and report its absolute path.
 
     :param filename: the name of the file to find (e.g., "helpers_root")
-    :param search_path: the directory to search in (e.g., "/Users/saggese/src/helpers1")
+    :param search_path: the directory to search in (e.g.,
+        "/Users/saggese/src/helpers1")
     :return: the absolute path of the file
     """
     # Recursive glob.
@@ -820,20 +892,27 @@ def _find_file(filename: str, *, search_path: str = ".") -> Optional[str]:
         return files[0]
     elif len(files) > 1:
         msg = "Found multiple files with basename '%s' in directory '%s':\n%s" % (
-            filename, search_path, "\n".join(files))
+            filename,
+            search_path,
+            "\n".join(files),
+        )
         raise RuntimeError(msg)
     else:
         return None
 
-    
+
 # TODO(gp): -> find_path_greedily
-def find_path(path: str, *, dir_name: str = ".", abort_on_error: bool = False) -> str:
+def find_path(
+    path: str, *, dir_name: str = ".", abort_on_error: bool = False
+) -> str:
     """
     Find a path in a directory and report its absolute path.
 
     :param path: the path to find (e.g., "system_tools/path.py")
-    :param dir_name: the directory to search in (e.g., "/Users/saggese/src/helpers1")
-    :param abort_on_error: if True, raise an error if the path doesn't exist
+    :param dir_name: the directory to search in (e.g.,
+        "/Users/saggese/src/helpers1")
+    :param abort_on_error: if True, raise an error if the path doesn't
+        exist
     :return: the absolute path of the path
     """
     # Make the path absolute.
@@ -960,9 +1039,7 @@ def find_file_with_dir(
             file_name = file_name[len(prefix) :]
         # Count how many dirs levels there are.
         dir_depth = len(os.path.normpath(file_name).split("/")) - 1
-        _LOG.debug(
-            "inferred dir_depth=%s for file_name=%s", dir_depth, file_name
-        )
+        _LOG.debug("inferred dir_depth=%s for file_name=%s", dir_depth, file_name)
     # Check the matching files.
     matching_files = []
     for candidate_file_name in sorted(candidate_files):
@@ -1017,9 +1094,7 @@ def has_timestamp(file_name: str) -> bool:
     # E.g., %Y%m%d-%H_%M_%S
     # The separator is _, -, or nothing.
     sep = "[-_]?"
-    regex = sep.join(
-        [r"\d{4}", r"\d{2}", r"\d{2}", r"\d{2}", r"\d{2}", r"\d{2}"]
-    )
+    regex = sep.join([r"\d{4}", r"\d{2}", r"\d{2}", r"\d{2}", r"\d{2}", r"\d{2}"])
     _LOG.debug("regex=%s", regex)
     occurrences = re.findall(regex, file_name)
     hdbg.dassert_lte(
