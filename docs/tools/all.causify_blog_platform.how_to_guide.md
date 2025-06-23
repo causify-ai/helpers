@@ -12,6 +12,15 @@
   * [Logging In](#logging-in)
 - [Writing & Publishing Content](#writing--publishing-content)
   * [Example](#example)
+    + [Step 1: Open the Ghost Admin panel](#step-1-open-the-ghost-admin-panel)
+    + [Step 2: Create a new post](#step-2-create-a-new-post)
+    + [Step 3: Insert Markdown card](#step-3-insert-markdown-card)
+    + [Step 4: Paste the contents to post](#step-4-paste-the-contents-to-post)
+    + [Step 5: Perform edits to the content](#step-5-perform-edits-to-the-content)
+    + [Step 6: Handle authorship attribution](#step-6-handle-authorship-attribution)
+    + [Step 7: Preview post](#step-7-preview-post)
+    + [Step 8: Optionally add metadata like excerpt, tags, or scheduled time](#step-8-optionally-add-metadata-like-excerpt-tags-or-scheduled-time)
+    + [Step 9: Publish the blog](#step-9-publish-the-blog)
 - [Themes & Design](#themes--design)
 - [Additional Guides & Tutorials](#additional-guides--tutorials)
   * [Creating and Managing Tags](#creating-and-managing-tags)
@@ -102,43 +111,73 @@
 
 - After creating an account, follow these steps:
 
-- Step 1: Open the Ghost Admin panel at
-  [blog.causify.ai/ghost](https://blog.causify.ai/ghost)
+#### Step 1: Open the Ghost Admin panel
 
-- Step 2: Click **New post**
+- Open [blog.causify.ai/ghost](https://blog.causify.ai/ghost)
+- Enter your credentials to login
+- Open the Ghost Admin Panel
 
-- Step 3: Use the `/markdown` command to insert a Markdown card
+#### Step 2: Create a new post
 
-- Step 4: Copy and paste the contents of
-  `all.invoke_git_branch_copy.how_to_guide.md` into the Markdown card
+- Click **New post** on the top right
 
-- Step 5: Perform edits to the content:
-  - Move the level 1 title (e.g., `# The Git Branch Copy Workflow`) into the
-    Ghost post title field
-  - Delete the level 1 header from the Markdown card content
-  - Add a new line in the TOC for `## Authorship` at the very end
-  - Add the `## Authorship` section at the very end of the Markdown card content
+#### Step 3: Insert Markdown card
 
-- The `## Authorship` section should include everyone who helped (e.g., writing
-  code, reviewing code, writing the blog, etc)
+- Use the `/markdown` command to insert a Markdown card
 
-```markdown
-## Authorship
+#### Step 4: Paste the contents to post
 
-- gpsaggese, aangelo9, Shayawnn, heanhsok
-```
+- Copy and paste the content of `all.invoke_git_branch_copy.how_to_guide.md`
+  into the Markdown card
 
-- Step 6: Click **Preview** to verify formatting (headings, TOC, code blocks)
+#### Step 5: Perform edits to the content
 
-- Step 7: Optionally add metadata like excerpt, tags, or scheduled time
-  - These actions require **Author** access or higher
-  - **Contributors** cannot modify metadata or scheduling options
+- Move the level 1 title (e.g., `# The Git Branch Copy Workflow`) into the Ghost
+  post title field
+- Delete the level 1 header from the Markdown card content
 
-- Step 8: Click **Publish → Publish now** (or schedule the post for later) to
-  publish the blog
-  - If you are a **Contributor**, you cannot publish or schedule posts directly
-  - A staff member with **Author** or higher access must review and approve the
-    post before it goes live
+#### Step 6: Handle authorship attribution
+
+- If you are a **Contributor**:
+  - Add a temporary `## Authorship` section at the very top of the Markdown card
+    content
+  - List everyone who contributed (e.g., wrote code, reviewed, edited)
+
+  Example:
+
+  ```markdown
+  ## Authorship
+  - gpsaggese, aangelo9, Shayawnn, heanhsok
+  ```
+
+- If you are an **Author** or higher:
+  - Add contributors directly in the **Authors** field using the Ghost sidebar
+  - You do not need to include a `## Authorship` section in the content
+
+- If you are reviewing a blog created by a **Contributor**:
+  - You need to have **Author** or higher access to do this
+  - Check the `## Authorship` section at the top of the Markdown card
+  - Manually copy the listed names into the Ghost **Authors** field
+  - Delete the `## Authorship` section from the Markdown content before
+    publishing
+
+#### Step 7: Preview post
+
+- Click **Preview** on the top right to verify formatting (headings, TOC, code
+  blocks)
+
+#### Step 8: Optionally add metadata like excerpt, tags, or scheduled time
+
+- These actions require **Author** access or higher
+- **Contributors** cannot modify metadata or scheduling options
+
+#### Step 9: Publish the blog
+
+- Click **Publish → Publish now** (or schedule the post for later) to publish
+  the blog
+- If you are a **Contributor**, you cannot publish or schedule posts directly
+- A staff member with **Author** or higher access must review and approve the
+  post before it goes live
 
 ## Themes & Design
 
