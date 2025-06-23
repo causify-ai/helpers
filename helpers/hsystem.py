@@ -173,6 +173,12 @@ def _quote_path_name(cmd: str) -> str:
             continue
         # Double‑quote paths & globs.
         if _looks_like_path(tok) or any(ch in tok for ch in wildcard_chars):
+            # Handle pattern like "/app;" where a semicolon is glued to the path.
+            if tok.endswith(";"):
+                path_part = tok[:-1]
+                fixed.append(f'"{path_part}"')
+                fixed.append(";")
+                continue
             fixed.append(f'"{tok}"')
             continue
         # Quote if token still contains spaces.
