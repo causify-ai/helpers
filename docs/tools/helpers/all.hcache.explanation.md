@@ -2,17 +2,17 @@
 
 - [Cache](#cache)
   * [Overview](#overview)
-    + [Usage Example](#usage-example)
-  * [Core Concepts](#core-concepts)
+    + [Usage example](#usage-example)
+  * [Core concepts](#core-concepts)
   * [How the `Cache` works](#how-the-cache-works)
     + [Disk level](#disk-level)
     + [Memory level](#memory-level)
   * [Global cache](#global-cache)
     + [Tagged global cache](#tagged-global-cache)
   * [Function-specific cache](#function-specific-cache)
-  * [Design Rationale and Trade-offs](#design-rationale-and-trade-offs)
-  * [Common Misunderstandings](#common-misunderstandings)
-  * [Execution Flow Diagram](#execution-flow-diagram)
+  * [Design rationale and trade-offs](#design-rationale-and-trade-offs)
+  * [Common misunderstandings](#common-misunderstandings)
+  * [Execution flow diagram](#execution-flow-diagram)
 
 <!-- tocstop -->
 
@@ -39,7 +39,7 @@
   are necessary. It supports memory- and disk-based layers, function-level
   control, and tagged caches for environment separation (e.g., test vs prod).
 
-### Usage Example
+### Usage example
 
 ```python
 from helpers.hcache import cache
@@ -55,7 +55,7 @@ res1 = expensive_compute(3, 4)
 res2 = expensive_compute(3, 4)
 ```
 
-## Core Concepts
+## Core concepts
 
 - **Source Code Tracking**: Detects changes in the wrapped function's bytecode
   pointer to invalidate stale cache entries.
@@ -162,7 +162,7 @@ res2 = expensive_compute(3, 4)
   `.set_cache_directory()`, `.get_cache_directory()`, `.destroy_cache()` and
   `.clear_function_cache()` methods.
 
-## Design Rationale and Trade-offs
+## Design rationale and trade-offs
 
 We chose these approaches to balance performance, persistence, and
 configurability.
@@ -176,7 +176,7 @@ Below is a summary of our key design choices and their trade-offs.
 | Global + function-specific backends                                 | Powerful but adds complexity for setup and cleanup             |
 | Verbose cache control (`enable_read_only`, `check_only_if_present`) | Good for testing and debugging; may be overkill for casual use |
 
-## Common Misunderstandings
+## Common misunderstandings
 
 - **Caches aren't auto-cleaned**: Old entries may accumulate; manual clearing is
   needed via `clear_global_cache()` or `clear_function_cache()`.
@@ -187,7 +187,7 @@ Below is a summary of our key design choices and their trade-offs.
   code, so altering it causes cache misses unless overridden intentionally via
   `update_func_code_without_invalidating_cache()`.
 
-## Execution Flow Diagram
+## Execution flow diagram
 
 **Figure:** Execution flow of the caching mechanism, showing decorator setup,
 lookup order, and advanced features.
