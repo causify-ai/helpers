@@ -78,11 +78,13 @@
 ### Step 1: Create a new file with tree output
 
 - Create the initial file with the structure of the tree
+
   ```bash
   > i bash_print_tree --path="devops" --output="all.devops_docker.reference.md"
   ```
 
 - The output file `all.devops_docker.reference.md` should look like this:
+
   ```markdown
   <!-- tree:start:devops -->
 
@@ -124,7 +126,7 @@
 - You edit the output file `all.devops_docker.reference.md` and more information
   and comments to the files in the tree
 
-  ```bash
+  ```markdown
   ## Introduction
 
   This file documents the code organization and Docker-based DevOps structure.
@@ -132,6 +134,7 @@
   ## Directory Structure
 
   <!-- tree:start:devops -->
+
   devops
   - compose # Contains Docker compose files.
     - tmp.docker-compose.yml
@@ -162,7 +165,7 @@
     - run_jupyter_server.sh
   - env
     - default.env
-  <!-- tree:end -->
+    <!-- tree:end -->
 
   ## Docker invoke flow
 
