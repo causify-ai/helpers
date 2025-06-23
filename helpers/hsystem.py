@@ -149,44 +149,48 @@ def _quote_path_name(cmd: str) -> str:
         return cmd
     fixed: List[str] = []
     for tok in tokens:
-        # Leave control operators verbatim.
+        # 1. Control operators stay verbatim.
         if tok in control_ops:
             fixed.append(tok)
             continue
-        # Leave tokens that are already quoted.
+        # 2. Already‑quoted tokens stay.
         if (tok.startswith("'") and tok.endswith("'")) or (
             tok.startswith('"') and tok.endswith('"')
         ):
             fixed.append(tok)
             continue
-        # Leave subshells like $(pwd) untouched.
+        # 3. Subshell expressions untouched.
         if tok.startswith("$("):
             fixed.append(tok)
             continue
-        # Single‑quote awk/sed scripts to block $‑expansion.
+        # 4. If token has glued parentheses, peel them.
+        prefix = ""
+        suffix = ""
+        while tok.startswith("(") and len(tok) > 1:
+            prefix += "("
+            tok = tok[1:]
+        while tok.endswith(")") and len(tok) > 1:
+            suffix = ")" + suffix
+            tok = tok[:-1]
+        if prefix:
+            fixed.append(prefix)
+        # 5. Single‑quote awk/sed style scripts.
         if any(ch in tok for ch in ("$", "{", "}")):
             fixed.append(f"'{tok}'")
-            continue
-        # Protect leading / trailing parenthesis.
-        if tok.startswith("(") or tok.endswith(")"):
-            fixed.append(f'"{tok}"')
-            continue
-        # Double‑quote paths & globs.
-        if _looks_like_path(tok) or any(ch in tok for ch in wildcard_chars):
-            # Handle pattern like "/app;" where a semicolon is glued to the path.
-            if tok.endswith(";"):
-                path_part = tok[:-1]
-                fixed.append(f'"{path_part}"')
+        # 6. Double‑quote paths & globs (handle trailing semicolon).
+        elif _looks_like_path(tok) or any(ch in tok for ch in wildcard_chars):
+            if tok.endswith(";") and len(tok) > 1:
+                fixed.append(f'"{tok[:-1]}"')
                 fixed.append(";")
-                continue
+            else:
+                fixed.append(f'"{tok}"')
+        # 7. Quote remaining tokens that contain spaces.
+        elif " " in tok:
             fixed.append(f'"{tok}"')
-            continue
-        # Quote if token still contains spaces.
-        if " " in tok:
-            fixed.append(f'"{tok}"')
-            continue
-        # Otherwise leave as‑is.
-        fixed.append(tok)
+        else:
+            fixed.append(tok)
+        if suffix:
+            fixed.append(suffix)
     return " ".join(fixed)
 
 
