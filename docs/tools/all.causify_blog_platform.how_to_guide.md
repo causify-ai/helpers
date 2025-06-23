@@ -115,26 +115,39 @@
 
 - Open [blog.causify.ai/ghost](https://blog.causify.ai/ghost)
 - Enter your credentials to login
+
+  <img src="figs/blog/image1.png" width="1000"/>
+
 - Open the Ghost Admin Panel
+
+  <img src="figs/blog/image2.png" width="1000"/>
 
 #### Step 2: Create a new post
 
 - Click **New post** on the top right
 
+  <img src="figs/blog/image3.png" width="1000"/>
+
 #### Step 3: Insert Markdown card
 
 - Use the `/markdown` command to insert a Markdown card
+
+  <img src="figs/blog/image4.png" width="1000"/>
 
 #### Step 4: Paste the contents to post
 
 - Copy and paste the content of `all.invoke_git_branch_copy.how_to_guide.md`
   into the Markdown card
 
+  <img src="figs/blog/image5.png" width="1000"/>
+
 #### Step 5: Perform edits to the content
 
 - Move the level 1 title (e.g., `# The Git Branch Copy Workflow`) into the Ghost
   post title field
 - Delete the level 1 header from the Markdown card content
+
+  <img src="figs/blog/image6.png" width="1000"/>
 
 #### Step 6: Handle authorship attribution
 
@@ -143,12 +156,7 @@
     content
   - List everyone who contributed (e.g., wrote code, reviewed, edited)
 
-  Example:
-
-  ```markdown
-  ## Authorship
-  - gpsaggese, aangelo9, Shayawnn, heanhsok
-  ```
+  <img src="figs/blog/image7.png" width="1000"/>
 
 - If you are an **Author** or higher:
   - Add contributors directly in the **Authors** field using the Ghost sidebar
@@ -166,10 +174,15 @@
 - Click **Preview** on the top right to verify formatting (headings, TOC, code
   blocks)
 
+  <img src="figs/blog/image8.png" width="1000"/>
+  <img src="figs/blog/image9.png" width="1000"/>
+
 #### Step 8: Optionally add metadata like excerpt, tags, or scheduled time
 
 - These actions require **Author** access or higher
 - **Contributors** cannot modify metadata or scheduling options
+
+  <img src="figs/blog/image10.png" width="1000"/>
 
 #### Step 9: Publish the blog
 
