@@ -29,6 +29,8 @@ import re
 import tempfile
 from typing import List, Optional, Tuple
 
+
+import helpers.hcache_simple as hcache_simple
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hio as hio
@@ -205,7 +207,7 @@ class ImageHashCache:
 
 # #############################################################################
 
-
+@hcache_simple.simple_cache(write_through=True)
 def _render_image_code(
     image_code_txt: str,
     image_code_idx: int,
@@ -217,7 +219,7 @@ def _render_image_code(
     force_rebuild: bool = False,
     use_sudo: bool = False,
     dry_run: bool = False,
-    cache_file: Optional[str] = None,
+    # cache_file: Optional[str] = None,
 ) -> Tuple[str, bool]:
     """
     Render the image code into an image file.
@@ -280,23 +282,23 @@ def _render_image_code(
     in_code_file_path, abs_img_dir_path, out_img_file_path = (
         _get_rendered_file_paths(out_file, image_code_idx, dst_ext)
     )
-    cache_hit = False
-    if use_cache:
-        # Initialize cache handler.
-        cache_file = cache_file or "./tmp.render_images.cache.json"
-        _LOG.debug(hprint.to_str("cache_file"))
-        cache = ImageHashCache(cache_file)
-        # Compute hash of inputs.
-        cache_key, cache_value = cache.compute_hash(
-            image_code_txt, image_code_type, out_img_file_path
-        )
+    # cache_hit = False
+    # if use_cache:
+    #     # Initialize cache handler.
+    #     cache_file = cache_file or "./tmp.render_images.cache.json"
+    #     _LOG.debug(hprint.to_str("cache_file"))
+    #     cache = ImageHashCache(cache_file)
+        # # Compute hash of inputs.
+        # cache_key, cache_value = cache.compute_hash(
+        #     image_code_txt, image_code_type, out_img_file_path
+        # )
         # Check if the image is cached.
-        if cache_key in cache:
-            # The image is cached, return the path.
-            _LOG.info("Cache hit for image '%s'", out_img_file_path)
-            hdbg.dassert_file_exists(out_img_file_path)
-            cache_hit = True
-            return out_img_file_path, cache_hit
+        # if cache_key in cache:
+        #     # The image is cached, return the path.
+        #     _LOG.info("Cache hit for image '%s'", out_img_file_path)
+        #     hdbg.dassert_file_exists(out_img_file_path)
+        #     cache_hit = True
+        #     return out_img_file_path, cache_hit
         # No cache hit, render the image and update the cache.
     hio.create_dir(abs_img_dir_path, incremental=True)
     # Save the image code to a temporary file.
@@ -348,9 +350,9 @@ def _render_image_code(
     # Remove the temp file.
     os.remove(in_code_file_path)
     # Update the cache.
-    if use_cache:
-        cache.update_cache(cache_key, cache_value)
-    return out_img_file_path, cache_hit
+    # if use_cache:
+    #     cache.update_cache(cache_key, cache_value)
+    return out_img_file_path
 
 
 def _get_comment_prefix_postfix(extension: str) -> Tuple[str, str]:
@@ -514,7 +516,7 @@ def _render_images(
                 # Found the end of an image code block.
                 image_code_txt = "\n".join(image_code_lines)
                 use_cache = True
-                rel_img_path, is_cache_hit = _render_image_code(
+                rel_img_path = _render_image_code(
                     image_code_txt,
                     image_code_idx,
                     image_code_type,
@@ -526,7 +528,7 @@ def _render_images(
                     dry_run=dry_run,
                     cache_file=cache_file,
                 )
-                _ = is_cache_hit
+                # _ = is_cache_hit
                 # Override the image name if explicitly set by the user.
                 if user_rel_img_path != "":
                     rel_img_path = user_rel_img_path
