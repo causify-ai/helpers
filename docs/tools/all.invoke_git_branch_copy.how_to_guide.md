@@ -9,6 +9,7 @@
     + [Step 1: Make sure your branch is up to date](#step-1-make-sure-your-branch-is-up-to-date)
     + [Step 2: Create a new branch from your feature branch](#step-2-create-a-new-branch-from-your-feature-branch)
     + [Step 3: Confirm the new branch is created](#step-3-confirm-the-new-branch-is-created)
+- [Execution flow diagram](#execution-flow-diagram)
 - [Alternative Manual Workflow](#alternative-manual-workflow)
   * [Using invoke `git_create_patch`](#using-invoke-git_create_patch)
 - [Known Limitations](#known-limitations)
@@ -215,6 +216,27 @@
 
 - Note that the merge it's typically very simple, since the incoming code is the
   same one that is already in the branch
+
+## Execution flow diagram
+
+```mermaid
+%%{init: {'theme': 'base', 'gitGraph': {'mainBranchName': 'master'}}}%%
+gitGraph
+    commit id: "Initial commit (master)"
+    branch CmTask5874_Document_PR_flow
+    checkout CmTask5874_Document_PR_flow
+    commit id: "Feature change 1"
+    commit id: "Feature change 2"
+    checkout master
+    branch CmTask5874_Document_PR_flow_2
+    checkout CmTask5874_Document_PR_flow_2
+    merge CmTask5874_Document_PR_flow id: "Squash feature changes"
+    commit id: "Commit .png files only"
+    checkout master
+    merge CmTask5874_Document_PR_flow_2 id: "Partial PR merged"
+    checkout CmTask5874_Document_PR_flow
+    merge master id: "Sync with master"
+```
 
 ## Alternative Manual Workflow
 
