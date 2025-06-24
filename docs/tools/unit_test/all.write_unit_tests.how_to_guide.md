@@ -305,7 +305,14 @@ Last review: GP on 2024-05-13
 
 #### `check_string` vs `self.assertEqual`
 
-- TODO(gp): Add
+- Use `self.assert_equal()` when you expect a simple, small string comparison.
+- Use `self.check_string()` when:
+  - The expected string is too large to inline in code.
+  - You want a frozen reference output stored on disk.
+  - The test output may change less frequently but still needs stable diffing.
+- Rule of thumb:
+  - If it's simple → `assert_equal()`
+  - If it's large, externalized, or behavioral regression → `check_string()`.
 
 #### Use `self.assert_equal()`
 
@@ -467,11 +474,10 @@ self.assert_equal(act, exp, fuzzy_match=True)
 
 #### We don't need to test all the assertions
 
-- E.g., testing carefully that we can't pass a value to a constructor doesn't
-  really test much besides the fact that `dassert` works (which, surprisingly
-  works!)
-- We don't care about line coverage or checking boxes for the sake of checking
-  boxes
+- Focus on behavioral correctness, not line coverage.
+- We don't need to exhaustively test every `dassert` or input validation unless
+  it's part of the system's observable behavior.
+- Behavioral coverage gives better ROI than aiming for 100% line coverage.
 
 #### Use strings to compare output instead of data structures
 
@@ -525,7 +531,7 @@ self.assert_equal(act, exp, fuzzy_match=True)
   you focus on what's important to test and force you to use an iterative
   approach rather than incremental (remember the Monalisa)
 
-  <img src="figs/unit_tests/image_4.png">
+  <img src="../../code_guidelines/figs/unit_tests/image_4.png">
 
 #### Write a template of unit tests and ask for a review if you are not sure how what to test
 
@@ -603,23 +609,17 @@ self.assert_equal(act, exp, fuzzy_match=True)
         ...
     ```
   - If there is nothing left in `setUp()`/`tearDown()` after removing
-    `super().setUp()`/`super.tearDown()`, then `setUp()`/`tearDown()` can be
+    `super().setUp()`/`super().tearDown()`, then `setUp()`/`tearDown()` can be
     discarded completely.
 
 #### Nested set_up_test / tear_down_test
 
-- When a test class (e.g., TestChild) inherits from another test class (e.g.,
-  TestParent), `setUp()`/`tearDown()` methods in the child class normally
-  incorporate the corresponding methods from the parent class.
-- We prioritize clarity and explicitness in the naming and usage of our methods.
-  Therefore, the general rule is that we define
-  `set_up_test()`/`tear_down_test()` in the parent class, and in the child class
-  we define `set_up_test2()`/`tear_down_test2()`, which call the corresponding
-  methods from the parent class.
-  - If the child class itself is used as a parent for another class, then the
-    deeper nested class's methods are named
-    `set_up_test3()`/`tear_down_test3()`, and so on, with the numerical suffix
-    increasing at each level.
+- In nested inheritance:
+  - The parent class uses `set_up_test()` / `tear_down_test()`.
+  - The child class uses `set_up_test2()` / `tear_down_test2()`, calling its
+    parent.
+  - Each further nested level adds a numeric suffix: `set_up_test3()`, etc.
+- This makes nested setup logic explicit and avoids framework collisions.
 - The following cases are possible with regard to the `setUp()`/`tearDown()`
   configuration:
   - Both of TestParent and TestChild have separate `setUp()`/`tearDown()`
@@ -1024,8 +1024,8 @@ self.assert_equal(act, exp, fuzzy_match=True)
 #### Do not mock internal dependencies
 
 - In general we don't want to mock any code that is inside our repo, since
-  - We want to actual test the interaction of different pieces of our code
-  - It creates maintanance problems
+  - We want to actually test the interaction of different pieces of our code
+  - It creates maintenance problems
 
 #### Testing end-to-end
 
