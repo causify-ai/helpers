@@ -1,46 +1,39 @@
 #!/usr/bin/env python
 """
-Invite GitHub collaborators listed in a Google Sheet while obeying the
-50-invite / 24-hour cap.
+Invite GitHub collaborators listed in a Google Sheet/CSV while obeying the
+50-invite / 24-hour cap. This requires some dependencies, which is why it is
+executed in a Docker container.
 
-> automate_collaborator_invitations.py \
+# Invite to the repo `causify-ai/tutorials` the users in the passed Google Sheet:
+> invite_gh_contributors.py \
     --drive_url "https://docs.google.com/spreadsheets/d/1Ez5uRvOgvDMkFc9c6mI21kscTKnpiCSh4UkUh_ifLIw
     /edit?gid=0#gid=0" \
-    --gh_token "$GH_PAT" \
+    --org_name causify-ai \
+    --repo_name tutorials
+
+# Invite to the repo `causify-ai/tutorials` the users in the passed CSV file:
+> invite_gh_contributors.py \
+    --csv_file "/tmp/github_users.csv" \
     --org_name causify-ai \
     --repo_name tutorials
 """
 import argparse
+import csv
 import datetime
 import logging
-import subprocess
-import sys
-from typing import List
-
-import helpers.hdbg as hdbg
-import helpers.hparser as hparser
-
-# Install required packages and configure.
-packages = [
-    "pygithub",
-    "google-api-python-client",
-    "oauth2client",
-    "gspread",
-    "ratelimit",
-]
-for pkg in packages:
-    subprocess.run(
-        [sys.executable, "-m", "pip", "install", "--quiet", "--upgrade", pkg],
-        check=True,
-    )
-
-_LOG = logging.getLogger(__name__)
+import os
+from typing import List, Optional
 
 import github
 import ratelimit
 
+import helpers.hdbg as hdbg
 import helpers.hgoogle_drive_api as hgodrapi
+import helpers.hparser as hparser
 
+_LOG = logging.getLogger(__name__)
+
+# Set constraints.
 _INVITES_PER_WINDOW = 50
 _WINDOW_SECONDS = int(datetime.timedelta(hours=24).total_seconds())
 
@@ -63,6 +56,28 @@ def extract_usernames_from_gsheet(gsheet_url: str) -> List[str]:
     return usernames
 
 
+def extract_usernames_from_csv(csv_path: str) -> List[str]:
+    """
+    Extract GitHub usernames from a CSV file containing a *GitHub user* column.
+
+    :param csv_path: path to csv
+    :return: github usernames
+    """
+    usernames: List[str] = []
+    with open(csv_path, newline="", encoding="utf-8") as csv_file:
+        reader = csv.DictReader(csv_file)
+        hdbg.dassert_in(
+            "GitHub user",
+            reader.fieldnames,
+            "CSV missing required column 'GitHub user'",
+        )
+        for row in reader:
+            usernames.append(row["GitHub user"])
+    usernames = [user.strip() for user in usernames if user and user.strip()]
+    _LOG.info("Usernames (CSV)   = %s", usernames)
+    return usernames
+
+
 @ratelimit.sleep_and_retry
 @ratelimit.limits(calls=_INVITES_PER_WINDOW, period=_WINDOW_SECONDS)
 def _invite(repo, username: str, *, permission: str = "write") -> None:
@@ -79,7 +94,7 @@ def _invite(repo, username: str, *, permission: str = "write") -> None:
 
 def send_invitations(
     usernames: List[str],
-    gh_access_token: str,
+    gh_access_token: Optional[str],
     repo_name: str,
     org_name: str,
 ) -> None:
@@ -112,15 +127,15 @@ def _parse() -> argparse.Namespace:
         description="Invite GitHub collaborators from a Google Sheet, respecting limit.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument(
+    # Set `--drive_url` and `--csv_file` to be mutually exclusive.
+    input_group = parser.add_mutually_exclusive_group(required=True)
+    input_group.add_argument(
         "--drive_url",
-        required=True,
-        help="Google‑Sheet URL with a 'GitHub user' column",
+        help="Google Sheet URL containing a 'GitHub user' column",
     )
-    parser.add_argument(
-        "--gh_token",
-        required=True,
-        help="GitHub personal‑access token (repo scope)",
+    input_group.add_argument(
+        "--csv_file",
+        help="Path to CSV file containing a 'GitHub user' column",
     )
     parser.add_argument(
         "--repo_name", required=True, help="Target repository name (without org)"
@@ -134,8 +149,14 @@ def _parse() -> argparse.Namespace:
 
 def _main(args: argparse.Namespace) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    usernames = extract_usernames_from_gsheet(args.drive_url)
-    send_invitations(usernames, args.gh_token, args.repo_name, args.org_name)
+    # Retrieve GitHub token from env var.
+    gh_token = os.getenv("GITHUB_TOKEN")
+    hdbg.dassert(gh_token, "Environment variable GITHUB_TOKEN must be set")
+    if args.csv_file:
+        usernames = extract_usernames_from_csv(args.csv_file)
+    else:
+        usernames = extract_usernames_from_gsheet(args.drive_url)
+    send_invitations(usernames, gh_token, args.repo_name, args.org_name)
 
 
 if __name__ == "__main__":
