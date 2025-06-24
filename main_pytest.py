@@ -156,6 +156,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     command = args.command
     runnable_dir = args.dir
+    all_tests_passed = False
     try:
         if runnable_dir:
             # If a runnable directory is specified, run tests for it.

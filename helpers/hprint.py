@@ -41,13 +41,15 @@ _LOG.setLevel(logging.INFO)
 # #############################################################################
 
 _COLOR_MAP = {
+    "bold": 1,
+    # Colors.
     "blue": 94,
     "green": 92,
     "white": 0,
     "purple": 95,
     "red": 91,
     "yellow": 33,
-    # Blu.
+    # Blue.
     "DEBUG": 34,
     # Cyan.
     "INFO": 36,

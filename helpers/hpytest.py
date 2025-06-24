@@ -19,7 +19,7 @@ import helpers.hsystem as hsystem
 _LOG = logging.getLogger(__name__)
 
 
-def _pytest_show_artifacts(dir_name: str, tag: Optional[str] = None) -> List[str]:
+def _pytest_show_artifacts(dir_name: str, *, tag: Optional[str] = None) -> List[str]:
     hdbg.dassert_ne(dir_name, "")
     hdbg.dassert_dir_exists(dir_name)
     cd_cmd = f"cd {dir_name} && "
@@ -85,44 +85,14 @@ def pytest_clean(dir_name: str, preview: bool = False) -> None:
 
 
 # #############################################################################
-# Colors
-# #############################################################################
-
-
-class Colors:
-    """
-    ANSI color codes for terminal output.
-    """
-
-    RED = "\033[91m"
-    GREEN = "\033[92m"
-    YELLOW = "\033[93m"
-    BLUE = "\033[94m"
-    MAGENTA = "\033[95m"
-    CYAN = "\033[96m"
-    WHITE = "\033[97m"
-    BOLD = "\033[1m"
-    RESET = "\033[0m"
-
-    @classmethod
-    def disable(cls):
-        """
-        Disable colors for non-terminal output.
-        """
-        cls.RED = cls.GREEN = cls.YELLOW = cls.BLUE = ""
-        cls.MAGENTA = cls.CYAN = cls.WHITE = cls.BOLD = cls.RESET = ""
-
-
-# #############################################################################
 # JUnitReporter
 # #############################################################################
 
 
 class JUnitReporter:
 
-    def __init__(self, xml_file: str, use_colors: bool = True):
+    def __init__(self, xml_file: str):
         self.xml_file = xml_file
-        self.use_colors = use_colors
         self.xml_data = None
         self.overall_stats = {
             "passed": 0,
@@ -132,8 +102,6 @@ class JUnitReporter:
             "total_time": 0.0,
             "total_tests": 0,
         }
-        if not use_colors or not sys.stdout.isatty():
-            Colors.disable()
 
     def parse(self):
         """
@@ -156,7 +124,7 @@ class JUnitReporter:
                     self.overall_stats["error"] += suite.errors or 0
                     self.overall_stats["skipped"] += suite.skipped or 0
         except Exception as e:
-            print(f"{Colors.RED}Error parsing XML file: {e}{Colors.RESET}")
+            print(hprint.color_highlight(f"Error parsing XML file: {e}", "red"))
             sys.exit(1)
 
     def print_summary(self):
@@ -164,20 +132,16 @@ class JUnitReporter:
         self._print_final_summary()
 
     def _print_detailed_results(self):
-        print(f"{Colors.BOLD}{'=' * 70}")
-        print(
-            f"collected {self.overall_stats['total_tests']} items{Colors.RESET}"
-        )
+        print(hprint.color_highlight('=' * 70, "bold"))
+        print(hprint.color_highlight(f"collected {self.overall_stats['total_tests']} items", "bold"))
         for _, suite in enumerate(self.xml_data):
             if not isinstance(suite, junitparser.TestSuite):
                 continue
             # Print suite header.
-            print(f"\n{Colors.BLUE}{'=' * 70}{Colors.RESET}")
-            print(f"{Colors.BOLD}{Colors.BLUE}Test: {suite.name}{Colors.RESET}")
-            print(
-                f"{Colors.BLUE}Timestamp: {getattr(suite, 'timestamp', 'Unknown')}{Colors.RESET}"
-            )
-            print(f"{Colors.BLUE}{'-' * 70}{Colors.RESET}")
+            print(f"\n{hprint.color_highlight('=' * 70, 'blue')}")
+            print(hprint.color_highlight(f"Test: {suite.name}", "bold"))
+            print(hprint.color_highlight(f"Timestamp: {getattr(suite, 'timestamp', 'Unknown')}", "bold"))
+            print(hprint.color_highlight('-' * 70, "blue"))
             # Print each test case.
             for case in suite:
                 if isinstance(case, junitparser.TestCase):
@@ -195,79 +159,59 @@ class JUnitReporter:
             )
             summary_parts = []
             if suite_passed > 0:
-                summary_parts.append(
-                    f"{Colors.GREEN}{suite_passed} passed{Colors.RESET}"
-                )
+                summary_parts.append(hprint.color_highlight(f"{suite_passed} passed", "green"))
             if suite.failures and suite.failures > 0:
-                summary_parts.append(
-                    f"{Colors.RED}{suite.failures} failed{Colors.RESET}"
-                )
+                summary_parts.append(hprint.color_highlight(f"{suite.failures} failed", "red"))
             if suite.errors and suite.errors > 0:
-                summary_parts.append(
-                    f"{Colors.MAGENTA}{suite.errors} error{Colors.RESET}"
-                )
+                summary_parts.append(hprint.color_highlight(f"{suite.errors} error", "red"))
             if suite.skipped and suite.skipped > 0:
-                summary_parts.append(
-                    f"{Colors.YELLOW}{suite.skipped} skipped{Colors.RESET}"
-                )
+                summary_parts.append(hprint.color_highlight(f"{suite.skipped} skipped", "WARNING"))
             suite_summary = (
                 ", ".join(summary_parts) if summary_parts else "no tests"
             )
             suite_time = getattr(suite, "time", 0) or 0
-            print(
-                f"{Colors.BOLD}Summary: {suite_summary} in {suite_time:.3f}s{Colors.RESET}"
-            )
+            print(hprint.color_highlight(f"Summary: {suite_summary} in {suite_time:.3f}s", "INFO"))
 
     def _print_final_summary(self):
         summary_parts = []
         if self.overall_stats["passed"] > 0:
-            summary_parts.append(
-                f"{Colors.GREEN}{self.overall_stats['passed']} passed{Colors.RESET}"
-            )
+            summary_parts.append(hprint.color_highlight(f"{self.overall_stats['passed']} passed", "green"))
         if self.overall_stats["failed"] > 0:
-            summary_parts.append(
-                f"{Colors.RED}{self.overall_stats['failed']} failed{Colors.RESET}"
-            )
+            summary_parts.append(hprint.color_highlight(f"{self.overall_stats['failed']} failed", "red"))
         if self.overall_stats["error"] > 0:
-            summary_parts.append(
-                f"{Colors.MAGENTA}{self.overall_stats['error']} error{Colors.RESET}"
-            )
+            summary_parts.append(hprint.color_highlight(f"{self.overall_stats['error']} error", "red"))
         if self.overall_stats["skipped"] > 0:
-            summary_parts.append(
-                f"{Colors.YELLOW}{self.overall_stats['skipped']} skipped{Colors.RESET}"
-            )
+            summary_parts.append(hprint.color_highlight(f"{self.overall_stats['skipped']} skipped", "yellow"))
         summary_text = ", ".join(summary_parts) if summary_parts else "no tests"
-        time_text = f"in {Colors.BOLD}{self.overall_stats['total_time']:.2f}s{Colors.RESET}"
+        time_text = "in " + hprint.color_highlight(f"{self.overall_stats['total_time']:.2f}s", "bold")
         # Determine overall status
         if self.overall_stats["failed"] > 0 or self.overall_stats["error"] > 0:
-            status_indicator = f"{Colors.RED}{Colors.BOLD}FAILED{Colors.RESET}"
+            status_indicator = hprint.color_highlight("FAILED", "red")
         elif (
             self.overall_stats["skipped"] > 0
             and self.overall_stats["passed"] == 0
         ):
-            status_indicator = (
-                f"{Colors.YELLOW}{Colors.BOLD}SKIPPED{Colors.RESET}"
-            )
+            status_indicator = hprint.color_highlight("SKIPPED", "yellow")
         else:
-            status_indicator = f"{Colors.GREEN}{Colors.BOLD}PASSED{Colors.RESET}"
+            status_indicator = hprint.color_highlight("PASSED", "green")
         # Print summary.
-        print(f"\n{Colors.BOLD}{'=' * 70}")
-        print("Summary:")
-        print(f"{summary_text} {time_text}")
-        print(f"Result: {status_indicator}{Colors.RESET}")
+        print(f"\n{hprint.color_highlight('=' * 70, 'bold')}")
+        print(hprint.color_highlight(f"Summary: {summary_text} {time_text}", "INFO"))
+        print(hprint.color_highlight(f"Result: {status_indicator}", "INFO"))
+
 
     def _get_colored_status(self, case: junitparser.TestCase) -> str:
         """
         Get the colored status representation of test case.
         """
         if not case.result or len(case.result) == 0:
-            return f"{Colors.GREEN}PASSED{Colors.RESET}"
+            return hprint.color_highlight("PASSED", "green")
         result_type = case.result[0].__class__.__name__
         if result_type == "Failure":
-            return f"{Colors.RED}FAILED{Colors.RESET}"
+            return hprint.color_highlight("FAILED", "red")
         elif result_type == "Error":
-            return f"{Colors.MAGENTA}ERROR{Colors.RESET}"
+            return hprint.color_highlight("ERROR", "red")
         elif result_type == "Skipped":
-            return f"{Colors.YELLOW}SKIPPED{Colors.RESET}"
+            return hprint.color_highlight("SKIPPED", "yellow")
         else:
-            return f"{Colors.GREEN}PASSED{Colors.RESET}"
+            return hprint.color_highlight("PASSED", "green")
