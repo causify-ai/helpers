@@ -461,7 +461,7 @@ def reset_mem_cache(func_name: str = "") -> None:
 
 
 def reset_disk_cache(func_name: str = "") -> None:
-    # assert 0
+    assert 0
     if func_name == "":
         cache_files = glob.glob("cache.*")
         for file_name in cache_files:
