@@ -142,6 +142,9 @@ def _quote_path_name(cmd: str) -> str:
     """
     control_ops = {"|", "||", "&&", ";", "&"}
     wildcard_chars = set("*?[]")
+    # Quick‑exit for complex subshell/export commands that we risk breaking.
+    if "$(" in cmd or cmd.lstrip().startswith("export "):
+        return cmd
     try:
         tokens: List[str] = shlex.split(cmd, posix=True)
     except ValueError:
@@ -164,16 +167,16 @@ def _quote_path_name(cmd: str) -> str:
             fixed.append(tok)
             continue
         # 4. If token has glued parentheses, peel them.
-        prefix = ""
-        suffix = ""
+        lead_paren = ""
         while tok.startswith("(") and len(tok) > 1:
-            prefix += "("
+            lead_paren += "("
             tok = tok[1:]
+        trail_paren = ""
         while tok.endswith(")") and len(tok) > 1:
-            suffix = ")" + suffix
+            trail_paren = ")" + trail_paren
             tok = tok[:-1]
-        if prefix:
-            fixed.append(prefix)
+        if lead_paren:
+            fixed.append(lead_paren)
         # 5.a  Leave variable assignments (e.g. PYTHONPATH=/x) untouched.
         if re.match(r"^[A-Za-z_][A-Za-z0-9_]*=.*", tok):
             # Handle a trailing semicolon stuck to the assignment.
@@ -199,8 +202,13 @@ def _quote_path_name(cmd: str) -> str:
             fixed.append(f'"{tok}"')
         else:
             fixed.append(tok)
-        if suffix:
-            fixed.append(suffix)
+        # Re‑attach *all* peeled ')' without introducing a space.
+        if trail_paren:
+            last = fixed[-1]
+            if last[-1] in ('"', "'"):  # token we just wrapped
+                fixed[-1] = f"{last[:-1]}{trail_paren}{last[-1]}"
+            else:
+                fixed[-1] = f"{last}{trail_paren}"
     return " ".join(fixed)
 
 
