@@ -4,6 +4,8 @@ import pathlib
 from typing import Any, Generator, Optional
 
 import helpers.hdbg as dbg
+
+# import helpers.hllm as hllm
 import helpers.hunit_test as hut
 
 # Hack to workaround pytest not happy with multiple redundant conftest.py
@@ -46,6 +48,12 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
             help="Update golden outcomes of test",
         )
         parser.addoption(
+            "--update_llm_cache",
+            action="store_true",
+            default=False,
+            help="Update LLM shared cache",
+        )
+        parser.addoption(
             "--incremental",
             action="store_true",
             default=False,
@@ -85,6 +93,13 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
         if config.getoption("--update_outcomes"):
             print(f"\n{_WARNING}: Updating test outcomes")
             hut.set_update_tests(True)
+        if config.getoption("--update_llm_cache"):
+            print(f"\n{_WARNING}: Updating LLM Cache")
+            import helpers.hllm as hllm
+
+            # TODO(gp): We can't enable this until we have openai package in
+            # the dev container.
+            hllm.set_update_llm_cache(True)
         if config.getoption("--incremental"):
             print(f"\n{_WARNING}: Using incremental test mode")
             hut.set_incremental_tests(True)
