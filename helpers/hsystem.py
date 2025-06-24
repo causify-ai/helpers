@@ -109,11 +109,6 @@ def get_env_var(env_var_name: str) -> str:
     return os.environ[env_var_name]
 
 
-# #############################################################################
-# system(), system_to_string()
-# #############################################################################
-
-
 def _looks_like_path(token: str) -> bool:
     """
     Check if token looks like a filesystem path.
@@ -121,13 +116,13 @@ def _looks_like_path(token: str) -> bool:
     :param token: token to check
     :return: whether or not it looks like a path
     """
-    # Not a flag ("-name"), not an operator ("|", "&&", …)
+    # Check for flags.
     if token.startswith("-"):
         return False
-    # Contains a slash or begins with ./ or ../ or ends with a typical file‑ext
+    # Check for path-like slahes.
     if "/" in token or token.startswith("./") or token.startswith("../"):
         return True
-    # Common extensions
+    # Check for extensions.
     if re.search(r"\.[A-Za-z0-9]{1,5}$", token):
         return True
     return False
@@ -152,21 +147,17 @@ def _quote_path_name(cmd: str) -> str:
         return cmd
     fixed: List[str] = []
     for tok in tokens:
-        # 1. Control operators stay verbatim.
+        # Keep Control operators as is.
         if tok in control_ops:
             fixed.append(tok)
             continue
-        # 2. Already‑quoted tokens stay.
+        # Keep already qupted tokens as is.
         if (tok.startswith("'") and tok.endswith("'")) or (
             tok.startswith('"') and tok.endswith('"')
         ):
             fixed.append(tok)
             continue
-        # 3. Subshell expressions untouched.
-        if tok.startswith("$("):
-            fixed.append(tok)
-            continue
-        # 4. If token has glued parentheses, peel them.
+        # Peel glued parantheses from token.
         lead_paren = ""
         while tok.startswith("(") and len(tok) > 1:
             lead_paren += "("
@@ -177,7 +168,7 @@ def _quote_path_name(cmd: str) -> str:
             tok = tok[:-1]
         if lead_paren:
             fixed.append(lead_paren)
-        # 5.a  Leave variable assignments (e.g. PYTHONPATH=/x) untouched.
+        # Leave variable assignments (e.g. PYTHONPATH=/x) untouched.
         if re.match(r"^[A-Za-z_][A-Za-z0-9_]*=.*", tok):
             # Handle a trailing semicolon stuck to the assignment.
             if tok.endswith(";") and len(tok) > 1:
@@ -186,33 +177,38 @@ def _quote_path_name(cmd: str) -> str:
             else:
                 fixed.append(tok)
             continue
-        # 5.b Single‑quote awk/sed style scripts (contain $ {{ }}).
+        # Single‑quote awk/sed style scripts (contain $ {{ }}).
         if any(ch in tok for ch in ("$", "{", "}")):
             fixed.append(f"'{tok}'")
             continue
-        # Tokens containing here‑doc redirects (`<<`, `>>`) ---------
-        elif "<<" in tok or ">>" in tok:
+        # Double-quote tokens containing here‑doc redirects.
+        if "<<" in tok or ">>" in tok:
             fixed.append(f'"{tok}"')
-        # 6. Double‑quote paths & globs (handle trailing semicolon).
+        # Double‑quote paths & globs.
         elif _looks_like_path(tok) or any(ch in tok for ch in wildcard_chars):
             if tok.endswith(";") and len(tok) > 1:
                 fixed.append(f'"{tok[:-1]}"')
                 fixed.append(";")
             else:
                 fixed.append(f'"{tok}"')
-        # 7. Quote remaining tokens that contain spaces.
+        # Quote remaining tokens that contain spaces.
         elif " " in tok:
             fixed.append(f'"{tok}"')
         else:
             fixed.append(tok)
-        # Re‑attach *all* peeled ')' without introducing a space.
+        # Re‑attach all peeled parantheses.
         if trail_paren:
             last = fixed[-1]
-            if last[-1] in ('"', "'"):  # token we just wrapped
+            if last[-1] in ('"', "'"):
                 fixed[-1] = f"{last[:-1]}{trail_paren}{last[-1]}"
             else:
                 fixed[-1] = f"{last}{trail_paren}"
     return " ".join(fixed)
+
+
+# #############################################################################
+# system(), system_to_string()
+# #############################################################################
 
 
 # pylint: disable=too-many-branches,too-many-statements,too-many-arguments,too-many-locals
