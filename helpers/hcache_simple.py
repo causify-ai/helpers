@@ -461,6 +461,7 @@ def reset_mem_cache(func_name: str = "") -> None:
 
 
 def reset_disk_cache(func_name: str = "") -> None:
+    # Question(Sai) : Why are we doing this? 
     assert 0
     if func_name == "":
         cache_files = glob.glob("cache.*")

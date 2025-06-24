@@ -196,6 +196,7 @@ class BaseCacheTest(hunitest.TestCase):
 
 
 class Test_get_cache(BaseCacheTest):
+
     def test1(self) -> None:
         """
         Verify that get_cache returns a cache with the expected key and value.
@@ -215,6 +216,7 @@ class Test_get_cache(BaseCacheTest):
 
 
 class Test_flush_cache_to_disk(BaseCacheTest):
+
     def test1(self) -> None:
         """
         Verify that flushing creates a cache file on disk.
@@ -256,6 +258,7 @@ class Test_flush_cache_to_disk(BaseCacheTest):
 
 
 class Test_reset_mem_cache(BaseCacheTest):
+
     def test1(self) -> None:
         """
         Verify that the cache is empty after `reset_mem_cache` is called.
@@ -276,6 +279,7 @@ class Test_reset_mem_cache(BaseCacheTest):
 
 
 class Test_force_cache_from_disk(BaseCacheTest):
+
     def test1(self) -> None:
         """
         Verify that the memory cache is empty after a reset.
@@ -318,6 +322,7 @@ class Test_force_cache_from_disk(BaseCacheTest):
 
 
 class Test_get_cache_perf(BaseCacheTest):
+
     def test1(self) -> None:
         """
         Verify that performance tracking records hits and misses correctly.
@@ -351,6 +356,7 @@ class Test_get_cache_perf(BaseCacheTest):
 
 
 class Test_set_cache_property(BaseCacheTest):
+
     def test1(self) -> None:
         """
         Verify that setting a valid cache property works and can be retrieved.
@@ -406,9 +412,7 @@ class Test_set_cache_property(BaseCacheTest):
         hcacsimp.set_cache_property(
             "user", "_cached_function", "force_refresh", True
         )
-        prop_str: str = hcacsimp.cache_property_to_str(
-            "user", "_cached_function"
-        )
+        prop_str: str = hcacsimp.cache_property_to_str("user", "_cached_function")
         # Check output.
         self.assertIn("force_refresh: True", prop_str)
 
@@ -419,6 +423,7 @@ class Test_set_cache_property(BaseCacheTest):
 
 
 class Test_get_cache_func_names(BaseCacheTest):
+
     def test1(self) -> None:
         """
         Verify that memory cache function names include `_cached_function`.
@@ -470,6 +475,7 @@ class Test_get_cache_func_names(BaseCacheTest):
 
 
 class Test_cache_stats_to_str(BaseCacheTest):
+
     def test1(self) -> None:
         """
         Verify that cache_stats_to_str returns a DataFrame with 'memory' and
@@ -493,6 +499,7 @@ class Test_cache_stats_to_str(BaseCacheTest):
 
 
 class Test__kwarg_func(BaseCacheTest):
+
     def test1(self) -> None:
         """
         Test that verifies keyword arguments are handled correctly by the
@@ -511,6 +518,7 @@ class Test__kwarg_func(BaseCacheTest):
 
 
 class Test__multi_arg_func(BaseCacheTest):
+
     def test1(self) -> None:
         """
         Verify that the cache for _multi_arg_func contains the correct key.
@@ -528,6 +536,7 @@ class Test__multi_arg_func(BaseCacheTest):
 
 
 class Test__cached_pickle_function(BaseCacheTest):
+
     def test1(self) -> None:
         """
         Ensure that _cached_pickle_function returns the correct value and disk
@@ -553,6 +562,7 @@ class Test__cached_pickle_function(BaseCacheTest):
 
 
 class Test__refreshable_function(BaseCacheTest):
+
     def test1(self) -> None:
         """
         Verify that `_refreshable_function` is called only once initially.
