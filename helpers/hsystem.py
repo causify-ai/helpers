@@ -190,6 +190,9 @@ def _quote_path_name(cmd: str) -> str:
         if any(ch in tok for ch in ("$", "{", "}")):
             fixed.append(f"'{tok}'")
             continue
+        # Tokens containing here‑doc redirects (`<<`, `>>`) ---------
+        elif "<<" in tok or ">>" in tok:
+            fixed.append(f'"{tok}"')
         # 6. Double‑quote paths & globs (handle trailing semicolon).
         elif _looks_like_path(tok) or any(ch in tok for ch in wildcard_chars):
             if tok.endswith(";") and len(tok) > 1:
