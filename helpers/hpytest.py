@@ -105,12 +105,6 @@ class JUnitReporter:
             "total_tests": 0,
         }
 
-    def _load(self) -> None:
-        """
-        Load the JUnit XML file.
-        """
-        self.xml_data = junitparser.JUnitXml.fromfile(self.xml_file)
-
     def parse(self):
         """
         Parse the JUnit XML file.
@@ -138,6 +132,12 @@ class JUnitReporter:
     def print_summary(self):
         self._print_detailed_results()
         self._print_final_summary()
+
+    def _load(self) -> None:
+        """
+        Load the JUnit XML file.
+        """
+        self.xml_data = junitparser.JUnitXml.fromfile(self.xml_file)
 
     def _print_detailed_results(self):
         print(hprint.color_highlight("=" * 70, "bold"))
