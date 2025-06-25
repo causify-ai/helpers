@@ -10,16 +10,20 @@ import helpers.hio as hio
 import helpers.hpytest as hpytest
 import helpers.hunit_test as hunitest
 
-# TODO(heanh): Install `junitparser` in `//helpers`.
+# TODO(heanh): add `junitparser` in `//helpers` image.
 pytest.importorskip("junitparser")
 
 
 def _strip_color_codes(text: str) -> str:
     """
     Remove ANSI color escape codes from text.
+
+    :param text: text to strip the color codes from
+    :return: text with the color codes removed
     """
-    # Remove ANSI escape codes: \033[<code>m and \033[0m.
-    return re.sub(r"\033\[[0-9;]*m", "", text)
+    # Remove ANSI escape codes.
+    txt = re.sub(r"\033\[[0-9;]*m", "", text)
+    return txt
 
 
 # #############################################################################
@@ -33,7 +37,12 @@ class Test_JUnitReporter(hunitest.TestCase):
     result.
     """
 
-    def helper(self) -> None:
+    def helper(self) -> hpytest.JUnitReporter:
+        """
+        Helper function to create a `JUnitReporter` object.
+
+        :return: `JUnitReporter` object
+        """
         xml_str = """
         <testsuites>
             <testsuite name="dummy-test-suite-1" errors="0" failures="0" skipped="1" tests="2" time="2" timestamp="2025-01-01T12:00:00.000000+00:00" hostname="dummy-host">
@@ -120,7 +129,12 @@ class Test_JUnitReporter2(hunitest.TestCase):
     leads to `FAILED` result.
     """
 
-    def helper(self) -> None:
+    def helper(self) -> hpytest.JUnitReporter:
+        """
+        Helper function to create a `JUnitReporter` object.
+
+        :return: `JUnitReporter` object
+        """
         xml_str = """
         <testsuites>
             <testsuite name="dummy-test-suite-1" errors="0" failures="0" skipped="1" tests="2" time="2" timestamp="2025-01-01T12:00:00.000000+00:00" hostname="dummy-host">
