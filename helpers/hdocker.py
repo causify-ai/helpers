@@ -14,6 +14,7 @@ import shlex
 import time
 from typing import Any, Dict, List, Optional, Tuple, cast
 
+import helpers.hcoverage as hcovera
 import helpers.hdbg as hdbg
 import helpers.henv as henv
 import helpers.hgit as hgit
@@ -367,6 +368,17 @@ def get_docker_base_cmd(use_sudo: bool) -> List[str]:
         "--user $(id -u):$(id -g)",
         vars_to_pass_as_str,
     ]
+    if os.environ.get("COVERAGE_PROCESS_START"):
+        host_cov_dir = os.path.abspath("coverage_data")
+        os.makedirs(host_cov_dir, exist_ok=True)
+        os.chmod(host_cov_dir, 0o777)
+        coverage_dir_container = "/app/coverage_data"
+        docker_cmd.extend(
+            [
+                f"-e COVERAGE_FILE={coverage_dir_container}/.coverage",
+                f"-e COVERAGE_PROCESS_START={coverage_dir_container}/.coveragerc",
+            ]
+        )
     return docker_cmd
 
 
@@ -398,6 +410,10 @@ def build_container_image(
     _LOG.debug(hprint.func_signature_to_str("dockerfile"))
     #
     dockerfile = hprint.dedent(dockerfile)
+    # Add install coverage and hook to the Dockerfile.
+    dockerfile = (
+        dockerfile.strip() + "\n" + hcovera.generate_coverage_dockerfile()
+    )
     _LOG.debug("Dockerfile:\n%s", dockerfile)
     # Get the current architecture.
     current_arch = get_current_arch()
@@ -406,7 +422,7 @@ def build_container_image(
     sha256_hash = hashlib.sha256(dockerfile.encode()).hexdigest()
     short_hash = sha256_hash[:8]
     # Build the name of the container image.
-    image_name_out = f"{image_name}.{current_arch}.{short_hash}"
+    image_name_out = f"{image_name}.{current_arch}.{short_hash}.coverage"
     # Check if the container already exists. If not, build it.
     has_container, _ = image_exists(image_name_out, use_sudo)
     _LOG.debug(hprint.to_str("has_container"))

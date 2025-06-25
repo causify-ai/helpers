@@ -9,6 +9,9 @@
   * [Codecov Configuration](#codecov-configuration)
   * [Viewing Coverage Reports](#viewing-coverage-reports)
   * [Running Coverage Locally](#running-coverage-locally)
+  * [Running Targeted Coverage Suites for a Single PR (Manual Triggering)](#running-targeted-coverage-suites-for-a-single-pr-manual-triggering)
+    + [Logic Behind the Workflow](#logic-behind-the-workflow)
+    + [Steps to Trigger Manual PR-Specific Coverage](#steps-to-trigger-manual-pr-specific-coverage)
   * [System Behavior: When the Test Coverage Workflow Fails or Continues](#system-behavior-when-the-test-coverage-workflow-fails-or-continues)
   * [Additional Functionalities and Extensions](#additional-functionalities-and-extensions)
   * [Coverage Behavior and Best Practices](#coverage-behavior-and-best-practices)
@@ -233,6 +236,54 @@ generate html report:
     [http://localhost:8000](http://localhost:8000)
 
     <img src="figs/coverage/image4.png" alt="alt text" width="1000"/>
+
+## Running Targeted Coverage Suites for a Single PR (Manual Triggering)
+
+The primary reason for doing this is to measure the coverage impact of the
+changes introduced in a specific pull request, including newly added or modified
+files. This helps determine whether the PR maintains, increases, or decreases
+test coverage in the areas it touches. This section explains how to trigger an
+isolated test suite (e.g., `fast`,`slow`,`superslow`) for a specific PR and
+ensure that Codecov coverage reflects the results correctly.
+
+### Logic Behind the Workflow
+
+- A GitHub Actions workflow can be triggered manually via the
+  `workflow_dispatch` event
+- The input field **`suite`** (`fast`, `slow`, or `superslow`) determines which
+  test group runs
+- To attribute the results to the PR, the test suite must run on a branch that
+  is part of the PR history (not `master` or a detached manual run)
+- When the upload is done from a commit not associated with the PR, Codecov will
+  not link the results to the correct diff
+
+### Steps to Trigger Manual PR-Specific Coverage
+
+This approach ensures that the Codecov flag is uploaded against your PR commit,
+so the coverage diff is accurate.
+
+1. Open the Actions tab of the repository
+2. Select the Test coverage workflow (or its current name)
+3. Select the branch name where the PR is open
+4. In the suite input box, enter the test you want to run:
+   - Fast
+   - Slow
+   - Superslow
+5. Click Run workflow to start the job.
+
+  <img src="figs/coverage/image8.png" alt="alt text" width="1000"/>
+
+6. Monitor the run
+
+- The workflow executes only on the selected test.
+- On success, it uploads the coverage report to Codecov with the test flag.
+
+7. Verify the updated flag in Codecov
+
+- Return to the pull-request page on GitHub.
+- There should be a comment from the codecov bot with the PR coverage details
+
+  <img src="figs/coverage/image9.png" alt="alt text" width="1000"/>
 
 ## System Behavior: When the Test Coverage Workflow Fails or Continues
 

@@ -232,21 +232,21 @@ def _main(parser: argparse.ArgumentParser) -> None:
     tmp_in_file_name, tmp_out_file_name = (
         hparser.adapt_input_output_args_for_dockerized_scripts(in_file_name, tag)
     )
-    if args.prompt == "md_to_latex":
+    if args.prompt in ("md_to_latex", "md_clean_up", "md_bold_bullets"):
         # Read the input.
         txt = hparser.read_file(tmp_in_file_name)
         txt = "\n".join(txt)
-        #txt = hmarkdo.format_markdown(txt)
-        txt = hlatex.convert_pandoc_md_to_latex(txt)
-        txt = hmarkdo.format_latex(txt)
-        hparser.write_file(txt, out_file_name)
-        return
-    elif args.prompt == "md_clean_up":
-        # Read the input.
-        txt = hparser.read_file(tmp_in_file_name)
-        txt = "\n".join(txt)
-        txt = hmarkdo.md_clean_up(txt)
-        txt = hmarkdo.format_markdown(txt)
+        if args.prompt == "md_to_latex":
+            txt = hlatex.convert_pandoc_md_to_latex(txt)
+            txt = hmarkdo.format_latex(txt)
+        elif args.prompt == "md_clean_up":
+            txt = hmarkdo.md_clean_up(txt)
+            txt = hmarkdo.format_markdown(txt)
+        elif args.prompt == "md_bold_bullets":
+            txt = hmarkdo.bold_first_level_bullets(txt)
+            txt = hmarkdo.format_markdown(txt)
+        else:
+            raise ValueError(f"Invalid prompt='{args.prompt}'")
         hparser.write_file(txt, out_file_name)
         return
 
