@@ -6,12 +6,12 @@ from contextlib import redirect_stdout
 
 import pytest
 
+# TODO(heanh): add `junitparser` in `//helpers` image.
+pytest.importorskip("junitparser")
+
 import helpers.hio as hio
 import helpers.hpytest as hpytest
 import helpers.hunit_test as hunitest
-
-# TODO(heanh): add `junitparser` in `//helpers` image.
-pytest.importorskip("junitparser")
 
 
 def _strip_color_codes(text: str) -> str:
