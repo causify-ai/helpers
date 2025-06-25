@@ -18,6 +18,7 @@ import pandas as pd
 import requests
 import tqdm
 
+import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
 import helpers.htimer as htimer
@@ -265,8 +266,15 @@ def _call_api_sync(
         temperature=temperature,
         **create_kwargs,
     )
-    model_response = completion.choices[0].message.content
-    return model_response, completion
+    # Calculate the cost.
+    models_info_file = ""
+    cost = _calculate_cost(completion, model, models_info_file)
+    _accumulate_cost_if_needed(cost)
+    # Convert OpenAI completion object to DICT.
+    completion_obj = completion.to_dict()
+    # Store the cost in the completion object.
+    completion_obj.cost = cost
+    return completion
 
 
 # #############################################################################
@@ -356,6 +364,18 @@ def _calculate_cost(
 
 
 # #############################################################################
+@hcacsimp.simple_cache(cache_type="json", write_through=True)
+def _call_api_sync_cached(client, messages, model, temperature, **create_kwargs):
+    return _call_api_sync(
+        client=client,
+        messages=messages,
+        model=model,
+        temperature=temperature,
+        **create_kwargs,
+    )
+
+
+# #############################################################################
 
 
 # TODO(gp): CAPTURE seems redundant.
@@ -403,42 +423,37 @@ def get_completion(
         model = _get_default_model()
     # Construct messages in OpenAI API request format.
     messages = _build_messages(system_prompt, user_prompt)
-    # Initialize cache.
-    cache = _CompletionCache(cache_file)
+
     request_params = {
         "model": model,
         "messages": messages,
         "temperature": temperature,
         **create_kwargs,
     }
-    hash_key = cache.hash_key_generator(**request_params)
-    if cache_mode in ("HIT_CACHE_OR_ABORT", "NORMAL"):
-        # Checks for response in cache.
-        if cache.has_cache(hash_key):
-            memento = htimer.dtimer_start(
-                logging.DEBUG, "Loading from the cache!"
-            )
-            cache.increment_cache_stat("hits")
-            msg, _ = htimer.dtimer_stop(memento)
-            print(msg)
-            return cache.load_response_from_cache(hash_key)
-        else:
-            cache.increment_cache_stat("misses")
-            if cache_mode == "HIT_CACHE_OR_ABORT":
-                raise RuntimeError(
-                    "No cached response for this request parameters!"
-                )
+
     client = get_openai_client()
     # print("LLM API call ... ")
     memento = htimer.dtimer_start(logging.DEBUG, "LLM API call")
     if not report_progress:
-        response, completion = _call_api_sync(
-            client=client,
-            messages=messages,
-            model=model,
-            temperature=temperature,
-            **create_kwargs,
-        )
+        if cache_mode in ("REFRESH_CACHE", "NORMAL", "HIT_CACHE_OR_ABORT"):
+
+            completion = _call_api_sync_cached(
+                client=client,
+                messages=messages,
+                model=model,
+                temperature=temperature,
+                **create_kwargs,
+            )
+        else:
+            # Make a non-streaming API call.
+            completion = _call_api_sync(
+                client=client,
+                messages=messages,
+                model=model,
+                temperature=temperature,
+                **create_kwargs,
+            )
+
     else:
         # TODO(gp): This is not working. It doesn't show the progress and it
         # doesn't show the cost.
@@ -462,22 +477,9 @@ def get_completion(
     # Report the time taken.
     msg, _ = htimer.dtimer_stop(memento)
     print(msg)
-    # Calculate the cost.
-    # TODO(gp): This should be shared in the class.
-    models_info_file = ""
-    cost = _calculate_cost(completion, model, models_info_file)
-    # Accumulate the cost.
-    _accumulate_cost_if_needed(cost)
-    # Convert OpenAI completion object to DICT.
-    completion_obj = completion.to_dict()
-    # Store cost in the cache.
-    completion_obj["cost"] = cost
-    if cache_mode != "DISABLE_CACHE":
-        cache.save_response_to_cache(
-            hash_key, request=request_params, response=completion_obj
-        )
+    response = response_to_txt(completion)
     if print_cost:
-        print(f"cost=${cost:.2f}")
+        print(f"cost=${completion['cost']:.2f}")
     return response
 
 

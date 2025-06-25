@@ -500,10 +500,21 @@ def simple_cache(
             # Get the cache.
             cache = get_cache(func_name)
             # Get the key.
-            # key = (args, frozenset(kwargs.items()))
-            key = args
-            key = str(key)
+            key = str({"args":args, "kwargs": kwargs})
             _LOG.debug("key=%s", key)
+            # Handling hllm.get_completion() calls.
+            if "cache_mode" in kwargs:
+                cache_mode = kwargs["cache_mode"]
+                _LOG.debug("cache_mode=%s", cache_mode)
+                if cache_mode == "REFRESH_CACHE":
+                    # Force to refresh the cache.
+                    _LOG.debug("Forcing cache refresh")
+                    force_refresh = True
+                if cache_mode == "HIT_CACHE_OR_ABORT":
+                    # Abort if the cache is not hit.
+                    _LOG.debug("Abort on cache miss")
+                    abort_on_cache_miss = True
+
             # Get the cache properties.
             cache_perf = get_cache_perf(func_name)
             _LOG.debug("cache_perf is None=%s", cache_perf is None)
