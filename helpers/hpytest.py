@@ -105,12 +105,18 @@ class JUnitReporter:
             "total_tests": 0,
         }
 
+    def _load(self) -> None:
+        """
+        Load the JUnit XML file.
+        """
+        self.xml_data = junitparser.JUnitXml.fromfile(self.xml_file)
+
     def parse(self):
         """
         Parse the JUnit XML file.
         """
         try:
-            self.xml_data = junitparser.JUnitXml.fromfile(self.xml_file)
+            self._load()
             # Calculate overall statistics.
             for suite in self.xml_data:
                 if isinstance(suite, junitparser.TestSuite):
