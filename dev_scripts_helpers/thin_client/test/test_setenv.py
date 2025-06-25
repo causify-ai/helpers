@@ -15,11 +15,11 @@ _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
-# _SetenvScriptTestHelper
+# _SetenvTestHelper
 # #############################################################################
 
 
-class _SetenvScriptTestHelper(hunitest.TestCase):
+class _SetenvTestHelper(hunitest.TestCase):
     """
     Helper test class to perform common setup and provide utility methods for
     testing setenv.sh script.
@@ -159,7 +159,7 @@ exit $source_status
 # #############################################################################
 
 
-class TestSetenvOutput(_SetenvScriptTestHelper):
+class TestSetenvOutput(_SetenvTestHelper):
     """
     Test the output and environment effects of setenv.sh script.
     """
