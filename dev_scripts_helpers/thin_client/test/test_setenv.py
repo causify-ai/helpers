@@ -926,28 +926,28 @@ class TestSetenvSuccessOutput(_SetenvTestHelper):
         """
         result = self._run_setenv_script()
         # Check that all major steps are executed in the right order.
-        self.assertIn("##>", result.stdout)  # Script path.
-        self.assertIn("GIT_ROOT_DIR=", result.stdout)  # Git root detection.
+        self.assertIn("##>", result.stdout)
+        self.assertIn("GIT_ROOT_DIR=", result.stdout)
         self.assertIn(
             "Thin client utils found at:", result.stdout
-        )  # Utils sourcing.
-        self.assertIn("##> Parsing repo config", result.stdout)  # Config parsing.
-        self.assertIn("REPO_CONF_", result.stdout)  # Config variables.
-        self.assertIn("# activate_venv()", result.stdout)  # Venv activation.
-        self.assertIn("HELPERS_ROOT_DIR=", result.stdout)  # Helpers root.
-        self.assertIn("DEV_SCRIPT_DIR=", result.stdout)  # Dev script dir.
+        )
+        self.assertIn("##> Parsing repo config", result.stdout)
+        self.assertIn("REPO_CONF_", result.stdout)
+        self.assertIn("# activate_venv()", result.stdout)
+        self.assertIn("HELPERS_ROOT_DIR=", result.stdout)
+        self.assertIn("DEV_SCRIPT_DIR=", result.stdout)
         self.assertIn(
             "DEV_SCRIPT_HELPER_DIR=", result.stdout
-        )  # Dev script helper dir.
-        self.assertIn("PATH=", result.stdout)  # Path setting.
-        self.assertIn("# set_pythonpath()", result.stdout)  # Python path.
+        )
+        self.assertIn("PATH=", result.stdout)
+        self.assertIn("# set_pythonpath()", result.stdout)
         self.assertIn(
             "# set_symlink_permissions()", result.stdout
-        )  # Symlink permissions.
-        self.assertIn("Installing git hooks", result.stdout)  # Git hooks.
-        self.assertIn("# set_csfy_env_vars()", result.stdout)  # CSFY vars.
+        )
+        self.assertIn("Installing git hooks", result.stdout)
+        self.assertIn("# set_csfy_env_vars()", result.stdout)
         self.assertIn(
             "# configure_specific_project()", result.stdout
-        )  # Project config.
-        self.assertIn("# PATH=", result.stdout)  # Environment signature.
-        self.assertIn("successful", result.stdout)  # Success message.
+        )
+        self.assertIn("# PATH=", result.stdout)
+        self.assertIn("successful", result.stdout)
