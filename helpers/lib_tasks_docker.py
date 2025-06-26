@@ -646,6 +646,8 @@ def _generate_docker_compose_file(
         # In tests we use dind so we need set back to the default "bridge".
         # See CmTask988 and https://stackoverflow.com/questions/24319662
         base_app_spec["network_mode"] = "${NETWORK_MODE:-host}"
+    # TODO(Vlad): Temporary hack to access the host from the container.
+    base_app_spec["extra_hosts"] = ["host.docker.internal:host-gateway"]
     # Configure `app` service.
     # Mount `amp` when it is used as submodule. In this case we need to
     # mount the super project in the container (to make git work with the
