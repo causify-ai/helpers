@@ -99,7 +99,7 @@ def _render_image_code(
     force_rebuild: bool = False,
     use_sudo: bool = False,
     dry_run: bool = False,
-) -> Tuple[str, bool]:
+) -> str:
     """
     Render the image code into an image file.
 
@@ -285,7 +285,6 @@ def _render_images(
     force_rebuild: bool = False,
     use_sudo: bool = False,
     dry_run: bool = False,
-    cache_file: Optional[str] = None,
 ) -> List[str]:
     """
     Insert rendered images instead of image code blocks.
@@ -395,7 +394,6 @@ def _render_images(
                     force_rebuild=force_rebuild,
                     use_sudo=use_sudo,
                     dry_run=dry_run,
-                    cache_file=cache_file,
                 )
                 # _ = is_cache_hit
                 # Override the image name if explicitly set by the user.

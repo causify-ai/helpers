@@ -11,6 +11,8 @@ import pandas as pd
 
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
+import helpers.hsystem as hsystem
+
 
 _LOG = logging.getLogger(__name__)
 
@@ -461,8 +463,8 @@ def reset_mem_cache(func_name: str = "") -> None:
 
 
 def reset_disk_cache(func_name: str = "") -> None:
-    # Question(Sai) : Why are we doing "assert 0" ? 
-    assert 0
+    hsystem.query_yes_no(
+        "Are you sure you want to reset the disk cache? This will delete all ")
     if func_name == "":
         cache_files = glob.glob("cache.*")
         for file_name in cache_files:
