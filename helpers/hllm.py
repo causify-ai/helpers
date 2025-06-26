@@ -5,7 +5,6 @@ import helpers.hllm as hllm
 """
 
 import datetime
-import functools
 import hashlib
 import json
 import logging
@@ -276,15 +275,16 @@ def _call_api_sync(
     completion_obj["cost"] = cost
     return completion_obj
 
+
 @hcacsimp.simple_cache(cache_type="json", write_through=True)
 def _call_api_sync_cached(
-    cache_mode:str ,
+    cache_mode: str,
     client: openai.OpenAI,
     messages: List[Dict[str, str]],
-    model:str,
+    model: str,
     temperature: float,
-    **create_kwargs):
-    
+    **create_kwargs,
+):
     return _call_api_sync(
         client=client,
         messages=messages,
@@ -380,12 +380,10 @@ def _calculate_cost(
     return cost
 
 
-
 # #############################################################################
 
 
-# TODO(gp): CAPTURE seems redundant.
-# @functools.lru_cache(maxsize=1024)
+@functools.lru_cache(maxsize=1024)
 def get_completion(
     user_prompt: str,
     *,
@@ -444,7 +442,7 @@ def get_completion(
         if cache_mode in ("REFRESH_CACHE", "NORMAL", "HIT_CACHE_OR_ABORT"):
 
             completion = _call_api_sync_cached(
-                cache_mode =  cache_mode,
+                cache_mode=cache_mode,
                 client=client,
                 messages=messages,
                 model=model,
