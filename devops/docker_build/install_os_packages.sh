@@ -93,6 +93,7 @@ if [[ 1 == 1 ]]; then
 fi;
 
 # - Install graphviz.
+apt-get install $APT_GET_OPTS python3-dev build-essential pkg-config
 if [[ 1 == 1 ]]; then
   # This is needed to install pygraphviz.
   # See https://github.com/alphamatic/amp/issues/1311.
