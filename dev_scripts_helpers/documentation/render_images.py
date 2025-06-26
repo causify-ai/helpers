@@ -22,15 +22,13 @@ Usage:
 """
 
 import argparse
-import hashlib
 import logging
 import os
 import re
 import tempfile
 from typing import List, Optional, Tuple
 
-
-import helpers.hcache_simple as hcache_simple
+import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hio as hio
@@ -87,127 +85,9 @@ def _get_rendered_file_paths(
 
 
 # #############################################################################
-# ImageHashCache
-# #############################################################################
 
 
-# TODO(gp): This can be generalized to compute the hash of a general computation.
-# TODO(gp): In practice this is simple_cache.py but without storting the output
-# but only returning if the function was already called with the same arguments
-# or not. See if we can merge the two.
-class ImageHashCache:
-    """
-    Class for managing image hash caching.
-
-    The cache is a JSON storing from hash of the requested computation to the
-    hash of the image code
-    E.g.,
-    ```
-    {
-        "a1b2c3...": {
-            "image_code_hash": "d4e5f6...",
-            "image_code_type": "graphviz",
-            "out_file": "/path/to/rendered/image1.png",
-        }
-        ...
-    }
-    ```
-
-    Given a certain computation we want to check if the image code has changed
-    since the last time we computed the hash of the image code. If it has not
-    changed, we can skip the rendering.
-
-    In practice, we could use a set of hashes of the computation, but we store
-    also the information of the hash to make it easier to debug.
-    If we want to invalidate the cache for one figure, we can do it by removing
-    the entry corresponding to that hash.
-    """
-
-    def __init__(self, cache_file: str):
-        """
-        Initialize the ImageHashCache.
-
-        :param cache_file: Path to the cache file
-        """
-        hdbg.dassert_isinstance(cache_file, str)
-        hdbg.dassert_ne(cache_file, "")
-        self.cache_file = cache_file
-        # Load the cache from the file, if it exists, or start with an empty
-        # cache.
-        if os.path.exists(self.cache_file):
-            _LOG.debug("Loading cache from %s", self.cache_file)
-            self.cache = self._load()
-        else:
-            _LOG.debug("No cache file found at %s", self.cache_file)
-            self.cache = {}
-
-    def __contains__(self, entry_key: str) -> bool:
-        """
-        Check if an entry is in the cache.
-        """
-        return entry_key in self.cache
-
-    def compute_hash(
-        self, image_code: str, image_code_type: str, out_file: str
-    ) -> Tuple[str, dict]:
-        """
-        Compute a hash of the needed computation inputs.
-
-        :param image_code: The code of the image
-        :param image_code_type: Type of the image code (e.g.,
-            "plantuml", "mermaid")
-        :param out_file: Path to the output file where the image will be
-            saved
-        :return: The hash of the inputs and the inputs
-        """
-        # Compute the hash of the image code.
-        image_code_hash = hashlib.sha256(image_code.encode()).hexdigest()
-        # Create a dictionary with the inputs
-        cache_value = {
-            "image_code_hash": image_code_hash,
-            "image_code_type": image_code_type,
-            "out_file": out_file,
-        }
-        # Compute hash of the entry.
-        cache_key = out_file
-        return cache_key, cache_value
-
-    def update_cache(
-        self, cache_key: str, cache_value: str, *, assert_no_key: bool = False
-    ) -> bool:
-        """
-        Update the cache with a new entry.
-        """
-        if assert_no_key:
-            hdbg.dassert_not_in(cache_key, self.cache)
-        cache_updated = (
-            cache_key not in self.cache or self.cache[cache_key] != cache_value
-        )
-        if cache_updated:
-            self.cache[cache_key] = cache_value
-            # Save the cache to the file.
-            self._save()
-        return cache_updated
-
-    def _load(self) -> dict:
-        """
-        Load the hash cache from a file.
-
-        :return: Dictionary mapping image hashes to rendered file paths
-        """
-        hdbg.dassert_file_exists(self.cache_file)
-        return hio.from_json(self.cache_file)
-
-    def _save(self) -> None:
-        """
-        Save the hash cache to a file.
-        """
-        hio.to_json(self.cache_file, self.cache)
-
-
-# #############################################################################
-
-@hcache_simple.simple_cache(write_through=True)
+@hcacsimp.simple_cache(write_through=True)
 def _render_image_code(
     image_code_txt: str,
     image_code_idx: int,
@@ -219,7 +99,6 @@ def _render_image_code(
     force_rebuild: bool = False,
     use_sudo: bool = False,
     dry_run: bool = False,
-    # cache_file: Optional[str] = None,
 ) -> Tuple[str, bool]:
     """
     Render the image code into an image file.
@@ -247,7 +126,8 @@ def _render_image_code(
         # \documentclass[tikz, border=10pt]{standalone}
         # \usepackage{tikz}
         # \begin{document}
-        start_tag = hprint.dedent(r"""
+        start_tag = hprint.dedent(
+            r"""
         \documentclass{standalone}
         \usepackage{tikz}
         \usepackage{amsmath}
@@ -257,24 +137,31 @@ def _render_image_code(
         \pgfplotsset{compat=1.17}
         \begin{document}
         \begin{tikzpicture}
-        """)
-        end_tag = hprint.dedent(r"""
+        """
+        )
+        end_tag = hprint.dedent(
+            r"""
         \end{tikzpicture}
         \end{document}
-        """)
+        """
+        )
         image_code_txt = "\n".join([start_tag, image_code_txt, end_tag])
     elif image_code_type == "latex":
-        start_tag = hprint.dedent(r"""
+        start_tag = hprint.dedent(
+            r"""
         \documentclass[border=1pt]{standalone}  % No page, tight margins
         \usepackage{tabularx}
         \usepackage{enumitem}
         \usepackage{booktabs}  % Optional: For nicer tables
         %\begin{document}
 
-        """)
-        end_tag = hprint.dedent(r"""
+        """
+        )
+        end_tag = hprint.dedent(
+            r"""
         %\end{document}
-        """)
+        """
+        )
         image_code_txt = "\n".join([start_tag, image_code_txt, end_tag])
     # Get paths for rendered files.
     # TODO(gp): The fact that we compute the image file path here makes it
@@ -282,24 +169,6 @@ def _render_image_code(
     in_code_file_path, abs_img_dir_path, out_img_file_path = (
         _get_rendered_file_paths(out_file, image_code_idx, dst_ext)
     )
-    # cache_hit = False
-    # if use_cache:
-    #     # Initialize cache handler.
-    #     cache_file = cache_file or "./tmp.render_images.cache.json"
-    #     _LOG.debug(hprint.to_str("cache_file"))
-    #     cache = ImageHashCache(cache_file)
-        # # Compute hash of inputs.
-        # cache_key, cache_value = cache.compute_hash(
-        #     image_code_txt, image_code_type, out_img_file_path
-        # )
-        # Check if the image is cached.
-        # if cache_key in cache:
-        #     # The image is cached, return the path.
-        #     _LOG.info("Cache hit for image '%s'", out_img_file_path)
-        #     hdbg.dassert_file_exists(out_img_file_path)
-        #     cache_hit = True
-        #     return out_img_file_path, cache_hit
-        # No cache hit, render the image and update the cache.
     hio.create_dir(abs_img_dir_path, incremental=True)
     # Save the image code to a temporary file.
     hio.to_file(in_code_file_path, image_code_txt)
