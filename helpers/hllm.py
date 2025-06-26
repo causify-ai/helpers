@@ -273,8 +273,25 @@ def _call_api_sync(
     # Convert OpenAI completion object to DICT.
     completion_obj = completion.to_dict()
     # Store the cost in the completion object.
-    completion_obj.cost = cost
-    return completion
+    completion_obj["cost"] = cost
+    return completion_obj
+
+@hcacsimp.simple_cache(cache_type="json", write_through=True)
+def _call_api_sync_cached(
+    cache_mode:str ,
+    client: openai.OpenAI,
+    messages: List[Dict[str, str]],
+    model:str,
+    temperature: float,
+    **create_kwargs):
+    
+    return _call_api_sync(
+        client=client,
+        messages=messages,
+        model=model,
+        temperature=temperature,
+        **create_kwargs,
+    )
 
 
 # #############################################################################
@@ -363,23 +380,12 @@ def _calculate_cost(
     return cost
 
 
-# #############################################################################
-@hcacsimp.simple_cache(cache_type="json", write_through=True)
-def _call_api_sync_cached(client, messages, model, temperature, **create_kwargs):
-    return _call_api_sync(
-        client=client,
-        messages=messages,
-        model=model,
-        temperature=temperature,
-        **create_kwargs,
-    )
-
 
 # #############################################################################
 
 
 # TODO(gp): CAPTURE seems redundant.
-@functools.lru_cache(maxsize=1024)
+# @functools.lru_cache(maxsize=1024)
 def get_completion(
     user_prompt: str,
     *,
@@ -438,6 +444,7 @@ def get_completion(
         if cache_mode in ("REFRESH_CACHE", "NORMAL", "HIT_CACHE_OR_ABORT"):
 
             completion = _call_api_sync_cached(
+                cache_mode =  cache_mode,
                 client=client,
                 messages=messages,
                 model=model,
@@ -477,7 +484,8 @@ def get_completion(
     # Report the time taken.
     msg, _ = htimer.dtimer_stop(memento)
     print(msg)
-    response = response_to_txt(completion)
+    # response = response_to_txt(completion)
+    response = completion["choices"][0]["message"]["content"]
     if print_cost:
         print(f"cost=${completion['cost']:.2f}")
     return response
