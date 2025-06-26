@@ -64,8 +64,8 @@
       - Paused (Work was paused)
       - Done (This has been completed)
       - In Review (This is awaiting review or validation)
-      - PR back to author (Author needs to apply review feedback) -QA (Change in
-        QA)
+      - PR back to author (Author needs to apply review feedback)
+      - QA (Change being tested in QA)
   - **Label** (Bug, P0, P1)
     - Label assigned to the specific issue
     - Current labels synced to all repos are located at
@@ -119,7 +119,7 @@
 
 - Click on the `Project details` button in the upper right corner next to the
   three dots `...`
-  - Provide a short description of the project, e.g.,who is the customer
+  - Provide a short description of the project, e.g., who is the customer
   - What is the overarching goal of the project
   - Who is the team leader
   - Provide links to the key resources (Slack/Asana channel)
