@@ -9,16 +9,16 @@ See `docs/work_tools/documentation_toolchain/all.render_images.explanation.md`.
 Usage:
 
 # Create a new Markdown file with rendered images:
-> render_images.py -i ABC.md -o XYZ.md --action render --run_dockerized
+> render_images.py -i ABC.md -o XYZ.md --action render
 
 # Render images in place in the original Markdown file:
-> render_images.py -i ABC.md --action render --run_dockerized
+> render_images.py -i ABC.md --action render
 
 # Render images in place in the original LaTeX file:
-> render_images.py -i ABC.tex --action render --run_dockerized
+> render_images.py -i ABC.tex --action render
 
 # Open rendered images from a Markdown file in HTML to preview:
-> render_images.py -i ABC.md --action open --run_dockerized
+> render_images.py -i ABC.md --action open
 """
 
 import argparse
@@ -38,6 +38,7 @@ import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
+GITHUB_RAW_BASE = "https://raw.githubusercontent.com/causify-ai/helpers/master/"
 
 # #############################################################################
 
@@ -415,6 +416,7 @@ def _render_images(
     use_sudo: bool = False,
     dry_run: bool = False,
     cache_file: Optional[str] = None,
+    use_github_hosting: bool = False,
 ) -> List[str]:
     """
     Insert rendered images instead of image code blocks.
@@ -432,6 +434,7 @@ def _render_images(
     :param dst_ext: extension for rendered images
     :param dry_run: if True, the text of the file is updated but the images are
         not actually created
+    :param use_github_hosting: if True, insert rendered image links using absolute GitHub-hosted URLs instead of relative paths
     :return: updated lines of the file
     """
     _LOG.debug(hprint.func_signature_to_str("in_lines"))
@@ -537,9 +540,10 @@ def _render_images(
                         state, line, comment_prefix, comment_postfix
                     )
                 )
-                out_lines.append(
-                    _insert_image_code(extension, rel_img_path, user_img_size)
-                )
+                if use_github_hosting:
+                    rel_img_path = os.path.join(GITHUB_RAW_BASE, rel_img_path)
+                rendered_img_line = _insert_image_code(extension, rel_img_path, user_img_size)
+                out_lines.append(rendered_img_line)
                 user_img_size = ""
                 # Set the parser to search for a new image code block.
                 if state == "found_image_code":
@@ -621,6 +625,11 @@ def _parse() -> argparse.ArgumentParser:
     )
     # Add actions arguments.
     hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    parser.add_argument(
+        "--use_github_hosting",
+        action="store_true",
+        help="Use GitHub-hosted absolute URLs instead of relative image paths",
+    )
     # Add an argument for debugging.
     parser.add_argument(
         "--dry_run",
@@ -665,6 +674,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         force_rebuild=args.dockerized_force_rebuild,
         use_sudo=args.dockerized_use_sudo,
         dry_run=args.dry_run,
+        use_github_hosting=args.use_github_hosting,
     )
     # Save the output into a file.
     hio.to_file(out_file, "\n".join(out_lines))
