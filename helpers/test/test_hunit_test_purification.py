@@ -147,6 +147,41 @@ dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py:3: error: Nam
         exp = txt
         self.check_helper(txt, exp)
 
+    def test11(self) -> None:
+        """
+        Test the correct order of `app` -> `amp` purification with multiple
+        references.
+        """
+        txt = """
+        import app.amp.helpers_root.helpers.test.test_file
+        from app.amp.helpers_root.helpers.hprint import dedent
+        import app.amp.helpers.config
+        from amp.app.helpers.config import get_config
+        import amp.app.helpers_root.config
+        """
+        exp = """
+        import helpers.test.test_file
+        from helpers.hprint import dedent
+        import helpers.config
+        from helpers.config import get_config
+        import amp.app.helpers_root.config
+        """
+        self.check_helper(txt, exp)
+
+    def test12(self) -> None:
+        """
+        Test amp and app references in the same string.
+        """
+        txt = """
+        app/amp/helpers_root/helpers/test/test_file.py
+        amp/app/helpers_root/helpers/test/test_file.py
+        """
+        exp = """
+        helpers/test/test_file.py
+        helpers/test/test_file.py
+        """
+        self.check_helper(txt, exp)
+
 
 # #############################################################################
 # Test_purify_directory_paths1
