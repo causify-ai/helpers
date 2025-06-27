@@ -77,7 +77,7 @@
 
 - Flow example:
   - When a decorated function is called with arguments `(3,)`, the system:
-    - Checks if `_CACHE` contains the key `"(3,)"`
+    - Checks if `_CACHE` contains the key `'{"args": [3], "kwargs": {}}'`
     - Returns the cached value if found `(cache hit)`
     - Otherwise, calls the function to compute the result, stores it in
       `_CACHE`, and then returns it
@@ -202,7 +202,7 @@
     ```
   - First call:
     - When you call `multiply_by_two(4)`, the cache key is generated (in this
-      case, `(4,)` as a string)
+      case, `{"args": [4], "kwargs": {}}` as a string)
     - Since the key is not in the cache, the function is executed, returning
       `8`, which is then stored in the `memory cache`.
   - Subsequent call:
