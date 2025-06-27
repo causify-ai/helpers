@@ -63,7 +63,6 @@ class Test_render_image_code1(hunitest.TestCase):
         image_code_type = "graphviz"
         template_out_file = os.path.join(self.get_scratch_space(), "test.md")
         dst_ext = "png"
-        use_cache = True
         # Run function.
         rel_img_path = dshdreim._render_image_code(
             image_code,
@@ -71,7 +70,6 @@ class Test_render_image_code1(hunitest.TestCase):
             image_code_type,
             template_out_file,
             dst_ext,
-            use_cache=use_cache,
         )
         # Check output.
         self.assertEqual(rel_img_path, "figs/test.1.png")
@@ -87,7 +85,6 @@ class Test_render_image_code1(hunitest.TestCase):
         image_code_type = "mermaid"
         template_out_file = os.path.join(self.get_scratch_space(), "test.md")
         dst_ext = "png"
-        use_cache = True
         # Run function.
         rel_img_path = dshdreim._render_image_code(
             image_code,
@@ -95,7 +92,6 @@ class Test_render_image_code1(hunitest.TestCase):
             image_code_type,
             template_out_file,
             dst_ext,
-            use_cache=use_cache,
         )
         # Check output.
         self.assertEqual(rel_img_path, "figs/test.1.png")
@@ -111,7 +107,6 @@ class Test_render_image_code1(hunitest.TestCase):
         image_code_type = "graphviz"
         template_out_file = os.path.join(self.get_scratch_space(), "test2.md")
         dst_ext = "svg"
-        use_cache = False
         # Run function.
         rel_img_path = dshdreim._render_image_code(
             image_code,
@@ -119,7 +114,6 @@ class Test_render_image_code1(hunitest.TestCase):
             image_code_type,
             template_out_file,
             dst_ext,
-            use_cache=use_cache,
         )
         # Check output.
         self.assertEqual(rel_img_path, "figs/test2.1.svg")
