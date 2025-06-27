@@ -1600,14 +1600,14 @@ def run_prompt(
         # running inside a Dockerized executable. We don't want an import to
         # this file assert since openai is not available in the local dev
         # environment.
-        import helpers.hopenai as hopenai
+        import helpers.hllm as hllm
 
         _LOG.debug(hprint.to_str("system_prompt"))
-        response = hopenai.get_completion(
+        response = hllm.get_completion(
             txt, system_prompt=system_prompt, model=model, print_cost=True
         )
         # _LOG.debug(hprint.to_str("response"))
-        txt_out = hopenai.response_to_txt(response)
+        txt_out = hllm.response_to_txt(response)
     hdbg.dassert_isinstance(txt_out, str)
     # 3) Run post-transforms.
     if to_run("remove_code_delimiters", post_transforms):
