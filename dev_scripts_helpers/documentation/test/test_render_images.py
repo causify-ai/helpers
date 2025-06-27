@@ -409,7 +409,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         Check mermaid code within other text in a md file.
         """
-        in_lines = in_lines = r"""
+        in_lines = r"""
         A
         ```mermaid
         flowchart TD;
