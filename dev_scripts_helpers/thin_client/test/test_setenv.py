@@ -15,11 +15,11 @@ _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
-# _SetenvTestHelper
+# _SetenvTestCase
 # #############################################################################
 
 
-class _SetenvTestHelper(hunitest.TestCase):
+class _SetenvTestCase(hunitest.TestCase):
     """
     Helper test class to perform common setup and provide utility methods for
     testing setenv.sh script.
@@ -58,16 +58,11 @@ class _SetenvTestHelper(hunitest.TestCase):
         )
         _LOG.debug("repo_config_path=%s", self.repo_config_path)
         # Exit if files do not exist.
-        if not self.setenv_path.exists():
-            hdbg.dfatal(f"setenv.sh not found at {self.setenv_path}")
-        if not self.thin_client_utils_path.exists():
-            hdbg.dfatal(
-                f"thin_client_utils.sh not found at {self.thin_client_utils_path}"
-            )
-        if not self.repo_config_path.exists():
-            hdbg.dfatal(f"repo_config.yaml not found at {self.repo_config_path}")
+        hdbg.dassert_file_exists(str(self.setenv_path))
+        hdbg.dassert_file_exists(str(self.thin_client_utils_path))
+        hdbg.dassert_file_exists(str(self.repo_config_path))
         _LOG.debug(
-            "Initialized _SetenvScriptTestHelper with setenv.sh, thin_client_utils.sh, and repo_config.yaml"
+            "Initialized _SetenvTestCase with setenv.sh, thin_client_utils.sh, and repo_config.yaml"
         )
 
     def run_setenv_in_clean_bash(self) -> Tuple[int, str]:
@@ -79,10 +74,12 @@ class _SetenvTestHelper(hunitest.TestCase):
         """
         wrapper_script = self._create_wrapper_script()
         # Create a temporary executable file.
-        wrapper_path = self._create_tmp_executable_file(wrapper_script)
+        tmp_dir = self.get_scratch_space()
+        wrapper_path = os.path.join(tmp_dir, "tmp_wrapper.sh")
+        hio.create_executable_script(wrapper_path, wrapper_script)
         _LOG.debug("Running setenv.sh in clean bash environment")
         result = hsystem.system_to_string(
-            f"bash {wrapper_path}",
+            f"env -i bash {wrapper_path}",
             abort_on_error=False,
             log_level=logging.DEBUG,
         )
@@ -97,14 +94,6 @@ class _SetenvTestHelper(hunitest.TestCase):
         """
         wrapper_script = f"""#!/bin/bash
 set -e
-
-# Clear environment variables that might interfere with testing.
-unset PYTHONPATH
-unset PATH
-unset GIT_ROOT_DIR
-unset HELPERS_ROOT_DIR
-unset DEV_SCRIPT_DIR
-unset CSFY_*
 
 # Set minimal PATH for basic commands.
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
@@ -134,32 +123,13 @@ exit $source_status
 """
         return wrapper_script
 
-    def _create_tmp_executable_file(
-        self, content: str, suffix: str = ".sh"
-    ) -> str:
-        """
-        Create a temporary executable file.
-
-        :param content: content to write to the file
-        :param suffix: file suffix (default: .sh)
-        :return: path to the created temporary file
-        """
-        tmp_dir = self.get_scratch_space()
-        tmp_file_name = f"tmp_wrapper_{suffix}"
-        tmp_path = os.path.join(tmp_dir, tmp_file_name)
-        # Save the content to file.
-        hio.to_file(tmp_path, content)
-        # Make file executable.
-        os.chmod(tmp_path, 0o755)
-        return tmp_path
-
 
 # #############################################################################
 # TestSetenvOutput
 # #############################################################################
 
 
-class TestSetenvOutput(_SetenvTestHelper):
+class TestSetenvOutput(_SetenvTestCase):
     """
     Test the output and environment effects of setenv.sh script.
     """
@@ -176,58 +146,38 @@ class TestSetenvOutput(_SetenvTestHelper):
             0,
             f"setenv.sh failed with return code {return_code}. Output: {output}",
         )
-        # Check for expected output.
-        self.assertIn("##>", output, "Script should show its path with ##>")
-        self.assertIn("setenv.sh", output, "Script should mention setenv.sh")
-        self.assertIn("GIT_ROOT_DIR=", output, "Script should set GIT_ROOT_DIR")
-        self.assertIn(
-            "Thin client utils found at:",
-            output,
-            "Script should find thin_client_utils.sh",
-        )
-        self.assertIn(
-            "##> Parsing repo config", output, "Script should parse repo config"
-        )
-        self.assertIn(
-            "# activate_venv()",
-            output,
-            "Script should activate virtual environment",
-        )
-        self.assertIn(
-            "HELPERS_ROOT_DIR=", output, "Script should set HELPERS_ROOT_DIR"
-        )
-        self.assertIn(
-            "DEV_SCRIPT_DIR=", output, "Script should set DEV_SCRIPT_DIR"
-        )
-        self.assertIn("PATH=", output, "Script should set PATH")
-        self.assertIn(
-            "# set_pythonpath()", output, "Script should set PYTHONPATH"
-        )
-        self.assertIn(
-            "# set_symlink_permissions()",
-            output,
-            "Script should handle symlink permissions",
-        )
-        self.assertIn(
-            "Installing git hooks", output, "Script should install git hooks"
-        )
-        self.assertIn(
-            "# set_csfy_env_vars()",
-            output,
-            "Script should set CSFY environment variables",
-        )
-        self.assertIn(
-            "# configure_specific_project()",
-            output,
-            "Script should configure project",
-        )
-        self.assertIn(
-            "# PATH=", output, "Script should print environment signature"
-        )
-        self.assertIn(
-            "# PYTHONPATH=", output, "Script should print PYTHONPATH in signature"
-        )
-        self.assertIn("successful", output, "Script should show success message")
+        # Check for expected output patterns.
+        expected_patterns = [
+            ("##>", "Script should show its path with ##>"),
+            ("setenv.sh", "Script should mention setenv.sh"),
+            ("GIT_ROOT_DIR=", "Script should set GIT_ROOT_DIR"),
+            (
+                "Thin client utils found at:",
+                "Script should find thin_client_utils.sh",
+            ),
+            ("##> Parsing repo config", "Script should parse repo config"),
+            ("# activate_venv()", "Script should activate virtual environment"),
+            ("HELPERS_ROOT_DIR=", "Script should set HELPERS_ROOT_DIR"),
+            ("DEV_SCRIPT_DIR=", "Script should set DEV_SCRIPT_DIR"),
+            ("PATH=", "Script should set PATH"),
+            ("# set_pythonpath()", "Script should set PYTHONPATH"),
+            (
+                "# set_symlink_permissions()",
+                "Script should handle symlink permissions",
+            ),
+            ("Installing git hooks", "Script should install git hooks"),
+            (
+                "# set_csfy_env_vars()",
+                "Script should set CSFY environment variables",
+            ),
+            ("# configure_specific_project()", "Script should configure project"),
+            ("# PATH=", "Script should print environment signature"),
+            ("# PYTHONPATH=", "Script should print PYTHONPATH in signature"),
+            ("successful", "Script should show success message"),
+        ]
+        for pattern, description in expected_patterns:
+            self.assertIn(pattern, output, description)
+        # Check for absence of error patterns.
         error_patterns = [
             "ERROR:",
             "FATAL:",
