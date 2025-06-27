@@ -365,7 +365,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         Check bare mermaid code in a LaTeX file.
         """
-        in_lines = r"""
+        in_lines = """
         """
         file_ext = "tex"
         exp = r"""
@@ -404,22 +404,16 @@ class Test_render_images1(hunitest.TestCase):
         """
         in_lines = r"""
         A
-
-
-
         B
         """
         file_ext = "txt"
         exp = r"""
         A
-
         // ```mermaid
         // flowchart TD;
         //   A[Start] --> B[End];
         // ```
         ![](figs/out.1.png)
-
-
         B
         """
         self.helper(in_lines, file_ext, exp)
@@ -430,7 +424,6 @@ class Test_render_images1(hunitest.TestCase):
         """
         in_lines = r"""
         A
-
         B
         """
         file_ext = "txt"
@@ -441,7 +434,6 @@ class Test_render_images1(hunitest.TestCase):
         //   A[Start] --> B[End];
         // ```
         ![](hello_world.png)
-
         B
         """
         self.helper(in_lines, file_ext, exp)
