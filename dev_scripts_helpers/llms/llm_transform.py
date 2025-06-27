@@ -249,7 +249,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
             raise ValueError(f"Invalid prompt='{args.prompt}'")
         hparser.write_file(txt, out_file_name)
         return
-
     # TODO(gp): We should just automatically pass-through the options.
     cmd_line_opts = [f"-p {args.prompt}", f"-v {args.log_level}"]
     if args.fast_model:
