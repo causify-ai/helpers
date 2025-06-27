@@ -528,7 +528,7 @@ class Test__multi_arg_func(BaseCacheTest):
         # Populate the cache.
         _multi_arg_func(1, 2)
         cache: Dict[str, Any] = hcacsimp.get_cache("_multi_arg_func")
-        print("cache__ ",cache)
+        print("cache__ ", cache)
         # Verify that the cache key is formatted as  '{"args": [1, 2], "kwargs": {}}'.
         self.assertTrue('{"args": [1, 2], "kwargs": {}}' in cache)
 
