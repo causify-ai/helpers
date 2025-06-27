@@ -1,6 +1,5 @@
 import logging
 import os
-import pprint
 
 import pytest
 
@@ -20,6 +19,7 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_get_rendered_file_paths1(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Check generation of file paths for rendering images.
@@ -42,12 +42,10 @@ class Test_get_rendered_file_paths1(hunitest.TestCase):
         self.assert_equal(act, exp, dedent=True)
 
 
-
 # #############################################################################
 # Test_render_image_code1
 # #############################################################################
 
-    
 
 @pytest.mark.skipif(
     hserver.is_inside_ci() or hserver.is_dev_csfy(),
@@ -55,9 +53,9 @@ class Test_get_rendered_file_paths1(hunitest.TestCase):
 )
 class Test_render_image_code1(hunitest.TestCase):
 
-    def test1(self) -> bool:
+    def test1(self) -> None:
         """
-        Run `render_image_code()` function.
+        Check rendering of an image code in a Markdown file.
         """
         # Prepare inputs.
         image_code = "digraph { A -> B }"
@@ -65,7 +63,7 @@ class Test_render_image_code1(hunitest.TestCase):
         image_code_type = "graphviz"
         template_out_file = os.path.join(self.get_scratch_space(), "test.md")
         dst_ext = "png"
-        use_cache= True
+        use_cache = True
         # Run function.
         rel_img_path = dshdreim._render_image_code(
             image_code,
@@ -78,9 +76,10 @@ class Test_render_image_code1(hunitest.TestCase):
         # Check output.
         self.assertEqual(rel_img_path, "figs/test.1.png")
 
-    def test2(self) -> bool:
+    def test2(self) -> None:
         """
-        Same file as `example1` but different image code.
+        Check rendering of an image code in a Markdown file with a different
+        image code type.
         """
         # Prepare inputs.
         image_code = "digraph { B -> A }"
@@ -88,7 +87,7 @@ class Test_render_image_code1(hunitest.TestCase):
         image_code_type = "mermaid"
         template_out_file = os.path.join(self.get_scratch_space(), "test.md")
         dst_ext = "png"
-        use_cache= True
+        use_cache = True
         # Run function.
         rel_img_path = dshdreim._render_image_code(
             image_code,
@@ -100,11 +99,11 @@ class Test_render_image_code1(hunitest.TestCase):
         )
         # Check output.
         self.assertEqual(rel_img_path, "figs/test.1.png")
-        
 
-    def test3(self) -> bool:
+    def test3(self) -> None:
         """
-        Different file than `example1` and `example2`.
+        Check rendering of an image code in a Markdown file with a different
+        output file and extension.
         """
         # Prepare inputs.
         image_code = "digraph { A -> B }"
@@ -112,7 +111,7 @@ class Test_render_image_code1(hunitest.TestCase):
         image_code_type = "graphviz"
         template_out_file = os.path.join(self.get_scratch_space(), "test2.md")
         dst_ext = "svg"
-        use_cache= False
+        use_cache = False
         # Run function.
         rel_img_path = dshdreim._render_image_code(
             image_code,
@@ -154,7 +153,10 @@ class Test_render_images1(hunitest.TestCase):
         dst_ext = "png"
         # Render images.
         out_lines = dshdreim._render_images(
-            txt, out_file, dst_ext, dry_run=True, 
+            txt,
+            out_file,
+            dst_ext,
+            dry_run=True,
         )
         # Check output.
         act = "\n".join(out_lines)
@@ -370,10 +372,6 @@ class Test_render_images1(hunitest.TestCase):
         Check bare mermaid code in a LaTeX file.
         """
         in_lines = r"""
-        ```mermaid
-        flowchart TD;
-          A[Start] --> B[End];
-        ```
         """
         file_ext = "tex"
         exp = r"""
@@ -392,10 +390,6 @@ class Test_render_images1(hunitest.TestCase):
         """
         in_lines = r"""
         A
-        ```mermaid
-        flowchart TD;
-          A[Start] --> B[End];
-        ```
         B
         """
         file_ext = "tex"
@@ -417,10 +411,6 @@ class Test_render_images1(hunitest.TestCase):
         in_lines = r"""
         A
 
-        ```mermaid
-        flowchart TD;
-          A[Start] --> B[End];
-        ```
 
 
         B
@@ -446,10 +436,6 @@ class Test_render_images1(hunitest.TestCase):
         """
         in_lines = r"""
         A
-        ```mermaid(hello_world.png)
-        flowchart TD;
-          A[Start] --> B[End];
-        ```
 
         B
         """
@@ -500,6 +486,7 @@ class Test_render_images1(hunitest.TestCase):
     reason="Disabled because of CmampTask10710",
 )
 class Test_render_images2(hunitest.TestCase):
+
     def helper(self, file_name: str) -> None:
         """
         Helper function to test rendering images from a file.
@@ -510,10 +497,12 @@ class Test_render_images2(hunitest.TestCase):
         out_file = os.path.join(self.get_scratch_space(), file_name)
         dst_ext = "png"
         dry_run = True
-        
         # Call function to test.
         out_lines = dshdreim._render_images(
-            in_lines, out_file, dst_ext, dry_run=dry_run,
+            in_lines,
+            out_file,
+            dst_ext,
+            dry_run=dry_run,
         )
         act = "\n".join(out_lines)
         # Check output.

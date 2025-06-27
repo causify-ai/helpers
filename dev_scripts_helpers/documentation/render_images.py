@@ -26,7 +26,7 @@ import logging
 import os
 import re
 import tempfile
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
 import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
@@ -94,7 +94,6 @@ def _render_image_code(
     image_code_type: str,
     out_file: str,
     dst_ext: str,
-    use_cache: bool,
     *,
     force_rebuild: bool = False,
     use_sudo: bool = False,
@@ -218,9 +217,6 @@ def _render_image_code(
             raise ValueError(f"Invalid type: {image_code_type}")
     # Remove the temp file.
     os.remove(in_code_file_path)
-    # Update the cache.
-    # if use_cache:
-    #     cache.update_cache(cache_key, cache_value)
     return out_img_file_path
 
 
@@ -383,14 +379,12 @@ def _render_images(
             if m:
                 # Found the end of an image code block.
                 image_code_txt = "\n".join(image_code_lines)
-                use_cache = True
                 rel_img_path = _render_image_code(
                     image_code_txt,
                     image_code_idx,
                     image_code_type,
                     out_file,
                     dst_ext,
-                    use_cache,
                     force_rebuild=force_rebuild,
                     use_sudo=use_sudo,
                     dry_run=dry_run,

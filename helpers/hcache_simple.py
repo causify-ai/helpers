@@ -11,8 +11,6 @@ import pandas as pd
 
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
-import helpers.hsystem as hsystem
-
 
 _LOG = logging.getLogger(__name__)
 
@@ -463,8 +461,7 @@ def reset_mem_cache(func_name: str = "") -> None:
 
 
 def reset_disk_cache(func_name: str = "") -> None:
-    hsystem.query_yes_no(
-        "Are you sure you want to reset the disk cache? This will delete all ")
+    assert 0
     if func_name == "":
         cache_files = glob.glob("cache.*")
         for file_name in cache_files:
@@ -500,16 +497,12 @@ def simple_cache(
             func_name = func.__name__
             if func_name.endswith("_intrinsic"):
                 func_name = func_name[: -len("_intrinsic")]
-            
-            if "use_cache" in kwargs:
-                use_cache = kwargs["use_cache"]
-                if not use_cache:
-                    _LOG.debug("use_cache=False, not using cache")
-                    return func(*args, **kwargs)
             # Get the cache.
             cache = get_cache(func_name)
             # Get the key.
-            key = json.dumps({"args": args, "kwargs": kwargs}, sort_keys=True, default=str)
+            key = json.dumps(
+                {"args": args, "kwargs": kwargs}, sort_keys=True, default=str
+            )
             _LOG.debug("key=%s", key)
             # Get the cache properties.
             cache_perf = get_cache_perf(func_name)
