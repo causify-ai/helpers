@@ -501,7 +501,7 @@ def simple_cache(
             cache = get_cache(func_name)
             # Get the key.
             key = json.dumps(
-                {"args": args, "kwargs": kwargs}, sort_keys=True, default=str
+                {"args": args,"kwargs": kwargs}, sort_keys=True, default=str
             )
             _LOG.debug("key=%s", key)
             # Get the cache properties.

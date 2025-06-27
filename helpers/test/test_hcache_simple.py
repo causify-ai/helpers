@@ -269,8 +269,8 @@ class Test_reset_mem_cache(BaseCacheTest):
         hcacsimp.reset_mem_cache("_cached_function")
         # Retrieve the cache after reset.
         cache_after: Dict[str, Any] = hcacsimp.get_cache("_cached_function")
-        # Verify that the key '{"args":[5],"kwargs":{}}' is no longer in the cache.
-        self.assertNotIn('{"args":[5],"kwargs":{}}', cache_after)
+        # Verify that the key '{"args": [5], "kwargs": {}}' is no longer in the cache.
+        self.assertNotIn('{"args": [5], "kwargs": {}}', cache_after)
 
 
 # #############################################################################
@@ -292,7 +292,7 @@ class Test_force_cache_from_disk(BaseCacheTest):
         mem_cache: Dict[str, Any] = hcacsimp.get_mem_cache("_cached_function")
         # Ensure that the in-memory cache is empty.
         self.assertNotIn(
-            '{"args":[7],"kwargs":{}}',
+            '{"args": [7], "kwargs": {}}',
             mem_cache,
             "Memory cache should be empty after reset.",
         )

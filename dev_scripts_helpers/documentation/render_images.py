@@ -390,7 +390,6 @@ def _render_images(
                     use_sudo=use_sudo,
                     dry_run=dry_run,
                 )
-                # _ = is_cache_hit
                 # Override the image name if explicitly set by the user.
                 if user_rel_img_path != "":
                     rel_img_path = user_rel_img_path
