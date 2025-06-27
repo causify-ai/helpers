@@ -289,7 +289,7 @@ def md_clean_up(txt: str) -> str:
     # Replace \[ ... \] math syntax with $$ ... $$, handling multiline equations.
     txt = re.sub(r"\\\[(.*?)\\\]", r"$$\1$$", txt, flags=re.DOTALL)
     # Replace `P(.)`` with `\Pr(.)`.
-    txt = re.sub(r"P\((.*?)\)", r"\\Pr(\1)", txt)
+    # txt = re.sub(r"P\((.*?)\)", r"\\Pr(\1)", txt)
     # Replace \left[, \right].
     txt = re.sub(r"\\left\[", r"[", txt)
     txt = re.sub(r"\\right\]", r"]", txt)

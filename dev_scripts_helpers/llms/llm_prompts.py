@@ -1069,8 +1069,6 @@ def review_refactoring() -> _PROMPT_OUT:
 _SLIDE_CONTEXT = r"""
     You are a proficient technical writer who writes slides in markdown.
 
-    - If a line starts with an asterisk *, consider it as an header andleave it unchanged
-    
     I will pass you a chunk of markdown code.
     """
 
@@ -1121,16 +1119,70 @@ def slide_expand() -> _PROMPT_OUT:
 
 
 def slide_reduce() -> _PROMPT_OUT:
+    """
+    Reduce the text in a slide.
+    """
     system = _SLIDE_CONTEXT
     system += r"""
     You will:
-    - Maintain the structure of the text
-    - If a line starts with an asterisk *, consider it as an header andleave it unchanged
+    - Maintain the structure of the text in terms of bullet and sub-bullet points
     - Keep all the figures
-    - Make sure that the text is clean and readable
-    - Remove all the words that are not needed
+    - Make the text clean and readable
+    - Remove all the words that are not needed and that are not important
     - Use "you" instead of "we"
-    - Use `E.g.,` instead of `Example`
+	- Be concise: Drop filler words ("the", "that", etc.)
+	- Use active voice: "Improve accuracy" instead of "Accuracy can be improved."
+
+    - If a line starts with an asterisk *, it's the slide title and leave it
+      unchanged
+        Examples:
+        <input>
+        * Slide title
+        - This is a very long bullet point that is not clear and should be removed
+        - This is a clear bullet point that should be kept
+        </input>
+
+        <output>
+        * Slide title
+        - This is a clear bullet point that should be kept
+        </output>
+
+    Print only the markdown without any explanation.
+    """
+    # - Minimize the changes to the text
+    pre_transforms: Set[str] = set()
+    post_transforms = {
+        "remove_code_delimiters",
+        "remove_end_of_line_periods",
+        "remove_empty_lines",
+    }
+    post_container_transforms = ["format_slide"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def slide_definition() -> _PROMPT_OUT:
+    """
+    Highlight the definitions in the text.
+    """
+    system = _SLIDE_CONTEXT
+    system += r"""
+    - If there is a definition in the text, add bold to the term being defined
+      - Do not bold the term if it is already bold
+    - Use the latex `\defeq` in the definition instead of `=`
+    - Move the symbol of the definition to the left of the term being defined
+
+    Example1:
+    Input:
+    - Entropy of a discrete random variable $X$ is defined as
+      $$H(X) = -\sum_x p(x) \log p(x)$$
+    - Entropy quantifies the average level of information / surprise / uncertainty
+      inherent in the variable's possible outcomes
+
+    Output:
+    - The **entropy** $H(X)$ of a discrete random variable $X$ is defined as:
+      $$H(X) \defeq -\sum_x p(x) \log p(x)$$
+    - Entropy quantifies the average level of information / surprise / uncertainty
+      inherent in the variable's possible outcomes
 
     Print only the markdown without any explanation.
     """
@@ -1146,6 +1198,9 @@ def slide_reduce() -> _PROMPT_OUT:
 
 
 def slide_reduce_bullets() -> _PROMPT_OUT:
+    """
+    Remove the bullet points that are 
+    """
     system = _SLIDE_CONTEXT
     system += r"""
     You will:
@@ -1169,12 +1224,7 @@ def slide_reduce_bullets() -> _PROMPT_OUT:
 def slide_reduce2() -> _PROMPT_OUT:
     system = _SLIDE_CONTEXT
     system += r"""
-    You will:
-    - Maintain the structure of the text
-    - Keep all the figures
-    - Make sure that the text is clean and readable
-    - Use "you" instead of "we"
-
+    You will make sure that the text has the following characteristics:
     - 1 idea per bullet: Keep each point focused on a single concept
 	- Max 5-6 bullets per slide: Avoid cognitive overload
 	- Max 6-8 words per bullet: Short phrases, not full sentences
