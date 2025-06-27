@@ -366,6 +366,10 @@ class Test_render_images1(hunitest.TestCase):
         Check bare mermaid code in a LaTeX file.
         """
         in_lines = r"""
+        ```mermaid
+        flowchart TD;
+          A[Start] --> B[End];
+        ```
         """
         file_ext = "tex"
         exp = r"""
@@ -383,6 +387,10 @@ class Test_render_images1(hunitest.TestCase):
         """
         in_lines = r"""
         A
+        ```mermaid
+        flowchart TD;
+          A[Start] --> B[End];
+        ```
         B
         """
         file_ext = "tex"
@@ -401,8 +409,12 @@ class Test_render_images1(hunitest.TestCase):
         """
         Check mermaid code within other text in a md file.
         """
-        in_lines = r"""
+        in_lines = in_lines = r"""
         A
+        ```mermaid
+        flowchart TD;
+          A[Start] --> B[End];
+        ```
         B
         """
         file_ext = "txt"
@@ -423,6 +435,10 @@ class Test_render_images1(hunitest.TestCase):
         """
         in_lines = r"""
         A
+        ```mermaid(hello_world.png)
+        flowchart TD;
+          A[Start] --> B[End];
+        ```
         B
         """
         file_ext = "txt"
