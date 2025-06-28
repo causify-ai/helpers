@@ -5,12 +5,13 @@ import helpers.hllm as hllm
 """
 
 import datetime
+import functools
 import hashlib
 import json
 import logging
 import os
 import re
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 import openai
 import pandas as pd
@@ -251,13 +252,19 @@ def _call_api_sync(
     temperature: float,
     model: str,
     **create_kwargs,
-) -> Tuple[str, Any]:
+) -> dict[Any, Any]:
     """
-    Make a non-streaming API call and return (response, raw_completion).
+    Make a non-streaming API call.
 
-    return: a tuple with
-        - model response in OpenAI's completion object
-        - raw completion
+    :param client: OpenAI client
+    :param messages: list of messages to send to the API
+    :param model: model to use for the completion
+    :param temperature: adjust an LLM's sampling diversity: lower values make it
+        more deterministic, while higher values foster creative variation.
+        0 < temperature <= 2, 0.1 is default value in OpenAI models.
+    :param create_kwargs: additional parameters for the API call
+    :return: OpenAI chat completion object as a dictionary
+       
     """
     completion = client.chat.completions.create(
         model=model,
@@ -276,7 +283,10 @@ def _call_api_sync(
     return completion_obj
 
 
-@hcacsimp.simple_cache(cache_type="json", write_through=True)
+# Save cache to disk for persistence.
+# "client", "cache_mode" are excluded from the cache key because they are not
+# relevant for the caching logic.
+@hcacsimp.simple_cache(write_through=True, exclude_keys=["client", "cache_mode"])
 def _call_api_sync_cached(
     cache_mode: str,
     client: openai.OpenAI,
@@ -284,7 +294,13 @@ def _call_api_sync_cached(
     model: str,
     temperature: float,
     **create_kwargs,
-):
+) -> dict[Any, Any]:
+    """
+    Make a non-streaming API call with caching.
+
+    :param cache_mode: "REFRESH_CACHE", "HIT_CACHE_OR_ABORT", "NORMAL"
+    """
+    hdbg.dassert_in(cache_mode, ("REFRESH_CACHE", "HIT_CACHE_OR_ABORT", "NORMAL"))
     return _call_api_sync(
         client=client,
         messages=messages,
@@ -392,7 +408,6 @@ def get_completion(
     report_progress: bool = False,
     print_cost: bool = False,
     cache_mode: str = "DISABLE_CACHE",
-    cache_file: str = "cache.get_completion.json",
     temperature: float = 0.1,
     **create_kwargs,
 ) -> str:
@@ -427,13 +442,6 @@ def get_completion(
         model = _get_default_model()
     # Construct messages in OpenAI API request format.
     messages = _build_messages(system_prompt, user_prompt)
-
-    request_params = {
-        "model": model,
-        "messages": messages,
-        "temperature": temperature,
-        **create_kwargs,
-    }
 
     client = get_openai_client()
     # print("LLM API call ... ")
