@@ -500,9 +500,9 @@ def simple_cache(
             # Get the cache.
             cache = get_cache(func_name)
             # Get the key.
-            # key = (args, frozenset(kwargs.items()))
-            key = args
-            key = str(key)
+            key = json.dumps(
+                {"args": args, "kwargs": kwargs}, sort_keys=True, default=str
+            )
             _LOG.debug("key=%s", key)
             # Get the cache properties.
             cache_perf = get_cache_perf(func_name)
