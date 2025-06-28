@@ -112,8 +112,7 @@ def _render_image_code(
         inserted
     :param dst_ext: extension of the rendered image, e.g., "svg", "png"
     :param dry_run: if True, the rendering command is not executed
-    :return: path to the rendered image and a boolean indicating if the
-        cache was hit
+    :return: path to the rendered image
     """
     _LOG.debug(hprint.func_signature_to_str("image_code_txt"))
     if image_code_type == "plantuml":
