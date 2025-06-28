@@ -55,11 +55,6 @@
   objects, sets, etc.), while JSON is more portable and human-readable but
   limited to basic types. The user can choose based on their use case.
 
-- **Argument Handling**: Cache keys are built using only positional arguments
-  (`args`) for simplicity and consistency. Keyword arguments (`kwargs`) are
-  ignored, which can lead to unexpected reuse of cache if the function behavior
-  changes based on `kwargs`.
-
 - **Property Storage**: Properties are stored in separate `user` and `system`
   pickle files to separate runtime configuration (user behavior) from
   infrastructure-level settings (e.g., storage format).
