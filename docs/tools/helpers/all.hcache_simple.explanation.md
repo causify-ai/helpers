@@ -173,9 +173,8 @@
       `@simple_cache(cache_type="json")`, the decorator sets the system property
       for the cache type
   - Wrapper execution:
-    - Key generation: The wrapper generates a `cache key` from the positional
-      arguments. (Keyword arguments are not part of the key in this
-      implementation.)
+    - Key generation: The wrapper generates a `cache key` from both
+      arguments and keyword arguments.
     - Cache lookup:
       - If the key exists in the memory cache (and no force refresh is
         requested), it returns the cached value
@@ -249,7 +248,7 @@ flowchart TD
 
     %% Function Call Flow %%
     subgraph "Function Call Flow"
-        B1[Function Called with Args]
+        B1[Function Called with Args, Keyword Arguments]
         B2[Generate Cache Key]
         B3[Update Performance Totals]
         B4{force_refresh Enabled?}
