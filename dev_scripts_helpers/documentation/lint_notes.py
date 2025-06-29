@@ -1,7 +1,13 @@
 #!/usr/bin/env python
 
 """
-Lint "notes" files.
+Lint md / tex / txt files by applying a series of actions:
+- preprocess: remove some artifacts when copying from gdoc"
+- prettier: run prettier to format the text
+- postprocess: remove empty lines before ```, before higher level bullets, ...
+- frame_chapters: add a frame around each chapter
+- improve_header_and_slide_titles: improve the header and slide titles
+- refresh_toc: refresh the table of content, if needed
 
 > lint_notes.py -i foo.md -o bar.md \
     --use_dockerized_prettier \
@@ -13,7 +19,7 @@ It can be used in vim to prettify a part of the text using stdin / stdout.
 ```
 """
 
-# TODO(gp): -> lint_md.py
+# TODO(gp): -> lint_md.py?
 
 import argparse
 import logging
@@ -340,6 +346,54 @@ def _refresh_toc(
     return txt  # type: ignore
 
 
+def _improve_header_and_slide_titles(txt: str) -> str:
+    """
+    Improve the header and slide titles.
+
+    - Headers start with one or more `#`s.
+    - Slide titles start with one `*`
+    - The title is transformed to title case as below:
+        - ML theory -> ML Theory
+        - A map of machine learning -> A Map of Machine Learning
+    """
+    txt_new: List[str] = []
+    for i, line in enumerate(txt.split("\n")):
+        # Parse header (starting with `#`) and slide title (starting with `*`).
+        m = re.match(r"^(\#+|\*) (.*)$", line)
+        if m:
+            # Parse the title.
+            title = m.group(2)
+            # Transform to title case, leaving words that are all capitalized
+            # and conjunctions as is.
+            non_cap_words = {'a', 'an', 'and', 'as', 'at', 'but', 'by', 'for',
+                'in', 'of', 'on', 'or', 'the', 'to', 'vs', 'with'}
+            # Split into words
+            words = title.split()
+            # Process each word.
+            for i, word in enumerate(words):
+                if i == 0 and not word.isupper():
+                    # Capitalize the first word.
+                    words[i] = word.title()
+                elif word.isupper():
+                    # Skip words that are all caps (e.g. ML, API).
+                    continue
+                elif word.lower() in non_cap_words:
+                    # Don't capitalize conjunctions and other minor words.
+                    words[i] = word.lower()
+                else:
+                    # Capitalize other words.
+                    words[i] = word.title()
+                    
+            title = ' '.join(words)
+            # Reconstruct the line.
+            line = m.group(1) + " " + title
+            txt_new.append(line)
+        else:
+            txt_new.append(line)
+    txt_new_as_str = "\n".join(txt_new)
+    return txt_new_as_str
+
+
 # #############################################################################
 
 
@@ -388,8 +442,14 @@ def _process(
     # Frame chapters.
     action = "frame_chapters"
     if _to_execute_action(action, actions):
+        # For markdown files, we don't use the frame since it's not rendered
+        # correctly.
         if not is_md_file:
             txt = _frame_chapters(txt)
+    # Improve header and slide titles.
+    action = "improve_header_and_slide_titles"
+    if _to_execute_action(action, actions):
+        txt = _improve_header_and_slide_titles(txt)
     # Refresh table of content.
     action = "refresh_toc"
     if _to_execute_action(action, actions):
@@ -405,6 +465,7 @@ _VALID_ACTIONS = [
     "prettier",
     "postprocess",
     "frame_chapters",
+    "improve_header_and_slide_titles",
     "refresh_toc",
 ]
 
@@ -423,6 +484,7 @@ def _parser() -> argparse.ArgumentParser:
         action="store",
         type=str,
         default="",
+        help="The type of the input file, e.g., `md`, `tex`, `txt`",
     )
     parser.add_argument(
         "-w",
@@ -430,6 +492,7 @@ def _parser() -> argparse.ArgumentParser:
         action="store",
         type=int,
         default=80,
+        help="The maximum line width for the formatted text. If None, 80 is used"
     )
     parser.add_argument(
         "--use_dockerized_prettier",

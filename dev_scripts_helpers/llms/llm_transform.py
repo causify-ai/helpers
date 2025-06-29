@@ -224,7 +224,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     #
     if args.prompt == "list":
         print("# Available prompt tags:")
-        print("\n".join(dshlllpr.get_prompt_tags()))
+        prompt_tags = dshlllpr.get_prompt_tags()
+        print(dshlllpr.prompt_tags_to_str(prompt_tags))
         return
     # Parse files.
     in_file_name, out_file_name = hparser.parse_input_output_args(args)
@@ -249,7 +250,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
             raise ValueError(f"Invalid prompt='{args.prompt}'")
         hparser.write_file(txt, out_file_name)
         return
-
     # TODO(gp): We should just automatically pass-through the options.
     cmd_line_opts = [f"-p {args.prompt}", f"-v {args.log_level}"]
     if args.fast_model:

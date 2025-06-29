@@ -300,14 +300,14 @@ The supported File types and code blocks are:
 ### What it does
 
 - Tidy up Markdown/LaTeX/txt notes by:
-  - Normalising G‑Doc artifacts
-  - Running Prettier
+  - Normalising Google Doc artifacts
+  - Running `prettier`
   - Fixing bullet/heading quirks
-  - Refreshing the Table of Contents
+  - Refreshing the table of contents
 
 ### Examples
 
-- Prettify with Dockerised Prettier and TOC rebuild
+- Prettify with Dockerized Prettier and TOC rebuild
 
   ```bash
   > lint_notes.py -i Lesson10.md \
@@ -318,7 +318,7 @@ The supported File types and code blocks are:
 - Custom print width and selective actions
   ```bash
   > lint_notes.py -i draft.txt -o tidy.txt -w 100 \
-                --action preprocess,prettier,postprocess
+       --action preprocess,prettier,postprocess
   ```
 
 ### Interface
