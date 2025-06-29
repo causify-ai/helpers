@@ -507,9 +507,8 @@ def simple_cache(
                 func_name = func_name[: -len("_intrinsic")]
             # Get the cache.
             cache = get_cache(func_name)
-            kwargs_for_cache = kwargs.copy()
             # Remove keys that should not be cached.
-            kwargs_for_cache = {
+            kwargs_for_cache_key = {
                 k: v for k, v in kwargs.items() if k not in exclude_keys
             }
             if "cache_mode" in kwargs:
@@ -525,7 +524,7 @@ def simple_cache(
                     abort_on_cache_miss = True
             # Get the key.
             key = json.dumps(
-                {"args": args, "kwargs": kwargs_for_cache},
+                {"args": args, "kwargs": kwargs_for_cache_key},
                 sort_keys=True,
                 default=str,
             )
