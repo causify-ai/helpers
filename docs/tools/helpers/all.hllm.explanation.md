@@ -11,7 +11,7 @@
   * [Entire Flow](#entire-flow)
 - [How Testing Works](#how-testing-works)
   * [Cache Refreshing](#cache-refreshing)
-  * [Proposal for integrating `hcache_simple.simple_cache()`](#proposal-for-integrating-hcache_simplesimple_cache)
+- [Proposal for integrating `hcache_simple.simple_cache()`](#proposal-for-integrating-hcache_simplesimple_cache)
 
 <!-- tocstop -->
 
@@ -212,7 +212,7 @@ This section summarizes how `get_completion()` operates internally.
 - Once the cache is refreshed, the cache should be reviewed and committed the
   updated cache file to version control
 
-## Proposal for integrating `hcache_simple.simple_cache()`
+# Proposal for integrating `hcache_simple.simple_cache()`
 
 - Consolidating the bespoke `_CompletionCache` logic in `hllm.get_completion()`
   by adopting the `simple_cache()` decorator from `helpers.hcache_simple`.
