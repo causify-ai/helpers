@@ -21,15 +21,15 @@ _LOG = logging.getLogger(__name__)
 
 
 @functools.lru_cache(maxsize=1)
-def get_prompt_tags() -> List[str]:
+def get_prompt_tags() -> List[Tuple[str, str]]:
     """
-    Return the list of functions in this file that can be called as a prompt.
+    Return the list of prompt functions in this file and their docstrings.
     """
     # Read current file.
     curr_path = os.path.abspath(__file__)
     file_content = hio.from_file(curr_path)
     #
-    matched_functions = []
+    functions = []
     # Parse the file content into an AST.
     tree = ast.parse(file_content)
     for node in ast.walk(tree):
@@ -46,10 +46,29 @@ def get_prompt_tags() -> List[str]:
                 return_type_str = ast.unparse(node.returns)
             _LOG.debug(hprint.to_str("node.name args return_type_str"))
             if has_no_args and return_type_str == "_PROMPT_OUT":
+                # Add function name to list if it matches the expected signature.
                 _LOG.debug("  -> matched")
-                matched_functions.append(node.name)
-    matched_functions = sorted(matched_functions)
-    return matched_functions
+                # Extract docstring if it exists.
+                docstring = ast.get_docstring(node)
+                _LOG.debug("docstring='%s'", docstring)
+                docstring = "" if docstring is None else docstring
+                functions.append((node.name, docstring))
+    functions = sorted(functions)
+    return functions
+
+
+def prompt_tags_to_str(prompt_tags: List[Tuple[str, str]]) -> str:
+    """
+    Return a string representation of the prompt tags.
+    """
+    # Find the longest tag length.
+    max_tag_len = max(len(tag) for tag, _ in prompt_tags)
+    # Format each line with aligned docstrings.
+    lines = []
+    for tag, docstring in prompt_tags:
+        padding = " " * (max_tag_len - len(tag))
+        lines.append(f"{tag}{padding}   {docstring}")
+    return "\n".join(lines)
 
 
 # #############################################################################
@@ -69,7 +88,7 @@ def get_post_container_transforms(
     global _POST_CONTAINER_TRANSFORMS
     # Initialize the dictionary, on the first call.
     if not _POST_CONTAINER_TRANSFORMS:
-        valid_prompts = get_prompt_tags()
+        valid_prompts = list(zip(*get_prompt_tags()))[0]
         # Call all the functions and register their `post_container_transforms`.
         for prompt in valid_prompts:
             _, _, _, post_container_transforms = eval(f"{prompt}()")
@@ -175,6 +194,9 @@ def code_fix_star_before_optional_parameters() -> _PROMPT_OUT:
 
 
 def code_fix_function_type_hints() -> _PROMPT_OUT:
+    """
+    Add type hints to the function definitions, if they are missing.
+    """
     system = _CODING_CONTEXT
     system += r"""
     Add type hints only to the function definitions, if they are missing.
@@ -207,13 +229,6 @@ def code_fix_function_type_hints() -> _PROMPT_OUT:
 def code_fix_docstrings() -> _PROMPT_OUT:
     """
     Add or complete a REST docstring to Python code.
-
-    Each function should have a docstring that describes the function,
-    its parameters, and its return value.
-
-    Create examples of the values in input and output of each function,
-    only when you are sure of the types and values of variables. If you
-    are not sure, do not add any information.
     """
     system = _CODING_CONTEXT
     system += r'''
@@ -244,6 +259,9 @@ def code_fix_docstrings() -> _PROMPT_OUT:
 
 
 def code_fix_complex_assignments() -> _PROMPT_OUT:
+    """
+    Convert complex assignments into if-then-else statements.
+    """
     system = _CODING_CONTEXT
     system += r"""
     Convert complex assignments into if-then-else statements.
@@ -437,9 +455,7 @@ def code_fix_log_string() -> _PROMPT_OUT:
 
 def code_fix_by_using_f_strings() -> _PROMPT_OUT:
     """
-    Fix code to use f-strings, like `f"Hello, {name}.
-
-    You are {age} years old."`.
+    Fix code to use f-strings instead of % formatting.
     """
     system = _CODING_CONTEXT
     system += r"""
@@ -466,7 +482,7 @@ def code_fix_by_using_f_strings() -> _PROMPT_OUT:
 
 def code_fix_by_using_perc_strings() -> _PROMPT_OUT:
     """
-    Use % formatting, like `"Hello, %s. You are %d years old." % (name, age)`.
+    Use % formatting instead of f-strings (formatted string literals).
     """
     system = _CODING_CONTEXT
     system += r"""
@@ -497,8 +513,7 @@ def code_fix_unit_test() -> _PROMPT_OUT:
 
 def code_fix_code() -> _PROMPT_OUT:
     """
-    Apply all the transformations required to write code according to the
-    Causify conventions.
+    Apply all the transformations required for the Causify code conventions.
     """
     # > grep "def code_fix" ./dev_scripts_helpers/llms/llm_prompts.py | awk '{print $2 }'
     function_names = [
@@ -536,6 +551,9 @@ def code_fix_code() -> _PROMPT_OUT:
 
 
 def code_transform_remove_redundancy() -> _PROMPT_OUT:
+    """
+    Remove redundancy in the code.
+    """
     system = _CODING_CONTEXT
     system += r"""
     You will review the code and look for opportunities to refactor the code,
@@ -641,6 +659,9 @@ _LATEX_CONTEXT = r"""
 
 
 def latex_rewrite() -> _PROMPT_OUT:
+    """
+    Rewrite the Latex code to increase clarity and readability.
+    """
     system = _LATEX_CONTEXT
     system += r"""
     - Rewrite the text passed to increase clarity and readability.
@@ -656,6 +677,9 @@ def latex_rewrite() -> _PROMPT_OUT:
 
 
 def latex_check() -> _PROMPT_OUT:
+    """
+    Check the Latex code is correct and doesn't have errors.
+    """
     system = _LATEX_CONTEXT
     system += r"""
     Check the Latex code is correct and doesn't have errors.
@@ -680,6 +704,9 @@ _MD_CONTEXT = r"""
 
 
 def md_add_good_bad_examples() -> _PROMPT_OUT:
+    """
+    Add good and bad examples to a markdown text.
+    """
     system = _MD_CONTEXT
     system += r"""
     You will:
@@ -712,6 +739,9 @@ def md_add_good_bad_examples() -> _PROMPT_OUT:
 
 
 def md_rewrite() -> _PROMPT_OUT:
+    """
+    Rewrite the markdown text to increase clarity and readability.
+    """
     system = _MD_CONTEXT
     system += r"""
     - Rewrite the text passed to increase clarity and readability.
@@ -726,6 +756,9 @@ def md_rewrite() -> _PROMPT_OUT:
 
 
 def md_summarize_short() -> _PROMPT_OUT:
+    """
+    Summarize the markdown text in less than 30 words.
+    """
     system = _MD_CONTEXT
     system += r"""
     Summarize the text in less than 30 words.
@@ -737,6 +770,9 @@ def md_summarize_short() -> _PROMPT_OUT:
 
 
 def md_expand() -> _PROMPT_OUT:
+    """
+    Expand the markdown text by adding bullet points and examples.
+    """
     system = _MD_CONTEXT
     system += r"""
     You will:
@@ -761,6 +797,9 @@ def md_expand() -> _PROMPT_OUT:
 
 # TODO(gp): Move to template.
 def md_clean_up_how_to_guide() -> _PROMPT_OUT:
+    """
+    Format the text passed as a how-to guide.
+    """
     system = _MD_CONTEXT
     system += r"""
     Format the text passed as a how-to guide.
@@ -785,6 +824,9 @@ def md_clean_up_how_to_guide() -> _PROMPT_OUT:
 
 
 def md_convert_text_to_bullet_points() -> _PROMPT_OUT:
+    """
+    Convert the text passed to bullet points.
+    """
     system = _MD_CONTEXT
     system += r"""
     - Convert the text passed to bullet points using multiple levels of bullets.
@@ -799,6 +841,9 @@ def md_convert_text_to_bullet_points() -> _PROMPT_OUT:
 
 
 def md_convert_table_to_bullet_points() -> _PROMPT_OUT:
+    """
+    Convert the table passed to bullet points.
+    """
     system = _MD_CONTEXT
     system += r"""
     - Convert the table passed to bullet points using multiple levels of bullets.
@@ -813,6 +858,9 @@ def md_convert_table_to_bullet_points() -> _PROMPT_OUT:
 
 
 def md_format() -> _PROMPT_OUT:
+    """
+    Format the markdown text.
+    """
     system = _MD_CONTEXT
     system += r"""
     - Replace `*` with `-` for bullet points
@@ -825,6 +873,9 @@ def md_format() -> _PROMPT_OUT:
 
 
 def md_remove_formatting() -> _PROMPT_OUT:
+    """
+    Remove the formatting (bold, italic, etc.) from the markdown text.
+    """
     system = _MD_CONTEXT
     system += r"""
     You will:
@@ -841,6 +892,9 @@ def md_remove_formatting() -> _PROMPT_OUT:
 
 
 def md_create_bullets() -> _PROMPT_OUT:
+    """
+    Create bullet points from the markdown text.
+    """
     system = _MD_CONTEXT
     system += r"""
     You will:
@@ -1096,6 +1150,9 @@ def slide_to_bullet_points() -> _PROMPT_OUT:
 
 
 def slide_expand() -> _PROMPT_OUT:
+    """
+    Expand the slide text by adding bullet points and examples.
+    """
     system = _SLIDE_CONTEXT
     system += r"""
     You will:
@@ -1222,6 +1279,9 @@ def slide_reduce_bullets() -> _PROMPT_OUT:
 
 
 def slide_reduce2() -> _PROMPT_OUT:
+    """
+    Reduce the slide text to a maximum of 5-6 bullets per slide.
+    """
     system = _SLIDE_CONTEXT
     system += r"""
     You will make sure that the text has the following characteristics:
@@ -1251,6 +1311,9 @@ def slide_reduce2() -> _PROMPT_OUT:
 
 
 def slide_bold() -> _PROMPT_OUT:
+    """
+    Highlight the most important phrases in the text.
+    """
     system = _SLIDE_CONTEXT
     system += r"""
     You will:
@@ -1270,6 +1333,9 @@ def slide_bold() -> _PROMPT_OUT:
 
 
 def slide_smart_colorize() -> _PROMPT_OUT:
+    """
+    Colorize the most important phrases in the text.
+    """
     system = _SLIDE_CONTEXT
     system += r"""
     You will:
@@ -1310,6 +1376,9 @@ def slide_smart_colorize() -> _PROMPT_OUT:
 
 
 def slide_add_figure() -> _PROMPT_OUT:
+    """
+    Add a figure to the slide.
+    """
     system = _SLIDE_CONTEXT
     system += r"""
     You will create a figure that illustrates the text using Graphviz dot.
@@ -1355,6 +1424,9 @@ def slide_add_figure() -> _PROMPT_OUT:
 
 
 def slide_check() -> _PROMPT_OUT:
+    """
+    Check the slide is clear and correct.
+    """
     system = _SLIDE_CONTEXT
     system += r"""
     - Do not print the content of the slide, but only the comment.
@@ -1393,6 +1465,7 @@ def slide_check() -> _PROMPT_OUT:
 
 def text_idea() -> _PROMPT_OUT:
     """
+    Come up with suggestions and variations to make it interesting.
     """
     file = "text_idea.txt"
     if os.path.exists(file):
@@ -1407,6 +1480,7 @@ def text_idea() -> _PROMPT_OUT:
 
 def text_rephrase() -> _PROMPT_OUT:
     """
+    Rephrase the text using text_rephrase.txt.
     """
     file = "text_rephrase.txt"
     if os.path.exists(file):
@@ -1420,6 +1494,9 @@ def text_rephrase() -> _PROMPT_OUT:
 
 
 def text_rewrite() -> _PROMPT_OUT:
+    """
+    Rewrite the text to increase clarity and readability.
+    """
     system = ""
     system += r"""
     - Rewrite the text passed to increase clarity and readability.
@@ -1556,7 +1633,7 @@ def run_prompt(
     """
     _LOG.debug(hprint.func_signature_to_str())
     # Get the info corresponding to the prompt tag.
-    prompt_tags = get_prompt_tags()
+    prompt_tags = list(zip(*get_prompt_tags()))[0]
     hdbg.dassert_in(prompt_tag, prompt_tags)
     python_cmd = f"{prompt_tag}()"
     (

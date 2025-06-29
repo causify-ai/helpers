@@ -224,7 +224,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     #
     if args.prompt == "list":
         print("# Available prompt tags:")
-        print("\n".join(dshlllpr.get_prompt_tags()))
+        prompt_tags = dshlllpr.get_prompt_tags()
+        print(dshlllpr.prompt_tags_to_str(prompt_tags))
         return
     # Parse files.
     in_file_name, out_file_name = hparser.parse_input_output_args(args)
