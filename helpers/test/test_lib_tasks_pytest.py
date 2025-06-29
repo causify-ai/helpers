@@ -27,6 +27,7 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_build_run_command_line1(hunitest.TestCase):
+
     def run_fast_tests1_helper(
         self,
         is_dev_csfy_return_value: bool,
@@ -77,7 +78,9 @@ class Test_build_run_command_line1(hunitest.TestCase):
         exp = (
             'pytest -m "not slow and not superslow" . '
             "-o timeout_func_only=true --timeout 5 --reruns 2 "
-            '--only-rerun "Failed: Timeout" -n 1'
+            '--only-rerun "Failed: Timeout" -n 1 '
+            "--junit-xml=tmp.junit.xml "
+            '-o junit_suite_name="helpers"'
         )
         is_dev_csfy_return_value = True
         is_inside_ci_return_value = True
@@ -92,7 +95,9 @@ class Test_build_run_command_line1(hunitest.TestCase):
         exp = (
             'pytest -m "not slow and not superslow" . '
             "-o timeout_func_only=true --timeout 5 --reruns 2 "
-            '--only-rerun "Failed: Timeout" -n 1'
+            '--only-rerun "Failed: Timeout" -n 1 '
+            "--junit-xml=tmp.junit.xml "
+            '-o junit_suite_name="helpers"'
         )
         is_dev_csfy_return_value = False
         is_inside_ci_return_value = True
@@ -107,7 +112,9 @@ class Test_build_run_command_line1(hunitest.TestCase):
         exp = (
             'pytest -m "not slow and not superslow" . '
             "-o timeout_func_only=true --timeout 50 --reruns 2 "
-            '--only-rerun "Failed: Timeout" -n 1'
+            '--only-rerun "Failed: Timeout" -n 1 '
+            "--junit-xml=tmp.junit.xml "
+            '-o junit_suite_name="helpers"'
         )
         is_inside_ci_return_value = False
         is_dev_csfy_return_value = False
@@ -158,13 +165,14 @@ class Test_build_run_command_line1(hunitest.TestCase):
         """
         Mock test for running fast tests inside the CK infra.
         """
-
         exp = (
             r'pytest -m "not slow and not superslow" . '
             r"-o timeout_func_only=true --timeout 5 --reruns 2 "
             r'--only-rerun "Failed: Timeout" --cov=.'
             r" --cov-branch --cov-report term-missing --cov-report html "
-            r"--collect-only -n 1"
+            r"--collect-only -n 1 "
+            r"--junit-xml=tmp.junit.xml "
+            r'-o junit_suite_name="helpers"'
         )
         is_dev_csfy_return_value = True
         is_inside_ci_return_value = True
@@ -179,7 +187,9 @@ class Test_build_run_command_line1(hunitest.TestCase):
         exp = (
             'pytest -m "not slow and not superslow" . '
             "-o timeout_func_only=true --timeout 5 --reruns 2 "
-            '--only-rerun "Failed: Timeout" -n 1'
+            '--only-rerun "Failed: Timeout" -n 1 '
+            "--junit-xml=tmp.junit.xml "
+            '-o junit_suite_name="helpers"'
         )
         is_dev_csfy_return_value = False
         is_inside_ci_return_value = True
@@ -196,7 +206,9 @@ class Test_build_run_command_line1(hunitest.TestCase):
             r"-o timeout_func_only=true --timeout 50 --reruns 2 "
             r'--only-rerun "Failed: Timeout" --cov=.'
             r" --cov-branch --cov-report term-missing --cov-report html "
-            r"--collect-only -n 1"
+            r"--collect-only -n 1 "
+            r"--junit-xml=tmp.junit.xml "
+            r'-o junit_suite_name="helpers"'
         )
         is_dev_csfy_return_value = False
         is_inside_ci_return_value = False
@@ -307,7 +319,10 @@ class Test_build_run_command_line1(hunitest.TestCase):
         exp = (
             'pytest -m "not slow and not superslow" . '
             "-o timeout_func_only=true --timeout 5 --reruns 2 "
-            '--only-rerun "Failed: Timeout" -n 1 2>&1'
+            '--only-rerun "Failed: Timeout" -n 1 '
+            "--junit-xml=tmp.junit.xml "
+            '-o junit_suite_name="helpers"'
+            " 2>&1"
             " | tee tmp.pytest.fast_tests.log"
         )
         is_dev_csfy_return_value = True
@@ -323,7 +338,9 @@ class Test_build_run_command_line1(hunitest.TestCase):
         exp = (
             'pytest -m "not slow and not superslow" . '
             "-o timeout_func_only=true --timeout 5 --reruns 2 "
-            '--only-rerun "Failed: Timeout" -n 1'
+            '--only-rerun "Failed: Timeout" -n 1 '
+            "--junit-xml=tmp.junit.xml "
+            '-o junit_suite_name="helpers"'
         )
         is_dev_csfy_return_value = False
         is_inside_ci_return_value = True
@@ -338,7 +355,10 @@ class Test_build_run_command_line1(hunitest.TestCase):
         exp = (
             'pytest -m "not slow and not superslow" . '
             "-o timeout_func_only=true --timeout 50 --reruns 2 "
-            '--only-rerun "Failed: Timeout" -n 1 2>&1'
+            '--only-rerun "Failed: Timeout" -n 1 '
+            "--junit-xml=tmp.junit.xml "
+            '-o junit_suite_name="helpers"'
+            " 2>&1"
             " | tee tmp.pytest.fast_tests.log"
         )
         is_dev_csfy_return_value = False
@@ -393,7 +413,9 @@ class Test_build_run_command_line1(hunitest.TestCase):
         exp = (
             'pytest -m "optimizer and not slow and not superslow" . '
             "-o timeout_func_only=true --timeout 5 --reruns 2 "
-            '--only-rerun "Failed: Timeout" -n 1'
+            '--only-rerun "Failed: Timeout" -n 1 '
+            "--junit-xml=tmp.junit.xml "
+            '-o junit_suite_name="helpers"'
         )
         is_dev_csfy_return_value = True
         is_inside_ci_return_value = True
@@ -408,7 +430,9 @@ class Test_build_run_command_line1(hunitest.TestCase):
         exp = (
             'pytest -m "not slow and not superslow" . '
             "-o timeout_func_only=true --timeout 5 --reruns 2 "
-            '--only-rerun "Failed: Timeout" -n 1'
+            '--only-rerun "Failed: Timeout" -n 1 '
+            "--junit-xml=tmp.junit.xml "
+            '-o junit_suite_name="helpers"'
         )
         is_dev_csfy_return_value = False
         is_inside_ci_return_value = True
@@ -423,7 +447,9 @@ class Test_build_run_command_line1(hunitest.TestCase):
         exp = (
             'pytest -m "optimizer and not slow and not superslow" . '
             "-o timeout_func_only=true --timeout 50 --reruns 2 "
-            '--only-rerun "Failed: Timeout" -n 1'
+            '--only-rerun "Failed: Timeout" -n 1 '
+            "--junit-xml=tmp.junit.xml "
+            '-o junit_suite_name="helpers"'
         )
         is_dev_csfy_return_value = False
         is_inside_ci_return_value = False
@@ -477,7 +503,9 @@ class Test_build_run_command_line1(hunitest.TestCase):
         exp = (
             'pytest -m "not slow and not superslow" . '
             "-o timeout_func_only=true --timeout 5 --reruns 2 "
-            '--only-rerun "Failed: Timeout" -n auto'
+            '--only-rerun "Failed: Timeout" -n auto '
+            "--junit-xml=tmp.junit.xml "
+            '-o junit_suite_name="helpers"'
         )
         is_dev_csfy_return_value = True
         is_inside_ci_return_value = True
@@ -492,7 +520,9 @@ class Test_build_run_command_line1(hunitest.TestCase):
         exp = (
             'pytest -m "not slow and not superslow" . '
             "-o timeout_func_only=true --timeout 5 --reruns 2 "
-            '--only-rerun "Failed: Timeout" -n 1'
+            '--only-rerun "Failed: Timeout" -n 1 '
+            "--junit-xml=tmp.junit.xml "
+            '-o junit_suite_name="helpers"'
         )
         is_dev_csfy_return_value = False
         is_inside_ci_return_value = True
@@ -507,7 +537,9 @@ class Test_build_run_command_line1(hunitest.TestCase):
         exp = (
             'pytest -m "not slow and not superslow" . '
             "-o timeout_func_only=true --timeout 50 --reruns 2 "
-            '--only-rerun "Failed: Timeout" -n auto'
+            '--only-rerun "Failed: Timeout" -n auto '
+            "--junit-xml=tmp.junit.xml "
+            '-o junit_suite_name="helpers"'
         )
         is_dev_csfy_return_value = False
         is_inside_ci_return_value = False
@@ -580,7 +612,9 @@ class Test_build_run_command_line1(hunitest.TestCase):
             "and not skip_marker_1 and not skip_marker_2 "
             'and not slow and not superslow" . '
             "-o timeout_func_only=true --timeout 50 --reruns 2 "
-            '--only-rerun "Failed: Timeout" -n 1'
+            '--only-rerun "Failed: Timeout" -n 1 '
+            "--junit-xml=tmp.junit.xml "
+            '-o junit_suite_name="helpers"'
         )
         # Mock check.
         self.get_custom_marker_helper(
@@ -619,6 +653,7 @@ class Test_build_run_command_line1(hunitest.TestCase):
 
 
 class Test_pytest_repro1(hunitest.TestCase):
+
     def helper(self, file_name: str, mode: str, exp: List[str]) -> None:
         script_name = os.path.join(
             self.get_scratch_space(), "tmp.pytest_repro.sh"
@@ -985,6 +1020,7 @@ class Test_pytest_repro_end_to_end(hunitest.TestCase):
 
 
 class Test_pytest_failed1(hunitest.TestCase):
+
     def get_pytest_text1(self) -> str:
         txt = """
         20:48:15 - ^[[36mINFO ^[[0m hdbg.py init_logger:1018                               > cmd='/venv/bin/pytest helpers_root/dev_scripts_helpers/documentation/'

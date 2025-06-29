@@ -11,7 +11,6 @@
 <!-- tocstop -->
 
 ## Introduction
-
 Provide a brief description of the task and what it does.
 
 ## What You'll Build

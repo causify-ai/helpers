@@ -1,4 +1,5 @@
-# Reference Guide: script.py
+# Reference Guide: <script.py>
+
 
 Template to document scripts and detail technical aspects of the file/script.
 
@@ -89,6 +90,52 @@ Reference:
   -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         Set the logging level
 ```
+=======
+- Examples
+  - This script auto renders figures by:
+    - Detecting fenced code blocks (PlantUML, Mermaid, TikZ, Graphviz, ...)
+    - Rendering them into images calling the appropriate tool
+    - Commenting them out the block
+    - Inlining a `![](img)` markup
+
+### Input and Output Types
+
+- Detail what input formats are accepted and the output format of any files
+  generated, if any and contents of the output.
+
+### Supported File types and Code Blocks
+
+- List the file extensions or formats your tool/script can handle. Mention how
+  each is processed.
+
+### Reference Examples:
+
+- Create a new Markdown file with rendered images:
+  ```bash
+  > render_images.py -i ABC.md -o XYZ.md --action render --run_dockerized
+  ```
+
+- Render images in place in the original Markdown file:
+  ```bash
+  > render_images.py -i ABC.md --action render --run_dockerized
+  ```
+
+- Render images in place in the original LaTeX file:
+  ```bash
+  > render_images.py -i ABC.tex --action render --run_dockerized
+  ```
+
+- Open rendered images from a Markdown file in HTML to preview:
+  ```bash
+  > render_images.py -i ABC.md --action open --run_dockerized
+  ```
+
+### Flag Options
+
+- Describe each available flag, its purpose, and demonstrate how to use it 
+  with examples
+
+- Report the output of running the script with `--help`
 
 ### Examples
 
@@ -122,3 +169,12 @@ Error/Issue: Likely Cause: Possible Fix:
 ## Dependencies
 
 Mention any and all dependencies needed to run your code.
+=======
+- Error/Issue:
+  - Likely Cause:
+  - Possible Fix:
+
+## Dependencies
+
+- Mention any and all dependencies needed to run your code.
+
