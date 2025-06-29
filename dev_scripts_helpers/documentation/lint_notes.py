@@ -1,7 +1,13 @@
 #!/usr/bin/env python
 
 """
-Lint md / tex / txt files 
+Lint md / tex / txt files by applying a series of actions:
+- preprocess: remove some artifacts when copying from gdoc"
+- prettier: run prettier to format the text
+- postprocess: remove empty lines before ```, before higher level bullets, ...
+- frame_chapters: add a frame around each chapter
+- improve_header_and_slide_titles: improve the header and slide titles
+- refresh_toc: refresh the table of content, if needed
 
 > lint_notes.py -i foo.md -o bar.md \
     --use_dockerized_prettier \
@@ -478,6 +484,7 @@ def _parser() -> argparse.ArgumentParser:
         action="store",
         type=str,
         default="",
+        help="The type of the input file, e.g., `md`, `tex`, `txt`",
     )
     parser.add_argument(
         "-w",
@@ -485,6 +492,7 @@ def _parser() -> argparse.ArgumentParser:
         action="store",
         type=int,
         default=80,
+        help="The maximum line width for the formatted text. If None, 80 is used"
     )
     parser.add_argument(
         "--use_dockerized_prettier",

@@ -91,6 +91,50 @@ class Test_process_color_commands1(hunitest.TestCase):
 
 
 # #############################################################################
+# Test_colorize_bullet_points1
+# #############################################################################
+
+
+class Test_colorize_bullet_points1(hunitest.TestCase):
+    def helper(self, txt_in: str, exp: str) -> None:
+        """
+        Test colorize bullet points.
+        """
+        txt_in = hprint.dedent(txt_in)
+        act = dshdprno._colorize_bullet_points(txt_in)
+        exp = hprint.dedent(exp)
+        self.assert_equal(act, exp)
+
+    def test1(self) -> None:
+        """
+        Test colorize bullet points.
+        """
+        txt_in = r"""
+        - **VC Theory**
+            - Measures model
+
+        - **Bias-Variance Decomposition**
+            - Prediction error
+                - **Bias**
+                - **Variance**
+
+        - **Computation Complexity**
+            - Balances model
+            - Related to
+            - E.g., Minimum
+
+        - **Bayesian Approach**
+            - Treats ML as probability
+            - Combines prior knowledge with observed data to update belief about a model
+
+        - **Problem in ML Theory:**
+            - Assumptions may not align with practical problems
+        """
+        exp = r"""
+        """
+        self.helper(txt_in, exp)
+
+# #############################################################################
 # Test_preprocess_notes1
 # #############################################################################
 
