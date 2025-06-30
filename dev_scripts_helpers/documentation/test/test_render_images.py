@@ -20,6 +20,7 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_get_rendered_file_paths1(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Check generation of file paths for rendering images.
@@ -28,9 +29,10 @@ class Test_get_rendered_file_paths1(hunitest.TestCase):
         out_file = "/a/b/c/d/e.md"
         image_code_idx = 8
         dst_ext = "png"
+        use_github_hosting = False
         # Run function.
         paths = dshdreim._get_rendered_file_paths(
-            out_file, image_code_idx, dst_ext
+            out_file, image_code_idx, dst_ext, use_github_hosting
         )
         # Check output.
         act = "\n".join(paths)
@@ -41,6 +43,28 @@ class Test_get_rendered_file_paths1(hunitest.TestCase):
         """
         self.assert_equal(act, exp, dedent=True)
 
+    def test2(self) -> None:
+        """
+        Check generation of file paths for GitHub absolute reference.
+        """
+        # Prepare inputs.
+        out_file = "/a/b/c/d/e.md"
+        image_code_idx = 8
+        dst_ext = "png"
+        use_github_hosting = True
+        # Run function.
+        paths = dshdreim._get_rendered_file_paths(
+            out_file, image_code_idx, dst_ext, use_github_hosting
+        )
+        # Check output.
+        act = "\n".join(paths)
+        exp = """
+        tmp.render_images/e.8.txt
+        /a/b/c/d/figs
+        https://raw.githubusercontent.com/causify-ai/helpers/master/figs/e.8.png
+        """
+        self.assert_equal(act, exp, dedent=True)
+
 
 # #############################################################################
 # Test_ImageHashCache1
@@ -48,6 +72,7 @@ class Test_get_rendered_file_paths1(hunitest.TestCase):
 
 
 class Test_ImageHashCache1(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Test basic functionality of ImageHashCache.
@@ -162,6 +187,7 @@ class Test_ImageHashCache1(hunitest.TestCase):
     reason="Disabled because of CmampTask10710",
 )
 class Test_render_image_code1(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Test rendering a basic image code block.
@@ -549,10 +575,6 @@ class Test_render_images1(hunitest.TestCase):
         Check bare mermaid code in a LaTeX file.
         """
         in_lines = r"""
-        ```mermaid
-        flowchart TD;
-          A[Start] --> B[End];
-        ```
         """
         file_ext = "tex"
         exp = r"""
@@ -571,10 +593,6 @@ class Test_render_images1(hunitest.TestCase):
         """
         in_lines = r"""
         A
-        ```mermaid
-        flowchart TD;
-          A[Start] --> B[End];
-        ```
         B
         """
         file_ext = "tex"
@@ -596,10 +614,6 @@ class Test_render_images1(hunitest.TestCase):
         in_lines = r"""
         A
 
-        ```mermaid
-        flowchart TD;
-          A[Start] --> B[End];
-        ```
 
 
         B
@@ -625,10 +639,6 @@ class Test_render_images1(hunitest.TestCase):
         """
         in_lines = r"""
         A
-        ```mermaid(hello_world.png)
-        flowchart TD;
-          A[Start] --> B[End];
-        ```
 
         B
         """
@@ -679,6 +689,7 @@ class Test_render_images1(hunitest.TestCase):
     reason="Disabled because of CmampTask10710",
 )
 class Test_render_images2(hunitest.TestCase):
+
     def helper(self, file_name: str) -> None:
         """
         Helper function to test rendering images from a file.

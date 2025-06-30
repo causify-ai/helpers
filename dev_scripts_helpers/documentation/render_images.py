@@ -31,6 +31,7 @@ from typing import List, Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
+import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hprint as hprint
@@ -38,13 +39,15 @@ import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
-GITHUB_RAW_BASE = "https://raw.githubusercontent.com/causify-ai/helpers/master/"
 
 # #############################################################################
 
 
 def _get_rendered_file_paths(
-    template_out_file: str, image_code_idx: int, dst_ext: str
+    template_out_file: str,
+    image_code_idx: int,
+    dst_ext: str,
+    use_github_hosting: bool,
 ) -> Tuple[str, str, str]:
     """
     Generate paths to files for image rendering.
@@ -61,6 +64,9 @@ def _get_rendered_file_paths(
     :param image_code_idx: order number of the image code block in the input
         file
     :param dst_ext: extension of the target image file
+    :param use_github_hosting: if True, insert rendered image links
+        using absolute GitHub-hosted URLs instead of relative paths
+        (e.g., https://raw.githubusercontent.com/causify-ai/helpers/master/figs/all.invoke_git_branch_copy.how_to_guide.1.png)
     :return:
         - path to the temporary file with the image code (e.g., `readme.1.txt`)
         - absolute path to the dir with rendered images (e.g., `/usr/docs/figs`)
@@ -79,6 +85,11 @@ def _get_rendered_file_paths(
     abs_img_dir_path = os.path.join(out_file_dir, sub_dir)
     # Get the relative path to the image, e.g., "figs/readme.1.png".
     rel_img_path = os.path.join(sub_dir, img_name)
+    # Use GitHub absolute reference when specified.
+    if use_github_hosting:
+        repo_name = hgit.get_repo_full_name_from_client(super_module=True)
+        github_abs_path = f"https://raw.githubusercontent.com/{repo_name}/master/"
+        rel_img_path = os.path.join(github_abs_path, rel_img_path)
     # Get the path to a temporary file with the image code, e.g., "readme.1.txt".
     dir_name = "tmp.render_images"
     code_file_path = f"{dir_name}/{out_file_name_body}.{image_code_idx}.txt"
@@ -218,11 +229,22 @@ def _render_image_code(
     force_rebuild: bool = False,
     use_sudo: bool = False,
     dry_run: bool = False,
+    use_github_hosting: bool = False,
     cache_file: Optional[str] = None,
 ) -> Tuple[str, bool]:
     """
     Render the image code into an image file.
 
+    :param image_code_txt: the code of the image :param image_code_idx:
+    order number of the image code block in the     file :param
+    image_code_type: type of the image code according to its
+    language, e.g., "plantuml", "mermaid" :param out_file: path to the
+    output file where the image will be     inserted :param dst_ext:
+    extension of the rendered image, e.g., "svg", "png" :param dry_run:
+    if True, the rendering command is not executed :param
+    use_github_hosting: if True, insert rendered image links     using
+    absolute GitHub-hosted URLs instead of relative paths     (e.g.,
+    https://raw.githubusercontent.com/causify-ai/helpers/master/figs/all.invoke_git_branch_copy.how_to_guide.1.png)
     :param image_code_txt: the code of the image
     :param image_code_idx: order number of the image code block in the
         file
@@ -232,6 +254,10 @@ def _render_image_code(
         inserted
     :param dst_ext: extension of the rendered image, e.g., "svg", "png"
     :param dry_run: if True, the rendering command is not executed
+    :param use_github_hosting: if True, insert rendered image links
+        using absolute GitHub-hosted URLs instead of relative paths
+        (e.g., https://raw.githubusercontent.com/causify-ai/helpers/mast
+        er/figs/all.invoke_git_branch_copy.how_to_guide.1.png)
     :return: path to the rendered image and a boolean indicating if the
         cache was hit
     """
@@ -246,7 +272,8 @@ def _render_image_code(
         # \documentclass[tikz, border=10pt]{standalone}
         # \usepackage{tikz}
         # \begin{document}
-        start_tag = hprint.dedent(r"""
+        start_tag = hprint.dedent(
+            r"""
         \documentclass{standalone}
         \usepackage{tikz}
         \usepackage{amsmath}
@@ -256,30 +283,39 @@ def _render_image_code(
         \pgfplotsset{compat=1.17}
         \begin{document}
         \begin{tikzpicture}
-        """)
-        end_tag = hprint.dedent(r"""
+        """
+        )
+        end_tag = hprint.dedent(
+            r"""
         \end{tikzpicture}
         \end{document}
-        """)
+        """
+        )
         image_code_txt = "\n".join([start_tag, image_code_txt, end_tag])
     elif image_code_type == "latex":
-        start_tag = hprint.dedent(r"""
+        start_tag = hprint.dedent(
+            r"""
         \documentclass[border=1pt]{standalone}  % No page, tight margins
         \usepackage{tabularx}
         \usepackage{enumitem}
         \usepackage{booktabs}  % Optional: For nicer tables
         %\begin{document}
 
-        """)
-        end_tag = hprint.dedent(r"""
+        """
+        )
+        end_tag = hprint.dedent(
+            r"""
         %\end{document}
-        """)
+        """
+        )
         image_code_txt = "\n".join([start_tag, image_code_txt, end_tag])
     # Get paths for rendered files.
     # TODO(gp): The fact that we compute the image file path here makes it
     # not possible to use a decorator to implement the caching.
     in_code_file_path, abs_img_dir_path, out_img_file_path = (
-        _get_rendered_file_paths(out_file, image_code_idx, dst_ext)
+        _get_rendered_file_paths(
+            out_file, image_code_idx, dst_ext, use_github_hosting
+        )
     )
     cache_hit = False
     if use_cache:
@@ -415,8 +451,8 @@ def _render_images(
     force_rebuild: bool = False,
     use_sudo: bool = False,
     dry_run: bool = False,
-    cache_file: Optional[str] = None,
     use_github_hosting: bool = False,
+    cache_file: Optional[str] = None,
 ) -> List[str]:
     """
     Insert rendered images instead of image code blocks.
@@ -434,7 +470,9 @@ def _render_images(
     :param dst_ext: extension for rendered images
     :param dry_run: if True, the text of the file is updated but the images are
         not actually created
-    :param use_github_hosting: if True, insert rendered image links using absolute GitHub-hosted URLs instead of relative paths
+    :param use_github_hosting: if True, insert rendered image links
+        using absolute GitHub-hosted URLs instead of relative paths
+        (e.g., https://raw.githubusercontent.com/causify-ai/helpers/master/figs/all.invoke_git_branch_copy.how_to_guide.1.png)
     :return: updated lines of the file
     """
     _LOG.debug(hprint.func_signature_to_str("in_lines"))
@@ -527,6 +565,7 @@ def _render_images(
                     force_rebuild=force_rebuild,
                     use_sudo=use_sudo,
                     dry_run=dry_run,
+                    use_github_hosting=use_github_hosting,
                     cache_file=cache_file,
                 )
                 _ = is_cache_hit
@@ -540,9 +579,9 @@ def _render_images(
                         state, line, comment_prefix, comment_postfix
                     )
                 )
-                if use_github_hosting:
-                    rel_img_path = os.path.join(GITHUB_RAW_BASE, rel_img_path)
-                rendered_img_line = _insert_image_code(extension, rel_img_path, user_img_size)
+                rendered_img_line = _insert_image_code(
+                    extension, rel_img_path, user_img_size
+                )
                 out_lines.append(rendered_img_line)
                 user_img_size = ""
                 # Set the parser to search for a new image code block.
