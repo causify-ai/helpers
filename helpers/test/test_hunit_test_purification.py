@@ -170,7 +170,7 @@ dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py:3: error: Nam
 
     def test12(self) -> None:
         """
-        Test amp and app purification in file paths.
+        Test amp and app purification in file path strings.
         """
         txt = """
         app/amp/helpers_root/helpers/test/test_file.py
