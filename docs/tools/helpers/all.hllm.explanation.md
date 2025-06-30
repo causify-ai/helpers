@@ -247,7 +247,7 @@ This section summarizes how `get_completion()` operates internally.
   ```
 
 - In `get_completion()`, map the existing `cache_mode` values to the
-  `simple_cace()`'s parameters:
+  `simple_cache()`'s parameters:
   - `REFRESH_CACHE` → `force_refresh=True`
   - `HIT_CACHE_OR_ABORT` → `abort_on_cache_miss=True`
 
