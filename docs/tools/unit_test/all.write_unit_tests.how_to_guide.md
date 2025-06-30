@@ -749,24 +749,24 @@ self.assert_equal(act, exp, fuzzy_match=True)
     then in both TestParent and TestChild, the test methods should run (from the
     fixture), respectively, either `set_up_test()` or `tear_down_test()`, e.g.:
 
-        ```python
-        class TestParent(hunitest.TestCase):
-            @pytest.fixture(autouse=True)
-            def setup_teardown_test(self):
-                # Run before each test.
-                self.set_up_test()
-                yield
+  ```python
+  class TestParent(hunitest.TestCase):
+      @pytest.fixture(autouse=True)
+      def setup_teardown_test(self):
+          # Run before each test.
+          self.set_up_test()
+          yield
 
-            def set_up_test(self) -> None:
-                ...
+      def set_up_test(self) -> None:
+          ...
 
-            def test1(self) -> None:
-                ...
+      def test1(self) -> None:
+          ...
 
-        class TestChild(TestParent):
-            def test1(self) -> None:
-                ...
-        ```
+  class TestChild(TestParent):
+      def test1(self) -> None:
+          ...
+  ```
   - A combination of the previous two options: TestParent has `setUp()` and
     `tearDown()`, and TestChild has one of them but not the other. Then, in
     TestParent, `setUp()`/`tearDown()` should be replaced by
