@@ -66,7 +66,7 @@ def _get_rendered_file_paths(
     :param dst_ext: extension of the target image file
     :param use_github_hosting: if True, insert rendered image links
         using absolute GitHub-hosted URLs instead of relative paths
-        (e.g., https://raw.githubusercontent.com/causify-ai/helpers/master/figs/all.invoke_git_branch_copy.how_to_guide.1.png)
+        (e.g., https://raw.githubusercontent.com/causify-ai/helpers/master/figs/readme.1.png)
     :return:
         - path to the temporary file with the image code (e.g., `readme.1.txt`)
         - absolute path to the dir with rendered images (e.g., `/usr/docs/figs`)
@@ -234,7 +234,7 @@ def _render_image_code(
 ) -> Tuple[str, bool]:
     """
     Render the image code into an image file.
-
+    
     :param image_code_txt: the code of the image
     :param image_code_idx: order number of the image code block in the
         file
@@ -246,8 +246,8 @@ def _render_image_code(
     :param dry_run: if True, the rendering command is not executed
     :param use_github_hosting: if True, insert rendered image links
         using absolute GitHub-hosted URLs instead of relative paths
-        (e.g., https://raw.githubusercontent.com/causify-ai/helpers/mast
-        er/figs/all.invoke_git_branch_copy.how_to_guide.1.png)
+        (e.g., https://raw.githubusercontent.com/causify-
+        ai/helpers/master/figs/readme.1.png)
     :return: path to the rendered image and a boolean indicating if the
         cache was hit
     """
@@ -462,7 +462,7 @@ def _render_images(
         not actually created
     :param use_github_hosting: if True, insert rendered image links
         using absolute GitHub-hosted URLs instead of relative paths
-        (e.g., https://raw.githubusercontent.com/causify-ai/helpers/master/figs/all.invoke_git_branch_copy.how_to_guide.1.png)
+        (e.g., https://raw.githubusercontent.com/causify-ai/helpers/master/figs/readme.1.png)
     :return: updated lines of the file
     """
     _LOG.debug(hprint.func_signature_to_str("in_lines"))
