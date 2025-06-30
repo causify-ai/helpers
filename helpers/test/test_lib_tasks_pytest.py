@@ -24,7 +24,7 @@ _LOG = logging.getLogger(__name__)
 def _remove_junit_suite_name(text: str) -> str:
     """
     Remove the junit suite name from the input text.
-    - E.g. -o junit_suite_name="helpers" -> junit_suite_name=""
+    - E.g. '-o junit_suite_name="helpers"' -> '-o junit_suite_name=""'
 
     :param text: input text to process
     :return: text with the junit suite name removed
