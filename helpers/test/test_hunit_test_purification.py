@@ -150,7 +150,7 @@ dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py:3: error: Nam
     def test11(self) -> None:
         """
         Test the correct order of `app` -> `amp` purification with multiple
-        references.
+        import statements.
         """
         txt = """
         import app.amp.helpers_root.helpers.test.test_file
@@ -170,7 +170,7 @@ dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py:3: error: Nam
 
     def test12(self) -> None:
         """
-        Test amp and app references in the same string.
+        Test amp and app purification in file paths.
         """
         txt = """
         app/amp/helpers_root/helpers/test/test_file.py
