@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.hopenai as hopenai
+import helpers.hllm as hllm
 """
 
 import datetime
@@ -32,6 +32,31 @@ _LOG = logging.getLogger(__name__)
 _MODEL = "openai/gpt-4o-mini"
 
 # #############################################################################
+# Update LLM cache
+# #############################################################################
+_UPDATE_LLM_CACHE = False
+
+
+def set_update_llm_cache(update: bool) -> None:
+    """
+    Set whether to update the LLM cache.
+
+    :param update: True to update the cache, False otherwise
+    """
+    global _UPDATE_LLM_CACHE
+    _UPDATE_LLM_CACHE = update
+
+
+def get_update_llm_cache() -> bool:
+    """
+    Get whether to update the LLM cache.
+
+    :return: True if the cache should be updated, False otherwise
+    """
+    return _UPDATE_LLM_CACHE
+
+
+# #############################################################################
 # Utility Functions
 # #############################################################################
 
@@ -45,8 +70,8 @@ def response_to_txt(response: Any) -> str:
     """
     if isinstance(response, openai.types.chat.chat_completion.ChatCompletion):
         ret = response.choices[0].message.content
-    elif isinstance(response, openai.pagination.SyncCursorPage):
-        ret = response.data[0].content[0].text.value
+    # elif isinstance(response, openai.pagination.SyncCursorPage):
+    #     ret = response.data[0].content[0].text.value
     elif isinstance(response, openai.types.beta.threads.message.Message):
         ret = response.content[0].text.value
     elif isinstance(response, str):
@@ -279,6 +304,7 @@ def _calculate_cost(
     completion: openai.types.chat.chat_completion.ChatCompletion,
     model: str,
     models_info_file: str,
+    provider_name: str = _PROVIDER_NAME,
 ) -> float:
     """
     Calculate the cost of an OpenAI API call.
@@ -290,7 +316,7 @@ def _calculate_cost(
     prompt_tokens = completion.usage.prompt_tokens
     completion_tokens = completion.usage.completion_tokens
     # TODO(gp): This should be shared in the class.
-    if _PROVIDER_NAME == "openai":
+    if provider_name == "openai":
         # Get the pricing for the selected model.
         # https://openai.com/api/pricing/
         # https://gptforwork.com/tools/openai-chatgpt-api-pricing-calculator
@@ -306,7 +332,7 @@ def _calculate_cost(
         cost = (prompt_tokens / 1e6) * model_pricing["prompt"] + (
             completion_tokens / 1e6
         ) * model_pricing["completion"]
-    elif _PROVIDER_NAME == "openrouter":
+    elif provider_name == "openrouter":
         # If the model info file doesn't exist, download one.
         if models_info_file == "":
             models_info_file = _get_models_info_file()
@@ -324,7 +350,7 @@ def _calculate_cost(
         # Compute cost.
         cost = prompt_tokens * prompt_price + completion_tokens * completion_price
     else:
-        raise ValueError(f"Unknown provider: {_PROVIDER_NAME}")
+        raise ValueError(f"Unknown provider: {provider_name}")
     _LOG.debug(hprint.to_str("prompt_tokens completion_tokens cost"))
     return cost
 
@@ -341,7 +367,7 @@ def get_completion(
     model: str = "",
     report_progress: bool = False,
     print_cost: bool = False,
-    cache_mode: str = "DISABLED",
+    cache_mode: str = "DISABLE_CACHE",
     cache_file: str = "cache.get_completion.json",
     temperature: float = 0.1,
     **create_kwargs,
@@ -354,11 +380,11 @@ def get_completion(
     :param model: model to use or empty string to use the default model
     :param report_progress: whether to report progress running the API
         call
-    :param cache_mode : "DISABLED","CAPTURE", "REPLAY", "FALLBACK"
-        - "DISABLED": No caching
-        - "CAPTURE": Make API calls and save responses to cache
-        - "REPLAY": Use cached responses, fail if not in cache
-        - "FALLBACK": Use cached responses if available, otherwise make API call
+    :param cache_mode : "DISABLE_CACHE","REFRESH_CACHE", "HIT_CACHE_OR_ABORT", "NORMAL"
+        - "DISABLE_CACHE": No caching
+        - "REFRESH_CACHE": Make API calls and save responses to cache
+        - "HIT_CACHE_OR_ABORT": Use cached responses, fail if not in cache
+        - "NORMAL": Use cached responses if available, otherwise make API call
     :param cache_file: file to save/load completioncache
     :param temperature: adjust an LLM's sampling diversity: lower values make it
         more deterministic, while higher values foster creative variation.
@@ -366,7 +392,13 @@ def get_completion(
     :param create_kwargs: additional params for the API call
     :return: completion text
     """
-    hdbg.dassert_in(cache_mode, ("REPLAY", "FALLBACK", "CAPTURE", "DISABLED"))
+    hdbg.dassert_in(
+        cache_mode,
+        ("DISABLE_CACHE", "REFRESH_CACHE", "HIT_CACHE_OR_ABORT", "NORMAL"),
+    )
+    update_llm_cache = get_update_llm_cache()
+    if update_llm_cache:
+        cache_mode = "REFRESH_CACHE"
     if model == "":
         model = _get_default_model()
     # Construct messages in OpenAI API request format.
@@ -380,7 +412,7 @@ def get_completion(
         **create_kwargs,
     }
     hash_key = cache.hash_key_generator(**request_params)
-    if cache_mode in ("REPLAY", "FALLBACK"):
+    if cache_mode in ("HIT_CACHE_OR_ABORT", "NORMAL"):
         # Checks for response in cache.
         if cache.has_cache(hash_key):
             memento = htimer.dtimer_start(
@@ -392,7 +424,7 @@ def get_completion(
             return cache.load_response_from_cache(hash_key)
         else:
             cache.increment_cache_stat("misses")
-            if cache_mode == "REPLAY":
+            if cache_mode == "HIT_CACHE_OR_ABORT":
                 raise RuntimeError(
                     "No cached response for this request parameters!"
                 )
@@ -440,7 +472,7 @@ def get_completion(
     completion_obj = completion.to_dict()
     # Store cost in the cache.
     completion_obj["cost"] = cost
-    if cache_mode != "DISABLED":
+    if cache_mode != "DISABLE_CACHE":
         cache.save_response_to_cache(
             hash_key, request=request_params, response=completion_obj
         )

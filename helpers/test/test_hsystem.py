@@ -8,13 +8,20 @@ import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
+import helpers.hunit_test_purification as huntepur
 
 _LOG = logging.getLogger(__name__)
 
 # #############################################################################
 
 
+# #############################################################################
+# Test_system1
+# #############################################################################
+
+
 class Test_system1(hunitest.TestCase):
+
     def test1(self) -> None:
         hsystem.system("ls")
 
@@ -102,7 +109,8 @@ class Test_system1(hunitest.TestCase):
                 "ls this_should_fail", tee=True, output_file=log_file_path
             )
         actual = str(cm.exception)
-        actual = hunitest.purify_txt_from_client(actual)
+        text_purifier = huntepur.TextPurifier()
+        actual = text_purifier.purify_txt_from_client(actual)
         expected = r"""
 
         ################################################################################
@@ -158,7 +166,13 @@ class Test_system1(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# Test_system2
+# #############################################################################
+
+
 class Test_system2(hunitest.TestCase):
+
     def test_get_user_name(self) -> None:
         act = hsystem.get_user_name()
         _LOG.debug("act=%s", act)
@@ -191,7 +205,13 @@ class Test_system2(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# Test_compute_file_signature1
+# #############################################################################
+
+
 class Test_compute_file_signature1(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Compute the signature of a file using 1 enclosing dir.
@@ -242,7 +262,13 @@ class Test_compute_file_signature1(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# Test_find_file_with_dir1
+# #############################################################################
+
+
 class Test_find_file_with_dir1(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Check whether we can find this file using one enclosing dir.
@@ -327,7 +353,13 @@ class Test_find_file_with_dir1(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# Test_Linux_commands1
+# #############################################################################
+
+
 class Test_Linux_commands1(hunitest.TestCase):
+
     def test_du1(self) -> None:
         hsystem.du(".")
 
@@ -335,7 +367,13 @@ class Test_Linux_commands1(hunitest.TestCase):
 # #############################################################################
 
 
+# #############################################################################
+# Test_has_timestamp1
+# #############################################################################
+
+
 class Test_has_timestamp1(hunitest.TestCase):
+
     def test_has_not_timestamp1(self) -> None:
         """
         No timestamp.
@@ -391,7 +429,13 @@ class Test_has_timestamp1(hunitest.TestCase):
         self.assertEqual(act, exp)
 
 
+# #############################################################################
+# Test_append_timestamp_tag1
+# #############################################################################
+
+
 class Test_append_timestamp_tag1(hunitest.TestCase):
+
     def test_no_timestamp1(self) -> None:
         """
         Invalid timestamp, with no tag.
