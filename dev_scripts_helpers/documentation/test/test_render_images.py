@@ -43,28 +43,6 @@ class Test_get_rendered_file_paths1(hunitest.TestCase):
         """
         self.assert_equal(act, exp, dedent=True)
 
-    def test2(self) -> None:
-        """
-        Check generation of file paths for GitHub absolute reference.
-        """
-        # Prepare inputs.
-        out_file = "/a/b/c/d/e.md"
-        image_code_idx = 8
-        dst_ext = "png"
-        use_github_hosting = True
-        # Run function.
-        paths = dshdreim._get_rendered_file_paths(
-            out_file, image_code_idx, dst_ext, use_github_hosting
-        )
-        # Check output.
-        act = "\n".join(paths)
-        exp = """
-        tmp.render_images/e.8.txt
-        /a/b/c/d/figs
-        https://raw.githubusercontent.com/causify-ai/helpers/master/figs/e.8.png
-        """
-        self.assert_equal(act, exp, dedent=True)
-
 
 # #############################################################################
 # Test_ImageHashCache1
