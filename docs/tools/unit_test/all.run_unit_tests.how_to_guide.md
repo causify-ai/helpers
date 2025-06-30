@@ -177,14 +177,14 @@
 
 - Running tests can take different amounts of time depending on workload and
   machine
-- Because of this, we rerun failing tests using
+- Because of this, we re-run failing tests using
   [`pytest-rerunfailures`](https://pypi.org/project/pytest-rerunfailures/)
 - `pytest-rerunfailures` is not completely compatible with `pytest-timeout`.
   This is why we have to add the `-o timeout_func_only=true` flag to
   `pytest-timeout`. See
   [https://github.com/pytest-dev/pytest-rerunfailures/issues/99](https://github.com/pytest-dev/pytest-rerunfailures/issues/99)` `for
   more information
-- We rerun time outed fast tests twice and time outed slow and superslow tests
+- We rerun timed-out fast tests twice and timed-out slow and superslow tests
   once
 - There is a
   [way](https://pypi.org/project/pytest-rerunfailures/#re-run-individual-failures)
@@ -356,15 +356,16 @@
   TOTAL                                    1562    274    252     30    80%
   ```
 
-- To open the line coverage from outside Docker, go with your browser to
-  `htmlcov/index.html`. The `htmlcov` is re-written with every coverage run with
-  the `--cov-report html` option. If you move out `index.html` from `htmlcov`
-  dir some html features (e.g., filtering) will not work.
+- To open the line coverage from outside Docker, open it in your browser at
+  [`/htmlcov/index.html`](/htmlcov/index.html). The `htmlcov` is re-written with
+  every coverage run with the `--cov-report html` option. If you move out
+  `index.html` from `htmlcov` dir some html features (e.g., filtering) will not
+  work.
 
-  ```bash
-  # On macOS:
-  > open htmlcov/index.html
-  ```
+```bash
+# On macOS:
+> open htmlcov/index.html
+```
 
   <img src="../../code_guidelines/figs/unit_tests/image_1.png">
 
@@ -421,7 +422,7 @@
 
   ```bash
   docker> rm -rf htmlcov; coverage html --include="oms/*" --omit="*/test_*.py"
-  # Wrote HTML report to `htmlcov/index.html`
+  # Wrote HTML report to `htmlcov/index.html`.
 
   > open htmlcov/index.html
   ```
@@ -558,7 +559,7 @@
 
 #### Publishing HTML report on S3
 
-- To make a dir with the report unique, we decorate the dir with a linux user
+- To make a dir with the report unique, we decorate the dir with a Linux user
   and a Git branch name, e.g.,
   `html_coverage/grisha_CmTask1038_Tool_to_extract_the_dependency_from_a_project`
   - `html_coverage` is the common dir on S3 for coverage reports
