@@ -234,7 +234,7 @@ def _render_image_code(
 ) -> Tuple[str, bool]:
     """
     Render the image code into an image file.
-    
+
     :param image_code_txt: the code of the image
     :param image_code_idx: order number of the image code block in the
         file
@@ -243,11 +243,13 @@ def _render_image_code(
     :param out_file: path to the output file where the image will be
         inserted
     :param dst_ext: extension of the rendered image, e.g., "svg", "png"
+    :param use_cache: if True, reuse previously rendered images
+    :param force_rebuild: rebuild the Docker image before rendering
+    :param use_sudo: run Docker with sudo
     :param dry_run: if True, the rendering command is not executed
     :param use_github_hosting: if True, insert rendered image links
         using absolute GitHub-hosted URLs instead of relative paths
-        (e.g., https://raw.githubusercontent.com/causify-
-        ai/helpers/master/figs/readme.1.png)
+    :param cache_file: path to cache file
     :return: path to the rendered image and a boolean indicating if the
         cache was hit
     """
