@@ -1,10 +1,10 @@
 <!-- toc -->
 
-- [`notes_to_pdf.py`](#notes_to_pdfpy)
+- [notes_to_pdf.py](#notes_to_pdfpy)
   * [What it does](#what-it-does)
     + [Examples](#examples)
     + [Interface](#interface)
-  * [`render_images.py`](#render_imagespy)
+  * [render_images.py](#render_imagespy)
     + [What it does](#what-it-does-1)
     + [Examples](#examples-1)
     + [Interface](#interface-1)
