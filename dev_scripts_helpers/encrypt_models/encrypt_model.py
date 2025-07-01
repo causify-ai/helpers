@@ -21,6 +21,7 @@ Usage:
     --model_dag_builder_file "C5/C5a_pipeline.py \
     -v DEBUG
 """
+
 import argparse
 import logging
 import os
@@ -102,7 +103,7 @@ def _encrypt_input_dir(
         cmd = f"docker build -f {temp_dockerfile.name} -t {docker_image_tag} --build-arg user_id={user_id} --build-arg group_id={group_id} ."
     (_, output) = hsystem.system_to_string(cmd)
     _LOG.debug(output)
-    #os.remove(temp_dockerfile_path)
+    # os.remove(temp_dockerfile_path)
     # Run Docker container to encrypt the model.
     _LOG.info("Running Docker container.")
     work_dir = os.getcwd()
@@ -110,7 +111,9 @@ def _encrypt_input_dir(
     mount = f"type=bind,source={work_dir},target={docker_output_dir}"
     # Use `-i` option to store the runtime folder inside the target dir, this way we do not
     # need to tweak init files.
-    encryption_flow = f"pyarmor gen -i --recursive {input_dir} --output {output_dir}"
+    encryption_flow = (
+        f"pyarmor gen -i --recursive {input_dir} --output {output_dir}"
+    )
     if docker_build_target is not None:
         docker_cmd = f"docker run --rm -it --user {user_id}:{group_id} --platform {docker_build_target} --workdir {docker_output_dir} --mount {mount} {docker_image_tag} {encryption_flow}"
     else:
@@ -119,12 +122,10 @@ def _encrypt_input_dir(
     _LOG.debug(output)
     # Check that command worked by ensuring that there are dirs in the target dir.
     n_files = len(os.listdir(output_dir))
-    hdbg.dassert_lt(
-        0, n_files, "No files in output_dir=`%s`", output_dir
-    )
-    # For some reason `pyarmor` encrypts the data to `encrypted_pipelines/pipelines` 
+    hdbg.dassert_lt(0, n_files, "No files in output_dir=`%s`", output_dir)
+    # For some reason `pyarmor` encrypts the data to `encrypted_pipelines/pipelines`
     # instead of just `encrypted_pipelines`, same with `core_lem`, e.g., `encrypted_core_lem/core_lem`
-    # instead of just `core_lem`. 
+    # instead of just `core_lem`.
     # TODO(Grisha): can we fix that on pyarmor level?
     # E.g., extract `pipelines` from `dataflow_lemonade/pipelines` and `core_lem` from `core_lem`.
     last_dir = os.path.basename(os.path.normpath(input_dir))
@@ -136,6 +137,7 @@ def _encrypt_input_dir(
     )
     return output_dir
 
+
 # TODO(gp): Add a function to check that everything is encrypted.
 # find dataflow_lemonade/encrypted_pipelines -name "*.py" | grep -v pytransform | xargs -n 1 cat | grep -v "\x"
 
@@ -144,7 +146,7 @@ def _get_python_version_in_docker() -> str:
     """
     Get the Python version used in Docker.
     """
-    cmd = f"invoke docker_cmd -c 'python -V'"
+    cmd = "invoke docker_cmd -c 'python -V'"
     _, output = hsystem.system_to_string(cmd)
     pattern = r"Python (\d+\.\d+\.\d+)"
     match = re.search(pattern, output)
@@ -209,7 +211,7 @@ def _test_model(model_dag_builder: str, model_dag_builder_file: str) -> None:
     cmd = f"invoke docker_cmd -c 'bash {temp_file_path}'"
     _, output = hsystem.system_to_string(cmd)
     _LOG.debug(output)
-    #os.remove(temp_file_path)
+    # os.remove(temp_file_path)
 
 
 def _test_models_in_dir(input_dir: str, model_dag_builder: str) -> None:
@@ -227,7 +229,8 @@ def _test_models_in_dir(input_dir: str, model_dag_builder: str) -> None:
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "--input_dir", required=True, type=str, help="Source model directory"
@@ -282,8 +285,10 @@ def _parse() -> argparse.ArgumentParser:
 
 # TODO(gp): Split this code in function, one per function.
 def _main(parser: argparse.ArgumentParser) -> None:
-    hdbg.dassert(not hserver.is_inside_docker(),
-            "This script runs outside the dev container and in the thin environment")
+    hdbg.dassert(
+        not hserver.is_inside_docker(),
+        "This script runs outside the dev container and in the thin environment",
+    )
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     #
@@ -293,8 +298,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     output_dir = args.output_dir
     # If `output_dir` is not specified, use the parent directory of `input_dir`.
     if output_dir is None:
-        output_dir = os.path.join(os.path.dirname(input_dir),
-            "encrypted_" + os.path.basename(input_dir))
+        output_dir = os.path.join(
+            os.path.dirname(input_dir),
+            "encrypted_" + os.path.basename(input_dir),
+        )
     _LOG.info("output_dir=%s", output_dir)
     # Get the DAG builder.
     if args.test:
@@ -317,8 +324,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _encrypt_input_dir(
         input_dir, output_dir, args.build_target, args.docker_image_tag
     )
-    # TODO(Grisha): in `pyarmor v9.x` tweaking init files does not seem necessary, 
-    # make sure to utilize `-i` option when running `pyarmor gen ...` this way it 
+    # TODO(Grisha): in `pyarmor v9.x` tweaking init files does not seem necessary,
+    # make sure to utilize `-i` option when running `pyarmor gen ...` this way it
     # will put the runtime folder inside the target dir and this step is not needed;
     # keeping it here just as a reference.
     # 3) Tweak `__init__.py` file.
@@ -349,7 +356,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
         # Add trailing slashes so that the machine treats them as folders.
         # Use the `--delete` option to delete all files from target that are not in source; we
         # assume that the source repo contains the latest state.
-        _, output = hsystem.system_to_string(f"rsync -a --delete {input_dir_tmp}/ {output_dir_tmp}/")
+        _, output = hsystem.system_to_string(
+            f"rsync -a --delete {input_dir_tmp}/ {output_dir_tmp}/"
+        )
         # ls /data/saggese/src_vc/lemonade1/dataflow_lemonade/encrypted_pipelines
         cmd = f"ls {input_dir_tmp}"
         hsystem.system(cmd, suppress_output=False)

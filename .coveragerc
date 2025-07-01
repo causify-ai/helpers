@@ -3,3 +3,18 @@
 omit =
     */devops/compose/*
     */helpers/test/outcomes/*/tmp.scratch/*
+
+[run]
+branch = True
+# Allow multiple processes to write separate coverage files.
+parallel = True
+# Handle the style of concurrent Python processes.
+concurrency = multiprocessing
+# Ensure coverage data is saved on process termination.
+sigterm = True
+
+[paths]
+# "/app" in the container is the same as "." on the host.
+source =
+    .
+    /app

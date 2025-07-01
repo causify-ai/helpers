@@ -3,10 +3,13 @@
 Extract images from a Jupyter notebook by running inside a Docker container.
 
 This script builds the container dynamically if necessary and extracts images
-from the specified Jupyter notebook using the NotebookImageExtractor module.
+from the specified Jupyter notebook using the `NotebookImageExtractor` module.
 
-Extract images from notebook test_images.ipynb and save them to `screenshots`
-directory.
+See documentation at:
+//helpers/docs/tools/documentation_toolchain/all.extract_notebook_images.*
+
+# Extract images from notebook `test_images.ipynb` and save them to
+# `screenshots` directory.
 ```bash
 > dev_scripts_helpers/notebooks/extract_notebook_images.py \
     -i dev_scripts_helpers/notebooks/test_images.ipynb \
@@ -30,7 +33,8 @@ _LOG = logging.getLogger(__name__)
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "--in_notebook_filename",
@@ -67,49 +71,79 @@ def _run_dockerized_extract_notebook_images(
     _LOG.debug(hprint.func_signature_to_str())
     # Build the container image, if needed.
     container_image = "tmp.extract_notebook_images"
-    dockerfile = r"""
-    # This seems to be flaky on ARM64 architectures.
-    #FROM python:3.10-slim
-    FROM python:3.10
+    if True:
+        container_image = "tmp.extract_notebook_images"
+        dockerfile = r"""
+        # This seems to be flaky on ARM64 architectures.
+        #FROM python:3.10-slim
+        FROM python:3.10
 
-    # Install required system libraries for Chromium and Playwright.
-    RUN apt-get update && apt-get install -y \
-        libglib2.0-0 \
-        libnss3 \
-        libnspr4 \
-        libdbus-1-3 \
-        libatk1.0-0 \
-        libatk-bridge2.0-0 \
-        libexpat1 \
-        libatspi2.0-0 \
-        libdbus-glib-1-2 \
-        libxcomposite1 \
-        libxdamage1 \
-        libxfixes3 \
-        libxrandr2 \
-        libgbm1 \
-        libxkbcommon0 \
-        libasound2 \
-        libcups2 \
-        libpango-1.0-0 \
-        libcairo2 \
-        && rm -rf /var/lib/apt/lists/*
+        # # Install required system libraries for Chromium and Playwright.
+        # RUN apt-get update && apt-get install -y \
+        #     libglib2.0-0 \
+        #     libnss3 \
+        #     libnspr4 \
+        #     libdbus-1-3 \
+        #     libatk1.0-0 \
+        #     libatk-bridge2.0-0 \
+        #     libexpat1 \
+        #     libatspi2.0-0 \
+        #     libdbus-glib-1-2 \
+        #     libxcomposite1 \
+        #     libxdamage1 \
+        #     libxfixes3 \
+        #     libxrandr2 \
+        #     libgbm1 \
+        #     libxkbcommon0 \
+        #     libasound2 \
+        #     libcups2 \
+        #     libpango-1.0-0 \
+        #     libcairo2
 
-    # Set the environment variable for Playwright to install browsers in a known
-    # location.
-    ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+        RUN rm -rf /var/lib/apt/lists/*
+        RUN apt-get update
 
-    # Create the directory for Playwright browsers and ensure it's writable.
-    RUN mkdir -p /ms-playwright && chmod -R 777 /ms-playwright
+        # Set the environment variable for Playwright to install browsers in a known
+        # location.
+        ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
-    # Install required packages.
-    RUN pip install nbconvert nbformat playwright pyyaml
+        # Create the directory for Playwright browsers and ensure it's writable.
+        RUN mkdir -p /ms-playwright && chmod -R 777 /ms-playwright
 
-    # Install Playwright browsers.
-    RUN python -m playwright install
+        # Install required packages.
+        RUN pip install nbconvert nbformat playwright pyyaml
 
-    WORKDIR /app
-    """
+        # Install Playwright browsers.
+        RUN playwright install-deps
+        RUN python -m playwright install
+
+        #RUN npx playwright --version
+        RUN python --version
+
+        WORKDIR /app
+        """
+    if False:
+        dockerfile = r"""
+        FROM mcr.microsoft.com/playwright:v1.53.0-noble
+
+        WORKDIR /app
+
+
+        # Install Python and pip
+        RUN apt-get update && apt-get install -y \
+            python3 \
+            python3-pip \
+            && rm -rf /var/lib/apt/lists/*
+
+        # Copy your requirements and install Python dependencies
+        RUN pip install --break-system-packages nbconvert nbformat pyyaml playwright
+
+        RUN npx playwright --version
+
+        RUN python3 --version
+
+        RUN python3 -c 'import importlib.metadata; print(importlib.metadata.version("playwright"))'
+        """
     container_image = hdocker.build_container_image(
         container_image, dockerfile, force_rebuild, use_sudo
     )
@@ -171,7 +205,7 @@ def _run_dockerized_extract_notebook_images(
     docker_cmd = hdocker.get_docker_base_cmd(use_sudo)
     docker_cmd.extend(
         [
-            f"-e PLAYWRIGHT_BROWSERS_PATH=/ms-playwright",
+            "-e PLAYWRIGHT_BROWSERS_PATH=/ms-playwright",
             f"-e PYTHONPATH={helpers_root}",
             f"--workdir {callee_mount_path} --mount {mount}",
             container_image,

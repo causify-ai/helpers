@@ -57,7 +57,9 @@ def git_fetch_master(ctx):  # type: ignore
 
 
 @task
-def git_merge_master(ctx, abort_if_not_ff=False, abort_if_not_clean=True, skip_fetch=False):  # type: ignore
+def git_merge_master(
+    ctx, abort_if_not_ff=False, abort_if_not_clean=True, skip_fetch=False  # type: ignore
+):  
     """
     Merge `origin/master` into the current branch.
 
@@ -212,6 +214,7 @@ def git_patch_create(  # type: ignore
         cmd = f"tar czvf {dst_file} {files_as_str}"
         cmd_inv = "tar xvzf"
     elif mode == "diff":
+        opts: str
         if modified:
             opts = "HEAD"
         elif branch:
@@ -219,12 +222,14 @@ def git_patch_create(  # type: ignore
         elif last_commit:
             opts = "HEAD^"
         else:
-            hdbg.dfatal(
+            raise ValueError(
                 "You need to specify one among -modified, --branch, "
                 "--last-commit"
             )
         cmd = f"git diff {opts} --binary {files_as_str} >{dst_file}"
         cmd_inv = "git apply"
+    else:
+        raise ValueError(f"Invalid cmd='{cmd}'")
     # Execute patch command.
     _LOG.info("Creating the patch into %s", dst_file)
     hdbg.dassert_ne(cmd, "")
@@ -236,16 +241,17 @@ def git_patch_create(  # type: ignore
     remote_file = os.path.basename(dst_file)
     abs_path_dst_file = os.path.abspath(dst_file)
     msg = f"""
-# To apply the patch and execute:
-> git checkout {hash_}
-> {cmd_inv} {abs_path_dst_file}
+    # To apply the patch and execute:
+    > git checkout {hash_}
+    > {cmd_inv} {abs_path_dst_file}
 
-# To apply the patch to a remote client:
-> export SERVER="server"
-> export CLIENT_PATH="~/src"
-> scp {dst_file} $SERVER:
-> ssh $SERVER 'cd $CLIENT_PATH && {cmd_inv} ~/{remote_file}'"
+    # To apply the patch to a remote client:
+    > export SERVER="server"
+    > export CLIENT_PATH="~/src"
+    > scp {dst_file} $SERVER:
+    > ssh $SERVER 'cd $CLIENT_PATH && {cmd_inv} ~/{remote_file}'"
     """
+    msg = hprint.dedent(msg)
     print(msg)
 
 
@@ -574,19 +580,21 @@ def git_branch_copy(  # type: ignore
     """
     Create a new branch with the same content of the current branch.
 
-    :param skip_git_merge_master
-    :param check_branch_name: make sure the name of the branch is valid like
+    :param new_branch_name: name for the new branch
+    :param skip_git_merge_master: skip merging master into current branch
+    :param use_patch: apply patching instead of merging
+    :param check_branch_name: enforce branch naming convention like
         `{Amp,...}TaskXYZ_...`
     """
     hdbg.dassert(not use_patch, "Patch flow not implemented yet")
-    #
+    # Clean current repository.
     cmd = "git clean -fd"
     hlitauti.run(ctx, cmd)
     #
     curr_branch_name = hgit.get_branch_name()
     hdbg.dassert_ne(curr_branch_name, "master")
     if not skip_git_merge_master:
-        # Make sure `old_branch_name` doesn't need to have `master` merged.
+        # Ensure current branch is up-to-date with `master`.
         cmd = "invoke git_merge_master --abort-if-not-ff"
         hlitauti.run(ctx, cmd)
     else:
@@ -594,16 +602,18 @@ def git_branch_copy(  # type: ignore
     if use_patch:
         # TODO(gp): Create a patch or do a `git merge`.
         pass
-    # If new_branch_name was not specified, find a new branch with the next index.
     if new_branch_name == "":
+        # Automatically generate branch name.
         new_branch_name = hgit.get_branch_next_name()
     _LOG.info("new_branch_name='%s'", new_branch_name)
     # Create or go to the new branch.
     mode = "all"
     new_branch_exists = hgit.does_branch_exist(new_branch_name, mode)
     if new_branch_exists:
+        # Switch to existing branch.
         cmd = f"git checkout {new_branch_name}"
     else:
+        # Create and switch to a new branch.
         cmd = f"git checkout master && invoke git_branch_create -b '{new_branch_name}'"
         if not check_branch_name:
             cmd += " --no-check-branch-name"
@@ -611,7 +621,7 @@ def git_branch_copy(  # type: ignore
     if use_patch:
         # TODO(gp): Apply the patch.
         pass
-    #
+    # Squash merge the current branch into the new one without commiting.
     cmd = f"git merge --squash --ff {curr_branch_name} && git reset HEAD"
     hlitauti.run(ctx, cmd)
 
@@ -772,7 +782,7 @@ def _git_diff_with_branch(
         script_txt.append(cmd)
     script_txt = "\n".join(script_txt)
     # Files to diff.
-    _LOG.info("\n" + hprint.frame("Diffing script"))
+    _LOG.info("\n%s" % hprint.frame("Diffing script"))
     _LOG.info(script_txt)
     # Save the script to compare.
     script_file_name = f"./tmp.vimdiff_branch_with_{tag}.sh"
@@ -815,8 +825,8 @@ def _git_diff_with_branch_wrapper(
         hash_,
         tag,
         dir_name,
-        diff_type,
         subdir,
+        diff_type,
         keep_extensions,
         skip_extensions,
         file_name,
@@ -832,8 +842,8 @@ def _git_diff_with_branch_wrapper(
                     hash_,
                     tag,
                     dir_name,
-                    diff_type,
                     subdir,
+                    diff_type,
                     keep_extensions,
                     skip_extensions,
                     file_name,
@@ -919,6 +929,33 @@ def git_branch_diff_with(  # type: ignore
         only_print_files,
         dry_run,
     )
+
+
+@task
+def git_repo_copy(ctx, file_name, src_git_dir, dst_git_dir):  # type: ignore
+    """
+    Copy the code from the src Git client to the dst Git client.
+
+    :param file_name: the name of the file to copy (which is under
+        `src_git_dir`)
+    :param src_git_dir: the directory of the source Git client (e.g.,
+        "/Users/saggese/src/helpers1")
+    :param dst_git_dir: the directory of the destination Git client (e.g.,
+        "/Users/saggese/src/helpers2")
+    """
+    _ = ctx
+    src_git_dir = hgit.resolve_git_client_dir(src_git_dir)
+    dst_git_dir = hgit.resolve_git_client_dir(dst_git_dir)
+    dst_file_path = hgit.project_file_name_in_git_client(
+        file_name,
+        src_git_dir,
+        dst_git_dir,
+        check_src_file_exists=True,
+        check_dst_file_exists=False,
+    )
+    _LOG.info("Copying code from '%s' to '%s' ...", file_name, dst_git_dir)
+    # Copy the file.
+    hsystem.system_to_string(f"cp {file_name} {dst_file_path}")
 
 
 # pylint: disable=line-too-long

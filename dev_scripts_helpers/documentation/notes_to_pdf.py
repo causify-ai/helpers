@@ -18,7 +18,6 @@ Convert a txt file into a PDF / HTML / slides using `pandoc`.
     --no_cleanup --no_cleanup_before --no_run_latex_again --no_open
 """
 
-
 import argparse
 import logging
 import os
@@ -57,13 +56,16 @@ def _report_phase(phase: str) -> None:
 
 
 def _log_system(cmd: str) -> None:
+    hdbg.dassert_isinstance(cmd, str)
     print("> " + cmd)
     _append_script(cmd)
 
 
 def _system(cmd: str, *, log_level: int = logging.DEBUG, **kwargs: Any) -> int:
     _log_system(cmd)
-    rc = hsystem.system(cmd, log_level=log_level, suppress_output=False, **kwargs)
+    rc = hsystem.system(
+        cmd, log_level=log_level, suppress_output=False, **kwargs
+    )
     return rc  # type: ignore
 
 
@@ -99,6 +101,7 @@ def _cleanup_before(prefix: str) -> None:
 # #############################################################################
 
 
+# TODO(gp): Move to hmarkdown and test it.
 def _filter_by_header(file_name: str, header: str, prefix: str) -> str:
     """
     Extract a specific header from a file.
@@ -118,6 +121,29 @@ def _filter_by_header(file_name: str, header: str, prefix: str) -> str:
     return file_out
 
 
+# TODO(gp): Move to hmarkdown and test it.
+def _parse_range(range_as_str: str, max_value: int) -> tuple[int, int]:
+    """
+    Parse a line range string like '1:10' into start and end line numbers.
+    
+    :param range_as_str: String in format 'start:end' where start/end can be numbers or 'None'
+    :param max_value: Maximum value to use when 'None' is specified for end
+    :return: Tuple of (start_line, end_line) as integers
+    """
+    m = re.match(r"^(\S+):(\S+)$", range_as_str)
+    hdbg.dassert(m, "Invalid range_as_str='%s'", range_as_str)
+    start_value, end_value = m.groups()
+    if start_value.lower() == "none":
+        start_value = 1
+    else:
+        start_value = int(start_value)
+    if end_value.lower() == "none":
+        end_value = max_value + 1
+    else:
+        end_value = int(end_value)
+    return start_value, end_value
+
+
 def _filter_by_lines(file_name: str, filter_by_lines: str, prefix: str) -> str:
     """
     Filter the lines of a file in [start_line, end_line[.
@@ -131,23 +157,45 @@ def _filter_by_lines(file_name: str, filter_by_lines: str, prefix: str) -> str:
     txt = hio.from_file(file_name)
     txt = txt.split("\n")
     # E.g., filter_by_lines='1:10'.
-    m = re.match(r"^(\S+):(\S+)$", filter_by_lines)
-    hdbg.dassert(m, "Invalid filter_by_lines='%s'", filter_by_lines)
-    start_line, end_line = m.groups()
-    if start_line.lower() == "none":
-        start_line = 1
-    else:
-        start_line = int(start_line)
-    if end_line.lower() == "none":
-        end_line = len(txt) + 1
-    else:
-        end_line = int(end_line)
+    start_line, end_line = _parse_range(filter_by_lines, len(txt))
     # Filter by header.
     hdbg.dassert_lte(start_line, end_line)
     txt = txt[start_line - 1 : end_line - 1]
     txt = "\n".join(txt)
+    _LOG.warning("filter_by_lines='%s' -> lines=[%s:%s]", filter_by_lines, start_line, end_line)
     #
     file_out = f"{prefix}.filter_by_lines.txt"
+    hio.to_file(file_out, txt)
+    return file_out
+
+
+# TODO(gp): Move to hmarkdown and test it.
+def _filter_by_slides(file_name: str, filter_by_slides: str, prefix: str) -> str:
+    """
+    Filter the lines of a file in [start_slide, end_slide[.
+
+    :param file_name: The input file to be processed
+    :param filter_by_slides: a string like `1:10` or `1:None` or `None:10`
+    :param prefix: The prefix used for the output file (e.g., `tmp.pandoc`)
+    :return: The path to the processed file
+    """
+    # Read the file.
+    txt = hio.from_file(file_name)
+    # Filter by header.
+    slides_info = hmarkdo.extract_slides_from_markdown(txt)
+    # E.g., filter_by_lines='1:10'.
+    start_slide, end_slide = _parse_range(filter_by_slides, len(slides_info))
+    hdbg.dassert_lte(start_slide, end_slide)
+    hdbg.dassert_lt(end_slide, len(slides_info))
+    start_line = slides_info[start_slide].line_number
+    end_line = slides_info[end_slide].line_number
+    _LOG.warning("filter_by_slides='%s' -> lines=[%s:%s]", filter_by_slides, start_line, end_line)
+    # Filter by slides.
+    txt = txt.split("\n")
+    txt = txt[start_line - 1 : end_line - 1]
+    txt = "\n".join(txt)
+    # Save the file.
+    file_out = f"{prefix}.filter_by_slides.txt"
     hio.to_file(file_out, txt)
     return file_out
 
@@ -317,7 +365,9 @@ def _run_pandoc_to_pdf(
     )
     _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
     if not use_host_tools:
-        cmd = hdocker.run_dockerized_latex(cmd, mode="return_cmd", use_sudo=False)
+        cmd = hdocker.run_dockerized_latex(
+            cmd, mode="return_cmd", use_sudo=False
+        )
     _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
     _ = _system(cmd)
     # - Run latex again.
@@ -408,6 +458,8 @@ def _build_pandoc_cmd(
             use_sudo=dockerized_use_sudo,
         )
     _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
+    hdbg.dassert_isinstance(cmd, str)
+    hdbg.dassert_isinstance(file_out, str)
     return cmd, file_out
 
 
@@ -532,7 +584,9 @@ def _run_all(args: argparse.Namespace) -> None:
     # Print actions.
     actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     add_frame = True
-    actions_as_str = hparser.actions_to_string(actions, _VALID_ACTIONS, add_frame)
+    actions_as_str = hparser.actions_to_string(
+        actions, _VALID_ACTIONS, add_frame
+    )
     _LOG.info("\n%s", actions_as_str)
     if args.preview_actions:
         return
@@ -562,12 +616,15 @@ def _run_all(args: argparse.Namespace) -> None:
         file_name = _filter_by_header(file_name, args.filter_by_header, prefix)
     if args.filter_by_lines:
         file_name = _filter_by_lines(file_name, args.filter_by_lines, prefix)
-    # E.g., file_='/app/helpers_root/tmp.notes_to_pdf.render_image2.txt'
+    if args.filter_by_slides:
+        file_name = _filter_by_slides(file_name, args.filter_by_slides, prefix)
     # - Preprocess_notes
     action = "preprocess_notes"
     to_execute, actions = _mark_action(action, actions)
     if to_execute:
-        file_name = _preprocess_notes(file_name, prefix, args.type, args.toc_type)
+        file_name = _preprocess_notes(
+            file_name, prefix, args.type, args.toc_type
+        )
     # - Render_images
     action = "render_images"
     to_execute, actions = _mark_action(action, actions)
@@ -661,7 +718,8 @@ _DEFAULT_ACTIONS = [
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("-i", "--input", action="store", type=str, required=True)
     parser.add_argument(
@@ -686,6 +744,11 @@ def _parse() -> argparse.ArgumentParser:
         "--filter_by_lines",
         action="store",
         help="Filter by lines (e.g., `0:10`, `1:None`, `None:10`)",
+    )
+    parser.add_argument(
+        "--filter_by_slides",
+        action="store",
+        help="Filter by slides (e.g., `0:10`, `1:None`, `None:10`)",
     )
     # TODO(gp): -> out_action_script
     parser.add_argument(

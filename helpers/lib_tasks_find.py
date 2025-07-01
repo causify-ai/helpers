@@ -121,7 +121,9 @@ def _find_test_class(
 # TODO(gp): Have a single `find` command with multiple options to search for different
 #  things, e.g., class names, test names, pytest_mark, ...
 @task
-def find_test_class(ctx, class_name, dir_name=".", pbcopy=True, exact_match=False):  # type: ignore
+def find_test_class(
+    ctx, class_name, dir_name=".", pbcopy=True, exact_match=False
+):  # type: ignore
     """
     Report test files containing `class_name` in a format compatible with
     pytest.
@@ -318,7 +320,9 @@ def find(ctx, regex, mode="all", how="remove_dups", subdir="."):  # type: ignore
 
 
 # TODO(gp): decorator_name -> pytest_mark
-def _find_test_decorator(decorator_name: str, file_names: List[str]) -> List[str]:
+def _find_test_decorator(
+    decorator_name: str, file_names: List[str]
+) -> List[str]:
     """
     Find test files containing tests with a certain decorator
     `@pytest.mark.XYZ`.

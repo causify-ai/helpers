@@ -1,9 +1,30 @@
 title = "gitleaks config"
-[allowlist]
+
+[[allowlists]]
 description = "global allow lists"
 paths = [
-    '''.github/gitleaks-rules.toml''',
+    # Gitleaks rules file.
+    '''(^|.*/)gitleaks-rules\.toml$''',
+    # Compressed files.
+    '''.*\.(csv|txt)\.gz$''',
+    # Zip files.
+    '''.*\.zip$''',
+    # Gitleaks ignore file.
+    '''.gitleaksignore$''',
 ]
+
+[[allowlists]]
+description = "allowlist for images in Jupyter notebooks"
+regexTarget = "line"
+regexes = ['''image/(png|jpeg|jpg|gif|bmp|webp|svg\+xml|tiff|ico|x-icon)''']
+
+[[allowlists]]
+description = "allowlist for base64 encoded data"
+regexTarget = "line"
+regexes = [
+    '''[A-Za-z0-9+/]{1000,}={0,2}''',
+]
+
 [extend]
 useDefault = true
 [[rules]]
@@ -45,7 +66,7 @@ useDefault = true
 [[rules]]
     id = "rule15"
     description = '''AWS cred file info'''
-    regex = '''(aws_access_key_id|aws_secret_access_key)'''
+    regex = '''(?i)(aws_access_key_id\s*=\s*[A-Z0-9]{16,40}|aws_secret_access_key\s*=\s*[A-Za-z0-9/+=]{40})'''
     tags = ["secret"]
 
 [[rules]]
@@ -5163,7 +5184,7 @@ useDefault = true
 [[rules]]
     id = "rule1543"
     description = '''twilio_api_key'''
-    regex = '''twilio[_-]?api[_-]?key(=| =|:| :)'''
+    regex = '''twilio[_-]?api[_-]?key(=| =|:| :)[a-zA-Z0-9]{10,}'''
     tags = ["secret"]
 
 [[rules]]

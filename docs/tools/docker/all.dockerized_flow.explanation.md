@@ -63,7 +63,7 @@ we want to run it in a container with minimal changes to the system call:
   - Pandoc
   - Markdown-toc
   - Latex
-  - Llm_transform (which relies on `hopenai`)
+  - Llm_transform (which relies on `hllm`)
   - Plantuml
   - Mermaid
 

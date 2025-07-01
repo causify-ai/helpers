@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Usage Example:
 
@@ -83,7 +84,8 @@ def _parse() -> argparse.ArgumentParser:
     :return: Argument parser object.
     """
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("--src_dir", required=True, help="Source directory.")
     parser.add_argument("--dst_dir", required=True, help="Destination directory.")

@@ -271,8 +271,7 @@ def _frame_chapters(txt: str, *, max_lev: int = 4) -> str:
                 txt_processed = True
             else:
                 _LOG.debug(
-                    "  -> Skip formatting the chapter frame: lev=%d, "
-                    "max_lev=%d",
+                    "  -> Skip formatting the chapter frame: lev=%d, max_lev=%d",
                     lev,
                     max_lev,
                 )
@@ -415,7 +414,8 @@ _DEFAULT_ACTIONS = _VALID_ACTIONS[:]
 
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     hparser.add_input_output_args(parser)
     parser.add_argument(

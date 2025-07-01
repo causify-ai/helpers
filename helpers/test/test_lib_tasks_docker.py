@@ -9,6 +9,7 @@ import pytest
 import helpers.hgit as hgit
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
+import helpers.hunit_test_purification as huntepur
 import helpers.lib_tasks_docker as hlitadoc
 import helpers.test.test_lib_tasks as httestlib
 
@@ -138,16 +139,19 @@ class Test_generate_compose_file2(hunitest.TestCase):
         txt.append(txt_tmp)
         #
         file_name = None
-        with umock.patch.object(
-            os, "getcwd", return_value=mock_getcwd
-        ), umock.patch.object(
-            hgit, "find_git_root", return_value=mock_find_git_root
-        ), umock.patch.object(
-            hgit, "find_helpers_root", return_value=mock_find_helpers_root
-        ), umock.patch.object(
-            hgit,
-            "is_in_helpers_as_supermodule",
-            return_value=mock_is_in_helpers_as_supermodule,
+        with (
+            umock.patch.object(os, "getcwd", return_value=mock_getcwd),
+            umock.patch.object(
+                hgit, "find_git_root", return_value=mock_find_git_root
+            ),
+            umock.patch.object(
+                hgit, "find_helpers_root", return_value=mock_find_helpers_root
+            ),
+            umock.patch.object(
+                hgit,
+                "is_in_helpers_as_supermodule",
+                return_value=mock_is_in_helpers_as_supermodule,
+            ),
         ):
             txt_tmp = hlitadoc._generate_docker_compose_file(
                 stage,
@@ -233,7 +237,8 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
         # so that the tests pass.
         timestamp_regex = r"\.\d{8}_\d{6}"
         act = re.sub(timestamp_regex, "", act)
-        act = hunitest.purify_txt_from_client(act)
+        text_purifier = huntepur.TextPurifier()
+        act = text_purifier.purify_txt_from_client(act)
         # This is required when different repos run Docker with user vs root / remap.
         act = hunitest.filter_text("--user", act)
         self.assert_equal(act, exp, fuzzy_match=True)

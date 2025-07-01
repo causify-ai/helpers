@@ -277,7 +277,8 @@ def dassert_is_valid_timestamp(timestamp: Optional[pd.Timestamp]) -> None:
 
 
 def dassert_timestamp_lte(
-    start_timestamp: Optional[pd.Timestamp], end_timestamp: Optional[pd.Timestamp]
+    start_timestamp: Optional[pd.Timestamp],
+    end_timestamp: Optional[pd.Timestamp],
 ) -> None:
     dassert_is_valid_timestamp(start_timestamp)
     dassert_is_valid_timestamp(end_timestamp)
@@ -286,7 +287,8 @@ def dassert_timestamp_lte(
 
 
 def dassert_timestamp_lt(
-    start_timestamp: Optional[pd.Timestamp], end_timestamp: Optional[pd.Timestamp]
+    start_timestamp: Optional[pd.Timestamp],
+    end_timestamp: Optional[pd.Timestamp],
 ) -> None:
     dassert_is_valid_timestamp(start_timestamp)
     dassert_is_valid_timestamp(end_timestamp)
@@ -710,7 +712,7 @@ def _shift_to_period_end(  # pylint: disable=too-many-return-statements
     if match is None:
         return None
     span = match.span()
-    date_without_month = f"{date[:span[0]]}{date[span[1]:]}".strip()
+    date_without_month = f"{date[: span[0]]}{date[span[1] :]}".strip()
     if len(date_without_month) == 4 and date_without_month.isdigit():
         return shift_to_month_end
     return None

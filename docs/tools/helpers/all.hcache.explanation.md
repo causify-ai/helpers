@@ -1,25 +1,84 @@
-
-
 <!-- toc -->
 
 - [Cache](#cache)
-  * [How to use `Cache`](#how-to-use-cache)
+  * [Overview](#overview)
+    + [Usage example](#usage-example)
+  * [Core concepts](#core-concepts)
   * [How the `Cache` works](#how-the-cache-works)
-  * [Disk level](#disk-level)
-  * [Memory level](#memory-level)
+    + [Disk level](#disk-level)
+    + [Memory level](#memory-level)
   * [Global cache](#global-cache)
     + [Tagged global cache](#tagged-global-cache)
   * [Function-specific cache](#function-specific-cache)
+  * [Design rationale and trade-offs](#design-rationale-and-trade-offs)
+  * [Common misunderstandings](#common-misunderstandings)
+  * [Execution flow diagram](#execution-flow-diagram)
 
 <!-- tocstop -->
 
 # Cache
 
-## How to use `Cache`
+- This document explains the design and flow of a caching system implemented in
+  [`/helpers/hcache.py`](/helpers/hcache.py).
 
-- `Cache` is typically used as a decorator function `@cache` around functions or
-  regular class methods
-- `Cache` works in code and in Python notebooks with `%autoreload`
+- `hcache` provides a dual-layer cache (memory and disk) with tagging, global
+  and function-specific isolation, and deterministic modes for complex projects,
+  improving performance and persistency across sessions.
+
+## Overview
+
+- In performance-sensitive systems, repeated evaluations of the same expensive
+  function can degrade efficiency (for example, calling an expensive function
+  twice with the same arguments returns instantly on the second call due to
+  caching).
+- The `hcache` module addresses this through a robust, dual-layer caching
+  mechanism that reduces recomputation, enables persistency across sessions, and
+  improves responsiveness in both scripts and interactive notebooks.
+
+- Unlike lightweight alternatives like `hcache_simple`, `hcache` is suited for
+  complex use cases where cache configuration, inspection, tagging, and sharing
+  are necessary. It supports memory- and disk-based layers, function-level
+  control, and tagged caches for environment separation (e.g., test vs prod).
+
+### Usage example
+
+```python
+from helpers.hcache import cache
+
+@cache(use_mem_cache=True, use_disk_cache=True, tag="unit_tests")
+def expensive_compute(x, y):
+    # heavy work...
+    return x * y
+
+# First call: computes and caches
+res1 = expensive_compute(3, 4)
+# Second call: instant return from memory
+res2 = expensive_compute(3, 4)
+```
+
+## Core concepts
+
+- **Source Code Tracking**: Detects changes in the wrapped function's bytecode
+  pointer to invalidate stale cache entries.
+
+- **Two-Level Cache**: Cascading lookup in memory first (via `joblib.Memory`
+  over `tmpfs`), then on disk (via `joblib.Memory` at specified directory).
+
+- **Lookup and Store Flow**: On function call, check memory → check disk →
+  execute function if miss → store result in both layers.
+
+- **Global Cache**: Default backend shared across all cached functions in a Git
+  repo, located at `$GIT_ROOT/tmp.cache.{mem,disk}`.
+  - **Tagged Global Cache**: Namespaces cache per `tag` parameter (e.g.,
+    `unit_tests` vs default) to isolate environments.
+
+- **Function-Specific Cache**: Customizable cache directories for individual
+  functions managed via `.set_cache_directory()`, `.get_cache_directory()`, and
+  `.clear_function_cache()`.
+
+- **Deterministic Modes**: `enable_read_only` and `check_only_if_present`
+  options enforce strict cache-only or read-only behaviors, supporting testing
+  and debugging.
 
 ## How the `Cache` works
 
@@ -40,12 +99,12 @@
 - `Cache` is equipped with a `get_last_cache_accessed()` method to understand if
   the call hit the cache and on which level
 
-## Disk level
+### Disk level
 
 - `Disk` level is implemented via
   [joblib.Memory](https://joblib.readthedocs.io/en/latest/generated/joblib.Memory.html)
 
-## Memory level
+### Memory level
 
 - Initially, the idea was to use
   [functools.lru_cache](https://docs.python.org/3/library/functools.html#functools.lru_cache)
@@ -103,3 +162,101 @@
 - If cache is set for the function, it can be managed with
   `.set_cache_directory()`, `.get_cache_directory()`, `.destroy_cache()` and
   `.clear_function_cache()` methods.
+
+## Design rationale and trade-offs
+
+We chose these approaches to balance performance, persistence, and
+configurability.
+
+Below is a summary of our key design choices and their trade-offs.
+
+| Choice                                                              | Trade-off                                                      |
+| ------------------------------------------------------------------- | -------------------------------------------------------------- |
+| `joblib.Memory` over `lru_cache`                                    | More flexible and persistent, but slightly slower              |
+| `copy.deepcopy()` on retrieval                                      | Ensures immutability but adds overhead                         |
+| Global + function-specific backends                                 | Powerful but adds complexity for setup and cleanup             |
+| Verbose cache control (`enable_read_only`, `check_only_if_present`) | Good for testing and debugging; may be overkill for casual use |
+
+## Common misunderstandings
+
+- **Caches aren't auto-cleaned**: Old entries may accumulate; manual clearing is
+  needed via `clear_global_cache()` or `clear_function_cache()`.
+- **Not all functions are cache-safe**: Side effects, non-determinism (e.g.,
+  random values or timestamps), and unhashable arguments can lead to incorrect
+  or missing cache behavior.
+- **Function code changes may invalidate cache**: `joblib` hashes the function
+  code, so altering it causes cache misses unless overridden intentionally via
+  `update_func_code_without_invalidating_cache()`.
+
+## Execution flow diagram
+
+**Figure:** Execution flow of the caching mechanism, showing decorator setup,
+lookup order, and advanced features.
+
+```mermaid
+flowchart LR
+  %% Decorator System
+  subgraph DecoratorSystem["Decorator System"]
+    dec["@cache(use_mem_cache, use_disk_cache, disk_cache_path)"]
+    CachedClass["CachedClass"]
+    dec --> CachedClass
+  end
+
+  %% Cached Class Components
+  subgraph CachedClassComponents["Cached Class Components"]
+    memCache["_create_function_memory_cache()"]
+    diskCache["_create_function_disk_cache()"]
+    CachedClass --> memCache
+    CachedClass --> diskCache
+
+    memCache --> globalType["get_global_cache_type(tag)"]
+    diskCache --> globalType
+    globalType --> backendFactory["_create_global_cache_backend()"]
+
+    backendFactory --> globalPath["_get_global_cache_path()"]
+    backendFactory --> globalName["_get_global_cache_name()"]
+    backendFactory --> clearGlobal["clear_global_cache()"]
+    backendFactory --> infoGlobal["get_global_cache_info()"]
+    backendFactory --> clearFunc["clear_function_cache()"]
+    backendFactory --> funcPath["get_function_cache_path()"]
+    backendFactory --> hasFunc["has_function_cache()"]
+  end
+
+  %% Cache Types & Paths
+  subgraph CacheTypesAndPaths["Cache Types & Paths"]
+    memoryPath["Memory Cache Path\n/tmp/jbill/mem"]
+    diskPath["Disk Cache Path\n~/.cache/hj/cache.disk"]
+    funcSpecific["Function-specific Path"]
+    globalPath --> memoryPath
+    globalName --> diskPath
+    funcPath   --> funcSpecific
+  end
+
+  %% Joblib Integration
+  subgraph JoblibIntegration["Joblib Integration"]
+    MemCache["MEMORY_CACHE\njoblib.Memory"]
+    DiskCache2["DISK_CACHE\njoblib.Memory"]
+    MemCache  --> MemFunction["joblib.MemoryFunc"]
+    DiskCache2 --> MemFunction
+    MemFunction --> StoreBackend["Store Backend"]
+    StoreBackend --> CodeTracking["Function Code Tracking"]
+  end
+
+  %% Function Wrapper
+  subgraph FunctionWrapper["Function Wrapper"]
+    Wrapper["call() – Main caching logic"]
+    CachedClass --> Wrapper
+    Wrapper --> GetResult["get_memorized_result()"]
+    Wrapper --> StoreVersion["store_cached_version()"]
+    Wrapper --> GlobalMgmt["_IS_CACHE_ENABLED = true"]
+  end
+
+  %% Advanced Features
+  subgraph AdvancedFeatures["Advanced Features"]
+    CodeTracking --> ReadOnly["enable_read_only()"]
+    CodeTracking --> CheckOnly["enable_check_only_if_present()"]
+    CodeTracking --> S3Support["S3 Backend Support"]
+    CodeTracking --> LastAccessed["_get_last_cache_accessed()"]
+    CodeTracking --> UpdateCode["update_func_code_without_invalidating_cache()"]
+  end
+```

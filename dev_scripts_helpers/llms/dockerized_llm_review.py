@@ -23,59 +23,9 @@ import helpers.hprint as hprint
 _LOG = logging.getLogger(__name__)
 
 
-def _extract_bullet_points(text: str) -> List[str]:
-    """
-    Extract bullet point list items from text.
-
-    Sub-lists nested under first-level items are extracted together with
-    the first-level items.
-
-    :param text: text to process
-    :return: extracted bullet points, e.g.,
-        ```
-        [
-            "- Item 1",
-            '''
-            - Item 2
-               - Item 3
-            '''
-        ]
-        ```
-    """
-    lines = text.split("\n")
-    bullet_points = []
-    current_item = ""
-    for line in lines:
-        if re.match(r"^- ", line):
-            # Match first-level bullet point item.
-            if current_item:
-                # Store the previous item, if any.
-                current_item = re.sub(r"\s{2,}", " ", current_item.strip())
-                bullet_points.append(current_item)
-            # Start a new first-level bullet point item.
-            current_item = line
-        elif re.match(r"^\s+- ", line):
-            # Match a sub-item (non first-level bullet point item).
-            # Append a sub-item to the current item.
-            current_item += "\n" + line
-        elif len(line.strip()) != 0 and current_item:
-            # Append a line to the current item.
-            current_item += " " + line
-        else:
-            # Store the finished item.
-            current_item = re.sub(r"\s{2,}", " ", current_item.strip())
-            bullet_points.append(current_item)
-    if current_item:
-        current_item = re.sub(r"\s{2,}", " ", current_item.strip())
-        bullet_points.append(current_item)
-    # Drop empty items.
-    bullet_points: List[str] = hprint.remove_empty_lines_from_string_list(
-        bullet_points
-    )
-    return bullet_points
-
-
-def _load_review_guidelines(guidelines_doc_filename: str) -> Dict[str, List[str]]:
+def _load_review_guidelines(
+    guidelines_doc_filename: str,
+) -> Dict[str, List[str]]:
     """
     Load automated review guidelines.
 
@@ -165,7 +115,7 @@ def _review(
     # running inside a Dockerized executable. We don't want an import to
     # this file assert since openai is not available in the local dev
     # environment.
-    import helpers.hopenai as hopenai
+    import helpers.hllm as hllm
 
     for guideline in guidelines_for_file:
         # Check if the file follows the specific guideline.
@@ -196,10 +146,10 @@ def _review(
               line number = 0 and put <UNABLE TO QUOTE> as the quote
             """
         )
-        response = hopenai.get_completion(
+        response = hllm.get_completion(
             guideline_prompt, system_prompt=system_prompt, print_cost=True
         )
-        txt_out = hopenai.response_to_txt(response)
+        txt_out = hllm.response_to_txt(response)
         hdbg.dassert_isinstance(txt_out, str)
         # Extract review comments from the response.
         cur_comments = re.findall(r"<VIOLATION>(.*?)</VIOLATION>", txt_out)

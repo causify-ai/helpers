@@ -5,21 +5,18 @@ import helpers.test.test_unit_test as ttutes
 """
 
 import logging
-import os
 import tempfile
-import unittest.mock as umock
 from typing import Optional, Tuple
 
 import pandas as pd
 import pytest
 
 import helpers.hdbg as hdbg
-import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
-import helpers.repo_config_utils as hrecouti
+import helpers.hunit_test_purification as huntepur
 
 _LOG = logging.getLogger(__name__)
 
@@ -71,7 +68,8 @@ class TestTestCase1(hunitest.TestCase):
         Test hunitest.get_input_dir().
         """
         act = self.get_input_dir()
-        act = hunitest.purify_txt_from_client(act)
+        text_purifier = huntepur.TextPurifier()
+        act = text_purifier.purify_txt_from_client(act)
         exp = "$GIT_ROOT/helpers/test/outcomes/TestTestCase1.test_get_input_dir1/input"
         self.assertEqual(act, exp)
 
@@ -84,7 +82,8 @@ class TestTestCase1(hunitest.TestCase):
             test_class_name=test_class_name,
             test_method_name=test_method_name,
         )
-        act = hunitest.purify_txt_from_client(act)
+        text_purifier = huntepur.TextPurifier()
+        act = text_purifier.purify_txt_from_client(act)
         #
         exp = "$GIT_ROOT/helpers/test/outcomes/test_class.test_method/input"
         self.assertEqual(act, exp)
@@ -98,7 +97,8 @@ class TestTestCase1(hunitest.TestCase):
             test_class_name=test_class_name,
             test_method_name=test_method_name,
         )
-        act = hunitest.purify_txt_from_client(act)
+        text_purifier = huntepur.TextPurifier()
+        act = text_purifier.purify_txt_from_client(act)
         #
         exp = "$GIT_ROOT/helpers/test/outcomes/TestTestCase1.test_get_input_dir3/input"
         self.assertEqual(act, exp)
@@ -112,7 +112,8 @@ class TestTestCase1(hunitest.TestCase):
             test_class_name=test_class_name,
             test_method_name=test_method_name,
         )
-        act = hunitest.purify_txt_from_client(act)
+        text_purifier = huntepur.TextPurifier()
+        act = text_purifier.purify_txt_from_client(act)
         #
         exp = "$GIT_ROOT/helpers/test/outcomes/TestTestCase1/input"
         self.assertEqual(act, exp)
@@ -122,7 +123,8 @@ class TestTestCase1(hunitest.TestCase):
         Test hunitest.get_output_dir().
         """
         act = self.get_output_dir()
-        act = hunitest.purify_txt_from_client(act)
+        text_purifier = huntepur.TextPurifier()
+        act = text_purifier.purify_txt_from_client(act)
         exp = "$GIT_ROOT/helpers/test/outcomes/TestTestCase1.test_get_output_dir1/output"
         self.assertEqual(act, exp)
 
@@ -131,7 +133,8 @@ class TestTestCase1(hunitest.TestCase):
         Test hunitest.get_scratch_space().
         """
         act = self.get_scratch_space()
-        act = hunitest.purify_txt_from_client(act)
+        text_purifier = huntepur.TextPurifier()
+        act = text_purifier.purify_txt_from_client(act)
         exp = (
             "$GIT_ROOT/helpers/test/outcomes/TestTestCase1.test_get_scratch_space1"
             "/tmp.scratch"
@@ -144,7 +147,8 @@ class TestTestCase1(hunitest.TestCase):
         act = self.get_scratch_space(
             test_class_name=test_class_name, test_method_name=test_method_name
         )
-        act = hunitest.purify_txt_from_client(act)
+        text_purifier = huntepur.TextPurifier()
+        act = text_purifier.purify_txt_from_client(act)
         exp = "$GIT_ROOT/helpers/test/outcomes/test_class.test_method/tmp.scratch"
         self.assertEqual(act, exp)
 
@@ -157,7 +161,8 @@ class TestTestCase1(hunitest.TestCase):
             test_method_name=test_method_name,
             use_absolute_path=use_absolute_path,
         )
-        act = hunitest.purify_txt_from_client(act)
+        text_purifier = huntepur.TextPurifier()
+        act = text_purifier.purify_txt_from_client(act)
         exp = "outcomes/test_class.test_method/tmp.scratch"
         self.assertEqual(act, exp)
 
@@ -197,7 +202,8 @@ class TestTestCase1(hunitest.TestCase):
         act = hunitest.get_dir_signature(
             tmp_dir, include_file_content=True, num_lines=None
         )
-        act = hunitest.purify_txt_from_client(act)
+        text_purifier = huntepur.TextPurifier()
+        act = text_purifier.purify_txt_from_client(act)
         act = act.replace(tmp_dir, "$TMP_DIR")
         # pylint: disable=line-too-long
         exp = """
@@ -330,7 +336,8 @@ completed       success Lint    Slow_tests
             )
         # Check that the assertion is what expected.
         act = str(cm.exception)
-        act = hunitest.purify_txt_from_client(act)
+        text_purifier = huntepur.TextPurifier()
+        act = text_purifier.purify_txt_from_client(act)
         exp = '''
 --------------------------------------------------------------------------------
 ACTUAL vs EXPECTED: Test_AssertEqual1.test_not_equal1
@@ -896,94 +903,6 @@ class Test_check_string_debug1(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_unit_test1
-# #############################################################################
-
-
-class Test_unit_test1(hunitest.TestCase):
-
-    def test_purify_txt_from_client1(self) -> None:
-        super_module_path = hgit.get_client_root(super_module=True)
-        # TODO(gp): We should remove the current path.
-        # pylint: disable=line-too-long
-        txt = r"""
-************* Module input [pylint]
-$SUPER_MODULE/dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py: Your code has been rated at -10.00/10 (previous run: -10.00/10, +0.00) [pylint]
-$SUPER_MODULE/dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py:3:20: W605 invalid escape sequence '\s' [flake8]
-$SUPER_MODULE/dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py:3:9: F821 undefined name 're' [flake8]
-cmd line='$SUPER_MODULE/dev_scripts/linter.py -f $SUPER_MODULE/amp/dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py --linter_log $SUPER_MODULE/dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/linter.log'
-dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py:3: [E0602(undefined-variable), ] Undefined variable 're' [pylint]
-dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py:3: [W1401(anomalous-backslash-in-string), ] Anomalous backslash in string: '\s'. String constant might be missing an r prefix. [pylint]
-dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py:3: error: Name 're' is not defined [mypy]
-"""
-        txt = txt.replace("$SUPER_MODULE", super_module_path)
-        exp = r"""
-************* Module input [pylint]
-$GIT_ROOT/dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py: Your code has been rated at -10.00/10 (previous run: -10.00/10, +0.00) [pylint]
-$GIT_ROOT/dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py:3:20: W605 invalid escape sequence '\s' [flake8]
-$GIT_ROOT/dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py:3:9: F821 undefined name 're' [flake8]
-cmd line='$GIT_ROOT/dev_scripts/linter.py -f $GIT_ROOT/dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py --linter_log $GIT_ROOT/dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/linter.log'
-dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py:3: [E0602(undefined-variable), ] Undefined variable 're' [pylint]
-dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py:3: [W1401(anomalous-backslash-in-string), ] Anomalous backslash in string: '\s'. String constant might be missing an r prefix. [pylint]
-dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py:3: error: Name 're' is not defined [mypy]
-"""
-        # pylint: enable=line-too-long
-        act = hunitest.purify_txt_from_client(txt)
-        self.assert_equal(act, exp)
-
-    def test_purify_txt_from_client2(self) -> None:
-        """
-        Test case when client root path is equal to `/`
-        """
-        # pylint: disable=redefined-outer-name
-        hgit = umock.Mock()
-        hgit.get_client_root.return_value = "/"
-        txt = "/tmp/subdir1"
-        exp = txt
-        act = hunitest.purify_txt_from_client(txt)
-        self.assertEqual(act, exp)
-
-
-# #############################################################################
-# Test_unit_test2
-# #############################################################################
-
-
-class Test_unit_test2(hunitest.TestCase):
-
-    def test_purify_parquet_file_names1(self) -> None:
-        """
-        Test purification of Parquet file names with the path.
-
-        The Parquet file names with the
-        GUID have to be replaced with the `data.parquet` string.
-        """
-        txt = """
-        s3://some_bucket/root/currency_pair=BTC_USDT/year=2024/month=1/ea5e3faed73941a2901a2128abeac4ca-0.parquet
-        s3://some_bucket/root/currency_pair=BTC_USDT/year=2024/month=2/f7a39fefb69b40e0987cec39569df8ed-0.parquet
-        """
-        exp = """
-        s3://some_bucket/root/currency_pair=BTC_USDT/year=2024/month=1/data.parquet
-        s3://some_bucket/root/currency_pair=BTC_USDT/year=2024/month=2/data.parquet
-        """
-        act = hunitest.purify_parquet_file_names(txt)
-        hdbg.dassert_eq(act, exp)
-
-    def test_purify_parquet_file_names2(self) -> None:
-        """
-        Test purification of Parquet file name without the path.
-        """
-        txt = """
-        ffa39fffb69b40e0987cec39569df8ed-0.parquet
-        """
-        exp = """
-        data.parquet
-        """
-        act = hunitest.purify_parquet_file_names(txt)
-        hdbg.dassert_eq(act, exp)
-
-
-# #############################################################################
 # Test_get_dir_signature1
 # #############################################################################
 
@@ -995,7 +914,8 @@ class Test_get_dir_signature1(hunitest.TestCase):
         act = hunitest.get_dir_signature(
             in_dir, include_file_content, num_lines=None
         )
-        act = hunitest.purify_txt_from_client(act)
+        text_purifier = huntepur.TextPurifier()
+        act = text_purifier.purify_txt_from_client(act)
         return act  # type: ignore[no-any-return]
 
     def test1(self) -> None:
@@ -1028,326 +948,3 @@ class Test_get_dir_signature1(hunitest.TestCase):
         act = self.helper(include_file_content)
         # The golden outcome is long and uninteresting so we use check_string.
         self.check_string(act, fuzzy_match=True)
-
-
-# #############################################################################
-# Test_purify_txt_from_client1
-# #############################################################################
-
-
-class Test_purify_txt_from_client1(hunitest.TestCase):
-
-    def helper(self, txt: str, exp: str) -> None:
-        act = hunitest.purify_txt_from_client(txt)
-        self.assert_equal(act, exp)
-
-    def test1(self) -> None:
-        txt = "amp/helpers/test/test_system_interaction.py"
-        exp = "helpers/test/test_system_interaction.py"
-        self.helper(txt, exp)
-
-    def test2(self) -> None:
-        txt = "amp/helpers/test/test_system_interaction.py"
-        exp = "helpers/test/test_system_interaction.py"
-        self.helper(txt, exp)
-
-    def test3(self) -> None:
-        txt = "['amp/helpers/test/test_system_interaction.py']"
-        exp = "['helpers/test/test_system_interaction.py']"
-        self.helper(txt, exp)
-
-
-# #############################################################################
-# Test_purify_from_env_vars
-# #############################################################################
-
-
-# TODO(ShaopengZ): numerical issue. (arm vs x86)
-@pytest.mark.requires_ck_infra
-class Test_purify_from_env_vars(hunitest.TestCase):
-    """
-    Test purification from env vars.
-    """
-
-    def helper(self, env_var: str) -> None:
-        env_var_value = os.environ[env_var]
-        input_ = f"s3://{env_var_value}/"
-        act = hunitest.purify_from_env_vars(input_)
-        exp = f"s3://${env_var}/"
-        self.assert_equal(act, exp, fuzzy_match=True)
-
-    @pytest.mark.skipif(
-        not hrecouti.get_repo_config().get_name() == "//cmamp",
-        reason="Run only in //cmamp",
-    )
-    def test1(self) -> None:
-        """
-        - $CSFY_AWS_S3_BUCKET
-        """
-        env_var = "CSFY_AWS_S3_BUCKET"
-        self.helper(env_var)
-
-
-# TODO(gp): HelpersTask1
-#    @pytest.mark.skipif(
-#        not hrecouti.get_repo_config().get_name() == "//cmamp",
-#        reason="Run only in //cmamp",
-#    )
-#    def test_end_to_end(self) -> None:
-#        """
-#        - Multiple env vars.
-#        """
-#        #am_aws_s3_bucket = os.environ["AM_AWS_S3_BUCKET"]
-#        csfy_aws_s_s3_bucket = os.environ["CSFY_AWS_S3_BUCKET"]
-#        #
-#        text = f"""
-#        $AM_AWS_S3_BUCKET = {am_aws_s3_bucket}
-#        $CSFY_AWS_S3_BUCKET = {csfy_aws_s3_bucket}
-#        """
-#        #
-#        actual = hunitest.purify_from_env_vars(text)
-#        self.check_string(actual, fuzzy_match=True)
-
-
-# #############################################################################
-# Test_purify_object_representation1
-# #############################################################################
-
-
-class Test_purify_object_representation1(hunitest.TestCase):
-
-    def helper(self, txt: str, exp: str) -> None:
-        txt = hprint.dedent(txt)
-        act = hunitest.purify_object_representation(txt)
-        exp = hprint.dedent(exp)
-        self.assert_equal(act, exp)
-
-    def test1(self) -> None:
-        txt = """
-        load_prices: {'source_node_name': 'RealTimeDataSource object
-        at 0x7f571c329b50
-        """
-        exp = r"""
-        load_prices: {'source_node_name': 'RealTimeDataSource object
-        at 0x"""
-        self.helper(txt, exp)
-
-    def test2(self) -> None:
-        txt = """
-        load_prices: {'source_node_name at 0x7f571c329b51':
-        'RealTimeDataSource object at 0x7f571c329b50
-        """
-        exp = r"""
-        load_prices: {'source_node_name at 0x':
-        'RealTimeDataSource object at 0x"""
-        self.helper(txt, exp)
-
-    def test3(self) -> None:
-        txt = """
-        load_prices: {'source_node_name': 'RealTimeDataSource',
-        'source_node_kwargs': {'market_data':
-        <market_data.market_data.ReplayedMarketData
-        object>, 'period': 'last_5mins', 'asset_id_col': 'asset_id',
-        'multiindex_output': True}} process_forecasts: {'prediction_col': 'close',
-        'execution_mode': 'real_time', 'process_forecasts_config':
-        {'market_data':
-        <market_data.market_data.ReplayedMarketData
-        object at 0x7faff4c3faf0>,'portfolio  ': <oms.portfolio.SimulatedPortfolio
-        object>, 'order_type': 'price@twap', 'ath_start_time':
-        datetime.time(9, 30), 'trading_start_time': datetime.time(9, 30),
-        'ath_end_time': datetime.time(16, 40), 'trading_end_time':
-        datetime.time(16, 4  0)}}
-        """
-        exp = r"""
-        load_prices: {'source_node_name': 'RealTimeDataSource',
-        'source_node_kwargs': {'market_data':
-        <market_data.market_data.ReplayedMarketData
-        object>, 'period': 'last_5mins', 'asset_id_col': 'asset_id',
-        'multiindex_output': True}} process_forecasts: {'prediction_col': 'close',
-        'execution_mode': 'real_time', 'process_forecasts_config':
-        {'market_data':
-        <market_data.market_data.ReplayedMarketData
-        object at 0x>,'portfolio  ': <oms.portfolio.SimulatedPortfolio
-        object>, 'order_type': 'price@twap', 'ath_start_time':
-        datetime.time(9, 30), 'trading_start_time': datetime.time(9, 30),
-        'ath_end_time': datetime.time(16, 40), 'trading_end_time':
-        datetime.time(16, 4  0)}}"""
-        self.helper(txt, exp)
-
-    def test4(self) -> None:
-        """
-        Test replacing wall_clock_time=Timestamp('..., tz='America/New_York'))
-        """
-        txt = """
-        _knowledge_datetime_col_name='timestamp_db' <str> _delay_in_secs='0'
-        <int>>, 'bar_duration_in_secs': 300, 'rt_timeout_in_secs_or_time': 900} <dict>,
-        _dst_dir=None <NoneType>, _fit_at_beginning=False <bool>,
-        _wake_up_timestamp=None <NoneType>, _bar_duration_in_secs=300 <int>,
-        _events=[Event(num_it=1, current_time=Timestamp('2000-01-01
-        10:05:00-0500', tz='America/New_York'),
-        wall_clock_time=Timestamp('2022-08-04 09:29:13.441715-0400',
-        tz='America/New_York')), Event(num_it=2,
-        current_time=Timestamp('2000-01-01 10:10:00-0500',
-        tz='America/New_York'), wall_clock_time=Timestamp('2022-08-04
-        09:29:13.892793-0400', tz='America/New_York')), Event(num_it=3,
-        current_time=Timestamp('2000-01-01 10:15:00-0500',
-        tz='America/New_York'), wall_clock_time=Timestamp('2022-08-04
-        09:29:14.131619-0400', tz='America/New_York'))] <list>)
-        """
-        exp = """
-        _knowledge_datetime_col_name='timestamp_db' <str> _delay_in_secs='0'
-        <int>>, 'bar_duration_in_secs': 300, 'rt_timeout_in_secs_or_time': 900} <dict>,
-        _dst_dir=None <NoneType>, _fit_at_beginning=False <bool>,
-        _wake_up_timestamp=None <NoneType>, _bar_duration_in_secs=300 <int>,
-        _events=[Event(num_it=1, current_time=Timestamp('2000-01-01
-        10:05:00-0500', tz='America/New_York'),
-        wall_clock_time=Timestamp('xxx', tz='America/New_York')),
-        Event(num_it=2, current_time=Timestamp('2000-01-01 10:10:00-0500',
-        tz='America/New_York'), wall_clock_time=Timestamp('xxx',
-        tz='America/New_York')), Event(num_it=3,
-        current_time=Timestamp('2000-01-01 10:15:00-0500',
-        tz='America/New_York'), wall_clock_time=Timestamp('xxx',
-        tz='America/New_York'))] <list>)
-        """
-        txt = " ".join(hprint.dedent(txt).split("\n"))
-        exp = " ".join(hprint.dedent(exp).split("\n"))
-        self.helper(txt, exp)
-
-
-# #############################################################################
-# Test_purify_amp_reference1
-# #############################################################################
-
-
-class Test_purify_amp_reference1(hunitest.TestCase):
-
-    def helper(self, txt: str, exp: str) -> None:
-        txt = hprint.dedent(txt)
-        act = hunitest.purify_amp_references(txt)
-        exp = hprint.dedent(exp)
-        self.assert_equal(act, exp)
-
-    def test1(self) -> None:
-        """
-        Remove the reference to `amp.`.
-        """
-        txt = """
-        * Failed assertion *
-        Instance '<amp.helpers.test.test_dbg._Man object at 0x123456>'
-            of class '_Man' is not a subclass of '<class 'int'>'
-        """
-        exp = r"""
-        * Failed assertion *
-        Instance '<helpers.test.test_dbg._Man object at 0x123456>'
-            of class '_Man' is not a subclass of '<class 'int'>'
-        """
-        self.helper(txt, exp)
-
-
-# #############################################################################
-# Test_purify_from_environment1
-# #############################################################################
-
-
-class Test_purify_from_environment1(hunitest.TestCase):
-
-    def check_helper(self, input_: str, exp: str) -> None:
-        """
-        Check that the text is purified from environment variables correctly.
-        """
-        try:
-            # Manually set a user name to test the behaviour.
-            hsystem.set_user_name("root")
-            # Run.
-            act = hunitest.purify_from_environment(input_)
-            self.assert_equal(act, exp, fuzzy_match=True)
-        finally:
-            # Reset the global user name variable regardless of a test results.
-            hsystem.set_user_name(None)
-
-    def test1(self) -> None:
-        input_ = "IMAGE=$CSFY_ECR_BASE_PATH/amp_test:local-root-1.0.0"
-        exp = "IMAGE=$CSFY_ECR_BASE_PATH/amp_test:local-$USER_NAME-1.0.0"
-        self.check_helper(input_, exp)
-
-    def test2(self) -> None:
-        input_ = "--name root.amp_test.app.app"
-        exp = "--name $USER_NAME.amp_test.app.app"
-        self.check_helper(input_, exp)
-
-    def test3(self) -> None:
-        input_ = "run --rm -l user=root"
-        exp = "run --rm -l user=$USER_NAME"
-        self.check_helper(input_, exp)
-
-    def test4(self) -> None:
-        input_ = "run_docker_as_root='True'"
-        exp = "run_docker_as_root='True'"
-        self.check_helper(input_, exp)
-
-    def test5(self) -> None:
-        input_ = "out_col_groups: [('root_q_mv',), ('root_q_mv_adj',), ('root_q_mv_os',)]"
-        exp = "out_col_groups: [('root_q_mv',), ('root_q_mv_adj',), ('root_q_mv_os',)]"
-        self.check_helper(input_, exp)
-
-    def test6(self) -> None:
-        input_ = "/app/jupyter_core/application.py"
-        exp = "$GIT_ROOT/jupyter_core/application.py"
-        self.check_helper(input_, exp)
-
-    def test7(self) -> None:
-        input_ = "/app"
-        exp = "$GIT_ROOT"
-        self.check_helper(input_, exp)
-
-    @pytest.mark.skipif(
-        not hgit.is_inside_submodule(), reason="Run only in submodule"
-    )
-    def test8(self) -> None:
-        # /Users/saggese/src/notes1
-        input_ = os.path.join(os.environ.get("CSFY_HOST_GIT_ROOT_PATH"), "hello")
-        exp = "$CSFY_HOST_GIT_ROOT_PATH/hello"
-        self.check_helper(input_, exp)
-
-
-# #############################################################################
-# Test_purify_line_number1
-# #############################################################################
-
-
-class Test_purify_line_number1(hunitest.TestCase):
-
-    def test1(self) -> None:
-        """
-        Check that the text is purified from line numbers correctly.
-        """
-        txt = """
-        dag_config (marked_as_used=False, writer=None, val_type=config_root.config.config_.Config):
-        in_col_groups (marked_as_used=True, writer=$GIT_ROOT/dataflow/system/system_builder_utils.py::286::apply_history_lookback, val_type=list): [('close',), ('volume',)]
-        out_col_group (marked_as_used=True, writer=$GIT_ROOT/dataflow/system/system_builder_utils.py::286::apply_history_lookback, val_type=tuple): ()
-        """
-        expected = r"""
-        dag_config (marked_as_used=False, writer=None, val_type=config_root.config.config_.Config):
-        in_col_groups (marked_as_used=True, writer=$GIT_ROOT/dataflow/system/system_builder_utils.py::$LINE_NUMBER::apply_history_lookback, val_type=list): [('close',), ('volume',)]
-        out_col_group (marked_as_used=True, writer=$GIT_ROOT/dataflow/system/system_builder_utils.py::$LINE_NUMBER::apply_history_lookback, val_type=tuple): ()
-        """
-        actual = hunitest.purify_line_number(txt)
-        self.assert_equal(actual, expected, fuzzy_match=True)
-
-
-# #############################################################################
-# Test_purify_docker_image_name1
-# #############################################################################
-
-
-class Test_purify_docker_image_name1(hunitest.TestCase):
-
-    def test1(self) -> None:
-        txt = r"""
-        docker run --rm --user $(id -u):$(id -g) --workdir $GIT_ROOT --mount type=bind,source=/Users/saggese/src/helpers1,target=$GIT_ROOT tmp.latex.edb567be pdflatex -output-directory
-        """
-        expected = r"""
-        docker run --rm --user $(id -u):$(id -g) --workdir $GIT_ROOT --mount type=bind,source=/Users/saggese/src/helpers1,target=$GIT_ROOT tmp.latex.xxxxxxxx pdflatex -output-directory
-        """
-        actual = hunitest.purify_docker_image_name(txt)
-        self.assert_equal(actual, expected, fuzzy_match=True)

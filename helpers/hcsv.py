@@ -337,7 +337,9 @@ def save_csv_as_json(
     dict_df = convert_csv_to_dict(path_to_csv, remove_nans)
     # Determine the JSON destination path.
     if path_to_json is None:
-        path_to_json = hio.change_filename_extension(path_to_csv, ".csv", ".json")
+        path_to_json = hio.change_filename_extension(
+            path_to_csv, ".csv", ".json"
+        )
     # Save the dict into a JSON file.
     hio.to_json(path_to_json, dict_df)
 

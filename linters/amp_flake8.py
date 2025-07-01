@@ -8,6 +8,7 @@ Import as:
 
 import linters.amp_flake8 as lampflak
 """
+
 import argparse
 import logging
 from typing import List
@@ -112,7 +113,8 @@ class _Flake8(liaction.Action):
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "files",

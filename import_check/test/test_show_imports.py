@@ -6,13 +6,20 @@ import pytest
 
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
+import helpers.hunit_test_purification as huntepur
 import import_check.show_imports as ichshimp
 
 _LOG = logging.getLogger(__name__)
 
 
+# #############################################################################
+# Test_show_imports
+# #############################################################################
+
+
 @pytest.mark.slow()
 class Test_show_imports(hunitest.TestCase):
+
     def create_io_dirs(self) -> None:
         dir_name = self.get_input_dir()
         hio.create_dir(dir_name, incremental=True)
@@ -83,7 +90,8 @@ class Test_show_imports(hunitest.TestCase):
             script_output = hio.from_file(script_output_filename)
             # Transform the output from the script by removing the dependencies
             # from the client.
-            purified_script_output = hunitest.purify_txt_from_client(
+            text_purifier = huntepur.TextPurifier()
+            purified_script_output = text_purifier.purify_txt_from_client(
                 script_output
             )
             purified_script_output = purified_script_output.replace(
@@ -262,9 +270,9 @@ class Test_show_imports(hunitest.TestCase):
         in_dir_name = self.get_input_dir().split("/")[-1]
         files = {}
         files["file1.py"] = "import numpy\n"
-        files[
-            "file2.py"
-        ] = f"import {in_dir_name}.file1\nimport {in_dir_name}.file3\n"
+        files["file2.py"] = (
+            f"import {in_dir_name}.file1\nimport {in_dir_name}.file3\n"
+        )
         files["file3.py"] = f"import {in_dir_name}.file2\n"
         files["__init__.py"] = ""
         # Run and check the outcome.
