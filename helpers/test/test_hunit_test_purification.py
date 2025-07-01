@@ -164,7 +164,7 @@ dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py:3: error: Nam
         from helpers.hprint import dedent
         import helpers.config
         from helpers.config import get_config
-        import amp.app.helpers_root.config
+        import helpers.config
         """
         self.check_helper(txt, exp)
 
