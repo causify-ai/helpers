@@ -8,8 +8,11 @@ import logging
 import os
 import pathlib
 import site
+import subprocess
 import sysconfig
 
+import helpers.hdbg as hdbg
+import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
@@ -27,8 +30,9 @@ def _detect_site_packages() -> pathlib.Path:
         if purelib:
             return pathlib.Path(purelib)
     except (KeyError, IOError):
-        # TODO(Maddy): _LOG.debug
-        pass
+        _LOG.debug(
+            "sysconfig.get_path('purelib') failed, falling back to site packages"
+        )
     try:
         sp_dirs = site.getsitepackages()
     except AttributeError:
@@ -44,9 +48,7 @@ def inject(coveragerc: str = ".coveragerc") -> None:
     Install the coverage startup hook into this env site-packages.
     """
     rc = pathlib.Path(coveragerc).resolve()
-    # TODO(Maddy): -> dassert.
-    if not rc.is_file():
-        raise FileNotFoundError(f".coveragerc not found at {rc}")
+    hdbg.dassert(rc.is_file(), f".coveragerc not found at {rc}")
     # TODO(Maddy): IMO this doesn't work since the var is created in a bash
     # that is then killed. It's not persistent.
     hsystem.system(f"export COVERAGE_PROCESS_START={rc}")
@@ -57,10 +59,8 @@ def inject(coveragerc: str = ".coveragerc") -> None:
     try:
         hsystem.system(cmd)
         _LOG.debug("Installed coverage hook to %s via sudo tee", target)
-    except Exception as e:
-        # TODO(Maddy): Just assert here, no reason to continue.
-        _LOG.error("Failed to install coverage hook via sudo tee: %s", e)
-        raise e
+    except (OSError, subprocess.SubprocessError) as e:
+        hdbg.dassert(False, f"Failed to install coverage hook via sudo tee: {e}")
 
 
 def remove() -> None:
@@ -83,6 +83,7 @@ def remove() -> None:
     # Remove coverage environment variables.
     try:
         if "COVERAGE_PROCESS_START" in os.environ:
+            # TODO(Maddy): This is not persistent, so it doesn't work.
             hsystem.system("unset COVERAGE_PROCESS_START")
             _LOG.info("Removed COVERAGE_PROCESS_START from environment")
         else:
@@ -122,8 +123,7 @@ def generate_coverage_dockerfile() -> str:
         f.write('import coverage; coverage.process_startup()')
     PYCODE
     """
-    txt = hprint.dedent(txt)
-    return txt
+    return str(hprint.dedent(txt))
 
 
 def coverage_commands_subprocess() -> None:

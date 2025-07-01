@@ -412,8 +412,7 @@ def build_container_image(
     #
     dockerfile = hprint.dedent(dockerfile)
     # Add install coverage and hook to the Dockerfile.
-    # TODO(Maddy): Pass a var.
-    if False:
+    if os.environ.get("COVERAGE_PROCESS_START"):
         _LOG.debug("Enabling coverage")
         dockerfile = (
             dockerfile.strip() + "\n" + hcovera.generate_coverage_dockerfile()
