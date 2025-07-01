@@ -1,71 +1,69 @@
+# Documentation Toolchain - How To Guide 
+This is a high‑level guide to the helper scripts that turn raw `.txt` notes into polished PDFs, slide decks, and more.
+
 <!-- toc -->
 
-- [Notes Documentation Toolchain](#notes-documentation-toolchain)
-  * [notes_to_pdf.py](#notes_to_pdfpy)
-    + [What it does](#what-it-does)
-- [From scratch with TOC:](#from-scratch-with-toc)
-- [For interactive mode:](#for-interactive-mode)
-- [Check that can be compiled:](#check-that-can-be-compiled)
-    + [Examples](#examples)
-  * [render_images.py](#render_imagespy)
-    + [What it does](#what-it-does-1)
-    + [Examples](#examples-1)
-    + [Interface](#interface)
-  * [`lint_notes.py`](#lint_notespy)
-    + [What it does](#what-it-does-2)
-    + [Examples](#examples-2)
-    + [Interface](#interface-1)
-  * [`extract_notebook_images.py`](#extract_notebook_imagespy)
-    + [What it does](#what-it-does-3)
-    + [Example](#example)
-    + [Interface](#interface-2)
-  * [`llm_transform.py`](#llm_transformpy)
-    + [What it does](#what-it-does-4)
-    + [Examples](#examples-3)
-    + [Interface](#interface-3)
-  * [`run_pandoc.py`](#run_pandocpy)
-    + [What it does](#what-it-does-5)
-    + [Example](#example-1)
-    + [Interface](#interface-4)
-  * [`transform_notes.py`](#transform_notespy)
-    + [What it does](#what-it-does-6)
-    + [Examples](#examples-4)
-    + [Interface](#interface-5)
-  * [`extract_headers_from_markdown.py`](#extract_headers_from_markdownpy)
-    + [What it does](#what-it-does-7)
-    + [Examples](#examples-5)
-  * [`dockerized_tikz_to_bitmap.py`](#dockerized_tikz_to_bitmappy)
-    + [Examples](#examples-6)
-  * [`dockerized_graphviz.py`](#dockerized_graphvizpy)
-    + [What it does](#what-it-does-8)
-    + [Interface](#interface-6)
-    + [Examples](#examples-7)
-  * [dockerized_latex.py](#dockerized_latexpy)
-    + [What it does](#what-it-does-9)
-    + [Examples](#examples-8)
-  * [dockerized_mermaid.py](#dockerized_mermaidpy)
-    + [What it does](#what-it-does-10)
-    + [Examples](#examples-9)
-  * [`dockerized_pandoc.py`](#dockerized_pandocpy)
-    + [What it does](#what-it-does-11)
-    + [Example](#example-2)
-  * [`dockerized_prettier.py`](#dockerized_prettierpy)
-    + [What it does](#what-it-does-12)
-    + [Examples](#examples-10)
-    + [Interface](#interface-7)
-- [Basic usage:](#basic-usage)
-- [Use sudo for Docker commands:](#use-sudo-for-docker-commands)
-- [Set logging verbosity:](#set-logging-verbosity)
-- [Process a file:](#process-a-file)
-  * [`save_screenshot.py`](#save_screenshotpy)
-    + [What it does](#what-it-does-13)
+- [`notes_to_pdf.py`](#notes_to_pdfpy)
+  - [What it does](#what-it-does)
+- [`render_images.py`](#render_imagespy)
+  - [What it does](#what-it-does-1)
+  - [Examples](#examples-1)
+  - [Interface](#interface)
+- [`lint_notes.py`](#lint_notespy)
+  - [What it does](#what-it-does-2)
+  - [Examples](#examples-2)
+  - [Interface](#interface-1)
+- [`extract_notebook_images.py`](#extract_notebook_imagespy)
+  - [What it does](#what-it-does-3)
+  - [Example](#example)
+  - [Interface](#interface-2)
+- [`llm_transform.py`](#llm_transformpy)
+  - [What it does](#what-it-does-4)
+  - [Examples](#examples-3)
+  - [Interface](#interface-3)
+- [`run_pandoc.py`](#run_pandocpy)
+  - [What it does](#what-it-does-5)
+  - [Example](#example-1)
+  - [Interface](#interface-4)
+- [`transform_notes.py`](#transform_notespy)
+  - [What it does](#what-it-does-6)
+  - [Examples](#examples-4)
+  - [Interface](#interface-5)
+- [`extract_headers_from_markdown.py`](#extract_headers_from_markdownpy)
+  - [What it does](#what-it-does-7)
+  - [Examples](#examples-5)
+- [`dockerized_tikz_to_bitmap.py`](#dockerized_tikz_to_bitmappy)
+  - [Examples](#examples-6)
+- [`dockerized_graphviz.py`](#dockerized_graphvizpy)
+  - [What it does](#what-it-does-8)
+  - [Interface](#interface-6)
+  - [Examples](#examples-7)
+- [`dockerized_latex.py`](#dockerized_latexpy)
+  - [What it does](#what-it-does-9)
+  - [Examples](#examples-8)
+- [`dockerized_mermaid.py`](#dockerized_mermaidpy)
+  - [What it does](#what-it-does-10)
+  - [Examples](#examples-9)
+- [`dockerized_pandoc.py`](#dockerized_pandocpy)
+  - [What it does](#what-it-does-11)
+  - [Example](#example-2)
+- [`dockerized_prettier.py`](#dockerized_prettierpy)
+  - [What it does](#what-it-does-12)
+  - [Examples](#examples-10)
+  - [Interface](#interface-7)
+- [`save_screenshot.py`](#save_screenshotpy)
+  - [What it does](#what-it-does-13)
+
+- [Examples](#examples)
+  - [Basic usage](#basic-usage)
+  - [Use sudo for Docker commands](#use-sudo-for-docker-commands)
+  - [Set logging verbosity](#set-logging-verbosity)
+  - [Process a file:](#process-a-file)
+  - [From scratch with TOC:](#from-scratch-with-toc)
+  - [For interactive mode:](#for-interactive-mode)
+  - [Check that can be compiled:](#check-that-can-be-compiled)
 
 <!-- tocstop -->
-
-# Notes Documentation Toolchain
-
-- This is a high‑level guide to the helper scripts that turn raw `.txt` notes
-  into polished PDFs, slide decks, and more.
 
 ## notes_to_pdf.py
 
@@ -92,44 +90,6 @@
                          [--all] [--dockerized_force_rebuild]
                          [--dockerized_use_sudo]
                          [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
-  ```
-
-  Convert a txt file into a PDF / HTML / slides using `pandoc`.
-
-  # From scratch with TOC:
-
-  > notes_to_pdf.py -a pdf --input ...
-
-  # For interactive mode:
-
-  > notes_to_pdf.py -a pdf --no_cleanup_before --no_cleanup --input ...
-
-  # Check that can be compiled:
-
-  > notes_to_pdf.py -a pdf --no_toc --no_open_pdf --input ...
-
-  > notes_to_pdf.py --input
-  > notes/IN_PROGRESS/math.The_hundred_page_ML_book.Burkov.2019.txt -t pdf
-  > --no_cleanup --no_cleanup_before --no_run_latex_again --no_open
-
-  options: -h, --help show this help message and exit -i INPUT, --input INPUT -o
-  OUTPUT, --output OUTPUT Output file --type {pdf,html,slides} Type of output to
-  generate --filter_by_header FILTER_BY_HEADER Filter by header
-  --filter_by_lines FILTER_BY_LINES Filter by lines (e.g., `0:10`, `1:None`,
-  `None:10`) --script SCRIPT Bash script to generate with all the executed sub-
-  commands --preview_actions Print the actions and exit --toc_type
-  {none,pandoc_native,navigation} --no_run_latex_again --debug_on_error
-  --gdrive_dir GDRIVE_DIR Directory where to save the output to share on Google
-  Drive --use_host_tools Use the host tools instead of the dockerized ones
-  --action
-  {cleanup_before,preprocess_notes,render_images,run_pandoc,copy_to_gdrive,open,cleanup_after}
-  Actions to execute --skip_action
-  {cleanup_before,preprocess_notes,render_images,run_pandoc,copy_to_gdrive,open,cleanup_after}
-  Actions to skip --all Run all the actions (cleanup_before preprocess_notes
-  render_images run_pandoc open cleanup_after) --dockerized_force_rebuild Force
-  to rebuild the Docker container --dockerized_use_sudo Use sudo inside the
-  container -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL} Set the logging level
-  ```
   ```
 
 ### Examples
@@ -195,6 +155,7 @@
   - Inlining a `![](img)` markup
 
 - Render the images in a text file
+
   ```bash
   > render_images.py -i notes/MSML610/Lesson9-Causal_inference.txt \
       -o lesson9.images.txt --run_dockerized
@@ -312,14 +273,73 @@ The supported File types and code blocks are:
   ```
 
 - Custom print width and selective actions
+
   ```bash
   > lint_notes.py -i draft.txt -o tidy.txt -w 100 \
                 --action preprocess,prettier,postprocess
   ```
 
+- Custom Line width
+
+  ``` bash
+  > lint_notes.py -i test.txt -o tested.txt -w 10
+  ```
+
 ### Interface
 
-// TODO
+```bash
+> lint_notes.py -h
+usage: lint_notes.py [-h] -i IN_FILE_NAME [-o OUT_FILE_NAME]
+                     [--type TYPE]
+                     [--print-width PRINT_WIDTH]
+                     [--use_dockerized_prettier]
+                     [--use_dockerized_markdown_toc]
+                     [--action {preprocess,prettier,postprocess,frame_chapters,refresh_toc} 
+                      | --skip_action {preprocess,prettier,postprocess,frame_chapters,refresh_toc}]
+                     [--all] [--dockerized_force_rebuild]
+                     [--dockerized_use_sudo]
+                     [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
+
+Lint and prettify Markdown, text, or LaTeX note files. It supports preprocessing,
+formatting via Prettier, postprocessing, chapter framing, and automatic TOC insertion.
+
+Usage:
+
+# Format a Markdown file using all actions and Dockerized tools:
+> lint_notes.py -i notes.md -o notes_clean.md --use_dockerized_prettier \
+  --use_dockerized_markdown_toc --all
+
+# Run only preprocessing and prettification:
+> lint_notes.py -i draft.md -o draft_clean.md --action preprocess prettier
+
+# Frame chapters and update TOC only:
+> lint_notes.py -i notes.md --action frame_chapters refresh_toc
+
+options:
+  -h, --help            Show this help message and exit
+  -i IN_FILE_NAME, --in_file_name IN_FILE_NAME
+                        Path to the input file (use '-' for stdin)
+  -o OUT_FILE_NAME, --out_file_name OUT_FILE_NAME
+                        Path to the output file (use '-' for stdout)
+  --type TYPE           File type: 'md', 'tex', or 'txt' (required for stdin)
+  -w, --print-width PRINT_WIDTH
+                        Maximum line width for Prettier (default: 80)
+  --use_dockerized_prettier
+                        Use Dockerized Prettier for formatting
+  --use_dockerized_markdown_toc
+                        Use Dockerized markdown-toc to generate TOC
+  --action {preprocess,prettier,postprocess,frame_chapters,refresh_toc}
+                        Actions to execute
+  --skip_action {preprocess,prettier,postprocess,frame_chapters,refresh_toc}
+                        Actions to skip
+  --all                 Run all actions (default)
+  --dockerized_force_rebuild
+                        Force rebuild of the Docker container
+  --dockerized_use_sudo
+                        Use sudo inside the container
+  -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
+                        Set the logging level
+```
 
 ## `extract_notebook_images.py`
 
@@ -332,16 +352,53 @@ The supported File types and code blocks are:
 
 ### Example
 
-- Minimal call:
+- Minimal call
   ```bash
   > extract_notebook_images.py \
       --in_notebook_filename notebooks/Lesson8.ipynb \
       --out_image_dir notebooks/screenshots
   ```
 
+- Enforce rebuild and use sudo commands 
+
+  ``` bash
+    > extract_notebook_images.py \
+      --in_notebook_filename notebooks/Lesson8.ipynb \
+      --out_image_dir notebooks/screenshots --dockerized_force_rebuild --dockerized_use_sudo
+  ```
+
+
 ### Interface
 
-// TODO
+``` bash
+usage: extract_notebook_images.py [-h] --in_notebook_filename IN_NOTEBOOK_FILENAME --out_image_dir
+                                  OUT_IMAGE_DIR [--dockerized_force_rebuild] [--dockerized_use_sudo]
+                                  [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
+
+Extract images from a Jupyter notebook by running inside a Docker container.
+
+This script builds the container dynamically if necessary and extracts images
+from the specified Jupyter notebook using the NotebookImageExtractor module.
+```
+```bash
+Extract images from notebook test_images.ipynb and save them to `screenshots`
+directory.
+> dev_scripts_helpers/notebooks/extract_notebook_images.py     -i dev_scripts_helpers/notebooks/test_images.ipynb     -o dev_scripts_helpers/notebooks/screenshots
+```
+```
+options:
+  -h, --help            show this help message and exit
+  --in_notebook_filename IN_NOTEBOOK_FILENAME
+                        Input notebook filename
+  --out_image_dir OUT_IMAGE_DIR
+                        Output image directory
+  --dockerized_force_rebuild
+                        Force to rebuild the Docker container
+  --dockerized_use_sudo
+                        Use sudo inside the container
+  -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
+                        Set the logging level
+```
 
 ## `llm_transform.py`
 
@@ -386,8 +443,57 @@ The supported File types and code blocks are:
   ```
 
 ### Interface
+``` bash
+usage: llm_transform.py [-h] [-i IN_FILE_NAME] [-o OUT_FILE_NAME] [--debug] -p PROMPT [-f]
+                        [--dockerized_force_rebuild] [--dockerized_use_sudo] [-c] [-b] [-s]
+                        [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 
-// TODO
+Read input from either stdin or a file, apply a specified transformation using
+an LLM, and then write the output to either stdout or a file. It is
+particularly useful for integrating with editors like Vim.
+
+The script `dockerized_llm_transform.py` is executed within a Docker container to ensure
+all dependencies are met. The Docker container is built dynamically if
+necessary. The script requires an OpenAI API key to be set in the environment.
+```
+
+``` bash
+Examples
+# Basic Usage
+> llm_transform.py -i input.txt -o output.txt -p uppercase
+
+# List of transforms
+> llm_transform.py -i input.txt -o output.txt -p list
+
+# Code review
+> llm_transform.py -i dev_scripts_helpers/documentation/render_images.py -o cfile -p code_review
+
+# Propose refactoring
+> llm_transform.py -i dev_scripts_helpers/documentation/render_images.py -o cfile -p code_propose_refactoring
+```
+``` bash
+options:
+  -h, --help            show this help message and exit
+  -i IN_FILE_NAME, --in_file_name IN_FILE_NAME
+                        Input file or `-` for stdin
+  -o OUT_FILE_NAME, --out_file_name OUT_FILE_NAME
+                        Output file or `-` for stdout
+  --debug               Print before/after the transform
+  -p PROMPT, --prompt PROMPT
+                        Prompt to apply
+  -f, --fast_model      Use a fast LLM model vs a high-quality one
+  --dockerized_force_rebuild
+                        Force to rebuild the Docker container
+  --dockerized_use_sudo
+                        Use sudo inside the container
+  -c, --compare         Print the original and transformed
+  -b, --bold_first_level_bullets
+                        Bold the first level bullets
+  -s, --skip-post-transforms
+                        Skip the post-transforms
+  -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
+                        Set the logging level
+```
 
 ## `run_pandoc.py`
 
@@ -416,19 +522,36 @@ The supported File types and code blocks are:
   editors.
 
 ### Interface
+``` bash
+usage: run_pandoc.py [-h] -i IN_FILE_NAME [-o OUT_FILE_NAME] [--action ACTION]
+                     [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 
-- `-i / --input`
-  - Default: `-`
-  - Meaning: Source file or `-` for STDIN
-- `-o / --output`
-  - Default: `-`
-  - Meaning: Destination file or `-` for STDOUT
-- `--action`
-  - Default: `convert_md_to_latex`
-  - Meaning: Transformation to apply. Future-proofed for more actions
-- `-v / --log_level`
-  - Default: `INFO`
-  - Meaning: Standard helper-library verbosity
+Run pandoc on stdin/file to stdout/file.
+
+- Read value from stdin/file
+- Transform it using Pandoc according to different transforms
+  (e.g., `convert_md_to_latex`)
+- Write the result to stdout/file.
+
+To run in vim:
+```
+:'<,'>!dev_scripts/documentation/run_pandoc.py -i - -o - -v CRITICAL
+```
+
+This script is derived from `dev_scripts/transform_template.py`.
+```
+
+``` bash
+options:
+  -h, --help            show this help message and exit
+  -i IN_FILE_NAME, --in_file_name IN_FILE_NAME
+                        Input file or `-` for stdin
+  -o OUT_FILE_NAME, --out_file_name OUT_FILE_NAME
+                        Output file or `-` for stdout
+  --action ACTION       Action to perform
+  -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
+                        Set the logging level
+```
 
 ## `transform_notes.py`
 
@@ -744,3 +867,41 @@ The supported File types and code blocks are:
 1. Prompts you to select a screen region (`⌘ - Ctrl - 4`).
 2. Saves it as `screenshot.YYYY‑MM‑DD_HH‑MM‑SS.png` (or your chosen name).
 3. Prints and copies the Markdown embed `<img src="path/to/file.png">`.
+
+
+  Convert a txt file into a PDF / HTML / slides using `pandoc`.
+
+  # From scratch with TOC:
+
+  > notes_to_pdf.py -a pdf --input ...
+
+  # For interactive mode:
+
+  > notes_to_pdf.py -a pdf --no_cleanup_before --no_cleanup --input ...
+
+  # Check that can be compiled:
+
+  > notes_to_pdf.py -a pdf --no_toc --no_open_pdf --input ...
+
+  > notes_to_pdf.py --input
+  > notes/IN_PROGRESS/math.The_hundred_page_ML_book.Burkov.2019.txt -t pdf
+  > --no_cleanup --no_cleanup_before --no_run_latex_again --no_open
+  ```bash
+  options: -h, --help show this help message and exit -i INPUT, --input INPUT -o
+  OUTPUT, --output OUTPUT Output file --type {pdf,html,slides} Type of output to
+  generate --filter_by_header FILTER_BY_HEADER Filter by header
+  --filter_by_lines FILTER_BY_LINES Filter by lines (e.g., `0:10`, `1:None`,
+  `None:10`) --script SCRIPT Bash script to generate with all the executed sub-
+  commands --preview_actions Print the actions and exit --toc_type
+  {none,pandoc_native,navigation} --no_run_latex_again --debug_on_error
+  --gdrive_dir GDRIVE_DIR Directory where to save the output to share on Google
+  Drive --use_host_tools Use the host tools instead of the dockerized ones
+  --action
+  {cleanup_before,preprocess_notes,render_images,run_pandoc,copy_to_gdrive,open,cleanup_after}
+  Actions to execute --skip_action
+  {cleanup_before,preprocess_notes,render_images,run_pandoc,copy_to_gdrive,open,cleanup_after}
+  Actions to skip --all Run all the actions (cleanup_before preprocess_notes
+  render_images run_pandoc open cleanup_after) --dockerized_force_rebuild Force
+  to rebuild the Docker container --dockerized_use_sudo Use sudo inside the
+  container -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL} Set the logging level
+  ```
