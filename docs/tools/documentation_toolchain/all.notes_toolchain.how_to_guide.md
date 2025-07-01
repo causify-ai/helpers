@@ -222,21 +222,50 @@ Replace sections of image code with rendered images, commenting out the
 original code, if needed.
 
 See `docs/work_tools/documentation_toolchain/all.render_images.explanation.md`.
+See `docs/work_tools/documentation_toolchain/all.render_images.explanation.md`.
 
 Usage:
+Usage:
 
+# Create a new Markdown file with rendered images:
+> render_images.py -i ABC.md -o XYZ.md --action render --run_dockerized
 # Create a new Markdown file with rendered images:
 > render_images.py -i ABC.md -o XYZ.md --action render --run_dockerized
 
 # Render images in place in the original Markdown file:
 > render_images.py -i ABC.md --action render --run_dockerized
+# Render images in place in the original Markdown file:
+> render_images.py -i ABC.md --action render --run_dockerized
 
+# Render images in place in the original LaTeX file:
+> render_images.py -i ABC.tex --action render --run_dockerized
 # Render images in place in the original LaTeX file:
 > render_images.py -i ABC.tex --action render --run_dockerized
 
 # Open rendered images from a Markdown file in HTML to preview:
 > render_images.py -i ABC.md --action open --run_dockerized
+# Open rendered images from a Markdown file in HTML to preview:
+> render_images.py -i ABC.md --action open --run_dockerized
 
+options:
+  -h, --help            show this help message and exit
+  -i IN_FILE_NAME, --in_file_name IN_FILE_NAME
+                        Path to the input file
+  -o OUT_FILE_NAME, --out_file_name OUT_FILE_NAME
+                        Path to the output file
+  --action {open,render}
+                        Actions to execute
+  --skip_action {open,render}
+                        Actions to skip
+  --all                 Run all the actions ()
+  --dry_run             Update the file but do not render images
+  --dockerized_force_rebuild
+                        Force to rebuild the Docker container
+  --dockerized_use_sudo
+                        Use sudo inside the container
+  -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
+                        Set the logging level
+```
 options:
   -h, --help            show this help message and exit
   -i IN_FILE_NAME, --in_file_name IN_FILE_NAME
@@ -418,6 +447,9 @@ options:
 
 ### Examples
 
+```bash
+llm_transform.py -i draft.txt -o polished.txt -p rewrite_clearer
+```
 ```bash
 llm_transform.py -i draft.txt -o polished.txt -p rewrite_clearer
 ```
@@ -887,6 +919,9 @@ options:
 
 ### Examples
 
+```bash
+> mermaid_wrapper.py --input flowchart.mmd --output flowchart.png
+```
 ```bash
 > mermaid_wrapper.py --input flowchart.mmd --output flowchart.png
 ```
