@@ -708,7 +708,8 @@ options:
   ```
 ## `dockerized_tikz_to_bitmap.py`
 
-- Converts
+- Convert a TikZ file to a PNG image using a dockerized version of `pdflatex` and
+`imagemagick`.
 
 ### Examples
 
@@ -724,6 +725,24 @@ options:
   ```
   - Any extra tokens after `--` are passed verbatim to `convert`
 
+### Interface
+
+``` bash
+usage: dockerized_tikz_to_bitmap.py [-h] -i INPUT -o OUTPUT [--dockerized_force_rebuild]
+                                    [--dockerized_use_sudo] [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
+
+options:
+  -h, --help            show this help message and exit
+  -i INPUT, --input INPUT
+  -o OUTPUT, --output OUTPUT
+  --dockerized_force_rebuild
+                        Force to rebuild the Docker container
+  --dockerized_use_sudo
+                        Use sudo inside the container
+  -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
+                        Set the logging level
+```
+
 ## `dockerized_graphviz.py`
 
 ### What it does
@@ -738,8 +757,6 @@ options:
 - This script serves as a thin wrapper around Dockerized Graphviz for consistent
   rendering across systems.
 
-### Interface
-
 ### Examples
 
 - Convert DOT to PNG
@@ -753,6 +770,26 @@ options:
 - Use `sudo` for Docker
   ```bash
   > graphviz_wrapper.py -i diagram.dot -o diagram.png --dockerized_use_sudo
+  ```
+
+### Interface
+
+``` bash
+usage: dockerized_graphviz.py [-h] -i INPUT -o OUTPUT [--dockerized_force_rebuild] [--dockerized_use_sudo]
+                              [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
+
+Convert a Graphviz dot file to a PNG image.
+
+options:
+  -h, --help            show this help message and exit
+  -i INPUT, --input INPUT
+  -o OUTPUT, --output OUTPUT
+  --dockerized_force_rebuild
+                        Force to rebuild the Docker container
+  --dockerized_use_sudo
+                        Use sudo inside the container
+  -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
+                        Set the logging level
   ```
 
 ## dockerized_latex.py
@@ -787,6 +824,29 @@ options:
   > latex_wrapper.py -i paper.tex -o paper.pdf --run_latex_again
   ```
 
+## Interface
+
+``` bash
+usage: dockerized_latex.py [-h] -i INPUT -o OUTPUT [--run_latex_again] [--dockerized_force_rebuild]
+                           [--dockerized_use_sudo] [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
+
+Run `latex` inside a Docker container.
+
+This script builds the container dynamically if necessary and formats the
+specified file using the provided `prettier` options.
+
+options:
+  -h, --help            show this help message and exit
+  -i INPUT, --input INPUT
+  -o OUTPUT, --output OUTPUT
+  --run_latex_again
+  --dockerized_force_rebuild
+                        Force to rebuild the Docker container
+  --dockerized_use_sudo
+                        Use sudo inside the container
+  -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
+                        Set the logging level
+  ```
 ## dockerized_mermaid.py
 
 ### What it does
@@ -795,8 +855,6 @@ options:
   container.
 
 ### Examples
-
-- TODO
 
   ```bash
   > mermaid_wrapper.py --input flowchart.mmd --output flowchart.png
@@ -821,6 +879,26 @@ options:
   > mermaid_wrapper.py -i diagram.mmd -o diagram.png --dockerized_use_sudo
   ```
 
+### Interface
+
+``` bash
+usage: dockerized_mermaid.py [-h] -i INPUT [-o OUTPUT] [--dockerized_force_rebuild] [--dockerized_use_sudo]
+                             [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
+
+Run `mermaid` inside a Docker container.
+
+options:
+  -h, --help            show this help message and exit
+  -i INPUT, --input INPUT
+  -o OUTPUT, --output OUTPUT
+  --dockerized_force_rebuild
+                        Force to rebuild the Docker container
+  --dockerized_use_sudo
+                        Use sudo inside the container
+  -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
+                        Set the logging level
+  ```
+
 ## `dockerized_pandoc.py`
 
 ### What it does
@@ -835,7 +913,7 @@ options:
 - Internally builds a Docker container and passes the full `pandoc` command
   string.
 
-### Example
+### Examples
 
 - Convert Markdown to PDF
   ```
@@ -856,6 +934,33 @@ options:
   ```
   > pandoc_wrapper.py --input notes.md --output notes.pdf --dockerized_use_sudo
   ```
+
+# Interface
+
+``` bash
+usage: dockerized_pandoc.py [-h] [--dockerized_force_rebuild] [--dockerized_use_sudo] [--input INPUT]
+                            [--output OUTPUT] [--data_dir DATA_DIR] [--container_type CONTAINER_TYPE]
+                            [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
+
+Run `pandoc` inside a Docker container.
+
+This script builds the container dynamically if necessary.
+
+> pandoc tmp.pandoc.no_spaces.txt     -t beamer --slide-level 4 -V theme:SimplePlus     --include-in-header=latex_abbrevs.sty     --toc --toc-depth 2     -o tmp.pandoc.no_spaces.pdf
+
+options:
+  -h, --help            show this help message and exit
+  --dockerized_force_rebuild
+                        Force to rebuild the Docker container
+  --dockerized_use_sudo
+                        Use sudo inside the container
+  --input INPUT
+  --output OUTPUT
+  --data_dir DATA_DIR
+  --container_type CONTAINER_TYPE
+  -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
+                        Set the logging level
+```
 
 ## `dockerized_prettier.py`
 
@@ -894,14 +999,13 @@ options:
 
 ### Interface
 
-- Interface
-  ```
+  ``` bash
   > dockerized_prettier.py -h
   usage: dockerized_prettier.py [-h] -i IN_FILE_NAME [-o OUT_FILE_NAME]
                                 [--dockerized_force_rebuild]
                                 [--dockerized_use_sudo]
                                 [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
-  ```
+
 
   Run `prettier` inside a Docker container to ensure consistent formatting
   across different environments.
@@ -940,7 +1044,7 @@ options:
   --dockerized_force_rebuild Force to rebuild the Docker container
   --dockerized_use_sudo Use sudo inside the container -v
   {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL} Set the logging level
-  ```
+  
   ```
 
 ## `save_screenshot.py`
@@ -951,40 +1055,46 @@ options:
 2. Saves it as `screenshot.YYYY‑MM‑DD_HH‑MM‑SS.png` (or your chosen name).
 3. Prints and copies the Markdown embed `<img src="path/to/file.png">`.
 
+### Examples 
 
-  Convert a txt file into a PDF / HTML / slides using `pandoc`.
+- Take screenshot and auto-name it with timestamp:
 
-  # From scratch with TOC:
+  ``` bash
+  > take_screenshot.py
+  ```
 
-  > notes_to_pdf.py -a pdf --input ...
+- Save to a specific directory with a custom filename:
 
-  # For interactive mode:
-
-  > notes_to_pdf.py -a pdf --no_cleanup_before --no_cleanup --input ...
-
-  # Check that can be compiled:
-
-  > notes_to_pdf.py -a pdf --no_toc --no_open_pdf --input ...
-
-  > notes_to_pdf.py --input
-  > notes/IN_PROGRESS/math.The_hundred_page_ML_book.Burkov.2019.txt -t pdf
-  > --no_cleanup --no_cleanup_before --no_run_latex_again --no_open
   ```bash
-  options: -h, --help show this help message and exit -i INPUT, --input INPUT -o
-  OUTPUT, --output OUTPUT Output file --type {pdf,html,slides} Type of output to
-  generate --filter_by_header FILTER_BY_HEADER Filter by header
-  --filter_by_lines FILTER_BY_LINES Filter by lines (e.g., `0:10`, `1:None`,
-  `None:10`) --script SCRIPT Bash script to generate with all the executed sub-
-  commands --preview_actions Print the actions and exit --toc_type
-  {none,pandoc_native,navigation} --no_run_latex_again --debug_on_error
-  --gdrive_dir GDRIVE_DIR Directory where to save the output to share on Google
-  Drive --use_host_tools Use the host tools instead of the dockerized ones
-  --action
-  {cleanup_before,preprocess_notes,render_images,run_pandoc,copy_to_gdrive,open,cleanup_after}
-  Actions to execute --skip_action
-  {cleanup_before,preprocess_notes,render_images,run_pandoc,copy_to_gdrive,open,cleanup_after}
-  Actions to skip --all Run all the actions (cleanup_before preprocess_notes
-  render_images run_pandoc open cleanup_after) --dockerized_force_rebuild Force
-  to rebuild the Docker container --dockerized_use_sudo Use sudo inside the
-  container -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL} Set the logging level
+  > take_screenshot.py --dst_dir ./screenshots --filename example.png
+  ```
+
+- Allow overwriting an existing file:
+
+  ``` bash
+  > take_screenshot.py --filename my.png --override
+  ```
+
+### Interface
+
+``` bash
+usage: save_screenshot.py [-h] [--dst_dir DST_DIR] [--filename FILENAME] [--override]
+                          [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
+                          [positional ...]
+
+Take a screenshot and save it to a file.
+
+The script should be run from the command line outside of a Docker
+container.
+
+positional arguments:
+  positional            ...
+
+options:
+  -h, --help            show this help message and exit
+  --dst_dir DST_DIR     Destination directory
+  --filename FILENAME   File name
+  --override            Override if file exists
+  -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
+                        Set the logging level
   ```
