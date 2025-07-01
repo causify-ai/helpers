@@ -21,6 +21,29 @@ _LOG = logging.getLogger(__name__)
 # pylint: disable=protected-access
 
 
+def _remove_junit_suite_name(text: str) -> str:
+    """
+    Remove the junit suite name from the input text.
+    - E.g. '-o junit_suite_name="helpers"' -> '-o junit_suite_name=""'
+
+    :param text: input text to process
+    :return: text with the junit suite name removed
+    """
+    txt = re.sub(r'(-o\s*junit_suite_name=)"[^"]*"', r'\1""', text)
+    return txt
+
+
+def _purify_pytest_command(text: str) -> str:
+    """
+    Purify the pytest command by removing environment-specific values.
+
+    :param text: input text to process
+    :return: text with environment-specific values removed
+    """
+    txt = _remove_junit_suite_name(text)
+    return txt
+
+
 # #############################################################################
 # Test_build_run_command_line1
 # #############################################################################
@@ -69,6 +92,8 @@ class Test_build_run_command_line1(hunitest.TestCase):
                 tee_to_file,
                 n_threads,
             )
+            act = _purify_pytest_command(act)
+            exp = _purify_pytest_command(exp)
             self.assert_equal(act, exp)
 
     def test_run_fast_tests1_inside_ck_infra(self) -> None:
@@ -159,6 +184,8 @@ class Test_build_run_command_line1(hunitest.TestCase):
                 tee_to_file,
                 n_threads,
             )
+            act = _purify_pytest_command(act)
+            exp = _purify_pytest_command(exp)
             self.assert_equal(act, exp)
 
     def test_run_fast_tests2_inside_ck_infra(self) -> None:
@@ -310,6 +337,8 @@ class Test_build_run_command_line1(hunitest.TestCase):
                 tee_to_file,
                 n_threads,
             )
+            act = _purify_pytest_command(act)
+            exp = _purify_pytest_command(exp)
             self.assert_equal(act, exp)
 
     def test_run_fast_tests5_inside_ck_infra(self) -> None:
@@ -404,6 +433,8 @@ class Test_build_run_command_line1(hunitest.TestCase):
                 tee_to_file,
                 n_threads,
             )
+            act = _purify_pytest_command(act)
+            exp = _purify_pytest_command(exp)
             self.assert_equal(act, exp)
 
     def test_run_fast_tests6_inside_ck_infra(self) -> None:
@@ -494,6 +525,8 @@ class Test_build_run_command_line1(hunitest.TestCase):
                 tee_to_file,
                 n_threads,
             )
+            act = _purify_pytest_command(act)
+            exp = _purify_pytest_command(exp)
             self.assert_equal(act, exp)
 
     def test_run_fast_tests7_inside_ck_infra(self) -> None:
@@ -596,6 +629,8 @@ class Test_build_run_command_line1(hunitest.TestCase):
                 tee_to_file,
                 n_threads,
             )
+            act = _purify_pytest_command(act)
+            exp = _purify_pytest_command(exp)
             self.assert_equal(act, exp)
 
     def test_get_custom_marker1_full(self) -> None:
