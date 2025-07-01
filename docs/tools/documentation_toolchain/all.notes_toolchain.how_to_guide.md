@@ -665,6 +665,47 @@ options:
   > vim -c "cfile headers.cfile"
   ```
 
+### Interface 
+
+```bash
+usage: extract_headers_from_markdown.py [-h] -i IN_FILE_NAME [-o OUT_FILE_NAME]
+                                        [--mode {list,headers,cfile}] [--max-level MAX_LEVEL]
+                                        [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
+
+Extract headers from a Markdown file and generate a Vim cfile.
+
+The script:
+- processes the input Markdown file
+- extracts headers up to a specified maximum level
+- prints a human-readable header map
+- generates an output file in a format that can be used with Vim's quickfix
+  feature.
+
+# Extract headers up to level 3 from a Markdown file and save to an output file:
+> extract_headers_from_markdown.py -i input.md -o cfile --mode cfile --max-level 3
+
+# Extract headers up to level 2 and print to stdout:
+> extract_headers_from_markdown.py -i input.md -o - --mode headers
+
+# To use the generated cfile in Vim:
+- Open Vim and run `:cfile output.cfile`
+  > vim -c "cfile cfile"
+
+- Navigate between headers using `:cnext` and `:cprev`
+
+options:
+  -h, --help            show this help message and exit
+  -i IN_FILE_NAME, --in_file_name IN_FILE_NAME
+                        Input file or `-` for stdin
+  -o OUT_FILE_NAME, --out_file_name OUT_FILE_NAME
+                        Output file or `-` for stdout
+  --mode {list,headers,cfile}
+                        Output mode
+  --max-level MAX_LEVEL
+                        Maximum header levels to parse
+  -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
+                        Set the logging level
+  ```
 ## `dockerized_tikz_to_bitmap.py`
 
 - Converts
