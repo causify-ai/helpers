@@ -411,8 +411,6 @@ options:
 
 ### Examples
 
-- TODO
-
   ```bash
   llm_transform.py -i draft.txt -o polished.txt -p rewrite_clearer
   ```
@@ -471,6 +469,7 @@ Examples
 # Propose refactoring
 > llm_transform.py -i dev_scripts_helpers/documentation/render_images.py -o cfile -p code_propose_refactoring
 ```
+
 ``` bash
 options:
   -h, --help            show this help message and exit
@@ -503,7 +502,7 @@ options:
 - Dispatches to a named **action** (currently only `convert_md_to_latex`).
 - Pushes the Pandoc output to _stdout_ or the `--output` file.
 
-### Example
+### Examples
 
 - Convert a Markdown file to LaTeX
   ```
@@ -522,6 +521,7 @@ options:
   editors.
 
 ### Interface
+
 ``` bash
 usage: run_pandoc.py [-h] -i IN_FILE_NAME [-o OUT_FILE_NAME] [--action ACTION]
                      [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
@@ -532,8 +532,9 @@ Run pandoc on stdin/file to stdout/file.
 - Transform it using Pandoc according to different transforms
   (e.g., `convert_md_to_latex`)
 - Write the result to stdout/file.
+```
 
-To run in vim:
+To run in VIM:
 ```
 :'<,'>!dev_scripts/documentation/run_pandoc.py -i - -o - -v CRITICAL
 ```
@@ -598,6 +599,47 @@ options:
   ```
 
 ### Interface
+
+```bash
+usage: transform_notes.py [-h] [-i IN_FILE_NAME] [-o OUT_FILE_NAME] -a ACTION [-l MAX_LEV]
+                          [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
+
+Perform one of several transformations on a txt file, e.g.,
+
+1) `toc`: create table of context from the current file, with 1 level
+    > transform_notes.py -a toc -i % -l 1
+
+2) `format`: format the current file with 3 levels
+    :!transform_notes.py -a format -i % --max_lev 3
+    > transform_notes.py -a format -i notes/ABC.txt --max_lev 3
+
+    - In vim
+    :!transform_notes.py -a format -i % --max_lev 3
+    :%!transform_notes.py -a format -i - --max_lev 3
+
+3) `increase`: increase level
+    :!transform_notes.py -a increase -i %
+    :%!transform_notes.py -a increase -i -
+
+4) `md_list_to_latex`: convert a markdown list to a latex list
+    :!transform_notes.py -a md_list_to_latex -i %
+    :%!transform_notes.py -a md_list_to_latex -i -
+
+- The input or output can be filename or stdin (represented by '-')
+- If output file is not specified then we assume that the output file is the
+  same as the input
+
+options:
+  -h, --help            show this help message and exit
+  -i IN_FILE_NAME, --in_file_name IN_FILE_NAME
+                        Input file or `-` for stdin
+  -o OUT_FILE_NAME, --out_file_name OUT_FILE_NAME
+                        Output file or `-` for stdout
+  -a ACTION, --action ACTION
+  -l MAX_LEV, --max_lev MAX_LEV
+  -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
+                        Set the logging level
+  ```
 
 ## `extract_headers_from_markdown.py`
 
