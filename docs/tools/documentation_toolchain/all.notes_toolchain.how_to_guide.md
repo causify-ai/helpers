@@ -1,73 +1,70 @@
-# Documentation Toolchain - How To Guide 
-This is a high‑level guide to the helper scripts that turn raw `.txt` notes into polished PDFs, slide decks, and more.
-
 <!-- toc -->
 
 - [`notes_to_pdf.py`](#notes_to_pdfpy)
-  - [What it does](#what-it-does)
-- [`render_images.py`](#render_imagespy)
-  - [What it does](#what-it-does-1)
-  - [Examples](#examples-1)
-  - [Interface](#interface)
-- [`lint_notes.py`](#lint_notespy)
-  - [What it does](#what-it-does-2)
-  - [Examples](#examples-2)
-  - [Interface](#interface-1)
-- [`extract_notebook_images.py`](#extract_notebook_imagespy)
-  - [What it does](#what-it-does-3)
-  - [Example](#example)
-  - [Interface](#interface-2)
-- [`llm_transform.py`](#llm_transformpy)
-  - [What it does](#what-it-does-4)
-  - [Examples](#examples-3)
-  - [Interface](#interface-3)
-- [`run_pandoc.py`](#run_pandocpy)
-  - [What it does](#what-it-does-5)
-  - [Example](#example-1)
-  - [Interface](#interface-4)
-- [`transform_notes.py`](#transform_notespy)
-  - [What it does](#what-it-does-6)
-  - [Examples](#examples-4)
-  - [Interface](#interface-5)
-- [`extract_headers_from_markdown.py`](#extract_headers_from_markdownpy)
-  - [What it does](#what-it-does-7)
-  - [Examples](#examples-5)
-- [`dockerized_tikz_to_bitmap.py`](#dockerized_tikz_to_bitmappy)
-  - [Examples](#examples-6)
-- [`dockerized_graphviz.py`](#dockerized_graphvizpy)
-  - [What it does](#what-it-does-8)
-  - [Interface](#interface-6)
-  - [Examples](#examples-7)
-- [`dockerized_latex.py`](#dockerized_latexpy)
-  - [What it does](#what-it-does-9)
-  - [Examples](#examples-8)
-- [`dockerized_mermaid.py`](#dockerized_mermaidpy)
-  - [What it does](#what-it-does-10)
-  - [Examples](#examples-9)
-- [`dockerized_pandoc.py`](#dockerized_pandocpy)
-  - [What it does](#what-it-does-11)
-  - [Example](#example-2)
-- [`dockerized_prettier.py`](#dockerized_prettierpy)
-  - [What it does](#what-it-does-12)
-  - [Examples](#examples-10)
-  - [Interface](#interface-7)
-- [`save_screenshot.py`](#save_screenshotpy)
-  - [What it does](#what-it-does-13)
-
-- [Examples](#examples)
-  - [Basic usage](#basic-usage)
-  - [Use sudo for Docker commands](#use-sudo-for-docker-commands)
-  - [Set logging verbosity](#set-logging-verbosity)
-  - [Process a file:](#process-a-file)
-  - [From scratch with TOC:](#from-scratch-with-toc)
-  - [For interactive mode:](#for-interactive-mode)
-  - [Check that can be compiled:](#check-that-can-be-compiled)
+  * [What it does](#what-it-does)
+    + [Examples](#examples)
+    + [Interface](#interface)
+  * [`render_images.py`](#render_imagespy)
+    + [What it does](#what-it-does-1)
+    + [Examples](#examples-1)
+    + [Interface](#interface-1)
+  * [`lint_notes.py`](#lint_notespy)
+    + [What it does](#what-it-does-2)
+    + [Examples](#examples-2)
+    + [Interface](#interface-2)
+  * [`extract_notebook_images.py`](#extract_notebook_imagespy)
+    + [What it does](#what-it-does-3)
+    + [Example](#example)
+    + [Interface](#interface-3)
+  * [`llm_transform.py`](#llm_transformpy)
+    + [What it does](#what-it-does-4)
+    + [Examples](#examples-3)
+    + [Interface](#interface-4)
+  * [`run_pandoc.py`](#run_pandocpy)
+    + [What it does](#what-it-does-5)
+    + [Examples](#examples-4)
+    + [Interface](#interface-5)
+  * [`transform_notes.py`](#transform_notespy)
+    + [What it does](#what-it-does-6)
+    + [Examples](#examples-5)
+    + [Interface](#interface-6)
+  * [`extract_headers_from_markdown.py`](#extract_headers_from_markdownpy)
+    + [What it does](#what-it-does-7)
+    + [Examples](#examples-6)
+    + [Interface](#interface-7)
+  * [`dockerized_tikz_to_bitmap.py`](#dockerized_tikz_to_bitmappy)
+    + [Examples](#examples-7)
+    + [Interface](#interface-8)
+  * [`dockerized_graphviz.py`](#dockerized_graphvizpy)
+    + [What it does](#what-it-does-8)
+    + [Examples](#examples-8)
+    + [Interface](#interface-9)
+  * [dockerized_latex.py](#dockerized_latexpy)
+    + [What it does](#what-it-does-9)
+    + [Examples](#examples-9)
+    + [Interface](#interface-10)
+  * [dockerized_mermaid.py](#dockerized_mermaidpy)
+    + [What it does](#what-it-does-10)
+    + [Examples](#examples-10)
+    + [Interface](#interface-11)
+  * [`dockerized_pandoc.py`](#dockerized_pandocpy)
+    + [What it does](#what-it-does-11)
+    + [Examples](#examples-11)
+    + [Interface](#interface-12)
+  * [`dockerized_prettier.py`](#dockerized_prettierpy)
+    + [What it does](#what-it-does-12)
+    + [Examples](#examples-12)
+    + [Interface](#interface-13)
+  * [`save_screenshot.py`](#save_screenshotpy)
+    + [What it does](#what-it-does-13)
+    + [Examples](#examples-13)
+    + [Interface](#interface-14)
 
 <!-- tocstop -->
 
-## notes_to_pdf.py
+# notes_to_pdf.py
 
-### What it does
+## What it does
 
 - Convert plain‑text notes into polished **PDF, HTML, or Beamer slides** with a
   single command:
@@ -76,38 +73,29 @@ This is a high‑level guide to the helper scripts that turn raw `.txt` notes in
   > notes_to_pdf.py --input <infile.txt> --output <outfile.[pdf|html]> --type [pdf|html|slides]
   ```
 
-- The interface is:
-  ```
-  > notes_to_pdf.py -h
-  usage: notes_to_pdf.py [-h] -i INPUT -o OUTPUT --type {pdf,html,slides}
-                         [--filter_by_header FILTER_BY_HEADER]
-                         [--filter_by_lines FILTER_BY_LINES] [--script SCRIPT]
-                         [--preview_actions]
-                         [--toc_type {none,pandoc_native,navigation}]
-                         [--no_run_latex_again] [--debug_on_error]
-                         [--gdrive_dir GDRIVE_DIR] [--use_host_tools]
-                         [--action {cleanup_before,preprocess_notes,render_images,run_pandoc,copy_to_gdrive,open,cleanup_after} | --skip_action {cleanup_before,preprocess_notes,render_images,run_pandoc,copy_to_gdrive,open,cleanup_after}]
-                         [--all] [--dockerized_force_rebuild]
-                         [--dockerized_use_sudo]
-                         [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
-  ```
-
 ### Examples
 
 - Compile to **Beamer slides**
-  ```
+
+  ```bash
   > notes_to_pdf.py -i lesson.txt -o lesson.pdf --type slides
   ```
+
 - Produce a **stand‑alone HTML** page
-  ```
+
+  ```bash
   > notes_to_pdf.py -i cheatsheet.txt -o cheatsheet.html --type html
   ```
+
 - Build a **PDF article** (LaTeX)
-  ```
+
+  ```bash
   > notes_to_pdf.py -i paper.txt -o paper.pdf --type pdf
   ```
+
 - Skip the final viewer **open** step
-  ```
+
+  ```bash
   > ... --skip_action open`
   ```
 
@@ -140,9 +128,27 @@ This is a high‑level guide to the helper scripts that turn raw `.txt` notes in
   ```
 
 - Plain PDF article
+
   ```bash
   > notes_to_pdf.py -i book_notes.txt -o book_notes.pdf --type pdf
   ```
+
+### Interface
+
+```bash
+> notes_to_pdf.py -h
+usage: notes_to_pdf.py [-h] -i INPUT -o OUTPUT --type {pdf,html,slides}
+                       [--filter_by_header FILTER_BY_HEADER]
+                       [--filter_by_lines FILTER_BY_LINES] [--script SCRIPT]
+                       [--preview_actions]
+                       [--toc_type {none,pandoc_native,navigation}]
+                       [--no_run_latex_again] [--debug_on_error]
+                       [--gdrive_dir GDRIVE_DIR] [--use_host_tools]
+                       [--action {cleanup_before,preprocess_notes,render_images,run_pandoc,copy_to_gdrive,open,cleanup_after} | --skip_action {cleanup_before,preprocess_notes,render_images,run_pandoc,copy_to_gdrive,open,cleanup_after}]
+                       [--all] [--dockerized_force_rebuild]
+                       [--dockerized_use_sudo]
+                       [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
+```
 
 ## render_images.py
 
@@ -197,60 +203,59 @@ The supported File types and code blocks are:
   ```
 
 - Dry‑run (test parsing / comments only)
+
   ```bash
   > render_images.py -i lesson.md -o /tmp/out.md --dry_run
   ```
 
 ### Interface
 
-- The interface
+```bash
+> render_images.py -h
+usage: render_images.py [-h] -i IN_FILE_NAME [-o OUT_FILE_NAME]
+                        [--action {open,render} | --skip_action {open,render}]
+                        [--all] [--dry_run] [--dockerized_force_rebuild]
+                        [--dockerized_use_sudo]
+                        [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 
-  ```bash
-  > render_images.py -h
-  usage: render_images.py [-h] -i IN_FILE_NAME [-o OUT_FILE_NAME]
-                          [--action {open,render} | --skip_action {open,render}]
-                          [--all] [--dry_run] [--dockerized_force_rebuild]
-                          [--dockerized_use_sudo]
-                          [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
+Replace sections of image code with rendered images, commenting out the
+original code, if needed.
 
-  Replace sections of image code with rendered images, commenting out the
-  original code, if needed.
+See `docs/work_tools/documentation_toolchain/all.render_images.explanation.md`.
 
-  See `docs/work_tools/documentation_toolchain/all.render_images.explanation.md`.
+Usage:
 
-  Usage:
+# Create a new Markdown file with rendered images:
+> render_images.py -i ABC.md -o XYZ.md --action render --run_dockerized
 
-  # Create a new Markdown file with rendered images:
-  > render_images.py -i ABC.md -o XYZ.md --action render --run_dockerized
+# Render images in place in the original Markdown file:
+> render_images.py -i ABC.md --action render --run_dockerized
 
-  # Render images in place in the original Markdown file:
-  > render_images.py -i ABC.md --action render --run_dockerized
+# Render images in place in the original LaTeX file:
+> render_images.py -i ABC.tex --action render --run_dockerized
 
-  # Render images in place in the original LaTeX file:
-  > render_images.py -i ABC.tex --action render --run_dockerized
+# Open rendered images from a Markdown file in HTML to preview:
+> render_images.py -i ABC.md --action open --run_dockerized
 
-  # Open rendered images from a Markdown file in HTML to preview:
-  > render_images.py -i ABC.md --action open --run_dockerized
-
-  options:
-    -h, --help            show this help message and exit
-    -i IN_FILE_NAME, --in_file_name IN_FILE_NAME
-                          Path to the input file
-    -o OUT_FILE_NAME, --out_file_name OUT_FILE_NAME
-                          Path to the output file
-    --action {open,render}
-                          Actions to execute
-    --skip_action {open,render}
-                          Actions to skip
-    --all                 Run all the actions ()
-    --dry_run             Update the file but do not render images
-    --dockerized_force_rebuild
-                          Force to rebuild the Docker container
-    --dockerized_use_sudo
-                          Use sudo inside the container
-    -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
-                          Set the logging level
-  ```
+options:
+  -h, --help            show this help message and exit
+  -i IN_FILE_NAME, --in_file_name IN_FILE_NAME
+                        Path to the input file
+  -o OUT_FILE_NAME, --out_file_name OUT_FILE_NAME
+                        Path to the output file
+  --action {open,render}
+                        Actions to execute
+  --skip_action {open,render}
+                        Actions to skip
+  --all                 Run all the actions ()
+  --dry_run             Update the file but do not render images
+  --dockerized_force_rebuild
+                        Force to rebuild the Docker container
+  --dockerized_use_sudo
+                        Use sudo inside the container
+  -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
+                        Set the logging level
+```
 
 ## `lint_notes.py`
 
@@ -281,7 +286,7 @@ The supported File types and code blocks are:
 
 - Custom Line width
 
-  ``` bash
+  ```bash
   > lint_notes.py -i test.txt -o tested.txt -w 10
   ```
 
@@ -294,7 +299,7 @@ usage: lint_notes.py [-h] -i IN_FILE_NAME [-o OUT_FILE_NAME]
                      [--print-width PRINT_WIDTH]
                      [--use_dockerized_prettier]
                      [--use_dockerized_markdown_toc]
-                     [--action {preprocess,prettier,postprocess,frame_chapters,refresh_toc} 
+                     [--action {preprocess,prettier,postprocess,frame_chapters,refresh_toc}
                       | --skip_action {preprocess,prettier,postprocess,frame_chapters,refresh_toc}]
                      [--all] [--dockerized_force_rebuild]
                      [--dockerized_use_sudo]
@@ -353,24 +358,24 @@ options:
 ### Example
 
 - Minimal call
+
   ```bash
   > extract_notebook_images.py \
       --in_notebook_filename notebooks/Lesson8.ipynb \
       --out_image_dir notebooks/screenshots
   ```
 
-- Enforce rebuild and use sudo commands 
+- Enforce rebuild and use sudo commands
 
-  ``` bash
+  ```bash
     > extract_notebook_images.py \
       --in_notebook_filename notebooks/Lesson8.ipynb \
       --out_image_dir notebooks/screenshots --dockerized_force_rebuild --dockerized_use_sudo
   ```
 
-
 ### Interface
 
-``` bash
+```bash
 usage: extract_notebook_images.py [-h] --in_notebook_filename IN_NOTEBOOK_FILENAME --out_image_dir
                                   OUT_IMAGE_DIR [--dockerized_force_rebuild] [--dockerized_use_sudo]
                                   [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
@@ -380,12 +385,14 @@ Extract images from a Jupyter notebook by running inside a Docker container.
 This script builds the container dynamically if necessary and extracts images
 from the specified Jupyter notebook using the NotebookImageExtractor module.
 ```
+
 ```bash
 Extract images from notebook test_images.ipynb and save them to `screenshots`
 directory.
 > dev_scripts_helpers/notebooks/extract_notebook_images.py     -i dev_scripts_helpers/notebooks/test_images.ipynb     -o dev_scripts_helpers/notebooks/screenshots
 ```
-```
+
+```bash
 options:
   -h, --help            show this help message and exit
   --in_notebook_filename IN_NOTEBOOK_FILENAME
@@ -411,9 +418,9 @@ options:
 
 ### Examples
 
-  ```bash
-  llm_transform.py -i draft.txt -o polished.txt -p rewrite_clearer
-  ```
+```bash
+llm_transform.py -i draft.txt -o polished.txt -p rewrite_clearer
+```
 
 - Finding available prompts
 
@@ -441,7 +448,8 @@ options:
   ```
 
 ### Interface
-``` bash
+
+```bash
 usage: llm_transform.py [-h] [-i IN_FILE_NAME] [-o OUT_FILE_NAME] [--debug] -p PROMPT [-f]
                         [--dockerized_force_rebuild] [--dockerized_use_sudo] [-c] [-b] [-s]
                         [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
@@ -455,7 +463,7 @@ all dependencies are met. The Docker container is built dynamically if
 necessary. The script requires an OpenAI API key to be set in the environment.
 ```
 
-``` bash
+```bash
 Examples
 # Basic Usage
 > llm_transform.py -i input.txt -o output.txt -p uppercase
@@ -470,7 +478,7 @@ Examples
 > llm_transform.py -i dev_scripts_helpers/documentation/render_images.py -o cfile -p code_propose_refactoring
 ```
 
-``` bash
+```bash
 options:
   -h, --help            show this help message and exit
   -i IN_FILE_NAME, --in_file_name IN_FILE_NAME
@@ -505,15 +513,20 @@ options:
 ### Examples
 
 - Convert a Markdown file to LaTeX
-  ```
+
+  ```bash
   > run_pandoc.py -i note.md -o note.tex
   ```
+
 - Same, but stream from `stdin` to `stdout`
-  ```
+
+  ```bash
   > cat note.md | run_pandoc.py -i - -o -
   ```
+
 - Inside Vim (visual range)
-  ```
+
+  ```vim
   :<,'>!run_pandoc.py -i - -o - -v CRITICAL
   ```
 
@@ -522,7 +535,7 @@ options:
 
 ### Interface
 
-``` bash
+```bash
 usage: run_pandoc.py [-h] -i IN_FILE_NAME [-o OUT_FILE_NAME] [--action ACTION]
                      [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 
@@ -535,14 +548,14 @@ Run pandoc on stdin/file to stdout/file.
 ```
 
 To run in VIM:
-```
+
+```vim
 :'<,'>!dev_scripts/documentation/run_pandoc.py -i - -o - -v CRITICAL
 ```
 
 This script is derived from `dev_scripts/transform_template.py`.
-```
 
-``` bash
+```bash
 options:
   -h, --help            show this help message and exit
   -i IN_FILE_NAME, --in_file_name IN_FILE_NAME
@@ -575,8 +588,9 @@ options:
     - Bump all headers down one level
     - Typical Vim one-liner: `:%!transform_notes.py -a increase -i -`
   - `md_list_to_latex`
-    - Convert a Markdown list to LaTeX `\begin{itemize}`
-    - Typical Vim one-liner: `:%!transform_notes.py -a md_list_to_latex -i -`
+
+* Convert a Markdown list to LaTeX `\begin{itemize}`
+  - Typical Vim one-liner: `:%!transform_notes.py -a md_list_to_latex -i -`
   - `md_*` family
     - Formatting clean-ups (bold bullets, colorize bold text, etc.)
     - Additional Information: See `-a list` for more details
@@ -594,7 +608,8 @@ options:
   ```
 
 - Tidy ChatGPT‑generated Markdown (visual mode in Vim)
-  ```
+
+  ```vim
   :'<,'>!transform_notes.py -i - -o - -a md_fix_chatgpt_output
   ```
 
@@ -612,7 +627,6 @@ Perform one of several transformations on a txt file, e.g.,
 2) `format`: format the current file with 3 levels
     :!transform_notes.py -a format -i % --max_lev 3
     > transform_notes.py -a format -i notes/ABC.txt --max_lev 3
-
     - In vim
     :!transform_notes.py -a format -i % --max_lev 3
     :%!transform_notes.py -a format -i - --max_lev 3
@@ -639,7 +653,7 @@ options:
   -l MAX_LEV, --max_lev MAX_LEV
   -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         Set the logging level
-  ```
+```
 
 ## `extract_headers_from_markdown.py`
 
@@ -660,12 +674,13 @@ options:
   ```
 
 - Build a quick‑fix file and open Vim on it
+
   ```bash
   > extract_headers_from_markdown.py -i README.md -o headers.cfile --mode cfile
   > vim -c "cfile headers.cfile"
   ```
 
-### Interface 
+### Interface
 
 ```bash
 usage: extract_headers_from_markdown.py [-h] -i IN_FILE_NAME [-o OUT_FILE_NAME]
@@ -675,10 +690,10 @@ usage: extract_headers_from_markdown.py [-h] -i IN_FILE_NAME [-o OUT_FILE_NAME]
 Extract headers from a Markdown file and generate a Vim cfile.
 
 The script:
-- processes the input Markdown file
-- extracts headers up to a specified maximum level
-- prints a human-readable header map
-- generates an output file in a format that can be used with Vim's quickfix
+- Processes the input Markdown file
+- Extracts headers up to a specified maximum level
+- Prints a human-readable header map
+- Generates an output file in a format that can be used with Vim's quickfix
   feature.
 
 # Extract headers up to level 3 from a Markdown file and save to an output file:
@@ -705,11 +720,12 @@ options:
                         Maximum header levels to parse
   -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         Set the logging level
-  ```
+```
+
 ## `dockerized_tikz_to_bitmap.py`
 
-- Convert a TikZ file to a PNG image using a dockerized version of `pdflatex` and
-`imagemagick`.
+- Convert a TikZ file to a PNG image using a dockerized version of `pdflatex`
+  and `imagemagick`.
 
 ### Examples
 
@@ -720,6 +736,7 @@ options:
   ```
 
 - Custom ImageMagick options (e.g. 600 DPI)
+
   ```bash
   > dockerized_tikz_to_bitmap.py -i fig.tikz -o fig.png -- -density 600 -quality 90
   ```
@@ -727,7 +744,7 @@ options:
 
 ### Interface
 
-``` bash
+```bash
 usage: dockerized_tikz_to_bitmap.py [-h] -i INPUT -o OUTPUT [--dockerized_force_rebuild]
                                     [--dockerized_use_sudo] [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 
@@ -760,21 +777,26 @@ options:
 ### Examples
 
 - Convert DOT to PNG
-  ```
+
+  ```bash
   > graphviz_wrapper.py -i diagram.dot -o diagram.png
   ```
+
 - Rebuild Docker image
-  ```
+
+  ```bash
   > graphviz_wrapper.py -i diagram.dot -o diagram.png --dockerized_force_rebuild
   ```
+
 - Use `sudo` for Docker
+
   ```bash
   > graphviz_wrapper.py -i diagram.dot -o diagram.png --dockerized_use_sudo
   ```
 
 ### Interface
 
-``` bash
+```bash
 usage: dockerized_graphviz.py [-h] -i INPUT -o OUTPUT [--dockerized_force_rebuild] [--dockerized_use_sudo]
                               [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 
@@ -790,7 +812,7 @@ options:
                         Use sudo inside the container
   -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         Set the logging level
-  ```
+```
 
 ## dockerized_latex.py
 
@@ -801,6 +823,7 @@ options:
 - Automatically rebuilds the Docker image if needed.
 - Supports optional rerun of LaTeX for proper references or table of contents
   generation
+
   ```bash
   > latex_wrapper.py --input doc.tex --output doc.pdf
   ```
@@ -808,25 +831,32 @@ options:
 ### Examples
 
 - Compile `.tex` to `.pdf`
-  ```
+
+  ```bash
   > latex_wrapper.py -i report.tex -o report.pdf
   ```
+
 - Rebuild Docker image
-  ```
+
+  ```bash
   > latex_wrapper.py -i report.tex -o report.pdf --dockerized_force_rebuild
   ```
+
 - Use `sudo` for Docker
-  ```
+
+  ```bash
   > latex_wrapper.py -i report.tex -o report.pdf --dockerized_use_sudo
   ```
+
 - Run LaTeX twice
-  ```
+
+  ```bash
   > latex_wrapper.py -i paper.tex -o paper.pdf --run_latex_again
   ```
 
-## Interface
+### Interface
 
-``` bash
+```bash
 usage: dockerized_latex.py [-h] -i INPUT -o OUTPUT [--run_latex_again] [--dockerized_force_rebuild]
                            [--dockerized_use_sudo] [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 
@@ -846,7 +876,8 @@ options:
                         Use sudo inside the container
   -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         Set the logging level
-  ```
+```
+
 ## dockerized_mermaid.py
 
 ### What it does
@@ -856,32 +887,39 @@ options:
 
 ### Examples
 
-  ```bash
-  > mermaid_wrapper.py --input flowchart.mmd --output flowchart.png
-  ```
+```bash
+> mermaid_wrapper.py --input flowchart.mmd --output flowchart.png
+```
 
 - Automatically sets output to match input name if `--output` is omitted
 
 - Mermaid diagram
-  ```
+
+  ```bash
   > mermaid_wrapper.py -i diagram.mmd -o diagram.png
   ```
+
 - Use input as output (default)
-  ```
+
+  ```bash
   > mermaid_wrapper.py -i diagram.mmd
   ```
+
 - Rebuild container
-  ```
+
+  ```bash
   > mermaid_wrapper.py -i diagram.mmd -o diagram.png --dockerized_force_rebuild
   ```
+
 - Use `sudo` for Docker
-  ```
+
+  ```bash
   > mermaid_wrapper.py -i diagram.mmd -o diagram.png --dockerized_use_sudo
   ```
 
 ### Interface
 
-``` bash
+```bash
 usage: dockerized_mermaid.py [-h] -i INPUT [-o OUTPUT] [--dockerized_force_rebuild] [--dockerized_use_sudo]
                              [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 
@@ -897,7 +935,7 @@ options:
                         Use sudo inside the container
   -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         Set the logging level
-  ```
+```
 
 ## `dockerized_pandoc.py`
 
@@ -916,28 +954,32 @@ options:
 ### Examples
 
 - Convert Markdown to PDF
-  ```
+
+  ```bash
   > pandoc_wrapper.py --input notes.md --output notes.pdf --container_type pandoc_latex
   ```
 
 - Convert to Beamer slides
-  ```
+
+  ```bash
   > pandoc_wrapper.py --input slides.md --output slides.pdf --container_type pandoc_latex -- -t beamer
   ```
 
 - Rebuild Docker image
-  ```
+
+  ```bash
   > pandoc_wrapper.py --input notes.md --output notes.pdf --dockerized_force_rebuild
   ```
 
 - Run with sudo
-  ```
+
+  ```bash
   > pandoc_wrapper.py --input notes.md --output notes.pdf --dockerized_use_sudo
   ```
 
-# Interface
+### Interface
 
-``` bash
+```bash
 usage: dockerized_pandoc.py [-h] [--dockerized_force_rebuild] [--dockerized_use_sudo] [--input INPUT]
                             [--output OUTPUT] [--data_dir DATA_DIR] [--container_type CONTAINER_TYPE]
                             [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
@@ -978,74 +1020,76 @@ options:
 ### Examples
 
 - Format a Markdown file
-  ```
+
+  ```bash
   > dockerized_prettier.py --parser markdown --write test.md
   ```
 
 - Use `sudo` for Docker execution
-  ```
+
+  ```bash
   > dockerized_prettier.py --use_sudo --parser markdown --write test.md
   ```
 
 - Rebuild the Docker image
-  ```
+
+  ```bash
   > dockerized_prettier.py --dockerized_force_rebuild --parser markdown --write test.md
   ```
 
 - Change indentation and wrap style
-  ```
+
+  ```bash
   dockerized_prettier.py --parser markdown --tab-width 4 --prose-wrap always --write test.md
   ```
 
 ### Interface
 
-  ``` bash
-  > dockerized_prettier.py -h
-  usage: dockerized_prettier.py [-h] -i IN_FILE_NAME [-o OUT_FILE_NAME]
-                                [--dockerized_force_rebuild]
-                                [--dockerized_use_sudo]
-                                [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
+```bash
+> dockerized_prettier.py -h
+usage: dockerized_prettier.py [-h] -i IN_FILE_NAME [-o OUT_FILE_NAME]
+                              [--dockerized_force_rebuild]
+                              [--dockerized_use_sudo]
+                              [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 
+Run `prettier` inside a Docker container to ensure consistent formatting
+across different environments.
 
-  Run `prettier` inside a Docker container to ensure consistent formatting
-  across different environments.
+This script builds the container dynamically if necessary and formats the
+specified file using the provided `prettier` options.
 
-  This script builds the container dynamically if necessary and formats the
-  specified file using the provided `prettier` options.
+Examples
 
-  Examples
+# Basic usage:
 
-  # Basic usage:
+> dockerized_prettier.py --parser markdown --prose-wrap always --write
+> --tab-width 2 test.md
 
-  > dockerized_prettier.py --parser markdown --prose-wrap always --write
-  > --tab-width 2 test.md
+# Use sudo for Docker commands:
 
-  # Use sudo for Docker commands:
+> dockerized_prettier.py --use_sudo --parser markdown --prose-wrap always
+> --write --tab-width 2 test.md
 
-  > dockerized_prettier.py --use_sudo --parser markdown --prose-wrap always
-  > --write --tab-width 2 test.md
+# Set logging verbosity:
 
-  # Set logging verbosity:
+> dockerized_prettier.py -v DEBUG --parser markdown --prose-wrap always
+> --write --tab-width 2 test.md </pre>
 
-  > dockerized_prettier.py -v DEBUG --parser markdown --prose-wrap always
-  > --write --tab-width 2 test.md </pre>
+# Process a file:
 
-  # Process a file:
+> cat test.md
+- A
+  - B - c
+    > dockerized_prettier.py --parser markdown --prose-wrap always --write
+    > --tab-width 2 test.md
 
-  > cat test.md
-  - A
-    - B - c
-      > dockerized_prettier.py --parser markdown --prose-wrap always --write
-      > --tab-width 2 test.md
-
-  options: -h, --help show this help message and exit -i IN_FILE_NAME,
-  --in_file_name IN_FILE_NAME Input file or `-` for stdin -o OUT_FILE_NAME,
-  --out_file_name OUT_FILE_NAME Output file or `-` for stdout
-  --dockerized_force_rebuild Force to rebuild the Docker container
-  --dockerized_use_sudo Use sudo inside the container -v
-  {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL} Set the logging level
-  
-  ```
+options: -h, --help show this help message and exit -i IN_FILE_NAME,
+--in_file_name IN_FILE_NAME Input file or `-` for stdin -o OUT_FILE_NAME,
+--out_file_name OUT_FILE_NAME Output file or `-` for stdout
+--dockerized_force_rebuild Force to rebuild the Docker container
+--dockerized_use_sudo Use sudo inside the container
+-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL} Set the logging level
+```
 
 ## `save_screenshot.py`
 
@@ -1055,11 +1099,11 @@ options:
 2. Saves it as `screenshot.YYYY‑MM‑DD_HH‑MM‑SS.png` (or your chosen name).
 3. Prints and copies the Markdown embed `<img src="path/to/file.png">`.
 
-### Examples 
+### Examples
 
 - Take screenshot and auto-name it with timestamp:
 
-  ``` bash
+  ```bash
   > take_screenshot.py
   ```
 
@@ -1071,13 +1115,13 @@ options:
 
 - Allow overwriting an existing file:
 
-  ``` bash
+  ```bash
   > take_screenshot.py --filename my.png --override
   ```
 
 ### Interface
 
-``` bash
+```bash
 usage: save_screenshot.py [-h] [--dst_dir DST_DIR] [--filename FILENAME] [--override]
                           [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
                           [positional ...]
@@ -1097,4 +1141,4 @@ options:
   --override            Override if file exists
   -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         Set the logging level
-  ```
+```
