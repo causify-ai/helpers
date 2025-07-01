@@ -176,7 +176,7 @@ The supported File types and code blocks are:
     - `graphviz`
     - `tikz`
     - `latex`
-  - Output embeds as: `<img src="figs/xxx.png">`
+  - Output embeds as: `<img src=figs/xxx.png>`
 - File extension: `.tex`
   - Rendering syntax allowed:
     - Same tags (TikZ & LaTeX especially)
@@ -1105,7 +1105,7 @@ options: -h, --help show this help message and exit -i IN_FILE_NAME,
 
 1. Prompts you to select a screen region (`⌘ - Ctrl - 4`).
 2. Saves it as `screenshot.YYYY‑MM‑DD_HH‑MM‑SS.png` (or your chosen name).
-3. Prints and copies the Markdown embed `<img src="path/to/file.png">`.
+3. Prints and copies the Markdown embed `<img src=path/to/file.png>`.
 
 ### Examples
 
