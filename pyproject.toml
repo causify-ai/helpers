@@ -1,0 +1,29 @@
+[tool.ruff]
+line-length = 81
+target-version = "py311"
+fix = true
+exclude = [
+  "**/outcomes/**",
+  "**/import_check/example/**"
+]
+output-format = "concise"
+
+[tool.ruff.lint]
+# E731 Do not assign a `lambda` expression, use a `def`
+ignore = ["E731"]
+
+[tool.pyrefly]
+# Currently, Pyrefly doesn't officially support [tool.pyrefly] config
+# Instead, use CLI flags like `pyrefly lint . --config path/to/config.yaml`
+# But you can still define this for documentation or future support
+path = "."
+
+[tool.fixit]
+lint.ignore_codes = []
+lint.enabled = true
+lint.format = "text"
+lint.exclude = [
+  "**/outcomes/**",
+  "**/import_check/example/**"
+]
+lint.show_source = true

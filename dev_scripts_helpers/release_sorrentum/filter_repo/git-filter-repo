@@ -77,8 +77,8 @@ def setup_gettext():
   #locale.bindtextdomain(TEXTDOMAIN, podir);
   ## but the python docs suggest using the gettext module (which doesn't
   ## have setlocale()) instead, so:
-  gettext.textdomain(TEXTDOMAIN);
-  gettext.bindtextdomain(TEXTDOMAIN, podir);
+  gettext.textdomain(TEXTDOMAIN)
+  gettext.bindtextdomain(TEXTDOMAIN, podir)
 
 def _timedelta_to_seconds(delta):
   """
@@ -1107,7 +1107,7 @@ class FastExportParser(object):
 
     original_id = None
     if self._currentline.startswith(b'original-oid'):
-      original_id = self._parse_original_id();
+      original_id = self._parse_original_id()
 
     data = self._parse_data()
     if self._currentline == b'\n':
@@ -1186,7 +1186,7 @@ class FastExportParser(object):
 
     original_id = None
     if self._currentline.startswith(b'original-oid'):
-      original_id = self._parse_original_id();
+      original_id = self._parse_original_id()
 
     author_name = None
     author_email = None
@@ -1261,7 +1261,7 @@ class FastExportParser(object):
 
     # Now print the resulting commit, or if prunable skip it
     self._latest_orig_commit[branch] = commit.id
-    if not (commit.old_id or commit.id) in _SKIPPED_COMMITS:
+    if (commit.old_id or commit.id) not in _SKIPPED_COMMITS:
       self._latest_commit[branch] = commit.id
     if not commit.dumped:
       self._imported_refs.add(commit.branch)
@@ -1283,7 +1283,7 @@ class FastExportParser(object):
 
     original_id = None
     if self._currentline.startswith(b'original-oid'):
-      original_id = self._parse_original_id();
+      original_id = self._parse_original_id()
 
     tagger_name, tagger_email, tagger_date = None, None, None
     if self._currentline.startswith(b'tagger'):
@@ -2388,7 +2388,7 @@ class RepoAnalyze(object):
       # to avoid dying on commits with parents that we haven't seen before
       if args.refs:
         graph.record_external_commits([p for p in parents
-                                       if not p in graph.value])
+                                       if p not in graph.value])
 
       # Analyze this commit and update progress
       RepoAnalyze.analyze_commit(stats, graph, commit, parents, date,
@@ -2905,7 +2905,7 @@ class RepoFilter(object):
       try:
         cmd = 'git config remote.origin.url'
         output = subproc.check_output(cmd.split()).strip()
-      except subprocess.CalledProcessError as e:
+      except subprocess.CalledProcessError:
         output = None
       msg = ""
       if output and os.path.isdir(output):
@@ -3285,7 +3285,7 @@ class RepoFilter(object):
 
     if ( self._args.replace_text
         # not (if blob contains zero byte in the first 8Kb, that is, if blob is binary data)
-        and not b"\0" in blob.data[0:8192]
+        and b"\0" not in blob.data[0:8192]
     ):
       for literal, replacement in self._args.replace_text['literals']:
         blob.data = blob.data.replace(literal, replacement)
@@ -3570,7 +3570,7 @@ class RepoFilter(object):
              '%s:%s' % (full_branch, decode(marks_basename))]
       try:
         contents = subproc.check_output(cmd)
-      except subprocess.CalledProcessError as e: # pragma: no cover
+      except subprocess.CalledProcessError: # pragma: no cover
         raise SystemExit(_("Failed loading %s from %s") %
                          (decode(marks_basename), full_branch))
     if contents:

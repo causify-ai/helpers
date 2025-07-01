@@ -21,14 +21,14 @@ def convert_pandoc_md_to_latex(txt: str) -> str:
     # Run Pandoc.
     out_file_name = "./tmp.run_pandoc_out.tex"
     cmd = (
-        f"pandoc {in_file_name}"
-        f" -o {out_file_name}"
-        " --read=markdown --write=latex"
+        f"pandoc {in_file_name} -o {out_file_name} --read=markdown --write=latex"
     )
     container_type = "pandoc_only"
     hdocker.run_dockerized_pandoc(cmd, container_type)
     # Read tmp file.
     res = hio.from_file(out_file_name)
+    # Remove lines that contain \tightlist.
+    res = "\n".join([line for line in res.splitlines() if "\\tightlist" not in line])
     return res
 
 

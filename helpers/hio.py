@@ -268,7 +268,9 @@ def create_dir(
             dir_timestamp = os.path.getmtime(dir_name)
             dir_datetime = datetime.datetime.fromtimestamp(dir_timestamp)
             # Build new dir name with timestamp.
-            dir_name_new = dir_name + "." + dir_datetime.strftime("%Y%m%d_%H%M%S")
+            dir_name_new = (
+                dir_name + "." + dir_datetime.strftime("%Y%m%d_%H%M%S")
+            )
             # Rename dir.
             if not os.path.exists(dir_name_new):
                 _LOG.warning("Renaming dir '%s' -> '%s'", dir_name, dir_name_new)
@@ -376,7 +378,7 @@ def create_enclosing_dir(file_name: str, incremental: bool = False) -> str:
             "Creating dir_name='%s' for file_name='%s'", dir_name, file_name
         )
         create_dir(dir_name, incremental=incremental)
-    hdbg.dassert_dir_exists(dir_name, "file_name='%s'", file_name)
+        hdbg.dassert_dir_exists(dir_name, "file_name='%s'", file_name)
     return dir_name
 
 
@@ -426,11 +428,11 @@ def to_file(
         # Open regular text file.
         # buffering = 0 if mode == "a" else -1
         buffering = 0 if force_flush else -1
-        f = open(  # pylint: disable=consider-using-with
+        f = open(  # pylint: disable=consider-using-with,assignment
             file_name, mode, buffering=buffering
         )
     # Write file contents.
-    f.write(txt)
+    f.write(txt)  # type: ignore
     f.close()
     # Clear internal buffer of the file.
     if force_flush:
@@ -741,7 +743,7 @@ def to_json(file_name: str, obj: dict, *, use_types: bool = False) -> None:
     with open(file_name, "w") as outfile:
         if use_types:
             # Use jsonpickle to save types.
-            import jsonpickle
+            import jsonpickle  # type: ignore[import-untyped]
 
             txt = jsonpickle.encode(obj, indent=4)
             outfile.write(txt)
@@ -777,17 +779,18 @@ def from_json(file_name: str, *, use_types: bool = False) -> Dict:
     txt_tmp = "\n".join(txt_tmp)
     _LOG.debug("txt_tmp=\n%s", txt_tmp)
     # Convert text into Python data structures.
+    data = {}
     if use_types:
         import jsonpickle
 
-        data: Dict = jsonpickle.decode(txt_tmp)
+        data = jsonpickle.decode(txt_tmp)
     else:
-        data: Dict = json.loads(txt_tmp)
+        data = json.loads(txt_tmp)
     return data
 
 
 # TODO(gp): -> pandas_helpers.py
-def load_df_from_json(path_to_json: str) -> "pd.DataFrame":
+def load_df_from_json(path_to_json: str) -> "pd.DataFrame":  # type: ignore
     """
     Load a dataframe from a json file.
 

@@ -21,6 +21,29 @@ _LOG = logging.getLogger(__name__)
 # pylint: disable=protected-access
 
 
+def _remove_junit_suite_name(text: str) -> str:
+    """
+    Remove the junit suite name from the input text.
+    - E.g. '-o junit_suite_name="helpers"' -> '-o junit_suite_name=""'
+
+    :param text: input text to process
+    :return: text with the junit suite name removed
+    """
+    txt = re.sub(r'(-o\s*junit_suite_name=)"[^"]*"', r'\1""', text)
+    return txt
+
+
+def _purify_pytest_command(text: str) -> str:
+    """
+    Purify the pytest command by removing environment-specific values.
+
+    :param text: input text to process
+    :return: text with environment-specific values removed
+    """
+    txt = _remove_junit_suite_name(text)
+    return txt
+
+
 # #############################################################################
 # Test_build_run_command_line1
 # #############################################################################
@@ -51,10 +74,13 @@ class Test_build_run_command_line1(hunitest.TestCase):
         tee_to_file = False
         n_threads = "1"
         #
-        with umock.patch.object(
-            hserver, "is_dev_csfy", return_value=is_dev_csfy_return_value
-        ), umock.patch.object(
-            hserver, "is_inside_ci", return_value=is_inside_ci_return_value
+        with (
+            umock.patch.object(
+                hserver, "is_dev_csfy", return_value=is_dev_csfy_return_value
+            ),
+            umock.patch.object(
+                hserver, "is_inside_ci", return_value=is_inside_ci_return_value
+            ),
         ):
             act = hlitapyt._build_run_command_line(
                 "fast_tests",
@@ -66,6 +92,8 @@ class Test_build_run_command_line1(hunitest.TestCase):
                 tee_to_file,
                 n_threads,
             )
+            act = _purify_pytest_command(act)
+            exp = _purify_pytest_command(exp)
             self.assert_equal(act, exp)
 
     def test_run_fast_tests1_inside_ck_infra(self) -> None:
@@ -75,7 +103,9 @@ class Test_build_run_command_line1(hunitest.TestCase):
         exp = (
             'pytest -m "not slow and not superslow" . '
             "-o timeout_func_only=true --timeout 5 --reruns 2 "
-            '--only-rerun "Failed: Timeout" -n 1'
+            '--only-rerun "Failed: Timeout" -n 1 '
+            "--junit-xml=tmp.junit.xml "
+            '-o junit_suite_name="helpers"'
         )
         is_dev_csfy_return_value = True
         is_inside_ci_return_value = True
@@ -90,7 +120,9 @@ class Test_build_run_command_line1(hunitest.TestCase):
         exp = (
             'pytest -m "not slow and not superslow" . '
             "-o timeout_func_only=true --timeout 5 --reruns 2 "
-            '--only-rerun "Failed: Timeout" -n 1'
+            '--only-rerun "Failed: Timeout" -n 1 '
+            "--junit-xml=tmp.junit.xml "
+            '-o junit_suite_name="helpers"'
         )
         is_dev_csfy_return_value = False
         is_inside_ci_return_value = True
@@ -105,7 +137,9 @@ class Test_build_run_command_line1(hunitest.TestCase):
         exp = (
             'pytest -m "not slow and not superslow" . '
             "-o timeout_func_only=true --timeout 50 --reruns 2 "
-            '--only-rerun "Failed: Timeout" -n 1'
+            '--only-rerun "Failed: Timeout" -n 1 '
+            "--junit-xml=tmp.junit.xml "
+            '-o junit_suite_name="helpers"'
         )
         is_inside_ci_return_value = False
         is_dev_csfy_return_value = False
@@ -132,10 +166,13 @@ class Test_build_run_command_line1(hunitest.TestCase):
         tee_to_file = False
         n_threads = "1"
         #
-        with umock.patch.object(
-            hserver, "is_dev_csfy", return_value=is_dev_csfy_return_value
-        ), umock.patch.object(
-            hserver, "is_inside_ci", return_value=is_inside_ci_return_value
+        with (
+            umock.patch.object(
+                hserver, "is_dev_csfy", return_value=is_dev_csfy_return_value
+            ),
+            umock.patch.object(
+                hserver, "is_inside_ci", return_value=is_inside_ci_return_value
+            ),
         ):
             act = hlitapyt._build_run_command_line(
                 "fast_tests",
@@ -147,19 +184,22 @@ class Test_build_run_command_line1(hunitest.TestCase):
                 tee_to_file,
                 n_threads,
             )
+            act = _purify_pytest_command(act)
+            exp = _purify_pytest_command(exp)
             self.assert_equal(act, exp)
 
     def test_run_fast_tests2_inside_ck_infra(self) -> None:
         """
         Mock test for running fast tests inside the CK infra.
         """
-
         exp = (
             r'pytest -m "not slow and not superslow" . '
             r"-o timeout_func_only=true --timeout 5 --reruns 2 "
             r'--only-rerun "Failed: Timeout" --cov=.'
             r" --cov-branch --cov-report term-missing --cov-report html "
-            r"--collect-only -n 1"
+            r"--collect-only -n 1 "
+            r"--junit-xml=tmp.junit.xml "
+            r'-o junit_suite_name="helpers"'
         )
         is_dev_csfy_return_value = True
         is_inside_ci_return_value = True
@@ -174,7 +214,9 @@ class Test_build_run_command_line1(hunitest.TestCase):
         exp = (
             'pytest -m "not slow and not superslow" . '
             "-o timeout_func_only=true --timeout 5 --reruns 2 "
-            '--only-rerun "Failed: Timeout" -n 1'
+            '--only-rerun "Failed: Timeout" -n 1 '
+            "--junit-xml=tmp.junit.xml "
+            '-o junit_suite_name="helpers"'
         )
         is_dev_csfy_return_value = False
         is_inside_ci_return_value = True
@@ -191,7 +233,9 @@ class Test_build_run_command_line1(hunitest.TestCase):
             r"-o timeout_func_only=true --timeout 50 --reruns 2 "
             r'--only-rerun "Failed: Timeout" --cov=.'
             r" --cov-branch --cov-report term-missing --cov-report html "
-            r"--collect-only -n 1"
+            r"--collect-only -n 1 "
+            r"--junit-xml=tmp.junit.xml "
+            r'-o junit_suite_name="helpers"'
         )
         is_dev_csfy_return_value = False
         is_inside_ci_return_value = False
@@ -275,10 +319,13 @@ class Test_build_run_command_line1(hunitest.TestCase):
         tee_to_file = True
         n_threads = "1"
         #
-        with umock.patch.object(
-            hserver, "is_dev_csfy", return_value=is_dev_csfy_return_value
-        ), umock.patch.object(
-            hserver, "is_inside_ci", return_value=is_inside_ci_return_value
+        with (
+            umock.patch.object(
+                hserver, "is_dev_csfy", return_value=is_dev_csfy_return_value
+            ),
+            umock.patch.object(
+                hserver, "is_inside_ci", return_value=is_inside_ci_return_value
+            ),
         ):
             act = hlitapyt._build_run_command_line(
                 "fast_tests",
@@ -290,6 +337,8 @@ class Test_build_run_command_line1(hunitest.TestCase):
                 tee_to_file,
                 n_threads,
             )
+            act = _purify_pytest_command(act)
+            exp = _purify_pytest_command(exp)
             self.assert_equal(act, exp)
 
     def test_run_fast_tests5_inside_ck_infra(self) -> None:
@@ -299,7 +348,10 @@ class Test_build_run_command_line1(hunitest.TestCase):
         exp = (
             'pytest -m "not slow and not superslow" . '
             "-o timeout_func_only=true --timeout 5 --reruns 2 "
-            '--only-rerun "Failed: Timeout" -n 1 2>&1'
+            '--only-rerun "Failed: Timeout" -n 1 '
+            "--junit-xml=tmp.junit.xml "
+            '-o junit_suite_name="helpers"'
+            " 2>&1"
             " | tee tmp.pytest.fast_tests.log"
         )
         is_dev_csfy_return_value = True
@@ -315,7 +367,9 @@ class Test_build_run_command_line1(hunitest.TestCase):
         exp = (
             'pytest -m "not slow and not superslow" . '
             "-o timeout_func_only=true --timeout 5 --reruns 2 "
-            '--only-rerun "Failed: Timeout" -n 1'
+            '--only-rerun "Failed: Timeout" -n 1 '
+            "--junit-xml=tmp.junit.xml "
+            '-o junit_suite_name="helpers"'
         )
         is_dev_csfy_return_value = False
         is_inside_ci_return_value = True
@@ -330,7 +384,10 @@ class Test_build_run_command_line1(hunitest.TestCase):
         exp = (
             'pytest -m "not slow and not superslow" . '
             "-o timeout_func_only=true --timeout 50 --reruns 2 "
-            '--only-rerun "Failed: Timeout" -n 1 2>&1'
+            '--only-rerun "Failed: Timeout" -n 1 '
+            "--junit-xml=tmp.junit.xml "
+            '-o junit_suite_name="helpers"'
+            " 2>&1"
             " | tee tmp.pytest.fast_tests.log"
         )
         is_dev_csfy_return_value = False
@@ -358,10 +415,13 @@ class Test_build_run_command_line1(hunitest.TestCase):
         tee_to_file = False
         n_threads = "1"
         #
-        with umock.patch.object(
-            hserver, "is_dev_csfy", return_value=is_dev_csfy_return_value
-        ), umock.patch.object(
-            hserver, "is_inside_ci", return_value=is_inside_ci_return_value
+        with (
+            umock.patch.object(
+                hserver, "is_dev_csfy", return_value=is_dev_csfy_return_value
+            ),
+            umock.patch.object(
+                hserver, "is_inside_ci", return_value=is_inside_ci_return_value
+            ),
         ):
             act = hlitapyt._build_run_command_line(
                 "fast_tests",
@@ -373,6 +433,8 @@ class Test_build_run_command_line1(hunitest.TestCase):
                 tee_to_file,
                 n_threads,
             )
+            act = _purify_pytest_command(act)
+            exp = _purify_pytest_command(exp)
             self.assert_equal(act, exp)
 
     def test_run_fast_tests6_inside_ck_infra(self) -> None:
@@ -382,7 +444,9 @@ class Test_build_run_command_line1(hunitest.TestCase):
         exp = (
             'pytest -m "optimizer and not slow and not superslow" . '
             "-o timeout_func_only=true --timeout 5 --reruns 2 "
-            '--only-rerun "Failed: Timeout" -n 1'
+            '--only-rerun "Failed: Timeout" -n 1 '
+            "--junit-xml=tmp.junit.xml "
+            '-o junit_suite_name="helpers"'
         )
         is_dev_csfy_return_value = True
         is_inside_ci_return_value = True
@@ -397,7 +461,9 @@ class Test_build_run_command_line1(hunitest.TestCase):
         exp = (
             'pytest -m "not slow and not superslow" . '
             "-o timeout_func_only=true --timeout 5 --reruns 2 "
-            '--only-rerun "Failed: Timeout" -n 1'
+            '--only-rerun "Failed: Timeout" -n 1 '
+            "--junit-xml=tmp.junit.xml "
+            '-o junit_suite_name="helpers"'
         )
         is_dev_csfy_return_value = False
         is_inside_ci_return_value = True
@@ -412,7 +478,9 @@ class Test_build_run_command_line1(hunitest.TestCase):
         exp = (
             'pytest -m "optimizer and not slow and not superslow" . '
             "-o timeout_func_only=true --timeout 50 --reruns 2 "
-            '--only-rerun "Failed: Timeout" -n 1'
+            '--only-rerun "Failed: Timeout" -n 1 '
+            "--junit-xml=tmp.junit.xml "
+            '-o junit_suite_name="helpers"'
         )
         is_dev_csfy_return_value = False
         is_inside_ci_return_value = False
@@ -439,10 +507,13 @@ class Test_build_run_command_line1(hunitest.TestCase):
         tee_to_file = False
         n_threads = "auto"
         #
-        with umock.patch.object(
-            hserver, "is_dev_csfy", return_value=is_dev_csfy_return_value
-        ), umock.patch.object(
-            hserver, "is_inside_ci", return_value=is_inside_ci_return_value
+        with (
+            umock.patch.object(
+                hserver, "is_dev_csfy", return_value=is_dev_csfy_return_value
+            ),
+            umock.patch.object(
+                hserver, "is_inside_ci", return_value=is_inside_ci_return_value
+            ),
         ):
             act = hlitapyt._build_run_command_line(
                 "fast_tests",
@@ -454,6 +525,8 @@ class Test_build_run_command_line1(hunitest.TestCase):
                 tee_to_file,
                 n_threads,
             )
+            act = _purify_pytest_command(act)
+            exp = _purify_pytest_command(exp)
             self.assert_equal(act, exp)
 
     def test_run_fast_tests7_inside_ck_infra(self) -> None:
@@ -463,7 +536,9 @@ class Test_build_run_command_line1(hunitest.TestCase):
         exp = (
             'pytest -m "not slow and not superslow" . '
             "-o timeout_func_only=true --timeout 5 --reruns 2 "
-            '--only-rerun "Failed: Timeout" -n auto'
+            '--only-rerun "Failed: Timeout" -n auto '
+            "--junit-xml=tmp.junit.xml "
+            '-o junit_suite_name="helpers"'
         )
         is_dev_csfy_return_value = True
         is_inside_ci_return_value = True
@@ -478,7 +553,9 @@ class Test_build_run_command_line1(hunitest.TestCase):
         exp = (
             'pytest -m "not slow and not superslow" . '
             "-o timeout_func_only=true --timeout 5 --reruns 2 "
-            '--only-rerun "Failed: Timeout" -n 1'
+            '--only-rerun "Failed: Timeout" -n 1 '
+            "--junit-xml=tmp.junit.xml "
+            '-o junit_suite_name="helpers"'
         )
         is_dev_csfy_return_value = False
         is_inside_ci_return_value = True
@@ -493,7 +570,9 @@ class Test_build_run_command_line1(hunitest.TestCase):
         exp = (
             'pytest -m "not slow and not superslow" . '
             "-o timeout_func_only=true --timeout 50 --reruns 2 "
-            '--only-rerun "Failed: Timeout" -n auto'
+            '--only-rerun "Failed: Timeout" -n auto '
+            "--junit-xml=tmp.junit.xml "
+            '-o junit_suite_name="helpers"'
         )
         is_dev_csfy_return_value = False
         is_inside_ci_return_value = False
@@ -528,10 +607,13 @@ class Test_build_run_command_line1(hunitest.TestCase):
         tee_to_file = False
         n_threads = "1"
         # Mock test.
-        with umock.patch.object(
-            hserver, "is_dev_csfy", return_value=is_dev_csfy_return_value
-        ), umock.patch.object(
-            hserver, "is_inside_ci", return_value=is_inside_ci_return_value
+        with (
+            umock.patch.object(
+                hserver, "is_dev_csfy", return_value=is_dev_csfy_return_value
+            ),
+            umock.patch.object(
+                hserver, "is_inside_ci", return_value=is_inside_ci_return_value
+            ),
         ):
             custom_marker = hlitapyt._get_custom_marker(
                 run_only_test_list=run_only_test_list,
@@ -547,6 +629,8 @@ class Test_build_run_command_line1(hunitest.TestCase):
                 tee_to_file,
                 n_threads,
             )
+            act = _purify_pytest_command(act)
+            exp = _purify_pytest_command(exp)
             self.assert_equal(act, exp)
 
     def test_get_custom_marker1_full(self) -> None:
@@ -563,7 +647,9 @@ class Test_build_run_command_line1(hunitest.TestCase):
             "and not skip_marker_1 and not skip_marker_2 "
             'and not slow and not superslow" . '
             "-o timeout_func_only=true --timeout 50 --reruns 2 "
-            '--only-rerun "Failed: Timeout" -n 1'
+            '--only-rerun "Failed: Timeout" -n 1 '
+            "--junit-xml=tmp.junit.xml "
+            '-o junit_suite_name="helpers"'
         )
         # Mock check.
         self.get_custom_marker_helper(

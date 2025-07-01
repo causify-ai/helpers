@@ -897,7 +897,6 @@ class Test_docker_release_multi_arch_prod_image1(_DockerFlowTestHelper):
 # #############################################################################
 
 
-@pytest.mark.skip(reason="See CmampTask12206")
 class Test_docker_create_candidate_image1(_DockerFlowTestHelper):
     """
     Test creating a candidate Docker image.
@@ -970,6 +969,7 @@ class Test_docker_create_candidate_image1(_DockerFlowTestHelper):
         # Verify the mocks were called with correct parameters.
         self.mock_build_prod.assert_called_once_with(
             self.mock_ctx,
+            container_dir_name=".",
             version=hlitadoc._IMAGE_VERSION_FROM_CHANGELOG,
             candidate=True,
             tag="test_user-4759b3685f903e6c669096e960b248ec31c63b69",
@@ -1079,8 +1079,8 @@ class Test_docker_update_prod_task_definition1(_DockerFlowTestHelper):
         """
         # Mock AWS ECS client using moto and register a task definition.
         region = "us-east-1"
-        mock_client = boto3.client("ecs", region_name=region)
-        mock_client.register_task_definition(
+        mock_ecs_client = boto3.client("ecs", region_name=region)
+        mock_ecs_client.register_task_definition(
             family="test_task",
             containerDefinitions=[
                 {
@@ -1094,10 +1094,10 @@ class Test_docker_update_prod_task_definition1(_DockerFlowTestHelper):
             cpu="256",
             memory="512",
         )
-        mock_get_ecs_client.return_value = mock_client
+        mock_get_ecs_client.return_value = mock_ecs_client
         # Add mock client to patchers for cleanup.
         self.ecs_client_patcher = umock.patch(
-            "boto3.client", return_value=mock_client
+            "boto3.client", return_value=mock_ecs_client
         )
         self.mock_ecs_client = self.ecs_client_patcher.start()
         self.patchers["ecs_client_test1"] = self.ecs_client_patcher
@@ -1141,8 +1141,8 @@ class Test_docker_update_prod_task_definition1(_DockerFlowTestHelper):
         """
         # Mock AWS ECS client using moto and register a task definition.
         region = "us-east-1"
-        mock_client = boto3.client("ecs", region_name=region)
-        mock_client.register_task_definition(
+        mock_ecs_client = boto3.client("ecs", region_name=region)
+        mock_ecs_client.register_task_definition(
             family="test_task",
             containerDefinitions=[
                 {
@@ -1156,10 +1156,10 @@ class Test_docker_update_prod_task_definition1(_DockerFlowTestHelper):
             cpu="256",
             memory="512",
         )
-        mock_get_ecs_client.return_value = mock_client
+        mock_get_ecs_client.return_value = mock_ecs_client
         # Add mock client to patchers for cleanup.
         self.ecs_client_patcher = umock.patch(
-            "boto3.client", return_value=mock_client
+            "boto3.client", return_value=mock_ecs_client
         )
         self.mock_ecs_client = self.ecs_client_patcher.start()
         self.patchers["ecs_client_test2"] = self.ecs_client_patcher

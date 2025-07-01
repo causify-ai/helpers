@@ -8,6 +8,7 @@ Import as:
 
 import linters.amp_pylint as lamppyli
 """
+
 import argparse
 import logging
 import os
@@ -31,7 +32,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class _Pylint(liaction.Action):
-
     def __init__(self) -> None:
         executable = "pylint"
         super().__init__(executable)
@@ -211,7 +211,8 @@ class _Pylint(liaction.Action):
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "files",

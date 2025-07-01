@@ -755,7 +755,9 @@ def remove_outliers(
     if mode is None:
         mode = "winsorize"
     log.debug("Removing outliers with mode=%s", mode)
-    bounds = utils.jstats.get_quantile_bounds(obj, lower_quantile, upper_quantile)
+    bounds = utils.jstats.get_quantile_bounds(
+        obj, lower_quantile, upper_quantile
+    )
     if print_stats:
         log.debug("bounds=%s", str(bounds))
     if inplace:
@@ -768,14 +770,17 @@ def remove_outliers(
         if print_stats:
             num = np.sum(obj <= bounds[0]) + np.sum(bounds[1] <= obj)
             log.debug(
-                "winsorize: to_process=%s", dbg.perc(num, len(ret), printAll=True)
+                "winsorize: to_process=%s",
+                dbg.perc(num, len(ret), printAll=True),
             )
     else:
         mask = (bounds[0] <= obj) & (obj <= bounds[1])
         if print_stats:
             num = np.sum(mask)
             log.debug(
-                "%s: to_process=%s", mode, dbg.perc(num, len(ret), printAll=True)
+                "%s: to_process=%s",
+                mode,
+                dbg.perc(num, len(ret), printAll=True),
             )
         if mode == "set_to_nan":
             ret[~mask] = np.nan
@@ -816,7 +821,10 @@ def remove_outlier_rows_from_df(
         if col in col_names_to_trim:
             log.debug("Trimming col %s", col)
             trimmed_col, _ = remove_outliers(
-                df[col], lower_quantile, upper_quantile=upper_quantile, mode=mode
+                df[col],
+                lower_quantile,
+                upper_quantile=upper_quantile,
+                mode=mode,
             )
         else:
             log.debug("Skipping col %s", col)
@@ -926,7 +934,8 @@ def report_intraday_stats(rets):
         #
         stats_df.append(row)
     stats_df = pd.DataFrame(
-        stats_df, columns=["inst", "min_hour", "max_hour", "min_date", "max_date"]
+        stats_df,
+        columns=["inst", "min_hour", "max_hour", "min_date", "max_date"],
     )
     stats_df.set_index("inst", drop=True, inplace=True)
     return stats_df
@@ -938,9 +947,7 @@ def plot_intraday_stats(rets):
     for i, inst_name in enumerate(inst_names):
         ax = plt.subplot(len(inst_names) + 1, 1, i + 1)
         rets_tmp = rets[inst_name].astype(float)
-        rets_tmp.groupby(
-            lambda x: x.time()
-        ).count().plot(ax=ax, title=inst_name)
+        rets_tmp.groupby(lambda x: x.time()).count().plot(ax=ax, title=inst_name)
     plt.plot()
 
 
@@ -1445,7 +1452,9 @@ def compute_correlation(
         y = (y - y.mean()) / y.std()
     rho, p_val = scipy.stats.stats.pearsonr(x, y)
     if print_stats:
-        print("num_samples=%s" % dbg.perc(len(x), tot_num_samples, printAll=True))
+        print(
+            "num_samples=%s" % dbg.perc(len(x), tot_num_samples, printAll=True)
+        )
         print("rho=%.4f" % rho)
         print(
             "2-tailed pvalue=%.4f (%s)"
@@ -1567,9 +1576,7 @@ def regress(
                         size=jointplot_size,
                     )
             else:
-                log.warning(
-                    "Skipping plots since there are too many " "predictors"
-                )
+                log.warning("Skipping plots since there are too many predictors")
     # Robust regression.
     if robust_regress:
         # From http://scikit-learn.org/stable/auto_examples/linear_model/plot_robust_fit.html#sphx-glr-auto-examples-linear-model-plot-robust-fit-py

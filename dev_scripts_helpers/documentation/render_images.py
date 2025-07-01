@@ -250,6 +250,8 @@ def _render_image_code(
         \usepackage{tikz}
         \usepackage{amsmath}
         \usepackage{pgfplots}
+        \usepackage{mathrsfs} % For script font
+        \usepackage{xcolor}
         \pgfplotsset{compat=1.17}
         \begin{document}
         \begin{tikzpicture}
@@ -265,11 +267,11 @@ def _render_image_code(
         \usepackage{tabularx}
         \usepackage{enumitem}
         \usepackage{booktabs}  % Optional: For nicer tables
-        \begin{document}
+        %\begin{document}
 
         """)
         end_tag = hprint.dedent(r"""
-        \end{document}
+        %\end{document}
         """)
         image_code_txt = "\n".join([start_tag, image_code_txt, end_tag])
     # Get paths for rendered files.
@@ -367,7 +369,9 @@ def _get_comment_prefix_postfix(extension: str) -> Tuple[str, str]:
     return comment_prefix, comment_postfix
 
 
-def _insert_image_code(extension: str, rel_img_path: str, user_img_size: str) -> str:
+def _insert_image_code(
+    extension: str, rel_img_path: str, user_img_size: str
+) -> str:
     """
     Insert the code to display the image in the output file.
     """
@@ -489,7 +493,8 @@ def _render_images(
             # E.g., "plantuml" or "mermaid".
             image_code_type = m.group(2)
             hdbg.dassert_in(
-                image_code_type, ["plantuml", "mermaid", "tikz", "graphviz", "latex"]
+                image_code_type,
+                ["plantuml", "mermaid", "tikz", "graphviz", "latex"],
             )
             if m.group(3):
                 hdbg.dassert_eq(user_rel_img_path, "")
@@ -532,7 +537,9 @@ def _render_images(
                         state, line, comment_prefix, comment_postfix
                     )
                 )
-                out_lines.append(_insert_image_code(extension, rel_img_path, user_img_size))
+                out_lines.append(
+                    _insert_image_code(extension, rel_img_path, user_img_size)
+                )
                 user_img_size = ""
                 # Set the parser to search for a new image code block.
                 if state == "found_image_code":
@@ -594,7 +601,8 @@ _DEFAULT_ACTIONS: List[str] = []
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     # Add input and output file arguments.
     parser.add_argument(

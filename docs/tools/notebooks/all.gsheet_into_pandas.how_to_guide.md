@@ -55,7 +55,7 @@
   ```bash
   > cat ~/.config/gspread_pandas/google_secret.json
   {
-    "type": "service_account",
+    "type": "service_account", # gitleaks:allow
     "project_id": "gspread-gp",
     "private_key_id": "...
     "private_key": "-----BEGIN PRIVATE KEY-----\n...
@@ -111,7 +111,7 @@
   ```
   > more ~/Downloads/gspread-gp-94afb83adb02.json
   {
-    "type": "service_account",
+    "type": "service_account", # gitleaks:allow
     "project_id": "gspread-gp",
     "private_key_id": "94afb...5258ac",
     "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvg...FtmcXiHuZ46EMouxnQCEqrT5\n-----END PRIVATE KEY-----\n",

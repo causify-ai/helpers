@@ -44,7 +44,6 @@ def _make_mock_label(label: dshgdsgil.Label) -> umock.Mock:
 
 
 class TestLabel1(hunitest.TestCase):
-
     def test_save_label(self) -> None:
         """
         Test saving a label object to a file.
@@ -102,7 +101,6 @@ class TestLabel1(hunitest.TestCase):
 
 
 class TestDockerizedSyncGitHubIssueLabels(hunitest.TestCase):
-
     @pytest.fixture(autouse=True)
     def setup_teardown_test(self) -> Generator:
         # Run before each test.

@@ -25,7 +25,6 @@ _LOG = logging.getLogger(__name__)
     reason="Disabled because of CmampTask10710",
 )
 class Test_notes_to_pdf1(hunitest.TestCase):
-
     def create_input_file(self) -> str:
         txt = """
         # Header1
@@ -61,7 +60,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         :param type_: The output format, either 'pdf' or 'html'.
         :param cmd_opts: Additional command-line options to pass to the
             script.
-        :returns: A tuple containing the script content and the output
+        :return: A tuple containing the script content and the output
             content.
         """
         # notes_to_pdf.py \

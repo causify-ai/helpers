@@ -1,14 +1,14 @@
 # pip install nbconvert nbformat selenium pillow
 
-import os
-import time
+# import os
+# import time
 
-import nbformat
-from PIL import Image
-from selenium import webdriver
+# import nbformat
+# from PIL import Image
+# from selenium import webdriver
 
 
-#def extract_cells(notebook_path, cell_numbers, temp_notebook="temp_subset.ipynb"):
+# def extract_cells(notebook_path, cell_numbers, temp_notebook="temp_subset.ipynb"):
 #    """
 #    Extracts specific cells from a Jupyter Notebook and saves them as a new
 #    temporary notebook.
@@ -30,7 +30,7 @@ from selenium import webdriver
 #        nbformat.write(nb, f)
 #
 #
-#def save_cells_as_png(notebook_path, cell_numbers, output_path="output.png"):
+# def save_cells_as_png(notebook_path, cell_numbers, output_path="output.png"):
 #    """
 #    Extracts specific cells, renders them as HTML, and captures a screenshot.
 #
@@ -75,8 +75,8 @@ from selenium import webdriver
 #
 #
 ## Example: Capture cells 1, 3, and 5 from notebook
-#save_cells_as_png(
+# save_cells_as_png(
 #    "example_notebook.ipynb",
 #    cell_numbers=[1, 3, 5],
 #    output_path="selected_cells.png",
-#)
+# )

@@ -15,6 +15,8 @@ import helpers.hgit as hgit
 _LOG = logging.getLogger(__name__)
 
 
+# TODO(gp): Move some code to `hcfile.py`.
+
 # Store elements parsed from a line of a traceback:
 #   (file_name, line_num, text)
 # E.g.,
@@ -177,7 +179,7 @@ def parse_traceback(
                 end_idx += 1
                 line = lines[end_idx]
                 _LOG.debug(
-                    "Extend traceback: to_break=%s, end_idx=%s, " "line='%s'",
+                    "Extend traceback: to_break=%s, end_idx=%s, line='%s'",
                     to_break,
                     end_idx,
                     line,

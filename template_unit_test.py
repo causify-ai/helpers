@@ -1,7 +1,4 @@
 import logging
-import os
-import pprint
-from typing import Any, List, Tuple
 
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
@@ -15,7 +12,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_format_compressed_markdown1(hunitest.TestCase):
-
     def test1(self) -> None:
         # Prepare inputs.
         # ...

@@ -47,7 +47,8 @@ def _test2() -> None:
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("--action", required=True, type=str)
     hparser.add_verbosity_arg(parser)

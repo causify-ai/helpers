@@ -18,7 +18,10 @@ class Test_rename_file_if_exists(hunitest.TestCase):
     """
 
     def check_file(
-        self, file_to_rename: str, before_extension: bool, expected_file_name: str
+        self,
+        file_to_rename: str,
+        before_extension: bool,
+        expected_file_name: str,
     ) -> None:
         """
         Check that file is renamed correctly.
@@ -75,7 +78,9 @@ class Test_find_all_files1(hunitest.TestCase):
         pattern = "*"
         only_files = True
         use_relative_paths = True
-        all_files = hio.listdir(dir_name, pattern, only_files, use_relative_paths)
+        all_files = hio.listdir(
+            dir_name, pattern, only_files, use_relative_paths
+        )
         self.assertGreater(len(all_files), 0)
         # Check that there are more files than Python files.
         exclude_paired_jupytext = False

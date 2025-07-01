@@ -22,7 +22,6 @@ import argparse
 import logging
 import sys
 
-import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hprint as hprint
@@ -38,7 +37,8 @@ _NEWEST_LOG_FILE = "__NEWEST_LOG_FILE__"
 
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     in_default = _NEWEST_LOG_FILE
     parser = hparser.add_input_output_args(

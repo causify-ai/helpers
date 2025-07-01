@@ -52,10 +52,11 @@ _LOG = logging.getLogger(__name__)
 # !sudo /bin/bash -c "(source /venv/bin/activate; pip install --quiet openai requests)"
 
 # %%
-import helpers.hopenai as hopenai
+import helpers.hllm as hllm
+import helpers.hpandas as hpandas
 
 # %%
-val = hopenai.get_model_stats()
+val = hllm.get_model_stats()
 
 # %%
 import pprint
@@ -63,15 +64,14 @@ import pprint
 pprint.pprint(val[0])
 
 # %%
-import numpy as np
 import pandas as pd
 
 # %%
 # Normalize the nested JSON
-df = pd.json_normalize(val, sep='_')
+df = pd.json_normalize(val, sep="_")
 df
 # View the resulting DataFrame
-#print(df.T)  # Transpose just for readable vertical inspection
+# print(df.T)  # Transpose just for readable vertical inspection
 
 # %%
 df.iloc[0].T
@@ -87,17 +87,17 @@ df.dtypes
 
 # %%
 for col in df.columns:
-    print(hopenai.infer_column_types(df[col]))
+    print(hpandas.infer_column_types(df[col]))
 
 # %%
-df.apply(lambda x: pd.Series(infer_column_types(x))).T
+df.apply(lambda x: pd.Series(hpandas.infer_column_types(x))).T
 
 # %%
-hopenai.infer_column_types_df(df)
+hpandas.infer_column_types_df(df)
 
 
 # %%
-pd.to_numeric(df["pricing_request"], errors='coerce').notna()
+pd.to_numeric(df["pricing_request"], errors="coerce").notna()
 
 # %%
 df["pricing_completion"]
@@ -106,7 +106,9 @@ df["pricing_completion"]
 df.sort_values("pricing_prompt")[col_names]
 
 # %%
-df[["pricing_prompt", "pricing_completion"]].plot.scatter(x="pricing_prompt", y="pricing_completion")
+df[["pricing_prompt", "pricing_completion"]].plot.scatter(
+    x="pricing_prompt", y="pricing_completion"
+)
 
 # %%
 df["price_ratio"] = df["pricing_completion"] / df["pricing_prompt"]
@@ -114,4 +116,4 @@ df["price_ratio"] = df["pricing_completion"] / df["pricing_prompt"]
 # %%
 
 # %%
-#df["total_price"] =
+# df["total_price"] =

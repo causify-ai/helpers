@@ -363,7 +363,7 @@ def _docker_login_ecr() -> None:
         cmd = f"eval $(aws ecr get-login --profile {profile} --no-include-email --region {region})"
     elif major_version == 2:
         if profile == "ck":
-            env_var = f"CSFY_ECR_BASE_PATH"
+            env_var = "CSFY_ECR_BASE_PATH"
         else:
             env_var = f"{profile.upper()}_ECR_BASE_PATH"
         ecr_base_path = hlitauti.get_default_param(env_var)
@@ -552,7 +552,9 @@ def _generate_docker_compose_file(
     )
     # A super repo is a repo that contains helpers as a submodule and
     # is not a helper itself.
-    use_helpers_as_nested_module = 0 if hgit.is_in_helpers_as_supermodule() else 1
+    use_helpers_as_nested_module = (
+        0 if hgit.is_in_helpers_as_supermodule() else 1
+    )
     # We could do the same also with IMAGE for symmetry.
     # Keep the env vars in sync with what we print in `henv.get_env_vars()`.
     # Configure `base_app` service.
@@ -560,7 +562,7 @@ def _generate_docker_compose_file(
         "cap_add": ["SYS_ADMIN"],
         "environment": [
             f"CSFY_ENABLE_DIND={CSFY_ENABLE_DIND}",
-            f"CSFY_FORCE_TEST_FAIL=$CSFY_FORCE_TEST_FAIL",
+            "CSFY_FORCE_TEST_FAIL=$CSFY_FORCE_TEST_FAIL",
             f"CSFY_HOST_NAME={csfy_host_name}",
             f"CSFY_HOST_OS_NAME={csfy_host_os_name}",
             f"CSFY_HOST_OS_VERSION={csfy_host_os_version}",
@@ -1329,7 +1331,9 @@ def _docker_cmd(
         hs3.generate_aws_files()
     docker_pull(ctx, skip_pull=skip_pull)
     _LOG.debug("cmd=%s", docker_cmd_)
-    rc: Optional[int] = hlitauti.run(ctx, docker_cmd_, pty=True, **ctx_run_kwargs)
+    rc: Optional[int] = hlitauti.run(
+        ctx, docker_cmd_, pty=True, **ctx_run_kwargs
+    )
     return rc
 
 
