@@ -60,7 +60,6 @@
 - This is a high‑level guide to the helper scripts that turn raw `.txt` notes
   into polished PDFs, slide decks, and more.
 
-// TODO(\*): Is it worth to report the flags? It's difficult to maintain
 
 ## notes_to_pdf.py
 
@@ -322,8 +321,56 @@ The supported File types and code blocks are:
   ```
 
 ### Interface
+```
+  > notes_to_pdf.py -h
+  usage: lint_notes.py [-h] -i INPUT -o OUTPUT --type {md,tex,txt}
+                         [-w Line wrapping width for prettier]
+                         [--print-width Line wrapping width for prettier]
+                         [--use_dockerized_prettier To run Prettier in docker container]
+                         [--use_dockerized_markdown_toc To run markdown-toc in docker container]
+                         [--dockerized_force_rebuild]
+                         [-action Runs specific actions]
+                         [--dockerized_use_sudo]
+                         [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 
-// TODO
+Usage:
+
+  # Clean Markdown file using Dockerized Prettier and Markdown-TOC:
+  > lint_notes.py -i ABC.md -o XYZ.md --use_dockerized_prettier --use_dockerized_markdown_toc
+
+  # Only run Prettier and Postprocess steps (clean empty lines, restore bullet styles, adjusts code blocks):
+  > lint_notes.py -i ABC.md -o XYZ.md --action prettier postprocess
+
+  # Set custom line width for wrapping for a TEX file:
+  > lint_notes.py -i ABC.tex -o XYZ.tex --print-width 100
+
+  # Clean LaTeX file using only Prettier:
+  > lint_notes.py -i ABC.md -o XYZ.md --type tex --use_dockerized_prettier --action prettier
+
+  # Only run Preprocess steps (remove gdoc artifacts, formats LaTeX math and fixes quotes):
+  > lint_notes.py -i ABC.md -o XYZ.md --action preprocess
+
+  # Add heading frames for aesthetics around Markdown header
+  > lint_notes.py -i ABC.md -o XYZ.md --action frame_chapters
+
+  # Generate or update the TOC Content for a file 
+  > lint_notes.py -i ABC.md -o XYZ.md --action refresh_toc --use_dockerized_markdown_toc
+
+Options:
+    -h, --help            show this help message and exit
+    -i IN_FILE_NAME, --in_file_name IN_FILE_NAME
+                          Path to the input file
+    -o OUT_FILE_NAME, --out_file_name OUT_FILE_NAME
+                          Path to the output file
+    --action {preprocess,prettier,postprocess,frame_chapters,refresh_toc}
+                          Actions to execute
+    --dockerized_force_rebuild
+                          Force to rebuild the Docker container
+    --dockerized_use_sudo
+                          Use sudo inside the container
+    -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
+                          Set the logging level
+  ```
 
 ## `extract_notebook_images.py`
 
@@ -506,7 +553,7 @@ The supported File types and code blocks are:
 
 ## `dockerized_tikz_to_bitmap.py`
 
-- Converts
+- Convert a `.tex` file containing TikZ code into a `.png` image using a Dockerized toolchain consisting of pdflatex and ImageMagick.
 
 ### Examples
 
