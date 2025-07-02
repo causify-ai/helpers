@@ -1,22 +1,5 @@
 # Reading Other People Code
 
-<!-- toc -->
-
-- [Reading other people code](#reading-other-people-code)
-- [What not to do](#what-not-to-do)
-  * [Rewrite coding](#rewrite-coding)
-  * [Incremental renovation](#incremental-renovation)
-  * [It's harder to read code than to write it](#its-harder-to-read-code-than-to-write-it)
-  * [Respect old code!](#respect-old-code)
-  * [What makes code a mess?](#what-makes-code-a-mess)
-- [What to do](#what-to-do)
-  * [Get into the right attitude](#get-into-the-right-attitude)
-  * [Reading other people code is painful](#reading-other-people-code-is-painful)
-  * [Suggestions on how to read code](#suggestions-on-how-to-read-code)
-- [Refs](#refs)
-
-<!-- tocstop -->
-
 ## Reading other people code
 
 - People don't like reading other people's code
