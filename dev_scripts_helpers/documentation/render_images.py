@@ -424,8 +424,8 @@ def _render_images(
                         state, line, comment_prefix, comment_postfix
                     )
                 )
-                rendered_img_line = _insert_image_code(
-                    extension, rel_img_path, user_img_size
+                out_lines.append(
+                    _insert_image_code(extension, rel_img_path, user_img_size)
                 )
                 out_lines.append(rendered_img_line)
                 user_img_size = ""
