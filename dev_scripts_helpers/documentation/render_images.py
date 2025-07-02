@@ -124,7 +124,6 @@ def _render_image_code(
     :param out_file: path to the output file where the image will be
         inserted
     :param dst_ext: extension of the rendered image, e.g., "svg", "png"
-    :param use_cache: if True, reuse previously rendered images
     :param force_rebuild: rebuild the Docker image before rendering
     :param use_sudo: run Docker with sudo
     :param dry_run: if True, the rendering command is not executed
