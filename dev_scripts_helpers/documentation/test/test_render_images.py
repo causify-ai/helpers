@@ -367,6 +367,10 @@ class Test_render_images1(hunitest.TestCase):
         Check bare mermaid code in a LaTeX file.
         """
         in_lines = r"""
+        ```mermaid
+        flowchart TD;
+          A[Start] --> B[End];
+        ```
         """
         file_ext = "tex"
         exp = r"""
@@ -384,6 +388,10 @@ class Test_render_images1(hunitest.TestCase):
         """
         in_lines = r"""
         A
+        ```mermaid
+        flowchart TD;
+          A[Start] --> B[End];
+        ```
         B
         """
         file_ext = "tex"
