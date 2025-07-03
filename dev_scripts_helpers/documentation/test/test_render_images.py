@@ -28,9 +28,10 @@ class Test_get_rendered_file_paths1(hunitest.TestCase):
         out_file = "/a/b/c/d/e.md"
         image_code_idx = 8
         dst_ext = "png"
+        use_github_hosting = False
         # Run function.
         paths = dshdreim._get_rendered_file_paths(
-            out_file, image_code_idx, dst_ext
+            out_file, image_code_idx, dst_ext, use_github_hosting
         )
         # Check output.
         act = "\n".join(paths)
