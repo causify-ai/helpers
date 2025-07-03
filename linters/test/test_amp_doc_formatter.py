@@ -12,6 +12,7 @@ import linters.amp_doc_formatter as lamdofor
 
 
 class Test_docformatter(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Test that the docstring should be dedented.
@@ -157,6 +158,62 @@ foo
         self.assertEqual(actual_warnings, expected_warnings)
         self.assert_equal(actual_content, text, fuzzy_match=True)
 
+    def test8(self) -> None:
+        """
+        Test that code blocks in a string literal are preserved.
+        """
+        # Prepare inputs.
+        text = """
+        ```
+        doc1
+        ```
+        A
+        ```
+        doc2
+        ```
+        B
+        ```
+        doc3
+        ```
+        C
+        ```
+        doc4
+        ```
+        D
+        ```
+        doc5
+        ```
+        E
+        ```
+        doc6
+        ```
+        F
+        ```
+        doc7
+        ```
+        G
+        ```
+        doc8
+        ```
+        H
+        ```
+        doc9
+        ```
+        I
+        ```
+        doc10
+        ```
+        J
+        ```
+        doc11
+        ```
+        """
+        # Run.
+        actual, _, _ = self._docformatter(text)
+        # Check.
+        expected = text
+        self.assertEqual(expected, actual)
+
     def _docformatter(self, text: str) -> Tuple[str, List[str], str]:
         """
         Run the docformatter on the temp file in scratch space.
@@ -184,6 +241,7 @@ foo
 
 
 class TestFindUnbalancedBackticks(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Test that the starting indices of docstrings with unbalanced backticks
