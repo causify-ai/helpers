@@ -3,7 +3,12 @@
     "allow": [
       "Bash(find:*)",
       "Bash(invoke --list)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(python -m mypy:*)",
+      "Bash(python:*)",
+      "Bash(invoke git_branch_create -i 903)",
+      "Bash(gh pr create:*)"
     ],
     "deny": []
   }

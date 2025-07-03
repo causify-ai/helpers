@@ -8,8 +8,11 @@ import logging
 import os
 import pathlib
 import site
+import subprocess
 import sysconfig
 
+import helpers.hdbg as hdbg
+import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
@@ -27,7 +30,9 @@ def _detect_site_packages() -> pathlib.Path:
         if purelib:
             return pathlib.Path(purelib)
     except (KeyError, IOError):
-        pass
+        _LOG.debug(
+            "sysconfig.get_path('purelib') failed, falling back to site packages"
+        )
     try:
         sp_dirs = site.getsitepackages()
     except AttributeError:
@@ -40,12 +45,12 @@ def _detect_site_packages() -> pathlib.Path:
 
 def inject(coveragerc: str = ".coveragerc") -> None:
     """
-    Install the coverage startup hook into this envs site-packages using sudo
-    tee.
+    Install the coverage startup hook into this env site-packages.
     """
     rc = pathlib.Path(coveragerc).resolve()
-    if not rc.is_file():
-        raise FileNotFoundError(f".coveragerc not found at {rc}")
+    hdbg.dassert(rc.is_file(), f".coveragerc not found at {rc}")
+    # TODO(Maddy): IMO this doesn't work since the var is created in a bash
+    # that is then killed. It's not persistent.
     hsystem.system(f"export COVERAGE_PROCESS_START={rc}")
     sp = _detect_site_packages()
     target = sp / "coverage.pth"
@@ -53,16 +58,14 @@ def inject(coveragerc: str = ".coveragerc") -> None:
     cmd = f'echo "{hook_line}" | sudo tee "{target}" > /dev/null'
     try:
         hsystem.system(cmd)
-        _LOG.info("Installed coverage hook to %s via sudo tee", target)
-    except Exception as e:
-        _LOG.error("Failed to install coverage hook via sudo tee: %s", e)
-        raise e
+        _LOG.debug("Installed coverage hook to %s via sudo tee", target)
+    except (OSError, subprocess.SubprocessError) as e:
+        hdbg.dassert(False, f"Failed to install coverage hook via sudo tee: {e}")
 
 
 def remove() -> None:
     """
-    Remove the coverage startup hook from this envs site-packages using sudo
-    rm.
+    Remove the coverage startup hook from this env site-packages.
     """
     sp = _detect_site_packages()
     target = sp / "coverage.pth"
@@ -75,14 +78,16 @@ def remove() -> None:
             _LOG.error("Failed to remove coverage hook via sudo rm: %s", e)
             raise
     else:
+        # TODO(Maddy): Is this acceptable?
         _LOG.warning("No coverage.pth found in %s", sp)
-        # Remove coverage environment variables.
+    # Remove coverage environment variables.
     try:
         if "COVERAGE_PROCESS_START" in os.environ:
+            # TODO(Maddy): This is not persistent, so it doesn't work.
             hsystem.system("unset COVERAGE_PROCESS_START")
             _LOG.info("Removed COVERAGE_PROCESS_START from environment")
         else:
-            _LOG.info("COVERAGE_PROCESS_START not found in environment")
+            _LOG.debug("COVERAGE_PROCESS_START not found in environment")
     except Exception as e:
         _LOG.error("Failed to remove COVERAGE_PROCESS_START: %s", e)
         raise
@@ -90,39 +95,40 @@ def remove() -> None:
 
 def generate_coverage_dockerfile() -> str:
     """
-    Build a Dockerfile string that appends coverage support:
-      1. Installs coverage, pytest, pytest-cov at build time
-      2. Creates /coverage_data and writes .coveragerc
-      3. Sets ENV COVERAGE_PROCESS_START to /coverage_data/.coveragerc
-      4. Writes a coverage.pth into site-packages so coverage auto-starts
+    Build a Dockerfile string that appends coverage support.
     """
-    return """
-# Install coverage and testing dependencies
-RUN pip install --no-cache-dir coverage pytest pytest-cov
+    # This requires to:
+    # - Install coverage, pytest, pytest-cov at build time
+    # - Create /coverage_data and writes .coveragerc
+    # - Set ENV COVERAGE_PROCESS_START to /coverage_data/.coveragerc
+    # - Write a coverage.pth into site-packages so coverage auto-starts
+    txt = """
+    # Install coverage and testing dependencies.
+    RUN pip install --no-cache-dir coverage pytest pytest-cov
 
-# Create coverage data directory with proper permissions
-RUN mkdir -p /app/coverage_data && chmod 777 /app/coverage_data
+    # Create coverage data directory with proper permissions.
+    RUN mkdir -p /app/coverage_data && chmod 777 /app/coverage_data
 
-# Setup coverage configuration
-COPY .coveragerc /app/coverage_data/.coveragerc
-ENV COVERAGE_PROCESS_START=/app/coverage_data/.coveragerc
+    # Setup coverage configuration.
+    COPY .coveragerc /app/coverage_data/.coveragerc
+    ENV COVERAGE_PROCESS_START=/app/coverage_data/.coveragerc
 
-# Create coverage.pth file for automatic startup
-# This ensures coverage tracking starts automatically when Python runs
-RUN python - <<PYCODE
-import site, os
-site_dir = site.getsitepackages()[0]
-pth_file = os.path.join(site_dir, 'coverage.pth')
-with open(pth_file, 'w') as f:
-    f.write('import coverage; coverage.process_startup()')
-PYCODE
-"""
+    # Create coverage.pth file for automatic startup.
+    # This ensures coverage tracking starts automatically when Python runs.
+    RUN python - <<PYCODE
+    import site, os
+    site_dir = site.getsitepackages()[0]
+    pth_file = os.path.join(site_dir, 'coverage.pth')
+    with open(pth_file, 'w') as f:
+        f.write('import coverage; coverage.process_startup()')
+    PYCODE
+    """
+    return str(hprint.dedent(txt))
 
 
 def coverage_commands_subprocess() -> None:
     """
-    Return a list of shell commands to run coverage steps in a Docker
-    container.
+    Execute shell commands to run coverage steps in a Docker container.
 
     Assumes:
       - A valid .coveragerc exists in the current working directory.
@@ -138,7 +144,7 @@ def coverage_commands_subprocess() -> None:
 
 def coverage_combine() -> None:
     """
-    Return a list of shell commands to combine coverage data.
+    Execute shell commands to combine coverage data.
 
     Assumes:
       - .coverage.* files are present in the current directory.
