@@ -369,7 +369,6 @@ def get_docker_base_cmd(use_sudo: bool) -> List[str]:
         vars_to_pass_as_str,
     ]
     if os.environ.get("COVERAGE_PROCESS_START"):
-        _LOG.debug("Enabling coverage")
         host_cov_dir = os.path.abspath("coverage_data")
         os.makedirs(host_cov_dir, exist_ok=True)
         os.chmod(host_cov_dir, 0o777)
@@ -412,12 +411,9 @@ def build_container_image(
     #
     dockerfile = hprint.dedent(dockerfile)
     # Add install coverage and hook to the Dockerfile.
-    # TODO(Maddy): Pass a var.
-    if False:
-        _LOG.debug("Enabling coverage")
-        dockerfile = (
-            dockerfile.strip() + "\n" + hcovera.generate_coverage_dockerfile()
-        )
+    dockerfile = (
+        dockerfile.strip() + "\n" + hcovera.generate_coverage_dockerfile()
+    )
     _LOG.debug("Dockerfile:\n%s", dockerfile)
     # Get the current architecture.
     current_arch = get_current_arch()
@@ -1871,7 +1867,7 @@ def run_dockerized_graphviz(
     )
     # Convert files to Docker paths.
     is_caller_host = not hserver.is_inside_docker()
-    use_sibling_container_for_callee = False
+    use_sibling_container_for_callee = True
     caller_mount_path, callee_mount_path, mount = get_docker_mount_info(
         is_caller_host, use_sibling_container_for_callee
     )
