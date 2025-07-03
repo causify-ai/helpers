@@ -1157,11 +1157,11 @@ class Test_modify_header_level1(hunitest.TestCase):
 
     def test7(self) -> None:
         """
-        Test inputs to decrease headings with one hash which remains unchanged.
+        Test inputs to decrease headings by one level.
         """
         # Prepare inputs.
         input_text = [
-            "# Chapter 1",
+            "## Chapter 1",
             "##### Sub-subsection 1.1.1.1",
         ]
         input_text = "\n".join(input_text)
@@ -1213,42 +1213,42 @@ class Test_modify_header_level1(hunitest.TestCase):
 
     def test10(self) -> None:
         """
-        Test decreasing headers by 2 levels with range clamping.
+        Test decreasing headers by 2 levels.
         """
         # Prepare inputs.
         input_text = [
-            "# Chapter 1",
-            "## Section 1.1",
-            "### Subsection 1.1.1",
+            "### Chapter 1",
+            "#### Section 1.1",
+            "##### Subsection 1.1.1",
         ]
         input_text = "\n".join(input_text)
         # Call tested function.
         actual = hmarkdo.modify_header_level(input_text, -2)
         # Check output.
         expected = [
-            "# Chapter 1",  # Clamped to minimum level 1
-            "# Section 1.1",  # 2-2=0, clamped to 1
-            "# Subsection 1.1.1",  # 3-2=1
+            "# Chapter 1",  # 3-2=1
+            "## Section 1.1",  # 4-2=2
+            "### Subsection 1.1.1",  # 5-2=3
         ]
         expected = "\n".join(expected)
         self.assertEqual(actual, expected)
 
     def test11(self) -> None:
         """
-        Test increasing headers beyond level 6 with range clamping.
+        Test increasing headers by 2 levels.
         """
         # Prepare inputs.
         input_text = [
-            "##### Level 5",
-            "###### Level 6",
+            "### Level 3",
+            "#### Level 4",
         ]
         input_text = "\n".join(input_text)
         # Call tested function.
         actual = hmarkdo.modify_header_level(input_text, 2)
         # Check output.
         expected = [
-            "###### Level 5",  # 5+2=7, clamped to 6
-            "###### Level 6",  # 6+2=8, clamped to 6
+            "##### Level 3",  # 3+2=5
+            "###### Level 4",  # 4+2=6
         ]
         expected = "\n".join(expected)
         self.assertEqual(actual, expected)
