@@ -153,7 +153,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     if args.prompt == "list":
         print("# Available prompt tags:")
-        print("\n".join(dshlllpr.get_prompt_tags()))
+        prompt_tags = dshlllpr.get_prompt_tags()
+        print(dshlllpr.prompt_tags_to_str(prompt_tags))
         return
     # TODO(gp): We should just automatically pass-through the options.
     cmd_line_opts = [f"-p {args.prompt}", f"-v {args.log_level}"]

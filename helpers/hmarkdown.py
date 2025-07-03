@@ -289,7 +289,7 @@ def md_clean_up(txt: str) -> str:
     # Replace \[ ... \] math syntax with $$ ... $$, handling multiline equations.
     txt = re.sub(r"\\\[(.*?)\\\]", r"$$\1$$", txt, flags=re.DOTALL)
     # Replace `P(.)`` with `\Pr(.)`.
-    txt = re.sub(r"P\((.*?)\)", r"\\Pr(\1)", txt)
+    # txt = re.sub(r"P\((.*?)\)", r"\\Pr(\1)", txt)
     # Replace \left[, \right].
     txt = re.sub(r"\\left\[", r"[", txt)
     txt = re.sub(r"\\right\]", r"]", txt)
@@ -554,6 +554,7 @@ def extract_slides_from_markdown(
     header_list: HeaderList = []
     # Process the input file to extract headers.
     for line_number, line in enumerate(txt.splitlines(), start=1):
+        _LOG.debug("%d: %s", line_number, line)
         # TODO(gp): Use the iterator.
         # Skip the visual separators.
         if is_markdown_line_separator(line):
