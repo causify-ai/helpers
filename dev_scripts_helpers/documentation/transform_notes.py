@@ -91,7 +91,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     elif cmd == "format_headers":
         hmarkdo.format_headers(in_file_name, out_file_name, max_lev)
     elif cmd == "increase_headers_level":
-        hmarkdo.modify_header_level(in_file_name, out_file_name, mode="increase")
+        txt = hparser.read_file(in_file_name)
+        txt = "\n".join(txt)
+        modified_txt = hmarkdo.modify_header_level(txt, mode="increase")
+        hparser.write_file(modified_txt.split("\n"), out_file_name)
     else:
         # Read the input.
         txt = hparser.read_file(in_file_name)
