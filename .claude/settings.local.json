@@ -8,7 +8,11 @@
       "Bash(python -m mypy:*)",
       "Bash(python:*)",
       "Bash(invoke git_branch_create -i 903)",
-      "Bash(gh pr create:*)"
+      "Bash(gh pr create:*)",
+      "Bash(gh pr view:*)",
+      "Bash(invoke git_branch_create *\")",
+      "Bash(git add:*)",
+      "Bash(git push:*)"
     ],
     "deny": []
   }
