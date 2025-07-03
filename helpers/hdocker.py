@@ -369,6 +369,7 @@ def get_docker_base_cmd(use_sudo: bool) -> List[str]:
         vars_to_pass_as_str,
     ]
     if os.environ.get("COVERAGE_PROCESS_START"):
+        _LOG.debug("Enabling coverage")
         host_cov_dir = os.path.abspath("coverage_data")
         os.makedirs(host_cov_dir, exist_ok=True)
         os.chmod(host_cov_dir, 0o777)
@@ -411,9 +412,11 @@ def build_container_image(
     #
     dockerfile = hprint.dedent(dockerfile)
     # Add install coverage and hook to the Dockerfile.
-    dockerfile = (
-        dockerfile.strip() + "\n" + hcovera.generate_coverage_dockerfile()
-    )
+    if os.environ.get("COVERAGE_PROCESS_START"):
+        _LOG.debug("Enabling coverage")
+        dockerfile = (
+            dockerfile.strip() + "\n" + hcovera.generate_coverage_dockerfile()
+        )
     _LOG.debug("Dockerfile:\n%s", dockerfile)
     # Get the current architecture.
     current_arch = get_current_arch()
