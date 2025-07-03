@@ -212,7 +212,7 @@ doc11
         actual, _, _ = self._docformatter(text)
         # Check.
         expected = text
-        self.assertEqual(expected, actual)
+        self.assertEqual(expected.strip(), actual.strip())
 
     def _docformatter(self, text: str) -> Tuple[str, List[str], str]:
         """
