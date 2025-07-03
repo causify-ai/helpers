@@ -1051,7 +1051,7 @@ class Test_modify_header_level1(hunitest.TestCase):
         ]
         input_text = "\n".join(input_text)
         # Call tested function.
-        actual = hmarkdo.modify_header_level(input_text, "increase")
+        actual = hmarkdo.modify_header_level(input_text, 1)
         # Check output.
         expected = [
             "## Chapter 1",
@@ -1064,16 +1064,15 @@ class Test_modify_header_level1(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        Test inputs to increase headings with more than four hashes which
-        remain unchanged.
+        Test inputs to increase headings with level 5 becoming level 6.
         """
         # Prepare inputs.
         input_text = ["# Chapter 1", "##### Sub-sub-subsection 1.1.1.1.1"]
         input_text = "\n".join(input_text)
         # Call tested function.
-        actual = hmarkdo.modify_header_level(input_text, "increase")
+        actual = hmarkdo.modify_header_level(input_text, 1)
         # Check output.
-        expected = ["## Chapter 1", "##### Sub-sub-subsection 1.1.1.1.1"]
+        expected = ["## Chapter 1", "###### Sub-sub-subsection 1.1.1.1.1"]
         expected = "\n".join(expected)
         self.assertEqual(actual, expected)
 
@@ -1086,7 +1085,7 @@ class Test_modify_header_level1(hunitest.TestCase):
         input_text = ["# Chapter 1", "Paragraph 1"]
         input_text = "\n".join(input_text)
         # Call tested function.
-        actual = hmarkdo.modify_header_level(input_text, "increase")
+        actual = hmarkdo.modify_header_level(input_text, 1)
         # Check output.
         expected = ["## Chapter 1", "Paragraph 1"]
         expected = "\n".join(expected)
@@ -1100,7 +1099,7 @@ class Test_modify_header_level1(hunitest.TestCase):
         input_text = ["Paragraph 1", "Paragraph 2"]
         input_text = "\n".join(input_text)
         # Call tested function.
-        actual = hmarkdo.modify_header_level(input_text, "increase")
+        actual = hmarkdo.modify_header_level(input_text, 1)
         # Check output.
         expected = ["Paragraph 1", "Paragraph 2"]
         expected = "\n".join(expected)
@@ -1108,7 +1107,7 @@ class Test_modify_header_level1(hunitest.TestCase):
 
     def test5(self) -> None:
         """
-        Test to increase headings with less than five hashes.
+        Test to increase headings with mixed levels.
         """
         # Prepare inputs.
         input_text = [
@@ -1120,11 +1119,11 @@ class Test_modify_header_level1(hunitest.TestCase):
         ]
         input_text = "\n".join(input_text)
         # Call tested function.
-        actual = hmarkdo.modify_header_level(input_text, "increase")
+        actual = hmarkdo.modify_header_level(input_text, 1)
         # Check output.
         expected = [
             "## Chapter 1",
-            "##### Sub-sub-subsection 1.1.1.1.1",
+            "###### Sub-sub-subsection 1.1.1.1.1",
             "## Chapter 2",
             "#### Subsection 2.1",
             "## Chapter 3",
@@ -1145,7 +1144,7 @@ class Test_modify_header_level1(hunitest.TestCase):
         ]
         input_text = "\n".join(input_text)
         # Call tested function.
-        actual = hmarkdo.modify_header_level(input_text, "decrease")
+        actual = hmarkdo.modify_header_level(input_text, -1)
         # Check output.
         expected = [
             "# Section 1.1",
@@ -1167,7 +1166,7 @@ class Test_modify_header_level1(hunitest.TestCase):
         ]
         input_text = "\n".join(input_text)
         # Call tested function.
-        actual = hmarkdo.modify_header_level(input_text, "decrease")
+        actual = hmarkdo.modify_header_level(input_text, -1)
         # Check output.
         expected = [
             "# Chapter 1",
@@ -1184,9 +1183,73 @@ class Test_modify_header_level1(hunitest.TestCase):
         input_text = ["Paragraph 1", "Paragraph 2", "Paragraph 3"]
         input_text = "\n".join(input_text)
         # Call tested function.
-        actual = hmarkdo.modify_header_level(input_text, "decrease")
+        actual = hmarkdo.modify_header_level(input_text, -1)
         # Check output.
         expected = ["Paragraph 1", "Paragraph 2", "Paragraph 3"]
+        expected = "\n".join(expected)
+        self.assertEqual(actual, expected)
+
+    def test9(self) -> None:
+        """
+        Test increasing headers by 2 levels.
+        """
+        # Prepare inputs.
+        input_text = [
+            "# Chapter 1",
+            "## Section 1.1",
+            "### Subsection 1.1.1",
+        ]
+        input_text = "\n".join(input_text)
+        # Call tested function.
+        actual = hmarkdo.modify_header_level(input_text, 2)
+        # Check output.
+        expected = [
+            "### Chapter 1",
+            "#### Section 1.1",
+            "##### Subsection 1.1.1",
+        ]
+        expected = "\n".join(expected)
+        self.assertEqual(actual, expected)
+
+    def test10(self) -> None:
+        """
+        Test decreasing headers by 2 levels with range clamping.
+        """
+        # Prepare inputs.
+        input_text = [
+            "# Chapter 1",
+            "## Section 1.1",
+            "### Subsection 1.1.1",
+        ]
+        input_text = "\n".join(input_text)
+        # Call tested function.
+        actual = hmarkdo.modify_header_level(input_text, -2)
+        # Check output.
+        expected = [
+            "# Chapter 1",  # Clamped to minimum level 1
+            "# Section 1.1",  # 2-2=0, clamped to 1
+            "# Subsection 1.1.1",  # 3-2=1
+        ]
+        expected = "\n".join(expected)
+        self.assertEqual(actual, expected)
+
+    def test11(self) -> None:
+        """
+        Test increasing headers beyond level 6 with range clamping.
+        """
+        # Prepare inputs.
+        input_text = [
+            "##### Level 5",
+            "###### Level 6",
+        ]
+        input_text = "\n".join(input_text)
+        # Call tested function.
+        actual = hmarkdo.modify_header_level(input_text, 2)
+        # Check output.
+        expected = [
+            "###### Level 5",  # 5+2=7, clamped to 6
+            "###### Level 6",  # 6+2=8, clamped to 6
+        ]
         expected = "\n".join(expected)
         self.assertEqual(actual, expected)
 
