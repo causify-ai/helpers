@@ -414,7 +414,14 @@ class HeaderInfo:
         self.level = level
         #
         hdbg.dassert_isinstance(description, str)
-        hdbg.dassert_ne(description, "", "Invalid HeaderInfo: %s, %s, %s", level, description, line_number)
+        hdbg.dassert_ne(
+            description,
+            "",
+            "Invalid HeaderInfo: %s, %s, %s",
+            level,
+            description,
+            line_number,
+        )
         self.description = description
         #
         hdbg.dassert_isinstance(line_number, int)
@@ -486,9 +493,7 @@ def sanity_check_header_list(header_list: HeaderList) -> None:
             hdbg.dassert_isinstance(header_list[i], HeaderInfo)
             if header_list[i].level - header_list[i - 1].level > 1:
                 msg = []
-                msg.append(
-                    "Consecutive headers increase by more than one level:"
-                )
+                msg.append("Consecutive headers increase by more than one level:")
                 msg.append(f"  {header_list[i - 1]}")
                 msg.append(f"  {header_list[i]}")
                 msg = "\n".join(msg)
@@ -536,7 +541,7 @@ def extract_headers_from_markdown(
 
 
 def extract_slides_from_markdown(
-    txt: str, 
+    txt: str,
 ) -> HeaderList:
     """
     Extract slides (i.e., sections prepended by `*`) from Markdown file and
@@ -884,12 +889,6 @@ def parse_rules_from_txt(txt: str) -> List[str]:
       first-level items.
 
     :param txt: text to process
-        ```
-        - Item 1
-        - Item 2
-           - Item 3
-        - Item 4
-        ```
     :return: extracted bullet points, e.g.,
     """
     lines = txt.split("\n")
@@ -999,18 +998,15 @@ def format_headers(in_file_name: str, out_file_name: str, max_lev: int) -> None:
     hparser.write_file(txt_tmp, out_file_name)
 
 
-def modify_header_level(
-    in_file_name: str, out_file_name: str, mode: str
-) -> None:
+def modify_header_level(input_text: str, mode: str) -> str:
     """
-    Increase or decrease the level of headings by one for text in stdin.
+    Increase or decrease the level of headings by one for the given text.
 
-    :param in_file_name: the name of the input file to read
-    :param out_file_name: the name of the output file to write the
-        modified text to
+    :param input_text: the input text to modify
     :param mode: indicates the increase or decrease of the header level
+    :return: the modified text with header levels adjusted
     """
-    txt = hparser.read_file(in_file_name)
+    lines = input_text.split("\n")
     #
     txt_tmp = []
     if mode == "increase":
@@ -1019,7 +1015,7 @@ def modify_header_level(
         mode_level = -1
     else:
         raise ValueError(f"Unsupported mode='{mode}'")
-    for line in txt:
+    for line in lines:
         # TODO(gp): Use the iterator.
         line = line.rstrip(r"\n")
         is_header_, level, title = is_header(line)
@@ -1034,7 +1030,7 @@ def modify_header_level(
             line = "#" * modified_level + " " + title
         txt_tmp.append(line)
     #
-    hparser.write_file(txt_tmp, out_file_name)
+    return "\n".join(txt_tmp)
 
 
 # #############################################################################
