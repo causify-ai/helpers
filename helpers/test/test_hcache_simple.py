@@ -122,7 +122,6 @@ class BaseCacheTest(hunitest.TestCase):
          - Set specific cache properties needed for the tests.
         """
         import helpers.hsystem as hsystem
-
         # turn off the “are you sure?” prompt
         hsystem.query_yes_no = lambda *args, **kwargs: False
         # Reset persistent user cache properties.
