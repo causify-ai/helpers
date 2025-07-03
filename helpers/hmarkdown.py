@@ -889,6 +889,12 @@ def parse_rules_from_txt(txt: str) -> List[str]:
       first-level items.
 
     :param txt: text to process
+        ```
+        - Item 1
+        - Item 2
+           - Item 3
+        - Item 4
+        ```
     :return: extracted bullet points, e.g.,
     """
     lines = txt.split("\n")
@@ -1006,7 +1012,6 @@ def modify_header_level(input_text: str, mode: str) -> str:
     :param mode: indicates the increase or decrease of the header level
     :return: the modified text with header levels adjusted
     """
-    lines = input_text.split("\n")
     #
     txt_tmp = []
     if mode == "increase":
@@ -1015,6 +1020,7 @@ def modify_header_level(input_text: str, mode: str) -> str:
         mode_level = -1
     else:
         raise ValueError(f"Unsupported mode='{mode}'")
+    lines = input_text.split("\n")
     for line in lines:
         # TODO(gp): Use the iterator.
         line = line.rstrip(r"\n")
