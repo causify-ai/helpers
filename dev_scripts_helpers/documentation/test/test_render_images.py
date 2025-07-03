@@ -456,7 +456,7 @@ class Test_render_images1(hunitest.TestCase):
 
     def test_mermaid7(self) -> None:
         """
-        Check commented mermaid code with an updated output file.
+        Check commented mermaid code with an updated output file..
         """
         in_lines = r"""
         A
