@@ -284,23 +284,22 @@ def remove_formatting(txt: str) -> str:
 
 
 def md_clean_up(txt: str) -> str:
-    # Replace \( ... \) math syntax with $ ... $.
-    txt = re.sub(r"\\\(\s*(.*?)\s*\\\)", r"$\1$", txt)
-    # Replace \[ ... \] math syntax with $$ ... $$, handling multiline equations.
-    txt = re.sub(r"\\\[(.*?)\\\]", r"$$\1$$", txt, flags=re.DOTALL)
-    # Replace `P(.)`` with `\Pr(.)`.
-    txt = re.sub(r"P\((.*?)\)", r"\\Pr(\1)", txt)
-    # Replace \left[, \right].
-    txt = re.sub(r"\\left\[", r"[", txt)
-    txt = re.sub(r"\\right\]", r"]", txt)
-    # Replace \mid with `|`.
-    txt = re.sub(r"\\mid", r"|", txt)
+    """
+    Clean up a Markdown file copy-pasted from Google Docs, ChatGPT.
+
+    :param txt: The input text to process
+    :return: The text with the cleaning up applied
+    """
+    # 0) General formatting.
+    # Remove dot at the end of each line.
+    txt = re.sub(r"\.\s*$", "", txt, flags=re.MULTILINE)
+    # 1) ChatGPT formatting.
     # E.g.,``  • Description Logics (DLs) are a family``
     # Replace `•` with `-`
     txt = re.sub(r"•\s+", r"- ", txt)
     # Replace `\t` with 2 spaces
     txt = re.sub(r"\t", r"  ", txt)
-    # Remove `⸻`.
+    # Remove `⋅`.
     txt = re.sub(r"⸻", r"", txt)
     # “
     txt = re.sub(r"“", r'"', txt)
@@ -308,19 +307,27 @@ def md_clean_up(txt: str) -> str:
     txt = re.sub(r"”", r'"', txt)
     # ’
     txt = re.sub(r"’", r"'", txt)
-    # →
+    # 2) Latex formatting.
+    # Replace \( ... \) math syntax with $ ... $.
+    txt = re.sub(r"\\\(\s*(.*?)\s*\\\)", r"$\1$", txt)
+    # Replace \[ ... \] math syntax with $$ ... $$, handling multiline equations.
+    txt = re.sub(r"\\\[(.*?)\\\]", r"$$\1$$", txt, flags=re.DOTALL)
+    # Replace `P(.)`` with `\Pr(.)`.
+    txt = re.sub(r"P\((.*?)\)", r"\\Pr(\1)", txt)
+    #
+    txt = re.sub(r"\\left\[", r"[", txt)
+    txt = re.sub(r"\\right\]", r"]", txt)
+    #
+    txt = re.sub(r"\\mid", r"|", txt)
+    #
     txt = re.sub(r"→", r"$\\rightarrow$", txt)
     # Remove empty spaces at beginning / end of Latex equations $...$.
     # E.g., $ \text{Student} $ becomes $\text{Student}$
     # txt = re.sub(r"\$\s+(.*?)\s\$", r"$\1$", txt)
-    # Remove dot at the end of each line.
-    txt = re.sub(r"\.\s*$", "", txt, flags=re.MULTILINE)
     # Transform `Example: Training a deep` into `E.g., training a deep`,
     # converting the word after `Example:` to lower case.
     txt = re.sub(r"\bExample:", "E.g.,", txt)
     txt = re.sub(r"\bE.g.,\s+(\w)", lambda m: "E.g., " + m.group(1).lower(), txt)
-    # Replace \mid with `|`.
-    txt = re.sub(r"\\mid", r"|", txt)
     return txt
 
 

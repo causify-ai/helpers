@@ -1,7 +1,4 @@
-# How-To Guide: <Script.py>
-
-Guide to help **[solve a specific problem or achieve a goal]** using
-step-by-step instructions.
+# <Template> How-To Guide 
 
 <!-- toc -->
 
@@ -17,7 +14,10 @@ step-by-step instructions.
 
 ## What It Does
 
-- Describe the specific problem this guide helps solve or the outcome it achieves.
+- Guide to help <solve a specific problem or achieve a goal> using step-by-step
+  instructions
+
+- Describe the specific problem this guide helps solve or the outcome it achieves
 
 > **Example:** Automatically render images from fenced code blocks in Markdown
 > using a custom Python script.
