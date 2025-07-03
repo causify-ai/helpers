@@ -164,49 +164,49 @@ foo
         """
         # Prepare inputs.
         text = """
-        ```
-        doc1
-        ```
-        A
-        ```
-        doc2
-        ```
-        B
-        ```
-        doc3
-        ```
-        C
-        ```
-        doc4
-        ```
-        D
-        ```
-        doc5
-        ```
-        E
-        ```
-        doc6
-        ```
-        F
-        ```
-        doc7
-        ```
-        G
-        ```
-        doc8
-        ```
-        H
-        ```
-        doc9
-        ```
-        I
-        ```
-        doc10
-        ```
-        J
-        ```
-        doc11
-        ```
+```
+doc1
+```
+A
+```
+doc2
+```
+B
+```
+doc3
+```
+C
+```
+doc4
+```
+D
+```
+doc5
+```
+E
+```
+doc6
+```
+F
+```
+doc7
+```
+G
+```
+doc8
+```
+H
+```
+doc9
+```
+I
+```
+doc10
+```
+J
+```
+doc11
+```
         """
         # Run.
         actual, _, _ = self._docformatter(text)
