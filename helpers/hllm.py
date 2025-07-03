@@ -4,10 +4,7 @@ Import as:
 import helpers.hllm as hllm
 """
 
-import datetime
 import functools
-import hashlib
-import json
 import logging
 import os
 import re
@@ -259,12 +256,12 @@ def _call_api_sync(
     :param client: OpenAI client
     :param messages: list of messages to send to the API
     :param model: model to use for the completion
-    :param temperature: adjust an LLM's sampling diversity: lower values make it
-        more deterministic, while higher values foster creative variation.
-        0 < temperature <= 2, 0.1 is default value in OpenAI models.
+    :param temperature: adjust an LLM's sampling diversity: lower values
+        make it more deterministic, while higher values foster creative
+        variation. 0 < temperature <= 2, 0.1 is default value in OpenAI
+        models.
     :param create_kwargs: additional parameters for the API call
     :return: OpenAI chat completion object as a dictionary
-       
     """
     completion = client.chat.completions.create(
         model=model,
@@ -490,7 +487,6 @@ def get_completion(
     # Report the time taken.
     msg, _ = htimer.dtimer_stop(memento)
     print(msg)
-    # response = response_to_txt(completion)
     response = completion["choices"][0]["message"]["content"]
     if print_cost:
         print(f"cost=${completion['cost']:.2f}")
@@ -783,139 +779,3 @@ def apply_prompt_to_dataframe(
         response_data.extend(processed_response)
     df[response_col] = response_data
     return df
-
-
-# #############################################################################
-# _CompletionCache
-# #############################################################################
-
-
-# TODO(gp): we can't use hcache_simple.simple_cache() because it uses a different cache
-# format and does not support conditions required by get_completion().
-class _CompletionCache:
-    """
-    Cache for get_completion().
-    """
-
-    def __init__(self, cache_file: str):
-        self.cache_file = cache_file
-        # Load the existing file(may not exist or may be invalid JSON)
-        try:
-            with open(self.cache_file, "r", encoding="utf-8") as f:
-                self.cache = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            self.cache = None
-        # Validates structure.
-        if (
-            not isinstance(self.cache, dict)
-            or "version" not in self.cache
-            or "metadata" not in self.cache
-            or "entries" not in self.cache
-            or not isinstance(self.cache["entries"], dict)
-        ):
-            # Responses will be stored in entries.
-            self.cache = {
-                "version": "1.0",
-                "metadata": {
-                    "created_at": datetime.datetime.now().isoformat(),
-                    "last_updated": datetime.datetime.now().isoformat(),
-                    "hits": 0,
-                    "misses": 0,
-                },
-                "entries": {},
-            }
-            with open(self.cache_file, "w", encoding="utf-8") as f:
-                json.dump(self.cache, f)
-
-    def hash_key_generator(
-        self,
-        model: str,
-        messages: List[Dict[str, str]],
-        **extra_kwargs: Any,
-    ) -> str:
-        """
-        Generate a hash key for the OpenAI request.
-        """
-        norm_msgs = []
-        for m in messages:
-            norm_msgs.append(
-                {
-                    "role": m["role"].strip().lower(),
-                    "content": " ".join(m["content"].split()).lower(),
-                }
-            )
-        key_obj: Dict[str, Any] = {
-            "model": model.strip().lower(),
-            "messages": norm_msgs,
-        }
-        for name in sorted(extra_kwargs):
-            key_obj[name] = extra_kwargs[name]
-        serialized = json.dumps(
-            key_obj,
-            # no spaces
-            separators=(",", ":"),
-            # keys in alphabetical order
-            sort_keys=True,
-            ensure_ascii=False,
-        )
-        return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
-
-    def has_cache(self, hash_key: str) -> bool:
-        """
-        Check if the hash key is in the cache.
-        """
-        return hash_key in self.cache["entries"]
-
-    def save_response_to_cache(
-        self, hash_key: str, request: dict, response: dict
-    ) -> None:
-        """
-        Save the cache to the cache directory.
-        """
-        entry = {"request": request, "response": response}
-        self.cache["entries"][hash_key] = entry
-        self.cache["metadata"][
-            "last_updated"
-        ] = datetime.datetime.now().isoformat()
-        self._write_cache_to_disk()
-
-    def load_response_from_cache(self, hash_key: str) -> Any:
-        """
-        Load the response from the cache directory.
-        """
-        if hash_key in self.cache["entries"]:
-            openai_response = self.cache["entries"][hash_key]["response"]
-            return openai_response["choices"][0]["message"]["content"]
-        raise ValueError("No cache found!")
-
-    def get_stats(self) -> dict:
-        """
-        Return basic stats: hits, misses, total entries.
-        """
-        stats = {
-            "hits": self.cache["metadata"]["hits"],
-            "misses": self.cache["metadata"]["misses"],
-            "entries_count": len(self.cache["entries"]),
-        }
-        return stats
-
-    def increment_cache_stat(self, key: str) -> None:
-        """
-        Update the hits, misses counter.
-        """
-        self.cache["metadata"][key] += 1
-        self._write_cache_to_disk()
-
-    def _write_cache_to_disk(self) -> None:
-        with open(self.cache_file, "w", encoding="utf-8") as f:
-            json.dump(self.cache, f, indent=2)
-
-    def _clear_cache(self) -> None:
-        """
-        Clear the cache from the file.
-        """
-        self.cache["entries"] = {}
-        self.cache["metadata"][
-            "last_updated"
-        ] = datetime.datetime.now().isoformat()
-        self._write_cache_to_disk()
