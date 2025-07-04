@@ -495,10 +495,10 @@ def simple_cache(
 
         @functools.wraps(func)
         def wrapper(
+            *args: Any,
             force_refresh: bool = False,
             abort_on_cache_miss: bool = False,
             report_on_cache_miss: bool = False,
-            *args: Any,
             **kwargs: Any,
         ) -> Any:
             # Get the function name.
