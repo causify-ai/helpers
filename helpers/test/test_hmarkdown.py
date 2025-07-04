@@ -1038,220 +1038,203 @@ class Test_md_clean_up1(hunitest.TestCase):
 
 class Test_modify_header_level1(hunitest.TestCase):
 
+    def _helper(self, input_lines: List[str], level: int, expected_lines: List[str]) -> None:
+        """
+        Helper method to test modify_header_level function.
+        
+        :param input_lines: list of input text lines
+        :param level: level adjustment to apply
+        :param expected_lines: list of expected output lines
+        """
+        # Prepare inputs.
+        input_text = "\n".join(input_lines)
+        # Call tested function.
+        actual = hmarkdo.modify_header_level(input_text, level)
+        # Check output.
+        expected = "\n".join(expected_lines)
+        self.assertEqual(actual, expected)
+
     def test1(self) -> None:
         """
         Test the inputs to increase headings.
         """
-        # Prepare inputs.
-        input_text = [
+        # Prepare inputs and outputs.
+        input_lines = [
             "# Chapter 1",
             "## Section 1.1",
             "### Subsection 1.1.1",
             "#### Sub-subsection 1.1.1.1",
         ]
-        input_text = "\n".join(input_text)
-        # Call tested function.
-        actual = hmarkdo.modify_header_level(input_text, 1)
-        # Check output.
-        expected = [
+        level = 1
+        expected_lines = [
             "## Chapter 1",
             "### Section 1.1",
             "#### Subsection 1.1.1",
             "##### Sub-subsection 1.1.1.1",
         ]
-        expected = "\n".join(expected)
-        self.assertEqual(actual, expected)
+        # Call the helper.
+        self._helper(input_lines, level, expected_lines)
 
     def test2(self) -> None:
         """
         Test inputs to increase headings with level 5 becoming level 6.
         """
-        # Prepare inputs.
-        input_text = ["# Chapter 1", "##### Sub-sub-subsection 1.1.1.1.1"]
-        input_text = "\n".join(input_text)
-        # Call tested function.
-        actual = hmarkdo.modify_header_level(input_text, 1)
-        # Check output.
-        expected = ["## Chapter 1", "###### Sub-sub-subsection 1.1.1.1.1"]
-        expected = "\n".join(expected)
-        self.assertEqual(actual, expected)
+        # Prepare inputs and outputs.
+        input_lines = ["# Chapter 1", "##### Sub-sub-subsection 1.1.1.1.1"]
+        level = 1
+        expected_lines = ["## Chapter 1", "###### Sub-sub-subsection 1.1.1.1.1"]
+        # Call the helper.
+        self._helper(input_lines, level, expected_lines)
 
     def test3(self) -> None:
         """
         Test inputs to increase headings including a paragraph which remains
         unchanged.
         """
-        # Prepare inputs.
-        input_text = ["# Chapter 1", "Paragraph 1"]
-        input_text = "\n".join(input_text)
-        # Call tested function.
-        actual = hmarkdo.modify_header_level(input_text, 1)
-        # Check output.
-        expected = ["## Chapter 1", "Paragraph 1"]
-        expected = "\n".join(expected)
-        self.assertEqual(actual, expected)
+        # Prepare inputs and outputs.
+        input_lines = ["# Chapter 1", "Paragraph 1"]
+        level = 1
+        expected_lines = ["## Chapter 1", "Paragraph 1"]
+        # Call the helper.
+        self._helper(input_lines, level, expected_lines)
 
     def test4(self) -> None:
         """
         Test inputs of paragraphs which remain unchanged.
         """
-        # Prepare inputs.
-        input_text = ["Paragraph 1", "Paragraph 2"]
-        input_text = "\n".join(input_text)
-        # Call tested function.
-        actual = hmarkdo.modify_header_level(input_text, 1)
-        # Check output.
-        expected = ["Paragraph 1", "Paragraph 2"]
-        expected = "\n".join(expected)
-        self.assertEqual(actual, expected)
+        # Prepare inputs and outputs.
+        input_lines = ["Paragraph 1", "Paragraph 2"]
+        level = 1
+        expected_lines = ["Paragraph 1", "Paragraph 2"]
+        # Call the helper.
+        self._helper(input_lines, level, expected_lines)
 
     def test5(self) -> None:
         """
         Test to increase headings with mixed levels.
         """
-        # Prepare inputs.
-        input_text = [
+        # Prepare inputs and outputs.
+        input_lines = [
             "# Chapter 1",
             "##### Sub-sub-subsection 1.1.1.1.1",
             "# Chapter 2",
             "### Subsection 2.1",
             "# Chapter 3",
         ]
-        input_text = "\n".join(input_text)
-        # Call tested function.
-        actual = hmarkdo.modify_header_level(input_text, 1)
-        # Check output.
-        expected = [
+        level = 1
+        expected_lines = [
             "## Chapter 1",
             "###### Sub-sub-subsection 1.1.1.1.1",
             "## Chapter 2",
             "#### Subsection 2.1",
             "## Chapter 3",
         ]
-        expected = "\n".join(expected)
-        self.assertEqual(actual, expected)
+        # Call the helper.
+        self._helper(input_lines, level, expected_lines)
 
     def test6(self) -> None:
         """
         Test the inputs to decrease headings.
         """
-        # Prepare inputs.
-        input_text = [
+        # Prepare inputs and outputs.
+        input_lines = [
             "## Section 1.1",
             "### Subsection 1.1.1",
             "#### Sub-subsection 1.1.1.1",
             "##### Sub-sub-subsection 1.1.1.1.1",
         ]
-        input_text = "\n".join(input_text)
-        # Call tested function.
-        actual = hmarkdo.modify_header_level(input_text, -1)
-        # Check output.
-        expected = [
+        level = -1
+        expected_lines = [
             "# Section 1.1",
             "## Subsection 1.1.1",
             "### Sub-subsection 1.1.1.1",
             "#### Sub-sub-subsection 1.1.1.1.1",
         ]
-        expected = "\n".join(expected)
-        self.assertEqual(actual, expected)
+        # Call the helper.
+        self._helper(input_lines, level, expected_lines)
 
     def test7(self) -> None:
         """
         Test inputs to decrease headings by one level.
         """
-        # Prepare inputs.
-        input_text = [
+        # Prepare inputs and outputs.
+        input_lines = [
             "## Chapter 1",
             "##### Sub-subsection 1.1.1.1",
         ]
-        input_text = "\n".join(input_text)
-        # Call tested function.
-        actual = hmarkdo.modify_header_level(input_text, -1)
-        # Check output.
-        expected = [
+        level = -1
+        expected_lines = [
             "# Chapter 1",
             "#### Sub-subsection 1.1.1.1",
         ]
-        expected = "\n".join(expected)
-        self.assertEqual(actual, expected)
+        # Call the helper.
+        self._helper(input_lines, level, expected_lines)
 
     def test8(self) -> None:
         """
         Test inputs of paragraphs which remain unchanged.
         """
-        # Prepare inputs.
-        input_text = ["Paragraph 1", "Paragraph 2", "Paragraph 3"]
-        input_text = "\n".join(input_text)
-        # Call tested function.
-        actual = hmarkdo.modify_header_level(input_text, -1)
-        # Check output.
-        expected = ["Paragraph 1", "Paragraph 2", "Paragraph 3"]
-        expected = "\n".join(expected)
-        self.assertEqual(actual, expected)
+        # Prepare inputs and outputs.
+        input_lines = ["Paragraph 1", "Paragraph 2", "Paragraph 3"]
+        level = -1
+        expected_lines = ["Paragraph 1", "Paragraph 2", "Paragraph 3"]
+        # Call the helper.
+        self._helper(input_lines, level, expected_lines)
 
     def test9(self) -> None:
         """
         Test increasing headers by 2 levels.
         """
-        # Prepare inputs.
-        input_text = [
+        # Prepare inputs and outputs.
+        input_lines = [
             "# Chapter 1",
             "## Section 1.1",
             "### Subsection 1.1.1",
         ]
-        input_text = "\n".join(input_text)
-        # Call tested function.
-        actual = hmarkdo.modify_header_level(input_text, 2)
-        # Check output.
-        expected = [
+        level = 2
+        expected_lines = [
             "### Chapter 1",
             "#### Section 1.1",
             "##### Subsection 1.1.1",
         ]
-        expected = "\n".join(expected)
-        self.assertEqual(actual, expected)
+        # Call the helper.
+        self._helper(input_lines, level, expected_lines)
 
     def test10(self) -> None:
         """
         Test decreasing headers by 2 levels.
         """
-        # Prepare inputs.
-        input_text = [
+        # Prepare inputs and outputs.
+        input_lines = [
             "### Chapter 1",
             "#### Section 1.1",
             "##### Subsection 1.1.1",
         ]
-        input_text = "\n".join(input_text)
-        # Call tested function.
-        actual = hmarkdo.modify_header_level(input_text, -2)
-        # Check output.
-        expected = [
+        level = -2
+        expected_lines = [
             "# Chapter 1",  # 3-2=1
             "## Section 1.1",  # 4-2=2
             "### Subsection 1.1.1",  # 5-2=3
         ]
-        expected = "\n".join(expected)
-        self.assertEqual(actual, expected)
+        # Call the helper.
+        self._helper(input_lines, level, expected_lines)
 
     def test11(self) -> None:
         """
         Test increasing headers by 2 levels.
         """
-        # Prepare inputs.
-        input_text = [
+        # Prepare inputs and outputs.
+        input_lines = [
             "### Level 3",
             "#### Level 4",
         ]
-        input_text = "\n".join(input_text)
-        # Call tested function.
-        actual = hmarkdo.modify_header_level(input_text, 2)
-        # Check output.
-        expected = [
+        level = 2
+        expected_lines = [
             "##### Level 3",  # 3+2=5
             "###### Level 4",  # 4+2=6
         ]
-        expected = "\n".join(expected)
-        self.assertEqual(actual, expected)
+        # Call the helper.
+        self._helper(input_lines, level, expected_lines)
 
 
 # #############################################################################

@@ -1021,7 +1021,7 @@ def modify_header_level(input_text: str, level: int) -> str:
         is_header_, current_level, title = is_header(line)
         if is_header_:
             modified_level = current_level + level
-            # Ensure modified level is within valid range (1-6 for markdown headers)
+            # Ensure modified level is within valid range (1-6 for markdown headers).
             hdbg.dassert_lte(1, modified_level)
             hdbg.dassert_lte(modified_level, 6)
             line = "#" * modified_level + " " + title

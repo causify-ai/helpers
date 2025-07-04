@@ -12,7 +12,8 @@
       "Bash(gh pr view:*)",
       "Bash(invoke git_branch_create *\")",
       "Bash(git add:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(git commit:*)"
     ],
     "deny": []
   }
