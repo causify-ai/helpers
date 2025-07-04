@@ -2288,6 +2288,7 @@ class Test_remove_table_of_contents1(hunitest.TestCase):
         """
         Test removing table of contents from markdown text.
         """
+        # Prepare inputs.
         text = """
         # Introduction
 
@@ -2314,8 +2315,10 @@ class Test_remove_table_of_contents1(hunitest.TestCase):
         Content of section 1.
         """
         text = hprint.dedent(text)
-        expected = hprint.dedent(expected)
+        # Run function.
         actual = hmarkdo.remove_table_of_contents(text)
+        # Check output.
+        expected = hprint.dedent(expected)
         self.assert_equal(actual, expected)
 
     def test_without_toc(self) -> None:
