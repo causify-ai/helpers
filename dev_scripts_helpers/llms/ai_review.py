@@ -15,9 +15,6 @@ _LOG = logging.getLogger(__name__)
 
 # TODO(gp): -> _parser() or _get_parser() everywhere.
 def _parse() -> argparse.ArgumentParser:
-    """
-    Use the same argparse parser for `dockerized_ai_review.py`.
-    """
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -40,6 +37,7 @@ def _parse() -> argparse.ArgumentParser:
     return parser
 
 
+# TODO(gp): Factor out the common code with `dockerized_llm_transform.py`.
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hparser.init_logger_for_input_output_transform(args)

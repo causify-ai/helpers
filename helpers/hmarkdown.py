@@ -896,6 +896,12 @@ def parse_rules_from_txt(txt: str) -> List[str]:
       first-level items.
 
     :param txt: text to process
+        ```
+        - Item 1
+        - Item 2
+           - Item 3
+        - Item 4
+        ```
     :return: extracted bullet points, e.g.,
     """
     lines = txt.split("\n")

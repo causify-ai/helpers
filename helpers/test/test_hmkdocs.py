@@ -45,7 +45,7 @@ class Test_remove_table_of_contents1(hunitest.TestCase):
         Content of section 1.
         """
         text = hprint.dedent(text)
-        # Run function.
+        # Run test.
         actual = hmkdocs.remove_table_of_contents(text)
         # Check output.
         expected = hprint.dedent(expected)
@@ -55,6 +55,7 @@ class Test_remove_table_of_contents1(hunitest.TestCase):
         """
         Test text without table of contents remains unchanged.
         """
+        # Prepare inputs.
         text = """
         # Introduction
 
@@ -65,13 +66,16 @@ class Test_remove_table_of_contents1(hunitest.TestCase):
         Content of section 1.
         """
         text = hprint.dedent(text)
+        # Run test.
         actual = hmkdocs.remove_table_of_contents(text)
+        # Check output.
         self.assert_equal(actual, text)
 
     def test_multiline_toc(self) -> None:
         """
         Test removing multi-line table of contents.
         """
+        # Prepare inputs.
         text = """
         # Introduction
 
@@ -93,8 +97,10 @@ class Test_remove_table_of_contents1(hunitest.TestCase):
         ## Section 1
         """
         text = hprint.dedent(text)
-        expected = hprint.dedent(expected)
+        # Run test.
         actual = hmkdocs.remove_table_of_contents(text)
+        # Check output.
+        expected = hprint.dedent(expected)
         self.assert_equal(actual, expected)
 
 
@@ -109,6 +115,7 @@ class Test_dedent_python_code_blocks1(hunitest.TestCase):
         """
         Test dedenting a simple Python code block.
         """
+        # Prepare inputs.
         text = """
         # Example
 
@@ -127,13 +134,16 @@ class Test_dedent_python_code_blocks1(hunitest.TestCase):
         """
         text = hprint.dedent(text)
         expected = hprint.dedent(expected)
+        # Run test.
         actual = hmkdocs.dedent_python_code_blocks(text)
+        # Check output.
         self.assert_equal(actual, expected)
 
     def test_multiple_code_blocks(self) -> None:
         """
         Test dedenting multiple Python code blocks.
         """
+        # Prepare inputs.
         text = """
         # Example 1
 
@@ -166,13 +176,16 @@ class Test_dedent_python_code_blocks1(hunitest.TestCase):
         """
         text = hprint.dedent(text)
         expected = hprint.dedent(expected)
+        # Run test.
         actual = hmkdocs.dedent_python_code_blocks(text)
+        # Check output.
         self.assert_equal(actual, expected)
 
     def test_no_python_blocks(self) -> None:
         """
         Test text without Python code blocks remains unchanged.
         """
+        # Prepare inputs.
         text = """
         # Example
 
@@ -183,13 +196,16 @@ class Test_dedent_python_code_blocks1(hunitest.TestCase):
         ```
         """
         text = hprint.dedent(text)
+        # Run test.
         actual = hmkdocs.dedent_python_code_blocks(text)
+        # Check output.
         self.assert_equal(actual, text)
 
     def test_already_aligned_code(self) -> None:
         """
         Test code that is already aligned.
         """
+        # Prepare inputs.
         text = """
         # Example
 
@@ -199,21 +215,24 @@ class Test_dedent_python_code_blocks1(hunitest.TestCase):
         ```
         """
         text = hprint.dedent(text)
+        # Run test.
         actual = hmkdocs.dedent_python_code_blocks(text)
+        # Check output.
         self.assert_equal(actual, text)
 
 
 # #############################################################################
-# Test_replace_indentation_with_four_spaces1
+# Test_replace_indentation1
 # #############################################################################
 
 
-class Test_replace_indentation_with_four_spaces1(hunitest.TestCase):
+class Test_replace_indentation1(hunitest.TestCase):
 
-    def test_two_space_indentation(self) -> None:
+    def test_two_to_four_spaces(self) -> None:
         """
         Test replacing 2-space indentation with 4-space indentation.
         """
+        # Prepare inputs.
         text = """
         - Item 1
           - Sub item 1
@@ -229,64 +248,165 @@ class Test_replace_indentation_with_four_spaces1(hunitest.TestCase):
             - Sub item 2
         """
         text = hprint.dedent(text)
+        # Run test.
+        actual = hmkdocs.replace_indentation(text, input_spaces=2, output_spaces=4)
+        # Check output.
         expected = hprint.dedent(expected)
-        actual = hmkdocs.replace_indentation_with_four_spaces(text)
         self.assert_equal(actual, expected)
 
-    def test_mixed_indentation(self) -> None:
+    def test_four_to_two_spaces(self) -> None:
         """
-        Test text with mixed indentation types.
+        Test replacing 4-space indentation with 2-space indentation.
         """
+        # Prepare inputs.
+        text = """
+        - Item 1
+            - Sub item 1
+                - Sub sub item 1
+        - Item 2
+            - Sub item 2
+        """
+        expected = """
+        - Item 1
+          - Sub item 1
+            - Sub sub item 1
+        - Item 2
+          - Sub item 2
+        """
+        text = hprint.dedent(text)
+        # Run test.
+        actual = hmkdocs.replace_indentation(text, input_spaces=4, output_spaces=2)
+        # Check output.
+        expected = hprint.dedent(expected)
+        self.assert_equal(actual, expected)
+
+    def test_two_to_eight_spaces(self) -> None:
+        """
+        Test replacing 2-space indentation with 8-space indentation.
+        """
+        # Prepare inputs.
+        text = """
+        - Item 1
+          - Sub item 1
+            - Sub sub item 1
+        """
+        expected = """
+        - Item 1
+                - Sub item 1
+                        - Sub sub item 1
+        """
+        text = hprint.dedent(text)
+        # Run test.
+        actual = hmkdocs.replace_indentation(text, input_spaces=2, output_spaces=8)
+        # Check output.
+        expected = hprint.dedent(expected)
+        self.assert_equal(actual, expected)
+
+    def test_three_to_six_spaces(self) -> None:
+        """
+        Test replacing 3-space indentation with 6-space indentation.
+        """
+        # Prepare inputs.
+        text = """
+        - Item 1
+           - Sub item 1
+              - Sub sub item 1
+        """
+        expected = """
+        - Item 1
+              - Sub item 1
+                    - Sub sub item 1
+        """
+        text = hprint.dedent(text)
+        # Run test.
+        actual = hmkdocs.replace_indentation(text, input_spaces=3, output_spaces=6)
+        # Check output.
+        expected = hprint.dedent(expected)
+        self.assert_equal(actual, expected)
+
+    def test_mixed_indentation_only_matches_input(self) -> None:
+        """
+        Test that only lines with exact input_spaces multiples are changed.
+        """
+        # Prepare inputs.
         text = """
         - Item 1
           - Sub item 1 (2 spaces)
-             - Sub item 2 (3 spaces, should not change)
-            - Sub item 3 (4 spaces, should not change)
-        - Item 2
+           - Sub item 2 (1 space, should not change)
+             - Sub item 3 (3 spaces, should not change)
+            - Sub item 4 (4 spaces, should not change)
         """
         expected = """
         - Item 1
             - Sub item 1 (2 spaces)
-             - Sub item 2 (3 spaces, should not change)
-            - Sub item 3 (4 spaces, should not change)
-        - Item 2
+           - Sub item 2 (1 space, should not change)
+             - Sub item 3 (3 spaces, should not change)
+            - Sub item 4 (4 spaces, should not change)
         """
         text = hprint.dedent(text)
         expected = hprint.dedent(expected)
-        actual = hmkdocs.replace_indentation_with_four_spaces(text)
+        # Run test.
+        actual = hmkdocs.replace_indentation(text, input_spaces=2, output_spaces=4)
+        # Check output.
         self.assert_equal(actual, expected)
 
     def test_no_indentation(self) -> None:
         """
         Test text without indentation remains unchanged.
         """
+        # Prepare inputs.
         text = """
         - Item 1
         - Item 2
         - Item 3
         """
         text = hprint.dedent(text)
-        actual = hmkdocs.replace_indentation_with_four_spaces(text)
+        # Run test.
+        actual = hmkdocs.replace_indentation(text, input_spaces=2, output_spaces=4)
+        # Check output.
         self.assert_equal(actual, text)
 
-    def test_four_space_indentation(self) -> None:
+    def test_same_input_output_spaces(self) -> None:
         """
-        Test that 4-space indentation becomes 8-space.
+        Test that using same input and output spaces leaves text unchanged.
         """
+        # Prepare inputs.
         text = """
         - Item 1
-            - Sub item 1 (4 spaces)
-        - Item 2
-        """
-        expected = """
-        - Item 1
-                - Sub item 1 (4 spaces)
-        - Item 2
+          - Sub item 1
+            - Sub sub item 1
         """
         text = hprint.dedent(text)
-        expected = hprint.dedent(expected)
-        actual = hmkdocs.replace_indentation_with_four_spaces(text)
-        self.assert_equal(actual, expected)
+        # Run test.
+        actual = hmkdocs.replace_indentation(text, input_spaces=2, output_spaces=2)
+        # Check output.
+        self.assert_equal(actual, text)
+
+    def test_empty_text(self) -> None:
+        """
+        Test empty text handling.
+        """
+        # Prepare inputs.
+        text = ""
+        # Run test.
+        actual = hmkdocs.replace_indentation(text, input_spaces=2, output_spaces=4)
+        # Check output.
+        self.assert_equal(actual, text)
+
+    def test_zero_to_four_spaces(self) -> None:
+        """
+        Test converting zero indentation to 4 spaces (edge case).
+        """
+        # Prepare inputs.
+        text = """
+        Item 1
+        Item 2
+        """
+        text = hprint.dedent(text)
+        # Run test.
+        actual = hmkdocs.replace_indentation(text, input_spaces=1, output_spaces=4)
+        # Check output.
+        self.assert_equal(actual, text)
 
 
 # #############################################################################
@@ -300,6 +420,7 @@ class Test_preprocess_mkdocs_markdown1(hunitest.TestCase):
         """
         Test the complete preprocessing pipeline.
         """
+        # Prepare inputs.
         text = """
         # Introduction
 
@@ -347,21 +468,27 @@ class Test_preprocess_mkdocs_markdown1(hunitest.TestCase):
         """
         text = hprint.dedent(text)
         expected = hprint.dedent(expected)
+        # Run test.
         actual = hmkdocs.preprocess_mkdocs_markdown(text)
+        # Check output.
         self.assert_equal(actual, expected)
 
     def test_empty_text(self) -> None:
         """
         Test preprocessing empty text.
         """
+        # Prepare inputs.
         text = ""
+        # Run test.
         actual = hmkdocs.preprocess_mkdocs_markdown(text)
+        # Check output.
         self.assert_equal(actual, text)
 
     def test_text_without_preprocessing_needs(self) -> None:
         """
         Test text that doesn't need any preprocessing.
         """
+        # Prepare inputs.
         text = """
         # Simple Markdown
 
@@ -371,5 +498,7 @@ class Test_preprocess_mkdocs_markdown1(hunitest.TestCase):
         - Item 2
         """
         text = hprint.dedent(text)
+        # Run test.
         actual = hmkdocs.preprocess_mkdocs_markdown(text)
+        # Check output.
         self.assert_equal(actual, text)

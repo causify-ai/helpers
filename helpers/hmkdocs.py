@@ -6,6 +6,8 @@ import helpers.hmkdocs as hmkdocs
 
 import re
 
+import helpers.hdbg as hdbg
+
 
 def remove_table_of_contents(txt: str) -> str:
     """
@@ -63,7 +65,32 @@ def dedent_python_code_blocks(txt: str) -> str:
     return "\n".join(result)
 
 
-# TODO(ai): Make the function general passing the number of input / output spaces.
+def replace_indentation(txt: str, input_spaces: int, output_spaces: int) -> str:
+    """
+    Replace indentation from input_spaces to output_spaces.
+
+    :param txt: Input markdown text
+    :param input_spaces: Number of spaces to detect as one indentation level
+    :param output_spaces: Number of spaces to replace each indentation level with
+    :return: Text with indentation replaced
+    """
+    hdbg.dassert_lte(1, input_spaces)
+    hdbg.dassert_lte(1, output_spaces)
+    lines = txt.split("\n")
+    result = []
+    for line in lines:
+        # Count leading spaces.
+        leading_spaces = len(line) - len(line.lstrip())
+        if leading_spaces > 0 and leading_spaces % input_spaces == 0:
+            # Calculate indentation level and convert to output spaces.
+            indentation_level = leading_spaces // input_spaces
+            new_indentation = " " * (indentation_level * output_spaces)
+            result.append(new_indentation + line.lstrip())
+        else:
+            result.append(line)
+    return "\n".join(result)
+
+
 def replace_indentation_with_four_spaces(txt: str) -> str:
     """
     Replace 2 spaces indentation with 4 spaces since this is what mkdocs needs.
@@ -72,18 +99,7 @@ def replace_indentation_with_four_spaces(txt: str) -> str:
     :return: Text with 2-space indentation replaced with 4-space
         indentation
     """
-    lines = txt.split("\n")
-    result = []
-    for line in lines:
-        # Count leading spaces.
-        leading_spaces = len(line) - len(line.lstrip())
-        if leading_spaces > 0 and leading_spaces % 2 == 0:
-            # Replace 2-space indentation with 4-space indentation
-            new_indentation = " " * (leading_spaces * 2)
-            result.append(new_indentation + line.lstrip())
-        else:
-            result.append(line)
-    return "\n".join(result)
+    return replace_indentation(txt, input_spaces=2, output_spaces=4)
 
 
 def preprocess_mkdocs_markdown(txt: str) -> str:
