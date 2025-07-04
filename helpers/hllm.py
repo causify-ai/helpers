@@ -106,6 +106,87 @@ def _extract(
 # TODO(gp): There are a lot of functions that share state (e.g., provider_name).
 # We should refactor them to use a class `LlmResponse`.
 
+class LLMResponse:
+    """
+    Class to handle OpenAI API responses.
+    """
+
+    def __init__(self):
+        self.provider_name ="openai"
+
+    def get_openai_client(self) -> openai.OpenAI:
+        """
+        Get an OpenAI compatible client.
+        """  
+        if self.provider_name == "openai":
+            base_url = "https://api.openai.com/v1"
+            api_key = os.environ.get("OPENAI_API_KEY")
+        elif self.provider_name == "openrouter":
+            base_url = "https://openrouter.ai/api/v1"
+            api_key = os.environ.get("OPENROUTER_API_KEY")
+        else:
+            raise ValueError(f"Unknown provider: {provider_name}")
+        _LOG.debug(hprint.to_str("provider_name base_url"))
+        client = openai.OpenAI(base_url=base_url, api_key=api_key)
+        return client   
+
+    def _default_model(self) -> str:
+        """
+        Get the default model for a provider.
+        """ 
+        if self.provider_name == "openai":
+            model = "gpt-4o"
+        elif self.provider_name == "openrouter":
+            model = "openai/gpt-4o"
+        else:
+            raise ValueError(f"Unknown provider: {self.provider_name}")
+        return model
+
+    def _build_messages(self, system_prompt: str, user_prompt: str) -> List[Dict[str, str]]:
+        """
+        Construct the standard messages payload for the chat API.
+        """
+        hdbg.dassert_isinstance(system_prompt, str)
+        hdbg.dassert_isinstance(user_prompt, str)
+        ret = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ]
+        return ret
+    
+    def _call_api_sync(
+        self,
+        client: openai.OpenAI,
+        messages: List[Dict[str, str]],
+        temperature: float,
+        model: str,
+        **create_kwargs) -> Tuple[str, Any]:
+        
+        """
+        Make a non-streaming API call and return (response, raw_completion).
+
+        return: a tuple with
+            - model response in OpenAI's completion object
+            - raw completion
+        """
+        completion = client.chat.completions.create(
+            model=model,
+            messages=messages,
+            temperature=temperature,
+            **create_kwargs,
+        )
+        model_response = completion.choices[0].message.content
+        return model_response, completion  
+
+    def get_completion(
+            self, ):
+        return
+               
+
+
+    
+    
+
 
 # TODO(*): Select the provider from command line together with the model.
 _PROVIDER_NAME = "openai"
