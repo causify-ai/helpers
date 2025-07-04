@@ -26,7 +26,7 @@ import shutil
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
-import helpers.hmarkdown as hmarkdo
+import helpers.hmkdocs as hmkdocs
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -87,7 +87,7 @@ def _process_markdown_files(directory: str) -> None:
                 # Read the file
                 content = hio.from_file(file_path)
                 # Apply preprocessing
-                processed_content = hmarkdo.preprocess_mkdocs_markdown(content)
+                processed_content = hmkdocs.preprocess_mkdocs_markdown(content)
                 # Write back to the same file
                 hio.to_file(file_path, processed_content)
                 _LOG.debug(f"Successfully processed: {file_path}")

@@ -108,6 +108,8 @@
 
 ## `ai_review.py`
 
+./docs/code_guidelines/all.coding_style_guidelines.reference.md
+
 ## `inject_todos.py`
 
 ## `apply_todos.py`

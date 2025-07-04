@@ -45,6 +45,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hparser.init_logger_for_input_output_transform(args)
     # Parse files.
     in_file_name, out_file_name = hparser.parse_input_output_args(args)
+    # Check that the prompt is valid.
     hdbg.dassert_in(
         args.prompt,
         [
@@ -54,6 +55,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
             "review_refactoring",
         ],
     )
+    # Make sure the output file name is `cfile` so that the output is printed
+    # to stdout.
     if out_file_name != "cfile":
         _LOG.warning(
             "The output file name is '%s': using `cfile`",
