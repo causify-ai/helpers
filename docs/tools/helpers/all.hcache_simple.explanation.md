@@ -173,8 +173,11 @@
       `@simple_cache(cache_type="json")`, the decorator sets the system property
       for the cache type
   - Wrapper execution:
-    - Key generation: The wrapper generates a `cache key` from both
-      arguments and keyword arguments.
+    - Key generation: The wrapper generates a `cache key` from both arguments
+      and keyword arguments.
+      - Exclude Keys: The wrapper excludes certain keys from the cache key by
+        using the `exclude_keys` argument in the decorator. These keys are
+        omitted from `kwargs` when forming the cache key.
     - Cache lookup:
       - If the key exists in the memory cache (and no force refresh is
         requested), it returns the cached value
@@ -214,6 +217,10 @@
   - Enable Write-Through:
     - When using `@simple_cache(write_through=True)`, the decorator will flush
       the memory cache to disk immediately after updating.
+  - Exclude Certain Keys from Cache Key:
+    - Use `@simple_cache(exclude_keys=["user_id", "timestamp"])` to ignore those
+      fields in `kwargs` when generating cache key. Useful when these parameters
+      don't affect the result and would otherwise reduce cache hits.
 
 ## Common Misunderstandings
 
