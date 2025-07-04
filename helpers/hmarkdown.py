@@ -1011,35 +1011,27 @@ def format_headers(in_file_name: str, out_file_name: str, max_lev: int) -> None:
     hparser.write_file(txt_tmp, out_file_name)
 
 
-def modify_header_level(input_text: str, mode: str) -> str:
+def modify_header_level(input_text: str, level: int) -> str:
     """
-    Increase or decrease the level of headings by one for the given text.
+    Increase or decrease the level of headings by the specified amount.
 
     :param input_text: the input text to modify
-    :param mode: indicates the increase or decrease of the header level
+    :param level: the amount to adjust header levels (positive
+        increases, negative decreases)
     :return: the modified text with header levels adjusted
     """
+    lines = input_text.split("\n")
     #
     txt_tmp = []
-    if mode == "increase":
-        mode_level = 1
-    elif mode == "decrease":
-        mode_level = -1
-    else:
-        raise ValueError(f"Unsupported mode='{mode}'")
-    lines = input_text.split("\n")
     for line in lines:
         # TODO(gp): Use the iterator.
         line = line.rstrip(r"\n")
-        is_header_, level, title = is_header(line)
+        is_header_, current_level, title = is_header(line)
         if is_header_:
-            modified_level = level + mode_level
-            if (mode_level == 1 and level > 4) or (
-                mode_level == -1 and level == 1
-            ):
-                # Handle edge cases for reducing (1 hash) and increasing (5 hashes)
-                # heading levels.
-                modified_level = level
+            modified_level = current_level + level
+            # Ensure modified level is within valid range (1-6 for markdown headers).
+            hdbg.dassert_lte(1, modified_level)
+            hdbg.dassert_lte(modified_level, 6)
             line = "#" * modified_level + " " + title
         txt_tmp.append(line)
     #
