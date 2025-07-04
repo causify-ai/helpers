@@ -218,9 +218,19 @@
     - When using `@simple_cache(write_through=True)`, the decorator will flush
       the memory cache to disk immediately after updating.
   - Exclude Certain Keys from Cache Key:
-    - Use `@simple_cache(exclude_keys=["user_id", "timestamp"])` to ignore those
-      fields in `kwargs` when generating cache key. Useful when these parameters
-      don't affect the result and would otherwise reduce cache hits.
+    - Suppose we have a function that uses an OpenAI client to fetch
+      completions, but the actual output depends only on the prompt. The
+      `client` object should be excluded from the cache key because it varies
+      per session:
+      ```python
+      @simple_cache(exclude_keys=["client"])
+      def get_summary(prompt: str, client: Any):
+          return client.complete(prompt=prompt)
+      ```
+    - Without `exclude_keys=["client"]`, each call with a different `client`
+      instance (even for the same prompt) would result in a cache miss. This
+      exclusion ensures the cache key is based only on the `prompt`, improving
+      hit rates.
 
 ## Common Misunderstandings
 
