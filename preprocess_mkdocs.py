@@ -62,13 +62,15 @@ def _copy_directory(input_dir: str, output_dir: str) -> None:
     :param input_dir: Source directory path
     :param output_dir: Destination directory path
     """
+    # TODO(ai): Use dassert_dir_exists().
     hdbg.dassert(
         os.path.exists(input_dir), f"Input directory '{input_dir}' does not exist"
     )
-    # Remove output directory if it exists and create fresh one
+    # Remove output directory if it exists and create fresh one.
     if os.path.exists(output_dir):
-        shutil.rmtree(output_dir)
-    # Copy the entire directory tree
+        hio.safe_rm_file(output_dir)
+    # Copy the entire directory tree.
+    # TODO(ai): Use hsystem("cp -r ...")
     shutil.copytree(input_dir, output_dir)
     _LOG.info(f"Copied directory from '{input_dir}' to '{output_dir}'")
 
@@ -80,11 +82,12 @@ def _process_markdown_files(directory: str) -> None:
     :param directory: Directory to process
     """
     for root, dirs, files in os.walk(directory):
+        _ = dirs
         for file in files:
             if file.endswith(".md"):
                 file_path = os.path.join(root, file)
                 _LOG.info(f"Processing markdown file: {file_path}")
-                # Read the file
+                # Read the file.
                 content = hio.from_file(file_path)
                 # Apply preprocessing
                 processed_content = hmkdocs.preprocess_mkdocs_markdown(content)

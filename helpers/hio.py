@@ -806,3 +806,56 @@ def load_df_from_json(path_to_json: str) -> "pd.DataFrame":  # type: ignore
     # Package into a dataframe.
     df = pd.DataFrame(data)
     return df
+
+
+# #############################################################################
+# Directory operations
+# #############################################################################
+
+
+def safe_rm_file(dir_path: str) -> None:
+    """
+    Safely remove a file after ensuring it's within our Git client.
+
+    This function provides a safety check to prevent accidental deletion of
+    files outside our Git repository.
+
+    :param dir_path: Path to the directory to delete
+    :raises AssertionError: If dir_path is not within the Git client
+    :raises OSError: If directory doesn't exist or can't be deleted
+    """
+    import helpers.hgit as hgit
+    # Convert to absolute path for comparison.
+    dir_path = os.path.abspath(dir_path)
+    # Get the Git client root.
+    git_root = hgit.find_git_root()
+    git_root = os.path.abspath(git_root)
+    # Ensure the directory is within our Git client.
+    hdbg.dassert(
+        dir_path.startswith(git_root),
+        "Directory '%s' is not within Git client root '%s'",
+        dir_path,
+        git_root,
+    )
+    # Additional safety check: prevent deletion of Git root itself.
+    hdbg.dassert_ne(
+        dir_path,
+        git_root,
+        "Cannot delete Git client root directory '%s'",
+        git_root,
+    )
+    # Verify directory exists before attempting deletion.
+    hdbg.dassert(
+        os.path.exists(dir_path),
+        "Directory '%s' does not exist",
+        dir_path,
+    )
+    hdbg.dassert(
+        os.path.isdir(dir_path),
+        "Path '%s' is not a directory",
+        dir_path,
+    )
+    # Perform the deletion.
+    _LOG.debug("Safely removing directory: %s", dir_path)
+    shutil.rmtree(dir_path)
+    _LOG.debug("Successfully removed directory: %s", dir_path)
