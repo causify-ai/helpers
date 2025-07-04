@@ -1009,7 +1009,8 @@ def modify_header_level(input_text: str, level: int) -> str:
     Increase or decrease the level of headings by the specified amount.
 
     :param input_text: the input text to modify
-    :param level: the amount to adjust header levels (positive increases, negative decreases)
+    :param level: the amount to adjust header levels (positive
+        increases, negative decreases)
     :return: the modified text with header levels adjusted
     """
     lines = input_text.split("\n")

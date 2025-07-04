@@ -1038,22 +1038,6 @@ class Test_md_clean_up1(hunitest.TestCase):
 
 class Test_modify_header_level1(hunitest.TestCase):
 
-    def _helper(self, input_lines: List[str], level: int, expected_lines: List[str]) -> None:
-        """
-        Helper method to test modify_header_level function.
-        
-        :param input_lines: list of input text lines
-        :param level: level adjustment to apply
-        :param expected_lines: list of expected output lines
-        """
-        # Prepare inputs.
-        input_text = "\n".join(input_lines)
-        # Call tested function.
-        actual = hmarkdo.modify_header_level(input_text, level)
-        # Check output.
-        expected = "\n".join(expected_lines)
-        self.assertEqual(actual, expected)
-
     def test1(self) -> None:
         """
         Test the inputs to increase headings.
@@ -1235,6 +1219,24 @@ class Test_modify_header_level1(hunitest.TestCase):
         ]
         # Call the helper.
         self._helper(input_lines, level, expected_lines)
+
+    def _helper(
+        self, input_lines: List[str], level: int, expected_lines: List[str]
+    ) -> None:
+        """
+        Helper method to test `modify_header_level` function.
+
+        :param input_lines: list of input text lines
+        :param level: level adjustment to apply
+        :param expected_lines: list of expected output lines
+        """
+        # Prepare inputs.
+        input_text = "\n".join(input_lines)
+        # Call tested function.
+        actual = hmarkdo.modify_header_level(input_text, level)
+        # Check output.
+        expected = "\n".join(expected_lines)
+        self.assertEqual(actual, expected)
 
 
 # #############################################################################
@@ -1528,7 +1530,6 @@ class Test_sanity_check_header_list1(hunitest.TestCase):
         header_list = get_header_list1()
         # Call function.
         hmarkdo.sanity_check_header_list(header_list)
-        self.assertTrue(True)
 
     def test2(self) -> None:
         """
@@ -1553,7 +1554,6 @@ class Test_sanity_check_header_list1(hunitest.TestCase):
         header_list = get_header_list5()
         # Call function.
         hmarkdo.sanity_check_header_list(header_list)
-        self.assertTrue(True)
 
 
 # //////////////////////////////////////////////////////////////////////////////
