@@ -39,8 +39,18 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("--input_dir", action="store", required=True, help="Input directory containing markdown files")
-    parser.add_argument("--output_dir", action="store", required=True, help="Output directory for processed files")
+    parser.add_argument(
+        "--input_dir",
+        action="store",
+        required=True,
+        help="Input directory containing markdown files",
+    )
+    parser.add_argument(
+        "--output_dir",
+        action="store",
+        required=True,
+        help="Output directory for processed files",
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -48,16 +58,16 @@ def _parse() -> argparse.ArgumentParser:
 def _copy_directory(input_dir: str, output_dir: str) -> None:
     """
     Copy all files from input directory to output directory.
-    
+
     :param input_dir: Source directory path
     :param output_dir: Destination directory path
     """
-    hdbg.dassert(os.path.exists(input_dir), f"Input directory '{input_dir}' does not exist")
-    
+    hdbg.dassert(
+        os.path.exists(input_dir), f"Input directory '{input_dir}' does not exist"
+    )
     # Remove output directory if it exists and create fresh one
     if os.path.exists(output_dir):
         shutil.rmtree(output_dir)
-    
     # Copy the entire directory tree
     shutil.copytree(input_dir, output_dir)
     _LOG.info(f"Copied directory from '{input_dir}' to '{output_dir}'")
@@ -66,42 +76,35 @@ def _copy_directory(input_dir: str, output_dir: str) -> None:
 def _process_markdown_files(directory: str) -> None:
     """
     Process all markdown files in the given directory recursively.
-    
+
     :param directory: Directory to process
     """
     for root, dirs, files in os.walk(directory):
         for file in files:
-            if file.endswith('.md'):
+            if file.endswith(".md"):
                 file_path = os.path.join(root, file)
                 _LOG.info(f"Processing markdown file: {file_path}")
-                
                 # Read the file
                 content = hio.from_file(file_path)
-                
                 # Apply preprocessing
                 processed_content = hmarkdo.preprocess_mkdocs_markdown(content)
-                
                 # Write back to the same file
                 hio.to_file(file_path, processed_content)
-                
                 _LOG.debug(f"Successfully processed: {file_path}")
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    
     input_dir = args.input_dir
     output_dir = args.output_dir
-    
-    _LOG.info(f"Starting mkdocs preprocessing from '{input_dir}' to '{output_dir}'")
-    
+    _LOG.info(
+        f"Starting mkdocs preprocessing from '{input_dir}' to '{output_dir}'"
+    )
     # Step 1: Copy all files from input to output directory
     _copy_directory(input_dir, output_dir)
-    
     # Step 2: Process markdown files in place in the output directory
     _process_markdown_files(output_dir)
-    
     _LOG.info("Mkdocs preprocessing completed successfully")
 
 

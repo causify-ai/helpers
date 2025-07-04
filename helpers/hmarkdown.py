@@ -896,12 +896,6 @@ def parse_rules_from_txt(txt: str) -> List[str]:
       first-level items.
 
     :param txt: text to process
-        ```
-        - Item 1
-        - Item 2
-           - Item 3
-        - Item 4
-        ```
     :return: extracted bullet points, e.g.,
     """
     lines = txt.split("\n")
@@ -1402,8 +1396,9 @@ def format_latex(txt: str) -> str:
 
 def remove_table_of_contents(txt: str) -> str:
     """
-    Remove the table of contents stored between <!-- toc --> and <!-- tocstop -->.
-    
+    Remove the table of contents stored between <!-- toc --> and <!-- tocstop
+    -->.
+
     :param txt: Input markdown text
     :return: Text with table of contents removed
     """
@@ -1415,17 +1410,16 @@ def remove_table_of_contents(txt: str) -> str:
 def dedent_python_code_blocks(txt: str) -> str:
     """
     Dedent Python code blocks so they are aligned.
-    
+
     :param txt: Input markdown text
     :return: Text with Python code blocks dedented
     """
     import textwrap
-    
+
     lines = txt.split("\n")
     result = []
     in_python_block = False
     code_block_lines = []
-    
     for line in lines:
         if line.strip() == "```python":
             in_python_block = True
@@ -1444,20 +1438,19 @@ def dedent_python_code_blocks(txt: str) -> str:
             code_block_lines.append(line)
         else:
             result.append(line)
-    
     return "\n".join(result)
 
 
 def replace_indentation_with_four_spaces(txt: str) -> str:
     """
     Replace 2 spaces indentation with 4 spaces since this is what mkdocs needs.
-    
+
     :param txt: Input markdown text
-    :return: Text with 2-space indentation replaced with 4-space indentation
+    :return: Text with 2-space indentation replaced with 4-space
+        indentation
     """
     lines = txt.split("\n")
     result = []
-    
     for line in lines:
         # Count leading spaces
         leading_spaces = len(line) - len(line.lstrip())
@@ -1467,19 +1460,18 @@ def replace_indentation_with_four_spaces(txt: str) -> str:
             result.append(new_indentation + line.lstrip())
         else:
             result.append(line)
-    
     return "\n".join(result)
 
 
 def preprocess_mkdocs_markdown(txt: str) -> str:
     """
     Preprocess markdown text for mkdocs.
-    
+
     This function applies the following transformations:
     1. Remove table of contents between <!-- toc --> and <!-- tocstop -->
     2. Dedent Python code blocks so they are aligned
     3. Replace 2 spaces indentation with 4 spaces
-    
+
     :param txt: Input markdown text
     :return: Preprocessed markdown text
     """

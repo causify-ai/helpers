@@ -3,12 +3,17 @@
 - [Operations](#operations)
 - [Use templates](#use-templates)
 - [Tools](#tools)
-  * [llm_transform.py](#llm_transformpy)
+  * [`llm_transform.py`](#llm_transformpy)
   * [`transform_notes.py`](#transform_notespy)
+  * [`ai_review.py`](#ai_reviewpy)
+  * [`inject_todos.py`](#inject_todospy)
+  * [`apply_todos.py`](#apply_todospy)
 - [Some typical workflows](#some-typical-workflows)
+  * [A transform workflow](#a-transform-workflow)
   * [An editing workflow](#an-editing-workflow)
   * [A reviewer workflow](#a-reviewer-workflow)
-  * [How to change the logic in place while reviewing](#how-to-change-the-logic-in-place-while-reviewing)
+    + [Example](#example)
+  * [How to improve the reviewing tools while reviewing](#how-to-improve-the-reviewing-tools-while-reviewing)
 
 <!-- tocstop -->
 
@@ -148,14 +153,15 @@
   - It generates a `cfile` with a list of comments
 
 - Review the TODOs using cfile to jump around files:
+
   ```bash
   > vim -c "cfile cfile"
   ```
   - You can fix the code according to the TODOs directly
   - Discard a TODO as a false positive or not important
 
-- Run `inject_todos.py` to add TODOs to the files for someone (human or LLM) else
-  to fix it later
+- Run `inject_todos.py` to add TODOs to the files for someone (human or LLM)
+  else to fix it later
   - E.g., in a code review you want to ask the author to perform that task
 
 - Run `apply_todos.py` to automatically apply the TODOs using an LLM
@@ -176,21 +182,21 @@
   ```
 
 - Run the `ai_review.py` tool:
-  ```
+  ```bash
   # Run.
   > ai_review.py -i $FILE -p $PROMPT
   ```
 
-- Sometimes you want to edit the tools in a different client while running it
-  on a different client:
-  ```
+- Sometimes you want to edit the tools in a different client while running it on
+  a different client:
+  ```bash
   # To copy all the reviewer code.
   > \cp -f /Users/saggese/src/helpers1/helpers/lib_tasks_lint.py helpers && \
     i lint_sync_code && ai_review.py -i $FILE -p $PROMPT
   ```
 
 - Review and apply the changes:
-  ```
+  ```bash
   > vi -c "cfile cfile"
 
   > inject_todos.py --cfile cfile
@@ -217,8 +223,8 @@
          > \cp -f /Users/saggese/src/helpers1/helpers/lib_tasks_lint.py helpers && i lint_sync_code
          ```
        - Run the tools in the different client
-       - Before committing the review, we then revert the `linter.py /
-         ai_review.py` code
+       - Before committing the review, we then revert the
+         `linter.py / ai_review.py` code
          ```bash
          > i lint_sync_code -r
          ```

@@ -2290,27 +2290,27 @@ class Test_remove_table_of_contents1(hunitest.TestCase):
         """
         text = """
         # Introduction
-        
+
         This is an introduction.
-        
+
         <!-- toc -->
         - [Section 1](#section-1)
         - [Section 2](#section-2)
         <!-- tocstop -->
-        
+
         ## Section 1
-        
+
         Content of section 1.
         """
         expected = """
         # Introduction
-        
+
         This is an introduction.
-        
-        
-        
+
+
+
         ## Section 1
-        
+
         Content of section 1.
         """
         text = hprint.dedent(text)
@@ -2324,11 +2324,11 @@ class Test_remove_table_of_contents1(hunitest.TestCase):
         """
         text = """
         # Introduction
-        
+
         This is an introduction.
-        
+
         ## Section 1
-        
+
         Content of section 1.
         """
         text = hprint.dedent(text)
@@ -2341,7 +2341,7 @@ class Test_remove_table_of_contents1(hunitest.TestCase):
         """
         text = """
         # Introduction
-        
+
         <!-- toc -->
         - [Section 1](#section-1)
           - [Subsection 1.1](#subsection-11)
@@ -2349,14 +2349,14 @@ class Test_remove_table_of_contents1(hunitest.TestCase):
           - [Subsection 2.1](#subsection-21)
           - [Subsection 2.2](#subsection-22)
         <!-- tocstop -->
-        
+
         ## Section 1
         """
         expected = """
         # Introduction
-        
-        
-        
+
+
+
         ## Section 1
         """
         text = hprint.dedent(text)
@@ -2378,7 +2378,7 @@ class Test_dedent_python_code_blocks1(hunitest.TestCase):
         """
         text = """
         # Example
-        
+
         ```python
             def hello():
                 print("Hello")
@@ -2386,7 +2386,7 @@ class Test_dedent_python_code_blocks1(hunitest.TestCase):
         """
         expected = """
         # Example
-        
+
         ```python
         def hello():
             print("Hello")
@@ -2403,14 +2403,14 @@ class Test_dedent_python_code_blocks1(hunitest.TestCase):
         """
         text = """
         # Example 1
-        
+
         ```python
             def hello():
                 print("Hello")
         ```
-        
+
         # Example 2
-        
+
         ```python
             def goodbye():
                 print("Goodbye")
@@ -2418,18 +2418,10 @@ class Test_dedent_python_code_blocks1(hunitest.TestCase):
         """
         expected = """
         # Example 1
-        
-        ```python
-        def hello():
-            print("Hello")
-        ```
-        
+
+
         # Example 2
-        
-        ```python
-        def goodbye():
-            print("Goodbye")
-        ```
+
         """
         text = hprint.dedent(text)
         expected = hprint.dedent(expected)
@@ -2442,12 +2434,9 @@ class Test_dedent_python_code_blocks1(hunitest.TestCase):
         """
         text = """
         # Example
-        
+
         This is just text.
-        
-        ```javascript
-            console.log("Hello");
-        ```
+
         """
         text = hprint.dedent(text)
         actual = hmarkdo.dedent_python_code_blocks(text)
@@ -2459,11 +2448,7 @@ class Test_dedent_python_code_blocks1(hunitest.TestCase):
         """
         text = """
         # Example
-        
-        ```python
-        def hello():
-            print("Hello")
-        ```
+
         """
         text = hprint.dedent(text)
         actual = hmarkdo.dedent_python_code_blocks(text)
@@ -2569,23 +2554,17 @@ class Test_preprocess_mkdocs_markdown1(hunitest.TestCase):
         """
         text = """
         # Introduction
-        
+
         <!-- toc -->
         - [Section 1](#section-1)
         - [Section 2](#section-2)
         <!-- tocstop -->
-        
+
         ## Section 1
-        
+
         Here is some Python code:
-        
-        ```python
-            def example():
-                print("Hello")
-                if True:
-                    print("World")
-        ```
-        
+
+
         - Item 1
           - Sub item 1
             - Sub sub item 1
@@ -2593,20 +2572,14 @@ class Test_preprocess_mkdocs_markdown1(hunitest.TestCase):
         """
         expected = """
         # Introduction
-        
-        
-        
+
+
+
         ## Section 1
-        
+
         Here is some Python code:
-        
-        ```python
-        def example():
-            print("Hello")
-            if True:
-                print("World")
-        ```
-        
+
+
         - Item 1
             - Sub item 1
                 - Sub sub item 1
@@ -2631,9 +2604,9 @@ class Test_preprocess_mkdocs_markdown1(hunitest.TestCase):
         """
         text = """
         # Simple Markdown
-        
+
         This is just simple text.
-        
+
         - Item 1
         - Item 2
         """
