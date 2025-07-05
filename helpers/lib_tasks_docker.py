@@ -20,6 +20,7 @@ from invoke import task
 import helpers.hdbg as hdbg
 import helpers.hdict as hdict
 import helpers.hdocker as hdocker
+import helpers.henv as henv
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -363,7 +364,7 @@ def _docker_login_ecr() -> None:
         cmd = f"eval $(aws ecr get-login --profile {profile} --no-include-email --region {region})"
     elif major_version == 2:
         if profile == "ck":
-            env_var = "CSFY_ECR_BASE_PATH"
+            env_var = f"CSFY_ECR_BASE_PATH"
         else:
             env_var = f"{profile.upper()}_ECR_BASE_PATH"
         ecr_base_path = hlitauti.get_default_param(env_var)
@@ -558,47 +559,55 @@ def _generate_docker_compose_file(
     # We could do the same also with IMAGE for symmetry.
     # Keep the env vars in sync with what we print in `henv.get_env_vars()`.
     # Configure `base_app` service.
-    base_app_spec = {
-        "cap_add": ["SYS_ADMIN"],
-        "environment": [
-            f"CSFY_ENABLE_DIND={CSFY_ENABLE_DIND}",
-            "CSFY_FORCE_TEST_FAIL=$CSFY_FORCE_TEST_FAIL",
-            f"CSFY_HOST_NAME={csfy_host_name}",
-            f"CSFY_HOST_OS_NAME={csfy_host_os_name}",
-            f"CSFY_HOST_OS_VERSION={csfy_host_os_version}",
-            f"CSFY_HOST_USER_NAME={csfy_host_user_name}",
-            "CSFY_REPO_CONFIG_CHECK=True",
-            # Use inferred path for `repo_config.py`.
-            "CSFY_REPO_CONFIG_PATH=",
-            "CSFY_AWS_ACCESS_KEY_ID=$CSFY_AWS_ACCESS_KEY_ID",
-            "CSFY_AWS_DEFAULT_REGION=$CSFY_AWS_DEFAULT_REGION",
-            "CSFY_AWS_PROFILE=$CSFY_AWS_PROFILE",
-            "CSFY_AWS_S3_BUCKET=$CSFY_AWS_S3_BUCKET",
-            "CSFY_AWS_SECRET_ACCESS_KEY=$CSFY_AWS_SECRET_ACCESS_KEY",
-            "CSFY_AWS_SESSION_TOKEN=$CSFY_AWS_SESSION_TOKEN",
-            "CSFY_ECR_BASE_PATH=$CSFY_ECR_BASE_PATH",
-            # The path of the outermost Git root on the host.
-            f"CSFY_HOST_GIT_ROOT_PATH={git_host_root_path}",
-            # The path of the outermost Git root in the Docker container.
-            f"CSFY_GIT_ROOT_PATH={git_root_path}",
-            # The path of the helpers dir in the Docker container (e.g.,
-            # `/app`, `/app/helpers_root`)
-            f"CSFY_HELPERS_ROOT_PATH={helper_root_path}",
-            f"CSFY_USE_HELPERS_AS_NESTED_MODULE={use_helpers_as_nested_module}",
-            "CSFY_TELEGRAM_TOKEN=$CSFY_TELEGRAM_TOKEN",
-            # This env var is used by GH Action to signal that we are inside the
-            # CI. It's set up by default by the GH Action runner. See:
-            # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/store-information-in-variables#default-environment-variables
-            "CSFY_CI=$CSFY_CI",
-            "OPENAI_API_KEY=$OPENAI_API_KEY",
-            # TODO(Vlad): consider removing, locally we use our personal tokens
-            # from files and inside GitHub actions we use the `GH_TOKEN`
-            # environment variable.
+    # TODO(gp): Use henv.get_env_vars() to get the env vars.
+    environment = [
+        f"CSFY_ENABLE_DIND={CSFY_ENABLE_DIND}",
+        f"CSFY_FORCE_TEST_FAIL=$CSFY_FORCE_TEST_FAIL",
+        f"CSFY_HOST_NAME={csfy_host_name}",
+        f"CSFY_HOST_OS_NAME={csfy_host_os_name}",
+        f"CSFY_HOST_OS_VERSION={csfy_host_os_version}",
+        f"CSFY_HOST_USER_NAME={csfy_host_user_name}",
+        "CSFY_REPO_CONFIG_CHECK=True",
+        # Use inferred path for `repo_config.py`.
+        "CSFY_REPO_CONFIG_PATH=",
+        "CSFY_AWS_ACCESS_KEY_ID=$CSFY_AWS_ACCESS_KEY_ID",
+        "CSFY_AWS_DEFAULT_REGION=$CSFY_AWS_DEFAULT_REGION",
+        "CSFY_AWS_PROFILE=$CSFY_AWS_PROFILE",
+        "CSFY_AWS_S3_BUCKET=$CSFY_AWS_S3_BUCKET",
+        "CSFY_AWS_SECRET_ACCESS_KEY=$CSFY_AWS_SECRET_ACCESS_KEY",
+        "CSFY_AWS_SESSION_TOKEN=$CSFY_AWS_SESSION_TOKEN",
+        "CSFY_ECR_BASE_PATH=$CSFY_ECR_BASE_PATH",
+        # The path of the outermost Git root on the host.
+        f"CSFY_HOST_GIT_ROOT_PATH={git_host_root_path}",
+        # The path of the outermost Git root in the Docker container.
+        f"CSFY_GIT_ROOT_PATH={git_root_path}",
+        # The path of the helpers dir in the Docker container (e.g.,
+        # `/app`, `/app/helpers_root`)
+        f"CSFY_HELPERS_ROOT_PATH={helper_root_path}",
+        f"CSFY_USE_HELPERS_AS_NESTED_MODULE={use_helpers_as_nested_module}",
+        "CSFY_TELEGRAM_TOKEN=$CSFY_TELEGRAM_TOKEN",
+        # This env var is used by GH Action to signal that we are inside the
+        # CI. It's set up by default by the GH Action runner. See:
+        # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/store-information-in-variables#default-environment-variables
+        "CSFY_CI=$CSFY_CI",
+        # TODO(Vlad): consider removing, locally we use our personal tokens
+        # from files and inside GitHub actions we use the `GH_TOKEN`
+        # environment variable.
+    ]
+    environment.extend(
+        [
             "GH_ACTION_ACCESS_TOKEN=$GH_ACTION_ACCESS_TOKEN",
             # Inside GitHub Actions we use `GH_TOKEN` environment variable,
             # see https://cli.github.com/manual/gh_auth_login.
             "GH_TOKEN=$GH_ACTION_ACCESS_TOKEN",
-        ],
+        ]
+    )
+    api_key_env_vars = henv.get_api_key_env_vars()
+    environment.extend([f"{env_var}=${env_var}" for env_var in api_key_env_vars])
+    #
+    base_app_spec = {
+        "cap_add": ["SYS_ADMIN"],
+        "environment": environment,
         "image": "${IMAGE}",
         "restart": "no",
         "volumes": [
