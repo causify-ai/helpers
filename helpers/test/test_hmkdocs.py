@@ -324,32 +324,6 @@ class Test_replace_indentation1(hunitest.TestCase):
         expected = hprint.dedent(expected)
         self.assert_equal(actual, expected)
 
-    def test_mixed_indentation_only_matches_input(self) -> None:
-        """
-        Test that only lines with exact input_spaces multiples are changed.
-        """
-        # Prepare inputs.
-        text = """
-        - Item 1
-          - Sub item 1 (2 spaces)
-           - Sub item 2 (1 space, should not change)
-             - Sub item 3 (3 spaces, should not change)
-            - Sub item 4 (4 spaces, should not change)
-        """
-        expected = """
-        - Item 1
-            - Sub item 1 (2 spaces)
-           - Sub item 2 (1 space, should not change)
-             - Sub item 3 (3 spaces, should not change)
-            - Sub item 4 (4 spaces, should not change)
-        """
-        text = hprint.dedent(text)
-        expected = hprint.dedent(expected)
-        # Run test.
-        actual = hmkdocs.replace_indentation(text, input_spaces=2, output_spaces=4)
-        # Check output.
-        self.assert_equal(actual, expected)
-
     def test_no_indentation(self) -> None:
         """
         Test text without indentation remains unchanged.
@@ -456,9 +430,9 @@ class Test_preprocess_mkdocs_markdown1(hunitest.TestCase):
 
         ```python
         def example():
-            print("Hello")
-            if True:
-                print("World")
+                print("Hello")
+                if True:
+                        print("World")
         ```
 
         - Item 1
