@@ -214,10 +214,10 @@
   - Set Force Refresh:
     - With this property set, each call to `multiply_by_two(4)` will recompute
       the result and update the cache.
-  - Enable Write-Through:
+  - Enable `write_through`:
     - When using `@simple_cache(write_through=True)`, the decorator will flush
       the memory cache to disk immediately after updating.
-  - Exclude Certain Keys from Cache Key:
+  - Exclude certain keys from cache key:
     - Suppose we have a function that uses an OpenAI client to fetch
       completions, but the actual output depends only on the prompt. The
       `client` object should be excluded from the cache key because it varies
