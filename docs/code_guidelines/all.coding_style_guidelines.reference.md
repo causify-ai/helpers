@@ -694,14 +694,15 @@
 - Do not use pickle files for test inputs
   - Use JSON, YAML, CSV files for test inputs as they are more secure and
     human-readable
-- In every test method, separate logically distinct code chunks with comments
+- In every test method separate logically distinct code chunks to prepare the
+  inputs, run the tests, and check the outputs using comments like below:
   - E.g.,
     ```
-    # Prepare inputs
+    # Prepare inputs.
     input_data = [1, 2, 3]
-    # Run test
+    # Run test.
     result = my_function(input_data)
-    # Check outputs
+    # Check outputs.
     self.assert_equal(result, expected_output)
     ```
 - Do not use `hdbg.dassert` in testing but use `self.assert*()` methods

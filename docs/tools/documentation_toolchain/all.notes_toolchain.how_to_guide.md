@@ -299,29 +299,97 @@ The supported File types and code blocks are:
 
 ### What it does
 
-- Tidy up Markdown/LaTeX/txt notes by:
-  - Normalising G‑Doc artifacts
+- Tidy up notes in different formats (selected with the file extension or `--type`):
+  - Markdown
+  - LaTeX
+  - txt notes
+
+- Various preprocessing and postprocessing steps:
+  - Refreshing the Table of Contents
+  - Normalising Google Docs artifacts
   - Running Prettier
   - Fixing bullet/heading quirks
-  - Refreshing the Table of Contents
+
+### 
+
+    "preprocess",
+    "prettier",
+    "postprocess",
+    "frame_chapters",
+    "refresh_toc",
 
 ### Examples
+
+- Basic usage
+  ```bash
+  > lint_notes.py -i input.md -o output.md
+  ```
+
+- Process specific actions only
+  ```
+  > lint_notes.py -i input.md -o output.md --action preprocess,prettier
+  ```
 
 - Prettify with Dockerised Prettier and TOC rebuild
 
   ```bash
   > lint_notes.py -i Lesson10.md \
-       --use_dockerized_prettier \
-       --use_dockerized_markdown_toc
+      --use_dockerized_prettier \
+      --use_dockerized_markdown_toc
   ```
 
 - Custom print width and selective actions
   ```bash
   > lint_notes.py -i draft.txt -o tidy.txt -w 100 \
-                --action preprocess,prettier,postprocess
+      --action preprocess,prettier,postprocess
+  ```
+
+- Use in vim for inline formatting
+  ```verbatim
+  :%!lint_notes.py
   ```
 
 ### Interface
+
+```text
+> lint_notes.py -h
+usage: lint_notes.py [-h] -i IN_FILE_NAME [-o OUT_FILE_NAME] [--type TYPE] [-w PRINT_WIDTH] [--use_dockerized_prettier] [--use_dockerized_markdown_toc]
+                     [--action {preprocess,prettier,postprocess,frame_chapters,refresh_toc} | --skip_action {preprocess,prettier,postprocess,frame_chapters,refresh_toc}] [--all]
+                     [--dockerized_force_rebuild] [--dockerized_use_sudo] [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
+
+See instructions at docs/tools/documentation_toolchain/all.notes_toolchain.how_to_guide.md
+
+Lint "notes" files.
+
+> lint_notes.py -i foo.md -o bar.md     --use_dockerized_prettier     --use_dockerized_markdown_toc
+
+- It can be used in vim to prettify a part of the text using stdin / stdout.
+```
+:%!lint_notes.py
+```
+
+options:
+  -h, --help            show this help message and exit
+  -i IN_FILE_NAME, --in_file_name IN_FILE_NAME
+                        Input file or `-` for stdin
+  -o OUT_FILE_NAME, --out_file_name OUT_FILE_NAME
+                        Output file or `-` for stdout
+  --type TYPE
+  -w PRINT_WIDTH, --print-width PRINT_WIDTH
+  --use_dockerized_prettier
+  --use_dockerized_markdown_toc
+  --action {preprocess,prettier,postprocess,frame_chapters,refresh_toc}
+                        Actions to execute
+  --skip_action {preprocess,prettier,postprocess,frame_chapters,refresh_toc}
+                        Actions to skip
+  --all                 Run all the actions (preprocess prettier postprocess frame_chapters refresh_toc)
+  --dockerized_force_rebuild
+                        Force to rebuild the Docker container
+  --dockerized_use_sudo
+                        Use sudo inside the container
+  -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
+                        Set the logging level
+```
 
 // TODO
 
