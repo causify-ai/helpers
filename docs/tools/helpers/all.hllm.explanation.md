@@ -11,6 +11,7 @@
   * [Entire Flow](#entire-flow)
 - [How Testing Works](#how-testing-works)
   * [Cache Refreshing](#cache-refreshing)
+- [Proposal for integrating `hcache_simple.simple_cache()`](#proposal-for-integrating-hcache_simplesimple_cache)
 
 <!-- tocstop -->
 
@@ -42,7 +43,8 @@
   - `model`: OpenAI or OpenRouter model to use.
   - `cache_mode`: One of:
     - `"DISABLE_CACHE"`: No caching.
-    - `"HIT_CACHE_OR_ABORT"`: Only use cached response; raise error if not found.
+    - `"HIT_CACHE_OR_ABORT"`: Only use cached response; raise error if not
+      found.
     - `"NORMAL"`: Use cache if available, else make an API call.
     - `"REFRESH_CACHE"`: Always make an API call and update the cache.
   - `cache_file`: Path to JSON cache file.
@@ -174,8 +176,8 @@ This section summarizes how `get_completion()` operates internally.
 # How Testing Works
 
 - During unit tests, the cache:
-  - Is set in `HIT_CACHE_OR_ABORT` mode to avoid real API calls (tests raise error if the
-    required response is not cached)
+  - Is set in `HIT_CACHE_OR_ABORT` mode to avoid real API calls (tests raise
+    error if the required response is not cached)
   - Uses for cache a file that is checked into the repo
   - Expected prompts and responses are cached beforehand or as tests are
     executed
@@ -209,3 +211,53 @@ This section summarizes how `get_completion()` operates internally.
 
 - Once the cache is refreshed, the cache should be reviewed and committed the
   updated cache file to version control
+
+# Proposal for integrating `hcache_simple.simple_cache()`
+
+- Consolidating the bespoke `_CompletionCache` logic in `hllm.get_completion()`
+  by adopting the `simple_cache()` decorator from `helpers.hcache_simple`.
+
+- Instead of wrapping the top‐level `get_completion()`, apply caching directly
+  to the internal `_call_api_sync` function where the actual OpenAI/OpenRouter
+  API call is made:
+
+  ```python
+  from helpers import hcache_simple as hcacsimp
+
+  @hcacsimp.simple_cache(
+      write_through=True,
+      exclude_keys=["client", "cache_mode"],
+  )
+  def _call_api_sync_cached(
+      cache_mode: str,
+      client: openai.OpenAI,
+      messages: List[Dict[str, str]],
+      model: str,
+      temperature: float,
+      **create_kwargs,
+  ) -> Dict[str, Any]:
+      hdbg.dassert_in(cache_mode, ("REFRESH_CACHE", "HIT_CACHE_OR_ABORT", "NORMAL"))
+      return _call_api_sync(
+          client=client,
+          messages=messages,
+          model=model,
+          temperature=temperature,
+          **create_kwargs,
+      )
+  ```
+
+- In `get_completion()`, map the existing `cache_mode` values to the
+  `simple_cache()`'s parameters:
+  - `REFRESH_CACHE` → `force_refresh=True`
+  - `HIT_CACHE_OR_ABORT` → `abort_on_cache_miss=True`
+
+- Benefits
+  - Leverages `hcache_simple`'s tested in‐memory and disk caching.
+  - Eliminates custom JSON serialization and metadata management.
+  - Simplifies `hllm.py` by removing the `_CompletionCache` class.
+
+- Trade-offs
+  - The legacy prompt normalization (lowercasing and whitespace trimming) must
+    be handled upstream if still required.
+  - Cache metadata format and statistics will follow `hcache_simple` conventions
+    rather than the custom JSON schema.
