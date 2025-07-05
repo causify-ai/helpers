@@ -10,6 +10,23 @@
 
 <!-- tocstop -->
 
+#
+
+```
+> preprocess_mkdocs.py --input_dir <IN_DIR> --output_dir <OUT_DIR>
+```
+
+1. Copy all the files from `docs` to `tmp.mkdocs` so that we can modify the files in
+   `tmp.mkdocs`
+2. Process each of the markdown files in place
+   - Remove the table of content stored between <!-- toc --> and <!-- tocstop -->
+   - Render ```python by dedenting so that it is aligned
+   - Replace 2 spaces indentation with 4 spaces since this is what `mkdocs` needs
+
+diff_to_vimdiff.py --dir1 docs --dir2 tmp.mkdocs
+
+diff -r --brief docs tmp.mkdocs
+
 # MkDocs documentation deployment
 
 ## Solution overview
