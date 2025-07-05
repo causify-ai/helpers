@@ -76,6 +76,7 @@
   - `text_*`: process free form (not markdown) text
 
 - You can list the available transformations with:
+
   ```bash
   > llm_transform.py -p list
   # Available prompt tags:
@@ -93,6 +94,7 @@
 - Some transformations don't need LLMs and are implemented as code
 
 - You can see the available transforms with:
+
   ```bash
   > transform_notes.py -a list
   test: compute the hash of a string to test the flow
@@ -145,9 +147,11 @@
 - Go to the Git branch with the code to review
 
 - Check which files are modified
+
   ```bash
   > invoke git_branch_diff_with -t base --only-print-files
   ```
+
 - Run `ai_review.py` on each file to generate a list of comments on the code
   - This is equivalent to running a `review` target with `llm_transform.py`
     (e.g., `llm_transform.py -p review_*`) but it is a separated flow for
@@ -171,7 +175,8 @@
 
 ### Example
 
-- There are multiple targets for the `ai_review.py` to select.
+- There are multiple targets for the `ai_review.py`
+
   ```bash
   # Specify the target prompt for ai_review.py.
   > PROMPT=review_llm

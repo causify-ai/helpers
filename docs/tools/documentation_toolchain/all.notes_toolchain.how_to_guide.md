@@ -330,7 +330,7 @@ The supported File types and code blocks are:
   > lint_notes.py -i input.md -o output.md --action preprocess,prettier
   ```
 
-- Prettify with Dockerised Prettier and TOC rebuild
+- Prettify with Dockerized Prettier and TOC rebuild
 
   ```bash
   > lint_notes.py -i Lesson10.md \
