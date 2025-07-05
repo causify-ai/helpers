@@ -284,23 +284,22 @@ def remove_formatting(txt: str) -> str:
 
 
 def md_clean_up(txt: str) -> str:
-    # Replace \( ... \) math syntax with $ ... $.
-    txt = re.sub(r"\\\(\s*(.*?)\s*\\\)", r"$\1$", txt)
-    # Replace \[ ... \] math syntax with $$ ... $$, handling multiline equations.
-    txt = re.sub(r"\\\[(.*?)\\\]", r"$$\1$$", txt, flags=re.DOTALL)
-    # Replace `P(.)`` with `\Pr(.)`.
-    # txt = re.sub(r"P\((.*?)\)", r"\\Pr(\1)", txt)
-    # Replace \left[, \right].
-    txt = re.sub(r"\\left\[", r"[", txt)
-    txt = re.sub(r"\\right\]", r"]", txt)
-    # Replace \mid with `|`.
-    txt = re.sub(r"\\mid", r"|", txt)
+    """
+    Clean up a Markdown file copy-pasted from Google Docs, ChatGPT.
+
+    :param txt: The input text to process
+    :return: The text with the cleaning up applied
+    """
+    # 0) General formatting.
+    # Remove dot at the end of each line.
+    txt = re.sub(r"\.\s*$", "", txt, flags=re.MULTILINE)
+    # 1) ChatGPT formatting.
     # E.g.,``  • Description Logics (DLs) are a family``
     # Replace `•` with `-`
     txt = re.sub(r"•\s+", r"- ", txt)
     # Replace `\t` with 2 spaces
     txt = re.sub(r"\t", r"  ", txt)
-    # Remove `⸻`.
+    # Remove `⋅`.
     txt = re.sub(r"⸻", r"", txt)
     # “
     txt = re.sub(r"“", r'"', txt)
@@ -308,19 +307,27 @@ def md_clean_up(txt: str) -> str:
     txt = re.sub(r"”", r'"', txt)
     # ’
     txt = re.sub(r"’", r"'", txt)
-    # →
+    # 2) Latex formatting.
+    # Replace \( ... \) math syntax with $ ... $.
+    txt = re.sub(r"\\\(\s*(.*?)\s*\\\)", r"$\1$", txt)
+    # Replace \[ ... \] math syntax with $$ ... $$, handling multiline equations.
+    txt = re.sub(r"\\\[(.*?)\\\]", r"$$\1$$", txt, flags=re.DOTALL)
+    # Replace `P(.)`` with `\Pr(.)`.
+    txt = re.sub(r"P\((.*?)\)", r"\\Pr(\1)", txt)
+    #
+    txt = re.sub(r"\\left\[", r"[", txt)
+    txt = re.sub(r"\\right\]", r"]", txt)
+    #
+    txt = re.sub(r"\\mid", r"|", txt)
+    #
     txt = re.sub(r"→", r"$\\rightarrow$", txt)
     # Remove empty spaces at beginning / end of Latex equations $...$.
     # E.g., $ \text{Student} $ becomes $\text{Student}$
     # txt = re.sub(r"\$\s+(.*?)\s\$", r"$\1$", txt)
-    # Remove dot at the end of each line.
-    txt = re.sub(r"\.\s*$", "", txt, flags=re.MULTILINE)
     # Transform `Example: Training a deep` into `E.g., training a deep`,
     # converting the word after `Example:` to lower case.
     txt = re.sub(r"\bExample:", "E.g.,", txt)
     txt = re.sub(r"\bE.g.,\s+(\w)", lambda m: "E.g., " + m.group(1).lower(), txt)
-    # Replace \mid with `|`.
-    txt = re.sub(r"\\mid", r"|", txt)
     return txt
 
 
@@ -414,7 +421,14 @@ class HeaderInfo:
         self.level = level
         #
         hdbg.dassert_isinstance(description, str)
-        hdbg.dassert_ne(description, "", "Invalid HeaderInfo: %s, %s, %s", level, description, line_number)
+        hdbg.dassert_ne(
+            description,
+            "",
+            "Invalid HeaderInfo: %s, %s, %s",
+            level,
+            description,
+            line_number,
+        )
         self.description = description
         #
         hdbg.dassert_isinstance(line_number, int)
@@ -486,9 +500,7 @@ def sanity_check_header_list(header_list: HeaderList) -> None:
             hdbg.dassert_isinstance(header_list[i], HeaderInfo)
             if header_list[i].level - header_list[i - 1].level > 1:
                 msg = []
-                msg.append(
-                    "Consecutive headers increase by more than one level:"
-                )
+                msg.append("Consecutive headers increase by more than one level:")
                 msg.append(f"  {header_list[i - 1]}")
                 msg.append(f"  {header_list[i]}")
                 msg = "\n".join(msg)
@@ -536,7 +548,7 @@ def extract_headers_from_markdown(
 
 
 def extract_slides_from_markdown(
-    txt: str, 
+    txt: str,
 ) -> HeaderList:
     """
     Extract slides (i.e., sections prepended by `*`) from Markdown file and
@@ -1000,42 +1012,31 @@ def format_headers(in_file_name: str, out_file_name: str, max_lev: int) -> None:
     hparser.write_file(txt_tmp, out_file_name)
 
 
-def modify_header_level(
-    in_file_name: str, out_file_name: str, mode: str
-) -> None:
+def modify_header_level(input_text: str, level: int) -> str:
     """
-    Increase or decrease the level of headings by one for text in stdin.
+    Increase or decrease the level of headings by the specified amount.
 
-    :param in_file_name: the name of the input file to read
-    :param out_file_name: the name of the output file to write the
-        modified text to
-    :param mode: indicates the increase or decrease of the header level
+    :param input_text: the input text to modify
+    :param level: the amount to adjust header levels (positive
+        increases, negative decreases)
+    :return: the modified text with header levels adjusted
     """
-    txt = hparser.read_file(in_file_name)
+    lines = input_text.split("\n")
     #
     txt_tmp = []
-    if mode == "increase":
-        mode_level = 1
-    elif mode == "decrease":
-        mode_level = -1
-    else:
-        raise ValueError(f"Unsupported mode='{mode}'")
-    for line in txt:
+    for line in lines:
         # TODO(gp): Use the iterator.
         line = line.rstrip(r"\n")
-        is_header_, level, title = is_header(line)
+        is_header_, current_level, title = is_header(line)
         if is_header_:
-            modified_level = level + mode_level
-            if (mode_level == 1 and level > 4) or (
-                mode_level == -1 and level == 1
-            ):
-                # Handle edge cases for reducing (1 hash) and increasing (5 hashes)
-                # heading levels.
-                modified_level = level
+            modified_level = current_level + level
+            # Ensure modified level is within valid range (1-6 for markdown headers).
+            hdbg.dassert_lte(1, modified_level)
+            hdbg.dassert_lte(modified_level, 6)
             line = "#" * modified_level + " " + title
         txt_tmp.append(line)
     #
-    hparser.write_file(txt_tmp, out_file_name)
+    return "\n".join(txt_tmp)
 
 
 # #############################################################################

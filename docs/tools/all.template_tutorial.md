@@ -1,4 +1,4 @@
-# Tutorial Guide: script.py
+# <Template> Tutorial Guide
 
 <!-- toc -->
 
@@ -12,11 +12,11 @@
 
 ## Introduction
 
-- Provide a brief description of the task and what it does.
+- Provide a brief description of the task and what it does
 
 ## What You'll Learn
 
-- Describe what the files does.
+- Describe what the files does
 
 - Sample reference:
   - A Markdown file with diagram code blocks
@@ -36,10 +36,10 @@
 
 - Describe the execution with proper syntax for commands to be executed.
   ```bash
-  python render_images.py -i input.md -o output.md
+  > python render_images.py -i input.md -o output.md
   ```
 
 ## Output
 
-- Explain in few lines what the expected output is. Describe necessary commands
-  to check output format and content.
+- Explain in few lines what the expected output is
+  - Describe necessary commands to check output format and content

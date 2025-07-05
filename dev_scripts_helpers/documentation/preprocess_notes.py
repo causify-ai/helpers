@@ -10,7 +10,7 @@ The full list of transformations is:
 - Remove comments
 - Expand abbreviations
 - Process questions "* ..."
-- remove empty lines in the questions and answers
+- Remove empty lines in the questions and answers
 - Remove all the lines with only spaces
 - Add TOC
 """
