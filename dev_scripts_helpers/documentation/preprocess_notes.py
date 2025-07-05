@@ -56,6 +56,31 @@ def _process_abbreviations(in_line: str) -> str:
     return line
 
 
+# Define colors and their LaTeX equivalents.
+_COLORS = {
+    "red": "red",
+    "orange": "orange",
+    "yellow": "yellow",
+    "lime": "lime",
+    # 
+    "green": "darkgreen",
+    "teal": "teal",
+    "cyan": "cyan",
+    "blue": "blue",
+    "purple": "purple",
+    "violet": "violet",
+    "magenta": "magenta",
+    "pink": "pink",
+    "brown": "brown",
+    "olive": "olive",
+    "gray": "gray",
+    "darkgray": "darkgray",
+    "lightgray": "lightgray",
+    "black": "black",
+    "white": "white",
+}
+
+
 def _process_color_commands(in_line: str) -> str:
     r"""
     Transform color commands like `\red{xyz}` into valid LaTeX syntax.
@@ -66,29 +91,7 @@ def _process_color_commands(in_line: str) -> str:
     - \red{abc} -> \textcolor{red}{\text{abc}}
     - \blue{x + y} -> \textcolor{blue}{x + y}
     """
-    # Define supported colors
-    colors = {
-        "red": "red",
-        "orange": "orange",
-        "yellow": "yellow",
-        "lime": "lime",
-        "green": "darkgreen",
-        "teal": "teal",
-        "cyan": "cyan",
-        "blue": "blue",
-        "purple": "purple",
-        "violet": "violet",
-        "magenta": "magenta",
-        "pink": "pink",
-        "brown": "brown",
-        "olive": "olive",
-        "gray": "gray",
-        "darkgray": "darkgray",
-        "lightgray": "lightgray",
-        "black": "black",
-        "white": "white",
-    }
-    for color, value in colors.items():
+    for color, value in _COLORS.items():
         # This regex matches LaTeX color commands like \red{content}, \blue{content}, etc.
         pattern = re.compile(
             rf"""
@@ -112,6 +115,62 @@ def _process_color_commands(in_line: str) -> str:
         # Replace the color command with the LaTeX color command.
         in_line = re.sub(pattern, lambda m: _replacement(m, value), in_line)
     return in_line
+    
+
+def _has_color_command(line: str) -> bool:
+    hdbg.dassert_isinstance(line, str)
+    hdbg.dassert_not_in("\n", line)
+    for color in _COLORS.keys():
+        # This regex matches LaTeX color commands like \red{content}, \blue{content}, etc.
+        pattern = re.compile(
+            rf"""
+            \\{color}    # Match the color command (e.g., \red, \blue, etc.).
+            \{{          # Match the opening curly brace.
+            ([^}}]*)     # Capture everything inside the curly braces.
+            \}}          # Match the closing curly brace.
+            """,
+            re.VERBOSE,
+        )
+        if re.search(pattern, line):
+            return True
+    return False
+
+
+def _colorize_bullet_points(txt: str) -> str:
+    """
+    Given a string with bold text (but no color), colorize the bold text.
+    """
+    # Scan the text line by line and count how many bold items there are.
+    for line in txt.split("\n"):
+        # Count the number of bold items.
+        num_bold = len(re.findall(r"\*\*", line))
+        tot_bold += num_bold
+    _LOG.debug("tot_bold=%s", tot_bold)
+    if tot_bold == 0:
+        return txt
+    hdbg.dassert_eq(tot_bold % 2, 0, "tot_bold=%s needs to be even", tot_bold)
+    # Use the colors in the order of the list of colors.
+    num_bolds = tot_bold // 2
+    hdbg.dassert_lte(num_bolds, len(_COLORS))
+    colors = list(_COLORS.keys())[:num_bolds]
+    _LOG.debug("colors=%s", colors)
+    # Colorize the bold items.
+    color_idx = 0
+    out_txt = ""
+    for line in txt.split("\n"):
+        # Replace the strings like "**foo**" with a string like "**\red{foo}**".
+        # Find all bold text patterns and wrap them with color commands
+        # Keep track of which color to use for each match
+        def color_replacer(match):
+            nonlocal color_idx
+            text = match.group(1)
+            hdbg.dassert_lte(color_idx, len(colors))
+            color_to_use = colors[color_idx]
+            color_idx += 1
+            return f"**\\{color_to_use}{{{text}}}**"
+        line = re.sub(r"\*\*([^*]+)\*\*", color_replacer, line)
+        txt += line + "\n"
+    return txt
 
 
 def _process_enumerated_list(in_line: str) -> str:
@@ -198,7 +257,7 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
         _LOG.debug("%s:line=%s", i, line)
         # 1) Remove comment block.
         if _TRACE:
-            _LOG.debug("# 1) Process comment block.")
+            _LOG.debug("# Process comment block.")
         do_continue, in_skip_block = hmarkdo.process_comment_block(
             line, in_skip_block
         )
@@ -208,7 +267,7 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
             continue
         # 2) Remove code block.
         if _TRACE:
-            _LOG.debug("# 2) Process code block.")
+            _LOG.debug("# Process code block.")
         # TODO(gp): Not sure why this is needed. For sure the extra spacing
         # creates a problem with the Python code blocks rendered by pandoc beamer.
         if False:
@@ -220,25 +279,25 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
                 continue
         # 3) Remove single line comment.
         if _TRACE:
-            _LOG.debug("# 3) Process single line comment.")
+            _LOG.debug("# Process single line comment.")
         do_continue = hmarkdo.process_single_line_comment(line)
         if do_continue:
             continue
         # 4) Expand abbreviations.
         if _TRACE:
-            _LOG.debug("# 4) Process abbreviations.")
+            _LOG.debug("# Process abbreviations.")
         line = _process_abbreviations(line)
         # 5) Process enumerated list.
         if _TRACE:
-            _LOG.debug("# 5) Process enumerated list.")
+            _LOG.debug("# Process enumerated list.")
         line = _process_enumerated_list(line)
         # 6) Process color commands.
         if _TRACE:
-            _LOG.debug("# 6) Process color commands.")
+            _LOG.debug("# Process color commands.")
         line = _process_color_commands(line)
         # 7) Process question.
         if _TRACE:
-            _LOG.debug("# 7) Process question.")
+            _LOG.debug("# Process question.")
         if type_ == "slides":
             do_continue, line = _process_question_to_slides(line)
         else:
@@ -248,7 +307,7 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
             continue
         # 8) Process empty lines in the questions and answers.
         if _TRACE:
-            _LOG.debug("# 8) Process empty lines in the questions and answers.")
+            _LOG.debug("# Process empty lines in the questions and answers.")
         if not is_qa:
             out.append(line)
         else:
