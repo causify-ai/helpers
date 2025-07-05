@@ -32,6 +32,7 @@
 .md-typeset h3 {
   color: #0096ff;            /* Even lighter blue */
   font-size: 1.5em;
+  font-weight: 600;
   //text-transform: uppercase; /* Make it uppercase */
   margin-top: 1em;
 }
@@ -40,6 +41,20 @@
 .md-typeset h4 {
   color: #333;               /* Neutral gray */
   font-size: 1.3em;
+  font-weight: 600;
   //font-style: italic;        /* Just to show it's different */
   margin-top: 0.8em;
+}
+
+/* Make all links blue with underline, and red on hover */
+a {
+  color: #007acc;          /* link color */
+  font-weight: 600;
+  text-decoration: underline; /* underline all links */
+}
+
+a:hover {
+  color: #e63946;         /* link color on hover */
+  font-weight: 600;
+  text-decoration: underline; /* underline all links */
 }
