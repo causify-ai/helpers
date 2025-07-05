@@ -239,7 +239,7 @@
   non-deterministic behavior (e.g., randomness, time-based logic) may yield
   inconsistent results.
 
-- **force_refresh Must Be Reset**: Once `force_refresh` is set, every call
+- **`force_refresh` Must Be Reset**: Once `force_refresh` is set, every call
   recomputes the result. Users must manually unset this flag if they want to
   resume normal caching.
 
