@@ -27,6 +27,10 @@ diff_to_vimdiff.py --dir1 docs --dir2 tmp.mkdocs
 
 diff -r --brief docs tmp.mkdocs
 
+docs/set_mkdocs.sh
+
+source mkdocs/bin/activate
+
 # MkDocs documentation deployment
 
 ## Solution overview
