@@ -1,19 +1,10 @@
 #!/usr/bin/env python
 
 """
-Lint "notes" files.
-
-> lint_notes.py -i foo.md -o bar.md \
-    --use_dockerized_prettier \
-    --use_dockerized_markdown_toc
-
-It can be used in vim to prettify a part of the text using stdin / stdout.
-```
-:%!lint_notes.py
-```
+See instructions at docs/tools/documentation_toolchain/all.notes_toolchain.how_to_guide.md
 """
 
-# TODO(gp): -> lint_md.py
+# TODO(gp): -> lint_txt.py
 
 import argparse
 import logging
@@ -37,31 +28,39 @@ _LOG = logging.getLogger(__name__)
 
 def _preprocess(txt: str) -> str:
     """
-    Preprocess the given text by removing specific artifacts.
+    Preprocess the given text before applying `prettier`.
+
+    E.g.,
+    - removes specific artifacts
+    - formats math equations
+    - formats bullet points
+    - formats frames
 
     :param txt: The text to be processed.
     :return: The preprocessed text.
     """
     _LOG.debug("txt=%s", txt)
-    # Remove some artifacts when copying from gdoc.
+    # 1) Remove some artifacts when copying from Google Docs.
+    # TODO(gp): Extract this into remove_google_docs_artifacts() since it is
+    # used in other places.
     txt = re.sub(r"’", "'", txt)
     txt = re.sub(r"“", '"', txt)
     txt = re.sub(r"”", '"', txt)
     txt = re.sub(r"…", "...", txt)
     txt_new: List[str] = []
     for line in txt.split("\n"):
-        # Skip frames.
+        # 2) Skip frames for all the type formats.
         if re.match(r"#+ [#\/\-\=]{6,}$", line):
             continue
+        # 3) Transforms * and ** bullets to - STAR and - SSTAR (temporary markers).
         line = re.sub(r"^\s*\*\s+", "- STAR", line)
         line = re.sub(r"^\s*\*\*\s+", "- SSTAR", line)
-        # Transform:
-        # $$E_{in} = \frac{1}{N} \sum_i e(h(\vx_i), y_i)$$
-        #
-        # $$E_{in}(\vw) = \frac{1}{N} \sum_i \big(
-        # -y_i \log(\Pr(h(\vx) = 1|\vx)) - (1 - y_i) \log(1 - \Pr(h(\vx)=1|\vx))
-        # \big)$$
-        #
+        # 4) Format math equations.
+        #   $$E_{in} = \frac{1}{N} \sum_i e(h(\vx_i), y_i)$$
+        # into:
+        #   $$E_{in}(\vw) = \frac{1}{N} \sum_i \big(
+        #   -y_i \log(\Pr(h(\vx) = 1|\vx)) - (1 - y_i) \log(1 - \Pr(h(\vx)=1|\vx))
+        #   \big)$$
         # $$
         if re.search(r"^\s*\$\$\s*$", line):
             txt_new.append(line)
@@ -86,8 +85,8 @@ def _preprocess(txt: str) -> str:
             continue
         txt_new.append(line)
     txt_new_as_str = "\n".join(txt_new)
-    # Replace multiple empty lines with one, to avoid prettier to start using
-    # `*` instead of `-`.
+    # 5) Replace multiple empty lines with one, to avoid `prettier` to start
+    #    using `*` instead of `-`.
     txt_new_as_str = re.sub(r"\n\s*\n", "\n\n", txt_new_as_str)
     #
     _LOG.debug("txt_new_as_str=%s", txt_new_as_str)
@@ -200,6 +199,7 @@ def prettier_on_str(
     return txt  # type: ignore
 
 
+# TODO(gp): Rename to `postprocess_after_prettier`.
 def _postprocess(txt: str, in_file_name: str) -> str:
     """
     Post-process the given text by applying various transformations.
@@ -281,6 +281,7 @@ def _frame_chapters(txt: str, *, max_lev: int = 4) -> str:
     return txt_new_as_str
 
 
+# TODO(gp): Should go in `hmarkdown.py`.
 def _refresh_toc(
     txt: str,
     *,
@@ -341,6 +342,8 @@ def _refresh_toc(
 
 
 # #############################################################################
+# Perform all actions.
+# #############################################################################
 
 
 def _to_execute_action(action: str, actions: Optional[List[str]] = None) -> bool:
@@ -350,6 +353,7 @@ def _to_execute_action(action: str, actions: Optional[List[str]] = None) -> bool
     return to_execute
 
 
+# TODO(gp): -> _perform_actions()
 def _process(
     txt: str,
     in_file_name: str,
@@ -368,6 +372,7 @@ def _process(
         actions.
     :return: The processed text.
     """
+    # Get the file type.
     is_md_file = in_file_name.endswith(".md")
     extension = os.path.splitext(in_file_name)[1]
     # Remove the . from the extenstion (e.g., ".txt").
@@ -401,10 +406,16 @@ def _process(
 # #############################################################################
 
 _VALID_ACTIONS = [
+    # _preprocess(): preprocess the given text before applying `prettier`.
     "preprocess",
+    # _prettier(): prettify the given text with `prettier` for both latex and
+    # markdown.
     "prettier",
+    # _postprocess(): post-process the given text.
     "postprocess",
+    # _frame_chapters(): frame the chapters.
     "frame_chapters",
+    # _refresh_toc(): refresh the table of contents.
     "refresh_toc",
 ]
 
