@@ -140,6 +140,7 @@ def _colorize_bullet_points(txt: str) -> str:
     """
     Given a string with bold text (but no color), colorize the bold text.
     """
+    tot_bold = 0
     # Scan the text line by line and count how many bold items there are.
     for line in txt.split("\n"):
         # Count the number of bold items.
