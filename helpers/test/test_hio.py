@@ -123,11 +123,11 @@ class Test_load_df_from_json(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_safe_remove_dir
+# Test_safe_rm_file
 # #############################################################################
 
 
-class Test_safe_remove_dir(hunitest.TestCase):
+class Test_safe_rm_file(hunitest.TestCase):
 
     def test_successful_removal_within_git_client(self) -> None:
         """
@@ -143,7 +143,7 @@ class Test_safe_remove_dir(hunitest.TestCase):
         # Verify directory exists before removal
         self.assertTrue(os.path.exists(test_dir))
         # Run test.
-        hio.safe_remove_dir(test_dir)
+        hio.safe_rm_file(test_dir)
         # Check output.
         self.assertFalse(os.path.exists(test_dir))
 
@@ -162,7 +162,7 @@ class Test_safe_remove_dir(hunitest.TestCase):
         # Verify directory exists
         self.assertTrue(os.path.exists(parent_dir))
         # Run test.
-        hio.safe_remove_dir(parent_dir)
+        hio.safe_rm_file(parent_dir)
         # Check output.
         self.assertFalse(os.path.exists(parent_dir))
 
@@ -177,7 +177,7 @@ class Test_safe_remove_dir(hunitest.TestCase):
         self.assertFalse(os.path.exists(non_existent_dir))
         # Run test and check output.
         with self.assertRaises(AssertionError) as cm:
-            hio.safe_remove_dir(non_existent_dir)
+            hio.safe_rm_file(non_existent_dir)
         self.assertIn("does not exist", str(cm.exception))
 
     def test_cannot_delete_git_root(self) -> None:
@@ -188,7 +188,7 @@ class Test_safe_remove_dir(hunitest.TestCase):
         git_root = hgit.find_git_root()
         # Run test and check output.
         with self.assertRaises(AssertionError) as cm:
-            hio.safe_remove_dir(git_root)
+            hio.safe_rm_file(git_root)
         self.assertIn("Cannot delete Git client root", str(cm.exception))
 
     def test_directory_outside_git_client_rejected(self) -> None:
@@ -200,5 +200,5 @@ class Test_safe_remove_dir(hunitest.TestCase):
         outside_dir = "/tmp"
         # Run test and check output.
         with self.assertRaises(AssertionError) as cm:
-            hio.safe_remove_dir(outside_dir)
+            hio.safe_rm_file(outside_dir)
         self.assertIn("is not within Git client root", str(cm.exception))
