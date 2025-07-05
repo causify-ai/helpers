@@ -125,7 +125,7 @@ class LLMResponse:
             base_url = "https://openrouter.ai/api/v1"
             api_key = os.environ.get("OPENROUTER_API_KEY")
         else:
-            raise ValueError(f"Unknown provider: {provider_name}")
+            raise ValueError(f"Unknown provider: {self.provider_name}")
         _LOG.debug(hprint.to_str("provider_name base_url"))
         client = openai.OpenAI(base_url=base_url, api_key=api_key)
         return client   
@@ -177,15 +177,6 @@ class LLMResponse:
         )
         model_response = completion.choices[0].message.content
         return model_response, completion  
-
-    def get_completion(
-            self, ):
-        return
-               
-
-
-    
-    
 
 
 # TODO(*): Select the provider from command line together with the model.
