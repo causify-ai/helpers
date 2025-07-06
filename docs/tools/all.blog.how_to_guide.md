@@ -1,10 +1,12 @@
-# How to create and publish a Jekyll blog on GitHub Pages
+# How to create and publish a blog
 
-## Set up Jekyll
+## Jekyll
+
+### Set up Jekyll
 
 https://github.com/jekyll/jekyll
 
-### Install Jekyll locally
+#### Install Jekyll locally
 
 - Install Ruby and Bundler:
   ```bash
@@ -24,7 +26,7 @@ https://github.com/jekyll/jekyll
 
   - Open your browser at http://localhost:4000 to see your site
 
-### Use Docker
+#### Use Docker
 
 - Instructions at https://github.com/envygeeks/jekyll-docker/blob/master/README.md
 
@@ -36,15 +38,16 @@ https://github.com/jekyll/jekyll
 - On Mac
   > docker run --platform linux/amd64 -v $(pwd):/site jekyll/jekyll jekyll new blog
 
+  ```
+  export JEKYLL_VERSION=3.8
+  docker run --rm \
+    --platform linux/amd64 \
+    --volume="$PWD:/srv/jekyll:Z" \
+    -it jekyll/jekyll:$JEKYLL_VERSION \
+    jekyll build
+    ```
 
-export JEKYLL_VERSION=3.8
-docker run --rm \
-  --platform linux/amd64 \
-  --volume="$PWD:/srv/jekyll:Z" \
-  -it jekyll/jekyll:$JEKYLL_VERSION \
-  jekyll build
-
-## Add blog posts on GitHub
+### Add blog posts on GitHub
   - Create a `_posts` folder if it doesn't exist
   - Add Markdown files named in the format `YYYY-MM-DD-title.md`, for example:
     ```text
@@ -62,7 +65,7 @@ docker run --rm \
     This is my first blog post written in Markdown
     ```
 
-## Configure GitHub Pages
+### Configure GitHub Pages
   - Push your code to GitHub
   - Go to the repository's Settings > Pages
   - Set the source branch to main and the folder to / (root) or /docs if your
@@ -75,7 +78,7 @@ docker run --rm \
   - In your repo, create a file named CNAME with your custom domain name:
     `www.yourdomain.com`
 
-## Configure
+### Configure
 
 - Example `_config.yml` to configure your site:
   ```text
@@ -108,14 +111,10 @@ docker run --rm \
 
 - Every time you push changes to GitHub, GitHub Pages will rebuild and publish your site automatically
 
-# Hugo
+## Hugo
 
-docker run --rm -it -v $(pwd):/src klakegg/hugo:ext new site blog --force
-
+### Ananke
 https://themes.gohugo.io/tags/blog/
-
-Ananke is not compatible with the klakegg version
-
 Download a them from https://github.com/theNewDynamic/gohugo-theme-ananke
 
 unzip blog/gohugo-theme-ananke-main.zip
@@ -123,11 +122,8 @@ unzip blog/gohugo-theme-ananke-main.zip
 mv gohugo-theme-ananke-main blog/themes/ananke
 
 Add  
-
 theme = "ananke"
-j
 config.toml
-
 
 > docker run --rm -it -v $(pwd):/src klakegg/hugo:ext new posts/my-first-post.md
 WARN 2025/07/06 15:41:14 Module "ananke" is not compatible with this Hugo version; run "hugo mod graph" for more information.
@@ -135,16 +131,26 @@ Content "/src/content/posts/my-first-post.md" created
 
 vi ./content/posts/my-first-post.md
 
+### hugo-book
 
 https://themes.gohugo.io/themes/hugo-book/
-
 https://github.com/alex-shpak/hugo-book#
 https://hugo-book-demo.netlify.app/
 
-docker build -t hugo .
+## pre-built image
 
-hugo mod clean
+- This image is too old and doesn't work with many themes
 
-rm -rf public
+docker run --rm -it -v $(pwd):/src klakegg/hugo:latest new site blog --force
 
-docker run --rm -it -p 1313:1313 -v $(pwd):/src hugo hugo server --bind 0.0.0.0
+Ananke is not compatible with the klakegg version
+
+## Dockerfile
+
+> docker build -t hugo .
+
+> docker run --rm -it -p 1313:1313 -v $(pwd):/src hugo hugo server --bind 0.0.0.0
+
+### To clean
+> hugo mod clean
+> rm -rf public
