@@ -1440,7 +1440,7 @@ def _get_invoke_cmd_line(target: str, opts: str, pytest_opts: str) -> str:
     if opts:
         cmd.append(opts)
     if pytest_opts:
-        cmd.append(f"--pytest-opts " + pytest_opts)
+        cmd.append("--pytest-opts " + pytest_opts)
     cmd.append("2>&1")
     return " ".join(cmd)
 

@@ -10,7 +10,7 @@ import inspect
 import json
 import logging
 import os
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, Callable, List, Optional
 
 import jsonpickle  # type: ignore
 import jsonpickle.ext.pandas as jepand  # type: ignore
