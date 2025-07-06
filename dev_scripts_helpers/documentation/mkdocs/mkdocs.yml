@@ -5,8 +5,8 @@ theme:
   palette:
     primary: black
     accent: cyan
-  logo: mkdocs/assets/logo.png
-  favicon: mkdocs/assets/favicon.ico
+  logo: assets/logo.png
+  favicon: assets/favicon.ico
   features:
     #- navigation.tabs
     #- navigation.top
@@ -25,4 +25,4 @@ markdown_extensions:
       baselevel: 2
       separator: "_"
 extra_css:
-  - mkdocs/styles/styles.css
+  - styles/styles.css

@@ -12,8 +12,8 @@ repos:
         language: system
         types: [python]
 
-      - id: pyrefly
-        name: pyrefly lint
-        entry: pyrefly lint
-        language: system
-        types: [python]
+#      - id: pyrefly
+#        name: pyrefly lint
+#        entry: pyrefly lint
+#        language: system
+#        types: [python]

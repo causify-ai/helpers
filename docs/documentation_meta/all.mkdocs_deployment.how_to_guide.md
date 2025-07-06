@@ -10,40 +10,72 @@
 
 <!-- tocstop -->
 
-#
+# Generate and deploy the documentation
 
-```
-> preprocess_mkdocs.py --input_dir <IN_DIR> --output_dir <OUT_DIR>
-```
-
-1. Copy all the files from `docs` to `tmp.mkdocs` so that we can modify the files in
-   `tmp.mkdocs`
-2. Process each of the markdown files in place
-   - Remove the table of content stored between <!-- toc --> and <!-- tocstop -->
-   - Render ```python by dedenting so that it is aligned
-   - Replace 2 spaces indentation with 4 spaces since this is what `mkdocs` needs
-
-diff_to_vimdiff.py --dir1 docs --dir2 tmp.mkdocs
-
-diff -r --brief docs tmp.mkdocs
-
-docs/set_mkdocs.sh
-
-source mkdocs/bin/activate
-
-# MkDocs documentation deployment
-
-## Solution overview
-
+## mkdocs
 - We choose [MkDocs](https://www.mkdocs.org/) with
   [Material theme](https://squidfunk.github.io/mkdocs-material) 
   to publish the documentation
   - `MkDocs` has native support for markdown files in contrast with `ReadTheDocs`
 - The entrypoint for the documentation home page is
   [`/docs/README.md`](/docs/README.md)
-- Since `MkDocs` generates its own prettier table of content we filter out the
-  markdown TOC
-  - For this we have custom Python code `mkdocs/mkdocs-toc-tag-filter`
+
+## Generate the `mkdocs` dir
+
+- Create the documentation for `mkdocs` from the `docs` directory
+  ```bash
+  > ./dev_scripts_helpers/documentation/mkdocs/preprocess_mkdocs.py --input docs --output_dir dev_scripts_helpers/documentation/mkdocs/tmp.mkdocs
+  ```
+- This script:
+  - Copies all the files from `docs` to `tmp.mkdocs` so that we can modify the
+    files in `tmp.mkdocs`
+  - Process each of the markdown files in place in `tmp.mkdocs`, performing
+    several transformations, e.g.,
+     - Remove the table of content stored between <!-- toc --> and <!-- tocstop -->
+     - Render ```python by dedenting so that it is aligned
+     - Replace 2 spaces indentation with 4 spaces since this is what `mkdocs` needs
+
+## Debug 
+
+- After running `preprocess_mkdocs.py` we can see how the markdown are
+  transformed with:
+  ```bash
+  > diff -r --brief docs tmp.mkdocs
+  > diff_to_vimdiff.py --dir1 docs --dir2 tmp.mkdocs
+  ```
+
+- To serve the HTML locally:
+  ```
+  > (cd dev_scripts_helpers/documentation/mkdocs; mkdocs serve --dev-addr localhost:8001)
+  ```
+
+- Go to http://localhost:8001
+
+## Publish the documentation
+
+- `mkdocs` will generate HTML code from the `tmp.mkdocs` dirs
+
+- You need to install `mkdocs` in a virtual env
+  ```bash
+  > set_mkdocs.sh
+  ```
+
+- Then you can activate the environment with:
+  ```bash
+  > source mkdocs.venv/bin/activate
+  ```
+  - TODO(gp): Convert this into a dockerized executable
+
+- Publish 
+  ```
+  > (cd dev_scripts_helpers/documentation/mkdocs; mkdocs gh-deploy)
+  ```
+
+- GitHub renders the documentation at https://causify-ai.github.io/helpers/
+
+# MkDocs documentation deployment
+
+## Solution overview
 
 ### Private solution specifics
 
