@@ -1,0 +1,64 @@
+baseURL = "https://example.com/"
+title = "My Hugo Blog"
+languageCode = "en-us"
+theme = "hugo-book"
+#enableGitInfo = true
+
+# Syntax highlighting
+pygmentsCodeFences = true
+pygmentsUseClasses = true
+
+[taxonomies]
+  category = "categories"
+  tag = "tags"
+
+[params]
+  BookTheme = 'auto'
+  BookToC = true
+  BookSearch = true
+  BookSection = "posts"
+  BookDateFormat = "January 2, 2006"
+  BookComments = false
+
+[markup]
+  [markup.goldmark.renderer]
+    unsafe = true
+
+  [markup.tableOfContents]
+    startLevel = 2
+    endLevel = 3
+
+[menu]
+
+  [[menu.main]]
+    identifier = "home"
+    name = "Home"
+    url = "/"
+    weight = 1
+
+  [[menu.main]]
+    identifier = "posts"
+    name = "Blog"
+    url = "/posts/"
+    weight = 2
+
+  [[menu.main]]
+    identifier = "tags"
+    name = "Tags"
+    url = "/tags/"
+    weight = 3
+
+  [[menu.main]]
+    identifier = "categories"
+    name = "Categories"
+    url = "/categories/"
+    weight = 4
+
+  [[menu.main]]
+    identifier = "about"
+    name = "About"
+    url = "/about/"
+    weight = 5
+
+[outputs]
+  home = ["HTML", "RSS", "JSON"]

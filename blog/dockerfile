@@ -1,0 +1,35 @@
+# Use Alpine for minimal image size
+FROM alpine:latest
+
+# Set Hugo version
+ARG HUGO_VERSION="0.147.0"
+
+# Install dependencies: curl, git, libc6-compat, and libstdc++ for C++ libraries
+RUN apk add --no-cache curl git libc6-compat libstdc++
+
+# Download and install Hugo for correct architecture
+RUN ARCH=$(uname -m) && \
+    if [ "$ARCH" = "x86_64" ]; then \
+        ARCH="64bit"; \
+    elif [ "$ARCH" = "aarch64" ]; then \
+        ARCH="ARM64"; \
+    else \
+        echo "Unsupported architecture: $ARCH"; exit 1; \
+    fi && \
+    curl -L -o /tmp/hugo.tar.gz https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_Linux-${ARCH}.tar.gz && \
+    tar -xzf /tmp/hugo.tar.gz -C /tmp && \
+    mv /tmp/hugo /usr/local/bin/hugo && \
+    chmod +x /usr/local/bin/hugo && \
+    rm -rf /tmp/*
+
+# Verify Hugo install
+RUN hugo version
+
+# Set workdir
+WORKDIR /src
+
+# Expose Hugo default port
+EXPOSE 1313
+
+# Default command to run Hugo server
+CMD ["hugo", "server", "--bind", "0.0.0.0", "--baseURL", "http://localhost", "--appendPort=false"]
