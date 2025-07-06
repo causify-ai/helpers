@@ -70,7 +70,7 @@ def _create_dst_dir(dst_dir):
 def _rclone_ls(remote_src_dir, timestamp, log_dir):
     cmd = ["rclone ls", remote_src_dir]
     cmd = " ".join(cmd)
-    output_file = "%s/gdrive.%s.txt" % (log_dir, timestamp)
+    output_file = f"{log_dir}/gdrive.{timestamp}.txt"
     hsystem.system(cmd, output_file=output_file)
 
 
@@ -178,10 +178,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
         # Compress.
         if not args.skip_tgz:
             _LOG.info("# Archiving ...")
-            tar_file = "%s/gdrive.%s.tgz" % (dst_dir, timestamp)
+            tar_file = f"{dst_dir}/gdrive.{timestamp}.tgz"
             hdbg.dassert_path_not_exists(tar_file)
             output_file = log_dir + "/tar.log"
-            cmd = "tar -cf %s -C %s ." % (tar_file, temp_dir)
+            cmd = f"tar -cf {tar_file} -C {temp_dir} ."
             hsystem.system(
                 cmd, output_file=output_file, tee=True, dry_run=args.dry_run
             )
@@ -194,7 +194,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             _LOG.info("# Skipping clean up")
         else:
             _LOG.info("# Cleaning up ...")
-            cmd = "rm -rf %s" % temp_dir
+            cmd = f"rm -rf {temp_dir}"
             hsystem.system(cmd, dry_run=args.dry_run)
         # Delete old ones.
         # find $base -type f -mtime +3 -delete

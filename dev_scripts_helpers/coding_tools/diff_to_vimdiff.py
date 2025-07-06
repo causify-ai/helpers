@@ -229,7 +229,7 @@ def _parse_diff_output(
             m = re.match(r"^Only in (\S+): (\S+)$", line)
             hdbg.dassert(m, "Invalid line='%s'", line)
             m: Match[Any]
-            file_name = "%s/%s" % (m.group(1), m.group(2))
+            file_name = f"{m.group(1)}/{m.group(2)}"
             # hdbg.dassert_path_exists(file_name)
             dir_ = _get_symbolic_filepath(dir1, dir2, m.group(1))
             dirs = dir_.split("/")
@@ -289,7 +289,7 @@ def _parse_diff_output(
             comment = "\n" + line + "\n"
             comment += f"{sign}: DIFF: {file1}"
             # Diff command.
-            out_line = "vimdiff %s %s" % (m.group(1), m.group(2))
+            out_line = f"vimdiff {m.group(1)} {m.group(2)}"
             if args.only_different_files:
                 _LOG.debug("  -> Skipping line")
                 skip = True
