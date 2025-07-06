@@ -1,4 +1,4 @@
 #!/bin/bash -xe
-python3 -m venv mkdocs
-source mkdocs/bin/activate
+python3 -m venv mkdocs.venv
+source mkdocs.venv/bin/activate
 pip install mkdocs-material
