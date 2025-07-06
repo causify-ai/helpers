@@ -271,7 +271,7 @@ class Playback:
         else:
             raise ValueError(f"Invalid mode='{self.mode}'")
 
-    def _add_imports(self, additional: Union[None, List[str]] = None) -> None:
+    def _add_imports(self, additional: Optional[List[str]] = None) -> None:
         """
         Add the code with imports.
         """

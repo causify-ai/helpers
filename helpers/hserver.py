@@ -658,7 +658,7 @@ def has_docker_privileged_mode() -> bool:
     """
     cmd = "docker run --privileged hello-world 2>&1 >/dev/null"
     rc = os.system(cmd)
-    _print("cmd=%s -> rc=%s" % (cmd, rc))
+    _print(f"cmd={cmd} -> rc={rc}")
     has_privileged_mode = rc == 0
     return has_privileged_mode
 
@@ -736,7 +736,7 @@ def has_dind_support() -> bool:
 
     This is needed to use Docker-in-Docker.
     """
-    _print("is_inside_docker()=%s" % is_inside_docker())
+    _print(f"is_inside_docker()={is_inside_docker()}")
     if not is_inside_docker():
         # Outside Docker there is no privileged mode.
         _print("-> ret = False")
@@ -755,7 +755,7 @@ def has_dind_support() -> bool:
     # TODO(Juraj): this is slow and inefficient, but works for now.
     cmd = "sudo docker run hello-world"
     rc = os.system(cmd)
-    _print("cmd=%s -> rc=%s" % (cmd, rc))
+    _print(f"cmd={cmd} -> rc={rc}")
     has_dind = rc == 0
     # dind is supported on both Mac and GH Actions.
     # TODO(Juraj): HelpersTask16.

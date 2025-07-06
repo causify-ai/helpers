@@ -571,7 +571,7 @@ def integrate_find_files(  # type: ignore
     src_files = sorted(
         _find_files_touched_since_last_integration(abs_src_dir, subdir)
     )
-    print("* Files touched:\n%s" % "\n".join(src_files))
+    print(f"* Files touched:\n" + '\n'.join(src_files))
 
 
 @task

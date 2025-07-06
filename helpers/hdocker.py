@@ -295,7 +295,7 @@ def wait_for_file_in_docker(
         hsystem.system(cmd)
         if time.time() - start_time > timeout_in_secs:
             raise ValueError(
-                f"Timeout reached. File not found: "
+                "Timeout reached. File not found: "
                 f"{container_id}:{docker_file_path}"
             )
         time.sleep(check_interval_in_secs)
@@ -1564,7 +1564,7 @@ def run_basic_latex(
     hdbg.dassert_path_exists(file_out)
     # Move to the proper output location.
     if file_out != out_file_name:
-        cmd = "mv %s %s" % (file_out, out_file_name)
+        cmd = f"mv {file_out} {out_file_name}"
         hsystem.system(cmd)
 
 
