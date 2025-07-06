@@ -24,7 +24,7 @@
 
 - Create the documentation for `mkdocs` from the `docs` directory
   ```bash
-  > ./dev_scripts_helpers/documentation/mkdocs/preprocess_mkdocs.py --input docs --output_dir tmp.mkdocs
+  > ./dev_scripts_helpers/documentation/mkdocs/preprocess_mkdocs.py --input docs --output_dir dev_scripts_helpers/documentation/mkdocs/tmp.mkdocs
   ```
 - This script:
   - Copies all the files from `docs` to `tmp.mkdocs` so that we can modify the
@@ -34,6 +34,22 @@
      - Remove the table of content stored between <!-- toc --> and <!-- tocstop -->
      - Render ```python by dedenting so that it is aligned
      - Replace 2 spaces indentation with 4 spaces since this is what `mkdocs` needs
+
+## Debug 
+
+- After running `preprocess_mkdocs.py` we can see how the markdown are
+  transformed with:
+  ```bash
+  > diff -r --brief docs tmp.mkdocs
+  > diff_to_vimdiff.py --dir1 docs --dir2 tmp.mkdocs
+  ```
+
+- To serve the HTML locally:
+  ```
+  > (cd dev_scripts_helpers/documentation/mkdocs; mkdocs serve --dev-addr localhost:8001)
+  ```
+
+- Go to http://localhost:8001
 
 ## Publish the documentation
 
@@ -50,22 +66,12 @@
   ```
   - TODO(gp): Convert this into a dockerized executable
 
-- Run 
-  
-## Debug 
-
-- After running `preprocess_mkdocs.py` we can see how the markdown are
-  transformed with:
-  ```bash
-  > diff -r --brief docs tmp.mkdocs
-  > diff_to_vimdiff.py --dir1 docs --dir2 tmp.mkdocs
+- Publish 
+  ```
+  > (cd dev_scripts_helpers/documentation/mkdocs; mkdocs gh-deploy)
   ```
 
-- To serve the code locally:
-  ```
-  > (cd dev_scripts_helpers/documentation/mkdocs; mkdocs serve --dev-addr localhost:8001)
-  ```
-
+- GitHub renders the documentation at https://causify-ai.github.io/helpers/
 
 # MkDocs documentation deployment
 

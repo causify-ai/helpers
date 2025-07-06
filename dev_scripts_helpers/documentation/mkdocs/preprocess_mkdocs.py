@@ -27,6 +27,8 @@ import shutil
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hmkdocs as hmkdocs
+import helpers.hgit as hgit
+import helpers.hsystem as hsystem
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -96,6 +98,16 @@ def _process_markdown_files(directory: str) -> None:
                 _LOG.debug(f"Successfully processed: {file_path}")
 
 
+def _copy_assets_and_styles(directory: str) -> None:
+    """
+    Copy assets and styles from the input directory to the output directory.
+    """
+    # Find the assets and styles directories.
+    mkdocs_html_dir = hgit.find_file("mkdocs_html")
+    cmd = f"cp -r {mkdocs_html_dir}/* {directory}"
+    hsystem.system(cmd)
+
+
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
@@ -104,10 +116,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.info(
         f"Starting mkdocs preprocessing from '{input_dir}' to '{output_dir}'"
     )
-    # Step 1: Copy all files from input to output directory
+    # Copy all files from input to output directory.
     _copy_directory(input_dir, output_dir)
-    # Step 2: Process markdown files in place in the output directory
+    # Process markdown files in place in the output directory.
     _process_markdown_files(output_dir)
+    # Copy assets and styles.
+    _copy_assets_and_styles(output_dir)
     _LOG.info("Mkdocs preprocessing completed successfully")
 
 
