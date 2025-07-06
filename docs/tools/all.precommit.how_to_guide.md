@@ -147,3 +147,47 @@ Commands:
                              using default heuristics [default: 0]
         --color <COLOR>      Controls whether colored output is used
   ```
+
+## pre-commit
+
+- The documentation is https://pre-commit.com/
+
+- The `.pre-commit-config.yaml` contains the configuration for `pre-commit`
+  ```yaml
+  repos:
+    - repo: https://github.com/astral-sh/ruff-pre-commit
+      rev: v0.4.4
+      hooks:
+        - id: ruff
+
+    - repo: local
+      hooks:
+        - id: fixit-lint
+          name: fixit lint
+          entry: fixit lint
+          language: system
+          types: [python]
+
+        - id: pyrefly
+          name: pyrefly lint
+          entry: pyrefly lint
+          language: system
+          types: [python]
+  ```
+
+- To install
+  ```
+  > pre-commit install
+  > pip install pre-commit ruff fixit pyrefly
+  ```
+  - TODO(gp): Maybe we should install in the thin env?
+
+- Run against all the files
+  ```bash
+  > pre-commit run --all-files
+  ```
+
+- Run against a subset of files
+  ```bash
+  > pre-commit run --files $(find helpers_root -type f)
+  ```

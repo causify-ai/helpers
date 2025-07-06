@@ -9,7 +9,6 @@ import logging
 import re
 from typing import Dict, Generator, List, Optional, Tuple, cast
 
-import dev_scripts_helpers.documentation.lint_notes as dshdlino
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 import helpers.hprint as hprint
