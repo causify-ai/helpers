@@ -7,6 +7,8 @@
     isort, pyupgrade)
 
 ```
+> ruff -h
+...
 Commands:
   check    Run Ruff on the given files or directories
   rule     Explain a rule (or all rules)
@@ -18,6 +20,7 @@ Commands:
   analyze  Run analysis over Python source code
   version  Display Ruff's version
   help     Print this message or the help of the given subcommand(s)
+...
 ```
 
 ### Config
@@ -47,7 +50,7 @@ Commands:
 
 ### ruff check
 
-- Lint, auto-fix, and format the code under `$DIR`
+- Lint, auto-fix, and format code:
   ```bash
   > ruff check $DIR
   helpers/notebooks/cache.ipynb:cell 11:1:7: F821 Undefined name `dict_`
@@ -57,7 +60,7 @@ Commands:
   No fixes available (2 hidden fixes can be enabled with the `--unsafe-fixes` option).
   ```
 
-- Interesting options are
+- Interesting options are:
   ```text
       --fix                              Apply fixes to resolve lint violations
       --unsafe-fixes                     Include fixes that may not retain the original intent of the code
@@ -71,7 +74,7 @@ Commands:
 
 ### ruff format
 
-- Format only
+- Format only:
   ```
   > ruff format --line-length 80
   ```
@@ -92,54 +95,55 @@ Commands:
 
 ### ruff analyze
 
-```text
-> ruff analyze graph -h
-Generate a map of Python file dependencies or dependents
+- Can analyze the code base
+  ```text
+  > ruff analyze graph -h
+  Generate a map of Python file dependencies or dependents
 
-Usage: ruff analyze graph [OPTIONS] [FILES]...
+  Usage: ruff analyze graph [OPTIONS] [FILES]...
 
-Arguments:
-  [FILES]...  List of files or directories to include [default: .]
+  Arguments:
+    [FILES]...  List of files or directories to include [default: .]
 
-Options:
-      --direction <DIRECTION>            The direction of the import map. By default, generates a dependency map, i.e., a map from file to files that it depends on. Use `--direction dependents` to
-                                         generate a map from file to files that depend on it [default: dependencies] [possible values: dependencies, dependents]
-      --detect-string-imports            Attempt to detect imports from string literals
-      --preview                          Enable preview mode. Use `--no-preview` to disable
-      --target-version <TARGET_VERSION>  The minimum Python version that should be supported [possible values: py37, py38, py39, py310, py311, py312, py313, py314]
-      --python <PYTHON>                  Path to a virtual environment to use for resolving additional dependencies
-  -h, --help                             Print help (see more with '--help')
-```
+  Options:
+        --direction <DIRECTION>            The direction of the import map. By
+                                           default, generates a dependency map, i.e., a map from file to files that
+                                           it depends on. Use `--direction dependents` to generate a map from file
+                                           to files that depend on it [default: dependencies] [possible values:
+                                           dependencies, dependents]
+        --detect-string-imports            Attempt to detect imports from string literals
+        --preview                          Enable preview mode. Use `--no-preview` to disable
+    -h, --help                             Print help (see more with '--help')
+  ```
 
 ## pyrefly
 
 - Pyrefly is a high-performance static type checker for Python
 
-https://pyrefly.org/
+- Website: https://pyrefly.org/
 
 - Type Checking: Analyzes Python code for type consistency before runtime
 - Type Inference: Infers types for local variables and return values, even in
   un-annotated code
-- IDE Integration: Offers VS Code (and other editors via LSP) support including
-  inline inferred types and autocomplete
 - Configurable through pyproject.toml
 
-```
-Usage: pyrefly [OPTIONS] <COMMAND>
+  ```bash
+  > pyrefly -h
 
-Commands:
-  check        Full type checking on a file or a project
-  dump-config  Dump info about pyrefly's configuration. Use by replacing `check` with `dump-config` in your pyrefly invocation
-  buck-check   Entry point for Buck integration
-  init         Initialize a new pyrefly config in the given directory, or migrate an existing mypy or pyright config to pyrefly
-  lsp          Start an LSP server
-  help         Print this message or the help of the given subcommand(s)
+  Usage: pyrefly [OPTIONS] <COMMAND>
 
-Options:
-  -j, --threads <THREADS>  Number of threads to use for parallelization. Setting the value to 1 implies sequential execution without any parallelism. Setting the value to 0 means to pick the number of
-                           threads automatically using default heuristics [env: PYREFLY_THREADS=] [default: 0]
-      --color <COLOR>      Controls whether colored output is used [env: PYREFLY_COLOR=] [default: auto] [possible values: auto, always, never]
-  -v, --verbose            Enable verbose logging [env: PYREFLY_VERBOSE=]
-  -h, --help               Print help
-  -V, --version            Print version
-```
+  Commands:
+    check        Full type checking on a file or a project
+    dump-config  Dump info about pyrefly's configuration. Use by replacing
+                 `check` with `dump-config` in your pyrefly invocation
+    init         Initialize a new pyrefly config in the given directory, or
+                 migrate an existing mypy or pyright config to pyrefly
+    lsp          Start an LSP server
+
+  Options:
+    -j, --threads <THREADS>  Number of threads to use for parallelization.
+                             Setting the value to 1 implies sequential execution without any parallelism.
+                             Setting the value to 0 means to pick the number of threads automatically
+                             using default heuristics [default: 0]
+        --color <COLOR>      Controls whether colored output is used
+  ```
