@@ -33,7 +33,7 @@ TODO(Grisha): consider using repository
 - Create a repo within the
   [`causify-ai` organization](https://github.com/causify-ai)
 - Follow the
-  [offical guide](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-new-repository#creating-a-new-repository-from-the-web-ui)
+  [official guide](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-new-repository#creating-a-new-repository-from-the-web-ui)
 - Recommended options:
   - Owner: `causify-ai`
   - Repository-name: provide a valid short name, e.g., `algo_trading`
@@ -47,37 +47,44 @@ TODO(Grisha): consider using repository
 Below there is an example for the `helpers` repo, but it works for `cmamp` as
 well if one replaces `helpers` with `cmamp`.
 
-1. Clone the super-repo locally
-```
-> git clone --recursive git@github.com:causify-ai/{repo_name}.git ~/src/{repo_name}{index}
-```
+- Clone the super-repo locally
 
-2. Checkout to a new branch
-   ```
-   > git checkout -b repo_init
-   ```
-3. Add a submodule
-   ```bash
-   > cd ~/src/repo_name1
-   # In general form.
-   > git submodule add {submodule_url} {submodule_path}
-   # Example for `cmamp`.
-   > git submodule add git@github.com:causify-ai/helpers.git helpers_root
-   # The cmd will create a `.gitmodules` file that we need to check-in.
-   [submodule "helpers_root"]
-   path = helpers_root
-   url = git@github.com:causify-ai/helpers.git
-   ```
-4. Init the submodule and commit the `.gitmodules` file.
-   ```bash
-   > git submodule init
-   > git submodule update
-   ```
-5. Commit and push the changes
-   ```bash
-   > git add .gitmodules helpers_root
-   > git commit -am "Add helpers subrepo" && git push
-   ```
+  ```bash
+  > git clone --recursive git@github.com:causify-ai/{repo_name}.git ~/src/{repo_name}{index}
+  ```
+
+- Checkout to a new branch
+
+  ```bash
+  > git checkout -b repo_init
+  ```
+
+- Add a submodule
+
+  ```bash
+  > cd ~/src/repo_name1
+  # In general form.
+  > git submodule add {submodule_url} {submodule_path}
+  # Example for `cmamp`.
+  > git submodule add git@github.com:causify-ai/helpers.git helpers_root
+  # The cmd will create a `.gitmodules` file that we need to check-in.
+  [submodule "helpers_root"]
+  path = helpers_root
+  url = git@github.com:causify-ai/helpers.git
+  ```
+
+- Init the submodule and commit the `.gitmodules` file.
+
+  ```bash
+  > git submodule init
+  > git submodule update
+  ```
+
+- Commit and push the changes
+  ```bash
+  > git add .gitmodules helpers_root
+  > git commit -am "Add helpers subrepo" && git push
+  ```
 
 ## Copy and customize files
 
