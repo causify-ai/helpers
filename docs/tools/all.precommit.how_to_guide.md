@@ -142,6 +142,13 @@ Commands:
 - `fixit`
 configurable linting framework with support for auto-fixes, custom “local” lint rules, and hierarchical configuration, built on LibCST.
 
+- Fixit doesn't seem to support toml
+
+- Run on `helpers` dir
+  ```bash
+  > fixit lint helpers
+  ```
+
 ## pyrefly
 
 - Website: https://pyrefly.org/
@@ -150,7 +157,8 @@ configurable linting framework with support for auto-fixes, custom “local” l
   - Type Checking: Analyzes Python code for type consistency before runtime
   - Type Inference: Infers types for local variables and return values, even in
     un-annotated code
-  - Configurable through pyproject.toml
+  - Configurable through `pyproject.toml`
+    - TODO: Is this true?
 
   ```bash
   > pyrefly -h

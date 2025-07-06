@@ -89,4 +89,4 @@ satisfiable(C)
 # %%
 ## Stats
 
-https://docs.sympy.org/latest/modules/stats.html#
+# https://docs.sympy.org/latest/modules/stats.html#
