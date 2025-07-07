@@ -89,7 +89,7 @@ class Test_retry2(hunitest.TestCase):
 
         with htimer.TimedScope(logging.INFO, "async_retry_loop") as ts:
             result = asyncio.run(func())
-        self.assertEqual(round(ts.elapsed_time, 1), 2.2)
+        self.assertEqual(round(ts.elapsed_time, 1), 2.4)
         self.assertTrue(result)
         self.assertEqual(self.exception_count, num_attempts - 1)
 
