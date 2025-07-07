@@ -2,7 +2,7 @@ import argparse
 import collections
 import os
 import unittest.mock as umock
-from typing import Any
+from typing import Any, Dict
 
 import pandas as pd
 

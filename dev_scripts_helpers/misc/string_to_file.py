@@ -25,7 +25,7 @@ def _transform(string: str) -> str:
 
 
 def _check(inp: str, act: str, exp: str) -> None:
-    assert act == exp, "inp=%s\nact=%s\nexp=%s" % (inp, act, exp)
+    assert act == exp, f"inp={inp}\nact={act}\nexp={exp}"
 
 
 def _test1() -> None:

@@ -103,7 +103,7 @@ def download_file_using_lftp(
     )
     try:
         _LOG.info("Executing lftp command: %s", lftp_cmd)
-        result = subprocess.run(
+        subprocess.run(
             lftp_cmd,
             shell=True,
             check=True,

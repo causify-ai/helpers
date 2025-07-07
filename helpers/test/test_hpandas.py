@@ -4217,7 +4217,7 @@ class Test_cast_series_to_type(hunitest.TestCase):
         series_type = None
         actual = hpandas.cast_series_to_type(series, series_type)
         for i in range(len(actual)):
-            self.assertTrue(actual.iloc[i] is None)
+            self.assertIsNone(actual.iloc[i])
 
     def test4(self) -> None:
         series = pd.Series(["2020-01-01", "2020-02-02", "2020-03-03"])

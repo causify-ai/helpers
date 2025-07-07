@@ -209,7 +209,7 @@ def gh_workflow_list(  # type: ignore
             status_column = table_tmp.get_column("status")
             _LOG.debug("status_column=%s", str(status_column))
             hdbg.dassert_lt(
-                i, len(status_column), msg="status_column=%s" % status_column
+                i, len(status_column), "status_column=", status_column
             )
             status = status_column[i]
             if status == "success":
@@ -906,3 +906,9 @@ def render_repo_workflow_status_table(
                 subset=["conclusion"],
             )
         )
+
+# #############################################################################
+
+# def gh_get_pr_title(pr_url: str) -> str:
+# > gh pr view https://github.com/causify-ai/helpers/pull/754 --json title -q .title
+# HelpersTask705_Extend_coverage_in_pytest_to_cover_when_we_run_through_system

@@ -74,8 +74,8 @@ def _start(port, action):
             return
     #
     ip_name = "localhost"
-    print("You can connect to: %s:%s" % (ip_name, port))
-    cmd = "jupyter notebook '--ip=*' --browser chrome . --port %s" % port
+    print(f"You can connect to: {ip_name}:{port}")
+    cmd = f"jupyter notebook '--ip=*' --browser chrome . --port {port}"
     if action != "only_print_cmd":
         hsystem.system(cmd, suppress_output=False, log_level="echo")
     else:
@@ -134,7 +134,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     elif action in ("start", "force_start", "only_print_cmd"):
         _start(jupyter_port, action)
     else:
-        hdbg.dfatal("Invalid action='%s'" % action)
+        hdbg.dfatal(f"Invalid action='{action}'")
 
 
 if __name__ == "__main__":
