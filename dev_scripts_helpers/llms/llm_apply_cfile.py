@@ -193,7 +193,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     #     # Note that we need to run this outside the `llm_transform` container to
     #     # avoid to do docker-in-docker in the `llm_transform` container (which
     #     # doesn't support that).
-    #     out_txt = dshdlino.prettier_on_str(out_txt)
+    #     out_txt = hdocker.prettier_on_str(out_txt)
     # Read the output from the container and write it to the output file from
     # command line (e.g., `-` for stdout).
     # hparser.write_file(out_txt, out_file_name)

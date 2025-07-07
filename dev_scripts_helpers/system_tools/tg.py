@@ -56,10 +56,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
         _LOG.info("Executing: %s", cmd)
         rc = hsystem.system(cmd, suppress_output=False, abort_on_error=False)
         _LOG.info("rc=%s", rc)
-        message.append("cmd='%s'" % cmd)
-        message.append("rc=%s" % rc)
+        message.append(f"cmd='{cmd}'")
+        message.append(f"rc={rc}")
     else:
-        message.append("msg=%s" % args.msg)
+        message.append(f"msg={args.msg}")
     message = "\n" + "\n".join(message)
     _LOG.info(message)
     #

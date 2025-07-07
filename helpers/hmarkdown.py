@@ -9,7 +9,6 @@ import logging
 import re
 from typing import Dict, Generator, List, Optional, Tuple, cast
 
-import dev_scripts_helpers.documentation.lint_notes as dshdlino
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
 import helpers.hprint as hprint
@@ -1353,7 +1352,7 @@ def prettier_markdown(txt: str) -> str:
     Format markdown text using `prettier`.
     """
     file_type = "md"
-    txt = dshdlino.prettier_on_str(txt, file_type)
+    txt = hdocker.prettier_on_str(txt, file_type)
     txt_ = cast(str, txt)
     return txt_
 
@@ -1363,7 +1362,7 @@ def format_markdown(txt: str) -> str:
     Format markdown text.
     """
     file_type = "md"
-    txt = dshdlino.prettier_on_str(txt, file_type)
+    txt = hdocker.prettier_on_str(txt, file_type)
     txt = remove_empty_lines_from_markdown(txt)
     return txt
 
@@ -1375,7 +1374,7 @@ def format_markdown_slide(txt: str) -> str:
     # Split the text into title and body.
     txt = bold_first_level_bullets(txt)
     file_type = "md"
-    txt = dshdlino.prettier_on_str(txt, file_type)
+    txt = hdocker.prettier_on_str(txt, file_type)
     txt = format_first_level_bullets(txt)
     # txt = capitalize_slide_titles(txt)
     return txt
@@ -1383,6 +1382,6 @@ def format_markdown_slide(txt: str) -> str:
 
 def format_latex(txt: str) -> str:
     file_type = "tex"
-    txt = dshdlino.prettier_on_str(txt, file_type)
+    txt = hdocker.prettier_on_str(txt, file_type)
     txt_ = cast(str, txt)
     return txt_

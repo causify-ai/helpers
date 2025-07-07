@@ -216,8 +216,8 @@ def _system(
                     if not line:
                         break
                     if not suppress_output:
-                        # print("  ==> %s" % line.rstrip("\n"))
-                        print("  ... %s" % line.rstrip("\n"))
+                        # print("  ==> " + line.rstrip("\n"))
+                        print("  ... " + line.rstrip("\n"))
                     output += line
                 p.stdout.close()  # type: ignore
                 rc = p.wait()
@@ -843,7 +843,7 @@ def find_path(path: str, *, dir_name: str = ".", abort_on_error: bool = False) -
         return path_out
     # If the path doesn't exist, abort.
     if abort_on_error:
-        msg = "path '%s' doesn't exist in '%s'" % (path, dir_name)
+        msg = f"path '{path}' doesn't exist in '{dir_name}'"
         raise RuntimeError(msg)
     # Look for a file with the same basename in ``dir_name``.
     dir_name = os.path.abspath(dir_name)
@@ -851,7 +851,7 @@ def find_path(path: str, *, dir_name: str = ".", abort_on_error: bool = False) -
     path_out = _find_file(basename, search_path=dir_name)
     # If the file doesn't exist, abort.
     if path_out is None:
-        msg = "path '%s' doesn't exist in '%s'" % (path, dir_name)
+        msg = f"path '{path}' doesn't exist in '{dir_name}'"
         raise RuntimeError(msg)
     return path_out
 

@@ -24,12 +24,12 @@ ignore = ["E731"]
 # But you can still define this for documentation or future support
 path = "."
 
-[tool.fixit]
-lint.ignore_codes = []
-lint.enabled = true
-lint.format = "text"
-lint.exclude = [
-  "**/outcomes/**",
-  "**/import_check/example/**"
-]
-lint.show_source = true
+#[tool.fixit]
+#ignore_codes = []
+#enabled = true
+#format = "text"
+#exclude = [
+#  "**/outcomes/**",
+#  "**/import_check/example/**"
+#]
+#show_source = true

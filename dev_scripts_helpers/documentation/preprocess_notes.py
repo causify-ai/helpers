@@ -157,7 +157,6 @@ def _colorize_bullet_points(txt: str) -> str:
     _LOG.debug("colors=%s", colors)
     # Colorize the bold items.
     color_idx = 0
-    out_txt = ""
     for line in txt.split("\n"):
         # Replace the strings like "**foo**" with a string like "**\red{foo}**".
         # Find all bold text patterns and wrap them with color commands

@@ -1,5 +1,7 @@
 ## ruff
 
+- Website: https://docs.astral.sh/ruff/
+
 - `Ruff`:
   - is a fast Python linter and code formatter
   - supports over 700 linting rules from popular tools
@@ -72,6 +74,23 @@ Commands:
       --show-settings                    See the settings Ruff will use to lint a given Python file
   ```
 
+- Remove colors (useful for cfile)
+  ```bash
+  > ruff check . | less -R | cat | tee cfile
+  > vic
+  ```
+
+- To select only a subset of errors
+  ```
+  # Skip the warnings
+  > ruff check . --select E,F
+  ```
+  where:
+  - E: pycodestyle errors
+  - F: pyflakes errors
+  - W: warnings
+  - I: isort, etc.
+
 ### ruff format
 
 - Format only:
@@ -116,16 +135,30 @@ Commands:
     -h, --help                             Print help (see more with '--help')
   ```
 
-## pyrefly
+## fixit
 
-- Pyrefly is a high-performance static type checker for Python
+- Website: https://fixit.readthedocs.io/en/latest/index.html
+
+- `fixit`
+configurable linting framework with support for auto-fixes, custom “local” lint rules, and hierarchical configuration, built on LibCST.
+
+- Fixit doesn't seem to support toml
+
+- Run on `helpers` dir
+  ```bash
+  > fixit lint helpers
+  ```
+
+## pyrefly
 
 - Website: https://pyrefly.org/
 
-- Type Checking: Analyzes Python code for type consistency before runtime
-- Type Inference: Infers types for local variables and return values, even in
-  un-annotated code
-- Configurable through pyproject.toml
+- Pyrefly is a high-performance static type checker for Python
+  - Type Checking: Analyzes Python code for type consistency before runtime
+  - Type Inference: Infers types for local variables and return values, even in
+    un-annotated code
+  - Configurable through `pyproject.toml`
+    - TODO: Is this true?
 
   ```bash
   > pyrefly -h
@@ -146,4 +179,71 @@ Commands:
                              Setting the value to 0 means to pick the number of threads automatically
                              using default heuristics [default: 0]
         --color <COLOR>      Controls whether colored output is used
+  ```
+
+### 
+
+- It's best to run `pyrefly` inside the dev container to get the type hints of
+  the installed packages
+  ```bash
+  docker> sudo bash -c "(source /venv/bin/activate; pip install --quiet pyrefly)"
+  ```
+
+  ```bash
+  pyrefly check --color=never --project-excludes '**/outcomes/**' --project-excludes '**/import_check/example/**' --project-excludes '**/mkdocs.venv/**'
+  ```
+
+## ty
+
+ty check . --output-format concise --color never
+
+- It's best to run `pyrefly` inside the dev container to get the type hints of
+  the installed packages
+  ```bash
+  docker> sudo bash -c "(source /venv/bin/activate; pip install --quiet ty)"
+  docker> ty check . --output-format concise --color never | cut -d' ' -f2- | tee cfile
+  ```
+
+## pre-commit
+
+- The documentation is https://pre-commit.com/
+
+- The `.pre-commit-config.yaml` contains the configuration for `pre-commit`
+  ```yaml
+  repos:
+    - repo: https://github.com/astral-sh/ruff-pre-commit
+      rev: v0.4.4
+      hooks:
+        - id: ruff
+
+    - repo: local
+      hooks:
+        - id: fixit-lint
+          name: fixit lint
+          entry: fixit lint
+          language: system
+          types: [python]
+
+        - id: pyrefly
+          name: pyrefly lint
+          entry: pyrefly lint
+          language: system
+          types: [python]
+  ```
+
+- To install
+  ```
+  > pre-commit install
+  > pip install pre-commit ruff fixit pyrefly
+  ```
+  - TODO(gp): Maybe we should install in the thin env?
+
+- Run against all the files
+  ```bash
+  > pre-commit run --all-files
+  ```
+
+- Run against a subset of files
+  ```bash
+  > pre-commit run --files $(find helpers_root -type f)
   ```

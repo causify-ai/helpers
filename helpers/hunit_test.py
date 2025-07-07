@@ -794,7 +794,7 @@ def assert_equal(
     if debug:
         for idx, key in enumerate(values.keys()):
             actual_tmp, expected_tmp = values[key]
-            tag = "%s.%s" % (idx, key)
+            tag = f"{idx}.{key}"
             _save_diff(actual_tmp, expected_tmp, tag, test_dir)
     else:
         key = "final"

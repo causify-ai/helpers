@@ -849,26 +849,26 @@
 - Names of documentation files should follow the format
   `docs/{component}/{audience}.{topic}.{diataxis_tag}.md` to help in organizing
   and categorizing documentation files effectively
-  - E.g., `docs/documentation_meta/all.diataxis.explanation.md`
+  where:
   - The `{component}` part specifies the part of the project the documentation
     is related to
   - The `{audience}` part indicates who the documentation is intended for
   - The `{topic}` part describes the subject matter of the documentation
   - The `{diataxis_tag}` part categorizes the documentation according to the
     Diátaxis framework (e.g., explanation, tutorial)
+  - E.g., `docs/documentation_meta/all.diataxis.explanation.md`
 
 - All Markdown files should have a table of contents
   - The linter automatically adds and updates the table of contents
 
 - There should be one and only one level 1 heading (with one `#`) in a Markdown
-  - The level 1 heading serves as the main title of the document
-  - It should clearly convey the primary topic or purpose of the document
-  - The level 1 heading should be located above the table of contents
+  - The level 1 heading:
+    - Should clearly convey the primary topic or purpose of the document
+    - Serves as the main title of the document
+    - Should be the first line and located above the table of contents
 
 - Wrap file paths, names of variables, functions, and classes in backticks
   - E.g., `file_path`, `variable_name`, `function_name()`, `ClassName`
-- Use `>` to indicate a command line
-  - E.g., `> git push` or `docker> pytest`
 - Commands should be prepended by `>`
   - Example
     ```
@@ -891,13 +891,16 @@
 ### LLM
 
 - Do not use bold or italics in headings
-- Headings should not be overcapitalized
-  - E.g., `Data schema` instead of `Data Schema`
-  - TODO(gp): Need to decide
 - Use headers so that it's easy to refer to something by link
-- We want to use level 2 headers 
+- Do not make the chunk of text in a header too small since we don't want to have
+  too many headers
+  - E.g., there should be at least 5-10 lines in each header
 
 ### Linter
+
+- Headings are capitalized as a title
+  - E.g., `Data schema` instead of `Data Schema`
+  - The linter automatically formats them
 
 ## Text
 
@@ -924,23 +927,39 @@
 
 - Text should be reflowed to the maximum of 80 columns per line
   - The linter performs this operation automatically
-- Fenced code blocks should always be accompanied by language markers
-  - E.g., `bash`, `python`
-  - Fenced code blocks should be indented at the same level as the previous line
 
 - Use active voice most of the time and use passive voice sparingly
-  - Good: "The user updates the file."
-  - Bad: "The file is updated by the user."
+  - Good: "The user updates the file"
+  - Bad: "The file is updated by the user"
+
 - Be efficient
   - Do not explain things in a repetitive way
   - Rewrite long-winded AI-generated texts in a concise way
-  - E.g., instead of "The process of updating the software can be done by
-    following these steps," use "Update the software by following these steps"
+  - E.g., 
+    - Good: "Update the software by following these steps"
+    - Bad: "The process of updating the software can be done by following these steps"
 
-- When describing a tool the format should be the following
+- When describing a tool the format should be the following:
   - A description of what the tool does
-  - A list of examples of invocations of a tool, with a comment on the command
-    line, the command line, and its output if possible
+  - A list of examples of invocations of a tool with:
+    - A comment on the command line
+    - The command line
+    - Its output if possible
   - A copy-paste version of the tool interface running `-h`
 
+- When nesting code blocks under list items in Markdown, we align the code block
+  to the previous block without empty lines
+  ````text
+  - Clone the super-repo locally
+    ```bash
+    > git clone --recursive git@github.com:causify-ai/{repo_name}.git ~/src/{repo_name}{index}
+    ```
+  - Line2
+  ````
+  - The rendering stage makes sure that the output is correctly indented and
+    spaced
+
 ### Linter
+
+- Code blocks should always be accompanied by language markers
+  - E.g., `bash`, `python`, `text`, `markdown`

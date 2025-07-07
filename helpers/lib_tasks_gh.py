@@ -209,7 +209,7 @@ def gh_workflow_list(  # type: ignore
             status_column = table_tmp.get_column("status")
             _LOG.debug("status_column=%s", str(status_column))
             hdbg.dassert_lt(
-                i, len(status_column), msg="status_column=%s" % status_column
+                i, len(status_column), "status_column=", status_column
             )
             status = status_column[i]
             if status == "success":
