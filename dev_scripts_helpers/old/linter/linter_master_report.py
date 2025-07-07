@@ -160,7 +160,7 @@ def _calculate_stats(
         errors,
     ) = _compute_stats(master_dirty, branch_dirty, master_lints, branch_lints)
     # Message
-    message = list()
+    message = []
     # Report title
     message.append("# Results of the linter build")
     # Console url for Jenkins

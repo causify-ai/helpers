@@ -55,20 +55,98 @@
 
 <!-- tocstop -->
 
-# Notes Documentation Toolchain
+# Documentation Toolchain
 
-- This is a high‑level guide to the helper scripts that turn raw `.txt` notes
-  into polished PDFs, slide decks, and more.
+- This is a high‑level guide to the helper scripts that turn raw notes, slides,
+  Latex into polished PDFs, slide decks, etc.
 
-// TODO(\*): Is it worth to report the flags? It's difficult to maintain
+- There are several documentation workflows available:
 
-## notes_to_pdf.py
+  - **latex**
+    - Are standard Latex code that can be converted into PDF files
+    - E.g., `//cmamp/papers`
+    - E.g., https://github.com/causify-ai/cmamp/tree/master/papers/KaizenFlow
+
+  - **markdown**
+    - Are documentation about a repo that can be rendered through `mkdocs` and
+      published on GitHub
+    - E.g., `//helpers/docs`, `//cmamp/docs`, `//tutorials/docs`
+    - E.g., https://github.com/causify-ai/helpers/tree/master/docs
+    - E.g., rendered on https://causify-ai.github.io/helpers
+
+  - **notes** (aka **.txt**)
+    - Are `Pandoc` markdown with some extra syntax to simplify some common operations
+      (e.g., color, comments)
+    - Are processed by `preprocess_notes.py` to be converted in `Pandoc` markdown
+    - Then can be converted into PDFs and in Anki Q/A 
+    - E.g., `//notes/notes/...`
+      ```
+      > vi /Users/saggese/src/notes1/notes/math.machine_learning.txt
+      ```
+
+  - **slides**
+    - Are the same as `notes` but we use a different extension to clarify that they
+      are rendered as slides
+    - E.g.,
+      ```
+      > ls /Users/saggese/src/notes1/MSML610
+      > vi /Users/saggese/src/notes1/MSML610/Lesson00-Class.txt
+      ```
+    - E.g., `//notes/DATA605`
+
+  - **books**
+    - Are extended `Pandoc` markdown that can be rendered with `Pandoc`
+    - E.g., `//notes/books/programming_with_ai`
+      ```
+      > vi books/programming_with_ai/docs/coding-benchmark.md
+      ```
+
+  - **jupyter books**
+
+
+## List of tools
+
+- TODO(gp): Use the invoke to describe the list
+
+```
+> ls -1 dev_scripts_helpers/documentation/
+convert_docx_to_markdown.py
+dockerized_graphviz.py
+dockerized_latex.py
+dockerized_mermaid.py
+dockerized_pandoc.py
+dockerized_prettier.py
+dockerized_tikz_to_bitmap.py
+extract_headers_from_markdown.py
+generate_latex_sty.py
+generate_readme_index.py
+generate_script_catalog.py
+latex_abbrevs.sty
+latexdockercmd.sh
+lint_notes.py
+mkdocs
+notes_to_pdf.py
+OLD
+open_md_in_browser.sh
+open_md_on_github.sh
+pandoc.latex
+preprocess_notes.py
+publish_notes.py
+render_images.py
+replace_latex.py
+replace_latex.sh
+run_latex.sh
+run_pandoc.py
+test
+transform_notes.py
+```
+
+## `notes_to_pdf.py`
 
 ### What it does
 
-- Convert plain‑text notes into polished **PDF, HTML, or Beamer slides** with a
-  single command:
-
+- Convert plain‑text notes into polished **PDF**, **HTML**, or **Beamer slides**
+  with a single command:
   ```bash
   > notes_to_pdf.py --input <infile.txt> --output <outfile.[pdf|html]> --type [pdf|html|slides]
   ```
@@ -188,11 +266,11 @@
   > notes_to_pdf.py -i book_notes.txt -o book_notes.pdf --type pdf
   ```
 
-## render_images.py
+## `render_images.py`
 
 ### What it does
 
-- This script auto renders figures by
+- This script auto renders figures by:
   - Detecting fenced code blocks (PlantUML, Mermaid, TikZ, Graphviz, ...)
   - Rendering them into images calling the appropriate tool
   - Commenting them out the block
@@ -621,7 +699,7 @@ options:
   > graphviz_wrapper.py -i diagram.dot -o diagram.png --dockerized_use_sudo
   ```
 
-## dockerized_latex.py
+## `dockerized_latex.py`
 
 ### What it does
 
@@ -653,7 +731,7 @@ options:
   > latex_wrapper.py -i paper.tex -o paper.pdf --run_latex_again
   ```
 
-## dockerized_mermaid.py
+## `dockerized_mermaid.py`
 
 ### What it does
 
@@ -687,7 +765,7 @@ options:
   > mermaid_wrapper.py -i diagram.mmd -o diagram.png --dockerized_use_sudo
   ```
 
-## dockerized_pandoc.py
+## `dockerized_pandoc.py`
 
 ### What it does
 
@@ -806,3 +884,36 @@ options:
 1. Prompts you to select a screen region (`⌘ + Ctrl + 4`).
 2. Saves it as `screenshot.YYYY‑MM‑DD_HH‑MM‑SS.png` (or your chosen name).
 3. Prints and copies the Markdown embed `<img src="path/to/file.png">`.
+
+## Useful Tools
+
+### mermaid
+
+- To render on-line: https://mermaid.live
+
+- Resources:
+  - https://mermaid.js.org/syntax/examples.html
+
+### graphviz
+
+- To render on-line: https://dreampuf.github.io/GraphvizOnline
+
+- Resources:
+  - https://graphviz.org/gallery/
+
+### markdown
+- To render on-line: https://markdownlivepreview.com/
+
+### pandoc
+- To render on-line: https://pandoc.org/try/
+
+### Tikz
+- To render on-line use Overleaf
+
+- Resources
+  - https://www.overleaf.com/learn/latex/TikZ_package
+  - https://texample.net/
+  - https://www.integral-domain.org/lwilliams/Resources/tikzsnippets.php
+  - https://tikz.pablopie.xyz/
+  - https://tikzit.github.io/
+  - https://latexdraw.com/

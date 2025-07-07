@@ -40,7 +40,7 @@ def _main():
         )
         sys.exit(1)
     # Read pre-commit output.
-    precommit_output_path = f"tmp.precommit_output.txt"
+    precommit_output_path = "tmp.precommit_output.txt"
     try:
         # We want to avoid using helpers here because we want to keep the
         # script decoupled from helpers.

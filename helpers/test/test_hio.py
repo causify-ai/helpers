@@ -67,7 +67,7 @@ class Test_rename_file_if_exists(hunitest.TestCase):
         file_to_rename = "not_exist.txt"
         before_extension = False
         expected_file_name = "not_exist.txt"
-        with self.assertRaises(AssertionError) as e:
+        with self.assertRaises(AssertionError):
             self.check_file(file_to_rename, before_extension, expected_file_name)
 
 

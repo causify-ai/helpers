@@ -92,112 +92,6 @@ def _preprocess(txt: str) -> str:
     return txt_new_as_str
 
 
-# TODO(gp): Move this somewhere else.
-# TODO(gp): Remove the code path using non dockerized executable, after fix for
-# CmampTask10710.
-def prettier(
-    in_file_path: str,
-    out_file_path: str,
-    file_type: str,
-    *,
-    print_width: int = 80,
-    use_dockerized_prettier: bool = True,
-    # TODO(gp): Remove this.
-    **kwargs: Any,
-) -> None:
-    """
-    Format the given text using Prettier.
-
-    :param in_file_path: The path to the input file.
-    :param out_file_path: The path to the output file.
-    :param file_type: The type of file to be formatted, e.g., `md` or `tex`.
-    :param print_width: The maximum line width for the formatted text.
-        If None, the default width is used.
-    :param use_dockerized_prettier: Whether to use a Dockerized version
-        of Prettier.
-    :return: The formatted text.
-    """
-    _LOG.debug(hprint.func_signature_to_str())
-    hdbg.dassert_in(file_type, ["md", "tex", "txt"])
-    # Build command options.
-    cmd_opts: List[str] = []
-    tab_width = 2
-    if file_type == "tex":
-        # cmd_opts.append("--plugin=prettier-plugin-latex")
-        cmd_opts.append("--plugin=@unified-latex/unified-latex-prettier")
-    elif file_type in ("md", "txt"):
-        cmd_opts.append("--parser markdown")
-    else:
-        raise ValueError(f"Invalid file type: {file_type}")
-    hdbg.dassert_lte(1, print_width)
-    cmd_opts.extend(
-        [
-            f"--print-width {print_width}",
-            "--prose-wrap always",
-            f"--tab-width {tab_width}",
-            "--use-tabs false",
-        ]
-    )
-    # Run prettier.
-    if use_dockerized_prettier:
-        # Run `prettier` in a Docker container.
-        force_rebuild = False
-        use_sudo = hdocker.get_use_sudo()
-        hdocker.run_dockerized_prettier(
-            in_file_path,
-            cmd_opts,
-            out_file_path,
-            file_type=file_type,
-            force_rebuild=force_rebuild,
-            use_sudo=use_sudo,
-        )
-    else:
-        # Run `prettier` installed on the host directly.
-        executable = "prettier"
-        # executable = "NODE_PATH=/usr/local/lib/node_modules /usr/local/bin/prettier"
-        cmd = [executable] + cmd_opts
-        if in_file_path == out_file_path:
-            cmd.append("--write")
-        cmd.append(in_file_path)
-        if in_file_path != out_file_path:
-            cmd.append("> " + out_file_path)
-        #
-        cmd_as_str = " ".join(cmd)
-        _, output_tmp = hsystem.system_to_string(cmd_as_str, abort_on_error=True)
-        _LOG.debug("output_tmp=%s", output_tmp)
-
-
-# TODO(gp): Convert this into a decorator to adapt operations that work on
-#  files to passing strings.
-# TODO(gp): Move this to `hmarkdown.py`.
-def prettier_on_str(
-    txt: str,
-    file_type: str,
-    *args: Any,
-    **kwargs: Any,
-) -> str:
-    """
-    Wrap `prettier()` to work on strings.
-    """
-    _LOG.debug("txt=\n%s", txt)
-    # Save string as input.
-    # TODO(gp): Use a context manager.
-    curr_dir = os.getcwd()
-    tmp_file_name = tempfile.NamedTemporaryFile(
-        prefix="tmp.prettier_on_str.", dir=curr_dir
-    ).name
-    hdbg.dassert_in(file_type, ["md", "tex", "txt"])
-    tmp_file_name += "." + file_type
-    hio.to_file(tmp_file_name, txt)
-    # Call `prettier` in-place.
-    prettier(tmp_file_name, tmp_file_name, file_type, *args, **kwargs)
-    # Read result into a string.
-    txt = hio.from_file(tmp_file_name)
-    _LOG.debug("After prettier txt=\n%s", txt)
-    os.remove(tmp_file_name)
-    return txt  # type: ignore
-
-
 # TODO(gp): Rename to `postprocess_after_prettier`.
 def _postprocess(txt: str, in_file_name: str) -> str:
     """
@@ -432,7 +326,7 @@ def _process(
     # Prettify.
     action = "prettier"
     if _to_execute_action(action, actions):
-        txt = prettier_on_str(txt, file_type=extension, **kwargs)
+        txt = hdocker.prettier_on_str(txt, file_type=extension, **kwargs)
     # Post-process text.
     action = "postprocess"
     if _to_execute_action(action, actions):
