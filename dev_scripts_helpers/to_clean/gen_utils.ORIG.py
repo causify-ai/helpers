@@ -33,7 +33,7 @@ import utils.stats
 
 def init_notebook(num_git_commits=3):
     verbosity = 1
-    print("Setting verbosity to %s" % verbosity)
+    print(f"Setting verbosity to {verbosity}")
     dbg.set_verbosity_level(verbosity)
     #
     # print matplotlib.rcParams
@@ -41,14 +41,14 @@ def init_notebook(num_git_commits=3):
     #
     cmd = "conda info --envs"
     print(utils.jos.system_to_string(cmd)[1])
-    print("  SVN_ROOT=%s" % os.environ["SVN_ROOT"])
-    print("  numpy=%s" % np.__version__)
-    print("  scipy=%s" % scipy.__version__)
-    print("  sklearn=%s" % sklearn.__version__)
-    print("  pandas=%s" % pd.__version__)
+    print(f"  SVN_ROOT={os.environ['SVN_ROOT']}")
+    print(f"  numpy={np.__version__}")
+    print(f"  scipy={scipy.__version__}")
+    print(f"  sklearn={sklearn.__version__}")
+    print(f"  pandas={pd.__version__}")
     #
     print("# git tag")
-    cmd = "git log2 --author gp | head -%s" % num_git_commits
+    cmd = f"git log2 --author gp | head -{num_git_commits}"
     print(utils.jos.system_to_string(cmd)[1])
 
 
@@ -83,7 +83,7 @@ def apply_to_dict_panel(
     elif isinstance(obj, dict):
         type_ = "dict"
     else:
-        raise ValueError("Invalid type='%s' for %s" % (type(obj), str(f)))
+        raise ValueError(f"Invalid type='{type(obj)}' for {str(f)}")
     #
     res = {}
     if progress_bar:
@@ -131,7 +131,7 @@ def apply_to_dict_panel_parallel(
     elif isinstance(obj, dict):
         type_ = "dict"
     else:
-        raise ValueError("Invalid type='%s' for %s" % (type(obj), str(f)))
+        raise ValueError(f"Invalid type='{type(obj)}' for {str(f)}")
     #
     res = {}
     keys = list(obj.keys())
@@ -218,21 +218,21 @@ def head(obj, key=None, max_n=2, tag=None):
     Show head of dict or panel.
     """
     txt = ""
-    txt += "# %s\n" % str(type(obj))
+    txt += f"# {str(type(obj))}\n"
     if isinstance(obj, dict):
         txt += "keys=%s\n" % format_list(list(obj.keys()), tag=tag)
         if key is None:
             key = sorted(obj.keys())[0]
-        txt += "# key=%s\n" % key
+        txt += f"# key={key}\n"
         txt += dbg.space(head(obj[key], key=None, max_n=max_n, tag="value"))
     elif isinstance(obj, pd.Panel):
         txt += describe(obj, max_n=max_n) + "\n"
         txt += "# head=\n"
         txt += dbg.space(str(obj[obj.items[0]].head(max_n)))
-    elif isinstance(obj, pd.Series) or isinstance(obj, pd.DataFrame):
+    elif isinstance(obj, (pd.Series, pd.DataFrame)):
         txt += str(obj.head(max_n))
     else:
-        raise ValueError("Invalid object %s" % str(obj))
+        raise ValueError(f"Invalid object {str(obj)}")
     return txt
 
 
@@ -268,7 +268,7 @@ def analyze_object(locals_tmp, obj, tag="", max_string_len=1000):
 def describe(obj, tag=None, max_n=None):
     txt = ""
     if tag is not None:
-        txt += "%s=\n" % tag
+        txt += f"{tag}=\n"
     if isinstance(obj, pd.Panel):
         txt += "type=pd.Panel\n"
         txt += format_list(obj.axes[0], max_n=max_n, tag="items") + "\n"
@@ -280,7 +280,7 @@ def describe(obj, tag=None, max_n=None):
         txt += format_list(obj.index, max_n=2, tag="index") + "\n"
     elif isinstance(obj, pd.Series):
         txt += "type=pd.Series\n"
-        txt += "name=%s" % obj.name + "\n"
+        txt += f"name={obj.name}" + "\n"
         txt += format_list(obj.index, max_n=2, tag="index") + "\n"
     elif isinstance(obj, list):
         txt += "type=list\n"
@@ -320,7 +320,7 @@ def min_max_index(obj, tag=None):
     dbg.dassert(index.is_monotonic_increasing)
     txt = ""
     if tag:
-        txt += "%s: " % tag
+        txt += f"{tag}: "
     txt += "[%s, %s], count=%s" % (
         pd.to_datetime(index.values[0]),
         pd.to_datetime(index.values[-1]),
@@ -333,13 +333,13 @@ def min_max(obj, tag=None):
     # dbg.dassert_in(type(obj), (list, tuple))
     txt = ""
     if tag:
-        txt += "%s: " % tag
+        txt += f"{tag}: "
     if len(obj) > 0:
         if hasattr(obj, "is_monotonic_increasing"):
             min_, max_ = obj.values[0], obj.values[-1]
         else:
             min_, max_ = min(obj), max(obj)
-        txt += "[%s, %s], count=%s" % (min_, max_, len(obj))
+        txt += f"[{min_}, {max_}], count={len(obj)}"
     else:
         txt += "empty"
     return txt
@@ -364,14 +364,14 @@ def exact_rename_df(df, rename_map, axis):
     elif axis == 1:
         vals = df.columns
     else:
-        raise ValueError("Invalid axis=%s" % axis)
+        raise ValueError(f"Invalid axis={axis}")
     dbg.dassert_set_eq(vals, list(rename_map.keys()))
     if axis == 0:
         df = df.rename(index=rename_map)
     elif axis == 1:
         df = df.rename(columns=rename_map)
     else:
-        raise ValueError("Invalid axis=%s" % axis)
+        raise ValueError(f"Invalid axis={axis}")
     return df
 
 
@@ -390,7 +390,7 @@ def get_index(obj):
     elif isinstance(obj, pd.Panel):
         index = obj.axes[1]
     else:
-        dbg.dfatal("Invalid type(obj)=%s" % type(obj))
+        dbg.dfatal(f"Invalid type(obj)={type(obj)}")
     return index
 
 
@@ -406,7 +406,7 @@ def check_index_type(series):
             dbg.dassert_eq(
                 exp_type,
                 curr_type,
-                msg="series '%s' has different index type" % s.name,
+                msg=f"series '{s.name}' has different index type",
             )
     return True
 
@@ -424,13 +424,13 @@ def filter_by_period(
     stats.
     """
     log.log(verbosity, "# Filtering in [%s, %s]", start_time, end_time)
-    if isinstance(obj, pd.Panel) or isinstance(obj, pd.Panel4D):
+    if isinstance(obj, (pd.Panel, pd.Panel4D)):
         dbg.dassert_is_not(axis, None)
         index = obj.axes[axis]
     elif isinstance(obj, pd.DataFrame):
         index = obj.index
     else:
-        raise ValueError("Invalid type(obj)=%s" % type(obj))
+        raise ValueError(f"Invalid type(obj)={type(obj)}")
     log.log(verbosity, "before=%s", min_max(index))
     # Slice index.
     index_tmp = slice_index(index, start_time, end_time, mode=mode)
@@ -444,7 +444,7 @@ def filter_by_period(
         elif axis == 1:
             obj = obj.loc[:, index_tmp]
         else:
-            raise ValueError("Invalid axis=%s" % axis)
+            raise ValueError(f"Invalid axis={axis}")
     elif isinstance(obj, pd.Panel):
         if axis == 0:
             obj = obj.loc[index_tmp, :, :]
@@ -453,7 +453,7 @@ def filter_by_period(
         elif axis == 2:
             obj = obj.loc[:, :, index_tmp]
         else:
-            raise ValueError("Invalid axis=%s" % axis)
+            raise ValueError(f"Invalid axis={axis}")
     elif isinstance(obj, pd.Panel4D):
         if axis == 0:
             obj = obj.loc[index_tmp, :, :, :]
@@ -464,9 +464,9 @@ def filter_by_period(
         elif axis == 3:
             obj = obj.loc[:, :, :, index_tmp]
         else:
-            raise ValueError("Invalid axis=%s" % axis)
+            raise ValueError(f"Invalid axis={axis}")
     else:
-        raise ValueError("Invalid type(obj)=%s" % type(obj))
+        raise ValueError(f"Invalid type(obj)={type(obj)}")
     return obj
 
 
@@ -561,14 +561,14 @@ def filter_non_finite(obj, col_names=None, keep_finite=True, print_stats=False):
         mask = _build_mask(finite_mask, keep_finite)
         vals = obj[~finite_mask]
     else:
-        raise ValueError("Invalid type='%s'" % type(obj))
+        raise ValueError(f"Invalid type='{type(obj)}'")
     # Select what we want to keep.
     obj_tmp = obj[mask]
     # Report stats, if needed.
     if print_stats:
         before_num_cols = obj.shape[0]
         after_num_cols = obj_tmp.shape[0]
-        print("filter_non_finite (keep_finite=%s):" % keep_finite)
+        print(f"filter_non_finite (keep_finite={keep_finite}):")
         print(
             "\tkept rows=%s"
             % dbg.perc(after_num_cols, before_num_cols, printAll=True)
@@ -589,10 +589,10 @@ def filter_non_finite(obj, col_names=None, keep_finite=True, print_stats=False):
     # Convert back to the correct type.
     if isinstance(obj_tmp, pd.DataFrame):
         dbg.dassert_lte(1, obj_tmp.shape[0])
-    elif isinstance(obj_tmp, pd.Series) or isinstance(obj_tmp, np.ndarray):
+    elif isinstance(obj_tmp, (pd.Series, np.ndarray)):
         dbg.dassert_lte(1, len(obj_tmp))
     else:
-        raise ValueError("Invalid type='%s'" % type(obj_tmp))
+        raise ValueError(f"Invalid type='{type(obj_tmp)}'")
     return obj_tmp
 
 
@@ -649,7 +649,7 @@ def slice_index(idx, start_dt, end_dt, mode=None):
         start_idx = bisect.bisect_right(idx, start_dt)
         end_idx = bisect.bisect_right(idx, end_dt)
     else:
-        raise ValueError("Invalid mode=%s" % mode)
+        raise ValueError(f"Invalid mode={mode}")
     return idx[start_idx:end_idx]
 
 
@@ -797,7 +797,7 @@ def remove_outliers(
         elif mode == "filter":
             ret = ret[mask].copy()
         else:
-            dbg.dfatal("Invalid mode='%s'" % mode)
+            dbg.dfatal(f"Invalid mode='{mode}'")
     return ret, bounds
 
 
@@ -863,7 +863,7 @@ def align_df_to_last_value(df):
 
 def get_times(obj):
     index = get_index(obj)
-    times = set(dt.time() for dt in index)
+    times = {dt.time() for dt in index}
     return sorted(times)
 
 
@@ -880,8 +880,8 @@ def report_nan_nums_for_columns(
     df, display=True, fmt_pct=True, plot=False, title=None, figsize=None
 ):
     dbg.dassert_type_is(df, pd.DataFrame)
-    print("columns=(%s) %s" % (len(df.columns), " ".join(df.columns)))
-    print("dates=[%s, %s]" % (df.index[0], df.index[-1]))
+    print(f"columns=({len(df.columns)}) {' '.join(df.columns)}")
+    print(f"dates=[{df.index[0]}, {df.index[-1]}]")
     print("num_dates=", df.shape[0])
     # Count nans.
     count = pd.DataFrame(np.isnan(df).sum(axis=0), columns=["nans"])
@@ -994,7 +994,7 @@ def to_date(obj, axis=None):
         elif axis == 2:
             obj.minor_axis = transform(obj)
         else:
-            raise ValueError("Invalid axis=%s" % axis)
+            raise ValueError(f"Invalid axis={axis}")
     else:
         # TODO(gp): Maybe apply or map is faster.
         obj.index = [dt.date() for dt in obj.index]
@@ -1014,20 +1014,20 @@ def to_csv(model_df, file_name, overwrite_if_present):
     # Make the path linux friendly and absolute.
     dir_name = os.path.dirname(file_name)
     base_name = os.path.basename(file_name).replace("/", "_")
-    file_name = os.path.abspath("%s/%s" % (dir_name, base_name))
+    file_name = os.path.abspath(f"{dir_name}/{base_name}")
     dbg.dassert(
-        file_name.endswith(".csv"), msg="Invalid file_name='%s'" % file_name
+        file_name.endswith(".csv"), msg=f"Invalid file_name='{file_name}'"
     )
     # Create dir, if needed.
     utils.jio.create_enclosing_dir(file_name, incremental=True)
     if not overwrite_if_present:
         dbg.dassert(
             not os.path.exists(file_name),
-            msg="don't want to overwrite '%s'" % file_name,
+            msg=f"don't want to overwrite '{file_name}'",
         )
     # Save data.
     model_df.to_csv(file_name)
-    print("File saved to: %s" % file_name)
+    print(f"File saved to: {file_name}")
 
 
 def plot_rolling_correlation(df, vmin=-1, vmax=1):
@@ -1040,7 +1040,7 @@ def plot_rolling_correlation(df, vmin=-1, vmax=1):
     df = df.dropna()
     for lbl1, lbl2 in col_pairs:
         srs = pd.rolling_corr(df[lbl1], df[lbl2], window=252)
-        srs.name = "%s vs %s" % (lbl1, lbl2)
+        srs.name = f"{lbl1} vs {lbl2}"
         df_corr.append(srs)
     df_corr = pd.concat(df_corr, join="outer", axis=1)
     # Plot.
@@ -1246,7 +1246,7 @@ def plot_acf(data, lags=10, remove_nans=False, figsize=None):
     acf = statsmodels.tsa.stattools.acf(data)[:lags]
     srs = pd.Series(acf, index=list(range(0, lags)))
     srs.name = "acf"
-    print("acf=\n%s" % srs.to_string())
+    print(f"acf=\n{srs.to_string()}")
     #
     statsmodels.api.graphics.tsa.plot_acf(data, lags=lags, ax=axes[0])
     statsmodels.api.graphics.tsa.plot_pacf(data, lags=lags, ax=axes[1])
@@ -1279,7 +1279,7 @@ def plot_ccf(
     dbg.dassert_in(col_name2, data.columns)
     suffix = " (cumsum)" if cumsum else ""
     if title is None:
-        title = "%s ~ %s" % (col_name1, col_name2)
+        title = f"{col_name1} ~ {col_name2}"
     title += suffix
     if figsize is None:
         figsize = (16, 4)
@@ -1401,7 +1401,7 @@ def plot_bootstrap_ccf(
     )
     title = "Cross correlation"
     if label != "":
-        title = "%s" % (label,)
+        title = f"{label}"
     ax.set_title(title)
     plt.axhline(0, color="k", linestyle="--")
     plt.xlabel("Lags")
@@ -1499,10 +1499,10 @@ def regress(
     # Shift.
     if predicted_var_delay != 0:
         df[predicted_var] = df[predicted_var].shift(predicted_var_delay)
-        log.warning("Shifting predicted_var=%s" % predicted_var_delay)
+        log.warning(f"Shifting predicted_var={predicted_var_delay}")
     if predictor_vars_delay != 0:
         df[predictor_vars] = df[predictor_vars].shift(predictor_vars_delay)
-        log.warning("Shifting predictor_vars=%s" % predictor_vars_delay)
+        log.warning(f"Shifting predictor_vars={predictor_vars_delay}")
     # Remove non-finite values.
     df.dropna(how="all", inplace=True)
     num_rows_after_drop_nan_all = df.shape[0]
@@ -1532,7 +1532,7 @@ def regress(
     dbg.dassert(np.all(np.isfinite(df[predicted_var].values)))
     dbg.dassert(
         np.all(np.isfinite(df[predictor_vars].values)),
-        msg="predictor_vars=%s" % predictor_vars,
+        msg=f"predictor_vars={predictor_vars}",
     )
     # Perform regression.
     if df.shape[0] < 1:
@@ -1660,15 +1660,9 @@ def regress_series(
         srs2.index = [pd.to_datetime(dt).date() for dt in srs2.index]
     #
     if type(srs1.index[0]) != type(srs2.index[0]):
-        msg = "\nsrs1.index=%s type(srs1.index)=%s" % (
-            srs1.index[0],
-            type(srs1.index[0]),
-        )
+        msg = f"\nsrs1.index={srs1.index[0]} type(srs1.index)={type(srs1.index[0])}"
         msg += "\n!=\n"
-        msg += "srs2.index=%s type(srs2.index)=%s" % (
-            srs2.index[0],
-            type(srs2.index[0]),
-        )
+        msg += f"srs2.index={srs2.index[0]} type(srs2.index)={type(srs2.index[0])}"
         log.error(msg)
         raise ValueError("")
     # Check common indices.

@@ -733,7 +733,7 @@ def _git_diff_with_branch(
         _LOG.info("After filtering by subdir: files=%s", len(files))
         _LOG.debug("%s", "\n".join(files))
     # Done filtering.
-    _LOG.info("\n" + hprint.frame("# files=%s" % len(files)))
+    _LOG.info("\n" + hprint.frame(f"# files={len(files)}"))
     _LOG.info("\n" + "\n".join(files))
     if len(files) == 0:
         _LOG.warning("Nothing to diff: exiting")

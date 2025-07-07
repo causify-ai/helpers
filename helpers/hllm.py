@@ -745,7 +745,7 @@ def apply_prompt_to_dataframe(
         chunk = df.iloc[start:end]
         _LOG.debug("chunk.size=%s", chunk.shape[0])
         data = chunk[input_col].astype(str).tolist()
-        data = ["%s: %s" % (i + 1, val) for i, val in enumerate(data)]
+        data = [f"{i + 1}: {val}" for i, val in enumerate(data)]
         user = "\n".join(data)
         _LOG.debug("user=\n%s", user)
         try:

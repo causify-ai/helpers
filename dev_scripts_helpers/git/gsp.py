@@ -40,7 +40,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     tag, was_stashed = hgit.git_stash_push(
         "gsp", msg=args.message, log_level=logging.INFO
     )
-    print("tag='%s'" % tag)
+    print(f"tag='{tag}'")
     if not was_stashed:
         # raise RuntimeError(msg)
         pass

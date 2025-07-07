@@ -444,7 +444,7 @@ def perc(
             ret += "%"
     elif only_fraction:
         # 4225 / 7377
-        ret = "%s / %s" % (a_str, b_str)
+        ret = f"{a_str} / {b_str}"
     else:
         # 4225 / 7377 = 57.27%
         fmt = "%s / %s = %." + str(num_digits) + "f%%"

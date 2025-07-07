@@ -150,7 +150,8 @@ def _render_image_code(
         \usepackage{pgfplots}
         \usepackage{mathrsfs} % For script font
         \usepackage{xcolor}
-        \pgfplotsset{compat=1.17}
+        \usetikzlibrary{positioning}
+        \pgfplotsset{compat=newest}
         \begin{document}
         \begin{tikzpicture}
         """
