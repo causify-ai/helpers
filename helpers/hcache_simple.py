@@ -486,6 +486,17 @@ def simple_cache(
     write_through: bool = False,
     exclude_keys: List[str] = [],
 ) -> Callable[..., Any]:
+    """
+    Decorate a function to cache its results.
+
+    The cache is stored in memory and on disk.
+    :param cache_type: The type of cache to use ('json' or 'pickle').
+    :param write_through: If True, the cache is written to disk after
+        each access.
+    :param exclude_keys: A list of keys to exclude from the cache key.
+    :return: A decorator that can be applied to a function.
+    """
+
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         hdbg.dassert_in(cache_type, ("json", "pickle"))
         func_name = func.__name__
@@ -501,6 +512,21 @@ def simple_cache(
             report_on_cache_miss: bool = False,
             **kwargs: Any,
         ) -> Any:
+            """
+            Cache the results of the decorated function.
+
+            :param args: Positional arguments for the function.
+            :param force_refresh: If True, the cache is refreshed
+                  regardless of whether the key exists in the cache.
+            :param abort_on_cache_miss: If True, an exception is raised
+                  if the key is not found in the cache.
+            :param report_on_cache_miss: If True, a message is logged if
+                  the key is not found in the cache, and the function
+                  returns "_cache_miss_" instead of accessing the real
+                  value.
+            :param kwargs: Keyword arguments for the function.
+            :return: The cached value or the result of the function.
+            """
             # Get the function name.
             func_name = func.__name__
             if func_name.endswith("_intrinsic"):
