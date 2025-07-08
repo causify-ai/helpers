@@ -482,8 +482,21 @@ def reset_cache(func_name: str = "") -> None:
 
 
 def simple_cache(
-    cache_type: str = "json", write_through: bool = False
+    cache_type: str = "json",
+    write_through: bool = False,
+    exclude_keys: List[str] = [],
 ) -> Callable[..., Any]:
+    """
+    Decorate a function to cache its results.
+
+    The cache is stored in memory and on disk.
+    :param cache_type: The type of cache to use ('json' or 'pickle').
+    :param write_through: If True, the cache is written to disk after
+        each access.
+    :param exclude_keys: A list of keys to exclude from the cache key.
+    :return: A decorator that can be applied to a function.
+    """
+
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         hdbg.dassert_in(cache_type, ("json", "pickle"))
         func_name = func.__name__
@@ -492,16 +505,60 @@ def simple_cache(
         set_cache_property("system", func_name, "type", cache_type)
 
         @functools.wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
+        def wrapper(
+            *args: Any,
+            force_refresh: bool = False,
+            abort_on_cache_miss: bool = False,
+            report_on_cache_miss: bool = False,
+            **kwargs: Any,
+        ) -> Any:
+            """
+            Cache the results of the decorated function.
+
+            :param args: Positional arguments for the function.
+            :param force_refresh: If True, the cache is refreshed
+                  regardless of whether the key exists in the cache.
+            :param abort_on_cache_miss: If True, an exception is raised
+                  if the key is not found in the cache.
+            :param report_on_cache_miss: If True, a message is logged if
+                  the key is not found in the cache, and the function
+                  returns "_cache_miss_" instead of accessing the real
+                  value.
+            :param kwargs: Keyword arguments for the function.
+            :return: The cached value or the result of the function.
+            """
             # Get the function name.
             func_name = func.__name__
             if func_name.endswith("_intrinsic"):
                 func_name = func_name[: -len("_intrinsic")]
             # Get the cache.
             cache = get_cache(func_name)
+            # Remove keys that should not be cached.
+            kwargs_for_cache_key = {
+                k: v for k, v in kwargs.items() if k not in exclude_keys
+            }
+            if "cache_mode" in kwargs:
+                cache_mode = kwargs.get("cache_mode")
+                _LOG.debug("cache_mode=%s", cache_mode)
+                if cache_mode == "REFRESH_CACHE":
+                    # Force to refresh the cache.
+                    _LOG.debug("Forcing cache refresh")
+                    force_refresh = True
+                if cache_mode == "HIT_CACHE_OR_ABORT":
+                    # Abort if the cache is not hit.
+                    _LOG.debug("Abort on cache miss")
+                    abort_on_cache_miss = True
+                if cache_mode == "DISABLE_CACHE":
+                    # Disable the cache.
+                    _LOG.debug("Disabling cache")
+                    value = func(*args, **kwargs)
+                    return value
+
             # Get the key.
             key = json.dumps(
-                {"args": args, "kwargs": kwargs}, sort_keys=True, default=str
+                {"args": args, "kwargs": kwargs_for_cache_key},
+                sort_keys=True,
+                default=str,
             )
             _LOG.debug("key=%s", key)
             # Get the cache properties.
@@ -512,7 +569,10 @@ def simple_cache(
                 hdbg.dassert_in("tot", cache_perf)
                 cache_perf["tot"] += 1
             # Handle a forced refresh.
-            force_refresh = get_cache_property("user", func_name, "force_refresh")
+            force_refresh = (
+                get_cache_property("user", func_name, "force_refresh")
+                or force_refresh
+            )
             _LOG.debug("force_refresh=%s", force_refresh)
             if not force_refresh and key in cache:
                 _LOG.debug("Cache hit for key='%s'", key)
@@ -527,8 +587,9 @@ def simple_cache(
                 if cache_perf:
                     cache_perf["misses"] += 1
                 # Abort on cache miss.
-                abort_on_cache_miss = get_cache_property(
-                    "user", func_name, "abort_on_cache_miss"
+                abort_on_cache_miss = (
+                    get_cache_property("user", func_name, "abort_on_cache_miss")
+                    or abort_on_cache_miss
                 )
                 _LOG.debug("abort_on_cache_miss=%s", abort_on_cache_miss)
                 if abort_on_cache_miss:
