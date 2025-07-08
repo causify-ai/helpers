@@ -153,7 +153,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     if args.prompt == "list":
         print("# Available prompt tags:")
-        print("\n".join(dshlllpr.get_prompt_tags()))
+        prompt_tags = dshlllpr.get_prompt_tags()
+        print(dshlllpr.prompt_tags_to_str(prompt_tags))
         return
     # TODO(gp): We should just automatically pass-through the options.
     cmd_line_opts = [f"-p {args.prompt}", f"-v {args.log_level}"]
@@ -192,7 +193,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     #     # Note that we need to run this outside the `llm_transform` container to
     #     # avoid to do docker-in-docker in the `llm_transform` container (which
     #     # doesn't support that).
-    #     out_txt = dshdlino.prettier_on_str(out_txt)
+    #     out_txt = hdocker.prettier_on_str(out_txt)
     # Read the output from the container and write it to the output file from
     # command line (e.g., `-` for stdout).
     # hparser.write_file(out_txt, out_file_name)

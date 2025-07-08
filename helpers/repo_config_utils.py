@@ -60,8 +60,7 @@ def _find_config_file(file_name: str) -> str:
         if parent == curr_dir:
             # We cannot use helpers since it creates circular import.
             raise FileNotFoundError(
-                "Could not find '%s' in current directory or any parent directories"
-                % file_name
+                f"Could not find '{file_name}' in current directory or any parent directories"
             )
         curr_dir = parent
     return path
@@ -374,7 +373,7 @@ class RepoConfig:
         # Check if path exists.
         # We can't use helpers since it creates circular import.
         if not os.path.exists(file_path):
-            raise FileNotFoundError("File '%s' doesn't exist" % file_path)
+            raise FileNotFoundError(f"File '{file_path}' doesn't exist")
         return file_path
 
 

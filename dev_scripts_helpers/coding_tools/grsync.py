@@ -66,7 +66,7 @@ def _get_rsync_cmd(
     if force:
         cmd_opts += " -I --delete"
     cmd_opts += " -avzu"
-    cmd_opts += "".join([" --exclude %s" % e for e in _TO_EXCLUDE])
+    cmd_opts += "".join([f" --exclude {e}" for e in _TO_EXCLUDE])
     cmd += cmd_opts
     # Handle a quirk of rsync where the destination dir needs to have one
     # missing level.
@@ -76,11 +76,11 @@ def _get_rsync_cmd(
     #   --dry-run
     hdbg.dassert_eq(os.path.basename(src_dir), os.path.basename(dst_dir))
     dst_dir = os.path.dirname(dst_dir)
-    dst = "%s@%s:%s" % (remote_user_name, dst_ip, dst_dir)
+    dst = f"{remote_user_name}@{dst_ip}:{dst_dir}"
     if local_to_remote:
-        cmd += " %s %s" % (src_dir, dst)
+        cmd += f" {src_dir} {dst}"
     else:
-        cmd += " %s %s" % (dst, src_dir)
+        cmd += f" {dst} {src_dir}"
     return cmd
 
 
@@ -130,16 +130,16 @@ def _get_list_files_cmd(
     cmd_opts = ""
     cmd_opts += " --itemize-changes"
     cmd_opts += " -n -avzu"
-    cmd_opts += "".join([" --exclude %s" % e for e in _TO_EXCLUDE])
+    cmd_opts += "".join([f" --exclude {e}" for e in _TO_EXCLUDE])
     cmd += cmd_opts
     if local_to_remote:
         cmd += " " + src_dir
     else:
-        cmd += " %s@%s:%s" % (remote_user_name, dst_ip, dst_dir)
+        cmd += f" {remote_user_name}@{dst_ip}:{dst_dir}"
     dst_file = (
         "tmp.local_all.txt" if not local_to_remote else "tmp.remote_all.txt"
     )
-    cmd += " >%s" % dst_file
+    cmd += f" >{dst_file}"
     hsystem.system(cmd)
     #
     if not verbose:
@@ -205,26 +205,22 @@ def _main():
             dst_dir += "/" + sub_dir
             dst_dir = os.path.abspath(dst_dir)
     else:
-        raise ValueError("Invalid config='%s'" % args.config)
+        raise ValueError(f"Invalid config='{args.config}'")
     hdbg.dassert_is_not(dst_dir, None)
     # Check that both dirs exist.
     hdbg.dassert_is_not(args.src_dir, None)
     src_dir = os.path.abspath(args.src_dir)
     hdbg.dassert_path_exists(src_dir)
     #
-    print("src_dir=%s" % args.src_dir)
-    print("dst_dir=%s" % dst_dir)
-    print("remote=%s@%s" % (remote_user_name, remote_ip))
+    print(f"src_dir={args.src_dir}")
+    print(f"dst_dir={dst_dir}")
+    print(f"remote={remote_user_name}@{remote_ip}")
     #
     if not args.no_check:
-        cmd = 'ssh %s@%s "ls %s"' % (remote_user_name, remote_ip, dst_dir)
+        cmd = f'ssh {remote_user_name}@{remote_ip} "ls {dst_dir}"'
         rc = hsystem.system(cmd, abort_on_error=False)
         if rc != 0:
-            msg = "Can't find remote dir '%s' on '%s@%s'" % (
-                dst_dir,
-                remote_user_name,
-                remote_ip,
-            )
+            msg = f"Can't find remote dir '{dst_dir}' on '{remote_user_name}@{remote_ip}'"
             _LOG.error(msg)
             raise RuntimeError(msg)
     #
@@ -277,7 +273,7 @@ def _main():
             )
             files.append(file)
         # Save a script to diff.
-        vimdiff_cmd = "vimdiff %s %s" % (files[0], files[1])
+        vimdiff_cmd = f"vimdiff {files[0]} {files[1]}"
         diff_script = "./tmp_diff.sh"
         hio.to_file(diff_script, vimdiff_cmd)
         cmd = "chmod +x " + diff_script
@@ -291,7 +287,7 @@ def _main():
         msg = "\n".join(msg)
         _LOG.error(msg)
     else:
-        hdbg.dfatal("Invalid action='%s'" % args.action)
+        hdbg.dfatal(f"Invalid action='{args.action}'")
 
 
 if __name__ == "__main__":

@@ -1440,7 +1440,7 @@ def _get_invoke_cmd_line(target: str, opts: str, pytest_opts: str) -> str:
     if opts:
         cmd.append(opts)
     if pytest_opts:
-        cmd.append("--pytest-opts %s" % pytest_opts)
+        cmd.append("--pytest-opts " + pytest_opts)
     cmd.append("2>&1")
     return " ".join(cmd)
 
@@ -1468,7 +1468,7 @@ def pytest_buildmeister_check(ctx, print_output=False):  # type: ignore
         cmd = f"rm -rf {log_file}"
         _run(cmd)
     log_file = "bm.log.txt"
-    cmd = 'cat $(find . -name "bm.log*.txt" | sort) >%s' % log_file
+    cmd = 'cat $(find . -name "bm.log*.txt" | sort) >' + log_file
     _run(cmd)
     #
     if print_output:

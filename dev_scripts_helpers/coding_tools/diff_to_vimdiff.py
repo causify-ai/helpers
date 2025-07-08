@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""
+r"""
 Diff content of two directories using vimdiff, by transform the output of `diff -r
 --brief dir1 dir2` into a script using vimdiff.
 
@@ -49,26 +49,40 @@ import helpers.hsystem as hsystem
 _LOG = logging.getLogger(__name__)
 
 
-def _remove_files(file_name: str, to_ignore_regex: Optional[str]) -> None:
+def _remove_files_from_file_list(
+    file_name: str,
+    regexes_to_ignore: Optional[str],
+    do_not_skip_tmp: bool,
+) -> None:
     """
     Remove certain files (e.g., `.git`, `tmp.`, ...) from the content of a
     file.
 
-    - Read the file name which has one file per line
-    - Remove certain files
-    - Write the file back
+    - Read the file with the list of files (one line per file)
+    - Remove certain files (e.g., `.git`, `tmp.`, ...)
+    - Write the file back with the files to keep
+
+    :param file_name: Name of the file to remove files from
+    :param regexes_to_ignore: Regex to ignore certain files
+    :param do_not_skip_tmp: Do not skip `tmp.` files
     """
-    print(f"# Removing files from '{file_name}'")
+    _LOG.debug(hprint.func_signature_to_str())
+    _LOG.info("Removing files from '%s'", file_name)
     txt = hio.from_file(file_name)
     files = txt.split("\n")
+    _LOG.debug("Found %d files", len(files))
+    # Compile the regex.
+    vals = [r"\.git\/", r"\.git:", r"\.idea"]
+    if not do_not_skip_tmp:
+        vals.append(r"[\/ ]tmp\.")
+    if regexes_to_ignore:
+        vals.append(regexes_to_ignore)
+    regex = "|".join(vals)
+    _LOG.debug("regex=%s", regex)
+    # Decide which files to keep and which to remove.
+    # remove_cmd = "| grep -v \"\.git/\" | grep -v \.idea | grep -v '[/ ]tmp.'"
     removed_files = []
     kept_files = []
-    vals = [r"\.git\/", r"\.git:", r"\.idea", r"[\/ ]tmp\."]
-    if to_ignore_regex:
-        vals.append(to_ignore_regex)
-    regex = "|".join(vals)
-    print(f"regex={regex}")
-    # remove_cmd = "| grep -v \"\.git/\" | grep -v \.idea | grep -v '[/ ]tmp.'"
     for file in files:
         keep = not bool(re.search(regex, file))
         if keep:
@@ -76,20 +90,21 @@ def _remove_files(file_name: str, to_ignore_regex: Optional[str]) -> None:
         else:
             removed_files.append(file)
         _LOG.debug("file='%s': -> kept=%s", file, keep)
-    #
+    _LOG.debug("Found %d files to keep", len(kept_files))
+    _LOG.debug("Found %d files to remove", len(removed_files))
+    # Save the original and removed files.
     hio.to_file(file_name + ".orig", "\n".join(files))
     hio.to_file(file_name + ".removed", "\n".join(removed_files))
+    # Update the file with the files to keep.
     hio.to_file(file_name, "\n".join(kept_files))
     hdbg.dassert_eq(len(files), len(removed_files) + len(kept_files))
-    # assert 0, (len(files), len(removed_files), len(kept_files))
-    # print(len(files), len(removed_files), len(kept_files))
 
 
 # #############################################################################
 
 
 def _compare_file_list(
-    dir1: str, dir2: str, to_ignore_regex: Optional[str]
+    dir1: str, dir2: str, regexes_to_ignore: Optional[str]
 ) -> None:
     """
     Extract the file list from two dirs and run `sdiff` on the two file lists.
@@ -111,7 +126,7 @@ def _compare_file_list(
 
     :param dir1: first dir
     :param dir2: second dir
-    :param to_ignore_regex: regex for files to remove
+    :param regexes_to_ignore: regex for files to remove
     """
     print(hprint.frame(f"Compare file list in dirs '{dir1}' vs '{dir2}'"))
     hdbg.dassert_path_exists(dir1)
@@ -124,8 +139,8 @@ def _compare_file_list(
     print(cmd)
     hsystem.system(cmd, abort_on_error=True)
     # Remove files.
-    _remove_files("/tmp/dir1", to_ignore_regex)
-    _remove_files("/tmp/dir2", to_ignore_regex)
+    _remove_files_from_file_list("/tmp/dir1", regexes_to_ignore)
+    _remove_files_from_file_list("/tmp/dir2", regexes_to_ignore)
     # Compare the file listings.
     opts = []
     opts.append("--suppress-common-lines")
@@ -140,20 +155,25 @@ def _compare_file_list(
 
 
 def _find_files_to_diff(
-    dir1: str, dir2: str, to_ignore_regex: Optional[str]
+    dir1: str,
+    dir2: str,
+    regexes_to_ignore: Optional[str],
+    do_not_skip_tmp: bool,
 ) -> str:
     """
     Diff the dirs with `diff -r --brief`, and save the output in a file.
 
     :return: path of the file with the output of `diff -r --brief`
     """
+    _LOG.debug(hprint.func_signature_to_str())
     print(hprint.frame(f"Diff dirs '{dir1}' vs '{dir2}'"))
     dst_file = "./tmp.diff_file_listings.txt"
     cmd = f"diff --brief -r {dir1} {dir2} >{dst_file}"
-    # We don't abort since rc != 0 in case of differences, which is a valid outcome.
+    # We don't abort since rc != 0 in case of differences, which is a valid
+    # outcome.
     hsystem.system(cmd, abort_on_error=False)
     # Remove files.
-    _remove_files(dst_file, to_ignore_regex)
+    _remove_files_from_file_list(dst_file, regexes_to_ignore, do_not_skip_tmp=True)
     #
     cmd = f"cat {dst_file}"
     print(f"# To see diff of the dirs:\n> {cmd}")
@@ -209,7 +229,7 @@ def _parse_diff_output(
             m = re.match(r"^Only in (\S+): (\S+)$", line)
             hdbg.dassert(m, "Invalid line='%s'", line)
             m: Match[Any]
-            file_name = "%s/%s" % (m.group(1), m.group(2))
+            file_name = f"{m.group(1)}/{m.group(2)}"
             # hdbg.dassert_path_exists(file_name)
             dir_ = _get_symbolic_filepath(dir1, dir2, m.group(1))
             dirs = dir_.split("/")
@@ -269,7 +289,7 @@ def _parse_diff_output(
             comment = "\n" + line + "\n"
             comment += f"{sign}: DIFF: {file1}"
             # Diff command.
-            out_line = "vimdiff %s %s" % (m.group(1), m.group(2))
+            out_line = f"vimdiff {m.group(1)} {m.group(2)}"
             if args.only_different_files:
                 _LOG.debug("  -> Skipping line")
                 skip = True
@@ -379,6 +399,11 @@ def _parse() -> argparse.ArgumentParser:
         default=None,
         help="Regex to skip certain files",
     )
+    parser.add_argument(
+        "--skip_tmp",
+        action="store_true",
+        help="Skip `tmp.` files",
+    )
     hparser.add_bool_arg(
         parser,
         "run_diff_script",
@@ -416,7 +441,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
         _compare_file_list(dir1, dir2, args.ignore_files)
         sys.exit(0)
     # Find the files to diff.
-    diff_file = _find_files_to_diff(dir1, dir2, args.ignore_files)
+    diff_file = _find_files_to_diff(
+        dir1,
+        dir2,
+        args.ignore_files,
+        not args.skip_tmp,
+    )
     # Diff the files.
     _parse_diff_output(diff_file, dir1, dir2, args)
 
