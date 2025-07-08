@@ -121,10 +121,6 @@ class BaseCacheTest(hunitest.TestCase):
          - Reset in-memory caches for all cached functions.
          - Set specific cache properties needed for the tests.
         """
-        import helpers.hsystem as hsystem
-
-        # turn off the “are you sure?” prompt
-        hsystem.query_yes_no = lambda *args, **kwargs: False
         # Reset persistent user cache properties.
         hcacsimp.reset_cache_property("user")
         try:
@@ -145,7 +141,7 @@ class BaseCacheTest(hunitest.TestCase):
         ]:
             try:
                 # Reset both disk and in-memory cache.
-                hcacsimp.reset_cache(func_name)
+                hcacsimp.reset_cache(func_name=func_name, interactive=False)
             except AssertionError:
                 # If resetting the full cache fails, reset only the in-memory cache.
                 hcacsimp.reset_mem_cache(func_name)
