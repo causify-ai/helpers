@@ -243,7 +243,9 @@ def _build_messages(system_prompt: str, user_prompt: str) -> List[Dict[str, str]
     return ret
 
 
+@hcacsimp.simple_cache(write_through=True, exclude_keys=["client", "cache_mode"])
 def _call_api_sync(
+    cache_mode: str,
     client: openai.OpenAI,
     messages: List[Dict[str, str]],
     temperature: float,
@@ -253,6 +255,8 @@ def _call_api_sync(
     """
     Make a non-streaming API call.
 
+    :param cache_mode: "DISABLE_CACHE", "REFRESH_CACHE",
+        "HIT_CACHE_OR_ABORT", "NORMAL"
     :param client: OpenAI client
     :param messages: list of messages to send to the API
     :param model: model to use for the completion
@@ -277,33 +281,6 @@ def _call_api_sync(
     # Store the cost in the completion object.
     completion_obj["cost"] = cost
     return completion_obj
-
-
-# Save cache to disk for persistence.
-# "client", "cache_mode" are excluded from the cache key because they are not
-# relevant for the caching logic.
-@hcacsimp.simple_cache(write_through=True, exclude_keys=["client", "cache_mode"])
-def _call_api_sync_cached(
-    cache_mode: str,
-    client: openai.OpenAI,
-    messages: List[Dict[str, str]],
-    model: str,
-    temperature: float,
-    **create_kwargs,
-) -> dict[Any, Any]:
-    """
-    Make a non-streaming API call with caching.
-
-    :param cache_mode: "REFRESH_CACHE", "HIT_CACHE_OR_ABORT", "NORMAL"
-    """
-    hdbg.dassert_in(cache_mode, ("REFRESH_CACHE", "HIT_CACHE_OR_ABORT", "NORMAL"))
-    return _call_api_sync(
-        client=client,
-        messages=messages,
-        model=model,
-        temperature=temperature,
-        **create_kwargs,
-    )
 
 
 # #############################################################################
@@ -443,26 +420,14 @@ def get_completion(
     # print("LLM API call ... ")
     memento = htimer.dtimer_start(logging.DEBUG, "LLM API call")
     if not report_progress:
-        if cache_mode in ("REFRESH_CACHE", "NORMAL", "HIT_CACHE_OR_ABORT"):
-
-            completion = _call_api_sync_cached(
-                cache_mode=cache_mode,
-                client=client,
-                messages=messages,
-                model=model,
-                temperature=temperature,
-                **create_kwargs,
-            )
-        else:
-            # Make a non-streaming API call.
-            completion = _call_api_sync(
-                client=client,
-                messages=messages,
-                model=model,
-                temperature=temperature,
-                **create_kwargs,
-            )
-
+        completion = _call_api_sync(
+            cache_mode=cache_mode,
+            client=client,
+            messages=messages,
+            model=model,
+            temperature=temperature,
+            **create_kwargs,
+        )
     else:
         # TODO(gp): This is not working. It doesn't show the progress and it
         # doesn't show the cost.

@@ -548,6 +548,12 @@ def simple_cache(
                     # Abort if the cache is not hit.
                     _LOG.debug("Abort on cache miss")
                     abort_on_cache_miss = True
+                if cache_mode == "DISABLE_CACHE":
+                    # Disable the cache.
+                    _LOG.debug("Disabling cache")
+                    value = func(*args, **kwargs)
+                    return value
+
             # Get the key.
             key = json.dumps(
                 {"args": args, "kwargs": kwargs_for_cache_key},
