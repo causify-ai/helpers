@@ -273,7 +273,6 @@ def _call_api_sync(
     models_info_file = ""
     cost = _calculate_cost(completion, model, models_info_file)
     _accumulate_cost_if_needed(cost)
-    # Convert OpenAI completion object to DICT.
     completion_obj = completion.to_dict()
     # Store the cost in the completion object.
     completion_obj["cost"] = cost
