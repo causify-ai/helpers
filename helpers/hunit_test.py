@@ -6,7 +6,6 @@ import helpers.hunit_test as hunitest
 
 import abc
 import collections
-import datetime
 import inspect
 import logging
 import os
@@ -22,12 +21,12 @@ import pytest
 
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
-import helpers.hintrospection as hintros
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.htimer as htimer
+import helpers.hunit_test_purification as huntepur
 import helpers.hwall_clock_time as hwacltim
 import helpers.repo_config_utils as hrecouti
 
@@ -364,279 +363,6 @@ def filter_text(regex: str, txt: str) -> str:
 
 
 # #############################################################################
-# Outcome purification functions.
-# #############################################################################
-
-
-# TODO(gp): -> private functions?
-
-
-def purify_from_environment(txt: str) -> str:
-    """
-    Replace environment variables with placeholders.
-
-    The performed transformations are:
-    1. Replace the Git path with `$GIT_ROOT`
-    2. Replace the path of current working dir with `$PWD`
-    3. Replace the current user name with `$USER_NAME`
-    """
-    # 1) Remove references to Git modules starting from the innermost one.
-    # Make sure that the path is not followed by a word character.
-    # E.g., `/app/test.txt` is the correct path, while `/application.py`
-    # is not a root path even though `/app` is the part of the text.
-    dir_pattern = r"(?![\w])"
-    for super_module in [False, True]:
-        # Replace the git path with `$GIT_ROOT`.
-        super_module_path = hgit.get_client_root(super_module=super_module)
-        if super_module_path != "/":
-            pattern = re.compile(f"{super_module_path}{dir_pattern}")
-            txt = pattern.sub("$GIT_ROOT", txt)
-        else:
-            # If the git path is `/` then we don't need to do anything.
-            pass
-    # 2) Remove CSFY_GIT_ROOT_PATH
-    val = os.environ.get("CSFY_HOST_GIT_ROOT_PATH")
-    if val is not None:
-        txt = re.sub(val, "$CSFY_HOST_GIT_ROOT_PATH", txt, flags=re.MULTILINE)
-    else:
-        _LOG.debug("CSFY_HOST_GIT_ROOT_PATH is not set")
-    # 3) Replace the path of current working dir with `$PWD`.
-    pwd = os.getcwd()
-    pattern = re.compile(f"{pwd}{dir_pattern}")
-    txt = pattern.sub("$PWD", txt)
-    # 4) Replace the current user name with `$USER_NAME`.
-    user_name = hsystem.get_user_name()
-    # Set a regex pattern that finds a user name surrounded by dot, dash or space.
-    # E.g., `IMAGE=$CSFY_ECR_BASE_PATH/amp_test:local-$USER_NAME-1.0.0`,
-    # `--name $USER_NAME.amp_test.app.app`, `run --rm -l user=$USER_NAME`.
-    regex = rf"([\s\n\-\.\=]|^)+{user_name}+([.\s/-]|$)"
-    # Use `\1` and `\2` to preserve specific characters around `$USER_NAME`.
-    target = r"\1$USER_NAME\2"
-    txt = re.sub(regex, target, txt)
-    _LOG.debug("After %s: txt='\n%s'", hintros.get_function_name(), txt)
-    return txt
-
-
-def purify_amp_references(txt: str) -> str:
-    """
-    Remove references to amp.
-    """
-    # E.g., `amp/helpers/test/...`
-    txt = re.sub(r"^\s*amp\/", "", txt, flags=re.MULTILINE)
-    # E.g., `<amp.helpers.test.test_dbg._Man object at 0x`
-    # in GH actions the packages end up being called `app.` for some reason
-    # (see AmpTask1627), so we clean up also that.
-    txt = re.sub(r"<a[mp]p\.", "<", txt, flags=re.MULTILINE)
-    # E.g., class 'amp.
-    txt = re.sub(r"class 'a[mp]p\.", "class '", txt, flags=re.MULTILINE)
-    # E.g., from helpers/test/test_playback.py::TestPlaybackInputOutput1
-    # ```
-    # Test created for amp.helpers.test.test_playback.get_result_ae
-    # ```
-    txt = re.sub(
-        r"# Test created for a[mp]p\.helpers",
-        "# Test created for helpers",
-        txt,
-        flags=re.MULTILINE,
-    )
-    # E.g., `['amp/helpers/test/...`
-    txt = re.sub(r"'amp\/", "'", txt, flags=re.MULTILINE)
-    txt = re.sub(r"\/amp\/", "/", txt, flags=re.MULTILINE)
-    # E.g., `vimdiff helpers/test/...`
-    txt = re.sub(r"\s+amp\/", " ", txt, flags=re.MULTILINE)
-    txt = re.sub(r"\/amp:", ":", txt, flags=re.MULTILINE)
-    txt = re.sub(r"^\./", "", txt, flags=re.MULTILINE)
-    txt = re.sub(r"amp\.helpers", "helpers", txt, flags=re.MULTILINE)
-    _LOG.debug("After %s: txt='\n%s'", hintros.get_function_name(), txt)
-    return txt
-
-
-def purify_app_references(txt: str) -> str:
-    """
-    Remove references to `/app`.
-    """
-    txt = re.sub(r"/app/", "", txt, flags=re.MULTILINE)
-    txt = re.sub(r"app\.helpers", "helpers", txt, flags=re.MULTILINE)
-    txt = re.sub(r"app\.amp\.helpers", "amp.helpers", txt, flags=re.MULTILINE)
-    txt = re.sub(
-        r"app\.amp\.helpers_root\.helpers",
-        "amp.helpers",
-        txt,
-        flags=re.MULTILINE,
-    )
-    _LOG.debug("After %s: txt='\n%s'", hintros.get_function_name(), txt)
-    return txt
-
-
-def purify_file_names(file_names: List[str]) -> List[str]:
-    """
-    Express file names in terms of the root of git repo, removing reference to
-    `amp`.
-    """
-    git_root = hgit.get_client_root(super_module=True)
-    file_names = [os.path.relpath(f, git_root) for f in file_names]
-    # TODO(gp): Add also `purify_app_references`.
-    file_names = list(map(purify_amp_references, file_names))
-    return file_names
-
-
-def purify_from_env_vars(txt: str) -> str:
-    # TODO(gp): Diff between amp and cmamp.
-    for env_var in [
-        "CSFY_AWS_S3_BUCKET",
-        "CSFY_ECR_BASE_PATH",
-    ]:
-        if env_var in os.environ:
-            val = os.environ[env_var]
-            if val == "":
-                _LOG.debug("Env var '%s' is empty", env_var)
-            else:
-                txt = txt.replace(val, f"${env_var}")
-    _LOG.debug("After %s: txt='\n%s'", hintros.get_function_name(), txt)
-    return txt
-
-
-def purify_object_representation(txt: str) -> str:
-    """
-    Remove references like `at 0x7f43493442e0`.
-    """
-    txt = re.sub(r"at 0x[0-9A-Fa-f]+", "at 0x", txt, flags=re.MULTILINE)
-    txt = re.sub(r" id='\d+'>", " id='xxx'>", txt, flags=re.MULTILINE)
-    txt = re.sub(r"port=\d+", "port=xxx", txt, flags=re.MULTILINE)
-    txt = re.sub(r"host=\S+ ", "host=xxx ", txt, flags=re.MULTILINE)
-    # wall_clock_time=Timestamp('2022-08-04 09:25:04.830746-0400'
-    txt = re.sub(
-        r"wall_clock_time=Timestamp\('.*?',",
-        r"wall_clock_time=Timestamp('xxx',",
-        txt,
-        flags=re.MULTILINE,
-    )
-    _LOG.debug("After %s: txt='\n%s'", hintros.get_function_name(), txt)
-    return txt
-
-
-def purify_today_date(txt: str) -> str:
-    """
-    Remove today's date like `20220810`.
-    """
-    today_date = datetime.date.today()
-    today_date_as_str = today_date.strftime("%Y%m%d")
-    # Replace predict.3.compress_tails.df_out.20220627_094500.YYYYMMDD_171106.csv.gz.
-    txt = re.sub(
-        today_date_as_str + r"_\d{6}",
-        "YYYYMMDD_HHMMSS",
-        txt,
-        flags=re.MULTILINE,
-    )
-    txt = re.sub(today_date_as_str, "YYYYMMDD", txt, flags=re.MULTILINE)
-    return txt
-
-
-# TODO(gp): -> purify_trailing_white_spaces
-def purify_white_spaces(txt: str) -> str:
-    """
-    Remove trailing white spaces.
-    """
-    txt_new = []
-    for line in txt.split("\n"):
-        line = line.rstrip()
-        txt_new.append(line)
-    txt = "\n".join(txt_new)
-    return txt
-
-
-# TODO(Grisha): move to `purify_txt_from_client`.
-def purify_line_number(txt: str) -> str:
-    """
-    Replace line number with `$LINE_NUMBER`.
-    """
-    txt = re.sub(r"\.py::\d+", ".py::$LINE_NUMBER", txt, flags=re.MULTILINE)
-    return txt
-
-
-def purify_parquet_file_names(txt: str) -> str:
-    """
-    Replace UUIDs file names to `data.parquet` in the goldens.
-
-    Some tests are expecting in the goldens the Parquet files with the names
-    `data.parquet`.
-    Example:
-        Initial text:
-        ```
-        s3://some_bucket/root/currency_pair=BTC_USDT/year=2024/month=1/ea5e3faed73941a2901a2128abeac4ca-0.parquet
-        s3://some_bucket/root/currency_pair=BTC_USDT/year=2024/month=2/f7a39fefb69b40e0987cec39569df8ed-0.parquet
-        ```
-        Purified text:
-        ```
-        s3://some_bucket/root/currency_pair=BTC_USDT/year=2024/month=1/data.parquet
-        s3://some_bucket/root/currency_pair=BTC_USDT/year=2024/month=2/data.parquet
-        ```
-    """
-    pattern = r"""
-        [0-9a-f]{32}-[0-9].*    # GUID pattern.
-        (?=\.parquet)           # positive lookahead assertion that matches a
-                                # position followed by ".parquet" without
-                                # consuming it.
-    """
-    # TODO(Vlad): Need to change the replacement to `$FILE_NAME` as in the
-    # `purify_from_environment()` function. For now, some tests are expecting
-    # `data.parquet` files.
-    replacement = "data"
-    # flags=re.VERBOSE allows us to use whitespace and comments in the pattern.
-    txt = re.sub(pattern, replacement, txt, flags=re.VERBOSE)
-    return txt
-
-
-def purify_helpers(txt: str) -> str:
-    """
-    Replace the path ...
-
-    # Test created fork helpers_root.helpers.test.test_playback.get_result_che |  # Test created for helpers.test.test_playback.get_result_check_string.
-    """
-    txt = re.sub(r"helpers_root\.helpers\.", "helpers.", txt, flags=re.MULTILINE)
-    txt = re.sub(r"helpers_root/helpers/", "helpers/", txt, flags=re.MULTILINE)
-    txt = re.sub(
-        r"helpers_root\.config_root", "config_root", txt, flags=re.MULTILINE
-    )
-    txt = re.sub(
-        r"helpers_root/config_root/", "config_root/", txt, flags=re.MULTILINE
-    )
-    return txt
-
-
-def purify_docker_image_name(txt: str) -> str:
-    """
-    Remove temporary docker image name that are function of their content.
-    """
-    # In a command like:
-    # > docker run --rm ...  tmp.latex.edb567be ..
-    txt = re.sub(
-        r"^(.*docker.*\s+tmp\.\S+\.)[a-z0-9]{8}(\s+.*)$",
-        r"\1xxxxxxxx\2",
-        txt,
-        flags=re.MULTILINE,
-    )
-    return txt
-
-
-def purify_txt_from_client(txt: str) -> str:
-    """
-    Remove from a string all the information of a specific run.
-    """
-    txt = purify_from_environment(txt)
-    txt = purify_app_references(txt)
-    txt = purify_amp_references(txt)
-    txt = purify_from_env_vars(txt)
-    txt = purify_object_representation(txt)
-    txt = purify_today_date(txt)
-    txt = purify_white_spaces(txt)
-    txt = purify_parquet_file_names(txt)
-    txt = purify_helpers(txt)
-    txt = purify_docker_image_name(txt)
-    return txt
-
-
-# #############################################################################
 
 
 def diff_files(
@@ -957,8 +683,9 @@ def assert_equal(
     tag = "original"
     _append(tag, actual, expected)
     # 1) Remove white spaces.
-    actual = purify_white_spaces(actual)
-    expected = purify_white_spaces(expected)
+    text_purifier = huntepur.TextPurifier()
+    actual = text_purifier.purify_white_spaces(actual)
+    expected = text_purifier.purify_white_spaces(expected)
     tag = "purify_white_spaces"
     _append(tag, actual, expected)
     # Remove empty leading / trailing lines.
@@ -976,9 +703,10 @@ def assert_equal(
     # Purify text, if needed.
     if purify_text:
         tag = "purify_text"
-        actual = purify_txt_from_client(actual)
+        text_purifier = huntepur.TextPurifier()
+        actual = text_purifier.purify_txt_from_client(actual)
         if purify_expected_text:
-            expected = purify_txt_from_client(expected)
+            expected = text_purifier.purify_txt_from_client(expected)
         _append(tag, actual, expected)
     # Ensure that there is a single `\n` at the end of the strings.
     actual = actual.rstrip("\n") + "\n"
@@ -1522,7 +1250,8 @@ class TestCase(unittest.TestCase):
         # TODO(gp): Not sure why we purify here and not delegate to `assert_equal`.
         if purify_text:
             _LOG.debug("Purifying actual outcome")
-            actual = purify_txt_from_client(actual)
+            text_purifier = huntepur.TextPurifier()
+            actual = text_purifier.purify_txt_from_client(actual)
         _LOG.debug("actual=\n%s", actual)
         outcome_updated = False
         file_exists = os.path.exists(file_name)
@@ -1585,9 +1314,7 @@ class TestCase(unittest.TestCase):
                     # Create golden file and add it to the repo.
                     _LOG.warning("Creating the golden outcome")
                     outcome_updated = True
-                    self._check_string_update_outcome(
-                        file_name, actual, use_gzip
-                    )
+                    self._check_string_update_outcome(file_name, actual, use_gzip)
                     is_equal = None
                 else:
                     hdbg.dfatal(
@@ -1999,9 +1726,6 @@ class TestCase(unittest.TestCase):
     def _to_error(self, msg: str) -> None:
         self._error_msg += msg + "\n"
         _LOG.error(msg)
-
-
-# #############################################################################
 
 
 # #############################################################################

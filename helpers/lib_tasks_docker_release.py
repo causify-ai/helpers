@@ -1150,9 +1150,7 @@ def docker_release_all(ctx, version, container_dir_name="."):  # type: ignore
     """
     hlitauti.report_task()
     docker_release_dev_image(ctx, version, container_dir_name=container_dir_name)
-    docker_release_prod_image(
-        ctx, version, container_dir_name=container_dir_name
-    )
+    docker_release_prod_image(ctx, version, container_dir_name=container_dir_name)
     _LOG.info("==> SUCCESS <==")
 
 
@@ -1251,7 +1249,7 @@ def _check_workspace_dir_sizes() -> None:
 
 
 @task
-def docker_create_candidate_image(ctx, user_tag=""):  # type: ignore
+def docker_create_candidate_image(ctx, container_dir_name=".", user_tag=""):  # type: ignore
     """
     Create new prod candidate image and update the specified ECS task
     definition such that the Image URL specified in container definition points
@@ -1259,6 +1257,8 @@ def docker_create_candidate_image(ctx, user_tag=""):  # type: ignore
 
     :param task_definition: the name of the ECS task definition for
         which an update to container image URL is made, e.g. cmamp-test
+    :param container_dir_name: the runnable dir path (e.g.
+        `./ck.infra/`)
     :param user_tag: the name of the user creating the image, empty
         parameter means the command was run via gh actions
     :param region: AWS Region, for Tokyo region specify 'ap-northeast-1'
@@ -1273,6 +1273,7 @@ def docker_create_candidate_image(ctx, user_tag=""):  # type: ignore
     # Create new prod image.
     docker_build_prod_image(
         ctx,
+        container_dir_name=container_dir_name,
         version=hlitadoc._IMAGE_VERSION_FROM_CHANGELOG,
         candidate=True,
         tag=tag,
@@ -1302,7 +1303,8 @@ def docker_release_test_task_definition(
     # Verify that task definition is provided.
     hdbg.dassert_is_not(task_definition, None, "task definition is required")
     # Create candidate image.
-    image_tag = docker_create_candidate_image(ctx, user_tag)
+    current_dir = os.getcwd()
+    image_tag = docker_create_candidate_image(ctx, current_dir, user_tag)
     # Update ECS task definition with new image URL.
     hlitaaws.aws_update_ecs_task_definition(
         task_definition=task_definition,
@@ -1329,7 +1331,8 @@ def docker_release_prod_task_definition(
     image_name = hrecouti.get_repo_config().get_docker_base_image_name()
     task_definition_name = f"{image_name}-prod"
     # Create candidate image.
-    image_tag = docker_create_candidate_image(ctx)
+    current_dir = os.getcwd()
+    image_tag = docker_create_candidate_image(ctx, current_dir)
     # Update ECS task definition with new image URL.
     hlitaaws.aws_update_ecs_task_definition(
         task_definition=task_definition_name,
@@ -1420,18 +1423,14 @@ def docker_update_prod_task_definition(
     # Compose new prod image url.
     new_prod_image_url = hlitadoc.get_image(base_image, stage, prod_version)
     version = None
-    new_prod_image_url_no_version = hlitadoc.get_image(
-        base_image, stage, version
-    )
+    new_prod_image_url_no_version = hlitadoc.get_image(base_image, stage, version)
     # Check if preprod tag exist in preprod task definition as precaution.
     preprod_task_definition_name = f"{task_definition}-preprod"
     preprod_image_url = haws.get_task_definition_image_url(
         preprod_task_definition_name
     )
     preprod_tag_from_image = preprod_image_url.split(":")[-1]
-    msg = (
-        f"Preprod tag is different in the image url `{preprod_tag_from_image}`!"
-    )
+    msg = f"Preprod tag is different in the image url `{preprod_tag_from_image}`!"
     hdbg.dassert_eq(preprod_tag_from_image, preprod_tag, msg=msg)
     # Pull preprod image for re-tag.
     hlitadoc.docker_login(ctx)

@@ -36,8 +36,6 @@
 - A view can provide a specific perspective on the issues in the project, e.g.,
   filter certain issues by their attributes, visualize them in a board/list
 
-<img src="figs/ck.github_projects_process.reference_figs/image1.png" style="width:6.5in;height:0.31944in" />
-
 - We use a base
   [template](https://github.com/orgs/causify-ai/projects?query=is%3Aopen+is%3Atemplate)
   for all of our projects to ensure consistency between projects
@@ -57,10 +55,21 @@
 - Each view within a project contains specific fields:
   - **Assignee**
     - Names of people the issue is assigned to
-  - **Status** (TODO, In Progress, Done)
+  - **Status**
     - What phase of the development the issue is in
+    - We have 7 status options available that should be in sync within all
+      projects
+      - Todo (This item hasn't been started)
+      - In Progress (This is actively being worked on)
+      - Paused (Work was paused)
+      - Done (This has been completed)
+      - In Review (This is awaiting review or validation)
+      - PR back to author (Author needs to apply review feedback)
+      - QA (Change being tested in QA)
   - **Label** (Bug, P0, P1)
     - Label assigned to the specific issue
+    - Current labels synced to all repos are located at
+      [`/dev_scripts_helpers/github/labels/gh_issues_labels.yml`](/dev_scripts_helpers/github/labels/gh_issues_labels.yml)
   - **Estimate** in terms of "uninterrupted hours of work"
     - What is the issues' estimated implementation difficulty
     - We want to become good at estimating complexity and overcome being
@@ -110,7 +119,7 @@
 
 - Click on the `Project details` button in the upper right corner next to the
   three dots `...`
-  - Provide a short description of the project, e.g.,who is the customer
+  - Provide a short description of the project, e.g., who is the customer
   - What is the overarching goal of the project
   - Who is the team leader
   - Provide links to the key resources (Slack/Asana channel)
@@ -176,7 +185,8 @@
         into)
       - Next steps (explain work for the next 1-2 sprints)
       - Example update:
-        ```
+
+        ```text
           Summary
           - We have finished updating ETL pipeline for historical bid/ask data
             for additional symbols (the work started two sprints ago)
