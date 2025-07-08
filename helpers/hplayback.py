@@ -10,7 +10,7 @@ import inspect
 import json
 import logging
 import os
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, Callable, List, Optional
 
 import jsonpickle  # type: ignore
 import jsonpickle.ext.pandas as jepand  # type: ignore
@@ -271,7 +271,7 @@ class Playback:
         else:
             raise ValueError(f"Invalid mode='{self.mode}'")
 
-    def _add_imports(self, additional: Union[None, List[str]] = None) -> None:
+    def _add_imports(self, additional: Optional[List[str]] = None) -> None:
         """
         Add the code with imports.
         """

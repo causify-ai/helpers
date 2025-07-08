@@ -76,7 +76,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     if args.only_files:
         cmd.append("-type f")
-    cmd.append('-iname "%s"' % name)
+    cmd.append(f'-iname "{name}"')
     # Guarantee that only non-pruned files are printed.
     cmd.append("-print")
     cmd.append("| grep -v __pycache__")

@@ -43,15 +43,15 @@ def _main(parser: argparse.ArgumentParser) -> None:
     #
     git_ll = "git log --date=local --oneline --graph --date-order --decorate"
     _print("# Checking what are the differences with master...")
-    cmd = "%s ..origin/master" % git_ll
+    cmd = f"{git_ll} ..origin/master"
     _system(cmd, suppress_output=False)
     #
-    cmd = "%s origin/master..." % git_ll
+    cmd = f"{git_ll} origin/master..."
     _system(cmd, suppress_output=False)
     #
     _print("# Saving local changes...")
     tag, was_stashed = hgit.git_stash_push("gup", log_level=_LOG_LEVEL)
-    print("tag='%s'" % tag)
+    print(f"tag='{tag}'")
     if not was_stashed:
         # raise RuntimeError(msg)
         pass

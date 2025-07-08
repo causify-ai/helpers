@@ -46,7 +46,7 @@ def func(a, b):
     # hello
     # assert 0
     out = a * b
-    print("Multiplication: %s * %s = %s" % (a, b, out))
+    print(f"Multiplication: {a} * {b} = {out}")
     return out
 
 
@@ -156,7 +156,7 @@ s3fs.clear_instance_cache()
 @mem.cache()
 def f(x):
     # hello
-    print("Running f(%s)" % x)
+    print(f"Running f({x})")
     return x
 
 
@@ -205,7 +205,7 @@ def computation_function(a, b):
     # hello
     # assert 0
     out = a * b
-    print("Multiplication: %s * %s = %s" % (a, b, out))
+    print(f"Multiplication: {a} * {b} = {out}")
     return out
 
 

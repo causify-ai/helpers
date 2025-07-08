@@ -1193,7 +1193,7 @@ def list_and_merge_pq_files(
         parquet_files = glob.glob(f"{root_dir}/**/*.parquet", recursive=True)
     _LOG.debug("Parquet files: '%s'", parquet_files)
     # Get paths only to the lowest level of dataset folders.
-    dataset_folders = set(f.rsplit("/", 1)[0] for f in parquet_files)
+    dataset_folders = {f.rsplit("/", 1)[0] for f in parquet_files}
     for folder in dataset_folders:
         # Get files per folder and merge if there are multiple ones.
         if filesystem:

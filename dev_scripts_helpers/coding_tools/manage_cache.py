@@ -83,7 +83,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     elif action == "list":
         print("Valid actions are:\n%s" % "\n".join(actions))
     else:
-        hdbg.dfatal("Invalid action='%s'" % action)
+        hdbg.dfatal(f"Invalid action='{action}'")
 
 
 if __name__ == "__main__":

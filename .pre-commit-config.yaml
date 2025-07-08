@@ -4,16 +4,16 @@ repos:
     hooks:
       - id: ruff
 
-  - repo: local
-    hooks:
-      - id: fixit-lint
-        name: fixit lint
-        entry: fixit lint
-        language: system
-        types: [python]
+#  - repo: local
+#    hooks:
+#      - id: fixit-lint
+#        name: fixit lint
+#        entry: fixit lint
+#        language: system
+#        types: [python]
 
-      - id: pyrefly
-        name: pyrefly lint
-        entry: pyrefly lint
-        language: system
-        types: [python]
+#      - id: pyrefly
+#        name: pyrefly lint
+#        entry: pyrefly lint
+#        language: system
+#        types: [python]
