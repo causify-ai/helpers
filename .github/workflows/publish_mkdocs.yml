@@ -1,11 +1,10 @@
-name: Serve MkDocs
+name: Publish MkDocs
 on:
-  push:
-    branches:
-      - master
-      - HelpersTask914_Automatically_publish_docs_under_GitHub
   # Run manually.
   workflow_dispatch:
+  # Run once a day at 1:00 am UTC even if there are no commits.
+  schedule:
+    - cron: "0 1 */1 * *"
 permissions:
   contents: write
 jobs:
