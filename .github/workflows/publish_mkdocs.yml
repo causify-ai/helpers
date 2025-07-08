@@ -28,3 +28,5 @@ jobs:
       - name: Preprocess MkDocs
         run: |
           ./dev_scripts_helpers/documentation/mkdocs/preprocess_mkdocs.py --input docs --output_dir dev_scripts_helpers/documentation/mkdocs/tmp.mkdocs
+      - run: mkdocs gh-deploy --force
+        working-directory: ./dev_scripts_helpers/documentation/mkdocs
