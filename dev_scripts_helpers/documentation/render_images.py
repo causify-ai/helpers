@@ -427,7 +427,6 @@ def _render_images(
                 out_lines.append(
                     _insert_image_code(extension, rel_img_path, user_img_size)
                 )
-                out_lines.append(rendered_img_line)
                 user_img_size = ""
                 # Set the parser to search for a new image code block.
                 if state == "found_image_code":
