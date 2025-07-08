@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - master
+      - HelpersTask914_Automatically_publish_docs_under_GitHub
   # Run manually.
   workflow_dispatch:
 permissions:
