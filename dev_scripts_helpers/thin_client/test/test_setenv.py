@@ -34,7 +34,9 @@ class _SetenvTestCase(hunitest.TestCase):
         """
         Set up test environment.
         """
-        # TODO(sandeep): Factor out the these functions into helpers/henv.py.
+        # TODO(sandeep): Factor out general utilities like `get setenv_path`,
+        # `get thin_client_utils_path`, and `get repo_config_path` into
+        # `helpers/henv.py`.
         # Get the path to the `setenv.sh` script.
         helpers_root = hgit.find_helpers_root()
         setenv_files = hsystem.find_file_with_dir(
