@@ -5,6 +5,20 @@ Check whether a tmux session exists and, if not, creates it.
 
 import logging
 import os
+import sys
+
+# Handle case where the script is not symlinked.
+# We assume the script is in `{repo_root}/dev_scripts_XYZ/thin_client/tmux.py` 
+# so the repo root is 3 levels up.
+git_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Check if //helpers is a submodule (e.g., `//cmamp`).
+if os.path.exists(os.path.join(git_root, "helpers_root")):
+  path = os.path.join(git_root, "helpers_root", "dev_scripts_helpers", "thin_client")
+  sys.path.append(path)
+# Check if `//cmamp` is a submodule (e.g., `//orange`).
+if os.path.exists(os.path.join(git_root, "amp")):
+  path = os.path.join(git_root, "amp", "helpers_root", "dev_scripts_helpers", "thin_client")
+  sys.path.append(path)
 
 # This can be imported because this module is in the same dir as the script
 # being executed.
