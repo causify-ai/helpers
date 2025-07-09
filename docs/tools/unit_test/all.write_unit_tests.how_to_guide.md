@@ -45,6 +45,8 @@
     + [Use setUpClass / tearDownClass](#use-setupclass--teardownclass)
 - [Update test tags](#update-test-tags)
 - [Mocking](#mocking)
+  * [Quick Decision Guide](#quick-decision-guide)
+  * [Common Mocking Patterns](#common-mocking-patterns)
   * [Refs](#refs)
   * [Our Philosophy about mocking](#our-philosophy-about-mocking)
     + [Mock only external dependencies](#mock-only-external-dependencies)
@@ -180,34 +182,28 @@
 
 - We follow conventions that happen to be mostly the default to `pytest`
 
-- A directory `test` contains all the test code and artifacts
-  - The `test` directory contains all the `test_*.py` files and all inputs and
-    outputs for the tests.
-  - A unit test file should be close to the library / code it tests
+- File Organization
+  ```
+  project/
+  ├── module_name/
+  │   ├── __init__.py
+  │   ├── data_processor.py
+  │   └── test/
+  │       ├── test_data_processor.py
+  │       └── outcomes/
+  |            └── TestDataProcessor1.test_basic_processing/
+  |               └── test.txt
+  └── helpers/
+  ```
 
-- The test class should make clear reference to the code that is tested
-  - To test a class `FooBar`, the corresponding test class is named
-    `TestFooBar`, i.e. we use the CamelCase for the test classes
-  - To test a function `generate_html_tables()`, the corresponding test class is
-    named `Test_generate_html_tables`
-  - To test a method `method_a()` of the class `FooBar`, the corresponding test
-    class is named `TestFooBar` and the test method in this class is named
-    `test_method_a`
-  - To test a protected method `_gozilla()` of `FooBar`, the corresponding test
-    method is named `test__gozilla` (note the double underscore). This is needed
-    to distinguish testing the public method `FooBar.gozilla()` from
-    `FooBar._gozilla()`
+- Naming Conventions Summary
 
-- Numbers can be used to differentiate between separate test cases clearly
-  - A number can be added to the test class name, e.g., `TestFooBar1()`, if
-    there are multiple test classes that are testing the code in different ways
-    (e.g., with different set up and tear down actions)
-  - We prefer to name classes `TestFooBar1` and methods `TestFooBar1.test1()`,
-    even if there is a single class / method, to make it easier to add another
-    test class, without having to rename class and `check_string` files
-  - We are OK with using suffixes like `01`, `02`, ... , when we believe it's
-    important that methods are tested in a certain order (e.g., from the
-    simplest to the most complex)
+  | Code Type        | Example Code             | Test Class Name             | Test Method Name   |
+  | ---------------- | ------------------------ | --------------------------- | ------------------ |
+  | Class            | `FooBar`                 | `TestFooBar`                | `test_method_name` |
+  | Function         | `generate_html_tables()` | `Test_generate_html_tables` | `test_method_name` |
+  | Public Method    | `FooBar.method_a()`      | `TestFooBar`                | `test_method_a`    |
+  | Protected Method | `FooBar._gozilla()`      | `TestFooBar`                | `test__gozilla`    |
 
 - A single test class can have multiple test methods, e.g., for
   `FooBar.method_a()` and `FooBar.method_b()`, the test class contains the
@@ -931,6 +927,102 @@ self.assert_equal(act, exp, fuzzy_match=True)
 
 ## Mocking
 
+### Quick Decision Guide
+
+- When TO mock:
+  - External APIs (GitHub, AWS, databases)
+  - File system operations (in some cases)
+  - Network calls
+  - Time-dependent operations
+  - Expensive computations (for fast tests)
+
+- When NOT to mock:
+  - Internal helper functions
+  - Simple data transformations
+  - Pure functions without side effects
+  - Code you want to actually test
+
+### Common Mocking Patterns
+
+- Pattern 1: Mock External API
+
+  ```python
+  # Code to test
+  def fetch_user_data(user_id: str) -> Dict[str, Any]:
+      """Fetch user data from external API."""
+      response = requests.get(f"https://api.example.com/users/{user_id}")
+      response.raise_for_status()
+      return response.json()
+
+  # Test with mock
+  @umock.patch("requests.get")
+  def test_fetch_user_data1(self, mock_get: umock.MagicMock) -> None:
+      """Test successful user data fetching."""
+      # Prepare inputs.
+      user_id = "123"
+      expected_data = {"id": "123", "name": "John Doe"}
+
+      # Setup mock.
+      mock_response = umock.Mock()
+      mock_response.json.return_value = expected_data
+      mock_response.raise_for_status.return_value = None
+      mock_get.return_value = mock_response
+
+      # Run.
+      actual = fetch_user_data(user_id)
+
+      # Check.
+      self.assert_equal(actual, expected_data)
+      mock_get.assert_called_once_with("https://api.example.com/users/123")
+  ```
+
+- Pattern 2: Mock with Side Effects
+
+  ```python
+  @umock.patch("time.sleep")
+  @umock.patch("requests.get")
+  def test_retry_logic1(self, mock_get: umock.MagicMock, mock_sleep: umock.MagicMock) -> None:
+      """Test that function retries on failure."""
+      # Setup mock to fail twice, then succeed.
+      mock_get.side_effect = [
+          requests.RequestException("Network error"),
+          requests.RequestException("Timeout"),
+          umock.Mock(json=lambda: {"success": True})
+      ]
+
+      # Run.
+      result = fetch_with_retry("http://example.com")
+
+      # Check.
+      self.assertEqual(mock_get.call_count, 3)
+      self.assertEqual(mock_sleep.call_count, 2)  # Should sleep between retries
+      self.assertEqual(result, {"success": True})
+  ```
+
+- Pattern 3: Mock Class Methods
+
+  ```python
+  class TestDataProcessor1(hunitest.TestCase):
+
+      @umock.patch.object(DataProcessor, '_validate_data')
+      @umock.patch.object(DataProcessor, '_load_from_source')
+      def test_process_data1(self, mock_load: umock.MagicMock, mock_validate: umock.MagicMock) -> None:
+          """Test data processing workflow."""
+          # Setup mocks.
+          raw_data = [{"id": 1}, {"id": 2}]
+          mock_load.return_value = raw_data
+          mock_validate.return_value = True
+
+          # Run.
+          processor = DataProcessor()
+          result = processor.process_data()
+
+          # Check.
+          mock_load.assert_called_once()
+          mock_validate.assert_called_once_with(raw_data)
+          self.assertIsNotNone(result)
+  ```
+
 ### Refs
 
 - Introductory article is
@@ -938,9 +1030,31 @@ self.assert_equal(act, exp, fuzzy_match=True)
 - Official Python documentation for the mock package can be seen here
   [unit test mock](https://docs.python.org/3/library/unittest.mock.html)
 
-### Our Philosophy about mocking
+### Our Philosophy About Mocking
 
-#### Mock only external dependencies
+#### Mock Only External Dependencies
+
+- Good examples:
+
+  ```python
+  # Mock external services
+  @umock.patch("boto3.client")  # AWS
+  @umock.patch("requests.post")  # HTTP APIs
+  @umock.patch("psycopg2.connect")  # Database
+
+  # Mock file system for integration tests
+  @umock.patch("builtins.open")
+  @umock.patch("os.path.exists")
+  ```
+
+- Bad examples:
+
+  ```python
+  # Don't mock internal functions
+  @umock.patch("myproject.utils.calculate_sum")  # This is our code!
+  @umock.patch("myproject.helpers.format_data")  # Test the real implementation
+  ```
+
 
 - Typically we want to mock interactions with only external components, e.g.,
   - 3rd party provider
