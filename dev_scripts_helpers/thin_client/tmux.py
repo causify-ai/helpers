@@ -13,7 +13,7 @@ import sys
 git_root = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 )
-# Check if //helpers is a submodule (e.g., `//cmamp`).
+# Check if `//helpers` is a submodule (e.g., `//cmamp`).
 if os.path.exists(os.path.join(git_root, "helpers_root")):
     path = os.path.join(
         git_root, "helpers_root", "dev_scripts_helpers", "thin_client"
