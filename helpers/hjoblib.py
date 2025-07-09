@@ -444,7 +444,7 @@ def processify(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         q = Queue()
-        p = Process(target=_process_func, args=[q] + list(args), kwargs=kwargs)
+        p = Process(target=_process_func, args=[func] + [q] + list(args), kwargs=kwargs)
         p.start()
         ret, error = q.get()
         p.join()
