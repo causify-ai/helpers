@@ -7,8 +7,6 @@ import pickle
 import re
 from typing import Any, Callable, Dict, List, Union, cast
 
-import pandas as pd
-
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
@@ -408,7 +406,7 @@ def get_cache(func_name: str) -> _CacheType:
 # #############################################################################
 
 
-def cache_stats_to_str(func_name: str = "") -> pd.DataFrame:
+def cache_stats_to_str(func_name: str = "") -> "pd.DataFrame":
     """
     Print the cache stats for a function or for all functions.
 
@@ -420,6 +418,9 @@ def cache_stats_to_str(func_name: str = "") -> pd.DataFrame:
       memory: -
       disk: 2322
     """
+    # We want to limit the dependency from pandas in the cache.
+    import pandas as pd
+
     if func_name == "":
         result = []
         for func_name in get_cache_func_names("all"):
