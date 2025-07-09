@@ -178,16 +178,8 @@ class BaseCacheTest(hunitest.TestCase):
             "_kwarg_func",
             "_dummy_cached_function",
         ]:
-            try:
-                import helpers.hsystem as hsystem
-
-                # turn off the “are you sure?” prompt
-                hsystem.query_yes_no = lambda *args, **kwargs: False
-                # Reset both disk and in-memory cache.
-                hcacsimp.reset_cache(func_name=func_name, interactive=False)
-            except AssertionError:
-                # If resetting the full cache fails, reset only the in-memory cache.
-                hcacsimp.reset_mem_cache(func_name)
+            # Reset both disk and in-memory cache.
+            hcacsimp.reset_cache(func_name=func_name, interactive=False)
         # Reset persistent user cache properties.
         hcacsimp.reset_cache_property("user")
         try:
