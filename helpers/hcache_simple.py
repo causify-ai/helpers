@@ -461,12 +461,11 @@ def reset_mem_cache(func_name: str = "") -> None:
     del _CACHE[func_name]
 
 
-def reset_disk_cache(func_name: str = "", interactive:bool = True) -> None:
-    
+def reset_disk_cache(func_name: str = "", interactive: bool = True) -> None:
     if interactive:
         hsystem.query_yes_no(
-        "Are you sure you want to reset the disk cache? This will delete all cache ",
-    ) 
+            "Are you sure you want to reset the disk cache? This will delete all cache "
+        )
     _LOG.debug("Resetting disk cache")
     if func_name == "":
         cache_files = glob.glob("cache.*")
@@ -474,10 +473,12 @@ def reset_disk_cache(func_name: str = "", interactive:bool = True) -> None:
             os.remove(file_name)
         return
     file_name = _get_cache_file_name(func_name)
-    os.remove(file_name)
+    # Check if the cache file exists on disk.
+    if os.path.exists(func_name):
+        os.remove(func_name)
 
 
-def reset_cache(func_name: str = "", interactive= True) -> None:
+def reset_cache(func_name: str = "", interactive=True) -> None:
     reset_mem_cache(func_name)
     reset_disk_cache(func_name, interactive=interactive)
 
