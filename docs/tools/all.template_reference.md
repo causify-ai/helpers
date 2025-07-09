@@ -1,7 +1,7 @@
 <!-- toc -->
 
 - [What It Does](#what-it-does)
-- [Input Output](#input-output)
+- [Input And Output](#input-and-output)
 - [Supported File Types](#supported-file-types)
 - [Flag Options](#flag-options)
 - [Examples](#examples)
@@ -15,21 +15,22 @@ LLM Instruction:
 - Use this XML template to generate structured documentation.
 - Wherever CLI examples are required, insert them inside <code_block language="bash"> ... </code_block>.
 - Do not use <command> or inline code for full command-line blocks.
-- Maintain tag consistency and preserve placeholder tags like TODO: for later completion.
+- Replace TODO: with actual content based on the script’s usage.
 - Do not any of the LLM instruction tags in the final output.
 - Do not include any of the TODO comments in the final output.
 -->
 
 <documentation>
-  <title>Reference Guide: script.py</title>
+  <title>Reference Guide: &lt;FileName&gt;</title>
 
   <description>
     TODO: Write a short paragraph describing what the script does and its key use cases.
   </description>
 
-# What It Does
-
   <section name="WhatItDoes">
+
+ ## What It Does
+
     <objective>
       <bullet>TODO: Explain core objective #1</bullet>
       <bullet>TODO: Explain core objective #2</bullet>
@@ -46,9 +47,10 @@ LLM Instruction:
 
   </section>
 
-## Input Output
+  <section name="InputAndOutput">
+  
+  ## Input And Output
 
-  <section name="InputOutput">
     <inputs>
       TODO: List accepted input formats (e.g., .md, .tex)
     </inputs>
@@ -57,9 +59,12 @@ LLM Instruction:
     </outputs>
   </section>
 
-### Supported File Types
+
 
   <section name="SupportedFileTypes">
+  
+  ## Supported File Types
+
     <filetype name=".md">TODO: Markdown processing logic</filetype>
     <filetype name=".tex">TODO: LaTeX file processing logic</filetype>
 
@@ -68,17 +73,19 @@ LLM Instruction:
         <code_block language="bash">
 
 render_images.py -i ABC.md -o XYZ.md --action render --run_dockerized
-</code_block> </case> <case description="Render in-place Markdown"> <code_block
-language="bash"> render_images.py -i ABC.md --action render --run_dockerized
+</code_block> </case> <case description="Render in-place Markdown"> <code_block language="bash"> render_images.py -i ABC.md --action render --run_dockerized
 </code_block> </case> <case description="Preview rendered images in browser">
 <code_block language="bash"> render_images.py -i ABC.md --action open
 --run_dockerized </code_block> </case> </use_cases>
 
   </section>
 
-### Flag Options
+
 
   <section name="FlagOptions">
+ 
+  ## Flag Options
+
     <code_block language="bash">
     <flag name="-h, --help">Show help message and exit</flag>
     <flag name="-i, --in_file_name">Input file path</flag>
@@ -93,9 +100,10 @@ language="bash"> render_images.py -i ABC.md --action render --run_dockerized
     </code_block>
   </section>
 
-### Examples
-
   <section name="Examples">
+  
+  ## Examples
+
     <example title="Render to a new Markdown file">
       <code_block language="bash">
 render_images.py -i lesson.md -o lesson.rendered.md --action render --run_dockerized
@@ -118,9 +126,10 @@ render_images.py -i lesson.md -o /tmp/out.md --dry_run
     </example>
   </section>
 
-### Errors And Fixes
-
   <section name="ErrorsAndFixes">
+
+  ## Errors And Fixes
+
     <error>
       <issue>TODO: Describe a common error</issue>
       <cause>TODO: Likely cause</cause>
@@ -128,9 +137,10 @@ render_images.py -i lesson.md -o /tmp/out.md --dry_run
     </error>
   </section>
 
-### Dependencies
-
   <section name="Dependencies">
+
+  ## Dependencies
+
   <dependency>
     <bullet>TODO: Python 3.8+ (or higher)</bullet>
     <bullet>TODO: Docker (for --run_dockerized support)</bullet>

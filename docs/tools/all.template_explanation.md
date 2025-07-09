@@ -10,57 +10,101 @@
 - [Trade-offs and Alternatives](#trade-offs-and-alternatives)
 
 <!-- tocstop -->
+<!--
+LLM Instruction:
+- Use this XML structure to explain the logic, motivation, and trade-offs behind a given file or system.
+- Use <bullet> for lists, <code_block> for code or diagrams, and <comparison> for evaluating alternatives.
+- Replace TODO: with explanatory content.
+- Do not any of the LLM instruction tags in the final output.
+- Do not include any of the TODO comments in the final output.
 
-## Introduction / Motivation
+-->
 
-- What is this about?
-- What problem or limitation does it solve?
-- Who needs to understand it?
+<explanation_guide>
+  <title>Explanation: &lt;FileName&gt;</title>
 
-Example: "Traditional file conversion methods focused on quality rather than
-file size. This methods aims to optimize file size while ensuring quality.
+  <section name="IntroductionMotivation">
+  
+  ## Introduction / Motivation
 
-## Core Concepts
+    <description>
+      <bullet>TODO: What is this about?</bullet>
+      <bullet>TODO: What problem or limitation does it solve?</bullet>
+      <bullet>TODO: Who needs to understand it?</bullet>
+    </description>
 
-List and explain key ideas, building blocks, or theoretical foundations.
+    <example>
+      Traditional file conversion methods focused on quality rather than file size. This method aims to optimize file size while ensuring quality.
+    </example>
+  </section>
 
-- **Concept 1:** Brief explanation
-- **Concept 2:** How it relates to others
-- **Concept 3:** Dependencies or assumptions
+  <section name="CoreConcepts">
+    
+  ## Core Concepts
 
-Attach diagrams or charts here if necessary.
+    <concepts>
+      <bullet><b>Concept 1:</b> TODO: Brief explanation</bullet>
+      <bullet><b>Concept 2:</b> TODO: How it relates to others</bullet>
+      <bullet><b>Concept 3:</b> TODO: Dependencies or assumptions</bullet>
+    </concepts>
+    <!-- Optional diagram or chart -->
+    <code_block language="text">
+# Insert diagram or logical model here
+    </code_block>
+  </section>
 
-## How It Works
+  <section name="HowItWorks">
+  
+  ## How It Works
 
-Describe in detail the internal process, architecture and/or flow.
-
-- Step-by-step or component-based explanation
-- Show key data transformations or control flow
-- Include diagrams or pseudocode if helpful
-```
+    <steps>
+      <bullet>TODO: Step-by-step or component-based explanation</bullet>
+      <bullet>TODO: Key data transformations or control flow</bullet>
+    </steps>
+    <code_block language="text">
 [Component A] → transforms → [Component B] → outputs → [Result]
-```
+    </code_block>
+  </section>
 
-## Design Rationale
+  <section name="DesignRationale">
+  
+  ## Design Rationale
 
-Explain why it was built this way and not another.
+    <rationale>
+      <bullet>TODO: What goals guided its design?</bullet>
+      <bullet>TODO: What constraints shaped its form? (e.g., performance, usability)</bullet>
+      <bullet>TODO: What would go wrong with an alternate approach?</bullet>
+    </rationale>
+  </section>
 
-- What goals guided its design?
+  <section name="TradeoffsAndAlternatives">
+  
+  ## Tradeoffs And Alternatives
+  
+    <comparison>
+      <current_approach>
+        <title>Current Approach</title>
+        <advantages>
+          <bullet>TODO: Advantage #1</bullet>
+          <bullet>TODO: Advantage #2</bullet>
+        </advantages>
+        <drawbacks>
+          <bullet>TODO: Drawback #1</bullet>
+          <bullet>TODO: Drawback #2</bullet>
+        </drawbacks>
+      </current_approach>
 
-- What constraints (performance, usability, cost) shaped its form?
-
-- What would go wrong with an alternate approach?
-
-## Trade-offs and Alternatives
-
-Describe the advantages and disadvantages of this method.
-
-Current Approach:
-
-- Advantages:
-- Drawbacks:
-
-Alternative Approach:
-
-- Advantages:
-- Drawbacks:
+      <alternative_approach>
+        <title>Alternative Approach</title>
+        <advantages>
+          <bullet>TODO: Advantage #1</bullet>
+          <bullet>TODO: Advantage #2</bullet>
+        </advantages>
+        <drawbacks>
+          <bullet>TODO: Drawback #1</bullet>
+          <bullet>TODO: Drawback #2</bullet>
+        </drawbacks>
+      </alternative_approach>
+    </comparison>
+  </section>
+</explanation_guide>
