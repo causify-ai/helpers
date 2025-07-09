@@ -104,7 +104,10 @@ dassert_var_defined() {
     # `dassert_var_defined "$GIT_ROOT"`.
     local var_name="$1"
     # Use indirect expansion to check the value of the variable.
-    if [[ -z "${!var_name}" ]]; then
+    # This works in bash, zsh, and other POSIX-compliant shells.
+    local var_value
+    eval "var_value=\"\$${var_name}\""
+    if [[ -z "$var_value" ]]; then
         echo -e "${ERROR}: Var '${var_name}' is not defined or is empty."
         abort
     fi;
