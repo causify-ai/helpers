@@ -47,16 +47,13 @@ def _convert(dir_name: str, ipynb_file: str, py_file: str) -> str:
     )
     # TODO(gp): Use dir_name for --output-dir.
     hdbg.dassert_path_exists(ipynb_file)
-    cmd = "jupyter nbconvert %s --to python --output %s >/dev/null" % (
-        ipynb_file,
-        py_file,
-    )
+    cmd = f"jupyter nbconvert {ipynb_file} --to python --output {py_file} >/dev/null"
     hsystem.system(cmd)
     # Purify output removing the [\d+].
     dir_name = os.path.dirname(ipynb_file)
     dst_py_file = dir_name + "/" + py_file
     hdbg.dassert_path_exists(dst_py_file)
-    cmd = r"perl -p -i -e 's/# In\s*\[.*]/# In[]/g' %s" % dst_py_file
+    cmd = fr"perl -p -i -e 's/# In\s*\[.*]/# In[]/g' {dst_py_file}"
     hsystem.system(cmd)
     return dst_py_file
 
@@ -84,7 +81,7 @@ def _diff_notebook(
     #       ThomsonReuters_db.ipynb
     git_file_name = abs_file_name.replace(git_client_root, "")[1:]
     _LOG.info("git_file_name=%s", git_file_name)
-    cmd = "git show HEAD:%s >%s" % (git_file_name, old_ipynb)
+    cmd = f"git show HEAD:{git_file_name} >{old_ipynb}"
     hsystem.system(cmd)
     hdbg.dassert_path_exists(old_ipynb)
     #
@@ -95,10 +92,10 @@ def _diff_notebook(
     new_py = _convert(dir_name, abs_file_name, new_py)
     #
     for f in (old_py, new_py):
-        hdbg.dassert(os.path.exists(f), msg="Can't find %s" % f)
+        hdbg.dassert(os.path.exists(f), msg=f"Can't find {f}")
     is_ipynb_diff = True
     if brief:
-        cmd = "diff --brief %s %s" % (old_py, new_py)
+        cmd = f"diff --brief {old_py} {new_py}"
         # Do not break on error, but return the error code.
         rc = hsystem.system(cmd, abort_on_error=False)
         is_ipynb_diff = rc != 0
@@ -107,12 +104,12 @@ def _diff_notebook(
         else:
             _LOG.info("Notebooks %s are equal", abs_file_name)
     else:
-        cmd = "vimdiff %s %s" % (old_py, new_py)
+        cmd = f"vimdiff {old_py} {new_py}"
         _LOG.debug(">> %s", cmd)
         # Do not redirect to file when using vimdiff.
         os.system(cmd)
     # Clean up.
-    cmd = "rm %s %s" % (old_py, new_py)
+    cmd = f"rm {old_py} {new_py}"
     hsystem.system(cmd)
     return is_ipynb_diff
 
@@ -210,7 +207,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         "file_names=%s\n%s",
         len(file_names),
         "\n".join(
-            ["%s -> %s" % (cwd_f, abs_f) for (abs_f, cwd_f) in file_names]
+            [f"{cwd_f} -> {abs_f}" for (abs_f, cwd_f) in file_names]
         ),
     )
     hdbg.dassert_lte(1, len(file_names))
@@ -221,7 +218,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     notebooks_equal = []
     # Diff the files.
     for abs_file_name, cwd_file_name in file_names:
-        print(("\n" + hprint.frame("file_name=%s" % cwd_file_name).rstrip("\n")))
+        print(("\n" + hprint.frame(f"file_name={cwd_file_name}").rstrip("\n")))
         is_ipynb_diff = _diff_notebook(
             dir_name, abs_file_name, git_client_root, args.brief
         )
@@ -233,16 +230,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     #
     if args.brief:
         print(
-            (
-                "\nDifferent notebooks are: (%s) %s"
-                % (len(notebooks_diff), " ".join(notebooks_diff))
-            )
+            f"\nDifferent notebooks are: ({len(notebooks_diff)}) {' '.join(notebooks_diff)}"
         )
         print(
-            (
-                "\nEqual notebooks are: (%s) %s"
-                % (len(notebooks_equal), " ".join(notebooks_equal))
-            )
+            f"\nEqual notebooks are: ({len(notebooks_equal)}) {' '.join(notebooks_equal)}"
         )
 
 

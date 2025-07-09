@@ -196,7 +196,7 @@ def shutup_chatty_modules(
     for logger in loggers:
         logger.setLevel(verbosity)
     if len(loggers) > 0:
-        logger_names = list(set([logger.name for logger in loggers]))
+        logger_names = list({logger.name for logger in loggers})
         _LOG.debug(
             "Shut up %d modules: %s", len(loggers), ", ".join(logger_names)
         )

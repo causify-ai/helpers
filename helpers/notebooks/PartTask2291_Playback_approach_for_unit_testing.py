@@ -191,14 +191,14 @@ class Playback:
         output.append("# Initialize values for unit test.")
         # output.append("a = %s" % jsonpickle.decode(self.a_json))
         # output.append("b = %s" % jsonpickle.decode(self.b_json))
-        output.append("a = r'%s'" % self.a_json)
+        output.append(f"a = r'{self.a_json}'")
         output.append("a = jsonpickle.decode(a)")
-        output.append("b = r'%s'" % self.b_json)
+        output.append(f"b = r'{self.b_json}'")
         output.append("b = jsonpickle.decode(b)")
         output.append("# Apply values.")
         # output.append("act = F(a, b)[1]")
         output.append("act = F(a, b)")
-        output.append("exp = r'%s'" % self.ret_json)
+        output.append(f"exp = r'{self.ret_json}'")
         output.append("exp = jsonpickle.decode(exp)")
         # output.append("self.assertEqual(act, exp)")
         output.append("assert act.equals(exp)")
@@ -249,7 +249,7 @@ a = pd.DataFrame({"Price": [700, 250, 800, 1200]})
 # round_trip(a)
 frozen = jsonpickle.encode(a)
 print(frozen)
-print("frozen2 = '%s'" % frozen)
+print(f"frozen2 = '{frozen}'")
 # print("frozen = '%s'" % frozen)
 assert 0
 #
@@ -347,8 +347,8 @@ df_as_str = df.to_json(orient=orient)
 
 python_code = []
 target_var = "df_as_str"
-python_code.append("%s = %s" % (target_var, df_as_str))
-python_code.append("%s.index.name = '%s'" % (target_var, df.index.name))
+python_code.append(f"{target_var} = {df_as_str}")
+python_code.append(f"{target_var}.index.name = '{df.index.name}'")
 python_code = "\n".join(python_code)
 print(python_code)
 

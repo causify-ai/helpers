@@ -67,7 +67,7 @@ class Test_rename_file_if_exists(hunitest.TestCase):
         file_to_rename = "not_exist.txt"
         before_extension = False
         expected_file_name = "not_exist.txt"
-        with self.assertRaises(AssertionError) as e:
+        with self.assertRaises(AssertionError):
             self.check_file(file_to_rename, before_extension, expected_file_name)
 
 
@@ -120,3 +120,85 @@ class Test_load_df_from_json(hunitest.TestCase):
         actual_result = hpandas.df_to_str(actual_result)
         expected_result = hpandas.df_to_str(expected_result)
         self.assertEqual(actual_result, expected_result)
+
+
+# #############################################################################
+# Test_safe_rm_file
+# #############################################################################
+
+
+class Test_safe_rm_file(hunitest.TestCase):
+
+    def test_successful_removal_within_git_client(self) -> None:
+        """
+        Test successful removal of directory within Git client.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        test_dir = os.path.join(scratch_dir, "test_dir_to_remove")
+        os.makedirs(test_dir)
+        # Create a test file in the directory to ensure it has content
+        test_file = os.path.join(test_dir, "test_file.txt")
+        hio.to_file(test_file, "test content")
+        # Verify directory exists before removal
+        self.assertTrue(os.path.exists(test_dir))
+        # Run test.
+        hio.safe_rm_file(test_dir)
+        # Check output.
+        self.assertFalse(os.path.exists(test_dir))
+
+    def test_removal_of_nested_directory(self) -> None:
+        """
+        Test removal of deeply nested directory structure.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        nested_dir = os.path.join(scratch_dir, "parent", "child", "grandchild")
+        os.makedirs(nested_dir)
+        # Create files at different levels
+        hio.to_file(os.path.join(nested_dir, "file1.txt"), "content1")
+        hio.to_file(os.path.join(os.path.dirname(nested_dir), "file2.txt"), "content2")
+        parent_dir = os.path.join(scratch_dir, "parent")
+        # Verify directory exists
+        self.assertTrue(os.path.exists(parent_dir))
+        # Run test.
+        hio.safe_rm_file(parent_dir)
+        # Check output.
+        self.assertFalse(os.path.exists(parent_dir))
+
+    def test_directory_does_not_exist(self) -> None:
+        """
+        Test that function raises assertion error for non-existent directory.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        non_existent_dir = os.path.join(scratch_dir, "non_existent_directory")
+        # Ensure directory doesn't exist
+        self.assertFalse(os.path.exists(non_existent_dir))
+        # Run test and check output.
+        with self.assertRaises(AssertionError) as cm:
+            hio.safe_rm_file(non_existent_dir)
+        self.assertIn("does not exist", str(cm.exception))
+
+    def test_cannot_delete_git_root(self) -> None:
+        """
+        Test that function prevents deletion of Git client root directory.
+        """
+        # Prepare inputs.
+        git_root = hgit.find_git_root()
+        # Run test and check output.
+        with self.assertRaises(AssertionError) as cm:
+            hio.safe_rm_file(git_root)
+        self.assertIn("Cannot delete Git client root", str(cm.exception))
+
+    def test_directory_outside_git_client_rejected(self) -> None:
+        """
+        Test that function rejects directories outside Git client.
+        """
+        # Prepare inputs.
+        # Use /tmp which should be outside any Git client
+        outside_dir = "/tmp"
+        # Run test and check output.
+        with self.assertRaises(AssertionError) as cm:
+            hio.safe_rm_file(outside_dir)
+        self.assertIn("is not within Git client root", str(cm.exception))

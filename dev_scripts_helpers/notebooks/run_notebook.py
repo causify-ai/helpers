@@ -76,7 +76,7 @@ def _run_notebook(
     config_file_path = os.path.join(experiment_result_dir, "config.pkl")
     dst_file = os.path.join(
         experiment_result_dir,
-        os.path.basename(notebook_file).replace(".ipynb", ".%s.ipynb" % idx),
+        os.path.basename(notebook_file).replace(".ipynb", f".{idx}.ipynb"),
     )
     _LOG.info("dst_file=%s", dst_file)
     dst_file = os.path.abspath(dst_file)
@@ -103,7 +103,7 @@ def _run_notebook(
     ]
     cmd = " ".join(cmd)
     # Prepare the log file.
-    log_file = os.path.join(experiment_result_dir, "run_notebook.%s.log" % idx)
+    log_file = os.path.join(experiment_result_dir, f"run_notebook.{idx}.log")
     log_file = os.path.abspath(os.path.abspath(log_file))
     _LOG.info("log_file=%s", log_file)
     # TODO(gp): Repeating a command n-times is an idiom that we could move to

@@ -43,8 +43,18 @@ class TextPurifier:
         # `amp`).
         txt = self.purify_directory_paths(txt)
         txt = self.purify_from_environment(txt)
-        txt = self.purify_amp_references(txt)
+        # Correct order: -> `app` -> `amp` ->
+        # Start with `app.amp.helpers_root.helpers...`
+        # After purifying app references -> `amp.helpers_root.helpers...`
+        # After purifying amp references -> `helpers_root.helpers...`
+        #
+        # Incorrect order: -> `amp` -> `app` ->
+        # Start with `amp.helpers_root.helpers...`
+        # After purifying `amp` references -> `app.amp.helpers_root.helpers...`
+        # After purifying `app` references -> `amp.helpers_root.helpers...`
+        #
         txt = self.purify_app_references(txt)
+        txt = self.purify_amp_references(txt)
         txt = self.purify_from_env_vars(txt)
         txt = self.purify_object_representation(txt)
         txt = self.purify_today_date(txt)
@@ -160,6 +170,8 @@ class TextPurifier:
             (r"class 'amp\.", "class '"),
             # Replace 'amp.helpers' with 'helpers' in package references.
             (r"\bamp\.helpers\b", "helpers"),
+            # Replace 'amp.app.helpers_root' with 'helpers'.
+            (r"\bamp\.app\.helpers_root\b", "helpers"),
             # Remove amp references from test creation comments.
             (r"# Test created for amp\.([\w\.]+)", r"# Test created for \1"),
             # Remove leading './' from relative paths.

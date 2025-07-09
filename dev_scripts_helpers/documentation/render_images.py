@@ -9,28 +9,29 @@ See `docs/work_tools/documentation_toolchain/all.render_images.explanation.md`.
 Usage:
 
 # Create a new Markdown file with rendered images:
-> render_images.py -i ABC.md -o XYZ.md --action render --run_dockerized
+> render_images.py -i ABC.md -o XYZ.md --action render
 
 # Render images in place in the original Markdown file:
-> render_images.py -i ABC.md --action render --run_dockerized
+> render_images.py -i ABC.md --action render
 
 # Render images in place in the original LaTeX file:
-> render_images.py -i ABC.tex --action render --run_dockerized
+> render_images.py -i ABC.tex --action render
 
 # Open rendered images from a Markdown file in HTML to preview:
-> render_images.py -i ABC.md --action open --run_dockerized
+> render_images.py -i ABC.md --action open
 """
 
 import argparse
-import hashlib
 import logging
 import os
 import re
 import tempfile
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
+import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
+import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hprint as hprint
@@ -43,7 +44,10 @@ _LOG = logging.getLogger(__name__)
 
 
 def _get_rendered_file_paths(
-    template_out_file: str, image_code_idx: int, dst_ext: str
+    template_out_file: str,
+    image_code_idx: int,
+    dst_ext: str,
+    use_github_hosting: bool,
 ) -> Tuple[str, str, str]:
     """
     Generate paths to files for image rendering.
@@ -60,6 +64,9 @@ def _get_rendered_file_paths(
     :param image_code_idx: order number of the image code block in the input
         file
     :param dst_ext: extension of the target image file
+    :param use_github_hosting: if True, insert rendered image links
+        using absolute GitHub-hosted URLs instead of relative paths
+        (e.g., https://raw.githubusercontent.com/causify-ai/helpers/master/figs/readme.1.png)
     :return:
         - path to the temporary file with the image code (e.g., `readme.1.txt`)
         - absolute path to the dir with rendered images (e.g., `/usr/docs/figs`)
@@ -78,6 +85,11 @@ def _get_rendered_file_paths(
     abs_img_dir_path = os.path.join(out_file_dir, sub_dir)
     # Get the relative path to the image, e.g., "figs/readme.1.png".
     rel_img_path = os.path.join(sub_dir, img_name)
+    # Use GitHub absolute reference when specified.
+    if use_github_hosting:
+        repo_name = hgit.get_repo_full_name_from_client(super_module=True)
+        github_abs_path = f"https://raw.githubusercontent.com/{repo_name}/master/"
+        rel_img_path = os.path.join(github_abs_path, rel_img_path)
     # Get the path to a temporary file with the image code, e.g., "readme.1.txt".
     dir_name = "tmp.render_images"
     code_file_path = f"{dir_name}/{out_file_name_body}.{image_code_idx}.txt"
@@ -85,140 +97,22 @@ def _get_rendered_file_paths(
 
 
 # #############################################################################
-# ImageHashCache
-# #############################################################################
 
 
-# TODO(gp): This can be generalized to compute the hash of a general computation.
-# TODO(gp): In practice this is simple_cache.py but without storting the output
-# but only returning if the function was already called with the same arguments
-# or not. See if we can merge the two.
-class ImageHashCache:
-    """
-    Class for managing image hash caching.
-
-    The cache is a JSON storing from hash of the requested computation to the
-    hash of the image code
-    E.g.,
-    ```
-    {
-        "a1b2c3...": {
-            "image_code_hash": "d4e5f6...",
-            "image_code_type": "graphviz",
-            "out_file": "/path/to/rendered/image1.png",
-        }
-        ...
-    }
-    ```
-
-    Given a certain computation we want to check if the image code has changed
-    since the last time we computed the hash of the image code. If it has not
-    changed, we can skip the rendering.
-
-    In practice, we could use a set of hashes of the computation, but we store
-    also the information of the hash to make it easier to debug.
-    If we want to invalidate the cache for one figure, we can do it by removing
-    the entry corresponding to that hash.
-    """
-
-    def __init__(self, cache_file: str):
-        """
-        Initialize the ImageHashCache.
-
-        :param cache_file: Path to the cache file
-        """
-        hdbg.dassert_isinstance(cache_file, str)
-        hdbg.dassert_ne(cache_file, "")
-        self.cache_file = cache_file
-        # Load the cache from the file, if it exists, or start with an empty
-        # cache.
-        if os.path.exists(self.cache_file):
-            _LOG.debug("Loading cache from %s", self.cache_file)
-            self.cache = self._load()
-        else:
-            _LOG.debug("No cache file found at %s", self.cache_file)
-            self.cache = {}
-
-    def __contains__(self, entry_key: str) -> bool:
-        """
-        Check if an entry is in the cache.
-        """
-        return entry_key in self.cache
-
-    def compute_hash(
-        self, image_code: str, image_code_type: str, out_file: str
-    ) -> Tuple[str, dict]:
-        """
-        Compute a hash of the needed computation inputs.
-
-        :param image_code: The code of the image
-        :param image_code_type: Type of the image code (e.g.,
-            "plantuml", "mermaid")
-        :param out_file: Path to the output file where the image will be
-            saved
-        :return: The hash of the inputs and the inputs
-        """
-        # Compute the hash of the image code.
-        image_code_hash = hashlib.sha256(image_code.encode()).hexdigest()
-        # Create a dictionary with the inputs
-        cache_value = {
-            "image_code_hash": image_code_hash,
-            "image_code_type": image_code_type,
-            "out_file": out_file,
-        }
-        # Compute hash of the entry.
-        cache_key = out_file
-        return cache_key, cache_value
-
-    def update_cache(
-        self, cache_key: str, cache_value: str, *, assert_no_key: bool = False
-    ) -> bool:
-        """
-        Update the cache with a new entry.
-        """
-        if assert_no_key:
-            hdbg.dassert_not_in(cache_key, self.cache)
-        cache_updated = (
-            cache_key not in self.cache or self.cache[cache_key] != cache_value
-        )
-        if cache_updated:
-            self.cache[cache_key] = cache_value
-            # Save the cache to the file.
-            self._save()
-        return cache_updated
-
-    def _load(self) -> dict:
-        """
-        Load the hash cache from a file.
-
-        :return: Dictionary mapping image hashes to rendered file paths
-        """
-        hdbg.dassert_file_exists(self.cache_file)
-        return hio.from_json(self.cache_file)
-
-    def _save(self) -> None:
-        """
-        Save the hash cache to a file.
-        """
-        hio.to_json(self.cache_file, self.cache)
-
-
-# #############################################################################
-
-
+# Save cache to disk for persistence.
+@hcacsimp.simple_cache(write_through=True)
 def _render_image_code(
     image_code_txt: str,
     image_code_idx: int,
     image_code_type: str,
     out_file: str,
     dst_ext: str,
-    use_cache: bool,
     *,
     force_rebuild: bool = False,
     use_sudo: bool = False,
     dry_run: bool = False,
-    cache_file: Optional[str] = None,
-) -> Tuple[str, bool]:
+    use_github_hosting: bool = False,
+) -> str:
     """
     Render the image code into an image file.
 
@@ -230,9 +124,12 @@ def _render_image_code(
     :param out_file: path to the output file where the image will be
         inserted
     :param dst_ext: extension of the rendered image, e.g., "svg", "png"
+    :param force_rebuild: rebuild the Docker image before rendering
+    :param use_sudo: run Docker with sudo
     :param dry_run: if True, the rendering command is not executed
-    :return: path to the rendered image and a boolean indicating if the
-        cache was hit
+    :param use_github_hosting: if True, insert rendered image links
+        using absolute GitHub-hosted URLs instead of relative paths
+    :return: path to the rendered image
     """
     _LOG.debug(hprint.func_signature_to_str("image_code_txt"))
     if image_code_type == "plantuml":
@@ -245,59 +142,52 @@ def _render_image_code(
         # \documentclass[tikz, border=10pt]{standalone}
         # \usepackage{tikz}
         # \begin{document}
-        start_tag = hprint.dedent(r"""
+        start_tag = hprint.dedent(
+            r"""
         \documentclass{standalone}
         \usepackage{tikz}
         \usepackage{amsmath}
         \usepackage{pgfplots}
         \usepackage{mathrsfs} % For script font
         \usepackage{xcolor}
-        \pgfplotsset{compat=1.17}
+        \usetikzlibrary{positioning}
+        \pgfplotsset{compat=newest}
         \begin{document}
         \begin{tikzpicture}
-        """)
-        end_tag = hprint.dedent(r"""
+        """
+        )
+        end_tag = hprint.dedent(
+            r"""
         \end{tikzpicture}
         \end{document}
-        """)
+        """
+        )
         image_code_txt = "\n".join([start_tag, image_code_txt, end_tag])
     elif image_code_type == "latex":
-        start_tag = hprint.dedent(r"""
+        start_tag = hprint.dedent(
+            r"""
         \documentclass[border=1pt]{standalone}  % No page, tight margins
         \usepackage{tabularx}
         \usepackage{enumitem}
         \usepackage{booktabs}  % Optional: For nicer tables
         %\begin{document}
 
-        """)
-        end_tag = hprint.dedent(r"""
+        """
+        )
+        end_tag = hprint.dedent(
+            r"""
         %\end{document}
-        """)
+        """
+        )
         image_code_txt = "\n".join([start_tag, image_code_txt, end_tag])
     # Get paths for rendered files.
     # TODO(gp): The fact that we compute the image file path here makes it
     # not possible to use a decorator to implement the caching.
     in_code_file_path, abs_img_dir_path, out_img_file_path = (
-        _get_rendered_file_paths(out_file, image_code_idx, dst_ext)
-    )
-    cache_hit = False
-    if use_cache:
-        # Initialize cache handler.
-        cache_file = cache_file or "./tmp.render_images.cache.json"
-        _LOG.debug(hprint.to_str("cache_file"))
-        cache = ImageHashCache(cache_file)
-        # Compute hash of inputs.
-        cache_key, cache_value = cache.compute_hash(
-            image_code_txt, image_code_type, out_img_file_path
+        _get_rendered_file_paths(
+            out_file, image_code_idx, dst_ext, use_github_hosting
         )
-        # Check if the image is cached.
-        if cache_key in cache:
-            # The image is cached, return the path.
-            _LOG.info("Cache hit for image '%s'", out_img_file_path)
-            hdbg.dassert_file_exists(out_img_file_path)
-            cache_hit = True
-            return out_img_file_path, cache_hit
-        # No cache hit, render the image and update the cache.
+    )
     hio.create_dir(abs_img_dir_path, incremental=True)
     # Save the image code to a temporary file.
     hio.to_file(in_code_file_path, image_code_txt)
@@ -347,10 +237,7 @@ def _render_image_code(
             raise ValueError(f"Invalid type: {image_code_type}")
     # Remove the temp file.
     os.remove(in_code_file_path)
-    # Update the cache.
-    if use_cache:
-        cache.update_cache(cache_key, cache_value)
-    return out_img_file_path, cache_hit
+    return out_img_file_path
 
 
 def _get_comment_prefix_postfix(extension: str) -> Tuple[str, str]:
@@ -414,7 +301,7 @@ def _render_images(
     force_rebuild: bool = False,
     use_sudo: bool = False,
     dry_run: bool = False,
-    cache_file: Optional[str] = None,
+    use_github_hosting: bool = False,
 ) -> List[str]:
     """
     Insert rendered images instead of image code blocks.
@@ -432,6 +319,9 @@ def _render_images(
     :param dst_ext: extension for rendered images
     :param dry_run: if True, the text of the file is updated but the images are
         not actually created
+    :param use_github_hosting: if True, insert rendered image links
+        using absolute GitHub-hosted URLs instead of relative paths
+        (e.g., https://raw.githubusercontent.com/causify-ai/helpers/master/figs/readme.1.png)
     :return: updated lines of the file
     """
     _LOG.debug(hprint.func_signature_to_str("in_lines"))
@@ -513,20 +403,17 @@ def _render_images(
             if m:
                 # Found the end of an image code block.
                 image_code_txt = "\n".join(image_code_lines)
-                use_cache = True
-                rel_img_path, is_cache_hit = _render_image_code(
+                rel_img_path = _render_image_code(
                     image_code_txt,
                     image_code_idx,
                     image_code_type,
                     out_file,
                     dst_ext,
-                    use_cache,
                     force_rebuild=force_rebuild,
                     use_sudo=use_sudo,
                     dry_run=dry_run,
-                    cache_file=cache_file,
+                    use_github_hosting=use_github_hosting,
                 )
-                _ = is_cache_hit
                 # Override the image name if explicitly set by the user.
                 if user_rel_img_path != "":
                     rel_img_path = user_rel_img_path
@@ -621,6 +508,11 @@ def _parse() -> argparse.ArgumentParser:
     )
     # Add actions arguments.
     hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    parser.add_argument(
+        "--use_github_hosting",
+        action="store_true",
+        help="Use GitHub-hosted absolute URLs instead of relative image paths",
+    )
     # Add an argument for debugging.
     parser.add_argument(
         "--dry_run",
@@ -665,6 +557,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         force_rebuild=args.dockerized_force_rebuild,
         use_sudo=args.dockerized_use_sudo,
         dry_run=args.dry_run,
+        use_github_hosting=args.use_github_hosting,
     )
     # Save the output into a file.
     hio.to_file(out_file, "\n".join(out_lines))

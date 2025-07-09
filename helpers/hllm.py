@@ -1,23 +1,21 @@
 """
 Import as:
 
-import helpers.hopenai as hopenai
+import helpers.hllm as hllm
 """
 
-import datetime
 import functools
-import hashlib
-import json
 import logging
 import os
 import re
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 import openai
 import pandas as pd
 import requests
 import tqdm
 
+import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
 import helpers.htimer as htimer
@@ -30,6 +28,31 @@ _LOG = logging.getLogger(__name__)
 
 # gpt-4o-mini is Openai Model, its great for most tasks.
 _MODEL = "openai/gpt-4o-mini"
+
+# #############################################################################
+# Update LLM cache
+# #############################################################################
+_UPDATE_LLM_CACHE = False
+
+
+def set_update_llm_cache(update: bool) -> None:
+    """
+    Set whether to update the LLM cache.
+
+    :param update: True to update the cache, False otherwise
+    """
+    global _UPDATE_LLM_CACHE
+    _UPDATE_LLM_CACHE = update
+
+
+def get_update_llm_cache() -> bool:
+    """
+    Get whether to update the LLM cache.
+
+    :return: True if the cache should be updated, False otherwise
+    """
+    return _UPDATE_LLM_CACHE
+
 
 # #############################################################################
 # Utility Functions
@@ -220,19 +243,29 @@ def _build_messages(system_prompt: str, user_prompt: str) -> List[Dict[str, str]
     return ret
 
 
+@hcacsimp.simple_cache(write_through=True, exclude_keys=["client", "cache_mode"])
 def _call_api_sync(
+    cache_mode: str,
     client: openai.OpenAI,
     messages: List[Dict[str, str]],
     temperature: float,
     model: str,
     **create_kwargs,
-) -> Tuple[str, Any]:
+) -> dict[Any, Any]:
     """
-    Make a non-streaming API call and return (response, raw_completion).
+    Make a non-streaming API call.
 
-    return: a tuple with
-        - model response in OpenAI's completion object
-        - raw completion
+    :param cache_mode: "DISABLE_CACHE", "REFRESH_CACHE",
+        "HIT_CACHE_OR_ABORT", "NORMAL"
+    :param client: OpenAI client
+    :param messages: list of messages to send to the API
+    :param model: model to use for the completion
+    :param temperature: adjust an LLM's sampling diversity: lower values
+        make it more deterministic, while higher values foster creative
+        variation. 0 < temperature <= 2, 0.1 is default value in OpenAI
+        models.
+    :param create_kwargs: additional parameters for the API call
+    :return: OpenAI chat completion object as a dictionary
     """
     completion = client.chat.completions.create(
         model=model,
@@ -240,8 +273,14 @@ def _call_api_sync(
         temperature=temperature,
         **create_kwargs,
     )
-    model_response = completion.choices[0].message.content
-    return model_response, completion
+    # Calculate the cost.
+    models_info_file = ""
+    cost = _calculate_cost(completion, model, models_info_file)
+    _accumulate_cost_if_needed(cost)
+    completion_obj = completion.to_dict()
+    # Store the cost in the completion object.
+    completion_obj["cost"] = cost
+    return completion_obj
 
 
 # #############################################################################
@@ -333,7 +372,6 @@ def _calculate_cost(
 # #############################################################################
 
 
-# TODO(gp): CAPTURE seems redundant.
 @functools.lru_cache(maxsize=1024)
 def get_completion(
     user_prompt: str,
@@ -342,8 +380,7 @@ def get_completion(
     model: str = "",
     report_progress: bool = False,
     print_cost: bool = False,
-    cache_mode: str = "DISABLED",
-    cache_file: str = "cache.get_completion.json",
+    cache_mode: str = "DISABLE_CACHE",
     temperature: float = 0.1,
     **create_kwargs,
 ) -> str:
@@ -355,11 +392,11 @@ def get_completion(
     :param model: model to use or empty string to use the default model
     :param report_progress: whether to report progress running the API
         call
-    :param cache_mode : "DISABLED","CAPTURE", "REPLAY", "FALLBACK"
-        - "DISABLED": No caching
-        - "CAPTURE": Make API calls and save responses to cache
-        - "REPLAY": Use cached responses, fail if not in cache
-        - "FALLBACK": Use cached responses if available, otherwise make API call
+    :param cache_mode : "DISABLE_CACHE","REFRESH_CACHE", "HIT_CACHE_OR_ABORT", "NORMAL"
+        - "DISABLE_CACHE": No caching
+        - "REFRESH_CACHE": Make API calls and save responses to cache
+        - "HIT_CACHE_OR_ABORT": Use cached responses, fail if not in cache
+        - "NORMAL": Use cached responses if available, otherwise make API call
     :param cache_file: file to save/load completioncache
     :param temperature: adjust an LLM's sampling diversity: lower values make it
         more deterministic, while higher values foster creative variation.
@@ -367,41 +404,24 @@ def get_completion(
     :param create_kwargs: additional params for the API call
     :return: completion text
     """
-    hdbg.dassert_in(cache_mode, ("REPLAY", "FALLBACK", "CAPTURE", "DISABLED"))
+    hdbg.dassert_in(
+        cache_mode,
+        ("DISABLE_CACHE", "REFRESH_CACHE", "HIT_CACHE_OR_ABORT", "NORMAL"),
+    )
+    update_llm_cache = get_update_llm_cache()
+    if update_llm_cache:
+        cache_mode = "REFRESH_CACHE"
     if model == "":
         model = _get_default_model()
     # Construct messages in OpenAI API request format.
     messages = _build_messages(system_prompt, user_prompt)
-    # Initialize cache.
-    cache = _CompletionCache(cache_file)
-    request_params = {
-        "model": model,
-        "messages": messages,
-        "temperature": temperature,
-        **create_kwargs,
-    }
-    hash_key = cache.hash_key_generator(**request_params)
-    if cache_mode in ("REPLAY", "FALLBACK"):
-        # Checks for response in cache.
-        if cache.has_cache(hash_key):
-            memento = htimer.dtimer_start(
-                logging.DEBUG, "Loading from the cache!"
-            )
-            cache.increment_cache_stat("hits")
-            msg, _ = htimer.dtimer_stop(memento)
-            print(msg)
-            return cache.load_response_from_cache(hash_key)
-        else:
-            cache.increment_cache_stat("misses")
-            if cache_mode == "REPLAY":
-                raise RuntimeError(
-                    "No cached response for this request parameters!"
-                )
+
     client = get_openai_client()
     # print("LLM API call ... ")
     memento = htimer.dtimer_start(logging.DEBUG, "LLM API call")
     if not report_progress:
-        response, completion = _call_api_sync(
+        completion = _call_api_sync(
+            cache_mode=cache_mode,
             client=client,
             messages=messages,
             model=model,
@@ -431,22 +451,9 @@ def get_completion(
     # Report the time taken.
     msg, _ = htimer.dtimer_stop(memento)
     print(msg)
-    # Calculate the cost.
-    # TODO(gp): This should be shared in the class.
-    models_info_file = ""
-    cost = _calculate_cost(completion, model, models_info_file)
-    # Accumulate the cost.
-    _accumulate_cost_if_needed(cost)
-    # Convert OpenAI completion object to DICT.
-    completion_obj = completion.to_dict()
-    # Store cost in the cache.
-    completion_obj["cost"] = cost
-    if cache_mode != "DISABLED":
-        cache.save_response_to_cache(
-            hash_key, request=request_params, response=completion_obj
-        )
+    response = completion["choices"][0]["message"]["content"]
     if print_cost:
-        print(f"cost=${cost:.2f}")
+        print(f"cost=${completion['cost']:.2f}")
     return response
 
 
@@ -714,7 +721,7 @@ def apply_prompt_to_dataframe(
         chunk = df.iloc[start:end]
         _LOG.debug("chunk.size=%s", chunk.shape[0])
         data = chunk[input_col].astype(str).tolist()
-        data = ["%s: %s" % (i + 1, val) for i, val in enumerate(data)]
+        data = [f"{i + 1}: {val}" for i, val in enumerate(data)]
         user = "\n".join(data)
         _LOG.debug("user=\n%s", user)
         try:
@@ -736,139 +743,3 @@ def apply_prompt_to_dataframe(
         response_data.extend(processed_response)
     df[response_col] = response_data
     return df
-
-
-# #############################################################################
-# _CompletionCache
-# #############################################################################
-
-
-# TODO(gp): we can't use hcache_simple.simple_cache() because it uses a different cache
-# format and does not support conditions required by get_completion().
-class _CompletionCache:
-    """
-    Cache for get_completion().
-    """
-
-    def __init__(self, cache_file: str):
-        self.cache_file = cache_file
-        # Load the existing file(may not exist or may be invalid JSON)
-        try:
-            with open(self.cache_file, "r", encoding="utf-8") as f:
-                self.cache = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            self.cache = None
-        # Validates structure.
-        if (
-            not isinstance(self.cache, dict)
-            or "version" not in self.cache
-            or "metadata" not in self.cache
-            or "entries" not in self.cache
-            or not isinstance(self.cache["entries"], dict)
-        ):
-            # Responses will be stored in entries.
-            self.cache = {
-                "version": "1.0",
-                "metadata": {
-                    "created_at": datetime.datetime.now().isoformat(),
-                    "last_updated": datetime.datetime.now().isoformat(),
-                    "hits": 0,
-                    "misses": 0,
-                },
-                "entries": {},
-            }
-            with open(self.cache_file, "w", encoding="utf-8") as f:
-                json.dump(self.cache, f)
-
-    def hash_key_generator(
-        self,
-        model: str,
-        messages: List[Dict[str, str]],
-        **extra_kwargs: Any,
-    ) -> str:
-        """
-        Generate a hash key for the OpenAI request.
-        """
-        norm_msgs = []
-        for m in messages:
-            norm_msgs.append(
-                {
-                    "role": m["role"].strip().lower(),
-                    "content": " ".join(m["content"].split()).lower(),
-                }
-            )
-        key_obj: Dict[str, Any] = {
-            "model": model.strip().lower(),
-            "messages": norm_msgs,
-        }
-        for name in sorted(extra_kwargs):
-            key_obj[name] = extra_kwargs[name]
-        serialized = json.dumps(
-            key_obj,
-            # no spaces
-            separators=(",", ":"),
-            # keys in alphabetical order
-            sort_keys=True,
-            ensure_ascii=False,
-        )
-        return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
-
-    def has_cache(self, hash_key: str) -> bool:
-        """
-        Check if the hash key is in the cache.
-        """
-        return hash_key in self.cache["entries"]
-
-    def save_response_to_cache(
-        self, hash_key: str, request: dict, response: dict
-    ) -> None:
-        """
-        Save the cache to the cache directory.
-        """
-        entry = {"request": request, "response": response}
-        self.cache["entries"][hash_key] = entry
-        self.cache["metadata"][
-            "last_updated"
-        ] = datetime.datetime.now().isoformat()
-        self._write_cache_to_disk()
-
-    def load_response_from_cache(self, hash_key: str) -> Any:
-        """
-        Load the response from the cache directory.
-        """
-        if hash_key in self.cache["entries"]:
-            openai_response = self.cache["entries"][hash_key]["response"]
-            return openai_response["choices"][0]["message"]["content"]
-        raise ValueError("No cache found!")
-
-    def get_stats(self) -> dict:
-        """
-        Return basic stats: hits, misses, total entries.
-        """
-        stats = {
-            "hits": self.cache["metadata"]["hits"],
-            "misses": self.cache["metadata"]["misses"],
-            "entries_count": len(self.cache["entries"]),
-        }
-        return stats
-
-    def increment_cache_stat(self, key: str) -> None:
-        """
-        Update the hits, misses counter.
-        """
-        self.cache["metadata"][key] += 1
-        self._write_cache_to_disk()
-
-    def _write_cache_to_disk(self) -> None:
-        with open(self.cache_file, "w", encoding="utf-8") as f:
-            json.dump(self.cache, f, indent=2)
-
-    def _clear_cache(self) -> None:
-        """
-        Clear the cache from the file.
-        """
-        self.cache["entries"] = {}
-        self.cache["metadata"][
-            "last_updated"
-        ] = datetime.datetime.now().isoformat()
-        self._write_cache_to_disk()
