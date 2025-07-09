@@ -120,33 +120,6 @@ class BaseCacheTest(hunitest.TestCase):
 
          - Set specific cache properties needed for the tests.
         """
-        # # Reset persistent user cache properties.
-        # hcacsimp.reset_cache_property("user")
-        # try:
-        #     hcacsimp.reset_cache_property("system")
-        # except OSError:
-        #     # If there is an OSError, remove the system cache property file manually.
-        #     system_file = hcacsimp.get_cache_property_file("system")
-        #     if os.path.exists(system_file):
-        #         os.remove(system_file)
-        # # Reset caches for all cached functions.
-        # for func_name in [
-        #     "_cached_function",
-        #     "_cached_pickle_function",
-        #     "_multi_arg_func",
-        #     "_refreshable_function",
-        #     "_kwarg_func",
-        #     "_dummy_cached_function",
-        # ]:
-        #     try:
-        #         import helpers.hsystem as hsystem
-        #         # turn off the “are you sure?” prompt
-        #         hsystem.query_yes_no = lambda *args, **kwargs: False
-        #         # Reset both disk and in-memory cache.
-        #         hcacsimp.reset_cache(func_name=func_name, interactive=False)
-        #     except AssertionError:
-        #         # If resetting the full cache fails, reset only the in-memory cache.
-        #         hcacsimp.reset_mem_cache(func_name)
         # Set the cache properties for each function.
         hcacsimp.set_cache_property("system", "_cached_function", "type", "json")
         hcacsimp.set_cache_property(
