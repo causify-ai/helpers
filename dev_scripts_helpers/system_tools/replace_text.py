@@ -122,7 +122,7 @@ def _look_for(file_name: str, filter_by: str) -> Tuple[bool, List[str]]:
         m = re.search(filter_by, line)
         if m:
             # ./install/create_conda.py:21:import helpers.helper_io as hio
-            res.append("%s:%s:%s" % (file_name, i + 1, line))
+            res.append(f"{file_name}:{i + 1}:{line}")
             found = True
     return found, res
 
@@ -184,10 +184,10 @@ def _replace_with_perl(
     regex += "g"
     # regex = r"s%s\\b%s%s%s%sg" % (sep, args.old, sep, args.new, sep)
     if True:
-        perl_opts.append("-e '%s'" % regex)
+        perl_opts.append(f"-e '{regex}'")
     else:
-        perl_opts.append(r"-e '%s unless /^\s*#/'" % regex)
-    cmd = "perl %s %s" % (" ".join(perl_opts), file_name)
+        perl_opts.append(fr"-e '{regex} unless /^\s*#/'")
+    cmd = f"perl {' '.join(perl_opts)} {file_name}"
     hsystem.system(cmd, suppress_output=False)
 
 
@@ -195,7 +195,7 @@ def _replace_with_python(
     file_name: str, old_regex: str, new_regex: str, backup: bool
 ) -> None:
     if backup:
-        cmd = "cp %s %s.bak" % (file_name, file_name)
+        cmd = f"cp {file_name} {file_name}.bak"
         hsystem.system(cmd)
     #
     lines = hio.from_file(file_name, encoding=_ENCODING).split("\n")
@@ -237,7 +237,7 @@ def _replace(
         elif mode == "replace_with_python":
             _replace_with_python(file_name, old_regex, new_regex, backup)
         else:
-            raise ValueError("Invalid mode='%s'" % mode)
+            raise ValueError(f"Invalid mode='{mode}'")
 
 
 def _replace_repeated_lines(file_name: str, new_regex: str) -> None:
@@ -288,7 +288,7 @@ def _custom1(args: argparse.Namespace) -> None:
     file_names = _get_all_files(dirs, exts)
     txt = ""
     for old_regex, new_regex in to_replace:
-        print(hprint.frame("%s -> %s" % (old_regex, new_regex)))
+        print(hprint.frame(f"{old_regex} -> {new_regex}"))
         file_names_to_process, txt_tmp = _get_files_to_replace(
             file_names, old_regex
         )
@@ -318,7 +318,7 @@ def _fix_AmpTask1403_helper(
     # Store the replacement points.
     txt = ""
     for old_regex, new_regex in to_replace:
-        print(hprint.frame("%s -> %s" % (old_regex, new_regex)))
+        print(hprint.frame(f"{old_regex} -> {new_regex}"))
         file_names_to_process, txt_tmp = _get_files_to_replace(
             file_names, old_regex
         )
@@ -390,7 +390,7 @@ def _prerelease_cleanup(args: argparse.Namespace) -> None:
     # Store the replacement points.
     txt = ""
     for old_regex, new_regex in to_replace:
-        print(hprint.frame("%s -> %s" % (old_regex, new_regex)))
+        print(hprint.frame(f"{old_regex} -> {new_regex}"))
         file_names_to_process, txt_tmp = _get_files_to_replace(
             file_names, old_regex
         )
@@ -482,10 +482,10 @@ def _rename(file_names_to_process: List[str], file_map: Dict[str, str]) -> None:
         dirname = os.path.dirname(new_name)
         if not os.path.isdir(dirname):
             # Create a dir if the new file name presupposes a new dir.
-            cmd = "mkdir -p %s" % dirname
+            cmd = f"mkdir -p {dirname}"
             hsystem.system(cmd)
         # Rename the file.
-        cmd = "git mv %s %s" % (f, new_name)
+        cmd = f"git mv {f} {new_name}"
         hsystem.system(cmd)
 
 
@@ -613,7 +613,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         print(f"> {cmd}")
         hsystem.system(cmd)
     if args.custom_flow:
-        eval("%s(args)" % args.custom_flow)
+        eval(f"{args.custom_flow}(args)")
     else:
         # Use command line params.
         dirs = args.only_dirs
@@ -732,7 +732,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 _rename(file_names_to_process, file_map)
             action_processed = True
         if not action_processed:
-            raise ValueError("Invalid action='%s'" % args.action)
+            raise ValueError(f"Invalid action='{args.action}'")
         if args.preview:
             sys.exit(0)
 

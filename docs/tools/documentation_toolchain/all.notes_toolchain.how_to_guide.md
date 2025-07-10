@@ -55,20 +55,98 @@
 
 <!-- tocstop -->
 
-# Notes Documentation Toolchain
+# Documentation Toolchain
 
-- This is a high‑level guide to the helper scripts that turn raw `.txt` notes
-  into polished PDFs, slide decks, and more.
+- This is a high‑level guide to the helper scripts that turn raw notes, slides,
+  Latex into polished PDFs, slide decks, etc.
 
-// TODO(\*): Is it worth to report the flags? It's difficult to maintain
+- There are several documentation workflows available:
 
-## notes_to_pdf.py
+  - **latex**
+    - Are standard Latex code that can be converted into PDF files
+    - E.g., `//cmamp/papers`
+    - E.g., https://github.com/causify-ai/cmamp/tree/master/papers/KaizenFlow
+
+  - **markdown**
+    - Are documentation about a repo that can be rendered through `mkdocs` and
+      published on GitHub
+    - E.g., `//helpers/docs`, `//cmamp/docs`, `//tutorials/docs`
+    - E.g., https://github.com/causify-ai/helpers/tree/master/docs
+    - E.g., rendered on https://causify-ai.github.io/helpers
+
+  - **notes** (aka **.txt**)
+    - Are `Pandoc` markdown with some extra syntax to simplify some common operations
+      (e.g., color, comments)
+    - Are processed by `preprocess_notes.py` to be converted in `Pandoc` markdown
+    - Then can be converted into PDFs and in Anki Q/A 
+    - E.g., `//notes/notes/...`
+      ```
+      > vi /Users/saggese/src/notes1/notes/math.machine_learning.txt
+      ```
+
+  - **slides**
+    - Are the same as `notes` but we use a different extension to clarify that they
+      are rendered as slides
+    - E.g.,
+      ```
+      > ls /Users/saggese/src/notes1/MSML610
+      > vi /Users/saggese/src/notes1/MSML610/Lesson00-Class.txt
+      ```
+    - E.g., `//notes/DATA605`
+
+  - **books**
+    - Are extended `Pandoc` markdown that can be rendered with `Pandoc`
+    - E.g., `//notes/books/programming_with_ai`
+      ```
+      > vi books/programming_with_ai/docs/coding-benchmark.md
+      ```
+
+  - **jupyter books**
+
+
+## List of tools
+
+- TODO(gp): Use the invoke to describe the list
+
+```
+> ls -1 dev_scripts_helpers/documentation/
+convert_docx_to_markdown.py
+dockerized_graphviz.py
+dockerized_latex.py
+dockerized_mermaid.py
+dockerized_pandoc.py
+dockerized_prettier.py
+dockerized_tikz_to_bitmap.py
+extract_headers_from_markdown.py
+generate_latex_sty.py
+generate_readme_index.py
+generate_script_catalog.py
+latex_abbrevs.sty
+latexdockercmd.sh
+lint_notes.py
+mkdocs
+notes_to_pdf.py
+OLD
+open_md_in_browser.sh
+open_md_on_github.sh
+pandoc.latex
+preprocess_notes.py
+publish_notes.py
+render_images.py
+replace_latex.py
+replace_latex.sh
+run_latex.sh
+run_pandoc.py
+test
+transform_notes.py
+```
+
+## `notes_to_pdf.py`
 
 ### What it does
 
-- Convert plain‑text notes into polished **PDF, HTML, or Beamer slides** with a
-  single command:
-
+- Convert plain‑text notes into polished **PDF**, **HTML**, or **Beamer slides**
+  with a single command:
   ```bash
   > notes_to_pdf.py --input <infile.txt> --output <outfile.[pdf|html]> --type [pdf|html|slides]
   ```
@@ -188,11 +266,11 @@
   > notes_to_pdf.py -i book_notes.txt -o book_notes.pdf --type pdf
   ```
 
-## render_images.py
+## `render_images.py`
 
 ### What it does
 
-- This script auto renders figures by
+- This script auto renders figures by:
   - Detecting fenced code blocks (PlantUML, Mermaid, TikZ, Graphviz, ...)
   - Rendering them into images calling the appropriate tool
   - Commenting them out the block
@@ -299,29 +377,97 @@ The supported File types and code blocks are:
 
 ### What it does
 
-- Tidy up Markdown/LaTeX/txt notes by:
-  - Normalising G‑Doc artifacts
+- Tidy up notes in different formats (selected with the file extension or `--type`):
+  - Markdown
+  - LaTeX
+  - txt notes
+
+- Various preprocessing and postprocessing steps:
+  - Refreshing the Table of Contents
+  - Normalising Google Docs artifacts
   - Running Prettier
   - Fixing bullet/heading quirks
-  - Refreshing the Table of Contents
+
+### 
+
+    "preprocess",
+    "prettier",
+    "postprocess",
+    "frame_chapters",
+    "refresh_toc",
 
 ### Examples
 
-- Prettify with Dockerised Prettier and TOC rebuild
+- Basic usage
+  ```bash
+  > lint_notes.py -i input.md -o output.md
+  ```
+
+- Process specific actions only
+  ```
+  > lint_notes.py -i input.md -o output.md --action preprocess,prettier
+  ```
+
+- Prettify with Dockerized Prettier and TOC rebuild
 
   ```bash
   > lint_notes.py -i Lesson10.md \
-       --use_dockerized_prettier \
-       --use_dockerized_markdown_toc
+      --use_dockerized_prettier \
+      --use_dockerized_markdown_toc
   ```
 
 - Custom print width and selective actions
   ```bash
   > lint_notes.py -i draft.txt -o tidy.txt -w 100 \
-                --action preprocess,prettier,postprocess
+      --action preprocess,prettier,postprocess
+  ```
+
+- Use in vim for inline formatting
+  ```verbatim
+  :%!lint_notes.py
   ```
 
 ### Interface
+
+```text
+> lint_notes.py -h
+usage: lint_notes.py [-h] -i IN_FILE_NAME [-o OUT_FILE_NAME] [--type TYPE] [-w PRINT_WIDTH] [--use_dockerized_prettier] [--use_dockerized_markdown_toc]
+                     [--action {preprocess,prettier,postprocess,frame_chapters,refresh_toc} | --skip_action {preprocess,prettier,postprocess,frame_chapters,refresh_toc}] [--all]
+                     [--dockerized_force_rebuild] [--dockerized_use_sudo] [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
+
+See instructions at docs/tools/documentation_toolchain/all.notes_toolchain.how_to_guide.md
+
+Lint "notes" files.
+
+> lint_notes.py -i foo.md -o bar.md     --use_dockerized_prettier     --use_dockerized_markdown_toc
+
+- It can be used in vim to prettify a part of the text using stdin / stdout.
+```
+:%!lint_notes.py
+```
+
+options:
+  -h, --help            show this help message and exit
+  -i IN_FILE_NAME, --in_file_name IN_FILE_NAME
+                        Input file or `-` for stdin
+  -o OUT_FILE_NAME, --out_file_name OUT_FILE_NAME
+                        Output file or `-` for stdout
+  --type TYPE
+  -w PRINT_WIDTH, --print-width PRINT_WIDTH
+  --use_dockerized_prettier
+  --use_dockerized_markdown_toc
+  --action {preprocess,prettier,postprocess,frame_chapters,refresh_toc}
+                        Actions to execute
+  --skip_action {preprocess,prettier,postprocess,frame_chapters,refresh_toc}
+                        Actions to skip
+  --all                 Run all the actions (preprocess prettier postprocess frame_chapters refresh_toc)
+  --dockerized_force_rebuild
+                        Force to rebuild the Docker container
+  --dockerized_use_sudo
+                        Use sudo inside the container
+  -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
+                        Set the logging level
+```
 
 // TODO
 
@@ -553,7 +699,7 @@ The supported File types and code blocks are:
   > graphviz_wrapper.py -i diagram.dot -o diagram.png --dockerized_use_sudo
   ```
 
-## dockerized_latex.py
+## `dockerized_latex.py`
 
 ### What it does
 
@@ -585,7 +731,7 @@ The supported File types and code blocks are:
   > latex_wrapper.py -i paper.tex -o paper.pdf --run_latex_again
   ```
 
-## dockerized_mermaid.py
+## `dockerized_mermaid.py`
 
 ### What it does
 
@@ -619,7 +765,7 @@ The supported File types and code blocks are:
   > mermaid_wrapper.py -i diagram.mmd -o diagram.png --dockerized_use_sudo
   ```
 
-## dockerized_pandoc.py
+## `dockerized_pandoc.py`
 
 ### What it does
 
@@ -738,3 +884,36 @@ The supported File types and code blocks are:
 1. Prompts you to select a screen region (`⌘ + Ctrl + 4`).
 2. Saves it as `screenshot.YYYY‑MM‑DD_HH‑MM‑SS.png` (or your chosen name).
 3. Prints and copies the Markdown embed `<img src="path/to/file.png">`.
+
+## Useful Tools
+
+### mermaid
+
+- To render on-line: https://mermaid.live
+
+- Resources:
+  - https://mermaid.js.org/syntax/examples.html
+
+### graphviz
+
+- To render on-line: https://dreampuf.github.io/GraphvizOnline
+
+- Resources:
+  - https://graphviz.org/gallery/
+
+### markdown
+- To render on-line: https://markdownlivepreview.com/
+
+### pandoc
+- To render on-line: https://pandoc.org/try/
+
+### Tikz
+- To render on-line use Overleaf
+
+- Resources
+  - https://www.overleaf.com/learn/latex/TikZ_package
+  - https://texample.net/
+  - https://www.integral-domain.org/lwilliams/Resources/tikzsnippets.php
+  - https://tikz.pablopie.xyz/
+  - https://tikzit.github.io/
+  - https://latexdraw.com/

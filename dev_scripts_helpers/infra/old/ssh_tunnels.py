@@ -66,10 +66,7 @@ def _main() -> None:
     repo_name = hgit.get_repo_full_name_from_client(super_module=True)
     exp_repo_name = ".../..."
     if repo_name != exp_repo_name:
-        msg = "Need to run from repo '%s' and not from '%s'" % (
-            exp_repo_name,
-            repo_name,
-        )
+        msg = f"Need to run from repo '{exp_repo_name}' and not from '{repo_name}'"
         _LOG.error(msg)
         raise RuntimeError(msg)
     #
@@ -89,7 +86,7 @@ def _main() -> None:
     elif action == "kill":
         holdtunn.kill_all_tunnel_processes()
     else:
-        hdbg.dfatal("Invalid action='%s'" % action)
+        hdbg.dfatal(f"Invalid action='{action}'")
 
 
 if __name__ == "__main__":

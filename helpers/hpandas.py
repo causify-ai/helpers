@@ -1201,7 +1201,7 @@ def cast_series_to_type(
         series = pd.to_datetime(series)
     elif series_type is dict:
         # Convert to dict.
-        series = series.apply(lambda x: eval(x))
+        series = series.apply(eval)
     else:
         # Convert to the specified type.
         series = series.astype(series_type)
@@ -2244,7 +2244,7 @@ def list_to_str(
             enclose_str_char + v + enclose_str_char for v in vals_as_str
         ]
     #
-    ret = "%s [" % len(vals)
+    ret = f"{len(vals)} ["
     if max_num is not None and len(vals) > max_num:
         hdbg.dassert_lt(1, max_num)
         ret += sep_char.join(vals_as_str[: int(max_num / 2)])
@@ -2271,8 +2271,7 @@ def multiindex_df_info(
     rows = df.index
     ret = []
     ret.append(
-        "shape=%s x %s x %s"
-        % (len(columns_level0), len(columns_level1), len(rows))
+        f"shape={len(columns_level0)} x {len(columns_level1)} x {len(rows)}"
     )
     ret.append(
         "columns_level0=%s" % list_to_str(columns_level0, **list_to_str_kwargs)

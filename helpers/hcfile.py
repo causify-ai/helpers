@@ -71,7 +71,7 @@ def inject_todos_from_cfile(
     #     increasing line numbers.
     file_content = {}
     for todo_line in cfile_txt.split("\n"):
-        _LOG.debug("\n%s", hprint.frame("todo line='%s'" % todo_line))
+        _LOG.debug("\n%s", hprint.frame(f"todo line='{todo_line}'"))
         if todo_line.strip() == "":
             continue
         # dev_scripts_helpers/github/dockerized_sync_gh_repo_settings.py:101: The logic for extracting required status checks and pull request reviews is repeated. Consider creating a helper function to handle this extraction to reduce redundancy.
