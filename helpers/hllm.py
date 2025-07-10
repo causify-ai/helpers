@@ -255,7 +255,6 @@ class LLMCostTracker:
         """
         Initialize the OpenAIChatCostTracker.
         """
-        self.provider_name = "openai"
         self._CURRENT_OPENAI_COST: float = 0.0
 
     def end_logging_costs(self) -> None:
@@ -298,7 +297,7 @@ class LLMCostTracker:
         prompt_tokens = completion.usage.prompt_tokens
         completion_tokens = completion.usage.completion_tokens
         # TODO(gp): This should be shared in the class.
-        if self.provider_name == "openai":
+        if provider_name == "openai":
             # Get the pricing for the selected model.
             # https://openai.com/api/pricing/
             # https://gptforwork.com/tools/openai-chatgpt-api-pricing-calculator
@@ -352,7 +351,7 @@ def _call_api_sync(
     client: openai.OpenAI,
     messages: List[Dict[str, str]],
     temperature: float,
-    model: str,
+    model: str = _MODEL,
     cost_tracker: Optional[LLMCostTracker] = None,
     **create_kwargs,
 ) -> dict[Any, Any]:
@@ -473,7 +472,7 @@ def get_completion(
     msg, _ = htimer.dtimer_stop(memento)
     print(msg)
     if print_cost:
-        print(f"cost=${completion['cost']:.4f}")
+        print(f"cost=${completion['cost']:.6f}")
     response = completion["choices"][0]["message"]["content"]
     return response
 
