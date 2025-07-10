@@ -8,7 +8,7 @@ import functools
 import logging
 import os
 import re
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import openai
 import pandas as pd
@@ -28,6 +28,7 @@ _LOG = logging.getLogger(__name__)
 
 # gpt-4o-mini is Openai Model, its great for most tasks.
 _MODEL = "openai/gpt-4o-mini"
+
 
 # #############################################################################
 # Update LLM cache
@@ -227,9 +228,6 @@ def _save_models_info_to_csv(
     return model_info_df
 
 
-# #############################################################################
-
-
 def _build_messages(system_prompt: str, user_prompt: str) -> List[Dict[str, str]]:
     """
     Construct the standard messages payload for the chat API.
@@ -243,66 +241,28 @@ def _build_messages(system_prompt: str, user_prompt: str) -> List[Dict[str, str]
     return ret
 
 
-@hcacsimp.simple_cache(write_through=True, exclude_keys=["client", "cache_mode"])
-def _call_api_sync(
-    cache_mode: str,
-    client: openai.OpenAI,
-    messages: List[Dict[str, str]],
-    temperature: float,
-    model: str,
-    **create_kwargs,
-) -> dict[Any, Any]:
-    """
-    Make a non-streaming API call.
-
-    :param cache_mode: "DISABLE_CACHE", "REFRESH_CACHE",
-        "HIT_CACHE_OR_ABORT", "NORMAL"
-    :param client: OpenAI client
-    :param messages: list of messages to send to the API
-    :param model: model to use for the completion
-    :param temperature: adjust an LLM's sampling diversity: lower values
-        make it more deterministic, while higher values foster creative
-        variation. 0 < temperature <= 2, 0.1 is default value in OpenAI
-        models.
-    :param create_kwargs: additional parameters for the API call
-    :return: OpenAI chat completion object as a dictionary
-    """
-    completion = client.chat.completions.create(
-        model=model,
-        messages=messages,
-        temperature=temperature,
-        **create_kwargs,
-    )
-    # Calculate the cost.
-    models_info_file = ""
-    cost = _calculate_cost(completion, model, models_info_file)
-    _accumulate_cost_if_needed(cost)
-    completion_obj = completion.to_dict()
-    # Store the cost in the completion object.
-    completion_obj["cost"] = cost
-    return completion_obj
-
-
 # #############################################################################
-# Cost tracking
+# OpenAIChatCostTracker
 # #############################################################################
 
-# TODO(*): Convert this into a class to track costs?
 
+class LLMCostTracker:
+    """
+    Track the costs of OpenAI API calls.
+    """
 
-_CURRENT_OPENAI_COST = None
-
-
-def start_logging_costs() -> None:
-    global _CURRENT_OPENAI_COST
-    _CURRENT_OPENAI_COST = 0.0
+    def __init__(self) -> None:
+        """
+        Initialize the OpenAIChatCostTracker.
+        """
+        self.provider_name = "openai"
+        self._CURRENT_OPENAI_COST: float = 0.0
 
     def end_logging_costs(self) -> None:
         """
-        End logging costs by resetting the current cost to None.
+        End logging costs by resetting the current cost to 0.
         """
-        global _CURRENT_OPENAI_COST
-        _CURRENT_OPENAI_COST = None
+        self._CURRENT_OPENAI_COST = 0.0
 
     def accumulate_cost(self, cost: float) -> None:
         """
@@ -310,9 +270,7 @@ def start_logging_costs() -> None:
 
         :param cost: The cost to accumulate
         """
-        global _CURRENT_OPENAI_COST
-        if _CURRENT_OPENAI_COST is not None:
-            _CURRENT_OPENAI_COST += cost
+        self._CURRENT_OPENAI_COST += cost
 
     def get_current_cost(self) -> float:
         """
@@ -320,14 +278,13 @@ def start_logging_costs() -> None:
 
         :return: The current cost
         """
-        global _CURRENT_OPENAI_COST
-        return _CURRENT_OPENAI_COST
+        return self._CURRENT_OPENAI_COST
 
     def calculate_cost(
         self,
         completion: openai.types.chat.chat_completion.ChatCompletion,
         model: str,
-        models_info_file: str,
+        models_info_file: str = "",
         provider_name: str = _PROVIDER_NAME,
     ) -> float:
         """
@@ -337,17 +294,11 @@ def start_logging_costs() -> None:
         :param model: The model used for the completion
         :return: The calculated cost in dollars
         """
-        """
-        Calculate the cost of an OpenAI API call.
 
-        :param completion: The completion response from OpenAI
-        :param model: The model used for the completion
-        :return: The calculated cost in dollars
-        """
         prompt_tokens = completion.usage.prompt_tokens
         completion_tokens = completion.usage.completion_tokens
         # TODO(gp): This should be shared in the class.
-        if provider_name == "openai":
+        if self.provider_name == "openai":
             # Get the pricing for the selected model.
             # https://openai.com/api/pricing/
             # https://gptforwork.com/tools/openai-chatgpt-api-pricing-calculator
@@ -387,6 +338,56 @@ def start_logging_costs() -> None:
             raise ValueError(f"Unknown provider: {provider_name}")
         _LOG.debug(hprint.to_str("prompt_tokens completion_tokens cost"))
         return cost
+
+
+# #############################################################################
+_LLM_COST_Tracker = LLMCostTracker()
+
+
+@hcacsimp.simple_cache(
+    write_through=True, exclude_keys=["client", "cache_mode", "cost_tracker"]
+)
+def _call_api_sync(
+    cache_mode: str,
+    client: openai.OpenAI,
+    messages: List[Dict[str, str]],
+    temperature: float,
+    model: str,
+    cost_tracker: Optional[LLMCostTracker] = None,
+    **create_kwargs,
+) -> dict[Any, Any]:
+    """
+    Make a non-streaming API call.
+
+    :param cache_mode: "DISABLE_CACHE", "REFRESH_CACHE",
+        "HIT_CACHE_OR_ABORT", "NORMAL"
+    :param client: OpenAI client
+    :param messages: list of messages to send to the API
+    :param model: model to use for the completion
+    :param temperature: adjust an LLM's sampling diversity: lower values
+        make it more deterministic, while higher values foster creative
+        variation. 0 < temperature <= 2, 0.1 is default value in OpenAI
+        models.
+    :param cost_tracker: OpenAIChatCostTracker instance to track costs
+    :param create_kwargs: additional parameters for the API call
+    :return: OpenAI chat completion object as a dictionary
+    """
+    completion = client.chat.completions.create(
+        model=model,
+        messages=messages,
+        temperature=temperature,
+        **create_kwargs,
+    )
+    completion_obj = completion.to_dict()
+    if cost_tracker is None:
+        cost_tracker = _LLM_COST_Tracker
+    # Calculate the cost of the completion.
+    hdbg.dassert_isinstance(cost_tracker, OpenAIChatCostTracker)
+    cost = cost_tracker.calculate_cost(completion, model)
+    cost_tracker.accumulate_cost(cost)
+    # Store the cost in the completion object.
+    completion_obj["cost"] = cost
+    return completion_obj
 
 
 # #############################################################################
@@ -471,9 +472,9 @@ def get_completion(
     # Report the time taken.
     msg, _ = htimer.dtimer_stop(memento)
     print(msg)
-    response = completion["choices"][0]["message"]["content"]
     if print_cost:
-        print(f"cost=${completion['cost']:.2f}")
+        print(f"cost=${completion['cost']:.4f}")
+    response = completion["choices"][0]["message"]["content"]
     return response
 
 
