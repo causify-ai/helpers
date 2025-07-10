@@ -242,7 +242,7 @@ def _build_messages(system_prompt: str, user_prompt: str) -> List[Dict[str, str]
 
 
 # #############################################################################
-# OpenAIChatCostTracker
+# LLMCostTracker
 # #############################################################################
 
 
@@ -382,7 +382,7 @@ def _call_api_sync(
     if cost_tracker is None:
         cost_tracker = _LLM_COST_Tracker
     # Calculate the cost of the completion.
-    hdbg.dassert_isinstance(cost_tracker, OpenAIChatCostTracker)
+    hdbg.dassert_isinstance(cost_tracker, LLMCostTracker)
     cost = cost_tracker.calculate_cost(completion, model)
     cost_tracker.accumulate_cost(cost)
     # Store the cost in the completion object.
