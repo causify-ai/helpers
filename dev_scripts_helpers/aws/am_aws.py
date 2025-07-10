@@ -61,9 +61,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
         status = _gest_inst_status()
         _LOG.info("Current instance status: %s", status)
         if status == "stopped":
-            cmd = "aws ec2 start-instances --instance-ids %s" % inst_id
+            cmd = f"aws ec2 start-instances --instance-ids {inst_id}"
             hsystem.system(cmd)
-            cmd = "aws ec2 wait instance-running --instance-ids %s" % inst_id
+            cmd = f"aws ec2 wait instance-running --instance-ids {inst_id}"
             hsystem.system(cmd)
         else:
             _LOG.warning("Nothing to do")
@@ -74,9 +74,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
         status = _gest_inst_status()
         _LOG.info("Current instance status: %s", status)
         if status == "running":
-            cmd = "aws ec2 stop-instances --instance-ids %s" % inst_id
+            cmd = f"aws ec2 stop-instances --instance-ids {inst_id}"
             hsystem.system(cmd)
-            cmd = "aws ec2 wait instance-stopped --instance-ids %s" % inst_id
+            cmd = f"aws ec2 wait instance-stopped --instance-ids {inst_id}"
             hsystem.system(cmd)
         else:
             _LOG.warning("Nothing to do")

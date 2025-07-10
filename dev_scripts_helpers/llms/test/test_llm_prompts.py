@@ -57,6 +57,7 @@ class Test_prompt_tags1(hunitest.TestCase):
     def test1(self) -> None:
         prompt_tags = dshlllpr.get_prompt_tags()
         _LOG.debug(hprint.to_str("prompt_tags"))
+        _LOG.debug(dshlllpr.prompt_tags_to_str(prompt_tags))
         #
         self.assertGreater(len(prompt_tags), 0)
 

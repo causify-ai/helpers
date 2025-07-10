@@ -1,19 +1,9 @@
 #!/usr/bin/env python
 
 """
-Lint "notes" files.
-
-> lint_notes.py -i foo.md -o bar.md \
-    --use_dockerized_prettier \
-    --use_dockerized_markdown_toc
-
-It can be used in vim to prettify a part of the text using stdin / stdout.
-```
-:%!lint_notes.py
-```
+See instructions at docs/tools/documentation_toolchain/all.notes_toolchain.how_to_guide.md
 """
 
-# TODO(gp): -> lint_md.py
 
 import argparse
 import logging
@@ -37,31 +27,39 @@ _LOG = logging.getLogger(__name__)
 
 def _preprocess(txt: str) -> str:
     """
-    Preprocess the given text by removing specific artifacts.
+    Preprocess the given text before applying `prettier`.
+
+    E.g.,
+    - removes specific artifacts
+    - formats math equations
+    - formats bullet points
+    - formats frames
 
     :param txt: The text to be processed.
     :return: The preprocessed text.
     """
     _LOG.debug("txt=%s", txt)
-    # Remove some artifacts when copying from gdoc.
+    # 1) Remove some artifacts when copying from Google Docs.
+    # TODO(gp): Extract this into remove_google_docs_artifacts() since it is
+    # used in other places.
     txt = re.sub(r"’", "'", txt)
     txt = re.sub(r"“", '"', txt)
     txt = re.sub(r"”", '"', txt)
     txt = re.sub(r"…", "...", txt)
     txt_new: List[str] = []
     for line in txt.split("\n"):
-        # Skip frames.
+        # 2) Skip frames for all the type formats.
         if re.match(r"#+ [#\/\-\=]{6,}$", line):
             continue
+        # 3) Transforms * and ** bullets to - STAR and - SSTAR (temporary markers).
         line = re.sub(r"^\s*\*\s+", "- STAR", line)
         line = re.sub(r"^\s*\*\*\s+", "- SSTAR", line)
-        # Transform:
-        # $$E_{in} = \frac{1}{N} \sum_i e(h(\vx_i), y_i)$$
-        #
-        # $$E_{in}(\vw) = \frac{1}{N} \sum_i \big(
-        # -y_i \log(\Pr(h(\vx) = 1|\vx)) - (1 - y_i) \log(1 - \Pr(h(\vx)=1|\vx))
-        # \big)$$
-        #
+        # 4) Format math equations.
+        #   $$E_{in} = \frac{1}{N} \sum_i e(h(\vx_i), y_i)$$
+        # into:
+        #   $$E_{in}(\vw) = \frac{1}{N} \sum_i \big(
+        #   -y_i \log(\Pr(h(\vx) = 1|\vx)) - (1 - y_i) \log(1 - \Pr(h(\vx)=1|\vx))
+        #   \big)$$
         # $$
         if re.search(r"^\s*\$\$\s*$", line):
             txt_new.append(line)
@@ -86,120 +84,15 @@ def _preprocess(txt: str) -> str:
             continue
         txt_new.append(line)
     txt_new_as_str = "\n".join(txt_new)
-    # Replace multiple empty lines with one, to avoid prettier to start using
-    # `*` instead of `-`.
+    # 5) Replace multiple empty lines with one, to avoid `prettier` to start
+    #    using `*` instead of `-`.
     txt_new_as_str = re.sub(r"\n\s*\n", "\n\n", txt_new_as_str)
     #
     _LOG.debug("txt_new_as_str=%s", txt_new_as_str)
     return txt_new_as_str
 
 
-# TODO(gp): Move this somewhere else.
-# TODO(gp): Remove the code path using non dockerized executable, after fix for
-# CmampTask10710.
-def prettier(
-    in_file_path: str,
-    out_file_path: str,
-    file_type: str,
-    *,
-    print_width: int = 80,
-    use_dockerized_prettier: bool = True,
-    # TODO(gp): Remove this.
-    **kwargs: Any,
-) -> None:
-    """
-    Format the given text using Prettier.
-
-    :param in_file_path: The path to the input file.
-    :param out_file_path: The path to the output file.
-    :param file_type: The type of file to be formatted, e.g., `md` or `tex`.
-    :param print_width: The maximum line width for the formatted text.
-        If None, the default width is used.
-    :param use_dockerized_prettier: Whether to use a Dockerized version
-        of Prettier.
-    :return: The formatted text.
-    """
-    _LOG.debug(hprint.func_signature_to_str())
-    hdbg.dassert_in(file_type, ["md", "tex", "txt"])
-    # Build command options.
-    cmd_opts: List[str] = []
-    tab_width = 2
-    if file_type == "tex":
-        # cmd_opts.append("--plugin=prettier-plugin-latex")
-        cmd_opts.append("--plugin=@unified-latex/unified-latex-prettier")
-    elif file_type in ("md", "txt"):
-        cmd_opts.append("--parser markdown")
-    else:
-        raise ValueError(f"Invalid file type: {file_type}")
-    hdbg.dassert_lte(1, print_width)
-    cmd_opts.extend(
-        [
-            f"--print-width {print_width}",
-            "--prose-wrap always",
-            f"--tab-width {tab_width}",
-            "--use-tabs false",
-        ]
-    )
-    # Run prettier.
-    if use_dockerized_prettier:
-        # Run `prettier` in a Docker container.
-        force_rebuild = False
-        use_sudo = hdocker.get_use_sudo()
-        hdocker.run_dockerized_prettier(
-            in_file_path,
-            cmd_opts,
-            out_file_path,
-            file_type=file_type,
-            force_rebuild=force_rebuild,
-            use_sudo=use_sudo,
-        )
-    else:
-        # Run `prettier` installed on the host directly.
-        executable = "prettier"
-        # executable = "NODE_PATH=/usr/local/lib/node_modules /usr/local/bin/prettier"
-        cmd = [executable] + cmd_opts
-        if in_file_path == out_file_path:
-            cmd.append("--write")
-        cmd.append(in_file_path)
-        if in_file_path != out_file_path:
-            cmd.append("> " + out_file_path)
-        #
-        cmd_as_str = " ".join(cmd)
-        _, output_tmp = hsystem.system_to_string(cmd_as_str, abort_on_error=True)
-        _LOG.debug("output_tmp=%s", output_tmp)
-
-
-# TODO(gp): Convert this into a decorator to adapt operations that work on
-#  files to passing strings.
-# TODO(gp): Move this to `hmarkdown.py`.
-def prettier_on_str(
-    txt: str,
-    file_type: str,
-    *args: Any,
-    **kwargs: Any,
-) -> str:
-    """
-    Wrap `prettier()` to work on strings.
-    """
-    _LOG.debug("txt=\n%s", txt)
-    # Save string as input.
-    # TODO(gp): Use a context manager.
-    curr_dir = os.getcwd()
-    tmp_file_name = tempfile.NamedTemporaryFile(
-        prefix="tmp.prettier_on_str.", dir=curr_dir
-    ).name
-    hdbg.dassert_in(file_type, ["md", "tex", "txt"])
-    tmp_file_name += "." + file_type
-    hio.to_file(tmp_file_name, txt)
-    # Call `prettier` in-place.
-    prettier(tmp_file_name, tmp_file_name, file_type, *args, **kwargs)
-    # Read result into a string.
-    txt = hio.from_file(tmp_file_name)
-    _LOG.debug("After prettier txt=\n%s", txt)
-    os.remove(tmp_file_name)
-    return txt  # type: ignore
-
-
+# TODO(gp): Rename to `postprocess_after_prettier`.
 def _postprocess(txt: str, in_file_name: str) -> str:
     """
     Post-process the given text by applying various transformations.
@@ -281,6 +174,7 @@ def _frame_chapters(txt: str, *, max_lev: int = 4) -> str:
     return txt_new_as_str
 
 
+# TODO(gp): Should go in `hmarkdown.py`.
 def _refresh_toc(
     txt: str,
     *,
@@ -340,6 +234,56 @@ def _refresh_toc(
     return txt  # type: ignore
 
 
+def _improve_header_and_slide_titles(txt: str) -> str:
+    """
+    Improve the header and slide titles.
+
+    - Headers start with one or more `#`s.
+    - Slide titles start with one `*`
+    - The title is transformed to title case as below:
+        - ML theory -> ML Theory
+        - A map of machine learning -> A Map of Machine Learning
+    """
+    txt_new: List[str] = []
+    for i, line in enumerate(txt.split("\n")):
+        # Parse header (starting with `#`) and slide title (starting with `*`).
+        m = re.match(r"^(\#+|\*) (.*)$", line)
+        if m:
+            # Parse the title.
+            title = m.group(2)
+            # Transform to title case, leaving words that are all capitalized
+            # and conjunctions as is.
+            non_cap_words = {'a', 'an', 'and', 'as', 'at', 'but', 'by', 'for',
+                'in', 'of', 'on', 'or', 'the', 'to', 'vs', 'with'}
+            # Split into words
+            words = title.split()
+            # Process each word.
+            for i, word in enumerate(words):
+                if i == 0 and not word.isupper():
+                    # Capitalize the first word.
+                    words[i] = word.title()
+                elif word.isupper():
+                    # Skip words that are all caps (e.g. ML, API).
+                    continue
+                elif word.lower() in non_cap_words:
+                    # Don't capitalize conjunctions and other minor words.
+                    words[i] = word.lower()
+                else:
+                    # Capitalize other words.
+                    words[i] = word.title()
+                    
+            title = ' '.join(words)
+            # Reconstruct the line.
+            line = m.group(1) + " " + title
+            txt_new.append(line)
+        else:
+            txt_new.append(line)
+    txt_new_as_str = "\n".join(txt_new)
+    return txt_new_as_str
+
+
+# #############################################################################
+# Perform all actions.
 # #############################################################################
 
 
@@ -350,6 +294,7 @@ def _to_execute_action(action: str, actions: Optional[List[str]] = None) -> bool
     return to_execute
 
 
+# TODO(gp): -> _perform_actions()
 def _process(
     txt: str,
     in_file_name: str,
@@ -368,6 +313,7 @@ def _process(
         actions.
     :return: The processed text.
     """
+    # Get the file type.
     is_md_file = in_file_name.endswith(".md")
     extension = os.path.splitext(in_file_name)[1]
     # Remove the . from the extenstion (e.g., ".txt").
@@ -380,7 +326,7 @@ def _process(
     # Prettify.
     action = "prettier"
     if _to_execute_action(action, actions):
-        txt = prettier_on_str(txt, file_type=extension, **kwargs)
+        txt = hdocker.prettier_on_str(txt, file_type=extension, **kwargs)
     # Post-process text.
     action = "postprocess"
     if _to_execute_action(action, actions):
@@ -388,8 +334,14 @@ def _process(
     # Frame chapters.
     action = "frame_chapters"
     if _to_execute_action(action, actions):
+        # For markdown files, we don't use the frame since it's not rendered
+        # correctly.
         if not is_md_file:
             txt = _frame_chapters(txt)
+    # Improve header and slide titles.
+    action = "improve_header_and_slide_titles"
+    if _to_execute_action(action, actions):
+        txt = _improve_header_and_slide_titles(txt)
     # Refresh table of content.
     action = "refresh_toc"
     if _to_execute_action(action, actions):
@@ -401,10 +353,17 @@ def _process(
 # #############################################################################
 
 _VALID_ACTIONS = [
+    # _preprocess(): preprocess the given text before applying `prettier`.
     "preprocess",
+    # _prettier(): prettify the given text with `prettier` for both latex and
+    # markdown.
     "prettier",
+    # _postprocess(): post-process the given text.
     "postprocess",
+    # _frame_chapters(): frame the chapters.
     "frame_chapters",
+    "improve_header_and_slide_titles",
+    # _refresh_toc(): refresh the table of contents.
     "refresh_toc",
 ]
 
@@ -423,6 +382,7 @@ def _parser() -> argparse.ArgumentParser:
         action="store",
         type=str,
         default="",
+        help="The type of the input file, e.g., `md`, `tex`, `txt`",
     )
     parser.add_argument(
         "-w",
@@ -430,6 +390,7 @@ def _parser() -> argparse.ArgumentParser:
         action="store",
         type=int,
         default=80,
+        help="The maximum line width for the formatted text. If None, 80 is used"
     )
     parser.add_argument(
         "--use_dockerized_prettier",

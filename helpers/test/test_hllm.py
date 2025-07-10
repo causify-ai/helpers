@@ -46,31 +46,10 @@ def _get_completion_parameters1() -> Dict[str, Any]:
     return data
 
 
-def _get_openai_request_parameters1() -> Dict[str, Any]:
-    messages = hllm._build_messages(
-        user_prompt=_USER_PROMPT1, system_prompt=_SYSTEM_PROMPT1
-    )
-    data = {"messages": messages, "temperature": _TEMPERATURE1, "model": _MODEL1}
-    return data
-
-
 def _get_completion_parameters2() -> Dict[str, Any]:
     data = {
         "user_prompt": _USER_PROMPT2,
         "system_prompt": _SYSTEM_PROMPT2,
-        "temperature": _TEMPERATURE2,
-        "model": _MODEL2,
-        "top_p": _TOP_P1,
-    }
-    return data
-
-
-def _get_openai_request_parameters2() -> Dict[str, Any]:
-    messages = hllm._build_messages(
-        user_prompt=_USER_PROMPT2, system_prompt=_SYSTEM_PROMPT2
-    )
-    data = {
-        "messages": messages,
         "temperature": _TEMPERATURE2,
         "model": _MODEL2,
         "top_p": _TOP_P1,
@@ -89,32 +68,12 @@ def _get_completion_parameters3() -> Dict[str, Any]:
     return data
 
 
-def _get_openai_request_parameters3() -> Dict[str, Any]:
-    messages = hllm._build_messages(
-        user_prompt=_USER_PROMPT2, system_prompt=_SYSTEM_PROMPT2
-    )
-    data = {
-        "messages": messages,
-        "temperature": _TEMPERATURE2,
-        "model": _MODEL3,
-        "top_p": _TOP_P1,
-    }
-    return data
-
-
 # #############################################################################
 # Test_get_completion
 # #############################################################################
 
 
 class Test_get_completion(hunitest.TestCase):
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """
-        Initialize the cache instance.
-        """
-        super().__init__(*args, **kwargs)
-        self.llm_cache = hllm._CompletionCache(cache_file=_TEST_CACHE_FILE)
 
     def test1(self) -> None:
         """
@@ -125,13 +84,8 @@ class Test_get_completion(hunitest.TestCase):
         actual_response = hllm.get_completion(
             **parameters1, cache_mode="HIT_CACHE_OR_ABORT"
         )
-        openai_request_parameters1 = _get_openai_request_parameters1()
-        hash_key1 = self.llm_cache.hash_key_generator(
-            **openai_request_parameters1
-        )
-        expected_response = self.llm_cache.load_response_from_cache(hash_key1)
-        self.assert_equal(actual_response, expected_response)
         self.assertIsInstance(actual_response, str)
+        self.check_string(actual_response)
 
     def test2(self) -> None:
         """
@@ -141,15 +95,8 @@ class Test_get_completion(hunitest.TestCase):
         actual_response = hllm.get_completion(
             **parameters2, cache_mode="HIT_CACHE_OR_ABORT"
         )
-        openai_request_parameters2 = _get_openai_request_parameters2()
-        hash_key2 = self.llm_cache.hash_key_generator(
-            **openai_request_parameters2
-        )
-        expected_response = self.llm_cache.load_response_from_cache(
-            hash_key=hash_key2
-        )
-        self.assert_equal(actual_response, expected_response)
         self.assertIsInstance(actual_response, str)
+        self.check_string(actual_response)
 
     def test3(self) -> None:
         """
@@ -159,15 +106,8 @@ class Test_get_completion(hunitest.TestCase):
         actual_response = hllm.get_completion(
             **parameters3, cache_mode="HIT_CACHE_OR_ABORT"
         )
-        openai_request_parameters3 = _get_openai_request_parameters3()
-        hash_key3 = self.llm_cache.hash_key_generator(
-            **openai_request_parameters3
-        )
-        expected_response = self.llm_cache.load_response_from_cache(
-            hash_key=hash_key3
-        )
-        self.assert_equal(actual_response, expected_response)
         self.assertIsInstance(actual_response, str)
+        self.check_string(actual_response)
 
 
 # #############################################################################

@@ -102,7 +102,7 @@ def _annotate_output(output: List, executable: str) -> List:
     :return: list of strings
     """
     _dassert_list_of_strings(output)
-    output = [t + " [%s]" % executable for t in output]
+    output = [t + f" [{executable}]" for t in output]
     _dassert_list_of_strings(output)
     return output
 
@@ -132,7 +132,7 @@ def _check_exec(tool: str) -> bool:
     """
     :return: True if the executables "tool" can be executed.
     """
-    rc = _system("which %s" % tool, abort_on_error=False)
+    rc = _system(f"which {tool}", abort_on_error=False)
     return rc == 0
 
 
@@ -204,7 +204,7 @@ def _get_files(args: argparse.Namespace) -> List[str]:
             dir_name = os.path.abspath(dir_name)
             _LOG.info("Looking for all files in '%s'", dir_name)
             hdbg.dassert_path_exists(dir_name)
-            cmd = "find %s -name '*' -type f" % dir_name
+            cmd = f"find {dir_name} -name '*' -type f"
             _, output = hsystem.system_to_string(cmd)
             file_names = output.split("\n")
     # Remove text files used in unit tests.
@@ -366,11 +366,7 @@ class _CheckFileProperty(_Action):
         max_size_in_bytes = 512 * 1024
         size_in_bytes = os.path.getsize(file_name)
         if size_in_bytes > max_size_in_bytes:
-            msg = "%s:1: file size is too large %s > %s" % (
-                file_name,
-                size_in_bytes,
-                max_size_in_bytes,
-            )
+            msg = f"{file_name}:1: file size is too large {size_in_bytes} > {max_size_in_bytes}"
         return msg
 
     @staticmethod
@@ -437,10 +433,7 @@ class _BasicHygiene(_Action):
         txt_new: List[str] = []
         for line in txt:
             if "\t" in line:
-                msg = (
-                    "Found tabs in %s: please use 4 spaces as per PEP8"
-                    % file_name
-                )
+                msg = f"Found tabs in {file_name}: please use 4 spaces as per PEP8"
                 _LOG.warning(msg)
                 output.append(msg)
             # Convert tabs.
@@ -511,7 +504,7 @@ class _Autoflake(_Action):
             return []
         #
         opts = "-i --remove-all-unused-imports --remove-unused-variables"
-        cmd = self._executable + " %s %s" % (opts, file_name)
+        cmd = self._executable + f" {opts} {file_name}"
         _, output = _tee(cmd, self._executable, abort_on_error=False)
         return output
 
@@ -539,7 +532,7 @@ class _Yapf(_Action):
             return []
         #
         opts = "-i --style='google'"
-        cmd = self._executable + " %s %s" % (opts, file_name)
+        cmd = self._executable + f" {opts} {file_name}"
         _, output = _tee(cmd, self._executable, abort_on_error=False)
         return output
 
@@ -567,7 +560,7 @@ class _Black(_Action):
             return []
         #
         opts = "--line-length 82"
-        cmd = self._executable + " %s %s" % (opts, file_name)
+        cmd = self._executable + f" {opts} {file_name}"
         _, output = _tee(cmd, self._executable, abort_on_error=False)
         # Remove the lines:
         # - reformatted core/test/test_core.py
@@ -601,7 +594,7 @@ class _Isort(_Action):
             _LOG.debug("Skipping file_name='%s'", file_name)
             return []
         #
-        cmd = self._executable + " %s" % file_name
+        cmd = self._executable + f" {file_name}"
         _, output = _tee(cmd, self._executable, abort_on_error=False)
         return output
 
@@ -668,7 +661,7 @@ class _Flake8(_Action):
                 ]
             )
         opts += " --ignore=" + ",".join(ignore)
-        cmd = self._executable + " %s %s" % (opts, file_name)
+        cmd = self._executable + f" {opts} {file_name}"
         #
         _, output = _tee(cmd, self._executable, abort_on_error=True)
         # Remove some errors.
@@ -810,7 +803,7 @@ class _Pyment(_Action):
             _LOG.debug("Skipping file_name='%s'", file_name)
             return []
         opts = "-w --first-line False -o reST"
-        cmd = self._executable + " %s %s" % (opts, file_name)
+        cmd = self._executable + f" {opts} {file_name}"
         _, output = _tee(cmd, self._executable, abort_on_error=False)
         return output
 
@@ -1000,7 +993,7 @@ class _Mypy(_Action):
             _LOG.debug("Skipping file_name='%s'", file_name)
             return []
         # TODO(gp): Convert all these idioms into arrays and joins.
-        cmd = self._executable + " %s" % file_name
+        cmd = self._executable + f" {file_name}"
         _, output = _tee(
             cmd,
             self._executable,
@@ -1031,7 +1024,7 @@ class _Mypy(_Action):
 class _IpynbFormat(_Action):
     def __init__(self) -> None:
         curr_path = os.path.dirname(os.path.realpath(sys.argv[0]))
-        executable = "%s/ipynb_format.py" % curr_path
+        executable = f"{curr_path}/ipynb_format.py"
         super().__init__(executable)
 
     def check_if_possible(self) -> bool:
@@ -1044,7 +1037,7 @@ class _IpynbFormat(_Action):
             _LOG.debug("Skipping file_name='%s'", file_name)
             return output
         #
-        cmd = self._executable + " %s" % file_name
+        cmd = self._executable + f" {file_name}"
         _system(cmd)
         return output
 
@@ -1146,11 +1139,11 @@ class _ProcessJupytext(_Action):
         output: List[str] = []
         # TODO(gp): Use the usual idiom of these functions.
         if is_py_file(file_name) and is_paired_jupytext_file(file_name):
-            cmd_opts = "-f %s --action %s" % (file_name, self._jupytext_action)
+            cmd_opts = f"-f {file_name} --action {self._jupytext_action}"
             cmd = self._executable + " " + cmd_opts
             rc, output = _tee(cmd, self._executable, abort_on_error=False)
             if rc != 0:
-                error = "process_jupytext failed with command `%s`\n" % cmd
+                error = f"process_jupytext failed with command `{cmd}`\n"
                 output.append(error)
                 _LOG.error(output)
         else:
@@ -1190,10 +1183,7 @@ class _CustomPythonChecks(_Action):
         if (is_executable and not has_shebang) or (
             not is_executable and has_shebang
         ):
-            msg = "%s:1: any executable needs to start with a shebang '%s'" % (
-                file_name,
-                shebang,
-            )
+            msg = f"{file_name}:1: any executable needs to start with a shebang '{shebang}'"
         return msg
 
     @staticmethod
@@ -1208,11 +1198,7 @@ class _CustomPythonChecks(_Action):
         m = re.match(r"\s*from\s+(\S+)\s+import\s+.*", line)
         if m:
             if m.group(1) != "typing":
-                msg = "%s:%s: do not use '%s' use 'import foo.bar as fba'" % (
-                    file_name,
-                    line_num,
-                    line.rstrip().lstrip(),
-                )
+                msg = f"{file_name}:{line_num}: do not use '{line.rstrip().lstrip()}' use 'import foo.bar as fba'"
         else:
             m = re.match(r"\s*import\s+\S+\s+as\s+(\S+)", line)
             if m:
@@ -1253,8 +1239,7 @@ class _CustomPythonChecks(_Action):
             match = False
         if not match:
             msg.append(
-                "%s:1: every library needs to describe how to be imported:"
-                % file_name
+                f"{file_name}:1: every library needs to describe how to be imported:"
             )
             msg.append('"""')
             msg.append("Import as:")
@@ -1303,7 +1288,7 @@ class _CustomPythonChecks(_Action):
             if any(
                 line.startswith(c) for c in ["<<<<<<<", "=======", ">>>>>>>"]
             ):
-                msg = "%s:%s: there are conflict markers" % (file_name, i + 1)
+                msg = f"{file_name}:{i + 1}: there are conflict markers"
                 output.append(msg)
             # Format separating lines.
             if _CustomPythonChecks.DEBUG:
@@ -1593,7 +1578,7 @@ def _lint(
         if debug:
             # Make a copy after each action.
             dst_file_name = file_name + "." + action
-            cmd = "cp -a %s %s" % (file_name, dst_file_name)
+            cmd = f"cp -a {file_name} {dst_file_name}"
             os.system(cmd)
         else:
             dst_file_name = file_name
@@ -1715,7 +1700,7 @@ def _main(args: argparse.Namespace) -> int:
     num_lints = _count_lints(lints)
     #
     output: List[str] = []
-    output.append("cmd line='%s'" % hdbg.get_command_line())
+    output.append(f"cmd line='{hdbg.get_command_line()}'")
     # TODO(gp): datetime_.get_timestamp().
     # output.insert(1, "datetime='%s'" % datetime.datetime.now())
     output.append("actions=%d %s" % (len(all_actions), all_actions))

@@ -91,6 +91,70 @@ class Test_process_color_commands1(hunitest.TestCase):
 
 
 # #############################################################################
+# Test_colorize_bullet_points1
+# #############################################################################
+
+
+@pytest.mark.skip(reason="Broken for now")
+class Test_colorize_bullet_points1(hunitest.TestCase):
+    def helper(self, txt_in: str, exp: str) -> None:
+        """
+        Test colorize bullet points.
+        """
+        txt_in = hprint.dedent(txt_in)
+        act = dshdprno._colorize_bullet_points(txt_in)
+        exp = hprint.dedent(exp)
+        self.assert_equal(act, exp)
+
+    def test1(self) -> None:
+        """
+        Test colorize bullet points.
+        """
+        txt_in = r"""
+        - **VC Theory**
+            - Measures model
+
+        - **Bias-Variance Decomposition**
+            - Prediction error
+                - **Bias**
+                - **Variance**
+
+        - **Computation Complexity**
+            - Balances model
+            - Related to
+            - E.g., Minimum
+
+        - **Bayesian Approach**
+            - Treats ML as probability
+            - Combines prior knowledge with observed data to update belief about a model
+
+        - **Problem in ML Theory:**
+            - Assumptions may not align with practical problems
+        """
+        exp = r"""
+        - **\red{VC Theory}**
+            - Measures model
+
+        - **\orange{Bias-Variance Decomposition}**
+            - Prediction error
+                - **\yellow{Bias}**
+                - **\lime{Variance}**
+
+        - **\green{Computation Complexity}**
+            - Balances model
+            - Related to
+            - E.g., Minimum
+
+        - **\teal{Bayesian Approach}**
+            - Treats ML as probability
+            - Combines prior knowledge with observed data to update belief about a model
+
+        - **\cyan{Problem in ML Theory:}**
+            - Assumptions may not align with practical problems
+        """
+        self.helper(txt_in, exp)
+
+# #############################################################################
 # Test_preprocess_notes1
 # #############################################################################
 
