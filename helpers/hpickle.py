@@ -13,11 +13,12 @@ import marshal
 import os
 import pickle
 import types
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 
 import helpers.hdbg as hdbg
 import helpers.hintrospection as hintros
 import helpers.hio as hio
+import helpers.hs3 as hs3
 import helpers.htimer as htimer
 
 _LOG = logging.getLogger(__name__)
@@ -77,6 +78,8 @@ def to_pickle(
     file_name: str,
     backend: str = "pickle",
     log_level: int = logging.DEBUG,
+    *,
+    aws_profile: Optional[hs3.AwsProfile] = None,
 ) -> None:
     """
     Pickle object `obj` into file `file_name`.
@@ -94,10 +97,19 @@ def to_pickle(
         if backend in ("pickle", "dill"):
             hdbg.dassert_file_extension(file_name, "pkl")
             if backend == "pickle":
-                with open(file_name, "wb") as fd:
-                    pickler = pickle.Pickler(fd, pickle.HIGHEST_PROTOCOL)
-                    pickler.fast = True
-                    pickler.dump(obj)
+                # Use S3 file system.
+                if hs3.is_s3_path(file_name):
+                    s3fs_ = hs3.get_s3fs(aws_profile)
+                    with s3fs_.open(file_name, "wb") as s3_file:
+                        pickler = pickle.Pickler(s3_file, pickle.HIGHEST_PROTOCOL)
+                        pickler.fast = True
+                        pickler.dump(obj)
+                # Use local file system.
+                else:
+                    with open(file_name, "wb") as fd:
+                        pickler = pickle.Pickler(fd, pickle.HIGHEST_PROTOCOL)
+                        pickler.fast = True
+                        pickler.dump(obj)
             elif backend == "dill":
                 import dill
 
@@ -128,6 +140,8 @@ def from_pickle(
     file_name: str,
     backend: str = "pickle",
     log_level: int = logging.DEBUG,
+    *,
+    aws_profile: Optional[hs3.AwsProfile] = None,
 ) -> Any:
     """
     Unpickle and return object stored in `file_name`.
@@ -141,9 +155,16 @@ def from_pickle(
         if backend in ("pickle", "dill"):
             hdbg.dassert_file_extension(file_name, "pkl")
             if backend == "pickle":
-                with open(file_name, "rb") as fd:
-                    unpickler = pickle.Unpickler(fd)
-                    obj = unpickler.load()
+                if hs3.is_s3_path(file_name):
+                    # Use S3 file system.
+                    s3fs_ = hs3.get_s3fs(aws_profile)
+                    with s3fs_.open(file_name) as s3_file:
+                        unpickler = pickle.Unpickler(s3_file)
+                        obj = unpickler.load()
+                else:
+                    with open(file_name, "rb") as fd:
+                        unpickler = pickle.Unpickler(fd)
+                        obj = unpickler.load()
             elif backend == "dill":
                 import dill
 
