@@ -183,7 +183,10 @@ def from_pickle(
         else:
             raise ValueError(f"Invalid backend='{backend}'")
     # Report time and size.
-    file_size = hintros.format_size(os.path.getsize(file_name))
+    if hs3.is_s3_path(file_name):
+        file_size = hs3.du(file_name, aws_profile=aws_profile, human_format=True)
+    else:
+        file_size = hintros.format_size(os.path.getsize(file_name))
     _LOG.log(
         log_level,
         "Read '%s' (size=%s, time=%.1fs)",
