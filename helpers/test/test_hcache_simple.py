@@ -153,8 +153,7 @@ class BaseCacheTest(hunitest.TestCase):
         ]:
             # Reset both disk and in-memory cache.
             hcacsimp.reset_cache(func_name=func_name, interactive=False)
-        # Reset persistent user cache properties.
-        hcacsimp.reset_cache_property("user")
+        # Reset system cache properties.
         try:
             hcacsimp.reset_cache_property("system")
         except OSError:
