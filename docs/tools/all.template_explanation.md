@@ -1,31 +1,34 @@
-
-# Explanation: <File Name>
-
 <!-- toc -->
 
 - [Introduction / Motivation](#introduction--motivation)
 - [Core Concepts](#core-concepts)
 - [How It Works](#how-it-works)
 - [Design Rationale](#design-rationale)
-- [Trade-offs and Alternatives](#trade-offs-and-alternatives)
+- [Tradeoffs And Alternatives](#tradeoffs-and-alternatives)
+  * [Current Approach](#current-approach)
+  * [Alternative Approach](#alternative-approach)
 
 <!-- tocstop -->
+
 <!--
 LLM Instruction:
-- Use this XML structure to explain the logic, motivation, and trade-offs behind a given file or system.
-- Use <bullet> for lists, <code_block> for code or diagrams, and <comparison> for evaluating alternatives.
-- Replace TODO: with explanatory content.
-- Do not any of the LLM instruction tags in the final output.
-- Do not include any of the TODO comments in the final output.
-
+- Use this XML template to generate structured documentation.
+- Wherever CLI examples are required, insert them inside <code_block language="bash"> ... </code_block>.
+- Do not use <command> or inline code for full command-line blocks.
+- Replace TODO: with actual content based on the script's usage.
+- Remove all LLM instruction tags in the final output.
+- The final output should be a Markdown file.
+- Do not modify any of the heading names or structure or the template.
+- Information entered should be crisp and concise and accurate based on the script.
 -->
 
 <explanation_guide>
+
   <title>Explanation: &lt;FileName&gt;</title>
 
   <section name="IntroductionMotivation">
-  
-  ## Introduction / Motivation
+
+# Introduction / Motivation
 
     <description>
       <bullet>TODO: What is this about?</bullet>
@@ -36,11 +39,12 @@ LLM Instruction:
     <example>
       Traditional file conversion methods focused on quality rather than file size. This method aims to optimize file size while ensuring quality.
     </example>
+
   </section>
 
   <section name="CoreConcepts">
-    
-  ## Core Concepts
+
+## Core Concepts
 
     <concepts>
       <bullet><b>Concept 1:</b> TODO: Brief explanation</bullet>
@@ -49,38 +53,45 @@ LLM Instruction:
     </concepts>
     <!-- Optional diagram or chart -->
     <code_block language="text">
-# Insert diagram or logical model here
+
+  <!--> Insert diagram or logical model here -->
+
     </code_block>
+
   </section>
 
   <section name="HowItWorks">
-  
-  ## How It Works
+
+## How It Works
 
     <steps>
       <bullet>TODO: Step-by-step or component-based explanation</bullet>
       <bullet>TODO: Key data transformations or control flow</bullet>
     </steps>
     <code_block language="text">
-[Component A] → transforms → [Component B] → outputs → [Result]
-    </code_block>
+
+[Component A] → transforms → [Component B] → outputs → [Result] </code_block>
+
   </section>
 
   <section name="DesignRationale">
-  
-  ## Design Rationale
+
+## Design Rationale
 
     <rationale>
       <bullet>TODO: What goals guided its design?</bullet>
       <bullet>TODO: What constraints shaped its form? (e.g., performance, usability)</bullet>
       <bullet>TODO: What would go wrong with an alternate approach?</bullet>
     </rationale>
+
   </section>
 
   <section name="TradeoffsAndAlternatives">
-  
-  ## Tradeoffs And Alternatives
-  
+
+## Tradeoffs And Alternatives
+
+### Current Approach
+
     <comparison>
       <current_approach>
         <title>Current Approach</title>
@@ -94,6 +105,8 @@ LLM Instruction:
         </drawbacks>
       </current_approach>
 
+### Alternative Approach
+
       <alternative_approach>
         <title>Alternative Approach</title>
         <advantages>
@@ -106,5 +119,6 @@ LLM Instruction:
         </drawbacks>
       </alternative_approach>
     </comparison>
+
   </section>
 </explanation_guide>

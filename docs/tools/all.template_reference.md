@@ -1,12 +1,12 @@
 <!-- toc -->
 
 - [What It Does](#what-it-does)
-- [Input And Output](#input-and-output)
-- [Supported File Types](#supported-file-types)
-- [Flag Options](#flag-options)
-- [Examples](#examples)
-- [Errors And Fixes](#errors-and-fixes)
-- [Dependencies](#dependencies)
+  * [Input And Output](#input-and-output)
+  * [Supported File Types](#supported-file-types)
+  * [Flag Options](#flag-options)
+  * [Examples](#examples)
+  * [Errors And Fixes](#errors-and-fixes)
+  * [Dependencies](#dependencies)
 
 <!-- tocstop -->
 
@@ -15,12 +15,17 @@ LLM Instruction:
 - Use this XML template to generate structured documentation.
 - Wherever CLI examples are required, insert them inside <code_block language="bash"> ... </code_block>.
 - Do not use <command> or inline code for full command-line blocks.
-- Replace TODO: with actual content based on the script’s usage.
-- Do not any of the LLM instruction tags in the final output.
-- Do not include any of the TODO comments in the final output.
+- Replace TODO: with actual content based on the script's usage.
+- Remove all LLM instruction tags in the final output.
+- The final output should be a Markdown file.
+- Do not modify any of the heading names or structure or the template.
+- In the <examples> section, provide real or illustrative examples that match the script’s use case.
+- Information entered should be crisp and concise and accurate based on the script.
+- Add appropriate examples based on the script wherever necessary.
 -->
 
-<documentation>
+<reference_guide>
+
   <title>Reference Guide: &lt;FileName&gt;</title>
 
   <description>
@@ -29,7 +34,7 @@ LLM Instruction:
 
   <section name="WhatItDoes">
 
- ## What It Does
+# What It Does
 
     <objective>
       <bullet>TODO: Explain core objective #1</bullet>
@@ -48,8 +53,8 @@ LLM Instruction:
   </section>
 
   <section name="InputAndOutput">
-  
-  ## Input And Output
+
+## Input And Output
 
     <inputs>
       TODO: List accepted input formats (e.g., .md, .tex)
@@ -57,14 +62,14 @@ LLM Instruction:
     <outputs>
       TODO: Describe the output file format and its expected content
     </outputs>
+
   </section>
 
-
-
   <section name="SupportedFileTypes">
-  
-  ## Supported File Types
 
+## Supported File Types
+
+    <sample_behavior>
     <filetype name=".md">TODO: Markdown processing logic</filetype>
     <filetype name=".tex">TODO: LaTeX file processing logic</filetype>
 
@@ -73,19 +78,19 @@ LLM Instruction:
         <code_block language="bash">
 
 render_images.py -i ABC.md -o XYZ.md --action render --run_dockerized
-</code_block> </case> <case description="Render in-place Markdown"> <code_block language="bash"> render_images.py -i ABC.md --action render --run_dockerized
+</code_block> </case> <case description="Render in-place Markdown"> <code_block
+language="bash"> render_images.py -i ABC.md --action render --run_dockerized
 </code_block> </case> <case description="Preview rendered images in browser">
 <code_block language="bash"> render_images.py -i ABC.md --action open
---run_dockerized </code_block> </case> </use_cases>
+--run_dockerized </code_block> </case> </use_cases> </sample_behavior>
 
   </section>
 
-
-
   <section name="FlagOptions">
- 
-  ## Flag Options
 
+## Flag Options
+
+    <sample_behavior>
     <code_block language="bash">
     <flag name="-h, --help">Show help message and exit</flag>
     <flag name="-i, --in_file_name">Input file path</flag>
@@ -98,55 +103,50 @@ render_images.py -i ABC.md -o XYZ.md --action render --run_dockerized
     <flag name="--dockerized_use_sudo">Use sudo inside Docker container</flag>
     <flag name="-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}">Set logging level</flag>
     </code_block>
+    </sample_behavior>
+
   </section>
 
   <section name="Examples">
-  
-  ## Examples
+
+## Examples
 
     <example title="Render to a new Markdown file">
       <code_block language="bash">
-render_images.py -i lesson.md -o lesson.rendered.md --action render --run_dockerized
-      </code_block>
-    </example>
-    <example title="Render in-place">
-      <code_block language="bash">
-render_images.py -i lesson.md --action render --run_dockerized
-      </code_block>
-    </example>
-    <example title="HTML preview of rendered images">
-      <code_block language="bash">
-render_images.py -i lesson.md --action open --run_dockerized
-      </code_block>
-    </example>
-    <example title="Dry-run for testing only">
-      <code_block language="bash">
-render_images.py -i lesson.md -o /tmp/out.md --dry_run
-      </code_block>
-    </example>
+
+render_images.py -i lesson.md -o lesson.rendered.md --action render
+--run_dockerized </code_block> </example> <example title="Render in-place">
+<code_block language="bash"> render_images.py -i lesson.md --action render
+--run_dockerized </code_block> </example>
+<example title="HTML preview of rendered images"> <code_block language="bash">
+render_images.py -i lesson.md --action open --run_dockerized </code_block>
+</example> <example title="Dry-run for testing only"> <code_block
+language="bash"> render_images.py -i lesson.md -o /tmp/out.md --dry_run
+</code_block> </example>
+
   </section>
 
   <section name="ErrorsAndFixes">
 
-  ## Errors And Fixes
+## Errors And Fixes
 
     <error>
       <issue>TODO: Describe a common error</issue>
       <cause>TODO: Likely cause</cause>
       <solution>TODO: Suggested fix or workaround</solution>
     </error>
+
   </section>
 
   <section name="Dependencies">
 
-  ## Dependencies
+## Dependencies
 
   <dependency>
-    <bullet>TODO: Python 3.8+ (or higher)</bullet>
     <bullet>TODO: Docker (for --run_dockerized support)</bullet>
     <bullet>TODO: Graphviz, PlantUML, or other rendering tools depending on code block types</bullet>
     <bullet>TODO: Any other external CLI utilities used in subprocess calls</bullet>
   </dependency>
 </section>
 
-</documentation>
+</reference_guide>
