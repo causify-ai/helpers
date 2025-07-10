@@ -9,6 +9,7 @@ from typing import Any, Callable, Dict, List, Union, cast
 
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
+import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
@@ -461,20 +462,35 @@ def reset_mem_cache(func_name: str = "") -> None:
     del _CACHE[func_name]
 
 
-def reset_disk_cache(func_name: str = "") -> None:
-    assert 0
+def reset_disk_cache(func_name: str = "", interactive: bool = True) -> None:
+    """
+    Reset the disk cache for a given function name.
+
+    If `func_name` is empty, reset all disk cache files.
+    :param func_name: The name of the function whose disk cache is to
+        be reset. If empty, reset all disk cache files.
+    :param interactive: If True, prompt the user for confirmation before
+        resetting the disk cache.
+    """
+    if interactive and not func_name:
+        hsystem.query_yes_no(
+            "Are you sure you want to reset the disk cache? This will delete all cache "
+        )
     if func_name == "":
         cache_files = glob.glob("cache.*")
+        _LOG.warning("Resetting disk cache")
         for file_name in cache_files:
             os.remove(file_name)
         return
     file_name = _get_cache_file_name(func_name)
-    os.remove(file_name)
+    if os.path.exists(file_name):
+        _LOG.warning(f"Removing cache file '{file_name}'")
+        os.remove(file_name)
 
 
-def reset_cache(func_name: str = "") -> None:
+def reset_cache(func_name: str = "", interactive=True) -> None:
     reset_mem_cache(func_name)
-    reset_disk_cache(func_name)
+    reset_disk_cache(func_name, interactive=interactive)
 
 
 # #############################################################################
