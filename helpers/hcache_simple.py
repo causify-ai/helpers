@@ -478,7 +478,7 @@ def reset_disk_cache(func_name: str = "", interactive: bool = True) -> None:
         )
     if func_name == "":
         cache_files = glob.glob("cache.*")
-        _LOG.debug("Resetting disk cache")
+        _LOG.warning("Resetting disk cache")
         for file_name in cache_files:
             os.remove(file_name)
         return
