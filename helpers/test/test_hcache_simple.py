@@ -137,10 +137,8 @@ class BaseCacheTest(hunitest.TestCase):
     def tear_down_test(self) -> None:
         """
         Teardown operations to run after each test:
-            - Reset in-memory caches for all cached functions.
-            - Remove cache files created on disk.
-            - Reset persistent user and system cache properties.
-            - Remove the system cache property file.
+            - Reset cache(in-memory, disk).
+            - Reset system cache properties.
         """
         # Reset caches for all cached functions.
         for func_name in [
