@@ -483,7 +483,6 @@ def reset_disk_cache(func_name: str = "", interactive: bool = True) -> None:
             os.remove(file_name)
         return
     file_name = _get_cache_file_name(func_name)
-    # Check if the cache file exists on disk.
     if os.path.exists(file_name):
         _LOG.warning(f"Removing cache file '{file_name}'")
         os.remove(file_name)
