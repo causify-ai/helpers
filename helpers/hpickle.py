@@ -76,9 +76,9 @@ def to_pickleable(obj: Any, force_values_to_string: bool) -> Any:
 def to_pickle(
     obj: Any,
     file_name: str,
+    *,
     backend: str = "pickle",
     log_level: int = logging.DEBUG,
-    *,
     aws_profile: Optional[hs3.AwsProfile] = None,
 ) -> None:
     """
@@ -142,8 +142,8 @@ def to_pickle(
 def from_pickle(
     file_name: str,
     backend: str = "pickle",
-    log_level: int = logging.DEBUG,
     *,
+    log_level: int = logging.DEBUG,
     aws_profile: Optional[hs3.AwsProfile] = None,
 ) -> Any:
     """
