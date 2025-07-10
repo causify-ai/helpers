@@ -463,13 +463,22 @@ def reset_mem_cache(func_name: str = "") -> None:
 
 
 def reset_disk_cache(func_name: str = "", interactive: bool = True) -> None:
+    """
+    Reset the disk cache for a given function name.
+
+    If `func_name` is empty, reset all disk cache files.
+    :param func_name: The name of the function whose disk cache is to
+        be reset. If empty, reset all disk cache files.
+    :param interactive: If True, prompt the user for confirmation before
+        resetting the disk cache.
+    """
     if interactive and not func_name:
         hsystem.query_yes_no(
             "Are you sure you want to reset the disk cache? This will delete all cache "
         )
-    _LOG.debug("Resetting disk cache")
     if func_name == "":
         cache_files = glob.glob("cache.*")
+        _LOG.debug("Resetting disk cache")
         for file_name in cache_files:
             os.remove(file_name)
         return
