@@ -28,8 +28,8 @@
 
 \title{The Causify Dev System (v0.1)}
 
-%\date{September 9, 1985}	% Here you can change the date presented in the paper title
-%\date{} 					% Or removing it
+%\date{September 9, 1985}   % Here you can change the date presented in the paper title
+%\date{}                    % Or removing it
 
 \author{ The Causify Team
 \thanks{Use footnote for providing further information about author (webpage,
@@ -955,6 +955,39 @@ These automation tools follow several core principles:
 The workflows support both interactive execution and automated pipelines,
 allowing integration into CI/CD systems or local tooling as needed.
 
+\subsection{Declarative Repository Settings Synchronization}
+
+As our GitHub footprint has grown, so has the need to manage repository
+configuration such as metadata fields, merge policies, and branch protection
+rules in a reliable and consistent manner across dozens of projects.
+Manual configuration inevitably leads to drift, accidental misconfiguration,
+and wasted effort during onboarding or project setup. To address this, we
+introduced a \textit{declarative} synchronization system for repository
+settings, inspired by the principles of infrastructure-as-code. Repository
+policies—including key settings (description, default branch, visibility,
+merge strategies, etc.) and fine-grained branch protection rules are defined
+centrally in a YAML manifest. This manifest serves as the single source of
+truth for desired state. A containerized executable (run locally or in CI) can
+then \textbf{export} the current settings of any repository for inspection,
+backup, or review, and can \textbf{apply} (sync) the manifest to one or more
+repositories, ensuring alignment with organizational standards. The system also
+supports a dry-run mode for safe preview of all proposed changes.
+
+This approach delivers several benefits:
+\begin{itemize}
+    \item \textbf{Consistency:} All repositories adhere to the same baseline policies,\\
+    reducing configuration drift and error.
+    \item \textbf{Auditability:} Changes to settings are reviewed and version-controlled\\
+    like code, supporting transparent change management.
+    \item \textbf{Scalability:} New projects can be onboarded with a single command,\\
+    inheriting standardized policies from day one.
+    \item \textbf{Recoverability:} Before each sync, the system backs up the existing configuration,\\
+    enabling rollbacks if needed.
+    \item \textbf{Confidence:} Dry-run and logging capabilities provide full visibility into\\
+    what changes would be made, supporting both local experimentation and safe automation in CI/CD pipelines.
+\end{itemize}
+
+
 \subsection{Summary}
 
 Our GitHub automation system codifies repository metadata into a version-controlled,
@@ -999,7 +1032,7 @@ across all teams.
 
   \bibliographystyle{unsrtnat}
   %%% Uncomment this line and comment out the ``thebibliography'' section below to use the external .bib file (using bibtex) .
-  \bibliography{references} 
+  \bibliography{references}
 
 %- [1]
 %  [Mono vs. multi-repo](https://free.gitkraken.com/hubfs/Mono_v_Multi-Repo_debate_2023.pdf)
@@ -1016,24 +1049,24 @@ across all teams.
   %%% Uncomment this section and comment out the \bibliography{references} line above to use inline references.
   % \begin{thebibliography}{1}
 
-  % 	\bibitem{kour2014real}
-  % 	George Kour and Raid Saabne.
-  % 	\newblock Real-time segmentation of on-line handwritten arabic script.
-  % 	\newblock In {\em Frontiers in Handwriting Recognition (ICFHR), 2014 14th
-  % 			International Conference on}, pages 417--422. IEEE, 2014.
+  %     \bibitem{kour2014real}
+  %     George Kour and Raid Saabne.
+  %     \newblock Real-time segmentation of on-line handwritten arabic script.
+  %     \newblock In {\em Frontiers in Handwriting Recognition (ICFHR), 2014 14th
+  %             International Conference on}, pages 417--422. IEEE, 2014.
 
-  % 	\bibitem{kour2014fast}
-  % 	George Kour and Raid Saabne.
-  % 	\newblock Fast classification of handwritten on-line arabic characters.
-  % 	\newblock In {\em Soft Computing and Pattern Recognition (SoCPaR), 2014 6th
-  % 			International Conference of}, pages 312--318. IEEE, 2014.
+  %     \bibitem{kour2014fast}
+  %     George Kour and Raid Saabne.
+  %     \newblock Fast classification of handwritten on-line arabic characters.
+  %     \newblock In {\em Soft Computing and Pattern Recognition (SoCPaR), 2014 6th
+  %             International Conference of}, pages 312--318. IEEE, 2014.
 
-  % 	\bibitem{hadash2018estimate}
-  % 	Guy Hadash, Einat Kermany, Boaz Carmeli, Ofer Lavi, George Kour, and Alon
-  % 	Jacovi.
-  % 	\newblock Estimate and replace: A novel approach to integrating deep neural
-  % 	networks with existing applications.
-  % 	\newblock {\em arXiv preprint arXiv:1804.09028}, 2018.
+  %     \bibitem{hadash2018estimate}
+  %     Guy Hadash, Einat Kermany, Boaz Carmeli, Ofer Lavi, George Kour, and Alon
+  %     Jacovi.
+  %     \newblock Estimate and replace: A novel approach to integrating deep neural
+  %     networks with existing applications.
+  %     \newblock {\em arXiv preprint arXiv:1804.09028}, 2018.
 
   % \end{thebibliography}
 \end{document}
