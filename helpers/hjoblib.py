@@ -407,6 +407,23 @@ def get_num_executing_threads(args_num_threads: Union[str, int]) -> int:
     return num_executing_threads
 
 
+def _run_in_process(func: Callable, q: Queue, *args: Any, **kwargs: Any) -> None:
+    """
+    Run function as a process and store output in the input Queue.
+    """
+    _LOG.debug("pid after processify=", os.getpid())
+    try:
+        ret = func(*args, **kwargs)
+    except Exception:
+        # Store error logs in the queue.
+        ex_type, ex_value, tb = sys.exc_info()
+        error = ex_type, ex_value, "".join(traceback.format_tb(tb))
+        ret = None
+    else:
+        error = None
+    q.put((ret, error))
+
+
 # TODO(grisha): Add type hints, add unit test to understand the behavior.
 # From https://gist.github.com/schlamar/2311116
 # Note that this is not going to work with joblib.parallel with
@@ -420,31 +437,12 @@ def processify(func):
     created process is joined, so the code does not run in parallel.
     """
 
-    def process_func(q: Queue, *args: Any, **kwargs: Any) -> None:
-        """
-        Run function as a process and store output in the input Queue.
-        """
-        _LOG.debug("pid after processify=", os.getpid())
-        try:
-            ret = func(*args, **kwargs)
-        except Exception:
-            # Store error logs in the queue.
-            ex_type, ex_value, tb = sys.exc_info()
-            error = ex_type, ex_value, "".join(traceback.format_tb(tb))
-            ret = None
-        else:
-            error = None
-        q.put((ret, error))
-
-    # Register original function with different name in `sys.modules` so it is
-    # pickable.
-    process_func.__name__ = func.__name__ + "processify_func"
-    setattr(sys.modules[__name__], process_func.__name__, process_func)
-
     @wraps(func)
     def wrapper(*args, **kwargs):
         q = Queue()
-        p = Process(target=process_func, args=[q] + list(args), kwargs=kwargs)
+        p = Process(
+            target=_run_in_process, args=[func] + [q] + list(args), kwargs=kwargs
+        )
         p.start()
         ret, error = q.get()
         p.join()
@@ -567,9 +565,7 @@ def _parallel_execute_decorator(
         if abort_on_error:
             _LOG.error("Aborting since abort_on_error=%s", abort_on_error)
             raise exception  # noqa: F821
-        _LOG.error(
-            "Continuing execution since abort_on_error=%s", abort_on_error
-        )
+        _LOG.error("Continuing execution since abort_on_error=%s", abort_on_error)
         res = str(exception)
     else:
         # The execution was successful.
