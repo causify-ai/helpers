@@ -126,8 +126,13 @@ class LLMClient:
         :param provider_name: name of the LLM provider, e.g., "openai" or
             "openrouter". If not provided, defaults to "openai".
         """
-        self.provider_name = provider_name
         hdbg.dassert_in(self.provider_name, ("openai", "openrouter"))
+        # Change the provider name to "openai" if model starts with
+        # "openai/".
+        if provider_name == "openrouter" and model.startswith("openai/"):
+            model = model[len("openai/") :]
+            provider_name = "openai"
+        self.provider_name = provider_name
         self.model = model or self._get_default_model()
 
     def create_client(self) -> openai.OpenAI:
