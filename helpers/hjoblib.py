@@ -436,10 +436,6 @@ def processify(func):
     Be sure that every argument and the return value is *pickable*. The
     created process is joined, so the code does not run in parallel.
     """
-    # Register original function with different name in `sys.modules` so it is
-    # pickable.
-    _run_in_process.__name__ = func.__name__ + "processify_func"
-    setattr(sys.modules[__name__], _run_in_process.__name__, _run_in_process)
 
     @wraps(func)
     def wrapper(*args, **kwargs):
