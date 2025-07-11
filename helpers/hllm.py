@@ -367,7 +367,7 @@ def _call_api_sync(
         make it more deterministic, while higher values foster creative
         variation. 0 < temperature <= 2, 0.1 is default value in OpenAI
         models.
-    :param cost_tracker: OpenAIChatCostTracker instance to track costs
+    :param cost_tracker: LLMCostTracker instance to track costs
     :param create_kwargs: additional parameters for the API call
     :return: OpenAI chat completion object as a dictionary
     """
