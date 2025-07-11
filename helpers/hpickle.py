@@ -107,10 +107,10 @@ def to_pickle(
                 else:
                     file_object = open(file_name, "wb")
                 # Pickle the object and dump to location.
-                pickler = pickle.Pickler(file_object, pickle.HIGHEST_PROTOCOL)
-                pickler.fast = True
-                pickler.dump(obj)
-                file_object.close()
+                with file_object as f:
+                    pickler = pickle.Pickler(f, pickle.HIGHEST_PROTOCOL)
+                    pickler.fast = True
+                    pickler.dump(obj)
             elif backend == "dill":
                 import dill
 
@@ -165,9 +165,9 @@ def from_pickle(
                 else:
                     file_object = open(file_name, "rb")
                 # Unpickle the object from the file.
-                unpickler = pickle.Unpickler(file_object)
-                obj = unpickler.load()
-                file_object.close()
+                with file_object as f:
+                    unpickler = pickle.Unpickler(f)
+                    obj = unpickler.load()
             elif backend == "dill":
                 import dill
 
