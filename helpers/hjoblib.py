@@ -407,7 +407,7 @@ def get_num_executing_threads(args_num_threads: Union[str, int]) -> int:
     return num_executing_threads
 
 
-def _process_func(func: Callable, q: Queue, *args: Any, **kwargs: Any) -> None:
+def _run_in_process(func: Callable, q: Queue, *args: Any, **kwargs: Any) -> None:
     """
     Run function as a process and store output in the input Queue.
     """
@@ -438,13 +438,13 @@ def processify(func):
     """
     # Register original function with different name in `sys.modules` so it is
     # pickable.
-    _process_func.__name__ = func.__name__ + "processify_func"
-    setattr(sys.modules[__name__], _process_func.__name__, _process_func)
+    _run_in_process.__name__ = func.__name__ + "processify_func"
+    setattr(sys.modules[__name__], _run_in_process.__name__, _run_in_process)
 
     @wraps(func)
     def wrapper(*args, **kwargs):
         q = Queue()
-        p = Process(target=_process_func, args=[func] + [q] + list(args), kwargs=kwargs)
+        p = Process(target=_run_in_process, args=[func] + [q] + list(args), kwargs=kwargs)
         p.start()
         ret, error = q.get()
         p.join()
