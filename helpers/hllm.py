@@ -105,38 +105,119 @@ def _extract(
 # We should refactor them to use a class `LlmResponse`.
 
 
+# #############################################################################
+# LLMClient
+# #############################################################################
+
+
+class LLMClient:
+    """
+    Class to handle LLM API client creation and requests.
+    """
+
+    def __init__(
+        self,
+        provider_name: str,
+        model: str = "",
+    ) -> None:
+        """
+        :param model: model to use for the completion, if empty,
+            the default model for the provider will be used.
+        :param provider_name: name of the LLM provider, e.g., "openai" or
+            "openrouter". If not provided, defaults to "openai".
+        """
+        hdbg.dassert_in(self.provider_name, ("openai", "openrouter"))
+        # Change the provider name to "openai" if model starts with
+        # "openai/".
+        if provider_name == "openrouter" and model.startswith("openai/"):
+            model = model[len("openai/") :]
+            provider_name = "openai"
+        self.provider_name = provider_name
+        self.model = model or self._get_default_model()
+
+    def create_client(self) -> openai.OpenAI:
+        """
+        Create an LLM client.
+        """
+        if self.provider_name == "openai":
+            base_url = "https://api.openai.com/v1"
+            api_key = os.environ.get("OPENAI_API_KEY")
+        elif self.provider_name == "openrouter":
+            base_url = "https://openrouter.ai/api/v1"
+            api_key = os.environ.get("OPENROUTER_API_KEY")
+        else:
+            raise ValueError(f"Unknown provider: {self.provider_name}")
+        _LOG.debug(hprint.to_str("self.provider_name base_url"))
+        client = openai.OpenAI(base_url=base_url, api_key=api_key)
+        self.client = client
+
+    def build_messages(
+        self, system_prompt: str, user_prompt: str
+    ) -> List[Dict[str, str]]:
+        """
+        Construct the standard messages payload for the chat API.
+        """
+        hdbg.dassert_isinstance(system_prompt, str)
+        hdbg.dassert_isinstance(user_prompt, str)
+        ret = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ]
+        return ret
+
+    @hcacsimp.simple_cache(write_through=True, exclude_keys=["cache_mode"])
+    def call_api_sync(
+        self,
+        cache_mode: str,
+        messages: List[Dict[str, str]],
+        temperature: float,
+        model: str = "",
+        **create_kwargs,
+    ) -> dict[Any, Any]:
+        """
+        Make a non-streaming API call.
+
+        :param cache_mode: "DISABLE_CACHE", "REFRESH_CACHE",
+            "HIT_CACHE_OR_ABORT", "NORMAL"
+        :param client: OpenAI client
+        :param messages: list of messages to send to the API
+        :param model: model to use for the completion
+        :param temperature: adjust an LLM's sampling diversity: lower
+            values make it more deterministic, while higher values
+            foster creative variation. 0 < temperature <= 2, 0.1 is
+            default value in OpenAI models.
+        :param create_kwargs: additional parameters for the API call
+        :return: OpenAI chat completion object as a dictionary
+        """
+        completion = self.client.chat.completions.create(
+            model=model,
+            messages=messages,
+            temperature=temperature,
+            **create_kwargs,
+        )
+        # Calculate the cost.
+        cost = _calculate_cost(completion, model)
+        _accumulate_cost_if_needed(cost)
+        completion_obj = completion.to_dict()
+        # Store the cost in the completion object.
+        completion_obj["cost"] = cost
+        return completion_obj
+
+    def _get_default_model(self) -> str:
+        """
+        Get the default model for a provider.
+        """
+        if self.provider_name == "openai":
+            model = "gpt-4o"
+        elif self.provider_name == "openrouter":
+            model = "openai/gpt-4o"
+        else:
+            raise ValueError(f"Unknown provider: {self.provider_name}")
+        return model
+
+
 # TODO(*): Select the provider from command line together with the model.
 _PROVIDER_NAME = "openai"
-
-
-def get_openai_client(provider_name: str = _PROVIDER_NAME) -> openai.OpenAI:
-    """
-    Get an OpenAI compatible client.
-    """
-    if provider_name == "openai":
-        base_url = "https://api.openai.com/v1"
-        api_key = os.environ.get("OPENAI_API_KEY")
-    elif provider_name == "openrouter":
-        base_url = "https://openrouter.ai/api/v1"
-        api_key = os.environ.get("OPENROUTER_API_KEY")
-    else:
-        raise ValueError(f"Unknown provider: {provider_name}")
-    _LOG.debug(hprint.to_str("provider_name base_url"))
-    client = openai.OpenAI(base_url=base_url, api_key=api_key)
-    return client
-
-
-def _get_default_model(provider_name: str = _PROVIDER_NAME) -> str:
-    """
-    Get the default model for a provider.
-    """
-    if provider_name == "openai":
-        model = "gpt-4o"
-    elif provider_name == "openrouter":
-        model = "openai/gpt-4o"
-    else:
-        raise ValueError(f"Unknown provider: {provider_name}")
-    return model
 
 
 def _get_models_info_file() -> str:
@@ -228,62 +309,6 @@ def _save_models_info_to_csv(
 
 
 # #############################################################################
-
-
-def _build_messages(system_prompt: str, user_prompt: str) -> List[Dict[str, str]]:
-    """
-    Construct the standard messages payload for the chat API.
-    """
-    hdbg.dassert_isinstance(system_prompt, str)
-    hdbg.dassert_isinstance(user_prompt, str)
-    ret = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": user_prompt},
-    ]
-    return ret
-
-
-@hcacsimp.simple_cache(write_through=True, exclude_keys=["client", "cache_mode"])
-def _call_api_sync(
-    cache_mode: str,
-    client: openai.OpenAI,
-    messages: List[Dict[str, str]],
-    temperature: float,
-    model: str,
-    **create_kwargs,
-) -> dict[Any, Any]:
-    """
-    Make a non-streaming API call.
-
-    :param cache_mode: "DISABLE_CACHE", "REFRESH_CACHE",
-        "HIT_CACHE_OR_ABORT", "NORMAL"
-    :param client: OpenAI client
-    :param messages: list of messages to send to the API
-    :param model: model to use for the completion
-    :param temperature: adjust an LLM's sampling diversity: lower values
-        make it more deterministic, while higher values foster creative
-        variation. 0 < temperature <= 2, 0.1 is default value in OpenAI
-        models.
-    :param create_kwargs: additional parameters for the API call
-    :return: OpenAI chat completion object as a dictionary
-    """
-    completion = client.chat.completions.create(
-        model=model,
-        messages=messages,
-        temperature=temperature,
-        **create_kwargs,
-    )
-    # Calculate the cost.
-    models_info_file = ""
-    cost = _calculate_cost(completion, model, models_info_file)
-    _accumulate_cost_if_needed(cost)
-    completion_obj = completion.to_dict()
-    # Store the cost in the completion object.
-    completion_obj["cost"] = cost
-    return completion_obj
-
-
-# #############################################################################
 # Cost tracking
 # #############################################################################
 
@@ -317,7 +342,7 @@ def get_current_cost() -> float:
 def _calculate_cost(
     completion: openai.types.chat.chat_completion.ChatCompletion,
     model: str,
-    models_info_file: str,
+    models_info_file: str = "",
     provider_name: str = _PROVIDER_NAME,
 ) -> float:
     """
@@ -378,6 +403,7 @@ def get_completion(
     *,
     system_prompt: str = "",
     model: str = "",
+    provider_name: str = "openai",
     report_progress: bool = False,
     print_cost: bool = False,
     cache_mode: str = "DISABLE_CACHE",
@@ -411,20 +437,18 @@ def get_completion(
     update_llm_cache = get_update_llm_cache()
     if update_llm_cache:
         cache_mode = "REFRESH_CACHE"
-    if model == "":
-        model = _get_default_model()
-    # Construct messages in OpenAI API request format.
-    messages = _build_messages(system_prompt, user_prompt)
 
-    client = get_openai_client()
-    # print("LLM API call ... ")
+    llm_client = LLMClient(model=model, provider_name=provider_name)
+    llm_client.create_client()
+    # Construct messages in OpenAI API request format.
+    messages = llm_client.build_messages(system_prompt, user_prompt)
+    print("LLM API call ... ")
     memento = htimer.dtimer_start(logging.DEBUG, "LLM API call")
     if not report_progress:
-        completion = _call_api_sync(
+        completion = llm_client.call_api_sync(
             cache_mode=cache_mode,
-            client=client,
+            model=llm_client.model,
             messages=messages,
-            model=model,
             temperature=temperature,
             **create_kwargs,
         )
@@ -432,7 +456,7 @@ def get_completion(
         # TODO(gp): This is not working. It doesn't show the progress and it
         # doesn't show the cost.
         # Create a stream to show progress.
-        completion = client.chat.completions.create(
+        completion = llm_client.client.chat.completions.create(
             model=model,
             messages=messages,
             stream=True,  # Enable streaming

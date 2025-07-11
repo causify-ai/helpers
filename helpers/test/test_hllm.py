@@ -13,9 +13,6 @@ import helpers.hdbg as hdbg
 import helpers.hllm as hllm
 import helpers.hunit_test as hunitest
 
-# cache file used for storing llm responses.
-_TEST_CACHE_FILE = "cache.get_completion.json"
-
 
 _USER_PROMPT1 = "what is machine learning?"
 _USER_PROMPT2 = _USER_PROMPT1.upper()
@@ -163,48 +160,6 @@ class Test_response_to_txt(hunitest.TestCase):
         with self.assertRaises(ValueError) as cm:
             hllm.response_to_txt(12345)
         self.assertIn("Unknown response type", str(cm.exception))
-
-
-# #############################################################################
-# Test_get_openai_client
-# #############################################################################
-
-
-class Test_get_openai_client(hunitest.TestCase):
-
-    @umock.patch.dict(os.environ, {"OPENAI_API_KEY": "openai-key"})
-    @umock.patch("openai.OpenAI")
-    def test_openai_provider(self, mock_openai_cls) -> None:
-        """
-        Verify that `get_openai_client()` returns OpenAI's URL and API key.
-        """
-        client = hllm.get_openai_client("openai")
-        mock_openai_cls.assert_called_once_with(
-            base_url="https://api.openai.com/v1",
-            api_key="openai-key",
-        )
-        self.assertIs(client, mock_openai_cls.return_value)
-
-    @umock.patch.dict(os.environ, {"OPENROUTER_API_KEY": "router-key"})
-    @umock.patch("openai.OpenAI")
-    def test_openrouter_provider(self, mock_openai_cls) -> None:
-        """
-        Verify that `get_openai_client()` returns OpenRouter's URL and API key.
-        """
-        client = hllm.get_openai_client("openrouter")
-        mock_openai_cls.assert_called_once_with(
-            base_url="https://openrouter.ai/api/v1",
-            api_key="router-key",
-        )
-        self.assertIs(client, mock_openai_cls.return_value)
-
-    def test_unknown_provider_raises(self) -> None:
-        """
-        Verify exception if unknown provider given.
-        """
-        with self.assertRaises(ValueError) as cm:
-            hllm.get_openai_client("not_a_provider")
-        self.assertIn("Unknown provider: not_a_provider", str(cm.exception))
 
 
 # #############################################################################
