@@ -196,6 +196,8 @@ class LLMClient:
 
 
 # TODO(*): Select the provider from command line together with the model.
+_PROVIDER_NAME = "openai"
+
 
 
 
