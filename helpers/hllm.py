@@ -8,7 +8,7 @@ import functools
 import logging
 import os
 import re
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 import openai
 import pandas as pd
@@ -104,33 +104,36 @@ def _extract(
 # TODO(gp): There are a lot of functions that share state (e.g., provider_name).
 # We should refactor them to use a class `LlmResponse`.
 
+
+# #############################################################################
+# LLMClient
+# #############################################################################
+
+
 class LLMClient:
     """
-    Class to handle LLM API calls.
+    Class to handle LLM API client creation and requests.
     """
 
-    def __init__(self, model: str = "", provider_name: str = "openai") -> None:
-        self.provider_name = provider_name
-        hdbg.dassert_in(    
-            self.provider_name, ("openai", "openrouter"))
-        self.model = model or self._get_default_model()
-    
-    def _get_default_model(self) -> str:
+    def __init__(
+        self,
+        provider_name: str,
+        model: str = "",
+    ) -> None:
         """
-        Get the default model for a provider.
-        """ 
-        if self.provider_name == "openai":
-            model = "gpt-4o"
-        elif self.provider_name == "openrouter":
-            model = "openai/gpt-4o"
-        else:
-            raise ValueError(f"Unknown provider: {self.provider_name}")
-        return model
+        :param model: model to use for the completion, if empty,
+            the default model for the provider will be used.
+        :param provider_name: name of the LLM provider, e.g., "openai" or
+            "openrouter". If not provided, defaults to "openai".
+        """
+        self.provider_name = provider_name
+        hdbg.dassert_in(self.provider_name, ("openai", "openrouter"))
+        self.model = model or self._get_default_model()
 
     def create_client(self) -> openai.OpenAI:
         """
         Create an LLM client.
-        """  
+        """
         if self.provider_name == "openai":
             base_url = "https://api.openai.com/v1"
             api_key = os.environ.get("OPENAI_API_KEY")
@@ -141,9 +144,11 @@ class LLMClient:
             raise ValueError(f"Unknown provider: {self.provider_name}")
         _LOG.debug(hprint.to_str("self.provider_name base_url"))
         client = openai.OpenAI(base_url=base_url, api_key=api_key)
-        self.client = client 
+        self.client = client
 
-    def build_messages(self, system_prompt: str, user_prompt: str) -> List[Dict[str, str]]:
+    def build_messages(
+        self, system_prompt: str, user_prompt: str
+    ) -> List[Dict[str, str]]:
         """
         Construct the standard messages payload for the chat API.
         """
@@ -154,14 +159,14 @@ class LLMClient:
             {"role": "user", "content": user_prompt},
         ]
         return ret
-    
+
     @hcacsimp.simple_cache(write_through=True, exclude_keys=["cache_mode"])
     def call_api_sync(
         self,
         cache_mode: str,
         messages: List[Dict[str, str]],
         temperature: float,
-        model :str = "",
+        model: str = "",
         **create_kwargs,
     ) -> dict[Any, Any]:
         """
@@ -172,10 +177,10 @@ class LLMClient:
         :param client: OpenAI client
         :param messages: list of messages to send to the API
         :param model: model to use for the completion
-        :param temperature: adjust an LLM's sampling diversity: lower values
-            make it more deterministic, while higher values foster creative
-            variation. 0 < temperature <= 2, 0.1 is default value in OpenAI
-            models.
+        :param temperature: adjust an LLM's sampling diversity: lower
+            values make it more deterministic, while higher values
+            foster creative variation. 0 < temperature <= 2, 0.1 is
+            default value in OpenAI models.
         :param create_kwargs: additional parameters for the API call
         :return: OpenAI chat completion object as a dictionary
         """
@@ -192,13 +197,22 @@ class LLMClient:
         # Store the cost in the completion object.
         completion_obj["cost"] = cost
         return completion_obj
-    
+
+    def _get_default_model(self) -> str:
+        """
+        Get the default model for a provider.
+        """
+        if self.provider_name == "openai":
+            model = "gpt-4o"
+        elif self.provider_name == "openrouter":
+            model = "openai/gpt-4o"
+        else:
+            raise ValueError(f"Unknown provider: {self.provider_name}")
+        return model
 
 
 # TODO(*): Select the provider from command line together with the model.
 _PROVIDER_NAME = "openai"
-
-
 
 
 def _get_models_info_file() -> str:
@@ -289,7 +303,6 @@ def _save_models_info_to_csv(
     return model_info_df
 
 
-
 # #############################################################################
 # Cost tracking
 # #############################################################################
@@ -324,7 +337,7 @@ def get_current_cost() -> float:
 def _calculate_cost(
     completion: openai.types.chat.chat_completion.ChatCompletion,
     model: str,
-    models_info_file: str ="",
+    models_info_file: str = "",
     provider_name: str = _PROVIDER_NAME,
 ) -> float:
     """
@@ -419,7 +432,7 @@ def get_completion(
     update_llm_cache = get_update_llm_cache()
     if update_llm_cache:
         cache_mode = "REFRESH_CACHE"
-    
+
     llm_client = LLMClient(model=model, provider_name=provider_name)
     llm_client.create_client()
     # Construct messages in OpenAI API request format.
@@ -429,7 +442,7 @@ def get_completion(
     if not report_progress:
         completion = llm_client.call_api_sync(
             cache_mode=cache_mode,
-            model = llm_client.model,
+            model=llm_client.model,
             messages=messages,
             temperature=temperature,
             **create_kwargs,
