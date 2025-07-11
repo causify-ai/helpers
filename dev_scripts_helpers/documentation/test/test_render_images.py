@@ -5,6 +5,7 @@ import pytest
 
 import dev_scripts_helpers.documentation.render_images as dshdreim
 import helpers.hdbg as hdbg
+import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hserver as hserver
@@ -57,10 +58,11 @@ class Test_get_rendered_file_paths1(hunitest.TestCase):
         )
         # Check output.
         act = "\n".join(paths)
-        exp = """
+        repo_name = hgit.get_repo_full_name_from_client(super_module=True)
+        exp = f"""
         tmp.render_images/e.8.txt
         /a/b/c/d/figs
-        https://raw.githubusercontent.com/causify-ai/helpers/master/figs/e.8.png
+        https://raw.githubusercontent.com/{repo_name}/master/figs/e.8.png
         """
         self.assert_equal(act, exp, dedent=True)
 
