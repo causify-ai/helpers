@@ -90,7 +90,7 @@
     - E.g.,
       ```
       > ls /Users/saggese/src/notes1/MSML610
-      > vi /Users/saggese/src/notes1/MSML610/Lesson00-Class.txt
+      > vi /Users/saggese/src/notes1/lectures_source/Lesson00-Class.txt
       ```
     - E.g., `//notes/DATA605`
 
@@ -241,7 +241,7 @@ transform_notes.py
 
   ```bash
   > notes_to_pdf.py \
-      --input MSML610/Lesson5-Theory_Statistical_learning.txt \
+      --input lectures_source/Lesson5-Theory_Statistical_learning.txt \
       --output Lesson5.pdf \
       --type slides \
       --toc_type navigation \
@@ -278,7 +278,7 @@ transform_notes.py
 
 - Render the images in a text file
   ```bash
-  > render_images.py -i notes/MSML610/Lesson9-Causal_inference.txt \
+  > render_images.py -i lectures_source/Lesson9-Causal_inference.txt \
       -o lesson9.images.txt --run_dockerized
   ```
 

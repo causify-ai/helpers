@@ -33,8 +33,8 @@
     - How can we avoid the problem next time, through process and automation?
 - Refer to `.github` dir in the repo for update schedule of GH actions
 - Additional information about tests:
-  - [write tests](/docs/tools/unit_test/all.write_unit_tests.how_to_guide.md)
-  - [run tests](/docs/tools/unit_test/all.run_unit_tests.how_to_guide.md)
+  - [write tests](/docs/tools/unit_test/all.write_unit_tests.how_to_guide.md.figs)
+  - [run tests](/docs/tools/unit_test/all.run_unit_tests.how_to_guide.md.figs)
 
 ## Notification system
 
@@ -49,7 +49,7 @@
 
 Example:
 
-- <img src="figs/all.buildmeister.how_to_guide.md/Slack Image.png">
+- <img src="figs/all.buildmeister.how_to_guide.md.figs/Slack Image.png">
 
 ## Buildmeister instructions
 
@@ -207,7 +207,7 @@ current state of the results of all GitHub Actions workflows. See
 [run and publish the buildmeister dashboard](/dev_scripts_helpers/update_devops_packages/notebooks/Master_buildmeister_dashboard.ipynb)
 for detailed information.
 
-<img src="figs/all.buildmeister.how_to_guide.md/Buildmeister Image.png"/>
+<img src="figs/all.buildmeister.how_to_guide.md.figs/Buildmeister Image.png"/>
 
 ### Logic Used to Determine Workflow Status
 
@@ -254,7 +254,7 @@ status of each GitHub Actions workflow:
   - Detailed info can be found in the official
     [docs](https://allurereport.org/docs/)
   - [Allure Explanantion](/docs/build_system/all.pytest_allure.explanation.md)
-  - [Allure How to Guide](/docs/build_system/all.pytest_allure.how_to_guide.md)
+  - [Allure How to Guide](/docs/build_system/all.pytest_allure.how_to_guide.md.figs)
 
 - For now, the Buildmeister can get the link to the Allure reports by navigating
   GitHub Actions page
@@ -277,20 +277,20 @@ status of each GitHub Actions workflow:
       vertical line corresponds to a certain version of the test report, with
       the last line on the right corresponding to the current version
 
-      <img src="figs/all.buildmeister.how_to_guide.md/Trend Image.png"/>
+      <img src="figs/all.buildmeister.how_to_guide.md.figs/Trend Image.png"/>
     - Monitor the `Duration Trend` to check the time taken to the run all tests
       comparing to historical trends
 
-      <img src="figs/all.buildmeister.how_to_guide.md/Duration trend.png"/>
+      <img src="figs/all.buildmeister.how_to_guide.md.figs/Duration trend.png"/>
     - Monitor the `Duration Distribution`, where all the tests are divided into
       groups based on how long it took to complete them, and manually compare
       with the last week results
 
-      <img src="figs/all.buildmeister.how_to_guide.md/Duration Distribution.png"/>
+      <img src="figs/all.buildmeister.how_to_guide.md.figs/Duration Distribution.png"/>
     - Monitor the `Retries Trend` to check the number of retries occured in a
       particular run
 
-      <img src="figs/all.buildmeister.how_to_guide.md/Retries Image.png"/>
+      <img src="figs/all.buildmeister.how_to_guide.md.figs/Retries Image.png"/>
     - The idea is to make sure it doesn't have drastic change in the values
 
 - Steps to perform if a test fails, timeouts or breaks

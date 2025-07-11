@@ -10,6 +10,7 @@ import re
 from typing import Dict, Generator, List, Optional, Tuple, cast
 
 import helpers.hdbg as hdbg
+import helpers.hdocker as hdocker
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 

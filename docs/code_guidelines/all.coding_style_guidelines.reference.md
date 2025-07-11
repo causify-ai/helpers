@@ -873,7 +873,7 @@
   - Example
     ```
     > notes_to_pdf.py \
-      --input MSML610/Lesson5-Theory_Statistical_learning.txt \
+      --input lectures_source/Lesson5-Theory_Statistical_learning.txt \
       --output Lesson5.pdf \
       --type slides \
       --toc_type navigation \

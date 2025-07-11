@@ -153,7 +153,7 @@
 
 - Convert notes to slides:
   ```bash
-  > notes_to_pdf.py --input notes/MSML610/Lesson1-Intro.txt --output tmp.pdf -t slides
+  > notes_to_pdf.py --input lectures_source/Lesson1-Intro.txt --output tmp.pdf -t slides
   ```
 
 # Latex Toolchain

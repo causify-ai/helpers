@@ -64,7 +64,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
             content.
         """
         # notes_to_pdf.py \
-        #   --input notes/MSML610/Lesson1-Intro.txt \
+        #   --input lectures_source/Lesson1-Intro.txt \
         #   --type slides \
         #   --output tmp.pdf \
         #   --skip_action copy_to_gdrive \
