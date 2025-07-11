@@ -104,30 +104,17 @@ def _extract(
 # TODO(gp): There are a lot of functions that share state (e.g., provider_name).
 # We should refactor them to use a class `LlmResponse`.
 
-class LLMResponse:
+class LLMClient:
     """
     Class to handle LLM API calls.
     """
 
-    def __init__(self):
-        self.provider_name ="openai"
-
-    def get_client(self) -> openai.OpenAI:
-        """
-        Get an OpenAI compatible client.
-        """  
-        if self.provider_name == "openai":
-            base_url = "https://api.openai.com/v1"
-            api_key = os.environ.get("OPENAI_API_KEY")
-        elif self.provider_name == "openrouter":
-            base_url = "https://openrouter.ai/api/v1"
-            api_key = os.environ.get("OPENROUTER_API_KEY")
-        else:
-            raise ValueError(f"Unknown provider: {self.provider_name}")
-        _LOG.debug(hprint.to_str("provider_name base_url"))
-        client = openai.OpenAI(base_url=base_url, api_key=api_key)
-        return client   
-
+    def __init__(self, model: str = "", provider_name: str = "openai") -> None:
+        self.provider_name = provider_name
+        hdbg.dassert_in(    
+            self.provider_name, ("openai", "openrouter"))
+        self.model = model or self._get_default_model()
+    
     def _get_default_model(self) -> str:
         """
         Get the default model for a provider.
@@ -140,7 +127,23 @@ class LLMResponse:
             raise ValueError(f"Unknown provider: {self.provider_name}")
         return model
 
-    def _build_messages(self, system_prompt: str, user_prompt: str) -> List[Dict[str, str]]:
+    def create_client(self) -> openai.OpenAI:
+        """
+        Create an LLM client.
+        """  
+        if self.provider_name == "openai":
+            base_url = "https://api.openai.com/v1"
+            api_key = os.environ.get("OPENAI_API_KEY")
+        elif self.provider_name == "openrouter":
+            base_url = "https://openrouter.ai/api/v1"
+            api_key = os.environ.get("OPENROUTER_API_KEY")
+        else:
+            raise ValueError(f"Unknown provider: {self.provider_name}")
+        _LOG.debug(hprint.to_str("self.provider_name base_url"))
+        client = openai.OpenAI(base_url=base_url, api_key=api_key)
+        self.client = client 
+
+    def build_messages(self, system_prompt: str, user_prompt: str) -> List[Dict[str, str]]:
         """
         Construct the standard messages payload for the chat API.
         """
@@ -152,14 +155,13 @@ class LLMResponse:
         ]
         return ret
     
-    @hcacsimp.simple_cache(write_through=True, exclude_keys=["client", "cache_mode"])
-    def _call_api_sync(
+    @hcacsimp.simple_cache(write_through=True, exclude_keys=["cache_mode"])
+    def call_api_sync(
         self,
         cache_mode: str,
-        client: openai.OpenAI,
         messages: List[Dict[str, str]],
         temperature: float,
-        model: str,
+        model :str = "",
         **create_kwargs,
     ) -> dict[Any, Any]:
         """
@@ -177,15 +179,14 @@ class LLMResponse:
         :param create_kwargs: additional parameters for the API call
         :return: OpenAI chat completion object as a dictionary
         """
-        completion = client.chat.completions.create(
+        completion = self.client.chat.completions.create(
             model=model,
             messages=messages,
             temperature=temperature,
             **create_kwargs,
         )
         # Calculate the cost.
-        models_info_file = ""
-        cost = _calculate_cost(completion, model, models_info_file)
+        cost = _calculate_cost(completion, model)
         _accumulate_cost_if_needed(cost)
         completion_obj = completion.to_dict()
         # Store the cost in the completion object.
@@ -195,7 +196,6 @@ class LLMResponse:
 
 
 # TODO(*): Select the provider from command line together with the model.
-_PROVIDER_NAME = "openai"
 
 
 
@@ -287,11 +287,6 @@ def _save_models_info_to_csv(
     return model_info_df
 
 
-# #############################################################################
-
-
-
-
 
 # #############################################################################
 # Cost tracking
@@ -327,7 +322,7 @@ def get_current_cost() -> float:
 def _calculate_cost(
     completion: openai.types.chat.chat_completion.ChatCompletion,
     model: str,
-    models_info_file: str,
+    models_info_file: str ="",
     provider_name: str = _PROVIDER_NAME,
 ) -> float:
     """
@@ -388,6 +383,7 @@ def get_completion(
     *,
     system_prompt: str = "",
     model: str = "",
+    provider_name: str = "openai",
     report_progress: bool = False,
     print_cost: bool = False,
     cache_mode: str = "DISABLE_CACHE",
@@ -421,20 +417,18 @@ def get_completion(
     update_llm_cache = get_update_llm_cache()
     if update_llm_cache:
         cache_mode = "REFRESH_CACHE"
-    if model == "":
-        model = _get_default_model()
+    
+    llm_client = LLMClient(model=model, provider_name=provider_name)
+    llm_client.create_client()
     # Construct messages in OpenAI API request format.
-    messages = _build_messages(system_prompt, user_prompt)
-
-    client = get_openai_client()
-    # print("LLM API call ... ")
+    messages = llm_client.build_messages(system_prompt, user_prompt)
+    print("LLM API call ... ")
     memento = htimer.dtimer_start(logging.DEBUG, "LLM API call")
     if not report_progress:
-        completion = _call_api_sync(
+        completion = llm_client.call_api_sync(
             cache_mode=cache_mode,
-            client=client,
+            model = llm_client.model,
             messages=messages,
-            model=model,
             temperature=temperature,
             **create_kwargs,
         )
@@ -442,7 +436,7 @@ def get_completion(
         # TODO(gp): This is not working. It doesn't show the progress and it
         # doesn't show the cost.
         # Create a stream to show progress.
-        completion = client.chat.completions.create(
+        completion = llm_client.client.chat.completions.create(
             model=model,
             messages=messages,
             stream=True,  # Enable streaming
