@@ -8,7 +8,7 @@ import functools
 import logging
 import os
 import re
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 import openai
 import pandas as pd
@@ -106,13 +106,13 @@ def _extract(
 
 class LLMResponse:
     """
-    Class to handle OpenAI API responses.
+    Class to handle LLM API calls.
     """
 
     def __init__(self):
         self.provider_name ="openai"
 
-    def get_openai_client(self) -> openai.OpenAI:
+    def get_client(self) -> openai.OpenAI:
         """
         Get an OpenAI compatible client.
         """  
@@ -128,7 +128,7 @@ class LLMResponse:
         client = openai.OpenAI(base_url=base_url, api_key=api_key)
         return client   
 
-    def _default_model(self) -> str:
+    def _get_default_model(self) -> str:
         """
         Get the default model for a provider.
         """ 
@@ -152,20 +152,30 @@ class LLMResponse:
         ]
         return ret
     
+    @hcacsimp.simple_cache(write_through=True, exclude_keys=["client", "cache_mode"])
     def _call_api_sync(
         self,
+        cache_mode: str,
         client: openai.OpenAI,
         messages: List[Dict[str, str]],
         temperature: float,
         model: str,
-        **create_kwargs) -> Tuple[str, Any]:
-        
+        **create_kwargs,
+    ) -> dict[Any, Any]:
         """
-        Make a non-streaming API call and return (response, raw_completion).
+        Make a non-streaming API call.
 
-        return: a tuple with
-            - model response in OpenAI's completion object
-            - raw completion
+        :param cache_mode: "DISABLE_CACHE", "REFRESH_CACHE",
+            "HIT_CACHE_OR_ABORT", "NORMAL"
+        :param client: OpenAI client
+        :param messages: list of messages to send to the API
+        :param model: model to use for the completion
+        :param temperature: adjust an LLM's sampling diversity: lower values
+            make it more deterministic, while higher values foster creative
+            variation. 0 < temperature <= 2, 0.1 is default value in OpenAI
+            models.
+        :param create_kwargs: additional parameters for the API call
+        :return: OpenAI chat completion object as a dictionary
         """
         completion = client.chat.completions.create(
             model=model,
@@ -173,42 +183,20 @@ class LLMResponse:
             temperature=temperature,
             **create_kwargs,
         )
-        model_response = completion.choices[0].message.content
-        return model_response, completion  
+        # Calculate the cost.
+        models_info_file = ""
+        cost = _calculate_cost(completion, model, models_info_file)
+        _accumulate_cost_if_needed(cost)
+        completion_obj = completion.to_dict()
+        # Store the cost in the completion object.
+        completion_obj["cost"] = cost
+        return completion_obj
+    
 
 
 # TODO(*): Select the provider from command line together with the model.
 _PROVIDER_NAME = "openai"
 
-
-def get_openai_client(provider_name: str = _PROVIDER_NAME) -> openai.OpenAI:
-    """
-    Get an OpenAI compatible client.
-    """
-    if provider_name == "openai":
-        base_url = "https://api.openai.com/v1"
-        api_key = os.environ.get("OPENAI_API_KEY")
-    elif provider_name == "openrouter":
-        base_url = "https://openrouter.ai/api/v1"
-        api_key = os.environ.get("OPENROUTER_API_KEY")
-    else:
-        raise ValueError(f"Unknown provider: {provider_name}")
-    _LOG.debug(hprint.to_str("provider_name base_url"))
-    client = openai.OpenAI(base_url=base_url, api_key=api_key)
-    return client
-
-
-def _get_default_model(provider_name: str = _PROVIDER_NAME) -> str:
-    """
-    Get the default model for a provider.
-    """
-    if provider_name == "openai":
-        model = "gpt-4o"
-    elif provider_name == "openrouter":
-        model = "openai/gpt-4o"
-    else:
-        raise ValueError(f"Unknown provider: {provider_name}")
-    return model
 
 
 def _get_models_info_file() -> str:
@@ -302,57 +290,7 @@ def _save_models_info_to_csv(
 # #############################################################################
 
 
-def _build_messages(system_prompt: str, user_prompt: str) -> List[Dict[str, str]]:
-    """
-    Construct the standard messages payload for the chat API.
-    """
-    hdbg.dassert_isinstance(system_prompt, str)
-    hdbg.dassert_isinstance(user_prompt, str)
-    ret = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": user_prompt},
-    ]
-    return ret
 
-
-@hcacsimp.simple_cache(write_through=True, exclude_keys=["client", "cache_mode"])
-def _call_api_sync(
-    cache_mode: str,
-    client: openai.OpenAI,
-    messages: List[Dict[str, str]],
-    temperature: float,
-    model: str,
-    **create_kwargs,
-) -> dict[Any, Any]:
-    """
-    Make a non-streaming API call.
-
-    :param cache_mode: "DISABLE_CACHE", "REFRESH_CACHE",
-        "HIT_CACHE_OR_ABORT", "NORMAL"
-    :param client: OpenAI client
-    :param messages: list of messages to send to the API
-    :param model: model to use for the completion
-    :param temperature: adjust an LLM's sampling diversity: lower values
-        make it more deterministic, while higher values foster creative
-        variation. 0 < temperature <= 2, 0.1 is default value in OpenAI
-        models.
-    :param create_kwargs: additional parameters for the API call
-    :return: OpenAI chat completion object as a dictionary
-    """
-    completion = client.chat.completions.create(
-        model=model,
-        messages=messages,
-        temperature=temperature,
-        **create_kwargs,
-    )
-    # Calculate the cost.
-    models_info_file = ""
-    cost = _calculate_cost(completion, model, models_info_file)
-    _accumulate_cost_if_needed(cost)
-    completion_obj = completion.to_dict()
-    # Store the cost in the completion object.
-    completion_obj["cost"] = cost
-    return completion_obj
 
 
 # #############################################################################
