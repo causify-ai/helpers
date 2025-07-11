@@ -102,15 +102,16 @@ def to_pickle(
                 # Use S3 file system.
                 if hs3.is_s3_path(file_name):
                     s3fs_ = hs3.get_s3fs(aws_profile)
-                    file_object = s3fs_.open(file_name, "wb")
+                    with s3fs_.open(file_name, "wb") as s3_file:
+                        pickler = pickle.Pickler(s3_file, pickle.HIGHEST_PROTOCOL)
+                        pickler.fast = True
+                        pickler.dump(obj)
                 # Use local file system.
                 else:
-                    file_object = open(file_name, "wb")
-                # Pickle the object and dump to location.
-                with file_object as f:
-                    pickler = pickle.Pickler(f, pickle.HIGHEST_PROTOCOL)
-                    pickler.fast = True
-                    pickler.dump(obj)
+                    with open(file_name, "wb") as fd:
+                        pickler = pickle.Pickler(fd, pickle.HIGHEST_PROTOCOL)
+                        pickler.fast = True
+                        pickler.dump(obj)
             elif backend == "dill":
                 import dill
 
@@ -160,14 +161,13 @@ def from_pickle(
                 # Use S3 file system.
                 if hs3.is_s3_path(file_name):
                     s3fs_ = hs3.get_s3fs(aws_profile)
-                    file_object = s3fs_.open(file_name, "rb")
-                # Use local file system.
+                    with s3fs_.open(file_name) as s3_file:
+                        unpickler = pickle.Unpickler(s3_file)
+                        obj = unpickler.load()
                 else:
-                    file_object = open(file_name, "rb")
-                # Unpickle the object from the file.
-                with file_object as f:
-                    unpickler = pickle.Unpickler(f)
-                    obj = unpickler.load()
+                    with open(file_name, "rb") as fd:
+                        unpickler = pickle.Unpickler(fd)
+                        obj = unpickler.load()
             elif backend == "dill":
                 import dill
 
