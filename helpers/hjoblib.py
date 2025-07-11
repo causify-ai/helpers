@@ -440,7 +440,9 @@ def processify(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         q = Queue()
-        p = Process(target=_run_in_process, args=[func] + [q] + list(args), kwargs=kwargs)
+        p = Process(
+            target=_run_in_process, args=[func] + [q] + list(args), kwargs=kwargs
+        )
         p.start()
         ret, error = q.get()
         p.join()
@@ -563,9 +565,7 @@ def _parallel_execute_decorator(
         if abort_on_error:
             _LOG.error("Aborting since abort_on_error=%s", abort_on_error)
             raise exception  # noqa: F821
-        _LOG.error(
-            "Continuing execution since abort_on_error=%s", abort_on_error
-        )
+        _LOG.error("Continuing execution since abort_on_error=%s", abort_on_error)
         res = str(exception)
     else:
         # The execution was successful.
