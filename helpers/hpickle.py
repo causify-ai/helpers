@@ -100,16 +100,15 @@ def to_pickle(
                 # Use S3 file system.
                 if hs3.is_s3_path(file_name):
                     s3fs_ = hs3.get_s3fs(aws_profile)
-                    with s3fs_.open(file_name, "wb") as s3_file:
-                        pickler = pickle.Pickler(s3_file, pickle.HIGHEST_PROTOCOL)
-                        pickler.fast = True
-                        pickler.dump(obj)
+                    file_object = s3fs_.open(file_name, "wb")
                 # Use local file system.
                 else:
-                    with open(file_name, "wb") as fd:
-                        pickler = pickle.Pickler(fd, pickle.HIGHEST_PROTOCOL)
-                        pickler.fast = True
-                        pickler.dump(obj)
+                    file_object = open(file_name, "wb")
+                # Pickle the object and dump to location.
+                pickler = pickle.Pickler(file_object, pickle.HIGHEST_PROTOCOL)
+                pickler.fast = True
+                pickler.dump(obj)
+                file_object.close()
             elif backend == "dill":
                 import dill
 
@@ -150,24 +149,23 @@ def from_pickle(
     Unpickle and return object stored in `file_name`.
     """
     hdbg.dassert_isinstance(file_name, str)
-    with htimer.TimedScope(
-        logging.DEBUG, f"Unpickling from '{file_name}'"
-    ) as ts:
+    with htimer.TimedScope(logging.DEBUG, f"Unpickling from '{file_name}'") as ts:
         # We assume that the user always specifies a .pkl extension and then we
         # change the extension based on the backend.
         if backend in ("pickle", "dill"):
             hdbg.dassert_file_extension(file_name, "pkl")
             if backend == "pickle":
+                # Use S3 file system.
                 if hs3.is_s3_path(file_name):
-                    # Use S3 file system.
                     s3fs_ = hs3.get_s3fs(aws_profile)
-                    with s3fs_.open(file_name) as s3_file:
-                        unpickler = pickle.Unpickler(s3_file)
-                        obj = unpickler.load()
+                    file_object = s3fs_.open(file_name, "rb")
+                # Use local file system.
                 else:
-                    with open(file_name, "rb") as fd:
-                        unpickler = pickle.Unpickler(fd)
-                        obj = unpickler.load()
+                    file_object = open(file_name, "rb")
+                # Unpickle the object from the file.
+                unpickler = pickle.Unpickler(file_object)
+                obj = unpickler.load()
+                file_object.close()
             elif backend == "dill":
                 import dill
 
