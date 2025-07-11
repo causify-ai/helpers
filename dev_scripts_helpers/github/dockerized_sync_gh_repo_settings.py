@@ -159,6 +159,7 @@ class _RepoAndBranchSettings:
             ```
         """
         branch_protection = {}
+        skipped_branches = []
         _LOG.debug(
             "Getting current branch protection settings for %s", repo.full_name
         )
@@ -170,10 +171,7 @@ class _RepoAndBranchSettings:
             try:
                 # Skip branches that don't have protection enabled.
                 if not branch.protected:
-                    _LOG.warning(
-                        "Branch '%s' is not protected: skipping.",
-                        branch.name,
-                    )
+                    skipped_branches.append(branch.name)
                     continue
                 # Get the protection information of the branch.
                 protection = branch.get_protection()
@@ -266,12 +264,21 @@ class _RepoAndBranchSettings:
                     str(e),
                 )
             except (AttributeError, TypeError, ValueError) as e:
+                skipped_branches.append(branch.name)
                 hdbg.dassert(
                     False,
                     "Error processing branch %s: %s",
                     branch.name,
                     str(e),
+                    only_warning=True,
                 )
+        if skipped_branches:
+            _LOG.warning(
+                "Skipped %d branches (unprotected or errored). Example: %s%s",
+                len(skipped_branches),
+                ", ".join(skipped_branches[:10]),
+                "..." if len(skipped_branches) > 10 else "",
+            )
         return branch_protection
 
     @staticmethod
