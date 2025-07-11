@@ -165,7 +165,6 @@ class Test_response_to_txt(hunitest.TestCase):
         self.assertIn("Unknown response type", str(cm.exception))
 
 
-
 # #############################################################################
 # Test_retrieve_openrouter_model_info
 # #############################################################################
