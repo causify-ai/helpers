@@ -5,9 +5,9 @@ import pytest
 
 pytest.importorskip("openai")  # noqa: E402 # pylint: disable=wrong-import-position
 
-import dev_scripts_helpers.documentation.generate_readme_index as dshdgrein
-import helpers.hio as hio
-import helpers.hunit_test as hunitest
+import dev_scripts_helpers.documentation.generate_readme_index as dshdgrein  # noqa: E402
+import helpers.hio as hio  # noqa: E402
+import helpers.hunit_test as hunitest  # noqa: E402
 
 
 # #############################################################################

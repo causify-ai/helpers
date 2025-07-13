@@ -145,7 +145,9 @@ class _NotebookImageExtractor:
                 )
                 current_out_filename = m.group(2)
                 in_extract = True
-                _LOG.debug(hprint.to_str("current_mode current_out_filename in_extract"))
+                _LOG.debug(
+                    hprint.to_str("current_mode current_out_filename in_extract")
+                )
                 # Remove the start marker from the cell, since we don't want
                 # to show it in the captured picture.
                 cell.source = start_marker_regex.sub("", cell.source).strip()

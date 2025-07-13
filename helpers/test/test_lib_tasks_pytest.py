@@ -50,7 +50,6 @@ def _purify_pytest_command(text: str) -> str:
 
 
 class Test_build_run_command_line1(hunitest.TestCase):
-
     def run_fast_tests1_helper(
         self,
         is_dev_csfy_return_value: bool,
@@ -688,7 +687,6 @@ class Test_build_run_command_line1(hunitest.TestCase):
 
 
 class Test_pytest_repro1(hunitest.TestCase):
-
     def helper(self, file_name: str, mode: str, exp: List[str]) -> None:
         script_name = os.path.join(
             self.get_scratch_space(), "tmp.pytest_repro.sh"
@@ -1055,7 +1053,6 @@ class Test_pytest_repro_end_to_end(hunitest.TestCase):
 
 
 class Test_pytest_failed1(hunitest.TestCase):
-
     def get_pytest_text1(self) -> str:
         txt = """
         20:48:15 - ^[[36mINFO ^[[0m hdbg.py init_logger:1018                               > cmd='/venv/bin/pytest helpers_root/dev_scripts_helpers/documentation/'

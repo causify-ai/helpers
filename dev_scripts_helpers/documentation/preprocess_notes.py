@@ -48,9 +48,7 @@ def _process_abbreviations(in_line: str) -> str:
         (r"-^", r"\uparrow"),
         (r"-v", r"\downarrow"),
     ]:
-        line = re.sub(
-            r"(\s)%s(\s)" % re.escape(x), r"\1$%s$\2" % re.escape(y), line
-        )
+        line = re.sub(rf"(\s){re.escape(x)}(\s)", rf"\1${re.escape(y)}$\2", line)
     if line != in_line:
         _LOG.debug("    -> line=%s", line)
     return line
@@ -62,7 +60,7 @@ _COLORS = {
     "orange": "orange",
     "yellow": "yellow",
     "lime": "lime",
-    # 
+    #
     "green": "darkgreen",
     "teal": "teal",
     "cyan": "cyan",
@@ -115,7 +113,7 @@ def _process_color_commands(in_line: str) -> str:
         # Replace the color command with the LaTeX color command.
         in_line = re.sub(pattern, lambda m: _replacement(m, value), in_line)
     return in_line
-    
+
 
 def _has_color_command(line: str) -> bool:
     hdbg.dassert_isinstance(line, str)
@@ -168,6 +166,7 @@ def _colorize_bullet_points(txt: str) -> str:
             color_to_use = colors[color_idx]
             color_idx += 1
             return f"**\\{color_to_use}{{{text}}}**"
+
         line = re.sub(r"\*\*([^*]+)\*\*", color_replacer, line)
         txt += line + "\n"
     return txt
