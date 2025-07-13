@@ -1456,7 +1456,7 @@ class SubprocessWrapper(object):
     if isinstance(args, str):
       return args
     else:
-      assert type(args)) == list
+      assert isinstance(args, list)
       return [decode(x) if isinstance(x, bytes) else x for x in args]
 
   @staticmethod
@@ -2840,7 +2840,7 @@ class RepoFilter(object):
     def make_callback(argname, str):
       exec('def callback({}, _do_not_use_this_var = None):\n'.format(argname)+
            '  '+'\n  '.join(str.splitlines()), globals())
-      return callback #namespace['callback']
+      return callback  # noqa: F821
     def handle(type):
       callback_field = '_{}_callback'.format(type)
       code_string = getattr(self._args, type+'_callback')

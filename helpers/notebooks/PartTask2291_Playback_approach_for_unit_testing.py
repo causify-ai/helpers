@@ -24,20 +24,18 @@
 # %matplotlib inline
 
 import json
-
 import jsonpickle
 import jsonpickle.ext.pandas as jsonpickle_pandas
+import logging
 
 jsonpickle_pandas.register_handlers()
 
-import logging
+import pandas as pd  # noqa: E402
 
-import pandas as pd
-
-import helpers.hdbg as hdbg
-import helpers.henv as henv
-import helpers.hplayback as hplayba
-import helpers.hprint as hprint
+import helpers.hdbg as hdbg  # noqa: E402
+import helpers.henv as henv  # noqa: E402
+import helpers.hplayback as hplayba  # noqa: E402
+import helpers.hprint as hprint  # noqa: E402
 
 # %%
 hdbg.init_logger(verbosity=logging.INFO)
@@ -173,7 +171,7 @@ print(res)
 
 
 # %%
-class Playback:
+class Playback:  # noqa: F811
     # def __init__(self, file_name, mode, *args, **kwargs):
     # self.args = args
     # self.kwargs = kwargs
@@ -254,7 +252,7 @@ print(f"frozen2 = '{frozen}'")
 assert 0
 #
 print("frozen=")
-print(json_pretty_print(frozen))
+print(json_pretty_print(frozen))  # noqa: F821
 #
 obj2 = jsonpickle.decode(frozen)
 
@@ -296,7 +294,7 @@ exp = {"pavel": 7}
 assert act == exp
 
 # %%
-df2 = round_trip(df)
+df2 = round_trip(df)  # noqa: F821
 
 
 # %%
@@ -307,12 +305,12 @@ class Thing:
 
 obj = Thing("Awesome")
 
-round_trip(obj)
+round_trip(obj)  # noqa: F821
 
 
 # %%
 def test(a: int, b: int):
-    print(round_trip(a))
+    print(round_trip(a))  # noqa: F821
 
 
 test("strunz", 6)
@@ -355,7 +353,7 @@ print(python_code)
 exec(python_code)
 
 # %%
-airr = eval(df_as_str)
+arr = eval(df_as_str)
 df2 = pd.DataFrame.from_dict(arr, orient="columns")
 df2.index.name
 

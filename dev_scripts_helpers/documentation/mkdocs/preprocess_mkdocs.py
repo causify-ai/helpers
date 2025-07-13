@@ -22,7 +22,6 @@ import preprocess_mkdocs as premkdo
 import argparse
 import logging
 import os
-import shutil
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -47,12 +46,12 @@ def _parse() -> argparse.ArgumentParser:
         required=True,
         help="Input directory containing markdown files",
     )
-    #parser.add_argument(
+    # parser.add_argument(
     #    "--incremental",
     #    action="store_true",
     #    required=True,
     #    help="Delete the output dir",
-    #)
+    # )
     parser.add_argument(
         "--output_dir",
         action="store",

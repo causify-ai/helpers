@@ -21,7 +21,7 @@ import warnings
 action = "ignore"
 
 try:
-    import statsmodels
+    import statsmodels  # noqa: F401
 
     _HAS_STATSMODELS = True
 except ImportError:

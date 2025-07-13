@@ -7,9 +7,9 @@ import pandas as pd
 import pytest
 
 pytest.importorskip("openai")  # noqa: E402 # pylint: disable=wrong-import-position
-import helpers.hdbg as hdbg
-import helpers.hllm as hllm
-import helpers.hunit_test as hunitest
+import helpers.hdbg as hdbg  # noqa: E402
+import helpers.hllm as hllm  # noqa: E402
+import helpers.hunit_test as hunitest  # noqa: E402
 
 # cache file used for storing llm responses.
 _TEST_CACHE_FILE = "cache.get_completion.json"
