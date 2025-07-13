@@ -47,6 +47,12 @@ def _parse() -> argparse.ArgumentParser:
         required=True,
         help="Input directory containing markdown files",
     )
+    #parser.add_argument(
+    #    "--incremental",
+    #    action="store_true",
+    #    required=True,
+    #    help="Delete the output dir",
+    #)
     parser.add_argument(
         "--output_dir",
         action="store",
@@ -71,10 +77,14 @@ def _copy_directory(input_dir: str, output_dir: str) -> None:
     )
     # Remove output directory if it exists and create fresh one.
     if os.path.exists(output_dir):
-        hio.safe_rm_file(output_dir)
+        cmd = f"rm -rf {output_dir}/*"
+        hsystem.system(cmd)
+    else:
+        cmd = f"mkdir {output_dir}"
+        hsystem.system(cmd)
     # Copy the entire directory tree.
-    # TODO(ai): Use hsystem("cp -r ...")
-    shutil.copytree(input_dir, output_dir)
+    cmd = f"cp -r {input_dir}/* {output_dir}"
+    hsystem.system(cmd)
     _LOG.info(f"Copied directory from '{input_dir}' to '{output_dir}'")
 
 
