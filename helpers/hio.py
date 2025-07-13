@@ -825,6 +825,7 @@ def safe_rm_file(dir_path: str) -> None:
     :raises OSError: If directory doesn't exist or can't be deleted
     """
     import helpers.hgit as hgit
+
     # Convert to absolute path for comparison.
     dir_path = os.path.abspath(dir_path)
     # Get the Git client root.

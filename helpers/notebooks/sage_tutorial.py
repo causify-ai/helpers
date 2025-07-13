@@ -42,7 +42,7 @@
 from sympy import *
 
 # %%
-x, y = symbols('x,y')
+x, y = symbols("x,y")
 y | (x & y)
 
 # %%
@@ -53,12 +53,12 @@ x >> y
 (y & x).subs({x: True, y: True})
 
 # %%
-w, x, y, z = symbols('w x y z')
-minterms = [{w: 0, x: 1}, {y: 1, z: 1, x:0}]
+w, x, y, z = symbols("w x y z")
+minterms = [{w: 0, x: 1}, {y: 1, z: 1, x: 0}]
 SOPform([w, x, y, z], minterms)
 
 # %%
-b = (~x & ~y & ~z) | ( ~x & ~y & z)
+b = (~x & ~y & ~z) | (~x & ~y & z)
 simplify_logic(b)
 
 # %%
@@ -81,7 +81,7 @@ satisfiable((x | y) & (x | ~y) & (~x | y))
 # - not Q => B
 # - not B
 
-L, N, Q, B = symbols('L N Q B')
+L, N, Q, B = symbols("L N Q B")
 
 C = Implies(~L, Q & B & N) & Implies(N, ~L) & Implies(~Q, B) & ~B
 satisfiable(C)

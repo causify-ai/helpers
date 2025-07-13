@@ -12,7 +12,6 @@ import linters.amp_doc_formatter as lamdofor
 
 
 class Test_docformatter(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test that the docstring should be dedented.
@@ -241,7 +240,6 @@ doc11
 
 
 class TestFindUnbalancedBackticks(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test that the starting indices of docstrings with unbalanced backticks

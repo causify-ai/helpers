@@ -186,7 +186,7 @@ def _replace_with_perl(
     if True:
         perl_opts.append(f"-e '{regex}'")
     else:
-        perl_opts.append(fr"-e '{regex} unless /^\s*#/'")
+        perl_opts.append(rf"-e '{regex} unless /^\s*#/'")
     cmd = f"perl {' '.join(perl_opts)} {file_name}"
     hsystem.system(cmd, suppress_output=False)
 

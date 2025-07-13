@@ -1851,7 +1851,6 @@ class Test_to_pickleable_string(hunitest.TestCase):
         key2:
           key3:
             key4:
-
         """
         should_be_pickleable_before = True
         force_values_to_string = True
@@ -1873,7 +1872,6 @@ class Test_to_pickleable_string(hunitest.TestCase):
         key2:
           key3:
             key4:
-
         """
         should_be_pickleable_before = False
         force_values_to_string = True
@@ -2072,7 +2070,6 @@ class Test_to_string(hunitest.TestCase):
     def test6(self) -> None:
         """
         Test debug mode with `marked_as_used` == True.
-
         This is a smoketest since the output of stacktrace is unstable.
         """
         # Set multiline string value.
@@ -2294,10 +2291,11 @@ class _Config_execute_stmt_TestCase1(hunitest.TestCase):
         _LOG.debug("%s", "\n" + hprint.frame(stmt))
         exec(stmt, _globals)  # pylint: disable=exec-used
         #
+        config = _globals["config"]
         if mode == "str":
-            act = str(config)  # pylint: disable=undefined-variable
+            act = str(config)
         elif mode == "repr":
-            act = repr(config)  # pylint: disable=undefined-variable
+            act = repr(config)
         else:
             raise ValueError(f"Invalid mode={mode}")
         _LOG.debug("config=\n%s", act)

@@ -290,7 +290,9 @@ def dedent(txt: str, *, remove_lead_trail_empty_lines_: bool = True) -> str:
     # Find the minimum number of leading spaces.
     min_num_spaces = None
     for curr_line in txt.split("\n"):
-        _LOG.debug("min_num_spaces=%s: curr_line='%s'", min_num_spaces, curr_line)
+        _LOG.debug(
+            "min_num_spaces=%s: curr_line='%s'", min_num_spaces, curr_line
+        )
         # Skip empty lines.
         if curr_line.lstrip().rstrip() == "":
             _LOG.debug("  -> Skipping empty line")
