@@ -2294,10 +2294,11 @@ class _Config_execute_stmt_TestCase1(hunitest.TestCase):
         _LOG.debug("%s", "\n" + hprint.frame(stmt))
         exec(stmt, _globals)  # pylint: disable=exec-used
         #
+        config = _globals["config"]
         if mode == "str":
-            act = str(config)  # pylint: disable=undefined-variable
+            act = str(config)
         elif mode == "repr":
-            act = repr(config)  # pylint: disable=undefined-variable
+            act = repr(config)
         else:
             raise ValueError(f"Invalid mode={mode}")
         _LOG.debug("config=\n%s", act)
