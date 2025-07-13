@@ -817,8 +817,8 @@ def safe_rm_file(dir_path: str) -> None:
     """
     Safely remove a file after ensuring it's within our Git client.
 
-    This function provides a safety check to prevent accidental deletion of
-    files outside our Git repository.
+    This function provides a safety check to prevent accidental deletion
+    of files outside our Git repository.
 
     :param dir_path: Path to the directory to delete
     :raises AssertionError: If dir_path is not within the Git client

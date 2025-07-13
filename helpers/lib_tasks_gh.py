@@ -633,7 +633,9 @@ def _get_best_workflow_run(
     return run_status
 
 
-def gh_get_details_for_all_workflows(repo_list: List[str]) -> "pd.DataFrame":  # noqa: F821
+def gh_get_details_for_all_workflows(
+    repo_list: List[str],
+) -> "pd.DataFrame":  # noqa: F821
     """
     Get status for all the workflows.
 
@@ -651,7 +653,6 @@ def gh_get_details_for_all_workflows(repo_list: List[str]) -> "pd.DataFrame":  #
     # TODO(Grisha): expose cols to the interface, i.e. a caller decides what to do.
     gh_cols = ["workflowName", "url", "status", "conclusion", "event"]
     # Import locally in order not to introduce external dependencies to the lib.
-
     repo_dfs = []
     for repo_name in repo_list:
         # Get all workflows for the given repo.

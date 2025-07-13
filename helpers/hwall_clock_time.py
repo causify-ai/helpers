@@ -65,8 +65,8 @@ def get_wall_clock_time() -> Optional["pd.Timestamp"]:  # noqa: F821
 
 # TODO(Sameep): Redundant fuction replace by `hdatetime.timestamp_to_str()`.
 def to_timestamp_str(
-    timestamp: "pd.Timestamp",
-    include_msec: bool = False,  # noqa: F821
+    timestamp: "pd.Timestamp",  # noqa: F821
+    include_msec: bool = False,
 ) -> str:
     if include_msec:
         # Chop the last 4 miliseconds digits. This is needed for CcxtBroker_v2.

@@ -24,9 +24,10 @@
 # %matplotlib inline
 
 import json
+import logging
+
 import jsonpickle
 import jsonpickle.ext.pandas as jsonpickle_pandas
-import logging
 
 jsonpickle_pandas.register_handlers()
 
@@ -123,6 +124,11 @@ exp = jsonpickle.decode(exp)
 assert act == exp
 
 
+# #############################################################################
+# Playback
+# #############################################################################
+
+
 # %%
 class Playback:
     # def __init__(self, file_name, mode, *args, **kwargs):
@@ -168,6 +174,11 @@ def F(a: int, b: int):
 
 res = F(3, 4)
 print(res)
+
+
+# #############################################################################
+# Playback
+# #############################################################################
 
 
 # %%
@@ -295,6 +306,11 @@ assert act == exp
 
 # %%
 df2 = round_trip(df)  # noqa: F821
+
+
+# #############################################################################
+# Thing
+# #############################################################################
 
 
 # %%

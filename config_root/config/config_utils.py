@@ -349,7 +349,7 @@ def check_no_dummy_values(config: crococon.Config) -> bool:
         # Only check for equality if the types agree.
         # Example: if we compare a pd.Series to a built-in type, the comparison
         # is carried out element-wise, which is not what we want in this case.
-        if type(val) == dummy_type:
+        if isinstance(val, dummy_type):
             hdbg.dassert_ne(
                 val,
                 crococon.DUMMY,
