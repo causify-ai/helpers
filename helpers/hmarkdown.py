@@ -549,18 +549,20 @@ def extract_headers_from_markdown(
 
 def extract_slides_from_markdown(
     txt: str,
-) -> HeaderList:
+) -> Tuple[HeaderList, int]:
     """
     Extract slides (i.e., sections prepended by `*`) from Markdown file and
     return an `HeaderList`.
 
     :param txt: content of the input Markdown file.
-    :return: the generated `HeaderList`, e.g.,
-        ```
-        [
-            (1, "Slide 1", 5),
-            (1, "Slide 2", 10), ...]
-        ```
+    :return:
+        - the generated `HeaderList`
+            ```
+            [
+                (1, "Slide 1", 5),
+                (1, "Slide 2", 10), ...]
+            ```
+        - the last line number of the file, e.g., 100.
     """
     hdbg.dassert_isinstance(txt, str)
     header_list: HeaderList = []
@@ -578,7 +580,8 @@ def extract_slides_from_markdown(
             title = m.group(1)
             header_info = HeaderInfo(1, title, line_number)
             header_list.append(header_info)
-    return header_list
+    last_line_number = len(txt.splitlines())
+    return header_list, last_line_number
 
 
 def header_list_to_vim_cfile(markdown_file: str, header_list: HeaderList) -> str:

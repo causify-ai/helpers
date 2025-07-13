@@ -252,7 +252,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Run post-transforms outside the container.
     if not args.skip_post_transforms:
         out_txt = dshlllut.run_post_transforms(
-            args,
+            args.prompt,
+            args.compare,
             in_file_name,
             tmp_in_file_name,
             tmp_out_file_name,

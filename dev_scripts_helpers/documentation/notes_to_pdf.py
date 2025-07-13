@@ -182,13 +182,20 @@ def _filter_by_slides(file_name: str, filter_by_slides: str, prefix: str) -> str
     # Read the file.
     txt = hio.from_file(file_name)
     # Filter by header.
-    slides_info = hmarkdo.extract_slides_from_markdown(txt)
+    slides_info, last_line_number = hmarkdo.extract_slides_from_markdown(txt)
+    _LOG.debug("slides_info=%s\n%s", len(slides_info), slides_info)
+    #assert 0
     # E.g., filter_by_lines='1:10'.
     start_slide, end_slide = _parse_range(filter_by_slides, len(slides_info))
+    _LOG.debug("start_slide=%s, end_slide=%s", start_slide, end_slide)
     hdbg.dassert_lte(start_slide, end_slide)
-    hdbg.dassert_lt(end_slide, len(slides_info))
+    # A number after the last slide is the end of the file.
+    hdbg.dassert_lte(end_slide, len(slides_info) + 1)
     start_line = slides_info[start_slide].line_number
-    end_line = slides_info[end_slide].line_number
+    if end_slide == len(slides_info) + 1:
+        end_line = last_line_number 
+    else:
+        end_line = slides_info[end_slide].line_number
     _LOG.warning("filter_by_slides='%s' -> lines=[%s:%s]", filter_by_slides, start_line, end_line)
     # Filter by slides.
     txt = txt.split("\n")
