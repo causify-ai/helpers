@@ -304,6 +304,11 @@ def _write_file_back(file_name: str, txt: List[str], txt_new: List[str]) -> None
 # - In rare occasions we want to see all the lints (-> pedantic=2)
 
 
+# #############################################################################
+# _Action
+# #############################################################################
+
+
 # TODO(gp): joblib asserts when using abstract classes:
 #   AttributeError: '_BasicHygiene' object has no attribute '_executable'
 # class _Action(abc.ABC):
@@ -341,6 +346,8 @@ class _Action:
         raise NotImplementedError
 
 
+# #############################################################################
+# _CheckFileProperty
 # #############################################################################
 
 
@@ -417,6 +424,8 @@ class _CheckFileProperty(_Action):
 
 
 # #############################################################################
+# _BasicHygiene
+# #############################################################################
 
 
 class _BasicHygiene(_Action):
@@ -433,7 +442,9 @@ class _BasicHygiene(_Action):
         txt_new: List[str] = []
         for line in txt:
             if "\t" in line:
-                msg = f"Found tabs in {file_name}: please use 4 spaces as per PEP8"
+                msg = (
+                    f"Found tabs in {file_name}: please use 4 spaces as per PEP8"
+                )
                 _LOG.warning(msg)
                 output.append(msg)
             # Convert tabs.
@@ -453,6 +464,8 @@ class _BasicHygiene(_Action):
         return output
 
 
+# #############################################################################
+# _CompilePython
 # #############################################################################
 
 
@@ -482,6 +495,8 @@ class _CompilePython(_Action):
 
 
 # #############################################################################
+# _Autoflake
+# #############################################################################
 
 
 class _Autoflake(_Action):
@@ -510,6 +525,8 @@ class _Autoflake(_Action):
 
 
 # #############################################################################
+# _Yapf
+# #############################################################################
 
 
 class _Yapf(_Action):
@@ -537,6 +554,8 @@ class _Yapf(_Action):
         return output
 
 
+# #############################################################################
+# _Black
 # #############################################################################
 
 
@@ -568,10 +587,14 @@ class _Black(_Action):
         # - All done!
         # - 1 file left unchanged.
         to_remove = ["All done!", "file left unchanged", "reformatted"]
-        output = [l for l in output if all(w not in l for w in to_remove)]
+        output = [
+            line for line in output if all(w not in line for w in to_remove)
+        ]
         return output
 
 
+# #############################################################################
+# _Isort
 # #############################################################################
 
 
@@ -599,6 +622,8 @@ class _Isort(_Action):
         return output
 
 
+# #############################################################################
+# _Flake8
 # #############################################################################
 
 
@@ -678,6 +703,8 @@ class _Flake8(_Action):
         return output
 
 
+# #############################################################################
+# _Pydocstyle
 # #############################################################################
 
 
@@ -786,6 +813,8 @@ class _Pydocstyle(_Action):
 
 
 # #############################################################################
+# _Pyment
+# #############################################################################
 
 
 class _Pyment(_Action):
@@ -808,6 +837,8 @@ class _Pyment(_Action):
         return output
 
 
+# #############################################################################
+# _Pylint
 # #############################################################################
 
 
@@ -962,19 +993,21 @@ class _Pylint(_Action):
             output_tmp.append(line)
         output = output_tmp
         # Remove lines.
-        output = [l for l in output if ("-" * 20) not in l]
+        output = [line for line in output if ("-" * 20) not in line]
         # Remove:
         #    ************* Module dev_scripts.generate_script_catalog
         output_as_str = hunitest.filter_text(
             re.escape("^************* Module "), "\n".join(output)
         )
         # Remove empty lines.
-        output = [l for l in output if l.rstrip().lstrip() != ""]
+        output = [line for line in output if line.rstrip().lstrip() != ""]
         #
         output = output_as_str.split("\n")
         return output
 
 
+# #############################################################################
+# _Mypy
 # #############################################################################
 
 
@@ -1018,6 +1051,8 @@ class _Mypy(_Action):
         return output
 
 
+# #############################################################################
+# _IpynbFormat
 # #############################################################################
 
 
@@ -1123,6 +1158,8 @@ def is_init_py(file_name: str) -> bool:
 
 
 # #############################################################################
+# _ProcessJupytext
+# #############################################################################
 
 
 class _ProcessJupytext(_Action):
@@ -1151,9 +1188,19 @@ class _ProcessJupytext(_Action):
         return output
 
 
+# #############################################################################
+# _SyncJupytext
+# #############################################################################
+
+
 class _SyncJupytext(_ProcessJupytext):
     def __init__(self) -> None:
         super().__init__("sync")
+
+
+# #############################################################################
+# _TestJupytext
+# #############################################################################
 
 
 class _TestJupytext(_ProcessJupytext):
@@ -1161,6 +1208,8 @@ class _TestJupytext(_ProcessJupytext):
         super().__init__("test")
 
 
+# #############################################################################
+# _CustomPythonChecks
 # #############################################################################
 
 
@@ -1343,6 +1392,8 @@ class _CustomPythonChecks(_Action):
 
 
 # #############################################################################
+# _LintMarkdown
+# #############################################################################
 
 
 class _LintMarkdown(_Action):
@@ -1374,7 +1425,7 @@ class _LintMarkdown(_Action):
         cmd_as_str = " ".join(cmd)
         _, output = _tee(cmd_as_str, executable, abort_on_error=True)
         # Remove cruft.
-        output = [l for l in output if "Saving log to file" not in l]
+        output = [line for line in output if "Saving log to file" not in line]
         return output
 
 
@@ -1400,7 +1451,6 @@ def _check_file_property(
 def _are_git_files_changed() -> bool:
     """
     Check changes in the local repo.
-
     If any file in the local repo changed, returns False.
     """
     result = True
@@ -1503,7 +1553,6 @@ def _remove_not_possible_actions(actions: List[str]) -> List[str]:
     """
     Check whether each action in "actions" can be executed and return a list of
     the actions that can be executed.
-
     :return: list of strings representing actions
     """
     actions_tmp: List[str] = []

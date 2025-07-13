@@ -671,7 +671,7 @@ def latex_rewrite() -> _PROMPT_OUT:
     """
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
-    #post_container_transforms = ["format_latex"]
+    # post_container_transforms = ["format_latex"]
     post_container_transforms = []
     return system, pre_transforms, post_transforms, post_container_transforms
 
@@ -1256,7 +1256,7 @@ def slide_definition() -> _PROMPT_OUT:
 
 def slide_reduce_bullets() -> _PROMPT_OUT:
     """
-    Remove the bullet points that are 
+    Remove the bullet points that are
     """
     system = _SLIDE_CONTEXT
     system += r"""
@@ -1447,13 +1447,14 @@ def slide_check() -> _PROMPT_OUT:
     post_container_transforms = ["format_markdown", "append_to_text"]
     return system, pre_transforms, post_transforms, post_container_transforms
 
+
 # #############################################################################
 # Text.
 # #############################################################################
 
 # Operate on pure text, not markdown.
 
-#def text_expand() -> _PROMPT_OUT:
+# def text_expand() -> _PROMPT_OUT:
 #    """
 #    """
 #    system = hio.from_file("text_expand2.txt")

@@ -93,9 +93,7 @@ class Greeter:
         """
         stats = {
             "total_greetings": len(self._greeting_cache),
-            "unique_names": len(
-                set(k.split("_")[0] for k in self._greeting_cache)
-            ),
+            "unique_names": len({k.split("_")[0] for k in self._greeting_cache}),
         }
         stats_out = pd.Series(stats).to_frame().T
         return stats_out

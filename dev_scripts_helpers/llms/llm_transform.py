@@ -40,12 +40,12 @@ import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hgit as hgit
 import helpers.hio as hio
+import helpers.hlatex as hlatex
 import helpers.hmarkdown as hmarkdo
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
-import helpers.hlatex as hlatex
 
 _LOG = logging.getLogger(__name__)
 
@@ -252,7 +252,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Run post-transforms outside the container.
     if not args.skip_post_transforms:
         out_txt = dshlllut.run_post_transforms(
-            args,
+            args.prompt,
+            args.compare,
             in_file_name,
             tmp_in_file_name,
             tmp_out_file_name,

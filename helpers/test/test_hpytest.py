@@ -9,9 +9,9 @@ import pytest
 # TODO(heanh): add `junitparser` in `//helpers` image.
 pytest.importorskip("junitparser")
 
-import helpers.hio as hio
-import helpers.hpytest as hpytest
-import helpers.hunit_test as hunitest
+import helpers.hio as hio  # noqa: E402
+import helpers.hpytest as hpytest  # noqa: E402
+import helpers.hunit_test as hunitest  # noqa: E402
 
 
 def _strip_color_codes(text: str) -> str:

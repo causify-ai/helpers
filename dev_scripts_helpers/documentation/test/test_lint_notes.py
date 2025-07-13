@@ -6,6 +6,7 @@ import pytest
 
 import dev_scripts_helpers.documentation.lint_notes as dshdlino
 import helpers.hdbg as hdbg
+import helpers.hdocker as hdocker
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -461,6 +462,11 @@ class Test_lint_notes_cmd_line1(hunitest.TestCase):
         output_txt = self.run_lint_notes(in_file, type_, cmd_opts)
         # Check.
         self.check_string(output_txt)
+
+
+# #############################################################################
+# Test_improve_header_and_slide_titles1
+# #############################################################################
 
 
 class Test_improve_header_and_slide_titles1(hunitest.TestCase):

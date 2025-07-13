@@ -384,7 +384,7 @@ def init_logger_for_input_output_transform(
         ```
         09:34:24 - INFO  hdbg.py init_logger:1013                 Saving log to file '/User...
         09:34:24 - INFO  hdbg.py init_logger:1018                 > cmd='/Users/saggese/src...
-        09:34:24 - INFO  hparser.py parse_input_output_args:368   in_file_name='MSML610/Les...
+        09:34:24 - INFO  hparser.py parse_input_output_args:368   in_file_name='lectures_source/Les...
         09:34:24 - INFO  hparser.py parse_input_output_args:369   out_file_name='-'
     ```
     """
@@ -401,7 +401,7 @@ def init_logger_for_input_output_transform(
             if args.log_level == "INFO":
                 verbosity = "CRITICAL"
         else:
-            print("cmd line: %s" % hdbg.get_command_line())
+            print(f"cmd line: " + hdbg.get_command_line())
     hdbg.init_logger(verbosity=verbosity, use_exec_path=True, force_white=False)
 
 

@@ -790,7 +790,7 @@ def from_json(file_name: str, *, use_types: bool = False) -> Dict:
 
 
 # TODO(gp): -> pandas_helpers.py
-def load_df_from_json(path_to_json: str) -> "pd.DataFrame":  # type: ignore
+def load_df_from_json(path_to_json: str) -> "pd.DataFrame":  # noqa: F821
     """
     Load a dataframe from a json file.
 
@@ -817,14 +817,15 @@ def safe_rm_file(dir_path: str) -> None:
     """
     Safely remove a file after ensuring it's within our Git client.
 
-    This function provides a safety check to prevent accidental deletion of
-    files outside our Git repository.
+    This function provides a safety check to prevent accidental deletion
+    of files outside our Git repository.
 
     :param dir_path: Path to the directory to delete
     :raises AssertionError: If dir_path is not within the Git client
     :raises OSError: If directory doesn't exist or can't be deleted
     """
     import helpers.hgit as hgit
+
     # Convert to absolute path for comparison.
     dir_path = os.path.abspath(dir_path)
     # Get the Git client root.

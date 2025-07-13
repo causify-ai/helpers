@@ -228,7 +228,12 @@ def _save_models_info_to_csv(
     return model_info_df
 
 
-def _build_messages(system_prompt: str, user_prompt: str) -> List[Dict[str, str]]:
+# #############################################################################
+
+
+def _build_messages(
+    system_prompt: str, user_prompt: str
+) -> List[Dict[str, str]]:
     """
     Construct the standard messages payload for the chat API.
     """
@@ -506,7 +511,7 @@ def get_completion(
 #     txt: List[str] = []
 #     txt.append("Found %s files" % len(files))
 #     for file in files:
-#         txt.append("Deleting file %s" % file_to_info(file))
+#         txt.append("Deleting file " + file_to_info(file))
 #     txt = "\n".join(txt)
 #     return txt
 
@@ -562,7 +567,7 @@ def get_completion(
 #     txt = []
 #     txt.append("Found %s assistants" % len(assistants))
 #     for assistant in assistants:
-#         txt.append("Deleting assistant %s" % assistant_to_info(assistant))
+#         txt.append("Deleting assistant " + assistant_to_info(assistant))
 #     txt = "\n".join(txt)
 #     return txt
 

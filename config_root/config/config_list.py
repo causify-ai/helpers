@@ -46,7 +46,7 @@ class ConfigList:
         Print a list of configs into a readable string.
         """
         txt = []
-        txt.append("# %s" % hprint.to_object_str(self))
+        txt.append("# " + hprint.to_object_str(self))
         txt.append(hprint.indent(crcocout.configs_to_str(self.configs)))
         txt = "\n".join(txt)
         return txt

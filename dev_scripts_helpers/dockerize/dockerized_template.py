@@ -11,6 +11,7 @@ import argparse
 import logging
 
 import helpers.hdbg as hdbg
+import helpers.hdocker as hdocker
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -42,8 +43,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
         verbosity=args.log_level, use_exec_path=True, force_white=False
     )
     # FILL THIS.
-    cmd = ()
-    _LOG.debug("Command: %s", cmd)
+    pandoc_cmd = ()
+    _LOG.debug("Command: %s", pandoc_cmd)
     hdocker.run_dockerized_pandoc(
         pandoc_cmd,
         container_type="pandoc_only",

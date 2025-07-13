@@ -114,7 +114,6 @@ class _Object1:
 
 
 class Test_obj_to_str1(hunitest.TestCase, _Obj_to_str_TestCase):
-
     def get_object(self) -> Any:
         obj = _Object1()
         return obj
@@ -212,7 +211,6 @@ class _Object3:
 
 
 class Test_obj_to_str2(hunitest.TestCase, _Obj_to_str_TestCase):
-
     def get_object(self) -> Any:
         obj = _Object3()
         return obj
@@ -354,7 +352,6 @@ class _ClassA(_Abstract_ClassA):
 
 
 class Test_PrintableMixin_to_config_str(hunitest.TestCase):
-
     def check_test_class_str(self, test_class: Any, exp: str) -> None:
         act = test_class.to_config_str()
         text_purifier = huntepur.TextPurifier()
