@@ -42,7 +42,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class Label:
-
     def __init__(self, name: str, description: str, color: str):
         """
         Initialize the label with name, description, and color.

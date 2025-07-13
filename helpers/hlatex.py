@@ -28,7 +28,9 @@ def convert_pandoc_md_to_latex(txt: str) -> str:
     # Read tmp file.
     res = hio.from_file(out_file_name)
     # Remove lines that contain \tightlist.
-    res = "\n".join([line for line in res.splitlines() if "\\tightlist" not in line])
+    res = "\n".join(
+        [line for line in res.splitlines() if "\\tightlist" not in line]
+    )
     return res
 
 

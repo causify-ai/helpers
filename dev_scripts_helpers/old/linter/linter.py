@@ -429,7 +429,6 @@ class _CheckFileProperty(_Action):
 
 
 class _BasicHygiene(_Action):
-
     def check_if_possible(self) -> bool:
         # We don't need any special executable, so we can always run this action.
         return True
@@ -710,7 +709,6 @@ class _Flake8(_Action):
 
 
 class _Pydocstyle(_Action):
-
     def __init__(self) -> None:
         executable = "pydocstyle"
         super().__init__(executable)
@@ -820,7 +818,6 @@ class _Pydocstyle(_Action):
 
 
 class _Pyment(_Action):
-
     def __init__(self) -> None:
         executable = "pyment"
         super().__init__(executable)
@@ -846,7 +843,6 @@ class _Pyment(_Action):
 
 
 class _Pylint(_Action):
-
     def __init__(self) -> None:
         executable = "pylint"
         super().__init__(executable)
@@ -1016,7 +1012,6 @@ class _Pylint(_Action):
 
 
 class _Mypy(_Action):
-
     def __init__(self) -> None:
         executable = "mypy"
         super().__init__(executable)
@@ -1062,7 +1057,6 @@ class _Mypy(_Action):
 
 
 class _IpynbFormat(_Action):
-
     def __init__(self) -> None:
         curr_path = os.path.dirname(os.path.realpath(sys.argv[0]))
         executable = f"{curr_path}/ipynb_format.py"
@@ -1169,7 +1163,6 @@ def is_init_py(file_name: str) -> bool:
 
 
 class _ProcessJupytext(_Action):
-
     def __init__(self, jupytext_action: str) -> None:
         executable = "process_jupytext.py"
         super().__init__(executable)
@@ -1201,7 +1194,6 @@ class _ProcessJupytext(_Action):
 
 
 class _SyncJupytext(_ProcessJupytext):
-
     def __init__(self) -> None:
         super().__init__("sync")
 
@@ -1212,7 +1204,6 @@ class _SyncJupytext(_ProcessJupytext):
 
 
 class _TestJupytext(_ProcessJupytext):
-
     def __init__(self) -> None:
         super().__init__("test")
 
@@ -1343,7 +1334,9 @@ class _CustomPythonChecks(_Action):
             # Look for conflicts markers.
             if _CustomPythonChecks.DEBUG:
                 _LOG.debug("* Look for conflict markers")
-            if any(line.startswith(c) for c in ["<<<<<<<", "=======", ">>>>>>>"]):
+            if any(
+                line.startswith(c) for c in ["<<<<<<<", "=======", ">>>>>>>"]
+            ):
                 msg = f"{file_name}:{i + 1}: there are conflict markers"
                 output.append(msg)
             # Format separating lines.
@@ -1404,7 +1397,6 @@ class _CustomPythonChecks(_Action):
 
 
 class _LintMarkdown(_Action):
-
     def __init__(self) -> None:
         executable = "prettier"
         super().__init__(executable)
@@ -1417,7 +1409,9 @@ class _LintMarkdown(_Action):
         ext = os.path.splitext(file_name)[1]
         output: List[str] = []
         if ext not in (".txt", ".md"):
-            _LOG.debug("Skipping file_name='%s' because ext='%s'", file_name, ext)
+            _LOG.debug(
+                "Skipping file_name='%s' because ext='%s'", file_name, ext
+            )
             return output
         # Run lint_notes.py.
         executable = "lint_notes.py"

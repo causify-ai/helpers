@@ -25,7 +25,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_generate_compose_file1(hunitest.TestCase):
-
     def helper(
         self,
         stage: str,
@@ -109,7 +108,6 @@ class Test_generate_compose_file1(hunitest.TestCase):
 
 
 class Test_generate_compose_file2(hunitest.TestCase):
-
     def helper(
         self,
         mock_getcwd: str,
@@ -427,7 +425,6 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
 
 
 class Test_dassert_is_image_name_valid1(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Check that valid images pass the assertion.
@@ -468,7 +465,6 @@ class Test_dassert_is_image_name_valid1(hunitest.TestCase):
 
 
 class Test_dassert_is_base_image_name_valid1(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Check that valid base images pass the assertion.

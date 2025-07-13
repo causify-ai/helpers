@@ -128,7 +128,6 @@ class Test_load_df_from_json(hunitest.TestCase):
 
 
 class Test_safe_rm_file(hunitest.TestCase):
-
     def test_successful_removal_within_git_client(self) -> None:
         """
         Test successful removal of directory within Git client.
@@ -157,7 +156,9 @@ class Test_safe_rm_file(hunitest.TestCase):
         os.makedirs(nested_dir)
         # Create files at different levels
         hio.to_file(os.path.join(nested_dir, "file1.txt"), "content1")
-        hio.to_file(os.path.join(os.path.dirname(nested_dir), "file2.txt"), "content2")
+        hio.to_file(
+            os.path.join(os.path.dirname(nested_dir), "file2.txt"), "content2"
+        )
         parent_dir = os.path.join(scratch_dir, "parent")
         # Verify directory exists
         self.assertTrue(os.path.exists(parent_dir))

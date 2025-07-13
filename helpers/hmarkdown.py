@@ -500,7 +500,9 @@ def sanity_check_header_list(header_list: HeaderList) -> None:
             hdbg.dassert_isinstance(header_list[i], HeaderInfo)
             if header_list[i].level - header_list[i - 1].level > 1:
                 msg = []
-                msg.append("Consecutive headers increase by more than one level:")
+                msg.append(
+                    "Consecutive headers increase by more than one level:"
+                )
                 msg.append(f"  {header_list[i - 1]}")
                 msg.append(f"  {header_list[i]}")
                 msg = "\n".join(msg)
@@ -1406,6 +1408,7 @@ def filter_by_header(file_name: str, header: str, prefix: str) -> str:
     :return: The path to the processed file
     """
     import helpers.hio as hio
+
     # Read the file.
     txt = hio.from_file(file_name)
     # Filter by header.
@@ -1419,7 +1422,7 @@ def filter_by_header(file_name: str, header: str, prefix: str) -> str:
 def _parse_range(range_as_str: str, max_value: int) -> tuple[int, int]:
     """
     Parse a line range string like '1:10' into start and end line numbers.
-    
+
     :param range_as_str: String in format 'start:end' where start/end can be numbers or 'None'
     :param max_value: Maximum value to use when 'None' is specified for end
     :return: Tuple of (start_line, end_line) as integers
@@ -1448,6 +1451,7 @@ def filter_by_lines(file_name: str, filter_by_lines: str, prefix: str) -> str:
     :return: The path to the processed file
     """
     import helpers.hio as hio
+
     # Read the file.
     txt = hio.from_file(file_name)
     txt = txt.split("\n")
@@ -1457,7 +1461,12 @@ def filter_by_lines(file_name: str, filter_by_lines: str, prefix: str) -> str:
     hdbg.dassert_lte(start_line, end_line)
     txt = txt[start_line - 1 : end_line - 1]
     txt = "\n".join(txt)
-    _LOG.warning("filter_by_lines='%s' -> lines=[%s:%s]", filter_by_lines, start_line, end_line)
+    _LOG.warning(
+        "filter_by_lines='%s' -> lines=[%s:%s]",
+        filter_by_lines,
+        start_line,
+        end_line,
+    )
     #
     file_out = f"{prefix}.filter_by_lines.txt"
     hio.to_file(file_out, txt)
@@ -1474,12 +1483,13 @@ def filter_by_slides(file_name: str, filter_by_slides: str, prefix: str) -> str:
     :return: The path to the processed file
     """
     import helpers.hio as hio
+
     # Read the file.
     txt = hio.from_file(file_name)
     # Filter by header.
     slides_info, last_line_number = extract_slides_from_markdown(txt)
     _LOG.debug("slides_info=%s\n%s", len(slides_info), slides_info)
-    #assert 0
+    # assert 0
     # E.g., filter_by_lines='1:10'.
     start_slide, end_slide = _parse_range(filter_by_slides, len(slides_info))
     _LOG.debug("start_slide=%s, end_slide=%s", start_slide, end_slide)
@@ -1488,10 +1498,15 @@ def filter_by_slides(file_name: str, filter_by_slides: str, prefix: str) -> str:
     hdbg.dassert_lte(end_slide, len(slides_info) + 1)
     start_line = slides_info[start_slide].line_number
     if end_slide == len(slides_info) + 1:
-        end_line = last_line_number 
+        end_line = last_line_number
     else:
         end_line = slides_info[end_slide].line_number
-    _LOG.warning("filter_by_slides='%s' -> lines=[%s:%s]", filter_by_slides, start_line, end_line)
+    _LOG.warning(
+        "filter_by_slides='%s' -> lines=[%s:%s]",
+        filter_by_slides,
+        start_line,
+        end_line,
+    )
     # Filter by slides.
     txt = txt.split("\n")
     txt = txt[start_line - 1 : end_line - 1]

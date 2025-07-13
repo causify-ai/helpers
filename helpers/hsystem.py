@@ -486,8 +486,7 @@ def select_result_file_from_list(
             hdbg.dfatal(f"mode={mode}: didn't find file {file_name}")
         elif len(files) > 1:
             hdbg.dfatal(
-                "mode=%s: found multiple files:\n%s\n"
-                % (mode, "\n".join(files))
+                "mode=%s: found multiple files:\n%s\n" % (mode, "\n".join(files))
             )
         res = [files[0]]
     elif mode == "return_all_results":
@@ -820,15 +819,19 @@ def _find_file(filename: str, *, search_path: str = ".") -> Optional[str]:
     if len(files) == 1:
         return files[0]
     elif len(files) > 1:
-        msg = "Found multiple files with basename '%s' in directory '%s':\n%s" % (
-            filename, search_path, "\n".join(files))
+        msg = (
+            "Found multiple files with basename '%s' in directory '%s':\n%s"
+            % (filename, search_path, "\n".join(files))
+        )
         raise RuntimeError(msg)
     else:
         return None
 
-    
+
 # TODO(gp): -> find_path_greedily
-def find_path(path: str, *, dir_name: str = ".", abort_on_error: bool = False) -> str:
+def find_path(
+    path: str, *, dir_name: str = ".", abort_on_error: bool = False
+) -> str:
     """
     Find a path in a directory and report its absolute path.
 
