@@ -19,7 +19,6 @@ _LOG = logging.getLogger(__name__)
 
 @pytest.mark.slow()
 class Test_show_imports(hunitest.TestCase):
-
     def create_io_dirs(self) -> None:
         dir_name = self.get_input_dir()
         hio.create_dir(dir_name, incremental=True)

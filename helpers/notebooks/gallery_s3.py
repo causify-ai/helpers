@@ -20,6 +20,7 @@
 # %autoreload 3
 
 # %%
+import os
 
 import helpers.hs3 as hs3
 
@@ -40,6 +41,4 @@ s3.ls(bucket)
 s3.ls(bucket)
 
 # %%
-import os
-
 print(os.environ["AWS_DEFAULT_REGION"])

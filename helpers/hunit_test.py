@@ -1314,7 +1314,9 @@ class TestCase(unittest.TestCase):
                     # Create golden file and add it to the repo.
                     _LOG.warning("Creating the golden outcome")
                     outcome_updated = True
-                    self._check_string_update_outcome(file_name, actual, use_gzip)
+                    self._check_string_update_outcome(
+                        file_name, actual, use_gzip
+                    )
                     is_equal = None
                 else:
                     hdbg.dfatal(

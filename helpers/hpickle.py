@@ -103,7 +103,9 @@ def to_pickle(
                 if hs3.is_s3_path(file_name):
                     s3fs_ = hs3.get_s3fs(aws_profile)
                     with s3fs_.open(file_name, "wb") as s3_file:
-                        pickler = pickle.Pickler(s3_file, pickle.HIGHEST_PROTOCOL)
+                        pickler = pickle.Pickler(
+                            s3_file, pickle.HIGHEST_PROTOCOL
+                        )
                         pickler.fast = True
                         pickler.dump(obj)
                 # Use local file system.
@@ -152,7 +154,9 @@ def from_pickle(
     Unpickle and return object stored in `file_name`.
     """
     hdbg.dassert_isinstance(file_name, str)
-    with htimer.TimedScope(logging.DEBUG, f"Unpickling from '{file_name}'") as ts:
+    with htimer.TimedScope(
+        logging.DEBUG, f"Unpickling from '{file_name}'"
+    ) as ts:
         # We assume that the user always specifies a .pkl extension and then we
         # change the extension based on the backend.
         if backend in ("pickle", "dill"):

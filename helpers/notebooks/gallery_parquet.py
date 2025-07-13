@@ -27,6 +27,7 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.dataset as ds
 import pyarrow.parquet as pq
+from pyarrow.dataset import DirectoryPartitioning
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -274,8 +275,6 @@ print("\n".join(dataset.files))
 # ## Partition manually
 
 # %%
-from pyarrow.dataset import DirectoryPartitioning
-
 partitioning = DirectoryPartitioning(
     pa.schema([("year", pa.int16()), ("month", pa.int8()), ("day", pa.int8())])
 )

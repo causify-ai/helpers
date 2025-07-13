@@ -4,7 +4,6 @@
 See instructions at docs/tools/documentation_toolchain/all.notes_toolchain.how_to_guide.md
 """
 
-
 import argparse
 import logging
 import os
@@ -253,8 +252,24 @@ def _improve_header_and_slide_titles(txt: str) -> str:
             title = m.group(2)
             # Transform to title case, leaving words that are all capitalized
             # and conjunctions as is.
-            non_cap_words = {'a', 'an', 'and', 'as', 'at', 'but', 'by', 'for',
-                'in', 'of', 'on', 'or', 'the', 'to', 'vs', 'with'}
+            non_cap_words = {
+                "a",
+                "an",
+                "and",
+                "as",
+                "at",
+                "but",
+                "by",
+                "for",
+                "in",
+                "of",
+                "on",
+                "or",
+                "the",
+                "to",
+                "vs",
+                "with",
+            }
             # Split into words
             words = title.split()
             # Process each word.
@@ -271,8 +286,8 @@ def _improve_header_and_slide_titles(txt: str) -> str:
                 else:
                     # Capitalize other words.
                     words[i] = word.title()
-                    
-            title = ' '.join(words)
+
+            title = " ".join(words)
             # Reconstruct the line.
             line = m.group(1) + " " + title
             txt_new.append(line)
@@ -390,7 +405,7 @@ def _parser() -> argparse.ArgumentParser:
         action="store",
         type=int,
         default=80,
-        help="The maximum line width for the formatted text. If None, 80 is used"
+        help="The maximum line width for the formatted text. If None, 80 is used",
     )
     parser.add_argument(
         "--use_dockerized_prettier",

@@ -66,7 +66,8 @@ def _copy_directory(input_dir: str, output_dir: str) -> None:
     """
     # TODO(ai): Use dassert_dir_exists().
     hdbg.dassert(
-        os.path.exists(input_dir), f"Input directory '{input_dir}' does not exist"
+        os.path.exists(input_dir),
+        f"Input directory '{input_dir}' does not exist",
     )
     # Remove output directory if it exists and create fresh one.
     if os.path.exists(output_dir):

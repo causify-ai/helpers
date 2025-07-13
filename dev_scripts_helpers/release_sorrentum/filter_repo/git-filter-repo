@@ -515,7 +515,7 @@ class Blob(_GitElementWithId):
     self.original_id = original_id
 
     # Stores the blob's data
-    assert(type(data) == bytes)
+    assert(isinstance(data, bytes))
     self.data = data
 
   def dump(self, file_):
@@ -576,7 +576,7 @@ class FileChange(_GitElement):
 
     # Denote the type of file-change (b'M' for modify, b'D' for delete, etc)
     # We could
-    #   assert(type(type_) == bytes)
+    #   assert(isinstance(type_, bytes))
     # here but I don't just due to worries about performance overhead...
     self.type = type_
 
@@ -612,7 +612,8 @@ class FileChange(_GitElement):
     Write this file-change element to a file
     """
     skipped_blob = (self.type == b'M' and self.blob_id is None)
-    if skipped_blob: return
+    if skipped_blob:
+        return
     self.dumped = 1
 
     quoted_filename = PathQuoting.enquote(self.filename)
@@ -1235,7 +1236,7 @@ class FastExportParser(object):
     file_change = self._parse_optional_filechange()
     had_file_changes = file_change is not None
     while file_change:
-      if not (type(file_change) == bytes and file_change == b'skipped'):
+      if not (isinstance(file_change, bytes and file_change == b'skipped')):
         file_changes.append(file_change)
       file_change = self._parse_optional_filechange()
     if self._currentline == b'\n':
@@ -1385,7 +1386,7 @@ class FastExportParser(object):
   def insert(self, obj):
     assert not obj.dumped
     obj.dump(self._output)
-    if type(obj) == Commit:
+    if isinstance(obj, Commit):
       self._imported_refs.add(obj.branch)
     elif type(obj) in (Reset, Tag):
       self._imported_refs.add(obj.ref)
@@ -1452,11 +1453,11 @@ ID_TO_HASH = {}
 class SubprocessWrapper(object):
   @staticmethod
   def decodify(args):
-    if type(args) == str:
+    if isinstance(args, str):
       return args
     else:
-      assert type(args) == list
-      return [decode(x) if type(x)==bytes else x for x in args]
+      assert type(args)) == list
+      return [decode(x) if isinstance(x, bytes) else x for x in args]
 
   @staticmethod
   def call(*args, **kwargs):
@@ -2045,7 +2046,7 @@ EXAMPLES
       raise SystemExit(_("Error: --analyze is incompatible with --stdin."))
     # If no path_changes are found, initialize with empty list but mark as
     # not inclusive so that all files match
-    if args.path_changes == None:
+    if args.path_changes is None:
       args.path_changes = []
       args.inclusive = False
     else:
@@ -3029,7 +3030,7 @@ class RepoFilter(object):
     # Parse through self._pending_renames until we have read enough.  We have
     # read enough if:
     #   self._pending_renames is empty
-    #   old_hash != None and we found a rename for old_hash
+    #   old_hash is not None and we found a rename for old_hash
     #   limit > 0 and len(self._pending_renames) started less than 2*limit
     #   limit > 0 and len(self._pending_renames) < limit
     if limit and len(self._pending_renames) < 2 * limit:
@@ -3803,7 +3804,7 @@ class RepoFilter(object):
     with open(os.path.join(metadata_dir, b'commit-map'), 'bw') as f:
       f.write(("%-40s %s\n" % (_("old"), _("new"))).encode())
       for (old,new) in self._commit_renames.items():
-        msg = b'%s %s\n' % (old, new if new != None else deleted_hash)
+        msg = b'%s %s\n' % (old, new if new is not None else deleted_hash)
         f.write(msg)
 
     exported_refs, imported_refs = self.get_exported_and_imported_refs()
@@ -3819,7 +3820,7 @@ class RepoFilter(object):
           new_hash = deleted_hash
         elif old_hash in self._commit_renames:
           new_hash = self._commit_renames[old_hash]
-          new_hash = new_hash if new_hash != None else deleted_hash
+          new_hash = new_hash if new_hash is not None else deleted_hash
         else: # Must be either an annotated tag, or a ref whose tip was pruned
           if not batch_check_process:
             cmd = 'git cat-file --batch-check'.split()
@@ -3894,15 +3895,15 @@ class RepoFilter(object):
 
   def insert(self, obj, direct_insertion = False):
     if not direct_insertion:
-      if type(obj) == Blob:
+      if isinstance(obj, Blob):
         self._tweak_blob(obj)
-      elif type(obj) == Commit:
+      elif isinstance(obj, Commit):
         aux_info = {'orig_parents': obj.parents,
                     'had_file_changes': bool(obj.file_changes)}
         self._tweak_commit(obj, aux_info)
-      elif type(obj) == Reset:
+      elif isinstance(obj, Reset):
         self._tweak_reset(obj)
-      elif type(obj) == Tag:
+      elif isinstance(obj, Tag):
         self._tweak_tag(obj)
     self._insert_into_stream(obj)
 
