@@ -113,35 +113,81 @@ class _SetenvTestCase(hunitest.TestCase):
 
         :return: wrapper script content
         """
-        wrapper_script = f"""#!/bin/bash
-        set -e
+        wrapper_script = f"""
+            #!/bin/bash
+            set -e
 
-        # Set minimal PATH for basic commands.
-        export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+            # Set minimal PATH for basic commands.
+            export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
-        # Change to the directory containing `setenv.sh`.
-        cd "{self.setenv_path.parent}"
+            # Create a temporary directory for testing.
+            TEMP_DIR=$(mktemp -d)
 
-        # Source the `setenv.sh` script and capture output.
-        # Allow the script to fail gracefully.
-        set +e
-        tmp_out=$(mktemp)
-        source "{self.setenv_path}" >"$tmp_out" 2>&1
-        source_status=$?
-        set -e
+            # Create minimal venv structure for testing.
+            # The script expects $HOME/src/venv/client_venv.helpers or /venv/client_venv.helpers
+            # We'll create it in our temp directory and set HOME to point there
+            mkdir -p "$TEMP_DIR/src/venv/client_venv.helpers/bin"
+            cat > "$TEMP_DIR/src/venv/client_venv.helpers/bin/activate" << 'EOF'
+            #!/bin/bash
+            # Mock activate script for testing
+            export VIRTUAL_ENV="$HOME/src/venv/client_venv.helpers"
+            export PATH="$VIRTUAL_ENV/bin:$PATH"
+            unset PYTHON_HOME
+            # Set PS1 to indicate venv is active
+            export PS1="(client_venv.helpers) $PS1"
+            EOF
 
-        # Print the captured output.
-        echo "=== setenv.sh output ==="
-        cat "$tmp_out"
-        echo "=== END setenv.sh output ==="
-        rm -f "$tmp_out"
+            # Set HOME to our temp directory so the script finds the venv
+            export HOME="$TEMP_DIR"
 
-        # Print environment variables after sourcing.
-        echo "=== ENVIRONMENT VARIABLES AFTER setenv.sh ==="
-        env | sort
-        echo "=== END ENVIRONMENT VARIABLES AFTER setenv.sh ==="
+            # Change to the directory containing `setenv.sh`.
+            cd "{self.setenv_path.parent}"
 
-        exit $source_status
+            # Create the dev_scripts_helpers directory expected by setenv.sh.
+            # The script constructs: DEV_SCRIPT_DIR=${{CURR_DIR}}/dev_scripts_${{REPO_CONF_runnable_dir_info_dir_suffix}}
+            # Which results in: /app/dev_scripts_helpers/thin_client/dev_scripts_helpers
+            mkdir -p dev_scripts_helpers
+
+            # Create symlink to repo_config.yaml if it doesn't exist.
+            if [ ! -f repo_config.yaml ]; then
+                ln -sf "{self.repo_config_path}" repo_config.yaml
+            fi
+
+            # Source the `setenv.sh` script and capture output.
+            # Allow the script to fail gracefully.
+            set +e
+            tmp_out=$(mktemp)
+            source "{self.setenv_path}" >"$tmp_out" 2>&1
+            source_status=$?
+            set -e
+
+            # Print the captured output.
+            echo "=== setenv.sh output ==="
+            cat "$tmp_out"
+            echo "=== END setenv.sh output ==="
+            rm -f "$tmp_out"
+
+            # Clean up the symlink.
+            if [ -L repo_config.yaml ]; then
+                rm -f repo_config.yaml
+            fi
+
+            # Clean up the dev_scripts_helpers directory.
+            if [ -d dev_scripts_helpers ]; then
+                rmdir dev_scripts_helpers
+            fi
+
+            # Clean up the temporary directory.
+            if [ -n "$TEMP_DIR" ] && [ -d "$TEMP_DIR" ]; then
+                rm -rf "$TEMP_DIR"
+            fi
+
+            # Print environment variables after sourcing.
+            echo "=== ENVIRONMENT VARIABLES AFTER setenv.sh ==="
+            env | sort
+            echo "=== END ENVIRONMENT VARIABLES AFTER setenv.sh ==="
+
+            exit $source_status
         """
         wrapper_script = hprint.dedent(wrapper_script)
         return wrapper_script
@@ -201,6 +247,13 @@ class TestSetenvOutput(_SetenvTestCase):
             ),
             ("##> Parsing repo config", "Script should parse repo config"),
             ("# activate_venv()", "Script should activate virtual environment"),
+            ("src_dir=", "Script should set src_dir"),
+            ("venv_dir=", "Script should set venv_dir"),
+            (
+                "# Activate virtual env",
+                "Script should activate virtual environment",
+            ),
+            ("VIRTUAL_ENV=", "Script should set VIRTUAL_ENV after activation"),
             ("HELPERS_ROOT_DIR=", "Script should set HELPERS_ROOT_DIR"),
             ("DEV_SCRIPT_DIR=", "Script should set DEV_SCRIPT_DIR"),
             ("PATH=", "Script should set PATH"),
@@ -260,6 +313,7 @@ class TestSetenvOutput(_SetenvTestCase):
         expected_vars = [
             "PATH=",
             "PYTHONPATH=",
+            "VIRTUAL_ENV=",
             "CSFY_HOST_NAME=",
             "CSFY_HOST_OS_NAME=",
             "CSFY_HOST_USER_NAME=",
