@@ -190,10 +190,10 @@ class Test_fix_links(hunitest.TestCase):
 
         A test to check two words header in the reference file.
         """
-        reference_file_name = "reference.md"
-        reference_file_link = self.write_input_file(
-            reference_file_md_content, reference_file_name
-        )
+        # reference_file_name = "reference.md"
+        # reference_file_link = self.write_input_file(
+        #     reference_file_md_content, reference_file_name
+        # )
         #
         # test_md_content = rf"""
         # Markdown link: [Valid Markdown and header Link]({reference_file_link}#introduction)

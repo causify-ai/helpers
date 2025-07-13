@@ -150,8 +150,8 @@ foo
         actual_warnings = "\n".join(actual_warning_list)
         expected_warnings = (
             f"{temp_file}:2: Found unbalanced triple backticks; "
-            f"make sure both opening and closing backticks are "
-            f"the leftmost element of their line"
+            "make sure both opening and closing backticks are "
+            "the leftmost element of their line"
         )
         # Check.
         self.assertEqual(actual_warnings, expected_warnings)

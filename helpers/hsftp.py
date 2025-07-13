@@ -17,7 +17,7 @@ import helpers.hsecrets as hsecret
 
 henv.install_module_if_not_present("pysftp")
 
-import pysftp
+import pysftp  # noqa: E402
 
 # Create a logger instance.
 _LOG = logging.getLogger(__name__)

@@ -448,18 +448,18 @@ class _OrderedConfig(_OrderedDictType):
             elif mode == "verbose":
                 # E.g., `nrows (marked_as_used=False, val_type=config_root.config.config_.Config)`
                 key_as_str = f"{key} (marked_as_used={marked_as_used}, writer={str(writer)}, "
-                key_as_str += "val_type=%s)" % hprint.type_to_string(type(val))
+                key_as_str += "val_type=" + hprint.type_to_string(type(val)) + ")"
             elif mode == "debug":
                 # Show full stacktrace of the writer.
                 stacktrace = repr(writer)
                 key_as_str = f"{key} (marked_as_used={marked_as_used}, writer={stacktrace}, "
-                key_as_str += "val_type=%s)" % hprint.type_to_string(type(val))
+                key_as_str += "val_type=" + hprint.type_to_string(type(val)) + ")"
             # 2) Process value.
             if isinstance(val, (pd.DataFrame, pd.Series, pd.Index)):
                 # Data structures that can be printed in a fancy way.
                 val_as_str = hpandas.df_to_str(val, print_shape_info=True)
                 val_as_str = "\n" + hprint.indent(val_as_str)
-            elif isinstance(val, Config) or isinstance(val, _OrderedConfig):
+            elif isinstance(val, (Config, _OrderedConfig)):
                 # Convert Configs recursively.
                 val_as_str = val.to_string(mode)
                 val_as_str = "\n" + hprint.indent(val_as_str)
@@ -1176,11 +1176,10 @@ class Config:
             if key not in self._config:
                 missing_keys.append(key)
         if missing_keys:
-            msg = "Missing %s vars (from %s) in config=\n%s" % (
-                ",".join(missing_keys),
-                ",".join(keys),
-                str(self),
-            )
+            missing_keys_str = ",".join(missing_keys)
+            keys_str = ",".join(keys)
+            msg = f"Missing {missing_keys_str} vars (from {keys_str}) in config=\n"
+            msg += str(self)
             _LOG.error(msg)
             raise KeyError(msg)
 

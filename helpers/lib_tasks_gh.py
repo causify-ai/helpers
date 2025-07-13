@@ -215,7 +215,7 @@ def gh_workflow_list(  # type: ignore
             if status == "success":
                 print(f"Workflow '{workflow}' for '{branch_name}' is ok")
                 break
-            if status in ("failure", "startup_failure", "cancelled"):
+            if status in ("failure", "startup_failure", "cancelled", "skipped"):
                 _LOG.error(
                     "Workflow '%s' for '%s' is broken", workflow, branch_name
                 )
@@ -633,7 +633,9 @@ def _get_best_workflow_run(
     return run_status
 
 
-def gh_get_details_for_all_workflows(repo_list: List[str]) -> "pd.DataFrame":
+def gh_get_details_for_all_workflows(
+    repo_list: List[str],
+) -> "pd.DataFrame":  # noqa: F821
     """
     Get status for all the workflows.
 
@@ -651,7 +653,6 @@ def gh_get_details_for_all_workflows(repo_list: List[str]) -> "pd.DataFrame":
     # TODO(Grisha): expose cols to the interface, i.e. a caller decides what to do.
     gh_cols = ["workflowName", "url", "status", "conclusion", "event"]
     # Import locally in order not to introduce external dependencies to the lib.
-
     repo_dfs = []
     for repo_name in repo_list:
         # Get all workflows for the given repo.
@@ -706,7 +707,7 @@ def gh_get_details_for_all_workflows(repo_list: List[str]) -> "pd.DataFrame":
 
 
 def gh_get_overall_build_status_for_repo(
-    repo_df: "pd.Dataframe",
+    repo_df: "pd.Dataframe",  # noqa: F821
     *,
     use_colors: bool = True,
 ) -> str:
@@ -758,7 +759,7 @@ def gh_get_workflow_type_names(
     # Check for duplicate workflow names.
     hdbg.dassert_no_duplicates(
         workflow_names,
-        "Found duplicate workflow names in repo '%s'" % repo_name,
+        f"Found duplicate workflow names in repo '{repo_name}'",
     )
     return workflow_names
 
@@ -878,7 +879,7 @@ def color_format(val: str, status_color_mapping: Dict[str, str]) -> str:
 
 
 def render_repo_workflow_status_table(
-    workflow_df: "pd.DataFrame",
+    workflow_df: "pd.DataFrame",  # noqa: F821
     status_color_mapping: Dict[str, str],
     timezone: str = "America/New_York",
 ) -> None:

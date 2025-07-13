@@ -114,7 +114,7 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
                 level = logging.TRACE
             else:
                 raise ValueError("Can't get here")
-            print(f"\n{_WARNING}: Setting verbosity level to %s" % level)
+            print(f"\n{_WARNING}: Setting verbosity level to {level}")
             # When we specify the debug verbosity we monkey patch the command
             # line to add the '-s' option to pytest to not suppress the output.
             # NOTE: monkey patching sys.argv is often fragile.

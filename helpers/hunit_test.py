@@ -183,7 +183,7 @@ def convert_info_to_string(info: Mapping) -> str:
 
 # TODO(gp): This seems the python3.9 version of `to_str`. Remove if possible.
 def to_string(var: str) -> str:
-    return """f"%s={%s}""" % (var, var)
+    return f"""f"{var}={{{var}}}"""
 
 
 # TODO(gp): @all move to hpandas

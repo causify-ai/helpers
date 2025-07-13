@@ -1490,7 +1490,7 @@ def df_to_str(
             out.append(txt)
             # TODO(gp): np can't do isinf on objects like strings.
             # num_infinite = np.isinf(df).sum().sum()
-            # txt = "num_infinite=%s" % hprint.perc(num_infinite, num_elems)
+            # txt = "num_infinite=" + hprint.perc(num_infinite, num_elems)
             # out.append(txt)
             #
             num_nan_rows = df.dropna().shape[0]
@@ -2287,12 +2287,12 @@ def multiindex_df_info(
         f"shape={len(columns_level0)} x {len(columns_level1)} x {len(rows)}"
     )
     ret.append(
-        "columns_level0=%s" % list_to_str(columns_level0, **list_to_str_kwargs)
+        "columns_level0=" + list_to_str(columns_level0, **list_to_str_kwargs)
     )
     ret.append(
-        "columns_level1=%s" % list_to_str(columns_level1, **list_to_str_kwargs)
+        "columns_level1=" + list_to_str(columns_level1, **list_to_str_kwargs)
     )
-    ret.append("rows=%s" % list_to_str(rows, **list_to_str_kwargs))
+    ret.append("rows=" + list_to_str(rows, **list_to_str_kwargs))
     if isinstance(df.index, pd.DatetimeIndex):
         # Display timestamp info.
         start_timestamp = df.index.min()

@@ -61,7 +61,7 @@ def markdown_list_to_latex(markdown: str) -> str:
     txt = "\n".join(lines)
     # Add the title frame.
     if title:
-        txt = "\\begin{frame}{%s}" % title + "\n" + txt + "\n" + "\\end{frame}"
+        txt = f"\\begin{{frame}}{{{title}}}" + "\n" + txt + "\n" + "\\end{frame}"
     return txt
 
 

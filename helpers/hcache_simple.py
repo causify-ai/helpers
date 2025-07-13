@@ -406,7 +406,7 @@ def get_cache(func_name: str) -> _CacheType:
 # #############################################################################
 
 
-def cache_stats_to_str(func_name: str = "") -> "pd.DataFrame":
+def cache_stats_to_str(func_name: str = "") -> "pd.DataFrame":  # noqa: F821
     """
     Print the cache stats for a function or for all functions.
 
