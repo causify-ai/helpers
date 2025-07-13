@@ -63,9 +63,7 @@ def _log_system(cmd: str) -> None:
 
 def _system(cmd: str, *, log_level: int = logging.DEBUG, **kwargs: Any) -> int:
     _log_system(cmd)
-    rc = hsystem.system(
-        cmd, log_level=log_level, suppress_output=False, **kwargs
-    )
+    rc = hsystem.system(cmd, log_level=log_level, suppress_output=False, **kwargs)
     return rc  # type: ignore
 
 
@@ -263,9 +261,7 @@ def _run_pandoc_to_pdf(
     )
     _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
     if not use_host_tools:
-        cmd = hdocker.run_dockerized_latex(
-            cmd, mode="return_cmd", use_sudo=False
-        )
+        cmd = hdocker.run_dockerized_latex(cmd, mode="return_cmd", use_sudo=False)
     _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
     _ = _system(cmd)
     # - Run latex again.
@@ -482,9 +478,7 @@ def _run_all(args: argparse.Namespace) -> None:
     # Print actions.
     actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     add_frame = True
-    actions_as_str = hparser.actions_to_string(
-        actions, _VALID_ACTIONS, add_frame
-    )
+    actions_as_str = hparser.actions_to_string(actions, _VALID_ACTIONS, add_frame)
     _LOG.info("\n%s", actions_as_str)
     if args.preview_actions:
         return
@@ -511,18 +505,22 @@ def _run_all(args: argparse.Namespace) -> None:
         _cleanup_before(prefix)
     # - Filter
     if args.filter_by_header:
-        file_name = hmarkdo.filter_by_header(file_name, args.filter_by_header, prefix)
+        file_name = hmarkdo.filter_by_header(
+            file_name, args.filter_by_header, prefix
+        )
     if args.filter_by_lines:
-        file_name = hmarkdo.filter_by_lines(file_name, args.filter_by_lines, prefix)
+        file_name = hmarkdo.filter_by_lines(
+            file_name, args.filter_by_lines, prefix
+        )
     if args.filter_by_slides:
-        file_name = hmarkdo.filter_by_slides(file_name, args.filter_by_slides, prefix)
+        file_name = hmarkdo.filter_by_slides(
+            file_name, args.filter_by_slides, prefix
+        )
     # - Preprocess_notes
     action = "preprocess_notes"
     to_execute, actions = _mark_action(action, actions)
     if to_execute:
-        file_name = _preprocess_notes(
-            file_name, prefix, args.type, args.toc_type
-        )
+        file_name = _preprocess_notes(file_name, prefix, args.type, args.toc_type)
     # - Render_images
     action = "render_images"
     to_execute, actions = _mark_action(action, actions)

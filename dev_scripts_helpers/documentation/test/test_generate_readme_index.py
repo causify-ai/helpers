@@ -3,7 +3,9 @@ import textwrap
 
 import pytest
 
-pytest.importorskip("openai")  # noqa: E402 # pylint: disable=wrong-import-position
+pytest.importorskip(
+    "openai"
+)  # noqa: E402 # pylint: disable=wrong-import-position
 
 import dev_scripts_helpers.documentation.generate_readme_index as dshdgrein  # noqa: E402
 import helpers.hio as hio  # noqa: E402
@@ -16,6 +18,7 @@ import helpers.hunit_test as hunitest  # noqa: E402
 
 
 class Test_list_markdown_files(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Test retrieving all Markdown files in a directory.
@@ -126,6 +129,7 @@ class Test_list_markdown_files(hunitest.TestCase):
 
 
 class Test_generate_readme_index(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Test generating README from scratch using placeholder summary.

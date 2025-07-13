@@ -304,6 +304,11 @@ def _write_file_back(file_name: str, txt: List[str], txt_new: List[str]) -> None
 # - In rare occasions we want to see all the lints (-> pedantic=2)
 
 
+# #############################################################################
+# _Action
+# #############################################################################
+
+
 # TODO(gp): joblib asserts when using abstract classes:
 #   AttributeError: '_BasicHygiene' object has no attribute '_executable'
 # class _Action(abc.ABC):
@@ -341,6 +346,8 @@ class _Action:
         raise NotImplementedError
 
 
+# #############################################################################
+# _CheckFileProperty
 # #############################################################################
 
 
@@ -417,9 +424,12 @@ class _CheckFileProperty(_Action):
 
 
 # #############################################################################
+# _BasicHygiene
+# #############################################################################
 
 
 class _BasicHygiene(_Action):
+
     def check_if_possible(self) -> bool:
         # We don't need any special executable, so we can always run this action.
         return True
@@ -433,7 +443,9 @@ class _BasicHygiene(_Action):
         txt_new: List[str] = []
         for line in txt:
             if "\t" in line:
-                msg = f"Found tabs in {file_name}: please use 4 spaces as per PEP8"
+                msg = (
+                    f"Found tabs in {file_name}: please use 4 spaces as per PEP8"
+                )
                 _LOG.warning(msg)
                 output.append(msg)
             # Convert tabs.
@@ -453,6 +465,8 @@ class _BasicHygiene(_Action):
         return output
 
 
+# #############################################################################
+# _CompilePython
 # #############################################################################
 
 
@@ -482,6 +496,8 @@ class _CompilePython(_Action):
 
 
 # #############################################################################
+# _Autoflake
+# #############################################################################
 
 
 class _Autoflake(_Action):
@@ -510,6 +526,8 @@ class _Autoflake(_Action):
 
 
 # #############################################################################
+# _Yapf
+# #############################################################################
 
 
 class _Yapf(_Action):
@@ -537,6 +555,8 @@ class _Yapf(_Action):
         return output
 
 
+# #############################################################################
+# _Black
 # #############################################################################
 
 
@@ -568,10 +588,14 @@ class _Black(_Action):
         # - All done!
         # - 1 file left unchanged.
         to_remove = ["All done!", "file left unchanged", "reformatted"]
-        output = [line for line in output if all(w not in line for w in to_remove)]
+        output = [
+            line for line in output if all(w not in line for w in to_remove)
+        ]
         return output
 
 
+# #############################################################################
+# _Isort
 # #############################################################################
 
 
@@ -599,6 +623,8 @@ class _Isort(_Action):
         return output
 
 
+# #############################################################################
+# _Flake8
 # #############################################################################
 
 
@@ -679,9 +705,12 @@ class _Flake8(_Action):
 
 
 # #############################################################################
+# _Pydocstyle
+# #############################################################################
 
 
 class _Pydocstyle(_Action):
+
     def __init__(self) -> None:
         executable = "pydocstyle"
         super().__init__(executable)
@@ -786,9 +815,12 @@ class _Pydocstyle(_Action):
 
 
 # #############################################################################
+# _Pyment
+# #############################################################################
 
 
 class _Pyment(_Action):
+
     def __init__(self) -> None:
         executable = "pyment"
         super().__init__(executable)
@@ -809,9 +841,12 @@ class _Pyment(_Action):
 
 
 # #############################################################################
+# _Pylint
+# #############################################################################
 
 
 class _Pylint(_Action):
+
     def __init__(self) -> None:
         executable = "pylint"
         super().__init__(executable)
@@ -976,9 +1011,12 @@ class _Pylint(_Action):
 
 
 # #############################################################################
+# _Mypy
+# #############################################################################
 
 
 class _Mypy(_Action):
+
     def __init__(self) -> None:
         executable = "mypy"
         super().__init__(executable)
@@ -1019,9 +1057,12 @@ class _Mypy(_Action):
 
 
 # #############################################################################
+# _IpynbFormat
+# #############################################################################
 
 
 class _IpynbFormat(_Action):
+
     def __init__(self) -> None:
         curr_path = os.path.dirname(os.path.realpath(sys.argv[0]))
         executable = f"{curr_path}/ipynb_format.py"
@@ -1123,9 +1164,12 @@ def is_init_py(file_name: str) -> bool:
 
 
 # #############################################################################
+# _ProcessJupytext
+# #############################################################################
 
 
 class _ProcessJupytext(_Action):
+
     def __init__(self, jupytext_action: str) -> None:
         executable = "process_jupytext.py"
         super().__init__(executable)
@@ -1151,16 +1195,30 @@ class _ProcessJupytext(_Action):
         return output
 
 
+# #############################################################################
+# _SyncJupytext
+# #############################################################################
+
+
 class _SyncJupytext(_ProcessJupytext):
+
     def __init__(self) -> None:
         super().__init__("sync")
 
 
+# #############################################################################
+# _TestJupytext
+# #############################################################################
+
+
 class _TestJupytext(_ProcessJupytext):
+
     def __init__(self) -> None:
         super().__init__("test")
 
 
+# #############################################################################
+# _CustomPythonChecks
 # #############################################################################
 
 
@@ -1285,9 +1343,7 @@ class _CustomPythonChecks(_Action):
             # Look for conflicts markers.
             if _CustomPythonChecks.DEBUG:
                 _LOG.debug("* Look for conflict markers")
-            if any(
-                line.startswith(c) for c in ["<<<<<<<", "=======", ">>>>>>>"]
-            ):
+            if any(line.startswith(c) for c in ["<<<<<<<", "=======", ">>>>>>>"]):
                 msg = f"{file_name}:{i + 1}: there are conflict markers"
                 output.append(msg)
             # Format separating lines.
@@ -1343,9 +1399,12 @@ class _CustomPythonChecks(_Action):
 
 
 # #############################################################################
+# _LintMarkdown
+# #############################################################################
 
 
 class _LintMarkdown(_Action):
+
     def __init__(self) -> None:
         executable = "prettier"
         super().__init__(executable)
@@ -1358,9 +1417,7 @@ class _LintMarkdown(_Action):
         ext = os.path.splitext(file_name)[1]
         output: List[str] = []
         if ext not in (".txt", ".md"):
-            _LOG.debug(
-                "Skipping file_name='%s' because ext='%s'", file_name, ext
-            )
+            _LOG.debug("Skipping file_name='%s' because ext='%s'", file_name, ext)
             return output
         # Run lint_notes.py.
         executable = "lint_notes.py"
@@ -1400,7 +1457,6 @@ def _check_file_property(
 def _are_git_files_changed() -> bool:
     """
     Check changes in the local repo.
-
     If any file in the local repo changed, returns False.
     """
     result = True
@@ -1503,7 +1559,6 @@ def _remove_not_possible_actions(actions: List[str]) -> List[str]:
     """
     Check whether each action in "actions" can be executed and return a list of
     the actions that can be executed.
-
     :return: list of strings representing actions
     """
     actions_tmp: List[str] = []

@@ -25,6 +25,7 @@ _LOG = logging.getLogger(__name__)
     reason="Disabled because of CmampTask10710",
 )
 class Test_notes_to_pdf1(hunitest.TestCase):
+
     def create_input_file(self) -> str:
         txt = """
         # Header1

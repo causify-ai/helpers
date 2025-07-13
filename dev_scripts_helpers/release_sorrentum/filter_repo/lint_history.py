@@ -2,12 +2,11 @@
 
 """
 This is a simple program that will run a linting program on all non-binary
-files in history.  It also rewrites commit hashes in commit messages to
-refer to the new commits with the rewritten files.  You call it like this:
-   lint-history my-lint-command --arg whatever --another-arg
-and it will repeatedly call
-   my-lint-command --arg whatever --another-arg $TEMPORARY_FILE
-with $TEMPORARY_FILE having contents of some file from history.
+files in history.  It also rewrites commit hashes in commit messages to refer
+to the new commits with the rewritten files.  You call it like this: lint-
+history my-lint-command --arg whatever --another-arg and it will repeatedly
+call my-lint-command --arg whatever --another-arg $TEMPORARY_FILE with
+$TEMPORARY_FILE having contents of some file from history.
 
 NOTE: Several people have taken and modified this script for a variety
 of special cases (linting python files, linting jupyter notebooks, just
@@ -59,6 +58,7 @@ example_text = """CALLBACK
 
         def is_relevant(filename):
             BODY
+
 
     Where filename is the full relative path from the toplevel of the
     repository.
@@ -143,29 +143,20 @@ def lint_with_real_filenames(commit, metadata):
             # Get the old blob contents
             cat_file_process.stdin.write(change.blob_id + b"\n")
             cat_file_process.stdin.flush()
-            objhash, objtype, objsize = (
-                cat_file_process.stdout.readline().split()
-            )
-            contents_plus_newline = cat_file_process.stdout.read(
-                int(objsize) + 1
-            )
-
+            objhash, objtype, objsize = cat_file_process.stdout.readline().split()
+            contents_plus_newline = cat_file_process.stdout.read(int(objsize) + 1)
             # Write it out to a file with the same basename
             filename = os.path.join(tmpdir, os.path.basename(change.filename))
             with open(filename, "wb") as f:
                 f.write(contents_plus_newline[:-1])
-
             # Lint the file
             subprocess.check_call(lint_args.command + [filename.decode("utf-8")])
-
             # Get the new contents
             with open(filename, "rb") as f:
                 blob = fr.Blob(f.read())
-
             # Insert the new file into the filter's stream, and remove the tempfile
             filter.insert(blob)
             os.remove(filename)
-
             # Record our handling of the blob and use it for this change
             blobs_handled[change.blob_id] = blob.id
             change.blob_id = blob.id

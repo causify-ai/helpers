@@ -1,31 +1,36 @@
 <!-- toc -->
 
-- [How to create a super-repo with `helpers`](#how-to-create-a-super-repo-with-helpers)
-  * [Create a new (super) repo in the desired organization](#create-a-new-super-repo-in-the-desired-organization)
-  * [Add helpers sub-repo](#add-helpers-sub-repo)
-  * [Copy and customize files](#copy-and-customize-files)
-  * [1) Copy and customize files in the top dir](#1-copy-and-customize-files-in-the-top-dir)
-  * [2) Copy and customize files in `thin_client`](#2-copy-and-customize-files-in-thin_client)
-    + [Build the thin environment](#build-the-thin-environment)
-    + [Test the thin environment](#test-the-thin-environment)
-    + [Create the tmux links](#create-the-tmux-links)
-    + [Maintain the files in sync with the template](#maintain-the-files-in-sync-with-the-template)
-  * [3) Copy and customize files in `devops`](#3-copy-and-customize-files-in-devops)
-  * [4) Replace files with symbolic links](#4-replace-files-with-symbolic-links)
-  * [5) Build container and running tests](#5-build-container-and-running-tests)
-    + [Build a container for a super-repo](#build-a-container-for-a-super-repo)
-    + [Check if the regressions are passing](#check-if-the-regressions-are-passing)
-  * [Configure regressions via GitHub actions](#configure-regressions-via-github-actions)
-    + [Set repository secrets/variables](#set-repository-secretsvariables)
-    + [Create GitHub actions workflow files](#create-github-actions-workflow-files)
-    + [Configure Gitleaks scan](#configure-gitleaks-scan)
-  * [Configure GitHub repo](#configure-github-repo)
+- [How to Create a Super-Repo with `Helpers`](#how-to-create-a-super-repo-with-helpers)
+  * [Create a New (Super) Repo in the Desired Organization](#create-a-new-super-repo-in-the-desired-organization)
+  * [Add Helpers Sub-Repo](#add-helpers-sub-repo)
+  * [Copy and Customize Files in the Top Dir](#copy-and-customize-files-in-the-top-dir)
+    + [Copy Files From Existing Repo](#copy-files-from-existing-repo)
+    + [Script Approach](#script-approach)
+    + [Manual Approach](#manual-approach)
+  * [Copy and Customize Files in `Thin_Client`](#copy-and-customize-files-in-thin_client)
+    + [Copy Files From Existing Repo](#copy-files-from-existing-repo-1)
+    + [Script Approach](#script-approach-1)
+    + [Manual Approach](#manual-approach-1)
+  * [Build and Test the Thin Environment](#build-and-test-the-thin-environment)
+    + [Build the Thin Environment](#build-the-thin-environment)
+    + [Test the Thin Environment](#test-the-thin-environment)
+    + [Create the Tmux Links](#create-the-tmux-links)
+  * [Copy and Customize Files in `Devops`](#copy-and-customize-files-in-devops)
+  * [Create Symbolic Links](#create-symbolic-links)
+  * [5) Build Container and Running Tests](#5-build-container-and-running-tests)
+    + [Build a Container for a Super-Repo](#build-a-container-for-a-super-repo)
+    + [Check If the Regressions Are Passing](#check-if-the-regressions-are-passing)
+  * [Configure Regressions Via Github Actions](#configure-regressions-via-github-actions)
+    + [Set Repository Secrets/Variables](#set-repository-secretsvariables)
+    + [Create Github Actions Workflow Files](#create-github-actions-workflow-files)
+    + [Configure Gitleaks Scan](#configure-gitleaks-scan)
+  * [Configure Github Repo](#configure-github-repo)
 
 <!-- tocstop -->
 
-# How to create a super-repo with `helpers`
+# How to Create a Super-Repo with `Helpers`
 
-## Create a new (super) repo in the desired organization
+## Create a New (Super) Repo in the Desired Organization
 
 - Create a repo within the
   [`causify-ai` organization](https://github.com/causify-ai)
@@ -41,7 +46,7 @@
   - `.gitignore template: None`
   - License: `General Public License v3.0`
 
-## Add helpers sub-repo
+## Add Helpers Sub-Repo
 
 - Below there is an example for the `//helpers` repo, but it works for any repo
   (e.g., `//orange`) including any other repo (e.g., `//cmamp`)
@@ -67,7 +72,9 @@
   # Example for `cmamp`.
   > git submodule add git@github.com:causify-ai/helpers.git helpers_root
   ```
+
 - The command will create a `.gitmodules` file that we need to check-in:
+
   ```text
   [submodule "helpers_root"]
   path = helpers_root
@@ -87,9 +94,10 @@
   > git commit -am "Add helpers subrepo" && git push
   ```
 
-## Copy and customize files in the top dir
+## Copy and Customize Files in the Top Dir
 
 - Conceptually you need to copy and customize the files in:
+
   1. `thin_client` (one can reuse the thin client across repos)
   2. The top dir (to run `pytest`, ...)
   3. `devops` (to build the dev and prod containers)
@@ -101,9 +109,10 @@
   being completely configured, you can keep moving and then re-run the command
   later
 
-### Copy files from existing repo
+### Copy Files From Existing Repo
 
 - Copy the files from a working repo (e.g., `//cmamp`)
+
   ```bash
   > export SRC_DIR=$HOME/src/cmamp1
   > ls $SRC_DIR
@@ -112,7 +121,7 @@
   > vi pytest.ini repo_config.yaml tasks.py
   ```
 
-### Script approach
+### Script Approach
 
 - Customize the script
   [`/dev_scripts_helpers/thin_client/sync_super_repo.sh`](/dev_scripts_helpers/thin_client/sync_super_repo.sh)
@@ -122,7 +131,7 @@
 - Run the script which allows to `vimdiff` / `cp` files across a super-repo and
   its `//helpers` dir
 
-### Manual approach
+### Manual Approach
 
 - Some files need to be copied from `//helpers` to the root of the super-repo to
   configure various tools (e.g., dev container workflow, `pytest`, `invoke`)
@@ -151,11 +160,12 @@
   > vim pytest.ini repo_config.yaml tasks.py
   ```
 
-## Copy and customize files in `thin_client`
+## Copy and Customize Files in `Thin_Client`
 
-### Copy files from existing repo
+### Copy Files From Existing Repo
 
 - Copy the files from a working repo (e.g., `//cmamp`)
+
   ```bash
   > export SRC_DIR=$HOME/src/cmamp1
   > ls $SRC_DIR
@@ -164,7 +174,7 @@
   > vi pytest.ini repo_config.yaml tasks.py
   ```
 
-### Script approach
+### Script Approach
 
 - Customize the script
   [`/dev_scripts_helpers/thin_client/sync_super_repo.sh`](/dev_scripts_helpers/thin_client/sync_super_repo.sh)
@@ -174,7 +184,7 @@
 - Run the script which allows to `vimdiff` / `cp` files across a super-repo and
   its `//helpers` dir
 
-### Manual approach
+### Manual Approach
 
 - Create the `dev_scripts_{dir_name}` dir based off the template from `helpers`
 
@@ -200,9 +210,9 @@
 - If we don't need to create a new thin env, then you can delete the files
   `dev_scripts_{dir_name}/thin_client/build.py` and `requirements.txt`
 
-## Build and test the thin environment
+## Build and Test the Thin Environment
 
-### Build the thin environment
+### Build the Thin Environment
 
 - Build the thin environment:
   ```
@@ -215,17 +225,17 @@
   14:37:37 - INFO  build.py _main:100                 /Users/saggese/src/quant_dashboard1/dev_scripts_quant_dashboard/thin_client/build.py successful
   ```
 
-### Test the thin environment
+### Test the Thin Environment
 
 - Follow
   [the on-boarding guide](/docs/onboarding/ck.development_setup.how_to_guide.md#set-up-the-thin-environment)
 
-### Create the tmux links
+### Create the Tmux Links
 
 - Follow
   [the on-boarding guide](/docs/onboarding/ck.development_setup.how_to_guide.md#create-a-tmux-session)
 
-## Copy and customize files in `devops`
+## Copy and Customize Files in `Devops`
 
 - Copy the `devops` template dir
   ```bash
@@ -244,9 +254,10 @@
   and
   [`/docs/work_tools/all.devops_docker.how_to_guide.md`](/docs/work_tools/all.devops_docker.how_to_guide.md)
 
-## Create symbolic links
+## Create Symbolic Links
 
 - Check the difference between the super-repo and `helpers`
+
   ```bash
   > helpers_root/dev_scripts_helpers/thin_client/sync_super_repo.sh
   ```
@@ -268,9 +279,9 @@
   [Managing symbolic links between directories](/docs/work_tools/dev_system/all.replace_common_files_with_script_links.md)
   for how to use the commands
 
-## 5) Build container and running tests
+## 5) Build Container and Running Tests
 
-### Build a container for a super-repo
+### Build a Container for a Super-Repo
 
 - Run the single-arch flow:
 
@@ -292,7 +303,7 @@
   - Make sure the registry name matches the repo name for consistency
   - By default we add new containers to Stockholm region (`eu-north-1`)
 
-### Check if the regressions are passing
+### Check If the Regressions Are Passing
 
 - Follow
   [the on-boarding doc](/docs/onboarding/ck.development_setup.how_to_guide.md#begin-working)
@@ -300,13 +311,13 @@
 
 - File a PR with the new files and merge the PR into `master`
 
-## Configure regressions via GitHub actions
+## Configure Regressions Via Github Actions
 
-### Set repository secrets/variables
+### Set Repository Secrets/Variables
 
 - Some secrets/variables are shared in an organization wide storage
   - E.g. for [Causify](https://github.com/organizations/causify-ai) at
-    https://github.com/organizations/causify-ai/settings/secrets/actions
+    [https://github.com/organizations/causify-ai/settings/secrets/actions](https://github.com/organizations/causify-ai/settings/secrets/actions)
   - These values are shared across all repos in the organization so we don't
     need to create them on a per-repo basis
     - The access method is the same as for per-repo variables - via actions
@@ -325,7 +336,8 @@
 - Should a repo need some additional secret values/variables, follow the
   procedure below
 
-1. Login to 1password https://causify.1password.com/home
+1. Login to 1password
+   [https://causify.1password.com/home](https://causify.1password.com/home)
    - Ask your TL if you don't have access to 1password
 2. Navigate to the `Shared Vault`
 3. Search for `Github actions secrets JSON` secret
@@ -343,7 +355,7 @@
 
 - Delete those files locally
 
-### Create GitHub actions workflow files
+### Create Github Actions Workflow Files
 
 1. Create a directory `./github/workflows` in the super-repo
 2. Copy an example flow from helpers
@@ -353,41 +365,43 @@
        consistency
      - Replace `invoke run_fast_tests` with your desired action
 
-### Configure Gitleaks scan
+### Configure Gitleaks Scan
 
 - Copy the configuration and workflow files
+
   ```bash
   > cp ./helpers_root/.github/gitleaks-rules.toml ./.github
   > cp ./helpers_root/.github/workflows/gitleaks.yml ./.github/workflows
   ```
 
 - Replace files with symbolic links
-   ```bash
-   > ./helpers_root/helpers/create_links.py --src_dir ./helpers_root/.github --dst_dir ./.github --replace_links --use_relative_paths
-   ```
+
+  ```bash
+  > ./helpers_root/helpers/create_links.py --src_dir ./helpers_root/.github --dst_dir ./.github --replace_links --use_relative_paths
+  ```
 
 - Note:
   - Only the `gitleaks-rules.toml` file should be replaced with symbolic links
-  - The `gitleaks.yml` file should be copied as is because GitHub Actions does not
-    resolve symbolic links when parsing workflows in the `.github/workflows`
+  - The `gitleaks.yml` file should be copied as is because GitHub Actions does
+    not resolve symbolic links when parsing workflows in the `.github/workflows`
     directory (See #CmampTask11429)
 
-## Configure GitHub repo
+## Configure Github Repo
 
-- **Disclaimer**: the following set-up requires paid GitHub version (Pro / Team /
-  Enterprise)
+- **Disclaimer**: the following set-up requires paid GitHub version (Pro / Team
+  / Enterprise)
 
 - Set-up branch protection rule for master
-
   - Navigate to `https://github.com/<your org>/<<your-repo>>/settings/branches`
   - Click "Add rule"
     - Specify branch name pattern `master`
     - Check the following options:
       - `Require a pull request before merging` (do not check the sub-options)
       - `Require status checks to pass before merging`
-        - Check the `Require branches to be up to date before merging` sub-option
-        - In the `Status checks that are required` table specify the workflows you
-          want to pass before merging each PR
+        - Check the `Require branches to be up to date before merging`
+          sub-option
+        - In the `Status checks that are required` table specify the workflows
+          you want to pass before merging each PR
           - Depends on which workflows were set-up in the step above
           - Usually its `run_fast_tests` and `run_slow_tests`
       - `Require conversation resolution before merging`

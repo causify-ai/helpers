@@ -14,16 +14,16 @@
   * [Comments](#comments)
     + [LLM](#llm-3)
     + [Linter](#linter-3)
-  * [Code implementation](#code-implementation)
+  * [Code Implementation](#code-implementation)
     + [LLM](#llm-4)
     + [Linter](#linter-4)
-  * [Code design](#code-design)
+  * [Code Design](#code-design)
     + [LLM](#llm-5)
     + [Linter](#linter-5)
   * [Imports](#imports)
     + [LLM](#llm-6)
     + [Linter](#linter-6)
-  * [Type annotations](#type-annotations)
+  * [Type Annotations](#type-annotations)
     + [LLM](#llm-7)
     + [Linter](#linter-7)
   * [Functions](#functions)
@@ -38,7 +38,7 @@
   * [Misc](#misc)
     + [LLM](#llm-11)
     + [Linter](#linter-11)
-- [Unit tests](#unit-tests)
+- [Unit Tests](#unit-tests)
   * [Rules](#rules)
     + [LLM](#llm-12)
     + [Linter](#linter-12)
@@ -53,12 +53,15 @@
     + [LLM](#llm-15)
     + [Linter](#linter-15)
 - [Markdown](#markdown)
-  * [Naming](#naming-1)
+  * [General](#general-2)
     + [LLM](#llm-16)
     + [Linter](#linter-16)
-  * [General](#general-2)
+  * [Headers](#headers)
     + [LLM](#llm-17)
     + [Linter](#linter-17)
+  * [Text](#text)
+    + [LLM](#llm-18)
+    + [Linter](#linter-18)
 
 <!-- tocstop -->
 
@@ -293,7 +296,7 @@
 - Every comment should end with a period
 - Comments with TODOs should have the format of `# TODO(username): ...`
 
-## Code implementation
+## Code Implementation
 
 ### LLM
 
@@ -417,7 +420,7 @@
 
 ### Linter
 
-## Code design
+## Code Design
 
 ### LLM
 
@@ -468,7 +471,7 @@
   - Linter adds it automatically
 - No import cycles should be introduced by the changes in the PR
 
-## Type annotations
+## Type Annotations
 
 ### LLM
 
@@ -640,7 +643,7 @@
   then all the instances and references to it throughout the codebase should be
   updated
 
-# Unit tests
+# Unit Tests
 
 ## Rules
 
@@ -848,8 +851,7 @@
 
 - Names of documentation files should follow the format
   `docs/{component}/{audience}.{topic}.{diataxis_tag}.md` to help in organizing
-  and categorizing documentation files effectively
-  where:
+  and categorizing documentation files effectively where:
   - The `{component}` part specifies the part of the project the documentation
     is related to
   - The `{audience}` part indicates who the documentation is intended for
@@ -892,8 +894,8 @@
 
 - Do not use bold or italics in headings
 - Use headers so that it's easy to refer to something by link
-- Do not make the chunk of text in a header too small since we don't want to have
-  too many headers
+- Do not make the chunk of text in a header too small since we don't want to
+  have too many headers
   - E.g., there should be at least 5-10 lines in each header
 
 ### Linter
@@ -935,9 +937,10 @@
 - Be efficient
   - Do not explain things in a repetitive way
   - Rewrite long-winded AI-generated texts in a concise way
-  - E.g., 
+  - E.g.,
     - Good: "Update the software by following these steps"
-    - Bad: "The process of updating the software can be done by following these steps"
+    - Bad: "The process of updating the software can be done by following these
+      steps"
 
 - When describing a tool the format should be the following:
   - A description of what the tool does

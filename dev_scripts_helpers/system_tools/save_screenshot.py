@@ -28,9 +28,7 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("positional", nargs="*", help="...")
-    parser.add_argument(
-        "--dst_dir", action="store", help="Destination directory"
-    )
+    parser.add_argument("--dst_dir", action="store", help="Destination directory")
     parser.add_argument("--filename", action="store", help="File name")
     parser.add_argument(
         "--override", action="store_true", help="Override if file exists"

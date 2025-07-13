@@ -1,18 +1,18 @@
 # Buildmeister
 
-## Buildmeister process
+## Buildmeister Process
 
 <!-- toc -->
 
 - [General](#general)
-- [Notification system](#notification-system)
-- [Buildmeister instructions](#buildmeister-instructions)
-  * [`update_helpers_submodule` fails](#update_helpers_submodule-fails)
+- [Notification System](#notification-system)
+- [Buildmeister Instructions](#buildmeister-instructions)
+  * [`Update_Helpers_Submodule` Fails](#update_helpers_submodule-fails)
 - [Daily Reporting and Handover Process](#daily-reporting-and-handover-process)
-- [Buildmeister dashboard](#buildmeister-dashboard)
+- [Buildmeister Dashboard](#buildmeister-dashboard)
   * [Logic Used to Determine Workflow Status](#logic-used-to-determine-workflow-status)
 - [Allure Reports Analysis](#allure-reports-analysis)
-- [Post-mortem analysis (TBD)](#post-mortem-analysis-tbd)
+- [Post-Mortem Analysis (TBD)](#post-mortem-analysis-tbd)
 
 <!-- tocstop -->
 
@@ -36,7 +36,7 @@
   - [write tests](/docs/tools/unit_test/all.write_unit_tests.how_to_guide.md.figs)
   - [run tests](/docs/tools/unit_test/all.run_unit_tests.how_to_guide.md.figs)
 
-## Notification system
+## Notification System
 
 - `Kaizen GitHub actions app` notifies the team about breaks via Slack channel
   [#build-notifications](https://causify.slack.com/archives/C07QS9P4N78)
@@ -49,9 +49,9 @@
 
 Example:
 
-- <img src="figs/all.buildmeister.how_to_guide.md.figs/Slack Image.png">
+- <img src="figs/all.buildmeister.how_to_guide.md.figs/Slack_Image.png">
 
-## Buildmeister instructions
+## Buildmeister Instructions
 
 - You receive a break notification from `Kaizen GitHub actions app`
 - Have a look at the message
@@ -132,7 +132,7 @@ Example:
 - When your time of the Buildmeister duties is over, confirm the rotation with
   the next responsible person in the related Slack channel.
 
-### `update_helpers_submodule` fails
+### `Update_Helpers_Submodule` Fails
 
 - When this happens, the first thing to do is attempt to update the `helpers`
   pointer manually
@@ -200,14 +200,14 @@ Example:
   - We may need to update the data path configuration in our CI environment
   ```
 
-## Buildmeister dashboard
+## Buildmeister Dashboard
 
 The Buildmeister dashboard is a tool that provides a quick overview of the
 current state of the results of all GitHub Actions workflows. See
 [run and publish the buildmeister dashboard](/dev_scripts_helpers/update_devops_packages/notebooks/Master_buildmeister_dashboard.ipynb)
 for detailed information.
 
-<img src="figs/all.buildmeister.how_to_guide.md.figs/Buildmeister Image.png"/>
+<img src="figs/all.buildmeister.how_to_guide.md.figs/Buildmeister_Image.png"/>
 
 ### Logic Used to Determine Workflow Status
 
@@ -277,20 +277,20 @@ status of each GitHub Actions workflow:
       vertical line corresponds to a certain version of the test report, with
       the last line on the right corresponding to the current version
 
-      <img src="figs/all.buildmeister.how_to_guide.md.figs/Trend Image.png"/>
+      <img src="figs/all.buildmeister.how_to_guide.md.figs/Trend_Image.png"/>
     - Monitor the `Duration Trend` to check the time taken to the run all tests
       comparing to historical trends
 
-      <img src="figs/all.buildmeister.how_to_guide.md.figs/Duration trend.png"/>
+      <img src="figs/all.buildmeister.how_to_guide.md.figs/Duration_trend.png"/>
     - Monitor the `Duration Distribution`, where all the tests are divided into
       groups based on how long it took to complete them, and manually compare
       with the last week results
 
-      <img src="figs/all.buildmeister.how_to_guide.md.figs/Duration Distribution.png"/>
-    - Monitor the `Retries Trend` to check the number of retries occured in a
+      <img src="figs/all.buildmeister.how_to_guide.md.figs/Duration_Distribution.png"/>
+    - Monitor the `Retries Trend` to check the number of retries occurred in a
       particular run
 
-      <img src="figs/all.buildmeister.how_to_guide.md.figs/Retries Image.png"/>
+      <img src="figs/all.buildmeister.how_to_guide.md.figs/Retries_Image.png"/>
     - The idea is to make sure it doesn't have drastic change in the values
 
 - Steps to perform if a test fails, timeouts or breaks
@@ -307,7 +307,7 @@ status of each GitHub Actions workflow:
   - The goal here is to provide more context when filing an issue so that we can
     make better decisions
 
-## Post-mortem analysis (TBD)
+## Post-Mortem Analysis (TBD)
 
 - We want to understand on why builds are broken so that we can improve the
   system to make it more robust

@@ -93,6 +93,7 @@ def _get_flat_config1(self: Any) -> cconfig.Config:
 
 
 class Test_flat_config_set1(hunitest.TestCase):
+
     def test_set1(self) -> None:
         """
         Set a key and print a flat config.
@@ -127,9 +128,7 @@ class Test_flat_config_set1(hunitest.TestCase):
             "[(<function _filter_relevance at 0x7fe4e35b1a70>, {'thr': 90})]"
         )
         # Check.
-        expected_result = (
-            "filters: [(<function _filter_relevance>, {'thr': 90})]"
-        )
+        expected_result = "filters: [(<function _filter_relevance>, {'thr': 90})]"
         actual_result = str(config)
         self.assertEqual(actual_result, expected_result)
 
@@ -324,9 +323,7 @@ class Test_flat_config_get1(hunitest.TestCase):
         """
         config = _get_flat_config2(self)
         with self.assertRaises(AssertionError) as cm:
-            _ = config.get(
-                "nrows", "hello", str, report_mode="verbose_exception"
-            )
+            _ = config.get("nrows", "hello", str, report_mode="verbose_exception")
         act = str(cm.exception)
         exp = """
         * Failed assertion *
@@ -341,6 +338,7 @@ class Test_flat_config_get1(hunitest.TestCase):
 
 
 class Test_flat_config_in1(hunitest.TestCase):
+
     def test_in1(self) -> None:
         """
         Test in operator.
@@ -402,6 +400,7 @@ def _get_nested_config1(self: Any) -> cconfig.Config:
 
 
 class Test_nested_config_get1(hunitest.TestCase):
+
     def test_existing_key1(self) -> None:
         """
         Check that a key exists.
@@ -499,6 +498,7 @@ class Test_nested_config_get1(hunitest.TestCase):
 
 
 class Test_nested_config_set1(hunitest.TestCase):
+
     def test_not_existing_key1(self) -> None:
         """
         Set a key that doesn't exist.
@@ -743,6 +743,7 @@ def _get_nested_config5(self: Any) -> cconfig.Config:
 
 
 class Test_nested_config_misc1(hunitest.TestCase):
+
     def test_config_print1(self) -> None:
         """
         Test printing a config.
@@ -812,6 +813,7 @@ class Test_nested_config_misc1(hunitest.TestCase):
 
 
 class Test_nested_config_in1(hunitest.TestCase):
+
     def test_in1(self) -> None:
         """
         Test `in` with nested access.
@@ -868,6 +870,7 @@ class Test_nested_config_in1(hunitest.TestCase):
 
 
 class Test_nested_config_update1(hunitest.TestCase):
+
     def test_update1(self) -> None:
         config1 = _get_nested_config3(self)
         config2 = _get_nested_config4(self)
@@ -1149,6 +1152,7 @@ def _get_nested_config6(self: Any) -> cconfig.Config:
 
 
 class Test_nested_config_flatten1(hunitest.TestCase):
+
     def test_flatten1(self) -> None:
         # Build config.
         config = cconfig.Config()
@@ -1208,6 +1212,7 @@ class Test_nested_config_flatten1(hunitest.TestCase):
 
 
 class Test_subtract_config1(hunitest.TestCase):
+
     def test1(self) -> None:
         config1 = cconfig.Config()
         config1[("l0",)] = "1st_floor"
@@ -1257,6 +1262,7 @@ class Test_subtract_config1(hunitest.TestCase):
 
 
 class Test_dassert_is_serializable1(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Test a config that can be serialized correctly.
@@ -1324,6 +1330,7 @@ class Test_dassert_is_serializable1(hunitest.TestCase):
 
 
 class Test_from_env_var1(hunitest.TestCase):
+
     @pytest.mark.requires_ck_infra
     def test1(self) -> None:
         eval_config = cconfig.Config.from_dict(
@@ -1357,6 +1364,7 @@ class Test_from_env_var1(hunitest.TestCase):
 
 
 class Test_make_read_only1(hunitest.TestCase):
+
     def test_set1(self) -> None:
         """
         Setting a value that already exists on a read-only config raises.
@@ -1488,6 +1496,7 @@ class Test_make_read_only1(hunitest.TestCase):
 
 
 class Test_to_dict1(hunitest.TestCase):
+
     def helper(
         self,
         config_as_dict: Dict[str, Any],
@@ -1634,6 +1643,7 @@ class Test_to_dict1(hunitest.TestCase):
 
 
 class Test_to_dict2(hunitest.TestCase):
+
     def test1(self) -> None:
         config = _get_nested_config6(self)
         # Run.
@@ -1668,6 +1678,7 @@ class Test_to_dict2(hunitest.TestCase):
 
 
 class Test_get_config_from_flattened_dict1(hunitest.TestCase):
+
     def test1(self) -> None:
         flattened = collections.OrderedDict(
             [
@@ -1719,6 +1730,7 @@ class Test_get_config_from_flattened_dict1(hunitest.TestCase):
 
 
 class Test_from_dict1(hunitest.TestCase):
+
     def test1(self) -> None:
         nested = {
             "read_data": {
@@ -1816,6 +1828,7 @@ class Test_from_dict1(hunitest.TestCase):
 
 
 class Test_to_pickleable_string(hunitest.TestCase):
+
     def helper(
         self,
         value: Any,
@@ -1851,7 +1864,6 @@ class Test_to_pickleable_string(hunitest.TestCase):
         key2:
           key3:
             key4:
-
         """
         should_be_pickleable_before = True
         force_values_to_string = True
@@ -1873,7 +1885,6 @@ class Test_to_pickleable_string(hunitest.TestCase):
         key2:
           key3:
             key4:
-
         """
         should_be_pickleable_before = False
         force_values_to_string = True
@@ -1891,6 +1902,7 @@ class Test_to_pickleable_string(hunitest.TestCase):
 
 
 class Test_save_to_file(hunitest.TestCase):
+
     def helper(self, value: Optional[str]) -> None:
         # Set config.
         log_dir = self.get_scratch_space()
@@ -1950,6 +1962,7 @@ def remove_line_numbers(actual_config: str) -> str:
 
 
 class Test_to_string(hunitest.TestCase):
+
     def get_test_config(
         self,
         value: Any,
@@ -1966,9 +1979,7 @@ class Test_to_string(hunitest.TestCase):
         """
         Test when a value is a DataFrame.
         """
-        value = pd.DataFrame(
-            data=[[1, 2, 3], [4, 5, 6]], columns=["a", "b", "c"]
-        )
+        value = pd.DataFrame(data=[[1, 2, 3], [4, 5, 6]], columns=["a", "b", "c"])
         config = self.get_test_config(value)
         #
         mode = "verbose"
@@ -2072,7 +2083,6 @@ class Test_to_string(hunitest.TestCase):
     def test6(self) -> None:
         """
         Test debug mode with `marked_as_used` == True.
-
         This is a smoketest since the output of stacktrace is unstable.
         """
         # Set multiline string value.
@@ -2091,6 +2101,7 @@ class Test_to_string(hunitest.TestCase):
 
 
 class Test_mark_as_used1(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Test marking a config with scalar values.
@@ -2228,6 +2239,7 @@ class Test_get_marked_as_used1(hunitest.TestCase):
 
 
 class Test_check_unused_variables1(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Verify that a single unused variable is correctly identified.
@@ -2426,6 +2438,7 @@ class Test_nested_config_set_execute_stmt1(_Config_execute_stmt_TestCase1):
 
 
 class Test_basic1(_Config_execute_stmt_TestCase1):
+
     def test1(self) -> None:
         """
         Various assignments and their representations.

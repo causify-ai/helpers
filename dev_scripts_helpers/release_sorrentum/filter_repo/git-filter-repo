@@ -612,7 +612,7 @@ class FileChange(_GitElement):
     Write this file-change element to a file
     """
     skipped_blob = (self.type == b'M' and self.blob_id is None)
-    if skipped_blob: 
+    if skipped_blob:
         return
     self.dumped = 1
 
