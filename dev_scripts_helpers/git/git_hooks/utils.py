@@ -112,7 +112,7 @@ def _system_to_string(
         rc = p.wait()
     if abort_on_error and rc != 0:
         msg = f"cmd='{cmd}' failed with rc='{rc}'"
-        msg += f"\nOutput of the failing command is:\n"
+        msg += "\nOutput of the failing command is:\n"
         msg += output
         _LOG.error(msg)
         sys.exit(-1)

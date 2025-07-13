@@ -1176,11 +1176,10 @@ class Config:
             if key not in self._config:
                 missing_keys.append(key)
         if missing_keys:
-            msg = "Missing %s vars (from %s) in config=\n%s" % (
-                ",".join(missing_keys),
-                ",".join(keys),
-                str(self),
-            )
+            missing_keys_str = ",".join(missing_keys)
+            keys_str = ",".join(keys)
+            msg = f"Missing {missing_keys_str} vars (from {keys_str}) in config=\n"
+            msg += str(self)
             _LOG.error(msg)
             raise KeyError(msg)
 

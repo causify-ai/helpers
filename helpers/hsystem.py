@@ -486,7 +486,7 @@ def select_result_file_from_list(
             hdbg.dfatal(f"mode={mode}: didn't find file {file_name}")
         elif len(files) > 1:
             hdbg.dfatal(
-                "mode=%s: found multiple files:\n%s\n" % (mode, "\n".join(files))
+                f"mode={mode}: found multiple files:\n" + '\n'.join(files)
             )
         res = [files[0]]
     elif mode == "return_all_results":
@@ -819,10 +819,8 @@ def _find_file(filename: str, *, search_path: str = ".") -> Optional[str]:
     if len(files) == 1:
         return files[0]
     elif len(files) > 1:
-        msg = (
-            "Found multiple files with basename '%s' in directory '%s':\n%s"
-            % (filename, search_path, "\n".join(files))
-        )
+        msg = f"Found multiple files with basename '{filename}' in directory '{search_path}':\n"
+        msg += '\n'.join(files)
         raise RuntimeError(msg)
     else:
         return None

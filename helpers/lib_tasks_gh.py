@@ -215,7 +215,7 @@ def gh_workflow_list(  # type: ignore
             if status == "success":
                 print(f"Workflow '{workflow}' for '{branch_name}' is ok")
                 break
-            if status in ("failure", "startup_failure", "cancelled"):
+            if status in ("failure", "startup_failure", "cancelled", "skipped"):
                 _LOG.error(
                     "Workflow '%s' for '%s' is broken", workflow, branch_name
                 )
@@ -759,7 +759,7 @@ def gh_get_workflow_type_names(
     # Check for duplicate workflow names.
     hdbg.dassert_no_duplicates(
         workflow_names,
-        "Found duplicate workflow names in repo '%s'" % repo_name,
+        f"Found duplicate workflow names in repo '{repo_name}'",
     )
     return workflow_names
 
