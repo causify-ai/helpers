@@ -644,10 +644,11 @@ def gh_get_details_for_all_workflows(repo_list: List[str]) -> "pd.DataFrame":
     cryptokaizen/cmamp  Allure slow tests  https://github.com/cryptokaizen/cmamp/actions/...  completed
     ```
     """
+    import pandas as pd
+
     # TODO(Grisha): expose cols to the interface, i.e. a caller decides what to do.
     gh_cols = ["workflowName", "url", "status", "conclusion", "event"]
     # Import locally in order not to introduce external dependencies to the lib.
-    import pandas as pd
 
     repo_dfs = []
     for repo_name in repo_list:

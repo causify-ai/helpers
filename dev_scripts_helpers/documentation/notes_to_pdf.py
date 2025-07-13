@@ -511,11 +511,11 @@ def _run_all(args: argparse.Namespace) -> None:
         _cleanup_before(prefix)
     # - Filter
     if args.filter_by_header:
-        file_name = hmarkdown.filter_by_header(file_name, args.filter_by_header, prefix)
+        file_name = hmarkdo.filter_by_header(file_name, args.filter_by_header, prefix)
     if args.filter_by_lines:
-        file_name = hmarkdown.filter_by_lines(file_name, args.filter_by_lines, prefix)
+        file_name = hmarkdo.filter_by_lines(file_name, args.filter_by_lines, prefix)
     if args.filter_by_slides:
-        file_name = hmarkdown.filter_by_slides(file_name, args.filter_by_slides, prefix)
+        file_name = hmarkdo.filter_by_slides(file_name, args.filter_by_slides, prefix)
     # - Preprocess_notes
     action = "preprocess_notes"
     to_execute, actions = _mark_action(action, actions)

@@ -10,6 +10,7 @@ import helpers.hsystem as hsystem
 import contextlib
 import datetime
 import getpass
+import glob
 import logging
 import os
 import re
@@ -486,7 +487,7 @@ def select_result_file_from_list(
         elif len(files) > 1:
             hdbg.dfatal(
                 "mode=%s: found multiple files:\n%s\n"
-                % (mode, "\n".join(files), file_name)
+                % (mode, "\n".join(files))
             )
         res = [files[0]]
     elif mode == "return_all_results":

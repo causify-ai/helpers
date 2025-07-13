@@ -19,9 +19,7 @@ a lint-script that takes the filename, checks that it matches what you
 want, and then calls the real linter.  But I guess folks don't like making
 an intermediate script.  So I eventually added the --relevant flag for
 picking out certain files providing yet another way to handle it.
-"""
 
-"""
 Please see the
   ***** API BACKWARD COMPATIBILITY CAVEAT *****
 near the top of git-filter-repo.
@@ -139,7 +137,7 @@ def lint_with_real_filenames(commit, metadata):
             change.blob_id = blobs_handled[change.blob_id]
         elif change.type == b"D":
             continue
-        elif not is_relevant(change.filename):
+        elif not is_relevant(change.filename):  # noqa: F821
             continue
         else:
             # Get the old blob contents

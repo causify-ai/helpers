@@ -1,22 +1,17 @@
+import ast
 import logging
+import re
+import textwrap
 from dataclasses import dataclass
 from typing import List, Tuple
 
+import tqdm
+
+import dev_scripts_helpers.llms.llm_prompts as dshlllpr
 import helpers.hdbg as hdbg
+import helpers.hio as hio
 
 _LOG = logging.getLogger(__name__)
-
-
-# #############################################################################
-# Manipulate code.
-# #############################################################################
-
-
-import ast
-import re
-import textwrap
-
-import helpers.hio as hio
 
 
 def remove_docstring(code: str) -> str:
@@ -95,7 +90,7 @@ def _extract(obj: Dict[str, Any], keys: List[str]) -> Dict[str, Any]:
 
 
 def build_few_shot_learning() -> str:
-    functions = get_functions1()
+    functions = get_functions("code_snippets1")
     text = """
 You are a proficient Python coder.
 
@@ -242,14 +237,13 @@ def in_outs_to_str(in_outs):
 # Eval.
 # #############################################################################
 
-import tqdm
-
 
 def eval_prompt(
     function_tag: str,
     transform_tag: str,
     prompt_tag: str,
     *,
+    model: str = "gpt-4o-mini",
     save_to_file: bool = True,
 ) -> List[InOut]:
     """
@@ -274,7 +268,7 @@ def eval_prompt(
     _LOG.info("Processing %s examples", len(in_outs))
     in_outs_tmp = []
     for in_out in tqdm.tqdm(in_outs):
-        txt = apply_prompt(prompt_tag, in_out.in_)
+        txt = dshlllpr.run_prompt(prompt_tag, in_out.in_, model)
         # Update the example.
         hdbg.dassert_ne(txt, "")
         in_out.act = txt

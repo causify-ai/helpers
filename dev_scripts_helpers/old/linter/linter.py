@@ -568,7 +568,7 @@ class _Black(_Action):
         # - All done!
         # - 1 file left unchanged.
         to_remove = ["All done!", "file left unchanged", "reformatted"]
-        output = [l for l in output if all(w not in l for w in to_remove)]
+        output = [line for line in output if all(w not in line for w in to_remove)]
         return output
 
 
@@ -962,14 +962,14 @@ class _Pylint(_Action):
             output_tmp.append(line)
         output = output_tmp
         # Remove lines.
-        output = [l for l in output if ("-" * 20) not in l]
+        output = [line for line in output if ("-" * 20) not in line]
         # Remove:
         #    ************* Module dev_scripts.generate_script_catalog
         output_as_str = hunitest.filter_text(
             re.escape("^************* Module "), "\n".join(output)
         )
         # Remove empty lines.
-        output = [l for l in output if l.rstrip().lstrip() != ""]
+        output = [line for line in output if line.rstrip().lstrip() != ""]
         #
         output = output_as_str.split("\n")
         return output
@@ -1374,7 +1374,7 @@ class _LintMarkdown(_Action):
         cmd_as_str = " ".join(cmd)
         _, output = _tee(cmd_as_str, executable, abort_on_error=True)
         # Remove cruft.
-        output = [l for l in output if "Saving log to file" not in l]
+        output = [line for line in output if "Saving log to file" not in line]
         return output
 
 

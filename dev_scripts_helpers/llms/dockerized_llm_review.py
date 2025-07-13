@@ -62,7 +62,7 @@ def _load_review_guidelines(
         # Extract the section under the header.
         section = hmarkdo.extract_section_from_markdown(guidelines_doc, category)
         # Extract individual guidelines from bullet points.
-        individual_guidelines = _extract_bullet_points(section)
+        individual_guidelines = hmarkdo.parse_rules_from_txt(section)
         guidelines[category] = individual_guidelines
     return guidelines
 

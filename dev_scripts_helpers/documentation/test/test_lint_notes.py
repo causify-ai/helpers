@@ -6,6 +6,7 @@ import pytest
 
 import dev_scripts_helpers.documentation.lint_notes as dshdlino
 import helpers.hdbg as hdbg
+import helpers.hdocker as hdocker
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
