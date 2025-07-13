@@ -490,7 +490,7 @@ def get_completion(
 #     txt: List[str] = []
 #     txt.append("Found %s files" % len(files))
 #     for file in files:
-#         txt.append("Deleting file %s" % file_to_info(file))
+#         txt.append("Deleting file " + file_to_info(file))
 #     txt = "\n".join(txt)
 #     return txt
 
@@ -546,7 +546,7 @@ def get_completion(
 #     txt = []
 #     txt.append("Found %s assistants" % len(assistants))
 #     for assistant in assistants:
-#         txt.append("Deleting assistant %s" % assistant_to_info(assistant))
+#         txt.append("Deleting assistant " + assistant_to_info(assistant))
 #     txt = "\n".join(txt)
 #     return txt
 

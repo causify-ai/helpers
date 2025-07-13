@@ -82,8 +82,8 @@ def _run() -> None:
                                     old_pattern, new_pattern
                                 )
                                 _LOG.info(
-                                    "Replace occurrences of `%s` in `%s`!"
-                                    % (old_pattern, file_name)
+                                    "Replace occurrences of `%s` in `%s`!",
+                                    old_pattern, file_name
                                 )
                         continue
                     # Create desired function call.

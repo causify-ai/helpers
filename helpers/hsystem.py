@@ -197,7 +197,7 @@ def _system(
         stdout = subprocess.PIPE
         stderr = subprocess.STDOUT
         # We want to print the command line even if this module logging is disabled.
-        # print("  ==> cmd=%s" % cmd)
+        # print("  ==> cmd=" + cmd)
         # TODO(gp): This seems not working properly and getting the logging
         # verbosity stuck.
         # with hloggin.set_level(_LOG, logging.DEBUG):
@@ -339,7 +339,7 @@ def system(
 #     elif py_ver == 3:
 #         txt = subprocess.getoutput(cmd)
 #     else:
-#         raise RuntimeError("Invalid py_ver=%s" % py_ver)
+#         raise RuntimeError("Invalid py_ver=" + py_ver)
 #     txt = [f for f in txt.split("\n") if f]
 #     hdbg.dassert_eq(len(txt), 1)
 #     return txt[0]

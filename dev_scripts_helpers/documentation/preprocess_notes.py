@@ -48,9 +48,7 @@ def _process_abbreviations(in_line: str) -> str:
         (r"-^", r"\uparrow"),
         (r"-v", r"\downarrow"),
     ]:
-        line = re.sub(
-            r"(\s)%s(\s)" % re.escape(x), r"\1$%s$\2" % re.escape(y), line
-        )
+        line = re.sub(rf"(\s){re.escape(x)}(\s)", rf"\1${re.escape(y)}$\2", line)
     if line != in_line:
         _LOG.debug("    -> line=%s", line)
     return line

@@ -52,7 +52,7 @@ def _check_import_cycles(
     dependence_graph_computer.collect_graph_data()
     graph = dependence_graph_computer.structured_graph
     # Detect cycles.
-    cycles = set(tuple(g) for g in nx.simple_cycles(graph))
+    cycles = {tuple(g) for g in nx.simple_cycles(graph)}
     cycles = sorted([sorted(x) for x in cycles])
     return cycles
 

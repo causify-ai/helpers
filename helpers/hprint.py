@@ -372,18 +372,16 @@ def vars_to_debug_string(vars_as_str: List[str], locals_: Dict[str, Any]) -> str
 
 
 def to_object_str(obj: Any) -> str:
-    return "%s at %s" % (
-        obj.__class__.__name__,
-        hex(id(obj)),
-    )
+    class_name = str(obj.__class__.__name__)
+    hex_str = str(hex(id(obj)))
+    return f"{class_name} at {hex_str}"
 
 
 def to_object_repr(obj: Any) -> str:
-    return "<%s.%s at %s>" % (
-        obj.__class__.__module__,
-        obj.__class__.__name__,
-        hex(id(obj)),
-    )
+    class_module = str(obj.__class__.__module__)
+    class_name = str(obj.__class__.__name__)
+    hex_str = str(hex(id(obj)))
+    return f"<{class_module}.{class_name} at {hex_str}>"
 
 
 def thousand_separator(v: float) -> str:

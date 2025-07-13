@@ -459,7 +459,7 @@ class _OrderedConfig(_OrderedDictType):
                 # Data structures that can be printed in a fancy way.
                 val_as_str = hpandas.df_to_str(val, print_shape_info=True)
                 val_as_str = "\n" + hprint.indent(val_as_str)
-            elif isinstance(val, Config) or isinstance(val, _OrderedConfig):
+            elif isinstance(val, (Config, _OrderedConfig)):
                 # Convert Configs recursively.
                 val_as_str = val.to_string(mode)
                 val_as_str = "\n" + hprint.indent(val_as_str)

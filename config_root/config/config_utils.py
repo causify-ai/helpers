@@ -46,7 +46,7 @@ def configs_to_str(configs: List[crococon.Config]) -> str:
     """
     txt = []
     for i, config in enumerate(configs):
-        txt.append("# %s/%s" % (i + 1, len(configs)))
+        txt.append(f"# {i + 1}/{len(configs)}")
         txt.append(hprint.indent(str(config)))
     res = "\n".join(txt)
     return res
@@ -101,8 +101,7 @@ def sort_config_string(txt: str) -> str:
     start_idx = end_idx = None
     for i, line in enumerate(lines):
         _LOG.debug(
-            "i=%s state=%s start_idx=%s end_idx=%s line=%s"
-            % (i, state, start_idx, end_idx, line)
+            f"i={i} state={state} start_idx={start_idx} end_idx={end_idx} line={line}"
         )
         if (
             state == "look_for_start"
@@ -493,7 +492,7 @@ def convert_to_series(config: crococon.Config) -> pd.Series:
         key = ".".join(k)
         keys.append(key)
         if isinstance(v, crococon.Config):
-            vals.append(tuple())
+            vals.append(())
         else:
             vals.append(v)
     hdbg.dassert_no_duplicates(keys)
