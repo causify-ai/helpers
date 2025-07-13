@@ -12,9 +12,9 @@ import os
 import re
 from typing import Any, Iterable, List, Optional
 
-import config_root.config.config_ as crococon
 import pandas as pd
 
+import config_root.config.config_ as crococon
 import helpers.hdbg as hdbg
 import helpers.hdict as hdict
 import helpers.hdocker as hdocker
@@ -86,7 +86,6 @@ def replace_shared_dir_paths(
     return new_config
 
 
-# TODO(gp): Add unit tests.
 def sort_config_string(txt: str) -> str:
     """
     Sort a string representing a Config in alphabetical order by the first
