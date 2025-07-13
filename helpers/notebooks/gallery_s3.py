@@ -34,7 +34,7 @@ s3 = hs3.get_s3fs(aws_profile)
 
 # %%
 bucket = hs3.get_s3_bucket_path(aws_profile, add_s3_prefix=False)
-print("bucket=%s" % bucket)
+print("bucket=" + bucket)
 s3.ls(bucket)
 
 # %%

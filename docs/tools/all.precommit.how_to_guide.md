@@ -140,13 +140,20 @@ Commands:
 - Website: https://fixit.readthedocs.io/en/latest/index.html
 
 - `fixit`
-configurable linting framework with support for auto-fixes, custom “local” lint rules, and hierarchical configuration, built on LibCST.
+  - configurable linting framework with support for auto-fixes
+  - custom "local" lint rules, and hierarchical configuration
+  - built on LibCST.
 
 - Fixit doesn't seem to support toml
 
 - Run on `helpers` dir
   ```bash
-  > fixit lint helpers
+  > fixit lint .
+  ```
+
+- Fix automatically
+  ```bash
+  > fixit fix --automatic
   ```
 
 ## pyrefly
@@ -181,8 +188,6 @@ configurable linting framework with support for auto-fixes, custom “local” l
         --color <COLOR>      Controls whether colored output is used
   ```
 
-### 
-
 - It's best to run `pyrefly` inside the dev container to get the type hints of
   the installed packages
   ```bash
@@ -190,15 +195,13 @@ configurable linting framework with support for auto-fixes, custom “local” l
   ```
 
   ```bash
-  pyrefly check --color=never --project-excludes '**/outcomes/**' --project-excludes '**/import_check/example/**' --project-excludes '**/mkdocs.venv/**'
+  docker> pyrefly check --color=never --output-format=min-text --project-excludes '**/outcomes/**' --project-excludes '**/import_check/example/**' --project-excludes '**/mkdocs.venv/**' 
   ```
 
 ## ty
 
-ty check . --output-format concise --color never
-
-- It's best to run `pyrefly` inside the dev container to get the type hints of
-  the installed packages
+- It's best to run `ty` inside the dev container to get the type hints of the
+  installed packages
   ```bash
   docker> sudo bash -c "(source /venv/bin/activate; pip install --quiet ty)"
   docker> ty check . --output-format concise --color never | cut -d' ' -f2- | tee cfile
@@ -231,7 +234,7 @@ ty check . --output-format concise --color never
           types: [python]
   ```
 
-- To install
+- To install:
   ```
   > pre-commit install
   > pip install pre-commit ruff fixit pyrefly

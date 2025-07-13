@@ -255,8 +255,8 @@ class _DocFormatter(liaction.Action):
             for start_idx in idxs_docstrings_with_unbalanced_backticks:
                 output.append(
                     f"{file_name}:{start_idx}: Found unbalanced triple backticks; "
-                    f"make sure both opening and closing backticks are the leftmost"
-                    f" element of their line"
+                    "make sure both opening and closing backticks are the leftmost"
+                    " element of their line"
                 )
         return output
 
