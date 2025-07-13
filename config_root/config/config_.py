@@ -448,12 +448,12 @@ class _OrderedConfig(_OrderedDictType):
             elif mode == "verbose":
                 # E.g., `nrows (marked_as_used=False, val_type=config_root.config.config_.Config)`
                 key_as_str = f"{key} (marked_as_used={marked_as_used}, writer={str(writer)}, "
-                key_as_str += "val_type=%s)" % hprint.type_to_string(type(val))
+                key_as_str += "val_type=" + hprint.type_to_string(type(val)) + ")"
             elif mode == "debug":
                 # Show full stacktrace of the writer.
                 stacktrace = repr(writer)
                 key_as_str = f"{key} (marked_as_used={marked_as_used}, writer={stacktrace}, "
-                key_as_str += "val_type=%s)" % hprint.type_to_string(type(val))
+                key_as_str += "val_type=" + hprint.type_to_string(type(val)) + ")"
             # 2) Process value.
             if isinstance(val, (pd.DataFrame, pd.Series, pd.Index)):
                 # Data structures that can be printed in a fancy way.
