@@ -309,6 +309,64 @@ def _save_models_info_to_csv(
 
 
 # #############################################################################
+
+
+def _build_messages(
+    system_prompt: str, user_prompt: str
+) -> List[Dict[str, str]]:
+    """
+    Construct the standard messages payload for the chat API.
+    """
+    hdbg.dassert_isinstance(system_prompt, str)
+    hdbg.dassert_isinstance(user_prompt, str)
+    ret = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_prompt},
+    ]
+    return ret
+
+
+@hcacsimp.simple_cache(write_through=True, exclude_keys=["client", "cache_mode"])
+def _call_api_sync(
+    cache_mode: str,
+    client: openai.OpenAI,
+    messages: List[Dict[str, str]],
+    temperature: float,
+    model: str,
+    **create_kwargs,
+) -> dict[Any, Any]:
+    """
+    Make a non-streaming API call.
+
+    :param cache_mode: "DISABLE_CACHE", "REFRESH_CACHE",
+        "HIT_CACHE_OR_ABORT", "NORMAL"
+    :param client: OpenAI client
+    :param messages: list of messages to send to the API
+    :param model: model to use for the completion
+    :param temperature: adjust an LLM's sampling diversity: lower values
+        make it more deterministic, while higher values foster creative
+        variation. 0 < temperature <= 2, 0.1 is default value in OpenAI
+        models.
+    :param create_kwargs: additional parameters for the API call
+    :return: OpenAI chat completion object as a dictionary
+    """
+    completion = client.chat.completions.create(
+        model=model,
+        messages=messages,
+        temperature=temperature,
+        **create_kwargs,
+    )
+    # Calculate the cost.
+    models_info_file = ""
+    cost = _calculate_cost(completion, model, models_info_file)
+    _accumulate_cost_if_needed(cost)
+    completion_obj = completion.to_dict()
+    # Store the cost in the completion object.
+    completion_obj["cost"] = cost
+    return completion_obj
+
+
+# #############################################################################
 # Cost tracking
 # #############################################################################
 
@@ -387,7 +445,9 @@ def _calculate_cost(
         prompt_price = row["prompt_pricing"]
         completion_price = row["completion_pricing"]
         # Compute cost.
-        cost = prompt_tokens * prompt_price + completion_tokens * completion_price
+        cost = (
+            prompt_tokens * prompt_price + completion_tokens * completion_price
+        )
     else:
         raise ValueError(f"Unknown provider: {provider_name}")
     _LOG.debug(hprint.to_str("prompt_tokens completion_tokens cost"))
@@ -510,7 +570,7 @@ def get_completion(
 #     txt: List[str] = []
 #     txt.append("Found %s files" % len(files))
 #     for file in files:
-#         txt.append("Deleting file %s" % file_to_info(file))
+#         txt.append("Deleting file " + file_to_info(file))
 #     txt = "\n".join(txt)
 #     return txt
 
@@ -566,7 +626,7 @@ def get_completion(
 #     txt = []
 #     txt.append("Found %s assistants" % len(assistants))
 #     for assistant in assistants:
-#         txt.append("Deleting assistant %s" % assistant_to_info(assistant))
+#         txt.append("Deleting assistant " + assistant_to_info(assistant))
 #     txt = "\n".join(txt)
 #     return txt
 

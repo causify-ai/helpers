@@ -59,9 +59,7 @@ def run_post_transforms(
     :param tmp_out_file_name: Temporary output file name
     :return: Text after applying post-transforms
     """
-    post_container_transforms = dshlllpr.get_post_container_transforms(
-        prompt
-    )
+    post_container_transforms = dshlllpr.get_post_container_transforms(prompt)
     #
     if dshlllpr.to_run("convert_file_names", post_container_transforms):
         _convert_file_names(in_file_name, tmp_out_file_name)

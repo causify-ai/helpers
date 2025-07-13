@@ -149,7 +149,9 @@ class TestTestCase1(hunitest.TestCase):
         )
         text_purifier = huntepur.TextPurifier()
         act = text_purifier.purify_txt_from_client(act)
-        exp = "$GIT_ROOT/helpers/test/outcomes/test_class.test_method/tmp.scratch"
+        exp = (
+            "$GIT_ROOT/helpers/test/outcomes/test_class.test_method/tmp.scratch"
+        )
         self.assertEqual(act, exp)
 
     def test_get_scratch_space3(self) -> None:
@@ -197,7 +199,9 @@ class TestTestCase1(hunitest.TestCase):
         expected = "hello world w"
         # Create a dir like `/var/tmp/tmph_kun9xq`.
         tmp_dir = tempfile.mkdtemp()
-        self.assert_equal(actual, expected, abort_on_error=False, dst_dir=tmp_dir)
+        self.assert_equal(
+            actual, expected, abort_on_error=False, dst_dir=tmp_dir
+        )
         # Compute the signature from the dir.
         act = hunitest.get_dir_signature(
             tmp_dir, include_file_content=True, num_lines=None
@@ -269,7 +273,6 @@ class TestTestCase1(hunitest.TestCase):
 
 
 class Test_AssertEqual1(hunitest.TestCase):
-
     def test_equal1(self) -> None:
         """
         Matching act and exp without fuzzy matching.
@@ -394,7 +397,6 @@ end
 
 
 class TestCheckString1(hunitest.TestCase):
-
     def test_check_string1(self) -> None:
         """
         Compare the actual value to a matching golden outcome.
@@ -886,7 +888,6 @@ class TestCheckDataFrame1(hunitest.TestCase):
 
 
 class Test_check_string_debug1(hunitest.TestCase):
-
     def test1(self) -> None:
         act = "hello"
         # action_on_missing_golden = "assert"
@@ -908,7 +909,6 @@ class Test_check_string_debug1(hunitest.TestCase):
 
 
 class Test_get_dir_signature1(hunitest.TestCase):
-
     def helper(self, include_file_content: bool) -> str:
         in_dir = self.get_input_dir()
         act = hunitest.get_dir_signature(

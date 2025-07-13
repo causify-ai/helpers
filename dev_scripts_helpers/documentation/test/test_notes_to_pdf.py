@@ -64,7 +64,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
             content.
         """
         # notes_to_pdf.py \
-        #   --input notes/MSML610/Lesson1-Intro.txt \
+        #   --input lectures_source/Lesson1-Intro.txt \
         #   --type slides \
         #   --output tmp.pdf \
         #   --skip_action copy_to_gdrive \
@@ -139,8 +139,8 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         # Run the script.
         script_txt, output_txt = self.run_notes_to_pdf(in_file, type_, cmd_opts)
         # Check.
-        txt = "script_txt:\n%s\n" % script_txt
-        txt += "output_txt:\n%s\n" % output_txt
+        txt = f"script_txt:\n{script_txt}\n"
+        txt += f"output_txt:\n{output_txt}\n"
         self.check_string(txt, purify_text=True)
 
     def test3(self) -> None:
@@ -155,6 +155,6 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         # Run the script.
         script_txt, output_txt = self.run_notes_to_pdf(in_file, type_, cmd_opts)
         # Check.
-        txt = "script_txt:\n%s\n" % script_txt
-        txt += "output_txt:\n%s\n" % output_txt
+        txt = f"script_txt:\n{script_txt}\n"
+        txt += f"output_txt:\n{output_txt}\n"
         self.check_string(txt, purify_text=True)

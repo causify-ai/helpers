@@ -18,6 +18,11 @@ from typing import Dict, List
 
 import yaml
 
+import helpers.hdbg as hdbg
+import helpers.hgit as hgit
+import helpers.hparser as hparser
+import helpers.hsystem as hsystem
+
 # TODO(gp): Use hdbg.WARNING
 _WARNING = "\033[33mWARNING\033[0m"
 
@@ -28,12 +33,6 @@ except ModuleNotFoundError:
     _module = "pygithub"
     print(_WARNING + f": Can't find {_module}: continuing")
 
-
-import helpers.hdbg as hdbg
-import helpers.hgit as hgit
-import helpers.hparser as hparser
-import helpers.hsystem as hsystem
-
 _LOG = logging.getLogger(__name__)
 
 
@@ -43,7 +42,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class Label:
-
     def __init__(self, name: str, description: str, color: str):
         """
         Initialize the label with name, description, and color.

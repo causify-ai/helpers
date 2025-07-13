@@ -20,7 +20,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_get_rendered_file_paths1(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Check generation of file paths for rendering images.
@@ -77,7 +76,6 @@ class Test_get_rendered_file_paths1(hunitest.TestCase):
     reason="Disabled because of CmampTask10710",
 )
 class Test_render_image_code1(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Check rendering of an image code in a Markdown file.
@@ -512,7 +510,6 @@ class Test_render_images1(hunitest.TestCase):
     reason="Disabled because of CmampTask10710",
 )
 class Test_render_images2(hunitest.TestCase):
-
     def helper(self, file_name: str) -> None:
         """
         Helper function to test rendering images from a file.

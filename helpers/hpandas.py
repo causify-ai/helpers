@@ -1148,7 +1148,9 @@ def convert_to_type(col: pd.Series, type_: str) -> pd.Series:
             lambda x: (
                 True
                 if x in ["True", 1, "1", "true", True]
-                else False if x in [0, "0", "False", False, "false"] else None
+                else False
+                if x in [0, "0", "False", False, "false"]
+                else None
             )
         )
     elif type_ == "is_int":
@@ -1221,7 +1223,10 @@ def _display(log_level: int, df: pd.DataFrame) -> None:
     """
     from IPython.display import display
 
-    if hsystem.is_running_in_ipynb() and log_level >= hdbg.get_logger_verbosity():
+    if (
+        hsystem.is_running_in_ipynb()
+        and log_level >= hdbg.get_logger_verbosity()
+    ):
         display(df)
 
 
@@ -1485,7 +1490,7 @@ def df_to_str(
             out.append(txt)
             # TODO(gp): np can't do isinf on objects like strings.
             # num_infinite = np.isinf(df).sum().sum()
-            # txt = "num_infinite=%s" % hprint.perc(num_infinite, num_elems)
+            # txt = "num_infinite=" + hprint.perc(num_infinite, num_elems)
             # out.append(txt)
             #
             num_nan_rows = df.dropna().shape[0]
@@ -1952,7 +1957,9 @@ def remove_outliers(
         hdbg.dassert_is_subset(columns, df.columns)
         for column in all_columns:
             if column in columns:
-                df[column] = df[column].quantile([lower_quantile, upper_quantile])
+                df[column] = df[column].quantile(
+                    [lower_quantile, upper_quantile]
+                )
     elif axis == 1:
         all_rows = df.rows
         rows = _resolve_column_names(column_set, all_rows)
@@ -2105,8 +2112,12 @@ def compare_dfs(
         raise ValueError(f"Invalid column_mode='{column_mode}'")
     # Round small numbers to 0 to exclude them from the diff computation.
     close_to_zero_threshold_mask = lambda x: abs(x) < close_to_zero_threshold
-    df1[close_to_zero_threshold_mask] = df1[close_to_zero_threshold_mask].round(0)
-    df2[close_to_zero_threshold_mask] = df2[close_to_zero_threshold_mask].round(0)
+    df1[close_to_zero_threshold_mask] = df1[close_to_zero_threshold_mask].round(
+        0
+    )
+    df2[close_to_zero_threshold_mask] = df2[close_to_zero_threshold_mask].round(
+        0
+    )
     # Compute the difference df.
     if diff_mode == "diff":
         # Test and convert the assertion into a boolean.
@@ -2152,7 +2163,9 @@ def compare_dfs(
         # Check if `df_diff` values are less than `assert_diff_threshold`.
         if assert_diff_threshold is not None:
             nan_mask = df_diff.isna()
-            within_threshold = (df_diff.abs() <= assert_diff_threshold) | nan_mask
+            within_threshold = (
+                df_diff.abs() <= assert_diff_threshold
+            ) | nan_mask
             expected = pd.DataFrame(
                 True,
                 index=within_threshold.index,
@@ -2274,12 +2287,12 @@ def multiindex_df_info(
         f"shape={len(columns_level0)} x {len(columns_level1)} x {len(rows)}"
     )
     ret.append(
-        "columns_level0=%s" % list_to_str(columns_level0, **list_to_str_kwargs)
+        "columns_level0=" + list_to_str(columns_level0, **list_to_str_kwargs)
     )
     ret.append(
-        "columns_level1=%s" % list_to_str(columns_level1, **list_to_str_kwargs)
+        "columns_level1=" + list_to_str(columns_level1, **list_to_str_kwargs)
     )
-    ret.append("rows=%s" % list_to_str(rows, **list_to_str_kwargs))
+    ret.append("rows=" + list_to_str(rows, **list_to_str_kwargs))
     if isinstance(df.index, pd.DatetimeIndex):
         # Display timestamp info.
         start_timestamp = df.index.min()

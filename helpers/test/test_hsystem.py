@@ -21,7 +21,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_system1(hunitest.TestCase):
-
     def test1(self) -> None:
         hsystem.system("ls")
 
@@ -172,7 +171,6 @@ class Test_system1(hunitest.TestCase):
 
 
 class Test_system2(hunitest.TestCase):
-
     def test_get_user_name(self) -> None:
         act = hsystem.get_user_name()
         _LOG.debug("act=%s", act)
@@ -211,7 +209,6 @@ class Test_system2(hunitest.TestCase):
 
 
 class Test_compute_file_signature1(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Compute the signature of a file using 1 enclosing dir.
@@ -268,7 +265,6 @@ class Test_compute_file_signature1(hunitest.TestCase):
 
 
 class Test_find_file_with_dir1(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Check whether we can find this file using one enclosing dir.
@@ -359,7 +355,6 @@ class Test_find_file_with_dir1(hunitest.TestCase):
 
 
 class Test_Linux_commands1(hunitest.TestCase):
-
     def test_du1(self) -> None:
         hsystem.du(".")
 
@@ -373,7 +368,6 @@ class Test_Linux_commands1(hunitest.TestCase):
 
 
 class Test_has_timestamp1(hunitest.TestCase):
-
     def test_has_not_timestamp1(self) -> None:
         """
         No timestamp.
@@ -435,7 +429,6 @@ class Test_has_timestamp1(hunitest.TestCase):
 
 
 class Test_append_timestamp_tag1(hunitest.TestCase):
-
     def test_no_timestamp1(self) -> None:
         """
         Invalid timestamp, with no tag.
