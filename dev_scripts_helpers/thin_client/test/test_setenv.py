@@ -89,42 +89,22 @@ class _SetenvTestCase(hunitest.TestCase):
             abort_on_error=False,
             log_level=logging.DEBUG,
         )
-        # Write all test outputs to files for debugging.
+        # Write test output to file for debugging.
         # `result` is a tuple of (return_code, output).
-        self._write_test_outputs(result[1])
+        self._write_test_output(result[1])
         return result
 
-    def _write_output_to_file(self, output: str, filename: str) -> None:
+    def _write_test_output(self, output: str) -> None:
         """
-        Write the output to a file in the test output directory.
-
-        :param output: output to write
-        :param filename: filename to write to
-        """
-        output_dir = self.get_output_dir(test_class_name=self.__class__.__name__)
-        hio.create_dir(output_dir, incremental=True)
-        output_file = os.path.join(output_dir, filename)
-        hio.to_file(output_file, output)
-        _LOG.debug("Test output written to: %s", output_file)
-
-    def _write_test_outputs(self, output: str) -> None:
-        """
-        Write `setenv.sh` test output and environment variables to files.
+        Write complete `setenv.sh` test output to a single file for debugging.
 
         :param output: complete output from the setenv script
         """
-        # Extract and write environment variables separately.
-        env_start = output.find("=== ENVIRONMENT VARIABLES AFTER setenv.sh ===")
-        env_end = output.find("=== END ENVIRONMENT VARIABLES AFTER setenv.sh ===")
-        if env_start != -1 and env_end != -1:
-            env_section = output[env_start:env_end]
-            self._write_output_to_file(env_section, "environment_variables.txt")
-        # Extract and write setenv.sh output separately.
-        setenv_start = output.find("=== setenv.sh output ===")
-        setenv_end = output.find("=== END setenv.sh output ===")
-        if setenv_start != -1 and setenv_end != -1:
-            setenv_section = output[setenv_start:setenv_end]
-            self._write_output_to_file(setenv_section, "setenv_script_output.txt")
+        output_dir = self.get_output_dir()
+        hio.create_dir(output_dir, incremental=True)
+        output_file = os.path.join(output_dir, "tmp.final.actual.txt")
+        hio.to_file(output_file, output)
+        _LOG.debug("Test output written to: %s", output_file)
 
     def _create_wrapper_script(self) -> str:
         """
