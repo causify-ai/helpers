@@ -231,9 +231,7 @@ def _save_models_info_to_csv(
 # #############################################################################
 
 
-def _build_messages(
-    system_prompt: str, user_prompt: str
-) -> List[Dict[str, str]]:
+def _build_messages(system_prompt: str, user_prompt: str) -> List[Dict[str, str]]:
     """
     Construct the standard messages payload for the chat API.
     """
@@ -260,13 +258,13 @@ class LLMCostTracker:
         """
         Initialize the OpenAIChatCostTracker.
         """
-        self._CURRENT_OPENAI_COST: float = 0.0
+        self.current_cost: float = 0.0
 
     def end_logging_costs(self) -> None:
         """
         End logging costs by resetting the current cost to 0.
         """
-        self._CURRENT_OPENAI_COST = 0.0
+        self.current_cost = 0.0
 
     def accumulate_cost(self, cost: float) -> None:
         """
@@ -274,7 +272,7 @@ class LLMCostTracker:
 
         :param cost: The cost to accumulate
         """
-        self._CURRENT_OPENAI_COST += cost
+        self.current_cost += cost
 
     def get_current_cost(self) -> float:
         """
@@ -282,7 +280,7 @@ class LLMCostTracker:
 
         :return: The current cost
         """
-        return self._CURRENT_OPENAI_COST
+        return self.current_cost
 
     def calculate_cost(
         self,
