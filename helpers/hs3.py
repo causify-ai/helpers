@@ -667,7 +667,9 @@ def generate_aws_files(
     config_file_name = os.path.join(home_dir, ".aws", "config")
     credentials_file_name = os.path.join(home_dir, ".aws", "credentials")
     # Check if the files already exist.
-    if os.path.exists(credentials_file_name) and os.path.exists(config_file_name):
+    if os.path.exists(credentials_file_name) and os.path.exists(
+        config_file_name
+    ):
         _LOG.info(
             "Both files exist: %s and %s; exiting",
             credentials_file_name,

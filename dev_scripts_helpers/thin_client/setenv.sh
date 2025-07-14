@@ -33,26 +33,27 @@ source $SOURCE_PATH
 echo "##> Parsing repo config"
 echo $(pwd)
 eval $(parse_yaml repo_config.yaml "REPO_CONF_")
-for var in $(compgen -v | grep "^REPO_CONF_"); do
-  eval "echo \"$var=\$$var\""
-done;
+# Print all REPO_CONF_ variables.
+set | grep "^REPO_CONF_" | while read line; do
+  echo "$line"
+done
 
 # TODO(heanh): Remove this once all repos are migrated to the new config.
 # Allow backward compatibility with old repo config that use integer value.
-if [[ $REPO_CONF_runnable_dir_info_use_helpers_as_nested_module == 1 ]]; then
+if [ "$REPO_CONF_runnable_dir_info_use_helpers_as_nested_module" = "1" ]; then
     REPO_CONF_runnable_dir_info_use_helpers_as_nested_module=True
-fi;
+fi
 
 # #############################################################################
 # Thin environment.
 # #############################################################################
 
-if [[ $REPO_CONF_runnable_dir_info_use_helpers_as_nested_module == True ]]; then
+if [ "$REPO_CONF_runnable_dir_info_use_helpers_as_nested_module" = "True" ]; then
     # We can reuse the thin environment of `helpers` or create a new one.
     VENV_TAG=$REPO_CONF_runnable_dir_info_venv_tag
 else
     VENV_TAG="helpers"
-fi;
+fi
 
 # - Activate environment
 activate_venv $VENV_TAG
@@ -61,19 +62,19 @@ activate_venv $VENV_TAG
 # helpers_root path.
 # #############################################################################
 
-if [[ $REPO_CONF_runnable_dir_info_use_helpers_as_nested_module == True ]]; then
+if [ "$REPO_CONF_runnable_dir_info_use_helpers_as_nested_module" = "True" ]; then
     HELPERS_ROOT_DIR=$(find ${GIT_ROOT_DIR} \( -path '*/.git' -o -path '*/.mypy_cache' \) -prune -o -name "helpers_root" -print | head -n 1)
 else
     HELPERS_ROOT_DIR="${GIT_ROOT_DIR}"
-fi;
+fi
 
 echo "HELPERS_ROOT_DIR=$HELPERS_ROOT_DIR"
 dassert_dir_exists $HELPERS_ROOT_DIR
 
-if [[ $REPO_CONF_runnable_dir_info_use_helpers_as_nested_module == True ]]; then
+if [ "$REPO_CONF_runnable_dir_info_use_helpers_as_nested_module" = "True" ]; then
     # Set vars for helpers_root.
     set_path "${HELPERS_ROOT_DIR}/dev_scripts_helpers"
-fi;
+fi
 
 # #############################################################################
 # dev_scripts_XYZ path.
@@ -109,7 +110,7 @@ set_symlink_permissions .
 
 # We want to install git hooks by default unless the user has explicitly
 # disabled them in the repo config.
-if [[ "${REPO_CONF_repo_info_enable_git_commit_hook}" == False ]]; then
+if [ "$REPO_CONF_repo_info_enable_git_commit_hook" = "False" ]; then
     echo "Skipping git hooks installation because enable_git_commit_hook=False"
     $HELPERS_ROOT_DIR/dev_scripts_helpers/git/git_hooks/install_hooks.py --action remove
 else

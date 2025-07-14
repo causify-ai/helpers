@@ -167,16 +167,6 @@ _MAC_OS_VERSION_MAPPING = {
 }
 
 
-def is_host_mac() -> bool:
-    """
-    Return whether we are running on macOS.
-    """
-    host_os_name = _get_host_os_name()
-    #
-    ret = host_os_name == "Darwin"
-    return ret
-
-
 def get_host_mac_version() -> str:
     """
     Get the macOS version (e.g., "Catalina", "Monterey", "Ventura").

@@ -39,10 +39,11 @@
 # https://docs.sympy.org/latest/tutorials/intro-tutorial/intro.html#what-is-symbolic-computation
 
 # %%
-from sympy import *
+import sympy
+from sympy import *  # noqa: F403
 
 # %%
-x, y = symbols('x,y')
+x, y = sympy.symbols("x,y")
 y | (x & y)
 
 # %%
@@ -53,27 +54,27 @@ x >> y
 (y & x).subs({x: True, y: True})
 
 # %%
-w, x, y, z = symbols('w x y z')
-minterms = [{w: 0, x: 1}, {y: 1, z: 1, x:0}]
-SOPform([w, x, y, z], minterms)
+w, x, y, z = sympy.symbols("w x y z")
+minterms = [{w: 0, x: 1}, {y: 1, z: 1, x: 0}]
+sympy.SOPform([w, x, y, z], minterms)
 
 # %%
-b = (~x & ~y & ~z) | ( ~x & ~y & z)
-simplify_logic(b)
+b = (~x & ~y & ~z) | (~x & ~y & z)
+sympy.simplify_logic(b)
 
 # %%
 # Compute truth table.
-from sympy.logic.boolalg import truth_table
+from sympy.logic.boolalg import truth_table  # noqa: E402
 
 table = truth_table(x >> y, [x, y])
 for t in table:
     print(f"{t[0]} -> {t[1]}")
 
 # %%
-satisfiable(x & ~x)
+sympy.satisfiable(x & ~x)
 
 # %%
-satisfiable((x | y) & (x | ~y) & (~x | y))
+sympy.satisfiable((x | y) & (x | ~y) & (~x | y))
 
 # %%
 # - (not L => Q and B and N)
@@ -81,10 +82,15 @@ satisfiable((x | y) & (x | ~y) & (~x | y))
 # - not Q => B
 # - not B
 
-L, N, Q, B = symbols('L N Q B')
+L, N, Q, B = sympy.symbols("L N Q B")
 
-C = Implies(~L, Q & B & N) & Implies(N, ~L) & Implies(~Q, B) & ~B
-satisfiable(C)
+C = (
+    sympy.Implies(~L, Q & B & N)
+    & sympy.Implies(N, ~L)
+    & sympy.Implies(~Q, B)
+    & ~B
+)
+sympy.satisfiable(C)
 
 # %%
 ## Stats
