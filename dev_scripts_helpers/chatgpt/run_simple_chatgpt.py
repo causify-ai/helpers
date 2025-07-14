@@ -10,7 +10,7 @@ import helpers.henv as henv
 import helpers.hparser as hparser
 
 henv.install_module_if_not_present("openai")
-import openai
+import openai  # noqa: E402
 
 _LOG = logging.getLogger(__name__)
 

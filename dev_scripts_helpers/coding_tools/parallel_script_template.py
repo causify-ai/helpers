@@ -107,7 +107,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     if res is None:
         print(f"res={res}")
     else:
-        print("res=\n%s" % "\n".join(map(str, res)))
+        print("res=\n" + "\n".join(map(str, res)))
 
 
 if __name__ == "__main__":

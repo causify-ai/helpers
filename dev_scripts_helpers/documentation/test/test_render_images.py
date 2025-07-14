@@ -5,6 +5,7 @@ import pytest
 
 import dev_scripts_helpers.documentation.render_images as dshdreim
 import helpers.hdbg as hdbg
+import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hserver as hserver
@@ -19,7 +20,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_get_rendered_file_paths1(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Check generation of file paths for rendering images.
@@ -57,10 +57,11 @@ class Test_get_rendered_file_paths1(hunitest.TestCase):
         )
         # Check output.
         act = "\n".join(paths)
-        exp = """
+        repo_name = hgit.get_repo_full_name_from_client(super_module=True)
+        exp = f"""
         tmp.render_images/e.8.txt
         /a/b/c/d/figs
-        https://raw.githubusercontent.com/causify-ai/helpers/master/figs/e.8.png
+        https://raw.githubusercontent.com/{repo_name}/master/figs/e.8.png
         """
         self.assert_equal(act, exp, dedent=True)
 
@@ -75,7 +76,6 @@ class Test_get_rendered_file_paths1(hunitest.TestCase):
     reason="Disabled because of CmampTask10710",
 )
 class Test_render_image_code1(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Check rendering of an image code in a Markdown file.
@@ -510,7 +510,6 @@ class Test_render_images1(hunitest.TestCase):
     reason="Disabled because of CmampTask10710",
 )
 class Test_render_images2(hunitest.TestCase):
-
     def helper(self, file_name: str) -> None:
         """
         Helper function to test rendering images from a file.

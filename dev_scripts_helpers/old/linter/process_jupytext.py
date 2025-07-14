@@ -1,10 +1,4 @@
 #!/usr/bin/env python
-"""
-Import as:
-
-import dev_scripts_helpers.old.linter.process_jupytext as dsolprju
-"""
-
 # pylint: disable=line-too-long
 r"""
 Automate some common workflows with jupytext.
@@ -20,6 +14,10 @@ Automate some common workflows with jupytext.
 
 # Sync
 > process_jupytext.py -f im.kibot/data_exploratory_analysis.ipynb --action sync
+
+Import as:
+
+import dev_scripts_helpers.old.linter.process_jupytext as dsolprju
 """
 # pylint: enable=line-too-long
 

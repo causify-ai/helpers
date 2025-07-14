@@ -53,7 +53,7 @@ def _convert(dir_name: str, ipynb_file: str, py_file: str) -> str:
     dir_name = os.path.dirname(ipynb_file)
     dst_py_file = dir_name + "/" + py_file
     hdbg.dassert_path_exists(dst_py_file)
-    cmd = fr"perl -p -i -e 's/# In\s*\[.*]/# In[]/g' {dst_py_file}"
+    cmd = rf"perl -p -i -e 's/# In\s*\[.*]/# In[]/g' {dst_py_file}"
     hsystem.system(cmd)
     return dst_py_file
 
@@ -206,9 +206,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.info(
         "file_names=%s\n%s",
         len(file_names),
-        "\n".join(
-            [f"{cwd_f} -> {abs_f}" for (abs_f, cwd_f) in file_names]
-        ),
+        "\n".join([f"{cwd_f} -> {abs_f}" for (abs_f, cwd_f) in file_names]),
     )
     hdbg.dassert_lte(1, len(file_names))
     # Create tmp dir.

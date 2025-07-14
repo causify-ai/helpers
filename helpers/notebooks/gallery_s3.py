@@ -20,6 +20,7 @@
 # %autoreload 3
 
 # %%
+import os
 
 import helpers.hs3 as hs3
 
@@ -33,13 +34,11 @@ s3 = hs3.get_s3fs(aws_profile)
 
 # %%
 bucket = hs3.get_s3_bucket_path(aws_profile, add_s3_prefix=False)
-print("bucket=%s" % bucket)
+print("bucket=" + bucket)
 s3.ls(bucket)
 
 # %%
 s3.ls(bucket)
 
 # %%
-import os
-
 print(os.environ["AWS_DEFAULT_REGION"])

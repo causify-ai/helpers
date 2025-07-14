@@ -63,13 +63,13 @@ class Table:
         rows_as_str = [row.rstrip() for row in rows_as_str]
         # Create string.
         res = "\n".join(rows_as_str)
-        # res += "\nsize=%s" % str(self.size())
+        # res += "\nsize=" + str(self.size())
         return res
 
     def __repr__(self) -> str:
         res = ""
         res += f"cols={str(self._column_names)}"
-        res += "\ntable=\n%s" % "\n".join(map(str, self._table))
+        res += "\ntable=\n" + "\n".join(map(str, self._table))
         res += "\n" + f"size={str(self.size())}"
         return res
 
