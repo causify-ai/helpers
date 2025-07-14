@@ -231,7 +231,9 @@ def _save_models_info_to_csv(
 # #############################################################################
 
 
-def _build_messages(system_prompt: str, user_prompt: str) -> List[Dict[str, str]]:
+def _build_messages(
+    system_prompt: str, user_prompt: str
+) -> List[Dict[str, str]]:
     """
     Construct the standard messages payload for the chat API.
     """
@@ -251,12 +253,12 @@ def _build_messages(system_prompt: str, user_prompt: str) -> List[Dict[str, str]
 
 class LLMCostTracker:
     """
-    Track the costs of OpenAI API calls.
+    Track the costs of LLM API calls through one of the providers.
     """
 
     def __init__(self) -> None:
         """
-        Initialize the OpenAIChatCostTracker.
+        Initialize the class.
         """
         self.current_cost: float = 0.0
 
@@ -268,7 +270,7 @@ class LLMCostTracker:
 
     def accumulate_cost(self, cost: float) -> None:
         """
-        Accumulate the cost if logging is enabled.
+        Accumulate the cost.
 
         :param cost: The cost to accumulate
         """
@@ -286,22 +288,22 @@ class LLMCostTracker:
         self,
         completion: openai.types.chat.chat_completion.ChatCompletion,
         model: str,
+        *,
         models_info_file: str = "",
         provider_name: str = _PROVIDER_NAME,
     ) -> float:
         """
-        Calculate the cost of an OpenAI API call.
+        Calculate the cost of an API call, based on the provider.
 
-        :param completion: The completion response from OpenAI
+        :param completion: The completion response from API from both
         :param model: The model used for the completion
         :return: The calculated cost in dollars
         """
-
         prompt_tokens = completion.usage.prompt_tokens
         completion_tokens = completion.usage.completion_tokens
-        # TODO(gp): This should be shared in the class.
         if provider_name == "openai":
             # Get the pricing for the selected model.
+            # TODO(gp): Use pricing from OpenAI or Openrouter API.
             # https://openai.com/api/pricing/
             # https://gptforwork.com/tools/openai-chatgpt-api-pricing-calculator
             # Cost per 1M tokens.
@@ -343,6 +345,8 @@ class LLMCostTracker:
 
 
 # #############################################################################
+
+
 _LLM_COST_Tracker = LLMCostTracker()
 
 
