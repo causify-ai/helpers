@@ -27,24 +27,25 @@
 
 ## Create a new (super) repo in the desired organization
 
+TODO(Grisha): consider using repository
+[templates](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template)
+
 - Create a repo within the
   [`causify-ai` organization](https://github.com/causify-ai)
 - Follow the
   [official guide](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-new-repository#creating-a-new-repository-from-the-web-ui)
-  - TODO(Grisha): consider using repository
-    [templates](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template)
 - Recommended options:
   - Owner: `causify-ai`
   - Repository-name: provide a valid short name, e.g., `algo_trading`
   - Visibility: by default choose `Private`
   - Add a README file
   - `.gitignore template: None`
-  - License: `General Public License v3.0`
+  - License: `General Public Licenve v3.0`
 
 ## Add helpers sub-repo
 
-- Below there is an example for the `//helpers` repo, but it works for any repo
-  (e.g., `//orange`) including any other repo (e.g., `//cmamp`)
+Below there is an example for the `helpers` repo, but it works for `cmamp` as
+well if one replaces `helpers` with `cmamp`.
 
 - Clone the super-repo locally
 
@@ -63,18 +64,16 @@
   ```bash
   > cd ~/src/repo_name1
   # In general form.
-  # > git submodule add {submodule_url} {submodule_path}
+  > git submodule add {submodule_url} {submodule_path}
   # Example for `cmamp`.
   > git submodule add git@github.com:causify-ai/helpers.git helpers_root
-  ```
-- The command will create a `.gitmodules` file that we need to check-in:
-  ```text
+  # The cmd will create a `.gitmodules` file that we need to check-in.
   [submodule "helpers_root"]
   path = helpers_root
   url = git@github.com:causify-ai/helpers.git
   ```
 
-- Init the submodule and commit the `.gitmodules` file
+- Init the submodule and commit the `.gitmodules` file.
 
   ```bash
   > git submodule init
@@ -87,9 +86,10 @@
   > git commit -am "Add helpers subrepo" && git push
   ```
 
-## Copy and customize files in the top dir
+## Copy and customize files
 
-- Conceptually you need to copy and customize the files in:
+- Conceptually we need to copy and customize the files in
+
   1. `thin_client` (one can reuse the thin client across repos)
   2. The top dir (to run `pytest`, ...)
   3. `devops` (to build the dev and prod containers)
@@ -101,30 +101,13 @@
   being completely configured, you can keep moving and then re-run the command
   later
 
-### Copy files from existing repo
-
-- Copy the files from a working repo (e.g., `//cmamp`)
-  ```bash
-  > export SRC_DIR=$HOME/src/cmamp1
-  > ls $SRC_DIR
-
-  > cp $SRC_DIR/{pytest.ini,repo_config.yaml,tasks.py} .
-  > vi pytest.ini repo_config.yaml tasks.py
-  ```
-
-### Script approach
-
-- Customize the script
+- You can follow the directions to perform the step manually or run the script
   [`/dev_scripts_helpers/thin_client/sync_super_repo.sh`](/dev_scripts_helpers/thin_client/sync_super_repo.sh)
-  ```
-  DST_PREFIX="umd_msml610"
-  ```
-- Run the script which allows to `vimdiff` / `cp` files across a super-repo and
-  its `//helpers` dir
+  which allows to vimdiff / cp files across a super-repo and its `helpers` dir
 
-### Manual approach
+## 1) Copy and customize files in the top dir
 
-- Some files need to be copied from `//helpers` to the root of the super-repo to
+- Some files need to be copied from `helpers` to the root of the super-repo to
   configure various tools (e.g., dev container workflow, `pytest`, `invoke`)
   - `pytest.ini`: configure `pytest` preferences
   - `repo_config.yaml`: stores information about this specific repo (e.g., name,
@@ -144,37 +127,12 @@
     ```
   - `tasks.py`: the `invoke` tasks available in this container
     - This can be modified if needed
-
-- You can copy all these files from `//helpers`
   ```bash
   > cp helpers_root/{pytest.ini,repo_config.yaml,tasks.py} .
   > vim pytest.ini repo_config.yaml tasks.py
   ```
 
-## Copy and customize files in `thin_client`
-
-### Copy files from existing repo
-
-- Copy the files from a working repo (e.g., `//cmamp`)
-  ```bash
-  > export SRC_DIR=$HOME/src/cmamp1
-  > ls $SRC_DIR
-
-  > cp $SRC_DIR/{pytest.ini,repo_config.yaml,tasks.py} .
-  > vi pytest.ini repo_config.yaml tasks.py
-  ```
-
-### Script approach
-
-- Customize the script
-  [`/dev_scripts_helpers/thin_client/sync_super_repo.sh`](/dev_scripts_helpers/thin_client/sync_super_repo.sh)
-  ```
-  DST_PREFIX="umd_msml610"
-  ```
-- Run the script which allows to `vimdiff` / `cp` files across a super-repo and
-  its `//helpers` dir
-
-### Manual approach
+## 2) Copy and customize files in `thin_client`
 
 - Create the `dev_scripts_{dir_name}` dir based off the template from `helpers`
 
@@ -197,14 +155,22 @@
   tmux.py
   ```
 
-- If we don't need to create a new thin env, then you can delete the files
+- If we don't need to create a new thin env you can delete the files
   `dev_scripts_{dir_name}/thin_client/build.py` and `requirements.txt`
 
-## Build and test the thin environment
+- Replace file with symbolic links
+
+  ```bash
+  > echo $SRC_DIR
+  ./helpers_root/dev_scripts_helpers/thin_client
+  > echo $DST_DIR
+  ./dev_scripts_xyz/thin_client
+  > ./helpers_root/helpers/create_links.py --src_dir $SRC_DIR --dst_dir $DST_DIR --replace_links --use_relative_paths
+  ```
 
 ### Build the thin environment
 
-- Build the thin environment:
+- Build the thin environment
   ```
   > $DST_DIR/build.py
   ... ==> `brew cleanup` has not been run in the last 30 days, running now...
@@ -217,15 +183,22 @@
 
 ### Test the thin environment
 
-- Follow
-  [the on-boarding guide](/docs/onboarding/ck.development_setup.how_to_guide.md#set-up-the-thin-environment)
+Follow
+[the on-boarding guide](/docs/onboarding/ck.development_setup.how_to_guide.md#set-up-the-thin-environment)
 
 ### Create the tmux links
 
-- Follow
-  [the on-boarding guide](/docs/onboarding/ck.development_setup.how_to_guide.md#create-a-tmux-session)
+Follow
+[the on-boarding guide](/docs/onboarding/ck.development_setup.how_to_guide.md#create-a-tmux-session)
 
-## Copy and customize files in `devops`
+### Maintain the files in sync with the template
+
+- Check the difference between the super-repo and `helpers`
+  ```bash
+  > helpers_root/dev_scripts_helpers/thin_client/sync_super_repo.sh
+  ```
+
+## 3) Copy and customize files in `devops`
 
 - Copy the `devops` template dir
   ```bash
@@ -244,21 +217,12 @@
   and
   [`/docs/work_tools/all.devops_docker.how_to_guide.md`](/docs/work_tools/all.devops_docker.how_to_guide.md)
 
-## Create symbolic links
+## 4) Replace files with symbolic links
 
-- Check the difference between the super-repo and `helpers`
-  ```bash
-  > helpers_root/dev_scripts_helpers/thin_client/sync_super_repo.sh
-  ```
-
-- Replace file with symbolic links:
+- Some common files can be replaced with symbolic links if they remain unchanged
 
   ```bash
-  > echo $SRC_DIR
-  ./helpers_root/dev_scripts_helpers/thin_client
-  > echo $DST_DIR
-  ./dev_scripts_xyz/thin_client
-  > ./helpers_root/helpers/create_links.py --src_dir $SRC_DIR --dst_dir $DST_DIR --replace_links --use_relative_paths
+  ./helpers_root/helpers/create_links.py --src_dir ./helpers_root --dst_dir . --replace_links --use_relative_paths
   ```
 
 - Refer to
@@ -272,7 +236,7 @@
 
 ### Build a container for a super-repo
 
-- Run the single-arch flow:
+- Run the single-arch flow
 
   ```bash
   > i docker_build_local_image --version 1.0.0 && i docker_tag_local_image_as_dev --version 1.0.0
@@ -280,7 +244,7 @@
   > i docker_jupyter
   ```
 
-- Run the multi-arch flow:
+- Run the multi-arch flow
 
   ```bash
   > i docker_build_local_image --version 1.0.0 --multi-arch "linux/amd64,linux/arm64"
@@ -294,11 +258,11 @@
 
 ### Check if the regressions are passing
 
-- Follow
-  [the on-boarding doc](/docs/onboarding/ck.development_setup.how_to_guide.md#begin-working)
-  to confirm that everything is set up properly
+Follow
+[the on-boarding](/docs/onboarding/ck.development_setup.how_to_guide.md#begin-working)
+doc to confirm.
 
-- File a PR with the new files and merge the PR into `master`
+File a PR with the new files and merge the PR into `master`.
 
 ## Configure regressions via GitHub actions
 
@@ -355,42 +319,43 @@
 
 ### Configure Gitleaks scan
 
-- Copy the configuration and workflow files
-  ```bash
-  > cp ./helpers_root/.github/gitleaks-rules.toml ./.github
-  > cp ./helpers_root/.github/workflows/gitleaks.yml ./.github/workflows
-  ```
+1. Copy the configuration and workflow files
 
-- Replace files with symbolic links
-   ```bash
-   > ./helpers_root/helpers/create_links.py --src_dir ./helpers_root/.github --dst_dir ./.github --replace_links --use_relative_paths
-   ```
+```bash
+cp ./helpers_root/.github/gitleaks-rules.toml ./.github
+cp ./helpers_root/.github/workflows/gitleaks.yml ./.github/workflows
+```
 
-- Note:
-  - Only the `gitleaks-rules.toml` file should be replaced with symbolic links
-  - The `gitleaks.yml` file should be copied as is because GitHub Actions does not
-    resolve symbolic links when parsing workflows in the `.github/workflows`
-    directory (See #CmampTask11429)
+2. Replace files with symbolic links
+
+```bash
+./helpers_root/helpers/create_links.py --src_dir ./helpers_root/.github --dst_dir ./.github --replace_links --use_relative_paths
+```
+
+Note:
+
+- Only the `gitleaks-rules.toml` file should be replaced with symbolic links
+- The `gitleaks.yml` file should be copied as is because GitHub Actions does not
+  resolve symbolic links when parsing workflows in the `.github/workflows`
+  directory (See #CmampTask11429)
 
 ## Configure GitHub repo
 
-- **Disclaimer**: the following set-up requires paid GitHub version (Pro / Team /
-  Enterprise)
+**Disclaimer**: the following set-up requires paid GitHub version
+(Pro/Team/Enterprise)
 
-- Set-up branch protection rule for master
+1. Set-up branch protection rule for master
 
-  - Navigate to `https://github.com/<your org>/<<your-repo>>/settings/branches`
-  - Click "Add rule"
-    - Specify branch name pattern `master`
-    - Check the following options:
-      - `Require a pull request before merging` (do not check the sub-options)
-      - `Require status checks to pass before merging`
-        - Check the `Require branches to be up to date before merging` sub-option
-        - In the `Status checks that are required` table specify the workflows you
-          want to pass before merging each PR
-          - Depends on which workflows were set-up in the step above
-          - Usually its `run_fast_tests` and `run_slow_tests`
-      - `Require conversation resolution before merging`
-    - Click "Save changes" button
-
-- You need to sync the repo using the sync script
+- Navigate to `https://github.com/<your org>/<<your-repo>>/settings/branches`
+- Click "Add rule"
+  - Specify branch name pattern `master`
+  - Check the following options:
+    - `Require a pull request before merging` (do not check the sub-options)
+    - `Require status checks to pass before merging`
+      - Check the `Require branches to be up to date before merging` sub-option
+      - In the `Status checks that are required` table specify the workflows you
+        want to pass before merging each PR
+        - Depends on which workflows were set-up in the step above
+        - Usually its `run_fast_tests` and `run_slow_tests`
+    - `Require conversation resolution before merging`
+  - Click "Save changes" button
