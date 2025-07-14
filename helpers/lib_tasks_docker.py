@@ -723,9 +723,7 @@ def _generate_docker_compose_file(
             """
             Override the method to modify YAML indentation behavior.
             """
-            return super().increase_indent(
-                flow=False, indentless=False
-            )
+            return super().increase_indent(flow=False, indentless=False)
 
     # Convert the dictionary to YAML format.
     yaml_str = yaml.dump(

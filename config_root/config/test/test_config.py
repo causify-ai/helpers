@@ -52,8 +52,8 @@ def _check_roundtrip_transformation(self_: Any, config: cconfig.Config) -> str:
     self_.assertEqual(str(config), str(config2))
     # Build the signature of the test.
     act = []
-    act.append("# config=\n%s" % str(config))
-    act.append("# code=\n%s" % str(code))
+    act.append(f"# config=\n{str(config)}")
+    act.append(f"# code=\n{str(code)}")
     act = "\n".join(act)
     return act
 
@@ -347,8 +347,8 @@ class Test_flat_config_in1(hunitest.TestCase):
         """
         config = _get_flat_config2(self)
         #
-        self.assertTrue("nrows" in config)
-        self.assertTrue("nrows2" in config)
+        self.assertIn("nrows", config)
+        self.assertIn("nrows2", config)
 
     def test_not_in1(self) -> None:
         """
@@ -356,11 +356,11 @@ class Test_flat_config_in1(hunitest.TestCase):
         """
         config = _get_flat_config2(self)
         #
-        self.assertTrue("nrows3" not in config)
-        self.assertFalse("nrows3" in config)
-        self.assertTrue("hello" not in config)
-        self.assertTrue(("nrows", "world") not in config)
-        self.assertTrue(("hello", "world") not in config)
+        self.assertNotIn("nrows3", config)
+        self.assertNotIn("nrows3", config)
+        self.assertNotIn("hello", config)
+        self.assertNotIn(("nrows", "world"), config)
+        self.assertNotIn(("hello", "world"), config)
 
 
 # #############################################################################
@@ -831,35 +831,35 @@ class Test_nested_config_in1(hunitest.TestCase):
         """
         self.assert_equal(act, exp, fuzzy_match=True)
         #
-        self.assertTrue("nrows" in config)
+        self.assertIn("nrows", config)
         #
-        self.assertTrue("read_data" in config)
+        self.assertIn("read_data", config)
 
     def test_in2(self) -> None:
         config = _get_nested_config1(self)
         #
-        self.assertTrue(("read_data", "file_name") in config)
-        self.assertTrue(("zscore", "style") in config)
+        self.assertIn(("read_data", "file_name"), config)
+        self.assertIn(("zscore", "style"), config)
 
     def test_not_in1(self) -> None:
         config = _get_nested_config1(self)
         #
-        self.assertTrue("read_data3" not in config)
+        self.assertNotIn("read_data3", config)
 
     def test_not_in2(self) -> None:
         config = _get_nested_config1(self)
         #
-        self.assertTrue(("read_data2", "file_name") not in config)
+        self.assertNotIn(("read_data2", "file_name"), config)
 
     def test_not_in3(self) -> None:
         config = _get_nested_config1(self)
         #
-        self.assertTrue(("read_data", "file_name2") not in config)
+        self.assertNotIn(("read_data", "file_name2"), config)
 
     def test_not_in4(self) -> None:
         config = _get_nested_config1(self)
         #
-        self.assertTrue(("read_data", "file_name", "foo_bar") not in config)
+        self.assertNotIn(("read_data", "file_name", "foo_bar"), config)
 
 
 # #############################################################################
@@ -1851,7 +1851,6 @@ class Test_to_pickleable_string(hunitest.TestCase):
         key2:
           key3:
             key4:
-
         """
         should_be_pickleable_before = True
         force_values_to_string = True
@@ -1873,7 +1872,6 @@ class Test_to_pickleable_string(hunitest.TestCase):
         key2:
           key3:
             key4:
-
         """
         should_be_pickleable_before = False
         force_values_to_string = True
@@ -2072,7 +2070,6 @@ class Test_to_string(hunitest.TestCase):
     def test6(self) -> None:
         """
         Test debug mode with `marked_as_used` == True.
-
         This is a smoketest since the output of stacktrace is unstable.
         """
         # Set multiline string value.
@@ -2294,10 +2291,11 @@ class _Config_execute_stmt_TestCase1(hunitest.TestCase):
         _LOG.debug("%s", "\n" + hprint.frame(stmt))
         exec(stmt, _globals)  # pylint: disable=exec-used
         #
+        config = _globals["config"]
         if mode == "str":
-            act = str(config)  # pylint: disable=undefined-variable
+            act = str(config)
         elif mode == "repr":
-            act = repr(config)  # pylint: disable=undefined-variable
+            act = repr(config)
         else:
             raise ValueError(f"Invalid mode={mode}")
         _LOG.debug("config=\n%s", act)

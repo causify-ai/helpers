@@ -173,7 +173,9 @@ def _find_files_to_diff(
     # outcome.
     hsystem.system(cmd, abort_on_error=False)
     # Remove files.
-    _remove_files_from_file_list(dst_file, regexes_to_ignore, do_not_skip_tmp=True)
+    _remove_files_from_file_list(
+        dst_file, regexes_to_ignore, do_not_skip_tmp=True
+    )
     #
     cmd = f"cat {dst_file}"
     print(f"# To see diff of the dirs:\n> {cmd}")

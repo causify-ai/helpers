@@ -48,8 +48,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     #
     message = []
-    message.append("user=%s" % hsystem.get_user_name())
-    message.append("server=%s" % hsystem.get_server_name())
+    message.append("user=" + hsystem.get_user_name())
+    message.append("server=" + hsystem.get_server_name())
     #
     if args.cmd is not None:
         cmd = args.cmd

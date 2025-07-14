@@ -19,7 +19,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_find_short_import1(hunitest.TestCase):
-
     def test1(self) -> None:
         iterator = [
             ("file1.py", 10, "import dataflow.core.dag_runner as dtfcodarun"),
@@ -38,7 +37,6 @@ class Test_find_short_import1(hunitest.TestCase):
 
 
 class Test_find_func_class_uses1(hunitest.TestCase):
-
     def test1(self) -> None:
         iterator = [
             (
@@ -218,7 +216,6 @@ class TestLibTasksRunTests1(hunitest.TestCase):
 
 
 class Test_find_check_string_output1(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test `find_check_string_output()` by searching the `check_string` of

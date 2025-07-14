@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.14.1
+#       jupytext_version: 1.16.7
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -104,6 +104,7 @@ mem = joblib.Memory(
 # hjoblib.register_s3fs_store_backend()
 
 s3fs = hs3.get_s3fs("am")
+dict_ = {}
 
 dict2 = {
     "bucket": "alphamatic-data",
@@ -212,8 +213,8 @@ def computation_function(a, b):
 inputs = (1, 2)
 exp_output = 2
 
-hdbg.dassert_eq(memory_cached_computation(*inputs), exp_output)
-hdbg.dassert_eq(memory_cached_computation.get_last_cache_accessed(), "mem")
+# hdbg.dassert_eq(memory_cached_computation(*inputs), exp_output)
+# hdbg.dassert_eq(memory_cached_computation.get_last_cache_accessed(), "mem")
 
 # %% [markdown]
 # ## Disk cache

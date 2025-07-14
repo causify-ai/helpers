@@ -88,7 +88,9 @@ def _get_rendered_file_paths(
     # Use GitHub absolute reference when specified.
     if use_github_hosting:
         repo_name = hgit.get_repo_full_name_from_client(super_module=True)
-        github_abs_path = f"https://raw.githubusercontent.com/{repo_name}/master/"
+        github_abs_path = (
+            f"https://raw.githubusercontent.com/{repo_name}/master/"
+        )
         rel_img_path = os.path.join(github_abs_path, rel_img_path)
     # Get the path to a temporary file with the image code, e.g., "readme.1.txt".
     dir_name = "tmp.render_images"
