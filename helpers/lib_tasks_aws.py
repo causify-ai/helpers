@@ -320,11 +320,29 @@ def aws_create_test_task_definition(
     # Register task definition.
     _register_task_definition(task_definition_name, region=region)
 
+@task
+def aws_create_preprod_task_definition(
+    ctx,
+    region: str = hs3.AWS_EUROPE_REGION_1,
+) -> None:
+    """
+    Create a new ECS task definition for preprod environment.
+
+    :param region: region to create the task definition in
+    """
+    _ = ctx
+    hlitauti.report_task()
+    hdbg.dassert_in(region, hs3.AWS_REGIONS)
+    image_name = hrecouti.get_repo_config().get_docker_base_image_name()
+    task_definition_name = f"{image_name}-preprod"
+    # Register task definition.
+    _register_task_definition(task_definition_name, region=region)
+
 
 @task
 def aws_create_prod_task_definition(
     ctx,
-    region: str = hs3.AWS_EUROPE_REGION_1,
+    region: str = hs3.AWS_US_REGION_1,
 ) -> None:
     """
     Create a new ECS task definition.
