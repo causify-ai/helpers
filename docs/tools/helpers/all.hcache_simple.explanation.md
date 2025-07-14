@@ -173,8 +173,11 @@
       `@simple_cache(cache_type="json")`, the decorator sets the system property
       for the cache type
   - Wrapper execution:
-    - Key generation: The wrapper generates a `cache key` from both
-      arguments and keyword arguments.
+    - Key generation: The wrapper generates a `cache key` from both arguments
+      and keyword arguments.
+      - Exclude Keys: The wrapper excludes certain keys from the cache key by
+        using the `exclude_keys` argument in the decorator. These keys are
+        omitted from `kwargs` when forming the cache key.
     - Cache lookup:
       - If the key exists in the memory cache (and no force refresh is
         requested), it returns the cached value
@@ -211,9 +214,23 @@
   - Set Force Refresh:
     - With this property set, each call to `multiply_by_two(4)` will recompute
       the result and update the cache.
-  - Enable Write-Through:
+  - Enable `write_through`:
     - When using `@simple_cache(write_through=True)`, the decorator will flush
       the memory cache to disk immediately after updating.
+  - Exclude certain keys from cache key:
+    - Suppose we have a function that uses an OpenAI client to fetch
+      completions, but the actual output depends only on the prompt. The
+      `client` object should be excluded from the cache key because it varies
+      per session:
+      ```python
+      @simple_cache(exclude_keys=["client"])
+      def get_summary(prompt: str, client: Any):
+          return client.complete(prompt=prompt)
+      ```
+    - Without `exclude_keys=["client"]`, each call with a different `client`
+      instance (even for the same prompt) would result in a cache miss. This
+      exclusion ensures the cache key is based only on the `prompt`, improving
+      hit rates.
 
 ## Common Misunderstandings
 
@@ -222,7 +239,7 @@
   non-deterministic behavior (e.g., randomness, time-based logic) may yield
   inconsistent results.
 
-- **force_refresh Must Be Reset**: Once `force_refresh` is set, every call
+- **`force_refresh` Must Be Reset**: Once `force_refresh` is set, every call
   recomputes the result. Users must manually unset this flag if they want to
   resume normal caching.
 

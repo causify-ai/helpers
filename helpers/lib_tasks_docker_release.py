@@ -1150,7 +1150,9 @@ def docker_release_all(ctx, version, container_dir_name="."):  # type: ignore
     """
     hlitauti.report_task()
     docker_release_dev_image(ctx, version, container_dir_name=container_dir_name)
-    docker_release_prod_image(ctx, version, container_dir_name=container_dir_name)
+    docker_release_prod_image(
+        ctx, version, container_dir_name=container_dir_name
+    )
     _LOG.info("==> SUCCESS <==")
 
 
@@ -1455,14 +1457,18 @@ def docker_update_prod_task_definition(
     # Compose new prod image url.
     new_prod_image_url = hlitadoc.get_image(base_image, stage, prod_version)
     version = None
-    new_prod_image_url_no_version = hlitadoc.get_image(base_image, stage, version)
+    new_prod_image_url_no_version = hlitadoc.get_image(
+        base_image, stage, version
+    )
     # Check if preprod tag exist in preprod task definition as precaution.
     preprod_task_definition_name = f"{task_definition}-preprod"
     preprod_image_url = haws.get_task_definition_image_url(
         preprod_task_definition_name
     )
     preprod_tag_from_image = preprod_image_url.split(":")[-1]
-    msg = f"Preprod tag is different in the image url `{preprod_tag_from_image}`!"
+    msg = (
+        f"Preprod tag is different in the image url `{preprod_tag_from_image}`!"
+    )
     hdbg.dassert_eq(preprod_tag_from_image, preprod_tag, msg=msg)
     # Pull preprod image for re-tag.
     hlitadoc.docker_login(ctx)
