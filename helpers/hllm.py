@@ -86,14 +86,6 @@ def _get_llm_provider_and_model(model: str) -> Tuple[str, str]:
     return provider_name, model
 
 
-def _get_model_name(model: str) -> str:
-    """
-    Get the model name for a model.
-    """
-    if "/" in model:
-        return model.split("/")[1]
-    return model
-
 
 def response_to_txt(response: Any) -> str:
     """
