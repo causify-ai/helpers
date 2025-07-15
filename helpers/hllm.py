@@ -8,7 +8,7 @@ import functools
 import logging
 import os
 import re
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import openai
 import pandas as pd
@@ -28,6 +28,7 @@ _LOG = logging.getLogger(__name__)
 
 # gpt-4o-mini is Openai Model, its great for most tasks.
 _MODEL = "openai/gpt-4o-mini"
+
 
 # #############################################################################
 # Update LLM cache
@@ -245,13 +246,120 @@ def _build_messages(
     return ret
 
 
-@hcacsimp.simple_cache(write_through=True, exclude_keys=["client", "cache_mode"])
+# #############################################################################
+# LLMCostTracker
+# #############################################################################
+
+
+class LLMCostTracker:
+    """
+    Track the costs of LLM API calls through one of the providers.
+    """
+
+    def __init__(self) -> None:
+        """
+        Initialize the class.
+        """
+        self.current_cost: float = 0.0
+
+    def end_logging_costs(self) -> None:
+        """
+        End logging costs by resetting the current cost to 0.
+        """
+        self.current_cost = 0.0
+
+    def accumulate_cost(self, cost: float) -> None:
+        """
+        Accumulate the cost.
+
+        :param cost: The cost to accumulate
+        """
+        self.current_cost += cost
+
+    def get_current_cost(self) -> float:
+        """
+        Get the current accumulated cost.
+
+        :return: The current cost
+        """
+        return self.current_cost
+
+    def calculate_cost(
+        self,
+        completion: openai.types.chat.chat_completion.ChatCompletion,
+        model: str,
+        *,
+        models_info_file: str = "",
+        provider_name: str = _PROVIDER_NAME,
+    ) -> float:
+        """
+        Calculate the cost of an API call, based on the provider.
+
+        :param completion: The completion response from API from both
+        :param model: The model used for the completion
+        :return: The calculated cost in dollars
+        """
+        prompt_tokens = completion.usage.prompt_tokens
+        completion_tokens = completion.usage.completion_tokens
+        if provider_name == "openai":
+            # Get the pricing for the selected model.
+            # TODO(gp): Use pricing from OpenAI or Openrouter API.
+            # https://openai.com/api/pricing/
+            # https://gptforwork.com/tools/openai-chatgpt-api-pricing-calculator
+            # Cost per 1M tokens.
+            pricing = {
+                "gpt-3.5-turbo": {"prompt": 0.5, "completion": 1.5},
+                "gpt-4o-mini": {"prompt": 0.15, "completion": 0.60},
+                "gpt-4o": {"prompt": 5, "completion": 15},
+            }
+            hdbg.dassert_in(model, pricing)
+            model_pricing = pricing[model]
+            # Calculate the cost.
+            cost = (prompt_tokens / 1e6) * model_pricing["prompt"] + (
+                completion_tokens / 1e6
+            ) * model_pricing["completion"]
+        elif provider_name == "openrouter":
+            # If the model info file doesn't exist, download one.
+            if models_info_file == "":
+                models_info_file = _get_models_info_file()
+            _LOG.debug(hprint.to_str("models_info_file"))
+            if not os.path.isfile(models_info_file):
+                model_info_df = _retrieve_openrouter_model_info()
+                _save_models_info_to_csv(model_info_df, models_info_file)
+            else:
+                model_info_df = pd.read_csv(models_info_file)
+            # Extract pricing for this model.
+            hdbg.dassert_in(model, model_info_df["id"].values)
+            row = model_info_df.loc[model_info_df["id"] == model].iloc[0]
+            prompt_price = row["prompt_pricing"]
+            completion_price = row["completion_pricing"]
+            # Compute cost.
+            cost = (
+                prompt_tokens * prompt_price
+                + completion_tokens * completion_price
+            )
+        else:
+            raise ValueError(f"Unknown provider: {provider_name}")
+        _LOG.debug(hprint.to_str("prompt_tokens completion_tokens cost"))
+        return cost
+
+
+# #############################################################################
+
+
+_LLM_COST_Tracker = LLMCostTracker()
+
+
+@hcacsimp.simple_cache(
+    write_through=True, exclude_keys=["client", "cache_mode", "cost_tracker"]
+)
 def _call_api_sync(
     cache_mode: str,
     client: openai.OpenAI,
     messages: List[Dict[str, str]],
     temperature: float,
-    model: str,
+    model: str = _MODEL,
+    cost_tracker: Optional[LLMCostTracker] = None,
     **create_kwargs,
 ) -> dict[Any, Any]:
     """
@@ -266,6 +374,7 @@ def _call_api_sync(
         make it more deterministic, while higher values foster creative
         variation. 0 < temperature <= 2, 0.1 is default value in OpenAI
         models.
+    :param cost_tracker: LLMCostTracker instance to track costs
     :param create_kwargs: additional parameters for the API call
     :return: OpenAI chat completion object as a dictionary
     """
@@ -275,102 +384,16 @@ def _call_api_sync(
         temperature=temperature,
         **create_kwargs,
     )
-    # Calculate the cost.
-    models_info_file = ""
-    cost = _calculate_cost(completion, model, models_info_file)
-    _accumulate_cost_if_needed(cost)
     completion_obj = completion.to_dict()
+    if cost_tracker is None:
+        cost_tracker = _LLM_COST_Tracker
+    # Calculate the cost of the completion.
+    hdbg.dassert_isinstance(cost_tracker, LLMCostTracker)
+    cost = cost_tracker.calculate_cost(completion, model)
+    cost_tracker.accumulate_cost(cost)
     # Store the cost in the completion object.
     completion_obj["cost"] = cost
     return completion_obj
-
-
-# #############################################################################
-# Cost tracking
-# #############################################################################
-
-# TODO(*): Convert this into a class to track costs?
-
-
-_CURRENT_OPENAI_COST = None
-
-
-def start_logging_costs() -> None:
-    global _CURRENT_OPENAI_COST
-    _CURRENT_OPENAI_COST = 0.0
-
-
-def end_logging_costs() -> None:
-    global _CURRENT_OPENAI_COST
-    _CURRENT_OPENAI_COST = None
-
-
-def _accumulate_cost_if_needed(cost: float) -> None:
-    # Accumulate the cost.
-    global _CURRENT_OPENAI_COST
-    if _CURRENT_OPENAI_COST is not None:
-        _CURRENT_OPENAI_COST += cost
-
-
-def get_current_cost() -> float:
-    return _CURRENT_OPENAI_COST
-
-
-def _calculate_cost(
-    completion: openai.types.chat.chat_completion.ChatCompletion,
-    model: str,
-    models_info_file: str,
-    provider_name: str = _PROVIDER_NAME,
-) -> float:
-    """
-    Calculate the cost of an OpenAI API call.
-
-    :param completion: The completion response from OpenAI
-    :param model: The model used for the completion
-    :return: The calculated cost in dollars
-    """
-    prompt_tokens = completion.usage.prompt_tokens
-    completion_tokens = completion.usage.completion_tokens
-    # TODO(gp): This should be shared in the class.
-    if provider_name == "openai":
-        # Get the pricing for the selected model.
-        # https://openai.com/api/pricing/
-        # https://gptforwork.com/tools/openai-chatgpt-api-pricing-calculator
-        # Cost per 1M tokens.
-        pricing = {
-            "gpt-3.5-turbo": {"prompt": 0.5, "completion": 1.5},
-            "gpt-4o-mini": {"prompt": 0.15, "completion": 0.60},
-            "gpt-4o": {"prompt": 5, "completion": 15},
-        }
-        hdbg.dassert_in(model, pricing)
-        model_pricing = pricing[model]
-        # Calculate the cost.
-        cost = (prompt_tokens / 1e6) * model_pricing["prompt"] + (
-            completion_tokens / 1e6
-        ) * model_pricing["completion"]
-    elif provider_name == "openrouter":
-        # If the model info file doesn't exist, download one.
-        if models_info_file == "":
-            models_info_file = _get_models_info_file()
-        _LOG.debug(hprint.to_str("models_info_file"))
-        if not os.path.isfile(models_info_file):
-            model_info_df = _retrieve_openrouter_model_info()
-            _save_models_info_to_csv(model_info_df, models_info_file)
-        else:
-            model_info_df = pd.read_csv(models_info_file)
-        # Extract pricing for this model.
-        hdbg.dassert_in(model, model_info_df["id"].values)
-        row = model_info_df.loc[model_info_df["id"] == model].iloc[0]
-        prompt_price = row["prompt_pricing"]
-        completion_price = row["completion_pricing"]
-        # Compute cost.
-        cost = (
-            prompt_tokens * prompt_price + completion_tokens * completion_price
-        )
-    else:
-        raise ValueError(f"Unknown provider: {provider_name}")
-    _LOG.debug(hprint.to_str("prompt_tokens completion_tokens cost"))
-    return cost
 
 
 # #############################################################################
@@ -455,9 +478,9 @@ def get_completion(
     # Report the time taken.
     msg, _ = htimer.dtimer_stop(memento)
     print(msg)
-    response = completion["choices"][0]["message"]["content"]
     if print_cost:
-        print(f"cost=${completion['cost']:.2f}")
+        print(f"cost=${completion['cost']:.6f}")
+    response = completion["choices"][0]["message"]["content"]
     return response
 
 

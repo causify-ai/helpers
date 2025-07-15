@@ -335,7 +335,8 @@ class Test_calculate_cost(hunitest.TestCase):
                 prompt_tokens=1000000, completion_tokens=2000000
             )
         )
-        cost = hllm._calculate_cost(
+        llm_cost_tracker = hllm.LLMCostTracker()
+        cost = llm_cost_tracker.calculate_cost(
             comp, model="gpt-3.5-turbo", models_info_file=""
         )
         # 1000000*(0.5/1000000) + 20000000*(1.5/1000000) = 3.5
@@ -349,8 +350,9 @@ class Test_calculate_cost(hunitest.TestCase):
         comp = types.SimpleNamespace(
             usage=types.SimpleNamespace(prompt_tokens=1, completion_tokens=1)
         )
+        llm_cost_tracker = hllm.LLMCostTracker()
         with pytest.raises(AssertionError):
-            hllm._calculate_cost(
+            llm_cost_tracker.calculate_cost(
                 comp, model="nonexistent-model", models_info_file=""
             )
 
@@ -372,7 +374,8 @@ class Test_calculate_cost(hunitest.TestCase):
         comp = types.SimpleNamespace(
             usage=types.SimpleNamespace(prompt_tokens=1, completion_tokens=1)
         )
-        cost = hllm._calculate_cost(
+        llm_cost_tracker = hllm.LLMCostTracker()
+        cost = llm_cost_tracker.calculate_cost(
             comp,
             model="m1",
             models_info_file=temp_csv_file,
