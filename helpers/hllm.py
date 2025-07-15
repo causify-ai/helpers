@@ -217,7 +217,7 @@ class LLMClient:
         """
         Call the LLM API.
 
-        Check get_completion() params for more details.
+        Check `_call_api_sync()` params for more details.
         """
         return _call_api_sync(
             cache_mode=cache_mode,
@@ -457,17 +457,10 @@ def _call_api_sync(
     """
     Make a non-streaming API call.
 
-    :param cache_mode: "DISABLE_CACHE", "REFRESH_CACHE",
-        "HIT_CACHE_OR_ABORT", "NORMAL"
-    :param client: OpenAI client
+    :param client: LLM client
     :param messages: list of messages to send to the API
-    :param model: model to use for the completion
-    :param temperature: adjust an LLM's sampling diversity: lower values
-        make it more deterministic, while higher values foster creative
-        variation. 0 < temperature <= 2, 0.1 is default value in OpenAI
-        models.
-    :param cost_tracker: LLMCostTracker instance to track costs
-    :param create_kwargs: additional parameters for the API call
+    :param cost_tracker: LLMCostTracker instance to track costs Check
+        `get_completion()` params for other param details.
     :return: OpenAI chat completion object as a dictionary
     """
     completion = client.chat.completions.create(
