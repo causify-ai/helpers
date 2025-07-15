@@ -115,21 +115,35 @@ class LLMClient:
 
     def __init__(
         self,
-        provider_name: str,
         model: str,
     ) -> None:
         """
-        :param provider_name: name of the LLM provider.
+        Initialize the LLMClient.
+
+        The model can be specified as:
+        - "gpt-4o-mini"
+        - "openai/gpt-4o-mini"
+        - "deepseek/deepseek-r1-0528-qwen3-8b:free/"
+
         :param model: model to use for the completion.
         """
-        hdbg.dassert_in(provider_name, ("openai", "openrouter"))
-        # Change the provider name to "openai" if model starts with
-        # "openai/".
-        if provider_name == "openrouter" and model.startswith("openai/"):
-            model = model[len("openai/") :]
+        hdbg.dassert_isinstance(model, str)
+        if model == "":
             provider_name = "openai"
+            model = self._get_default_model(provider_name)
+        elif "/" in model:
+            if model.startswith("openai/"):
+                # If the model starts with "openai/", set the provider name to
+                # "openai".
+                provider_name = "openai"
+                model = model[len("openai/") :]
+            else:
+                provider_name = "openrouter"
+        else:
+            provider_name = "openai"
+
         self.provider_name = provider_name
-        self.model = model or self._get_default_model()
+        self.model = model
 
     def create_client(self) -> openai.OpenAI:
         """
@@ -186,15 +200,15 @@ class LLMClient:
             **create_kwargs,
         )
 
-    def _get_default_model(self) -> str:
+    def _get_default_model(self, provider_name: str) -> str:
         """
         Get the default model for a provider.
 
         :return: default model for the provider
         """
-        if self.provider_name == "openai":
+        if provider_name == "openai":
             model = "gpt-4o"
-        elif self.provider_name == "openrouter":
+        elif provider_name == "openrouter":
             model = "openai/gpt-4o"
         else:
             raise ValueError(f"Unknown provider: {self.provider_name}")
@@ -431,7 +445,6 @@ def get_completion(
     *,
     system_prompt: str = "",
     model: str = "",
-    provider_name: str = "openai",
     report_progress: bool = False,
     print_cost: bool = False,
     cache_mode: str = "DISABLE_CACHE",
@@ -466,7 +479,7 @@ def get_completion(
     if update_llm_cache:
         cache_mode = "REFRESH_CACHE"
 
-    llm_client = LLMClient(model=model, provider_name=provider_name)
+    llm_client = LLMClient(model=model)
     llm_client.create_client()
     # Construct messages in OpenAI API request format.
     messages = llm_client.build_messages(system_prompt, user_prompt)

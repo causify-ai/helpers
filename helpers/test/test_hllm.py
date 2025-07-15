@@ -31,6 +31,7 @@ _TOP_P1 = 0.5
 _MODEL1 = "gpt-4o-mini"
 _MODEL2 = "gpt-3.5-turbo"
 _MODEL3 = "deepseek/deepseek-r1-0528-qwen3-8b:free/"
+_MODEL4 = "openai/gpt-4o"
 
 
 # Test functions for the unit tests.
