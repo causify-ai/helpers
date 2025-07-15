@@ -124,7 +124,7 @@ class LLMClient:
         :param provider_name: name of the LLM provider, e.g., "openai" or
             "openrouter". If not provided, defaults to "openai".
         """
-        hdbg.dassert_in(self.provider_name, ("openai", "openrouter"))
+        hdbg.dassert_in(provider_name, ("openai", "openrouter"))
         # Change the provider name to "openai" if model starts with
         # "openai/".
         if provider_name == "openrouter" and model.startswith("openai/"):
@@ -167,43 +167,26 @@ class LLMClient:
         ]
         return ret
 
-    @hcacsimp.simple_cache(write_through=True, exclude_keys=["cache_mode"])
-    def call_api_sync(
+    def call_llm(
         self,
         cache_mode: str,
         messages: List[Dict[str, str]],
         temperature: float,
-        model: str = "",
         **create_kwargs,
     ) -> dict[Any, Any]:
         """
-        Make a non-streaming API call.
+        Call the LLM API.
 
-        :param cache_mode: "DISABLE_CACHE", "REFRESH_CACHE",
-            "HIT_CACHE_OR_ABORT", "NORMAL"
-        :param client: OpenAI client
-        :param messages: list of messages to send to the API
-        :param model: model to use for the completion
-        :param temperature: adjust an LLM's sampling diversity: lower
-            values make it more deterministic, while higher values
-            foster creative variation. 0 < temperature <= 2, 0.1 is
-            default value in OpenAI models.
-        :param create_kwargs: additional parameters for the API call
-        :return: OpenAI chat completion object as a dictionary
+        Check get_completion() params for more details.
         """
-        completion = self.client.chat.completions.create(
-            model=model,
+        return _call_api_sync(
+            cache_mode=cache_mode,
+            client=self.client,
             messages=messages,
             temperature=temperature,
+            model=self.model,
             **create_kwargs,
         )
-        # Calculate the cost.
-        cost = _calculate_cost(completion, model)
-        _accumulate_cost_if_needed(cost)
-        completion_obj = completion.to_dict()
-        # Store the cost in the completion object.
-        completion_obj["cost"] = cost
-        return completion_obj
 
     def _get_default_model(self) -> str:
         """
@@ -220,7 +203,7 @@ class LLMClient:
         return model
 
 
-# ############################################################################
+# #############################################################################
 # OpenRouter API Helpers
 # #############################################################################
 
@@ -493,9 +476,8 @@ def get_completion(
     print("LLM API call ... ")
     memento = htimer.dtimer_start(logging.DEBUG, "LLM API call")
     if not report_progress:
-        completion = llm_client.call_api_sync(
+        completion = llm_client.call_llm(
             cache_mode=cache_mode,
-            model=llm_client.model,
             messages=messages,
             temperature=temperature,
             **create_kwargs,
