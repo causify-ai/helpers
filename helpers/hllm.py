@@ -116,13 +116,11 @@ class LLMClient:
     def __init__(
         self,
         provider_name: str,
-        model: str = "",
+        model: str,
     ) -> None:
         """
-        :param model: model to use for the completion, if empty,
-            the default model for the provider will be used.
-        :param provider_name: name of the LLM provider, e.g., "openai" or
-            "openrouter". If not provided, defaults to "openai".
+        :param provider_name: name of the LLM provider.
+        :param model: model to use for the completion.
         """
         hdbg.dassert_in(provider_name, ("openai", "openrouter"))
         # Change the provider name to "openai" if model starts with
@@ -330,8 +328,7 @@ def _call_api_sync(
         **create_kwargs,
     )
     # Calculate the cost.
-    models_info_file = ""
-    cost = _calculate_cost(completion, model, models_info_file)
+    cost = _calculate_cost(completion, model)
     _accumulate_cost_if_needed(cost)
     completion_obj = completion.to_dict()
     # Store the cost in the completion object.
